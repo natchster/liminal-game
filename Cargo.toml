@@ -1,15 +1,54 @@
 [workspace]
 resolver = "2"
-members = ["engine", "game", "app", "placers/*"]
+members = ["crates/engine", "crates/game", "crates/backrooms", "crates/placers/*", "xtask"]
+# `cargo run` / `cargo build` without -p: the game
+default-members = ["crates/backrooms"]
 
 [workspace.package]
 version = "1.0.0"
 edition = "2021"
+rust-version = "1.85"
 license = "MIT"
+publish = false
 
 [workspace.dependencies]
-engine = { path = "engine" }
-game = { path = "game" }
+# ---- workspace crates
+engine = { path = "crates/engine" }
+game = { path = "crates/game" }
+placers_p00 = { path = "crates/placers/placers_p00" }
+placers_p01 = { path = "crates/placers/placers_p01" }
+placers_p02 = { path = "crates/placers/placers_p02" }
+placers_p03 = { path = "crates/placers/placers_p03" }
+placers_p04 = { path = "crates/placers/placers_p04" }
+placers_p05 = { path = "crates/placers/placers_p05" }
+placers_p06 = { path = "crates/placers/placers_p06" }
+placers_p07 = { path = "crates/placers/placers_p07" }
+placers_p08 = { path = "crates/placers/placers_p08" }
+placers_p09 = { path = "crates/placers/placers_p09" }
+placers_p10 = { path = "crates/placers/placers_p10" }
+placers_p11 = { path = "crates/placers/placers_p11" }
+placers_p12 = { path = "crates/placers/placers_p12" }
+placers_p13 = { path = "crates/placers/placers_p13" }
+placers_p14 = { path = "crates/placers/placers_p14" }
+placers_p15 = { path = "crates/placers/placers_p15" }
+placers_p16 = { path = "crates/placers/placers_p16" }
+placers_p17 = { path = "crates/placers/placers_p17" }
+placers_p18 = { path = "crates/placers/placers_p18" }
+placers_p19 = { path = "crates/placers/placers_p19" }
+placers_p20 = { path = "crates/placers/placers_p20" }
+placers_p21 = { path = "crates/placers/placers_p21" }
+placers_p22 = { path = "crates/placers/placers_p22" }
+placers_p23 = { path = "crates/placers/placers_p23" }
+placers_p24 = { path = "crates/placers/placers_p24" }
+placers_p25 = { path = "crates/placers/placers_p25" }
+placers_p26 = { path = "crates/placers/placers_p26" }
+placers_p27 = { path = "crates/placers/placers_p27" }
+placers_p28 = { path = "crates/placers/placers_p28" }
+placers_p29 = { path = "crates/placers/placers_p29" }
+placers_p30 = { path = "crates/placers/placers_p30" }
+placers_p31 = { path = "crates/placers/placers_p31" }
+placers_p32 = { path = "crates/placers/placers_p32" }
+# ---- external
 objc2 = "0.6"
 objc2-foundation = { version = "0.3", features = ["NSString", "NSError", "NSArray", "NSDictionary", "NSValue", "NSGeometry", "NSObject", "NSProcessInfo"] }
 objc2-metal = "0.3"
@@ -22,6 +61,32 @@ winit = "0.30"
 raw-window-handle = "0.6"
 cpal = "0.15"
 miniz_oxide = "0.8"
+rustfft = "6"
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "warn"
+
+[workspace.lints.clippy]
+# literals in geometry and tuning tables are kept exactly as authored, even
+# where they are close to a std constant (changing them would change levels)
+approx_constant = "allow"
+excessive_precision = "allow"
+# `!(a < b)` is deliberate where NaN must take the other branch
+neg_cmp_op_on_partial_ord = "allow"
+# numeric code indexes several parallel arrays in one loop
+needless_range_loop = "allow"
+# scene handles are hashed by node id, not by their mutable contents
+mutable_key_type = "allow"
+too_many_arguments = "allow"
+# identical branches are deliberate where the condition draws a random number
+if_same_then_else = "allow"
+# `x < lo ? lo : x > hi ? hi : x` never panics, unlike `f64::clamp` when lo > hi
+manual_clamp = "allow"
+comparison_chain = "allow"
+field_reassign_with_default = "allow"
+should_implement_trait = "allow"
+type_complexity = "allow"
 
 [profile.dev]
 opt-level = 1

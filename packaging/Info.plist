@@ -17,6 +17,6 @@
 	<key>LSArchitecturePriority</key><array><string>arm64</string></array>
 	<key>NSHighResolutionCapable</key><true/>
 	<key>NSSupportsAutomaticGraphicsSwitching</key><true/>
-	<key>NSHumanReadableCopyright</key><string>The Backrooms — native macOS port</string>
+	<key>NSHumanReadableCopyright</key><string>The Backrooms</string>
 </dict>
 </plist>

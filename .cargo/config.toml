@@ -1,0 +1,3 @@
+[alias]
+# project automation, written in Rust (see xtask/src/main.rs)
+xtask = "run --quiet --package xtask --"

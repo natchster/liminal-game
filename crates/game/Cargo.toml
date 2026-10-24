@@ -1,0 +1,15 @@
+[package]
+name = "game"
+description = "The Backrooms: game state, level generation, props, creatures, sound, HUD and game flow (no platform code)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+engine = { workspace = true }
+serde_json = { workspace = true }
+miniz_oxide = { workspace = true }
+
+[lints]
+workspace = true

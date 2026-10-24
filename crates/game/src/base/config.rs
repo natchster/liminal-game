@@ -1,0 +1,19 @@
+//! Gameplay constants ("config").
+pub const CELL: f64 = 4.0; // world size of one maze tile
+pub const WALL_H: f64 = 3.1;
+pub const EYE: f64 = 1.62;
+pub const CROUCH_EYE: f64 = 1.05;
+pub const PLAYER_R: f64 = 0.35;
+pub const WALK: f64 = 3.6;
+pub const SPRINT: f64 = 6.4;
+pub const CROUCH_WALK: f64 = 2.0;
+pub const STAM_MAX: f64 = 100.0;
+pub const STAM_DRAIN: f64 = 20.0;
+pub const STAM_REGEN: f64 = 14.0;
+pub const SAN_MAX: f64 = 100.0;
+pub const SAN_REGEN: f64 = 3.0;
+pub const BAT_MAX: f64 = 100.0;
+pub const BAT_DRAIN: f64 = 4.0; // battery %/sec while flashlight is on
+pub const POOLED_LIGHTS: usize = 18;
+pub const KILL_DIST: f64 = 1.05;
+pub const DUST_COUNT: usize = 90;

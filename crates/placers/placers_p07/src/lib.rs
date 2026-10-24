@@ -1,0 +1,1489 @@
+//! Prop placers: country-kitchen props (mason jars, brooms, herb bundles, rolling
+//! pins, boards, bowls, whisks, aprons, teapots, tins, teacups, ladles, recipes,
+//! shakers, bread, wine, cheese, pie, cake stands, muffins, kitchen clocks),
+//! wall art (landscapes, still lifes), sewing baskets, eyeliners and teething
+//! rings.
+#![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
+use game::prelude::*;
+
+/// Every placer in this crate, by its registered name.
+pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
+    r.push(("place_mason_jars", place_mason_jars));
+    r.push(("place_wall_brooms", place_wall_brooms));
+    r.push(("place_herb_bundles", place_herb_bundles));
+    r.push(("place_rolling_pins", place_rolling_pins));
+    r.push(("place_cutting_boards", place_cutting_boards));
+    r.push(("place_mixing_bowls", place_mixing_bowls));
+    r.push(("place_whisks", place_whisks));
+    r.push(("place_wall_aprons", place_wall_aprons));
+    r.push(("place_teapots", place_teapots));
+    r.push(("place_cookie_tins", place_cookie_tins));
+    r.push(("place_teacups", place_teacups));
+    r.push(("place_cast_iron_ladles", place_cast_iron_ladles));
+    r.push(("place_spoon_rests", place_spoon_rests));
+    r.push(("place_framed_recipes", place_framed_recipes));
+    r.push(("place_shaker_pair", place_shaker_pair));
+    r.push(("place_abstract_landscapes", place_abstract_landscapes));
+    r.push(("place_bread_loaves", place_bread_loaves));
+    r.push(("place_still_lifes", place_still_lifes));
+    r.push(("place_wine_bottles", place_wine_bottles));
+    r.push(("place_cheese_wedges", place_cheese_wedges));
+    r.push(("place_pencil_eyeliners", place_pencil_eyeliners));
+    r.push(("place_teething_rings", place_teething_rings));
+    r.push(("place_kitchen_clocks", place_kitchen_clocks));
+    r.push(("place_rolling_pin_stands", place_rolling_pin_stands));
+    r.push(("place_pie_slices", place_pie_slices));
+    r.push(("place_cake_stands", place_cake_stands));
+    r.push(("place_cornbread_muffins", place_cornbread_muffins));
+    r.push(("place_sewing_baskets", place_sewing_baskets));
+}
+
+// ------------------------------------------------------------------ helpers
+
+/// The `open_tiles` scan every floor placer repeats: open interior tiles, row-major.
+fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
+    let mut v = vec![];
+    for z in 1..g.h - 1 {
+        for x in 1..g.w - 1 {
+            if g.tiles[g.t_idx(x, z)] == 0 {
+                v.push((x, z));
+            }
+        }
+    }
+    v
+}
+
+/// The `wall_tiles` scan: open interior tiles with the first adjacent wall
+/// (`tiles[..] == 1`) in `[(1,0), (-1,0), (0,1), (0,-1)]` order.
+fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
+    let mut v = vec![];
+    for z in 1..g.h - 1 {
+        for x in 1..g.w - 1 {
+            if g.tiles[g.t_idx(x, z)] == 0 {
+                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
+                        v.push((x, z, dx, dz));
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    v
+}
+
+/// A uniformly random element (one `rnd()` draw).
+fn pick<T: Copy>(a: &[T]) -> T {
+    a[(rnd() * a.len() as f64).floor() as usize]
+}
+
+/// `atan2(-dx, -dz)` (keeps -0.0 for a zero component, on purpose)
+fn face_wall(dx: i32, dz: i32) -> f64 {
+    (-(dx as f64)).atan2(-(dz as f64))
+}
+
+// R661 mason jar: 7% chance per level. Glass body + metal
+// screw lid + optional interior contents.
+fn place_mason_jars(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    } // 7% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let glass_mat = lambert!({ color: 0xd8e0d8, transparent: true, opacity: 0.55 });
+    let lid_mat = lambert!({ color: 0xc0c0c0 });
+    let content_colors: [u32; 5] = [0xc02020, 0xf0e020, 0x60a040, 0xa06030, 0xe0a020];
+    let jar = group();
+    // Glass body (short cylinder w/ slight shoulder taper).
+    let body = mesh(cyl_geo!(0.036, 0.036, 0.10, 12), &glass_mat);
+    body.position().y = 0.050;
+    jar.add(&body);
+    // Shoulder taper (small cone top).
+    let shoulder = mesh(cyl_geo!(0.028, 0.036, 0.010, 12), &glass_mat);
+    shoulder.position().y = 0.105;
+    jar.add(&shoulder);
+    // Neck.
+    let neck = mesh(cyl_geo!(0.028, 0.028, 0.012, 10), &glass_mat);
+    neck.position().y = 0.116;
+    jar.add(&neck);
+    // Metal lid (band + top disc).
+    let band = mesh(pg("MasonJars__band", cyl_geo!(0.030, 0.030, 0.010, 12)), &lid_mat);
+    band.position().y = 0.127;
+    jar.add(&band);
+    let lid_top = mesh(pg("MasonJars__lid", cyl_geo!(0.028, 0.028, 0.003, 12)), &lid_mat);
+    lid_top.position().y = 0.134;
+    jar.add(&lid_top);
+    // 70% chance interior contents (colored fill).
+    if rnd() < 0.7 {
+        let c_mat = lambert!({ color: pick(&content_colors) });
+        let fill_h = 0.05 + rnd() * 0.04;
+        let content = mesh(pg("MasonJars__fill", cyl_geo!(0.032, 0.032, fill_h, 10)), &c_mat);
+        content.position().y = fill_h / 2.0 + 0.002;
+        jar.add(&content);
+    }
+    jar.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
+    jar.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&jar);
+}
+
+// R661 wall broom (hanging): 4% chance per level. Long handle
+// + bristle bundle attached to wall bracket.
+fn place_wall_brooms(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    } // 4% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let handle_mat = lambert!({ color: 0x8b5a2b });
+    let bristle_mat = lambert!({ color: 0xa08040 });
+    let bracket_mat = lambert!({ color: 0x404040 });
+    let broom = group();
+    let mount_y = 1.55;
+    // Long vertical handle.
+    let handle = mesh(pg("WallBrooms__handle", cyl_geo!(0.010, 0.010, 0.60, 6)), &handle_mat);
+    handle.position().y = mount_y;
+    broom.add(&handle);
+    // Wall bracket (2 small clamps).
+    for i in 0..2 {
+        let clamp = mesh(pg("WallBrooms__clip", torus_geo!(0.014, 0.003, 3, 8, PI)), &bracket_mat);
+        // Horizontal half ring wrapped round the handle's front, ends toward the wall.
+        clamp.rotation().x = PI / 2.0;
+        clamp.position().set(0, mount_y + if i == 0 { 0.18 } else { -0.18 }, -0.005);
+        broom.add(&clamp);
+    }
+    // Bristle bundle at bottom (tapered wider cone).
+    let bristles = mesh(pg("WallBrooms__bristles", cone_geo!(0.055, 0.14, 8)), &bristle_mat);
+    bristles.position().set(0, mount_y - 0.34, 0);
+    broom.add(&bristles);
+    // Rope/twine binding above bristles.
+    let binding = mesh(pg("WallBrooms__twine", torus_geo!(0.014, 0.003, 3, 10)), &bracket_mat);
+    binding.rotation().x = PI / 2.0;
+    binding.position().set(0, mount_y - 0.28, 0);
+    broom.add(&binding);
+    broom.rotation().y = face_wall(dx, dz);
+    broom.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.010), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.010));
+    g.world.add(&broom);
+}
+
+// R662 hanging herbs bundle: 5% chance per level. Wall
+// bunch of dried herbs tied w/ string.
+fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.95 {
+        return;
+    } // 5% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let string_mat = lambert!({ color: 0x604020 });
+    let herb_colors: [u32; 5] = [0x506030, 0x405020, 0x607040, 0x304018, 0x807040];
+    let bundle = group();
+    let mount_y = 1.85;
+    // Small hook at wall.
+    let hook = mesh(pg("HerbBundles__hook", cyl_geo!(0.003, 0.003, 0.010, 4)), &string_mat);
+    hook.rotation().x = PI / 2.0;
+    // Rosette on the wall (z -0.008); the twine loop's back hangs on its
+    // upturned tip (it was 3 cm above the binding, 9 mm off the wall).
+    hook.position().set(0, mount_y + 0.053, -0.003);
+    bundle.add(&hook);
+    // Twine binding.
+    let twine = mesh(pg("HerbBundles__twine", torus_geo!(0.010, 0.002, 3, 8)), &string_mat);
+    twine.rotation().x = PI / 2.0;
+    twine.position().set(0, mount_y + 0.05, 0.010);
+    bundle.add(&twine);
+    // 5-8 herb stems hanging down (thin cylinders).
+    let stem_count = 5 + (rnd() * 4.0).floor() as i32;
+    let cluster_color = pick(&herb_colors);
+    for i in 0..stem_count {
+        let herb_mat = lambert!({ color: cluster_color, side: DoubleSide });
+        // Stem.
+        let stem = mesh(cyl_geo!(0.001, 0.001, 0.12, 3), &herb_mat);
+        let off = (i as f64 - stem_count as f64 / 2.0) * 0.008;
+        stem.position().set(off, mount_y - 0.010, 0.014);
+        stem.rotation().z = off * 0.6;
+        bundle.add(&stem);
+        // Small leaf clusters along stem (3 per).
+        for l in 0..3 {
+            let leaf = mesh(circle_geo!(0.006, 5), &herb_mat);
+            leaf.position().set(off - 0.003, mount_y - 0.020 - l as f64 * 0.030, 0.016);
+            leaf.rotation().y = PI / 2.0;
+            leaf.rotation().x = (rnd() - 0.5) * 0.4;
+            bundle.add(&leaf);
+        }
+    }
+    bundle.rotation().y = face_wall(dx, dz);
+    bundle.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
+    g.world.add(&bundle);
+}
+
+// R662 wooden rolling pin: 6% chance per level. Central roll
+// + 2 handle knobs.
+fn place_rolling_pins(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let wood_colors: [u32; 4] = [0xc0a070, 0xa07050, 0xd0b080, 0x8b5a2b];
+    let wood_mat = lambert!({ color: pick(&wood_colors) });
+    let pin = group();
+    // Main roller cylinder (28 cm).
+    let roller = mesh(pg("RollingPins__roller", cyl_geo!(0.024, 0.024, 0.28, 12)), &wood_mat);
+    roller.rotation().z = PI / 2.0;
+    roller.position().y = 0.024;
+    pin.add(&roller);
+    // 2 handle stems (thinner cylinders extending each end).
+    for side in [-1.0, 1.0] {
+        let stem = mesh(pg("RollingPins__stem", cyl_geo!(0.010, 0.010, 0.050, 8)), &wood_mat);
+        stem.rotation().z = PI / 2.0;
+        stem.position().set(side * 0.165, 0.024, 0);
+        pin.add(&stem);
+        // Handle knob at end (small sphere).
+        let knob = mesh(pg("RollingPins__knob", sphere_geo!(0.014, 6, 5)), &wood_mat);
+        knob.position().set(side * 0.194, 0.024, 0);
+        pin.add(&knob);
+    }
+    pin.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    pin.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&pin);
+}
+
+// R663 cutting board: 6% chance per level. Wooden board
+// w/ hole handle.
+fn place_cutting_boards(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let wood_colors: [u32; 4] = [0xc0a070, 0x8b5a2b, 0xa08050, 0xd0b080];
+    let board_mat = lambert!({ color: pick(&wood_colors) });
+    let board = group();
+    let plank = mesh(pg("CuttingBoards__plank", box_geo!(0.30, 0.018, 0.20)), &board_mat);
+    plank.position().y = 0.009;
+    board.add(&plank);
+    let hole = mesh(cyl_geo!(0.012, 0.012, 0.022, 8), lambert!({ color: 0x201810 }));
+    hole.scale().y = 0.8; // 0..0.0176: just under the board top (0.018), not proud of it
+    hole.position().set(-0.130, 0.0088, 0);
+    board.add(&hole);
+    for i in 0..3 {
+        let score = mesh(box_geo!(0.10 + rnd() * 0.06, 0.001, 0.001), lambert!({ color: 0x503020 }));
+        score.position().set(0.02 + i as f64 * 0.02, 0.019, -0.06 + i as f64 * 0.03);
+        score.rotation().y = (rnd() - 0.5) * 0.2;
+        board.add(&score);
+    }
+    board.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    board.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&board);
+}
+
+// R663 ceramic mixing bowl: 6% chance per level.
+fn place_mixing_bowls(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let bowl_colors: [u32; 6] = [0xf0e8d8, 0xd8b090, 0x8080a0, 0x408090, 0xa0d0e0, 0xe0e0e0];
+    let bowl_mat = lambert!({ color: pick(&bowl_colors) });
+    let bowl = group();
+    let body = mesh(pg("MixingBowls__body", cyl_geo!(0.075, 0.048, 0.055, 14)), &bowl_mat);
+    body.position().y = 0.028;
+    bowl.add(&body);
+    let rim = mesh(pg("MixingBowls__rim", torus_geo!(0.075, 0.005, 4, 16)), &bowl_mat);
+    rim.rotation().x = PI / 2.0;
+    rim.position().y = 0.056;
+    bowl.add(&rim);
+    if rnd() < 0.5 {
+        let dough_mat = lambert!({ color: 0xf0e0b8 });
+        let dough = mesh(pg("MixingBowls__dough", sphere_geo!(0.055, 10, 6)), &dough_mat);
+        dough.scale().y = 0.4;
+        dough.position().y = 0.046;
+        bowl.add(&dough);
+    }
+    bowl.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    bowl.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&bowl);
+}
+
+// R665 wire whisk: 7% chance per level. Handle + bulb of
+// curved wire loops.
+fn place_whisks(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    } // 7% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let wire_mat = lambert!({ color: 0xc0c0c0 });
+    let handle_colors: [u32; 4] = [0x606060, 0x8b5a2b, 0x202020, 0xc02020];
+    let handle_mat = lambert!({ color: pick(&handle_colors) });
+    let whisk = group();
+    // Handle laid flat.
+    let handle = mesh(pg("Whisks__handle", cyl_geo!(0.010, 0.010, 0.10, 8)), &handle_mat);
+    handle.rotation().z = PI / 2.0;
+    handle.position().set(-0.030, 0.010, 0);
+    whisk.add(&handle);
+    // Handle end cap.
+    let cap = mesh(pg("Whisks__cap", sphere_geo!(0.011, 6, 5)), &handle_mat);
+    cap.position().set(-0.084, 0.010, 0);
+    whisk.add(&cap);
+    // Metal ferrule between handle + wires.
+    let ferrule = mesh(pg("Whisks__ferrule", cyl_geo!(0.011, 0.011, 0.010, 8)), &wire_mat);
+    ferrule.rotation().z = PI / 2.0;
+    ferrule.position().set(0.024, 0.010, 0);
+    whisk.add(&ferrule);
+    // 6 curved wire loops forming teardrop bulb.
+    for i in 0..6 {
+        let a = (i as f64 / 6.0) * PI * 2.0;
+        let wire = mesh(pg("Whisks__wire", torus_geo!(0.020, 0.0012, 3, 10, PI)), &wire_mat);
+        // Loops fanned round the handle axis (x): their ends meet at the poles,
+        // the near pole (x 0.027) inside the ferrule.
+        wire.rotation().x = a;
+        wire.position().set(0.047, 0.010, 0);
+        whisk.add(&wire);
+    }
+    whisk.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    whisk.rotation().y = rnd() * PI * 2.0;
+    // The wire ball (r 0.021) is fatter than the handle: tip the whisk so the
+    // ball and the end cap both rest on the floor.
+    whisk.rotation().z = 0.078;
+    whisk.position().y = 0.0076;
+    g.world.add(&whisk);
+}
+
+// R665 hanging wall apron: 5% chance per level. Wall bracket
+// + folded fabric apron w/ pocket.
+fn place_wall_aprons(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.95 {
+        return;
+    } // 5% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let apron_colors: [u32; 6] = [0xc02020, 0x2060a0, 0x408040, 0xc0a040, 0x606060, 0xd050a0];
+    let apron_mat = lambert!({ color: pick(&apron_colors), side: DoubleSide });
+    let strap_mat = lambert!({ color: 0x604020 });
+    let hook_mat = lambert!({ color: 0x808080 });
+    let apron = group();
+    let mount_y = 1.75;
+    let hook = mesh(pg("WallAprons__peg", cyl_geo!(0.004, 0.004, 0.015, 4)), &hook_mat);
+    hook.rotation().x = PI / 2.0;
+    hook.position().set(0, mount_y + 0.24, 0.008);
+    apron.add(&hook);
+    let neck_strap = mesh(pg("WallAprons__strap", torus_geo!(0.020, 0.003, 3, 10, PI)), &strap_mat);
+    // Loop draped over the peg in the wall plane (inner top on the peg), its ends
+    // tucked behind the bib's top edge.
+    neck_strap.scale().set(3.6, 3.6, 1);
+    neck_strap.position().set(0, mount_y + 0.17, 0.008);
+    apron.add(&neck_strap);
+    let bib = mesh(plane_geo!(0.20, 0.15), &apron_mat);
+    bib.position().set(0, mount_y + 0.10, 0.014);
+    apron.add(&bib);
+    let skirt = mesh(plane_geo!(0.32, 0.28), &apron_mat);
+    skirt.position().set(0, mount_y - 0.10, 0.014);
+    apron.add(&skirt);
+    let pocket = mesh(plane_geo!(0.20, 0.08), lambert!({ color: 0x000000, opacity: 0.15, transparent: true }));
+    pocket.position().set(0, mount_y - 0.06, 0.015);
+    apron.add(&pocket);
+    for side in [-1.0, 1.0] {
+        let tie = mesh(plane_geo!(0.08, 0.10), &apron_mat);
+        tie.position().set(side * 0.13, mount_y + 0.02, 0.014);
+        tie.rotation().z = side * 0.4;
+        apron.add(&tie);
+    }
+    apron.rotation().y = face_wall(dx, dz);
+    apron.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
+    g.world.add(&apron);
+}
+
+// R667 teapot on trivet: 4% chance per level.
+fn place_teapots(g: &mut Game, _dist: &[i32]) {
+    g.pp.teapot_positions.clear(); // R672 reset per level
+    if rnd() < 0.96 {
+        return;
+    } // 4% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let pot_colors: [u32; 6] = [0xf0f0f0, 0x408080, 0xc02020, 0x203050, 0xd0a040, 0x606060];
+    let pot_mat = lambert!({ color: pick(&pot_colors) });
+    let trivet_mat = lambert!({ color: 0x505050 });
+    let teapot = group();
+    let trivet = mesh(pg("Teapots__trivet", cyl_geo!(0.075, 0.075, 0.006, 10)), &trivet_mat);
+    trivet.position().y = 0.003;
+    teapot.add(&trivet);
+    for i in 0..3 {
+        let a = (i as f64 / 3.0) * PI * 2.0;
+        let foot = mesh(pg("Teapots__foot", cyl_geo!(0.006, 0.006, 0.008, 4)), &trivet_mat);
+        // Under the trivet (top 0.5 mm into its underside); the group is raised onto the feet.
+        foot.position().set(a.cos() * 0.060, -0.0035, a.sin() * 0.060);
+        teapot.add(&foot);
+    }
+    let body = mesh(pg("Teapots__body", sphere_geo!(0.060, 12, 10)), &pot_mat);
+    body.scale().y = 0.75;
+    body.position().y = 0.052;
+    teapot.add(&body);
+    let spout1 = mesh(pg("Teapots__spout", cyl_geo!(0.012, 0.014, 0.030, 6)), &pot_mat);
+    // Wide end in the body, narrow end rising outward (-x) at 30 degrees.
+    spout1.rotation().z = PI / 3.0;
+    spout1.position().set(-0.058, 0.058, 0);
+    teapot.add(&spout1);
+    let spout2 = mesh(pg("Teapots__spoutTip", cyl_geo!(0.009, 0.012, 0.024, 6)), &pot_mat);
+    // Tip continues from spout1's narrow end (-0.071, 0.0655), rising at 45 degrees.
+    spout2.rotation().z = PI / 4.0;
+    spout2.position().set(-0.0795, 0.074, 0);
+    teapot.add(&spout2);
+    let handle = mesh(pg("Teapots__handle", torus_geo!(0.030, 0.006, 4, 10, PI)), &pot_mat);
+    // C looping out from the +x side, both ends on the belly.
+    handle.rotation().z = -PI / 2.0;
+    handle.position().set(0.044, 0.052, 0);
+    teapot.add(&handle);
+    let lid = mesh(pg("Teapots__lid", cyl_geo!(0.022, 0.026, 0.010, 10)), &pot_mat);
+    lid.position().y = 0.101; // seated on the body top (0.097)
+    teapot.add(&lid);
+    let knob = mesh(pg("Teapots__knob", sphere_geo!(0.008, 6, 5)), &pot_mat);
+    knob.position().y = 0.111;
+    teapot.add(&knob);
+    teapot.position().set(
+        g.wx(x) + (rnd() - 0.5) * 2.0,
+        0.0075, // standing on the trivet feet
+        g.wz(z) + (rnd() - 0.5) * 2.0,
+    );
+    teapot.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&teapot);
+    // R672 subtle lid lift-and-settle: rare, brief Y bob when
+    // sin(t*0.12 + phase) > 0.94 (~6% of time). Simulates steam
+    // pressure lifting lid slightly.
+    let phase = rnd() * PI * 2.0;
+    let (lid2, knob2) = (lid.clone(), knob.clone());
+    g.animate(move |_g, _dt, t| {
+        let trig = (t * 0.12 + phase).sin();
+        if trig > 0.94 {
+            let local = (trig - 0.94) / 0.06; // 0..1
+            let lift = (local * PI).sin() * 0.003;
+            lid2.position().y = 0.101 + lift;
+            knob2.position().y = 0.111 + lift;
+        } else {
+            lid2.position().y = 0.101;
+            knob2.position().y = 0.111;
+        }
+    });
+    let p = teapot.pos();
+    g.pp.teapot_positions.push(v3(p.x, 0, p.z)); // R672 track for whistle
+}
+
+// R667 cookie tin box: 6% chance per level.
+game::lazy_static_tex!(
+    cookie_tin_texture,
+    canvas_tex(160, 160, |ctx, w, h| {
+        ctx.set_fill_style("#e8d8a8");
+        ctx.fill_rect(0, 0, w, h);
+        let (cx, cy) = (w / 2.0, h / 2.0);
+        ctx.set_stroke_style("#804020");
+        ctx.set_line_width(3);
+        ctx.begin_path();
+        ctx.arc(cx, cy, w * 0.42, 0, PI * 2.0);
+        ctx.stroke();
+        ctx.set_fill_style("#c04040");
+        for i in 0..8 {
+            let a = (i as f64 / 8.0) * PI * 2.0;
+            ctx.begin_path();
+            ctx.arc(cx + a.cos() * w * 0.36, cy + a.sin() * w * 0.36, 6, 0, PI * 2.0);
+            ctx.fill();
+        }
+        ctx.set_fill_style("#804020");
+        ctx.begin_path();
+        ctx.arc(cx, cy, 20, 0, PI * 2.0);
+        ctx.fill();
+        ctx.set_fill_style("#f0e0a0");
+        ctx.begin_path();
+        for i in 0..10 {
+            let a = (i as f64 / 10.0) * PI * 2.0 - PI / 2.0;
+            let r = if i % 2 == 0 { 14.0 } else { 6.0 };
+            let px = cx + a.cos() * r;
+            let py = cy + a.sin() * r;
+            if i == 0 {
+                ctx.move_to(px, py);
+            } else {
+                ctx.line_to(px, py);
+            }
+        }
+        ctx.close_path();
+        ctx.fill();
+    })
+);
+
+fn place_cookie_tins(g: &mut Game, _dist: &[i32]) {
+    g.pp.cookie_tin_positions.clear(); // R678 reset per level
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let tin_colors: [u32; 4] = [0xa04020, 0x408060, 0x2060a0, 0x604020];
+    let tin_mat = lambert!({ color: pick(&tin_colors) });
+    let lid_mat = lambert!({ map: cookie_tin_texture() });
+    let tin = group();
+    let body = mesh(pg("CookieTins__body", cyl_geo!(0.075, 0.075, 0.055, 16)), &tin_mat);
+    body.position().y = 0.028;
+    tin.add(&body);
+    let lid = mesh(circle_geo!(0.075, 16), &lid_mat);
+    lid.rotation().x = -PI / 2.0;
+    lid.position().y = 0.056;
+    tin.add(&lid);
+    let rim = mesh(pg("CookieTins__rim", torus_geo!(0.075, 0.003, 4, 16)), &tin_mat);
+    rim.rotation().x = PI / 2.0;
+    rim.position().y = 0.056;
+    tin.add(&rim);
+    // R699 subtle lid Y-jitter — 35% chance. Pairs w/ R678 rattle audio:
+    // when the tin "rattles", visually the lid is also settling.
+    if rnd() < 0.35 {
+        let lid_base_y = 0.056;
+        let jitter_phase = rnd() * PI * 2.0;
+        let jitter_phase2 = rnd() * PI * 2.0;
+        let lid2 = lid.clone();
+        g.animate(move |_g, _dt, t| {
+            // Multi-freq combined sine, very small amplitude (~0.6 mm).
+            lid2.position().y = lid_base_y + (t * 2.7 + jitter_phase).sin() * 0.0006 + (t * 4.3 + jitter_phase2).sin() * 0.0004;
+        });
+    }
+    tin.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    tin.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&tin);
+    let p = tin.pos();
+    g.pp.cookie_tin_positions.push(v3(p.x, 0, p.z)); // R678
+}
+
+// R668 teacup + saucer: 7% chance per level.
+fn place_teacups(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    } // 7% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let cup_colors: [u32; 6] = [0xffffff, 0xf0e0d0, 0x8080a0, 0xd050a0, 0xc0e0a0, 0xa0d0e0];
+    let cup_mat = lambert!({ color: pick(&cup_colors) });
+    let cup = group();
+    let saucer = mesh(pg("Teacups__saucer", cyl_geo!(0.055, 0.050, 0.006, 14)), &cup_mat);
+    saucer.position().y = 0.003;
+    cup.add(&saucer);
+    let indent = mesh(cyl_geo!(0.028, 0.028, 0.002, 12), lambert!({ color: 0xf0e0d0 }));
+    indent.position().y = 0.007;
+    cup.add(&indent);
+    let body = mesh(pg("Teacups__cup", cyl_geo!(0.028, 0.022, 0.032, 12)), &cup_mat);
+    body.position().y = 0.022;
+    cup.add(&body);
+    let handle = mesh(pg("Teacups__handle", torus_geo!(0.012, 0.003, 4, 8, PI)), &cup_mat);
+    // C looping out from the cup wall (+x), both ends on the wall.
+    handle.rotation().z = -PI / 2.0;
+    handle.position().set(0.0245, 0.022, 0);
+    cup.add(&handle);
+    if rnd() < 0.6 {
+        let tea_mat = lambert!({ color: 0x40200a });
+        let tea = mesh(pg("Teacups__tea", cyl_geo!(0.024, 0.024, 0.003, 10)), &tea_mat);
+        tea.position().y = 0.036;
+        cup.add(&tea);
+    }
+    cup.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    cup.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&cup);
+    let p = cup.pos();
+    g.pp.teacup_positions.push(v3(p.x, 0, p.z)); // R675
+}
+
+// R668 hanging cast iron ladle: 4% chance per level.
+fn place_cast_iron_ladles(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    } // 4% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let iron_mat = lambert!({ color: 0x181818 });
+    let ladle = group();
+    let mount_y = 1.80;
+    let handle = mesh(pg("CastIronLadles__handle", cyl_geo!(0.008, 0.008, 0.34, 6)), &iron_mat);
+    handle.position().set(0, mount_y, 0.010);
+    ladle.add(&handle);
+    let ring = mesh(pg("CastIronLadles__ring", torus_geo!(0.010, 0.002, 3, 8)), &iron_mat);
+    // Upright hanging ring (facing the room), its lower edge through the handle top (0.17).
+    ring.position().set(0, mount_y + 0.176, 0.010);
+    ladle.add(&ring);
+    let bowl = mesh(pg("CastIronLadles__bowl", sphere_geo!(0.035, 10, 6, 0, PI * 2.0, PI / 2.0, PI / 2.0)), &iron_mat);
+    // Rim (opening at the bowl centre height) meets the handle's lower end at its back.
+    bowl.position().set(0, mount_y - 0.172, 0.037);
+    ladle.add(&bowl);
+    ladle.rotation().y = face_wall(dx, dz);
+    ladle.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
+    g.world.add(&ladle);
+}
+
+// R670 spoon rest w/ spoon: 7% chance per level.
+fn place_spoon_rests(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    } // 7% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let rest_colors: [u32; 5] = [0xffffff, 0xf0e0d0, 0x8080a0, 0x408080, 0xd050a0];
+    let rest_mat = lambert!({ color: pick(&rest_colors) });
+    let wood_mat = lambert!({ color: 0x8b5a2b });
+    let rest = group();
+    let dish = mesh(pg("SpoonRests__dish", sphere_geo!(0.045, 12, 8, 0, PI * 2.0, 0, PI / 2.0)), &rest_mat);
+    // Flipped into a shallow dish standing on the plate (0.004..0.0139), not half under the floor.
+    dish.scale().set(1.6, 0.22, 1);
+    dish.rotation().x = PI;
+    dish.position().y = 0.0139;
+    rest.add(&dish);
+    let plate = mesh(pg("SpoonRests__plate", cyl_geo!(0.070, 0.070, 0.004, 14)), &rest_mat);
+    plate.scale().set(1, 1, 0.65);
+    plate.position().y = 0.002;
+    rest.add(&plate);
+    if rnd() < 0.7 {
+        let handle = mesh(pg("SpoonRests__handle", cyl_geo!(0.006, 0.006, 0.13, 6)), &wood_mat);
+        handle.rotation().z = PI / 2.0;
+        handle.position().set(0.016, 0.0195, 0); // resting on the dish rim (top 0.0139)
+        rest.add(&handle);
+        let bowl = mesh(pg("SpoonRests__bowl", sphere_geo!(0.014, 8, 6)), &wood_mat);
+        bowl.scale().set(1, 0.4, 0.75);
+        bowl.position().set(-0.056, 0.0165, 0); // lying in the dish, inside its rim
+        rest.add(&bowl);
+    }
+    rest.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    rest.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&rest);
+}
+
+// R670 framed hand-drawn recipe: 4% chance per level.
+game::lazy_static_tex!(
+    recipe_texture,
+    canvas_tex(112, 152, |ctx, w, h| {
+        ctx.set_fill_style("#f8f0d8");
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_stroke_style("#804020");
+        ctx.set_line_width(1);
+        ctx.stroke_rect(6, 6, w - 12.0, h - 12.0);
+        ctx.set_fill_style("#40200a");
+        ctx.fill_rect(14, 14, w - 28.0, 6);
+        ctx.set_fill_style("#c02020");
+        ctx.begin_path();
+        ctx.arc(w * 0.5, 32, 4, 0, PI * 2.0);
+        ctx.fill();
+        ctx.set_fill_style("#40301a");
+        for i in 0..8 {
+            let y = 46.0 + i as f64 * 11.0;
+            let start_x = 14.0 + if i % 2 == 0 { 0.0 } else { 6.0 };
+            let w2 = 40.0 + rnd() * (w - 60.0 - start_x);
+            ctx.fill_rect(start_x, y, w2, 1.6);
+        }
+        ctx.set_fill_style("#40200a");
+        ctx.fill_rect(w * 0.5, h - 22.0, w * 0.35, 1.8);
+    })
+);
+
+fn place_framed_recipes(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    } // 4% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let frame_mat = lambert!({ color: 0x604020 });
+    let paper_mat = lambert!({ map: recipe_texture() });
+    let rec = group();
+    let mount_y = 1.65;
+    let frame = mesh(pg("FramedRecipes__frame", box_geo!(0.20, 0.26, 0.014)), &frame_mat);
+    frame.position().y = mount_y;
+    rec.add(&frame);
+    let paper = mesh(plane_geo!(0.16, 0.22), &paper_mat);
+    paper.position().set(0, mount_y, 0.002); // in the frame's rebate (floor z 0.001), behind the sight edge
+    rec.add(&paper);
+    rec.rotation().z = (rnd() - 0.5) * 0.06;
+    rec.rotation().y = face_wall(dx, dz);
+    rec.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
+    g.world.add(&rec);
+}
+
+// R671 salt shaker + pepper mill pair: 6% chance per level.
+fn place_shaker_pair(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let glass_mat = lambert!({ color: 0xffffff, transparent: true, opacity: 0.75 });
+    let wood_mat = lambert!({ color: 0x8b5a2b });
+    let cap_mat = lambert!({ color: 0xc0c0c0 });
+    let salt_mat = lambert!({ color: 0xf8f4e8 });
+    let pepper_mat = lambert!({ color: 0x202018 });
+    let pair = group();
+    let salt_body = mesh(cyl_geo!(0.022, 0.022, 0.058, 10), &glass_mat);
+    salt_body.position().set(-0.028, 0.029, 0);
+    pair.add(&salt_body);
+    let salt_fill = mesh(pg("ShakerPair__salt", cyl_geo!(0.020, 0.020, 0.030, 10)), &salt_mat);
+    salt_fill.position().set(-0.028, 0.017, 0);
+    pair.add(&salt_fill);
+    let salt_cap = mesh(pg("ShakerPair__cap", cyl_geo!(0.024, 0.022, 0.014, 10)), &cap_mat);
+    salt_cap.position().set(-0.028, 0.065, 0);
+    pair.add(&salt_cap);
+    for i in 0..5 {
+        let a = (i as f64 / 5.0) * PI * 2.0;
+        let hole = mesh(circle_geo!(0.002, 4), lambert!({ color: 0x101010 }));
+        hole.rotation().x = -PI / 2.0;
+        hole.position().set(-0.028 + a.cos() * 0.012, 0.073, a.sin() * 0.012);
+        pair.add(&hole);
+    }
+    let mill_body = mesh(pg("ShakerPair__mill", cyl_geo!(0.020, 0.024, 0.100, 10)), &wood_mat);
+    mill_body.position().set(0.028, 0.050, 0);
+    pair.add(&mill_body);
+    let pepper_fill = mesh(cyl_geo!(0.017, 0.017, 0.030, 8), &pepper_mat);
+    pepper_fill.position().set(0.028, 0.020, 0);
+    pair.add(&pepper_fill);
+    let mill_knob = mesh(pg("ShakerPair__knob", cyl_geo!(0.008, 0.008, 0.014, 8)), &cap_mat);
+    mill_knob.position().set(0.028, 0.107, 0);
+    pair.add(&mill_knob);
+    pair.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    pair.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&pair);
+}
+
+// R671 framed abstract landscape: 4% chance per level.
+game::lazy_static_tex!(
+    landscape_texture,
+    canvas_tex(160, 120, |ctx, w, h| {
+        let sky = ctx.create_linear_gradient(0, 0, 0, h * 0.6);
+        let sky_top = ["#e0a080", "#a0c0e0", "#d0d0d0", "#f0d060"][(rnd() * 4.0).floor() as usize];
+        let sky_bot = ["#f0c090", "#c0d8e8", "#e0e0e0", "#f0e090"][(rnd() * 4.0).floor() as usize];
+        sky.add_color_stop(0, sky_top);
+        sky.add_color_stop(1, sky_bot);
+        ctx.set_fill_style(&sky);
+        ctx.fill_rect(0, 0, w, h * 0.6);
+        ctx.set_fill_style("#f8e0a0");
+        ctx.begin_path();
+        ctx.arc(w * 0.7, h * 0.30, 14, 0, PI * 2.0);
+        ctx.fill();
+        ctx.set_fill_style("#605060");
+        ctx.begin_path();
+        ctx.move_to(0, h * 0.6);
+        for i in 0..6 {
+            ctx.line_to(i as f64 * w / 5.0, h * 0.55 + rnd() * h * 0.1);
+        }
+        ctx.line_to(w, h * 0.6);
+        ctx.close_path();
+        ctx.fill();
+        ctx.set_fill_style("#405030");
+        ctx.fill_rect(0, h * 0.6, w, h * 0.4);
+        ctx.set_fill_style("#202018");
+        let tree_count = 4 + (rnd() * 3.0).floor() as i32;
+        for _ in 0..tree_count {
+            let tx = 20.0 + rnd() * (w - 40.0);
+            let ty = h * 0.6 - 10.0 + rnd() * 20.0;
+            ctx.fill_rect(tx - 1.0, ty, 2, 20);
+            ctx.begin_path();
+            ctx.arc(tx, ty - 4.0, 8.0 + rnd() * 4.0, 0, PI * 2.0);
+            ctx.fill();
+        }
+    })
+);
+
+fn place_abstract_landscapes(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    } // 4% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let frame_mat = lambert!({ color: 0xd0a040 });
+    let art_mat = lambert!({ map: landscape_texture() });
+    let painting = group();
+    let mount_y = 1.65;
+    let frame = mesh(pg("AbstractLandscapes__frame", box_geo!(0.32, 0.24, 0.012)), &frame_mat);
+    frame.position().y = mount_y;
+    painting.add(&frame);
+    let art = mesh(plane_geo!(0.28, 0.20), &art_mat);
+    art.position().set(0, mount_y, 0.0); // in the frame's rebate (floor z -0.001), behind the sight edge
+    painting.add(&art);
+    painting.rotation().z = (rnd() - 0.5) * 0.04;
+    painting.rotation().y = face_wall(dx, dz);
+    painting.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
+    g.world.add(&painting);
+}
+
+// R673 bread loaf on board: 5% chance per level.
+fn place_bread_loaves(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.95 {
+        return;
+    } // 5% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let board_mat = lambert!({ color: 0x8b5a2b });
+    let crust_mat = lambert!({ color: 0xa06030 });
+    let score_mat = lambert!({ color: 0x503018 });
+    let loaf = group();
+    let board = mesh(pg("BreadLoaves__board", box_geo!(0.24, 0.010, 0.14)), &board_mat);
+    board.position().y = 0.005;
+    loaf.add(&board);
+    let body = mesh(pg("BreadLoaves__loaf", sphere_geo!(0.048, 12, 8)), &crust_mat);
+    body.scale().set(2, 0.85, 1.0);
+    body.position().y = 0.0508; // flat base on the board top (0.010), not sunk 6 mm into it
+    loaf.add(&body);
+    for i in 0..3 {
+        let score = mesh(pg("BreadLoaves__score", box_geo!(0.006, 0.003, 0.045)), &score_mat);
+        // follows the raised crust; the outer two sit lower where the crust falls away
+        score.position().set(-0.038 + i as f64 * 0.038, if i == 1 { 0.0908 } else { 0.0888 }, 0);
+        score.rotation().y = 0.5;
+        loaf.add(&score);
+    }
+    loaf.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    loaf.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&loaf);
+}
+
+// R673 framed still-life (fruit bowl): 3% chance per level.
+game::lazy_static_tex!(
+    stilllife_texture,
+    canvas_tex(160, 128, |ctx, w, h| {
+        ctx.set_fill_style("#4a3a2a");
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_fill_style("#8b5a2b");
+        ctx.fill_rect(0, h * 0.65, w, h * 0.35);
+        ctx.set_fill_style("#c0a070");
+        ctx.begin_path();
+        ctx.ellipse(w / 2.0, h * 0.65, w * 0.20, h * 0.14, 0, 0, PI);
+        ctx.fill();
+        let fruit_colors = ["#c02020", "#e0c020", "#a04020", "#c04060", "#606030"];
+        for i in 0..5 {
+            let fx = w * 0.35 + (i % 3) as f64 * w * 0.10;
+            let fy = h * 0.55 + (i / 3) as f64 * h * 0.08;
+            ctx.set_fill_style(fruit_colors[i % 5]);
+            ctx.begin_path();
+            ctx.arc(fx, fy, 10.0 + rnd() * 3.0, 0, PI * 2.0);
+            ctx.fill();
+            ctx.set_fill_style("#f8e8b0");
+            ctx.begin_path();
+            ctx.arc(fx - 3.0, fy - 3.0, 2, 0, PI * 2.0);
+            ctx.fill();
+        }
+    })
+);
+
+fn place_still_lifes(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.97 {
+        return;
+    } // 3% chance
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let frame_mat = lambert!({ color: 0x604020 });
+    let gild_mat = lambert!({ color: 0xd0a040 });
+    let art_mat = lambert!({ map: stilllife_texture() });
+    let still = group();
+    let mount_y = 1.65;
+    let outer = mesh(pg("StillLifes__outer", box_geo!(0.34, 0.28, 0.016)), &frame_mat);
+    outer.position().y = mount_y;
+    still.add(&outer);
+    let inner = mesh(pg("StillLifes__slip", box_geo!(0.31, 0.25, 0.012)), &gild_mat);
+    inner.position().set(0, mount_y, 0.011);
+    still.add(&inner);
+    let art = mesh(plane_geo!(0.27, 0.22), &art_mat);
+    art.position().set(0, mount_y, 0.017);
+    still.add(&art);
+    still.rotation().z = (rnd() - 0.5) * 0.04;
+    still.rotation().y = face_wall(dx, dz);
+    still.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.017), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.017));
+    g.world.add(&still);
+}
+
+// R674 wine bottle: 6% chance per level.
+fn place_wine_bottles(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    } // 6% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let glass_colors: [u32; 3] = [0x304018, 0x603010, 0x201820];
+    let glass_mat = lambert!({ color: pick(&glass_colors) });
+    let foil_colors: [u32; 3] = [0xa02020, 0xd0a040, 0x606060];
+    let foil_mat = lambert!({ color: pick(&foil_colors) });
+    let label_mat = lambert!({ color: 0xf0e8c8 });
+    let bottle = group();
+    let body = mesh(pg("WineBottles__body", cyl_geo!(0.036, 0.036, 0.18, 12)), &glass_mat);
+    body.position().y = 0.09;
+    bottle.add(&body);
+    let shoulder = mesh(pg("WineBottles__shoulder", cyl_geo!(0.014, 0.036, 0.030, 12)), &glass_mat);
+    shoulder.position().y = 0.195;
+    bottle.add(&shoulder);
+    let neck = mesh(pg("WineBottles__neck", cyl_geo!(0.014, 0.014, 0.06, 10)), &glass_mat);
+    neck.position().y = 0.24;
+    bottle.add(&neck);
+    let foil = mesh(pg("WineBottles__foil", cyl_geo!(0.016, 0.016, 0.020, 10)), &foil_mat);
+    foil.position().y = 0.28;
+    bottle.add(&foil);
+    let label = mesh(plane_geo!(0.11, 0.070), &label_mat);
+    label.scale().x = 0.5; // flat label kept inside the bottle's 0.072 m silhouette (was 0.11 wide)
+    label.position().set(0, 0.10, 0.0365);
+    bottle.add(&label);
+    if rnd() < 0.20 {
+        bottle.rotation().z = PI / 2.0;
+    }
+    let px = g.wx(x) + (rnd() - 0.5) * 2.0;
+    let py = if bottle.rot().z != 0.0 { 0.036 } else { 0.0 }; // lying: axis one radius up, not on the floor
+    let pz = g.wz(z) + (rnd() - 0.5) * 2.0;
+    bottle.position().set(px, py, pz);
+    bottle.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&bottle);
+}
+
+// R674 cheese wheel wedge: 7% chance per level.
+fn place_cheese_wedges(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    } // 7% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let cheese_colors: [u32; 4] = [0xf0d040, 0xd0a020, 0xe8c060, 0xf0e090];
+    let cheese_mat = lambert!({ color: pick(&cheese_colors) });
+    let rind_mat = lambert!({ color: 0xa08020 });
+    let wedge = group();
+    let body = mesh(pg("CheeseWedges__body", cyl_geo!(0.055, 0.055, 0.040, 3, 1, false, 0, PI * 0.5)), &cheese_mat);
+    // Lying on its triangular side (quarter disc flat, x/z 0..0.055), rind lips
+    // resting on the floor; was stood on its rind arc, half under the floor.
+    body.position().y = 0.0221;
+    wedge.add(&body);
+    let rind = mesh(pg("CheeseWedges__rind", cyl_geo!(0.056, 0.056, 0.042, 8, 1, false, 0, PI * 0.5)), &rind_mat);
+    rind.position().y = 0.0221;
+    rind.scale().y = 1.05;
+    wedge.add(&rind);
+    for i in 0..3 {
+        let hole = mesh(circle_geo!(0.005 + rnd() * 0.004, 6), lambert!({ color: 0xa08020 }));
+        hole.rotation().x = -PI / 2.0;
+        // on the wedge's top face (0.0421), inside the quarter disc
+        hole.position().set(0.010 + i as f64 * 0.013, 0.0426, 0.010 + rnd() * 0.012);
+        wedge.add(&hole);
+    }
+    wedge.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    wedge.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&wedge);
+}
+
+// R676 pencil eyeliner: 9% chance per level. Slim tapered pencil.
+fn place_pencil_eyeliners(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.91 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let body_colors: [u32; 4] = [0x202020, 0x604060, 0x804020, 0x2060a0];
+    let body_mat = lambert!({ color: pick(&body_colors) });
+    let tip_mat = lambert!({ color: 0x101010 });
+    let pen = group();
+    let body = mesh(pg("PencilEyeliners__body", cyl_geo!(0.004, 0.004, 0.075, 6)), &body_mat);
+    body.rotation().z = PI / 2.0;
+    body.position().y = 0.004;
+    pen.add(&body);
+    let tip = mesh(pg("PencilEyeliners__tip", cone_geo!(0.004, 0.014, 5)), &tip_mat);
+    tip.rotation().z = -PI / 2.0;
+    tip.position().set(0.044, 0.004, 0);
+    pen.add(&tip);
+    let cap = mesh(pg("PencilEyeliners__cap", cyl_geo!(0.005, 0.005, 0.020, 6)), &body_mat);
+    cap.rotation().z = PI / 2.0;
+    cap.position().set(-0.046, 0.005, 0); // r 5 mm: rests on the floor
+    pen.add(&cap);
+    pen.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    pen.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&pen);
+}
+
+// R676 teething ring: 8% chance per level. Colored ring w/ handle.
+fn place_teething_rings(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.92 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let ring_colors: [u32; 5] = [0xf0c0c0, 0xc0c0f0, 0xa0e0c0, 0xf0e0a0, 0xd0a0e0];
+    let ring_mat = lambert!({ color: pick(&ring_colors) });
+    let ring = group();
+    let lp = mesh(pg("TeethingRings__loop", torus_geo!(0.022, 0.005, 5, 14)), &ring_mat);
+    lp.rotation().x = PI / 2.0;
+    lp.position().y = 0.005;
+    ring.add(&lp);
+    let handle = mesh(pg("TeethingRings__handle", cyl_geo!(0.004, 0.004, 0.028, 5)), &ring_mat);
+    handle.rotation().z = PI / 2.0;
+    handle.position().set(0.034, 0.005, 0);
+    ring.add(&handle);
+    ring.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    ring.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&ring);
+    // R678 subtle wobble: gentle Y-tilt as if barely settled.
+    let wobble_phase = rnd() * PI * 2.0;
+    let base_rot_y = ring.rot().y;
+    let ring2 = ring.clone();
+    g.animate(move |_g, _dt, t| {
+        ring2.rotation().z = (t * 1.3 + wobble_phase).sin() * 0.04;
+        ring2.rotation().y = base_rot_y + (t * 0.9 + wobble_phase).sin() * 0.03;
+    });
+}
+
+// R677 kitchen wall clock: 4% chance per level. Round face
+// w/ 4 tick marks + hands.
+fn place_kitchen_clocks(g: &mut Game, _dist: &[i32]) {
+    g.pp.kitchen_clock_positions.clear(); // R681 reset per level
+    if rnd() < 0.96 {
+        return;
+    }
+    let wt = wall_tiles(g);
+    if wt.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&wt);
+    let rim_colors: [u32; 5] = [0xa02020, 0xd0a040, 0x2060a0, 0x606060, 0x408060];
+    let rim_mat = lambert!({ color: pick(&rim_colors) });
+    let face_mat = lambert!({ color: 0xf8f4e8 });
+    let hand_mat = lambert!({ color: 0x101010 });
+    let clock = group();
+    let mount_y = 1.95;
+    let rim = mesh(pg("KitchenClocks__case", cyl_geo!(0.11, 0.11, 0.024, 20)), &rim_mat);
+    rim.rotation().x = PI / 2.0;
+    rim.position().y = mount_y;
+    clock.add(&rim);
+    let face = mesh(circle_geo!(0.105, 20), &face_mat);
+    face.position().set(0, mount_y, 0.013);
+    clock.add(&face);
+    // 4 tick marks at cardinal positions.
+    for i in 0..4 {
+        let a = (i as f64 / 4.0) * PI * 2.0 - PI / 2.0;
+        let tick = mesh(pg("KitchenClocks__tick", box_geo!(0.006, 0.020, 0.003)), &hand_mat);
+        tick.position().set(a.cos() * 0.090, mount_y + a.sin() * 0.090, 0.014);
+        tick.rotation().z = a + PI / 2.0; // radial baton (was tangential)
+        clock.add(&tick);
+    }
+    // Frozen hands, each turned about the hub (pivot group), not its own centre.
+    let hour = mesh(pg("KitchenClocks__hour", box_geo!(0.006, 0.050, 0.003)), &hand_mat);
+    let hour_pivot = group();
+    hour_pivot.position().set(0, mount_y, 0.016);
+    hour.position().set(0, 0.025, 0);
+    hour_pivot.rotation().z = rnd() * PI * 2.0;
+    hour_pivot.add(&hour);
+    clock.add(&hour_pivot);
+    let minute = mesh(pg("KitchenClocks__minute", box_geo!(0.004, 0.075, 0.003)), &hand_mat);
+    let minute_pivot = group();
+    minute_pivot.position().set(0, mount_y, 0.017);
+    minute.position().set(0, 0.037, 0);
+    minute_pivot.rotation().z = rnd() * PI * 2.0;
+    minute_pivot.add(&minute);
+    clock.add(&minute_pivot);
+    let center = mesh(circle_geo!(0.006, 8), &hand_mat);
+    center.position().set(0, mount_y, 0.018);
+    clock.add(&center);
+    clock.rotation().y = face_wall(dx, dz);
+    clock.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
+    g.world.add(&clock);
+    let p = clock.pos();
+    g.pp.kitchen_clock_positions.push(v3(p.x, 0, p.z)); // R681
+}
+
+// R677 rolling pin stand w/ 2 pins: 4% chance per level.
+fn place_rolling_pin_stands(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let wood_mat = lambert!({ color: 0x8b5a2b });
+    let pin_color1 = lambert!({ color: 0xd0b080 });
+    let pin_color2 = lambert!({ color: 0xa07050 });
+    let stand = group();
+    // Base plate.
+    let base = mesh(pg("RollingPinStands__base", box_geo!(0.30, 0.010, 0.10)), &wood_mat);
+    base.position().y = 0.005;
+    stand.add(&base);
+    // 4 short vertical uprights.
+    for sx in [-1.0, 1.0] {
+        for sz in [-1.0, 1.0] {
+            let post = mesh(pg("RollingPinStands__post", cyl_geo!(0.006, 0.006, 0.045, 5)), &wood_mat);
+            post.position().set(sx * 0.130, 0.028, sz * 0.035);
+            stand.add(&post);
+        }
+    }
+    // 2 rolling pins resting horizontally on posts.
+    for i in 0..2 {
+        let pin_mat = if i == 0 { &pin_color1 } else { &pin_color2 };
+        // Side by side, each pin's handles resting on the tops (0.0505) of its
+        // pair of posts (z +-0.035); they were stacked 8 mm into each other.
+        let pin_y = 0.057;
+        let pin_z = if i == 0 { -0.030 } else { 0.030 };
+        let roller = mesh(pg("RollingPinStands__roller", cyl_geo!(0.020, 0.020, 0.24, 10)), pin_mat);
+        roller.rotation().z = PI / 2.0;
+        roller.position().set(0, pin_y, pin_z);
+        stand.add(&roller);
+        for side in [-1.0, 1.0] {
+            let stem = mesh(pg("RollingPinStands__handle", cyl_geo!(0.008, 0.008, 0.040, 6)), pin_mat);
+            stem.rotation().z = PI / 2.0;
+            stem.position().set(side * 0.140, pin_y, pin_z);
+            stand.add(&stem);
+            let knob = mesh(pg("RollingPinStands__knob", sphere_geo!(0.012, 6, 5)), pin_mat);
+            knob.position().set(side * 0.164, pin_y, pin_z);
+            stand.add(&knob);
+        }
+    }
+    stand.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
+    stand.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&stand);
+}
+
+// R679 pie slice on plate: 7% chance per level. Triangular
+// wedge of pie (crust + filling) resting on ceramic plate.
+fn place_pie_slices(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.93 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    // Filling color pool = variety of pie types.
+    let filling_colors: [u32; 6] = [
+        0xa02020, // cherry
+        0x6a3a10, // pecan
+        0xd0a040, // lemon meringue
+        0x502010, // chocolate
+        0x8040a0, // blueberry
+        0xf0a060, // pumpkin
+    ];
+    let plate_colors: [u32; 3] = [0xffffff, 0xf0e8d8, 0xe8e0c8];
+    let plate_mat = lambert!({ color: pick(&plate_colors) });
+    let crust_mat = lambert!({ color: 0xc89060 });
+    let filling_mat = lambert!({ color: pick(&filling_colors) });
+    let pie = group();
+    // Plate (shallow disc w/ raised rim).
+    let plate = mesh(pg("PieSlices__plate", cyl_geo!(0.090, 0.082, 0.006, 16)), &plate_mat);
+    plate.position().y = 0.003;
+    pie.add(&plate);
+    let plate_rim = mesh(pg("PieSlices__rim", torus_geo!(0.086, 0.004, 4, 16)), &plate_mat);
+    plate_rim.rotation().x = PI / 2.0;
+    plate_rim.position().y = 0.008;
+    pie.add(&plate_rim);
+    // Pie slice = partial cylinder with a 60° theta length.
+    let slice_h = 0.028;
+    let slice_r = 0.075;
+    let slice_geom = pg("PieSlices__filling", cyl_geo!(slice_r, slice_r, slice_h, 10, 1, false, 0, PI / 3.0));
+    let filling = mesh(slice_geom, &filling_mat);
+    filling.position().y = 0.006 + slice_h / 2.0;
+    filling.rotation().y = rnd() * PI * 2.0;
+    pie.add(&filling);
+    // Top crust cap (thin) on the filling — slightly lighter crust color.
+    let top_crust = mesh(pg("PieSlices__crust", cyl_geo!(slice_r, slice_r, 0.004, 10, 1, false, 0, PI / 3.0)), &crust_mat);
+    top_crust.position().y = 0.006 + slice_h - 0.002;
+    top_crust.rotation().y = filling.rot().y;
+    pie.add(&top_crust);
+    // Optional dollop of cream: 40% chance.
+    if rnd() < 0.4 {
+        let cream = mesh(pg("PieSlices__cream", sphere_geo!(0.012, 6, 5)), &plate_mat);
+        // Position roughly near the pointed apex of the slice.
+        // The wedge's centre line is at (sin, cos) of its angle (the cylinder's theta
+        // convention), 3 cm out where the slice is wide enough for the dollop.
+        let ang = filling.rot().y + PI / 6.0;
+        cream.position().set(ang.sin() * 0.030, 0.006 + slice_h + 0.004, ang.cos() * 0.030);
+        cream.scale().y = 0.7;
+        pie.add(&cream);
+    }
+    pie.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    pie.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&pie);
+}
+
+// R679 cake stand: 5% chance per level. Pedestal + platter
+// w/ 55% chance of round layered cake on top (bimodal empty/full).
+fn place_cake_stands(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.95 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    let stand_color: u32 = if rnd() < 0.5 { 0xffffff } else { 0xf0e8d8 };
+    let stand_mat = lambert!({ color: stand_color });
+    let stand = group();
+    // Base disc.
+    let base = mesh(pg("CakeStands__base", cyl_geo!(0.10, 0.11, 0.010, 14)), &stand_mat);
+    base.position().y = 0.005;
+    stand.add(&base);
+    // Pedestal column.
+    let column = mesh(pg("CakeStands__column", cyl_geo!(0.024, 0.030, 0.14, 10)), &stand_mat);
+    column.position().y = 0.010 + 0.07;
+    stand.add(&column);
+    // Platter disc.
+    let platter = mesh(pg("CakeStands__platter", cyl_geo!(0.14, 0.14, 0.008, 20)), &stand_mat);
+    platter.position().y = 0.010 + 0.14 + 0.004;
+    stand.add(&platter);
+    let platter_rim = mesh(pg("CakeStands__rim", torus_geo!(0.138, 0.005, 4, 20)), &stand_mat);
+    platter_rim.rotation().x = PI / 2.0;
+    platter_rim.position().y = 0.010 + 0.14 + 0.010;
+    stand.add(&platter_rim);
+    let top_y = 0.010 + 0.14 + 0.008;
+    // 55% chance: layered cake on top.
+    if rnd() < 0.55 {
+        // Cake body colors (frosting): 4-color pool.
+        let cake_colors: [u32; 4] = [0xf0e0c0, 0xf8d0d0, 0x8060a0, 0xa04020];
+        let cake_mat = lambert!({ color: pick(&cake_colors) });
+        // 2 stacked tiers.
+        let bottom_tier = mesh(pg("CakeStands__tierBottom", cyl_geo!(0.11, 0.11, 0.055, 16)), &cake_mat);
+        bottom_tier.position().y = top_y + 0.028;
+        stand.add(&bottom_tier);
+        let top_tier = mesh(pg("CakeStands__tierTop", cyl_geo!(0.075, 0.075, 0.045, 14)), &cake_mat);
+        top_tier.position().y = top_y + 0.055 + 0.023;
+        stand.add(&top_tier);
+        // 6 tiny frosting swirls (torus) around bottom tier top edge.
+        let swirl_mat = lambert!({ color: 0xffffff });
+        for i in 0..6 {
+            let ang = (i as f64 / 6.0) * PI * 2.0;
+            let swirl = mesh(pg("CakeStands__swirl", sphere_geo!(0.009, 5, 4)), &swirl_mat);
+            swirl.position().set(ang.cos() * 0.096, top_y + 0.055 - 0.002, ang.sin() * 0.096);
+            stand.add(&swirl);
+        }
+        // Optional candle on top tier — 30% chance.
+        if rnd() < 0.3 {
+            let candle_mat = lambert!({ color: 0xf0e0a0 });
+            let candle = mesh(pg("CakeStands__candle", cyl_geo!(0.005, 0.005, 0.030, 5)), &candle_mat);
+            candle.position().y = top_y + 0.055 + 0.045 + 0.015;
+            stand.add(&candle);
+            let wick = mesh(pg("CakeStands__wick", cyl_geo!(0.001, 0.001, 0.006, 3)), lambert!({ color: 0x101010 }));
+            wick.position().y = top_y + 0.055 + 0.045 + 0.033;
+            stand.add(&wick);
+            // R681 lit candle w/ subtle flicker — 60% chance (else unlit).
+            if rnd() < 0.6 {
+                let flame_mat = basic_mat!({ color: 0xffb040 });
+                let flame = mesh(sphere_geo!(0.006, 5, 4), &flame_mat);
+                flame.scale().y = 1.6;
+                flame.position().y = top_y + 0.055 + 0.045 + 0.041;
+                stand.add(&flame);
+                let light = point_light!(0xffa040, 0.35, 1.6, 2);
+                light.position().copy(&flame.pos());
+                stand.add(&light);
+                let flicker_phase = rnd() * PI * 2.0;
+                let flicker_phase2 = rnd() * PI * 2.0;
+                g.animate(move |_g, _dt, t| {
+                    // Multi-freq combined sine (5 + 9 Hz) — organic flicker.
+                    let f = 0.85 + (t * 5.0 + flicker_phase).sin() * 0.10 + (t * 9.0 + flicker_phase2).sin() * 0.06;
+                    flame.scale().set(f * 0.9, f * 1.6, f * 0.9);
+                    light.set_intensity(0.35 * f);
+                });
+            }
+        }
+    }
+    stand.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
+    stand.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&stand);
+}
+
+// R680 cornbread muffin cluster: 6% chance per level. Small
+// batch of 3-5 muffins arranged loosely on floor.
+fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.94 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    // Cornbread golden pool — slightly varied per muffin.
+    let golden_colors: [u32; 4] = [0xe0b060, 0xd8a850, 0xd0a044, 0xc89840];
+    let cluster = group();
+    let count = 3 + (rnd() * 3.0).floor() as i32;
+    for i in 0..count {
+        let c = pick(&golden_colors);
+        let muffin = group();
+        // Muffin body (slightly domed at top).
+        let bottom_mat = lambert!({ color: 0xa07030 });
+        let bottom = mesh(pg("CornbreadMuffins__bottom", cyl_geo!(0.035, 0.030, 0.024, 10)), &bottom_mat);
+        bottom.position().y = 0.012;
+        muffin.add(&bottom);
+        let top_mat = lambert!({ color: c });
+        let top = mesh(pg("CornbreadMuffins__top", sphere_geo!(0.038, 8, 5, 0, PI * 2.0, 0, PI / 2.0)), &top_mat);
+        top.position().y = 0.024;
+        muffin.add(&top);
+        // Small dimple/depression on top (darker center).
+        let dark_c = lambert!({ color: 0x805020 });
+        let dimple = mesh(circle_geo!(0.008, 6), &dark_c);
+        dimple.rotation().x = -PI / 2.0;
+        dimple.position().y = 0.056;
+        muffin.add(&dimple);
+        // Position loosely around cluster center.
+        let ang = (i as f64 / count as f64) * PI * 2.0 + rnd() * 0.3;
+        let rr = 0.02 + rnd() * 0.06;
+        muffin.position().set(ang.cos() * rr, 0, ang.sin() * rr);
+        muffin.rotation().y = rnd() * PI * 2.0;
+        cluster.add(&muffin);
+    }
+    cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    cluster.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&cluster);
+}
+
+// R680 sewing basket: 4% chance per level. Wicker basket
+// w/ folded fabric + spool of thread + optional needles.
+fn place_sewing_baskets(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.96 {
+        return;
+    }
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    // Wicker color pool — earth tones.
+    let wicker_colors: [u32; 4] = [0xa07040, 0x8b6030, 0xc09060, 0x704a20];
+    let wicker_mat = lambert!({ color: pick(&wicker_colors) });
+    let basket = group();
+    // Basket body (open cylinder, tapered).
+    let body = mesh(pg("SewingBaskets__body", cyl_geo!(0.10, 0.075, 0.070, 12, 1, true)), &wicker_mat);
+    body.position().y = 0.035;
+    basket.add(&body);
+    // Basket bottom disc.
+    let bottom = mesh(circle_geo!(0.075, 12), &wicker_mat);
+    bottom.rotation().x = -PI / 2.0;
+    bottom.position().y = 0.001;
+    basket.add(&bottom);
+    // Rim (torus at top).
+    let rim = mesh(pg("SewingBaskets__rim", torus_geo!(0.10, 0.006, 5, 14)), &wicker_mat);
+    rim.rotation().x = PI / 2.0;
+    rim.position().y = 0.070;
+    basket.add(&rim);
+    // Handle (partial torus arching over top).
+    let handle = mesh(pg("SewingBaskets__handle", torus_geo!(0.095, 0.005, 4, 10, PI)), &wicker_mat);
+    // Upright half hoop (XY plane) arching over the basket, ends on the rim
+    // (the old x/z turns laid it flat inside the rim).
+    handle.position().y = 0.070;
+    basket.add(&handle);
+    // Folded fabric inside (flat box — random pastel).
+    let fabric_colors: [u32; 6] = [0xf0c0c0, 0xc0d0f0, 0xd0f0c0, 0xf0e8a0, 0xe0c0f0, 0xa0d0e0];
+    let fabric_mat = lambert!({ color: pick(&fabric_colors) });
+    let fabric = mesh(pg("SewingBaskets__fabric", box_geo!(0.12, 0.024, 0.09)), &fabric_mat);
+    fabric.position().set(0, 0.055, 0);
+    fabric.rotation().y = (rnd() - 0.5) * 0.4;
+    basket.add(&fabric);
+    // Spool of thread (small cylinder w/ different color).
+    let thread_colors: [u32; 5] = [0x202020, 0xa02020, 0x2060a0, 0xf0f0f0, 0x408060];
+    let spool_mat = lambert!({ color: 0xd8b878 });
+    let thread_mat = lambert!({ color: pick(&thread_colors) });
+    let spool_base = mesh(pg("SewingBaskets__spoolend", cyl_geo!(0.014, 0.014, 0.004, 8)), &spool_mat);
+    spool_base.position().set(0.045, 0.070, 0.020);
+    basket.add(&spool_base);
+    let spool_thread = mesh(pg("SewingBaskets__thread", cyl_geo!(0.012, 0.012, 0.020, 8)), &thread_mat);
+    spool_thread.position().set(0.045, 0.082, 0.020);
+    basket.add(&spool_thread);
+    let spool_top = mesh(pg("SewingBaskets__spoolend", cyl_geo!(0.014, 0.014, 0.004, 8)), &spool_mat);
+    spool_top.position().set(0.045, 0.094, 0.020);
+    basket.add(&spool_top);
+    // Optional pincushion — 60% chance: tiny red hemisphere w/ pin marks.
+    if rnd() < 0.6 {
+        let cushion_mat = lambert!({ color: 0xa02020 });
+        let cushion = mesh(pg("SewingBaskets__cushion", sphere_geo!(0.020, 6, 5, 0, PI * 2.0, 0, PI / 2.0)), &cushion_mat);
+        cushion.position().set(-0.040, 0.067, 0.025); // on the fabric top (0.067)
+        basket.add(&cushion);
+        // 3 tiny pin heads (small spheres, white).
+        let pin_head_mat = lambert!({ color: 0xf8f8f8 });
+        let mut pins: Vec<(Obj, f64)> = vec![];
+        for i in 0..3 {
+            let ang = (i as f64 / 3.0) * PI * 2.0;
+            let pin = mesh(sphere_geo!(0.003, 4, 3), &pin_head_mat);
+            pin.position().set(-0.040 + ang.cos() * 0.010, 0.087, 0.025 + ang.sin() * 0.010);
+            basket.add(&pin);
+            let by = pin.pos().y;
+            pins.push((pin, by));
+        }
+        // R723 subtle pincushion bob animator — 40% chance.
+        // Tiny Y-bob on cushion + pins together (as if soft fabric
+        // is settling from being pressed).
+        if rnd() < 0.4 {
+            let bob_phase = rnd() * PI * 2.0;
+            let cushion_base_y = cushion.pos().y;
+            g.animate(move |_g, _dt, t| {
+                let bob = (t * 1.4 + bob_phase).sin() * 0.0006;
+                cushion.position().y = cushion_base_y + bob;
+                for (m, base_y) in &pins {
+                    m.position().y = *base_y + bob;
+                }
+            });
+        }
+    }
+    basket.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
+    basket.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&basket);
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn smoke() {
+        let mut list = vec![];
+        super::register(&mut list);
+        game::debug::testkit::smoke_placers(&list);
+    }
+}

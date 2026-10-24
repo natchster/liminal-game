@@ -1,0 +1,116 @@
+//! Every `*_positions` list the props register for ambient audio.
+
+use engine::math::Vec3;
+
+#[derive(Default, Clone, Debug)]
+pub struct PropPositions {
+    pub socket_positions: Vec<Vec3>,
+    pub fountain_positions: Vec<Vec3>,
+    pub radiator_positions: Vec<Vec3>,
+    pub glow_light_positions: Vec<Vec3>,
+    pub motion_sensor_positions: Vec<Vec3>,
+    pub speaker_positions: Vec<Vec3>,
+    pub fire_alarm_positions: Vec<Vec3>,
+    pub phone_positions: Vec<Vec3>,
+    pub broken_phone_positions: Vec<Vec3>,
+    pub vending_positions: Vec<Vec3>,
+    pub junction_box_positions: Vec<Vec3>,
+    pub keycard_reader_positions: Vec<Vec3>,
+    pub cardboard_box_positions: Vec<Vec3>,
+    pub living_plant_positions: Vec<Vec3>,
+    pub walkie_talkie_positions: Vec<Vec3>,
+    pub wall_clock_positions: Vec<Vec3>,
+    pub cracked_clock_positions: Vec<Vec3>,
+    pub ceiling_drip_positions: Vec<Vec3>,
+    pub laptop_positions: Vec<Vec3>,
+    pub ceiling_cable_plug_positions: Vec<Vec3>,
+    pub thermostat_positions: Vec<Vec3>,
+    pub handbell_positions: Vec<Vec3>,
+    pub digital_clock_positions: Vec<Vec3>,
+    pub alarm_clock_positions: Vec<Vec3>,
+    pub off_hook_rotary_positions: Vec<Vec3>,
+    pub drain_grate_positions: Vec<Vec3>,
+    pub bathroom_bundle_positions: Vec<Vec3>,
+    pub cauldron_positions: Vec<Vec3>,
+    pub metronome_positions: Vec<Vec3>,
+    /// Parallel to `metronome_positions`: each pendulum's swing period
+    /// (`1.2 + rnd() * 0.6` s). The metronome placer pushes one per position;
+    /// `update_ambient` ticks at half of it (falls back to 1.5 s when the two
+    /// lists disagree).
+    pub metronome_periods: Vec<f64>,
+    pub phonograph_positions: Vec<Vec3>,
+    pub brass_lantern_positions: Vec<Vec3>,
+    pub sewing_positions: Vec<Vec3>,
+    pub pocket_watch_positions: Vec<Vec3>,
+    pub bat_positions: Vec<Vec3>,
+    pub globe_positions: Vec<Vec3>,
+    pub hourglass_positions: Vec<Vec3>,
+    pub ghost_positions: Vec<Vec3>,
+    pub chain_positions: Vec<Vec3>,
+    pub paper_positions: Vec<Vec3>,
+    pub piano_positions: Vec<Vec3>,
+    pub chair_positions: Vec<Vec3>,
+    /// Parallel to `chair_positions`: each rocking chair's rock period
+    /// (`5 + rnd() * 3` s). The chair placer pushes one per position;
+    /// `update_ambient` creaks once per rock (falls back to 6.5 s when the two
+    /// lists disagree).
+    pub chair_periods: Vec<f64>,
+    pub crt_positions: Vec<Vec3>,
+    pub exit_sign_positions: Vec<Vec3>,
+    pub puddle_positions: Vec<Vec3>,
+    pub chandelier_positions: Vec<Vec3>,
+    pub cassette_positions: Vec<Vec3>,
+    pub teacup_positions: Vec<Vec3>,
+    pub locker_positions: Vec<Vec3>,
+    pub bulletin_positions: Vec<Vec3>,
+    pub alarm_pull_positions: Vec<Vec3>,
+    pub pay_phone_positions: Vec<Vec3>,
+    pub radio_positions: Vec<Vec3>,
+    pub keychain_positions: Vec<Vec3>,
+    pub elevator_panel_positions: Vec<Vec3>,
+    pub plant_positions: Vec<Vec3>,
+    pub fan_positions: Vec<Vec3>,
+    pub smoke_detector_positions: Vec<Vec3>,
+    pub coin_positions: Vec<Vec3>,
+    pub clock_positions: Vec<Vec3>,
+    pub cuckoo_clock_positions: Vec<Vec3>,
+    pub plush_positions: Vec<Vec3>,
+    pub gumball_positions: Vec<Vec3>,
+    pub teapot_positions: Vec<Vec3>,
+    pub cookie_tin_positions: Vec<Vec3>,
+    pub kitchen_clock_positions: Vec<Vec3>,
+    pub off_hook_phone_positions: Vec<Vec3>,
+    pub hairdryer_positions: Vec<Vec3>,
+    pub sewing_machine_positions: Vec<Vec3>,
+    pub herb_sieve_positions: Vec<Vec3>,
+    pub vacuum_positions: Vec<Vec3>,
+    pub mop_bucket_positions: Vec<Vec3>,
+    pub wristwatch_positions: Vec<Vec3>,
+    pub hot_iron_positions: Vec<Vec3>,
+    pub grandfather_clock_positions: Vec<Vec3>,
+    pub rocking_chair_positions: Vec<Vec3>,
+    pub tall_lamp_positions: Vec<Vec3>,
+    pub colander_positions: Vec<Vec3>,
+    pub pet_bowl_positions: Vec<Vec3>,
+    pub music_box_positions: Vec<Vec3>,
+    pub turntable_positions: Vec<Vec3>,
+    pub chalkboard_positions: Vec<Vec3>,
+    pub kitchen_calendar_positions: Vec<Vec3>,
+    pub telescope_positions: Vec<Vec3>,
+    pub cuckoo_clock_positions_r741: Vec<Vec3>,
+    pub lit_fireplace_positions: Vec<Vec3>,
+    pub aquarium_positions: Vec<Vec3>,
+    pub wingback_armchair_positions: Vec<Vec3>,
+    pub pocket_watch_positions_r755: Vec<Vec3>,
+    pub bell_pull_positions: Vec<Vec3>,
+    pub bell_rack_positions: Vec<Vec3>,
+    pub chess_set_positions: Vec<Vec3>,
+    pub hobby_horse_wheeled_positions: Vec<Vec3>,
+}
+
+impl PropPositions {
+    /// Empties every list for a new level.
+    pub fn reset(&mut self) {
+        *self = PropPositions::default();
+    }
+}

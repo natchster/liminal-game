@@ -1,0 +1,574 @@
+//! Prop parts: swaps the primitive geometries that prop placers build for
+//! the finer parts modelled in Blender (embedded as
+//! `game/assets/prop_meshes.bin`).
+//!
+//! A placer writes `pg("Name__part", cyl_geo!(...))`. The part was modelled in
+//! the primitive's own frame; here it is fitted to the primitive's *ideal*
+//! bounds (the smooth shape the parameters describe, not the faceted
+//! low-segment one), so every size the placer randomizes keeps working and
+//! the prop lands exactly where it did before. Texture coordinates follow the
+//! primitive's own convention (box faces, cylinder wrap, sphere lat/long) so
+//! labels and screens still map.
+//!
+//! The data file keeps each part's raw-DEFLATE payload, which is inflated
+//! here with miniz_oxide the first time a level needs the part.
+use crate::base::numeric::*;
+use engine::prelude::*;
+use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
+use std::rc::Rc;
+use std::sync::OnceLock;
+
+/// Every Blender prop part, as one embedded asset file.
+static PROP_BIN: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/assets/prop_meshes.bin"));
+
+/// The frame a part was modelled in: decides its texture convention.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum PartFrame {
+    Box,
+    Cyl,
+    Sphere,
+    Torus,
+    Plane,
+    Other,
+}
+impl PartFrame {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            PartFrame::Box => "box",
+            PartFrame::Cyl => "cyl",
+            PartFrame::Sphere => "sphere",
+            PartFrame::Torus => "torus",
+            PartFrame::Plane => "plane",
+            PartFrame::Other => "other",
+        }
+    }
+}
+
+/// One prop part's metadata (the payload stays compressed).
+#[derive(Clone, Debug)]
+pub struct PropPartInfo {
+    pub name: &'static str,
+    /// The primitive frame it was modelled in
+    pub frame: PartFrame,
+    /// Vertices
+    pub n: usize,
+    /// Triangles
+    pub t: usize,
+    /// Inflated payload bytes
+    pub r: usize,
+    /// Quantization bounds of the positions
+    pub min: [f64; 3],
+    pub max: [f64; 3],
+    /// The frame (canonical primitive bounds) the part was modelled in
+    pub fmin: [f64; 3],
+    pub fmax: [f64; 3],
+    /// Raw-DEFLATE payload
+    pub z: &'static [u8],
+}
+
+struct PropIndex {
+    parts: Vec<PropPartInfo>,
+    by_name: HashMap<&'static str, usize>,
+    names: Vec<&'static str>,
+}
+
+/// Little-endian reader over the embedded asset.
+pub(crate) struct Rd {
+    b: &'static [u8],
+    p: usize,
+}
+impl Rd {
+    pub(crate) fn new(b: &'static [u8]) -> Rd {
+        Rd { b, p: 0 }
+    }
+    pub(crate) fn bytes(&mut self, n: usize) -> &'static [u8] {
+        let s = &self.b[self.p..self.p + n];
+        self.p += n;
+        s
+    }
+    pub(crate) fn u8(&mut self) -> u8 {
+        self.bytes(1)[0]
+    }
+    pub(crate) fn u16(&mut self) -> u16 {
+        let s = self.bytes(2);
+        u16::from_le_bytes([s[0], s[1]])
+    }
+    pub(crate) fn u32(&mut self) -> u32 {
+        let s = self.bytes(4);
+        u32::from_le_bytes([s[0], s[1], s[2], s[3]])
+    }
+    pub(crate) fn f64(&mut self) -> f64 {
+        let s = self.bytes(8);
+        f64::from_le_bytes(s.try_into().unwrap())
+    }
+    pub(crate) fn f64x3(&mut self) -> [f64; 3] {
+        [self.f64(), self.f64(), self.f64()]
+    }
+    pub(crate) fn str(&mut self) -> &'static str {
+        let n = self.u16() as usize;
+        std::str::from_utf8(self.bytes(n)).expect("asset: bad utf-8")
+    }
+    pub(crate) fn blob(&mut self) -> &'static [u8] {
+        let n = self.u32() as usize;
+        self.bytes(n)
+    }
+}
+
+fn index() -> &'static PropIndex {
+    static IDX: OnceLock<PropIndex> = OnceLock::new();
+    IDX.get_or_init(|| {
+        let mut rd = Rd::new(PROP_BIN);
+        assert_eq!(rd.bytes(8), b"PROPMSH1", "prop_meshes.bin: bad magic (corrupt or outdated asset file)");
+        let count = rd.u32() as usize;
+        let mut parts = Vec::with_capacity(count);
+        for _ in 0..count {
+            let name = rd.str();
+            let frame = match rd.u8() {
+                0 => PartFrame::Box,
+                1 => PartFrame::Cyl,
+                2 => PartFrame::Sphere,
+                3 => PartFrame::Torus,
+                4 => PartFrame::Plane,
+                _ => PartFrame::Other,
+            };
+            let (n, t, r) = (rd.u32() as usize, rd.u32() as usize, rd.u32() as usize);
+            let (min, max, fmin, fmax) = (rd.f64x3(), rd.f64x3(), rd.f64x3(), rd.f64x3());
+            let z = rd.blob();
+            parts.push(PropPartInfo { name, frame, n, t, r, min, max, fmin, fmax, z });
+        }
+        let names: Vec<&'static str> = parts.iter().map(|p| p.name).collect();
+        let by_name = names.iter().enumerate().map(|(i, n)| (*n, i)).collect();
+        PropIndex { parts, by_name, names }
+    })
+}
+
+/// Every prop part name, in file order.
+pub fn prop_part_names() -> &'static [&'static str] {
+    &index().names
+}
+pub fn has_prop_part(name: &str) -> bool {
+    index().by_name.contains_key(name)
+}
+/// The metadata of part `name` (without its payload).
+pub fn prop_part_info(name: &str) -> Option<&'static PropPartInfo> {
+    index().by_name.get(name).map(|&i| &index().parts[i])
+}
+
+/// Prop part counters since start-up (the game never resets them).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct PropStats {
+    pub swapped: u64,
+    pub missing: u64,
+    pub cached: u64,
+    pub tris: u64,
+}
+
+/// A decoded part in its modelling frame (cached per part).
+pub struct Decoded {
+    pub pos: Vec<f32>,
+    pub nrm: Vec<f32>,
+    pub idx: Vec<u16>,
+}
+
+thread_local! {
+    static STATS: Cell<PropStats> = const { Cell::new(PropStats { swapped: 0, missing: 0, cached: 0, tris: 0 }) };
+    static ENABLED: Cell<bool> = const { Cell::new(true) };
+    static DECODED: RefCell<HashMap<&'static str, Rc<Decoded>>> = RefCell::new(HashMap::new());
+    static FITTED: RefCell<HashMap<String, Geo>> = RefCell::new(HashMap::new());
+    static IDEAL: RefCell<HashMap<String, [f64; 6]>> = RefCell::new(HashMap::new());
+}
+
+/// The counters (a copy).
+pub fn prop_stats() -> PropStats {
+    STATS.with(|s| s.get())
+}
+/// Zero the counters (for tooling; the game itself never does).
+pub fn reset_prop_stats() {
+    STATS.with(|s| s.set(PropStats::default()))
+}
+fn bump(f: impl FnOnce(&mut PropStats)) {
+    STATS.with(|s| {
+        let mut v = s.get();
+        f(&mut v);
+        s.set(v);
+    })
+}
+/// Switches the Blender parts on or off (`#noprops` switches them off).
+pub fn set_props_enabled(on: bool) {
+    ENABLED.with(|e| e.set(on))
+}
+pub fn props_enabled() -> bool {
+    ENABLED.with(|e| e.get())
+}
+/// Drop the fitted geometries (`build_world` does it per level).
+pub fn clear_prop_cache() {
+    FITTED.with(|f| f.borrow_mut().clear())
+}
+/// Number of fitted geometries currently cached.
+pub fn prop_cache_len() -> usize {
+    FITTED.with(|f| f.borrow().len())
+}
+
+/// Raw DEFLATE → exactly `out_len` bytes (a short stream leaves zeros, a
+/// long one is cut off).
+pub(crate) fn inflate_raw(src: &[u8], out_len: usize) -> Vec<u8> {
+    let mut out = miniz_oxide::inflate::decompress_to_vec(src).expect("inflate: corrupt asset payload");
+    out.resize(out_len, 0);
+    out
+}
+
+/// Decodes part `m` (cached): planar, delta-coded buffers — positions int16,
+/// normals int8, indices uint16.
+pub fn decode(m: &'static PropPartInfo) -> Rc<Decoded> {
+    if let Some(d) = DECODED.with(|c| c.borrow().get(m.name).cloned()) {
+        return d;
+    }
+    let raw = inflate_raw(m.z, m.r);
+    let n = m.n;
+    let tt = m.t * 3;
+    let rd16 = |o: usize| -> u16 {
+        if o + 1 < raw.len() {
+            u16::from_le_bytes([raw[o], raw[o + 1]])
+        } else {
+            0
+        }
+    };
+    let rd8 = |o: usize| -> u8 { raw.get(o).copied().unwrap_or(0) };
+    let mut pos = vec![0f32; n * 3];
+    let mut nrm = vec![0f32; n * 3];
+    let mut idx = vec![0u16; tt];
+    for k in 0..3 {
+        let lo = m.min[k];
+        let span = m.max[k] - m.min[k];
+        let mut q: i16 = 0;
+        let mut qq: i8 = 0;
+        for i in 0..n {
+            q = q.wrapping_add(rd16((k * n + i) * 2) as i16);
+            qq = qq.wrapping_add(rd8(n * 6 + k * n + i) as i8);
+            pos[i * 3 + k] = (lo + ((q as f64 + 32767.0) / 65534.0) * span) as f32;
+            nrm[i * 3 + k] = (qq as f64 / 127.0) as f32;
+        }
+    }
+    let mut p: u16 = 0;
+    for i in 0..tt {
+        p = p.wrapping_add(rd16(n * 9 + i * 2));
+        idx[i] = p;
+    }
+    let d = Rc::new(Decoded { pos, nrm, idx });
+    DECODED.with(|c| c.borrow_mut().insert(m.name, d.clone()));
+    d
+}
+
+// ------------------------------------------------------------------ numeric helpers
+/// `x`, or `d` when `x` is 0 or NaN.
+#[inline]
+pub(crate) fn or_num(x: f64, d: f64) -> f64 {
+    if x == 0.0 || x.is_nan() {
+        d
+    } else {
+        x
+    }
+}
+
+// ------------------------------------------------------------------ ideal bounds
+/// Bounds of the smooth shape a primitive's parameters describe. A 6-sided
+/// cylinder geometry is only 0.87 r wide across its
+/// flats; the Blender part is round, so it must be fitted to r, not to the
+/// facets. Partial sweeps are measured on a hi-res build of the primitive.
+pub fn ideal_bounds(geo: &Geo) -> [f64; 6] {
+    let (params, is_part) = {
+        let g = geo.r();
+        (g.params.clone(), g.is_prop_part)
+    };
+    let full = |len: f64| len >= std::f64::consts::PI * 2.0 - 1e-4;
+    // a prop part counts as a plain buffer geometry, whatever its params say
+    let p = if is_part { GeoParams::Buffer } else { params };
+    match p {
+        GeoParams::Box { width, height, depth, .. } => [-width / 2.0, -height / 2.0, -depth / 2.0, width / 2.0, height / 2.0, depth / 2.0],
+        GeoParams::Cylinder { radius_top, radius_bottom, height, open_ended, theta_start, theta_length, .. } => {
+            if full(theta_length) {
+                let r = nan_max(radius_top, radius_bottom);
+                return [-r, -height / 2.0, -r, r, height / 2.0, r];
+            }
+            hi_res(&p, || cylinder_geometry(radius_top, radius_bottom, height, 96.0, 1.0, open_ended, theta_start, theta_length))
+        }
+        GeoParams::Cone { radius, height, open_ended, theta_start, theta_length, .. } => {
+            if full(theta_length) {
+                return [-radius, -height / 2.0, -radius, radius, height / 2.0, radius];
+            }
+            hi_res(&p, || cone_geometry(radius, height, 96.0, 1.0, open_ended, theta_start, theta_length))
+        }
+        GeoParams::Sphere { radius, phi_start, phi_length, theta_start, theta_length, .. } => {
+            if full(phi_length) && theta_length >= std::f64::consts::PI - 1e-4 {
+                return [-radius, -radius, -radius, radius, radius, radius];
+            }
+            hi_res(&p, || sphere_geometry(radius, 96.0, 48.0, phi_start, phi_length, theta_start, theta_length))
+        }
+        GeoParams::Torus { radius, tube, arc, .. } => {
+            if full(arc) {
+                let r = radius + tube;
+                return [-r, -r, -tube, r, r, tube];
+            }
+            hi_res(&p, || torus_geometry(radius, tube, 24.0, 128.0, arc))
+        }
+        GeoParams::Capsule { radius, length, .. } => [-radius, -length / 2.0 - radius, -radius, radius, length / 2.0 + radius, radius],
+        GeoParams::Circle { radius, theta_start, theta_length, .. } => {
+            if full(theta_length) {
+                return [-radius, -radius, 0.0, radius, radius, 0.0];
+            }
+            hi_res(&p, || circle_geometry(radius, 96.0, theta_start, theta_length))
+        }
+        GeoParams::Plane { width, height, .. } => [-width / 2.0, -height / 2.0, 0.0, width / 2.0, height / 2.0, 0.0],
+        _ => {
+            // the computed bounding box; with no vertices it is the empty box
+            if geo.vertex_count() == 0 {
+                let (i, n) = (f64::INFINITY, f64::NEG_INFINITY);
+                return [i, i, i, n, n, n];
+            }
+            let b = geo.compute_bounding_box();
+            [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z]
+        }
+    }
+}
+fn hi_res(p: &GeoParams, make: impl FnOnce() -> Geo) -> [f64; 6] {
+    let key = format!("{:?}", p);
+    if let Some(b) = IDEAL.with(|c| c.borrow().get(&key).copied()) {
+        return b;
+    }
+    let g = make();
+    let b = g.compute_bounding_box();
+    let out = [b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z];
+    IDEAL.with(|c| c.borrow_mut().insert(key, out));
+    out
+}
+
+/// The fitted-part cache key: `name|x0,y0,z0,x1,y1,z1`, each bound formatted
+/// with 4 decimals ([`fmt_fixed`]).
+pub fn fit_key(name: &str, bb: &[f64; 6]) -> String {
+    let mut s = String::with_capacity(name.len() + 60);
+    s.push_str(name);
+    s.push('|');
+    for (i, x) in bb.iter().enumerate() {
+        if i > 0 {
+            s.push(',');
+        }
+        s.push_str(&fmt_fixed(*x, 4));
+    }
+    s
+}
+
+// ------------------------------------------------------------------ prop_part
+/// The Blender part `name` fitted to
+/// `fallback`'s ideal bounds, or `fallback` itself when there is no such part
+/// (or props are switched off). Fitted parts are cached per (name, bounds to
+/// 0.1 mm) and shared; `own` returns a private copy for callers that mutate
+/// the geometry afterwards. A returned part is a plain buffer geometry
+/// (`is_prop_part`) that keeps the fallback's `params` (placers read them back).
+pub fn prop_part(name: &str, fallback: Geo, own: bool) -> Geo {
+    let enabled = props_enabled();
+    let m = prop_part_info(name);
+    let Some(m) = m.filter(|_| enabled) else {
+        if enabled {
+            bump(|s| s.missing += 1);
+        }
+        return fallback;
+    };
+    let bb = ideal_bounds(&fallback);
+    let key = fit_key(name, &bb);
+    let hit = FITTED.with(|f| f.borrow().get(&key).cloned());
+    let g = match hit {
+        Some(g) => {
+            bump(|s| s.cached += 1);
+            g
+        }
+        None => {
+            let g = build(m, &decode(m), &bb);
+            g.g().params = fallback.params(); // placers sometimes read these back
+            FITTED.with(|f| f.borrow_mut().insert(key, g.clone()));
+            g
+        }
+    };
+    fallback.dispose();
+    bump(|s| {
+        s.swapped += 1;
+        s.tris += m.t as u64;
+    });
+    if !own {
+        return g;
+    }
+    g.duplicate()
+}
+
+/// Scale/offset the decoded part onto `bb`,
+/// transform its normals, derive the primitive's UVs and split the wrap seam.
+pub fn build(m: &PropPartInfo, d: &Decoded, bb: &[f64; 6]) -> Geo {
+    let n = m.n;
+    let mut pos = vec![0f32; n * 3];
+    let mut nrm = vec![0f32; n * 3];
+    let mut s = [1.0f64; 3];
+    let mut o = [0.0f64; 3];
+    for k in 0..3 {
+        let fe = m.fmax[k] - m.fmin[k];
+        let te = bb[k + 3] - bb[k];
+        if fe > 1e-9 {
+            s[k] = te / fe;
+            o[k] = bb[k] - m.fmin[k] * s[k];
+        } else {
+            s[k] = 1.0;
+            o[k] = (bb[k] + bb[k + 3]) / 2.0 - (m.fmin[k] + m.fmax[k]) / 2.0;
+        }
+        if s[k].abs() < 1e-6 {
+            s[k] = 1e-6;
+        }
+    }
+    for i in 0..n {
+        let nx = d.nrm[i * 3] as f64 / s[0];
+        let ny = d.nrm[i * 3 + 1] as f64 / s[1];
+        let nz = d.nrm[i * 3 + 2] as f64 / s[2];
+        let l = or_num(hypot(&[nx, ny, nz]), 1.0);
+        for k in 0..3 {
+            pos[i * 3 + k] = (d.pos[i * 3 + k] as f64 * s[k] + o[k]) as f32;
+        }
+        nrm[i * 3] = (nx / l) as f32;
+        nrm[i * 3 + 1] = (ny / l) as f32;
+        nrm[i * 3 + 2] = (nz / l) as f32;
+    }
+    let mut uv = vec![0f32; n * 2];
+    let lo = [bb[0], bb[1], bb[2]];
+    let ex = [or_num(bb[3] - bb[0], 1.0), or_num(bb[4] - bb[1], 1.0), or_num(bb[5] - bb[2], 1.0)];
+    let wrap = matches!(m.frame, PartFrame::Cyl | PartFrame::Sphere | PartFrame::Torus);
+    for i in 0..n {
+        uv_for(m.frame, &pos, &nrm, i, &lo, &ex, &mut uv);
+    }
+    let (p2, n2, u2, i2) = if wrap { split_seam(pos, nrm, uv, &d.idx) } else { (pos, nrm, uv, d.idx.iter().map(|&x| x as u32).collect()) };
+    let mut g = Geometry { position: p2, normal: n2, uv: u2, index: Some(i2), is_prop_part: true, ..Default::default() };
+    g.compute_bounding_box();
+    g.compute_bounding_sphere();
+    Geo::from_geometry(g)
+}
+
+/// Texture coordinates in the convention of the primitive the part replaces.
+pub fn uv_for(kind: PartFrame, p: &[f32], nn: &[f32], i: usize, lo: &[f64; 3], ex: &[f64; 3], uv: &mut [f32]) {
+    let (x, y, z) = (p[i * 3] as f64, p[i * 3 + 1] as f64, p[i * 3 + 2] as f64);
+    let (nx, ny, nz) = (nn[i * 3] as f64, nn[i * 3 + 1] as f64, nn[i * 3 + 2] as f64);
+    let fx = (x - lo[0]) / ex[0];
+    let fy = (y - lo[1]) / ex[1];
+    let fz = (z - lo[2]) / ex[2];
+    let tau = std::f64::consts::PI * 2.0;
+    let (u, v);
+    match kind {
+        PartFrame::Cyl => {
+            if ny.abs() > 0.75 {
+                // caps: a disc, like the cylinder primitive
+                let cx = fx * 2.0 - 1.0;
+                let cz = fz * 2.0 - 1.0;
+                u = cz * 0.5 + 0.5;
+                v = cx * 0.5 * (if ny > 0.0 { 1.0 } else { -1.0 }) + 0.5;
+            } else {
+                u = ((fx * 2.0 - 1.0).atan2(fz * 2.0 - 1.0) / tau + 1.0) % 1.0;
+                v = fy;
+            }
+        }
+        PartFrame::Sphere | PartFrame::Torus => {
+            let cx = fx * 2.0 - 1.0;
+            let cy = fy * 2.0 - 1.0;
+            let cz = fz * 2.0 - 1.0;
+            u = (cz.atan2(-cx) / tau + 1.0) % 1.0;
+            v = 1.0 - nan_max(-1.0, nan_min(1.0, cy / or_num(hypot(&[cx, cy, cz]), 1.0))).acos() / std::f64::consts::PI;
+        }
+        PartFrame::Plane => {
+            u = fx;
+            v = fy;
+        }
+        _ => {
+            // box faces, as the box primitive lays them out
+            let (ax, ay, az) = (nx.abs(), ny.abs(), nz.abs());
+            if ax >= ay && ax >= az {
+                u = if nx > 0.0 { 1.0 - fz } else { fz };
+                v = fy;
+            } else if ay >= az {
+                u = fx;
+                v = if ny > 0.0 { 1.0 - fz } else { fz };
+            } else {
+                u = if nz > 0.0 { fx } else { 1.0 - fx };
+                v = fy;
+            }
+        }
+    }
+    uv[i * 2] = u as f32;
+    uv[i * 2 + 1] = v as f32;
+}
+
+/// A wrapped u runs 0→1 around the part; triangles that straddle the seam get
+/// their low-u corners duplicated at u + 1 so the texture does not smear.
+pub fn split_seam(p: Vec<f32>, nn: Vec<f32>, uv: Vec<f32>, idx: &[u16]) -> (Vec<f32>, Vec<f32>, Vec<f32>, Vec<u32>) {
+    let mut extra_p: Vec<f32> = vec![];
+    let mut extra_n: Vec<f32> = vec![];
+    let mut extra_u: Vec<f32> = vec![];
+    let mut out = vec![0u32; idx.len()];
+    let mut dup_of: HashMap<usize, u32> = HashMap::new();
+    let mut n = (p.len() / 3) as u32;
+    let mut t = 0;
+    while t + 2 < idx.len() {
+        let (a, b, c) = (idx[t] as usize, idx[t + 1] as usize, idx[t + 2] as usize);
+        let (ua, ub, uc) = (uv[a * 2] as f64, uv[b * 2] as f64, uv[c * 2] as f64);
+        let straddle = nan_max(nan_max(ua, ub), uc) - nan_min(nan_min(ua, ub), uc) > 0.5;
+        for k in 0..3 {
+            let v = idx[t + k] as usize;
+            if straddle && (uv[v * 2] as f64) < 0.5 {
+                let d = match dup_of.get(&v) {
+                    Some(&d) => d,
+                    None => {
+                        let d = n;
+                        n += 1;
+                        dup_of.insert(v, d);
+                        extra_p.extend_from_slice(&[p[v * 3], p[v * 3 + 1], p[v * 3 + 2]]);
+                        extra_n.extend_from_slice(&[nn[v * 3], nn[v * 3 + 1], nn[v * 3 + 2]]);
+                        extra_u.extend_from_slice(&[(uv[v * 2] as f64 + 1.0) as f32, uv[v * 2 + 1]]);
+                        d
+                    }
+                };
+                out[t + k] = d;
+            } else {
+                out[t + k] = v as u32;
+            }
+        }
+        t += 3;
+    }
+    if extra_p.is_empty() {
+        return (p, nn, uv, idx.iter().map(|&x| x as u32).collect());
+    }
+    let (mut p2, mut n2, mut u2) = (p, nn, uv);
+    p2.extend_from_slice(&extra_p);
+    n2.extend_from_slice(&extra_n);
+    u2.extend_from_slice(&extra_u);
+    (p2, n2, u2, out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fmt_fixed_known_values() {
+        // exact fixed-point formatting: ties away from zero on the binary value
+        assert_eq!(fmt_fixed(1.00005, 4), "1.0001");
+        assert_eq!(fmt_fixed(0.03125, 4), "0.0313");
+        assert_eq!(fmt_fixed(-0.03125, 4), "-0.0313");
+        assert_eq!(fmt_fixed(-0.00001, 4), "-0.0000");
+        assert_eq!(fmt_fixed(-0.0, 4), "0.0000");
+        assert_eq!(fmt_fixed(2.5, 0), "3");
+        assert_eq!(fmt_fixed(0.00005, 4), "0.0001");
+        assert_eq!(fmt_fixed(123.456789, 4), "123.4568");
+        assert_eq!(fmt_fixed(0.45, 1), "0.5");
+    }
+
+    #[test]
+    fn hypot_is_exact() {
+        assert_eq!(hypot(&[3.0, 4.0]), 5.0);
+        assert_eq!(hypot(&[0.0, 0.0, 0.0]), 0.0);
+        assert!(hypot(&[f64::NAN, 1.0]).is_nan());
+        assert_eq!(hypot(&[f64::NAN, f64::INFINITY]), f64::INFINITY);
+    }
+}
