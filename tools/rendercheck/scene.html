@@ -1,0 +1,37 @@
+<!doctype html><html><body style="margin:0;background:#000">
+<canvas id="c" width="960" height="540"></canvas>
+<script type="module">
+import * as THREE from '../../../vendor/three.module.min.js';
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(1); renderer.setSize(960, 540, false);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070604);
+scene.fog = new THREE.FogExp2(0x070604, 0.052);
+const camera = new THREE.PerspectiveCamera(74, 16 / 9, 0.05, 90);
+camera.position.set(0, 1.6, 5); camera.lookAt(0, 1.0, 0);
+const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+const x = c.getContext('2d');
+x.fillStyle = '#c8b070'; x.fillRect(0, 0, 256, 256);
+x.fillStyle = 'rgba(80,60,20,0.5)';
+for (let i = 0; i < 8; i++) { x.beginPath(); x.arc(32 * i + 16, 128, 14, 0, 6.3); x.fill(); }
+x.fillStyle = '#201008'; x.font = 'bold 28px serif'; x.textAlign = 'center'; x.fillText('BACKROOMS', 128, 60);
+const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(4, 4);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(20, 20), new THREE.MeshLambertMaterial({ map: tex }));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const b = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0xd9b03a, emissive: 0x2a1f08 }));
+b.position.set(-1.5, 0.5, 0); scene.add(b);
+const s = new THREE.Mesh(new THREE.SphereGeometry(0.6, 32, 16), new THREE.MeshPhongMaterial({ color: 0x8080ff, specular: 0xffffff, shininess: 60 }));
+s.position.set(1.5, 0.6, 0); scene.add(s);
+const t = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.12, 12, 48), new THREE.MeshBasicMaterial({ color: 0xff4020, transparent: true, opacity: 0.6 }));
+t.position.set(0, 1.5, 0); scene.add(t);
+scene.add(new THREE.AmbientLight(0xa89a70, 0.78));
+scene.add(new THREE.HemisphereLight(0xd0c48c, 0xaaa176, 1.05));
+const pl = new THREE.PointLight(0xfff2cf, 6.0, 8.0, 1.6); pl.position.set(0, 2.5, 1.5); scene.add(pl);
+const sl = new THREE.SpotLight(0xffeec4, 8.0, 10.0, Math.PI / 2, 1.0, 1.6); sl.position.set(-1.5, 3.0, 0); scene.add(sl);
+sl.target.position.set(-1.5, 0, 0); scene.add(sl.target);
+const pg = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 1, 2), new THREE.Vector3(0.5, 1.2, 2), new THREE.Vector3(-0.5, 0.8, 2)]);
+scene.add(new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.2, color: 0xffffff })));
+renderer.render(scene, camera);
+window.done = true;
+</script></body></html>

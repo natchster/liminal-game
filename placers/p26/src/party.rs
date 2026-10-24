@@ -1,0 +1,474 @@
+//! Party-remnant and children's-playtime props (R422-R430).
+use game::prelude::*;
+use crate::{buf_geo, open_tiles, pick, set_rot_order};
+
+// ------------------------------------------------------------------ line 46902
+/// R430 small cupcake wrapper: 10% chance per level. Empty pleated
+/// paper wrapper ("who ate the cupcake?").
+pub fn place_small_cupcake_wrappers(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.90 { return; }   // 10% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let wrap_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xd050a0];
+    let wrap_mat = lambert!({ color: pick(&wrap_colors), side: DoubleSide });
+    let wrap = group();
+    // Pleated body: 12-sided cylinder gives visible pleats.
+    let body = mesh(cyl_geo!(0.030, 0.022, 0.028, 12, 1, true), &wrap_mat);
+    body.position().y = 0.014;
+    wrap.add(&body);
+    // Bottom.
+    let bottom = mesh(circle_geo!(0.022, 12), &wrap_mat);
+    bottom.rotation().x = -PI / 2.0;
+    bottom.position().y = 0.001;
+    wrap.add(&bottom);
+    // 40% flattened / crushed variant.
+    if rnd() < 0.40 {
+        wrap.scale().y = 0.35;
+    }
+    wrap.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    wrap.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&wrap);
+}
+
+// ------------------------------------------------------------------ line 46942
+/// R429 small paper napkin: 12% chance per level. Crumpled napkin
+/// on floor. Party-remnant.
+pub fn place_small_paper_napkins(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.88 { return; }   // 12% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let nap_colors = [0xf0ece4, 0xe8d8c8, 0xf0c0d0, 0xd0d8f0, 0xf0d8a0, 0xd8f0d0];
+    let nap_mat = lambert!({ color: pick(&nap_colors), side: DoubleSide });
+    let napkin = group();
+    // 3-4 overlapping crumpled triangles for organic crumple silhouette.
+    let n_crumples = 3 + (rnd() * 2.0).floor() as i32;
+    for _ in 0..n_crumples {
+        let s = 0.055 + rnd() * 0.03;
+        let h1 = 0.008 + rnd() * 0.008;
+        let h2 = 0.006 + rnd() * 0.010;
+        let v1z = -s * (0.6 + rnd() * 0.4);
+        let v2x = -s * (0.4 + rnd() * 0.4);
+        let geo = buf_geo(&[
+            -s, 0.0, -s,
+            s, h1, v1z,
+            v2x, h2, s,
+        ], &[0, 1, 2]);
+        let tri = mesh(geo, &nap_mat);
+        tri.rotation().y = rnd() * PI * 2.0;
+        tri.position().set((rnd() - 0.5) * 0.04, 0.001, (rnd() - 0.5) * 0.04);
+        napkin.add(&tri);
+    }
+    napkin.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    napkin.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&napkin);
+}
+
+// ------------------------------------------------------------------ line 46993
+/// R428 small paper plate: 12% chance per level. Thin disc + slight
+/// rim. Party-remnant family.
+pub fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.88 { return; }   // 12% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let plate_colors = [0xf0ece4, 0xece0d0, 0xe8d8c8, 0xf4e8d8];
+    let pattern_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0];
+    let plate_mat = lambert!({ color: pick(&plate_colors), side: DoubleSide });
+    let plate = group();
+    // Body: flat disc.
+    let body = mesh(cyl_geo!(0.10, 0.10, 0.004, 16), &plate_mat);
+    body.position().y = 0.002;
+    plate.add(&body);
+    // Optional: colored rim ring (60% chance).
+    if rnd() < 0.60 {
+        let rim_mat = lambert!({ color: pick(&pattern_colors) });
+        let rim = mesh(pg("SmallPaperPlates__rim", torus_geo!(0.095, 0.006, 4, 16)), &rim_mat);
+        rim.rotation().x = PI / 2.0;
+        rim.position().y = 0.0066;   // lip rests on the floor
+        plate.add(&rim);
+    }
+    plate.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    plate.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&plate);
+}
+
+// ------------------------------------------------------------------ line 47035
+/// R428 small birthday candle: 8% chance per level. Wax cylinder +
+/// wick + optional tiny flame with faint point light. Party-remnant.
+pub fn place_small_birthday_candles(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.92 { return; }   // 8% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let wax_colors = [0xf0e8d8, 0xf0c0d0, 0xd8f0d0, 0xd0d8f0, 0xf0d8a0, 0xe0b0e0];
+    let wax_mat = lambert!({ color: pick(&wax_colors) });
+    let wick_mat = lambert!({ color: 0x2a2418 });
+    let candle = group();
+    // Body: thin tall cylinder.
+    let body = mesh(pg("SmallBirthdayCandles__body", cyl_geo!(0.008, 0.008, 0.06, 8)), &wax_mat);
+    body.position().y = 0.03;
+    candle.add(&body);
+    // Wick: tiny dark cylinder on top.
+    let wick = mesh(pg("SmallBirthdayCandles__wick", cyl_geo!(0.001, 0.001, 0.008, 4)), &wick_mat);
+    wick.position().y = 0.064;
+    candle.add(&wick);
+    // 40% chance lit: tiny teardrop flame + faint point light.
+    let is_lit = rnd() < 0.40;
+    if is_lit {
+        let flame_mat = basic_mat!({ color: 0xffd070, transparent: true, opacity: 0.85 });
+        let flame = mesh(cone_geo!(0.003, 0.010, 5), &flame_mat);
+        flame.position().y = 0.074;
+        candle.add(&flame);
+        let flame_light = point_light!(0xffb060, 0.35, 0.9, 2);
+        flame_light.position().y = 0.075;
+        candle.add(&flame_light);
+        // R483 warm halo sphere for readable bloom.
+        let halo_mat = basic_mat!({ color: 0xffb060, transparent: true, opacity: 0.25, depthWrite: false });
+        let halo = mesh(sphere_geo!(0.020, 6, 5), &halo_mat);
+        halo.position().y = 0.076;
+        candle.add(&halo);
+        // R429 subtle flicker.
+        let flicker_phase = rnd() * PI * 2.0;
+        let flicker_rate = 6.0 + rnd() * 4.0;
+        g.animate(move |_g, _dt, t| {
+            let p = t * flicker_rate + flicker_phase;
+            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3 + (p * 3.1).sin() * 0.2;
+            flame_light.set_intensity(0.35 + wobble * 0.08);
+            flame.scale().y = 1.0 + wobble * 0.12;
+            halo.scale().set_scalar(1.0 + wobble * 0.15);
+        });
+    }
+    // Occasional tipped variant.
+    if !is_lit && rnd() < 0.20 {
+        candle.rotation().z = PI / 2.0;
+        candle.position().y = 0.008;
+    }
+    candle.position().x = g.wx(x) + (rnd() - 0.5) * 2.4;
+    candle.position().z = g.wz(z) + (rnd() - 0.5) * 2.4;
+    candle.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&candle);
+}
+
+// ------------------------------------------------------------------ line 47103
+/// R426 confetti scatter: 10% chance per level. 10-15 tiny colored
+/// planes scattered on floor in ~0.35 m radius circle.
+pub fn place_confetti_scatters(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.90 { return; }   // 10% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let conf_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xd050a0, 0xa020a0, 0xf0a0a0];
+    let cx = g.wx(x) + (rnd() - 0.5) * 2.0;
+    let cz = g.wz(z) + (rnd() - 0.5) * 2.0;
+    let count = 10 + (rnd() * 6.0).floor() as i32;
+    for _ in 0..count {
+        let c_col = pick(&conf_colors);
+        let conf_mat = basic_mat!({ color: c_col, transparent: true, opacity: 0.85, depthWrite: false, side: DoubleSide });
+        let conf = mesh(plane_geo!(0.008, 0.014), &conf_mat);
+        conf.rotation().x = -PI / 2.0;
+        conf.rotation().z = rnd() * PI * 2.0;
+        let c_ang = rnd() * PI * 2.0;
+        let c_rad = rnd() * 0.35;
+        conf.position().set(cx + c_ang.cos() * c_rad, 0.003, cz + c_ang.sin() * c_rad);
+        g.world.add(&conf);
+    }
+}
+
+// ------------------------------------------------------------------ line 47139
+/// R426 birthday cone hat: 8% chance per level. Cone body + colored
+/// band + tassel at top.
+pub fn place_birthday_hats(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.92 { return; }   // 8% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let hat_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xd050a0];
+    let hat_mat = lambert!({ color: pick(&hat_colors) });
+    let band_colors = [0xf0f0f0, 0xd8b820, 0x2050d8, 0xd050a0];
+    let band_mat = lambert!({ color: pick(&band_colors) });
+    let tassel_mat = lambert!({ color: 0xf0d0a0 });
+    let hat = group();
+    // Cone body: tall cone.
+    let cone = mesh(pg("BirthdayHats__cone", cone_geo!(0.06, 0.18, 10)), &hat_mat);
+    cone.position().y = 0.09;
+    hat.add(&cone);
+    // Band ring at base.
+    let band = mesh(pg("BirthdayHats__band", torus_geo!(0.06, 0.005, 4, 12)), &band_mat);
+    band.rotation().x = PI / 2.0;
+    band.position().y = 0.005;
+    hat.add(&band);
+    // Tassel ball at cone tip.
+    let tassel = mesh(pg("BirthdayHats__tassel", sphere_geo!(0.010, 6, 4)), &tassel_mat);
+    tassel.position().y = 0.185;
+    hat.add(&tassel);
+    hat.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    hat.rotation().y = rnd() * PI * 2.0;
+    // 30% chance tipped on side: past 90° by the cone's half-angle, so the hat
+    // lies along its side (brim trim and tassel on the floor).
+    if rnd() < 0.30 {
+        hat.rotation().z = PI / 2.0 + 0.06f64.atan2(0.18);
+        hat.position().y = 0.068;
+    }
+    g.world.add(&hat);
+}
+
+// ------------------------------------------------------------------ line 47191
+/// R425 small hair ribbon: 10% chance per level. Thin curved plane
+/// simulating a ribbon dropped on floor.
+pub fn place_small_ribbons(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.90 { return; }   // 10% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let ribbon_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xf0a0a0];
+    let ribbon_mat = lambert!({ color: pick(&ribbon_colors), side: DoubleSide });
+    let ribbon = group();
+    // Central bow loop: small torus.
+    let bow = mesh(torus_geo!(0.015, 0.004, 4, 8), &ribbon_mat);
+    bow.rotation().x = -PI / 2.0;
+    bow.position().y = 0.005;
+    ribbon.add(&bow);
+    // 2 curly ribbon tails: thin planes extending out.
+    for tail_dir in [-1.0, 1.0] {
+        let tail = mesh(plane_geo!(0.10, 0.008), &ribbon_mat);
+        tail.rotation().x = -PI / 2.0;
+        tail.rotation().z = tail_dir * 0.3;
+        tail.position().set(tail_dir * 0.06, 0.004, 0);
+        ribbon.add(&tail);
+    }
+    ribbon.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    ribbon.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&ribbon);
+}
+
+// ------------------------------------------------------------------ line 47232
+/// R423 small balloon: 10% chance per level. Colored sphere floating
+/// low with string extending down to floor. Children's party remnant.
+pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.90 { return; }   // 10% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let balloon_colors = [0xd82020, 0x2050d8, 0xd8b820, 0x30a030, 0xd050a0, 0xa020a0];
+    let balloon_mat = lambert!({ color: pick(&balloon_colors) });
+    let string_mat = lambert!({ color: 0xd8d8d8 });
+    let balloon = group();
+    // R425 25% chance: fully deflated variant — flat rubber puddle.
+    let is_deflated = rnd() < 0.25;
+    let body = if is_deflated {
+        mesh(pg("SmallBalloons__skin", circle_geo!(0.08 + rnd() * 0.04, 10)), &balloon_mat)
+    } else {
+        mesh(pg("SmallBalloons__body", sphere_geo!(0.10, 12, 10)), &balloon_mat)
+    };
+    if is_deflated {
+        body.rotation().x = -PI / 2.0;
+        body.rotation().z = rnd() * PI * 2.0;
+        body.scale().set(1.3, 0.85, 1);
+        body.position().y = 0.003;
+    } else {
+        body.scale().set(1, 1.15, 1);
+        body.position().y = 0.5 + rnd() * 0.7;
+    }
+    let float_y = body.pos().y;
+    balloon.add(&body);
+    if !is_deflated {
+        // Small tie-off pinch at bottom.
+        let tie = mesh(pg("SmallBalloons__knot", cone_geo!(0.015, 0.03, 5)), &balloon_mat);
+        tie.rotation().x = PI;
+        tie.position().y = float_y - 0.11;
+        balloon.add(&tie);
+        // String from tie down to floor.
+        let string_len = float_y - 0.14;
+        let string = mesh(pg("SmallBalloons__string", cyl_geo!(0.002, 0.002, string_len, 4)), &string_mat);
+        string.position().y = float_y - 0.14 - string_len / 2.0;
+        balloon.add(&string);
+    }
+    balloon.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
+    g.world.add(&balloon);
+    // R424 30% chance: slow sway animator (only on inflated variant).
+    if !is_deflated && rnd() < 0.30 {
+        let sway_phase = rnd() * PI * 2.0;
+        let sway_period = 8.0 + rnd() * 6.0;
+        let bp = body.pos();
+        let (base_x, base_z) = (bp.x, bp.z);
+        let b = body.clone();
+        g.animate(move |_g, _dt, t| {
+            let wobble = (t * (PI * 2.0 / sway_period) + sway_phase).sin();
+            {
+                let mut p = b.position();
+                p.x = base_x + wobble * 0.020;
+                p.z = base_z + (t * (PI * 2.0 / sway_period) + sway_phase).cos() * 0.015;
+            }
+            b.rotation().z = wobble * 0.05;
+        });
+    }
+    // R424 25% chance: 1-2 sibling balloons at different heights.
+    if rnd() < 0.25 {
+        let sib_count = 1 + (rnd() * 2.0).floor() as i32;
+        for _ in 0..sib_count {
+            let sib_color = pick(&balloon_colors);
+            let sib_mat = lambert!({ color: sib_color });
+            let sib_balloon = group();
+            let sib_body = mesh(pg("SmallBalloons__body", sphere_geo!(0.10, 12, 10)), &sib_mat);
+            sib_body.scale().set(1, 1.15, 1);
+            let sib_float_y = 0.5 + rnd() * 0.7;
+            sib_body.position().y = sib_float_y;
+            sib_balloon.add(&sib_body);
+            let sib_tie = mesh(pg("SmallBalloons__knot", cone_geo!(0.015, 0.03, 5)), &sib_mat);
+            sib_tie.rotation().x = PI;
+            sib_tie.position().y = sib_float_y - 0.11;
+            sib_balloon.add(&sib_tie);
+            let sib_string_len = sib_float_y - 0.14;
+            let sib_string = mesh(pg("SmallBalloons__string", cyl_geo!(0.002, 0.002, sib_string_len, 4)), &string_mat);
+            sib_string.position().y = sib_float_y - 0.14 - sib_string_len / 2.0;
+            sib_balloon.add(&sib_string);
+            let s_ang = rnd() * PI * 2.0;
+            let s_rad = 0.20 + rnd() * 0.20;
+            let bp = balloon.pos();
+            sib_balloon.position().set(bp.x + s_ang.cos() * s_rad, 0, bp.z + s_ang.sin() * s_rad);
+            g.world.add(&sib_balloon);
+        }
+    }
+}
+
+// ------------------------------------------------------------------ line 47329
+/// R423 small tambourine: 8% chance per level. Torus rim + membrane
+/// surface + tiny jingle dots around rim.
+pub fn place_small_tambourines(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.92 { return; }   // 8% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let rim_mat = lambert!({ color: 0x6a4820 });
+    let mem_mat = lambert!({ color: 0xd8ccb0 });
+    let jingle_mat = lambert!({ color: 0xa8a840 });
+    let tamb = group();
+    // Rim: torus laid flat.
+    let rim = mesh(pg("SmallTambourines__rim", torus_geo!(0.09, 0.010, 4, 12)), &rim_mat);
+    rim.rotation().x = -PI / 2.0;
+    rim.position().y = 0.010;
+    tamb.add(&rim);
+    // Membrane surface: cream disc inside rim.
+    let mem = mesh(circle_geo!(0.086, 12), &mem_mat);
+    mem.rotation().x = -PI / 2.0;
+    mem.position().y = 0.011;
+    tamb.add(&mem);
+    // 6 tiny brass jingle dots around rim.
+    for j in 0..6 {
+        let j_ang = (j as f64 / 6.0) * PI * 2.0;
+        let jingle = mesh(pg("SmallTambourines__jingle", cyl_geo!(0.008, 0.008, 0.004, 6)), &jingle_mat);
+        jingle.position().set(j_ang.cos() * 0.09, 0.014, j_ang.sin() * 0.09);
+        tamb.add(&jingle);
+    }
+    tamb.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
+    tamb.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&tamb);
+}
+
+// ------------------------------------------------------------------ line 47371
+/// R422 small skipping rope: 8% chance per level. Coiled rope torus
+/// + 2 wooden handle cylinders.
+pub fn place_skipping_ropes(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.92 { return; }   // 8% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let rope_colors = [0xd82020, 0x2050d8, 0xd8b820, 0xf0f0f0];
+    let rope_mat = lambert!({ color: pick(&rope_colors) });
+    let handle_mat = lambert!({ color: 0x6a4820 });
+    let rope = group();
+    // Coiled rope: horizontal torus laid flat.
+    let coil = mesh(pg("SkippingRopes__coil", torus_geo!(0.10, 0.008, 4, 12)), &rope_mat);
+    coil.rotation().x = -PI / 2.0;
+    coil.position().y = 0.008;
+    rope.add(&coil);
+    // 2 wooden handle cylinders on opposite sides of coil.
+    for h in 0..2 {
+        let handle_ang = h as f64 * PI;
+        let handle = mesh(pg("SkippingRopes__handle", cyl_geo!(0.010, 0.010, 0.06, 6)), &handle_mat);
+        // The coil's two ends go into the handles' ends: each handle carries on
+        // from its rope end, splayed 0.6 rad outward, resting on the floor.
+        let side = handle_ang.cos();
+        let splay = 0.6f64;
+        let reach = 0.026;
+        handle.set_rotation_order(EulerOrder::YXZ);
+        handle.rotation().set(PI / 2.0, side * splay, 0);
+        handle.position().set(side * (0.1015 - 0.0025 * side) + side * splay.sin() * reach, 0.010, splay.cos() * reach);
+        rope.add(&handle);
+    }
+    rope.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
+    rope.rotation().y = rnd() * PI * 2.0;
+    g.world.add(&rope);
+}
+
+// ------------------------------------------------------------------ line 47417
+// R422 children's book texture — colorful cartoon cover simplification
+// (bright bg + big geometric shape center).
+game::lazy_static_tex!(child_book_texture, canvas_tex_opt(96, 128, false, |ctx, w, h| {
+    let bg_colors = ["#d8b0e0", "#a0d8f0", "#f0d0a0", "#c0e8a0"];
+    ctx.set_fill_style(pick(&bg_colors));
+    ctx.fill_rect(0, 0, w, h);
+    // Large central colorful shape (circle, star, or triangle).
+    let shape_colors = ["#d82020", "#2050d8", "#d8b820", "#30a030", "#8020d8"];
+    ctx.set_fill_style(pick(&shape_colors));
+    let shape = (rnd() * 3.0).floor() as i32;
+    let (cx, cy) = (w / 2.0, h * 0.4);
+    if shape == 0 {
+        // Circle.
+        ctx.begin_path();
+        ctx.arc(cx, cy, 30, 0, PI * 2.0);
+        ctx.fill();
+    } else if shape == 1 {
+        // Triangle.
+        ctx.begin_path();
+        ctx.move_to(cx, cy - 30.0);
+        ctx.line_to(cx - 30.0, cy + 25.0);
+        ctx.line_to(cx + 30.0, cy + 25.0);
+        ctx.close_path();
+        ctx.fill();
+    } else {
+        // Star (rough 5-point via 10 vertices).
+        ctx.begin_path();
+        for i in 0..10 {
+            let a = -PI / 2.0 + (i as f64 / 10.0) * PI * 2.0;
+            let r = if i % 2 == 0 { 30.0 } else { 14.0 };
+            let px = cx + a.cos() * r;
+            let py = cy + a.sin() * r;
+            if i == 0 { ctx.move_to(px, py); } else { ctx.line_to(px, py); }
+        }
+        ctx.close_path();
+        ctx.fill();
+    }
+    // Fake title text: 2 dark horizontal bars near bottom.
+    ctx.set_fill_style("#3a2c1a");
+    ctx.fill_rect(15, h - 30.0, w - 30.0, 4);
+    ctx.fill_rect(20, h - 20.0, w - 40.0, 4);
+}));
+
+// ------------------------------------------------------------------ line 47458
+/// Children's book (R422): 10% chance per level.
+pub fn place_childrens_books(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.90 { return; }   // 10% chance
+    let open = open_tiles(g);
+    if open.is_empty() { return; }
+    let (x, z) = pick(&open);
+    let cover_mat = lambert!({ map: child_book_texture(), side: DoubleSide });
+    let pages_mat = lambert!({ color: 0xd8ccb0 });
+    let cbook = group();
+    // Slightly smaller than R380 adult book (10 × 14 cm).
+    let cover = mesh(box_geo!(0.10, 0.005, 0.14), &cover_mat);
+    cover.position().y = 0.020;
+    cbook.add(&cover);
+    let pages = mesh(pg("ChildrensBooks__pages", box_geo!(0.095, 0.016, 0.135)), &pages_mat);
+    pages.position().y = 0.010;
+    cbook.add(&pages);
+    let back = mesh(box_geo!(0.10, 0.005, 0.14), &cover_mat);
+    back.position().y = -0.001;
+    cbook.add(&back);
+    cbook.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0.003, g.wz(z) + (rnd() - 0.5) * 2.4);
+    cbook.rotation().y = rnd() * PI * 2.0;
+    cbook.rotation().x = (rnd() - 0.5) * 0.12;
+    g.world.add(&cbook);
+}

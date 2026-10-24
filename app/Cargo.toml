@@ -1,0 +1,48 @@
+[package]
+name = "backrooms"
+version.workspace = true
+edition.workspace = true
+description = "The Backrooms — native macOS (Metal) build"
+
+[[bin]]
+name = "backrooms"
+path = "src/main.rs"
+
+[dependencies]
+engine = { workspace = true, features = ["wip"] }
+game = { workspace = true, features = ["wip"] }
+objc2 = { workspace = true }
+objc2-metal = { workspace = true }
+placers_p00 = { path = "../placers/p00" }
+placers_p01 = { path = "../placers/p01" }
+placers_p02 = { path = "../placers/p02" }
+placers_p03 = { path = "../placers/p03" }
+placers_p04 = { path = "../placers/p04" }
+placers_p05 = { path = "../placers/p05" }
+placers_p06 = { path = "../placers/p06" }
+placers_p07 = { path = "../placers/p07" }
+placers_p08 = { path = "../placers/p08" }
+placers_p09 = { path = "../placers/p09" }
+placers_p10 = { path = "../placers/p10" }
+placers_p11 = { path = "../placers/p11" }
+placers_p12 = { path = "../placers/p12" }
+placers_p13 = { path = "../placers/p13" }
+placers_p14 = { path = "../placers/p14" }
+placers_p15 = { path = "../placers/p15" }
+placers_p16 = { path = "../placers/p16" }
+placers_p17 = { path = "../placers/p17" }
+placers_p18 = { path = "../placers/p18" }
+placers_p19 = { path = "../placers/p19" }
+placers_p20 = { path = "../placers/p20" }
+placers_p21 = { path = "../placers/p21" }
+placers_p22 = { path = "../placers/p22" }
+placers_p23 = { path = "../placers/p23" }
+placers_p24 = { path = "../placers/p24" }
+placers_p25 = { path = "../placers/p25" }
+placers_p26 = { path = "../placers/p26" }
+placers_p27 = { path = "../placers/p27" }
+placers_p28 = { path = "../placers/p28" }
+placers_p29 = { path = "../placers/p29" }
+placers_p30 = { path = "../placers/p30" }
+placers_p31 = { path = "../placers/p31" }
+placers_p32 = { path = "../placers/p32" }

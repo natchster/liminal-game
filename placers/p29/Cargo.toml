@@ -1,0 +1,7 @@
+[package]
+name = "placers_p29"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+engine = { workspace = true }
+game = { workspace = true }

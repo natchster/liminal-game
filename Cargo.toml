@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = ["engine", "game", "app", "placers/*"]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+engine = { path = "engine" }
+game = { path = "game" }
+objc2 = "0.6"
+objc2-foundation = { version = "0.3", features = ["NSString", "NSError", "NSArray", "NSDictionary", "NSValue", "NSGeometry", "NSObject", "NSProcessInfo"] }
+objc2-metal = "0.3"
+objc2-quartz-core = "0.3"
+objc2-app-kit = "0.3"
+objc2-core-foundation = "0.3"
+objc2-core-graphics = "0.3"
+objc2-core-text = "0.3"
+winit = "0.30"
+raw-window-handle = "0.6"
+cpal = "0.15"
+miniz_oxide = "0.8"
+
+[profile.dev]
+opt-level = 1
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 16
+debug = false
+panic = "unwind"
