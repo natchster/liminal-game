@@ -27,6 +27,7 @@ cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); t
 cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
 cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
 cargo xtask bench                                # performance vs docs/PERF.md and perf/history.csv (records a run)
+cargo xtask drift                                # every gate → docs/content.json passes, docs/QUALITY.md Latest sweep
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -107,7 +108,8 @@ End the message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
 Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
 `add-creature`, `add-anomaly`, `add-sound`, `tune-pacing`, `visual-review`,
-and `regen-fixtures` (the only way to re-record; invoked by name). Each ends
+`drift-sweep` (weekly, in a fresh session: `cargo xtask drift`), and
+`regen-fixtures` (the only way to re-record; invoked by name). Each ends
 in its gates, evidence and a `docs/content.json` entry.
 
 Never grade your own work. The reviewers (`.claude/agents/`) are read-only

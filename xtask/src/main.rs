@@ -13,6 +13,8 @@
 //! cargo xtask assets props|import-js|fingerprint   rebuild and check the embedded meshes
 //! cargo xtask bench [--no-record]   performance against budgets and its history
 //! cargo xtask heatmap REC.json…    where players went, from recorded sessions
+//! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
+//! cargo xtask nightly             drift sweep + long level sweep + recorded bench
 //! ```
 mod ab;
 mod assets;
@@ -20,6 +22,7 @@ mod bench;
 mod bundle;
 mod calibrate;
 mod check;
+mod drift;
 mod heatmap;
 mod hook;
 mod look;
@@ -31,7 +34,7 @@ use std::process::{Command, ExitCode};
 
 const USAGE: &str = "usage: cargo xtask <task>
   bundle [--debug] [--run]   build and sign dist/Backrooms.app
-  check [--fast] [--only STEP,…]
+  check [--fast] [--only STEP,…] [--skip STEP,…]
                              fmt, clippy, tests and shots with a terse report;
                              logs in target/xtask/check/
   shots [--list] [--accept NAME,…|all --reason \"…\"] [--accept-look NAME,…|all --reason \"…\"]
@@ -52,6 +55,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   bench [--no-record]        frame, build and first-frame times against docs/PERF.md
                              and perf/history.csv (change points)
   heatmap REC.json …         heatmaps of recorded sessions (backrooms --record)
+  drift [--skip-check]       run the gates, write passes into docs/content.json and
+                             the Latest sweep into docs/QUALITY.md
+  nightly                    drift sweep, a 200-case level sweep, a recorded bench
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -69,6 +75,8 @@ fn main() -> ExitCode {
         Some("assets") => assets::assets(rest),
         Some("bench") => bench::bench(rest),
         Some("heatmap") => heatmap::heatmap(rest),
+        Some("drift") => drift::drift(rest),
+        Some("nightly") => drift::nightly(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

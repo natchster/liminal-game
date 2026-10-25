@@ -9,7 +9,25 @@ produces the evidence is in [`TOOLING_ROADMAP.md`](TOOLING_ROADMAP.md).
 Grades: **A** held by gates and confirmed by people · **B** held by gates,
 not yet confirmed by people · **C** partly covered · **D** not covered.
 
-Last updated: 2026-10-25 (by hand; the drift sweep is not built yet).
+Last updated: 2026-10-25. The *Latest sweep* section is written by
+`cargo xtask drift`; the grades and the rest are written by people.
+
+## Latest sweep
+
+<!-- drift:begin -->
+Last sweep: 2026-10-25.
+
+| Gate | Result |
+|---|---|
+| Check steps | full check: fmt, clippy, test (215 passed, 8 ignored), shots, range, bench — all ok |
+| Tests | 37 of 37 test files pass; placer smoke tests pass |
+| Golden frames | 31 of 31 match |
+| Expressive range | energy distance 0.0000, p = 1.000; seed archive: 20/36 cells, most crowded 12% |
+| Performance | within budget, no step in the history |
+| Largest files | `crates/game/src/ui/draw.rs` 2264 (94% of the cap), `crates/game/src/level/archgen.rs` 2128 (89% of the cap), `crates/game/src/visuals/textures.rs` 1944 (81% of the cap), `crates/engine/src/audio.rs` 1926 (80% of the cap), `crates/engine/src/render.rs` 1873 (78% of the cap) |
+| Content failing a check | none |
+| Regressions people caught that no gate did | 0 (see *Caught by people*) |
+<!-- drift:end -->
 
 ## Subsystems
 
@@ -37,6 +55,15 @@ Last updated: 2026-10-25 (by hand; the drift sweep is not built yet).
 | Zone purposes (14) | B | One golden view each; style bands measured from 631 views (five purposes with too few views share the pooled band) |
 | Prop families (10 themes, 650 placers) | B | Material lint, smoke tests, the look settle pass; no turntables |
 | Sound (mix, ambient) | B | Loudness and listening gates |
+
+## Caught by people, missed by gates
+
+The steering loop (roadmap 5.3): every regression a person found that no
+gate caught, and the check added so it cannot slip through again. The drift
+sweep counts the rows; the count should fall.
+
+| Date | What a person saw | Which gate should have caught it | Check added |
+|---|---|---|---|
 
 ## History
 

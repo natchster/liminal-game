@@ -283,6 +283,24 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   `docs/PLAYTEST.md`. `tests/replay.rs` proves a recording survives its file
   and replays to the same states.
 
+## Continuous checks
+
+* **CI:** `.github/workflows/check.yml` runs `cargo xtask check --fast` on
+  every push and pull request on GitHub's macOS runners, and nightly the
+  full check without the bench (a virtual GPU's timings mean nothing) plus a
+  200-case level sweep; the golden frames are advisory there (they bind to
+  the Mac that recorded them). It runs once the repository has a GitHub
+  remote.
+* **Drift sweep:** `cargo xtask drift [--skip-check]` runs the full check (or
+  reads its last logs), writes each `docs/content.json` entry's `passes`
+  and `last_checked`, and rewrites the *Latest sweep* section of
+  `docs/QUALITY.md` (steps, tests, frames, range, performance, the largest
+  files, failing content, and the count of regressions people caught that
+  no gate did); the `drift-sweep` skill is the weekly routine around it.
+* **Nightly on the reference Mac:** `cargo xtask nightly` = the drift sweep,
+  a 200-case level sweep and a recorded bench run.
+* `cargo xtask check --skip STEP,…` leaves steps out.
+
 ## Profiling and debugging
 
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`

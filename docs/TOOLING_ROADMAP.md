@@ -1,7 +1,8 @@
 # Tooling roadmap
 
-Status: **being implemented** (started 2026-10-25); the [progress
-table](#progress) says what exists.
+Status: **implemented** (2026-10-25), except the optional items the roadmap
+itself leaves for later; the [progress table](#progress) says what exists
+and what each milestone found.
 
 The game is written mostly by an AI coding agent, and it will keep growing:
 new zones, props, creatures, anomalies, sounds. This file lists the
@@ -26,6 +27,8 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M10 | 3.1 Blender sources in `assets/src/` and `cargo xtask assets` (rebuild + compare, `--write`, `import-js`); 3.2 `crates/game/assets/MANIFEST.json` with a licence/generator allowlist; 1.4 mesh lint and parts table (`crates/game/tests/asset_lint.rs`) | done for props; found and fixed an unrepeatable build (`noise_vector`); 123 parts frozen; creatures need the HTML version's rig dumps |
 | M11 | 1.8 `cargo xtask bench` (`backrooms --bench`, budgets in `docs/PERF.md`, `perf/history.csv` with change-point detection); 1.9 replays (`game::debug::replay`, `tests/replay.rs`: per-frame state hashes, first divergent frame) | done; dhat heap tests left out (the process's peak memory is not a gate yet) |
 | M12 | 4.1 personas (`tests/personas.rs`: explorer, rusher, hider; shared oracles; coverage heatmaps); 4.2 run-log analysis (`Director::log`; peak, relief, sign repetition, sign→chase share, stings); 4.3 telemetry (`--record`, `--replay` with tension marks, `cargo xtask heatmap`) | done; found the director repeating one distant sign up to 7 times in a row (open in `QUALITY.md`) |
+| M13 | 5.1 CI (`.github/workflows/check.yml`: fast check per push, full check and a 200-case sweep nightly; no remote yet) and `cargo xtask nightly`; 5.2 drift sweep (`cargo xtask drift`: gates → ledger `passes`, *Latest sweep* in `QUALITY.md`, report; the `drift-sweep` skill); 5.3 the *Caught by people, missed by gates* table, counted by each sweep | done |
+| Left by design | 3.3 Blender MCP, 3.4 generated meshes, 3.5 LODs, 3.6 reference sounds | optional in the roadmap itself: they wait for a licence policy (3.4, 3.6), a need shown by the bench (3.5), and a decision to run model-written Blender code in a sandbox (3.3) |
 
 ## Contents
 

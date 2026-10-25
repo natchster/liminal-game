@@ -48,6 +48,7 @@ struct Step {
 pub fn check(args: &[String]) -> Result<(), String> {
     let fast = flag(args, "--fast");
     let only: Option<Vec<&str>> = opt(args, "--only").map(|s| s.split(',').collect());
+    let skip: Vec<&str> = opt(args, "--skip").map(|s| s.split(',').collect()).unwrap_or_default();
     let logs = root().join("target/xtask/check");
     std::fs::create_dir_all(&logs).map_err(|e| format!("{}: {e}", logs.display()))?;
 
@@ -82,23 +83,26 @@ pub fn check(args: &[String]) -> Result<(), String> {
     let started = Instant::now();
     let mut failed = vec![];
     for mut s in steps {
-        if only.as_ref().is_some_and(|o| !o.contains(&s.name)) {
+        if only.as_ref().is_some_and(|o| !o.contains(&s.name)) || skip.contains(&s.name) {
             continue;
         }
         let t0 = Instant::now();
-        let out = s.cmd.output().map_err(|e| format!("{}: {e}", s.name))?;
-        let text = format!("{}{}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+        // stdout and stderr into one file, interleaved as written (cargo
+        // prints a test binary's name on stderr and its results on stdout)
         let log = logs.join(format!("{}.log", s.name));
-        std::fs::write(&log, &text).map_err(|e| format!("{}: {e}", log.display()))?;
+        let file = std::fs::File::create(&log).map_err(|e| format!("{}: {e}", log.display()))?;
+        let file2 = file.try_clone().map_err(|e| e.to_string())?;
+        let status = s.cmd.stdout(file).stderr(file2).status().map_err(|e| format!("{}: {e}", s.name))?;
+        let text = String::from_utf8_lossy(&std::fs::read(&log).unwrap_or_default()).into_owned();
         let secs = t0.elapsed().as_secs_f64();
-        if out.status.success() {
+        if status.success() {
             println!("ok    {:<8} {secs:6.1} s{}", s.name, summary(s.name, &text));
             continue;
         }
         println!("FAIL  {:<8} {secs:6.1} s  log: {}", s.name, rel(&log));
         let mut errs = (s.errors)(&text);
         if errs.is_empty() {
-            errs.push(format!("exited with {} (no recognisable error lines; read the log)", out.status));
+            errs.push(format!("exited with {status} (no recognisable error lines; read the log)"));
         }
         let n = errs.len();
         for e in errs.into_iter().take(MAX_ERRORS) {

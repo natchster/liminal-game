@@ -1,0 +1,63 @@
+# The quality gate on GitHub's macOS runners (Apple Silicon, Metal).
+#
+# Every push and pull request: `cargo xtask check --fast`.
+# Nightly: the full check and a 200-case level sweep. The goldens are bound
+# to the machine that recorded them, so on a hosted runner their frame
+# comparison is advisory (the look anchors and STYLE bands still apply); the
+# performance bench is skipped, because a virtual GPU's timings say nothing
+# about the game's. Record performance on the reference Mac (`cargo xtask
+# nightly` there).
+name: check
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  fast:
+    if: github.event_name != 'schedule'
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.85.1"
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo xtask check --fast
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: check-logs
+          path: |
+            target/xtask/check/
+            target/xtask/shots/*-diff.png
+
+  nightly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.85.1"
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo xtask check --skip bench
+      - run: cargo test --release -p backrooms --test level_sweep generated
+        env:
+          SWEEP_CASES: "200"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-reports
+          path: |
+            target/xtask/check/
+            target/xtask/range/
+            target/xtask/shots/*-diff.png
+            crates/backrooms/tests/level_sweep.proptest-regressions
