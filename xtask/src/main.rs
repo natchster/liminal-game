@@ -5,18 +5,22 @@
 //! cargo xtask bundle --debug    debug build (faster to compile, slower to run)
 //! cargo xtask bundle --run      … and open the app
 //! cargo xtask check [--fast]    the quality gate: fmt, clippy, tests (terse report)
+//! cargo xtask hook <event>      the Claude Code hooks (.claude/settings.json)
 //! ```
 mod bundle;
 mod check;
+mod hook;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
 const USAGE: &str = "usage: cargo xtask <task>
   bundle [--debug] [--run]   build and sign dist/Backrooms.app
-  check [--fast] [--keep-going] [--only STEP,…]
+  check [--fast] [--only STEP,…]
                              fmt, clippy and tests with a terse report;
-                             logs in target/xtask/check/";
+                             logs in target/xtask/check/
+  hook pre-edit|post-edit|stop|session
+                             Claude Code hooks; read the hook JSON on stdin";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
@@ -24,6 +28,7 @@ fn main() -> ExitCode {
     let result = match args.first().map(String::as_str) {
         Some("bundle") => bundle::bundle(rest),
         Some("check") => check::check(rest),
+        Some("hook") => hook::hook(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

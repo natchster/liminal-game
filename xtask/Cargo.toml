@@ -1,6 +1,6 @@
 [package]
 name = "xtask"
-description = "Project automation: `cargo xtask bundle` (the macOS app bundle), `cargo xtask check` (the quality gate)"
+description = "Project automation: `cargo xtask bundle` (the macOS app bundle), `cargo xtask check` (the quality gate), `cargo xtask hook` (Claude Code hooks)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -8,3 +8,6 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+serde_json = { workspace = true }

@@ -18,6 +18,18 @@
   invariants, definition of done); `.claude/rules/*.md` hold rules that load
   only when files under their `paths:` are touched. Keep both short, and move
   a rule into a test or lint when it can be checked mechanically.
+* **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
+  `cargo xtask hook <event>` (through `.claude/hooks/xtask-hook.sh`, which
+  calls the built binary directly so edits never wait on cargo's build lock):
+  * before an edit: the HTML/JS version in the parent folder and the recorded
+    fixtures, reference levels and goldens are refused — they change only
+    through REGEN / rerecord / accept;
+  * after an edit: rustfmt on the edited `.rs` file;
+  * on stop: `cargo xtask check --fast` when code differs from the last
+    passing check; a failure blocks the stop with its `ERROR` lines, at most
+    three times in a row;
+  * after compaction: recent commits, uncommitted files and the roadmap's
+    progress table are re-injected (`CLAUDE.md` itself is re-read anyway).
 * **Layering.** `engine` never depends on `game`; `game` never touches the
   window, Metal or CoreAudio devices directly; the executable glues them.
   This keeps the whole game runnable headless, which is what the tests do.

@@ -59,6 +59,13 @@ cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
 7. **Fixtures change only through REGEN / rerecord**, never by hand edits, and
    only for an intended change whose diff you have reviewed.
 
+## Hooks
+
+`.claude/settings.json` runs `cargo xtask hook …`: edits to the parent folder
+and to recorded fixtures are refused, edited `.rs` files are formatted, and a
+stop runs `cargo xtask check --fast` when code changed (a failure sends you
+back with its `ERROR` lines). See `docs/DEVELOPMENT.md`.
+
 ## Definition of done
 
 - `cargo xtask check --fast` passes (and the full check for anything touching

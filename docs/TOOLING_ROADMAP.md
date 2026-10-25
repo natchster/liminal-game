@@ -15,6 +15,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | Milestone | Items | State |
 |---|---|---|
 | M1 | 0.1 `CLAUDE.md`, 0.2 path rules, 0.4 `cargo xtask check` | done |
+| M2 | 0.5 hooks: refuse parent-folder and fixture edits, rustfmt after edits, the fast check on stop, progress after compaction | done |
 
 ## Contents
 
