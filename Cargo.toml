@@ -66,6 +66,7 @@ serde_json = { version = "1", features = ["float_roundtrip"] }
 # ---- tooling (xtask, tests)
 nv-flip = "0.1"
 png = "0.17"
+ebur128 = "0.1"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"

@@ -29,6 +29,7 @@ const FAST_SKIP: &[&str] = &[
     "the_notice_is_loud",
     "the_hush_quiets_the_ambience",
     "lit_surfaces_have_plausible_albedo",
+    "the_mix_holds_its_loudness_and_varies",
 ];
 
 struct Step {

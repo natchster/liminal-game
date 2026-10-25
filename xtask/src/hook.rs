@@ -24,7 +24,12 @@ use std::process::Command;
 const MAX_BLOCKS: u32 = 3;
 
 /// Paths (relative to the workspace) that only re-recorders may write.
-const RECORDED: &[&str] = &["crates/game/tests/fixtures/", "crates/backrooms/tests/reference/", "crates/backrooms/tests/golden/"];
+const RECORDED: &[&str] = &[
+    "crates/game/tests/fixtures/",
+    "crates/backrooms/tests/reference/",
+    "crates/backrooms/tests/recorded/",
+    "crates/backrooms/tests/golden/",
+];
 
 /// Changes to these make the stop hook run the check (docs alone do not).
 const CODE_EXT: &[&str] = &[".rs", ".toml", ".metal", ".lock", ".json", ".bin", ".txt"];

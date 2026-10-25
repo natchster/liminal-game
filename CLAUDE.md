@@ -39,6 +39,7 @@ cargo xtask shots --accept-look NAME,…|all --reason "…"  # rarely: the look 
 REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
+cargo test --release -p backrooms --test loudness -- --ignored rerecord   # after listening
 ```
 
 ## Invariants (each has cost real time when broken)

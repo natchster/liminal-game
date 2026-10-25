@@ -74,10 +74,11 @@ Levels must be a pure function of `(run_seed, level)`:
 ## Tests and reference data
 
 * `cargo xtask check` is the gate: `cargo fmt --check`, clippy with
-  `-D warnings`, and the whole test suite, each step's output written to
-  `target/xtask/check/<step>.log` and summarised as one `ERROR <step> …` line
-  per problem. `--fast` skips the slow play-through suites (`pacing`,
-  `listen`, `playthrough`); `--only fmt,clippy` runs a subset.
+  `-D warnings`, the whole test suite and the golden frames (`shots`), each
+  step's output written to `target/xtask/check/<step>.log` and summarised as
+  one `ERROR <step> …` line per problem. `--fast` skips the slow suites that
+  play levels for minutes (`pacing`, `listen`, `playthrough`, `loudness`,
+  the material lint); `--only fmt,clippy` runs a subset.
 * `cargo test --workspace --release` runs every test directly.
 * **Golden frames.** `cargo xtask shots` renders 31 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
@@ -135,6 +136,15 @@ Levels must be a pure function of `(run_seed, level)`:
   writes each run to `target/listen/*.wav` with a loudness timeline
   (`*.png`, dB per 50 ms window, red marks at events): listen to them after
   a change to the sound. Its checks are measured against the room's bed.
+* `crates/backrooms/tests/loudness.rs` measures three level renders to EBU
+  R128 (the `ebur128` crate): integrated loudness within 1 LU and loudness
+  range within 3 LU of `tests/recorded/loudness.json`, true peak at or
+  below −1 dBTP, and no one-shot ambient event twice within 8 s. The
+  per-frame randomness is seeded, so the numbers repeat exactly. The mix sits
+  near −30 LUFS integrated, quiet by design (published game targets of −23
+  or −18 LUFS assume dialogue and music); the gate holds it where it is.
+  After an intended change to the mix, listen to the `listen.rs` renders,
+  then `cargo test --release -p backrooms --test loudness -- --ignored rerecord`.
 
 ## Profiling and debugging
 

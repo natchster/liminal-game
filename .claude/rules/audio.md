@@ -18,6 +18,9 @@ paths:
 - **Stable per-level choices** use `SplitMix64` with a salt, not the build
   stream (see `SIG_SALT`, `BED_SALT`). Rare cadences with `run: true` count
   down across levels.
+- **Gate:** `tests/loudness.rs` holds each scenario's integrated loudness
+  (±1 LU), loudness range (±3 LU), true peak (≤ −1 dBTP) and repetition (no
+  one-shot twice within 8 s). Re-record only after listening.
 - **You cannot hear.** Check with `cargo test --release -p backrooms --test listen -- --nocapture`
   (WAVs and dB-per-50 ms timelines in `target/listen/`), compare levels
   with the bed, and ask a person to listen to any change in timbre.

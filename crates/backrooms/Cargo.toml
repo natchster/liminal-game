@@ -54,3 +54,4 @@ workspace = true
 
 [dev-dependencies]
 serde_json = { workspace = true }
+ebur128 = { workspace = true }
