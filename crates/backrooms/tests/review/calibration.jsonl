@@ -1,0 +1,2 @@
+{"accuracy":1.0,"by_kind":{"cartoon":[3,3],"hole":[2,2],"same":[2,2],"smear":[2,2],"washed":[3,3]},"date":"2026-10-25","kappa":1.0,"n":12,"reviewer":"art-critic prompt (Opus 5.5, general-purpose agent)"}
+{"accuracy":0.75,"by_kind":{"cartoon (mild)":[0,3],"hole (mild)":[2,2],"same":[2,2],"smear (mild)":[2,2],"washed (mild)":[3,3]},"date":"2026-10-25","kappa":0.455,"n":12,"reviewer":"art-critic prompt (Opus 5.5, general-purpose agent)"}

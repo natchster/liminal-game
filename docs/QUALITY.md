@@ -24,7 +24,8 @@ Last updated: 2026-10-25 (by hand; the drift sweep is not built yet).
 | Code health | B | fmt and clippy `-D warnings`; structural tests (layering, determinism, sizes, docs, ledger) | `ui/draw.rs` is 2,264 lines (cap 2,400); the placer registry is repeated in eight test files and `main.rs` |
 | Performance | D | Draw-call and triangle counts printed by `--screenshot` | No budgets, no history (roadmap 1.8) |
 | Assets | D | Magic-number checks on the embedded meshes | Their Blender sources live in the HTML version's folder; no rebuild, lint or licence manifest (roadmap 3.1, 3.2, 1.4) |
-| Playtesting | D | — | No human has played this build since the tension pass |
+| Reviewers | C | Calibrated on known answers (`cargo xtask calibrate`): strong damage 12/12, kappa 1.00; mild damage 9/12, kappa 0.45 — mild holes, smears and washed-out light caught, identical pairs judged ties | Mild over-saturation missed 0/3 (the gates' colourfulness anchors and `STYLE.md` bands are the authority there); no human verdicts to calibrate against yet |
+| Playtesting | D | The kit: `PLAYTEST.md` (script, debrief, tension trace, A/B by ranking), `playtests/TEMPLATE.md` | No human has played this build since the tension pass |
 
 ## Content families
 

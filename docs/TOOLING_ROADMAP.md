@@ -22,6 +22,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M6 | 0.3 `LORE.md` (ported, with delivery channels), `PILLARS.md`, `STYLE.md` (with look bands checked by `cargo xtask shots`); 0.6 content ledger `docs/content.json` (kept in step by `tests/structure.rs`); 0.7 scorecard `docs/QUALITY.md` | done; the bands start wide (one view per purpose) until the range report tightens them |
 | M7 | 1.6 expressive range (`cargo xtask range`: 72 levels measured by `backrooms --metrics`, energy distance + permutation test, spread checks, scatter plots, a MAP-Elites seed archive; `--look` measures 631 zone views per purpose) | done; the `STYLE.md` bands are now measured percentiles, which showed that darkness follows region light rather than purpose |
 | M8 | Phase 2: eight skills (`.claude/skills/`), five read-only reviewers (`.claude/agents/`, `art-critic` with project memory), `cargo xtask ab` (blind pairs in both orders, scoring with ties, a verdict log) | done; `drift-sweep` comes with 5.2 |
+| M9 | 4.4 playtest kit (`docs/PLAYTEST.md`, `docs/playtests/TEMPLATE.md`); 4.5 calibration (`cargo xtask calibrate`, known-answer pairs, accuracy and Cohen's kappa logged) | done; first results: kappa 1.00 on strong damage, 0.45 on mild (mild over-saturation 0/3); human verdicts still to come |
 
 ## Contents
 

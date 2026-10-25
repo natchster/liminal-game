@@ -21,8 +21,10 @@ sees one order only, mostly measures its own bias.
    `target/xtask/ab/pairs/`, with `target/xtask/ab/pairs/questions.md`; the key stays in
    `target/xtask/ab/.key.json`. Ask one question per review (realism, dread,
    how frightening a creature is, what is broken).
-3. **Ask a fresh reviewer**: the `art-critic` subagent, given only the path
-   `target/xtask/ab/pairs/` and nothing about the change. Ideally also a
+3. **Ask a fresh reviewer**: copy `target/xtask/ab/pairs/` to a neutral
+   folder outside the repository (the key, and the folder names you rendered
+   into, are readable from inside it), then give the `art-critic` subagent
+   only that folder's path and nothing about the change. Ideally also a
    reviewer on a different model family (same-model judges share blind
    spots). Save its JSON answers to a file.
 4. **Score:** `cargo xtask ab score ANSWERS.json --reviewer art-critic`.

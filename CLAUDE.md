@@ -23,6 +23,8 @@ cargo xtask check --fast       # fmt, clippy, the quick tests — run before you
 cargo xtask check              # everything (several minutes, release build)
 cargo xtask shots              # golden frames + look statistics (part of the check)
 cargo xtask range --look       # the generator's expressive range vs its baseline (full check)
+cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); then `ab score`
+cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -109,4 +111,5 @@ Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from
 `cargo xtask ab prepare`, scored with `cargo xtask ab score`), `lore-keeper`,
 `level-analyst`, `audio-analyst`, `code-reviewer`. Fear, sound quality and
-taste are finally decided by people.
+taste are finally decided by people: `docs/PLAYTEST.md` is the session
+script, and their verdicts calibrate the reviewers.

@@ -31,6 +31,20 @@
   `cargo xtask ab score ANSWERS.json --reviewer NAME` combines the two
   orders per image (a preference needs both; otherwise a tie) and appends
   the verdicts to `crates/backrooms/tests/review/verdicts.jsonl`.
+* **Calibrating reviewers.** `cargo xtask calibrate prepare` damages ten
+  goldens with the regressions the gates exist for (cartoon colour,
+  washed-out light, a hole, smeared detail) and adds identical controls,
+  then prepares them as blind pairs (the golden is the right answer, a tie
+  for the controls). Give a fresh reviewer a copy of the pairs folder, then
+  `cargo xtask calibrate score ANSWERS.json --reviewer NAME` reports
+  accuracy and Cohen's kappa by kind and appends them to
+  `crates/backrooms/tests/review/calibration.jsonl`. Once people's verdicts
+  exist (`docs/PLAYTEST.md`), they are the truth a reviewer is held to.
+* **Playtests.** `docs/PLAYTEST.md` is the script for sessions with fresh
+  players (brief, silent observation, debrief, tension trace, one Enjoyment
+  item, A/B by ranking); each session is a file in `docs/playtests/` from
+  `TEMPLATE.md`, and its findings go into the verdict log, the critic's
+  memory, `QUALITY.md` and the ledger.
 * **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
   `cargo xtask hook <event>` (through `.claude/hooks/xtask-hook.sh`, which
   calls the built binary directly so edits never wait on cargo's build lock):

@@ -9,9 +9,11 @@
 //! cargo xtask shots             golden frames and look statistics
 //! cargo xtask range [--look]    the generator's expressive range against its baseline
 //! cargo xtask ab prepare|score  blind A/B reviews of frames
+//! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
 //! ```
 mod ab;
 mod bundle;
+mod calibrate;
 mod check;
 mod hook;
 mod look;
@@ -35,6 +37,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   ab prepare --before DIR --after DIR [--names …] [--question \"…\"]
   ab score ANSWERS.json [--reviewer NAME]
                              blind A/B review pairs (both orders) and their scoring
+  calibrate prepare | calibrate score ANSWERS.json --reviewer NAME
+                             damaged goldens with known answers; accuracy and
+                             Cohen's kappa of a reviewer
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -48,6 +53,7 @@ fn main() -> ExitCode {
         Some("shots") => shots::shots(rest),
         Some("range") => range::range(rest),
         Some("ab") => ab::ab(rest),
+        Some("calibrate") => calibrate::calibrate(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);
