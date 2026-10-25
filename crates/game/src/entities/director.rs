@@ -162,9 +162,9 @@ impl Game {
                     d.menace += dt * (0.045 + 0.1 * near + if pressed { 0.045 } else { 0.0 });
                     d.lost_t = if pressed { 0.0 } else { d.lost_t + dt };
                     // it has had its chance: once you break away (out of its
-                    // sight and reach), they all back off; past half again the
+                    // sight and reach), they all back off; a little past the
                     // gauge they back off anyway unless right on you
-                    if (d.menace >= 1.0 && d.lost_t > 2.5) || (d.menace >= 1.5 && nearest_hunt > 2.5) {
+                    if (d.menace >= 1.0 && d.lost_t > 2.5) || (d.menace >= 1.2 && nearest_hunt > 2.5) {
                         self.enter_relax(true);
                     }
                 }

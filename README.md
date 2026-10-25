@@ -135,4 +135,4 @@ cargo test --release -p backrooms --test listen -- --nocapture       # levels re
 | `crates/backrooms` | The executable: window, input routing, rendering, headless tools, and the whole-game tests |
 | `xtask` | Project automation (`cargo xtask bundle`) |
 | `packaging` | `Info.plist` and the app icon |
-| `docs` | `ARCHITECTURE.md` (how it works), `DEVELOPMENT.md` (conventions and workflows) |
+| `docs` | `ARCHITECTURE.md` (how it works), `DEVELOPMENT.md` (conventions and workflows), `SOURCES.md` (the research behind the design and the structure, and where each source was used) |
