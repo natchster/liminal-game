@@ -67,6 +67,10 @@ struct Options {
     death: bool,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
+    /// `--bench FILE`: with `--seed` and `--levels`, time each level's build,
+    /// its first frame and `bench_frames` frames along a fixed camera path
+    bench: Option<String>,
+    bench_frames: usize,
     /// `--metrics FILE`: with `--seed` and `--levels`, build the levels as a
     /// run would and write their expressive-range measures (no rendering)
     metrics: Option<String>,
@@ -93,6 +97,8 @@ fn parse_args() -> Options {
         views: false,
         fresh: false,
         metrics: None,
+        bench: None,
+        bench_frames: 240,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -125,10 +131,13 @@ fn parse_args() -> Options {
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
             "--metrics" => o.metrics = Some(next(&mut i)),
+            "--bench" => o.bench = Some(next(&mut i)),
+            "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
             "--help" | "-h" => {
                 println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist] [--death]]]");
                 println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
+                println!("          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)");
                 println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
                 println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
                 std::process::exit(0);
@@ -148,7 +157,7 @@ fn save_path() -> std::path::PathBuf {
 fn make_game(o: &Options) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = o.flags.clone();
-    let headless = o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some();
+    let headless = o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some();
     if headless && o.fresh {
         // per-frame randomness from a fixed seed: the same shot every time
         game::base::rng::seed_native(0x5EED_5EED);
@@ -495,8 +504,91 @@ fn metrics(o: &Options, path: &str) {
     std::fs::write(path, serde_json::Value::Array(out).to_string()).expect("write metrics");
 }
 
+/// The `p`-quantile of `v` (sorted in place).
+fn quantile(v: &mut [f64], p: f64) -> f64 {
+    v.sort_by(|a, b| a.total_cmp(b));
+    if v.is_empty() {
+        0.0
+    } else {
+        v[((v.len() - 1) as f64 * p).round() as usize]
+    }
+}
+
+/// `--bench FILE`: for each level, the time to build it, to load plus render
+/// its first frame (pipeline compiles land there), and per frame along a
+/// fixed path through its zones (each zone view, turning slowly) the game
+/// update on the CPU and the frame on the GPU (`MTLCommandBuffer` GPU start
+/// and end), with draw calls and triangles. Written as one JSON array.
+fn bench(o: &Options, path: &str) {
+    let seed = o.seed.unwrap_or(4242);
+    let mut g = make_game(o);
+    g.launch_flags = if o.flags.is_empty() { format!("seed={seed}&nosound") } else { format!("seed={seed}&nosound&{}", o.flags) };
+    let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
+    g.view_width = o.width;
+    g.view_height = o.height;
+    g.scale_factor = o.scale;
+    g.quality.max_pr = o.scale.min(2.0);
+    g.quality.pr = g.quality.max_pr;
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let mut r = Renderer::new(device);
+    let target = r.offscreen_target(w, h);
+    g.boot();
+    g.start_new_game();
+    g.state = "playing".into();
+    g.hide_overlay();
+    let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+    let mut out = vec![];
+    for &l in &levels {
+        let t0 = Instant::now();
+        g.load_level(l);
+        let build_ms = t0.elapsed().as_secs_f64() * 1000.0;
+        let t1 = Instant::now();
+        g.fixed_step_dt = 1.0 / 60.0;
+        g.frame(1.0 / 60.0);
+        let cb = draw(&mut g, &mut r, &target, w, h);
+        cb.commit();
+        cb.waitUntilCompleted();
+        let first_ms = t1.elapsed().as_secs_f64() * 1000.0;
+        let views = g.zone_views();
+        let per_view = (o.bench_frames / views.len().max(1)).max(1);
+        let (mut upd, mut gpu, mut calls, mut tris) = (vec![], vec![], vec![], vec![]);
+        for k in 0..o.bench_frames {
+            if let Some(&(_, x, z, yaw)) = views.get((k / per_view) % views.len().max(1)) {
+                g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                g.player.yaw = yaw + (k % per_view) as f64 * 0.01;
+                g.player.pitch = 0.0;
+            }
+            g.now_ms += 1000.0 / 60.0;
+            let tu = Instant::now();
+            g.frame(1.0 / 60.0);
+            upd.push(tu.elapsed().as_secs_f64() * 1000.0);
+            let cb = draw(&mut g, &mut r, &target, w, h);
+            cb.commit();
+            cb.waitUntilCompleted();
+            gpu.push((cb.GPUEndTime() - cb.GPUStartTime()) * 1000.0);
+            calls.push(r.info.calls as f64);
+            tris.push(r.info.triangles as f64);
+        }
+        g.fixed_step_dt = 0.0;
+        let r3 = |x: f64| (x * 1000.0).round() / 1000.0;
+        let calls_avg = calls.iter().sum::<f64>() / calls.len().max(1) as f64;
+        out.push(serde_json::json!({
+            "seed": seed, "level": l, "frames": o.bench_frames, "size": [w, h],
+            "build_ms": r3(build_ms), "first_frame_ms": r3(first_ms),
+            "update_p50_ms": r3(quantile(&mut upd, 0.5)), "update_p99_ms": r3(quantile(&mut upd, 0.99)),
+            "gpu_p50_ms": r3(quantile(&mut gpu, 0.5)), "gpu_p99_ms": r3(quantile(&mut gpu, 0.99)),
+            "calls_avg": r3(calls_avg), "calls_max": quantile(&mut calls, 1.0), "tris_max": quantile(&mut tris, 1.0),
+        }));
+    }
+    std::fs::write(path, serde_json::Value::Array(out).to_string()).expect("write bench");
+}
+
 fn main() {
     let o = parse_args();
+    if let Some(p) = o.bench.clone() {
+        bench(&o, &p);
+        return;
+    }
     if let Some(p) = o.metrics.clone() {
         metrics(&o, &p);
         return;

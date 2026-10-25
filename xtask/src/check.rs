@@ -7,7 +7,8 @@
 //!
 //! The steps: `fmt`, `clippy`, `test`, `shots` (the golden frames and look
 //! statistics, `cargo xtask shots`) and, in the full check, `range` (the
-//! generator's expressive range, `cargo xtask range --look`).
+//! generator's expressive range, `cargo xtask range --look`) and `bench`
+//! (budgets and the performance history, `cargo xtask bench --no-record`).
 //!
 //! `--fast` leaves out the slow suites that play whole levels in real time
 //! (`FAST_SKIP`); they are filtered by name, so the report counts them as
@@ -32,6 +33,7 @@ const FAST_SKIP: &[&str] = &[
     "lit_surfaces_have_plausible_albedo",
     "the_mix_holds_its_loudness_and_varies",
     "generated_levels_are_walkable_and_repeatable",
+    "a_replay_reproduces_the_run",
 ];
 
 struct Step {
@@ -70,6 +72,9 @@ pub fn check(args: &[String]) -> Result<(), String> {
         let mut range = cargo();
         range.args(["xtask", "range", "--look"]);
         steps.push(Step { name: "range", cmd: range, errors: range_errors });
+        let mut bench = cargo();
+        bench.args(["xtask", "bench", "--no-record"]);
+        steps.push(Step { name: "bench", cmd: bench, errors: range_errors });
     }
 
     let started = Instant::now();
@@ -133,7 +138,7 @@ fn summary(step: &str, text: &str) -> String {
     format!("  {passed} passed, {ignored} ignored{skipped}")
 }
 
-/// `FAIL  …` lines of `cargo xtask range`.
+/// `FAIL  …` lines of `cargo xtask range` and `cargo xtask bench`.
 fn range_errors(text: &str) -> Vec<String> {
     text.lines().filter_map(|l| l.strip_prefix("FAIL  ")).map(String::from).collect()
 }

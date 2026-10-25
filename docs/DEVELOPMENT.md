@@ -246,11 +246,29 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   `REGEN=1 cargo test --release -p game --test asset_lint` rewrites the
   table so the diff shows what changed.
 
+## Performance and replays
+
+* `cargo xtask bench` times twelve levels headless (build, load plus first
+  frame, CPU update and Metal GPU time per frame along a fixed path, draw
+  calls, triangles; medians of three repeats) against the budgets in
+  `docs/PERF.md`, and looks for lasting steps in `perf/history.csv` (a
+  change-point search with a permutation test, once eight runs are on
+  record). Record a run after any change to rendering, level building or
+  per-frame code, and commit the history with it; the full check runs
+  `--no-record`.
+* `crates/backrooms/tests/replay.rs` records a bot's inputs, replays them in
+  a fresh game and compares a hash of the state (player, creatures,
+  director, world; `game::debug::replay`) after every frame: a
+  nondeterminism shows at the frame it enters. Each run gets its own thread,
+  because the caches and the per-frame random stream are thread-local.
+
 ## Profiling and debugging
 
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`
   renders headless and prints draw calls, triangles, lights and pipeline
   counts; add `--scale 2` for Retina resolution.
+* `backrooms --bench FILE --seed S --levels …` writes the timings
+  `cargo xtask bench` reads.
 * `--fresh` (headless modes) ignores the saved settings and progress and
   seeds the per-frame randomness, so the same command renders the same frame
   bit for bit. Headless runs never write the save file.

@@ -11,9 +11,11 @@
 //! cargo xtask ab prepare|score  blind A/B reviews of frames
 //! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
 //! cargo xtask assets props|import-js|fingerprint   rebuild and check the embedded meshes
+//! cargo xtask bench [--no-record]   performance against budgets and its history
 //! ```
 mod ab;
 mod assets;
+mod bench;
 mod bundle;
 mod calibrate;
 mod check;
@@ -45,6 +47,8 @@ const USAGE: &str = "usage: cargo xtask <task>
   assets props [--batch …] [--write] | assets import-js --props F --creatures F
                              rebuild the prop meshes in Blender (or convert the
                              HTML version's modules) and compare with crates/game/assets
+  bench [--no-record]        frame, build and first-frame times against docs/PERF.md
+                             and perf/history.csv (change points)
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -60,6 +64,7 @@ fn main() -> ExitCode {
         Some("ab") => ab::ab(rest),
         Some("calibrate") => calibrate::calibrate(rest),
         Some("assets") => assets::assets(rest),
+        Some("bench") => bench::bench(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);
