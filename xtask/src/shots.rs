@@ -15,6 +15,10 @@
 //! anything above `TINY` fails with an error map next to the frame in
 //! `target/xtask/shots/`. A missing golden fails too.
 //!
+//! Every frame is also held to the art bible: `docs/STYLE.md` ends with a
+//! JSON block of ceilings for all frames and a colourfulness / luminance band
+//! for each zone purpose, which the purpose's zone view must stay inside.
+//!
 //! The look statistics of every frame (colourfulness, mean luminance,
 //! contrast, deep-shadow share) are held to *anchors* in `look.json`, which
 //! move only with `--accept-look`: re-accepting a frame never moves its look
@@ -107,6 +111,7 @@ pub fn shots(args: &[String]) -> Result<(), String> {
     let mut anchored = vec![];
     let mut table = BTreeMap::new();
     let mut shifts: Vec<(Look, Look)> = vec![];
+    let style = style_bands()?;
     for s in &shots {
         let (w, h, px) = read_png(&s.path)?;
         let look = look_of(w, h, &px);
@@ -157,6 +162,19 @@ pub fn shots(args: &[String]) -> Result<(), String> {
                     failures += usize::from(binding);
                     format!("FAIL  {}", off.join(", "))
                 }
+            }
+        };
+        // ---- the art bible
+        let off = style_check(&style, &s.name, &look);
+        let look_verdict = if off.is_empty() {
+            look_verdict
+        } else {
+            failures += usize::from(binding);
+            let style = format!("FAIL  outside docs/STYLE.md: {}", off.join(", "));
+            if look_verdict.starts_with("ok") {
+                style
+            } else {
+                format!("{look_verdict}; {style}")
             }
         };
         table.insert(s.name.clone(), (verdict, look_verdict, look));
@@ -211,6 +229,57 @@ pub fn shots(args: &[String]) -> Result<(), String> {
     }
     println!("{} shots match their goldens and look anchors", shots.len());
     Ok(())
+}
+
+/// The bands at the end of `docs/STYLE.md`.
+fn style_bands() -> Result<Value, String> {
+    let text = std::fs::read_to_string(root().join("docs/STYLE.md")).map_err(|e| format!("docs/STYLE.md: {e}"))?;
+    let (Some(a), Some(b)) = (text.find("<!-- style-bands:begin -->"), text.find("<!-- style-bands:end -->")) else {
+        return Err("docs/STYLE.md has no style-bands block".into());
+    };
+    let block = &text[a..b];
+    let json = block
+        .split("```json")
+        .nth(1)
+        .and_then(|r| r.split("```").next())
+        .ok_or("docs/STYLE.md: the style-bands block needs a ```json fence")?;
+    serde_json::from_str(json).map_err(|e| format!("docs/STYLE.md style bands: {e}"))
+}
+
+/// What a frame breaks of the art bible: the ceiling for all frames, the one
+/// for level views, and for a zone view (`<seed>_L<level>_<purpose>`) its
+/// purpose's band.
+fn style_check(style: &Value, name: &str, look: &Look) -> Vec<String> {
+    let mut out = vec![];
+    let all = &style["all"];
+    if let Some(c) = all["colourfulness_max"].as_f64() {
+        if look.colourfulness > c {
+            out.push(format!("colourfulness {:.1} > {c} (all frames)", look.colourfulness));
+        }
+    }
+    let purpose = name.split_once("_L").and_then(|(_, rest)| rest.split_once('_')).map(|(_, p)| p.replace('_', " "));
+    if let Some(l) = style["levels"]["luminance_max"].as_f64().filter(|_| purpose.is_some()) {
+        if look.luminance > l {
+            out.push(format!("luminance {:.3} > {l} (level views)", look.luminance));
+        }
+    }
+    if let Some(p) = purpose.filter(|p| p != "spawn") {
+        let band = &style["purposes"][&p];
+        if band.is_null() {
+            out.push(format!("no band for the purpose \"{p}\" (add one)"));
+        }
+        if let Some(c) = band["colourfulness_max"].as_f64() {
+            if look.colourfulness > c {
+                out.push(format!("colourfulness {:.1} > {c} ({p})", look.colourfulness));
+            }
+        }
+        if let (Some(lo), Some(hi)) = (band["luminance"][0].as_f64(), band["luminance"][1].as_f64()) {
+            if look.luminance < lo || look.luminance > hi {
+                out.push(format!("luminance {:.3} outside {lo}–{hi} ({p})", look.luminance));
+            }
+        }
+    }
+    out
 }
 
 /// Builds the game and renders every shot into `target/xtask/shots/`.

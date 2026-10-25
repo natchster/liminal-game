@@ -19,6 +19,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M3 | 1.1 golden frames (`cargo xtask shots`, 31 frames, exact then ꟻLIP), 1.2 look statistics (per frame and set-wide anchors), 1.3 material lint (`tests/materials.rs`); `--fresh` reproducible headless renders | done; prop turntable sheets move to 3.1, goldens are kept in the repository at 480×300 (no Git LFS here) |
 | M4 | 1.7 audio gates (`tests/loudness.rs`: EBU R128 integrated loudness and range against a recording, −1 dBTP true peak, one-shot repetition) | done; the 30-minute whole-mix measurement is left for when the mix gets music or voices |
 | M5 | 1.5 level sweep through the collision geometry (`tests/level_sweep.rs`, proptest), 1.10 structural tests (`tests/structure.rs`) | done; the sweep found that barricades can lock a pickup away (about 1 level in 20), reported as an open issue until `tail_barricades` checks pickups too |
+| M6 | 0.3 `LORE.md` (ported, with delivery channels), `PILLARS.md`, `STYLE.md` (with look bands checked by `cargo xtask shots`); 0.6 content ledger `docs/content.json` (kept in step by `tests/structure.rs`); 0.7 scorecard `docs/QUALITY.md` | done; the bands start wide (one view per purpose) until the range report tightens them |
 
 ## Contents
 

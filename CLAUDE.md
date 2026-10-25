@@ -8,6 +8,11 @@ a seed. This file is a map; the detail lives in the docs it points to.
 |---|---|
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
+| [`docs/LORE.md`](docs/LORE.md) | the canon: places, creatures, anomalies, and how lore may reach the player |
+| [`docs/PILLARS.md`](docs/PILLARS.md) | what the game is for; quote the rule a content change serves |
+| [`docs/STYLE.md`](docs/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
+| [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
+| [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
 | [`docs/SOURCES.md`](docs/SOURCES.md) | the research behind the game's design |
 

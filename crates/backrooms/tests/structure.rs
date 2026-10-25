@@ -216,3 +216,50 @@ fn the_fast_check_skips_only_tests_that_exist() {
         "FAST_SKIP in xtask/src/check.rs names tests that no longer exist: {stale:?} — update the list to the new test names"
     );
 }
+
+#[test]
+fn the_content_ledger_covers_the_content() {
+    let ledger: serde_json::Value = serde_json::from_str(&read("docs/content.json")).expect("docs/content.json is JSON");
+    let entries = ledger["entries"].as_array().expect("docs/content.json: entries");
+    let ids: std::collections::BTreeSet<&str> = entries.iter().filter_map(|e| e["id"].as_str()).collect();
+    let mut missing = vec![];
+    // what the code has
+    let src = read("crates/game/src/entities/mod.rs");
+    for (i, m) in src.match_indices("kind = \"") {
+        let k = src[i + m.len()..].split('"').next().unwrap();
+        missing.push(format!("creature/{k}"));
+    }
+    for k in game::level::scp::SCP_KEYS {
+        missing.push(format!("anomaly/{k}"));
+    }
+    let themes: std::collections::BTreeSet<&str> = game::world::tables::PLACER_THEME.iter().map(|(_, t)| *t).collect();
+    for t in themes {
+        missing.push(format!("props/{t}"));
+    }
+    let style = read("docs/STYLE.md");
+    let block = style.split("```json").nth(1).and_then(|r| r.split("```").next()).expect("docs/STYLE.md: style bands");
+    let bands: serde_json::Value = serde_json::from_str(block).unwrap();
+    for p in bands["purposes"].as_object().unwrap().keys() {
+        missing.push(format!("purpose/{}", p.replace(' ', "_")));
+    }
+    missing.retain(|id| !ids.contains(id.as_str()));
+    missing.dedup();
+    assert!(missing.is_empty(), "docs/content.json has no entry for {missing:?} — add one with the checks it must pass");
+    // what the ledger names exists
+    let mut dangling = vec![];
+    for e in entries {
+        for c in e["checks"].as_array().into_iter().flatten().filter_map(|c| c.as_str()) {
+            let ok = match c.split_once(':') {
+                Some(("shots", n)) => root().join(format!("crates/backrooms/tests/golden/{n}.png")).exists(),
+                Some(("style", p)) => !bands["purposes"][p].is_null(),
+                Some(("test", t)) => t.split_once('/').is_some_and(|(cr, f)| root().join(format!("crates/{cr}/tests/{f}.rs")).exists()),
+                Some(("lint", "placer-smoke")) => true,
+                _ => false,
+            };
+            if !ok {
+                dangling.push(format!("{}: {c}", e["id"].as_str().unwrap_or("?")));
+            }
+        }
+    }
+    assert!(dangling.is_empty(), "docs/content.json names checks that do not exist: {dangling:?} — fix the name or add the check");
+}

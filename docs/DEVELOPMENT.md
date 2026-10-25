@@ -99,6 +99,16 @@ Levels must be a pure function of `(run_seed, level)`:
   version in `shots.json`; elsewhere differences are advisory. (They are
   480×300 and live in the repository; an unchanged frame adds nothing to the
   history.)
+* **The art bible as a gate.** `docs/STYLE.md` ends with a JSON block of
+  look bands: a colourfulness ceiling for every frame, a luminance ceiling
+  for level views, and a band per zone purpose. `cargo xtask shots` holds the
+  goldens to it, so a purpose whose view drifts out of its band fails even
+  when its frame and look anchor are re-accepted.
+* **The content ledger.** `docs/content.json` lists every content family
+  (creatures, anomalies, zone purposes, prop themes, sound) with the checks
+  it must pass; `tests/structure.rs` fails when the code has content the
+  ledger lacks, or the ledger names a check that does not exist. Grades and
+  open issues per subsystem live in `docs/QUALITY.md`.
 * **Material lint.** `crates/backrooms/tests/materials.rs` builds six levels
   and checks every lit, opaque, non-glowing material's effective albedo
   (colour × mean of its map, linear): brightest channel 0.008–0.87,

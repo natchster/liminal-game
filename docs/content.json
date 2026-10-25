@@ -1,0 +1,490 @@
+{
+  "about": "The content ledger: every content family and what must hold for it. A session picks one entry, works on it, and leaves the evidence. `checks` name gates: shots:NAME (a golden in crates/backrooms/tests/golden/), style:PURPOSE (a band in docs/STYLE.md), test:CRATE/FILE (an integration test file), lint:placer-smoke (the placer crates' smoke tests). `passes` and `last_human_review` are written by the drift sweep (cargo xtask drift) and by people; tests/structure.rs keeps the ledger in step with the code.",
+  "entries": [
+    {
+      "id": "creature/smiler",
+      "kind": "creature",
+      "name": "Smiler",
+      "checks": [
+        "shots:smiler_2m",
+        "shots:smiler_4m",
+        "shots:smiler_8m",
+        "shots:smiler_death",
+        "test:game/entities",
+        "test:backrooms/pacing"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "creature/hound",
+      "kind": "creature",
+      "name": "Hound",
+      "checks": [
+        "shots:hound_2m",
+        "shots:hound_4m",
+        "shots:hound_8m",
+        "shots:hound_death",
+        "test:game/entities",
+        "test:backrooms/pacing"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": "Exempt from the albedo floor: the Hound's coat (tests/materials.rs)."
+    },
+    {
+      "id": "creature/watcher",
+      "kind": "creature",
+      "name": "the Watcher",
+      "checks": [
+        "shots:watcher_2m",
+        "shots:watcher_4m",
+        "shots:watcher_8m",
+        "shots:watcher_death",
+        "test:game/entities",
+        "test:backrooms/pacing"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "anomaly/stairwell",
+      "kind": "anomaly",
+      "name": "the Stairwell",
+      "checks": [
+        "test:game/stairwell",
+        "test:backrooms/level_sweep"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "anomaly/store",
+      "kind": "anomaly",
+      "name": "the Showroom",
+      "checks": [
+        "test:game/store",
+        "shots:4242_L4_showroom",
+        "shots:4242_L4_spawn",
+        "test:backrooms/level_sweep"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": "Known look issue: the department signs read as dark plates (tests/materials.rs EXEMPT)."
+    },
+    {
+      "id": "anomaly/house",
+      "kind": "anomaly",
+      "name": "the Borrowed House",
+      "checks": [
+        "test:game/anomalies",
+        "test:backrooms/level_sweep"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "anomaly/loop",
+      "kind": "anomaly",
+      "name": "the Loop",
+      "checks": [
+        "test:game/loop_rooms",
+        "test:backrooms/level_sweep"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/empty",
+      "kind": "zone purpose",
+      "name": "empty",
+      "checks": [
+        "shots:4242_L1_empty",
+        "style:empty",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/living_quarters",
+      "kind": "zone purpose",
+      "name": "living quarters",
+      "checks": [
+        "shots:4242_L7_living_quarters",
+        "style:living quarters",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/maintenance",
+      "kind": "zone purpose",
+      "name": "maintenance",
+      "checks": [
+        "shots:4242_L7_maintenance",
+        "style:maintenance",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/office_wing",
+      "kind": "zone purpose",
+      "name": "office wing",
+      "checks": [
+        "shots:4242_L1_office_wing",
+        "style:office wing",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/overgrown_atrium",
+      "kind": "zone purpose",
+      "name": "overgrown atrium",
+      "checks": [
+        "shots:4242_L7_overgrown_atrium",
+        "style:overgrown atrium",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/parlour",
+      "kind": "zone purpose",
+      "name": "parlour",
+      "checks": [
+        "shots:7_L5_parlour",
+        "style:parlour",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/party_room",
+      "kind": "zone purpose",
+      "name": "party room",
+      "checks": [
+        "shots:4242_L7_party_room",
+        "style:party room",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/play_area",
+      "kind": "zone purpose",
+      "name": "play area",
+      "checks": [
+        "shots:4242_L7_play_area",
+        "style:play area",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/pool_hall",
+      "kind": "zone purpose",
+      "name": "pool hall",
+      "checks": [
+        "shots:4242_L7_pool_hall",
+        "style:pool hall",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/service_tunnels",
+      "kind": "zone purpose",
+      "name": "service tunnels",
+      "checks": [
+        "shots:4242_L7_service_tunnels",
+        "style:service tunnels",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/showroom",
+      "kind": "zone purpose",
+      "name": "showroom",
+      "checks": [
+        "shots:4242_L4_showroom",
+        "style:showroom",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/shrine",
+      "kind": "zone purpose",
+      "name": "shrine",
+      "checks": [
+        "shots:4242_L7_shrine",
+        "style:shrine",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/storage_hall",
+      "kind": "zone purpose",
+      "name": "storage hall",
+      "checks": [
+        "shots:4242_L7_storage_hall",
+        "style:storage hall",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "purpose/washrooms",
+      "kind": "zone purpose",
+      "name": "washrooms",
+      "checks": [
+        "shots:4242_L7_washrooms",
+        "style:washrooms",
+        "test:game/zone_purpose",
+        "test:backrooms/level_sweep",
+        "test:backrooms/materials"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/domestic",
+      "kind": "prop family",
+      "name": "domestic props (122 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/office",
+      "kind": "prop family",
+      "name": "office props (100 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/toys",
+      "kind": "prop family",
+      "name": "toys props (76 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/victorian",
+      "kind": "prop family",
+      "name": "victorian props (76 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/core",
+      "kind": "prop family",
+      "name": "core props (72 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/bathroom",
+      "kind": "prop family",
+      "name": "bathroom props (58 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/nature",
+      "kind": "prop family",
+      "name": "nature props (45 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/industrial",
+      "kind": "prop family",
+      "name": "industrial props (38 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/occult",
+      "kind": "prop family",
+      "name": "occult props (36 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "props/party",
+      "kind": "prop family",
+      "name": "party props (27 placers)",
+      "checks": [
+        "test:backrooms/materials",
+        "test:backrooms/world_levels",
+        "test:backrooms/level_sweep",
+        "lint:placer-smoke"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "sound/mix",
+      "kind": "sound",
+      "name": "the whole mix",
+      "checks": [
+        "test:backrooms/loudness",
+        "test:backrooms/listen"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "sound/ambient",
+      "kind": "sound",
+      "name": "ambient events, signatures and beds",
+      "checks": [
+        "test:game/ambient",
+        "test:game/soundscape",
+        "test:backrooms/listen"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    },
+    {
+      "id": "pacing/director",
+      "kind": "system",
+      "name": "the pacing director",
+      "checks": [
+        "test:game/entities",
+        "test:backrooms/pacing"
+      ],
+      "passes": {},
+      "last_human_review": null,
+      "notes": ""
+    }
+  ]
+}
