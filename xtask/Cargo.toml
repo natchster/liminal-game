@@ -1,6 +1,6 @@
 [package]
 name = "xtask"
-description = "Project automation: `cargo xtask bundle` builds the macOS app bundle"
+description = "Project automation: `cargo xtask bundle` (the macOS app bundle), `cargo xtask check` (the quality gate)"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

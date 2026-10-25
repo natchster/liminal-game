@@ -1,6 +1,7 @@
 # Tooling roadmap
 
-Status: **proposal, 2026-10-25. Nothing in this file is implemented yet.**
+Status: **being implemented** (started 2026-10-25); the [progress
+table](#progress) says what exists.
 
 The game is written mostly by an AI coding agent, and it will keep growing:
 new zones, props, creatures, anomalies, sounds. This file lists the
@@ -9,8 +10,15 @@ quality down. It is based on a research pass over agent harnesses, content
 pipelines, automated game QA and design evaluation. The sources are at the
 end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 
+## Progress
+
+| Milestone | Items | State |
+|---|---|---|
+| M1 | 0.1 `CLAUDE.md`, 0.2 path rules, 0.4 `cargo xtask check` | done |
+
 ## Contents
 
+- [Progress](#progress)
 - [What can drift, and what catches it today](#what-can-drift-and-what-catches-it-today)
 - [Principles](#principles)
 - [Phase 0 — make the repository teach the agent](#phase-0--make-the-repository-teach-the-agent)

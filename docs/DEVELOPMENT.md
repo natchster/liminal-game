@@ -11,8 +11,13 @@
   `[workspace.dependencies]` (every external and internal dependency, used
   as `foo = { workspace = true }`), and `[workspace.lints]` (each crate opts
   in with `[lints] workspace = true`).
-* **Automation in Rust.** `cargo xtask bundle` builds and signs the app; add
-  new tasks to `xtask/src/main.rs` rather than shell scripts.
+* **Automation in Rust.** `cargo xtask bundle` builds and signs the app and
+  `cargo xtask check` runs the quality gate; add new tasks as modules of
+  `xtask/src/` rather than shell scripts.
+* **Agent guidance.** `CLAUDE.md` is the short map for coding agents (commands,
+  invariants, definition of done); `.claude/rules/*.md` hold rules that load
+  only when files under their `paths:` are touched. Keep both short, and move
+  a rule into a test or lint when it can be checked mechanically.
 * **Layering.** `engine` never depends on `game`; `game` never touches the
   window, Metal or CoreAudio devices directly; the executable glues them.
   This keeps the whole game runnable headless, which is what the tests do.
@@ -56,7 +61,12 @@ Levels must be a pure function of `(run_seed, level)`:
 
 ## Tests and reference data
 
-* `cargo test --workspace --release` runs everything.
+* `cargo xtask check` is the gate: `cargo fmt --check`, clippy with
+  `-D warnings`, and the whole test suite, each step's output written to
+  `target/xtask/check/<step>.log` and summarised as one `ERROR <step> …` line
+  per problem. `--fast` skips the slow play-through suites (`pacing`,
+  `listen`, `playthrough`); `--only fmt,clippy` runs a subset.
+* `cargo test --workspace --release` runs every test directly.
 * `crates/game/tests/fixtures/` hold recorded reference data for the game's
   subsystems; the tests compare against it with tight tolerances. After an
   intended change to the creatures' builds, animation or behaviour,
