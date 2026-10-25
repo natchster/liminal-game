@@ -1,0 +1,195 @@
+{
+  "machine": "Mac16,11 macOS 27.0",
+  "shots": {
+    "4242_L1_empty": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L1_office_wing": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L1_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L4_showroom": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L4_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_living_quarters": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_maintenance": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_overgrown_atrium": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_party_room": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_play_area": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_pool_hall": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_service_tunnels": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_shrine": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_storage_hall": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_washrooms": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L5_parlour": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L5_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L6_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "hound_2m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "hound_4m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "hound_8m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "hound_death": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "smiler_2m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "smiler_4m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "smiler_8m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "smiler_death": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "watcher_2m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "watcher_4m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "watcher_8m": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "watcher_death": {
+      "size": [
+        480,
+        300
+      ]
+    }
+  },
+  "size": [
+    480,
+    300
+  ]
+}

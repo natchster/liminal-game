@@ -79,6 +79,18 @@ pub fn rnd() -> f64 {
         }
     })
 }
+/// Restart the native generator from `seed` instead of the clock, so
+/// per-frame randomness (grain, flicker, creature decisions) repeats exactly:
+/// reproducible headless shots and replays.
+pub fn seed_native(seed: u64) {
+    RNG.with(|r| {
+        let mut x = Xorshift { s: [seed ^ 0x9E37_79B9_7F4A_7C15, seed.rotate_left(29) ^ 0xD1B5_4A32_D192_ED03] };
+        for _ in 0..8 {
+            x.next();
+        }
+        r.borrow_mut().native = x;
+    });
+}
 /// The native generator, whatever stream is active.
 pub fn native_rnd() -> f64 {
     RNG.with(|r| r.borrow_mut().native.next())

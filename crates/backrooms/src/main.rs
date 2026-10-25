@@ -67,6 +67,9 @@ struct Options {
     death: bool,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
+    /// `--fresh`: ignore the saved settings and progress, and seed the
+    /// per-frame randomness: the same shot every time
+    fresh: bool,
 }
 fn parse_args() -> Options {
     let mut o = Options {
@@ -85,6 +88,7 @@ fn parse_args() -> Options {
         showcase: None,
         death: false,
         views: false,
+        fresh: false,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -115,10 +119,12 @@ fn parse_args() -> Options {
             "--dump-level" => o.dump_level = Some(next(&mut i)),
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
+            "--fresh" => o.fresh = true,
             "--help" | "-h" => {
                 println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist] [--death]]]");
                 println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
+                println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
                 std::process::exit(0);
             }
             _ => {}
@@ -136,7 +142,19 @@ fn save_path() -> std::path::PathBuf {
 fn make_game(o: &Options) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = o.flags.clone();
-    g.storage_load(save_path());
+    let headless = o.screenshot.is_some() || o.dump_level.is_some();
+    if headless && o.fresh {
+        // per-frame randomness from a fixed seed: the same shot every time
+        game::base::rng::seed_native(0x5EED_5EED);
+    }
+    if !(headless && o.fresh) {
+        g.storage_load(save_path());
+    }
+    if headless {
+        // a headless run reads the save at most; a death in a showcase must
+        // not end up in the player's progress
+        g.storage_path = None;
+    }
     register_placers(&mut g.placers);
     g
 }

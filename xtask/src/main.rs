@@ -6,10 +6,13 @@
 //! cargo xtask bundle --run      … and open the app
 //! cargo xtask check [--fast]    the quality gate: fmt, clippy, tests (terse report)
 //! cargo xtask hook <event>      the Claude Code hooks (.claude/settings.json)
+//! cargo xtask shots             golden frames and look statistics
 //! ```
 mod bundle;
 mod check;
 mod hook;
+mod look;
+mod shots;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
@@ -17,8 +20,11 @@ use std::process::{Command, ExitCode};
 const USAGE: &str = "usage: cargo xtask <task>
   bundle [--debug] [--run]   build and sign dist/Backrooms.app
   check [--fast] [--only STEP,…]
-                             fmt, clippy and tests with a terse report;
+                             fmt, clippy, tests and shots with a terse report;
                              logs in target/xtask/check/
+  shots [--list] [--accept NAME,…|all --reason \"…\"] [--accept-look NAME,…|all --reason \"…\"]
+                             render the golden shot list, compare frames (ꟻLIP)
+                             and look statistics with crates/backrooms/tests/golden/
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -29,6 +35,7 @@ fn main() -> ExitCode {
         Some("bundle") => bundle::bundle(rest),
         Some("check") => check::check(rest),
         Some("hook") => hook::hook(rest),
+        Some("shots") => shots::shots(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

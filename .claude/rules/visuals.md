@@ -20,6 +20,11 @@ paths:
   it); never take build randomness while painting.
 - **Shader cost:** a texture read in a global patch multiplies pipeline
   compile time. Judge by level load plus first frame.
+- **Gates:** `cargo xtask shots` (golden frames, look anchors per frame and
+  over the set) and `tests/materials.rs` (albedo lint). Accept new goldens
+  only after looking at the frames and the error maps in
+  `target/xtask/shots/`, with a `--reason`; move a look anchor only when the
+  look is meant to change.
 - **Evidence:** zone views (`--dump-level … --screenshot x --views`) and
   creature showcases before and after; a blind review for any change of
   look (both orders, a fresh reviewer, ties on disagreement).

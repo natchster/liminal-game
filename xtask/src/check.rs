@@ -5,6 +5,9 @@
 //! `ERROR <step> …` line per problem found, so a failure can be found with
 //! `grep ERROR` and nothing else floods the terminal (or an agent's context).
 //!
+//! The steps: `fmt`, `clippy`, `test`, and `shots` (the golden frames and look
+//! statistics, `cargo xtask shots`).
+//!
 //! `--fast` leaves out the slow suites that play whole levels in real time
 //! (`FAST_SKIP`); they are filtered by name, so the report counts them as
 //! skipped rather than passed.
@@ -25,6 +28,7 @@ const FAST_SKIP: &[&str] = &[
     "signatures_are_heard",
     "the_notice_is_loud",
     "the_hush_quiets_the_ambience",
+    "lit_surfaces_have_plausible_albedo",
 ];
 
 struct Step {
@@ -56,6 +60,9 @@ pub fn check(args: &[String]) -> Result<(), String> {
         }
     }
     steps.push(Step { name: "test", cmd: test, errors: test_errors });
+    let mut shots = cargo();
+    shots.args(["xtask", "shots"]);
+    steps.push(Step { name: "shots", cmd: shots, errors: shot_errors });
 
     let started = Instant::now();
     let mut failed = vec![];
@@ -116,6 +123,27 @@ fn summary(step: &str, text: &str) -> String {
     }
     let skipped = if filtered > 0 { format!(", {filtered} skipped (fast)") } else { String::new() };
     format!("  {passed} passed, {ignored} ignored{skipped}")
+}
+
+/// `name  frame FAIL …` / `look  FAIL …` / `whole set: FAIL …` lines.
+fn shot_errors(text: &str) -> Vec<String> {
+    let mut out = vec![];
+    let mut last = "";
+    for l in text.lines() {
+        let name = l.split_whitespace().next().unwrap_or("");
+        if !l.starts_with(' ') && !name.is_empty() {
+            last = name;
+        }
+        if let Some(i) = l.find("FAIL") {
+            let what = if l.trim_start().starts_with("look") { "look" } else { "frame" };
+            let who = if l.starts_with("whole set") { "whole set" } else { last };
+            out.push(format!("{who} {what}: {}", l[i + 4..].trim()));
+        }
+    }
+    if out.is_empty() {
+        out.extend(text.lines().filter(|l| l.starts_with("error")).map(String::from));
+    }
+    out
 }
 
 /// `Diff in /abs/path.rs:12:` → `path.rs:12 not formatted (run cargo fmt)`.

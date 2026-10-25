@@ -17,6 +17,7 @@ paths:
 - **Re-record** after an intended change to builds, animation or behaviour:
   `REGEN=1 cargo test --release -p game --test entities`, then review the
   diff. The behaviour tests in `tests/entities.rs` must keep passing.
-- **Evidence:** `--showcase kind:dist` at 2, 4 and 8 m and `--death`;
+- **Evidence:** the creature goldens in `cargo xtask shots` (2, 4, 8 m and
+  the death scene), or `--fresh --showcase kind:dist [--death]` by hand;
   `cargo test --release -p backrooms --test pacing -- --nocapture` for the
   phase sequence, close calls and deaths.

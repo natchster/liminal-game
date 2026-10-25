@@ -11,3 +11,5 @@ workspace = true
 
 [dependencies]
 serde_json = { workspace = true }
+nv-flip = { workspace = true }
+png = { workspace = true }

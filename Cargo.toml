@@ -63,6 +63,9 @@ cpal = "0.15"
 miniz_oxide = "0.8"
 rustfft = "6"
 serde_json = { version = "1", features = ["float_roundtrip"] }
+# ---- tooling (xtask, tests)
+nv-flip = "0.1"
+png = "0.17"
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"

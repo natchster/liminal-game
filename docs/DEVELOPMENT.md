@@ -79,6 +79,32 @@ Levels must be a pure function of `(run_seed, level)`:
   per problem. `--fast` skips the slow play-through suites (`pacing`,
   `listen`, `playthrough`); `--only fmt,clippy` runs a subset.
 * `cargo test --workspace --release` runs every test directly.
+* **Golden frames.** `cargo xtask shots` renders 31 fixed frames headless
+  with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
+  spawn view of five levels and one view per zone purpose, which together
+  cover every purpose, weather and anomaly) and compares them with
+  `crates/backrooms/tests/golden/`. With `--fresh` a frame is the same bit
+  for bit on the same machine, so identical pixels pass; otherwise ꟻLIP
+  reports the mean, 99th percentile and worst 32×32 tile and writes an error
+  map to `target/xtask/shots/<name>-diff.png`. Each frame's look statistics
+  (colourfulness, luminance, contrast, deep-shadow share) are held to
+  anchors in `look.json`, frame by frame and as a median over the set (a
+  change of light moves every frame a little). After an intended change,
+  look at the frames and error maps, then
+  `cargo xtask shots --accept NAME,…|all --reason "…"`; look anchors move
+  only with `--accept-look … --reason "…"`, so re-accepting frames never
+  hides a slow slide toward bright, saturated frames. Every acceptance is
+  logged in `golden/ACCEPTED.md`. Goldens bind to the Mac model and macOS
+  version in `shots.json`; elsewhere differences are advisory. (They are
+  480×300 and live in the repository; an unchanged frame adds nothing to the
+  history.)
+* **Material lint.** `crates/backrooms/tests/materials.rs` builds six levels
+  and checks every lit, opaque, non-glowing material's effective albedo
+  (colour × mean of its map, linear): brightest channel 0.008–0.87,
+  saturation ≤ 0.985, and no opaque material on a mostly clear map. The
+  props' look pass (`visuals/prop_look.rs`) keeps settled props inside; the
+  lint guards everything else and the pass itself. Exceptions live in
+  `EXEMPT` with a reason; `--nocapture` prints the distribution.
 * `crates/game/tests/fixtures/` hold recorded reference data for the game's
   subsystems; the tests compare against it with tight tolerances. After an
   intended change to the creatures' builds, animation or behaviour,
@@ -115,6 +141,9 @@ Levels must be a pure function of `(run_seed, level)`:
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`
   renders headless and prints draw calls, triangles, lights and pipeline
   counts; add `--scale 2` for Retina resolution.
+* `--fresh` (headless modes) ignores the saved settings and progress and
+  seeds the per-frame randomness, so the same command renders the same frame
+  bit for bit. Headless runs never write the save file.
 * `backrooms --dump-level DIR --seed S --levels 1,2 --screenshot x --views`
   also renders one PNG from inside each zone (`rs_S_LN_zNN.png`); the JSON
   lists each zone's purpose and the regions.

@@ -16,6 +16,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 ```sh
 cargo xtask check --fast       # fmt, clippy, the quick tests — run before you say you are done
 cargo xtask check              # everything (several minutes, release build)
+cargo xtask shots              # golden frames + look statistics (part of the check)
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -23,7 +24,7 @@ cargo xtask bundle             # dist/Backrooms.app (signed)
 Headless evidence (never capture the screen — render offscreen):
 
 ```sh
-cargo run --release -- --screenshot out.png --level 1 --seed 4242 --play --frames 90
+cargo run --release -- --fresh --screenshot out.png --level 1 --seed 4242 --play --frames 90
 cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2 --screenshot x --views
 cargo run --release -- --screenshot out.png --seed 4242 --play --showcase hound:3 [--death]
 cargo test --release -p backrooms --test listen -- --nocapture    # WAVs + loudness PNGs in target/listen/
@@ -33,6 +34,8 @@ cargo test --release -p backrooms --test pacing -- --nocapture    # director pha
 Re-recording reference data (only after an intended change; say why in the commit):
 
 ```sh
+cargo xtask shots --accept NAME,…|all --reason "…"       # after looking at the frames and error maps
+cargo xtask shots --accept-look NAME,…|all --reason "…"  # rarely: the look itself is meant to change
 REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
