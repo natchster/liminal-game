@@ -136,6 +136,32 @@ pub fn pick_index(len: usize) -> usize {
     ((rnd() * len as f64).floor() as usize).min(len.saturating_sub(1))
 }
 
+/// splitmix64: a small local stream for per-level choices that must be
+/// stable per (run seed, level) without drawing from `rnd()` (seed it from
+/// `current_seed` and a salt of its own).
+#[derive(Clone, Copy, Debug)]
+pub struct SplitMix64 {
+    s: u64,
+}
+impl SplitMix64 {
+    pub fn new(seed: u32, salt: u64) -> Self {
+        SplitMix64 { s: seed as u64 ^ salt }
+    }
+    /// Uniform in [0, 1)
+    pub fn next(&mut self) -> f64 {
+        self.s = self.s.wrapping_add(0x9E37_79B9_7F4A_7C15);
+        let mut z = self.s;
+        z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+        z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+        z ^= z >> 31;
+        (z >> 11) as f64 / (1u64 << 53) as f64
+    }
+    /// Uniform in [a, b)
+    pub fn range(&mut self, a: f64, b: f64) -> f64 {
+        a + self.next() * (b - a)
+    }
+}
+
 pub fn seed_for_level(rs: u32, n: i32) -> u32 {
     rs.wrapping_add((n as u32).wrapping_mul(0x9E3779B9))
 }

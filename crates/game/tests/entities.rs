@@ -8,16 +8,40 @@
 //! The recorded trigonometry differs from the platform's in the last bit, so
 //! continuous quantities are compared with a tolerance; draw counts, spawn
 //! results and discrete states exactly.
+//!
+//! After an intended change to the creatures' builds, animation or behaviour,
+//! `REGEN=1 cargo test --release -p game --test entities` re-records the
+//! `mats`, `builds`, `anim` and `update` sections from the current code,
+//! keeping their inputs; review the fixture's diff before committing it.
 use game::base::numeric::hypot2;
 use game::entities::*;
 use game::prelude::*;
-use serde_json::Value;
-use std::sync::OnceLock;
+use serde_json::{json, Value};
+use std::sync::{Mutex, OnceLock};
+
+fn fixture_path() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/entities.json")
+}
+/// Re-recording instead of comparing (`REGEN=1`)
+fn regen() -> bool {
+    std::env::var_os("REGEN").is_some()
+}
+/// Replace sections of the fixture on disk (tests run in parallel: one at a time).
+fn save_sections(sections: Vec<(&str, Value)>) {
+    static LOCK: Mutex<()> = Mutex::new(());
+    let _held = LOCK.lock().unwrap();
+    let p = fixture_path();
+    let mut all: Value = serde_json::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap();
+    for (k, v) in sections {
+        all[k] = v;
+    }
+    std::fs::write(&p, serde_json::to_string(&all).unwrap()).unwrap();
+}
 
 fn fx() -> &'static Value {
     static V: OnceLock<Value> = OnceLock::new();
     V.get_or_init(|| {
-        let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/entities.json");
+        let p = fixture_path();
         let s = std::fs::read_to_string(&p).unwrap_or_else(|e| panic!("{}: {e} (missing fixture)", p.display()));
         serde_json::from_str(&s).unwrap()
     })
@@ -271,6 +295,88 @@ fn rec_geo_id(v: &Value) -> Vec<String> {
         })
         .collect()
 }
+fn mat_kind(m: &Mat) -> &'static str {
+    match m.r().kind {
+        MatKind::Basic => "basic",
+        MatKind::Lambert => "lambert",
+        MatKind::Phong => "phong",
+        _ => "?",
+    }
+}
+fn patch_key(m: &Mat) -> String {
+    match &m.r().patch {
+        Patch::SkinDetail { scale, .. } => format!("skinDetail{}", fmt_num(*scale)),
+        Patch::WatcherSheet { .. } => "watcherSheet".into(),
+        Patch::SmilerEye => "smilerEye".into(),
+        _ => String::new(),
+    }
+}
+/// A material as the fixture records it (`check_mat` reads it back)
+fn rec_mat(m: &Mat, tex: &dyn Fn(&Tex) -> Option<i64>) -> Value {
+    let r = m.r();
+    // what a kind of material has: emissive and bump scale when lit, specular when shiny
+    let lit = !matches!(r.kind, MatKind::Basic);
+    let shiny = matches!(r.kind, MatKind::Phong);
+    json!({
+        "type": mat_kind(m), "color": r.color.get_hex(),
+        "emissive": lit.then(|| r.emissive.get_hex()), "specular": shiny.then(|| r.specular.get_hex()),
+        "shininess": shiny.then_some(r.shininess), "vc": r.vertex_colors, "tr": r.transparent, "op": r.opacity,
+        "dw": r.depth_write, "fog": r.fog, "vis": r.visible, "map": r.map.as_ref().and_then(tex),
+        "bump": r.bump_map.as_ref().and_then(tex), "bumpScale": lit.then_some(r.bump_scale), "key": patch_key(m),
+    })
+}
+fn node_kind(o: &Obj) -> &'static str {
+    if matches!(o.r().kind, engine::scene::Kind::Skinned { .. }) {
+        "skinned"
+    } else if o.is_mesh() {
+        "mesh"
+    } else if o.is_bone() {
+        "bone"
+    } else if matches!(o.r().kind, engine::scene::Kind::Group) {
+        "group"
+    } else {
+        "node"
+    }
+}
+/// A node and everything under it as the fixture records it (`check_tree` reads it back)
+fn rec_tree(o: &Obj, tex: &dyn Fn(&Tex) -> Option<i64>) -> Value {
+    let (p, q, s) = (o.pos(), o.quat(), o.scl());
+    let mut v = json!({
+        "k": node_kind(o), "name": o.name(), "p": [p.x, p.y, p.z], "q": [q.x, q.y, q.z, q.w], "s": [s.x, s.y, s.z],
+        "order": format!("{:?}", o.rot().order),
+    });
+    {
+        let u = &o.r().user;
+        if u.has("tailX") {
+            v["tail"] = json!([u.get("tailX"), u.get("tailY"), u.get("tailZ")]);
+        }
+        if let Some(m) = u.s.get("main") {
+            v["main"] = json!(m);
+        }
+    }
+    if o.is_mesh() {
+        // numeric parameters as numbers, as recorded
+        let id: Vec<Value> = geo_id(&o.geo()).into_iter().map(|x| x.parse::<f64>().map(|n| json!(n)).unwrap_or(json!(x))).collect();
+        v["g"] = json!(id);
+        v["m"] = rec_mat(&o.mat(), tex);
+        let inf = o.r().morph_influences.clone();
+        if !inf.is_empty() {
+            v["inf"] = json!(inf);
+        }
+    }
+    if node_kind(o) == "skinned" {
+        let n = o.r();
+        let engine::scene::Kind::Skinned { skeleton: Some(sk), bind_matrix, .. } = &n.kind else { panic!("no skeleton") };
+        v["bones"] = json!(sk.bones.iter().map(|b| b.name()).collect::<Vec<_>>());
+        v["bind"] = json!(bind_matrix.e.to_vec());
+        v["inv"] = json!(sk.bone_inverses.iter().map(|m| m.e.to_vec()).collect::<Vec<_>>());
+    }
+    let kids = o.children();
+    if !kids.is_empty() {
+        v["c"] = json!(kids.iter().map(|c| rec_tree(c, tex)).collect::<Vec<_>>());
+    }
+    v
+}
 fn check_mat(m: &Mat, rec: &Value, tex: &dyn Fn(&Tex) -> Option<i64>, what: &str) {
     let r = m.r();
     let ty = match r.kind {
@@ -397,7 +503,11 @@ fn builds_match_reference() {
         (a.smiler_face_tex.clone(), "smilerFace"),
         (a.smiler_halo_tex.clone(), "smilerHalo"),
         (a.hound_face_tex.clone(), "houndFace"),
+        (a.watcher_face_tex.clone(), "watcherFace"),
     ];
+    if regen() {
+        return regen_builds(&mut g, &texs);
+    }
     let tex = |t: &Tex| texs.iter().find(|(x, _)| x.0.as_ptr() == t.0.as_ptr()).map(|(_, k)| ti[*k].as_i64().unwrap());
     // the texture sizes and repeat flags, in the recorded creation order
     let sizes = j["textures"].as_array().unwrap();
@@ -444,6 +554,52 @@ fn builds_match_reference() {
         }
     });
     assert_eq!(seeded_draws() - d0, j["builds"]["draws"].as_u64().unwrap(), "the builds draw nothing");
+}
+
+/// `REGEN=1`: the textures, materials and the three builds, from the current code
+fn regen_builds(g: &mut Game, texs: &[(Tex, &str)]) {
+    let j = fx();
+    let tex = |t: &Tex| texs.iter().position(|(x, _)| x.0.as_ptr() == t.0.as_ptr()).map(|i| i as i64);
+    let tex_index: serde_json::Map<String, Value> = texs.iter().enumerate().map(|(i, (_, k))| (k.to_string(), json!(i))).collect();
+    let textures: Vec<Value> = texs.iter().map(|(t, _)| json!([t.width(), t.height(), t.r().wrap_s == Wrap::Repeat])).collect();
+    let a = ent_assets();
+    let mut mats = serde_json::Map::new();
+    for (mat, k) in [
+        (&a.smiler_skin, "smilerSkin"),
+        (&a.hound_skin, "houndSkin"),
+        (&a.watcher_sheet, "watcherSheet"),
+        (&a.hound_hair, "houndHair"),
+        (&a.smiler_tooth, "smilerTooth"),
+        (&a.smiler_maw, "smilerMaw"),
+        (&a.hound_tooth, "houndTooth"),
+        (&a.hound_eye, "houndEye"),
+        (&smiler_eye_material(), "smilerEye"),
+    ] {
+        mats.insert(k.into(), rec_mat(mat, &tex));
+    }
+    let mut builds = j["builds"].clone();
+    let d0 = seeded_draws();
+    with_seed(4242, || {
+        for kind in ["smiler", "hound", "watcher"] {
+            let b = &mut builds[kind];
+            let (x, z) = (f(&b["x"]), f(&b["z"]));
+            let built = match kind {
+                "hound" => g.make_hound(x, z),
+                "watcher" => g.make_watcher(x, z),
+                _ => g.make_smiler(x, z),
+            };
+            b["tree"] = rec_tree(&built.g, &tex);
+            b["face"] = rec_tree(built.face.as_ref().unwrap(), &tex);
+            b["faceY"] = json!(built.face_y);
+        }
+    });
+    builds["draws"] = json!(seeded_draws() - d0);
+    save_sections(vec![
+        ("texIndex", Value::Object(tex_index)),
+        ("textures", json!(textures)),
+        ("mats", Value::Object(mats)),
+        ("builds", builds),
+    ]);
 }
 
 // ------------------------------------------------------------ spawn_entities (seeded: exact)
@@ -507,7 +663,8 @@ fn pose(o: &Obj) -> Vec<Vec<f64>> {
 #[test]
 fn animate_matches_reference() {
     let j = fx();
-    for c in j["anim"].as_array().unwrap() {
+    let mut recorded = j["anim"].clone();
+    for (ci, c) in j["anim"].as_array().unwrap().iter().enumerate() {
         let kind = c["type"].as_str().unwrap();
         let s = c["seed"].as_u64().unwrap() as u32;
         let mut g = game_on(&grid_a(23));
@@ -543,6 +700,34 @@ fn animate_matches_reference() {
                 let d = hypot2(p.x - g.player.pos.x, p.z - g.player.pos.z);
                 assert_eq!(d, f(&inp["d"]));
                 g.animate_entity(ei, dt, t, d);
+                if regen() {
+                    let out = &mut recorded[ci]["frames"][k];
+                    out["draws"] = json!(seeded_draws() - d0);
+                    if fr.get("pose").is_some() {
+                        let e = &g.entities[ei];
+                        out["pose"] = json!(pose(&e.g));
+                        out["num"] = json!(e.num);
+                        if fr.get("poseTaken").is_some() {
+                            out["poseTaken"] = json!(e.fl("poseTaken"));
+                        }
+                        if fr.get("tic").is_some() {
+                            let tc = g.ent_ext[&e.g.id()].tic.unwrap();
+                            out["tic"] = json!(tc.p.iter().chain(&tc.v).chain(&tc.g).copied().chain([tc.next]).collect::<Vec<f64>>());
+                        }
+                        match &*g.entity_rig(ei).unwrap() {
+                            Rig::Smiler(p) => {
+                                out["halo"] = json!([p.halo.opacity_v(), p.halo.r().visible as i32]);
+                                out["far"] = json!([p.far.opacity_v(), p.far.r().visible as i32]);
+                                out["eye"] = json!(p.eye_mat.emissive_v().r);
+                            }
+                            Rig::Hound(p) => out["far"] = json!([p.far.opacity_v(), p.far.r().visible as i32]),
+                            Rig::Watcher(p) => out["inf"] = json!(p.sheet.r().morph_influences.clone()),
+                        }
+                        out["gry"] = json!(e.g.rot().y);
+                        out["gsy"] = json!(e.g.scl().y);
+                    }
+                    continue;
+                }
                 let what = |x: &str| format!("{kind} seed {s} frame {k}: {x}");
                 assert_eq!(seeded_draws() - d0, fr["draws"].as_u64().unwrap(), "{}", what("draws"));
                 let Some(jp) = fr.get("pose") else { continue };
@@ -618,6 +803,9 @@ fn animate_matches_reference() {
                 ck(g.entities[ei].g.scl().y, f(&fr["gsy"]), 1e-12, &|| what("g.scale.y"));
             }
         });
+    }
+    if regen() {
+        save_sections(vec![("anim", recorded)]);
     }
 }
 
@@ -765,7 +953,8 @@ impl BfsPub for Game {
 // ------------------------------------------------------------ update_entities
 #[test]
 fn update_matches_reference() {
-    for c in fx()["update"].as_array().unwrap() {
+    let mut recorded = fx()["update"].clone();
+    for (ci, c) in fx()["update"].as_array().unwrap().iter().enumerate() {
         let mut g = game_on(&c["grid"]);
         g.level_num = c["level"].as_i64().unwrap() as i32;
         let wk = c["weather"].as_str().unwrap();
@@ -794,10 +983,15 @@ fn update_matches_reference() {
         with_seed(seed, || {
             let dist = g.e_bfs_pub(1, 1);
             g.spawn_entities(3, &dist);
-            assert_eq!(seeded_draws() - d0, c["spawnDraws"].as_u64().unwrap(), "spawn draws");
             let types: Vec<String> = g.entities.iter().map(|e| e.kind.clone()).collect();
-            let jt: Vec<String> = c["types"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
-            assert_eq!(types, jt);
+            if regen() {
+                recorded[ci]["spawnDraws"] = json!(seeded_draws() - d0);
+                recorded[ci]["types"] = json!(types);
+            } else {
+                assert_eq!(seeded_draws() - d0, c["spawnDraws"].as_u64().unwrap(), "spawn draws");
+                let jt: Vec<String> = c["types"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
+                assert_eq!(types, jt);
+            }
             match c["place"].as_array() {
                 Some(pl) => {
                     for (i, xz) in pl.iter().enumerate() {
@@ -823,6 +1017,45 @@ fn update_matches_reference() {
                 g.camera.set_pos(inp[2], 1.62, inp[3]);
                 g.perf_t = t;
                 g.update_entities(dt, t);
+                if regen() {
+                    let out = &mut recorded[ci]["frames"][k];
+                    out["draws"] = json!(seeded_draws() - d0);
+                    out["ents"] = json!(g
+                        .entities
+                        .iter()
+                        .map(|e| {
+                            let fp = e.face.as_ref().unwrap().pos();
+                            json!([
+                                e.pos().x,
+                                e.pos().z,
+                                e.yaw,
+                                (e.state == "hunt") as i32,
+                                e.lose_t,
+                                e.freeze,
+                                e.stare_t,
+                                e.w_timer,
+                                e.unseen_t,
+                                e.vx,
+                                e.vz,
+                                e.step_acc,
+                                fp.x,
+                                fp.y,
+                                fp.z
+                            ])
+                        })
+                        .collect::<Vec<_>>());
+                    out["full"] = json!(1);
+                    out["san"] = json!(g.player.sanity);
+                    out["vig"] = json!(g.ui.vignette.opacity());
+                    out["heart"] = json!(g.heart_t);
+                    out["shake"] = json!(g.shake_t);
+                    out["deaths"] = json!(g.god_deaths);
+                    out["hum"] = json!(g.hum_pulse_phase);
+                    out["filter"] = json!(g.ui.vignette.style("filter").unwrap_or(""));
+                    out["box"] = json!(g.ui.vignette.style("boxShadow").unwrap_or(""));
+                    out["flash"] = json!(g.ui.flash.opacity());
+                    continue;
+                }
                 let what = |x: &str| format!("update L{} seed {seed} frame {k}: {x}", c["level"]);
                 assert_eq!(seeded_draws() - d0, fr["draws"].as_u64().unwrap(), "{}", what("draws"));
                 let jents = fr["ents"].as_array().unwrap();
@@ -863,4 +1096,109 @@ fn update_matches_reference() {
             }
         });
     }
+    if regen() {
+        save_sections(vec![("update", recorded)]);
+    }
+}
+
+// ------------------------------------------------------------ senses and the director
+/// A smiler at tile (5, 5) on the open test grid, you 8 m away at (5, 7)
+fn senses_game(yaw: f64) -> (Game, usize) {
+    let mut g = game_on(&grid_a(23));
+    g.level_num = 3;
+    let ei = g.add_entity("smiler", 5, 5, 0);
+    let e = &mut g.entities[ei];
+    e.freeze = 0.0;
+    e.yaw = yaw;
+    e.stare_t = 100.0;
+    g.player.pos = v3(g.wx(5), 0.0, g.wz(7));
+    g.player.audible_range = 0.0;
+    (g, ei)
+}
+
+#[test]
+fn creatures_see_ahead_not_behind() {
+    // facing away (its +z is toward you at yaw 0): you pass unseen
+    let (mut g, ei) = senses_game(PI);
+    for _ in 0..3 {
+        g.update_entities(1.0 / 60.0, 0.0);
+    }
+    assert_eq!(g.entities[ei].state, "wander", "a creature facing away does not see you");
+    // facing you: it stops dead, its head snapped to you, and it comes
+    let (mut g, ei) = senses_game(0.0);
+    g.update_entities(1.0 / 60.0, 0.0);
+    let e = &g.entities[ei];
+    assert_eq!(e.state, "hunt");
+    assert!(e.freeze > 0.0 && e.n("noticeT") > 0.0 && e.n("chargeT") > 0.0, "the notice: a freeze, then a charge");
+}
+
+#[test]
+fn heard_but_unseen_it_searches_then_finds_you() {
+    let (mut g, ei) = senses_game(PI);
+    g.player.audible_range = 13.0; // running
+    g.update_entities(1.0 / 60.0, 0.0);
+    let (lx, lz) = (g.entities[ei].n("seenX"), g.entities[ei].n("seenZ"));
+    assert_eq!(g.entities[ei].state, "search", "heard, not seen: it comes to look");
+    assert!(hypot2(lx - g.player.pos.x, lz - g.player.pos.z) <= 4.0 + 1e-9, "near where it heard you");
+    // still and quiet, standing in the open: it turns to come and look, and has you
+    g.player.audible_range = 0.0;
+    let mut t = 0.0;
+    while g.entities[ei].state == "search" && t < 5.0 {
+        g.update_entities(1.0 / 60.0, t);
+        t += 1.0 / 60.0;
+    }
+    assert_eq!(g.entities[ei].state, "hunt", "after {t:.1} s of searching");
+    assert!(t > 0.1, "not at once: it had to turn first");
+}
+
+#[test]
+fn a_hunter_that_loses_you_searches_where_it_last_had_you() {
+    let (mut g, ei) = senses_game(0.0);
+    g.update_entities(1.0 / 60.0, 0.0);
+    assert_eq!(g.entities[ei].state, "hunt");
+    let last = g.player.pos;
+    // you are gone behind the wall at x = 9, silent
+    g.player.pos = v3(g.wx(15), 0.0, g.wz(15));
+    let mut t = 0.0;
+    while g.entities[ei].state == "hunt" && t < 10.0 {
+        g.update_entities(1.0 / 60.0, t);
+        t += 1.0 / 60.0;
+    }
+    let e = &g.entities[ei];
+    assert_eq!(e.state, "search", "after {t:.1} s");
+    assert!(hypot2(e.n("seenX") - last.x, e.n("seenZ") - last.z) < 1e-9, "it looks where it last had you");
+}
+
+#[test]
+fn the_director_sends_one_then_backs_off() {
+    let (mut g, ei) = senses_game(PI);
+    g.player.pos = v3(g.wx(17), 0.0, g.wz(17));
+    g.entities[ei].g.set_pos(g.wx(3), 0.0, g.wz(19));
+    g.reset_director();
+    assert_eq!(g.director.phase, game::entities::director::Phase::Calm);
+    assert!(g.director.t >= 45.0 * 0.9 && g.director.t <= 80.0);
+    // the quiet ends: the nearest prowler is sent toward you, not onto you
+    g.director.t = 0.0;
+    g.update_director(1.0 / 60.0);
+    g.update_director(1.0 / 60.0);
+    assert_eq!(g.director.phase, game::entities::director::Phase::Build);
+    assert_eq!(g.director.stalker, Some(ei));
+    let e = &g.entities[ei];
+    assert!(e.fl("stalk"));
+    let (gx, gz) = e.w_target.expect("a goal near you");
+    let dg = hypot2(g.wx(gx) - g.player.pos.x, g.wz(gz) - g.player.pos.z);
+    assert!((6.0..=16.0).contains(&dg), "goal {dg:.1} m from you");
+    // it finds you: a peak; the gauge fills, you break away, it withdraws
+    g.entities[ei].state = "hunt".into();
+    g.update_director(1.0 / 60.0);
+    assert_eq!(g.director.phase, game::entities::director::Phase::Peak);
+    g.director.menace = 1.0;
+    g.entities[ei].lose_t = 1.0;
+    for _ in 0..200 {
+        g.update_director(1.0 / 60.0);
+    }
+    assert_eq!(g.director.phase, game::entities::director::Phase::Relax);
+    let e = &g.entities[ei];
+    assert_eq!(e.state, "wander");
+    assert!(e.n("retreatT") > 0.0 && !e.fl("stalk"), "sent away, and it stays away a while");
 }

@@ -61,6 +61,12 @@ struct Options {
     play: bool,
     dump_level: Option<String>,
     levels: Vec<i32>,
+    /// `--showcase smiler[:dist]`: pin a creature in front of the camera
+    showcase: Option<(String, f64)>,
+    /// `--death`: with `--showcase`, it kills you 15 frames before the shot
+    death: bool,
+    /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
+    views: bool,
 }
 fn parse_args() -> Options {
     let mut o = Options {
@@ -76,6 +82,9 @@ fn parse_args() -> Options {
         play: false,
         dump_level: None,
         levels: vec![],
+        showcase: None,
+        death: false,
+        views: false,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -95,12 +104,20 @@ fn parse_args() -> Options {
             "--level" => o.level = next(&mut i).parse().ok(),
             "--seed" => o.seed = next(&mut i).parse().ok(),
             "--play" => o.play = true,
+            "--death" => o.death = true,
+            "--showcase" => {
+                let v = next(&mut i);
+                let mut it = v.splitn(2, ':');
+                let kind = it.next().unwrap_or("smiler").to_string();
+                o.showcase = Some((kind, it.next().and_then(|d| d.parse().ok()).unwrap_or(3.5)));
+            }
             "--scale" => o.scale = next(&mut i).parse().unwrap_or(1.0),
             "--dump-level" => o.dump_level = Some(next(&mut i)),
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
+            "--views" => o.views = true,
             "--help" | "-h" => {
-                println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play]]");
-                println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x]]   writes a JSON description of each level (and a PNG with --screenshot)");
+                println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist] [--death]]]");
+                println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
                 std::process::exit(0);
             }
@@ -142,6 +159,7 @@ fn globals(g: &mut Game) -> RenderGlobals {
             fog_ratio: g.ll_fog_ratio,
         },
         pixel_ratio: g.quality.pr / g.scale_factor.max(1.0),
+        floor_occlusion: g.floor_occlusion(),
     }
 }
 
@@ -331,6 +349,15 @@ fn screenshot(o: &Options, path: &str) {
     let t0 = Instant::now();
     for i in 0..o.frames {
         g.now_ms = (i as f64) * 1000.0 / 60.0;
+        if let Some((kind, dist)) = &o.showcase {
+            if g.state == "playing" {
+                g.showcase_entity(kind, *dist);
+            }
+            if o.death && i + 15 == o.frames {
+                g.director.killer = g.entities.iter().position(|e| &e.kind == kind);
+                g.on_death("entity");
+            }
+        }
         g.frame(1.0 / 60.0);
         let cb = draw(&mut g, &mut r, &target, w, h);
         cb.commit();
@@ -402,6 +429,26 @@ fn level_check(o: &Options, dir: &str) {
             engine::png::write_rgba(&format!("{base}.png"), tw as u32, th as u32, &px).expect("write png");
             g.sim_frozen = false;
             print!(" (+png)");
+            if o.views {
+                // one frame from inside each zone (the creatures stay where they are)
+                let views = g.zone_views();
+                for &(zi, x, z, yaw) in &views {
+                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.yaw = yaw;
+                    g.player.pitch = 0.0;
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    g.frame(1.0 / 60.0);
+                    g.fixed_step_dt = 0.0;
+                    g.sim_frozen = true;
+                    let cb = draw(&mut g, &mut r, t, w, h);
+                    cb.commit();
+                    cb.waitUntilCompleted();
+                    let (tw, th, px) = r.read_texture(t);
+                    engine::png::write_rgba(&format!("{base}_z{zi:02}.png"), tw as u32, th as u32, &px).expect("write png");
+                    g.sim_frozen = false;
+                }
+                print!(" (+{} zone views)", views.len());
+            }
         }
         println!();
     }

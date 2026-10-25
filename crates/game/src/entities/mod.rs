@@ -23,6 +23,7 @@
 //! CONTRACT: the signatures below are called from other modules; keep them.
 pub mod ai;
 pub mod anim;
+pub mod director;
 
 use crate::assets::creatures::{creature_geometry, watcher_geometry};
 use crate::base::numeric::{hypot2, hypot3};
@@ -385,16 +386,54 @@ fn make_smiler_halo_tex() -> Tex {
 fn make_hound_face_tex() -> Tex {
     canvas_tex_opt(128, 128, false, |ctx, _w, _h| {
         ctx.clear_rect(0, 0, 128, 128);
-        // two small white points of eyeshine, 0.06 m apart on a 0.16 m plane
+        // two white points of eyeshine, 0.06 m apart on a 0.16 m plane, with
+        // a wide cold bloom so they read through the hair at a few metres
         ctx.set_shadow_color("#e9f1e4");
-        ctx.set_shadow_blur(16);
-        ctx.set_fill_style("#f4faf0");
-        ctx.begin_path();
-        ctx.ellipse(40, 64, 8, 7, 0, 0, 7);
-        ctx.fill();
-        ctx.begin_path();
-        ctx.ellipse(88, 64, 8, 7, 0, 0, 7);
-        ctx.fill();
+        for (blur, r) in [(30.0, 9.0), (14.0, 8.0)] {
+            ctx.set_shadow_blur(blur);
+            ctx.set_fill_style("#f4faf0");
+            ctx.begin_path();
+            ctx.ellipse(40, 64, r, r - 1.0, 0, 0, 7);
+            ctx.fill();
+            ctx.begin_path();
+            ctx.ellipse(88, 64, r, r - 1.0, 0, 0, 7);
+            ctx.fill();
+        }
+    })
+}
+
+/// The impression of a face under the Watcher's sheet: the cloth sunk into
+/// two eye hollows and a mouth stretched open, a lit ridge over the brow and
+/// the nose, all soft-edged so it reads as cloth over something.
+fn make_watcher_face_tex() -> Tex {
+    canvas_tex_opt(128, 160, false, |ctx, _w, _h| {
+        ctx.clear_rect(0, 0, 128, 160);
+        let hollow = |ctx: &mut Canvas, x: f64, y: f64, rx: f64, ry: f64, a: f64| {
+            let g = ctx.create_radial_gradient(x, y, 0, x, y, rx.max(ry));
+            g.add_color_stop(0, &format!("rgba(18,15,12,{a})"));
+            g.add_color_stop(0.55, &format!("rgba(30,26,22,{})", a * 0.55));
+            g.add_color_stop(1, "rgba(40,36,30,0)");
+            ctx.set_fill_style(&g);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(1.0, ry / rx.max(ry));
+            ctx.translate(-x, -y);
+            ctx.begin_path();
+            ctx.arc(x, y, rx.max(ry), 0, 7);
+            ctx.fill();
+            ctx.restore();
+        };
+        // brow and nose ridge: the cloth pulled tight and catching the light
+        let g = ctx.create_radial_gradient(64, 58, 4, 64, 58, 52);
+        g.add_color_stop(0, "rgba(235,228,214,0.22)");
+        g.add_color_stop(1, "rgba(235,228,214,0)");
+        ctx.set_fill_style(&g);
+        ctx.fill_rect(0, 0, 128, 160);
+        hollow(ctx, 42.0, 66.0, 16.0, 13.0, 0.62);
+        hollow(ctx, 86.0, 66.0, 16.0, 13.0, 0.62);
+        // the mouth, too wide and pulled down, the cloth sucked into it
+        hollow(ctx, 64.0, 118.0, 22.0, 30.0, 0.78);
+        hollow(ctx, 64.0, 124.0, 10.0, 18.0, 0.55);
     })
 }
 
@@ -424,9 +463,6 @@ pub struct SmGeo {
 pub struct HdGeo {
     /// `hd_skin`: skinned, when built (tools/blender/skin_hound.py)
     pub skin: Option<Geo>,
-    pub mane_p: Option<Geo>,
-    pub mane_l: Option<Geo>,
-    pub mane_t: Option<Geo>,
     pub body: Geo,
     pub neck: Geo,
     pub head: Geo,
@@ -435,8 +471,6 @@ pub struct HdGeo {
     pub teeth_lo: Option<Geo>,
     pub ear: Option<Geo>,
     pub hair: Option<Geo>,
-    pub mane: Option<Geo>,
-    pub tail: Option<Geo>,
     pub up_arm: Geo,
     pub fore: Geo,
     pub hand: Geo,
@@ -473,6 +507,7 @@ pub struct EntAssets {
     pub smiler_face_tex: Tex,
     pub smiler_halo_tex: Tex,
     pub hound_face_tex: Tex,
+    pub watcher_face_tex: Tex,
 }
 
 /// The generated mesh, or a crude primitive stand-in
@@ -487,18 +522,19 @@ fn limb_fb(r: f64, len: f64) -> Geo {
 
 fn build_assets() -> EntAssets {
     // near-black and wet; sharp wet highlights with a faint oily violet
-    let smiler_skin = with_skin_detail(phong!({ color: 0xffffff, vertexColors: true, specular: 0x2e2b36, shininess: 92 }), 3.1, 1.05);
+    let smiler_skin = with_skin_detail(phong!({ color: 0xffffff, vertexColors: true, specular: 0x4a4654, shininess: 70 }), 3.1, 1.05);
     let smiler_tooth = basic_mat!({ color: 0xffffff, vertexColors: true }); // unlit white, greyer at the root
     let smiler_maw = basic_mat!({ color: 0x000000 }); // the mouth is black, never red
                                                       // grey-pallid human skin, matte and a little waxy
     let hound_skin = with_skin_detail(phong!({ color: 0xffffff, vertexColors: true, specular: 0x1e1c1a, shininess: 22 }), 3.4, 1.2);
-    let hound_hair = phong!({ color: 0x0c0b0b, specular: 0x3a3733, shininess: 64 });
+    // wet, matted hair: a dull broad sheen, not the tight highlight of plastic
+    let hound_hair = phong!({ color: 0x0a0909, specular: 0x1c1b1a, shininess: 18 });
     let hound_tooth = lambert!({ color: 0xffffff, vertexColors: true });
     let hound_eye = basic_mat!({ color: 0xe9f1e4 });
-    // the aged dust sheet, a faint floor of light, its light rolling
+    // the aged dust sheet, grey with handling and damp, a faint floor of light, its light rolling
     // off logarithmically past 0.5 (Patch::WatcherSheet = skin detail + rolloff)
     let watcher_cloth_tex = make_watcher_cloth_tex();
-    let watcher_sheet = with_skin_detail(lambert!({ color: 0xffffff, vertexColors: true, emissive: 0x14120e }), 3.1, 0.85);
+    let watcher_sheet = with_skin_detail(lambert!({ color: 0xc8c0b2, vertexColors: true, emissive: 0x100f0c }), 3.1, 0.85);
     {
         let mut m = watcher_sheet.m();
         m.bump_map = Some(watcher_cloth_tex.clone());
@@ -540,9 +576,6 @@ fn build_assets() -> EntAssets {
     };
     let hd = HdGeo {
         skin: creature_geometry("hdSkin"),
-        mane_p: creature_geometry("hdManeP"),
-        mane_l: creature_geometry("hdManeL"),
-        mane_t: creature_geometry("hdManeT"),
         body: cpart("hdBody", || {
             let g = capsule_geo!(0.14, 0.5, 4, 8);
             g.rotate_x(PI / 2.0);
@@ -567,8 +600,6 @@ fn build_assets() -> EntAssets {
         teeth_lo: creature_geometry("hdTeethLo"),
         ear: creature_geometry("hdEar"),
         hair: creature_geometry("hdHair"),
-        mane: creature_geometry("hdMane"),
-        tail: creature_geometry("hdTail"),
         up_arm: cpart("hdUpArm", || limb_fb(0.03, 0.31)),
         fore: cpart("hdFore", || limb_fb(0.022, 0.27)),
         hand: cpart("hdHand", || {
@@ -605,6 +636,7 @@ fn build_assets() -> EntAssets {
         smiler_face_tex: make_smiler_face_tex(),
         smiler_halo_tex: make_smiler_halo_tex(),
         hound_face_tex: make_hound_face_tex(),
+        watcher_face_tex: make_watcher_face_tex(),
     }
 }
 
@@ -1034,6 +1066,7 @@ impl Game {
         for s in [-1.0, 1.0] {
             let eye = mesh(&a.sm.eye, &eye_mat);
             eye.set_pos(s * 0.047, 0.035, 0.062);
+            eye.scale().set(1.35, 1.35, 1.35);
             head.add(&eye);
         }
         head.add(&mesh(&a.sm.head, skin_m));
@@ -1060,6 +1093,7 @@ impl Game {
         };
 
         g.set_pos(self.wx(x), 0.0, self.wz(z));
+        g.scale().set(1.08, 1.08, 1.08); // a head taller than a tall man
         if let Some(sk) = &skin {
             sync_skin_bind(sk);
         }
@@ -1104,22 +1138,11 @@ impl Game {
         set_main(&thorax, "neck");
         set_tail(&spine, [0.0, 0.0, 0.1]);
         set_tail(&ribs, [0.0, -0.015, 0.15]);
-        // the band of hair down the back, a piece per spine bone so it bends with it
-        let manes =
-            [(&a.hd.mane_p, &pelvis, HD_RIG.pelvis), (&a.hd.mane_l, &lumbar, HD_RIG.lumbar), (&a.hd.mane_t, &thorax, HD_RIG.thorax)];
-        if manes.iter().all(|m| m.0.is_some()) {
-            for (geo, bone, at) in manes {
-                let m = mesh(geo.as_ref().unwrap(), hair_m);
-                m.set_pos(-at[0], -at[1], -at[2]);
-                bone.add(&m);
-            }
-        } else if let Some(m) = &a.hd.mane {
-            spine.add(&mesh(m, hair_m));
-        }
-        // the band ends in a trailing clump that stands in for a tail
-        let tail_root = jnt(a.hd.tail.clone(), hair_m, &pelvis, rel([0.0, 0.16, -0.41], HD_RIG.pelvis), "tail0");
-        let tail_mid = joint(a.hd.tail.clone(), hair_m, Some(&tail_root), 0.0, -0.13, -0.035, "tail1");
-        let tail_tip = joint(a.hd.tail.clone(), hair_m, Some(&tail_mid), 0.0, -0.12, -0.035, "tail2");
+        // no hair down the back: a person's bare, starved back, the spine and
+        // the ribs showing (the tail bones stay, bare, for the gait)
+        let tail_root = jnt(None, hair_m, &pelvis, rel([0.0, 0.16, -0.41], HD_RIG.pelvis), "tail0");
+        let tail_mid = joint(None, hair_m, Some(&tail_root), 0.0, -0.13, -0.035, "tail1");
+        let tail_tip = joint(None, hair_m, Some(&tail_mid), 0.0, -0.12, -0.035, "tail2");
         tail_root.rotation().x = 0.35;
         tail_mid.set_scalar(0.85);
         tail_tip.set_scalar(0.8);
@@ -1344,7 +1367,12 @@ impl Game {
         head.rotation().x = WT_POSES[0].pitch; // bowed a little, looking at you
 
         g.set_pos(self.wx(x), 0.0, self.wz(z));
-        let face = node(); // no eyes, no light: the billboard anchor carries nothing
+        // no eyes, no light: only the shape of a face pressed into the cloth
+        // from inside, the mouth open, turned always to you
+        let face = node();
+        let imprint = mesh(plane_geo!(0.34, 0.42), &lambert!({ map: &a.watcher_face_tex, transparent: true, depthWrite: false }));
+        imprint.position().y = -0.04;
+        face.add(&imprint);
         self.scene.add(&face);
         self.world.add(&g);
 

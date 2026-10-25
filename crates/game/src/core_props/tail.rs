@@ -595,14 +595,14 @@ impl Game {
         depth_mark.rotation().x = -PI / 2.0;
         depth_mark.set_pos(pcx, 0.062, min_z - trim_w / 2.0);
         self.world.add(&depth_mark);
-        // R769: an opaque-ish blue backing plane 3 cm under the water
-        let pool_tint_mat = basic_mat!({ color: 0x2a80b8, transparent: true, opacity: 0.55, side: DoubleSide, depthWrite: false });
+        // the depth under the water: a dark teal backing plane 3 cm down
+        let pool_tint_mat = basic_mat!({ color: 0x1f3d45, transparent: true, opacity: 0.55, side: DoubleSide, depthWrite: false });
         let pool_tint = mesh(plane_geo!(pool_width * 0.98, pool_depth * 0.98), pool_tint_mat);
         pool_tint.rotation().x = -PI / 2.0;
         pool_tint.set_pos(pcx, water_y - 0.03, pcz);
         self.world.add(&pool_tint);
-        // water surface — brighter emissive so it self-illuminates in dim
-        let water_mat = lambert!({ color: 0x6ab4d8, emissive: 0x2a6088, transparent: true, opacity: 0.62, side: DoubleSide });
+        // water surface: still, chlorinated, greyed by the room's light, a faint glow so it reads in the dark
+        let water_mat = lambert!({ color: 0x527f88, emissive: 0x0b181c, transparent: true, opacity: 0.62, side: DoubleSide });
         let water = mesh(plane_geo!(pool_width, pool_depth, 24, 24), water_mat);
         water.rotation().x = -PI / 2.0;
         water.set_pos(pcx, water_y, pcz);

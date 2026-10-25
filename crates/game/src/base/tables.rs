@@ -841,7 +841,8 @@ pub const RATE_DRIFT_DEBOUNCE: f64 = 30.0;
 pub const RATE_DELTA_WINDOW: f64 = 30.0;
 pub const WHISPER_MIN_OPACITY: f64 = 0.28;
 
-/// The ambient event draw table: (weight, sfx name); `""` is the silent entry.
+/// The ambient sound pool a level draws its signature sounds from (weight,
+/// sfx name); `""` is the silent entry (drawing it stretches the level's gaps).
 pub const AMBIENT_EVENTS: [(f64, &str); 17] = [
     (3.0, "thud"),
     (3.0, "clank"),
@@ -861,15 +862,3 @@ pub const AMBIENT_EVENTS: [(f64, &str); 17] = [
     (2.0, "pageFlip"),
     (3.0, ""),
 ];
-/// Draws one entry by weight and returns its name.
-pub fn pick_weighted(arr: &[(f64, &'static str)]) -> &'static str {
-    let total: f64 = arr.iter().map(|a| a.0).sum();
-    let mut r = crate::base::rng::rnd() * total;
-    for &(w, f) in arr {
-        r -= w;
-        if r < 0.0 {
-            return f;
-        }
-    }
-    arr[arr.len() - 1].1
-}

@@ -1,0 +1,273 @@
+//! Listening, headless: levels are played with the audio graph rendered
+//! offline, recorded to WAV under `target/listen/` (to listen to) with a
+//! loudness timeline next to each (PNG), and measured in 50 ms windows:
+//!
+//! * a level opens quietly: nothing piles up in its first second;
+//! * the moment a creature notices you is loud against what came before;
+//! * the director's hush quiets the ambience: fewer and softer events, a
+//!   lower room tone.
+//!
+//!   cargo test --release -p backrooms --test listen -- --nocapture
+use engine::audio::AudioContext;
+use game::Game;
+
+fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
+    placers_p00::register(r);
+    placers_p01::register(r);
+    placers_p02::register(r);
+    placers_p03::register(r);
+    placers_p04::register(r);
+    placers_p05::register(r);
+    placers_p06::register(r);
+    placers_p07::register(r);
+    placers_p08::register(r);
+    placers_p09::register(r);
+    placers_p10::register(r);
+    placers_p11::register(r);
+    placers_p12::register(r);
+    placers_p13::register(r);
+    placers_p14::register(r);
+    placers_p15::register(r);
+    placers_p16::register(r);
+    placers_p17::register(r);
+    placers_p18::register(r);
+    placers_p19::register(r);
+    placers_p20::register(r);
+    placers_p21::register(r);
+    placers_p22::register(r);
+    placers_p23::register(r);
+    placers_p24::register(r);
+    placers_p25::register(r);
+    placers_p26::register(r);
+    placers_p27::register(r);
+    placers_p28::register(r);
+    placers_p29::register(r);
+    placers_p30::register(r);
+    placers_p31::register(r);
+    placers_p32::register(r);
+}
+
+const SR: f64 = 48000.0;
+/// 50 ms
+const WIN: usize = 2400;
+
+struct Run {
+    g: Game,
+    ac: AudioContext,
+    /// interleaved stereo
+    pcm: Vec<f32>,
+}
+
+fn start(seed: u32, level: i32) -> Run {
+    let mut g = Game::new_bare();
+    register_placers(&mut g.placers);
+    g.launch_flags = format!("seed={seed}&level={level}");
+    let ac = AudioContext::new_offline(SR);
+    g.audio_init_with(ac.clone());
+    g.boot();
+    g.start_new_game();
+    g.god_mode = true;
+    Run { g, ac, pcm: vec![] }
+}
+/// `secs` of play at 60 fps, `each` called before every frame
+fn play(r: &mut Run, secs: f64, mut each: impl FnMut(&mut Game)) {
+    for _ in 0..(secs * 60.0).round() as usize {
+        each(&mut r.g);
+        r.g.now_ms += 1000.0 / 60.0;
+        r.g.fixed_step_dt = 1.0 / 60.0;
+        r.g.frame(1.0 / 60.0);
+        r.g.fixed_step_dt = 0.0;
+        r.pcm.extend(r.ac.render_offline((SR / 60.0) as usize));
+    }
+}
+/// Every creature stands still and silent where it is.
+fn hold_creatures(g: &mut Game) {
+    for e in g.entities.iter_mut() {
+        e.freeze = 1e9;
+    }
+}
+/// Loudness of each 50 ms window (RMS of the mono mix)
+fn windows(pcm: &[f32]) -> Vec<f64> {
+    pcm.chunks(WIN * 2)
+        .map(|c| {
+            let n = c.len() / 2;
+            let s: f64 = (0..n).map(|i| ((c[2 * i] + c[2 * i + 1]) as f64 * 0.5).powi(2)).sum();
+            (s / n.max(1) as f64).sqrt()
+        })
+        .collect()
+}
+fn median(v: &[f64]) -> f64 {
+    let mut s = v.to_vec();
+    s.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    s[s.len() / 2]
+}
+/// How much of the time something stands out of the bed: the summed
+/// loudness above twice the median, per second
+fn event_energy(w: &[f64], bed: f64) -> f64 {
+    w.iter().map(|v| (v - 2.0 * bed).max(0.0)).sum::<f64>() / (w.len() as f64 * 0.05)
+}
+fn db(x: f64) -> f64 {
+    20.0 * x.max(1e-7).log10()
+}
+/// The WAV and a loudness timeline (dB, -70..0, one column per window; red
+/// marks at `marks` seconds)
+fn save(name: &str, pcm: &[f32], marks: &[f64]) {
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/listen");
+    std::fs::create_dir_all(&dir).unwrap();
+    let base = dir.join(name);
+    engine::wav::write_stereo(base.with_extension("wav").to_str().unwrap(), SR as u32, pcm).unwrap();
+    let w = windows(pcm);
+    let (wd, h) = (w.len().max(1), 160usize);
+    let mut px = vec![0u8; wd * h * 4];
+    for (x, v) in w.iter().enumerate() {
+        let top = ((db(*v) / -70.0).clamp(0.0, 1.0) * h as f64) as usize;
+        for y in 0..h {
+            let i = (y * wd + x) * 4;
+            let on = y >= top;
+            let grid = y % 40 == 0;
+            px[i..i + 4].copy_from_slice(&if on {
+                [210, 200, 150, 255]
+            } else if grid {
+                [40, 40, 40, 255]
+            } else {
+                [16, 16, 16, 255]
+            });
+        }
+    }
+    for m in marks {
+        let x = (m / 0.05) as usize;
+        for y in 0..h {
+            if x < wd {
+                let i = (y * wd + x) * 4;
+                px[i..i + 4].copy_from_slice(&[220, 40, 40, 255]);
+            }
+        }
+    }
+    engine::png::write_rgba(base.with_extension("png").to_str().unwrap(), wd as u32, h as u32, &px).unwrap();
+}
+
+#[test]
+fn a_level_opens_quietly() {
+    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+        let mut r = start(seed, level);
+        play(&mut r, 90.0, hold_creatures);
+        let w = windows(&r.pcm);
+        let bed = median(&w[40..]);
+        let first = w[..20].iter().cloned().fold(0.0, f64::max);
+        let later = w[40..].iter().cloned().fold(0.0, f64::max);
+        println!(
+            "seed {seed} L{level}: bed {:.1} dB, loudest in the first second {:.1} dB, loudest after {:.1} dB, events {:.4}/s",
+            db(bed),
+            db(first),
+            db(later),
+            event_energy(&w[40..], bed)
+        );
+        save(&format!("open_{seed}_L{level}"), &r.pcm, &[1.0]);
+        assert!(first < bed * 2.0, "seed {seed} L{level}: the first second piles up ({:.1} dB over the bed)", db(first / bed));
+        assert!(later > bed * 2.0, "seed {seed} L{level}: in a minute and a half nothing stands out of the bed");
+    }
+}
+
+/// Each signature sound, when it comes, stands out of the bed: you hear
+/// that something happened somewhere, not a level that never makes a sound.
+#[test]
+fn signatures_are_heard() {
+    let mut heard = vec![];
+    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+        let mut r = start(seed, level);
+        let mut times = vec![];
+        let mut last = String::new();
+        let mut t = 0.0;
+        play(&mut r, 150.0, |g| {
+            hold_creatures(g);
+            t += 1.0 / 60.0;
+            if let Some(e) = g.ambient_log.last() {
+                let key = format!("{}@{}", e.tag, e.at);
+                if key != last {
+                    last = key;
+                    if e.tag.starts_with("sig-") {
+                        times.push((t, e.tag.clone(), e.dist.unwrap_or(0.0)));
+                    }
+                }
+            }
+        });
+        let w = windows(&r.pcm);
+        let bed = median(&w[40..]);
+        for (at, tag, dist) in &times {
+            let a = (at / 0.05) as usize;
+            let peak = w[a.min(w.len() - 1)..(a + 40).min(w.len())].iter().cloned().fold(0.0, f64::max);
+            println!("seed {seed} L{level}: {tag} at {at:.1}s, {dist:.0} m off: +{:.1} dB over the bed", db(peak / bed));
+            heard.push(peak / bed);
+        }
+        save(&format!("signatures_{seed}_L{level}"), &r.pcm, &times.iter().map(|x| x.0).collect::<Vec<_>>());
+    }
+    assert!(heard.len() >= 6, "signatures come round: {} in 3 × 150 s", heard.len());
+    let loud = heard.iter().filter(|r| **r >= 2.0).count();
+    assert!(loud * 4 >= heard.len() * 3, "most signatures rise 6 dB over the bed: {loud} of {}", heard.len());
+}
+
+#[test]
+fn the_notice_is_loud() {
+    let mut r = start(4242, 3);
+    hold_creatures(&mut r.g);
+    // a smiler 9 m ahead with its back to you, then it turns
+    let (ei, yaw) = {
+        let g = &mut r.g;
+        let ei = g.entities.iter().position(|e| e.kind == "smiler").expect("a smiler");
+        let f = g.player.fwd();
+        let (x, z) = (g.player.pos.x + f.x * 9.0, g.player.pos.z + f.z * 9.0);
+        g.entities[ei].g.set_pos(x, 0.0, z);
+        (ei, g.player.yaw)
+    };
+    play(&mut r, 6.0, |g| {
+        let e = &mut g.entities[ei];
+        e.freeze = 1e9;
+        e.yaw = yaw + std::f64::consts::PI;
+    });
+    let before = r.pcm.len() / 2;
+    let mut noticed_at = None;
+    play(&mut r, 4.0, |g| {
+        let e = &mut g.entities[ei];
+        if e.state != "hunt" {
+            e.freeze = 0.0;
+            e.yaw = yaw;
+        } else if noticed_at.is_none() {
+            noticed_at = Some(g.perf_t);
+        }
+    });
+    assert!(noticed_at.is_some(), "it noticed you");
+    let w = windows(&r.pcm);
+    let b = before / WIN;
+    let calm = median(&w[40..b]);
+    let peak = w[b..(b + 50).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    println!("notice: before {:.1} dB, peak after {:.1} dB (+{:.1} dB)", db(calm), db(peak), db(peak / calm));
+    save("notice_4242_L3", &r.pcm, &[before as f64 / SR]);
+    assert!(peak > calm * 4.0, "the notice should stand 12 dB over the quiet before it");
+}
+
+#[test]
+fn the_hush_quiets_the_ambience() {
+    let mut out: Vec<(f64, Vec<f64>)> = vec![];
+    for hushed in [false, true] {
+        let mut r = start(77, 5);
+        play(&mut r, 150.0, |g| {
+            hold_creatures(g);
+            if hushed {
+                g.director.hush = 1.0;
+            }
+        });
+        let w = windows(&r.pcm);
+        let w = w[60..].to_vec();
+        let bed = median(&w);
+        println!("hush {hushed}: bed {:.1} dB, loudest {:.1} dB", db(bed), db(w.iter().cloned().fold(0.0, f64::max)));
+        save(&format!("hush_{}_77_L5", if hushed { "on" } else { "off" }), &r.pcm, &[]);
+        out.push((bed, w));
+    }
+    // events measured against the ordinary room's bed in both runs
+    let reference = out[0].0;
+    let (bed0, ev0) = (out[0].0, event_energy(&out[0].1, reference));
+    let (bed1, ev1) = (out[1].0, event_energy(&out[1].1, reference));
+    println!("events: {ev0:.5}/s ordinarily, {ev1:.5}/s hushed");
+    assert!(bed1 < bed0, "the room tone dips");
+    assert!(ev1 < ev0 * 0.5, "the events thin out and soften: {ev1:.5} vs {ev0:.5}");
+}

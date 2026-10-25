@@ -1,18 +1,17 @@
 //! The soundscape driver (`audio::ambient`) on a synthetic level with a live,
 //! muted AudioContext: every weather, minutes of simulated time in small and
 //! large steps, sanity swept 100 → 0 → 100, every `*_positions` list filled.
-//! Asserts nothing panics and that the event families fire.
-//!
-//! Other modules are still contract stubs here (`log_ambient`,
-//! `pan_for_world_pos`, `zone_at_world`, `level_depth_mul`, ...), so the checks look
-//! at state this module owns (timers, tallies, envelopes, pools). When the
-//! world module's `log_ambient` records entries, `ambient_tally` is checked too.
+//! Asserts nothing panics, that the event families fire, and that sounds
+//! come from places: prop sounds only in earshot of their nearest prop, the
+//! level's signature sounds from fixed anchors, nothing bunched at the level
+//! start, the director's hush honoured.
 
 use engine::audio::AudioContext;
 use engine::prelude::*;
-use game::audio::ambient::{GLITCH_MSGS, HALLUC_WHISPERS};
+use game::audio::ambient::{prop_falloff, sig_carry, CADENCES, GLITCH_MSGS, HALLUC_WHISPERS, SIG_APART};
 use game::base::records::Panel;
 use game::base::state::WEATHER_BIASES;
+use game::base::tables::AMBIENT_EVENTS;
 use game::Game;
 use std::collections::BTreeSet;
 
@@ -116,127 +115,32 @@ macro_rules! all_lists {
     };
 }
 
-/// Every prop / outdoor cadence timer `update_ambient` owns (all start at 0 and
-/// only ever get a positive cadence when their event fires).
-fn prop_timers(g: &Game) -> Vec<(&'static str, f64)> {
-    vec![
-        ("fountain", g.fountain_drip_timer),
-        ("radiator", g.radiator_hiss_timer),
-        ("glow", g.glow_hum_timer),
-        ("cauldron", g.cauldron_bubble_timer),
-        ("metronome", g.metronome_tick_timer),
-        ("phono", g.phono_crackle_timer),
-        ("lantern", g.lantern_creak_timer),
-        ("sewing", g.sewing_whirr_timer),
-        ("watch", g.watch_tick_timer),
-        ("bat", g.bat_squeak_timer),
-        ("globe", g.globe_creak_timer),
-        ("hourglass", g.hourglass_whoosh_timer),
-        ("ghost", g.ghost_whisper_timer),
-        ("chain", g.chain_jangle_timer),
-        ("paper", g.paper_rustle_timer),
-        ("piano", g.piano_chord_timer),
-        ("chair", g.chair_creak_timer),
-        ("crt", g.crt_hiss_timer),
-        ("exit", g.exit_buzz_timer),
-        ("puddle", g.puddle_drip_timer),
-        ("chandelier", g.chandelier_chime_timer),
-        ("cassette", g.cassette_hiss_timer),
-        ("teacup", g.teacup_clink_timer),
-        ("locker", g.locker_slam_timer),
-        ("bulletin", g.bulletin_flutter_timer),
-        ("alarmPull", g.alarm_beep_timer),
-        ("fanWhoosh", g.fan_whoosh_timer),
-        ("fanSqueak", g.fan_squeak_timer),
-        ("detector", g.detector_chirp_timer),
-        ("bird", g.bird_chirp_timer),
-        ("cricket", g.cricket_chirp_timer),
-        ("thunderRumble", g.thunder_rumble_timer),
-        ("coin", g.coin_tink_timer),
-        ("windGust", g.wind_gust_timer),
-        ("frog", g.frog_croak_timer),
-        ("owl", g.owl_hoot_timer),
-        ("tickTock", g.tick_tock_timer),
-        ("wolf", g.wolf_howl_timer),
-        ("rainPatter", g.rain_patter_timer),
-        ("leaf", g.leaf_rustle_timer),
-        ("cuckoo", g.cuckoo_call_timer),
-        ("plush", g.plush_shuffle_timer),
-        ("gumball", g.gumball_rattle_timer),
-        ("teapot", g.teapot_whistle_timer),
-        ("cookieTin", g.cookie_tin_rattle_timer),
-        ("kitchenClock", g.kitchen_clock_tick_timer),
-        ("offHookPhone", g.off_hook_phone_hum_timer),
-        ("hairdryer", g.hairdryer_hum_timer),
-        ("sewingMachine", g.sewing_machine_click_timer),
-        ("herbSieve", g.herb_sieve_scrape_timer),
-        ("vacuum", g.vacuum_whine_timer),
-        ("mopBucket", g.mop_bucket_slosh_timer),
-        ("wristwatch", g.wristwatch_tick_timer),
-        ("iron", g.iron_hiss_timer),
-        ("grandfatherTick", g.grandfather_clock_tick_timer),
-        ("rockingChair", g.rocking_chair_creak_timer),
-        ("tallLamp", g.tall_lamp_buzz_timer),
-        ("colander", g.colander_tap_timer),
-        ("petBowl", g.pet_bowl_slosh_timer),
-        ("musicBox", g.music_box_melody_timer),
-        ("grandfatherChime", g.grandfather_chime_timer),
-        ("turntable", g.turntable_hiss_timer),
-        ("chalkboard", g.chalkboard_scratch_timer),
-        ("kitchenCalendar", g.kitchen_calendar_turn_timer),
-        ("telescope", g.telescope_click_timer),
-        ("cuckooR741", g.cuckoo_call_timer_r741),
-        ("fireplace", g.fireplace_crackle_timer),
-        ("aquarium", g.aquarium_hum_timer),
-        ("wingback", g.wingback_creak_timer),
-        ("pocketWatchR755", g.pocket_watch_tick_timer),
-        ("bellPull", g.bell_pull_ring_timer),
-        ("bellRack", g.bell_rack_ding_timer),
-        ("chess", g.chess_move_click_timer),
-        ("hobbyHorse", g.hobby_horse_roll_timer),
-        ("payPhone", g.pay_phone_ring_timer),
-        ("radio", g.radio_static_timer),
-        ("keychain", g.keychain_jangle_timer),
-        ("elevatorBeep", g.elevator_beep_timer),
-        ("plant", g.plant_rustle_timer),
-        ("speaker", g.speaker_announce_timer),
-        ("fireAlarm", g.fire_alarm_beep_timer),
-        ("phoneRing", g.phone_ring_timer),
-        ("vending", g.vending_hum_timer),
-        ("keycard", g.keycard_beep_timer),
-        ("cardboard", g.cardboard_shift_timer),
-        ("plantR291", g.plant_rustle_timer_r291),
-        ("walkie", g.walkie_static_timer),
-        ("wallClock", g.wall_clock_tick_timer),
-        ("crackedClock", g.cracked_clock_creak_timer),
-        ("ceilingDrip", g.ceiling_drip_audio_timer),
-        ("ceilingCable", g.ceiling_cable_spark_timer),
-        ("thermostat", g.thermostat_click_timer),
-        ("handbell", g.handbell_chime_timer),
-        ("digitalClock", g.digital_clock_buzz_timer),
-        ("alarmRing", g.alarm_ring_timer),
-        ("dialTone", g.dial_tone_timer),
-        ("drain", g.drain_gurgle_timer),
-        ("faucet", g.faucet_drip_timer),
-        ("brokenPhone", g.broken_phone_spark_timer),
-    ]
-}
+/// The per-weather bed tags; a bed fires only in its own weather.
+const BEDS: [(&str, &[&str]); 6] = [
+    ("wet", &["wet-drip", "wet-thunder", "wet-splash", "thunder-rumble", "rain-patter"]),
+    ("still", &["still-wind", "still-echo", "wind-gust"]),
+    ("derelict", &["derelict-clatter", "derelict-grinder"]),
+    ("electric", &["electric-crackle", "socket-spark", "junction-arc", "electric-surge"]),
+    ("haunted", &["haunted-whisper", "haunted-step"]),
+    ("normal", &["normal-chime"]),
+];
+/// The rare-event tags (any weather)
+const RARE: [&str; 8] =
+    ["distant-knock", "door-opened", "elevator-ding", "voice-sample", "static-burst", "reality-shift", "pattern-break", "clock-skip"];
+/// The placeless outdoor sounds that are gone for good
+const WILDLIFE: [&str; 6] = ["bird-chirp", "cricket-chirp", "frog-croak", "owl-hoot", "wolf-howl", "leaf-rustle"];
 
-/// The per-weather bed timers that should have fired for weather `wk`.
-fn weather_timers(g: &Game, wk: &str) -> Vec<(&'static str, f64)> {
-    match wk {
-        "wet" => vec![("wetDrip", g.wet_drip_timer), ("wetThunder", g.wet_thunder_timer), ("wetSplash", g.wet_splash_timer)],
-        "still" => vec![("stillWind", g.still_wind_timer), ("stillEcho", g.still_echo_timer)],
-        "derelict" => vec![("derelictClatter", g.derelict_clatter_timer), ("derelictGrinder", g.derelict_grinder_timer)],
-        "electric" => vec![
-            ("electricCrackle", g.electric_crackle_timer),
-            ("socketSpark", g.socket_spark_timer),
-            ("junctionArc", g.junction_arc_timer),
-            ("electricSurge", g.electric_surge_timer),
-        ],
-        "haunted" => vec![("hauntedWhisper", g.haunted_whisper_timer), ("hauntedStep", g.haunted_step_timer)],
-        _ => vec![("normalNotice", g.normal_notice_timer)],
-    }
+/// The weather a bed tag belongs to (None: a rare event or a prop sound)
+fn bed_weather(tag: &str) -> Option<&'static str> {
+    BEDS.iter().find(|(_, tags)| tags.contains(&tag)).map(|(w, _)| *w)
+}
+/// Whether a cadence's tag is a prop sound
+fn is_prop(tag: &str) -> bool {
+    bed_weather(tag).is_none() && !RARE.contains(&tag)
+}
+/// Whether `tag` (or a variant of it, `keycard-beep-ok`) was logged
+fn fired(g: &Game, tag: &str) -> bool {
+    g.ambient_tally.keys().any(|k| k == tag || k.starts_with(&format!("{tag}-")))
 }
 
 fn muted_ac() -> AudioContext {
@@ -247,12 +151,14 @@ fn muted_ac() -> AudioContext {
 
 /// The synthetic level with the renderer's pools, live muted audio, panels
 /// near the spawn, a rain window, and every position list filled with a few
-/// entries (close, mid-range and far from the spawn).
+/// entries (close, mid-range and far from the spawn); armed the way
+/// `init_level` arms a level.
 fn live_level(seed: u32, weather: usize) -> Game {
     let (mut g, _dist) = Game::test_level(seed, 25);
     g.init_render(&Tex::data_rgba(vec![255; 4], 1, 1));
     g.audio_init_with(muted_ac());
-    g.level_weather = &WEATHER_BIASES[weather];
+    g.current_seed = seed.wrapping_mul(2654435761);
+    g.apply_weather_bias(&WEATHER_BIASES[weather]);
     g.state = "playing".into();
     let (sx, sz) = (g.player.pos.x, g.player.pos.z);
     g.camera.set_pos(sx, 1.62, sz);
@@ -275,7 +181,16 @@ fn live_level(seed: u32, weather: usize) -> Game {
     g.pp.metronome_periods = vec![1.2, 1.4, 1.5, 1.6, 1.8];
     g.pp.chair_periods = vec![5.0, 6.0, 6.5, 7.0, 8.0];
     g.init_ambient();
+    g.arm_level_ambient();
     g
+}
+
+/// Every cadence due within the first ~45 s, one after another, so a few
+/// simulated minutes reach events that come every 10–90 minutes.
+fn due_soon(g: &mut Game) {
+    for (k, c) in CADENCES.iter().enumerate() {
+        *(c.timer)(g) = 0.5 + k as f64 * 0.37;
+    }
 }
 
 /// What a run saw (envelopes and pools are transient, so sample them every step).
@@ -342,13 +257,17 @@ fn run(g: &mut Game, minutes: f64, seen: &mut Seen) {
         g.update_sanity_effects(dt);
         g.update_ambient(dt);
         g.update_soundscape(dt);
-        // the rare events only come back after 4 min … 3 h: re-arm a few, a few times
+        // the rare events only come back after 4 min … 3 h: re-arm them, a few times
         if forced < 12 && k % 100 == 99 {
             forced += 1;
             g.reality_shift_timer = 0.0;
             g.pattern_break_timer = 0.0;
             g.clock_skip_timer = 0.0;
             g.distant_knock_timer = 0.0;
+            g.door_opened_timer = 0.0;
+            g.elevator_ding_timer = 0.0;
+            g.voice_sample_timer = 0.0;
+            g.static_burst_timer = 0.0;
         }
         seen.ripple |= g.ripples.iter().any(|r| r.t > 0.0);
         seen.scuff |= g.scuffs.iter().any(|s| s.t > 0.0);
@@ -403,18 +322,30 @@ fn every_weather_for_minutes() {
     for wi in 0..WEATHER_BIASES.len() {
         let wk = WEATHER_BIASES[wi].key;
         let mut g = live_level(1000 + wi as u32, wi);
-        // the ambience loop is armed at startup
-        assert!(!g.timeouts.is_empty(), "{wk}: ambience_loop not scheduled");
-        // `log_ambient` may still be the world module's stub; probe it
-        g.log_ambient("probe", None, None, None);
-        let log_active = g.ambient_tally.contains_key("probe");
+        // the level drew its signature sounds
+        assert!((3..=4).contains(&g.amb_signatures.len()), "{wk}: {} signatures", g.amb_signatures.len());
+        due_soon(&mut g);
         let mut seen = Seen::default();
         game::base::rng::with_seed(0xA11CE + wi as u32, || run(&mut g, 8.0, &mut seen));
 
-        // every prop and every bed of this weather fired at least once (its
-        // cadence timer only turns positive when it fires)
-        for (name, v) in prop_timers(&g).into_iter().chain(weather_timers(&g, wk)) {
-            assert!(v > 0.0, "{wk}: {name} never fired (timer {v})");
+        // every prop sound fired (all have a prop in earshot), and every bed of this weather, none of another
+        for c in CADENCES {
+            match bed_weather(c.tag) {
+                Some(w) if w == wk => assert!(fired(&g, c.tag), "{wk}: bed {} never fired", c.tag),
+                Some(w) => assert!(!fired(&g, c.tag), "{wk}: {w}'s bed {} fired", c.tag),
+                None if is_prop(c.tag) => assert!(fired(&g, c.tag), "{wk}: prop sound {} never fired", c.tag),
+                None => {}
+            }
+        }
+        // no birds, crickets, frogs, owls, wolves or leaves in the Backrooms
+        for w in WILDLIFE {
+            assert!(!fired(&g, w), "{wk}: {w}");
+        }
+        // the signatures sounded, from their anchors
+        let sig_tags: BTreeSet<&String> = g.ambient_tally.keys().filter(|k| k.starts_with("sig-")).collect();
+        assert!(!sig_tags.is_empty(), "{wk}: no signature sound in 8 minutes");
+        for t in &sig_tags {
+            assert!(g.amb_signatures.iter().any(|s| format!("sig-{}", s.name) == **t), "{wk}: {t} is not a signature");
         }
         // every rare-event class fired, tallied under this weather
         for c in causes {
@@ -434,6 +365,7 @@ fn every_weather_for_minutes() {
         // glitch, flicker wave (timeouts ran and set panel flicker), ghost steps
         assert!(seen.glitch && seen.glitch_msg, "{wk}: reality glitch");
         assert!(g.panels.iter().any(|p| p.flicker > 0.0), "{wk}: flicker wave never reached a panel");
+        assert!(fired(&g, "ghost-steps"), "{wk}: no ghost steps in 8 minutes of walking");
         // the motion sensor clicked; the hum found a live panel
         assert!(g.motion_sensor_last_click_t > 0.0, "{wk}: motion sensor");
         assert!(seen.hum_panel, "{wk}: hum panel");
@@ -447,11 +379,8 @@ fn every_weather_for_minutes() {
             "electric" => assert!(seen.surge, "electric: surge"),
             _ => assert!(!seen.ripple && !seen.thunder_flash && !seen.rain_hiss, "{wk}: wet-only effects: {seen:?}"),
         }
-        if log_active {
-            let tags: BTreeSet<&String> = g.ambient_tally.keys().collect();
-            assert!(tags.len() > 80, "{wk}: only {} ambient tags logged", tags.len());
-            assert!(g.ambient_log.len() <= 3);
-        }
+        assert!(g.ambient_tally.len() > 80, "{wk}: only {} ambient tags logged", g.ambient_tally.len());
+        assert!(g.ambient_log.len() <= 3);
         // the audio thread survived it all. Minutes of sim squeezed into a
         // second of real time leave thousands of overlapping one-shots, so
         // the render can lag; give the clock a few seconds to move on.
@@ -473,42 +402,26 @@ fn every_weather_for_minutes() {
 #[test]
 fn same_seed_same_draws() {
     // the per-frame draws are a pure function of the seed and the inputs
-    let snap = |g: &Game| -> Vec<u64> {
-        let mut v: Vec<u64> = prop_timers(g).into_iter().map(|(_, x)| x.to_bits()).collect();
-        v.extend(
-            [
-                g.distant_knock_timer,
-                g.door_opened_timer,
-                g.elevator_ding_timer,
-                g.voice_sample_timer,
-                g.static_burst_timer,
-                g.reality_shift_timer,
-                g.pattern_break_timer,
-                g.clock_skip_timer,
-                g.settle_timer,
-                g.wet_drip_timer,
-                g.glitch_next_t,
-                g.flicker_wave_next_t,
-                g.ghost_step_t,
-                g.sanity_whisper_t,
-            ]
-            .map(f64::to_bits),
-        );
+    let snap = |g: &mut Game| -> Vec<u64> {
+        let mut v: Vec<u64> = CADENCES.iter().map(|c| (c.timer)(g).to_bits()).collect();
+        v.extend([g.settle_timer, g.glitch_next_t, g.flicker_wave_next_t, g.ghost_step_t, g.sanity_whisper_t].map(f64::to_bits));
+        v.extend(g.amb_signatures.iter().map(|s| s.t.to_bits()));
         v.extend(g.panels.iter().map(|p| p.lfo_phase_offset.to_bits()));
         v
     };
     let mut runs = vec![];
     for _ in 0..2 {
         let mut g = live_level(77, 1); // wet: the weather with the most draws
-                                       // the startup draws (`ambience_loop`'s first delay, the glitch and
-                                       // flicker timers) were native: redo them on the seeded stream
+                                       // the startup draws (the level's stagger, the glitch and flicker
+                                       // timers) were native: redo them on the seeded stream
         g.timeouts.clear();
         let mut seen = Seen::default();
         game::base::rng::with_seed(4242, || {
             g.init_ambient();
+            g.arm_level_ambient();
             run(&mut g, 3.0, &mut seen)
         });
-        runs.push(snap(&g));
+        runs.push(snap(&mut g));
     }
     assert_eq!(runs[0], runs[1]);
 }
@@ -543,8 +456,10 @@ fn bare_game_without_audio_or_render_pools() {
     // the menu: nothing ambient happens outside `playing`
     let mut g2 = live_level(9, 5);
     g2.state = "menu".into();
+    let before = g2.normal_notice_timer;
     g2.update_ambient(0.5);
-    assert_eq!(g2.normal_notice_timer, 0.0);
+    assert_eq!(g2.normal_notice_timer, before);
+    assert!(g2.ambient_tally.is_empty());
 }
 
 #[test]
@@ -557,6 +472,8 @@ fn period_lists_and_fallbacks() {
     g.pp.chair_periods = vec![7.5];
     g.player.sanity = 100.0;
     g.player.stamina = 100.0;
+    g.metronome_tick_timer = 0.0;
+    g.chair_creak_timer = 0.0;
     g.update_ambient(1.0 / 60.0);
     let mul = 1.0 / g.descent_boost_mul(0.15);
     assert!((g.metronome_tick_timer - 1.7 * 0.5 * mul).abs() < 1e-12, "metronome {}", g.metronome_tick_timer);
@@ -574,6 +491,14 @@ fn period_lists_and_fallbacks() {
     g.metronome_tick_timer = 0.0;
     g.update_ambient(1.0 / 60.0);
     assert!((g.metronome_tick_timer - game::audio::ambient::METRONOME_PERIOD_DEFAULT * 0.5 * mul / 1.5).abs() < 1e-12);
+    // a metronome across the level is not heard: no tick, and it looks again in 1–3 s
+    g.player.sanity = 100.0;
+    g.pp.metronome_positions = vec![v3(g.player.pos.x + 30.0, 0.06, g.player.pos.z)];
+    g.metronome_tick_timer = 0.0;
+    g.ambient_tally.clear();
+    g.update_ambient(1.0 / 60.0);
+    assert!(!fired(&g, "metronome-tick"));
+    assert!((1.0..=3.0).contains(&g.metronome_tick_timer), "retry {}", g.metronome_tick_timer);
 }
 
 #[test]
@@ -620,18 +545,42 @@ fn reality_glitch_and_ghosts_body() {
     g.update_reality_glitch(5.0);
     assert!((g.fog_density - game::audio::ambient::FOG_BASE * WEATHER_BIASES[3].fog_mul).abs() < 1e-12);
     assert_eq!(g.ui.aberration.opacity(), Some(0.35));
-    // ghost footsteps: standing still resets the timer
+    // ghost footsteps: standing still holds the countdown (no fresh chance on every first step)
     g.ghost_step_t = 5.0;
     g.update_ghost_footsteps(0.1, false);
-    assert_eq!(g.ghost_step_t, 0.0);
-    // walking: within a few dozen tries some steps get scheduled
-    let before = g.timeouts.len();
-    for _ in 0..40 {
+    assert_eq!(g.ghost_step_t, 5.0);
+    g.update_ghost_footsteps(0.1, true);
+    assert!((g.ghost_step_t - 4.9).abs() < 1e-12);
+    // walking, due: a few steps from behind (yaw 0 faces -z, so behind is south), every time
+    g.player.yaw = 0.0;
+    for _ in 0..5 {
+        let before = g.timeouts.len();
         g.ghost_step_t = 0.0;
         g.update_ghost_footsteps(0.1, true);
+        let added = g.timeouts.len() - before;
+        assert!((3..=6).contains(&added), "{added} footfalls scheduled");
+        assert!(g.ghost_step_t >= 45.0 && g.ghost_step_t <= 110.0);
+        let e = g.ambient_log.last().unwrap();
+        assert_eq!(e.tag, "ghost-steps");
+        let d = e.dist.unwrap();
+        assert!((6.0..=12.0).contains(&d), "ghost walk starts {d} m away");
+        assert!(["S", "SE", "SW"].contains(&e.bearing.as_deref().unwrap()), "from {:?}", e.bearing);
     }
-    assert!(g.timeouts.len() > before + 2);
-    assert!(g.ghost_step_t >= 22.0 && g.ghost_step_t <= 55.0);
+    // the walk: behind, off to one side, evenly paced toward the player, then it stops
+    let p = g.player.pos;
+    let path = g.ghost_walk_path(0.4, 9.0, 4);
+    assert_eq!(path.len(), 4);
+    let fwd = g.player.fwd();
+    let dist = |q: &Vec3| ((q.x - p.x).powi(2) + (q.z - p.z).powi(2)).sqrt();
+    for w in path.windows(2) {
+        assert!(dist(&w[1]) < dist(&w[0]));
+        assert!((((w[1].x - w[0].x).powi(2) + (w[1].z - w[0].z).powi(2)).sqrt() - 0.55).abs() < 1e-9);
+    }
+    for q in &path {
+        let (dx, dz) = (q.x - p.x, q.z - p.z);
+        assert!(dx * fwd.x + dz * fwd.z < 0.0, "a footfall in front of the player");
+        assert!(dist(q) > 4.0);
+    }
     // the scheduled steps play once their time comes
     g.now_ms += 5000.0;
     g.run_scheduled();
@@ -688,11 +637,10 @@ fn hallucination_lifecycle_body() {
 }
 
 #[test]
-fn gated_props_play_only_in_range() {
-    // one entry per list: right at the player, or 40 m away. The gated props
-    // (watch, chain, CRT, ... most of R481–R767) only make sound in range;
-    // count the audio nodes one frame creates.
-    let nodes_for = |off: f64| -> u32 {
+fn props_play_only_in_earshot() {
+    // one entry per list: right at the player, or 40 m away. Every prop sound
+    // is gated by its audible radius; count the audio nodes one frame creates.
+    let run_frame = |off: f64| -> (u32, Game) {
         let mut g = live_level(55, 5);
         let p = v3(g.player.pos.x + off, 0.3, g.player.pos.z + off * 0.5);
         for list in all_lists!(g.pp) {
@@ -701,13 +649,365 @@ fn gated_props_play_only_in_range() {
         }
         g.pp.metronome_periods = vec![1.5];
         g.pp.chair_periods = vec![6.0];
+        for c in CADENCES {
+            *(c.timer)(&mut g) = 0.0;
+        }
         let ac = g.ac.clone().unwrap();
         let before = ac.create_gain().id();
         game::base::rng::with_seed(1, || g.update_ambient(1.0 / 60.0));
-        ac.create_gain().id() - before
+        (ac.create_gain().id() - before, g)
     };
-    let near = nodes_for(0.3);
-    let far = nodes_for(40.0);
-    assert!(far > 100, "always-audible props + rare events made only {far} nodes");
-    assert!(near > far + 150, "gated props: {near} nodes in range vs {far} out of range");
+    let (near, gn) = run_frame(0.3);
+    let (far, mut gf) = run_frame(40.0);
+    // far off, only the weather bed and the rare events sound
+    assert!(far > 0, "the normal bed / rare events made no nodes");
+    for c in CADENCES.iter().filter(|c| is_prop(c.tag)) {
+        assert!(fired(&gn, c.tag), "{} silent right next to its prop", c.tag);
+        assert!(!fired(&gf, c.tag), "{} heard from 40 m", c.tag);
+        // nothing in earshot: it looks again in 1–3 s, not a whole interval later
+        let t = *(c.timer)(&mut gf);
+        assert!((1.0..=3.0).contains(&t), "{} re-armed to {t} with nothing in earshot", c.tag);
+    }
+    assert!(near > far + 150, "props: {near} nodes in range vs {far} out of range");
+}
+
+#[test]
+fn nearest_prop_level_and_pan() {
+    let mut g = live_level(56, 5);
+    g.player.yaw = 0.0; // facing -z: +x is to the right
+    let (px, pz) = (g.player.pos.x, g.player.pos.z);
+    // a far one to the right, the nearest to the left, one out of range
+    let list = vec![v3(px + 9.0, 0.3, pz), v3(px - 2.0, 0.3, pz), v3(px + 30.0, 0.3, pz)];
+    let h = g.prop_near(&list, 12.0).unwrap();
+    assert_eq!(h.i, 1);
+    assert!((h.pan + 0.8).abs() < 1e-9, "hard left from the true direction: {}", h.pan);
+    assert!((h.dn - 2.0 / 12.0).abs() < 1e-9);
+    assert!(g.prop_near(&list[2..], 12.0).is_none());
+    // the pan follows the direction, not the distance to the side
+    let h = g.prop_near(&[v3(px + 1.5, 0.3, pz - 6.0)], 12.0).unwrap();
+    let want = 0.8 * 1.5 / (1.5f64.powi(2) + 36.0).sqrt();
+    assert!((h.pan - want).abs() < 1e-9, "pan {} vs {want}", h.pan);
+    // played through `update_ambient`: from the nearest fountain, logged with its distance and side
+    g.pp.fountain_positions = list;
+    g.fountain_drip_timer = 0.0;
+    g.update_ambient(1.0 / 60.0);
+    let e = g.ambient_log.iter().rev().find(|e| e.tag == "fountain-drip").unwrap();
+    assert!((e.dist.unwrap() - 2.0).abs() < 1e-9 && e.pan.unwrap() < 0.0, "{e:?}");
+    // a wall in the way halves the level; a clear line keeps it
+    let (w, h) = (g.w, g.h);
+    let mut walled = None;
+    let mut clear = None;
+    for z in 1..h - 1 {
+        for x in 2..w - 2 {
+            let open = |dx: i32| !g.is_wall_tile(x + dx, z);
+            if open(-2) && open(-1) && !open(0) && open(1) && open(2) && walled.is_none() {
+                walled = Some((x, z));
+            }
+            if (-2..=2).all(open) && clear.is_none() {
+                clear = Some((x, z));
+            }
+        }
+    }
+    for ((x, z), occluded) in [(walled.unwrap(), true), (clear.unwrap(), false)] {
+        g.player.pos = v3(g.wx(x - 1), 0.0, g.wz(z));
+        let prop = v3(g.wx(x + 1), 0.3, g.wz(z));
+        let h = g.prop_near(&[prop], 12.0).unwrap();
+        let want = prop_falloff(8.0, 12.0) * if occluded { 0.5 } else { 1.0 };
+        assert!((h.g - want).abs() < 1e-9, "occluded {occluded}: level {} vs {want}", h.g);
+    }
+}
+
+#[test]
+fn prop_falloff_shape() {
+    for r in [2.0, 3.5, 8.0, 12.0, 25.0] {
+        assert_eq!(prop_falloff(0.0, r), 1.0);
+        assert_eq!(prop_falloff(r, r), 0.0);
+        assert_eq!(prop_falloff(r * 3.0, r), 0.0);
+        assert!(prop_falloff(r * 0.999, r) > 0.0 && prop_falloff(r * 0.999, r) < 1e-4, "smooth to 0 at the radius");
+        let mut last = 1.0;
+        for k in 1..=100 {
+            let v = prop_falloff(r * k as f64 / 100.0, r);
+            assert!(v <= last + 1e-12, "falloff rises at {k}% of {r} m");
+            last = v;
+        }
+        // inverse distance past the reference (a third of the radius, at
+        // least 1 m): half way out is well under half
+        if r >= 3.0 {
+            assert!(prop_falloff(r * 0.5, r) < 0.5, "{r} m: {}", prop_falloff(r * 0.5, r));
+        }
+    }
+}
+
+#[test]
+fn level_start_is_staggered() {
+    game::base::rng::with_seed(57, level_start_is_staggered_body);
+}
+fn level_start_is_staggered_body() {
+    // every prop in earshot, every cadence armed the way `init_level` arms them
+    let mut g = live_level(57, 1);
+    g.player.sanity = 100.0;
+    g.player.stamina = 100.0;
+    let mut first_frame = 0;
+    let mut fired_by = vec![];
+    for k in 0..120 {
+        g.update_ambient(1.0 / 60.0);
+        if k == 0 {
+            first_frame = g.ambient_tally.len();
+        }
+        if k == 119 {
+            fired_by = g.ambient_tally.keys().cloned().collect::<Vec<_>>();
+        }
+    }
+    assert_eq!(first_frame, 0, "the first frame of a level played {first_frame} ambient sounds");
+    // in the first two seconds only the quick, rhythmic props near the player
+    for tag in &fired_by {
+        let c = CADENCES.iter().find(|c| tag == c.tag || tag.starts_with(&format!("{}-", c.tag)));
+        let c = c.unwrap_or_else(|| panic!("{tag} fired in the first 2 s"));
+        assert!(is_prop(c.tag) && c.base * 0.35 <= 2.0, "{tag} fired in the first 2 s");
+    }
+    // each cadence's first countdown is 35–100 % of one of its intervals
+    let mut g = live_level(58, 1);
+    for c in CADENCES {
+        let t = *(c.timer)(&mut g);
+        assert!(t >= c.base * 0.35 - 1e-9 && t <= (c.base + c.span) + 1e-9, "{}: {t}", c.tag);
+    }
+    assert!(g.glitch_next_t >= 30.0 && g.flicker_wave_next_t >= 36.0 && g.ghost_step_t >= 22.5);
+}
+
+#[test]
+fn cadences_match_their_events() {
+    // every event re-arms within the interval `CADENCES` lists for it
+    for wi in 0..WEATHER_BIASES.len() {
+        let mut g = live_level(60 + wi as u32, wi);
+        g.pp.metronome_periods.clear();
+        g.pp.chair_periods.clear();
+        g.player.sanity = 100.0;
+        g.player.stamina = 100.0;
+        for c in CADENCES {
+            *(c.timer)(&mut g) = 0.0;
+        }
+        g.update_ambient(1.0 / 60.0);
+        let mul = 1.0 / g.descent_boost_mul(0.15);
+        let mut checked = 0;
+        for c in CADENCES {
+            if !fired(&g, c.tag) {
+                continue;
+            }
+            let t = *(c.timer)(&mut g);
+            assert!(t >= c.base * mul - 1e-9 && t <= (c.base + c.span) * mul + 1e-9, "{}: re-armed to {t}", c.tag);
+            checked += 1;
+        }
+        assert!(checked >= 90, "{}: only {checked} events fired", WEATHER_BIASES[wi].key);
+    }
+}
+
+/// (name, anchor, period) of a level's signatures: what must not change
+fn identity(g: &Game) -> Vec<(&'static str, [u64; 3], u64)> {
+    g.amb_signatures.iter().map(|s| (s.name, [s.at.x.to_bits(), s.at.y.to_bits(), s.at.z.to_bits()], s.period.to_bits())).collect()
+}
+
+#[test]
+fn signatures_are_stable_per_level() {
+    let level = |current_seed: u32, weather: usize| {
+        let (mut g, _) = Game::test_level(4242, 31);
+        g.current_seed = current_seed;
+        g.apply_weather_bias(&WEATHER_BIASES[weather]);
+        g
+    };
+    let names: BTreeSet<&str> = AMBIENT_EVENTS.iter().map(|e| e.1).filter(|n| !n.is_empty()).collect();
+    let mut sets = BTreeSet::new();
+    for k in 0..8u32 {
+        let seed = 0x9E37_79B9u32.wrapping_mul(k + 1);
+        let w = k as usize % WEATHER_BIASES.len();
+        // the same (run seed, level) gets the same set, whatever the rnd() stream is doing
+        let mut a = level(seed, w);
+        game::base::rng::with_seed(1, || a.pick_signatures());
+        let mut b = level(seed, w);
+        game::base::rng::with_seed(2, || {
+            game::base::rng::rnd();
+            b.pick_signatures()
+        });
+        assert_eq!(identity(&a), identity(&b));
+        // and it draws nothing from the seeded stream
+        let mut c = level(seed, w);
+        game::base::rng::with_seed(3, || {
+            let n0 = game::base::rng::seeded_draws();
+            c.pick_signatures();
+            // (only the first countdowns, one draw each, may come from rnd())
+            assert!(game::base::rng::seeded_draws() - n0 <= c.amb_signatures.len() as u64);
+        });
+        assert_eq!(identity(&a), identity(&c));
+        // 3–4 different sounds of the pool, never the silent entry
+        let sigs = &a.amb_signatures;
+        assert!((3..=4).contains(&sigs.len()), "{} signatures", sigs.len());
+        let uniq: BTreeSet<&str> = sigs.iter().map(|s| s.name).collect();
+        assert_eq!(uniq.len(), sigs.len());
+        let (px, pz) = (a.player.pos.x, a.player.pos.z);
+        for (i, s) in sigs.iter().enumerate() {
+            assert!(names.contains(s.name), "{}", s.name);
+            assert!(s.period >= 25.0 && s.period <= 70.0 * 1.4 + 1e-9, "period {}", s.period);
+            assert!(s.t > 0.0 && s.t <= s.period);
+            // anchored to an open spot as far out as the sound carries, apart from the others
+            assert!(!a.is_wall_tile(a.tx(s.at.x), a.tz(s.at.z)));
+            let d = ((s.at.x - px).powi(2) + (s.at.z - pz).powi(2)).sqrt();
+            let c = sig_carry(s.name);
+            assert!((c.near..=c.far).contains(&d), "{} anchored {d} m away", s.name);
+            for o in &sigs[..i] {
+                assert!(((s.at.x - o.at.x).powi(2) + (s.at.z - o.at.z).powi(2)).sqrt() >= SIG_APART);
+            }
+        }
+        sets.insert(identity(&a));
+    }
+    // other runs / levels get other sets
+    assert!(sets.len() >= 7, "only {} distinct signature sets in 8 levels", sets.len());
+}
+
+#[test]
+fn signatures_play_from_their_anchors() {
+    let mut g = live_level(61, 3);
+    g.player.sanity = 100.0;
+    g.player.stamina = 100.0;
+    for s in g.amb_signatures.iter_mut() {
+        s.t = 1e6;
+    }
+    let s0 = g.amb_signatures[0].clone();
+    g.amb_signatures[0].t = 0.0;
+    g.update_ambient(1.0 / 60.0);
+    let tag = format!("sig-{}", s0.name);
+    let e = g.ambient_log.iter().rev().find(|e| e.tag == tag).unwrap();
+    let d = ((s0.at.x - g.player.pos.x).powi(2) + (s0.at.z - g.player.pos.z).powi(2)).sqrt();
+    assert!((e.dist.unwrap() - d).abs() < 1e-9, "logged {e:?}, anchor {d} m away");
+    // its own steady beat: the period ±15 %
+    let mul = 1.0 / g.descent_boost_mul(0.15);
+    let t = g.amb_signatures[0].t;
+    assert!(t >= s0.period * 0.85 * mul - 1e-9 && t <= s0.period * 1.15 * mul + 1e-9, "next in {t} s, period {}", s0.period);
+    assert_eq!(g.ambient_tally.keys().filter(|k| k.starts_with("sig-")).count(), 1);
+    // the anchors stay put for the level
+    assert_eq!(g.amb_signatures[0].at, s0.at);
+    // hushed, it waits
+    g.amb_hush = 1.0;
+    g.amb_signatures[1].t = 0.0;
+    let n1 = format!("sig-{}", g.amb_signatures[1].name);
+    for _ in 0..60 {
+        g.update_ambient(1.0 / 60.0);
+    }
+    assert!(!fired(&g, &n1));
+    assert_eq!(g.amb_signatures[1].t, 0.0);
+    g.amb_hush = 0.0;
+    g.update_ambient(1.0 / 60.0);
+    assert!(fired(&g, &n1));
+}
+
+#[test]
+fn hush_quiets_and_holds() {
+    let mut g = live_level(62, 2);
+    g.amb_hush = 0.9;
+    for c in CADENCES {
+        *(c.timer)(&mut g) = 0.0;
+    }
+    let ac = g.ac.clone().unwrap();
+    let before = ac.create_gain().id();
+    for _ in 0..300 {
+        g.update_ambient(1.0 / 60.0);
+    }
+    // nothing new starts, and the timers hold (no pile-up when it lifts)
+    assert!(g.ambient_tally.is_empty(), "{:?}", g.ambient_tally.keys().collect::<Vec<_>>());
+    assert_eq!(ac.create_gain().id() - before, 1);
+    for c in CADENCES {
+        assert_eq!(*(c.timer)(&mut g), 0.0, "{}", c.tag);
+    }
+    // the room tone dips by up to half
+    let rt = game::base::tables::room_tone_by_weather("electric").unwrap();
+    assert!((g.room_tone_cur_gain - rt.gain * (1.0 - 0.5 * 0.9)).abs() < 1e-4, "room tone {}", g.room_tone_cur_gain);
+    // a light hush lets things through (quieter)
+    g.amb_hush = 0.5;
+    g.update_ambient(1.0 / 60.0);
+    assert!(g.ambient_tally.len() > 50);
+}
+
+#[test]
+fn room_tone_brightens_at_low_sanity() {
+    // R142: below 30 % sanity the room tone opens up toward 2.4 kHz — and stays open
+    let mut g = live_level(63, 5);
+    let rt = game::base::tables::room_tone_by_weather("normal").unwrap();
+    let lp = g.audio.room_tone_lp.clone().unwrap();
+    g.player.sanity = 0.0;
+    for _ in 0..600 {
+        g.update_ambient(1.0 / 60.0);
+    }
+    assert!(lp.frequency().value() > rt.lp + 0.95 * (2400.0 - rt.lp), "{} Hz", lp.frequency().value());
+    g.player.sanity = 100.0;
+    for _ in 0..900 {
+        g.update_ambient(1.0 / 60.0);
+    }
+    assert!((lp.frequency().value() - rt.lp).abs() < 1.0, "{} Hz", lp.frequency().value());
+}
+
+/// The rare events belong to the run: a new level does not start their
+/// countdowns over (or they would never come), while every other cadence
+/// is armed afresh for the new place.
+#[test]
+fn rare_events_count_down_across_levels() {
+    let mut g = Game::new_bare();
+    g.init_ambient();
+    g.arm_level_ambient();
+    let before: Vec<f64> = CADENCES.iter().map(|c| *(c.timer)(&mut g)).collect();
+    assert!(CADENCES.iter().any(|c| c.run), "some cadences are the run's");
+    // a level later, part-way through every countdown
+    for c in CADENCES {
+        *(c.timer)(&mut g) *= 0.5;
+    }
+    game::world::tables::reset_level_timers(&mut g);
+    g.arm_level_ambient();
+    for (c, b) in CADENCES.iter().zip(&before) {
+        let now = *(c.timer)(&mut g);
+        if c.run {
+            assert_eq!(now, b * 0.5, "{}: carried over", c.tag);
+        } else {
+            assert!(now > 0.0 && now <= c.base + c.span, "{}: armed afresh ({now})", c.tag);
+        }
+    }
+}
+
+/// The weather's own sounds come from places: each level puts a draught, a
+/// duct, a dying fan and an occupied room somewhere of their own (the same
+/// for the same seed), and the wind, the clatter, the grinder, the whispers
+/// and steps sound from there; the crackle and surges from the nearest
+/// light fitting.
+#[test]
+fn weather_sounds_come_from_their_places() {
+    let source = |tag: &str| match tag {
+        "still-wind" | "still-echo" | "wind-gust" => Some("draught"),
+        "derelict-clatter" => Some("duct"),
+        "derelict-grinder" => Some("fan"),
+        "haunted-whisper" | "haunted-step" => Some("room"),
+        "electric-crackle" | "electric-surge" => Some("fixture"),
+        _ => None,
+    };
+    for wk in ["still", "derelict", "haunted", "electric"] {
+        let wi = WEATHER_BIASES.iter().position(|w| w.key == wk).unwrap();
+        let mut g = live_level(2000 + wi as u32, wi);
+        assert_eq!(g.amb_anchors.len(), 4, "{wk}: the level's sources");
+        let anchors = g.amb_anchors.clone();
+        g.pick_bed_anchors();
+        assert_eq!(g.amb_anchors, anchors, "{wk}: the same places for the same level");
+        due_soon(&mut g);
+        let mut heard = 0;
+        let mut last = String::new();
+        for _ in 0..(6 * 60 * 4) {
+            g.update_ambient(0.25);
+            let Some(e) = g.ambient_log.last().cloned() else { continue };
+            let key = format!("{}@{}", e.tag, e.at);
+            if key == last {
+                continue;
+            }
+            last = key;
+            let Some(src) = source(&e.tag) else { continue };
+            let at = if src == "fixture" { g.nearest_fixture() } else { g.bed_anchor(src) }.expect("a source");
+            let d = ((at.x - g.player.pos.x).powi(2) + (at.z - g.player.pos.z).powi(2)).sqrt();
+            assert!((e.dist.expect("placed") - d).abs() < 1e-6, "{wk}: {} from {src}", e.tag);
+            heard += 1;
+        }
+        assert!(heard >= 3, "{wk}: only {heard} of the weather's sounds in six minutes");
+    }
 }

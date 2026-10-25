@@ -56,10 +56,20 @@ pub struct RenderGlobals {
     /// row-major: `rgb' = M · [r g b 1]`), applied in order to the displayed
     /// (sRGB-encoded) colour, each result clamped to 0..1 as CSS does
     pub scene_filter: Vec<[f32; 12]>,
+    /// how much lit surfaces lose of their indirect light toward the floor
+    /// at y = 0 (0 = none, 1 = full; off where the floors are not at 0)
+    pub floor_occlusion: f64,
 }
 impl Default for RenderGlobals {
     fn default() -> Self {
-        RenderGlobals { background: Color::default(), fog: None, ll: LocalLight::default(), pixel_ratio: 1.0, scene_filter: vec![] }
+        RenderGlobals {
+            background: Color::default(),
+            fog: None,
+            ll: LocalLight::default(),
+            pixel_ratio: 1.0,
+            scene_filter: vec![],
+            floor_occlusion: 0.0,
+        }
     }
 }
 
@@ -147,6 +157,7 @@ struct FrameU {
     ll_params: [f32; 4],
     viewport: [f32; 4],
     counts: [u32; 4],
+    look: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -191,6 +202,7 @@ struct MaterialU {
     misc: [f32; 4],
     arch: [f32; 4],
     patch: [f32; 16],
+    surf: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -224,6 +236,7 @@ struct VariantKey {
     morph_rel: bool,
     size_atten: bool,
     vc_data: bool,
+    wear: bool,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 struct PipeKey {
@@ -589,6 +602,7 @@ impl Renderer {
             set_b(19, v.morph_rel);
             set_b(20, v.size_atten);
             set_b(21, v.vc_data);
+            set_b(22, v.wear);
         }
         let vf = self
             .lib
@@ -908,6 +922,7 @@ impl Renderer {
         fu.ll_params = [if ll.on { 1.0 } else { 0.0 }, ll.scale as f32, ll.fog_ratio as f32, 0.0];
         fu.viewport = [rw as f32, rh as f32, rh as f32 * 0.5, 0.0];
         fu.counts = [hemis.len() as u32, pts.len() as u32, spots.len() as u32, 0];
+        fu.look = [globals.floor_occlusion as f32, 0.0, 0.0, 0.0];
         if hemis.is_empty() {
             hemis.push(HemiU::default());
         }
@@ -1254,6 +1269,7 @@ impl Renderer {
         let ei = m.emissive_intensity;
         mu.emissive = [(m.emissive.r * ei) as f32, (m.emissive.g * ei) as f32, (m.emissive.b * ei) as f32, 0.0];
         mu.specular = [m.specular.r as f32, m.specular.g as f32, m.specular.b as f32, m.shininess.max(1e-4) as f32];
+        mu.surf = [m.wear as f32, if m.tone_mapped { 1.0 } else { 0.0 }, 0.0, 0.0];
         mu.map_t0 = [1.0, 0.0, 0.0, 0.0];
         mu.map_t1 = [0.0, 1.0, 0.0, 0.0];
         let mut flip = false;
@@ -1605,6 +1621,7 @@ fn variant_for(
         morph_rel,
         size_atten: m.size_attenuation,
         vc_data: vc_size > 0,
+        wear: m.wear > 0.0 && (kind == 1 || kind == 2),
     };
     PipeKey { v, blend, color_write: m.color_write }
 }

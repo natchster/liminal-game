@@ -471,10 +471,15 @@ impl Game {
         self.blip(350.0, 0.5, "sine", 0.06, None, 0.0, 0.0);
         self.blip(440.0, 0.5, "sine", 0.06, None, 0.0, 0.0);
     }
-    /// Distant footsteps: four muffled steps 0.32 s apart
+    /// Footsteps: four paces at a walk
     pub fn sfx_distant_footsteps(&self) {
+        // somebody walking: a heel strike and the body's weight landing, four
+        // paces at a walk (where they are makes them distant, not the sound)
+        let pace = rand2(0.48, 0.58);
         for i in 0..4 {
-            self.noise_burst(0.06, rand2(180.0, 360.0), 2.0, 0.06, "lowpass", None, i as f64 * 0.32, 0.0);
+            let t = i as f64 * pace;
+            self.noise_burst(0.09, rand2(420.0, 620.0), 0.9, 0.16, "lowpass", None, t, 0.0);
+            self.blip(72.0, 0.12, "sine", 0.12, Some(46.0), t, 0.0);
         }
     }
     /// Glitch — discordant reality-glitch chord

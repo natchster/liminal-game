@@ -8,6 +8,11 @@
 //! and compared field by field, float by float (bit patterns).
 //!
 //!     cargo test -p game --test archgen
+//!
+//! After a deliberate change to the generator, re-record the cases (their
+//! inputs — seeds, probe points, anchors — are kept) and review the diff:
+//!
+//!     cargo test --release -p game --test archgen -- --ignored rerecord
 
 use game::base::numeric::round_decimals;
 use game::base::rng::{rnd, seed_for_level, seeded_draws, with_seed};
@@ -398,6 +403,175 @@ fn archgen_layouts_solids_queries() {
         c.ok(viewed.boxes == anchored.boxes && viewed.items == anchored.items, || format!("{tag}: build_solids_view differs"));
     }
     c.finish("archgen_layouts_solids_queries");
+}
+
+#[test]
+fn archgen_rooms_and_ceilings() {
+    for (run_seed, level, scp) in [(4242u32, 1, None), (4242, 5, None), (77, 9, None), (9, 6, Some("store")), (31, 7, Some("house"))] {
+        let seed = seed_for_level(run_seed, level);
+        let size = (31 + level * 4).min(53);
+        let l = with_seed(seed, || generate_layout(&LayoutOpts { size, level, cell: 4.0, scp }, &mut || rnd()));
+        let tag = format!("rs={run_seed} L{level}");
+        // every zone has rooms, and every room lies inside its zone
+        for z in &l.zones {
+            let rooms: Vec<&Room> = l.rooms.iter().filter(|r| r.zone == z.id).collect();
+            assert!(!rooms.is_empty(), "{tag}: zone {} has no room", z.id);
+            for r in rooms {
+                assert!(
+                    r.x0 >= z.x0 && r.x1 <= z.x1 && r.z0 >= z.z0 && r.z1 <= z.z1 && r.x0 <= r.x1 && r.z0 <= r.z1,
+                    "{tag}: room {r:?} outside zone {}",
+                    z.id
+                );
+            }
+        }
+        // neighbours of one archetype share a ceiling
+        for a in &l.zones {
+            for b in &l.zones {
+                if a.arch == b.arch && a.touches(b) {
+                    assert_eq!(a.ceil_h, b.ceil_h, "{tag}: zones {} and {} ({}) step their ceiling", a.id, b.id, a.arch);
+                }
+            }
+            assert!(a.lintel_h <= a.ceil_h - 0.25, "{tag}: zone {} lintel above its ceiling", a.id);
+        }
+    }
+}
+
+// ------------------------------------------------------------------ re-recording
+fn b64_encode(bytes: &[u8]) -> String {
+    const T: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut s = String::with_capacity(bytes.len().div_ceil(3) * 4);
+    for ch in bytes.chunks(3) {
+        let acc = ((ch[0] as u32) << 16) | ((*ch.get(1).unwrap_or(&0) as u32) << 8) | *ch.get(2).unwrap_or(&0) as u32;
+        for i in 0..4 {
+            if i <= ch.len() {
+                s.push(T[((acc >> (18 - 6 * i)) & 63) as usize] as char);
+            } else {
+                s.push('=');
+            }
+        }
+    }
+    s
+}
+fn f32s_b64(v: &[f32]) -> Value {
+    Value::String(b64_encode(&v.iter().flat_map(|x| x.to_le_bytes()).collect::<Vec<u8>>()))
+}
+fn i32s_b64(v: &[i32]) -> Value {
+    Value::String(b64_encode(&v.iter().flat_map(|x| x.to_le_bytes()).collect::<Vec<u8>>()))
+}
+/// a fixture number (the inverse of `num`)
+fn jnum(v: f64) -> Value {
+    if v.is_nan() {
+        "NaN".into()
+    } else if v == f64::INFINITY {
+        "Infinity".into()
+    } else if v == f64::NEG_INFINITY {
+        "-Infinity".into()
+    } else if v == 0.0 && v.is_sign_negative() {
+        "-0".into()
+    } else if v.fract() == 0.0 && v.abs() < 1e15 {
+        (v as i64).into()
+    } else {
+        v.into()
+    }
+}
+fn solids_json(s: &Solids) -> Value {
+    serde_json::json!({ "count": s.count, "W": s.w, "H": s.h, "cell": jnum(s.cell), "boxes": f32s_b64(&s.boxes), "start": i32s_b64(&s.start), "items": i32s_b64(&s.items) })
+}
+fn stats_json(s: &LayoutStats) -> Value {
+    serde_json::json!({
+        "W": s.w, "H": s.h, "open": s.open, "openShare": jnum(s.open_share), "zones": s.zones,
+        "arch": s.arch.iter().map(|&(k, a)| serde_json::json!([k, a])).collect::<Vec<_>>(),
+        "boxes": s.boxes, "thinBoxes": s.thin_boxes, "pillars": s.pillars, "jambs": s.jambs, "lintels": s.lintels, "anchors": s.anchors,
+    })
+}
+fn zone_json(z: &Zone) -> Value {
+    serde_json::json!({
+        "id": z.id, "arch": z.arch, "x0": z.x0, "z0": z.z0, "x1": z.x1, "z1": z.z1, "title": z.title, "lore": z.lore,
+        "ceilH": jnum(z.ceil_h), "wall": z.wall, "wallT": jnum(z.wall_t), "pillar": jnum(z.pillar), "protrude": jnum(z.protrude),
+        "jamb": jnum(z.jamb), "lintelH": jnum(z.lintel_h), "lowH": jnum(z.low_h), "wallMat": z.wall_mat, "floorMat": z.floor_mat,
+        "ceilMat": z.ceil_mat, "lightEvery": z.light_every,
+    })
+}
+/// The probe lists with their answers recomputed (the points are kept)
+fn reprobe(s: &Solids, j: &Value) -> Value {
+    let redo = |key: &str, at: usize, f: &dyn Fn(&[Value]) -> Value| -> Value {
+        Value::Array(
+            arr(&j[key])
+                .iter()
+                .map(|p| {
+                    let mut p = arr(p).clone();
+                    p[at] = f(&p);
+                    Value::Array(p)
+                })
+                .collect(),
+        )
+    };
+    serde_json::json!({
+        "circleHits": redo("circleHits", 4, &|p| circle_hits(s, num(&p[0]), num(&p[1]), num(&p[2]), num(&p[3])).into()),
+        "pointInSolid": redo("pointInSolid", 3, &|p| point_in_solid(s, num(&p[0]), num(&p[1]), num(&p[2])).into()),
+        "segmentClear": redo("segmentClear", 5, &|p| segment_clear(s, num(&p[0]), num(&p[1]), num(&p[2]), num(&p[3]), num(&p[4])).into()),
+        "rayAxis": redo("rayAxis", 5, &|p| jnum(ray_axis(s, num(&p[0]), num(&p[1]), int(&p[2]) as usize, num(&p[3]), num(&p[4])))),
+    })
+}
+
+/// Rewrites every `archgen_case_*.json` from the current generator, keeping
+/// each case's inputs (run seed, level, size, probe points, anchors, raised
+/// ceilings).
+#[test]
+#[ignore = "rewrites the fixtures"]
+fn rerecord_archgen_cases() {
+    for name in case_files() {
+        let mut fx = fixture(&name);
+        let (run_seed, level, size) = (int(&fx["runSeed"]) as u32, int(&fx["level"]) as i32, int(&fx["size"]) as i32);
+        let scp = opt_str(&fx["scp"]).map(|s| s.to_string());
+        let seed = seed_for_level(run_seed, level);
+        let opts = LayoutOpts { size, level, cell: 4.0, scp: scp.as_deref() };
+        let (layout, tile_ceil, solids, draws) = with_seed(seed, || {
+            let d0 = seeded_draws();
+            let layout = generate_layout(&opts, &mut || rnd());
+            let tile_ceil = ceiling_heights(&layout);
+            let solids = build_solids(&layout, &SolidsOpts { ceil: Some(&tile_ceil), ..Default::default() });
+            (layout, tile_ceil, solids, seeded_draws() - d0)
+        });
+        fx["draws"] = draws.into();
+        fx["layout"] = serde_json::json!({
+            "W": layout.w, "H": layout.h, "cell": jnum(layout.cell), "level": layout.level, "scp": layout.scp, "dominant": layout.dominant,
+            "tiles": b64_encode(&layout.tiles), "zoneOf": b64_encode(&layout.zone_of), "tileFlags": b64_encode(&layout.tile_flags),
+            "zones": layout.zones.iter().map(zone_json).collect::<Vec<_>>(),
+        });
+        let cells: Vec<Value> = arr(&fx["storeCells"])
+            .iter()
+            .map(|e| {
+                let zi = int(&e["zone"]) as usize;
+                let cells = layout.zones.get(zi).map(store_cells).unwrap_or_default();
+                serde_json::json!({ "zone": zi, "cells": cells.iter().map(|q| serde_json::json!({ "x0": q.x0, "x1": q.x1, "z0": q.z0, "z1": q.z1 })).collect::<Vec<_>>() })
+            })
+            .collect();
+        fx["storeCells"] = cells.into();
+        fx["ceil"] = f32s_b64(&tile_ceil);
+        fx["solids"] = solids_json(&solids);
+        fx["stats"] = stats_json(&layout_stats(&layout, Some(&solids)));
+        fx["statsNoSolids"] = stats_json(&layout_stats(&layout, None));
+        let plain = build_solids(&layout, &SolidsOpts::default());
+        fx["plainSame"] = (plain.count == solids.count
+            && plain.boxes.iter().map(|v| v.to_bits()).eq(solids.boxes.iter().map(|v| v.to_bits()))
+            && plain.start == solids.start
+            && plain.items == solids.items)
+            .into();
+        fx["probes"] = reprobe(&solids, &fx["probes"]);
+        let anchors: HashSet<usize> = arr(&fx["anchored"]["anchors"]).iter().map(|v| int(v) as usize).collect();
+        let mut ceil2 = tile_ceil.clone();
+        for e in arr(&fx["anchored"]["raised"]) {
+            ceil2[int(&e[0]) as usize] = num(&e[1]) as f32;
+        }
+        let anchored = build_solids(&layout, &SolidsOpts { anchors: Some(&anchors), ceil: Some(&ceil2), ..Default::default() });
+        fx["anchored"]["solids"] = solids_json(&anchored);
+        fx["anchored"]["stats"] = stats_json(&layout_stats(&layout, Some(&anchored)));
+        fx["probesAnchored"] = reprobe(&anchored, &fx["probesAnchored"]);
+        let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures").join(&name);
+        std::fs::write(&p, serde_json::to_string(&fx).unwrap()).unwrap();
+        eprintln!("rewrote {}", p.display());
+    }
 }
 
 #[test]

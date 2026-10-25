@@ -39,11 +39,24 @@ static float4 over(int mode, float4 dst, float3 cs, float as) {
     return float4(mix(dst.rgb, mixed, as), 1.0);
 }
 
-// the 3D view, through the canvas's CSS filter chain (saturate / hue-rotate /
-// contrast / brightness as affine colour matrices, each clamped)
+// The camera's look on the displayed colour: a little less saturation, a
+// gentle S-curve over slightly lifted blacks, and the lens's own falloff
+// toward the corners (round, so it follows the aspect ratio).
+static float3 grade(float3 c, float2 uv, float aspect) {
+    float l = dot(c, float3(0.2126, 0.7152, 0.0722));
+    c = mix(float3(l), c, 0.9);
+    c = mix(c, c * c * (3.0 - 2.0 * c), 0.2);
+    c = 0.018 + c * (1.0 - 0.018);
+    float2 d = (uv - 0.5) * float2(aspect, 1.0);
+    float r = length(d) / length(float2(aspect, 1.0) * 0.5);
+    return c * (1.0 - 0.22 * smoothstep(0.25, 1.0, r * r));
+}
+
+// the 3D view, graded, then through the canvas's CSS filter chain (saturate /
+// hue-rotate / contrast / brightness as affine colour matrices, each clamped)
 struct SceneFilter { float4 n; float4 m[12]; };
 fragment float4 fs_scene(QOut in [[stage_in]], texture2d<float> t [[texture(0)]], sampler s [[sampler(0)]], constant SceneFilter& f [[buffer(0)]]) {
-    float3 c = t.sample(s, in.uv).rgb;
+    float3 c = grade(t.sample(s, in.uv).rgb, in.uv, float(t.get_width()) / float(max(t.get_height(), 1u)));
     int n = int(f.n.x);
     for (int k = 0; k < n; k++) {
         float4 c4 = float4(c, 1.0);

@@ -96,6 +96,7 @@ impl Game {
         self.player.sanity = SAN_MAX.min(self.player.sanity + 30.0);
         self.player.battery = BAT_MAX.min(self.player.battery + 20.0);
         self.heart_t = 0.0;
+        self.reset_director();
         self.pick_level_weather();
         // per-level safe-room hum detune (stable per (run seed, level))
         if let (Some(lfo), Some(car)) = (self.audio.safe_room_lfo.clone(), self.audio.safe_room_trem_carrier.clone()) {
@@ -109,6 +110,9 @@ impl Game {
             lfo.frequency().set_value((0.35 + lfo_jit) * lfo_weather_mul * level_depth);
             car.frequency().set_value((330.0 + car_jit + car_weather_off) * level_depth);
         }
+        // staggered ambient cadences and the level's signature sounds (native
+        // draws: the seeded build is over)
+        self.arm_level_ambient();
         self.ui.level.set_text(&format!("LEVEL {}", n));
         // level entry chime, 1.2 s later
         self.schedule(1200.0, |g| {
@@ -390,16 +394,34 @@ impl Game {
             _ => "radial-gradient(ellipse at center, rgba(120,0,0,0.85) 0%, rgba(20,0,0,0.95) 100%)",
         };
         self.ui.flash.set_style("background", flash);
-        self.ui.flash.set_opacity(1.0);
-        self.schedule(350.0, |g| g.ui.flash.set_opacity(0.0));
-        if !self.entities.is_empty() {
+        // the flash comes a beat late, so you see it first
+        self.schedule(260.0, |g| g.ui.flash.set_opacity(0.85));
+        self.schedule(450.0, |g| g.ui.flash.set_opacity(0.0));
+        // the thing that got you, in your face; the screen cuts to black on it
+        let killer = self.director.killer.take().filter(|&i| i < self.entities.len()).or_else(|| self.nearest_entity());
+        self.director.killer = killer;
+        if let Some(ki) = killer {
             let f = self.player.fwd();
             let (px, pz) = (self.player.pos.x, self.player.pos.z);
-            self.entities[0].g.position().set(px + f.x * 1.1, 0, pz + f.z * 1.1);
+            let e = &mut self.entities[ki];
+            e.yaw = (-f.x).atan2(-f.z);
+            if e.kind == "hound" {
+                // mid-leap, reared up into your face
+                e.g.position().set(px + f.x * 0.7, 0.75, pz + f.z * 0.7);
+                e.g.set_rotation_order(EulerOrder::YXZ);
+                e.g.rotation().x = -0.75;
+            } else {
+                e.g.position().set(px + f.x * 0.8, 0, pz + f.z * 0.8);
+            }
+            e.g.rotation().y = e.yaw;
+            e.state = "hunt".into();
+            e.set_n("noticeT", 1.0);
+            e.set_n("lungeT", 1.4);
+            self.entity_call(ki, "shriek");
         }
         self.ui.fade.set_style("background", "#000");
-        self.schedule(500.0, |g| g.ui.fade.set_opacity(0.72));
-        self.schedule(900.0, |g| {
+        self.schedule(450.0, |g| g.ui.fade.set_opacity(1.0));
+        self.schedule(1400.0, |g| {
             g.want_pointer_lock = Some(false);
             let title = g.pick_text("deathTitle");
             let bits = g.pick_text("deathBodyBits");

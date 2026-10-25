@@ -6,7 +6,7 @@
 //! * a Metal renderer with per-fragment Lambert / Phong / basic shading and
 //!   exponential-squared (FogExp2-style) fog,
 //! * a 2D canvas API on CoreGraphics / CoreText for textures and the HUD,
-//! * an audio node graph rendered on CoreAudio,
+//! * an audio node graph rendered on CoreAudio (or offline, for recording),
 //! * winit windowing, input and the frame loop.
 #![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
@@ -23,6 +23,7 @@ pub mod png;
 pub mod render;
 pub mod scene;
 pub mod texture;
+pub mod wav;
 
 /// Everything game code needs: math, geometry, textures, materials, the scene
 /// graph, the canvas and the audio graph, plus the constructor macros.

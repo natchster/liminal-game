@@ -129,6 +129,8 @@ pub struct Game {
     pub pooled_w: Vec<f64>,
     pub almonds: Vec<Pickup>,
     pub battery_items: Vec<Pickup>,
+    /// What each zone of the layout is for (see `world::purpose`)
+    pub zone_purposes: Vec<crate::world::purpose::ZonePurpose>,
     /// Region id per tile
     pub region_map: Vec<u8>,
     pub region_info: Vec<RegionInfo>,
@@ -273,6 +275,9 @@ pub struct Game {
     /// Test seam: build the world with `place_props`, `place_store` and
     /// `place_house` as no-ops (the world fixtures cover the architecture alone)
     pub test_stub_core_placers: bool,
+    /// Test seam: leave the props' materials as their placers made them
+    /// (the world fixtures record them before `settle_prop_looks`)
+    pub test_keep_prop_looks: bool,
 
     // ---- hud
     /// 480×300 film-grain canvas (made by `init_hud`)
@@ -317,6 +322,16 @@ pub struct Game {
     pub pool_wanted: HashSet<usize>,
     /// Weather-biased ambient sounds: (weight, sfx name)
     pub biased_ambient: Vec<(f64, &'static str)>,
+    /// The level's signature sounds (`pick_signatures`)
+    pub amb_signatures: Vec<AmbSignature>,
+    /// Where the weather's own sounds come from on this level (`ambient::BED_ANCHORS`)
+    pub amb_anchors: Vec<(&'static str, Vec3)>,
+    /// How much the pacing director wants the ambience quiet (1 = only
+    /// essential sounds): ambient one-shots lose up to 85 % of their level,
+    /// none starts above 0.6, and the room tone dips up to half
+    pub amb_hush: f64,
+    /// While set, `blip` / `noise_burst` play through this route (`play_at`)
+    pub sfx_route: Option<SfxRoute>,
     /// Next glitch and flicker-wave times
     pub glitch_next_t: f64,
     pub flicker_wave_next_t: f64,
@@ -377,17 +392,11 @@ pub struct Game {
     pub fan_whoosh_timer: f64,
     pub fan_squeak_timer: f64,
     pub detector_chirp_timer: f64,
-    pub bird_chirp_timer: f64,
-    pub cricket_chirp_timer: f64,
     pub thunder_rumble_timer: f64,
     pub coin_tink_timer: f64,
     pub wind_gust_timer: f64,
-    pub frog_croak_timer: f64,
-    pub owl_hoot_timer: f64,
     pub tick_tock_timer: f64,
-    pub wolf_howl_timer: f64,
     pub rain_patter_timer: f64,
-    pub leaf_rustle_timer: f64,
     pub cuckoo_call_timer: f64,
     pub plush_shuffle_timer: f64,
     pub gumball_rattle_timer: f64,
@@ -496,6 +505,8 @@ pub struct Game {
     pub archive_milestone_shown: bool,
     pub escalation_toast_fired: bool,
     // ---- entities
+    /// The pacing director (`entities::director`)
+    pub director: crate::entities::director::Director,
     pub player_field_t: f64,
     pub heart_t: f64,
     pub dark_heart_t: f64,
@@ -629,6 +640,7 @@ impl Game {
             pooled_w: vec![],
             almonds: vec![],
             battery_items: vec![],
+            zone_purposes: vec![],
             region_map: vec![],
             region_info: vec![],
             ceil_region: vec![],
@@ -663,6 +675,7 @@ impl Game {
             pool_plan: None,
             placer_index: (0, HashMap::new()),
             test_stub_core_placers: false,
+            test_keep_prop_looks: false,
             // ---- hud
             grain_canvas: None,
             hud_ui: Default::default(),
@@ -767,6 +780,10 @@ impl Game {
             pool_edge: f64::INFINITY,
             pool_wanted: HashSet::new(),
             biased_ambient: vec![],
+            amb_signatures: vec![],
+            amb_anchors: vec![],
+            amb_hush: 0.0,
+            sfx_route: None,
             glitch_next_t: 0.0,
             flicker_wave_next_t: 0.0,
             quality: Quality::default(),
@@ -820,17 +837,11 @@ impl Game {
             fan_whoosh_timer: 0.0,
             fan_squeak_timer: 0.0,
             detector_chirp_timer: 0.0,
-            bird_chirp_timer: 0.0,
-            cricket_chirp_timer: 0.0,
             thunder_rumble_timer: 0.0,
             coin_tink_timer: 0.0,
             wind_gust_timer: 0.0,
-            frog_croak_timer: 0.0,
-            owl_hoot_timer: 0.0,
             tick_tock_timer: 0.0,
-            wolf_howl_timer: 0.0,
             rain_patter_timer: 0.0,
-            leaf_rustle_timer: 0.0,
             cuckoo_call_timer: 0.0,
             plush_shuffle_timer: 0.0,
             gumball_rattle_timer: 0.0,
@@ -938,6 +949,7 @@ impl Game {
             relight_milestone_shown: false,
             archive_milestone_shown: false,
             escalation_toast_fired: false,
+            director: Default::default(),
             player_field_t: 0.0,
             heart_t: 0.0,
             dark_heart_t: 0.0,
@@ -1176,8 +1188,31 @@ impl Game {
     pub fn ac_time(&self) -> f64 {
         self.ac.as_ref().map(|a| a.current_time()).unwrap_or(0.0)
     }
+    /// A one-shot's level and pan after `sfx_route` (its gain, and its pan
+    /// for a voice without one of its own)
+    fn routed(&self, gain: f64, pan: f64) -> (f64, f64) {
+        match &self.sfx_route {
+            Some(r) => (gain * r.gain, if pan == 0.0 { r.pan } else { pan }),
+            None => (gain, pan),
+        }
+    }
+    /// Connects a one-shot's last stage: to `sfx_route`'s voice slot when it
+    /// has one, else to master, through a stereo panner when `pan` is not 0
+    fn one_shot_out(&self, ac: &AudioContext, master: &AudioNode, g: &AudioNode, pan: f64) {
+        if let Some(dest) = self.sfx_route.as_ref().and_then(|r| r.dest.as_ref()) {
+            g.connect(dest);
+        } else if pan != 0.0 {
+            let p = ac.create_stereo_panner();
+            p.pan().set_value(pan.clamp(-1.0, 1.0));
+            g.connect(&p);
+            p.connect(master);
+        } else {
+            g.connect(master);
+        }
+    }
     pub fn blip(&self, freq: f64, dur: f64, ty: &str, gain: f64, slide_to: Option<f64>, delay: f64, pan: f64) {
         let (Some(ac), Some(master)) = (&self.ac, &self.master) else { return };
+        let (gain, pan) = self.routed(gain, pan);
         let t0 = ac.current_time() + delay;
         let o = ac.create_oscillator();
         o.set_type(ty);
@@ -1191,19 +1226,13 @@ impl Game {
         g.gain().set_value_at_time(gain, t0);
         g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + dur);
         o.connect(&g);
-        if pan != 0.0 {
-            let p = ac.create_stereo_panner();
-            p.pan().set_value(pan.clamp(-1.0, 1.0));
-            g.connect(&p);
-            p.connect(master);
-        } else {
-            g.connect(master);
-        }
+        self.one_shot_out(ac, master, &g, pan);
         o.start(t0);
         o.stop(t0 + dur + 0.05);
     }
     pub fn noise_burst(&self, dur: f64, freq: f64, q: f64, gain: f64, ty: &str, slide_to: Option<f64>, delay: f64, pan: f64) {
         let (Some(ac), Some(master), Some(nb)) = (&self.ac, &self.master, &self.noise_buf) else { return };
+        let (gain, pan) = self.routed(gain, pan);
         let t0 = ac.current_time() + delay;
         let s = ac.create_buffer_source();
         s.set_buffer(nb);
@@ -1222,15 +1251,9 @@ impl Game {
         g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + dur);
         s.connect(&f);
         f.connect(&g);
-        if pan != 0.0 {
-            let p = ac.create_stereo_panner();
-            p.pan().set_value(pan.clamp(-1.0, 1.0));
-            g.connect(&p);
-            p.connect(master);
-        } else {
-            g.connect(master);
-        }
-        s.start(t0);
+        self.one_shot_out(ac, master, &g, pan);
+        // from a random point of the 1 s noise loop, so no two bursts sound alike
+        s.start_at(t0, crate::base::rng::native_rnd() * 0.95, None);
         s.stop(t0 + dur + 0.05);
     }
 }

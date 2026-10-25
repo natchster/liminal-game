@@ -134,6 +134,75 @@ pub struct SpotInfo {
     pub normal: Option<Vec3>,
 }
 
+/// Where a kind of core prop belongs: zones of one of these archetypes, or
+/// whose purpose has one of these themes. On a level with no such zone it
+/// goes anywhere with chance `elsewhere`, and otherwise not at all.
+#[derive(Clone, Copy, Debug)]
+pub struct Home {
+    pub arch: &'static [&'static str],
+    pub themes: &'static [&'static str],
+    pub elsewhere: f64,
+}
+
+// where the core props belong
+const OFFICE: Home = Home { arch: &["office", "lobby"], themes: &["office"], elsewhere: 1.0 };
+const LOCKER_ROOM: Home = Home { arch: &["office", "hall", "pool"], themes: &["office", "bathroom", "industrial"], elsewhere: 1.0 };
+const VENDING: Home = Home { arch: &["lobby", "office", "hall", "pool"], themes: &["office", "party"], elsewhere: 1.0 };
+const STORAGE: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 1.0 };
+const WET: Home = Home { arch: &["pool"], themes: &["bathroom"], elsewhere: 1.0 };
+const SERVICE: Home = Home { arch: &["hall", "tunnels", "electrical", "office"], themes: &["industrial", "office"], elsewhere: 1.0 };
+const PUBLIC: Home = Home { arch: &["lobby", "office", "hall", "pool"], themes: &["office", "party", "domestic"], elsewhere: 1.0 };
+const BATH_TOYS: Home = Home { arch: &["pool"], themes: &["bathroom", "toys"], elsewhere: 0.0 };
+const WORKS: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 0.5 };
+const HOME_CARE: Home = Home { arch: &[], themes: &["domestic", "victorian"], elsewhere: 0.25 };
+const NURSERY: Home = Home { arch: &[], themes: &["toys", "domestic", "victorian"], elsewhere: 0.25 };
+const LUGGAGE: Home = Home { arch: &["lobby", "hall"], themes: &["domestic", "victorian"], elsewhere: 1.0 };
+const READING: Home = Home { arch: &["office"], themes: &["office", "victorian", "domestic"], elsewhere: 1.0 };
+const CLOAKROOM: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0 };
+const LIVING: Home = Home { arch: &[], themes: &["domestic", "office"], elsewhere: 1.0 };
+const GREENERY: Home = Home { arch: &["lobby", "office"], themes: &["nature"], elsewhere: 1.0 };
+const SEATING: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "party"], elsewhere: 1.0 };
+const CLOCK_WALL: Home = Home { arch: &["office", "lobby", "hall"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0 };
+
+/// Per zone, whether it is `home` to a prop. None without a layout or zone
+/// purposes (a synthetic level): the prop goes anywhere.
+pub fn home_zones(g: &Game, home: &Home) -> Option<Vec<bool>> {
+    let l = g.layout.as_ref()?;
+    if g.zone_purposes.len() != l.zones.len() {
+        return None;
+    }
+    Some(l.zones.iter().zip(&g.zone_purposes).map(|(z, p)| home.arch.contains(&z.arch) || p.has_any(home.themes)).collect())
+}
+
+/// The zones a prop of `home` may use on this level: None for anywhere, an
+/// empty list when it is left out (one draw when the level has no home for it)
+fn home_for(g: &Game, cx: &PropsCtx, home: Option<&Home>) -> Option<Vec<bool>> {
+    let h = home?;
+    let zones = home_zones(g, h)?;
+    let l = g.layout.as_ref()?;
+    if cx.cands.iter().any(|c| zones[l.zone_of[g.t_idx(c.x, c.z)] as usize]) {
+        return Some(zones);
+    }
+    if rnd() < h.elsewhere {
+        None
+    } else {
+        Some(vec![])
+    }
+}
+
+/// `take` restricted to the `home` zones (and to tiles beside a wall with `wall`)
+fn take_home(g: &Game, cx: &mut PropsCtx, home: Option<&[bool]>, wall: bool) -> Option<Cand> {
+    match home {
+        None if !wall => cx.take(None),
+        None => cx.take(Some(&|c: &Cand| has_wall_n(g, c))),
+        Some([]) => None,
+        Some(zones) => {
+            let l = g.layout.as_ref()?;
+            cx.take(Some(&|c: &Cand| (!wall || has_wall_n(g, c)) && zones[l.zone_of[g.t_idx(c.x, c.z)] as usize]))
+        }
+    }
+}
+
 /// `scatter` options
 #[derive(Default)]
 struct ScatterOpts<'a> {
@@ -144,13 +213,31 @@ struct ScatterOpts<'a> {
     /// height above the floor (default 0)
     y: f64,
     on_placed: Option<&'a dyn Fn(&mut Game, &Built, &SpotInfo)>,
+    /// where it belongs (None: anywhere)
+    home: Option<Home>,
+    /// up to this many stand side by side, `spacing` metres apart: a row
+    /// against the wall, or a line on the floor (only where it is at home)
+    row: i32,
+    spacing: f64,
+}
+
+/// The row `scatter` is laying: its tile, how many more go in it, and where
+/// the first one stands (x, z, yaw, wall normal)
+struct Row {
+    c: Cand,
+    left: i32,
+    k: i32,
+    first: (f64, f64, f64, Option<Vec3>),
 }
 
 /// Place `count` props on free tiles
 /// (against a wall with `wall`), sometimes with a small prop stacked on top.
 fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: &ScatterOpts) {
+    let home = home_for(g, cx, opts.home.as_ref());
+    let mut row: Option<Row> = None;
     for _i in 0..count {
-        let c = if opts.wall { cx.take(Some(&|c: &Cand| has_wall_n(g, c))) } else { cx.take(None) };
+        let in_row = row.as_ref().map(|r| r.left > 0).unwrap_or(false);
+        let c = if in_row { row.as_ref().map(|r| r.c) } else { take_home(g, cx, home.as_deref(), opts.wall) };
         let Some(c) = c else { return };
         let built = builder(g, cx);
         let bg = built.g.clone();
@@ -158,14 +245,33 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
         let mut pz = g.wz(c.z) + rand2(-1.0, 1.0);
         let mut yaw = rand1(PI * 2.0);
         let mut normal: Option<Vec3> = None;
-        if opts.wall {
-            if let Some(spot) = props_wall_adj_spot(g, c.x, c.z) {
-                let off = opts.wall_offset.unwrap_or(0.32);
-                px = spot.pos.x + spot.normal.x * off;
-                pz = spot.pos.z + spot.normal.z * off;
-                yaw = spot.yaw;
-                normal = Some(spot.normal);
+        if let Some(r) = row.as_mut().filter(|_| in_row) {
+            // the next one in the row: beside the first along its wall, or on along its line
+            r.left -= 1;
+            r.k += 1;
+            let (fx, fz, fyaw, fnormal) = r.first;
+            let step = opts.spacing * ((r.k + 1) / 2) as f64 * if r.k % 2 == 1 { 1.0 } else { -1.0 };
+            let (tx, tz) = match fnormal {
+                Some(nv) => (-nv.z, nv.x),
+                None => (fyaw.cos(), -fyaw.sin()),
+            };
+            px = fx + tx * step;
+            pz = fz + tz * step;
+            yaw = if fnormal.is_some() { fyaw } else { fyaw + (yaw - PI) * 0.08 };
+            normal = fnormal;
+        } else {
+            if opts.wall {
+                if let Some(spot) = props_wall_adj_spot(g, c.x, c.z) {
+                    let off = opts.wall_offset.unwrap_or(0.32);
+                    px = spot.pos.x + spot.normal.x * off;
+                    pz = spot.pos.z + spot.normal.z * off;
+                    yaw = spot.yaw;
+                    normal = Some(spot.normal);
+                }
             }
+            // where it is at home a few may stand together
+            let more = if home.is_some() && opts.row > 1 { irand(0, opts.row as i64 - 1) as i32 } else { 0 };
+            row = Some(Row { c, left: more, k: 0, first: (px, pz, yaw, normal) });
         }
         bg.position().set(px, opts.y, pz);
         bg.rotation().y = yaw;
@@ -173,14 +279,14 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
         if let Some(f) = opts.on_placed {
             f(g, &built, &SpotInfo { px, pz, yaw, normal });
         }
-        // absurd combo: sometimes stack a second small prop on top
+        // tall props once got a second small prop stacked on top (a duck, a
+        // cone, a doll...); it read as a gag and is no longer placed, but its
+        // draws stay so the rest of the level is built from the same sequence
         if opts.can_stack && built.top > 0.5 && rnd() < 0.5 {
             let tops: [Builder; 5] = [build_rubber_duck, build_traffic_cone, build_baby_doll, build_book_stack, build_fluorescent_tube];
             let b = choice(&tops);
-            let top_prop = b(g, cx);
-            top_prop.g.position().set(px + rand2(-0.15, 0.15), built.top, pz + rand2(-0.15, 0.15));
-            top_prop.g.rotation().y = rand1(PI * 2.0);
-            g.world.add(&top_prop.g);
+            let _unplaced = b(g, cx);
+            let _ = (rand2(-0.15, 0.15), rand2(-0.15, 0.15), rand1(PI * 2.0));
         }
     }
 }
@@ -387,34 +493,38 @@ impl Game {
         g.props_payphone(&mut cx);
         g.props_mannequin(&mut cx);
 
-        // place each prop type with random counts, sometimes stacked absurdly
+        // place each prop type with random counts, sometimes stacked absurdly;
+        // each kind keeps to the places it belongs in, a few side by side
         let reg = move |g: &mut Game, built: &Built, si: &SpotInfo| register_cabinet_drawers(g, built, si, &bat_tip_geo, &bat_tip_mat);
-        scatter(
-            g,
-            &mut cx,
-            build_filing_cabinet,
-            3,
-            &ScatterOpts { wall: true, wall_offset: Some(0.3), can_stack: true, on_placed: Some(&reg), ..Default::default() },
-        );
-        scatter(g, &mut cx, build_locker, 2, &ScatterOpts { wall: true, wall_offset: Some(0.28), can_stack: true, ..Default::default() });
-        scatter(g, &mut cx, build_vending, 1, &ScatterOpts { wall: true, wall_offset: Some(0.32), ..Default::default() });
-        scatter(g, &mut cx, build_cardboard_stack, 4, &ScatterOpts::default());
-        scatter(g, &mut cx, build_wet_floor_sign, 2, &ScatterOpts::default());
-        scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { wall: true, wall_offset: Some(0.16), y: 0.0, ..Default::default() });
-        scatter(g, &mut cx, build_trash_can, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_rubber_duck, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_traffic_cone, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_wheelchair, 1, &ScatterOpts::default());
-        scatter(g, &mut cx, build_baby_doll, 1, &ScatterOpts::default());
-        scatter(g, &mut cx, build_suitcase, 2, &ScatterOpts::default());
-        scatter(g, &mut cx, build_book_stack, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_coat_rack, 2, &ScatterOpts::default());
-        scatter(g, &mut cx, build_fluorescent_tube, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_tv_on_floor, 1, &ScatterOpts::default());
-        scatter(g, &mut cx, build_pile, 2, &ScatterOpts::default());
+        let wall = |off: f64, home: Home, row: i32, spacing: f64| ScatterOpts {
+            wall: true,
+            wall_offset: Some(off),
+            home: Some(home),
+            row,
+            spacing,
+            ..Default::default()
+        };
+        let floor = |home: Home, row: i32, spacing: f64| ScatterOpts { home: Some(home), row, spacing, ..Default::default() };
+        scatter(g, &mut cx, build_filing_cabinet, 3, &ScatterOpts { can_stack: true, on_placed: Some(&reg), ..wall(0.3, OFFICE, 3, 0.66) });
+        scatter(g, &mut cx, build_locker, 2, &ScatterOpts { can_stack: true, ..wall(0.28, LOCKER_ROOM, 2, 1.42) });
+        scatter(g, &mut cx, build_vending, 1, &wall(0.32, VENDING, 1, 0.0));
+        scatter(g, &mut cx, build_cardboard_stack, 4, &floor(STORAGE, 3, 0.75));
+        scatter(g, &mut cx, build_wet_floor_sign, 2, &floor(WET, 1, 0.0));
+        scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { y: 0.0, ..wall(0.16, SERVICE, 1, 0.0) });
+        scatter(g, &mut cx, build_trash_can, 3, &floor(PUBLIC, 1, 0.0));
+        scatter(g, &mut cx, build_rubber_duck, 3, &floor(BATH_TOYS, 3, 0.3));
+        scatter(g, &mut cx, build_traffic_cone, 3, &floor(WORKS, 3, 0.9));
+        scatter(g, &mut cx, build_wheelchair, 1, &floor(HOME_CARE, 1, 0.0));
+        scatter(g, &mut cx, build_baby_doll, 1, &floor(NURSERY, 1, 0.0));
+        scatter(g, &mut cx, build_suitcase, 2, &floor(LUGGAGE, 2, 0.7));
+        scatter(g, &mut cx, build_book_stack, 3, &floor(READING, 2, 0.55));
+        scatter(g, &mut cx, build_coat_rack, 2, &floor(CLOAKROOM, 1, 0.0));
+        scatter(g, &mut cx, build_fluorescent_tube, 3, &floor(WORKS, 3, 0.35));
+        scatter(g, &mut cx, build_tv_on_floor, 1, &floor(LIVING, 1, 0.0));
+        scatter(g, &mut cx, build_pile, 2, &floor(STORAGE, 1, 0.0));
         // scattered single plants — signs someone cared once
-        scatter(g, &mut cx, build_potted_plant, 3, &ScatterOpts::default());
-        scatter(g, &mut cx, build_floor_plant, 1, &ScatterOpts::default());
+        scatter(g, &mut cx, build_potted_plant, 3, &floor(GREENERY, 1, 0.0));
+        scatter(g, &mut cx, build_floor_plant, 1, &floor(GREENERY, 1, 0.0));
         cx
     }
 
@@ -576,8 +686,9 @@ impl Game {
     /// chairs (office / dining variants) — one is knocked over
     fn props_chairs(&mut self, cx: &mut PropsCtx) {
         let g = self;
+        let home = home_for(g, cx, Some(&SEATING));
         for i in 0..3 {
-            let Some(c) = cx.take(None) else { break };
+            let Some(c) = take_home(g, cx, home.as_deref(), false) else { break };
             let ch = build_detailed_chair(g);
             let px = g.wx(c.x) + rand2(-0.8, 0.8);
             let pz = g.wz(c.z) + rand2(-0.8, 0.8);
@@ -595,7 +706,8 @@ impl Game {
     /// CRT television with live static (sets `tv_data`)
     fn props_crt_tv(&mut self, cx: &mut PropsCtx) {
         let g = self;
-        let Some(c) = cx.take(Some(&|c: &Cand| has_wall_n(g, c))) else { return };
+        let home = home_for(g, cx, Some(&LIVING));
+        let Some(c) = take_home(g, cx, home.as_deref(), true) else { return };
         let spot = props_wall_adj_spot(g, c.x, c.z);
         let tg = group();
         let px = match spot {
@@ -638,7 +750,8 @@ impl Game {
     /// wall clock, wrong on purpose (sets `clock_data`)
     fn props_wall_clock(&mut self, cx: &mut PropsCtx) {
         let g = self;
-        let Some(c) = cx.take(Some(&|c: &Cand| has_wall_n(g, c))) else { return };
+        let home = home_for(g, cx, Some(&CLOCK_WALL));
+        let Some(c) = take_home(g, cx, home.as_deref(), true) else { return };
         let Some(spot) = props_wall_adj_spot(g, c.x, c.z) else { return };
         let cg = group();
         cg.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 0.05);

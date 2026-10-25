@@ -6,8 +6,10 @@
 //!   rectangle of the tile grid given an archetype from the lore — the Lobby's
 //!   randomly segmented rooms, pillar fields, low abandoned offices, the old
 //!   thick-walled maze, narrow utility tunnels, tall concrete halls — each with
-//!   its own ceiling height, wall thickness, doorway jambs and materials. A
-//!   repair pass then guarantees every open tile is reachable from spawn.
+//!   its own ceiling height (shared by neighbours of the same kind), wall
+//!   thickness, doorway jambs and materials. The carvers' rooms are kept in
+//!   `Layout::rooms`. A repair pass then guarantees every open tile is
+//!   reachable from spawn.
 //! * [`build_solids`] turns wall *tiles* into solid *boxes*. In thin-walled
 //!   zones a wall tile becomes a partition along the tile's centre line, lone
 //!   wall tiles become pillars, doorways get jambs and a lintel, and tunnel
@@ -432,6 +434,33 @@ impl Zone {
     fn rect(&self) -> Rect {
         Rect { x0: self.x0, z0: self.z0, x1: self.x1, z1: self.z1 }
     }
+    /// Tiles covered by the zone rectangle
+    pub fn area(&self) -> i32 {
+        (self.x1 - self.x0 + 1) * (self.z1 - self.z0 + 1)
+    }
+    /// The zones share an edge (not just a corner)
+    pub fn touches(&self, o: &Zone) -> bool {
+        let x_overlap = self.x0.max(o.x0) <= self.x1.min(o.x1);
+        let z_overlap = self.z0.max(o.z0) <= self.z1.min(o.z1);
+        (x_overlap && (self.z1 + 1 == o.z0 || o.z1 + 1 == self.z0)) || (z_overlap && (self.x1 + 1 == o.x0 || o.x1 + 1 == self.x0))
+    }
+}
+
+/// A room the carver laid out inside a zone (tiles, inclusive): a leaf of
+/// the room splitter, or the whole zone where the carver makes no rooms.
+/// Seams and repair tunnels may have opened its walls since.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Room {
+    pub zone: usize,
+    pub x0: i32,
+    pub z0: i32,
+    pub x1: i32,
+    pub z1: i32,
+}
+impl Room {
+    pub fn contains(&self, x: i32, z: i32) -> bool {
+        x >= self.x0 && x <= self.x1 && z >= self.z0 && z <= self.z1
+    }
 }
 
 /// The return value of `generate_layout`.
@@ -452,6 +481,8 @@ pub struct Layout {
     pub dominant: &'static str,
     pub level: i32,
     pub scp: Option<String>,
+    /// the carvers' rooms, zone by zone
+    pub rooms: Vec<Room>,
 }
 impl Layout {
     /// Tile index `z * w + x`
@@ -462,6 +493,10 @@ impl Layout {
     /// The zone a tile belongs to, coordinates clamped into the grid.
     pub fn zone_at(&self, x: i32, z: i32) -> &Zone {
         &self.zones[self.zone_of[self.idx(iclamp(x, 0, self.w - 1), iclamp(z, 0, self.h - 1))] as usize]
+    }
+    /// The room around tile (x, z), if the carver laid one out there
+    pub fn room_at(&self, x: i32, z: i32) -> Option<&Room> {
+        self.rooms.iter().find(|r| r.contains(x, z))
     }
     /// A borrowed view for [`build_solids_view`] / [`layout_stats_view`].
     pub fn view(&self) -> LayoutView<'_> {
@@ -507,6 +542,9 @@ struct Ctx<'r> {
     tiles: Vec<u8>,
     tile_flags: Vec<u8>,
     rng: &'r mut dyn FnMut() -> f64,
+    /// the zone being carved, and the rooms laid out so far
+    zone: usize,
+    rooms: Vec<Room>,
 }
 impl Ctx<'_> {
     #[inline]
@@ -629,6 +667,7 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             }
         }
     }
+    share_ceilings(&mut zones);
     // a zone id per tile (the outer border belongs to the nearest zone)
     let mut zone_of = vec![0u8; n];
     for z in &zones {
@@ -648,9 +687,11 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
     }
 
     // ---- 3. carve each zone ----
-    let mut ctx = Ctx { w, h, tiles: vec![1u8; n], tile_flags: vec![0u8; n], rng: &mut *rng };
+    let mut ctx = Ctx { w, h, tiles: vec![1u8; n], tile_flags: vec![0u8; n], rng: &mut *rng, zone: 0, rooms: vec![] };
     for z in &zones {
         let r = z.rect();
+        ctx.zone = z.id;
+        let rooms_before = ctx.rooms.len();
         match z.arch {
             "store" => carve_store(&mut ctx, r),
             "lobby" => carve_lobby(&mut ctx, r),
@@ -662,6 +703,13 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
             "hall" => carve_hall(&mut ctx, r),
             "pool" => carve_pool(&mut ctx, r),
             other => panic!("archgen: no carver for {other:?}"),
+        }
+        if z.arch == "store" {
+            for c in store_cells(z) {
+                ctx.rooms.push(Room { zone: z.id, x0: c.x0, z0: c.z0, x1: c.x1, z1: c.z1 });
+            }
+        } else if ctx.rooms.len() == rooms_before {
+            ctx.rooms.push(Room { zone: z.id, x0: r.x0, z0: r.z0, x1: r.x1, z1: r.z1 });
         }
     }
 
@@ -697,8 +745,41 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
         }
     }
 
-    let Ctx { tiles, tile_flags, .. } = ctx;
-    Layout { w, h, cell, tiles, zone_of, tile_flags, zones, dominant, level, scp: scp.map(|s| s.to_string()) }
+    let Ctx { tiles, tile_flags, rooms, .. } = ctx;
+    Layout { w, h, cell, tiles, zone_of, tile_flags, zones, dominant, level, scp: scp.map(|s| s.to_string()), rooms }
+}
+
+/// Neighbouring zones of the same archetype are one building: they take the
+/// ceiling of the first of them, so the slab only steps where the kind of
+/// place changes.
+fn share_ceilings(zones: &mut [Zone]) {
+    let n = zones.len();
+    let mut group: Vec<usize> = (0..n).collect();
+    fn root(g: &mut [usize], mut i: usize) -> usize {
+        while g[i] != i {
+            g[i] = g[g[i]];
+            i = g[i];
+        }
+        i
+    }
+    for a in 0..n {
+        for b in a + 1..n {
+            if zones[a].arch == zones[b].arch && zones[a].touches(&zones[b]) {
+                let (ra, rb) = (root(&mut group, a), root(&mut group, b));
+                // the lower id is the root, so a group keeps its first zone's ceiling
+                group[ra.max(rb)] = ra.min(rb);
+            }
+        }
+    }
+    for i in 0..n {
+        let r = root(&mut group, i);
+        if r != i {
+            let ceil_h = zones[r].ceil_h;
+            let z = &mut zones[i];
+            z.ceil_h = ceil_h;
+            z.lintel_h = nan_min(ceil_h - 0.25, z.lintel_h);
+        }
+    }
 }
 
 fn make_zone(arch: &'static str, r: &Rect, id: usize, rng: &mut dyn FnMut() -> f64, cell: f64) -> Zone {
@@ -830,10 +911,13 @@ fn split_rooms(c: &mut Ctx, rect: Rect, opt: &SplitOpt) {
         let h = r.z1 - r.z0 + 1;
         let can_x = w > opt.min_room * 2;
         let can_z = h > opt.min_room * 2;
+        let room = Room { zone: c.zone, x0: r.x0, z0: r.z0, x1: r.x1, z1: r.z1 };
         if !can_x && !can_z {
+            c.rooms.push(room);
             continue;
         }
         if w <= opt.max_room && h <= opt.max_room && c.r() < opt.stop_chance {
+            c.rooms.push(room);
             continue;
         }
         let axis_x = if can_x && can_z {

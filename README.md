@@ -8,15 +8,26 @@ stairwell that goes too deep, a shop that closes at night, a house that is
 not yours, and a corridor that loops.
 
 - **Rendering:** a Metal renderer with per-fragment Lambert / Phong / unlit
-  shading, exponential fog, a place-based light map, skinned and morphing
-  creatures, instancing, 4× MSAA and a compositor for the HUD's blend modes.
+  shading, exponential fog, a place-based light map, floor occlusion and a
+  soft highlight roll-off, procedural wear on props, a camera grade and lens
+  vignette, skinned and morphing creatures, instancing, 4× MSAA and a
+  compositor for the HUD's blend modes.
+- **Creatures and pacing:** creatures that see ahead of them and search for
+  what they only heard, and a pacing director that sends one after you,
+  announces it through the place (its steps, failing lights, then silence)
+  and backs everything off after a close call.
 - **2D:** procedural textures and the HUD are drawn with CoreGraphics and
   CoreText.
 - **Audio:** a fully synthesized soundscape on an audio node graph (oscillators,
-  filters, convolution reverb, spatial panners) rendered through CoreAudio.
+  filters, convolution reverb, spatial panners) rendered through CoreAudio;
+  every sound comes from somewhere: props from where they stand, a few
+  signature sounds per level from fixed places.
 - **Platform:** windowing and input through winit on AppKit.
 - **Deterministic levels:** a run seed and a level number always build the
-  same level, checked against recorded reference levels.
+  same level, checked against recorded reference levels. Each area of a
+  level has one purpose (an office wing, washrooms, a maintenance run, or
+  nothing at all), and its wallpaper, grime and darkness change at its
+  walls.
 
 ## Requirements
 
@@ -50,6 +61,7 @@ slower to run).
 | `--width W --height H` | Window size in points |
 | `--flags 'seed=4242&nosound&scp=loop@2,store@3'` | Launch flags: a fixed run seed, sound off, anomalies forced onto levels, … |
 | `--screenshot out.png [--frames N] [--level L] [--seed S] [--play]` | Headless: build a level, simulate N frames and save the last one |
+| `--showcase smiler[:dist] [--death]` | With `--screenshot`: keep a creature (`smiler`, `hound`, `watcher`) in front of the camera; `--death` lets it kill you just before the shot |
 | `--dump-level DIR --seed S --levels 1,2,3 [--screenshot x]` | Headless: start a run like New Game and write each level's build trace, grid, props and objects as JSON (and the spawn view as PNG) |
 | `--scale 2` | Headless modes: render at this backing scale (2 = Retina) |
 
@@ -82,6 +94,8 @@ cargo test --workspace --release      # everything (≈1 minute in release)
 cargo test -p game                    # the game crate's unit and fixture tests
 cargo test --release -p backrooms --test reference_levels           # 20 levels vs recordings
 cargo test --release -p backrooms --test playthrough -- --nocapture  # a bot plays 2 × 13 levels
+cargo test --release -p backrooms --test pacing -- --nocapture       # a cautious bot plays with death on
+cargo test --release -p backrooms --test listen -- --nocapture       # levels recorded to target/listen/*.wav
 ```
 
 - **Reference levels** (`crates/backrooms/tests/reference/`): 20 recorded
@@ -92,6 +106,17 @@ cargo test --release -p backrooms --test playthrough -- --nocapture  # a bot pla
 - **Playthrough:** a bot plays whole runs from New Game with the real
   movement and collision, deals with each level's anomaly and goes through
   the door, and checks the anomaly rules of a run.
+- **Pacing:** a bot that plays like a cautious player (explores, holds a
+  Smiler's gaze and backs away, runs from the rest, keeps still while
+  something searches nearby, faces a Watcher it sees) plays four levels for
+  five minutes each with death on. The quiet must lead to a build-up within
+  2.5 minutes, the calm and the relief stay within their lengths, things
+  reach you, and close calls are survived.
+- **Listening:** levels are played with the audio rendered offline,
+  recorded to `target/listen/` (WAV, plus a loudness timeline PNG) and
+  measured in 50 ms windows: a level opens quietly, its signature sounds
+  stand out of the room's bed, a creature's notice is loud against the
+  quiet before it, and the director's hush silences the ambience.
 - **Fixture tests** (`crates/game/tests/`): level generation, the anomaly
   plan, prop and creature meshes, placement and instancing, the world build,
   core props, creatures and their AI, the anomalies, the Stairwell and the

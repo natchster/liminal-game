@@ -1,7 +1,8 @@
 // The game's renderer: per-fragment basic / Lambert / Phong surface shading,
 // points, sprites and lines, exponential-squared fog, plus the game's shader
 // patches (local light map, world-space wall UVs, creature skin detail, the
-// Smiler's eyes, the Watcher's sheet, the House shadows, the Stairwell face).
+// Smiler's eyes, the Watcher's sheet, the House shadows, the Stairwell face),
+// surface wear on props, floor occlusion and a highlight shoulder.
 // Variants are function constants.
 #include <metal_stdlib>
 using namespace metal;
@@ -29,6 +30,7 @@ constant bool MORPH_NRM   [[function_constant(18)]];
 constant bool MORPH_REL   [[function_constant(19)]];
 constant bool SIZE_ATTEN  [[function_constant(20)]];
 constant bool HAS_VC_DATA [[function_constant(21)]]; // geometry actually has colours
+constant bool WEAR        [[function_constant(22)]]; // procedural wear (lit prop surfaces)
 
 // ------------------------------------------------------------ uniforms
 struct Frame {
@@ -44,6 +46,7 @@ struct Frame {
     float4 llParams; // x on, y scale, z fog density factor where lit, w time
     float4 viewport; // x w, y h (pixels), z point scale (h/2), w unused
     uint4  counts; // x hemi, y point, z spot
+    float4 look; // x floor occlusion amount
 };
 struct Hemi  { float4 sky; float4 ground; float4 dir; };
 struct Point { float4 pos; float4 color; }; // pos.w distance, color.w decay
@@ -67,6 +70,7 @@ struct Material {
     float4 misc; // x alpha test, y point size, z bump scale, w map flip-y
     float4 arch; // ArchUV: x scale, y vscale, z wallpaper
     float4 patch[4]; // patch parameters
+    float4 surf; // x wear amount, y tone-mapped
 };
 struct LightList { uint count; uint pad[3]; ushort idx[96]; };
 
@@ -96,6 +100,38 @@ static inline float3 BRDF_BlinnPhong(float3 L, float3 V, float3 N, float3 spec, 
 }
 static inline float3 inverseTransformDirection(float3 dir, float4x4 m) {
     return normalize((float4(dir, 0.0) * m).xyz);
+}
+// value noise in 0..1 (hashed lattice, smooth interpolation)
+static inline float hash13(float3 p) {
+    p = fract(p * 0.1031);
+    p += dot(p, p.zyx + 31.32);
+    return fract((p.x + p.y) * p.z);
+}
+static inline float vnoise(float3 p) {
+    float3 i = floor(p), f = fract(p);
+    float3 u = f * f * (3.0 - 2.0 * f);
+    float a = hash13(i), b = hash13(i + float3(1, 0, 0)), c = hash13(i + float3(0, 1, 0)), d = hash13(i + float3(1, 1, 0));
+    float e = hash13(i + float3(0, 0, 1)), g = hash13(i + float3(1, 0, 1)), h = hash13(i + float3(0, 1, 1)), k = hash13(i + float3(1, 1, 1));
+    return mix(mix(mix(a, b, u.x), mix(c, d, u.x), u.y), mix(mix(e, g, u.x), mix(h, k, u.x), u.y), u.z);
+}
+// a toy-bright colour muted toward its own grey: chroma (largest minus smallest
+// channel, in a gamma close to sRGB) rolls off above a knee
+static inline float3 limitChroma(float3 lin) {
+    float3 s = sqrt(max(lin, 0.0));
+    float hi = max(s.r, max(s.g, s.b)), lo = min(s.r, min(s.g, s.b));
+    float c = hi - lo;
+    const float knee = 0.3, top = 0.52;
+    if (c <= knee) return lin;
+    float want = knee + (top - knee) * (1.0 - exp(-(c - knee) / (top - knee)));
+    float l = dot(s, float3(0.2126, 0.7152, 0.0722));
+    s = l + (s - l) * (want / c);
+    return s * s;
+}
+// highlight shoulder: linear up to the knee, then an exponential roll-off toward 1
+static inline float3 filmShoulder(float3 c) {
+    const float knee = 0.68;
+    float3 over = max(c - knee, 0.0);
+    return min(c, knee) + (1.0 - knee) * (1.0 - exp(-over / (1.0 - knee)));
 }
 
 // ------------------------------------------------------------ vertex
@@ -358,6 +394,25 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         float3 geometryViewDir = normalize(in.viewPos);
         float3 directDiffuse = float3(0), directSpecular = float3(0);
         float3 diff = diffuseColor.rgb;
+        float3 wN = inverseTransformDirection(geometryNormal, F.view);
+        // wear: three octaves of value noise at the rest-pose position mottle
+        // the colour (the finest fades out before it would alias); grime
+        // settles in the dark blotches and on the parts near the floor.
+        // Textures are reined in here (flat colours were muted when the
+        // material was made)
+        if (WEAR) {
+            if (HAS_MAP) diff = limitChroma(diff);
+            float3 q = in.detPos;
+            float3 q3 = q * 37.0 + 3.7;
+            float fine = 1.0 - saturate(length(fwidth(q3)) * 0.7);
+            float n = 0.5 * vnoise(q * 3.5) + 0.3 * vnoise(q * 11.0 + 7.31) + 0.2 * mix(0.5, vnoise(q3), fine);
+            float m = clamp((n - 0.5) * 3.2, -1.0, 1.0);
+            float w = M.surf.x;
+            diff *= 1.0 + w * 0.14 * m;
+            float low = (1.0 - smoothstep(0.02, 0.55, in.llPos.y)) * smoothstep(-0.3, 0.0, in.llPos.y); // not down in a pool
+            float grime = w * saturate(0.3 * saturate(-m) + low * (0.45 + 0.3 * saturate(-m)));
+            diff *= mix(float3(1.0), float3(0.74, 0.70, 0.62), grime);
+        }
         float3 spec = M.specular.rgb; float shin = M.specular.a;
         for (uint li = 0; li < LLst.count; li++) {
             uint k = LLst.idx[li];
@@ -388,15 +443,23 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             irradiance += mix(hemis[h].ground.rgb, hemis[h].sky.rgb, 0.5 * dotNL + 0.5);
         }
         if (LL && F.llParams.x > 0.5) {
-            float3 llN = inverseTransformDirection(geometryNormal, F.view);
-            float llK = llLit(in.llPos + llN * 0.8, F, llMap, llS);
-            irradiance += (1.0 - llK) * (F.llAmbD.rgb + mix(F.llGndD.rgb, F.llSkyD.rgb, 0.5 * llN.y + 0.5));
+            float llK = llLit(in.llPos + wN * 0.8, F, llMap, llS);
+            irradiance += (1.0 - llK) * (F.llAmbD.rgb + mix(F.llGndD.rgb, F.llSkyD.rgb, 0.5 * wN.y + 0.5));
         }
-        float3 indirectDiffuse = irradiance * BRDF_Lambert(diff);
+        // floor occlusion: walls and the sides of things lose indirect light
+        // toward the floor (faces turned up keep it)
+        float ao = 1.0;
+        if (PATCH <= 2) {
+            ao = mix(0.55, 1.0, smoothstep(0.0, 0.45, in.llPos.y));
+            ao = mix(1.0, ao, F.look.x * (1.0 - smoothstep(0.3, 0.8, wN.y)));
+        }
+        float3 indirectDiffuse = irradiance * BRDF_Lambert(diff) * ao;
         outgoing = directDiffuse + indirectDiffuse + directSpecular + totalEmissive;
         if (PATCH == 4) {
             float3 over = max(outgoing - 0.5, 0.0);
             outgoing = min(outgoing, 0.5) + 0.143 * log(1.0 + over / 0.143);
+        } else if (PATCH <= 2 && M.surf.y > 0.5) {
+            outgoing = filmShoulder(outgoing);
         }
     } else {
         outgoing = diffuseColor.rgb;

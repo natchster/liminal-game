@@ -7,13 +7,15 @@
 //! regions. [`arch`]: the architecture meshes, teardown and the prop draw
 //! distance; [`settle`]: final placement and `settle_props`; [`placement`]:
 //! the placement checks; [`build`]: the prop themes, `themed` and
-//! `build_world`; [`instancing`]: static-prop instancing; [`tables`]: the
-//! build tables; [`zones`]: zone record access.
+//! `build_world`; [`purpose`]: what each zone is for; [`instancing`]:
+//! static-prop instancing; [`tables`]: the build tables; [`zones`]: zone
+//! record access.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod arch;
 pub mod build;
 pub mod instancing;
 pub mod placement;
+pub mod purpose;
 pub mod settle;
 pub mod tables;
 pub mod zones;
@@ -40,6 +42,16 @@ const N4: [(i32, i32); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 pub(crate) fn choice_opt<T: Clone>(a: &[T]) -> Option<T> {
     let i = (rnd() * a.len() as f64).floor() as usize;
     a.get(i).cloned()
+}
+
+/// The regions of a level (see `Game::region_units`)
+struct RegionUnits {
+    /// region per tile
+    tile: Vec<usize>,
+    /// surface per region
+    surface: Vec<usize>,
+    /// palette key per surface (None: a palette of its own)
+    keys: Vec<Option<&'static str>>,
 }
 
 /// The pool room `build_world` reserved (`place_props` takes it)
@@ -494,14 +506,15 @@ impl Game {
         clamp(DECAY_BASE + (lv - 1.0) * DECAY_STEP, DECAY_BASE, DECAY_MAX)
     }
 
-    /// Voronoi regions with their wall / ceiling /
-    /// floor variants, grime, light and the dark (blacked-out) share
+    /// Regions with their wall / ceiling / floor variants, grime, light and
+    /// the dark (blacked-out) share. Surfaces follow the areas of zones (see
+    /// [`purpose`]) and the lights fail room by room (`region_units`), so
+    /// both change at walls and doorways, never in the middle of a room.
     pub fn build_regions(&mut self) {
         let (w, h) = (self.w, self.h);
         let n = (w * h) as usize;
         self.region_map = vec![0; n];
         self.ceil_region = vec![0; n];
-        let region_count = 4.max((w * h) / 65) as usize;
         let palette_count = WALL_PALETTES.len() as i64;
         let decay = self.level_decay(None);
         // shallow floors mostly land on the canonical wallpaper
@@ -514,7 +527,7 @@ impl Game {
         };
         let level_palettes = [primary_pal, secondary_pal];
         let wv: Vec<(bool, usize, i64)> = self.tex.wallpaper_variants.iter().map(|v| (v.moss, v.palette_idx, v.grime_lvl)).collect();
-        let pick_correlated = || -> RegionInfo {
+        let pick_correlated = |p_idx: i64| -> RegionInfo {
             let r = rnd();
             // clean takes whatever the decay has not claimed; the remainder
             // splits across aged / dirty / ruined, weighted to the milder end
@@ -527,7 +540,6 @@ impl Game {
             } else {
                 3
             };
-            let p_idx = level_palettes[if rnd() < 0.7 { 0 } else { 1 }];
             let mut candidates: Vec<usize> = vec![];
             for (i, &(moss, pal, gl)) in wv.iter().enumerate() {
                 if !moss && pal as i64 == p_idx && gl == g {
@@ -551,19 +563,47 @@ impl Game {
                 lit: Some(GRIME_LIGHT[g as usize]),
             }
         };
-        struct Seed {
-            x: i32,
-            z: i32,
-            info: RegionInfo,
+        let RegionUnits { tile: unit_of, surface, keys } = self.region_units();
+        let region_count = surface.len();
+        // the surfaces: one palette per kind of place (every area of one
+        // purpose is papered alike), grime by the decay
+        let mut palette_of: Vec<(&'static str, i64)> = vec![];
+        let mut surfaces: Vec<RegionInfo> = Vec::with_capacity(keys.len());
+        for key in &keys {
+            let p_idx = match key.and_then(|k| palette_of.iter().find(|(pk, _)| *pk == k)) {
+                Some(&(_, p)) => p,
+                None => {
+                    let p = level_palettes[if rnd() < 0.7 { 0 } else { 1 }];
+                    if let Some(k) = key {
+                        palette_of.push((k, p));
+                    }
+                    p
+                }
+            };
+            surfaces.push(pick_correlated(p_idx));
         }
-        let mut seeds: Vec<Seed> = vec![];
-        for _ in 0..region_count {
-            let x = irand(1, (w - 2) as i64) as i32;
-            let z = irand(1, (h - 2) as i64) as i32;
-            let info = pick_correlated();
-            seeds.push(Seed { x, z, info });
+        let spawn_region = unit_of[self.t_idx(1, 1)];
+        let spawn_surface = surface[spawn_region];
+        // the first thing you see is clean on the shallow floors, never ruined
+        {
+            let info = &mut surfaces[spawn_surface];
+            let want_g = if rnd() > decay { 0 } else { info.grime.min(1) };
+            if info.grime > want_g {
+                let pal = wv[info.wall].1;
+                let matched: Vec<usize> =
+                    wv.iter().enumerate().filter(|(_, v)| !v.0 && v.1 == pal && v.2 == want_g as i64).map(|(i, _)| i).collect();
+                if !matched.is_empty() {
+                    info.wall = choice(&matched);
+                }
+                info.grime = want_g;
+                info.ceil = want_g as usize;
+                info.floor = want_g as usize;
+                info.lit = Some(GRIME_LIGHT[want_g as usize]);
+            }
         }
-        // moss: a symptom of rot; never on level 1
+        // every region wears its surface; moss and the lights then take rooms
+        let mut region_info: Vec<RegionInfo> = surface.iter().map(|&s| surfaces[s].clone()).collect();
+        // moss: a symptom of rot; never on level 1, never where you arrive
         let moss_regions = if self.level_num > 1 && rnd() < decay * 0.9 {
             if rnd() < decay {
                 2
@@ -573,72 +613,24 @@ impl Game {
         } else {
             0
         };
+        let others: Vec<usize> = (0..region_count).filter(|&r| r != spawn_region).collect();
         for _ in 0..moss_regions {
-            let r = irand(0, region_count as i64 - 1) as usize;
+            let Some(r) = choice_opt(&others) else { break };
             let moss_walls: Vec<usize> = wv.iter().enumerate().filter(|(_, v)| v.0).map(|(i, _)| i).collect();
             let wall = choice_opt(&moss_walls).unwrap_or(0);
-            seeds[r].info = RegionInfo { wall, ceil: 4, floor: 4, flags: RF_MOSS, grime: 3, lit: Some(0.22) };
-        }
-        // multi-source BFS flood from all seeds — Voronoi partition
-        let mut q: Vec<(i32, i32, i32)> = seeds.iter().enumerate().map(|(i, s)| (s.x, s.z, i as i32)).collect();
-        let mut visited = vec![-1i32; n];
-        for &(sx, sz, id) in &q {
-            visited[self.t_idx(sx, sz)] = id;
-        }
-        let mut qi = 0;
-        while qi < q.len() {
-            let (cx, cz, id) = q[qi];
-            for (dx, dz) in N4 {
-                let (nx, nz) = (cx + dx, cz + dz);
-                if !self.in_grid(nx, nz) {
-                    continue;
-                }
-                let ni = self.t_idx(nx, nz);
-                if visited[ni] != -1 {
-                    continue;
-                }
-                visited[ni] = id;
-                q.push((nx, nz, id));
-            }
-            qi += 1;
-        }
-        let mut region_info: Vec<RegionInfo> = seeds.into_iter().map(|s| s.info).collect();
-        // the first thing you see is clean on the shallow floors, never ruined
-        let v11 = visited[self.t_idx(1, 1)];
-        let spawn_region_clean = if v11 >= 0 { v11 as usize } else { 0 };
-        {
-            let info = &mut region_info[spawn_region_clean];
-            if info.flags & RF_MOSS == 0 {
-                let want_g = if rnd() > decay { 0 } else { info.grime.min(1) };
-                if info.grime > want_g {
-                    let pal = wv[info.wall].1;
-                    let matched: Vec<usize> =
-                        wv.iter().enumerate().filter(|(_, v)| !v.0 && v.1 == pal && v.2 == want_g as i64).map(|(i, _)| i).collect();
-                    if !matched.is_empty() {
-                        info.wall = choice(&matched);
-                    }
-                    info.grime = want_g;
-                    info.ceil = want_g as usize;
-                    info.floor = want_g as usize;
-                    info.lit = Some(GRIME_LIGHT[want_g as usize]);
-                }
-            }
+            region_info[r] = RegionInfo { wall, ceil: 4, floor: 4, flags: RF_MOSS, grime: 3, lit: Some(0.22) };
         }
         // ---- dark-region selection scaled by level ----
         let mut total_open = 0usize;
         let mut open_per_region = vec![0usize; region_count];
         for i in 0..n {
-            let id = if visited[i] >= 0 { visited[i] as usize } else { 0 };
             if self.tiles[i] == 0 {
-                open_per_region[id] += 1;
+                open_per_region[unit_of[i]] += 1;
                 total_open += 1;
             }
         }
         // blackout is the far end of the same rot: a share of the decay
         let dark_target = clamp(decay * 0.7, 0.05, 0.8);
-        let spawn_region = spawn_region_clean;
-        // while a level is mostly intact the lights only fail where it rotted
-        let only_rotted = decay < 0.55;
         let mut candidates: Vec<usize> = vec![];
         for r in 0..region_count {
             if r == spawn_region {
@@ -650,12 +642,10 @@ impl Game {
             if open_per_region[r] == 0 {
                 continue;
             }
-            if only_rotted && region_info[r].grime == 0 {
-                continue;
-            }
             candidates.push(r);
         }
-        // shuffle, then bring the grimiest regions forward (stable sort)
+        // shuffle, then bring the grimiest regions forward (stable sort): the
+        // lights fail first where it rotted
         let mut i = candidates.len();
         while i > 1 {
             i -= 1;
@@ -669,19 +659,239 @@ impl Game {
             if dark_open as f64 / tot >= dark_target {
                 break;
             }
-            // stop short rather than blowing past the target
-            if (dark_open + open_per_region[r]) as f64 / tot > dark_target * 1.25 {
+            // stop short rather than blowing past the target (the first dark
+            // region may overshoot further: a level of a few big areas has no
+            // smaller one to give)
+            let cap = if dark_open == 0 { 2.0 } else { 1.25 };
+            if (dark_open + open_per_region[r]) as f64 / tot > dark_target * cap {
                 continue;
             }
             region_info[r].flags |= RF_DARK;
             dark_open += open_per_region[r];
         }
         for i in 0..n {
-            let id = if visited[i] >= 0 { visited[i] as usize } else { 0 };
+            let id = unit_of[i];
             self.region_map[i] = id as u8;
             self.ceil_region[i] = region_info[id].ceil as u8;
         }
         self.region_info = region_info;
+    }
+
+    /// How the level is cut into regions: per tile its region, per region its
+    /// surface, per surface the key of its palette. A region is a group of
+    /// the carvers' rooms of one area that open into each other (the line
+    /// between them mostly open), so the lights fail room by room; a surface
+    /// (wallpaper, grime) is an area, or for a big lone zone the regions on
+    /// either side of its most walled line. Both change only at walls and
+    /// doorways. Without a layout both are Voronoi cells.
+    fn region_units(&self) -> RegionUnits {
+        let (w, h) = (self.w, self.h);
+        let n = (w * h) as usize;
+        let Some(l) = self.layout.as_ref() else {
+            // no zones: Voronoi cells around random seeds, flooded over every tile
+            let count = 4.max((w * h) / 65) as usize;
+            let mut q: Vec<(i32, i32, usize)> =
+                (0..count).map(|i| (irand(1, (w - 2) as i64) as i32, irand(1, (h - 2) as i64) as i32, i)).collect();
+            let mut unit = vec![usize::MAX; n];
+            for &(sx, sz, id) in &q {
+                let t = self.t_idx(sx, sz);
+                if unit[t] == usize::MAX {
+                    unit[t] = id;
+                }
+            }
+            let mut qi = 0;
+            while qi < q.len() {
+                let (cx, cz, id) = q[qi];
+                for (dx, dz) in N4 {
+                    let (nx, nz) = (cx + dx, cz + dz);
+                    if self.in_grid(nx, nz) && unit[self.t_idx(nx, nz)] == usize::MAX {
+                        let ni = self.t_idx(nx, nz);
+                        unit[ni] = id;
+                        q.push((nx, nz, id));
+                    }
+                }
+                qi += 1;
+            }
+            let tile = unit.into_iter().map(|u| if u == usize::MAX { 0 } else { u }).collect();
+            return RegionUnits { tile, surface: (0..count).collect(), keys: vec![None; count] };
+        };
+        let areas = purpose::zone_areas(l, &self.tiles);
+        let area_of = |t: usize| areas[l.zone_of[t] as usize];
+        // ---- regions: rooms of an area that open into each other are one
+        let rooms = &l.rooms;
+        let mut group: Vec<usize> = (0..rooms.len()).collect();
+        fn root(g: &mut [usize], mut i: usize) -> usize {
+            while g[i] != i {
+                g[i] = g[g[i]];
+                i = g[i];
+            }
+            i
+        }
+        for a in 0..rooms.len() {
+            for b in a + 1..rooms.len() {
+                if areas[rooms[a].zone] != areas[rooms[b].zone] {
+                    continue;
+                }
+                if self.rooms_wall_share(&rooms[a], &rooms[b]).map(|s| s < 0.5).unwrap_or(false) {
+                    let (ra, rb) = (root(&mut group, a), root(&mut group, b));
+                    group[ra.max(rb)] = ra.min(rb);
+                }
+            }
+        }
+        let mut room_of = vec![usize::MAX; n];
+        for (ri, r) in rooms.iter().enumerate() {
+            for z in r.z0..=r.z1 {
+                for x in r.x0..=r.x1 {
+                    room_of[self.t_idx(x, z)] = ri;
+                }
+            }
+        }
+        // ids in tile order
+        let mut ids: std::collections::BTreeMap<usize, usize> = Default::default();
+        let mut unit_area: Vec<usize> = vec![];
+        let mut unit = vec![usize::MAX; n];
+        for t in 0..n {
+            if room_of[t] != usize::MAX {
+                let g = root(&mut group, room_of[t]);
+                unit[t] = *ids.entry(g).or_insert_with(|| {
+                    unit_area.push(area_of(t));
+                    unit_area.len() - 1
+                });
+            }
+        }
+        // the lines between rooms (and the border) join a neighbouring room of their area
+        let mut q: std::collections::VecDeque<usize> = (0..n).filter(|&t| unit[t] != usize::MAX).collect();
+        while let Some(t) = q.pop_front() {
+            let (x, z) = (t as i32 % w, t as i32 / w);
+            for (dx, dz) in N4 {
+                if self.in_grid(x + dx, z + dz) {
+                    let ni = self.t_idx(x + dx, z + dz);
+                    if unit[ni] == usize::MAX && area_of(ni) == area_of(t) {
+                        unit[ni] = unit[t];
+                        q.push_back(ni);
+                    }
+                }
+            }
+        }
+        for t in 0..n {
+            if unit[t] == usize::MAX {
+                let key = usize::MAX - area_of(t);
+                unit[t] = *ids.entry(key).or_insert_with(|| {
+                    unit_area.push(area_of(t));
+                    unit_area.len() - 1
+                });
+            }
+        }
+        // ---- surfaces: per area one; a big lone zone's regions on either side of its line
+        let have_purposes = self.zone_purposes.len() == l.zones.len();
+        let key_of = |zi: usize| -> &'static str {
+            if have_purposes {
+                self.zone_purposes[zi].primary.unwrap_or("")
+            } else {
+                l.zones[zi].arch
+            }
+        };
+        // where each region lies along x and z (mean tile)
+        let mut centre = vec![(0.0f64, 0.0f64, 0usize); unit_area.len()];
+        for t in 0..n {
+            let c = &mut centre[unit[t]];
+            c.0 += (t as i32 % w) as f64;
+            c.1 += (t as i32 / w) as f64;
+            c.2 += 1;
+        }
+        let mut surface = vec![usize::MAX; unit_area.len()];
+        let mut keys: Vec<Option<&'static str>> = vec![];
+        for zi in 0..l.zones.len() {
+            if areas[zi] != zi {
+                continue;
+            }
+            let near = keys.len();
+            keys.push(Some(key_of(zi)));
+            let lone = (0..l.zones.len()).all(|k| k == zi || areas[k] != zi);
+            let line = if lone { self.region_split_line(&l.zones[zi]) } else { None };
+            let side = |u: usize| -> bool {
+                let (sx, sz, k) = centre[u];
+                match line {
+                    Some((true, at)) => sx / k as f64 > at as f64,
+                    Some((false, at)) => sz / k as f64 > at as f64,
+                    None => false,
+                }
+            };
+            let mine: Vec<usize> = (0..unit_area.len()).filter(|&u| unit_area[u] == zi).collect();
+            let far_count = mine.iter().filter(|&&u| side(u)).count();
+            let far = if far_count > 0 && far_count < mine.len() {
+                keys.push(Some(key_of(zi)));
+                Some(keys.len() - 1)
+            } else {
+                None
+            };
+            for u in mine {
+                surface[u] = match far {
+                    Some(f) if side(u) => f,
+                    _ => near,
+                };
+            }
+        }
+        // (a region id is a byte: past that, a region per surface)
+        if surface.len() > 255 {
+            let tile = (0..n).map(|t| surface[unit[t]]).collect();
+            return RegionUnits { tile, surface: (0..keys.len()).collect(), keys };
+        }
+        RegionUnits { tile: unit, surface, keys }
+    }
+
+    /// The share of wall on the line between two rooms that lie side by
+    /// side (one partition line apart, or touching across a zone line);
+    /// None when they do not share a side
+    fn rooms_wall_share(&self, a: &archgen::Room, b: &archgen::Room) -> Option<f64> {
+        let line = |along_z: bool, at: i32, lo: i32, hi: i32| -> f64 {
+            let walls = (lo..=hi).filter(|&k| if along_z { self.is_wall_tile(at, k) } else { self.is_wall_tile(k, at) }).count();
+            walls as f64 / (hi - lo + 1) as f64
+        };
+        let (z0, z1) = (a.z0.max(b.z0), a.z1.min(b.z1));
+        if z0 <= z1 {
+            let (west, east) = if a.x1 < b.x0 { (a, b) } else { (b, a) };
+            match east.x0 - west.x1 {
+                2 => return Some(line(true, west.x1 + 1, z0, z1)),
+                1 => return Some(line(true, west.x1, z0, z1).max(line(true, east.x0, z0, z1))),
+                _ => {}
+            }
+        }
+        let (x0, x1) = (a.x0.max(b.x0), a.x1.min(b.x1));
+        if x0 <= x1 {
+            let (north, south) = if a.z1 < b.z0 { (a, b) } else { (b, a) };
+            match south.z0 - north.z1 {
+                2 => return Some(line(false, north.z1 + 1, x0, x1)),
+                1 => return Some(line(false, north.z1, x0, x1).max(line(false, south.z0, x0, x1))),
+                _ => {}
+            }
+        }
+        None
+    }
+
+    /// Where a big thin-walled zone splits into two regions: the column
+    /// (`true`) or row across its long axis, in its middle stretch, that is
+    /// most wall (a partition with doorways). None for small zones or when
+    /// no line is mostly wall.
+    fn region_split_line(&self, z: &archgen::Zone) -> Option<(bool, i32)> {
+        const SPLIT_AREA: i32 = 150;
+        if z.wall != "thin" || z.arch == "store" || z.area() < SPLIT_AREA {
+            return None;
+        }
+        let along_x = z.x1 - z.x0 >= z.z1 - z.z0;
+        let (lo, hi, a, b) = if along_x { (z.x0, z.x1, z.z0, z.z1) } else { (z.z0, z.z1, z.x0, z.x1) };
+        let len = hi - lo + 1;
+        let mut best: Option<(bool, i32)> = None;
+        let mut best_share = 0.6;
+        for line in lo + len * 3 / 10..=hi - len * 3 / 10 {
+            let walls = (a..=b).filter(|&k| if along_x { self.is_wall_tile(line, k) } else { self.is_wall_tile(k, line) }).count();
+            let share = walls as f64 / (b - a + 1) as f64;
+            if share > best_share {
+                best_share = share;
+                best = Some((along_x, line));
+            }
+        }
+        best
     }
     /// (tile coords; a copy of the region's info)
     pub fn region_at(&self, x: i32, z: i32) -> RegionInfo {

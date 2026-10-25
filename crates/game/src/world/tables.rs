@@ -1,6 +1,6 @@
 //! World build tables: the `themed` prop passes of `build_world` in call
-//! order, `PLACER_THEME`, `THEME_ALLOW`, `PLACER_ALWAYS` and the per-level
-//! timer resets.
+//! order, `PLACER_THEME`, `THEME_ALLOW`, the zone purpose tables,
+//! `PLACER_ALWAYS` and the per-level timer resets.
 
 /// The `themed(name, dist)` passes of `build_world`, in order (678, with repeats)
 pub const THEMED_ORDER: [&str; 678] = [
@@ -1368,149 +1368,84 @@ pub const THEME_ALLOW: [(&str, &[(&str, f64)]); 9] = [
     ("store", &[("core", 0.2)]),
 ];
 
+/// Zone archetype → the chance an area of it is left without a themed
+/// purpose: bare rooms with only the building's own fittings
+pub const PURPOSE_EMPTY: [(&str, f64); 9] = [
+    ("lobby", 0.45),
+    ("pillars", 0.6),
+    ("office", 0.1),
+    ("maze", 0.15),
+    ("hall", 0.3),
+    ("tunnels", 0.35),
+    ("electrical", 0.25),
+    ("pool", 0.15),
+    ("store", 1.0),
+];
+
+/// Theme → the themes that can share a place with it (weights)
+pub const THEME_COMPAT: [(&str, &[(&str, f64)]); 9] = [
+    ("office", &[("industrial", 1.0), ("party", 0.6), ("bathroom", 0.4)]),
+    ("domestic", &[("toys", 1.0), ("victorian", 0.8), ("bathroom", 0.6), ("nature", 0.6)]),
+    ("toys", &[("domestic", 1.0), ("party", 0.8)]),
+    ("victorian", &[("occult", 1.0), ("domestic", 0.8), ("nature", 0.4)]),
+    ("bathroom", &[("domestic", 1.0), ("toys", 0.5)]),
+    ("nature", &[("domestic", 1.0), ("victorian", 0.5)]),
+    ("industrial", &[("office", 1.0)]),
+    ("occult", &[("victorian", 1.0)]),
+    ("party", &[("toys", 1.0), ("office", 0.6), ("domestic", 0.4)]),
+];
+
+/// The chance a purposed area also takes a compatible second theme
+pub const SECONDARY_CHANCE: f64 = 0.3;
+
+/// A themed placer runs with this times the share of the open floor whose
+/// purpose welcomes its theme (capped at 1)
+pub const THEME_SHARE_GAIN: f64 = 8.0;
+
+/// Primary theme → what the place reads as ("" = no themed purpose)
+pub const PURPOSE_LABEL: [(&str, &str); 10] = [
+    ("", "empty"),
+    ("office", "office wing"),
+    ("domestic", "living quarters"),
+    ("toys", "play area"),
+    ("victorian", "parlour"),
+    ("bathroom", "washrooms"),
+    ("nature", "overgrown atrium"),
+    ("industrial", "maintenance"),
+    ("occult", "shrine"),
+    ("party", "party room"),
+];
+
 pub const PLACER_ALWAYS: [&str; 1] = ["place_gameplay_r1_trigger"];
 
-/// `build_world`'s per-level resets of the ambient timers and envelopes, in order
+/// `build_world`'s per-level resets of the ambient timers and envelopes.
+/// No draws (this runs inside the seeded build): `arm_level_ambient`
+/// staggers the cadences once the level is up.
 pub fn reset_level_timers(g: &mut crate::base::game::Game) {
     g.rate_drift_ticks = 0.0;
-    g.wet_drip_timer = 0.0;
-    g.still_wind_timer = 0.0;
-    g.derelict_clatter_timer = 0.0;
-    g.electric_crackle_timer = 0.0;
-    g.socket_spark_timer = 0.0;
-    g.fountain_drip_timer = 0.0;
-    g.radiator_hiss_timer = 0.0;
-    g.glow_hum_timer = 0.0;
-    g.cauldron_bubble_timer = 0.0;
-    g.metronome_tick_timer = 0.0;
-    g.phono_crackle_timer = 0.0;
-    g.lantern_creak_timer = 0.0;
-    g.sewing_whirr_timer = 0.0;
-    g.watch_tick_timer = 0.0;
-    g.bat_squeak_timer = 0.0;
-    g.globe_creak_timer = 0.0;
-    g.hourglass_whoosh_timer = 0.0;
-    g.ghost_whisper_timer = 0.0;
-    g.chain_jangle_timer = 0.0;
-    g.paper_rustle_timer = 0.0;
-    g.piano_chord_timer = 0.0;
-    g.chair_creak_timer = 0.0;
-    g.crt_hiss_timer = 0.0;
-    g.exit_buzz_timer = 0.0;
-    g.puddle_drip_timer = 0.0;
-    g.chandelier_chime_timer = 0.0;
-    g.cassette_hiss_timer = 0.0;
-    g.teacup_clink_timer = 0.0;
-    g.locker_slam_timer = 0.0;
-    g.bulletin_flutter_timer = 0.0;
-    g.alarm_beep_timer = 0.0;
-    g.pay_phone_ring_timer = 0.0;
-    g.radio_static_timer = 0.0;
-    g.keychain_jangle_timer = 0.0;
-    g.elevator_beep_timer = 0.0;
-    g.plant_rustle_timer = 0.0;
-    g.fan_whoosh_timer = 0.0;
-    g.fan_squeak_timer = 0.0;
-    g.detector_chirp_timer = 0.0;
-    g.bird_chirp_timer = 0.0;
-    g.cricket_chirp_timer = 0.0;
-    g.thunder_rumble_timer = 0.0;
-    g.coin_tink_timer = 0.0;
-    g.wind_gust_timer = 0.0;
-    g.frog_croak_timer = 0.0;
-    g.owl_hoot_timer = 0.0;
-    g.tick_tock_timer = 0.0;
-    g.wolf_howl_timer = 0.0;
-    g.rain_patter_timer = 0.0;
-    g.leaf_rustle_timer = 0.0;
-    g.cuckoo_call_timer = 0.0;
-    g.plush_shuffle_timer = 0.0;
-    g.gumball_rattle_timer = 0.0;
-    g.teapot_whistle_timer = 0.0;
-    g.cookie_tin_rattle_timer = 0.0;
-    g.kitchen_clock_tick_timer = 0.0;
-    g.off_hook_phone_hum_timer = 0.0;
-    g.hairdryer_hum_timer = 0.0;
-    g.sewing_machine_click_timer = 0.0;
-    g.herb_sieve_scrape_timer = 0.0;
-    g.vacuum_whine_timer = 0.0;
-    g.mop_bucket_slosh_timer = 0.0;
-    g.wristwatch_tick_timer = 0.0;
-    g.iron_hiss_timer = 0.0;
-    g.grandfather_clock_tick_timer = 0.0;
-    g.rocking_chair_creak_timer = 0.0;
-    g.tall_lamp_buzz_timer = 0.0;
-    g.colander_tap_timer = 0.0;
-    g.pet_bowl_slosh_timer = 0.0;
-    g.music_box_melody_timer = 0.0;
-    g.grandfather_chime_timer = 0.0;
-    g.turntable_hiss_timer = 0.0;
-    g.chalkboard_scratch_timer = 0.0;
-    g.kitchen_calendar_turn_timer = 0.0;
-    g.telescope_click_timer = 0.0;
-    g.cuckoo_call_timer_r741 = 0.0;
-    g.fireplace_crackle_timer = 0.0;
-    g.aquarium_hum_timer = 0.0;
-    g.wingback_creak_timer = 0.0;
-    g.pocket_watch_tick_timer = 0.0;
-    g.bell_pull_ring_timer = 0.0;
-    g.bell_rack_ding_timer = 0.0;
-    g.chess_move_click_timer = 0.0;
-    g.hobby_horse_roll_timer = 0.0;
+    for c in crate::audio::ambient::CADENCES {
+        if !c.run {
+            *(c.timer)(g) = 0.0;
+        }
+    }
     g.motion_sensor_last_click_t = 0.0;
-    g.speaker_announce_timer = 0.0;
-    g.fire_alarm_beep_timer = 0.0;
-    g.phone_ring_timer = 0.0;
-    g.broken_phone_spark_timer = 0.0;
-    g.vending_hum_timer = 0.0;
-    g.junction_arc_timer = 0.0;
-    g.keycard_beep_timer = 0.0;
-    g.cardboard_shift_timer = 0.0;
-    g.plant_rustle_timer_r291 = 0.0;
-    g.walkie_static_timer = 0.0;
-    g.wall_clock_tick_timer = 0.0;
-    g.cracked_clock_creak_timer = 0.0;
-    g.ceiling_drip_audio_timer = 0.0;
-    g.ceiling_cable_spark_timer = 0.0;
-    g.thermostat_click_timer = 0.0;
-    g.handbell_chime_timer = 0.0;
-    g.digital_clock_buzz_timer = 0.0;
-    g.alarm_ring_timer = 0.0;
-    g.dial_tone_timer = 0.0;
-    g.drain_gurgle_timer = 0.0;
-    g.faucet_drip_timer = 0.0;
-    g.haunted_whisper_timer = 0.0;
-    g.wet_thunder_timer = 0.0;
-    g.wet_splash_timer = 0.0;
-    g.derelict_grinder_timer = 0.0;
-    g.still_echo_timer = 0.0;
-    g.haunted_step_timer = 0.0;
-    g.electric_surge_timer = 0.0;
-    g.normal_notice_timer = 0.0;
-    g.distant_knock_timer = 0.0;
-    g.door_opened_timer = 0.0;
     g.door_opened_flash_t = 0.0;
     g.door_dim_pulse_t = 0.0;
-    g.elevator_ding_timer = 0.0;
     g.elevator_ding_flash_t = 0.0;
     g.ding_bright_pulse_t = 0.0;
-    g.voice_sample_timer = 0.0;
     g.voice_sample_flash_t = 0.0;
-    g.static_burst_timer = 0.0;
     g.static_burst_flash_t = 0.0;
     g.voice_hue_shift_t = 0.0;
     g.static_chromatic_t = 0.0;
-    g.reality_shift_timer = 0.0;
     g.reality_shift_t = 0.0;
     g.settle_timer = 0.0;
     g.settle_visual_t = 0.0;
-    g.pattern_break_timer = 0.0;
     g.pattern_break_t = 0.0;
-    g.clock_skip_timer = 0.0;
     g.clock_skip_t = 0.0;
     g.last_rare_fire_t = 0.0;
     g.knock_flash_t = 0.0;
     g.knock_tint_t = 0.0;
     g.knock_tint_pan = 0.0;
     g.last_knock_pan = 0.0;
+    g.amb_signatures.clear();
 }

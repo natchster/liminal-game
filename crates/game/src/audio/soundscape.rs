@@ -321,6 +321,9 @@ pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec
 }
 
 // ================================================================ voice slot
+/// Past this distance (m) a voice slot gets no quieter (the panner clamps it)
+pub const VOICE_MAX_DIST: f64 = 60.0;
+
 /// A spatial voice slot: source → occlusion lowpass → gain → panner → world
 /// (`voice_slot(ref_dist)`'s return value).
 #[derive(Clone)]
@@ -341,7 +344,7 @@ impl VoiceSlot {
         occ.q().set_value(0.5);
         let g = ac.create_gain();
         g.gain().set_value(1.0);
-        let pan = make_panner_impl(ac, hrtf, ref_dist, 1.2, 60.0);
+        let pan = make_panner_impl(ac, hrtf, ref_dist, 1.2, VOICE_MAX_DIST);
         occ.connect(&g);
         g.connect(&pan);
         pan.connect(world);
@@ -350,6 +353,15 @@ impl VoiceSlot {
     /// Move the source to (x, y, z) (50 ms glide)
     pub fn at(&self, x: f64, y: f64, z: f64) {
         place_panner_impl(&self.ac, &self.panner, x, y, z, 0.05);
+    }
+    /// Put a fresh slot at (x, y, z) with occlusion `amount` at once, for a
+    /// one-shot that starts now (`at` / `occlude` glide from where it was)
+    pub fn place(&self, x: f64, y: f64, z: f64, amount: f64) {
+        self.panner.position_x().set_value(x);
+        self.panner.position_y().set_value(y);
+        self.panner.position_z().set_value(z);
+        self.input.frequency().set_value(18000.0 * (0.03f64).powf(amount));
+        self.gain.gain().set_value(1.0 - amount * 0.45);
     }
     /// Occlusion `amount` — 0 clear line of sight … 1 behind walls
     pub fn occlude(&self, amount: f64) {
@@ -461,7 +473,8 @@ impl Hum {
             self.spike_t.set(rand_r(&self.rng, 1.2, 3.2));
             self.next_spike.set(rand_r(&self.rng, 60.0, 160.0));
         }
-        let mut target = strength * 0.13;
+        // present, never so loud that it masks what happens elsewhere
+        let mut target = strength * 0.1;
         if self.spike_t.get() > 0.0 {
             self.spike_t.set(self.spike_t.get() - dt);
             target *= 2.6;

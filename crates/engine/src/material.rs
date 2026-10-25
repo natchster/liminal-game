@@ -111,6 +111,12 @@ pub struct Material {
     pub line_width: f64,
     pub patch: Patch,
     pub patch_uniforms: Rc<RefCell<PatchUniforms>>,
+    /// Lit surfaces: value-noise mottling of the colour and grime near the
+    /// floor, so flat paint reads as a used material (0 = none, 1 = full); a
+    /// textured one also has its most vivid colours reined in
+    pub wear: f64,
+    /// Free for the game: marks a material whose look it has already settled
+    pub look_settled: bool,
     /// bumped by `needs_update`
     pub version: u64,
 }
@@ -154,6 +160,8 @@ impl Material {
             line_width: 1.0,
             patch: Patch::None,
             patch_uniforms: Rc::new(RefCell::new(PatchUniforms::default())),
+            wear: 0.0,
+            look_settled: false,
             version: 1,
         }
     }

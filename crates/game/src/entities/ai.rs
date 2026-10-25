@@ -8,6 +8,7 @@
 //! limited acceleration; its facing follows the velocity at a limited turn rate.
 use crate::base::numeric::hypot2;
 use crate::base::tables::*;
+use crate::entities::director::Phase;
 use crate::entities::*;
 use crate::prelude::*;
 
@@ -310,6 +311,37 @@ impl Game {
                 s.tone(&v, t, 2.4, 52.0, 0.14, "sawtooth", Some(44.0), 0.2);
                 s.burst(&v, t, 2.4, "lowpass", 320.0, 1.5, 0.09, Some(220.0), 0.2);
             }
+            "shriek" => {
+                if self.entities[ei].kind == "hound" {
+                    // a wet snarl that climbs into a yelp
+                    s.tone(&v, t, 0.7, 96.0, 0.2, "sawtooth", Some(70.0), 0.02);
+                    s.burst(&v, t, 0.7, "lowpass", 700.0, 1.2, 0.18, Some(420.0), 0.02);
+                    s.burst(&v, t + 0.5, 0.35, "bandpass", 1600.0, 4.0, 0.22, Some(2600.0), 0.01);
+                } else {
+                    // a sharp wet inhale through the teeth, then the scream
+                    s.burst(&v, t, 0.3, "bandpass", 700.0, 2.5, 0.16, Some(2600.0), 0.25);
+                    s.tone(&v, t + 0.32, 0.9, 340.0, 0.1, "sawtooth", Some(980.0), 0.01);
+                    s.tone(&v, t + 0.32, 0.9, 347.0, 0.08, "square", Some(1010.0), 0.01);
+                    s.burst(&v, t + 0.3, 1.1, "bandpass", 2100.0, 1.4, 0.32, Some(3900.0), 0.01);
+                    for k in 0..6 {
+                        s.burst(&v, t + 1.25 + k as f64 * 0.055, 0.02, "highpass", 3400.0, 1.0, 0.07, None, 0.001);
+                    }
+                }
+            }
+            "listen" => {
+                if self.entities[ei].kind == "hound" {
+                    // sniffing
+                    for k in 0..3 {
+                        s.burst(&v, t + k as f64 * 0.16, 0.08, "bandpass", 2600.0, 2.0, 0.05, Some(1800.0), 0.01);
+                    }
+                } else {
+                    // teeth, and a slow breath in
+                    for k in 0..2 {
+                        s.burst(&v, t + k as f64 * 0.09, 0.02, "highpass", 3200.0, 1.0, 0.06, None, 0.001);
+                    }
+                    s.burst(&v, t + 0.3, 1.2, "lowpass", 380.0, 0.9, 0.06, Some(520.0), 0.6);
+                }
+            }
             "bark" => {
                 for k in 0..2 {
                     let k = k as f64;
@@ -388,6 +420,41 @@ impl Game {
         self.ent_ext.get_mut(&id).unwrap().voice.as_mut().unwrap().next = new_next;
     }
 
+    /// Whether you are inside creature `ei`'s field of view (a wide cone
+    /// ahead of it, or right beside it). A hunting creature is locked on to
+    /// you and tracks you without it; a lit flashlight aimed at it is seen
+    /// from any side.
+    pub fn entity_faces_player(&self, ei: usize, d: f64) -> bool {
+        let e = &self.entities[ei];
+        if e.state == "hunt" || d <= 3.5 {
+            return true;
+        }
+        let pos = e.pos();
+        let pp = self.player.pos;
+        let (dx, dz) = ((pp.x - pos.x) / d, (pp.z - pos.z) / d);
+        if e.yaw.sin() * dx + e.yaw.cos() * dz >= 0.42 {
+            return true;
+        }
+        let f = self.player.fwd();
+        self.player.flashlight_on && -(f.x * dx + f.z * dz) > 0.9
+    }
+
+    /// Footfalls from where the creature walks, one per stride, loud in a
+    /// chase and soft while it searches or prowls.
+    fn entity_footfalls(&mut self, ei: usize, dt: f64, speed: f64, d: f64) {
+        if d > 34.0 {
+            return;
+        }
+        let stride = if self.entities[ei].kind == "hound" { 0.9 } else { 1.6 };
+        self.entities[ei].step_acc += dt * speed;
+        if self.entities[ei].step_acc > stride {
+            self.entities[ei].step_acc = 0.0;
+            let hunting = self.entities[ei].state == "hunt";
+            let loud = if hunting { clamp(1.25 - d / 22.0, 0.35, 1.0) } else { clamp(0.75 - d / 40.0, 0.15, 0.5) };
+            self.entity_steps(ei, 1, loud);
+        }
+    }
+
     pub fn update_entities(&mut self, dt: f64, t: f64) {
         self.update_entities_body(dt, t);
         self.sync_entity_skins();
@@ -444,6 +511,13 @@ impl Game {
                 continue;
             }
             nearest = nearest.min(d);
+            {
+                let e = &mut self.entities[ei];
+                let nt = e.n("noticeT");
+                if nt > 0.0 {
+                    e.set_n("noticeT", (nt - dt).max(0.0));
+                }
+            }
             self.animate_entity(ei, dt, t, d); // joints, gait, jaw, head tracking
             if self.entities[ei].freeze > 0.0 {
                 self.entities[ei].freeze -= dt;
@@ -453,8 +527,19 @@ impl Game {
 
             // drawn to light: a lit lamp is seen from much further off in the dark
             let sight_range = if kind != "watcher" && self.player.flashlight_on { 17.0 } else { 12.0 };
-            let seen = d < sight_range && self.e_los(pos.x, pos.z, self.player.pos.x, self.player.pos.z);
-            self.update_entity_voice(ei, d, dt, seen);
+            let los = d < 26.0 && self.e_los(pos.x, pos.z, self.player.pos.x, self.player.pos.z);
+            // its eyes look forward: out of the cone you can pass it unnoticed
+            let seen = d < sight_range && los && (kind == "watcher" || self.entity_faces_player(ei, d));
+            self.update_entity_voice(ei, d, dt, d < sight_range && los);
+            // the first time you lay eyes on one, it hits you
+            if los && d < 22.0 && !self.director.sighted.contains(&kind) {
+                let mut to_e = v3(pos.x - self.player.pos.x, 0.0, pos.z - self.player.pos.z);
+                to_e.normalize();
+                let visible = d < 8.0 || self.player.flashlight_on || self.e_region_light_at(self.tx(pos.x), self.tz(pos.z)) > 0.25;
+                if visible && self.player.fwd().dot(&to_e) > 0.8 {
+                    self.entity_sighted(ei, d);
+                }
+            }
             // ---- watcher: only moves when NOT observed, doesn't kill, drains sanity ----
             if kind == "watcher" {
                 let pp = self.player.pos;
@@ -477,13 +562,20 @@ impl Game {
                     self.entity_turn(ei, h, dt, None);
                 } else {
                     self.entities[ei].unseen_t += dt;
-                    // creep toward player while unobserved
+                    // creep toward player while unobserved; unless the director
+                    // has sent it, slowly, and never closer than a room away
+                    let between = self.director.stalker != Some(ei);
                     if let Some(pf) = self.player_field.clone() {
-                        let sp = self.entities[ei].speed;
-                        self.entity_step_toward(ei, Some(pf), dt, sp, Some(self.player.pos));
+                        let sp = self.entities[ei].speed * if between { 0.35 } else { 1.0 };
+                        if between && d < 18.0 {
+                            self.entity_drive(ei, dt, 0.0);
+                        } else {
+                            self.entity_step_toward(ei, Some(pf), dt, sp, Some(self.player.pos));
+                        }
                     }
-                    // teleport closer if unseen too long (very unnerving)
-                    if self.entities[ei].unseen_t > 4.5 && d > 3.0 {
+                    // teleport closer if unseen too long (very unnerving), but
+                    // only once it has been sent: it keeps the rhythm too
+                    if self.entities[ei].unseen_t > 4.5 && d > 3.0 && !between {
                         let (ep, pp) = (self.entities[ei].pos(), self.player.pos);
                         let mut dir = v3(pp.x - ep.x, 0.0, pp.z - ep.z);
                         dir.normalize().multiply_scalar((d - 2.0).min(6.0));
@@ -499,9 +591,10 @@ impl Game {
                         }
                     }
                 }
-                // extra sanity pressure when close
+                // extra sanity pressure when close (half of it unless it was sent)
                 if d < 6.0 {
-                    self.player.sanity = clamp(self.player.sanity - dt * 8.0 * (1.0 - d / 6.0), 0.0, SAN_MAX);
+                    let k = if self.director.stalker != Some(ei) { 0.5 } else { 1.0 };
+                    self.player.sanity = clamp(self.player.sanity - dt * 8.0 * k * (1.0 - d / 6.0), 0.0, SAN_MAX);
                 }
                 // touch = big sanity crash + hurt flash but not instant death
                 if d < KILL_DIST + 0.2 {
@@ -523,33 +616,47 @@ impl Game {
                     self.shake_t = 0.6;
                     if self.player.sanity <= 0.0 {
                         self.on_death("sanity");
+                    } else {
+                        self.director_strike(ei);
                     }
                 }
                 continue;
             }
+            let pp = self.player.pos;
+            let relaxed = self.director.phase == Phase::Relax;
+            let hear_mul = (if kind == "hound" { 1.8 } else { 1.0 }) * if relaxed { 0.55 } else { 1.0 };
             if self.entities[ei].state == "wander" {
-                // R769 wander→hunt requires SEEN or (audible AND close) instead of
-                // blind proximity; a bright-tile player is harder to lock on to
-                let audible = d < self.player.audible_range * (if kind == "hound" { 1.8 } else { 1.0 });
-                let player_lit = self.e_region_light_at(self.tx(self.player.pos.x), self.tz(self.player.pos.z));
+                // sent away by the director: it doesn't turn back for a while
+                let retreat = self.entities[ei].n("retreatT");
+                if retreat > 0.0 {
+                    self.entities[ei].set_n("retreatT", retreat - dt);
+                }
+                let calm = retreat > 0.0;
+                // seen → it has you; only heard → it comes to look. A bright-tile
+                // player is harder to lock on to.
+                let audible = !calm && d < self.player.audible_range * hear_mul;
+                let player_lit = self.e_region_light_at(self.tx(pp.x), self.tz(pp.z));
                 let dazzle = player_lit > 0.65 && d > 5.0 && rnd() < (player_lit - 0.5);
-                if (seen && !dazzle) || audible {
-                    let e = &mut self.entities[ei];
-                    e.state = "hunt".into();
-                    e.lose_t = 0.0;
-                    self.sfx_moan();
+                if !calm && seen && !dazzle {
+                    self.entity_notice(ei, d);
+                    continue;
+                } else if audible {
+                    let a = rnd() * PI * 2.0;
+                    let off = rand2(1.5, 4.0);
+                    self.entity_search(ei, pp.x + a.cos() * off, pp.z + a.sin() * off, 6.0, 14.0);
+                    self.entity_call(ei, "listen");
                 } else {
+                    let stalk = self.entities[ei].fl("stalk");
                     self.entities[ei].w_timer -= dt;
-                    let need_goal = {
+                    let reached = {
                         let e = &self.entities[ei];
                         let p = e.pos();
-                        e.w_field.is_none()
-                            || e.w_timer <= 0.0
-                            || e.w_target.map(|(gx, gz)| self.tx(p.x) == gx && self.tz(p.z) == gz).unwrap_or(false)
+                        e.w_target.map(|(gx, gz)| self.tx(p.x) == gx && self.tz(p.z) == gz).unwrap_or(false)
                     };
+                    let need_goal = !stalk && (self.entities[ei].w_field.is_none() || self.entities[ei].w_timer <= 0.0 || reached);
                     if need_goal {
-                        // R769 pick a wandering goal that prefers darker tiles, far
-                        // from the player: up to 12 tries, the best score wins
+                        // a wandering goal that prefers darker tiles, far from the
+                        // player: up to 12 tries, the best score wins
                         self.entities[ei].w_timer = rand2(8.0, 14.0);
                         let mut best_score = -1e9;
                         let mut best_g: Option<(i32, i32)> = None;
@@ -559,7 +666,7 @@ impl Game {
                             if self.is_wall_tile(gx, gz) {
                                 continue;
                             }
-                            let d_from_p = hypot2(self.wx(gx) - self.player.pos.x, self.wz(gz) - self.player.pos.z);
+                            let d_from_p = hypot2(self.wx(gx) - pp.x, self.wz(gz) - pp.z);
                             if d_from_p < 24.0 {
                                 continue;
                             }
@@ -578,16 +685,71 @@ impl Game {
                             e.w_field = Some(f);
                         }
                     }
+                    // a stalker that has arrived waits for its next goal, listening
+                    let pace = if stalk && reached {
+                        0.0
+                    } else if calm {
+                        self.entities[ei].speed * 0.7
+                    } else if stalk {
+                        // unhurried far off, slow and careful once near
+                        if d > 30.0 {
+                            3.8
+                        } else if d > 12.0 {
+                            2.5
+                        } else {
+                            1.8
+                        }
+                    } else {
+                        1.7
+                    };
                     if let Some(wf) = self.entities[ei].w_field.clone() {
-                        self.entity_step_toward(ei, Some(wf), dt, 1.7, None);
+                        if pace > 0.0 {
+                            self.entity_step_toward(ei, Some(wf), dt, pace, None);
+                        } else {
+                            self.entity_drive(ei, dt, 0.0);
+                        }
+                    }
+                    if pace > 0.0 {
+                        self.entity_footfalls(ei, dt, pace, d);
                     }
                     // occasionally stop and stare
                     self.entities[ei].stare_t -= dt;
                     if self.entities[ei].stare_t <= 0.0 {
                         self.entities[ei].stare_t = rand2(5.0, 11.0);
-                        if d < 15.0 && seen {
+                        if d < 15.0 && los && !stalk {
                             self.entities[ei].freeze = rand2(1.2, 2.4);
                         }
+                    }
+                }
+            }
+            if self.entities[ei].state == "search" {
+                let audible = d < self.player.audible_range * hear_mul;
+                if seen {
+                    self.entity_notice(ei, d);
+                    continue;
+                }
+                if audible {
+                    // closer now: it knows roughly where
+                    let e = &mut self.entities[ei];
+                    e.set_n("seenX", pp.x + rand2(-1.5, 1.5));
+                    e.set_n("seenZ", pp.z + rand2(-1.5, 1.5));
+                    e.set_n("searchR", e.n("searchR").min(3.0));
+                    e.set_n("searchT", e.n("searchT").max(7.0));
+                }
+                let st = self.entities[ei].n("searchT") - dt;
+                self.entities[ei].set_n("searchT", st);
+                if st <= 0.0 || relaxed && d > 14.0 {
+                    let e = &mut self.entities[ei];
+                    e.state = "wander".into();
+                    e.w_field = None;
+                    e.w_timer = 0.0;
+                } else {
+                    let before = self.entities[ei].pos();
+                    self.search_step(ei, dt);
+                    let after = self.entities[ei].pos();
+                    let moved = hypot2(after.x - before.x, after.z - before.z);
+                    if dt > 0.0 {
+                        self.entity_footfalls(ei, dt, moved / dt, d);
                     }
                 }
             }
@@ -597,30 +759,36 @@ impl Game {
                 // fully silent and unseen, interest decays faster
                 let audible = d < self.player.audible_range;
                 if seen || audible {
-                    self.entities[ei].lose_t = 0.0;
+                    let e = &mut self.entities[ei];
+                    e.lose_t = 0.0;
+                    e.set_n("seenX", pp.x);
+                    e.set_n("seenZ", pp.z);
                 } else {
                     let decay_mul = if self.player.audible_range < 1.0 { 1.7 } else { 1.0 };
                     self.entities[ei].lose_t += dt * decay_mul;
                 }
                 if self.entities[ei].lose_t > 5.0 {
-                    let e = &mut self.entities[ei];
-                    e.state = "wander".into();
-                    e.w_field = None;
-                    self.entity_drive(ei, dt, 0.0); // it slows, then wanders off
+                    // it lost you: it goes where it last had you, and looks
+                    let (lx, lz) = (self.entities[ei].n("seenX"), self.entities[ei].n("seenZ"));
+                    self.entity_search(ei, lx, lz, 7.0, 16.0);
+                    self.entity_drive(ei, dt, 0.0);
                 } else if let Some(pf) = self.player_field.clone() {
                     // R769 speed penalty in bright tiles
                     let p = self.entities[ei].pos();
                     let lit_here = self.e_region_light_at(self.tx(p.x), self.tz(p.z));
-                    let speed_mul = (1.0 - 0.35 * lit_here) * self.entity_look_rule(ei, d, seen, dt);
+                    // the first seconds after it finds you, it comes at you hard
+                    let charge = self.entities[ei].n("chargeT");
+                    if charge > 0.0 {
+                        self.entities[ei].set_n("chargeT", charge - dt);
+                    }
+                    let burst = if charge > 0.0 { 1.2 } else { 1.0 };
+                    let speed_mul = (1.0 - 0.35 * lit_here) * self.entity_look_rule(ei, d, seen, dt) * burst;
                     let sp = self.entities[ei].speed;
                     self.entity_step_toward(ei, Some(pf), dt, sp * speed_mul, Some(self.player.pos));
-                    self.entities[ei].step_acc += dt * sp * speed_mul;
-                    if self.entities[ei].step_acc > 1.6 {
-                        self.entities[ei].step_acc = 0.0;
-                        self.noise_burst(0.09, 160.0, 1.0, clamp(0.4 - d * 0.02, 0.04, 0.4), "lowpass", None, 0.0, 0.0);
-                    }
+                    self.entity_footfalls(ei, dt, sp * speed_mul, d);
                 }
                 if d < KILL_DIST {
+                    self.director.killer = Some(ei);
                     self.on_death("entity");
                     return;
                 }
@@ -641,11 +809,13 @@ impl Game {
                 0.05
             } else {
                 0.0
-            };
+            }
+            .max(self.director.tension * 0.22);
             let g = dg.gain();
             g.set_value(g.value() + (target - g.value()) * (dt * 3.0).min(1.0));
         }
-        let pressure = if any_hunt { clamp(1.0 - nearest / 16.0, 0.0, 1.0) } else { clamp(1.0 - nearest / 10.0, 0.0, 0.35) };
+        let pressure = if any_hunt { clamp(1.0 - nearest / 16.0, 0.0, 1.0) } else { clamp(1.0 - nearest / 10.0, 0.0, 0.35) }
+            .max(self.director.tension * 0.55);
         // R92/R95 hum pulse: subtle vignette breath driven by the safe-room LFO
         let lfo_hz = self.audio.safe_room_lfo.as_ref().map(|n| n.frequency().value()).filter(|v| *v != 0.0 && !v.is_nan()).unwrap_or(0.35);
         self.hum_pulse_phase += dt * lfo_hz * PI * 2.0 * self.descent_freq_boost();
@@ -824,16 +994,8 @@ impl Game {
                 pp.set_value(pp.value() + (target_pan - pp.value()) * (dt * 2.0).min(1.0));
             }
         }
-        // R142 sanity room-tone brightening below 30%
-        if let Some(rlp) = self.audio.room_tone_lp.clone() {
-            if self.state == "playing" {
-                let bright_mag = if s01 < 0.30 { 1.0 - s01 / 0.30 } else { 0.0 };
-                let rt_nominal = room_tone_by_weather(wk).or(room_tone_by_weather("normal")).unwrap().lp;
-                if bright_mag > 0.0 {
-                    rlp.frequency().set_value(rt_nominal + bright_mag * (2400.0 - rt_nominal));
-                }
-            }
-        }
+        // (R142, the low-sanity room-tone brightening, is part of the room-tone
+        // lerp in `update_ambient`)
         // R103 electric surge tint: inset blue-white halo synced with the surge dim
         if self.electric_surge_t > 0.0 {
             let fade = self.electric_surge_t / 0.35;
@@ -845,11 +1007,13 @@ impl Game {
         } else if self.ui.vignette.style("boxShadow").is_some() {
             self.ui.vignette.set_style("boxShadow", "");
         }
-        if any_hunt && nearest < 14.0 {
+        let dread = self.director.tension;
+        if (any_hunt && nearest < 14.0) || dread > 0.45 {
             self.heart_t -= dt;
             if self.heart_t <= 0.0 {
-                self.heart_t = lerp(1.05, 0.42, 1.0 - clamp(nearest / 14.0, 0.0, 1.0));
-                self.sfx_thump(clamp(1.2 - nearest / 14.0, 0.25, 1.0));
+                let k = (1.0 - clamp(nearest / 14.0, 0.0, 1.0)).max(dread);
+                self.heart_t = lerp(1.05, 0.42, k);
+                self.sfx_thump(clamp(0.2 + k, 0.25, 1.0));
             }
         }
         // sanity: drains near entities (heavier when hunted or looking at them), regens otherwise
@@ -874,10 +1038,9 @@ impl Game {
             let proximity = clamp(1.0 - d / 14.0, 0.0, 1.0);
             drain += proximity * (if looking { 5.5 } else { 2.2 }) * (if e.state == "hunt" { 1.7 } else { 1.0 });
         }
+        // (it comes back on its own in `update_player`)
         if drain > 0.0 {
             self.player.sanity = clamp(self.player.sanity - drain * dt, 0.0, SAN_MAX);
-        } else {
-            self.player.sanity = clamp(self.player.sanity + SAN_REGEN * dt, 0.0, SAN_MAX);
         }
         // ambient whisper when sanity is very low
         if self.player.sanity < 25.0 && rnd() < dt * 0.35 {

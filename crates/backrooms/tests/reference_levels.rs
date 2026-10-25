@@ -196,40 +196,106 @@ fn differences(got: &Value, want: &Value) -> Vec<String> {
     d
 }
 
+fn reference_dir() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference")
+}
+
+/// The recordings by run seed, each run's levels in order
+fn recordings() -> std::collections::BTreeMap<u64, Vec<(std::path::PathBuf, Value)>> {
+    let mut runs: std::collections::BTreeMap<u64, Vec<(std::path::PathBuf, Value)>> = Default::default();
+    for e in std::fs::read_dir(reference_dir()).expect("tests/reference") {
+        let p = e.unwrap().path();
+        let v: Value = serde_json::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap();
+        runs.entry(v["seed"].as_u64().unwrap()).or_default().push((p, v));
+    }
+    for levels in runs.values_mut() {
+        levels.sort_by_key(|(_, v)| v["level"].as_i64().unwrap());
+    }
+    runs
+}
+
+/// Builds a run's levels in order, one game started the way New Game starts
+/// it, handing each level's dump to `each`
+fn play_run(flags: &str, levels: &[i32], each: &mut dyn FnMut(i32, Value)) {
+    let mut g = Game::new_bare();
+    register_placers(&mut g.placers);
+    g.launch_flags = flags.to_string();
+    g.view_width = 1280.0;
+    g.view_height = 800.0;
+    g.scale_factor = 1.0;
+    g.boot();
+    g.start_new_game();
+    for &l in levels {
+        g.rand_trace(true);
+        g.load_level(l);
+        let got = g.level_dump();
+        g.rand_trace(false);
+        each(l, got);
+    }
+}
+
 #[test]
 fn levels_match_their_recordings() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference");
-    let mut runs: std::collections::BTreeMap<u64, Vec<Value>> = Default::default();
-    for e in std::fs::read_dir(&dir).expect("tests/reference") {
-        let v: Value = serde_json::from_str(&std::fs::read_to_string(e.unwrap().path()).unwrap()).unwrap();
-        runs.entry(v["seed"].as_u64().unwrap()).or_default().push(v);
-    }
     let mut failures = vec![];
     let mut checked = 0;
-    for (seed, mut levels) in runs {
-        levels.sort_by_key(|v| v["level"].as_i64().unwrap());
-        // one run per seed, started the way New Game starts it
-        let mut g = Game::new_bare();
-        register_placers(&mut g.placers);
-        g.launch_flags = levels[0]["flags"].as_str().unwrap().to_string();
-        g.view_width = 1280.0;
-        g.view_height = 800.0;
-        g.scale_factor = 1.0;
-        g.boot();
-        g.start_new_game();
-        for want in &levels {
-            let l = want["level"].as_i64().unwrap() as i32;
-            g.rand_trace(true);
-            g.load_level(l);
-            let got = g.level_dump();
-            g.rand_trace(false);
+    for (seed, levels) in recordings() {
+        let order: Vec<i32> = levels.iter().map(|(_, v)| v["level"].as_i64().unwrap() as i32).collect();
+        let mut wants = levels.iter().map(|(_, v)| v);
+        play_run(levels[0].1["flags"].as_str().unwrap(), &order, &mut |l, got| {
+            let want = wants.next().unwrap();
             let d = differences(&got, want);
             checked += 1;
             if !d.is_empty() {
                 failures.push(format!("seed {seed} level {l}:\n    {}", d.iter().take(12).cloned().collect::<Vec<_>>().join("\n    ")));
             }
-        }
+        });
     }
     assert!(checked >= 20, "only {checked} reference levels found");
     assert!(failures.is_empty(), "{} of {checked} levels differ from their recordings:\n{}", failures.len(), failures.join("\n"));
+}
+
+/// A level dump in the recording format
+fn recording(seed: u64, flags: &str, d: &Value) -> Value {
+    use serde_json::json;
+    let xz = |v: &Value| if v.is_null() { Value::Null } else { json!([v["x"], v["z"]]) };
+    let tiles: String = d["grid"]["tiles"].as_array().unwrap().iter().map(|t| t.as_u64().unwrap().to_string()).collect();
+    let mut props = serde_json::Map::new();
+    for k in ["tv", "phone", "clock", "mannequin", "exit"] {
+        props.insert(k.into(), xz(&d["props"][k]));
+    }
+    let list = |k: &str| d["props"][k].as_array().unwrap().iter().map(xz).collect::<Vec<_>>();
+    let p = &d["player"];
+    json!({
+        "seed": seed, "flags": flags, "level": d["level"], "scp": d["scp"], "weather": d["weather"], "marks": d["marks"],
+        "grid": { "w": d["grid"]["W"], "h": d["grid"]["H"], "tiles": tiles },
+        "zones": d["arch"]["zones"].as_array().map(|zs| zs.iter().map(|z| json!([z["arch"], z["x0"], z["z0"], z["x1"], z["z1"]])).collect::<Vec<_>>()),
+        "dominant": d["arch"]["dominant"],
+        "exit": xz(&d["exit"]),
+        "props": props,
+        "almonds": list("almonds"),
+        "batteries": list("batteries"),
+        "counts": d["counts"],
+        "entities": d["entities"].as_array().unwrap().iter().map(|e| json!([e["type"], e["x"], e["z"]])).collect::<Vec<_>>(),
+        "player": [p["x"], p["z"], p["yaw"]],
+        "barricades": d["barricades"],
+        "objects": d["objects"].as_array().unwrap().iter().map(|o| json!([o["placer"], o["pos"], o["min"], o["max"], o["meshes"], o["interact"]])).collect::<Vec<_>>(),
+    })
+}
+
+/// Rewrites every recording from the current build (same run seeds, flags
+/// and levels). Review the difference before keeping it:
+///
+///     cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
+#[test]
+#[ignore = "rewrites the recordings"]
+fn rerecord_reference_levels() {
+    for (seed, levels) in recordings() {
+        let flags = levels[0].1["flags"].as_str().unwrap().to_string();
+        let order: Vec<i32> = levels.iter().map(|(_, v)| v["level"].as_i64().unwrap() as i32).collect();
+        let mut paths = levels.iter().map(|(p, _)| p.clone());
+        play_run(&flags, &order, &mut |_, got| {
+            let p = paths.next().unwrap();
+            std::fs::write(&p, serde_json::to_string(&recording(seed, &flags, &got)).unwrap()).unwrap();
+        });
+    }
 }

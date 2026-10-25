@@ -244,6 +244,32 @@ pub struct AmbientLogEntry {
     pub pan: Option<f64>,
 }
 
+/// One of a level's signature sounds: what it is, the fixed spot it comes
+/// from and its rhythm (`Game::pick_signatures`)
+#[derive(Clone, Debug)]
+pub struct AmbSignature {
+    /// sfx-table name (one of `AMBIENT_EVENTS`)
+    pub name: &'static str,
+    /// Where it sounds from
+    pub at: Vec3,
+    /// Base period, s
+    pub period: f64,
+    /// Countdown to the next time it sounds, s
+    pub t: f64,
+}
+
+/// Where `blip` / `noise_burst` send their voices while `Game::sfx_route` is
+/// set (`Game::play_at`)
+#[derive(Clone)]
+pub struct SfxRoute {
+    /// A spatial voice slot's input, instead of master
+    pub dest: Option<AudioNode>,
+    /// Stereo pan for voices without one of their own (no `dest`)
+    pub pan: f64,
+    /// Level multiplier for every voice
+    pub gain: f64,
+}
+
 /// The nearest humming panel: index into `panels` and distance
 #[derive(Clone, Copy, Debug, Default)]
 pub struct HumPanel {

@@ -1,6 +1,8 @@
-//! Lighting, procedural textures and surfaces, and full-screen colour effects.
+//! Lighting, procedural textures and surfaces, the props' material look, and
+//! full-screen colour effects.
 
 pub mod lighting;
+pub mod prop_look;
 pub mod scene_fx;
 pub mod surfaces;
 pub mod textures;

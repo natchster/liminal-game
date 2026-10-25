@@ -124,7 +124,7 @@ impl Game {
             let hunt = lerp(nz(e, "hunt"), if e.state == "hunt" { 1.0 } else { 0.0 }, (dt * 2.2).min(1.0));
             e.set_n("hunt", hunt);
             // close range makes it twitch — the stillness breaks down as it gets near
-            let twitch = clamp(1.0 - dist_to_player / 7.0, 0.0, 1.0) * (0.4 + 0.6 * hunt);
+            let twitch = (clamp(1.0 - dist_to_player / 11.0, 0.0, 1.0) * (0.4 + 0.6 * hunt)).max(0.8 * nz(e, "noticeT"));
             let walk = lerp(nz(e, "walk"), if speed > 0.15 { 1.0 } else { 0.0 }, (dt * 4.0).min(1.0));
             e.set_n("walk", walk);
             // head turns to keep the player in view independent of where the body goes
@@ -236,7 +236,16 @@ impl Game {
         let (rf, lf, rh, lh) = (ls[0], ls[1], ls[2], ls[3]);
         let bend_y = 0.1 * ((rf.cz - rh.cz) - (lf.cz - lh.cz));
         let arch = ((gp).cos() * 0.13 * bound + (gp * 2.0).sin() * 0.025 * (1.0 - bound)) * walk + 0.1 * hold;
-        let pitch = -0.16 * hold + gp.sin() * 0.06 * charge;
+        // close to you and facing you it rears its front up to look at you
+        let regard = {
+            let e = &mut self.entities[ei];
+            let facing = clamp(1.0 - e.n("headYaw").abs() / 1.2, 0.0, 1.0);
+            let want = ent_smooth(4.5, 2.0, dist) * facing * (1.0 - hold);
+            let r = lerp(nz(e, "regard"), want, 1.0 - (-dt * 3.0).exp());
+            e.set_n("regard", r);
+            r
+        };
+        let pitch = -0.16 * hold + gp.sin() * 0.06 * charge - 0.32 * regard;
         let (roll_p, roll_t) = (0.05 * lh.swing - 0.1 * rh.swing, 0.07 * (lf.swing - rf.swing));
         let s_y =
             HD_RIG.spine_y - 0.045 * hold - 0.02 * walk - 0.05 * bound + gp.sin().powi(2) * (0.008 + 0.02 * bound) * walk - 0.008 * land;
@@ -301,11 +310,12 @@ impl Game {
             }
         }
         // the head hangs low, bobs on the hands' footfalls, cocks to listen,
-        // drops and trembles when stared down, and comes up to charge
+        // drops and trembles when stared down, and comes up to charge or to
+        // look up at you through the hair
         let sp = pitch + pel[0] + lum[0] + tho[0]; // the shoulders' pitch
-        let neck_x = HD_RIG.neck_pitch + 0.12 * hold - 0.35 * charge + land * 0.07;
+        let neck_x = HD_RIG.neck_pitch + 0.12 * hold - 0.35 * charge - 0.45 * regard + land * 0.07;
         p.neck.rotation().x = neck_x;
-        let head_x = -(neck_x + sp) + 0.12 * hold - 0.2 * charge;
+        let head_x = -(neck_x + sp) + 0.12 * hold - 0.2 * charge - 0.5 * regard;
         p.head.rotation().x = head_x;
         let head_yaw = self.entities[ei].n("headYaw");
         p.head.rotation().y = clamp(head_yaw * 0.6, -0.7, 0.7) + tic[1];
@@ -322,7 +332,8 @@ impl Game {
             + (1.0 - hunt) * (0.5 + 0.5 * breath.sin()) * 0.05
             + hunt * (1.0 - hold) * (1.0 - bound) * (0.3 + (t * 9.0).sin() * 0.08)
             + 0.42 * hold
-            + 0.92 * charge;
+            + 0.92 * charge
+            + 0.25 * regard;
         for (i, ear) in p.ears.iter().enumerate() {
             ear.rotation().y = (if i != 0 { 1.0 } else { -1.0 }) * (0.55 * listen + 0.25 * hunt);
         }
@@ -355,9 +366,9 @@ impl Game {
             tip.rotation().x = 0.18;
             tip.rotation().z = sway * 0.12;
         }
-        // far off, the eyeshine billboard, flickering as the hair sways
+        // the eyeshine through the hair (all but nose to nose), flickering as it sways
         let flicker = 0.5 + 0.5 * (t * 6.3 + (t * 2.1).sin() * 2.0).sin();
-        let op = ent_smooth(7.0, 10.0, dist) * (0.45 + 0.55 * flicker) * (1.0 - ent_smooth(30.0, 38.0, dist));
+        let op = ent_smooth(1.5, 3.0, dist) * (0.45 + 0.55 * flicker) * (1.0 - ent_smooth(30.0, 38.0, dist));
         let mut fm = p.far.m();
         fm.opacity = op;
         fm.visible = op > 0.004; // not drawn at all when it would not show
@@ -448,7 +459,7 @@ impl Game {
         let tic = self.entity_tics(ei, dt, twitch);
         let (eye_k, breath_ph) = {
             let e = &mut self.entities[ei];
-            let k = lerp(nd(e, "eyeK", 1.0), if lit > 0.65 { 0.4 } else { 1.0 }, 1.0 - (-3.0 * dt).exp()); // its eyes dim in bright light
+            let k = lerp(nd(e, "eyeK", 1.0), if lit > 0.65 { 0.7 } else { 1.0 }, 1.0 - (-3.0 * dt).exp()); // its eyes dim a little in bright light
             e.set_n("eyeK", k);
             // breathing: a slow rise of the chest and shoulders, quicker once it hunts
             let ph = (nz(e, "breathPh") + dt * (1.25 + 1.2 * hunt + 1.4 * lunge)) % (PI * 2.0);
@@ -555,15 +566,17 @@ impl Game {
         let head_yaw = self.entities[ei].n("headYaw");
         p.head.rotation().y = head_yaw + tic[1] + flinch * 0.5;
         // a slow tilt, twelve degrees each way over about four seconds, and more the closer it gets
-        p.head.rotation().z = (t * 1.57).sin() * 0.21 * (1.0 - 0.5 * hunt) + twitch * 0.3;
+        // the moment it finds you, its head cocks hard to one side and holds
+        let notice = ent_smooth(0.0, 0.25, self.entities[ei].n("noticeT"));
+        p.head.rotation().z = (t * 1.57).sin() * 0.21 * (1.0 - 0.5 * hunt) + twitch * 0.3 + notice * 0.62;
         // the jaw breathes with the chest; once it has seen you it drops and the
         // crescent opens into a lens, the slit splitting back along the cheeks
-        p.jaw.rotation().x = 0.06 * breath + hunt * (0.55 + (t * 7.3).sin() * 0.08) + 0.1 * lunge;
-        // the face: brighter by a third when it hunts; past 8 m only the drawn face is left
-        p.eye_mat.m().emissive.set_scalar(eye_k * (1.0 + 0.3 * hunt));
+        p.jaw.rotation().x = 0.06 * breath + hunt * (0.55 + (t * 7.3).sin() * 0.08) + 0.1 * lunge + 0.3 * notice;
+        // the face: brighter by a third when it hunts; past a few metres the drawn face shows over it
+        p.eye_mat.m().emissive.set_scalar(eye_k * (1.4 + 0.5 * hunt));
         let glow = (1.0 + 0.3 * hunt) * eye_k;
         let ho = 1f64.min(glow * ent_smooth(1.2, 3.0, dist));
-        let fo = 1f64.min(glow * ent_smooth(6.0, 9.0, dist) * (1.0 - ent_smooth(30.0, 38.0, dist)));
+        let fo = 1f64.min(glow * ent_smooth(3.5, 6.0, dist) * (1.0 - ent_smooth(30.0, 38.0, dist)));
         {
             let mut m = p.halo.m();
             m.opacity = ho;

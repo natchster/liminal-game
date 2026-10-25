@@ -1,7 +1,8 @@
 //! Architecture meshes, `freeze_static` / `warm_up_gpu`, the level teardown
 //! and the prop draw distance.
 //!
-//! Walls are instanced unit boxes scaled to each archgen solid; floors and
+//! Walls are instanced unit boxes scaled to each archgen solid (a seam wall
+//! between two regions in two halves, one per side); floors and
 //! ceilings are instanced quads at each tile's own height; a vertical
 //! "bulkhead" closes every step between two ceiling heights. Surfaces that
 //! are not tile-sized use world-space UVs (`Patch::ArchUV`).
@@ -29,6 +30,14 @@ pub fn grime_of(info: &RegionInfo) -> i32 {
     } else {
         info.grime.clamp(0, 3)
     }
+}
+
+/// The wall material key of a zone's surface in a region's variant
+fn wall_key(zn: &crate::level::archgen::Zone, info: &RegionInfo) -> String {
+    if zn.wall_mat == "wallpaper" || info.flags & RF_MOSS != 0 {
+        return format!("wp:{}", info.wall);
+    }
+    format!("{}:{}", zn.wall_mat, grime_of(info))
 }
 
 /// One item of an `add_instanced` list: its instance matrix.
@@ -107,13 +116,71 @@ impl Game {
     }
     pub fn wall_mat_key(&self, owner_tile: usize) -> String {
         let (x, z) = (owner_tile as i32 % self.w, owner_tile as i32 / self.w);
-        let zn = self.zone_of_tile(owner_tile);
         let rid = if self.tiles[owner_tile] == 1 { self.wall_region_idx(x, z) } else { self.region_map[owner_tile] as usize };
-        let info = &self.region_info[rid];
-        if zn.wall_mat == "wallpaper" || info.flags & RF_MOSS != 0 {
-            return format!("wp:{}", info.wall);
+        wall_key(self.zone_of_tile(owner_tile), &self.region_info[rid])
+    }
+    /// The wall surface seen from open tile (x, z): its zone's material in
+    /// its region's variant (None when the tile is not open floor)
+    fn wall_face_key(&self, x: i32, z: i32) -> Option<String> {
+        if !self.in_grid(x, z) || self.tiles[self.t_idx(x, z)] != 0 {
+            return None;
         }
-        format!("{}:{}", zn.wall_mat, grime_of(info))
+        let t = self.t_idx(x, z);
+        Some(wall_key(self.zone_of_tile(t), &self.region_info[self.region_map[t] as usize]))
+    }
+    /// Solid box `b` as it is drawn: (material key, x0, z0, x1, z1, y0, y1)
+    /// in tile units. A wall whose two opposite faces look into regions with
+    /// different surfaces (a seam between two places) is drawn as two halves,
+    /// each in the surface of the side it faces; a pinned face takes the
+    /// surface of the side it is on.
+    pub fn wall_box_parts(&self, s: &crate::level::archgen::Solids, b: usize) -> Vec<(String, [f64; 6])> {
+        use crate::level::archgen::{BOX_ANCHOR, BOX_WALL};
+        let o = b * 8;
+        let f = |k: usize| s.boxes[o + k] as f64;
+        let bx = [f(0), f(1), f(2), f(3), f(4), f(5)];
+        let owner = f(6) as usize;
+        let kind = f(7) as i32;
+        let whole = |key: String| vec![(key, bx)];
+        if self.tiles[owner] != 1 || (kind != BOX_WALL && kind != BOX_ANCHOR) {
+            return whole(self.wall_mat_key(owner));
+        }
+        let (tx, tz) = (owner as i32 % self.w, owner as i32 / self.w);
+        let (cx, cz) = (tx as f64 + 0.5, tz as f64 + 0.5);
+        if kind == BOX_ANCHOR {
+            // the side of the partition this fill is on
+            let (mx, mz) = ((bx[0] + bx[2]) / 2.0 - cx, (bx[1] + bx[3]) / 2.0 - cz);
+            let (dx, dz) = if mx.abs() > mz.abs() { (mx.signum() as i32, 0) } else { (0, mz.signum() as i32) };
+            return whole(self.wall_face_key(tx + dx, tz + dz).unwrap_or_else(|| self.wall_mat_key(owner)));
+        }
+        let (sx, sz) = (bx[2] - bx[0], bx[3] - bx[1]);
+        // the opposite faces that may differ (across x or z), and where to cut between them
+        let thin = |v: f64| v < 0.3;
+        let mut pairs: Vec<(bool, f64)> = vec![];
+        if thin(sx) && !thin(sz) {
+            pairs.push((true, (bx[0] + bx[2]) / 2.0));
+        } else if thin(sz) && !thin(sx) {
+            pairs.push((false, (bx[1] + bx[3]) / 2.0));
+        } else if sx >= 0.9 && sz >= 0.9 {
+            pairs.push((true, cx));
+            pairs.push((false, cz));
+        }
+        for (along_x, cut) in pairs {
+            let (a, b) = if along_x { ((tx - 1, tz), (tx + 1, tz)) } else { ((tx, tz - 1), (tx, tz + 1)) };
+            let (Some(ka), Some(kb)) = (self.wall_face_key(a.0, a.1), self.wall_face_key(b.0, b.1)) else { continue };
+            if ka == kb {
+                continue;
+            }
+            let (mut lo, mut hi) = (bx, bx);
+            if along_x {
+                lo[2] = cut;
+                hi[0] = cut;
+            } else {
+                lo[3] = cut;
+                hi[1] = cut;
+            }
+            return vec![(ka, lo), (kb, hi)];
+        }
+        whole(self.wall_mat_key(owner))
     }
     pub fn floor_mat_key(&self, t: usize, rid: usize) -> String {
         let (zn, info) = (self.zone_of_tile(t), &self.region_info[rid]);
@@ -313,31 +380,29 @@ impl Game {
     /// One instanced unit box per archgen solid
     pub fn build_walls(&mut self) {
         let Some(s) = self.solids.take() else { return };
-        let mut groups: Vec<(String, Vec<usize>)> = vec![];
+        let mut groups: Vec<(String, Vec<[f64; 6]>)> = vec![];
         let mut gi: HashMap<String, usize> = HashMap::new();
         for b in 0..s.count {
-            let key = self.wall_mat_key(s.boxes[b * 8 + 6] as usize);
-            let i = *gi.entry(key.clone()).or_insert_with(|| {
-                groups.push((key, vec![]));
-                groups.len() - 1
-            });
-            groups[i].1.push(b);
+            for (key, part) in self.wall_box_parts(&s, b) {
+                let i = *gi.entry(key.clone()).or_insert_with(|| {
+                    groups.push((key, vec![]));
+                    groups.len() - 1
+                });
+                groups[i].1.push(part);
+            }
         }
         let geo = self.unit_box_geo.clone();
         let (w, h) = (self.w as f64, self.h as f64);
-        let bx = s.boxes.clone();
         self.solids = Some(s);
         for (key, list) in groups {
             let mat = self.arch_mat(&key);
-            self.add_instanced(&geo, &mat, &list, &|&b: &usize| {
-                let o = b * 8;
-                let f = |k: usize| bx[o + k] as f64;
-                let (x0, x1) = ((f(0) - w / 2.0) * CELL, (f(2) - w / 2.0) * CELL);
-                let (z0, z1) = ((f(1) - h / 2.0) * CELL, (f(3) - h / 2.0) * CELL);
+            self.add_instanced(&geo, &mat, &list, &|b: &[f64; 6]| {
+                let (x0, x1) = ((b[0] - w / 2.0) * CELL, (b[2] - w / 2.0) * CELL);
+                let (z0, z1) = ((b[1] - h / 2.0) * CELL, (b[3] - h / 2.0) * CELL);
                 Mat4::compose(
-                    &Vec3::new((x0 + x1) / 2.0, (f(4) + f(5)) / 2.0, (z0 + z1) / 2.0),
+                    &Vec3::new((x0 + x1) / 2.0, (b[4] + b[5]) / 2.0, (z0 + z1) / 2.0),
                     &Quat::IDENTITY,
-                    &Vec3::new(0.01f64.max(x1 - x0), 0.01f64.max(f(5) - f(4)), 0.01f64.max(z1 - z0)),
+                    &Vec3::new(0.01f64.max(x1 - x0), 0.01f64.max(b[5] - b[4]), 0.01f64.max(z1 - z0)),
                 )
             });
         }

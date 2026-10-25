@@ -1,13 +1,14 @@
 //! Prop themes and `build_world`.
 //!
-//! Every placer is sorted into a theme by name, and every zone archetype says
-//! how welcome each theme is. `themed(name, dist)` runs one placer with the
-//! tiles of unwelcoming zones hidden from it (value 2: neither open floor nor
-//! wall). The chance it runs at all scales with how much floor it may use.
+//! Every placer is sorted into a theme by name, and every zone has a purpose
+//! (`world::purpose`) naming the themes it welcomes. `themed(name, dist)` runs
+//! one placer with the tiles of the other zones hidden from it (value 2:
+//! neither open floor nor wall). The chance it runs at all scales with how
+//! much floor it may use.
 use crate::base::records::*;
 use crate::prelude::*;
 use crate::visuals::lighting::{RF_DARK, RF_MOSS};
-use crate::world::tables::{PLACER_ALWAYS, PLACER_THEME, THEMED_ORDER, THEME_ALLOW};
+use crate::world::tables::{PLACER_ALWAYS, PLACER_THEME, THEMED_ORDER, THEME_ALLOW, THEME_SHARE_GAIN};
 use crate::world::{PoolPlan, GRIME_LIGHT};
 use std::collections::{HashMap, HashSet};
 
@@ -81,8 +82,8 @@ impl Game {
         }
         true
     }
-    /// Runs one placer by name, with its theme's unwelcoming zones hidden
-    /// from it
+    /// Runs one placer by name, with the zones whose purpose does not
+    /// welcome its theme hidden from it
     pub fn themed(&mut self, name: &str, dist: &[i32]) {
         let f = self.placer_fn(name);
         if self.placer_dist.as_deref() != Some(dist) {
@@ -99,7 +100,12 @@ impl Game {
         let theme = self.placer_theme(name);
         let allow: Vec<bool> = {
             let zones = &self.layout.as_ref().unwrap().zones;
-            zones.iter().map(|z| rnd() < theme_allow(z.arch, theme)).collect()
+            if self.zone_purposes.len() == zones.len() {
+                self.zone_purposes.iter().map(|p| p.allows(theme)).collect()
+            } else {
+                // (no purposes picked: wherever the archetype welcomes the theme at all)
+                zones.iter().map(|z| theme_allow(z.arch, theme) > 0.0).collect()
+            }
         };
         let (mut open, mut ok) = (0usize, 0usize);
         let zo = self.layout.as_ref().unwrap().zone_of.clone();
@@ -113,7 +119,7 @@ impl Game {
             }
         }
         let bt = self.theme_stats_by_theme.entry(theme.to_string()).or_insert((0, 0));
-        if ok == 0 || rnd() > ok as f64 / open.max(1) as f64 * 1.35 {
+        if ok == 0 || rnd() > ok as f64 / open.max(1) as f64 * THEME_SHARE_GAIN {
             self.theme_stats_skipped += 1;
             bt.1 += 1;
             return;
@@ -201,7 +207,8 @@ impl Game {
         let bt0 = self.clock_ms();
         self.build_profile.retain(|k, _| !k.starts_with("t.")); // clear the phase times
         self.build_profile.insert("last".into(), bt0);
-        // partition the maze into Voronoi regions with their own variants
+        // what each zone is for, then the regions (areas of zones, room by room) with their own variants
+        self.pick_zone_purposes();
         self.build_regions();
         // the Showroom is spotless and lit end to end until it closes
         if self.level_scp.as_deref() == Some("store") {
@@ -215,8 +222,9 @@ impl Game {
         }
         // the Borrowed House needs dark to hide in: about half its rooms are dead
         if self.level_scp.as_deref() == Some("house") {
+            let spawn = self.region_map.get(self.t_idx(1, 1)).copied().unwrap_or(0) as usize;
             for (i, info) in self.region_info.iter_mut().enumerate() {
-                if i != 0 && rnd() < 0.5 {
+                if i != spawn && rnd() < 0.5 {
                     info.flags |= RF_DARK;
                 }
             }
@@ -285,8 +293,17 @@ impl Game {
                 let dense = self.region_info[rid].lit.unwrap_or(0.0) >= 0.75;
                 let le = self.zone_ref(x, z).map(|zn| zn.light_every).unwrap_or(0);
                 let k = (if le != 0 { le } else { 2 }) * if dense { 1 } else { 2 };
-                let o = if k == 4 { 2 } else { 0 };
-                if x % k != o || z % k != o {
+                // the fittings are laid out per room (per zone where it has no
+                // rooms) and centred in it: they line up with the room, not
+                // with wherever a level-wide grid happens to fall
+                let (ax0, az0, ax1, az1) = self
+                    .layout
+                    .as_ref()
+                    .and_then(|l| l.room_at(x, z).map(|r| (r.x0, r.z0, r.x1, r.z1)))
+                    .or_else(|| self.zone_ref(x, z).map(|zn| (zn.x0, zn.z0, zn.x1, zn.z1)))
+                    .unwrap_or((0, 0, self.w - 1, self.h - 1));
+                let (ox, oz) = (ax0 + (ax1 - ax0) % k / 2, az0 + (az1 - az0) % k / 2);
+                if (x - ox).rem_euclid(k) != 0 || (z - oz).rem_euclid(k) != 0 {
                     continue;
                 }
                 panel_spots.push((x, z));
@@ -388,6 +405,9 @@ impl Game {
         self.build_lap("settle", bt0);
         self.settle_placement(prop_start);
         self.build_lap("placement", bt0);
+        if !self.test_keep_prop_looks {
+            self.settle_prop_looks(prop_start);
+        }
         self.build_walls();
         self.build_ceilings();
         self.lay_panels();

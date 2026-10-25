@@ -57,6 +57,7 @@ impl Game {
             let perf_t = self.perf_t;
             self.update_player(dt);
             self.update_entities(dt, perf_t);
+            self.update_director(dt);
             self.update_scp(dt);
             self.update_prop_cull(dt);
             self.update_lights(dt, perf_t);
@@ -77,6 +78,7 @@ impl Game {
         } else if self.state == "dead" {
             let y = EYE + (self.perf_t * 30.0).sin() * 0.01;
             self.camera.position().y = y;
+            self.update_death_cam(dt);
             for i in 0..self.entities.len() {
                 self.update_face(i);
             }

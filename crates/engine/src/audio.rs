@@ -116,6 +116,8 @@ struct CtxInner {
     #[allow(dead_code)]
     stream: RefCell<Option<cpal::Stream>>,
     muted: Cell<bool>,
+    /// An offline context's engine, rendered on demand on this thread
+    offline: RefCell<Option<Engine>>,
 }
 impl CtxInner {
     fn send(&self, c: Cmd) {
@@ -204,8 +206,13 @@ impl AudioContext {
         let cfg = dev.as_ref().and_then(|d| d.default_output_config().ok());
         let sr = cfg.as_ref().map(|c| c.sample_rate().0 as f64).unwrap_or(48000.0);
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
-        let inner =
-            Rc::new(CtxInner { shared: shared.clone(), next_id: Cell::new(1), stream: RefCell::new(None), muted: Cell::new(false) });
+        let inner = Rc::new(CtxInner {
+            shared: shared.clone(),
+            next_id: Cell::new(1),
+            stream: RefCell::new(None),
+            muted: Cell::new(false),
+            offline: RefCell::new(None),
+        });
         if let (Some(dev), Some(cfg)) = (dev, cfg) {
             let ch = cfg.channels() as usize;
             let mut engine = Engine::new(sr, shared.clone());
@@ -231,9 +238,35 @@ impl AudioContext {
         } else {
             eprintln!("audio: no output device; running silent");
         }
+        AudioContext::with_inner(inner)
+    }
+    /// A context that plays nothing: its graph is rendered on this thread,
+    /// on demand, by `render_offline` (recording a headless run, tests). Its
+    /// clock only moves as it is rendered.
+    pub fn new_offline(sample_rate: f64) -> AudioContext {
+        let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate });
+        let engine = Engine::new(sample_rate, shared.clone());
+        AudioContext::with_inner(Rc::new(CtxInner {
+            shared,
+            next_id: Cell::new(1),
+            stream: RefCell::new(None),
+            muted: Cell::new(false),
+            offline: RefCell::new(Some(engine)),
+        }))
+    }
+    fn with_inner(inner: Rc<CtxInner>) -> AudioContext {
         let dest = AudioNode(Rc::new(NodeInner { id: LISTENER_NODE, ctx: inner.clone(), params: RefCell::new(HashMap::new()) }));
         let listener = AudioListener { node: dest.clone() };
         AudioContext { inner, dest, listener }
+    }
+    /// The next `frames` sample frames of an offline context, as interleaved
+    /// stereo (empty for a context playing on a device).
+    pub fn render_offline(&self, frames: usize) -> Vec<f32> {
+        let mut e = self.inner.offline.borrow_mut();
+        let Some(e) = e.as_mut() else { return vec![] };
+        let mut out = vec![0f32; frames * 2];
+        e.fill(&mut out, 2);
+        out
     }
     pub fn sample_rate(&self) -> f64 {
         self.inner.shared.sample_rate

@@ -10,9 +10,12 @@ use crate::base::tables::*;
 use crate::prelude::*;
 
 pub const AMB_DARK: f64 = 0.11;
-pub const AMB_LIT: f64 = 0.78;
+pub const AMB_LIT: f64 = 0.62;
 pub const HEMI_DARK: f64 = 0.17;
-pub const HEMI_LIT: f64 = 1.05;
+pub const HEMI_LIT: f64 = 0.84;
+/// a fully bright panel's spotlight (the fill above stays low, so the light
+/// comes from the fixtures and falls off between them)
+pub const PANEL_INTENSITY: f64 = 14.0;
 pub const FOG_DEN_DARK: f64 = 0.055;
 pub const FOG_DEN_LIT: f64 = 0.013;
 pub fn fog_lit() -> Color {
@@ -440,6 +443,16 @@ impl Game {
             * self.ll_scale
     }
 
+    /// How much lit surfaces lose of their indirect light toward the floor:
+    /// the levels stand on y = 0, the Stairwell's flights do not
+    pub fn floor_occlusion(&self) -> f64 {
+        if self.in_stairwell {
+            0.0
+        } else {
+            1.0
+        }
+    }
+
     pub fn update_ambience(&mut self) {
         self.ll_on = 1.0;
         self.ll_scale = 1.0 - 0.97 * self.store_state.lights_out;
@@ -627,7 +640,7 @@ impl Game {
                 }
             }
             let h_boost = if p.h_boost != 0.0 { p.h_boost } else { 1.0 };
-            l.set_intensity(p.bright * 9.0 * dim_scale * mul * b_dim * depth * h_boost * self.pooled_w[li]);
+            l.set_intensity(p.bright * PANEL_INTENSITY * dim_scale * mul * b_dim * depth * h_boost * self.pooled_w[li]);
             if self.knock_tint_t > 0.0 {
                 let env = self.knock_tint_t / 0.7;
                 let yaw = self.player.yaw;
