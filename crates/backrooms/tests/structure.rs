@@ -172,14 +172,26 @@ fn docs_point_at_files_that_exist() {
             }
         }
     }
+    // the skills and the reviewers name code too
+    let mut docs: Vec<String> = docs.iter().map(|d| d.to_string()).collect();
+    for dir in [".claude/skills", ".claude/agents"] {
+        for e in std::fs::read_dir(root().join(dir)).into_iter().flatten().flatten() {
+            let p = e.path();
+            let f = if p.is_dir() { p.join("SKILL.md") } else { p };
+            if f.extension().is_some_and(|x| x == "md") && f.exists() {
+                docs.push(rel(&f));
+            }
+        }
+    }
     let mut missing = vec![];
-    for doc in docs {
+    for doc in &docs {
         let text = read(doc);
         for token in text.split('`').skip(1).step_by(2) {
             let t = token.trim();
             let pathlike = (t.ends_with(".rs") || t.ends_with(".md") || t.ends_with(".json") || t.ends_with('/'))
                 && !t.contains(' ')
-                && !t.contains('*');
+                && !t.contains('*')
+                && !t.contains('<');
             if !pathlike
                 || t.starts_with("target/")
                 || t.starts_with("../")

@@ -98,9 +98,15 @@ git -c user.name="Pavel Krivoruchko" -c user.email="pavel@lilium.me" commit …
 
 End the message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
-## Reviews
+## Skills and reviewers
 
-Never grade your own work. For look or feel, use a blind review: a fresh
-subagent that sees only the images (both orders, keys hidden) and a rubric,
-and counts disagreement as a tie. Fear, sound quality and taste are finally
-decided by people.
+Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
+`add-creature`, `add-anomaly`, `add-sound`, `tune-pacing`, `visual-review`,
+and `regen-fixtures` (the only way to re-record; invoked by name). Each ends
+in its gates, evidence and a `docs/content.json` entry.
+
+Never grade your own work. The reviewers (`.claude/agents/`) are read-only
+and see only their evidence: `art-critic` (blind A/B pairs from
+`cargo xtask ab prepare`, scored with `cargo xtask ab score`), `lore-keeper`,
+`level-analyst`, `audio-analyst`, `code-reviewer`. Fear, sound quality and
+taste are finally decided by people.

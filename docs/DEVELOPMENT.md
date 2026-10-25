@@ -18,6 +18,19 @@
   invariants, definition of done); `.claude/rules/*.md` hold rules that load
   only when files under their `paths:` are touched. Keep both short, and move
   a rule into a test or lint when it can be checked mechanically.
+* **Skills and reviewers.** `.claude/skills/<name>/SKILL.md` are the
+  content playbooks (zones, props, creatures, anomalies, sounds, pacing,
+  blind visual review, re-recording); `.claude/agents/*.md` are read-only
+  reviewers (`art-critic` with a checked-in memory of people's verdicts in
+  `.claude/agent-memory/art-critic/`, `lore-keeper`, `level-analyst`,
+  `audio-analyst`, `code-reviewer`). `tests/structure.rs` checks that the
+  paths they name exist.
+* **Blind reviews.** `cargo xtask ab prepare --before DIR --after DIR`
+  writes every image pair twice, once in each order, under shuffled names
+  (`target/xtask/ab/pairs/`, key hidden in `target/xtask/ab/.key.json`);
+  `cargo xtask ab score ANSWERS.json --reviewer NAME` combines the two
+  orders per image (a preference needs both; otherwise a tie) and appends
+  the verdicts to `crates/backrooms/tests/review/verdicts.jsonl`.
 * **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
   `cargo xtask hook <event>` (through `.claude/hooks/xtask-hook.sh`, which
   calls the built binary directly so edits never wait on cargo's build lock):

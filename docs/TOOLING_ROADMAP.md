@@ -21,6 +21,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M5 | 1.5 level sweep through the collision geometry (`tests/level_sweep.rs`, proptest), 1.10 structural tests (`tests/structure.rs`) | done; the sweep found that barricades can lock a pickup away (about 1 level in 20), reported as an open issue until `tail_barricades` checks pickups too |
 | M6 | 0.3 `LORE.md` (ported, with delivery channels), `PILLARS.md`, `STYLE.md` (with look bands checked by `cargo xtask shots`); 0.6 content ledger `docs/content.json` (kept in step by `tests/structure.rs`); 0.7 scorecard `docs/QUALITY.md` | done; the bands start wide (one view per purpose) until the range report tightens them |
 | M7 | 1.6 expressive range (`cargo xtask range`: 72 levels measured by `backrooms --metrics`, energy distance + permutation test, spread checks, scatter plots, a MAP-Elites seed archive; `--look` measures 631 zone views per purpose) | done; the `STYLE.md` bands are now measured percentiles, which showed that darkness follows region light rather than purpose |
+| M8 | Phase 2: eight skills (`.claude/skills/`), five read-only reviewers (`.claude/agents/`, `art-critic` with project memory), `cargo xtask ab` (blind pairs in both orders, scoring with ties, a verdict log) | done; `drift-sweep` comes with 5.2 |
 
 ## Contents
 
@@ -345,7 +346,7 @@ the author's reasoning:
 
 | Reviewer | Sees | Checks | Notes |
 |---|---|---|---|
-| `art-critic` | images, the `STYLE.md` rubric, anchor images | look against the rubric | Keeps project memory of human verdicts. Calibrated on the problem screenshots already in the HTML version's folder (`bad_walls.png`, `broken_entity.png`, `light_wrong.png`, `perspective_wrong.png`, `pool_wrong.png`, `pool_blocks.png`, `vending_wrong.png`, `window_wrong.png` and others). They are copied into a labelled set, each with a note saying what was wrong. |
+| `art-critic` | images, the `STYLE.md` rubric, anchor images | look against the rubric | Keeps project memory of human verdicts. Calibrated on labelled pairs rendered offscreen from deliberate regressions. (The problem screenshots in the HTML version's folder show the whole desktop, other windows included, so they are not copied into the repository.) |
 | `lore-keeper` | new text, creatures and anomalies | contradictions with `LORE.md` and `PILLARS.md`, and canon delivered through channels the bible does not allow | Also tracks the variety of the agent's own notes and descriptions: expressive-range analysis applies to generated text too (Boucher et al.), and same-model writers repeat themselves. |
 | `level-analyst` | the range report, reachability and the zone views | explains drift; does not approve it | |
 | `audio-analyst` | loudness timelines, spectra, event logs | numbers only | Never asked whether a sound is good. |

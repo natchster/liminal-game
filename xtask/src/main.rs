@@ -8,7 +8,9 @@
 //! cargo xtask hook <event>      the Claude Code hooks (.claude/settings.json)
 //! cargo xtask shots             golden frames and look statistics
 //! cargo xtask range [--look]    the generator's expressive range against its baseline
+//! cargo xtask ab prepare|score  blind A/B reviews of frames
 //! ```
+mod ab;
 mod bundle;
 mod check;
 mod hook;
@@ -30,6 +32,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   range [--look] [--accept --reason \"…\"]
                              level measures over fixed seeds against
                              crates/backrooms/tests/recorded/range.json
+  ab prepare --before DIR --after DIR [--names …] [--question \"…\"]
+  ab score ANSWERS.json [--reviewer NAME]
+                             blind A/B review pairs (both orders) and their scoring
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -42,6 +47,7 @@ fn main() -> ExitCode {
         Some("hook") => hook::hook(rest),
         Some("shots") => shots::shots(rest),
         Some("range") => range::range(rest),
+        Some("ab") => ab::ab(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);
