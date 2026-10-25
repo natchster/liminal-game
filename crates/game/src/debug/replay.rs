@@ -10,24 +10,157 @@
 use crate::prelude::*;
 use serde_json::{json, Value};
 
+/// One input the window gives the game, in the order it came.
+#[derive(Clone, Debug, PartialEq)]
+pub enum InputEvent {
+    Down(String),
+    Up(String),
+    /// mouse motion while the pointer is locked
+    Look(f64, f64),
+    /// a click on the HUD element of this name (`hud_hit_test`)
+    Click(String),
+    Lock(bool),
+    Blur,
+}
+
 /// One frame's input.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FrameInput {
-    /// keys pressed and released this frame (`KeyW`, `ShiftLeft`, ...)
-    pub down: Vec<String>,
-    pub up: Vec<String>,
-    /// mouse motion (pointer locked)
-    pub look: (f64, f64),
+    pub events: Vec<InputEvent>,
 }
 
 impl FrameInput {
+    pub fn down(&mut self, k: &str) {
+        self.events.push(InputEvent::Down(k.into()));
+    }
+    pub fn up(&mut self, k: &str) {
+        self.events.push(InputEvent::Up(k.into()));
+    }
+    pub fn look(&mut self, dx: f64, dy: f64) {
+        self.events.push(InputEvent::Look(dx, dy));
+    }
     pub fn to_json(&self) -> Value {
-        json!({ "d": self.down, "u": self.up, "l": [self.look.0, self.look.1] })
+        Value::Array(
+            self.events
+                .iter()
+                .map(|e| match e {
+                    InputEvent::Down(k) => json!(["d", k]),
+                    InputEvent::Up(k) => json!(["u", k]),
+                    InputEvent::Look(x, y) => json!(["l", x, y]),
+                    InputEvent::Click(h) => json!(["c", h]),
+                    InputEvent::Lock(on) => json!(["k", on]),
+                    InputEvent::Blur => json!(["b"]),
+                })
+                .collect(),
+        )
     }
     pub fn from_json(v: &Value) -> FrameInput {
-        let list = |k: &str| v[k].as_array().into_iter().flatten().filter_map(|s| s.as_str().map(String::from)).collect();
-        FrameInput { down: list("d"), up: list("u"), look: (v["l"][0].as_f64().unwrap_or(0.0), v["l"][1].as_f64().unwrap_or(0.0)) }
+        let events = v
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|e| {
+                let s = |i: usize| e[i].as_str().unwrap_or("").to_string();
+                Some(match e[0].as_str()? {
+                    "d" => InputEvent::Down(s(1)),
+                    "u" => InputEvent::Up(s(1)),
+                    "l" => InputEvent::Look(e[1].as_f64()?, e[2].as_f64()?),
+                    "c" => InputEvent::Click(s(1)),
+                    "k" => InputEvent::Lock(e[1].as_bool()?),
+                    "b" => InputEvent::Blur,
+                    _ => return None,
+                })
+            })
+            .collect();
+        FrameInput { events }
     }
+}
+
+/// A recorded session: enough to replay it exactly, and what was measured
+/// along the way. Written by the game with `--record FILE` (opt-in; the file
+/// stays on this machine) and played back with `--replay FILE`.
+#[derive(Clone, Debug, Default)]
+pub struct Recording {
+    /// the per-frame random stream's seed, set before the game was made
+    pub native_seed: u64,
+    /// per frame: the time step the window gave, its clock (ms), the input
+    pub frames: Vec<(f64, f64, FrameInput)>,
+    /// once a second of game time: where the player was and how it was going
+    pub rows: Vec<Value>,
+    /// the director's log, level by level
+    pub events: Vec<Value>,
+}
+
+impl Recording {
+    pub fn to_json(&self) -> Value {
+        json!({
+            "version": 1,
+            "native_seed": self.native_seed,
+            "frames": self.frames.iter().map(|(dt, now, i)| json!([dt, now, i.to_json()])).collect::<Vec<_>>(),
+            "rows": self.rows,
+            "events": self.events,
+        })
+    }
+    pub fn from_json(v: &Value) -> Recording {
+        Recording {
+            native_seed: v["native_seed"].as_u64().unwrap_or(0),
+            frames: v["frames"]
+                .as_array()
+                .into_iter()
+                .flatten()
+                .map(|f| (f[0].as_f64().unwrap_or(1.0 / 60.0), f[1].as_f64().unwrap_or(0.0), FrameInput::from_json(&f[2])))
+                .collect(),
+            rows: v["rows"].as_array().cloned().unwrap_or_default(),
+            events: v["events"].as_array().cloned().unwrap_or_default(),
+        }
+    }
+}
+
+/// Records a session as the window feeds the game: call the input methods as
+/// the input arrives and `end_frame` after each `Game::frame`.
+#[derive(Default)]
+pub struct Recorder {
+    pub rec: Recording,
+    pending: FrameInput,
+    next_row: f64,
+    seen: (i32, usize),
+}
+
+impl Recorder {
+    pub fn new(native_seed: u64) -> Recorder {
+        Recorder { rec: Recording { native_seed, ..Default::default() }, ..Default::default() }
+    }
+    pub fn push(&mut self, e: InputEvent) {
+        self.pending.events.push(e);
+    }
+    /// The frame that just ran: its step and clock, then telemetry.
+    pub fn end_frame(&mut self, g: &Game, dt: f64, now_ms: f64) {
+        self.rec.frames.push((dt, now_ms, std::mem::take(&mut self.pending)));
+        if g.perf_t >= self.next_row {
+            self.next_row = g.perf_t + 1.0;
+            let p = &g.player;
+            let r4 = |x: f64| (x * 10000.0).round() / 10000.0;
+            self.rec.rows.push(json!({
+                "t": r4(g.perf_t), "level": g.level_num, "seed": g.run_seed, "state": g.state,
+                "x": r4(p.pos.x), "z": r4(p.pos.z), "phase": format!("{:?}", g.director.phase),
+                "menace": r4(g.director.menace), "sanity": r4(p.sanity), "stamina": r4(p.stamina), "battery": r4(p.battery),
+            }));
+        }
+        if g.level_num != self.seen.0 || g.director.log.len() < self.seen.1 {
+            self.seen = (g.level_num, 0);
+        }
+        for &(t, what) in &g.director.log[self.seen.1..] {
+            self.rec.events.push(json!({ "t": t, "level": g.level_num, "seed": g.run_seed, "what": what }));
+        }
+        self.seen.1 = g.director.log.len();
+    }
+}
+
+/// Run one recorded frame: its input, its clock, its time step.
+pub fn replay_frame(g: &mut Game, dt: f64, now_ms: f64, i: &FrameInput) {
+    g.apply_input(i);
+    g.now_ms = now_ms;
+    g.frame(dt);
 }
 
 /// The state after a frame, hashed by part so a divergence says where it is.
@@ -78,16 +211,17 @@ impl Fnv {
 }
 
 impl Game {
-    /// Feed one frame's input (as the window would).
+    /// Feed one frame's input, in order (as the window would).
     pub fn apply_input(&mut self, i: &FrameInput) {
-        for k in &i.down {
-            self.key_down(k, false);
-        }
-        for k in &i.up {
-            self.key_up(k);
-        }
-        if i.look != (0.0, 0.0) {
-            self.mouse_move(i.look.0, i.look.1);
+        for e in &i.events {
+            match e {
+                InputEvent::Down(k) => self.key_down(k, false),
+                InputEvent::Up(k) => self.key_up(k),
+                InputEvent::Look(x, y) => self.mouse_move(*x, *y),
+                InputEvent::Click(h) => self.click(h),
+                InputEvent::Lock(on) => self.pointer_lock_changed(*on),
+                InputEvent::Blur => self.blur(),
+            }
         }
     }
 

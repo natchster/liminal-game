@@ -41,6 +41,9 @@ impl Phase {
     }
 }
 
+/// The most events one level's log keeps.
+pub const LOG_CAP: usize = 4096;
+
 #[derive(Clone, Debug, Default)]
 pub struct Director {
     pub phase: Phase,
@@ -78,6 +81,10 @@ pub struct Director {
     pub killer: Option<usize>,
     /// Where the stalker was at the last progress check, and the time to the next
     pub stuck_at: Option<(f64, f64)>,
+    /// What happened on this level, by game time: phase changes (`build`,
+    /// `peak`, `relax`, `withdraw`), the stalker's signs (`cue:…`), `sting`,
+    /// `notice`, `strike` and `death`. For run analysis; capped at `LOG_CAP`.
+    pub log: Vec<(f64, &'static str)>,
     pub stuck_t: f64,
 }
 
@@ -90,6 +97,14 @@ fn calm_len(level: i32, first: bool) -> f64 {
 
 impl Game {
     /// Start a level's cycle (called when the level is entered).
+    /// Add an event to the director's log.
+    pub fn director_note(&mut self, what: &'static str) {
+        if self.director.log.len() < LOG_CAP {
+            let t = self.perf_t;
+            self.director.log.push((t, what));
+        }
+    }
+
     pub fn reset_director(&mut self) {
         self.director = Director { t: calm_len(self.level_num, true), ..Default::default() };
         self.amb_hush = 0.0;
@@ -223,6 +238,7 @@ impl Game {
     }
 
     fn enter_peak(&mut self) {
+        self.director_note("peak");
         let d = &mut self.director;
         d.phase = Phase::Peak;
         d.menace = 0.0;
@@ -231,6 +247,7 @@ impl Game {
     }
 
     fn enter_relax(&mut self, withdraw: bool) {
+        self.director_note(if withdraw { "withdraw" } else { "relax" });
         let level = self.level_num;
         let came_through = self.director.phase == Phase::Peak && self.state == "playing";
         let d = &mut self.director;
@@ -290,6 +307,7 @@ impl Game {
     }
 
     fn enter_build(&mut self) {
+        self.director_note("build");
         let pp = self.player.pos;
         // the nearest of the ones that hunt (the Watcher now and then), and
         // not the one sent last time when another can go
@@ -425,19 +443,27 @@ impl Game {
         let sp = self.entities[si].pos();
         // the Watcher makes no sound: only the lights over it tell
         if self.entities[si].kind == "watcher" && ds > 9.0 {
+            self.director_note("cue:lights");
             self.flicker_near(sp.x, sp.z);
             return;
         }
         if ds > 20.0 {
+            self.director_note("cue:steps");
             self.entity_steps(si, irand(3, 5) as i32, 0.9);
         } else if ds > 9.0 {
             self.flicker_near(sp.x, sp.z);
             if rnd() < 0.6 {
+                self.director_note("cue:lights+steps");
                 self.entity_steps(si, 2, 0.6);
+            } else {
+                self.director_note("cue:lights");
             }
         } else if rnd() < 0.5 {
             // close: one sound, and then nothing
+            self.director_note("cue:one step");
             self.entity_steps(si, 1, 0.45);
+        } else {
+            self.director_note("cue:silence");
         }
     }
 
@@ -485,6 +511,7 @@ impl Game {
     /// A dissonant hit: low clustered strings, a sub drop and a scrape of
     /// high noise, never the same chord twice in a row.
     pub fn dread_sting(&mut self, intensity: f64) {
+        self.director_note("sting");
         if self.director.sting_cd > 0.0 {
             return;
         }
@@ -503,6 +530,7 @@ impl Game {
     /// Creature `ei` has found you: it stops dead with its head snapped to
     /// you, screams from where it stands, and then it comes.
     pub fn entity_notice(&mut self, ei: usize, d: f64) {
+        self.director_note("notice");
         let pp = self.player.pos;
         let pos = self.entities[ei].pos();
         let kind = self.entities[ei].kind.clone();
@@ -698,6 +726,7 @@ impl Game {
     /// The Watcher the director sent has touched you: that was its moment.
     /// It falls back and keeps away while the place settles.
     pub fn director_strike(&mut self, ei: usize) {
+        self.director_note("strike");
         if self.director.stalker != Some(ei) {
             return;
         }

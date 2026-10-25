@@ -3,7 +3,7 @@
 //! differs and in which part (player, creatures, director, world), the frame
 //! where a nondeterminism entered — instead of a fixture failing three
 //! changes later. Recordings are written to `target/replays/` to inspect.
-use game::debug::replay::{FrameInput, StateHash};
+use game::debug::replay::{replay_frame, FrameInput, Recorder, Recording, StateHash};
 use game::Game;
 use serde_json::json;
 
@@ -74,7 +74,7 @@ fn bot_inputs(frames: usize, seed: u32) -> Vec<FrameInput> {
     for (k, f) in out.iter_mut().enumerate() {
         if k % 30 == 0 {
             for h in held.drain(..) {
-                f.up.push(h.to_string());
+                f.up(h);
             }
             let r = next();
             let keys: &[&str] = if r < 0.55 {
@@ -89,15 +89,16 @@ fn bot_inputs(frames: usize, seed: u32) -> Vec<FrameInput> {
                 &["KeyW", "ControlLeft"]
             };
             for key in keys {
-                f.down.push(key.to_string());
+                f.down(key);
                 held.push(key);
             }
             if next() < 0.15 {
-                f.down.push("KeyF".into());
-                f.up.push("KeyF".into());
+                f.down("KeyF");
+                f.up("KeyF");
             }
         }
-        f.look = ((next() - 0.5) * 18.0, (next() - 0.5) * 2.0);
+        let (dx, dy) = ((next() - 0.5) * 18.0, (next() - 0.5) * 2.0);
+        f.look(dx, dy);
     }
     out
 }
@@ -150,5 +151,82 @@ fn a_replay_reproduces_the_run() {
         let moved: std::collections::HashSet<u64> = recorded.iter().map(|h| h.player).collect();
         assert!(moved.len() > recorded.len() / 4, "seed {seed} L{level}: the bot barely moved ({} distinct states)", moved.len());
         println!("seed {seed} L{level}: {} frames replayed identically ({} distinct player states)", recorded.len(), moved.len());
+    }
+}
+
+/// A session recorded the way the game records one (`--record`: a varying
+/// time step from the window, its clock, telemetry, the director's events)
+/// survives its file and replays to the same states.
+#[test]
+fn a_recording_survives_its_file_and_replays() {
+    let (seed, level) = (77u32, 3);
+    let inputs = bot_inputs(1800, seed);
+    let native = 0xC0FFEE;
+    // the window's frame times are not even
+    let dts: Vec<f64> = (0..inputs.len()).map(|k| 1.0 / 60.0 * (1.0 + 0.3 * ((k * 7919 % 13) as f64 / 13.0 - 0.5))).collect();
+    let (rec, recorded) = {
+        let (inputs, dts) = (inputs.clone(), dts.clone());
+        std::thread::Builder::new()
+            .stack_size(256 << 20)
+            .spawn(move || {
+                game::base::rng::seed_native(native);
+                let mut g = Game::new_bare();
+                register_placers(&mut g.placers);
+                g.launch_flags = format!("seed={seed}&level={level}&nosound");
+                g.boot();
+                g.start_new_game();
+                g.state = "playing".into();
+                g.hide_overlay();
+                g.pointer_locked = true;
+                let mut r = Recorder::new(native);
+                let (mut now, mut hashes) = (0.0, vec![]);
+                for (i, dt) in inputs.iter().zip(&dts) {
+                    for e in &i.events {
+                        r.push(e.clone());
+                    }
+                    g.apply_input(i);
+                    now += dt * 1000.0;
+                    g.now_ms = now;
+                    g.frame(*dt);
+                    r.end_frame(&g, *dt, now);
+                    hashes.push(g.state_hash());
+                }
+                (r.rec.to_json().to_string(), hashes)
+            })
+            .unwrap()
+            .join()
+            .unwrap()
+    };
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/replays");
+    std::fs::create_dir_all(&dir).unwrap();
+    // a sample for `cargo xtask heatmap` and `backrooms --replay`
+    std::fs::write(dir.join(format!("recorded_{seed}_L{level}.json")), &rec).unwrap();
+    let rec = Recording::from_json(&serde_json::from_str(&rec).unwrap());
+    assert!(rec.rows.len() >= 25, "a telemetry row a second ({} rows)", rec.rows.len());
+    let replayed = std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(move || {
+            game::base::rng::seed_native(rec.native_seed);
+            let mut g = Game::new_bare();
+            register_placers(&mut g.placers);
+            g.launch_flags = format!("seed={seed}&level={level}&nosound");
+            g.boot();
+            g.start_new_game();
+            g.state = "playing".into();
+            g.hide_overlay();
+            g.pointer_locked = true;
+            rec.frames
+                .iter()
+                .map(|(dt, now, i)| {
+                    replay_frame(&mut g, *dt, *now, i);
+                    g.state_hash()
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+    if let Some(k) = (0..recorded.len()).find(|&k| recorded[k] != replayed[k]) {
+        panic!("the recording replays differently from frame {k} in {:?}", recorded[k].diff(&replayed[k]));
     }
 }

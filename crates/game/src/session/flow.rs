@@ -334,6 +334,7 @@ impl Game {
         if self.state != "playing" {
             return;
         }
+        self.director_note("death");
         if self.god_mode {
             self.god_deaths += 1.0;
             *self.god_causes.entry(cause.to_string()).or_insert(0.0) += 1.0;

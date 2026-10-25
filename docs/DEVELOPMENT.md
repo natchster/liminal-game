@@ -262,6 +262,27 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   nondeterminism shows at the frame it enters. Each run gets its own thread,
   because the caches and the per-frame random stream are thread-local.
 
+## Personas, run analysis, telemetry
+
+* `crates/backrooms/tests/personas.rs` plays three levels with death on as
+  an explorer (heads for space it has not seen; coverage heatmaps in
+  `target/personas/`), a rusher (sprints for the exit) and a hider
+  (crouches in the darkest dead end), walking a 0.25 m grid of where a body
+  fits. Oracles: never outside the world, never stuck over 12 s, the rusher
+  reaches the exit, no death in the first 20 s. Then the director's log
+  (`Director::log`: phases, the stalker's signs, stings, notices, strikes,
+  deaths) of every run is held to the shape of the fear: a peak at most
+  60 s, a relief at least 8 s, the same sign at most 8 times in a row,
+  signs followed by a chase between 5% and 95% of the time, at most 6
+  stings a level. The report is `target/personas/report.md`.
+* `backrooms --record FILE` records a session (inputs in order, the
+  window's frame times and clock, a telemetry row a second, the director's
+  events) on this machine only; `backrooms --replay FILE` plays it back
+  exactly and takes tension marks (↑ / ↓) into `<FILE>.trace.json`;
+  `cargo xtask heatmap FILE…` draws where players went. See
+  `docs/PLAYTEST.md`. `tests/replay.rs` proves a recording survives its file
+  and replays to the same states.
+
 ## Profiling and debugging
 
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`

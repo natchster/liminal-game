@@ -25,6 +25,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M9 | 4.4 playtest kit (`docs/PLAYTEST.md`, `docs/playtests/TEMPLATE.md`); 4.5 calibration (`cargo xtask calibrate`, known-answer pairs, accuracy and Cohen's kappa logged) | done; first results: kappa 1.00 on strong damage, 0.45 on mild (mild over-saturation 0/3); human verdicts still to come |
 | M10 | 3.1 Blender sources in `assets/src/` and `cargo xtask assets` (rebuild + compare, `--write`, `import-js`); 3.2 `crates/game/assets/MANIFEST.json` with a licence/generator allowlist; 1.4 mesh lint and parts table (`crates/game/tests/asset_lint.rs`) | done for props; found and fixed an unrepeatable build (`noise_vector`); 123 parts frozen; creatures need the HTML version's rig dumps |
 | M11 | 1.8 `cargo xtask bench` (`backrooms --bench`, budgets in `docs/PERF.md`, `perf/history.csv` with change-point detection); 1.9 replays (`game::debug::replay`, `tests/replay.rs`: per-frame state hashes, first divergent frame) | done; dhat heap tests left out (the process's peak memory is not a gate yet) |
+| M12 | 4.1 personas (`tests/personas.rs`: explorer, rusher, hider; shared oracles; coverage heatmaps); 4.2 run-log analysis (`Director::log`; peak, relief, sign repetition, sign→chase share, stings); 4.3 telemetry (`--record`, `--replay` with tension marks, `cargo xtask heatmap`) | done; found the director repeating one distant sign up to 7 times in a row (open in `QUALITY.md`) |
 
 ## Contents
 

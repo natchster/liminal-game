@@ -12,6 +12,7 @@
 //! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
 //! cargo xtask assets props|import-js|fingerprint   rebuild and check the embedded meshes
 //! cargo xtask bench [--no-record]   performance against budgets and its history
+//! cargo xtask heatmap REC.json…    where players went, from recorded sessions
 //! ```
 mod ab;
 mod assets;
@@ -19,6 +20,7 @@ mod bench;
 mod bundle;
 mod calibrate;
 mod check;
+mod heatmap;
 mod hook;
 mod look;
 mod range;
@@ -49,6 +51,7 @@ const USAGE: &str = "usage: cargo xtask <task>
                              HTML version's modules) and compare with crates/game/assets
   bench [--no-record]        frame, build and first-frame times against docs/PERF.md
                              and perf/history.csv (change points)
+  heatmap REC.json …         heatmaps of recorded sessions (backrooms --record)
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -65,6 +68,7 @@ fn main() -> ExitCode {
         Some("calibrate") => calibrate::calibrate(rest),
         Some("assets") => assets::assets(rest),
         Some("bench") => bench::bench(rest),
+        Some("heatmap") => heatmap::heatmap(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

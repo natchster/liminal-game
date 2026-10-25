@@ -34,6 +34,8 @@ const FAST_SKIP: &[&str] = &[
     "the_mix_holds_its_loudness_and_varies",
     "generated_levels_are_walkable_and_repeatable",
     "a_replay_reproduces_the_run",
+    "a_recording_survives_its_file_and_replays",
+    "personas_play_and_the_fear_has_a_shape",
 ];
 
 struct Step {

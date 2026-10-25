@@ -15,7 +15,11 @@ adding players to the same round.
 
 ## Before the session
 
-1. Build the version under test: `cargo xtask bundle` (→ `dist/Backrooms.app`).
+1. Build the version under test: `cargo xtask bundle` (→ `dist/Backrooms.app`),
+   and start it with `dist/backrooms --record playtests/<date>-<alias>.rec.json`
+   (with the player's consent): the session's inputs, a telemetry row a
+   second and the director's events, written on this machine only. A
+   recorded session starts fresh (no saved progress), like a new install.
    For an A/B round, build both versions and label them neutrally
    (`build-1`, `build-2`); the player never learns which is new.
 2. Decide the **focus** (one or two questions, e.g. "does the Hound's
@@ -38,11 +42,12 @@ adding players to the same round.
    for over two minutes.
 3. **Debrief** with the questions below. Ask, don't lead; write down their
    words.
-4. **Tension trace** (RankTrace): replay the session's recording (screen
-   recording with the player's consent, or the game's own replay once
-   roadmap 1.9 / 4.3 exist) and have the player mark, as it plays, when
-   tension went up and when it went down. Only the *direction* of change
-   matters; it predicted skin-conductance responses better than ratings.
+4. **Tension trace** (RankTrace): play the session back with
+   `dist/backrooms --replay playtests/<file>.rec.json` and have the player
+   press **↑** when tension rises and **↓** when it falls, as it plays (Escape
+   stops). The marks go to `<file>.rec.json.trace.json`. Only the *direction*
+   of change matters; it predicted skin-conductance responses better than
+   ratings.
 
 ### Debrief questions
 
@@ -75,6 +80,11 @@ fairer?"), not to rate each one. Score the rankings with
 does not flip with the order.
 
 ## After the session
+
+0. **Maps:** `cargo xtask heatmap playtests/*.rec.json` draws, per level,
+   where the players spent their time (yellow) and where the chases were
+   (red), with the deaths and peaks per level; a round's sessions add up.
+
 
 1. Fill in the session file the same day: observations, answers, the
    tension trace (times of up/down), deaths and quits.

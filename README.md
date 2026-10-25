@@ -64,6 +64,8 @@ slower to run).
 | `--showcase smiler[:dist] [--death]` | With `--screenshot`: keep a creature (`smiler`, `hound`, `watcher`) in front of the camera; `--death` lets it kill you just before the shot |
 | `--dump-level DIR --seed S --levels 1,2,3 [--screenshot x]` | Headless: start a run like New Game and write each level's build trace, grid, props and objects as JSON (and the spawn view as PNG) |
 | `--scale 2` | Headless modes: render at this backing scale (2 = Retina) |
+| `--record FILE` | Play and record the session (inputs, telemetry, the director's events) to FILE, on this machine only (playtests) |
+| `--replay FILE` | Play a recorded session back; the Up / Down arrows mark tension rising / falling (`<FILE>.trace.json`), Escape stops |
 | `--bench FILE --seed S --levels 1,2,3 [--bench-frames N]` | Headless: time each level's build, first frame, and the CPU update and GPU time per frame along a fixed path (used by `cargo xtask bench`) |
 | `--metrics FILE --seed S --levels 1,2,3` | Headless: build the levels as a run would and write their expressive-range measures as JSON (used by `cargo xtask range`) |
 | `--fresh` | Headless modes: ignore the saved settings and progress, and fix the per-frame randomness (the same frame every time) |

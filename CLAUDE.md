@@ -39,6 +39,7 @@ cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2 --screenshot x 
 cargo run --release -- --screenshot out.png --seed 4242 --play --showcase hound:3 [--death]
 cargo test --release -p backrooms --test listen -- --nocapture    # WAVs + loudness PNGs in target/listen/
 cargo test --release -p backrooms --test pacing -- --nocapture    # director phases with a cautious bot
+cargo test --release -p backrooms --test personas -- --nocapture  # explorer, rusher, hider; the shape of the fear
 ```
 
 Re-recording reference data (only after an intended change; say why in the commit):
