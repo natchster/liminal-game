@@ -67,6 +67,8 @@ serde_json = { version = "1", features = ["float_roundtrip"] }
 nv-flip = "0.1"
 png = "0.17"
 ebur128 = "0.1"
+# 1.8+ needs a newer rustc than the workspace MSRV
+proptest = { version = "~1.7", default-features = false, features = ["std"] }
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"

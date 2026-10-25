@@ -122,6 +122,26 @@ Levels must be a pure function of `(run_seed, level)`:
   change affects, then review the diff:
   `cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord`
   and `cargo test --release -p backrooms --test reference_levels -- --ignored rerecord`.
+* `crates/backrooms/tests/level_sweep.rs` checks generated levels through
+  the real collision geometry (a few fixed seeds, then 12 proptest cases;
+  `SWEEP_CASES=500` for a long sweep): spawn is clear, the exit can be walked
+  to, every open tile is reachable by a player-sized body (a flood fill over
+  a 0.25 m grid with `circle_hits_wall`) unless a barricade closes it off (by
+  design: barricades keep only spawn → exit solvable, and about 6 levels in
+  20 have rooms behind them), every pickup can be reached, and a level built
+  after another is the same as one built alone. Failing cases are saved in
+  `tests/level_sweep.proptest-regressions` (commit it). The ignored helpers
+  `census` (pocket statistics over fixed seeds, or `SEED=… LEVEL=…`) and
+  `show_pocket` (an ASCII map around a tile) help when it fails. **Open
+  issue:** a barricade can lock a pickup away (about 1 level in 20); the sweep
+  reports these while `PICKUPS_BEHIND_BARRICADES` is true and fails on
+  pickups lost any other way.
+* `crates/backrooms/tests/structure.rs` checks the conventions mechanically
+  and says how to fix a failure: the engine never depends on the game and
+  the game on no platform crate; level-build code takes no clock or foreign
+  randomness; every themed placer has a theme; every creature has goldens
+  and behaviour tests; no source file passes 2,400 lines; paths named in the
+  docs exist; the fast check skips only tests that exist.
 * `crates/game/tests/zone_purpose.rs` checks the zone purposes and regions
   as properties (one purpose per area, themed placers only see welcoming
   floor, regions never cut through a room, determinism).

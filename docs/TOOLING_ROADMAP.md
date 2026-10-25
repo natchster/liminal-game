@@ -18,6 +18,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M2 | 0.5 hooks: refuse parent-folder and fixture edits, rustfmt after edits, the fast check on stop, progress after compaction | done |
 | M3 | 1.1 golden frames (`cargo xtask shots`, 31 frames, exact then ꟻLIP), 1.2 look statistics (per frame and set-wide anchors), 1.3 material lint (`tests/materials.rs`); `--fresh` reproducible headless renders | done; prop turntable sheets move to 3.1, goldens are kept in the repository at 480×300 (no Git LFS here) |
 | M4 | 1.7 audio gates (`tests/loudness.rs`: EBU R128 integrated loudness and range against a recording, −1 dBTP true peak, one-shot repetition) | done; the 30-minute whole-mix measurement is left for when the mix gets music or voices |
+| M5 | 1.5 level sweep through the collision geometry (`tests/level_sweep.rs`, proptest), 1.10 structural tests (`tests/structure.rs`) | done; the sweep found that barricades can lock a pickup away (about 1 level in 20), reported as an open issue until `tail_barricades` checks pickups too |
 
 ## Contents
 
