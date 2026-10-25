@@ -23,6 +23,7 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M7 | 1.6 expressive range (`cargo xtask range`: 72 levels measured by `backrooms --metrics`, energy distance + permutation test, spread checks, scatter plots, a MAP-Elites seed archive; `--look` measures 631 zone views per purpose) | done; the `STYLE.md` bands are now measured percentiles, which showed that darkness follows region light rather than purpose |
 | M8 | Phase 2: eight skills (`.claude/skills/`), five read-only reviewers (`.claude/agents/`, `art-critic` with project memory), `cargo xtask ab` (blind pairs in both orders, scoring with ties, a verdict log) | done; `drift-sweep` comes with 5.2 |
 | M9 | 4.4 playtest kit (`docs/PLAYTEST.md`, `docs/playtests/TEMPLATE.md`); 4.5 calibration (`cargo xtask calibrate`, known-answer pairs, accuracy and Cohen's kappa logged) | done; first results: kappa 1.00 on strong damage, 0.45 on mild (mild over-saturation 0/3); human verdicts still to come |
+| M10 | 3.1 Blender sources in `assets/src/` and `cargo xtask assets` (rebuild + compare, `--write`, `import-js`); 3.2 `crates/game/assets/MANIFEST.json` with a licence/generator allowlist; 1.4 mesh lint and parts table (`crates/game/tests/asset_lint.rs`) | done for props; found and fixed an unrepeatable build (`noise_vector`); 123 parts frozen; creatures need the HTML version's rig dumps |
 
 ## Contents
 

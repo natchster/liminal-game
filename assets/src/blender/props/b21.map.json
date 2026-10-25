@@ -1,0 +1,607 @@
+[
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(trayR, trayR, 0.020, 14)",
+  "part": "VictorianHallStands__tray"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.TorusGeometry(trayR, 0.006, 5, 14)",
+  "part": "VictorianHallStands__rim"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.020, 0.030, postH, 8)",
+  "part": "VictorianHallStands__post"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.TorusGeometry(0.024, 0.005, 5, 12)",
+  "part": "VictorianHallStands__ring"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.055, 4)",
+  "part": "VictorianHallStands__arm"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.SphereGeometry(0.008, 6, 5)",
+  "part": "VictorianHallStands__cap"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.SphereGeometry(0.024, 8, 6)",
+  "part": "VictorianHallStands__finial"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.TorusGeometry(mirrorR, 0.008, 5, 16)",
+  "part": "VictorianHallStands__mirror"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.75, 4)",
+  "part": "VictorianHallStands__umbrella"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.TorusGeometry(0.018, 0.004, 4, 8, Math.PI)",
+  "part": "VictorianHallStands__crook"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.060, 0.058, 0.090, 10)",
+  "part": "VictorianHallStands__topHat"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.080, 0.080, 0.008, 12)",
+  "part": "VictorianHallStands__topHatBrim"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.SphereGeometry(0.055, 10, 6, 0, Math.PI * 2, 0, Math.PI * 0.55)",
+  "part": "VictorianHallStands__bowler"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.CylinderGeometry(0.065, 0.065, 0.006, 12)",
+  "part": "VictorianHallStands__bowlerBrim"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.BoxGeometry(0.005, 0.35, 0.045)",
+  "part": "VictorianHallStands__scarf"
+ },
+ {
+  "placer": "placeVictorianHallStands",
+  "ctor": "new THREE.BoxGeometry(0.005, 0.010, 0.008)",
+  "part": "VictorianHallStands__fringe"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(bwidth, bheight, 0.020)",
+  "part": "ServantHallBellRacks__board"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(bwidth + 0.020, 0.020, 0.030)",
+  "part": "ServantHallBellRacks__topTrim"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(bwidth + 0.020, 0.015, 0.030)",
+  "part": "ServantHallBellRacks__botTrim"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(bwidth * 0.4, 0.020, 0.001)",
+  "part": "ServantHallBellRacks__title"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.TorusGeometry(0.010, 0.0008, 3, 5, Math.PI / 3)",
+  "part": "ServantHallBellRacks__spring"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.CylinderGeometry(0.014, 0.010, 0.024, 8, 1, true)",
+  "part": "ServantHallBellRacks__bell"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.003, 8)",
+  "part": "ServantHallBellRacks__cap"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(0.050, 0.020, 0.001)",
+  "part": "ServantHallBellRacks__label"
+ },
+ {
+  "placer": "placeServantHallBellRacks",
+  "ctor": "new THREE.BoxGeometry(0.055, 0.016, 0.001)",
+  "part": "ServantHallBellRacks__roomPlate"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.BoxGeometry(0.11, 0.010, 0.09)",
+  "part": "CastIronDoorStops__base"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.030, 8, 6)",
+  "part": "CastIronDoorStops__dogBody"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.022, 8, 6)",
+  "part": "CastIronDoorStops__dogHead"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.ConeGeometry(0.010, 0.018, 6)",
+  "part": "CastIronDoorStops__dogMuzzle"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.008, 6, 5)",
+  "part": "CastIronDoorStops__dogEar"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.020, 5)",
+  "part": "CastIronDoorStops__dogLeg"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.020, 4)",
+  "part": "CastIronDoorStops__dogTail"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.BoxGeometry(0.075, 0.030, 0.038)",
+  "part": "CastIronDoorStops__bootFoot"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.018, 8, 6)",
+  "part": "CastIronDoorStops__bootToe"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.BoxGeometry(0.018, 0.014, 0.030)",
+  "part": "CastIronDoorStops__bootHeel"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.BoxGeometry(0.038, 0.075, 0.038)",
+  "part": "CastIronDoorStops__bootShaft"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.CylinderGeometry(0.0015, 0.0015, 0.006, 4)",
+  "part": "CastIronDoorStops__lace"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.TorusGeometry(0.015, 0.003, 4, 10)",
+  "part": "CastIronDoorStops__bootCuff"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.035, 10, 7)",
+  "part": "CastIronDoorStops__owlBody"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.024, 10, 7)",
+  "part": "CastIronDoorStops__owlHead"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.TorusGeometry(0.008, 0.002, 4, 10)",
+  "part": "CastIronDoorStops__owlEyeRing"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.ConeGeometry(0.004, 0.008, 4)",
+  "part": "CastIronDoorStops__owlBeak"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.SphereGeometry(0.014, 6, 5)",
+  "part": "CastIronDoorStops__owlWing"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.008, 5)",
+  "part": "CastIronDoorStops__owlFoot"
+ },
+ {
+  "placer": "placeCastIronDoorStops",
+  "ctor": "new THREE.ConeGeometry(0.004, 0.010, 4)",
+  "part": "CastIronDoorStops__owlTuft"
+ },
+ {
+  "placer": "placeCorrespondenceCards",
+  "ctor": "new THREE.BoxGeometry(barW, barH, ct)",
+  "part": "CorrespondenceCards__bar"
+ },
+ {
+  "placer": "placeHeraldicCrests",
+  "ctor": "new THREE.BoxGeometry(barW, barH, ct)",
+  "part": "HeraldicCrests__bar"
+ },
+ {
+  "placer": "placeEmptyPaintingOutlines",
+  "ctor": "new THREE.CylinderGeometry(0.0012, 0.0012, 0.006, 4)",
+  "part": "EmptyPaintingOutlines__nail"
+ },
+ {
+  "placer": "placeEmptyPaintingOutlines",
+  "ctor": "new THREE.TorusGeometry(0.003, 0.0008, 3, 6, Math.PI)",
+  "part": "EmptyPaintingOutlines__hook"
+ },
+ {
+  "placer": "placeEmptyPaintingOutlines",
+  "ctor": "new THREE.CylinderGeometry(0.0008, 0.0008, 0.06, 3)",
+  "part": "EmptyPaintingOutlines__wire"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(standR, standR, 0.014, 14)",
+  "part": "ChessSideStands__top"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.020, 0.030, standH * 0.75, 8)",
+  "part": "ChessSideStands__pedestal"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.015, legEnd, 5)",
+  "part": "ChessSideStands__leg"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.015, 0.018, 0.008, 8)",
+  "part": "ChessSideStands__foot"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.BoxGeometry(boardSize + 0.020, 0.010, boardSize + 0.020)",
+  "part": "ChessSideStands__board"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.011, 0.004, 6)",
+  "part": "ChessSideStands__base"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.008, 0.018, 5)",
+  "part": "ChessSideStands__pawnBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.SphereGeometry(0.006, 5, 4)",
+  "part": "ChessSideStands__pawnHead"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.028, 6)",
+  "part": "ChessSideStands__rookBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.BoxGeometry(0.003, 0.004, 0.003)",
+  "part": "ChessSideStands__rookTooth"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.008, 0.020, 5)",
+  "part": "ChessSideStands__knightBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.BoxGeometry(0.008, 0.014, 0.014)",
+  "part": "ChessSideStands__knightHead"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.005, 0.008, 0.026, 6)",
+  "part": "ChessSideStands__bishopBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.SphereGeometry(0.006, 6, 5)",
+  "part": "ChessSideStands__bishopHead"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.007, 0.009, 0.030, 6)",
+  "part": "ChessSideStands__royalBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.010, 0.032, 6)",
+  "part": "ChessSideStands__royalBody"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.008, 0.006, 6)",
+  "part": "ChessSideStands__coronet"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.011, 0.009, 0.006, 6)",
+  "part": "ChessSideStands__coronet"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.ConeGeometry(0.002, 0.005, 4)",
+  "part": "ChessSideStands__point"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.BoxGeometry(0.002, 0.010, 0.002)",
+  "part": "ChessSideStands__crossV"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.BoxGeometry(0.006, 0.002, 0.002)",
+  "part": "ChessSideStands__crossH"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.025, 0.025, 0.004, 8)",
+  "part": "ChessSideStands__tray"
+ },
+ {
+  "placer": "placeChessSideStands",
+  "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.055, 6)",
+  "part": "ChessSideStands__cigar"
+ },
+ {
+  "placer": "placeMiniaturePortraitClusters",
+  "ctor": "new THREE.TorusGeometry(miniR, 0.006, 5, 16)",
+  "part": "MiniaturePortraitClusters__frame"
+ },
+ {
+  "placer": "placeMiniaturePortraitClusters",
+  "ctor": "new THREE.TorusGeometry(0.003, 0.001, 3, 6, Math.PI)",
+  "part": "MiniaturePortraitClusters__hook"
+ },
+ {
+  "placer": "placeMiniaturePortraitClusters",
+  "ctor": "new THREE.BoxGeometry(0.15, 0.004, 0.003)",
+  "part": "MiniaturePortraitClusters__decor"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.CylinderGeometry(vaseBaseR, vaseBaseR * 0.9, 0.012, 12)",
+  "part": "PeacockFeatherVases__base"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.CylinderGeometry(vaseHipR, vaseBaseR, vaseH * 0.55, 12)",
+  "part": "PeacockFeatherVases__lower"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.CylinderGeometry(vaseNeckR, vaseHipR, vaseH * 0.45, 12)",
+  "part": "PeacockFeatherVases__upper"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.TorusGeometry(vaseNeckR, 0.006, 5, 14)",
+  "part": "PeacockFeatherVases__rim"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.TorusGeometry(vaseHipR * 0.9, 0.002, 3, 14)",
+  "part": "PeacockFeatherVases__trim"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.CylinderGeometry(0.001, 0.0015, shaftLen, 4)",
+  "part": "PeacockFeatherVases__shaft"
+ },
+ {
+  "placer": "placePeacockFeatherVases",
+  "ctor": "new THREE.SphereGeometry(0.010 + t * 0.008, 5, 4)",
+  "part": "PeacockFeatherVases__barb"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.014, legH, 5)",
+  "part": "BellowsCameras__leg"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.012, 0.008, 6)",
+  "part": "BellowsCameras__foot"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.14, 3)",
+  "part": "BellowsCameras__brace"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.SphereGeometry(0.020, 8, 6)",
+  "part": "BellowsCameras__hub"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.BoxGeometry(0.16, 0.14, 0.020)",
+  "part": "BellowsCameras__rearPlate"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.055, 0.055, bellowsLen, 8)",
+  "part": "BellowsCameras__bellows"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.TorusGeometry(0.056, 0.003, 3, 12)",
+  "part": "BellowsCameras__ridge"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.BoxGeometry(0.14, 0.12, 0.014)",
+  "part": "BellowsCameras__frontBoard"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.028, 0.028, 0.045, 12)",
+  "part": "BellowsCameras__lens"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.008, 6)",
+  "part": "BellowsCameras__knob"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.006, 6)",
+  "part": "BellowsCameras__knob"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.BoxGeometry(0.20, 0.008, 0.12)",
+  "part": "BellowsCameras__clothTop"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.BoxGeometry(0.008, 0.20, 0.10)",
+  "part": "BellowsCameras__clothSide"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.BoxGeometry(0.20, 0.15, 0.008)",
+  "part": "BellowsCameras__clothBack"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.003, 0.003, 0.25, 4)",
+  "part": "BellowsCameras__flashRod"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.003, 0.003, 0.08, 4)",
+  "part": "BellowsCameras__tBar"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.CylinderGeometry(0.020, 0.015, 0.008, 8)",
+  "part": "BellowsCameras__flashPan"
+ },
+ {
+  "placer": "placeBellowsCameras",
+  "ctor": "new THREE.SphereGeometry(0.008, 6, 5)",
+  "part": "BellowsCameras__powder"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.BoxGeometry(0.045, 0.070, 0.006)",
+  "part": "BrassSconces__plate"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.003, 4)",
+  "part": "BrassSconces__screw"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.045, 5)",
+  "part": "BrassSconces__arm"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.SphereGeometry(0.010, 6, 5)",
+  "part": "BrassSconces__knop"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.045, 5)",
+  "part": "BrassSconces__arm"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.025, 0.020, 0.010, 12)",
+  "part": "BrassSconces__dripCup"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.TorusGeometry(0.023, 0.002, 3, 12)",
+  "part": "BrassSconces__dripRim"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.012, 0.013, candleH, 8)",
+  "part": "BrassSconces__candle"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.0008, 0.0008, 0.004, 3)",
+  "part": "BrassSconces__wick"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.CylinderGeometry(0.001, 0.002, 0.014, 4)",
+  "part": "BrassSconces__wax"
+ },
+ {
+  "placer": "placeBrassSconces",
+  "ctor": "new THREE.TorusGeometry(0.004, 0.001, 3, 6)",
+  "part": "BrassSconces__link"
+ },
+ {
+  "placer": "placeOrnateWallMirrors",
+  "ctor": "new THREE.BoxGeometry(fw, fh, t)",
+  "part": "OrnateWallMirrors__bar"
+ },
+ {
+  "placer": "placeOrnateWallMirrors",
+  "ctor": "new THREE.SphereGeometry(0.020, 8, 6)",
+  "part": "OrnateWallMirrors__ornament"
+ },
+ {
+  "placer": "placeOrnateWallMirrors",
+  "ctor": "new THREE.ConeGeometry(0.020, 0.045, 6)",
+  "part": "OrnateWallMirrors__crown"
+ },
+ {
+  "placer": "placeSmallPocketWatches",
+  "ctor": "new THREE.CylinderGeometry(0.028, 0.028, 0.010, 14)",
+  "part": "SmallPocketWatches__case"
+ },
+ {
+  "placer": "placeSmallPocketWatches",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.006, 6)",
+  "part": "SmallPocketWatches__crown"
+ },
+ {
+  "placer": "placeSmallPocketWatches",
+  "ctor": "new THREE.TorusGeometry(0.005, 0.001, 4, 8)",
+  "part": "SmallPocketWatches__link"
+ },
+ {
+  "placer": "placeOpenJournals",
+  "ctor": "new THREE.BoxGeometry(bookW + 0.008, 0.005, bookH + 0.008)",
+  "part": "OpenJournals__cover"
+ },
+ {
+  "placer": "placeOpenJournals",
+  "ctor": "new THREE.CylinderGeometry(0.001, 0.001, 0.16, 4)",
+  "part": "OpenJournals__quill"
+ },
+ {
+  "placer": "placeParchmentScrolls",
+  "ctor": "new THREE.CylinderGeometry(scrollR, scrollR, scrollLen, 12)",
+  "part": "ParchmentScrolls__roll"
+ }
+]

@@ -275,3 +275,56 @@ fn the_content_ledger_covers_the_content() {
     }
     assert!(dangling.is_empty(), "docs/content.json names checks that do not exist: {dangling:?} — fix the name or add the check");
 }
+
+/// FNV-1a 64, as `cargo xtask assets` writes it into the manifest.
+fn fnv64(bytes: &[u8]) -> String {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in bytes {
+        h ^= *b as u64;
+        h = h.wrapping_mul(0x0000_0100_0000_01b3);
+    }
+    format!("{h:016x}")
+}
+
+#[test]
+fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
+    let m: serde_json::Value =
+        serde_json::from_str(&read("crates/game/assets/MANIFEST.json")).expect("crates/game/assets/MANIFEST.json is JSON");
+    let allowed = |k: &str| -> Vec<String> { m[k].as_array().into_iter().flatten().filter_map(|v| v.as_str().map(String::from)).collect() };
+    let (licences, generators, models) = (allowed("allowed_licences"), allowed("allowed_generators"), allowed("allowed_models"));
+    let mut problems = vec![];
+    for e in std::fs::read_dir(root().join("crates/game/assets")).unwrap().flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        if !name.ends_with(".bin") {
+            continue;
+        }
+        let entry = &m["files"][&name];
+        if entry.is_null() {
+            problems.push(format!("{name}: no entry in MANIFEST.json (where it comes from, its licence, its generator)"));
+            continue;
+        }
+        let fp = fnv64(&std::fs::read(e.path()).unwrap());
+        if entry["fingerprint"].as_str() != Some(fp.as_str()) {
+            problems.push(format!("{name}: the file changed but its manifest entry did not (fingerprint {fp}); rebuild it with `cargo xtask assets …`, which records it, and say what changed"));
+        }
+        let lic = entry["licence"].as_str().unwrap_or("");
+        if !licences.iter().any(|l| l == lic) {
+            problems.push(format!("{name}: licence \"{lic}\" is not in allowed_licences"));
+        }
+        let gen = entry["generator"].as_str().unwrap_or("");
+        if !generators.iter().any(|g| g == gen) {
+            problems.push(format!("{name}: generator \"{gen}\" is not in allowed_generators"));
+        }
+        if let Some(model) = entry["generative_model"].as_str() {
+            if !models.iter().any(|x| x == model) {
+                problems.push(format!("{name}: generative model \"{model}\" is not in allowed_models (check its licence: non-commercial and territory-limited weights are not allowed)"));
+            }
+        }
+        for s in entry["sources"].as_array().into_iter().flatten().filter_map(|s| s.as_str()) {
+            if !root().join(s).exists() {
+                problems.push(format!("{name}: source {s} does not exist"));
+            }
+        }
+    }
+    assert!(problems.is_empty(), "{problems:#?}");
+}

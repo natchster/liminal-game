@@ -1,0 +1,8 @@
+[
+  { "placer": "placeRadiators", "ctor": "new THREE.BoxGeometry(0.70, 0.50, 0.10)", "part": "Radiators__body" },
+  { "placer": "placeRadiators", "ctor": "new THREE.BoxGeometry(0.06, 0.48, 0.02)", "part": "Radiators__fin" },
+  { "placer": "placeRadiators", "ctor": "new THREE.BoxGeometry(0.72, 0.03, 0.12)", "part": "Radiators__cap" },
+  { "placer": "placeOverturnedChair", "ctor": "new THREE.BoxGeometry(0.42, 0.04, 0.42)", "part": "OverturnedChair__seat" },
+  { "placer": "placeOverturnedChair", "ctor": "new THREE.BoxGeometry(0.42, 0.50, 0.04)", "part": "OverturnedChair__back" },
+  { "placer": "placeOverturnedChair", "ctor": "new THREE.BoxGeometry(0.04, 0.40, 0.04)", "part": "OverturnedChair__leg" }
+]

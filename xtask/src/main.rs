@@ -10,8 +10,10 @@
 //! cargo xtask range [--look]    the generator's expressive range against its baseline
 //! cargo xtask ab prepare|score  blind A/B reviews of frames
 //! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
+//! cargo xtask assets props|import-js|fingerprint   rebuild and check the embedded meshes
 //! ```
 mod ab;
+mod assets;
 mod bundle;
 mod calibrate;
 mod check;
@@ -40,6 +42,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   calibrate prepare | calibrate score ANSWERS.json --reviewer NAME
                              damaged goldens with known answers; accuracy and
                              Cohen's kappa of a reviewer
+  assets props [--batch …] [--write] | assets import-js --props F --creatures F
+                             rebuild the prop meshes in Blender (or convert the
+                             HTML version's modules) and compare with crates/game/assets
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -54,6 +59,7 @@ fn main() -> ExitCode {
         Some("range") => range::range(rest),
         Some("ab") => ab::ab(rest),
         Some("calibrate") => calibrate::calibrate(rest),
+        Some("assets") => assets::assets(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

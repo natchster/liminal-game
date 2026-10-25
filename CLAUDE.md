@@ -25,6 +25,7 @@ cargo xtask shots              # golden frames + look statistics (part of the ch
 cargo xtask range --look       # the generator's expressive range vs its baseline (full check)
 cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); then `ab score`
 cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
+cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```

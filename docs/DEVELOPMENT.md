@@ -218,6 +218,34 @@ Levels must be a pure function of `(run_seed, level)`:
   After an intended change to the mix, listen to the `listen.rs` renders,
   then `cargo test --release -p backrooms --test loudness -- --ignored rerecord`.
 
+## Assets
+
+The embedded meshes are built from the bpy scripts in `assets/src/blender/`
+(see `assets/README.md`):
+
+* `cargo xtask assets props [--batch …]` builds the props in Blender headless
+  and compares every part with `crates/game/assets/prop_meshes.bin` by its
+  decoded geometry; `--write` (a full build) replaces the file, keeping the
+  bytes of unchanged parts. The build repeats exactly: every part's
+  randomness is seeded from its name and noise vectors come from
+  `propkit.noise3` (`mathutils.noise.noise_vector` differs in every Blender
+  process). 123 *frozen* parts, built before that, keep their stored shapes
+  until a deliberate `--rebuild-frozen` with re-recorded prop fixtures.
+* Creatures still rebuild in the HTML version (they need its rig dumps);
+  `cargo xtask assets import-js` converts its generated modules (byte for
+  byte).
+* `crates/game/assets/MANIFEST.json` records each file's sources, generator,
+  licence and fingerprint; `tests/structure.rs` fails on a file whose
+  fingerprint changed without its entry, a licence or generator not on the
+  allowlist, or a generative model not allowed (non-commercial or
+  territory-limited weights).
+* `crates/game/tests/asset_lint.rs` lints every part (indices, bounds,
+  normals, slivers, distance from its frame, the triangle budget from
+  `propkit` or its batch script, skin weights) and keeps
+  `crates/game/assets/parts.tsv` current; after a mesh change,
+  `REGEN=1 cargo test --release -p game --test asset_lint` rewrites the
+  table so the diff shows what changed.
+
 ## Profiling and debugging
 
 * `backrooms --screenshot out.png --level L --seed S --play --frames N`

@@ -1,0 +1,452 @@
+[
+ {
+  "placer": "placeBirthdayHats",
+  "ctor": "new THREE.ConeGeometry(0.06, 0.18, 10)",
+  "part": "BirthdayHats__cone"
+ },
+ {
+  "placer": "placeBirthdayHats",
+  "ctor": "new THREE.TorusGeometry(0.06, 0.005, 4, 12)",
+  "part": "BirthdayHats__band"
+ },
+ {
+  "placer": "placeBirthdayHats",
+  "ctor": "new THREE.SphereGeometry(0.010, 6, 4)",
+  "part": "BirthdayHats__tassel"
+ },
+ {
+  "placer": "placeSmallGiftBoxes",
+  "ctor": "new THREE.BoxGeometry(bs, bs, bs)",
+  "part": "SmallGiftBoxes__body"
+ },
+ {
+  "placer": "placeSmallGiftBoxes",
+  "ctor": "new THREE.BoxGeometry(bs + 0.002, 0.003, rWide)",
+  "part": "SmallGiftBoxes__ribbonX"
+ },
+ {
+  "placer": "placeSmallGiftBoxes",
+  "ctor": "new THREE.BoxGeometry(rWide, 0.003, bs + 0.002)",
+  "part": "SmallGiftBoxes__ribbonZ"
+ },
+ {
+  "placer": "placeSmallPartyHorns",
+  "ctor": "new THREE.CylinderGeometry(0.014, 0.014, 0.005, 6)",
+  "part": "SmallPartyHorns__mouth"
+ },
+ {
+  "placer": "placeSmallPaperPlates",
+  "ctor": "new THREE.TorusGeometry(0.095, 0.006, 4, 16)",
+  "part": "SmallPaperPlates__rim"
+ },
+ {
+  "placer": "placeSmallBirthdayCandles",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.06, 8)",
+  "part": "SmallBirthdayCandles__body"
+ },
+ {
+  "placer": "placeSmallBirthdayCandles",
+  "ctor": "new THREE.CylinderGeometry(0.001, 0.001, 0.008, 4)",
+  "part": "SmallBirthdayCandles__wick"
+ },
+ {
+  "placer": "placeSmallPinatas",
+  "ctor": "new THREE.SphereGeometry(0.09, 8, 6)",
+  "part": "SmallPinatas__core"
+ },
+ {
+  "placer": "placeSmallPinatas",
+  "ctor": "new THREE.ConeGeometry(0.03, 0.08, 5)",
+  "part": "SmallPinatas__point"
+ },
+ {
+  "placer": "placeSmallPinatas",
+  "ctor": "new THREE.ConeGeometry(0.03, 0.06, 5)",
+  "part": "SmallPinatas__point"
+ },
+ {
+  "placer": "placeSmallPinatas",
+  "ctor": "new THREE.CylinderGeometry(0.003, 0.003, stringLen, 4)",
+  "part": "SmallPinatas__string"
+ },
+ {
+  "placer": "placeHangingBalloonBundles",
+  "ctor": "new THREE.SphereGeometry(0.09, 10, 8)",
+  "part": "HangingBalloonBundles__balloon"
+ },
+ {
+  "placer": "placeHangingBalloonBundles",
+  "ctor": "new THREE.ConeGeometry(0.008, 0.014, 5)",
+  "part": "HangingBalloonBundles__tie"
+ },
+ {
+  "placer": "placeHangingBalloonBundles",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, strLen, 3)",
+  "part": "HangingBalloonBundles__string"
+ },
+ {
+  "placer": "placeSmallPartyBanners",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, segLen, 3)",
+  "part": "SmallPartyBanners__string"
+ },
+ {
+  "placer": "placePaperGarlands",
+  "ctor": "new THREE.CylinderGeometry(0.0015, 0.0015, segLen, 3)",
+  "part": "PaperGarlands__string"
+ },
+ {
+  "placer": "placeSmallTrumpets",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.18, 8)",
+  "part": "SmallTrumpets__tube"
+ },
+ {
+  "placer": "placeSmallTrumpets",
+  "ctor": "new THREE.ConeGeometry(0.035, 0.06, 12, 1, true)",
+  "part": "SmallTrumpets__bell"
+ },
+ {
+  "placer": "placeSmallTrumpets",
+  "ctor": "new THREE.CylinderGeometry(0.012, 0.010, 0.012, 8)",
+  "part": "SmallTrumpets__mouth"
+ },
+ {
+  "placer": "placeSmallTrumpets",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.020, 6)",
+  "part": "SmallTrumpets__valve"
+ },
+ {
+  "placer": "placeSmallKazoos",
+  "ctor": "new THREE.CylinderGeometry(0.014, 0.010, 0.09, 8)",
+  "part": "SmallKazoos__body"
+ },
+ {
+  "placer": "placeSmallKazoos",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.012, 8)",
+  "part": "SmallKazoos__resonator"
+ },
+ {
+  "placer": "placeSmallFeatherBoas",
+  "ctor": "new THREE.SphereGeometry(0.028, 6, 5)",
+  "part": "SmallFeatherBoas__puff"
+ },
+ {
+  "placer": "placeSmallTiaras",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, segLen, 5)",
+  "part": "SmallTiaras__band"
+ },
+ {
+  "placer": "placeSmallTiaras",
+  "ctor": "new THREE.ConeGeometry(0.008, 0.030, 4)",
+  "part": "SmallTiaras__spike"
+ },
+ {
+  "placer": "placeSmallOperaGlasses",
+  "ctor": "new THREE.CylinderGeometry(0.018, 0.018, 0.045, 10)",
+  "part": "SmallOperaGlasses__barrel"
+ },
+ {
+  "placer": "placeSmallOperaGlasses",
+  "ctor": "new THREE.BoxGeometry(0.030, 0.008, 0.010)",
+  "part": "SmallOperaGlasses__bridge"
+ },
+ {
+  "placer": "placeSmallOperaGlasses",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.10, 6)",
+  "part": "SmallOperaGlasses__handle"
+ },
+ {
+  "placer": "placeSmallFoldingFans",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, stickLen, 4)",
+  "part": "SmallFoldingFans__stick"
+ },
+ {
+  "placer": "placeSmallFoldingFans",
+  "ctor": "new THREE.SphereGeometry(0.008, 6, 5)",
+  "part": "SmallFoldingFans__knob"
+ },
+ {
+  "placer": "placeCandyCornScatters",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.008, 0.008, 4)",
+  "part": "CandyCornScatters__yellow"
+ },
+ {
+  "placer": "placeCandyCornScatters",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.006, 0.008, 4)",
+  "part": "CandyCornScatters__orange"
+ },
+ {
+  "placer": "placeCandyCornScatters",
+  "ctor": "new THREE.ConeGeometry(0.004, 0.008, 4)",
+  "part": "CandyCornScatters__white"
+ },
+ {
+  "placer": "placePieSlices",
+  "ctor": "new THREE.CylinderGeometry(0.090, 0.082, 0.006, 16)",
+  "part": "PieSlices__plate"
+ },
+ {
+  "placer": "placePieSlices",
+  "ctor": "new THREE.TorusGeometry(0.086, 0.004, 4, 16)",
+  "part": "PieSlices__rim"
+ },
+ {
+  "placer": "placePieSlices",
+  "ctor": "new THREE.CylinderGeometry(sliceR, sliceR, sliceH, 10, 1, false, 0, Math.PI / 3)",
+  "part": "PieSlices__filling"
+ },
+ {
+  "placer": "placePieSlices",
+  "ctor": "new THREE.CylinderGeometry(sliceR, sliceR, 0.004, 10, 1, false, 0, Math.PI / 3)",
+  "part": "PieSlices__crust"
+ },
+ {
+  "placer": "placePieSlices",
+  "ctor": "new THREE.SphereGeometry(0.012, 6, 5)",
+  "part": "PieSlices__cream"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.10, 0.11, 0.010, 14)",
+  "part": "CakeStands__base"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.024, 0.030, 0.14, 10)",
+  "part": "CakeStands__column"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.14, 0.14, 0.008, 20)",
+  "part": "CakeStands__platter"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.TorusGeometry(0.138, 0.005, 4, 20)",
+  "part": "CakeStands__rim"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.11, 0.11, 0.055, 16)",
+  "part": "CakeStands__tierBottom"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.075, 0.075, 0.045, 14)",
+  "part": "CakeStands__tierTop"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.SphereGeometry(0.009, 5, 4)",
+  "part": "CakeStands__swirl"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.030, 5)",
+  "part": "CakeStands__candle"
+ },
+ {
+  "placer": "placeCakeStands",
+  "ctor": "new THREE.CylinderGeometry(0.001, 0.001, 0.006, 3)",
+  "part": "CakeStands__wick"
+ },
+ {
+  "placer": "placeCornbreadMuffins",
+  "ctor": "new THREE.CylinderGeometry(0.035, 0.030, 0.024, 10)",
+  "part": "CornbreadMuffins__bottom"
+ },
+ {
+  "placer": "placeCornbreadMuffins",
+  "ctor": "new THREE.SphereGeometry(0.038, 8, 5, 0, Math.PI * 2, 0, Math.PI / 2)",
+  "part": "CornbreadMuffins__top"
+ },
+ {
+  "placer": "placeDonuts",
+  "ctor": "new THREE.BoxGeometry(0.20, 0.003, 0.20)",
+  "part": "Donuts__napkin"
+ },
+ {
+  "placer": "placeDonuts",
+  "ctor": "new THREE.BoxGeometry(0.06, 0.005, 0.06)",
+  "part": "Donuts__fold"
+ },
+ {
+  "placer": "placeDonuts",
+  "ctor": "new THREE.TorusGeometry(0.045, 0.020, 6, 14)",
+  "part": "Donuts__dough"
+ },
+ {
+  "placer": "placeDonuts",
+  "ctor": "new THREE.TorusGeometry(0.045, 0.018, 6, 14)",
+  "part": "Donuts__glaze"
+ },
+ {
+  "placer": "placeDonuts",
+  "ctor": "new THREE.BoxGeometry(0.008, 0.002, 0.002)",
+  "part": "Donuts__sprinkle"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.BoxGeometry(0.20, 0.003, 0.20)",
+  "part": "BittenDonuts__napkin"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.BoxGeometry(0.05, 0.005, 0.05)",
+  "part": "BittenDonuts__wrinkle"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.TorusGeometry(0.045, 0.020, 6, 14, biteArc)",
+  "part": "BittenDonuts__dough"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.TorusGeometry(0.045, 0.018, 6, 14, biteArc)",
+  "part": "BittenDonuts__glaze"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.SphereGeometry(0.014, 6, 4)",
+  "part": "BittenDonuts__bite"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.BoxGeometry(crumbSize, crumbSize, crumbSize)",
+  "part": "BittenDonuts__crumb"
+ },
+ {
+  "placer": "placeBittenDonuts",
+  "ctor": "new THREE.BoxGeometry(0.008, 0.002, 0.002)",
+  "part": "Donuts__sprinkle"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.CylinderGeometry(0.10, 0.092, 0.006, 16)",
+  "part": "Sandwiches__plate"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.TorusGeometry(0.095, 0.004, 4, 16)",
+  "part": "Sandwiches__rim"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.BoxGeometry(halfW, halfH, halfW)",
+  "part": "Sandwiches__bread"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.BoxGeometry(halfW * 0.98, 0.008, halfW * 0.98)",
+  "part": "Sandwiches__filling"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.BoxGeometry(0.024, 0.004, 0.010)",
+  "part": "Sandwiches__lettuce"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.BoxGeometry(0.030, halfH * 2 + 0.008, 0.030)",
+  "part": "Sandwiches__bite"
+ },
+ {
+  "placer": "placeSandwiches",
+  "ctor": "new THREE.BoxGeometry(cSize, cSize, cSize)",
+  "part": "Sandwiches__crumb"
+ },
+ {
+  "placer": "placeWallBarometers",
+  "ctor": "new THREE.BoxGeometry(0.18, 0.60, 0.05)",
+  "part": "WallBarometers__case"
+ },
+ {
+  "placer": "placeWallBarometers",
+  "ctor": "new THREE.TorusGeometry(0.070, 0.003, 4, 16)",
+  "part": "WallBarometers__ring"
+ },
+ {
+  "placer": "placeWallBarometers",
+  "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.28, 4)",
+  "part": "WallBarometers__cord"
+ },
+ {
+  "placer": "placeWallBarometers",
+  "ctor": "new THREE.CylinderGeometry(0.013, 0.013, 0.05, 8)",
+  "part": "WallBarometers__weight"
+ },
+ {
+  "placer": "placeSmallMusicBoxes",
+  "ctor": "new THREE.BoxGeometry(boxSize, boxSize * 0.7, boxSize)",
+  "part": "SmallMusicBoxes__body"
+ },
+ {
+  "placer": "placeSmallMusicBoxes",
+  "ctor": "new THREE.BoxGeometry(boxSize + 0.003, 0.004, boxSize + 0.003)",
+  "part": "SmallMusicBoxes__trim"
+ },
+ {
+  "placer": "placeSmallMusicBoxes",
+  "ctor": "new THREE.CylinderGeometry(0.003, 0.003, 0.020, 5)",
+  "part": "SmallMusicBoxes__shaft"
+ },
+ {
+  "placer": "placeSmallMusicBoxes",
+  "ctor": "new THREE.BoxGeometry(0.004, 0.030, 0.004)",
+  "part": "SmallMusicBoxes__arm"
+ },
+ {
+  "placer": "placeSmallMusicBoxes",
+  "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.012, 6)",
+  "part": "SmallMusicBoxes__handle"
+ },
+ {
+  "placer": "placeAncientPortraits",
+  "ctor": "new THREE.BoxGeometry(barW, barH, t)",
+  "part": "AncientPortraits__bar"
+ },
+ {
+  "placer": "placeAncientBookStacks",
+  "ctor": "new THREE.BoxGeometry(bw, bh, bd)",
+  "part": "AncientBookStacks__cover"
+ },
+ {
+  "placer": "placeAncientBookStacks",
+  "ctor": "new THREE.BoxGeometry(bw - 0.003, bh - 0.006, bd - 0.003)",
+  "part": "AncientBookStacks__pages"
+ },
+ {
+  "placer": "placeAncientBookStacks",
+  "ctor": "new THREE.BoxGeometry(0.001, 0.003, bd)",
+  "part": "AncientBookStacks__band"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.BoxGeometry(0.30, 0.020, 0.24)",
+  "part": "RockingChairs__seat"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.22, 5)",
+  "part": "RockingChairs__leg"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.BoxGeometry(0.30, 0.020, 0.014)",
+  "part": "RockingChairs__rail"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.20, 4)",
+  "part": "RockingChairs__spindle"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.BoxGeometry(0.36, 0.018, 0.030)",
+  "part": "RockingChairs__rocker"
+ },
+ {
+  "placer": "placeRockingChairs",
+  "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.20, 4)",
+  "part": "RockingChairs__arm"
+ }
+]

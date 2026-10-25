@@ -1,0 +1,137 @@
+[
+  {"placer": "placeCoinScatters", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.001, 10)", "part": "CoinScatters__coin"},
+
+  {"placer": "placeHospitalCrosses", "ctor": "new THREE.BoxGeometry(s, s, 0.010)", "part": "HospitalCrosses__back"},
+  {"placer": "placeHospitalCrosses", "ctor": "new THREE.BoxGeometry(s * 0.3, s * 0.9, 0.008)", "part": "HospitalCrosses__vbar"},
+  {"placer": "placeHospitalCrosses", "ctor": "new THREE.BoxGeometry(s * 0.9, s * 0.3, 0.008)", "part": "HospitalCrosses__hbar"},
+
+  {"placer": "placeSingleBoots", "ctor": "new THREE.BoxGeometry(0.13, 0.014, 0.055)", "part": "SingleBoots__sole"},
+  {"placer": "placeSingleBoots", "ctor": "new THREE.SphereGeometry(0.035, 8, 6)", "part": "SingleBoots__toe"},
+  {"placer": "placeSingleBoots", "ctor": "new THREE.BoxGeometry(0.045, 0.050, 0.055)", "part": "SingleBoots__heel"},
+  {"placer": "placeSingleBoots", "ctor": "new THREE.CylinderGeometry(0.028, 0.030, 0.06, 8)", "part": "SingleBoots__shaft"},
+
+  {"placer": "placeFoldedUmbrellas", "ctor": "new THREE.CylinderGeometry(0.020, 0.020, 0.32, 8)", "part": "FoldedUmbrellas__body"},
+  {"placer": "placeFoldedUmbrellas", "ctor": "new THREE.CylinderGeometry(0.021, 0.021, 0.32, 3)", "part": "FoldedUmbrellas__seam"},
+  {"placer": "placeFoldedUmbrellas", "ctor": "new THREE.ConeGeometry(0.014, 0.020, 6)", "part": "FoldedUmbrellas__tip"},
+  {"placer": "placeFoldedUmbrellas", "ctor": "new THREE.TorusGeometry(0.020, 0.005, 4, 8, Math.PI)", "part": "FoldedUmbrellas__handle"},
+
+  {"placer": "placePizzaBoxes", "ctor": "new THREE.BoxGeometry(bs, 0.024, bs)", "part": "PizzaBoxes__body"},
+  {"placer": "placePizzaBoxes", "ctor": "new THREE.BoxGeometry(bs, 0.008, bs)", "part": "PizzaBoxes__lid"},
+
+  {"placer": "placeSingleGloves", "ctor": "new THREE.BoxGeometry(0.055, 0.014, 0.045)", "part": "SingleGloves__palm"},
+  {"placer": "placeSingleGloves", "ctor": "new THREE.BoxGeometry(0.010, 0.010, 0.035)", "part": "SingleGloves__finger"},
+  {"placer": "placeSingleGloves", "ctor": "new THREE.BoxGeometry(0.010, 0.010, 0.028)", "part": "SingleGloves__finger"},
+  {"placer": "placeSingleGloves", "ctor": "new THREE.CylinderGeometry(0.024, 0.024, 0.020, 8, 1, true)", "part": "SingleGloves__cuff"},
+
+  {"placer": "placeCigarettePacks", "ctor": "new THREE.BoxGeometry(0.05, 0.08, 0.020)", "part": "CigarettePacks__body"},
+  {"placer": "placeCigarettePacks", "ctor": "new THREE.BoxGeometry(0.05, 0.020, 0.004)", "part": "CigarettePacks__lid"},
+
+  {"placer": "placeMatchbooks", "ctor": "new THREE.BoxGeometry(0.030, 0.005, 0.040)", "part": "Matchbooks__booklet"},
+  {"placer": "placeMatchbooks", "ctor": "new THREE.CylinderGeometry(0.0008, 0.0008, 0.024, 4)", "part": "Matchbooks__stick"},
+  {"placer": "placeMatchbooks", "ctor": "new THREE.SphereGeometry(0.0015, 5, 4)", "part": "Matchbooks__head"},
+
+  {"placer": "placeBrokenSunglasses", "ctor": "new THREE.TorusGeometry(0.024, 0.003, 4, 12)", "part": "BrokenSunglasses__rim"},
+  {"placer": "placeBrokenSunglasses", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.014, 4)", "part": "BrokenSunglasses__bridge"},
+  {"placer": "placeBrokenSunglasses", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.10, 4)", "part": "BrokenSunglasses__temple"},
+  {"placer": "placeBrokenSunglasses", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.06, 4)", "part": "BrokenSunglasses__broken"},
+
+  {"placer": "placeUnrolledTPRolls", "ctor": "new THREE.CylinderGeometry(0.024, 0.024, 0.10, 10)", "part": "UnrolledTPRolls__tube"},
+
+  {"placer": "placeBrokenFlashlights", "ctor": "new THREE.CylinderGeometry(0.014, 0.014, 0.12, 8)", "part": "BrokenFlashlights__body"},
+  {"placer": "placeBrokenFlashlights", "ctor": "new THREE.CylinderGeometry(0.020, 0.014, 0.024, 8)", "part": "BrokenFlashlights__head"},
+
+  {"placer": "placeShoeBoxes", "ctor": "new THREE.BoxGeometry(0.34, 0.12, 0.20)", "part": "ShoeBoxes__body"},
+  {"placer": "placeShoeBoxes", "ctor": "new THREE.BoxGeometry(0.36, 0.020, 0.22)", "part": "ShoeBoxes__lid"},
+
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(railW, 0.020, 0.030)", "part": "CoatRacks__rail"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.025, 5)", "part": "CoatRacks__peg"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.SphereGeometry(0.006, 5, 4)", "part": "CoatRacks__knob"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.13, 0.025, 0.06)", "part": "CoatRacks__shoulders"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.15, 0.28, 0.05)", "part": "CoatRacks__coat"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.035, 0.22, 0.045)", "part": "CoatRacks__sleeve"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.09, 0.010, 0.045)", "part": "CoatRacks__collar"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.020, 0.24, 0.008)", "part": "CoatRacks__scarf"},
+  {"placer": "placeCoatRacks", "ctor": "new THREE.BoxGeometry(0.020, 0.008, 0.006)", "part": "CoatRacks__fringe"},
+
+  {"placer": "placeCrumpledTissues", "ctor": "new THREE.BoxGeometry(s, s, s)", "part": "CrumpledTissues__chunk"},
+
+  {"placer": "placeCoinClusters", "ctor": "new THREE.CylinderGeometry(r, r, 0.0015, 12)", "part": "CoinScatters__coin"},
+
+  {"placer": "placeVinylRecords", "ctor": "new THREE.CylinderGeometry(0.15, 0.15, 0.003, 20)", "part": "VinylRecords__disc"},
+  {"placer": "placeVinylRecords", "ctor": "new THREE.CylinderGeometry(0.04, 0.04, 0.0032, 12)", "part": "VinylRecords__label"},
+  {"placer": "placeVinylRecords", "ctor": "new THREE.BoxGeometry(0.32, 0.005, 0.32)", "part": "VinylRecords__sleeve"},
+
+  {"placer": "placeGumBallDispensers", "ctor": "new THREE.BoxGeometry(0.14, 0.24, 0.14)", "part": "GumBallDispensers__base"},
+  {"placer": "placeGumBallDispensers", "ctor": "new THREE.SphereGeometry(0.012, 6, 5)", "part": "GumBallDispensers__ball"},
+  {"placer": "placeGumBallDispensers", "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.015, 8)", "part": "GumBallDispensers__knob"},
+
+  {"placer": "placeCrossStitches", "ctor": "new THREE.TorusGeometry(0.10, 0.012, 5, 20)", "part": "CrossStitches__hoop"},
+  {"placer": "placeCrossStitches", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.010, 6)", "part": "CrossStitches__clamp"},
+
+  {"placer": "placeWatercolors", "ctor": "new THREE.BoxGeometry(0.34, 0.26, 0.014)", "part": "Watercolors__frame"},
+  {"placer": "placeWatercolors", "ctor": "new THREE.BoxGeometry(0.28, 0.20, 0.010)", "part": "Watercolors__mat"},
+
+  {"placer": "placeToteBags", "ctor": "new THREE.BoxGeometry(0.16, 0.16, 0.10)", "part": "ToteBags__body"},
+  {"placer": "placeToteBags", "ctor": "new THREE.TorusGeometry(0.030, 0.005, 4, 8, Math.PI)", "part": "ToteBags__strap"},
+  {"placer": "placeToteBags", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.11, 6)", "part": "ToteBags__tool"},
+
+  {"placer": "placeCoatHooksPair", "ctor": "new THREE.BoxGeometry(0.16, 0.05, 0.015)", "part": "CoatHooksPair__board"},
+  {"placer": "placeCoatHooksPair", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.006, 8)", "part": "CoatHooksPair__rosette"},
+  {"placer": "placeCoatHooksPair", "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.040, 6)", "part": "CoatHooksPair__arm"},
+  {"placer": "placeCoatHooksPair", "ctor": "new THREE.TorusGeometry(0.012, 0.004, 3, 8, Math.PI)", "part": "CoatHooksPair__curve"},
+
+  {"placer": "placeCastIronPans", "ctor": "new THREE.CylinderGeometry(0.09, 0.09, 0.030, 14)", "part": "CastIronPans__body"},
+  {"placer": "placeCastIronPans", "ctor": "new THREE.CylinderGeometry(0.076, 0.076, 0.015, 14)", "part": "CastIronPans__inner"},
+  {"placer": "placeCastIronPans", "ctor": "new THREE.BoxGeometry(0.20, 0.014, 0.014)", "part": "CastIronPans__handle"},
+  {"placer": "placeCastIronPans", "ctor": "new THREE.TorusGeometry(0.006, 0.002, 3, 8)", "part": "CastIronPans__loop"},
+
+  {"placer": "placeVintageMaps", "ctor": "new THREE.BoxGeometry(0.30, 0.22, 0.014)", "part": "VintageMaps__frame"},
+
+  {"placer": "placeMasonJars", "ctor": "new THREE.CylinderGeometry(0.030, 0.030, 0.010, 12)", "part": "MasonJars__band"},
+  {"placer": "placeMasonJars", "ctor": "new THREE.CylinderGeometry(0.028, 0.028, 0.003, 12)", "part": "MasonJars__lid"},
+  {"placer": "placeMasonJars", "ctor": "new THREE.CylinderGeometry(0.032, 0.032, fillH, 10)", "part": "MasonJars__fill"},
+
+  {"placer": "placeWallBrooms", "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.60, 6)", "part": "WallBrooms__handle"},
+  {"placer": "placeWallBrooms", "ctor": "new THREE.TorusGeometry(0.014, 0.003, 3, 8, Math.PI)", "part": "WallBrooms__clip"},
+  {"placer": "placeWallBrooms", "ctor": "new THREE.ConeGeometry(0.055, 0.14, 8)", "part": "WallBrooms__bristles"},
+  {"placer": "placeWallBrooms", "ctor": "new THREE.TorusGeometry(0.014, 0.003, 3, 10)", "part": "WallBrooms__twine"},
+
+  {"placer": "placeRollingPins", "ctor": "new THREE.CylinderGeometry(0.024, 0.024, 0.28, 12)", "part": "RollingPins__roller"},
+  {"placer": "placeRollingPins", "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.050, 8)", "part": "RollingPins__stem"},
+  {"placer": "placeRollingPins", "ctor": "new THREE.SphereGeometry(0.014, 6, 5)", "part": "RollingPins__knob"},
+
+  {"placer": "placeCuttingBoards", "ctor": "new THREE.BoxGeometry(0.30, 0.018, 0.20)", "part": "CuttingBoards__plank"},
+
+  {"placer": "placeMixingBowls", "ctor": "new THREE.CylinderGeometry(0.075, 0.048, 0.055, 14)", "part": "MixingBowls__body"},
+  {"placer": "placeMixingBowls", "ctor": "new THREE.TorusGeometry(0.075, 0.005, 4, 16)", "part": "MixingBowls__rim"},
+  {"placer": "placeMixingBowls", "ctor": "new THREE.SphereGeometry(0.055, 10, 6)", "part": "MixingBowls__dough"},
+
+  {"placer": "placeWhisks", "ctor": "new THREE.CylinderGeometry(0.010, 0.010, 0.10, 8)", "part": "Whisks__handle"},
+  {"placer": "placeWhisks", "ctor": "new THREE.SphereGeometry(0.011, 6, 5)", "part": "Whisks__cap"},
+  {"placer": "placeWhisks", "ctor": "new THREE.CylinderGeometry(0.011, 0.011, 0.010, 8)", "part": "Whisks__ferrule"},
+  {"placer": "placeWhisks", "ctor": "new THREE.TorusGeometry(0.020, 0.0012, 3, 10, Math.PI)", "part": "Whisks__wire"},
+
+  {"placer": "placeWallAprons", "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.015, 4)", "part": "WallAprons__peg"},
+  {"placer": "placeWallAprons", "ctor": "new THREE.TorusGeometry(0.020, 0.003, 3, 10, Math.PI)", "part": "WallAprons__strap"},
+
+  {"placer": "placeTeapots", "ctor": "new THREE.CylinderGeometry(0.075, 0.075, 0.006, 10)", "part": "Teapots__trivet"},
+  {"placer": "placeTeapots", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.008, 4)", "part": "Teapots__foot"},
+  {"placer": "placeTeapots", "ctor": "new THREE.SphereGeometry(0.060, 12, 10)", "part": "Teapots__body"},
+  {"placer": "placeTeapots", "ctor": "new THREE.CylinderGeometry(0.012, 0.014, 0.030, 6)", "part": "Teapots__spout"},
+  {"placer": "placeTeapots", "ctor": "new THREE.CylinderGeometry(0.009, 0.012, 0.024, 6)", "part": "Teapots__spoutTip"},
+  {"placer": "placeTeapots", "ctor": "new THREE.TorusGeometry(0.030, 0.006, 4, 10, Math.PI)", "part": "Teapots__handle"},
+  {"placer": "placeTeapots", "ctor": "new THREE.CylinderGeometry(0.022, 0.026, 0.010, 10)", "part": "Teapots__lid"},
+  {"placer": "placeTeapots", "ctor": "new THREE.SphereGeometry(0.008, 6, 5)", "part": "Teapots__knob"},
+
+  {"placer": "placeCookieTins", "ctor": "new THREE.CylinderGeometry(0.075, 0.075, 0.055, 16)", "part": "CookieTins__body"},
+  {"placer": "placeCookieTins", "ctor": "new THREE.TorusGeometry(0.075, 0.003, 4, 16)", "part": "CookieTins__rim"},
+
+  {"placer": "placeTeacups", "ctor": "new THREE.CylinderGeometry(0.055, 0.050, 0.006, 14)", "part": "Teacups__saucer"},
+  {"placer": "placeTeacups", "ctor": "new THREE.CylinderGeometry(0.028, 0.022, 0.032, 12)", "part": "Teacups__cup"},
+  {"placer": "placeTeacups", "ctor": "new THREE.TorusGeometry(0.012, 0.003, 4, 8, Math.PI)", "part": "Teacups__handle"},
+  {"placer": "placeTeacups", "ctor": "new THREE.CylinderGeometry(0.024, 0.024, 0.003, 10)", "part": "Teacups__tea"},
+
+  {"placer": "placeCastIronLadles", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.34, 6)", "part": "CastIronLadles__handle"},
+  {"placer": "placeCastIronLadles", "ctor": "new THREE.TorusGeometry(0.010, 0.002, 3, 8)", "part": "CastIronLadles__ring"},
+  {"placer": "placeCastIronLadles", "ctor": "new THREE.SphereGeometry(0.035, 10, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2)", "part": "CastIronLadles__bowl"}
+]

@@ -1,0 +1,120 @@
+[
+  {"placer": "placeSpoonRests", "ctor": "new THREE.SphereGeometry(0.045, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2)", "part": "SpoonRests__dish"},
+  {"placer": "placeSpoonRests", "ctor": "new THREE.CylinderGeometry(0.070, 0.070, 0.004, 14)", "part": "SpoonRests__plate"},
+  {"placer": "placeSpoonRests", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.13, 6)", "part": "SpoonRests__handle"},
+  {"placer": "placeSpoonRests", "ctor": "new THREE.SphereGeometry(0.014, 8, 6)", "part": "SpoonRests__bowl"},
+
+  {"placer": "placeFramedRecipes", "ctor": "new THREE.BoxGeometry(0.20, 0.26, 0.014)", "part": "FramedRecipes__frame"},
+
+  {"placer": "placeShakerPair", "ctor": "new THREE.CylinderGeometry(0.020, 0.020, 0.030, 10)", "part": "ShakerPair__salt"},
+  {"placer": "placeShakerPair", "ctor": "new THREE.CylinderGeometry(0.024, 0.022, 0.014, 10)", "part": "ShakerPair__cap"},
+  {"placer": "placeShakerPair", "ctor": "new THREE.CylinderGeometry(0.020, 0.024, 0.100, 10)", "part": "ShakerPair__mill"},
+  {"placer": "placeShakerPair", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.014, 8)", "part": "ShakerPair__knob"},
+
+  {"placer": "placeAbstractLandscapes", "ctor": "new THREE.BoxGeometry(0.32, 0.24, 0.012)", "part": "AbstractLandscapes__frame"},
+
+  {"placer": "placeBreadLoaves", "ctor": "new THREE.BoxGeometry(0.24, 0.010, 0.14)", "part": "BreadLoaves__board"},
+  {"placer": "placeBreadLoaves", "ctor": "new THREE.SphereGeometry(0.048, 12, 8)", "part": "BreadLoaves__loaf"},
+  {"placer": "placeBreadLoaves", "ctor": "new THREE.BoxGeometry(0.006, 0.003, 0.045)", "part": "BreadLoaves__score"},
+
+  {"placer": "placeStillLifes", "ctor": "new THREE.BoxGeometry(0.34, 0.28, 0.016)", "part": "StillLifes__outer"},
+  {"placer": "placeStillLifes", "ctor": "new THREE.BoxGeometry(0.31, 0.25, 0.012)", "part": "StillLifes__slip"},
+
+  {"placer": "placeWineBottles", "ctor": "new THREE.CylinderGeometry(0.036, 0.036, 0.18, 12)", "part": "WineBottles__body"},
+  {"placer": "placeWineBottles", "ctor": "new THREE.CylinderGeometry(0.014, 0.036, 0.030, 12)", "part": "WineBottles__shoulder"},
+  {"placer": "placeWineBottles", "ctor": "new THREE.CylinderGeometry(0.014, 0.014, 0.06, 10)", "part": "WineBottles__neck"},
+  {"placer": "placeWineBottles", "ctor": "new THREE.CylinderGeometry(0.016, 0.016, 0.020, 10)", "part": "WineBottles__foil"},
+
+  {"placer": "placeCheeseWedges", "ctor": "new THREE.CylinderGeometry(0.055, 0.055, 0.040, 3, 1, false, 0, Math.PI * 0.5)", "part": "CheeseWedges__body"},
+  {"placer": "placeCheeseWedges", "ctor": "new THREE.CylinderGeometry(0.056, 0.056, 0.042, 8, 1, false, 0, Math.PI * 0.5)", "part": "CheeseWedges__rind"},
+
+  {"placer": "placeKitchenClocks", "ctor": "new THREE.CylinderGeometry(0.11, 0.11, 0.024, 20)", "part": "KitchenClocks__case"},
+  {"placer": "placeKitchenClocks", "ctor": "new THREE.BoxGeometry(0.006, 0.020, 0.003)", "part": "KitchenClocks__tick"},
+  {"placer": "placeKitchenClocks", "ctor": "new THREE.BoxGeometry(0.006, 0.050, 0.003)", "part": "KitchenClocks__hour"},
+  {"placer": "placeKitchenClocks", "ctor": "new THREE.BoxGeometry(0.004, 0.075, 0.003)", "part": "KitchenClocks__minute"},
+
+  {"placer": "placeRollingPinStands", "ctor": "new THREE.BoxGeometry(0.30, 0.010, 0.10)", "part": "RollingPinStands__base"},
+  {"placer": "placeRollingPinStands", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.045, 5)", "part": "RollingPinStands__post"},
+  {"placer": "placeRollingPinStands", "ctor": "new THREE.CylinderGeometry(0.020, 0.020, 0.24, 10)", "part": "RollingPinStands__roller"},
+  {"placer": "placeRollingPinStands", "ctor": "new THREE.CylinderGeometry(0.008, 0.008, 0.040, 6)", "part": "RollingPinStands__handle"},
+  {"placer": "placeRollingPinStands", "ctor": "new THREE.SphereGeometry(0.012, 6, 5)", "part": "RollingPinStands__knob"},
+
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.CylinderGeometry(0.10, 0.075, 0.070, 12, 1, true)", "part": "SewingBaskets__body"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.TorusGeometry(0.10, 0.006, 5, 14)", "part": "SewingBaskets__rim"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.TorusGeometry(0.095, 0.005, 4, 10, Math.PI)", "part": "SewingBaskets__handle"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.BoxGeometry(0.12, 0.024, 0.09)", "part": "SewingBaskets__fabric"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.CylinderGeometry(0.014, 0.014, 0.004, 8)", "part": "SewingBaskets__spoolend"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.CylinderGeometry(0.012, 0.012, 0.020, 8)", "part": "SewingBaskets__thread"},
+  {"placer": "placeSewingBaskets", "ctor": "new THREE.SphereGeometry(0.020, 6, 5, 0, Math.PI * 2, 0, Math.PI / 2)", "part": "SewingBaskets__cushion"},
+
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.CylinderGeometry(0.11, 0.090, 0.055, 12, 1, true)", "part": "KnittingBaskets__body"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.TorusGeometry(0.11, 0.006, 5, 14)", "part": "KnittingBaskets__rim"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.SphereGeometry(0.055, 8, 6)", "part": "KnittingBaskets__yarn"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.TorusGeometry(0.055, 0.002, 4, 12)", "part": "KnittingBaskets__wind"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.CylinderGeometry(0.0018, 0.0018, dirLen, 4)", "part": "KnittingBaskets__strand"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.22, 5)", "part": "KnittingBaskets__needle"},
+  {"placer": "placeKnittingBaskets", "ctor": "new THREE.SphereGeometry(0.006, 5, 4)", "part": "KnittingBaskets__knob"},
+
+  {"placer": "placeHangingColanders", "ctor": "new THREE.SphereGeometry(0.12, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2)", "part": "HangingColanders__bowl"},
+  {"placer": "placeHangingColanders", "ctor": "new THREE.TorusGeometry(0.12, 0.006, 4, 16)", "part": "HangingColanders__rim"},
+  {"placer": "placeHangingColanders", "ctor": "new THREE.BoxGeometry(0.08, 0.010, 0.020)", "part": "HangingColanders__handle"},
+  {"placer": "placeHangingColanders", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.10, 4)", "part": "HangingColanders__cord"},
+  {"placer": "placeHangingColanders", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.010, 5)", "part": "HangingColanders__peg"},
+
+  {"placer": "placeHerbSieves", "ctor": "new THREE.TorusGeometry(0.09, 0.006, 5, 20)", "part": "HerbSieves__ring"},
+  {"placer": "placeHerbSieves", "ctor": "new THREE.BoxGeometry(0.15, 0.014, 0.006)", "part": "HerbSieves__handle"},
+  {"placer": "placeHerbSieves", "ctor": "new THREE.CylinderGeometry(0.002, 0.002, 0.08, 4)", "part": "HangingColanders__cord"},
+  {"placer": "placeHerbSieves", "ctor": "new THREE.CylinderGeometry(0.006, 0.006, 0.010, 5)", "part": "HangingColanders__peg"},
+
+  {"placer": "placeEmbroideryHoops", "ctor": "new THREE.TorusGeometry(0.135, 0.010, 5, 24)", "part": "EmbroideryHoops__outer"},
+  {"placer": "placeEmbroideryHoops", "ctor": "new THREE.TorusGeometry(0.125, 0.005, 4, 22)", "part": "EmbroideryHoops__inner"},
+  {"placer": "placeEmbroideryHoops", "ctor": "new THREE.BoxGeometry(0.020, 0.014, 0.014)", "part": "EmbroideryHoops__screw"},
+  {"placer": "placeEmbroideryHoops", "ctor": "new THREE.CylinderGeometry(0.001, 0.001, 0.04, 3)", "part": "HangingColanders__cord"},
+
+  {"placer": "placeCrossStitchSamplers", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.016)", "part": "CrossStitchSamplers__frame"},
+
+  {"placer": "placeFamilyPhotos", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.014)", "part": "FamilyPhotos__frame"},
+
+  {"placer": "placeBabyPhotos", "ctor": "new THREE.BoxGeometry(frameSize, frameSize, 0.014)", "part": "BabyPhotos__frame"},
+
+  {"placer": "placeWeddingPhotos", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.016)", "part": "WeddingPhotos__frame"},
+
+  {"placer": "placeGraduationPhotos", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.014)", "part": "GraduationPhotos__frame"},
+  {"placer": "placeGraduationPhotos", "ctor": "new THREE.CylinderGeometry(0.001, 0.001, 0.04, 3)", "part": "HangingColanders__cord"},
+
+  {"placer": "placeSmokingAshtrays", "ctor": "new THREE.CylinderGeometry(0.020, 0.020, 0.003, 8)", "part": "SmokingAshtrays__ash"},
+  {"placer": "placeSmokingAshtrays", "ctor": "new THREE.CylinderGeometry(0.003, 0.003, cigLen * 0.7, 6)", "part": "SmokingAshtrays__paper"},
+  {"placer": "placeSmokingAshtrays", "ctor": "new THREE.CylinderGeometry(0.003, 0.003, cigLen * 0.3, 6)", "part": "SmokingAshtrays__filter"},
+
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.BoxGeometry(bookW * 2, 0.006, bookD)", "part": "OpenDiaries__pages"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.CylinderGeometry(0.003, 0.003, bookD, 4)", "part": "OpenDiaries__spine"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.BoxGeometry(bookW * 1.05, 0.003, bookD * 1.05)", "part": "OpenDiaries__cover"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.BoxGeometry(0.008, 0.002, 0.06)", "part": "OpenDiaries__ribbon"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.CylinderGeometry(0.004, 0.004, 0.10, 6)", "part": "OpenDiaries__pen"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.ConeGeometry(0.003, 0.010, 5)", "part": "OpenDiaries__tip"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.CylinderGeometry(0.005, 0.005, 0.006, 5)", "part": "OpenDiaries__button"},
+  {"placer": "placeOpenDiaries", "ctor": "new THREE.BoxGeometry(0.020, 0.001, 0.004)", "part": "OpenDiaries__clip"},
+
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(baseW, 0.014, baseD)", "part": "SewingMachines__base"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(baseW * 0.85, 0.010, baseD * 0.65)", "part": "SewingMachines__bed"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(0.025, 0.10, baseD * 0.55)", "part": "SewingMachines__column"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(baseW * 0.75, 0.026, baseD * 0.55)", "part": "SewingMachines__arm"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(0.014, 0.022, 0.030)", "part": "SewingMachines__foot"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.CylinderGeometry(0.014, 0.014, 0.003, 8)", "part": "SewingBaskets__spoolend"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.CylinderGeometry(0.012, 0.012, 0.028, 8)", "part": "SewingMachines__thread"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.CylinderGeometry(0.028, 0.028, 0.008, 12)", "part": "SewingMachines__wheel"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.SphereGeometry(0.005, 5, 4)", "part": "SewingMachines__knob"},
+  {"placer": "placeSewingMachines", "ctor": "new THREE.BoxGeometry(0.06, 0.002, 0.05)", "part": "SewingMachines__cloth"},
+
+  {"placer": "placeBirthAnnouncements", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.014)", "part": "BirthAnnouncements__frame"},
+
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(halfW, 0.006, halfD)", "part": "Wallets__half"},
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(0.004, 0.008, halfD)", "part": "Wallets__fold"},
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(halfW * 0.85, 0.002, 0.006)", "part": "Wallets__pocket"},
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(halfW * 0.85, 0.002, halfD * 0.55)", "part": "Wallets__card"},
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(0.06, 0.001, 0.030)", "part": "Wallets__bill"},
+  {"placer": "placeWallets", "ctor": "new THREE.BoxGeometry(0.06, 0.0012, 0.008)", "part": "Wallets__band"},
+  {"placer": "placeWallets", "ctor": "new THREE.CylinderGeometry(0.007, 0.007, 0.002, 8)", "part": "Wallets__coin"},
+
+  {"placer": "placeVintagePostcards", "ctor": "new THREE.BoxGeometry(frameW, frameH, 0.012)", "part": "VintagePostcards__frame"}
+]
