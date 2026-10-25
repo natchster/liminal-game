@@ -29,5 +29,9 @@ paths:
   `PLACER_THEME` in `world/tables.rs`.
 - **Every level stays walkable.** Archgen walls up unreachable pockets on the
   tile grid; keep that true, and keep props off the paths a body needs.
+- **Gates:** `tests/level_sweep.rs` (walkable, reachable, repeatable) and
+  `cargo xtask range --look` (the spread of levels against its baseline,
+  the purposes against their `STYLE.md` bands). Accept a new range baseline
+  only after reading `target/xtask/range/report.md`.
 - **Evidence:** `--dump-level DIR --seed S --levels … --screenshot x --views`
   before and after, and look at the zone views.

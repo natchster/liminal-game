@@ -67,6 +67,9 @@ struct Options {
     death: bool,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
+    /// `--metrics FILE`: with `--seed` and `--levels`, build the levels as a
+    /// run would and write their expressive-range measures (no rendering)
+    metrics: Option<String>,
     /// `--fresh`: ignore the saved settings and progress, and seed the
     /// per-frame randomness: the same shot every time
     fresh: bool,
@@ -89,6 +92,7 @@ fn parse_args() -> Options {
         death: false,
         views: false,
         fresh: false,
+        metrics: None,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -120,10 +124,12 @@ fn parse_args() -> Options {
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
+            "--metrics" => o.metrics = Some(next(&mut i)),
             "--help" | "-h" => {
                 println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist] [--death]]]");
                 println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
+                println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
                 println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
                 std::process::exit(0);
             }
@@ -142,7 +148,7 @@ fn save_path() -> std::path::PathBuf {
 fn make_game(o: &Options) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = o.flags.clone();
-    let headless = o.screenshot.is_some() || o.dump_level.is_some();
+    let headless = o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some();
     if headless && o.fresh {
         // per-frame randomness from a fixed seed: the same shot every time
         game::base::rng::seed_native(0x5EED_5EED);
@@ -472,8 +478,29 @@ fn level_check(o: &Options, dir: &str) {
     }
 }
 
+/// `--metrics FILE`: start a run like New Game, build each level in order and
+/// write their `level_metrics` as one JSON array.
+fn metrics(o: &Options, path: &str) {
+    let seed = o.seed.unwrap_or(4242);
+    let mut g = make_game(o);
+    g.launch_flags = if o.flags.is_empty() { format!("seed={seed}&nosound") } else { format!("seed={seed}&nosound&{}", o.flags) };
+    g.boot();
+    g.start_new_game();
+    let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+    let mut out = vec![];
+    for &l in &levels {
+        g.load_level(l);
+        out.push(g.level_metrics());
+    }
+    std::fs::write(path, serde_json::Value::Array(out).to_string()).expect("write metrics");
+}
+
 fn main() {
     let o = parse_args();
+    if let Some(p) = o.metrics.clone() {
+        metrics(&o, &p);
+        return;
+    }
     if let Some(d) = o.dump_level.clone() {
         level_check(&o, &d);
         return;

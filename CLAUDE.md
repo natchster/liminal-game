@@ -22,6 +22,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 cargo xtask check --fast       # fmt, clippy, the quick tests — run before you say you are done
 cargo xtask check              # everything (several minutes, release build)
 cargo xtask shots              # golden frames + look statistics (part of the check)
+cargo xtask range --look       # the generator's expressive range vs its baseline (full check)
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -41,6 +42,7 @@ Re-recording reference data (only after an intended change; say why in the commi
 ```sh
 cargo xtask shots --accept NAME,…|all --reason "…"       # after looking at the frames and error maps
 cargo xtask shots --accept-look NAME,…|all --reason "…"  # rarely: the look itself is meant to change
+cargo xtask range --accept --reason "…"                  # after reading target/xtask/range/report.md
 REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord

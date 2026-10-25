@@ -99,6 +99,21 @@ Levels must be a pure function of `(run_seed, level)`:
   version in `shots.json`; elsewhere differences are advisory. (They are
   480×300 and live in the repository; an unchanged frame adds nothing to the
   history.)
+* **Expressive range.** `cargo xtask range` builds 72 levels (12 seeds ×
+  levels 1–6) with `backrooms --metrics` and measures each on properties
+  other than the generator's inputs (`level_metrics`: loops, dead ends, depth
+  from spawn, integration, room size, sightlines, light and prop density,
+  themes per zone, dark share, grime). It compares the set with
+  `crates/backrooms/tests/recorded/range.json`: the energy distance with a
+  permutation test catches drift (p < 0.01), and a measure whose spread
+  halves or doubles catches sameness or chaos. It writes
+  `target/xtask/range/report.md`, three scatter plots and a seed archive
+  (`target/xtask/range/archive.json`: per cell of depth × light density, the level with the
+  longest views). `--look` also renders every zone view of four runs and
+  holds each purpose to its `STYLE.md` band. After an intended change to
+  generation, read the report and the plots, then
+  `cargo xtask range --accept --reason "…"` (logged in
+  `tests/recorded/ACCEPTED.md`). Part of the full check.
 * **The art bible as a gate.** `docs/STYLE.md` ends with a JSON block of
   look bands: a colourfulness ceiling for every frame, a luminance ceiling
   for level views, and a band per zone purpose. `cargo xtask shots` holds the

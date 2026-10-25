@@ -15,7 +15,7 @@ Last updated: 2026-10-25 (by hand; the drift sweep is not built yet).
 
 | Subsystem | Grade | Evidence | Open |
 |---|---|---|---|
-| Level generation | B | Determinism fixtures; 20 recorded reference levels; the level sweep through the collision geometry (spawn, exit, open space, pickups, rebuild equality); zone-purpose properties | A barricade can lock a pickup away (about 1 level in 20; `PICKUPS_BEHIND_BARRICADES`) |
+| Level generation | B | Determinism fixtures; 20 recorded reference levels; the level sweep through the collision geometry (spawn, exit, open space, pickups, rebuild equality); zone-purpose properties; the expressive-range baseline (72 levels; the seed archive fills 20 of 36 cells, no cell over 12%) | A barricade can lock a pickup away (about 1 level in 20; `PICKUPS_BEHIND_BARRICADES`) |
 | Rendering and look | B | 31 golden frames (exact, then ꟻLIP); look anchors per frame and over the set; `STYLE.md` bands; the material lint (16,661 materials on six levels); blind A/B reviews preferred the current look (8/8 realism, 8/8 dread) | Store department signs read as dark plates (an opaque material on a clear text canvas); no prop turntable sheets yet; no human verdict |
 | Creatures | B | Goldens at 2/4/8 m and death scenes; build and animation fixtures; senses and behaviour tests; blind reviews preferred the current creatures (3/3, 5/5) | The Hound at 2 m sits low in its golden; whether they frighten is untested with people |
 | Pacing | B | `pacing.rs`: first build under 150 s, calms ≤ 95 s, reliefs ≤ 50 s, ≥ 4 peaks; deaths per peak about 0.11 for a cautious bot | Scare repetition and cue variety are not measured yet (roadmap 4.2); no human data |
@@ -32,7 +32,7 @@ Last updated: 2026-10-25 (by hand; the drift sweep is not built yet).
 |---|---|---|
 | Creatures (Smiler, Hound, Watcher) | B | All three have goldens and behaviour tests |
 | Anomalies (Stairwell, Showroom, House, Loop) | C | Fixture tests and the sweep; only the Showroom has a golden view |
-| Zone purposes (14) | B | One golden view and a style band each; bands set from one view, to be tightened by the range report |
+| Zone purposes (14) | B | One golden view each; style bands measured from 631 views (five purposes with too few views share the pooled band) |
 | Prop families (10 themes, 650 placers) | B | Material lint, smoke tests, the look settle pass; no turntables |
 | Sound (mix, ambient) | B | Loudness and listening gates |
 

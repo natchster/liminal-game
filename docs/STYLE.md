@@ -79,14 +79,23 @@ the purpose's band (below) holds how bright and how colourful its view is.
 
 ## The numbers
 
-Bands per purpose for its zone view (colourfulness on the Hasler–Süsstrunk
+Bands per purpose for its zone views (colourfulness on the Hasler–Süsstrunk
 scale, mean luminance 0–1), a colourfulness ceiling for every frame and a
 luminance ceiling for every level view (creature close-ups, such as the
-Watcher's sheet filling the frame, may be brighter). They were set
-around the first golden of each purpose (2026-10-25, one view each), so they
-are wide; the expressive-range report (`cargo xtask range`) measures many
-views per purpose and is where they get tightened. Change them only when the
-look of a purpose is meant to change, and say why in the commit.
+Watcher's sheet filling the frame, may be brighter).
+
+They are measured, not guessed: `cargo xtask range --look` rendered 631 zone
+views (four runs, levels 1–6) and each band is the 2nd to 98th percentile of
+its purpose's views, widened by 2 (colourfulness) and 0.02 (luminance). A
+purpose with fewer than 12 views of its own takes the band of all views.
+`cargo xtask shots` holds the golden zone views to them, and
+`cargo xtask range --look` fails a purpose when fewer than 70% of its views
+lie inside. One thing the measurement showed: **how dark a view is depends on
+its region's light far more than on its purpose** (an office wing runs from
+0.05 to 0.35); the purposes differ in colour and clutter, not in brightness,
+except the showroom (always lit) and storage halls (mostly dark). Change the
+bands only when the look of a purpose is meant to change, re-measure, and say
+why in the commit.
 
 <!-- style-bands:begin -->
 ```json
@@ -99,102 +108,130 @@ look of a purpose is meant to change, and say why in the commit.
   },
   "purposes": {
     "empty": {
-      "colourfulness_max": 27,
-      "luminance": [
-        0.17,
-        0.37
-      ]
-    },
-    "office wing": {
       "colourfulness_max": 26,
       "luminance": [
-        0.13,
+        0.04,
         0.33
-      ]
-    },
-    "showroom": {
-      "colourfulness_max": 21,
-      "luminance": [
-        0.11,
-        0.31
-      ]
+      ],
+      "views": 220,
+      "from": "own views"
     },
     "living quarters": {
-      "colourfulness_max": 18,
+      "colourfulness_max": 27,
       "luminance": [
-        0.0,
-        0.18
-      ]
+        0.04,
+        0.32
+      ],
+      "views": 59,
+      "from": "own views"
     },
     "maintenance": {
-      "colourfulness_max": 19,
-      "luminance": [
-        0.0,
-        0.15
-      ]
-    },
-    "overgrown atrium": {
-      "colourfulness_max": 20,
-      "luminance": [
-        0.1,
-        0.3
-      ]
-    },
-    "party room": {
-      "colourfulness_max": 31,
-      "luminance": [
-        0.08,
-        0.28
-      ]
-    },
-    "play area": {
-      "colourfulness_max": 31,
-      "luminance": [
-        0.19,
-        0.39
-      ]
-    },
-    "pool hall": {
-      "colourfulness_max": 16,
-      "luminance": [
-        0.05,
-        0.25
-      ]
-    },
-    "service tunnels": {
-      "colourfulness_max": 15,
-      "luminance": [
-        0.0,
-        0.17
-      ]
-    },
-    "shrine": {
-      "colourfulness_max": 32,
-      "luminance": [
-        0.19,
-        0.39
-      ]
-    },
-    "storage hall": {
-      "colourfulness_max": 16,
-      "luminance": [
-        0.0,
-        0.16
-      ]
-    },
-    "washrooms": {
-      "colourfulness_max": 21,
-      "luminance": [
-        0.06,
-        0.26
-      ]
-    },
-    "parlour": {
       "colourfulness_max": 25,
       "luminance": [
-        0.13,
+        0.07,
         0.33
-      ]
+      ],
+      "views": 25,
+      "from": "own views"
+    },
+    "office wing": {
+      "colourfulness_max": 25,
+      "luminance": [
+        0.05,
+        0.35
+      ],
+      "views": 106,
+      "from": "own views"
+    },
+    "overgrown atrium": {
+      "colourfulness_max": 26,
+      "luminance": [
+        0.04,
+        0.34
+      ],
+      "views": 10,
+      "from": "all views (too few of its own)"
+    },
+    "parlour": {
+      "colourfulness_max": 26,
+      "luminance": [
+        0.04,
+        0.34
+      ],
+      "views": 3,
+      "from": "all views (too few of its own)"
+    },
+    "party room": {
+      "colourfulness_max": 26,
+      "luminance": [
+        0.04,
+        0.34
+      ],
+      "views": 6,
+      "from": "all views (too few of its own)"
+    },
+    "play area": {
+      "colourfulness_max": 26,
+      "luminance": [
+        0.04,
+        0.34
+      ],
+      "views": 7,
+      "from": "all views (too few of its own)"
+    },
+    "pool hall": {
+      "colourfulness_max": 22,
+      "luminance": [
+        0.1,
+        0.42
+      ],
+      "views": 24,
+      "from": "own views"
+    },
+    "service tunnels": {
+      "colourfulness_max": 23,
+      "luminance": [
+        0.04,
+        0.29
+      ],
+      "views": 74,
+      "from": "own views"
+    },
+    "showroom": {
+      "colourfulness_max": 19,
+      "luminance": [
+        0.2,
+        0.27
+      ],
+      "views": 40,
+      "from": "own views"
+    },
+    "shrine": {
+      "colourfulness_max": 26,
+      "luminance": [
+        0.04,
+        0.34
+      ],
+      "views": 1,
+      "from": "all views (too few of its own)"
+    },
+    "storage hall": {
+      "colourfulness_max": 21,
+      "luminance": [
+        0.04,
+        0.26
+      ],
+      "views": 38,
+      "from": "own views"
+    },
+    "washrooms": {
+      "colourfulness_max": 25,
+      "luminance": [
+        0.06,
+        0.33
+      ],
+      "views": 18,
+      "from": "own views"
     }
   }
 }

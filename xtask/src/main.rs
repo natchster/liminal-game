@@ -7,11 +7,13 @@
 //! cargo xtask check [--fast]    the quality gate: fmt, clippy, tests (terse report)
 //! cargo xtask hook <event>      the Claude Code hooks (.claude/settings.json)
 //! cargo xtask shots             golden frames and look statistics
+//! cargo xtask range [--look]    the generator's expressive range against its baseline
 //! ```
 mod bundle;
 mod check;
 mod hook;
 mod look;
+mod range;
 mod shots;
 
 use std::path::{Path, PathBuf};
@@ -25,6 +27,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   shots [--list] [--accept NAME,…|all --reason \"…\"] [--accept-look NAME,…|all --reason \"…\"]
                              render the golden shot list, compare frames (ꟻLIP)
                              and look statistics with crates/backrooms/tests/golden/
+  range [--look] [--accept --reason \"…\"]
+                             level measures over fixed seeds against
+                             crates/backrooms/tests/recorded/range.json
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -36,6 +41,7 @@ fn main() -> ExitCode {
         Some("check") => check::check(rest),
         Some("hook") => hook::hook(rest),
         Some("shots") => shots::shots(rest),
+        Some("range") => range::range(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

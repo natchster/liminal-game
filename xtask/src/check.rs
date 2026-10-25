@@ -5,8 +5,9 @@
 //! `ERROR <step> …` line per problem found, so a failure can be found with
 //! `grep ERROR` and nothing else floods the terminal (or an agent's context).
 //!
-//! The steps: `fmt`, `clippy`, `test`, and `shots` (the golden frames and look
-//! statistics, `cargo xtask shots`).
+//! The steps: `fmt`, `clippy`, `test`, `shots` (the golden frames and look
+//! statistics, `cargo xtask shots`) and, in the full check, `range` (the
+//! generator's expressive range, `cargo xtask range --look`).
 //!
 //! `--fast` leaves out the slow suites that play whole levels in real time
 //! (`FAST_SKIP`); they are filtered by name, so the report counts them as
@@ -65,6 +66,11 @@ pub fn check(args: &[String]) -> Result<(), String> {
     let mut shots = cargo();
     shots.args(["xtask", "shots"]);
     steps.push(Step { name: "shots", cmd: shots, errors: shot_errors });
+    if !fast {
+        let mut range = cargo();
+        range.args(["xtask", "range", "--look"]);
+        steps.push(Step { name: "range", cmd: range, errors: range_errors });
+    }
 
     let started = Instant::now();
     let mut failed = vec![];
@@ -125,6 +131,11 @@ fn summary(step: &str, text: &str) -> String {
     }
     let skipped = if filtered > 0 { format!(", {filtered} skipped (fast)") } else { String::new() };
     format!("  {passed} passed, {ignored} ignored{skipped}")
+}
+
+/// `FAIL  …` lines of `cargo xtask range`.
+fn range_errors(text: &str) -> Vec<String> {
+    text.lines().filter_map(|l| l.strip_prefix("FAIL  ")).map(String::from).collect()
 }
 
 /// `name  frame FAIL …` / `look  FAIL …` / `whole set: FAIL …` lines.

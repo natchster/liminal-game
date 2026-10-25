@@ -101,6 +101,165 @@ impl Game {
         out
     }
 
+    /// Measures of the built level for the expressive-range report
+    /// (`cargo xtask range`), chosen to be *other* than the generator's
+    /// inputs: how the space plays and reads, not what the dials were.
+    ///
+    /// On the 4-neighbour graph of open tiles: `loops` (independent cycles
+    /// per open tile, not counting the trivial ones of open floor), `dead_ends`
+    /// (share of tiles with one open neighbour), `depth_mean` / `depth_max` /
+    /// `depth_exit` (steps from spawn), `integration` (space syntax: the
+    /// inverse mean depth, averaged over sample tiles). And: `rooms` and
+    /// `room_area` (mean tiles per room), `sight_mean` / `sight_max` (the
+    /// longest straight open run from a tile, capped at 20), `light_density`
+    /// (panels per open tile), `prop_density` and `empty_prop_density` (themed
+    /// props per open tile, overall and in zones whose purpose is empty),
+    /// `themes_per_zone`, `dark_share` (open tiles in dark regions) and
+    /// `grime` (mean region grime).
+    pub fn level_metrics(&self) -> Value {
+        let (w, h) = (self.w, self.h);
+        let open = |x: i32, z: i32| self.in_grid(x, z) && !self.is_wall_tile(x, z);
+        let idx = |x: i32, z: i32| (z * w + x) as usize;
+        let tiles: Vec<(i32, i32)> = (0..h).flat_map(|z| (0..w).map(move |x| (x, z))).filter(|&(x, z)| open(x, z)).collect();
+        let v = tiles.len().max(1) as f64;
+        let mut edges = 0usize;
+        let (mut squares, mut dead) = (0usize, 0usize);
+        for &(x, z) in &tiles {
+            let n = [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().filter(|(dx, dz)| open(x + dx, z + dz)).count();
+            if n == 1 {
+                dead += 1;
+            }
+            edges += usize::from(open(x + 1, z)) + usize::from(open(x, z + 1));
+            if open(x + 1, z) && open(x, z + 1) && open(x + 1, z + 1) {
+                squares += 1;
+            }
+        }
+        let bfs = |sx: i32, sz: i32| -> Vec<i32> {
+            let mut d = vec![-1i32; (w * h) as usize];
+            if !open(sx, sz) {
+                return d;
+            }
+            let mut q = std::collections::VecDeque::from([(sx, sz)]);
+            d[idx(sx, sz)] = 0;
+            while let Some((x, z)) = q.pop_front() {
+                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    let (nx, nz) = (x + dx, z + dz);
+                    if open(nx, nz) && d[idx(nx, nz)] < 0 {
+                        d[idx(nx, nz)] = d[idx(x, z)] + 1;
+                        q.push_back((nx, nz));
+                    }
+                }
+            }
+            d
+        };
+        // components, for the cycle count
+        let mut comp = 0usize;
+        let mut seen = vec![false; (w * h) as usize];
+        for &(x, z) in &tiles {
+            if !seen[idx(x, z)] {
+                comp += 1;
+                for (i, d) in bfs(x, z).iter().enumerate() {
+                    if *d >= 0 {
+                        seen[i] = true;
+                    }
+                }
+            }
+        }
+        let cycles = (edges + comp).saturating_sub(tiles.len()).saturating_sub(squares);
+        let (sx, sz) = (self.tx(self.spawn_pos.x), self.tz(self.spawn_pos.z));
+        let from_spawn = bfs(sx, sz);
+        let reached: Vec<i32> = from_spawn.iter().copied().filter(|d| *d >= 0).collect();
+        let depth_mean = reached.iter().map(|&d| d as f64).sum::<f64>() / reached.len().max(1) as f64;
+        let depth_max = reached.iter().copied().max().unwrap_or(0);
+        let depth_exit =
+            self.exit_data.as_ref().map(|e| from_spawn.get(idx(self.tx(e.pos.x), self.tz(e.pos.z))).copied().unwrap_or(-1)).unwrap_or(-1);
+        let step = (tiles.len() / 24).max(1);
+        let integration = {
+            let ints: Vec<f64> = tiles
+                .iter()
+                .step_by(step)
+                .map(|&(x, z)| {
+                    let d: Vec<i32> = bfs(x, z).into_iter().filter(|d| *d > 0).collect();
+                    let m = d.iter().map(|&d| d as f64).sum::<f64>() / d.len().max(1) as f64;
+                    if m > 0.0 {
+                        1.0 / m
+                    } else {
+                        0.0
+                    }
+                })
+                .collect();
+            ints.iter().sum::<f64>() / ints.len().max(1) as f64
+        };
+        let rooms = self.layout.as_ref().map(|l| l.rooms.len()).unwrap_or(0);
+        let room_area = self
+            .layout
+            .as_ref()
+            .map(|l| l.rooms.iter().map(|r| ((r.x1 - r.x0 + 1) * (r.z1 - r.z0 + 1)) as f64).sum::<f64>() / l.rooms.len().max(1) as f64)
+            .unwrap_or(0.0);
+        let sight: Vec<i32> = tiles
+            .iter()
+            .map(|&(x, z)| {
+                [(1, 0), (-1, 0), (0, 1), (0, -1)]
+                    .iter()
+                    .map(|(dx, dz)| {
+                        let mut r = 0;
+                        while r < 20 && open(x + dx * (r + 1), z + dz * (r + 1)) {
+                            r += 1;
+                        }
+                        r
+                    })
+                    .max()
+                    .unwrap_or(0)
+            })
+            .collect();
+        let sight_mean = sight.iter().map(|&s| s as f64).sum::<f64>() / v;
+        let sight_max = sight.iter().copied().max().unwrap_or(0);
+        // themed props, by zone
+        let theme_of: std::collections::HashMap<&str, &str> = crate::world::tables::PLACER_THEME.iter().copied().collect();
+        let zone_of = |x: i32, z: i32| self.layout.as_ref().and_then(|l| l.zone_of.get(idx(x, z)).copied()).map(|z| z as usize);
+        let mut props = 0usize;
+        let mut empty_props = 0usize;
+        let mut zone_themes: std::collections::BTreeMap<usize, std::collections::BTreeSet<&str>> = Default::default();
+        for c in self.world.children() {
+            let placer = c.r().user.placer.clone();
+            let Some(placer) = placer.filter(|p| p != "place_props") else { continue };
+            let p = c.pos();
+            let (tx, tz) = (self.tx(p.x), self.tz(p.z));
+            props += 1;
+            if let Some(zi) = zone_of(tx, tz) {
+                if self.zone_purposes.get(zi).is_some_and(|zp| zp.label == "empty") {
+                    empty_props += 1;
+                }
+                if let Some(t) = theme_of.get(placer.as_str()) {
+                    zone_themes.entry(zi).or_default().insert(t);
+                }
+            }
+        }
+        let empty_tiles = tiles
+            .iter()
+            .filter(|&&(x, z)| zone_of(x, z).and_then(|zi| self.zone_purposes.get(zi)).is_some_and(|zp| zp.label == "empty"))
+            .count();
+        let themes_per_zone = zone_themes.values().map(|t| t.len() as f64).sum::<f64>() / zone_themes.len().max(1) as f64;
+        let region = |x: i32, z: i32| self.region_map.get(idx(x, z)).and_then(|&r| self.region_info.get(r as usize));
+        let dark = tiles.iter().filter(|&&(x, z)| region(x, z).is_some_and(|r| r.flags & crate::visuals::lighting::RF_DARK != 0)).count();
+        let grime = tiles.iter().map(|&(x, z)| region(x, z).map(|r| r.grime as f64).unwrap_or(0.0)).sum::<f64>() / v;
+        let r4 = |x: f64| (x * 10000.0).round() / 10000.0;
+        json!({
+            "seed": self.run_seed, "level": self.level_num, "scp": self.level_scp, "weather": self.level_weather.key,
+            "open": tiles.len(),
+            "loops": r4(cycles as f64 / v), "dead_ends": r4(dead as f64 / v),
+            "depth_mean": r4(depth_mean), "depth_max": depth_max, "depth_exit": depth_exit,
+            "integration": r4(integration),
+            "rooms": rooms, "room_area": r4(room_area),
+            "sight_mean": r4(sight_mean), "sight_max": sight_max,
+            "light_density": r4(self.panels.len() as f64 / v),
+            "prop_density": r4(props as f64 / v),
+            "empty_prop_density": if empty_tiles > 0 { json!(r4(empty_props as f64 / empty_tiles as f64)) } else { Value::Null },
+            "themes_per_zone": r4(themes_per_zone),
+            "dark_share": r4(dark as f64 / v), "grime": r4(grime),
+        })
+    }
+
     /// The level as JSON: seed, trace marks, grid, zones, key props, counts,
     /// entities, player, placed objects and barricades.
     pub fn level_dump(&self) -> Value {

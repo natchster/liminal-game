@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 engine = { workspace = true }
+serde_json = { workspace = true }
 game = { workspace = true }
 objc2 = { workspace = true }
 objc2-metal = { workspace = true }
