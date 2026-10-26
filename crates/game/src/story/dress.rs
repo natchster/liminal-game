@@ -335,6 +335,29 @@ impl Game {
         (geo, lambert!({ map: tex, emissive: 0x080705 }))
     }
 
+    /// The sheets of a trail that is not hers: a whole page, flat, never
+    /// folded, its arrow drawn heavier and longer than hers.
+    pub(crate) fn false_sheet_parts(&self) -> (Geo, Mat) {
+        let tex = canvas_tex_opt(96, 128, false, |ctx, w, h| {
+            ctx.set_fill_style("#e9e6dc");
+            ctx.fill_rect(0, 0, w, h);
+            ctx.set_stroke_style("rgba(30,28,26,0.9)");
+            ctx.set_line_width(8);
+            ctx.set_line_cap("round");
+            ctx.set_line_join("round");
+            ctx.begin_path();
+            ctx.move_to(w * 0.52, h * 0.9);
+            ctx.line_to(w * 0.48, h * 0.1);
+            ctx.move_to(w * 0.22, h * 0.32);
+            ctx.line_to(w * 0.48, h * 0.08);
+            ctx.line_to(w * 0.76, h * 0.30);
+            ctx.stroke();
+        });
+        let geo = plane_geo!(0.21, 0.28);
+        geo.rotate_x(-PI / 2.0);
+        (geo, lambert!({ map: tex, emissive: 0x080705 }))
+    }
+
     /// One of her sheets at (x, z), its arrow pointing along `yaw`.
     pub(crate) fn dress_sheet(&mut self, parts: &(Geo, Mat), x: f64, z: f64, yaw: f64) -> Obj {
         let m = mesh(&parts.0, &parts.1);

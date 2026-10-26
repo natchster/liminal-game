@@ -237,7 +237,8 @@ fn check_trail(g: &Game) -> Result<String, String> {
 }
 
 /// The level from above: walls dark, the walk pale, her sheets white, her
-/// camp orange, the arrival green, the door red. `target/story/`.
+/// camp orange, the arrival green, the door red; trails that are not hers
+/// blue, their dead ends violet. `target/story/`.
 fn plan_png(g: &Game) {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/story");
     std::fs::create_dir_all(&dir).unwrap();
@@ -268,6 +269,17 @@ fn plan_png(g: &Game) {
     for m in &g.story.trail {
         let (x, z) = to_px(m.x, m.z);
         put(x as i32, z as i32, [250, 248, 235, 255], 1, &mut px);
+    }
+    for f in &g.story.false_trails {
+        for t in &f.walk[1..] {
+            put(t.0 * k + k / 2, t.1 * k + k / 2, [90, 100, 140, 255], 1, &mut px);
+        }
+        for m in &f.trail {
+            let (x, z) = to_px(m.x, m.z);
+            put(x as i32, z as i32, [140, 170, 255, 255], 1, &mut px);
+        }
+        let (x, z) = to_px(f.end.0, f.end.1);
+        put(x as i32, z as i32, [170, 60, 220, 255], 2, &mut px);
     }
     let (spawn, exit) = ends(g);
     put(spawn.0 * k + k / 2, spawn.1 * k + k / 2, [60, 200, 90, 255], 2, &mut px);
@@ -446,5 +458,69 @@ fn her_page_wakes_the_place() {
         g.restart();
         let c = g.story.camp.as_ref().unwrap();
         assert!(c.page_taken && !c.lit && !c.light.as_ref().unwrap().visible(), "seed {seed} L{level}: the retry relit her lamp");
+    }
+}
+
+/// Trails that are not hers: none above the floor of her page `f5`, one from
+/// there, two from `f7`'s. Each leaves her walk, never goes back onto it,
+/// and ends in a dead end well away from the door; its flat sheets can be
+/// followed like hers; and at its end the place has you (`lure` in the
+/// director's log, once).
+#[test]
+fn trails_that_are_not_hers_lead_nowhere() {
+    let run = 4242u32;
+    let book = game::story::notebook::notebook(run);
+    let level_of = |id: &str| book.iter().find(|(_, p)| p.id == id).unwrap().0;
+    let (l5, l7) = (level_of("f5"), level_of("f7"));
+    for level in [l5 - 1, l5, l7] {
+        let mut g = new_game();
+        g.run_seed = run;
+        g.init_level(level);
+        g.state = "playing".into();
+        g.god_mode = true;
+        plan_png(&g);
+        let due = if level >= l7 {
+            2
+        } else if level >= l5 {
+            1
+        } else {
+            0
+        };
+        assert_eq!(g.false_trails_due(), due);
+        assert_eq!(g.story.false_trails.len(), due, "L{level}: trails that are not hers");
+        let hers: std::collections::HashSet<(i32, i32)> = g.story.walk.iter().copied().collect();
+        let (_, exit) = ends(&g);
+        let de = g.story_walk_dist(exit);
+        let k = game::story::spacing(level);
+        for (n, f) in g.story.false_trails.iter().enumerate() {
+            assert!(hers.contains(&f.walk[0]), "L{level} #{n}: does not leave her walk");
+            assert!(f.walk[1..].iter().all(|t| !hers.contains(t)), "L{level} #{n}: goes back onto her walk");
+            for w in f.walk.windows(2) {
+                assert_eq!((w[0].0 - w[1].0).abs() + (w[0].1 - w[1].1).abs(), 1, "L{level} #{n}: jumps");
+            }
+            let e = *f.walk.last().unwrap();
+            let walls = [(0, -1), (1, 0), (0, 1), (-1, 0)].iter().filter(|(dx, dz)| g.is_wall_tile(e.0 + dx, e.1 + dz)).count();
+            assert!(walls >= 3, "L{level} #{n}: ends in the open ({walls} walls)");
+            assert!(de[(e.1 * g.w + e.0) as usize] >= 8, "L{level} #{n}: ends by the door");
+            assert!(!f.trail.is_empty() && f.trail[0].step <= 2, "L{level} #{n}: its first sheet is not at the branch");
+            for w in f.trail.windows(2) {
+                assert!(w[1].step - w[0].step <= k && g.los(w[0].x, w[0].z, w[1].x, w[1].z), "L{level} #{n}: cannot be followed");
+            }
+            println!(
+                "L{level}: a trail not hers leaves her walk at step {} and goes {} tiles to a dead end, {} sheets",
+                g.story.walk.iter().position(|t| *t == f.walk[0]).unwrap(),
+                f.walk.len() - 1,
+                f.trail.len()
+            );
+        }
+        // at the end of one, the place has you, once
+        if let Some(f) = g.story.false_trails.first().cloned() {
+            g.player.pos = engine::math::Vec3::new(f.end.0, game::prelude::EYE, f.end.1);
+            play(&mut g, 0.5);
+            play(&mut g, 0.5);
+            let lures = g.director.log.iter().filter(|e| e.1 == "lure").count();
+            assert_eq!(lures, 1, "L{level}: the place answered {lures} times");
+            assert!(g.story.false_trails[0].sprung);
+        }
     }
 }

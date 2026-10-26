@@ -149,6 +149,14 @@ Someone came this way before you, and you can follow her down.
   sparser as you go down (every three tiles of walk at first, every five
   deep down); from level 4 a stretch after her camp has lost its sheets
   (two from level 7), and you have to find where she went.
+- **Trails that are not hers.** From the floor of her page that says *not
+  all the paper down here is mine* (the fifth of her floor pages), a trail
+  of whole, flat sheets with heavy black arrows leaves hers and goes into a
+  dead end; two from the floor of her seventh. Something is waiting at the
+  end: you hear it breathe close by in the dark, and something is sent for
+  you, or the one already coming learns where you are. Hers are folded
+  twice; nothing says so but her first page. Who lays the flat sheets is
+  never said.
 - **Her camp.** On every floor, somewhere off the straight way, against a
   wall: a bedroll with a blanket thrown over it, her pack, a candle lantern
   still burning (it lights its corner, and light draws Smilers), empty

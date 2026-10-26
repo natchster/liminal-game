@@ -123,6 +123,17 @@ impl Game {
             let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
             out.push(("trail", x, z, yaw, -0.42));
         }
+        // and down a trail that is not hers, from her walk
+        if let Some(f) = s.false_trails.first().filter(|f| f.trail.len() >= 2) {
+            let (a, b) = (&f.trail[0], &f.trail[1]);
+            let yaw = face(a.x, a.z, b.x, b.z);
+            let back = [2.2, 1.6, 1.0].into_iter().find(|d| {
+                let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+                !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, a.x, a.z)
+            });
+            let d = back.unwrap_or(0.6);
+            out.push(("false", a.x + yaw.sin() * d, a.z + yaw.cos() * d, yaw, -0.42));
+        }
         out
     }
 

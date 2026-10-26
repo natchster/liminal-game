@@ -41,6 +41,10 @@ that the emptiness is watching.*
 - **Goal: wrongness accumulates.**
   - Rule: deeper levels rot: more grime, darker regions, thicker fog. *Test:*
     luminance and deep-shadow share per level depth in the range report.
+  - Rule: deeper down, not every trail is hers. From her fifth floor page's
+    floor, flat sheets that look like hers lead into a dead end where the
+    place waits; the tell (hers are folded twice) is only ever hinted.
+    *Test:* `trails_that_are_not_hers_lead_nowhere` (gate, `tests/story.rs`).
 
 ## 3. The sound never stops (except where it does)
 

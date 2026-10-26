@@ -90,6 +90,8 @@ pub struct Director {
 
 /// The first quiet on the first floor while her camp is there to find, s
 pub const FIRST_FLOOR_CALM: (f64, f64) = (110.0, 150.0);
+/// How soon a build-up follows the end of a false trail, s
+pub const LURE: (f64, f64) = (1.5, 3.5);
 /// How soon a build-up follows the taking of her page, s
 pub const WAKE: (f64, f64) = (4.0, 9.0);
 
@@ -121,6 +123,18 @@ impl Game {
         }
         self.director = Director { t, ..Default::default() };
         self.amb_hush = 0.0;
+    }
+
+    /// You followed a trail that is not hers to its end: in a quiet,
+    /// something is sent within `LURE` s; in a build-up, the stalker is told
+    /// where you are now (its last stretch).
+    pub fn director_lure(&mut self) {
+        self.director_note("lure");
+        match self.director.phase {
+            Phase::Calm => self.director.t = self.director.t.min(rand2(LURE.0, LURE.1)),
+            Phase::Build => self.director.t = self.director.t.min(0.0),
+            _ => {}
+        }
     }
 
     /// Her page was taken: the place wakes. A quiet is cut short, so a

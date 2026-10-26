@@ -15,6 +15,11 @@
 //! build checkpoint moves. What depends on the run's progress (whether her
 //! page here was already taken) is fitted after the build, like the notes.
 //!
+//! Not every trail is hers: from the floor of her page that says so (`f5`),
+//! a trail of flat sheets leaves hers and goes into a dead end, and the
+//! place is waiting there (`plan_false_trails`, `story_lure`). Two from the
+//! floor of `f7`. Hers are folded twice.
+//!
 //! The trail is meant to be read, not followed blindly: a sheet is placed
 //! where the last one can be seen from, at most `spacing` tiles of walk on,
 //! and from level `GAP_FROM` one stretch after the camp has lost its sheets
@@ -26,6 +31,8 @@ use crate::prelude::*;
 
 /// Salt of the stream the story layer draws from
 pub const STORY_SALT: u64 = 0x5703_7EA1_C0FF_EE11;
+/// How close to a false trail's dead end the place notices you, m
+pub const LURE_REACH: f64 = 2.5;
 /// From this level, a stretch of the trail after the camp has lost its sheets
 pub const GAP_FROM: i32 = 4;
 /// How far the sheets lie from the centre of their tile at most, m
@@ -91,6 +98,26 @@ pub struct StoryLevel {
     pub trail: Vec<TrailMark>,
     /// Stretches of the walk (from step, to step) whose sheets are gone
     pub gaps: Vec<(usize, usize)>,
+    /// Trails that are not hers (`plan_false_trails`)
+    pub false_trails: Vec<FalseTrail>,
+}
+
+/// A trail that is not hers, as planned: the walk (its first tile on hers)
+/// and its sheets (step, x, z, yaw).
+#[derive(Clone, Debug, PartialEq)]
+pub struct FalsePlan {
+    pub walk: Vec<(i32, i32)>,
+    pub marks: Vec<(usize, f64, f64, f64)>,
+}
+
+/// A trail that is not hers, on the level: where it goes, its sheets, its
+/// dead end, and whether you have stood there (the place answers once).
+#[derive(Clone, Debug)]
+pub struct FalseTrail {
+    pub walk: Vec<(i32, i32)>,
+    pub trail: Vec<TrailMark>,
+    pub end: (f64, f64),
+    pub sprung: bool,
 }
 
 /// What `plan_story` decides: pure data, no objects.
@@ -103,6 +130,7 @@ pub struct StoryPlan {
     /// (walk step, x, z, yaw) of each sheet
     pub marks: Vec<(usize, f64, f64, f64)>,
     pub gaps: Vec<(usize, usize)>,
+    pub false_trails: Vec<FalsePlan>,
 }
 
 impl Game {
@@ -121,6 +149,11 @@ impl Game {
 
     /// Steps of walk from tile `from` to every tile (−1: not reachable).
     pub fn story_walk_dist(&self, from: (i32, i32)) -> Vec<i32> {
+        self.story_walk_dist_avoiding(from, &Default::default())
+    }
+
+    /// `story_walk_dist` that never steps onto the tiles in `avoid`.
+    pub fn story_walk_dist_avoiding(&self, from: (i32, i32), avoid: &std::collections::HashSet<(i32, i32)>) -> Vec<i32> {
         let (w, h) = (self.w, self.h);
         let mut d = vec![-1i32; (w * h).max(0) as usize];
         if !self.in_grid(from.0, from.1) || !self.story_open(from.0, from.1) {
@@ -133,7 +166,7 @@ impl Game {
             let k = d[(z * w + x) as usize];
             for (dx, dz) in DIRS {
                 let (nx, nz) = (x + dx, z + dz);
-                if nx < 0 || nz < 0 || nx >= w || nz >= h || !self.story_open(nx, nz) {
+                if nx < 0 || nz < 0 || nx >= w || nz >= h || !self.story_open(nx, nz) || avoid.contains(&(nx, nz)) {
                     continue;
                 }
                 let i = (nz * w + nx) as usize;
@@ -251,54 +284,7 @@ impl Game {
         // door's
         let k = spacing(self.level_num);
         let n = walk.len();
-        // where a sheet on `step` lies (the camp's step: the middle of its
-        // tile, where the camp is seen from)
-        let pos = |step: usize, r: &mut SplitMix64| {
-            let (x, z) = walk[step];
-            if step == camp_step {
-                return (self.wx(x), self.wz(z));
-            }
-            (self.wx(x) + r.range(-JITTER, JITTER), self.wz(z) + r.range(-JITTER, JITTER))
-        };
-        let mut marks: Vec<(usize, f64, f64, f64)> = vec![];
-        let first = 2.min(n - 1);
-        let (mut px, mut pz) = pos(first, &mut r);
-        let mut cur = first;
-        let mut steps = vec![(first, px, pz)];
-        while cur + 2 < n {
-            let mut j = (cur + k).min(n - 2);
-            if cur < camp_step && j > camp_step {
-                j = camp_step;
-            }
-            // the furthest step in reach that this sheet can be seen from
-            let mut placed = None;
-            while j > cur {
-                let mut rr = r;
-                let (x, z) = pos(j, &mut rr);
-                if self.los(px, pz, x, z) {
-                    r = rr;
-                    placed = Some((j, x, z));
-                    break;
-                }
-                j -= 1;
-            }
-            let (j, x, z) = placed.unwrap_or_else(|| {
-                let (x, z) = pos(cur + 1, &mut r);
-                (cur + 1, x, z)
-            });
-            steps.push((j, x, z));
-            (px, pz, cur) = (x, z, j);
-        }
-        for &(step, x, z) in &steps {
-            if step == camp_step {
-                continue;
-            }
-            // the arrow points along the walk, two tiles on
-            let ahead = walk[(step + 2).min(n - 1)];
-            let (dx, dz) = (self.wx(ahead.0) - x, self.wz(ahead.1) - z);
-            let yaw = (-dx).atan2(-dz) + r.range(-0.12, 0.12);
-            marks.push((step, x, z, yaw));
-        }
+        let mut marks = self.lay_sheets(&walk, 2.min(n - 1), n.saturating_sub(2), Some(camp_step), k, &mut r);
 
         // deeper down, a stretch after the camp has lost its sheets
         let mut gaps = vec![];
@@ -320,12 +306,136 @@ impl Game {
                 }
             }
         }
-        Some(StoryPlan { camp, wall, walk, camp_step, marks, gaps })
+        let false_trails = self.plan_false_trails(&walk, &de, &mut r);
+        Some(StoryPlan { camp, wall, walk, camp_step, marks, gaps, false_trails })
     }
 
     /// Her page on this level, if she left one (`notebook::page_on`).
     pub fn story_page(&self) -> Option<&'static notebook::Page> {
         notebook::page_on(self.run_seed, self.level_num, self.level_scp.as_deref())
+    }
+
+    /// Sheets along `walk` from step `first` to step `last` at most: each
+    /// where the last can be seen from, at most `k` steps on (the furthest
+    /// such step; the next one if none can be seen), never on the `anchor`
+    /// step (her camp, which is its own mark, seen from the middle of its
+    /// tile); each arrow pointing along the walk two tiles on. (step, x, z,
+    /// yaw).
+    fn lay_sheets(
+        &self,
+        walk: &[(i32, i32)],
+        first: usize,
+        last: usize,
+        anchor: Option<usize>,
+        k: usize,
+        r: &mut SplitMix64,
+    ) -> Vec<(usize, f64, f64, f64)> {
+        let n = walk.len();
+        let pos = |step: usize, r: &mut SplitMix64| {
+            let (x, z) = walk[step];
+            if Some(step) == anchor {
+                return (self.wx(x), self.wz(z));
+            }
+            (self.wx(x) + r.range(-JITTER, JITTER), self.wz(z) + r.range(-JITTER, JITTER))
+        };
+        let (mut px, mut pz) = pos(first, r);
+        let mut cur = first;
+        let mut steps = vec![(first, px, pz)];
+        while cur < last {
+            let mut j = (cur + k).min(last);
+            if let Some(a) = anchor.filter(|&a| cur < a && j > a) {
+                j = a;
+            }
+            // the furthest step in reach that this sheet can be seen from
+            let mut placed = None;
+            while j > cur {
+                let mut rr = *r;
+                let (x, z) = pos(j, &mut rr);
+                if self.los(px, pz, x, z) {
+                    *r = rr;
+                    placed = Some((j, x, z));
+                    break;
+                }
+                j -= 1;
+            }
+            let (j, x, z) = placed.unwrap_or_else(|| {
+                let (x, z) = pos(cur + 1, r);
+                (cur + 1, x, z)
+            });
+            steps.push((j, x, z));
+            (px, pz, cur) = (x, z, j);
+        }
+        let mut marks = vec![];
+        for &(step, x, z) in &steps {
+            if Some(step) == anchor {
+                continue;
+            }
+            let ahead = walk[(step + 2).min(n - 1)];
+            let (dx, dz) = (self.wx(ahead.0) - x, self.wz(ahead.1) - z);
+            let yaw = (-dx).atan2(-dz) + r.range(-0.12, 0.12);
+            marks.push((step, x, z, yaw));
+        }
+        marks
+    }
+
+    /// How many trails that are not hers lie on this level: none above the
+    /// floor of her page that says so (`f5`), one from there, two from the
+    /// floor of `f7` on.
+    pub fn false_trails_due(&self) -> usize {
+        let book = notebook::notebook(self.run_seed);
+        let from = |id: &str| book.iter().find(|(_, p)| p.id == id).map(|(n, _)| *n).unwrap_or(i32::MAX);
+        if self.level_num >= from("f7") {
+            2
+        } else if self.level_num >= from("f5") {
+            1
+        } else {
+            0
+        }
+    }
+
+    /// The trails that are not hers (`false_trails_due`): each leaves her
+    /// walk at a tile with open floor beside it that is off her way, and
+    /// goes 6–16 tiles into a dead end (three walls round it) well away from
+    /// the door, never back onto her walk or onto another such trail. Flat
+    /// sheets, laid like hers.
+    fn plan_false_trails(&self, walk: &[(i32, i32)], de: &[i32], r: &mut SplitMix64) -> Vec<FalsePlan> {
+        let mut out = vec![];
+        let mut used: std::collections::HashSet<(i32, i32)> = walk.iter().copied().collect();
+        let idx = |p: (i32, i32)| (p.1 * self.w + p.0) as usize;
+        let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_wall_tile(x + dx, z + dz)).count();
+        for _ in 0..self.false_trails_due() {
+            let mut branches = vec![];
+            for i in 4..walk.len().saturating_sub(6) {
+                for (dx, dz) in DIRS {
+                    let t = (walk[i].0 + dx, walk[i].1 + dz);
+                    if self.in_grid(t.0, t.1) && self.story_open(t.0, t.1) && !used.contains(&t) {
+                        branches.push((i, t));
+                    }
+                }
+            }
+            for i in (1..branches.len()).rev() {
+                branches.swap(i, ((r.next() * (i + 1) as f64) as usize).min(i));
+            }
+            for &(i, start) in branches.iter().take(40) {
+                let d = self.story_walk_dist_avoiding(start, &used);
+                let ends: Vec<(i32, i32)> = (0..self.h)
+                    .flat_map(|z| (0..self.w).map(move |x| (x, z)))
+                    .filter(|&t| (6..=16).contains(&d[idx(t)]) && de[idx(t)] >= 8 && walls_beside(t.0, t.1) >= 3)
+                    .collect();
+                if ends.is_empty() {
+                    continue;
+                }
+                let end = ends[((r.next() * ends.len() as f64) as usize).min(ends.len() - 1)];
+                let mut fw = self.story_descend(&d, end);
+                fw.reverse();
+                fw.insert(0, walk[i]);
+                let marks = self.lay_sheets(&fw, 1, fw.len() - 1, None, spacing(self.level_num), r);
+                used.extend(fw.iter().copied());
+                out.push(FalsePlan { walk: fw, marks });
+                break;
+            }
+        }
+        out
     }
 
     /// Dress the level with her camp and her trail (`plan_story`). Called by
@@ -358,7 +468,28 @@ impl Game {
             let g = self.dress_sheet(&sheet, x, z, yaw);
             trail.push(TrailMark { step, x, z, yaw, g: Some(g) });
         }
-        self.story = StoryLevel { camp: Some(camp), walk: plan.walk, camp_step: plan.camp_step, trail, gaps: plan.gaps };
+        // the trails that are not hers, and the place waiting at their ends
+        let flat = self.false_sheet_parts();
+        let mut false_trails = vec![];
+        for (k, f) in plan.false_trails.iter().enumerate() {
+            let trail = f
+                .marks
+                .iter()
+                .map(|&(step, x, z, yaw)| TrailMark { step, x, z, yaw, g: Some(self.dress_sheet(&flat, x, z, yaw)) })
+                .collect();
+            let e = *f.walk.last().unwrap();
+            let end = (self.wx(e.0), self.wz(e.1));
+            false_trails.push(FalseTrail { walk: f.walk.clone(), trail, end, sprung: false });
+            self.animate(move |g, _dt, _t| {
+                let Some(ft) = g.story.false_trails.get(k) else { return };
+                let (dx, dz) = (ft.end.0 - g.player.pos.x, ft.end.1 - g.player.pos.z);
+                if !ft.sprung && g.state == "playing" && dx * dx + dz * dz < LURE_REACH * LURE_REACH {
+                    g.story.false_trails[k].sprung = true;
+                    g.story_lure(k);
+                }
+            });
+        }
+        self.story = StoryLevel { camp: Some(camp), walk: plan.walk, camp_step: plan.camp_step, trail, gaps: plan.gaps, false_trails };
         // placed after settling, which brings every other prop's world matrix
         // up to date; the prop cull reads them (a stale one at the origin
         // hides the thing as far away)
@@ -427,5 +558,18 @@ impl Game {
     pub fn show_thread(&mut self) {
         let t = if self.thread.is_empty() { String::new() } else { format!("\u{201c}{}\u{201d}", self.thread) };
         self.ui.objective.set_text(&t);
+    }
+}
+
+impl Game {
+    /// You followed a trail that is not hers to its end: something breathes
+    /// close by in the dark ahead, and the place has you (`director_lure`).
+    pub fn story_lure(&mut self, k: usize) {
+        let Some(ft) = self.story.false_trails.get(k) else { return };
+        let (ex, ez) = ft.end;
+        let (dx, dz) = (ex - self.player.pos.x, ez - self.player.pos.z);
+        let d = dx.hypot(dz).max(0.5);
+        self.play_at(ex + dx / d * 1.5, 1.2, ez + dz / d * 1.5, 3.0, 1.4, |g| g.sfx_breath());
+        self.director_lure();
     }
 }
