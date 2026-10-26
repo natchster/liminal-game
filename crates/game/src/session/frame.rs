@@ -78,6 +78,17 @@ impl Game {
             self.update_ambient(dt);
             self.update_soundscape(dt);
             self.update_debug();
+        } else if self.state == "menu" {
+            // the title is a view of the lobby, live: its lights, its dust, its sound
+            let perf_t = self.perf_t;
+            self.update_title_view(dt);
+            self.update_lights(dt, perf_t);
+            self.update_dust(dt);
+            self.update_grain(dt);
+            if self.ac.is_some() {
+                self.update_ambient(dt);
+                self.update_soundscape(dt);
+            }
         } else if self.state == "dead" {
             let y = EYE + (self.perf_t * 30.0).sin() * 0.01;
             self.camera.position().y = y;
@@ -138,12 +149,13 @@ impl Game {
         }
     }
     /// A click in the window. `target` is the element under the cursor (the HUD's
-    /// hit test): 'btn-new', 'btn-continue', 'journal-prev', 'journal-next',
-    /// 'overlay' (anywhere on the visible menu overlay) or '' (the canvas).
+    /// hit test): a menu line ('menu:continue', …), 'journal-prev',
+    /// 'journal-next', 'overlay' (anywhere on a card) or '' (the canvas).
     pub fn click(&mut self, target: &str) {
+        if target.starts_with("menu:") {
+            return self.menu_choose(target);
+        }
         match target {
-            "btn-new" => self.start_new_game(),
-            "btn-continue" => self.continue_game(),
             "journal-prev" => self.journal_prev(),
             "journal-next" => self.journal_next(),
             "overlay" => {

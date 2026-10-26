@@ -176,7 +176,7 @@ fn el_json(e: &Element) -> String {
     let at = e.attrs.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
     format!("{{\"text\":{},\"html\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.html), cls, st, at)
 }
-const IDS: [&str; 57] = [
+const IDS: [&str; 53] = [
     "vignette",
     "weatherTint",
     "safeRoomGlow",
@@ -225,10 +225,6 @@ const IDS: [&str; 57] = [
     "overlay-title",
     "overlay-sub",
     "overlay-controls",
-    "overlay-buttons",
-    "btn-continue",
-    "btn-new",
-    "menu-medals",
     "overlay-hint",
     "",
     "",
@@ -242,21 +238,10 @@ fn ui_json(g: &mut Game) -> String {
         parts.push(format!("{}:{}", rec(id), el_json(&e)));
     }
     let d = &g.ui;
-    let mm = [
-        ("archivist", &d.menu_medal_archivist),
-        ("survivor", &d.menu_medal_survivor),
-        ("storyteller", &d.menu_medal_storyteller),
-        ("completionist", &d.menu_medal_completionist),
-        ("ironwill", &d.menu_medal_ironwill),
-    ]
-    .iter()
-    .map(|(k, e)| format!("{}:{}", rec(k), el_json(e)))
-    .collect::<Vec<_>>()
-    .join(",");
     format!(
-        "{{\"elements\":{{{}}},\"menuMedals\":{{{}}},\"body\":{},\"bg\":\"rgb({},{},{})\"}}",
+        "{{\"elements\":{{{}}},\"menu\":{},\"body\":{},\"bg\":\"rgb({},{},{})\"}}",
         parts.join(","),
-        mm,
+        rec(&format!("{:?}", g.menu)),
         el_json(&d.body),
         (BG[0] * 255.0).round(),
         (BG[1] * 255.0).round(),
@@ -357,28 +342,29 @@ fn playing_state(g: &mut Game) {
 
 #[test]
 fn hud_states() {
-    // ---- the title menu
+    // ---- the title: a save, so Continue and her last line
     let mut g = game();
     g.state = "menu".into();
-    g.update_hud(1.0 / 60.0);
-    g.show_overlay("THE BACKROOMS", "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.", "CLICK TO ENTER");
-    g.ui.btn_continue.set_display("inline-block");
-    g.ui.menu_medal_archivist.add_class("earned");
-    g.ui.menu_medal_survivor.add_class("earned");
+    g.run_seed = 4242;
+    g.level_num = 4;
+    g.notebook.insert("f1".into());
+    g.save_game();
+    g.notebook.clear();
+    g.hide_overlay();
+    g.open_menu(game::ui::menu::Screen::Title);
     run(&mut g, 3, false);
-    g.now_ms = 0.0; // blink / shimmer at their first keyframe
     shoot(&mut g, "menu");
-    // the buttons answer clicks; anywhere else on the menu is the overlay
-    let mut found_new = false;
-    for y in (300..700).step_by(2) {
-        for x in (500..800).step_by(4) {
-            if g.hud_hit_test(x as f64, y as f64) == "btn-new" {
-                found_new = true;
-            }
+    // the lines answer clicks; elsewhere is the place (nothing)
+    let mut found = std::collections::BTreeSet::new();
+    for y in (300..800).step_by(2) {
+        for x in (0..500).step_by(4) {
+            found.insert(g.hud_hit_test(x as f64, y as f64));
         }
     }
-    assert!(found_new, "btn-new is clickable");
-    assert_eq!(g.hud_hit_test(5.0, 5.0), "overlay");
+    for id in ["menu:continue", "menu:new", "menu:quit"] {
+        assert!(found.contains(id), "{id} is not clickable: {found:?}");
+    }
+    assert_eq!(g.hud_hit_test(1200.0, 100.0), "");
 
     // ---- playing: meters, items, toast, omen, medals, prompt
     let mut g = game();
@@ -475,7 +461,6 @@ fn hud_states() {
     g.state = "dead".into();
     g.ui.flash.set_opacity(1.0);
     g.show_overlay("IT FOUND YOU", "You survived 42 seconds on level 3. The hum never stops.", "PRESS R TO WAKE UP");
-    assert_eq!(g.ui.overlay_buttons.style("display"), Some("none"));
     run(&mut g, 40, false);
     g.now_ms = 0.0;
     shoot(&mut g, "dead");
@@ -492,7 +477,6 @@ fn hud_states() {
     assert!(body.contains("5 of her 13 pages") && body.contains("died 2 times"), "{body}");
     g.ui.overlay_controls.set_html("");
     g.show_overlay(&title, &body, "PRESS E TO GO ON");
-    assert_eq!(g.ui.overlay_buttons.style("display"), Some("none"));
     run(&mut g, 40, false);
     g.now_ms = 0.0;
     shoot(&mut g, "ending");

@@ -65,6 +65,10 @@ impl Game {
     /// actions (`session::input::BINDINGS`), then the notebook's page keys
     /// and the keys that go on from the death and ending cards.
     pub fn on_key_down(&mut self, code: &str) {
+        // a menu takes its keys first (Mute still works under it)
+        if self.menu_key(code) {
+            return;
+        }
         // the cards take a key only once they are up (no skipping them by
         // mashing a key through the moment that leads to them)
         let card_up = !self.ui.overlay.has_class("hidden");

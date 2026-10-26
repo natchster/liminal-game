@@ -1492,9 +1492,6 @@ impl Game {
         self.ui.overlay_sub.set_text(sub);
         self.ui.overlay_hint.set_text(hint);
         self.ui.overlay.remove_class("hidden");
-        // Buttons only visible on the main menu; pause/death overlays skip them
-        let disp = if self.state == "menu" { "flex" } else { "none" };
-        self.ui.overlay_buttons.set_display(disp);
     }
     pub fn hide_overlay(&mut self) {
         self.ui.overlay.add_class("hidden");

@@ -214,16 +214,6 @@ pub struct UiModel {
     pub overlay_title: Element,
     pub overlay_sub: Element,
     pub overlay_controls: Element,
-    pub overlay_buttons: Element,
-    pub btn_continue: Element,
-    pub btn_new: Element,
-    pub menu_medals: Element,
-    /// `.menu-medal[data-m=...]` children of #menu-medals
-    pub menu_medal_archivist: Element,
-    pub menu_medal_survivor: Element,
-    pub menu_medal_storyteller: Element,
-    pub menu_medal_completionist: Element,
-    pub menu_medal_ironwill: Element,
     pub overlay_hint: Element,
     /// The root element; only its classes are used (e.g. 'playing')
     pub body: Element,
@@ -252,32 +242,12 @@ impl UiModel {
         d.overlay_title.text = "THE BACKROOMS".into();
         d.overlay_sub.text = "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.".into();
         d.overlay_controls.html = "WASD — MOVE &nbsp;&middot;&nbsp; MOUSE — LOOK &nbsp;&middot;&nbsp; SHIFT — RUN &nbsp;&middot;&nbsp; CTRL / C — CROUCH &nbsp;&middot;&nbsp; F / RIGHT CLICK — FLASHLIGHT &nbsp;&middot;&nbsp; E / CLICK — INTERACT &nbsp;&middot;&nbsp; Q — DROP PAPER &nbsp;&middot;&nbsp; G — DRINK WATER &nbsp;&middot;&nbsp; R — SWAP BATTERY &nbsp;&middot;&nbsp; V — CALL OUT &nbsp;&middot;&nbsp; TAB — NOTEBOOK &nbsp;&middot;&nbsp; ESC — PAUSE &nbsp;&middot;&nbsp; M — MUTE<br>\n  ALMOND WATER RESTORES STAMINA WHEN YOU DRINK IT. A SPARE BATTERY RECHARGES YOUR LIGHT WHEN YOU SWAP IT IN. BOTH ARE CARRIED UNTIL YOU SPEND THEM — SAVE THEM FOR WHEN IT IS BAD. PAPER MARKS YOUR PATH. CRYING IS DESPERATE — IT MAY BE HEARD.".into();
-        d.btn_continue.text = "CONTINUE".into();
-        d.btn_continue.set_style("display", "none");
-        d.btn_new.text = "NEW GAME".into();
-        d.menu_medal_archivist.text = "◆ ARCHIVIST".into();
-        d.menu_medal_survivor.text = "◆ SURVIVOR".into();
-        d.menu_medal_storyteller.text = "⛧ STORYTELLER".into();
-        d.menu_medal_completionist.text = "★ COMPLETIONIST".into();
-        d.menu_medal_ironwill.text = "✦ IRONWILL".into();
         d.overlay_hint.text = "CLICK TO ENTER".into();
         for el in [&mut d.vignette, &mut d.aberration, &mut d.flash, &mut d.grain, &mut d.fade, &mut d.hud] {
             el.classes.insert("layer".into());
         }
         for el in [&mut d.journal_prev, &mut d.journal_next] {
             el.classes.insert("journal-btn".into());
-        }
-        for el in [&mut d.btn_continue, &mut d.btn_new] {
-            el.classes.insert("menu-btn".into());
-        }
-        for el in [
-            &mut d.menu_medal_archivist,
-            &mut d.menu_medal_survivor,
-            &mut d.menu_medal_storyteller,
-            &mut d.menu_medal_completionist,
-            &mut d.menu_medal_ironwill,
-        ] {
-            el.classes.insert("menu-medal".into());
         }
         d
     }
@@ -332,10 +302,6 @@ impl UiModel {
             "overlay-title" => &mut self.overlay_title,
             "overlay-sub" => &mut self.overlay_sub,
             "overlay-controls" => &mut self.overlay_controls,
-            "overlay-buttons" => &mut self.overlay_buttons,
-            "btn-continue" => &mut self.btn_continue,
-            "btn-new" => &mut self.btn_new,
-            "menu-medals" => &mut self.menu_medals,
             "overlay-hint" => &mut self.overlay_hint,
             _ => return None,
         })
@@ -391,15 +357,6 @@ impl UiModel {
             &self.overlay_title,
             &self.overlay_sub,
             &self.overlay_controls,
-            &self.overlay_buttons,
-            &self.btn_continue,
-            &self.btn_new,
-            &self.menu_medals,
-            &self.menu_medal_archivist,
-            &self.menu_medal_survivor,
-            &self.menu_medal_storyteller,
-            &self.menu_medal_completionist,
-            &self.menu_medal_ironwill,
             &self.overlay_hint,
             &self.body,
         ];

@@ -34,12 +34,12 @@ pub struct SaveData {
 impl Game {
     /// start-up work: the menu's flavour text and buttons
     pub fn init_flow(&mut self) {
-        // randomize opening-screen flavor text (native randomness)
-        let sub = crate::base::rng::with_native(|| self.pick_text("overlaySubs"));
-        if !sub.is_empty() {
-            self.ui.overlay_sub.set_text(&sub);
-        }
-        self.refresh_continue_button();
+        // The title no longer has a paragraph; its line is still drawn from
+        // the native stream, so every frame after it stays where it was
+        // (CLAUDE.md invariant 1)
+        let _ = crate::base::rng::with_native(|| self.pick_text("overlaySubs"));
+        self.hide_overlay();
+        self.open_menu(crate::ui::menu::Screen::Title);
     }
 
     pub fn init_level(&mut self, n: i32) {
@@ -484,24 +484,6 @@ impl Game {
     }
 
     // ------------------------------------------------------------ the menu
-    pub fn refresh_continue_button(&mut self) {
-        let saved = self.load_game();
-        self.ui.btn_continue.set_display(if saved.is_some() { "inline-block" } else { "none" });
-        let hint = match &saved {
-            Some(s) => format!("LAST SAVE — LEVEL {}", s.level_num),
-            None => "PICK AN OPTION".into(),
-        };
-        self.ui.overlay_hint.set_text(&hint);
-        self.refresh_menu_medals(saved.as_ref());
-    }
-    pub fn refresh_menu_medals(&mut self, saved: Option<&SaveData>) {
-        let s = saved.cloned().unwrap_or_default();
-        self.ui.menu_medal_archivist.toggle_class("earned", s.archivist);
-        self.ui.menu_medal_survivor.toggle_class("earned", s.survivor);
-        self.ui.menu_medal_storyteller.toggle_class("earned", s.storyteller);
-        self.ui.menu_medal_completionist.toggle_class("earned", s.completionist);
-        self.ui.menu_medal_ironwill.toggle_class("earned", s.ironwill);
-    }
     /// The launch flags (`--flags 'seed=4242&level=3'`) as key → value.
     pub fn parse_flag_params(&self) -> std::collections::BTreeMap<String, String> {
         let mut out = std::collections::BTreeMap::new();
@@ -515,6 +497,7 @@ impl Game {
         out
     }
     pub fn start_new_game(&mut self) {
+        self.close_menu();
         self.audio_init();
         self.clear_save();
         let hp = self.parse_flag_params();
@@ -552,6 +535,7 @@ impl Game {
         self.want_pointer_lock = Some(true);
     }
     pub fn continue_game(&mut self) {
+        self.close_menu();
         self.audio_init();
         let Some(d) = self.load_game() else {
             return self.start_new_game();

@@ -23,17 +23,17 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 
-type Rgba = [f64; 4];
+pub(crate) type Rgba = [f64; 4];
 
 // ------------------------------------------------------------ CSS values
 /// parse a CSS colour (straight alpha)
 pub fn css_color(s: &str) -> Option<Rgba> {
     engine::css::parse_css_color(s)
 }
-fn col(s: &str) -> Rgba {
+pub(crate) fn col(s: &str) -> Rgba {
     css_color(s).unwrap_or([0.0, 0.0, 0.0, 1.0])
 }
-fn rgba(r: f64, g: f64, b: f64, a: f64) -> Rgba {
+pub(crate) fn rgba(r: f64, g: f64, b: f64, a: f64) -> Rgba {
     [r / 255.0, g / 255.0, b / 255.0, a]
 }
 fn css_rgba(c: Rgba) -> String {
@@ -1101,7 +1101,7 @@ pub struct HudUi {
     next_id: u64,
     grain_id: u64,
     /// click targets of the last frame, topmost first: (id, rect css px, enabled)
-    hits: Vec<(&'static str, [f64; 4], bool)>,
+    pub(crate) hits: Vec<(&'static str, [f64; 4], bool)>,
     /// the frame's layers in paint order, by box name (tests dump them)
     pub painted: Vec<&'static str>,
 }
@@ -1112,17 +1112,17 @@ fn hash_of(s: &str) -> u64 {
 }
 
 /// The frame being built.
-struct Frame<'a> {
-    ui: &'a mut HudUi,
+pub(crate) struct Frame<'a> {
+    pub(crate) ui: &'a mut HudUi,
     out: Vec<HudLayer>,
-    w: f64,
-    h: f64,
-    dpr: f64,
-    now: f64,
+    pub(crate) w: f64,
+    pub(crate) h: f64,
+    pub(crate) dpr: f64,
+    pub(crate) now: f64,
 }
 impl Frame<'_> {
     /// a CSS transition of `key` toward `target` (starts when the target changes)
-    fn tr(&mut self, key: &str, target: f64, dur: f64, ease: Ease) -> f64 {
+    pub(crate) fn tr(&mut self, key: &str, target: f64, dur: f64, ease: Ease) -> f64 {
         let now = self.now;
         match self.ui.trans.get_mut(key) {
             None => {
@@ -1154,7 +1154,12 @@ impl Frame<'_> {
         Some(e.0)
     }
     /// the cached canvas `name`, repainted by `paint` when `key` changes
-    fn boxed(&mut self, name: &'static str, key: &str, paint: impl FnOnce(f64) -> Painter) -> (Rc<RefCell<Canvas>>, u64, u64, [f32; 4]) {
+    pub(crate) fn boxed(
+        &mut self,
+        name: &'static str,
+        key: &str,
+        paint: impl FnOnce(f64) -> Painter,
+    ) -> (Rc<RefCell<Canvas>>, u64, u64, [f32; 4]) {
         let k = hash_of(&format!("{}|{}|{}|{}", key, self.w, self.h, self.dpr));
         let (w, h, dpr) = (self.w, self.h, self.dpr);
         if self.ui.boxes.get(name).map(|b| b.key != k).unwrap_or(true) {
@@ -1175,14 +1180,14 @@ impl Frame<'_> {
         (b.canvas.clone(), b.id, v, b.rect)
     }
     /// paint (if needed) and composite box `name` at `opacity`
-    fn layer(&mut self, name: &'static str, key: &str, opacity: f64, paint: impl FnOnce(f64) -> Painter) {
+    pub(crate) fn layer(&mut self, name: &'static str, key: &str, opacity: f64, paint: impl FnOnce(f64) -> Painter) {
         if opacity <= 0.0005 {
             return;
         }
         let (canvas, id, version, rect) = self.boxed(name, key, paint);
         self.push_canvas(name, canvas, id, version, rect, opacity, LayerBlend::Normal, false);
     }
-    fn push_canvas(
+    pub(crate) fn push_canvas(
         &mut self,
         name: &'static str,
         canvas: Rc<RefCell<Canvas>>,
@@ -1220,7 +1225,7 @@ impl Frame<'_> {
             opacity: opacity.min(1.0) as f32,
         });
     }
-    fn fill(&mut self, c: Rgba, blend: LayerBlend) {
+    pub(crate) fn fill(&mut self, c: Rgba, blend: LayerBlend) {
         if c[3] <= 0.0005 {
             return;
         }
@@ -1228,7 +1233,7 @@ impl Frame<'_> {
         self.out.push(HudLayer::Fill { color: f32x4(c), blend });
     }
     /// an element's `background`: a colour fill or a radial gradient
-    fn background(&mut self, bg: &str, opacity: f64, blend: LayerBlend) {
+    pub(crate) fn background(&mut self, bg: &str, opacity: f64, blend: LayerBlend) {
         if bg.trim_start().starts_with("radial-gradient") {
             if let Some(r) = parse_radial(bg, self.w, self.h) {
                 self.radial(&r, blend, opacity, None);
@@ -1252,7 +1257,7 @@ fn lerp_c(a: Rgba, b: Rgba, t: f64) -> Rgba {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t]
 }
 
-const HUD_COLOR: &str = "#d8cf9f";
+pub(crate) const HUD_COLOR: &str = "#d8cf9f";
 fn hud_shadows() -> Vec<Shadow> {
     parse_shadows("0 0 4px #000, 0 0 2px #000")
 }
@@ -1276,7 +1281,7 @@ fn shadow_margin(sh: &[Shadow]) -> f64 {
 }
 
 /// a one-element text box: block `tb` with its line boxes at (x, y), `box_w` wide
-fn text_layer(f: &mut Frame, name: &'static str, tb: TextBlock, x: f64, y: f64, box_w: f64, align: &'static str, opacity: f64) {
+pub(crate) fn text_layer(f: &mut Frame, name: &'static str, tb: TextBlock, x: f64, y: f64, box_w: f64, align: &'static str, opacity: f64) {
     if tb.is_empty() {
         return;
     }
@@ -1392,8 +1397,9 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             f.background(&bg, op, LayerBlend::Normal);
         }
     }
-    // ---- z 10: #overlay
+    // ---- z 10: #overlay, then the menus (`ui/screens.rs`)
     paint_overlay(&mut f, g);
+    crate::ui::screens::paint_menu(&mut f, g);
     let out = std::mem::take(&mut f.out);
     drop(f);
     g.hud_ui = ui;
@@ -1436,6 +1442,10 @@ fn paint_vignette(grad: &Radial, sh: &Shadow, cm: ColorMatrix, w: f64, h: f64) -
 
 /// #hud and its children (z-index 4 stacking context)
 fn paint_hud(f: &mut Frame, g: &Game) {
+    // the title is the place alone
+    if g.state == "menu" {
+        return;
+    }
     let d = &g.ui;
     let (w, h) = (f.w, f.h);
     let hc = col(HUD_COLOR);
@@ -1874,15 +1884,6 @@ fn paint_box_shadow(p: &mut Painter, x: f64, y: f64, w: f64, h: f64, s: &Shadow)
     p.c.draw_image(&sc, 0, 0);
 }
 
-/// the menu medals' earned colours: (key, colour, border, shadow, shimmer delay s)
-const MENU_MEDALS: [(&str, &str, &str, &str, f64); 5] = [
-    ("archivist", "#f8e0a0", "rgba(248, 224, 160, 0.6)", "0 0 6px rgba(248, 224, 160, 0.55)", 0.0),
-    ("survivor", "#a8d8f0", "rgba(168, 216, 240, 0.6)", "0 0 6px rgba(168, 216, 240, 0.55)", 0.8),
-    ("storyteller", "#d8b0f0", "rgba(216, 176, 240, 0.6)", "0 0 6px rgba(216, 176, 240, 0.55)", 1.6),
-    ("completionist", "#ffedb0", "rgba(255, 237, 176, 0.7)", "0 0 8px rgba(255, 237, 176, 0.7)", 2.4),
-    ("ironwill", "#a0f0d8", "rgba(160, 240, 216, 0.6)", "0 0 6px rgba(160, 240, 216, 0.55)", 3.2),
-];
-
 /// #overlay (unless .hidden): flex column, centred
 fn paint_overlay(f: &mut Frame, g: &Game) {
     let d = &g.ui;
@@ -1898,68 +1899,10 @@ fn paint_overlay(f: &mut Frame, g: &Game) {
     let title = mk(&d.overlay_title, Font::new(34.0), 12.0, parse_shadows("0 0 18px rgba(216,207,159,0.35)"), w, None);
     let sub = mk(&d.overlay_sub, Font::new(13.0), 2.0, vec![], 560.0f64.min(w), Some(13.0 * 1.8));
     let controls = mk(&d.overlay_controls, Font::new(11.0), 2.0, vec![], w, Some(22.0));
-    let show_btns = d.overlay_buttons.style("display") != Some("none");
-    let btns: Vec<(&'static str, TextBlock)> = [("btn-continue", &d.btn_continue), ("btn-new", &d.btn_new)]
-        .into_iter()
-        .filter(|(_, el)| el.shown())
-        .map(|(id, el)| {
-            (
-                id,
-                TextBlock::new(
-                    vec![Run { text: el.text.to_uppercase(), color: fg, shadows: vec![], opacity: 1.0, ls: 3.0 }],
-                    Font::new(13.0),
-                    Ws::NoWrap,
-                    None,
-                    None,
-                ),
-            )
-        })
-        .collect();
-    let btn_sizes: Vec<(f64, f64)> = btns.iter().map(|(_, tb)| button_size(tb, 24.0, 12.0)).collect();
-    let btn_row_w = btn_sizes.iter().map(|s| s.0).sum::<f64>() + 16.0 * (btns.len().max(1) - 1) as f64;
-    let btn_row_h = btn_sizes.iter().map(|s| s.1).fold(0.0, f64::max);
-    // menu medals: wrap rows within min(max-content, 640)
-    let mm: Vec<(&Element, usize)> =
-        [&d.menu_medal_archivist, &d.menu_medal_survivor, &d.menu_medal_storyteller, &d.menu_medal_completionist, &d.menu_medal_ironwill]
-            .into_iter()
-            .enumerate()
-            .map(|(i, e)| (e, i))
-            .collect();
-    let medal_tbs: Vec<(TextBlock, bool, usize)> = mm
-        .iter()
-        .map(|(el, i)| {
-            let earned = el.has_class("earned");
-            let (c, sh) =
-                if earned { (col(MENU_MEDALS[*i].1), parse_shadows(MENU_MEDALS[*i].3)) } else { (rgba(180.0, 170.0, 140.0, 0.45), vec![]) };
-            (TextBlock::new(runs_of(el, &base_run(c, sh, 3.0)), Font::new(10.0), Ws::NoWrap, None, None), earned, *i)
-        })
-        .collect();
-    let item_w: Vec<f64> = medal_tbs.iter().map(|(tb, _, _)| tb.width() + 22.0).collect();
-    // flex rows stretch their cells to the tallest (the symbol faces grow the line box)
-    let item_hs: Vec<f64> = medal_tbs.iter().map(|(tb, _, _)| tb.height() + 12.0).collect();
-    let total_w = item_w.iter().sum::<f64>() + 10.0 * (item_w.len() - 1) as f64;
-    let mw = total_w.min(640.0).min(w);
-    let mut rows: Vec<Vec<usize>> = vec![vec![]];
-    let mut rw = 0.0;
-    for (i, iw) in item_w.iter().enumerate() {
-        let need = if rows.last().unwrap().is_empty() { *iw } else { rw + 10.0 + iw };
-        if need > mw + 0.01 && !rows.last().unwrap().is_empty() {
-            rows.push(vec![i]);
-            rw = *iw;
-        } else {
-            rows.last_mut().unwrap().push(i);
-            rw = need;
-        }
-    }
-    let row_h: Vec<f64> = rows.iter().map(|r| r.iter().map(|&i| item_hs[i]).fold(0.0, f64::max)).collect();
-    let medals_h = row_h.iter().sum::<f64>() + 10.0 * (rows.len() - 1) as f64;
     let hint = mk(&d.overlay_hint, Font::new(13.0), 4.0, vec![], w, None);
     // the column: margins of each item (no collapsing in flex)
     let mut total = title.height() + 10.0 + 6.0 + sub.height() + 6.0 + 18.0 + controls.height() + 6.0;
-    if show_btns {
-        total += 22.0 + btn_row_h;
-    }
-    total += 18.0 + medals_h + 20.0 + hint.height() + 13.0;
+    total += 18.0 + hint.height() + 13.0;
     let mut y = (h - total) / 2.0;
     let title_y = y;
     y += title.height() + 10.0 + 6.0;
@@ -1967,114 +1910,26 @@ fn paint_overlay(f: &mut Frame, g: &Game) {
     y += sub.height() + 6.0 + 18.0;
     let ctrl_y = y;
     y += controls.height() + 6.0;
-    let mut btn_rects: Vec<[f64; 4]> = vec![];
-    if show_btns {
-        y += 22.0;
-        let mut x = (w - btn_row_w) / 2.0;
-        for s in &btn_sizes {
-            btn_rects.push([x, y + (btn_row_h - s.1) / 2.0, s.0, s.1]);
-            x += s.0 + 16.0;
-        }
-        y += btn_row_h;
-    }
     y += 18.0;
-    let medals_y = y;
-    y += medals_h + 20.0;
     let hint_y = y;
     // topmost first: the overlay (z 10) over everything
-    let mut hits: Vec<(&'static str, [f64; 4], bool)> = btns.iter().zip(btn_rects.iter()).map(|((id, _), r)| (*id, *r, true)).collect();
-    hits.push(("overlay", [0.0, 0.0, w, h], true));
-    f.ui.hits.splice(0..0, hits);
+    f.ui.hits.splice(0..0, [("overlay", [0.0, 0.0, w, h], true)]);
     // the static column
     let (tw, sw, ctw) = (
         title.width(),
         sub.width().max(if sub.lines.len() > 1 { 560.0f64.min(w) } else { 0.0 }),
         controls.width().max(if controls.lines.len() > 1 { w } else { 0.0 }),
     );
-    let key = format!(
-        "{:?}{:?}{:?}{:?}|{title_y}|{show_btns}|{btn_rects:?}",
-        title.runs,
-        sub.runs,
-        controls.runs,
-        btns.iter().map(|b| &b.1.runs).collect::<Vec<_>>()
-    );
+    let key = format!("{:?}{:?}{:?}|{title_y}", title.runs, sub.runs, controls.runs);
     let top = title_y - 30.0;
-    let bottom = medals_y;
+    let bottom = hint_y;
     f.layer("overlay", &key, 1.0, move |dpr| {
         let mut p = Painter::new(0.0, top.max(0.0), w, (bottom - top.max(0.0)).max(1.0), dpr);
         p.text(&title, (w - tw) / 2.0, title_y, tw, "center", 1.0);
         p.text(&sub, (w - sw) / 2.0, sub_y, sw, "center", 0.75);
         p.text(&controls, (w - ctw) / 2.0, ctrl_y, ctw, "center", 0.5);
-        for ((_, tb), r) in btns.iter().zip(btn_rects.iter()) {
-            p.rect(r[0], r[1], r[2], r[3], rgba(20.0, 15.0, 8.0, 0.5));
-            p.border(r[0], r[1], r[2], r[3], 1.0, rgba(216.0, 207.0, 159.0, 0.4));
-            p.text(tb, r[0] + 25.0, r[1] + 13.0, 0.0, "left", 1.0);
-        }
         p
     });
-    // the medal row (repainted while an earned cell's shimmer sweeps)
-    {
-        let now = f.now;
-        let mut item_rects = vec![[0.0f64; 4]; item_w.len()];
-        let mut ry = medals_y;
-        for (ri, row) in rows.iter().enumerate() {
-            let rwid = row.iter().map(|&i| item_w[i]).sum::<f64>() + 10.0 * (row.len() - 1) as f64;
-            let mut x = (w - mw) / 2.0 + (mw - rwid) / 2.0;
-            for &i in row {
-                item_rects[i] = [x, ry, item_w[i], row_h[ri]];
-                x += item_w[i] + 10.0;
-            }
-            ry += row_h[ri] + 10.0;
-        }
-        // ::after left per earned cell (-60% → 130% over the first 55% of 4.5 s, ease-in-out)
-        let shimmer: Vec<Option<f64>> = medal_tbs
-            .iter()
-            .map(|(_, earned, i)| {
-                if !earned {
-                    return None;
-                }
-                let t = (now / 1000.0 - MENU_MEDALS[*i].4) / 4.5;
-                if t < 0.0 {
-                    return Some(-0.6);
-                }
-                let ph = t.fract();
-                Some(if ph < 0.55 { -0.6 + 1.9 * Ease::EaseInOut.at(ph / 0.55) } else { 1.3 })
-            })
-            .collect();
-        let key = format!("{:?}|{item_rects:?}|{shimmer:?}", medal_tbs.iter().map(|m| (&m.0.runs, m.1)).collect::<Vec<_>>());
-        f.layer("menu-medals", &key, 1.0, move |dpr| {
-            let mut p = Painter::new((w - mw) / 2.0 - 12.0, medals_y - 12.0, mw + 24.0, medals_h + 24.0, dpr);
-            for (k, (tb, earned, i)) in medal_tbs.iter().enumerate() {
-                let r = item_rects[k];
-                let border = if *earned { col(MENU_MEDALS[*i].2) } else { rgba(120.0, 110.0, 90.0, 0.35) };
-                p.rect(r[0], r[1], r[2], r[3], rgba(20.0, 15.0, 8.0, 0.35));
-                p.border(r[0], r[1], r[2], r[3], 1.0, border);
-                p.text(tb, r[0] + 11.0, r[1] + 6.0, 0.0, "left", 1.0);
-                if let Some(left) = shimmer[k] {
-                    // linear-gradient(105deg, transparent, rgba(255,255,255,0.28), transparent), clipped to the padding box
-                    let (px0, py0, pw, ph) = (r[0] + 1.0, r[1] + 1.0, r[2] - 2.0, r[3] - 2.0);
-                    let (sx, sw) = (px0 + left * pw, 0.45 * pw);
-                    let a = 105f64.to_radians();
-                    let (dx, dy) = (a.sin(), -a.cos());
-                    let len = (sw * a.sin()).abs() + (ph * a.cos()).abs();
-                    let (mx, my) = (sx + sw / 2.0, py0 + ph / 2.0);
-                    p.tr();
-                    p.c.save();
-                    p.c.begin_path();
-                    p.c.rect(px0, py0, pw, ph);
-                    p.c.clip();
-                    let gr = p.c.create_linear_gradient(mx - dx * len / 2.0, my - dy * len / 2.0, mx + dx * len / 2.0, my + dy * len / 2.0);
-                    gr.add_color_stop(0.0, "rgba(255,255,255,0)");
-                    gr.add_color_stop(0.5, "rgba(255,255,255,0.28)");
-                    gr.add_color_stop(1.0, "rgba(255,255,255,0)");
-                    p.c.set_fill_style(&gr);
-                    p.c.fill_rect(sx, py0, sw, ph);
-                    p.c.restore();
-                }
-            }
-            p
-        });
-    }
     // #overlay-hint: `blink 1.6s infinite` (0.9 → 0.25 → 0.9, ease per half)
     {
         let ph = (f.now / 1600.0).rem_euclid(1.0);

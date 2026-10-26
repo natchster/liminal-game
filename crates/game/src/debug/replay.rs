@@ -23,6 +23,8 @@ pub enum InputEvent {
     Blur,
     /// the mouse wheel
     Wheel(f64),
+    /// the pointer moved onto a menu line (`menu_hover`), by its id
+    Hover(String),
 }
 
 /// One frame's input.
@@ -53,6 +55,7 @@ impl FrameInput {
                     InputEvent::Lock(on) => json!(["k", on]),
                     InputEvent::Blur => json!(["b"]),
                     InputEvent::Wheel(d) => json!(["w", d]),
+                    InputEvent::Hover(h) => json!(["h", h]),
                 })
                 .collect(),
         )
@@ -72,6 +75,7 @@ impl FrameInput {
                     "k" => InputEvent::Lock(e[1].as_bool()?),
                     "b" => InputEvent::Blur,
                     "w" => InputEvent::Wheel(e[1].as_f64()?),
+                    "h" => InputEvent::Hover(s(1)),
                     _ => return None,
                 })
             })
@@ -226,6 +230,11 @@ impl Game {
                 InputEvent::Lock(on) => self.pointer_lock_changed(*on),
                 InputEvent::Blur => self.blur(),
                 InputEvent::Wheel(d) => self.wheel(*d),
+                InputEvent::Hover(h) => {
+                    if let Some(k) = self.menu.items.iter().position(|i| i.id == h.as_str()) {
+                        self.menu.sel = k;
+                    }
+                }
             }
         }
     }

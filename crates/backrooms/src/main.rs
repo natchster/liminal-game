@@ -327,6 +327,8 @@ impl AppHandler for App {
         self.g.quality.pr = self.g.quality.max_pr;
         self.g.now_ms = 0.0;
         self.g.boot();
+        // the title has the lobby's sound (a window needs no click to start audio)
+        self.g.audio_init();
     }
     fn frame(&mut self, ctx: &mut AppCtx, dt: f64) -> Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>> {
         self.frames += 1;
@@ -442,6 +444,12 @@ impl AppHandler for App {
             Input::MouseMove(dx, dy) => g.mouse_move(dx, dy),
             Input::CursorPos(x, y) => {
                 self.cursor = (x, y);
+                // over a menu line: it is the chosen one (recorded, so a replay chooses alike)
+                if g.menu_hover(x, y) {
+                    if let (Some((r, _)), Some(i)) = (self.recorder.as_mut(), g.menu.items.get(g.menu.sel)) {
+                        r.push(InputEvent::Hover(i.id.to_string()));
+                    }
+                }
             }
             // while the pointer is locked the buttons are keys (`Mouse0`..`Mouse2`)
             Input::MouseDown(b) if g.pointer_locked => g.key_down(&format!("Mouse{b}"), false),

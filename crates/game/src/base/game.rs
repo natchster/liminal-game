@@ -75,6 +75,8 @@ pub struct Game {
     pub keys: HashSet<String>,
     /// The controls' latches (`session::input`)
     pub input: crate::session::input::InputState,
+    /// The open menu, if any (`ui::menu`)
+    pub menu: crate::ui::menu::Menu,
     /// Mouse motion since the last frame (relative motion while the pointer is locked)
     pub mouse_dx: f64,
     pub mouse_dy: f64,
@@ -625,6 +627,7 @@ impl Game {
             placers: vec![],
             keys: HashSet::new(),
             input: Default::default(),
+            menu: Default::default(),
             mouse_dx: 0.0,
             mouse_dy: 0.0,
             pointer_locked: false,
