@@ -82,6 +82,10 @@ that the emptiness is watching.*
 - **Goal: tension has a shape.**
   - Rule: calm, build, peak, relief, in that order; after a close call the
     threat backs off. *Test:* `tests/pacing.rs` phase bands (gate).
+  - Rule: the player can choose when the dread starts: taking her page at
+    her camp puts out her lamp and ends the quiet within seconds; the first
+    floor waits for it. *Test:* `her_page_wakes_the_place` (gate,
+    `tests/story.rs`).
   - Rule: the same scare never repeats soon, and the same cue does not always
     mean the same thing. *Test:* one-shot repetition in `tests/loudness.rs`
     (gate); run-log analysis (planned, roadmap 4.2).

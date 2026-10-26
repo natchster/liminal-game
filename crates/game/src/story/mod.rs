@@ -55,8 +55,13 @@ pub struct Camp {
     /// Her lamp, and its light
     pub lamp: Option<Obj>,
     pub light: Option<Obj>,
-    /// Whether her lamp still burns
+    /// Her lamp's flame
+    pub flame: Option<Obj>,
+    /// Whether her lamp still burns; how much of its light is left while it
+    /// gutters out (1 … 0), and whether it is guttering
     pub lit: bool,
+    pub fade: f64,
+    pub dimming: bool,
     /// Her page here (`notebook`), lying on the bedroll, and whether it was taken
     pub page: Option<Obj>,
     pub page_id: Option<&'static str>,
@@ -375,6 +380,11 @@ impl Game {
             if let Some(o) = &c.page {
                 o.set_visible(false);
             }
+            // and her lamp went out when you took it
+            (c.lit, c.fade, c.dimming) = (false, 0.0, false);
+            for o in [&c.flame, &c.light].into_iter().flatten() {
+                o.set_visible(false);
+            }
         }
         self.show_thread();
     }
@@ -392,12 +402,23 @@ impl Game {
         if let Some(p) = notebook::page(id) {
             self.thread = p.thread.to_string();
         }
+        // her lamp gutters out (`dress::camp_lamp`'s animator), with a breath
+        // of air from where it stands, and the place wakes
+        c.dimming = true;
+        let at = c.lamp.as_ref().map(|l| {
+            l.update_world_matrix(true, false);
+            l.world_position()
+        });
         self.show_thread();
         self.sfx_paper_rustle();
         self.sfx_page_flip();
+        if let Some(p) = at {
+            self.play_at(p.x, 0.3, p.z, 3.0, 1.0, |g| g.noise_burst(0.5, 320.0, 0.8, 0.12, "lowpass", Some(140.0), 0.25, 0.0));
+        }
         self.show_msg("HER PAGE — [J] TO READ", 2.6);
         self.journal_newest = Some(crate::ui::hud::notebook_journal_id(self.level_num));
         self.director_note("story:page");
+        self.director_wake();
         self.save_game();
     }
 

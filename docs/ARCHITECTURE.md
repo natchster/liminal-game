@@ -128,7 +128,7 @@ backs the threat off after a peak; build-up, peak and relax phases):
 
 | Phase | What happens |
 |---|---|
-| Calm | Nothing is sent after you (45–80 s on the first floors, shorter deeper down) |
+| Calm | Nothing is sent after you (45–80 s on the first floors, shorter deeper down; 110–150 s for the first on level 1 while M.'s camp is there to find). Taking her page cuts it to 4–9 s (`director_wake`) |
 | Build | One creature is sent (the nearest Smiler or Hound, now and then the Watcher; not the one sent last time when another can go). It is steered toward your part of the level, to tiles you cannot see in a circle round you that tightens as the build-up goes on (16 m out at first, 3–8 m at the end). Its footsteps far off, then the lights over it stuttering, then quiet as it closes in. If the time runs out it is told where you are (and again every few seconds) and gets a last stretch of up to 25 s to come and look |
 | Peak | Something hunts you, or searches close by. The menace gauge fills with closeness and sight; once it is full and you have broken away (nothing hunting you within 8 m or in sight) for a few seconds, or it is half full again and the hunter is not on top of you, everything after you withdraws |
 | Relax | The creatures keep away and hear less for 25–45 s |

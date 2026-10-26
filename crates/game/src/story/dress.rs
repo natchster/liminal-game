@@ -11,6 +11,8 @@ use crate::prelude::*;
 
 /// How lit her camp's tile is at least while her lamp burns (the light map)
 pub const CAMP_LIGHT: f64 = 0.45;
+/// How long her lamp takes to gutter out once her page is taken, s
+pub const GUTTER: f64 = 1.6;
 
 impl Game {
     /// Her camp at `plan.camp`, against the wall on `plan.wall`.
@@ -48,7 +50,7 @@ impl Game {
         camp.add(&pack);
 
         // her lamp, by her head, still burning
-        let (lamp, light) = self.camp_lamp(r.range(0.0, PI * 2.0));
+        let (lamp, light, flame) = self.camp_lamp(r.range(0.0, PI * 2.0));
         lamp.position().set(1.2 * flip, 0, 0.32);
         camp.add(&lamp);
 
@@ -87,7 +89,10 @@ impl Game {
             normal,
             lamp: Some(lamp),
             light: Some(light),
+            flame: Some(flame),
             lit: true,
+            fade: 1.0,
+            dimming: false,
             page: None,
             page_id: None,
             page_taken: false,
@@ -181,8 +186,10 @@ impl Game {
     }
 
     /// A candle lantern a hand and a half high, lit, its flame and light
-    /// flickering; returns the lantern and its light.
-    fn camp_lamp(&mut self, phase: f64) -> (Obj, Obj) {
+    /// flickering, guttering out over `GUTTER` s once her camp is
+    /// `dimming` (then dark, and the light map without it); returns the
+    /// lantern, its light and its flame.
+    fn camp_lamp(&mut self, phase: f64) -> (Obj, Obj, Obj) {
         let frame_mat = lambert!({ color: 0x303030 });
         let glass_mat = basic_mat!({ color: 0xe8e0c0, transparent: true, opacity: 0.35 });
         let lantern = group();
@@ -226,15 +233,32 @@ impl Game {
         light.position().y = 0.088;
         lantern.add(&light);
         let (f2, l2) = (flame.clone(), light.clone());
-        self.animate(move |_g, _dt, t| {
+        self.animate(move |g, dt, t| {
             if !l2.visible() {
                 return;
             }
+            let mut fade = 1.0;
+            if let Some(c) = g.story.camp.as_mut() {
+                if c.dimming {
+                    c.fade = (c.fade - dt / GUTTER).max(0.0);
+                }
+                fade = c.fade;
+            }
             let f = 0.8 + 0.12 * (t * 7.0 + phase).sin() + 0.08 * (t * 11.0 + phase * 1.7).sin();
-            f2.scale().set_scalar(f);
-            l2.set_intensity(2.2 * f);
+            // guttering, the flame shrinks and stutters
+            let stutter = if fade < 1.0 { 0.55 + 0.45 * ((t * 23.0).sin() * (t * 7.3).cos()).abs() } else { 1.0 };
+            f2.scale().set_scalar(f * fade.max(0.05));
+            l2.set_intensity(2.2 * f * fade * stutter);
+            if fade <= 0.0 {
+                f2.set_visible(false);
+                l2.set_visible(false);
+                if let Some(c) = g.story.camp.as_mut() {
+                    (c.lit, c.dimming) = (false, false);
+                }
+                g.build_light_map();
+            }
         });
-        (lantern, light)
+        (lantern, light, flame)
     }
 
     /// A drunk-from water bottle on its side, crushed.

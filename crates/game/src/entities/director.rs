@@ -88,6 +88,11 @@ pub struct Director {
     pub stuck_t: f64,
 }
 
+/// The first quiet on the first floor while her camp is there to find, s
+pub const FIRST_FLOOR_CALM: (f64, f64) = (110.0, 150.0);
+/// How soon a build-up follows the taking of her page, s
+pub const WAKE: (f64, f64) = (4.0, 9.0);
+
 /// How long the quiet lasts before the first creature is sent, by level:
 /// long on the first floors, shorter deeper down.
 fn calm_len(level: i32, first: bool) -> f64 {
@@ -106,8 +111,24 @@ impl Game {
     }
 
     pub fn reset_director(&mut self) {
-        self.director = Director { t: calm_len(self.level_num, true), ..Default::default() };
+        let mut t = calm_len(self.level_num, true);
+        // the first floor waits for you to find her: a long first quiet, cut
+        // short when you take her page (`director_wake`)
+        if self.level_num == 1 && self.story.camp.is_some() {
+            t = rand2(FIRST_FLOOR_CALM.0, FIRST_FLOOR_CALM.1);
+        }
+        self.director = Director { t, ..Default::default() };
         self.amb_hush = 0.0;
+    }
+
+    /// Her page was taken: the place wakes. A quiet is cut short, so a
+    /// build-up comes within `WAKE` seconds; already building or worse,
+    /// nothing changes (PILLARS 5: you chose when the dread starts).
+    pub fn director_wake(&mut self) {
+        if self.director.phase == Phase::Calm {
+            self.director.t = self.director.t.min(rand2(WAKE.0, WAKE.1));
+            self.director_note("wake");
+        }
     }
 
     /// One step of the director, after the creatures have moved.

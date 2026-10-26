@@ -206,6 +206,12 @@ relief: after a close call it **backs off** and the level goes quiet for a
 while. Only one comes at a time. The Watcher only moves on you when it is the
 one sent; otherwise it keeps its distance.
 
+**Taking her page wakes the place.** Her lamp gutters out as you lift the
+page, and whatever quiet was left ends within a few seconds: something is
+sent. You choose when it starts, by when you go to her camp. On the first
+floor the first quiet is long (two minutes and more), so there is time to
+find her before anything comes.
+
 ## Anomalies
 
 The Backrooms have swallowed other places too, the kind the SCP Foundation

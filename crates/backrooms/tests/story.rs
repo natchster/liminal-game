@@ -392,3 +392,59 @@ fn taking_her_page() {
     g.start_new_game();
     assert!(g.notebook.is_empty() && g.thread.is_empty() && g.ui.objective.text.is_empty());
 }
+
+/// `secs` of play at 60 fps.
+fn play(g: &mut Game, secs: f64) {
+    for _ in 0..(secs * 60.0).round() as usize {
+        g.now_ms += 1000.0 / 60.0;
+        g.fixed_step_dt = 1.0 / 60.0;
+        g.frame(1.0 / 60.0);
+        g.fixed_step_dt = 0.0;
+    }
+}
+
+/// Taking her page wakes the place (PILLARS 5: you choose when the dread
+/// starts): her lamp gutters out and its light leaves the light map, and the
+/// quiet ends within `WAKE` seconds: the director's log reads the page, the
+/// wake, then a build-up. On the first floor the first quiet waits for her
+/// page (`FIRST_FLOOR_CALM`); on a retry her lamp is already out.
+#[test]
+fn her_page_wakes_the_place() {
+    use game::entities::director::{Phase, FIRST_FLOOR_CALM, WAKE};
+    for (seed, level) in [(4242u32, 1), (4242, 3), (7, 5)] {
+        let mut g = new_game();
+        g.run_seed = seed;
+        g.init_level(level);
+        g.state = "playing".into();
+        g.god_mode = true;
+        if level == 1 {
+            assert!(g.director.phase == Phase::Calm && g.director.t >= FIRST_FLOOR_CALM.0, "L1's first quiet: {:.0} s", g.director.t);
+        }
+        let camp = g.story.camp.clone().unwrap();
+        let ti = (camp.tile.1 * g.w + camp.tile.0) as usize;
+        let lit_before = g.light_map_cpu[ti];
+        play(&mut g, 5.0);
+        assert_eq!(g.director.phase, Phase::Calm, "seed {seed} L{level}: still quiet 5 s in");
+        g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+        let t0 = g.perf_t;
+        g.try_interact();
+        assert!(!g.notebook.is_empty(), "seed {seed} L{level}: the page was not taken");
+        play(&mut g, 2.5);
+        let c = g.story.camp.as_ref().unwrap();
+        assert!(!c.lit && !c.light.as_ref().unwrap().visible(), "seed {seed} L{level}: her lamp still burns");
+        assert!(g.light_map_cpu[ti] <= lit_before, "seed {seed} L{level}: the camp is lighter after her lamp went out");
+        play(&mut g, WAKE.1 + 0.5);
+        let after: Vec<&str> = g.director.log.iter().filter(|e| e.0 >= t0 - 1e-9).map(|e| e.1).collect();
+        let at = |what: &str| after.iter().position(|e| *e == what);
+        println!("seed {seed} L{level}: after the page: {:?}", &after[..after.len().min(8)]);
+        assert!(
+            matches!((at("story:page"), at("wake"), at("build")), (Some(a), Some(b), Some(c)) if a < b && b < c),
+            "seed {seed} L{level}: no build-up within {} s of the page: {after:?}",
+            WAKE.1 + 3.0
+        );
+        // a retry: the page stays taken and her lamp out
+        g.restart();
+        let c = g.story.camp.as_ref().unwrap();
+        assert!(c.page_taken && !c.lit && !c.light.as_ref().unwrap().visible(), "seed {seed} L{level}: the retry relit her lamp");
+    }
+}
