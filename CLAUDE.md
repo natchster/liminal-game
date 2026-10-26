@@ -65,6 +65,8 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
    nothing from the save (the build runs with nothing read; what depends on
    the run's progress is fitted afterwards, like `fit_lore_notes`). A new
    random draw in a placer shifts every later placer: re-record and say so.
+   Likewise a native draw added or removed at a level's start shifts every
+   frame after it (grain, animation, every golden): reuse an existing draw.
 2. **Light and sound belong to places.** Never tie ambient light, fog or
    ambience to the player's position, and no lamp cones; light comes from the
    light map, and sounds come from props or fixed anchors (`play_from`).

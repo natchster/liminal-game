@@ -113,9 +113,11 @@ impl Game {
     pub fn reset_director(&mut self) {
         let mut t = calm_len(self.level_num, true);
         // the first floor waits for you to find her: a long first quiet, cut
-        // short when you take her page (`director_wake`)
+        // short when you take her page (`director_wake`). The same draw, spread
+        // over the longer span (another draw would shift every later one)
         if self.level_num == 1 && self.story.camp.is_some() {
-            t = rand2(FIRST_FLOOR_CALM.0, FIRST_FLOOR_CALM.1);
+            let u = (t - 45.0) / 35.0;
+            t = FIRST_FLOOR_CALM.0 + u * (FIRST_FLOOR_CALM.1 - FIRST_FLOOR_CALM.0);
         }
         self.director = Director { t, ..Default::default() };
         self.amb_hush = 0.0;
