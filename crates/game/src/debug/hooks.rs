@@ -464,6 +464,19 @@ impl Game {
             }
             return;
         }
+        // the notebook open in your hands: her first page, or a typed note
+        if name == "notebook" || name == "notebook-typed" {
+            self.notebook.insert("f1".into());
+            self.lore_found.extend([7usize, 24]);
+            if !self.journal_open {
+                self.toggle_journal();
+            }
+            let ids = self.journal_entries_in_order();
+            let want = if name == "notebook" { ids.iter().position(|&i| i <= -100) } else { ids.iter().position(|&i| i == 7) };
+            self.journal_cursor = want.unwrap_or(0) as f64;
+            self.journal_render();
+            return;
+        }
         self.pause();
         match name {
             "leave" => self.open_menu(Screen::ConfirmLeave),

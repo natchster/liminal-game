@@ -271,6 +271,11 @@ impl Game {
         if self.state != "playing" {
             return;
         }
+        // the notebook goes back in the pocket
+        if self.journal_open {
+            self.journal_open = false;
+            self.ui.journal.remove_class("on");
+        }
         self.state = "paused".into();
         self.want_pointer_lock = Some(false);
         self.input.run_latched = false;

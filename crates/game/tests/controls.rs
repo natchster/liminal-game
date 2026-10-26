@@ -301,3 +301,25 @@ fn the_cards_wait_until_they_are_up() {
     release(&mut g, "KeyE");
     assert_eq!(g.state, "playing", "E did not wake you once the card was up");
 }
+
+#[test]
+fn reading_keeps_the_view_and_the_walk() {
+    let mut g = rig();
+    g.lore_found.extend([1usize, 2]);
+    press(&mut g, "Tab");
+    release(&mut g, "Tab");
+    assert!(g.journal_open);
+    assert_eq!(g.want_pointer_lock, None, "opening the notebook took the mouse");
+    let yaw = g.player.yaw;
+    g.mouse_move(80.0, 0.0);
+    assert!(g.player.yaw != yaw, "the view did not turn while reading");
+    let p0 = g.player.pos;
+    press(&mut g, "KeyW");
+    step(&mut g, 30);
+    release(&mut g, "KeyW");
+    assert!(g.player.pos.distance_to(&p0) > 0.5, "you could not walk while reading");
+    // leaving the window pauses, and the notebook goes back in the pocket
+    g.blur();
+    assert_eq!(g.state, "paused");
+    assert!(!g.journal_open && !g.ui.journal.has_class("on"));
+}

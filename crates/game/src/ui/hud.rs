@@ -390,7 +390,7 @@ impl Game {
             bar_color, bar, total_found, total
         );
         format!(
-            "Her notebook: {} of {} pages.\nYou have collected {} of {} notes across {} of {} story arcs.\n\n{}\n\n{}\n\nPress NEXT to browse individual entries.",
+            "Her notebook: {} of {} pages.\nYou have collected {} of {} notes across {} of {} story arcs.\n\n{}\n\n{}",
             pages,
             book.len(),
             total_found,
@@ -404,12 +404,8 @@ impl Game {
     pub fn journal_render(&mut self) {
         let ids = self.journal_entries_in_order();
         if ids.is_empty() {
-            self.ui.journal_entry_title.set_text("NO NOTES YET");
-            let body = if self.ui.body.has_class("touch") {
-                "Find torn pages scattered on the floors. Tap JOURNAL to browse what you've read."
-            } else {
-                "Find torn pages scattered on the floors. Press J to browse what you've read."
-            };
+            self.ui.journal_entry_title.set_text("NOTHING YET");
+            let body = "Torn pages lie on the floors. What you read is kept here.";
             self.ui.journal_entry_body.set_text(body);
             self.ui.journal_idx.set_text("0 / 0");
             self.ui.journal_prev.set_attr("disabled", "true");
@@ -529,15 +525,13 @@ impl Game {
                 None => (ids.len() as f64 - 1.0).max(0.0),
             };
             self.journal_render();
-            self.want_pointer_lock = Some(false); // release the pointer
-                                                  // 20% chance of a paper rustle instead of a page flip on open
+            // (the view and the mouse stay yours: the notebook is in your hands)
+            // 20% chance of a paper rustle instead of a page flip on open
             if rnd() < 0.20 {
                 self.sfx_paper_rustle();
             } else {
                 self.sfx_page_flip();
             }
-        } else {
-            self.want_pointer_lock = Some(true); // capture the pointer again
         }
     }
 

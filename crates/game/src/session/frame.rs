@@ -173,7 +173,7 @@ impl Game {
             "" if self.state == "ending" && self.live_menu().is_some() => self.end_ending(),
             _ => {
                 // the canvas itself: re-lock the pointer while playing
-                if self.state == "playing" && !self.pointer_locked && !self.journal_open {
+                if self.state == "playing" && !self.pointer_locked {
                     self.want_pointer_lock = Some(true);
                 }
             }
@@ -187,7 +187,7 @@ impl Game {
         // the window reports it once more)
         if !locked && was && self.state == "playing" {
             // (Settings can leave the world running when the window is left)
-            if self.journal_open || (blurred && !self.settings.focus_pause) {
+            if blurred && !self.settings.focus_pause {
                 return;
             }
             self.pause();

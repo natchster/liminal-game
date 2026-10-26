@@ -36,7 +36,7 @@ pub(crate) fn col(s: &str) -> Rgba {
 pub(crate) fn rgba(r: f64, g: f64, b: f64, a: f64) -> Rgba {
     [r / 255.0, g / 255.0, b / 255.0, a]
 }
-fn css_rgba(c: Rgba) -> String {
+pub(crate) fn css_rgba(c: Rgba) -> String {
     format!("rgba({},{},{},{})", (c[0] * 255.0).round(), (c[1] * 255.0).round(), (c[2] * 255.0).round(), c[3])
 }
 fn f32x4(c: Rgba) -> [f32; 4] {
@@ -726,7 +726,7 @@ impl Painter {
         let c = Canvas::new((x1 - x0).max(1.0) as u32, (y1 - y0).max(1.0) as u32);
         Painter { c, ox: x0 / dpr, oy: y0 / dpr, dpr }
     }
-    fn tr(&mut self) {
+    pub(crate) fn tr(&mut self) {
         let d = self.dpr;
         self.c.set_transform(d, 0.0, 0.0, d, -self.ox * d, -self.oy * d);
     }
@@ -1096,8 +1096,6 @@ struct BoxCanvas {
 pub struct HudUi {
     boxes: HashMap<&'static str, BoxCanvas>,
     trans: HashMap<String, Trans>,
-    /// keyframe animations: (start ms, element version seen)
-    anims: HashMap<&'static str, (f64, u64)>,
     next_id: u64,
     grain_id: u64,
     /// click targets of the last frame, topmost first: (id, rect css px, enabled)
@@ -1137,21 +1135,6 @@ impl Frame<'_> {
                 t.value(now)
             }
         }
-    }
-    /// the start time of a keyframe animation that (re)starts whenever the
-    /// element changes while it has `class` (the HUD removes and re-adds the
-    /// class to restart it)
-    fn anim_start(&mut self, name: &'static str, el: &Element, class: &str) -> Option<f64> {
-        if !el.has_class(class) {
-            self.ui.anims.remove(name);
-            return None;
-        }
-        let now = self.now;
-        let e = self.ui.anims.entry(name).or_insert((now, el.version));
-        if e.1 != el.version {
-            *e = (now, el.version);
-        }
-        Some(e.0)
     }
     /// the cached canvas `name`, repainted by `paint` when `key` changes
     pub(crate) fn boxed(
@@ -1261,7 +1244,7 @@ fn hud_shadows() -> Vec<Shadow> {
     parse_shadows("0 0 4px #000, 0 0 2px #000")
 }
 /// the text of an element (`inner_html` wins when set)
-fn runs_of(el: &Element, base: &Run) -> Vec<Run> {
+pub(crate) fn runs_of(el: &Element, base: &Run) -> Vec<Run> {
     if !el.html.is_empty() {
         parse_inline_html(&el.html, base)
     } else {
@@ -1270,7 +1253,7 @@ fn runs_of(el: &Element, base: &Run) -> Vec<Run> {
         vec![r]
     }
 }
-fn base_run(color: Rgba, shadows: Vec<Shadow>, ls: f64) -> Run {
+pub(crate) fn base_run(color: Rgba, shadows: Vec<Shadow>, ls: f64) -> Run {
     Run { text: String::new(), color, shadows, opacity: 1.0, ls }
 }
 
@@ -1550,7 +1533,8 @@ fn paint_hud(f: &mut Frame, g: &Game) {
     // what you face: a ring where the eye rests, and its verb beside it
     {
         let (cx, cy) = (w / 2.0, h / 2.0);
-        let target = !d.prompt.text.is_empty();
+        // (not while reading)
+        let target = !d.prompt.text.is_empty() && !g.journal_open;
         let op = f.tr("rest.dot", if target { 1.0 } else { 0.0 }, 0.15, Ease::Ease);
         f.layer("dot", &format!("{cx}|{cy}"), op * 0.8, move |dpr| {
             let mut p = Painter::new(cx - 7.0, cy - 7.0, 14.0, 14.0, dpr);
@@ -1626,9 +1610,9 @@ fn paint_hud(f: &mut Frame, g: &Game) {
     if d.debug.has_class("on") {
         paint_debug(f, g);
     }
-    // #journal (z 8 inside #hud)
+    // the notebook, low in your hands (`ui/paper.rs`)
     if d.journal.has_class("on") {
-        paint_journal(f, g);
+        crate::ui::paper::paint_notebook(f, g);
     }
 }
 
@@ -1695,141 +1679,6 @@ fn paint_debug(f: &mut Frame, g: &Game) {
             p
         });
     }
-}
-
-/// a `<button>`'s box: (width, height) for its text (buttons have no text-shadow)
-fn button_size(tb: &TextBlock, pad_x: f64, pad_y: f64) -> (f64, f64) {
-    (tb.width() + 2.0 * pad_x + 2.0, tb.font.normal_lh() + 2.0 * pad_y + 2.0)
-}
-
-/// #journal.on: the dim backdrop, the paper panel, and its body paragraph
-/// as its own layer (the cover's `journal_cover_fade_in` animates it)
-fn paint_journal(f: &mut Frame, g: &Game) {
-    let d = &g.ui;
-    let (w, h) = (f.w, f.h);
-    let ink = col("#1a1408");
-    let hs = hud_shadows(); // inherited from #hud
-    f.fill(rgba(6.0, 5.0, 2.0, 0.88), LayerBlend::Normal);
-    let mk = |el: &Element, font: Font, ls: f64, color: Rgba, sh: &[Shadow], ws: Ws, mw: Option<f64>, lh: Option<f64>| {
-        TextBlock::new(runs_of(el, &base_run(color, sh.to_vec(), ls)), font, ws, mw, lh)
-    };
-    // max-content widths decide the panel width (clamped to 520..680)
-    let title0 = mk(&d.journal_title, Font::new(22.0).bold(), 8.0, ink, &hs, Ws::Normal, None, None);
-    let prev0 = mk(&d.journal_prev, Font::new(12.0), 2.0, ink, &[], Ws::Normal, None, None);
-    let next0 = mk(&d.journal_next, Font::new(12.0), 2.0, ink, &[], Ws::Normal, None, None);
-    let idx0 = mk(&d.journal_idx, Font::new(12.0), 2.0, ink, &hs, Ws::Normal, None, None);
-    let et0 = mk(&d.journal_entry_title, Font::new(15.0).bold(), 3.0, col("#5a2a1a"), &hs, Ws::Normal, None, Some(25.5));
-    let body0 = mk(&d.journal_entry_body, Font::new(13.0), 0.0, ink, &hs, Ws::PreLine, None, Some(13.0 * 1.7));
-    let hint0 = mk(&d.journal_hint, Font::new(11.0), 3.0, ink, &hs, Ws::Normal, None, None);
-    let (pw, ph) = button_size(&prev0, 14.0, 6.0);
-    let (nw, _) = button_size(&next0, 14.0, 6.0);
-    let maxc =
-        [title0.width(), pw + idx0.width() + nw, et0.width() + 8.0, body0.width() + 8.0, hint0.width()].iter().cloned().fold(0.0, f64::max);
-    let cw = maxc.clamp(520.0, 680.0);
-    // wrapped at the panel width
-    let title = mk(&d.journal_title, Font::new(22.0).bold(), 8.0, ink, &hs, Ws::Normal, Some(cw), None);
-    let et = mk(&d.journal_entry_title, Font::new(15.0).bold(), 3.0, col("#5a2a1a"), &hs, Ws::Normal, Some(cw - 8.0), Some(25.5));
-    let body = mk(&d.journal_entry_body, Font::new(13.0), 0.0, ink, &hs, Ws::PreLine, Some(cw - 8.0), Some(13.0 * 1.7));
-    let hint = mk(&d.journal_hint, Font::new(11.0), 3.0, ink, &hs, Ws::Normal, Some(cw), None);
-    let title_h = title.height() + 10.0 + 1.0;
-    let nav_h = ph.max(idx0.height());
-    let entry_inner = (if et.is_empty() { 0.0 } else { et.height() + 12.0 } + body.height()).max(140.0);
-    let entry_h = entry_inner + 24.0;
-    let content_h = title_h + 18.0 + nav_h + 14.0 + entry_h + 22.0 + hint.height();
-    let (ow, oh) = (cw + 84.0, content_h + 68.0);
-    let (ox, oy) = ((w - ow) / 2.0, (h - oh) / 2.0);
-    let (cx, cy) = (ox + 42.0, oy + 34.0);
-    let nav_y = cy + title_h + 18.0;
-    let entry_y = nav_y + nav_h + 14.0;
-    let body_y = entry_y + 12.0 + if et.is_empty() { 0.0 } else { et.height() + 12.0 };
-    let prev_dis = d.journal_prev.attrs.get("disabled").map(|v| v == "true").unwrap_or(false);
-    let next_dis = d.journal_next.attrs.get("disabled").map(|v| v == "true").unwrap_or(false);
-    let prev_r = [cx, nav_y + (nav_h - ph) / 2.0, pw, ph];
-    let next_r = [cx + cw - nw, nav_y + (nav_h - ph) / 2.0, nw, ph];
-    // topmost first: the journal (z 8) over the debug panel
-    f.ui.hits
-        .splice(0..0, [("journal-prev", prev_r, !prev_dis), ("journal-next", next_r, !next_dis), ("journal", [0.0, 0.0, w, h], false)]);
-    let key = format!(
-        "{:?}{:?}{:?}{:?}{:?}{:?}|{cw}|{content_h}|{prev_dis}|{next_dis}",
-        title.runs, prev0.runs, next0.runs, idx0.runs, et.runs, hint.runs
-    );
-    let idx_x = prev_r[0] + pw + ((next_r[0] - (prev_r[0] + pw)) - idx0.width()) / 2.0;
-    let idx_y = nav_y + (nav_h - idx0.height()) / 2.0;
-    f.layer("journal", &key, 1.0, move |dpr| {
-        let sm = 12.0 + 32.0 * 1.6;
-        let mut p = Painter::new(ox - sm, oy - sm, ow + 2.0 * sm, oh + 2.0 * sm + 12.0, dpr);
-        paint_box_shadow(
-            &mut p,
-            ox,
-            oy,
-            ow,
-            oh,
-            &Shadow { ox: 0.0, oy: 12.0, blur: 32.0, spread: 0.0, color: [0.0, 0.0, 0.0, 0.65], inset: false },
-        );
-        p.rect(ox, oy, ow, oh, rgba(232.0, 218.0, 180.0, 0.94));
-        p.border(ox, oy, ow, oh, 2.0, col("#4a3d24"));
-        p.text(&title, cx, cy, cw, "center", 1.0);
-        p.rect(cx, cy + title.height() + 10.0, cw, 1.0, col("#4a3d24"));
-        for (tb, r, dis) in [(&prev0, prev_r, prev_dis), (&next0, next_r, next_dis)] {
-            let mut b = Painter::new(r[0], r[1], r[2], r[3], dpr);
-            b.border(r[0], r[1], r[2], r[3], 1.0, col("#4a3d24"));
-            b.text(tb, r[0] + 15.0, r[1] + 7.0, 0.0, "left", 1.0);
-            p.blit(&b, if dis { 0.35 } else { 1.0 });
-        }
-        p.text(&idx0, idx_x, idx_y, 0.0, "left", 0.6);
-        p.text(&et, cx + 4.0, entry_y + 12.0, cw - 8.0, "left", 1.0);
-        p.text(&hint, cx, entry_y + entry_h + 22.0, cw, "center", 0.5);
-        p
-    });
-    // the body paragraph; `.cover-fade` = 0.55 s ease-out from opacity 0, translateY(6px)
-    let (mut op, mut dy) = (1.0, 0.0);
-    if let Some(t0) = f.anim_start("journal-body", &d.journal_entry_body, "cover-fade") {
-        let x = (f.now - t0) / 550.0;
-        if x < 1.0 {
-            let e = Ease::EaseOut.at(x);
-            op = e;
-            dy = 6.0 * (1.0 - e);
-        }
-    }
-    if !body.is_empty() && op > 0.0005 {
-        let key = format!("{:?}|{cx}|{body_y}|{cw}", body.runs);
-        let (canvas, id, ver, mut rect) = f.boxed("journal-body", &key, move |dpr| {
-            let m = 6.0;
-            let mut p = Painter::new(cx + 4.0 - m, body_y - m, cw - 8.0 + 2.0 * m, body.height() + 2.0 * m, dpr);
-            p.text(&body, cx + 4.0, body_y, cw - 8.0, "left", 1.0);
-            p
-        });
-        rect[1] += (dy / h) as f32;
-        f.push_canvas("journal-body", canvas, id, ver, rect, op, LayerBlend::Normal, dy != 0.0);
-    }
-}
-
-/// an outset box-shadow of the border box (x, y, w, h), painted outside it
-fn paint_box_shadow(p: &mut Painter, x: f64, y: f64, w: f64, h: f64, s: &Shadow) {
-    let (cw, ch) = (p.c.width() as usize, p.c.height() as usize);
-    let mut img = p.c.create_image_data(cw as f64, ch as f64);
-    let sigma = s.blur * BLUR_SIGMA;
-    let (sx0, sx1, sy0, sy1) = (x + s.ox - s.spread, x + w + s.ox + s.spread, y + s.oy - s.spread, y + h + s.oy + s.spread);
-    for j in 0..ch {
-        let py = p.oy + (j as f64 + 0.5) / p.dpr;
-        let fy = blurred_span(py, sy0, sy1, sigma);
-        for i in 0..cw {
-            let px = p.ox + (i as f64 + 0.5) / p.dpr;
-            if px >= x && px < x + w && py >= y && py < y + h {
-                continue;
-            } // clipped under the box
-            let a = s.color[3] * blurred_span(px, sx0, sx1, sigma) * fy;
-            let k = (j * cw + i) * 4;
-            img.data[k] = (s.color[0] * 255.0) as u8;
-            img.data[k + 1] = (s.color[1] * 255.0) as u8;
-            img.data[k + 2] = (s.color[2] * 255.0) as u8;
-            img.data[k + 3] = (a * 255.0).round().clamp(0.0, 255.0) as u8;
-        }
-    }
-    let mut sc = Canvas::new(cw as u32, ch as u32);
-    sc.put_image_data(&img, 0, 0);
-    p.c.reset_transform();
-    p.c.draw_image(&sc, 0, 0);
 }
 
 /// The topmost click target at CSS px (x, y)

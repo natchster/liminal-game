@@ -427,14 +427,9 @@ fn hud_states() {
     run(&mut g, 30, true);
     assert!(g.ui.journal_entry_title.text.contains("THE RITUAL 2/3"), "{}", g.ui.journal_entry_title.text);
     shoot(&mut g, "journal");
-    // prev / next answer clicks while enabled
-    let mut hits = std::collections::HashSet::new();
-    for y in (200..600).step_by(2) {
-        for x in (250..1030).step_by(3) {
-            hits.insert(g.hud_hit_test(x as f64, y as f64));
-        }
-    }
-    assert!(hits.contains("journal-prev") && !hits.contains("journal-next"), "{hits:?}");
+    // the notebook is in your hands: the pointer stays, the world is not dimmed
+    assert_eq!(g.want_pointer_lock, None, "opening the notebook took the mouse");
+    assert!(!g.hud_ui.painted.contains(&"fill"), "the notebook dimmed the world");
     g.journal_cursor = 0.0;
     g.journal_render();
     run(&mut g, 60, true);
