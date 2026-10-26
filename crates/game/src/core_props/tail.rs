@@ -289,16 +289,22 @@ impl Game {
         g.add(&glow);
         // a taller vertical "beacon" halo for boosted notes
         if boosted {
-            let beacon = mesh(
-                plane_geo!(0.18, 0.60),
-                basic_mat!({ color: glow_color, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }),
-            );
-            beacon.position().y = 0.32;
-            g.add(&beacon);
-            // billboard the beacon toward the camera each frame
-            self.animate(move |g, _dt, _t| crate::core_props::weather_fx::look_at_level(&beacon, &g.camera));
+            self.add_lore_beacon(&g, glow_color);
         }
         g
+    }
+
+    /// The tall halo over a note that continues a story already begun,
+    /// billboarded toward the camera.
+    pub(crate) fn add_lore_beacon(&mut self, g: &Obj, color: u32) {
+        let beacon = mesh(
+            plane_geo!(0.18, 0.60),
+            basic_mat!({ color: color, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }),
+        );
+        beacon.position().y = 0.32;
+        g.add(&beacon);
+        // billboard the beacon toward the camera each frame
+        self.animate(move |g, _dt, _t| crate::core_props::weather_fx::look_at_level(&beacon, &g.camera));
     }
 
     /// LORE NOTES: 2–4 per level (plus the level's anomaly notes first), each
@@ -350,25 +356,7 @@ impl Game {
             ctx.fill_text("?", w / 2.0, 44);
         });
         let lore_arrow_mat = basic_mat!({ map: lore_arrow_tex, transparent: true, depthWrite: false });
-        // checkmark variant for notes already read
-        let lore_check_tex = canvas_tex_opt(128, 256, false, |ctx, w, h| {
-            ctx.set_fill_style("rgba(0,0,0,0)");
-            ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style("rgba(90,75,55,0.7)");
-            ctx.set_line_width(12);
-            ctx.set_line_cap("round");
-            ctx.set_line_join("round");
-            ctx.begin_path();
-            ctx.move_to(w * 0.20, h * 0.55);
-            ctx.line_to(w * 0.45, h * 0.78);
-            ctx.line_to(w * 0.85, h * 0.30);
-            ctx.stroke();
-            ctx.set_font("bold 26px monospace");
-            ctx.set_fill_style("rgba(90,75,55,0.65)");
-            ctx.set_text_align("center");
-            ctx.fill_text("READ", w / 2.0, 40);
-        });
-        let lore_check_mat = basic_mat!({ map: lore_check_tex, transparent: true, depthWrite: false, opacity: 0.65 });
+        let lore_check_mat = lore_check_mat();
 
         let mut i = 0i64;
         while i < note_count {
@@ -386,7 +374,7 @@ impl Game {
             m.set_pos_v(&jitter_pos(self, &c, 0.0));
             m.rotation().y = rand1(PI * 2.0);
             self.world.add(&m);
-            self.lore_notes.push(LoreNote { g: m.clone(), taken: false, id });
+            self.lore_notes.push(LoreNote { g: m.clone(), taken: false, id, clue: None });
             // a wall clue if the note tile has an adjacent wall
             let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { continue };
             let already_read = self.lore_found.contains(&id);
@@ -407,6 +395,9 @@ impl Game {
             // tiny rotation about the wall normal for a hand-scribbled look
             clue.rotation().z = rand2(-0.10, 0.10);
             self.world.add(&clue);
+            if let Some(n) = self.lore_notes.last_mut() {
+                n.clue = Some(clue.clone());
+            }
         }
     }
 
@@ -1595,4 +1586,26 @@ impl Game {
             }
         });
     }
+}
+
+/// The wall mark over a note already read: a pencil check and READ.
+pub(crate) fn lore_check_mat() -> Mat {
+    let lore_check_tex = canvas_tex_opt(128, 256, false, |ctx, w, h| {
+        ctx.set_fill_style("rgba(0,0,0,0)");
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_stroke_style("rgba(90,75,55,0.7)");
+        ctx.set_line_width(12);
+        ctx.set_line_cap("round");
+        ctx.set_line_join("round");
+        ctx.begin_path();
+        ctx.move_to(w * 0.20, h * 0.55);
+        ctx.line_to(w * 0.45, h * 0.78);
+        ctx.line_to(w * 0.85, h * 0.30);
+        ctx.stroke();
+        ctx.set_font("bold 26px monospace");
+        ctx.set_fill_style("rgba(90,75,55,0.65)");
+        ctx.set_text_align("center");
+        ctx.fill_text("READ", w / 2.0, 40);
+    });
+    basic_mat!({ map: lore_check_tex, transparent: true, depthWrite: false, opacity: 0.65 })
 }

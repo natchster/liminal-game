@@ -96,4 +96,5 @@ evidence (a test, a headless PNG, a pacing log) and its own commit.
 
 | # | Commit | Notes |
 |---|---|---|
-| G0 | | |
+| G0 | `b23834e` | the plan |
+| G1 | (this commit) | the old build moved even the barricades after a note was read (`tests/story.rs` fails on it); now the build runs with nothing read and `fit_lore_notes` swaps read notes for unread ones afterwards. The rare level built with every note read hides nothing: its notes keep the READ mark |

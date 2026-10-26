@@ -36,3 +36,59 @@ impl Game {
         crate::ui::hud::LORE_ARCS[arc].color
     }
 }
+
+/// The salt of the stream that fits a level's notes to the save.
+const FIT_SALT: u64 = 0x10AE_F17E_D0C5_0001;
+
+impl Game {
+    /// Fit the notes of a level just built to what this run has read.
+    ///
+    /// `init_level` builds every level as a new run would (nothing read), so
+    /// a level is a function of its run seed and number alone and a retry
+    /// is the same place. Here, after the build, a note already read is
+    /// swapped for one not yet read (chosen on a stream of its own, so the
+    /// build's draws never move), a note continuing a story already begun
+    /// glows in that story's colour, and a note left read gets the READ mark.
+    pub fn fit_lore_notes(&mut self) {
+        let n = self.lore_entry_count();
+        let placed: std::collections::BTreeSet<usize> = self.lore_notes.iter().map(|x| x.id).collect();
+        let free = |g: &Game, i: usize| !g.lore_found.contains(&i) && g.lore_entry_scp(i).is_none() && !placed.contains(&i);
+        let mut unread: Vec<usize> = (0..n).filter(|&i| free(self, i)).collect();
+        let mut r = SplitMix64::new(self.current_seed, FIT_SALT);
+        for i in (1..unread.len()).rev() {
+            let j = (r.next() * (i + 1) as f64) as usize;
+            unread.swap(i, j);
+        }
+        for k in 0..self.lore_notes.len() {
+            let id = self.lore_notes[k].id;
+            if self.lore_found.contains(&id) && self.lore_entry_scp(id).is_none() {
+                if let Some(new) = unread.pop() {
+                    self.lore_notes[k].id = new;
+                }
+            }
+            let (id, g, clue) = (self.lore_notes[k].id, self.lore_notes[k].g.clone(), self.lore_notes[k].clue.clone());
+            if self.lore_found.contains(&id) {
+                if let Some(c) = clue {
+                    c.set_mat(crate::core_props::tail::lore_check_mat());
+                }
+                continue;
+            }
+            let Some(arc) = self.lore_arc_for(id).filter(|_| self.lore_note_boosted(id)) else { continue };
+            let color = self.lore_arc_color(arc);
+            // the glow under the sheet (its last part, built plain): wider,
+            // brighter, in the story's colour
+            if let Some(glow) = g.children().last() {
+                glow.scale().set(1.6, 1.6, 1.6);
+                let m = glow.mat();
+                m.m().color.set_hex(color);
+                m.m().opacity = 0.35;
+            }
+            self.add_lore_beacon(&g, color);
+            if let Some(c) = clue {
+                let m = c.mat().duplicate();
+                m.m().color.set_hex(color);
+                c.set_mat(m);
+            }
+        }
+    }
+}

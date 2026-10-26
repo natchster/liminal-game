@@ -63,6 +63,8 @@ pub struct LoreNote {
     pub g: Obj,
     pub taken: bool,
     pub id: usize,
+    /// The mark on the nearest wall (an arrow, or READ), if there is a wall
+    pub clue: Option<Obj>,
 }
 
 /// A paper the player dropped on the floor to mark a trail

@@ -94,6 +94,10 @@ one random stream seeded with `seed_for_level(run_seed, n)`:
    static objects, merging repeated meshes into instanced meshes
    (`world::instancing`) and building the cull list.
 3. Spawning the creatures.
+4. Fitting the level to the run's progress, outside the seeded stream: the
+   build ran as a new run would (with nothing read), so a retry or a
+   Continue is the same place; then the notes already read are swapped for
+   unread ones on a salted stream of their own (`fit_lore_notes`).
 
 The build records a checkpoint (label + draws so far) after every phase and
 placer pass when tracing is on; the reference-level test compares these.

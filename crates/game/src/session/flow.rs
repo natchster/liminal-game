@@ -56,6 +56,11 @@ impl Game {
         // the weather first: many placers read it
         self.pick_level_weather();
         let seed = self.current_seed;
+        // a level is a function of (run seed, level) alone: it is built as a
+        // new run would build it, with nothing read, and its notes are fitted
+        // to the save afterwards (`fit_lore_notes`), so a retry, a Continue or
+        // a rebuild is the same place
+        let found = std::mem::take(&mut self.lore_found);
         with_seed(seed, || {
             self.gen_layout_level(n, (31 + n * 4).min(53));
             self.trace_mark("layout");
@@ -81,6 +86,8 @@ impl Game {
                 }
             }
         });
+        self.lore_found = found;
+        self.fit_lore_notes();
         self.build_light_map();
         self.update_ambience();
         self.release_pooled_lights();
@@ -513,8 +520,11 @@ impl Game {
         if d.run_seed > 0 {
             self.run_seed = d.run_seed;
         }
+        // build with nothing read, then fit the notes to the save's
+        self.lore_found.clear();
         self.init_level(d.level_num);
         self.apply_saved(&d);
+        self.fit_lore_notes();
         self.state = "playing".into();
         self.hide_overlay();
         self.show_msg(&format!("LEVEL {} — CONTINUED", self.level_num), 2.0);

@@ -395,14 +395,14 @@ fn lore_notes_pickup_and_whisper() {
         o.set_pos(x, 0.0, z);
         o
     };
-    r.g.lore_notes.push(LoreNote { g: note(p.x + 0.5, p.z), taken: false, id: 4 });
+    r.g.lore_notes.push(LoreNote { g: note(p.x + 0.5, p.z), taken: false, id: 4, clue: None });
     frame(&mut r, DT);
     assert!(r.g.lore_found.contains(&4));
     assert!(r.g.lore_notes[0].taken && !r.g.lore_notes[0].g.visible());
     assert!(r.g.msg_text.starts_with("NOTE FOUND — "), "{}", r.g.msg_text);
     // a re-spawned copy of a read note whispers its title once per approach
     let copy = note(p.x + 1.2, p.z);
-    r.g.lore_notes.push(LoreNote { g: copy.clone(), taken: false, id: 4 });
+    r.g.lore_notes.push(LoreNote { g: copy.clone(), taken: false, id: 4, clue: None });
     r.g.msg_t = 0.0;
     frame(&mut r, DT);
     assert!(!r.g.lore_notes[1].taken, "a read note is not picked up again");
