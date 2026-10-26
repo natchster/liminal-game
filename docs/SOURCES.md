@@ -8,6 +8,9 @@ were gathered in October 2026 in two rounds of research:
   for the work on threats, creatures, sound, rooms and props.
 * **Rust game development** (section 8): how to lay out and organise a
   Rust game, for the workspace restructuring.
+* **UI and controls** (section 9, a third round): layouts, reach,
+  accessibility, HUDs and menus in first-person horror, for
+  [`UI.md`](UI.md).
 
 A note on weight: the strongest sources here are developer-facing write-ups
 (Game Developer, the Valve wiki, a peer-reviewed paper). Several others are
@@ -217,3 +220,58 @@ Used for the earlier restructuring of the workspace (see
 - Used for: consulted, not adopted.
   - The game keeps its clamped variable step, with the fixed step that headless runs and tests already used (`fixed_step_dt`).
   - Entities stay in a plain `Vec`, which the reference tests rely on for order.
+
+## 9. UI and controls
+
+Gathered on 2026-10-26 by a research pass for [`UI.md`](UI.md). Most
+keybinding pages are fan guides; they are listed for the layouts, which
+agree with each other, and marked *(secondary)*.
+
+**Default layouts:** [Amnesia: Rebirth](https://www.magicgameworld.com/?p=47035), [Amnesia: The Bunker](https://www.magicgameworld.com/?p=106893), [Outlast](https://www.magicgameworld.com/outlast-pc-keyboard-controls-key-bindings/), [Outlast 2](https://www.magicgameworld.com/outlast-2-pc-controls-key-bindings-guide/), [Phasmophobia](https://www.magicgameworld.com/?p=125251), [Lethal Company](https://www.magicgameworld.com/?p=96749) *(secondary)*; [Alien: Isolation, the official manual](https://www.feralinteractive.com/en/manual/alienisolation/latest/steam/).
+- Say: Shift run, Ctrl crouch (C in Alien), F light, E or left click to use, Tab for the inventory or notebook, R for batteries ("reload": Outlast, Alien), Q/E lean where there is lean. Items are used without stopping: a held item on the left button (Lethal Company, the Bunker) or a key beside WASD (Phasmophobia, Alien); Alien's item wheel runs in real time.
+- Used for: the default layout in `session/input.rs` (E/left click, F/right click, R, Tab, C toggle beside a held Ctrl).
+
+**[Phasmophobia quality-of-life patch: inventory hotkeys](https://games.gg/news/phasmophobia-qol-patch-inventory-hotkeys/)** *(secondary, summary only)*.
+- Says: direct keys for the slots, because "your incense is sitting two scroll-wheel clicks away. You fumble, you die."
+- Used for: a key per item (G/1 water, R/2 battery, Q paper), no scroll-to-select.
+
+**[Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/basic/)**, its page on [holds](https://gameaccessibilityguidelines.com/avoid-provide-alternatives-to-requiring-buttons-to-be-held-down/), and the **[Xbox Accessibility Guidelines 107](https://devdocs.xbox.com/gaming/accessibility/xbox-accessibility-guidelines/107)** and **[117](https://devdocs.xbox.com/gaming/accessibility/xbox-accessibility-guidelines/117)**.
+- Say: remappable controls and sensitivity; "holding requires much greater motor ability than pressing", so offer toggles; avoid chords; let camera shake, bobbing and motion blur be turned off; a sensible, adjustable field of view; nothing essential by colour or sound alone; start the game without layers of menus.
+- Used for: C toggles a crouch, a run toggle and a true off for head bob in Settings, the field-of-view slider, Continue focused on the title.
+
+**[Create better game settings options: a checklist](https://www.gamedeveloper.com/design/create-better-game-settings-options-handy-checklist-)** (Game Developer).
+- Says: sensitivity and invert per axis; brightness calibration matters most for dark games; separate volumes; back goes up one level; confirm before leaving with unsaved changes; pause on focus loss.
+- Used for: the Settings page and its brightness mark (U4).
+
+**[How to design a pause menu players appreciate](https://bugnet.io/blog/how-to-design-a-pause-menu-that-players-appreciate)** *(secondary)*.
+- Says: pause must reliably stop gameplay (enemies, physics, timers); resume should be quick and obvious.
+- Used for: Escape both pauses and resumes; the pause freezes the simulation and ducks the sound (U4).
+
+**Input on macOS:** [Dear ImGui's macOS key-up fix](https://skia.googlesource.com/external/github.com/ocornut/imgui/+/6d5388448794f76cc92576a74ad3cb17da2fca84%5E%21/), [Cendio bug 8035](https://bugzilla.cendio.com/show_bug.cgi?id=8035), [Parallels KB 116171](https://kb.parallels.com/116171); [keyboard rollover](https://deskthority.net/wiki/Rollover,_blocking_and_ghosting) (Deskthority wiki).
+- Say: macOS sends no key-up for keys pressed while Command is held; Ctrl+arrows is Mission Control's; cheap keyboards block a third or fourth key held at once.
+- Used for: letting go of Command forgets the held keys (`on_key_up`); the Controls page tells arrow players to crouch with C; the run's actions sit on separate rows of the keyboard and on the mouse.
+
+**[Beyond the HUD](https://publications.lib.chalmers.se/records/fulltext/111921.pdf)** (Fagerholt and Lorentzon, Chalmers / EA DICE) and **[Study: most players happy with traditional HUD overlays](https://gamedeveloper.com/design/study-most-players-happy-with-traditional-hud-overlays)** (Jørgensen, Game Developer).
+- Say: diegetic, non-diegetic, spatial and meta UI; players accept a HUD that eases play, and a feature that no longer serves its purpose becomes annoying.
+- Used for: the HUD at rest is empty, and what changes is shown, then fades (U5); not a HUD-less game.
+
+**[Alien: Isolation](https://www.artofthetitle.com/title/alien-isolation/)** (Art of the Title) and **[its lo-fi design diary](https://www.dualshockers.com/latest-developer-diary-for-alien-isolation-details-the-games-lo-fi-sci-fi-design/)** *(secondary)*.
+- Say: the in-world software had to look and behave like old software; overlays "easy to use and minimalist to look at"; the UI was recorded to VHS and played back.
+- Used for: the screens speak as the building would (U3–U6).
+
+**[The fonts in Control make its world feel way creepier](https://kotaku.com/the-fonts-in-control-make-its-world-feel-way-creepier-1837714580)** (Kotaku) and **[Fonts in Use: Control](https://fontsinuse.com/uses/48689/control-video-game)**.
+- Say: "words written in Helvetica are culturally normalized to the point of seeming incidental"; institutional type makes the uncanny routine.
+- Used for: Helvetica Neue as the building's voice (U2).
+
+**[Glanceable fonts](https://www.nngroup.com/articles/glanceable-fonts/)** (Nielsen Norman Group).
+- Says: no all-caps for longer passages.
+- Used for: capitals only for a label of one to three words.
+
+**Templated UI** *(secondary)*: [AI slop patterns](https://cdn.jsdelivr.net/npm/pixelslop@0.3.8/dist/skill/resources/ai-slop-patterns.md), [Impeccable's anti-patterns](https://mintlify.wiki/pbakaus/impeccable/concepts/anti-patterns), [How to detect AI slop in your design](https://github.com/Laith0003/ux-skill/wiki/How-to-detect-AI-slop-in-your-design).
+- Say: monospace "for tech vibes", everything centred, a heading with a subtitle and one call to action, everything in a card, glowing accents on dark, subheadings that restate the heading; the test is whether a person made the choice or a default did.
+- Used for: the analysis of the old screens in `UI.md`, and what the new ones avoid.
+
+**Death and retries:** [SOMA's developer on death in horror](https://gamingbolt.com/soma-developer-wants-death-to-have-less-emphasis-in-horror-games) (GamingBolt), [There are things worse than death in video games](https://kotaku.com/there-are-things-worse-than-death-in-video-games-1573207459) (Kotaku).
+- Say: repeated deaths kill fear; Amnesia played them down and changed the map a little after each.
+- Used for: a low-key death card with no stats, and a wake-up on any key once it is up (U6).
+

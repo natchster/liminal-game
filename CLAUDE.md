@@ -11,6 +11,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/LORE.md`](docs/LORE.md) | the canon: places, creatures, anomalies, and how lore may reach the player |
 | [`docs/PILLARS.md`](docs/PILLARS.md) | what the game is for; quote the rule a content change serves |
 | [`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) | what a level asks of the player (her trail, her camp, the notebook) and the plan behind it |
+| [`docs/UI.md`](docs/UI.md) | the controls (one binding table, what a run needs in reach) and the screens, and the plan behind them |
 | [`docs/STYLE.md`](docs/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
