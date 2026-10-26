@@ -9,7 +9,10 @@ color: yellow
 You keep the game's canon. Read `docs/LORE.md` (what is true in this game,
 and the channels lore may reach the player through) and `docs/PILLARS.md`
 (what the game is for). Then read the change you were given: new text in
-`crates/game/src/ui/lore.rs`, a creature's behaviour, an anomaly, a zone
+`crates/game/src/ui/lore.rs` or her notebook (`crates/game/src/story/notebook.rs`,
+whose floor pages land on a different level each run, so they may name no
+zone or level, and whose threads must read as her lines, never as orders),
+a creature's behaviour, an anomaly, a zone
 caption or arrival line, or a design note. Use `git diff` (read-only) when
 you are pointed at a commit or the working tree.
 

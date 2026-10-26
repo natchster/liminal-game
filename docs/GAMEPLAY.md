@@ -103,4 +103,23 @@ evidence (a test, a headless PNG, a pacing log) and its own commit.
 | G4 | `1d785e5` | `story/notebook.rs`: 13 pages and their threads, `page_on` (floor pages count the run's ordinary floors). Her page lies on the bedroll ([E] TAKE HER PAGE); the journal lists her pages first in the order of the descent, a torn edge for each floor passed without taking hers, and opens on the page just taken; the thread replaces the objective line; saves keep the notebook. The `lore-keeper` review of the first draft found Rule 1 contradicted, marks of E.'s promised that the world does not have, a sound the Loop does not make, two threads that were orders, and lines lifted from existing notes; all rewritten |
 | G5 | `73dedb7`, fixed in `298830b` | taking her page lets her lamp gutter out over 1.6 s (its light leaves the light map) and `director_wake` cuts the quiet to 4–9 s; level 1's first quiet is 110–150 s while her camp is there. `her_page_wakes_the_place`: on three levels the log reads `story:page`, `wake`, `build` within the window, and a retry keeps the lamp out. Pacing and personas bands unchanged (first builds 34–67 s). `73dedb7` was committed with the fast check failing (its exit status was lost in a pipe): the longer first quiet took a second native draw on level 1, where every headless run starts, and moved every golden. Fixed by spreading the one draw over the longer span; CLAUDE.md invariant 1 now says so |
 | G6 | `34c615a` | `plan_false_trails`: from the floor of her page `f5` one trail of flat sheets (two from `f7`'s) leaves her walk for a dead end three walls round, 8+ tiles from the door, never back onto her walk; laid like hers (`lay_sheets`, shared, her own trail's draws unchanged: reference levels differ only from the `f5` floor on). At its end a breath close by and `director_lure` (a quiet ends in 1.5–3.5 s; a build-up's stalker learns where you are). The flat sheet is a whole page with a heavy black arrow; hers is folded, in pencil |
-| G7 | (this commit) | `story/ending.rs`: on level 13 her lamp is cold, her shoes stand by the bedroll and her trail stops at her camp; leaving the floor (door, lift or hole) the first time shows THE LAST CAMP over black (pages, notes, deaths; the overlay's controls hidden), E or a click goes on with her last 12 sheets; `arc_done` is saved, and below 13 there are no camps or trails. The playthrough (13 levels by default) presses E at the card |
+| G7 | `8aa398f` | `story/ending.rs`: on level 13 her lamp is cold, her shoes stand by the bedroll and her trail stops at her camp; leaving the floor (door, lift or hole) the first time shows THE LAST CAMP over black (pages, notes, deaths; the overlay's controls hidden), E or a click goes on with her last 12 sheets; `arc_done` is saved, and below 13 there are no camps or trails. The playthrough (13 levels by default) presses E at the card |
+| G8 | (this commit) | `content.json` gains `story/trail`, `story/camp`, `story/notebook`, `story/false_trails`, `story/ending`, `wayfinding/exit` (all passing in the drift sweep); `QUALITY.md` grades Story and wayfinding B (gates, no people); `PLAYTEST.md` asks about her paper, her page and the notebook; the `lore-keeper` reviewer reads the notebook too |
+
+## What only people can tell
+
+Every gate above holds what can be measured: the door is heard, the trail
+can be followed, the pages are in order, the page wakes the place. What
+the design is *for* is not measured by any of them, and is the next
+playtest round's focus (`PLAYTEST.md`):
+
+- Without a compass, does a fresh player find the door, and how long does
+  a floor take? (The recordings' telemetry gives the time; the heatmap
+  where they wandered.)
+- Is her trail a story or just a guide line? Do they stop at her camp, or
+  pass it?
+- Does anyone notice the flat sheets before following one, and does the
+  dead end feel fair?
+- Is taking her page a choice they make (do they wait, or scout the door
+  first)?
+- At the end, can they say who E. and M. were?

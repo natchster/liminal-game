@@ -59,6 +59,10 @@ Comprehension (did the design communicate?):
   try to deal with it?
 - What did you think the notes were for?
 - Where did you think the exit was, and why?
+- Who left the paper on the floor? Did you follow it? Did you trust all of
+  it? (There are two kinds; never ask about them by name.)
+- What happened when you took the page at the camp? Did you choose when?
+- What was the notebook about? Who were E. and M. to each other?
 
 Experience (how did it feel?):
 
