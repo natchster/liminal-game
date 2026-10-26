@@ -81,6 +81,8 @@ pub struct Game {
     pub settings: crate::session::settings::Settings,
     /// What the HUD at rest is showing (`ui::rest`)
     pub rest: crate::ui::rest::Rest,
+    /// The level card on arrival: its line and when it went up (ms)
+    pub level_card: Option<(String, f64)>,
     /// Mouse motion since the last frame (relative motion while the pointer is locked)
     pub mouse_dx: f64,
     pub mouse_dy: f64,
@@ -634,6 +636,7 @@ impl Game {
             menu: Default::default(),
             settings: Default::default(),
             rest: Default::default(),
+            level_card: None,
             mouse_dx: 0.0,
             mouse_dy: 0.0,
             pointer_locked: false,

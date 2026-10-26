@@ -303,7 +303,7 @@ impl Game {
             g.save_game();
             g.state = "playing".into();
             let title = g.level_title();
-            g.show_msg(&format!("LEVEL {} — {}", g.level_num, title), 2.6);
+            g.show_level_card(&title);
             g.scp_arrival();
             g.ui.fade.set_opacity(0.0);
         });
@@ -335,7 +335,7 @@ impl Game {
             g.save_game();
             g.state = "playing".into();
             let sub = g.pick_text("levelSubtitle");
-            g.show_msg(&format!("FLOOR {} — {}", g.level_num, sub), 2.6);
+            g.show_level_card(&sub);
             g.ui.fade.set_opacity(0.0);
         });
     }
@@ -364,7 +364,7 @@ impl Game {
                 g.save_game();
                 g.camera.rotation().z = 0.0;
                 g.state = "playing".into();
-                g.show_msg(&format!("YOU FELL — LEVEL {}", g.level_num), 2.6);
+                g.show_level_card("You fell");
                 g.schedule(400.0, |g| g.ui.fade.set_opacity(0.0));
             } else {
                 g.schedule(30.0, move |g| tick(g, start));
@@ -465,23 +465,30 @@ impl Game {
         }
         self.ui.fade.set_style("background", "#000");
         self.schedule(450.0, |g| g.ui.fade.set_opacity(1.0));
+        // black, the hum, one line in the world's voice, and Wake up (no
+        // title, no seconds survived). The card's three draws are kept, so
+        // nothing after a death moves (CLAUDE.md invariant 1)
         self.schedule(1400.0, |g| {
+            if g.state != "dead" {
+                return;
+            }
             g.want_pointer_lock = Some(false);
-            let title = g.pick_text("deathTitle");
-            let bits = g.pick_text("deathBodyBits");
-            let body = format!("You survived {} seconds on level {}. {}", (g.perf_t - g.level_start_t).floor(), g.level_num, bits);
-            let hint = g.pick_text("deathHint");
-            g.show_overlay(&title, &body, &hint);
+            let _ = g.pick_text("deathTitle");
+            let line = g.pick_text("deathBodyBits");
+            let _ = g.pick_text("deathHint");
+            g.open_menu(crate::ui::menu::Screen::Dead);
+            g.menu.heading = line;
         });
     }
     pub fn restart(&mut self) {
         self.ui.fade.set_opacity(0.0);
         let n = self.level_num;
+        self.close_menu();
         self.init_level(n);
         self.hide_overlay();
         self.state = "playing".into();
         self.want_pointer_lock = Some(true);
-        self.show_msg(&format!("LEVEL {}", self.level_num), 1.6);
+        self.show_level_card("");
     }
 
     // ------------------------------------------------------------ the menu
@@ -531,7 +538,7 @@ impl Game {
         self.state = "playing".into();
         self.hide_overlay();
         let sub = self.pick_text("levelSubtitle");
-        self.show_msg(&format!("LEVEL {} — {}", start_level, sub), 2.0);
+        self.show_level_card(&sub);
         self.scp_arrival();
         self.want_pointer_lock = Some(true);
     }
@@ -554,7 +561,7 @@ impl Game {
         self.fit_story();
         self.state = "playing".into();
         self.hide_overlay();
-        self.show_msg(&format!("LEVEL {} — CONTINUED", self.level_num), 2.0);
+        self.show_level_card("");
         self.scp_arrival();
         self.want_pointer_lock = Some(true);
     }

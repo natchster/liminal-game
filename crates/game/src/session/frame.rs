@@ -168,15 +168,9 @@ impl Game {
         match target {
             "journal-prev" => self.journal_prev(),
             "journal-next" => self.journal_next(),
-            "overlay" => {
-                if self.state == "paused" {
-                    self.resume();
-                } else if self.state == "dead" {
-                    self.restart();
-                } else if self.state == "ending" {
-                    self.end_ending();
-                }
-            }
+            // anywhere on a death or ending card goes on, once it is up
+            "" if self.state == "dead" && self.live_menu().is_some() => self.restart(),
+            "" if self.state == "ending" && self.live_menu().is_some() => self.end_ending(),
             _ => {
                 // the canvas itself: re-lock the pointer while playing
                 if self.state == "playing" && !self.pointer_locked && !self.journal_open {

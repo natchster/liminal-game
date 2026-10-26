@@ -81,6 +81,11 @@ pub(crate) fn paint_menu(f: &mut Frame, g: &Game) {
     let (head, sub) = match screen {
         Screen::Title => (line("The Backrooms", Font::sans_light(40.0), ink, None), line(&m.her_line, Font::hand(17.0), ink, Some(max_w))),
         Screen::Pause => (line(&m.heading, Font::sans_light(32.0), ink, None), line(&m.note, Font::sans(13.0).italic(), ink, Some(max_w))),
+        Screen::Dead => (line(&m.heading, Font::sans_light(24.0), ink, Some(max_w)), line("", Font::sans(13.0), ink, None)),
+        Screen::Ending => (
+            line(&m.heading, Font::sans_light(32.0), ink, None),
+            TextBlock::plain(&m.note, ink, &[], 0.0, Font::sans(14.0), Ws::PreLine, Some(max_w), Some(14.0 * 1.6)),
+        ),
         _ => (line(&m.heading, Font::sans(22.0), ink, Some(max_w)), line(&m.note, Font::sans(13.0), ink, Some(max_w))),
     };
     let sub_y = list_y - 26.0 - sub.height();
@@ -182,4 +187,35 @@ pub(crate) fn paint_brightness(f: &mut Frame, g: &Game) {
         let c = 1.0 + k * 0.05;
         f.fill([c, c, c, 1.0], LayerBlend::Multiply);
     }
+}
+
+/// The level card: "Level 4" at the lower left and the floor's line under
+/// it, in for 0.6 s, held, out over 0.8 s (4 s in all)
+pub(crate) fn paint_level_card(f: &mut Frame, g: &Game) {
+    let Some((text, t0)) = &g.level_card else { return };
+    if g.state != "playing" {
+        return;
+    }
+    let age = (f.now - t0) / 1000.0;
+    if !(0.0..4.0).contains(&age) {
+        return;
+    }
+    let op = (age / 0.6).min(1.0).min((4.0 - age) / 0.8).clamp(0.0, 1.0);
+    let (w, h) = (f.w, f.h);
+    let ink = col(INK);
+    let x0 = margin(w);
+    let dark = crate::ui::draw::parse_shadows("0 0 6px rgba(0,0,0,0.8)");
+    let title = TextBlock::plain(&format!("Level {}", g.level_num), ink, &dark, 0.0, Font::sans_light(30.0), Ws::NoWrap, None, None);
+    let sub = TextBlock::plain(text, ink, &dark, 0.0, Font::sans(14.0), Ws::NoWrap, None, None);
+    let bottom = h - (h * 0.11).max(44.0);
+    let sub_y = bottom - sub.height();
+    let head_y = sub_y - 6.0 - title.height();
+    let key = format!("{}|{text}|{w}|{h}", g.level_num);
+    let wd = title.width().max(sub.width()) + 24.0;
+    f.layer("level-card", &key, op, move |dpr| {
+        let mut p = Painter::new(x0 - 12.0, head_y - 12.0, wd + 12.0, bottom - head_y + 24.0, dpr);
+        p.text(&title, x0, head_y, title.width(), "left", 0.95);
+        p.text(&sub, x0, sub_y, sub.width(), "left", 0.7);
+        p
+    });
 }

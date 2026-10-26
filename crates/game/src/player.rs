@@ -71,7 +71,7 @@ impl Game {
         }
         // the cards take a key only once they are up (no skipping them by
         // mashing a key through the moment that leads to them)
-        let card_up = !self.ui.overlay.has_class("hidden");
+        let card_up = !self.ui.overlay.has_class("hidden") || self.live_menu().is_some();
         let go_on = matches!(code, "KeyE" | "Enter" | "Space" | "KeyR" | "Mouse0");
         if self.state == "dead" {
             if go_on && card_up {

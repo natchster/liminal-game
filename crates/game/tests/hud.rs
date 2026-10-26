@@ -478,14 +478,29 @@ fn hud_states() {
     run(&mut g, 60, false);
     shoot(&mut g, "effects");
 
-    // ---- death / pause: the overlay without its buttons
+    // ---- the level card on arrival
+    let mut g = game();
+    playing_state(&mut g);
+    g.ui.msg.set_opacity(0.0);
+    g.ui.omen.set_opacity(0.0);
+    g.level_num = 3;
+    g.show_level_card("THE WALLS ARE THINNER HERE");
+    run(&mut g, 90, true);
+    assert!(g.hud_ui.painted.contains(&"level-card"), "no level card");
+    shoot(&mut g, "level-card");
+    run(&mut g, 200, true);
+    assert!(!g.hud_ui.painted.contains(&"level-card"), "the level card stayed");
+
+    // ---- death: black, one line, Wake up
     let mut g = game();
     playing_state(&mut g);
     g.state = "dead".into();
-    g.ui.flash.set_opacity(1.0);
-    g.show_overlay("IT FOUND YOU", "You survived 42 seconds on level 3. The hum never stops.", "PRESS R TO WAKE UP");
+    g.ui.fade.set_style("background", "#000");
+    g.ui.fade.set_opacity(1.0);
+    g.open_menu(game::ui::menu::Screen::Dead);
+    g.menu.heading = "The hum never stops.".into();
     run(&mut g, 40, false);
-    g.now_ms = 0.0;
+    assert!(!g.hud_ui.painted.contains(&"stamina"), "the HUD over the death card");
     shoot(&mut g, "dead");
 
     // ---- the end of her story: the card over black
@@ -498,10 +513,10 @@ fn hud_states() {
     g.ui.fade.set_opacity(1.0);
     let (title, body) = g.ending_card();
     assert!(body.contains("5 of her 13 pages") && body.contains("died 2 times"), "{body}");
-    g.ui.overlay_controls.set_html("");
-    g.show_overlay(&title, &body, "PRESS E TO GO ON");
+    g.open_menu(game::ui::menu::Screen::Ending);
+    g.menu.heading = title;
+    g.menu.note = body;
     run(&mut g, 40, false);
-    g.now_ms = 0.0;
     shoot(&mut g, "ending");
 }
 

@@ -494,7 +494,7 @@ fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
         if l == game::story::notebook::LAST_LEVEL {
             // the end of her story: the card, then on down (E)
             assert!(wait_for(&mut g, 600, |g| g.state == "ending"), "run {seed}: her story did not end on level {l}");
-            assert!(wait_for(&mut g, 300, |g| !g.ui.overlay.has_class("hidden")), "run {seed}: no card at the end of her story");
+            assert!(wait_for(&mut g, 300, |g| g.live_menu().is_some()), "run {seed}: no card at the end of her story");
             g.key_down("KeyE", false);
             g.key_up("KeyE");
         }

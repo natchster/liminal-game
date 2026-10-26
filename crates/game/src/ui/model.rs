@@ -239,10 +239,7 @@ impl UiModel {
         d.journal_idx.text = "0 / 0".into();
         d.journal_next.text = "NEXT ▶".into();
         d.journal_hint.text = "[TAB] CLOSE".into();
-        d.overlay_title.text = "THE BACKROOMS".into();
-        d.overlay_sub.text = "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.".into();
-        d.overlay_controls.html = "WASD — MOVE &nbsp;&middot;&nbsp; MOUSE — LOOK &nbsp;&middot;&nbsp; SHIFT — RUN &nbsp;&middot;&nbsp; CTRL / C — CROUCH &nbsp;&middot;&nbsp; F / RIGHT CLICK — FLASHLIGHT &nbsp;&middot;&nbsp; E / CLICK — INTERACT &nbsp;&middot;&nbsp; Q — DROP PAPER &nbsp;&middot;&nbsp; G — DRINK WATER &nbsp;&middot;&nbsp; R — SWAP BATTERY &nbsp;&middot;&nbsp; V — CALL OUT &nbsp;&middot;&nbsp; TAB — NOTEBOOK &nbsp;&middot;&nbsp; ESC — PAUSE &nbsp;&middot;&nbsp; M — MUTE<br>\n  ALMOND WATER RESTORES STAMINA WHEN YOU DRINK IT. A SPARE BATTERY RECHARGES YOUR LIGHT WHEN YOU SWAP IT IN. BOTH ARE CARRIED UNTIL YOU SPEND THEM — SAVE THEM FOR WHEN IT IS BAD. PAPER MARKS YOUR PATH. CRYING IS DESPERATE — IT MAY BE HEARD.".into();
-        d.overlay_hint.text = "CLICK TO ENTER".into();
+        // (the menus and cards are `ui::menu`; the overlay keeps no words of its own)
         for el in [&mut d.vignette, &mut d.aberration, &mut d.flash, &mut d.grain, &mut d.fade, &mut d.hud] {
             el.classes.insert("layer".into());
         }

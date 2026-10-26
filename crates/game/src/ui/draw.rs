@@ -1257,7 +1257,6 @@ fn lerp_c(a: Rgba, b: Rgba, t: f64) -> Rgba {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t]
 }
 
-pub(crate) const HUD_COLOR: &str = "#d8cf9f";
 fn hud_shadows() -> Vec<Shadow> {
     parse_shadows("0 0 4px #000, 0 0 2px #000")
 }
@@ -1365,6 +1364,7 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
         }
     }
     paint_hud(&mut f, g);
+    crate::ui::screens::paint_level_card(&mut f, g);
     // ---- z 5: #flash, #grain
     {
         let el = &d.flash;
@@ -1397,8 +1397,7 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             f.background(&bg, op, LayerBlend::Normal);
         }
     }
-    // ---- z 10: #overlay, then the menus (`ui/screens.rs`), then Settings' brightness over everything
-    paint_overlay(&mut f, g);
+    // ---- z 10: the menus and cards (`ui/screens.rs`), then Settings' brightness over everything
     crate::ui::screens::paint_menu(&mut f, g);
     crate::ui::screens::paint_brightness(&mut f, g);
     let out = std::mem::take(&mut f.out);
@@ -1831,62 +1830,6 @@ fn paint_box_shadow(p: &mut Painter, x: f64, y: f64, w: f64, h: f64, s: &Shadow)
     sc.put_image_data(&img, 0, 0);
     p.c.reset_transform();
     p.c.draw_image(&sc, 0, 0);
-}
-
-/// #overlay (unless .hidden): flex column, centred
-fn paint_overlay(f: &mut Frame, g: &Game) {
-    let d = &g.ui;
-    if d.overlay.has_class("hidden") || !d.overlay.shown() {
-        return;
-    }
-    let (w, h) = (f.w, f.h);
-    let fg = col(HUD_COLOR);
-    f.fill(rgba(6.0, 5.0, 2.0, 0.88), LayerBlend::Normal);
-    let mk = |el: &Element, font: Font, ls: f64, sh: Vec<Shadow>, mw: f64, lh: Option<f64>| {
-        TextBlock::new(runs_of(el, &base_run(fg, sh, ls)), font, Ws::Normal, Some(mw), lh)
-    };
-    let title = mk(&d.overlay_title, Font::new(34.0), 12.0, parse_shadows("0 0 18px rgba(216,207,159,0.35)"), w, None);
-    let sub = mk(&d.overlay_sub, Font::new(13.0), 2.0, vec![], 560.0f64.min(w), Some(13.0 * 1.8));
-    let controls = mk(&d.overlay_controls, Font::new(11.0), 2.0, vec![], w, Some(22.0));
-    let hint = mk(&d.overlay_hint, Font::new(13.0), 4.0, vec![], w, None);
-    // the column: margins of each item (no collapsing in flex)
-    let mut total = title.height() + 10.0 + 6.0 + sub.height() + 6.0 + 18.0 + controls.height() + 6.0;
-    total += 18.0 + hint.height() + 13.0;
-    let mut y = (h - total) / 2.0;
-    let title_y = y;
-    y += title.height() + 10.0 + 6.0;
-    let sub_y = y;
-    y += sub.height() + 6.0 + 18.0;
-    let ctrl_y = y;
-    y += controls.height() + 6.0;
-    y += 18.0;
-    let hint_y = y;
-    // topmost first: the overlay (z 10) over everything
-    f.ui.hits.splice(0..0, [("overlay", [0.0, 0.0, w, h], true)]);
-    // the static column
-    let (tw, sw, ctw) = (
-        title.width(),
-        sub.width().max(if sub.lines.len() > 1 { 560.0f64.min(w) } else { 0.0 }),
-        controls.width().max(if controls.lines.len() > 1 { w } else { 0.0 }),
-    );
-    let key = format!("{:?}{:?}{:?}|{title_y}", title.runs, sub.runs, controls.runs);
-    let top = title_y - 30.0;
-    let bottom = hint_y;
-    f.layer("overlay", &key, 1.0, move |dpr| {
-        let mut p = Painter::new(0.0, top.max(0.0), w, (bottom - top.max(0.0)).max(1.0), dpr);
-        p.text(&title, (w - tw) / 2.0, title_y, tw, "center", 1.0);
-        p.text(&sub, (w - sw) / 2.0, sub_y, sw, "center", 0.75);
-        p.text(&controls, (w - ctw) / 2.0, ctrl_y, ctw, "center", 0.5);
-        p
-    });
-    // #overlay-hint: `blink 1.6s infinite` (0.9 → 0.25 → 0.9, ease per half)
-    {
-        let ph = (f.now / 1600.0).rem_euclid(1.0);
-        let op =
-            if ph < 0.5 { 0.9 + (0.25 - 0.9) * Ease::Ease.at(ph / 0.5) } else { 0.25 + (0.9 - 0.25) * Ease::Ease.at((ph - 0.5) / 0.5) };
-        let hw = hint.width();
-        text_layer(f, "overlay-hint", hint, (w - hw) / 2.0, hint_y, hw, "center", op);
-    }
 }
 
 /// The topmost click target at CSS px (x, y)

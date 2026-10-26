@@ -336,8 +336,11 @@ impl Game {
             g.save_game();
             g.state = "playing".into();
             let title = g.level_title();
-            let m = format!("LEVEL {} — {}", g.level_num, title);
-            g.modes_msg(&m, 3.0);
+            // (the recordings trace the message; the screen shows the level card)
+            if tracing() {
+                tr(&format!("msg:LEVEL {} — {}", g.level_num, title), &[3.0]);
+            }
+            g.show_level_card(&title);
             g.ui.fade.set_opacity(0.0);
         });
     }

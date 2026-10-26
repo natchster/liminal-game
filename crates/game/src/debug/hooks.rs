@@ -448,6 +448,22 @@ impl Game {
             self.open_menu(Screen::Title);
             return;
         }
+        // the death card and her last card, as they stand over black
+        if name == "dead" || name == "ending" {
+            self.ui.fade.set_style("background", if name == "dead" { "#000" } else { "#050403" });
+            self.ui.fade.set_opacity(1.0);
+            self.state = name.into();
+            if name == "dead" {
+                self.open_menu(Screen::Dead);
+                self.menu.heading = "The hum never stops.".into();
+            } else {
+                let (t, b) = self.ending_card();
+                self.open_menu(Screen::Ending);
+                self.menu.heading = t;
+                self.menu.note = b;
+            }
+            return;
+        }
         self.pause();
         match name {
             "leave" => self.open_menu(Screen::ConfirmLeave),

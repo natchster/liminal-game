@@ -38,9 +38,16 @@ impl Game {
             }
             g.want_pointer_lock = Some(false);
             let (title, body) = g.ending_card();
-            // the card alone: not the controls and the tips the overlay keeps
-            g.ui.overlay_controls.set_html("");
-            g.show_overlay(&title, &body, "PRESS E TO GO ON");
+            g.open_menu(crate::ui::menu::Screen::Ending);
+            g.menu.heading = title;
+            g.menu.note = body;
+            // the chord dies away, and then the hum: the silence is the end
+            if let (Some(_), Some(m)) = (g.ac.as_ref(), g.master.as_ref()) {
+                let t = g.ac_time();
+                m.gain().cancel_scheduled_values(t);
+                m.gain().set_value_at_time(m.gain().value(), t);
+                m.gain().linear_ramp_to_value_at_time(0.0, t + 4.0);
+            }
         });
     }
 
@@ -59,7 +66,7 @@ impl Game {
             book.len(),
             self.lore_found.len(),
         );
-        ("THE LAST CAMP".into(), body)
+        ("The last camp".into(), body)
     }
 
     /// Go on down from the end of her story.
@@ -69,16 +76,19 @@ impl Game {
         }
         self.arc_done = true;
         self.player.papers += HER_PAPER;
+        self.close_menu();
         self.hide_overlay();
-        let controls = crate::ui::model::UiModel::new().overlay_controls.html;
-        self.ui.overlay_controls.set_html(&controls);
         self.state = "transition".into();
+        if let (Some(_), Some(m)) = (self.ac.as_ref(), self.master.as_ref()) {
+            m.gain().cancel_scheduled_values(self.ac_time());
+        }
+        self.apply_master_gain();
         self.schedule(400.0, |g| {
             g.init_level(g.level_num + 1);
             g.save_game();
             g.state = "playing".into();
             let title = g.level_title();
-            g.show_msg(&format!("LEVEL {} — {}", g.level_num, title), 2.6);
+            g.show_level_card(&title);
             g.ui.fade.set_opacity(0.0);
             g.want_pointer_lock = Some(true);
         });

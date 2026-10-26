@@ -80,6 +80,11 @@ impl Game {
         }
         None
     }
+    /// The level card: "Level 4" small at the lower left, the floor's line
+    /// beneath it, for a few seconds after you arrive
+    pub fn show_level_card(&mut self, line: &str) {
+        self.level_card = Some((calm(line), self.now_ms));
+    }
     /// The pockets as one quiet line ("Almond water 2 · Batteries 1 · Paper 4")
     pub fn pockets_line(&self) -> String {
         let p = &self.player;

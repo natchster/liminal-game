@@ -521,7 +521,7 @@ fn screenshot(o: &Options, path: &str) {
                 g.on_death("entity");
             }
         }
-        if let Some(s) = o.screen.as_deref().filter(|_| i + 10 == o.frames) {
+        if let Some(s) = o.screen.as_deref().filter(|_| i + 45 == o.frames) {
             g.debug_screen(s);
         }
         g.frame(1.0 / 60.0);

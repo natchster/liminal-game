@@ -189,3 +189,33 @@ fn leaving_for_the_title_keeps_the_notebook() {
     assert_eq!(g.state, "playing");
     assert!(g.notebook.contains("f1"));
 }
+
+#[test]
+fn death_is_black_a_line_and_wake_up() {
+    let mut g = new_game();
+    press(&mut g, "Enter");
+    frame(&mut g, 30);
+    assert!(g.level_card.is_some(), "no level card on arrival");
+    g.on_death("entity");
+    assert_eq!(g.state, "dead");
+    // the moment that leads to the card cannot be skipped by a key
+    press(&mut g, "KeyE");
+    press(&mut g, "KeyR");
+    assert_eq!(g.state, "dead", "a key skipped the death before its card was up");
+    frame(&mut g, 100);
+    assert_eq!(g.live_menu(), Some(Screen::Dead), "no death card after 1.7 s");
+    assert!(!g.menu.heading.is_empty() && !g.menu.heading.contains("seconds"), "the card: {:?}", g.menu.heading);
+    assert_eq!(labels(&g), ["Wake up", "Leave for the title"]);
+    // any of the keys that go on wakes you
+    press(&mut g, "KeyR");
+    assert_eq!(g.state, "playing");
+    assert!(g.live_menu().is_none());
+    // again, and this time leave for the title
+    frame(&mut g, 10);
+    g.on_death("entity");
+    frame(&mut g, 100);
+    press(&mut g, "ArrowDown");
+    press(&mut g, "Enter");
+    assert_eq!((g.state.as_str(), g.live_menu()), ("menu", Some(Screen::Title)));
+    assert_eq!(g.menu.items[0].label, "Continue");
+}

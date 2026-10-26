@@ -20,6 +20,10 @@ pub enum Screen {
     Settings,
     /// every key, and rebinding
     Controls,
+    /// the death card: one line, then Wake up
+    Dead,
+    /// the end of her story: the card, then on down
+    Ending,
 }
 
 /// One line of a list.
@@ -113,6 +117,8 @@ impl Game {
                 item("menu:leave", "Leave for the title", ""),
             ],
             Screen::ConfirmLeave => vec![item("menu:leave-yes", "Leave", ""), item("menu:back", "Back", "")],
+            Screen::Dead => vec![item("menu:wake", "Wake up", ""), item("menu:leave-yes", "Leave for the title", "")],
+            Screen::Ending => vec![item("menu:go-on", "Go on down", "")],
             Screen::Settings => {
                 let mut v: Vec<Item> = ROWS.iter().map(|(r, id, label)| item(id, label, &self.settings.value(*r))).collect();
                 v.extend([item("menu:controls", "Controls", ""), item("menu:back", "Back", "")]);
@@ -162,7 +168,8 @@ impl Game {
                 m.heading = "Controls".into();
                 m.note = "Enter on a line, then the new key. With the arrows, crouch with C: Ctrl and an arrow belong to the Mac.".into();
             }
-            Screen::Title => {}
+            // (their words are the caller's: the death's line, her last card)
+            Screen::Title | Screen::Dead | Screen::Ending => {}
         }
         // a question opens on its safe answer
         m.sel = m.items.iter().position(|i| i.id == "menu:back" && matches!(s, Screen::ConfirmNew | Screen::ConfirmLeave)).unwrap_or(0);
@@ -199,6 +206,8 @@ impl Game {
             Screen::Title | Screen::ConfirmNew => self.state == "menu",
             Screen::Pause | Screen::ConfirmLeave => self.state == "paused",
             Screen::Settings | Screen::Controls => self.state == "menu" || self.state == "paused",
+            Screen::Dead => self.state == "dead",
+            Screen::Ending => self.state == "ending",
         };
         ok.then_some(s)
     }
@@ -302,17 +311,27 @@ impl Game {
             }
             "menu:back" => self.menu_back(),
             "menu:resume" => self.resume(),
+            "menu:wake" => self.restart(),
+            "menu:go-on" => self.end_ending(),
             "menu:leave" => self.open_menu(Screen::ConfirmLeave),
             "menu:leave-yes" => self.leave_for_title(),
             "menu:quit" => self.want_quit = true,
             _ => {}
         }
     }
-    /// From the pause list to the title: the notebook is saved, the floor
-    /// you were on stays behind the title, and Continue starts it again
+    /// From the pause list (or the death card) to the title: the notebook is
+    /// saved, the floor you were on stays behind the title (built again
+    /// after a death, so the thing that found you is not standing in the
+    /// view), and Continue starts it again
     pub fn leave_for_title(&mut self) {
-        if self.state != "paused" {
+        if self.state != "paused" && self.state != "dead" {
             return;
+        }
+        if self.state == "dead" {
+            let n = self.level_num;
+            self.init_level(n);
+            self.ui.fade.set_opacity(0.0);
+            self.ui.flash.set_opacity(0.0);
         }
         self.save_game();
         self.state = "menu".into();
