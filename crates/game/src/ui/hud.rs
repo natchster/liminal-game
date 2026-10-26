@@ -63,10 +63,10 @@ pub static TEXT_POOLS: [(&str, &[&str]); 10] = [
     ]),
     ("deathBodyBits", &[
         "The hum never stops.", "The wallpaper watches.", "The lights do not blink for you.",
-        "Someone else will find your bottle.", "It remembers you now.",
-        "The exit door was there. It was.", "You should have crouched.",
-        "You should not have run.", "The clock is still wrong.",
-        "The mannequin has moved again.",
+        "Someone else will find your bottle.", "The place goes on without you.",
+        "The exit door was there. It was.", "The carpet keeps the shape of you for a while.",
+        "Somewhere a light comes back on.", "Nobody heard you.",
+        "Your paper is still on the floor.",
     ]),
     ("deathHint", &[
         "PRESS R TO WAKE UP", "PRESS R TO TRY AGAIN", "PRESS R TO RETURN",
@@ -74,9 +74,9 @@ pub static TEXT_POOLS: [(&str, &[&str]); 10] = [
     ]),
     ("pauseSub", &[
         "The fluorescent lights hum indifferently.",
-        "Nothing moves. Nothing ever moves when you look.",
+        "The carpet smells of rain that never fell.",
         "Somewhere, a phone starts ringing. Then stops.",
-        "The wallpaper pattern shifts when you are not watching.",
+        "A tube flickers somewhere, and holds.",
         "Your breath is the loudest thing in the room.",
         "A door closes, three hallways over.",
     ]),
@@ -305,16 +305,16 @@ impl Game {
             crit: &'static str,
         }
         let mut rows = vec![
-            Row { earned: self.lore_archivist_shown, color: "#f8e0a0", name: "ARCHIVIST", crit: "Find every lore note" },
-            Row { earned: self.survivor_shown, color: "#a8d8f0", name: "SURVIVOR", crit: "Reach level 10 in a single run" },
-            Row { earned: self.storyteller_shown, color: "#d8b0f0", name: "STORYTELLER", crit: "Complete every narrative arc" },
+            Row { earned: self.lore_archivist_shown, color: "#f8e0a0", name: "ARCHIVIST", crit: "Every torn note found" },
+            Row { earned: self.survivor_shown, color: "#a8d8f0", name: "SURVIVOR", crit: "Level 10 in one descent" },
+            Row { earned: self.storyteller_shown, color: "#d8b0f0", name: "STORYTELLER", crit: "Every story pieced together" },
             Row {
                 earned: self.completionist_shown,
                 color: "#ffedb0",
                 name: "COMPLETIONIST",
-                crit: "Hold Archivist + Survivor + Storyteller together",
+                crit: "Archivist, Survivor and Storyteller at once",
             },
-            Row { earned: self.ironwill_shown, color: "#a0f0d8", name: "IRONWILL", crit: "Reach level 5 without dying" },
+            Row { earned: self.ironwill_shown, color: "#a0f0d8", name: "IRONWILL", crit: "Level 5 without dying once" },
         ];
         // stable sort: earned medals to the top
         rows.sort_by_key(|r| if r.earned { 0 } else { 1 });
@@ -339,21 +339,17 @@ impl Game {
         }
         let lines = row_strings.join("\n");
         let total = rows.iter().filter(|r| r.earned).count();
-        format!(
-            "Medals of this run: <span style=\"color:#f8e0a0\">{}</span> of {}.\n\n{}\n\nUse NEXT to continue browsing.",
-            total,
-            rows.len(),
-            lines
-        )
+        format!("Medals of this descent: <span style=\"color:#f8e0a0\">{}</span> of {}.\n\n{}", total, rows.len(), lines)
     }
     pub fn journal_cover_text(&self) -> String {
         let lines = LORE_ARCS
             .iter()
             .map(|arc| {
                 let found = arc.ids.iter().filter(|id| self.lore_found.contains(id)).count();
-                let state = if found == arc.ids.len() { "COMPLETE".to_string() } else { format!("{}/{}", found, arc.ids.len()) };
+                let state = if found == arc.ids.len() { "whole".to_string() } else { format!("{} of {}", found, arc.ids.len()) };
                 let hex = hex6(arc.color);
-                format!("  <span style=\"color:{h};text-shadow:0 0 4px {h}\">■</span>  {}  —  {}", arc.name, state, h = hex)
+                let name = crate::ui::rest::calm(arc.name);
+                format!("  <span style=\"color:{h}\">■</span>  {}  —  {}", name, state, h = hex)
             })
             .collect::<Vec<_>>()
             .join("\n");
@@ -361,45 +357,7 @@ impl Game {
         let total = LORE_ENTRIES.len();
         let book = crate::story::notebook::notebook(self.run_seed);
         let pages = book.iter().filter(|(_, p)| self.notebook.contains(p.id)).count();
-        // ASCII progress bar toward the Archivist medal — 20 cells
-        let bar_cells = 20usize;
-        let filled = round_half_up((total_found as f64 / total as f64) * bar_cells as f64) as usize;
-        let bar = "▮".repeat(filled) + &"▯".repeat(bar_cells - filled.min(bar_cells));
-        let arcs = self.lore_arcs_completed.len();
-        let bar_color = if total_found == total {
-            "#ffe0a0"
-        }
-        // Archivist
-        else if arcs >= 4 {
-            "#f8e0a0"
-        }
-        // Storyteller done
-        else if arcs >= 3 {
-            "#e8c880"
-        }
-        // near-done
-        else if arcs >= 1 {
-            "#d8b070"
-        }
-        // in progress
-        else {
-            "#c8bea4"
-        }; // no arcs yet
-        let bar_html = format!(
-            "<span class=\"journal-bar\" style=\"color:{};letter-spacing:1px\">{}</span>  <span style=\"opacity:0.7\">{}/{}</span>",
-            bar_color, bar, total_found, total
-        );
-        format!(
-            "Her notebook: {} of {} pages.\nYou have collected {} of {} notes across {} of {} story arcs.\n\n{}\n\n{}",
-            pages,
-            book.len(),
-            total_found,
-            total,
-            self.lore_arcs_completed.len(),
-            LORE_ARCS.len(),
-            bar_html,
-            lines
-        )
+        format!("Her notebook: {} of {} pages.\nTorn notes: {} of {}.\n\n{}", pages, book.len(), total_found, total, lines)
     }
     pub fn journal_render(&mut self) {
         let ids = self.journal_entries_in_order();
@@ -511,9 +469,10 @@ impl Game {
         }
     }
     pub fn toggle_journal(&mut self) {
-        if self.state != "playing" && self.state != "paused" {
+        if self.state != "playing" {
             return;
         }
+        self.input.wheel_acc = 0.0;
         self.journal_open = !self.journal_open;
         let open = self.journal_open;
         self.ui.journal.toggle_class("on", open);

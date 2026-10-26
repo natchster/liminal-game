@@ -35,7 +35,11 @@ adding players to the same round.
 1. **Brief** (one minute, read it out): "This is a horror game about being
    lost in an endless building. There is no wrong way to play. I won't help
    unless you are completely stuck. Think out loud if you like." Nothing
-   about creatures, rules or controls beyond the controls card.
+   about creatures, rules or controls beyond the controls card (the
+   README's Controls table, printed; the screens no longer list the keys).
+   Watch for: whether they let go of WASD or the mouse to use something,
+   whether they find the notebook (Tab) and the glance (X) on their own,
+   and whether they open Settings.
 2. **Observe silently** for 20 minutes. Write down, with the time: where they
    hesitate, what they say, when they flinch, laugh, stop or turn round,
    deaths, and when they look bored. Step in only if they are truly stuck
@@ -63,6 +67,15 @@ Comprehension (did the design communicate?):
   it? (There are two kinds; never ask about them by name.)
 - What happened when you took the page at the camp? Did you choose when?
 - What was the notebook about? Who were E. and M. to each other?
+
+Hands and screen (did the controls and the screens get out of the way?):
+
+- Could you run, look round and use things at the same time? When did
+  your hands get in the way?
+- What did the screen tell you while you played? Was there something you
+  wanted to know that it did not show? (Never name the glance key.)
+- One word each for the title, the pause and the death screen.
+- Did you change a setting? Which, and why?
 
 Experience (how did it feel?):
 

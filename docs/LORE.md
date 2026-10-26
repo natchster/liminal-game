@@ -63,7 +63,9 @@ The pillars of the place, in order of importance:
 ## The descent
 
 Game level *n* is roughly "Backrooms Level *n* − 1". Each level mixes zones
-(see *Places*), but one kind dominates and names the level:
+(see *Places*), but one kind dominates and names the level. (The names are
+kept in capitals here and in the code; the screen sets them in sentence
+case, under "Level *n*" on the level card: `docs/UI.md`.)
 
 | Game level | Dominant zone | Name on arrival |
 |---|---|---|
@@ -168,8 +170,8 @@ Someone came this way before you, and you can follow her down.
   page names a zone or a level); each anomaly's floor has its own page (the
   Stairwell's and the Loop's are written on the floor whose door leads in,
   before she went through); the last lies at **the last camp, on level 13**,
-  the first floor below every anomaly. Take it (E) and it is in the journal
-  (J), in the order of the descent, a torn edge for each floor whose page you
+  the first floor below every anomaly. Take it (E) and it is in the notebook
+  (Tab), in the order of the descent, a torn edge for each floor whose page you
   left; its last line stays with you on screen.
 - **The last camp** is on level 13. Her lamp there went out long ago; her
   shoes stand side by side at the foot of the bedroll, and her trail goes no
@@ -380,8 +382,9 @@ plaque that says STAIRS. Behind it:
 - **Paper** marks your path. Sometimes you find someone else's trail going the
   other way.
 - **Lore notes** are torn pages left by those who came before: Elias, M., the
-  field surveys, the Stairwell logs. Press J to read them.
-- **Her pages** are at her camps, one a floor; the journal keeps them first,
+  field surveys, the Stairwell logs. The notebook (Tab) keeps them, typed,
+  after hers.
+- **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
 - **Crying** out loud is desperate. Something answers.
 

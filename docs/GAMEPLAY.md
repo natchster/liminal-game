@@ -61,7 +61,7 @@ The verbs this gives a level, in place of "follow the arrow":
 3. **Find the door by the place.** The exit has a green light that carries
    down corridors and a sound of its own (the sign's buzz, air moving under
    the door). Crying out for help still works and still costs.
-4. **Read.** The notebook (J) fills in order; a missed page stays torn out.
+4. **Read.** The notebook (Tab) fills in order; a missed page stays torn out.
    The last line you read stays with you on screen, as the thread.
 5. **Reach the bottom of her story.** Level 13 is the last camp and an
    ending; the descent goes on after it, without her paper.

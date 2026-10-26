@@ -484,6 +484,7 @@ impl Game {
         self.ui.fade.set_opacity(0.0);
         let n = self.level_num;
         self.close_menu();
+        self.reset_hands();
         self.init_level(n);
         self.hide_overlay();
         self.state = "playing".into();
@@ -506,6 +507,7 @@ impl Game {
     }
     pub fn start_new_game(&mut self) {
         self.close_menu();
+        self.reset_hands();
         self.audio_init();
         self.clear_save();
         let hp = self.parse_flag_params();
@@ -544,6 +546,7 @@ impl Game {
     }
     pub fn continue_game(&mut self) {
         self.close_menu();
+        self.reset_hands();
         self.audio_init();
         let Some(d) = self.load_game() else {
             return self.start_new_game();

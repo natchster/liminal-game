@@ -73,11 +73,12 @@ impl Game {
         // mashing a key through the moment that leads to them)
         let card_up = !self.ui.overlay.has_class("hidden") || self.live_menu().is_some();
         let go_on = matches!(code, "KeyE" | "Enter" | "Space" | "KeyR" | "Mouse0");
+        let mute = self.acts_of(code).contains(&crate::session::input::Act::Mute);
         if self.state == "dead" {
             if go_on && card_up {
                 self.restart();
             }
-            if code == "KeyM" {
+            if mute {
                 self.on_action(crate::session::input::Act::Mute);
             }
             return;
@@ -85,6 +86,13 @@ impl Game {
         if self.state == "ending" {
             if go_on && card_up && code != "KeyR" {
                 self.end_ending();
+            }
+            return;
+        }
+        // under the title, the pause list or Settings only Mute reaches the game
+        if self.live_menu().is_some() {
+            if mute {
+                self.on_action(crate::session::input::Act::Mute);
             }
             return;
         }
@@ -112,7 +120,7 @@ impl Game {
             self.hinted_bottle = true;
             self.schedule(1700.0, move |g| {
                 if g.state == "playing" {
-                    let s = format!("Almond water. {} to drink it.", key(g, crate::session::input::Act::Drink));
+                    let s = format!("{} to drink it.", key(g, crate::session::input::Act::Drink));
                     g.show_msg(&s, 2.4);
                 }
             });
@@ -120,7 +128,7 @@ impl Game {
             self.hinted_battery = true;
             self.schedule(1700.0, move |g| {
                 if g.state == "playing" {
-                    let s = format!("A spare battery. {} to change it.", key(g, crate::session::input::Act::Battery));
+                    let s = format!("{} to change it.", key(g, crate::session::input::Act::Battery));
                     g.show_msg(&s, 2.4);
                 }
             });
@@ -620,10 +628,12 @@ impl Game {
             mz -= 1.0;
         }
         // (with the notebook up the arrows turn its pages instead)
-        if self.key("KeyA") || (self.key("ArrowLeft") && !self.journal_open) {
+        let strafe =
+            |g: &Game, a: Act| g.settings.keys(a).iter().any(|k| g.keys.contains(k) && !(g.journal_open && k.starts_with("Arrow")));
+        if strafe(self, Act::Left) {
             mx -= 1.0;
         }
-        if self.key("KeyD") || (self.key("ArrowRight") && !self.journal_open) {
+        if strafe(self, Act::Right) {
             mx += 1.0;
         }
         // a run by a press lasts until you stop

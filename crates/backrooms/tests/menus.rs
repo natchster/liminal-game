@@ -206,10 +206,13 @@ fn death_is_black_a_line_and_wake_up() {
     assert_eq!(g.live_menu(), Some(Screen::Dead), "no death card after 1.7 s");
     assert!(!g.menu.heading.is_empty() && !g.menu.heading.contains("seconds"), "the card: {:?}", g.menu.heading);
     assert_eq!(labels(&g), ["Wake up", "Leave for the title"]);
-    // any of the keys that go on wakes you
+    // any of the keys that go on wakes you, with empty hands
+    g.input.crouch_latched = true;
+    g.journal_open = true;
     press(&mut g, "KeyR");
     assert_eq!(g.state, "playing");
     assert!(g.live_menu().is_none());
+    assert!(!g.input.crouch_latched && !g.journal_open, "the last life's crouch or notebook carried over");
     // again, and this time leave for the title
     frame(&mut g, 10);
     g.on_death("entity");

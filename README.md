@@ -73,7 +73,7 @@ slower to run).
 | `--bench FILE --seed S --levels 1,2,3 [--bench-frames N]` | Headless: time each level's build, first frame, and the CPU update and GPU time per frame along a fixed path (used by `cargo xtask bench`) |
 | `--metrics FILE --seed S --levels 1,2,3` | Headless: build the levels as a run would and write their expressive-range measures as JSON (used by `cargo xtask range`) |
 | `--fresh` | Headless modes: ignore the saved settings and progress, and fix the per-frame randomness (the same frame every time) |
-| `--screen NAME` | With `--screenshot --play`: put a list up for the last frames (`pause`, `leave`, `settings`, `brightness`, `controls`, `title`) |
+| `--screen NAME` | With `--screenshot --play`: put a list or card up 45 frames before the shot (`pause`, `leave`, `settings`, `brightness`, `controls`, `title`, `dead`, `ending`, `notebook`, `notebook-typed`) |
 
 Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 
@@ -86,7 +86,7 @@ Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 | Shift (hold) | Run; a spent run comes back at 30 stamina |
 | Ctrl (hold) / C (toggle) | Crouch |
 | E / left click | Use what you face (an E a moment early still lands) |
-| F / right click | Flashlight |
+| F / right click | Light (on and off) |
 | Q | Drop a sheet of paper |
 | G / 1 | Drink almond water |
 | R / 2 | Change the battery |
@@ -96,6 +96,8 @@ Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 | Esc / P | Pause and resume |
 | F3 | Debug panel |
 | M | Mute |
+| F11 / Ctrl+Cmd+F | Toggle full screen |
+| Cmd+Q | Quit |
 
 Settings (from the title or the pause list) change the look speed, invert,
 field of view, head bob, camera shake, film grain, the run key (hold or
@@ -106,8 +108,6 @@ apart from the save.
 Everything a run needs is under the left hand with W and Shift held, or on
 the mouse; the table lives in `crates/game/src/session/input.rs` and
 `tests/controls.rs` holds it to that.
-| F11 / Ctrl+Cmd+F | Toggle full screen |
-| Cmd+Q | Quit |
 
 ## Testing
 

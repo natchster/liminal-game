@@ -1,8 +1,9 @@
 //! The player's settings (`docs/UI.md`, design 4): how the view moves, how
 //! the screen looks, how the run key behaves, how loud, and the keys. Kept
 //! in the store under `settings`, apart from the save, and applied live.
-//! The defaults are the game as it was: a headless run (which reads no
-//! settings) looks and plays exactly as before.
+//! The defaults are the game as it was, and a headless run never reads the
+//! player's settings (`main.rs` drops them), so its frames look and play
+//! exactly as before.
 use crate::prelude::*;
 use crate::session::input::{Act, BINDINGS};
 use serde_json::{json, Value};

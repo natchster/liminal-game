@@ -323,3 +323,54 @@ fn reading_keeps_the_view_and_the_walk() {
     assert_eq!(g.state, "paused");
     assert!(!g.journal_open && !g.ui.journal.has_class("on"));
 }
+
+#[test]
+fn rebound_keys_move_you_and_the_wheel_turns_one_page_a_notch() {
+    // Step left on Q (Paper takes A): Q strafes, A no longer does
+    let mut g = rig();
+    g.settings.rebind(Act::Left, "KeyQ");
+    let p0 = g.player.pos;
+    press(&mut g, "KeyQ");
+    step(&mut g, 20);
+    release(&mut g, "KeyQ");
+    assert!(g.player.pos.distance_to(&p0) > 0.3, "the rebound strafe key did not move you");
+    let p1 = g.player.pos;
+    press(&mut g, "KeyA");
+    step(&mut g, 20);
+    release(&mut g, "KeyA");
+    assert!(g.player.pos.distance_to(&p1) < 1e-9, "the old strafe key still moves you");
+    // a trackpad swipe (many small deltas) turns one page per notch of travel
+    let mut g = rig();
+    g.lore_found.extend([1usize, 2, 3, 4, 5]);
+    press(&mut g, "Tab");
+    release(&mut g, "Tab");
+    g.journal_cursor = 0.0;
+    for _ in 0..12 {
+        g.wheel(3.0); // 36 px: not yet a notch
+    }
+    assert_eq!(g.journal_cursor, 0.0, "a part of a notch turned a page");
+    g.wheel(5.0);
+    assert_eq!(g.journal_cursor, 1.0);
+    // turning back starts the travel over
+    g.wheel(-41.0);
+    assert_eq!(g.journal_cursor, 0.0);
+}
+
+#[test]
+fn under_a_list_only_mute_reaches_the_game() {
+    let mut g = rig();
+    g.lore_found.extend([1usize, 2]);
+    press(&mut g, "Escape");
+    release(&mut g, "Escape");
+    assert_eq!(g.state, "paused");
+    g.player.battery = 80.0;
+    for k in ["KeyJ", "KeyF", "KeyG", "KeyQ", "KeyV", "F3"] {
+        press(&mut g, k);
+        release(&mut g, k);
+    }
+    assert!(!g.journal_open, "the notebook opened, unseen, under the pause list");
+    assert!(!g.player.flashlight_on && !g.debug_on, "a key acted under the pause list");
+    press(&mut g, "KeyM");
+    release(&mut g, "KeyM");
+    assert!(g.muted, "Mute did not work under the pause list");
+}

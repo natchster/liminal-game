@@ -139,14 +139,25 @@ impl Game {
         self.mouse_dx += dx;
         self.mouse_dy += dy;
     }
-    /// The mouse wheel (`d` > 0: towards you): turns the notebook's pages.
+    /// The mouse wheel (`d` > 0: towards you): turns the notebook's pages,
+    /// one per `WHEEL_PAGE` of travel (a trackpad swipe would otherwise
+    /// flip through the whole notebook), starting over when it turns back.
     pub fn wheel(&mut self, d: f64) {
-        if !self.journal_open || d.abs() < 1.0 {
+        use crate::session::input::WHEEL_PAGE;
+        if !self.journal_open {
             return;
         }
-        if d > 0.0 {
+        let acc = &mut self.input.wheel_acc;
+        if *acc * d < 0.0 {
+            *acc = 0.0;
+        }
+        *acc += d;
+        while self.input.wheel_acc >= WHEEL_PAGE {
+            self.input.wheel_acc -= WHEEL_PAGE;
             self.journal_next();
-        } else {
+        }
+        while self.input.wheel_acc <= -WHEEL_PAGE {
+            self.input.wheel_acc += WHEEL_PAGE;
             self.journal_prev();
         }
     }

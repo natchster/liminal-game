@@ -541,7 +541,11 @@ fn hud_logic() {
     let (t, b) = g.current_epilogue();
     assert_eq!(t, "EPILOGUE");
     assert!(b.ends_with("Every page you found is now inside you.\nYou never fell. The dark never touched you long enough."));
-    assert!(g.medals_page_html().starts_with("Medals of this run: <span style=\"color:#f8e0a0\">2</span> of 5."));
+    assert!(g.medals_page_html().starts_with("Medals of this descent: <span style=\"color:#f8e0a0\">2</span> of 5."));
+    assert!(
+        !g.medals_page_html().contains("NEXT") && !g.journal_cover_text().contains("arcs"),
+        "the notebook still talks of buttons and arcs"
+    );
     // completionist follows the other three after 4.5 s
     g.survivor_shown = true;
     g.fire_storyteller_achievement();

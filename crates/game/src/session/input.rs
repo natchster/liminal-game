@@ -60,7 +60,7 @@ pub static BINDINGS: [Binding; 18] = [
     b(Act::Crouch, &["ControlLeft", "ControlRight"], "Crouch (hold)", true),
     b(Act::CrouchToggle, &["KeyC"], "Crouch (toggle)", true),
     b(Act::Interact, &["KeyE", "Mouse0"], "Use, take, open", true),
-    b(Act::Flashlight, &["KeyF", "Mouse2"], "Flashlight", true),
+    b(Act::Flashlight, &["KeyF", "Mouse2"], "Light", true),
     b(Act::Paper, &["KeyQ"], "Drop a sheet of paper", true),
     b(Act::Drink, &["KeyG", "Digit1"], "Drink almond water", true),
     b(Act::Battery, &["KeyR", "Digit2"], "Change the battery", true),
@@ -157,7 +157,13 @@ pub struct InputState {
     pub run_latched: bool,
     /// the window has just lost its focus (the pointer goes next)
     pub blurred: bool,
+    /// the wheel's travel not yet turned into a page (px; a trackpad sends
+    /// many small deltas and momentum)
+    pub wheel_acc: f64,
 }
+
+/// The wheel's travel that turns one page (px; a mouse notch is 40)
+pub const WHEEL_PAGE: f64 = 40.0;
 
 /// How long an early E waits (s)
 pub const INTERACT_BUFFER: f64 = 0.15;
@@ -253,6 +259,16 @@ impl Game {
     pub fn on_key_up(&mut self, code: &str) {
         if code == "MetaLeft" || code == "MetaRight" {
             self.keys.clear();
+        }
+    }
+    /// Forget the latches, the early E and the notebook: a new life or a
+    /// new run starts with empty hands (`restart`, `start_new_game`,
+    /// `continue_game`)
+    pub fn reset_hands(&mut self) {
+        self.input = InputState::default();
+        if self.journal_open {
+            self.journal_open = false;
+            self.ui.journal.remove_class("on");
         }
     }
     /// Escape: close the notebook, pause, or resume

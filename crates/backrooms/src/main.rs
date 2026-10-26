@@ -65,8 +65,8 @@ struct Options {
     showcase: Option<(String, f64)>,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
-    /// `--screen pause|leave|settings|brightness|controls|title`: with
-    /// `--play`, that list is up for the last frames (`Game::debug_screen`)
+    /// `--screen pause|leave|settings|brightness|controls|title|dead|ending|notebook|notebook-typed`:
+    /// with `--play`, that list or card goes up 45 frames before the shot (`Game::debug_screen`)
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
@@ -191,6 +191,11 @@ fn make_game(o: &Options) -> Game {
         // a headless run reads the save at most; a death in a showcase must
         // not end up in the player's progress
         g.storage_path = None;
+    }
+    if headless {
+        // ... and never the player's settings: its frames must not depend on
+        // how someone set the field of view or the brightness
+        g.storage.remove(game::session::settings::SETTINGS_KEY);
     }
     register_placers(&mut g.placers);
     g
@@ -418,7 +423,8 @@ impl AppHandler for App {
         let locked = self.g.pointer_locked;
         if let Some((r, _)) = self.recorder.as_mut().filter(|_| !shortcut) {
             match &ev {
-                Input::KeyDown(code, false) => r.push(InputEvent::Down(code.clone())),
+                // (a repeat of a key no longer held, after Command forgot it, is a press)
+                Input::KeyDown(code, rep) if !*rep || !self.g.key(code) => r.push(InputEvent::Down(code.clone())),
                 Input::KeyUp(code) => r.push(InputEvent::Up(code.clone())),
                 Input::MouseMove(dx, dy) => r.push(InputEvent::Look(*dx, *dy)),
                 Input::MouseDown(b) if locked => r.push(InputEvent::Down(format!("Mouse{b}"))),

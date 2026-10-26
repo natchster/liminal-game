@@ -375,6 +375,10 @@ impl Game {
         } // (built at start-up in the game)
         self.ll_on = 0.0; // the Stairwell lights itself; the level's light map is not for it
         let (want_crouch, mx, mz, sprint_key) = self.modes_move_keys();
+        // a run by a press lasts until you stop
+        if mx == 0.0 && mz == 0.0 {
+            self.input.run_latched = false;
+        }
         self.player.crouch = want_crouch;
         let moving = mx != 0.0 || mz != 0.0;
         let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
@@ -412,9 +416,11 @@ impl Game {
         } else {
             self.player.bob_amp = lerp(self.player.bob_amp, 0.0, dt * 6.0);
         }
-        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp;
+        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp * self.settings.bob;
         let eye_drop = if self.player.crouch { EYE - CROUCH_EYE } else { 0.0 };
-        let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.05 } else { 0.0 };
+        // (Settings: head bob and shake scale; the draw stays)
+        let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
+        let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.05 * shake_k } else { 0.0 };
         self.camera.position().set(gp.x + out.x, gp.y + out.y - eye_drop + bob + shake, gp.z + out.z);
         self.camera.rotation().set(self.player.pitch, self.player.yaw, 0);
         if self.shake_t > 0.0 {
@@ -672,6 +678,10 @@ impl Game {
         } // (only ever called while inside)
         self.ll_on = 0.0; // the Loop lights its own rooms (see below)
         let (want_crouch, mx, mz, sprint_key) = self.modes_move_keys();
+        // a run by a press lasts until you stop
+        if mx == 0.0 && mz == 0.0 {
+            self.input.run_latched = false;
+        }
         self.player.crouch = want_crouch;
         let moving = mx != 0.0 || mz != 0.0;
         let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
@@ -714,8 +724,10 @@ impl Game {
         } else {
             self.player.bob_amp = lerp(self.player.bob_amp, 0.0, dt * 6.0);
         }
-        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp;
-        let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.05 } else { 0.0 };
+        let bob = self.player.bob_phase.sin().abs() * self.player.bob_amp * self.settings.bob;
+        // (Settings: head bob and shake scale; the draw stays)
+        let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
+        let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.05 * shake_k } else { 0.0 };
         self.camera.position().set(out.x, (if self.player.crouch { CROUCH_EYE } else { EYE }) + bob + shake, out.z);
         self.camera.rotation().set(self.player.pitch, self.player.yaw, 0);
         if self.shake_t > 0.0 {

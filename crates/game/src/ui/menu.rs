@@ -125,8 +125,10 @@ impl Game {
                 v
             }
             Screen::Controls => {
+                // (the debug panel's key is the developer's, not the player's)
                 let mut v: Vec<Item> = BINDINGS
                     .iter()
+                    .filter(|b| b.act != Act::Debug)
                     .map(|b| {
                         let detail = if self.menu.capture == Some(b.act) { "Press a key…".to_string() } else { self.keys_text(b.act) };
                         item(bind_id(b.act), b.label, &detail)
@@ -327,12 +329,13 @@ impl Game {
         if self.state != "paused" && self.state != "dead" {
             return;
         }
-        if self.state == "dead" {
-            let n = self.level_num;
-            self.init_level(n);
-            self.ui.fade.set_opacity(0.0);
-            self.ui.flash.set_opacity(0.0);
-        }
+        // (out of the Stairwell or the Loop too, and with nothing that was
+        // chasing you frozen in the view)
+        let n = self.level_num;
+        self.reset_hands();
+        self.init_level(n);
+        self.ui.fade.set_opacity(0.0);
+        self.ui.flash.set_opacity(0.0);
         self.save_game();
         self.state = "menu".into();
         self.journal_open = false;
