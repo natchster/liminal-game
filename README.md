@@ -92,6 +92,7 @@ Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 | R / 2 | Change the battery |
 | V / H | Call out |
 | Tab / J | Notebook (the arrows, the wheel or a click turn its pages) |
+| X (hold) | Look at what you carry and how you are (the screen is otherwise empty at rest) |
 | Esc / P | Pause and resume |
 | F3 | Debug panel |
 | M | Mute |

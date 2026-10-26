@@ -104,19 +104,23 @@ impl Game {
     /// The first bottle and the first battery of a run
     /// explain themselves, shown just after the pickup line.
     pub fn hint_first_use(&mut self, kind: &str) {
+        // (with the key as Settings bind it)
+        let key = |g: &Game, a: crate::session::input::Act| {
+            g.settings.keys(a).first().map(|k| crate::session::input::key_label(k)).unwrap_or_default()
+        };
         if kind == "bottle" && !self.hinted_bottle {
             self.hinted_bottle = true;
-            self.schedule(1700.0, |g| {
+            self.schedule(1700.0, move |g| {
                 if g.state == "playing" {
-                    let s = format!("ALMOND WATER — {}", g.item_hint_water);
+                    let s = format!("Almond water. {} to drink it.", key(g, crate::session::input::Act::Drink));
                     g.show_msg(&s, 2.4);
                 }
             });
         } else if kind == "battery" && !self.hinted_battery {
             self.hinted_battery = true;
-            self.schedule(1700.0, |g| {
+            self.schedule(1700.0, move |g| {
                 if g.state == "playing" {
-                    let s = format!("SPARE BATTERY — {}", g.item_hint_cell);
+                    let s = format!("A spare battery. {} to change it.", key(g, crate::session::input::Act::Battery));
                     g.show_msg(&s, 2.4);
                 }
             });

@@ -1501,6 +1501,7 @@ impl Game {
     /// The meters, counters, the payphone's hint, toast timer, the
     /// interact prompt, then every prop animator and the TV / phone / clock.
     pub fn update_hud(&mut self, dt: f64) {
+        self.update_rest(dt);
         let p = self.player.clone();
         self.ui.staminabar.set_style("width", &format!("{}%", ns(p.stamina)));
         self.ui.stamina.toggle_class("low", p.stamina < 25.0);

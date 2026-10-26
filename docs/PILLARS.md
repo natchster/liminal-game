@@ -74,6 +74,11 @@ that the emptiness is watching.*
 - **Goal: rules are learned, not told.**
   - Rule: no tutorials, maps or explanations of creatures or anomalies;
     notes hint, never explain. *Test:* `lore-keeper` review.
+  - Rule: the screen at rest is the place alone. A meter shows while it
+    is not full, the pockets when they change, her line when it is new, a
+    ring and a verb only on what can be used; the glance key shows it all;
+    help is offered with its key at the moment it would help. *Test:* the
+    HUD test's rest and glance frames, `tests/rest.rs` (gate).
   - Rule: the way down is found, not shown. No compass and no objective
     line; the door is lit into the light map and calls from where it stands.
     *Test:* the HUD has no compass (`tests/hud.rs`); `the_door_is_heard`

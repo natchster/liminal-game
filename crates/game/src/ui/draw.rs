@@ -1449,100 +1449,161 @@ fn paint_hud(f: &mut Frame, g: &Game) {
     }
     let d = &g.ui;
     let (w, h) = (f.w, f.h);
-    let hc = col(HUD_COLOR);
-    let hs = hud_shadows();
     let body = &d.body;
     let special = body.has_class("in-stairwell") || body.has_class("in-loop");
-    let txt = |el: &Element, size: f64, ls: f64, color: Rgba, sh: &[Shadow], ws: Ws, max_w: Option<f64>| -> TextBlock {
-        TextBlock::new(runs_of(el, &base_run(color, sh.to_vec(), ls)), Font::new(size), ws, max_w, None)
-    };
-    // #level / #seedTag / #objective (top left)
-    text_layer(f, "level", txt(&d.level, 15.0, 4.0, hc, &hs, Ws::Normal, Some(w - 20.0)), 20.0, 16.0, 0.0, "left", 1.0);
-    text_layer(f, "seedTag", txt(&d.seed_tag, 9.0, 2.0, hc, &hs, Ws::Normal, Some(w - 20.0)), 20.0, 38.0, 0.0, "left", 0.35);
+    // The HUD at rest is the place alone (`ui/rest.rs`): each part fades in
+    // when it has something to say, and out after; X shows it all
+    let r = &g.rest;
+    let ink = col(crate::ui::screens::INK);
+    let dark = parse_shadows("0 0 4px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.6)");
+    let vis = |on: bool| if on || r.glance { 1.0 } else { 0.0 };
+    let plain = |t: &str, font: Font, c: Rgba| TextBlock::plain(t, c, &dark, 0.0, font, Ws::NoWrap, None, None);
+    let x0 = 24.0;
+    // her thread (top left, in her hand) and, glancing, the level
     if !special {
-        text_layer(f, "objective", txt(&d.objective, 11.0, 2.0, hc, &hs, Ws::Normal, Some(w - 20.0)), 20.0, 56.0, 0.0, "left", 0.65);
+        let op = f.tr("rest.thread", vis(r.thread > 0.0), 1.2, Ease::Ease);
+        let tb = TextBlock::plain(&d.objective.text, ink, &dark, 0.0, Font::hand(15.0), Ws::Normal, Some((w * 0.5).max(240.0)), None);
+        text_layer(f, "objective", tb, x0, 20.0, 0.0, "left", op * 0.8);
     }
-    // #bottles / #batteries / #papers (bottom left)
-    for (name, el, bottom) in [("bottles", &d.bottles, 18.0), ("batteries", &d.batteries, 36.0), ("papers", &d.papers, 54.0)] {
-        let tb = txt(el, 12.0, 2.0, hc, &hs, Ws::Normal, Some(w - 20.0));
-        let y = h - bottom - tb.height();
-        text_layer(f, name, tb, 20.0, y, 0.0, "left", 0.85);
+    {
+        let op = f.tr("rest.level", vis(false), 0.3, Ease::Ease);
+        let t = format!("Level {}", g.level_num);
+        text_layer(f, "level", plain(&t, Font::sans(12.0), ink), w - x0 - 60.0, 18.0, 60.0, "right", op * 0.6);
     }
-    // the meters: border-box (x, y, 2 + width, 2 + height), cells notched by ::after
-    let meter = |f: &mut Frame, name: &'static str, x: f64, y: f64, iw: f64, ih: f64, border: Rgba, frac: f64, bar: Rgba, opacity: f64| {
-        let key = format!("{x}|{y}|{iw}|{ih}|{border:?}|{frac}|{bar:?}");
-        f.layer(name, &key, opacity, move |dpr| {
-            let mut p = Painter::new(x, y, iw + 2.0, ih + 2.0, dpr);
-            p.rect(x, y, iw + 2.0, ih + 2.0, [0.0, 0.0, 0.0, 0.35]);
-            p.border(x, y, iw + 2.0, ih + 2.0, 1.0, border);
-            p.rect(x + 1.0, y + 1.0, (iw * frac).clamp(0.0, iw), ih, bar);
-            let mut cx = 7.0;
-            while cx < iw {
-                p.rect(x + 1.0 + cx, y + 1.0, 2.0f64.min(iw - cx), ih, rgba(4.0, 4.0, 2.0, 0.92));
-                cx += 9.0;
-            }
+    // the pockets (bottom left), and what would help now, with its key
+    {
+        let op = f.tr("rest.pockets", vis(r.pockets > 0.0), 0.6, Ease::Ease);
+        let line = g.pockets_line();
+        let tb = plain(&line, Font::sans(13.0), ink);
+        let y = h - 26.0 - tb.height();
+        text_layer(f, "bottles", tb, x0, y, 0.0, "left", op * 0.75);
+        let hint = g.pocket_hint();
+        let op = f.tr("rest.hint", if hint.is_some() { 1.0 } else { 0.0 }, 0.4, Ease::Ease);
+        if let Some((key, what)) = hint {
+            let k = plain(&key, Font::sans(13.0).bold(), ink);
+            let t = plain(what, Font::sans(13.0), ink);
+            let (kw, th) = (k.width(), t.height());
+            let y = h - 26.0 - 22.0 - th;
+            let key_s = format!("{key}|{what}|{y}");
+            f.layer("batteries", &key_s, op * 0.9, move |dpr| {
+                let mut p = Painter::new(x0 - 6.0, y - 6.0, kw + t.width() + 26.0, th + 12.0, dpr);
+                p.text(&k, x0, y, kw, "left", 1.0);
+                p.text(&t, x0 + kw + 10.0, y, t.width(), "left", 0.85);
+                p
+            });
+        }
+    }
+    // the meters: thin, unlabelled, only while they say something
+    let bar = |f: &mut Frame, name: &'static str, x: f64, y: f64, bw: f64, frac: f64, c: Rgba, op: f64| {
+        let key = format!("{x}|{y}|{bw}|{frac:.3}|{c:?}");
+        f.layer(name, &key, op, move |dpr| {
+            let mut p = Painter::new(x - 1.0, y - 1.0, bw + 2.0, 4.0, dpr);
+            p.rect(x, y, bw, 2.0, [0.0, 0.0, 0.0, 0.35]);
+            p.rect(x, y, (bw * frac).clamp(0.0, bw), 2.0, c);
             p
         });
     };
-    {
-        let frac = f.tr("sanitybar.width", pct_of(&d.sanitybar), 0.2, Ease::Linear);
-        let low = f.tr("sanitybar.low", if d.sanity.has_class("low") { 1.0 } else { 0.0 }, 0.3, Ease::Ease);
-        let bar = lerp_c(col("#a8b8d8"), col("#b53a3a"), low);
-        meter(f, "sanity", w / 2.0 - 111.0, h - 34.0 - 7.0, 220.0, 5.0, rgba(180.0, 190.0, 220.0, 0.35), frac, bar, 1.0);
-    }
+    let label = |f: &mut Frame, name: &'static str, t: &str, x: f64, y: f64, op: f64| {
+        let tb = TextBlock::plain(t, ink, &dark, 0.0, Font::sans(10.0), Ws::NoWrap, None, None);
+        let tw = tb.width();
+        text_layer(f, name, tb, x - tw - 10.0, y - 6.0, tw, "left", op * 0.55);
+    };
+    let (bx, bw) = ((w - 180.0) / 2.0, 180.0);
     {
         let frac = f.tr("staminabar.width", pct_of(&d.staminabar), 0.08, Ease::Linear);
-        let bar = if d.stamina.has_class("low") { col("#a33") } else { hc };
-        meter(f, "stamina", w / 2.0 - 111.0, h - 22.0 - 9.0, 220.0, 7.0, rgba(216.0, 207.0, 159.0, 0.4), frac, bar, 1.0);
+        let low = d.stamina.has_class("low");
+        let op = f.tr("rest.stamina", vis(r.stamina > 0.0), if r.stamina > 0.0 { 0.25 } else { 0.9 }, Ease::Ease);
+        let c = if low { col("#b8503e") } else { ink };
+        bar(f, "stamina", bx, h - 30.0, bw, frac, c, op * 0.8);
+        let op_l = f.tr("rest.labels", vis(false), 0.3, Ease::Ease);
+        label(f, "staminaLabel", "Stamina", bx, h - 30.0, op_l);
     }
-    for (name, el, bottom) in [("sanityLabel", &d.sanity_label, 31.0), ("staminaLabel", &d.stamina_label, 19.0)] {
-        let tb = txt(el, 10.0, 2.0, hc, &hs, Ws::Normal, None);
-        let y = h - bottom - tb.height();
-        text_layer(f, name, tb, w / 2.0 - 178.0, y, 0.0, "left", 0.6);
+    {
+        let frac = f.tr("sanitybar.width", pct_of(&d.sanitybar), 0.2, Ease::Linear);
+        let lowk = f.tr("sanitybar.low", if d.sanity.has_class("low") { 1.0 } else { 0.0 }, 0.3, Ease::Ease);
+        let op = f.tr("rest.sanity", vis(r.sanity > 0.0), 0.8, Ease::Ease);
+        bar(f, "sanity", bx, h - 44.0, bw, frac, lerp_c(col("#a8b8d8"), col("#b53a3a"), lowk), op * 0.7);
+        let op_l = f.tr("rest.labels", vis(false), 0.3, Ease::Ease);
+        label(f, "sanityLabel", "Sanity", bx, h - 44.0, op_l);
     }
+    // the light's cell (bottom right): a battery outline and its charge
     {
         let frac = f.tr("batterybar.width", pct_of(&d.batterybar), 0.15, Ease::Linear);
-        let bar = if d.battery.has_class("low") { col("#cf6c2e") } else { col("#f3e9bd") };
-        let op = if d.battery.has_class("off") { 0.35 } else { 1.0 };
-        meter(f, "battery", w - 20.0 - 182.0, h - 22.0 - 9.0, 180.0, 7.0, rgba(216.0, 207.0, 159.0, 0.4), frac, bar, op);
-        let tb = txt(&d.battery_label, 10.0, 2.0, hc, &hs, Ws::Normal, None);
-        let (bw, y) = (tb.width(), h - 32.0 - tb.height());
-        text_layer(f, "batteryLabel", tb, w - 20.0 - bw, y, 0.0, "left", 0.6);
-    }
-    // #dot
-    {
-        let (cx, cy) = (w / 2.0, h / 2.0);
-        f.layer("dot", &format!("{cx}|{cy}"), 1.0, move |dpr| {
-            let mut p = Painter::new(cx - 2.0, cy - 2.0, 4.0, 4.0, dpr);
-            p.tr();
-            p.c.set_fill_style("rgba(255,255,255,0.55)");
-            p.c.begin_path();
-            p.c.arc(cx, cy, 2.0, 0.0, std::f64::consts::PI * 2.0);
-            p.c.fill();
+        let low = d.battery.has_class("low");
+        let op = f.tr("rest.battery", vis(r.battery > 0.0), 0.6, Ease::Ease);
+        let (cw, ch) = (26.0, 11.0);
+        let (cx, cy) = (w - x0 - cw - 3.0, h - 26.0 - ch);
+        let fill = if low { col("#cf6c2e") } else { ink };
+        let on = g.player.flashlight_on;
+        let key = format!("{cx}|{cy}|{frac:.3}|{low}|{on}");
+        f.layer("battery", &key, op * 0.8, move |dpr| {
+            let mut p = Painter::new(cx - 2.0, cy - 2.0, cw + 8.0, ch + 4.0, dpr);
+            p.border(cx, cy, cw, ch, 1.0, rgba(226.0, 218.0, 189.0, 0.8));
+            p.rect(cx + cw, cy + 3.0, 2.0, ch - 6.0, rgba(226.0, 218.0, 189.0, 0.8));
+            p.rect(cx + 2.0, cy + 2.0, ((cw - 4.0) * frac).max(0.0), ch - 4.0, [fill[0], fill[1], fill[2], if on { 0.95 } else { 0.5 }]);
             p
         });
+        let op_l = f.tr("rest.labels", vis(false), 0.3, Ease::Ease);
+        let tb = TextBlock::plain("Light", ink, &dark, 0.0, Font::sans(10.0), Ws::NoWrap, None, None);
+        let tw = tb.width();
+        text_layer(f, "batteryLabel", tb, cx - tw - 8.0, cy, tw, "left", op_l * 0.55);
     }
-    // #prompt / #msg / #omen (centred with translateX(-50%))
+    // what you face: a ring where the eye rests, and its verb beside it
     {
-        let tb = txt(&d.prompt, 14.0, 3.0, hc, &hs, Ws::NoWrap, None);
-        let bw = tb.width();
-        text_layer(f, "prompt", tb, w / 2.0 - bw / 2.0, (h * 0.62).floor(), bw, "left", 1.0);
+        let (cx, cy) = (w / 2.0, h / 2.0);
+        let target = !d.prompt.text.is_empty();
+        let op = f.tr("rest.dot", if target { 1.0 } else { 0.0 }, 0.15, Ease::Ease);
+        f.layer("dot", &format!("{cx}|{cy}"), op * 0.8, move |dpr| {
+            let mut p = Painter::new(cx - 7.0, cy - 7.0, 14.0, 14.0, dpr);
+            p.tr();
+            p.c.set_stroke_style("rgba(235,228,205,0.9)");
+            p.c.set_line_width(1.2);
+            p.c.begin_path();
+            p.c.arc(cx, cy, 5.0, 0.0, std::f64::consts::PI * 2.0);
+            p.c.stroke();
+            p
+        });
+        if target {
+            let key = g
+                .settings
+                .keys(crate::session::input::Act::Interact)
+                .first()
+                .map(|k| crate::session::input::key_label(k))
+                .unwrap_or_default();
+            let (k, words) = crate::ui::rest::prompt_parts(&d.prompt.text, &key);
+            let kt = plain(&k, Font::sans(13.0).bold(), ink);
+            let tt = plain(&words, Font::sans(14.0), ink);
+            let (kw, tw, th) = (kt.width(), tt.width(), tt.height());
+            let (px, py) = (cx + 16.0, cy - th / 2.0);
+            let key_s = format!("{k}|{words}|{px}|{py}");
+            f.layer("prompt", &key_s, op, move |dpr| {
+                let mut p = Painter::new(px - 6.0, py - 6.0, kw + tw + 30.0, th + 12.0, dpr);
+                p.text(&kt, px, py + 1.0, kw, "left", 0.75);
+                p.text(&tt, px + kw + 8.0, py, tw, "left", 0.95);
+                p
+            });
+        }
     }
+    // a toast (#msg) and an omen: the building's words, calm, in the middle
     {
         let el = &d.msg;
-        let color = el.style("color").and_then(css_color).unwrap_or(hc);
-        let sh = el.style("text-shadow").map(parse_shadows).unwrap_or_else(|| hs.clone());
+        let color = el.style("color").and_then(css_color).unwrap_or(ink);
+        let sh = el.style("text-shadow").map(parse_shadows).unwrap_or_else(|| dark.clone());
         let op = f.tr("msg.opacity", opacity_of(el, 0.0), 0.4, Ease::Ease);
-        let tb = txt(el, 16.0, 3.0, color, &sh, Ws::NoWrap, None);
+        let t = crate::ui::rest::calm(&el.text);
+        let tb = TextBlock::plain(&t, color, &sh, 0.0, Font::sans(16.0), Ws::NoWrap, None, None);
         let bw = tb.width();
         text_layer(f, "msg", tb, w / 2.0 - bw / 2.0, (h * 0.34).floor(), bw, "center", op);
     }
     {
         let el = &d.omen;
         let op = f.tr("omen.opacity", opacity_of(el, 0.0), 1.8, Ease::Ease);
-        let tb = TextBlock::new(
-            runs_of(el, &base_run(col("#c9bea4"), parse_shadows("0 0 6px rgba(0,0,0,0.9)"), 2.0)),
-            Font::new(12.0).italic(),
+        let tb = TextBlock::plain(
+            &el.text,
+            col("#c9bea4"),
+            &parse_shadows("0 0 6px rgba(0,0,0,0.9)"),
+            0.0,
+            Font::sans(13.0).italic(),
             Ws::NoWrap,
             None,
             None,
@@ -1550,13 +1611,7 @@ fn paint_hud(f: &mut Frame, g: &Game) {
         let bw = tb.width();
         text_layer(f, "omen", tb, w / 2.0 - bw / 2.0, (h * 0.34).floor() + 30.0, bw, "center", op);
     }
-    {
-        let el = &d.crouch_ind;
-        let op = f.tr("crouchInd.opacity", opacity_of(el, if el.has_class("on") { 0.7 } else { 0.0 }), 0.3, Ease::Ease);
-        let tb = txt(el, 10.0, 3.0, col("#a8b8d8"), &hs, Ws::Normal, None);
-        let (bw, y) = (tb.width(), h - 8.0 - tb.height());
-        text_layer(f, "crouchInd", tb, w / 2.0 - bw / 2.0, y, bw, "left", op);
-    }
+    // the Stairwell's camcorder counter is footage: it keeps the camera's capitals
     if body.has_class("in-stairwell") {
         let tb = TextBlock::new(
             runs_of(&d.stair_hud, &base_run(rgba(235.0, 228.0, 205.0, 0.78), parse_shadows("0 0 6px rgba(0,0,0,0.9)"), 13.0 * 0.12)),
@@ -1568,116 +1623,9 @@ fn paint_hud(f: &mut Frame, g: &Game) {
         let y = h - 22.0 - tb.height();
         text_layer(f, "stairHud", tb, 22.0, y, 0.0, "left", 1.0);
     }
-    // the five HUD medals (top right)
-    let medals: [(&'static str, &Element, f64, &str, &str, &str, &str, f64); 5] = [
-        (
-            "loreMedal",
-            &d.lore_medal,
-            84.0,
-            "#f8e0a0",
-            "0 0 6px rgba(248, 224, 160, 0.55)",
-            "rgba(248, 224, 160, 0.5)",
-            "rgba(20, 15, 8, 0.35)",
-            0.85,
-        ),
-        (
-            "survivorMedal",
-            &d.survivor_medal,
-            106.0,
-            "#a8d8f0",
-            "0 0 6px rgba(168, 216, 240, 0.55)",
-            "rgba(168, 216, 240, 0.5)",
-            "rgba(15, 20, 25, 0.35)",
-            0.85,
-        ),
-        (
-            "storytellerMedal",
-            &d.storyteller_medal,
-            128.0,
-            "#d8b0f0",
-            "0 0 6px rgba(216, 176, 240, 0.55)",
-            "rgba(216, 176, 240, 0.5)",
-            "rgba(24, 15, 30, 0.35)",
-            0.85,
-        ),
-        (
-            "completionistMedal",
-            &d.completionist_medal,
-            150.0,
-            "#ffedb0",
-            "0 0 8px rgba(255, 237, 176, 0.7)",
-            "rgba(255, 237, 176, 0.6)",
-            "rgba(30, 25, 10, 0.4)",
-            0.9,
-        ),
-        (
-            "ironwillMedal",
-            &d.ironwill_medal,
-            172.0,
-            "#a0f0d8",
-            "0 0 6px rgba(160, 240, 216, 0.55)",
-            "rgba(160, 240, 216, 0.55)",
-            "rgba(10, 25, 20, 0.4)",
-            0.85,
-        ),
-    ];
-    for (name, el, top, color, shadow, border, bg, op) in medals {
-        if !el.has_class("on") {
-            f.ui.anims.remove(name);
-            continue;
-        }
-        let tb = txt(el, 10.0, 3.0, col(color), &parse_shadows(shadow), Ws::Normal, None);
-        let (bw, bh) = (tb.width() + 18.0, tb.height() + 10.0);
-        let (x, y) = (w - 20.0 - bw, top);
-        let key = format!("{:?}|{x}|{y}", tb.runs);
-        let (bc, bgc) = (col(border), col(bg));
-        let m = shadow_margin(&tb.runs[0].shadows);
-        let (canvas, id, ver, rect) = f.boxed(name, &key, move |dpr| {
-            let mut p = Painter::new(x - m, y - m, bw + 2.0 * m, bh + 2.0 * m, dpr);
-            p.rect(x, y, bw, bh, bgc);
-            p.border(x, y, bw, bh, 1.0, bc);
-            p.text(&tb, x + 9.0, y + 5.0, 0.0, "left", 1.0);
-            p
-        });
-        // .medal-replay: 1.4 s ease-out, 20%: scale(1.2) brightness(2.2)
-        let (mut scale, mut bright) = (1.0, 1.0);
-        if let Some(t0) = f.anim_start(name, el, "medal-replay") {
-            let x = (f.now - t0) / 1400.0;
-            if x < 1.0 {
-                let (k, a, b) = if x < 0.2 { (Ease::EaseOut.at(x / 0.2), 0.0, 1.0) } else { (Ease::EaseOut.at((x - 0.2) / 0.8), 1.0, 0.0) };
-                let e = a + (b - a) * k;
-                scale = 1.0 + 0.2 * e;
-                bright = 1.0 + 1.2 * e;
-            }
-        }
-        let r = if scale != 1.0 {
-            let (cx, cy) = ((x + bw / 2.0) / w, (y + bh / 2.0) / h);
-            let s = scale as f32;
-            [cx as f32 + (rect[0] - cx as f32) * s, cy as f32 + (rect[1] - cy as f32) * s, rect[2] * s, rect[3] * s]
-        } else {
-            rect
-        };
-        f.push_canvas(name, canvas.clone(), id, ver, r, op, LayerBlend::Normal, scale != 1.0);
-        // brightness(b): the extra (b − 1) of the element added on top
-        let mut extra = op * (bright - 1.0);
-        while extra > 0.0005 {
-            f.push_canvas(name, canvas.clone(), id, ver, r, extra.min(1.0), LayerBlend::Add, scale != 1.0);
-            extra -= 1.0;
-        }
-    }
     // #debug (z 5 inside #hud)
     if d.debug.has_class("on") {
         paint_debug(f, g);
-    }
-    // #achievementFlash (z 7 inside #hud)
-    {
-        let el = &d.achievement_flash;
-        let op = f.tr("achievementFlash.opacity", opacity_of(el, if el.has_class("on") { 1.0 } else { 0.0 }), 0.5, Ease::EaseOut);
-        f.background(
-            "radial-gradient(circle at center, rgba(255, 240, 190, 0.85) 0%, rgba(255, 220, 120, 0.35) 40%, transparent 75%)",
-            op,
-            LayerBlend::Normal,
-        );
     }
     // #journal (z 8 inside #hud)
     if d.journal.has_class("on") {

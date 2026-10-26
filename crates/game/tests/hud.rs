@@ -378,6 +378,29 @@ fn hud_states() {
     assert!(img.chunks_exact(4).any(|p| p[0] > 200), "HUD text drawn");
     assert_eq!(g.hud_hit_test(640.0, 400.0), "");
 
+    // ---- at rest: full meters, nothing new, the light off: the place alone
+    let mut g = game();
+    playing_state(&mut g);
+    g.player.stamina = 100.0;
+    g.player.sanity = 100.0;
+    g.player.flashlight_on = false;
+    g.ui.msg.set_opacity(0.0);
+    g.ui.omen.set_opacity(0.0);
+    g.interactables.clear();
+    run(&mut g, 400, true);
+    let _ = g.hud_layers(W, H, DPR);
+    let shown: Vec<_> = g.hud_ui.painted.iter().filter(|n| !["vignette", "grain", "radial", "fill"].contains(n)).copied().collect();
+    assert!(shown.is_empty(), "drawn at rest: {shown:?}");
+    shoot(&mut g, "rest");
+    // ... and X held shows it all, with labels
+    g.key_down("KeyX", false);
+    run(&mut g, 40, true);
+    for name in ["stamina", "sanity", "battery", "bottles", "staminaLabel", "level"] {
+        assert!(g.hud_ui.painted.contains(&name), "{name} not shown while glancing");
+    }
+    shoot(&mut g, "glance");
+    g.key_up("KeyX");
+
     // ---- a medal earned: the toast, the flash, the replay animation
     let mut g = game();
     playing_state(&mut g);

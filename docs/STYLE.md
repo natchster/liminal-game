@@ -112,7 +112,9 @@ its region's light far more than on its purpose** (an office wing runs from
 0.05 to 0.35); the purposes differ in colour and clutter, not in brightness,
 except the showroom (always lit) and storage halls (mostly dark). Change the
 bands only when the look of a purpose is meant to change, re-measure, and say
-why in the commit.
+why in the commit. (The luminance floors were re-measured on 2026-10-27, by
+the same rule rounded outward, when the HUD went to rest (`docs/UI.md` U5):
+its always-on bars and capitals had lifted every view's mean by about 0.01.)
 
 <!-- style-bands:begin -->
 ```json
@@ -127,7 +129,7 @@ why in the commit.
     "empty": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.33
       ],
       "views": 220,
@@ -136,7 +138,7 @@ why in the commit.
     "living quarters": {
       "colourfulness_max": 27,
       "luminance": [
-        0.04,
+        0.02,
         0.32
       ],
       "views": 59,
@@ -145,7 +147,7 @@ why in the commit.
     "maintenance": {
       "colourfulness_max": 25,
       "luminance": [
-        0.07,
+        0.05,
         0.33
       ],
       "views": 25,
@@ -154,7 +156,7 @@ why in the commit.
     "office wing": {
       "colourfulness_max": 25,
       "luminance": [
-        0.05,
+        0.04,
         0.35
       ],
       "views": 106,
@@ -163,7 +165,7 @@ why in the commit.
     "overgrown atrium": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.34
       ],
       "views": 10,
@@ -172,7 +174,7 @@ why in the commit.
     "parlour": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.34
       ],
       "views": 3,
@@ -181,7 +183,7 @@ why in the commit.
     "party room": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.34
       ],
       "views": 6,
@@ -190,7 +192,7 @@ why in the commit.
     "play area": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.34
       ],
       "views": 7,
@@ -199,7 +201,7 @@ why in the commit.
     "pool hall": {
       "colourfulness_max": 22,
       "luminance": [
-        0.1,
+        0.09,
         0.42
       ],
       "views": 24,
@@ -208,7 +210,7 @@ why in the commit.
     "service tunnels": {
       "colourfulness_max": 23,
       "luminance": [
-        0.04,
+        0.02,
         0.29
       ],
       "views": 74,
@@ -217,7 +219,7 @@ why in the commit.
     "showroom": {
       "colourfulness_max": 19,
       "luminance": [
-        0.2,
+        0.19,
         0.27
       ],
       "views": 40,
@@ -226,7 +228,7 @@ why in the commit.
     "shrine": {
       "colourfulness_max": 26,
       "luminance": [
-        0.04,
+        0.03,
         0.34
       ],
       "views": 1,
@@ -235,7 +237,7 @@ why in the commit.
     "storage hall": {
       "colourfulness_max": 21,
       "luminance": [
-        0.04,
+        0.02,
         0.26
       ],
       "views": 38,
@@ -244,7 +246,7 @@ why in the commit.
     "washrooms": {
       "colourfulness_max": 25,
       "luminance": [
-        0.06,
+        0.05,
         0.33
       ],
       "views": 18,

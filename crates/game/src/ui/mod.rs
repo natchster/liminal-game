@@ -6,4 +6,5 @@ pub mod hud;
 pub mod lore;
 pub mod menu;
 pub mod model;
+pub mod rest;
 pub mod screens;

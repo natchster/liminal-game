@@ -74,6 +74,7 @@ pub fn bind_id(a: Act) -> &'static str {
         Act::Battery => "bind:battery",
         Act::Call => "bind:call",
         Act::Journal => "bind:journal",
+        Act::Glance => "bind:glance",
         Act::Pause => "bind:pause",
         Act::Mute => "bind:mute",
         Act::Debug => "bind:debug",

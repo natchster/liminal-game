@@ -28,6 +28,8 @@ pub enum Act {
     Battery,
     Call,
     Journal,
+    /// held: what you carry and how you are, on the screen
+    Glance,
     Pause,
     Mute,
     Debug,
@@ -49,7 +51,7 @@ const fn b(act: Act, keys: &'static [&'static str], label: &'static str, on_the_
 }
 
 /// The default layout.
-pub static BINDINGS: [Binding; 17] = [
+pub static BINDINGS: [Binding; 18] = [
     b(Act::Forward, &["KeyW", "ArrowUp"], "Walk forward", true),
     b(Act::Back, &["KeyS", "ArrowDown"], "Walk back", true),
     b(Act::Left, &["KeyA", "ArrowLeft"], "Step left", true),
@@ -64,6 +66,7 @@ pub static BINDINGS: [Binding; 17] = [
     b(Act::Battery, &["KeyR", "Digit2"], "Change the battery", true),
     b(Act::Call, &["KeyV", "KeyH"], "Call out", true),
     b(Act::Journal, &["Tab", "KeyJ"], "Notebook", true),
+    b(Act::Glance, &["KeyX"], "Look at what you carry (hold)", true),
     b(Act::Pause, &["Escape", "KeyP"], "Pause", false),
     b(Act::Mute, &["KeyM"], "Mute", false),
     b(Act::Debug, &["F3"], "Debug panel", false),
@@ -230,7 +233,7 @@ impl Game {
                     self.input.crouch_latched = !self.input.crouch_latched;
                 }
             }
-            Act::Forward | Act::Back | Act::Left | Act::Right | Act::Crouch => {}
+            Act::Forward | Act::Back | Act::Left | Act::Right | Act::Crouch | Act::Glance => {}
         }
     }
     /// Per frame while playing: an early E lands on what comes into reach.

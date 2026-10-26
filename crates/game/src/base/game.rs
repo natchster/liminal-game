@@ -79,6 +79,8 @@ pub struct Game {
     pub menu: crate::ui::menu::Menu,
     /// The player's settings (`session::settings`)
     pub settings: crate::session::settings::Settings,
+    /// What the HUD at rest is showing (`ui::rest`)
+    pub rest: crate::ui::rest::Rest,
     /// Mouse motion since the last frame (relative motion while the pointer is locked)
     pub mouse_dx: f64,
     pub mouse_dy: f64,
@@ -631,6 +633,7 @@ impl Game {
             input: Default::default(),
             menu: Default::default(),
             settings: Default::default(),
+            rest: Default::default(),
             mouse_dx: 0.0,
             mouse_dy: 0.0,
             pointer_locked: false,

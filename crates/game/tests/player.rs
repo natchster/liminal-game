@@ -378,7 +378,7 @@ fn pickups_and_first_use_hints() {
     // the hints land 1.7 s later (one per kind, the bottle one first)
     assert_eq!(g.timeouts.len(), 2);
     frames(&mut r, 103);
-    assert_eq!(r.g.msg_text, "SPARE BATTERY — [R] SWAP");
+    assert_eq!(r.g.msg_text, "A spare battery. R to change it.");
     assert!(r.g.timeouts.is_empty());
     // a second bottle never re-hints
     r.g.hint_first_use("bottle");
