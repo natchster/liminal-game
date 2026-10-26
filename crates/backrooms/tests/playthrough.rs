@@ -11,7 +11,8 @@
 //!
 //! Entities are held still and deaths are counted, not suffered (god mode).
 //! The run's anomaly rules are checked: at most one per level, never the same
-//! twice, none on level 1, all four met by level 12.
+//! twice, none on level 1, all four met by level 12. Leaving level 13 ends
+//! M.'s story (the card; E goes on).
 //!
 //!   cargo test --release -p backrooms --test playthrough -- --nocapture
 //!   PLAYTHROUGH_SEEDS=101,202 PLAYTHROUGH_LEVELS=13 cargo test ...
@@ -489,6 +490,13 @@ fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
             g.try_interact();
             assert!(near, "run {seed} level {l}: could not walk back out of the Loop");
             frames += f;
+        }
+        if l == game::story::notebook::LAST_LEVEL {
+            // the end of her story: the card, then on down (E)
+            assert!(wait_for(&mut g, 600, |g| g.state == "ending"), "run {seed}: her story did not end on level {l}");
+            assert!(wait_for(&mut g, 300, |g| !g.ui.overlay.has_class("hidden")), "run {seed}: no card at the end of her story");
+            g.key_down("KeyE", false);
+            g.key_up("KeyE");
         }
         assert!(
             wait_for(&mut g, 3600, |g| g.level_num == l + 1 && g.state == "playing"),

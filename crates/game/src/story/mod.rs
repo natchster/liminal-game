@@ -25,6 +25,7 @@
 //! and from level `GAP_FROM` one stretch after the camp has lost its sheets
 //! (two from level 7). The sheets get sparser as you go down, as she did.
 pub mod dress;
+pub mod ending;
 pub mod notebook;
 
 use crate::prelude::*;
@@ -284,7 +285,9 @@ impl Game {
         // door's
         let k = spacing(self.level_num);
         let n = walk.len();
-        let mut marks = self.lay_sheets(&walk, 2.min(n - 1), n.saturating_sub(2), Some(camp_step), k, &mut r);
+        // at the last camp her paper goes no further than her camp
+        let last = if self.level_num == notebook::LAST_LEVEL { camp_step } else { n.saturating_sub(2) };
+        let mut marks = self.lay_sheets(&walk, 2.min(n - 1), last, Some(camp_step), k, &mut r);
 
         // deeper down, a stretch after the camp has lost its sheets
         let mut gaps = vec![];
@@ -442,8 +445,9 @@ impl Game {
     /// the level build after the themed placers.
     pub fn place_story(&mut self) {
         self.story = StoryLevel::default();
-        // `#nostory`: the level without her, for comparisons
-        if self.has_flag("nostory") {
+        // `#nostory`: the level without her, for comparisons; and below her
+        // last camp her paper has ended (`ending`)
+        if self.has_flag("nostory") || self.level_num > notebook::LAST_LEVEL {
             return;
         }
         let Some(plan) = self.plan_story() else { return };

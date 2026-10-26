@@ -524,3 +524,57 @@ fn trails_that_are_not_hers_lead_nowhere() {
         }
     }
 }
+
+/// The bottom of her story. On level 13 her trail stops at her camp, her
+/// lamp is cold and the last page is there; leaving the floor shows the
+/// card, E goes on down with what is left of her paper, and below there is
+/// no camp and no trail. The end is saved and comes only once.
+#[test]
+fn the_last_camp_ends_her_story() {
+    use game::story::ending::HER_PAPER;
+    use game::story::notebook::LAST_LEVEL;
+    let mut g = new_game();
+    g.run_seed = 4242;
+    g.init_level(LAST_LEVEL);
+    g.state = "playing".into();
+    g.god_mode = true;
+    let camp = g.story.camp.clone().expect("the last camp");
+    assert!(!camp.lit && !camp.light.as_ref().unwrap().visible(), "her lamp should be cold at the last camp");
+    assert_eq!(g.story_page().map(|p| p.id), Some("last"));
+    assert!(!g.story.trail.is_empty(), "her trail to the last camp");
+    assert!(g.story.trail.iter().all(|m| m.step < g.story.camp_step), "her paper goes on past the last camp");
+    g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+    g.try_interact();
+    assert!(g.notebook.contains("last"));
+    let papers = g.player.papers;
+    // the door (as `use_exit_door` calls it)
+    g.next_level();
+    assert_eq!(g.state, "ending");
+    g.now_ms += 2000.0;
+    g.run_scheduled();
+    assert_eq!(g.ui.overlay_title.text, "THE LAST CAMP");
+    assert!(!g.ui.overlay.has_class("hidden"));
+    assert!(g.ui.overlay_sub.text.contains("1 of her 13 pages"), "{}", g.ui.overlay_sub.text);
+    assert!(g.ui.overlay_controls.html.is_empty(), "the controls on her last card");
+    println!("{}\n{}", g.ui.overlay_title.text, g.ui.overlay_sub.text);
+    g.on_key_down("KeyE");
+    g.now_ms += 500.0;
+    g.run_scheduled();
+    assert_eq!((g.state.as_str(), g.level_num), ("playing", LAST_LEVEL + 1));
+    assert!(g.arc_done, "her story did not end");
+    assert_eq!(g.player.papers, papers + HER_PAPER);
+    assert!(g.ui.overlay.has_class("hidden"));
+    assert!(g.ui.overlay_controls.html.contains("WASD"), "the controls did not come back");
+    assert!(g.story.camp.is_none() && g.story.trail.is_empty(), "a camp of hers below the last");
+    let saved = g.load_game().expect("saved");
+    assert!(saved.arc_done && saved.level_num == LAST_LEVEL + 1);
+    // the next door just leads down
+    g.next_level();
+    assert_eq!(g.state, "transition");
+    // and the end comes once: back on the last camp's floor, with it done
+    g.arc_done = true;
+    g.state = "playing".into();
+    g.init_level(LAST_LEVEL);
+    g.next_level();
+    assert_eq!(g.state, "transition", "her story ended twice");
+}

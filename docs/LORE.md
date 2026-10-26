@@ -171,6 +171,13 @@ Someone came this way before you, and you can follow her down.
   the first floor below every anomaly. Take it (E) and it is in the journal
   (J), in the order of the descent, a torn edge for each floor whose page you
   left; its last line stays with you on screen.
+- **The last camp** is on level 13. Her lamp there went out long ago; her
+  shoes stand side by side at the foot of the bedroll, and her trail goes no
+  further than her camp: from there you find the door alone. Leaving that
+  floor (by its door, a lift, a hole) ends her story: a card over black says
+  how many of her pages you carry, and you take what is left of her paper
+  (twelve sheets). The descent goes on, without her: below the last camp
+  there are no camps and no trails but the ones you drop.
 - What the pages let you work out, and never say: E. went in through the
   wall at the back of a storage room (the loose note *Day 1* is his); she
   counts sleeps and calls them days (the tallies at her camps); the

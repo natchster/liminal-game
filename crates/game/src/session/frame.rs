@@ -136,6 +136,8 @@ impl Game {
                     self.want_pointer_lock = Some(true);
                 } else if self.state == "dead" {
                     self.restart();
+                } else if self.state == "ending" {
+                    self.end_ending();
                 }
             }
             _ => {

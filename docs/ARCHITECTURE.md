@@ -58,7 +58,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `visuals` | Lighting (the place-based light map, pooled lights, fog), procedural textures and surfaces, the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), and the painter that turns elements into composited layers (`draw`) |
 | `session` | Start-up (`boot`), the per-frame update, input handling, and the game flow: levels, saves, death, the menu |
-| `story` | M.'s descent: where her camp is on each floor and the walk she took (`plan_story`, pure), her camp and her sheets (`dress`) |
+| `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
 | `debug` | Level dumps for tools and tests, and test helpers |
 
 ### One frame

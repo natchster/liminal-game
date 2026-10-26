@@ -334,6 +334,8 @@ pub struct Game {
     pub thread: String,
     /// The journal entry to open on next (the page just taken)
     pub journal_newest: Option<i64>,
+    /// Her story has ended (`story::ending`): you left the last camp's floor
+    pub arc_done: bool,
     /// Seconds to the exit's next call (`ambient::amb_exit`), and how many it
     /// has made on this level (its jitter's counter)
     pub exit_call_t: f64,
@@ -797,6 +799,7 @@ impl Game {
             notebook: Default::default(),
             thread: String::new(),
             journal_newest: None,
+            arc_done: false,
             exit_call_t: 0.0,
             exit_calls: 0,
             amb_anchors: vec![],

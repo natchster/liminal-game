@@ -27,6 +27,8 @@ pub struct SaveData {
     pub arcs: Vec<String>,
     /// Her pages taken (`story::notebook` ids)
     pub notebook: Vec<String>,
+    /// Her story has ended (`story::ending`)
+    pub arc_done: bool,
 }
 
 impl Game {
@@ -180,6 +182,7 @@ impl Game {
             "deaths": self.death_count,
             "arcs": arcs,
             "notebook": self.notebook.iter().collect::<Vec<_>>(),
+            "arcDone": self.arc_done,
             "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
         });
         self.storage_set(SAVE_KEY, &data.to_string());
@@ -217,6 +220,7 @@ impl Game {
                 .and_then(|v| v.as_array())
                 .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
                 .unwrap_or_default(),
+            arc_done: flag("arcDone"),
             notebook: d
                 .get("notebook")
                 .and_then(|v| v.as_array())
@@ -247,6 +251,7 @@ impl Game {
         self.death_count = d.deaths.max(0.0);
         self.lore_arcs_completed = d.arcs.iter().cloned().collect();
         self.notebook = d.notebook.iter().cloned().collect();
+        self.arc_done = d.arc_done;
         // the thread: the last line of the latest page of hers taken
         self.thread = crate::story::notebook::notebook(self.run_seed)
             .into_iter()
@@ -278,6 +283,9 @@ impl Game {
         if self.state != "playing" {
             return;
         }
+        if self.arc_ends_here() {
+            return self.begin_ending();
+        }
         self.state = "transition".into();
         self.sfx_door();
         if self.ac.is_some() {
@@ -302,6 +310,9 @@ impl Game {
     pub fn next_level_via_elevator(&mut self) {
         if self.state != "playing" {
             return;
+        }
+        if self.arc_ends_here() {
+            return self.begin_ending();
         }
         self.state = "transition".into();
         self.sfx_door_slam();
@@ -331,6 +342,9 @@ impl Game {
     pub fn begin_fall_down(&mut self) {
         if self.state != "playing" {
             return;
+        }
+        if self.arc_ends_here() {
+            return self.begin_ending();
         }
         self.state = "transition".into();
         self.falling_t = 1.2;
@@ -511,6 +525,7 @@ impl Game {
         self.notebook.clear();
         self.thread.clear();
         self.journal_newest = None;
+        self.arc_done = false;
         self.lore_archivist_shown = false;
         self.survivor_shown = false;
         self.storyteller_shown = false;

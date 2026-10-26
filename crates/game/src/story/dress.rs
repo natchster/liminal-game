@@ -68,6 +68,30 @@ impl Game {
         tally.position().set(-0.15 * flip, 1.05, 0.012);
         camp.add(&tally);
 
+        // the last camp: her lamp long cold, her shoes side by side
+        let last = self.level_num == super::notebook::LAST_LEVEL;
+        if last {
+            flame.set_visible(false);
+            light.set_visible(false);
+            let sole = lambert!({ color: 0x1a1210 });
+            let upper = lambert!({ color: 0x3a2c22 });
+            for k in [-1.0, 1.0] {
+                let shoe = group();
+                let s = mesh(pg("DroppedShoes__sole", box_geo!(0.28, 0.03, 0.11)), &sole);
+                s.position().y = 0.015;
+                shoe.add(&s);
+                let u = mesh(pg("DroppedShoes__upper", box_geo!(0.24, 0.08, 0.10)), &upper);
+                u.position().set(-0.02, 0.055, 0);
+                shoe.add(&u);
+                let t = mesh(pg("DroppedShoes__toe", box_geo!(0.08, 0.05, 0.08)), &upper);
+                t.position().set(0.10, 0.045, 0);
+                shoe.add(&t);
+                // toes out from the wall, at the foot of the bedroll
+                shoe.rotation().y = -PI / 2.0;
+                shoe.position().set(-1.05 * flip + k * 0.08, 0, 0.95);
+                camp.add(&shoe);
+            }
+        }
         camp.user().gameplay = true;
         self.world.add(&camp);
 
@@ -90,8 +114,8 @@ impl Game {
             lamp: Some(lamp),
             light: Some(light),
             flame: Some(flame),
-            lit: true,
-            fade: 1.0,
+            lit: !last,
+            fade: if last { 0.0 } else { 1.0 },
             dimming: false,
             page: None,
             page_id: None,

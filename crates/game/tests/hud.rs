@@ -479,6 +479,23 @@ fn hud_states() {
     run(&mut g, 40, false);
     g.now_ms = 0.0;
     shoot(&mut g, "dead");
+
+    // ---- the end of her story: the card over black
+    let mut g = game();
+    playing_state(&mut g);
+    g.state = "ending".into();
+    g.notebook = ["f1", "f2", "store", "f3", "last"].iter().map(|s| s.to_string()).collect();
+    g.death_count = 2.0;
+    g.ui.fade.set_style("background", "#050403");
+    g.ui.fade.set_opacity(1.0);
+    let (title, body) = g.ending_card();
+    assert!(body.contains("5 of her 13 pages") && body.contains("died 2 times"), "{body}");
+    g.ui.overlay_controls.set_html("");
+    g.show_overlay(&title, &body, "PRESS E TO GO ON");
+    assert_eq!(g.ui.overlay_buttons.style("display"), Some("none"));
+    run(&mut g, 40, false);
+    g.now_ms = 0.0;
+    shoot(&mut g, "ending");
 }
 
 #[test]

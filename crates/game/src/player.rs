@@ -71,6 +71,9 @@ impl Game {
         if code == "KeyE" {
             self.try_interact();
         }
+        if (code == "KeyE" || code == "Enter") && self.state == "ending" {
+            self.end_ending();
+        }
         if code == "KeyF" {
             self.toggle_flashlight();
         }
