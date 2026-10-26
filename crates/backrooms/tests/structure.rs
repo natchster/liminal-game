@@ -70,6 +70,7 @@ fn level_builds_take_no_clock_or_foreign_randomness() {
         "crates/game/src/placers",
         "crates/game/src/anomalies",
         "crates/game/src/modes",
+        "crates/game/src/story",
         "crates/placers",
     ];
     let banned = ["Instant::now", "SystemTime", "thread_rng", "rand::", "RandomState"];

@@ -312,8 +312,15 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   seeds the per-frame randomness, so the same command renders the same frame
   bit for bit. Headless runs never write the save file.
 * `backrooms --dump-level DIR --seed S --levels 1,2 --screenshot x --views`
-  also renders one PNG from inside each zone (`rs_S_LN_zNN.png`); the JSON
-  lists each zone's purpose and the regions.
+  also renders one PNG from inside each zone (`rs_S_LN_zNN.png`), one
+  looking at the exit door (`_exit.png`), one of M.'s camp (`_camp.png`) and
+  one at one of her sheets looking on along her trail (`_trail.png`); the
+  JSON lists each zone's purpose and the regions. Each view runs the props'
+  distance cull for its own camera (it otherwise runs only a few times a
+  second, and every view would keep the spawn's: small props far from the
+  spawn went missing from the zone views, and from the goldens, until
+  2026-10-26). `cargo test --release -p backrooms --test story` draws each
+  checked level's walk, sheets and camp from above into `target/story/`.
 * `--showcase smiler[:dist]` (or `hound`, `watcher`) keeps a creature
   standing in front of the camera for the shot; add `--death` to be killed
   by it 15 frames before the shot (the death scene).

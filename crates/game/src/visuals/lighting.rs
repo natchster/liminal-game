@@ -359,6 +359,13 @@ impl Game {
                 k[i] = k[i].max(EXIT_LIGHT);
             }
         }
+        // her lamp, while it burns
+        if let Some(c) = self.story.camp.as_ref().filter(|c| c.lit) {
+            let i = (c.tile.1 * self.w + c.tile.0) as usize;
+            if i < k.len() {
+                k[i] = k[i].max(crate::story::dress::CAMP_LIGHT);
+            }
+        }
         let t = &self.tiles;
         for _ in 0..3 {
             let mut next = k.clone();

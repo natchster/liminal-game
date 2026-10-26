@@ -576,6 +576,8 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = 0.0;
+                    // the props' cull runs a few times a second; run it for this view
+                    g.prop_cull.t = 0.0;
                     g.fixed_step_dt = 1.0 / 60.0;
                     g.frame(1.0 / 60.0);
                     g.fixed_step_dt = 0.0;
@@ -593,6 +595,8 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = 0.0;
+                    // the props' cull runs a few times a second; run it for this view
+                    g.prop_cull.t = 0.0;
                     g.fixed_step_dt = 1.0 / 60.0;
                     g.frame(1.0 / 60.0);
                     g.fixed_step_dt = 0.0;
@@ -604,6 +608,25 @@ fn level_check(o: &Options, dir: &str) {
                     engine::png::write_rgba(&format!("{base}_exit.png"), tw as u32, th as u32, &px).expect("write png");
                     g.sim_frozen = false;
                     print!(" (+exit view)");
+                }
+                // and her camp and her trail
+                for (name, x, z, yaw, pitch) in g.story_views() {
+                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.yaw = yaw;
+                    g.player.pitch = pitch;
+                    // the props' cull runs a few times a second; run it for this view
+                    g.prop_cull.t = 0.0;
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    g.frame(1.0 / 60.0);
+                    g.fixed_step_dt = 0.0;
+                    g.sim_frozen = true;
+                    let cb = draw(&mut g, &mut r, t, w, h);
+                    cb.commit();
+                    cb.waitUntilCompleted();
+                    let (tw, th, px) = r.read_texture(t);
+                    engine::png::write_rgba(&format!("{base}_{name}.png"), tw as u32, th as u32, &px).expect("write png");
+                    g.sim_frozen = false;
+                    print!(" (+{name} view)");
                 }
             }
         }

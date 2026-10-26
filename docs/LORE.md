@@ -19,7 +19,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds, the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
-| People | Elias, M., the field surveys, the Stairwell logs (lore notes only) |
+| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps) |
 
 ## How canon reaches the player
 
@@ -129,6 +129,29 @@ washrooms, an overgrown atrium, a maintenance run, a shrine, a party room, or
 nothing at all. The purpose decides what is left lying there, and its
 wallpaper, grime and darkness change at its walls. Most of the Lobby is for
 nothing.
+
+## M.'s descent
+
+Someone came this way before you, and you can follow her down.
+
+- **E.** (Elias, whose loose pages are among the torn notes) went into the
+  Backrooms first, and stopped answering. **M.** (who wrote *M.'s Rules*)
+  went in after him, followed his marks down, and left her own. Neither of
+  them is ever named in full, and nothing says how they are related; the
+  pages let you work it out.
+- **Her trail.** From where you arrive, sheets of paper folded twice, each
+  with a pencil arrow, lie along the way she walked: to her camp, then on to
+  the door. Each one can be seen from the last, but only just, and they get
+  sparser as you go down (every three tiles of walk at first, every five
+  deep down); from level 4 a stretch after her camp has lost its sheets
+  (two from level 7), and you have to find where she went.
+- **Her camp.** On every floor, somewhere off the straight way, against a
+  wall: a bedroll with a blanket thrown over it, her pack, a candle lantern
+  still burning (it lights its corner, and light draws Smilers), empty
+  bottles, a count of days scratched on the wall, and what she could spare:
+  almond water, and from level 3 a battery.
+- Her trail and her camp are part of the place, the same on every visit;
+  they are where they are because of where she went (`crates/game/src/story/`).
 
 ## Things that live here
 

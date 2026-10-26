@@ -92,6 +92,40 @@ impl Game {
         best.map(|(x, z, _)| (x, z, (-(dx - x)).atan2(-(dz - z))))
     }
 
+    /// Camera poses on her story: looking at her camp from a few tiles back
+    /// along her walk, and standing at one of her sheets looking on along
+    /// the trail to the next (the third sheet, or the last). (name, x, z,
+    /// yaw, pitch).
+    pub fn story_views(&self) -> Vec<(&'static str, f64, f64, f64, f64)> {
+        let s = &self.story;
+        let mut out = vec![];
+        let face = |x: f64, z: f64, tx: f64, tz: f64| (-(tx - x)).atan2(-(tz - z));
+        if let Some(c) = &s.camp {
+            // out from her wall, as far as still sees her things, looking down
+            let back = [2.4, 1.8, 1.2].into_iter().find(|d| {
+                let (x, z) = (c.at.x + c.normal.x * d, c.at.z + c.normal.z * d);
+                !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, c.at.x, c.at.z)
+            });
+            let d = back.unwrap_or(1.0);
+            let (x, z) = (c.at.x + c.normal.x * d, c.at.z + c.normal.z * d);
+            out.push(("camp", x, z, face(x, z, c.at.x, c.at.z), -0.55));
+        }
+        if s.trail.len() >= 2 {
+            let i = 2.min(s.trail.len() - 2);
+            let (a, b) = (&s.trail[i], &s.trail[i + 1]);
+            // a step behind the sheet, so it is at your feet in the frame
+            let yaw = face(a.x, a.z, b.x, b.z);
+            let back = [2.2, 1.6, 1.0].into_iter().find(|d| {
+                let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+                !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, a.x, a.z)
+            });
+            let d = back.unwrap_or(0.6);
+            let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
+            out.push(("trail", x, z, yaw, -0.42));
+        }
+        out
+    }
+
     /// A camera pose inside each zone of the layout, for looking at it: the
     /// open tile of the zone with the longest straight run of open floor in
     /// front of it, a step back from its centre, facing down the run.

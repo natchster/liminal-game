@@ -326,6 +326,8 @@ pub struct Game {
     pub amb_signatures: Vec<AmbSignature>,
     /// Where the weather's own sounds come from on this level (`ambient::BED_ANCHORS`)
     pub amb_anchors: Vec<(&'static str, Vec3)>,
+    /// The story layer of this level: her camp, her walk and her sheets (`story`)
+    pub story: crate::story::StoryLevel,
     /// Seconds to the exit's next call (`ambient::amb_exit`), and how many it
     /// has made on this level (its jitter's counter)
     pub exit_call_t: f64,
@@ -785,6 +787,7 @@ impl Game {
             pool_wanted: HashSet::new(),
             biased_ambient: vec![],
             amb_signatures: vec![],
+            story: Default::default(),
             exit_call_t: 0.0,
             exit_calls: 0,
             amb_anchors: vec![],

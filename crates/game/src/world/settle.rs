@@ -88,6 +88,47 @@ impl Game {
         top
     }
 
+    /// Pickups (almond water, batteries, paper, notes) whose centre a
+    /// jitter or a bulge left inside a wall: moved to the nearest spot clear
+    /// of walls (rings of 0.2 m out to 1.6 m, in a fixed order; failing that,
+    /// the middle of the nearest open tile that is clear), so a hand can
+    /// reach them. The level sweep found one no body could get to
+    /// (seed 905325066 level 8, an almond inside a maze wall). No draws.
+    pub fn free_buried_pickups(&mut self) {
+        let mut objs: Vec<Obj> = self.almonds.iter().chain(self.battery_items.iter()).map(|p| p.g.clone()).collect();
+        objs.extend(self.papers.iter().map(|p| p.g.clone()));
+        objs.extend(self.lore_notes.iter().map(|n| n.g.clone()));
+        for o in objs {
+            let p = o.pos();
+            if !self.circle_hits_wall(p.x, p.z, 0.05) {
+                continue;
+            }
+            let near = (1..=8)
+                .flat_map(|ring| (0..16).map(move |k| (ring as f64 * 0.2, k as f64 / 16.0 * PI * 2.0)))
+                .map(|(r, a)| (p.x + a.cos() * r, p.z + a.sin() * r))
+                .find(|&(x, z)| !self.circle_hits_wall(x, z, 0.25));
+            // a tile the walls fill: the middle of the nearest clear open tile
+            let spot = near.or_else(|| {
+                let mut best: Option<(f64, f64, f64)> = None;
+                for tz in 0..self.h {
+                    for tx in 0..self.w {
+                        let (x, z) = (self.wx(tx), self.wz(tz));
+                        let d = hypot2(x - p.x, z - p.z);
+                        if !self.is_wall_tile(tx, tz) && best.is_none_or(|b| d < b.2) && !self.circle_hits_wall(x, z, 0.35) {
+                            best = Some((x, z, d));
+                        }
+                    }
+                }
+                best.map(|b| (b.0, b.1))
+            });
+            if let Some((x, z)) = spot {
+                o.position().x = x;
+                o.position().z = z;
+                o.update_world_matrix(true, true);
+            }
+        }
+    }
+
     pub fn settle_placement(&mut self, from_idx: usize) {
         if self.has_flag("noplace") {
             self.placement_stats.clear();

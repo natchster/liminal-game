@@ -23,6 +23,7 @@
 //!   colour effects.
 //! * [`ui`] — the HUD and menus: element model, logic and drawing.
 //! * [`session`] — start-up, the per-frame update, input and the game flow.
+//! * [`story`] — M.'s trail, her camps and her notebook: the descent's story.
 //! * [`debug`] — inspection hooks (level dumps) and test helpers.
 #![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::needless_range_loop, non_snake_case)]
 
@@ -38,6 +39,7 @@ pub mod modes;
 pub mod placers;
 pub mod player;
 pub mod session;
+pub mod story;
 pub mod ui;
 pub mod visuals;
 pub mod world;

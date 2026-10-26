@@ -58,6 +58,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `visuals` | Lighting (the place-based light map, pooled lights, fog), procedural textures and surfaces, the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), and the painter that turns elements into composited layers (`draw`) |
 | `session` | Start-up (`boot`), the per-frame update, input handling, and the game flow: levels, saves, death, the menu |
+| `story` | M.'s descent: where her camp is on each floor and the walk she took (`plan_story`, pure), her camp and her sheets (`dress`) |
 | `debug` | Level dumps for tools and tests, and test helpers |
 
 ### One frame
@@ -89,7 +90,9 @@ one random stream seeded with `seed_for_level(run_seed, n)`:
    some in rows), the store or house if this is their level, the themed
    placer passes in a fixed order (each placer only sees the zones whose
    purpose welcomes its theme), settling props on what is below them,
-   resolving overlaps (`world::placement`), walls (a seam wall between two
+   then her camp and her trail (`story`: once settling has made the walls
+   final, so its sight lines hold; on a salted stream of its own, so no
+   checkpoint moves), resolving overlaps (`world::placement`), walls (a seam wall between two
    regions drawn in two halves, one per side) and ceilings, then freezing
    static objects, merging repeated meshes into instanced meshes
    (`world::instancing`) and building the cull list.

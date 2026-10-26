@@ -165,3 +165,151 @@ fn a_level_is_the_same_place_whatever_was_read() {
         assert!(notes(&g).iter().all(|n| g.lore_entry_scp(n.1).is_some() || !found.contains(&n.1)));
     }
 }
+
+/// The arrival's tile and the door's.
+fn ends(g: &Game) -> ((i32, i32), (i32, i32)) {
+    let e = g.exit_data.as_ref().unwrap().pos;
+    ((g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z)), (g.tx(e.x), g.tz(e.z)))
+}
+
+/// What must hold for her trail on a level built for (seed, level): a walk
+/// from the arrival through her camp to the door over open floor; her camp
+/// off the straight way when the level has room for that; the first sheet
+/// close to the arrival and the last close to the door; and each sheet in
+/// sight of the one before and at most `spacing` tiles of walk on, except
+/// across a stretch the plan says lost its sheets.
+fn check_trail(g: &Game) -> Result<String, String> {
+    let s = &g.story;
+    let what = format!("seed {} L{}", g.run_seed, g.level_num);
+    let camp = s.camp.as_ref().ok_or(format!("{what}: no camp"))?;
+    let (spawn, exit) = ends(g);
+    if s.walk.first() != Some(&spawn) || s.walk.last() != Some(&exit) || s.walk[s.camp_step] != camp.tile {
+        return Err(format!("{what}: the walk does not go arrival → camp → door"));
+    }
+    for w in s.walk.windows(2) {
+        let step = (w[0].0 - w[1].0).abs() + (w[0].1 - w[1].1).abs();
+        if step != 1 || g.is_wall_tile(w[1].0, w[1].1) {
+            return Err(format!("{what}: the walk jumps or goes through a wall at {:?} → {:?}", w[0], w[1]));
+        }
+    }
+    let ds = g.story_walk_dist(spawn);
+    let de = g.story_walk_dist(exit);
+    let i = |p: (i32, i32)| (p.1 * g.w + p.0) as usize;
+    let straight = ds[i(exit)];
+    let detour = ds[i(camp.tile)] + de[i(camp.tile)] - straight;
+    if s.trail.is_empty() {
+        return Err(format!("{what}: no sheets"));
+    }
+    let first = s.trail[0].step;
+    let last = s.walk.len() - 1 - s.trail.last().unwrap().step;
+    if first > 3 || last > 3 {
+        return Err(format!("{what}: the first sheet is {first} steps from the arrival, the last {last} from the door"));
+    }
+    let k = game::story::spacing(g.level_num);
+    // the marks in walk order: her sheets and her camp
+    let mut marks: Vec<(usize, f64, f64)> = s.trail.iter().map(|m| (m.step, m.x, m.z)).collect();
+    marks.push((s.camp_step, g.wx(camp.tile.0), g.wz(camp.tile.1)));
+    marks.sort_by_key(|m| m.0);
+    for w in marks.windows(2) {
+        let gap = s.gaps.iter().any(|&(a, b)| a == w[0].0 && b == w[1].0);
+        let apart = w[1].0 - w[0].0;
+        let limit = if gap { k * 3 + 2 } else { k };
+        if apart > limit {
+            return Err(format!("{what}: {apart} steps between sheets at steps {} and {} (at most {limit})", w[0].0, w[1].0));
+        }
+        if !gap && !g.los(w[0].1, w[0].2, w[1].1, w[1].2) {
+            return Err(format!("{what}: the sheet at step {} cannot be seen from the one at step {}", w[1].0, w[0].0));
+        }
+    }
+    for m in &s.trail {
+        let o = m.g.as_ref().ok_or(format!("{what}: a sheet with no object"))?;
+        if o.parent().is_none() || (o.pos().x - m.x).abs() > 1e-6 || (o.pos().z - m.z).abs() > 1e-6 {
+            return Err(format!("{what}: the sheet at step {} is not where the plan put it", m.step));
+        }
+    }
+    Ok(format!(
+        "{what}: walk {} tiles (straight {straight}), camp {} steps in, {detour} off the straight way, {} sheets, gaps {:?}",
+        s.walk.len() - 1,
+        s.camp_step,
+        s.trail.len(),
+        s.gaps
+    ))
+}
+
+/// The level from above: walls dark, the walk pale, her sheets white, her
+/// camp orange, the arrival green, the door red. `target/story/`.
+fn plan_png(g: &Game) {
+    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/story");
+    std::fs::create_dir_all(&dir).unwrap();
+    let k = 8i32;
+    let (w, h) = (g.w * k, g.h * k);
+    let mut px = vec![0u8; (w * h * 4) as usize];
+    let put = |x: i32, z: i32, c: [u8; 4], r: i32, px: &mut Vec<u8>| {
+        for dz in -r..=r {
+            for dx in -r..=r {
+                let (a, b) = (x + dx, z + dz);
+                if a >= 0 && b >= 0 && a < w && b < h {
+                    let i = ((b * w + a) * 4) as usize;
+                    px[i..i + 4].copy_from_slice(&c);
+                }
+            }
+        }
+    };
+    for z in 0..g.h {
+        for x in 0..g.w {
+            let c = if g.is_wall_tile(x, z) { [24, 24, 24, 255] } else { [92, 88, 70, 255] };
+            put(x * k + k / 2, z * k + k / 2, c, k / 2, &mut px);
+        }
+    }
+    let to_px = |x: f64, z: f64| (((x / 4.0) + g.w as f64 / 2.0) * k as f64, ((z / 4.0) + g.h as f64 / 2.0) * k as f64);
+    for t in &g.story.walk {
+        put(t.0 * k + k / 2, t.1 * k + k / 2, [150, 140, 105, 255], 1, &mut px);
+    }
+    for m in &g.story.trail {
+        let (x, z) = to_px(m.x, m.z);
+        put(x as i32, z as i32, [250, 248, 235, 255], 1, &mut px);
+    }
+    let (spawn, exit) = ends(g);
+    put(spawn.0 * k + k / 2, spawn.1 * k + k / 2, [60, 200, 90, 255], 2, &mut px);
+    put(exit.0 * k + k / 2, exit.1 * k + k / 2, [220, 50, 40, 255], 2, &mut px);
+    if let Some(c) = &g.story.camp {
+        let (x, z) = to_px(c.at.x, c.at.z);
+        put(x as i32, z as i32, [240, 140, 30, 255], 2, &mut px);
+    }
+    let f = dir.join(format!("{}_L{}.png", g.run_seed, g.level_num));
+    engine::png::write_rgba(f.to_str().unwrap(), w as u32, h as u32, &px).unwrap();
+}
+
+#[test]
+fn her_trail_leads_through_her_camp_to_the_door() {
+    let mut cases = vec![(4242u32, 1), (4242, 2), (4242, 3), (7, 4), (7, 5), (1999, 6), (1999, 8), (77, 10), (2026, 12)];
+    // and every anomaly's floor of one run
+    for n in 2..=12 {
+        if let Some(k) = game::level::scp::scp_for_level(4242, n) {
+            if !cases.contains(&(4242, n)) {
+                cases.push((4242, n));
+            }
+            println!("run 4242: {k} on level {n}");
+        }
+    }
+    let mut bad = vec![];
+    for (seed, level) in cases {
+        let mut g = new_game();
+        g.run_seed = seed;
+        g.init_level(level);
+        plan_png(&g);
+        match check_trail(&g) {
+            Ok(line) => println!("{line}"),
+            Err(e) => bad.push(e),
+        }
+        // the same plan from a fresh build
+        let mut h = new_game();
+        h.run_seed = seed;
+        h.init_level(level);
+        let (a, b) = (g.plan_story(), h.plan_story());
+        if a != b || a.is_none() {
+            bad.push(format!("seed {seed} L{level}: the plan is not a function of the level ({:?})", a.is_none()));
+        }
+    }
+    assert!(bad.is_empty(), "{bad:#?}");
+}

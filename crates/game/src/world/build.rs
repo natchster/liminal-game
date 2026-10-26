@@ -184,6 +184,7 @@ impl Game {
         self.papers.clear();
         self.paper_markers.clear();
         self.lore_notes.clear();
+        self.story = Default::default();
         self.safe_room = None;
         self.broken_elevator = None;
         self.light_switches.clear();
@@ -403,7 +404,16 @@ impl Game {
         // reconcile the props with the real walls, then build the walls themselves
         self.settle_props(prop_start);
         self.build_lap("settle", bt0);
+        // her camp and her trail (`story`): once the walls are final (settling
+        // rebuilds them), before placement so the props round them make room;
+        // on a stream of its own, so no checkpoint moves
+        if core {
+            let c0 = self.world.child_count();
+            self.place_story();
+            self.tag_placed(c0, "place_story");
+        }
         self.settle_placement(prop_start);
+        self.free_buried_pickups();
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {
             self.settle_prop_looks(prop_start);
