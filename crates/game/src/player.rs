@@ -61,51 +61,40 @@ impl Game {
         });
     }
 
-    /// key-down actions (KeyE/F/Q/G/R/H/J/K/M...)
+    /// A key (or a mouse button, while the pointer is locked) went down: its
+    /// actions (`session::input::BINDINGS`), then the notebook's page keys
+    /// and the keys that go on from the death and ending cards.
     pub fn on_key_down(&mut self, code: &str) {
-        if code == "KeyM" {
-            let m = !self.muted;
-            self.set_muted(m); // toggles mute: master gain 0 when muted, 0.9 otherwise
-            self.show_msg(if m { "MUTED" } else { "SOUND ON" }, 1.0);
+        // the cards take a key only once they are up (no skipping them by
+        // mashing a key through the moment that leads to them)
+        let card_up = !self.ui.overlay.has_class("hidden");
+        let go_on = matches!(code, "KeyE" | "Enter" | "Space" | "KeyR" | "Mouse0");
+        if self.state == "dead" {
+            if go_on && card_up {
+                self.restart();
+            }
+            if code == "KeyM" {
+                self.on_action(crate::session::input::Act::Mute);
+            }
+            return;
         }
-        if code == "KeyE" {
-            self.try_interact();
+        if self.state == "ending" {
+            if go_on && card_up && code != "KeyR" {
+                self.end_ending();
+            }
+            return;
         }
-        if (code == "KeyE" || code == "Enter") && self.state == "ending" {
-            self.end_ending();
+        // the notebook turns its pages with the arrows (and the wheel, and the mouse buttons)
+        if self.journal_open {
+            match code {
+                "ArrowLeft" | "Mouse2" => return self.journal_prev(),
+                "ArrowRight" | "Mouse0" => return self.journal_next(),
+                _ => {}
+            }
         }
-        if code == "KeyF" {
-            self.toggle_flashlight();
-        }
-        if code == "KeyQ" {
-            self.drop_paper_marker();
-        }
-        if code == "KeyG" || code == "Digit1" {
-            self.drink_almond_water();
-        }
-        if code == "KeyR" || code == "Digit2" {
-            self.swap_battery();
-        }
-        if code == "KeyH" {
-            self.cry_for_help();
-        }
-        if code == "KeyK" {
-            self.toggle_debug();
-        }
-        if code == "KeyJ" {
-            self.toggle_journal();
-        }
-        if self.journal_open && (code == "ArrowLeft" || code == "KeyA") {
-            self.journal_prev();
-        }
-        if self.journal_open && (code == "ArrowRight" || code == "KeyD") {
-            self.journal_next();
-        }
-        if self.journal_open && code == "Escape" {
-            self.toggle_journal();
-        }
-        if (code == "KeyR" || code == "Enter") && self.state == "dead" {
-            self.restart();
+        let acts: Vec<_> = crate::session::input::acts_for(code).collect();
+        for a in acts {
+            self.on_action(a);
         }
     }
 
@@ -615,25 +604,28 @@ impl Game {
 
     pub fn update_player(&mut self, dt: f64) {
         let wk = self.weather_key();
-        // crouch is a held toggle (Ctrl); it disables sprint
-        let want_crouch = self.key("ControlLeft") || self.key("ControlRight") || self.key("KeyC") || self.touch_input.crouch;
-        self.player.crouch = want_crouch;
-        let sprinting = !self.player.crouch
-            && ((self.key("ShiftLeft") || self.key("ShiftRight")) || self.touch_input.sprint)
-            && self.player.stamina > 1.0;
+        use crate::session::input::Act;
         let (mut mx, mut mz) = (0.0f64, 0.0f64);
-        if self.key("KeyW") || self.key("ArrowUp") {
+        if self.held(Act::Forward) {
             mz += 1.0;
         }
-        if self.key("KeyS") || self.key("ArrowDown") {
+        if self.held(Act::Back) {
             mz -= 1.0;
         }
-        if self.key("KeyA") || self.key("ArrowLeft") {
+        // (with the notebook up the arrows turn its pages instead)
+        if self.key("KeyA") || (self.key("ArrowLeft") && !self.journal_open) {
             mx -= 1.0;
         }
-        if self.key("KeyD") || self.key("ArrowRight") {
+        if self.key("KeyD") || (self.key("ArrowRight") && !self.journal_open) {
             mx += 1.0;
         }
+        // crouch: Ctrl held, or C until C again; running stands you up
+        let run_key = self.wants_sprint() && (mx != 0.0 || mz != 0.0);
+        if run_key && self.input.crouch_latched && !self.held(Act::Crouch) {
+            self.input.crouch_latched = false;
+        }
+        self.player.crouch = self.wants_crouch();
+        let sprinting = !self.player.crouch && self.wants_sprint() && self.sprint_ready();
         // touch stick is analog: it replaces the keys rather than adding to them
         if self.touch_input.active {
             mx = self.touch_input.x;

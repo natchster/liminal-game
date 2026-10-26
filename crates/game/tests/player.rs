@@ -818,18 +818,17 @@ fn keydown_actions() {
     let g = &mut r.g;
     press(g, "KeyM");
     assert!(g.muted);
-    assert_eq!(g.msg_text, "MUTED");
+    assert_eq!(g.msg_text, "Sound off");
     release(g, "KeyM");
     press(g, "KeyM");
     assert!(!g.muted);
-    assert_eq!(g.msg_text, "SOUND ON");
-    // auto-repeat re-fires the actions (the key handler ignores the repeat flag)
-    g.key_down("KeyM", true);
-    assert!(g.muted);
+    assert_eq!(g.msg_text, "Sound on");
+    // a held key fires once: its auto-repeat only keeps it held
     g.key_down("KeyM", true);
     assert!(!g.muted);
+    release(g, "KeyM");
     // the other keys dispatch without panicking (their targets may be stubs)
-    for k in ["KeyE", "KeyK", "KeyJ", "ArrowLeft", "ArrowRight", "KeyA", "KeyD", "Escape", "Enter", "Digit2"] {
+    for k in ["KeyE", "F3", "Tab", "KeyJ", "ArrowLeft", "ArrowRight", "KeyA", "KeyD", "Escape", "Escape", "Enter", "Digit2"] {
         press(g, k);
         release(g, k);
     }
@@ -839,11 +838,14 @@ fn keydown_actions() {
         release(g, k);
     }
     g.journal_open = false;
+    // (the death card is up)
+    g.show_overlay("", "", "");
     g.state = "dead".into();
     press(g, "KeyR");
     release(g, "KeyR");
     // R while dead restarts the level (`restart()`)
     assert_eq!(g.state, "playing");
+    g.show_overlay("", "", "");
     g.state = "dead".into();
     press(g, "Enter");
     assert_eq!(g.state, "playing");

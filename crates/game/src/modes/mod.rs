@@ -344,25 +344,25 @@ impl Game {
 
     /// The movement keys as the two sub-modes read them: (crouch, mx, mz, sprint key).
     fn modes_move_keys(&self) -> (bool, f64, f64, bool) {
-        let want_crouch = self.key("ControlLeft") || self.key("ControlRight") || self.key("KeyC") || self.touch_input.crouch;
+        let want_crouch = self.wants_crouch();
         let (mut mx, mut mz) = (0.0, 0.0);
-        if self.key("KeyW") || self.key("ArrowUp") {
+        if self.held(crate::session::input::Act::Forward) {
             mz += 1.0;
         }
-        if self.key("KeyS") || self.key("ArrowDown") {
+        if self.held(crate::session::input::Act::Back) {
             mz -= 1.0;
         }
-        if self.key("KeyA") || self.key("ArrowLeft") {
+        if self.held(crate::session::input::Act::Left) {
             mx -= 1.0;
         }
-        if self.key("KeyD") || self.key("ArrowRight") {
+        if self.held(crate::session::input::Act::Right) {
             mx += 1.0;
         }
         if self.touch_input.active {
             mx = self.touch_input.x;
             mz = self.touch_input.z;
         }
-        let sprint_key = self.key("ShiftLeft") || self.key("ShiftRight") || self.touch_input.sprint;
+        let sprint_key = self.wants_sprint();
         (want_crouch, mx, mz, sprint_key)
     }
 
@@ -374,7 +374,7 @@ impl Game {
         let (want_crouch, mx, mz, sprint_key) = self.modes_move_keys();
         self.player.crouch = want_crouch;
         let moving = mx != 0.0 || mz != 0.0;
-        let sprinting = !self.player.crouch && sprint_key && self.player.stamina > 1.0 && moving;
+        let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
         let l = {
             let h = hypot2(mx, mz);
             if truthy(h) {
@@ -671,7 +671,7 @@ impl Game {
         let (want_crouch, mx, mz, sprint_key) = self.modes_move_keys();
         self.player.crouch = want_crouch;
         let moving = mx != 0.0 || mz != 0.0;
-        let sprinting = !self.player.crouch && sprint_key && self.player.stamina > 1.0 && moving;
+        let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
         let l = {
             let h = hypot2(mx, mz);
             if h.is_nan() {

@@ -45,6 +45,9 @@ impl Game {
             self.fps_frames = 0.0;
             self.fps_t = 0.0;
         }
+        if self.state == "playing" {
+            self.update_input(dt);
+        }
         if self.state == "playing" && self.in_stairwell {
             self.update_stairwell(dt);
             self.update_hud(dt);
@@ -98,16 +101,20 @@ impl Game {
     fn run_animators_frame(&mut self) {}
 
     // ------------------------------------------------------------ input
-    /// Key down; `code` names the physical key (`KeyW`, `Space`, ...).
+    /// Key down; `code` names the physical key (`KeyW`, `Space`, ...) or a
+    /// mouse button while the pointer is locked (`Mouse0`..`Mouse2`). A
+    /// held key fires its action once: the OS key repeat only keeps it held.
     pub fn key_down(&mut self, code: &str, repeat: bool) {
-        // `repeat` is deliberately ignored: a held key re-fires its action with the OS key repeat
-        let _ = repeat;
-        self.keys.insert(code.to_string());
+        let fresh = self.keys.insert(code.to_string());
+        if repeat && !fresh {
+            return;
+        }
         self.on_key_down(code);
     }
     /// Key up.
     pub fn key_up(&mut self, code: &str) {
         self.keys.remove(code);
+        self.on_key_up(code);
     }
     /// Mouse motion while pointer-locked (relative dx / dy).
     pub fn mouse_move(&mut self, dx: f64, dy: f64) {
@@ -118,6 +125,17 @@ impl Game {
         self.player.pitch = clamp(self.player.pitch - dy * 0.0022, -1.45, 1.45);
         self.mouse_dx += dx;
         self.mouse_dy += dy;
+    }
+    /// The mouse wheel (`d` > 0: towards you): turns the notebook's pages.
+    pub fn wheel(&mut self, d: f64) {
+        if !self.journal_open || d.abs() < 1.0 {
+            return;
+        }
+        if d > 0.0 {
+            self.journal_next();
+        } else {
+            self.journal_prev();
+        }
     }
     /// A click in the window. `target` is the element under the cursor (the HUD's
     /// hit test): 'btn-new', 'btn-continue', 'journal-prev', 'journal-next',
@@ -130,10 +148,7 @@ impl Game {
             "journal-next" => self.journal_next(),
             "overlay" => {
                 if self.state == "paused" {
-                    self.audio_init_if_needed();
-                    self.state = "playing".into();
-                    self.hide_overlay();
-                    self.want_pointer_lock = Some(true);
+                    self.resume();
                 } else if self.state == "dead" {
                     self.restart();
                 } else if self.state == "ending" {
@@ -155,20 +170,16 @@ impl Game {
             if self.journal_open {
                 return;
             }
-            self.state = "paused".into();
-            let sub = self.pick_text("pauseSub");
-            self.show_overlay("PAUSED", &sub, "CLICK TO RESUME");
+            self.pause();
         }
     }
     /// The window lost focus: held keys are dropped and pointer lock is released.
     pub fn blur(&mut self) {
         self.keys.clear();
+        self.input.crouch_latched = false;
         if self.pointer_locked {
             self.pointer_lock_changed(false);
         }
-    }
-    fn audio_init_if_needed(&mut self) {
-        self.audio_init_hook();
     }
     /// `audio_init()` — the audio module provides it; this forwards
     pub fn audio_init_hook(&mut self) {

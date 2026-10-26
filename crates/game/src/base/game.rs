@@ -71,8 +71,10 @@ pub struct Game {
     pub placers: Vec<(&'static str, PlacerFn)>,
 
     // ============================================================ platform
-    /// Key codes currently held down
+    /// Key codes currently held down (mouse buttons as "Mouse0".."Mouse2")
     pub keys: HashSet<String>,
+    /// The controls' latches (`session::input`)
+    pub input: crate::session::input::InputState,
     /// Mouse motion since the last frame (relative motion while the pointer is locked)
     pub mouse_dx: f64,
     pub mouse_dy: f64,
@@ -622,6 +624,7 @@ impl Game {
             msg_t: 0.0,
             placers: vec![],
             keys: HashSet::new(),
+            input: Default::default(),
             mouse_dx: 0.0,
             mouse_dy: 0.0,
             pointer_locked: false,

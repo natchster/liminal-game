@@ -262,11 +262,9 @@ impl<H: AppHandler> ApplicationHandler for Runner<H> {
                 if code.is_empty() {
                     return;
                 }
-                // Escape always releases pointer lock
-                if code == "Escape" && event.state == ElementState::Pressed && self.locked {
-                    self.req.lock = Some(false);
-                    self.apply_requests(el);
-                }
+                // (Escape is the game's: it pauses, resumes or closes the
+                // notebook, and asks for the pointer accordingly; losing
+                // focus still always releases it)
                 match event.state {
                     ElementState::Pressed => self.send(Input::KeyDown(code, event.repeat)),
                     ElementState::Released => self.send(Input::KeyUp(code)),

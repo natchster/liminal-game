@@ -18,7 +18,10 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 const TOL: f64 = 1e-9;
-const KEYS: [&str; 8] = ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "KeyC", "ControlLeft", "ArrowUp"];
+/// The recorded key mask's bits. Bit 5 is the reference's C, which crouched
+/// while held; the held crouch is Ctrl now (C toggles, `session/input.rs`),
+/// so a recorded C is replayed as Ctrl held: the same crouch, frame for frame.
+const KEYS: [&str; 8] = ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "ControlLeft", "ControlLeft", "ArrowUp"];
 /// the per-frame sound updates the fixture keeps only on sampled frames
 const BORING: [&str; 7] = ["ss.set_listener", "slot.at", "voice.set_level", "hum.update", "hum.silence", "hum.detune", "ss.set_zone:loop"];
 const BORING_SRC: &str = r"^(ss\.setListener|slot\.at|voice\.setLevel|hum\.update|hum\.silence|hum\.detune|ss\.setZone:loop)";
@@ -428,11 +431,12 @@ fn run_scenario(name: &str) {
         for (f, rec) in script.iter().enumerate() {
             if rec.has("k") {
                 let km = rec.get("k").i();
-                for (b, k) in KEYS.iter().enumerate() {
-                    if km & (1 << b) != 0 {
+                let down: Vec<&str> = KEYS.iter().enumerate().filter(|(b, _)| km & (1 << b) != 0).map(|(_, k)| *k).collect();
+                for k in KEYS {
+                    if down.contains(&k) {
                         g.keys.insert(k.to_string());
                     } else {
-                        g.keys.remove(*k);
+                        g.keys.remove(k);
                     }
                 }
             }

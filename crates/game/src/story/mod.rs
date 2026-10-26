@@ -550,7 +550,7 @@ impl Game {
         if let Some(p) = at {
             self.play_at(p.x, 0.3, p.z, 3.0, 1.0, |g| g.noise_burst(0.5, 320.0, 0.8, 0.12, "lowpass", Some(140.0), 0.25, 0.0));
         }
-        self.show_msg("HER PAGE — [J] TO READ", 2.6);
+        self.show_msg("HER PAGE — [TAB] TO READ", 2.6);
         self.journal_newest = Some(crate::ui::hud::notebook_journal_id(self.level_num));
         self.director_note("story:page");
         self.director_wake();

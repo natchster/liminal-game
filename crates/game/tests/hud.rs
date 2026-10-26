@@ -444,7 +444,7 @@ fn hud_states() {
     g.toggle_debug();
     run(&mut g, 10, true);
     g.update_debug();
-    assert!(g.ui.debug.text.starts_with("── DEBUG [K] ──\nlevel     1\n"));
+    assert!(g.ui.debug.text.starts_with("── DEBUG [F3] ──\nlevel     1\n"));
     shoot(&mut g, "debug");
 
     // ---- the screen effects: vignette inset glow + filter, aberration,

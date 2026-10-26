@@ -139,7 +139,8 @@ Each ends in its tests and evidence and is committed on its own.
 
 | # | Commit | Notes |
 |---|---|---|
-| U0 | (this commit) | the plan |
+| U0 | `718f11e` | the plan |
+| U1 | (this commit) | `session/input.rs`: `BINDINGS` (17 actions), `LEFT_HAND`, `acts_for`, `sprint_ready` (a spent run comes back at 30), the C latch (a run stands you up), `interact_target` (the faced one; one under you or alone behind you still counts) and a 0.15 s early-E buffer, `toggle_pause` / `pause` / `resume`, `on_key_up` (Command forgets held keys). The engine no longer releases the pointer on Escape; the app routes mouse buttons as `Mouse0`–`Mouse2` keys while locked and the wheel to `wheel`; recordings skip key repeats and gain wheel events. The Stairwell / Loop reference runs (recorded from the JS version) hold C to crouch: their harness now replays that bit as Ctrl held, and they match frame for frame. `tests/controls.rs` (11 tests); pacing, personas, the playthrough and the replays pass unchanged |
 
 ## What only people can tell
 

@@ -406,12 +406,18 @@ impl AppHandler for App {
             }
             _ => false,
         };
+        // (a key's auto-repeat only keeps it held, so it is not recorded; a
+        // mouse button is a key while the pointer is locked, a click otherwise)
+        let locked = self.g.pointer_locked;
         if let Some((r, _)) = self.recorder.as_mut().filter(|_| !shortcut) {
             match &ev {
-                Input::KeyDown(code, _) => r.push(InputEvent::Down(code.clone())),
+                Input::KeyDown(code, false) => r.push(InputEvent::Down(code.clone())),
                 Input::KeyUp(code) => r.push(InputEvent::Up(code.clone())),
                 Input::MouseMove(dx, dy) => r.push(InputEvent::Look(*dx, *dy)),
+                Input::MouseDown(b) if locked => r.push(InputEvent::Down(format!("Mouse{b}"))),
+                Input::MouseUp(b) if locked || self.g.key(&format!("Mouse{b}")) => r.push(InputEvent::Up(format!("Mouse{b}"))),
                 Input::MouseDown(0) => r.push(InputEvent::Click(self.g.hud_hit_test(self.cursor.0, self.cursor.1))),
+                Input::Wheel(d) => r.push(InputEvent::Wheel(*d)),
                 Input::PointerLock(on) => r.push(InputEvent::Lock(*on)),
                 Input::Blur => r.push(InputEvent::Blur),
                 _ => {}
@@ -437,11 +443,15 @@ impl AppHandler for App {
             Input::CursorPos(x, y) => {
                 self.cursor = (x, y);
             }
+            // while the pointer is locked the buttons are keys (`Mouse0`..`Mouse2`)
+            Input::MouseDown(b) if g.pointer_locked => g.key_down(&format!("Mouse{b}"), false),
+            Input::MouseUp(b) if g.key(&format!("Mouse{b}")) => g.key_up(&format!("Mouse{b}")),
             Input::MouseDown(0) => {
                 let hit = g.hud_hit_test(self.cursor.0, self.cursor.1);
                 self.last_hit = hit.clone();
                 g.click(&hit);
             }
+            Input::Wheel(d) => g.wheel(d),
             Input::PointerLock(on) => g.pointer_lock_changed(on),
             Input::Blur => g.blur(),
             Input::Resize => {

@@ -80,19 +80,24 @@ Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 
 | Key | Action |
 |---|---|
-| WASD / arrows | Move |
-| Mouse | Look (click the window to capture the pointer; Esc releases it) |
-| Shift | Run |
-| Ctrl | Crouch |
-| F | Flashlight |
-| E | Interact |
-| Q | Drop paper |
+| WASD / arrows | Move (with the arrows, crouch with C: Ctrl+arrows is Mission Control's) |
+| Mouse | Look (click the window to capture the pointer) |
+| Shift (hold) | Run; a spent run comes back at 30 stamina |
+| Ctrl (hold) / C (toggle) | Crouch |
+| E / left click | Use what you face (an E a moment early still lands) |
+| F / right click | Flashlight |
+| Q | Drop a sheet of paper |
 | G / 1 | Drink almond water |
-| R / 2 | Swap battery |
-| H | Cry for help |
-| J | Journal |
-| K | Debug panel |
+| R / 2 | Change the battery |
+| V / H | Call out |
+| Tab / J | Notebook (the arrows, the wheel or a click turn its pages) |
+| Esc / P | Pause and resume |
+| F3 | Debug panel |
 | M | Mute |
+
+Everything a run needs is under the left hand with W and Shift held, or on
+the mouse; the table lives in `crates/game/src/session/input.rs` and
+`tests/controls.rs` holds it to that.
 | F11 / Ctrl+Cmd+F | Toggle full screen |
 | Cmd+Q | Quit |
 

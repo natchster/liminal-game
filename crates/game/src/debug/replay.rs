@@ -21,6 +21,8 @@ pub enum InputEvent {
     Click(String),
     Lock(bool),
     Blur,
+    /// the mouse wheel
+    Wheel(f64),
 }
 
 /// One frame's input.
@@ -50,6 +52,7 @@ impl FrameInput {
                     InputEvent::Click(h) => json!(["c", h]),
                     InputEvent::Lock(on) => json!(["k", on]),
                     InputEvent::Blur => json!(["b"]),
+                    InputEvent::Wheel(d) => json!(["w", d]),
                 })
                 .collect(),
         )
@@ -68,6 +71,7 @@ impl FrameInput {
                     "c" => InputEvent::Click(s(1)),
                     "k" => InputEvent::Lock(e[1].as_bool()?),
                     "b" => InputEvent::Blur,
+                    "w" => InputEvent::Wheel(e[1].as_f64()?),
                     _ => return None,
                 })
             })
@@ -221,6 +225,7 @@ impl Game {
                 InputEvent::Click(h) => self.click(h),
                 InputEvent::Lock(on) => self.pointer_lock_changed(*on),
                 InputEvent::Blur => self.blur(),
+                InputEvent::Wheel(d) => self.wheel(*d),
             }
         }
     }

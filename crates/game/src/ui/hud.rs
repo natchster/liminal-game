@@ -547,7 +547,7 @@ impl Game {
         let on = self.debug_on;
         self.ui.debug.toggle_class("on", on);
     }
-    /// The [K] debug panel's text, rebuilt from the current state.
+    /// The [F3] debug panel's text, rebuilt from the current state.
     pub fn update_debug(&mut self) {
         if !self.debug_on {
             return;
@@ -580,7 +580,7 @@ impl Game {
         use std::fmt::Write;
         let _ = write!(
             s,
-            "── DEBUG [K] ──\nlevel     {}\nrunSeed   0x{}\nlevelSeed 0x{}\ngrid      {} × {}\nfps       {}\ndeaths    {}\n",
+            "── DEBUG [F3] ──\nlevel     {}\nrunSeed   0x{}\nlevelSeed 0x{}\ngrid      {} × {}\nfps       {}\ndeaths    {}\n",
             self.level_num,
             run_hex,
             seed_hex,
@@ -1519,7 +1519,7 @@ impl Game {
         {
             let paper_txt = if p.papers > 0 { format!("PAPER ×{}  [Q] DROP", p.papers) } else { String::new() };
             let note_txt = if !self.lore_found.is_empty() {
-                format!("  ·  NOTES {}/{}  [J]", self.lore_found.len(), LORE_ENTRIES.len())
+                format!("  ·  NOTES {}/{}  [TAB]", self.lore_found.len(), LORE_ENTRIES.len())
             } else {
                 String::new()
             };
@@ -1549,17 +1549,8 @@ impl Game {
                 self.ui.msg.set_style("textShadow", "");
             }
         }
-        // nearest enabled interactable
-        let mut prompt = String::new();
-        for it in &self.interactables {
-            if !(it.enabled)(self) {
-                continue;
-            }
-            if it.pos.distance_to_squared(&self.player.pos) < it.r * it.r {
-                prompt = it.prompt.clone();
-                break;
-            }
-        }
+        // the interactable you face (`interact_target`)
+        let prompt = self.interact_target().map(|i| self.interactables[i].prompt.clone()).unwrap_or_default();
         self.ui.prompt.set_text(&prompt);
         // prop animation + proximity devices
         let t = self.perf_t;
@@ -1642,9 +1633,7 @@ impl Game {
             }
             return;
         }
-        let pos = self.player.pos;
-        let hit = self.interactables.iter().position(|it| (it.enabled)(self) && it.pos.distance_to_squared(&pos) < it.r * it.r);
-        let Some(i) = hit else { return };
+        let Some(i) = self.interact_target() else { return };
         // `on_use`: take the closure out while it runs (it may rebuild the level);
         // put it back only if its placeholder is still in the list.
         let marker = Rc::new(());
@@ -1660,6 +1649,33 @@ impl Game {
                 it.on_use = f;
             }
         }
+    }
+
+    /// The usable interactable in reach that you face most squarely (ties:
+    /// the nearer), so with a drawer and a switch both in reach, E uses the
+    /// one you look at; one in reach behind you still counts.
+    pub fn interact_target(&self) -> Option<usize> {
+        let pos = self.player.pos;
+        let f = self.player.fwd();
+        let mut best: Option<(usize, f64, f64)> = None;
+        for (i, it) in self.interactables.iter().enumerate() {
+            let d2 = it.pos.distance_to_squared(&pos);
+            if d2 >= it.r * it.r || !(it.enabled)(self) {
+                continue;
+            }
+            let (dx, dz) = (it.pos.x - pos.x, it.pos.z - pos.z);
+            let l = hypot2(dx, dz);
+            // within 0.3 m it is under you: faced whichever way you look
+            let facing = if l < 0.3 { 1.0 } else { (dx * f.x + dz * f.z) / l };
+            let better = match best {
+                None => true,
+                Some((_, bf, bd)) => facing > bf + 1e-6 || ((facing - bf).abs() <= 1e-6 && d2 < bd),
+            };
+            if better {
+                best = Some((i, facing, d2));
+            }
+        }
+        best.map(|b| b.0)
     }
 
     // ------------------------------------------------------------ HUD layers
