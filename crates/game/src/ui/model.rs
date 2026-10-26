@@ -234,7 +234,7 @@ impl UiModel {
     pub fn new() -> UiModel {
         let mut d = UiModel::default();
         d.level.text = "LEVEL 1".into();
-        d.objective.text = "FIND THE EXIT DOOR".into();
+        d.objective.text = String::new();
         d.sanity_label.text = "SANITY".into();
         d.stamina_label.text = "STAMINA".into();
         d.battery_label.text = "FLASHLIGHT [F]".into();

@@ -25,6 +25,8 @@ pub struct SaveData {
     pub ironwill: bool,
     pub deaths: f64,
     pub arcs: Vec<String>,
+    /// Her pages taken (`story::notebook` ids)
+    pub notebook: Vec<String>,
 }
 
 impl Game {
@@ -88,6 +90,7 @@ impl Game {
         });
         self.lore_found = found;
         self.fit_lore_notes();
+        self.fit_story();
         self.build_light_map();
         self.update_ambience();
         self.release_pooled_lights();
@@ -139,8 +142,8 @@ impl Game {
         }
         let seed_tag = format!("SEED 0x{:08x}  ·  {}", self.current_seed, self.level_weather.key.to_uppercase());
         self.ui.seed_tag.set_text(&seed_tag);
-        // nothing is told: no objective line (PILLARS 4, rules are learned)
-        self.ui.objective.set_text("");
+        // nothing is told (PILLARS 4): the only line up there is her last
+        // one you read (`show_thread`, by `fit_story` above)
         for (dx, dz, yaw) in [(1, 0, -PI / 2.0), (0, 1, PI), (-1, 0, PI / 2.0), (0, -1, 0.0)] {
             if !self.is_wall_tile(1 + dx, 1 + dz) {
                 self.player.yaw = yaw;
@@ -176,6 +179,7 @@ impl Game {
             "ironwill": self.ironwill_shown,
             "deaths": self.death_count,
             "arcs": arcs,
+            "notebook": self.notebook.iter().collect::<Vec<_>>(),
             "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
         });
         self.storage_set(SAVE_KEY, &data.to_string());
@@ -213,6 +217,15 @@ impl Game {
                 .and_then(|v| v.as_array())
                 .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
                 .unwrap_or_default(),
+            notebook: d
+                .get("notebook")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().filter(|s| crate::story::notebook::page(s).is_some()).map(|s| s.to_string()))
+                        .collect()
+                })
+                .unwrap_or_default(),
         })
     }
     pub fn clear_save(&mut self) {
@@ -233,6 +246,14 @@ impl Game {
         self.ironwill_shown = d.ironwill;
         self.death_count = d.deaths.max(0.0);
         self.lore_arcs_completed = d.arcs.iter().cloned().collect();
+        self.notebook = d.notebook.iter().cloned().collect();
+        // the thread: the last line of the latest page of hers taken
+        self.thread = crate::story::notebook::notebook(self.run_seed)
+            .into_iter()
+            .rev()
+            .find(|(_, p)| self.notebook.contains(p.id))
+            .map(|(_, p)| p.thread.to_string())
+            .unwrap_or_default();
         self.refresh_lore_medal();
         self.refresh_survivor_medal();
         self.refresh_storyteller_medal();
@@ -487,6 +508,9 @@ impl Game {
         self.run_seed = if hash_seed != 0 { hash_seed } else { ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32 };
         self.lore_found.clear();
         self.lore_arcs_completed.clear();
+        self.notebook.clear();
+        self.thread.clear();
+        self.journal_newest = None;
         self.lore_archivist_shown = false;
         self.survivor_shown = false;
         self.storyteller_shown = false;
@@ -520,11 +544,14 @@ impl Game {
         if d.run_seed > 0 {
             self.run_seed = d.run_seed;
         }
-        // build with nothing read, then fit the notes to the save's
+        // build with nothing read, then fit the notes (and her page) to the save's
         self.lore_found.clear();
+        self.notebook.clear();
+        self.thread.clear();
         self.init_level(d.level_num);
         self.apply_saved(&d);
         self.fit_lore_notes();
+        self.fit_story();
         self.state = "playing".into();
         self.hide_overlay();
         self.show_msg(&format!("LEVEL {} — CONTINUED", self.level_num), 2.0);

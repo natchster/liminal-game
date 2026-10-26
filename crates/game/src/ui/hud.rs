@@ -239,8 +239,14 @@ fn sum_vals(m: Option<&std::collections::BTreeMap<String, f64>>) -> f64 {
     m.map(|m| m.values().sum()).unwrap_or(0.0)
 }
 
-/// a journal entry id: a lore id, or the sentinels -1 (epilogue), -2 (index), -3 (medals)
+/// a journal entry id: a lore id, or the sentinels -1 (epilogue), -2 (index),
+/// -3 (medals), or her notebook's page for level n (`notebook_journal_id`)
 pub type JournalId = i64;
+
+/// The journal id of her page for level `n` (−100 − n)
+pub fn notebook_journal_id(n: i32) -> JournalId {
+    -100 - n as JournalId
+}
 
 impl Game {
     // ------------------------------------------------------------ startup
@@ -268,7 +274,17 @@ impl Game {
     /// The cover (-2), the medals page (-3) once a
     /// medal is held, the sorted lore ids, then the epilogue (-1) once Archivist.
     pub fn journal_entries_in_order(&self) -> Vec<JournalId> {
-        let mut ids: Vec<JournalId> = self.lore_found.iter().map(|&i| i as JournalId).collect();
+        // her notebook first, in the order of the descent: the pages taken,
+        // and a torn edge for each floor passed without taking hers
+        let mut ids: Vec<JournalId> = crate::story::notebook::notebook(self.run_seed)
+            .into_iter()
+            .filter(|(n, p)| self.notebook.contains(p.id) || *n < self.level_num)
+            .map(|(n, _)| notebook_journal_id(n))
+            .collect();
+        if self.notebook.is_empty() {
+            ids.clear();
+        }
+        ids.extend(self.lore_found.iter().map(|&i| i as JournalId));
         if ids.is_empty() {
             return ids;
         }
@@ -343,6 +359,8 @@ impl Game {
             .join("\n");
         let total_found = self.lore_found.len();
         let total = LORE_ENTRIES.len();
+        let book = crate::story::notebook::notebook(self.run_seed);
+        let pages = book.iter().filter(|(_, p)| self.notebook.contains(p.id)).count();
         // ASCII progress bar toward the Archivist medal — 20 cells
         let bar_cells = 20usize;
         let filled = round_half_up((total_found as f64 / total as f64) * bar_cells as f64) as usize;
@@ -372,7 +390,9 @@ impl Game {
             bar_color, bar, total_found, total
         );
         format!(
-            "You have collected {} of {} notes across {} of {} story arcs.\n\n{}\n\n{}\n\nPress NEXT to browse individual entries.",
+            "Her notebook: {} of {} pages.\nYou have collected {} of {} notes across {} of {} story arcs.\n\n{}\n\n{}\n\nPress NEXT to browse individual entries.",
+            pages,
+            book.len(),
             total_found,
             total,
             self.lore_arcs_completed.len(),
@@ -403,6 +423,16 @@ impl Game {
             -1 => self.current_epilogue(),
             -2 => ("INDEX".to_string(), self.journal_cover_text()),
             -3 => ("MEDALS".to_string(), self.medals_page_html()),
+            c if c <= -100 => {
+                let n = (-100 - c) as i32;
+                let book = crate::story::notebook::notebook(self.run_seed);
+                let k = book.iter().position(|(m, _)| *m == n).map(|k| k + 1).unwrap_or(0);
+                let title = format!("HER NOTEBOOK  ·  {k}/{}", book.len());
+                match crate::story::notebook::page_for_level(self.run_seed, n).filter(|p| self.notebook.contains(p.id)) {
+                    Some(p) => (title, p.body.to_string()),
+                    None => (title, "A torn edge, where a page was.".to_string()),
+                }
+            }
             _ => {
                 let e = &LORE_ENTRIES[cur as usize];
                 (e.title.to_string(), e.body.to_string())
@@ -492,7 +522,12 @@ impl Game {
         let open = self.journal_open;
         self.ui.journal.toggle_class("on", open);
         if open {
-            self.journal_cursor = (self.journal_entries_in_order().len() as f64 - 1.0).max(0.0); // open on newest / epilogue
+            let ids = self.journal_entries_in_order();
+            // open on the page just taken, else on the newest / the epilogue
+            self.journal_cursor = match self.journal_newest.take().and_then(|n| ids.iter().position(|&i| i == n)) {
+                Some(k) => k as f64,
+                None => (ids.len() as f64 - 1.0).max(0.0),
+            };
             self.journal_render();
             self.want_pointer_lock = Some(false); // release the pointer
                                                   // 20% chance of a paper rustle instead of a page flip on open

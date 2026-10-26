@@ -313,3 +313,82 @@ fn her_trail_leads_through_her_camp_to_the_door() {
     }
     assert!(bad.is_empty(), "{bad:#?}");
 }
+
+/// Her notebook follows the descent on every run: thirteen pages, each once;
+/// the floor pages on the run's ordinary floors in their order, an
+/// anomaly's page on its floor, the last on level 13; nothing after it.
+#[test]
+fn her_notebook_follows_the_descent() {
+    use game::story::notebook::{notebook, page_for_level, ANOMALY_PAGES, FLOOR_PAGES, LAST_LEVEL};
+    for run in [1u32, 7, 77, 4242, 1999, 2026, 0xBEEF, 9_000_001] {
+        let book = notebook(run);
+        assert_eq!(book.len(), 13, "run {run}: {:?}", book.iter().map(|(n, p)| (n, p.id)).collect::<Vec<_>>());
+        let ids: std::collections::BTreeSet<&str> = book.iter().map(|(_, p)| p.id).collect();
+        assert_eq!(ids.len(), 13, "run {run}: a page twice");
+        let floors: Vec<&str> = book.iter().filter(|(_, p)| p.id.starts_with('f')).map(|(_, p)| p.id).collect();
+        assert_eq!(floors, FLOOR_PAGES.iter().map(|p| p.id).collect::<Vec<_>>(), "run {run}: floor pages out of order");
+        for (n, p) in &book {
+            match game::level::scp::scp_for_level(run, *n) {
+                Some(k) => assert_eq!(p.id, k, "run {run} L{n}"),
+                None if *n == LAST_LEVEL => assert_eq!(p.id, "last"),
+                None => assert!(p.id.starts_with('f'), "run {run} L{n}: {}", p.id),
+            }
+        }
+        assert!(ANOMALY_PAGES.iter().all(|a| ids.contains(a.id)));
+        assert!(page_for_level(run, LAST_LEVEL + 1).is_none());
+    }
+}
+
+/// Taking her page: it goes into the notebook and the journal (opened on
+/// it), its last line stays at the top of the screen, it is gone from the
+/// bedroll and the prompt with it; it stays taken on a retry and through a
+/// save and a Continue, and the journal shows a torn edge for a floor passed
+/// without taking hers.
+#[test]
+fn taking_her_page() {
+    let mut g = new_game();
+    g.run_seed = 4242;
+    g.init_level(3);
+    g.state = "playing".into();
+    let id = g.story_page().expect("a page on level 3").id;
+    let camp = g.story.camp.clone().expect("a camp");
+    assert!(camp.page.as_ref().is_some_and(|o| o.visible()) && !camp.page_taken);
+    // standing at the camp, the prompt is hers
+    g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+    g.update_hud(1.0 / 60.0);
+    assert_eq!(g.ui.prompt.text, "[E] TAKE HER PAGE");
+    g.try_interact();
+    assert!(g.notebook.contains(id), "the page is in the notebook");
+    let p = game::story::notebook::page(id).unwrap();
+    assert_eq!(g.thread, p.thread);
+    assert!(g.ui.objective.text.contains(p.thread), "the thread shows: {:?}", g.ui.objective.text);
+    assert!(!g.story.camp.as_ref().unwrap().page.as_ref().unwrap().visible(), "the page left the bedroll");
+    g.update_hud(1.0 / 60.0);
+    assert_eq!(g.ui.prompt.text, "", "nothing left to take");
+    // the journal opens on it; levels 1 and 2 were passed without hers
+    g.toggle_journal();
+    assert!(g.ui.journal_entry_title.text.starts_with("HER NOTEBOOK"), "{}", g.ui.journal_entry_title.text);
+    assert_eq!(g.ui.journal_entry_body.text, p.body);
+    let ids = g.journal_entries_in_order();
+    assert_eq!(&ids[1..4], &[-101, -102, -103], "{ids:?}");
+    g.journal_cursor = 1.0;
+    g.journal_render();
+    assert_eq!(g.ui.journal_entry_body.text, "A torn edge, where a page was.");
+    g.toggle_journal();
+    // a retry: the page stays taken
+    g.restart();
+    let c = g.story.camp.as_ref().unwrap();
+    assert!(c.page_taken && !c.page.as_ref().unwrap().visible(), "the retry put her page back");
+    assert!(g.ui.objective.text.contains(p.thread));
+    // a save and a Continue
+    g.save_game();
+    g.notebook.clear();
+    g.thread.clear();
+    g.continue_game();
+    assert!(g.notebook.contains(id) && g.thread == p.thread, "Continue lost the notebook");
+    assert!(g.story.camp.as_ref().unwrap().page_taken);
+    // a new game starts an empty notebook
+    g.launch_flags = "nosound&seed=4242".into();
+    g.start_new_game();
+    assert!(g.notebook.is_empty() && g.thread.is_empty() && g.ui.objective.text.is_empty());
+}

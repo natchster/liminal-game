@@ -338,7 +338,7 @@ fn playing_state(g: &mut Game) {
     g.exit_data = Some(game::base::records::ExitData { pos: Vec3::new(14.0, 0.0, -20.0), ..Default::default() });
     g.ui.level.set_text("LEVEL 3");
     g.ui.seed_tag.set_text("SEED 0x1a2b3c4d  ·  WET");
-    g.ui.objective.set_text("STAY OUT OF THE DARK");
+    g.ui.objective.set_text("\u{201c}Folded twice, so I know it's mine.\u{201d}");
     g.ui.weather_tint.add_class("wet");
     g.ui.vignette.set_opacity(0.35);
     g.lore_archivist_shown = true;

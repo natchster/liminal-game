@@ -33,6 +33,10 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **Creature behaviour**: rules that are learnable by playing, never told.
 - **Torn notes**: survivors' fragments (`ui/lore.rs`), which hint and never
   explain; an anomaly's notes lie only on its level.
+- **Her notebook**: one page at M.'s camp on each floor down to level 13
+  (`story/notebook.rs`), which hints as a survivor would and never explains.
+  The last line of the last page you took stays at the top of the screen
+  (the *thread*): a line she wrote, never an instruction.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
 
@@ -150,6 +154,21 @@ Someone came this way before you, and you can follow her down.
   still burning (it lights its corner, and light draws Smilers), empty
   bottles, a count of days scratched on the wall, and what she could spare:
   almond water, and from level 3 a battery.
+- **Her notebook.** At each camp lies one page torn from it, for that floor:
+  thirteen in all. Eight follow her down the ordinary floors in turn (which
+  game level each lands on depends on where the run's anomalies fall, so no
+  page names a zone or a level); each anomaly's floor has its own page (the
+  Stairwell's and the Loop's are written on the floor whose door leads in,
+  before she went through); the last lies at **the last camp, on level 13**,
+  the first floor below every anomaly. Take it (E) and it is in the journal
+  (J), in the order of the descent, a torn edge for each floor whose page you
+  left; its last line stays with you on screen.
+- What the pages let you work out, and never say: E. went in through the
+  wall at the back of a storage room (the loose note *Day 1* is his); she
+  counts sleeps and calls them days (the tallies at her camps); the
+  kitchen in the Borrowed House was theirs; he went into the Loop and she
+  thinks he is still going round. Whether the man with no face in the Loop
+  is E. is never said, and must stay unsaid.
 - Her trail and her camp are part of the place, the same on every visit;
   they are where they are because of where she went (`crates/game/src/story/`).
 
@@ -341,6 +360,8 @@ plaque that says STAIRS. Behind it:
   other way.
 - **Lore notes** are torn pages left by those who came before: Elias, M., the
   field surveys, the Stairwell logs. Press J to read them.
+- **Her pages** are at her camps, one a floor; the journal keeps them first,
+  in the order she wrote them.
 - **Crying** out loud is desperate. Something answers.
 
 ## The sound of the place

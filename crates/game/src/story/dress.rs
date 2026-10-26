@@ -80,7 +80,81 @@ impl Game {
             self.camp_pickup(false, bx, bz, r);
         }
         let at = v3(face.x + normal.x * 0.6, 0, face.z + normal.z * 0.6);
-        Camp { tile: plan.camp, wall: plan.wall, at, normal, lamp: Some(lamp), light: Some(light), lit: true }
+        Camp {
+            tile: plan.camp,
+            wall: plan.wall,
+            at,
+            normal,
+            lamp: Some(lamp),
+            light: Some(light),
+            lit: true,
+            page: None,
+            page_id: None,
+            page_taken: false,
+        }
+    }
+
+    /// Her page for this floor, torn from the notebook, lying on the bedroll.
+    pub(crate) fn dress_page(&mut self, camp: &Camp, r: &mut SplitMix64) -> Obj {
+        let tex = canvas_tex_opt(128, 166, false, |ctx, w, h| {
+            ctx.set_fill_style("#e8e1cf");
+            ctx.fill_rect(0, 0, w, h);
+            // ruled lines and the margin
+            ctx.set_stroke_style("rgba(90,110,150,0.35)");
+            ctx.set_line_width(1);
+            let mut y = 22.0;
+            while y < h - 6.0 {
+                ctx.begin_path();
+                ctx.move_to(0, y);
+                ctx.line_to(w, y);
+                ctx.stroke();
+                y += 11.0;
+            }
+            ctx.set_stroke_style("rgba(170,70,60,0.35)");
+            ctx.begin_path();
+            ctx.move_to(18, 0);
+            ctx.line_to(18, h);
+            ctx.stroke();
+            // her hand, in pencil: a wavering line on each rule
+            ctx.set_stroke_style("rgba(45,42,40,0.75)");
+            ctx.set_line_width(1.6);
+            for row in 0..12 {
+                let y = 20.0 + row as f64 * 11.0;
+                let end = if row % 5 == 4 { 60.0 } else { 112.0 - (row * 7 % 13) as f64 };
+                ctx.begin_path();
+                ctx.move_to(22, y);
+                let mut x = 22.0;
+                while x < end {
+                    x += 3.0;
+                    ctx.line_to(x, y - 2.0 - 1.5 * ((x * 0.9 + row as f64).sin()));
+                }
+                ctx.stroke();
+            }
+            // the torn edge along the top
+            ctx.set_fill_style("rgba(20,18,14,0.9)");
+            ctx.begin_path();
+            ctx.move_to(0, 0);
+            let mut x = 0.0;
+            while x <= w {
+                ctx.line_to(x, 2.0 + 2.5 * ((x * 1.7).sin() + 0.6 * (x * 0.43).cos()).abs());
+                x += 4.0;
+            }
+            ctx.line_to(w, 0);
+            ctx.close_path();
+            ctx.fill();
+        });
+        let geo = plane_geo!(0.16, 0.21);
+        geo.rotate_x(-PI / 2.0);
+        let m = mesh(&geo, lambert!({ map: tex, emissive: 0x0a0907 }));
+        // on the bedroll, by the pillow, turned to whoever comes to it
+        let (lx, lz) = (r.range(-0.05, 0.25), 0.56 + r.range(-0.05, 0.05));
+        let n = camp.normal;
+        let face = v3(camp.at.x - n.x * 0.6, 0, camp.at.z - n.z * 0.6);
+        m.position().set(face.x + lx * n.z + lz * n.x, 0.095, face.z - lx * n.x + lz * n.z);
+        m.rotation().y = n.x.atan2(n.z) + PI + r.range(-0.3, 0.3);
+        m.user().gameplay = true;
+        self.world.add(&m);
+        m
     }
 
     /// A pack like the ones people leave: upright body, straps, handle, pocket.

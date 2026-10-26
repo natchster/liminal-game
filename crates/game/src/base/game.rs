@@ -328,6 +328,12 @@ pub struct Game {
     pub amb_anchors: Vec<(&'static str, Vec3)>,
     /// The story layer of this level: her camp, her walk and her sheets (`story`)
     pub story: crate::story::StoryLevel,
+    /// Her pages taken this run (`story::notebook` ids), and the last line
+    /// read (shown at the top of the screen)
+    pub notebook: std::collections::BTreeSet<String>,
+    pub thread: String,
+    /// The journal entry to open on next (the page just taken)
+    pub journal_newest: Option<i64>,
     /// Seconds to the exit's next call (`ambient::amb_exit`), and how many it
     /// has made on this level (its jitter's counter)
     pub exit_call_t: f64,
@@ -788,6 +794,9 @@ impl Game {
             biased_ambient: vec![],
             amb_signatures: vec![],
             story: Default::default(),
+            notebook: Default::default(),
+            thread: String::new(),
+            journal_newest: None,
             exit_call_t: 0.0,
             exit_calls: 0,
             amb_anchors: vec![],

@@ -20,6 +20,7 @@
 //! and from level `GAP_FROM` one stretch after the camp has lost its sheets
 //! (two from level 7). The sheets get sparser as you go down, as she did.
 pub mod dress;
+pub mod notebook;
 
 use crate::prelude::*;
 
@@ -56,6 +57,10 @@ pub struct Camp {
     pub light: Option<Obj>,
     /// Whether her lamp still burns
     pub lit: bool,
+    /// Her page here (`notebook`), lying on the bedroll, and whether it was taken
+    pub page: Option<Obj>,
+    pub page_id: Option<&'static str>,
+    pub page_taken: bool,
 }
 
 /// One of her sheets.
@@ -313,6 +318,11 @@ impl Game {
         Some(StoryPlan { camp, wall, walk, camp_step, marks, gaps })
     }
 
+    /// Her page on this level, if she left one (`notebook::page_on`).
+    pub fn story_page(&self) -> Option<&'static notebook::Page> {
+        notebook::page_on(self.run_seed, self.level_num, self.level_scp.as_deref())
+    }
+
     /// Dress the level with her camp and her trail (`plan_story`). Called by
     /// the level build after the themed placers.
     pub fn place_story(&mut self) {
@@ -324,7 +334,19 @@ impl Game {
         let Some(plan) = self.plan_story() else { return };
         let c0 = self.world.child_count();
         let mut r = SplitMix64::new(self.current_seed, STORY_SALT ^ 0xCA4F);
-        let camp = self.dress_camp(&plan, &mut r);
+        let mut camp = self.dress_camp(&plan, &mut r);
+        if let Some(p) = self.story_page() {
+            camp.page = Some(self.dress_page(&camp, &mut r));
+            camp.page_id = Some(p.id);
+            let at = v3(camp.at.x, EYE, camp.at.z);
+            self.interact(
+                at,
+                1.8,
+                "[E] TAKE HER PAGE",
+                |g| g.story.camp.as_ref().is_some_and(|c| c.page.is_some() && !c.page_taken),
+                |g| g.take_page(),
+            );
+        }
         let mut trail = vec![];
         let sheet = self.trail_sheet_parts();
         for &(step, x, z, yaw) in &plan.marks {
@@ -340,5 +362,49 @@ impl Game {
                 o.update_world_matrix(true, true);
             }
         }
+    }
+}
+
+impl Game {
+    /// Fit the story layer of a level just built to the run's progress: her
+    /// page here, if it was already taken (a retry, a Continue), is gone.
+    pub fn fit_story(&mut self) {
+        let taken = self.story.camp.as_ref().and_then(|c| c.page_id).is_some_and(|id| self.notebook.contains(id));
+        if let Some(c) = self.story.camp.as_mut().filter(|_| taken) {
+            c.page_taken = true;
+            if let Some(o) = &c.page {
+                o.set_visible(false);
+            }
+        }
+        self.show_thread();
+    }
+
+    /// Take her page at the camp: it goes into the notebook (J), and its
+    /// last line stays with you (`thread`).
+    pub fn take_page(&mut self) {
+        let Some(c) = self.story.camp.as_mut() else { return };
+        let Some(id) = c.page_id.filter(|_| !c.page_taken) else { return };
+        c.page_taken = true;
+        if let Some(o) = &c.page {
+            o.set_visible(false);
+        }
+        self.notebook.insert(id.to_string());
+        if let Some(p) = notebook::page(id) {
+            self.thread = p.thread.to_string();
+        }
+        self.show_thread();
+        self.sfx_paper_rustle();
+        self.sfx_page_flip();
+        self.show_msg("HER PAGE — [J] TO READ", 2.6);
+        self.journal_newest = Some(crate::ui::hud::notebook_journal_id(self.level_num));
+        self.director_note("story:page");
+        self.save_game();
+    }
+
+    /// The thread: the last line of the last page of hers you read, at the
+    /// top of the screen (nothing before the first).
+    pub fn show_thread(&mut self) {
+        let t = if self.thread.is_empty() { String::new() } else { format!("\u{201c}{}\u{201d}", self.thread) };
+        self.ui.objective.set_text(&t);
     }
 }
