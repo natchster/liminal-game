@@ -38,6 +38,7 @@ impl Game {
         // the native stream, so every frame after it stays where it was
         // (CLAUDE.md invariant 1)
         let _ = crate::base::rng::with_native(|| self.pick_text("overlaySubs"));
+        self.load_settings();
         self.hide_overlay();
         self.open_menu(crate::ui::menu::Screen::Title);
     }

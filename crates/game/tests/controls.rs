@@ -180,7 +180,7 @@ fn escape_pauses_and_resumes() {
     release(&mut g, "Escape");
     assert_eq!(g.state, "paused");
     assert_eq!(g.want_pointer_lock.take(), Some(false));
-    assert!(!g.ui.overlay.has_class("hidden"), "no pause screen");
+    assert_eq!(g.live_menu(), Some(game::ui::menu::Screen::Pause), "no pause list");
     // the window answers: the pointer is free
     g.pointer_lock_changed(false);
     assert_eq!(g.state, "paused");
@@ -188,10 +188,17 @@ fn escape_pauses_and_resumes() {
     release(&mut g, "Escape");
     assert_eq!(g.state, "playing", "Escape did not resume");
     assert_eq!(g.want_pointer_lock.take(), Some(true));
-    assert!(g.ui.overlay.has_class("hidden"));
-    // losing the pointer (focus) still pauses
-    g.pointer_lock_changed(false);
+    assert!(g.live_menu().is_none());
+    g.pointer_lock_changed(true);
+    // losing the window pauses; unless Settings says to keep the world running
+    g.blur();
     assert_eq!(g.state, "paused");
+    g.resume();
+    g.pointer_lock_changed(true);
+    g.settings.focus_pause = false;
+    g.blur();
+    g.pointer_lock_changed(false); // (the window reports it once more)
+    assert_eq!(g.state, "playing", "the window was left and the world stopped, with Settings saying not to");
 }
 
 #[test]

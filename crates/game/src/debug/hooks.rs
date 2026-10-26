@@ -437,4 +437,27 @@ impl Game {
             }
         }
     }
+
+    /// Headless `--screen NAME`: put a list up over the level as it is (the
+    /// pause list, the question before leaving, Settings with the
+    /// brightness line chosen, Controls, or the title)
+    pub fn debug_screen(&mut self, name: &str) {
+        use crate::ui::menu::Screen;
+        if name == "title" {
+            self.state = "menu".into();
+            self.open_menu(Screen::Title);
+            return;
+        }
+        self.pause();
+        match name {
+            "leave" => self.open_menu(Screen::ConfirmLeave),
+            "settings" => self.open_menu(Screen::Settings),
+            "brightness" => {
+                self.open_menu(Screen::Settings);
+                self.menu.sel = self.menu.items.iter().position(|i| i.id == "set:brightness").unwrap_or(0);
+            }
+            "controls" => self.open_menu(Screen::Controls),
+            _ => {}
+        }
+    }
 }

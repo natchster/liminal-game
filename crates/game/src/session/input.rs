@@ -115,7 +115,7 @@ impl Act {
     }
 }
 
-/// The actions bound to `code`
+/// The actions `code` is bound to by default
 pub fn acts_for(code: &str) -> impl Iterator<Item = Act> + '_ {
     BINDINGS.iter().filter(move |b| b.keys.contains(&code)).map(|b| b.act)
 }
@@ -149,6 +149,11 @@ pub struct InputState {
     /// seconds an E pressed with nothing in reach still waits for something
     /// to come into reach (running past a door, E a moment early)
     pub interact_buffer: f64,
+    /// running by a press of the run key (Settings: "Press to run"), until
+    /// you stop or the run is spent
+    pub run_latched: bool,
+    /// the window has just lost its focus (the pointer goes next)
+    pub blurred: bool,
 }
 
 /// How long an early E waits (s)
@@ -158,13 +163,17 @@ pub const INTERACT_BUFFER: f64 = 0.15;
 pub const SPRINT_BACK_AT: f64 = 30.0;
 
 impl Game {
-    /// Whether any key of `act` is held
+    /// Whether any key of `act` is held (the keys as Settings bind them)
     pub fn held(&self, act: Act) -> bool {
-        act.keys().iter().any(|k| self.keys.contains(*k))
+        self.settings.keys(act).iter().any(|k| self.keys.contains(k))
     }
-    /// The run key is held (or the touch stick's)
+    /// The actions `code` is bound to
+    pub fn acts_of(&self, code: &str) -> Vec<Act> {
+        self.settings.binds.iter().filter(|(_, k)| k.iter().any(|k| k == code)).map(|(a, _)| *a).collect()
+    }
+    /// The run key is held (or latched by a press, or the touch stick's)
     pub fn wants_sprint(&self) -> bool {
-        self.held(Act::Sprint) || self.touch_input.sprint
+        self.held(Act::Sprint) || self.input.run_latched || self.touch_input.sprint
     }
     /// Crouching: Ctrl held, C latched, or the touch button
     pub fn wants_crouch(&self) -> bool {
@@ -177,6 +186,7 @@ impl Game {
     pub fn sprint_ready(&mut self) -> bool {
         if self.player.stamina <= 0.5 {
             self.input.winded = true;
+            self.input.run_latched = false;
         } else if self.player.stamina >= SPRINT_BACK_AT {
             self.input.winded = false;
         }
@@ -187,8 +197,13 @@ impl Game {
         match act {
             Act::Mute => {
                 let m = !self.muted;
-                self.set_muted(m); // master gain 0 when muted, 0.9 otherwise
+                self.set_muted(m);
                 self.show_msg(if m { "Sound off" } else { "Sound on" }, 1.0);
+            }
+            Act::Sprint => {
+                if self.settings.run_toggle && self.state == "playing" {
+                    self.input.run_latched = !self.input.run_latched;
+                }
             }
             Act::Interact => {
                 let ordinary = self.state == "playing" && !self.in_stairwell && !self.in_loop;
@@ -215,7 +230,7 @@ impl Game {
                     self.input.crouch_latched = !self.input.crouch_latched;
                 }
             }
-            Act::Forward | Act::Back | Act::Left | Act::Right | Act::Sprint | Act::Crouch => {}
+            Act::Forward | Act::Back | Act::Left | Act::Right | Act::Crouch => {}
         }
     }
     /// Per frame while playing: an early E lands on what comes into reach.
@@ -247,24 +262,29 @@ impl Game {
             self.resume();
         }
     }
-    /// Stop the world and show the pause screen (the pointer is released)
+    /// Stop the world (nothing moves, the sound drops low) and show the
+    /// pause list over the frozen frame; the pointer is released
     pub fn pause(&mut self) {
         if self.state != "playing" {
             return;
         }
         self.state = "paused".into();
         self.want_pointer_lock = Some(false);
-        let sub = self.pick_text("pauseSub");
-        self.show_overlay("PAUSED", &sub, "CLICK TO RESUME");
+        self.input.run_latched = false;
+        self.open_menu(crate::ui::menu::Screen::Pause);
+        self.menu.note = self.pick_text("pauseSub");
+        self.apply_master_gain();
     }
-    /// Back into the world from the pause screen
+    /// Back into the world from the pause list
     pub fn resume(&mut self) {
         if self.state != "paused" {
             return;
         }
         self.audio_init();
         self.state = "playing".into();
+        self.close_menu();
         self.hide_overlay();
+        self.apply_master_gain();
         self.want_pointer_lock = Some(true);
     }
 }

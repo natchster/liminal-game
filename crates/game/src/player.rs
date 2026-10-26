@@ -96,8 +96,7 @@ impl Game {
                 _ => {}
             }
         }
-        let acts: Vec<_> = crate::session::input::acts_for(code).collect();
-        for a in acts {
+        for a in self.acts_of(code) {
             self.on_action(a);
         }
     }
@@ -623,6 +622,10 @@ impl Game {
         if self.key("KeyD") || (self.key("ArrowRight") && !self.journal_open) {
             mx += 1.0;
         }
+        // a run by a press lasts until you stop
+        if mx == 0.0 && mz == 0.0 && !self.touch_input.active {
+            self.input.run_latched = false;
+        }
         // crouch: Ctrl held, or C until C again; running stands you up
         let run_key = self.wants_sprint() && (mx != 0.0 || mz != 0.0);
         if run_key && self.input.crouch_latched && !self.held(Act::Crouch) {
@@ -762,8 +765,12 @@ impl Game {
         self.player.eye_h = lerp(self.player.eye_h, eye_target, eye_k);
 
         // camera
-        let bob_y = self.player.bob_phase.sin().abs() * self.player.bob_amp;
-        let insanity_shake = if self.player.sanity < 40.0 { rand2(-1.0, 1.0) * (1.0 - self.player.sanity / 40.0) * 0.02 } else { 0.0 };
+        // Settings: head bob and camera shake scale (the draws stay, so the
+        // per-frame stream does not depend on them)
+        let (bob_k, shake_k) = (self.settings.bob, if self.settings.shake { 1.0 } else { 0.0 });
+        let bob_y = self.player.bob_phase.sin().abs() * self.player.bob_amp * bob_k;
+        let insanity_shake =
+            if self.player.sanity < 40.0 { rand2(-1.0, 1.0) * (1.0 - self.player.sanity / 40.0) * 0.02 * shake_k } else { 0.0 };
         // R135/R136/R144 idle breathing: weather-scaled amp+freq; at low sanity
         // the breath quickens and gets shallower.
         let idle_t = self.clock_ms() / 1000.0;
@@ -781,8 +788,8 @@ impl Game {
             * self.descent_amp_boost();
         let cam = self.camera.clone();
         {
-            let cx = self.player.pos.x + (self.player.bob_phase * 0.5).cos() * self.player.bob_amp * 0.4;
-            let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.06 } else { 0.0 };
+            let cx = self.player.pos.x + (self.player.bob_phase * 0.5).cos() * self.player.bob_amp * 0.4 * bob_k;
+            let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.06 * shake_k } else { 0.0 };
             let cy = self.player.eye_h + bob_y + idle_breath + shake + insanity_shake;
             cam.position().set(cx, cy, self.player.pos.z);
         }
@@ -792,7 +799,7 @@ impl Game {
         if self.camera_dip_t > 0.0 {
             self.camera_dip_t -= dt;
             let k = (self.camera_dip_t / 0.35).max(0.0);
-            pitch_dip = -0.22 * k * k; // 12.6° max downward
+            pitch_dip = -0.22 * k * k * shake_k; // 12.6° max downward
         }
         // R136/R137/R138/R146 crouch tilt: weather magnitude + sanity boost
         let crouch_tilt_mag_target = wpick(crouch_tilt_by_weather, wk);
@@ -829,13 +836,15 @@ impl Game {
             };
         let rz = cam.rot().z;
         cam.rotation().z = lerp(rz, roll_t, dt * 8.0);
-        let base_fov = if sprinting && moving {
-            81.0
-        } else if self.player.crouch {
-            68.0
-        } else {
-            74.0
-        };
+        // Settings' field of view is the walking one; running widens it by 7°, crouching narrows it by 6°
+        let base_fov = self.settings.fov
+            + if sprinting && moving {
+                7.0
+            } else if self.player.crouch {
+                -6.0
+            } else {
+                0.0
+            };
         // R238/R239 reality-shift FOV nudge
         let shift_spec_fov = wpick(shift_bend_by_weather, wk);
         let shift_fov_delta = if self.reality_shift_t > 0.0 {

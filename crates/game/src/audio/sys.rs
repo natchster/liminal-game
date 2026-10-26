@@ -121,7 +121,7 @@ impl Game {
 
     fn audio_build(&mut self, ac: AudioContext) {
         let master = ac.create_gain();
-        master.gain().set_value(if self.muted { 0.0 } else { 0.9 });
+        master.gain().set_value(if self.muted { 0.0 } else { 0.9 * self.settings.volume });
         master.connect(&ac.destination());
 
         let sr = ac.sample_rate();
@@ -380,9 +380,7 @@ impl Game {
     /// (0 when muted, otherwise 0.9).
     pub fn set_muted(&mut self, m: bool) {
         self.muted = m;
-        if let Some(master) = &self.master {
-            master.gain().set_value(if m { 0.0 } else { 0.9 });
-        }
+        self.apply_master_gain();
     }
 
     /// (a cheap handle clone, so callers can keep using `g`)

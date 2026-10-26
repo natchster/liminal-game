@@ -1378,7 +1378,7 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
         }
     }
     if let Some(gc) = g.grain_canvas.clone() {
-        let op = opacity_of(&d.grain, 0.10);
+        let op = opacity_of(&d.grain, 0.10) * if g.settings.grain { 1.0 } else { 0.0 };
         if f.ui.grain_id == 0 {
             f.ui.next_id += 1;
             f.ui.grain_id = 0x4855_4400 + f.ui.next_id;
@@ -1397,9 +1397,10 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             f.background(&bg, op, LayerBlend::Normal);
         }
     }
-    // ---- z 10: #overlay, then the menus (`ui/screens.rs`)
+    // ---- z 10: #overlay, then the menus (`ui/screens.rs`), then Settings' brightness over everything
     paint_overlay(&mut f, g);
     crate::ui::screens::paint_menu(&mut f, g);
+    crate::ui::screens::paint_brightness(&mut f, g);
     let out = std::mem::take(&mut f.out);
     drop(f);
     g.hud_ui = ui;
@@ -1442,8 +1443,8 @@ fn paint_vignette(grad: &Radial, sh: &Shadow, cm: ColorMatrix, w: f64, h: f64) -
 
 /// #hud and its children (z-index 4 stacking context)
 fn paint_hud(f: &mut Frame, g: &Game) {
-    // the title is the place alone
-    if g.state == "menu" {
+    // the title is the place alone, and the pause list stands over it alone
+    if g.state == "menu" || g.state == "paused" {
         return;
     }
     let d = &g.ui;

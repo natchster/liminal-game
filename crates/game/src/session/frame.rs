@@ -132,8 +132,10 @@ impl Game {
         if !self.pointer_locked {
             return;
         }
-        self.player.yaw -= dx * 0.0022;
-        self.player.pitch = clamp(self.player.pitch - dy * 0.0022, -1.45, 1.45);
+        let k = 0.0022 * self.settings.look;
+        let dy = if self.settings.invert_y { -dy } else { dy };
+        self.player.yaw -= dx * k;
+        self.player.pitch = clamp(self.player.pitch - dy * k, -1.45, 1.45);
         self.mouse_dx += dx;
         self.mouse_dy += dy;
     }
@@ -152,8 +154,16 @@ impl Game {
     /// hit test): a menu line ('menu:continue', …), 'journal-prev',
     /// 'journal-next', 'overlay' (anywhere on a card) or '' (the canvas).
     pub fn click(&mut self, target: &str) {
-        if target.starts_with("menu:") {
-            return self.menu_choose(target);
+        if self.live_menu().is_some() {
+            // Controls waiting for a key: a click is the left button
+            if let Some(a) = self.menu.capture.take() {
+                self.settings.rebind(a, "Mouse0");
+                self.save_settings();
+                return self.refresh_menu();
+            }
+            if self.menu.items.iter().any(|i| i.id == target) {
+                return self.menu_choose(target);
+            }
         }
         match target {
             "journal-prev" => self.journal_prev(),
@@ -177,9 +187,13 @@ impl Game {
     }
     /// Pointer lock was gained or lost.
     pub fn pointer_lock_changed(&mut self, locked: bool) {
-        self.pointer_locked = locked;
-        if !locked && self.state == "playing" {
-            if self.journal_open {
+        let was = std::mem::replace(&mut self.pointer_locked, locked);
+        let blurred = std::mem::take(&mut self.input.blurred);
+        // (only a change counts: losing focus releases the pointer here and
+        // the window reports it once more)
+        if !locked && was && self.state == "playing" {
+            // (Settings can leave the world running when the window is left)
+            if self.journal_open || (blurred && !self.settings.focus_pause) {
                 return;
             }
             self.pause();
@@ -189,6 +203,8 @@ impl Game {
     pub fn blur(&mut self) {
         self.keys.clear();
         self.input.crouch_latched = false;
+        self.input.run_latched = false;
+        self.input.blurred = true;
         if self.pointer_locked {
             self.pointer_lock_changed(false);
         }

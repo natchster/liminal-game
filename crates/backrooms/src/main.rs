@@ -65,6 +65,9 @@ struct Options {
     showcase: Option<(String, f64)>,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
+    /// `--screen pause|leave|settings|brightness|controls|title`: with
+    /// `--play`, that list is up for the last frames (`Game::debug_screen`)
+    screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
     /// `--record FILE`: play normally and record the session (inputs, frame
@@ -99,6 +102,7 @@ fn parse_args() -> Options {
         dump_level: None,
         levels: vec![],
         showcase: None,
+        screen: None,
         death: false,
         views: false,
         fresh: false,
@@ -127,6 +131,7 @@ fn parse_args() -> Options {
             "--seed" => o.seed = next(&mut i).parse().ok(),
             "--play" => o.play = true,
             "--death" => o.death = true,
+            "--screen" => o.screen = Some(next(&mut i)),
             "--showcase" => {
                 let v = next(&mut i);
                 let mut it = v.splitn(2, ':');
@@ -515,6 +520,9 @@ fn screenshot(o: &Options, path: &str) {
                 g.director.killer = g.entities.iter().position(|e| &e.kind == kind);
                 g.on_death("entity");
             }
+        }
+        if let Some(s) = o.screen.as_deref().filter(|_| i + 10 == o.frames) {
+            g.debug_screen(s);
         }
         g.frame(1.0 / 60.0);
         let cb = draw(&mut g, &mut r, &target, w, h);

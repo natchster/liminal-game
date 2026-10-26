@@ -44,7 +44,7 @@ fn the_title_is_the_place_and_a_short_list() {
     assert_eq!(g.menu.screen, Some(Screen::Title));
     assert!(g.ui.overlay.has_class("hidden"), "the old card is up over the title");
     // a fresh install: no Continue
-    assert_eq!(labels(&g), ["New descent", "Quit"]);
+    assert_eq!(labels(&g), ["New descent", "Settings", "Quit"]);
     // the view is alive: the camera turns slowly over a few seconds
     frame(&mut g, 1);
     let yaw0 = g.camera.rot().y;
@@ -61,7 +61,7 @@ fn the_title_is_the_place_and_a_short_list() {
     assert_eq!(g.menu.sel, 1);
     press(&mut g, "KeyW");
     press(&mut g, "KeyW");
-    assert_eq!(g.menu.sel, 1, "the list does not wrap round (up from the top is the bottom)");
+    assert_eq!(g.menu.sel, 2, "the list does not wrap round (up from the top is the bottom)");
     press(&mut g, "Enter");
     assert!(g.want_quit, "Quit did not quit");
 }
@@ -92,20 +92,20 @@ fn a_new_descent_over_a_save_asks_first() {
     let run = g.run_seed;
     g.state = "menu".into();
     g.open_menu(Screen::Title);
-    assert_eq!(labels(&g), ["Continue", "New descent", "Quit"]);
+    assert_eq!(labels(&g), ["Continue", "New descent", "Settings", "Quit"]);
     assert_eq!(g.menu.items[0].detail, "level 1");
     let her = game::story::notebook::notebook(run).into_iter().find(|(_, p)| p.id == "f1").map(|(_, p)| p.thread).unwrap();
     assert!(g.menu.her_line.contains(her), "her last line is not on the title: {:?}", g.menu.her_line);
-    // New descent asks; Escape and Back both go back
+    // New descent asks, on its safe answer; Escape and Back both go back
     press(&mut g, "ArrowDown");
     press(&mut g, "Enter");
     assert_eq!(g.menu.screen, Some(Screen::ConfirmNew));
+    assert_eq!(g.menu.items[g.menu.sel].id, "menu:back", "the question opened on its unsafe answer");
     assert!(g.menu.note.contains("level 1"), "{}", g.menu.note);
     press(&mut g, "Escape");
     assert_eq!(g.menu.screen, Some(Screen::Title));
     press(&mut g, "ArrowDown");
     press(&mut g, "Enter");
-    press(&mut g, "ArrowDown");
     press(&mut g, "Enter"); // Back
     assert_eq!(g.menu.screen, Some(Screen::Title));
     assert!(g.load_game().is_some(), "Back lost the save");
@@ -113,5 +113,79 @@ fn a_new_descent_over_a_save_asks_first() {
     press(&mut g, "Enter");
     assert_eq!(g.state, "playing");
     assert_eq!(g.run_seed, run);
+    assert!(g.notebook.contains("f1"));
+}
+
+#[test]
+fn the_pause_stops_the_world_and_leads_to_settings_and_back() {
+    let mut g = new_game();
+    press(&mut g, "Enter"); // New descent
+    frame(&mut g, 30);
+    // Escape: paused; nothing moves
+    press(&mut g, "Escape");
+    assert_eq!(g.state, "paused");
+    assert_eq!(g.live_menu(), Some(Screen::Pause));
+    assert_eq!(labels(&g), ["Resume", "Settings", "Controls", "Leave for the title"]);
+    let (t, pos) = (g.director.t, g.player.pos);
+    let ents: Vec<_> = g.entities.iter().map(|e| e.pos()).collect();
+    g.key_down("KeyW", false); // (in a list, W moves the choice up)
+    frame(&mut g, 120);
+    g.key_up("KeyW");
+    g.menu.sel = 0;
+    assert_eq!((g.director.t, g.player.pos), (t, pos), "the world moved while paused");
+    assert!(g.entities.iter().map(|e| e.pos()).eq(ents.into_iter()), "a creature moved while paused");
+    let _ = g.hud_layers(W, H, 1.0);
+    assert!(!g.hud_ui.painted.contains(&"stamina"), "the HUD is drawn over the pause list");
+    // Settings from the pause list, a change, and back to the pause list
+    press(&mut g, "ArrowDown");
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::Settings));
+    press(&mut g, "ArrowRight"); // look speed
+    assert!((g.settings.look - 1.05).abs() < 1e-9);
+    assert_eq!(g.menu.items[0].detail, "1.05", "the line did not show the new value");
+    assert!(g.storage_get(game::session::settings::SETTINGS_KEY).is_some(), "the change was not kept");
+    // the brightness line shows its mark
+    g.menu.sel = g.menu.items.iter().position(|i| i.id == "set:brightness").unwrap();
+    let _ = g.hud_layers(W, H, 1.0);
+    assert!(g.hud_ui.painted.contains(&"menu-mark"));
+    press(&mut g, "ArrowRight");
+    let _ = g.hud_layers(W, H, 1.0);
+    assert!(g.hud_ui.painted.contains(&"fill") && g.settings.brightness == 1);
+    press(&mut g, "Escape");
+    assert_eq!(g.live_menu(), Some(Screen::Pause), "Escape in Settings did not go back to the pause list");
+    // Controls: Enter on a line, then a key; it is that action's now
+    press(&mut g, "ArrowDown");
+    press(&mut g, "ArrowDown");
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::Controls));
+    let k = g.menu.items.iter().position(|i| i.id == "bind:drink").unwrap();
+    g.menu.sel = k;
+    press(&mut g, "Enter");
+    assert_eq!(g.menu.items[k].detail, "Press a key…");
+    press(&mut g, "KeyX");
+    assert_eq!(g.menu.items[k].detail, "X / 1");
+    assert_eq!(g.settings.keys(game::session::input::Act::Drink)[0], "KeyX");
+    press(&mut g, "Escape");
+    press(&mut g, "Escape"); // the pause list: Escape resumes
+    assert_eq!(g.state, "playing");
+    assert!(g.live_menu().is_none());
+}
+
+#[test]
+fn leaving_for_the_title_keeps_the_notebook() {
+    let mut g = new_game();
+    press(&mut g, "Enter");
+    frame(&mut g, 10);
+    g.notebook.insert("f1".into());
+    press(&mut g, "Escape");
+    g.menu_choose("menu:leave");
+    assert_eq!(g.live_menu(), Some(Screen::ConfirmLeave));
+    assert_eq!(g.menu.items[g.menu.sel].id, "menu:back");
+    g.menu_choose("menu:leave-yes");
+    assert_eq!((g.state.as_str(), g.live_menu()), ("menu", Some(Screen::Title)));
+    assert_eq!(g.menu.items[0].label, "Continue");
+    assert!(g.load_game().expect("saved").notebook.contains(&"f1".to_string()));
+    press(&mut g, "Enter");
+    assert_eq!(g.state, "playing");
     assert!(g.notebook.contains("f1"));
 }

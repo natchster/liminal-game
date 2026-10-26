@@ -73,6 +73,7 @@ slower to run).
 | `--bench FILE --seed S --levels 1,2,3 [--bench-frames N]` | Headless: time each level's build, first frame, and the CPU update and GPU time per frame along a fixed path (used by `cargo xtask bench`) |
 | `--metrics FILE --seed S --levels 1,2,3` | Headless: build the levels as a run would and write their expressive-range measures as JSON (used by `cargo xtask range`) |
 | `--fresh` | Headless modes: ignore the saved settings and progress, and fix the per-frame randomness (the same frame every time) |
+| `--screen NAME` | With `--screenshot --play`: put a list up for the last frames (`pause`, `leave`, `settings`, `brightness`, `controls`, `title`) |
 
 Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 
@@ -94,6 +95,12 @@ Saves go to `~/Library/Application Support/Backrooms/storage.txt`.
 | Esc / P | Pause and resume |
 | F3 | Debug panel |
 | M | Mute |
+
+Settings (from the title or the pause list) change the look speed, invert,
+field of view, head bob, camera shake, film grain, the run key (hold or
+press), volume, brightness and whether leaving the window pauses; Controls
+rebinds any key (Enter on a line, then the key; keys swap). They are kept
+apart from the save.
 
 Everything a run needs is under the left hand with W and Shift held, or on
 the mouse; the table lives in `crates/game/src/session/input.rs` and
