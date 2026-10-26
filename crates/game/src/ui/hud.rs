@@ -48,7 +48,7 @@ pub static EPILOGUE_MEDAL_LINES: [(&str, fn(&Game) -> bool, &str); 5] = [
 ];
 
 /// Pick a fresh line each time so the world feels less repetitive
-pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
+pub static TEXT_POOLS: [(&str, &[&str]); 10] = [
     ("levelSubtitle", &[
         "THE HUM GROWS LOUDER", "DEEPER STILL", "THE WALLS ARE THINNER HERE",
         "SOMETHING WATCHES", "THE LIGHTS ARE DIMMER", "YOU ARE NOT ALONE",
@@ -96,10 +96,6 @@ pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
     ("batterySwap", &[
         "CELL SWAPPED — THE BEAM STEADIES", "CELL SWAPPED — LIGHT AGAIN",
         "CELL SWAPPED — THE FILAMENT CATCHES", "CELL SWAPPED — WARMTH IN THE HOUSING",
-    ]),
-    ("objectives", &[
-        "FIND THE EXIT DOOR", "FIND A WAY DOWN", "FIND THE NEXT LEVEL",
-        "KEEP MOVING", "STAY OUT OF THE DARK", "DO NOT ANSWER THE PHONE",
     ]),
     ("overlaySubs", &[
         "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.",
@@ -1470,7 +1466,7 @@ impl Game {
     }
 
     // ------------------------------------------------------------ per frame
-    /// The meters, counters, compass, toast timer, the
+    /// The meters, counters, the payphone's hint, toast timer, the
     /// interact prompt, then every prop animator and the TV / phone / clock.
     pub fn update_hud(&mut self, dt: f64) {
         let p = self.player.clone();
@@ -1496,30 +1492,18 @@ impl Game {
         }
         self.ui.crouch_ind.toggle_class("on", p.crouch);
 
-        // compass to exit door: arrow rotation is clockwise angle from player-forward
-        if let Some(ex) = &self.exit_data {
-            let dx = ex.pos.x - p.pos.x;
-            let dz = ex.pos.z - p.pos.z;
-            let dist_to_exit = dx.hypot(dz);
-            let (fx_, fz) = (-p.yaw.sin(), -p.yaw.cos());
-            let (rx, rz) = (p.yaw.cos(), -p.yaw.sin());
-            let fwd_c = dx * fx_ + dz * fz;
-            let right_c = dx * rx + dz * rz;
-            let rel = right_c.atan2(fwd_c);
-            self.ui.compass_arrow.set_style("transform", &format!("translate(-50%,-100%) rotate({}rad)", ns(rel)));
-            // fade out at extreme distance so navigation stays a game
-            let mut vis = clamp(1.0 - (dist_to_exit - 6.0) / 40.0, 0.15, 1.0);
-            // R769 phone-answer hint: temporary boost to full opacity + pulse.
-            if let Some(hint_until) = self.phone_data.as_ref().and_then(|ph| ph.f.get("hintUntil").copied()) {
-                if hint_until != 0.0 && self.perf_t < hint_until {
-                    let remaining = hint_until - self.perf_t;
-                    let pulse = 0.7 + 0.3 * (self.perf_t * 4.0).sin();
-                    vis = vis.max(pulse * (remaining / 2.0).min(1.0));
+        // No compass: the way down is found by the place (the door's light
+        // and sound, her trail) or by asking for help. The payphone's hint
+        // (`answer_payphone` sets `hintUntil`) is answered the same way as a
+        // cry for help that is heard: the arrows on the floor.
+        let hint = self.phone_data.as_ref().map(|ph| (ph.f.get("hintUntil").copied().unwrap_or(0.0), ph.f.contains_key("hintShown")));
+        if let Some((until, shown)) = hint {
+            if until != 0.0 && self.perf_t < until && !shown {
+                if let Some(ph) = self.phone_data.as_mut() {
+                    ph.f.insert("hintShown".into(), 1.0);
                 }
+                self.spawn_guide_arrows();
             }
-            self.ui.compass_arrow.set_opacity(vis);
-        } else {
-            self.ui.compass_arrow.set_opacity(0.0);
         }
 
         if self.msg_t > 0.0 {

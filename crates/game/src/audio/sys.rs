@@ -471,6 +471,18 @@ impl Game {
         self.blip(350.0, 0.5, "sine", 0.06, None, 0.0, 0.0);
         self.blip(440.0, 0.5, "sine", 0.06, None, 0.0, 0.0);
     }
+    /// The exit's call: air drawn under the door (a narrow whistle rising,
+    /// then falling back) and the sign's relay ticking as it fails and
+    /// catches. Above the hum's band (its 120 Hz would mask a ballast
+    /// buzz), so it carries. Played from the door by `ambient`'s
+    /// `amb_exit`; no draws.
+    pub fn sfx_exit_call(&self) {
+        self.noise_burst(2.2, 900.0, 3.0, 0.06, "bandpass", Some(1300.0), 0.0, 0.0);
+        self.noise_burst(1.5, 1300.0, 3.5, 0.045, "bandpass", Some(820.0), 1.0, 0.0);
+        for (i, t) in [0.30, 0.44, 0.63].into_iter().enumerate() {
+            self.noise_burst(0.025, 2600.0, 5.0, 0.09 - i as f64 * 0.02, "bandpass", None, t, 0.0);
+        }
+    }
     /// Footsteps: four paces at a walk
     pub fn sfx_distant_footsteps(&self) {
         // somebody walking: a heel strike and the body's weight landing, four
@@ -668,6 +680,7 @@ impl Game {
             "dripHeavy" | "drip_heavy" => self.sfx_drip_heavy(),
             "pageFlip" | "page_flip" => self.sfx_page_flip(),
             "scrape" => self.sfx_scrape(0.10),
+            "exitCall" | "exit_call" => self.sfx_exit_call(),
             _ => return false,
         }
         true

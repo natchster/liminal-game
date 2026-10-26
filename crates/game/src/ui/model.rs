@@ -187,9 +187,6 @@ pub struct UiModel {
     pub battery: Element,
     pub batterybar: Element,
     pub battery_label: Element,
-    pub compass: Element,
-    pub compass_arrow: Element,
-    pub compass_label: Element,
     pub dot: Element,
     pub prompt: Element,
     pub msg: Element,
@@ -241,7 +238,6 @@ impl UiModel {
         d.sanity_label.text = "SANITY".into();
         d.stamina_label.text = "STAMINA".into();
         d.battery_label.text = "FLASHLIGHT [F]".into();
-        d.compass_label.text = "EXIT".into();
         d.crouch_ind.text = "— CROUCHING —".into();
         d.lore_medal.text = "◆ ARCHIVIST".into();
         d.survivor_medal.text = "◆ SURVIVOR".into();
@@ -311,9 +307,6 @@ impl UiModel {
             "battery" => &mut self.battery,
             "batterybar" => &mut self.batterybar,
             "batteryLabel" => &mut self.battery_label,
-            "compass" => &mut self.compass,
-            "compassArrow" => &mut self.compass_arrow,
-            "compassLabel" => &mut self.compass_label,
             "dot" => &mut self.dot,
             "prompt" => &mut self.prompt,
             "msg" => &mut self.msg,
@@ -373,9 +366,6 @@ impl UiModel {
             &self.battery,
             &self.batterybar,
             &self.battery_label,
-            &self.compass,
-            &self.compass_arrow,
-            &self.compass_label,
             &self.dot,
             &self.prompt,
             &self.msg,

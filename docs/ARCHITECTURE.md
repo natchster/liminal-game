@@ -203,7 +203,10 @@ footsteps; `audio::ambient` schedules the ambient events of each weather,
 plays each prop sound from the nearest prop in earshot (level by distance,
 pan by direction, muffled without line of sight), gives every level a few
 signature sounds anchored to fixed spots on rhythms of their own (stable
-per run seed and level), and starts every cadence part-way through its
+per run seed and level), lets the exit door call from where it stands (a
+draught and the sign's relay every 8–10 s, heard from up to 40 m: with the
+door's light in the light map, it is how the door is found, since there is
+no compass), and starts every cadence part-way through its
 interval so a level never opens with everything at once. A signature carries
 as far as it would: a slam, a scream or footsteps from 20–55 m, a phone or a
 radio from the next rooms, a drip or paper only from close by; each lands

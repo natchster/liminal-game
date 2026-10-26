@@ -326,6 +326,10 @@ pub struct Game {
     pub amb_signatures: Vec<AmbSignature>,
     /// Where the weather's own sounds come from on this level (`ambient::BED_ANCHORS`)
     pub amb_anchors: Vec<(&'static str, Vec3)>,
+    /// Seconds to the exit's next call (`ambient::amb_exit`), and how many it
+    /// has made on this level (its jitter's counter)
+    pub exit_call_t: f64,
+    pub exit_calls: u32,
     /// How much the pacing director wants the ambience quiet (1 = only
     /// essential sounds): ambient one-shots lose up to 85 % of their level,
     /// none starts above 0.6, and the room tone dips up to half
@@ -781,6 +785,8 @@ impl Game {
             pool_wanted: HashSet::new(),
             biased_ambient: vec![],
             amb_signatures: vec![],
+            exit_call_t: 0.0,
+            exit_calls: 0,
             amb_anchors: vec![],
             amb_hush: 0.0,
             sfx_route: None,

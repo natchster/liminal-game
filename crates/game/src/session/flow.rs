@@ -139,8 +139,8 @@ impl Game {
         }
         let seed_tag = format!("SEED 0x{:08x}  ·  {}", self.current_seed, self.level_weather.key.to_uppercase());
         self.ui.seed_tag.set_text(&seed_tag);
-        let obj = if self.level_scp.is_some() { "FIND THE WAY OUT".to_string() } else { self.pick_text("objectives") };
-        self.ui.objective.set_text(&obj);
+        // nothing is told: no objective line (PILLARS 4, rules are learned)
+        self.ui.objective.set_text("");
         for (dx, dz, yaw) in [(1, 0, -PI / 2.0), (0, 1, PI), (-1, 0, PI / 2.0), (0, -1, 0.0)] {
             if !self.is_wall_tile(1 + dx, 1 + dz) {
                 self.player.yaw = yaw;

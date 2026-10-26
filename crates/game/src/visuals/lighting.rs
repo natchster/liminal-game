@@ -35,6 +35,8 @@ pub fn ground_rot() -> Color {
 }
 /// what an open tile keeps of a lit neighbour's light
 pub const LIGHT_SPILL: f64 = 0.42;
+/// how lit the exit door's tile is at least (its sign and lamps)
+pub const EXIT_LIGHT: f64 = 0.8;
 /// tiles a panel's light counts for, in the map
 pub const PANEL_REACH: f64 = 2.5;
 pub const RF_DARK: u32 = 2;
@@ -344,6 +346,17 @@ impl Game {
                 if all[i] > 0.0 {
                     k[i] *= on[i] / all[i];
                 }
+            }
+        }
+        // the way down is lit: the exit sign and its lamps light the door's
+        // tile whatever the region, so the door shows at the end of a dark
+        // hall and its glow carries (the light spills from here like any
+        // other). The Loop's door is an ordinary office door, unlit.
+        if let Some(e) = self.exit_data.as_ref().filter(|_| self.level_scp.as_deref() != Some("loop")) {
+            let (x, z) = (self.tx(e.pos.x), self.tz(e.pos.z));
+            if x >= 0 && z >= 0 && x < self.w && z < self.h {
+                let i = (z * self.w + x) as usize;
+                k[i] = k[i].max(EXIT_LIGHT);
             }
         }
         let t = &self.tiles;

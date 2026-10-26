@@ -74,6 +74,16 @@ Every level ends at an exit door, unless it is one of the run's *anomaly*
 levels (see *Anomalies*). There, the door leads somewhere else, or the whole
 level is something else.
 
+**Nothing points the way.** There is no compass and no map. The door is the
+furthest place from where you arrive, and it is found the way a real door is:
+its green EXIT sign and lamps light its corner of the floor whatever the
+region (the light carries down a dark hall), and it **calls**, every nine
+seconds or so: air drawn under the door and the sign's relay ticking,
+heard from a few rooms away and muffled by walls. In a hush it goes quiet
+with everything else. The Loop's ordinary office door has neither. Crying
+out for help may still answer with arrows on the floor (or with something
+else), and so may a payphone.
+
 Deeper levels rot: more of the floor is grimy, more regions are dark, the fog
 is thicker and the hum wanders off pitch. The Lobby leaks into every level. It
 never quite goes away.

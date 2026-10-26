@@ -1340,20 +1340,6 @@ fn opacity_of(el: &Element, css: f64) -> f64 {
 fn pct_of(el: &Element) -> f64 {
     el.style("width").and_then(|w| w.strip_suffix('%')).and_then(|v| v.trim().parse::<f64>().ok()).map(|v| v / 100.0).unwrap_or(1.0)
 }
-/// `rotate(Xrad)` / `rotate(Xdeg)` out of a transform
-fn rotation_of(el: &Element) -> f64 {
-    let Some(t) = el.style("transform") else { return 0.0 };
-    let Some(i) = t.find("rotate(") else { return 0.0 };
-    let a = &t[i + 7..];
-    let a = &a[..a.find(')').unwrap_or(a.len())];
-    if let Some(r) = a.strip_suffix("rad") {
-        r.trim().parse().unwrap_or(0.0)
-    } else if let Some(d) = a.strip_suffix("deg") {
-        d.trim().parse::<f64>().unwrap_or(0.0).to_radians()
-    } else {
-        0.0
-    }
-}
 fn lerp_c(a: Rgba, b: Rgba, t: f64) -> Rgba {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t]
 }
@@ -1604,31 +1590,6 @@ fn paint_hud(f: &mut Frame, g: &Game) {
         let (bw, y) = (tb.width(), h - 32.0 - tb.height());
         text_layer(f, "batteryLabel", tb, w - 20.0 - bw, y, 0.0, "left", 0.6);
     }
-    // #compass: ring, arrow (own opacity + rotation), label
-    if !special {
-        let (x, y) = (w - 100.0, 16.0);
-        f.layer("compass", &format!("{x}"), 1.0, move |dpr| {
-            let mut p = Painter::new(x, y, 80.0, 80.0, dpr);
-            p.tr();
-            p.c.set_fill_style("rgba(0,0,0,0.35)");
-            p.c.begin_path();
-            p.c.arc(x + 40.0, y + 40.0, 40.0, 0.0, std::f64::consts::PI * 2.0);
-            p.c.fill();
-            p.c.set_stroke_style("rgba(216,207,159,0.35)");
-            p.c.set_line_width(1.0);
-            p.c.begin_path();
-            p.c.arc(x + 40.0, y + 40.0, 39.5, 0.0, std::f64::consts::PI * 2.0);
-            p.c.stroke();
-            p
-        });
-        let op = f.tr("compassArrow.opacity", opacity_of(&d.compass_arrow, 1.0), 0.5, Ease::Ease);
-        let rot = rotation_of(&d.compass_arrow);
-        let (ax, ay) = (w - 60.0, 56.0);
-        f.layer("compassArrow", &format!("{ax}|{rot}"), op, move |dpr| paint_arrow(ax, ay, rot, dpr));
-        let tb = txt(&d.compass_label, 9.0, 2.0, hc, &hs, Ws::Normal, Some(78.0));
-        let ly = 16.0 + 1.0 + 78.0 + 14.0 - tb.height();
-        text_layer(f, "compassLabel", tb, w - 99.0, ly, 78.0, "center", 0.5);
-    }
     // #dot
     {
         let (cx, cy) = (w / 2.0, h / 2.0);
@@ -1804,43 +1765,6 @@ fn paint_hud(f: &mut Frame, g: &Game) {
         paint_journal(f, g);
     }
 }
-
-/// #compassArrow: a 16×32 border triangle, base centre on the anchor,
-/// rotated about it, with `drop-shadow(0 0 4px rgba(255,138,61,0.6))`
-fn paint_arrow(ax: f64, ay: f64, rot: f64, dpr: f64) -> Painter {
-    let m = 34.0 + 14.0;
-    let mut p = Painter::new(ax - m, ay - m, 2.0 * m, 2.0 * m, dpr);
-    let (s, c) = rot.sin_cos();
-    let pt = |x: f64, y: f64| (ax + x * c - y * s, ay + x * s + y * c);
-    let tri = [pt(0.0, -32.0), pt(8.0, 0.0), pt(-8.0, 0.0)];
-    let mut mask = Painter::new(ax - m, ay - m, 2.0 * m, 2.0 * m, dpr);
-    mask.tr();
-    mask.c.set_fill_style("#ff8a3d");
-    mask.c.begin_path();
-    mask.c.move_to(tri[0].0, tri[0].1);
-    mask.c.line_to(tri[1].0, tri[1].1);
-    mask.c.line_to(tri[2].0, tri[2].1);
-    mask.c.close_path();
-    mask.c.fill();
-    let (gw, gh) = (mask.c.width() as usize, mask.c.height() as usize);
-    let alpha: Vec<f32> = mask.c.premultiplied().chunks_exact(4).map(|q| q[3] as f32 / 255.0).collect();
-    // drop-shadow's third length is the standard deviation
-    let blurred = gaussian_blur(&alpha, gw, gh, 4.0 * DROP_SHADOW_SIGMA * dpr);
-    let mut img = p.c.create_image_data(gw as f64, gh as f64);
-    for (k, a) in blurred.iter().enumerate() {
-        img.data[k * 4] = 255;
-        img.data[k * 4 + 1] = 138;
-        img.data[k * 4 + 2] = 61;
-        img.data[k * 4 + 3] = (a * 0.6 * 255.0).round().clamp(0.0, 255.0) as u8;
-    }
-    let mut sc = Canvas::new(gw as u32, gh as u32);
-    sc.put_image_data(&img, 0, 0);
-    p.c.draw_image(&sc, 0, 0);
-    p.c.draw_image(&mask.c, 0, 0);
-    p
-}
-/// σ per CSS px of `drop-shadow()`'s blur length
-const DROP_SHADOW_SIGMA: f64 = 0.5;
 
 /// the debug panel's bands (each repainted only when its lines change)
 const DEBUG_BANDS: [&str; 24] = [

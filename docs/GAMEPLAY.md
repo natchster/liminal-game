@@ -97,4 +97,5 @@ evidence (a test, a headless PNG, a pacing log) and its own commit.
 | # | Commit | Notes |
 |---|---|---|
 | G0 | `b23834e` | the plan |
-| G1 | (this commit) | the old build moved even the barricades after a note was read (`tests/story.rs` fails on it); now the build runs with nothing read and `fit_lore_notes` swaps read notes for unread ones afterwards. The rare level built with every note read hides nothing: its notes keep the READ mark |
+| G1 | `f16bd4b` | the old build moved even the barricades after a note was read (`tests/story.rs` fails on it); now the build runs with nothing read and `fit_lore_notes` swaps read notes for unread ones afterwards. The rare level built with every note read hides nothing: its notes keep the READ mark |
+| G2 | (this commit) | the compass and the objective line are gone; the door lights its tile in the light map and calls (`sfx_exit_call`: a draught and the sign's relay, every 8–10 s). `the_door_is_heard` measures the door alone (lockstep runs with and without it): +6 to +18 dB over the bed two tiles off, +8 to +13 at five, +1 to +4 at nine (about 30 m). The payphone's hint (pinned by a fixture) now brings the floor arrows. `--views` adds an exit view |

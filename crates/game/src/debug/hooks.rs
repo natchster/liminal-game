@@ -65,6 +65,33 @@ impl Game {
         out
     }
 
+    /// A camera pose looking at the exit door down the floor plan: of the
+    /// open tiles 3–7 tiles' walk from the door that can see it and stand in
+    /// front of it (within 60° of the way it faces), the furthest in a
+    /// straight line, facing the door. (x, z, yaw) in world coordinates;
+    /// None without an exit or a tile that sees it.
+    pub fn exit_view(&self) -> Option<(f64, f64, f64)> {
+        let e = self.exit_data.as_ref()?;
+        let (dx, dz) = (e.pos.x - e.normal.x * 0.9, e.pos.z - e.normal.z * 0.9);
+        let d = self.bfs(self.tx(e.pos.x), self.tz(e.pos.z));
+        let mut best: Option<(f64, f64, f64)> = None;
+        for z in 0..self.h {
+            for x in 0..self.w {
+                let k = d[(z * self.w + x) as usize];
+                if !(3..=7).contains(&k) || self.is_wall_tile(x, z) {
+                    continue;
+                }
+                let (wx, wz) = (self.wx(x), self.wz(z));
+                let far = (wx - dx).hypot(wz - dz);
+                let front = ((wx - dx) * e.normal.x + (wz - dz) * e.normal.z) / far.max(1e-6);
+                if front > 0.5 && self.los(wx, wz, e.pos.x, e.pos.z) && best.is_none_or(|b| far > b.2) {
+                    best = Some((wx, wz, far));
+                }
+            }
+        }
+        best.map(|(x, z, _)| (x, z, (-(dx - x)).atan2(-(dz - z))))
+    }
+
     /// A camera pose inside each zone of the layout, for looking at it: the
     /// open tile of the zone with the longest straight run of open floor in
     /// front of it, a step back from its centre, facing down the run.

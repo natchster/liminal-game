@@ -271,3 +271,83 @@ fn the_hush_quiets_the_ambience() {
     assert!(bed1 < bed0, "the room tone dips");
     assert!(ev1 < ev0 * 0.5, "the events thin out and soften: {ev1:.5} vs {ev0:.5}");
 }
+
+/// The way down is heard: standing at a walk of 2, 5 and 9 tiles from the
+/// exit (by the floor plan), the door's call (`exit-call`: a draught and the
+/// sign's relay) rises over the bed when it comes, clearly up close and
+/// still from across a few rooms. No compass: this, the door's light and her
+/// trail are how the door is found.
+///
+/// The level is played twice in lockstep (the native stream seeded, each run
+/// on a thread of its own), once with the door silent; the difference of the
+/// two recordings is the door alone, so a loud prop that happens to stand
+/// near the door does not count as the door being heard.
+#[test]
+fn the_door_is_heard() {
+    let mut rows = vec![];
+    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+        for steps in [2, 5, 9] {
+            let run = move |calls: bool| {
+                std::thread::Builder::new()
+                    .stack_size(256 << 20)
+                    .spawn(move || door_run(seed, level, steps, calls))
+                    .unwrap()
+                    .join()
+                    .unwrap()
+            };
+            let (Some((with, times, metres)), Some((without, _, _))) = (run(true), run(false)) else { continue };
+            let door: Vec<f32> = with.iter().zip(&without).map(|(a, b)| a - b).collect();
+            let (w, bed) = (windows(&door), median(&windows(&without)[40..]));
+            let rise: Vec<f64> = times
+                .iter()
+                .map(|at| {
+                    let a = (at / 0.05) as usize;
+                    w[a.min(w.len() - 1)..(a + 50).min(w.len())].iter().cloned().fold(0.0, f64::max) / bed
+                })
+                .collect();
+            let best = rise.iter().cloned().fold(0.0, f64::max);
+            println!(
+                "seed {seed} L{level}: {steps} tiles from the door ({metres:.0} m straight): {} calls, the door alone peaks {:+.1} dB against the bed ({:.1} dBFS)",
+                times.len(),
+                db(best),
+                db(best * bed)
+            );
+            save(&format!("door_{seed}_L{level}_{steps}"), &with, &times);
+            rows.push((steps, times.len(), best));
+        }
+    }
+    for (steps, calls, best) in &rows {
+        assert!(*calls >= 2, "{steps} tiles from the door: {calls} calls in 30 s");
+        let want = if *steps <= 5 { 2.0 } else { 1.0 };
+        assert!(*best >= want, "{steps} tiles from the door: the call peaks only {:+.1} dB against the bed", db(*best));
+    }
+}
+
+/// 30 s standing `steps` tiles (by the floor plan) from the exit of
+/// `level`, with the door calling or not: the recording, the call times and
+/// the straight distance to the door. None when no tile is that far.
+fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>, Vec<f64>, f64)> {
+    game::base::rng::seed_native(seed as u64);
+    let mut r = start(seed, level);
+    let g = &mut r.g;
+    let e = g.exit_data.as_ref().unwrap().pos;
+    let d = g.bfs(g.tx(e.x), g.tz(e.z));
+    let (x, z) = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| d[(z * g.w + x) as usize] == steps)?;
+    g.player.pos.x = g.wx(x);
+    g.player.pos.z = g.wz(z);
+    let metres = ((g.player.pos.x - e.x).powi(2) + (g.player.pos.z - e.z).powi(2)).sqrt();
+    g.reset_director();
+    let mut times = vec![];
+    let mut t = 0.0;
+    play(&mut r, 30.0, |g| {
+        hold_creatures(g);
+        if !calls {
+            g.exit_call_t = 1e9;
+        }
+        t += 1.0 / 60.0;
+        if g.ambient_log.iter().filter(|e| e.tag == "exit-call").count() > times.len() {
+            times.push(t);
+        }
+    });
+    Some((r.pcm, times, metres))
+}

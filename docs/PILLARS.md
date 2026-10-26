@@ -70,6 +70,10 @@ that the emptiness is watching.*
 - **Goal: rules are learned, not told.**
   - Rule: no tutorials, maps or explanations of creatures or anomalies;
     notes hint, never explain. *Test:* `lore-keeper` review.
+  - Rule: the way down is found, not shown. No compass and no objective
+    line; the door is lit into the light map and calls from where it stands.
+    *Test:* the HUD has no compass (`tests/hud.rs`); `the_door_is_heard`
+    (gate, `tests/listen.rs`); the exit view in `--dump-level … --views`.
 
 ## 5. Dread, then release
 

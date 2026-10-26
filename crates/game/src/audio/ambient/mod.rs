@@ -115,6 +115,17 @@ pub const BED_ANCHORS: [(&str, f64, f64); 4] = [("draught", 28.0, 50.0), ("duct"
 /// reference distance (m) and the level that makes up for the distance
 pub const BED_REF_DIST: f64 = 14.0;
 pub const BED_GAIN: f64 = 2.5;
+/// How far the exit door is heard, m (straight line; walls muffle it)
+pub const EXIT_HEARD: f64 = 40.0;
+/// The door calls every `EXIT_CALL_PERIOD` ± 1 s
+pub const EXIT_CALL_PERIOD: f64 = 9.0;
+/// The exit call's voice slot: reference distance (m) and level
+const EXIT_REF_DIST: f64 = 18.0;
+const EXIT_GAIN: f64 = 30.0;
+/// How much a wall muffles the door (0 clear … 1 sealed)
+const EXIT_OCCLUDE: f64 = 0.45;
+/// Salt of the exit call's jitter
+const EXIT_SALT: u64 = 0xE417_CA11_0D00_4B1D;
 /// Ghost footfalls: reference distance of their voice slots, m
 const GHOST_REF_DIST: f64 = 3.0;
 
@@ -496,6 +507,8 @@ impl Game {
         self.ghost_step_t = rand2(45.0, 110.0) * rand2(0.5, 1.0);
         self.pick_signatures();
         self.pick_bed_anchors();
+        self.exit_call_t = 3.0;
+        self.exit_calls = 0;
     }
 
     /// Where this level's weather sounds come from (`BED_ANCHORS`), from a
@@ -731,6 +744,7 @@ impl Game {
         self.amb_props_lobby(dt, &m);
         self.amb_props_rare_fixtures(dt, &m);
         self.amb_signatures(dt, &m);
+        self.amb_exit(dt, &m);
         self.amb_shift_bend(dt);
         // R102/R104 electric surge dim countdown (drives panel dim). Outside the
         // electric branch so a mid-surge weather change still decays the dim.
@@ -911,6 +925,31 @@ impl Game {
             });
             self.log_ambient(&format!("sig-{name}"), Some(s.at.x), Some(s.at.z), Some(pan));
         }
+    }
+
+    /// The way down calls: air under the exit door and the sign's ballast
+    /// (`sfx_exit_call`), every `EXIT_CALL_PERIOD` ± 1 s, from the door
+    /// itself, heard from up to `EXIT_HEARD` m and muffled through walls. It
+    /// is how the door is found without a compass (with its green light and
+    /// her trail). The director's hush quiets it like the rest of the place.
+    /// The Loop's door is an ordinary office door, and does not call.
+    fn amb_exit(&mut self, dt: f64, m: &AmbMix) {
+        let Some((p, n)) = self.exit_data.as_ref().map(|e| (e.pos, e.normal)) else { return };
+        if self.level_scp.as_deref() == Some("loop") || !amb_due(&mut self.exit_call_t, dt, m) {
+            return;
+        }
+        // jittered from a counter, not the shared stream
+        self.exit_calls += 1;
+        let mut r = SplitMix64::new(self.current_seed, EXIT_SALT ^ self.exit_calls as u64);
+        self.exit_call_t = EXIT_CALL_PERIOD + r.range(-1.0, 1.0);
+        // the door is a step back from where you use it
+        let (x, z) = (p.x - n.x * 0.8, p.z - n.z * 0.8);
+        let (dx, dz) = (x - self.player.pos.x, z - self.player.pos.z);
+        if dx * dx + dz * dz > EXIT_HEARD * EXIT_HEARD {
+            return;
+        }
+        let pan = self.play_from(x, 1.2, z, EXIT_REF_DIST, EXIT_GAIN * m.gain, EXIT_OCCLUDE, |g| g.sfx_exit_call());
+        self.log_ambient("exit-call", Some(x), Some(z), Some(pan));
     }
 
     /// Sanity-crossing chimes and flashes, the

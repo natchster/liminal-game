@@ -588,6 +588,23 @@ fn level_check(o: &Options, dir: &str) {
                     g.sim_frozen = false;
                 }
                 print!(" (+{} zone views)", views.len());
+                // and the way down, as you would come on it
+                if let Some((x, z, yaw)) = g.exit_view() {
+                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.yaw = yaw;
+                    g.player.pitch = 0.0;
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    g.frame(1.0 / 60.0);
+                    g.fixed_step_dt = 0.0;
+                    g.sim_frozen = true;
+                    let cb = draw(&mut g, &mut r, t, w, h);
+                    cb.commit();
+                    cb.waitUntilCompleted();
+                    let (tw, th, px) = r.read_texture(t);
+                    engine::png::write_rgba(&format!("{base}_exit.png"), tw as u32, th as u32, &px).expect("write png");
+                    g.sim_frozen = false;
+                    print!(" (+exit view)");
+                }
             }
         }
         println!();

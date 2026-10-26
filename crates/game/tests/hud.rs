@@ -176,7 +176,7 @@ fn el_json(e: &Element) -> String {
     let at = e.attrs.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
     format!("{{\"text\":{},\"html\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.html), cls, st, at)
 }
-const IDS: [&str; 60] = [
+const IDS: [&str; 57] = [
     "vignette",
     "weatherTint",
     "safeRoomGlow",
@@ -200,9 +200,6 @@ const IDS: [&str; 60] = [
     "battery",
     "batterybar",
     "batteryLabel",
-    "compass",
-    "compassArrow",
-    "compassLabel",
     "dot",
     "prompt",
     "msg",
@@ -323,7 +320,7 @@ fn shoot(g: &mut Game, name: &str) -> Vec<u8> {
     std::fs::write(dir.join(format!("hud-{name}.json")), ui_json(g)).unwrap();
     img
 }
-/// the HUD as it is a moment into a level (bars, items, compass, medals...)
+/// the HUD as it is a moment into a level (bars, items, medals...)
 fn playing_state(g: &mut Game) {
     g.state = "playing".into();
     g.hide_overlay();
@@ -383,7 +380,7 @@ fn hud_states() {
     assert!(found_new, "btn-new is clickable");
     assert_eq!(g.hud_hit_test(5.0, 5.0), "overlay");
 
-    // ---- playing: meters, items, compass, toast, omen, medals, prompt
+    // ---- playing: meters, items, toast, omen, medals, prompt
     let mut g = game();
     playing_state(&mut g);
     run(&mut g, 150, true);
@@ -499,8 +496,8 @@ fn hud_logic() {
     g.lore_found.insert(7);
     assert!(g.lore_note_boosted(8) && g.lore_note_boosted(24) && !g.lore_note_boosted(7));
     // `pick_text` draws from its pool
-    let s = g.pick_text("objectives");
-    assert!(game::ui::hud::text_pool("objectives").unwrap().contains(&s.as_str()));
+    let s = g.pick_text("deathHint");
+    assert!(game::ui::hud::text_pool("deathHint").unwrap().contains(&s.as_str()));
     // the journal order: cover, medals page, notes, epilogue
     g.lore_found.extend([1usize, 3]);
     assert_eq!(g.journal_entries_in_order(), vec![-2, 1, 3, 7]);
