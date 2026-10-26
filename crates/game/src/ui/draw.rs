@@ -398,47 +398,8 @@ impl Trans {
 }
 
 // ------------------------------------------------------------ fonts & text
-/// a "Courier New" face at a size (the HUD uses no other family)
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Font {
-    pub size: f64,
-    pub bold: bool,
-    pub italic: bool,
-}
-impl Font {
-    pub fn new(size: f64) -> Font {
-        Font { size, bold: false, italic: false }
-    }
-    fn bold(mut self) -> Font {
-        self.bold = true;
-        self
-    }
-    fn italic(mut self) -> Font {
-        self.italic = true;
-        self
-    }
-    /// Ascent of Courier New, rounded to whole px per size
-    pub fn ascent(&self) -> f64 {
-        (self.size * 0.83252).round()
-    }
-    pub fn descent(&self) -> f64 {
-        (self.size * 0.30029).round()
-    }
-    /// `line-height: normal`
-    pub fn normal_lh(&self) -> f64 {
-        self.ascent() + self.descent()
-    }
-    /// glyph advance (Courier New 0.6001em; the
-    /// geometric symbols come from a fallback face at 0.602em; ⛧ wider)
-    fn advance(&self, ch: char) -> f64 {
-        let em = match ch {
-            '⛧' => 0.788,
-            '◆' | '◇' | '★' | '✦' | '◀' | '▶' | '▮' | '▯' => 0.6020625,
-            _ => 0.600109375,
-        };
-        em * self.size
-    }
-}
+use crate::ui::faces::face_metrics;
+pub use crate::ui::faces::{Face, Font};
 
 /// A styled piece of inline text (a text node or a `<span style>`).
 #[derive(Clone, Debug, PartialEq)]
@@ -672,16 +633,6 @@ fn trimmed_width(l: &Line, _c: &[(char, usize)], adv: &dyn Fn(char, usize) -> f6
     }
 }
 
-/// (ascent, descent) of the faces a line uses: Courier New, plus the fallback
-/// faces for the symbols (a Menlo-like face for ◆★✦◀▶▮▯◇, another for ⛧)
-fn face_metrics(ch: char, size: f64) -> Option<(f64, f64)> {
-    match ch {
-        '◆' | '◇' | '★' | '✦' | '◀' | '▶' | '▮' | '▯' => Some(((size * 0.928).round(), (size * 0.236).round())),
-        '⛧' => Some(((size * 0.88).round(), (size * 0.37).round())),
-        _ => None,
-    }
-}
-
 /// A laid-out block of text ready to paint: lines with their baselines.
 #[derive(Clone, Debug)]
 pub struct TextBlock {
@@ -699,8 +650,9 @@ impl TextBlock {
         let (mut bases, mut y) = (vec![], 0.0);
         for l in &lines {
             let mut faces = vec![(font.ascent(), font.descent())];
-            // (fallback faces only count with `line-height: normal`)
-            if line_h.is_none() {
+            // (fallback faces only count with `line-height: normal`, and
+            // only Courier New lines use them)
+            if line_h.is_none() && font.face == Face::Typed {
                 for g in &l.glyphs {
                     if let Some(m) = face_metrics(g.ch, font.size) {
                         if !faces.contains(&m) {
@@ -864,7 +816,7 @@ impl Painter {
             let mut prev: Option<(f64, f64, usize, f64)> = None; // (next x, y, run, kern)
             for &(ch, gx, gy, ri) in &glyphs {
                 let ls = tb.runs[ri].ls.max(0.0);
-                let plain = face_metrics(ch, fsz).is_none() && (ch as u32) < 0x2000;
+                let plain = tb.font.draws_runs(ch, ls);
                 let (dx, dy) = ((gx - out.ox) * d, (gy - out.oy) * d);
                 let cont = match (prev, segs.last()) {
                     (Some((nx, py, pr, _)), Some(_)) => plain && pr == ri && (py - gy).abs() < 1e-6 && (nx - gx).abs() < 1e-6,
@@ -951,43 +903,11 @@ impl Painter {
 
 // ------------------------------------------------------------ glyphs
 // The engine canvas maps "Courier New" to macOS Courier (a heavier face); the
-// HUD wants the real Courier New, so it rasterises its glyphs itself with
-// CoreText (engine::cg): Courier New plus its fallback faces for symbols.
+// HUD wants the real faces, so it rasterises its glyphs itself with
+// CoreText (engine::cg; the faces are `ui::faces`).
 #[link(name = "CoreGraphics", kind = "framework")]
 extern "C" {
     fn CGContextSetShouldSmoothFonts(c: engine::cg::CGContextRef, b: bool);
-}
-thread_local! { static CT_FONTS: RefCell<HashMap<(bool, bool, u64), usize>> = RefCell::new(HashMap::new()); }
-fn ct_font(font: Font, px: f64) -> engine::cg::CTFontRef {
-    use engine::cg::*;
-    CT_FONTS.with(|c| {
-        let key = (font.bold, font.italic, px.to_bits());
-        if let Some(&f) = c.borrow().get(&key) {
-            return f as CTFontRef;
-        }
-        let name = match (font.bold, font.italic) {
-            (false, false) => "CourierNewPSMT",
-            (true, false) => "CourierNewPS-BoldMT",
-            (false, true) => "CourierNewPS-ItalicMT",
-            (true, true) => "CourierNewPS-BoldItalicMT",
-        };
-        let f = unsafe {
-            let n = cfstr(name);
-            let f = CTFontCreateWithName(n, px, std::ptr::null());
-            CFRelease(n);
-            f
-        };
-        c.borrow_mut().insert(key, f as usize);
-        f
-    })
-}
-#[link(name = "CoreText", kind = "framework")]
-extern "C" {
-    static kCTKernAttributeName: engine::cg::CFTypeRef;
-}
-#[link(name = "CoreFoundation", kind = "framework")]
-extern "C" {
-    fn CFNumberCreate(a: engine::cg::CFTypeRef, ty: isize, v: *const std::ffi::c_void) -> engine::cg::CFTypeRef;
 }
 /// draw text segments (device px baselines; `kern` = letter-spacing in device
 /// px after every glyph) into a w×h image: premultiplied RGBA
@@ -1008,20 +928,9 @@ fn ct_glyphs(w: usize, h: usize, segs: &[(String, f64, f64, Rgba, f64)], font: F
         CGContextTranslateCTM(ctx, 0.0, h as f64);
         CGContextScaleCTM(ctx, 1.0, -1.0);
         CGContextSetShouldSmoothFonts(ctx, false);
-        let f = ct_font(font, font.size * dpr);
         for (text, x, y, c, kern) in segs {
             let s = cfstr(text);
-            let kv = CFNumberCreate(std::ptr::null(), 6 /* kCFNumberFloat64Type */, kern as *const f64 as *const std::ffi::c_void);
-            let keys = [kCTFontAttributeName, kCTForegroundColorFromContextAttributeName, kCTKernAttributeName];
-            let vals = [f as CFTypeRef, kCFBooleanTrue, kv];
-            let dict = CFDictionaryCreate(
-                std::ptr::null(),
-                keys.as_ptr(),
-                vals.as_ptr(),
-                3,
-                &kCFTypeDictionaryKeyCallBacks as *const _ as _,
-                &kCFTypeDictionaryValueCallBacks as *const _ as _,
-            );
+            let dict = crate::ui::faces::text_attrs(font, font.size * dpr, *kern);
             let astr = CFAttributedStringCreate(std::ptr::null(), s, dict);
             let line = CTLineCreateWithAttributedString(astr);
             CGContextSaveGState(ctx);
@@ -1036,7 +945,6 @@ fn ct_glyphs(w: usize, h: usize, segs: &[(String, f64, f64, Rgba, f64)], font: F
             CFRelease(line as CFTypeRef);
             CFRelease(astr);
             CFRelease(dict);
-            CFRelease(kv);
             CFRelease(s);
         }
         CGContextFlush(ctx);

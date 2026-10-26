@@ -32,6 +32,23 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
 - **The camera:** a mild grade and lens vignette, film grain rising as sanity
   falls. No bloom, no lens flares.
 
+## Type (the screen's three voices)
+
+What the screen says is set in one of three voices, each with a reason
+(`crates/game/src/ui/faces.rs`, `docs/UI.md`):
+
+- **The building:** Helvetica Neue, in mixed case, small, left-aligned.
+  Menus, prompts, cards. Institutional type makes the uncanny routine.
+- **M.:** her hand (Noteworthy Light), on her notebook pages and her
+  thread line.
+- **Typed paper:** Courier New, for the torn notes and the debug panel, and
+  nowhere else.
+
+Capitals only for a label of one to three words; no letter-spaced
+sentences; no boxes, borders or glows around text. *Gate:*
+`tests/faces.rs` (every face is the one asked for; a laid-out line is as
+wide as CoreText draws it).
+
 ## Archetypes (the building)
 
 | Archetype | Materials | Ceiling | Motif | Allowed deviation |

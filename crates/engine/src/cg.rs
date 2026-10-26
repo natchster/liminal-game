@@ -197,6 +197,9 @@ extern "C" {
     pub fn CTLineGetTypographicBounds(l: CTLineRef, ascent: *mut f64, descent: *mut f64, leading: *mut f64) -> f64;
     pub static kCTFontAttributeName: CFTypeRef;
     pub static kCTForegroundColorFromContextAttributeName: CFTypeRef;
+    pub static kCTKernAttributeName: CFTypeRef;
+    pub static kCTLigatureAttributeName: CFTypeRef;
+    pub fn CTFontCopyPostScriptName(f: CTFontRef) -> CFTypeRef;
 }
 
 #[link(name = "CoreFoundation", kind = "framework")]
@@ -212,6 +215,8 @@ extern "C" {
     ) -> CFTypeRef;
     pub fn CFAttributedStringCreate(a: CFTypeRef, s: CFTypeRef, attrs: CFTypeRef) -> CFTypeRef;
     pub fn CFRelease(o: CFTypeRef);
+    pub fn CFStringGetCString(s: CFTypeRef, buf: *mut u8, size: isize, enc: u32) -> bool;
+    pub fn CFNumberCreate(a: CFTypeRef, ty: isize, v: *const c_void) -> CFTypeRef;
     pub static kCFTypeDictionaryKeyCallBacks: c_void;
     pub static kCFTypeDictionaryValueCallBacks: c_void;
     pub static kCFBooleanTrue: CFTypeRef;
@@ -219,4 +224,15 @@ extern "C" {
 
 pub fn cfstr(s: &str) -> CFTypeRef {
     unsafe { CFStringCreateWithBytes(std::ptr::null(), s.as_ptr(), s.len() as isize, kCFStringEncodingUTF8, false) }
+}
+
+/// A CFString's text (UTF-8), or "" if it does not fit 512 bytes. `s` must
+/// be a CFString or null.
+pub unsafe fn cfstring_to_string(s: CFTypeRef) -> String {
+    let mut buf = [0u8; 512];
+    if s.is_null() || !unsafe { CFStringGetCString(s, buf.as_mut_ptr(), buf.len() as isize, kCFStringEncodingUTF8) } {
+        return String::new();
+    }
+    let n = buf.iter().position(|&b| b == 0).unwrap_or(0);
+    String::from_utf8_lossy(&buf[..n]).into_owned()
 }
