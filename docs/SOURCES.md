@@ -11,6 +11,9 @@ were gathered in October 2026 in two rounds of research:
 * **UI and controls** (section 9, a third round): layouts, reach,
   accessibility, HUDs and menus in first-person horror, for
   [`UI.md`](UI.md).
+* **Megastructure** (section 10, a fourth round): the Samosbor myth,
+  megastructure SCPs and Backrooms levels, wayfinding and distant threats,
+  for [`MEGASTRUCTURE.md`](MEGASTRUCTURE.md).
 
 A note on weight: the strongest sources here are developer-facing write-ups
 (Game Developer, the Valve wiki, a peer-reviewed paper). Several others are
@@ -275,3 +278,60 @@ agree with each other, and marked *(secondary)*.
 - Say: repeated deaths kill fear; Amnesia played them down and changed the map a little after each.
 - Used for: a low-key death card with no stats, and a wake-up on any key once it is up (U6).
 
+## 10. Megastructure: the Building above the rooms
+
+Gathered on 2026-10-27 by three research passes for
+[`MEGASTRUCTURE.md`](MEGASTRUCTURE.md). The Samosbor fan wikis refused the
+fetcher; claims from them come from search excerpts and are marked
+*(summary only)*. Wiki texts (SCP, Backrooms, Fandom) are CC BY-SA 3.0: the
+game takes ideas from them, writes its own words, and credits each in
+[`LORE.md`](LORE.md), *Attribution*.
+
+### Samosbor
+
+**Origin:** [the archived 2ch /b/ thread](https://2ch.su/b/arch/2019-02-15/res/191363969.html) (the founding six lines, quoted, and "a year old in May"), [the Samosbor shooter's developers, DTF 2019](https://dtf.ru/indie/44492) ("began on 2ch in spring 2018"), [a history of the community, DTF 2020](https://dtf.ru/id136303/597176-samosbor-istoriya-soobshestva-ch-1), [igm.gg](https://igm.gg/media/d/chto-takoe-samosbor-russkii-scp-kotoryi-okazalsia-strashnee-backrooms-809e87af), [ixbt.games](https://ixbt.games/articles/2024/12/05/strax-i-nenavist-v-gigaxrushhevke-pogruzenie-v-klet-i-vselennuyu-samosbora.html) *(secondary)*.
+- Say: an anonymous six-line post, spring 2018: "you live on floor 556 of structure P-46 / last night there was a samosbor again / it flooded even your floor / you're afraid to go out to the stairwell because someone is moaning there / the liquidators will come in a couple of hours at best / the smell of raw meat seeps into the room". The community's pillars: "the gigakhrushch is infinite, the samosbor is unknowable, life is mostly shit". No single author, no licence; written by "everyone and no one".
+- Used for: the self-assembly as the Building's event; the canon never explains it.
+
+**The setting and the event:** [VK "Modern foundations of the universe", 2023](https://vk.ru/@-166237605-sovremennye-osnovy-vselennoi), [VK "Samosbor. Basics", 2022](https://vk.ru/@proigrivatel-samosbor-osnovy), [VK "Samosbor: aftermath", 2021](https://vk.ru/@camocbop-samosbor-posledstviya), [the KLETKA wiki](https://kletka.wiki.gg/wiki/Samosbor), [Samosbor Archive (EN), Self-Assembly](https://samosborarchive-en.fandom.com/wiki/Self-Assembly) *(summary only)*.
+- Say: a "conditionally infinite" panel-housing block with no entrance, no exit and no sky (the windows show other floors); dwelling cells, blocks, hermetic doors between sections, ration dispensers, garbage chutes, dead lift shafts. The event: a siren from sensors on some floors, minutes ahead (2–5 minutes; some floors have none), a fog crimson, lilac or violet, the smell of raw meat, screeching metal and voices of loved ones begging to open the door; shelter only behind a sealed hermetic door, opened only after the siren stops. After: slime, rearranged floors, liquidators who rake, burn, weld doors and pour foam concrete over whole floors, stairs and all, with a code knock answered from a plate on the door.
+- Used for: the siren from speakers, the violet fog, the cells and their wheels, the voices at the door, the residents' notices and the liquidators' log (`MEGASTRUCTURE.md`, designs 4 and 6).
+
+**Games:** [Samosbor (rocketship, 2020)](https://store.steampowered.com/app/1034060/Samosbor/), [KLETKA (2024–2026)](https://store.steampowered.com/app/1699480/KLETKA), [GIGAH|RUSH](https://tenevik.itch.io/gigahrush).
+- Say: the siren cuts the expedition short and everyone runs for the lift or the door; KLETKA cuts the lore's minutes to about 30 s; floors come back changed.
+- Used for: a warning long enough to reach a cell at a walk; the cell as the one shelter.
+
+### Megastructure SCPs and Backrooms levels
+
+All CC BY-SA 3.0; authors as the wiki credits them.
+
+- [Backrooms Level 188 "The Courtyard of Windows"](https://backrooms-wiki.wikidot.com/level-188) by Kai4C: an atrium of white concrete with windows at exact intervals, cold and silent. Used for: the Well.
+- [SCP-2723 "The Prophet's Tower"](https://scp-wiki.wikidot.com/scp-2723) by HotCocoaNerd: open-sided floors round one stair in a fog, built on by something at the top that never stops. Used for: the Stair Halls (the architecture only).
+- [SCP-4370 "Post-Industrial"](https://scp-wiki.wikidot.com/scp-4370) by UraniumEmpire: endless works too big to be underground, ceilings lost in the dark, machines running untended. Used for: the Works (no hunter).
+- [SCP-5778 "Hidden In Plain Sight"](https://scp-wiki.wikidot.com/scp-5778) by MarcusLCrassus: concrete tunnels 15 × 20 × 180 m to one hub, placards and lights and air that never switch off. Used for: the Works' signs and lamps for nobody.
+- [SCP-3333 "Tower"](https://scp-wiki.wikidot.com/scp-3333) by Jekeled: two figures on a far ridge who turn and go when looked at. Used for: the watchers across the void (the figures only; the place is a mountain lookout and is not used).
+- [SCP-3074 "Kafka's Parking Garage"](https://scp-wiki.wikidot.com/scp-3074) by The Great Hippo: a car park of a hundred levels down, lights dying with depth. Used for: the Works' ramps.
+- Also read, for the motifs: [SCP-1678 "UnLondon"](https://scp-wiki.wikidot.com/scp-1678) (AstronautJoe), [SCP-1730](https://scp-wiki.wikidot.com/scp-1730) (djkaktus), [SCP-4783](https://scp-wiki.wikidot.com/scp-4783) (caspian2), [Backrooms Level 162 "The Concrete Wall"](https://backrooms-wiki.wikidot.com/level-162) (Arkadelaide), [Level 280 "Foggy Staircases"](https://backrooms-wiki.wikidot.com/level-280) (jan Jejasa), [Level 696 "The Infinity-Scraper"](https://backrooms-wiki.wikidot.com/level-696) (LcY712), [Level 13](https://backrooms-wiki.wikidot.com/level-13) (Greggita Mahayfaio), and Piranesi's *Carceri d'invenzione* (1750; public domain).
+- Say (together): megalophobia, kenopsia, no outside or sky, repetition, builders who never stop, infrastructure still running, signage for people who are gone, distant lights, a horizon made of architecture.
+
+### Wayfinding and distant threats
+
+**[Stop Getting Lost: Make Cognitive Maps, Not Levels](https://gdcvault.com/play/1027206/Stop-Getting-Lost-Make-Cognitive)** (Oueijan, GDC 2021; [summary](https://80.lv/articles/thatgamecompany-s-designer-on-how-not-to-get-lost-in-game-using-cognitive-maps/)) and **[the Level Design Book on wayfinding](https://book.leveldesignbook.com/process/blockout/wayfinding)**.
+- Say: lost is a mismatch between the mental map and what you see; paths, edges, districts, nodes and landmarks; test without a HUD; edges bold, deep wide barriers (pits, chasms) steer most strongly; players don't look up unless something draws the eye.
+- Used for: voids as the edges, the exit's light as the goal you see first, districts by material and light (design 2, 7).
+
+**[A wayfinding study in virtual environments](https://research-portal.uea.ac.uk/en/publications/a-wayfinding-research-in-virtual-environments-the-effect-of-spati/)** (Yesiltepe et al., 2019) and **[Smith and Whitehead, Analyzing the expressive range of a level generator](https://www.pcgworkshop.com/archive/smith2010analyzing.pdf)**.
+- Say: the number of decision points predicts wayfinding performance, landmark saliency did not; plot a generator's metrics over many seeds.
+- Used for: the navigation measures of B2 and their bands, in `cargo xtask range`.
+
+**[Breath of the Wild's world design (CEDEC 2017)](https://zeldauniverse.net/2017/10/09/a-deep-dive-into-nintendos-development-of-breath-of-the-wild/)** *(secondary)*, **[Dark Souls' interconnection](https://www.thegamer.com/dark-souls-1-fromsoftwares-magnum-opus-of-interconnected-level-design/)** *(secondary)*, **[Mirror's Edge: what went wrong](https://pixelpoppers.com/2010/01/mirrors-edge-what-went-wrong-and-why/)** *(secondary)*, **[the Level Design Book on layout typology](https://book.leveldesignbook.com/process/layout/typology)**.
+- Say: places you see long before you reach; loops instead of trees; downhill reads as forward; a visual language for "reachable" must hold everywhere, or players get stuck when it thins; dead ends should pay.
+- Used for: the door far and low, dead ends that end on a view, a parapet on every walkable edge and none elsewhere.
+
+**[S.T.A.L.K.E.R.: Call of Pripyat](https://en.wikipedia.org/wiki/S.T.A.L.K.E.R.:_Call_of_Pripyat)**, **[Rain World's rain](https://rainworld.miraheze.org/wiki/Rain)** *(secondary)*, **[Lethal Company forum thread on the giants](https://steamcommunity.com/app/1966720/discussions/0/3958162152962363255)** *(secondary)*, **[Left 4 Dead's AI director (Booth, 2009)](https://cdn.fastly.steamstatic.com/apps/valve/2009/ai_systems_of_l4d_mike_booth.pdf)**.
+- Say: an emission warns minutes ahead and you must reach a shelter; Rain World's rain is seen and heard before it comes, and shelters are where you rest; a giant you cannot hide from is unfair; a director changes how often, not how hard.
+- Used for: the self-assembly (design 4): a siren, then the fog's surface seen rising, a cell always within reach of the warning at a walk, a cell the same everywhere.
+
+**Scale:** [Shadow of the Colossus's designers on fog and distance](https://www.siliconera.com/graphic-designers-discuss-creating-shadow-of-the-colossus-majestic-world/) *(secondary)*, [the Level Design Book on metrics](https://book.leveldesignbook.com/process/blockout/metrics), [BLAME! and videogame architecture](https://www.killscreen.com/influence-blame-videogame-architecture-rising/) *(secondary)*, [compression and expansion](https://en.wikipedia.org/wiki/Compression_and_expansion).
+- Say: fog over far geometry, repeated modules at human scale, long empty transits as mild sensory deprivation, landings every 12–16 steps, a narrow way opening onto a large one.
+- Used for: the look of the Building (design 3) and the arrival in a narrow place that opens onto the void.
