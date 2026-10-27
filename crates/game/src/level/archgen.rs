@@ -345,7 +345,7 @@ pub static ARCHETYPES: [Archetype; 9] = [
 
 /// `ARCHETYPES[key]` (None for keys that are not archetypes, e.g. "house").
 pub fn archetype(key: &str) -> Option<&'static Archetype> {
-    ARCHETYPES.iter().find(|a| a.key == key)
+    ARCHETYPES.iter().find(|a| a.key == key).or_else(|| crate::level::building::BUILDING_ARCHETYPES.iter().find(|a| a.key == key))
 }
 fn arch_of(key: &str) -> &'static Archetype {
     archetype(key).unwrap_or_else(|| panic!("archgen: unknown archetype {key:?}"))
