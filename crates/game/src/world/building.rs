@@ -10,7 +10,7 @@
 //! ceilings) do not run here: the Building's floors are empty.
 use crate::base::records::*;
 use crate::level::archgen::{Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, SLAB};
-use crate::level::building::{generate_building, BuildingPlan, MASS_TOP, PLAT, VOID_DEPTH};
+use crate::level::building::{generate_building, BuildingPlan, Style, MASS_TOP, PLAT, VOID_DEPTH};
 use crate::prelude::*;
 
 /// A step's rise at most, metres
@@ -20,6 +20,55 @@ pub const PARAPET_H: f64 = 1.05;
 const PARAPET_T: f64 = 0.18;
 /// A cell's lamp over its door, metres over the floor
 pub const CELL_LAMP_Y: f64 = 2.55;
+
+/// A box from `a` to `b` (its length along them, tilted with them),
+/// `lift` over their line, `h` high and `t` thick
+fn along(a: Vec3, b: Vec3, lift: f64, h: f64, t: f64) -> Mat4 {
+    let (dx, dy, dz) = (b.x - a.x, b.y - a.y, b.z - a.z);
+    let run = (dx * dx + dz * dz).sqrt().max(1e-9);
+    let len = (run * run + dy * dy).sqrt();
+    let q = {
+        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).atan2(dx));
+        q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), dy.atan2(run)));
+        q
+    };
+    let c = Vec3::new((a.x + b.x) / 2.0, (a.y + b.y) / 2.0 + lift + h / 2.0, (a.z + b.z) / 2.0);
+    Mat4::compose(&c, &q, &Vec3::new(len, h, t))
+}
+
+/// The railing of the place along an edge from `a` to `b` (on the floor)
+fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wall: &str) {
+    let point = |t: f64| Vec3::new(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
+    let n = |every: f64| (((b.x - a.x).hypot(b.z - a.z)) / every).round().max(1.0) as usize;
+    match style {
+        // the Well: a parapet poured with the gallery
+        Style::Well => push(format!("{wall}:1"), along(a, b, 0.0, PARAPET_H, PARAPET_T)),
+        // the Stair Halls: a stone balustrade, its plinth, balusters and rail
+        Style::Halls => {
+            push(format!("{wall}:1"), along(a, b, 0.0, 0.16, 0.3));
+            push(format!("{wall}:1"), along(a, b, 0.93, 0.13, 0.26));
+            let k = n(0.42);
+            for i in 0..k {
+                let p = point((i as f64 + 0.5) / k as f64);
+                push(
+                    format!("{wall}:1"),
+                    Mat4::compose(&Vec3::new(p.x, p.y + 0.16 + 0.385, p.z), &Quat::IDENTITY, &Vec3::new(0.11, 0.77, 0.11)),
+                );
+            }
+        }
+        // the Works: posts, a mid rail, a top rail and a toe board in yellow
+        Style::Works => {
+            push("mat:yellow".into(), along(a, b, 1.0, 0.05, 0.05));
+            push("mat:steel".into(), along(a, b, 0.5, 0.04, 0.04));
+            push("mat:yellow".into(), along(a, b, 0.0, 0.12, 0.015));
+            let k = n(1.35);
+            for i in 0..=k {
+                let p = point(i as f64 / k as f64);
+                push("mat:steel".into(), Mat4::compose(&Vec3::new(p.x, p.y + 0.52, p.z), &Quat::IDENTITY, &Vec3::new(0.05, 1.05, 0.05)));
+            }
+        }
+    }
+}
 
 impl Game {
     /// Lays out the Building's floor for level `n` (inside the level's seed):
@@ -51,7 +100,7 @@ impl Game {
         // the Building is lit by its own lamps and windows: one dim light everywhere
         for info in self.region_info.iter_mut() {
             info.flags = 0;
-            info.lit = Some(0.42);
+            info.lit = Some(0.5);
         }
         self.spawn_pos = Vec3::new(self.wx(plan.spawn.0), self.floor_y_of(plan.spawn.0, plan.spawn.1) + EYE, self.wz(plan.spawn.1));
         self.building_architecture();
@@ -91,6 +140,7 @@ impl Game {
     /// The slabs, flights, parapets and masses, and the fog's floor.
     fn building_architecture(&mut self) {
         let (w, h) = (self.w, self.h);
+        let style = self.building.as_ref().map(|p| p.style).unwrap_or(Style::Well);
         let zone_mats = |g: &Game, x: i32, z: i32| -> (&'static str, &'static str) {
             g.zone_ref(x, z).map(|zn| (zn.wall_mat, zn.floor_mat)).unwrap_or(("concrete", "concrete"))
         };
@@ -139,47 +189,24 @@ impl Game {
                     }
                     _ => {}
                 }
-                // a parapet on each edge of a walk that looks over the void
+                // a railing on each edge of a walk that looks over the void
+                // (the place's own: a poured parapet, a stone balustrade, a
+                // steel rail), and nowhere else: what has none cannot be walked
                 if g.walkable() {
-                    for (d, dd) in DIRS.iter().enumerate() {
+                    for dd in DIRS.iter() {
                         if self.ground_at(x + dd[0], z + dd[1]).kind != GROUND_VOID {
                             continue;
                         }
-                        let (ex, ez) =
-                            (cx + dd[0] as f64 * (CELL / 2.0 - PARAPET_T / 2.0), cz + dd[1] as f64 * (CELL / 2.0 - PARAPET_T / 2.0));
-                        // (a parapet is poured, whatever the face behind it)
-                        let key = format!("{}:1", if wall == "panel" { "concrete" } else { wall });
-                        if g.kind == GROUND_STAIR {
-                            // along a flight's side, it slopes with the flight
-                            let run = g.dir as usize;
-                            let (h0, h1) = (g.h0 as f64, g.h1 as f64);
-                            let slope = ((h1 - h0) / CELL).atan();
-                            let (rx, rz) = (DIRS[run][0] as f64, DIRS[run][1] as f64);
-                            // turn the box's x axis onto the run, then tilt it up the slope
-                            let q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), -rz.atan2(rx));
-                            let tilt = Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), slope);
-                            let mut qq = q;
-                            qq.multiply(&tilt);
-                            push(
-                                key,
-                                Mat4::compose(
-                                    &Vec3::new(ex, (h0 + h1) / 2.0 + PARAPET_H / 2.0, ez),
-                                    &qq,
-                                    &Vec3::new(CELL / slope.cos(), PARAPET_H, PARAPET_T),
-                                ),
-                            );
-                        } else {
-                            // (an edge facing ±x runs along z)
-                            let q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), if DIRS[d][0] != 0 { PI / 2.0 } else { 0.0 });
-                            push(
-                                key,
-                                Mat4::compose(
-                                    &Vec3::new(ex, g.h0 as f64 + PARAPET_H / 2.0, ez),
-                                    &q,
-                                    &Vec3::new(CELL, PARAPET_H, PARAPET_T),
-                                ),
-                            );
-                        }
+                        let (fx, fz) = (dd[0] as f64, dd[1] as f64);
+                        // the edge, from one end to the other, at the floor
+                        let (ox, oz) = (cx + fx * (CELL / 2.0 - PARAPET_T / 2.0), cz + fz * (CELL / 2.0 - PARAPET_T / 2.0));
+                        let (ax, az) = (-fz * CELL / 2.0, fx * CELL / 2.0);
+                        let fa = g.at(x, z, self.to_u(ox - ax), self.to_v(oz - az));
+                        let fb = g.at(x, z, self.to_u(ox + ax), self.to_v(oz + az));
+                        let a = Vec3::new(ox - ax, fa, oz - az);
+                        let b = Vec3::new(ox + ax, fb, oz + az);
+                        let poured = if wall == "panel" { "concrete" } else { wall };
+                        rail(&mut push, style, a, b, poured);
                     }
                 }
             }
@@ -211,7 +238,11 @@ impl Game {
         }
         let geo = self.unit_box_geo.clone();
         for (key, list) in slabs {
-            let mat = self.arch_mat(&key);
+            let mat = match key.as_str() {
+                "mat:steel" => lambert!({ color: 0x484b49 }),
+                "mat:yellow" => lambert!({ color: 0x8c7a34 }),
+                _ => self.arch_mat(&key),
+            };
             self.add_instanced(&geo, &mat, &list, &|m: &Mat4| *m);
         }
         // the fog's floor, far down
@@ -221,30 +252,63 @@ impl Game {
         self.world.add(&bottom);
     }
 
-    /// A lamp over every cell's door (and over the door down), as panels the
-    /// pooled lights and the light map know.
+    /// The lamps, as panels the pooled lights and the light map know: one
+    /// over every cell's door; one where three or more ways meet; one at the
+    /// foot of every flight (what can be walked is lit where it starts). The
+    /// Well's are bulkheads on the walls, the Stair Halls' iron lanterns, the
+    /// Works' floodlights on posts.
     fn building_lamps(&mut self, plan: &BuildingPlan) {
-        let mut spots: Vec<(f64, f64, f64)> = vec![];
+        let mut spots: Vec<(f64, f64, f64, bool)> = vec![];
         for c in &plan.cells {
             let (dx, dz) = (DIRS[c.door][0] as f64, DIRS[c.door][1] as f64);
             let (x, z) = (self.wx(c.tile.0) + dx * (CELL / 2.0 + 0.15), self.wz(c.tile.1) + dz * (CELL / 2.0 + 0.15));
-            spots.push((x, z, self.floor_y_of(c.tile.0, c.tile.1) + CELL_LAMP_Y));
+            spots.push((x, z, self.floor_y_of(c.tile.0, c.tile.1) + CELL_LAMP_Y, false));
         }
-        // one over each platform where three or more walks meet
         for nd in &plan.nodes {
             if nd.degree >= 3 {
                 let (x, z) = (self.wx(nd.x) + CELL / 2.0, self.wz(nd.z) + CELL / 2.0);
-                spots.push((x, z, nd.storey as f64 * crate::level::building::STOREY + 3.4));
+                spots.push((x, z, nd.storey as f64 * crate::level::building::STOREY + 3.4, true));
             }
         }
-        let geo = box_geo!(0.22, 0.14, 0.22);
-        let pm = instanced_mesh(&geo, basic_mat!({ color: 0xfff1d0 }), spots.len());
+        // the foot of every flight: the floor tile its low end meets
+        for z in 0..self.h {
+            for x in 0..self.w {
+                let g = self.ground_at(x, z);
+                if g.kind != GROUND_STAIR {
+                    continue;
+                }
+                // the low end's side
+                let d = if g.h1 < g.h0 { g.dir as usize } else { g.dir as usize ^ 1 };
+                let (fx, fz) = (x + DIRS[d][0], z + DIRS[d][1]);
+                let foot = self.ground_at(fx, fz);
+                if foot.kind != GROUND_FLOOR {
+                    continue;
+                }
+                // to one side of the way, so it lights the first steps
+                let (sx, sz) = (-(DIRS[d][1] as f64), DIRS[d][0] as f64);
+                let (px, pz) = (self.wx(fx) + sx * (CELL / 2.0 - 0.35), self.wz(fz) + sz * (CELL / 2.0 - 0.35));
+                spots.push((px, pz, foot.h0 as f64 + 2.6, true));
+            }
+        }
+        let style = plan.style;
+        let geo = match style {
+            Style::Well => box_geo!(0.22, 0.14, 0.22),
+            Style::Halls => box_geo!(0.2, 0.34, 0.2),
+            Style::Works => box_geo!(0.5, 0.16, 0.32),
+        };
+        let pm = instanced_mesh(&geo, basic_mat!({ color: if style == Style::Halls { 0xf3d6a0 } else { 0xfff1d0 } }), spots.len());
         let white = Color::white();
-        for (i, &(x, z, y)) in spots.iter().enumerate() {
+        let mut posts: Vec<Mat4> = vec![];
+        for (i, &(x, z, y, post)) in spots.iter().enumerate() {
             let mut m4 = Mat4::IDENTITY;
             m4.make_translation(x, y, z);
             pm.set_matrix_at(i, &m4);
             pm.set_color_at(i, &white);
+            // a post under it, where it does not hang from a wall
+            if post && style != Style::Well {
+                let f = self.floor_y_at(x, z);
+                posts.push(Mat4::compose(&Vec3::new(x, (f + y) / 2.0, z), &Quat::IDENTITY, &Vec3::new(0.07, (y - f).max(0.1), 0.07)));
+            }
             let seed = rand1(100.0);
             let lfo_freq = 0.15 + rnd() * 0.25;
             let lfo_phase = rnd() * PI * 2.0;
@@ -263,6 +327,11 @@ impl Game {
         }
         self.world.add(&pm);
         self.panel_mesh = Some(pm);
+        if !posts.is_empty() {
+            let geo = self.unit_box_geo.clone();
+            let mat = lambert!({ color: 0x3a3936 });
+            self.add_instanced(&geo, &mat, &posts, &|m: &Mat4| *m);
+        }
     }
 
     /// The door down, and what the floor leaves lying about: water and a

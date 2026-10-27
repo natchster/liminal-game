@@ -12,40 +12,40 @@
     "shadow": 0.0449
   },
   "4242_L1_spawn": {
-    "colourfulness": 7.09,
-    "contrast": 0.0549,
-    "luminance": 0.1047,
-    "shadow": 0.6954
+    "colourfulness": 7.58,
+    "contrast": 0.054,
+    "luminance": 0.1245,
+    "shadow": 0.4098
   },
   "4242_L1_well": {
-    "colourfulness": 8.56,
-    "contrast": 0.0612,
-    "luminance": 0.0864,
-    "shadow": 0.7205
+    "colourfulness": 9.28,
+    "contrast": 0.0628,
+    "luminance": 0.1041,
+    "shadow": 0.5699
   },
   "4242_L2_spawn": {
-    "colourfulness": 6.28,
-    "contrast": 0.0524,
-    "luminance": 0.102,
-    "shadow": 0.8595
+    "colourfulness": 6.69,
+    "contrast": 0.0514,
+    "luminance": 0.116,
+    "shadow": 0.6184
   },
   "4242_L2_stair_halls": {
-    "colourfulness": 5.78,
-    "contrast": 0.0536,
-    "luminance": 0.0783,
-    "shadow": 0.9792
+    "colourfulness": 6.31,
+    "contrast": 0.0535,
+    "luminance": 0.0906,
+    "shadow": 0.903
   },
   "4242_L3_spawn": {
-    "colourfulness": 7.48,
-    "contrast": 0.0557,
-    "luminance": 0.1342,
-    "shadow": 0.2105
+    "colourfulness": 7.91,
+    "contrast": 0.0608,
+    "luminance": 0.1437,
+    "shadow": 0.1335
   },
   "4242_L3_works": {
-    "colourfulness": 7.36,
-    "contrast": 0.0509,
-    "luminance": 0.1227,
-    "shadow": 0.3933
+    "colourfulness": 8.58,
+    "contrast": 0.0518,
+    "luminance": 0.125,
+    "shadow": 0.4328
   },
   "4242_L4_spawn": {
     "colourfulness": 20.26,

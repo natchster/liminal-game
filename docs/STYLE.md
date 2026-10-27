@@ -119,7 +119,8 @@ why in the commit. (The luminance floors were re-measured on 2026-10-27, by
 the same rule rounded outward, when the HUD went to rest (`docs/UI.md` U5):
 its always-on bars and capitals had lifted every view's mean by about 0.01.)
 The Building's three places (`docs/MEGASTRUCTURE.md`) were measured by the
-same rule when they came in (16 views each, B3): far darker than the rooms
+same rule when they came in (16 views each, B3; again when their lamps,
+railings and own air came in, B4): far darker than the rooms
 (their light is lamps and windows over a void, not fixtures on every other
 tile), and greyer.
 
@@ -242,10 +243,10 @@ tile), and greyer.
       "from": "all views (too few of its own)"
     },
     "stair halls": {
-      "colourfulness_max": 10,
+      "colourfulness_max": 13,
       "luminance": [
-        0.04,
-        0.17
+        0.06,
+        0.19
       ],
       "views": 16,
       "from": "own views"
@@ -269,19 +270,19 @@ tile), and greyer.
       "from": "own views"
     },
     "well": {
-      "colourfulness_max": 11,
+      "colourfulness_max": 12,
       "luminance": [
-        0.05,
-        0.15
+        0.06,
+        0.17
       ],
       "views": 16,
       "from": "own views"
     },
     "works": {
-      "colourfulness_max": 11,
+      "colourfulness_max": 12,
       "luminance": [
-        0.06,
-        0.15
+        0.07,
+        0.16
       ],
       "views": 16,
       "from": "own views"

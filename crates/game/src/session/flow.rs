@@ -655,7 +655,13 @@ impl Game {
     }
     /// Deterministic per (run seed, level)
     pub fn pick_level_weather(&mut self) {
-        let idx = (self.current_seed as usize) % WEATHER_BIASES.len();
+        // the Building's floors have none of the rooms' weathers: their air
+        // is the Building's own (`docs/MEGASTRUCTURE.md`)
+        let idx = if crate::level::building::Style::of_level(self.level_num).is_some() {
+            WEATHER_BIASES.iter().position(|w| w.key == "normal").unwrap_or(0)
+        } else {
+            (self.current_seed as usize) % WEATHER_BIASES.len()
+        };
         self.apply_weather_bias(&WEATHER_BIASES[idx]);
     }
 }
