@@ -950,6 +950,7 @@ fn exit_door_title_omen_and_store_phases() {
             level: 1,
             scp: None,
             rooms: vec![],
+            ground: vec![],
         });
         assert_eq!(g.level_title(), s(&t[1]), "level_title {dominant}");
     }

@@ -40,6 +40,47 @@ impl Game {
         g.level_weather = &crate::base::state::WEATHER_BIASES[(seed as usize) % 6];
         (g, dist)
     }
+    /// A small floor of the Building, by hand (9 × 5 tiles): a gallery at 0,
+    /// a flight down to a gallery at −3 along +x, a void between the two
+    /// rows, and a wall standing between the two heights on the bottom row.
+    ///
+    /// ```text
+    ///   # # # # # # # # #
+    ///   # . . . S , , , #    S: the flight, 0 → −3 toward +x
+    ///   # . ~ ~ ~ ~ ~ , #    ~: void
+    ///   # . . . # , , , #    #: wall (a cliff between the heights)
+    ///   # # # # # # # # #
+    /// ```
+    pub fn test_ground_level() -> Game {
+        use crate::level::archgen::{build_ground_solids, Ground};
+        let mut g = Game::new_bare();
+        let rows = ["#########", "#...S,,,#", "#.~~~~~,#", "#...#,,,#", "#########"];
+        g.w = 9;
+        g.h = 5;
+        g.tiles = vec![1; 45];
+        g.ground = vec![Ground::void(); 45];
+        for (z, row) in rows.iter().enumerate() {
+            for (x, c) in row.chars().enumerate() {
+                let i = z * 9 + x;
+                g.ground[i] = match c {
+                    '.' => Ground::floor(0.0),
+                    ',' => Ground::floor(-3.0),
+                    'S' => Ground::stair(0.0, -3.0, 0),
+                    '~' => Ground::void(),
+                    _ => Ground::mass(-30.0, 30.0),
+                };
+                if g.ground[i].walkable() {
+                    g.tiles[i] = 0;
+                }
+            }
+        }
+        g.tile_ceil = vec![60.0; 45];
+        g.solids = Some(build_ground_solids(9, 5, crate::base::config::CELL, &g.ground));
+        g.player.pos = Vec3::new(g.wx(2), crate::base::config::EYE, g.wz(1));
+        g.has_layout = false;
+        g.level_weather = &crate::base::state::WEATHER_BIASES[0];
+        g
+    }
     /// BFS tile distance from (1, 1); -1 where unreachable or wall.
     pub fn test_dist(&self) -> Vec<i32> {
         let (w, h) = (self.w, self.h);

@@ -45,7 +45,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | Module | Responsibility |
 |---|---|
 | `base` | `Game` (all state in one struct), constants (`config`), the random streams (`rng`), numeric helpers, shared record types, per-weather tables, the prop position registry |
-| `level` | `archgen`: the zoned layout of a level (archetypes, walls, partitions, rooms, ceiling heights, solids for collision and sight); `scp`: which anomaly appears on which level of a run |
+| `level` | `archgen`: the zoned layout of a level (archetypes, walls, partitions, rooms, ceiling heights, solids for collision and sight; the ground a tile stands on where floors have height: a floor, a void, a stair, a mass); `scp`: which anomaly appears on which level of a run |
 | `world` | Grid and collision queries, zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling |
 | `assets` | The embedded prop and creature meshes (`assets/*.bin`), fitted to each placer's size |
 | `placers` | The kit placers build with (`canvas_tex`, `pg`, joints, shared materials and tables) |

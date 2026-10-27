@@ -240,6 +240,11 @@ impl Game {
     /// Sight line at 1.5 m (world coords)
     pub fn los(&self, ax: f64, az: f64, bx: f64, bz: f64) -> bool {
         if let Some(s) = &self.solids {
+            if !self.ground.is_empty() {
+                // each end at 1.5 m over its own floor
+                let (ya, yb) = (self.floor_y_at(ax, az) + 1.5, self.floor_y_at(bx, bz) + 1.5);
+                return archgen::segment_clear_3d(s, self.to_u(ax), self.to_v(az), ya, self.to_u(bx), self.to_v(bz), yb);
+            }
             return archgen::segment_clear(s, self.to_u(ax), self.to_v(az), self.to_u(bx), self.to_v(bz), 1.5);
         }
         let (dx, dz) = (bx - ax, bz - az);
@@ -338,6 +343,7 @@ impl Game {
         self.h = layout.h;
         self.tiles = layout.tiles.clone();
         self.tile_ceil = archgen::ceiling_heights(&layout);
+        self.ground = layout.ground.clone();
         self.layout = Some(layout);
         self.has_layout = true;
         // provisional solids so anything placed during the prop pass collides
@@ -348,6 +354,10 @@ impl Game {
     /// rather than the layout's copy
     pub fn build_solids_now(&self, anchors: Option<&std::collections::HashSet<usize>>) -> Option<archgen::Solids> {
         let l = self.layout.as_ref()?;
+        // the Building's floors: masses, voids and the slabs under the floors
+        if !self.ground.is_empty() {
+            return Some(archgen::build_ground_solids(self.w, self.h, CELL, &self.ground));
+        }
         let view = archgen::LayoutView {
             w: self.w,
             h: self.h,

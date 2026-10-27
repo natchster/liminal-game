@@ -116,6 +116,9 @@ pub struct Game {
     // ============================================================ world / architecture
     /// Ceiling height per tile
     pub tile_ceil: Vec<f32>,
+    /// What each tile stands on (`archgen::Ground`); empty on the rooms,
+    /// whose floors are all at y = 0
+    pub ground: Vec<crate::level::archgen::Ground>,
     /// The archgen layout of the current level
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
@@ -656,6 +659,7 @@ impl Game {
             ui: crate::ui::model::UiModel::new(),
             rand_trace: RandTrace::default(),
             tile_ceil: vec![],
+            ground: vec![],
             layout: None,
             solids: None,
             tex: crate::visuals::textures::Textures::placeholder(),
@@ -1087,6 +1091,23 @@ impl Game {
     #[inline]
     pub fn is_wall_tile(&self, x: impl Num, z: impl Num) -> bool {
         !self.in_grid(x, z) || self.tiles[self.t_idx(x, z)] == 1
+    }
+    /// The height of the floor under world point (x, z): 0 on the rooms; on
+    /// the Building's floors the tile's floor, or along a stair's run
+    pub fn floor_y_at(&self, px: f64, pz: f64) -> f64 {
+        if self.ground.is_empty() {
+            return 0.0;
+        }
+        let (u, v) = (self.to_u(px), self.to_v(pz));
+        let (x, z) = (u.floor().clamp(0.0, (self.w - 1) as f64) as i32, v.floor().clamp(0.0, (self.h - 1) as f64) as i32);
+        match self.ground.get((z * self.w + x) as usize) {
+            Some(g) => g.at(x, z, u, v),
+            None => 0.0,
+        }
+    }
+    /// The height of the floor of tile (x, z) at its centre
+    pub fn floor_y_of(&self, x: i32, z: i32) -> f64 {
+        self.floor_y_at(self.wx(x), self.wz(z))
     }
     /// Tile x → world x of the tile centre
     #[inline]

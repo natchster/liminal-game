@@ -213,7 +213,8 @@ impl Game {
         let m = mesh(self.paper_marker_geo.clone(), &self.paper_marker_mat);
         // drop just in front of the player's feet, slight random tilt
         let (fx, fz) = (-self.player.yaw.sin(), -self.player.yaw.cos());
-        m.position().set(self.player.pos.x + fx * 0.35, 0.008, self.player.pos.z + fz * 0.35);
+        let (px, pz) = (self.player.pos.x + fx * 0.35, self.player.pos.z + fz * 0.35);
+        m.position().set(px, self.floor_y_at(px, pz) + 0.008, pz);
         m.rotation().y = self.player.yaw + rand2(-0.4, 0.4);
         m.rotation().x = rand2(-0.05, 0.05);
         m.rotation().z = rand2(-0.05, 0.05);
@@ -358,11 +359,12 @@ impl Game {
             let yaw = dir_x.atan2(dir_z);
             let arrow = mesh(self.arrow_geo.clone(), self.arrow_mat.duplicate());
             let (ax, az) = (self.wx(x), self.wz(z));
-            arrow.position().set(ax, 0.1, az);
+            let ay = self.floor_y_at(ax, az) + 0.1;
+            arrow.position().set(ax, ay, az);
             arrow.rotation().y = yaw;
             arrow.scale().set(2.4, 2.4, 2.4);
             self.world.add(&arrow);
-            self.guide_arrows.push(GuideArrow { mesh: arrow, life: 14.0, start_y: 0.1, index: i });
+            self.guide_arrows.push(GuideArrow { mesh: arrow, life: 14.0, start_y: ay, index: i });
         }
     }
 
@@ -708,6 +710,11 @@ impl Game {
             let dz = (fz * mz + rz * mx) * speed * analog * dt;
             let mut p = self.player.pos;
             self.collide_move(&mut p, dx, dz, PLAYER_R);
+            // on the Building's floors the body stands on the floor under it
+            // (a stair's run, a gallery); the rooms are all at y = 0
+            if !self.ground.is_empty() {
+                p.y = self.floor_y_at(p.x, p.z) + EYE;
+            }
             self.player.pos = p;
             // R48/R182: bob tempo increases with descent
             self.player.bob_phase += dt * speed * 2.1 * self.descent_boost_mul(0.15);
@@ -804,7 +811,8 @@ impl Game {
         {
             let cx = self.player.pos.x + (self.player.bob_phase * 0.5).cos() * self.player.bob_amp * 0.4 * bob_k;
             let shake = if self.shake_t > 0.0 { rand2(-1.0, 1.0) * self.shake_t * 0.06 * shake_k } else { 0.0 };
-            let cy = self.player.eye_h + bob_y + idle_breath + shake + insanity_shake;
+            let cy =
+                self.floor_y_at(self.player.pos.x, self.player.pos.z) + self.player.eye_h + bob_y + idle_breath + shake + insanity_shake;
             cam.position().set(cx, cy, self.player.pos.z);
         }
         cam.rotation().y = self.player.yaw;

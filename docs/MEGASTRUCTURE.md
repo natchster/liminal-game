@@ -165,7 +165,8 @@ a headless PNG, a log), its own commit, and the playable bundle rebuilt
 
 | # | Commit | Notes |
 |---|---|---|
-| B0 | (this commit) | the plan |
+| B0 | `a38c482` | the plan |
+| B1 | (this commit) | `archgen::Ground` (a floor, a void, a stair from `h0` to `h1` along `dir`, a mass from its foot to its top) in `Layout::ground` (empty on the rooms) and `Game::ground`; `ground_breaks` names every pair of open neighbours that do not meet at one height (two flights side by side with the same run are one wide flight). `build_ground_solids`: a mass is a box, a void a box of kind `BOX_VOID` that stops a body and no look (`segment_clear`, `ray_axis` skip it), a floor a slab of kind `BOX_FLOOR` that stops a look and no body (`circle_hits` skips it). `segment_clear_3d`; `los` runs it between 1.5 m over each end's own floor when the level has ground. `floor_y_at` / `floor_y_of`; the body stands on the floor under it, the camera, dropped paper and the floor arrows too. On the rooms everything adds 0.0 and writes nothing new: every fixture, golden, look anchor and the range baseline are unchanged (full check). `tests/height.rs` on `Game::test_ground_level`, a 9 × 5 floor by hand: down a flight and back up, stopped by a void, a wall between two heights and a flight's side, seen across a void, not through a slab or a wall |
 
 ## What only people can tell
 

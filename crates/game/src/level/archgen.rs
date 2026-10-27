@@ -43,6 +43,95 @@ pub const BOX_PILLAR: i32 = 1;
 pub const BOX_JAMB: i32 = 2;
 pub const BOX_LINTEL: i32 = 3;
 pub const BOX_ANCHOR: i32 = 4;
+/// A void (the Building's floors): no floor, a drop into the fog. It stops a
+/// body but not a look.
+pub const BOX_VOID: i32 = 5;
+/// The slab under a floor that has height (the Building's floors): it
+/// stops a look, never a body, which stands on it.
+pub const BOX_FLOOR: i32 = 6;
+
+// ---------------------------------------------------------------------------
+// Ground: floors with height. The rooms stand on y = 0 and have none (an
+// empty `Layout::ground`); the Building's floors (`level::building`) give
+// every tile one. Heights change only along a stair tile or across a wall
+// or a void, never between two open neighbours, so every search over the
+// tile grid (reachability, her walk, the exit) stays true.
+// ---------------------------------------------------------------------------
+/// `Ground::kind`: an open floor at `h0`
+pub const GROUND_FLOOR: u8 = 0;
+/// `Ground::kind`: no floor (the tile is closed: a drop into the fog)
+pub const GROUND_VOID: u8 = 1;
+/// `Ground::kind`: a flight of stairs from `h0` on its back edge to `h1` on
+/// its front edge (the side `DIRS[dir]` points to)
+pub const GROUND_STAIR: u8 = 2;
+/// `Ground::kind`: a wall or a mass of building, from `h0` up to `h1`
+pub const GROUND_MASS: u8 = 3;
+
+/// What one tile stands on (metres).
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Ground {
+    pub kind: u8,
+    pub h0: f32,
+    pub h1: f32,
+    /// a stair's direction (a `DIRS` index): its floor goes from `h0` to `h1` that way
+    pub dir: u8,
+}
+impl Ground {
+    pub const fn floor(h: f32) -> Ground {
+        Ground { kind: GROUND_FLOOR, h0: h, h1: h, dir: 0 }
+    }
+    pub const fn void() -> Ground {
+        Ground { kind: GROUND_VOID, h0: 0.0, h1: 0.0, dir: 0 }
+    }
+    pub const fn mass(foot: f32, top: f32) -> Ground {
+        Ground { kind: GROUND_MASS, h0: foot, h1: top, dir: 0 }
+    }
+    pub const fn stair(h0: f32, h1: f32, dir: u8) -> Ground {
+        Ground { kind: GROUND_STAIR, h0, h1, dir }
+    }
+    /// Whether a body can stand here
+    pub fn walkable(&self) -> bool {
+        self.kind == GROUND_FLOOR || self.kind == GROUND_STAIR
+    }
+    /// The height of the floor at (u, v) in tile units inside tile (x, z):
+    /// level, or along a stair's run
+    pub fn at(&self, x: i32, z: i32, u: f64, v: f64) -> f64 {
+        if self.kind != GROUND_STAIR {
+            return self.h0 as f64;
+        }
+        let s = match self.dir {
+            0 => u - x as f64,
+            1 => (x + 1) as f64 - u,
+            2 => v - z as f64,
+            _ => (z + 1) as f64 - v,
+        };
+        let s = s.clamp(0.0, 1.0);
+        self.h0 as f64 + (self.h1 as f64 - self.h0 as f64) * s
+    }
+    /// The height where this tile meets its neighbour in `DIRS[d]`: its
+    /// floor's edge on that side (a stair's ends; its sides are closed)
+    pub fn edge(&self, d: usize) -> Option<f64> {
+        match self.kind {
+            GROUND_FLOOR => Some(self.h0 as f64),
+            GROUND_STAIR if d == self.dir as usize => Some(self.h1 as f64),
+            GROUND_STAIR if d == (self.dir as usize ^ 1) => Some(self.h0 as f64),
+            _ => None,
+        }
+    }
+}
+
+/// Whether two neighbouring grounds (b in `DIRS[d]` of a) meet where both
+/// can be walked: open on both sides, at the same height
+pub fn grounds_meet(a: &Ground, b: &Ground, d: usize) -> bool {
+    // two flights side by side, the same run (a wide flight)
+    if a.kind == GROUND_STAIR && b.kind == GROUND_STAIR && (a.dir as usize) / 2 != d / 2 {
+        return a.dir == b.dir && (a.h0 - b.h0).abs() < 0.05 && (a.h1 - b.h1).abs() < 0.05;
+    }
+    match (a.edge(d), b.edge(d ^ 1)) {
+        (Some(ha), Some(hb)) => (ha - hb).abs() < 0.05,
+        _ => false,
+    }
+}
 
 // ---------------------------------------------------------------------------
 // Archetypes. Ranges are [min, max] in metres unless noted.
@@ -483,6 +572,8 @@ pub struct Layout {
     pub scp: Option<String>,
     /// the carvers' rooms, zone by zone
     pub rooms: Vec<Room>,
+    /// what each tile stands on (empty: the rooms, all floors at y = 0)
+    pub ground: Vec<Ground>,
 }
 impl Layout {
     /// Tile index `z * w + x`
@@ -746,7 +837,7 @@ pub fn generate_layout(o: &LayoutOpts, rng: &mut dyn FnMut() -> f64) -> Layout {
     }
 
     let Ctx { tiles, tile_flags, rooms, .. } = ctx;
-    Layout { w, h, cell, tiles, zone_of, tile_flags, zones, dominant, level, scp: scp.map(|s| s.to_string()), rooms }
+    Layout { w, h, cell, tiles, zone_of, tile_flags, zones, dominant, level, scp: scp.map(|s| s.to_string()), rooms, ground: vec![] }
 }
 
 /// Neighbouring zones of the same archetype are one building: they take the
@@ -1845,9 +1936,9 @@ pub fn circle_hits(s: &Solids, u: f64, v: f64, r: f64, y_max: f64) -> bool {
             if let Some(t) = s.tile_of(x, z) {
                 for k in s.start[t]..s.start[t + 1] {
                     let o = s.items[k as usize] as usize * 8;
-                    if b[o + 4] as f64 >= y_max {
+                    if b[o + 4] as f64 >= y_max || b[o + 7] as i32 == BOX_FLOOR {
                         continue;
-                    } // lintel overhead
+                    } // lintel overhead; the floor you stand on
                     let (bx0, bz0, bx1, bz1) = (b[o] as f64, b[o + 1] as f64, b[o + 2] as f64, b[o + 3] as f64);
                     let cx = if u < bx0 {
                         bx0
@@ -1935,7 +2026,7 @@ pub fn segment_clear(s: &Solids, u0: f64, v0: f64, u1: f64, v1: f64, y: f64) -> 
                 }
                 stamp[bi] = tick;
                 let o = bi * 8;
-                if y < b[o + 4] as f64 || y > b[o + 5] as f64 {
+                if y < b[o + 4] as f64 || y > b[o + 5] as f64 || b[o + 7] as i32 == BOX_VOID {
                     continue;
                 }
                 if seg_box(u0, v0, du, dv, b[o] as f64, b[o + 1] as f64, b[o + 2] as f64, b[o + 3] as f64) {
@@ -1958,6 +2049,147 @@ pub fn segment_clear(s: &Solids, u0: f64, v0: f64, u1: f64, v1: f64, y: f64) -> 
         }
     }
     true
+}
+
+/// Line of sight between two points at their own heights (tile units, y in
+/// metres): true when the segment is clear of every box it passes through
+/// at the height it passes. Voids never block; floor slabs do. With
+/// `y0 == y1` it is [`segment_clear`] at that height.
+pub fn segment_clear_3d(s: &Solids, u0: f64, v0: f64, y0: f64, u1: f64, v1: f64, y1: f64) -> bool {
+    let tick = s.next_tick();
+    let mut stamp = s.stamp.borrow_mut();
+    let (w, h) = (s.w as f64, s.h as f64);
+    let b = &s.boxes;
+    let du = u1 - u0;
+    let dv = v1 - v0;
+    let dy = y1 - y0;
+    let mut x = u0.floor();
+    let mut z = v0.floor();
+    let xe = u1.floor();
+    let ze = v1.floor();
+    let sx = if du > 0.0 { 1.0 } else { -1.0 };
+    let sz = if dv > 0.0 { 1.0 } else { -1.0 };
+    let tdx = if du != 0.0 { (1.0 / du).abs() } else { f64::INFINITY };
+    let tdz = if dv != 0.0 { (1.0 / dv).abs() } else { f64::INFINITY };
+    let mut tmx = if du != 0.0 { (if sx > 0.0 { x + 1.0 - u0 } else { u0 - x }) * tdx } else { f64::INFINITY };
+    let mut tmz = if dv != 0.0 { (if sz > 0.0 { z + 1.0 - v0 } else { v0 - z }) * tdz } else { f64::INFINITY };
+    for _guard in 0..4 * (s.w + s.h) {
+        if x < 0.0 || z < 0.0 || x >= w || z >= h {
+            return false;
+        }
+        if let Some(t) = s.tile_of(x, z) {
+            for k in s.start[t]..s.start[t + 1] {
+                let bi = s.items[k as usize] as usize;
+                if stamp[bi] == tick {
+                    continue;
+                }
+                stamp[bi] = tick;
+                let o = bi * 8;
+                if b[o + 7] as i32 == BOX_VOID {
+                    continue;
+                }
+                let Some((ta, tb)) = seg_box_t(u0, v0, du, dv, b[o] as f64, b[o + 1] as f64, b[o + 2] as f64, b[o + 3] as f64) else {
+                    continue;
+                };
+                let (ya, yb) = (y0 + dy * ta, y0 + dy * tb);
+                if ya.max(yb) >= b[o + 4] as f64 && ya.min(yb) <= b[o + 5] as f64 {
+                    return false;
+                }
+            }
+        }
+        if x == xe && z == ze {
+            return true;
+        }
+        if tmx < tmz {
+            tmx += tdx;
+            x += sx;
+        } else {
+            tmz += tdz;
+            z += sz;
+        }
+        if tmx > 1.0 + tdx && tmz > 1.0 + tdz {
+            return true;
+        }
+    }
+    true
+}
+
+/// [`seg_box`]'s overlap as the part of the segment inside the box's
+/// footprint (`t` from 0 to 1), or None
+fn seg_box_t(u0: f64, v0: f64, du: f64, dv: f64, x0: f64, z0: f64, x1: f64, z1: f64) -> Option<(f64, f64)> {
+    let mut tmin = 0.0;
+    let mut tmax = 1.0;
+    for (p0, dp, lo, hi) in [(u0, du, x0, x1), (v0, dv, z0, z1)] {
+        if dp.abs() < 1e-9 {
+            if p0 <= lo || p0 >= hi {
+                return None;
+            }
+        } else {
+            let mut a = (lo - p0) / dp;
+            let mut b = (hi - p0) / dp;
+            if a > b {
+                std::mem::swap(&mut a, &mut b);
+            }
+            tmin = nan_max(tmin, a);
+            tmax = nan_min(tmax, b);
+            if tmin >= tmax {
+                return None;
+            }
+        }
+    }
+    Some((tmin, tmax))
+}
+
+/// Where the height rule breaks: every pair of neighbouring tiles that are
+/// both walkable but do not meet at one height (tile, `DIRS` index). Empty
+/// when heights change only along a stair or across a wall or a void.
+pub fn ground_breaks(w: i32, h: i32, ground: &[Ground]) -> Vec<((i32, i32), usize)> {
+    let mut out = vec![];
+    for z in 0..h {
+        for x in 0..w {
+            let a = &ground[(z * w + x) as usize];
+            if !a.walkable() {
+                continue;
+            }
+            for d in [0usize, 2] {
+                let (nx, nz) = (x + DIRS[d][0], z + DIRS[d][1]);
+                if nx >= w || nz >= h {
+                    continue;
+                }
+                let b = &ground[(nz * w + nx) as usize];
+                if b.walkable() && !grounds_meet(a, b, d) {
+                    out.push(((x, z), d));
+                }
+            }
+        }
+    }
+    out
+}
+
+/// How thick the slab under a floor with height is, metres
+pub const SLAB: f64 = 0.4;
+
+/// The solids of a grid whose tiles stand on `ground` (the Building's
+/// floors): a mass is one box from its foot to its top, a void one box
+/// that stops a body and no look, a floor (or a stair) a slab under it.
+pub fn build_ground_solids(w: i32, h: i32, cell: f64, ground: &[Ground]) -> Solids {
+    let mut boxes: Vec<f32> = Vec::with_capacity(ground.len() * 8);
+    for z in 0..h {
+        for x in 0..w {
+            let g = ground[(z * w + x) as usize];
+            let t = (z * w + x) as f32;
+            let (x0, z0, x1, z1) = (x as f32, z as f32, (x + 1) as f32, (z + 1) as f32);
+            match g.kind {
+                GROUND_MASS => boxes.extend_from_slice(&[x0, z0, x1, z1, g.h0, g.h1, t, BOX_WALL as f32]),
+                GROUND_VOID => boxes.extend_from_slice(&[x0, z0, x1, z1, -1.0e4, 1.0e4, t, BOX_VOID as f32]),
+                _ => {
+                    let top = g.h0.min(g.h1);
+                    boxes.extend_from_slice(&[x0, z0, x1, z1, top - SLAB as f32, top, t, BOX_FLOOR as f32]);
+                }
+            }
+        }
+    }
+    make_solids(w, h, cell, boxes)
 }
 
 fn seg_box(u0: f64, v0: f64, du: f64, dv: f64, x0: f64, z0: f64, x1: f64, z1: f64) -> bool {
@@ -2018,7 +2250,7 @@ pub fn ray_axis(s: &Solids, u: f64, v: f64, dir: usize, max_t: f64, y: f64) -> f
         if let Some(t) = s.tile_of(x, z) {
             for k in s.start[t]..s.start[t + 1] {
                 let o = s.items[k as usize] as usize * 8;
-                if y < b[o + 4] as f64 || y > b[o + 5] as f64 {
+                if y < b[o + 4] as f64 || y > b[o + 5] as f64 || matches!(b[o + 7] as i32, BOX_VOID | BOX_FLOOR) {
                     continue;
                 }
                 let (bx0, bz0, bx1, bz1) = (b[o] as f64, b[o + 1] as f64, b[o + 2] as f64, b[o + 3] as f64);
