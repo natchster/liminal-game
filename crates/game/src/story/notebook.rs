@@ -35,7 +35,7 @@ pub static FLOOR_PAGES: [Page; 8] = [
     // the Building's three floors and the Lobby: always levels 1-4
     Page {
         id: "f1",
-        body: "E. told me about the wall at the back of the storage room, the one that gives when you lean on it. I laughed at him. Then he stopped answering, and I went and leaned on it.\n\nGalleries round a hole with no bottom, and windows, more than I can count, and nobody at any of them. A siren went somewhere far off. I got into one of the little rooms with a wheel on its door, turned it until it stopped, and waited a long time. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
+        body: "E. told me about the wall at the back of the storage room, the one that gives when you lean on it. I laughed at him. Then he stopped answering, and I went and leaned on it.\n\nGalleries round a hole with no bottom, and windows, hundreds of them, and nobody at any of them. A siren went somewhere far off. I got into one of the little rooms with a wheel on its door, turned it until it stopped, and waited a long time. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
         thread: "Folded twice, so I know it's mine.",
     },
     Page {

@@ -16,7 +16,7 @@ description: Add or change a creature in The Backrooms: brief against canon and 
 3. **Silhouette and close-up.** Add it to `CREATURES` in
    `xtask/src/shots.rs`, run `cargo xtask shots`, and look at it at 8 m (it
    must read as *something standing there*), 4 m, 2 m and in its death
-   scene (`--showcase kind:dist --death`). Accept the goldens with a reason.
+   scene (`--level 4 --showcase kind:dist --death`: a floor of the rooms). Accept the goldens with a reason.
 4. **Senses and behaviour** (`entities/ai.rs`): view cone, hearing, states,
    what it does on notice. Add behaviour tests to
    `crates/game/tests/entities.rs` in the style of

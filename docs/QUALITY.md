@@ -19,12 +19,12 @@ Last sweep: 2026-10-27.
 
 | Gate | Result |
 |---|---|
-| Check steps | (from the last check's logs) |
-| Tests | 43 of 43 test files pass; placer smoke tests pass |
-| Golden frames | 31 of 31 match |
-| Expressive range | energy distance 0.0129, p = 1.000; seed archive: 20/36 cells, most crowded 12% |
+| Check steps | ok    fmt         0.8 s; ok    clippy      4.2 s; ok    test     1304.9 s  278 passed, 11 ignored; ok    shots      42.0 s; ok    range      37.9 s; ok    bench      67.9 s |
+| Tests | 47 of 47 test files pass; placer smoke tests pass |
+| Golden frames | 33 of 33 match |
+| Expressive range | energy distance 0.0951, p = 0.544; seed archive: 19/36 cells, most crowded 14% |
 | Performance | within budget, no step in the history |
-| Largest files | `crates/game/src/level/archgen.rs` 2128 (89% of the cap), `crates/game/src/visuals/textures.rs` 1944 (81% of the cap), `crates/engine/src/audio.rs` 1926 (80% of the cap), `crates/engine/src/render.rs` 1873 (78% of the cap), `crates/game/src/modes/loop_rooms.rs` 1844 (77% of the cap) |
+| Largest files | `crates/game/src/level/archgen.rs` 2368 (99% of the cap), `crates/game/src/visuals/textures.rs` 1944 (81% of the cap), `crates/engine/src/audio.rs` 1926 (80% of the cap), `crates/engine/src/render.rs` 1873 (78% of the cap), `crates/game/src/modes/loop_rooms.rs` 1844 (77% of the cap) |
 | Content failing a check | none |
 | Regressions people caught that no gate did | 0 (see *Caught by people*) |
 <!-- drift:end -->
@@ -38,7 +38,7 @@ Last sweep: 2026-10-27.
 | Creatures | B | Goldens at 2/4/8 m and death scenes; build and animation fixtures; senses and behaviour tests; blind reviews preferred the current creatures (3/3, 5/5) | The Hound at 2 m sits low in its golden; whether they frighten is untested with people |
 | Pacing | B | `pacing.rs`: first build under 150 s, calms ≤ 95 s, reliefs ≤ 50 s, ≥ 4 peaks; deaths per peak about 0.11 for a cautious bot. Personas (`personas.rs`): bots that ignore the creatures die in 6 of 9 runs; 20% of the stalker's signs lead to a chase within 20 s; peaks ≤ 60 s, reliefs ≥ 8 s | A stalker that stays far off repeats the same sign (distant steps) up to 7 times in a row: the director picks a sign by distance alone; no human data |
 | Sound | B | `listen.rs` (opening, signatures, the notice, the hush); `loudness.rs` (integrated ±1 LU, range ±3 LU, true peak ≤ −1 dBTP, repetition); ambient place tests | Nobody has listened since the place-based sound pass; the agent cannot hear |
-| Canon | C | `LORE.md` (ported, with delivery channels; M.'s descent); `PILLARS.md`; one `lore-keeper` review (M.'s notebook, 2026-10-26: a contradiction with M.'s Rule 1, promised marks the world lacked, two threads that were orders, lines lifted from older notes; all rewritten); one of the UI's words (2026-10-27: death and pause lines that gave tips or stated rules, "NEXT" and "story arcs" in the notebook, the debug key on the Controls page, three names for the light; all fixed) | The older notes have never been reviewed; no human has read the notebook; the mannequin (a prop and torn note 17) is not in the canon |
+| Canon | C | `LORE.md` (ported, with delivery channels; M.'s descent); `PILLARS.md`; one `lore-keeper` review (M.'s notebook, 2026-10-26: a contradiction with M.'s Rule 1, promised marks the world lacked, two threads that were orders, lines lifted from older notes; all rewritten); one of the UI's words (2026-10-27: death and pause lines that gave tips or stated rules, "NEXT" and "story arcs" in the notebook, the debug key on the Controls page, three names for the light; all fixed); two of the Building's text (Megastructure B6, its findings all taken; B8: the cleaners and the self-assembly named in more places than the canon allows, warm machines blurring the warm door, a figure on flights "nobody has stood on", storeys poured where galleries are drawn, the Well's windows and drop said three times; all fixed) | The older notes have never been reviewed; no human has read the notebook; the mannequin (a prop and torn note 17) is not in the canon |
 | Story and wayfinding | B | `tests/story.rs`: a level is the same place whatever was read (G1); her trail holds on 13 levels and all four anomaly floors; her notebook follows the descent on eight runs; taking her page (journal, thread, retry, Continue); the page wakes the place (log: page, wake, build); trails that are not hers; the last camp and the ending. `the_door_is_heard` (the door alone, +1 to +18 dB over the bed from 2 to 9 tiles); the playthrough plays through the ending; plan maps in `target/story/` | No compass: whether a fresh player finds the door, follows her trail, notices the flat sheets and reads the notebook as a story is untested with people (`PLAYTEST.md` asks); the payphone still says the door is "north" (its line is pinned by the core-props fixture, which has no recorder) |
 | UI and controls | B | `tests/controls.rs` (reach, a held key fires once, running and using things together, no stutter, crouch, pause, what you face, the early E, Command, reading while walking), `tests/settings.rs`, `tests/menus.rs` (title, pause, settings, controls, leaving, death), `tests/rest.rs`, `tests/faces.rs`; the HUD test's frames; `--screen` renders every list over a level; a code review and a lore review of U1–U7 | No human has played with these controls or read these screens (`PLAYTEST.md` asks); no gamepad; brightness is a lift or dim over the frame, not a gamma |
 | Code health | B | fmt and clippy `-D warnings`; structural tests (layering, determinism (now over `story/` too), sizes, docs, ledger) | `ui/draw.rs` is 1,692 lines (cap 2,400); the placer registry is repeated in nine older test files and `main.rs` (newer tests share `tests/common`); `ambient.rs`'s `weather_sounds_come_from_their_places` failed once in a full suite run (unseeded, counts only each step's last log entry; 30 of 30 alone) |
@@ -46,6 +46,7 @@ Last sweep: 2026-10-27.
 | Performance | B | `cargo xtask bench`: budgets in `PERF.md` (build ≤ 600 ms, first frame ≤ 100 ms, update p99 ≤ 4 ms, GPU p99 ≤ 6 ms at 1280×800, draw calls ≤ 2,000, triangles ≤ 2.5 M); history with change-point detection; GPU p99 1.4–2.9 ms today | One run on record (change points need eight); the Showroom is 7× the triangles of a maze level |
 | Assets | B | Blender sources in `assets/src/`; `cargo xtask assets props` rebuilds 2,423 of 2,546 prop parts exactly (repeatable since noise3 and seeding); both files proven to be byte-for-byte conversions of the HTML version's modules; `MANIFEST.json` (sources, licence, generator, fingerprint) checked; mesh lint over every part and the parts table | 123 frozen prop parts keep shapes from an unrepeatable build; the two extinguisher lever parts are 68% slivers (`DEGENERATE_EXCEPTIONS`); creatures still rebuild only in the HTML version (rig dumps not ported) |
 | Reviewers | C | Calibrated on known answers (`cargo xtask calibrate`): strong damage 12/12, kappa 1.00; mild damage 9/12, kappa 0.45 — mild holes, smears and washed-out light caught, identical pairs judged ties | Mild over-saturation missed 0/3 (the gates' colourfulness anchors and `STYLE.md` bands are the authority there); no human verdicts to calibrate against yet |
+| The Building (levels 1–3) | B | `tests/building.rs` (the navigation measures over 40 seeds a place: detour, flights, choices, dead ends, a cell within 16 tiles of every floor, the door seen from near the arrival); `tests/height.rs` (heights, voids, slabs on a hand-made floor); `tests/assembly.rs` (the self-assembly's stages, a sealed cell keeps it out, outside it kills, a cell within reach of the warning, a twelve-minute pacing log a floor); `tests/presences.rs` (the figure across the void out of reach, turning away, going at the siren; the door's light from the arrival on 11 of 12 floors; the lift; the Works' last door into the Lobby); `tests/story.rs` (the Building's notes only on its floors; her camp in a cell); six golden frames and the three places' `STYLE.md` bands; code, lore and level reviews (Megastructure B8) | No person has played it: whether the way down is a puzzle or a chore, whether the siren reads as a warning the first time, whether waiting in a cell is dread or a chore, whether the figure is noticed and how often is too often (`PLAYTEST.md` asks); the siren and the re-recorded loudness have not been heard by a person; the figure's visibility is judged by rules (the solids and what the dressing builds over the walks), not by the renderer, and on one Well floor (seed 7) the lift's chosen view is still hidden by the galleries, so the rule misses something there; a multi-level `--dump-level` keeps level 1's zone caption on the later levels' views, and makes no exit view for some Works floors (the door reached along its wall); the Works' wall pipes come as one-tile stubs (a coin flip a tile) |
 | Playtesting | D | The kit: `PLAYTEST.md` (script, debrief, tension trace, A/B by ranking), `playtests/TEMPLATE.md`; `--record` / `--replay` with ↑ / ↓ tension marks; `cargo xtask heatmap` | No human has played this build since the tension pass |
 
 ## Content families
@@ -57,6 +58,7 @@ Last sweep: 2026-10-27.
 | Zone purposes (14) | B | One golden view each; style bands measured from 631 views (five purposes with too few views share the pooled band) |
 | Prop families (10 themes, 650 placers) | B | Material lint, smoke tests, the look settle pass; no turntables |
 | Sound (mix, ambient) | B | Loudness and listening gates |
+| The Building's places (the Well, the Stair Halls, the Works) | B | Two golden frames each, `STYLE.md` bands, the navigation bands; their own notes, surveys and arrival lines; no human verdict |
 | Story (trail, camps, notebook, false trails, ending) | B | `tests/story.rs`; ledger entries `story/*`; no human verdict |
 | UI (controls, menus, HUD, cards, notebook, type) | B | Ledger entries `ui/*`; no human verdict |
 
@@ -70,6 +72,17 @@ sweep counts the rows; the count should fall.
 |---|---|---|---|
 
 ## History
+
+- 2026-10-27 — The Building added at B (Megastructure B0–B8,
+  `MEGASTRUCTURE.md`): three floors of a megastructure above the rooms,
+  held by gates, not yet by people. Found on the way: a lintel that stopped
+  a body below y = 0 in every cell's doorway (the level sweep), the door's
+  call sounding from y = 0 on every floor, a listening claim that held on
+  three floors by luck (57% over eight), the fog's texture drawing from the
+  per-frame stream at a floor's start (every golden after level 1 moved),
+  and the Works' machine housings drawn as 150 m towers while the solids
+  stopped at their tops (found when a figure placed on one could not be
+  seen).
 
 - 2026-10-25 — first scorecard, written with the tooling milestones M1–M6.
 - 2026-10-26 — Story and wayfinding added at B (gameplay milestones G1–G7,

@@ -170,6 +170,20 @@ fn the_figure_does_not_stand_while_the_fog_comes() {
     assert_eq!(g.far_figure.as_ref().unwrap().state, FigureState::Gone, "it waits out the fog");
 }
 
+/// A figure standing when the siren starts turns its back and goes
+#[test]
+fn the_figure_goes_when_the_siren_starts() {
+    let mut g = floor(7, 2);
+    stand_where_it_is_seen(&mut g);
+    let at = g.far_figure.as_ref().unwrap().at;
+    face(&mut g, at, false);
+    g.assembly.t = 0.05;
+    step(&mut g, 1.0);
+    assert_ne!(g.assembly.stage, game::world::assembly::Stage::Quiet, "the siren");
+    step(&mut g, 2.0);
+    assert_eq!(g.far_figure.as_ref().unwrap().state, FigureState::Gone, "it went at the siren");
+}
+
 /// From where you arrive (the arrival's tile and the tiles round it), a
 /// lamp of the door's tower is in sight on most floors, with every solid of
 /// the built floor (cell fronts too) in the way

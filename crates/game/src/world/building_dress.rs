@@ -389,6 +389,12 @@ impl Game {
                     }
                     let (cx, cz) = (self.wx(x), self.wz(z));
                     parts.put(deck, boxm(Vec3::new(cx, y - 0.15, cz), 0.0, Vec3::new(CELL, 0.3, CELL)));
+                    // where the figure across the void may stand: at the deck's
+                    // parapet, a storey under to four over (`world::far_figures`)
+                    if let (Some(&d), true) = (voids.first(), (-1..=4).contains(&k)) {
+                        let at = Vec3::new(cx + DIRS[d][0] as f64 * 1.5, y, cz + DIRS[d][1] as f64 * 1.5);
+                        self.figure_perches.push(at);
+                    }
                     for &d in &voids {
                         let p = self.face_point(x, z, d, 0.0, -0.09, y + 0.52);
                         parts.put(parapet, boxm(p, yaw_to(d), Vec3::new(CELL, 1.05, 0.18)));
@@ -451,7 +457,7 @@ impl Game {
                 if !(20.0..80.0).contains(&d) {
                     continue;
                 }
-                // stopped a storey and a half over a walk near the arrival
+                // stopped with its floor 1.5 m over a walk near the arrival
                 // that sees it (the decks over the galleries hide much)
                 let seen = eyes.iter().find_map(|e| {
                     let y = (e.y - EYE) + 1.5;

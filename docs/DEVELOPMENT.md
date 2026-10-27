@@ -107,9 +107,9 @@ Levels must be a pure function of `(run_seed, level)`:
   play levels for minutes (`pacing`, `listen`, `playthrough`, `loudness`,
   the material lint); `--only fmt,clippy` runs a subset.
 * `cargo test --workspace --release` runs every test directly.
-* **Golden frames.** `cargo xtask shots` renders 31 fixed frames headless
+* **Golden frames.** `cargo xtask shots` renders 33 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
-  spawn view of five levels and one view per zone purpose, which together
+  spawn view of eight levels and one view per zone purpose or place, which together
   cover every purpose, weather and anomaly) and compares them with
   `crates/backrooms/tests/golden/`. With `--fresh` a frame is the same bit
   for bit on the same machine, so identical pixels pass; otherwise ꟻLIP
@@ -323,7 +323,9 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   checked level's walk, sheets and camp from above into `target/story/`.
 * `--showcase smiler[:dist]` (or `hound`, `watcher`) keeps a creature
   standing in front of the camera for the shot; add `--death` to be killed
-  by it 15 frames before the shot (the death scene).
+  by it 15 frames before the shot (the death scene). Give it a floor of the
+  rooms (`--level 4` or deeper): the Building's floors (1–3) have no
+  creatures, and the arrival there stands high over y = 0.
 * The K key shows the in-game debug panel (positions, timers, the ambient
   log, entity states).
 * `cargo run --release -p engine --example perftest` measures the renderer

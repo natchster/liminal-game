@@ -514,7 +514,8 @@ impl Game {
             if let Some((_, eye)) = best {
                 self.player.pos = eye;
                 let (dx, dy, dz) = (at.x - eye.x, at.y + 1.3 - eye.y, at.z - eye.z);
-                self.player.yaw = (-dx).atan2(-dz);
+                // a little to its side, clear of the crosshair and a prompt
+                self.player.yaw = (-dx).atan2(-dz) - 0.12;
                 self.player.pitch = dy.atan2((dx * dx + dz * dz).sqrt());
             }
             return;

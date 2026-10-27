@@ -121,6 +121,30 @@ impl Game {
         (eye < self.assembly.y, foot < self.assembly.y - 0.1)
     }
 
+    /// Where the fog's sound comes from: the centre of one of the void's tiles
+    /// near you (the nearest few within six tiles, `pick` in -6..6 choosing
+    /// among them, `along` moving it within the tile), or none with no void near
+    fn fog_voice_at(&self, pick: f64, along: f64) -> Option<(f64, f64)> {
+        let p = self.player.pos;
+        let (u, v) = (self.tx(p.x), self.tz(p.z));
+        let mut near: Vec<(i32, i32, i32)> = vec![];
+        for z in (v - 6).max(0)..(v + 7).min(self.h) {
+            for x in (u - 6).max(0)..(u + 7).min(self.w) {
+                if self.ground[self.t_idx(x, z)].kind == crate::level::archgen::GROUND_VOID {
+                    near.push(((x - u).pow(2) + (z - v).pow(2), x, z));
+                }
+            }
+        }
+        near.sort();
+        near.truncate(4);
+        if near.is_empty() {
+            return None;
+        }
+        let k = (((pick + 6.0) / 12.0) * near.len() as f64) as usize % near.len();
+        let (_, x, z) = near[k];
+        Some((self.wx(x) + along * 0.25, self.wz(z) - along * 0.25))
+    }
+
     /// One step of the self-assembly (the director's, on the Building's floors)
     pub fn update_assembly(&mut self, dt: f64) {
         let a = &mut self.assembly;
@@ -190,7 +214,8 @@ impl Game {
                 self.assembly_wail();
             }
         }
-        // the fog's own sound, from its surface under you or round you
+        // the fog's own sound, from its surface over the void: one of the
+        // void's tiles near you (a place, not you), at the surface's height
         if self.assembly.up() {
             self.assembly.sound_t -= dt;
             if self.assembly.sound_t <= 0.0 {
@@ -198,8 +223,11 @@ impl Game {
                 let p = self.player.pos;
                 let d = (p.y - EYE + 1.0 - self.assembly.y).abs();
                 if d < 28.0 && self.ac.is_some() {
-                    let y = self.assembly.y;
-                    self.play_from(p.x + rand2(-6.0, 6.0), y, p.z + rand2(-6.0, 6.0), 12.0, 1.4, 0.0, |g| g.sfx_fog());
+                    let (pick, along) = (rand2(-6.0, 6.0), rand2(-6.0, 6.0));
+                    if let Some(at) = self.fog_voice_at(pick, along) {
+                        let y = self.assembly.y;
+                        self.play_from(at.0, y, at.1, 12.0, 1.4, 0.0, |g| g.sfx_fog());
+                    }
                 }
             }
         }

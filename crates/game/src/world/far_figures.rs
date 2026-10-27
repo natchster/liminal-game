@@ -4,9 +4,10 @@
 //! stands where no walk reaches (on a gallery of another storey in the Well,
 //! on a flight that crosses the dark in the Stair Halls, on top of a machine
 //! or on a gantry in the Works), turned toward you. Look at it a moment and
-//! it turns its back; look away and it is gone. A while later it stands
-//! somewhere else, always across the void. It never comes near, and it does
-//! nothing.
+//! it turns its back; look away and it is gone (watch it long, or come
+//! nearer, and it is gone anyway). Long after, it stands somewhere else,
+//! always across the void, never while the siren sounds or the fog is up.
+//! It never comes near, and it does nothing; nothing sends it.
 //!
 //! Its choices come from a stream of its own, seeded from the floor's seed,
 //! so it moves no other draw (`DEVELOPMENT.md`): not the build's, not the
@@ -26,9 +27,10 @@ pub const TOO_NEAR: f64 = 14.0;
 pub const SEEN: f64 = 1.2;
 /// How long it takes to turn its back, seconds
 pub const TURN: f64 = 1.1;
-/// The first wait on a floor, and the waits after, seconds
-pub const FIRST: f64 = 55.0;
-pub const AWAY: (f64, f64) = (45.0, 100.0);
+/// The first wait on a floor, and the waits after, seconds (long: the same
+/// thing seen again soon is no longer dread)
+pub const FIRST: f64 = 70.0;
+pub const AWAY: (f64, f64) = (100.0, 220.0);
 /// In the middle of the view (looked at), and anywhere in it
 pub const LOOKED: f64 = 0.96;
 pub const IN_VIEW: f64 = 0.55;
@@ -75,15 +77,23 @@ impl Game {
     fn make_far_figure(&self) -> Obj {
         let g = group();
         let dark = basic_mat!({ color: 0x6b6a66 });
-        let body = mesh(capsule_geo!(0.19, 1.2, 3, 8), &dark);
-        body.position().y = 1.0;
+        // read far off as a person: two legs from the ground, shoulders
+        // wider than the head, the head apart over a neck
+        for s in [-1.0, 1.0] {
+            let leg = mesh(capsule_geo!(0.075, 0.72, 2, 6), &dark);
+            leg.position().set(s * 0.11, 0.075 + 0.36, 0.0);
+            g.add(&leg);
+        }
+        let body = mesh(capsule_geo!(0.18, 0.5, 3, 8), &dark);
+        body.position().y = 0.9 + 0.43;
+        body.scale().set(1.15, 1.0, 0.75);
         g.add(&body);
-        let head = mesh(sphere_geo!(0.13, 8, 6), &dark);
-        head.position().set(0, 1.9, 0.05);
+        let head = mesh(sphere_geo!(0.12, 8, 6), &dark);
+        head.position().set(0, 1.94, 0.04);
         g.add(&head);
         for s in [-1.0, 1.0] {
-            let arm = mesh(capsule_geo!(0.055, 0.95, 2, 6), &dark);
-            arm.position().set(s * 0.26, 1.02, 0.0);
+            let arm = mesh(capsule_geo!(0.05, 0.78, 2, 6), &dark);
+            arm.position().set(s * 0.29, 1.2, 0.0);
             g.add(&arm);
         }
         // a little taller than anyone
@@ -95,34 +105,20 @@ impl Game {
     }
 
     /// Where a figure may stand on this floor, gathered after the dressing:
-    /// the Well's galleries of other storeys at their parapets, the Works'
-    /// machine tops (the Stair Halls' flights and the Works' gantries are
-    /// added by their dressing). Only places no walk is within a storey of.
+    /// the Works' machine tops (the Well's galleries of other storeys at
+    /// their parapets, the Stair Halls' flights and the Works' gantries are
+    /// added by their dressing, where it lays them). Only places no walk is
+    /// within a storey of.
     pub(crate) fn gather_figure_perches(&mut self, plan: &BuildingPlan) {
-        let cells: Vec<(i32, i32)> = plan.cells.iter().map(|c| c.tile).collect();
         let mut out = vec![];
         for z in 0..self.h {
             for x in 0..self.w {
                 let g = self.ground_or_mass(x, z);
                 let (cx, cz) = (self.wx(x), self.wz(z));
                 match plan.style {
-                    Style::Well => {
-                        // a gallery over the void: its storeys above and
-                        // below, at the parapet
-                        if g.kind != GROUND_FLOOR || cells.contains(&(x, z)) || plan.view_line.contains(&(x, z)) {
-                            continue;
-                        }
-                        let Some(d) = (0..4).find(|&d| self.ground_or_mass(x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_VOID) else {
-                            continue;
-                        };
-                        for k in [-1, 1, 2, 3, 4] {
-                            let y = g.h0 as f64 + k as f64 * STOREY;
-                            if y < VOID_DEPTH as f64 + 2.0 || y > MASS_TOP as f64 - 3.0 {
-                                continue;
-                            }
-                            out.push(Vec3::new(cx + DIRS[d][0] as f64 * 1.5, y, cz + DIRS[d][1] as f64 * 1.5));
-                        }
-                    }
+                    // (the Well's are its galleries' decks, gathered where
+                    // the dressing lays them)
+                    Style::Well => {}
                     Style::Works => {
                         // on top of a machine housing
                         if g.kind == GROUND_MASS && (g.h1 as f64) < MASS_TOP as f64 - 1.0 && (x + z) % 2 == 0 {
@@ -247,10 +243,16 @@ impl Game {
             }
             if let Some(h) = self.decked(x, z) {
                 let (lo, hi) = (prev.min(qy), prev.max(qy));
-                // the deck planes this step crosses, other than the walk's own
-                let k0 = ((lo - h) / STOREY).ceil() as i32;
-                let k1 = ((hi - h) / STOREY).floor() as i32;
-                if (k0..=k1).any(|k| k != 0 && k.abs() <= 9) {
+                // the decks this step passes through (each 0.3 m thick, its
+                // top at its storey, and over the void its parapet on it),
+                // other than the walk's own
+                let rail = if (0..4).any(|d| self.ground_or_mass(x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_VOID) { 1.05 } else { 0.0 };
+                let k0 = ((lo - rail - h) / STOREY).floor() as i32;
+                let k1 = ((hi + 0.3 - h) / STOREY).ceil() as i32;
+                if (k0..=k1).any(|k| {
+                    let top = h + k as f64 * STOREY;
+                    k != 0 && k.abs() <= 9 && hi >= top - 0.3 && lo <= top + rail
+                }) {
                     return false;
                 }
             }
@@ -310,15 +312,18 @@ impl Game {
     }
 
     /// A perch to stand on: one you could see from where you are if you
-    /// turned, out of your view now
-    fn pick_perch(&self, r: &mut SplitMix64) -> Option<Vec3> {
+    /// turned, out of your view now, and not the one it last stood on
+    fn pick_perch(&self, r: &mut SplitMix64, last: Option<Vec3>) -> Option<Vec3> {
         let n = self.figure_perches.len();
         if n == 0 {
             return None;
         }
         let pp = self.player.pos;
         let start = (r.next() * n as f64) as usize % n;
-        (0..n).map(|k| self.figure_perches[(start + k) % n]).find(|&p| self.look_dot(p) < IN_VIEW && self.perch_seen_from(pp, p))
+        let again = |p: Vec3| last.is_some_and(|l| hypot2(p.x - l.x, p.z - l.z) < 6.0 && (p.y - l.y).abs() < 1.0);
+        (0..n)
+            .map(|k| self.figure_perches[(start + k) % n])
+            .find(|&p| !again(p) && self.look_dot(p) < IN_VIEW && self.perch_seen_from(pp, p))
     }
 
     /// One step of the figure (the director's, on the Building's floors)
@@ -333,7 +338,7 @@ impl Game {
                 if f.t <= 0.0 {
                     if self.assembly.stage != Stage::Quiet {
                         f.t = 8.0;
-                    } else if let Some(p) = self.pick_perch(&mut f.rng) {
+                    } else if let Some(p) = self.pick_perch(&mut f.rng, (f.stood > 0).then_some(f.at)) {
                         f.at = p;
                         f.state = FigureState::Standing;
                         f.t = 0.0;
@@ -359,7 +364,8 @@ impl Game {
                 } else {
                     f.t
                 };
-                if f.t >= SEEN || d < TOO_NEAR {
+                // looked at, come upon, or the siren: it goes
+                if f.t >= SEEN || d < TOO_NEAR || self.assembly.stage != Stage::Quiet {
                     f.state = FigureState::Leaving;
                     f.t = 0.0;
                     self.director_note("figure:turned");

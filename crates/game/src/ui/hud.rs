@@ -127,7 +127,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry { id: 4, title: "M.'s Rule 2", body: "Never answer the phone. I don't care if it's your mother's voice. She's not on level three.", scp: None },
     LoreEntry { id: 5, title: "M.'s Rule 3", body: "The clocks lie. All of them. Trust the hum instead — it means you're still alive.", scp: None },
     LoreEntry { id: 6, title: "Torn Ledger", body: "...paid in almond water, twelve cases... signed by the man in the yellow coat... he was here yesterday...", scp: None },
-    LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are warm to the touch, and none of them runs. I keep hearing children laughing.", scp: None },
+    LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are cold, all of them, and none of them runs. I keep hearing children laughing.", scp: None },
     LoreEntry { id: 8, title: "Elias, Day 219", body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.", scp: None },
     LoreEntry { id: 9, title: "The Smilers", body: "Their faces are the only bright thing. Hold its eyes and back away, slowly. It creeps while you watch it. Turn your back, or run, and it comes all at once. Your lamp draws them.", scp: None },
     LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones don't blink either. They hear footsteps from rooms away. If one runs at you, stare it down — it stops for a breath or two. Not every time. Then it growls.", scp: None },
@@ -175,11 +175,11 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     // the Building's (`docs/MEGASTRUCTURE.md`): they lie only on its floors
     LoreEntry { id: 52, title: "Notice to Residents", body: "IN THE EVENT OF A SELF-ASSEMBLY: go into the nearest cell. Turn the wheel until it stops. Do not open the door until the long tone. Do not open the door to anyone. The Building cares for you.", scp: Some("building") },
     LoreEntry { id: 53, title: "Cell Plate", body: "CELL 412-C. FOUR PERSONS. KEEP THE WHEEL CLEAN. KEEP THE BENCH CLEAR.", scp: Some("building") },
-    LoreEntry { id: 54, title: "Cleaning Log", body: "Storey 1407 cleaned. 1408 to 1411 poured, the stairs with them. Two doors did not answer: marked. One knocked back after we had gone. Not entered.", scp: Some("building") },
-    LoreEntry { id: 55, title: "Survey: The Well", body: "Galleries round a well you cannot see the bottom of. The windows go up and down out of sight; a few are lit. The doors are shut from inside, all of them, on every storey.", scp: Some("building") },
-    LoreEntry { id: 56, title: "Survey: The Stair Halls", body: "Stone, and stairs. Some of the flights go somewhere. Some cross the dark from one nothing to another and have no rail. I would not try one.", scp: Some("building") },
+    LoreEntry { id: 54, title: "Cleaning Log", body: "Storey 1430 cleaned. 1431 to 1434 poured, the stairs with them. Two doors did not answer: marked. One knocked back after we had gone. Not entered.", scp: Some("building") },
+    LoreEntry { id: 55, title: "Survey: The Well", body: "Galleries round a well, a storey over a storey, up and down out of sight. A few windows lit. The doors are shut from inside, all of them, on every storey.", scp: Some("building") },
+    LoreEntry { id: 56, title: "Survey: The Stair Halls", body: "All stone here. Some of the flights go somewhere. Some cross the dark from one nothing to another and have no rail. I would not try one.", scp: Some("building") },
     LoreEntry { id: 57, title: "Survey: The Works", body: "Machines the size of houses, cold. A ceiling so far up that the lamps on it look like stars, most of them out. The way down is not a stair here.", scp: Some("building") },
-    LoreEntry { id: 58, title: "Ration Coupon", body: "ONE PORTION. CONCENTRATE, GREY. SHIFT 4, CYCLE 211. NOT VALID AFTER AN ASSEMBLY.", scp: Some("building") },
+    LoreEntry { id: 58, title: "Ration Coupon", body: "ONE PORTION. CONCENTRATE, GREY. SHIFT 4, CYCLE 211. NOT VALID ONCE THE SIREN HAS SOUNDED.", scp: Some("building") },
 ];
 
 /// `SCP_OMENS`: what the player notices on arriving at an anomaly's level
@@ -1201,9 +1201,9 @@ impl Game {
         if let Some(style) = crate::level::building::Style::of_level(self.level_num) {
             use crate::level::building::Style;
             let line = match style {
-                Style::Well => "Windows all the way up, and all the way down.",
-                Style::Halls => "Stairs, and no far wall.",
-                Style::Works => "A floor the size of a town, and all of it switched off.",
+                Style::Well => "Washing hung across the drop. Nobody came for it.",
+                Style::Halls => "Stairs that climb past the last of the light.",
+                Style::Works => "Everything here was switched off, a long time ago.",
             };
             self.show_omen(line, 1.7, 7.0);
             return;

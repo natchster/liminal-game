@@ -514,8 +514,9 @@ impl Game {
         let mut bg = self.fog_color;
         bg.lerp(&self.ll_fog_lit, k);
         self.background = bg;
-        // inside the self-assembly's fog, the fog is all you see
-        if bld && self.assembly.up() && self.camera.pos().y < self.assembly.y {
+        // inside the self-assembly's fog, the fog is all you see (sealed in
+        // a cell, it does not come in)
+        if bld && self.assembly.up() && self.assembly.sealed.is_none() && self.camera.pos().y < self.assembly.y {
             let violet = Color::hex(0x2a1a30);
             self.fog_color = violet;
             self.ll_fog_lit = violet;

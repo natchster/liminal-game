@@ -63,6 +63,7 @@
       "name": "the Showroom",
       "notes": "Known look issue: the department signs read as dark plates (tests/materials.rs EXEMPT).",
       "passes": {
+        "shots:4242_L10_showroom": true,
         "shots:4242_L4_spawn": true,
         "test:backrooms/level_sweep": true,
         "test:game/store": true
@@ -75,11 +76,14 @@
       ],
       "id": "building/assembly",
       "kind": "system",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "the self-assembly: the siren, the fog, the cells",
       "notes": "Whether the siren reads as a warning the first time, and whether waiting in a cell is dread or a chore, are playtest questions. The siren is synthesized; no person has listened to it.",
-      "passes": {}
+      "passes": {
+        "test:backrooms/assembly": true,
+        "test:backrooms/listen": true
+      }
     },
     {
       "checks": [
@@ -95,11 +99,21 @@
       ],
       "id": "building/floors",
       "kind": "system",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "the Building's floors: heights, walks, flights, voids, cells, the door seen from the arrival",
       "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question.",
-      "passes": {}
+      "passes": {
+        "shots:4242_L1_spawn": true,
+        "shots:4242_L2_spawn": true,
+        "shots:4242_L3_spawn": true,
+        "test:backrooms/assembly": true,
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/playthrough": true,
+        "test:backrooms/story": true,
+        "test:game/building": true,
+        "test:game/height": true
+      }
     },
     {
       "checks": [
@@ -109,11 +123,15 @@
       ],
       "id": "building/notes",
       "kind": "system",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "the Building's torn notes (the residents' notice, a cell plate, the cleaners' log, three surveys, a coupon) and her camp in a cell",
       "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. Reviewed by the lore-keeper (B6); whether the residents' voice reads as the Building's and not hers is a playtest question.",
-      "passes": {}
+      "passes": {
+        "test:backrooms/assembly": true,
+        "test:backrooms/story": true,
+        "test:game/core_props_tail": true
+      }
     },
     {
       "checks": [
@@ -122,11 +140,14 @@
       ],
       "id": "building/presences",
       "kind": "system",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "what is seen across the Building's void: the figure who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
       "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer.",
-      "passes": {}
+      "passes": {
+        "shots:4242_L3_spawn": true,
+        "test:backrooms/presences": true
+      }
     },
     {
       "checks": [
@@ -431,6 +452,7 @@
       "name": "empty",
       "notes": "",
       "passes": {
+        "shots:4242_L7_empty": true,
         "style:empty": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -496,6 +518,7 @@
       "name": "office wing",
       "notes": "",
       "passes": {
+        "shots:4242_L7_office_wing": true,
         "style:office wing": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -517,6 +540,7 @@
       "name": "overgrown atrium",
       "notes": "",
       "passes": {
+        "shots:7_L5_overgrown_atrium": true,
         "style:overgrown atrium": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -578,6 +602,7 @@
       "name": "play area",
       "notes": "",
       "passes": {
+        "shots:7_L5_play_area": true,
         "style:play area": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -599,6 +624,7 @@
       "name": "pool hall",
       "notes": "",
       "passes": {
+        "shots:7_L5_pool_hall": true,
         "style:pool hall": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -642,6 +668,7 @@
       "name": "showroom",
       "notes": "",
       "passes": {
+        "shots:4242_L10_showroom": true,
         "style:showroom": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
@@ -678,11 +705,17 @@
       ],
       "id": "purpose/stair_halls",
       "kind": "zone purpose",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "stair halls",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
-      "passes": {}
+      "passes": {
+        "shots:4242_L2_stair_halls": true,
+        "style:stair halls": true,
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/materials": true,
+        "test:game/building": true
+      }
     },
     {
       "checks": [
@@ -736,11 +769,17 @@
       ],
       "id": "purpose/well",
       "kind": "zone purpose",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "well",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
-      "passes": {}
+      "passes": {
+        "shots:4242_L1_well": true,
+        "style:well": true,
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/materials": true,
+        "test:game/building": true
+      }
     },
     {
       "checks": [
@@ -752,11 +791,17 @@
       ],
       "id": "purpose/works",
       "kind": "zone purpose",
-      "last_checked": null,
+      "last_checked": "2026-10-27",
       "last_human_review": null,
       "name": "works",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
-      "passes": {}
+      "passes": {
+        "shots:4242_L3_works": true,
+        "style:works": true,
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/materials": true,
+        "test:game/building": true
+      }
     },
     {
       "checks": [

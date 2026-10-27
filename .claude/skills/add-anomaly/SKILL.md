@@ -11,7 +11,7 @@ description: Add or change an anomaly level in The Backrooms (the Stairwell, Sho
    the player only through the allowed channels: one arrival line giving the
    kind of place, its own torn notes, the place itself.
 2. **The run rules** (`crates/game/src/level/scp.rs`): at most one anomaly
-   per level, none on level 1, each once per run, never on two levels in a
+   per level, none on levels 1–4 (the Building's floors and the Lobby), each once per run, never on two levels in a
    row, planned from the run seed. Add its key to `SCP_KEYS` and its entry.
 3. **Build it**: a mode (`crates/game/src/modes/`) or an anomaly in
    `crates/game/src/anomalies/`, deterministic like any level build.

@@ -18,6 +18,7 @@ paths:
   `REGEN=1 cargo test --release -p game --test entities`, then review the
   diff. The behaviour tests in `tests/entities.rs` must keep passing.
 - **Evidence:** the creature goldens in `cargo xtask shots` (2, 4, 8 m and
-  the death scene), or `--fresh --showcase kind:dist [--death]` by hand;
+  the death scene), or `--fresh --level 4 --showcase kind:dist [--death]` by hand (a floor of
+  the rooms: the Building's floors have none);
   `cargo test --release -p backrooms --test pacing -- --nocapture` for the
   phase sequence, close calls and deaths.

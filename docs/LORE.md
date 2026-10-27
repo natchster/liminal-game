@@ -14,13 +14,13 @@ living bible: change it when the game's truth changes, in the same commit.
 | Place | The Building: an endless megastructure of concrete with no outside, and inside its walls the Backrooms, damp, fluorescent, empty rooms; every exit leads down |
 | Pillars | Emptiness, monotony, familiar but wrong, the sound that never stops ([`PILLARS.md`](PILLARS.md)) |
 | Levels | 1–3 the Building's floors (the Well, the Stair Halls, the Works); from 4, game level *n* ≈ Backrooms Level *n* − 4, one dominant zone naming it |
-| The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off |
+| The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds, the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop) |
+| Creatures | Smilers, Hounds, the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
-| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their notices and marks |
+| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
 
@@ -64,7 +64,7 @@ the danger is near.
 
 The pillars of the place, in order of importance:
 
-1. **Emptiness.** The Building is vast and nobody is in it; the Lobby
+1. **Emptiness.** The Building is vast and nobody you can reach is in it; the Lobby
    (Level 0) is rooms and nothing else. Clutter belongs deeper,
    where the place has started collecting things.
 2. **Monotony.** The same yellow, the same hum, the same carpet. Variety is
@@ -115,7 +115,8 @@ else), and so may a payphone.
 
 Deeper levels rot: more of the floor is grimy, more regions are dark, the fog
 is thicker and the hum wanders off pitch. The Lobby leaks into every level of
-the rooms (not up into the Building's). It never quite goes away.
+the rooms (not up into the Building's, but round the Works' last door).
+It never quite goes away.
 
 ## The Building (levels 1–3)
 
@@ -136,13 +137,15 @@ lit where they start, her paper (`docs/MEGASTRUCTURE.md`).
 - **The Stair Halls** (level 2). A hall of stone with no far wall: piers
   standing up out of the void, flights of stairs at every height, bridges
   between them, stone balustrades. Chains hang out of the dark, and some
-  flights cross the void from nowhere to nowhere with no rail; nobody has
-  stood on one.
+  flights cross the void from nowhere to nowhere with no rail; no walk
+  reaches one.
 - **The Works** (level 3). Floors of dead machinery the size of houses,
   terraces stepping down past shafts, ramps and steel rails painted yellow,
   pipes along the housings, gantries under a ceiling so far up its lamps
-  look like stars, most of them out. Its way down is a small door, and it
-  is warm behind it: the yellow rooms.
+  look like stars, most of them out. Its way down is a small wooden door
+  in the machine wall at the foot of its tower, the yellow of the rooms
+  round it and a warm light over it, and it is warm behind it: the yellow
+  rooms, showing through. It is the only place they do.
 
 What every floor of the Building has:
 
@@ -159,13 +162,18 @@ What every floor of the Building has:
   the residents' notices.
 - Its own air: none of the rooms' weathers reach up here.
 
-**Someone across the void.** Nothing walks the Building, but now and then,
-far off across the void, someone stands where no walk reaches: on a gallery
-of another storey, on a flight that crosses the dark, on top of a machine
-or on a gantry under the ceiling. Grey, thin, a little taller than anyone,
-turned toward you. Look at it a moment and it turns its back; look away and
-it is gone. Later it stands somewhere else, always across the void. It never
-comes near, and it does nothing. Nobody writes about it.
+**Someone across the void.** *After the figures of SCP-3333; see
+Attribution.* Nothing walks the Building, but now and then, far off across
+the void, someone stands where no walk reaches: on a gallery of another
+storey, on a flight that crosses the dark, on top of a machine or on a
+gantry under the ceiling. Grey, thin, a little taller than anyone, turned
+toward you. Look at it a moment and it turns its back; look away and it is
+gone, and if you watch it a long while, or come nearer, it is gone anyway.
+Long after, it stands somewhere else, always across the void, and never
+while the siren sounds or the fog is up (a figure standing when the siren
+starts turns its back and goes). It never comes near and it does nothing:
+it is not one of the things that live here, nothing sends it, and it does
+not announce itself, because it never comes. Nobody writes about it.
 
 **The lift.** In the Well, a lift cage hangs in the open shaft on its
 cables, stopped between storeys, its bulb still lit. Nothing reaches it.
@@ -308,8 +316,8 @@ page, and whatever quiet was left ends within a few seconds: something is
 sent. You choose when it starts, by when you go to her camp. On the first
 floor of the rooms (the Lobby, level 4) the first quiet is long (two
 minutes and more), so there is time to find her before anything comes.
-Nothing lives on the Building's floors above (levels 1–3): what comes there
-comes from far off (`docs/MEGASTRUCTURE.md`).
+Nothing that hunts lives on the Building's floors above (levels 1–3): what
+comes there comes from far off (`docs/MEGASTRUCTURE.md`).
 
 ## The self-assembly
 
@@ -339,8 +347,8 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   reaches you). Somebody administers the Building (its ration coupons, its
   notices: "The Building cares for you"), and somebody cleans after the fog:
   the cleaners, known by their log and the red marks on doors that did not
-  answer, and never seen. The storeys they poured are the ones just above
-  every walk you can reach on the first floor.
+  answer, and never seen. The storeys they poured are high over the first
+  floor, above every gallery you can see.
 - Taking her page on a floor of the Building sounds the siren within
   seconds, as it wakes the place below. The first quiet on the first floor
   is long, so her camp can be found first.
@@ -367,9 +375,9 @@ The rules of a run (`crates/game/src/level/scp.rs`):
   new run. Continue and restarts keep the plan, because it is derived from the
   run's seed.
 - **Arriving** on one of the Building's floors shows one quiet line of its
-  kind too: *Windows all the way up, and all the way down* (the Well),
-  *Stairs, and no far wall* (the Stair Halls), *A floor the size of a town,
-  and all of it switched off* (the Works).
+  kind too: *Washing hung across the drop. Nobody came for it.* (the Well),
+  *Stairs that climb past the last of the light.* (the Stair Halls),
+  *Everything here was switched off, a long time ago.* (the Works).
 - **Arriving** on an anomaly's level shows one quiet line under the level
   title and plays one sound. The line gives the *kind* of place (a chime and
   the smell of sawdust, rooms that do not remember the same house, a door

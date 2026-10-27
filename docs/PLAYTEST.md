@@ -29,6 +29,14 @@ adding players to the same round.
 3. Copy `playtests/TEMPLATE.md` to `playtests/YYYY-MM-DD-<player>.md`
    (a first name or an alias; no other personal data).
 4. Headphones, a quiet room, the lights low. Sound is half the game.
+5. **Listen first, once per build that changed sound** (no player needed):
+   `cargo test --release -p backrooms --test listen -- --nocapture`, then
+   play `target/listen/*.wav` on the same headphones. The Building's siren
+   (`siren_*`) and the loudness reference have not yet been heard by a
+   person (`docs/MEGASTRUCTURE.md`, B3 and B5): write down whether the
+   siren reads as a warning and whether anything is too loud, and only then
+   re-record loudness (`cargo test --release -p backrooms --test loudness --
+   --ignored rerecord`).
 
 ## The session (about 30 minutes)
 
@@ -83,6 +91,22 @@ Experience (how did it feel?):
 - Was there a moment you were bored? Where?
 - Did anything feel unfair? Did anything look fake or broken?
 - One word for the place.
+
+The Building (levels 1–3; ask until a round has answered them, and never
+name the siren's meaning, the cells, the fog or the figure first):
+
+- What did you think the place was, on the first floor? Where did you think
+  the way down was, and when did you first see it?
+- Did finding the way down feel like a puzzle or a chore? Where were you
+  lost, and did you mind?
+- What did you do when the siren went, the first time? What did you think
+  it meant? What made you think so?
+- What was it like to wait in the little room while something knocked?
+  Too long, too short? Did you open the door?
+- Did you see anyone up there? (Only if they say yes: where, what did it
+  do, what did you do?)
+- When you came through the small warm door into the yellow rooms, what
+  changed?
 
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
