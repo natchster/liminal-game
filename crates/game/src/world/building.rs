@@ -106,7 +106,9 @@ impl Game {
         self.building_architecture();
         self.build_lap("floors+panels", bt0);
         self.building_lamps(&plan);
+        self.cell_doors.clear();
         self.dress_building(&plan);
+        self.building_fog_layers();
         let prop_start = self.world.child_count();
         let core = !self.test_stub_core_placers;
         if core {
@@ -331,6 +333,41 @@ impl Game {
             let geo = self.unit_box_geo.clone();
             let mat = lambert!({ color: 0x3a3936 });
             self.add_instanced(&geo, &mat, &posts, &|m: &Mat4| *m);
+        }
+    }
+
+    /// The self-assembly's fog, as a surface a few layers deep over the
+    /// whole floor (hidden until it comes: `world::assembly`)
+    fn building_fog_layers(&mut self) {
+        self.fog_layers.clear();
+        // (its noise from a stream of its own: a draw from the native stream
+        // at a floor's start would move every frame after it)
+        let tex = crate::placers::kit::canvas_tex(256, 256, |ctx, w, h| {
+            let mut r = SplitMix64::new(0xF06_5EED, 0x5A_3B1E);
+            ctx.set_fill_style("#6e5a7a");
+            ctx.fill_rect(0, 0, w, h);
+            for _ in 0..40 {
+                let (x, y, rr) = (r.next() * w, r.next() * h, 20.0 + r.next() * 70.0);
+                let c = if r.next() < 0.5 { "rgba(190,160,200,0.25)" } else { "rgba(30,20,36,0.3)" };
+                crate::visuals::surfaces::blotch(ctx, w, h, x, y, rr, c);
+            }
+        });
+        {
+            let mut t = tex.t();
+            t.repeat = Vec2::new(6.0, 6.0);
+        }
+        let size = self.w.max(self.h) as f64 * CELL * 1.6;
+        for (k, op) in [0.7, 0.45, 0.3].iter().enumerate() {
+            let m = mesh(
+                plane_geo!(size, size),
+                basic_mat!({ map: &tex, color: 0xb8a4c4, transparent: true, opacity: *op, depthWrite: false, side: DoubleSide }),
+            );
+            m.rotation().x = -PI / 2.0;
+            m.rotation().z = k as f64 * 0.7;
+            m.set_visible(false);
+            m.user().gameplay = true;
+            self.world.add(&m);
+            self.fog_layers.push(m);
         }
     }
 

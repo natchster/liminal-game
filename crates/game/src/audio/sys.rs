@@ -481,6 +481,55 @@ impl Game {
             self.noise_burst(0.025, 2600.0, 5.0, 0.09 - i as f64 * 0.02, "bandpass", None, t, 0.0);
         }
     }
+    /// The self-assembly's siren: a mechanical wail rising, held, falling
+    /// (played from the Building's loudspeakers)
+    pub fn sfx_siren(&self) {
+        // the rotor spinning up, held at the top, running down: one voice
+        // whose pitch rises, holds and falls under a held envelope
+        self.wail("square", 0.03, 230.0, 610.0, 240.0);
+        self.wail("sine", 0.075, 230.0, 610.0, 240.0);
+    }
+    /// One held, gliding voice: from `f0` up to `f1` (2.6 s), held (1.2 s),
+    /// down to `f2` (3.4 s), swelling in and dying away
+    fn wail(&self, ty: &str, gain: f64, f0: f64, f1: f64, f2: f64) {
+        let (Some(ac), Some(master)) = (&self.ac, &self.master) else { return };
+        let (gain, pan) = self.routed(gain, 0.0);
+        let t0 = ac.current_time();
+        let o = ac.create_oscillator();
+        o.set_type(ty);
+        o.frequency().set_value_at_time(f0, t0);
+        o.frequency().exponential_ramp_to_value_at_time(f1, t0 + 2.6);
+        o.frequency().set_value_at_time(f1, t0 + 3.8);
+        o.frequency().exponential_ramp_to_value_at_time(f2, t0 + 7.2);
+        let g = ac.create_gain();
+        g.gain().set_value_at_time(0.0001, t0);
+        g.gain().linear_ramp_to_value_at_time(gain, t0 + 0.9);
+        g.gain().set_value_at_time(gain, t0 + 5.4);
+        g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + 7.4);
+        o.connect(&g);
+        self.one_shot_out(ac, master, &g, pan);
+        o.start(t0);
+        o.stop(t0 + 7.5);
+    }
+    /// The all-clear: one long steady tone
+    pub fn sfx_all_clear(&self) {
+        self.wail("triangle", 0.06, 466.0, 470.0, 462.0);
+        self.wail("sine", 0.015, 932.0, 940.0, 925.0);
+    }
+    /// The fog: a wet, low rush, and something in it like breath
+    pub fn sfx_fog(&self) {
+        self.noise_burst(3.2, 240.0, 0.8, 0.10, "lowpass", Some(140.0), 0.0, 0.0);
+        self.noise_burst(2.0, 900.0, 2.0, 0.025, "bandpass", Some(600.0), 0.6, 0.0);
+    }
+    /// A hermetic door's wheel turned: the screw's squeal; shut, the bolts home
+    pub fn sfx_wheel(&self, shut: bool) {
+        self.noise_burst(0.9, 2600.0, 6.0, 0.05, "bandpass", Some(1800.0), 0.0, 0.0);
+        self.blip(380.0, 0.8, "sawtooth", 0.015, Some(300.0), 0.0, 0.0);
+        if shut {
+            self.noise_burst(0.08, 600.0, 1.2, 0.2, "lowpass", None, 0.95, 0.0);
+            self.blip(70.0, 0.25, "sine", 0.2, Some(45.0), 0.95, 0.0);
+        }
+    }
     /// Footsteps: four paces at a walk
     pub fn sfx_distant_footsteps(&self) {
         // somebody walking: a heel strike and the body's weight landing, four

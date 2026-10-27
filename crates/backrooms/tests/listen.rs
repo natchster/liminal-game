@@ -371,3 +371,32 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
     });
     Some((r.pcm, times, metres))
 }
+
+/// The self-assembly's siren, on the Building's first floor, from where you
+/// arrive: it stands well out of the bed (it is how you know to go to a
+/// cell), from the loudspeakers on the walls, not from you
+/// (`docs/MEGASTRUCTURE.md`, B5).
+#[test]
+fn the_siren_is_heard() {
+    game::base::rng::seed_native(0x5135_0001);
+    let mut r = start(4242, 1);
+    assert!(!r.g.building_speakers.is_empty(), "the Well has loudspeakers");
+    // a stretch of the quiet, then the siren
+    play(&mut r, 6.0, |_| {});
+    r.g.assembly.t = 0.01;
+    let mut sirens = vec![];
+    let mut t = 6.0;
+    play(&mut r, 24.0, |g| {
+        t += 1.0 / 60.0;
+        if g.assembly.stage == game::world::assembly::Stage::Siren && sirens.is_empty() {
+            sirens.push(t);
+        }
+    });
+    let w = windows(&r.pcm);
+    let bed = median(&w[20..110]);
+    let a = (sirens[0] / 0.05) as usize;
+    let peak = w[a..(a + 140).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    println!("the Well: bed {:.1} dB, the siren peaks {:+.1} dB over it", db(bed), db(peak / bed));
+    save("siren_4242_L1", &r.pcm, &sirens);
+    assert!(peak / bed >= 4.0, "the siren rises 12 dB over the bed: {:+.1} dB", db(peak / bed));
+}

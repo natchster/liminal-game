@@ -238,6 +238,35 @@ minutes and more), so there is time to find her before anything comes.
 Nothing lives on the Building's floors above (levels 1–3): what comes there
 comes from far off (`docs/MEGASTRUCTURE.md`).
 
+## The self-assembly
+
+*Inspired by the Samosbor (самосбор, "self-assembly"), an anonymous
+Russian imageboard myth begun in 2018; see Attribution.*
+
+Nothing walks the Building's floors. What comes there comes from far off,
+now and then, and every floor of the Building knows it (`world::assembly`):
+
+- **The siren.** It wails from the loudspeakers on the walls, rising, held,
+  falling, every few seconds; you hear the nearest ones.
+- **The fog.** Out of the void, far below, a violet fog rises, its surface
+  seen from above, the lamps under it going out one by one. It comes up
+  among the walks, stands a while at its height (some times over every
+  walk, some times not), and sinks away; the all-clear is one long steady
+  tone.
+- **The cells.** Shelter is a cell: a room cut into the building with a
+  hermetic door, a lamp in a cage over it, always the same shape. Inside,
+  turn the wheel and the door is shut; it does not come in, though
+  something knocks at the door while it is up. Turn the wheel again to go
+  out. There is always a cell nearer than the fog.
+- **In it**, your mind goes fast, and then you are gone. With your eyes
+  under its surface it is all you see.
+- **It is never explained.** Who built the cells, who put up the notices
+  and what the fog is, nobody says; the residents' notices tell you what to
+  do, as notices do.
+- Taking her page on a floor of the Building sounds the siren within
+  seconds, as it wakes the place below. The first quiet on the first floor
+  is long, so her camp can be found first.
+
 ## Anomalies
 
 The Backrooms have swallowed other places too, the kind the SCP Foundation
@@ -430,6 +459,25 @@ plaque that says STAIRS. Behind it:
   (<https://scp-wiki.wikidot.com/scp-970>), **CC BY-SA 3.0**. We use our own
   names and text. `crates/game/src/modes/loop_rooms.rs`, its notes
   and its section here are CC BY-SA 3.0 and keep this attribution.
+- **The self-assembly and the Building** take their motifs from the
+  **Samosbor** myth (самосбор; begun anonymously on 2ch's /b/ in spring 2018
+  and written since by "everyone and no one", with no single author or
+  licence; `SOURCES.md` section 10): the endless panel block with no
+  outside, the siren, the fog, the hermetic door, the voices at it, the
+  cleaners after. We use the motifs and our own words, and no named
+  character or story from any author. The Building's places also take from
+  **Backrooms Level 188** "The Courtyard of Windows" by **Kai4C**
+  (<https://backrooms-wiki.wikidot.com/level-188>), **SCP-2723** "The
+  Prophet's Tower" by **HotCocoaNerd** (<https://scp-wiki.wikidot.com/scp-2723>),
+  **SCP-4370** "Post-Industrial" by **UraniumEmpire**
+  (<https://scp-wiki.wikidot.com/scp-4370>), **SCP-5778** "Hidden In Plain
+  Sight" by **MarcusLCrassus** (<https://scp-wiki.wikidot.com/scp-5778>) and
+  **SCP-3333** "Tower" by **Jekeled** (<https://scp-wiki.wikidot.com/scp-3333>),
+  all **CC BY-SA 3.0**: `crates/game/src/level/building.rs`,
+  `crates/game/src/world/building.rs`, `crates/game/src/world/building_dress.rs`,
+  `crates/game/src/world/assembly.rs`, `docs/MEGASTRUCTURE.md` and the
+  Building's notes are CC BY-SA 3.0 and keep this attribution. Piranesi's
+  *Carceri* (1750) is in the public domain.
 - The research catalogue `SCP_LOCATIONS.md` (HTML version's docs) summarizes 315
   SCP Wiki articles in our own words, each with its author and link
   (CC BY-SA 3.0).

@@ -123,6 +123,10 @@ impl Game {
         }
         self.director = Director { t, ..Default::default() };
         self.amb_hush = 0.0;
+        // the Building's floors: what comes is the self-assembly (`world::assembly`)
+        if self.building.is_some() {
+            self.reset_assembly();
+        }
     }
 
     /// You followed a trail that is not hers to its end: in a quiet,
@@ -141,6 +145,13 @@ impl Game {
     /// build-up comes within `WAKE` seconds; already building or worse,
     /// nothing changes (PILLARS 5: you chose when the dread starts).
     pub fn director_wake(&mut self) {
+        if self.building.is_some() {
+            if self.director.phase == Phase::Calm {
+                self.assembly_wake(WAKE);
+                self.director_note("wake");
+            }
+            return;
+        }
         if self.director.phase == Phase::Calm {
             self.director.t = self.director.t.min(rand2(WAKE.0, WAKE.1));
             self.director_note("wake");
@@ -150,6 +161,16 @@ impl Game {
     /// One step of the director, after the creatures have moved.
     pub fn update_director(&mut self, dt: f64) {
         if self.state != "playing" || self.in_stairwell || self.in_loop {
+            return;
+        }
+        // nothing walks the Building's floors: the self-assembly comes instead,
+        // and the place holds its breath while the fog is up
+        if self.building.is_some() {
+            self.update_assembly(dt);
+            self.update_cell_doors(dt);
+            let hush = if self.assembly.up() { 0.55 } else { 0.0 };
+            self.director.hush += (hush - self.director.hush) * (dt * 0.4).min(1.0);
+            self.amb_hush = self.director.hush;
             return;
         }
         self.director.sting_cd = (self.director.sting_cd - dt).max(0.0);

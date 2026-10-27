@@ -12,6 +12,7 @@
 //! record access.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod arch;
+pub mod assembly;
 pub mod build;
 pub mod building;
 pub mod building_dress;
@@ -274,6 +275,10 @@ impl Game {
         if let Some(s) = &self.solids {
             // (what is over a body's head counts from the floor it stands on)
             if archgen::circle_hits(s, self.to_u(px), self.to_v(pz), r / CELL, self.floor_y_at(px, pz) + 1.8) {
+                return true;
+            }
+            // a cell's hermetic door, shut
+            if !self.cell_doors.is_empty() && self.hits_cell_door(px, pz, r) {
                 return true;
             }
             if self.barricade_tiles.is_empty() {

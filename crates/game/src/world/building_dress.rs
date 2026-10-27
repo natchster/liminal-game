@@ -113,16 +113,11 @@ impl Game {
     /// its left hinge), the wheel on it. `at` is the middle of the opening's
     /// floor on the face, `yaw` turns +z out of the face.
     fn hermetic_door(&self, parts: &mut Parts, at: Vec3, yaw: f64, open: f64, steel: &Mat) {
+        self.door_frame(parts, at, yaw, steel);
         let frame_geo = self.unit_box_geo.clone();
-        let frame = parts.part(&frame_geo, steel);
         let (c, s) = (yaw.cos(), yaw.sin());
-        // local (x along the face to the right seen from outside, z out) → world
         let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
-        for sx in [-1.0, 1.0] {
-            parts.put(frame, boxm(to_w(sx * (hw + 0.06), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
-        }
-        parts.put(frame, boxm(to_w(0.0, hh + 0.06, 0.02), yaw, Vec3::new(CELL_DOOR + 0.24, 0.12, 0.32)));
         // the leaf, hinged at its left edge
         let leaf = parts.part(&frame_geo, steel);
         let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
@@ -142,6 +137,49 @@ impl Game {
             q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), k + 0.4));
             parts.put(spoke, Mat4::compose(&wc, &q, &Vec3::new(1.0, 1.0, 1.0)));
         }
+    }
+
+    /// A doorway's steel frame: a box each side and one over it
+    fn door_frame(&self, parts: &mut Parts, at: Vec3, yaw: f64, steel: &Mat) {
+        let frame_geo = self.unit_box_geo.clone();
+        let frame = parts.part(&frame_geo, steel);
+        let (c, s) = (yaw.cos(), yaw.sin());
+        // local (x along the face to the right seen from outside, z out) → world
+        let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
+        let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
+        for sx in [-1.0, 1.0] {
+            parts.put(frame, boxm(to_w(sx * (hw + 0.06), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
+        }
+        parts.put(frame, boxm(to_w(0.0, hh + 0.06, 0.02), yaw, Vec3::new(CELL_DOOR + 0.24, 0.12, 0.32)));
+    }
+
+    /// A cell's door leaf and its wheel, as an object that turns on its
+    /// hinge (its rotation is the face's `yaw` plus how far it stands open)
+    fn door_leaf(&self, at: Vec3, yaw: f64, steel: &Mat) -> Obj {
+        let (c, s) = (yaw.cos(), yaw.sin());
+        let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
+        let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
+        let (hx, hz) = (-hw + 0.03, -0.08);
+        let g = group();
+        g.position().set(at.x + hx * c + hz * s, at.y, at.z - hx * s + hz * c);
+        g.rotation().y = yaw;
+        let leaf = mesh(&self.unit_box_geo, steel);
+        leaf.position().set(lw / 2.0, lh / 2.0 + 0.02, 0.0);
+        leaf.scale().set(lw, lh, 0.09);
+        g.add(&leaf);
+        let (ring_geo, spoke_geo) = door_wheel_geos();
+        let ring = mesh(&ring_geo, steel);
+        ring.position().set(lw / 2.0, 1.05, 0.07);
+        g.add(&ring);
+        for k in [0.0, PI / 2.0] {
+            let sp = mesh(&spoke_geo, steel);
+            sp.position().set(lw / 2.0, 1.05, 0.07);
+            sp.rotation().z = k + 0.4;
+            g.add(&sp);
+        }
+        g.user().gameplay = true;
+        g.user().set("yaw", yaw);
+        g
     }
 
     /// Every cell: the front wall with its doorway, the door swung open
@@ -181,9 +219,40 @@ impl Game {
             }
             let p = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, (h + CELL_DOOR_H + top) / 2.0);
             parts.put(wall, boxm(p, yaw, Vec3::new(CELL_DOOR, top - h - CELL_DOOR_H, CELL_FRONT)));
-            // the door, open into the room
+            // the door, open into the room; turn its wheel from inside to
+            // shut it (the shelter from the self-assembly), and again to open
             let at = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, h);
-            self.hermetic_door(parts, at, yaw, 1.75 + r.range(-0.1, 0.1), &steel);
+            self.door_frame(parts, at, yaw, &steel);
+            let leaf = self.door_leaf(at, yaw, &steel);
+            let open = crate::world::assembly::OPEN + r.range(-0.1, 0.1);
+            leaf.rotation().y = yaw + open;
+            self.world.add(&leaf);
+            let (ax, az) = if DIRS[d][0] != 0 { (CELL_FRONT / 2.0, CELL_DOOR / 2.0) } else { (CELL_DOOR / 2.0, CELL_FRONT / 2.0) };
+            let ci = self.cell_doors.len();
+            self.cell_doors.push(crate::world::assembly::CellDoor {
+                tile: (x, z),
+                leaf,
+                open,
+                target: open,
+                at,
+                span: [at.x - ax, at.z - az, at.x + ax, at.z + az],
+            });
+            let inside = self.face_point(x, z, d, 0.0, -1.1, h + EYE);
+            let in_cell = move |g: &Game| (g.tx(g.player.pos.x), g.tz(g.player.pos.z)) == (x, z);
+            self.interact(
+                inside,
+                1.7,
+                "[E] TURN THE WHEEL",
+                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target > 0.5),
+                move |g| g.turn_cell_wheel(ci, true),
+            );
+            self.interact(
+                inside,
+                1.7,
+                "[E] OPEN THE DOOR",
+                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target < 0.5),
+                move |g| g.turn_cell_wheel(ci, false),
+            );
             // the lamp's cage over the door, outside
             let lamp = self.face_point(x, z, d, 0.0, 0.15, h + crate::world::building::CELL_LAMP_Y);
             for (sx, sy, sz) in [(0.26, 0.02, 0.02), (0.02, 0.2, 0.02)] {

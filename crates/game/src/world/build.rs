@@ -199,6 +199,11 @@ impl Game {
         self.rain_windows.clear();
         self.drawer_props.clear();
         self.vacuum_bot = None;
+        // the Building's per-floor things (a floor of the rooms has none)
+        self.cell_doors.clear();
+        self.fog_layers.clear();
+        self.building_speakers.clear();
+        self.assembly = Default::default();
         self.tv_data = None;
         self.phone_data = None;
         self.clock_data = None;

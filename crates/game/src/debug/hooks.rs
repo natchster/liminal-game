@@ -443,6 +443,52 @@ impl Game {
     /// brightness line chosen, Controls, or the title)
     pub fn debug_screen(&mut self, name: &str) {
         use crate::ui::menu::Screen;
+        // the self-assembly at its crest on a floor of the Building: its
+        // surface below you, or you in it (`world::assembly`)
+        if (name == "fog-below" || name == "fog-in") && self.building.is_some() {
+            let p = self.player.pos;
+            let f = self.floor_y_at(p.x, p.z);
+            let a = &mut self.assembly;
+            a.stage = crate::world::assembly::Stage::Crest;
+            a.y = if name == "fog-below" { f - 7.0 } else { f + 3.0 };
+            a.crest = a.y;
+            a.t = 60.0;
+            self.god_mode = true;
+            // at the edge with the longest view over the void, looking out and down
+            if name == "fog-below" {
+                let mut best = None;
+                for z in 1..self.h - 1 {
+                    for x in 1..self.w - 1 {
+                        let g = self.ground[self.t_idx(x, z)];
+                        if g.kind != crate::level::archgen::GROUND_FLOOR {
+                            continue;
+                        }
+                        for (d, dd) in crate::level::archgen::DIRS.iter().enumerate() {
+                            let n = (1..16)
+                                .take_while(|k| {
+                                    let (vx, vz) = (x + dd[0] * k, z + dd[1] * k);
+                                    self.in_grid(vx, vz) && self.ground[self.t_idx(vx, vz)].kind == crate::level::archgen::GROUND_VOID
+                                })
+                                .count();
+                            if best.is_none_or(|b: (usize, i32, i32, usize)| n > b.0) {
+                                best = Some((n, x, z, d));
+                            }
+                        }
+                    }
+                }
+                if let Some((_, x, z, d)) = best {
+                    let dd = crate::level::archgen::DIRS[d];
+                    let (wx, wz) = (self.wx(x) + dd[0] as f64 * 1.2, self.wz(z) + dd[1] as f64 * 1.2);
+                    self.player.pos = Vec3::new(wx, self.floor_y_at(wx, wz) + EYE, wz);
+                    self.player.yaw = (-(dd[0] as f64)).atan2(-(dd[1] as f64));
+                    self.player.pitch = -0.4;
+                    let f = self.floor_y_at(wx, wz);
+                    self.assembly.y = f - 7.0;
+                    self.assembly.crest = self.assembly.y;
+                }
+            }
+            return;
+        }
         if name == "title" {
             self.state = "menu".into();
             self.open_menu(Screen::Title);

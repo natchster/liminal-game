@@ -70,6 +70,19 @@
     },
     {
       "checks": [
+        "test:backrooms/assembly",
+        "test:backrooms/listen"
+      ],
+      "id": "building/assembly",
+      "kind": "system",
+      "last_checked": null,
+      "last_human_review": null,
+      "name": "the self-assembly: the siren, the fog, the cells",
+      "notes": "Whether the siren reads as a warning the first time, and whether waiting in a cell is dread or a chore, are playtest questions. The siren is synthesized; no person has listened to it.",
+      "passes": {}
+    },
+    {
+      "checks": [
         "test:game/building",
         "test:game/height",
         "test:backrooms/level_sweep",
@@ -77,7 +90,8 @@
         "test:backrooms/playthrough",
         "shots:4242_L1_spawn",
         "shots:4242_L2_spawn",
-        "shots:4242_L3_spawn"
+        "shots:4242_L3_spawn",
+        "test:backrooms/assembly"
       ],
       "id": "building/floors",
       "kind": "system",

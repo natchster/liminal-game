@@ -123,6 +123,12 @@ pub struct Game {
     pub building: Option<crate::level::building::BuildingPlan>,
     /// The loudspeakers on the Building's walls (where the siren comes from)
     pub building_speakers: Vec<Vec3>,
+    /// The self-assembly on this floor of the Building (`world::assembly`)
+    pub assembly: crate::world::assembly::Assembly,
+    /// The cells' hermetic doors, as they swing
+    pub cell_doors: Vec<crate::world::assembly::CellDoor>,
+    /// The fog's surface, a few layers deep
+    pub fog_layers: Vec<Obj>,
     /// The archgen layout of the current level
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
@@ -666,6 +672,9 @@ impl Game {
             ground: vec![],
             building: None,
             building_speakers: vec![],
+            assembly: Default::default(),
+            cell_doors: vec![],
+            fog_layers: vec![],
             layout: None,
             solids: None,
             tex: crate::visuals::textures::Textures::placeholder(),
@@ -1253,7 +1262,7 @@ impl Game {
     }
     /// A one-shot's level and pan after `sfx_route` (its gain, and its pan
     /// for a voice without one of its own)
-    fn routed(&self, gain: f64, pan: f64) -> (f64, f64) {
+    pub(crate) fn routed(&self, gain: f64, pan: f64) -> (f64, f64) {
         match &self.sfx_route {
             Some(r) => (gain * r.gain, if pan == 0.0 { r.pan } else { pan }),
             None => (gain, pan),
@@ -1261,7 +1270,7 @@ impl Game {
     }
     /// Connects a one-shot's last stage: to `sfx_route`'s voice slot when it
     /// has one, else to master, through a stereo panner when `pan` is not 0
-    fn one_shot_out(&self, ac: &AudioContext, master: &AudioNode, g: &AudioNode, pan: f64) {
+    pub(crate) fn one_shot_out(&self, ac: &AudioContext, master: &AudioNode, g: &AudioNode, pan: f64) {
         if let Some(dest) = self.sfx_route.as_ref().and_then(|r| r.dest.as_ref()) {
             g.connect(dest);
         } else if pan != 0.0 {

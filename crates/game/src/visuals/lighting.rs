@@ -514,6 +514,15 @@ impl Game {
         let mut bg = self.fog_color;
         bg.lerp(&self.ll_fog_lit, k);
         self.background = bg;
+        // inside the self-assembly's fog, the fog is all you see
+        if bld && self.assembly.up() && self.camera.pos().y < self.assembly.y {
+            let violet = Color::hex(0x2a1a30);
+            self.fog_color = violet;
+            self.ll_fog_lit = violet;
+            self.fog_density = 0.16;
+            self.ll_fog_ratio = 1.0;
+            self.background = violet;
+        }
     }
 
     /// The camera follows the window's aspect
