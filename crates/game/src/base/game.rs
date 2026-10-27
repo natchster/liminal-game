@@ -119,6 +119,10 @@ pub struct Game {
     /// What each tile stands on (`archgen::Ground`); empty on the rooms,
     /// whose floors are all at y = 0
     pub ground: Vec<crate::level::archgen::Ground>,
+    /// The Building's plan of this floor (levels 1–3), or None on the rooms
+    pub building: Option<crate::level::building::BuildingPlan>,
+    /// The loudspeakers on the Building's walls (where the siren comes from)
+    pub building_speakers: Vec<Vec3>,
     /// The archgen layout of the current level
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
@@ -660,6 +664,8 @@ impl Game {
             rand_trace: RandTrace::default(),
             tile_ceil: vec![],
             ground: vec![],
+            building: None,
+            building_speakers: vec![],
             layout: None,
             solids: None,
             tex: crate::visuals::textures::Textures::placeholder(),

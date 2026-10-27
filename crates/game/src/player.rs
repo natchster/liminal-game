@@ -240,7 +240,7 @@ impl Game {
         self.sfx_cry();
         self.show_msg("YOU CRY OUT...", 1.6);
         // odds by level: level 1 => 50/50 arrows/aggro. Every level -8% arrows, +8% aggro.
-        let arrow_chance = clamp(0.5 - (self.level_num - 1) as f64 * 0.08, 0.05, 0.5);
+        let arrow_chance = clamp(0.5 - (self.depth() - 1) as f64 * 0.08, 0.05, 0.5);
         if rnd() < arrow_chance {
             self.schedule(900.0, |g| g.spawn_guide_arrows());
         } else {
@@ -278,7 +278,7 @@ impl Game {
         }
         if !open.is_empty() && rnd() < 0.75 {
             let (x, z) = choice(&open);
-            let kind = if self.level_num >= 3 && rnd() < 0.5 { "hound" } else { "smiler" };
+            let kind = if self.depth() >= 3 && rnd() < 0.5 { "hound" } else { "smiler" };
             let built = if kind == "hound" { self.make_hound(x as f64, z as f64) } else { self.make_smiler(x as f64, z as f64) };
             let eye_y_offset = if kind == "hound" { 0.055 } else { 0.035 };
             let mut e = Entity::new(kind, built.g.clone());
@@ -293,7 +293,7 @@ impl Game {
             e.stare_t = 0.0;
             e.step_acc = 0.0;
             e.unseen_t = 0.0;
-            e.speed = (if kind == "hound" { 7.2 } else { 5.5 }) + (self.level_num as f64 * 0.12).min(0.9);
+            e.speed = (if kind == "hound" { 7.2 } else { 5.5 }) + (self.depth() as f64 * 0.12).min(0.9);
             e.w_field = None;
             e.w_target = None;
             e.w_timer = 0.0;

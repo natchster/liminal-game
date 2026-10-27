@@ -1417,10 +1417,10 @@ impl Game {
             let (x, z) = open.remove((rnd() * open.len() as f64).floor() as usize);
             // pick type by level: watcher from level 2+, hound from level 3+
             let mut kind = "smiler";
-            if self.level_num >= 2 && i > 0 && rnd() < 0.35 {
+            if self.depth() >= 2 && i > 0 && rnd() < 0.35 {
                 kind = "watcher";
             }
-            if self.level_num >= 3 && i > 0 && kind == "smiler" && rnd() < 0.5 {
+            if self.depth() >= 3 && i > 0 && kind == "smiler" && rnd() < 0.5 {
                 kind = "hound";
             }
             self.add_entity(kind, x, z, i);
@@ -1460,7 +1460,7 @@ impl Game {
             3.2
         } else {
             5.5
-        }) + (self.level_num as f64 * 0.12).min(0.9);
+        }) + (self.depth() as f64 * 0.12).min(0.9);
         e.w_field = None;
         e.w_target = None;
         e.w_timer = 0.0;

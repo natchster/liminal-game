@@ -1,17 +1,17 @@
 {
-  "4242_L3": {
-    "integrated": -30.76,
-    "range": 2.18,
-    "true_peak": -7.32
+  "4242_L6": {
+    "integrated": -29.56,
+    "range": 3.23,
+    "true_peak": -7.13
   },
-  "77_L5": {
-    "integrated": -29.14,
-    "range": 4.42,
-    "true_peak": -5.25
+  "77_L8": {
+    "integrated": -30.39,
+    "range": 4.56,
+    "true_peak": -4.6
   },
-  "9001_L7": {
-    "integrated": -30.7,
-    "range": 4.74,
-    "true_peak": -9.47
+  "9001_L11": {
+    "integrated": -29.22,
+    "range": 6.57,
+    "true_peak": -8.69
   }
 }

@@ -88,14 +88,23 @@ pub struct SigCarry {
 /// hall); quiet ones only from the next room (a drip, a breath, paper).
 pub fn sig_carry(name: &str) -> SigCarry {
     // the levels: each sound lands some 6–14 dB over the room's bed at its
-    // distance (measured by `tests/listen.rs`)
+    // distance (measured by `tests/listen.rs`; over eight floors the thud,
+    // the clank, the moan and the laugh came in near the bed, 6 dB under
+    // the slam and the steps they were levelled with, the radio 3 dB, the
+    // paper at its far reach 3 dB more: raised by that in the Megastructure
+    // work; then the moan 6 dB more again and the dial tone 3 dB, which
+    // still came in 2–3 dB short at 24–44 m. What stays under is a thud or a
+    // clank behind three walls, as it should be)
     match name {
-        "doorSlam" | "thud" | "clank" | "moan" => SigCarry { near: 22.0, far: 55.0, ref_dist: 14.0, gain: 4.5 },
+        "doorSlam" => SigCarry { near: 22.0, far: 55.0, ref_dist: 14.0, gain: 4.5 },
+        "thud" | "clank" => SigCarry { near: 22.0, far: 55.0, ref_dist: 14.0, gain: 9.0 },
+        "moan" => SigCarry { near: 22.0, far: 55.0, ref_dist: 14.0, gain: 17.5 },
         "distantScream" => SigCarry { near: 22.0, far: 55.0, ref_dist: 14.0, gain: 7.5 },
         "piano" | "distantFootsteps" => SigCarry { near: 20.0, far: 42.0, ref_dist: 14.0, gain: 11.2 },
-        "laugh" | "chime" | "dialTone" => SigCarry { near: 12.0, far: 28.0, ref_dist: 8.0, gain: 10.5 },
-        "radioStatic" => SigCarry { near: 12.0, far: 28.0, ref_dist: 8.0, gain: 18.0 },
-        "paperRustle" | "pageFlip" => SigCarry { near: 7.0, far: 14.0, ref_dist: 4.0, gain: 24.0 },
+        "laugh" => SigCarry { near: 12.0, far: 28.0, ref_dist: 8.0, gain: 21.0 },
+        "chime" | "dialTone" => SigCarry { near: 12.0, far: 28.0, ref_dist: 8.0, gain: 15.0 },
+        "radioStatic" => SigCarry { near: 12.0, far: 28.0, ref_dist: 8.0, gain: 25.0 },
+        "paperRustle" | "pageFlip" => SigCarry { near: 7.0, far: 14.0, ref_dist: 4.0, gain: 34.0 },
         _ => SigCarry { near: 7.0, far: 14.0, ref_dist: 4.0, gain: 21.0 },
     }
 }
@@ -121,7 +130,10 @@ pub const EXIT_HEARD: f64 = 40.0;
 pub const EXIT_CALL_PERIOD: f64 = 9.0;
 /// The exit call's voice slot: reference distance (m) and level
 const EXIT_REF_DIST: f64 = 18.0;
-const EXIT_GAIN: f64 = 30.0;
+/// (+1.5 dB in the Megastructure work: on the renumbered floors one test
+/// spot five tiles round a corner fell to +5.8 dB, under the +6 the door
+/// should carry there, `tests/listen.rs`)
+const EXIT_GAIN: f64 = 35.6;
 /// How much a wall muffles the door (0 clear … 1 sealed)
 const EXIT_OCCLUDE: f64 = 0.45;
 /// Salt of the exit call's jitter
@@ -948,7 +960,9 @@ impl Game {
         if dx * dx + dz * dz > EXIT_HEARD * EXIT_HEARD {
             return;
         }
-        let pan = self.play_from(x, 1.2, z, EXIT_REF_DIST, EXIT_GAIN * m.gain, EXIT_OCCLUDE, |g| g.sfx_exit_call());
+        // (at the door's own floor: on the Building's floors that has height)
+        let y = p.y - EYE + 1.2;
+        let pan = self.play_from(x, y, z, EXIT_REF_DIST, EXIT_GAIN * m.gain, EXIT_OCCLUDE, |g| g.sfx_exit_call());
         self.log_ambient("exit-call", Some(x), Some(z), Some(pan));
     }
 

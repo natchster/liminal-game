@@ -5,7 +5,9 @@ use crate::base::state::WEATHER_BIASES;
 use crate::base::tables::*;
 use crate::prelude::*;
 
-pub const SAVE_KEY: &str = "opencarole.backrooms.save.v1";
+/// (v2: the descent begins in the Building, `docs/MEGASTRUCTURE.md`; a v1
+/// save's levels and anomaly plan no longer exist)
+pub const SAVE_KEY: &str = "opencarole.backrooms.save.v2";
 
 /// What `save_game()` writes (and `load_game()` reads back).
 #[derive(Clone, Debug, Default)]
@@ -66,8 +68,14 @@ impl Game {
         // to the save afterwards (`fit_lore_notes`), so a retry, a Continue or
         // a rebuild is the same place
         let found = std::mem::take(&mut self.lore_found);
+        let depth = crate::level::building::rooms_depth(n);
         with_seed(seed, || {
-            self.gen_layout_level(n, (31 + n * 4).min(53));
+            // levels 1–3 are the Building's floors; the rooms count their depth from the Lobby
+            if crate::level::building::Style::of_level(n).is_some() {
+                self.gen_building_level(n);
+            } else {
+                self.gen_layout_level(depth, (31 + depth * 4).min(53));
+            }
             self.trace_mark("layout");
             self.build_world();
             self.trace_mark("world");
@@ -77,17 +85,19 @@ impl Game {
                     let d = self.bfs(1, 1);
                     self.spawn_entities(0, &d);
                     let d = self.bfs(1, 1);
-                    self.spawn_staff(4 + 2.min(n / 5), &d);
+                    self.spawn_staff(4 + 2.min(depth / 5), &d);
                 }
                 Some("house") => {
                     let d = self.bfs(1, 1);
                     self.spawn_entities(0, &d);
                     let d = self.bfs(1, 1);
-                    self.spawn_shadows(3 + if n >= 8 { 1 } else { 0 }, &d);
+                    self.spawn_shadows(3 + if depth >= 5 { 1 } else { 0 }, &d);
                 }
+                // nothing walks the Building's floors: what comes there comes from far off
+                _ if self.building.is_some() => {}
                 _ => {
                     let d = self.bfs(1, 1);
-                    self.spawn_entities(1 + ((n - 1) / 2).min(2), &d);
+                    self.spawn_entities(1 + ((depth - 1) / 2).min(2), &d);
                 }
             }
         });
@@ -356,7 +366,7 @@ impl Game {
         let start = self.now_ms;
         fn tick(g: &mut Game, start: f64) {
             let t = (g.now_ms - start) / 1200.0;
-            g.camera.position().y = EYE - t * 4.5;
+            g.camera.position().y = g.floor_y_at(g.player.pos.x, g.player.pos.z) + EYE - t * 4.5;
             g.camera.rotation().z += 0.02;
             g.ui.fade.set_opacity(1f64.min(t * 1.4));
             if t >= 1.0 {
@@ -570,13 +580,17 @@ impl Game {
     }
 
     // ------------------------------------------------------------ descent helpers
+    /// How far into the rooms this level is (`level::building::rooms_depth`)
+    pub fn depth(&self) -> i32 {
+        crate::level::building::rooms_depth(self.level_num)
+    }
     pub fn level_depth_mul(&self) -> f64 {
         let slope = level_depth_slope_by_weather(self.weather_key()).or(level_depth_slope_by_weather("normal")).unwrap();
-        0.85f64.max(1.0 - (self.level_num - 1) as f64 * slope)
+        0.85f64.max(1.0 - (self.depth() - 1) as f64 * slope)
     }
     pub fn chime_depth_mul(&self) -> f64 {
         let slope = level_depth_slope_by_weather(self.weather_key()).or(level_depth_slope_by_weather("normal")).unwrap();
-        0.80f64.max(1.0 - (self.level_num - 1) as f64 * slope * 4.0)
+        0.80f64.max(1.0 - (self.depth() - 1) as f64 * slope * 4.0)
     }
     pub fn descent_boost_mul(&self, f: f64) -> f64 {
         1.0 + (1.0 - self.level_depth_mul()) * f

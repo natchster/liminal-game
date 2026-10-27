@@ -29,20 +29,20 @@ use std::path::{Path, PathBuf};
 
 /// Goldens to damage: level views of several purposes, and creatures.
 const SHOTS: &[&str] = &[
-    "4242_L1_spawn",
-    "4242_L1_office_wing",
-    "4242_L7_washrooms",
+    "4242_L1_well",
+    "4242_L7_office_wing",
+    "4242_L7_living_quarters",
     "4242_L7_storage_hall",
-    "7_L5_parlour",
-    "4242_L4_showroom",
+    "7_L5_play_area",
+    "4242_L10_showroom",
     "smiler_4m",
     "hound_4m",
     "watcher_2m",
-    "4242_L7_play_area",
+    "4242_L2_stair_halls",
 ];
 const KINDS: &[&str] = &["cartoon", "washed", "hole", "smear"];
 /// Identical pairs: the right answer is a tie.
-const CONTROLS: &[&str] = &["4242_L7_shrine", "smiler_8m"];
+const CONTROLS: &[&str] = &["4242_L3_works", "smiler_8m"];
 
 fn dir() -> PathBuf {
     root().join("target/xtask/calibrate")

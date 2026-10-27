@@ -19,7 +19,9 @@ impl Game {
     pub(crate) fn dress_camp(&mut self, plan: &StoryPlan, r: &mut SplitMix64) -> Camp {
         let (tx, tz) = plan.camp;
         let (wx, wz) = (plan.wall.0 as f64, plan.wall.1 as f64);
-        let face = self.camp_face(plan.camp, plan.wall).unwrap_or_else(|| v3(self.wx(tx) + wx * 1.6, 0, self.wz(tz) + wz * 1.6));
+        let face = self
+            .camp_face(plan.camp, plan.wall)
+            .unwrap_or_else(|| v3(self.wx(tx) + wx * 1.6, self.floor_y_of(tx, tz), self.wz(tz) + wz * 1.6));
         let normal = v3(-wx, 0, -wz);
         // local frame: +z out from the wall, +x along it
         let camp = group();
@@ -105,7 +107,7 @@ impl Game {
             let (bx, bz) = to_world(-0.75 * flip, 0.9);
             self.camp_pickup(false, bx, bz, r);
         }
-        let at = v3(face.x + normal.x * 0.6, 0, face.z + normal.z * 0.6);
+        let at = v3(face.x + normal.x * 0.6, face.y, face.z + normal.z * 0.6);
         Camp {
             tile: plan.camp,
             wall: plan.wall,
@@ -179,7 +181,7 @@ impl Game {
         let (lx, lz) = (r.range(-0.05, 0.25), 0.56 + r.range(-0.05, 0.05));
         let n = camp.normal;
         let face = v3(camp.at.x - n.x * 0.6, 0, camp.at.z - n.z * 0.6);
-        m.position().set(face.x + lx * n.z + lz * n.x, 0.095, face.z - lx * n.x + lz * n.z);
+        m.position().set(face.x + lx * n.z + lz * n.x, camp.at.y + 0.095, face.z - lx * n.x + lz * n.z);
         m.rotation().y = n.x.atan2(n.z) + PI + r.range(-0.3, 0.3);
         m.user().gameplay = true;
         self.world.add(&m);
@@ -304,7 +306,7 @@ impl Game {
     /// Almond water (`water`) or a battery she left, a pickup like any other.
     fn camp_pickup(&mut self, water: bool, x: f64, z: f64, r: &mut SplitMix64) {
         let pg_ = group();
-        let base = if water { 0.15 } else { 0.11 };
+        let base = self.floor_y_at(x, z) + if water { 0.15 } else { 0.11 };
         pg_.position().set(x, base, z);
         if water {
             pg_.add(&mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), lambert!({ color: 0x9fc4d8, emissive: 0x16323e })));
@@ -385,7 +387,7 @@ impl Game {
     /// One of her sheets at (x, z), its arrow pointing along `yaw`.
     pub(crate) fn dress_sheet(&mut self, parts: &(Geo, Mat), x: f64, z: f64, yaw: f64) -> Obj {
         let m = mesh(&parts.0, &parts.1);
-        m.position().set(x, 0.014, z);
+        m.position().set(x, self.floor_y_at(x, z) + 0.014, z);
         m.rotation().y = yaw;
         m.user().gameplay = true;
         self.world.add(&m);

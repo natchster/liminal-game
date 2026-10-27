@@ -1,9 +1,12 @@
 # The Backrooms
 
 A first-person exploration horror game for macOS on Apple Silicon, written in
-Rust. You follow someone down an endless building of yellowed office rooms
-that is different for every run: M., who went in after E. and left a trail
-of folded paper, a camp on every floor and a page of her notebook at each.
+Rust. You follow someone down an endless building that is different for
+every run: first through the Building, three floors of vast, empty concrete
+at many heights over a void, where you find the way down by stairs,
+galleries and bridges (`docs/MEGASTRUCTURE.md`); then through the yellowed
+office rooms inside its walls. M., who went in after E., left a trail of
+folded paper, a camp on every floor and a page of her notebook at each.
 Nothing points the way; the door is found by its light and the sound it
 makes. Keep your sanity and your flashlight battery up, avoid what walks the
 halls (taking her page wakes them), don't trust every trail, and go down —

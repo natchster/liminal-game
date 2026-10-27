@@ -494,7 +494,7 @@ fn check_tree(o: &Obj, rec: &Value, tex: &dyn Fn(&Tex) -> Option<i64>, path: &st
 fn builds_match_reference() {
     let j = fx();
     let mut g = game_on(&j["grid"]);
-    g.level_num = 3;
+    g.level_num = 3 + game::level::building::BUILDING_FLOORS;
     let a = ent_assets();
     let ti = &j["texIndex"];
     let texs = [
@@ -610,7 +610,8 @@ fn spawn_matches_reference() {
         // the same grid as the fixture's GRID_A(n)
         let grid = grid_a(n);
         let mut g = game_on(&grid);
-        g.level_num = c["level"].as_i64().unwrap() as i32;
+        // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+        g.level_num = c["level"].as_i64().unwrap() as i32 + game::level::building::BUILDING_FLOORS;
         let dist = g.e_bfs_pub(1, 1);
         assert_eq!(dist.iter().map(|v| *v as f64).collect::<Vec<_>>(), fs(&c["dist"]), "bfs(1, 1) on grid {n}");
         let d0 = seeded_draws();
@@ -668,7 +669,7 @@ fn animate_matches_reference() {
         let kind = c["type"].as_str().unwrap();
         let s = c["seed"].as_u64().unwrap() as u32;
         let mut g = game_on(&grid_a(23));
-        g.level_num = 4;
+        g.level_num = 4 + game::level::building::BUILDING_FLOORS;
         let d0 = seeded_draws();
         with_seed(s, || {
             let ei = g.add_entity(kind, 11, 11, 0);
@@ -814,7 +815,7 @@ fn animate_matches_reference() {
 fn steering_matches_reference() {
     let j = &fx()["steer"];
     let mut g = game_on(&grid_a(23));
-    g.level_num = 2;
+    g.level_num = 2 + game::level::building::BUILDING_FLOORS;
     for r in j["lineWalkable"].as_array().unwrap() {
         let r = fs(r);
         assert_eq!(g.line_walkable(r[0], r[1], r[2], r[3], r[4]), r[5] != 0.0, "line_walkable {r:?}");
@@ -849,7 +850,7 @@ fn steering_matches_reference() {
     // walks
     for w in j["walks"].as_array().unwrap() {
         let mut g = game_on(&grid_a(23));
-        g.level_num = 2;
+        g.level_num = 2 + game::level::building::BUILDING_FLOORS;
         let kind = w["type"].as_str().unwrap();
         let (sx, sz, gx, gz) = (
             w["sx"].as_i64().unwrap() as i32,
@@ -892,7 +893,7 @@ fn steering_matches_reference() {
     // look rules
     for l in j["looks"].as_array().unwrap() {
         let mut g = game_on(&grid_a(23));
-        g.level_num = 2;
+        g.level_num = 2 + game::level::building::BUILDING_FLOORS;
         let kind = l["type"].as_str().unwrap();
         with_seed(l["seed"].as_u64().unwrap() as u32, || {
             let ei = g.add_entity(kind, 11, 11, 0);
@@ -956,7 +957,8 @@ fn update_matches_reference() {
     let mut recorded = fx()["update"].clone();
     for (ci, c) in fx()["update"].as_array().unwrap().iter().enumerate() {
         let mut g = game_on(&c["grid"]);
-        g.level_num = c["level"].as_i64().unwrap() as i32;
+        // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+        g.level_num = c["level"].as_i64().unwrap() as i32 + game::level::building::BUILDING_FLOORS;
         let wk = c["weather"].as_str().unwrap();
         g.level_weather = game::base::state::WEATHER_BIASES.iter().find(|w| w.key == wk).unwrap();
         g.player.pos = v3(g.wx(2), 0.0, g.wz(2));
@@ -1105,7 +1107,7 @@ fn update_matches_reference() {
 /// A smiler at tile (5, 5) on the open test grid, you 8 m away at (5, 7)
 fn senses_game(yaw: f64) -> (Game, usize) {
     let mut g = game_on(&grid_a(23));
-    g.level_num = 3;
+    g.level_num = 3 + game::level::building::BUILDING_FLOORS;
     let ei = g.add_entity("smiler", 5, 5, 0);
     let e = &mut g.entities[ei];
     e.freeze = 0.0;

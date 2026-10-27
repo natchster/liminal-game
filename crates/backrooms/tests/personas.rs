@@ -59,7 +59,8 @@ fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
 }
 
 /// (run seed, level): a maze level, a deeper one, an anomaly level.
-const LEVELS: &[(u32, i32)] = &[(4242, 3), (77, 5), (1999, 7)];
+// (rooms levels: the Building's floors above them have no creatures)
+const LEVELS: &[(u32, i32)] = &[(4242, 6), (77, 8), (1999, 10)];
 const SECONDS: f64 = 150.0;
 const FINE: i32 = 16;
 

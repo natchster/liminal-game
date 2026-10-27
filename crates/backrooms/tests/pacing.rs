@@ -227,7 +227,10 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
 
 #[test]
 fn the_director_paces_a_level() {
-    let runs = [(4242u32, 3), (77, 5), (9001, 7), (31337, 4)];
+    // (each old scenario's depth on the rooms, the Building's three floors
+    // over them: its level + 3, or the next ordinary floor after it when an
+    // anomaly has that level)
+    let runs = [(4242u32, 6), (77, 8), (9001, 11), (31337, 8)];
     let mut logs = vec![];
     for (seed, level) in runs {
         let log = play_level(seed, level, 300.0);

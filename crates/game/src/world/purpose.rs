@@ -50,6 +50,10 @@ fn label_of(arch: &str, primary: Option<&str>) -> &'static str {
         ("tunnels" | "electrical", Some("industrial")) => "service tunnels",
         ("hall", Some("industrial")) => "storage hall",
         ("store", None) => "showroom",
+        // the Building's floors are what they are, nothing more
+        ("well", _) => "well",
+        ("halls", _) => "stair halls",
+        ("works", _) => "works",
         _ => {
             let k = primary.unwrap_or("");
             PURPOSE_LABEL.iter().find(|(t, _)| *t == k).map(|&(_, l)| l).unwrap_or("empty")
@@ -161,7 +165,7 @@ impl Game {
                 out[a].clone()
             } else {
                 // the first room of the first level is the photograph: nothing in it
-                pick_purpose(z.arch, a, self.level_num == 1 && areas[spawn_zone] == a)
+                pick_purpose(z.arch, a, self.level_num == crate::level::building::FIRST_ROOMS_LEVEL && areas[spawn_zone] == a)
             };
             p.core = rnd() < theme_allow(z.arch, "core");
             out.push(p);

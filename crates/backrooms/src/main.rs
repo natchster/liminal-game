@@ -605,7 +605,7 @@ fn level_check(o: &Options, dir: &str) {
                 // one frame from inside each zone (the creatures stay where they are)
                 let views = g.zone_views();
                 for &(zi, x, z, yaw) in &views {
-                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = 0.0;
                     // the props' cull runs a few times a second; run it for this view
@@ -624,7 +624,7 @@ fn level_check(o: &Options, dir: &str) {
                 print!(" (+{} zone views)", views.len());
                 // and the way down, as you would come on it
                 if let Some((x, z, yaw)) = g.exit_view() {
-                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = 0.0;
                     // the props' cull runs a few times a second; run it for this view
@@ -643,7 +643,7 @@ fn level_check(o: &Options, dir: &str) {
                 }
                 // and her camp and her trail
                 for (name, x, z, yaw, pitch) in g.story_views() {
-                    g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                    g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = pitch;
                     // the props' cull runs a few times a second; run it for this view
@@ -733,7 +733,7 @@ fn bench(o: &Options, path: &str) {
         let (mut upd, mut gpu, mut calls, mut tris) = (vec![], vec![], vec![], vec![]);
         for k in 0..o.bench_frames {
             if let Some(&(_, x, z, yaw)) = views.get((k / per_view) % views.len().max(1)) {
-                g.player.pos = engine::math::Vec3::new(x, game::prelude::EYE, z);
+                g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
                 g.player.yaw = yaw + (k % per_view) as f64 * 0.01;
                 g.player.pitch = 0.0;
             }

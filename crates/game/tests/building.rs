@@ -152,3 +152,12 @@ fn show_floor() {
     let (l, p) = build(seed, level);
     println!("{}", ascii(&l, &p));
 }
+
+#[test]
+#[ignore]
+fn print_plans() {
+    for seed in [4242u32, 77, 9001, 1999, 31337, 7, 12345] {
+        let p = game::level::scp::scp_plan_default(seed);
+        println!("{seed}: {:?}", p.entries);
+    }
+}

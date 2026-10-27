@@ -724,7 +724,7 @@ impl Game {
             e.parts = b.parts.to_map();
             e.yaw = rand1(PI * 2.0);
             e.state = "wander".into();
-            e.speed = 4.5 + (self.level_num as f64 * 0.08).min(0.8);
+            e.speed = 4.5 + (self.depth() as f64 * 0.08).min(0.8);
             e.set_n("lookK", 0.0);
             e.set_n("huntK", 0.0);
             self.entities.push(e);

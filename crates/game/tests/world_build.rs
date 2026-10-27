@@ -145,7 +145,8 @@ fn build_case(n: i32, seed: u32, scp: Option<&str>) -> (Game, Vec<(String, u64)>
         g.placers.push((name, probe));
     }
     g.init_world();
-    g.level_num = n;
+    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+    g.level_num = n + game::level::building::BUILDING_FLOORS;
     g.level_scp = scp.map(|s| s.to_string());
     g.rand_trace.on = true;
     PROBE.with(|p| p.borrow_mut().log.clear());
@@ -354,7 +355,8 @@ fn build_world_matches_reference() {
 fn settle_case(c: &Value, check: &mut dyn FnMut(&Game, &Value, &[Obj])) {
     let n = c["n"].as_i64().unwrap() as i32;
     let mut g = Game::new_bare();
-    g.level_num = n;
+    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+    g.level_num = n + game::level::building::BUILDING_FLOORS;
     with_seed(c["seed"].as_u64().unwrap() as u32, || g.gen_layout_level(n, (31 + n * 4).min(53)));
     let lows: Vec<(usize, f32)> =
         c["lows"].as_array().unwrap().iter().map(|l| (l[0].as_u64().unwrap() as usize, f(&l[1]) as f32)).collect();

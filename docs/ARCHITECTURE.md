@@ -46,7 +46,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 |---|---|
 | `base` | `Game` (all state in one struct), constants (`config`), the random streams (`rng`), numeric helpers, shared record types, per-weather tables, the prop position registry |
 | `level` | `archgen`: the zoned layout of a level (archetypes, walls, partitions, rooms, ceiling heights, solids for collision and sight; the ground a tile stands on where floors have height: a floor, a void, a stair, a mass); `building`: the Building's floors (levels 1–3): a lattice of platforms, walks, flights and voids, its cells and door, and the navigation measures; `scp`: which anomaly appears on which level of a run |
-| `world` | Grid and collision queries, zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling |
+| `world` | Grid and collision queries, zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling; the Building's floors as built (`building`: slabs, flights, parapets, masses, lamps, the door, pickups) and dressed (`building_dress`: cells and their hermetic doors, sealed doors, the galleries above and below, windows, the door's lit tower, storey numbers, loudspeakers, each place's own) |
 | `assets` | The embedded prop and creature meshes (`assets/*.bin`), fitted to each placer's size |
 | `placers` | The kit placers build with (`canvas_tex`, `pg`, joints, shared materials and tables) |
 | `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras |
@@ -75,7 +75,11 @@ light map, the colour filter) and the HUD layers, and renders.
 ### Building a level
 
 `init_level(n)` (`session::flow`) draws everything a level is made of from
-one random stream seeded with `seed_for_level(run_seed, n)`:
+one random stream seeded with `seed_for_level(run_seed, n)`. Levels 1–3 are
+the Building's floors (`level::building::generate_building`, then
+`world::building`; the dressing draws from a salted stream of its own, and
+nothing walks there); from level 4 the rooms are built as below, their
+layout, rot and creatures counted by `rooms_depth(n)` (the Lobby is depth 1):
 
 1. `generate_layout` (`level::archgen`): zones, walls, rooms, ceiling
    heights (neighbouring zones of one archetype share theirs).
@@ -128,7 +132,7 @@ backs the threat off after a peak; build-up, peak and relax phases):
 
 | Phase | What happens |
 |---|---|
-| Calm | Nothing is sent after you (45–80 s on the first floors, shorter deeper down; 110–150 s for the first on level 1 while M.'s camp is there to find). Taking her page cuts it to 4–9 s (`director_wake`) |
+| Calm | Nothing is sent after you (45–80 s on the first floors of the rooms, shorter deeper down; 110–150 s for the first on level 4, the Lobby, while M.'s camp is there to find). Taking her page cuts it to 4–9 s (`director_wake`). Nothing walks the Building's floors (levels 1–3) |
 | Build | One creature is sent (the nearest Smiler or Hound, now and then the Watcher; not the one sent last time when another can go). It is steered toward your part of the level, to tiles you cannot see in a circle round you that tightens as the build-up goes on (16 m out at first, 3–8 m at the end). Its footsteps far off, then the lights over it stuttering, then quiet as it closes in. If the time runs out it is told where you are (and again every few seconds) and gets a last stretch of up to 25 s to come and look |
 | Peak | Something hunts you, or searches close by. The menace gauge fills with closeness and sight; once it is full and you have broken away (nothing hunting you within 8 m or in sight) for a few seconds, or it is half full again and the hunter is not on top of you, everything after you withdraws |
 | Relax | The creatures keep away and hear less for 25–45 s |

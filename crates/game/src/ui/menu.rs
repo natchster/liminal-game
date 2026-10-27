@@ -368,7 +368,11 @@ impl Game {
         self.menu.view_t += dt;
         let t = self.menu.view_t;
         let cam = self.camera.clone();
-        cam.position().set(self.player.pos.x, EYE + (t * 0.9).sin() * 0.004, self.player.pos.z);
+        cam.position().set(
+            self.player.pos.x,
+            self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (t * 0.9).sin() * 0.004,
+            self.player.pos.z,
+        );
         cam.rotation().y = self.menu.view_yaw + (t * 0.045).sin() * 0.22;
         cam.rotation().x = -0.03 + (t * 0.031).sin() * 0.02;
         cam.rotation().z = 0.0;
@@ -377,6 +381,11 @@ impl Game {
     /// down the place rather than at a wall
     pub fn deepest_view_yaw(&self) -> f64 {
         let p = self.player.pos;
+        // on the Building's floors: across the void, toward the door's light
+        if let Some(b) = &self.building {
+            let (ex, ez) = (self.wx(b.exit.0), self.wz(b.exit.1));
+            return (-(ex - p.x)).atan2(-(ez - p.z));
+        }
         let mut best = (self.player.yaw, 0.0);
         for k in 0..16 {
             let yaw = k as f64 * PI / 8.0;

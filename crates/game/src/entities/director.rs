@@ -113,11 +113,11 @@ impl Game {
     }
 
     pub fn reset_director(&mut self) {
-        let mut t = calm_len(self.level_num, true);
+        let mut t = calm_len(self.depth(), true);
         // the first floor waits for you to find her: a long first quiet, cut
         // short when you take her page (`director_wake`). The same draw, spread
         // over the longer span (another draw would shift every later one)
-        if self.level_num == 1 && self.story.camp.is_some() {
+        if self.level_num == crate::level::building::FIRST_ROOMS_LEVEL && self.story.camp.is_some() {
             let u = (t - 45.0) / 35.0;
             t = FIRST_FLOOR_CALM.0 + u * (FIRST_FLOOR_CALM.1 - FIRST_FLOOR_CALM.0);
         }
@@ -224,7 +224,7 @@ impl Game {
             // blundering into one while they keep away is still a peak
             Phase::Relax if hunters > 0 => self.enter_peak(),
             Phase::Relax => {
-                let level = self.level_num;
+                let level = self.depth();
                 let d = &mut self.director;
                 d.t -= dt;
                 d.menace = (d.menace - dt * 0.1).max(0.0);
@@ -285,7 +285,7 @@ impl Game {
 
     fn enter_relax(&mut self, withdraw: bool) {
         self.director_note(if withdraw { "withdraw" } else { "relax" });
-        let level = self.level_num;
+        let level = self.depth();
         let came_through = self.director.phase == Phase::Peak && self.state == "playing";
         let d = &mut self.director;
         if came_through {

@@ -44,7 +44,9 @@ pub const WIDTH: u32 = 480;
 pub const HEIGHT: u32 = 300;
 
 /// Level views: these levels, in this order; each adds the purposes not seen yet.
-const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 7), (7, 5), (4242, 4), (7, 6)];
+/// (The Building's three floors first; then the rooms, from the Lobby on
+/// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5.)
+const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10)];
 const CREATURES: &[&str] = &["smiler", "hound", "watcher"];
 const DISTANCES: &[u32] = &[2, 4, 8];
 
@@ -299,14 +301,14 @@ fn render_all() -> Result<Vec<Shot>, String> {
             let mut c = Command::new(&bin);
             size(&mut c);
             let name = format!("{kind}_{d}m");
-            c.args(["--seed", "4242", "--play", "--frames", "90", "--showcase", &format!("{kind}:{d}")]);
+            c.args(["--seed", "4242", "--level", "4", "--play", "--frames", "90", "--showcase", &format!("{kind}:{d}")]);
             c.arg("--screenshot").arg(out.join(format!("{name}.png")));
             jobs.push((name, c));
         }
         let mut c = Command::new(&bin);
         size(&mut c);
         let name = format!("{kind}_death");
-        c.args(["--seed", "4242", "--play", "--frames", "90", "--showcase", &format!("{kind}:2"), "--death"]);
+        c.args(["--seed", "4242", "--level", "4", "--play", "--frames", "90", "--showcase", &format!("{kind}:2"), "--death"]);
         c.arg("--screenshot").arg(out.join(format!("{name}.png")));
         jobs.push((name, c));
     }

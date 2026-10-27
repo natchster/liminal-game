@@ -13,6 +13,8 @@
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod arch;
 pub mod build;
+pub mod building;
+pub mod building_dress;
 pub mod instancing;
 pub mod placement;
 pub mod purpose;
@@ -270,7 +272,8 @@ impl Game {
             (px - cx).powi(2) + (pz - cz).powi(2) < r * r
         };
         if let Some(s) = &self.solids {
-            if archgen::circle_hits(s, self.to_u(px), self.to_v(pz), r / CELL, 1.8) {
+            // (what is over a body's head counts from the floor it stands on)
+            if archgen::circle_hits(s, self.to_u(px), self.to_v(pz), r / CELL, self.floor_y_at(px, pz) + 1.8) {
                 return true;
             }
             if self.barricade_tiles.is_empty() {
@@ -344,6 +347,7 @@ impl Game {
         self.tiles = layout.tiles.clone();
         self.tile_ceil = archgen::ceiling_heights(&layout);
         self.ground = layout.ground.clone();
+        self.building = None;
         self.layout = Some(layout);
         self.has_layout = true;
         // provisional solids so anything placed during the prop pass collides
@@ -356,7 +360,11 @@ impl Game {
         let l = self.layout.as_ref()?;
         // the Building's floors: masses, voids and the slabs under the floors
         if !self.ground.is_empty() {
-            return Some(archgen::build_ground_solids(self.w, self.h, CELL, &self.ground));
+            let extra = match &self.building {
+                Some(p) => crate::level::building::cell_front_boxes(p, &self.ground, self.w, CELL),
+                None => vec![],
+            };
+            return Some(archgen::build_ground_solids_with(self.w, self.h, CELL, &self.ground, &extra));
         }
         let view = archgen::LayoutView {
             w: self.w,
@@ -512,7 +520,7 @@ impl Game {
 
     // ------------------------------------------------------------ level decay
     pub fn level_decay(&self, n: Option<i32>) -> f64 {
-        let lv = n.unwrap_or(self.level_num) as f64;
+        let lv = n.unwrap_or_else(|| self.depth()) as f64;
         clamp(DECAY_BASE + (lv - 1.0) * DECAY_STEP, DECAY_BASE, DECAY_MAX)
     }
 
@@ -614,7 +622,7 @@ impl Game {
         // every region wears its surface; moss and the lights then take rooms
         let mut region_info: Vec<RegionInfo> = surface.iter().map(|&s| surfaces[s].clone()).collect();
         // moss: a symptom of rot; never on level 1, never where you arrive
-        let moss_regions = if self.level_num > 1 && rnd() < decay * 0.9 {
+        let moss_regions = if self.depth() > 1 && rnd() < decay * 0.9 {
             if rnd() < decay {
                 2
             } else {

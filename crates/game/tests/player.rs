@@ -523,7 +523,8 @@ fn cry_for_help_cooldown_and_outcomes() {
         assert_eq!(e.state, "hunt");
     }
     // deeper levels favour the entities: level 8+ clamps to 5% arrows
-    r.g.level_num = 9;
+    // (nine floors into the rooms: the rooms begin on level 4)
+    r.g.level_num = 9 + game::level::building::BUILDING_FLOORS;
     let (mut arrows9, mut hounds) = (0, 0);
     with_seed(4242, || {
         for _ in 0..40 {

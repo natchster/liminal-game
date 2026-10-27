@@ -149,7 +149,7 @@ impl Game {
     }
 
     /// Ends build phase `k`: records its time and a trace mark
-    fn build_lap(&mut self, k: &str, bt0: f64) {
+    pub(crate) fn build_lap(&mut self, k: &str, bt0: f64) {
         let n = self.clock_ms();
         let last = self.build_profile.get("last").copied().filter(|&v| v != 0.0).unwrap_or(bt0);
         self.build_profile.insert(format!("t.{k}"), crate::base::numeric::round_decimals(n - last, 1));
@@ -231,6 +231,17 @@ impl Game {
             }
         }
         self.build_lap("regions", bt0);
+        // a floor of the Building is built by its own passes (`world::building`)
+        if self.building.is_some() {
+            self.build_building(bt0);
+            if let Some(l) = self.layout.as_mut() {
+                if l.tiles.len() == self.tiles.len() {
+                    l.tiles.copy_from_slice(&self.tiles);
+                }
+            }
+            self.scene.add(&self.world.clone());
+            return;
+        }
 
         // ---- pre-scan for the pool so the floor loop can skip its tiles ----
         let mut pool_reserved: HashSet<usize> = HashSet::new();

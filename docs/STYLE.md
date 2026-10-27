@@ -62,6 +62,9 @@ wide as CoreText draws it).
 | Habitable Zone | poured concrete, puddles | 5.4–7.6 m, fixtures on rods | wide column grid | long reverb, wet floors |
 | Poolrooms | white tile everywhere | varies | too many pillars | water that is too still |
 | Blackout | whatever was there | — | dead lights | only the flashlight |
+| The Well (the Building, level 1) | panel concrete, a window in every panel | none: galleries over galleries, the void | walks round a well, sealed doors, a few lit windows | laundry across the void, a red-marked door |
+| The Stair Halls (the Building, level 2) | rusticated stone, flagstones | none: the dark | piers, flights at every height, bridges | chains out of the dark, flights nobody reaches |
+| The Works (the Building, level 3) | poured concrete, steel | a slab far up, its fittings dead | terraces stepping down past shafts, machine housings | gantries, pipes |
 
 ## Purposes (what the place was for)
 
@@ -115,6 +118,10 @@ bands only when the look of a purpose is meant to change, re-measure, and say
 why in the commit. (The luminance floors were re-measured on 2026-10-27, by
 the same rule rounded outward, when the HUD went to rest (`docs/UI.md` U5):
 its always-on bars and capitals had lifted every view's mean by about 0.01.)
+The Building's three places (`docs/MEGASTRUCTURE.md`) were measured by the
+same rule when they came in (16 views each, B3): far darker than the rooms
+(their light is lamps and windows over a void, not fixtures on every other
+tile), and greyer.
 
 <!-- style-bands:begin -->
 ```json
@@ -234,6 +241,15 @@ its always-on bars and capitals had lifted every view's mean by about 0.01.)
       "views": 1,
       "from": "all views (too few of its own)"
     },
+    "stair halls": {
+      "colourfulness_max": 10,
+      "luminance": [
+        0.04,
+        0.17
+      ],
+      "views": 16,
+      "from": "own views"
+    },
     "storage hall": {
       "colourfulness_max": 21,
       "luminance": [
@@ -250,6 +266,24 @@ its always-on bars and capitals had lifted every view's mean by about 0.01.)
         0.33
       ],
       "views": 18,
+      "from": "own views"
+    },
+    "well": {
+      "colourfulness_max": 11,
+      "luminance": [
+        0.05,
+        0.15
+      ],
+      "views": 16,
+      "from": "own views"
+    },
+    "works": {
+      "colourfulness_max": 11,
+      "luminance": [
+        0.06,
+        0.15
+      ],
+      "views": 16,
       "from": "own views"
     }
   }

@@ -203,6 +203,13 @@ impl Game {
     pub fn camp_face(&self, tile: (i32, i32), side: (i32, i32)) -> Option<Vec3> {
         let (cx, cz) = (self.wx(tile.0), self.wz(tile.1));
         let (wx, wz) = (side.0 as f64, side.1 as f64);
+        // on the Building's floors her wall is building, never the edge of the void
+        if !self.ground.is_empty() {
+            let i = ((tile.1 + side.1) * self.w + tile.0 + side.0) as usize;
+            if self.ground.get(i).is_none_or(|g| g.kind != crate::level::archgen::GROUND_MASS) {
+                return None;
+            }
+        }
         let mut s = 0.0;
         while !self.circle_hits_wall(cx + wx * s, cz + wz * s, 0.02) {
             s += 0.05;
@@ -213,7 +220,7 @@ impl Game {
         // the wall must be there a step to either side too
         let (ax, az) = (cx + wx * (s + 0.06), cz + wz * (s + 0.06));
         let wide = [-1.0, 1.0].iter().all(|k| self.circle_hits_wall(ax - wz * 1.05 * k, az + wx * 1.05 * k, 0.02));
-        wide.then(|| v3(cx + wx * s, 0, cz + wz * s))
+        wide.then(|| v3(cx + wx * s, self.floor_y_of(tile.0, tile.1), cz + wz * s))
     }
 
     /// Where M. camped on this level and the walk she took: pure, from the
@@ -283,7 +290,7 @@ impl Game {
         // the sheets: each where the last can be seen from, at most `spacing`
         // steps on; never on the camp's tile (the camp is its own mark) or the
         // door's
-        let k = spacing(self.level_num);
+        let k = spacing(self.depth());
         let n = walk.len();
         // at the last camp her paper goes no further than her camp
         let last = if self.level_num == notebook::LAST_LEVEL { camp_step } else { n.saturating_sub(2) };
@@ -291,8 +298,8 @@ impl Game {
 
         // deeper down, a stretch after the camp has lost its sheets
         let mut gaps = vec![];
-        if self.level_num >= GAP_FROM {
-            let lose = if self.level_num >= 7 { 2 } else { 1 };
+        if self.depth() >= GAP_FROM {
+            let lose = if self.depth() >= 7 { 2 } else { 1 };
             // sheets after the camp, not the last two (by the door)
             let after: Vec<usize> = (0..marks.len()).filter(|&i| marks[i].0 > camp_step).collect();
             if after.len() >= lose + 3 {
@@ -350,8 +357,17 @@ impl Game {
                 j = a;
             }
             // the furthest step in reach that this sheet can be seen from
+            // (never on a flight's steps: paper lies on a floor)
+            let on_stair = |j: usize| {
+                let (x, z) = walk[j];
+                self.ground.get((z * self.w + x) as usize).is_some_and(|g| g.kind == crate::level::archgen::GROUND_STAIR)
+            };
             let mut placed = None;
             while j > cur {
+                if on_stair(j) {
+                    j -= 1;
+                    continue;
+                }
                 let mut rr = *r;
                 let (x, z) = pos(j, &mut rr);
                 if self.los(px, pz, x, z) {
@@ -432,7 +448,7 @@ impl Game {
                 let mut fw = self.story_descend(&d, end);
                 fw.reverse();
                 fw.insert(0, walk[i]);
-                let marks = self.lay_sheets(&fw, 1, fw.len() - 1, None, spacing(self.level_num), r);
+                let marks = self.lay_sheets(&fw, 1, fw.len() - 1, None, spacing(self.depth()), r);
                 used.extend(fw.iter().copied());
                 out.push(FalsePlan { walk: fw, marks });
                 break;
@@ -457,7 +473,7 @@ impl Game {
         if let Some(p) = self.story_page() {
             camp.page = Some(self.dress_page(&camp, &mut r));
             camp.page_id = Some(p.id);
-            let at = v3(camp.at.x, EYE, camp.at.z);
+            let at = v3(camp.at.x, camp.at.y + EYE, camp.at.z);
             self.interact(
                 at,
                 1.8,

@@ -424,7 +424,8 @@ fn place_business_cards(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let Some((x, z)) = pick_open(g) else { return };
-    let card_mat = lambert!({ map: card_texture(), side: DoubleSide });
+    // (a white card, not a light: the lint's albedo ceiling)
+    let card_mat = lambert!({ map: card_texture(), color: 0xeeeeee, side: DoubleSide });
     let card = mesh(plane_geo!(0.048, 0.028), &card_mat);
     card.rotation().x = -PI / 2.0;
     let (px, pz) = jitter(g, x, z, 2.5);
@@ -774,8 +775,8 @@ fn place_remotes(g: &mut Game, _dist: &[i32]) {
     let body_colors = [0x202020, 0x606060, 0x804020, 0xe0e0d0];
     let body_mat = lambert!({ color: choice(&body_colors) });
     let btn_mat = lambert!({ color: 0x404040 });
-    let big_btn_mat = lambert!({ color: 0xc02020 });
-    let ir_mat = basic_mat!({ color: 0x800000 });
+    let big_btn_mat = lambert!({ color: 0x9c3a32 });
+    let ir_mat = basic_mat!({ color: 0x5a1e1a });
     let remote = group();
     let body = mesh(pg("Remotes__body", box_geo!(0.045, 0.014, 0.18)), &body_mat);
     body.position().y = 0.007;

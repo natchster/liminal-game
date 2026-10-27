@@ -366,7 +366,7 @@ fn taking_her_page() {
     let camp = g.story.camp.clone().expect("a camp");
     assert!(camp.page.as_ref().is_some_and(|o| o.visible()) && !camp.page_taken);
     // standing at the camp, the prompt is hers
-    g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+    g.player.pos = engine::math::Vec3::new(camp.at.x, camp.at.y + game::prelude::EYE, camp.at.z);
     g.update_hud(1.0 / 60.0);
     assert_eq!(g.ui.prompt.text, "[E] TAKE HER PAGE");
     g.try_interact();
@@ -423,7 +423,8 @@ fn play(g: &mut Game, secs: f64) {
 #[test]
 fn her_page_wakes_the_place() {
     use game::entities::director::{Phase, FIRST_FLOOR_CALM, WAKE};
-    for (seed, level) in [(4242u32, 1), (4242, 3), (7, 5)] {
+    // (rooms levels: what wakes on the Building's floors is not a creature)
+    for (seed, level) in [(4242u32, 4), (4242, 6), (7, 8)] {
         let mut g = new_game();
         g.run_seed = seed;
         g.init_level(level);
@@ -437,7 +438,7 @@ fn her_page_wakes_the_place() {
         let lit_before = g.light_map_cpu[ti];
         play(&mut g, 5.0);
         assert_eq!(g.director.phase, Phase::Calm, "seed {seed} L{level}: still quiet 5 s in");
-        g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+        g.player.pos = engine::math::Vec3::new(camp.at.x, camp.at.y + game::prelude::EYE, camp.at.z);
         let t0 = g.perf_t;
         g.try_interact();
         assert!(!g.notebook.is_empty(), "seed {seed} L{level}: the page was not taken");
@@ -515,7 +516,7 @@ fn trails_that_are_not_hers_lead_nowhere() {
         }
         // at the end of one, the place has you, once
         if let Some(f) = g.story.false_trails.first().cloned() {
-            g.player.pos = engine::math::Vec3::new(f.end.0, game::prelude::EYE, f.end.1);
+            g.player.pos = engine::math::Vec3::new(f.end.0, g.floor_y_at(f.end.0, f.end.1) + game::prelude::EYE, f.end.1);
             play(&mut g, 0.5);
             play(&mut g, 0.5);
             let lures = g.director.log.iter().filter(|e| e.1 == "lure").count();
@@ -543,7 +544,7 @@ fn the_last_camp_ends_her_story() {
     assert_eq!(g.story_page().map(|p| p.id), Some("last"));
     assert!(!g.story.trail.is_empty(), "her trail to the last camp");
     assert!(g.story.trail.iter().all(|m| m.step < g.story.camp_step), "her paper goes on past the last camp");
-    g.player.pos = engine::math::Vec3::new(camp.at.x, game::prelude::EYE, camp.at.z);
+    g.player.pos = engine::math::Vec3::new(camp.at.x, camp.at.y + game::prelude::EYE, camp.at.z);
     g.try_interact();
     assert!(g.notebook.contains("last"));
     let papers = g.player.papers;

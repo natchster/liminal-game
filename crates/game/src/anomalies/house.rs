@@ -92,7 +92,7 @@ impl Game {
         self.world.add(&nest);
         let brass = lambert!({ color: 0x8a6a3a });
         let iron = lambert!({ color: 0x2a2826 });
-        let count = 7 + 3.min((self.level_num as f64 / 4.0).floor() as i32);
+        let count = 7 + 3.min((self.depth() as f64 / 4.0).floor() as i32);
         for i in 0..count {
             let lamp = group();
             let floor = rnd() < 0.35;
@@ -271,7 +271,7 @@ impl Game {
             e.parts = b.parts.to_map();
             e.yaw = rand1(7.0);
             e.state = "wander".into();
-            e.speed = 5.0 + (self.level_num as f64 * 0.06).min(0.6);
+            e.speed = 5.0 + (self.depth() as f64 * 0.06).min(0.6);
             e.set_n("solid", 0.0);
             e.set_n("agit", 0.0);
             e.dying = 0.0;

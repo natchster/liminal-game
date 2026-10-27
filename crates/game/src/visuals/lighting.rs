@@ -18,6 +18,19 @@ pub const HEMI_LIT: f64 = 0.84;
 pub const PANEL_INTENSITY: f64 = 14.0;
 pub const FOG_DEN_DARK: f64 = 0.055;
 pub const FOG_DEN_LIT: f64 = 0.013;
+/// The Building's haze: thin enough to see across the void (a lit view
+/// reaches past 130 m), and grey, not the rooms' yellow
+pub const BLD_FOG_DARK: f64 = 0.026;
+pub const BLD_FOG_LIT: f64 = 0.0065;
+pub fn bld_fog_lit() -> Color {
+    Color::hex(0x3a3d3e)
+}
+pub fn bld_fog_dark() -> Color {
+    Color::hex(0x07080a)
+}
+/// How far the far plane may reach, metres (the rooms, the Building)
+pub const FAR_MAX: f64 = 90.0;
+pub const BLD_FAR_MAX: f64 = 230.0;
 pub fn fog_lit() -> Color {
     Color::hex(0xb3a874)
 }
@@ -486,11 +499,19 @@ impl Game {
         let (gr, gl) = (ground_rot(), ground_lit());
         self.ll_gnd_d =
             Vec3::new(gr.r * HEMI_DARK - gl.r * HEMI_LIT, gr.g * HEMI_DARK - gl.g * HEMI_LIT, gr.b * HEMI_DARK - gl.b * HEMI_LIT);
-        self.fog_density = FOG_DEN_DARK;
-        self.fog_color = fog_rot();
-        self.ll_fog_lit = if self.store_state.on { fog_store() } else { fog_lit() };
+        let bld = self.building.is_some();
+        self.fog_density = if bld { BLD_FOG_DARK } else { FOG_DEN_DARK };
+        self.ll_fog_ratio = if bld { BLD_FOG_LIT / BLD_FOG_DARK } else { FOG_DEN_LIT / FOG_DEN_DARK };
+        self.fog_color = if bld { bld_fog_dark() } else { fog_rot() };
+        self.ll_fog_lit = if bld {
+            bld_fog_lit()
+        } else if self.store_state.on {
+            fog_store()
+        } else {
+            fog_lit()
+        };
         let k = self.light_map_at(self.camera.pos().x, self.camera.pos().z);
-        let mut bg = fog_rot();
+        let mut bg = self.fog_color;
         bg.lerp(&self.ll_fog_lit, k);
         self.background = bg;
     }
@@ -571,11 +592,13 @@ impl Game {
                 let p = &self.panels[s.0];
                 let py = if p.y != 0.0 { p.y } else { WALL_H };
                 let l = &self.pooled[li];
+                // (aimed at the floor under it: on the Building's floors that has height)
+                let fy = self.floor_y_at(p.wx, p.wz);
                 l.set_pos(p.wx, py - 0.1, p.wz);
                 if let Some(t) = l.target() {
-                    t.set_pos(p.wx, 0, p.wz);
+                    t.set_pos(p.wx, fy, p.wz);
                 }
-                l.light().distance = 10f64.max(py * 2.8);
+                l.light().distance = 10f64.max((py - fy) * 2.8);
                 self.pooled_panel[li] = Some(s.0);
                 self.pooled_w[li] = 0.0;
             }
@@ -723,9 +746,9 @@ impl Game {
                     }
                 }
             }
-            want = clamp(wv, 28.0, 90.0);
+            want = clamp(wv, 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX });
         } else {
-            want = clamp(2.2 / self.fog_density.max(1e-4), 28.0, 90.0);
+            want = clamp(2.2 / self.fog_density.max(1e-4), 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX });
         }
         let far = self.camera.camera().far;
         if (far - want).abs() > 1.5 {

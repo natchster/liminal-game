@@ -249,7 +249,7 @@ impl Game {
     /// A torn page on the floor with a
     /// glow; boosted (arc continuation) notes glow brighter in the arc colour
     /// and get a billboarded beacon.
-    fn build_lore_note_mesh(&mut self, boosted: bool, arc_color: Option<u32>) -> Obj {
+    pub(crate) fn build_lore_note_mesh(&mut self, boosted: bool, arc_color: Option<u32>) -> Obj {
         let g = group();
         // torn sheet at floor level
         let sheet = mesh(pg("Props__loreNote_sheet", box_geo!(0.26, 0.006, 0.32)), &self.mats.paper);

@@ -90,7 +90,7 @@ impl Game {
                 self.update_soundscape(dt);
             }
         } else if self.state == "dead" {
-            let y = EYE + (self.perf_t * 30.0).sin() * 0.01;
+            let y = self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (self.perf_t * 30.0).sin() * 0.01;
             self.camera.position().y = y;
             self.update_death_cam(dt);
             for i in 0..self.entities.len() {

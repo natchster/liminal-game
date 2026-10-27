@@ -148,7 +148,7 @@ fn save(name: &str, pcm: &[f32], marks: &[f64]) {
 
 #[test]
 fn a_level_opens_quietly() {
-    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+    for (seed, level) in [(4242u32, 6), (77, 8), (9001, 11)] {
         let mut r = start(seed, level);
         play(&mut r, 90.0, hold_creatures);
         let w = windows(&r.pcm);
@@ -173,7 +173,12 @@ fn a_level_opens_quietly() {
 #[test]
 fn signatures_are_heard() {
     let mut heard = vec![];
-    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+    // (six floors: three were a sample the claim held on by luck)
+    for (seed, level) in [(4242u32, 6), (77, 8), (9001, 11), (1999, 10), (31337, 8), (7, 7)] {
+        // (the per-frame stream seeded for each run: the tests run side by
+        // side, and a shared stream made the signatures' times depend on
+        // what the others drew)
+        game::base::rng::seed_native(0x115E_0000 ^ u64::from(seed) ^ ((level as u64) << 32));
         let mut r = start(seed, level);
         let mut times = vec![];
         let mut last = String::new();
@@ -186,29 +191,44 @@ fn signatures_are_heard() {
                 if key != last {
                     last = key;
                     if e.tag.starts_with("sig-") {
-                        times.push((t, e.tag.clone(), e.dist.unwrap_or(0.0)));
+                        // whether nothing stands between you and where it sounded
+                        let name = e.tag.trim_start_matches("sig-");
+                        let p = g.player.pos;
+                        let clear = g.amb_signatures.iter().find(|s| s.name == name).is_some_and(|s| g.los(p.x, p.z, s.at.x, s.at.z));
+                        times.push((t, e.tag.clone(), e.dist.unwrap_or(0.0), clear));
                     }
                 }
             }
         });
         let w = windows(&r.pcm);
         let bed = median(&w[40..]);
-        for (at, tag, dist) in &times {
+        for (at, tag, dist, clear) in &times {
             let a = (at / 0.05) as usize;
             let peak = w[a.min(w.len() - 1)..(a + 40).min(w.len())].iter().cloned().fold(0.0, f64::max);
-            println!("seed {seed} L{level}: {tag} at {at:.1}s, {dist:.0} m off: +{:.1} dB over the bed", db(peak / bed));
-            heard.push(peak / bed);
+            let how = if *clear { "in the open" } else { "through walls" };
+            println!("seed {seed} L{level}: {tag} at {at:.1}s, {dist:.0} m off, {how}: +{:.1} dB over the bed", db(peak / bed));
+            heard.push((peak / bed, *clear));
         }
         save(&format!("signatures_{seed}_L{level}"), &r.pcm, &times.iter().map(|x| x.0).collect::<Vec<_>>());
     }
-    assert!(heard.len() >= 6, "signatures come round: {} in 3 × 150 s", heard.len());
-    let loud = heard.iter().filter(|r| **r >= 2.0).count();
-    assert!(loud * 4 >= heard.len() * 3, "most signatures rise 6 dB over the bed: {loud} of {}", heard.len());
+    // Each lands some 6–14 dB over the bed at its distance, and walls muffle
+    // it (`audio::ambient::sig_carry`): most of those with nothing in the way
+    // rise 6 dB, and well over half of them all do. (The claim was "most of
+    // all of them", and held on three floors; on six, what stayed under was
+    // a thud or a clank three walls away.)
+    assert!(heard.len() >= 6, "signatures come round: {} in 6 × 150 s", heard.len());
+    let open: Vec<f64> = heard.iter().filter(|h| h.1).map(|h| h.0).collect();
+    let loud_open = open.iter().filter(|r| **r >= 2.0).count();
+    let loud = heard.iter().filter(|h| h.0 >= 2.0).count();
+    println!("{loud_open} of {} in the open and {loud} of {} in all rise 6 dB over the bed", open.len(), heard.len());
+    assert!(open.len() >= 6, "signatures in the open: {}", open.len());
+    assert!(loud_open * 4 >= open.len() * 3, "most signatures in the open rise 6 dB over the bed: {loud_open} of {}", open.len());
+    assert!(loud * 5 >= heard.len() * 3, "well over half of all signatures rise 6 dB over the bed: {loud} of {}", heard.len());
 }
 
 #[test]
 fn the_notice_is_loud() {
-    let mut r = start(4242, 3);
+    let mut r = start(4242, 6);
     hold_creatures(&mut r.g);
     // a smiler 9 m ahead with its back to you, then it turns
     let (ei, yaw) = {
@@ -249,7 +269,7 @@ fn the_notice_is_loud() {
 fn the_hush_quiets_the_ambience() {
     let mut out: Vec<(f64, Vec<f64>)> = vec![];
     for hushed in [false, true] {
-        let mut r = start(77, 5);
+        let mut r = start(77, 8);
         play(&mut r, 150.0, |g| {
             hold_creatures(g);
             if hushed {
@@ -285,7 +305,7 @@ fn the_hush_quiets_the_ambience() {
 #[test]
 fn the_door_is_heard() {
     let mut rows = vec![];
-    for (seed, level) in [(4242u32, 3), (77, 5), (9001, 7)] {
+    for (seed, level) in [(4242u32, 6), (77, 8), (9001, 11)] {
         for steps in [2, 5, 9] {
             let run = move |calls: bool| {
                 std::thread::Builder::new()

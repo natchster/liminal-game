@@ -1,13 +1,13 @@
 {
   "machine": "Mac16,11 macOS 27.0",
   "shots": {
-    "4242_L1_empty": {
+    "4242_L10_showroom": {
       "size": [
         480,
         300
       ]
     },
-    "4242_L1_office_wing": {
+    "4242_L10_spawn": {
       "size": [
         480,
         300
@@ -19,13 +19,43 @@
         300
       ]
     },
-    "4242_L4_showroom": {
+    "4242_L1_well": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L2_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L2_stair_halls": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L3_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L3_works": {
       "size": [
         480,
         300
       ]
     },
     "4242_L4_spawn": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "4242_L7_empty": {
       "size": [
         480,
         300
@@ -43,37 +73,13 @@
         300
       ]
     },
-    "4242_L7_overgrown_atrium": {
-      "size": [
-        480,
-        300
-      ]
-    },
-    "4242_L7_party_room": {
-      "size": [
-        480,
-        300
-      ]
-    },
-    "4242_L7_play_area": {
-      "size": [
-        480,
-        300
-      ]
-    },
-    "4242_L7_pool_hall": {
+    "4242_L7_office_wing": {
       "size": [
         480,
         300
       ]
     },
     "4242_L7_service_tunnels": {
-      "size": [
-        480,
-        300
-      ]
-    },
-    "4242_L7_shrine": {
       "size": [
         480,
         300
@@ -91,13 +97,19 @@
         300
       ]
     },
-    "4242_L7_washrooms": {
+    "7_L5_overgrown_atrium": {
       "size": [
         480,
         300
       ]
     },
-    "7_L5_parlour": {
+    "7_L5_play_area": {
+      "size": [
+        480,
+        300
+      ]
+    },
+    "7_L5_pool_hall": {
       "size": [
         480,
         300

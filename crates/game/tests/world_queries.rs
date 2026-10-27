@@ -65,7 +65,8 @@ fn level_queries_match_reference() {
         let tag = format!("level {n} seed {seed}");
         let mut g = Game::new_bare();
         set_wallpaper_meta(&mut g);
-        g.level_num = n;
+        // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+        g.level_num = n + game::level::building::BUILDING_FLOORS;
         g.level_scp = lv["scp"].as_str().map(|s| s.to_string());
         let d0 = seeded_draws();
         with_seed(seed, || g.gen_layout_level(n, i(&lv["size"])));
@@ -221,7 +222,8 @@ fn rerecord_level_queries() {
         let seed = lv["seed"].as_u64().unwrap() as u32;
         let mut g = Game::new_bare();
         set_wallpaper_meta(&mut g);
-        g.level_num = n;
+        // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+        g.level_num = n + game::level::building::BUILDING_FLOORS;
         g.level_scp = lv["scp"].as_str().map(|s| s.to_string());
         let d0 = seeded_draws();
         with_seed(seed, || g.gen_layout_level(n, i(&lv["size"])));
@@ -376,7 +378,7 @@ fn decay_and_themes_match_reference() {
     for r in fx["decay"].as_array().unwrap() {
         let n = r[0].as_i64().map(|v| v as i32);
         if n.is_none() {
-            g.level_num = 6;
+            g.level_num = 6 + game::level::building::BUILDING_FLOORS;
         }
         assert_eq!(g.level_decay(n), f(&r[1]), "decay {:?}", r);
     }

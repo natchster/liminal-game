@@ -2173,7 +2173,12 @@ pub const SLAB: f64 = 0.4;
 /// floors): a mass is one box from its foot to its top, a void one box
 /// that stops a body and no look, a floor (or a stair) a slab under it.
 pub fn build_ground_solids(w: i32, h: i32, cell: f64, ground: &[Ground]) -> Solids {
-    let mut boxes: Vec<f32> = Vec::with_capacity(ground.len() * 8);
+    build_ground_solids_with(w, h, cell, ground, &[])
+}
+
+/// [`build_ground_solids`] and `extra` boxes (a cell's front wall, …)
+pub fn build_ground_solids_with(w: i32, h: i32, cell: f64, ground: &[Ground], extra: &[[f32; 8]]) -> Solids {
+    let mut boxes: Vec<f32> = Vec::with_capacity(ground.len() * 8 + extra.len() * 8);
     for z in 0..h {
         for x in 0..w {
             let g = ground[(z * w + x) as usize];
@@ -2188,6 +2193,9 @@ pub fn build_ground_solids(w: i32, h: i32, cell: f64, ground: &[Ground]) -> Soli
                 }
             }
         }
+    }
+    for b in extra {
+        boxes.extend_from_slice(b);
     }
     make_solids(w, h, cell, boxes)
 }

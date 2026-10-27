@@ -4,7 +4,8 @@
 //!
 //! * a level holds at most one of them
 //! * within a run (one run seed) each appears at most once, never again
-//! * level 1 (the Lobby) never has one: its emptiness is the point
+//! * none on the Building's floors (levels 1–3), and none on the Lobby
+//!   (level 4): its emptiness is the point
 //! * the plan is a pure function of the run seed, so Continue, restarts and
 //!   tools all agree on it without saving anything
 //!
@@ -23,10 +24,10 @@ pub struct ScpEntry {
 }
 
 pub const SCP_ROSTER: [ScpEntry; 4] = [
-    ScpEntry { key: "stairwell", from: 2, weight: 1.0 }, // SCP-087  the Stairwell
-    ScpEntry { key: "store", from: 3, weight: 1.0 },     // SCP-3008 the Showroom: a store that never closes
-    ScpEntry { key: "house", from: 3, weight: 1.0 },     // SCP-1983 the Borrowed House: stolen rooms, shadows that hunt by light
-    ScpEntry { key: "loop", from: 2, weight: 1.0 },      // SCP-970  the Loop: a line of rooms that comes back round, wronger
+    ScpEntry { key: "stairwell", from: 5, weight: 1.0 }, // SCP-087  the Stairwell
+    ScpEntry { key: "store", from: 5, weight: 1.0 },     // SCP-3008 the Showroom: a store that never closes
+    ScpEntry { key: "house", from: 5, weight: 1.0 },     // SCP-1983 the Borrowed House: stolen rooms, shadows that hunt by light
+    ScpEntry { key: "loop", from: 5, weight: 1.0 },      // SCP-970  the Loop: a line of rooms that comes back round, wronger
 ];
 pub const SCP_KEYS: [&str; 4] = ["stairwell", "store", "house", "loop"];
 /// Every anomaly is met by this level in any run

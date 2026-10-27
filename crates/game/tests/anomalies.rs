@@ -425,7 +425,8 @@ fn level_game(rec: &Value, scp: &'static str) -> Game {
     g.tiles = layout.tiles.clone();
     g.has_layout = true;
     g.layout = Some(layout);
-    g.level_num = level;
+    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+    g.level_num = level + game::level::building::BUILDING_FLOORS;
     g.level_scp = Some(scp.to_string());
     let ex = arr(&rec["exit"]);
     let (ex, ez) = (ex[0].as_i64().unwrap() as i32, ex[1].as_i64().unwrap() as i32);
@@ -472,13 +473,30 @@ fn record<'a>(list: &'a Value, variant: &str, seed: i64) -> &'a Value {
 // ================================================================== tests
 #[test]
 fn scp_on_level_with_hash_overrides() {
+    // The recorded cases give the flags and seeds; their expected levels
+    // were the old plan's (anomalies from level 2). The plan now keeps
+    // them off the Building's floors and the Lobby (from level 5,
+    // `docs/MEGASTRUCTURE.md`), so the expectation is rebuilt from the
+    // rules: a level the flags force has what they force ("none": nothing);
+    // a forced anomaly is not also met on its planned level; every other
+    // level has the plan's.
     for c in arr(&fx()["scp"]) {
         let mut g = Game::new_bare();
         g.launch_flags = s(&c["flags"]).to_string();
         g.run_seed = c["runSeed"].as_u64().unwrap() as u32;
-        for (i, want) in arr(&c["levels"]).iter().enumerate() {
+        let forced = game::anomalies::scp_forced(&g.launch_flags);
+        for (i, _old) in arr(&c["levels"]).iter().enumerate() {
             let n = i as i32 + 1;
-            assert_eq!(g.scp_on_level(n).as_deref(), want.as_str(), "flags {:?} seed {} level {n}", g.launch_flags, g.run_seed);
+            let planned = game::level::scp::scp_for_level(g.run_seed, n);
+            let want = match forced.iter().find(|e| e.0 == n as f64) {
+                Some((_, k)) if k == "none" => None,
+                Some((_, k)) => Some(k.as_str()),
+                None => planned.filter(|k| !forced.iter().any(|e| e.1 == *k)),
+            };
+            assert_eq!(g.scp_on_level(n).as_deref(), want, "flags {:?} seed {} level {n}", g.launch_flags, g.run_seed);
+            if forced.is_empty() && n < 5 {
+                assert_eq!(planned, None, "seed {}: no anomaly on the Building's floors or the Lobby (level {n})", g.run_seed);
+            }
         }
         assert_eq!(g.level_has_stairwell(3), g.scp_on_level(3).as_deref() == Some("stairwell"));
     }
@@ -671,7 +689,7 @@ fn place_store_spawn_staff_and_run() {
             // the staff
             let c0 = g.world.child_count();
             let scene0 = g.scene.child_count();
-            let n = 4 + 2.min(g.level_num / 5);
+            let n = 4 + 2.min(g.depth() / 5);
             g.spawn_staff(n, &dist);
             assert_eq!((seeded_draws() - base) as i64, rec["spawnDraws"].as_i64().unwrap(), "{w}: spawn_staff draws");
             assert_eq!((g.world.child_count() - c0) as i64, rec["worldAfterSpawn"].as_i64().unwrap());
@@ -797,7 +815,7 @@ fn place_house_spawn_shadows_and_run() {
                 assert_eq!(it.prompt, s(&j[4]));
             }
             let c0 = g.world.child_count();
-            g.spawn_shadows(3 + if g.level_num >= 8 { 1 } else { 0 }, &dist);
+            g.spawn_shadows(3 + if g.depth() >= 5 { 1 } else { 0 }, &dist);
             assert_eq!((seeded_draws() - base) as i64, rec["spawnDraws"].as_i64().unwrap(), "{w}: spawn_shadows draws");
             assert_eq!((g.world.child_count() - c0) as i64, rec["worldAfterSpawn"].as_i64().unwrap());
             for (i, j) in arr(&rec["entities"]).iter().enumerate() {

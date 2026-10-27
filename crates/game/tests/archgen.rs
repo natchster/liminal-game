@@ -321,8 +321,11 @@ fn archgen_layouts_solids_queries() {
         let seed = seed_for_level(run_seed, level);
         c.eq(&format!("{tag}.seed"), seed as i64, int(&fx["seed"]));
         c.eq(&format!("{tag}.size"), (31 + level * 4).min(53), size);
+        // (recorded when the anomalies came from level 2: the anomaly the
+        // plan of that roster put on this level; the run's plan now keeps
+        // them below the Building and the Lobby)
         if fx["scpOpt"].as_str() == Some("plan") {
-            c.eq(&format!("{tag}.scp_for_level"), scp_for_level(run_seed, level), scp);
+            c.eq(&format!("{tag}.scp_for_level"), scp_plan(run_seed, &recorded_roster(), SCP_HORIZON).get(level), scp);
         }
 
         // `gen_layout_level(n, size)` under `with_seed(seed)`
@@ -601,6 +604,14 @@ fn archgen_to_fixed() {
     c.finish("archgen_to_fixed");
 }
 
+/// The roster `scp_plan.json` was recorded with
+fn recorded_roster() -> Vec<ScpEntry> {
+    let key = |k: &str| *SCP_KEYS.iter().find(|x| **x == k).unwrap();
+    arr(&fixture("scp_plan.json")["SCP_ROSTER"])
+        .iter()
+        .map(|e| ScpEntry { key: key(st(&e["key"])), from: int(&e["from"]) as i32, weight: num(&e["weight"]) })
+        .collect()
+}
 fn plan_json(p: &ScpPlan) -> Vec<(i64, String)> {
     p.entries.iter().map(|&(n, k)| (n as i64, k.to_string())).collect()
 }
@@ -612,9 +623,14 @@ fn want_plan(v: &Value) -> Vec<(i64, String)> {
 fn scp_plans() {
     let f = fixture("scp_plan.json");
     let mut c = Check::default();
-    let roster: Vec<(String, i64, u64)> =
-        arr(&f["SCP_ROSTER"]).iter().map(|e| (st(&e["key"]).to_string(), int(&e["from"]), num(&e["weight"]).to_bits())).collect();
-    c.eq("SCP_ROSTER", SCP_ROSTER.iter().map(|e| (e.key.to_string(), e.from as i64, e.weight.to_bits())).collect::<Vec<_>>(), roster);
+    // The plans were recorded with the roster of their day (anomalies from
+    // level 2 or 3): the planner is checked against them with that roster.
+    // The run's roster now starts every anomaly on level 5, below the
+    // Building's floors and the Lobby (`docs/MEGASTRUCTURE.md`); its plans
+    // are checked by the rules.
+    let old = recorded_roster();
+    c.eq("SCP_ROSTER keys", SCP_ROSTER.iter().map(|e| e.key).collect::<Vec<_>>(), old.iter().map(|e| e.key).collect::<Vec<_>>());
+    assert!(SCP_ROSTER.iter().all(|e| e.from == 5 && e.weight == 1.0), "every anomaly from level 5");
     c.eq(
         "SCP_KEYS",
         SCP_KEYS.iter().map(|k| k.to_string()).collect::<Vec<_>>(),
@@ -625,13 +641,17 @@ fn scp_plans() {
     assert!(plans.len() >= 500, "expected >= 500 plans");
     for e in plans {
         let seed = int(&e["seed"]) as u32;
-        c.eq(&format!("scp_plan({seed})"), plan_json(&scp_plan(seed, &SCP_ROSTER, SCP_HORIZON)), want_plan(&e["plan"]));
-        c.eq(&format!("scp_plan({seed}) default"), plan_json(&scp_plan_default(seed)), want_plan(&e["plan"]));
-    }
-    for e in arr(&f["forLevel"]) {
-        let seed = int(&e["seed"]) as u32;
-        for (n, v) in arr(&e["levels"]).iter().enumerate() {
-            c.eq(&format!("scp_for_level({seed}, {n})"), scp_for_level(seed, n as i32), opt_str(v));
+        c.eq(&format!("scp_plan({seed})"), plan_json(&scp_plan(seed, &old, SCP_HORIZON)), want_plan(&e["plan"]));
+        // the run's plan: each anomaly once, on levels 5–12, never two in a row
+        let p = scp_plan_default(seed);
+        c.eq(&format!("scp_plan({seed}) default"), plan_json(&p), plan_json(&scp_plan(seed, &SCP_ROSTER, SCP_HORIZON)));
+        let mut levels: Vec<i32> = p.levels().collect();
+        levels.sort();
+        c.ok(levels.len() == 4, || format!("scp_plan({seed}): {levels:?}"));
+        c.ok(levels.iter().all(|&n| (5..=SCP_HORIZON).contains(&n)), || format!("scp_plan({seed}): {levels:?} outside 5–12"));
+        c.ok(levels.windows(2).all(|w| w[1] - w[0] >= 2), || format!("scp_plan({seed}): {levels:?} two in a row"));
+        for n in 0..=SCP_HORIZON + 2 {
+            c.eq(&format!("scp_for_level({seed}, {n})"), scp_for_level(seed, n), p.get(n));
         }
     }
     for cs in arr(&f["custom"]) {

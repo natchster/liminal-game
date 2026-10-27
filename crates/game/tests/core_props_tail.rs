@@ -113,7 +113,8 @@ fn setup(case: &Json, real_builders: bool) -> Setup {
     g.h = case.get("H").i() as i32;
     g.tiles = case.get("tiles").arr().iter().map(|v| v.i() as u8).collect();
     g.level_weather = weather(spec.get("weather").s());
-    g.level_num = spec.get("level").i() as i32;
+    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+    g.level_num = spec.get("level").i() as i32 + game::level::building::BUILDING_FLOORS;
     g.level_scp = if spec.get("scp").is_null() { None } else { Some(spec.get("scp").s().to_string()) };
     g.lore_found = spec.get("loreFound").arr().iter().map(|v| v.i() as usize).collect::<BTreeSet<_>>();
     g.pool_plan = if case.get("poolPlan").is_null() {

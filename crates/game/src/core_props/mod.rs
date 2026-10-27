@@ -553,6 +553,14 @@ impl Game {
             normal: v3(0, 0, 1),
             yaw: 0.0,
         });
+        g.build_exit_door(&spot);
+    }
+
+    /// The way down at `spot` (on the floor, against its wall): the door,
+    /// its EXIT sign and lights, `exit_data` and its use (the Stairwell's
+    /// steel door, the Loop's plain office door).
+    pub(crate) fn build_exit_door(&mut self, spot: &WallSpot) {
+        let g = self;
         let dg = group();
         dg.position().copy(&spot.pos);
         dg.rotation().y = spot.yaw;
@@ -591,16 +599,16 @@ impl Game {
         // greenish emergency-exit light (weaker + tinted so it colors the sign area)
         let light = point_light!(0x9ce8b0, 3.5, 6, 1.6);
         light.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 0.6);
-        light.position().y = 2.5;
+        light.position().y = spot.pos.y + 2.5;
         g.world.add(&light);
         // second warmer light for the door itself
         let door_light = point_light!(0xffe9b8, 4, 5, 1.6);
         door_light.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 1.0);
-        door_light.position().y = 1.6;
+        door_light.position().y = spot.pos.y + 1.6;
         g.world.add(&door_light);
         let mut use_pos = spot.pos;
         use_pos.add_scaled_vector(&spot.normal, 0.9);
-        use_pos.y = EYE;
+        use_pos.y = spot.pos.y + EYE;
         g.exit_data = Some(ExitData { pos: use_pos, normal: spot.normal, door: None });
         dg.user().gameplay = true;
         let to_stairs = level_has_stairwell(g, g.level_num);

@@ -62,19 +62,26 @@ The pillars of the place, in order of importance:
 
 ## The descent
 
-Game level *n* is roughly "Backrooms Level *n* − 1". Each level mixes zones
-(see *Places*), but one kind dominates and names the level. (The names are
-kept in capitals here and in the code; the screen sets them in sentence
-case, under "Level *n*" on the level card: `docs/UI.md`.)
+The descent begins in **the Building** (levels 1–3, `docs/MEGASTRUCTURE.md`):
+vast floors of concrete you find your way down through, at many heights,
+over a void. Below them are the rooms: game level *n* from 4 on is roughly
+"Backrooms Level *n* − 4", and what rots with depth counts from the Lobby
+(`level::building::rooms_depth`). Each rooms level mixes zones (see
+*Places*), but one kind dominates and names the level. (The names are kept
+in capitals here and in the code; the screen sets them in sentence case,
+under "Level *n*" on the level card: `docs/UI.md`.)
 
 | Game level | Dominant zone | Name on arrival |
 |---|---|---|
-| 1 | Lobby | THE LOBBY |
-| 2 | Hall | HABITABLE ZONE |
-| 3 | Tunnels | UTILITY HALLS |
-| 4 | Electrical | ELECTRICAL STATION |
-| 5 | Office | ABANDONED OFFICE |
-| 6+ | rotates | … |
+| 1 | The Building | THE WELL |
+| 2 | The Building | THE STAIR HALLS |
+| 3 | The Building | THE WORKS |
+| 4 | Lobby | THE LOBBY |
+| 5 | Hall | HABITABLE ZONE |
+| 6 | Tunnels | UTILITY HALLS |
+| 7 | Electrical | ELECTRICAL STATION |
+| 8 | Office | ABANDONED OFFICE |
+| 9+ | rotates | … |
 
 Every level ends at an exit door, unless it is one of the run's *anomaly*
 levels (see *Anomalies*). There, the door leads somewhere else, or the whole
@@ -226,8 +233,10 @@ one sent; otherwise it keeps its distance.
 **Taking her page wakes the place.** Her lamp gutters out as you lift the
 page, and whatever quiet was left ends within a few seconds: something is
 sent. You choose when it starts, by when you go to her camp. On the first
-floor the first quiet is long (two minutes and more), so there is time to
-find her before anything comes.
+floor of the rooms (the Lobby, level 4) the first quiet is long (two
+minutes and more), so there is time to find her before anything comes.
+Nothing lives on the Building's floors above (levels 1–3): what comes there
+comes from far off (`docs/MEGASTRUCTURE.md`).
 
 ## Anomalies
 
@@ -244,10 +253,10 @@ files as buildings and rooms (researched in the HTML version's `SCP_LOCATIONS.md
 
 The rules of a run (`crates/game/src/level/scp.rs`):
 
-- A level holds **at most one** anomaly, and **none** on level 1 (the Lobby
-  stays empty).
+- A level holds **at most one** anomaly, and **none** on the Building's
+  floors or the Lobby (levels 1–4: the Lobby stays empty).
 - Each anomaly appears **once per run** and never again in it, somewhere
-  between levels 2 and 12, never on two levels in a row. A new game plans a
+  between levels 5 and 12, never on two levels in a row. A new game plans a
   new run. Continue and restarts keep the plan, because it is derived from the
   run's seed.
 - **Arriving** on an anomaly's level shows one quiet line under the level

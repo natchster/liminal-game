@@ -33,8 +33,8 @@ pub const PLAT: i32 = 2;
 /// The walk between two platforms, tiles
 const GAP: i32 = PITCH - PLAT;
 /// Where the void's fog bottoms out, and how high the masses rise, metres
-pub const VOID_DEPTH: f32 = -60.0;
-pub const MASS_TOP: f32 = 60.0;
+pub const VOID_DEPTH: f32 = -100.0;
+pub const MASS_TOP: f32 = 150.0;
 /// Every floor tile has a cell within this many tiles of walk
 pub const CELL_REACH: i32 = 16;
 /// How the floor falls along the way from the arrival (the share of the
@@ -88,6 +88,15 @@ impl Style {
 
 /// How many floors of the Building come before the rooms
 pub const BUILDING_FLOORS: i32 = 3;
+/// The first floor of the rooms: the Lobby
+pub const FIRST_ROOMS_LEVEL: i32 = BUILDING_FLOORS + 1;
+
+/// How far into the rooms game level `level` is: 1 on the Lobby (level 4),
+/// 2 on the next, …; the Building's floors count as 1. What rots, darkens
+/// and gets faster with depth counts this, not the level.
+pub fn rooms_depth(level: i32) -> i32 {
+    (level - BUILDING_FLOORS).max(1)
+}
 
 const fn bld(key: &'static str, title: &'static str, lore: &'static str, wall_mat: &'static str, floor_mat: &'static str) -> Archetype {
     Archetype {
@@ -115,7 +124,7 @@ const fn bld(key: &'static str, title: &'static str, lore: &'static str, wall_ma
 /// rooms' own).
 pub static BUILDING_ARCHETYPES: [Archetype; 3] = [
     bld("well", "THE WELL", "the Building", "panel", "concrete"),
-    bld("halls", "THE STAIR HALLS", "the Building", "stone", "stone"),
+    bld("halls", "THE STAIR HALLS", "the Building", "ashlar", "stone"),
     bld("works", "THE WORKS", "the Building", "concrete", "concrete"),
 ];
 
@@ -175,6 +184,9 @@ pub struct BuildingPlan {
     pub exit_side: usize,
     pub cells: Vec<Cell>,
     pub nodes: Vec<Node>,
+    /// the tiles the line from the arrival to the door's light crosses
+    /// (nothing is built there after)
+    pub view_line: Vec<(i32, i32)>,
 }
 
 /// A walk between two platforms.
@@ -833,7 +845,55 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         cells.push(c);
     }
 
-    // ---- 12. the layout: tiles, districts as zones ----
+    // ---- 12. the Works' masses are machine housings: each block of them
+    // stands 4–9 m over the highest floor beside it (the outer wall and the
+    // door's wall rise out of sight) ----
+    if style == Style::Works {
+        let mut seen = vec![false; (w * w) as usize];
+        for z0 in 1..w - 1 {
+            for x0 in 1..w - 1 {
+                if seen[grid.idx(x0, z0)] || grid.get(x0, z0).kind != GROUND_MASS {
+                    continue;
+                }
+                // the block: masses joined side by side, inside the border
+                let mut block = vec![(x0, z0)];
+                seen[grid.idx(x0, z0)] = true;
+                let mut k = 0;
+                while k < block.len() {
+                    let (x, z) = block[k];
+                    k += 1;
+                    for dd in DIRS {
+                        let (nx, nz) = (x + dd[0], z + dd[1]);
+                        if nx >= 1
+                            && nz >= 1
+                            && nx <= w - 2
+                            && nz <= w - 2
+                            && !seen[grid.idx(nx, nz)]
+                            && grid.get(nx, nz).kind == GROUND_MASS
+                        {
+                            seen[grid.idx(nx, nz)] = true;
+                            block.push((nx, nz));
+                        }
+                    }
+                }
+                let border = block.iter().any(|&(x, z)| x == 1 || z == 1 || x == w - 2 || z == w - 2);
+                let near = block
+                    .iter()
+                    .flat_map(|&(x, z)| DIRS.iter().map(move |dd| (x + dd[0], z + dd[1])))
+                    .filter(|&(x, z)| grid.walkable(x, z));
+                let top = near.map(|(x, z)| grid.get(x, z).h0.max(grid.get(x, z).h1)).fold(f32::NEG_INFINITY, f32::max);
+                if border || block.contains(&door_wall) || !top.is_finite() {
+                    continue;
+                }
+                let top = top + (4.0 + rng() * 5.0) as f32;
+                for &(x, z) in &block {
+                    grid.set(x, z, Ground::mass(VOID_DEPTH, top));
+                }
+            }
+        }
+    }
+
+    // ---- 13. the layout: tiles, districts as zones ----
     let tiles: Vec<u8> = grid.g.iter().map(|g| u8::from(!g.walkable())).collect();
     let arch = BUILDING_ARCHETYPES.iter().find(|a| a.key == style.key()).unwrap();
     let mut zones = vec![];
@@ -887,7 +947,7 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         rooms,
         ground: grid.g,
     };
-    let plan = BuildingPlan { style, spawn: (1, 1), exit, exit_side, cells, nodes: nodes_out };
+    let plan = BuildingPlan { style, spawn: (1, 1), exit, exit_side, cells, nodes: nodes_out, view_line: kept };
     (layout, plan)
 }
 
@@ -918,6 +978,46 @@ pub struct Navigation {
     /// tiles of walk from the farthest floor to a cell
     pub cell_reach: i32,
     pub cells: usize,
+}
+
+/// A cell's front: the wall across its open side, with the doorway in its
+/// middle (`CELL_DOOR` wide, `CELL_DOOR_H` high), from the floor to the top
+/// of the building over it. Boxes as `build_ground_solids` takes them.
+pub const CELL_DOOR: f64 = 1.3;
+pub const CELL_DOOR_H: f64 = 2.1;
+/// The front wall's thickness, metres
+pub const CELL_FRONT: f64 = 0.3;
+pub fn cell_front_boxes(p: &BuildingPlan, ground: &[Ground], w: i32, cell: f64) -> Vec<[f32; 8]> {
+    let mut out = vec![];
+    for c in &p.cells {
+        let (x, z) = c.tile;
+        let g = ground[(z * w + x) as usize];
+        // (as high as the building it is cut into)
+        let top = DIRS
+            .iter()
+            .filter_map(|dd| ground.get(((z + dd[1]) * w + x + dd[0]) as usize))
+            .filter(|n| n.kind == GROUND_MASS)
+            .map(|n| n.h1)
+            .fold(g.h0 + 3.0, f32::max);
+        let h = g.h0;
+        let t = (z * w + x) as f32;
+        let (th, half) = ((CELL_FRONT / cell) as f32, (CELL_DOOR / cell / 2.0) as f32);
+        let d = DIRS[c.door];
+        // the wall's band across the tile, on the door's side
+        let (a0, a1) = if d[0] + d[1] > 0 { (1.0 - th, 1.0) } else { (0.0, th) };
+        let mut push = |s0: f32, s1: f32, y0: f32, y1: f32| {
+            let b = if d[0] != 0 {
+                [x as f32 + a0, z as f32 + s0, x as f32 + a1, z as f32 + s1]
+            } else {
+                [x as f32 + s0, z as f32 + a0, x as f32 + s1, z as f32 + a1]
+            };
+            out.push([b[0], b[1], b[2], b[3], y0, y1, t, crate::level::archgen::BOX_WALL as f32]);
+        };
+        push(0.0, 0.5 - half, h, top);
+        push(0.5 + half, 1.0, h, top);
+        push(0.5 - half, 0.5 + half, h + CELL_DOOR_H as f32, top);
+    }
+    out
 }
 
 /// The floor under tile (x, z)'s centre, metres
