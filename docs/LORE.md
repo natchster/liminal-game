@@ -11,15 +11,16 @@ living bible: change it when the game's truth changes, in the same commit.
 
 | Kind | Canon |
 |---|---|
-| Place | An endless building of damp, fluorescent, empty rooms; every exit leads down |
+| Place | The Building: an endless megastructure of concrete with no outside, and inside its walls the Backrooms, damp, fluorescent, empty rooms; every exit leads down |
 | Pillars | Emptiness, monotony, familiar but wrong, the sound that never stops ([`PILLARS.md`](PILLARS.md)) |
-| Levels | Game level *n* ≈ Backrooms Level *n* − 1; one dominant zone names it |
+| Levels | 1–3 the Building's floors (the Well, the Stair Halls, the Works); from 4, game level *n* ≈ Backrooms Level *n* − 4, one dominant zone naming it |
+| The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds, the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
-| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps) |
+| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their notices and marks |
 
 ## How canon reaches the player
 
@@ -32,7 +33,9 @@ these channels, and the `lore-keeper` reviewer checks it:
   steps, the hum, crying).
 - **Creature behaviour**: rules that are learnable by playing, never told.
 - **Torn notes**: survivors' fragments (`ui/lore.rs`), which hint and never
-  explain; an anomaly's notes lie only on its level.
+  explain; an anomaly's notes lie only on its level, and the Building's (its
+  residents' notices, its cleaners' log, its surveys) only on its floors.
+  A notice says what to do, as notices do; it never says why.
 - **Her notebook**: one page at M.'s camp on each floor down to level 13
   (`story/notebook.rs`), which hints as a survivor would and never explains.
   The last line of the last page you took stays at the top of the screen
@@ -45,16 +48,29 @@ SCP numbers in the game, any narrator.
 
 ## Premise
 
-You noclipped out of reality and landed in the Backrooms: an endless building
-of damp, fluorescent, empty rooms that is almost, but not quite, a real place.
-There is no way back. There are exits, and every exit leads down.
+You noclipped out of reality, through the wall at the back of a storage room,
+and came out in **the Building**: concrete without end, galleries round a
+void with no top and no bottom, flights of stairs a hundred metres long,
+windows in their thousands and a door behind every one shut from inside.
+People lived here once; nobody opens now. Far off, now and then, a siren,
+and a fog that comes up out of the dark (*The self-assembly*).
+
+Inside its walls are **the Backrooms**: an endless building of damp,
+fluorescent, empty rooms that is almost, but not quite, a real place. The
+way down from the Building leads into them, and on down. There is no way
+back. There are exits, and every exit leads down. Up in the Building the
+danger is far off and the place itself is the challenge; down in the rooms
+the danger is near.
 
 The pillars of the place, in order of importance:
 
-1. **Emptiness.** Level 0 is rooms and nothing else. Clutter belongs deeper,
+1. **Emptiness.** The Building is vast and nobody is in it; the Lobby
+   (Level 0) is rooms and nothing else. Clutter belongs deeper,
    where the place has started collecting things.
 2. **Monotony.** The same yellow, the same hum, the same carpet. Variety is
-   earned by descending.
+   earned by descending. (The Building above is the one exception: the run
+   begins in its three places, each unlike the others, and comes down into
+   the sameness of the rooms.)
 3. **Familiar but wrong.** Office architecture with no office in it: doorways
    to nowhere, a ceiling that steps down for no reason, a pillar in the middle
    of a room.
@@ -98,8 +114,50 @@ out for help may still answer with arrows on the floor (or with something
 else), and so may a payphone.
 
 Deeper levels rot: more of the floor is grimy, more regions are dark, the fog
-is thicker and the hum wanders off pitch. The Lobby leaks into every level. It
-never quite goes away.
+is thicker and the hum wanders off pitch. The Lobby leaks into every level of
+the rooms (not up into the Building's). It never quite goes away.
+
+## The Building (levels 1–3)
+
+The Building is what the rooms are inside: a megastructure of concrete
+with no outside and no sky. Its floors are not rooms but landscapes of
+building: walks at many heights, joined by flights of stairs and bridges,
+over a void that drops away into fog. Nothing walks there. You find the
+way down by the place itself: the door's light far below, the flights
+lit where they start, her paper (`docs/MEGASTRUCTURE.md`).
+
+- **The Well** (level 1). The courtyard of an endless panel block: galleries
+  round a light well with no top and no bottom, the galleries of every
+  storey above and below yours stacked up and down the face of the block,
+  a window in every panel, a few lit, and a sealed door every few metres,
+  numbered in the thousands, some marked red, some taped round. Knock if
+  you like; once in a long while, something knocks back. Washing hangs on
+  lines across the well.
+- **The Stair Halls** (level 2). A hall of stone with no far wall: piers
+  standing up out of the void, flights of stairs at every height, bridges
+  between them, stone balustrades. Chains hang out of the dark, and some
+  flights cross the void from nowhere to nowhere with no rail; nobody has
+  stood on one.
+- **The Works** (level 3). Floors of dead machinery the size of houses,
+  terraces stepping down past shafts, ramps and steel rails painted yellow,
+  pipes along the housings, gantries under a ceiling so far up its lamps
+  look like stars, most of them out. Its way down is a small door, and it
+  is warm behind it: the yellow rooms.
+
+What every floor of the Building has:
+
+- **A railing on every edge you can walk**, and none on what you cannot
+  reach; a lamp at the foot of every flight.
+- **Cells**: rooms cut into the building, each with a hermetic door, its
+  wheel, its number, a bench, and a lamp in a cage over it. There is always
+  one nearer than the fog. Her camp is in one.
+- **The door down**, at the foot of its stair tower, whose windows are lit a
+  storey apart all the way up: you see its light across the void from where
+  you arrive, long before you find the way to it.
+- **Storey numbers** painted by the flights (in the thousands on the first
+  floor, counting down as you go down), **loudspeakers** on the walls, and
+  the residents' notices.
+- Its own air: none of the rooms' weathers reach up here.
 
 ## Places (zone archetypes)
 
@@ -159,7 +217,7 @@ Someone came this way before you, and you can follow her down.
   deep down); from level 4 a stretch after her camp has lost its sheets
   (two from level 7), and you have to find where she went.
 - **Trails that are not hers.** From the floor of her page that says *not
-  all the paper down here is mine* (the fifth of her floor pages), a trail
+  all the paper down here is mine* (the sixth of her floor pages), a trail
   of whole, flat sheets with heavy black arrows leaves hers and goes into a
   dead end; two from the floor of her seventh. Something is waiting at the
   end: you hear it breathe close by in the dark, and something is sent for
@@ -167,14 +225,16 @@ Someone came this way before you, and you can follow her down.
   twice; nothing says so but her first page. Who lays the flat sheets is
   never said.
 - **Her camp.** On every floor, somewhere off the straight way, against a
-  wall: a bedroll with a blanket thrown over it, her pack, a candle lantern
+  wall (on the Building's floors, in a cell): a bedroll with a blanket
+  thrown over it, her pack, a candle lantern
   still burning (it lights its corner, and light draws Smilers), empty
   bottles, a count of days scratched on the wall, and what she could spare:
   almond water, and from level 3 a battery.
 - **Her notebook.** At each camp lies one page torn from it, for that floor:
-  thirteen in all. Eight follow her down the ordinary floors in turn (which
-  game level each lands on depends on where the run's anomalies fall, so no
-  page names a zone or a level); each anomaly's floor has its own page (the
+  thirteen in all. Eight follow her down the ordinary floors in turn: the
+  first three on the Building's floors and the fourth on the Lobby (always
+  levels 1–4), the rest wherever the run's anomalies leave the ordinary
+  floors (so no page names a zone or a level); each anomaly's floor has its own page (the
   Stairwell's and the Loop's are written on the floor whose door leads in,
   before she went through); the last lies at **the last camp, on level 13**,
   the first floor below every anomaly. Take it (E) and it is in the notebook
@@ -188,7 +248,9 @@ Someone came this way before you, and you can follow her down.
   (twelve sheets). The descent goes on, without her: below the last camp
   there are no camps and no trails but the ones you drop.
 - What the pages let you work out, and never say: E. went in through the
-  wall at the back of a storage room (the loose note *Day 1* is his); she
+  wall at the back of a storage room (the loose note *Day 1* is his), into
+  the Building, and stayed a long time on its third floor (her page there
+  finds where; his own notes say "level three"); she
   counts sleeps and calls them days (the tallies at her camps); the
   kitchen in the Borrowed House was theirs; he went into the Loop and she
   thinks he is still going round. Whether the man with no face in the Loop
@@ -262,7 +324,12 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   under its surface it is all you see.
 - **It is never explained.** Who built the cells, who put up the notices
   and what the fog is, nobody says; the residents' notices tell you what to
-  do, as notices do.
+  do, as notices do, and call it a *self-assembly* (the only place its name
+  reaches you). Somebody administers the Building (its ration coupons, its
+  notices: "The Building cares for you"), and somebody cleans after the fog:
+  the cleaners, known by their log and the red marks on doors that did not
+  answer, and never seen. The storeys they poured are the ones just above
+  every walk you can reach on the first floor.
 - Taking her page on a floor of the Building sounds the siren within
   seconds, as it wakes the place below. The first quiet on the first floor
   is long, so her camp can be found first.
@@ -288,6 +355,10 @@ The rules of a run (`crates/game/src/level/scp.rs`):
   between levels 5 and 12, never on two levels in a row. A new game plans a
   new run. Continue and restarts keep the plan, because it is derived from the
   run's seed.
+- **Arriving** on one of the Building's floors shows one quiet line of its
+  kind too: *Windows all the way up, and all the way down* (the Well),
+  *Stairs, and no far wall* (the Stair Halls), *A floor the size of a town,
+  and all of it switched off* (the Works).
 - **Arriving** on an anomaly's level shows one quiet line under the level
   title and plays one sound. The line gives the *kind* of place (a chime and
   the smell of sawdust, rooms that do not remember the same house, a door
@@ -425,6 +496,8 @@ plaque that says STAIRS. Behind it:
 - **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
 - **Crying** out loud is desperate. Something answers.
+- **Cells**, on the Building's floors: shut yourself in when the siren goes,
+  and wait for the all-clear (*The self-assembly*).
 
 ## The sound of the place
 
@@ -437,6 +510,9 @@ plaque that says STAIRS. Behind it:
   the Poolrooms a reverb that stops too soon.
 - Footsteps follow the floor: squelching wet carpet, dull carpet tiles, gritty
   concrete, hard tile, hollow stair treads.
+- The Building sounds as big as it is: a long, sparse tail over the void in
+  each of its places, the hum of the lamps over the cells, and the siren
+  from its loudspeakers when it comes.
 
 ## Attribution and licensing
 
@@ -463,7 +539,7 @@ plaque that says STAIRS. Behind it:
   **Samosbor** myth (самосбор; begun anonymously on 2ch's /b/ in spring 2018
   and written since by "everyone and no one", with no single author or
   licence; `SOURCES.md` section 10): the endless panel block with no
-  outside, the siren, the fog, the hermetic door, the voices at it, the
+  outside, the siren, the fog, the hermetic door, the knocking at it, the
   cleaners after. We use the motifs and our own words, and no named
   character or story from any author. The Building's places also take from
   **Backrooms Level 188** "The Courtyard of Windows" by **Kai4C**

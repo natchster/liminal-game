@@ -5,6 +5,12 @@ toward the arrow until something chases you" to a descent with a reason. The
 canon it serves is [`LORE.md`](LORE.md); every change here quotes a rule in
 [`PILLARS.md`](PILLARS.md).
 
+(Since 2026-10-27 the descent begins in the Building, three floors of vast
+concrete above the rooms, where the challenge is the way down and the
+danger far off: [`MEGASTRUCTURE.md`](MEGASTRUCTURE.md). Her trail, camps
+and pages run through them as below; her camp there is a cell, and her page
+sounds the siren.)
+
 ## The analysis (2026-10-26)
 
 What a normal level was, read from the code:
@@ -88,7 +94,7 @@ evidence (a test, a headless PNG, a pacing log) and its own commit.
 | G3 | **Her trail and her camp.** `story` module: after the build, on a salted stream, a camp off the shortest path and a trail of folded sheets from the arrival through the camp to the door, each sheet visible from the last except at gaps | tests: deterministic, reachable, followable, ends at the door, on every level kind; reference levels and goldens re-recorded with a reason |
 | G4 | **Her notebook.** Thirteen pages (eight for the floors, four for the anomalies, one last), placed at the camps in order; the journal's NOTEBOOK; the thread line; saves; the canon in `LORE.md` | tests: page order over a run, journal, save/load; a `lore-keeper` review of the text |
 | G5 | **The page wakes the place.** Taking the page cuts the calm short and puts her lamp out; level 1's first build waits for the page (or a long calm) | pacing and persona logs: the build follows the page; bands hold |
-| G6 | **Trails that lie.** From the floor of her fifth floor page on (the page that says *not all the paper down here is mine*), flat sheets branch off her trail into a dead end where the place waits | tests: the false trail branches from the true one, ends in a dead end, never reaches the door |
+| G6 | **Trails that lie.** From the floor of her fifth floor page on (her sixth since the Building came above the rooms: `MEGASTRUCTURE.md`) (the page that says *not all the paper down here is mine*), flat sheets branch off her trail into a dead end where the place waits | tests: the false trail branches from the true one, ends in a dead end, never reaches the door |
 | G7 | **The last camp.** Level 13: the final page, no trail onward, the ending card, and the descent after it | a test plays the arc's end through the flow; saves keep it |
 | G8 | **Evidence and the ledger.** Playtest focus questions for the story, `content.json` entries, `QUALITY.md`, the full check | full check and drift sweep pass |
 

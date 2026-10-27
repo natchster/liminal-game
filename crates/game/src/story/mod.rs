@@ -15,7 +15,7 @@
 //! build checkpoint moves. What depends on the run's progress (whether her
 //! page here was already taken) is fitted after the build, like the notes.
 //!
-//! Not every trail is hers: from the floor of her page that says so (`f5`),
+//! Not every trail is hers: from the floor of her page that says so (`f6`),
 //! a trail of flat sheets leaves hers and goes into a dead end, and the
 //! place is waiting there (`plan_false_trails`, `story_lure`). Two from the
 //! floor of `f7`. Hers are folded twice.
@@ -241,10 +241,15 @@ impl Game {
         let walls_beside = |x: i32, z: i32| DIRS.iter().filter(|(dx, dz)| self.is_wall_tile(x + dx, z + dz)).count();
         // her camp: well away from both ends, off the straight way but not
         // far off it, against a wall (in a corner or a dead end if she could)
+        // (on the Building's floors she camped in a cell: the shelter there)
+        let cells: Vec<(i32, i32)> = self.building.as_ref().map(|b| b.cells.iter().map(|c| c.tile).collect()).unwrap_or_default();
         let pick = |min_detour: i32| -> Vec<((i32, i32), usize)> {
             let mut c = vec![];
             for z in 0..self.h {
                 for x in 0..self.w {
+                    if self.building.is_some() && !cells.contains(&(x, z)) {
+                        continue;
+                    }
                     let (a, b) = (ds[idx((x, z))], de[idx((x, z))]);
                     if a < 0 || b < 0 {
                         continue;
@@ -275,6 +280,13 @@ impl Game {
             pool[((r.next() * pool.len() as f64) as usize).min(pool.len() - 1)]
         };
         let mut sides: Vec<(i32, i32)> = DIRS.iter().copied().filter(|&d| self.camp_face(camp, d).is_some()).collect();
+        // in a cell, against a side wall (its bench is at the back)
+        if let Some(c) = self.building.as_ref().and_then(|b| b.cells.iter().find(|c| c.tile == camp)) {
+            let back = crate::level::archgen::DIRS[c.door ^ 1];
+            if sides.len() > 1 {
+                sides.retain(|&d| d != (back[0], back[1]));
+            }
+        }
         if sides.is_empty() {
             sides = DIRS.iter().copied().filter(|(dx, dz)| self.is_wall_tile(camp.0 + dx, camp.1 + dz)).collect();
         }
@@ -398,14 +410,14 @@ impl Game {
     }
 
     /// How many trails that are not hers lie on this level: none above the
-    /// floor of her page that says so (`f5`), one from there, two from the
+    /// floor of her page that says so (`f6`), one from there, two from the
     /// floor of `f7` on.
     pub fn false_trails_due(&self) -> usize {
         let book = notebook::notebook(self.run_seed);
         let from = |id: &str| book.iter().find(|(_, p)| p.id == id).map(|(n, _)| *n).unwrap_or(i32::MAX);
         if self.level_num >= from("f7") {
             2
-        } else if self.level_num >= from("f5") {
+        } else if self.level_num >= from("f6") {
             1
         } else {
             0

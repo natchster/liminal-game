@@ -103,6 +103,20 @@
     },
     {
       "checks": [
+        "test:backrooms/story",
+        "test:game/core_props_tail",
+        "test:backrooms/assembly"
+      ],
+      "id": "building/notes",
+      "kind": "system",
+      "last_checked": null,
+      "last_human_review": null,
+      "name": "the Building's torn notes (the residents' notice, a cell plate, the cleaners' log, three surveys, a coupon) and her camp in a cell",
+      "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. Reviewed by the lore-keeper (B6); whether the residents' voice reads as the Building's and not hers is a playtest question.",
+      "passes": {}
+    },
+    {
+      "checks": [
         "shots:hound_2m",
         "shots:hound_4m",
         "shots:hound_8m",

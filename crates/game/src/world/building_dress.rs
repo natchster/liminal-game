@@ -263,7 +263,8 @@ impl Game {
             parts.put(bench, boxm(back, yaw, Vec3::new(2.6, 0.44, 0.5)));
             // its number, by the door
             let n = 100 + (i as u32 * 37 + (r.next() * 30.0) as u32) % 900;
-            let plate = self.plate(&format!("{n}"), "#d8d2c0", "#30352f");
+            let letter = ['A', 'B', 'C', 'D'][(r.next() * 4.0) as usize % 4];
+            let plate = self.plate(&format!("{n}-{letter}"), "#d8d2c0", "#30352f");
             let pp = self.face_point(x, z, d, CELL_DOOR / 2.0 + 0.45, 0.012, h + 1.7);
             plate.position().copy(&pp);
             plate.rotation().y = yaw;
@@ -347,7 +348,7 @@ impl Game {
                     let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, h);
                     self.hermetic_door(parts, at, yaw, 0.0, &steel);
                     match r.next() {
-                        // the liquidators' mark: painted red across it
+                        // the cleaners' mark: painted red across it
                         v if v < 0.12 => {
                             for k in [-1.0, 1.0] {
                                 let c = self.face_point(mx, mz, d ^ 1, 0.0, 0.11, h + 1.05);

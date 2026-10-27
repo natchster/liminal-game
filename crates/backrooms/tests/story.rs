@@ -166,6 +166,27 @@ fn a_level_is_the_same_place_whatever_was_read() {
     }
 }
 
+/// The Building's own torn notes (the residents' notices, the cleaners' log,
+/// the surveys) lie on its floors and on no floor of the rooms; on its floors
+/// lie no others.
+#[test]
+fn the_buildings_notes_lie_only_on_its_floors() {
+    for seed in [4242u32, 7] {
+        let mut g = new_game();
+        g.run_seed = seed;
+        for level in 1..=6 {
+            g.init_level(level);
+            let tags: Vec<Option<String>> = notes(&g).iter().map(|n| g.lore_entry_scp(n.1)).collect();
+            let building = tags.iter().filter(|t| t.as_deref() == Some("building")).count();
+            if level <= 3 {
+                assert!(building >= 1 && building == tags.len(), "seed {seed} L{level}: {tags:?}");
+            } else {
+                assert_eq!(building, 0, "seed {seed} L{level}: the Building's notes in the rooms: {tags:?}");
+            }
+        }
+    }
+}
+
 /// The arrival's tile and the door's.
 fn ends(g: &Game) -> ((i32, i32), (i32, i32)) {
     let e = g.exit_data.as_ref().unwrap().pos;
@@ -205,7 +226,7 @@ fn check_trail(g: &Game) -> Result<String, String> {
     if first > 3 || last > 3 {
         return Err(format!("{what}: the first sheet is {first} steps from the arrival, the last {last} from the door"));
     }
-    let k = game::story::spacing(g.level_num);
+    let k = game::story::spacing(g.depth());
     // the marks in walk order: her sheets and her camp
     let mut marks: Vec<(usize, f64, f64)> = s.trail.iter().map(|m| (m.step, m.x, m.z)).collect();
     marks.push((s.camp_step, g.wx(camp.tile.0), g.wz(camp.tile.1)));
@@ -376,7 +397,8 @@ fn taking_her_page() {
     assert!(g.ui.objective.text.contains(p.thread), "the thread shows: {:?}", g.ui.objective.text);
     assert!(!g.story.camp.as_ref().unwrap().page.as_ref().unwrap().visible(), "the page left the bedroll");
     g.update_hud(1.0 / 60.0);
-    assert_eq!(g.ui.prompt.text, "", "nothing left to take");
+    // (on the Building's floors her camp is in a cell: its wheel is still there to turn)
+    assert_ne!(g.ui.prompt.text, "[E] TAKE HER PAGE", "nothing left to take");
     // the journal opens on it; levels 1 and 2 were passed without hers
     g.toggle_journal();
     assert!(g.ui.journal_entry_title.text.starts_with("HER NOTEBOOK"), "{}", g.ui.journal_entry_title.text);
@@ -462,7 +484,7 @@ fn her_page_wakes_the_place() {
     }
 }
 
-/// Trails that are not hers: none above the floor of her page `f5`, one from
+/// Trails that are not hers: none above the floor of her page `f6`, one from
 /// there, two from `f7`'s. Each leaves her walk, never goes back onto it,
 /// and ends in a dead end well away from the door; its flat sheets can be
 /// followed like hers; and at its end the place has you (`lure` in the
@@ -472,7 +494,7 @@ fn trails_that_are_not_hers_lead_nowhere() {
     let run = 4242u32;
     let book = game::story::notebook::notebook(run);
     let level_of = |id: &str| book.iter().find(|(_, p)| p.id == id).unwrap().0;
-    let (l5, l7) = (level_of("f5"), level_of("f7"));
+    let (l5, l7) = (level_of("f6"), level_of("f7"));
     for level in [l5 - 1, l5, l7] {
         let mut g = new_game();
         g.run_seed = run;
@@ -492,7 +514,7 @@ fn trails_that_are_not_hers_lead_nowhere() {
         let hers: std::collections::HashSet<(i32, i32)> = g.story.walk.iter().copied().collect();
         let (_, exit) = ends(&g);
         let de = g.story_walk_dist(exit);
-        let k = game::story::spacing(level);
+        let k = game::story::spacing(g.depth());
         for (n, f) in g.story.false_trails.iter().enumerate() {
             assert!(hers.contains(&f.walk[0]), "L{level} #{n}: does not leave her walk");
             assert!(f.walk[1..].iter().all(|t| !hers.contains(t)), "L{level} #{n}: goes back onto her walk");

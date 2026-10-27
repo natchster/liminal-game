@@ -1,6 +1,8 @@
 //! M.'s notebook: thirteen pages, one at her camp on each floor of the
 //! descent to level 13, in the order she wrote them. The eight floor pages
-//! (`FLOOR_PAGES`) lie on the run's ordinary floors in turn; an anomaly's
+//! (`FLOOR_PAGES`) lie on the run's ordinary floors in turn (the first four
+//! always on the Building's three floors and the Lobby, levels 1–4, where no
+//! anomaly comes: `docs/MEGASTRUCTURE.md`); an anomaly's
 //! page (`ANOMALY_PAGES`) lies on that anomaly's floor, wherever the run put
 //! it (the Stairwell's and the Loop's are written on the floor whose door
 //! leads in, before she went through); the last page (`LAST_PAGE`) lies at the last camp, on
@@ -12,7 +14,9 @@
 //! is the M. of *M.'s Rules*. Neither is ever said, nor what they are to
 //! each other, nor whether the man in the Loop is E. (Reviewed by
 //! `lore-keeper`, 2026-10-26: no zone or level is named, since a floor page
-//! lands on a different level each run.)
+//! lands on a different level each run; the first four, on fixed floors since
+//! the Building came above the rooms, may show their place and still name
+//! none of it.)
 
 use crate::level::scp::{scp_for_level, SCP_HORIZON};
 
@@ -28,35 +32,37 @@ pub struct Page {
 
 /// The floor pages, in order.
 pub static FLOOR_PAGES: [Page; 8] = [
+    // the Building's three floors and the Lobby: always levels 1-4
     Page {
         id: "f1",
-        body: "E. told me about the wall at the back of the storage room, the one that gives when you lean on it. I laughed at him. Then he stopped answering, and I went and leaned on it.\n\nYellow, everywhere, and the hum. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
+        body: "E. told me about the wall at the back of the storage room, the one that gives when you lean on it. I laughed at him. Then he stopped answering, and I went and leaned on it.\n\nGalleries round a hole with no bottom, and windows, more than I can count, and nobody at any of them. A siren went somewhere far off. I got into one of the little rooms with a wheel on its door, turned it until it stopped, and waited a long time. I'm leaving paper as I go, folded twice, an arrow on each, so I can find my way back. Folded twice, so I know it's mine.",
         thread: "Folded twice, so I know it's mine.",
     },
     Page {
         id: "f2",
-        body: "I found his writing on a wall today: an E., and a row of tallies under it. He was counting days. There is no night here to count by, so I count sleeps and call them days.\n\nWhen the lights die along a stretch I walk faster, and I don't run. Something down here listens.",
+        body: "I found his writing on a wall today: an E., and a row of tallies under it. He was counting days. There is no night here to count by, so I count sleeps and call them days.\n\nThe fog rose while I was on the stairs. I didn't know a colour could be that cold. Something knocked at my door the whole time it was up. I didn't open it.",
         thread: "There is no night here to count by.",
     },
     Page {
         id: "f3",
-        body: "I found where he stayed. A long time, by the look of it: a bedroll worn through, a wall of tallies I couldn't finish counting. No E.\n\nUnder the pillow, a page asking whoever found it to remember him. I kept it. His arrows went on down from there, so I went down.",
+        body: "I found where he stayed. A long time, by the look of it: a bedroll worn through, a wall of tallies I couldn't finish counting. No E.\n\nUnder the pillow, a page asking whoever found it to remember him. I kept it. His arrows went on down from there, past the machines, to a small door that was warm behind it. So I went down.",
         thread: "A wall of tallies I couldn't finish counting.",
     },
     Page {
         id: "f4",
+        body: "Through his door: yellow, everywhere, and the hum. After the concrete it felt like a waiting room. It isn't.\n\nWhen the lights die along a stretch I walk faster, and I don't run. Something down here listens.",
+        thread: "Something down here listens.",
+    },
+    // the rooms' ordinary floors, wherever the run's anomalies leave them
+    Page {
+        id: "f5",
         body: "I wrote once that if something is waiting round a corner you should close your eyes and count to ten. Not the tall ones. One stood at the end of a hall, its grin going on too far round its face, and I didn't close my eyes, and it didn't move. I backed off a long way before I let myself breathe.\n\nI don't close my eyes any more.",
         thread: "I don't close my eyes any more.",
     },
     Page {
-        id: "f5",
+        id: "f6",
         body: "Not all the paper down here is mine.\n\nI followed someone else's sheets for most of a day once. They didn't go down. They went into a room and stopped, and the room was dark, and I didn't stay to see why.",
         thread: "Not all the paper down here is mine.",
-    },
-    Page {
-        id: "f6",
-        body: "My face in the black of a dead screen. It took me a while to know it.\n\nHe wrote that he forgot what he looked like. I say my name under my breath now, every time I wake, and then his.",
-        thread: "I say my name under my breath now.",
     },
     Page {
         id: "f7",
@@ -65,7 +71,7 @@ pub static FLOOR_PAGES: [Page; 8] = [
     },
     Page {
         id: "f8",
-        body: "The hum is lower down here, like a voice going hoarse. The paper's nearly gone; I fold the last sheets smaller.\n\nWhoever is reading these: you came the way I came. I'm sorry about that.",
+        body: "The hum is lower down here, like a voice going hoarse. My face in the black of a dead screen; it took me a while to know it. He wrote that he forgot what he looked like. I say my name under my breath now, and then his.\n\nThe paper's nearly gone. Whoever is reading these: you came the way I came. I'm sorry about that.",
         thread: "You came the way I came.",
     },
 ];

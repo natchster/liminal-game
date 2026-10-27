@@ -893,9 +893,14 @@ fn lore_tables_match_reference() {
     let fx = Json::load("cp2_tail.json");
     let lore = fx.get("cases").at(0).get("lore");
     let scp = lore.get("scp").arr();
-    assert_eq!(g0.lore_entry_count(), scp.len());
+    // the recorded notes stand as they were; those after them are the
+    // Building's, added with its floors (`docs/MEGASTRUCTURE.md`, B6)
+    assert!(g0.lore_entry_count() >= scp.len());
     for (i, s) in scp.iter().enumerate() {
         assert_eq!(g0.lore_entry_scp(i), if s.is_null() { None } else { Some(s.s().to_string()) }, "LORE_ENTRIES[{i}].scp");
+    }
+    for i in scp.len()..g0.lore_entry_count() {
+        assert_eq!(g0.lore_entry_scp(i).as_deref(), Some("building"), "LORE_ENTRIES[{i}] is the Building's");
     }
     let arcs = lore.get("arcs").arr();
     for (a, arc) in arcs.iter().enumerate() {

@@ -15,6 +15,19 @@ reviewer; *people* means fresh players.
 *The player should feel that the place is too big and too empty for them, and
 that the emptiness is watching.*
 
+- **Goal: the first floors are too big for you.** The Building's floors are
+  vast and empty at many heights, and nothing walks them; their challenge
+  is the way down through them.
+  - Rule: on the Building's floors the way down is long and winding and
+    goes down, by flights, with choices and dead ends on it, and the door's
+    light is seen from where you arrive. *Test:* the navigation measures
+    (detour, flights, choices, dead ends, the door seen) in their bands over
+    40 seeds a place (gate, `tests/building.rs`).
+  - Rule: the danger there is far off: the self-assembly is heard (the
+    siren) and seen coming (the fog's surface rising from far below) long
+    before it is near, and a cell is always nearer than it. *Test:* the
+    stages in order, a cell within reach of the warning (gate,
+    `tests/assembly.rs`).
 - **Goal: most of the level is nothing.**
   - Rule: the Lobby and the `empty` purpose stay sparse. Clutter belongs to
     purposes deeper down. *Test:* the range report's prop density for `empty`
@@ -41,7 +54,7 @@ that the emptiness is watching.*
 - **Goal: wrongness accumulates.**
   - Rule: deeper levels rot: more grime, darker regions, thicker fog. *Test:*
     luminance and deep-shadow share per level depth in the range report.
-  - Rule: deeper down, not every trail is hers. From her fifth floor page's
+  - Rule: deeper down, not every trail is hers. From her sixth floor page's
     floor, flat sheets that look like hers lead into a dead end where the
     place waits; the tell (hers are folded twice) is only ever hinted.
     *Test:* `trails_that_are_not_hers_lead_nowhere` (gate, `tests/story.rs`).
@@ -73,12 +86,18 @@ that the emptiness is watching.*
     `art-critic` review.
 - **Goal: rules are learned, not told.**
   - Rule: no tutorials, maps or explanations of creatures or anomalies;
-    notes hint, never explain. *Test:* `lore-keeper` review.
+    notes hint, never explain. The one exception is the Building's notices,
+    which say what to do in a self-assembly, as notices do, and never why.
+    *Test:* `lore-keeper` review.
   - Rule: the screen at rest is the place alone. A meter shows while it
     is not full, the pockets when they change, her line when it is new, a
     ring and a verb only on what can be used; the glance key shows it all;
     help is offered with its key at the moment it would help. *Test:* the
     HUD test's rest and glance frames, `tests/rest.rs` (gate).
+  - Rule: what can be walked looks walkable, everywhere: on the Building's
+    floors a railing on every walkable edge over the void and none on what
+    cannot be reached, a lamp where every flight starts. *Test:* the
+    Building's zone views (`cargo xtask shots`); `art-critic` review.
   - Rule: the way down is found, not shown. No compass and no objective
     line; the door is lit into the light map and calls from where it stands.
     *Test:* the HUD has no compass (`tests/hud.rs`); `the_door_is_heard`

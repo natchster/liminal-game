@@ -189,3 +189,20 @@ fn the_building_paces_a_floor() {
         assert_eq!(g.state, "playing");
     }
 }
+
+/// Her camp on the Building's floors is a cell (the shelter there), and her
+/// first four pages lie on levels 1–4 whatever the run: the Building's three
+/// floors and the Lobby, where no anomaly comes.
+#[test]
+fn her_camp_is_a_cell_and_her_first_pages_are_the_buildings() {
+    for (seed, level) in [(4242u32, 1), (4242, 2), (4242, 3), (7, 1), (7, 2), (7, 3)] {
+        let g = floor(seed, level);
+        let camp = g.story.camp.as_ref().expect("a camp").tile;
+        assert!(g.building.as_ref().unwrap().cells.iter().any(|c| c.tile == camp), "seed {seed} L{level}: her camp {camp:?} is not a cell");
+    }
+    for seed in [1u32, 7, 77, 4242, 1999, 31337, 9001, 12345, 2026, 555] {
+        for (n, id) in [(1, "f1"), (2, "f2"), (3, "f3"), (4, "f4")] {
+            assert_eq!(game::story::notebook::page_for_level(seed, n).map(|p| p.id), Some(id), "seed {seed} level {n}");
+        }
+    }
+}

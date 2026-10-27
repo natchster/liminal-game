@@ -119,15 +119,15 @@ pub struct LoreEntry {
     pub scp: Option<&'static str>,
 }
 
-pub static LORE_ENTRIES: [LoreEntry; 52] = [
-    LoreEntry { id: 0, title: "Day 1", body: "I noclipped through the wall of the storage room. My phone shows the wrong date. I can hear humming everywhere.", scp: None },
+pub static LORE_ENTRIES: [LoreEntry; 59] = [
+    LoreEntry { id: 0, title: "Day 1", body: "I noclipped through the wall of the storage room. Concrete, and a drop, and no sky. My phone shows the wrong date. Every door I knock on stays shut.", scp: None },
     LoreEntry { id: 1, title: "Almond Water", body: "The bottles just... appear. Don't ask where. Drink them. They keep the ache away.", scp: None },
     LoreEntry { id: 2, title: "The Hum", body: "The lights hum at a hundred and twenty hertz, twice the mains. Or they're supposed to. Sometimes it swells until your teeth ache. Sometimes it stops. Never look up when it stops.", scp: None },
     LoreEntry { id: 3, title: "M.'s Rule 1", body: "If you turn a corner and see something waiting, close your eyes. Count to ten. It should be gone. Should be.", scp: None },
     LoreEntry { id: 4, title: "M.'s Rule 2", body: "Never answer the phone. I don't care if it's your mother's voice. She's not on level three.", scp: None },
     LoreEntry { id: 5, title: "M.'s Rule 3", body: "The clocks lie. All of them. Trust the hum instead — it means you're still alive.", scp: None },
     LoreEntry { id: 6, title: "Torn Ledger", body: "...paid in almond water, twelve cases... signed by the man in the yellow coat... he was here yesterday...", scp: None },
-    LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The plants down here are wet even where there is no water. I keep hearing children laughing.", scp: None },
+    LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are warm to the touch, and none of them runs. I keep hearing children laughing.", scp: None },
     LoreEntry { id: 8, title: "Elias, Day 219", body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.", scp: None },
     LoreEntry { id: 9, title: "The Smilers", body: "Their faces are the only bright thing. Hold its eyes and back away, slowly. It creeps while you watch it. Turn your back, or run, and it comes all at once. Your lamp draws them.", scp: None },
     LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones don't blink either. They hear footsteps from rooms away. If one runs at you, stare it down — it stops for a breath or two. Not every time. Then it growls.", scp: None },
@@ -172,6 +172,14 @@ pub static LORE_ENTRIES: [LoreEntry; 52] = [
     LoreEntry { id: 49, title: "Count the Doors", body: "Count the doors going in. Then count them back out. I stopped counting and now I don't know which way is out.", scp: Some("loop") },
     LoreEntry { id: 50, title: "The Plant", body: "I left a marker by the plant. Next time round the plant was on the other side of the room. The marker wasn't.", scp: Some("loop") },
     LoreEntry { id: 51, title: "The First Room", body: "There was a door in the first room. There was. I keep going round to check and the rooms keep getting worse.", scp: Some("loop") },
+    // the Building's (`docs/MEGASTRUCTURE.md`): they lie only on its floors
+    LoreEntry { id: 52, title: "Notice to Residents", body: "IN THE EVENT OF A SELF-ASSEMBLY: go into the nearest cell. Turn the wheel until it stops. Do not open the door until the long tone. Do not open the door to anyone. The Building cares for you.", scp: Some("building") },
+    LoreEntry { id: 53, title: "Cell Plate", body: "CELL 412-C. FOUR PERSONS. KEEP THE WHEEL CLEAN. KEEP THE BENCH CLEAR.", scp: Some("building") },
+    LoreEntry { id: 54, title: "Cleaning Log", body: "Storey 1407 cleaned. 1408 to 1411 poured, the stairs with them. Two doors did not answer: marked. One knocked back after we had gone. Not entered.", scp: Some("building") },
+    LoreEntry { id: 55, title: "Survey: The Well", body: "Galleries round a well you cannot see the bottom of. The windows go up and down out of sight; a few are lit. The doors are shut from inside, all of them, on every storey.", scp: Some("building") },
+    LoreEntry { id: 56, title: "Survey: The Stair Halls", body: "Stone, and stairs. Some of the flights go somewhere. Some cross the dark from one nothing to another and have no rail. I would not try one.", scp: Some("building") },
+    LoreEntry { id: 57, title: "Survey: The Works", body: "Machines the size of houses, cold. A ceiling so far up that the lamps on it look like stars, most of them out. The way down is not a stair here.", scp: Some("building") },
+    LoreEntry { id: 58, title: "Ration Coupon", body: "ONE PORTION. CONCENTRATE, GREY. SHIFT 4, CYCLE 211. NOT VALID AFTER AN ASSEMBLY.", scp: Some("building") },
 ];
 
 /// `SCP_OMENS`: what the player notices on arriving at an anomaly's level
@@ -193,12 +201,13 @@ pub struct LoreArc {
     pub color: u32,
 }
 /// The lore arcs, in order. `color` tints boosted (continuation) notes.
-pub static LORE_ARCS: [LoreArc; 5] = [
+pub static LORE_ARCS: [LoreArc; 6] = [
     LoreArc { name: "ELIAS", ids: &[7, 8, 24], color: 0x60a0ff },     // cool blue
     LoreArc { name: "M.'S RULES", ids: &[3, 4, 5], color: 0xffb060 }, // warm amber
     LoreArc { name: "THE ENTITIES", ids: &[9, 10, 11], color: 0xff5060 }, // red
     LoreArc { name: "THE RITUAL", ids: &[2, 14, 26], color: 0xa0f090 }, // soft green
     LoreArc { name: "THE STAIRWELL", ids: &[36, 38, 39, 41], color: 0xd8d2c4 }, // the Face's pallor
+    LoreArc { name: "THE BUILDING", ids: &[52, 54, 55, 56, 57], color: 0xb8a4c4 }, // the fog's violet
 ];
 
 /// Candle blow-out / relight milestone thresholds (copies of the world
@@ -1188,6 +1197,17 @@ impl Game {
 
     // ------------------------------------------------------------ anomalies
     pub fn scp_arrival(&mut self) {
+        // the Building's floors: one quiet line of what kind of place it is
+        if let Some(style) = crate::level::building::Style::of_level(self.level_num) {
+            use crate::level::building::Style;
+            let line = match style {
+                Style::Well => "Windows all the way up, and all the way down.",
+                Style::Halls => "Stairs, and no far wall.",
+                Style::Works => "A floor the size of a town, and all of it switched off.",
+            };
+            self.show_omen(line, 1.7, 7.0);
+            return;
+        }
         let Some(scp) = self.level_scp.clone() else { return };
         if let Some(text) = scp_omen(&scp) {
             self.show_omen(text, 1.7, 7.0);

@@ -384,6 +384,19 @@ impl Game {
             yaw: (-fx).atan2(-fz),
         };
         self.build_exit_door(&spot);
+        // the Works' door, the last of the Building's: small in its wall, and
+        // the rooms' yellow round it, warm (her page there: "a small door that
+        // was warm behind it")
+        if plan.style == Style::Works {
+            let paper = self.arch_mat("wp:0");
+            let m = mesh(plane_geo!(2.6, 3.3), &paper);
+            m.position().set(spot.pos.x + spot.normal.x * 0.03, spot.pos.y + 1.65, spot.pos.z + spot.normal.z * 0.03);
+            m.rotation().y = spot.yaw;
+            self.world.add(&m);
+            let warm = point_light!(0xffd890, 3.0, 7, 1.6);
+            warm.position().set(spot.pos.x + spot.normal.x * 0.8, spot.pos.y + 2.2, spot.pos.z + spot.normal.z * 0.8);
+            self.world.add(&warm);
+        }
         // where things lie: the dead ends first, then the cells
         let mut spots: Vec<(i32, i32)> = vec![];
         for nd in &plan.nodes {
@@ -436,16 +449,16 @@ impl Game {
                 self.battery_items.push(p);
             }
         }
-        // a torn note or two, from the pool (not an anomaly's)
+        // two of the Building's own torn notes (they lie only on its floors)
         let n = self.lore_entry_count();
-        let mut pool: Vec<usize> = (0..n).filter(|&i| self.lore_entry_scp(i).is_none()).collect();
+        let mut pool: Vec<usize> = (0..n).filter(|&i| self.lore_entry_scp(i).as_deref() == Some("building")).collect();
         let mut i = pool.len();
         while i > 1 {
             i -= 1;
             let j = irand(0, i as i64) as usize;
             pool.swap(i, j);
         }
-        let notes = irand(1, 2) as usize;
+        let notes = 2usize;
         for &id in pool.iter().take(notes) {
             let Some(&(tx, tz)) = spots.get(used) else { break };
             used += 1;
