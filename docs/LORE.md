@@ -159,6 +159,17 @@ What every floor of the Building has:
   the residents' notices.
 - Its own air: none of the rooms' weathers reach up here.
 
+**Someone across the void.** Nothing walks the Building, but now and then,
+far off across the void, someone stands where no walk reaches: on a gallery
+of another storey, on a flight that crosses the dark, on top of a machine
+or on a gantry under the ceiling. Grey, thin, a little taller than anyone,
+turned toward you. Look at it a moment and it turns its back; look away and
+it is gone. Later it stands somewhere else, always across the void. It never
+comes near, and it does nothing. Nobody writes about it.
+
+**The lift.** In the Well, a lift cage hangs in the open shaft on its
+cables, stopped between storeys, its bulb still lit. Nothing reaches it.
+
 ## Places (zone archetypes)
 
 Each level is cut into rectangular zones. Every zone has its own ceiling height,
@@ -551,7 +562,8 @@ plaque that says STAIRS. Behind it:
   **SCP-3333** "Tower" by **Jekeled** (<https://scp-wiki.wikidot.com/scp-3333>),
   all **CC BY-SA 3.0**: `crates/game/src/level/building.rs`,
   `crates/game/src/world/building.rs`, `crates/game/src/world/building_dress.rs`,
-  `crates/game/src/world/assembly.rs`, `docs/MEGASTRUCTURE.md` and the
+  `crates/game/src/world/assembly.rs`, `crates/game/src/world/far_figures.rs`,
+  `docs/MEGASTRUCTURE.md` and the
   Building's notes are CC BY-SA 3.0 and keep this attribution. Piranesi's
   *Carceri* (1750) is in the public domain.
 - The research catalogue `SCP_LOCATIONS.md` (HTML version's docs) summarizes 315

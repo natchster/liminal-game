@@ -108,6 +108,7 @@ impl Game {
         self.building_lamps(&plan);
         self.cell_doors.clear();
         self.dress_building(&plan);
+        self.gather_figure_perches(&plan);
         self.building_fog_layers();
         let prop_start = self.world.child_count();
         let core = !self.test_stub_core_placers;
@@ -213,21 +214,27 @@ impl Game {
                 }
             }
         }
-        // the masses: one box per run of building along a row
+        // the masses: one box per run of building along a row, from its foot
+        // to its top (the Works' machine housings stop a few metres over
+        // their floors; the rest rise out of sight)
         for z in 0..h {
             let mut x = 0;
             while x < w {
-                if self.ground_at(x, z).kind != GROUND_MASS {
+                let g0 = self.ground_at(x, z);
+                if g0.kind != GROUND_MASS {
                     x += 1;
                     continue;
                 }
                 let x0 = x;
                 let (wall, _) = zone_mats(self, x, z);
-                while x < w && self.ground_at(x, z).kind == GROUND_MASS && zone_mats(self, x, z).0 == wall {
+                while x < w && {
+                    let g = self.ground_at(x, z);
+                    g.kind == GROUND_MASS && g.h0 == g0.h0 && g.h1 == g0.h1 && zone_mats(self, x, z).0 == wall
+                } {
                     x += 1;
                 }
                 let (a, b) = (self.wx(x0) - CELL / 2.0, self.wx(x - 1) + CELL / 2.0);
-                let (y0, y1) = (VOID_DEPTH as f64, MASS_TOP as f64);
+                let (y0, y1) = (g0.h0 as f64, g0.h1 as f64);
                 push(
                     format!("{wall}:1"),
                     Mat4::compose(
@@ -390,6 +397,7 @@ impl Game {
         if plan.style == Style::Works {
             let paper = self.arch_mat("wp:0");
             let m = mesh(plane_geo!(2.6, 3.3), &paper);
+            m.set_name("lobby-paper");
             m.position().set(spot.pos.x + spot.normal.x * 0.03, spot.pos.y + 1.65, spot.pos.z + spot.normal.z * 0.03);
             m.rotation().y = spot.yaw;
             self.world.add(&m);

@@ -16,6 +16,7 @@ pub mod assembly;
 pub mod build;
 pub mod building;
 pub mod building_dress;
+pub mod far_figures;
 pub mod instancing;
 pub mod placement;
 pub mod purpose;

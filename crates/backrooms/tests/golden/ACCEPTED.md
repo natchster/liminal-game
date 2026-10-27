@@ -23,3 +23,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-27, on top of c3ecfaf: look anchors: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L2_stair_halls, 4242_L3_spawn, 4242_L3_works. Reason: Megastructure B4: the Building's look (a railing of each place's own, lamps at the foot of every flight and their posts, a brighter light, the Building's own air instead of the rooms' weathers); frames looked at, only the Building's six moved
 
 - 2026-10-27, on top of 7ac8934: frames: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L3_spawn, 4242_L3_works. Reason: B6: cell plates read NNN-L (a draw on the dressing's salted stream moves the Well's sealed doors after it), her camp in a cell, the Building's own notes, the Works' last door lined with the Lobby's yellow
+
+- 2026-10-27, on top of bd7b043: frames: 4242_L3_spawn. Reason: B7: the Works' machine housings drawn to their own tops (they were drawn to 150 m whatever their plan said; the solids already stopped at the tops), so a housing seen far down the arrival's corridor stands lower

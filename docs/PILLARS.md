@@ -28,6 +28,12 @@ that the emptiness is watching.*
     before it is near, and a cell is always nearer than it. *Test:* the
     stages in order, a cell within reach of the warning (gate,
     `tests/assembly.rs`).
+  - Rule: what is seen there is far off too: the figure across the void
+    stands where no walk reaches, 22 m off or more, turns its back when
+    looked at and is gone when you look away, and never lets you near.
+    *Test:* every perch a storey off every walk round it, the figure's
+    distance, its turning away, and how near you get to it (gate,
+    `tests/presences.rs`).
 - **Goal: most of the level is nothing.**
   - Rule: the Lobby and the `empty` purpose stay sparse. Clutter belongs to
     purposes deeper down. *Test:* the range report's prop density for `empty`

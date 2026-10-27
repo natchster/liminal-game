@@ -42,7 +42,7 @@ cargo run --release -- --fresh --screenshot out.png --level 1 --seed 4242 --play
 cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2 --screenshot x --views   # + exit, camp, trail views
 cargo run --release -- --screenshot out.png --seed 4242 --play --showcase hound:3 [--death]
 cargo run --release -- --fresh --screenshot out.png --frames 120                      # the title over the live Well (level 1)
-cargo run --release -- --fresh --screenshot out.png --seed 4242 --play --frames 90 --screen pause   # or leave, settings, brightness, controls, dead, ending, notebook, notebook-typed; on levels 1-3 also fog-below, fog-in
+cargo run --release -- --fresh --screenshot out.png --seed 4242 --play --frames 90 --screen pause   # or leave, settings, brightness, controls, dead, ending, notebook, notebook-typed; on levels 1-3 also fog-below, fog-in, figure; on level 1 lift
 cargo test --release -p backrooms --test listen -- --nocapture    # WAVs + loudness PNGs in target/listen/
 cargo test --release -p backrooms --test pacing -- --nocapture    # director phases with a cautious bot
 cargo test --release -p backrooms --test personas -- --nocapture  # explorer, rusher, hider; the shape of the fear

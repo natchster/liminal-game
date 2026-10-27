@@ -11,7 +11,8 @@
 //! * The Well: doors sealed from inside along every gallery, numbered, some
 //!   marked red or taped round; the galleries of the storeys above and below
 //!   yours, one over another up and down the face of the block, with their
-//!   parapets and doors; laundry across the well.
+//!   parapets and doors; laundry across the well; a lift cage hanging in
+//!   the open void on its cables, its bulb still lit.
 //! * Windows by the thousand on the panel faces, a few lit; the door's
 //!   stair tower, its windows lit a storey apart up to the arrival's height.
 //! * Storey numbers painted by the flights; loudspeakers on the walls.
@@ -19,7 +20,7 @@
 //!   nobody can reach crossing the void, iron lanterns.
 //! * The Works: a ceiling far up with its rows of dead fittings, gantries
 //!   under it, pipes along the walls.
-use crate::level::archgen::{Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID};
+use crate::level::archgen::{build_ground_solids, segment_clear_3d, Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID};
 use crate::level::building::{BuildingPlan, Style, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, STOREY, VOID_DEPTH};
 use crate::prelude::*;
 use crate::visuals::textures::{text_tex, TextTexOpts};
@@ -68,7 +69,7 @@ fn door_wheel_geos() -> (Geo, Geo) {
 }
 
 impl Game {
-    fn ground_or_mass(&self, x: i32, z: i32) -> Ground {
+    pub(crate) fn ground_or_mass(&self, x: i32, z: i32) -> Ground {
         if !self.in_grid(x, z) {
             return Ground::mass(VOID_DEPTH, MASS_TOP);
         }
@@ -99,7 +100,7 @@ impl Game {
         match plan.style {
             Style::Halls => self.dress_halls(plan, &mut parts, &mut r),
             Style::Works => self.dress_works(plan, &mut parts, &mut r),
-            Style::Well => {}
+            Style::Well => self.dress_lift(plan, &mut parts),
         }
         for (geo, mat, list) in parts.list {
             if !list.is_empty() {
@@ -421,6 +422,99 @@ impl Game {
         }
     }
 
+    /// A lift cage hanging in the open well on its cables, stopped between
+    /// storeys, its bulb still lit (a landmark over the void: design 7).
+    /// Where the void is three tiles wide every way, the one nearest 45 m
+    /// from the arrival, in sight of a walk near it if one is; none on a floor
+    /// without such a void. It draws nothing.
+    fn dress_lift(&mut self, plan: &BuildingPlan, parts: &mut Parts) {
+        let (sx, sz) = (self.wx(plan.spawn.0), self.wz(plan.spawn.1));
+        let open = |g: &Game, x: i32, z: i32| {
+            (-1..=1).all(|dz| (-1..=1).all(|dx| g.in_grid(x + dx, z + dz) && g.ground_or_mass(x + dx, z + dz).kind == GROUND_VOID))
+        };
+        // the eyes of the walks round the arrival
+        let eyes: Vec<Vec3> = (-4..=4)
+            .flat_map(|dz| (-4..=4).map(move |dx| (plan.spawn.0 + dx, plan.spawn.1 + dz)))
+            .filter(|&(x, z)| self.in_grid(x, z) && self.ground_or_mass(x, z).walkable())
+            .map(|(x, z)| Vec3::new(self.wx(x), self.floor_y_of(x, z) + EYE, self.wz(z)))
+            .collect();
+        let eye_y = self.floor_y_of(plan.spawn.0, plan.spawn.1) + EYE;
+        let solids = build_ground_solids(self.w, self.h, CELL, &self.ground);
+        let mut best: Option<(f64, Vec3)> = None;
+        for z in 1..self.h - 1 {
+            for x in 1..self.w - 1 {
+                if !open(self, x, z) || plan.view_line.contains(&(x, z)) {
+                    continue;
+                }
+                let (cx, cz) = (self.wx(x), self.wz(z));
+                let d = hypot2(cx - sx, cz - sz);
+                if !(20.0..80.0).contains(&d) {
+                    continue;
+                }
+                // stopped a storey and a half over a walk near the arrival
+                // that sees it (the decks over the galleries hide much)
+                let seen = eyes.iter().find_map(|e| {
+                    let y = (e.y - EYE) + 1.5;
+                    let mid = Vec3::new(cx, y + 1.3, cz);
+                    (segment_clear_3d(&solids, self.to_u(e.x), self.to_v(e.z), e.y, self.to_u(cx), self.to_v(cz), mid.y)
+                        && self.decks_clear(*e, mid))
+                    .then_some(y)
+                });
+                let y = seen.unwrap_or((eye_y - EYE) + 1.5);
+                let score = (d - 45.0).abs() + if seen.is_some() { 0.0 } else { 100.0 };
+                if best.is_none_or(|b| score < b.0) {
+                    best = Some((score, Vec3::new(cx, y, cz)));
+                }
+            }
+        }
+        let Some((_, at)) = best else { return };
+        self.lift_at = Some(at);
+        let unit = self.unit_box_geo.clone();
+        let steel = lambert!({ color: 0x3e443f });
+        let frame = parts.part(&unit, &steel);
+        let (w, h) = (2.6, 2.7);
+        let hw = w / 2.0;
+        // floor, roof, corner posts
+        parts.put(frame, boxm(Vec3::new(at.x, at.y, at.z), 0.0, Vec3::new(w + 0.1, 0.16, w + 0.1)));
+        parts.put(frame, boxm(Vec3::new(at.x, at.y + h, at.z), 0.0, Vec3::new(w + 0.1, 0.12, w + 0.1)));
+        for (ox, oz) in [(-hw, -hw), (hw, -hw), (-hw, hw), (hw, hw)] {
+            parts.put(frame, boxm(Vec3::new(at.x + ox, at.y + h / 2.0, at.z + oz), 0.0, Vec3::new(0.09, h, 0.09)));
+        }
+        // the bars: three sides, and a gate drawn half across the fourth
+        let n = 9;
+        for k in 1..n {
+            let t = -hw + w * k as f64 / n as f64;
+            for (bx, bz, along_x) in [(t, -hw, true), (t, hw, true), (-hw, t, false)] {
+                let _ = along_x;
+                parts.put(frame, boxm(Vec3::new(at.x + bx, at.y + h / 2.0, at.z + bz), 0.0, Vec3::new(0.04, h, 0.04)));
+            }
+            if k <= n / 2 {
+                parts.put(frame, boxm(Vec3::new(at.x + hw, at.y + h / 2.0, at.z + t), 0.0, Vec3::new(0.04, h, 0.04)));
+            }
+        }
+        for y in [0.9, 1.8] {
+            for (ox, oz, sx2, sz2) in [(0.0, -hw, w, 0.05), (0.0, hw, w, 0.05), (-hw, 0.0, 0.05, w)] {
+                parts.put(frame, boxm(Vec3::new(at.x + ox, at.y + y, at.z + oz), 0.0, Vec3::new(sx2, 0.05, sz2)));
+            }
+        }
+        // its cables up out of sight, and the counterweight's
+        let cable_geo = cyl_geo!(0.03, 0.03, 1.0, 4);
+        let cable = parts.part(&cable_geo, &self.mats.metal);
+        let top = MASS_TOP as f64;
+        for (ox, oz) in [(-0.4, 0.0), (0.4, 0.0), (0.0, hw + 0.7)] {
+            let y0 = at.y + h + if oz > 1.0 { 9.0 } else { 0.0 };
+            parts.put(
+                cable,
+                Mat4::compose(&Vec3::new(at.x + ox, (y0 + top) / 2.0, at.z + oz), &Quat::IDENTITY, &Vec3::new(1.0, top - y0, 1.0)),
+            );
+        }
+        parts.put(frame, boxm(Vec3::new(at.x, at.y + h + 8.2, at.z + hw + 0.7), 0.0, Vec3::new(0.7, 1.6, 0.3)));
+        // its bulb, still on
+        let bulb_mat = basic_mat!({ color: 0xffe2a8 });
+        let bulb = parts.part(&unit, &bulb_mat);
+        parts.put(bulb, boxm(Vec3::new(at.x, at.y + h - 0.12, at.z), 0.0, Vec3::new(0.34, 0.1, 0.34)));
+    }
+
     /// Washing on lines across the well, between two faces of the block
     fn dress_laundry(&mut self, plan: &BuildingPlan, parts: &mut Parts, r: &mut SplitMix64) {
         let line_geo = cyl_geo!(0.008, 0.008, 1.0, 4);
@@ -670,6 +764,11 @@ impl Game {
                     self.wz(z) + fz * (t * len as f64 * CELL - CELL / 2.0),
                 );
                 parts.put(step, boxm(p, yaw, Vec3::new(2.4, 0.4, CELL / 13.0 + 0.02)));
+                // where the figure across the void may stand (`world::far_figures`)
+                if s == n / 2 {
+                    let at = Vec3::new(p.x, p.y + 0.2, p.z);
+                    self.figure_perches.push(at);
+                }
             }
             made += 1;
         }
@@ -677,9 +776,13 @@ impl Game {
 
     /// The Works: a ceiling far up with its rows of dead fittings, the
     /// gantries under it, pipes along the walls
+    /// The Works' ceiling: 20 m over its highest walk
+    pub(crate) fn works_ceiling(&self) -> f64 {
+        self.ground.iter().filter(|g| g.walkable()).map(|g| g.h0.max(g.h1) as f64).fold(0.0, f64::max) + 20.0
+    }
+
     fn dress_works(&mut self, plan: &BuildingPlan, parts: &mut Parts, r: &mut SplitMix64) {
-        let high = self.ground.iter().filter(|g| g.walkable()).map(|g| g.h0.max(g.h1) as f64).fold(0.0, f64::max);
-        let ceil = high + 20.0;
+        let ceil = self.works_ceiling();
         let (w, h) = (self.w as f64 * CELL, self.h as f64 * CELL);
         let slab = mesh(box_geo!(w, 1.2, h), self.arch_mat("ceil:slab:2"));
         slab.position().y = ceil + 0.6;
@@ -708,6 +811,12 @@ impl Game {
             let zz = self.wz((self.h as f64 * (0.25 + 0.25 * k as f64)) as i32) + r.range(-3.0, 3.0);
             parts.put(beam, boxm(Vec3::new(0.0, ceil - 4.0, zz), 0.0, Vec3::new(w, 1.1, 0.7)));
             parts.put(beam, boxm(Vec3::new(0.0, ceil - 4.0, zz + 6.0), 0.0, Vec3::new(w, 1.1, 0.7)));
+            let mut gx = -w / 2.0 + 10.0;
+            while gx < w / 2.0 - 10.0 {
+                let at = Vec3::new(gx, ceil - 3.45, zz);
+                self.figure_perches.push(at);
+                gx += 18.0;
+            }
             // the trolley, and its hook let down
             let tx = r.range(-w / 3.0, w / 3.0);
             parts.put(beam, boxm(Vec3::new(tx, ceil - 4.9, zz + 3.0), 0.0, Vec3::new(2.6, 0.9, 6.8)));

@@ -203,6 +203,9 @@ impl Game {
         self.cell_doors.clear();
         self.fog_layers.clear();
         self.building_speakers.clear();
+        self.far_figure = None;
+        self.figure_perches.clear();
+        self.lift_at = None;
         self.assembly = Default::default();
         self.tv_data = None;
         self.phone_data = None;

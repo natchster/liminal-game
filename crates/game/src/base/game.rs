@@ -129,6 +129,12 @@ pub struct Game {
     pub cell_doors: Vec<crate::world::assembly::CellDoor>,
     /// The fog's surface, a few layers deep
     pub fog_layers: Vec<Obj>,
+    /// The figure that stands far across the void now and then, and where
+    /// it may stand (`world::far_figures`)
+    pub far_figure: Option<crate::world::far_figures::FarFigure>,
+    pub figure_perches: Vec<Vec3>,
+    /// Where the Well's lift cage hangs, if it has one
+    pub lift_at: Option<Vec3>,
     /// The archgen layout of the current level
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
@@ -675,6 +681,9 @@ impl Game {
             assembly: Default::default(),
             cell_doors: vec![],
             fog_layers: vec![],
+            far_figure: None,
+            figure_perches: vec![],
+            lift_at: None,
             layout: None,
             solids: None,
             tex: crate::visuals::textures::Textures::placeholder(),

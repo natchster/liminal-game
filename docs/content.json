@@ -117,6 +117,19 @@
     },
     {
       "checks": [
+        "test:backrooms/presences",
+        "shots:4242_L3_spawn"
+      ],
+      "id": "building/presences",
+      "kind": "system",
+      "last_checked": null,
+      "last_human_review": null,
+      "name": "what is seen across the Building's void: the figure who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
+      "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer.",
+      "passes": {}
+    },
+    {
+      "checks": [
         "shots:hound_2m",
         "shots:hound_4m",
         "shots:hound_8m",

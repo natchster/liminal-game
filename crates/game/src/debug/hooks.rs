@@ -489,6 +489,36 @@ impl Game {
             }
             return;
         }
+        // a figure far across the void, looked at (`world::far_figures`)
+        if name == "figure" && self.building.is_some() {
+            self.show_far_figure();
+            return;
+        }
+        // the Well's lift cage, from the walk nearest the arrival it is seen from
+        if name == "lift" {
+            let (Some(at), Some(plan)) = (self.lift_at, self.building.clone()) else { return };
+            let mut best: Option<(i32, Vec3)> = None;
+            for z in 0..self.h {
+                for x in 0..self.w {
+                    if !self.ground[self.t_idx(x, z)].walkable() {
+                        continue;
+                    }
+                    let eye = Vec3::new(self.wx(x), self.floor_y_of(x, z) + EYE, self.wz(z));
+                    let k = (x - plan.spawn.0).abs() + (z - plan.spawn.1).abs();
+                    let seen = self.view_clear(eye, Vec3::new(at.x, at.y + 1.3, at.z));
+                    if seen && best.is_none_or(|b| k < b.0) {
+                        best = Some((k, eye));
+                    }
+                }
+            }
+            if let Some((_, eye)) = best {
+                self.player.pos = eye;
+                let (dx, dy, dz) = (at.x - eye.x, at.y + 1.3 - eye.y, at.z - eye.z);
+                self.player.yaw = (-dx).atan2(-dz);
+                self.player.pitch = dy.atan2((dx * dx + dz * dz).sqrt());
+            }
+            return;
+        }
         if name == "title" {
             self.state = "menu".into();
             self.open_menu(Screen::Title);
