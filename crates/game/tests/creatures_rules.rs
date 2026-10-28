@@ -587,8 +587,11 @@ fn it_is_never_put_nearer_than_10_m_nor_where_you_see_it() {
 #[test]
 fn its_touch_takes_your_nerve_and_kills_only_a_spent_mind() {
     // it is behind you, 3 m off, and has given its tells; you look away
-    let touch = |sanity: f64| {
+    let touch = |sanity: f64, met: bool| {
         let (mut g, ei) = watcher_room(0.6, 4);
+        if met {
+            g.creature_run.met.push("watcher".into());
+        }
         let pp = g.player.pos;
         g.entities[ei].g.set_pos(pp.x, 0.0, pp.z - 3.0);
         g.player.sanity = sanity;
@@ -597,14 +600,19 @@ fn its_touch_takes_your_nerve_and_kills_only_a_spent_mind() {
         look_away(&mut g, ei, 4.0);
         g
     };
-    let g = touch(SAN_MAX);
+    let g = touch(SAN_MAX, false);
     let ei = g.entities.iter().position(|e| e.kind == "watcher").unwrap();
     assert!(modes(&g, ei).contains(&Mode::Strike), "it never touched you: {:?}", modes(&g, ei));
     assert!(g.player.sanity <= SAN_MAX - 45.0 + 1e-9, "your nerve: {:.0}", g.player.sanity);
     assert_eq!(g.god_deaths, 0.0, "a touch on a whole mind killed");
     assert!(dist_to(&g, ei) > 2.0, "it did not fall back ({:.1} m)", dist_to(&g, ei));
-    // on a mind already nearly gone, the same touch kills
-    let g = touch(40.0);
+    // on a mind already nearly gone, the first touch does not kill (the
+    // first meeting teaches) ...
+    let g = touch(40.0, false);
+    assert_eq!(g.god_deaths, 0.0, "the first touch killed");
+    assert!(g.player.sanity > 0.0, "the first touch took the last of your nerve");
+    // ... a later one does
+    let g = touch(40.0, true);
     assert!(g.god_deaths > 0.0, "a spent mind survived its touch");
 }
 
@@ -972,4 +980,218 @@ fn the_reader_is_sent() {
         g.update_director(DT);
     }
     assert_eq!(g.director.stalker, Some(ei), "the director did not send it");
+}
+
+// ------------------------------------------------------------ what they learn (design 4)
+
+/// `kind` has learned, and you have already seen it do so.
+fn learned(g: &mut Game, kind: &str) {
+    g.creature_run.learned.push(kind.into());
+    g.creature_run.shown.push(kind.into());
+}
+
+#[test]
+fn each_kind_learns_from_its_habit_one_kind_a_level() {
+    let mut g = room(9, 0.5, |_, _| false);
+    g.level_num = 7;
+    // three escapes with paper teach the Reader
+    for _ in 0..2 {
+        g.creature_habit("reader");
+    }
+    assert!(!g.creature_learned("reader"), "it learned before its count");
+    g.creature_habit("reader");
+    assert!(g.creature_learned("reader"));
+    // ... and on the same level nothing else learns
+    for _ in 0..4 {
+        g.creature_habit("smiler");
+    }
+    assert!(!g.creature_learned("smiler"), "two kinds learned on one level");
+    // on the next level it does, as the level starts
+    g.level_num = 8;
+    g.creature_learn_pending();
+    assert!(g.creature_learned("smiler"));
+    // what the run remembers survives the save; an old save has none
+    let back = RunMemory::from_json(Some(&g.creature_run.to_json()));
+    assert_eq!(back, g.creature_run);
+    assert_eq!(RunMemory::from_json(None), RunMemory::default());
+}
+
+#[test]
+fn the_first_time_it_shows_what_it_learned_you_can_see_it() {
+    // learned, but a wall between you: not yet
+    let mut g = room(13, 0.5, |_, z| z == 5);
+    let ei = creature(&mut g, "reader", 6, 2, 0.0);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(9));
+    g.creature_run.learned.push("reader".into());
+    assert!(!g.creature_may_show(ei), "shown through a wall");
+    // in your line: now, and from then on wherever you are
+    let mut g2 = room(13, 0.5, |_, _| false);
+    let ej = creature(&mut g2, "reader", 6, 2, 0.0);
+    g2.player.pos = v3(g2.wx(6), 0.0, g2.wz(4));
+    g2.creature_run.learned.push("reader".into());
+    assert!(g2.creature_may_show(ej));
+    g2.player.pos = v3(g2.wx(12), 0.0, g2.wz(12));
+    assert!(g2.creature_may_show(ej), "once seen, always");
+}
+
+/// The Reader comes; a sheet goes down at your feet and you walk away: when
+/// it began and ended reading.
+fn drop_a_sheet_for_it(g: &mut Game, ei: usize) -> (f64, f64) {
+    g.player.papers = 3;
+    for _ in 0..(8.0 / DT) as usize {
+        let (rx, rz) = (g.wx(7), g.wz(3));
+        step(g, DT, Some((rx, rz)), Gait::Walk);
+        if mode(g, ei) == Mode::Hunt {
+            break;
+        }
+    }
+    let (fx, fz) = (g.wx(7), g.wz(13));
+    look_at(g, fx, fz);
+    g.drop_paper_marker();
+    let (mut from, mut until) = (None, None);
+    for _ in 0..(14.0 / DT) as usize {
+        step(g, DT, Some((fx, fz)), Gait::Walk);
+        let m = mode(g, ei);
+        if m == Mode::Read && from.is_none() {
+            from = Some(g.perf_t);
+        }
+        if from.is_some() && m != Mode::Read && until.is_none() {
+            until = Some(g.perf_t);
+        }
+    }
+    (from.expect("the sheet did not stop it"), until.expect("it never finished with the sheet"))
+}
+
+#[test]
+fn escaping_the_reader_with_paper_is_what_it_learns_from_and_then_it_tears_them() {
+    use game::entities::reader::{READ_TIME, STOOP, TEAR_TIME};
+    // a sheet dropped as it comes: one escape with paper counted
+    let (mut g, ei) = reader_room(0.6, 7);
+    let (from, until) = drop_a_sheet_for_it(&mut g, ei);
+    assert_eq!(g.creature_run.habits.get("reader"), Some(&1));
+    assert!(until - from >= STOOP + READ_TIME);
+    // learned: it tears it in half unread, and you hear it
+    let (mut g, ei) = reader_room(0.6, 7);
+    learned(&mut g, "reader");
+    let (from, until) = drop_a_sheet_for_it(&mut g, ei);
+    assert!(until - from < STOOP + READ_TIME - 1.0, "it read it to the end ({:.1} s)", until - from);
+    assert!(until - from >= STOOP + TEAR_TIME - 0.05);
+    assert!(g.director.log.iter().any(|(_, w)| *w == "tear"), "you did not hear it tear");
+}
+
+#[test]
+fn passing_behind_the_one_in_the_corner_is_what_it_learns_from_and_then_it_looks_round_more() {
+    use game::entities::corner::{LOOKS_EVERY, LOOKS_LEARNED};
+    // you pass behind it (twice: two passes)
+    let (mut g, ei) = corner_room(5, 5, false);
+    for _ in 0..2 {
+        // (it stands deep in its corner: a step behind its back)
+        let p = g.entities[ei].pos();
+        let (behind, away) = ((p.x + 1.2, p.z + 1.2), (g.wx(8), g.wz(8)));
+        run(&mut g, 10.0, Some(behind), Gait::Walk);
+        run(&mut g, 10.0, Some(away), Gait::Walk);
+    }
+    assert_eq!(g.creature_run.habits.get("corner"), Some(&2), "{:?}", g.creature_run.habits);
+    // learned: in its room it looks round within LOOKS_LEARNED, not LOOKS_EVERY
+    let looks_after = |learn: bool| {
+        let (mut g, ei) = corner_room(4, 4, true);
+        if learn {
+            learned(&mut g, "corner");
+        }
+        let p = g.entities[ei].pos();
+        let pp = g.player.pos;
+        let mut t = 0.0;
+        while t < LOOKS_EVERY.0 && !modes(&g, ei).contains(&Mode::Alert) {
+            // (looking anywhere but at it)
+            look_at(&mut g, 2.0 * pp.x - p.x, 2.0 * pp.z - p.z);
+            step(&mut g, DT, None, Gait::Still);
+            t += DT;
+        }
+        t
+    };
+    assert!(looks_after(true) <= LOOKS_LEARNED.1 + 0.5, "learned, it did not look round within {} s", LOOKS_LEARNED.1);
+    assert!(looks_after(false) >= LOOKS_EVERY.0 - 0.1, "it looked round sooner than it does");
+}
+
+#[test]
+fn hiding_from_the_smiler_in_the_dark_is_what_it_learns_from_and_then_it_waits_there() {
+    use game::entities::smiler::WAITS;
+    let lose_it = |learn: bool| {
+        let (mut g, ei) = smiler_room(0.08);
+        if learn {
+            learned(&mut g, "smiler");
+        }
+        g.player.pos = v3(g.wx(6), 0.0, g.wz(5));
+        let pp = g.player.pos;
+        g.creature_alert(ei, pp.x, pp.z);
+        g.player.flashlight_on = true;
+        run(&mut g, 1.0, None, Gait::Still);
+        g.player.flashlight_on = false;
+        let mut t = 0.0;
+        while mode(&g, ei) == Mode::Hunt && t < 6.0 {
+            step(&mut g, DT, None, Gait::Still);
+            t += DT;
+        }
+        (g, ei)
+    };
+    let (g, _) = lose_it(false);
+    assert_eq!(g.creature_run.habits.get("smiler"), Some(&1), "hiding in the dark was not counted");
+    // learned: it waits where you went dark, silent, then searches
+    let (mut g, ei) = lose_it(true);
+    assert_eq!(mode(&g, ei), Mode::Hold, "{:?}", modes(&g, ei));
+    run(&mut g, WAITS + 0.3, None, Gait::Still);
+    assert_eq!(mode(&g, ei), Mode::Search, "{:?}", modes(&g, ei));
+    // ... and your lamp on while it waits: it has you
+    let (mut g, ei) = lose_it(true);
+    run(&mut g, 1.5, None, Gait::Still);
+    g.player.flashlight_on = true;
+    run(&mut g, 0.3, None, Gait::Still);
+    assert_eq!(mode(&g, ei), Mode::Hunt, "{:?}", modes(&g, ei));
+}
+
+#[test]
+fn outrunning_the_hound_is_what_it_learns_from_and_then_it_comes_from_ahead() {
+    // learned: it breaks into its charge with no bay, for where you are heading
+    game::base::rng::seed_native(0x4D0);
+    let (mut g, ei) = hound_room(|_, _| false);
+    learned(&mut g, "hound");
+    g.player.pos = v3(g.wx(2), 0.0, g.wz(5));
+    let goal = (g.wx(11), g.wz(5));
+    // you walk across its front, a tile off; it hears you, and comes
+    let mut lead = vec![];
+    for _ in 0..(8.0 / DT) as usize {
+        step(&mut g, DT, Some(goal), Gait::Walk);
+        if mode(&g, ei) == Mode::Hunt && g.creature(ei).unwrap().get("ahead") > 0.0 {
+            let (e, pp) = (&g.entities[ei], g.player.pos);
+            let p = e.pos();
+            let (vx, vz) = (e.vx, e.vz);
+            let v = hypot2(vx, vz);
+            if v > 1.0 {
+                let (dx, dz) = (pp.x - p.x, pp.z - p.z);
+                // across your way: positive when it runs ahead of where you are
+                lead.push((vx * 1.0 - 0.0 * vz) / v - dx / hypot2(dx, dz).max(1e-6));
+            }
+        }
+    }
+    assert!(!lead.is_empty(), "it never charged: {:?}", modes(&g, ei));
+    let mean = lead.iter().sum::<f64>() / lead.len() as f64;
+    assert!(mean > 0.05, "it ran for where you were, not where you were heading ({mean:.2})");
+}
+
+#[test]
+fn a_long_stare_at_the_watcher_is_what_it_learns_from_and_then_the_lights_fail() {
+    use game::entities::watcher::LONG_STARE;
+    // a stare of more than 8 s, then you look away: counted
+    let (mut g, ei) = watcher_room(0.6, 5);
+    watch(&mut g, ei, LONG_STARE + 1.0);
+    look_away(&mut g, ei, 0.5);
+    assert_eq!(g.creature_run.habits.get("watcher"), Some(&1));
+    // learned: while you watch it, the panels over it fail, and it comes on
+    // in the dark it makes (never while you see it by the light)
+    let (mut g, ei) = watcher_room(0.6, 5);
+    learned(&mut g, "watcher");
+    let d0 = dist_to(&g, ei);
+    watch(&mut g, ei, 6.0);
+    assert!(g.director.log.iter().any(|(_, w)| *w == "lights fail"), "no light failed over it");
+    assert!(dist_to(&g, ei) < d0 - 1.0, "it did not come on in the dark it made ({:.1} → {:.1})", d0, dist_to(&g, ei));
 }

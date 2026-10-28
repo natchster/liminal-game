@@ -102,19 +102,26 @@ fn every_themed_placer_has_a_theme() {
 
 #[test]
 fn every_creature_has_goldens_and_behaviour_tests() {
-    let src = read("crates/game/src/entities/mod.rs");
-    let mut kinds: Vec<String> =
-        src.match_indices("kind = \"").map(|(i, m)| src[i + m.len()..].split('"').next().unwrap().to_string()).collect();
+    // the creatures: the kinds on the brain (`creature::on_new_brain`)
+    let src = read("crates/game/src/entities/creature.rs");
+    let at = src.find("pub fn on_new_brain").expect("creature::on_new_brain");
+    let body = &src[at..at + src[at..].find('}').unwrap()];
+    let mut kinds: Vec<String> = body.split('"').skip(1).step_by(2).map(|k| k.to_string()).collect();
     kinds.sort();
     kinds.dedup();
-    assert!(kinds.len() >= 3, "found the creature kinds in entities/mod.rs: {kinds:?}");
+    assert!(kinds.len() >= 5, "found the creature kinds in creature::on_new_brain: {kinds:?}");
     let shots = read("xtask/src/shots.rs");
-    let tests = read("crates/game/tests/entities.rs");
+    let rules = read("crates/game/tests/creatures_rules.rs");
+    let arenas = read("crates/game/tests/creatures_arenas.rs");
     for k in &kinds {
         assert!(shots.contains(&format!("\"{k}\"")), "creature {k} has no golden shots: add it to CREATURES in xtask/src/shots.rs, then `cargo xtask shots --accept {k}_2m,{k}_4m,{k}_8m,{k}_death --reason …`");
         assert!(
-            tests.contains(&format!("\"{k}\"")),
-            "creature {k} is never named in crates/game/tests/entities.rs: give it build/animation fixtures and senses tests"
+            rules.contains(&format!("\"{k}\"")),
+            "creature {k} is never named in crates/game/tests/creatures_rules.rs: one test a line of its design"
+        );
+        assert!(
+            arenas.contains(&format!("report(\"{k}\")")),
+            "creature {k} has no arena in crates/game/tests/creatures_arenas.rs: its counter held to the bands"
         );
     }
 }

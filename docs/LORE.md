@@ -363,7 +363,19 @@ when one of them comes for you: a calm, a build-up where the place announces
 it (its steps somewhere near, lights failing, then silence), a peak, and then
 relief: after a close call it **backs off** and the level goes quiet for a
 while. Only one comes at a time. The Watcher only moves on you when it is the
-one sent; otherwise it keeps its distance.
+one sent; otherwise it keeps its distance. **A sign is not a promise**: some
+build-ups end in nothing, a sound somewhere near and then quiet. **The first
+touch of each is not the end**: it throws you down and lets you go (never
+taking the last of your nerve); death comes later, from a second touch while
+it is still after you, or from one when your mind is already gone. **They
+learn your habits**: hide from a Smiler in the dark often enough and it
+waits, silent, where you went dark; outrun a Hound and it stops baying and
+runs for where you are heading; stare a Watcher down and the lights over it
+fail while you watch; slip behind the one in the corner and it looks round
+more often; feed a Reader paper and it tears the sheets in half unread. Each
+learns one thing, never from your deaths, and you see it the first time.
+Who lives on a floor depends on the floor: Smilers where it is dark,
+the Watcher among furniture, the Reader where paper lies, Hounds anywhere.
 
 **Taking her page wakes the place.** Her lamp gutters out as you lift the
 page, and whatever quiet was left ends within a few seconds: something is

@@ -56,6 +56,9 @@ pub const PAPER_REACH: f64 = 4.0;
 pub const READ_TIME: f64 = 3.0;
 /// Stooping to pick a sheet up, s.
 pub const STOOP: f64 = 0.8;
+/// Once it has learned (you escaped it with paper three times, design 4),
+/// it tears a sheet in half unread instead: this long, s.
+pub const TEAR_TIME: f64 = 1.0;
 /// Its pace when it comes, m/s (faster than you walk, slower than you run).
 pub const HUNT: f64 = 4.8;
 /// It lowers its sheet before it touches you, s (a tell you can see).
@@ -281,6 +284,10 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             e.vx = 0.0;
             e.vz = 0.0;
             set(g, ei, Mode::Read, "a sheet on the floor");
+            // a sheet dropped while it was after you: you escaped it with paper
+            if mode.after_you() {
+                g.creature_habit("reader");
+            }
             return;
         }
     }
@@ -530,15 +537,23 @@ fn read(g: &mut Game, ei: usize, dt: f64) {
             g.creature_mut(ei).unwrap().ease.insert("took", 1.0);
         }
         if t >= STOOP {
+            // learned, it tears it in half unread (you hear it tear)
+            let tears = g.creature_may_show(ei);
             let c = g.creature_mut(ei).unwrap();
             c.ease.insert("read_stage", 2.0);
             c.ease.insert("took", 0.0);
+            c.ease.insert("tears", if tears { 1.0 } else { 0.0 });
             c.brain.t = 0.0;
+            if tears {
+                call(g, ei, "tear");
+                g.director_note("tear");
+            }
         }
         return;
     }
-    // reading it, to the end, blind to you
-    if t >= READ_TIME {
+    // reading it, to the end, blind to you (or tearing it)
+    let tears = g.creature(ei).unwrap().get("tears") > 0.0;
+    if t >= if tears { TEAR_TIME } else { READ_TIME } {
         let seen = g.creature(ei).unwrap().brain.mem.seen.map(|(x, z, _)| (x, z));
         if after {
             g.creature_mut(ei).unwrap().brain.goal = seen;
@@ -589,13 +604,10 @@ fn notice(g: &mut Game, ei: usize) {
 /// chance), near the paper, in an office wing when there is one, far from
 /// the arrival and her camp. None when there is no paper.
 pub fn place(g: &mut Game) -> Option<usize> {
-    if g.depth() < 2 || g.building.is_some() || g.level_scp.is_some() || g.in_loop || g.in_stairwell {
+    if g.in_loop || g.in_stairwell || !g.ecology().contains(&"reader") {
         return None;
     }
     let mut h = crate::base::rng::SplitMix64::new(g.current_seed, 0x2EAD_E2E5_u64 ^ g.level_num as u64);
-    if h.next() > 0.7 {
-        return None;
-    }
     let piles: Vec<(i32, i32)> = g.papers.iter().filter(|p| !p.taken).map(|p| (g.tx(p.g.pos().x), g.tz(p.g.pos().z))).collect();
     if piles.is_empty() {
         return None;
@@ -844,6 +856,13 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
             s.burst(&v, t, 0.025, "highpass", 2200.0, 1.0, 0.42, None, 0.001);
             s.burst(&v, t + 0.004, 0.08, "bandpass", 1500.0, 1.2, 0.16, Some(900.0), 0.003);
             s.burst(&v, t + 0.05, 0.25, "bandpass", 4200.0, 0.9, 0.04, Some(3000.0), 0.02);
+        }
+        "tear" => {
+            // a sheet torn across: a ripping that rises, and the halves
+            s.burst(&v, t, 0.45, "bandpass", 1400.0, 1.0, 0.16, Some(3200.0), 0.01);
+            for k in 0..6 {
+                s.burst(&v, t + 0.04 + k as f64 * 0.06, 0.02, "highpass", 2600.0, 1.0, 0.07, None, 0.001);
+            }
         }
         "rustle" => {
             // (fixed: it reads far from you too, and draws nothing then)

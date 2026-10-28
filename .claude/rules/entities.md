@@ -10,9 +10,10 @@ paths:
 # Creature and pacing rules
 
 - **The plan is `docs/ENTITIES.md`**: five creatures, five rules (one sense
-  and one counter each), one brain, fairness as invariants. A creature moved
-  onto the new brain is named in `creature::on_new_brain`; the rest still
-  run `ai.rs` until their milestone.
+  and one counter each), one brain, fairness as invariants. Every kind
+  `add_entity` makes is on the brain (`creature::on_new_brain`); `ai.rs`
+  keeps only the shared steering and the update loop (the anomalies' staff
+  and shadows run their own rules there until E9).
 - **The new brain** (`entities/brain.rs`, `entities/creature.rs`): a creature
   is in one `Mode` and changes it only by a rule of its kind, logged with a
   reason (`Brain::set`); percepts are computed once a frame (`perceive`:
@@ -59,12 +60,30 @@ paths:
   build (`build_body`), or the renderer draws none; a pose is set by
   writing `morph_influences` (the Watcher's poses).
 - **The director owns pressure** (`entities/director.rs`): calm → build →
-  peak → relax. One stalker at a time, rotated (`last_sent`); it withdraws
-  after a close call (menace ≥ 1 and lost for 2.5 s, or menace ≥ 1.2 with the
-  hunter more than 2.5 m away), and when a strike lands
-  (`director_relax_now`). The Watcher acts only as the stalker.
-- **Old senses** (`ai.rs`, until each kind moves): a view cone (dot ≥ 0.42,
-  or within 3.5 m, or the flashlight on it); states wander / search / hunt.
+  peak → relax. One stalker at a time, rotated (`last_sent`); sent from
+  further than `FAR_SEND` along the level it is first brought, out of your
+  sight, to `SEND_FROM` (`bring_nearer`: sent from 190 m it never arrived);
+  some build-ups end in nothing (`EMPTY_SHARE`: one sign, then quiet; never
+  one her page or a trail called). It withdraws them after a close call
+  (menace ≥ 1 and lost for 2.5 s, or menace ≥ 1.2 with the hunter more than
+  2.5 m away), and when a strike lands (`director_relax_now`). Sent away is
+  an order every kind obeys as soon as it no longer has you (the shared
+  rule in `update_creature`: one that searched on began the next peak at
+  once); a chase is its own until its rule loses you (cut short, running 8
+  s beat every creature), and one sent away, finishing its chase, starts no
+  new peak. The Watcher acts only as the stalker.
+- **The ecology** (`Game::ecology`, design 5) decides who lives on a level,
+  by its places, with no draws: one on the Lobby, two at depth 2, three
+  deeper; the Smiler where there is dark, the Watcher among furnished rooms,
+  the Reader beside paper; places a creature can use (reached from the
+  arrival, a quarter of the level off). The Showroom and the Borrowed House
+  keep their own residents; a level with the Stairwell's or the Loop's door
+  is rooms like any.
+- **What they learn** (design 4): `creature::LEARNS`; count a habit with
+  `creature_habit` where it happens; at most one kind learns a level (the
+  rest on a later one: `creature_learn_pending`); the new behaviour goes
+  behind `creature_may_show` (the first time, in plain sight); the run's
+  `RunMemory` is saved with it.
 - **Bodies** are built by `cargo xtask assets creatures` (Blender headless,
   `assets/src/creatures/`) into `bodies.bin`, posed so the pose is the rest
   pose; animate by aiming bones in the body's frame (`BodyRig::aim`,
@@ -77,8 +96,9 @@ paths:
   read the trials (`debug_trials`, `ARENA_DEBUG`) before tuning: ask whether
   the rule leaves the player a winning move at all (fix the creature) or
   the bot just plays it badly (fix the bot, as a player would play it).
-  The old creatures' reference fixtures: `REGEN=1 cargo test --release -p
-  game --test entities` after an intended change, then review the diff.
+  Where they live: `tests/ecology.rs`. What is left of the old reference
+  fixture (the steering, the staff's limb solver): `REGEN=1 cargo test
+  --release -p game --test entities` prunes it to what is read.
 - **Evidence:** the creature goldens in `cargo xtask shots` (2, 4, 8 m and
   the death scene), or `--fresh --level 4 --showcase kind:dist [--death]` by hand (a floor of
   the rooms: the Building's floors have none);

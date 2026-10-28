@@ -112,24 +112,11 @@ placer pass when tracing is on; the reference-level test compares these.
 
 ## Creatures and pacing
 
-Each creature (`entities::ai`) is in one of three states:
-
-* **wander**: it roams toward dark goals far from you. Its eyes look
-  forward: it sees you only inside a wide cone ahead of it (or right beside
-  it, or when your flashlight is aimed at it), so you can pass behind one.
-  Seeing you starts a hunt; only *hearing* you (`player.audible_range`:
-  silent standing, quiet crouching, loud running) starts a search.
-* **search**: it walks to where it heard you, stops and listens, then tries
-  spots ever closer around that point, quiet but for its footfalls, until
-  it sees you or gives up.
-* **hunt**: the notice comes first (it stops dead, its head snapped to you,
-  a shriek from where it stands, a dissonant sting), then a charge. Losing
-  sight and sound of you for a few seconds sends it to search where it last
-  had you. Touch is death; the death scene shows the creature that did it.
-
-The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound, the
-Smiler, the Watcher, the one in the corner and the Reader) run
-their own brain instead (`entities::creature`, `entities::brain`): one
+The creatures (`docs/ENTITIES.md`: the Hound, the Smiler, the Watcher, the
+one in the corner and the Reader) run one brain (`entities::creature`,
+`entities::brain`; `entities::ai` keeps only the shared steering, the
+update loop and the screen's pressure, and the anomalies' staff and
+shadows, which run their own rules until E9): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
 percepts computed once a frame (hearing along the way it would walk to you,
@@ -151,6 +138,16 @@ near it, in a mode of its own, `Read`). What a placed creature does far
 from you draws nothing from the per-frame stream (its making on a seeded
 stream of its own, its choices on its own `SplitMix64`).
 
+Who lives on a level is its **ecology** (`Game::ecology`, by its places,
+no draws): one on the Lobby, two at depth 2, three deeper; the Smiler
+where it is dark, the Watcher among furnished rooms, the Reader beside
+paper, the Hound anywhere, each put in its own kind of place
+(`spawn_entities`; the Reader after the build, `reader::place`). **What
+they learn** (`creature::LEARNS`): a run counts your habits with each kind
+(`creature_habit`); at its count a kind learns one new behaviour, at most
+one kind a level, shown the first time where you can see it
+(`creature_may_show`); the ledger (`RunMemory`) is saved with the run.
+
 Above them, the **director** (`entities::director`) shapes each level into a
 cycle, after the AI director designs of horror games (a menace gauge that
 backs the threat off after a peak; build-up, peak and relax phases):
@@ -158,8 +155,8 @@ backs the threat off after a peak; build-up, peak and relax phases):
 | Phase | What happens |
 |---|---|
 | Calm | Nothing is sent after you (45–80 s on the first floors of the rooms, shorter deeper down; 110–150 s for the first on level 4, the Lobby, while M.'s camp is there to find). Taking her page cuts it to 4–9 s (`director_wake`). Nothing walks the Building's floors (levels 1–3) |
-| Build | One creature is sent (the nearest Smiler or Hound, now and then the Watcher; not the one sent last time when another can go). It is steered toward your part of the level, to tiles you cannot see in a circle round you that tightens as the build-up goes on (16 m out at first, 3–8 m at the end). Its footsteps far off, then the lights over it stuttering, then quiet as it closes in. If the time runs out it is told where you are (and again every few seconds) and gets a last stretch of up to 25 s to come and look |
-| Peak | Something hunts you, or searches close by. The menace gauge fills with closeness and sight; once it is full and you have broken away (nothing hunting you within 8 m or in sight) for a few seconds, or it is half full again and the hunter is not on top of you, everything after you withdraws |
+| Build | One creature is sent (the nearest of the Smiler, the Hound, the Reader, now and then the Watcher; not the one sent last time when another can go; sent from further than 60 m along the level, it is first moved, out of your sight, to 30–45 m: `bring_nearer`). It is steered toward your part of the level, to tiles you cannot see in a circle round you that tightens as the build-up goes on (16 m out at first, 3–8 m at the end). Its sounds far off, then the lights over it stuttering, then quiet as it closes in (its signs only within 40 m). If the time runs out it is told where you are (`Order::Seek`, taken as a hint every few seconds) and gets a last stretch of up to 25 s to come and look. Three in ten build-ups end in nothing: one sign, six seconds of quiet, and it goes its way (never one her page or a false trail called) |
+| Peak | Something hunts you, or searches close by. The menace gauge fills with closeness and sight; once it is full and you have broken away (nothing hunting you within 8 m or in sight) for a few seconds, or it is half full again and the hunter is not on top of you, everything after you is sent away: each withdraws as soon as it no longer has you (a chase stays its own until its rule loses you), and one sent away, finishing its chase, starts no new peak |
 | Relax | The creatures keep away and hear less for 25–45 s |
 
 On the Building's floors nothing walks: the director runs the
@@ -172,11 +169,11 @@ sealed in a cell (its hermetic door shut by its wheel) you are safe. The
 lamps under its surface go out, and with your eyes under it the fog is
 what you see (the camera is in that place). Her page sounds the siren.
 
-The Watcher keeps the rhythm too: unless it is the one sent, it stays still
-within 18 m of you and only creeps slowly when further off, never teleports,
-and drains half as much. Sent, it creeps and closes the gap while you look
-away; its touch (a blow to your nerve) is that build-up's climax, after
-which it falls back. Its touch kills only when your nerve is already gone.
+The Watcher keeps the rhythm too: unless it is the one sent, it stands
+where it is, among its furniture. Sent, it closes the gap while you look
+away (and after a while unseen it is simply nearer); its touch (a blow to
+your nerve) is that build-up's climax, after which it falls back. Its touch
+kills only a mind it leaves spent, and never at a first meeting.
 
 The director publishes `tension` (how close the threat feels: the drone, the
 heartbeat and the vignette follow it) and `hush` (how quiet the ambience

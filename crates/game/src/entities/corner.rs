@@ -60,6 +60,11 @@ pub const NEAR: f64 = 3.0;
 /// and then, every this many seconds (the hum stops first), m and s.
 pub const LOOKS_NEAR: f64 = 20.0;
 pub const LOOKS_EVERY: (f64, f64) = (25.0, 45.0);
+/// ... and once it has learned (you passed behind it four times, design 4),
+/// this often.
+pub const LOOKS_LEARNED: (f64, f64) = (10.0, 18.0);
+/// Within this behind its back, you pass behind it, m.
+const BEHIND: f64 = 3.0;
 /// Its hum carries this far (a room away), m.
 const HUM_REACH: f64 = 16.0;
 const SCREAM_REACH: f64 = 30.0;
@@ -141,13 +146,24 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 set(g, ei, Mode::Hold, "in its corner");
             }
             g.entity_drive(ei, dt, 0.0);
+            // you pass behind it (counted once a pass): what it learns from
+            let (fx, fz) = face_dir(g, ei);
+            let behind = d < BEHIND && fx * (pp.x - pos.x) + fz * (pp.z - pos.z) < 0.0;
+            let passing = g.creature(ei).unwrap().get("passing") > 0.0;
+            if behind && !passing {
+                g.creature_mut(ei).unwrap().ease.insert("passing", 1.0);
+                g.creature_habit("corner");
+            } else if passing && d > 2.0 * BEHIND {
+                g.creature_mut(ei).unwrap().ease.insert("passing", 0.0);
+            }
             // now and then, while you are in its room, it turns to look at
-            // the room behind it (the hum stops first)
+            // the room behind it (the hum stops first); learned, more often
             let near = d < LOOKS_NEAR && g.e_los(pos.x, pos.z, pp.x, pp.z);
+            let every = if g.creature_learned("corner") { LOOKS_LEARNED } else { LOOKS_EVERY };
             let turn_in = {
                 let c = g.creature_mut(ei).unwrap();
                 if c.get("turn_in") <= 0.0 {
-                    let v = with_native(|| rand2(LOOKS_EVERY.0, LOOKS_EVERY.1));
+                    let v = with_native(|| rand2(every.0, every.1));
                     c.ease.insert("turn_in", v);
                 }
                 let v = c.get("turn_in") - if near { dt } else { 0.0 };

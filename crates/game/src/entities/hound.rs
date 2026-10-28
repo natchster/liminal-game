@@ -63,6 +63,10 @@ fn stalk_speed(d: f64) -> f64 {
 }
 const TROT: f64 = 3.4;
 const CHARGE: f64 = 6.0;
+/// It lost you this far off: you outran it (what it learns from), m.
+const OUTRAN: f64 = 15.0;
+/// Learned, it charges for where you will be this long from now, s.
+const AHEAD_T: f64 = 1.2;
 const SPRING: f64 = 7.0;
 /// How long a charge lasts before it stops to listen, and the stop, s.
 const CHARGE_T: f64 = 6.0;
@@ -183,6 +187,22 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     }
     let aw = g.creature(ei).unwrap().brain.mem.awareness;
     let heard = g.creature(ei).unwrap().brain.mem.heard;
+    // where you are heading (your way over the last moments): learned, it
+    // charges for there, not for where you are
+    let ahead = {
+        let c = g.creature_mut(ei).unwrap();
+        let (lx, lz, had) = (c.get("ppx"), c.get("ppz"), c.get("pp_set") > 0.0);
+        c.ease.insert("ppx", pp.x);
+        c.ease.insert("ppz", pp.z);
+        c.ease.insert("pp_set", 1.0);
+        let (vx, vz) = if had && dt > 0.0 { ((pp.x - lx) / dt, (pp.z - lz) / dt) } else { (0.0, 0.0) };
+        let (vx, vz) = (c.eased("pvx", vx.clamp(-8.0, 8.0), 4.0, dt), c.eased("pvz", vz.clamp(-8.0, 8.0), 4.0, dt));
+        if c.get("ahead") > 0.0 && hypot2(vx, vz) > 1.0 {
+            Some(g.open_point(pp.x + vx * AHEAD_T, pp.z + vz * AHEAD_T))
+        } else {
+            None
+        }
+    };
 
     match mode {
         Mode::Withdraw => {
@@ -317,13 +337,16 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 if heard_now || charge_t > CHARGE_T + RELISTEN_T {
                     if heard_now {
                         g.creature_mut(ei).unwrap().chase_t = 0.0;
-                        g.entity_call(ei, "bark");
-                        g.creature_tell(ei, BAY_REACH);
+                        bay(g, ei);
                     } else {
                         let c = g.creature_mut(ei).unwrap();
                         c.chase_t = 0.0;
                         c.brain.mem.awareness = 0.45;
                         set(g, ei, Mode::Search, "lost you in the stop");
+                        // you got well away from it: you outran it (what it learns from)
+                        if p.dist > OUTRAN {
+                            g.creature_habit("hound");
+                        }
                         return;
                     }
                 }
@@ -348,7 +371,10 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 } else {
                     let goal = heard.map(|(x, z, _)| (x, z));
                     let fresh = heard.map(|(_, _, t)| now - t < 0.3).unwrap_or(false);
-                    if fresh && p.dist < 14.0 && p.line {
+                    if let Some(at) = ahead.filter(|_| fresh && p.dist > SPRING_FROM) {
+                        // learned: for where you are heading, to meet you from ahead
+                        g.creature_go(ei, Some(at), false, CHARGE, dt);
+                    } else if fresh && p.dist < 14.0 && p.line {
                         g.creature_go(ei, None, true, CHARGE, dt);
                     } else {
                         g.creature_go(ei, goal, false, CHARGE, dt);
@@ -358,6 +384,9 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             g.creature_mut(ei).unwrap().chase_t += dt;
             if aw < 0.15 && !listening {
                 set(g, ei, Mode::Search, "nothing to go on");
+                if p.dist > OUTRAN {
+                    g.creature_habit("hound");
+                }
             }
         }
         Mode::Strike => {
@@ -404,8 +433,7 @@ fn notice(g: &mut Game, ei: usize) {
     }
     set(g, ei, Mode::Hunt, "it is sure where you are");
     g.director_note("notice");
-    g.entity_call(ei, "bark");
-    g.creature_tell(ei, BAY_REACH);
+    bay(g, ei);
     let d = g.perceive(ei).dist;
     if d < 30.0 {
         g.dread_sting((1.3 - d / 30.0).clamp(0.5, 1.0));
@@ -574,8 +602,22 @@ fn voice_slot(g: &mut Game, ei: usize) -> Option<crate::audio::soundscape::Voice
     Some(slot)
 }
 
+/// It breaks into its charge: a bay (its tell); learned (you outran it three
+/// times, design 4), no bay, only its nails scrabbling as it goes (the tell,
+/// nearer), and it runs for where you are heading.
+fn bay(g: &mut Game, ei: usize) {
+    if g.creature_may_show(ei) {
+        g.creature_mut(ei).unwrap().ease.insert("ahead", 1.0);
+        g.entity_call(ei, "scrabble");
+        g.creature_tell(ei, SCRABBLE_REACH);
+    } else {
+        g.entity_call(ei, "bark");
+        g.creature_tell(ei, BAY_REACH);
+    }
+}
+
 /// The hound's calls (`entity_call` routes them here): `bark` (the bay),
-/// `growl`, `listen` (sniffing).
+/// `growl`, `listen` (sniffing), `scrabble` (its nails, breaking into a run).
 pub fn call(g: &mut Game, ei: usize, what: &str) {
     let Some(s) = g.soundscape() else { return };
     let Some(v) = voice_slot(g, ei).map(|slot| slot.input.clone()) else { return };
@@ -591,6 +633,13 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
         "growl" => {
             s.tone(&v, t, 0.9, 62.0, 0.12, "sawtooth", Some(50.0), 0.08);
             s.burst(&v, t, 0.9, "lowpass", 320.0, 1.5, 0.09, Some(240.0), 0.08);
+        }
+        "scrabble" => {
+            for k in 0..9 {
+                let f = [3400.0, 2900.0, 3800.0][k % 3];
+                s.burst(&v, t + k as f64 * 0.045 + [0.0, 0.012, 0.006][k % 3], 0.02, "highpass", f, 1.0, 0.09, None, 0.001);
+            }
+            s.burst(&v, t, 0.35, "lowpass", 300.0, 0.8, 0.12, None, 0.004);
         }
         "listen" => {
             for k in 0..3 {

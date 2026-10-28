@@ -540,8 +540,9 @@ fn cry_for_help_cooldown_and_outcomes() {
             }
             if r.g.entities.len() > n0 && r.g.entities[n0].kind == "hound" {
                 hounds += 1;
-                assert!((r.g.entities[n0].speed - (7.2 + 0.9)).abs() < 1e-9);
-                assert_eq!(r.g.entities[n0].eye_y_offset, 0.055);
+                // a creature of the redesign, sure where the cry came from
+                let c = r.g.creature(n0).expect("the hound a cry brings is on the new brain");
+                assert!(c.brain.mem.awareness >= 0.99, "it heard the cry");
             }
         }
     });

@@ -61,6 +61,14 @@ const NEARER_AFTER: f64 = 2.5;
 const HUNT_NEAR: f64 = 6.0;
 /// Your ears ring within this (along the way), m: its tell.
 pub const RING_REACH: f64 = 8.0;
+/// A stare at it longer than this is what it learns from, s.
+pub const LONG_STARE: f64 = 8.0;
+/// Once it has learned (five long stares, design 4), while you watch it
+/// within this the panels over it fail, every `FAILS_EVERY` s, and its place
+/// is dark for `DARK_FOR` s after each (it takes the light you see it by).
+pub const FAILS_WITHIN: f64 = 15.0;
+pub const FAILS_EVERY: f64 = 2.5;
+pub const DARK_FOR: f64 = 5.0;
 /// The poses of its sheet, as morphs (the first is the rest).
 pub const POSES: [&str; 6] = ["stand", "listen", "bowed", "reach", "lean", "over"];
 /// The pose it bends over you in.
@@ -118,7 +126,9 @@ pub fn seen(g: &Game, ei: usize) -> bool {
         return false;
     }
     let lamp = g.player.flashlight_on && toward > 0.9 && d < 18.0;
-    lamp || d < CLOSE || g.e_region_light_at(g.tx(pos.x), g.tz(pos.z)) > LIT
+    // (learned: the panels over it have failed, its place is dark a while)
+    let dark = g.creature(ei).map(|c| c.get("dark_until") > g.perf_t).unwrap_or(false);
+    lamp || d < CLOSE || (!dark && g.e_region_light_at(g.tx(pos.x), g.tz(pos.z)) > LIT)
 }
 
 /// A tile up to `NEARER` m along the way to you from it, never within
@@ -201,6 +211,24 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             c.ease.insert("moved_unseen", 0.0);
             g.creature_tell(ei, 0.0);
         }
+    }
+    // a long stare, held while it is after you: what it learns from
+    {
+        let c = g.creature_mut(ei).unwrap();
+        let stare = if is_seen { c.get("stare") + dt } else { 0.0 };
+        let was_stare = c.get("stare");
+        c.ease.insert("stare", stare);
+        if !is_seen && was_stare > LONG_STARE && sent {
+            g.creature_habit("watcher");
+        }
+    }
+    // learned: while you watch it, the panels over it fail
+    if is_seen && sent && d < FAILS_WITHIN && g.creature(ei).unwrap().get("fail_t") <= now && g.creature_may_show(ei) {
+        let c = g.creature_mut(ei).unwrap();
+        c.ease.insert("fail_t", now + FAILS_EVERY);
+        c.ease.insert("dark_until", now + DARK_FOR);
+        g.flicker_near(pos.x, pos.z);
+        g.director_note("lights fail");
     }
     if is_seen {
         // seen, it holds: nothing moves

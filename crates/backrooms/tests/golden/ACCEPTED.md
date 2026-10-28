@@ -63,3 +63,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-28, on top of ddf18ba: frames: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): new frames at 2, 4 and 8 m (bent over its page, its long fingers on the back of it) and its death (the sheet lowered: its staring eyes, its open mouth inked)
 
 - 2026-10-28, on top of ddf18ba: look anchors: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): its frames are new, so are their look anchors
+
+- 2026-10-29, on top of 8274df8: frames: 41 shots. Reason: E7: the old creatures' textures, shapes and rigs are gone, so the start-up no longer paints them on the per-frame stream: every canvas texture after them (bricks, stains, grain) draws other numbers, and the death camera shakes otherwise; content checked unchanged (the Building's arrival, the office wing, the Smiler's death)

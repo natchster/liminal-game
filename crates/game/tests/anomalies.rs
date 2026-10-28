@@ -65,7 +65,7 @@ fn world_is_stub() -> bool {
     g.bfs(2, 2)[12] != 0
 }
 fn entities_is_stub() -> bool {
-    game::entities::solve_limb(0.0, 0.0, -0.5, 0.0, 0.3, 0.3, 1.0) == (0.0, 0.0)
+    game::anomalies::rig::solve_limb_ik(0.0, 0.0, -0.5, 0.0, 0.3, 0.3, true) == (0.0, 0.0)
 }
 fn skin_is_stub() -> bool {
     let g = group();

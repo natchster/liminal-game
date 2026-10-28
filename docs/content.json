@@ -236,7 +236,7 @@
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
         "test:game/bodies",
-        "test:backrooms/corner_placement",
+        "test:backrooms/ecology",
         "test:backrooms/listen",
         "test:backrooms/pacing"
       ],
@@ -257,7 +257,7 @@
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
         "test:game/bodies",
-        "test:backrooms/reader_placement",
+        "test:backrooms/ecology",
         "test:backrooms/story",
         "test:backrooms/listen",
         "test:backrooms/pacing"

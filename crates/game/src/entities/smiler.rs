@@ -65,6 +65,9 @@ const BREATH_REACH: f64 = 12.0;
 /// It feels you this close, in the dark or not, m.
 const TOUCH: f64 = 0.8;
 const CLICK_REACH: f64 = 16.0;
+/// Once it has learned (you hid from it in the dark four times, design 4),
+/// it waits this long where you went dark, silent, before it searches, s.
+pub const WAITS: f64 = 6.0;
 
 thread_local! {
     static MATS: std::cell::RefCell<std::collections::HashMap<String, Mat>> = Default::default();
@@ -328,8 +331,16 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         }
         Mode::Hunt => {
             if aw < SUSPECT {
+                // you hid from it in the dark, your lamp out: what it learns from
+                if !p.lamp {
+                    g.creature_habit("smiler");
+                }
                 g.creature_mut(ei).unwrap().brain.goal = seen.map(|(x, z, _)| (x, z));
-                set(g, ei, Mode::Search, "it lost you in the dark");
+                if g.creature_may_show(ei) {
+                    set(g, ei, Mode::Hold, "it waits where you went dark");
+                } else {
+                    set(g, ei, Mode::Search, "it lost you in the dark");
+                }
                 return;
             }
             let allowed = g.strike_allowed(ei);
@@ -385,6 +396,17 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                     e.vz = 0.0;
                     set(g, ei, Mode::Hunt, "the lunge missed");
                 }
+            }
+        }
+        Mode::Hold => {
+            // learned: it waits where you went dark, silent, no clicks; your
+            // lamp on now, anywhere it could see it, and it has you
+            g.entity_drive(ei, dt, 0.0);
+            if (p.lamp && p.line && p.dist < LAMP_SIGHT) || body_seen || touched {
+                g.creature_mut(ei).unwrap().brain.mem.awareness = 1.0;
+                notice(g, ei);
+            } else if mode_t > WAITS {
+                set(g, ei, Mode::Search, "it gave up waiting");
             }
         }
         _ => set(g, ei, Mode::Idle, "back in the dark"),
@@ -671,10 +693,10 @@ pub fn voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
     }
     c.voice_t = match mode {
         Mode::Hunt | Mode::Strike => with_native(|| rand2(1.1, 1.6)),
-        Mode::Idle | Mode::Search => with_native(|| rand2(4.0, 7.0)),
+        Mode::Idle | Mode::Search | Mode::Hold => with_native(|| rand2(4.0, 7.0)),
         _ => with_native(|| rand2(2.4, 3.8)),
     };
-    if matches!(mode, Mode::Idle | Mode::Search) && d > 6.0 {
+    if matches!(mode, Mode::Idle | Mode::Search) && d > 6.0 || mode == Mode::Hold {
         return; // waiting, it is silent
     }
     s.burst(&v, t, 0.9, "lowpass", 420.0, 0.9, 0.05, Some(260.0), 0.35);

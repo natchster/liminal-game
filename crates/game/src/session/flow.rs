@@ -31,6 +31,8 @@ pub struct SaveData {
     pub notebook: Vec<String>,
     /// Her story has ended (`story::ending`)
     pub arc_done: bool,
+    /// What the run remembers of the creatures (met, your habits, what they learned)
+    pub creatures: crate::entities::creature::RunMemory,
 }
 
 impl Game {
@@ -108,6 +110,8 @@ impl Game {
         crate::entities::corner::place(self);
         // the Reader, where paper lies
         crate::entities::reader::place(self);
+        // a kind held back from learning on the last level learns now
+        self.creature_learn_pending();
         self.build_light_map();
         self.update_ambience();
         self.release_pooled_lights();
@@ -198,6 +202,7 @@ impl Game {
             "arcs": arcs,
             "notebook": self.notebook.iter().collect::<Vec<_>>(),
             "arcDone": self.arc_done,
+            "creatures": self.creature_run.to_json(),
             "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
         });
         self.storage_set(SAVE_KEY, &data.to_string());
@@ -236,6 +241,7 @@ impl Game {
                 .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
                 .unwrap_or_default(),
             arc_done: flag("arcDone"),
+            creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
             notebook: d
                 .get("notebook")
                 .and_then(|v| v.as_array())
@@ -267,6 +273,7 @@ impl Game {
         self.lore_arcs_completed = d.arcs.iter().cloned().collect();
         self.notebook = d.notebook.iter().cloned().collect();
         self.arc_done = d.arc_done;
+        self.creature_run = d.creatures.clone();
         // the thread: the last line of the latest page of hers taken
         self.thread = crate::story::notebook::notebook(self.run_seed)
             .into_iter()

@@ -91,7 +91,25 @@ pub struct Director {
     /// A creature's strikes that reached you in this peak (the second kills:
     /// `creature::creature_contact`)
     pub contacts: u32,
+    /// This build-up ends in nothing: a sign, then quiet (`EMPTY_SHARE`)
+    pub empty: bool,
+    /// The next build-up was called (her page, a false trail's end): it is real
+    pub called: bool,
+    /// Signs given in this build-up, and the quiet since the last
+    pub cues: u32,
+    pub quiet_t: f64,
 }
+
+/// The share of build-ups that end in nothing: a sign, then quiet (design 5:
+/// a sign is never a promise).
+pub const EMPTY_SHARE: f64 = 0.3;
+/// After its sign, an empty build-up stays quiet this long, then the stalker
+/// goes its way, s.
+pub const EMPTY_QUIET: f64 = 6.0;
+/// A stalker further than this along the level is brought nearer before it
+/// is sent (out of your sight), to this far from you along the way, m.
+pub const FAR_SEND: f64 = 60.0;
+pub const SEND_FROM: (f64, f64) = (30.0, 45.0);
 
 /// The first quiet on the first floor while her camp is there to find, s
 pub const FIRST_FLOOR_CALM: (f64, f64) = (110.0, 150.0);
@@ -140,7 +158,10 @@ impl Game {
     pub fn director_lure(&mut self) {
         self.director_note("lure");
         match self.director.phase {
-            Phase::Calm => self.director.t = self.director.t.min(rand2(LURE.0, LURE.1)),
+            Phase::Calm => {
+                self.director.t = self.director.t.min(rand2(LURE.0, LURE.1));
+                self.director.called = true;
+            }
             Phase::Build => self.director.t = self.director.t.min(0.0),
             _ => {}
         }
@@ -159,6 +180,7 @@ impl Game {
         }
         if self.director.phase == Phase::Calm {
             self.director.t = self.director.t.min(rand2(WAKE.0, WAKE.1));
+            self.director.called = true;
             self.director_note("wake");
         }
     }
@@ -194,6 +216,11 @@ impl Game {
                     engaged += 1;
                 }
             }
+            // (one already sent away, finishing its chase, starts no new peak)
+            if e.state == "hunt" && e.n("retreatT") > 0.0 {
+                engaged += 1;
+                continue;
+            }
             if e.state == "hunt" {
                 hunters += 1;
                 engaged += 1;
@@ -220,8 +247,19 @@ impl Game {
             }
             Phase::Build => {
                 self.director.t -= dt;
+                let d = &mut self.director;
+                if d.empty && d.cues > 0 {
+                    d.quiet_t += dt;
+                }
                 if hunters > 0 {
                     self.enter_peak();
+                } else if self.director.empty && (self.director.quiet_t > EMPTY_QUIET || self.director.t <= 0.0) {
+                    // a sign, then quiet: it goes its way, and nothing came
+                    self.director_note("nothing");
+                    if let Some(si) = self.director.stalker {
+                        self.withdraw_entity(si);
+                    }
+                    self.enter_relax(false);
                 } else if self.director.t <= 0.0 && !self.director.final_push && self.final_push() {
                     // the stalker knows where you are now
                 } else if self.director.t <= 0.0 || self.director.stalker.is_none() {
@@ -380,6 +418,48 @@ impl Game {
         e.set_fl("stalk", false);
     }
 
+    /// When creature `si` is further than `FAR_SEND` m from you along the
+    /// level, it is moved, out of your sight, to the open tile nearest it
+    /// that is `SEND_FROM` m from you along the way → its new straight
+    /// distance, or None when it was near enough (or nowhere fitted).
+    fn bring_nearer(&mut self, si: usize) -> Option<f64> {
+        let pf = self.player_field.clone()?;
+        let p = self.entities[si].pos();
+        let (tx, tz) = self.e_nav_tile_at(p.x, p.z);
+        let steps = pf.get(self.t_idx(tx, tz)).copied().unwrap_or(-1);
+        if steps >= 0 && steps as f64 * CELL <= FAR_SEND {
+            return None;
+        }
+        let pp = self.player.pos;
+        let mut best: Option<(f64, i32, i32)> = None;
+        for z in 1..self.h - 1 {
+            for x in 1..self.w - 1 {
+                let k = pf.get(self.t_idx(x, z)).copied().unwrap_or(-1);
+                if k < 0 || !(SEND_FROM.0..SEND_FROM.1).contains(&(k as f64 * CELL)) || self.is_wall_tile(x, z) {
+                    continue;
+                }
+                let (wx, wz) = (self.wx(x), self.wz(z));
+                if self.e_los(pp.x, pp.z, wx, wz) || self.e_circle_hits_wall(wx, wz, 0.4) {
+                    continue;
+                }
+                let d = hypot2(wx - p.x, wz - p.z);
+                if best.map(|b| d < b.0).unwrap_or(true) {
+                    best = Some((d, x, z));
+                }
+            }
+        }
+        let (_, x, z) = best?;
+        let (wx, wz) = (self.wx(x), self.wz(z));
+        let e = &mut self.entities[si];
+        e.g.set_pos(wx, 0.0, wz);
+        e.vx = 0.0;
+        e.vz = 0.0;
+        e.w_field = None;
+        e.w_target = None;
+        self.director_note("brought nearer");
+        Some(hypot2(wx - pp.x, wz - pp.z))
+    }
+
     fn enter_build(&mut self) {
         self.director_note("build");
         let pp = self.player.pos;
@@ -403,6 +483,9 @@ impl Game {
             }
         }
         let pick = pick.map(|(i, dd, _)| (i, dd));
+        // sent from far off, it would not arrive in time: out of your sight it
+        // is brought within reach first (its signs still come from where it is)
+        let pick = pick.map(|(si, dd)| (si, self.bring_nearer(si).unwrap_or(dd)));
         let d = &mut self.director;
         let Some((si, dist)) = pick else {
             // nothing to send: stay quiet a little longer
@@ -410,6 +493,11 @@ impl Game {
             return;
         };
         d.phase = Phase::Build;
+        // some build-ups end in nothing (never one her page or a trail called)
+        d.empty = !d.called && rnd() < EMPTY_SHARE;
+        d.called = false;
+        d.cues = 0;
+        d.quiet_t = 0.0;
         // time to arrive, and a while to prowl once it has
         d.t = clamp(dist / 3.4, 10.0, 60.0) + rand2(25.0, 40.0);
         d.build_len = d.t;
@@ -432,23 +520,10 @@ impl Game {
             self.director.stalker = None;
             return;
         }
-        // it heard you and is looking: let it look; in the last stretch it is
-        // told again every few seconds where you are now
+        // it heard you and is looking: let it look (in the last stretch its
+        // orders tell it where you are now: `Order::Seek`, taken as a hint
+        // at most every few seconds by its kind)
         if self.entities[si].state == "search" {
-            if self.director.final_push {
-                self.director.steer_t -= dt;
-                if self.director.steer_t <= 0.0 {
-                    self.director.steer_t = 4.0;
-                    let pp = self.player.pos;
-                    let e = &mut self.entities[si];
-                    e.set_n("seenX", pp.x + rand2(-2.0, 2.0));
-                    e.set_n("seenZ", pp.z + rand2(-2.0, 2.0));
-                    e.set_n("searchR", 3.0);
-                    e.set_n("searchT", e.n("searchT").max(6.0));
-                    e.set_n("lookT", 0.0);
-                    e.w_target = None;
-                }
-            }
             return;
         }
         // the Watcher needs no leading: unwatched, it comes on its own
@@ -519,6 +594,12 @@ impl Game {
         if ds > CUE_REACH {
             return;
         }
+        // an empty build-up gives one sign, then nothing
+        if self.director.empty && self.director.cues > 0 {
+            return;
+        }
+        self.director.cues += 1;
+        self.director.quiet_t = 0.0;
         let sp = self.entities[si].pos();
         // the Watcher makes no sound: only the lights over it tell
         if self.entities[si].kind == "watcher" && ds > 9.0 {
@@ -614,121 +695,11 @@ impl Game {
         s.burst(&s.dry, t, 1.1, "highpass", 4200.0, 0.7, 0.05 * intensity, Some(1800.0), 0.004);
     }
 
-    /// Creature `ei` has found you: it stops dead with its head snapped to
-    /// you, screams from where it stands, and then it comes.
-    pub fn entity_notice(&mut self, ei: usize, d: f64) {
-        if crate::entities::creature::on_new_brain(&self.entities[ei].kind) {
-            let pp = self.player.pos;
-            return self.creature_alert(ei, pp.x, pp.z);
-        }
-        self.director_note("notice");
+    /// Creature `ei` has found you (the bench's pack, an old caller): it is
+    /// sure where you are, and comes (`creature_alert`).
+    pub fn entity_notice(&mut self, ei: usize, _d: f64) {
         let pp = self.player.pos;
-        let pos = self.entities[ei].pos();
-        let kind = self.entities[ei].kind.clone();
-        {
-            let e = &mut self.entities[ei];
-            e.state = "hunt".into();
-            e.lose_t = 0.0;
-            e.yaw = (pp.x - pos.x).atan2(pp.z - pos.z);
-            e.g.rotation().y = e.yaw;
-            e.vx = 0.0;
-            e.vz = 0.0;
-            e.freeze = if kind == "hound" { 0.35 } else { 0.6 };
-            e.set_n("noticeT", 1.0);
-            e.set_n("chargeT", 2.2);
-            e.set_n("seenX", pp.x);
-            e.set_n("seenZ", pp.z);
-            e.set_fl("stalk", false);
-        }
-        self.entity_call(ei, "shriek");
-        // the lights around you stutter as it turns
-        for p in self.panels.iter_mut() {
-            if hypot2(p.wx - pp.x, p.wz - pp.z) < 10.0 && !p.dead {
-                p.flicker = p.flicker.max(rand2(0.35, 0.8));
-            }
-        }
-        if d < 30.0 {
-            self.dread_sting(clamp(1.3 - d / 30.0, 0.5, 1.0));
-            self.shake_t = self.shake_t.max(0.3);
-            self.player.sanity = clamp(self.player.sanity - 8.0, 0.0, SAN_MAX);
-        }
-    }
-
-    /// The creature lost you or heard you without seeing you: it goes to
-    /// where it thinks you are and looks, closer each time.
-    pub fn entity_search(&mut self, ei: usize, x: f64, z: f64, spread: f64, secs: f64) {
-        let e = &mut self.entities[ei];
-        e.state = "search".into();
-        e.lose_t = 0.0;
-        e.set_n("seenX", x);
-        e.set_n("seenZ", z);
-        e.set_n("searchT", secs);
-        e.set_n("searchR", spread);
-        e.set_n("lookT", 0.0);
-        e.w_field = None;
-        e.w_target = None;
-    }
-
-    /// One step of a search: walk to the next spot near where it last
-    /// knew you were, stop and listen, pick a closer spot.
-    pub fn search_step(&mut self, ei: usize, dt: f64) {
-        let (lx, lz, r) = {
-            let e = &self.entities[ei];
-            (e.n("seenX"), e.n("seenZ"), e.n("searchR"))
-        };
-        let pos = self.entities[ei].pos();
-        let look = self.entities[ei].n("lookT");
-        if look > 0.0 {
-            let e = &mut self.entities[ei];
-            e.set_n("lookT", look - dt);
-            // it turns its head about while it listens
-            let yaw = e.yaw + (look * 2.3).sin() * dt * 1.6;
-            e.yaw = yaw;
-            self.entity_drive(ei, dt, 0.0);
-            return;
-        }
-        let need = match self.entities[ei].w_target {
-            None => true,
-            Some((gx, gz)) => self.tx(pos.x) == gx && self.tz(pos.z) == gz,
-        };
-        if need {
-            if self.entities[ei].w_target.is_some() {
-                let e = &mut self.entities[ei];
-                e.set_n("lookT", rand2(1.2, 2.4));
-                e.set_n("searchR", (r * 0.7).max(2.5));
-            }
-            let mut goal = None;
-            for _ in 0..10 {
-                let a = rnd() * PI * 2.0;
-                let rr = rnd().sqrt() * r;
-                let (gx, gz) = (self.tx(lx + a.cos() * rr), self.tz(lz + a.sin() * rr));
-                if self.in_grid(gx, gz) && !self.is_wall_tile(gx, gz) {
-                    goal = Some((gx, gz));
-                    break;
-                }
-            }
-            let goal = goal.unwrap_or((self.tx(lx), self.tz(lz)));
-            let f = Rc::new(self.e_bfs(goal.0, goal.1));
-            let e = &mut self.entities[ei];
-            e.w_target = Some(goal);
-            e.w_field = Some(f);
-            return;
-        }
-        // careful while it searches; with urgency when the director has told it where you are
-        let urgent = self.director.final_push && self.director.stalker == Some(ei);
-        let speed = self.entities[ei].speed
-            * if urgent {
-                0.7
-            } else if self.entities[ei].kind == "hound" {
-                0.5
-            } else {
-                0.42
-            };
-        if let Some(wf) = self.entities[ei].w_field.clone() {
-            if self.entity_step_toward(ei, Some(wf), dt, speed, None) {
-                self.entities[ei].w_target = Some((self.tx(pos.x), self.tz(pos.z)));
-            }
-        }
+        self.creature_alert(ei, pp.x, pp.z);
     }
 
     /// The index of the creature nearest to you, if any.
@@ -752,10 +723,10 @@ impl Game {
     /// it keeps moving (jaw, hands) until the screen cuts to black.
     pub fn update_death_cam(&mut self, dt: f64) {
         let Some(ki) = self.director.killer.filter(|&i| i < self.entities.len()) else { return };
-        let t = self.perf_t;
-        self.animate_entity(ki, dt, t, 0.8);
-        if let Some(sk) = self.entities[ki].parts.get("skin") {
-            crate::entities::sync_skin_bind(sk);
+        // (its kind's own animation: every killer is a creature of the redesign)
+        crate::entities::creature::kind_animate(self, ki, dt);
+        if let Some(c) = self.creature(ki) {
+            c.body.sync();
         }
         let head = match self.entities[ki].parts.get("head") {
             Some(h) => h.world_position(),
@@ -804,7 +775,7 @@ impl Game {
     }
 
     /// The panels over a spot stutter.
-    fn flicker_near(&mut self, x: f64, z: f64) {
+    pub(crate) fn flicker_near(&mut self, x: f64, z: f64) {
         let mut near: Vec<(usize, f64)> = self.panels.iter().enumerate().map(|(i, p)| (i, hypot2(p.wx - x, p.wz - z))).collect();
         near.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal));
         for &(i, dp) in near.iter().take(3) {
@@ -812,19 +783,6 @@ impl Game {
                 self.panels[i].flicker = rand2(0.6, 1.1);
             }
         }
-    }
-
-    /// The Watcher the director sent has touched you: that was its moment.
-    /// It falls back and keeps away while the place settles.
-    pub fn director_strike(&mut self, ei: usize) {
-        self.director_note("strike");
-        if self.director.stalker != Some(ei) {
-            return;
-        }
-        if self.state == "playing" {
-            self.director.close_calls += 1;
-        }
-        self.enter_relax(false);
     }
 
     /// The build-up ran out without it finding you: it is told where you
@@ -837,9 +795,7 @@ impl Game {
         if self.entities[si].kind == "watcher" || self.entities[si].state != "wander" {
             return false;
         }
-        let pp = self.player.pos;
-        self.entity_search(si, pp.x + rand2(-2.0, 2.0), pp.z + rand2(-2.0, 2.0), 3.0, 15.0);
-        self.entity_call(si, "listen");
+        // (it is told through its orders: `Order::Seek`)
         self.director.final_push = true;
         self.director.steer_t = 4.0;
         self.director.t = 25.0;

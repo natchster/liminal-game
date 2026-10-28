@@ -173,14 +173,62 @@ impl Creature {
     }
 }
 
-/// What a run remembers of the creatures (`Game::creature_run`): the kinds you
-/// have met (their first strike does not kill) and your habits (what they
-/// learn, `docs/ENTITIES.md` design 4).
-#[derive(Clone, Debug, Default)]
+/// What a run remembers of the creatures (`Game::creature_run`, saved with
+/// the run): the kinds you have met (their first strike does not kill) and
+/// your habits, and what each kind has learned from them (`docs/ENTITIES.md`
+/// design 4).
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct RunMemory {
     pub met: Vec<String>,
+    /// How many times you did what each kind learns from
     pub habits: std::collections::BTreeMap<String, u32>,
+    /// The kinds that have learned their one new behaviour, in order
+    pub learned: Vec<String>,
+    /// The level the last of them learned on (at most one a level)
+    pub learned_on: Option<i32>,
+    /// The kinds whose new behaviour you have seen (the first time it
+    /// happens, it happens in plain sight)
+    pub shown: Vec<String>,
 }
+
+impl RunMemory {
+    /// As the save keeps it.
+    pub fn to_json(&self) -> serde_json::Value {
+        serde_json::json!({
+            "met": self.met, "habits": self.habits, "learned": self.learned,
+            "learnedOn": self.learned_on, "shown": self.shown,
+        })
+    }
+    /// From the save (anything missing or malformed: as a new run's).
+    pub fn from_json(v: Option<&serde_json::Value>) -> RunMemory {
+        let Some(v) = v else { return RunMemory::default() };
+        let strs = |k: &str| -> Vec<String> {
+            v.get(k).and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default()
+        };
+        let known = |k: &String| LEARNS.iter().any(|(kind, _, _)| kind == k);
+        RunMemory {
+            met: strs("met"),
+            habits: v
+                .get("habits")
+                .and_then(|h| h.as_object())
+                .map(|h| h.iter().filter_map(|(k, n)| n.as_u64().map(|n| (k.clone(), n.min(u32::MAX as u64) as u32))).collect())
+                .unwrap_or_default(),
+            learned: strs("learned").into_iter().filter(known).collect(),
+            learned_on: v.get("learnedOn").and_then(|x| x.as_i64()).map(|x| x as i32),
+            shown: strs("shown").into_iter().filter(known).collect(),
+        }
+    }
+}
+
+/// What each kind learns from (design 4): the habit, and how many times
+/// before it has learned (never from your deaths).
+pub const LEARNS: [(&str, &str, u32); 5] = [
+    ("smiler", "you hid from it in the dark", 4),
+    ("hound", "you outran it", 3),
+    ("watcher", "you held it with a long stare", 5),
+    ("corner", "you passed behind it", 4),
+    ("reader", "you escaped it with paper", 3),
+];
 
 impl Game {
     /// The creature of entity `ei`, if it is on the new brain.
@@ -361,8 +409,10 @@ impl Game {
         let first = !self.creature_run.met.contains(&kind);
         let touch = self.creature(ei).map(|c| c.data.touch_nerve).unwrap_or(0.0);
         let lethal = if touch > 0.0 {
-            // a touch that takes your nerve kills only a mind it leaves spent
-            self.player.sanity - touch <= 0.0
+            // a touch that takes your nerve kills only a mind it leaves spent,
+            // and never at a first meeting (design 3: the first teaches; the
+            // personas' explorer and rusher had died at their first touch)
+            !first && self.player.sanity - touch <= 0.0
         } else {
             !first && (self.director.contacts > 0 || self.player.sanity < 25.0)
         };
@@ -475,6 +525,22 @@ impl Game {
         }
         // the director's orders, from the fields it already sets
         self.creature_orders(ei, dt);
+        // sent away (the relief after a close call) is an order every kind
+        // obeys as soon as it no longer has you: searching, alerted, roaming
+        // (one that searched on near you began the next peak at once); a
+        // chase is its own until its rule loses you (cut short by the
+        // director, running for 8 s beat every creature: the counters stopped
+        // mattering), a blow already begun, the Reader's page; the one in
+        // the corner is never sent
+        let now = self.perf_t;
+        let kind = self.entities[ei].kind.clone();
+        if let Some(c) = self.creature_mut(ei) {
+            let away = matches!(c.brain.order, Order::Away(t) if t > 0.0);
+            if away && kind != "corner" && !matches!(c.brain.mode, Mode::Withdraw | Mode::Strike | Mode::Read | Mode::Hunt) {
+                c.brain.goal = None;
+                c.brain.set(Mode::Withdraw, "the director sent it away", now);
+            }
+        }
         kind_think(self, ei, dt);
         let mode = self.creature(ei).map(|c| c.brain.mode).unwrap_or_default();
         self.entities[ei].state = mode.legacy_state().into();
@@ -526,6 +592,69 @@ impl Game {
                 c.brain.set(Mode::Roam, "called back", now);
             }
         }
+    }
+
+    /// You did again what `kind` learns from (`LEARNS`): count it, and the
+    /// kind learns when the count is reached (at most one kind a level; one
+    /// held back learns on a later level: `creature_learn_pending`).
+    pub fn creature_habit(&mut self, kind: &str) {
+        let n = {
+            let h = self.creature_run.habits.entry(kind.to_string()).or_insert(0);
+            *h += 1;
+            *h
+        };
+        self.director_note("habit");
+        if LEARNS.iter().any(|(k, _, need)| *k == kind && n >= *need) {
+            self.creature_learn(kind);
+        }
+    }
+
+    /// `kind` learns its new behaviour, unless one already learned on this level.
+    fn creature_learn(&mut self, kind: &str) -> bool {
+        let run = &mut self.creature_run;
+        if run.learned.iter().any(|k| k == kind) || run.learned_on == Some(self.level_num) {
+            return false;
+        }
+        run.learned.push(kind.to_string());
+        run.learned_on = Some(self.level_num);
+        self.director_note("learned");
+        true
+    }
+
+    /// As a level starts: a kind that reached its count on a level where
+    /// another learned learns now (the first in `LEARNS` order).
+    pub fn creature_learn_pending(&mut self) {
+        for (kind, _, need) in LEARNS {
+            let n = self.creature_run.habits.get(kind).copied().unwrap_or(0);
+            if n >= need && self.creature_learn(kind) {
+                return;
+            }
+        }
+    }
+
+    /// Whether `kind` has learned its new behaviour this run.
+    pub fn creature_learned(&self, kind: &str) -> bool {
+        self.creature_run.learned.iter().any(|k| k == kind)
+    }
+
+    /// Whether creature `ei` may use what it has learned now: once you have
+    /// seen it do so, always; the first time, only where you could see it
+    /// (a line between you, within 20 m).
+    pub fn creature_may_show(&mut self, ei: usize) -> bool {
+        let kind = self.entities[ei].kind.clone();
+        if !self.creature_learned(&kind) {
+            return false;
+        }
+        if self.creature_run.shown.contains(&kind) {
+            return true;
+        }
+        let p = self.perceive(ei);
+        if p.line && p.dist < 20.0 {
+            self.creature_run.shown.push(kind);
+            self.director_note("shown");
+            return true;
+        }
+        false
     }
 
     /// Everything after you backs off (the director's relief after a strike).

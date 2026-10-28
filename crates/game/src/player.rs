@@ -261,15 +261,6 @@ impl Game {
                 self.creature_alert(i, pp.x, pp.z);
             }
         }
-        for e in self.entities.iter_mut() {
-            if e.kind == "watcher" || crate::entities::creature::on_new_brain(&e.kind) {
-                continue;
-            } // watcher moves its own way
-            e.state = "hunt".into();
-            e.lose_t = 0.0;
-            e.freeze = 0.0;
-            e.w_field = None;
-        }
         // extra spawn at random far open tile — capped at 1 to keep it survivable
         let mut open: Vec<(i32, i32)> = vec![];
         for z in 1..self.h - 1 {
@@ -288,15 +279,8 @@ impl Game {
             let kind = if self.depth() >= 3 && rnd() < 0.5 { "hound" } else { "smiler" };
             let ei = self.add_entity(kind, x, z, 0);
             let pp = self.player.pos;
-            if crate::entities::creature::on_new_brain(kind) {
-                self.entities[ei].freeze = 0.5;
-                self.creature_alert(ei, pp.x, pp.z);
-            } else {
-                let e = &mut self.entities[ei];
-                e.state = "hunt".into();
-                e.lose_t = 0.0;
-                e.freeze = 0.5;
-            }
+            self.entities[ei].freeze = 0.5;
+            self.creature_alert(ei, pp.x, pp.z);
         }
     }
 
