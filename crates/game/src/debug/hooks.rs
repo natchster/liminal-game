@@ -442,6 +442,17 @@ impl Game {
                 placed += 1;
             }
         }
+        // and the one in the corner (at most one a level, as on a level), coming
+        if let Some((x, z)) = spots.pop() {
+            let ei = self.add_entity("corner", x, z, 0);
+            self.entities[ei].freeze = 0.0;
+            let now = self.perf_t;
+            if let Some(c) = self.creature_mut(ei) {
+                c.brain.set(crate::entities::brain::Mode::Hunt, "the bench sends it", now);
+                c.ease.insert("knows_until", now + 1e9);
+            }
+            placed += 1;
+        }
         placed
     }
 
@@ -475,7 +486,8 @@ impl Game {
         for (k, e) in self.entities.iter_mut().enumerate() {
             if k == ei {
                 e.g.set_pos(self.player.pos.x + fx * dist, 0.0, self.player.pos.z + fz * dist);
-                e.yaw = yaw;
+                // (the one in the corner as you meet it: its back to you)
+                e.yaw = if kind == "corner" { yaw + PI } else { yaw };
                 e.state = "wander".into();
                 e.freeze = 1.0;
             } else {

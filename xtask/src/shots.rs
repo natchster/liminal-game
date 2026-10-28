@@ -47,7 +47,7 @@ pub const HEIGHT: u32 = 300;
 /// (The Building's three floors first; then the rooms, from the Lobby on
 /// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5.)
 const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10)];
-const CREATURES: &[&str] = &["smiler", "hound", "watcher"];
+const CREATURES: &[&str] = &["smiler", "hound", "watcher", "corner"];
 const DISTANCES: &[u32] = &[2, 4, 8];
 
 /// A difference below all of these is reported but passes: below what a

@@ -229,6 +229,27 @@
     },
     {
       "checks": [
+        "shots:corner_2m",
+        "shots:corner_4m",
+        "shots:corner_8m",
+        "shots:corner_death",
+        "test:game/creatures_rules",
+        "test:game/creatures_arenas",
+        "test:game/bodies",
+        "test:backrooms/corner_placement",
+        "test:backrooms/listen",
+        "test:backrooms/pacing"
+      ],
+      "id": "creature/corner",
+      "kind": "creature",
+      "last_checked": "2026-10-28",
+      "last_human_review": null,
+      "name": "the one in the corner",
+      "notes": "New in the redesign (docs/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py).",
+      "passes": {}
+    },
+    {
+      "checks": [
         "shots:watcher_2m",
         "shots:watcher_4m",
         "shots:watcher_8m",

@@ -125,6 +125,30 @@
     "luminance": 0.2137,
     "shadow": 0.0146
   },
+  "corner_2m": {
+    "colourfulness": 21.03,
+    "contrast": 0.1186,
+    "luminance": 0.2804,
+    "shadow": 0.0452
+  },
+  "corner_4m": {
+    "colourfulness": 20.8,
+    "contrast": 0.075,
+    "luminance": 0.2565,
+    "shadow": 0.0474
+  },
+  "corner_8m": {
+    "colourfulness": 21.12,
+    "contrast": 0.0725,
+    "luminance": 0.2631,
+    "shadow": 0.0452
+  },
+  "corner_death": {
+    "colourfulness": 19.11,
+    "contrast": 0.2682,
+    "luminance": 0.4356,
+    "shadow": 0.0577
+  },
   "hound_2m": {
     "colourfulness": 21.17,
     "contrast": 0.0782,

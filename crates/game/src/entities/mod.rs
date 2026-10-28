@@ -25,6 +25,7 @@ pub mod ai;
 pub mod anim;
 pub mod body;
 pub mod brain;
+pub mod corner;
 pub mod creature;
 pub mod director;
 pub mod hound;

@@ -215,7 +215,8 @@ pub fn creatures(args: &[String], blender: &str, asset_dir: &Path) -> Result<(),
     let _ = std::fs::remove_dir_all(&out);
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
     let mut cmd = Command::new(blender);
-    cmd.args(["--background", "--factory-startup", "--python"])
+    // (a script error exits 1: Blender's own exit code is 0 after one)
+    cmd.args(["--background", "--factory-startup", "--python-exit-code", "1", "--python"])
         .arg(root().join("assets/src/creatures/build.py"))
         .arg("--")
         .arg("--out")
@@ -228,8 +229,9 @@ pub fn creatures(args: &[String], blender: &str, asset_dir: &Path) -> Result<(),
     for l in log.lines().filter(|l| l.starts_with("[creatures]")) {
         println!("{l}");
     }
-    if !o.status.success() || log.contains("Traceback") {
-        let _ = std::fs::write(out.join("blender.log"), format!("{log}{}", String::from_utf8_lossy(&o.stderr)));
+    let err = String::from_utf8_lossy(&o.stderr);
+    if !o.status.success() || log.contains("Traceback") || err.contains("Traceback") {
+        let _ = std::fs::write(out.join("blender.log"), format!("{log}{err}"));
         return Err(format!("the Blender build failed; full output in {}", out.join("blender.log").display()));
     }
     // the build lists its bodies in the order the file keeps them

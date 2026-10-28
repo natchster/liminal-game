@@ -78,7 +78,9 @@ fn heard(g: &Game, ei: usize) -> Heard {
         stirred: (matches!(m, Mode::Alert | Mode::Hunt | Mode::Strike) && d < 16.0)
             || d < 6.0
             || seen
-            || (e.kind == "watcher" && g.path_distance(p.x, p.z, d) < game::entities::watcher::RING_REACH),
+            || (e.kind == "watcher" && g.path_distance(p.x, p.z, d) < game::entities::watcher::RING_REACH)
+            // the one in the corner: its hum has stopped
+            || (e.kind == "corner" && m == Mode::Alert && d < 16.0),
     }
 }
 
@@ -137,7 +139,10 @@ fn escape(g: &Game, ei: usize) -> (f64, f64) {
 
 fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     seed_native(seed);
-    let mut g = pillared(kind);
+    // the one in the corner stands in a corner of a smaller lit room your
+    // way keeps crossing; the others roam the pillared room
+    let small = kind == "corner";
+    let mut g = if small { room(6, 0.5, |_, _| false) } else { pillared(kind) };
     let mut r = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15);
     let mut next = || {
         r ^= r << 13;
@@ -147,11 +152,25 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     };
     // it starts somewhere about the middle of the room, facing anywhere
     let (cx, cz) = (7 + (next() * 7.0) as i32, 7 + (next() * 7.0) as i32);
-    let ei = creature(&mut g, kind, cx, cz, next() * PI * 2.0);
-    g.player.pos = v3(g.wx(2), 0.0, g.wz(2));
-    // a tour of the room's corners, as you would explore a level
-    let tour =
-        [(g.wx(18), g.wz(2)), (g.wx(10), g.wz(10)), (g.wx(18), g.wz(18)), (g.wx(2), g.wz(18)), (g.wx(10), g.wz(10)), (g.wx(2), g.wz(2))];
+    let yaw0 = next() * PI * 2.0;
+    let ei = if small {
+        let ei = creature(&mut g, kind, 1, 1, 0.0);
+        game::entities::corner::stand_in(&mut g, ei, 1, 1, -1, -1);
+        ei
+    } else {
+        creature(&mut g, kind, cx, cz, yaw0)
+    };
+    g.player.pos = if small { v3(g.wx(4), 0.0, g.wz(4)) } else { v3(g.wx(2), 0.0, g.wz(2)) };
+    // a tour of the room's corners, as you would explore a level (in the
+    // small room, round it and across it, never into its corner)
+    // (in the small room five times round, a minute and a half: as long as
+    // you would be in it)
+    let tour: Vec<(f64, f64)> = if small {
+        let lap = [(4, 1), (3, 3), (1, 4), (4, 4), (3, 2), (4, 1)];
+        lap.iter().cycle().take(lap.len() * 5).map(|&(x, z)| (g.wx(x), g.wz(z))).collect()
+    } else {
+        vec![(g.wx(18), g.wz(2)), (g.wx(10), g.wz(10)), (g.wx(18), g.wz(18)), (g.wx(2), g.wz(18)), (g.wx(10), g.wz(10)), (g.wx(2), g.wz(2))]
+    };
     let mut leg = 0;
     // the director sends it, as on a level: its quiet cut short
     g.reset_director();
@@ -166,6 +185,7 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     // off for a while when it hears it stir)
     let mut wary = 0.0;
     let mut glance = 0.0;
+    let mut out_since = 0.0;
     while t < LIMIT {
         let goal = tour[leg];
         let h = heard(&g, ei);
@@ -188,6 +208,14 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
                 "smiler" => smiler_counter(&h, g.perceive(ei).you_lit),
                 // walk on, never run: what holds it is your eyes
                 "watcher" => Gait::Walk,
+                // walk on; if it comes after all, run
+                "corner" => {
+                    if h.hunting {
+                        Gait::Run
+                    } else {
+                        Gait::Walk
+                    }
+                }
                 other => panic!("no counter for {other}"),
             }
         };
@@ -243,6 +271,11 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         let face = if counter && kind == "watcher" && (h.stirred || glance > 0.0) {
             let p = g.entities[ei].pos();
             Some((p.x, p.z))
+        } else if counter && kind == "corner" && (h.stirred || h.hunting) {
+            // the hum has stopped: look anywhere but at it
+            let p = g.entities[ei].pos();
+            let pp = g.player.pos;
+            Some((2.0 * pp.x - p.x, 2.0 * pp.z - p.z))
         } else {
             None
         };
@@ -264,15 +297,25 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         }
         // a contact (the director logs each)
         out.contacts = g.director.log.iter().filter(|(_, w)| *w == "contact").count() as u32;
-        if hypot2(g.player.pos.x - goal.0, g.player.pos.z - goal.1) < 2.0 {
+        if !out.reached && hypot2(g.player.pos.x - goal.0, g.player.pos.z - goal.1) < 2.0 {
             leg += 1;
             if leg == tour.len() {
                 out.reached = true;
-                break;
+                leg -= 1;
             }
         }
+        // round, but not while something is still after you: the chase
+        // goes on (up to 30 s) and its end counts
+        if out.reached {
+            let after_you = matches!(mode(&g, ei), Mode::Hunt | Mode::Strike);
+            if !after_you || t > out_since + 30.0 {
+                break;
+            }
+        } else {
+            out_since = t;
+        }
     }
-    out.secs = t;
+    out.secs = if out.reached { out_since } else { t };
     out.killed = g.god_deaths > 0.0;
     out
 }
@@ -406,6 +449,12 @@ fn the_smilers_counter_works_and_matters() {
 fn the_watchers_counter_works_and_matters() {
     let (with, without) = report("watcher");
     hold_to_bands("watcher", &with, &without);
+}
+
+#[test]
+fn the_ones_in_the_corner_counter_works_and_matters() {
+    let (with, without) = report("corner");
+    hold_to_bands("corner", &with, &without);
 }
 
 #[test]

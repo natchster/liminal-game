@@ -6,3 +6,4 @@
 # everyone who runs the test benefits from these saved cases.
 cc c1572bd8fda65a73d40f37567c3cfe5a29ba03e809a098c7b80cd71f3cb2065b # shrinks to (905325066, 8)
 cc d4696d3122dabddcaad2e68772fe2eaf5d18c8519a8064c36ea191257bd7c24d # shrinks to (2557421983, 2)
+cc 4999a6f1bd270ac9b967816254e3c5d95972a39c70c5438e8b0743875d9a047d # shrinks to (2408377353, 3)

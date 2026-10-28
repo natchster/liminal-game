@@ -38,6 +38,8 @@ const FAST_SKIP: &[&str] = &[
     "a_replay_reproduces_the_run",
     "a_recording_survives_its_file_and_replays",
     "personas_play_and_the_fear_has_a_shape",
+    "the_one_in_the_corner_stands_off_the_way",
+    "the_one_in_the_corner_hums",
 ];
 
 struct Step {

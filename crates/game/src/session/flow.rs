@@ -104,6 +104,8 @@ impl Game {
         self.lore_found = found;
         self.fit_lore_notes();
         self.fit_story();
+        // the one in the corner, after her camp (never near it): by the place
+        crate::entities::corner::place(self);
         self.build_light_map();
         self.update_ambience();
         self.release_pooled_lights();

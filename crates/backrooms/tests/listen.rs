@@ -447,3 +447,37 @@ fn the_hound_is_heard() {
     assert!(peak > calm * 4.0, "the bay should stand 12 dB over the quiet before it");
     assert!(after > 0.0, "its nails and its panting are heard as it runs");
 }
+
+/// The one in the corner hums, low, its back to you 7 m ahead: the hum
+/// stands over the room's bed. (That it stops when it is about to turn is
+/// its brain's: `creatures_rules`; a window of a second here is the room's.)
+#[test]
+fn the_one_in_the_corner_hums() {
+    let mut r = start(4242, 6);
+    hold_creatures(&mut r.g);
+    let ei = {
+        let g = &mut r.g;
+        let f = g.player.fwd();
+        let (x, z) = (g.player.pos.x + f.x * 7.0, g.player.pos.z + f.z * 7.0);
+        let (tx, tz) = (g.tx(x), g.tz(z));
+        let ei = g.add_entity("corner", tx, tz, 0);
+        g.entities[ei].g.set_pos(x, 0.0, z);
+        // its back to you
+        g.entities[ei].yaw = g.player.yaw + std::f64::consts::PI;
+        let c = g.creature_mut(ei).unwrap();
+        c.ease.insert("humming", 1.0);
+        c.ease.insert("turn_in", 1e9);
+        ei
+    };
+    play(&mut r, 3.0, |g| g.entities[ei].freeze = 1e9);
+    let bed_end = r.pcm.len() / 2;
+    play(&mut r, 8.0, |g| g.entities[ei].freeze = 0.0);
+    let w = windows(&r.pcm);
+    let b = bed_end / WIN;
+    let bed = median(&w[40..b]);
+    let humming = median(&w[b + 20..]);
+    println!("corner: bed {:.1} dB, humming {:.1} dB (+{:.1})", db(bed), db(humming), db(humming / bed));
+    save("corner_4242_L6", &r.pcm, &[bed_end as f64 / SR]);
+    assert!(humming > bed * 1.4, "its hum should stand 3 dB over the room");
+    assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Hold), "it left its corner");
+}

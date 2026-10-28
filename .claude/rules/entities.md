@@ -19,7 +19,10 @@ paths:
   hearing is along the way it would walk, `path_distance`, never through
   walls); the director's wishes arrive as `Order`s. Kinds are data
   (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`,
-  `smiler.rs`, `watcher.rs`). Only sight (or touch) gives a creature your exact place; a
+  `smiler.rs`, `watcher.rs`, `corner.rs`). A placed kind (the one in the
+  corner) is placed after the build with no draws (`corner::place`, from
+  `session::flow`), is never a stalker (the director sends only the
+  Smiler, the Hound and the Watcher), and goes back to where it was put. Only sight (or touch) gives a creature your exact place; a
   sound, or your light going out, leaves it a rough guess (`open_point`), so
   a counter that hides you can work. A creature hunting by sight must still
   find you when sent: the director parks a stalker out of your sight, so

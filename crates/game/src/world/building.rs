@@ -422,7 +422,16 @@ impl Game {
             cells.swap(k, j);
         }
         spots.extend(cells);
-        spots.retain(|&t| t != plan.exit && t != plan.spawn);
+        // (a dead end's platform can run into the edge of the floor: a spot
+        // there would lay a note in the wall; the draws above are kept, so
+        // only such floors change)
+        spots.retain(|&t| {
+            t != plan.exit
+                && t != plan.spawn
+                && self.in_grid(t.0, t.1)
+                && !self.is_wall_tile(t.0, t.1)
+                && self.ground_at(t.0, t.1).walkable()
+        });
         let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
         let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
         let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));

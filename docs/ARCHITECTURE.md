@@ -128,7 +128,7 @@ Each creature (`entities::ai`) is in one of three states:
   had you. Touch is death; the death scene shows the creature that did it.
 
 The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound, the
-Smiler and the Watcher) run
+Smiler, the Watcher and the one in the corner) run
 their own brain instead (`entities::creature`, `entities::brain`): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
@@ -144,7 +144,8 @@ its data and its own `think`, `animate` (on a body from `bodies.bin`) and
 `voice` (`entities::hound`, which hears; `entities::smiler`, which sees
 your lamp and loses you in the dark; `entities::watcher`, which moves only
 unseen, its poses morphs of one sheet, among furniture under the same
-sheets).
+sheets; `entities::corner`, placed after the build and never sent, woken by
+your eyes on its face).
 
 Above them, the **director** (`entities::director`) shapes each level into a
 cycle, after the AI director designs of horror games (a menace gauge that

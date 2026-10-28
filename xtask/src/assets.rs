@@ -250,7 +250,8 @@ fn props(args: &[String]) -> Result<(), String> {
     let _ = std::fs::remove_dir_all(&out);
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
     let mut cmd = Command::new(blender());
-    cmd.args(["--background", "--factory-startup", "--python"])
+    // (a script error exits 1: Blender's own exit code is 0 after one)
+    cmd.args(["--background", "--factory-startup", "--python-exit-code", "1", "--python"])
         .arg(root().join("assets/src/blender/props.py"))
         .arg("--")
         .arg("--out")

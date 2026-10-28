@@ -25,7 +25,7 @@ use crate::prelude::*;
 
 /// The kinds on the new brain (the rest still run `ai.rs` until they are rebuilt).
 pub fn on_new_brain(kind: &str) -> bool {
-    matches!(kind, "hound" | "smiler" | "watcher")
+    matches!(kind, "hound" | "smiler" | "watcher" | "corner")
 }
 
 /// The one place a kind's own code is chosen: its data and materials, its
@@ -35,6 +35,7 @@ fn kind_data(kind: &str) -> (KindData, fn(&str) -> Mat) {
         "hound" => (crate::entities::hound::DATA, crate::entities::hound::material),
         "smiler" => (crate::entities::smiler::DATA, crate::entities::smiler::material),
         "watcher" => (crate::entities::watcher::DATA, crate::entities::watcher::material),
+        "corner" => (crate::entities::corner::DATA, crate::entities::corner::material),
         other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
     }
 }
@@ -43,6 +44,7 @@ pub fn kind_think(g: &mut Game, ei: usize, dt: f64) {
         "hound" => crate::entities::hound::think(g, ei, dt),
         "smiler" => crate::entities::smiler::think(g, ei, dt),
         "watcher" => crate::entities::watcher::think(g, ei, dt),
+        "corner" => crate::entities::corner::think(g, ei, dt),
         _ => {}
     }
 }
@@ -51,6 +53,7 @@ pub fn kind_animate(g: &mut Game, ei: usize, dt: f64) {
         "hound" => crate::entities::hound::animate(g, ei, dt),
         "smiler" => crate::entities::smiler::animate(g, ei, dt),
         "watcher" => crate::entities::watcher::animate(g, ei, dt),
+        "corner" => crate::entities::corner::animate(g, ei, dt),
         _ => {}
     }
 }
@@ -59,6 +62,7 @@ pub fn kind_voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
         "hound" => crate::entities::hound::voice(g, ei, dt, d),
         "smiler" => crate::entities::smiler::voice(g, ei, dt, d),
         "watcher" => crate::entities::watcher::voice(g, ei, dt, d),
+        "corner" => crate::entities::corner::voice(g, ei, dt, d),
         _ => {}
     }
 }
@@ -67,6 +71,7 @@ pub fn kind_call(g: &mut Game, ei: usize, what: &str) {
         "hound" => crate::entities::hound::call(g, ei, what),
         "smiler" => crate::entities::smiler::call(g, ei, what),
         "watcher" => crate::entities::watcher::call(g, ei, what),
+        "corner" => crate::entities::corner::call(g, ei, what),
         _ => {}
     }
 }

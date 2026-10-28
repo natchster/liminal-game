@@ -17,7 +17,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
+| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
@@ -324,6 +324,19 @@ The rules are learnable, and learning them is the game.
   it kills only a mind already gone. It makes no sound. Close to it, your
   ears ring. (After the moving statue of Grandmother's Footsteps and SCP-173,
   by Moto42, CC BY-SA 3.0, as the seated man of the Loop is.)
+- **The one in the corner.** Someone tall standing in the far corner of a
+  quiet room, forehead to the angle of the walls, as a child is made to
+  stand, in a long striped nightshirt, barefoot, its arms at its sides
+  under it. You see its back. It hums, low and tuneless; you hear it from a
+  room away. It is harmless while you see only its back. **Do not look at
+  its face**: when the hum stops it is about to turn its head (now and then
+  it looks round at the room behind it), and if its face comes round into
+  your eyes, lit, it screams and comes, faster than you walk, slower than
+  you run, and knows where you are for a while. Look away when the hum
+  stops; keep your lamp off its face; pass behind it. Its face is a
+  person's face with the eyes and the mouth upside down, and you see it
+  only once. Nothing sends it: it stands where it was put, off the way, and
+  goes back there.
 - **The Face** (the Stairwell only). See below.
 
 **Pressure has a shape.** A pacing director (`entities/director.rs`) decides
@@ -572,6 +585,13 @@ plaque that says STAIRS. Behind it:
   **DrEverettMann** (<https://scp-wiki.wikidot.com/scp-1983>), **CC BY-SA 3.0**.
   `crates/game/src/anomalies/house.rs`, its notes and its sections here are
   CC BY-SA 3.0 and keep this attribution.
+- **The one in the corner** takes its rule (seeing its face is what wakes
+  it) from **SCP-096** "The Shy Guy" by **Dr Dan**
+  (<https://scp-wiki.wikidot.com/scp-096>), **CC BY-SA 3.0**; the turned back
+  is a motif of the Rake (anonymous, 2005; the motif only), the child made to
+  stand in the corner is everyone's, and its face is the Thatcher illusion
+  (Peter Thompson, 1980). `crates/game/src/entities/corner.rs` and
+  `assets/src/creatures/body_corner.py` keep this attribution.
 - **The Watcher**, and the seated man of the Loop, take their rule (it moves
   only when unseen) from **SCP-173** by **Moto42**
   (<https://scp-wiki.wikidot.com/scp-173>), **CC BY-SA 3.0**, and from the

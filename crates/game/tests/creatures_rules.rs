@@ -614,3 +614,129 @@ fn your_ears_ring_near_it_and_that_is_its_tell() {
     look_away(&mut g, ei, 4.0);
     assert!(g.creature(ei).unwrap().tells.is_empty(), "a tell from beyond its ring");
 }
+
+// ------------------------------------------------------------ the one in the corner
+
+/// A lit 13 × 13 room, the one in the corner in tile (1, 1), its face to
+/// the corner there; you at (x, z) tiles. It does not look round on its own
+/// unless `looks` (so a test of its rule is about the rule).
+fn corner_room(x: i32, z: i32, looks: bool) -> (Game, usize) {
+    let mut g = room(13, 0.6, |_, _| false);
+    let ei = creature(&mut g, "corner", 1, 1, 0.0);
+    game::entities::corner::stand_in(&mut g, ei, 1, 1, -1, -1);
+    if !looks {
+        g.creature_mut(ei).unwrap().ease.insert("turn_in", 1e9);
+    }
+    g.player.pos = v3(g.wx(x), 0.0, g.wz(z));
+    let p = g.entities[ei].pos();
+    look_at(&mut g, p.x, p.z);
+    (g, ei)
+}
+
+/// It is turned to face you where it stands (as though it had come round).
+fn face_me(g: &mut Game, ei: usize) {
+    let p = g.entities[ei].pos();
+    let pp = g.player.pos;
+    let yaw = (pp.x - p.x).atan2(pp.z - p.z);
+    g.entities[ei].yaw = yaw;
+    g.creature_mut(ei).unwrap().ease.insert("home_yaw", yaw);
+}
+
+#[test]
+fn its_back_is_harmless() {
+    let (mut g, ei) = corner_room(4, 4, false);
+    watch(&mut g, ei, 6.0);
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it turned at your look at its back: {:?}", modes(&g, ei));
+    assert!(g.creature(ei).unwrap().get("humming") > 0.0, "it stopped humming");
+}
+
+#[test]
+fn seeing_its_face_turns_it_and_looking_away_in_time_saves_you() {
+    let (mut g, ei) = corner_room(5, 5, false);
+    face_me(&mut g, ei);
+    watch(&mut g, ei, 0.6);
+    assert_eq!(mode(&g, ei), Mode::Alert, "{:?}", modes(&g, ei));
+    // the hum stopped, and that was a tell
+    assert_eq!(g.creature(ei).unwrap().get("humming"), 0.0);
+    assert!(!g.creature(ei).unwrap().tells.is_empty());
+    look_away(&mut g, ei, 1.0);
+    assert_eq!(mode(&g, ei), Mode::Hold, "{:?}", modes(&g, ei));
+}
+
+#[test]
+fn holding_its_look_brings_it_below_your_sprint() {
+    let (mut g, ei) = corner_room(9, 9, false);
+    face_me(&mut g, ei);
+    watch(&mut g, ei, game::entities::corner::TURN + 0.2);
+    assert_eq!(mode(&g, ei), Mode::Hunt, "{:?}", modes(&g, ei));
+    let mut fastest: f64 = 0.0;
+    let mut prev = g.entities[ei].pos();
+    for _ in 0..90 {
+        step(&mut g, DT, None, Gait::Still);
+        let p = g.entities[ei].pos();
+        fastest = fastest.max(hypot2(p.x - prev.x, p.z - prev.z) / DT);
+        prev = p;
+    }
+    assert!(fastest > 4.0 && fastest <= game::entities::corner::PACE + 0.05, "it came at {fastest:.2} m/s");
+    assert!(fastest < SPRINT, "faster than you can run");
+}
+
+#[test]
+fn it_knows_where_you_are_for_6_s_then_goes_back_to_its_corner() {
+    // a wall between the halves of the room, a door at its end
+    let mut g = room(13, 0.6, |x, z| x == 7 && z > 2);
+    let ei = creature(&mut g, "corner", 1, 11, 0.0);
+    game::entities::corner::stand_in(&mut g, ei, 1, 11, -1, 1);
+    g.creature_mut(ei).unwrap().ease.insert("turn_in", 1e9);
+    g.player.pos = v3(g.wx(5), 0.0, g.wz(9));
+    face_me(&mut g, ei);
+    watch(&mut g, ei, game::entities::corner::TURN + 0.2);
+    assert_eq!(mode(&g, ei), Mode::Hunt);
+    // you are gone behind the wall, still: for 6 s it comes all the same
+    g.player.pos = v3(g.wx(10), 0.0, g.wz(10));
+    let d0 = dist_to(&g, ei);
+    run(&mut g, 3.0, None, Gait::Still);
+    assert!(dist_to(&g, ei) < d0 - 3.0, "it did not know where you were");
+    // then, out of its sight, it gives up and goes home, its face to the walls
+    g.player.pos = v3(g.wx(11), 0.0, g.wz(3));
+    run(&mut g, 30.0, None, Gait::Still);
+    let m = modes(&g, ei);
+    assert!(m.contains(&Mode::Withdraw), "{m:?}");
+    assert_eq!(mode(&g, ei), Mode::Hold, "{m:?}");
+    let c = g.creature(ei).unwrap();
+    let p = g.entities[ei].pos();
+    assert!(hypot2(p.x - c.get("home_x"), p.z - c.get("home_z")) < 0.4, "it is not back in its corner");
+}
+
+#[test]
+fn now_and_then_it_looks_round_and_then_your_eyes_are_the_danger() {
+    // you look at it as it looks round: it has your face
+    let (mut g, ei) = corner_room(2, 3, true);
+    g.creature_mut(ei).unwrap().ease.insert("turn_in", 0.3);
+    watch(&mut g, ei, 0.5);
+    assert_eq!(mode(&g, ei), Mode::Alert, "{:?}", modes(&g, ei));
+    assert_eq!(g.creature(ei).unwrap().get("humming"), 0.0, "the hum went on");
+    watch(&mut g, ei, game::entities::corner::TURN + 0.2);
+    assert_eq!(mode(&g, ei), Mode::Hunt, "{:?}", modes(&g, ei));
+    // you looked away when the hum stopped: it turns back
+    let (mut g, ei) = corner_room(2, 3, true);
+    g.creature_mut(ei).unwrap().ease.insert("turn_in", 0.3);
+    watch(&mut g, ei, 0.5);
+    look_away(&mut g, ei, game::entities::corner::TURN + 0.3);
+    assert_eq!(mode(&g, ei), Mode::Hold, "{:?}", modes(&g, ei));
+}
+
+#[test]
+fn it_is_never_sent() {
+    let (mut g, ei) = corner_room(5, 5, false);
+    let si = creature(&mut g, "smiler", 10, 10, 0.0);
+    g.reset_director();
+    for _ in 0..(120.0 / DT) as usize {
+        g.update_director(DT);
+        if g.director.stalker.is_some() {
+            break;
+        }
+    }
+    assert_eq!(g.director.stalker, Some(si), "the director sent {:?}", g.director.stalker.map(|i| g.entities[i].kind.clone()));
+    assert_ne!(g.director.stalker, Some(ei));
+}
