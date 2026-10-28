@@ -238,9 +238,17 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `sources.json` (each checked by its SHA-1) and compares them; `--write`
   replaces them and records their fingerprints. It needs a Python with
   Pillow, NumPy and SciPy (`$PYTHON`).
-* Creatures still rebuild in the HTML version (they need its rig dumps);
-  `cargo xtask assets import-js` converts its generated modules (byte for
-  byte).
+* `cargo xtask assets creatures [--only …] [--write]` builds the creatures'
+  bodies (`crates/game/assets/bodies.bin`: each a skeleton and the meshes
+  bound to it) with `assets/src/creatures/build.py`, which runs every
+  `body_<name>.py` in Blender headless; the bodies that were people start
+  from MakeHuman's CC0 base mesh and targets, fetched once and checked by
+  their SHA-1 (`assets/src/creatures/sources.json`). The build repeats byte
+  for byte. The game builds a body with `entities::body::build_body`.
+* The old creatures (`creature_meshes.bin`) still rebuild only in the HTML
+  version (they need its rig dumps); `cargo xtask assets import-js` converts
+  its generated modules (byte for byte). They go as each creature is rebuilt
+  on the new bodies (`docs/ENTITIES.md`).
 * `crates/game/assets/MANIFEST.json` records each file's sources, generator,
   licence and fingerprint; `tests/structure.rs` fails on a file whose
   fingerprint changed without its entry, a licence or generator not on the

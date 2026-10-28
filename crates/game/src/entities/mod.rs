@@ -23,6 +23,8 @@
 //! CONTRACT: the signatures below are called from other modules; keep them.
 pub mod ai;
 pub mod anim;
+pub mod body;
+pub mod brain;
 pub mod director;
 
 use crate::assets::creatures::{creature_geometry, watcher_geometry};
@@ -31,6 +33,9 @@ use crate::base::records::*;
 use crate::prelude::*;
 use std::collections::HashMap;
 use std::sync::OnceLock;
+
+/// The kinds that roam the rooms and that the director sends.
+pub const ROAMING_KINDS: [&str; 3] = ["smiler", "hound", "watcher"];
 
 /// What `make_smiler` / `make_hound` / `make_watcher` return.
 #[derive(Clone, Debug)]

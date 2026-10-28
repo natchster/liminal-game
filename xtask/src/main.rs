@@ -19,6 +19,7 @@
 mod ab;
 mod assets;
 mod bench;
+mod bodies;
 mod bundle;
 mod calibrate;
 mod check;

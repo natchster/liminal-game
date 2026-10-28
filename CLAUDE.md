@@ -31,7 +31,8 @@ cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); t
 cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
 cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
 cargo xtask assets textures [--write]            # rebuild the Building's photographed surfaces (CC0 photographs), compare
-cargo xtask bench                                # performance vs docs/PERF.md and perf/history.csv (records a run)
+cargo xtask assets creatures [--write]           # rebuild the creatures' bodies in Blender (MakeHuman CC0 bodies), compare
+cargo xtask bench                                # performance vs docs/PERF.md, perf/history.csv and perf/creatures.csv (records a run)
 cargo xtask drift                                # every gate → docs/content.json passes, docs/QUALITY.md Latest sweep
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)

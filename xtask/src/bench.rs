@@ -21,6 +21,11 @@
 //!
 //! Without `--no-record` the medians are appended to the history (one row per
 //! level), with the commit and the machine.
+//!
+//! Then the **creature pack** (`backrooms --bench-creatures`: on level 4,
+//! two of every kind that roams the rooms, all hunting you) is timed the
+//! same way, held to the `creatures` budgets and to its own history,
+//! `perf/creatures.csv` (one row a run).
 use crate::shots::{machine, read_json};
 use crate::{cargo, flag, root, run};
 use serde_json::Value;
@@ -159,6 +164,7 @@ pub fn bench(args: &[String]) -> Result<(), String> {
         std::fs::write(&hist_path, out).map_err(|e| e.to_string())?;
         println!("recorded in perf/history.csv");
     }
+    bench_pack(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
     if failures.is_empty() {
         println!("within budget, no slowdown in the history");
         Ok(())
@@ -168,6 +174,104 @@ pub fn bench(args: &[String]) -> Result<(), String> {
         }
         Err(format!("{} performance check(s) failed", failures.len()))
     }
+}
+
+/// Measures of the creature pack (higher is worse).
+const PACK_MEASURES: &[&str] = &["update_p50_ms", "update_p99_ms", "gpu_p50_ms", "gpu_p99_ms", "calls_max", "tris_max"];
+
+/// The creature pack: `REPEATS` runs, medians, the `creatures` budgets, and
+/// a change point in `perf/creatures.csv`.
+fn bench_pack(
+    args: &[String],
+    bin: &std::path::Path,
+    tmp: &std::path::Path,
+    budgets: &Value,
+    here: &str,
+    commit: &str,
+    failures: &mut Vec<String>,
+) -> Result<(), String> {
+    let mut samples: Vec<Vec<f64>> = vec![vec![]; PACK_MEASURES.len()];
+    let mut creatures = 0;
+    for rep in 0..REPEATS {
+        let f = tmp.join(format!("pack_{rep}.json"));
+        let st = Command::new(bin)
+            .args(["--fresh", "--width", "1280", "--height", "800", "--scale", "1", "--bench-creatures"])
+            .arg(&f)
+            .args(["--seed", "4242", "--bench-frames", FRAMES])
+            .stdout(std::process::Stdio::null())
+            .status()
+            .map_err(|e| e.to_string())?;
+        if !st.success() {
+            return Err("the creature pack bench failed".into());
+        }
+        let r = read_json(&f);
+        creatures = r["creatures"].as_i64().unwrap_or(0);
+        for (i, m) in PACK_MEASURES.iter().enumerate() {
+            samples[i].push(r[*m].as_f64().unwrap_or(0.0));
+        }
+    }
+    let now: Vec<f64> = samples
+        .iter()
+        .map(|v| {
+            let mut s = v.clone();
+            s.sort_by(|a, b| a.total_cmp(b));
+            s[s.len() / 2]
+        })
+        .collect();
+    println!("{:<10} {}", "pack", PACK_MEASURES.join("  "));
+    println!("{:<10} {}", format!("{creatures} live"), now.iter().map(|x| format!("{x:.2}")).collect::<Vec<_>>().join("  "));
+    for (i, m) in PACK_MEASURES.iter().enumerate() {
+        if let Some(b) = budgets["creatures"][m].as_f64() {
+            if now[i] > b {
+                failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/PERF.md)", now[i]));
+            }
+        }
+    }
+    let path = root().join("perf/creatures.csv");
+    let text = std::fs::read_to_string(&path).unwrap_or_default();
+    let mut series: Vec<Vec<(String, f64)>> = vec![vec![]; PACK_MEASURES.len()];
+    for line in text.lines().skip(1) {
+        let c: Vec<&str> = line.split(',').collect();
+        if c.len() < 4 + PACK_MEASURES.len() || c[2] != here {
+            continue;
+        }
+        for i in 0..PACK_MEASURES.len() {
+            if let Ok(v) = c[4 + i].parse::<f64>() {
+                series[i].push((c[1].to_string(), v));
+            }
+        }
+    }
+    for (i, m) in PACK_MEASURES.iter().enumerate() {
+        let mut s = series[i].clone();
+        s.push((commit.to_string(), now[i]));
+        if s.len() < MIN_HISTORY {
+            continue;
+        }
+        let xs: Vec<f64> = s.iter().map(|x| x.1).collect();
+        if let Some((at, before, after, p)) = change_point(&xs) {
+            if after > before * SLOWER && p < P_CHANGE && at + 3 >= xs.len() {
+                failures.push(format!(
+                    "creature pack: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/creatures.csv",
+                    s[at].0
+                ));
+            }
+        }
+    }
+    if !flag(args, "--no-record") {
+        let mut out = if text.is_empty() { format!("date,commit,machine,creatures,{}\n", PACK_MEASURES.join(",")) } else { text };
+        let date = Command::new("date")
+            .arg("+%Y-%m-%d")
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_default();
+        out.push_str(&format!(
+            "{date},{commit},{here},{creatures},{}\n",
+            now.iter().map(|x| format!("{x:.3}")).collect::<Vec<_>>().join(",")
+        ));
+        std::fs::write(&path, out).map_err(|e| e.to_string())?;
+        println!("recorded in perf/creatures.csv");
+    }
+    Ok(())
 }
 
 /// The best single split of `x` (each side at least 3 long): its index, the

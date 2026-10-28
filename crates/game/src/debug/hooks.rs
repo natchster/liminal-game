@@ -412,6 +412,39 @@ impl Game {
         })
     }
 
+    /// The creature bench's scene (`--bench-creatures`): `per_kind` of every
+    /// kind that roams the rooms, on open tiles 6–14 m round you, all of them
+    /// hunting you, and you in god mode. → how many were placed. Placement
+    /// draws from the native stream; the level's build is untouched.
+    pub fn bench_pack(&mut self, per_kind: usize) -> usize {
+        self.god_mode = true;
+        let (px, pz) = (self.player.pos.x, self.player.pos.z);
+        let mut spots = vec![];
+        for z in 1..self.h - 1 {
+            for x in 1..self.w - 1 {
+                let d = ((self.wx(x) - px).powi(2) + (self.wz(z) - pz).powi(2)).sqrt();
+                if !self.is_wall_tile(x, z) && (6.0..14.0).contains(&d) {
+                    spots.push((x, z));
+                }
+            }
+        }
+        let mut placed = 0;
+        for kind in crate::entities::ROAMING_KINDS {
+            for _ in 0..per_kind {
+                if spots.is_empty() {
+                    return placed;
+                }
+                let (x, z) = spots.remove(with_native(|| (rnd() * spots.len() as f64) as usize).min(spots.len() - 1));
+                let ei = self.add_entity(kind, x, z, 0);
+                self.entities[ei].freeze = 0.0;
+                let d = hypot2(self.entities[ei].pos().x - px, self.entities[ei].pos().z - pz);
+                self.entity_notice(ei, d);
+                placed += 1;
+            }
+        }
+        placed
+    }
+
     /// Keep one creature of `kind` standing `dist` m in front of the
     /// camera, facing it, and send the others away (`--showcase`, for
     /// looking at a creature headless). Adds one if the level has none.

@@ -32,6 +32,18 @@ rendering, level building or per-frame code, and commit the history with it.
 | draw calls (max) | 604–1,167 |
 | triangles (max) | 110–190 k; the Showroom (4242 L4) 1.31 M |
 
+## The creatures
+
+Beside the levels, `cargo xtask bench` times the **creature pack**
+(`backrooms --bench-creatures`): on level 4 of run 4242, two of every kind
+that roams the rooms are placed 6–14 m round you, all hunting you (god
+mode), and over 240 frames, while you turn once on the spot, the game
+update on the CPU, the frame on the GPU, draw calls and triangles. It is
+held to the `creatures` budgets below and to its own history,
+`perf/creatures.csv`, by the same change-point test. The first row
+(2026-10-28, before the redesign of `ENTITIES.md`): 5 creatures placed,
+update 0.07 / 0.89 ms (p50 / p99), GPU 2.2 / 3.6 ms, 263k triangles.
+
 ## Budgets
 
 About twice the worst level today, and the GPU well inside a 60 fps frame
@@ -48,6 +60,13 @@ history. Raise a budget only with a reason in the commit.
     "update_p99_ms": 4,
     "gpu_p99_ms": 6,
     "calls_max": 2000,
+    "tris_max": 2500000
+  },
+  "creatures": {
+    "update_p50_ms": 1.5,
+    "update_p99_ms": 4,
+    "gpu_p50_ms": 6,
+    "gpu_p99_ms": 8,
     "tris_max": 2500000
   }
 }

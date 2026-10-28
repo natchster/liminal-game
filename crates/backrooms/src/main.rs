@@ -80,6 +80,9 @@ struct Options {
     /// its first frame and `bench_frames` frames along a fixed camera path
     bench: Option<String>,
     bench_frames: usize,
+    /// `--bench-creatures FILE`: with `--seed`, time the creature pack (every
+    /// kind that roams the rooms, two of each, all hunting you) on level 4
+    bench_creatures: Option<String>,
     /// `--metrics FILE`: with `--seed` and `--levels`, build the levels as a
     /// run would and write their expressive-range measures (no rendering)
     metrics: Option<String>,
@@ -108,6 +111,7 @@ fn parse_args() -> Options {
         fresh: false,
         metrics: None,
         bench: None,
+        bench_creatures: None,
         bench_frames: 240,
         record: None,
         replay: None,
@@ -145,6 +149,7 @@ fn parse_args() -> Options {
             "--fresh" => o.fresh = true,
             "--metrics" => o.metrics = Some(next(&mut i)),
             "--bench" => o.bench = Some(next(&mut i)),
+            "--bench-creatures" => o.bench_creatures = Some(next(&mut i)),
             "--record" => o.record = Some(next(&mut i)),
             "--replay" => o.replay = Some(next(&mut i)),
             "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
@@ -176,7 +181,8 @@ fn save_path() -> std::path::PathBuf {
 fn make_game(o: &Options) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = o.flags.clone();
-    let headless = o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some();
+    let headless =
+        o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some() || o.bench_creatures.is_some();
     // a recorded or replayed session starts like a fresh install, so the two
     // start alike (their per-frame seed is set in `main`)
     let session = o.record.is_some() || o.replay.is_some();
@@ -762,10 +768,72 @@ fn bench(o: &Options, path: &str) {
     std::fs::write(path, serde_json::Value::Array(out).to_string()).expect("write bench");
 }
 
+/// `--bench-creatures FILE`: the creatures' cost. On level 4 of the run, a
+/// pack of every kind that roams the rooms (two of each) is placed round you
+/// and set hunting you (god mode); then, over `bench_frames` frames while
+/// you turn once on the spot, the game update on the CPU, the frame on the
+/// GPU, draw calls and triangles. Written as one JSON object.
+fn bench_creatures(o: &Options, path: &str) {
+    let seed = o.seed.unwrap_or(4242);
+    let mut g = make_game(o);
+    g.launch_flags = format!("seed={seed}&nosound");
+    let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
+    g.view_width = o.width;
+    g.view_height = o.height;
+    g.scale_factor = o.scale;
+    g.quality.max_pr = o.scale.min(2.0);
+    g.quality.pr = g.quality.max_pr;
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let mut r = Renderer::new(device);
+    let target = r.offscreen_target(w, h);
+    g.boot();
+    g.start_new_game();
+    g.state = "playing".into();
+    g.hide_overlay();
+    g.load_level(4);
+    g.fixed_step_dt = 1.0 / 60.0;
+    let placed = g.bench_pack(2);
+    // a few frames to settle (pipelines compile, the notices play out)
+    for _ in 0..30 {
+        g.now_ms += 1000.0 / 60.0;
+        g.frame(1.0 / 60.0);
+        let cb = draw(&mut g, &mut r, &target, w, h);
+        cb.commit();
+        cb.waitUntilCompleted();
+    }
+    let (mut upd, mut gpu, mut calls, mut tris) = (vec![], vec![], vec![], vec![]);
+    let yaw0 = g.player.yaw;
+    for k in 0..o.bench_frames {
+        g.player.yaw = yaw0 + k as f64 / o.bench_frames as f64 * std::f64::consts::TAU;
+        g.now_ms += 1000.0 / 60.0;
+        let tu = Instant::now();
+        g.frame(1.0 / 60.0);
+        upd.push(tu.elapsed().as_secs_f64() * 1000.0);
+        let cb = draw(&mut g, &mut r, &target, w, h);
+        cb.commit();
+        cb.waitUntilCompleted();
+        gpu.push((cb.GPUEndTime() - cb.GPUStartTime()) * 1000.0);
+        calls.push(r.info.calls as f64);
+        tris.push(r.info.triangles as f64);
+    }
+    let r3 = |x: f64| (x * 1000.0).round() / 1000.0;
+    let out = serde_json::json!({
+        "seed": seed, "level": 4, "creatures": placed, "frames": o.bench_frames, "size": [w, h],
+        "update_p50_ms": r3(quantile(&mut upd, 0.5)), "update_p99_ms": r3(quantile(&mut upd, 0.99)),
+        "gpu_p50_ms": r3(quantile(&mut gpu, 0.5)), "gpu_p99_ms": r3(quantile(&mut gpu, 0.99)),
+        "calls_max": quantile(&mut calls, 1.0), "tris_max": quantile(&mut tris, 1.0),
+    });
+    std::fs::write(path, out.to_string()).expect("write bench");
+}
+
 fn main() {
     let o = parse_args();
     if let Some(p) = o.bench.clone() {
         bench(&o, &p);
+        return;
+    }
+    if let Some(p) = o.bench_creatures.clone() {
+        bench_creatures(&o, &p);
         return;
     }
     if let Some(p) = o.metrics.clone() {

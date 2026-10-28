@@ -51,8 +51,9 @@ pub fn assets(args: &[String]) -> Result<(), String> {
         Some("props") => props(&args[1..]),
         Some("import-js") => import_js(&args[1..]),
         Some("textures") => textures(&args[1..]),
+        Some("creatures") => crate::bodies::creatures(&args[1..], &blender(), &asset_dir()),
         Some("fingerprint") => {
-            for f in ["prop_meshes.bin", "creature_meshes.bin"] {
+            for f in ["prop_meshes.bin", "creature_meshes.bin", crate::bodies::FILE] {
                 println!("{f}: {}", fingerprint(&std::fs::read(asset_dir().join(f)).map_err(|e| e.to_string())?));
             }
             for f in texture_files()? {
@@ -61,7 +62,7 @@ pub fn assets(args: &[String]) -> Result<(), String> {
             Ok(())
         }
         _ => Err(
-            "usage: cargo xtask assets props [--batch …] [--write] | textures [--write] | import-js --props F --creatures F | fingerprint"
+            "usage: cargo xtask assets props [--batch …] [--write] | creatures [--only …] [--write] | textures [--write] | import-js --props F --creatures F | fingerprint"
                 .into(),
         ),
     }
@@ -356,7 +357,7 @@ fn props(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-fn blender_version() -> String {
+pub(crate) fn blender_version() -> String {
     Command::new(blender())
         .arg("--version")
         .output()
@@ -405,7 +406,7 @@ fn textures(args: &[String]) -> Result<(), String> {
 }
 
 /// Record a file's new fingerprint (and facts about it) in the manifest.
-fn update_manifest(file: &str, bytes: &[u8], extra: Value) -> Result<(), String> {
+pub(crate) fn update_manifest(file: &str, bytes: &[u8], extra: Value) -> Result<(), String> {
     let p = asset_dir().join("MANIFEST.json");
     let mut m = read_json(&p);
     let e = &mut m["files"][file];
