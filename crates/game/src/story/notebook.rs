@@ -56,7 +56,7 @@ pub static FLOOR_PAGES: [Page; 8] = [
     // the rooms' ordinary floors, wherever the run's anomalies leave them
     Page {
         id: "f5",
-        body: "I wrote once that if something is waiting round a corner you should close your eyes and count to ten. Not the tall ones. One stood at the end of a hall, its grin going on too far round its face, and I didn't close my eyes, and it didn't move. I backed off a long way before I let myself breathe.\n\nI don't close my eyes any more.",
+        body: "I wrote once that if something is waiting round a corner you should close your eyes and count to ten. Not the tall ones. One stood at the end of a hall, its grin going on too far round its face in my beam, and I put the lamp out and didn't close my eyes, and it didn't move. I backed off a long way in the dark before I let myself breathe.\n\nI don't close my eyes any more.",
         thread: "I don't close my eyes any more.",
     },
     Page {

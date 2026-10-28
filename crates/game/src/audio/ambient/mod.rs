@@ -182,7 +182,7 @@ const fn rare(tag: &'static str, timer: fn(&mut Game) -> &mut f64, base: f64, sp
 /// the level is up.
 pub const CADENCES: &[Cadence] = &[
     // weather beds
-    cad("wet-drip", |g| &mut g.wet_drip_timer, 6.0, 12.0),
+    cad("wet-drip", |g| &mut g.wet_drip_timer, 8.0, 10.0),
     cad("wet-thunder", |g| &mut g.wet_thunder_timer, 35.0, 55.0),
     cad("wet-splash", |g| &mut g.wet_splash_timer, 55.0, 85.0),
     cad("thunder-rumble", |g| &mut g.thunder_rumble_timer, 200.0, 300.0),

@@ -25,7 +25,45 @@ use crate::prelude::*;
 
 /// The kinds on the new brain (the rest still run `ai.rs` until they are rebuilt).
 pub fn on_new_brain(kind: &str) -> bool {
-    matches!(kind, "hound")
+    matches!(kind, "hound" | "smiler")
+}
+
+/// The one place a kind's own code is chosen: its data and materials, its
+/// mind, its body, its voice and its calls.
+fn kind_data(kind: &str) -> (KindData, fn(&str) -> Mat) {
+    match kind {
+        "hound" => (crate::entities::hound::DATA, crate::entities::hound::material),
+        "smiler" => (crate::entities::smiler::DATA, crate::entities::smiler::material),
+        other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
+    }
+}
+pub fn kind_think(g: &mut Game, ei: usize, dt: f64) {
+    match g.entities[ei].kind.as_str() {
+        "hound" => crate::entities::hound::think(g, ei, dt),
+        "smiler" => crate::entities::smiler::think(g, ei, dt),
+        _ => {}
+    }
+}
+pub fn kind_animate(g: &mut Game, ei: usize, dt: f64) {
+    match g.entities[ei].kind.as_str() {
+        "hound" => crate::entities::hound::animate(g, ei, dt),
+        "smiler" => crate::entities::smiler::animate(g, ei, dt),
+        _ => {}
+    }
+}
+pub fn kind_voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
+    match g.entities[ei].kind.as_str() {
+        "hound" => crate::entities::hound::voice(g, ei, dt, d),
+        "smiler" => crate::entities::smiler::voice(g, ei, dt, d),
+        _ => {}
+    }
+}
+pub fn kind_call(g: &mut Game, ei: usize, what: &str) {
+    match g.entities[ei].kind.as_str() {
+        "hound" => crate::entities::hound::call(g, ei, what),
+        "smiler" => crate::entities::smiler::call(g, ei, what),
+        _ => {}
+    }
 }
 
 /// What a kind's senses and body are: the data that tells kinds apart.
@@ -86,7 +124,8 @@ pub struct Creature {
     pub data: KindData,
     /// When it gave a tell you could perceive (game time, s)
     pub tells: Vec<f64>,
-    /// When it first noticed you on this level
+    /// When it last noticed you (became sure where you are): no strike
+    /// within `NOTICE_GRACE` of it
     pub noticed_at: Option<f64>,
     /// Seconds a still player has been within smelling distance
     pub smell_t: f64,
@@ -136,11 +175,8 @@ impl Game {
     /// Build a creature of the redesign at tile (x, z) → its `EntityBuild`
     /// (no seeded draw: a level's build stream is untouched).
     pub fn make_creature(&mut self, kind: &str, x: f64, z: f64) -> (EntityBuild, Creature) {
-        let (name, data) = match kind {
-            "hound" => ("hound", crate::entities::hound::DATA),
-            other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
-        };
-        let body = build_body(name, &|slot| crate::entities::hound::material(slot)).expect("bodies.bin: the hound");
+        let (data, material) = kind_data(kind);
+        let body = build_body(kind, &material).unwrap_or_else(|| panic!("bodies.bin: no {kind}"));
         let g = body.root.clone();
         g.set_pos(self.wx(x), 0.0, self.wz(z));
         self.world.add(&g);
@@ -323,6 +359,8 @@ impl Game {
         if let Some(c) = self.creature_mut(ei) {
             c.brain.set(Mode::Withdraw, if first { "first meeting: it lets you go" } else { "it struck and backs off" }, now);
             c.brain.order = Order::Away(if first { 45.0 } else { 20.0 });
+            // somewhere far from you, chosen afresh (not where it was going)
+            c.brain.goal = None;
             c.tells.clear();
         }
         if self.director.phase == Phase::Peak || self.director.stalker == Some(ei) {
@@ -399,16 +437,12 @@ impl Game {
         }
         // the director's orders, from the fields it already sets
         self.creature_orders(ei, dt);
-        if self.entities[ei].kind == "hound" {
-            crate::entities::hound::think(self, ei, dt);
-        }
+        kind_think(self, ei, dt);
         let mode = self.creature(ei).map(|c| c.brain.mode).unwrap_or_default();
         self.entities[ei].state = mode.legacy_state().into();
         let e = &self.entities[ei];
         e.g.rotation().y = e.yaw;
-        if self.entities[ei].kind == "hound" {
-            crate::entities::hound::animate(self, ei, dt);
-        }
+        kind_animate(self, ei, dt);
         if let Some(c) = self.creature(ei) {
             c.body.sync();
         }
@@ -425,17 +459,20 @@ impl Game {
         let push = self.director.final_push && stalker;
         let pp = self.player.pos;
         if let Some(c) = self.creature_mut(ei) {
-            c.brain.order = if retreat > 0.0 {
-                Order::Away(retreat)
+            // an away runs its time out (the longer of its own, after a
+            // contact, and the director's retreat), whatever else is wished
+            let away = match c.brain.order {
+                Order::Away(t) if t > 0.0 => (t - dt).max(retreat),
+                _ => retreat,
+            };
+            c.brain.order = if away > 0.0 {
+                Order::Away(away)
             } else if push {
                 Order::Seek(pp.x, pp.z)
             } else if stalker {
                 Order::Stalk
             } else {
-                match c.brain.order {
-                    Order::Away(t) if t > 0.0 => Order::Away(t - dt),
-                    _ => Order::None,
-                }
+                Order::None
             };
         }
     }

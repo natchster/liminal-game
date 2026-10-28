@@ -50,7 +50,16 @@ head and a tail, in the game's frame), its meshes (MakeHuman's base body
 with its targets (`hm08.py`), or metaballs, then voxel remesh,
 displacement, decimation and vertex paint), and binds them with Blender's
 bone heat (`kit.Body.skinned`, four bones a vertex) or to one bone
-(`kit.Body.rigid`). The xtask packs what it wrote (int16 positions, int8
+(`kit.Body.rigid`). Posing (`human.pose`) records which bone each vertex
+follows (`posed.owner`); `anatomy.carry_values` carries it, or any mask,
+through a remesh or decimation, so wasting a limb (`anatomy.waste`) thins
+the arm's own skin and not the chest beside it, and `anatomy.relax_offsets`
+smooths the offsets so no part steps against its neighbour. Faces are
+sculpted in the head bone's rest frame, where MakeHuman's landmarks are
+(the Smiler's orbits, cheeks and rictus: `body_smiler.sculpt_face`), and
+teeth are built one by one along a dental arch fitted to MakeHuman's
+(`anatomy.Arch`, `anatomy.teeth_row`: incisors, canines, premolars and
+molars, each a little different). The xtask packs what it wrote (int16 positions, int8
 normals, sRGB bytes, bone slots and weights, morph offsets; see
 `crates/game/src/assets/bodies.rs`) into `crates/game/assets/bodies.bin`.
 Workbench previews of every body are written beside its JSON in

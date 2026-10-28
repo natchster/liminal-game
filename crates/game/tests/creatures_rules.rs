@@ -254,3 +254,177 @@ fn the_hounds_hair_hangs_whatever_its_head_does() {
     let (hh, ht) = (b.head(head), b.tail(head));
     assert!(ht.y > hh.y, "the crown is not above the neck: {hh:?} → {ht:?}");
 }
+
+// ------------------------------------------------------------ the Smiler
+
+/// A dark 13 × 13 room (light 0.08), a smiler at (6, 2) facing +z, you at (6, 7) (20 m off).
+fn smiler_room(light: f64) -> (Game, usize) {
+    let mut g = room(13, light, |_, _| false);
+    let ei = creature(&mut g, "smiler", 6, 2, 0.0);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(7));
+    let (sx, sz) = (g.wx(6), g.wz(2));
+    look_at(&mut g, sx, sz);
+    (g, ei)
+}
+
+fn hold_idle(g: &mut Game, ei: usize) {
+    let now = g.perf_t;
+    let c = g.creature_mut(ei).unwrap();
+    if c.brain.mode == Mode::Roam {
+        c.brain.set(Mode::Idle, "the test holds it", now);
+    }
+}
+
+#[test]
+fn the_smiler_sees_your_lamp_from_far_and_not_you_in_the_dark() {
+    // your lamp on, 20 m off, still: it turns to the light, then it comes
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.flashlight_on = true;
+    for _ in 0..180 {
+        step(&mut g, DT, None, Gait::Still);
+        hold_idle(&mut g, ei);
+    }
+    let m = modes(&g, ei);
+    assert!(m.contains(&Mode::Alert), "it never saw your lamp: {m:?}");
+    // the same with your lamp off: it does not know you are there
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.flashlight_on = false;
+    for _ in 0..180 {
+        step(&mut g, DT, None, Gait::Still);
+        hold_idle(&mut g, ei);
+    }
+    assert!(g.creature(ei).unwrap().brain.mem.awareness < 0.05, "it saw you in the dark");
+    assert!(!modes(&g, ei).contains(&Mode::Alert));
+}
+
+#[test]
+fn in_the_dark_the_smiler_loses_you() {
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(5));
+    let pp = g.player.pos;
+    g.creature_alert(ei, pp.x, pp.z);
+    g.player.flashlight_on = true;
+    run(&mut g, 1.0, None, Gait::Still);
+    assert_eq!(mode(&g, ei), Mode::Hunt, "{:?}", modes(&g, ei));
+    // lamp off, crouched and still: it loses you
+    g.player.flashlight_on = false;
+    let mut t = 0.0;
+    while mode(&g, ei) == Mode::Hunt && t < 6.0 {
+        step(&mut g, DT, None, Gait::Still);
+        t += DT;
+    }
+    assert_eq!(mode(&g, ei), Mode::Search, "after {t:.1} s in the dark: {:?}", modes(&g, ei));
+    assert!(t < 4.0, "it took {t:.1} s to lose you");
+}
+
+#[test]
+fn running_near_the_smiler_makes_it_lunge() {
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(3) + 2.0);
+    let pp = g.player.pos;
+    g.creature_alert(ei, pp.x, pp.z);
+    g.player.flashlight_on = true;
+    run(&mut g, 2.5, None, Gait::Still);
+    let now = g.perf_t;
+    g.creature_mut(ei).unwrap().tells = vec![now - 2.0, now - 1.0];
+    // you run (away along the room)
+    let goal = (g.wx(11), g.wz(11));
+    run(&mut g, 0.5, Some(goal), Gait::Run);
+    assert!(modes(&g, ei).contains(&Mode::Strike), "it did not lunge: {:?}", modes(&g, ei));
+}
+
+#[test]
+fn the_smiler_is_slow_in_bright_rooms() {
+    for (light, cap) in [(0.08, 4.6), (0.8, 2.4)] {
+        let (mut g, ei) = smiler_room(light);
+        g.player.flashlight_on = true;
+        let pp = g.player.pos;
+        g.creature_alert(ei, pp.x, pp.z);
+        let mut fastest: f64 = 0.0;
+        let mut prev = g.entities[ei].pos();
+        for _ in 0..120 {
+            step(&mut g, DT, None, Gait::Still);
+            let p = g.entities[ei].pos();
+            if mode(&g, ei) == Mode::Hunt {
+                fastest = fastest.max(hypot2(p.x - prev.x, p.z - prev.z) / DT);
+            }
+            prev = p;
+        }
+        assert!(fastest <= cap, "light {light}: it came at {fastest:.2} m/s");
+        assert!(fastest > 0.5, "light {light}: it never came");
+    }
+}
+
+#[test]
+fn the_smilers_eyes_shine_only_in_your_beam() {
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(5));
+    let (sx, sz) = (g.wx(6), g.wz(2));
+    // it faces you (+z), you look at it, your lamp on
+    g.entities[ei].yaw = 0.0;
+    look_at(&mut g, sx, sz);
+    g.camera.set_pos(g.player.pos.x, EYE, g.player.pos.z);
+    let shine = |g: &mut Game| {
+        game::entities::smiler::eyeshine(g, ei);
+        let c = g.creature(ei).unwrap();
+        let m = c.body.meshes.get("eye.L").unwrap().mats()[0].clone();
+        let v = m.m().emissive_intensity;
+        v
+    };
+    g.player.flashlight_on = true;
+    g.world.update_matrix_world(true);
+    assert!(shine(&mut g) > 0.05, "no eyeshine in the beam");
+    g.player.flashlight_on = false;
+    assert_eq!(shine(&mut g), 0.0, "eyeshine with your lamp off");
+    g.player.flashlight_on = true;
+    // you look away: out of the beam
+    look_at(&mut g, sx + 30.0, sz);
+    assert_eq!(shine(&mut g), 0.0, "eyeshine outside the beam");
+}
+
+#[test]
+fn gone_dark_and_still_close_to_it_you_are_not_found() {
+    // it comes at you, 5 m off; your lamp goes out and you keep still. It
+    // goes on to about where your light was, and rarely walks into you
+    let mut found = 0;
+    for s in 0..40 {
+        game::base::rng::seed_native(500 + s);
+        let (mut g, ei) = smiler_room(0.08);
+        g.player.pos = v3(g.wx(6), 0.0, g.wz(2) + 5.0);
+        let pp = g.player.pos;
+        g.creature_alert(ei, pp.x, pp.z);
+        g.player.flashlight_on = true;
+        run(&mut g, 1.0, None, Gait::Still);
+        assert_eq!(mode(&g, ei), Mode::Hunt, "{:?}", modes(&g, ei));
+        g.player.flashlight_on = false;
+        run(&mut g, 12.0, None, Gait::Still);
+        if modes(&g, ei).contains(&Mode::Strike) {
+            found += 1;
+        }
+    }
+    assert!(found <= 6, "it found you {found} times in 40");
+}
+
+#[test]
+fn the_smiler_sees_ahead_not_behind() {
+    // its back to you 12 m off, your lamp on but pointed away from it: it
+    // does not know you are there
+    let (mut g, ei) = smiler_room(0.08);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(5));
+    g.entities[ei].yaw = PI;
+    g.player.flashlight_on = true;
+    let (sx, sz) = (g.wx(6), g.wz(2));
+    look_at(&mut g, sx + 30.0, sz);
+    for _ in 0..120 {
+        step(&mut g, DT, None, Gait::Still);
+        hold_idle(&mut g, ei);
+    }
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it saw a lamp behind it: {:?}", modes(&g, ei));
+    // your beam on its back: it sees its own shadow thrown ahead of it
+    look_at(&mut g, sx, sz);
+    for _ in 0..120 {
+        step(&mut g, DT, None, Gait::Still);
+        hold_idle(&mut g, ei);
+    }
+    assert!(modes(&g, ei).contains(&Mode::Alert), "your beam on it went unseen: {:?}", modes(&g, ei));
+}

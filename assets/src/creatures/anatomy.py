@@ -34,10 +34,14 @@ def region(P, skel, prefixes):
     return np.array([any(n.startswith(p) for p in prefixes) for n in names]), names
 
 
-def waste(P, skel, bones, amount, joint_keep=0.06):
+def waste(P, skel, bones, amount, joint_keep=0.06, owner=None, buried=()):
     """pull points nearest each of `bones` toward its segment by `amount`
-    (0..1), less near its ends (the joints stay knobby)"""
-    nb, _ = nearest_bones(P, skel)
+    (0..1, or a dict of amounts by bone), less near its ends (the joints
+    stay knobby; not the head of a bone in `buried`, a joint inside the
+    trunk: the hip, the shoulder). `owner` (an index into skel.bones per
+    point, as `carry_values` gives) says whose each point is instead of the
+    nearest bone"""
+    nb = nearest_bones(P, skel)[0] if owner is None else owner
     out = P.copy()
     for i, b in enumerate(skel.bones):
         if b['name'] not in bones:
@@ -47,10 +51,41 @@ def waste(P, skel, bones, amount, joint_keep=0.06):
             continue
         t, dist, r = seg_param(P[m], b['head'], b['tail'])
         L = np.linalg.norm(np.array(b['tail']) - np.array(b['head']))
-        e = np.minimum(t * L, (1 - t) * L)                     # distance from the nearer joint
-        k = amount * np.clip(e / joint_keep, 0.0, 1.0)
+        e = np.minimum(t * L, (1 - t) * L) if b['name'] not in buried else (1 - t) * L   # from the nearer joint
+        a = amount[b['name']] if isinstance(amount, dict) else amount
+        k = a * np.clip(e / joint_keep, 0.0, 1.0)
         out[m] = P[m] - r * k[:, None]
     return out
+
+
+def carry_values(kit, before, values, o):
+    """`values` (per vertex of `before`, positions in the game frame: the
+    bone each follows, a mask) carried onto the vertices of `o` (a remesh
+    or decimation of it): each takes its nearest's"""
+    from mathutils import kdtree
+    tree = kdtree.KDTree(len(before))
+    for i, p in enumerate(before):
+        tree.insert(p, i)
+    tree.balance()
+    return np.array([values[tree.find(p)[1]] for p in kit.to_game_np(kit.verts_np(o))])
+
+
+def relax_offsets(kit, o, P0, P1, iters, factor=0.5):
+    """P0 moved to P1 with the offsets smoothed over `o`'s edges (its
+    topology, P0's order): no step where neighbours moved differently"""
+    import numpy as np
+    E = np.zeros(len(o.data.edges) * 2, dtype=np.int64)
+    o.data.edges.foreach_get('vertices', E)
+    E = E.reshape(-1, 2)
+    deg = np.bincount(E.ravel(), minlength=len(P0)).astype(float)[:, None]
+    D = P1 - P0
+    for _ in range(iters):
+        acc = np.zeros_like(D)
+        np.add.at(acc, E[:, 0], D[E[:, 1]])
+        np.add.at(acc, E[:, 1], D[E[:, 0]])
+        avg = np.where(deg > 0, acc / np.maximum(deg, 1), D)
+        D = D + factor * (avg - D)
+    return P0 + D
 
 
 def bumps_along(P, N, a, b, spacing, amp, width, side_dir, side_min=0.2):
@@ -192,3 +227,131 @@ def strands(kit, name, roots, dirs, lengths, radius, gravity=(0, -1, 0), segment
                 for s in range(sides):
                     bm.faces.new((rings[k][s], rings[k][(s + 1) % sides], rings[k + 1][(s + 1) % sides], rings[k + 1][s]))
     return kit.obj_from_bmesh(name, build)
+
+
+# ---- teeth: a row of single teeth along a dental arch
+
+class Arch:
+    """a dental arch in a head's rest frame (+z ahead, +y up): the front
+    of the middle teeth at (x0, ·, zf), half as wide as `W`, its back teeth
+    `D` behind the front: x = x0 + W·u, z = zf - D·u², u in [-1, 1]"""
+
+    def __init__(self, x0, zf, W, D):
+        self.x0, self.zf, self.W, self.D = x0, zf, W, D
+
+    def at(self, u):
+        return self.x0 + self.W * u, self.zf - self.D * u * u
+
+    def frame(self, u):
+        """along the arch (toward +u) and out of it (ahead at the middle)"""
+        t = np.array([self.W, 0.0, -2 * self.D * u])
+        t /= np.linalg.norm(t)
+        return t, np.array([-t[2], 0.0, t[0]]) * np.sign(t[0])
+
+    def front(self, x):
+        """the arch's z at x (its last tooth's beyond its ends)"""
+        u = np.clip((np.asarray(x) - self.x0) / self.W, -1, 1)
+        return self.zf - self.D * u * u
+
+    def u_at(self, s):
+        """u at arc length s from the middle (s ≥ 0)"""
+        u = np.linspace(0, 1.3, 400)
+        seg = np.hypot(self.W * np.diff(u), self.D * np.diff(u * u))
+        return np.interp(s, np.concatenate([[0], np.cumsum(seg)]), u)
+
+    def half_length(self):
+        u = np.linspace(0, 1, 400)
+        return float(np.sum(np.hypot(self.W * np.diff(u), self.D * np.diff(u * u))))
+
+
+# mesiodistal widths (m) from the middle back, and each tooth's shape
+UPPER = ((0.0085, 'incisor'), (0.0065, 'incisor'), (0.0075, 'canine'), (0.007, 'premolar'),
+         (0.0065, 'premolar'), (0.010, 'molar'), (0.009, 'molar'), (0.0085, 'molar'))
+LOWER = ((0.0050, 'incisor'), (0.0055, 'incisor'), (0.007, 'canine'), (0.007, 'premolar'),
+         (0.007, 'premolar'), (0.011, 'molar'), (0.0105, 'molar'), (0.010, 'molar'))
+
+
+def teeth_row(arch, gum_y, tip_y, upper, seed, missing=(), broken=(), flare=0.003, jitter=1.0):
+    """single teeth along `arch`, rooted 4 mm inside the gum at `gum_y`,
+    their tips at `tip_y` (the bite), each its own shape (chisel incisors,
+    pointed canines, cusped molars) and none quite like the next: lengths,
+    tilts and turns wander (`seed`); `missing` / `broken` name teeth by
+    (side, index from the middle). Returns vertices, faces and colours
+    (ivory, stained toward the root)"""
+    rng = np.random.RandomState(seed)
+    row = UPPER if upper else LOWER
+    total = sum(w for w, _ in row)
+    scale = arch.half_length() / total
+    down = -1.0 if upper else 1.0                      # from the root to the tip
+    M = 10
+    ang = np.linspace(0, 2 * np.pi, M, endpoint=False)
+    ce, se = np.cos(ang), np.sin(ang)
+    sx_, sz_ = np.sign(ce) * np.abs(ce) ** 0.7, np.sign(se) * np.abs(se) ** 0.7   # a rounded box
+    V, F, C = [], [], []
+    ivory, stain = np.array([0.79, 0.75, 0.62]), np.array([0.42, 0.33, 0.20])
+    for side in (1, -1):
+        s0 = 0.0
+        for k, (w, kind) in enumerate(row):
+            w = w * scale
+            s_mid = s0 + w / 2
+            s0 += w
+            r = rng.uniform(-1, 1, 6) * jitter                  # drawn for every tooth, kept or not
+            if (side, k) in missing:
+                continue
+            u = side * arch.u_at(s_mid)
+            x, z = arch.at(u)
+            t, n = arch.frame(u)
+            t = t * side
+            length = abs(tip_y - gum_y) * (1 + 0.08 * r[0]) + (0.002 if kind == 'canine' else 0.0)
+            if (side, k) in broken:
+                length *= 0.55
+            root = np.array([x, gum_y - down * 0.004, z])
+            tip = np.array([x, gum_y + down * length, z]) + n * (flare * (1.0 if kind != 'molar' else 0.3)) \
+                + t * 0.0012 * r[1] + n * 0.0008 * r[2]
+            axis = tip - root
+            twist = 0.15 * r[3]
+            tt = t * np.cos(twist) + n * np.sin(twist)
+            nn = n * np.cos(twist) - t * np.sin(twist)
+            a = w * 0.46                                         # half across the arch (gaps between)
+            b = {'incisor': 0.0034, 'canine': 0.0042, 'premolar': 0.0045, 'molar': 0.0052}[kind]
+            if not upper:
+                b *= 0.9
+            rings = (0.0, 0.3, 0.55, 0.8, 0.93, 1.0)
+            base = len(V)
+            for j, f in enumerate(rings):
+                neck = 0.82 + 0.18 * np.clip(f / 0.3, 0, 1)        # narrow at the gum, full in the crown
+                if kind == 'incisor':
+                    ka, kb = 1.0, 1.0 - 0.65 * max(f - 0.5, 0) / 0.5   # a chisel edge
+                elif kind == 'canine':
+                    ka = kb = 1.0 - 0.85 * max(f - 0.45, 0) / 0.55     # a point
+                elif kind == 'premolar':
+                    ka = kb = 1.0 - 0.35 * max(f - 0.7, 0) / 0.3
+                else:
+                    ka = kb = 1.0 - 0.2 * max(f - 0.8, 0) / 0.2
+                c = root + axis * f
+                for i in range(M):
+                    V.append(c + tt * (a * neck * ka * sx_[i]) + nn * (b * neck * kb * sz_[i]))
+                    g = np.clip((f - 0.15) / 0.5, 0, 1)
+                    C.append(stain + (ivory - stain) * g * (0.92 + 0.08 * r[4]))
+            # the tip: a point, an edge, or cusps (a molar's is a little hollow)
+            dip = {'incisor': 0.0, 'canine': 0.001, 'premolar': -0.0005, 'molar': -0.001}[kind]
+            V.append(root + axis * (1.0 + dip / max(np.linalg.norm(axis), 1e-6)))
+            C.append(ivory * (0.95 + 0.05 * r[5]))
+            for j in range(len(rings) - 1):
+                for i in range(M):
+                    a0, a1 = base + j * M + i, base + j * M + (i + 1) % M
+                    b0, b1 = a0 + M, a1 + M
+                    F += [[a0, a1, b1], [a0, b1, b0]]
+            tipi = len(V) - 1
+            last = base + (len(rings) - 1) * M
+            for i in range(M):
+                F.append([last + i, last + (i + 1) % M, tipi])
+            # outward faces: flip this tooth's if its first side faces in
+            Vt = np.array(V)
+            f0 = F[-(len(rings) - 1) * M * 2 - M]
+            nrm = np.cross(Vt[f0[1]] - Vt[f0[0]], Vt[f0[2]] - Vt[f0[0]])
+            mid = root + axis * 0.15
+            if nrm @ (Vt[f0[0]] - mid) < 0:
+                nf = (len(rings) - 1) * M * 2 + M
+                F[-nf:] = [[f[0], f[2], f[1]] for f in F[-nf:]]
+    return np.array(V), F, np.array(C)

@@ -129,7 +129,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry { id: 6, title: "Torn Ledger", body: "...paid in almond water, twelve cases... signed by the man in the yellow coat... he was here yesterday...", scp: None },
     LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are cold, all of them, and none of them runs. I keep hearing children laughing.", scp: None },
     LoreEntry { id: 8, title: "Elias, Day 219", body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.", scp: None },
-    LoreEntry { id: 9, title: "The Smilers", body: "Their faces are the only bright thing. Hold its eyes and back away, slowly. It creeps while you watch it. Turn your back, or run, and it comes all at once. Your lamp draws them.", scp: None },
+    LoreEntry { id: 9, title: "The Smilers", body: "The tall ones see your lamp, not you. Two points of light in the beam and a row of teeth under them: put it out and keep still, and it loses you. Don't run when one is near. Under the panels they are slow.", scp: None },
     LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones are blind. They listen. When the scratching stops, it is listening: stop too. One came close enough that I could have touched its hair, and then it went on. When it howls you can outrun it, for a while.", scp: None },
     LoreEntry { id: 11, title: "The Watcher", body: "You cannot outrun what refuses to move. Just don't look away too long. Especially not when it's near.", scp: None },
     LoreEntry { id: 12, title: "Corporate Memo", body: "All personnel are reminded that the loading dock is not a restroom. Signed, Management. — date illegible.", scp: None },

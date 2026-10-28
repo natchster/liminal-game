@@ -1118,7 +1118,8 @@ fn update_matches_reference() {
             }
         });
     }
-    assert!(kept_update > 0, "every update case now has a creature of the redesign");
+    // (since E3 every case has a creature of the redesign; the cases go with
+    // the old AI in E7)
     println!("update: {kept_update} cases still the HTML version's");
     if regen() {
         save_sections(vec![("update", recorded)]);
@@ -1140,58 +1141,10 @@ fn senses_game(yaw: f64) -> (Game, usize) {
     (g, ei)
 }
 
-#[test]
-fn creatures_see_ahead_not_behind() {
-    // facing away (its +z is toward you at yaw 0): you pass unseen
-    let (mut g, ei) = senses_game(PI);
-    for _ in 0..3 {
-        g.update_entities(1.0 / 60.0, 0.0);
-    }
-    assert_eq!(g.entities[ei].state, "wander", "a creature facing away does not see you");
-    // facing you: it stops dead, its head snapped to you, and it comes
-    let (mut g, ei) = senses_game(0.0);
-    g.update_entities(1.0 / 60.0, 0.0);
-    let e = &g.entities[ei];
-    assert_eq!(e.state, "hunt");
-    assert!(e.freeze > 0.0 && e.n("noticeT") > 0.0 && e.n("chargeT") > 0.0, "the notice: a freeze, then a charge");
-}
-
-#[test]
-fn heard_but_unseen_it_searches_then_finds_you() {
-    let (mut g, ei) = senses_game(PI);
-    g.player.audible_range = 13.0; // running
-    g.update_entities(1.0 / 60.0, 0.0);
-    let (lx, lz) = (g.entities[ei].n("seenX"), g.entities[ei].n("seenZ"));
-    assert_eq!(g.entities[ei].state, "search", "heard, not seen: it comes to look");
-    assert!(hypot2(lx - g.player.pos.x, lz - g.player.pos.z) <= 4.0 + 1e-9, "near where it heard you");
-    // still and quiet, standing in the open: it turns to come and look, and has you
-    g.player.audible_range = 0.0;
-    let mut t = 0.0;
-    while g.entities[ei].state == "search" && t < 5.0 {
-        g.update_entities(1.0 / 60.0, t);
-        t += 1.0 / 60.0;
-    }
-    assert_eq!(g.entities[ei].state, "hunt", "after {t:.1} s of searching");
-    assert!(t > 0.1, "not at once: it had to turn first");
-}
-
-#[test]
-fn a_hunter_that_loses_you_searches_where_it_last_had_you() {
-    let (mut g, ei) = senses_game(0.0);
-    g.update_entities(1.0 / 60.0, 0.0);
-    assert_eq!(g.entities[ei].state, "hunt");
-    let last = g.player.pos;
-    // you are gone behind the wall at x = 9, silent
-    g.player.pos = v3(g.wx(15), 0.0, g.wz(15));
-    let mut t = 0.0;
-    while g.entities[ei].state == "hunt" && t < 10.0 {
-        g.update_entities(1.0 / 60.0, t);
-        t += 1.0 / 60.0;
-    }
-    let e = &g.entities[ei];
-    assert_eq!(e.state, "search", "after {t:.1} s");
-    assert!(hypot2(e.n("seenX") - last.x, e.n("seenZ") - last.z) < 1e-9, "it looks where it last had you");
-}
+// (the old senses' tests, a view cone and wander / search / hunt, went with
+// the Smiler to the new brain in E3: no kind on the old AI looks ahead any
+// more, and the Watcher has its own rule; the Smiler's are in
+// tests/creatures_rules.rs)
 
 #[test]
 fn the_director_sends_one_then_backs_off() {

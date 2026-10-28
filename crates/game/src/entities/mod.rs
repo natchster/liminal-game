@@ -28,6 +28,7 @@ pub mod brain;
 pub mod creature;
 pub mod director;
 pub mod hound;
+pub mod smiler;
 
 use crate::assets::creatures::{creature_geometry, watcher_geometry};
 use crate::base::numeric::{hypot2, hypot3};

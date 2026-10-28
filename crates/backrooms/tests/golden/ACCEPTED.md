@@ -35,3 +35,9 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-28, on top of ed4dace: frames: hound_2m, hound_4m, hound_8m, hound_death. Reason: Entities E2: the Hound rebuilt from scratch (docs/ENTITIES.md): MakeHuman's CC0 old man on all fours, starved, blind, hair hanging over the skull; at its death it lifts its face to you. Only the Hound's four frames moved.
 
 - 2026-10-28, on top of ed4dace: look anchors: hound_2m, hound_4m, hound_8m, hound_death. Reason: Entities E2: a new Hound, its look meant to change (a pale starved figure in place of the dark one; at death its face fills the frame)
+
+- 2026-10-28, on top of 1a153c2: frames: smiler_2m, smiler_4m, smiler_8m, smiler_death. Reason: E3: the Smiler rebuilt from scratch (docs/ENTITIES.md): a too-tall black shape under the panels, its rictus of single teeth and deep eyes, eyeshine only in your beam; the death scene is its skull-like head looking down at you, no lit grin
+
+- 2026-10-28, on top of 1a153c2: look anchors: smiler_death. Reason: E3: the old death frame was a lit black-and-white grin filling the screen, which the redesign rejects; the new one is its dark head over you, so less contrast and less deep shadow
+
+- 2026-10-28, on top of 1a153c2: frames: 17 shots. Reason: E3: the Smiler on the new brain draws from the native stream differently each frame, so grain and camera sway shift on levels with a Smiler; frames and error maps checked: no change of content

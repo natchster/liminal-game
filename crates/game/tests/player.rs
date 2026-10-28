@@ -466,11 +466,11 @@ fn cry_for_help_cooldown_and_outcomes() {
     let mut r = rig(51, 5);
     r.g.exit_data = Some(ExitData { pos: Vec3::new(r.g.wx(19), 0.0, r.g.wz(19)), ..Default::default() });
     let watcher = Entity::new("watcher", group());
-    let mut smiler = Entity::new("smiler", group());
-    smiler.freeze = 2.0;
-    smiler.lose_t = 3.0;
     r.g.entities.push(watcher);
-    r.g.entities.push(smiler);
+    // a smiler on the new brain, waiting in its dark
+    let (sx, sz) = (r.g.tx(r.g.player.pos.x) + 3, r.g.tz(r.g.player.pos.z));
+    let si = r.g.add_entity("smiler", sx, sz, 0);
+    r.g.entities[si].freeze = 2.0;
     press(&mut r.g, "KeyH");
     assert_eq!(r.g.cry_cooldown, 22.0);
     assert_eq!(r.g.msg_text, "YOU CRY OUT...");
@@ -502,25 +502,27 @@ fn cry_for_help_cooldown_and_outcomes() {
                     alerts += 1;
                     assert!(r.g.entities.len() <= n0 + 1);
                     assert_eq!(r.g.entities[0].state, "wander", "the watcher keeps its own way");
-                    for e in &r.g.entities[1..] {
-                        assert_eq!(e.state, "hunt");
+                    // every creature on the new brain is sure where you cried out
+                    for i in 1..r.g.entities.len() {
+                        let aw = r.g.creature(i).map(|c| c.brain.mem.awareness).unwrap_or(0.0);
+                        assert!(aw >= 0.98, "{} {i} did not hear the cry ({aw:.2})", r.g.entities[i].kind);
                     }
-                    assert_eq!(r.g.entities[1].freeze, 0.0);
-                    assert_eq!(r.g.entities[1].lose_t, 0.0);
                 }
                 m => panic!("unexpected cry outcome {m:?}"),
             }
         }
     });
     assert!(arrows > 0 && alerts > 0, "arrows {arrows}, alerts {alerts}");
-    // spawned hunters are smilers on level 1, 10–26 m away, at hunt speed
-    for e in &r.g.entities[2..] {
+    // spawned hunters are smilers on level 1 (on the new brain), 10–26 m
+    // away, held a moment (0.5 s) before they come
+    let pp = r.g.player.pos;
+    for i in 2..r.g.entities.len() {
+        let e = &r.g.entities[i];
         assert_eq!(e.kind, "smiler");
-        assert!((e.speed - (5.5 + 0.12)).abs() < 1e-9);
-        assert_eq!(e.eye_y_offset, 0.035);
-        // spawned at freeze 0.5; a later alert resets every hunter's freeze to 0
+        assert!(r.g.creature(i).is_some(), "a spawned smiler has its brain");
+        let d = hypot2(e.pos().x - pp.x, e.pos().z - pp.z);
+        assert!((10.0..26.0 + CELL).contains(&d), "spawned {d:.1} m off");
         assert!(e.freeze == 0.5 || e.freeze == 0.0);
-        assert_eq!(e.state, "hunt");
     }
     // deeper levels favour the entities: level 8+ clamps to 5% arrows
     // (nine floors into the rooms: the rooms begin on level 4)

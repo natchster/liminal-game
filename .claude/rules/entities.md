@@ -18,10 +18,16 @@ paths:
   reason (`Brain::set`); percepts are computed once a frame (`perceive`:
   hearing is along the way it would walk, `path_distance`, never through
   walls); the director's wishes arrive as `Order`s. Kinds are data
-  (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`).
+  (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`,
+  `smiler.rs`). Only sight (or touch) gives a creature your exact place; a
+  sound, or your light going out, leaves it a rough guess (`open_point`), so
+  a counter that hides you can work. A creature hunting by sight must still
+  find you when sent: the director parks a stalker out of your sight, so
+  give it a way to close in (the Smiler creeps on, and scans where it waits).
 - **Fairness lives in `creature.rs`, so no kind can skip it**: strike only
   if `strike_allowed` (two tells you could perceive in 20 s, not in a
-  level's first 30 s, not within 2 s of its notice); every contact goes
+  level's first 30 s, not within 2 s of any notice: stamp `noticed_at` at
+  each one); every contact goes
   through `creature_contact` (the first of a kind in a run knocks you down;
   a second in a peak, or one on a spent nerve, kills); chases through
   `creature_go` (capped at `CHASE_CAP`), bursts through `creature_burst`
@@ -44,9 +50,12 @@ paths:
 - **Tests**: a kind's rules in `tests/creatures_rules.rs` (one test a line of
   its design, read back from its brain's log); its counter in
   `tests/creatures_arenas.rs` (with it at least 95% untouched and 90% round,
-  without it at most 70% untouched and 60% killed). The old creatures'
-  reference fixtures: `REGEN=1 cargo test --release -p game --test entities`
-  after an intended change, then review the diff.
+  without it at most 70% untouched and 60% killed). When a counter fails,
+  read the trials (`debug_trials`, `ARENA_DEBUG`) before tuning: ask whether
+  the rule leaves the player a winning move at all (fix the creature) or
+  the bot just plays it badly (fix the bot, as a player would play it).
+  The old creatures' reference fixtures: `REGEN=1 cargo test --release -p
+  game --test entities` after an intended change, then review the diff.
 - **Evidence:** the creature goldens in `cargo xtask shots` (2, 4, 8 m and
   the death scene), or `--fresh --level 4 --showcase kind:dist [--death]` by hand (a floor of
   the rooms: the Building's floors have none);

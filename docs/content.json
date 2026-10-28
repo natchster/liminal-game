@@ -206,14 +206,18 @@
         "shots:smiler_8m",
         "shots:smiler_death",
         "test:game/entities",
-        "test:backrooms/pacing"
+        "test:backrooms/pacing",
+        "test:game/creatures_rules",
+        "test:game/creatures_arenas",
+        "test:game/bodies",
+        "test:backrooms/listen"
       ],
       "id": "creature/smiler",
       "kind": "creature",
       "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "Smiler",
-      "notes": "",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py).",
       "passes": {
         "shots:smiler_2m": true,
         "shots:smiler_4m": true,

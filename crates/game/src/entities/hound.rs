@@ -397,9 +397,8 @@ fn notice(g: &mut Game, ei: usize) {
     let now = g.perf_t;
     {
         let c = g.creature_mut(ei).unwrap();
-        if c.noticed_at.is_none() {
-            c.noticed_at = Some(now);
-        }
+        // each notice: no strike in the 2 s after it
+        c.noticed_at = Some(now);
         c.chase_t = 0.0;
     }
     set(g, ei, Mode::Hunt, "it is sure where you are");

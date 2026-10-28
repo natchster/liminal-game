@@ -178,6 +178,8 @@ pub struct Game {
     pub last_rare_fire_by_cause: RareFire,
     /// Rare-event counts by cause, then weather
     pub rare_event_tally: BTreeMap<String, BTreeMap<String, f64>>,
+    /// The last three ambient sounds (`log_ambient`); older ones drop off,
+    /// so tell a new one by its `at`, not by counting what is here
     pub ambient_log: Vec<AmbientLogEntry>,
     /// Ambient-event counts by tag, then weather
     pub ambient_tally: BTreeMap<String, BTreeMap<String, f64>>,

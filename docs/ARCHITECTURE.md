@@ -127,7 +127,8 @@ Each creature (`entities::ai`) is in one of three states:
   sight and sound of you for a few seconds sends it to search where it last
   had you. Touch is death; the death scene shows the creature that did it.
 
-The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound) run
+The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound and the
+Smiler) run
 their own brain instead (`entities::creature`, `entities::brain`): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
@@ -135,11 +136,13 @@ percepts computed once a frame (hearing along the way it would walk to you,
 `path_distance`, not through walls); awareness that fills from the senses
 (from 0.3 the tell, at 1 sure); the director's wishes as orders. Fairness is
 shared code no kind can skip: a strike needs two tells you could perceive
-in the last 20 s and not the level's first 30 s; the first contact of a
-kind in a run knocks you down, a second in the same peak kills; chases are
-capped below your sprint, bursts at 7 m/s over 4 m. A kind is its data and
-its own `think`, `animate` (on a body from `bodies.bin`) and `voice`
-(`entities::hound`).
+in the last 20 s, not the level's first 30 s, and not the 2 s after any
+notice; the first contact of a kind in a run knocks you down and sends it
+away for 45 s (a second in the same peak, or one on a spent nerve, kills);
+chases are capped below your sprint, bursts at 7 m/s over 4 m. A kind is
+its data and its own `think`, `animate` (on a body from `bodies.bin`) and
+`voice` (`entities::hound`, which hears; `entities::smiler`, which sees
+your lamp and loses you in the dark).
 
 Above them, the **director** (`entities::director`) shapes each level into a
 cycle, after the AI director designs of horror games (a menace gauge that

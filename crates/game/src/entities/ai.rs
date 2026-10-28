@@ -299,7 +299,7 @@ impl Game {
     /// 'lunge' | 'growl' | 'bark', from the entity's voice slot
     pub fn entity_call(&mut self, ei: usize, what: &str) {
         if crate::entities::creature::on_new_brain(&self.entities[ei].kind) {
-            return crate::entities::hound::call(self, ei, what);
+            return crate::entities::creature::kind_call(self, ei, what);
         }
         let Some(s) = self.soundscape() else { return };
         let id = self.entities[ei].g.id();
@@ -520,7 +520,7 @@ impl Game {
                     // held still (a showcase, a level's first seconds): it only breathes
                     self.entities[ei].freeze -= dt;
                     self.entity_drive(ei, dt, 0.0);
-                    crate::entities::hound::animate(self, ei, dt);
+                    crate::entities::creature::kind_animate(self, ei, dt);
                     if let Some(c) = self.creature(ei) {
                         c.body.sync();
                     }
@@ -542,7 +542,7 @@ impl Game {
                         self.entity_sighted(ei, d);
                     }
                 }
-                crate::entities::hound::voice(self, ei, dt, d);
+                crate::entities::creature::kind_voice(self, ei, dt, d);
                 continue;
             }
             {

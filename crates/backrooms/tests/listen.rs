@@ -228,34 +228,34 @@ fn signatures_are_heard() {
 
 #[test]
 fn the_notice_is_loud() {
+    // a smiler 9 m ahead, held while the room's bed is measured, your lamp
+    // off; then your lamp finds it: the click of its teeth, then its hiss
+    // when it is sure where you are
     let mut r = start(4242, 6);
     hold_creatures(&mut r.g);
-    // a smiler 9 m ahead with its back to you, then it turns
-    let (ei, yaw) = {
+    let ei = {
         let g = &mut r.g;
-        let ei = g.entities.iter().position(|e| e.kind == "smiler").expect("a smiler");
         let f = g.player.fwd();
         let (x, z) = (g.player.pos.x + f.x * 9.0, g.player.pos.z + f.z * 9.0);
+        let (tx, tz) = (g.tx(x), g.tz(z));
+        let ei = g.add_entity("smiler", tx, tz, 0);
         g.entities[ei].g.set_pos(x, 0.0, z);
-        (ei, g.player.yaw)
+        ei
     };
     play(&mut r, 6.0, |g| {
-        let e = &mut g.entities[ei];
-        e.freeze = 1e9;
-        e.yaw = yaw + std::f64::consts::PI;
+        g.entities[ei].freeze = 1e9;
+        g.player.flashlight_on = false;
     });
     let before = r.pcm.len() / 2;
-    let mut noticed_at = None;
     play(&mut r, 4.0, |g| {
-        let e = &mut g.entities[ei];
-        if e.state != "hunt" {
-            e.freeze = 0.0;
-            e.yaw = yaw;
-        } else if noticed_at.is_none() {
-            noticed_at = Some(g.perf_t);
-        }
+        g.entities[ei].freeze = 0.0;
+        g.player.flashlight_on = true;
     });
-    assert!(noticed_at.is_some(), "it noticed you");
+    let log: Vec<String> =
+        r.g.creature(ei).map(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect()).unwrap_or_default();
+    println!("smiler log: {log:?}");
+    let noticed = r.g.creature(ei).map(|c| c.brain.log.iter().any(|x| x.2 == game::entities::brain::Mode::Hunt)).unwrap_or(false);
+    assert!(noticed, "it noticed your lamp: {log:?}");
     let w = windows(&r.pcm);
     let b = before / WIN;
     let calm = median(&w[40..b]);
@@ -327,8 +327,9 @@ fn the_door_is_heard() {
                 .collect();
             let best = rise.iter().cloned().fold(0.0, f64::max);
             println!(
-                "seed {seed} L{level}: {steps} tiles from the door ({metres:.0} m straight): {} calls, the door alone peaks {:+.1} dB against the bed ({:.1} dBFS)",
+                "seed {seed} L{level}: {steps} tiles from the door ({metres:.0} m straight): {} calls (at {}), the door alone peaks {:+.1} dB against the bed ({:.1} dBFS)",
                 times.len(),
+                times.iter().map(|t| format!("{t:.1} s")).collect::<Vec<_>>().join(", "),
                 db(best),
                 db(best * bed)
             );
@@ -358,15 +359,21 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
     let metres = ((g.player.pos.x - e.x).powi(2) + (g.player.pos.z - e.z).powi(2)).sqrt();
     g.reset_director();
     let mut times = vec![];
-    let mut t = 0.0;
+    let mut last_call = None;
+    let mut t: f64 = 0.0;
     play(&mut r, 30.0, |g| {
         hold_creatures(g);
         if !calls {
             g.exit_call_t = 1e9;
         }
         t += 1.0 / 60.0;
-        if g.ambient_log.iter().filter(|e| e.tag == "exit-call").count() > times.len() {
-            times.push(t);
+        // a new call by its own time (the log keeps only the last few
+        // sounds: counting what is in it misses a call once others follow)
+        if let Some(at) = g.ambient_log.iter().rev().find(|e| e.tag == "exit-call").map(|e| e.at) {
+            if last_call != Some(at) {
+                last_call = Some(at);
+                times.push(t);
+            }
         }
     });
     Some((r.pcm, times, metres))

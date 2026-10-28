@@ -156,6 +156,10 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
 }
 
 fn play_level(seed: u32, level: i32, secs: f64) -> Log {
+    // the per-frame stream seeded too, so a run is the same each time
+    // (`PACING_NATIVE` shifts it, to see the spread)
+    let shift: u64 = std::env::var("PACING_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    game::base::rng::seed_native(u64::from(seed) * 31 + level as u64 + shift * 1_000_003);
     let mut g = Game::new_bare();
     register_placers(&mut g.placers);
     g.launch_flags = format!("seed={seed}&level={level}&nosound");
@@ -221,6 +225,18 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
             phase = now;
             since = t;
         }
+    }
+    if std::env::var("PACING_DEBUG").is_ok() {
+        for (i, e) in g.entities.iter().enumerate() {
+            if let Some(c) = g.creature(i) {
+                let tail: Vec<String> =
+                    c.brain.log.iter().rev().take(12).rev().map(|x| format!("{:.0} {}({})", x.0, x.2.name(), x.3)).collect();
+                println!("  {} #{i}: {} changes; last: {}", e.kind, c.brain.log.len(), tail.join(", "));
+            } else {
+                println!("  {} #{i} (old AI)", e.kind);
+            }
+        }
+        println!("  director: {:?}", g.director.log.iter().rev().take(10).collect::<Vec<_>>());
     }
     log
 }

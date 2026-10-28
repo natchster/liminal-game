@@ -246,7 +246,7 @@ Someone came this way before you, and you can follow her down.
 - **Her camp.** On every floor, somewhere off the straight way, against a
   wall (on the Building's floors, in a cell): a bedroll with a blanket
   thrown over it, her pack, a candle lantern
-  still burning (it lights its corner, and light draws Smilers), empty
+  still burning (it lights its corner), empty
   bottles, a count of days scratched on the wall, and what she could spare:
   almond water, and from level 3 a battery.
 - **Her notebook.** At each camp lies one page torn from it, for that floor:
@@ -281,15 +281,22 @@ Someone came this way before you, and you can follow her down.
 
 The rules are learnable, and learning them is the game.
 
-- **Smilers.** Tall, starved and black, stooping under the ceiling, with arms
-  that hang past its knees, hands too big, and legs that bend the wrong way.
-  In the dark all you see is the face: two small white eyes over a crescent of
-  white teeth that runs round to its cheeks. They lurk where it is dark and are
-  **drawn to light**: a lit lamp is seen from much further off. **Hold its gaze
-  and back away slowly and it barely creeps. Turn your back on it, or run, and
-  it lunges**, thrown forward, reaching. It is slowed in bright rooms, where
-  it shies from the light. You hear slow wet breathing, and teeth when it is
-  coming.
+- **Smilers.** Very tall, starved down to tendon, black all over as if
+  tarred, stooping under the ceiling, the hands hanging past the knees. Its
+  lips have dried back off its teeth, top and bottom, so it seems to grin
+  round to its cheeks: a rictus, not a smile. In the dark you see nothing
+  until your lamp finds it: two gold points of eyeshine set close (your lamp
+  given back; they never glow on their own) and under them the pale arc of
+  bare teeth, only as far as the beam reaches. Under the panels it is a
+  shape too tall and too still, not a face. **Your lamp is what it sees**,
+  from far off down any clear line; your body only close, and only lit.
+  **Put the lamp out and keep still (or crouch), and it loses you** within a
+  few seconds: it goes on, slower, to about where your light was. **Never
+  run near it**: running within a few metres makes it lunge, thrown forward,
+  reaching. It is slow in bright rooms, and coming at you into one, but the
+  light does not drive it off. You hear a click of teeth when it shifts, its
+  hiss when it is sure of you, slow wet breathing close by, and nothing when
+  it waits. (After Backrooms Entity 3, Wikidot, CC BY-SA 3.0.)
 - **Hounds.** Old people on all fours, starved, rump high, the head hanging
   so low you see only the back of the skull under thin, wet, matted hair; a
   vest and long johns gone the colour of the floor. One leg drags. They are

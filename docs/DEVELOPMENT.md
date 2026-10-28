@@ -78,6 +78,13 @@ Levels must be a pure function of `(run_seed, level)`:
 * Code that runs per frame, or caches results across levels, must draw from
   the native stream: `with_native(|| …)` or `native_rnd()`. `canvas_tex`
   already switches to it while drawing.
+* The native stream starts from the clock. A test whose outcome depends on
+  per-frame draws (a creature's choices, the ambience's timing) seeds it
+  first, `game::base::rng::seed_native(…)`, from its own seed; otherwise
+  it passes or fails with the clock and with the tests run before it on
+  its thread. To see that its thresholds are not one lucky seed, give the
+  seed a shift you can set from outside (`PACING_NATIVE`,
+  `AMBIENT_NATIVE`) and try several.
 * Keep draw order stable: a new random draw in a placer shifts every later
   placer. If you change a placer on purpose, re-record the reference levels
   (below) and say so in the commit.
@@ -202,8 +209,10 @@ Levels must be a pure function of `(run_seed, level)`:
 * `crates/backrooms/tests/pacing.rs` plays levels with death on, with a bot
   that behaves like a cautious player, and logs the director's phases
   (`--nocapture` prints each run's calm → build → peak → relax sequence,
-  close calls and deaths). The creatures' per-frame decisions draw from the
-  native stream, so runs differ; its thresholds leave room for that.
+  close calls and deaths). It seeds the native stream from each level's
+  seed, so a run is the same each time; `PACING_NATIVE=k` shifts it to see
+  the spread, and `PACING_DEBUG=1` prints each creature's last mode
+  changes and the director's log.
 * `crates/backrooms/tests/listen.rs` renders the game's audio offline and
   writes each run to `target/listen/*.wav` with a loudness timeline
   (`*.png`, dB per 50 ms window, red marks at events): listen to them after
@@ -283,7 +292,10 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   an explorer (heads for space it has not seen; coverage heatmaps in
   `target/personas/`), a rusher (sprints for the exit) and a hider
   (crouches in the darkest dead end), walking a 0.25 m grid of where a body
-  fits. Oracles: never outside the world, never stuck over 12 s, the rusher
+  fits; the explorer and the rusher light their lamp in the dark and put it
+  out under the panels, the hider puts it out once settled. A death names
+  its cause and the creature (`PERSONA_DEBUG=1` prints each creature's last
+  mode changes and the director's log). Oracles: never outside the world, never stuck over 12 s, the rusher
   reaches the exit, no death in the first 20 s. Then the director's log
   (`Director::log`: phases, the stalker's signs, stings, notices, strikes,
   deaths) of every run is held to the shape of the fear: a peak at most

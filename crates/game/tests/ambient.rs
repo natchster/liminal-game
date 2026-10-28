@@ -154,6 +154,10 @@ fn muted_ac() -> AudioContext {
 /// entries (close, mid-range and far from the spawn); armed the way
 /// `init_level` arms a level.
 fn live_level(seed: u32, weather: usize) -> Game {
+    // the per-frame stream seeded too: what a test hears does not depend on
+    // the clock or on the tests run before it
+    let shift: u64 = std::env::var("AMBIENT_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    game::base::rng::seed_native(u64::from(seed) * 7919 + weather as u64 + shift * 1_000_003);
     let (mut g, _dist) = Game::test_level(seed, 25);
     g.init_render(&Tex::data_rgba(vec![255; 4], 1, 1));
     g.audio_init_with(muted_ac());

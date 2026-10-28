@@ -5,7 +5,12 @@ Measure, then change. `cargo xtask bench` times twelve levels (runs 4242 and
 frame (pipeline compiles land there), and 240 frames along a fixed path
 through every zone — the game update on the CPU and the frame on the GPU
 (Metal's command-buffer GPU start and end times), with draw calls and
-triangles. Each measure is the median of three repeats.
+triangles. Each measure is the median of three repeats. A level over a
+budget gets a second look: three more runs, judged on the median of all
+six. A p99 of 240 frames is about the third-worst frame, so one hitch of
+the machine's can carry it (the Well, 4242 L1, has measured 1.4–6.1 ms
+over the same code while its p50 held at 1.3 ms); a level that is really
+slow stays slow over six.
 
 It fails when a level goes over a budget below, or when a measure's history
 on this machine (`perf/history.csv`) shows a lasting step up: the best split

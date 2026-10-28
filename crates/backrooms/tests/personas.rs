@@ -76,6 +76,8 @@ struct Run {
     seed: u32,
     level: i32,
     died_at: Option<f64>,
+    /// what killed you (cause, and the creature's kind)
+    died_of: String,
     reached_exit: Option<f64>,
     stuck_for: f64,
     out_of_world: bool,
@@ -207,6 +209,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         seed,
         level,
         died_at: None,
+        died_of: String::new(),
         reached_exit: None,
         stuck_for: 0.0,
         out_of_world: false,
@@ -217,6 +220,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
     let (mut path, mut repath_t, mut t) = (Vec::<(i32, i32)>::new(), 0.0, 0.0);
     let (mut check_pos, mut check_t, mut stuck_now) = ((g.player.pos.x, g.player.pos.z), 0.0, 0.0);
     let mut settled = false;
+    let mut lamp_t = 0.0;
     for _ in 0..(SECONDS * 60.0) as usize {
         let (px, pz) = (g.player.pos.x, g.player.pos.z);
         let (tx, tz) = (g.tx(px), g.tz(pz));
@@ -286,6 +290,23 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         let sprint = walking && persona == Persona::Rusher && g.player.stamina > 20.0;
         press(&mut g, "ShiftLeft", sprint);
         press(&mut g, "ControlLeft", persona == Persona::Hider && settled);
+        // a lamp, as a player uses one: lit in the dark, out under the
+        // panels (a second between switches); the hider puts it out once
+        // settled
+        lamp_t -= 1.0 / 60.0;
+        if lamp_t <= 0.0 {
+            let here = g.region_light_at(g.tx(g.player.pos.x), g.tz(g.player.pos.z));
+            let want = match persona {
+                Persona::Hider if settled => false,
+                _ if here < 0.3 => true,
+                _ if here > 0.5 => false,
+                _ => g.player.flashlight_on,
+            };
+            if want != g.player.flashlight_on {
+                g.toggle_flashlight();
+                lamp_t = 1.0;
+            }
+        }
         g.now_ms += 1000.0 / 60.0;
         g.fixed_step_dt = 1.0 / 60.0;
         g.frame(1.0 / 60.0);
@@ -307,6 +328,9 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         if g.state != "playing" {
             if g.state == "dead" || g.state == "gameover" || g.director.log.iter().any(|e| e.1 == "death") {
                 run.died_at = Some(t);
+                let killer = g.director.killer.map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+                run.died_of =
+                    format!("{}{}{killer}", g.last_death_cause.clone().unwrap_or_default(), if killer.is_empty() { "" } else { ": " });
             } else if run.reached_exit.is_none() {
                 run.reached_exit = Some(t);
             }
@@ -318,6 +342,21 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         }
     }
     run.end_t = t;
+    if std::env::var("PERSONA_DEBUG").is_ok() {
+        println!("== {persona:?} {seed} L{level}");
+        for (i, e) in g.entities.iter().enumerate() {
+            let sent = if g.director.stalker == Some(i) { " (the stalker)" } else { "" };
+            if let Some(c) = g.creature(i) {
+                let tail: Vec<String> =
+                    c.brain.log.iter().rev().take(14).rev().map(|x| format!("{:.0} {}({})", x.0, x.2.name(), x.3)).collect();
+                println!("  {}{sent} #{i}: {}", e.kind, tail.join(", "));
+            } else {
+                println!("  {}{sent} #{i} (old AI) state {}", e.kind, e.state);
+            }
+        }
+        let dl: Vec<String> = g.director.log.iter().map(|(t, w)| format!("{t:.0} {w}")).collect();
+        println!("  director: {}", dl.join(", "));
+    }
     run.coverage = visited.iter().filter(|v| **v).count() as f64 / open_tiles as f64;
     run.log = g.director.log.clone();
     if persona == Persona::Explorer {
@@ -436,7 +475,7 @@ fn personas_play_and_the_fear_has_a_shape() {
         let s = shape(&r.log, r.end_t);
         let name = format!("{:?} {} L{}", r.persona, r.seed, r.level);
         let ended = match (r.died_at, r.reached_exit) {
-            (Some(t), _) => format!("died {t:.0} s"),
+            (Some(t), _) => format!("died {t:.0} s ({})", r.died_of),
             (_, Some(t)) => format!("exit {t:.0} s"),
             _ => format!("{:.0} s", r.end_t),
         };

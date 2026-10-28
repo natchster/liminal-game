@@ -129,12 +129,22 @@ def _rot_between(a, b):
     return np.eye(3) + vx + vx @ vx / (1 + c)
 
 
-def pose(kit, o, skel, aims=None, stretch=None, root=None):
+def pose(kit, o, skel, aims=None, stretch=None, root=None, smooth_weights=0):
     """deform `o` from `skel` (its rest) into the posed skeleton and apply it;
-    returns the posed skeleton (kit.Skel)"""
+    returns the posed skeleton (kit.Skel). `smooth_weights` passes of weight
+    smoothing first keep skin from staying behind where a limb turns far
+    (an A-pose arm brought down to the side)"""
     posed = fk(skel, aims, stretch, root)
     arm = skel.armature('pose_rig')
     kit.auto_weights(o, skel, arm=arm, keep=True)
+    if smooth_weights:
+        for ob in bpy.context.view_layer.objects:
+            ob.select_set(ob == o)
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.mode_set(mode='WEIGHT_PAINT')
+        bpy.ops.object.vertex_group_smooth(group_select_mode='ALL', factor=0.5, repeat=smooth_weights)
+        bpy.ops.object.vertex_group_normalize_all(lock_active=False)
+        bpy.ops.object.mode_set(mode='OBJECT')
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode='POSE')
     for i, b in enumerate(skel.bones):
@@ -157,6 +167,12 @@ def pose(kit, o, skel, aims=None, stretch=None, root=None):
     bpy.context.view_layer.objects.active = o
     mod = [m for m in o.modifiers if m.type == 'ARMATURE'][0]
     bpy.ops.object.modifier_apply(modifier=mod.name)
+    # which bone each vertex follows most (`posed.owner`, an index into its
+    # bones): the skin's own parts, where the nearest bone would be wrong
+    # (the chest's side lies nearer the hanging arm than the spine)
+    names = {g.index: g.name for g in o.vertex_groups}
+    posed.owner = np.array([posed.ix.get(names[max(v.groups, key=lambda g: g.weight).group], -1)
+                            if len(v.groups) else -1 for v in o.data.vertices])
     o.parent = None
     o.vertex_groups.clear()
     bpy.data.objects.remove(arm)

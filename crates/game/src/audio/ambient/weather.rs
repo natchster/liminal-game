@@ -57,7 +57,9 @@ impl Game {
             // the "plink": 1400→520 Hz over ~120 ms
             self.blip(1400.0 * df_shift * ld, 0.12, "sine", 0.045 * dgain * eg, Some(520.0 * df_shift * ld), 0.0, dpan);
             self.blip(240.0 * df_shift * ld, 0.30, "sine", 0.018 * dgain * eg, Some(180.0 * df_shift * ld), 0.06, dpan);
-            self.wet_drip_timer = (6.0 + rnd() * 12.0) * etm; // R143 sanity-boosted
+            // (never twice within 8 s at an even nerve: the mix's rule against
+            // a sound coming straight back, `tests/loudness.rs`)
+            self.wet_drip_timer = (8.0 + rnd() * 10.0) * etm; // R143 sanity-boosted
                                                               // R117/R123: 30% chance of a visible ripple at the drip's spawn
             if rnd() < 0.30 {
                 self.ripple_at(dsx, dsz, 0.55, 1.0, 1.5);
