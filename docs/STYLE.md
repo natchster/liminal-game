@@ -26,6 +26,12 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   are allowed to be strong; toy primaries are not.
 - **Wear:** untextured lit surfaces get the shader's wear; grime gathers
   near the floor.
+- **Photographs** (the Building's surfaces, `visuals/photo.rs`): real
+  Soviet-era places, CC0 only, made seamless and taken off their slow
+  light (the relief keeps its own shading), each graded to the mean colour
+  of the canvas surface it replaced, so a floor keeps its light. Their
+  sources and how each was made: `assets/src/textures/`, `SOURCES.md`
+  section 10.
 - **Light** comes from places: panels, tubes, lamps. Never ambient tied to
   the camera, never a lamp cone that follows the player except the
   flashlight itself.
@@ -62,9 +68,9 @@ wide as CoreText draws it).
 | Habitable Zone | poured concrete, puddles | 5.4–7.6 m, fixtures on rods | wide column grid | long reverb, wet floors |
 | Poolrooms | white tile everywhere | varies | too many pillars | water that is too still |
 | Blackout | whatever was there | — | dead lights | only the flashlight |
-| The Well (the Building, level 1) | panel concrete, a window in every panel | none: galleries over galleries, the void | walks round a well, sealed doors, a few lit windows | laundry across the void, a red-marked door |
-| The Stair Halls (the Building, level 2) | rusticated stone, flagstones | none: the dark | piers, flights at every height, bridges | chains out of the dark, flights nobody reaches |
-| The Works (the Building, level 3) | poured concrete, steel | a slab far up, its fittings dead | terraces stepping down past shafts, machine housings | gantries, pipes |
+| The Well (the Building, level 1) | precast panels, a window in every panel, each its own (wood or PVC frames, net curtains, a grille); cracked, patched yard concrete; whitewashed parapets, the lime flaking | none: galleries over galleries, the void | walks round a well, sealed doors, a few lit windows | laundry across the void, a red-marked door |
+| The Stair Halls (the Building, level 2) | rock-faced granite in courses; dark speckled granite slabs | none: the dark | piers, flights at every height, bridges | chains out of the dark, flights nobody reaches |
+| The Works (the Building, level 3) | bare concrete cast against steel forms, their seams and tie holes; a factory slab saw-cut every 4 m, oil-stained; ribbed precast slabs; steel | a slab far up, its fittings dead | terraces stepping down past shafts, machine housings | gantries, pipes |
 
 ## Purposes (what the place was for)
 

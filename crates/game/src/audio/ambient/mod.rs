@@ -674,7 +674,13 @@ impl Game {
             let wet = (info.grime >= 2 || (info.flags & RF_MOSS) != 0) || self.weather_key() == "wet";
             return if wet { "wetcarpet" } else { "carpet" };
         }
-        kind // concrete | tile | office
+        match kind {
+            // the Building's photographed floors: the Well's decks and the
+            // Works' slab are concrete (the Stair Halls' stone keeps the
+            // plain step it always had)
+            "deck" | "factory" => "concrete",
+            k => k, // concrete | tile | office | stone
+        }
     }
 
     /// A quiet caption the first time you walk into a new kind of place

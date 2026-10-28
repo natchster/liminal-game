@@ -971,6 +971,50 @@ impl Canvas {
         }
         self.version += 1;
     }
+    /// A canvas holding the JPEG image `bytes` as decoded: an RGB image is
+    /// drawn into a bitmap of its own colour space (no conversion), so the
+    /// pixels are the file's values (read as sRGB); a grey or CMYK one is
+    /// converted to sRGB. None if CoreGraphics cannot read it. The bytes are
+    /// `'static` (embedded files): the data provider reads them in place.
+    pub fn from_jpeg(bytes: &'static [u8]) -> Option<Canvas> {
+        unsafe {
+            let p = CGDataProviderCreateWithData(std::ptr::null_mut(), bytes.as_ptr() as *const c_void, bytes.len(), None);
+            if p.is_null() {
+                return None;
+            }
+            let img = CGImageCreateWithJPEGDataProvider(p, std::ptr::null(), false, 0);
+            CGDataProviderRelease(p);
+            if img.is_null() {
+                return None;
+            }
+            let (w, h) = (CGImageGetWidth(img), CGImageGetHeight(img));
+            let mut c = Canvas::new(w as u32, h as u32);
+            let mut raw = vec![0u8; w * h * 4];
+            let own = CGImageGetColorSpace(img);
+            let cs = if !own.is_null() && CGColorSpaceGetNumberOfComponents(own) == 3 { own } else { srgb() };
+            let ctx = CGBitmapContextCreate(
+                raw.as_mut_ptr() as *mut c_void,
+                w,
+                h,
+                8,
+                w * 4,
+                cs,
+                kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big,
+            );
+            if ctx.is_null() {
+                CGImageRelease(img);
+                return None;
+            }
+            // a bitmap context is y-up with rows stored top-down: the image lands upright
+            CGContextDrawImage(ctx, rect(0.0, 0.0, w as f64, h as f64), img);
+            CGContextFlush(ctx);
+            CGContextRelease(ctx);
+            CGImageRelease(img);
+            c.buf.copy_from_slice(&raw);
+            c.version += 1;
+            Some(c)
+        }
+    }
     pub fn draw_image(&mut self, src: &Canvas, dx: impl Num, dy: impl Num) {
         let (w, h) = (src.width(), src.height());
         self.draw_image_scaled(src, dx, dy, w, h);

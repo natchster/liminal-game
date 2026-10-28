@@ -3,6 +3,7 @@
 //! ```text
 //! cargo xtask assets props [--batch b01,b02] [--write [--rebuild-frozen]]
 //! cargo xtask assets import-js --props FILE.js --creatures FILE.js
+//! cargo xtask assets textures [--write]
 //! cargo xtask assets fingerprint
 //! ```
 //!
@@ -30,6 +31,13 @@
 //! `src/creature-meshes.js` with `assets import-js` (which also converts a
 //! `src/prop-meshes.js`; both conversions reproduce the committed files byte
 //! for byte).
+//!
+//! **Textures** (the Building's photographed surfaces, `textures/*.jpg`) come
+//! from `assets/src/textures/build.py`, which fetches the CC0 photographs its
+//! `sources.json` lists, checks each by its SHA-1, and builds every texture.
+//! `assets textures` runs it (`$PYTHON`, else `python3`; it needs Pillow,
+//! NumPy and SciPy) and compares; with `--write` it replaces the files and
+//! records their fingerprints in the manifest.
 use crate::shots::{read_json, write_json};
 use crate::{flag, opt, root};
 use base64::Engine as _;
@@ -42,13 +50,20 @@ pub fn assets(args: &[String]) -> Result<(), String> {
     match args.first().map(String::as_str) {
         Some("props") => props(&args[1..]),
         Some("import-js") => import_js(&args[1..]),
+        Some("textures") => textures(&args[1..]),
         Some("fingerprint") => {
             for f in ["prop_meshes.bin", "creature_meshes.bin"] {
                 println!("{f}: {}", fingerprint(&std::fs::read(asset_dir().join(f)).map_err(|e| e.to_string())?));
             }
+            for f in texture_files()? {
+                println!("{f}: {}", fingerprint(&std::fs::read(asset_dir().join(&f)).map_err(|e| e.to_string())?));
+            }
             Ok(())
         }
-        _ => Err("usage: cargo xtask assets props [--batch …] [--write] | import-js --props F --creatures F | fingerprint".into()),
+        _ => Err(
+            "usage: cargo xtask assets props [--batch …] [--write] | textures [--write] | import-js --props F --creatures F | fingerprint"
+                .into(),
+        ),
     }
 }
 
@@ -347,6 +362,46 @@ fn blender_version() -> String {
         .output()
         .map(|o| String::from_utf8_lossy(&o.stdout).lines().next().unwrap_or("").trim().to_string())
         .unwrap_or_default()
+}
+
+/// The photographed textures, as the manifest names them (`textures/<name>.jpg`)
+fn texture_files() -> Result<Vec<String>, String> {
+    let mut v: Vec<String> = std::fs::read_dir(asset_dir().join("textures"))
+        .map_err(|e| e.to_string())?
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|n| n.ends_with(".jpg"))
+        .map(|n| format!("textures/{n}"))
+        .collect();
+    v.sort();
+    Ok(v)
+}
+
+/// `assets textures [--write]`: build the photographed textures (and, with
+/// `--write`, replace them and record their fingerprints)
+fn textures(args: &[String]) -> Result<(), String> {
+    let write = flag(args, "--write");
+    let python = std::env::var("PYTHON").unwrap_or_else(|_| "python3".into());
+    let mut cmd = Command::new(&python);
+    cmd.arg("-I").arg(root().join("assets/src/textures/build.py"));
+    if write {
+        cmd.arg("--write");
+    }
+    if let Some(only) = opt(args, "--only") {
+        cmd.arg("--only").arg(only);
+    }
+    let st = cmd.status().map_err(|e| format!("{python}: {e} (set $PYTHON to a Python with Pillow, NumPy and SciPy)"))?;
+    if !st.success() {
+        return Err(format!("build.py failed ({st})"));
+    }
+    if write {
+        for f in texture_files()? {
+            let bytes = std::fs::read(asset_dir().join(&f)).map_err(|e| e.to_string())?;
+            update_manifest(&f, &bytes, json!({}))?;
+            println!("{f}: fingerprint {}", fingerprint(&bytes));
+        }
+    }
+    Ok(())
 }
 
 /// Record a file's new fingerprint (and facts about it) in the manifest.

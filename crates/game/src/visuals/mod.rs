@@ -1,7 +1,9 @@
-//! Lighting, procedural textures and surfaces, the props' material look, and
+//! Lighting, procedural textures and surfaces, the Building's photographed
+//! surfaces, the props' material look, and
 //! full-screen colour effects.
 
 pub mod lighting;
+pub mod photo;
 pub mod prop_look;
 pub mod scene_fx;
 pub mod surfaces;

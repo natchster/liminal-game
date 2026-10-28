@@ -43,15 +43,17 @@ fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wal
     match style {
         // the Well: a parapet poured with the gallery
         Style::Well => push(format!("{wall}:1"), along(a, b, 0.0, PARAPET_H, PARAPET_T)),
-        // the Stair Halls: a stone balustrade, its plinth, balusters and rail
+        // the Stair Halls: a stone balustrade, its plinth, balusters and rail,
+        // in the dressed granite of the floors (the walls' rock-faced blocks
+        // are too coarse for a baluster)
         Style::Halls => {
-            push(format!("{wall}:1"), along(a, b, 0.0, 0.16, 0.3));
-            push(format!("{wall}:1"), along(a, b, 0.93, 0.13, 0.26));
+            push("floor:stone:1".into(), along(a, b, 0.0, 0.16, 0.3));
+            push("floor:stone:1".into(), along(a, b, 0.93, 0.13, 0.26));
             let k = n(0.42);
             for i in 0..k {
                 let p = point((i as f64 + 0.5) / k as f64);
                 push(
-                    format!("{wall}:1"),
+                    "floor:stone:1".into(),
                     Mat4::compose(&Vec3::new(p.x, p.y + 0.16 + 0.385, p.z), &Quat::IDENTITY, &Vec3::new(0.11, 0.77, 0.11)),
                 );
             }
@@ -145,7 +147,7 @@ impl Game {
         let (w, h) = (self.w, self.h);
         let style = self.building.as_ref().map(|p| p.style).unwrap_or(Style::Well);
         let zone_mats = |g: &Game, x: i32, z: i32| -> (&'static str, &'static str) {
-            g.zone_ref(x, z).map(|zn| (zn.wall_mat, zn.floor_mat)).unwrap_or(("concrete", "concrete"))
+            g.zone_ref(x, z).map(|zn| (zn.wall_mat, zn.floor_mat)).unwrap_or(("poured", "deck"))
         };
         let mut slabs: Vec<(String, Vec<Mat4>)> = vec![];
         let mut push = |key: String, m: Mat4| match slabs.iter_mut().find(|(k, _)| *k == key) {
@@ -208,7 +210,7 @@ impl Game {
                         let fb = g.at(x, z, self.to_u(ox + ax), self.to_v(oz + az));
                         let a = Vec3::new(ox - ax, fa, oz - az);
                         let b = Vec3::new(ox + ax, fb, oz + az);
-                        let poured = if wall == "panel" { "concrete" } else { wall };
+                        let poured = if wall == "panel" { "poured" } else { wall };
                         rail(&mut push, style, a, b, poured);
                     }
                 }

@@ -29,6 +29,7 @@ cargo xtask range --look       # the generator's expressive range vs its baselin
 cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); then `ab score`
 cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
 cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
+cargo xtask assets textures [--write]            # rebuild the Building's photographed surfaces (CC0 photographs), compare
 cargo xtask bench                                # performance vs docs/PERF.md and perf/history.csv (records a run)
 cargo xtask drift                                # every gate → docs/content.json passes, docs/QUALITY.md Latest sweep
 cargo run --release            # play

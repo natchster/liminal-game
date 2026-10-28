@@ -10,6 +10,7 @@ pub type CGPathRef = *const c_void;
 pub type CGMutablePathRef = *mut c_void;
 pub type CGGradientRef = *mut c_void;
 pub type CGImageRef = *mut c_void;
+pub type CGDataProviderRef = *mut c_void;
 pub type CGColorRef = *mut c_void;
 pub type CTFontRef = *mut c_void;
 pub type CTLineRef = *mut c_void;
@@ -136,6 +137,18 @@ extern "C" {
     ) -> CGContextRef;
     pub fn CGBitmapContextCreateImage(c: CGContextRef) -> CGImageRef;
     pub fn CGImageRelease(i: CGImageRef);
+    pub fn CGDataProviderCreateWithData(
+        info: *mut c_void,
+        data: *const c_void,
+        size: usize,
+        release: Option<unsafe extern "C" fn(*mut c_void, *const c_void, usize)>,
+    ) -> CGDataProviderRef;
+    pub fn CGDataProviderRelease(p: CGDataProviderRef);
+    pub fn CGImageCreateWithJPEGDataProvider(src: CGDataProviderRef, decode: *const f64, interpolate: bool, intent: i32) -> CGImageRef;
+    pub fn CGImageGetWidth(i: CGImageRef) -> usize;
+    pub fn CGImageGetHeight(i: CGImageRef) -> usize;
+    pub fn CGImageGetColorSpace(i: CGImageRef) -> CGColorSpaceRef;
+    pub fn CGColorSpaceGetNumberOfComponents(cs: CGColorSpaceRef) -> usize;
     pub fn CGContextRelease(c: CGContextRef);
     pub fn CGContextFlush(c: CGContextRef);
     pub fn CGContextSaveGState(c: CGContextRef);

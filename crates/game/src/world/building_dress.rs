@@ -273,9 +273,13 @@ impl Game {
         }
     }
 
-    /// The wall kind of the floor's place
+    /// The wall kind of the floor's cells: the place's own, but poured
+    /// concrete in the Well (its panels are faces with windows)
     fn building_wall_kind(&self) -> &'static str {
-        self.layout.as_ref().and_then(|l| l.zones.first()).map(|z| z.wall_mat).unwrap_or("concrete")
+        match self.layout.as_ref().and_then(|l| l.zones.first()).map(|z| z.wall_mat) {
+            Some("panel") | None => "poured",
+            Some(k) => k,
+        }
     }
 
     /// A small painted plate with `text` on it
@@ -306,8 +310,8 @@ impl Game {
     /// it, one over another, up and down the face
     fn dress_galleries(&mut self, plan: &BuildingPlan, parts: &mut Parts, r: &mut SplitMix64) {
         let unit = self.unit_box_geo.clone();
-        let deck_mat = self.arch_mat("floor:concrete:2");
-        let wall_mat = self.arch_mat("concrete:2");
+        let deck_mat = self.arch_mat("floor:deck:2");
+        let wall_mat = self.arch_mat("poured:2");
         let deck = parts.part(&unit, &deck_mat);
         let parapet = parts.part(&unit, &wall_mat);
         let steel = lambert!({ color: 0x47504a });
@@ -577,8 +581,17 @@ impl Game {
     /// Lit windows on the panel faces (the Well), and the door's tower
     fn dress_windows(&mut self, plan: &BuildingPlan, parts: &mut Parts, r: &mut SplitMix64) {
         let geo = plane_geo!(1.42, 1.32);
-        let warm = [basic_mat!({ color: 0xd9b67a }), basic_mat!({ color: 0xc9bfa2 }), basic_mat!({ color: 0x8e9bb0 })];
-        let lit: Vec<usize> = warm.iter().map(|m| parts.part(&geo, m)).collect();
+        // a photographed window lit from inside (`visuals::photo`), in a lamp's
+        // warm light, a cold one, or a television's blue: tint by tint, window by window
+        use crate::visuals::photo::{lit_window_tex, LIT_CELLS};
+        let mut lit = [[0usize; LIT_CELLS]; 3];
+        for (k, tint) in [0xd9b67a, 0xc9bfa2, 0x8e9bb0].into_iter().enumerate() {
+            for (cell, slot) in lit[k].iter_mut().enumerate() {
+                *slot = parts.part(&geo, &basic_mat!({ color: tint, map: lit_window_tex(cell) }));
+            }
+        }
+        // which of a tint's windows: the draw's place inside the tint's share
+        let pick = |v: f64, lo: f64, hi: f64| (((v - lo) / (hi - lo)) * LIT_CELLS as f64).clamp(0.0, LIT_CELLS as f64 - 1.0) as usize;
         if plan.style == Style::Well {
             for z in 0..self.h {
                 for x in 0..self.w {
@@ -602,9 +615,9 @@ impl Game {
                             }
                             let p = self.face_point(x, z, d, 0.0, 0.015, y);
                             let m = match r.next() {
-                                v if v < 0.7 => lit[0],
-                                v if v < 0.95 => lit[1],
-                                _ => lit[2],
+                                v if v < 0.7 => lit[0][pick(v, 0.0, 0.7)],
+                                v if v < 0.95 => lit[1][pick(v, 0.7, 0.95)],
+                                v => lit[2][pick(v, 0.95, 1.0)],
                             };
                             parts.put(m, boxm(p, yaw_to(d), Vec3::new(1.0, 1.0, 1.0)));
                         }
@@ -790,7 +803,18 @@ impl Game {
     fn dress_works(&mut self, plan: &BuildingPlan, parts: &mut Parts, r: &mut SplitMix64) {
         let ceil = self.works_ceiling();
         let (w, h) = (self.w as f64 * CELL, self.h as f64 * CELL);
-        let slab = mesh(box_geo!(w, 1.2, h), self.arch_mat("ceil:slab:2"));
+        // ribbed precast slabs: one mesh, so its map repeats by the slab's own size
+        let ribs = self.surfaces.ceil("ribbed", 2).map(|t| {
+            let t = t.duplicate();
+            let s = crate::visuals::photo::photo_scale("ribbed").unwrap_or([4.0, 1.6]);
+            t.set_repeat(w / s[0], h / s[1]);
+            t
+        });
+        let ceil_mat = lambert!({ map: ribs, side: DoubleSide });
+        if let Some(t) = self.surfaces.photo_tint("ribbed", 2) {
+            ceil_mat.m().color.set_rgb(t, t, t);
+        }
+        let slab = mesh(box_geo!(w, 1.2, h), ceil_mat);
         slab.position().y = ceil + 0.6;
         slab.user().static_prop = true;
         self.world.add(&slab);

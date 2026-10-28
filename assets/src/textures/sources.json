@@ -1,0 +1,41 @@
+{
+  "about": "The photographs the Building's surfaces are made from (crates/game/assets/textures/, by build.py). Every one is CC0. The Commons files are checked by the SHA-1 Commons publishes; the Panelka files by the SHA-1 of each file in the pack's zip.",
+  "commons": {
+    "moscow_rustication": {
+      "title": "File:DSC 03930 moscow july 2016 people.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/7/78/DSC_03930_moscow_july_2016_people.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:DSC_03930_moscow_july_2016_people.jpg",
+      "sha1": "232c35049af0ac77c31a185b1115c50e3d41fb46",
+      "author": "Rakoon",
+      "licence": "CC0-1.0",
+      "taken": "2016-07-26",
+      "what": "Tverskaya Street 11, Moscow: the rock-faced granite rustication of the Ministry of Education and Science building, built in 1949"
+    },
+    "arsenalna_floor": {
+      "title": "File:Арсенальная 05.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/%D0%90%D1%80%D1%81%D0%B5%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_05.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:%D0%90%D1%80%D1%81%D0%B5%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_05.jpg",
+      "sha1": "d2381fab1f96f653a4e728c72c343fd58200d242",
+      "author": "Antares 610",
+      "licence": "CC0-1.0",
+      "taken": "2013-05-19",
+      "what": "Arsenalna station, Kyiv metro (opened 1960): the dark speckled granite floor slabs in front of the marble wall"
+    }
+  },
+  "panelka": {
+    "pack": "PanelkaPack by Kureca, https://kureca.itch.io/panelka-pack (\"No attribution required - CC0\"; photographs of post-Soviet panel housing, its fences and yards; no generative AI, by the page)",
+    "zip_sha1": "336b85af21627bf4910964dc4665cbb3aef1d9cb",
+    "author": "Kureca",
+    "licence": "CC0-1.0",
+    "files": {
+      "Panelka/Panels/Panel1.png": "88a9d114fcebf87c7e758b868628d832189f7dab",
+      "Panelka/Panels/Panel2.png": "592a64cca1c2bdc46ad3dc0187b25f1cd9736a9f",
+      "Panelka/Panels/Panel4.png": "a1d4d943671a713e2b4a0e33a479e84a514182af",
+      "Panelka/Panels/Panel5.png": "e6a9e8198df3e6178e6ca3291aca4c720918d9e7",
+      "Panelka/Panels/Panel6.png": "ec98b8065dfe59738e2665b21c655b99b2d93764",
+      "Panelka/Fences/FenceConcrete2diffuse.png": "eaa632c05a789ce71d5f1dff2e4bc83dc72c287c",
+      "Panelka/Fences/FenceConcrete3diffuse.png": "8a2793dde5636418e801812e3ba1383ccf28a9a9",
+      "Panelka/Concrete1diffuse.png": "9ab993d6a71265e39b7c574174abc37197c951bd"
+    }
+  }
+}

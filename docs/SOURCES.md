@@ -332,6 +332,28 @@ All CC BY-SA 3.0; authors as the wiki credits them.
 - Say: an emission warns minutes ahead and you must reach a shelter; Rain World's rain is seen and heard before it comes, and shelters are where you rest; a giant you cannot hide from is unfair; a director changes how often, not how hard.
 - Used for: the self-assembly (design 4): a siren, then the fog's surface seen rising, a cell always within reach of the warning at a walk, a cell the same everywhere.
 
+### Photographs of Soviet-era places (the Building's surfaces)
+
+Gathered on 2026-10-27 for the Building's surfaces (`visuals::photo`,
+built by `assets/src/textures/build.py`). Searched: Wikimedia Commons
+(categories *Khrushchev houses*, *Stairwells in Russia*, *Interiors of
+factories in Russia*, *Granite floors in Ukraine*, *Terrazzo floors in
+Russia*, *Floor tiles in Russia*, *Rustication (architecture)*, *Lenin
+Mausoleum*, *Interior of the 16-story building in Pripyat*, and file
+searches), with each file's licence read from the Commons API; and CC0
+texture packs. Most Commons photographs of Soviet places are CC BY-SA, and
+nothing there was taken unless it is CC0 (the manifest allows MIT, CC0 and
+CC BY 4.0 only). Every photograph used is CC0, and each is checked by its
+SHA-1 in `assets/src/textures/sources.json`.
+
+- **[PanelkaPack](https://kureca.itch.io/panelka-pack)** by Kureca (CC0, "no generative AI"): photographs of post-Soviet panel housing, its precast fences and yards. Used for: the Well's facade (five photographed panels, each with its window, laid as twelve), its lit windows (the same windows lit from inside), its decks (a cracked, patched yard slab), the Works' floors (the same yard's crack-free parts, quilted into a factory slab saw-cut every 4 m), the Well's parapets and cells (a whitewashed precast fence, its lime flaking off the grey), the Works' walls (the bare fields of another precast fence, cast against steel forms, with the forms' seams and tie holes laid over them) and the Works' ribbed ceiling (that fence whole, cut rib to rib).
+- **[Tverskaya Street 11, Moscow](https://commons.wikimedia.org/wiki/File:DSC_03930_moscow_july_2016_people.jpg)** by Rakoon (CC0, 2016): the rock-faced granite rustication of a Stalin-era ministry, built 1949. Used for: the Stair Halls' walls, its blocks cut out and laid again in running bond.
+- **[Arsenalna station, Kyiv metro](https://commons.wikimedia.org/wiki/File:%D0%90%D1%80%D1%81%D0%B5%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F_05.jpg)** by Antares 610 (CC0, 2013): the station of 1960, the deepest in the world, its floor of dark speckled granite. Used for: the Stair Halls' floor slabs.
+- **[The Fabrika factory store, Moscow](https://commons.wikimedia.org/wiki/File:2026-05-27_%D0%A6%D0%A2%D0%98_%D0%A4%D0%B0%D0%B1%D1%80%D0%B8%D0%BA%D0%B0_-_%D1%81%D0%BA%D0%BB%D0%B0%D0%B4_-_%D0%BF%D0%BB%D0%B8%D1%82%D0%BA%D0%B0_%D0%BF%D0%BE%D0%BB%D0%B0_02.jpg)** by Retired electrician (CC0, 2026): cast-iron hexagonal floor plates in a 19th-century paper factory. Tried for the Works' floors and taken out: a blind review preferred the plain concrete on all 8 views (on walks, stairs and gantries the plates read as a repeated decorative tile).
+- Looked at and not used (CC BY-SA, or not Soviet): Sofia's rusticated ministries, the Lenin Mausoleum's granite, Berlin's Soviet memorial, Pripyat's interiors (CC BY-SA 2.0 to 4.0), Metlakh-tiled stairwells (none free of share-alike), the CC0 "seamless floor" textures of Sisters.seamless (not from Soviet places).
+- Say: the panel block's facade is its precast panels and their joints, a window to a panel, each window different (wood or PVC frames, net curtains, a grille); Stalinist buildings stand on rock-faced granite; the metro's floors are polished granite slabs; old Russian factories have cast-iron floor plates; precast fences and ribbed slabs are the same concrete everywhere.
+- Used for: the Building's look as photographs (design 3), each surface graded to the mean colour of the canvas surface it replaced, so the floors keep their light. Judged blind against the canvas surfaces (`cargo xtask ab`, both orders, `tests/review/verdicts.jsonl`): the Well and the Stair Halls preferred on 16 of 16 views; the Works lost all 8 with iron plates, 5 of 8 with a slab under whitewash, then won all 8 with formwork walls and a worn slab (`MEGASTRUCTURE.md`, B9).
+
 **Scale:** [Shadow of the Colossus's designers on fog and distance](https://www.siliconera.com/graphic-designers-discuss-creating-shadow-of-the-colossus-majestic-world/) *(secondary)*, [the Level Design Book on metrics](https://book.leveldesignbook.com/process/blockout/metrics), [BLAME! and videogame architecture](https://www.killscreen.com/influence-blame-videogame-architecture-rising/) *(secondary)*, [compression and expansion](https://en.wikipedia.org/wiki/Compression_and_expansion).
 - Say: fog over far geometry, repeated modules at human scale, long empty transits as mild sensory deprivation, landings every 12–16 steps, a narrow way opening onto a large one.
 - Used for: the look of the Building (design 3) and the arrival in a narrow place that opens onto the void.

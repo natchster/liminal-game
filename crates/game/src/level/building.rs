@@ -123,9 +123,9 @@ const fn bld(key: &'static str, title: &'static str, lore: &'static str, wall_ma
 /// The Building's archetypes (looked up by `archgen::archetype` after the
 /// rooms' own).
 pub static BUILDING_ARCHETYPES: [Archetype; 3] = [
-    bld("well", "THE WELL", "the Building", "panel", "concrete"),
+    bld("well", "THE WELL", "the Building", "panel", "deck"),
     bld("halls", "THE STAIR HALLS", "the Building", "ashlar", "stone"),
-    bld("works", "THE WORKS", "the Building", "concrete", "concrete"),
+    bld("works", "THE WORKS", "the Building", "formwork", "factory"),
 ];
 
 /// What a style asks of the lattice.

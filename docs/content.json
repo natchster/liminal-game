@@ -8,12 +8,12 @@
       ],
       "id": "anomaly/house",
       "kind": "anomaly",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Borrowed House",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:game/anomalies": true
       }
     },
@@ -24,12 +24,12 @@
       ],
       "id": "anomaly/loop",
       "kind": "anomaly",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Loop",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:game/loop_rooms": true
       }
     },
@@ -40,12 +40,12 @@
       ],
       "id": "anomaly/stairwell",
       "kind": "anomaly",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Stairwell",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:game/stairwell": true
       }
     },
@@ -58,14 +58,14 @@
       ],
       "id": "anomaly/store",
       "kind": "anomaly",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Showroom",
       "notes": "Known look issue: the department signs read as dark plates (tests/materials.rs EXEMPT).",
       "passes": {
         "shots:4242_L10_showroom": true,
         "shots:4242_L4_spawn": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:game/store": true
       }
     },
@@ -76,7 +76,7 @@
       ],
       "id": "building/assembly",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the self-assembly: the siren, the fog, the cells",
       "notes": "Whether the siren reads as a warning the first time, and whether waiting in a cell is dread or a chore, are playtest questions. The siren is synthesized; no person has listened to it.",
@@ -99,7 +99,7 @@
       ],
       "id": "building/floors",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Building's floors: heights, walks, flights, voids, cells, the door seen from the arrival",
       "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question.",
@@ -108,11 +108,33 @@
         "shots:4242_L2_spawn": true,
         "shots:4242_L3_spawn": true,
         "test:backrooms/assembly": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/playthrough": true,
         "test:backrooms/story": true,
         "test:game/building": true,
         "test:game/height": true
+      }
+    },
+    {
+      "checks": [
+        "shots:4242_L1_well",
+        "shots:4242_L2_stair_halls",
+        "shots:4242_L3_works",
+        "test:backrooms/materials",
+        "test:backrooms/structure"
+      ],
+      "id": "building/surfaces",
+      "kind": "system",
+      "last_checked": "2026-10-28",
+      "last_human_review": null,
+      "name": "the Building's photographed surfaces: the panel facade and its lit windows, whitewash, formwork, yard and factory concrete, rock-faced and floor granite, ribbed slabs",
+      "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet.",
+      "passes": {
+        "shots:4242_L1_well": true,
+        "shots:4242_L2_stair_halls": true,
+        "shots:4242_L3_works": true,
+        "test:backrooms/materials": true,
+        "test:backrooms/structure": true
       }
     },
     {
@@ -123,7 +145,7 @@
       ],
       "id": "building/notes",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Building's torn notes (the residents' notice, a cell plate, the cleaners' log, three surveys, a coupon) and her camp in a cell",
       "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. Reviewed by the lore-keeper (B6); whether the residents' voice reads as the Building's and not hers is a playtest question.",
@@ -140,7 +162,7 @@
       ],
       "id": "building/presences",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "what is seen across the Building's void: the figure who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
       "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer.",
@@ -160,7 +182,7 @@
       ],
       "id": "creature/hound",
       "kind": "creature",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "Hound",
       "notes": "Exempt from the albedo floor: the Hound's coat (tests/materials.rs).",
@@ -184,7 +206,7 @@
       ],
       "id": "creature/smiler",
       "kind": "creature",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "Smiler",
       "notes": "",
@@ -208,7 +230,7 @@
       ],
       "id": "creature/watcher",
       "kind": "creature",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Watcher",
       "notes": "",
@@ -228,7 +250,7 @@
       ],
       "id": "pacing/director",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the pacing director",
       "notes": "",
@@ -246,13 +268,13 @@
       ],
       "id": "props/bathroom",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "bathroom props (58 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -266,13 +288,13 @@
       ],
       "id": "props/core",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "core props (72 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -286,13 +308,13 @@
       ],
       "id": "props/domestic",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "domestic props (122 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -306,13 +328,13 @@
       ],
       "id": "props/industrial",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "industrial props (38 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -326,13 +348,13 @@
       ],
       "id": "props/nature",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "nature props (45 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -346,13 +368,13 @@
       ],
       "id": "props/occult",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "occult props (36 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -366,13 +388,13 @@
       ],
       "id": "props/office",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "office props (100 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -386,13 +408,13 @@
       ],
       "id": "props/party",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "party props (27 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -406,13 +428,13 @@
       ],
       "id": "props/toys",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "toys props (76 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -426,13 +448,13 @@
       ],
       "id": "props/victorian",
       "kind": "prop family",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "victorian props (76 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -447,14 +469,14 @@
       ],
       "id": "purpose/empty",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "empty",
       "notes": "",
       "passes": {
         "shots:4242_L7_empty": true,
         "style:empty": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -469,14 +491,14 @@
       ],
       "id": "purpose/living_quarters",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "living quarters",
       "notes": "",
       "passes": {
         "shots:4242_L7_living_quarters": true,
         "style:living quarters": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -491,14 +513,14 @@
       ],
       "id": "purpose/maintenance",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "maintenance",
       "notes": "",
       "passes": {
         "shots:4242_L7_maintenance": true,
         "style:maintenance": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -513,14 +535,14 @@
       ],
       "id": "purpose/office_wing",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "office wing",
       "notes": "",
       "passes": {
         "shots:4242_L7_office_wing": true,
         "style:office wing": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -535,14 +557,14 @@
       ],
       "id": "purpose/overgrown_atrium",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "overgrown atrium",
       "notes": "",
       "passes": {
         "shots:7_L5_overgrown_atrium": true,
         "style:overgrown atrium": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -556,13 +578,13 @@
       ],
       "id": "purpose/parlour",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "parlour",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:parlour": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -576,13 +598,13 @@
       ],
       "id": "purpose/party_room",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "party room",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:party room": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -597,14 +619,14 @@
       ],
       "id": "purpose/play_area",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "play area",
       "notes": "",
       "passes": {
         "shots:7_L5_play_area": true,
         "style:play area": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -619,14 +641,14 @@
       ],
       "id": "purpose/pool_hall",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "pool hall",
       "notes": "",
       "passes": {
         "shots:7_L5_pool_hall": true,
         "style:pool hall": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -641,14 +663,14 @@
       ],
       "id": "purpose/service_tunnels",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "service tunnels",
       "notes": "",
       "passes": {
         "shots:4242_L7_service_tunnels": true,
         "style:service tunnels": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -663,14 +685,14 @@
       ],
       "id": "purpose/showroom",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "showroom",
       "notes": "",
       "passes": {
         "shots:4242_L10_showroom": true,
         "style:showroom": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -684,13 +706,13 @@
       ],
       "id": "purpose/shrine",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "shrine",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:shrine": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -705,14 +727,14 @@
       ],
       "id": "purpose/stair_halls",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "stair halls",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L2_stair_halls": true,
         "style:stair halls": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -727,14 +749,14 @@
       ],
       "id": "purpose/storage_hall",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "storage hall",
       "notes": "",
       "passes": {
         "shots:4242_L7_storage_hall": true,
         "style:storage hall": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -748,13 +770,13 @@
       ],
       "id": "purpose/washrooms",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "washrooms",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:washrooms": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -769,14 +791,14 @@
       ],
       "id": "purpose/well",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "well",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L1_well": true,
         "style:well": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -791,14 +813,14 @@
       ],
       "id": "purpose/works",
       "kind": "zone purpose",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "works",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L3_works": true,
         "style:works": true,
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -811,7 +833,7 @@
       ],
       "id": "sound/ambient",
       "kind": "sound",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "ambient events, signatures and beds",
       "notes": "",
@@ -828,7 +850,7 @@
       ],
       "id": "sound/mix",
       "kind": "sound",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the whole mix",
       "notes": "",
@@ -845,12 +867,12 @@
       ],
       "id": "story/camp",
       "kind": "story",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "M.'s camps",
       "notes": "One a floor down to level 13, against a wall a body long, off the straight way; her lamp gutters out when her page is taken.",
       "passes": {
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/materials": true,
         "test:backrooms/story": true
       }
@@ -863,7 +885,7 @@
       ],
       "id": "story/ending",
       "kind": "story",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the last camp and the end of her story",
       "notes": "Level 13; the card over black; the descent goes on with her last sheets.",
@@ -879,7 +901,7 @@
       ],
       "id": "story/false_trails",
       "kind": "story",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "trails that are not hers",
       "notes": "From the floor of her page f5; the tell (folded twice) is only hinted. Whether players notice it is a playtest question.",
@@ -894,7 +916,7 @@
       ],
       "id": "story/notebook",
       "kind": "story",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "M.'s notebook (13 pages and their threads)",
       "notes": "Reviewed once by a lore-keeper pass (2026-10-26); no human read.",
@@ -911,12 +933,12 @@
       ],
       "id": "story/trail",
       "kind": "story",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "M.'s trail",
       "notes": "Her walk arrival -> camp -> door, sheets in sight of each other; sparser and with lost stretches deeper down. Visibility in the dark is untested with people.",
       "passes": {
-        "test:backrooms/level_sweep": true,
+        "test:backrooms/level_sweep": false,
         "test:backrooms/reference_levels": true,
         "test:backrooms/story": true
       }
@@ -930,7 +952,7 @@
       ],
       "id": "ui/cards",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the death card, the level card and her last card",
       "notes": "The death card's lines come from the older deathBodyBits pool.",
@@ -949,7 +971,7 @@
       ],
       "id": "ui/controls",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the controls: one binding table, what a run needs in reach, rebinding",
       "notes": "Mouse and keyboard only; a key captured for rebinding can be any key or the left button (not the right or the wheel); no gamepad. Whether running and using things together feels easy is a playtest question.",
@@ -967,7 +989,7 @@
       ],
       "id": "ui/hud",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the HUD at rest (meters, pockets, thread, the ring and verb, the glance key)",
       "notes": "calm() sets the model's capitals in sentence case when painted; the model text stays, pinned by recorded fixtures.",
@@ -985,7 +1007,7 @@
       ],
       "id": "ui/menus",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the title, the pause list, Settings and Controls",
       "notes": "The title is the live lobby; the pause list stands over the frozen frame. No human verdict.",
@@ -1002,7 +1024,7 @@
       ],
       "id": "ui/notebook",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the notebook as paper in your hands",
       "notes": "Real time: you walk and look while reading. Whether that is too dangerous or just right is a playtest question.",
@@ -1017,7 +1039,7 @@
       ],
       "id": "ui/type",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the three voices in type (Helvetica Neue, her hand, Courier New)",
       "notes": "macOS system faces; a missing face fails the test rather than substituting silently.",
@@ -1032,7 +1054,7 @@
       ],
       "id": "wayfinding/exit",
       "kind": "system",
-      "last_checked": "2026-10-27",
+      "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the exit's light and call (no compass)",
       "notes": "the_door_is_heard measures the door alone; the payphone's hint line still says 'north' (pinned by the core-props fixture).",

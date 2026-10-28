@@ -32,7 +32,7 @@ const RECORDED: &[&str] = &[
 ];
 
 /// Changes to these make the stop hook run the check (docs alone do not).
-const CODE_EXT: &[&str] = &[".rs", ".toml", ".metal", ".lock", ".json", ".bin", ".txt"];
+const CODE_EXT: &[&str] = &[".rs", ".toml", ".metal", ".lock", ".json", ".bin", ".jpg", ".txt"];
 
 pub fn hook(args: &[String]) -> Result<(), String> {
     let mut input = String::new();

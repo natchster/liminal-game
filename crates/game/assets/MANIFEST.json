@@ -1,12 +1,13 @@
 {
-  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
+  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin and textures/*.jpg has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
   "allowed_licences": [
     "MIT",
     "CC0-1.0",
     "CC-BY-4.0"
   ],
   "allowed_generators": [
-    "procedural bpy scripts"
+    "procedural bpy scripts",
+    "photographs, processed by scripts"
   ],
   "allowed_models": [],
   "files": {
@@ -170,6 +171,132 @@
       "authors": "written by coding agents under the developer's direction",
       "built_with": "the HTML version's pipeline (creatures.py, skinned.py over its rig dumps, creature-pack.mjs), converted byte for byte from its src/creature-meshes.js (fingerprint f8542507bbec07a3) by cargo xtask assets import-js",
       "rebuild": "needs the HTML version's rig dumps (tools/rig-dump.mjs there), not yet ported; see assets/README.md"
+    },
+    "textures/ashlar.jpg": {
+      "fingerprint": "d336a3883cfee7a4",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Rakoon (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
+      "built_with": "the rock-faced granite of Tverskaya Street 11, Moscow (1949): rectified, cut into its blocks, laid again in running bond",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/deck.jpg": {
+      "fingerprint": "9a461f6693174f30",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a cracked post-Soviet courtyard slab, its cloned band cut off and wrapped along least-error seams",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/formwork.jpg": {
+      "fingerprint": "e41855137265e66e",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "the bare grey fields of a Soviet precast fence (cast against steel forms), quilted (Efros-Freeman) into a 4 m sheet, with the forms' panel seams and tie holes laid over it",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/lit.jpg": {
+      "fingerprint": "fd9321bdd136dfa0",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "four photographed windows as lit from inside (frames in silhouette)",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/panel.jpg": {
+      "fingerprint": "2645179dfe8895d3",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "five photographed post-Soviet facade panels, each resampled so its window frame and joints land on the same grid, laid out as twelve panels",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/poured.jpg": {
+      "fingerprint": "419889c42a8830ef",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a whitewashed Soviet precast fence's fields, quilted (Efros-Freeman) into a 4 m sheet (the Well's parapets and cells)",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/ribbed.jpg": {
+      "fingerprint": "4431c24136516e6d",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a Soviet ribbed precast fence panel, cut rib to rib",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/factory.jpg": {
+      "fingerprint": "09dbae916c4ec658",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a factory slab quilted (Efros-Freeman) from the crack-free parts of a photographed post-Soviet yard slab, with saw-cut joints every 4 m and old oil stains",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
+    },
+    "textures/stone.jpg": {
+      "fingerprint": "bb0129060da83e34",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ],
+      "generator": "photographs, processed by scripts",
+      "generative_model": null,
+      "licence": "CC0-1.0",
+      "authors": "Antares 610 (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
+      "built_with": "the granite floor of Arsenalna station, Kyiv (1960): its grain unforeshortened and quilted, laid as 1 m x 0.5 m slabs",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json"
     }
   }
 }

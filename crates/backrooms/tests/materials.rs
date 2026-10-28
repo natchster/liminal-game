@@ -75,8 +75,9 @@ const EXEMPT: &[(&str, &str, &str, &str)] = &[
 ];
 
 /// The levels the lint builds: between them they cover every zone purpose,
-/// all weathers and the anomalies (see `cargo xtask shots`).
-const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 4), (4242, 7), (7, 5), (7, 6), (1999, 7)];
+/// all weathers and the anomalies (see `cargo xtask shots`), and the
+/// Building's three floors with all their photographed surfaces.
+const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 4), (4242, 7), (7, 5), (7, 6), (1999, 7)];
 
 /// Where a material came from: the placer that built the top-level object,
 /// and the mesh's own name.

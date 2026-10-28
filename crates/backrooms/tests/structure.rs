@@ -294,11 +294,20 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
     let allowed = |k: &str| -> Vec<String> { m[k].as_array().into_iter().flatten().filter_map(|v| v.as_str().map(String::from)).collect() };
     let (licences, generators, models) = (allowed("allowed_licences"), allowed("allowed_generators"), allowed("allowed_models"));
     let mut problems = vec![];
-    for e in std::fs::read_dir(root().join("crates/game/assets")).unwrap().flatten() {
-        let name = e.file_name().to_string_lossy().to_string();
-        if !name.ends_with(".bin") {
-            continue;
-        }
+    // the meshes, and the photographed textures (named `textures/<file>`)
+    let files = std::fs::read_dir(root().join("crates/game/assets"))
+        .unwrap()
+        .flatten()
+        .map(|e| (e.file_name().to_string_lossy().to_string(), e))
+        .filter(|(n, _)| n.ends_with(".bin"))
+        .chain(
+            std::fs::read_dir(root().join("crates/game/assets/textures"))
+                .unwrap()
+                .flatten()
+                .map(|e| (format!("textures/{}", e.file_name().to_string_lossy()), e))
+                .filter(|(n, _)| n.ends_with(".jpg")),
+        );
+    for (name, e) in files {
         let entry = &m["files"][&name];
         if entry.is_null() {
             problems.push(format!("{name}: no entry in MANIFEST.json (where it comes from, its licence, its generator)"));

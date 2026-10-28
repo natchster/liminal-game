@@ -11,6 +11,9 @@
 //! `canvas_tex` (colour space, wrapping,
 //! anisotropy); `rng` is used for the texture noise (the game passes the
 //! native generator: textures are cached across levels, never level-seeded).
+//! The Building's surfaces (panel, ashlar, poured, formwork; deck, stone, factory; ribbed)
+//! are photographs (`visuals::photo`), cached the same way and drawing nothing
+//! from `rng`.
 //!
 //! grime: 0 clean · 1 aged · 2 dirty · 3 ruined
 
@@ -20,7 +23,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 /// Metres covered by one texture repeat `[u, v]`.
-pub static SURFACE_SCALE: [(&str, [f64; 2]); 13] = [
+pub static SURFACE_SCALE: [(&str, [f64; 2]); 10] = [
     ("drywall", [4.0, 3.1]),
     ("paint", [4.0, 3.1]),
     ("concrete", [3.2, 3.2]),
@@ -31,11 +34,8 @@ pub static SURFACE_SCALE: [(&str, [f64; 2]); 13] = [
     ("floorTile", [1.2, 1.2]),
     ("ceilSlab", [4.0, 4.0]),
     ("ceilPlaster", [4.0, 4.0]),
-    // the Building's: a panel (and its window) a tile wide and a storey high
-    ("panel", [4.0, 3.0]),
-    ("ashlar", [4.0, 3.0]),
-    ("floorStone", [4.0, 4.0]),
 ];
+// (the Building's photographed surfaces carry their own: `visuals::photo`)
 
 /// The random source the surfaces draw from (`rng`).
 pub type Rng = fn() -> f64;
@@ -341,144 +341,6 @@ pub fn brick(rng: Rng, g: i32) -> Tex {
     })
 }
 
-/// The Building's panel facade (the Well): precast concrete panels a tile
-/// wide and a storey high, each with one window, its glass dark (nothing is
-/// behind it), its frame grey; the joints between panels; rust and damp from
-/// the window corners. Laid out the same way up and down, so it reads the
-/// same whichever way the texture's v runs.
-pub fn panel(rng: Rng, g: i32) -> Tex {
-    let gf = g as f64;
-    canvas_tex(512, 384, move |ctx, w, h| {
-        ctx.set_fill_style(CONC[g as usize]);
-        ctx.fill_rect(0, 0, w, h);
-        for _ in 0..22 {
-            blotch(
-                ctx,
-                w,
-                h,
-                r1(rng, w),
-                r1(rng, h),
-                r2(rng, 40.0, 140.0),
-                if rng() < 0.55 { "rgba(0,0,0,0.08)" } else { "rgba(255,255,255,0.05)" },
-            );
-        }
-        speckle(rng, ctx, w, h, 7000, [30, 30, 28], 0.05, 0.16, 0.6, 1.8);
-        // the slab edge between storeys (half at each edge) and the panel joints
-        ctx.set_fill_style("rgba(0,0,0,0.10)");
-        ctx.fill_rect(0, 0, w, 14);
-        ctx.fill_rect(0, h - 14.0, w, 14);
-        ctx.set_fill_style("rgba(18,17,15,0.6)");
-        ctx.fill_rect(0, 0, w, 2);
-        ctx.fill_rect(0, 0, 3, h);
-        ctx.set_fill_style("rgba(255,255,255,0.07)");
-        ctx.fill_rect(3, 0, 1, h);
-        // the window: 1.5 m by 1.4 m, in the middle of the panel
-        let (ww, wh) = (192.0, 180.0);
-        let (wx, wy) = ((w - ww) / 2.0, (h - wh) / 2.0);
-        // its reveal (the panel is thick), frame, glass, a mullion
-        ctx.set_fill_style("rgba(10,10,9,0.55)");
-        ctx.fill_rect(wx - 10.0, wy - 10.0, ww + 20.0, wh + 20.0);
-        ctx.set_fill_style(["#9c9a94", "#8a8781", "#76726b", "#605d56"][g as usize]);
-        ctx.fill_rect(wx - 4.0, wy - 4.0, ww + 8.0, wh + 8.0);
-        ctx.set_fill_style("#0f1215");
-        ctx.fill_rect(wx + 4.0, wy + 4.0, ww - 8.0, wh - 8.0);
-        // a dull reflection across the glass, corner to corner
-        let gr = ctx.create_linear_gradient(wx, wy, wx + ww, wy + wh);
-        gr.add_color_stop(0, "rgba(120,130,140,0.10)");
-        gr.add_color_stop(0.5, "rgba(120,130,140,0.02)");
-        gr.add_color_stop(1, "rgba(120,130,140,0.08)");
-        ctx.set_fill_style(&gr);
-        ctx.fill_rect(wx + 4.0, wy + 4.0, ww - 8.0, wh - 8.0);
-        ctx.set_fill_style(["#9c9a94", "#8a8781", "#76726b", "#605d56"][g as usize]);
-        ctx.fill_rect(w / 2.0 - 3.0, wy, 6, wh);
-        // rust and damp run from the reveal's corners, both ways
-        for _ in 0..times(2.0 + gf * 3.0) {
-            let x = if rng() < 0.5 { wx - 6.0 + r1(rng, 10.0) } else { wx + ww - 4.0 + r1(rng, 10.0) };
-            let len = r2(rng, 20.0, 60.0 + gf * 30.0);
-            for (y0, dir) in [(wy + wh + 10.0, 1.0), (wy - 10.0, -1.0)] {
-                let gr = ctx.create_linear_gradient(0, y0, 0, y0 + dir * len);
-                gr.add_color_stop(0, &format!("rgba(90,50,24,{})", 0.18 + gf * 0.07));
-                gr.add_color_stop(1, "rgba(90,50,24,0)");
-                ctx.set_fill_style(&gr);
-                ctx.fill_rect(x, y0.min(y0 + dir * len), 3, len);
-            }
-        }
-        for _ in 0..times(gf * 6.0) {
-            blotch(ctx, w, h, r1(rng, w), r1(rng, h), r2(rng, 20.0, 70.0), &format!("rgba(20,24,16,{})", 0.08 + gf * 0.05));
-        }
-    })
-}
-
-/// Rusticated stone (the Stair Halls): great blocks a metre long and 0.75 m
-/// high in running bond, deep shadowed joints, each block its own tone, chisel
-/// marks and soot.
-pub fn ashlar(rng: Rng, g: i32) -> Tex {
-    let gf = g as f64;
-    canvas_tex(512, 384, move |ctx, w, h| {
-        ctx.set_fill_style(["#4c4842", "#433f3a", "#3a3632", "#2f2c29"][g as usize]);
-        ctx.fill_rect(0, 0, w, h); // the joints
-        let (cols, rows) = (4i32, 4i32);
-        let (bw, bh, m) = (w / cols as f64, h / rows as f64, 7.0);
-        for r in 0..rows {
-            let off = (r % 2) as f64 * bw / 2.0;
-            for c in -1..cols + 1 {
-                let k = 1.0 - gf * 0.1 + r2(rng, -0.07, 0.07);
-                let (tr, tg, tb) = (128.0 * k, 122.0 * k, 110.0 * k);
-                let x = c as f64 * bw + off;
-                for dx in [0.0, -w, w] {
-                    let (x0, y0) = (x + dx + m / 2.0, r as f64 * bh + m / 2.0);
-                    ctx.set_fill_style(format!("rgb({},{},{})", to_i32(tr), to_i32(tg), to_i32(tb)));
-                    ctx.fill_rect(x0, y0, bw - m, bh - m);
-                    // a bevel: light on one edge, shadow on the other
-                    ctx.set_fill_style("rgba(255,255,255,0.06)");
-                    ctx.fill_rect(x0, y0, bw - m, 3);
-                    ctx.set_fill_style("rgba(0,0,0,0.18)");
-                    ctx.fill_rect(x0, y0 + bh - m - 4.0, bw - m, 4);
-                }
-            }
-        }
-        speckle(rng, ctx, w, h, 9000, [24, 22, 20], 0.05, 0.2, 0.6, 1.8);
-        speckle(rng, ctx, w, h, 2500, [200, 195, 180], 0.03, 0.1, 0.6, 1.4);
-        // chisel marks
-        ctx.set_stroke_style("rgba(0,0,0,0.07)");
-        ctx.set_line_width(1);
-        for _ in 0..240 {
-            let (x, y) = (r1(rng, w), r1(rng, h));
-            ctx.begin_path();
-            ctx.move_to(x, y);
-            ctx.line_to(x + r2(rng, -6.0, 6.0), y + r2(rng, 3.0, 9.0));
-            ctx.stroke();
-        }
-        for _ in 0..times(5.0 + gf * 8.0) {
-            blotch(ctx, w, h, r1(rng, w), r1(rng, h), r2(rng, 30.0, 120.0), &format!("rgba(10,9,8,{})", 0.08 + gf * 0.05));
-        }
-    })
-}
-
-/// Flagstones (the Stair Halls' floors): squares a metre on a side, their
-/// edges worn round, the middle of each walked smooth.
-pub fn floor_stone(rng: Rng, g: i32) -> Tex {
-    let gf = g as f64;
-    canvas_tex(512, 512, move |ctx, w, h| {
-        ctx.set_fill_style("#3a3632");
-        ctx.fill_rect(0, 0, w, h);
-        let n = 4;
-        let s = w / n as f64;
-        for j in 0..n {
-            for i in 0..n {
-                let k = 1.0 - gf * 0.1 + r2(rng, -0.08, 0.08);
-                ctx.set_fill_style(format!("rgb({},{},{})", to_i32(118.0 * k), to_i32(113.0 * k), to_i32(102.0 * k)));
-                ctx.fill_rect(i as f64 * s + 3.0, j as f64 * s + 3.0, s - 6.0, s - 6.0);
-                blotch(ctx, w, h, i as f64 * s + s / 2.0, j as f64 * s + s / 2.0, s * 0.35, "rgba(255,255,255,0.04)");
-            }
-        }
-        speckle(rng, ctx, w, h, 10000, [22, 20, 18], 0.05, 0.18, 0.6, 1.6);
-        for _ in 0..times(3.0 + gf * 6.0) {
-            blotch(ctx, w, h, r1(rng, w), r1(rng, h), r2(rng, 30.0, 110.0), &format!("rgba(12,11,9,{})", 0.1 + gf * 0.05));
-        }
-    })
-}
-
 /// Pool tile: 15 cm glazed squares, pale grout that
 /// yellows with grime. Level 37.
 pub fn tile(rng: Rng, g: i32, floor: bool) -> Tex {
@@ -688,7 +550,8 @@ impl Surfaces {
         self.cache.borrow_mut().insert(k, t.clone());
         t
     }
-    /// Wall texture at grime `g` — kind: drywall | paint | concrete | brick | tile.
+    /// Wall texture at grime `g` — kind: drywall | paint | concrete | brick | tile,
+    /// or the Building's photographed panel | ashlar | poured | formwork.
     pub fn wall(&self, kind: &str, g: impl Num) -> Option<Tex> {
         let g = clamp_g(g.f());
         match kind {
@@ -697,34 +560,53 @@ impl Surfaces {
             "concrete" => Some(self.get("concrete", g, concrete)),
             "brick" => Some(self.get("brick", g, brick)),
             "tile" => Some(self.get("tile", g, |r, x| tile(r, x, false))),
-            "panel" => Some(self.get("panel", g, panel)),
-            "ashlar" => Some(self.get("ashlar", g, ashlar)),
+            "panel" | "ashlar" | "poured" | "formwork" => self.photo(kind, g),
             _ => None,
         }
     }
-    /// Floor texture at grime `g` — kind: concrete | office | tile.
+    /// Floor texture at grime `g` — kind: concrete | office | tile, or the
+    /// Building's photographed deck | stone | factory.
     pub fn floor(&self, kind: &str, g: impl Num) -> Option<Tex> {
         let g = clamp_g(g.f());
         match kind {
             "concrete" => Some(self.get("floorConcrete", g, floor_concrete)),
             "office" => Some(self.get("floorOffice", g, floor_office)),
             "tile" => Some(self.get("floorTile", g, |r, x| tile(r, x, true))),
-            "stone" => Some(self.get("floorStone", g, floor_stone)),
+            "deck" | "stone" | "factory" => self.photo(kind, g),
             _ => None,
         }
     }
-    /// Ceiling texture at grime `g` — kind: slab | plaster.
+    /// Ceiling texture at grime `g` — kind: slab | plaster, or the Building's
+    /// photographed ribbed.
     pub fn ceil(&self, kind: &str, g: impl Num) -> Option<Tex> {
         let g = clamp_g(g.f());
         match kind {
             "slab" => Some(self.get("ceilSlab", g, ceil_slab)),
             "plaster" => Some(self.get("ceilPlaster", g, ceil_plaster)),
+            "ribbed" => self.photo(kind, g),
             _ => None,
         }
     }
-    /// Metres per texture repeat for `kind` (`SURFACE_SCALE`, else [4, 3.1])
+    /// The photographed surface `kind`, decoded once whatever the grime (no
+    /// random draw; the grime is the material's tint, `photo_tint`)
+    fn photo(&self, kind: &str, _g: i32) -> Option<Tex> {
+        let k = format!("photo:{}", kind);
+        if let Some(t) = self.cache.borrow().get(&k) {
+            return Some(t.clone());
+        }
+        let t = crate::visuals::photo::photo_tex(kind)?;
+        self.cache.borrow_mut().insert(k, t.clone());
+        Some(t)
+    }
+    /// The material tint (linear grey) for the photographed surface `kind` at
+    /// grime `g`; None for the canvas surfaces, whose grime is painted in
+    pub fn photo_tint(&self, kind: &str, g: impl Num) -> Option<f64> {
+        crate::visuals::photo::photo_scale(kind).map(|_| crate::visuals::photo::grime_tint(clamp_g(g.f())))
+    }
+    /// Metres per texture repeat for `kind` (a photographed surface's own, else
+    /// `SURFACE_SCALE`, else [4, 3.1])
     pub fn scale(&self, kind: &str) -> [f64; 2] {
-        SURFACE_SCALE.iter().find(|s| s.0 == kind).map(|s| s.1).unwrap_or([4.0, 3.1])
+        crate::visuals::photo::photo_scale(kind).or_else(|| SURFACE_SCALE.iter().find(|s| s.0 == kind).map(|s| s.1)).unwrap_or([4.0, 3.1])
     }
     /// Number of textures built so far.
     pub fn cached(&self) -> usize {

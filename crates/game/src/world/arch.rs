@@ -72,12 +72,22 @@ impl Game {
             let tex = self.tex.wallpaper_variants.get(i).map(|v| v.tex.clone());
             world_uv_material(tex, [CELL, WALL_H], true)
         } else if a == "floor" {
-            lambert!({ map: self.surfaces.floor(b, num(c)) })
+            match crate::visuals::photo::photo_scale(b) {
+                // a photographed floor: in world space, so a tread or a slab's
+                // edge shows its own piece of the floor, not all of it squeezed
+                Some([s, _]) => world_uv_material(self.surfaces.floor(b, num(c)), [s, s], false),
+                None => lambert!({ map: self.surfaces.floor(b, num(c)) }),
+            }
         } else if a == "ceil" {
             lambert!({ map: self.surfaces.ceil(b, num(c)), side: DoubleSide })
         } else {
             world_uv_material(self.surfaces.wall(a, num(b)), self.surfaces.scale(a), false)
         };
+        // a photographed surface's grime is its material's tint
+        let (kind, g) = if a == "floor" || a == "ceil" { (b, num(c)) } else { (a, num(b)) };
+        if let Some(t) = self.surfaces.photo_tint(kind, g) {
+            m.m().color.set_rgb(t, t, t);
+        }
         self.arch_mats.insert(key.to_string(), m.clone());
         m
     }

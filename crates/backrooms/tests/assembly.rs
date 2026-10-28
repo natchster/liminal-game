@@ -16,8 +16,10 @@ const DT: f64 = 1.0 / 60.0;
 fn floor(seed: u32, level: i32) -> Game {
     game::base::rng::seed_native(0xA55E_0000 ^ u64::from(seed) ^ ((level as u64) << 32));
     let mut g = common::new_game();
-    g.run_seed = seed;
+    // a new run picks its own run seed (from the native stream): the floor
+    // asked for is built after it, with the seed asked for
     g.start_new_game();
+    g.run_seed = seed;
     g.init_level(level);
     g.state = "playing".into();
     g.hide_overlay();

@@ -220,8 +220,9 @@ Levels must be a pure function of `(run_seed, level)`:
 
 ## Assets
 
-The embedded meshes are built from the bpy scripts in `assets/src/blender/`
-(see `assets/README.md`):
+The embedded meshes are built from the bpy scripts in `assets/src/blender/`,
+the photographed textures from the scripts in `assets/src/textures/` (see
+`assets/README.md`):
 
 * `cargo xtask assets props [--batch …]` builds the props in Blender headless
   and compares every part with `crates/game/assets/prop_meshes.bin` by its
@@ -231,6 +232,12 @@ The embedded meshes are built from the bpy scripts in `assets/src/blender/`
   `propkit.noise3` (`mathutils.noise.noise_vector` differs in every Blender
   process). 123 *frozen* parts, built before that, keep their stored shapes
   until a deliberate `--rebuild-frozen` with re-recorded prop fixtures.
+* `cargo xtask assets textures [--write]` builds the Building's photographed
+  surfaces (`crates/game/assets/textures/`) with
+  `assets/src/textures/build.py` from the CC0 photographs listed in its
+  `sources.json` (each checked by its SHA-1) and compares them; `--write`
+  replaces them and records their fingerprints. It needs a Python with
+  Pillow, NumPy and SciPy (`$PYTHON`).
 * Creatures still rebuild in the HTML version (they need its rig dumps);
   `cargo xtask assets import-js` converts its generated modules (byte for
   byte).

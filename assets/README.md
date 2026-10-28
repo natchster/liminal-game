@@ -1,9 +1,11 @@
 # Asset sources
 
 The game embeds two mesh files, `crates/game/assets/prop_meshes.bin` and
-`crates/game/assets/creature_meshes.bin`. This folder holds what they are
-built from: Blender (bpy) scripts, no binary models. Everything is procedural
-and scripted; no generative model is used (see `crates/game/assets/MANIFEST.json`).
+`crates/game/assets/creature_meshes.bin`, and the Building's photographed
+surfaces, `crates/game/assets/textures/*.jpg`. This folder holds what they
+are built from: Blender (bpy) scripts, no binary models; and the scripts that
+make textures of CC0 photographs, no images. No generative model is used (see
+`crates/game/assets/MANIFEST.json`).
 
 | Path | What |
 |---|---|
@@ -11,6 +13,8 @@ and scripted; no generative model is used (see `crates/game/assets/MANIFEST.json
 | `src/blender/propkit.py` | the shape kit the batches use (boxes, lathes, sweeps, noise, booleans, the `finish` step that bakes normals) and the triangle budgets |
 | `src/blender/props/*.map.json`, `*.notes.md` | which placer primitive each part replaces, and the batch's notes |
 | `src/blender/creatures.py`, `skinned.py`, `skin_*.py`, `SKINNED.md` | the creatures: rigid parts, and skinned bodies built over rigs |
+| `src/textures/sources.json` | the photographs the Building's surfaces are made of: where each is, its author, licence (CC0) and SHA-1 |
+| `src/textures/build.py`, `texlib.py` | fetch and check the photographs, and make each texture: rectify, cut along joints, quilt (Efros and Freeman), wrap along least-error seams, take off the slow light, grade to the surface it replaced |
 
 ## Rebuilding
 
@@ -49,3 +53,19 @@ same way; both conversions reproduce the files byte for byte.)
   skin weights) and the parts table `crates/game/assets/parts.tsv`.
 - `crates/backrooms/tests/structure.rs` — the manifest covers every embedded
   file, its fingerprint matches, and its licence and generator are allowed.
+
+**Textures** (reproducible here; Python with Pillow, NumPy and SciPy):
+
+```sh
+cargo xtask assets textures              # fetch the photographs once (target/texture-sources/), build, compare
+cargo xtask assets textures --write      # replace crates/game/assets/textures/ and record the fingerprints
+PYTHON=path/to/venv/bin/python cargo xtask assets textures   # a Python that has them
+```
+
+Each photograph is checked against its SHA-1 (Commons publishes one; the
+Panelka files are checked inside the pack's zip) before anything is built.
+Every step is seeded, so a rebuild with the same libraries gives the same
+pixels; a different Pillow, NumPy or SciPy can move a texture by a level or
+two, which the compare reports. The builds write a 3x3 tiled preview of each
+texture to `target/textures/` beside it: look at it for seams.
+

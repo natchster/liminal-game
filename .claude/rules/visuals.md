@@ -17,7 +17,11 @@ paths:
   inside physically plausible albedo (max channel about 0.03–0.87 for
   non-metals) and avoid saturated, flat colour.
 - **Canvas textures draw from the native stream** (`canvas_tex` switches to
-  it); never take build randomness while painting.
+  it); never take build randomness while painting. The Building's surfaces
+  are photographs (`visuals/photo.rs`, built by `assets/src/textures/`) and
+  draw nothing; a new one comes from a CC0 photograph listed in
+  `sources.json` (the manifest allows MIT, CC0, CC BY 4.0 only), graded to
+  the surface it replaces.
 - **Shader cost:** a texture read in a global patch multiplies pipeline
   compile time. Judge by level load plus first frame.
 - **Gates:** `cargo xtask shots` (golden frames, look anchors per frame and
