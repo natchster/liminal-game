@@ -603,6 +603,8 @@ pub struct Game {
     pub god_mode: bool,
     /// What this run remembers of the creatures: the kinds met, your habits
     pub creature_run: crate::entities::creature::RunMemory,
+    /// `--showcase watcher`: its furniture placed (once)
+    pub showcase_company: bool,
     pub god_deaths: f64,
     pub level_start_t: f64,
     pub pool_t: f64,
@@ -1063,6 +1065,7 @@ impl Game {
             falling_t: 0.0,
             god_mode: false,
             creature_run: Default::default(),
+            showcase_company: false,
             god_deaths: 0.0,
             level_start_t: 0.0,
             pool_t: 0.0,

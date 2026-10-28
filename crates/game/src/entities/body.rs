@@ -116,6 +116,10 @@ pub fn build_body(name: &str, mat: &dyn Fn(&str) -> Mat) -> Option<BodyRig> {
             }
         };
         o.set_name(&m.name);
+        // a mesh with morph targets draws them only with an influence each
+        if !m.morphs.is_empty() {
+            *o.morph_influences() = vec![0.0; m.morphs.len()];
+        }
         meshes.insert(m.name.clone(), o);
     }
     Some(BodyRig { root, bones, def, rest_dir, rest_len, skins, meshes })

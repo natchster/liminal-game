@@ -458,6 +458,20 @@ impl Game {
         };
         let yaw = self.player.yaw;
         let (fx, fz) = (-yaw.sin(), -yaw.cos());
+        // the Watcher among its furniture: a wingback and a chair under the
+        // same old sheets, beside it and a little behind (as you see it)
+        if kind == "watcher" && !self.showcase_company {
+            self.showcase_company = true;
+            let (cx, cz) = (self.player.pos.x + fx * dist, self.player.pos.z + fz * dist);
+            let (rx, rz) = (-fz, fx);
+            for (name, side, back, turn) in [("sheet_wingback", 1.3, 0.7, 0.6), ("sheet_chair", -1.4, 1.1, -0.9)] {
+                if let Some(rig) = crate::entities::body::build_body(name, &crate::entities::watcher::material) {
+                    rig.root.position().set(cx + rx * side + fx * back, 0.0, cz + rz * side + fz * back);
+                    rig.root.rotation().y = yaw + turn;
+                    self.world.add(&rig.root);
+                }
+            }
+        }
         for (k, e) in self.entities.iter_mut().enumerate() {
             if k == ei {
                 e.g.set_pos(self.player.pos.x + fx * dist, 0.0, self.player.pos.z + fz * dist);

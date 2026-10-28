@@ -10,7 +10,13 @@ budget gets a second look: three more runs, judged on the median of all
 six. A p99 of 240 frames is about the third-worst frame, so one hitch of
 the machine's can carry it (the Well, 4242 L1, has measured 1.4–6.1 ms
 over the same code while its p50 held at 1.3 ms); a level that is really
-slow stays slow over six.
+slow stays slow over six. Each level's JSON (`target/xtask/bench/*.json`)
+lists the frames whose update took over 2 ms (`update_slow`: which, and how
+long), so a high p99 can be read, not guessed at. (At E4 one build put the
+update p99 of every level, the Building's too, at 4.7 ms under `cargo xtask
+bench` and at 0.75 ms when the same binary was run by hand; a change to code
+after the timed loop alone took it away, and no frame over 2 ms has been
+seen since. Nothing from those runs was recorded.)
 
 It fails when a level goes over a budget below, or when a measure's history
 on this machine (`perf/history.csv`) shows a lasting step up: the best split

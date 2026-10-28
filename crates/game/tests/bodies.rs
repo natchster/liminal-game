@@ -37,10 +37,19 @@ fn every_body_decodes_soundly() {
                 }
                 assert!(g.skin_index.iter().all(|&j| (j as usize) < b.bones.len()));
             }
-            // a body stands on the floor and fits under a doorway's lintel or a low ceiling
-            let bb = g.bounding_box.unwrap();
+            // a body stands on the floor and fits under a doorway's lintel or a
+            // low ceiling, in every pose its morphs give it (each pose's own
+            // extent: the bounding box of relative morphs is wider, for culling)
             if m.bone.is_none() {
-                assert!(bb.min.y > -0.05 && bb.max.y < 2.6, "{name}/{}: spans y {}..{}", m.name, bb.min.y, bb.max.y);
+                let mut poses = vec![g.position.clone()];
+                for k in &g.morph_position {
+                    poses.push(g.position.iter().zip(k).map(|(a, b)| a + b).collect());
+                }
+                for (pi, pos) in poses.iter().enumerate() {
+                    let ys = pos.iter().skip(1).step_by(3);
+                    let (lo, hi) = ys.fold((f32::MAX, f32::MIN), |(lo, hi), &y| (lo.min(y), hi.max(y)));
+                    assert!(lo > -0.05 && hi < 2.6, "{name}/{} (pose {pi}): spans y {lo}..{hi}", m.name);
+                }
             }
         }
     }

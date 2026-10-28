@@ -41,6 +41,7 @@ pub const DATA: KindData = KindData {
     sight_gain: 1.6,
     sound_gain: 0.9,
     forget: 0.35,
+    touch_nerve: 0.0,
 };
 
 /// How far it sees your lamp, m.
@@ -50,10 +51,11 @@ pub const PANIC_RANGE: f64 = 8.0;
 /// How bright a place it shies from (the light map).
 pub const BRIGHT: f64 = 0.55;
 const CREEP: f64 = 1.6;
-/// Sent, it creeps toward you until this near, m.
-const STALK_NEAR: f64 = 10.0;
+/// Sent, it creeps toward you until this near, m (nearer than it sees your
+/// lit body: sent, it finds you, and its click gives you the moment to go dark).
+const STALK_NEAR: f64 = 5.0;
 /// Told where you are, it takes a new hint at most this often, s.
-const HINT_EVERY: f64 = 8.0;
+const HINT_EVERY: f64 = 5.0;
 const STALK: f64 = 3.2;
 const SEARCH: f64 = 2.6;
 const HUNT: f64 = 4.5;
@@ -311,11 +313,13 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             }
             let goal = g.creature(ei).unwrap().brain.goal.or(seen.map(|(x, z, _)| (x, z)));
             let at = goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
+            let told = matches!(order, Order::Seek(..));
             if at {
                 // there it waits in the dark, listening, looking round
                 scan(g, ei, mode_t, dt);
             } else {
-                g.creature_go(ei, goal, false, pace(SEARCH), dt);
+                // (told where you are, it goes at its stalking pace)
+                g.creature_go(ei, goal, false, pace(if told { STALK } else { SEARCH }), dt);
             }
             if mode_t > 16.0 {
                 g.creature_mut(ei).unwrap().brain.goal = None;

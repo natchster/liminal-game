@@ -127,8 +127,8 @@ Each creature (`entities::ai`) is in one of three states:
   sight and sound of you for a few seconds sends it to search where it last
   had you. Touch is death; the death scene shows the creature that did it.
 
-The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound and the
-Smiler) run
+The creatures of the redesign (`docs/ENTITIES.md`; so far the Hound, the
+Smiler and the Watcher) run
 their own brain instead (`entities::creature`, `entities::brain`): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
@@ -142,7 +142,9 @@ away for 45 s (a second in the same peak, or one on a spent nerve, kills);
 chases are capped below your sprint, bursts at 7 m/s over 4 m. A kind is
 its data and its own `think`, `animate` (on a body from `bodies.bin`) and
 `voice` (`entities::hound`, which hears; `entities::smiler`, which sees
-your lamp and loses you in the dark).
+your lamp and loses you in the dark; `entities::watcher`, which moves only
+unseen, its poses morphs of one sheet, among furniture under the same
+sheets).
 
 Above them, the **director** (`entities::director`) shapes each level into a
 cycle, after the AI director designs of horror games (a menace gauge that

@@ -42,6 +42,8 @@ impl Phase {
 }
 
 /// The most events one level's log keeps.
+/// A stalker further off than this (straight, m) gives no sign.
+const CUE_REACH: f64 = 40.0;
 pub const LOG_CAP: usize = 4096;
 
 #[derive(Clone, Debug, Default)]
@@ -512,6 +514,11 @@ impl Game {
     /// A sign that something is coming, from where it really is: steps far
     /// off, then the lights near it failing, then nothing at all.
     fn presence_cue(&mut self, si: usize, ds: f64) {
+        // out of earshot it gives no sign: the place holds its breath until
+        // something is near enough to be heard (a sign must mean it)
+        if ds > CUE_REACH {
+            return;
+        }
         let sp = self.entities[si].pos();
         // the Watcher makes no sound: only the lights over it tell
         if self.entities[si].kind == "watcher" && ds > 9.0 {

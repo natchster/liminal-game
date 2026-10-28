@@ -41,3 +41,9 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-28, on top of 1a153c2: look anchors: smiler_death. Reason: E3: the old death frame was a lit black-and-white grin filling the screen, which the redesign rejects; the new one is its dark head over you, so less contrast and less deep shadow
 
 - 2026-10-28, on top of 1a153c2: frames: 17 shots. Reason: E3: the Smiler on the new brain draws from the native stream differently each frame, so grain and camera sway shift on levels with a Smiler; frames and error maps checked: no change of content
+
+- 2026-10-28, on top of 6d9a031: frames: watcher_2m, watcher_4m, watcher_8m, watcher_death. Reason: E4: the Watcher rebuilt from scratch (docs/ENTITIES.md): one dust sheet draped by Blender's cloth over a hidden body, its face pressed into the cloth, standing among furniture under the same sheets; its death frame faces you at eye level
+
+- 2026-10-28, on top of 6d9a031: look anchors: watcher_death. Reason: E4: the old death frame looked up at a pale sheet against a lit ceiling panel; the new one faces it at eye level in the room, so less light and contrast
+
+- 2026-10-28, on top of 6d9a031: frames: 8 shots. Reason: E4: the Watcher on the new brain draws from the native stream differently each frame, so grain and camera sway shift on levels with one; frames and error maps checked: no change of content

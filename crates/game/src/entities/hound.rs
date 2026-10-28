@@ -36,6 +36,7 @@ pub const DATA: KindData = KindData {
     sight_gain: 0.0,
     sound_gain: 1.6,
     forget: 0.08,
+    touch_nerve: 0.0,
 };
 
 /// How well it hears while it moves (its own scrabble covers your steps),

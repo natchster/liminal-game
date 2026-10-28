@@ -315,12 +315,15 @@ The rules are learnable, and learning them is the game.
   second time in one chase is the end. (*How a creature's first touch is
   survived is the same for every creature of the redesign; `ENTITIES.md`,
   design 3.*)
-- **The Watcher.** Someone standing under an old dust sheet, the same sheets
-  that cover the furniture, the shape of a face pressed into the cloth. It
-  **only moves when you are not looking**, and after long enough unseen it is
-  simply nearer; each time, it is standing differently. Touching it doesn't
-  kill you, but it takes your mind. It makes no sound. Close to it, your ears
-  ring.
+- **The Watcher.** Someone standing under an old dust sheet, among the
+  furniture under the same sheets, the shape of a face pressed into the
+  cloth: at a glance it is one of them. It **only moves when you are not
+  looking** (out of your sight, or in the dark beyond your lamp, or behind
+  a wall), and after long enough unseen it is simply nearer; each time, it
+  is standing differently. Its touch knocks you down and takes your mind;
+  it kills only a mind already gone. It makes no sound. Close to it, your
+  ears ring. (After the moving statue of Grandmother's Footsteps and SCP-173,
+  by Moto42, CC BY-SA 3.0, as the seated man of the Loop is.)
 - **The Face** (the Stairwell only). See below.
 
 **Pressure has a shape.** A pacing director (`entities/director.rs`) decides
@@ -569,6 +572,13 @@ plaque that says STAIRS. Behind it:
   **DrEverettMann** (<https://scp-wiki.wikidot.com/scp-1983>), **CC BY-SA 3.0**.
   `crates/game/src/anomalies/house.rs`, its notes and its sections here are
   CC BY-SA 3.0 and keep this attribution.
+- **The Watcher**, and the seated man of the Loop, take their rule (it moves
+  only when unseen) from **SCP-173** by **Moto42**
+  (<https://scp-wiki.wikidot.com/scp-173>), **CC BY-SA 3.0**, and from the
+  playground game Grandmother's Footsteps; the dust sheet and the furniture
+  under it are this game's own. `crates/game/src/entities/watcher.rs`,
+  `assets/src/creatures/body_watcher.py` and `sheeted.py` keep this
+  attribution.
 - **The Loop** is inspired by **SCP-970** "The Recursive Room" by **Freudian**
   (<https://scp-wiki.wikidot.com/scp-970>), **CC BY-SA 3.0**. We use our own
   names and text. `crates/game/src/modes/loop_rooms.rs`, its notes

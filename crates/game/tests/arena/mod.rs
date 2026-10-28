@@ -165,6 +165,12 @@ impl Gait {
 /// One step of `dt`: you move toward (x, z) at `gait` (along the grid's
 /// tiles, round walls), then the creatures update; game time advances.
 pub fn step(g: &mut Game, dt: f64, toward: Option<(f64, f64)>, gait: Gait) {
+    step_facing(g, dt, toward, gait, None);
+}
+
+/// The same, but you keep your eyes on `face` (walking backward, or
+/// sideways, while you watch something), when given.
+pub fn step_facing(g: &mut Game, dt: f64, toward: Option<(f64, f64)>, gait: Gait, face: Option<(f64, f64)>) {
     let speed = gait.speed();
     g.player.crouch = gait == Gait::Crouch;
     g.player.audible_range = if toward.is_some() { gait.audible() } else { 0.0 };
@@ -194,6 +200,9 @@ pub fn step(g: &mut Game, dt: f64, toward: Option<(f64, f64)>, gait: Gait) {
             g.player.pos = p;
             g.player.yaw = (-dx).atan2(-dz);
         }
+    }
+    if let Some((x, z)) = face {
+        look_at(g, x, z);
     }
     g.perf_t += dt;
     g.now_ms += dt * 1000.0;

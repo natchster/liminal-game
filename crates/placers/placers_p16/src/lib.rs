@@ -1047,7 +1047,11 @@ fn place_tarnished_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tm);
 }
 
-// R756 dust-sheet-covered furniture (floor): 3.5% chance per level.
+// R756 dust-sheet-covered furniture (floor): 3.5% chance per level. Each
+// piece is one sheet of the Watcher's linen thrown over a chair, a table or
+// a wingback (`bodies.bin`'s `sheet_*`, `assets/src/creatures/sheeted.py`):
+// at a glance one is the other. (The draws of the old box-built shapes are
+// kept, in their order, so the placers after this one draw what they did.)
 fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.965 {
         return;
@@ -1057,104 +1061,34 @@ fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[ri(open.len())];
-    // Sheet color pool — aged whites.
-    let sheet_colors: [u32; 4] = [0xe8e0d0, 0xd8d0c0, 0xf0e8d8, 0xc8c0b0];
-    let sheet_mat = lambert!({ color: sheet_colors[ri(sheet_colors.len())] });
-    let scf = group();
+    let _sheet_colour = ri(4);
     let variant = (rnd() * 3.0).floor() as i32;
-    if variant == 0 {
-        // Chair-covered shape.
-        let (body_w, body_d, body_h) = (0.48, 0.52, 0.85);
-        let body = mesh(pg("SheetCoveredFurniture__chairBody", box_geo!(body_w, body_h, body_d)), &sheet_mat);
-        body.position().y = body_h / 2.0;
-        scf.add(&body);
-        // Slight bulge for back rest.
-        let back_bulge = mesh(box_geo!(body_w * 0.85, body_h * 0.60, 0.04), &sheet_mat);
-        back_bulge.position().set(0, body_h * 0.55, -body_d * 0.5 - 0.012);
-        scf.add(&back_bulge);
-        // Seat corner bulges (2 armrest hints).
-        for side in [-1.0f64, 1.0] {
-            let arm = mesh(pg("SheetCoveredFurniture__arm", box_geo!(0.05, body_h * 0.35, body_d * 0.7)), &sheet_mat);
-            arm.position().set(side * (body_w * 0.5 + 0.004), body_h * 0.35, 0);
-            scf.add(&arm);
-        }
-        // Hanging sheet fold at bottom (skirt fringe).
-        let skirt = mesh(pg("SheetCoveredFurniture__skirt", box_geo!(body_w + 0.05, 0.15, body_d + 0.05)), &sheet_mat);
-        skirt.position().y = 0.075;
-        scf.add(&skirt);
-        // Draped fold ridges on top.
-        for i in 0..3 {
-            let fold = mesh(pg("SheetCoveredFurniture__fold", box_geo!(body_w * 0.30, 0.020, body_d * 0.20)), &sheet_mat);
-            let fx = (rnd() - 0.5) * body_w * 0.7;
-            let fz = (rnd() - 0.5) * body_d * 0.7;
-            fold.position().set(fx, body_h + 0.005, fz);
-            fold.rotation().y = rnd() * PI;
-            scf.add(&fold);
-        }
-    } else if variant == 1 {
-        // Table-covered shape.
-        let (body_w, body_d, body_h) = (1.10, 0.70, 0.75);
-        let top = mesh(pg("SheetCoveredFurniture__tableTop", box_geo!(body_w, 0.06, body_d)), &sheet_mat);
-        top.position().y = body_h + 0.03;
-        scf.add(&top);
-        let skirt_h = 0.75;
-        // 4 side panels of skirt (front + back + right + left).
-        for (pw, pd, px, pz) in [
-            (body_w + 0.05, 0.01, 0.0, body_d / 2.0 + 0.005),
-            (body_w + 0.05, 0.01, 0.0, -body_d / 2.0 - 0.005),
-            (0.01, body_d + 0.05, body_w / 2.0 + 0.005, 0.0),
-            (0.01, body_d + 0.05, -body_w / 2.0 - 0.005, 0.0),
-        ] {
-            let skirt = mesh(box_geo!(pw, skirt_h, pd), &sheet_mat);
-            skirt.position().set(px, body_h - skirt_h / 2.0 + 0.03, pz);
-            scf.add(&skirt);
-        }
-        // Leg-shape bumps on the skirt's corner lines.
-        for cx in [-body_w / 2.0 - 0.005, body_w / 2.0 + 0.005] {
-            for cz in [-body_d / 2.0 - 0.005, body_d / 2.0 + 0.005] {
-                let leg_bump = mesh(pg("SheetCoveredFurniture__legBump", box_geo!(0.05, skirt_h * 0.9, 0.05)), &sheet_mat);
-                leg_bump.position().set(cx, skirt_h * 0.45, cz);
-                scf.add(&leg_bump);
+    match variant {
+        0 => {
+            // (three folds: where and how turned)
+            for _ in 0..9 {
+                rnd();
             }
         }
-        // Central fold ridge on top.
-        let center_fold = mesh(pg("SheetCoveredFurniture__centerFold", box_geo!(body_w * 0.7, 0.015, 0.04)), &sheet_mat);
-        center_fold.position().set((rnd() - 0.5) * 0.1, body_h + 0.066, 0);
-        scf.add(&center_fold);
-        // Slight book/vase silhouette bulge on top (30%).
-        if rnd() < 0.3 {
-            let bump = mesh(pg("SheetCoveredFurniture__bump", sphere_geo!(0.08, 6, 5)), &sheet_mat);
-            bump.scale().set(1.5, 0.5, 0.9);
-            let bx = (rnd() - 0.5) * body_w * 0.6;
-            let bz = (rnd() - 0.5) * body_d * 0.5;
-            bump.position().set(bx, body_h + 0.10, bz);
-            scf.add(&bump);
+        1 => {
+            // (a fold's place, and 30%: a bump's)
+            rnd();
+            if rnd() < 0.3 {
+                rnd();
+                rnd();
+            }
         }
-    } else {
-        // Tall wingback-armchair-covered shape.
-        let (body_w, body_d, body_h) = (0.55, 0.50, 1.15);
-        let body = mesh(pg("SheetCoveredFurniture__wingBody", box_geo!(body_w, body_h, body_d)), &sheet_mat);
-        body.position().y = body_h / 2.0;
-        scf.add(&body);
-        // 2 wing bulges at top corners.
-        for side in [-1.0f64, 1.0] {
-            let wing = mesh(pg("SheetCoveredFurniture__wing", box_geo!(0.11, body_h * 0.4, 0.30)), &sheet_mat);
-            wing.position().set(side * body_w * 0.42, body_h * 0.72, -body_d * 0.30);
-            scf.add(&wing);
+        _ => {
+            // (four folds)
+            for _ in 0..12 {
+                rnd();
+            }
         }
-        // Base skirt drape.
-        let skirt = mesh(pg("SheetCoveredFurniture__skirt", box_geo!(body_w + 0.06, 0.20, body_d + 0.06)), &sheet_mat);
-        skirt.position().y = 0.10;
-        scf.add(&skirt);
-        // Draped fold ridges on top.
-        for i in 0..4 {
-            let fold = mesh(pg("SheetCoveredFurniture__fold", box_geo!(0.15, 0.015, 0.10)), &sheet_mat);
-            let fx = (rnd() - 0.5) * body_w * 0.7;
-            let fz = (rnd() - 0.5) * body_d * 0.5;
-            fold.position().set(fx, body_h + 0.005, fz);
-            fold.rotation().y = rnd() * PI;
-            scf.add(&fold);
-        }
+    }
+    let scf = group();
+    let name = ["sheet_chair", "sheet_table", "sheet_wingback"][variant.clamp(0, 2) as usize];
+    if let Some(rig) = game::entities::body::build_body(name, &game::entities::watcher::material) {
+        scf.add(&rig.root);
     }
     // 40% chance: thin dust layer on floor around base.
     if rnd() < 0.4 {
@@ -1167,31 +1101,16 @@ fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
     scf.position().set(g.wx(x) + (rnd() - 0.5) * 0.8, 0, g.wz(z) + (rnd() - 0.5) * 0.8);
     scf.rotation().y = rnd() * PI * 2.0;
     g.world.add(&scf);
-    // R757 subtle vertical breath animator on the top-most drape pieces.
-    let midpoint_y = if variant == 1 { 0.85 } else { 1.1 };
-    let top_drape_pieces: Vec<Obj> = scf
-        .children()
-        .into_iter()
-        .filter(|c| {
-            // Skip the floor dust circle.
-            if let Some(geo) = c.try_geo() {
-                if geo.params().type_name() == "circle" {
-                    return false;
-                }
-            }
-            c.pos().y > midpoint_y
-        })
-        .collect();
-    if !top_drape_pieces.is_empty() {
+    // R757 the wingback's sheet breathes, very slightly (as it did)
+    if variant >= 2 {
         let breath_freq = (PI * 2.0) / (30.0 + rnd() * 15.0);
         let breath_phase = rnd() * PI * 2.0;
-        let base_ys: Vec<f64> = top_drape_pieces.iter().map(|p| p.pos().y).collect();
-        g.animate(move |_g, _dt, t| {
-            let breath = (t * breath_freq + breath_phase).sin() * 0.0025;
-            for i in 0..top_drape_pieces.len() {
-                top_drape_pieces[i].position().y = base_ys[i] + breath;
-            }
-        });
+        let sheet = scf.children().into_iter().next();
+        if let Some(sheet) = sheet {
+            g.animate(move |_g, _dt, t| {
+                sheet.position().y = (t * breath_freq + breath_phase).sin() * 0.0025;
+            });
+        }
     }
 }
 

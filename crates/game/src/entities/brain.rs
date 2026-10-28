@@ -78,7 +78,8 @@ impl Mode {
     pub fn legacy_state(self) -> &'static str {
         match self {
             Mode::Hunt | Mode::Strike => "hunt",
-            Mode::Search | Mode::Alert => "search",
+            // (held in your sight, close: the director feels it as a search)
+            Mode::Search | Mode::Alert | Mode::Hold => "search",
             _ => "wander",
         }
     }

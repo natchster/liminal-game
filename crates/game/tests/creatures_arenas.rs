@@ -75,7 +75,10 @@ fn heard(g: &Game, ei: usize) -> Heard {
         growling: m == Mode::Strike,
         // the Smiler: its clicks (alert) and hiss carry 16 m; close by,
         // its breathing (it is silent only waiting, further off)
-        stirred: (matches!(m, Mode::Alert | Mode::Hunt | Mode::Strike) && d < 16.0) || d < 6.0 || seen,
+        stirred: (matches!(m, Mode::Alert | Mode::Hunt | Mode::Strike) && d < 16.0)
+            || d < 6.0
+            || seen
+            || (e.kind == "watcher" && g.path_distance(p.x, p.z, d) < game::entities::watcher::RING_REACH),
     }
 }
 
@@ -162,6 +165,7 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     // your lamp: on in the dark, as anyone's (the Smiler's counter turns it
     // off for a while when it hears it stir)
     let mut wary = 0.0;
+    let mut glance = 0.0;
     while t < LIMIT {
         let goal = tour[leg];
         let h = heard(&g, ei);
@@ -171,8 +175,9 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         wary = f64::max(wary - DT, 0.0);
         g.player.flashlight_on = !(counter && kind == "smiler" && wary > 0.0);
         let gait = if !counter {
-            // the naive: walk; when it comes, run for it
-            if h.hunting {
+            // the naive: walk; when it comes (as far as you can tell: the
+            // Watcher gives no sign but a ring close by), run for it
+            if h.hunting && kind != "watcher" {
                 Gait::Run
             } else {
                 Gait::Walk
@@ -181,6 +186,8 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
             match kind {
                 "hound" => hound_counter(&h, stamina),
                 "smiler" => smiler_counter(&h, g.perceive(ei).you_lit),
+                // walk on, never run: what holds it is your eyes
+                "watcher" => Gait::Walk,
                 other => panic!("no counter for {other}"),
             }
         };
@@ -201,6 +208,8 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
             }
             gait
         };
+        // your nerve comes back, as it does outside a dark zone (`player.rs`)
+        g.player.sanity = (g.player.sanity + SAN_REGEN * DT).min(SAN_MAX);
         // a sprint costs breath, as yours does (`player.rs`)
         let gait = if gait == Gait::Run && stamina <= 0.0 { Gait::Walk } else { gait };
         stamina = if gait == Gait::Run { (stamina - STAM_DRAIN * DT).max(0.0) } else { (stamina + STAM_REGEN * DT).min(STAM_MAX) };
@@ -219,13 +228,25 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
             None
         } else if counter && kind == "smiler" && (h.hunting || (h.stirred && h.d < 8.0)) {
             Some(escape(&g, ei))
-        } else if counter && kind != "smiler" && (h.d < 6.0 || h.hunting) {
+        } else if counter && kind == "hound" && (h.d < 6.0 || h.hunting) {
             Some(away)
         } else {
             Some(goal)
         };
         let before = mode(&g, ei);
-        step(&mut g, DT, toward, gait);
+        // where you look: the Watcher's counter keeps it in sight once it
+        // is about (its ring, or seen), and glances back now and then
+        glance -= DT;
+        if glance < -2.5 {
+            glance = 0.5;
+        }
+        let face = if counter && kind == "watcher" && (h.stirred || glance > 0.0) {
+            let p = g.entities[ei].pos();
+            Some((p.x, p.z))
+        } else {
+            None
+        };
+        step_facing(&mut g, DT, toward, gait, face);
         g.update_director(DT);
         t += DT;
         if std::env::var("ARENA_DEBUG").map(|v| v == format!("{kind}:{counter}:{seed}")).unwrap_or(false) && mode(&g, ei) != before {
@@ -382,6 +403,12 @@ fn the_smilers_counter_works_and_matters() {
 }
 
 #[test]
+fn the_watchers_counter_works_and_matters() {
+    let (with, without) = report("watcher");
+    hold_to_bands("watcher", &with, &without);
+}
+
+#[test]
 fn the_hounds_counter_works_and_matters() {
     let (with, without) = report("hound");
     hold_to_bands("hound", &with, &without);
@@ -392,9 +419,10 @@ fn the_hounds_counter_works_and_matters() {
 #[ignore]
 fn debug_trials() {
     let kind = std::env::var("ARENA_KIND").unwrap_or("smiler".into());
+    let counter = std::env::var("ARENA_COUNTER").map(|v| v != "false").unwrap_or(true);
     for s in 0..SEEDS {
-        let o = trial(&kind, true, 1000 + s);
-        if o.contacts > 0 {
+        let o = trial(&kind, counter, 1000 + s);
+        if o.contacts > 0 || std::env::var("ARENA_ALL").is_ok() {
             println!("seed {} contacts {} killed {}", 1000 + s, o.contacts, o.killed);
         }
     }

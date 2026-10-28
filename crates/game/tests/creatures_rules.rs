@@ -428,3 +428,189 @@ fn the_smiler_sees_ahead_not_behind() {
     }
     assert!(modes(&g, ei).contains(&Mode::Alert), "your beam on it went unseen: {:?}", modes(&g, ei));
 }
+
+// ------------------------------------------------------------ the Watcher
+
+/// A 13 × 13 room lit at `light`, a watcher at (6, 2) sent by the director,
+/// you at (6, `z`) looking at it.
+fn watcher_room(light: f64, z: i32) -> (Game, usize) {
+    let mut g = room(13, light, |_, _| false);
+    let ei = creature(&mut g, "watcher", 6, 2, 0.0);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(z));
+    g.director.stalker = Some(ei);
+    let p = g.entities[ei].pos();
+    look_at(&mut g, p.x, p.z);
+    (g, ei)
+}
+
+/// You keep looking at it (wherever it is) for `secs`.
+fn watch(g: &mut Game, ei: usize, secs: f64) {
+    for _ in 0..(secs / DT) as usize {
+        let p = g.entities[ei].pos();
+        look_at(g, p.x, p.z);
+        step(g, DT, None, Gait::Still);
+    }
+}
+
+/// You look the other way for `secs`.
+fn look_away(g: &mut Game, ei: usize, secs: f64) {
+    for _ in 0..(secs / DT) as usize {
+        let p = g.entities[ei].pos();
+        let pp = g.player.pos;
+        look_at(g, 2.0 * pp.x - p.x, 2.0 * pp.z - p.z);
+        step(g, DT, None, Gait::Still);
+    }
+}
+
+fn dist_to(g: &Game, ei: usize) -> f64 {
+    let p = g.entities[ei].pos();
+    hypot2(p.x - g.player.pos.x, p.z - g.player.pos.z)
+}
+
+#[test]
+fn the_watcher_moves_only_unseen() {
+    let (mut g, ei) = watcher_room(0.6, 10);
+    let p0 = g.entities[ei].pos();
+    watch(&mut g, ei, 4.0);
+    let p1 = g.entities[ei].pos();
+    assert!(hypot2(p1.x - p0.x, p1.z - p0.z) < 1e-9, "it moved while you watched it");
+    assert_eq!(mode(&g, ei), Mode::Hold, "{:?}", modes(&g, ei));
+    let d0 = dist_to(&g, ei);
+    look_away(&mut g, ei, 2.0);
+    assert!(dist_to(&g, ei) < d0 - 3.0, "unseen 2 s, it came only {:.1} m", d0 - dist_to(&g, ei));
+    // and the moment you look back, it holds
+    let d1 = dist_to(&g, ei);
+    watch(&mut g, ei, 2.0);
+    assert!((dist_to(&g, ei) - d1).abs() < 1e-9, "it moved after you looked back");
+}
+
+#[test]
+fn in_the_dark_only_your_lamp_or_nearness_holds_it() {
+    // dark, your lamp off, 16 m off: you look at it, and it comes all the same
+    let (mut g, ei) = watcher_room(0.08, 6);
+    g.player.flashlight_on = false;
+    let d0 = dist_to(&g, ei);
+    watch(&mut g, ei, 1.5);
+    assert!(dist_to(&g, ei) < d0 - 2.0, "unlit, it held in the dark");
+    // your lamp on it: it holds
+    let (mut g, ei) = watcher_room(0.08, 6);
+    g.player.flashlight_on = true;
+    let d0 = dist_to(&g, ei);
+    watch(&mut g, ei, 2.0);
+    assert!((dist_to(&g, ei) - d0).abs() < 1e-9, "it moved in your beam");
+    // within 4 m it is seen in any light
+    let (mut g, ei) = watcher_room(0.08, 3);
+    let p = g.entities[ei].pos();
+    g.player.pos = v3(p.x, 0.0, p.z + 3.0);
+    g.player.flashlight_on = false;
+    let d0 = dist_to(&g, ei);
+    watch(&mut g, ei, 2.0);
+    assert!(d0 < game::entities::watcher::CLOSE && (dist_to(&g, ei) - d0).abs() < 1e-9, "it moved {d0:.1} m from you");
+}
+
+#[test]
+fn behind_a_wall_it_is_not_seen() {
+    // a wall between you (a gap at its end): looking toward it does not hold it
+    let mut g = room(13, 0.6, |x, z| z == 5 && x > 2);
+    let ei = creature(&mut g, "watcher", 6, 2, 0.0);
+    g.player.pos = v3(g.wx(6), 0.0, g.wz(8));
+    g.director.stalker = Some(ei);
+    let d0 = dist_to(&g, ei);
+    watch(&mut g, ei, 3.0);
+    assert!(dist_to(&g, ei) < d0 - 1.0 || modes(&g, ei).contains(&Mode::Stalk), "behind the wall it held: {:?}", modes(&g, ei));
+}
+
+#[test]
+fn it_stands_differently_only_while_unseen() {
+    let (mut g, ei) = watcher_room(0.6, 10);
+    let pose = |g: &Game| g.creature(ei).unwrap().get("pose");
+    let mut changed = 0;
+    let mut last = pose(&g);
+    for round in 0..8 {
+        // while you watch, its pose holds
+        for _ in 0..60 {
+            let p = g.entities[ei].pos();
+            look_at(&mut g, p.x, p.z);
+            step(&mut g, DT, None, Gait::Still);
+            assert_eq!(pose(&g), last, "its pose changed while you watched (round {round})");
+        }
+        look_away(&mut g, ei, 1.0);
+        if pose(&g) != last {
+            changed += 1;
+        }
+        last = pose(&g);
+        // (kept far: it may not reach you in this test)
+        let pp = g.player.pos;
+        g.entities[ei].g.set_pos(pp.x, 0.0, pp.z - 20.0);
+    }
+    assert!(changed >= 3, "it stood the same way {} of 8 times you looked back", 8 - changed);
+}
+
+#[test]
+fn it_is_never_put_nearer_than_10_m_nor_where_you_see_it() {
+    // a long hall; you look away and wait: each time it is simply nearer,
+    // it is at least 10 m from you and out of your sight
+    let mut g = room(30, 0.6, |x, _| x > 3);
+    let ei = creature(&mut g, "watcher", 2, 2, 0.0);
+    g.player.pos = v3(g.wx(2), 0.0, g.wz(27));
+    g.director.stalker = Some(ei);
+    let mut jumps = 0;
+    let mut prev = g.entities[ei].pos();
+    let mut prev_d = dist_to(&g, ei);
+    for _ in 0..(20.0 / DT) as usize {
+        let pp = g.player.pos;
+        look_at(&mut g, pp.x, pp.z + 10.0);
+        step(&mut g, DT, None, Gait::Still);
+        let p = g.entities[ei].pos();
+        let nearer = dist_to(&g, ei) < prev_d;
+        prev_d = dist_to(&g, ei);
+        // (a jump nearer: not its falling back after a touch)
+        if nearer && hypot2(p.x - prev.x, p.z - prev.z) > 1.0 {
+            jumps += 1;
+            let d = dist_to(&g, ei);
+            assert!(d >= game::entities::watcher::NEVER_WITHIN - 1e-6, "put {d:.1} m from you");
+            assert!(!game::entities::watcher::seen(&g, ei), "put where you see it");
+        }
+        prev = p;
+    }
+    assert!(jumps > 0, "it was never nearer when you looked back");
+}
+
+#[test]
+fn its_touch_takes_your_nerve_and_kills_only_a_spent_mind() {
+    // it is behind you, 3 m off, and has given its tells; you look away
+    let touch = |sanity: f64| {
+        let (mut g, ei) = watcher_room(0.6, 4);
+        let pp = g.player.pos;
+        g.entities[ei].g.set_pos(pp.x, 0.0, pp.z - 3.0);
+        g.player.sanity = sanity;
+        let now = g.perf_t;
+        g.creature_mut(ei).unwrap().tells = vec![now - 2.0, now - 1.0];
+        look_away(&mut g, ei, 4.0);
+        g
+    };
+    let g = touch(SAN_MAX);
+    let ei = g.entities.iter().position(|e| e.kind == "watcher").unwrap();
+    assert!(modes(&g, ei).contains(&Mode::Strike), "it never touched you: {:?}", modes(&g, ei));
+    assert!(g.player.sanity <= SAN_MAX - 45.0 + 1e-9, "your nerve: {:.0}", g.player.sanity);
+    assert_eq!(g.god_deaths, 0.0, "a touch on a whole mind killed");
+    assert!(dist_to(&g, ei) > 2.0, "it did not fall back ({:.1} m)", dist_to(&g, ei));
+    // on a mind already nearly gone, the same touch kills
+    let g = touch(40.0);
+    assert!(g.god_deaths > 0.0, "a spent mind survived its touch");
+}
+
+#[test]
+fn your_ears_ring_near_it_and_that_is_its_tell() {
+    let (mut g, ei) = watcher_room(0.6, 4);
+    // 6 m off (inside its ring), unseen
+    let pp = g.player.pos;
+    g.entities[ei].g.set_pos(pp.x, 0.0, pp.z - 6.0);
+    g.director.stalker = None;
+    look_away(&mut g, ei, 4.0);
+    assert!(!g.creature(ei).unwrap().tells.is_empty(), "no tell within its ring");
+    let (mut g, ei) = watcher_room(0.6, 9);
+    g.director.stalker = None;
+    look_away(&mut g, ei, 4.0);
+    assert!(g.creature(ei).unwrap().tells.is_empty(), "a tell from beyond its ring");
+}

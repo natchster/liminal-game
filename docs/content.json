@@ -234,14 +234,17 @@
         "shots:watcher_8m",
         "shots:watcher_death",
         "test:game/entities",
-        "test:backrooms/pacing"
+        "test:backrooms/pacing",
+        "test:game/creatures_rules",
+        "test:game/creatures_arenas",
+        "test:game/bodies"
       ],
       "id": "creature/watcher",
       "kind": "creature",
       "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "the Watcher",
-      "notes": "",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E4): it moves only unseen and only when sent; its touch knocks you down and takes your nerve, killing only a spent mind; silent, your ears ring near it. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is one dust sheet draped by Blender's cloth over MakeHuman's CC0 old man, its six poses the same sheet draped again (assets/src/creatures/body_watcher.py); it stands among furniture under the same sheets (sheeted.py).",
       "passes": {
         "shots:watcher_2m": true,
         "shots:watcher_4m": true,

@@ -755,12 +755,16 @@ fn bench(o: &Options, path: &str) {
             tris.push(r.info.triangles as f64);
         }
         g.fixed_step_dt = 0.0;
+        // the frames whose update took over 2 ms (which, and how long): what
+        // a high p99 is made of
+        let slow: Vec<serde_json::Value> =
+            upd.iter().enumerate().filter(|(_, v)| **v > 2.0).map(|(i, v)| serde_json::json!([i, (v * 100.0).round() / 100.0])).collect();
         let r3 = |x: f64| (x * 1000.0).round() / 1000.0;
         let calls_avg = calls.iter().sum::<f64>() / calls.len().max(1) as f64;
         out.push(serde_json::json!({
             "seed": seed, "level": l, "frames": o.bench_frames, "size": [w, h],
             "build_ms": r3(build_ms), "first_frame_ms": r3(first_ms),
-            "update_p50_ms": r3(quantile(&mut upd, 0.5)), "update_p99_ms": r3(quantile(&mut upd, 0.99)),
+            "update_p50_ms": r3(quantile(&mut upd, 0.5)), "update_p99_ms": r3(quantile(&mut upd, 0.99)), "update_slow": slow,
             "gpu_p50_ms": r3(quantile(&mut gpu, 0.5)), "gpu_p99_ms": r3(quantile(&mut gpu, 0.99)),
             "calls_avg": r3(calls_avg), "calls_max": quantile(&mut calls, 1.0), "tris_max": quantile(&mut tris, 1.0),
         }));

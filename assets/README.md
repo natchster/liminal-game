@@ -59,7 +59,17 @@ sculpted in the head bone's rest frame, where MakeHuman's landmarks are
 (the Smiler's orbits, cheeks and rictus: `body_smiler.sculpt_face`), and
 teeth are built one by one along a dental arch fitted to MakeHuman's
 (`anatomy.Arch`, `anatomy.teeth_row`: incisors, canines, premolars and
-molars, each a little different). The xtask packs what it wrote (int16 positions, int8
+molars, each a little different). Cloth is draped by Blender's own solver
+(`cloth.py`): a sheet laid over a hidden body or furniture, pinned where it
+rests, settled at 4 cm, then made fine by a cubic B-spline over its grid
+(`cloth.refine`) for detail the solver cannot hold (a face pressed into it);
+the game's mesh is that drape thinned, its vertices keeping their places on
+the flat cloth (UVs), so every other drape of the same grid, another pose,
+is read off at the same places (`cloth.sample`) and kept as a morph (the
+Watcher, `body_watcher.py`; the furniture under sheets, `sheeted.py`, in
+the same linen, `linen.py`). The solver gives every vertex the same mass,
+so a grid denser in one place drapes heavier there: simulate on an even
+grid and refine after. The xtask packs what it wrote (int16 positions, int8
 normals, sRGB bytes, bone slots and weights, morph offsets; see
 `crates/game/src/assets/bodies.rs`) into `crates/game/assets/bodies.bin`.
 Workbench previews of every body are written beside its JSON in

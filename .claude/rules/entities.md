@@ -19,22 +19,32 @@ paths:
   hearing is along the way it would walk, `path_distance`, never through
   walls); the director's wishes arrive as `Order`s. Kinds are data
   (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`,
-  `smiler.rs`). Only sight (or touch) gives a creature your exact place; a
+  `smiler.rs`, `watcher.rs`). Only sight (or touch) gives a creature your exact place; a
   sound, or your light going out, leaves it a rough guess (`open_point`), so
   a counter that hides you can work. A creature hunting by sight must still
   find you when sent: the director parks a stalker out of your sight, so
   give it a way to close in (the Smiler creeps on, and scans where it waits).
+  Mind the director's reading of modes (`Mode::legacy_state`): only Hunt
+  and Strike start a peak, and a peak is short and ends the errand; a kind
+  that acts only when sent (the Watcher) must count as sent while it is
+  after you in the peak it began, and should enter Hunt only when its
+  reach is near (the long approach is the build-up).
 - **Fairness lives in `creature.rs`, so no kind can skip it**: strike only
   if `strike_allowed` (two tells you could perceive in 20 s, not in a
   level's first 30 s, not within 2 s of any notice: stamp `noticed_at` at
   each one); every contact goes
   through `creature_contact` (the first of a kind in a run knocks you down;
-  a second in a peak, or one on a spent nerve, kills); chases through
+  a second in a peak, or one on a spent nerve, kills; a kind with
+  `touch_nerve` takes that much nerve each touch and kills only a mind it
+  leaves spent); chases through
   `creature_go` (capped at `CHASE_CAP`), bursts through `creature_burst`
   (`BURST_CAP` over `BURST_LEN`). Give a tell with `creature_tell`.
 - **Per-frame draws come from the native stream** (`with_native`); a
   creature's build draws nothing from the seeded stream (`make_creature`),
   so spawning one does not shift a level.
+- **Morphs**: a body mesh with morph targets gets an influence each at
+  build (`build_body`), or the renderer draws none; a pose is set by
+  writing `morph_influences` (the Watcher's poses).
 - **The director owns pressure** (`entities/director.rs`): calm → build →
   peak → relax. One stalker at a time, rotated (`last_sent`); it withdraws
   after a close call (menace ≥ 1 and lost for 2.5 s, or menace ≥ 1.2 with the

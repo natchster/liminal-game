@@ -29,6 +29,7 @@ pub mod creature;
 pub mod director;
 pub mod hound;
 pub mod smiler;
+pub mod watcher;
 
 use crate::assets::creatures::{creature_geometry, watcher_geometry};
 use crate::base::numeric::{hypot2, hypot3};
@@ -238,6 +239,14 @@ pub fn smiler_eye_material() -> Mat {
 
 /// `watcher_cloth_tex` — the cloth itself at close range: a loose plain weave,
 /// slubs in the thread, and the small creases of an old folded sheet.
+/// The dust sheet's weave (made once).
+pub(crate) fn watcher_cloth_tex() -> Tex {
+    thread_local! {
+        static T: std::cell::RefCell<Option<Tex>> = const { std::cell::RefCell::new(None) };
+    }
+    T.with(|t| t.borrow_mut().get_or_insert_with(make_watcher_cloth_tex).clone())
+}
+
 fn make_watcher_cloth_tex() -> Tex {
     let t = canvas_tex(256, 256, |ctx, w, h| {
         ctx.set_fill_style("#808080");
@@ -1434,6 +1443,9 @@ impl Game {
                 kind = "hound";
             }
             self.add_entity(kind, x, z, i);
+            if kind == "watcher" {
+                watcher::company(self, x, z);
+            }
             i += 1;
         }
     }

@@ -25,7 +25,7 @@ use crate::prelude::*;
 
 /// The kinds on the new brain (the rest still run `ai.rs` until they are rebuilt).
 pub fn on_new_brain(kind: &str) -> bool {
-    matches!(kind, "hound" | "smiler")
+    matches!(kind, "hound" | "smiler" | "watcher")
 }
 
 /// The one place a kind's own code is chosen: its data and materials, its
@@ -34,6 +34,7 @@ fn kind_data(kind: &str) -> (KindData, fn(&str) -> Mat) {
     match kind {
         "hound" => (crate::entities::hound::DATA, crate::entities::hound::material),
         "smiler" => (crate::entities::smiler::DATA, crate::entities::smiler::material),
+        "watcher" => (crate::entities::watcher::DATA, crate::entities::watcher::material),
         other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
     }
 }
@@ -41,6 +42,7 @@ pub fn kind_think(g: &mut Game, ei: usize, dt: f64) {
     match g.entities[ei].kind.as_str() {
         "hound" => crate::entities::hound::think(g, ei, dt),
         "smiler" => crate::entities::smiler::think(g, ei, dt),
+        "watcher" => crate::entities::watcher::think(g, ei, dt),
         _ => {}
     }
 }
@@ -48,6 +50,7 @@ pub fn kind_animate(g: &mut Game, ei: usize, dt: f64) {
     match g.entities[ei].kind.as_str() {
         "hound" => crate::entities::hound::animate(g, ei, dt),
         "smiler" => crate::entities::smiler::animate(g, ei, dt),
+        "watcher" => crate::entities::watcher::animate(g, ei, dt),
         _ => {}
     }
 }
@@ -55,6 +58,7 @@ pub fn kind_voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
     match g.entities[ei].kind.as_str() {
         "hound" => crate::entities::hound::voice(g, ei, dt, d),
         "smiler" => crate::entities::smiler::voice(g, ei, dt, d),
+        "watcher" => crate::entities::watcher::voice(g, ei, dt, d),
         _ => {}
     }
 }
@@ -62,6 +66,7 @@ pub fn kind_call(g: &mut Game, ei: usize, what: &str) {
     match g.entities[ei].kind.as_str() {
         "hound" => crate::entities::hound::call(g, ei, what),
         "smiler" => crate::entities::smiler::call(g, ei, what),
+        "watcher" => crate::entities::watcher::call(g, ei, what),
         _ => {}
     }
 }
@@ -88,6 +93,10 @@ pub struct KindData {
     pub sound_gain: f64,
     /// Awareness lost a second when nothing feeds it
     pub forget: f64,
+    /// 0: its contacts follow the shared rule (a first meeting knocks you
+    /// down, a second in a peak kills); else its touch takes this much
+    /// nerve and knocks you down, and kills only a mind it leaves spent
+    pub touch_nerve: f64,
 }
 
 /// Seconds a tell counts toward a strike.
@@ -338,7 +347,13 @@ impl Game {
         e.vx = 0.0;
         e.vz = 0.0;
         let first = !self.creature_run.met.contains(&kind);
-        let lethal = !first && (self.director.contacts > 0 || self.player.sanity < 25.0);
+        let touch = self.creature(ei).map(|c| c.data.touch_nerve).unwrap_or(0.0);
+        let lethal = if touch > 0.0 {
+            // a touch that takes your nerve kills only a mind it leaves spent
+            self.player.sanity - touch <= 0.0
+        } else {
+            !first && (self.director.contacts > 0 || self.player.sanity < 25.0)
+        };
         if lethal {
             self.director.killer = Some(ei);
             self.on_death("entity");
@@ -352,7 +367,13 @@ impl Game {
         }
         self.director.contacts += 1;
         if !lethal {
-            self.knock_down(if first { 30.0 } else { 22.0 });
+            self.knock_down(if touch > 0.0 {
+                touch
+            } else if first {
+                30.0
+            } else {
+                22.0
+            });
         }
         // that was its moment: it backs off, and the place settles
         let now = self.perf_t;

@@ -815,7 +815,8 @@ fn animate_matches_reference() {
             }
         });
     }
-    assert!(kept > 0, "every anim case is a creature of the redesign");
+    // (since E4 every case has a creature of the redesign; the cases go with
+    // the old AI in E7)
     println!("anim: {kept} cases still the HTML version's");
     if regen() {
         save_sections(vec![("anim", recorded)]);

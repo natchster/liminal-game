@@ -124,7 +124,8 @@ fn entities_smoke() {
         );
         assert!(g.ent_ext.len() <= 2, "ent_ext reset on spawn ({} entries)", g.ent_ext.len());
         let faces_in_scene = g.scene.children().len();
-        assert!(faces_in_scene < n0, "old faces removed from the scene ({faces_in_scene} vs {n0})");
+        // (since E4 no kind that roams has a billboard face: then nothing to remove)
+        assert!(n0 == 0 || faces_in_scene < n0, "old faces removed from the scene ({faces_in_scene} vs {n0})");
     }
 }
 

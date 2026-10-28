@@ -295,7 +295,8 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   fits; the explorer and the rusher light their lamp in the dark and put it
   out under the panels, the hider puts it out once settled. A death names
   its cause and the creature (`PERSONA_DEBUG=1` prints each creature's last
-  mode changes and the director's log). Oracles: never outside the world, never stuck over 12 s, the rusher
+  mode changes and the director's log; `PERSONA_TRACE=Explorer:4242` traces
+  the stalker every 2 s: its distance, mode, line of sight, your light). Oracles: never outside the world, never stuck over 12 s, the rusher
   reaches the exit, no death in the first 20 s. Then the director's log
   (`Director::log`: phases, the stalker's signs, stings, notices, strikes,
   deaths) of every run is held to the shape of the fear: a peak at most
