@@ -119,7 +119,8 @@ fn entities_smoke() {
         assert_eq!(g.entities.len(), 2);
         assert_eq!(
             g.scene.children().iter().filter(|c| g.entities.iter().any(|e| e.face.as_ref().map(|f| f.ptr_eq(c)).unwrap_or(false))).count(),
-            2
+            g.entities.iter().filter(|e| e.face.is_some()).count(),
+            "every billboard face (the old creatures have one) is in the scene"
         );
         assert!(g.ent_ext.len() <= 2, "ent_ext reset on spawn ({} entries)", g.ent_ext.len());
         let faces_in_scene = g.scene.children().len();

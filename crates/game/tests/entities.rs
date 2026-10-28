@@ -626,11 +626,14 @@ fn spawn_matches_reference() {
             assert_eq!(e.yaw, f(&je["yaw"]), "yaw");
             assert_eq!(e.speed, f(&je["speed"]));
             assert_eq!(e.freeze, f(&je["freeze"]));
-            assert_eq!(e.eye_y_offset, f(&je["eyeY"]));
-            assert_eq!(e.face_y, f(&je["faceY"]));
+            // (the creatures of the redesign have no billboard face: `creature`)
+            if !game::entities::creature::on_new_brain(&e.kind) {
+                assert_eq!(e.eye_y_offset, f(&je["eyeY"]));
+                assert_eq!(e.face_y, f(&je["faceY"]));
+            }
         }
         // their faces in the scene, their bodies in the world
-        assert_eq!(g.scene.children().len(), g.entities.len());
+        assert_eq!(g.scene.children().len(), g.entities.iter().filter(|e| e.face.is_some()).count());
     }
 }
 
@@ -665,8 +668,15 @@ fn pose(o: &Obj) -> Vec<Vec<f64>> {
 fn animate_matches_reference() {
     let j = fx();
     let mut recorded = j["anim"].clone();
+    let mut kept = 0;
     for (ci, c) in j["anim"].as_array().unwrap().iter().enumerate() {
         let kind = c["type"].as_str().unwrap();
+        // the creatures of the redesign are not the HTML version's: their
+        // motion is held by tests/creatures_rules.rs and the goldens
+        if game::entities::creature::on_new_brain(kind) {
+            continue;
+        }
+        kept += 1;
         let s = c["seed"].as_u64().unwrap() as u32;
         let mut g = game_on(&grid_a(23));
         g.level_num = 4 + game::level::building::BUILDING_FLOORS;
@@ -805,6 +815,8 @@ fn animate_matches_reference() {
             }
         });
     }
+    assert!(kept > 0, "every anim case is a creature of the redesign");
+    println!("anim: {kept} cases still the HTML version's");
     if regen() {
         save_sections(vec![("anim", recorded)]);
     }
@@ -955,6 +967,7 @@ impl BfsPub for Game {
 #[test]
 fn update_matches_reference() {
     let mut recorded = fx()["update"].clone();
+    let mut kept_update = 0;
     for (ci, c) in fx()["update"].as_array().unwrap().iter().enumerate() {
         let mut g = game_on(&c["grid"]);
         // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
@@ -994,6 +1007,13 @@ fn update_matches_reference() {
                 let jt: Vec<String> = c["types"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
                 assert_eq!(types, jt);
             }
+            // a case with a creature of the redesign is not the HTML version's
+            // any more (its rules: tests/creatures_rules.rs); the spawn above
+            // still is, draw for draw
+            if types.iter().any(|k| game::entities::creature::on_new_brain(k)) {
+                return;
+            }
+            kept_update += 1;
             match c["place"].as_array() {
                 Some(pl) => {
                     for (i, xz) in pl.iter().enumerate() {
@@ -1098,6 +1118,8 @@ fn update_matches_reference() {
             }
         });
     }
+    assert!(kept_update > 0, "every update case now has a creature of the redesign");
+    println!("update: {kept_update} cases still the HTML version's");
     if regen() {
         save_sections(vec![("update", recorded)]);
     }

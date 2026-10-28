@@ -298,6 +298,9 @@ impl Game {
 
     /// 'lunge' | 'growl' | 'bark', from the entity's voice slot
     pub fn entity_call(&mut self, ei: usize, what: &str) {
+        if crate::entities::creature::on_new_brain(&self.entities[ei].kind) {
+            return crate::entities::hound::call(self, ei, what);
+        }
         let Some(s) = self.soundscape() else { return };
         let id = self.entities[ei].g.id();
         let Some(v) = self.ent_ext.get(&id).and_then(|x| x.voice.as_ref()).map(|v| v.slot.input.clone()) else { return };
@@ -511,6 +514,37 @@ impl Game {
                 continue;
             }
             nearest = nearest.min(d);
+            // the creatures of the redesign run their own brain (`creature`)
+            if crate::entities::creature::on_new_brain(&kind) {
+                if self.entities[ei].freeze > 0.0 {
+                    // held still (a showcase, a level's first seconds): it only breathes
+                    self.entities[ei].freeze -= dt;
+                    self.entity_drive(ei, dt, 0.0);
+                    crate::entities::hound::animate(self, ei, dt);
+                    if let Some(c) = self.creature(ei) {
+                        c.body.sync();
+                    }
+                    continue;
+                }
+                self.update_creature(ei, dt);
+                if self.state != "playing" {
+                    return;
+                }
+                if self.entities[ei].state == "hunt" {
+                    any_hunt = true;
+                }
+                let los = d < 26.0 && self.e_los(pos.x, pos.z, self.player.pos.x, self.player.pos.z);
+                if los && d < 22.0 && !self.director.sighted.contains(&kind) {
+                    let mut to_e = v3(pos.x - self.player.pos.x, 0.0, pos.z - self.player.pos.z);
+                    to_e.normalize();
+                    let visible = d < 8.0 || self.player.flashlight_on || self.e_region_light_at(self.tx(pos.x), self.tz(pos.z)) > 0.25;
+                    if visible && self.player.fwd().dot(&to_e) > 0.8 {
+                        self.entity_sighted(ei, d);
+                    }
+                }
+                crate::entities::hound::voice(self, ei, dt, d);
+                continue;
+            }
             {
                 let e = &mut self.entities[ei];
                 let nt = e.n("noticeT");

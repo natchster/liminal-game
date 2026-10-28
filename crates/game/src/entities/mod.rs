@@ -25,7 +25,9 @@ pub mod ai;
 pub mod anim;
 pub mod body;
 pub mod brain;
+pub mod creature;
 pub mod director;
+pub mod hound;
 
 use crate::assets::creatures::{creature_geometry, watcher_geometry};
 use crate::base::numeric::{hypot2, hypot3};
@@ -938,6 +940,8 @@ pub struct EntExt {
     pub tic: Option<Tic>,
     /// the voice
     pub voice: Option<EntVoice>,
+    /// a creature of the redesign: its body and brain (`creature`)
+    pub creature: Option<Box<creature::Creature>>,
 }
 
 /// Store a bone's tail in its user data (where its tip is, for the Blender tools)
@@ -1435,7 +1439,12 @@ impl Game {
 
     /// → the new entity's index
     pub fn add_entity(&mut self, kind: &str, x: i32, z: i32, i: i32) -> usize {
-        let built = if kind == "hound" {
+        let mut made = None;
+        let built = if creature::on_new_brain(kind) {
+            let (b, c) = self.make_creature(kind, x as f64, z as f64);
+            made = Some(c);
+            b
+        } else if kind == "hound" {
             self.make_hound(x as f64, z as f64)
         } else if kind == "watcher" {
             self.make_watcher(x as f64, z as f64)
@@ -1475,6 +1484,9 @@ impl Game {
         e.step_acc = 0.0;
         // watcher-specific: teleports closer when totally unseen for a while
         e.unseen_t = 0.0;
+        if let Some(c) = made {
+            self.ent_ext.entry(e.g.id()).or_default().creature = Some(Box::new(c));
+        }
         self.entities.push(e);
         self.entities.len() - 1
     }
@@ -1507,8 +1519,10 @@ impl Game {
     /// Bring every rig's skinned body up to date with where its entity stands
     /// (see `sync_skin_bind`); `update_entities` calls it after moving them.
     pub fn sync_entity_skins(&self) {
-        for e in &self.entities {
-            if let Some(sk) = e.parts.get("skin") {
+        for (i, e) in self.entities.iter().enumerate() {
+            if let Some(c) = self.creature(i) {
+                c.body.sync();
+            } else if let Some(sk) = e.parts.get("skin") {
                 sync_skin_bind(sk);
             }
         }

@@ -178,14 +178,18 @@
         "shots:hound_8m",
         "shots:hound_death",
         "test:game/entities",
-        "test:backrooms/pacing"
+        "test:backrooms/pacing",
+        "test:game/creatures_rules",
+        "test:game/creatures_arenas",
+        "test:game/bodies",
+        "test:backrooms/listen"
       ],
       "id": "creature/hound",
       "kind": "creature",
       "last_checked": "2026-10-28",
       "last_human_review": null,
       "name": "Hound",
-      "notes": "Exempt from the albedo floor: the Hound's coat (tests/materials.rs).",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py).",
       "passes": {
         "shots:hound_2m": true,
         "shots:hound_4m": true,

@@ -14,7 +14,7 @@
     "bodies.bin": {
       "authors": "written by coding agents under the developer's direction; the bodies that were people start from MakeHuman's base mesh and targets (CC0 1.0, the MakeHuman team)",
       "built_with": "Blender 5.2.2 LTS headless: skeletons, bodies (MakeHuman's hm08 base and its targets, or metaballs), voxel remesh, displacement, decimation, bone-heat weights, vertex paint; packed by cargo xtask assets creatures",
-      "fingerprint": "d63794516db0f69c",
+      "fingerprint": "bcbe9bed6da70f6c",
       "generative_model": null,
       "generator": "procedural bpy scripts",
       "licence": "MIT",
@@ -23,6 +23,8 @@
         "assets/src/creatures/build.py",
         "assets/src/creatures/kit.py",
         "assets/src/creatures/hm08.py",
+        "assets/src/creatures/human.py",
+        "assets/src/creatures/anatomy.py",
         "assets/src/creatures/sources.json"
       ]
     },

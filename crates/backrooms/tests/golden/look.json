@@ -126,28 +126,28 @@
     "shadow": 0.0146
   },
   "hound_2m": {
-    "colourfulness": 21.42,
-    "contrast": 0.0779,
-    "luminance": 0.2524,
-    "shadow": 0.0572
+    "colourfulness": 21.17,
+    "contrast": 0.0782,
+    "luminance": 0.2554,
+    "shadow": 0.0501
   },
   "hound_4m": {
-    "colourfulness": 21.02,
-    "contrast": 0.0735,
-    "luminance": 0.2526,
-    "shadow": 0.0516
+    "colourfulness": 20.9,
+    "contrast": 0.0727,
+    "luminance": 0.2532,
+    "shadow": 0.0491
   },
   "hound_8m": {
-    "colourfulness": 21.18,
-    "contrast": 0.0726,
-    "luminance": 0.2629,
-    "shadow": 0.0454
+    "colourfulness": 21.14,
+    "contrast": 0.0724,
+    "luminance": 0.2628,
+    "shadow": 0.0452
   },
   "hound_death": {
-    "colourfulness": 22.16,
-    "contrast": 0.0983,
-    "luminance": 0.2583,
-    "shadow": 0.0734
+    "colourfulness": 21.46,
+    "contrast": 0.0967,
+    "luminance": 0.264,
+    "shadow": 0.049
   },
   "smiler_2m": {
     "colourfulness": 22.52,

@@ -400,3 +400,43 @@ fn the_siren_is_heard() {
     save("siren_4242_L1", &r.pcm, &sirens);
     assert!(peak / bed >= 4.0, "the siren rises 12 dB over the bed: {:+.1} dB", db(peak / bed));
 }
+
+#[test]
+fn the_hound_is_heard() {
+    // a hound 9 m ahead, held while the room's bed is measured; then it is
+    // told where you are: its bay, then its nails and its panting as it runs
+    let mut r = start(4242, 6);
+    hold_creatures(&mut r.g);
+    let ei = {
+        let g = &mut r.g;
+        let f = g.player.fwd();
+        let (x, z) = (g.player.pos.x + f.x * 9.0, g.player.pos.z + f.z * 9.0);
+        let (tx, tz) = (g.tx(x), g.tz(z));
+        let ei = g.add_entity("hound", tx, tz, 0);
+        g.entities[ei].g.set_pos(x, 0.0, z);
+        ei
+    };
+    play(&mut r, 5.0, |g| g.entities[ei].freeze = 1e9);
+    let before = r.pcm.len() / 2;
+    let mut told = false;
+    play(&mut r, 4.0, |g| {
+        g.entities[ei].freeze = 0.0;
+        if !told {
+            let p = g.player.pos;
+            g.creature_alert(ei, p.x, p.z);
+            told = true;
+        }
+    });
+    let log: Vec<String> =
+        r.g.creature(ei).map(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect()).unwrap_or_default();
+    println!("hound log: {log:?}; d {:.1}", r.g.creature(ei).map(|c| c.brain.last.dist).unwrap_or(-1.0));
+    let w = windows(&r.pcm);
+    let b = before / WIN;
+    let calm = median(&w[40..b]);
+    let peak = w[b..(b + 40).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let after = event_energy(&w[(b + 30).min(w.len())..], calm);
+    println!("hound: bed {:.1} dB, bay {:.1} dB (+{:.1} dB), its run {after:.3} over the bed", db(calm), db(peak), db(peak / calm));
+    save("hound_4242_L6", &r.pcm, &[before as f64 / SR]);
+    assert!(peak > calm * 4.0, "the bay should stand 12 dB over the quiet before it");
+    assert!(after > 0.0, "its nails and its panting are heard as it runs");
+}

@@ -31,3 +31,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-27, on top of 614b20d: look anchors: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L2_stair_halls, 4242_L3_spawn, 4242_L3_works. Reason: The Building's surfaces are photographs (visuals::photo): the deep-shadow share of its frames rises with the photographs' real joints, cracks and relief (4242_L1_spawn 0.41 to 0.55), each surface graded to the mean colour of the canvas one it replaced; judged blind against the canvas surfaces in three rounds (the Well 8/8, the Stair Halls 16/16, the Works 8/8)
 
 - 2026-10-28, on top of 614b20d: frames: 4242_L1_spawn, 4242_L1_well. Reason: A photographed surface is decoded once whatever its grime, the grime being its material's tint (a linear factor) instead of a darker copy of the texture (code review: deck, poured and stone were each decoded and uploaded twice, about 80 MB on the GPU); the Well's grime-2 decks and parapets differ by rounding only (mean 0.004-0.005)
+
+- 2026-10-28, on top of ed4dace: frames: hound_2m, hound_4m, hound_8m, hound_death. Reason: Entities E2: the Hound rebuilt from scratch (docs/ENTITIES.md): MakeHuman's CC0 old man on all fours, starved, blind, hair hanging over the skull; at its death it lifts its face to you. Only the Hound's four frames moved.
+
+- 2026-10-28, on top of ed4dace: look anchors: hound_2m, hound_4m, hound_8m, hound_death. Reason: Entities E2: a new Hound, its look meant to change (a pale starved figure in place of the dark one; at death its face fills the frame)

@@ -254,8 +254,15 @@ impl Game {
         }
         self.show_msg("SOMETHING HEARD YOU", 2.0);
         self.sfx_distant_scream();
+        let pp = self.player.pos;
+        for i in 0..self.entities.len() {
+            if crate::entities::creature::on_new_brain(&self.entities[i].kind) {
+                // a cry is the loudest thing you can do: they come to it
+                self.creature_alert(i, pp.x, pp.z);
+            }
+        }
         for e in self.entities.iter_mut() {
-            if e.kind == "watcher" {
+            if e.kind == "watcher" || crate::entities::creature::on_new_brain(&e.kind) {
                 continue;
             } // watcher moves its own way
             e.state = "hunt".into();
@@ -279,25 +286,17 @@ impl Game {
         if !open.is_empty() && rnd() < 0.75 {
             let (x, z) = choice(&open);
             let kind = if self.depth() >= 3 && rnd() < 0.5 { "hound" } else { "smiler" };
-            let built = if kind == "hound" { self.make_hound(x as f64, z as f64) } else { self.make_smiler(x as f64, z as f64) };
-            let eye_y_offset = if kind == "hound" { 0.055 } else { 0.035 };
-            let mut e = Entity::new(kind, built.g.clone());
-            e.face = built.face;
-            e.face_y = built.face_y;
-            e.eye_y_offset = eye_y_offset;
-            e.parts = built.parts;
-            e.yaw = rand1(PI * 2.0);
-            e.state = "hunt".into();
-            e.lose_t = 0.0;
-            e.freeze = 0.5;
-            e.stare_t = 0.0;
-            e.step_acc = 0.0;
-            e.unseen_t = 0.0;
-            e.speed = (if kind == "hound" { 7.2 } else { 5.5 }) + (self.depth() as f64 * 0.12).min(0.9);
-            e.w_field = None;
-            e.w_target = None;
-            e.w_timer = 0.0;
-            self.entities.push(e);
+            let ei = self.add_entity(kind, x, z, 0);
+            let pp = self.player.pos;
+            if crate::entities::creature::on_new_brain(kind) {
+                self.entities[ei].freeze = 0.5;
+                self.creature_alert(ei, pp.x, pp.z);
+            } else {
+                let e = &mut self.entities[ei];
+                e.state = "hunt".into();
+                e.lose_t = 0.0;
+                e.freeze = 0.5;
+            }
         }
     }
 

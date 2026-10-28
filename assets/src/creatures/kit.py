@@ -408,6 +408,21 @@ class Body:
               + (f', {un} verts fell back to the nearest bone' if un else ''))
         return P
 
+    def skinned_by(self, name, material, o, weights, colors=None):
+        """a mesh skinned by weights the script computes: `weights(P) -> (J, W)`
+        with J bone indices and W weights summing to 1, N x 4 (game frame)"""
+        paint_preview(o, colors)
+        P, N, I = mesh_arrays(o)
+        J, Wf = weights(P)
+        W = np.round(np.asarray(Wf) * 255).astype(np.int64)
+        W[:, 0] += 255 - W.sum(axis=1)
+        self.meshes.append(dict(name=name, material=material, bone=-1, pos=r5(P), nrm=r5(N),
+                                col=r5(colors) if colors is not None else None, uv=None,
+                                jnt=[int(x) for x in np.asarray(J).reshape(-1)], wgt=[int(x) for x in W.reshape(-1)],
+                                idx=[int(x) for x in I], morphs=[]))
+        print(f'[creatures] {self.name}/{name}: {len(P)} verts, {len(I) // 3} tris, skinned by the script')
+        return P
+
     def rigid(self, name, material, bone, o, colors=None):
         paint_preview(o, colors)
         P, N, I = mesh_arrays(o)

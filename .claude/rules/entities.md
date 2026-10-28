@@ -2,23 +2,54 @@
 paths:
   - "crates/game/src/entities/**"
   - "crates/game/src/assets/creatures.rs"
+  - "crates/game/src/assets/bodies.rs"
   - "crates/game/src/session/**"
+  - "assets/src/creatures/**"
 ---
 
 # Creature and pacing rules
 
+- **The plan is `docs/ENTITIES.md`**: five creatures, five rules (one sense
+  and one counter each), one brain, fairness as invariants. A creature moved
+  onto the new brain is named in `creature::on_new_brain`; the rest still
+  run `ai.rs` until their milestone.
+- **The new brain** (`entities/brain.rs`, `entities/creature.rs`): a creature
+  is in one `Mode` and changes it only by a rule of its kind, logged with a
+  reason (`Brain::set`); percepts are computed once a frame (`perceive`:
+  hearing is along the way it would walk, `path_distance`, never through
+  walls); the director's wishes arrive as `Order`s. Kinds are data
+  (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`).
+- **Fairness lives in `creature.rs`, so no kind can skip it**: strike only
+  if `strike_allowed` (two tells you could perceive in 20 s, not in a
+  level's first 30 s, not within 2 s of its notice); every contact goes
+  through `creature_contact` (the first of a kind in a run knocks you down;
+  a second in a peak, or one on a spent nerve, kills); chases through
+  `creature_go` (capped at `CHASE_CAP`), bursts through `creature_burst`
+  (`BURST_CAP` over `BURST_LEN`). Give a tell with `creature_tell`.
+- **Per-frame draws come from the native stream** (`with_native`); a
+  creature's build draws nothing from the seeded stream (`make_creature`),
+  so spawning one does not shift a level.
 - **The director owns pressure** (`entities/director.rs`): calm → build →
   peak → relax. One stalker at a time, rotated (`last_sent`); it withdraws
   after a close call (menace ≥ 1 and lost for 2.5 s, or menace ≥ 1.2 with the
-  hunter more than 2.5 m away). The Watcher acts only as the stalker.
-- **Senses:** a view cone (dot ≥ 0.42, or within 3.5 m, or the flashlight on
-  it); states wander / search / hunt; per-frame decisions draw from the
-  native stream.
-- **Re-record** after an intended change to builds, animation or behaviour:
-  `REGEN=1 cargo test --release -p game --test entities`, then review the
-  diff. The behaviour tests in `tests/entities.rs` must keep passing.
+  hunter more than 2.5 m away), and when a strike lands
+  (`director_relax_now`). The Watcher acts only as the stalker.
+- **Old senses** (`ai.rs`, until each kind moves): a view cone (dot ≥ 0.42,
+  or within 3.5 m, or the flashlight on it); states wander / search / hunt.
+- **Bodies** are built by `cargo xtask assets creatures` (Blender headless,
+  `assets/src/creatures/`) into `bodies.bin`, posed so the pose is the rest
+  pose; animate by aiming bones in the body's frame (`BodyRig::aim`,
+  `two_bone`). Never hold two borrows of one node in one expression
+  (`root.rotation().y.sin()` and `.cos()` together panics): read it once.
+- **Tests**: a kind's rules in `tests/creatures_rules.rs` (one test a line of
+  its design, read back from its brain's log); its counter in
+  `tests/creatures_arenas.rs` (with it at least 95% untouched and 90% round,
+  without it at most 70% untouched and 60% killed). The old creatures'
+  reference fixtures: `REGEN=1 cargo test --release -p game --test entities`
+  after an intended change, then review the diff.
 - **Evidence:** the creature goldens in `cargo xtask shots` (2, 4, 8 m and
   the death scene), or `--fresh --level 4 --showcase kind:dist [--death]` by hand (a floor of
   the rooms: the Building's floors have none);
   `cargo test --release -p backrooms --test pacing -- --nocapture` for the
-  phase sequence, close calls and deaths.
+  phase sequence, close calls and deaths; `cargo xtask bench` for the
+  creature pack (`perf/creatures.csv`).

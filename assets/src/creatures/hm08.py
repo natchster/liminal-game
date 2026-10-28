@@ -72,6 +72,8 @@ class Base:
                     self.uv[remap[i]] = uv[t]
         self.joint_groups = {k[6:]: np.array(sorted(set(i for f in fs for i in f)))
                              for k, fs in faces.items() if k.startswith('joint-')}
+        # the helper meshes (eyes, teeth, ...): faces into the full vertex list
+        self.helpers = {k[7:]: fs for k, fs in faces.items() if k.startswith('helper-')}
         self.offsets = np.zeros_like(self.all)
 
     def target(self, key, weight=1.0):
@@ -86,6 +88,14 @@ class Base:
     def verts(self):
         """the skin's vertices, targets applied (game frame, metres)"""
         return (self.all + self.offsets)[self.used]
+
+    def helper(self, name):
+        """helper mesh `name` (e.g. 'upper-teeth', 'l-eye'): its vertices (targets
+        applied, game frame) and faces indexed into them"""
+        fs = self.helpers[name]
+        used = np.array(sorted(set(i for f in fs for i in f)))
+        remap = {int(o): i for i, o in enumerate(used)}
+        return (self.all + self.offsets)[used], [[remap[i] for i in f] for f in fs]
 
     def joint(self, name):
         """a joint's centre, targets applied"""

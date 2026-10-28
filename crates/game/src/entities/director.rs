@@ -86,6 +86,9 @@ pub struct Director {
     /// `notice`, `strike` and `death`. For run analysis; capped at `LOG_CAP`.
     pub log: Vec<(f64, &'static str)>,
     pub stuck_t: f64,
+    /// A creature's strikes that reached you in this peak (the second kills:
+    /// `creature::creature_contact`)
+    pub contacts: u32,
 }
 
 /// The first quiet on the first floor while her camp is there to find, s
@@ -300,6 +303,7 @@ impl Game {
         self.director_note("peak");
         let d = &mut self.director;
         d.phase = Phase::Peak;
+        d.contacts = 0;
         d.menace = 0.0;
         d.lost_t = 0.0;
         d.stalker = None;
@@ -313,6 +317,7 @@ impl Game {
         if came_through {
             d.close_calls += 1;
         }
+        d.contacts = 0;
         d.phase = Phase::Relax;
         d.cycles += 1;
         d.t = rand2(25.0, 45.0) * (1.0 - (level - 1) as f64 * 0.04).max(0.6);
@@ -332,6 +337,14 @@ impl Game {
                     self.withdraw_entity(i);
                 }
             }
+        }
+    }
+
+    /// The relief, now: everything after you backs off (a creature's strike
+    /// was its moment).
+    pub fn director_relax_now(&mut self) {
+        if self.director.phase != Phase::Relax {
+            self.enter_relax(true);
         }
     }
 
@@ -589,6 +602,10 @@ impl Game {
     /// Creature `ei` has found you: it stops dead with its head snapped to
     /// you, screams from where it stands, and then it comes.
     pub fn entity_notice(&mut self, ei: usize, d: f64) {
+        if crate::entities::creature::on_new_brain(&self.entities[ei].kind) {
+            let pp = self.player.pos;
+            return self.creature_alert(ei, pp.x, pp.z);
+        }
         self.director_note("notice");
         let pp = self.player.pos;
         let pos = self.entities[ei].pos();

@@ -130,7 +130,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are cold, all of them, and none of them runs. I keep hearing children laughing.", scp: None },
     LoreEntry { id: 8, title: "Elias, Day 219", body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.", scp: None },
     LoreEntry { id: 9, title: "The Smilers", body: "Their faces are the only bright thing. Hold its eyes and back away, slowly. It creeps while you watch it. Turn your back, or run, and it comes all at once. Your lamp draws them.", scp: None },
-    LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones don't blink either. They hear footsteps from rooms away. If one runs at you, stare it down — it stops for a breath or two. Not every time. Then it growls.", scp: None },
+    LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones are blind. They listen. When the scratching stops, it is listening: stop too. One came close enough that I could have touched its hair, and then it went on. When it howls you can outrun it, for a while.", scp: None },
     LoreEntry { id: 11, title: "The Watcher", body: "You cannot outrun what refuses to move. Just don't look away too long. Especially not when it's near.", scp: None },
     LoreEntry { id: 12, title: "Corporate Memo", body: "All personnel are reminded that the loading dock is not a restroom. Signed, Management. — date illegible.", scp: None },
     LoreEntry { id: 13, title: "Layer Notes", body: "There are floors here that were never built. The elevators know. Sometimes they take you to them.", scp: None },

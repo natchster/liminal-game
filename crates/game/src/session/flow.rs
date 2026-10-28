@@ -525,6 +525,7 @@ impl Game {
         self.run_seed = if hash_seed != 0 { hash_seed } else { ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32 };
         self.lore_found.clear();
         self.lore_arcs_completed.clear();
+        self.creature_run = Default::default();
         self.notebook.clear();
         self.thread.clear();
         self.journal_newest = None;

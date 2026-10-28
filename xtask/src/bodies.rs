@@ -266,7 +266,7 @@ pub fn creatures(args: &[String], blender: &str, asset_dir: &Path) -> Result<(),
                 "licence": "MIT",
                 "authors": "written by coding agents under the developer's direction; the bodies that were people start from MakeHuman's base mesh and targets (CC0 1.0, the MakeHuman team)",
                 "built_with": format!("{} headless: skeletons, bodies (MakeHuman's hm08 base and its targets, or metaballs), voxel remesh, displacement, decimation, bone-heat weights, vertex paint; packed by cargo xtask assets creatures", crate::assets::blender_version()),
-                "sources": ["assets/src/creatures/build.py", "assets/src/creatures/kit.py", "assets/src/creatures/hm08.py", "assets/src/creatures/sources.json"],
+                "sources": ["assets/src/creatures/build.py", "assets/src/creatures/kit.py", "assets/src/creatures/hm08.py", "assets/src/creatures/human.py", "assets/src/creatures/anatomy.py", "assets/src/creatures/sources.json"],
                 "rebuild": "cargo xtask assets creatures [--only …] [--write]; the MakeHuman files and their SHA-1s are in assets/src/creatures/sources.json (fetched once into target/creature-sources/)",
             }),
         )?;

@@ -21,6 +21,12 @@
 pub const SUSPECT: f64 = 0.3;
 /// Awareness from which a creature is sure where you are.
 pub const SURE: f64 = 1.0;
+/// Whether awareness `aw` is sure (within a frame's drain of `SURE`: being
+/// told where you are sets it to 1, and a silent frame takes a sliver off).
+pub fn sure(aw: f64) -> bool {
+    aw >= SURE - 0.02
+}
+
 /// The most mode changes one creature's log keeps.
 pub const LOG_CAP: usize = 256;
 
@@ -104,6 +110,8 @@ pub struct Percept {
     pub sight: f64,
     /// 0..1: how loud you are where it stands (0 when it cannot hear you)
     pub sound: f64,
+    /// The length of the way from it to you along the level, m
+    pub path: f64,
     /// You are looking at it, and could see it
     pub watched: bool,
     /// Your lamp is on and aimed at it

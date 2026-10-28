@@ -107,6 +107,13 @@ impl Game {
 
     /// Joints, gait, jaw, head tracking
     pub fn animate_entity(&mut self, ei: usize, dt: f64, t: f64, dist_to_player: f64) {
+        if crate::entities::creature::on_new_brain(&self.entities[ei].kind) {
+            crate::entities::hound::animate(self, ei, dt);
+            if let Some(c) = self.creature(ei) {
+                c.body.sync();
+            }
+            return;
+        }
         let Some(rig) = self.entity_rig(ei) else { return };
         let pp = self.player.pos;
         let pyaw = self.player.yaw;

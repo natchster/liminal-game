@@ -17,7 +17,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds, the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one |
+| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher; the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
@@ -290,12 +290,24 @@ The rules are learnable, and learning them is the game.
   it lunges**, thrown forward, reaching. It is slowed in bright rooms, where
   it shies from the light. You hear slow wet breathing, and teeth when it is
   coming.
-- **Hounds.** Starved people on all fours, rump high, the head hanging under a
-  curtain of wet black hair, a jaw too long for the face. In the dark: two
-  small white points, knee high, behind the hair. One of them limps. They
-  **hear footsteps from rooms away**, at almost twice anyone else's range.
-  **Stare one down and it stops for a breath or two**, crouched and growling,
-  though not often. You hear a bark when it starts, then panting.
+- **Hounds.** Old people on all fours, starved, rump high, the head hanging
+  so low you see only the back of the skull under thin, wet, matted hair; a
+  vest and long johns gone the colour of the floor. One leg drags. They are
+  **blind**: close up, the eyelids have grown shut, and in the dark there are
+  no eyes at all. They **hear your steps along the way they would walk to
+  you**, through doorways and not through walls, twice as far as anything
+  else, but not while they are moving themselves: their own nails on the
+  carpet cover yours. **When the scratching stops, it is listening**: it
+  stops in a crouch with its head cocked, and if you are still it comes to
+  look near where it heard you; if you move, it is sure. Standing right
+  beside one for long, it smells you. Sure, it bays and runs at you, not as
+  fast as you can run, and stops after a while to listen again: quiet then,
+  and it has lost you. Close, it growls and springs. You hear its nails, a
+  slow wheeze, sniffing when it searches, panting when it runs. The first
+  time one reaches you, it throws you down and lets you go; after that, the
+  second time in one chase is the end. (*How a creature's first touch is
+  survived is the same for every creature of the redesign; `ENTITIES.md`,
+  design 3.*)
 - **The Watcher.** Someone standing under an old dust sheet, the same sheets
   that cover the furniture, the shape of a face pressed into the cloth. It
   **only moves when you are not looking**, and after long enough unseen it is
@@ -579,7 +591,12 @@ plaque that says STAIRS. Behind it:
   (CC BY-SA 3.0).
 - **Backrooms** lore comes from the Backrooms wikis (Wikidot and Fandom),
   **CC BY-SA 3.0**. The zone archetypes, Smiler and Hound rules and Almond
-  Water are adapted, not copied.
+  Water are adapted, not copied: the Hound after Entity 8 of the Wikidot
+  wiki (<http://backrooms-wiki.wikidot.com/entity-8>; Palico22, rewritten by
+  1000dumplings), made blind here.
+- **The Hound's body** starts from MakeHuman's base mesh and targets
+  (<https://github.com/makehumancommunity/makehuman>), **CC0 1.0** since
+  September 2020 (`assets/src/creatures/sources.json`).
 - The original 2019 yellow-room photograph was released **CC0** by the
   building's owner. We draw our own textures and use none of it.
 - **Kane Pixels'** *The Backrooms* series is copyrighted and was used only as a
