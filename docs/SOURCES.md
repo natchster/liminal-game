@@ -14,6 +14,10 @@ were gathered in October 2026 in two rounds of research:
 * **Megastructure** (section 10, a fourth round): the Samosbor myth,
   megastructure SCPs and Backrooms levels, wayfinding and distant threats,
   for [`MEGASTRUCTURE.md`](MEGASTRUCTURE.md).
+* **Creatures** (section 11, a fifth round): rule-monsters, folklore and
+  how entities are pictured, creature AI and the psychology of fear, CC0
+  bodies, for [`ENTITIES.md`](ENTITIES.md); the notes in full are in
+  [`research/`](research/README.md).
 
 A note on weight: the strongest sources here are developer-facing write-ups
 (Game Developer, the Valve wiki, a peer-reviewed paper). Several others are
@@ -357,3 +361,50 @@ SHA-1 in `assets/src/textures/sources.json`.
 **Scale:** [Shadow of the Colossus's designers on fog and distance](https://www.siliconera.com/graphic-designers-discuss-creating-shadow-of-the-colossus-majestic-world/) *(secondary)*, [the Level Design Book on metrics](https://book.leveldesignbook.com/process/blockout/metrics), [BLAME! and videogame architecture](https://www.killscreen.com/influence-blame-videogame-architecture-rising/) *(secondary)*, [compression and expansion](https://en.wikipedia.org/wiki/Compression_and_expansion).
 - Say: fog over far geometry, repeated modules at human scale, long empty transits as mild sensory deprivation, landings every 12–16 steps, a narrow way opening onto a large one.
 - Used for: the look of the Building (design 3) and the arrival in a narrow place that opens onto the void.
+
+## 11. Creatures: rule-monsters, folklore, creature AI and fear
+
+Gathered on 2026-10-28 by five research passes for
+[`ENTITIES.md`](ENTITIES.md); the notes are kept whole in
+[`research/`](research/README.md), every claim linked and every design's
+licence stated. What the design took, and where it shows up:
+
+**The rule, and the tell before it** ([`research/scp.md`](research/scp.md)).
+- Read: SCP-173 (Moto42), 096 (Dr Dan), 106 (Dr Gears), 939 (Adam Smascher,
+  EchoFourDelta), 513 (beefwit), 1499 (Trasknari), 2316 (djkaktus), all CC
+  BY-SA 3.0; *SCP – Containment Breach*'s source (Regalis and contributors,
+  CC BY-SA 3.0): 173 freezes while anywhere in the view cone, 106 shows a
+  stain and a sound before it rises, 939 hears a sprint at 4.8 m and a
+  crouch at 2.3 m.
+- Say: the remembered monsters are one sentence each, and turn a normal act
+  (blinking, looking, helping) into a risk; the checks are lenient and the
+  rule strict; players accept a sudden death from a rule they understood
+  and resent attrition or luck they cannot read.
+- Used for: one rule per creature (design 1); the Watcher's lenient sight
+  check; the one in the corner (after 096: its face is the trigger, a
+  turning before the scream, a cap on how long it knows where you are).
+
+**One sense, one counter, one brain** ([`research/creature-ai-and-fear.md`](research/creature-ai-and-fear.md)).
+- Read: [Thompson on Alien: Isolation](https://www.gamedeveloper.com/design/the-perfect-organism-the-ai-of-alien-isolation), [Booth's Left 4 Dead slides](https://steamcdn-a.akamaihd.net/apps/valve/2009/ai_systems_of_l4d_mike_booth.pdf), [Botta, Infected AI in The Last of Us](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter33_Infected_AI_in_The_Last_of_Us.pdf), [Walsh on Splinter Cell Blacklist's perception](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter28_Modeling_Perception_and_Awareness_in_Tom_Clancy's_Splinter_Cell_Blacklist.pdf), [Welsh on search](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter27_Looking_for_Trouble_Making_NPCs_Search_Realistically.pdf), Lethal Company's and Phasmophobia's wikis, Grip on SOMA's monsters.
+- Say: one brain, kinds as data and skills; hearing as logical sounds along the way, blocked by walls; sight that builds up; an agitated tell before discovery; a creature that "knows" for 2–3 s after losing you, then searches and forgets visibly; light as a repellent fails (Naughty Dog cut it), light as a sense works; behaviours that unlock from habits, never deaths, and are seen when they unlock; no death without a warning, a grace period, a relief, pursuers slower than you, the first catch postponed.
+- Used for: the brain (design 2), the fairness invariants (design 3), the habit ledger (design 4), the arenas and hard fails (design 7).
+
+**Fear** (the same note).
+- Read: [Andersen, Clasen et al. 2020, *Psychological Science*](https://pmc.ncbi.nlm.nih.gov/articles/PMC7734554), [de Berker et al. 2016](https://pubmed.ncbi.nlm.nih.gov/27020312/), [Schmitz et al. 2011](https://pmc.ncbi.nlm.nih.gov/articles/PMC3110515), [Rankin et al. 2009](https://pmc.ncbi.nlm.nih.gov/articles/PMC2754195/), [Mori 1970](https://spectrum.ieee.org/the-uncanny-valley), Tinwell's uncanny-valley studies.
+- Say: enjoyment peaks at moderate fear with small swings; uncertainty stresses more than the threat; repetition habituates and a pause or a new stimulus restores; a face that does not startle reads as cold.
+- Used for: builds that sometimes end in nothing, one unlock a level, faces that do not flinch (designs 4, 5, 6).
+
+**How they are pictured** ([`research/folklore-and-imaging.md`](research/folklore-and-imaging.md)).
+- Read: Henderson's interviews ([Daily Dead](https://dailydead.com/qa-trevor-henderson-discusses-the-found-footage-style-of-his-fascinating-horror-artwork/), [Reactor](https://reactormag.com/artist-trevor-henderson-siren-head-interview/)), [MacDorman et al. 2009](https://scholarworks.indianapolis.iu.edu/items/e8fb6458-ddad-4067-b877-1207d720ba0c), [McAndrew and Koehnke 2016](https://scottbarrykaufman.com/wp-content/uploads/2016/04/McAndrew-Koehnke-2016.pdf), Carroll's *The Philosophy of Horror*, [Long 2023 on analog horror](https://info.umkc.edu/sosland_journal/wp-content/uploads/2023/08/Long_AnalysisOfAnalogHorror.pdf), [Mirvoda 2018 on Soviet creepypasta](https://press.psu.ru/index.php/philology/article/download/1633/1204/3523); the upyr, Likho, the poludnitsa, the domovoi (public domain).
+- Say: slightly-off proportions on realistic surfaces disturb more; creepiness is uncertainty; a hidden or almost-right face; eyeshine in a human head is the fusion of person and animal; stillness, or wrong mechanics; a sound first. Fully lit grins and "shadowed face plus realistic eyes" have turned comic; Soviet detail used as costume is a parody genre.
+- Used for: each creature's look (design 1), eyeshine as a reflection (design 6), the Smiler's rictus seen only in the beam, the Reader's compulsion (after the upyr's seed and the slit-mouthed woman's candy), the one in the corner's face (the Thatcher illusion: one error in an upright face).
+
+**The Backrooms and the Samosbor** ([`research/backrooms-and-samosbor.md`](research/backrooms-and-samosbor.md)).
+- Read: the Backrooms Wikidot's Entities 3 (Smilers), 5 (Clumps), 8 (Hounds) and their authors, all CC BY-SA 3.0; the SAMOSBOR wikis (CC BY-SA); the founding 2ch thread (no author).
+- Say: Wikidot's Smilers are drawn to light and provoked by panic; Clumps reach from where they lie; the samosbor is heard, never seen; voices beg at the door and must not be answered; what it leaves is fused and assembled, and its monsters are told apart by behaviour.
+- Used for: the Smiler and the Hound (rules adapted, design 1), the Watcher and the one in the corner as a pair with opposite gaze rules (as Inside the Backrooms pairs its Hound and Smiler), and keeping "nothing walks the Building" (none of the samosbor's beings is brought into the game: its lesson is to tell creatures apart by behaviour).
+
+**Bodies** ([`research/modelling.md`](research/modelling.md)).
+- Read: [MakeHuman's licence](https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.md) (section C: the base mesh, targets, proxies, skins, poses CC0 1.0), [Blender's Human Base Meshes](https://www.blender.org/download/demo-files/) (CC0), Poly Haven and ambientCG (CC0).
+- Say: a real human body and its starved targets are free to use; relief is lost under a lamp held at the eye, so anatomy must be in the outline, the cavities and the glints; cloth drapes headless; eyeshine is retroreflection, strongest when the light is at the eye.
+- Used for: the bodies (design 6: `assets/src/creatures/`, the hm08 body fetched and checked by SHA-1).
