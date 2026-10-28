@@ -25,7 +25,7 @@ use crate::prelude::*;
 
 /// The kinds on the new brain (the rest still run `ai.rs` until they are rebuilt).
 pub fn on_new_brain(kind: &str) -> bool {
-    matches!(kind, "hound" | "smiler" | "watcher" | "corner")
+    matches!(kind, "hound" | "smiler" | "watcher" | "corner" | "reader")
 }
 
 /// The one place a kind's own code is chosen: its data and materials, its
@@ -36,6 +36,7 @@ fn kind_data(kind: &str) -> (KindData, fn(&str) -> Mat) {
         "smiler" => (crate::entities::smiler::DATA, crate::entities::smiler::material),
         "watcher" => (crate::entities::watcher::DATA, crate::entities::watcher::material),
         "corner" => (crate::entities::corner::DATA, crate::entities::corner::material),
+        "reader" => (crate::entities::reader::DATA, crate::entities::reader::material),
         other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
     }
 }
@@ -45,6 +46,7 @@ pub fn kind_think(g: &mut Game, ei: usize, dt: f64) {
         "smiler" => crate::entities::smiler::think(g, ei, dt),
         "watcher" => crate::entities::watcher::think(g, ei, dt),
         "corner" => crate::entities::corner::think(g, ei, dt),
+        "reader" => crate::entities::reader::think(g, ei, dt),
         _ => {}
     }
 }
@@ -54,6 +56,7 @@ pub fn kind_animate(g: &mut Game, ei: usize, dt: f64) {
         "smiler" => crate::entities::smiler::animate(g, ei, dt),
         "watcher" => crate::entities::watcher::animate(g, ei, dt),
         "corner" => crate::entities::corner::animate(g, ei, dt),
+        "reader" => crate::entities::reader::animate(g, ei, dt),
         _ => {}
     }
 }
@@ -63,6 +66,7 @@ pub fn kind_voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
         "smiler" => crate::entities::smiler::voice(g, ei, dt, d),
         "watcher" => crate::entities::watcher::voice(g, ei, dt, d),
         "corner" => crate::entities::corner::voice(g, ei, dt, d),
+        "reader" => crate::entities::reader::voice(g, ei, dt, d),
         _ => {}
     }
 }
@@ -72,6 +76,7 @@ pub fn kind_call(g: &mut Game, ei: usize, what: &str) {
         "smiler" => crate::entities::smiler::call(g, ei, what),
         "watcher" => crate::entities::watcher::call(g, ei, what),
         "corner" => crate::entities::corner::call(g, ei, what),
+        "reader" => crate::entities::reader::call(g, ei, what),
         _ => {}
     }
 }
@@ -114,6 +119,8 @@ pub const LEVEL_GRACE: f64 = 30.0;
 pub const NOTICE_GRACE: f64 = 2.0;
 /// The fastest a creature may chase you for long, m/s (0.95 of your sprint).
 pub const CHASE_CAP: f64 = 0.95 * SPRINT;
+/// A contact that does not kill leaves you at least this much nerve.
+pub const KNOCKED_LEAVES: f64 = 5.0;
 /// A burst (a lunge, a spring): at most this fast, over at most `BURST_LEN`.
 pub const BURST_CAP: f64 = 7.0;
 pub const BURST_LEN: f64 = 4.0;
@@ -372,13 +379,16 @@ impl Game {
         }
         self.director.contacts += 1;
         if !lethal {
-            self.knock_down(if touch > 0.0 {
+            let blow = if touch > 0.0 {
                 touch
             } else if first {
                 30.0
             } else {
                 22.0
-            });
+            };
+            // a contact that is not the end never takes the last of your
+            // nerve (a first meeting on a spent nerve had killed through it)
+            self.knock_down(blow.min((self.player.sanity - KNOCKED_LEAVES).max(0.0)));
         }
         // that was its moment: it backs off, and the place settles
         let now = self.perf_t;
@@ -406,7 +416,9 @@ impl Game {
         });
         self.shake_t = 0.7;
         self.sfx_thump(1.0);
-        if self.player.sanity <= 0.0 && !self.god_mode {
+        // (only a blow that took the last of it: a nerve the dark had
+        // already spent is not ended by a knock-down that takes nothing)
+        if nerve > 0.0 && self.player.sanity <= 0.0 && !self.god_mode {
             self.on_death("sanity");
         }
     }

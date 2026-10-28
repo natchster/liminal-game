@@ -250,6 +250,28 @@
     },
     {
       "checks": [
+        "shots:reader_2m",
+        "shots:reader_4m",
+        "shots:reader_8m",
+        "shots:reader_death",
+        "test:game/creatures_rules",
+        "test:game/creatures_arenas",
+        "test:game/bodies",
+        "test:backrooms/reader_placement",
+        "test:backrooms/story",
+        "test:backrooms/listen",
+        "test:backrooms/pacing"
+      ],
+      "id": "creature/reader",
+      "kind": "creature",
+      "last_checked": "2026-10-28",
+      "last_human_review": null,
+      "name": "the Reader",
+      "notes": "New in the redesign (docs/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py).",
+      "passes": {}
+    },
+    {
+      "checks": [
         "shots:watcher_2m",
         "shots:watcher_4m",
         "shots:watcher_8m",

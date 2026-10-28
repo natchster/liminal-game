@@ -19,10 +19,16 @@ paths:
   hearing is along the way it would walk, `path_distance`, never through
   walls); the director's wishes arrive as `Order`s. Kinds are data
   (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`,
-  `smiler.rs`, `watcher.rs`, `corner.rs`). A placed kind (the one in the
-  corner) is placed after the build with no draws (`corner::place`, from
-  `session::flow`), is never a stalker (the director sends only the
-  Smiler, the Hound and the Watcher), and goes back to where it was put. Only sight (or touch) gives a creature your exact place; a
+  `smiler.rs`, `watcher.rs`, `corner.rs`, `reader.rs`). A placed kind (the
+  one in the corner; the Reader, beside paper) is placed after the build
+  with no draws (`corner::place`, `reader::place`, from `session::flow`),
+  and nothing of it may draw from the per-frame stream as the level starts
+  or while it is far from you: make it inside `with_seed` (`add_entity`
+  draws a heading), set its first timers from its place, and give what it
+  chooses on its own a stream of its own (`reader::own_stream`); a draw
+  there shifts every frame after it (invariant 1). The one in the corner
+  is never a stalker (the director sends only the Smiler, the Hound, the
+  Watcher and the Reader) and goes back to where it was put. Only sight (or touch) gives a creature your exact place; a
   sound, or your light going out, leaves it a rough guess (`open_point`), so
   a counter that hides you can work. A creature hunting by sight must still
   find you when sent: the director parks a stalker out of your sight, so
@@ -36,12 +42,16 @@ paths:
   if `strike_allowed` (two tells you could perceive in 20 s, not in a
   level's first 30 s, not within 2 s of any notice: stamp `noticed_at` at
   each one); every contact goes
-  through `creature_contact` (the first of a kind in a run knocks you down;
-  a second in a peak, or one on a spent nerve, kills; a kind with
+  through `creature_contact` (the first of a kind in a run knocks you down,
+  never through your nerve: a contact that is not the end leaves
+  `KNOCKED_LEAVES`; a second in a peak, or one on a spent nerve, kills; a kind with
   `touch_nerve` takes that much nerve each touch and kills only a mind it
   leaves spent); chases through
   `creature_go` (capped at `CHASE_CAP`), bursts through `creature_burst`
-  (`BURST_CAP` over `BURST_LEN`). Give a tell with `creature_tell`.
+  (`BURST_CAP` over `BURST_LEN`). Give a tell with `creature_tell`; a kind that hunts must keep giving
+  tells you could perceive while it comes (the Smiler's breath, the
+  Reader's steps), or a look-up you missed leaves it never allowed to
+  strike, trailing you forever (the Reader's arena, E6).
 - **Per-frame draws come from the native stream** (`with_native`); a
   creature's build draws nothing from the seeded stream (`make_creature`),
   so spawning one does not shift a level.

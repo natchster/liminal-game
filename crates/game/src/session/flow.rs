@@ -106,6 +106,8 @@ impl Game {
         self.fit_story();
         // the one in the corner, after her camp (never near it): by the place
         crate::entities::corner::place(self);
+        // the Reader, where paper lies
+        crate::entities::reader::place(self);
         self.build_light_map();
         self.update_ambience();
         self.release_pooled_lights();

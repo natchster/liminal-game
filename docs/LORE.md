@@ -17,7 +17,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
+| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
@@ -337,6 +337,25 @@ The rules are learnable, and learning them is the game.
   person's face with the eyes and the mouth upside down, and you see it
   only once. Nothing sends it: it stands where it was put, off the way, and
   goes back there.
+- **The Reader.** A thin man in a brown cardigan buttoned a hole wrong,
+  paper stuffed in its pockets and down its front, ink on its fingers and
+  at the corners of its mouth, the fingers too long. It walks bent over a
+  sheet held close to its face, its long fingers spread on the back of the
+  page, its eyes going along the lines, whispering what it reads, fast and
+  without a voice. It lives where paper lies: by the piles left in the
+  office wings and wherever else they lie. It finds you by sight, over its
+  page, down a room's length, and only where you are lit or moving: still
+  in the dark, you are nothing to it. When it looks up over the page the
+  whisper stops; sure of you, it snaps the sheet flat and comes, faster
+  than you walk, slower than you run, its soft quick steps close behind you.
+  **Give it paper**: any sheet on the floor near it, it must go to, pick up
+  and read to the end. Drop one behind you and walk on. The sheets you drop
+  it takes (a trail of them through its halls does not last); a pile it
+  reads the top sheet of, once, and leaves. It never touches her folded
+  sheets nor the flat ones. At arm's length it lowers its sheet, and you
+  see its face. (After the upyr of East Slavic folklore, which must stop to
+  gather scattered seed, and the slit-mouthed woman of Japanese legend, who
+  must stop for sweets thrown down.)
 - **The Face** (the Stairwell only). See below.
 
 **Pressure has a shape.** A pacing director (`entities/director.rs`) decides
@@ -543,7 +562,8 @@ plaque that says STAIRS. Behind it:
   get bad.
 - **Batteries** recharge the lamp. The lamp draws Smilers.
 - **Paper** marks your path. Sometimes you find someone else's trail going the
-  other way.
+  other way. Whatever reads in the office wings must stop for a sheet on the
+  floor, and keeps the ones you drop.
 - **Lore notes** are torn pages left by those who came before: Elias, M., the
   field surveys, the Stairwell logs. The notebook (Tab) keeps them, typed,
   after hers.
@@ -592,6 +612,12 @@ plaque that says STAIRS. Behind it:
   stand in the corner is everyone's, and its face is the Thatcher illusion
   (Peter Thompson, 1980). `crates/game/src/entities/corner.rs` and
   `assets/src/creatures/body_corner.py` keep this attribution.
+- **The Reader** takes its compulsion from folklore, public domain: the
+  upyr (upiór) of East Slavic belief, kept busy by poppy seed scattered for
+  it to gather, and Kuchisake-onna, the slit-mouthed woman of Japanese urban
+  legend, who stops for sweets thrown down. The cardigan, the ink and the
+  reading are this game's own. `crates/game/src/entities/reader.rs` and
+  `assets/src/creatures/body_reader.py`.
 - **The Watcher**, and the seated man of the Loop, take their rule (it moves
   only when unseen) from **SCP-173** by **Moto42**
   (<https://scp-wiki.wikidot.com/scp-173>), **CC BY-SA 3.0**, and from the

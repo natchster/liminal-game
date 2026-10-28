@@ -600,3 +600,59 @@ fn the_last_camp_ends_her_story() {
     g.next_level();
     assert_eq!(g.state, "transition", "her story ended twice");
 }
+
+/// The Reader reads the paper you drop and the paper lying about, and never
+/// touches her folded sheets nor the flat ones (`docs/ENTITIES.md`, E6):
+/// stood beside each of them on a floor that has both, it does not stop to
+/// read, and every sheet ends as it does on the same floor without it.
+#[test]
+fn the_reader_leaves_her_sheets_alone() {
+    use game::entities::brain::Mode;
+    let run = 4242u32;
+    let book = game::story::notebook::notebook(run);
+    let level = book.iter().find(|(_, p)| p.id == "f7").unwrap().0;
+    // the floor played the same way twice: the Reader beside each sheet in
+    // turn, or kept far off; the sheets as they end
+    let play_it = |beside_them: bool| {
+        game::base::rng::seed_native(0x5EE7);
+        let mut g = new_game();
+        g.run_seed = run;
+        g.init_level(level);
+        g.state = "playing".into();
+        g.god_mode = true;
+        let mut sheets: Vec<(f64, f64, engine::scene::Obj)> =
+            g.story.trail.iter().filter_map(|m| m.g.clone().map(|o| (m.x, m.z, o))).collect();
+        for f in &g.story.false_trails {
+            sheets.extend(f.trail.iter().filter_map(|m| m.g.clone().map(|o| (m.x, m.z, o))));
+        }
+        assert!(!sheets.is_empty() && !g.story.false_trails.is_empty(), "L{level}: her sheets and the flat ones");
+        let ei = match g.entities.iter().position(|e| e.kind == "reader") {
+            Some(i) => i,
+            None => g.add_entity("reader", g.tx(sheets[0].0), g.tz(sheets[0].1), 0),
+        };
+        g.entities[ei].freeze = 0.0;
+        let mut beside = 0;
+        for (x, z, _) in sheets.clone() {
+            let (tx, tz) = if beside_them { g.open_point(x + 1.0, z) } else { (-1e4, -1e4) };
+            g.entities[ei].g.set_pos(tx, 0.0, tz);
+            // (where no other paper lies in its reach, it must not stop at all)
+            let alone = beside_them && game::entities::reader::paper_near(&g, ei).is_none();
+            let n = g.creature(ei).unwrap().brain.log.len();
+            play(&mut g, 2.0);
+            if alone {
+                beside += 1;
+                let log = &g.creature(ei).unwrap().brain.log;
+                assert!(log[n.min(log.len())..].iter().all(|c| c.2 != Mode::Read), "it stopped to read her sheet at ({x:.1}, {z:.1})");
+            }
+        }
+        let state: Vec<_> = sheets.iter().map(|(_, _, o)| (o.visible(), o.parent().is_some(), o.pos().x, o.pos().y, o.pos().z)).collect();
+        (state, beside, sheets.len())
+    };
+    let (with, beside, n) = play_it(true);
+    let (without, _, _) = play_it(false);
+    assert!(beside > 0, "it was never alone with a sheet of hers");
+    assert_eq!(with, without, "her sheets did not end as they do without it");
+    println!(
+        "L{level}: stood beside {beside} of {n} sheets of hers and the flat ones; it never stopped for them, and they ended as without it"
+    );
+}

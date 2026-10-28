@@ -55,3 +55,11 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-28, on top of 94e7d7f: frames: 7_L6_spawn. Reason: E5: run 7's level 6 has the one in the corner now (placed after the build, no draws), so the native stream shifts its grain; frame and error map checked: no change of content
 
 - 2026-10-28, on top of 94e7d7f: frames: 7_L6_spawn. Reason: the one in the corner no longer draws from the per-frame stream as a level starts (its making on a stream of its own, its first look round set by its place): this frame is back to E4's, pixel for pixel
+
+- 2026-10-28, on top of ddf18ba: frames: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): new frames at 2, 4 and 8 m (bent over its page, its long fingers on the back of it) and its death (the sheet lowered: its staring eyes, its open mouth inked)
+
+- 2026-10-28, on top of ddf18ba: look anchors: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): its frames are new, so are their look anchors
+
+- 2026-10-28, on top of ddf18ba: frames: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): new frames at 2, 4 and 8 m (bent over its page, its long fingers on the back of it) and its death (the sheet lowered: its staring eyes, its open mouth inked)
+
+- 2026-10-28, on top of ddf18ba: look anchors: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): its frames are new, so are their look anchors

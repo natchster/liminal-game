@@ -256,7 +256,8 @@ fn bench_pack(
     let mut series: Vec<Vec<(String, f64)>> = vec![vec![]; PACK_MEASURES.len()];
     for line in text.lines().skip(1) {
         let c: Vec<&str> = line.split(',').collect();
-        if c.len() < 4 + PACK_MEASURES.len() || c[2] != here {
+        // (a pack of another size is another measurement: its own series)
+        if c.len() < 4 + PACK_MEASURES.len() || c[2] != here || c[3].parse::<i64>().ok() != Some(creatures) {
             continue;
         }
         for i in 0..PACK_MEASURES.len() {

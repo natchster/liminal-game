@@ -29,6 +29,7 @@ pub mod corner;
 pub mod creature;
 pub mod director;
 pub mod hound;
+pub mod reader;
 pub mod smiler;
 pub mod watcher;
 
@@ -40,7 +41,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 /// The kinds that roam the rooms and that the director sends.
-pub const ROAMING_KINDS: [&str; 3] = ["smiler", "hound", "watcher"];
+pub const ROAMING_KINDS: [&str; 4] = ["smiler", "hound", "watcher", "reader"];
 
 /// What `make_smiler` / `make_hound` / `make_watcher` return.
 #[derive(Clone, Debug)]

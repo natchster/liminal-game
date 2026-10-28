@@ -47,7 +47,8 @@ rendering, level building or per-frame code, and commit the history with it.
 
 Beside the levels, `cargo xtask bench` times the **creature pack**
 (`backrooms --bench-creatures`): on level 4 of run 4242, two of every kind
-that roams the rooms, and the one in the corner, are placed 6–14 m round
+that roams the rooms (`ROAMING_KINDS`: the Smiler, the Hound, the Watcher,
+the Reader), and the one in the corner, are placed 6–14 m round
 you, all hunting you (god mode), and over 240 frames, while you turn once on the spot, the game
 update on the CPU, the frame on the GPU, draw calls and triangles. It is
 held to the `creatures` budgets below and to its own history,

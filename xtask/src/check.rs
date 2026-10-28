@@ -40,6 +40,8 @@ const FAST_SKIP: &[&str] = &[
     "personas_play_and_the_fear_has_a_shape",
     "the_one_in_the_corner_stands_off_the_way",
     "the_one_in_the_corner_hums",
+    "the_reader_lives_where_paper_lies",
+    "the_reader_whispers",
 ];
 
 struct Step {

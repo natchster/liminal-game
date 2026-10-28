@@ -335,7 +335,7 @@ impl Game {
                 let e = &self.entities[i];
                 let p = e.pos();
                 let after_you = matches!(e.state.as_str(), "hunt" | "search") || hypot2(p.x - pp.x, p.z - pp.z) < 25.0;
-                if after_you && matches!(e.kind.as_str(), "smiler" | "hound") {
+                if after_you && matches!(e.kind.as_str(), "smiler" | "hound" | "reader") {
                     self.withdraw_entity(i);
                 }
             }
@@ -389,7 +389,7 @@ impl Game {
         let last = self.director.last_sent;
         let others = self.entities.iter().enumerate().filter(|(i, e)| Some(*i) != last && e.state == "wander").count() > 0;
         for (i, e) in self.entities.iter().enumerate() {
-            if !matches!(e.kind.as_str(), "smiler" | "hound" | "watcher") || e.state != "wander" {
+            if !matches!(e.kind.as_str(), "smiler" | "hound" | "watcher" | "reader") || e.state != "wander" {
                 continue;
             }
             if others && Some(i) == last {
@@ -562,6 +562,14 @@ impl Game {
                     s.burst(&v, t, 0.06, "lowpass", 300.0, 0.8, 0.22 * loud, None, 0.002);
                     s.burst(&v, t + 0.01, 0.03, "highpass", 3500.0, 1.0, 0.05 * loud, None, 0.001);
                     t += if k % 2 == 0 { 0.13 } else { 0.21 };
+                }
+                "reader" => {
+                    // soft soles, shuffling: a scuff, a page turned
+                    s.burst(&v, t, 0.07, "bandpass", 1200.0, 1.1, 0.12 * loud, Some(800.0), 0.004);
+                    if k == n - 1 {
+                        s.burst(&v, t + 0.25, 0.18, "bandpass", 3600.0, 1.0, 0.05 * loud, Some(2800.0), 0.01);
+                    }
+                    t += if k % 2 == 0 { 0.48 } else { 0.55 };
                 }
                 _ => {
                     // long-legged and uneven: a heavy heel, a dragged toe

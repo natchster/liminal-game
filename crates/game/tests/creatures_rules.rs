@@ -233,6 +233,14 @@ fn the_first_meeting_does_not_kill_the_second_contact_in_a_peak_does() {
     g.player.sanity = 20.0;
     g.creature_contact(ei);
     assert_eq!(g.god_deaths, 2.0, "a contact on a spent nerve");
+    // a first meeting never kills, however low your nerve: the knock-down
+    // leaves you some (it had taken the last of it, E6's personas)
+    let other = creature(&mut g, "smiler", 3, 3, 0.0);
+    g.director.contacts = 0;
+    g.player.sanity = 10.0;
+    g.creature_contact(other);
+    assert_eq!(g.god_deaths, 2.0, "a first meeting killed through your nerve");
+    assert!(g.player.sanity > 0.0, "it took the last of your nerve");
 }
 
 #[test]
@@ -739,4 +747,229 @@ fn it_is_never_sent() {
     }
     assert_eq!(g.director.stalker, Some(si), "the director sent {:?}", g.director.stalker.map(|i| g.entities[i].kind.clone()));
     assert_ne!(g.director.stalker, Some(ei));
+}
+
+// ------------------------------------------------------------ the Reader
+
+/// A 15 × 15 room lit at `light`, the Reader at (7, 3) facing +z (toward
+/// you), you at (7, z) looking at it.
+fn reader_room(light: f64, z: i32) -> (Game, usize) {
+    let mut g = room(15, light, |_, _| false);
+    let ei = creature(&mut g, "reader", 7, 3, 0.0);
+    g.player.pos = v3(g.wx(7), 0.0, g.wz(z));
+    let (rx, rz) = (g.wx(7), g.wz(3));
+    look_at(&mut g, rx, rz);
+    (g, ei)
+}
+
+/// Keep the Reader standing where it is, reading (`Idle`).
+fn hold_reading(g: &mut Game, ei: usize) {
+    let now = g.perf_t;
+    let c = g.creature_mut(ei).unwrap();
+    if matches!(c.brain.mode, Mode::Roam | Mode::Stalk) {
+        c.brain.set(Mode::Idle, "the test holds it", now);
+    }
+}
+
+/// You pace a metre to and fro across its view for `secs`.
+fn pace(g: &mut Game, ei: usize, secs: f64) {
+    let (x0, z0) = (g.player.pos.x, g.player.pos.z);
+    let n = (secs / DT).round() as usize;
+    for k in 0..n {
+        let side = if (k / 30) % 2 == 0 { 1.0 } else { -1.0 };
+        step(g, DT, Some((x0 + side, z0)), Gait::Walk);
+        hold_reading(g, ei);
+    }
+}
+
+fn stand(g: &mut Game, ei: usize, secs: f64) {
+    for _ in 0..(secs / DT).round() as usize {
+        step(g, DT, None, Gait::Still);
+        hold_reading(g, ei);
+    }
+}
+
+/// When creature `ei` changed into `m` last, and why.
+fn last_into(g: &Game, ei: usize, m: Mode) -> Option<(f64, &'static str)> {
+    g.creature(ei).and_then(|c| c.brain.last_into(m)).map(|c| (c.0, c.3))
+}
+
+#[test]
+fn the_reader_sees_you_only_lit_or_moving() {
+    // in the dark (0.05), lamp off, still, 8 m before it: nothing
+    let (mut g, ei) = reader_room(0.05, 5);
+    stand(&mut g, ei, 4.0);
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it saw you still in the dark: {:?}", modes(&g, ei));
+    assert!(g.creature(ei).unwrap().brain.mem.awareness < 0.05);
+    // ... moving, it looks up
+    pace(&mut g, ei, 3.0);
+    assert!(modes(&g, ei).contains(&Mode::Alert), "it did not see you move: {:?}", modes(&g, ei));
+    // lit (0.6) and still: it looks up too
+    let (mut g, ei) = reader_room(0.6, 5);
+    stand(&mut g, ei, 3.0);
+    assert!(modes(&g, ei).contains(&Mode::Alert), "it did not see you lit: {:?}", modes(&g, ei));
+    // your lamp on in the dark lights you
+    let (mut g, ei) = reader_room(0.05, 5);
+    g.player.flashlight_on = true;
+    stand(&mut g, ei, 3.0);
+    assert!(modes(&g, ei).contains(&Mode::Alert), "it did not see you by your lamp: {:?}", modes(&g, ei));
+}
+
+#[test]
+fn the_reader_sees_twelve_metres_and_no_further() {
+    // lit, 16 m off: nothing; 8 m: it looks up
+    let (mut g, ei) = reader_room(0.6, 7);
+    stand(&mut g, ei, 4.0);
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it saw you 16 m off: {:?}", modes(&g, ei));
+    let (mut g, ei) = reader_room(0.6, 5);
+    stand(&mut g, ei, 4.0);
+    assert!(modes(&g, ei).contains(&Mode::Alert));
+    // and only ahead: behind it, lit, you are not seen
+    let (mut g, ei) = reader_room(0.6, 5);
+    g.entities[ei].yaw = PI;
+    stand(&mut g, ei, 4.0);
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it saw you behind it");
+}
+
+#[test]
+fn looking_up_and_snapping_the_sheet_are_its_tells_and_it_comes_faster_than_you_walk() {
+    let (mut g, ei) = reader_room(0.6, 6);
+    for _ in 0..(6.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+        if mode(&g, ei) == Mode::Hunt {
+            break;
+        }
+    }
+    let m = modes(&g, ei);
+    let a = m.iter().position(|x| *x == Mode::Alert).expect("it never looked up");
+    let h = m.iter().position(|x| *x == Mode::Hunt).expect("it never came");
+    assert!(a < h, "it came before it looked up: {m:?}");
+    assert!(g.creature(ei).unwrap().tells.len() >= 2, "two tells before it comes");
+    // its pace coming (once under way): faster than you walk, slower than
+    // you run (you back away, so it does not reach you)
+    let away = (g.player.pos.x, g.player.pos.z + 40.0);
+    for _ in 0..60 {
+        step(&mut g, DT, Some(away), Gait::Walk);
+    }
+    let p0 = g.entities[ei].pos();
+    let t0 = g.perf_t;
+    for _ in 0..60 {
+        step(&mut g, DT, Some(away), Gait::Walk);
+    }
+    let p1 = g.entities[ei].pos();
+    let v = hypot2(p1.x - p0.x, p1.z - p0.z) / (g.perf_t - t0);
+    assert!(v > WALK && v < SPRINT, "it came at {v:.2} m/s");
+}
+
+#[test]
+fn a_sheet_on_the_floor_stops_it_and_it_reads_it_to_the_end() {
+    use game::entities::reader::{READ_TIME, STOOP};
+    let (mut g, ei) = reader_room(0.6, 7);
+    g.player.papers = 3;
+    // it sees you (you walk toward it) and comes
+    for _ in 0..(8.0 / DT) as usize {
+        let (rx, rz) = (g.wx(7), g.wz(3));
+        step(&mut g, DT, Some((rx, rz)), Gait::Walk);
+        if mode(&g, ei) == Mode::Hunt {
+            break;
+        }
+    }
+    assert_eq!(mode(&g, ei), Mode::Hunt, "it never came: {:?}", modes(&g, ei));
+    // drop a sheet at your feet (turned away), and walk away
+    let (fx, fz) = (g.wx(7), g.wz(13));
+    look_at(&mut g, fx, fz);
+    g.drop_paper_marker();
+    assert_eq!(g.paper_markers.len(), 1);
+    let mut read_from = None;
+    let mut read_until = None;
+    for _ in 0..(14.0 / DT) as usize {
+        step(&mut g, DT, Some((fx, fz)), Gait::Walk);
+        let m = mode(&g, ei);
+        if m == Mode::Read && read_from.is_none() {
+            read_from = Some(g.perf_t);
+        }
+        if read_from.is_some() && m != Mode::Read && read_until.is_none() {
+            read_until = Some(g.perf_t);
+        }
+    }
+    let (from, until) = (read_from.expect("the sheet did not stop it"), read_until.expect("it never finished reading"));
+    assert_eq!(last_into(&g, ei, Mode::Read).map(|x| x.1), Some("a sheet on the floor"));
+    assert!(until - from >= READ_TIME + STOOP, "it read for only {:.1} s", until - from);
+    assert!(g.paper_markers.is_empty(), "it left your sheet on the floor");
+    // it took the sheet and read it: no contact
+    assert_eq!(g.director.contacts, 0);
+}
+
+#[test]
+fn it_reads_the_top_sheet_of_a_pile_once_and_leaves_the_pile() {
+    let (mut g, ei) = reader_room(0.05, 12);
+    // a pile 2 m before it
+    let pile = group();
+    pile.set_pos(g.wx(7), 0.0, g.wz(3) + 2.0);
+    g.world.add(&pile);
+    g.papers.push(game::base::records::PaperPile { g: pile, taken: false });
+    for _ in 0..(10.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+    }
+    let reads = modes(&g, ei).iter().filter(|m| **m == Mode::Read).count();
+    assert_eq!(reads, 1, "it read the pile {reads} times: {:?}", modes(&g, ei));
+    assert!(!g.papers[0].taken, "it took the pile");
+    // left by it a while longer: never again
+    for _ in 0..(20.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+    }
+    assert_eq!(modes(&g, ei).iter().filter(|m| **m == Mode::Read).count(), 1);
+}
+
+#[test]
+fn it_never_reads_her_sheets_nor_the_flat_ones() {
+    use game::entities::reader::paper_near;
+    // her folded sheets are not paper it reads: one at its feet changes nothing
+    let (mut g, ei) = reader_room(0.05, 12);
+    let sheet = group();
+    sheet.set_pos(g.wx(7), 0.0, g.wz(3) + 1.0);
+    g.world.add(&sheet);
+    let (sx, sz) = (sheet.pos().x, sheet.pos().z);
+    g.story.trail.push(game::story::TrailMark { step: 0, x: sx, z: sz, yaw: 0.0, g: Some(sheet.clone()) });
+    assert!(paper_near(&g, ei).is_none());
+    for _ in 0..(10.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+    }
+    assert!(!modes(&g, ei).contains(&Mode::Read), "it read her sheet");
+    assert!(sheet.visible() && sheet.parent().is_some(), "her sheet was touched");
+}
+
+#[test]
+fn it_lowers_its_sheet_before_it_touches_you() {
+    use game::entities::reader::WINDUP;
+    let (mut g, ei) = reader_room(0.6, 5);
+    let mut struck = None;
+    for _ in 0..(20.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+        if g.director.contacts > 0 {
+            break;
+        }
+    }
+    if let Some((t, why)) = last_into(&g, ei, Mode::Strike) {
+        struck = Some(t);
+        assert_eq!(why, "it reached you");
+    }
+    let t = struck.expect("it never lowered its sheet");
+    assert_eq!(g.director.contacts, 1, "it never touched you");
+    // the touch came after the sheet was lowered (`WINDUP`), not with it
+    let touched = g.director.log.iter().find(|(_, w)| *w == "contact").map(|(t, _)| *t).unwrap();
+    assert!(touched - t >= WINDUP - 1e-6, "it touched you {:.2} s after lowering the sheet", touched - t);
+}
+
+#[test]
+fn the_reader_is_sent() {
+    // (the director sends it as it sends the Smiler and the Hound)
+    let (mut g, ei) = reader_room(0.6, 12);
+    g.reset_director();
+    g.director.t = 0.5;
+    for _ in 0..(3.0 / DT) as usize {
+        step(&mut g, DT, None, Gait::Still);
+        g.update_director(DT);
+    }
+    assert_eq!(g.director.stalker, Some(ei), "the director did not send it");
 }

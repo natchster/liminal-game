@@ -419,14 +419,23 @@ impl Game {
     pub fn bench_pack(&mut self, per_kind: usize) -> usize {
         self.god_mode = true;
         let (px, pz) = (self.player.pos.x, self.player.pos.z);
+        // open tiles 6–14 m round you, the ring widened (to 30 m) until every
+        // creature of the pack has one (level 4's arrival has only five
+        // within 14 m: the pack had stopped there, leaving kinds out)
+        let wanted = per_kind * crate::entities::ROAMING_KINDS.len() + 1;
         let mut spots = vec![];
-        for z in 1..self.h - 1 {
-            for x in 1..self.w - 1 {
-                let d = ((self.wx(x) - px).powi(2) + (self.wz(z) - pz).powi(2)).sqrt();
-                if !self.is_wall_tile(x, z) && (6.0..14.0).contains(&d) {
-                    spots.push((x, z));
+        let mut far = 14.0;
+        while spots.len() < wanted && far <= 30.0 {
+            spots.clear();
+            for z in 1..self.h - 1 {
+                for x in 1..self.w - 1 {
+                    let d = ((self.wx(x) - px).powi(2) + (self.wz(z) - pz).powi(2)).sqrt();
+                    if !self.is_wall_tile(x, z) && (6.0..far).contains(&d) {
+                        spots.push((x, z));
+                    }
                 }
             }
+            far += 4.0;
         }
         let mut placed = 0;
         for kind in crate::entities::ROAMING_KINDS {

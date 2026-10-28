@@ -96,6 +96,37 @@ fn windows(pcm: &[f32]) -> Vec<f64> {
         })
         .collect()
 }
+/// The power of the mix between `lo` and `hi` Hz in each 50 ms window (a
+/// Hann-windowed DFT of those bins): what a whisper adds, over a bed that
+/// is mostly hum and room below it and the grain's hiss above it
+fn windows_band(pcm: &[f32], lo: f64, hi: f64) -> Vec<f64> {
+    let n = WIN;
+    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).cos()).collect();
+    let bins: Vec<usize> = (0..n / 2).filter(|&k| (lo..hi).contains(&(k as f64 * SR / n as f64))).collect();
+    let tw: Vec<Vec<(f64, f64)>> = bins
+        .iter()
+        .map(|&k| (0..n).map(|i| (2.0 * std::f64::consts::PI * (k * i) as f64 / n as f64).sin_cos()).map(|(s, c)| (c, s)).collect())
+        .collect();
+    pcm.chunks(WIN * 2)
+        .filter(|c| c.len() == WIN * 2)
+        .map(|c| {
+            let x: Vec<f64> = (0..n).map(|i| (c[2 * i] + c[2 * i + 1]) as f64 * 0.5 * hann[i]).collect();
+            let p: f64 = tw
+                .iter()
+                .map(|t| {
+                    let (re, im) = x.iter().zip(t).fold((0.0, 0.0), |(re, im), (v, (c, s))| (re + v * c, im - v * s));
+                    re * re + im * im
+                })
+                .sum();
+            (p / n as f64).sqrt()
+        })
+        .collect()
+}
+fn quantile(v: &[f64], q: f64) -> f64 {
+    let mut s = v.to_vec();
+    s.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    s[((s.len() - 1) as f64 * q) as usize]
+}
 fn median(v: &[f64]) -> f64 {
     let mut s = v.to_vec();
     s.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -480,4 +511,41 @@ fn the_one_in_the_corner_hums() {
     save("corner_4242_L6", &r.pcm, &[bed_end as f64 / SR]);
     assert!(humming > bed * 1.4, "its hum should stand 3 dB over the room");
     assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Hold), "it left its corner");
+}
+
+/// The Reader whispers as it reads: fast and without a voice, a room's
+/// width off, over the room's bed; it does not stop while it does not see
+/// you (its back to you, you still).
+#[test]
+fn the_reader_whispers() {
+    let mut r = start(4242, 6);
+    hold_creatures(&mut r.g);
+    let ei = {
+        let g = &mut r.g;
+        let f = g.player.fwd();
+        let (x, z) = (g.player.pos.x + f.x * 5.0, g.player.pos.z + f.z * 5.0);
+        let (tx, tz) = (g.tx(x), g.tz(z));
+        let ei = g.add_entity("reader", tx, tz, 0);
+        g.entities[ei].g.set_pos(x, 0.0, z);
+        // its back to you, reading where it stands
+        g.entities[ei].yaw = g.player.yaw + std::f64::consts::PI;
+        let now = g.perf_t;
+        let c = g.creature_mut(ei).unwrap();
+        c.ease.insert("idle_for", 1e9);
+        c.brain.set(game::entities::brain::Mode::Idle, "the test has it read", now);
+        ei
+    };
+    play(&mut r, 4.0, |g| g.entities[ei].freeze = 1e9);
+    let bed_end = r.pcm.len() / 2;
+    play(&mut r, 8.0, |g| g.entities[ei].freeze = 0.0);
+    // (it comes in runs of syllables: over the room's high band most of the
+    // time it reads, not every moment)
+    let w = windows_band(&r.pcm, 2600.0, 4800.0);
+    let b = bed_end / WIN;
+    let bed = median(&w[40..b]);
+    let whisper = quantile(&w[b + 20..], 0.75);
+    println!("reader: bed at 2.6–4.8 kHz {:.1} dB, whispering {:.1} dB (+{:.1})", db(bed), db(whisper), db(whisper / bed));
+    save("reader_4242_L6", &r.pcm, &[bed_end as f64 / SR]);
+    assert!(whisper > bed * 2.0, "its whisper should stand 6 dB over the room at 2.6–4.8 kHz");
+    assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Idle), "it stopped reading");
 }

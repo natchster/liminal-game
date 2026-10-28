@@ -173,6 +173,30 @@
     "luminance": 0.264,
     "shadow": 0.049
   },
+  "reader_2m": {
+    "colourfulness": 21.25,
+    "contrast": 0.0822,
+    "luminance": 0.2567,
+    "shadow": 0.0464
+  },
+  "reader_4m": {
+    "colourfulness": 20.91,
+    "contrast": 0.0732,
+    "luminance": 0.2529,
+    "shadow": 0.0489
+  },
+  "reader_8m": {
+    "colourfulness": 21.13,
+    "contrast": 0.0726,
+    "luminance": 0.2627,
+    "shadow": 0.0452
+  },
+  "reader_death": {
+    "colourfulness": 22.93,
+    "contrast": 0.123,
+    "luminance": 0.2695,
+    "shadow": 0.0569
+  },
   "smiler_2m": {
     "colourfulness": 22.52,
     "contrast": 0.0852,

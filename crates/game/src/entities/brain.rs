@@ -53,6 +53,8 @@ pub enum Mode {
     Withdraw,
     /// Holding still because you are watching (the Watcher), or lying in wait
     Hold,
+    /// Made to stop by something it must do (the Reader: a sheet on the floor)
+    Read,
 }
 
 impl Mode {
@@ -68,6 +70,7 @@ impl Mode {
             Mode::Recoil => "recoil",
             Mode::Withdraw => "withdraw",
             Mode::Hold => "hold",
+            Mode::Read => "read",
         }
     }
     /// Whether the creature is after you (the director's peak, the drone)
@@ -78,8 +81,9 @@ impl Mode {
     pub fn legacy_state(self) -> &'static str {
         match self {
             Mode::Hunt | Mode::Strike => "hunt",
-            // (held in your sight, close: the director feels it as a search)
-            Mode::Search | Mode::Alert | Mode::Hold => "search",
+            // (held in your sight, close, or stopped by paper: the director
+            // feels it as a search)
+            Mode::Search | Mode::Alert | Mode::Hold | Mode::Read => "search",
             _ => "wander",
         }
     }

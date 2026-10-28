@@ -312,14 +312,23 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         g.frame(1.0 / 60.0);
         g.fixed_step_dt = 0.0;
         if std::env::var("PERSONA_TRACE").map(|v| v == format!("{persona:?}:{seed}")).unwrap_or(false)
-            && (t * 60.0).round() as i64 % 120 == 0
+            && (t * 60.0).round() as i64 % 30 == 0
         {
             if let Some(si) = g.director.stalker {
                 let p = g.perceive(si);
                 let m = g.creature(si).map(|c| c.brain.mode.name()).unwrap_or("old");
                 println!(
-                    "  t {t:5.0} {} {m:8} d {:5.1} path {:5.1} line {} view {} you_lit {:.2} lamp {} phase {:?} push {}",
-                    g.entities[si].kind, p.dist, p.path, p.line, p.in_view, p.you_lit, p.lamp, g.director.phase, g.director.final_push
+                    "  t {t:5.0} {} {m:8} d {:5.1} path {:5.1} line {} view {} you_lit {:.2} lamp {} phase {:?} push {} nerve {:.0}",
+                    g.entities[si].kind,
+                    p.dist,
+                    p.path,
+                    p.line,
+                    p.in_view,
+                    p.you_lit,
+                    p.lamp,
+                    g.director.phase,
+                    g.director.final_push,
+                    g.player.sanity
                 );
             }
         }

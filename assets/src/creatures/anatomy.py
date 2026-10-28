@@ -197,6 +197,143 @@ def garment(kit, src, name, keep, offset, sag=0.0, tears=0.0, tear_seed=0, tear_
     return o
 
 
+def fill_hollows(kit, o, iters=60, factor=0.5):
+    """a garment `o` drawn across the hollows of the body under it (the
+    spine's groove, between the buttocks, behind the knees), as cloth spans
+    them: each point moves toward its neighbours' mean, but only outward
+    along its normal, so hollows fill and nothing shrinks"""
+    E = np.zeros(len(o.data.edges) * 2, dtype=np.int64)
+    o.data.edges.foreach_get('vertices', E)
+    E = E.reshape(-1, 2)
+    S = kit.to_game_np(kit.verts_np(o))
+    N = kit.to_game_np(kit.vnormals(o))
+    deg = np.maximum(np.bincount(E.ravel(), minlength=len(S)), 1).astype(float)[:, None]
+    for _ in range(iters):
+        acc = np.zeros_like(S)
+        np.add.at(acc, E[:, 0], S[E[:, 1]])
+        np.add.at(acc, E[:, 1], S[E[:, 0]])
+        out = np.einsum('ij,ij->i', acc / deg - S, N)
+        S = S + N * (np.maximum(out, 0.0) * factor)[:, None]
+    kit.set_verts_np(o, kit.to_bl_np(S))
+    return o
+
+
+def hang(kit, o, axis_xz, top_y, mask=None, bins=64, give=0.15):
+    """a garment `o` hanging under gravity from `top_y` down: round a
+    vertical axis through `axis_xz`, no point lower down comes back in
+    nearer the axis than the cloth above it (it falls straight from the
+    widest of the body, over the buttocks, the belly, the shoulder blades);
+    `give` lets it come back in that share of the way (it is soft).
+    `mask` limits it to the trunk."""
+    S = kit.to_game_np(kit.verts_np(o))
+    c = np.asarray(axis_xz, float)
+    rel = S[:, [0, 2]] - c
+    th = np.arctan2(rel[:, 0], rel[:, 1])
+    rho = np.linalg.norm(rel, axis=1)
+    use = (S[:, 1] < top_y) if mask is None else ((S[:, 1] < top_y) & mask)
+    out = rho.copy()
+    # each column of the cloth (overlapping bins, so neighbours agree), top down
+    for k in range(bins):
+        a = -np.pi + 2 * np.pi * k / bins
+        d = np.abs((th - a + np.pi) % (2 * np.pi) - np.pi)
+        col = np.nonzero(use & (d < 2.0 * np.pi / bins))[0]
+        if not len(col):
+            continue
+        col = col[np.argsort(-S[col, 1])]
+        run = np.maximum.accumulate(rho[col])
+        want = run - (run - rho[col]) * give
+        out[col] = np.maximum(out[col], want)
+    S[:, 0] = c[0] + rel[:, 0] * out / np.maximum(rho, 1e-6)
+    S[:, 2] = c[1] + rel[:, 1] * out / np.maximum(rho, 1e-6)
+    kit.set_verts_np(o, kit.to_bl_np(S))
+    return o
+
+
+def _hull2(Q):
+    """the convex hull of 2D points Q (monotone chain), counter-clockwise"""
+    Q = Q[np.lexsort((Q[:, 1], Q[:, 0]))]
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for p in Q:
+        while len(lo) >= 2 and cross(lo[-2], lo[-1], p) <= 0:
+            lo.pop()
+        lo.append(p)
+    for p in Q[::-1]:
+        while len(hi) >= 2 and cross(hi[-2], hi[-1], p) <= 0:
+            hi.pop()
+        hi.append(p)
+    return np.array(lo[:-1] + hi[:-1])
+
+
+def hull_slices(kit, o, mask, step=0.012, give=0.12):
+    """a garment `o` across the hollows of the trunk, as knit lies: in every
+    level slice `step` m deep, each point of `mask` pushed out from the
+    slice's middle to the slice's convex hull (`give`: the share of the way
+    back in it keeps); the arms are left out by the mask"""
+    S = kit.to_game_np(kit.verts_np(o))
+    idx = np.nonzero(mask)[0]
+    if not len(idx):
+        return o
+    y0, y1 = S[idx, 1].min(), S[idx, 1].max()
+    out = S.copy()
+    for lo in np.arange(y0, y1 + step, step):
+        sl = idx[(S[idx, 1] >= lo - step * 0.5) & (S[idx, 1] < lo + step * 1.5)]
+        here = idx[(S[idx, 1] >= lo) & (S[idx, 1] < lo + step)]
+        if len(sl) < 8 or not len(here):
+            continue
+        H = _hull2(S[sl][:, [0, 2]])
+        if len(H) < 3:
+            continue
+        c = H.mean(0)
+        for i in here:
+            p = S[i, [0, 2]]
+            d = p - c
+            r = np.linalg.norm(d)
+            if r < 1e-6:
+                continue
+            u = d / r
+            # where the ray from the middle through p leaves the hull
+            best = r
+            for a, b in zip(H, np.roll(H, -1, axis=0)):
+                e = b - a
+                den = u[0] * (-e[1]) - u[1] * (-e[0])
+                if abs(den) < 1e-12:
+                    continue
+                w = a - c
+                t = (w[0] * (-e[1]) - w[1] * (-e[0])) / den
+                s = (u[0] * w[1] - u[1] * w[0]) / den
+                if t > 0 and -1e-9 <= s <= 1 + 1e-9:
+                    best = max(best, t)
+                    break
+            want = best - (best - r) * give
+            out[i, 0], out[i, 2] = c[0] + u[0] * want, c[1] + u[1] * want
+    kit.set_verts_np(o, kit.to_bl_np(out))
+    return o
+
+
+def loosen(kit, o, skel, radii):
+    """a garment `o` hanging loose round the limbs: every point nearest a
+    bone named in `radii` ({name prefix: (radius at its head, at its tail)})
+    pushed out from the bone to at least that radius"""
+    S = kit.to_game_np(kit.verts_np(o))
+    nb, _ = nearest_bones(S, skel)
+    for i in np.unique(nb):
+        name = skel.bones[i]['name']
+        key = next((k for k in radii if name.split('.')[0] == k), None)
+        if key is None:
+            continue
+        m = nb == i
+        t, d, r = seg_param(S[m], skel.bones[i]['head'], skel.bones[i]['tail'])
+        r0, r1 = radii[key]
+        want = r0 + (r1 - r0) * t
+        k = np.where(d < want, want / np.maximum(d, 1e-6), 1.0)
+        S[m] = S[m] - r + r * k[:, None]
+    kit.set_verts_np(o, kit.to_bl_np(S))
+    return o
+
+
 def strands(kit, name, roots, dirs, lengths, radius, gravity=(0, -1, 0), segments=5, sides=3, droop=0.8, seed=0, clump=0.0):
     """hair as thin tapered tubes: from each root along its direction,
     bending toward gravity; `clump` pulls neighbouring tips together"""

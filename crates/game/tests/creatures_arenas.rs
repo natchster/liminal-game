@@ -186,6 +186,9 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     let mut wary = 0.0;
     let mut glance = 0.0;
     let mut out_since = 0.0;
+    // the paper in your pockets (a pile's worth), and when you last dropped some
+    g.player.papers = 8;
+    let mut dropped = -10.0;
     while t < LIMIT {
         let goal = tour[leg];
         let h = heard(&g, ei);
@@ -208,6 +211,8 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
                 "smiler" => smiler_counter(&h, g.perceive(ei).you_lit),
                 // walk on, never run: what holds it is your eyes
                 "watcher" => Gait::Walk,
+                // walk on, away from it: paper stops it, not your legs
+                "reader" => Gait::Walk,
                 // walk on; if it comes after all, run
                 "corner" => {
                     if h.hunting {
@@ -258,6 +263,8 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
             Some(escape(&g, ei))
         } else if counter && kind == "hound" && (h.d < 6.0 || h.hunting) {
             Some(away)
+        } else if counter && kind == "reader" && h.hunting {
+            Some(away)
         } else {
             Some(goal)
         };
@@ -279,10 +286,29 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         } else {
             None
         };
+        // the Reader's counter: it comes, so a sheet goes down behind you
+        if counter && kind == "reader" && h.hunting && h.d < 9.0 && t - dropped > 2.0 && g.player.papers > 0 {
+            let (ax, az) = away;
+            look_at(&mut g, ax, az);
+            g.drop_paper_marker();
+            dropped = t;
+        }
         step_facing(&mut g, DT, toward, gait, face);
         g.update_director(DT);
         t += DT;
-        if std::env::var("ARENA_DEBUG").map(|v| v == format!("{kind}:{counter}:{seed}")).unwrap_or(false) && mode(&g, ei) != before {
+        let debug = std::env::var("ARENA_DEBUG").map(|v| v == format!("{kind}:{counter}:{seed}")).unwrap_or(false);
+        if debug && (t / 2.0).floor() != ((t - DT) / 2.0).floor() {
+            let c = g.creature(ei).unwrap();
+            println!(
+                "{t:6.1}   ({:?} d {:.1} gait {gait:?} stamina {stamina:.0} tells {} strike {} papers {})",
+                mode(&g, ei),
+                h.d,
+                c.tells.len(),
+                g.strike_allowed(ei),
+                g.player.papers
+            );
+        }
+        if debug && mode(&g, ei) != before {
             let p = g.perceive(ei);
             println!(
                 "{t:6.1} {:?} -> {:?} d {:.1} lamp {} gait {gait:?} lit {:.2} it_lit {:.2} aw {:.2} wary {wary:.1}",
@@ -449,6 +475,12 @@ fn the_smilers_counter_works_and_matters() {
 fn the_watchers_counter_works_and_matters() {
     let (with, without) = report("watcher");
     hold_to_bands("watcher", &with, &without);
+}
+
+#[test]
+fn the_readers_counter_works_and_matters() {
+    let (with, without) = report("reader");
+    hold_to_bands("reader", &with, &without);
 }
 
 #[test]
