@@ -1399,32 +1399,65 @@ impl Default for CeilingOpts {
     }
 }
 
-/// 2×2 acoustic ceiling tiles on a grid.
+/// Cells of the ceiling's grid along a tile (4 m): 0.67 m, an acoustic
+/// tile's size (2 ft is 0.61)
+pub const CEIL_CELLS: usize = 6;
+
+/// The ceiling's T-bar grid over a tile's texture (laid from the tile's
+/// edge, `arch::plane_material`; its centre is three cells in): bars every
+/// cell along u through the edge, and along v half a cell off it, so a
+/// panel hung at a tile's centre (2 × 1 cells, `panel_geo`) fills cells
+/// exactly
+fn ceiling_grid(ctx: &mut Canvas, w: f64, h: f64, bar: &str) {
+    let cell = w / CEIL_CELLS as f64;
+    ctx.set_fill_style(bar);
+    for k in 0..CEIL_CELLS {
+        let x = k as f64 * cell;
+        ctx.fill_rect(x - 1.5, 0, 3, h);
+        if k == 0 {
+            ctx.fill_rect(w - 1.5, 0, 3, h);
+        }
+        let y = (k as f64 + 0.5) * cell;
+        ctx.fill_rect(0, y - 1.5, w, 3);
+    }
+    // the bars' shadow on the tiles beside them
+    ctx.set_fill_style("rgba(0,0,0,0.22)");
+    for k in 0..CEIL_CELLS {
+        let x = k as f64 * cell;
+        ctx.fill_rect(x + 1.5, 0, 1, h);
+        if k == 0 {
+            ctx.fill_rect(w - 2.5, 0, 1, h);
+        }
+        let y = (k as f64 + 0.5) * cell;
+        ctx.fill_rect(0, y + 1.5, w, 1);
+    }
+}
+
+/// Acoustic ceiling tiles, 6 × 6 a tile, on their grid (the tiles' face is
+/// a photograph laid over them: `photo::arch_detail("acoustic")`).
 pub fn make_ceiling(o: &CeilingOpts) -> Tex {
     let o = o.clone();
     canvas_tex(512, 512, move |ctx, w, h| {
         ctx.set_fill_style(&o.base_color);
         ctx.fill_rect(0, 0, w, h);
-        for t in 0..4 {
-            let x = ((t % 2) * 256) as f64;
-            let y = (t as f64 / 2.0).floor() * 256.0;
-            ctx.set_fill_style(format!("rgba(0,0,0,{})", rand2(o.tile_shade[0], o.tile_shade[1])));
-            ctx.fill_rect(x + 6.0, y + 6.0, 244, 244);
-            for _ in 0..times(o.speckle) {
-                ctx.set_fill_style(format!("rgba(0,0,0,{})", rand2(0.1, 0.25)));
-                ctx.fill_rect(x + rand2(6.0, 250.0), y + rand2(6.0, 250.0), 1, 1);
+        let cell = w / CEIL_CELLS as f64;
+        // each tile a little off its neighbours (sagged, yellowed, replaced)
+        for i in 0..CEIL_CELLS {
+            for j in 0..CEIL_CELLS {
+                let (x, y) = (i as f64 * cell, (j as f64 + 0.5) * cell);
+                ctx.set_fill_style(format!("rgba(0,0,0,{})", rand2(o.tile_shade[0], o.tile_shade[1]) * 0.7));
+                // (the last row runs over the edge: the rest of it at the top)
+                ctx.fill_rect(x, y, cell, (h - y).min(cell));
+                if y + cell > h {
+                    ctx.fill_rect(x, 0, cell, y + cell - h);
+                }
             }
         }
-        ctx.set_fill_style(&o.grid_color);
-        ctx.fill_rect(0, 0, w, 6);
-        ctx.fill_rect(0, 256, w, 6);
-        ctx.fill_rect(0, 0, 6, h);
-        ctx.fill_rect(256, 0, 6, h);
-        ctx.set_fill_style("rgba(0,0,0,0.35)");
-        ctx.fill_rect(0, 4, w, 2);
-        ctx.fill_rect(0, 260, w, 2);
-        ctx.fill_rect(4, 0, 2, h);
-        ctx.fill_rect(260, 0, 2, h);
+        for _ in 0..times(o.speckle) {
+            ctx.set_fill_style(format!("rgba(0,0,0,{})", rand2(0.1, 0.25)));
+            ctx.fill_rect(rand1(w), rand1(h), 1, 1);
+        }
+        ceiling_grid(ctx, w, h, &o.grid_color);
         for _ in 0..times(o.stains) {
             let cx = rand1(w);
             let cy = rand1(h);
@@ -1453,24 +1486,21 @@ pub fn make_ceiling(o: &CeilingOpts) -> Tex {
             }
             ctx.stroke();
         }
-        // missing tile — reveal darkness behind
+        // a missing tile: the dark behind it, a pipe across (never the
+        // middle cells, where a panel hangs)
         for _ in 0..times(o.missing) {
-            let tx = irand(0, 1) as f64;
-            let ty = irand(0, 1) as f64;
-            let ox = tx * 256.0 + 12.0;
-            let oy = ty * 256.0 + 12.0;
+            let cell = w / CEIL_CELLS as f64;
+            let tx = irand(1, CEIL_CELLS as i64 - 2) as f64;
+            let ty = irand(1, CEIL_CELLS as i64 - 3) as f64;
+            let ox = tx * cell + 2.0;
+            let oy = (ty + 0.5) * cell + 2.0;
             ctx.set_fill_style("rgba(0,0,0,0.85)");
-            ctx.fill_rect(ox, oy, 232, 232);
-            // hint of exposed pipes
+            ctx.fill_rect(ox, oy, cell - 4.0, cell - 4.0);
             ctx.set_stroke_style("rgba(80,70,55,0.6)");
-            ctx.set_line_width(4);
+            ctx.set_line_width(3);
             ctx.begin_path();
-            ctx.move_to(ox + 20.0, oy + 40.0);
-            ctx.line_to(ox + 212.0, oy + 40.0);
-            ctx.stroke();
-            ctx.begin_path();
-            ctx.move_to(ox + 20.0, oy + 180.0);
-            ctx.line_to(ox + 212.0, oy + 180.0);
+            ctx.move_to(ox + 4.0, oy + cell * 0.35);
+            ctx.line_to(ox + cell - 8.0, oy + cell * 0.35);
             ctx.stroke();
         }
         // dark round holes
@@ -1493,11 +1523,7 @@ pub fn make_moss_ceiling() -> Tex {
         ctx.set_fill_style("#5a6a48");
         ctx.fill_rect(0, 0, w, h);
         // grid still present but darkened
-        ctx.set_fill_style("#2c3524");
-        ctx.fill_rect(0, 0, w, 6);
-        ctx.fill_rect(0, 256, w, 6);
-        ctx.fill_rect(0, 0, 6, h);
-        ctx.fill_rect(256, 0, 6, h);
+        ceiling_grid(ctx, w, h, "#2c3524");
         for _ in 0..40 {
             let cx = rand1(w);
             let cy = rand1(h);

@@ -59,6 +59,10 @@ pub struct RenderGlobals {
     /// how much lit surfaces lose of their indirect light toward the floor
     /// at y = 0 (0 = none, 1 = full; off where the floors are not at 0)
     pub floor_occlusion: f64,
+    /// how much indirect light a surface loses where walls meet (from the
+    /// light map's G and B; 0 = none, 1 = full; off where the map does not
+    /// hold the place's shape)
+    pub corner_occlusion: f64,
 }
 impl Default for RenderGlobals {
     fn default() -> Self {
@@ -69,6 +73,7 @@ impl Default for RenderGlobals {
             pixel_ratio: 1.0,
             scene_filter: vec![],
             floor_occlusion: 0.0,
+            corner_occlusion: 0.0,
         }
     }
 }
@@ -922,7 +927,7 @@ impl Renderer {
         fu.ll_params = [if ll.on { 1.0 } else { 0.0 }, ll.scale as f32, ll.fog_ratio as f32, 0.0];
         fu.viewport = [rw as f32, rh as f32, rh as f32 * 0.5, 0.0];
         fu.counts = [hemis.len() as u32, pts.len() as u32, spots.len() as u32, 0];
-        fu.look = [globals.floor_occlusion as f32, 0.0, 0.0, 0.0];
+        fu.look = [globals.floor_occlusion as f32, globals.corner_occlusion as f32, 0.0, 0.0];
         if hemis.is_empty() {
             hemis.push(HemiU::default());
         }
@@ -1294,8 +1299,20 @@ impl Renderer {
         let mut bump_tex = None;
         let mut bump_samp = None;
         match &m.patch {
-            Patch::ArchUV { scale_x, scale_y, wallpaper } => {
-                mu.arch = [*scale_x as f32, *scale_y as f32, if *wallpaper { 1.0 } else { 0.0 }, 0.0];
+            Patch::ArchUV { scale_x, scale_y, wallpaper, detail, plane_shift } => {
+                mu.arch = [*scale_x as f32, *scale_y as f32, if *wallpaper { 1.0 } else { 0.0 }, *plane_shift as f32];
+                if let Some(d) = detail {
+                    let (tid, _) = self.gpu_tex(&d.map);
+                    let s = {
+                        let tc = d.map.r().clone();
+                        self.sampler(Some(&tc))
+                    };
+                    bump_tex = Some(self.texs[&tid].tex.clone());
+                    bump_samp = Some(s);
+                    mu.patch[0] = (1.0 / d.metres.max(1e-3)) as f32;
+                    mu.patch[1] = d.tint as f32;
+                    mu.patch[2] = d.relief as f32;
+                }
             }
             Patch::SkinDetail { map, scale, .. } | Patch::WatcherSheet { map, scale, .. } => {
                 let bm = m.bump_map.clone().unwrap_or(map.clone());
@@ -1616,7 +1633,8 @@ fn variant_for(
         normal: has_n,
         uv: has_uv,
         opaque: !m.transparent && m.blending == Blending::Normal,
-        bump: m.bump_map.is_some() || matches!(m.patch, Patch::SkinDetail { .. } | Patch::WatcherSheet { .. }),
+        bump: m.bump_map.is_some()
+            || matches!(m.patch, Patch::SkinDetail { .. } | Patch::WatcherSheet { .. } | Patch::ArchUV { detail: Some(_), .. }),
         morph_nrm: morph_n && morphs,
         morph_rel,
         size_atten: m.size_attenuation,

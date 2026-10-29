@@ -46,7 +46,7 @@ struct Frame {
     float4 llParams; // x on, y scale, z fog density factor where lit, w time
     float4 viewport; // x w, y h (pixels), z point scale (h/2), w unused
     uint4  counts; // x hemi, y point, z spot
-    float4 look; // x floor occlusion amount
+    float4 look; // x floor occlusion amount, y corner occlusion amount
 };
 struct Hemi  { float4 sky; float4 ground; float4 dir; };
 struct Point { float4 pos; float4 color; }; // pos.w distance, color.w decay
@@ -275,7 +275,7 @@ vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
         float topY = imx[3].y + 0.5 * length(imx[1].xyz);
         float vsc = M.arch.z > 0.5 ? max(M.arch.y, topY) : M.arch.y;
         float2 wuv;
-        if (abs(an.y) > 0.5) wuv = awp.xz / M.arch.x;
+        if (abs(an.y) > 0.5) wuv = awp.xz / M.arch.x + M.arch.w;
         else if (abs(an.x) > 0.5) wuv = float2((an.x > 0.0 ? -awp.z : awp.z) / M.arch.x, awp.y / vsc);
         else wuv = float2((an.z > 0.0 ? awp.x : -awp.x) / M.arch.x, awp.y / vsc);
         o.uv = wuv;
@@ -305,6 +305,11 @@ struct FIn {
 
 static inline float llLit(float3 p, constant Frame& F, texture2d<float> llMap, sampler llS) {
     return llMap.sample(llS, p.xz * F.llGrid.xy + F.llGrid.zw).r * F.llParams.y;
+}
+// the light map at p, all of it: r the light, g how open the place is (the
+// nearest wall that reaches its ceiling, 0.8 m = 1), b its ceiling (10 m = 1)
+static inline float4 llAt(float3 p, constant Frame& F, texture2d<float> llMap, sampler llS) {
+    return llMap.sample(llS, p.xz * F.llGrid.xy + F.llGrid.zw);
 }
 static inline float detH(float3 p, float3 detNrm, float scale, texture2d<float> bump, sampler bs) {
     float3 w = pow(abs(normalize(detNrm)), float3(4.0));
@@ -385,6 +390,26 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             normal = normalize(abs(fDet) * normal - grad);
             specularStrength = mix(0.3, 1.15, smoothstep(0.42, 0.6, detH(in.detPos * 0.29, in.detNrm, sc, bump, bumpS)));
         }
+        // a photographed detail over walls, floors and ceilings (ArchDetail):
+        // a grey height map laid flat on the face in world space, shading the
+        // colour and lit as relief; the relief fades as its texels shrink
+        // under a pixel, the shading as the mipmaps grey it out
+        float detK = 1.0;
+        if (PATCH == 1 && HAS_BUMP) {
+            float3 an = abs(inverseTransformDirection(normal, F.view));
+            float3 P = in.llPos;
+            float2 duv = (an.y > 0.5 ? P.xz : (an.x > an.z ? P.zy : P.xy)) * M.patch[0].x;
+            float H = bump.sample(bumpS, duv).r;
+            float2 dHdxy = float2(dfdx(H), dfdy(H));
+            detK = 1.0 + M.patch[0].y * (H - 0.5) * 2.0;
+            float rel = M.patch[0].z * (1.0 - smoothstep(0.6, 2.0, length(fwidth(duv)) * float(bump.get_width())));
+            float3 surf = -in.viewPos;
+            float3 sX = normalize(dfdx(surf)), sY = normalize(dfdy(surf));
+            float3 R1 = cross(sY, normal), R2 = cross(normal, sX);
+            float fDet = dot(sX, R1) * faceDirection;
+            float3 grad = sign(fDet) * (rel * dHdxy.x * R1 + rel * dHdxy.y * R2);
+            normal = normalize(abs(fDet) * normal - grad);
+        }
         if (PATCH == 3) {
             float smEyeF = clamp(dot(normal, normalize(in.viewPos)), 0.0, 1.0);
             totalEmissive *= mix(float3(0.62, 0.64, 0.7), float3(1.0), pow(smEyeF, 1.2));
@@ -393,7 +418,7 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         float3 geometryNormal = normal;
         float3 geometryViewDir = normalize(in.viewPos);
         float3 directDiffuse = float3(0), directSpecular = float3(0);
-        float3 diff = diffuseColor.rgb;
+        float3 diff = diffuseColor.rgb * detK;
         float3 wN = inverseTransformDirection(geometryNormal, F.view);
         // wear: three octaves of value noise at the rest-pose position mottle
         // the colour (the finest fades out before it would alias); grime
@@ -442,9 +467,22 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             float dotNL = dot(geometryNormal, hemis[h].dir.xyz);
             irradiance += mix(hemis[h].ground.rgb, hemis[h].sky.rgb, 0.5 * dotNL + 0.5);
         }
+        // corners: the place 0.8 m out from this surface, where its indirect
+        // light comes from, has another wall nearer than that in a corner,
+        // beside a wall for a floor or a ceiling, and the ceiling over a wall
+        // just above it; a plain wall's own face is that far off
+        float aoCorner = 1.0;
         if (LL && F.llParams.x > 0.5) {
-            float llK = llLit(in.llPos + wN * 0.8, F, llMap, llS);
+            float4 llO = llAt(in.llPos + wN * 0.8, F, llMap, llS);
+            float llK = llO.r * F.llParams.y;
             irradiance += (1.0 - llK) * (F.llAmbD.rgb + mix(F.llGndD.rgb, F.llSkyD.rgb, 0.5 * wN.y + 0.5));
+            if (PATCH <= 2 && F.look.y > 0.0) {
+                float open = smoothstep(0.0, 1.0, llO.g);
+                float under = 1.0 - smoothstep(0.3, 0.8, abs(wN.y));
+                float toCeil = llO.b * 10.0 - in.llPos.y;
+                float top = mix(1.0, smoothstep(-0.05, 0.6, toCeil), under);
+                aoCorner = mix(1.0, mix(0.45, 1.0, open) * mix(0.6, 1.0, top), F.look.y);
+            }
         }
         // floor occlusion: walls and the sides of things lose indirect light
         // toward the floor (faces turned up keep it)
@@ -453,7 +491,7 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             ao = mix(0.55, 1.0, smoothstep(0.0, 0.45, in.llPos.y));
             ao = mix(1.0, ao, F.look.x * (1.0 - smoothstep(0.3, 0.8, wN.y)));
         }
-        float3 indirectDiffuse = irradiance * BRDF_Lambert(diff) * ao;
+        float3 indirectDiffuse = irradiance * BRDF_Lambert(diff) * ao * aoCorner;
         outgoing = directDiffuse + indirectDiffuse + directSpecular + totalEmissive;
         if (PATCH == 4) {
             float3 over = max(outgoing - 0.5, 0.0);

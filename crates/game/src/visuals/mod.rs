@@ -3,6 +3,7 @@
 //! full-screen colour effects.
 
 pub mod lighting;
+pub mod occlusion;
 pub mod photo;
 pub mod prop_look;
 pub mod scene_fx;

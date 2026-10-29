@@ -3,7 +3,7 @@
 //! changes, rebinding keeps every action reachable, and they persist.
 use game::prelude::*;
 use game::session::input::Act;
-use game::session::settings::{Row, Settings, SETTINGS_KEY};
+use game::session::settings::{vertical_fov, Row, Settings, FOV_DEFAULT, H_FOV_MAX, SETTINGS_KEY};
 
 const DT: f64 = 1.0 / 60.0;
 
@@ -27,14 +27,15 @@ fn step(g: &mut Game, n: usize) {
 #[test]
 fn the_defaults_are_the_game_as_it_was() {
     let s = Settings::default();
-    assert_eq!((s.look, s.invert_y, s.fov, s.bob, s.shake, s.grain), (1.0, false, 74.0, 1.0, true, true));
+    // (the field of view was 74 until wide screens stopped stretching the walls)
+    assert_eq!((s.look, s.invert_y, s.fov, s.bob, s.shake, s.grain), (1.0, false, 64.0, 1.0, true, true));
     assert_eq!((s.run_toggle, s.volume, s.brightness, s.focus_pause), (false, 1.0, 0, true));
     assert_eq!(s.keys(Act::Drink), ["KeyG", "Digit1"]);
     // a round trip, and nonsense from the store is clamped or ignored
     assert_eq!(Settings::from_json(&s.to_json()), s);
     let bad = serde_json::json!({ "look": 40.0, "fov": 10.0, "volume": -3.0, "brightness": 99, "bob": "x", "binds": { "Drink": [], "Nope": ["KeyQ"] } });
     let t = Settings::from_json(&bad);
-    assert_eq!((t.look, t.fov, t.volume, t.brightness, t.bob), (3.0, 60.0, 0.0, 5, 1.0));
+    assert_eq!((t.look, t.fov, t.volume, t.brightness, t.bob), (3.0, 50.0, 0.0, 5, 1.0));
     assert_eq!(t.keys(Act::Drink), ["KeyG", "Digit1"], "an empty binding from the store left Drink without a key");
 }
 
@@ -140,7 +141,36 @@ fn settings_persist_apart_from_the_save() {
     h.storage_set(SETTINGS_KEY, &stored);
     h.load_settings();
     assert_eq!(h.settings, g.settings);
-    assert_eq!((h.settings.volume, h.settings.fov), (0.9, 76.0));
+    assert_eq!((h.settings.volume, h.settings.fov), (0.9, 66.0));
+}
+
+/// A wide screen sees further to the sides only up to 100°, and the
+/// setting is the vertical view on a screen up to 16:9; a store from before
+/// the cap that never moved the field of view (74) walks with the new one
+#[test]
+fn a_wide_screen_does_not_stretch_the_walls() {
+    let across = |v: f64, aspect: f64| 2.0 * ((v.to_radians() / 2.0).tan() * aspect).atan().to_degrees();
+    for aspect in [4.0 / 3.0, 1.6, 16.0 / 9.0] {
+        assert_eq!(vertical_fov(FOV_DEFAULT, aspect), FOV_DEFAULT, "at {aspect:.2} the setting is the view");
+    }
+    // 21:9 and 32:9: as wide as 100° and no wider
+    for aspect in [2.39, 3.56] {
+        let v = vertical_fov(FOV_DEFAULT, aspect);
+        assert!((across(v, aspect) - H_FOV_MAX).abs() < 1e-6, "at {aspect:.2}: {:.1}° across", across(v, aspect));
+        assert!(v < FOV_DEFAULT);
+    }
+    // a setting wider than the cap keeps what it gives at 16:9
+    let at169 = across(90.0, 16.0 / 9.0);
+    assert!((across(vertical_fov(90.0, 2.39), 2.39) - at169).abs() < 1e-6);
+    // the camera follows it on a wide screen
+    let mut g = rig();
+    g.camera.camera().aspect = 2.39;
+    step(&mut g, 120);
+    assert!((across(g.camera.camera().fov, 2.39) - H_FOV_MAX).abs() < 0.5, "{:.1}° across", across(g.camera.camera().fov, 2.39));
+    // the old default, never moved, becomes the new one; a chosen one stays
+    assert_eq!(Settings::from_json(&serde_json::json!({ "fov": 74.0 })).fov, FOV_DEFAULT);
+    assert_eq!(Settings::from_json(&serde_json::json!({ "fov": 80.0 })).fov, 80.0);
+    assert_eq!(Settings::from_json(&serde_json::json!({ "fov": 74.0, "fovRev": 2 })).fov, 74.0);
 }
 
 #[test]

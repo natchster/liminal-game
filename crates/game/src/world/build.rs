@@ -373,11 +373,14 @@ impl Game {
                 let j = (rnd() * (i + 1) as f64).floor() as usize;
                 index_pool.swap(i, j);
             }
-            let broken_mat = lambert!({ color: 0x201c18 });
+            // one of the ceiling's own tiles, grimy (near black, seen from
+            // below against a lit panel, it had read as a hole in the ceiling)
+            let broken_mat = lambert!({ color: 0x6d675a });
+            let cell = CELL / crate::visuals::textures::CEIL_CELLS as f64;
             for k in 0..broken_count {
                 let pi = index_pool[k];
                 self.panels[pi].bright = 0.05; // near-dead spotlight
-                let tile = mesh(box_geo!(0.6, 0.02, 0.6), &broken_mat);
+                let tile = mesh(box_geo!(cell, 0.02, cell), &broken_mat);
                 let tilt_a = (PI / 6.0) + rnd() * (PI / 6.0); // 30-60°
                 let tilt_x = rnd() < 0.5;
                 let v = tilt_a * if rnd() < 0.5 { 1.0 } else { -1.0 };

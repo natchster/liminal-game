@@ -16,8 +16,10 @@ pub struct Settings {
     /// look speed, × the base (0.0022 rad per count)
     pub look: f64,
     pub invert_y: bool,
-    /// the vertical field of view walking (°); running and crouching keep
-    /// their offsets from it (+7, −6)
+    /// the vertical field of view walking (°) on a screen 16:9 or narrower;
+    /// a wider screen sees further to the sides only up to `H_FOV_MAX`
+    /// (`vertical_fov`). Running and crouching keep their offsets from it
+    /// (+7, −6)
     pub fov: f64,
     /// head bob: 1 full, 0.5 reduced, 0 off
     pub bob: f64,
@@ -37,12 +39,39 @@ pub struct Settings {
     pub binds: Vec<(Act, Vec<String>)>,
 }
 
+/// The field of view a new player walks with (°, vertical): about 91°
+/// across a 16:10 screen and 97° across 16:9. (It was 74: 101° across
+/// 16:10 and 121° across an ultrawide, where the walls at the sides
+/// stretched like a wide-angle lens)
+pub const FOV_DEFAULT: f64 = 64.0;
+pub const FOV_MIN: f64 = 50.0;
+pub const FOV_MAX: f64 = 90.0;
+/// The widest a screen sees to the sides (°): past 16:9 a wider screen
+/// widens the view only to here, and sees less above and below instead
+pub const H_FOV_MAX: f64 = 100.0;
+
+/// The camera's vertical field of view (°) for a setting of `fov` (°,
+/// vertical at 16:9 or narrower) on a screen of `aspect` (width / height):
+/// up to 16:9 the setting itself (a narrower screen sees less to the
+/// sides); wider, the view to the sides grows as far as `H_FOV_MAX` (or
+/// what the setting gives at 16:9, if that is wider), and no further
+pub fn vertical_fov(fov: f64, aspect: f64) -> f64 {
+    const WIDE: f64 = 16.0 / 9.0;
+    if aspect <= WIDE {
+        return fov;
+    }
+    let t = (fov.to_radians() / 2.0).tan();
+    let cap = (H_FOV_MAX.to_radians() / 2.0).tan().max(t * WIDE);
+    let h = (t * aspect).min(cap);
+    2.0 * (h / aspect).atan().to_degrees()
+}
+
 impl Default for Settings {
     fn default() -> Self {
         Settings {
             look: 1.0,
             invert_y: false,
-            fov: 74.0,
+            fov: FOV_DEFAULT,
             bob: 1.0,
             shake: true,
             grain: true,
@@ -68,7 +97,7 @@ impl Settings {
     pub fn to_json(&self) -> Value {
         let binds: serde_json::Map<String, Value> = self.binds.iter().map(|(a, k)| (format!("{a:?}"), json!(k))).collect();
         json!({
-            "look": self.look, "invertY": self.invert_y, "fov": self.fov, "bob": self.bob, "shake": self.shake,
+            "look": self.look, "invertY": self.invert_y, "fov": self.fov, "fovRev": 2, "bob": self.bob, "shake": self.shake,
             "grain": self.grain, "runToggle": self.run_toggle, "volume": self.volume, "brightness": self.brightness,
             "focusPause": self.focus_pause, "binds": binds,
         })
@@ -91,7 +120,12 @@ impl Settings {
         Settings {
             look: f("look", 0.25, 3.0, d.look),
             invert_y: b("invertY", d.invert_y),
-            fov: f("fov", 60.0, 90.0, d.fov),
+            // (stored before the field of view was capped on wide screens, the
+            // old default, 74, never moved: the new one)
+            fov: match (f("fov", FOV_MIN, FOV_MAX, d.fov), v.get("fovRev")) {
+                (x, None) if (x - 74.0).abs() < 1e-9 => d.fov,
+                (x, _) => x,
+            },
             bob: f("bob", 0.0, 1.0, d.bob),
             shake: b("shake", d.shake),
             grain: b("grain", d.grain),
@@ -207,7 +241,7 @@ impl Settings {
             Row::FocusPause => self.focus_pause = !self.focus_pause,
         }
         self.look = self.look.clamp(0.25, 3.0);
-        self.fov = self.fov.clamp(60.0, 90.0);
+        self.fov = self.fov.clamp(FOV_MIN, FOV_MAX);
         self.volume = self.volume.clamp(0.0, 1.0);
         self.brightness = self.brightness.clamp(-5, 5);
     }

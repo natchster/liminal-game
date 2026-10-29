@@ -864,7 +864,8 @@ impl Game {
         } else {
             0.0
         };
-        let target_fov = base_fov + shift_fov_delta;
+        let aspect = cam.camera().aspect;
+        let target_fov = crate::session::settings::vertical_fov(base_fov + shift_fov_delta, aspect);
         let fov = cam.camera().fov;
         if (fov - target_fov).abs() > 0.05 {
             cam.camera().fov = lerp(fov, target_fov, dt * 5.0); // the renderer derives the projection matrix from it

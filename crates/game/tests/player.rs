@@ -138,7 +138,10 @@ fn assert_sane(r: &Rig) {
     let cp = g.camera.pos();
     assert!(finite(cp), "camera {:?}", cp);
     let fov = g.camera.camera().fov;
-    assert!((60.0..=90.0).contains(&fov), "fov {}", fov);
+    // (the setting's range, less crouching's 6° and more running's 7°, and
+    // the reality shift's nudge of up to 4°)
+    use game::session::settings::{FOV_MAX, FOV_MIN};
+    assert!((FOV_MIN - 10.0..=FOV_MAX + 11.0).contains(&fov), "fov {}", fov);
     // never inside a wall
     let (tx, tz) = (g.tx(p.pos.x), g.tz(p.pos.z));
     assert!(!g.is_wall_tile(tx, tz), "player in wall tile ({tx},{tz})");
@@ -166,7 +169,8 @@ fn sprint_drains_stamina_and_moves() {
     assert!(moved > 4.0 && moved <= SPRINT + 0.01, "moved {moved} m along +z in 1 s of sprint");
     assert!((g.player.pos.x - start.x).abs() < 1e-6, "no sideways drift");
     assert!(g.player.bob_amp > 0.03 && g.player.bob_phase > 0.0);
-    assert!(g.camera.camera().fov > 78.0, "sprint fov {}", g.camera.camera().fov);
+    // (running widens the view by 7° over the walking one)
+    assert!(g.camera.camera().fov > game::session::settings::FOV_DEFAULT + 5.0, "sprint fov {}", g.camera.camera().fov);
     assert_sane(&r);
 }
 

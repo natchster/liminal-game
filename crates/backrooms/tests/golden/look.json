@@ -1,290 +1,290 @@
 {
   "4242_L10_showroom": {
-    "colourfulness": 12.58,
-    "contrast": 0.1071,
-    "luminance": 0.2274,
-    "shadow": 0.0337
+    "colourfulness": 13.12,
+    "contrast": 0.0956,
+    "luminance": 0.2215,
+    "shadow": 0.0323
   },
   "4242_L10_spawn": {
-    "colourfulness": 23.8,
-    "contrast": 0.0817,
-    "luminance": 0.2663,
-    "shadow": 0.0449
+    "colourfulness": 23.6,
+    "contrast": 0.076,
+    "luminance": 0.2584,
+    "shadow": 0.0542
   },
   "4242_L1_spawn": {
-    "colourfulness": 7.5,
-    "contrast": 0.0583,
-    "luminance": 0.1175,
-    "shadow": 0.547
+    "colourfulness": 7.55,
+    "contrast": 0.058,
+    "luminance": 0.1187,
+    "shadow": 0.4919
   },
   "4242_L1_well": {
-    "colourfulness": 8.78,
-    "contrast": 0.0626,
-    "luminance": 0.1017,
-    "shadow": 0.6076
+    "colourfulness": 8.87,
+    "contrast": 0.0636,
+    "luminance": 0.1006,
+    "shadow": 0.6143
   },
   "4242_L2_spawn": {
-    "colourfulness": 7.35,
-    "contrast": 0.059,
+    "colourfulness": 7.31,
+    "contrast": 0.0586,
     "luminance": 0.1093,
-    "shadow": 0.6227
+    "shadow": 0.6264
   },
   "4242_L2_stair_halls": {
-    "colourfulness": 6.4,
-    "contrast": 0.0563,
-    "luminance": 0.0873,
-    "shadow": 0.8964
+    "colourfulness": 6.23,
+    "contrast": 0.056,
+    "luminance": 0.0891,
+    "shadow": 0.8864
   },
   "4242_L3_spawn": {
-    "colourfulness": 7.47,
-    "contrast": 0.0599,
-    "luminance": 0.1446,
-    "shadow": 0.1364
+    "colourfulness": 7.8,
+    "contrast": 0.0677,
+    "luminance": 0.1439,
+    "shadow": 0.1596
   },
   "4242_L3_works": {
-    "colourfulness": 8.4,
-    "contrast": 0.0517,
-    "luminance": 0.1216,
-    "shadow": 0.4519
+    "colourfulness": 8.21,
+    "contrast": 0.0501,
+    "luminance": 0.1234,
+    "shadow": 0.4473
   },
   "4242_L4_spawn": {
-    "colourfulness": 20.26,
-    "contrast": 0.0839,
-    "luminance": 0.2542,
-    "shadow": 0.0466
+    "colourfulness": 20.09,
+    "contrast": 0.0797,
+    "luminance": 0.2416,
+    "shadow": 0.0574
   },
   "4242_L7_empty": {
-    "colourfulness": 12.58,
-    "contrast": 0.0607,
-    "luminance": 0.1294,
-    "shadow": 0.4551
+    "colourfulness": 11.32,
+    "contrast": 0.0571,
+    "luminance": 0.1159,
+    "shadow": 0.5836
   },
   "4242_L7_living_quarters": {
-    "colourfulness": 15.58,
-    "contrast": 0.0924,
-    "luminance": 0.2638,
-    "shadow": 0.0013
+    "colourfulness": 14.82,
+    "contrast": 0.0908,
+    "luminance": 0.2575,
+    "shadow": 0.0017
   },
   "4242_L7_maintenance": {
-    "colourfulness": 11.31,
-    "contrast": 0.0765,
-    "luminance": 0.1411,
-    "shadow": 0.49
+    "colourfulness": 11.58,
+    "contrast": 0.0734,
+    "luminance": 0.1442,
+    "shadow": 0.4545
   },
   "4242_L7_office_wing": {
-    "colourfulness": 20.22,
-    "contrast": 0.0686,
-    "luminance": 0.1742,
-    "shadow": 0.2103
+    "colourfulness": 19.7,
+    "contrast": 0.0665,
+    "luminance": 0.1675,
+    "shadow": 0.2364
   },
   "4242_L7_service_tunnels": {
-    "colourfulness": 16.49,
-    "contrast": 0.0653,
-    "luminance": 0.1873,
-    "shadow": 0.1353
+    "colourfulness": 17.19,
+    "contrast": 0.0652,
+    "luminance": 0.1796,
+    "shadow": 0.1592
   },
   "4242_L7_spawn": {
-    "colourfulness": 20.19,
-    "contrast": 0.0955,
-    "luminance": 0.2531,
-    "shadow": 0.0434
+    "colourfulness": 19.64,
+    "contrast": 0.0872,
+    "luminance": 0.2437,
+    "shadow": 0.0432
   },
   "4242_L7_storage_hall": {
-    "colourfulness": 12.71,
-    "contrast": 0.0744,
-    "luminance": 0.2153,
-    "shadow": 0.0328
+    "colourfulness": 13.09,
+    "contrast": 0.078,
+    "luminance": 0.2152,
+    "shadow": 0.0313
   },
   "7_L5_overgrown_atrium": {
-    "colourfulness": 6.92,
-    "contrast": 0.0577,
-    "luminance": 0.0857,
-    "shadow": 0.9103
+    "colourfulness": 6.91,
+    "contrast": 0.0558,
+    "luminance": 0.0853,
+    "shadow": 0.9162
   },
   "7_L5_play_area": {
-    "colourfulness": 17.54,
-    "contrast": 0.1158,
-    "luminance": 0.2342,
-    "shadow": 0.0756
+    "colourfulness": 17.04,
+    "contrast": 0.1177,
+    "luminance": 0.2274,
+    "shadow": 0.0948
   },
   "7_L5_pool_hall": {
-    "colourfulness": 16.1,
-    "contrast": 0.1273,
-    "luminance": 0.3255,
-    "shadow": 0.0972
+    "colourfulness": 16.54,
+    "contrast": 0.1374,
+    "luminance": 0.3039,
+    "shadow": 0.1323
   },
   "7_L5_spawn": {
-    "colourfulness": 13.67,
-    "contrast": 0.0866,
-    "luminance": 0.4041,
-    "shadow": 0.0071
+    "colourfulness": 13.88,
+    "contrast": 0.092,
+    "luminance": 0.3915,
+    "shadow": 0.0111
   },
   "7_L6_spawn": {
-    "colourfulness": 10.51,
-    "contrast": 0.0595,
-    "luminance": 0.2137,
-    "shadow": 0.0146
+    "colourfulness": 10.67,
+    "contrast": 0.0617,
+    "luminance": 0.2104,
+    "shadow": 0.0144
   },
   "corner_2m": {
-    "colourfulness": 21.03,
-    "contrast": 0.1186,
-    "luminance": 0.2804,
-    "shadow": 0.0452
+    "colourfulness": 20.37,
+    "contrast": 0.132,
+    "luminance": 0.2747,
+    "shadow": 0.0557
   },
   "corner_4m": {
-    "colourfulness": 20.8,
-    "contrast": 0.075,
-    "luminance": 0.2565,
-    "shadow": 0.0474
+    "colourfulness": 20.04,
+    "contrast": 0.0728,
+    "luminance": 0.2414,
+    "shadow": 0.0588
   },
   "corner_8m": {
-    "colourfulness": 21.12,
-    "contrast": 0.0725,
-    "luminance": 0.2631,
-    "shadow": 0.0452
+    "colourfulness": 20.35,
+    "contrast": 0.068,
+    "luminance": 0.2457,
+    "shadow": 0.0549
   },
   "corner_death": {
-    "colourfulness": 19.11,
-    "contrast": 0.2682,
-    "luminance": 0.4356,
-    "shadow": 0.0577
+    "colourfulness": 17.93,
+    "contrast": 0.2512,
+    "luminance": 0.4441,
+    "shadow": 0.0037
   },
   "hound_2m": {
-    "colourfulness": 21.17,
-    "contrast": 0.0782,
-    "luminance": 0.2554,
-    "shadow": 0.0501
+    "colourfulness": 20.49,
+    "contrast": 0.0752,
+    "luminance": 0.2397,
+    "shadow": 0.0626
   },
   "hound_4m": {
-    "colourfulness": 20.9,
-    "contrast": 0.0727,
-    "luminance": 0.2532,
-    "shadow": 0.0491
+    "colourfulness": 20.21,
+    "contrast": 0.0682,
+    "luminance": 0.2365,
+    "shadow": 0.0608
   },
   "hound_8m": {
-    "colourfulness": 21.14,
-    "contrast": 0.0724,
-    "luminance": 0.2628,
-    "shadow": 0.0452
+    "colourfulness": 20.38,
+    "contrast": 0.0678,
+    "luminance": 0.2453,
+    "shadow": 0.0548
   },
   "hound_death": {
-    "colourfulness": 21.46,
-    "contrast": 0.0967,
-    "luminance": 0.264,
-    "shadow": 0.049
+    "colourfulness": 20.89,
+    "contrast": 0.1022,
+    "luminance": 0.2508,
+    "shadow": 0.0567
   },
   "reader_2m": {
-    "colourfulness": 21.25,
-    "contrast": 0.0822,
-    "luminance": 0.2567,
-    "shadow": 0.0464
+    "colourfulness": 20.59,
+    "contrast": 0.0827,
+    "luminance": 0.2422,
+    "shadow": 0.0575
   },
   "reader_4m": {
-    "colourfulness": 20.91,
-    "contrast": 0.0732,
-    "luminance": 0.2529,
-    "shadow": 0.0489
+    "colourfulness": 20.21,
+    "contrast": 0.069,
+    "luminance": 0.2361,
+    "shadow": 0.0611
   },
   "reader_8m": {
-    "colourfulness": 21.13,
-    "contrast": 0.0726,
-    "luminance": 0.2627,
-    "shadow": 0.0452
+    "colourfulness": 20.38,
+    "contrast": 0.0679,
+    "luminance": 0.2452,
+    "shadow": 0.055
   },
   "reader_death": {
-    "colourfulness": 22.93,
-    "contrast": 0.123,
-    "luminance": 0.2695,
-    "shadow": 0.0569
+    "colourfulness": 22.38,
+    "contrast": 0.1385,
+    "luminance": 0.2598,
+    "shadow": 0.0646
   },
   "seated_1m": {
-    "colourfulness": 27.25,
-    "contrast": 0.0937,
-    "luminance": 0.1247,
-    "shadow": 0.6704
+    "colourfulness": 24.44,
+    "contrast": 0.0883,
+    "luminance": 0.1177,
+    "shadow": 0.7409
   },
   "seated_2m": {
-    "colourfulness": 26.77,
-    "contrast": 0.0892,
-    "luminance": 0.1191,
-    "shadow": 0.6985
+    "colourfulness": 27.84,
+    "contrast": 0.0945,
+    "luminance": 0.116,
+    "shadow": 0.7696
   },
   "shadow_2m": {
-    "colourfulness": 13.33,
-    "contrast": 0.1529,
-    "luminance": 0.4838,
-    "shadow": 0.0072
+    "colourfulness": 13.64,
+    "contrast": 0.1569,
+    "luminance": 0.4727,
+    "shadow": 0.011
   },
   "shadow_4m": {
-    "colourfulness": 12.77,
-    "contrast": 0.156,
-    "luminance": 0.487,
-    "shadow": 0.0071
+    "colourfulness": 13.12,
+    "contrast": 0.161,
+    "luminance": 0.4769,
+    "shadow": 0.011
   },
   "shadow_8m": {
-    "colourfulness": 12.76,
-    "contrast": 0.1568,
-    "luminance": 0.4877,
-    "shadow": 0.0069
+    "colourfulness": 13.11,
+    "contrast": 0.1624,
+    "luminance": 0.478,
+    "shadow": 0.011
   },
   "smiler_2m": {
-    "colourfulness": 22.52,
-    "contrast": 0.0852,
-    "luminance": 0.2463,
-    "shadow": 0.0852
+    "colourfulness": 20.91,
+    "contrast": 0.0745,
+    "luminance": 0.2317,
+    "shadow": 0.0855
   },
   "smiler_4m": {
-    "colourfulness": 21.26,
-    "contrast": 0.0758,
-    "luminance": 0.2513,
-    "shadow": 0.0582
+    "colourfulness": 20.36,
+    "contrast": 0.0701,
+    "luminance": 0.2345,
+    "shadow": 0.0712
   },
   "smiler_8m": {
-    "colourfulness": 21.21,
-    "contrast": 0.0732,
-    "luminance": 0.2627,
-    "shadow": 0.0467
+    "colourfulness": 20.41,
+    "contrast": 0.0681,
+    "luminance": 0.245,
+    "shadow": 0.0565
   },
   "smiler_death": {
-    "colourfulness": 20.93,
-    "contrast": 0.1868,
-    "luminance": 0.3121,
-    "shadow": 0.1304
+    "colourfulness": 19.09,
+    "contrast": 0.1241,
+    "luminance": 0.2799,
+    "shadow": 0.0913
   },
   "staff_2m": {
-    "colourfulness": 29.32,
-    "contrast": 0.0856,
-    "luminance": 0.2986,
-    "shadow": 0.0304
+    "colourfulness": 29.59,
+    "contrast": 0.0841,
+    "luminance": 0.2866,
+    "shadow": 0.0413
   },
   "staff_4m": {
-    "colourfulness": 26.35,
-    "contrast": 0.0748,
-    "luminance": 0.2944,
-    "shadow": 0.032
+    "colourfulness": 25.44,
+    "contrast": 0.067,
+    "luminance": 0.2792,
+    "shadow": 0.045
   },
   "watcher_2m": {
-    "colourfulness": 21.23,
-    "contrast": 0.0891,
-    "luminance": 0.2641,
-    "shadow": 0.0466
-  },
-  "watcher_4m": {
-    "colourfulness": 20.84,
-    "contrast": 0.0732,
-    "luminance": 0.254,
-    "shadow": 0.0483
-  },
-  "watcher_8m": {
-    "colourfulness": 21.12,
-    "contrast": 0.0723,
-    "luminance": 0.2629,
+    "colourfulness": 20.21,
+    "contrast": 0.1034,
+    "luminance": 0.2723,
     "shadow": 0.0445
   },
+  "watcher_4m": {
+    "colourfulness": 19.98,
+    "contrast": 0.0688,
+    "luminance": 0.242,
+    "shadow": 0.0521
+  },
+  "watcher_8m": {
+    "colourfulness": 20.34,
+    "contrast": 0.0675,
+    "luminance": 0.2457,
+    "shadow": 0.0533
+  },
   "watcher_death": {
-    "colourfulness": 20.51,
-    "contrast": 0.1824,
-    "luminance": 0.3645,
-    "shadow": 0.0168
+    "colourfulness": 19.73,
+    "contrast": 0.1866,
+    "luminance": 0.3591,
+    "shadow": 0.0148
   }
 }

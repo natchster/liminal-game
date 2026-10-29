@@ -56,7 +56,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `modes` | The Stairwell and the Loop: self-contained spaces with their own movement, entered from a level |
 | `player` | Movement, stamina, sanity, flashlight, items and actions |
 | `audio` | Sound effects and persistent beds (`sys`), the spatial soundscape, the ambient event driver |
-| `visuals` | Lighting (the place-based light map, pooled lights, fog), procedural textures and surfaces, the Building's photographed surfaces (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the low-sanity colour filter |
+| `visuals` | Lighting (the place-based light map, pooled lights, fog; `occlusion`: the level's shape in it, for the corners), procedural textures and surfaces, the Building's photographed surfaces and the photographed details over the rooms' (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), the three typefaces and their CoreText metrics (`faces`), the menus and their painter (`menu`, `screens`), the HUD at rest (`rest`: what shows when, and the building's sentence case), the notebook as paper (`paper`), and the painter that turns elements into composited layers (`draw`) |
 | `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/UI.md`), and the game flow: levels, saves, death, the menu |
 | `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
@@ -215,12 +215,17 @@ affects a level's build.
 3. **Shading:** one Metal uber-shader specialised with function constants
    (material kind, maps, vertex colours, instancing, skinning, morph
    targets, fog, the light map, patches, wear). Lambert and Phong are per
-   fragment; lit surfaces lose indirect light toward the floor and roll
+   fragment; lit surfaces lose indirect light toward the floor and, in
+   the rooms, in corners where walls meet each other, the floor and the
+   ceiling (the light map's G and B, `visuals::occlusion`, read from the
+   sample its indirect light already takes), and roll
    their highlights off with a soft shoulder; materials with `wear` (the
    props, see `visuals::prop_look`) get value-noise mottling and grime near
    the floor. Fog is exponential-squared and applied after the sRGB encode.
-4. **Patches** (`material::Patch`): the place-based light map, triplanar
-   architecture UVs, skin detail, the smiler's eyes, the watcher's sheet,
+4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
+   texels a tile: the light, how open each place is, its ceiling),
+   world-space architecture UVs with a photographed detail over them
+   (`ArchDetail`, the rooms' surfaces: `visuals::photo::arch_detail`), skin detail, the smiler's eyes, the watcher's sheet,
    the shadows' smoke edge, the stairwell face.
 5. **Composite:** 4× MSAA into a scene texture at the quality governor's
    resolution, then the camera grade (a little less saturation, a gentle

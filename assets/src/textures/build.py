@@ -1,5 +1,6 @@
-"""Build the Building's photographed surfaces (crates/game/assets/textures/)
-from the CC0 photographs listed in sources.json.
+"""Build the Building's photographed surfaces, and the details laid over the
+rooms' (crates/game/assets/textures/), from the CC0 photographs listed in
+sources.json.
 
     python3 assets/src/textures/build.py [--write] [--only NAME,...]
 
@@ -89,6 +90,134 @@ def panelka(name):
     if sha1(out) != p["files"][name]:
         raise SystemExit(f"{name}: SHA-1 {sha1(out)}, not {p['files'][name]}")
     return out
+
+
+def ambientcg(asset, part):
+    """A map (`Color`, `Displacement`, ...) of an ambientCG material: its 2K JPEG
+    zip, fetched once and checked by its SHA-1, and the map in it by its own."""
+    a = SOURCES["ambientcg"]["assets"][asset]
+    name = f"{asset}_2K-JPG_{part}.jpg"
+    out = os.path.join(CACHE, "ambientcg", name)
+    if os.path.exists(out) and sha1(out) == a["files"][name]:
+        return out
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    z = os.path.join(CACHE, "ambientcg", asset + "_2K-JPG.zip")
+    if not os.path.exists(z) or sha1(z) != a["zip_sha1"]:
+        print("fetching", asset, "from ambientCG")
+        fetch(f"https://ambientcg.com/get?file={asset}_2K-JPG.zip", z)
+        if sha1(z) != a["zip_sha1"]:
+            raise SystemExit(f"{asset}: zip SHA-1 {sha1(z)}, not {a['zip_sha1']}: the material has changed; check it")
+    with zipfile.ZipFile(z) as zf:
+        open(out, "wb").write(zf.read(name))
+    if sha1(out) != a["files"][name]:
+        raise SystemExit(f"{name}: SHA-1 {sha1(out)}, not {a['files'][name]}")
+    return out
+
+
+def polyhaven(asset, part):
+    """A map (`diff`, `disp`) of a Poly Haven texture: its 2K JPEG, fetched once
+    and checked by its SHA-1."""
+    a = SOURCES["polyhaven"]["assets"][asset]
+    name = f"{asset}_{part}_2k.jpg"
+    out = os.path.join(CACHE, "polyhaven", name)
+    if not os.path.exists(out) or sha1(out) != a["files"][name]:
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        print("fetching", name, "from Poly Haven")
+        fetch(f"https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/{asset}/{name}", out)
+    if sha1(out) != a["files"][name]:
+        raise SystemExit(f"{name}: SHA-1 {sha1(out)}, not {a['files'][name]}")
+    return out
+
+
+# ---------------------------------------------------------------- details ---
+# The rooms keep their painted surfaces (palettes, grime, wallpaper motifs:
+# visuals/textures.rs); over them the game lays a photographed detail in
+# world space (engine ArchDetail): a grey map, mean 0.5, the fine relief and
+# shading of the real material, a repeat every few tens of centimetres.
+
+DETAIL = 1024
+
+
+def detail(asset, relief=0.65, sigma=0.02, spread=0.17, maps=None, even=0.0, quilt=0):
+    """The detail of an ambientCG material: its height (Displacement) and the
+    shading of its colour, each without what changes over more than `sigma`
+    of a repeat (the light across the photograph, its large stains: the
+    game paints those), mixed `relief` of height, scaled to `spread` about
+    0.5. Seamless, as ambientCG's materials are."""
+    from PIL import Image
+    def grey(path):
+        a = np.asarray(Image.open(path).convert("RGB").resize((DETAIL, DETAIL), Image.LANCZOS), dtype=np.float32) / 255.0
+        return T.lum(T.to_lin(a))
+    def high(x):
+        x = x - ndimage.gaussian_filter(x, sigma * DETAIL, mode="wrap")
+        return x / (x.std() + 1e-6)
+    height, colour = maps or (ambientcg(asset, "Displacement"), ambientcg(asset, "Color"))
+    h = relief * high(grey(height)) + (1 - relief) * high(grey(colour))
+    if even:
+        # the same strength everywhere (a patch rougher than the rest, or a
+        # streak, repeats where the tiles meet): divided by its own local
+        # contrast over `even` of a repeat
+        h = h / np.sqrt(ndimage.gaussian_filter(h * h, even * DETAIL, mode="wrap") + 0.05)
+    if quilt:
+        # laid again from patches of itself (`quilt` px), so what stands out
+        # in the photograph (a streak, a cluster of pits) is scattered, not
+        # repeated on a grid where the repeats meet
+        g = np.repeat(h[..., None], 3, -1).astype(np.float32)
+        h = T.quilt([g], DETAIL, DETAIL, quilt, quilt // 4, np.random.default_rng(len(asset) * 7919), tries=160, tol=0.5)[..., 0]
+    h = np.clip(0.5 + spread * h / (h.std() + 1e-6), 0, 1)
+    return np.repeat(h[..., None], 3, -1)
+
+
+def paper():
+    """Woodchip wallpaper: wood chips pressed into paper, about 3 mm each
+    (0.5 m a repeat in the game). (Its peeling and mouldy kin repeated their
+    marks every half metre; the walls' own grime and moss are painted.)"""
+    return detail("Wallpaper001A")
+
+
+def carpet():
+    """Beige carpet's loops and pile (1.7 m a repeat, as photographed)."""
+    return detail("Carpet016", relief=0.7, sigma=0.03)
+
+
+def plaster():
+    """Plaster laid by hand and painted: its trowel marks and pores (3.2 m a
+    repeat, as photographed), for the drywall and painted walls and the
+    plaster ceilings."""
+    return detail("plastered_wall_04", relief=0.6, sigma=0.03, spread=0.13, even=0.06, quilt=160, maps=(polyhaven("plastered_wall_04", "disp"), polyhaven("plastered_wall_04", "diff")))
+
+
+def concrete():
+    """Concrete: its pores and pits (1.23 m a repeat), for the concrete walls
+    and slab ceilings (their form seams and tie holes are painted)."""
+    return detail("rough_concrete", relief=0.55, sigma=0.04, even=0.06, quilt=128, maps=(polyhaven("rough_concrete", "disp"), polyhaven("rough_concrete", "diff")))
+
+
+def concrete_floor():
+    """A worn concrete floor: its trowelled skin, pits and scuffs (3 m a
+    repeat), for the concrete floors."""
+    return detail("concrete_floor_worn_001", relief=0.6, sigma=0.04, even=0.06, quilt=160, maps=(polyhaven("concrete_floor_worn_001", "disp"), polyhaven("concrete_floor_worn_001", "diff")))
+
+
+def acoustic():
+    """An acoustic ceiling tile's face: mineral fibre with dark fissures, from
+    the faces of three tiles in a Soviet dropped ceiling of the 1980s,
+    quilted seamless (a tile, about 0.6 m, a repeat in the game). The
+    fissures are pits: dark, and low."""
+    src = T.load(commons("ussr_ceiling"))
+    pool = []
+    for x0, y0, x1, y1 in ((1720, 290, 2020, 480), (1060, 305, 1370, 470), (420, 570, 780, 740)):
+        c = src[y0:y1, x0:x1]
+        g = T.lum(T.to_lin(c))
+        g = g - ndimage.gaussian_filter(g, 12)
+        g = g / (g.std() + 1e-6)
+        # (the patches are ~300 px of a 0.6 m tile: brought to the texture's scale)
+        g = ndimage.zoom(g, 1024 / 0.6 * 0.6 / 330 * 1.0, order=3)
+        pool.append(np.repeat(g[..., None], 3, -1).astype(np.float32))
+    tex = T.quilt(pool, DETAIL, DETAIL, 128, 32, np.random.default_rng(1980), tries=160, tol=0.5)[..., 0]
+    tex = tex - ndimage.gaussian_filter(tex, 0.03 * DETAIL, mode="wrap")
+    tex = np.clip(0.5 + 0.17 * tex / (tex.std() + 1e-6), 0, 1)
+    return np.repeat(tex[..., None], 3, -1)
 
 
 # ------------------------------------------------------------------ panel ---
@@ -457,7 +586,8 @@ def lit():
     return np.concatenate(cells, 1)
 
 
-TEXTURES = {"panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit}
+TEXTURES = {"panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
+            "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor}
 
 
 def main():

@@ -200,6 +200,34 @@ fn a_levels_frames_are_the_same_whatever_came_before() {
     }
 }
 
+/// A level's build takes nothing from the per-frame stream, whatever the
+/// same game built before it: the surfaces painted the first time a level
+/// needs them (drywall, concrete, brick, tile: `visuals::surfaces`, cached
+/// for the game) paint from their painters' own streams. (They had drawn on
+/// the per-frame stream, so the first level to need one moved every frame
+/// after it, and in a run only that level did; rooms R5)
+#[test]
+fn a_levels_build_takes_nothing_from_the_frames_whatever_came_before() {
+    let after_build = |before: Option<i32>| {
+        std::thread::spawn(move || {
+            let mut g = new_game();
+            g.run_seed = 4242;
+            if let Some(level) = before {
+                build(&mut g, |g| g.init_level(level));
+            }
+            game::base::rng::seed_native(0xE11);
+            build(&mut g, |g| g.init_level(6));
+            (0..8).map(|_| game::base::rng::native_rnd()).collect::<Vec<f64>>()
+        })
+        .join()
+        .unwrap()
+    };
+    let first = after_build(None);
+    for before in [4, 9] {
+        assert_eq!(after_build(Some(before)), first, "level 6 after level {before} in the same game");
+    }
+}
+
 /// The Building's own torn notes (the residents' notices, the cleaners' log,
 /// the surveys) lie on its floors and on no floor of the rooms; on its floors
 /// lie no others.

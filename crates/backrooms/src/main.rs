@@ -231,6 +231,7 @@ fn globals(g: &mut Game) -> RenderGlobals {
         },
         pixel_ratio: g.quality.pr / g.scale_factor.max(1.0),
         floor_occlusion: g.floor_occlusion(),
+        corner_occlusion: g.corner_occlusion(),
     }
 }
 

@@ -437,7 +437,17 @@ impl Game {
             }
         }
         self.light_map_cpu = data.iter().map(|&b| b as f64 / 255.0).collect();
-        let reuse = self.ll_map.as_ref().map(|m| m.width() == w as u32 && m.height() == h as u32).unwrap_or(false);
+        // the shape beside the light, at `FINE` texels a tile: how open each
+        // place is and its ceiling, for the corners (`visuals::occlusion`)
+        use crate::visuals::occlusion::{pack, shape_channels, shape_key, FINE};
+        let key = shape_key(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref());
+        if key != self.ll_shape_key || self.ll_shape.is_empty() {
+            self.ll_shape = shape_channels(self.w, self.h, &self.tile_ceil, self.solids.as_ref());
+            self.ll_shape_key = key;
+        }
+        let data = pack(self.w, self.h, &data, &self.ll_shape);
+        let (wf, hf) = ((w * FINE) as u32, (h * FINE) as u32);
+        let reuse = self.ll_map.as_ref().map(|m| m.width() == wf && m.height() == hf).unwrap_or(false);
         if reuse {
             let m = self.ll_map.clone().unwrap();
             let img = m.image();
@@ -445,7 +455,7 @@ impl Game {
             im.data = data;
             im.version += 1;
         } else {
-            let tex = Tex::data_r8(data, w as u32, h as u32);
+            let tex = Tex::data_rgba(data, wf, hf);
             {
                 let mut tt = tex.t();
                 tt.mag_filter = Filter::Linear;
@@ -480,6 +490,18 @@ impl Game {
     /// the levels stand on y = 0, the Stairwell's flights do not
     pub fn floor_occlusion(&self) -> f64 {
         if self.in_stairwell {
+            0.0
+        } else {
+            1.0
+        }
+    }
+
+    /// How much a corner darkens where walls meet each other, the floor and
+    /// the ceiling (`visuals::occlusion`): the rooms', whose shape the light
+    /// map holds; not the Building's floors, stacked over each other, nor
+    /// the Stairwell's flights or the Loop's rooms
+    pub fn corner_occlusion(&self) -> f64 {
+        if self.building.is_some() || self.in_stairwell || self.in_loop {
             0.0
         } else {
             1.0

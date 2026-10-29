@@ -242,6 +242,10 @@ pub struct Game {
     pub amb_light: Obj,
     pub hemi_light: Obj,
     pub light_map_cpu: Vec<f64>,
+    /// the light map's G and B (`visuals::occlusion`), and what they were
+    /// made of (`shape_key`): made once a level, kept while panels switch
+    pub ll_shape: Vec<u8>,
+    pub ll_shape_key: u64,
     pub player_light: Obj,
     pub halluc_textures: Vec<Tex>,
     pub halluc_shape: Obj,
@@ -623,7 +627,7 @@ impl Game {
     /// The subsystems' init functions build the rest, in a fixed order.
     pub fn new_bare() -> Game {
         let scene = new_scene();
-        let camera = perspective_camera(74.0, 1.0, 0.05, 90.0);
+        let camera = perspective_camera(crate::session::settings::FOV_DEFAULT, 1.0, 0.05, 90.0);
         camera.set_rotation_order(EulerOrder::YXZ);
         let flashlight = engine::scene::spot_light(0xfff2cf, 0.0, 28.0, std::f64::consts::PI / 5.5, 0.35, 1.2);
         let mut g = Game {
@@ -692,7 +696,8 @@ impl Game {
             layout: None,
             solids: None,
             tex: crate::visuals::textures::Textures::placeholder(),
-            surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::native_rnd),
+            // (`rnd`: each painter draws inside `canvas_tex`, on its own stream)
+            surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::rnd),
             level_scp: None,
             omen_timers: vec![],
             panels: vec![],
@@ -787,6 +792,8 @@ impl Game {
             amb_light: ambient_light(0xffffff, 0),
             hemi_light: hemisphere_light(0xffffff, 0xffffff, 0),
             light_map_cpu: vec![],
+            ll_shape: vec![],
+            ll_shape_key: 0,
             player_light: point_light(0xffffff, 0, 0, 2),
             halluc_textures: vec![],
             halluc_shape: node(),
@@ -804,7 +811,8 @@ impl Game {
             ripples: vec![],
             sparkles: vec![],
             wall_geo: box_geo!(CELL, WALL_H, CELL),
-            panel_geo: box_geo!(1.9, 0.06, 1.25),
+            // (a fitting two ceiling tiles by one: `textures::CEIL_CELLS`)
+            panel_geo: box_geo!(4.0 / 3.0, 0.06, 2.0 / 3.0),
             ceil_tile_geo: {
                 let g = plane_geo!(CELL, CELL);
                 g.rotate_x(std::f64::consts::PI / 2.0);

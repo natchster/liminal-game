@@ -1,5 +1,5 @@
 {
-  "about": "The photographs the Building's surfaces are made from (crates/game/assets/textures/, by build.py). Every one is CC0. The Commons files are checked by the SHA-1 Commons publishes; the Panelka files by the SHA-1 of each file in the pack's zip.",
+  "about": "The photographs the Building's surfaces are made from (crates/game/assets/textures/, by build.py). Every one is CC0. The Commons files are checked by the SHA-1 Commons publishes; the Panelka files by the SHA-1 of each file in the pack's zip. The rooms' details (rooms R5) are ambientCG materials (CC0), each checked by the zip's SHA-1 and its maps' own.",
   "commons": {
     "moscow_rustication": {
       "title": "File:DSC 03930 moscow july 2016 people.jpg",
@@ -20,6 +20,15 @@
       "licence": "CC0-1.0",
       "taken": "2013-05-19",
       "what": "Arsenalna station, Kyiv metro (opened 1960): the dark speckled granite floor slabs in front of the marble wall"
+    },
+    "ussr_ceiling": {
+      "title": "File:Dropped ceiling (USSR, 1980s) (01).jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/8/88/Dropped_ceiling_%28USSR%2C_1980s%29_%2801%29.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Dropped_ceiling_(USSR,_1980s)_(01).jpg",
+      "sha1": "2e440a568a55898825fe132228013d2a84ab3dde",
+      "author": "Georg Pik",
+      "licence": "CC0-1.0",
+      "what": "a dropped ceiling of the 1980s, USSR: mineral-fibre tiles with dark fissures; the faces of three tiles, quilted, for the rooms' acoustic tiles (rooms R5)"
     }
   },
   "panelka": {
@@ -36,6 +45,59 @@
       "Panelka/Fences/FenceConcrete2diffuse.png": "eaa632c05a789ce71d5f1dff2e4bc83dc72c287c",
       "Panelka/Fences/FenceConcrete3diffuse.png": "8a2793dde5636418e801812e3ba1383ccf28a9a9",
       "Panelka/Concrete1diffuse.png": "9ab993d6a71265e39b7c574174abc37197c951bd"
+    }
+  },
+  "ambientcg": {
+    "about": "ambientCG (https://ambientcg.com), materials by Lennart Demes and contributors, all CC0 1.0 (\"Public Domain\"): https://docs.ambientcg.com/license/. Each is fetched as its 2K JPEG zip from https://ambientcg.com/get?file=<asset>_2K-JPG.zip.",
+    "author": "ambientCG (Lennart Demes)",
+    "licence": "CC0-1.0",
+    "assets": {
+      "Wallpaper001A": {
+        "what": "woodchip wallpaper, plain (photogrammetry)",
+        "zip_sha1": "c9a0ccaea71ac3416056c4a5eed28a109e1712c4",
+        "files": {
+          "Wallpaper001A_2K-JPG_Color.jpg": "16924a36dae27c2ef6017a80fdd1370801135b5a",
+          "Wallpaper001A_2K-JPG_Displacement.jpg": "3048e556a7c2cf07b54650154e668377cdc7f7ff"
+        }
+      },
+      "Carpet016": {
+        "what": "beige carpet, 1.7 m a repeat (photogrammetry)",
+        "zip_sha1": "b75abaf0c9889974954d838267b99f536fb1b4e1",
+        "files": {
+          "Carpet016_2K-JPG_Color.jpg": "50608a8b246be0cde66773367159fef4c0c67884",
+          "Carpet016_2K-JPG_Displacement.jpg": "ee00bd4e8f362d68890a64637c6f8a9475e56982"
+        }
+      }
+    }
+  },
+  "polyhaven": {
+    "about": "Poly Haven (https://polyhaven.com), textures all CC0 1.0 (https://polyhaven.com/license). Each map is fetched from https://dl.polyhaven.org/file/ph-assets/Textures/jpg/2k/<asset>/<file> and checked by its SHA-1.",
+    "licence": "CC0-1.0",
+    "assets": {
+      "plastered_wall_04": {
+        "what": "a plastered interior wall, 3.2 m a repeat",
+        "authors": "Rob Tuytel",
+        "files": {
+          "plastered_wall_04_diff_2k.jpg": "5c794a4859f81903cd55299d4a7edb85e0133107",
+          "plastered_wall_04_disp_2k.jpg": "061bdd617199ff840e03df4bfb48d961c41a42de"
+        }
+      },
+      "concrete_floor_worn_001": {
+        "what": "a worn indoor concrete floor, 3 m a repeat",
+        "authors": "Dimitrios Savva (photography), Rico Cilliers (processing)",
+        "files": {
+          "concrete_floor_worn_001_diff_2k.jpg": "950649da326c5abba7f104a94beddea5fc1e4564",
+          "concrete_floor_worn_001_disp_2k.jpg": "897c4859bbf108b3865f8cc9b8f9f9365e9be290"
+        }
+      },
+      "rough_concrete": {
+        "what": "rough concrete, 1.23 m a repeat (a concrete wall with its own form-tie grid was tried: it fought the painted seams)",
+        "authors": "Dimitrios Savva",
+        "files": {
+          "rough_concrete_diff_2k.jpg": "aabfc3e798777b59830ec29083c5f3e8c6915074",
+          "rough_concrete_disp_2k.jpg": "ccfad47f8e2e5762b9faf367a57e649777497ad5"
+        }
+      }
     }
   }
 }

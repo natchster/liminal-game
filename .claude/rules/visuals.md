@@ -16,12 +16,19 @@ paths:
   `visuals/prop_look.rs` (`Material::look_settled`). Keep base colours
   inside physically plausible albedo (max channel about 0.03–0.87 for
   non-metals) and avoid saturated, flat colour.
-- **Canvas textures draw from the native stream** (`canvas_tex` switches to
-  it); never take build randomness while painting. The Building's surfaces
+- **Canvas textures draw from a stream of their own** (`canvas_tex`:
+  `with_own_stream`, seeded by the painter's place in the code, its size and
+  how many it has made since the level began); never the level's stream nor
+  the per-frame one. The Building's surfaces
   are photographs (`visuals/photo.rs`, built by `assets/src/textures/`) and
   draw nothing; a new one comes from a CC0 photograph listed in
   `sources.json` (the manifest allows MIT, CC0, CC BY 4.0 only), graded to
-  the surface it replaces.
+  the surface it replaces. The rooms keep their painted surfaces, with a
+  photographed detail laid over them in world space (`photo::arch_detail`,
+  `detail_for`; `docs/ROOMS.md`): a new one is a grey map from a CC0
+  photograph (`build.py` `detail`), at the material's real size, quilted if
+  a feature of it would repeat on a grid, kept only where a blind review
+  prefers it.
 - **Shader cost:** a texture read in a global patch multiplies pipeline
   compile time. Judge by level load plus first frame.
 - **Gates:** `cargo xtask shots` (golden frames, look anchors per frame and

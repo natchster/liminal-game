@@ -9,8 +9,11 @@
 //!
 //! `make_surfaces(rng)`: the texture factory is always the game's own
 //! `canvas_tex` (colour space, wrapping,
-//! anisotropy); `rng` is used for the texture noise (the game passes the
-//! native generator: textures are cached across levels, never level-seeded).
+//! anisotropy); `rng` is used for the texture noise (the game passes `rnd`:
+//! every draw is inside a `canvas_tex` painter, so it comes from that
+//! painter's own stream. Passed the native generator, as they were until
+//! rooms R5, the first level to need a surface took its draws from the
+//! per-frame stream, and only that level did).
 //! The Building's surfaces (panel, ashlar, poured, formwork; deck, stone, factory; ribbed)
 //! are photographs (`visuals::photo`), cached the same way and drawing nothing
 //! from `rng`.

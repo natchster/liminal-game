@@ -51,7 +51,9 @@ pub enum Patch {
     #[default]
     None,
     /// `world_uv_material`: world-space UVs for instanced architecture boxes
-    ArchUV { scale_x: f64, scale_y: f64, wallpaper: bool },
+    /// (and floor and ceiling planes, their UVs shifted by `plane_shift`
+    /// repeats), with a photographed detail over them
+    ArchUV { scale_x: f64, scale_y: f64, wallpaper: bool, detail: Option<ArchDetail>, plane_shift: f64 },
     /// `with_skin_detail`: triplanar bump + varying shine from a tiling height map
     SkinDetail { map: Tex, scale: f64, strength: f64, shine: f64, rest_space: bool },
     /// the Smiler's emissive eye orbs
@@ -64,6 +66,19 @@ pub enum Patch {
     Stairwell { kind: u32 },
     /// a generic hook: renderer looks it up by name
     Named(String),
+}
+
+/// A photographed detail over an architecture surface (`Patch::ArchUV`): a
+/// grey height map (mean ½) laid flat on each face in world space, one
+/// repeat every `metres`; it shades the colour by `tint` (½ ± ½ → 1 ± tint)
+/// and catches the light as relief by `relief`. Fades out with distance as
+/// its texels shrink below a pixel.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ArchDetail {
+    pub map: Tex,
+    pub metres: f64,
+    pub tint: f64,
+    pub relief: f64,
 }
 
 /// Per-frame uniforms some patches read (set by the game each frame).

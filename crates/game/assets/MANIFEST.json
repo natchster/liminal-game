@@ -189,10 +189,66 @@
         "assets/src/blender/props"
       ]
     },
+    "textures/acoustic.jpg": {
+      "authors": "Georg Pik (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
+      "built_with": "the faces of three mineral-fibre tiles of a Soviet dropped ceiling of the 1980s, quilted (Efros-Freeman) seamless, a grey detail laid over each 0.67 m tile of the rooms' painted ceiling",
+      "fingerprint": "58aac246282744d5",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
     "textures/ashlar.jpg": {
       "authors": "Rakoon (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
       "built_with": "the rock-faced granite of Tverskaya Street 11, Moscow (1949): rectified, cut into its blocks, laid again in running bond",
       "fingerprint": "d336a3883cfee7a4",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/carpet.jpg": {
+      "authors": "ambientCG (Lennart Demes), Carpet016 (CC0); processed by coding agents under the developer's direction",
+      "built_with": "a beige carpet's loops and pile (photogrammetry), without what changes over more than 5 cm, a grey detail laid over the rooms' painted carpet every 1.7 m",
+      "fingerprint": "4917b2b9d30cd970",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/concrete.jpg": {
+      "authors": "Dimitrios Savva (Poly Haven, rough_concrete, CC0); processed by coding agents under the developer's direction",
+      "built_with": "rough concrete's height and shading (photogrammetry), its contrast made even and quilted from its own patches, a grey detail over the rooms' painted concrete walls and slab ceilings every 1.23 m",
+      "fingerprint": "9a20ba984bd49a4f",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/concrete_floor.jpg": {
+      "authors": "Dimitrios Savva and Rico Cilliers (Poly Haven, concrete_floor_worn_001, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a worn indoor concrete floor's height and shading (photogrammetry), its contrast made even and quilted from its own patches, a grey detail over the rooms' painted concrete floors every 3 m",
+      "fingerprint": "3ff37101724c2e9f",
       "generative_model": null,
       "generator": "photographs, processed by scripts",
       "licence": "CC0-1.0",
@@ -263,6 +319,34 @@
       "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
       "built_with": "five photographed post-Soviet facade panels, each resampled so its window frame and joints land on the same grid, laid out as twelve panels",
       "fingerprint": "2645179dfe8895d3",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/paper.jpg": {
+      "authors": "ambientCG (Lennart Demes), Wallpaper001A (CC0); processed by coding agents under the developer's direction",
+      "built_with": "a woodchip wallpaper's height and shading (photogrammetry), without what changes over more than 2 cm, a grey detail laid over the rooms' painted wallpaper every 0.5 m",
+      "fingerprint": "34e3957c46585b1c",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/plaster.jpg": {
+      "authors": "Rob Tuytel (Poly Haven, plastered_wall_04, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a plastered interior wall's height and shading (photogrammetry), without what changes over more than 10 cm, its contrast made even and laid again from its own patches (Efros-Freeman), a grey detail over the rooms' painted drywall, painted walls and plaster ceilings every 3.2 m",
+      "fingerprint": "cdd8396e3dbd4f8c",
       "generative_model": null,
       "generator": "photographs, processed by scripts",
       "licence": "CC0-1.0",

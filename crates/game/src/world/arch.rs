@@ -20,7 +20,39 @@ pub const PROP_FAR_STORE: f64 = 26.0;
 
 pub fn world_uv_material(map: Option<Tex>, scale: [f64; 2], wallpaper: bool) -> Mat {
     let m = lambert!({ map: map });
-    m.m().patch = Patch::ArchUV { scale_x: scale[0], scale_y: scale[1], wallpaper };
+    m.m().patch = Patch::ArchUV { scale_x: scale[0], scale_y: scale[1], wallpaper, detail: None, plane_shift: 0.0 };
+    m
+}
+
+/// A painted floor's or ceiling's material, in world space a repeat a tile,
+/// laid from the tiles' edges as their planes' own UVs had laid it (the
+/// rooms' grids are odd-sized, so a tile's centre is at a multiple of 4 m:
+/// half a repeat off; laid from the centres, a floor's saw-cut ran down the
+/// middle of every corridor)
+pub fn plane_material(map: Option<Tex>) -> Mat {
+    let m = lambert!({ map: map });
+    m.m().patch = Patch::ArchUV { scale_x: CELL, scale_y: CELL, wallpaper: false, detail: None, plane_shift: 0.5 };
+    m
+}
+
+/// `m` with the detail of a `part` (wall, floor, ceil) of `kind`, if it has
+/// one (`photo::detail_for`; the Building's photographed kinds have none)
+fn detail_of(m: Mat, part: &str, kind: &str) -> Mat {
+    match crate::visuals::photo::detail_for(part, kind) {
+        Some(name) => with_detail(m, name),
+        None => m,
+    }
+}
+
+/// `m` with the photographed detail `name` laid over it (`photo::arch_detail`)
+pub fn with_detail(m: Mat, name: &str) -> Mat {
+    {
+        let mut mm = m.m();
+        if let Patch::ArchUV { detail, .. } = &mut mm.patch {
+            *detail = crate::visuals::photo::arch_detail(name);
+        }
+        mm.version += 1;
+    }
     m
 }
 
@@ -50,11 +82,22 @@ impl Game {
         if self.wall_mats.len() != self.tex.wallpaper_variants.len() {
             self.wall_mats = self.tex.wallpaper_variants.iter().map(|v| lambert!({ map: &v.tex })).collect();
         }
+        // the tiles and the carpet in world space (one repeat a tile, as the
+        // planes' own UVs had them), each with its photographed detail
         if self.ceil_mats.len() != self.tex.ceiling_variants.len() {
-            self.ceil_mats = self.tex.ceiling_variants.iter().map(|t| lambert!({ map: t, side: DoubleSide })).collect();
+            self.ceil_mats = self
+                .tex
+                .ceiling_variants
+                .iter()
+                .map(|t| {
+                    let m = with_detail(plane_material(Some(t.clone())), "acoustic");
+                    m.m().side = DoubleSide;
+                    m
+                })
+                .collect();
         }
         if self.floor_mats.len() != self.tex.carpet_variants.len() {
-            self.floor_mats = self.tex.carpet_variants.iter().map(|t| lambert!({ map: t })).collect();
+            self.floor_mats = self.tex.carpet_variants.iter().map(|t| with_detail(plane_material(Some(t.clone())), "carpet")).collect();
         }
     }
 
@@ -70,18 +113,22 @@ impl Game {
         let m = if a == "wp" {
             let i = num(b) as usize;
             let tex = self.tex.wallpaper_variants.get(i).map(|v| v.tex.clone());
-            world_uv_material(tex, [CELL, WALL_H], true)
+            with_detail(world_uv_material(tex, [CELL, WALL_H], true), "paper")
         } else if a == "floor" {
             match crate::visuals::photo::photo_scale(b) {
                 // a photographed floor: in world space, so a tread or a slab's
                 // edge shows its own piece of the floor, not all of it squeezed
                 Some([s, _]) => world_uv_material(self.surfaces.floor(b, num(c)), [s, s], false),
-                None => lambert!({ map: self.surfaces.floor(b, num(c)) }),
+                // a painted one in world space too (a repeat a tile, as its
+                // plane's UVs had it), with its photographed detail
+                None => detail_of(plane_material(self.surfaces.floor(b, num(c))), "floor", b),
             }
         } else if a == "ceil" {
-            lambert!({ map: self.surfaces.ceil(b, num(c)), side: DoubleSide })
+            let m = detail_of(plane_material(self.surfaces.ceil(b, num(c))), "ceil", b);
+            m.m().side = DoubleSide;
+            m
         } else {
-            world_uv_material(self.surfaces.wall(a, num(b)), self.surfaces.scale(a), false)
+            detail_of(world_uv_material(self.surfaces.wall(a, num(b)), self.surfaces.scale(a), false), "wall", a)
         };
         // a photographed surface's grime is its material's tint
         let (kind, g) = if a == "floor" || a == "ceil" { (b, num(c)) } else { (a, num(b)) };

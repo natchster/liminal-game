@@ -1,7 +1,9 @@
 //! `visuals::photo` — the Building's surfaces, made from photographs of
 //! Soviet-era places: its panel facade, poured and formwork concrete, the yard concrete of
 //! its decks, the granite of its Stair Halls (walls and floor), the factory
-//! slab and ribbed ceiling of its Works, and its lit windows.
+//! slab and ribbed ceiling of its Works, and its lit windows; and the
+//! photographed details laid over the rooms' painted surfaces (`arch_detail`:
+//! woodchip paper, carpet, an acoustic tile's face).
 //!
 //! The JPEGs in `crates/game/assets/textures/` are built by
 //! `assets/src/textures/build.py` from the CC0 photographs it lists (their
@@ -79,6 +81,64 @@ pub fn photo_tex(kind: &str) -> Option<Tex> {
 /// Metres a repeat of the photographed surface `kind`
 pub fn photo_scale(kind: &str) -> Option<[f64; 2]> {
     PHOTO_SURFACES.iter().find(|s| s.0 == kind).map(|s| s.2)
+}
+
+/// The details laid over the rooms' painted surfaces (rooms R5): grey height
+/// maps, mean ½, each a repeat of `metres` (`engine::ArchDetail`): (name,
+/// file, metres a repeat, how much it shades the colour, how much relief)
+static DETAILS: [(&str, &[u8], f64, f64, f64); 6] = [
+    // woodchip wallpaper: wood chips pressed into the paper (a coarse
+    // paper: at a fine one's 3 mm the chips were lost past an arm's length)
+    ("paper", texture!("paper.jpg"), 1.2, 0.3, 0.6),
+    // carpet: its loops and pile, as photographed (1.7 m a repeat)
+    ("carpet", texture!("carpet.jpg"), 1.7, 0.3, 0.5),
+    // an acoustic ceiling tile's face, a cell of the grid (`make_ceiling`)
+    ("acoustic", texture!("acoustic.jpg"), 4.0 / 6.0, 0.35, 0.5),
+    // plaster laid by hand and painted (drywall, painted walls, plaster ceilings)
+    ("plaster", texture!("plaster.jpg"), 3.2, 0.22, 0.5),
+    // concrete's pores and pits (concrete walls, slab ceilings)
+    ("concrete", texture!("concrete.jpg"), 1.23, 0.28, 0.55),
+    // a worn concrete floor's skin, pits and scuffs
+    ("concrete_floor", texture!("concrete_floor.jpg"), 3.0, 0.28, 0.5),
+];
+
+/// The detail over a painted surface of the rooms, by its kind (`surfaces`):
+/// a wall's, a floor's or a ceiling's (brick and glazed tile have their
+/// pattern painted, and none)
+pub fn detail_for(part: &str, kind: &str) -> Option<&'static str> {
+    match (part, kind) {
+        ("wall", "drywall" | "paint") | ("ceil", "plaster") => Some("plaster"),
+        ("wall", "concrete") | ("ceil", "slab") => Some("concrete"),
+        ("floor", "concrete") => Some("concrete_floor"),
+        ("floor", "office") => Some("carpet"),
+        _ => None,
+    }
+}
+
+/// The detail `name` (`DETAILS`) for a surface: decoded once (as data, no
+/// colour space: it is a height), repeating
+pub fn arch_detail(name: &str) -> Option<ArchDetail> {
+    thread_local! {
+        static CACHE: std::cell::RefCell<Vec<(&'static str, Tex)>> = const { std::cell::RefCell::new(Vec::new()) };
+    }
+    let &(key, bytes, metres, tint, relief) = DETAILS.iter().find(|d| d.0 == name)?;
+    let map = CACHE.with(|c| {
+        let mut c = c.borrow_mut();
+        if let Some((_, t)) = c.iter().find(|(k, _)| *k == key) {
+            return t.clone();
+        }
+        let canvas = Canvas::from_jpeg(bytes).unwrap_or_else(|| panic!("assets/textures/{key}.jpg does not decode"));
+        let t = Tex::from_image(canvas.to_image());
+        {
+            let mut tt = t.t();
+            tt.wrap_s = Wrap::Repeat;
+            tt.wrap_t = Wrap::Repeat;
+            tt.anisotropy = 8;
+        }
+        c.push((key, t.clone()));
+        t
+    });
+    Some(ArchDetail { map, metres, tint, relief })
 }
 
 /// The lit window `cell` (0..LIT_CELLS) of `LIT_WINDOWS`, for a quad over a
