@@ -602,8 +602,8 @@ fn voice_slot(g: &mut Game, ei: usize) -> Option<crate::audio::soundscape::Voice
     Some(slot)
 }
 
-/// It breaks into its charge: a bay (its tell); learned (you outran it three
-/// times, design 4), no bay, only its nails scrabbling as it goes (the tell,
+/// It breaks into its charge: a bay (its tell); learned (you outran it
+/// twice, design 4), no bay, only its nails scrabbling as it goes (the tell,
 /// nearer), and it runs for where you are heading.
 fn bay(g: &mut Game, ei: usize) {
     if g.creature_may_show(ei) {

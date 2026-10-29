@@ -60,7 +60,7 @@ pub const NEAR: f64 = 3.0;
 /// and then, every this many seconds (the hum stops first), m and s.
 pub const LOOKS_NEAR: f64 = 20.0;
 pub const LOOKS_EVERY: (f64, f64) = (25.0, 45.0);
-/// ... and once it has learned (you passed behind it four times, design 4),
+/// ... and once it has learned (you passed behind it twice, design 4),
 /// this often.
 pub const LOOKS_LEARNED: (f64, f64) = (10.0, 18.0);
 /// Within this behind its back, you pass behind it, m.

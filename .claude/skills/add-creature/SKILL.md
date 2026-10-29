@@ -46,8 +46,11 @@ The plan and the rules every creature keeps are in `docs/ENTITIES.md`
    `tests/creatures_arenas.rs`: `report("<kind>")` with its counter played
    as a player would (with it ≥ 95% untouched, ≥ 90% round; without ≤ 70%
    untouched, ≤ 60% killed; when a counter fails, read the trials before
-   tuning: `ARENA_DEBUG`); `tests/ecology.rs` (where it lives);
-   `tests/listen.rs` (its signature over the room).
+   tuning: `ARENA_DEBUG`), and learned (`learned_uses`: the mark its new
+   behaviour leaves; the counter as good as before); `tests/ecology.rs`
+   (where it lives); `tests/listen.rs` (its signature over the room);
+   its counter in `tests/rule_follower/mod.rs`, then `tests/beatable.rs`
+   (≥ 90% of levels, no hard fail) and `the_whole_run_live`.
 7. **Silhouette and close-up.** Add it to `CREATURES` in
    `xtask/src/shots.rs`, run `cargo xtask shots`, and look at it at 8 m (it
    must read as *something standing there*), 4 m, 2 m and in its death

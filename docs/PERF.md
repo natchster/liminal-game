@@ -32,6 +32,20 @@ cargo xtask bench --no-record   # measure and check only (the full check runs th
 Record a run (without `--no-record`) after each change that touches
 rendering, level building or per-frame code, and commit the history with it.
 
+## Steps explained
+
+A step the bench finds is looked at and explained here (it is flagged
+while it is among the last three runs of its series).
+
+- **E7** (`8274df8+` in the history, flagged by E8's full check): level 4's
+  build, the first floor of the rooms a run builds, 135 → 148 ms in both
+  runs. The creatures' first-use setup (their shared materials and
+  textures) is paid there: timing `add_entity`, the first creature of a
+  process took 15 ms and the next 7, whatever the kind; before E7 part of
+  it was paid on level 1 (4–6 ms dearer then). And 4242 L5's triangles,
+  137k → 168k: the ecology put another creature in the camera's view
+  (content). Both well within budget; kept.
+
 ## What the first run measured (2026-10-25, Apple Silicon, macOS 27)
 
 | Measure | Range over the twelve levels |

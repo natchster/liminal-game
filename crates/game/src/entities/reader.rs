@@ -56,7 +56,7 @@ pub const PAPER_REACH: f64 = 4.0;
 pub const READ_TIME: f64 = 3.0;
 /// Stooping to pick a sheet up, s.
 pub const STOOP: f64 = 0.8;
-/// Once it has learned (you escaped it with paper three times, design 4),
+/// Once it has learned (you escaped it with paper twice, design 4),
 /// it tears a sheet in half unread instead: this long, s.
 pub const TEAR_TIME: f64 = 1.0;
 /// Its pace when it comes, m/s (faster than you walk, slower than you run).

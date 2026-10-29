@@ -63,7 +63,7 @@ const HUNT_NEAR: f64 = 6.0;
 pub const RING_REACH: f64 = 8.0;
 /// A stare at it longer than this is what it learns from, s.
 pub const LONG_STARE: f64 = 8.0;
-/// Once it has learned (five long stares, design 4), while you watch it
+/// Once it has learned (three long stares, design 4), while you watch it
 /// within this the panels over it fail, every `FAILS_EVERY` s, and its place
 /// is dark for `DARK_FOR` s after each (it takes the light you see it by).
 pub const FAILS_WITHIN: f64 = 15.0;

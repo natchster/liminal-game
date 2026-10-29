@@ -65,7 +65,7 @@ const BREATH_REACH: f64 = 12.0;
 /// It feels you this close, in the dark or not, m.
 const TOUCH: f64 = 0.8;
 const CLICK_REACH: f64 = 16.0;
-/// Once it has learned (you hid from it in the dark four times, design 4),
+/// Once it has learned (you hid from it in the dark twice, design 4),
 /// it waits this long where you went dark, silent, before it searches, s.
 pub const WAITS: f64 = 6.0;
 

@@ -41,6 +41,10 @@ const FAST_SKIP: &[&str] = &[
     "who_lives_where",
     "the_one_in_the_corner_hums",
     "the_reader_whispers",
+    "the_rule_follower_gets_through_and_no_death_breaks_the_rules",
+    "the_explorer_gets_through_some",
+    "the_rusher_gets_through_some",
+    "the_whole_run_live",
 ];
 
 struct Step {

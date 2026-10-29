@@ -13,9 +13,18 @@
 //!
 //!   cargo test --release -p game --test creatures_arenas -- --nocapture
 //!
+//! And once it has learned (design 4: its one new behaviour, met before and
+//! already shown): the counter must still work as well as before (no
+//! learned behaviour breaks its creature's rule), and the creature must
+//! have done what it learned in most trials. The Hound learns in its
+//! charge, which its counter seldom lets happen: its arena has you heard
+//! first (walking on, minding nothing, until it comes), and is held only
+//! to the comparison.
+//!
 //! To see why a counter fails: `debug_trials` lists the seeds where the
 //! counter was touched, and `ARENA_DEBUG=kind:true:seed` prints that trial's
-//! mode changes:
+//! mode changes (`ARENA_LEARNED=1` for the learned creature, the Hound heard
+//! first):
 //!
 //!   ARENA_KIND=smiler cargo test --release -p game --test creatures_arenas debug_trials -- --ignored --nocapture
 mod arena;
@@ -30,12 +39,42 @@ const DT: f64 = 1.0 / 30.0;
 const LIMIT: f64 = 600.0;
 const SEEDS: u64 = 100;
 
+/// How a trial is played: with the creature's counter or not; against a
+/// creature that has learned (design 4); and, for the Hound, heard first
+/// (you walk on, minding nothing, until it first comes after you: with
+/// its counter it seldom does, and what it learns is in its charge).
+#[derive(Clone, Copy)]
+struct Setup {
+    counter: bool,
+    learned: bool,
+    heard_first: bool,
+}
+const PLAIN: Setup = Setup { counter: true, learned: false, heard_first: false };
+
 #[derive(Debug, Default, Clone, Copy)]
 struct Outcome {
     contacts: u32,
     killed: bool,
     reached: bool,
     secs: f64,
+    /// how many times it did what it learned (design 4)
+    uses: u32,
+}
+
+/// How many times creature `ei` did what its kind learns (each leaves a mark:
+/// a mode change's reason, a note to the director, or the Hound's lead).
+fn learned_uses(g: &Game, ei: usize) -> u32 {
+    let c = g.creature(ei).unwrap();
+    let reasons = |why: &str| c.brain.log.iter().filter(|l| l.3 == why).count() as u32;
+    let notes = |what: &str| g.director.log.iter().filter(|(_, w)| *w == what).count() as u32;
+    match g.entities[ei].kind.as_str() {
+        "smiler" => reasons("it waits where you went dark"),
+        "hound" => (c.get("ahead") > 0.0) as u32,
+        "watcher" => notes("lights fail"),
+        "corner" => reasons("it turns to look behind it"),
+        "reader" => notes("tear"),
+        _ => 0,
+    }
 }
 
 /// What you can tell of the creature without seeing it: where its sound
@@ -137,7 +176,8 @@ fn escape(g: &Game, ei: usize) -> (f64, f64) {
     best
 }
 
-fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
+fn trial(kind: &str, setup: Setup, seed: u64) -> Outcome {
+    let Setup { counter, learned, heard_first } = setup;
     seed_native(seed);
     // the one in the corner stands in a corner of a smaller lit room your
     // way keeps crossing; the others roam the pillared room
@@ -160,6 +200,13 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     } else {
         creature(&mut g, kind, cx, cz, yaw0)
     };
+    if learned {
+        // you have met it, it has learned, and you have seen it do it once
+        let run = &mut g.creature_run;
+        run.met.push(kind.to_string());
+        run.learned.push(kind.to_string());
+        run.shown.push(kind.to_string());
+    }
     g.player.pos = if small { v3(g.wx(4), 0.0, g.wz(4)) } else { v3(g.wx(2), 0.0, g.wz(2)) };
     // a tour of the room's corners, as you would explore a level (in the
     // small room, round it and across it, never into its corner)
@@ -184,6 +231,11 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     // your lamp: on in the dark, as anyone's (the Smiler's counter turns it
     // off for a while when it hears it stir)
     let mut wary = 0.0;
+    // the one in the corner: once its hum has stopped, your eyes stay away
+    // a while (a player who heard it stop does not turn to look a step
+    // later, out of the hum's reach, as its head comes round)
+    let mut eyes_away = 0.0;
+    let mut hunted = false;
     let mut glance = 0.0;
     let mut out_since = 0.0;
     // the paper in your pockets (a pile's worth), and when you last dropped some
@@ -194,8 +246,10 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         let h = heard(&g, ei);
         if h.stirred {
             wary = 15.0;
+            eyes_away = 2.0 * game::entities::corner::TURN;
         }
         wary = f64::max(wary - DT, 0.0);
+        eyes_away = f64::max(eyes_away - DT, 0.0);
         g.player.flashlight_on = !(counter && kind == "smiler" && wary > 0.0);
         let gait = if !counter {
             // the naive: walk; when it comes (as far as you can tell: the
@@ -224,6 +278,12 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
                 other => panic!("no counter for {other}"),
             }
         };
+        // heard first: you walk on, minding nothing, until it first comes
+        // after you (your breath kept: what meets its charge is your sprint)
+        if h.hunting {
+            hunted = true;
+        }
+        let gait = if heard_first && !hunted { Gait::Walk } else { gait };
         // (only when nothing is about, as far as you know)
         let calm = gait == Gait::Walk && !h.hunting && !(counter && h.stirred);
         let gait = if look_left > 0.0 && calm {
@@ -252,16 +312,18 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
             let (dx, dz) = (g.player.pos.x - p.x, g.player.pos.z - p.z);
             let l = hypot2(dx, dz).max(1e-6);
             let (ux, uz) = (dx / l, dz / l);
-            // out of its line when the Hound comes at you; straight away
-            // otherwise (from the Smiler, through the light: it is slow there)
-            let (ax, az) = if h.hunting { (ux * 0.5 - uz, uz * 0.5 + ux) } else { (ux, uz) };
-            (g.player.pos.x + ax * 3.0, g.player.pos.z + az * 3.0)
+            (g.player.pos.x + ux * 3.0, g.player.pos.z + uz * 3.0)
         };
         let toward = if gait == Gait::Still {
             None
         } else if counter && kind == "smiler" && (h.hunting || (h.stirred && h.d < 8.0)) {
             Some(escape(&g, ei))
-        } else if counter && kind == "hound" && (h.d < 6.0 || h.hunting) {
+        } else if counter && kind == "hound" && h.hunting {
+            // its charge (slower than your sprint): to where you get well
+            // before it does (sidestepping it, it ran you down; learned, it
+            // runs for where you are heading)
+            Some(escape(&g, ei))
+        } else if counter && kind == "hound" && h.d < 6.0 {
             Some(away)
         } else if counter && kind == "reader" && h.hunting {
             Some(away)
@@ -278,7 +340,7 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
         let face = if counter && kind == "watcher" && (h.stirred || glance > 0.0) {
             let p = g.entities[ei].pos();
             Some((p.x, p.z))
-        } else if counter && kind == "corner" && (h.stirred || h.hunting) {
+        } else if counter && kind == "corner" && (h.stirred || h.hunting || eyes_away > 0.0) {
             // the hum has stopped: look anywhere but at it
             let p = g.entities[ei].pos();
             let pp = g.player.pos;
@@ -343,6 +405,7 @@ fn trial(kind: &str, counter: bool, seed: u64) -> Outcome {
     }
     out.secs = if out.reached { out_since } else { t };
     out.killed = g.god_deaths > 0.0;
+    out.uses = learned_uses(&g, ei);
     out
 }
 
@@ -403,10 +466,10 @@ fn smiler_counter(h: &Heard, light_here: f64) -> Gait {
     }
 }
 
-fn sweep(kind: &str, counter: bool) -> Sweep {
+fn sweep(kind: &str, setup: Setup) -> Sweep {
     let mut w = Sweep::default();
     for s in 0..SEEDS {
-        let o = trial(kind, counter, 1000 + s);
+        let o = trial(kind, setup, 1000 + s);
         if o.contacts == 0 {
             w.untouched += 1.0;
         }
@@ -417,6 +480,10 @@ fn sweep(kind: &str, counter: bool) -> Sweep {
             w.across += 1.0;
             w.secs += o.secs;
         }
+        if o.uses > 0 {
+            w.used += 1.0;
+        }
+        w.uses += o.uses;
     }
     if w.across > 0.0 {
         w.secs /= w.across;
@@ -425,6 +492,7 @@ fn sweep(kind: &str, counter: bool) -> Sweep {
     w.untouched /= n;
     w.killed /= n;
     w.across /= n;
+    w.used /= n;
     w
 }
 
@@ -434,11 +502,14 @@ struct Sweep {
     killed: f64,
     across: f64,
     secs: f64,
+    /// the share of trials where it did what it learned, and how often in all
+    used: f64,
+    uses: u32,
 }
 
 fn report(kind: &str) -> (Sweep, Sweep) {
-    let with = sweep(kind, true);
-    let without = sweep(kind, false);
+    let with = sweep(kind, PLAIN);
+    let without = sweep(kind, Setup { counter: false, ..PLAIN });
     println!(
         "{kind}: with the counter {:.0}% untouched, {:.0}% killed, {:.0}% round ({:.0} s); without {:.0}% untouched, {:.0}% killed, {:.0}% round ({:.0} s)",
         with.untouched * 100.0,
@@ -495,14 +566,57 @@ fn the_hounds_counter_works_and_matters() {
     hold_to_bands("hound", &with, &without);
 }
 
+/// Once it has learned, its counter still works as well (design 4).
+fn hold_when_learned(kind: &str) {
+    let heard_first = kind == "hound";
+    let with = sweep(kind, Setup { learned: true, heard_first, ..PLAIN });
+    let before = sweep(kind, Setup { heard_first, ..PLAIN });
+    println!(
+        "{kind}, learned{}: with the counter {:.0}% untouched, {:.0}% killed, {:.0}% round ({:.0} s); it did what it learned in {:.0}% of the trials ({} times; {} before it learned); before it learned {:.0}% untouched",
+        if heard_first { ", heard first" } else { "" },
+        with.untouched * 100.0,
+        with.killed * 100.0,
+        with.across * 100.0,
+        with.secs,
+        with.used * 100.0,
+        with.uses,
+        before.uses,
+        before.untouched * 100.0
+    );
+    // (it must have done it: an arena it never learned in shows nothing)
+    assert!(with.used >= 0.5, "{kind}, learned: it did what it learned in only {:.0}% of the trials", with.used * 100.0);
+    // what it learned takes nothing from its counter
+    assert!(
+        with.untouched >= before.untouched - 0.05,
+        "{kind}, learned: {:.0}% untouched against {:.0}% before it learned",
+        with.untouched * 100.0,
+        before.untouched * 100.0
+    );
+    assert!(with.across >= 0.90, "{kind}, learned: with its counter only {:.0}% got round", with.across * 100.0);
+    // and it holds the counter's band (heard first, the Hound's counter
+    // has already been half lost: there only the comparison)
+    if !heard_first {
+        assert!(with.untouched >= 0.95, "{kind}, learned: with its counter only {:.0}% went untouched", with.untouched * 100.0);
+    }
+}
+
+#[test]
+fn what_each_learns_leaves_its_counter_working() {
+    for kind in ["smiler", "hound", "watcher", "corner", "reader"] {
+        hold_when_learned(kind);
+    }
+}
+
 /// The seeds where `ARENA_KIND`'s counter was touched (see the top).
 #[test]
 #[ignore]
 fn debug_trials() {
     let kind = std::env::var("ARENA_KIND").unwrap_or("smiler".into());
     let counter = std::env::var("ARENA_COUNTER").map(|v| v != "false").unwrap_or(true);
+    let learned = std::env::var("ARENA_LEARNED").is_ok();
+    let setup = Setup { counter, learned, heard_first: std::env::var("ARENA_HEARD").is_ok() || (learned && kind == "hound") };
     for s in 0..SEEDS {
-        let o = trial(&kind, counter, 1000 + s);
+        let o = trial(&kind, setup, 1000 + s);
         if o.contacts > 0 || std::env::var("ARENA_ALL").is_ok() {
             println!("seed {} contacts {} killed {}", 1000 + s, o.contacts, o.killed);
         }

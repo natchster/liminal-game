@@ -10,6 +10,12 @@
 //!   Loop           go through the plain door, walk back lap by lap to lap 0, out
 //!
 //! Entities are held still and deaths are counted, not suffered (god mode).
+//! Live (`the_whole_run_live`), the creatures walk the rooms and deaths are
+//! suffered: the bot plays the rule-follower's counters as it walks
+//! (`tests/rule_follower`), and a death is a retry (Wake up) of the level, as
+//! a player's is; the Building's floors and the anomalies' own modes are
+//! played as above (the self-assembly and the anomalies' residents have
+//! tests of their own; E9 rebuilds the residents).
 //! The run's anomaly rules are checked: at most one per level, never the same
 //! twice, none on level 1, all four met by level 12. Leaving level 13 ends
 //! M.'s story (the card; E goes on).
@@ -18,6 +24,7 @@
 //!   PLAYTHROUGH_SEEDS=101,202 PLAYTHROUGH_LEVELS=13 cargo test ...
 use game::base::config::EYE;
 use game::Game;
+mod rule_follower;
 
 fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
     placers_p00::register(r);
@@ -273,6 +280,13 @@ struct Walk {
 struct Bot {
     fine_key: String,
     free: Vec<u8>,
+    /// the creatures walk and kill (on the rooms' own floors)
+    live: bool,
+    /// the time and the last sheet dropped (the rule-follower's)
+    t: f64,
+    last_drop: f64,
+    /// deaths suffered
+    deaths: Vec<String>,
 }
 impl Bot {
     fn free_grid(&mut self, g: &Game) -> &[u8] {
@@ -294,7 +308,29 @@ impl Bot {
         }
         &self.free
     }
-    /// drive along a path with W (sprinting while there is stamina)
+    /// A level: live, her camp and her page first (as the rule-follower of
+    /// `beatable.rs` plays it); then the door.
+    fn level(&mut self, g: &mut Game) -> Walk {
+        let camp = g.story.camp.as_ref().filter(|c| c.page_id.is_some() && !c.page_taken).map(|c| (c.at.x, c.at.z));
+        let mut frames = 0;
+        if let (true, Some((cx, cz))) = (self.live, camp) {
+            let w = self.walk(g, cx, cz, 36000);
+            frames += w.frames;
+            if g.state == "dead" {
+                return w;
+            }
+            if (g.player.pos.x - cx).hypot(g.player.pos.z - cz) < 1.6 {
+                g.take_page();
+            }
+        }
+        let (ex, ez) = exit(g);
+        let mut w = self.walk(g, ex, ez, 36000);
+        w.frames += frames;
+        w
+    }
+
+    /// drive along a path with W (sprinting while there is stamina; live,
+    /// as the rule-follower's counters say)
     fn walk(&mut self, g: &mut Game, x: f64, z: f64, max_frames: usize) -> Walk {
         let free = self.free_grid(g).to_vec();
         let Some(p) = fine_path(g, &free, x, z).or_else(|| tile_path(g, x, z)) else { return Walk { ok: false, frames: 0, stuck: 0 } };
@@ -311,12 +347,47 @@ impl Bot {
                 tries = 0;
                 continue;
             }
-            set_look(g, (-dx).atan2(-dz), 0.0);
-            let sprint = g.player.stamina > 25.0;
-            key(g, "ShiftLeft", sprint);
-            g.player.sanity = 100.0;
-            step(g, 1);
-            frames += 1;
+            if self.live {
+                // the rule-follower: what the creatures it perceives call for
+                let c = rule_follower::counter(g, self.last_drop, self.t);
+                if c.paper {
+                    g.drop_paper_marker();
+                    self.last_drop = self.t;
+                }
+                if let Some(on) = c.lamp {
+                    if on != g.player.flashlight_on {
+                        g.toggle_flashlight();
+                    }
+                }
+                let to = match c.away_from {
+                    Some((ax, az)) => {
+                        let (ux, uz) = (g.player.pos.x - ax, g.player.pos.z - az);
+                        let l = ux.hypot(uz).max(1e-6);
+                        Some((g.player.pos.x + ux / l * 3.0, g.player.pos.z + uz / l * 3.0))
+                    }
+                    None => Some((wx, wz)),
+                };
+                rule_follower::drive(g, to, c.face, c.gait);
+                step(g, 1);
+                self.t += 1.0 / 60.0;
+                frames += 1;
+                if g.state == "dead" {
+                    break;
+                }
+                if c.gait == rule_follower::Gait::Still || c.away_from.is_some() {
+                    // (held or turned aside: no progress expected)
+                    best = 1e9;
+                    still = 0;
+                    continue;
+                }
+            } else {
+                set_look(g, (-dx).atan2(-dz), 0.0);
+                let sprint = g.player.stamina > 25.0;
+                key(g, "ShiftLeft", sprint);
+                g.player.sanity = 100.0;
+                step(g, 1);
+                frames += 1;
+            }
             if d < best - 0.02 {
                 best = d;
                 still = 0;
@@ -356,8 +427,9 @@ impl Bot {
                 break;
             }
         }
-        key(g, "KeyW", false);
-        key(g, "ShiftLeft", false);
+        for k in ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "ControlLeft"] {
+            key(g, k, false);
+        }
         let (ex, ez) = p[p.len() - 1];
         Walk { ok: (ex - g.player.pos.x).hypot(ez - g.player.pos.z) < 1.2, frames, stuck }
     }
@@ -374,7 +446,13 @@ fn wait_for(g: &mut Game, max_frames: usize, cond: impl Fn(&Game) -> bool) -> bo
     cond(g)
 }
 
-fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
+/// The peaks and the contacts of the level so far (the director's log).
+fn tally(g: &Game) -> (usize, usize) {
+    let n = |what: &str| g.director.log.iter().filter(|(_, w)| *w == what).count();
+    (n("peak"), n("contact"))
+}
+
+fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<String>) {
     let mut g = Game::new_bare();
     register_placers(&mut g.placers);
     g.launch_flags = format!("seed={seed}");
@@ -384,13 +462,19 @@ fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
     g.boot();
     g.start_new_game(); // New Game from the menu
     g.god_mode = true;
-    let mut bot = Bot { fine_key: String::new(), free: vec![] };
+    let mut bot = Bot { fine_key: String::new(), free: vec![], live: false, t: 0.0, last_drop: -10.0, deaths: vec![] };
     let mut met = vec![];
     for l in 1..=levels {
         assert!(wait_for(&mut g, 3600, |g| g.state == "playing" && g.level_num == l), "run {seed}: level {l} never started");
-        freeze_entities(&mut g);
         let scp = g.level_scp.clone();
+        // live on the rooms' own floors: the creatures walk, deaths are suffered
+        bot.live = live && g.building.is_none() && !matches!(scp.as_deref(), Some("store" | "house"));
+        g.god_mode = !bot.live;
+        if !bot.live {
+            freeze_entities(&mut g);
+        }
         met.push((l, scp.clone()));
+        let creatures = (0..g.entities.len()).filter(|&i| g.creature(i).is_some()).count();
         let (mut frames, mut stuck) = (0, 0);
         if scp.as_deref() == Some("house") {
             // the nest first: walk to each lamp and put it out
@@ -410,12 +494,36 @@ fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
             assert!(g.house_state.out, "run {seed} level {l}: could not put out the nest");
             step(&mut g, 150);
         }
-        let (ex, ez) = exit(&g);
-        let w = bot.walk(&mut g, ex, ez, 36000);
-        assert!(w.ok, "run {seed} level {l}: could not reach the exit ({} frames, {} nudges)", w.frames, w.stuck);
+        // live, her story as a player follows it: her camp and her page
+        // (which wakes the place), then the door
+        let (mut peaks, mut contacts) = (0, 0);
+        let mut w = bot.level(&mut g);
+        // a death: Wake up, and the level again (as many times as a player would)
+        let mut tries = 0;
+        while bot.live && g.state == "dead" && tries < 5 {
+            let cause = g.last_death_cause.clone().unwrap_or_default();
+            let killer = g.director.killer.filter(|&k| k < g.entities.len()).map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+            bot.deaths.push(format!("L{l}: {cause} {killer}"));
+            let (p, c) = tally(&g);
+            peaks += p;
+            contacts += c;
+            g.restart();
+            assert!(
+                wait_for(&mut g, 3600, |g| g.state == "playing" && g.level_num == l),
+                "run {seed}: level {l} never came back after a death"
+            );
+            w = bot.level(&mut g);
+            tries += 1;
+        }
+        let (p, c) = tally(&g);
+        peaks += p;
+        contacts += c;
+        assert!(w.ok, "run {seed} level {l}: could not reach the exit ({} frames, {} nudges; deaths {:?})", w.frames, w.stuck, bot.deaths);
         frames += w.frames;
         stuck += w.stuck;
         g.try_interact();
+        // the modes beyond the doors (the Stairwell, the Loop) are played as before
+        g.god_mode = true;
         if scp.as_deref() == Some("stairwell") {
             assert!(wait_for(&mut g, 900, |g| stair(g).is_some()), "run {seed} level {l}: the steel door did not open");
             let fl = 13.0 * 0.31;
@@ -505,13 +613,14 @@ fn play(seed: u32, levels: i32) -> Vec<(i32, Option<String>)> {
             g.state
         );
         println!(
-            "     run {seed} L{l:<2} {:<9} {:>4} s walked  {}",
+            "     run {seed} L{l:<2} {:<9} {:>4} s walked  {}{}",
             scp.as_deref().unwrap_or("-"),
             (frames as f64 / 60.0).round() as i64,
+            if bot.live { format!("{creatures} creatures, {peaks} peaks, {contacts} contacts  ") } else { String::new() },
             if stuck > 0 { format!("{stuck} nudges") } else { String::new() }
         );
     }
-    met
+    (met, bot.deaths)
 }
 
 #[test]
@@ -522,7 +631,7 @@ fn playthrough_from_new_game() {
         .unwrap_or_else(|| vec![101, 202]);
     let levels: i32 = std::env::var("PLAYTHROUGH_LEVELS").ok().and_then(|s| s.parse().ok()).unwrap_or(13);
     for seed in seeds {
-        let met = play(seed, levels);
+        let (met, _) = play(seed, levels, false);
         // the run's anomaly rules
         let keys: Vec<&str> = met.iter().filter_map(|(_, k)| k.as_deref()).collect();
         let uniq: std::collections::HashSet<&&str> = keys.iter().collect();
@@ -533,5 +642,22 @@ fn playthrough_from_new_game() {
                 assert!(keys.contains(&k), "run {seed}: {k} not met by level 12: {met:?}");
             }
         }
+    }
+}
+
+/// The whole run, live (`docs/ENTITIES.md` design 7): from New Game past
+/// level 13, the creatures walking the rooms and deaths suffered, the bot
+/// playing the rule-follower's counters; the run ends (the game is beatable
+/// as shipped, not only in god mode), with few deaths on the way.
+#[test]
+fn the_whole_run_live() {
+    let seeds: Vec<u32> = std::env::var("PLAYTHROUGH_SEEDS")
+        .ok()
+        .map(|s| s.split(',').filter_map(|x| x.parse().ok()).collect())
+        .unwrap_or_else(|| vec![101, 202, 303]);
+    for seed in seeds {
+        let (met, deaths) = play(seed, 14, true);
+        println!("run {seed}, live: {} levels, {} deaths {deaths:?}", met.len(), deaths.len());
+        assert!(deaths.len() <= 4, "run {seed}: {} deaths on the way: {deaths:?}", deaths.len());
     }
 }

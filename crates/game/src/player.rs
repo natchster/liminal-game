@@ -35,6 +35,13 @@ fn wpick<T>(f: fn(&str) -> Option<T>, wk: &str) -> T {
     f(wk).or_else(|| f("normal")).unwrap()
 }
 
+/// The dark zone takes your nerve no lower than this, and gives it back up
+/// to this (a spent nerve, under 25, is the creatures' doing alone, and
+/// passes: `creature::creature_contact`). Over 25 by more than the
+/// strongest sign of a stalker (12, `director.rs`): at 30, the dark and one
+/// sign had spent a nerve no creature had touched (E8).
+pub const DARK_FLOOR: f64 = 40.0;
+
 impl Game {
     /// start-up work (paper marker / guide arrow geometry, ...)
     pub fn init_player(&mut self) {
@@ -971,7 +978,16 @@ impl Game {
             n.gain().set_value(gv + (target - gv) * (dt * 2.5).min(1.0));
         }
         if in_dark && !self.player.flashlight_on {
-            self.player.sanity = clamp(self.player.sanity - 6.5 * dt, 0.0, SAN_MAX);
+            // the dark frightens you; it does not leave you defenceless: it
+            // takes your nerve down to `DARK_FLOOR`, and only the creatures
+            // take it further, for a while (it comes back to the floor as it
+            // does anywhere). A dead lamp in a dark zone had spent the nerve
+            // of every bot that died, leaving any touch fatal (E8)
+            if self.player.sanity > DARK_FLOOR {
+                self.player.sanity = (self.player.sanity - 6.5 * dt).max(DARK_FLOOR);
+            } else {
+                self.player.sanity = (self.player.sanity + SAN_REGEN * dt).min(DARK_FLOOR);
+            }
             self.dark_heart_t += dt;
             if self.dark_heart_t > 0.85 {
                 self.dark_heart_t = 0.0;

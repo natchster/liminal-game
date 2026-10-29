@@ -221,13 +221,16 @@ impl RunMemory {
 }
 
 /// What each kind learns from (design 4): the habit, and how many times
-/// before it has learned (never from your deaths).
+/// before it has learned (never from your deaths). E8 measured the counts
+/// first set (4, 3, 5, 4, 3): in twelve bot runs of ten levels no kind ever
+/// learned, the most any habit reached being 2; what is learned must be
+/// seen, so a kind you meet often learns within a run.
 pub const LEARNS: [(&str, &str, u32); 5] = [
-    ("smiler", "you hid from it in the dark", 4),
-    ("hound", "you outran it", 3),
-    ("watcher", "you held it with a long stare", 5),
-    ("corner", "you passed behind it", 4),
-    ("reader", "you escaped it with paper", 3),
+    ("smiler", "you hid from it in the dark", 2),
+    ("hound", "you outran it", 2),
+    ("watcher", "you held it with a long stare", 3),
+    ("corner", "you passed behind it", 2),
+    ("reader", "you escaped it with paper", 2),
 ];
 
 impl Game {

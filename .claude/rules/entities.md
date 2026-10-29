@@ -96,6 +96,13 @@ paths:
   read the trials (`debug_trials`, `ARENA_DEBUG`) before tuning: ask whether
   the rule leaves the player a winning move at all (fix the creature) or
   the bot just plays it badly (fix the bot, as a player would play it).
+  What it learns is held there too (`what_each_learns_leaves_its_counter_working`:
+  the counter works as well as before, and the arena must show it doing
+  what it learned). Beatable (design 7): `tests/beatable.rs` (the
+  rule-follower of `tests/rule_follower/` finishes ≥ 90% of levels 4–13,
+  no death breaks a hard rule; `BEATABLE_TRACE=seed:level … one_level` to
+  see a level) and `the_whole_run_live` in `tests/playthrough.rs`; a new
+  kind gets its counter in `rule_follower::counter`.
   Where they live: `tests/ecology.rs`. What is left of the old reference
   fixture (the steering, the staff's limb solver): `REGEN=1 cargo test
   --release -p game --test entities` prunes it to what is read.

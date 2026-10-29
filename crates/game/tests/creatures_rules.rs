@@ -994,15 +994,16 @@ fn learned(g: &mut Game, kind: &str) {
 fn each_kind_learns_from_its_habit_one_kind_a_level() {
     let mut g = room(9, 0.5, |_, _| false);
     g.level_num = 7;
-    // three escapes with paper teach the Reader
-    for _ in 0..2 {
+    let need = |kind: &str| game::entities::creature::LEARNS.iter().find(|l| l.0 == kind).unwrap().2;
+    // escapes with paper teach the Reader, at its count
+    for _ in 0..need("reader") - 1 {
         g.creature_habit("reader");
     }
     assert!(!g.creature_learned("reader"), "it learned before its count");
     g.creature_habit("reader");
     assert!(g.creature_learned("reader"));
     // ... and on the same level nothing else learns
-    for _ in 0..4 {
+    for _ in 0..need("smiler") {
         g.creature_habit("smiler");
     }
     assert!(!g.creature_learned("smiler"), "two kinds learned on one level");

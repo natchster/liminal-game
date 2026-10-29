@@ -181,6 +181,7 @@
         "test:backrooms/pacing",
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
+        "test:backrooms/beatable",
         "test:game/bodies",
         "test:backrooms/listen"
       ],
@@ -209,6 +210,7 @@
         "test:backrooms/pacing",
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
+        "test:backrooms/beatable",
         "test:game/bodies",
         "test:backrooms/listen"
       ],
@@ -235,6 +237,7 @@
         "shots:corner_death",
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
+        "test:backrooms/beatable",
         "test:game/bodies",
         "test:backrooms/ecology",
         "test:backrooms/listen",
@@ -256,6 +259,7 @@
         "shots:reader_death",
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
+        "test:backrooms/beatable",
         "test:game/bodies",
         "test:backrooms/ecology",
         "test:backrooms/story",
@@ -280,6 +284,7 @@
         "test:backrooms/pacing",
         "test:game/creatures_rules",
         "test:game/creatures_arenas",
+        "test:backrooms/beatable",
         "test:game/bodies"
       ],
       "id": "creature/watcher",
