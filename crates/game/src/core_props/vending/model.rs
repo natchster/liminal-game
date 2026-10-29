@@ -93,6 +93,8 @@ pub struct Piece {
     pub slot: Slot,
     pub coil: Option<usize>,
     pub cell: Option<[f64; 4]>,
+    /// the good it is a part of (a bottle is three pieces), if any
+    pub item: Option<usize>,
 }
 
 /// Blender part `name` (batch `v01`) as modelled; a small box when the part
@@ -312,7 +314,8 @@ pub fn display_rect() -> (f64, f64, f64, f64) {
 /// coils carry their index in `places`.
 pub fn hardware(places: &[CoilPlace]) -> Vec<Piece> {
     let mut v = vec![];
-    let mut put = |name: &str, m: Mat4, slot: Slot, coil: Option<usize>| v.push(Piece { geo: part(name), m, slot, coil, cell: None });
+    let mut put =
+        |name: &str, m: Mat4, slot: Slot, coil: Option<usize>| v.push(Piece { geo: part(name), m, slot, coil, cell: None, item: None });
     put("Vending__cabinet", at(0.0, 0.02 + (H - 0.02) / 2.0, -DOOR_T / 2.0), Slot::Paint, None);
     put("Vending__door", at(0.0, KICK + (H - KICK) / 2.0, FACE - DOOR_T / 2.0), Slot::Paint, None);
     put("Vending__glassFrame", at((WIN[0] + WIN[1]) / 2.0, (WIN[2] + WIN[3]) / 2.0, FACE - 0.008), Slot::Trim, None);

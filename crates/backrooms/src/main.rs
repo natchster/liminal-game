@@ -76,6 +76,9 @@ struct Options {
     /// each of these poses (world metres, radians), `_v00` on: the same poses
     /// in two builds (`--views` prints the poses along the walls that lean)
     views_at: Vec<(f64, f64, f64)>,
+    /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
+    /// machine is first played to that state (`Game::vending_demo`)
+    vending_demo: Option<String>,
     /// `--record FILE`: play normally and record the session (inputs, frame
     /// times, telemetry, the director's events) to FILE; opt-in, local only
     record: Option<String>,
@@ -116,6 +119,7 @@ fn parse_args() -> Options {
         death: false,
         views: false,
         views_at: vec![],
+        vending_demo: None,
         fresh: false,
         metrics: None,
         bench: None,
@@ -146,6 +150,7 @@ fn parse_args() -> Options {
                     })
                     .collect()
             }
+            "--vending-demo" => o.vending_demo = Some(next(&mut i)),
             "--screenshot" => o.screenshot = Some(next(&mut i)),
             "--frames" => o.frames = next(&mut i).parse().unwrap_or(90),
             "--level" => o.level = next(&mut i).parse().ok(),
@@ -690,6 +695,9 @@ fn level_check(o: &Options, dir: &str) {
                 print!(" ({} leaning, lean views: \"{}\")", g.angled.len(), lean.join(";"));
                 let vend: Vec<String> = g.vending_views().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" (vending views: \"{}\")", vend.join(";"));
+            }
+            if let Some(what) = o.vending_demo.as_deref() {
+                g.vending_demo(what);
             }
             for (k, &(x, z, yaw)) in o.views_at.iter().enumerate() {
                 g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);

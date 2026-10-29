@@ -40,10 +40,12 @@ pub struct Machine {
     pub stock: Vec<Stock>,
     /// still on: lit, humming, its display awake
     pub powered: bool,
-    /// the display: what it shows and its texture
+    /// the display: its mesh, what it is painted on, its texture
     pub display: Obj,
+    pub display_canvas: Canvas,
     pub display_tex: Tex,
-    pub shown: String,
+    /// the goods each coil holds, front first (the ids of their pieces)
+    pub items: Vec<Vec<usize>>,
     /// the flap of the delivery bin (it swings in when pushed)
     pub flap: Obj,
     /// its tubes and its lights (they go out with it)
@@ -67,6 +69,14 @@ impl Machine {
     pub fn world(&self, x: f64, y: f64, z: f64) -> Vec3 {
         let (p, (s, c)) = (self.pos(), self.yaw().sin_cos());
         Vec3::new(p.x + x * c + z * s, p.y + y, p.z - x * s + z * c)
+    }
+    /// Whether piece `pi` is part of coil `k`'s front good
+    pub fn stock_front(&self, k: usize, pi: usize) -> bool {
+        self.items[k].first().is_some_and(|&id| self.body.pieces[pi].item == Some(id))
+    }
+    /// The id of coil `k`'s front good
+    pub fn front_item(&self, k: usize) -> Option<usize> {
+        self.items[k].first().copied()
     }
     /// A world point in the machine's frame
     pub fn local(&self, q: &Vec3) -> Vec3 {
@@ -130,14 +140,18 @@ fn stock(places: &[CoilPlace], powered: bool) -> Vec<Stock> {
 }
 
 /// The goods in coil `k`: `count` of its design between the coil's turns,
-/// from the front, each a little askew
-fn goods_pieces(k: usize, c: &CoilPlace, s: &Stock, out: &mut Vec<Piece>) {
+/// from the front, each a little askew; the ids given them (front first)
+fn goods_pieces(k: usize, c: &CoilPlace, s: &Stock, next: &mut usize, out: &mut Vec<Piece>) -> Vec<usize> {
+    let mut ids = vec![];
     let d = designs()[s.design];
     let cell = Some(cell_uv(d.cell));
     let y = TRAY_Y[c.tray] + 0.010;
     // each design its own size, a little
     let k_size = 0.92 + 0.16 * ((s.design * 37 % 11) as f64 / 10.0);
     for j in 0..s.count {
+        let id = *next;
+        *next += 1;
+        ids.push(id);
         let z = c.place_z(j);
         let fine = j < 2;
         // a good now and then turned in its coil, or leaning on the next
@@ -151,29 +165,58 @@ fn goods_pieces(k: usize, c: &CoilPlace, s: &Stock, out: &mut Vec<Piece>) {
         match d.kind {
             Ware::Bag => {
                 let g = goods::pouch(0.150 * k_size, 0.205 * k_size, rand2(0.040, 0.052), 0.055, rand1(0.8), false, rand1(6.0), fine);
-                out.push(Piece { geo: g, m: at_rot(c.x + jx, y, z, lean, yaw, 0.0), slot: Slot::Goods, coil: Some(k), cell });
+                out.push(Piece {
+                    geo: g,
+                    m: at_rot(c.x + jx, y, z, lean, yaw, 0.0),
+                    slot: Slot::Goods,
+                    coil: Some(k),
+                    cell,
+                    item: Some(id),
+                });
             }
             Ware::Bar => {
                 let g = goods::pouch(0.058, 0.135 * k_size.min(1.0), 0.020, 0.05, rand1(0.3), true, rand1(6.0), fine);
-                out.push(Piece { geo: g, m: at_rot(c.x + jx, y, z, lean, yaw, 0.0), slot: Slot::Goods, coil: Some(k), cell });
+                out.push(Piece {
+                    geo: g,
+                    m: at_rot(c.x + jx, y, z, lean, yaw, 0.0),
+                    slot: Slot::Goods,
+                    coil: Some(k),
+                    cell,
+                    item: Some(id),
+                });
             }
             Ware::Pastry => {
                 let g = goods::pouch(0.125, 0.125, 0.034, 0.06, rand1(0.5), false, rand1(6.0), fine);
-                out.push(Piece { geo: g, m: at_rot(c.x + jx, y, z, lean, yaw, 0.0), slot: Slot::Goods, coil: Some(k), cell });
+                out.push(Piece {
+                    geo: g,
+                    m: at_rot(c.x + jx, y, z, lean, yaw, 0.0),
+                    slot: Slot::Goods,
+                    coil: Some(k),
+                    cell,
+                    item: Some(id),
+                });
             }
             Ware::Battery => {
                 let g = goods::card(0.075, 0.130, 0.020);
-                out.push(Piece { geo: g, m: at_rot(c.x + jx, y, z, lean * 0.5, yaw, 0.0), slot: Slot::Goods, coil: Some(k), cell });
+                out.push(Piece {
+                    geo: g,
+                    m: at_rot(c.x + jx, y, z, lean * 0.5, yaw, 0.0),
+                    slot: Slot::Goods,
+                    coil: Some(k),
+                    cell,
+                    item: Some(id),
+                });
             }
             Ware::Almond => {
                 let (body, label, cap) = goods::bottle();
                 let m = at_rot(c.x + jx, y, z, 0.0, rand1(PI * 2.0), 0.0);
-                out.push(Piece { geo: body, m, slot: Slot::Bottle, coil: Some(k), cell: None });
-                out.push(Piece { geo: label, m, slot: Slot::Goods, coil: Some(k), cell });
-                out.push(Piece { geo: cap, m, slot: Slot::Bottle, coil: Some(k), cell: None });
+                out.push(Piece { geo: body, m, slot: Slot::Bottle, coil: Some(k), cell: None, item: Some(id) });
+                out.push(Piece { geo: label, m, slot: Slot::Goods, coil: Some(k), cell, item: Some(id) });
+                out.push(Piece { geo: cap, m, slot: Slot::Bottle, coil: Some(k), cell: None, item: Some(id) });
             }
         }
     }
+    ids
 }
 
 /// The power cord: out of the back's lower right, down to the floor and
@@ -245,7 +288,7 @@ fn strip_pieces(places: &[CoilPlace]) -> (Tex, Vec<Piece>) {
         // the price channel's face, tipped back 15°
         let m = at_rot(CAB[0], y + 0.013, TRAY_Z + 0.3515, -0.26, 0.0, 0.0);
         let cell = Some([0.0, 1.0 - (t as f64 + 1.0) / n, 1.0, 1.0 / n]);
-        out.push(Piece { geo: g, m, slot: Slot::Labels, coil: None, cell });
+        out.push(Piece { geo: g, m, slot: Slot::Labels, coil: None, cell, item: None });
     }
     (tex, out)
 }
@@ -255,7 +298,7 @@ fn decal_pieces() -> Vec<Piece> {
     let mut out = vec![];
     let mut put = |w: f64, h: f64, x: f64, y: f64, z: f64, rz: f64, slot: Slot, cell: [f64; 4]| {
         let g = plane_geometry(w, h, 1.0, 1.0);
-        out.push(Piece { geo: g, m: at_rot(x, y, z, 0.0, 0.0, rz), slot, coil: None, cell: Some(cell) });
+        out.push(Piece { geo: g, m: at_rot(x, y, z, 0.0, 0.0, rz), slot, coil: None, cell: Some(cell), item: None });
     };
     let cx = (COL[0] + COL[1]) / 2.0;
     let z = PANEL_FACE + 0.0015;
@@ -332,9 +375,9 @@ fn build_machine(g: &mut Game) -> Built {
     let places = coil_places();
     let stock = stock(&places, powered);
     let mut pieces = hardware(&places);
-    for (k, (c, s)) in places.iter().zip(&stock).enumerate() {
-        goods_pieces(k, c, s, &mut pieces);
-    }
+    let mut next = 0;
+    let items: Vec<Vec<usize>> =
+        places.iter().zip(&stock).enumerate().map(|(k, (c, s))| goods_pieces(k, c, s, &mut next, &mut pieces)).collect();
     let (strips, labels) = strip_pieces(&places);
     pieces.extend(labels);
     pieces.extend(decal_pieces());
@@ -346,13 +389,14 @@ fn build_machine(g: &mut Game) -> Built {
         slot: Slot::Glass,
         coil: None,
         cell: None,
+        item: None,
     });
     // age: rust and scuffs along the door's bottom (more on a dead one)
     let rust = plane_geometry(W - 0.02, 0.16, 1.0, 1.0);
-    pieces.push(Piece { geo: rust, m: at(0.0, KICK + 0.08, FACE + 0.0012), slot: Slot::Rust, coil: None, cell: None });
+    pieces.push(Piece { geo: rust, m: at(0.0, KICK + 0.08, FACE + 0.0012), slot: Slot::Rust, coil: None, cell: None, item: None });
     // the power cord, out of its back low down and along the floor to the wall
     let cord = cord_geo();
-    pieces.push(Piece { geo: cord, m: Mat4::IDENTITY, slot: Slot::Trim, coil: None, cell: None });
+    pieces.push(Piece { geo: cord, m: Mat4::IDENTITY, slot: Slot::Trim, coil: None, cell: None, item: None });
     // the machine stands on its feet (`root`, placed by `scatter`); it rocks
     // and falls about its front bottom edge (`tilt`); its body hangs from that
     let root = group();
@@ -451,12 +495,14 @@ fn build_machine(g: &mut Game) -> Built {
         stock,
         powered,
         display,
+        display_canvas: canvas,
         display_tex,
-        shown: String::new(),
+        items,
         flap: hinge,
         tubes,
         lights,
-        state: rules::State::default(),
+        // how many shoves shake what hangs loose: its own, 2 to 4 (rule 6)
+        state: rules::State { drop_on: irand(2, 4) as u32, ..Default::default() },
     });
     Built::new(root, H + 0.01)
 }

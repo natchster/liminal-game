@@ -192,6 +192,46 @@ impl Game {
         out
     }
 
+    /// Plays every lit vending machine to a state, for its frames: `hang`
+    /// (a coin in, for a bag on its second tray or else its first stocked
+    /// coil: the good hangs at the glass) or `bin` (and then rocked
+    /// until it falls into the bin). Time runs for the machines alone.
+    pub fn vending_demo(&mut self, what: &str) {
+        use crate::core_props::vending::rules::{Verb, SHOVE_T, VEND_T};
+        let run = |g: &mut Game, i: usize, secs: f64| {
+            for _ in 0..(secs * 60.0) as usize {
+                g.perf_t += 1.0 / 60.0;
+                g.vending_frame(i, 1.0 / 60.0);
+            }
+        };
+        for i in 0..self.vending.len() {
+            if !self.vending[i].powered {
+                continue;
+            }
+            let d = crate::core_props::vending::paint::designs();
+            let m = &self.vending[i];
+            // a bag on the second tray, where it shows best; else any
+            let pick = (0..m.places.len())
+                .find(|&k| {
+                    m.places[k].tray == 1
+                        && m.stock[k].count > 0
+                        && d[m.stock[k].design].kind == crate::core_props::vending::paint::Ware::Bag
+                })
+                .or_else(|| (0..m.places.len()).find(|&k| m.stock[k].count > 0));
+            let Some(k) = pick else { continue };
+            self.vending[i].state.gaze = Some(k);
+            self.player.coins += 1;
+            self.vending_use(i, Verb::InsertCoin);
+            run(self, i, VEND_T + 0.8);
+            if what == "bin" {
+                for _ in 0..self.vending[i].state.drop_on {
+                    self.vending_use(i, Verb::Rock);
+                    run(self, i, SHOVE_T + 0.6);
+                }
+            }
+        }
+    }
+
     /// A camera pose inside each zone of the layout, for looking at it: the
     /// open tile of the zone with the longest straight run of open floor in
     /// front of it, a step back from its centre, facing down the run.

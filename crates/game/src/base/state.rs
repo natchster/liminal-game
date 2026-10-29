@@ -108,6 +108,8 @@ pub struct Player {
     pub bottles: i32,
     pub batteries: i32,
     pub papers: i32,
+    /// coins (the vending machines' coin returns give them)
+    pub coins: i32,
     pub was_in_pool: bool,
     pub audible_range: f64,
     /// Eye height while hiding in the Showroom (None when not hiding)
@@ -134,6 +136,7 @@ impl Default for Player {
             bottles: 0,
             batteries: 0,
             papers: 0,
+            coins: 0,
             was_in_pool: false,
             audible_range: 0.0,
             hide_eye: None,

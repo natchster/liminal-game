@@ -19,6 +19,7 @@ pub struct SaveData {
     pub bottles: f64,
     pub batteries: f64,
     pub papers: f64,
+    pub coins: f64,
     pub lore: Vec<f64>,
     pub archivist: bool,
     pub survivor: bool,
@@ -193,6 +194,7 @@ impl Game {
             "bottles": self.player.bottles,
             "batteries": self.player.batteries,
             "papers": self.player.papers,
+            "coins": self.player.coins,
             "lore": lore,
             "archivist": self.lore_archivist_shown,
             "survivor": self.survivor_shown,
@@ -229,6 +231,7 @@ impl Game {
             bottles: int("bottles"),
             batteries: int("batteries"),
             papers: int("papers"),
+            coins: int("coins"),
             lore: d.get("lore").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).collect()).unwrap_or_default(),
             archivist: flag("archivist"),
             survivor: flag("survivor"),
@@ -263,6 +266,7 @@ impl Game {
         self.player.bottles = (d.bottles as i32).max(0);
         self.player.batteries = (d.batteries as i32).max(0);
         self.player.papers = (d.papers as i32).max(0);
+        self.player.coins = (d.coins as i32).max(0);
         let n = self.lore_entry_count();
         self.lore_found = d.lore.iter().filter(|&&i| i.fract() == 0.0 && i >= 0.0 && (i as usize) < n).map(|&i| i as usize).collect();
         self.lore_archivist_shown = d.archivist;
@@ -556,6 +560,7 @@ impl Game {
         self.player.bottles = 0;
         self.player.batteries = 0;
         self.player.papers = 0;
+        self.player.coins = 0;
         self.hinted_bottle = false;
         self.hinted_battery = false;
         let start_level = hp.get("level").and_then(|s| parse_int_prefix(s)).map(|v| 1.max(to_i32(v))).unwrap_or(1);

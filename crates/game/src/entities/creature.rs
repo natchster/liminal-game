@@ -313,7 +313,8 @@ impl Game {
         };
         // sound: your step's reach against the way it would walk to you
         let path_d = self.path_distance(pos.x, pos.z, dist);
-        let aud = self.player.audible_range * kd.hearing;
+        // (beside a vending machine gone silent, nothing hears you walk: VENDING.md rule 5)
+        let aud = if self.vending_muffles(pp.x, pp.z) { 0.0 } else { self.player.audible_range * kd.hearing };
         let sound = if aud > 0.0 && path_d < aud { ((aud - path_d) / (aud * 0.35).max(1.0)).clamp(0.0, 1.0) } else { 0.0 };
         Percept {
             dist,

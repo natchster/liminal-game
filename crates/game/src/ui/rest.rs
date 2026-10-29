@@ -24,7 +24,7 @@ pub struct Rest {
     pub thread: f64,
     /// the glance key is held: everything, with its labels
     pub glance: bool,
-    seen: Option<(i32, i32, i32, usize, String, bool)>,
+    seen: Option<(i32, i32, i32, usize, String, bool, i32)>,
     last_battery: f64,
     last_sanity: f64,
 }
@@ -33,7 +33,7 @@ impl Game {
     /// Per frame (from `update_hud`): what changed, and what shows
     pub fn update_rest(&mut self, dt: f64) {
         let p = &self.player;
-        let now = (p.bottles, p.batteries, p.papers, self.lore_found.len(), self.thread.clone(), p.flashlight_on);
+        let now = (p.bottles, p.batteries, p.papers, self.lore_found.len(), self.thread.clone(), p.flashlight_on, p.coins);
         let glance = self.held(Act::Glance);
         let (stamina, sanity, battery, light) = (p.stamina, p.sanity, p.battery, p.flashlight_on);
         let r = &mut self.rest;
@@ -56,7 +56,7 @@ impl Game {
             r.battery = r.battery.max(if light { 1.5 } else { SHOW_FOR });
         }
         if let Some(seen) = &r.seen {
-            if (seen.0, seen.1, seen.2, seen.3) != (now.0, now.1, now.2, now.3) {
+            if (seen.0, seen.1, seen.2, seen.3, seen.6) != (now.0, now.1, now.2, now.3, now.6) {
                 r.pockets = SHOW_FOR + 1.0;
             }
             if seen.4 != now.4 && !now.4.is_empty() {
@@ -97,6 +97,9 @@ impl Game {
         }
         if p.papers > 0 {
             v.push(format!("Paper {}", p.papers));
+        }
+        if p.coins > 0 {
+            v.push(if p.coins == 1 { "A coin".to_string() } else { format!("Coins {}", p.coins) });
         }
         if !self.lore_found.is_empty() || !self.notebook.is_empty() {
             v.push(format!("Pages {}", self.lore_found.len() + self.notebook.len()));

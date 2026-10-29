@@ -1178,6 +1178,24 @@
         "test:backrooms/listen": true,
         "test:game/hud": true
       }
+    },
+    {
+      "checks": [
+        "test:backrooms/vending",
+        "test:backrooms/materials",
+        "test:backrooms/level_sweep"
+      ],
+      "id": "props/vending",
+      "kind": "prop with rules",
+      "last_checked": "2026-10-30",
+      "last_human_review": null,
+      "name": "the vending machine (docs/VENDING.md: its body and its nine rules)",
+      "notes": "",
+      "passes": {
+        "test:backrooms/vending": true,
+        "test:backrooms/materials": true,
+        "test:backrooms/level_sweep": true
+      }
     }
   ]
 }
