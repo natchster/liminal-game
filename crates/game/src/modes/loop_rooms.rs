@@ -569,6 +569,34 @@ impl Builder {
         geo.dispose();
         self
     }
+    /// a body's mesh in its own colours (`bodies.bin`), moved by `m`; the
+    /// shared geometry is left as it was (it is cached)
+    fn add_painted(&mut self, geo: &Geo, m: &Mat4) -> &mut Self {
+        let g = geo.r();
+        let base = (self.pos.len() / 3) as u32;
+        let mut m3 = Mat3::default();
+        m3.get_normal_matrix(m);
+        let count = g.vertex_count();
+        let painted = g.color.len() >= count * 3;
+        for i in 0..count {
+            let mut v = Vec3::new(g.position[i * 3] as f64, g.position[i * 3 + 1] as f64, g.position[i * 3 + 2] as f64);
+            v.apply_matrix4(m);
+            self.pos.extend_from_slice(&[v.x as f32, v.y as f32, v.z as f32]);
+            let mut n = Vec3::new(g.normal[i * 3] as f64, g.normal[i * 3 + 1] as f64, g.normal[i * 3 + 2] as f64);
+            n.apply_matrix3(&m3).normalize();
+            self.nor.extend_from_slice(&[n.x as f32, n.y as f32, n.z as f32]);
+            self.uv.extend_from_slice(&[0.0, 0.0]);
+            if painted {
+                self.col.extend_from_slice(&g.color[i * 3..i * 3 + 3]);
+            } else {
+                self.col.extend_from_slice(&[0.5, 0.5, 0.5]);
+            }
+        }
+        if let Some(ix) = &g.index {
+            self.idx.extend(ix.iter().map(|i| base + i));
+        }
+        self
+    }
     /// quad from four corners (in order around the edge), facing normal n;
     /// uvf(x, y, z) → [u, v]
     fn quad(&mut self, c4: [[f64; 3]; 4], n: [f64; 3], mut uvf: impl FnMut(f64, f64, f64) -> [f64; 2], hex: u32) -> &mut Self {
@@ -1188,35 +1216,17 @@ impl LoopMode {
             b.add(cyl_geo!(0.02, 0.02, 0.022, 10), &mt(0.0, 0.171, 0.0), 0xdad3c2);
             b.build(og)
         };
-        // the seated figure: a man-shaped thing in office clothes, smooth
-        // where the face should be, on an office chair of its own
+        // the seated figure: a man in office clothes with nothing where his
+        // face should be, on an office chair of its own (`bodies.bin`
+        // "seated", `assets/src/creatures/body_seated.py`: sat on this chair)
         let figure_geo = {
             let mut b = Builder::new();
             add_chair(&mut b, &Mat4::IDENTITY);
-            const SKIN: u32 = 0xd6cebf;
-            const SHIRT: u32 = 0x5d6670;
-            const TIE: u32 = 0x4a1715;
-            const TROU: u32 = 0x2a2a28;
-            const SHOE: u32 = 0x1b1a18;
-            let cap = |r: f64, len: f64| capsule_geo!(r, len, 6, 12);
-            b.add(cap(0.13, 0.16), &mtr(0.0, 0.6, -0.03, 0.0, 0.0, PI / 2.0), TROU);
-            for s in [-1.0f64, 1.0] {
-                b.add(cap(0.075, 0.32), &mtr(s * 0.1, 0.585, 0.17, PI / 2.0, 0.0, 0.0), TROU);
-                b.add(cap(0.06, 0.36), &mt(s * 0.1, 0.34, 0.39), TROU);
-                b.add(bevel_box(0.1, 0.07, 0.25, 0.03), &mt(s * 0.1, 0.035, 0.45), SHOE);
-                b.add(cap(0.048, 0.22), &mtr(s * 0.215, 0.96, -0.05, 0.22, 0.0, s * 0.08), SHIRT);
-                b.add(cap(0.042, 0.24), &mtr(s * 0.175, 0.75, 0.1, 1.89, 0.0, 0.0), SHIRT); // forearms down onto the thighs
-                                                                                            // long, too-long hands on the knees
-                b.add(sphere_geo!(0.045, 12, 8), &mtx(s * 0.15, 0.66, 0.28, 0.0, 0.0, 0.0, 0.75, 0.55, 1.7), SKIN);
+            for m in crate::assets::bodies::body("seated").map(|d| d.meshes.as_slice()).unwrap_or(&[]) {
+                if let Some(g) = crate::assets::bodies::body_geometry("seated", &m.name) {
+                    b.add_painted(&g, &Mat4::IDENTITY);
+                }
             }
-            b.add(cap(0.155, 0.3), &mtx(0.0, 0.93, -0.07, 0.08, 0.0, 0.0, 1.12, 1.0, 0.72), SHIRT);
-            b.add(cap(0.07, 0.3), &mtr(0.0, 1.12, -0.07, 0.0, 0.0, PI / 2.0), SHIRT); // the shoulder line
-            b.add(bevel_box(0.055, 0.34, 0.016, 0.006), &mtr(0.0, 0.96, 0.05, 0.1, 0.0, 0.0), TIE);
-            b.add(cyl_geo!(0.055, 0.06, 0.05, 12), &mt(0.0, 1.18, -0.05), SHIRT); // collar
-                                                                                  // a neck a little too long, and the head tipped to one side: an
-                                                                                  // egg of skin with nothing on the front of it
-            b.add(cyl_geo!(0.042, 0.048, 0.17, 12), &mtr(0.004, 1.27, -0.04, 0.0, 0.0, -0.05), SKIN);
-            b.add(sphere_geo!(0.105, 24, 18), &mtx(0.018, 1.44, -0.02, 0.08, 0.0, -0.16, 0.92, 1.24, 1.02), SKIN);
             b.build(og)
         };
         let ghost_door_geo = plane_geo!(1.1, 2.18);
@@ -1492,6 +1502,12 @@ impl LoopMode {
         self.out.events.clear();
         self.rebuild();
         self.group.set_visible(true);
+    }
+    /// (tools) You on lap `lap`, `dist` m in front of where the seated figure
+    /// sits in the third room (it faces back down the rooms), looking at it.
+    pub fn face_figure(&mut self, lap: i32, dist: f64) {
+        let fz = LOOP::FIGURE_ROOM as f64 * P + P / 2.0 + FURN.figure.v;
+        self.place(lap, fz - dist, FURN.figure.x, Some(PI));
     }
     /// Put the player at (lap, z, x) directly (tests, tools).
     pub fn place(&mut self, lap: i32, z: f64, x: f64, yaw: Option<f64>) {

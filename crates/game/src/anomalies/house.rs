@@ -212,6 +212,9 @@ impl Game {
     /// A shadow at tile (x, z): the rig, plus the skinned body and its pale edge when built.
     pub fn make_shadow(&mut self, x: i32, z: i32) -> HumanBuild {
         let g = group();
+        // its body: still the HTML version's (`creature_meshes.bin`). A
+        // MakeHuman shadow fitted to this rig (E9) lost or tied four blind
+        // reviews to it: the old one's long fingers hook out as claws
         let body = crate::assets::creatures::creature_geometry("shBody");
         let sm = self.shadow_mat.clone();
         let mut parts = human_rig(&g, &HUMAN_RIG_SHADOW, if body.is_some() { None } else { Some(&sm) });

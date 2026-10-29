@@ -63,6 +63,8 @@ struct Options {
     levels: Vec<i32>,
     /// `--showcase smiler[:dist]`: pin a creature in front of the camera
     showcase: Option<(String, f64)>,
+    /// `--showcase kind:dist:walk`: placed there once, then it goes about
+    showcase_walk: bool,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
     /// `--screen pause|leave|settings|brightness|controls|title|dead|ending|notebook|notebook-typed`:
@@ -105,6 +107,7 @@ fn parse_args() -> Options {
         dump_level: None,
         levels: vec![],
         showcase: None,
+        showcase_walk: false,
         screen: None,
         death: false,
         views: false,
@@ -138,9 +141,11 @@ fn parse_args() -> Options {
             "--screen" => o.screen = Some(next(&mut i)),
             "--showcase" => {
                 let v = next(&mut i);
-                let mut it = v.splitn(2, ':');
+                let mut it = v.splitn(3, ':');
                 let kind = it.next().unwrap_or("smiler").to_string();
                 o.showcase = Some((kind, it.next().and_then(|d| d.parse().ok()).unwrap_or(3.5)));
+                // `kind:dist:walk`: placed once, then left to go about (its walk)
+                o.showcase_walk = it.next() == Some("walk");
             }
             "--scale" => o.scale = next(&mut i).parse().unwrap_or(1.0),
             "--dump-level" => o.dump_level = Some(next(&mut i)),
@@ -154,7 +159,7 @@ fn parse_args() -> Options {
             "--replay" => o.replay = Some(next(&mut i)),
             "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
             "--help" | "-h" => {
-                println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist] [--death]]]");
+                println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist[:walk]] [--death]]]");
                 println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
                 println!(
@@ -525,7 +530,7 @@ fn screenshot(o: &Options, path: &str) {
     for i in 0..o.frames {
         g.now_ms = (i as f64) * 1000.0 / 60.0;
         if let Some((kind, dist)) = &o.showcase {
-            if g.state == "playing" {
+            if g.state == "playing" && (!o.showcase_walk || i == 0) {
                 g.showcase_entity(kind, *dist);
             }
             if o.death && i + 15 == o.frames {

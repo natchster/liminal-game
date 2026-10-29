@@ -13,7 +13,14 @@ paths:
   and one counter each), one brain, fairness as invariants. Every kind
   `add_entity` makes is on the brain (`creature::on_new_brain`); `ai.rs`
   keeps only the shared steering and the update loop (the anomalies' staff
-  and shadows run their own rules there until E9).
+  and shadows keep their own rules there, walked on the procedural human
+  rig of `anomalies::rig`; the staff's body, since E9, is MakeHuman's
+  fitted to that rig's rest pose: `assets/src/creatures/figure.py`,
+  `rigs.json`, held by `tests/anomaly_bodies.rs`; a rig that changes needs
+  `REGEN=1` and its body rebuilt; the shadows keep the HTML version's body,
+  which blind reviews preferred to a new one). A new body for a figure
+  ships only when a blind review prefers it (`cargo xtask ab`, both
+  orders, a fresh reviewer each round, a second to confirm).
 - **The new brain** (`entities/brain.rs`, `entities/creature.rs`): a creature
   is in one `Mode` and changes it only by a rule of its kind, logged with a
   reason (`Brain::set`); percepts are computed once a frame (`perceive`:

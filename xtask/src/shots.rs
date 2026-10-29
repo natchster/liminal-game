@@ -48,6 +48,19 @@ pub const HEIGHT: u32 = 300;
 /// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5.)
 const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10)];
 const CREATURES: &[&str] = &["smiler", "hound", "watcher", "corner", "reader"];
+/// The anomalies' figures (`docs/ENTITIES.md` E9), each in its own place:
+/// the Showroom's staff (4242's level 10; at 8 m a wall stands in the way),
+/// the Borrowed House's shadows (7's level 5), and the Loop's seated man on
+/// the lap it comes, from 2.5 m and 1.6 m (`--screen loop-figure`).
+const FIGURES: &[(&str, &[&str])] = &[
+    ("staff_2m", &["--seed", "4242", "--level", "10", "--play", "--frames", "90", "--showcase", "staff:2"]),
+    ("staff_4m", &["--seed", "4242", "--level", "10", "--play", "--frames", "90", "--showcase", "staff:4"]),
+    ("shadow_2m", &["--seed", "7", "--level", "5", "--play", "--frames", "90", "--showcase", "shadow:2"]),
+    ("shadow_4m", &["--seed", "7", "--level", "5", "--play", "--frames", "90", "--showcase", "shadow:4"]),
+    ("shadow_8m", &["--seed", "7", "--level", "5", "--play", "--frames", "90", "--showcase", "shadow:8"]),
+    ("seated_2m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure"]),
+    ("seated_1m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure-near"]),
+];
 const DISTANCES: &[u32] = &[2, 4, 8];
 
 /// A difference below all of these is reported but passes: below what a
@@ -312,6 +325,13 @@ fn render_all() -> Result<Vec<Shot>, String> {
         c.arg("--screenshot").arg(out.join(format!("{name}.png")));
         jobs.push((name, c));
     }
+    for (name, args) in FIGURES {
+        let mut c = Command::new(&bin);
+        size(&mut c);
+        c.args(*args);
+        c.arg("--screenshot").arg(out.join(format!("{name}.png")));
+        jobs.push((name.to_string(), c));
+    }
     // the levels: every zone view, then the selection
     let raw = out.join("levels");
     for &(seed, level) in LEVELS {
@@ -327,6 +347,9 @@ fn render_all() -> Result<Vec<Shot>, String> {
         for name in DISTANCES.iter().map(|d| format!("{kind}_{d}m")).chain([format!("{kind}_death")]) {
             shots.push(Shot { path: out.join(format!("{name}.png")), name });
         }
+    }
+    for (name, _) in FIGURES {
+        shots.push(Shot { path: out.join(format!("{name}.png")), name: name.to_string() });
     }
     let mut seen = std::collections::BTreeSet::new();
     for &(seed, level) in LEVELS {

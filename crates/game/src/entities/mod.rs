@@ -495,8 +495,13 @@ impl Game {
         for (i, e) in self.entities.iter().enumerate() {
             if let Some(c) = self.creature(i) {
                 c.body.sync();
-            } else if let Some(sk) = e.parts.get("skin") {
-                sync_skin_bind(sk);
+            } else {
+                // (a figure on the human rig: its body and its clothes)
+                for (k, sk) in &e.parts {
+                    if k == "skin" || k.starts_with("skin.") {
+                        sync_skin_bind(sk);
+                    }
+                }
             }
         }
     }

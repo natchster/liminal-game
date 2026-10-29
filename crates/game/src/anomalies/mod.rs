@@ -127,8 +127,10 @@ fn store_music_step(ac: &AudioContext, oscs: &[AudioNode], k: usize) {
 impl Game {
     /// start-up work (staff/shadow materials, the shadow uniforms, ...)
     pub fn init_anomalies(&mut self) {
-        // the staff and shadow bodies: decoded once at start-up (`creature_geometry` caches them)
-        let _ = crate::assets::creatures::creature_geometry("stBody");
+        // the staff and shadow bodies: decoded once at start-up (`body_geometry` caches them)
+        for m in crate::assets::bodies::body("staff").map(|b| b.meshes.as_slice()).unwrap_or(&[]) {
+            let _ = crate::assets::bodies::body_geometry("staff", &m.name);
+        }
         let _ = crate::assets::creatures::creature_geometry("shBody");
         // the shadow uniforms (time 0, smoke 1), shared by both shadow materials
         self.shadow_u_time = 0.0;

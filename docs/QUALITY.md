@@ -53,8 +53,8 @@ Last sweep: 2026-10-28.
 
 | Family | Grade | Notes |
 |---|---|---|
-| Creatures (Smiler, Hound, Watcher) | B | All three have goldens and behaviour tests |
-| Anomalies (Stairwell, Showroom, House, Loop) | C | Fixture tests and the sweep; only the Showroom has a golden view |
+| Creatures (Smiler, Hound, Watcher, the one in the corner, Reader) | B | All five have goldens at 2, 4 and 8 m and a death scene, their rules one test each, their counters held to arenas, learned and not |
+| Anomalies (Stairwell, Showroom, House, Loop) | C | Fixture tests and the sweep; the Showroom has a golden view; the staff, the shadows and the seated man have goldens of their own (E9), the staff and the seated man on new bodies a blind review preferred (`tests/anomaly_bodies.rs` holds the staff to its rig and walks it untorn); the shadows keep the HTML version's body (a new one lost or tied four reviews) |
 | Zone purposes (14) | B | One golden view each; style bands measured from 631 views (five purposes with too few views share the pooled band) |
 | Prop families (10 themes, 650 placers) | B | Material lint, smoke tests, the look settle pass; no turntables |
 | Sound (mix, ambient) | B | Loudness and listening gates |

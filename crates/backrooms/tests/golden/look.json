@@ -197,6 +197,36 @@
     "luminance": 0.2695,
     "shadow": 0.0569
   },
+  "seated_1m": {
+    "colourfulness": 27.25,
+    "contrast": 0.0937,
+    "luminance": 0.1247,
+    "shadow": 0.6704
+  },
+  "seated_2m": {
+    "colourfulness": 26.77,
+    "contrast": 0.0892,
+    "luminance": 0.1191,
+    "shadow": 0.6985
+  },
+  "shadow_2m": {
+    "colourfulness": 13.33,
+    "contrast": 0.1529,
+    "luminance": 0.4838,
+    "shadow": 0.0072
+  },
+  "shadow_4m": {
+    "colourfulness": 12.77,
+    "contrast": 0.156,
+    "luminance": 0.487,
+    "shadow": 0.0071
+  },
+  "shadow_8m": {
+    "colourfulness": 12.76,
+    "contrast": 0.1568,
+    "luminance": 0.4877,
+    "shadow": 0.0069
+  },
   "smiler_2m": {
     "colourfulness": 22.52,
     "contrast": 0.0852,
@@ -220,6 +250,18 @@
     "contrast": 0.1868,
     "luminance": 0.3121,
     "shadow": 0.1304
+  },
+  "staff_2m": {
+    "colourfulness": 29.32,
+    "contrast": 0.0856,
+    "luminance": 0.2986,
+    "shadow": 0.0304
+  },
+  "staff_4m": {
+    "colourfulness": 26.35,
+    "contrast": 0.0748,
+    "luminance": 0.2944,
+    "shadow": 0.032
   },
   "watcher_2m": {
     "colourfulness": 21.23,

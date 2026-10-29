@@ -161,7 +161,8 @@ pub struct RigArm {
     pub fingers: Vec<Vec<Obj>>,
     pub side: f64,
 }
-/// What `human_rig` returns, plus `skin` / `edge` once a body is bound.
+/// What `human_rig` returns, plus `skin` / `edge` once a body is bound, and
+/// the body's other skinned meshes (its clothes, its hair), by name.
 #[derive(Clone, Debug)]
 pub struct RigParts {
     pub pelvis: Obj,
@@ -173,6 +174,7 @@ pub struct RigParts {
     pub arms: Vec<RigArm>,
     pub skin: Option<Obj>,
     pub edge: Option<Obj>,
+    pub skins: Vec<(String, Obj)>,
 }
 fn side_name(s: f64) -> &'static str {
     if s > 0.0 {
@@ -182,7 +184,8 @@ fn side_name(s: f64) -> &'static str {
     }
 }
 impl RigParts {
-    /// `Entity.parts`: every bone by its name, `torso` (= pelvis), `skin`, `edge`.
+    /// `Entity.parts`: every bone by its name, `torso` (= pelvis), `skin`,
+    /// `edge`, and `skin.<name>` for each of `skins`.
     pub fn to_map(&self) -> HashMap<String, Obj> {
         let mut m = HashMap::new();
         for (k, o) in [
@@ -217,6 +220,9 @@ impl RigParts {
         }
         if let Some(e) = &self.edge {
             m.insert("edge".into(), e.clone());
+        }
+        for (k, o) in &self.skins {
+            m.insert(format!("skin.{k}"), o.clone());
         }
         m
     }
@@ -257,6 +263,9 @@ impl RigParts {
                 side: s,
             });
         }
+        let mut skins: Vec<(String, Obj)> =
+            m.iter().filter_map(|(k, o)| k.strip_prefix("skin.").map(|n| (n.to_string(), o.clone()))).collect();
+        skins.sort_by(|a, b| a.0.cmp(&b.0));
         Some(RigParts {
             pelvis: g("pelvis")?,
             abdomen: g("abdomen")?,
@@ -267,6 +276,7 @@ impl RigParts {
             arms,
             skin: g("skin"),
             edge: g("edge"),
+            skins,
         })
     }
 }
@@ -379,7 +389,7 @@ pub fn human_rig(g: &Obj, r: &HumanRig, rigid_mat: Option<&Mat>) -> RigParts {
             .collect();
         arms.push(RigArm { clav, shoulder, elbow, wrist, fingers, side: s });
     }
-    RigParts { pelvis, abdomen, chest, neck, head, legs, arms, skin: None, edge: None }
+    RigParts { pelvis, abdomen, chest, neck, head, legs, arms, skin: None, edge: None, skins: vec![] }
 }
 
 /// What `make_staff` / `make_shadow` return.
@@ -675,27 +685,60 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     }
 }
 
+thread_local! {
+    static STAFF_MATS: RefCell<HashMap<String, Mat>> = Default::default();
+}
+
+/// The staff's materials by slot: pale skin with a little waxy sheen (its
+/// fine detail); the uniform's cloth matte, its weave close up; the shoes
+/// polished; the hair matte; the badge a plain card.
+pub fn staff_material(slot: &str) -> Mat {
+    STAFF_MATS.with(|m| {
+        m.borrow_mut()
+            .entry(slot.to_string())
+            .or_insert_with(|| match slot {
+                "cloth" => {
+                    crate::entities::with_skin_detail(lambert!({ color: 0xffffff, vertexColors: true, emissive: 0x050403 }), 3.8, 0.6)
+                }
+                "shoe" => phong!({ color: 0xffffff, vertexColors: true, specular: 0x34312c, shininess: 40 }),
+                "hair" => lambert!({ color: 0xffffff, vertexColors: true }),
+                "badge" => lambert!({ color: 0xffffff, vertexColors: true, emissive: 0x0a0a09 }),
+                _ => crate::entities::with_skin_detail(
+                    phong!({ color: 0xffffff, vertexColors: true, specular: 0x2c2a27, shininess: 26 }),
+                    3.4,
+                    0.6,
+                ),
+            })
+            .clone()
+    })
+}
+
+/// Bind body `name` of `bodies.bin` to the rig under `g` (its bones by
+/// name, as they stand now): its "skin" as `parts.skin`, the rest as
+/// `parts.skins`. A body made for the rig (`assets/src/creatures/figure.py`)
+/// has the rig's bones; nothing is bound when it is missing.
+pub fn bind_figure(g: &Obj, name: &str, parts: &mut RigParts, mat: &dyn Fn(&str) -> Mat) {
+    let Some(def) = crate::assets::bodies::body(name) else { return };
+    for m in &def.meshes {
+        let Some(geo) = crate::assets::bodies::body_geometry(name, &m.name) else { continue };
+        let Some(sm) = crate::entities::skin_body(g, &geo, &mat(&m.material)) else { continue };
+        sm.set_name(&format!("{name}:{}", m.name));
+        if m.name == "skin" {
+            parts.skin = Some(sm);
+        } else {
+            parts.skins.push((m.name.clone(), sm));
+        }
+    }
+}
+
 impl Game {
-    /// A Showroom staff member at tile (x, z): the rig, plus the skinned body when built.
+    /// A Showroom staff member at tile (x, z): the rig, and the body
+    /// (`bodies.bin` "staff", `assets/src/creatures/body_staff.py`) bound to
+    /// its bones as they stand at rest, a skinned mesh for each of its parts.
     pub fn make_staff(&mut self, x: i32, z: i32) -> HumanBuild {
         let g = group();
-        let body = crate::assets::creatures::creature_geometry("stBody");
-        if self.staff_mat.is_none() {
-            self.staff_mat = Some(if body.is_some() {
-                crate::entities::with_skin_detail(
-                    phong!({ color: 0xffffff, vertexColors: true, specular: 0x0b0a08, shininess: 10 }),
-                    3.4,
-                    0.35,
-                )
-            } else {
-                lambert!({ color: 0xc9a23a })
-            });
-        }
-        let mat = self.staff_mat.clone().unwrap();
-        let mut parts = human_rig(&g, &HUMAN_RIG_STAFF, if body.is_some() { None } else { Some(&mat) });
-        if let Some(b) = &body {
-            parts.skin = crate::entities::skin_body(&g, b, &mat);
-        }
+        let mut parts = human_rig(&g, &HUMAN_RIG_STAFF, None);
+        bind_figure(&g, "staff", &mut parts, &staff_material);
         g.position().set(self.wx(x), 0, self.wz(z));
         self.world.add(&g);
         let face = node(); // no glowing face: the bookkeeping expects one

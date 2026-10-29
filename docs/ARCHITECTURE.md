@@ -116,7 +116,10 @@ The creatures (`docs/ENTITIES.md`: the Hound, the Smiler, the Watcher, the
 one in the corner and the Reader) run one brain (`entities::creature`,
 `entities::brain`; `entities::ai` keeps only the shared steering, the
 update loop and the screen's pressure, and the anomalies' staff and
-shadows, which run their own rules until E9): one
+shadows, which keep their own rules on the procedural human rig; since
+E9 the staff's body is made for that rig, `anomalies::rig::bind_figure`,
+`assets/src/creatures/figure.py`, and the shadows keep the HTML
+version's): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
 percepts computed once a frame (hearing along the way it would walk to you,

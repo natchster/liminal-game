@@ -610,8 +610,9 @@ plaque that says STAIRS. Behind it:
   **CC BY-SA 3.0** and keep this attribution.
 - **The Showroom** is inspired by **SCP-3008** "A Perfectly Normal, Regular Old
   IKEA" by **Mortos** (<https://scp-wiki.wikidot.com/scp-3008>), **CC BY-SA
-  3.0**. `crates/game/src/anomalies/store_kit.rs`, the Showroom parts of `anomalies/mod.rs`, its notes and its
-  sections here are CC BY-SA 3.0 and keep this attribution. The game uses no
+  3.0**. `crates/game/src/anomalies/store_kit.rs`, the Showroom parts of `anomalies/mod.rs`,
+  `assets/src/creatures/body_staff.py`, its notes and its sections here are
+  CC BY-SA 3.0 and keep this attribution. The game uses no
   brand name: it is a generic flat-pack store.
 - **The Borrowed House** is inspired by **SCP-1983** "Doorway to Nowhere" by
   **DrEverettMann** (<https://scp-wiki.wikidot.com/scp-1983>), **CC BY-SA 3.0**.
@@ -635,8 +636,8 @@ plaque that says STAIRS. Behind it:
   (<https://scp-wiki.wikidot.com/scp-173>), **CC BY-SA 3.0**, and from the
   playground game Grandmother's Footsteps; the dust sheet and the furniture
   under it are this game's own. `crates/game/src/entities/watcher.rs`,
-  `assets/src/creatures/body_watcher.py` and `sheeted.py` keep this
-  attribution.
+  `assets/src/creatures/body_watcher.py`, `sheeted.py` and
+  `body_seated.py` keep this attribution.
 - **The Loop** is inspired by **SCP-970** "The Recursive Room" by **Freudian**
   (<https://scp-wiki.wikidot.com/scp-970>), **CC BY-SA 3.0**. We use our own
   names and text. `crates/game/src/modes/loop_rooms.rs`, its notes

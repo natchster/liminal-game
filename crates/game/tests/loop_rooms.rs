@@ -172,7 +172,11 @@ fn loop_build_matches_reference() {
             assert_eq!(capacity(o) as i64, j.get("cap").i(), "{}: capacity", name);
             assert!(!o.r().frustum_culled);
         }
-        assert_geo(&o.geo(), j.get("geo"), name);
+        // (the seated figure's body is E9's, `bodies.bin` "seated", not the
+        // reference's: its geometry is held by `tests/anomaly_bodies.rs`)
+        if name != "loop:figure" {
+            assert_geo(&o.geo(), j.get("geo"), name);
+        }
         assert_mat(&o.mat(), j.get("mat"), name);
     }
     // the plain variants: no `canvas_tex`, no textures; and a wall only

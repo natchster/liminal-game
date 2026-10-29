@@ -557,6 +557,13 @@ impl Game {
             }
             return;
         }
+        // the Loop's seated figure on the lap it comes, from 2.5 m (or 1.6:
+        // nearer, as it is when it has come for you)
+        if name == "loop-figure" || name == "loop-figure-near" {
+            let dist = if name == "loop-figure" { 2.5 } else { 1.6 };
+            self.debug_loop_figure(crate::modes::loop_rooms::LOOP::FIGURE_LAP, dist);
+            return;
+        }
         // a figure far across the void, looked at (`world::far_figures`)
         if name == "figure" && self.building.is_some() {
             self.show_far_figure();

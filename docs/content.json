@@ -4,7 +4,10 @@
     {
       "checks": [
         "test:game/anomalies",
-        "test:backrooms/level_sweep"
+        "test:backrooms/level_sweep",
+        "shots:shadow_2m",
+        "shots:shadow_4m",
+        "shots:shadow_8m"
       ],
       "id": "anomaly/house",
       "kind": "anomaly",
@@ -20,7 +23,10 @@
     {
       "checks": [
         "test:game/loop_rooms",
-        "test:backrooms/level_sweep"
+        "test:backrooms/level_sweep",
+        "shots:seated_2m",
+        "shots:seated_1m",
+        "test:game/anomaly_bodies"
       ],
       "id": "anomaly/loop",
       "kind": "anomaly",
@@ -54,7 +60,10 @@
         "test:game/store",
         "shots:4242_L10_showroom",
         "shots:4242_L4_spawn",
-        "test:backrooms/level_sweep"
+        "test:backrooms/level_sweep",
+        "shots:staff_2m",
+        "shots:staff_4m",
+        "test:game/anomaly_bodies"
       ],
       "id": "anomaly/store",
       "kind": "anomaly",

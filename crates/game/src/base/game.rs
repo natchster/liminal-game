@@ -215,7 +215,6 @@ pub struct Game {
 
     // ============================================================ anomalies
     pub store_state: StoreState,
-    pub staff_mat: Option<Mat>,
     pub house_state: HouseState,
     /// Time and smoke uniforms of the shadow materials
     pub shadow_u_time: f64,
@@ -768,7 +767,6 @@ impl Game {
             placer_dist: None,
             build_profile: BTreeMap::new(),
             store_state: StoreState::default(),
-            staff_mat: None,
             house_state: HouseState::default(),
             shadow_u_time: 0.0,
             shadow_u_smoke: 1.0,

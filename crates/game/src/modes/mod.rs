@@ -578,6 +578,16 @@ impl Game {
         self.ui.fade.set_opacity(1.0);
         self.schedule(900.0, |g| g.enter_loop_now());
     }
+    /// (tools) The Loop on lap `lap`, you `dist` m in front of its seated
+    /// figure, looking at it (`--screen loop-figure`).
+    pub fn debug_loop_figure(&mut self, lap: i32, dist: f64) {
+        self.enter_loop_now();
+        if let Some(lr) = self.loop_rooms.as_mut() {
+            lr.face_figure(lap, dist);
+            self.player.yaw = lr.state().yaw;
+        }
+        self.update_loop(0.0);
+    }
     /// the body of `enter_loop`'s 900 ms timeout
     fn enter_loop_now(&mut self) {
         // plain yellowed paper from the game's own generator (the level's

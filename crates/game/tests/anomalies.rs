@@ -7,6 +7,13 @@
 //! full functions). Each test probes which state those modules are in and
 //! compares against the matching variant; if the two modules disagree (one
 //! real, the other a stub) the run-dependent comparisons are skipped with a note.
+//!
+//! The staff's and the shadows' bodies are no longer the reference's: since
+//! E9 (`docs/ENTITIES.md`) they are MakeHuman bodies from `bodies.bin`, a
+//! skinned mesh for each part, bound to the same rig. The trees are compared
+//! without their skinned meshes (the rig's bones, its walk and everything
+//! else still are); the bodies have tests of their own
+//! (`tests/anomaly_bodies.rs`).
 use engine::prelude::*;
 use game::anomalies::rig::*;
 use game::base::numeric::hypot2;
@@ -70,7 +77,7 @@ fn entities_is_stub() -> bool {
 fn skin_is_stub() -> bool {
     let g = group();
     human_rig(&g, &HUMAN_RIG_STAFF, None);
-    let body = game::assets::creatures::creature_geometry("stBody").unwrap();
+    let body = game::assets::bodies::body_geometry("staff", "skin").unwrap();
     game::entities::skin_body(&g, &body, &lambert!()).is_none()
 }
 /// "stub" | "real", or None when the modules disagree
@@ -272,10 +279,12 @@ fn cmp_tree(o: &Obj, j: &Value, mats: &Value, ids: &mut Ids, w: &str) {
         ac(l.distance, &jl[2], TOL, &format!("{w}: distance"));
         ac(l.decay, &jl[3], TOL, &format!("{w}: decay"));
     }
-    let kids = o.children();
-    let jc: &[Value] = j.get("c").and_then(|c| c.as_array()).map(|a| a.as_slice()).unwrap_or(&[]);
+    // (a skinned mesh is a body: since E9 not the reference's, see the top)
+    let kids: Vec<Obj> = o.children().into_iter().filter(|c| !matches!(c.r().kind, Kind::Skinned { .. })).collect();
+    let jc: Vec<Value> =
+        j.get("c").and_then(|c| c.as_array()).map(|a| a.iter().filter(|v| v.get("bones").is_none()).cloned().collect()).unwrap_or_default();
     assert_eq!(kids.len(), jc.len(), "{w}: children");
-    for (i, (c, jc)) in kids.iter().zip(jc).enumerate() {
+    for (i, (c, jc)) in kids.iter().zip(&jc).enumerate() {
         cmp_tree(c, jc, mats, ids, &format!("{w}/{i}"));
     }
 }

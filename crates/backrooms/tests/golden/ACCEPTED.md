@@ -65,3 +65,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-28, on top of ddf18ba: look anchors: reader_2m, reader_4m, reader_8m, reader_death. Reason: the Reader (E6): its frames are new, so are their look anchors
 
 - 2026-10-29, on top of 8274df8: frames: 41 shots. Reason: E7: the old creatures' textures, shapes and rigs are gone, so the start-up no longer paints them on the per-frame stream: every canvas texture after them (bricks, stains, grain) draws other numbers, and the death camera shakes otherwise; content checked unchanged (the Building's arrival, the office wing, the Smiler's death)
+
+- 2026-10-29, on top of 8c48beb: frames: 7 shots. Reason: E9: the anomalies' figures get goldens of their own (none had one): the Showroom's staff and the Loop's seated man on their new MakeHuman bodies (blind reviews preferred both), the Borrowed House's shadows on the body they keep
+
+- 2026-10-29, on top of 8c48beb: look anchors: 7 shots. Reason: E9: look anchors for the anomalies' new figure shots (first anchors, nothing moved)

@@ -147,6 +147,6 @@ fn rig_contract() {
     assert_eq!(m.r().bump_scale, 0.35);
     assert!(m.r().bump_map.is_some());
     // `skin_body` fails cleanly when the rig lacks a bone
-    let body = game::assets::creatures::creature_geometry("stBody").unwrap();
+    let body = game::assets::bodies::body_geometry("staff", "skin").unwrap();
     assert!(skin_body(&group(), &body, &m).is_none());
 }
