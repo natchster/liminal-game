@@ -16,3 +16,12 @@ details.
 | [`folklore-and-imaging.md`](folklore-and-imaging.md) | Creepypasta, analog horror, sleep-paralysis figures, Japanese and Slavic folklore (34 entities); how entities are pictured so they frighten (Mori, MacDorman, Carroll, Fisher; scale, faces, eyeshine, stillness, cloth); ten imaging principles; what not to copy |
 | [`creature-ai-and-fear.md`](creature-ai-and-fear.md) | Creature AI in horror games (Alien: Isolation, Left 4 Dead, The Last of Us, Amnesia, Resident Evil 2, Silent Hill, Dead by Daylight, Lethal Company, Phasmophobia, FNAF, stealth AI); principles (tells, roles, senses, memory, visible learning, fairness, testing with bots); the psychology of fear; an architecture and a test plan for us |
 | [`modelling.md`](modelling.md) | CC0 base meshes (MakeHuman, Blender's Human Base Meshes) and textures, with their licence lines; emaciation, cloth, hair, eyeshine, wet skin and readability by script; public-domain reference; a pipeline, budgets and risks |
+
+Two more notes were gathered on 2026-10-29 for the vending machine
+([`../VENDING.md`](../VENDING.md)), summed up in
+[`../SOURCES.md`](../SOURCES.md) section 12:
+
+| Note | What it covers |
+|---|---|
+| [`vending-machines.md`](vending-machines.md) | Real glass-front snack and lit-panel drink machines from their factory manuals (AP Snackshop 113/123/133, Crane National 167, Dixie-Narco 501E): sizes, the glass, trays and spirals (counts, depths, how a product sits and sticks), price rolls and codes, keypads and display messages, money and the delivery bin, feet and the lean, the one tube inside; how they age (photographs and their licences); their sounds; stuck snacks, drop sensors, tipping deaths; CC0 surfaces; what looks fake |
+| [`vending-horror.md`](vending-horror.md) | Uncanny vending machines: SCP-261, 294, 8733 and others; the Backrooms wikis' machines and the Backrooms games'; Japanese legends, creepypasta, Ohashi's *Roadside Lights*, the CPSC's tipping deaths; machines in games (BioShock, Half-Life, Lethal Company's counter, Control, Fallout, RE4, Yume Nikki); why a mundane machine turns uncanny, what players will try, design lessons; eight concepts and three picks |

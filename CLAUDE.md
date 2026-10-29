@@ -16,6 +16,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/ENTITIES.md`](docs/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten, and the plan behind them ([`docs/research/`](docs/research/README.md) for the research) |
 | [`docs/STYLE.md`](docs/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
 | [`docs/ROOMS.md`](docs/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid, and the plan behind them |
+| [`docs/VENDING.md`](docs/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it), and the plan behind them |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |

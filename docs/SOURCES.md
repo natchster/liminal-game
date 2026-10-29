@@ -18,6 +18,9 @@ were gathered in October 2026 in two rounds of research:
   how entities are pictured, creature AI and the psychology of fear, CC0
   bodies, for [`ENTITIES.md`](ENTITIES.md); the notes in full are in
   [`research/`](research/README.md).
+* **The vending machine** (section 12, a sixth round): real machines from
+  their manuals, and uncanny ones from SCP, the Backrooms, folklore and
+  games, for [`VENDING.md`](VENDING.md).
 
 A note on weight: the strongest sources here are developer-facing write-ups
 (Game Developer, the Valve wiki, a peer-reviewed paper). Several others are
@@ -408,3 +411,21 @@ licence stated. What the design took, and where it shows up:
 - Read: [MakeHuman's licence](https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.md) (section C: the base mesh, targets, proxies, skins, poses CC0 1.0), [Blender's Human Base Meshes](https://www.blender.org/download/demo-files/) (CC0), Poly Haven and ambientCG (CC0).
 - Say: a real human body and its starved targets are free to use; relief is lost under a lamp held at the eye, so anatomy must be in the outline, the cavities and the glints; cloth drapes headless; eyeshine is retroreflection, strongest when the light is at the eye.
 - Used for: the bodies (design 6: `assets/src/creatures/`, the hm08 body fetched and checked by SHA-1).
+
+## 12. The vending machine: real machines and uncanny ones
+
+Gathered on 2026-10-29 by two research passes for
+[`VENDING.md`](VENDING.md); the notes are kept whole in
+[`research/`](research/README.md) (`vending-machines.md`,
+`vending-horror.md`), every claim linked.
+
+**The real machine** ([`research/vending-machines.md`](research/vending-machines.md)).
+- Read: the factory manuals hosted by Vendors Exchange: [AP 113](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-113-Snackshop-Parts-Manual.pdf), [AP 123](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-123-Snackshop-Parts-Manual.pdf), [AP 133](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-133-Parts-Operation-Service-Manual.pdf), the [Crane National 167/168 setup guide](https://www.vesolutions.co/manuals/Crane_National/167%20168%20Series/National-167-168-Setup-Guide.pdf) and [programming guide](https://www.vesolutions.co/manuals/Crane_National/167%20168%20Series/National-167-168-Programming-Guide.pdf), the [Dixie-Narco Series 90 guide](https://www.vesolutions.co/manuals/Dixie-Narco/Series%2090/DN-Series-90-Installation-Setup-Guide.pdf); [the CPSC's 1995 labelling campaign](https://www.cpsc.gov/Newsroom/News-Releases/1996/CPSC-Soda-Vending-Machine-Industry-Labeling-Campaign-Warns-Of-Deaths-And-Injuries); photographs on Wikimedia Commons (each licence on its page).
+- Say: 72 × 38⅞ × 35 in; a 1133 × 683 mm tempered window and a ~25 cm selection column; five or six trays of five (bags) or ten (bars) spirals, each with its motor; one cool-white F18T8 tube across the top inside the door (the bottom shelves in gloom); a red LED reading "Have a nice day", "Use correct change", "Make another selection"; a 3 × 7 keypad of 15 mm keys (A–H, J, 1–9, *, 0, #); the lock-side front leg set lower, so a real machine leans; 1–4 in off the wall; rust and scuffs at kick height, sticker stacks, taped signs; a product sticks when one corner is behind the wire; 37 deaths and 113 injuries from rocking (1978–95).
+- Used for: the body (V1: its size, window, column, trays and keypad), its light (one tube, the bottom shelves in gloom, the glow on the floor), its words, its lean, and its warning label (rule 7).
+
+**The uncanny machine** ([`research/vending-horror.md`](research/vending-horror.md)).
+- Read: SCP-261 (Dr Gears), SCP-294 (Arcibi), SCP-8733 (mothmanUXO), SCP-6593 (PlaguePJP), all CC BY-SA 3.0; Backrooms Levels 4, 6.1, 58, 187, 317 and Entity 36 (Wikidot), Levels 334, 986, 479 (Fandom), all CC BY-SA, with their authors in the note; Eiji Ohashi's *Roadside Lights* ([Hyperallergic](https://hyperallergic.com/409582/the-eerie-allure-of-japanese-vending-machines/)); Lethal Company's counter ([wiki](https://lethal-company.fandom.com/wiki/The_Company_Monster)); Control's altered vending machine; BioShock's Circus of Values; Japanese legends (motifs only).
+- Say: the lone lit machine is the image (the only living light, which leads you and draws what else is there); price everything in what the game has, noise above all, and warn before you punish; rules, not dice, fixed per machine; no talking, no jump scares, no gore, and a prop never becomes a creature; the real warning label reads like the canon note.
+- Used for: the rules (`VENDING.md`, the design): "insert coin, get nothing" as a silence (the note's *Change and Nothing*), the lit one's rhythm (*The Lit One*), rocking it loose and its fall (*Rock It*); nothing is taken from any one story.
+
