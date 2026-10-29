@@ -400,6 +400,32 @@ pub fn prop_part(name: &str, fallback: Geo, own: bool) -> Geo {
     g.duplicate()
 }
 
+/// The Blender part `name` as it was modelled, at its own frame and a scale
+/// of one (the vending machine's parts, `core_props::vending::model`), or a
+/// box filling its frame when props are switched off; None when there is no
+/// such part. Cached and shared like [`prop_part`]'s fitted parts.
+pub fn prop_part_as_modelled(name: &str) -> Option<Geo> {
+    let m = prop_part_info(name)?;
+    let bb = [m.fmin[0], m.fmin[1], m.fmin[2], m.fmax[0], m.fmax[1], m.fmax[2]];
+    if !props_enabled() {
+        let g = box_geometry(bb[3] - bb[0], bb[4] - bb[1], bb[5] - bb[2], 1.0, 1.0, 1.0);
+        g.translate((bb[0] + bb[3]) / 2.0, (bb[1] + bb[4]) / 2.0, (bb[2] + bb[5]) / 2.0);
+        return Some(g);
+    }
+    let key = fit_key(name, &bb);
+    if let Some(g) = FITTED.with(|f| f.borrow().get(&key).cloned()) {
+        bump(|s| s.cached += 1);
+        return Some(g);
+    }
+    let g = build(m, &decode(m), &bb);
+    FITTED.with(|f| f.borrow_mut().insert(key, g.clone()));
+    bump(|s| {
+        s.swapped += 1;
+        s.tris += m.t as u64;
+    });
+    Some(g)
+}
+
 /// Scale/offset the decoded part onto `bb`,
 /// transform its normals, derive the primitive's UVs and split the wrap seam.
 pub fn build(m: &PropPartInfo, d: &Decoded, bb: &[f64; 6]) -> Geo {

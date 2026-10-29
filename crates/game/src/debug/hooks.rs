@@ -171,6 +171,27 @@ impl Game {
         out
     }
 
+    /// Camera poses on the vending machines (`core_props::vending`): for
+    /// each, one square in front of it 2.2 m out, and one from 1.2 m off its
+    /// face and to its left, looking at its glass. (x, z, yaw) in world
+    /// coordinates; a pose where a body does not fit, or that does not see
+    /// the machine's face, is left out.
+    pub fn vending_views(&self) -> Vec<(f64, f64, f64)> {
+        let mut out = vec![];
+        for m in &self.vending {
+            let target = m.world(-0.1, 0.0, crate::core_props::vending::model::D / 2.0);
+            for (x, z) in [(0.0, 2.2), (-0.9, 1.25)] {
+                let p = m.world(x, 0.0, crate::core_props::vending::model::D / 2.0 + z);
+                let face = m.world(0.0, 0.0, crate::core_props::vending::model::D / 2.0 + 0.1);
+                if self.circle_hits_wall(p.x, p.z, 0.3) || !self.los(p.x, p.z, face.x, face.z) {
+                    continue;
+                }
+                out.push((p.x, p.z, (-(target.x - p.x)).atan2(-(target.z - p.z))));
+            }
+        }
+        out
+    }
+
     /// A camera pose inside each zone of the layout, for looking at it: the
     /// open tile of the zone with the longest straight run of open floor in
     /// front of it, a step back from its centre, facing down the run.

@@ -3,7 +3,7 @@
 //! `PLACER_ALWAYS` and the per-level timer resets.
 
 /// The `themed(name, dist)` passes of `build_world`, in order (678, with repeats)
-pub const THEMED_ORDER: [&str; 678] = [
+pub const THEMED_ORDER: [&str; 677] = [
     "place_floor_stains",
     "place_wall_stains",
     "place_scrap_papers",
@@ -43,7 +43,6 @@ pub const THEMED_ORDER: [&str; 678] = [
     "place_ceiling_speakers",
     "place_wall_phones",
     "place_mops",
-    "place_dead_vending_machines",
     "place_briefcases",
     "place_keycard_readers",
     "place_umbrellas",
@@ -685,7 +684,7 @@ pub const THEMED_ORDER: [&str; 678] = [
 ];
 
 /// Each themed placer's theme, sorted by name (a placer not listed is "domestic").
-pub static PLACER_THEME: [(&str, &str); 650] = [
+pub static PLACER_THEME: [(&str, &str); 649] = [
     ("place_8_track_tapes", "office"),
     ("place_abandoned_laptops", "office"),
     ("place_abstract_landscapes", "domestic"),
@@ -828,7 +827,6 @@ pub static PLACER_THEME: [(&str, &str); 650] = [
     ("place_dead_moths", "domestic"),
     ("place_dead_plants", "nature"),
     ("place_dead_potted_plants", "nature"),
-    ("place_dead_vending_machines", "core"),
     ("place_deer_head_mounts", "victorian"),
     ("place_deflated_balls", "toys"),
     ("place_dice_clusters", "office"),

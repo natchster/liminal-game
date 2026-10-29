@@ -141,6 +141,8 @@ pub struct Game {
     pub solids: Option<crate::level::archgen::Solids>,
     /// the partitions that lean, whose staircases stand in for them in `solids` (`world::angled`)
     pub angled: Vec<crate::world::angled::Wall>,
+    /// The level's vending machines (`core_props::vending`)
+    pub vending: Vec<crate::core_props::vending::Machine>,
     /// The game's textures (wallpaper and carpet variants, dust sprite, static, ...)
     pub tex: crate::visuals::textures::Textures,
     /// Procedural surface textures (from `make_surfaces`)
@@ -698,6 +700,7 @@ impl Game {
             layout: None,
             solids: None,
             angled: vec![],
+            vending: vec![],
             tex: crate::visuals::textures::Textures::placeholder(),
             // (`rnd`: each painter draws inside `canvas_tex`, on its own stream)
             surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::rnd),

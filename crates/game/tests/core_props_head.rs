@@ -714,3 +714,354 @@ fn builders_match_reference() {
     }
     assert_eq!(n, 153);
 }
+
+// ---------------------------------------------------------------- re-recording
+// The fixtures above were first recorded from the HTML version. When a core
+// prop is meant to change (the vending machine, docs/VENDING.md V1), they are
+// re-recorded from the current code with every case's inputs kept (its seed,
+// level, tiles, distances), through the same steps the tests take:
+//   cargo test --release -p game --test core_props_head -- --ignored rerecord
+// then review the diff (`git diff --stat`, and the changed values).
+
+fn ser_tex(g: &Game, t: Option<Tex>) -> Value {
+    let Some(t) = t else { return Value::Null };
+    let rain_clone = {
+        let (a, b) = (t.r(), g.rain_streak_tex.r());
+        std::rc::Rc::ptr_eq(&a.image, &b.image) && t.0.as_ptr() != g.rain_streak_tex.0.as_ptr()
+    };
+    let tag = if t.0.as_ptr() == g.tex.static_tex.0.as_ptr() {
+        "static"
+    } else if rain_clone {
+        "rain"
+    } else {
+        "canvas"
+    };
+    let r = t.r();
+    serde_json::json!({"tag": tag, "w": t.width(), "h": t.height(), "ws": r.wrap_s == Wrap::Repeat, "wt": r.wrap_t == Wrap::Repeat, "rp": [r.repeat.x, r.repeat.y]})
+}
+
+/// The inverse of `cmp_tree`
+fn ser_tree(g: &Game, o: &Obj, ids: &mut Ids) -> Value {
+    let mut m = serde_json::Map::new();
+    m.insert("k".into(), obj_kind(o).into());
+    m.insert("p".into(), serde_json::json!(v3a(&o.pos())));
+    let q = o.quat();
+    m.insert("q".into(), serde_json::json!([q.x, q.y, q.z, q.w]));
+    let s = v3a(&o.scl());
+    if s != [1.0, 1.0, 1.0] {
+        m.insert("s".into(), serde_json::json!(s));
+    }
+    if !o.visible() {
+        m.insert("v".into(), false.into());
+    }
+    let order = format!("{:?}", o.rot().order);
+    if order != "XYZ" {
+        m.insert("ro".into(), order.into());
+    }
+    if o.r().user.gameplay {
+        m.insert("gp".into(), true.into());
+    }
+    if o.r().user.floats {
+        m.insert("fl".into(), true.into());
+    }
+    if o.try_geo().is_some() && !o.is_light() {
+        let geo = o.geo();
+        let mut t = vec![Value::from(geo_kind(&geo))];
+        t.extend(geo_params(&geo).into_iter().map(Value::from));
+        let ic = geo.r().index.as_ref().map(|i| i.len() as f64).unwrap_or(-1.0);
+        let nr = geo.r().normal.clone();
+        m.insert(
+            "g".into(),
+            serde_json::json!({
+                "gi": ids.geo(&geo), "part": geo.r().is_prop_part, "t": t, "vc": geo.vertex_count(), "ic": ic,
+                "pos": attr_sum(&geo.r().position), "nor": if nr.is_empty() { Value::Null } else { serde_json::json!(attr_sum(&nr)) },
+            }),
+        );
+        let mat = o.mat();
+        let mi = ids.mat(&mat);
+        let r = mat.r();
+        let ty = match r.kind {
+            MatKind::Basic => "basic",
+            MatKind::Lambert => "lambert",
+            MatKind::LineBasic => "line",
+            _ => "other",
+        };
+        let side = match r.side {
+            Side::Front => 0,
+            Side::Back => 1,
+            Side::Double => 2,
+        };
+        let bl = match r.blending {
+            Blending::None => 0,
+            Blending::Normal => 1,
+            Blending::Additive => 2,
+            Blending::Subtractive => 3,
+            Blending::Multiply => 4,
+        };
+        let mut jm = serde_json::json!({"mi": mi, "t": ty, "c": r.color.get_hex(), "o": r.opacity, "tr": r.transparent, "sd": side, "dw": r.depth_write, "bl": bl});
+        jm["e"] = if ty == "lambert" { r.emissive.get_hex() as i64 } else { -1 }.into();
+        let map = r.map.clone();
+        drop(r);
+        jm["map"] = ser_tex(g, map);
+        m.insert("m".into(), jm);
+    }
+    if o.is_light() {
+        let l = o.light();
+        m.insert("l".into(), serde_json::json!({"c": l.color.get_hex(), "i": l.intensity, "d": l.distance, "dc": l.decay}));
+    }
+    let kids: Vec<Value> = o.children().iter().map(|k| ser_tree(g, k, ids)).collect();
+    if !kids.is_empty() {
+        m.insert("c".into(), kids.into());
+    }
+    Value::Object(m)
+}
+fn ser_pickups(a: &[Pickup]) -> Value {
+    a.iter().map(|p| serde_json::json!({"p": v3a(&p.g.pos()), "base": p.base, "phase": p.phase, "taken": p.taken})).collect()
+}
+
+/// `place_props_head_matches_reference`'s outputs for case `c`
+fn record_head(c: &mut Value) {
+    let seed = c["case"]["seed"].as_u64().unwrap() as u32;
+    let (mut g, dist) = setup(c);
+    let (draws, cx) = with_seed(seed, || {
+        let d0 = seeded_draws();
+        let cx = g.place_props_head(&dist);
+        (seeded_draws() - d0, cx)
+    });
+    c["draws"] = draws.into();
+    c["handoff"] = serde_json::json!({
+        "cands": cx.cands.iter().map(cand_arr).collect::<Vec<_>>(),
+        "taken": cx.taken.iter().map(cand_arr).collect::<Vec<_>>(),
+        "exitTile": cand_arr(&cx.exit_tile.unwrap()),
+    });
+    c["tree"] = ser_tree(&g, &g.world, &mut Ids::default());
+    c["worldChildren"] = g.world.child_count().into();
+    c["interactables"] = g
+        .interactables
+        .iter()
+        .map(|it| serde_json::json!({"p": v3a(&it.pos), "r": it.r, "prompt": it.prompt, "en": (it.enabled)(&g)}))
+        .collect();
+    c["animators"] = g.animators.len().into();
+    c["exitData"] = g.exit_data.as_ref().map(|e| serde_json::json!({"pos": v3a(&e.pos), "normal": v3a(&e.normal)})).unwrap_or(Value::Null);
+    c["tvData"] = g
+        .tv_data
+        .as_ref()
+        .map(|t| serde_json::json!({"world": v3a(&t.world), "normal": v3a(&t.normal), "acc": t.acc, "light": t.light.intensity()}))
+        .unwrap_or(Value::Null);
+    c["clockData"] = g
+        .clock_data
+        .as_ref()
+        .map(|k| serde_json::json!({"world": v3a(&k.world), "normal": v3a(&k.normal), "tock": k.tock, "acc": k.acc}))
+        .unwrap_or(Value::Null);
+    c["phoneData"] = g
+        .phone_data
+        .as_ref()
+        .map(|p| {
+            serde_json::json!({"world": v3a(&p.world), "normal": v3a(&p.normal), "ringing": p.ringing, "answered": p.answered, "ringT": p.ring_t, "handset": v3a(&p.handset.as_ref().unwrap().pos())})
+        })
+        .unwrap_or(Value::Null);
+    c["manData"] = g.man_data.as_ref().map(|m| serde_json::json!({"p": v3a(&m.g.pos()), "timer": m.f["timer"]})).unwrap_or(Value::Null);
+    c["almonds"] = ser_pickups(&g.almonds);
+    c["batteryItems"] = ser_pickups(&g.battery_items);
+    let kids = g.world.children();
+    c["drawerProps"] = g
+        .drawer_props
+        .iter()
+        .map(|dp| {
+            let cab = kids.iter().position(|k| k.ptr_eq(&dp.cabinet)).map(|i| i as f64).unwrap_or(-1.0);
+            serde_json::json!({"cab": cab, "drawers": dp.drawers.iter().map(|d| d.borrow().content_type.clone()).collect::<Vec<_>>()})
+        })
+        .collect();
+    c["rainWindows"] = g.rain_windows.len().into();
+    set_props_hooks(PropsHooks::NONE);
+}
+
+/// `place_props_head_runtime_matches_reference`'s outputs for case `c`
+fn record_runtime(c: &mut Value) {
+    let seed = c["case"]["seed"].as_u64().unwrap() as u32;
+    let (mut g, dist) = setup(c);
+    with_seed(seed, || {
+        g.place_props_head(&dist);
+    });
+    let world0 = g.world.child_count();
+    let mut after = serde_json::Map::new();
+    with_seed(seed ^ 0x5eed, || {
+        let d0 = seeded_draws();
+        let man = g.man_data.as_ref().map(|m| m.g.clone());
+        let phone_world = g.phone_data.as_ref().map(|p| p.world);
+        let mut sim = vec![];
+        for k in 0..720 {
+            let dt = if k < 600 { 0.05 } else { 1.0 / 60.0 };
+            let t = if k < 600 { 1.0 + k as f64 * 0.05 } else { 31.0 + (k - 600) as f64 / 60.0 };
+            if let (Some(m), true) = (&man, k < 600) {
+                let a = k as f64 * 0.03;
+                let rr = 3.0 + (k % 90) as f64 / 10.0;
+                let mp = m.pos();
+                g.player.pos = Vec3::new(mp.x + a.cos() * rr, 1.62, mp.z + a.sin() * rr);
+                g.player.yaw = if (k / 40) % 2 == 1 { a } else { a + PI };
+            } else if let Some(pw) = phone_world {
+                g.player.pos = Vec3::new(pw.x + 1.0, 1.62, pw.z + 1.0);
+            }
+            if k == 650 {
+                if let Some(p) = g.phone_data.as_mut() {
+                    p.ringing = true;
+                }
+            }
+            g.perf_t = t;
+            g.run_animators(dt, t);
+            if k % 30 == 29 {
+                let mut j = serde_json::json!({"k": k, "draws": seeded_draws() - d0});
+                j["man"] = g
+                    .man_data
+                    .as_ref()
+                    .map(|m| serde_json::json!({"p": v3a(&m.g.pos()), "ry": m.g.rot().y, "timer": m.f["timer"]}))
+                    .unwrap_or(Value::Null);
+                if let Some(p) = &g.phone_data {
+                    j["handset"] = serde_json::json!(v3a(&p.handset.as_ref().unwrap().pos()));
+                }
+                let floats: Vec<[f64; 3]> =
+                    g.world.children().iter().filter(|o| o.r().user.floats).map(|o| v3a(&o.child(0).unwrap().pos())).collect();
+                j["floats"] = serde_json::json!(floats);
+                sim.push(j);
+            }
+        }
+        c["sim"] = sim.into();
+        c["simDraws"] = (seeded_draws() - d0).into();
+        g.perf_t = 50.0;
+        let mut uses = vec![];
+        for i in 0..g.interactables.len() {
+            if !(g.interactables[i].enabled)(&g) {
+                uses.push(Value::Null);
+                continue;
+            }
+            g.msg_text.clear();
+            let mut fu = std::mem::replace(&mut g.interactables[i].on_use, Box::new(|_| {}));
+            fu(&mut g);
+            g.interactables[i].on_use = fu;
+            uses.push(serde_json::json!({
+                "draws": seeded_draws() - d0, "msg": g.msg_text, "sanity": g.player.sanity,
+                "flash": g.ui.flash.style("opacity").unwrap_or(""),
+            }));
+        }
+        c["uses"] = uses.into();
+        after.insert("draws".into(), (seeded_draws() - d0).into());
+    });
+    after.insert("almonds".into(), ser_pickups(&g.almonds));
+    after.insert("batteryItems".into(), ser_pickups(&g.battery_items));
+    after.insert(
+        "papers".into(),
+        g.papers.iter().map(|p| serde_json::json!({"p": v3a(&p.g.pos()), "taken": p.taken, "n": p.g.child_count()})).collect(),
+    );
+    after.insert(
+        "drawers".into(),
+        g.drawer_props
+            .iter()
+            .map(|dp| dp.drawers.iter().map(|d| serde_json::json!([d.borrow().opened, v3a(&d.borrow().mesh.pos())])).collect::<Value>())
+            .collect(),
+    );
+    after.insert("worldChildren".into(), g.world.child_count().into());
+    after.insert("entities".into(), g.entities.iter().map(|e| serde_json::json!([e.state, e.lose_t])).collect());
+    after.insert(
+        "phone".into(),
+        g.phone_data
+            .as_ref()
+            .map(|p| serde_json::json!({"answered": p.answered, "ringing": p.ringing, "hintUntil": p.f.get("hintUntil").copied()}))
+            .unwrap_or(Value::Null),
+    );
+    after.insert("timeouts".into(), g.timeouts.iter().map(|t| t.at_ms - g.now_ms).collect());
+    after.insert("enabled".into(), g.interactables.iter().map(|it| Value::from((it.enabled)(&g))).collect());
+    let added = g.world.children()[world0..].to_vec();
+    after.insert("added".into(), added.iter().map(|o| ser_tree(&g, o, &mut Ids::default())).collect());
+    g.now_ms += 1000.0;
+    g.run_scheduled();
+    after.insert("flashAfterTimeouts".into(), g.ui.flash.style("opacity").unwrap_or("").into());
+    c["after"] = Value::Object(after);
+    set_props_hooks(PropsHooks::NONE);
+}
+
+/// `builders_match_reference`'s outputs for case `c`
+fn record_builder(g: &mut Game, c: &mut Value) {
+    let name = c["name"].as_str().unwrap().to_string();
+    let args = c["args"].as_array().unwrap().clone();
+    let seed = c["seed"].as_u64().unwrap() as u32;
+    game::assets::props::clear_prop_cache();
+    let rw = g.rain_windows.len();
+    let mut cx = PropsCtx::default();
+    let (draws, built) = with_seed(seed, || {
+        let d0 = seeded_draws();
+        let b = match name.as_str() {
+            "build_filing_cabinet" => build_filing_cabinet(g, &mut cx),
+            "build_cardboard_stack" => build_cardboard_stack(g, &mut cx),
+            "build_wet_floor_sign" => build_wet_floor_sign(g, &mut cx),
+            "build_vending" => build_vending(g, &mut cx),
+            "build_locker" => build_locker(g, &mut cx),
+            "build_fire_extinguisher" => build_fire_extinguisher(g, &mut cx),
+            "build_trash_can" => build_trash_can(g, &mut cx),
+            "build_rubber_duck" => build_rubber_duck(g, &mut cx),
+            "build_traffic_cone" => build_traffic_cone(g, &mut cx),
+            "build_wheelchair" => build_wheelchair(g, &mut cx),
+            "build_baby_doll" => build_baby_doll(g, &mut cx),
+            "build_suitcase" => build_suitcase(g, &mut cx),
+            "build_broken_mirror" => build_broken_mirror(g, &mut cx, f(&args[0])),
+            "build_tv_on_floor" => build_tv_on_floor(g, &mut cx),
+            "build_book_stack" => build_book_stack(g, &mut cx),
+            "build_coat_rack" => build_coat_rack(g, &mut cx),
+            "build_fluorescent_tube" => build_fluorescent_tube(g, &mut cx),
+            "build_pile" => build_pile(g, &mut cx),
+            "build_potted_plant" => build_potted_plant(g, &mut cx),
+            "build_floor_plant" => build_floor_plant(g, &mut cx),
+            "build_window" => build_window(g, &mut cx),
+            "build_elevator" => build_elevator(g, &mut cx, args[0].as_bool().unwrap()),
+            "build_paper_pile" => build_paper_pile(g, &mut cx),
+            "build_floor_hole" => build_floor_hole(g, &mut cx),
+            "make_leaf_shape" => Built::new(make_leaf_shape(f(&args[0]), f(&args[1]), f(&args[2]) as u32, f(&args[3])), 0.0),
+            o => panic!("unknown builder {}", o),
+        };
+        (seeded_draws() - d0, b)
+    });
+    c["draws"] = draws.into();
+    c["top"] = built.top.into();
+    c["tree"] = ser_tree(g, &built.g, &mut Ids::default());
+    let kids = built.g.children();
+    c["drawers"] = if built.drawers.is_empty() {
+        Value::Null
+    } else {
+        built
+            .drawers
+            .iter()
+            .map(|d| {
+                let d = d.borrow();
+                let idx = kids.iter().position(|k| k.ptr_eq(&d.mesh)).map(|i| i as f64).unwrap_or(-1.0);
+                serde_json::json!([d.content_type, -1, idx])
+            })
+            .collect()
+    };
+    let rain = g.rain_windows.len() - rw;
+    c["rain"] = rain.into();
+    c["rainIdx"] = if rain > 0 {
+        let last = g.rain_windows.last().unwrap();
+        kids.iter().position(|k| k.ptr_eq(last)).map(|i| i as f64).unwrap_or(-1.0).into()
+    } else {
+        (-1.0).into()
+    };
+}
+
+#[test]
+#[ignore]
+fn rerecord() {
+    let dir = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures");
+    let mut cases = load();
+    for c in cases.iter_mut() {
+        record_head(c);
+        record_runtime(c);
+    }
+    std::fs::write(format!("{dir}/core_props_head.json"), serde_json::to_string(&cases).unwrap()).unwrap();
+    let p = format!("{dir}/core_props_builders.json");
+    let mut builders: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap();
+    let mut g = Game::new_bare();
+    for c in builders.iter_mut() {
+        record_builder(&mut g, c);
+    }
+    std::fs::write(&p, serde_json::to_string(&builders).unwrap()).unwrap();
+    println!("re-recorded {} head cases and {} builder cases", cases.len(), builders.len());
+}

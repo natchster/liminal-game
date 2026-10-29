@@ -109,7 +109,6 @@ pub struct Player {
     pub batteries: i32,
     pub papers: i32,
     pub was_in_pool: bool,
-    pub speed_boost_until: f64,
     pub audible_range: f64,
     /// Eye height while hiding in the Showroom (None when not hiding)
     pub hide_eye: Option<f64>,
@@ -136,7 +135,6 @@ impl Default for Player {
             batteries: 0,
             papers: 0,
             was_in_pool: false,
-            speed_boost_until: 0.0,
             audible_range: 0.0,
             hide_eye: None,
             crouch_pitch_lerp: 0.0,

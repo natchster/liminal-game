@@ -169,7 +169,17 @@ fn level_materials(seed: u32, level: i32) -> Vec<Seen> {
                 let mesh = if m.name.is_empty() { name_path(o) } else { m.name.clone() };
                 let mesh = if mesh == "(unnamed)" {
                     let tris = o.try_geo().map(|gm| gm.0.borrow().index_count() / 3).unwrap_or(0);
-                    format!("(unnamed {:?}, {tris} triangles, map {:?})", m.kind, m.map.as_ref().map(|t| (t.width(), t.height())))
+                    // its size, so a prop can be found by it
+                    let size = o.try_geo().map(|gm| {
+                        let b = gm.bounding_box();
+                        format!("{:.2}×{:.2}×{:.2} m", b.max.x - b.min.x, b.max.y - b.min.y, b.max.z - b.min.z)
+                    });
+                    format!(
+                        "(unnamed {:?}, {tris} triangles, {}, map {:?})",
+                        m.kind,
+                        size.unwrap_or_default(),
+                        m.map.as_ref().map(|t| (t.width(), t.height()))
+                    )
                 } else {
                     mesh
                 };

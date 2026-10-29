@@ -367,6 +367,19 @@ fn rerecord_level_queries() {
             .collect();
         lv["pans"] = json!(pans);
     }
+    // the placers' themes as the tables give them now (a placer no longer
+    // in them leaves the list)
+    let mut g = Game::new_bare();
+    let themes: Vec<Value> = fx["themes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|r| {
+            let name = r[0].as_str().unwrap();
+            game::world::tables::PLACER_THEME.iter().any(|(n, _)| *n == name).then(|| json!([name, g.placer_theme(name)]))
+        })
+        .collect();
+    fx["themes"] = json!(themes);
     std::fs::write(&p, serde_json::to_string(&fx).unwrap()).unwrap();
     eprintln!("rewrote {}", p.display());
 }

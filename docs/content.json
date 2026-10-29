@@ -406,7 +406,7 @@
       "kind": "prop family",
       "last_checked": "2026-10-29",
       "last_human_review": null,
-      "name": "core props (72 placers)",
+      "name": "core props (71 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,

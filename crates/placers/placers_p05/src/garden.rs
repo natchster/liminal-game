@@ -36,7 +36,8 @@ pub fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z, dx, dz) = pick(&walls);
     let hoop_mat = lambert!({ color: 0x8b5a2b });
-    let fab_mat = lambert!({ map: crossstitch_texture() });
+    // (aged linen: the painted cream alone reflected more than cloth does)
+    let fab_mat = lambert!({ map: crossstitch_texture(), color: 0xe4e0d8 });
     let stitch = group();
     let mount_y = 1.55;
     // Outer wooden hoop ring.

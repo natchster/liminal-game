@@ -283,6 +283,10 @@ impl Game {
             if !self.cell_doors.is_empty() && self.hits_cell_door(px, pz, r) {
                 return true;
             }
+            // a vending machine
+            if !self.vending.is_empty() && self.hits_vending(px, pz, r) {
+                return true;
+            }
             if self.barricade_tiles.is_empty() {
                 return false;
             }

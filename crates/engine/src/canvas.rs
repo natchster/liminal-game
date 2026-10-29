@@ -162,6 +162,16 @@ fn family_font_name(family: &str) -> &'static str {
         "cursive" | "comic sans ms" | "brush script mt" => "Apple Chancery",
         "impact" => "Impact",
         "fantasy" => "Papyrus",
+        // faces of printed packaging and signs (all shipped with macOS)
+        "futura" => "Futura",
+        "gill sans" => "Gill Sans",
+        "rockwell" => "Rockwell",
+        "american typewriter" => "American Typewriter",
+        "arial rounded mt bold" => "Arial Rounded MT Bold",
+        "copperplate" => "Copperplate",
+        "optima" => "Optima",
+        "avenir next condensed" => "Avenir Next Condensed",
+        "marker felt" => "Marker Felt",
         _ => "Helvetica",
     }
 }

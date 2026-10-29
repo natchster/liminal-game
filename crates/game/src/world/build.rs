@@ -198,6 +198,8 @@ impl Game {
         self.ambient_log.clear();
         self.rain_windows.clear();
         self.drawer_props.clear();
+        self.vending.clear();
+        self.pp.vending_positions.clear();
         self.vacuum_bot = None;
         // the Building's per-floor things (a floor of the rooms has none)
         self.cell_doors.clear();
@@ -436,6 +438,7 @@ impl Game {
         }
         self.settle_placement(prop_start);
         self.free_buried_pickups();
+        self.vending_settled();
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {
             self.settle_prop_looks(prop_start);

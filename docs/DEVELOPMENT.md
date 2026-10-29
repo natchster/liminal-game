@@ -191,6 +191,11 @@ Levels must be a pure function of `(run_seed, level)`:
   meant to alter level generation, rebuild those levels with
   `backrooms --dump-level DIR --seed S --levels …` and review the
   difference before replacing them.
+* The core props' fixtures (`core_props_head.json`, `core_props_builders.json`,
+  first recorded from the HTML version) re-record from the current code with
+  each case's inputs kept, through the steps their tests take:
+  `cargo test --release -p game --test core_props_head -- --ignored rerecord`.
+  On unchanged code it reproduces every value the tests read.
 * The level-generation fixtures re-record themselves from the current code
   (keeping each case's seeds and query points); run the ones a deliberate
   change affects, then review the diff:
@@ -364,6 +369,8 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   spawn went missing from the zone views, and from the goldens, until
   2026-10-26). `cargo test --release -p backrooms --test story` draws each
   checked level's walk, sheets and camp from above into `target/story/`.
+* `--views` also prints `vending views: "x,z,yaw;…"` (`Game::vending_views`:
+  in front of each vending machine and from its side, looking at its glass).
 * `--views` also prints `lean views: "x,z,yaw;…"`: poses out in the room
   looking at the partitions that lean (`Game::lean_views`, the steepest
   first). `--dump-level … --screenshot x --views-at "x,z,yaw;…"` renders a

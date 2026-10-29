@@ -409,7 +409,17 @@ fn the_door_is_heard() {
 fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>, Vec<f64>, f64)> {
     game::base::rng::seed_native(seed as u64);
     let mut r = start(seed, level);
+    // the door against the place, not against a creature: none stands on
+    // the floor (one standing near, frozen or not, sounds its drone, and
+    // the director's tension with it; when this floor's props changed, a
+    // Reader came to stand beside paper 6 m from the spot). One frame first,
+    // so the creatures placed as play begins are among them
+    play(&mut r, 1.0 / 60.0, hold_creatures);
     let g = &mut r.g;
+    for e in &g.entities {
+        e.g.remove_from_parent();
+    }
+    g.entities.clear();
     let e = g.exit_data.as_ref().unwrap().pos;
     let d = g.bfs(g.tx(e.x), g.tz(e.z));
     let (x, z) = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| d[(z * g.w + x) as usize] == steps)?;

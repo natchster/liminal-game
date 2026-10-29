@@ -321,274 +321,6 @@ pub fn build_wet_floor_sign(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(wg, 0.85)
 }
 
-/// Full-size COLA-Z machine with cans, keypad, coin slot
-pub fn build_vending(g: &mut Game, cx: &mut PropsCtx) -> Built {
-    let _ = cx;
-    // Sizes: taller and wider so the machine reads as full-size at ~2m tall.
-    let (w_, h_, d_) = (1.05f64, 2.05f64, 0.65f64);
-    let vg = group();
-    // Two-tone body: red main + darker plinth
-    let body_mat = lambert!({ color: 0x9c1e1e, emissive: 0x180404 });
-    let body = mesh(pg("Props__vending_body", box_geo!(w_, h_ - 0.16, d_)), &body_mat);
-    body.position().y = (h_ - 0.16) / 2.0 + 0.08;
-    vg.add(&body);
-    // Plinth (darker) at bottom
-    let plinth = mesh(pg("Props__vending_plinth", box_geo!(w_ + 0.005, 0.08, d_ + 0.005)), lambert!({ color: 0x2a0a0a }));
-    plinth.position().y = 0.04;
-    vg.add(&plinth);
-    // Feet
-    for (sx, sz) in [
-        (-w_ / 2.0 + 0.05, -d_ / 2.0 + 0.05),
-        (w_ / 2.0 - 0.05, -d_ / 2.0 + 0.05),
-        (-w_ / 2.0 + 0.05, d_ / 2.0 - 0.05),
-        (w_ / 2.0 - 0.05, d_ / 2.0 - 0.05),
-    ] {
-        let foot = mesh(pg("Props__vending_foot", box_geo!(0.06, 0.04, 0.06)), &g.mats.dark);
-        foot.position().set(sx, 0.02, sz);
-        vg.add(&foot);
-    }
-    // ---- Top illuminated brand header ----
-    let header = mesh(box_geo!(w_ - 0.02, 0.28, 0.02), basic_mat!({ color: 0xfff2c8 }));
-    // kept within the body's height (top 1.97): 1.75..1.97, capped by the top trim
-    header.scale().y = 0.786;
-    header.position().set(0, h_ - 0.19, d_ / 2.0 + 0.008);
-    vg.add(&header);
-    let brand = mesh(
-        plane_geo!(w_ - 0.08, 0.20),
-        basic_mat!({
-            map: ttex("COLA-Z", 1024.0, 192.0, "bold 140px \"Impact\", sans-serif", "#c11515", 6.0),
-            transparent: true,
-        }),
-    );
-    brand.position().set(0, h_ - 0.19, d_ / 2.0 + 0.019);
-    vg.add(&brand);
-    // header top trim, sitting on the body top (1.97); it floated 6 cm above it
-    let header_trim = mesh(pg("Props__vending_topTrim", box_geo!(w_, 0.03, d_ + 0.005)), &g.mats.chrome);
-    header_trim.position().set(0, h_ - 0.065, 0);
-    vg.add(&header_trim);
-    // header bottom trim
-    let header_bot = mesh(pg("Props__vending_headerTrim", box_geo!(w_, 0.015, d_ + 0.005)), lambert!({ color: 0x1a0505 }));
-    header_bot.position().set(0, h_ - 0.30, 0);
-    vg.add(&header_bot);
-    // ---- Glass display window (left ~65% of front) ----
-    let (glass_w, glass_h) = (w_ * 0.60, h_ * 0.55);
-    let glass_cx = -w_ * 0.16;
-    let glass_cy = h_ * 0.55;
-    // dark cabinet interior visible through glass
-    let cab_interior = mesh(pg("Props__vending_interior", box_geo!(glass_w - 0.02, glass_h - 0.02, 0.30)), lambert!({ color: 0x0a0a0a }));
-    cab_interior.position().set(glass_cx, glass_cy, d_ / 2.0 - 0.16);
-    vg.add(&cab_interior);
-    // 4 shelves with 5 slots each — cans have visible labels
-    let can_radius = 0.048;
-    let can_h = 0.115;
-    let shelf_count = 4;
-    let slots_per_shelf = 5;
-    // Colored can palette: (body, label band)
-    let can_designs: [(u32, u32, &str); 6] = [
-        (0xd42020, 0xf8e0a0, "C"),
-        (0x1e6a30, 0xe0e8b0, "M"),
-        (0x1a4a90, 0xe0e8f0, "P"),
-        (0xc79a20, 0x2a1a08, "B"),
-        (0xa02090, 0xf0d0e8, "G"),
-        (0x2a2a2a, 0xd8c880, "Z"),
-    ];
-    let slot_x = |sl: i32| glass_cx - (glass_w - 0.12) / 2.0 + sl as f64 * ((glass_w - 0.12) / (slots_per_shelf - 1) as f64);
-    for s in 0..shelf_count {
-        let shelf_y = glass_cy - glass_h / 2.0 + 0.10 + s as f64 * ((glass_h - 0.15) / shelf_count as f64);
-        // shelf mesh
-        let shelf = mesh(pg("Props__vending_shelf", box_geo!(glass_w - 0.06, 0.015, 0.20)), lambert!({ color: 0x3a3a3a }));
-        shelf.position().set(glass_cx, shelf_y - can_h / 2.0 - 0.008, d_ / 2.0 - 0.16);
-        vg.add(&shelf);
-        // price sticker row above each shelf (small yellow tabs with a "$" mark)
-        for sl in 0..slots_per_shelf {
-            let price_tab = mesh(plane_geo!(0.08, 0.028), basic_mat!({ color: 0xf8e0a0 }));
-            price_tab.position().set(slot_x(sl), shelf_y + can_h / 2.0 + 0.025, d_ / 2.0 - 0.058);
-            vg.add(&price_tab);
-            let price_text = mesh(
-                plane_geo!(0.07, 0.024),
-                basic_mat!({
-                    map: ttex(&format!("$1.{}", 20 + sl * 5), 128.0, 32.0, "bold 22px monospace", "#c11515", 0.0),
-                    transparent: true,
-                }),
-            );
-            let tp = price_tab.pos();
-            price_text.position().set(tp.x, tp.y, d_ / 2.0 - 0.056);
-            vg.add(&price_text);
-        }
-        for sl in 0..slots_per_shelf {
-            if rnd() < 0.25 {
-                continue;
-            } // some slots empty
-            let design = choice(&can_designs);
-            let cxp = slot_x(sl);
-            // can body (thick cylinder)
-            let can = mesh(pg("Props__vending_can", cyl_geo!(can_radius, can_radius, can_h, 12)), lambert!({ color: design.0 }));
-            can.position().set(cxp, shelf_y, d_ / 2.0 - 0.18);
-            vg.add(&can);
-            // top/bottom aluminum rings
-            let cap_top = mesh(pg("Props__vending_canRim", cyl_geo!(can_radius + 0.002, can_radius + 0.002, 0.008, 12)), &g.mats.chrome);
-            cap_top.position().set(cxp, shelf_y + can_h / 2.0 - 0.004, d_ / 2.0 - 0.18);
-            vg.add(&cap_top);
-            let cap_bot = cap_top.duplicate();
-            cap_bot.position().y = shelf_y - can_h / 2.0 + 0.004;
-            vg.add(&cap_bot);
-            // label band around middle of can
-            let label = mesh(
-                pg("Props__vending_canLabel", cyl_geo!(can_radius + 0.001, can_radius + 0.001, can_h * 0.55, 12)),
-                lambert!({ color: design.1 }),
-            );
-            label.position().set(cxp, shelf_y, d_ / 2.0 - 0.18);
-            vg.add(&label);
-            // pull-tab on top
-            let pull = mesh(pg("Props__vending_pullTab", box_geo!(0.02, 0.003, 0.008)), &g.mats.chrome);
-            pull.position().set(cxp, shelf_y + can_h / 2.0 + 0.005, d_ / 2.0 - 0.18);
-            vg.add(&pull);
-        }
-    }
-    // ---- Glass pane in front of shelves ----
-    let glass_frame = mesh(pg("Props__vending_glassFrame", box_geo!(glass_w + 0.04, glass_h + 0.04, 0.015)), lambert!({ color: 0x1a1a1a }));
-    glass_frame.position().set(glass_cx, glass_cy, d_ / 2.0 + 0.005);
-    vg.add(&glass_frame);
-    let glass = mesh(plane_geo!(glass_w, glass_h), basic_mat!({ color: 0x88a0b0, transparent: true, opacity: 0.15 }));
-    glass.position().set(glass_cx, glass_cy, d_ / 2.0 + 0.014);
-    vg.add(&glass);
-    // Glass reflection highlight (top-left diagonal streak)
-    let shine = mesh(plane_geo!(glass_w * 0.4, glass_h * 0.9), basic_mat!({ color: 0xffffff, transparent: true, opacity: 0.08 }));
-    shine.position().set(glass_cx - glass_w * 0.25, glass_cy + glass_h * 0.02, d_ / 2.0 + 0.015);
-    shine.rotation().z = 0.35;
-    vg.add(&shine);
-    // one hairline crack
-    let crack_mat = line_mat!({ color: 0xe4e0d0 });
-    {
-        let mut pts = vec![];
-        let mut cxp = rand2(-glass_w * 0.3, glass_w * 0.3);
-        let mut cyp = rand2(-glass_h * 0.4, glass_h * 0.4);
-        pts.push(v3(cxp + glass_cx, cyp + glass_cy, d_ / 2.0 + 0.02));
-        for _s in 0..6 {
-            cxp += rand2(-0.10, 0.10);
-            cyp += rand2(-0.14, 0.14);
-            pts.push(v3(cxp + glass_cx, cyp + glass_cy, d_ / 2.0 + 0.02));
-        }
-        let geo = Geo::from_points(&pts);
-        vg.add(&line(geo, &crack_mat));
-    }
-    // ---- Right-side control panel (~25% of front) ----
-    let panel_x = w_ * 0.32;
-    let panel_body = mesh(pg("Props__vending_panel", box_geo!(w_ * 0.24, glass_h, 0.02)), lambert!({ color: 0x1a1a1a }));
-    panel_body.position().set(panel_x, glass_cy, d_ / 2.0 + 0.008);
-    vg.add(&panel_body);
-    // LED price display at top of panel
-    let disp_bezel = mesh(pg("Props__vending_displayBezel", box_geo!(w_ * 0.20, 0.07, 0.015)), lambert!({ color: 0x0a0a0a }));
-    disp_bezel.position().set(panel_x, glass_cy + glass_h * 0.36, d_ / 2.0 + 0.018);
-    vg.add(&disp_bezel);
-    let disp_text = mesh(
-        plane_geo!(w_ * 0.18, 0.06),
-        basic_mat!({
-            map: ttex("E - -", 256.0, 64.0, "bold 40px \"Courier New\", monospace", "#ff4020", 6.0),
-            transparent: true,
-        }),
-    );
-    disp_text.position().set(panel_x, glass_cy + glass_h * 0.36, d_ / 2.0 + 0.026);
-    vg.add(&disp_text);
-    // Keypad grid (4 rows x 3 cols with digit labels + change return button)
-    let key_labels = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3", "D1", "D2", "D3"];
-    for r in 0..4 {
-        for cc in 0..3 {
-            let kx = panel_x - (w_ * 0.07) + cc as f64 * (w_ * 0.07);
-            let ky = glass_cy + glass_h * 0.22 - r as f64 * 0.078;
-            // recessed frame
-            let frame_k = mesh(pg("Props__vending_keyBezel", box_geo!(0.052, 0.052, 0.008)), lambert!({ color: 0x2a2a2a }));
-            frame_k.position().set(kx, ky, d_ / 2.0 + 0.018);
-            vg.add(&frame_k);
-            // button
-            let btn = mesh(pg("Props__vending_key", cyl_geo!(0.02, 0.02, 0.012, 10)), &g.mats.chrome);
-            btn.rotation().x = PI / 2.0;
-            btn.position().set(kx, ky, d_ / 2.0 + 0.028);
-            vg.add(&btn);
-            // label
-            let lbl = mesh(
-                plane_geo!(0.03, 0.02),
-                basic_mat!({
-                    map: ttex(key_labels[r * 3 + cc], 64.0, 40.0, "bold 24px sans-serif", "#e8e8e8", 0.0),
-                    transparent: true,
-                }),
-            );
-            lbl.position().set(kx, ky - 0.028, d_ / 2.0 + 0.019);
-            vg.add(&lbl);
-        }
-    }
-    // Coin slot (vertical) + label
-    let coin_slot_housing = mesh(pg("Props__vending_coinPlate", box_geo!(w_ * 0.16, 0.05, 0.02)), lambert!({ color: 0x2a2e34 }));
-    coin_slot_housing.position().set(panel_x, glass_cy - glass_h * 0.14, d_ / 2.0 + 0.017);
-    vg.add(&coin_slot_housing);
-    let coin_slot_in = mesh(pg("Props__vending_coinSlot", box_geo!(0.045, 0.008, 0.008)), &g.mats.dark);
-    coin_slot_in.position().set(panel_x - 0.03, glass_cy - glass_h * 0.14, d_ / 2.0 + 0.026);
-    vg.add(&coin_slot_in);
-    let coin_in_label = mesh(
-        plane_geo!(w_ * 0.10, 0.02),
-        basic_mat!({
-            map: ttex("INSERT COIN", 256.0, 32.0, "bold 18px sans-serif", "#e8e8e8", 0.0),
-            transparent: true,
-        }),
-    );
-    coin_in_label.position().set(panel_x + 0.02, glass_cy - glass_h * 0.14, d_ / 2.0 + 0.025);
-    vg.add(&coin_in_label);
-    // Coin return button
-    let return_btn = mesh(pg("Props__vending_returnButton", cyl_geo!(0.024, 0.024, 0.014, 12)), &g.mats.chrome);
-    return_btn.rotation().x = PI / 2.0;
-    return_btn.position().set(panel_x, glass_cy - glass_h * 0.28, d_ / 2.0 + 0.024);
-    vg.add(&return_btn);
-    let return_label = mesh(
-        plane_geo!(w_ * 0.16, 0.02),
-        basic_mat!({
-            map: ttex("COIN RETURN", 256.0, 32.0, "bold 18px sans-serif", "#e8e8e8", 0.0),
-            transparent: true,
-        }),
-    );
-    return_label.position().set(panel_x, glass_cy - glass_h * 0.34, d_ / 2.0 + 0.019);
-    vg.add(&return_label);
-    // ---- Bottom dispensing slot (spans full width) ----
-    let slot_box = mesh(pg("Props__vending_bin", box_geo!(w_ * 0.70, 0.18, 0.05)), lambert!({ color: 0x0a0a0a }));
-    slot_box.position().set(-w_ * 0.10, 0.35, d_ / 2.0 - 0.02);
-    vg.add(&slot_box);
-    // slot flap
-    let slot_flap = mesh(pg("Props__vending_flap", box_geo!(w_ * 0.60, 0.14, 0.008)), lambert!({ color: 0x2a2a2a }));
-    slot_flap.position().set(-w_ * 0.10, 0.36, d_ / 2.0 + 0.024);
-    vg.add(&slot_flap);
-    slot_flap.rotation().x = -0.15; // tilted inward like a real dispensing flap
-    let slot_lip = mesh(pg("Props__vending_binLip", box_geo!(w_ * 0.72, 0.02, 0.05)), &g.mats.chrome);
-    slot_lip.position().set(-w_ * 0.10, 0.44, d_ / 2.0 + 0.008);
-    vg.add(&slot_lip);
-    // Coin return cup (bottom right) with "PUSH" text
-    let return_cup = mesh(pg("Props__vending_returnCup", box_geo!(0.12, 0.08, 0.04)), lambert!({ color: 0x2a2a2a }));
-    return_cup.position().set(panel_x, 0.28, d_ / 2.0 - 0.015);
-    vg.add(&return_cup);
-    let return_cup_slot = mesh(pg("Props__vending_returnCupSlot", box_geo!(0.10, 0.05, 0.02)), lambert!({ color: 0x080808 }));
-    return_cup_slot.position().set(panel_x, 0.27, d_ / 2.0 + 0.01);
-    vg.add(&return_cup_slot);
-    // ---- Optional OUT OF ORDER note taped diagonally ----
-    if rnd() < 0.55 {
-        let note = mesh(
-            plane_geo!(0.36, 0.16),
-            basic_mat!({
-                map: handwritten_tex("OUT OF ORDER", &hand("rgba(20,15,10,0.98)", 6.0, 1.8, 1.4, 512.0, 128.0)),
-                transparent: true,
-            }),
-        );
-        note.position().set(-w_ * 0.10, glass_cy - glass_h * 0.05, d_ / 2.0 + 0.030);
-        note.rotation().z = rand2(-0.25, 0.25);
-        vg.add(&note);
-        // masking-tape at each corner
-        for (sx, sy) in [(-0.16, 0.06), (0.16, 0.06), (-0.16, -0.06), (0.16, -0.06)] {
-            let tape = mesh(plane_geo!(0.06, 0.02), lambert!({ color: 0xe8dcb8, transparent: true, opacity: 0.85 }));
-            tape.position().set(-w_ * 0.10 + sx, glass_cy - glass_h * 0.05 + sy, d_ / 2.0 + 0.031);
-            tape.rotation().z = rand2(-0.5, 0.5);
-            vg.add(&tape);
-        }
-    }
-    Built::new(vg, h_ + 0.02)
-}
-
 /// A bank of 2–3 lockers, sometimes one ajar
 pub fn build_locker(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = cx;
@@ -1256,6 +988,18 @@ pub fn build_fluorescent_tube(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(tg, 0.1)
 }
 
+/// A junk colour (cardboard, cloth, plastic, rust, grey) from one drawn
+/// number: which of them from its low bits, how light (`lo`..`hi` of the
+/// colour, sRGB) from the rest
+fn junk_colour(n: i64, lo: f64, hi: f64) -> u32 {
+    const JUNK: [(f64, f64, f64); 6] =
+        [(0.62, 0.48, 0.32), (0.45, 0.42, 0.40), (0.38, 0.30, 0.24), (0.52, 0.30, 0.20), (0.30, 0.34, 0.36), (0.55, 0.52, 0.44)];
+    let (r, g, b) = JUNK[(n.rem_euclid(6)) as usize];
+    let k = lo + (hi - lo) * ((n / 6).rem_euclid(1000) as f64 / 999.0);
+    let c = |v: f64| ((v * k / 0.62).clamp(0.0, 1.0) * 255.0).round() as u32;
+    (c(r) << 16) | (c(g) << 8) | c(b)
+}
+
 /// Absurd amalgam of small junk
 pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
@@ -1263,13 +1007,21 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // the bound `irand(4, 8)` is deliberately redrawn every pass
     let mut i = 0i64;
     while i < irand(4, 8) {
+        // (each colour from one draw, as it always was, but a junk colour:
+        // a random hex between two had come out any colour at all, lime and
+        // orange among them)
         let block = || {
             mesh(
                 pg("Props__pile_block", box_geo!(rand2(0.1, 0.3), rand2(0.05, 0.2), rand2(0.1, 0.3))),
-                lambert!({ color: irand(0x111111, 0xaaaaaa) }),
+                lambert!({ color: junk_colour(irand(0x111111, 0xaaaaaa), 0.10, 0.62) }),
             )
         };
-        let lump = || mesh(pg("Props__pile_lump", sphere_geo!(rand2(0.06, 0.12), 6, 4)), lambert!({ color: irand(0x222222, 0xbb9955) }));
+        let lump = || {
+            mesh(
+                pg("Props__pile_lump", sphere_geo!(rand2(0.06, 0.12), 6, 4)),
+                lambert!({ color: junk_colour(irand(0x222222, 0xbb9955), 0.14, 0.70) }),
+            )
+        };
         let shape = if choice(&[0, 1]) == 0 { block() } else { lump() };
         let (x, y, z) = (rand2(-0.3, 0.3), rand2(0.05, 0.35), rand2(-0.3, 0.3));
         shape.position().set(x, y, z);

@@ -654,16 +654,13 @@ impl Game {
         };
         // water slows movement and dampens sprint
         let water_mul = if in_pool { 0.55 } else { 1.0 };
-        // R769 vending-machine mercury-soda speed boost: 1.3× multiplier while active.
-        let boost_mul = if self.perf_t < self.player.speed_boost_until { 1.30 } else { 1.0 };
         let speed = (if sprinting && moving {
             SPRINT
         } else if self.player.crouch {
             CROUCH_WALK
         } else {
             WALK
-        }) * water_mul
-            * boost_mul;
+        }) * water_mul;
         // R769 audible range — how far entities hear the player.
         let mut aud = 0.0;
         if moving {

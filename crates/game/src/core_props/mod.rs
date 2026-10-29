@@ -8,6 +8,7 @@
 pub mod builders;
 pub mod seam;
 pub mod tail;
+pub mod vending;
 pub mod weather_fx;
 
 use crate::base::records::*;
@@ -18,6 +19,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 pub use crate::core_props::builders::*;
+pub use crate::core_props::vending::build_vending;
 
 /// a candidate tile (x, z) and `d`, its distance from spawn
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -507,7 +509,13 @@ impl Game {
         let floor = |home: Home, row: i32, spacing: f64| ScatterOpts { home: Some(home), row, spacing, ..Default::default() };
         scatter(g, &mut cx, build_filing_cabinet, 3, &ScatterOpts { can_stack: true, on_placed: Some(&reg), ..wall(0.3, OFFICE, 3, 0.66) });
         scatter(g, &mut cx, build_locker, 2, &ScatterOpts { can_stack: true, ..wall(0.28, LOCKER_ROOM, 2, 1.42) });
-        scatter(g, &mut cx, build_vending, 1, &wall(0.32, VENDING, 1, 0.0));
+        scatter(
+            g,
+            &mut cx,
+            vending::build_vending,
+            1,
+            &ScatterOpts { on_placed: Some(&vending::placed), ..wall(vending::model::D / 2.0 + 0.05, VENDING, 1, 0.0) },
+        );
         scatter(g, &mut cx, build_cardboard_stack, 4, &floor(STORAGE, 3, 0.75));
         scatter(g, &mut cx, build_wet_floor_sign, 2, &floor(WET, 1, 0.0));
         scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { y: 0.0, ..wall(0.16, SERVICE, 1, 0.0) });

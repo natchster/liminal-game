@@ -273,18 +273,6 @@ fn pool_slows_and_splashes() {
     assert!(!r.g.player.was_in_pool);
 }
 
-#[test]
-fn speed_boost_multiplies_speed() {
-    let mut r = rig(17, 5);
-    face_south(&mut r.g);
-    r.g.player.speed_boost_until = 1e9;
-    let z0 = r.g.player.pos.z;
-    press(&mut r.g, "KeyW");
-    frames(&mut r, 30);
-    let moved = r.g.player.pos.z - z0;
-    assert!((moved - WALK * 1.3 * 0.5).abs() < 0.05, "boosted walk {moved}");
-}
-
 // ------------------------------------------------------------ flashlight / items
 #[test]
 fn flashlight_drains_the_battery() {

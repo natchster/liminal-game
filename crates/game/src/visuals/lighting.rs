@@ -372,6 +372,13 @@ impl Game {
                 k[i] = k[i].max(EXIT_LIGHT);
             }
         }
+        // the vending machines still on: their glass and the floor before them
+        for (x, z, l) in self.vending_light() {
+            if x >= 0 && z >= 0 && x < self.w && z < self.h {
+                let i = (z * self.w + x) as usize;
+                k[i] = k[i].max(l);
+            }
+        }
         // her lamp, while it burns
         if let Some(c) = self.story.camp.as_ref().filter(|c| c.lit) {
             let i = (c.tile.1 * self.w + c.tile.0) as usize;
