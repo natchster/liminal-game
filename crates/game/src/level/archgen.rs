@@ -49,6 +49,8 @@ pub const BOX_VOID: i32 = 5;
 /// The slab under a floor that has height (the Building's floors): it
 /// stops a look, never a body, which stands on it.
 pub const BOX_FLOOR: i32 = 6;
+/// A step of a leaning wall (`world::angled`): collides like a wall; drawn as the wall it stands in for.
+pub const BOX_ANGLED: i32 = 7;
 
 // ---------------------------------------------------------------------------
 // Ground: floors with height. The rooms stand on y = 0 and have none (an
@@ -1873,7 +1875,8 @@ pub fn build_solids_view(l: &LayoutView, opt: &SolidsOpts) -> Solids {
     make_solids(w, h, cell, out)
 }
 
-fn make_solids(w: i32, h: i32, cell: f64, boxes: Vec<f32>) -> Solids {
+/// Solids from their boxes (8 floats each), indexed by tile
+pub fn make_solids(w: i32, h: i32, cell: f64, boxes: Vec<f32>) -> Solids {
     let count = boxes.len() / 8;
     let n = (w * h) as usize;
     let mut counts = vec![0i32; n + 1];
@@ -2338,7 +2341,7 @@ pub fn layout_stats_view(l: &LayoutView, s: Option<&Solids>) -> LayoutStats {
             None => arch.push((z.arch, area)),
         }
     }
-    let mut kinds = [0usize; 5];
+    let mut kinds = [0usize; 8];
     let mut thin = 0;
     if let Some(s) = s {
         for b in 0..s.count {

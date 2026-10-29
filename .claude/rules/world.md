@@ -27,6 +27,13 @@ paths:
   see floor whose purpose welcomes their theme (`THEME_COMPAT`,
   `PURPOSE_EMPTY`). A new placer goes into `THEMED_ORDER` and
   `PLACER_THEME` in `world/tables.rs`.
+- **Walls are not all on the grid.** A partition may lean (`world::angled`):
+  in `g.solids` it is a staircase of `BOX_ANGLED` steps inside the drawn
+  wall, and `g.angled` holds the wall as drawn. Ask the solids for a wall's
+  real face (`ray_axis`, `circle_hits`), never the tile grid; a placer that
+  hangs a thing at a tile edge is moved onto the face, and turned with it, by
+  `settle_props`. Set the solids with `set_solids_now`, which keeps the two
+  in step.
 - **Every level stays walkable.** Archgen walls up unreachable pockets on the
   tile grid; keep that true, and keep props off the paths a body needs.
 - **Gates:** `tests/level_sweep.rs` (walkable, reachable, repeatable) and

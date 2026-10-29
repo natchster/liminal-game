@@ -47,7 +47,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 |---|---|
 | `base` | `Game` (all state in one struct), constants (`config`), the random streams (`rng`), numeric helpers, shared record types, per-weather tables, the prop position registry |
 | `level` | `archgen`: the zoned layout of a level (archetypes, walls, partitions, rooms, ceiling heights, solids for collision and sight; the ground a tile stands on where floors have height: a floor, a void, a stair, a mass); `building`: the Building's floors (levels 1–3): a lattice of platforms, walks, flights and voids, its cells and door, and the navigation measures; `scp`: which anomaly appears on which level of a run |
-| `world` | Grid and collision queries, zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling; the Building's floors as built (`building`: slabs, flights, parapets, masses, lamps, the door, pickups) and dressed (`building_dress`: cells and their hermetic doors, sealed doors, the galleries above and below, windows, the door's lit tower, storey numbers, loudspeakers, the Well's lift cage, each place's own); the self-assembly (`assembly`) and the figure across the void (`far_figures`: its perches, where it can be seen from, and its standing, turning and going, on a stream of its own) |
+| `world` | Grid and collision queries, the partitions that lean (`angled`), zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling; the Building's floors as built (`building`: slabs, flights, parapets, masses, lamps, the door, pickups) and dressed (`building_dress`: cells and their hermetic doors, sealed doors, the galleries above and below, windows, the door's lit tower, storey numbers, loudspeakers, the Well's lift cage, each place's own); the self-assembly (`assembly`) and the figure across the void (`far_figures`: its perches, where it can be seen from, and its standing, turning and going, on a stream of its own) |
 | `assets` | The embedded prop and creature meshes (`assets/*.bin`), fitted to each placer's size; the creatures' bodies (`assets::bodies`: skeletons and the meshes bound to them, `bodies.bin`) |
 | `placers` | The kit placers build with (`canvas_tex`, `pg`, joints, shared materials and tables) |
 | `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras |
@@ -83,7 +83,13 @@ nothing walks there); from level 4 the rooms are built as below, their
 layout, rot and creatures counted by `rooms_depth(n)` (the Lobby is depth 1):
 
 1. `generate_layout` (`level::archgen`): zones, walls, rooms, ceiling
-   heights (neighbouring zones of one archetype share theirs).
+   heights (neighbouring zones of one archetype share theirs). Its solids
+   are then given the partitions that lean (`world::angled`, rooms R4):
+   now and then a straight run of thin partition with a free end turns a
+   few degrees about the corner or wall it starts from, inside its own wall
+   tiles, on a salted stream of its own per run; in the solids a staircase
+   of short boxes inside the drawn wall (`BOX_ANGLED`) stands in for it, so
+   collision, sight, sound and the light map read it as any wall.
 2. `build_world` (`world::build`): zone purposes (`world::purpose`: zones of
    one archetype that open into each other form an *area*, and each area is
    given one purpose — a primary prop theme weighted by what its archetype
@@ -94,11 +100,13 @@ layout, rot and creatures counted by `rooms_depth(n)` (the Lobby is depth 1):
    ceiling panels, the core props (each kind in the zones it belongs in,
    some in rows), the store or house if this is their level, the themed
    placer passes in a fixed order (each placer only sees the zones whose
-   purpose welcomes its theme), settling props on what is below them,
+   purpose welcomes its theme), settling props on what is below them and
+   onto the walls' real faces (turned with a partition that leans),
    then her camp and her trail (`story`: once settling has made the walls
    final, so its sight lines hold; on a salted stream of its own, so no
    checkpoint moves), resolving overlaps (`world::placement`), walls (a seam wall between two
-   regions drawn in two halves, one per side) and ceilings, then freezing
+   regions drawn in two halves, one per side; a leaning run as its boxes
+   turned) and ceilings, then freezing
    static objects, merging repeated meshes into instanced meshes
    (`world::instancing`) and building the cull list.
 3. Spawning the creatures.

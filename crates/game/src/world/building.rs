@@ -86,7 +86,7 @@ impl Game {
         self.layout = Some(layout);
         self.has_layout = true;
         self.building = Some(plan);
-        self.solids = self.build_solids_now(None);
+        self.set_solids_now(None);
     }
 
     fn ground_at(&self, x: i32, z: i32) -> Ground {

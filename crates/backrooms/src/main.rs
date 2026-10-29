@@ -72,6 +72,10 @@ struct Options {
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
     views: bool,
+    /// `--views-at "x,z,yaw;…"`: with `--dump-level --screenshot`, a PNG from
+    /// each of these poses (world metres, radians), `_v00` on: the same poses
+    /// in two builds (`--views` prints the poses along the walls that lean)
+    views_at: Vec<(f64, f64, f64)>,
     /// `--record FILE`: play normally and record the session (inputs, frame
     /// times, telemetry, the director's events) to FILE; opt-in, local only
     record: Option<String>,
@@ -111,6 +115,7 @@ fn parse_args() -> Options {
         screen: None,
         death: false,
         views: false,
+        views_at: vec![],
         fresh: false,
         metrics: None,
         bench: None,
@@ -132,6 +137,15 @@ fn parse_args() -> Options {
             "--width" => o.width = next(&mut i).parse().unwrap_or(1280.0),
             "--height" => o.height = next(&mut i).parse().unwrap_or(800.0),
             "--flags" => o.flags = next(&mut i),
+            "--views-at" => {
+                o.views_at = next(&mut i)
+                    .split(';')
+                    .filter_map(|p| match p.split(',').map(|v| v.trim().parse::<f64>()).collect::<Result<Vec<_>, _>>() {
+                        Ok(v) if v.len() == 3 => Some((v[0], v[1], v[2])),
+                        _ => None,
+                    })
+                    .collect()
+            }
             "--screenshot" => o.screenshot = Some(next(&mut i)),
             "--frames" => o.frames = next(&mut i).parse().unwrap_or(90),
             "--level" => o.level = next(&mut i).parse().ok(),
@@ -672,6 +686,24 @@ fn level_check(o: &Options, dir: &str) {
                     g.sim_frozen = false;
                     print!(" (+{name} view)");
                 }
+                let lean: Vec<String> = g.lean_views(8).iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
+                print!(" ({} leaning, lean views: \"{}\")", g.angled.len(), lean.join(";"));
+            }
+            for (k, &(x, z, yaw)) in o.views_at.iter().enumerate() {
+                g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
+                g.player.yaw = yaw;
+                g.player.pitch = 0.0;
+                g.prop_cull.t = 0.0;
+                g.fixed_step_dt = 1.0 / 60.0;
+                g.frame(1.0 / 60.0);
+                g.fixed_step_dt = 0.0;
+                g.sim_frozen = true;
+                let cb = draw(&mut g, &mut r, t, w, h);
+                cb.commit();
+                cb.waitUntilCompleted();
+                let (tw, th, px) = r.read_texture(t);
+                engine::png::write_rgba(&format!("{base}_v{k:02}.png"), tw as u32, th as u32, &px).expect("write png");
+                g.sim_frozen = false;
             }
         }
         println!();

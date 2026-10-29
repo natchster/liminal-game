@@ -190,13 +190,18 @@ impl Game {
     /// different surfaces (a seam between two places) is drawn as two halves,
     /// each in the surface of the side it faces; a pinned face takes the
     /// surface of the side it is on.
+    /// A leaning wall's staircase is not drawn: the wall is, turned (`build_walls`).
     pub fn wall_box_parts(&self, s: &crate::level::archgen::Solids, b: usize) -> Vec<(String, [f64; 6])> {
-        use crate::level::archgen::{BOX_ANCHOR, BOX_WALL};
         let o = b * 8;
         let f = |k: usize| s.boxes[o + k] as f64;
-        let bx = [f(0), f(1), f(2), f(3), f(4), f(5)];
-        let owner = f(6) as usize;
-        let kind = f(7) as i32;
+        if f(7) as i32 == crate::level::archgen::BOX_ANGLED {
+            return vec![];
+        }
+        self.box_parts([f(0), f(1), f(2), f(3), f(4), f(5)], f(6) as usize, f(7) as i32)
+    }
+    /// `wall_box_parts` of a box `bx` (`[x0 z0 x1 z1 y0 y1]`) owned by tile `owner`, of `kind`
+    pub fn box_parts(&self, bx: [f64; 6], owner: usize, kind: i32) -> Vec<(String, [f64; 6])> {
+        use crate::level::archgen::{BOX_ANCHOR, BOX_WALL};
         let whole = |key: String| vec![(key, bx)];
         if self.tiles[owner] != 1 || (kind != BOX_WALL && kind != BOX_ANCHOR) {
             return whole(self.wall_mat_key(owner));
@@ -437,31 +442,51 @@ impl Game {
     /// One instanced unit box per archgen solid
     pub fn build_walls(&mut self) {
         let Some(s) = self.solids.take() else { return };
-        let mut groups: Vec<(String, Vec<[f64; 6]>)> = vec![];
+        let mut groups: Vec<(String, Vec<Mat4>)> = vec![];
         let mut gi: HashMap<String, usize> = HashMap::new();
+        let (w, h) = (self.w as f64, self.h as f64);
+        let draw = |b: &[f64; 6]| {
+            let (x0, x1) = ((b[0] - w / 2.0) * CELL, (b[2] - w / 2.0) * CELL);
+            let (z0, z1) = ((b[1] - h / 2.0) * CELL, (b[3] - h / 2.0) * CELL);
+            Mat4::compose(
+                &Vec3::new((x0 + x1) / 2.0, (b[4] + b[5]) / 2.0, (z0 + z1) / 2.0),
+                &Quat::IDENTITY,
+                &Vec3::new(0.01f64.max(x1 - x0), 0.01f64.max(b[5] - b[4]), 0.01f64.max(z1 - z0)),
+            )
+        };
+        // a part of a leaning wall: its centre where the wall's turn takes it, turned by `phi` (from +x toward +z)
+        let turned = |b: &[f64; 6], at: (f64, f64), phi: f64| {
+            Mat4::compose(
+                &Vec3::new((at.0 - w / 2.0) * CELL, (b[4] + b[5]) / 2.0, (at.1 - h / 2.0) * CELL),
+                &Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), -phi),
+                &Vec3::new((b[2] - b[0]) * CELL, b[5] - b[4], (b[3] - b[1]) * CELL),
+            )
+        };
+        let mut put = |key: String, m: Mat4| {
+            let i = *gi.entry(key.clone()).or_insert_with(|| {
+                groups.push((key, vec![]));
+                groups.len() - 1
+            });
+            groups[i].1.push(m);
+        };
         for b in 0..s.count {
             for (key, part) in self.wall_box_parts(&s, b) {
-                let i = *gi.entry(key.clone()).or_insert_with(|| {
-                    groups.push((key, vec![]));
-                    groups.len() - 1
-                });
-                groups[i].1.push(part);
+                put(key, draw(&part));
+            }
+        }
+        // the partitions that lean: what they were made of, turned
+        for wall in &self.angled {
+            for &(owner, bx) in &wall.parts {
+                for (key, part) in self.box_parts(bx, owner, crate::level::archgen::BOX_WALL) {
+                    put(key, turned(&part, wall.turn((part[0] + part[2]) / 2.0, (part[1] + part[3]) / 2.0), wall.phi()));
+                }
             }
         }
         let geo = self.unit_box_geo.clone();
-        let (w, h) = (self.w as f64, self.h as f64);
         self.solids = Some(s);
         for (key, list) in groups {
             let mat = self.arch_mat(&key);
-            self.add_instanced(&geo, &mat, &list, &|b: &[f64; 6]| {
-                let (x0, x1) = ((b[0] - w / 2.0) * CELL, (b[2] - w / 2.0) * CELL);
-                let (z0, z1) = ((b[1] - h / 2.0) * CELL, (b[3] - h / 2.0) * CELL);
-                Mat4::compose(
-                    &Vec3::new((x0 + x1) / 2.0, (b[4] + b[5]) / 2.0, (z0 + z1) / 2.0),
-                    &Quat::IDENTITY,
-                    &Vec3::new(0.01f64.max(x1 - x0), 0.01f64.max(b[5] - b[4]), 0.01f64.max(z1 - z0)),
-                )
-            });
+            self.add_instanced(&geo, &mat, &list, &|m: &Mat4| *m);
         }
     }
 

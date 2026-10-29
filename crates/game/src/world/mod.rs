@@ -11,6 +11,7 @@
 //! static-prop instancing; [`tables`]: the build tables; [`zones`]: zone
 //! record access.
 //! CONTRACT: these signatures are called from other modules; keep them.
+pub mod angled;
 pub mod arch;
 pub mod assembly;
 pub mod build;
@@ -358,11 +359,25 @@ impl Game {
         self.has_layout = true;
         // provisional solids so anything placed during the prop pass collides
         // with the real partitions; rebuilt with anchors once props are down
-        self.solids = self.build_solids_now(None);
+        self.set_solids_now(None);
+    }
+    /// `solids` and `angled` from `build_solids_leaning`
+    pub fn set_solids_now(&mut self, anchors: Option<&std::collections::HashSet<usize>>) {
+        let (s, a) = self.build_solids_leaning(anchors).map_or((None, vec![]), |(s, a)| (Some(s), a));
+        self.solids = s;
+        self.angled = a;
+    }
+    /// `build_solids_leaning`'s solids alone
+    pub fn build_solids_now(&self, anchors: Option<&std::collections::HashSet<usize>>) -> Option<archgen::Solids> {
+        self.build_solids_leaning(anchors).map(|(s, _)| s)
     }
     /// `build_solids` with `anchors` and `tile_ceil`, over the live `g.tiles`
-    /// rather than the layout's copy
-    pub fn build_solids_now(&self, anchors: Option<&std::collections::HashSet<usize>>) -> Option<archgen::Solids> {
+    /// rather than the layout's copy, with the partitions that lean
+    /// (`angled`) and their staircases
+    pub fn build_solids_leaning(
+        &self,
+        anchors: Option<&std::collections::HashSet<usize>>,
+    ) -> Option<(archgen::Solids, Vec<crate::world::angled::Wall>)> {
         let l = self.layout.as_ref()?;
         // the Building's floors: masses, voids and the slabs under the floors
         if !self.ground.is_empty() {
@@ -370,7 +385,7 @@ impl Game {
                 Some(p) => crate::level::building::cell_front_boxes(p, &self.ground, self.w, CELL),
                 None => vec![],
             };
-            return Some(archgen::build_ground_solids_with(self.w, self.h, CELL, &self.ground, &extra));
+            return Some((archgen::build_ground_solids_with(self.w, self.h, CELL, &self.ground, &extra), vec![]));
         }
         let view = archgen::LayoutView {
             w: self.w,
@@ -381,7 +396,8 @@ impl Game {
             tile_flags: Some(&l.tile_flags),
             zones: &l.zones,
         };
-        Some(archgen::build_solids_view(&view, &archgen::SolidsOpts { anchors, ceil: Some(&self.tile_ceil), cell: CELL }))
+        let s = archgen::build_solids_view(&view, &archgen::SolidsOpts { anchors, ceil: Some(&self.tile_ceil), cell: CELL });
+        Some(crate::world::angled::lean(&view, s, self.current_seed))
     }
 
     // ------------------------------------------------------------ zone / ceiling / nav

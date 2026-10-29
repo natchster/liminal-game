@@ -364,6 +364,11 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   spawn went missing from the zone views, and from the goldens, until
   2026-10-26). `cargo test --release -p backrooms --test story` draws each
   checked level's walk, sheets and camp from above into `target/story/`.
+* `--views` also prints `lean views: "x,z,yaw;…"`: poses out in the room
+  looking at the partitions that lean (`Game::lean_views`, the steepest
+  first). `--dump-level … --screenshot x --views-at "x,z,yaw;…"` renders a
+  PNG from each given pose (`_v00.png` on), so two builds can be shot from
+  the same places for a blind review.
 * `--showcase smiler[:dist]` (or `hound`, `watcher`, `corner`, `reader`,
   and on their levels `staff`, `shadow`) keeps a creature standing in front
   of the camera for the shot; `kind:dist:walk` places it once and lets it

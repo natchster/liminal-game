@@ -395,8 +395,8 @@ impl Game {
         }
 
         // 4. wall faces
-        let s1 = self.build_solids_now(Some(&anchors));
-        if let Some(s1) = &s1 {
+        let s1 = self.build_solids_leaning(Some(&anchors));
+        if let Some((s1, lean1)) = &s1 {
             for i in 0..info.len() {
                 for k in 0..info[i].att.len() {
                     let a = info[i].att[k];
@@ -404,7 +404,10 @@ impl Game {
                     if anchors.contains(&key) {
                         continue;
                     }
-                    if self.settle_probe(s1, &info[i], &a).is_none() {
+                    // along a partition that leans (its end, the corner it turns
+                    // about) a probe finds the wall's side at a graze, not a face
+                    let grazes = lean1.iter().any(|w| w.owns(a.wt) && w.along_x == (a.into < 2));
+                    if grazes || self.settle_probe(s1, &info[i], &a).is_none() {
                         anchors.insert(key);
                         *st.get_mut("pinned").unwrap() += 1.0;
                     }
@@ -412,10 +415,46 @@ impl Game {
             }
         }
         drop(s1);
-        self.solids = self.build_solids_now(Some(&anchors));
+        self.set_solids_now(Some(&anchors));
         if let Some(solids) = self.solids.take() {
             for it in &info {
+                let mut turned = false;
                 for a in &it.att {
+                    // a partition that leans: onto its face as drawn, and turned with it (once)
+                    let p = it.o.pos();
+                    let on = |w: &&crate::world::angled::Wall| {
+                        let al = w.along(self.to_u(p.x), self.to_v(p.z));
+                        w.owns(a.wt)
+                            && w.along_x == (a.into >= 2)
+                            && w.parts.iter().any(|&(_, q)| al >= w.along(q[0], q[1]) && al <= w.along(q[2], q[3]))
+                    };
+                    if let Some(wall) = self.angled.iter().find(on) {
+                        let side = if a.into == 0 || a.into == 2 { -1.0 } else { 1.0 }; // the room's side of it
+                        let d = (wall.face(wall.along(self.to_u(p.x), self.to_v(p.z)), side) - a.bound) * -side;
+                        let [dx, dz] = ARCH_DIRS[a.into];
+                        let (mx, mz) = (dx as f64 * d * CELL, dz as f64 * d * CELL);
+                        {
+                            let mut q = it.o.position();
+                            q.x += mx;
+                            q.z += mz;
+                        }
+                        *st.get_mut("moved").unwrap() += 1.0;
+                        if let (false, Some(bb)) = (turned, &it.bb) {
+                            // about its middle
+                            let (cx, cz) = ((bb.min.x + bb.max.x) / 2.0 + mx, (bb.min.z + bb.max.z) / 2.0 + mz);
+                            let (sn, cs) = wall.phi().sin_cos();
+                            let q = it.o.pos();
+                            let (rx, rz) = (q.x - cx, q.z - cz);
+                            {
+                                let mut q = it.o.position();
+                                q.x = cx + rx * cs - rz * sn;
+                                q.z = cz + rx * sn + rz * cs;
+                            }
+                            it.o.rotate_on_world_axis(&Vec3::new(0.0, 1.0, 0.0), -wall.phi());
+                            turned = true;
+                        }
+                        continue;
+                    }
                     let d = match self.settle_probe(&solids, it, a) {
                         Some(d) if d.abs() >= 0.002 => d,
                         _ => continue,

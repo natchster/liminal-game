@@ -15,7 +15,7 @@
 //! `REACH` and loses some of its indirect light; and a wall near its ceiling
 //! finds how far up the ceiling is (rooms R3).
 use crate::base::config::CELL;
-use crate::level::archgen::{Solids, BOX_ANCHOR, BOX_JAMB, BOX_PILLAR, BOX_WALL};
+use crate::level::archgen::{Solids, BOX_ANCHOR, BOX_ANGLED, BOX_JAMB, BOX_PILLAR, BOX_WALL};
 
 /// Texels of the light map a tile (4 m): 0.5 m each
 pub const FINE: usize = 8;
@@ -72,7 +72,7 @@ pub fn shape_channels(w: i32, h: i32, tile_ceil: &[f32], solids: Option<&Solids>
             .map(|b| {
                 let bx = s.box_at(b);
                 let kind = bx[7] as i32;
-                let full = matches!(kind, BOX_WALL | BOX_PILLAR | BOX_JAMB | BOX_ANCHOR);
+                let full = matches!(kind, BOX_WALL | BOX_PILLAR | BOX_JAMB | BOX_ANCHOR | BOX_ANGLED);
                 let (cx, cz) = (((bx[0] + bx[2]) * 0.5).floor() as i32, ((bx[1] + bx[3]) * 0.5).floor() as i32);
                 full && bx[4] < 0.3 && bx[5] as f64 >= ceil_of(cx, cz) - 0.15
             })

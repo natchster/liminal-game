@@ -137,6 +137,40 @@ impl Game {
         out
     }
 
+    /// Camera poses on the partitions that lean (`world::angled`), the
+    /// steepest first (at most `n`): out in the room beside one, level with
+    /// its free half, looking back at it and what it turns about, so its
+    /// angle shows against the ceiling's grid. (x, z, yaw) in
+    /// world coordinates; a pose where a body does not fit, or that does not
+    /// see what it looks at, is left out.
+    pub fn lean_views(&self, n: usize) -> Vec<(f64, f64, f64)> {
+        let mut walls: Vec<&crate::world::angled::Wall> = self.angled.iter().collect();
+        walls.sort_by(|a, b| b.theta.abs().total_cmp(&a.theta.abs()));
+        let mut out = vec![];
+        for w in walls {
+            // the free end: the end of its parts farthest from the pivot
+            let ends = w.parts.iter().flat_map(|&(_, p)| [w.along(p[0], p[1]), w.along(p[2], p[3])]);
+            let Some(far) = ends.max_by(|a, b| (a - w.pivot).abs().total_cmp(&(b - w.pivot).abs())) else { continue };
+            for side in [1.0, -1.0] {
+                // 5 m out from its face, beyond its free end's middle; looking at its pivot's third
+                let (al, look) = (w.pivot + (far - w.pivot) * 0.85, w.pivot + (far - w.pivot) * 0.3);
+                let (ac, tac) = (w.face(al, side) + side * 1.25, w.face(look, side));
+                let (u, v, tu, tv) = if w.along_x { (al, ac, look, tac) } else { (ac, al, tac, look) };
+                let (x, z) = ((u - self.w as f64 / 2.0) * CELL, (v - self.h as f64 / 2.0) * CELL);
+                let (tx, tz) = ((tu - self.w as f64 / 2.0) * CELL, (tv - self.h as f64 / 2.0) * CELL);
+                if self.circle_hits_wall(x, z, 0.4) || !self.los(x, z, tx, tz) {
+                    continue;
+                }
+                out.push((x, z, (-(tx - x)).atan2(-(tz - z))));
+                break;
+            }
+            if out.len() >= n {
+                break;
+            }
+        }
+        out
+    }
+
     /// A camera pose inside each zone of the layout, for looking at it: the
     /// open tile of the zone with the longest straight run of open floor in
     /// front of it, a step back from its centre, facing down the run.

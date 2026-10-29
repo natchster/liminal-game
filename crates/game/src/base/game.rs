@@ -139,6 +139,8 @@ pub struct Game {
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
     pub solids: Option<crate::level::archgen::Solids>,
+    /// the partitions that lean, whose staircases stand in for them in `solids` (`world::angled`)
+    pub angled: Vec<crate::world::angled::Wall>,
     /// The game's textures (wallpaper and carpet variants, dust sprite, static, ...)
     pub tex: crate::visuals::textures::Textures,
     /// Procedural surface textures (from `make_surfaces`)
@@ -695,6 +697,7 @@ impl Game {
             lift_at: None,
             layout: None,
             solids: None,
+            angled: vec![],
             tex: crate::visuals::textures::Textures::placeholder(),
             // (`rnd`: each painter draws inside `canvas_tex`, on its own stream)
             surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::rnd),
