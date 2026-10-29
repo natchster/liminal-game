@@ -157,8 +157,11 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 g.creature_mut(ei).unwrap().ease.insert("passing", 0.0);
             }
             // now and then, while you are in its room, it turns to look at
-            // the room behind it (the hum stops first); learned, more often
-            let near = d < LOOKS_NEAR && g.e_los(pos.x, pos.z, pp.x, pp.z);
+            // the room behind it (the hum stops first); learned, more often.
+            // Never while the place relaxes after a close call (pillar 5: the
+            // threat backs off; its chase had begun a peak in the relief)
+            let relaxing = g.director.phase == crate::entities::director::Phase::Relax;
+            let near = d < LOOKS_NEAR && g.e_los(pos.x, pos.z, pp.x, pp.z) && !relaxing;
             let every = if g.creature_learned("corner") { LOOKS_LEARNED } else { LOOKS_EVERY };
             let turn_in = {
                 let c = g.creature_mut(ei).unwrap();
@@ -510,6 +513,10 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
     }
 }
 
+/// How loud its hum is (a room away, over the room's bed in its band:
+/// `the_one_in_the_corner_hums`)
+const HUM_GAIN: f64 = 0.15;
+
 /// It hums while it stands in its corner (low, tuneless, a room away, not
 /// through walls clearly); silent when it turns; breathing hard when it comes.
 pub fn voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
@@ -535,11 +542,15 @@ pub fn voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
         // one was, now and then a breath between (one at a time, so the hum
         // stops within a note when it is about to turn)
         let last = c.get("hum_f");
+        // (a man's hum, held: over the lamps' 120 Hz and under its octave.
+        // Each note had been a pluck (`tone` falls away over its length), at
+        // 98-140 Hz under the lamps: heard only as each began, it could not
+        // be heard to stop; E10)
         let f =
-            if last > 0.0 { (last * with_native(|| rand2(0.93, 1.08))).clamp(98.0, 140.0) } else { with_native(|| rand2(104.0, 132.0)) };
+            if last > 0.0 { (last * with_native(|| rand2(0.93, 1.08))).clamp(160.0, 210.0) } else { with_native(|| rand2(170.0, 200.0)) };
         c.ease.insert("hum_f", f);
         let len = with_native(|| rand2(0.5, 0.9));
-        s.tone(&v, t, len, f, 0.022, "triangle", Some(f * with_native(|| rand2(0.98, 1.02))), 0.08);
+        s.note(&v, t, len, f, HUM_GAIN, "triangle", Some(f * with_native(|| rand2(0.98, 1.02))), 0.12, 0.15);
         let breath = if with_native(rnd) < 0.2 { with_native(|| rand2(0.8, 1.8)) } else { 0.0 };
         c.voice_t = len * 0.95 + breath;
     } else if matches!(mode, Mode::Hunt) {

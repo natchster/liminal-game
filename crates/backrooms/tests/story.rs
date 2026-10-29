@@ -166,6 +166,40 @@ fn a_level_is_the_same_place_whatever_was_read() {
     }
 }
 
+/// A level's frames are the same whatever the thread built before it: the
+/// per-frame stream, a second into the level, is the same on a level built
+/// first and on that level built after another. (Textures are painted once,
+/// whenever first needed, each from a stream of its own,
+/// `placers::kit::canvas_tex`: painted on the per-frame stream, they shifted
+/// every frame after them, and only on the first level that needed them, so
+/// a creature's choices on a level hung on the levels before it, E10.)
+#[test]
+fn a_levels_frames_are_the_same_whatever_came_before() {
+    let stream = |before: Option<(u32, i32)>| {
+        std::thread::spawn(move || {
+            if let Some((seed, level)) = before {
+                let mut g = new_game();
+                g.run_seed = seed;
+                build(&mut g, |g| g.init_level(level));
+            }
+            game::base::rng::seed_native(0xE10);
+            let mut g = new_game();
+            g.run_seed = 4242;
+            build(&mut g, |g| g.init_level(6));
+            for _ in 0..60 {
+                g.frame(1.0 / 60.0);
+            }
+            (0..8).map(|_| game::base::rng::native_rnd()).collect::<Vec<f64>>()
+        })
+        .join()
+        .unwrap()
+    };
+    let first = stream(None);
+    for before in [(7, 4), (1999, 9), (4242, 2)] {
+        assert_eq!(stream(Some(before)), first, "level 6 after seed {} level {}", before.0, before.1);
+    }
+}
+
 /// The Building's own torn notes (the residents' notices, the cleaners' log,
 /// the surveys) lie on its floors and on no floor of the rooms; on its floors
 /// lie no others.

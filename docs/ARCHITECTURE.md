@@ -178,7 +178,8 @@ The Watcher keeps the rhythm too: unless it is the one sent, it stands
 where it is, among its furniture. Sent, it closes the gap while you look
 away (and after a while unseen it is simply nearer); its touch (a blow to
 your nerve) is that build-up's climax, after which it falls back. Its touch
-kills only a mind it leaves spent, and never at a first meeting.
+kills only a mind already spent (`creature::SPENT`), and never at a
+first meeting.
 
 The director publishes `tension` (how close the threat feels: the drone, the
 heartbeat and the vignette follow it) and `hush` (how quiet the ambience
@@ -190,9 +191,12 @@ affects a level's build.
 
 * Everything a level is made of comes from the seeded stream (`rnd()`,
   `rand1`, `rand2`, `irand`, `choice` in `base::rng`) inside `with_seed`.
-* Per-frame randomness (flicker, AI wobble, sound variation) and anything
-  cached across levels (textures, surfaces, the canvas inside `canvas_tex`)
-  draw from the native stream, so they can never shift a level's draws.
+* Per-frame randomness (flicker, AI wobble, sound variation) draws from the
+  native stream, so it can never shift a level's draws. Anything cached
+  across levels (the canvas inside `canvas_tex`, the textures and surfaces
+  painted with it) draws from a stream of its own (`with_own_stream`), so
+  it shifts neither the level's draws nor the frames after it, and comes
+  out the same whenever it is made.
 * Numbers are `f64`; buffers the GPU reads (positions, instance data) are
   `f32`. Helpers whose exact result matters are in `base::numeric`
   (round-half-up, NaN-propagating min / max, a compensated hypotenuse, exact

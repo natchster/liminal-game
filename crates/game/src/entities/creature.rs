@@ -23,7 +23,8 @@ use crate::entities::director::Phase;
 use crate::entities::EntityBuild;
 use crate::prelude::*;
 
-/// The kinds on the new brain (the rest still run `ai.rs` until they are rebuilt).
+/// The kinds on the brain (the anomalies' staff and shadows keep their own
+/// rules, `anomalies::rig`).
 pub fn on_new_brain(kind: &str) -> bool {
     matches!(kind, "hound" | "smiler" | "watcher" | "corner" | "reader")
 }
@@ -105,7 +106,7 @@ pub struct KindData {
     pub forget: f64,
     /// 0: its contacts follow the shared rule (a first meeting knocks you
     /// down, a second in a peak kills); else its touch takes this much
-    /// nerve and knocks you down, and kills only a mind it leaves spent
+    /// nerve and knocks you down, and kills only a mind already spent
     pub touch_nerve: f64,
 }
 
@@ -121,6 +122,10 @@ pub const NOTICE_GRACE: f64 = 2.0;
 pub const CHASE_CAP: f64 = 0.95 * SPRINT;
 /// A contact that does not kill leaves you at least this much nerve.
 pub const KNOCKED_LEAVES: f64 = 5.0;
+/// A nerve under this is spent: a contact on it, after the first meeting,
+/// kills (every kind's touch, the Watcher's too: it kills only a mind
+/// already gone, `docs/LORE.md`).
+pub const SPENT: f64 = 25.0;
 /// A burst (a lunge, a spring): at most this fast, over at most `BURST_LEN`.
 pub const BURST_CAP: f64 = 7.0;
 pub const BURST_LEN: f64 = 4.0;
@@ -412,12 +417,16 @@ impl Game {
         let first = !self.creature_run.met.contains(&kind);
         let touch = self.creature(ei).map(|c| c.data.touch_nerve).unwrap_or(0.0);
         let lethal = if touch > 0.0 {
-            // a touch that takes your nerve kills only a mind it leaves spent,
-            // and never at a first meeting (design 3: the first teaches; the
-            // personas' explorer and rusher had died at their first touch)
-            !first && self.player.sanity - touch <= 0.0
+            // a touch that takes your nerve kills only a mind already gone
+            // (spent before it touches), and never at a first meeting
+            // (design 3: the first teaches; the personas' explorer and
+            // rusher had died at their first touch). (It killed any mind it
+            // left at nothing, so, with the dark holding a nerve at 40 and
+            // its touch taking 45, every touch in the dark after the first:
+            // the lore review, E10)
+            !first && self.player.sanity < SPENT
         } else {
-            !first && (self.director.contacts > 0 || self.player.sanity < 25.0)
+            !first && (self.director.contacts > 0 || self.player.sanity < SPENT)
         };
         if lethal {
             self.director.killer = Some(ei);
@@ -546,7 +555,10 @@ impl Game {
         }
         kind_think(self, ei, dt);
         let mode = self.creature(ei).map(|c| c.brain.mode).unwrap_or_default();
-        self.entities[ei].state = mode.legacy_state().into();
+        // (the one in the corner holding in its corner is nothing to the
+        // director: as a search, it had kept the tension and the heartbeat
+        // up and every peak open on its level, wherever you were)
+        self.entities[ei].state = if kind == "corner" && mode == Mode::Hold { "wander" } else { mode.legacy_state() }.into();
         let e = &self.entities[ei];
         e.g.rotation().y = e.yaw;
         kind_animate(self, ei, dt);
@@ -588,6 +600,12 @@ impl Game {
     /// old caller): it is sure, and comes.
     pub fn creature_alert(&mut self, ei: usize, x: f64, z: f64) {
         let now = self.perf_t;
+        // (only what hears: a cry had sent the one in the corner, walking
+        // home, standing wherever it was, and stirred the Watcher and the
+        // Reader, which have no ears)
+        if self.creature(ei).is_some_and(|c| c.data.hearing <= 0.0) {
+            return;
+        }
         if let Some(c) = self.creature_mut(ei) {
             c.brain.mem.awareness = 1.0;
             c.brain.mem.heard = Some((x, z, now));

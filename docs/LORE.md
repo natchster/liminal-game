@@ -17,7 +17,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Being redesigned one by one (`ENTITIES.md`) |
+| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
@@ -32,7 +32,8 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **Sound**: what is somewhere else, heard before it is seen (signatures,
   steps, the hum, crying).
 - **Creature behaviour**: rules that are learnable by playing, never told.
-- **Torn notes**: survivors' fragments (`ui/lore.rs`), which hint and never
+- **Torn notes**: survivors' fragments (`ui/lore.rs`; their texts are
+  `LORE_ENTRIES` in `ui/hud.rs`), which hint and never
   explain; an anomaly's notes lie only on its level, and the Building's (its
   residents' notices, its cleaners' log, its surveys) only on its floors.
   A notice says what to do, as notices do; it never says why.
@@ -303,8 +304,8 @@ The rules are learnable, and learning them is the game.
   **blind**: close up, the eyelids have grown shut, and in the dark there are
   no eyes at all. They **hear your steps along the way they would walk to
   you**, through doorways and not through walls, twice as far as anything
-  else, but not while they are moving themselves: their own nails on the
-  carpet cover yours. **When the scratching stops, it is listening**: it
+  else, and less well while they are moving themselves: their own nails on
+  the carpet cover yours. **When the scratching stops, it is listening**: it
   stops in a crouch with its head cocked, and if you are still it comes to
   look near where it heard you; if you move, it is sure. Standing right
   beside one for long, it smells you. Sure, it bays and runs at you, not as
@@ -334,9 +335,10 @@ The rules are learnable, and learning them is the game.
   your eyes, lit, it screams and comes, faster than you walk, slower than
   you run, and knows where you are for a while. Look away when the hum
   stops; keep your lamp off its face; pass behind it. Its face is a
-  person's face with the eyes and the mouth upside down, and you see it
-  only once. Nothing sends it: it stands where it was put, off the way, and
-  goes back there.
+  person's face with the eyes and the mouth upside down, and it is the last
+  thing you see before it comes. Nothing sends it: it stands where it was
+  put, off the way (only below the Lobby, never on the Building's floors
+  nor where an anomaly is, at most one to a floor), and goes back there.
 - **The Reader.** A thin man in a brown cardigan buttoned a hole wrong,
   paper stuffed in its pockets and down its front, ink on its fingers and
   at the corners of its mouth, the fingers too long. It walks bent over a
@@ -362,18 +364,22 @@ The rules are learnable, and learning them is the game.
 when one of them comes for you: a calm, a build-up where the place announces
 it (its steps somewhere near, lights failing, then silence), a peak, and then
 relief: after a close call it **backs off** and the level goes quiet for a
-while. Only one comes at a time. The Watcher only moves on you when it is the
-one sent; otherwise it keeps its distance. **A sign is not a promise**: some
+while. Only one is sent at a time. The Watcher only moves on you when it is
+the one sent; otherwise it keeps its distance. The one in the corner is never
+sent: it comes only when its face meets your eyes, and it does not look round
+while the place lies quiet after a close call. **A sign is not a promise**: some
 build-ups end in nothing, a sound somewhere near and then quiet. **The first
 touch of each is not the end**: it throws you down and lets you go (never
 taking the last of your nerve); death comes later, from a second touch while
-it is still after you, or from one when your mind is already gone. **They
+it is still after you, or from one when your mind is already gone. The dark
+wears at your nerve, but only so far: what spends it is them. **They
 learn your habits**: hide from a Smiler in the dark often enough and it
 waits, silent, where you went dark; outrun a Hound and it stops baying and
-runs for where you are heading; stare a Watcher down and the lights over it
-fail while you watch; slip behind the one in the corner and it looks round
+runs for where you are heading; keep a Watcher in your stare too long and
+the lights over it fail while you watch; slip behind the one in the corner and it looks round
 more often; feed a Reader paper and it tears the sheets in half unread. Each
-learns one thing, never from your deaths, and you see it the first time.
+learns one thing, never from your deaths, no two on the same floor, and you
+see it the first time.
 Who lives on a floor depends on the floor: Smilers where it is dark,
 the Watcher among furniture, the Reader where paper lies, Hounds anywhere.
 
@@ -463,8 +469,9 @@ aisles, trolleys left where someone gave up. It is spotless and brightly lit.
 A little music plays from somewhere.
 
 - **By day** the staff browse the floor with you. They are too tall and have no
-  faces, and when you come close they stop and look at you. That is all they
-  do.
+  faces (bald, a hollow where a face should be, in the store's mustard polo
+  with a badge, its photograph too dark to make out), and when you come
+  close they stop and look at you. That is all they do.
 - **Closing time.** Boards on posts show OPEN and the store's clock. When the
   clock nears nine, a chime sounds, then a voice through a tinny horn, then a
   relay thunks and every light in the building goes out. The boards read
@@ -520,7 +527,8 @@ there when you turn round. The message on arrival says *straight ahead*.
   4. the light goes **red**, the paper rots, and there are dark stains on the
      carpet and running down the walls;
   5. **someone is sitting in the third room**: a man in a shirt and tie with
-     nothing where his face should be. He never moves while you can see him.
+     nothing where his face should be (nothing on him is E.'s; who he is
+     stays unsaid). He never moves while you can see him.
      Look away and look back, and he is **nearer**, chair and all. Do not let
      him reach you: his touch takes your mind very fast;
   6. and on: the fog thickens, the furniture is gone, the lamps die one by
@@ -670,7 +678,9 @@ plaque that says STAIRS. Behind it:
   Water are adapted, not copied: the Hound after Entity 8 of the Wikidot
   wiki (<http://backrooms-wiki.wikidot.com/entity-8>; Palico22, rewritten by
   1000dumplings), made blind here.
-- **The Hound's body** starts from MakeHuman's base mesh and targets
+- **The creatures' bodies** (the Hound's, the Smiler's, the Watcher's, the
+  one in the corner's, the Reader's, the Showroom's staff's and the seated
+  man's of the Loop) start from MakeHuman's base mesh and targets
   (<https://github.com/makehumancommunity/makehuman>), **CC0 1.0** since
   September 2020 (`assets/src/creatures/sources.json`).
 - The original 2019 yellow-room photograph was released **CC0** by the

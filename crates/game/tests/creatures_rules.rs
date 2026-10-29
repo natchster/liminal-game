@@ -606,13 +606,17 @@ fn its_touch_takes_your_nerve_and_kills_only_a_spent_mind() {
     assert!(g.player.sanity <= SAN_MAX - 45.0 + 1e-9, "your nerve: {:.0}", g.player.sanity);
     assert_eq!(g.god_deaths, 0.0, "a touch on a whole mind killed");
     assert!(dist_to(&g, ei) > 2.0, "it did not fall back ({:.1} m)", dist_to(&g, ei));
-    // on a mind already nearly gone, the first touch does not kill (the
-    // first meeting teaches) ...
-    let g = touch(40.0, false);
-    assert_eq!(g.god_deaths, 0.0, "the first touch killed");
-    assert!(g.player.sanity > 0.0, "the first touch took the last of your nerve");
-    // ... a later one does
+    // a later touch on a mind not yet gone takes your nerve, not your life,
+    // whatever it leaves (the dark holds a nerve at 40, under its 45) ...
     let g = touch(40.0, true);
+    assert_eq!(g.god_deaths, 0.0, "it killed a mind not yet gone");
+    assert!(g.player.sanity > 0.0, "its touch took the last of your nerve");
+    // ... on a mind already gone, the first touch does not kill (the first
+    // meeting teaches) ...
+    let g = touch(game::entities::creature::SPENT - 5.0, false);
+    assert_eq!(g.god_deaths, 0.0, "the first touch killed");
+    // ... a later one does
+    let g = touch(game::entities::creature::SPENT - 5.0, true);
     assert!(g.god_deaths > 0.0, "a spent mind survived its touch");
 }
 
@@ -656,6 +660,38 @@ fn face_me(g: &mut Game, ei: usize) {
     let yaw = (pp.x - p.x).atan2(pp.z - p.z);
     g.entities[ei].yaw = yaw;
     g.creature_mut(ei).unwrap().ease.insert("home_yaw", yaw);
+}
+
+/// At rest in its corner it is nothing to the director (as a search it had
+/// kept the tension up, and every peak open, on its level), and it never
+/// turns to look round while the place relaxes after a close call
+/// (pillar 5); a cry does not reach it, for it has no ears (one walking
+/// home had stopped where it was) (E10).
+#[test]
+fn at_rest_in_its_corner_it_is_nothing_to_the_director_and_deaf() {
+    let (mut g, ei) = corner_room(4, 4, false);
+    look_away(&mut g, ei, 1.0);
+    assert_eq!(mode(&g, ei), Mode::Hold);
+    assert_eq!(g.entities[ei].state, "wander", "a resting corner reads to the director as {}", g.entities[ei].state);
+    // while the place relaxes, its look round waits
+    let (mut g, ei) = corner_room(4, 4, false);
+    g.creature_mut(ei).unwrap().ease.insert("turn_in", 0.5);
+    g.director.phase = game::entities::director::Phase::Relax;
+    let (p, pp) = (g.entities[ei].pos(), g.player.pos);
+    look_at(&mut g, 2.0 * pp.x - p.x, 2.0 * pp.z - p.z);
+    for _ in 0..90 {
+        g.director.phase = game::entities::director::Phase::Relax;
+        g.update_creature(ei, 1.0 / 30.0);
+        g.perf_t += 1.0 / 30.0;
+    }
+    assert!(!modes(&g, ei).contains(&Mode::Alert), "it looked round in the relief: {:?}", modes(&g, ei));
+    // a cry: it hears nothing
+    let (mut g, ei) = corner_room(4, 4, false);
+    let now = g.perf_t;
+    g.creature_mut(ei).unwrap().brain.set(Mode::Withdraw, "it goes back", now);
+    let pp = g.player.pos;
+    g.creature_alert(ei, pp.x, pp.z);
+    assert_eq!(mode(&g, ei), Mode::Withdraw, "a cry stopped it on its way home");
 }
 
 #[test]

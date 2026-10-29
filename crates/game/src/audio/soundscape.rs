@@ -274,6 +274,41 @@ fn tone_impl(ac: &AudioContext, dest: &AudioNode, t0: f64, dur: f64, freq: f64, 
     o.stop(t0 + dur + 0.05);
 }
 
+/// `note(dest, t0, dur, freq, gain, type, f1, attack, release)` — an
+/// oscillator held at `gain` from its attack to its release, optionally
+/// gliding to `f1`: a sung or hummed note (`tone` falls away over its whole
+/// length, a pluck: as a hum, it was heard only at each note's start)
+#[allow(clippy::too_many_arguments)]
+fn note_impl(
+    ac: &AudioContext,
+    dest: &AudioNode,
+    t0: f64,
+    dur: f64,
+    freq: f64,
+    gain: f64,
+    ty: &str,
+    f1: Option<f64>,
+    attack: f64,
+    release: f64,
+) {
+    let o = ac.create_oscillator();
+    o.set_type(ty);
+    o.frequency().set_value_at_time(freq, t0);
+    if let Some(f1) = f1.filter(|f| *f != 0.0) {
+        o.frequency().exponential_ramp_to_value_at_time(f1.max(10.0), t0 + dur);
+    }
+    let (attack, release) = (attack.min(dur * 0.5), release.min(dur * 0.5));
+    let g = ac.create_gain();
+    g.gain().set_value_at_time(0.0001, t0);
+    g.gain().exponential_ramp_to_value_at_time(gain, t0 + attack);
+    g.gain().set_value_at_time(gain, t0 + dur - release);
+    g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + dur);
+    o.connect(&g);
+    g.connect(dest);
+    o.start(t0);
+    o.stop(t0 + dur + 0.05);
+}
+
 /// `make_ir(p)` as plain data: two channels of `len` samples, computed in f64
 /// and stored as f32, drawing from `rng` (bit-reproducible for a given `rng`
 /// sequence).
@@ -931,6 +966,11 @@ impl Soundscape {
     }
     pub fn tone(&self, dest: &AudioNode, t0: f64, dur: f64, freq: f64, gain: f64, ty: &str, f1: Option<f64>, attack: f64) {
         tone_impl(&self.ac, dest, t0, dur, freq, gain, ty, f1, attack);
+    }
+    /// A held note (`note_impl`): up over `attack`, held, down over `release`
+    #[allow(clippy::too_many_arguments)]
+    pub fn note(&self, dest: &AudioNode, t0: f64, dur: f64, freq: f64, gain: f64, ty: &str, f1: Option<f64>, attack: f64, release: f64) {
+        note_impl(&self.ac, dest, t0, dur, freq, gain, ty, f1, attack, release);
     }
     fn rand(&self, a: f64, b: f64) -> f64 {
         rand_r(&self.rng, a, b)

@@ -2,10 +2,12 @@
 //!
 //! While a level is built (`with_seed`), `rnd()` draws from a mulberry32
 //! generator seeded for that level, so a (run seed, level) pair always
-//! rebuilds the same level. `rnd()` draws from the innermost `with_seed`
-//! stream if one is active, else from the native generator. Canvas textures
-//! and other cached, history-dependent work draw with `with_native` so they
-//! never shift the level's stream.
+//! rebuilds the same level. `rnd()` draws from the innermost stream pushed
+//! (`with_seed`, `with_own_stream`, `with_native`), else from the native
+//! generator. Work made once and cached, whenever it is first needed (the
+//! canvas textures), draws from a stream of its own (`with_own_stream`): on
+//! the level's stream it would shift the build, and on the native one every
+//! frame after it, by what was made before.
 
 use std::cell::RefCell;
 
@@ -46,8 +48,16 @@ impl Xorshift {
     }
 }
 
+/// What `rnd()` draws from: the level's stream (counted by the trace), a
+/// stream of its own (not counted), or the native generator.
+enum Stream {
+    Level(Mulberry32),
+    Own(Mulberry32),
+    Native,
+}
+
 struct RngState {
-    stack: Vec<Option<Mulberry32>>,
+    stack: Vec<Stream>,
     native: Xorshift,
     trace: u64,
 }
@@ -71,10 +81,11 @@ pub fn rnd() -> f64 {
         let mut r = r.borrow_mut();
         let r = &mut *r;
         match r.stack.last_mut() {
-            Some(Some(m)) => {
+            Some(Stream::Level(m)) => {
                 r.trace += 1;
                 m.next()
             }
+            Some(Stream::Own(m)) => m.next(),
             _ => r.native.next(),
         }
     })
@@ -107,13 +118,22 @@ impl Drop for Pop {
 
 /// Run `f` with `rnd()` drawing from mulberry32(seed).
 pub fn with_seed<R>(seed: u32, f: impl FnOnce() -> R) -> R {
-    RNG.with(|r| r.borrow_mut().stack.push(Some(Mulberry32::new(seed))));
+    RNG.with(|r| r.borrow_mut().stack.push(Stream::Level(Mulberry32::new(seed))));
+    let _g = Pop;
+    f()
+}
+/// Run `f` with `rnd()` drawing from mulberry32(seed), a stream of its own:
+/// neither the level's (and not counted by its trace) nor the native one.
+/// For work made once whenever it is first needed (canvas textures), so it
+/// comes out the same whatever came before, and shifts nothing after it.
+pub fn with_own_stream<R>(seed: u32, f: impl FnOnce() -> R) -> R {
+    RNG.with(|r| r.borrow_mut().stack.push(Stream::Own(Mulberry32::new(seed))));
     let _g = Pop;
     f()
 }
 /// Run `f` with `rnd()` back on the native generator (canvas textures, caches).
 pub fn with_native<R>(f: impl FnOnce() -> R) -> R {
-    RNG.with(|r| r.borrow_mut().stack.push(None));
+    RNG.with(|r| r.borrow_mut().stack.push(Stream::Native));
     let _g = Pop;
     f()
 }

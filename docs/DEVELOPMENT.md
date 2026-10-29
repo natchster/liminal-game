@@ -63,7 +63,12 @@
 * **Modules.** One subsystem per folder in `crates/game/src` (see
   `ARCHITECTURE.md`); a folder's `mod.rs` documents what it owns. Game logic
   is written as `impl Game` blocks in the module that owns it, so `Game`
-  stays one plain struct of state.
+  stays one plain struct of state. One exception: each creature kind
+  (`entities/hound.rs`, `entities/smiler.rs`, `entities/watcher.rs`,
+  `entities/corner.rs`, `entities/reader.rs`) is free functions
+  (`think`, `animate`, `voice`, `call`, `place`) taking `&mut Game`,
+  dispatched by kind from `entities/creature.rs` (`.claude/rules/entities.md`):
+  a kind is its data and its own rules, not more methods on `Game`.
 * **Formatting and lints.** `cargo fmt` (settings in `rustfmt.toml`) and
   `cargo clippy --workspace --all-targets`; both should be clean before a
   change goes in.
@@ -75,9 +80,15 @@ Levels must be a pure function of `(run_seed, level)`:
 * Inside a level build, take randomness only from `rnd()` and its helpers
   (`rand1`, `rand2`, `irand`, `choice`). Never use another RNG, the clock,
   hash-map iteration order, or anything left over from the previous level.
-* Code that runs per frame, or caches results across levels, must draw from
-  the native stream: `with_native(|| …)` or `native_rnd()`. `canvas_tex`
-  already switches to it while drawing.
+* Code that runs per frame must draw from the native stream:
+  `with_native(|| …)` or `native_rnd()`. What is made once and cached,
+  whenever it is first needed, draws from a stream of its own
+  (`with_own_stream`), never the native one: drawn there the first time
+  only, it shifts every frame after it, so a level's frames hang on what
+  the thread made before. `canvas_tex` does this for every texture (its
+  painter's stream, from where the painter is in the code, its size and how
+  many it has made since the level began); `tests/story.rs`
+  `a_levels_frames_are_the_same_whatever_came_before` holds it.
 * The native stream starts from the clock. A test whose outcome depends on
   per-frame draws (a creature's choices, the ambience's timing) seeds it
   first, `game::base::rng::seed_native(…)`, from its own seed; otherwise
@@ -114,9 +125,10 @@ Levels must be a pure function of `(run_seed, level)`:
   play levels for minutes (`pacing`, `listen`, `playthrough`, `loudness`,
   the material lint); `--only fmt,clippy` runs a subset.
 * `cargo test --workspace --release` runs every test directly.
-* **Golden frames.** `cargo xtask shots` renders 33 fixed frames headless
+* **Golden frames.** `cargo xtask shots` renders 48 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
-  spawn view of eight levels and one view per zone purpose or place, which together
+  anomalies' figures in their own places: the staff, the shadows, the
+  seated man of the Loop; the spawn view of eight levels and one view per zone purpose or place, which together
   cover every purpose, weather and anomaly) and compares them with
   `crates/backrooms/tests/golden/`. With `--fresh` a frame is the same bit
   for bit on the same machine, so identical pixels pass; otherwise ꟻLIP
@@ -166,12 +178,15 @@ Levels must be a pure function of `(run_seed, level)`:
   lint guards everything else and the pass itself. Exceptions live in
   `EXEMPT` with a reason; `--nocapture` prints the distribution.
 * `crates/game/tests/fixtures/` hold recorded reference data for the game's
-  subsystems; the tests compare against it with tight tolerances. After an
-  intended change to the creatures' builds, animation or behaviour,
-  `REGEN=1 cargo test --release -p game --test entities` re-records the
-  affected sections of `entities.json` (keeping their inputs); review the
-  diff. The creatures' senses and the director also have behaviour tests in
-  `tests/entities.rs`.
+  subsystems; the tests compare against it with tight tolerances. What is
+  left of the old creatures' reference (`entities.json`: the shared
+  steering, the staff's limb solver, its tables) is pruned to what is read
+  by `REGEN=1 cargo test --release -p game --test entities`. The creatures
+  of the redesign are held by their rules (`tests/creatures_rules.rs`, one
+  test a line of `docs/ENTITIES.md`), their arenas
+  (`tests/creatures_arenas.rs`) and where they live (`tests/ecology.rs`);
+  the anomalies' bodies by `tests/anomaly_bodies.rs` (`REGEN=1` rewrites
+  `assets/src/creatures/rigs.json` after a rig changes).
 * `crates/backrooms/tests/reference/` hold 20 recorded levels. If a change is
   meant to alter level generation, rebuild those levels with
   `backrooms --dump-level DIR --seed S --levels …` and review the
@@ -349,9 +364,13 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   spawn went missing from the zone views, and from the goldens, until
   2026-10-26). `cargo test --release -p backrooms --test story` draws each
   checked level's walk, sheets and camp from above into `target/story/`.
-* `--showcase smiler[:dist]` (or `hound`, `watcher`) keeps a creature
-  standing in front of the camera for the shot; add `--death` to be killed
-  by it 15 frames before the shot (the death scene). Give it a floor of the
+* `--showcase smiler[:dist]` (or `hound`, `watcher`, `corner`, `reader`,
+  and on their levels `staff`, `shadow`) keeps a creature standing in front
+  of the camera for the shot; `kind:dist:walk` places it once and lets it
+  go about (its walk); add `--death` to be killed by it 15 frames before
+  the shot (the death scene). `--screen loop-figure` (or
+  `loop-figure-near`) puts you in the Loop on the lap its seated man comes,
+  2.5 m (1.6 m) in front of him. Give it a floor of the
   rooms (`--level 4` or deeper): the Building's floors (1–3) have no
   creatures, and the arrival there stands high over y = 0.
 * The K key shows the in-game debug panel (positions, timers, the ambient

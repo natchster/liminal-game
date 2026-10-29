@@ -71,6 +71,7 @@ impl Game {
         // a rebuild is the same place
         let found = std::mem::take(&mut self.lore_found);
         let depth = crate::level::building::rooms_depth(n);
+        crate::placers::kit::restart_texture_streams();
         with_seed(seed, || {
             // levels 1–3 are the Building's floors; the rooms count their depth from the Lobby
             if crate::level::building::Style::of_level(n).is_some() {

@@ -122,6 +122,34 @@ fn windows_band(pcm: &[f32], lo: f64, hi: f64) -> Vec<f64> {
         })
         .collect()
 }
+/// The power of the mix between `lo` and `hi` Hz in each half second from
+/// `from` to `to` (samples a channel; 2 Hz bins): finer than `windows_band`,
+/// for a band a held note fills among the room's own lines (its drone and
+/// the lamps lay a line every 47 and every 120 Hz)
+fn band_power(pcm: &[f32], from: usize, to: usize, lo: f64, hi: f64) -> Vec<f64> {
+    let n = (SR * 0.5) as usize;
+    let hann: Vec<f64> = (0..n).map(|i| 0.5 - 0.5 * (2.0 * std::f64::consts::PI * i as f64 / n as f64).cos()).collect();
+    let bins: Vec<usize> = (0..n / 2).filter(|&k| (lo..hi).contains(&(k as f64 * SR / n as f64))).collect();
+    let mut out = vec![];
+    let mut at = from;
+    while at + n <= to.min(pcm.len() / 2) {
+        let x: Vec<f64> = (0..n).map(|i| (pcm[2 * (at + i)] + pcm[2 * (at + i) + 1]) as f64 * 0.5 * hann[i]).collect();
+        let p: f64 = bins
+            .iter()
+            .map(|&k| {
+                let w = 2.0 * std::f64::consts::PI * k as f64 / n as f64;
+                let (re, im) = x
+                    .iter()
+                    .enumerate()
+                    .fold((0.0, 0.0), |(re, im), (i, v)| (re + v * (w * i as f64).cos(), im - v * (w * i as f64).sin()));
+                re * re + im * im
+            })
+            .sum();
+        out.push(p);
+        at += n;
+    }
+    out
+}
 fn quantile(v: &[f64], q: f64) -> f64 {
     let mut s = v.to_vec();
     s.sort_by(|a, b| a.partial_cmp(b).unwrap());
@@ -479,11 +507,17 @@ fn the_hound_is_heard() {
     assert!(after > 0.0, "its nails and its panting are heard as it runs");
 }
 
-/// The one in the corner hums, low, its back to you 7 m ahead: the hum
-/// stands over the room's bed. (That it stops when it is about to turn is
-/// its brain's: `creatures_rules`; a window of a second here is the room's.)
+/// The one in the corner hums, low, its back to you 7 m ahead: in its band
+/// the hum stands 3 dB over the room, against the same room once it has
+/// stopped, so its stopping is heard. (That it stops when it is about to
+/// turn is its brain's: `creatures_rules`.)
 #[test]
 fn the_one_in_the_corner_hums() {
+    // the per-frame stream seeded: its notes wander on it (unseeded, the
+    // test heard another hum with the clock and with the tests before it);
+    // `LISTEN_NATIVE` shifts it, to see the spread
+    let shift: u64 = std::env::var("LISTEN_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    game::base::rng::seed_native(0xC04E + shift * 1_000_003);
     let mut r = start(4242, 6);
     hold_creatures(&mut r.g);
     let ei = {
@@ -501,15 +535,27 @@ fn the_one_in_the_corner_hums() {
         ei
     };
     play(&mut r, 3.0, |g| g.entities[ei].freeze = 1e9);
-    let bed_end = r.pcm.len() / 2;
+    let hum_from = r.pcm.len() / 2;
     play(&mut r, 8.0, |g| g.entities[ei].freeze = 0.0);
-    let w = windows(&r.pcm);
-    let b = bed_end / WIN;
-    let bed = median(&w[40..b]);
-    let humming = median(&w[b + 20..]);
-    println!("corner: bed {:.1} dB, humming {:.1} dB (+{:.1})", db(bed), db(humming), db(humming / bed));
-    save("corner_4242_L6", &r.pcm, &[bed_end as f64 / SR]);
-    assert!(humming > bed * 1.4, "its hum should stand 3 dB over the room");
+    // then it is still (frozen: no voice), and the hum stops
+    let hum_to = r.pcm.len() / 2;
+    play(&mut r, 4.0, |g| g.entities[ei].freeze = 1e9);
+    // (the room as it is once the hum stops, in the hum's band, a man's
+    // voice and its overtones: against the level's first seconds over the
+    // whole mix, it had passed on the director's heartbeat while its rest
+    // read to the director as a search, and the hum itself, a soft
+    // triangle under the lamps' 120 Hz, added nothing; E10)
+    // (its band, a critical band about its notes: a tone is heard over the
+    // room's own lines there when it adds as much as they hold: its notes
+    // against the room's loudest there, each the loudest tenth of its half
+    // seconds, since it breathes between some, now and then three times
+    // running)
+    let humming = quantile(&band_power(&r.pcm, hum_from + SR as usize, hum_to, 150.0, 225.0), 0.9);
+    let stopped = quantile(&band_power(&r.pcm, hum_to + SR as usize / 2, r.pcm.len() / 2, 150.0, 225.0), 0.9);
+    let up = 10.0 * (humming / stopped).log10();
+    println!("corner: at 150-225 Hz the room is {up:+.1} dB while it hums, against once it stops");
+    save("corner_4242_L6", &r.pcm, &[hum_from as f64 / SR, hum_to as f64 / SR]);
+    assert!(up > 3.0, "its hum should stand 3 dB over the room in its band, and be heard to stop");
     assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Hold), "it left its corner");
 }
 

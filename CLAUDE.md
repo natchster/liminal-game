@@ -67,7 +67,9 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
 
 1. **Levels are a pure function of `(run_seed, level)`.** In a level build,
    randomness comes only from `rnd()` and its helpers; per-frame code uses
-   the native stream (`with_native`, `native_rnd`). No clock, no other RNG, no
+   the native stream (`with_native`, `native_rnd`); what is made once
+   whenever first needed (`canvas_tex`) draws from a stream of its own
+   (`with_own_stream`). No clock, no other RNG, no
    `HashMap` iteration order, nothing left over from the previous level, and
    nothing from the save (the build runs with nothing read; what depends on
    the run's progress is fitted afterwards, like `fit_lore_notes`). A new

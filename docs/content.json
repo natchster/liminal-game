@@ -11,12 +11,15 @@
       ],
       "id": "anomaly/house",
       "kind": "anomaly",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Borrowed House",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": false,
+        "shots:shadow_2m": true,
+        "shots:shadow_4m": true,
+        "shots:shadow_8m": true,
+        "test:backrooms/level_sweep": true,
         "test:game/anomalies": true
       }
     },
@@ -30,12 +33,15 @@
       ],
       "id": "anomaly/loop",
       "kind": "anomaly",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Loop",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": false,
+        "shots:seated_1m": true,
+        "shots:seated_2m": true,
+        "test:backrooms/level_sweep": true,
+        "test:game/anomaly_bodies": true,
         "test:game/loop_rooms": true
       }
     },
@@ -46,12 +52,12 @@
       ],
       "id": "anomaly/stairwell",
       "kind": "anomaly",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Stairwell",
       "notes": "",
       "passes": {
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:game/stairwell": true
       }
     },
@@ -67,14 +73,17 @@
       ],
       "id": "anomaly/store",
       "kind": "anomaly",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Showroom",
       "notes": "Known look issue: the department signs read as dark plates (tests/materials.rs EXEMPT).",
       "passes": {
         "shots:4242_L10_showroom": true,
         "shots:4242_L4_spawn": true,
-        "test:backrooms/level_sweep": false,
+        "shots:staff_2m": true,
+        "shots:staff_4m": true,
+        "test:backrooms/level_sweep": true,
+        "test:game/anomaly_bodies": true,
         "test:game/store": true
       }
     },
@@ -85,7 +94,7 @@
       ],
       "id": "building/assembly",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the self-assembly: the siren, the fog, the cells",
       "notes": "Whether the siren reads as a warning the first time, and whether waiting in a cell is dread or a chore, are playtest questions. The siren is synthesized; no person has listened to it.",
@@ -108,7 +117,7 @@
       ],
       "id": "building/floors",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Building's floors: heights, walks, flights, voids, cells, the door seen from the arrival",
       "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question.",
@@ -117,7 +126,7 @@
         "shots:4242_L2_spawn": true,
         "shots:4242_L3_spawn": true,
         "test:backrooms/assembly": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/playthrough": true,
         "test:backrooms/story": true,
         "test:game/building": true,
@@ -134,7 +143,7 @@
       ],
       "id": "building/surfaces",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Building's photographed surfaces: the panel facade and its lit windows, whitewash, formwork, yard and factory concrete, rock-faced and floor granite, ribbed slabs",
       "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet.",
@@ -154,7 +163,7 @@
       ],
       "id": "building/notes",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Building's torn notes (the residents' notice, a cell plate, the cleaners' log, three surveys, a coupon) and her camp in a cell",
       "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. Reviewed by the lore-keeper (B6); whether the residents' voice reads as the Building's and not hers is a playtest question.",
@@ -171,7 +180,7 @@
       ],
       "id": "building/presences",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "what is seen across the Building's void: the figure who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
       "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer.",
@@ -196,16 +205,21 @@
       ],
       "id": "creature/hound",
       "kind": "creature",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "Hound",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py).",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Judged blind against the HTML version's Hound (E10): preferred at 2 and 4 m and at its death, not at 8 m (pale against the wall).",
       "passes": {
         "shots:hound_2m": true,
         "shots:hound_4m": true,
         "shots:hound_8m": true,
         "shots:hound_death": true,
+        "test:backrooms/beatable": true,
+        "test:backrooms/listen": true,
         "test:backrooms/pacing": true,
+        "test:game/bodies": true,
+        "test:game/creatures_arenas": true,
+        "test:game/creatures_rules": true,
         "test:game/entities": true
       }
     },
@@ -225,16 +239,21 @@
       ],
       "id": "creature/smiler",
       "kind": "creature",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "Smiler",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py).",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a black body suit (E10: deeper ribs, dust dried on the bones, a wider, paler grin; its skin left dull, since wet read as latex): preferred to its first body at 2 m by two reviewers, ties elsewhere, and to the HTML version's Smiler at 2, 4 and 8 m and at its death.",
       "passes": {
         "shots:smiler_2m": true,
         "shots:smiler_4m": true,
         "shots:smiler_8m": true,
         "shots:smiler_death": true,
+        "test:backrooms/beatable": true,
+        "test:backrooms/listen": true,
         "test:backrooms/pacing": true,
+        "test:game/bodies": true,
+        "test:game/creatures_arenas": true,
+        "test:game/creatures_rules": true,
         "test:game/entities": true
       }
     },
@@ -254,11 +273,23 @@
       ],
       "id": "creature/corner",
       "kind": "creature",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the one in the corner",
-      "notes": "New in the redesign (docs/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py).",
-      "passes": {}
+      "notes": "New in the redesign (docs/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "passes": {
+        "shots:corner_2m": true,
+        "shots:corner_4m": true,
+        "shots:corner_8m": true,
+        "shots:corner_death": true,
+        "test:backrooms/beatable": true,
+        "test:backrooms/ecology": true,
+        "test:backrooms/listen": true,
+        "test:backrooms/pacing": true,
+        "test:game/bodies": true,
+        "test:game/creatures_arenas": true,
+        "test:game/creatures_rules": true
+      }
     },
     {
       "checks": [
@@ -277,11 +308,24 @@
       ],
       "id": "creature/reader",
       "kind": "creature",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Reader",
-      "notes": "New in the redesign (docs/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py).",
-      "passes": {}
+      "notes": "New in the redesign (docs/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "passes": {
+        "shots:reader_2m": true,
+        "shots:reader_4m": true,
+        "shots:reader_8m": true,
+        "shots:reader_death": true,
+        "test:backrooms/beatable": true,
+        "test:backrooms/ecology": true,
+        "test:backrooms/listen": true,
+        "test:backrooms/pacing": true,
+        "test:backrooms/story": true,
+        "test:game/bodies": true,
+        "test:game/creatures_arenas": true,
+        "test:game/creatures_rules": true
+      }
     },
     {
       "checks": [
@@ -298,16 +342,20 @@
       ],
       "id": "creature/watcher",
       "kind": "creature",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Watcher",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E4): it moves only unseen and only when sent; its touch knocks you down and takes your nerve, killing only a spent mind; silent, your ears ring near it. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is one dust sheet draped by Blender's cloth over MakeHuman's CC0 old man, its six poses the same sheet draped again (assets/src/creatures/body_watcher.py); it stands among furniture under the same sheets (sheeted.py).",
+      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E4): it moves only unseen and only when sent; its touch knocks you down and takes your nerve, killing only a spent mind; silent, your ears ring near it. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is one dust sheet draped by Blender's cloth over MakeHuman's CC0 old man, its six poses the same sheet draped again (assets/src/creatures/body_watcher.py); it stands among furniture under the same sheets (sheeted.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a bedsheet ghost (E10: a narrow shroud over a 1.96 m man, where his eyes and open mouth are the cloth grimed dark, each pose's face on the same part of the sheet): preferred to its first body at every distance and its death by two reviewers; the HTML version's Watcher (a tall robe with a face showing through) is still preferred at 2 and 4 m and at its death.",
       "passes": {
         "shots:watcher_2m": true,
         "shots:watcher_4m": true,
         "shots:watcher_8m": true,
         "shots:watcher_death": true,
+        "test:backrooms/beatable": true,
         "test:backrooms/pacing": true,
+        "test:game/bodies": true,
+        "test:game/creatures_arenas": true,
+        "test:game/creatures_rules": true,
         "test:game/entities": true
       }
     },
@@ -318,7 +366,7 @@
       ],
       "id": "pacing/director",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the pacing director",
       "notes": "",
@@ -336,13 +384,13 @@
       ],
       "id": "props/bathroom",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "bathroom props (58 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -356,13 +404,13 @@
       ],
       "id": "props/core",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "core props (72 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -376,13 +424,13 @@
       ],
       "id": "props/domestic",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "domestic props (122 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -396,13 +444,13 @@
       ],
       "id": "props/industrial",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "industrial props (38 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -416,13 +464,13 @@
       ],
       "id": "props/nature",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "nature props (45 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -436,13 +484,13 @@
       ],
       "id": "props/occult",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "occult props (36 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -456,13 +504,13 @@
       ],
       "id": "props/office",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "office props (100 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -476,13 +524,13 @@
       ],
       "id": "props/party",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "party props (27 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -496,13 +544,13 @@
       ],
       "id": "props/toys",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "toys props (76 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -516,13 +564,13 @@
       ],
       "id": "props/victorian",
       "kind": "prop family",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "victorian props (76 placers)",
       "notes": "",
       "passes": {
         "lint:placer-smoke": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/world_levels": true
       }
@@ -537,14 +585,14 @@
       ],
       "id": "purpose/empty",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "empty",
       "notes": "",
       "passes": {
         "shots:4242_L7_empty": true,
         "style:empty": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -559,14 +607,14 @@
       ],
       "id": "purpose/living_quarters",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "living quarters",
       "notes": "",
       "passes": {
         "shots:4242_L7_living_quarters": true,
         "style:living quarters": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -581,14 +629,14 @@
       ],
       "id": "purpose/maintenance",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "maintenance",
       "notes": "",
       "passes": {
         "shots:4242_L7_maintenance": true,
         "style:maintenance": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -603,14 +651,14 @@
       ],
       "id": "purpose/office_wing",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "office wing",
       "notes": "",
       "passes": {
         "shots:4242_L7_office_wing": true,
         "style:office wing": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -625,14 +673,14 @@
       ],
       "id": "purpose/overgrown_atrium",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "overgrown atrium",
       "notes": "",
       "passes": {
         "shots:7_L5_overgrown_atrium": true,
         "style:overgrown atrium": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -646,13 +694,13 @@
       ],
       "id": "purpose/parlour",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "parlour",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:parlour": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -666,13 +714,13 @@
       ],
       "id": "purpose/party_room",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "party room",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:party room": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -687,14 +735,14 @@
       ],
       "id": "purpose/play_area",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "play area",
       "notes": "",
       "passes": {
         "shots:7_L5_play_area": true,
         "style:play area": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -709,14 +757,14 @@
       ],
       "id": "purpose/pool_hall",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "pool hall",
       "notes": "",
       "passes": {
         "shots:7_L5_pool_hall": true,
         "style:pool hall": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -731,14 +779,14 @@
       ],
       "id": "purpose/service_tunnels",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "service tunnels",
       "notes": "",
       "passes": {
         "shots:4242_L7_service_tunnels": true,
         "style:service tunnels": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -753,14 +801,14 @@
       ],
       "id": "purpose/showroom",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "showroom",
       "notes": "",
       "passes": {
         "shots:4242_L10_showroom": true,
         "style:showroom": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -774,13 +822,13 @@
       ],
       "id": "purpose/shrine",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "shrine",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:shrine": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -795,14 +843,14 @@
       ],
       "id": "purpose/stair_halls",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "stair halls",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L2_stair_halls": true,
         "style:stair halls": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -817,14 +865,14 @@
       ],
       "id": "purpose/storage_hall",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "storage hall",
       "notes": "",
       "passes": {
         "shots:4242_L7_storage_hall": true,
         "style:storage hall": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -838,13 +886,13 @@
       ],
       "id": "purpose/washrooms",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "washrooms",
       "notes": "No golden view since the descent was renumbered (Megastructure B3): its band and the level tests hold it.",
       "passes": {
         "style:washrooms": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/zone_purpose": true
       }
@@ -859,14 +907,14 @@
       ],
       "id": "purpose/well",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "well",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L1_well": true,
         "style:well": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -881,14 +929,14 @@
       ],
       "id": "purpose/works",
       "kind": "zone purpose",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "works",
       "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L3_works": true,
         "style:works": true,
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:game/building": true
       }
@@ -901,7 +949,7 @@
       ],
       "id": "sound/ambient",
       "kind": "sound",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "ambient events, signatures and beds",
       "notes": "",
@@ -918,7 +966,7 @@
       ],
       "id": "sound/mix",
       "kind": "sound",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the whole mix",
       "notes": "",
@@ -935,12 +983,12 @@
       ],
       "id": "story/camp",
       "kind": "story",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "M.'s camps",
       "notes": "One a floor down to level 13, against a wall a body long, off the straight way; her lamp gutters out when her page is taken.",
       "passes": {
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/materials": true,
         "test:backrooms/story": true
       }
@@ -953,7 +1001,7 @@
       ],
       "id": "story/ending",
       "kind": "story",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the last camp and the end of her story",
       "notes": "Level 13; the card over black; the descent goes on with her last sheets.",
@@ -969,7 +1017,7 @@
       ],
       "id": "story/false_trails",
       "kind": "story",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "trails that are not hers",
       "notes": "From the floor of her page f5; the tell (folded twice) is only hinted. Whether players notice it is a playtest question.",
@@ -984,7 +1032,7 @@
       ],
       "id": "story/notebook",
       "kind": "story",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "M.'s notebook (13 pages and their threads)",
       "notes": "Reviewed once by a lore-keeper pass (2026-10-26); no human read.",
@@ -1001,12 +1049,12 @@
       ],
       "id": "story/trail",
       "kind": "story",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "M.'s trail",
       "notes": "Her walk arrival -> camp -> door, sheets in sight of each other; sparser and with lost stretches deeper down. Visibility in the dark is untested with people.",
       "passes": {
-        "test:backrooms/level_sweep": false,
+        "test:backrooms/level_sweep": true,
         "test:backrooms/reference_levels": true,
         "test:backrooms/story": true
       }
@@ -1020,7 +1068,7 @@
       ],
       "id": "ui/cards",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the death card, the level card and her last card",
       "notes": "The death card's lines come from the older deathBodyBits pool.",
@@ -1039,7 +1087,7 @@
       ],
       "id": "ui/controls",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the controls: one binding table, what a run needs in reach, rebinding",
       "notes": "Mouse and keyboard only; a key captured for rebinding can be any key or the left button (not the right or the wheel); no gamepad. Whether running and using things together feels easy is a playtest question.",
@@ -1057,7 +1105,7 @@
       ],
       "id": "ui/hud",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the HUD at rest (meters, pockets, thread, the ring and verb, the glance key)",
       "notes": "calm() sets the model's capitals in sentence case when painted; the model text stays, pinned by recorded fixtures.",
@@ -1075,7 +1123,7 @@
       ],
       "id": "ui/menus",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the title, the pause list, Settings and Controls",
       "notes": "The title is the live lobby; the pause list stands over the frozen frame. No human verdict.",
@@ -1092,7 +1140,7 @@
       ],
       "id": "ui/notebook",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the notebook as paper in your hands",
       "notes": "Real time: you walk and look while reading. Whether that is too dangerous or just right is a playtest question.",
@@ -1107,7 +1155,7 @@
       ],
       "id": "ui/type",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the three voices in type (Helvetica Neue, her hand, Courier New)",
       "notes": "macOS system faces; a missing face fails the test rather than substituting silently.",
@@ -1122,7 +1170,7 @@
       ],
       "id": "wayfinding/exit",
       "kind": "system",
-      "last_checked": "2026-10-28",
+      "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the exit's light and call (no compass)",
       "notes": "the_door_is_heard measures the door alone; the payphone's hint line still says 'north' (pinned by the core-props fixture).",

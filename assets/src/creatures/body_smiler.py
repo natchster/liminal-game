@@ -131,13 +131,17 @@ def build(kit):
     mid_u = teeth_u[np.abs(teeth_u[:, 0]) < 0.004]
     mid_l = teeth_l[np.abs(teeth_l[:, 0]) < 0.004]
     bite = (mid_u[:, 1].min() + mid_l[:, 1].max()) / 2
-    W = np.abs(xs[:, 0]).max() * 1.35
+    # (wider than a man's: the grin must read from across a room, E10)
+    W = np.abs(xs[:, 0]).max() * 1.6
     zf = mid_u[:, 2].max()
     arch_u = A.Arch(0.0, zf, W, zf - teeth_u[:, 2].min())
     arch_l = A.Arch(0.0, zf - 0.006, W - 0.003, zf - teeth_u[:, 2].min() - 0.002)
-    gum_u, gum_l = bite + 0.0165, bite - 0.0145
+    gum_u, gum_l = bite + 0.019, bite - 0.017
     tu_v, tu_f, tu_c = A.teeth_row(arch_u, gum_u, bite - 0.0008, True, 61, missing={(1, 4)})
     tl_v, tl_f, tl_c = A.teeth_row(arch_l, gum_l, bite + 0.0008, False, 62, missing={(-1, 6)}, broken={(1, 0)}, flare=0.002)
+    # bared and dry, paler than a living man's: the one pale thing on it
+    bone = np.array([0.82, 0.79, 0.68])
+    tu_c, tl_c = (c + (bone - c) * 0.35 for c in (tu_c, tl_c))
 
     posed = human.pose(kit, o, skel, pose_of(skel), STRETCH, None, smooth_weights=12)
     # the head's and jaw's turn from rest to posed carries the teeth and eyes
@@ -205,13 +209,13 @@ def build(kit):
     P = P + knobs * near_spine[:, None]
     # ribs only on the ribcage; the belly falls away under it, gradually
     ribcage = torso & np.isin(names, ['chest', 'upperchest'])
-    P = P + A.ribs(P, N, posed.tail('upperchest'), posed.head('chest'), ahead, 9, 0.003, ribcage,
+    P = P + A.ribs(P, N, posed.tail('upperchest'), posed.head('chest'), ahead, 9, 0.0065, ribcage,
                    irregular=0.18, seed=53)
     t_sp, _, _ = A.seg_param(P, posed.head('hips'), posed.head('chest'))
     under = np.clip(1.0 - np.abs(t_sp - 0.55) / 0.45, 0, 1) ** 1.5
     front = np.clip((N @ ahead - 0.1) / 0.6, 0, 1)
     belly = torso * under * front
-    P = P - N * (0.016 * belly)[:, None]
+    P = P - N * (0.026 * belly)[:, None]
     P = P + N * (0.0015 * kit.fbm(P, 45.0, 3, seed=51))[:, None]
     kit.set_verts_np(o, kit.to_bl_np(P))
     kit.smooth(o, 2, 0.35)
@@ -228,6 +232,12 @@ def build(kit):
     n1 = kit.fbm(P, 7.0, 4, seed=52)
     col = black + (warm - black) * np.clip(n1 + 0.3, 0, 1)[:, None] * 0.6
     col = np.clip(col * (1 - 0.5 * cav)[:, None], 0.01, 0.85)
+    # dust dried on the bones where they stand out (the ribs, the spine,
+    # the collarbones, the knuckles, the skull): its anatomy reads even out
+    # of the light (all black, a blind review read it as a body suit, E10)
+    ridge = np.clip((0.3 - cav) / 0.3, 0, 1) ** 1.5
+    dust = np.array(kit.srgb('#4b4038'))
+    col = col + (dust - col) * (ridge * 0.55 * np.clip(0.6 + kit.fbm(P, 30.0, 2, seed=53), 0, 1))[:, None]
     # the gums, dried dark red-brown, where the lips are gone; black behind the teeth
     gum = np.array(kit.srgb('#3d1d16'))
     col = col + (gum - col) * np.clip(gums * 1.5, 0, 1)[:, None]

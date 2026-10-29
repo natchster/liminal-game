@@ -1,5 +1,5 @@
-//! Entity behaviour: steering, the lore look-rules, the entity voices and
-//! `update_entities`.
+//! Entity behaviour: the shared steering, `update_entities` (the creatures'
+//! brains, the anomalies' figures' own rules) and the screen's pressure.
 //!
 //! The flow fields are per 4 m tile. A creature follows the field's descent a
 //! few tiles ahead (8-way, never across a corner), aims at the furthest of

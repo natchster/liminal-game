@@ -1,15 +1,20 @@
 """
-The Watcher: someone standing under an old dust sheet, a person's height and
-stooping a little, the cloth to the floor and darker at the hem, a face
-pressed into it (the brow, the nose, the hollows of the eyes). At a glance it
+The Watcher: someone standing under an old dust sheet, a head over you and
+stooping a little, the cloth close about him to the floor and darker at the
+hem, a face pressed into it (the brow, the nose; the eyes and the open mouth
+grimed dark in the cloth). At a glance it
 is furniture under a sheet. Each time you look back it stands differently.
 (docs/ENTITIES.md, design 1.)
 
-Under the sheet is MakeHuman's old thin man (CC0), never shown. The sheet is
-one cloth grid draped over him by Blender's cloth solver (`cloth.py`): laid
-on the crown, let fall to the floor, then pressed onto the face and settled
-round it. Each pose is the same grid draped again over him standing another
-way, kept as a morph target of the first; the game shows a pose only after
+Under the sheet is MakeHuman's old thin man (CC0, a tall one: 1.96 m), never
+shown. The sheet is one cloth grid draped over him by Blender's cloth solver
+(`cloth.py`): laid on the crown, let fall to the floor, drawn in round him
+below the shoulders (`hug`: it hangs as a narrow shroud, not a cone), then
+pressed onto the face and settled round it; where his eyes and his open
+mouth are under it the cloth is grimed dark. Each pose is the same grid
+draped again over him standing another way, kept as a morph target of the
+first, read off its drape where its face fell on the cloth (so the face is
+the same part of the sheet in every pose); the game shows a pose only after
 you have looked away (`entities::watcher`). The sheet is one layer, drawn
 from both sides.
 """
@@ -19,13 +24,17 @@ ORDER = 30
 
 # the poses, the first the rest: (name, the bones' aims over the standing stoop)
 POSES = ('stand', 'listen', 'bowed', 'reach', 'lean', 'over')
-SHEET = (3.0, 3.2, 76, 80)          # width, length (m); vertices across, along (4 cm)
+SHEET = (3.4, 3.6, 86, 91)          # width, length (m); vertices across, along (4 cm)
+HUG = 0.3                           # what is left of the cloth's flare below the shoulders
 REFINE = 4                          # the drape made 4 times finer (1 cm) for the face
 TRIS = 14000                        # the sheet in the game
 
 
 def aims_of(pose):
-    a = {'spine': (0, 1, 0.05), 'chest': (0, 1, 0.12), 'upperchest': (0, 1, 0.2), 'neck': (0, 1, 0.3), 'head': (0, 1, 0.0)}
+    # (its jaw hangs open under the cloth; its head bowed a little, so
+    # that it looks down at you)
+    a = {'spine': (0, 1, 0.05), 'chest': (0, 1, 0.12), 'upperchest': (0, 1, 0.2), 'neck': (0, 1, 0.3), 'head': (0, 1, 0.4),
+         'jaw': (0, -1, 0.35)}
     for side, sx in (('.L', 1), ('.R', -1)):
         a['upperarm' + side] = (sx * 0.15, -1, 0.05)
         a['forearm' + side] = (sx * 0.05, -1, 0.15)
@@ -49,6 +58,41 @@ def aims_of(pose):
             a['upperarm' + side] = (sx * 0.2, -0.7, 1)
             a['forearm' + side] = (sx * 0.1, -0.9, 0.5)
     return a
+
+
+def hug(S, P, N, shoulders):
+    """the cloth below the shoulders drawn in round him (points S over a
+    body of points P, normals N): at each height, what stands out past his
+    widest there keeps only HUG of it. A sheet laid on a man tents from the
+    shoulders into a cone; drawn in, it hangs as a narrow shroud, a person's
+    shape. (As a cone, a blind review read it as a bedsheet ghost, E10)"""
+    import cloth
+    BIN = 0.05
+    nb = int(P[:, 1].max() / BIN) + 2
+    b = np.clip((P[:, 1] / BIN).astype(int), 0, nb - 1)
+    centre, reach = np.zeros((nb, 2)), np.zeros(nb)
+    for k in range(nb):
+        Q = P[b == k][:, [0, 2]]
+        if len(Q) == 0:
+            centre[k], reach[k] = centre[k - 1], reach[k - 1]
+            continue
+        centre[k] = Q.mean(0)
+        reach[k] = np.linalg.norm(Q - centre[k], axis=1).max() + 0.04
+    # cloth falls from the widest of him above, straight down (drawn in to
+    # each height's own width it had wrapped his legs like trousers)
+    for k in range(nb - 2, -1, -1):
+        reach[k] = max(reach[k], reach[k + 1] if P[b == k + 1, 1].size and k + 1 <= int(shoulders / BIN) else 0.0)
+    S = S.copy()
+    k = np.clip((S[:, 1] / BIN).astype(int), 0, nb - 1)
+    off = S[:, [0, 2]] - centre[k]
+    d = np.linalg.norm(off, axis=1) + 1e-9
+    x = np.clip((shoulders - S[:, 1]) / 0.3, 0.0, 1.0)
+    w = x * x * (3 - 2 * x)
+    want = np.where(d > reach[k], reach[k] + (d - reach[k]) * HUG, d)
+    nd = d + (want - d) * w
+    S[:, [0, 2]] = centre[k] + off * (nd / d)[:, None]
+    S, _ = cloth.off_the_skin(S, cloth.nearest(P), N, gap=0.006, reach=0.15)
+    return S
 
 
 def drape(kit, base, pose):
@@ -81,6 +125,7 @@ def drape(kit, base, pose):
     cloth.pin(sh, np.nonzero(np.hypot(G[:, 0] - top[0], G[:, 2] - top[2]) < 0.05)[0])
     S = cloth.settle(kit, sh, 90)
     bpy.data.objects.remove(fl)
+    S = hug(S, P, N, top[1] - 0.3)
     # made fine (the smooth surface through the solver's points)
     F, fx, fz = cloth.refine(S, nx, ny, REFINE)
     # the face pressed in: a soft shrink-wrap, the share of each point that
@@ -125,21 +170,61 @@ def drape(kit, base, pose):
     # where its face is in this pose (for the eyes that look at it: the game's
     # camera over your body), just in front of the cloth
     face_at = hc + up * 0.07 + fwd * 0.11
-    return F, fx, fz, mask, face_at
+    # where its eyes and its open mouth are under the cloth (MakeHuman's
+    # eyes and teeth, carried by the head and the jaw): the cloth there is
+    # grimed dark, soft-edged, as a face shows through a sheet worn over it
+    def carried(bone, X):
+        b0, b1 = np.array(skel.head(bone)), np.array(posed.head(bone)) + [0, lift, 0]
+        Rb = human._rot_between(np.array(skel.tail(bone)) - b0, np.array(posed.tail(bone)) - np.array(posed.head(bone)))
+        return b1 + (np.asarray(X) - b0) @ Rb.T
+    eyes = [carried('head', base.helper(e)[0].mean(0)) for e in ('l-eye', 'r-eye')]
+    tu, tl = base.helper('upper-teeth')[0], base.helper('lower-teeth')[0]
+    lip_u = carried('head', tu[np.abs(tu[:, 0]) < 0.004].mean(0))
+    lip_l = carried('jaw', tl[np.abs(tl[:, 0]) < 0.004].mean(0))
+    X = F[near]
+    ab = lip_l - lip_u
+    t = np.clip(((X - lip_u) @ ab) / max(ab @ ab, 1e-12), 0, 1)
+    m = np.exp(-(np.linalg.norm(X - (lip_u + t[:, None] * ab), axis=1) / 0.026) ** 2)
+    for e in eyes:
+        m = np.maximum(m, np.exp(-(np.linalg.norm(X - e, axis=1) / 0.032) ** 2))
+    marks = np.zeros(len(F))
+    marks[near] = m * soft(mask[near] / 0.3)
+    return F, fx, fz, mask, face_at, marks
 
 
 def build(kit):
     import bpy
     import hm08, cloth
-    base = hm08.Base().target('macro/male-old-thin')
-    fine, masks, faces = {}, [], {}
+    # (a tall man: under the cloth he stands a head over you)
+    base = hm08.Base().target('macro/male-old-thin', 0.6).target('macro/male-old-thin-tall', 0.4)
+    fine, masks, faces, depths = {}, [], {}, {}
     for pose in POSES:
-        F, fx, fz, m, face_at = drape(kit, base, pose)
+        F, fx, fz, m, face_at, mk = drape(kit, base, pose)
         fine[pose] = F
         masks.append(m)
         faces[pose] = face_at
+        depths[pose] = mk
     w, l, nx, ny = SHEET
     fxs, fzs = np.linspace(-w / 2, w / 2, fx), np.linspace(-l / 2, l / 2, fz)
+    # each pose's face falls on its own place of the cloth (bent over you,
+    # it is 20 cm from where it is standing): each pose is read off its
+    # drape that far along, so its face is where the sheet's is kept fine
+    # and stained (read in the same place, the face bent over you had been
+    # coarse folds, E10). What is read past the edge is the hem's last row.
+    def cell(m):
+        idx = np.nonzero(m > 0.5)[0]
+        return np.array([np.median(idx % fx), np.median(idx // fx)])
+    c0 = cell(masks[0])
+    shift, aligned, deep_at = {}, [], []
+    for pose, m in zip(POSES, masks):
+        dx, dz = np.round(cell(m) - c0).astype(int)
+        shift[pose] = np.array([dx * w / (fx - 1), dz * l / (fz - 1)])
+        back = lambda a: np.roll(a.reshape(fz, fx), (-dz, -dx), axis=(0, 1)).reshape(-1)
+        aligned.append(back(m))
+        deep_at.append(back(depths[pose]))
+        print(f'[creatures] watcher {pose}: its face read {dx},{dz} cm along; its marks up to {depths[pose].max():.2f}; '
+              f'then shares {np.minimum(aligned[-1], masks[0]).sum() / max(m.sum(), 1e-9):.2f} of the standing face')
+    masks = aligned
     # ---- the sheet in the game: the fine drape of the first pose, thinned
     # (its face kept fine), every pose then read off its own fine drape at
     # the same places of the cloth
@@ -182,7 +267,7 @@ def build(kit):
         kit.set_verts_np(sh, kit.to_bl_np(S))
         sh.data.update()
         return kit.to_game_np(kit.vnormals(sh))
-    shapes = {p: cloth.sample(fine[p], fx, fz, fxs, fzs, uv) for p in POSES}
+    shapes = {p: cloth.sample(fine[p], fx, fz, fxs, fzs, uv + shift[p]) for p in POSES}
     S0 = shapes[POSES[0]]
     N0 = normals_of(S0)
     morphs = []
@@ -196,6 +281,13 @@ def build(kit):
     # ---- an old linen dust sheet (`linen.py`, the furniture's too)
     import linen
     col = linen.colours(kit, sh, uv, S0[:, 1])
+    # the cloth darker where it is pressed deep into the face (the hollows
+    # of the eyes, the open mouth): grime and breath in the weave. (Pale
+    # all over, its face did not show: a blind review read it as a bedsheet
+    # ghost, E10)
+    # (the standing face's marks: every pose's together were blots)
+    mk = cloth.sample(np.repeat(deep_at[0][:, None], 3, axis=1), fx, fz, fxs, fzs, uv)[:, 0]
+    col = col * (1 - 0.8 * np.clip(mk * 1.6, 0, 1))[:, None]
 
     # one bone: it never moves a limb where you can see; and two marks that
     # move nothing, where its face is standing and bent over you (the

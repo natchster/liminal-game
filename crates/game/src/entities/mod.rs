@@ -1,24 +1,24 @@
-//! The entities: materials, rigs, animation, steering, look-rules, voices,
-//! `update_entities`.
+//! The entities: the creatures of `docs/ENTITIES.md` and what they share.
 //!
-//! The Smiler, the Hound and the Watcher: articulated figures with named
-//! joints, driven every frame by `animate_entity()`. The organic parts come
-//! from tools/blender/creatures.py (`assets::creatures`), each modelled in its
-//! joint's own frame, so the rigs below place them with no fitting. Painted
-//! parts carry their albedo as vertex colours (materials are white).
-//!
-//! Split over three files: this one (materials, shared geometry, the rigs and
-//! `make_smiler` / `make_hound` / `make_watcher`, `spawn_entities`, `add_entity`,
-//! `update_face`), `anim.rs` (`entity_tics`, `animate_entity`,
-//! `apply_watcher_pose`, the hound's limb IK) and `ai.rs` (steering,
-//! look-rules, voices, `update_entities`).
+//! The Hound, the Smiler, the Watcher, the one in the corner and the Reader
+//! run one brain (`brain.rs`, `creature.rs`: one `Mode` at a time, percepts,
+//! fairness, what they learn), each kind its data and its own rules in a
+//! module of its own (`hound.rs`, `smiler.rs`, `watcher.rs`, `corner.rs`,
+//! `reader.rs`), on a body from `bodies.bin` (`body.rs`); the director
+//! decides when one comes (`director.rs`). This file keeps the ecology (who
+//! lives on a level, `ecology`, `spawn_entities`, `add_entity`), the skin
+//! detail every creature's skin is drawn with (`with_skin_detail`), the
+//! binding of a skinned body to a rig's named bones (`skin_body`,
+//! `sync_entity_skins`), the face billboards and the navigation seam the
+//! tests replace; `ai.rs` keeps the shared steering, the update loop and the
+//! screen's pressure (the anomalies' staff and shadows walk there by their
+//! own rules, `anomalies::rig`).
 //!
 //! Per-entity state that `records::Entity` has no typed slot for lives in
-//! `e.num` / `e.flag` under string keys (`e.n("poseYaw")`, `e.fl("aimOk")`),
-//! and the non-numeric pieces (the typed rig, the aim field, the tic spring,
-//! the voice) in `g.ent_ext[e.g.id()]` (`EntExt`). `e.parts` (the
-//! `records::Entity` map) holds every named bone by its name plus the rig's
-//! named parts (`head`, `jaw`, `torso`, `skin`, ...).
+//! `e.num` / `e.flag` under string keys, and the non-numeric pieces (a
+//! creature's brain and body, a voice) in `g.ent_ext[e.g.id()]` (`EntExt`).
+//! `e.parts` (the `records::Entity` map) holds a rigged figure's named
+//! bones and its skins (`skin`, `skin.<part>`).
 //!
 //! CONTRACT: the signatures below are called from other modules; keep them.
 pub mod ai;
@@ -46,7 +46,7 @@ pub const DARK_TILES: usize = 12;
 pub const FURNISHED_TILES: usize = 8;
 pub const OFFICE_TILES: usize = 8;
 
-/// What `make_smiler` / `make_hound` / `make_watcher` return.
+/// What a creature's build returns (`creature::make_creature`).
 #[derive(Clone, Debug)]
 pub struct EntityBuild {
     pub g: Obj,

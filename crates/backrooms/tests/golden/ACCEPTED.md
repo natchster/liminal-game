@@ -69,3 +69,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-29, on top of 8c48beb: frames: 7 shots. Reason: E9: the anomalies' figures get goldens of their own (none had one): the Showroom's staff and the Loop's seated man on their new MakeHuman bodies (blind reviews preferred both), the Borrowed House's shadows on the body they keep
 
 - 2026-10-29, on top of 8c48beb: look anchors: 7 shots. Reason: E9: look anchors for the anomalies' new figure shots (first anchors, nothing moved)
+
+- 2026-10-29, on top of 6540e76: frames: 48 shots. Reason: E10: every canvas texture paints from a stream of its own (placers::kit::canvas_tex, with_own_stream), not the per-frame stream, so each texture's stains/bricks/grain pattern changed once and the per-frame stream after start-up moved (grain, the death camera's shake); the Smiler (v7: deeper ribs, dust on the bones, a wider paler grin) and the Watcher (v6: a narrow shroud over a 1.96 m man, eye and mouth marks, poses aligned on the cloth) are new bodies a blind review preferred (two reviewers each); all 48 frames looked at side by side, content otherwise unchanged
+
+- 2026-10-29, on top of 6540e76: look anchors: watcher_death. Reason: E10: the Watcher's new body (blind-reviewed) is taller, so the death camera looks up at its face under the ceiling light: the frame is brighter (luminance 0.305 -> 0.365)

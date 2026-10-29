@@ -108,6 +108,29 @@ name the siren's meaning, the cells, the fog or the figure first):
 - When you came through the small warm door into the yellow rooms, what
   changed?
 
+The creatures (`docs/ENTITIES.md`; ask until a round has answered them,
+and never name a creature, its rule or its counter first):
+
+- For each thing you met more than once: what does it notice you by, and
+  what keeps you safe from it? (Say it in one sentence. The design holds if
+  four players in five can, after three meetings.)
+- The grinning one in the dark: when you put your light out, were you
+  afraid, or only annoyed? Did the dark itself wear you down?
+- The covered shape among the covered furniture: when did you first know
+  it was not furniture?
+- Someone standing in a corner with its back to you: what did you hear
+  near it, and from how far? Did you look at its face? On purpose? Twice?
+- The one reading as it walked: what did you do when it looked up? Did
+  dropping paper feel like your idea?
+- Did anything you had beaten before come at you differently later? What
+  changed, and when did you notice?
+- When something caught you, did it matter? Did you feel the game was
+  fair about when it could kill you?
+- Did your light run out? When, and what did you do?
+- On a floor you crossed quickly, did you meet anything? Did you want to?
+- The tall shop staff, the shadows in the borrowed rooms, the man in the
+  chair: one word for each.
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.
