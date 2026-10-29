@@ -173,9 +173,13 @@ impl Game {
 
     /// Camera poses on the vending machines (`core_props::vending`): for
     /// each, one square in front of it 2.2 m out, and one from 1.2 m off its
-    /// face and to its left, looking at its glass. (x, z, yaw) in world
+    /// face and to its left, looking at its glass (its state: `vending_states`). (x, z, yaw) in world
     /// coordinates; a pose where a body does not fit, or that does not see
     /// the machine's face, is left out.
+    /// Each vending machine: lit or dead
+    pub fn vending_states(&self) -> Vec<&'static str> {
+        self.vending.iter().map(|m| if m.powered { "lit" } else { "dead" }).collect()
+    }
     pub fn vending_views(&self) -> Vec<(f64, f64, f64)> {
         let mut out = vec![];
         for m in &self.vending {
@@ -194,8 +198,10 @@ impl Game {
 
     /// Plays every lit vending machine to a state, for its frames: `hang`
     /// (a coin in, for a bag on its second tray or else its first stocked
-    /// coil: the good hangs at the glass) or `bin` (and then rocked
-    /// until it falls into the bin). Time runs for the machines alone.
+    /// coil: the good hangs at the glass), `bin` (and then rocked until it
+    /// falls into the bin), `fall` (rocked past its balance), `dark` (in its
+    /// rhythm's dark beat), `print` (a dead one's hand on its glass). Time
+    /// runs for the machines alone.
     pub fn vending_demo(&mut self, what: &str) {
         use crate::core_props::vending::rules::{Verb, SHOVE_T, VEND_T};
         let run = |g: &mut Game, i: usize, secs: f64| {
@@ -205,8 +211,34 @@ impl Game {
             }
         };
         for i in 0..self.vending.len() {
+            // a dead one: its hand print (rule 9)
+            if what == "print" {
+                if let Some(h) = &self.vending[i].print {
+                    h.set_visible(true);
+                }
+                continue;
+            }
             if !self.vending[i].powered {
                 continue;
+            }
+            match what {
+                // in its dark beat (rule 1)
+                "dark" => {
+                    self.vending[i].state.rhythm = (0.001, 1e9, 0.0);
+                    run(self, i, 0.1);
+                    continue;
+                }
+                // rocked past its balance (rule 7)
+                "fall" => {
+                    self.vending[i].state.coin_given = true;
+                    for _ in 0..crate::core_props::vending::rules::FALL_ON {
+                        self.vending_use(i, Verb::Rock);
+                        run(self, i, SHOVE_T + 0.2);
+                    }
+                    run(self, i, crate::core_props::vending::rules::TOPPLE_T + 0.3);
+                    continue;
+                }
+                _ => {}
             }
             let d = crate::core_props::vending::paint::designs();
             let m = &self.vending[i];

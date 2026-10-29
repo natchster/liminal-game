@@ -671,3 +671,41 @@ pub fn rust_tex() -> Tex {
         }
     })
 }
+
+/// A hand pressed to the inside of a dusty pane: the palm and five fingers
+/// wiped clear and greasy, its edges smeared (rule 9)
+pub fn handprint_tex() -> Tex {
+    canvas_tex_opt(128, 176, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        let ink = |ctx: &mut Canvas, a: f64| ctx.set_fill_style(format!("rgba(215,210,198,{a:.3})"));
+        // the palm
+        ink(ctx, 0.20);
+        ctx.begin_path();
+        ctx.ellipse(w * 0.5, h * 0.68, w * 0.30, h * 0.20, 0.08, 0, PI * 2.0);
+        ctx.fill();
+        // the fingers, spread a little, the thumb low and out
+        let fingers = [
+            (-0.26, 0.36, 0.30, -0.25),
+            (-0.10, 0.22, 0.40, -0.08),
+            (0.06, 0.20, 0.42, 0.02),
+            (0.21, 0.27, 0.36, 0.14),
+            (0.36, 0.55, 0.24, 0.75),
+        ];
+        for (fx, fy, len, a) in fingers {
+            ctx.save();
+            ctx.translate(w * (0.5 + fx), h * (fy + 0.22));
+            ctx.rotate(a);
+            ink(ctx, rand2(0.16, 0.24));
+            ctx.begin_path();
+            ctx.ellipse(0, -h * len * 0.25, w * 0.065, h * len * 0.27, 0, 0, PI * 2.0);
+            ctx.fill();
+            ctx.restore();
+        }
+        // smears dragged down from it
+        for _ in 0..7 {
+            let x = w * rand2(0.25, 0.75);
+            ink(ctx, rand2(0.04, 0.09));
+            ctx.fill_rect(x, h * rand2(0.6, 0.8), rand2(2.0, 5.0), h * rand2(0.1, 0.25));
+        }
+    })
+}

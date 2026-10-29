@@ -3,7 +3,7 @@
 //! (it is the same machine on every build, its uses draw nothing from the
 //! build's stream, it is solid).
 mod common;
-use game::core_props::vending::model::{CoilPlace, D, GLASS_Z, TRAY_Y};
+use game::core_props::vending::model::{CoilPlace, D, FACE, GLASS_Z, H, TRAY_Y};
 use game::core_props::vending::paint::{designs, Ware};
 use game::core_props::vending::rules::*;
 use game::prelude::*;
@@ -185,4 +185,135 @@ fn it_is_solid_and_the_same_machine_every_build() {
     g.run_seed = seed;
     g.init_level(level);
     assert_eq!(key(&g), a, "the same machines, built after another level");
+}
+
+#[test]
+fn it_keeps_its_rhythm() {
+    // rule 1: lit in its rhythm, then a click, dark and out of the light
+    // map for a few seconds, then lit again
+    let (mut g, i) = level_with(true);
+    let (on, off, phase) = g.vending[i].state.rhythm;
+    assert!((40.0..=60.0).contains(&on) && (6.0..=9.0).contains(&off), "{on} {off}");
+    // to the start of a dark stretch, then through it
+    let t0 = g.perf_t;
+    let into = (t0 + phase).rem_euclid(on + off);
+    run(&mut g, (on - into).rem_euclid(on + off) + 0.5);
+    assert!(!g.vending[i].state.lit, "dark in its rhythm");
+    assert!(g.vending_light().is_empty() || g.vending.iter().filter(|m| m.state.lit).count() == g.vending_light().len());
+    run(&mut g, off);
+    assert!(g.vending[i].state.lit, "and lit again");
+}
+
+#[test]
+fn it_goes_dark_when_something_comes() {
+    // rule 2: a creature after you near it puts it out, until a moment after it has gone
+    let (mut g, i) = level_with(true);
+    g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
+    run(&mut g, 0.2);
+    assert!(g.vending[i].state.lit);
+    let ei = hound_before(&mut g, i, 8.0);
+    if let Some(c) = g.creature_mut(ei) {
+        c.brain.mode = game::entities::brain::Mode::Hunt;
+    }
+    run(&mut g, 0.2);
+    assert!(!g.vending[i].state.lit, "dark while it comes");
+    let far = g.vending[i].world(0.0, 0.0, D / 2.0 + DARK_REACH + 30.0);
+    g.entities[ei].g.set_pos(far.x, 0.0, far.z);
+    run(&mut g, DARK_HOLD - 1.0);
+    assert!(!g.vending[i].state.lit, "still dark just after");
+    run(&mut g, 1.5);
+    assert!(g.vending[i].state.lit, "lit again once it has gone");
+}
+
+#[test]
+fn never_rock_or_tilt() {
+    // rule 7: with nothing hanging, the second shove creaks and the third
+    // fells it: heard all over the floor, it throws you down (never to
+    // death), it lies solid where it fell, and its almond water and
+    // batteries lie by it
+    let (mut g, i) = level_with(true);
+    g.player.coins = 0;
+    g.vending[i].state.coin_given = true;
+    let m = &g.vending[i];
+    let front = m.world(0.0, 0.0, D / 2.0 + 0.6);
+    g.player.pos = Vec3::new(front.x, EYE, front.z);
+    g.player.sanity = 40.0;
+    let far = hound_before(&mut g, i, 60.0);
+    let (almonds, batteries) = (g.almonds.len(), g.battery_items.len());
+    for n in 1..=FALL_ON {
+        assert_eq!(verb(&g, i), Some(Verb::Rock), "shove {n}");
+        g.vending_use(i, Verb::Rock);
+        run(&mut g, SHOVE_T + 0.1);
+        assert_eq!(g.vending[i].state.creaked, n >= CREAK_ON, "the creak on shove {CREAK_ON}");
+    }
+    run(&mut g, TOPPLE_T + 0.2);
+    let m = &g.vending[i];
+    assert!(m.state.down, "it fell");
+    assert_eq!(verb(&g, i), None, "nothing more to do with it");
+    assert!(g.creature(far).and_then(|c| c.brain.mem.heard).is_some(), "the crash was heard 60 m off");
+    assert!(
+        g.player.sanity >= game::entities::creature::KNOCKED_LEAVES && g.player.sanity < 40.0,
+        "thrown down, alive: {}",
+        g.player.sanity
+    );
+    let lies = m.world(0.0, 0.0, FACE + H / 2.0);
+    assert!(g.circle_hits_wall(lies.x, lies.z, 0.2), "it lies solid before its wall");
+    let stood = m.world(0.0, 0.0, -D / 4.0);
+    assert!(!g.circle_hits_wall(stood.x, stood.z, 0.05), "and not where it stood");
+    assert!(!g.circle_hits_wall(g.player.pos.x, g.player.pos.z, 0.3), "you are out from under it");
+    let d = designs();
+    let held = |w: Ware| m.stock.iter().any(|s| s.count > 0 && d[s.design].kind == w);
+    if held(Ware::Almond) {
+        assert!(g.almonds.len() > almonds, "its almond water spilled");
+    }
+    if held(Ware::Battery) {
+        assert!(g.battery_items.len() > batteries, "its batteries spilled");
+    }
+    assert!(g.vending_light().is_empty(), "dark for good");
+}
+
+#[test]
+fn it_restocks_when_no_one_is_looking() {
+    // rule 8: a coil you emptied is full again once you have not looked for a while
+    let (mut g, i) = level_with(true);
+    let (k, c) = stocked(&g, i, None);
+    let full = g.vending[i].stock[k].count;
+    g.player.coins = 1;
+    look_at(&mut g, i, c.x, TRAY_Y[c.tray] + 0.08, GLASS_Z);
+    run(&mut g, 0.1);
+    g.vending_use(i, Verb::InsertCoin);
+    run(&mut g, VEND_T + 1.0);
+    for _ in 0..g.vending[i].state.drop_on {
+        g.vending_use(i, Verb::Rock);
+        run(&mut g, SHOVE_T + FALL_T + 0.2);
+    }
+    g.vending_use(i, Verb::ReachIn);
+    assert_eq!(g.vending[i].stock[k].count, full - 1);
+    // looking at it, nothing changes
+    let face = g.vending[i].world(0.0, 0.0, D / 2.0 + 2.0);
+    g.player.pos = Vec3::new(face.x, EYE, face.z);
+    g.player.yaw = g.vending[i].yaw();
+    run(&mut g, RESTOCK_T + 2.0);
+    assert_eq!(g.vending[i].stock[k].count, full - 1, "not while you look");
+    // your back turned
+    g.player.yaw += PI;
+    run(&mut g, RESTOCK_T + 1.0);
+    assert_eq!(g.vending[i].stock[k].count, full, "full again");
+}
+
+#[test]
+fn something_is_inside_the_dead_ones() {
+    // rule 9: look at a dead one close, turn your back: two knocks from
+    // inside its glass, and a hand on it; once
+    let (mut g, i) = level_with(false);
+    let face = g.vending[i].world(-0.125, 0.0, D / 2.0 + 1.4);
+    g.player.pos = Vec3::new(face.x, EYE, face.z);
+    g.player.yaw = g.vending[i].yaw();
+    let print = g.vending[i].print.clone().expect("a dead one has its print");
+    run(&mut g, 0.5);
+    assert!(g.vending[i].state.looked && !g.vending[i].state.knocked && !print.visible());
+    g.player.yaw += PI;
+    run(&mut g, 0.2);
+    assert!(g.vending[i].state.knocked, "it knocked");
+    assert!(print.visible(), "a hand on the inside of the glass");
 }

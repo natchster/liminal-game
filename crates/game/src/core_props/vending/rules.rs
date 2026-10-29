@@ -1,8 +1,11 @@
 //! What the vending machine does (`docs/VENDING.md`, the rules). Each frame
-//! (`vending_frame`) it reads where you look (rule 3), runs what it is doing
-//! (the coin ringing down, a coil turning, a shove, a good falling, the
-//! flap), and keeps its fine detail for when you are near. Its uses are
-//! interactables at its face, one verb at a time (`vending_register`).
+//! (`vending_frame`) it keeps its rhythm and goes dark when something comes
+//! (rules 1, 2), reads where you look (rule 3), runs what it is doing (the
+//! coin ringing down, a coil turning, a shove, a good falling, the flap, its
+//! fall), restocks what nobody is watching (rule 8), knocks from inside the
+//! dead ones (rule 9), and keeps its fine detail for when you are near. Its
+//! uses are interactables at its face, one verb at a time
+//! (`vending_register`).
 //!
 //! Everything here runs as you play: no draw from the build's stream. What
 //! varies per machine was fixed when it was built (`State::drop_on`).
@@ -35,6 +38,23 @@ pub const SILENCE_T: f64 = 40.0;
 pub const SILENCE_REACH: f64 = 10.0;
 /// What a snack does for your nerve
 pub const SNACK_NERVE: f64 = 6.0;
+/// Rule 2: how near something that is after you, or sent for you, puts it
+/// out, and how long after it has gone it comes back, m and s
+pub const DARK_REACH: f64 = 16.0;
+pub const DARK_HOLD: f64 = 3.0;
+/// Rule 7: the shoves, with nothing hanging, of the creak and of the fall;
+/// the fall's time, s; what it leaves of your nerve
+pub const CREAK_ON: u32 = 2;
+pub const FALL_ON: u32 = 3;
+pub const TOPPLE_T: f64 = 0.9;
+pub const TOPPLE_NERVE: f64 = 22.0;
+/// Rule 8: how long unseen before an emptied coil is full again, s
+pub const RESTOCK_T: f64 = 20.0;
+/// Its sounds are made only within this of you, m (its fall anywhere)
+pub const HEARD_WITHIN: f64 = 30.0;
+/// How much of its lit colour the inside keeps when it is dark (a dead
+/// one's inside is built at 0.30 of a lit one's 0.82)
+pub const DARK_INSIDE: f64 = 0.30 / 0.82;
 
 /// What a machine is doing
 #[derive(Clone, Debug, Default)]
@@ -69,6 +89,25 @@ pub struct State {
     pub says: String,
     pub says_t: f64,
     pub shown: (String, usize, i32),
+    /// rule 1: its rhythm (on, dark, where in it it began), fixed when it
+    /// was built; whether it is lit now
+    pub rhythm: (f64, f64, f64),
+    pub lit: bool,
+    /// its first frame has been (it began as it is)
+    pub started: bool,
+    /// rule 2: dark until then (something came)
+    pub dark_until: f64,
+    /// rule 7: shoves while nothing hung; it creaked; falling since; down
+    pub free_shoves: u32,
+    pub creaked: bool,
+    pub toppling: Option<f64>,
+    pub down: bool,
+    /// rule 8: seconds nobody has seen it, and how many times it restocked
+    pub unseen: f64,
+    pub restocks: u32,
+    /// rule 9 (a dead one): you looked at it close; it knocked
+    pub looked: bool,
+    pub knocked: bool,
 }
 
 /// One of a machine's verbs
@@ -89,6 +128,9 @@ impl Game {
     pub fn vending_verb(&self, i: usize) -> Option<Verb> {
         let m = self.vending.get(i)?;
         let s = &m.state;
+        if s.down || s.toppling.is_some() {
+            return None;
+        }
         if s.vend.is_some() || s.shove.is_some() || s.falling.is_some() || s.coin_at.is_some() {
             return None;
         }
@@ -153,7 +195,10 @@ impl Game {
             Verb::Rock => {
                 let m = &mut self.vending[i];
                 m.state.shoves += 1;
-                let n = m.state.shoves as f64;
+                if m.state.hanging.is_none() {
+                    m.state.free_shoves += 1;
+                }
+                let n = m.state.shoves.max(m.state.free_shoves) as f64;
                 m.state.shove = Some((now, (0.02 + 0.025 * n).min(0.09)));
             }
             Verb::ReachIn => {
@@ -183,7 +228,10 @@ impl Game {
     /// Machine `i`, each frame
     pub fn vending_frame(&mut self, i: usize, dt: f64) {
         let now = self.perf_t;
-        let _ = dt;
+        self.vending_lights(i, now);
+        self.vending_topple(i, now);
+        self.vending_restock(i, dt);
+        self.vending_knock(i);
         self.vending_gaze(i);
         // the coin rings down into the cup
         if let Some(t) = self.vending[i].state.coin_at.filter(|&t| now >= t) {
@@ -326,6 +374,17 @@ impl Game {
         self.vending[i].state.shove = None;
         self.vending_sound(i, Sfx::Bang);
         self.vending_noise(i, BANG_REACH, 0.8);
+        // rule 7: with nothing hanging, the second shove creaks, the third
+        // is past its balance
+        let free = self.vending[i].state.free_shoves;
+        if free >= FALL_ON {
+            self.vending[i].state.toppling = Some(now);
+            return;
+        }
+        if free >= CREAK_ON && !self.vending[i].state.creaked {
+            self.vending[i].state.creaked = true;
+            self.vending_sound(i, Sfx::Creak);
+        }
         let m = &self.vending[i];
         if let Some(k) = m.state.hanging.filter(|_| m.state.shoves >= m.state.drop_on) {
             self.vending_drop(i, k, now);
@@ -402,7 +461,7 @@ impl Game {
     /// it is saying (it runs across); or HAVE A NICE DAY, running across
     fn vending_display(&mut self, i: usize, now: f64) {
         let m = &mut self.vending[i];
-        let (text, on) = if !m.powered {
+        let (text, on) = if !m.powered || !m.state.lit || m.state.down {
             (String::new(), 0.0)
         } else if !m.state.says.is_empty() {
             (m.state.says.clone(), 1.0)
@@ -489,7 +548,9 @@ impl Game {
     pub fn hits_vending(&self, x: f64, z: f64, r: f64) -> bool {
         self.vending.iter().any(|m| {
             let p = m.local(&Vec3::new(x, 0.0, z));
-            let (cx, cz) = (p.x.clamp(-W / 2.0, W / 2.0), p.z.clamp(-D / 2.0, D / 2.0));
+            // standing, its footprint; fallen, it lies on its face before it
+            let (z0, z1) = if m.state.down { (FACE, FACE + H) } else { (-D / 2.0, D / 2.0) };
+            let (cx, cz) = (p.x.clamp(-W / 2.0, W / 2.0), p.z.clamp(z0, z1));
             (p.x - cx).powi(2) + (p.z - cz).powi(2) < r * r
         })
     }
@@ -498,7 +559,7 @@ impl Game {
     pub fn vending_light(&self) -> Vec<(i32, i32, f64)> {
         self.vending
             .iter()
-            .filter(|m| m.powered)
+            .filter(|m| m.powered && m.state.lit && !m.state.down)
             .map(|m| {
                 let f = m.world(0.0, 0.0, D / 2.0 + 0.6);
                 (self.tx(f.x), self.tz(f.z), VEND_LIGHT)
@@ -523,12 +584,24 @@ pub enum Sfx {
     Bang,
     Thunk,
     Flap,
+    Click,
+    Thump,
+    Creak,
+    Crash,
+    Knock,
 }
 
 impl Game {
     /// Machine `i` makes `what`, from where it stands
     pub fn vending_sound(&mut self, i: usize, what: Sfx) {
         let p = self.vending[i].world(0.25, 1.1, D / 2.0);
+        // past where it could be heard it makes nothing (a sound played
+        // draws from the frame stream: a far machine's click had moved
+        // every later ambient event of a floor); its fall is heard anywhere
+        let pp = self.player.pos;
+        if what != Sfx::Crash && hypot2(pp.x - p.x, pp.z - p.z) > HEARD_WITHIN {
+            return;
+        }
         self.play_from(p.x, p.y, p.z, 2.0, 1.0, 0.7, move |g| match what {
             Sfx::Lever => {
                 g.noise_burst(0.03, 2400.0, 3.0, 0.06, "bandpass", None, 0.0, 0.0);
@@ -564,6 +637,320 @@ impl Game {
                 g.noise_burst(0.05, 1500.0, 2.0, 0.05, "bandpass", None, 0.0, 0.0);
                 g.noise_burst(0.06, 1100.0, 2.0, 0.04, "bandpass", None, 0.45, 0.0);
             }
+            Sfx::Click => {
+                // the ballast's relay letting go
+                g.noise_burst(0.015, 3000.0, 4.0, 0.05, "bandpass", None, 0.0, 0.0);
+                g.blip(1800.0, 0.012, "square", 0.015, None, 0.0, 0.0);
+            }
+            Sfx::Thump => {
+                // the tube striking again
+                g.blip(70.0, 0.16, "sine", 0.06, Some(55.0), 0.0, 0.0);
+                g.noise_burst(0.02, 2500.0, 3.0, 0.03, "bandpass", None, 0.0, 0.0);
+            }
+            Sfx::Creak => {
+                // sheet steel and its feet, past their balance
+                g.blip(180.0, 0.6, "sawtooth", 0.025, Some(130.0), 0.05, 0.0);
+                g.noise_burst(0.5, 600.0, 6.0, 0.035, "bandpass", Some(420.0), 0.05, 0.0);
+            }
+            Sfx::Crash => {
+                g.blip(48.0, 0.9, "sine", 0.6, Some(30.0), 0.0, 0.0);
+                g.noise_burst(0.8, 300.0, 0.7, 0.5, "lowpass", Some(90.0), 0.0, 0.0);
+                // the glass, and the goods
+                g.noise_burst(0.6, 5200.0, 1.5, 0.18, "highpass", None, 0.04, 0.0);
+                for k in 0..6 {
+                    g.noise_burst(0.05, 2000.0 + k as f64 * 400.0, 4.0, 0.05, "bandpass", None, 0.25 + k as f64 * 0.11, 0.0);
+                }
+            }
+            Sfx::Knock => {
+                // two knuckles on glass, from inside
+                for d in [0.0, 0.28] {
+                    g.blip(240.0, 0.08, "sine", 0.06, Some(180.0), d, 0.0);
+                    g.noise_burst(0.03, 1900.0, 5.0, 0.04, "bandpass", None, d, 0.0);
+                }
+            }
         });
+    }
+}
+
+impl Game {
+    /// Rules 1 and 2: lit in its rhythm, dark while something that is after
+    /// you or sent for you is near it (and a moment after); the light map,
+    /// its tube, its lights and its display follow
+    fn vending_lights(&mut self, i: usize, now: f64) {
+        let m = &self.vending[i];
+        if !m.powered {
+            return;
+        }
+        let (on, off, phase) = m.state.rhythm;
+        let in_rhythm = m.state.down || on <= 0.0 || (now + phase).rem_euclid(on + off) < on;
+        let p = m.pos();
+        let stalker = self.director.stalker;
+        let comes = self.entities.iter().enumerate().any(|(ei, e)| {
+            let after = self.creature(ei).map(|c| c.brain.mode.after_you()).unwrap_or(false) || stalker == Some(ei);
+            after && hypot2(e.pos().x - p.x, e.pos().z - p.z) < DARK_REACH
+        });
+        if comes {
+            self.vending[i].state.dark_until = now + DARK_HOLD;
+        }
+        let m = &self.vending[i];
+        let lit = !m.state.down && in_rhythm && now >= m.state.dark_until;
+        let (first, was) = (!m.state.started, m.state.lit);
+        self.vending[i].state.started = true;
+        if lit == was {
+            return;
+        }
+        self.vending[i].state.lit = lit;
+        // (as the level begins it is simply as it is: no click, nothing heard)
+        if !first {
+            self.vending_sound(i, if lit { Sfx::Thump } else { Sfx::Click });
+        }
+        self.vending_light_up(i, lit);
+        self.build_light_map();
+    }
+
+    /// Machine `i`'s tube, lights and display on or off
+    pub fn vending_light_up(&mut self, i: usize, lit: bool) {
+        let m = &mut self.vending[i];
+        m.tubes.set_color(if lit { 0xf2f6ff } else { 0x4a4c4e });
+        for (k, l) in m.lights.iter().enumerate() {
+            l.set_intensity(if lit { m.light_power[k] } else { 0.0 });
+        }
+        // inside, it goes as dim as a dead one (the room's light comes in
+        // only through the glass): the colours as the look settled them,
+        // kept the first time it goes dark
+        if m.inside.is_empty() {
+            for (s, mat) in &m.body.mats {
+                if matches!(s, Slot::Coil | Slot::Tray | Slot::Liner | Slot::Goods | Slot::Bottle | Slot::Labels) {
+                    m.inside.push((mat.clone(), mat.color_v(), mat.emissive_v()));
+                }
+            }
+        }
+        for (mat, c, e) in &m.inside {
+            if lit {
+                mat.m().color = *c;
+                mat.m().emissive = *e;
+            } else {
+                let k = DARK_INSIDE;
+                mat.m().color.set_rgb(c.r * k, c.g * k, c.b * k);
+                mat.m().emissive = Color::default();
+            }
+        }
+        m.state.shown = (String::from("~"), 0, -1);
+    }
+
+    /// Rule 7: past its balance it falls on its face, about its front edge
+    fn vending_topple(&mut self, i: usize, now: f64) {
+        let Some(t0) = self.vending[i].state.toppling else { return };
+        let s = ((now - t0) / TOPPLE_T).min(1.0);
+        // slow off its feet, then all at once
+        self.vending[i].tilt.rotation().x = 0.003 + (PI / 2.0 - 0.003) * s * s * s;
+        if s < 1.0 {
+            return;
+        }
+        let m = &mut self.vending[i];
+        m.state.toppling = None;
+        m.state.down = true;
+        m.state.lit = false;
+        m.state.hanging = None;
+        m.state.bin = None;
+        // the glass bursts against the floor
+        if let Some(o) = m.body.meshes.get(&Slot::Glass) {
+            o.set_visible(false);
+        }
+        self.vending_light_up(i, false);
+        self.vending_sound(i, Sfx::Crash);
+        // heard all over the floor: whatever hears comes to where it fell
+        self.vending_noise(i, 1e6, 1.0);
+        self.director_note("vending-fall");
+        self.vending_spill(i);
+        // you, before it
+        let pp = self.player.pos;
+        let q = self.vending[i].local(&pp);
+        if q.x.abs() < W / 2.0 + 0.35 && q.z > FACE - 0.1 && q.z < FACE + H + 0.3 {
+            let nerve = TOPPLE_NERVE.min((self.player.sanity - crate::entities::creature::KNOCKED_LEAVES).max(0.0));
+            self.knock_down(nerve);
+            // out from under it: beside it, or past its top
+            let m = &self.vending[i];
+            let spots = [
+                (W / 2.0 + 0.5, FACE + 0.9),
+                (-(W / 2.0 + 0.5), FACE + 0.9),
+                (0.0, FACE + H + 0.5),
+                (q.x.signum() * (W / 2.0 + 0.5), FACE + 0.3),
+            ];
+            if let Some(p) = spots.iter().map(|&(x, z)| m.world(x, 0.0, z)).find(|p| !self.circle_hits_wall(p.x, p.z, 0.3)) {
+                self.player.pos.x = p.x;
+                self.player.pos.z = p.z;
+            }
+        }
+        self.build_light_map();
+    }
+
+    /// Its goods across the floor as it fell: the almond water and the
+    /// batteries it held lie by it to be taken (two of each at most)
+    fn vending_spill(&mut self, i: usize) {
+        self.vending_scatter(i);
+        let d = designs();
+        let m = &self.vending[i];
+        let mut almond = 0;
+        let mut battery = 0;
+        for (k, s) in m.stock.iter().enumerate() {
+            match d[s.design].kind {
+                Ware::Almond => almond += s.count.min(1),
+                Ware::Battery => battery += s.count.min(2),
+                _ => {}
+            }
+            let _ = k;
+        }
+        let spots: Vec<Vec3> = [(-0.8, 0.6), (0.8, 0.9), (-0.75, 1.5), (0.85, 1.7)]
+            .iter()
+            .map(|&(x, z)| m.world(x, 0.0, FACE + z))
+            .filter(|p| !self.circle_hits_wall(p.x, p.z, 0.15))
+            .collect();
+        let mut at = spots.into_iter();
+        for _ in 0..almond.min(2) {
+            let Some(p) = at.next() else { break };
+            let ag = group();
+            ag.position().set(p.x, 0.15, p.z);
+            ag.add(&mesh(pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10)), lambert!({ color: 0x9fc4d8, emissive: 0x16323e })));
+            let cap = mesh(pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8)), &self.mats.metal);
+            cap.position().y = 0.18;
+            ag.add(&cap);
+            self.world.add(&ag);
+            self.almonds.push(crate::base::records::Pickup { g: ag, taken: false, base: 0.15, phase: p.x });
+        }
+        for _ in 0..battery.min(2) {
+            let Some(p) = at.next() else { break };
+            let bg = group();
+            bg.position().set(p.x, 0.11, p.z);
+            bg.add(&mesh(pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10)), lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 })));
+            let tip = mesh(pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8)), lambert!({ color: 0xdad3c2 }));
+            tip.position().y = 0.105;
+            bg.add(&tip);
+            self.world.add(&bg);
+            self.battery_items.push(crate::base::records::Pickup { g: bg, taken: false, base: 0.11, phase: p.z });
+        }
+    }
+
+    /// Rule 8: what was taken from it is back once nobody has looked at it
+    /// for a while (each coil as full as it was built)
+    fn vending_restock(&mut self, i: usize, dt: f64) {
+        let m = &self.vending[i];
+        if m.state.down || m.state.vend.is_some() || m.state.hanging.is_some() || m.state.falling.is_some() || m.body.lifted.is_some() {
+            return;
+        }
+        let p = m.world(0.0, 1.2, D / 2.0);
+        let eye = self.player.pos;
+        let f = self.player.fwd();
+        let (dx, dz) = (p.x - eye.x, p.z - eye.z);
+        let d = hypot2(dx, dz).max(1e-6);
+        let seen = d < 30.0 && (f.x * dx + f.z * dz) / d > 0.35 && self.los(eye.x, eye.z, p.x, p.z);
+        let short: Vec<usize> = (0..m.stock.len()).filter(|&k| m.stock[k].count < m.full[k]).collect();
+        let m = &mut self.vending[i];
+        m.state.unseen = if seen { 0.0 } else { m.state.unseen + dt };
+        if short.is_empty() || m.state.unseen < RESTOCK_T {
+            return;
+        }
+        m.state.restocks += 1;
+        let seed = m.seed ^ m.state.restocks.wrapping_mul(0x9E37_79B9);
+        for k in short {
+            m.restock(k, seed);
+        }
+        m.body.draw(None);
+        m.state.near = None;
+    }
+
+    /// Rule 9: a dead one you looked at close knocks, once, from inside its
+    /// glass when you turn your back; then there is a hand on the glass
+    fn vending_knock(&mut self, i: usize) {
+        let m = &self.vending[i];
+        if m.powered || m.state.down || m.state.knocked {
+            return;
+        }
+        let p = m.world(-0.125, 1.2, D / 2.0);
+        let eye = self.player.pos;
+        let f = self.player.fwd();
+        let (dx, dz) = (p.x - eye.x, p.z - eye.z);
+        let d = hypot2(dx, dz).max(1e-6);
+        let toward = (f.x * dx + f.z * dz) / d;
+        if !m.state.looked {
+            if d < 2.5 && toward > 0.85 {
+                self.vending[i].state.looked = true;
+            }
+            return;
+        }
+        if d < 5.0 && toward < -0.3 {
+            self.vending[i].state.knocked = true;
+            self.vending_sound(i, Sfx::Knock);
+            if let Some(h) = &self.vending[i].print {
+                h.set_visible(true);
+            }
+        }
+    }
+}
+
+impl Game {
+    /// Bags and bars thrown out across the floor round it as it fell (to
+    /// look at: what can be taken lies among them, `vending_spill`); their
+    /// places from its own seed
+    fn vending_scatter(&mut self, i: usize) {
+        let m = &self.vending[i];
+        let d = designs();
+        let stock: Vec<usize> = m
+            .stock
+            .iter()
+            .filter(|s| s.count > 0 && matches!(d[s.design].kind, Ware::Bag | Ware::Bar | Ware::Pastry))
+            .map(|s| s.design)
+            .collect();
+        if stock.is_empty() {
+            return;
+        }
+        let mat = m.body.mats[&Slot::Goods].clone();
+        let seed = m.seed ^ 0xFA11;
+        let at = m.world(0.0, 0.0, 0.0);
+        let yaw = m.yaw();
+        let pieces: Vec<(Geo, Mat4)> = crate::base::rng::with_own_stream(seed, || {
+            (0..10)
+                .map(|n| {
+                    let de = d[stock[n % stock.len()]];
+                    let geo = match de.kind {
+                        Ware::Bar => super::goods::pouch(0.058, 0.135, 0.02, 0.05, rand1(0.4), true, rand1(6.0), true),
+                        Ware::Pastry => super::goods::pouch(0.125, 0.125, 0.03, 0.06, rand1(0.6), false, rand1(6.0), true),
+                        _ => super::goods::pouch(0.15, 0.205, rand2(0.03, 0.045), 0.055, rand1(0.9), false, rand1(6.0), true),
+                    };
+                    // UVs into its cell
+                    let c = super::paint::cell_uv(de.cell);
+                    {
+                        let mut gg = geo.g();
+                        for k in 0..gg.uv.len() / 2 {
+                            gg.uv[k * 2] = (c[0] + gg.uv[k * 2] as f64 * c[2]) as f32;
+                            gg.uv[k * 2 + 1] = (c[1] + gg.uv[k * 2 + 1] as f64 * c[3]) as f32;
+                        }
+                    }
+                    // flat on the floor round it, most toward its sides and its top
+                    let side = if rnd() < 0.5 { -1.0 } else { 1.0 };
+                    let (x, z) = if rnd() < 0.7 {
+                        (side * rand2(0.55, 1.1), FACE + rand2(0.1, H))
+                    } else {
+                        (rand2(-0.6, 0.6), FACE + H + rand2(0.1, 0.6))
+                    };
+                    let q = Quat::from_euler(&Euler::new(-PI / 2.0, rand1(PI * 2.0), 0.0));
+                    let mut qy = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), yaw);
+                    qy.multiply(&q);
+                    let (s, cs) = yaw.sin_cos();
+                    let p = Vec3::new(at.x + x * cs + z * s, 0.012, at.z - x * s + z * cs);
+                    (geo, Mat4::compose(&p, &qy, &Vec3::new(1.0, 1.0, 1.0)))
+                })
+                .collect()
+        });
+        for (geo, mx) in pieces {
+            let (p, q, _) = mx.decompose();
+            if self.circle_hits_wall(p.x, p.z, 0.05) {
+                continue;
+            }
+            let o = mesh(geo, &mat);
+            o.set_pos_v(&p);
+            o.set_quat(&q);
+            self.world.add(&o);
+        }
     }
 }

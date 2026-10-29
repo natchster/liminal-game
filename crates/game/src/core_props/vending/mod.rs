@@ -48,9 +48,19 @@ pub struct Machine {
     pub items: Vec<Vec<usize>>,
     /// the flap of the delivery bin (it swings in when pushed)
     pub flap: Obj,
-    /// its tubes and its lights (they go out with it)
+    /// its tubes and its lights (they go out with it), and each light's power
     pub tubes: Mat,
     pub lights: Vec<Obj>,
+    pub light_power: Vec<f64>,
+    /// its inside's materials and their lit colour and glow (kept the first
+    /// time it goes dark, rule 1)
+    pub inside: Vec<(Mat, Color, Color)>,
+    /// a hand on the inside of its glass (a dead one's, rule 9), hidden
+    pub print: Option<Obj>,
+    /// its own stream's seed (what it restocks with), and how full each
+    /// coil was built
+    pub seed: u32,
+    pub full: Vec<usize>,
     /// what it is doing (`rules`)
     pub state: rules::State,
 }
@@ -69,6 +79,20 @@ impl Machine {
     pub fn world(&self, x: f64, y: f64, z: f64) -> Vec3 {
         let (p, (s, c)) = (self.pos(), self.yaw().sin_cos());
         Vec3::new(p.x + x * c + z * s, p.y + y, p.z - x * s + z * c)
+    }
+    /// Fill coil `k` again (rule 8): as full as it was built, its goods
+    /// made anew from `seed` (a stream of its own)
+    pub fn restock(&mut self, k: usize, seed: u32) {
+        let c = self.places[k].clone();
+        let s = Stock { design: self.stock[k].design, count: self.full[k] };
+        self.body.pieces.retain(|p| !(p.coil == Some(k) && p.item.is_some()));
+        let mut next = self.body.pieces.iter().filter_map(|p| p.item).max().map(|x| x + 1).unwrap_or(0).max(10_000 * (k + 1));
+        let mut add = vec![];
+        let ids =
+            crate::base::rng::with_own_stream(seed ^ (k as u32).wrapping_mul(0x85EB_CA6B), || goods_pieces(k, &c, &s, &mut next, &mut add));
+        self.body.pieces.extend(add);
+        self.items[k] = ids;
+        self.stock[k] = s;
     }
     /// Whether piece `pi` is part of coil `k`'s front good
     pub fn stock_front(&self, k: usize, pi: usize) -> bool {
@@ -269,6 +293,21 @@ fn cord_geo() -> Geo {
     g
 }
 
+/// The front good of coil `c` (id `item`) hangs, tipped against the glass
+/// off the spiral's end (as `rules` leaves one)
+fn hang_front(body: &mut Body, c: &CoilPlace, item: usize) {
+    let end = COIL_Z + COIL_LEN / 2.0;
+    let lean = ((GLASS_Z - 0.006 - end) / 0.2).clamp(0.0, 1.0).asin();
+    for p in body.pieces.iter_mut().filter(|p| p.item == Some(item)) {
+        let (mut pos, q, _) = p.m.decompose();
+        pos.z += c.pitch();
+        let tip = Quat::from_axis_angle(&Vec3::new(1.0, 0.0, 0.0), lean);
+        let mut q2 = tip;
+        q2.multiply(&q);
+        p.m = Mat4::compose(&pos, &q2, &Vec3::new(1.0, 1.0, 1.0));
+    }
+}
+
 /// The price strips: under each coil its code and its price
 fn strip_pieces(places: &[CoilPlace]) -> (Tex, Vec<Piece>) {
     let mut rows: Vec<Vec<(String, String)>> = vec![vec![]; TRAY_Y.len()];
@@ -363,13 +402,13 @@ pub fn build_vending(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // what it is made of never moves what is placed after it (the wall
     // `scatter` stands it against is drawn next)
     let seed = (rnd() * 4_294_967_296.0) as u32 ^ VEND_SALT;
-    crate::base::rng::with_own_stream(seed, || build_machine(g))
+    crate::base::rng::with_own_stream(seed, || build_machine(g, seed))
 }
 
 /// The salt of a machine's own stream
 const VEND_SALT: u32 = 0x5EED_7E2D;
 
-fn build_machine(g: &mut Game) -> Built {
+fn build_machine(g: &mut Game, seed: u32) -> Built {
     let powered = rnd() < 0.6;
     let paint = choice(&PAINTS);
     let places = coil_places();
@@ -487,6 +526,32 @@ fn build_machine(g: &mut Game) -> Built {
         lights.push(glow);
     }
     let tubes = body.mats[&Slot::Tube].clone();
+    let light_power: Vec<f64> = lights.iter().map(|l| l.intensity()).collect();
+    // a dead one: a hand print inside its glass, for later (rule 9); and
+    // now and then a good already hanging (someone else's coin)
+    let mut print = None;
+    let mut hanging = None;
+    if !powered {
+        let h = mesh(
+            plane_geometry(0.16, 0.22, 1.0, 1.0),
+            lambert!({ map: handprint_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }),
+        );
+        h.set_pos((WIN[0] + WIN[1]) / 2.0 + rand2(-0.15, 0.15), rand2(1.05, 1.35), GLASS_Z - 0.003);
+        h.rotation().z = rand2(-0.3, 0.3);
+        h.set_visible(false);
+        h.set_render_order(3);
+        inner.add(&h);
+        print = Some(h);
+        if rnd() < 0.5 {
+            let k = (0..places.len()).filter(|&k| stock[k].count > 0).nth(irand(0, 9) as usize);
+            if let Some(k) = k {
+                hang_front(&mut body, &places[k], items[k][0]);
+                body.draw(None);
+                hanging = Some(k);
+            }
+        }
+    }
+    let full: Vec<usize> = stock.iter().map(|s| s.count).collect();
     g.vending.push(Machine {
         root: root.clone(),
         tilt,
@@ -501,8 +566,20 @@ fn build_machine(g: &mut Game) -> Built {
         flap: hinge,
         tubes,
         lights,
+        light_power,
+        inside: vec![],
+        print,
+        seed,
+        full,
         // how many shoves shake what hangs loose: its own, 2 to 4 (rule 6)
-        state: rules::State { drop_on: irand(2, 4) as u32, ..Default::default() },
+        state: rules::State {
+            drop_on: irand(2, 4) as u32,
+            // rule 1: on 40-60 s, dark 6-9 s, from a point in it of its own
+            rhythm: (rand2(40.0, 60.0), rand2(6.0, 9.0), rand1(70.0)),
+            lit: powered,
+            hanging,
+            ..Default::default()
+        },
     });
     Built::new(root, H + 0.01)
 }
