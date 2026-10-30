@@ -26,7 +26,7 @@ use crate::prelude::*;
 /// The kinds on the brain (the anomalies' staff and shadows keep their own
 /// rules, `anomalies::rig`).
 pub fn on_new_brain(kind: &str) -> bool {
-    matches!(kind, "hound" | "smiler" | "watcher" | "corner" | "reader")
+    matches!(kind, "hound" | "smiler" | "watcher" | "corner" | "reader" | "glass")
 }
 
 /// The one place a kind's own code is chosen: its data and materials, its
@@ -38,6 +38,7 @@ fn kind_data(kind: &str) -> (KindData, fn(&str) -> Mat) {
         "watcher" => (crate::entities::watcher::DATA, crate::entities::watcher::material),
         "corner" => (crate::entities::corner::DATA, crate::entities::corner::material),
         "reader" => (crate::entities::reader::DATA, crate::entities::reader::material),
+        "glass" => (crate::entities::glass::DATA, crate::entities::glass::material),
         other => panic!("{other} is not on the new brain (creature::on_new_brain)"),
     }
 }
@@ -48,6 +49,7 @@ pub fn kind_think(g: &mut Game, ei: usize, dt: f64) {
         "watcher" => crate::entities::watcher::think(g, ei, dt),
         "corner" => crate::entities::corner::think(g, ei, dt),
         "reader" => crate::entities::reader::think(g, ei, dt),
+        "glass" => crate::entities::glass::think(g, ei, dt),
         _ => {}
     }
 }
@@ -58,6 +60,7 @@ pub fn kind_animate(g: &mut Game, ei: usize, dt: f64) {
         "watcher" => crate::entities::watcher::animate(g, ei, dt),
         "corner" => crate::entities::corner::animate(g, ei, dt),
         "reader" => crate::entities::reader::animate(g, ei, dt),
+        "glass" => crate::entities::glass::animate(g, ei, dt),
         _ => {}
     }
 }
@@ -68,6 +71,7 @@ pub fn kind_voice(g: &mut Game, ei: usize, dt: f64, d: f64) {
         "watcher" => crate::entities::watcher::voice(g, ei, dt, d),
         "corner" => crate::entities::corner::voice(g, ei, dt, d),
         "reader" => crate::entities::reader::voice(g, ei, dt, d),
+        "glass" => crate::entities::glass::voice(g, ei, dt, d),
         _ => {}
     }
 }
@@ -78,6 +82,7 @@ pub fn kind_call(g: &mut Game, ei: usize, what: &str) {
         "watcher" => crate::entities::watcher::call(g, ei, what),
         "corner" => crate::entities::corner::call(g, ei, what),
         "reader" => crate::entities::reader::call(g, ei, what),
+        "glass" => crate::entities::glass::call(g, ei, what),
         _ => {}
     }
 }
@@ -544,12 +549,18 @@ impl Game {
         // chase is its own until its rule loses you (cut short by the
         // director, running for 8 s beat every creature: the counters stopped
         // mattering), a blow already begun, the Reader's page; the one in
-        // the corner is never sent
+        // the corner and the one behind the glass are never sent (the one
+        // behind the glass reads it as the place lying quiet: it does not
+        // come through)
         let now = self.perf_t;
         let kind = self.entities[ei].kind.clone();
         if let Some(c) = self.creature_mut(ei) {
             let away = matches!(c.brain.order, Order::Away(t) if t > 0.0);
-            if away && kind != "corner" && !matches!(c.brain.mode, Mode::Withdraw | Mode::Strike | Mode::Read | Mode::Hunt) {
+            if away
+                && kind != "corner"
+                && kind != "glass"
+                && !matches!(c.brain.mode, Mode::Withdraw | Mode::Strike | Mode::Read | Mode::Hunt)
+            {
                 c.brain.goal = None;
                 c.brain.set(Mode::Withdraw, "the director sent it away", now);
             }
@@ -559,7 +570,14 @@ impl Game {
         // (the one in the corner holding in its corner is nothing to the
         // director: as a search, it had kept the tension and the heartbeat
         // up and every peak open on its level, wherever you were)
-        self.entities[ei].state = if kind == "corner" && mode == Mode::Hold { "wander" } else { mode.legacy_state() }.into();
+        self.entities[ei].state = if kind == "corner" && mode == Mode::Hold {
+            "wander"
+        } else if kind == "glass" {
+            crate::entities::glass::legacy_state(mode)
+        } else {
+            mode.legacy_state()
+        }
+        .into();
         let e = &self.entities[ei];
         e.g.rotation().y = e.yaw;
         kind_animate(self, ei, dt);

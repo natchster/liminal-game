@@ -95,3 +95,15 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-30, on top of 50da029: frames: 11 shots. Reason: Vending V5: no machine in the Showroom (4242 L10, staff) and none on seed 7 L5 (no office, hall or pool zone with a purpose there: the machine stands only where one would have put it, never in a bare zone); the props placed after it are placed from where the stream now is (a box stack and cone, a pillar wrap, a lit machine's glow gone). Looked at each frame and error map.
 
 - 2026-10-30, on top of 19efe5c: frames: 4242_L7_maintenance, 7_L5_play_area. Reason: Windows W1: a window far off in each frame is now an opening cut into its wall onto the view (the old framed picture gone); nothing else in either frame moved (the windows keep the old window zone's draws)
+
+- 2026-10-30, on top of 1d1697d: frames: glass_32m, glass_8m, glass_0m, glass_in, glass_death. Reason: W2: the one behind the glass, new (docs/WINDOWS.md 4): out of its window on 4242's level 7, far out on the track in the fog (a smudge), 8 m out, its hood's rim and face to the pane with its hands either side, come through into its lamp's light, and its kill; looked at frame by frame
+
+- 2026-10-30, on top of 1d1697d: look anchors: glass_32m, glass_8m, glass_0m, glass_in, glass_death. Reason: W2: the one behind the glass, new: its first look anchors
+
+- 2026-10-30, on top of 1d1697d: frames: glass_0m, glass_in, glass_death. Reason: W2, after the blind review's findings: its face to the pane seen from a metre, its hands wide on the glass with the elbows out (the sleeves had read as planks seen into their cuffs); its face cold and drowned (bluish skin, veins, raw lids, grey lips, clouded eyes, wet), the hood's rim no longer inked; looked at frame by frame
+
+- 2026-10-30, on top of 1d1697d: look anchors: glass_0m, glass_in, glass_death. Reason: W2: the pressed view's new framing and the figure's new face
+
+- 2026-10-30, on top of 1d1697d: frames: glass_0m, glass_in, glass_death. Reason: W2, after the second blind review's findings: its hands flat on the glass at its chin, the upper arms hanging (lifted from the shoulder, skinning had swung the coat's shoulders up into fins beside the hood); the hood moved only by the head, neck and chest; the coat wet (a sheen); looked at frame by frame
+
+- 2026-10-30, on top of 1d1697d: look anchors: glass_0m, glass_in, glass_death. Reason: W2: the figure's final pose and coat

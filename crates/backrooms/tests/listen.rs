@@ -517,6 +517,49 @@ fn the_hound_is_heard() {
     assert!(after > 0.0, "its nails and its panting are heard as it runs");
 }
 
+/// The one behind the glass is heard only as glass, at its window, by you
+/// standing before it: the pane's tick, the creak under its weight, its
+/// breath on the pane, the long groan of the glass bowing in. Each stands
+/// over the room's bed where it falls.
+#[test]
+fn the_one_behind_the_glass_is_heard_as_glass() {
+    let mut r = start(4242, 7);
+    hold_creatures(&mut r.g);
+    // behind a window of this floor (forced where the floor's coin said no),
+    // you before it
+    let ei = game::entities::glass::showcase(&mut r.g, 3.0).expect("no window on 4242's level 7");
+    play(&mut r, 3.0, |_| {});
+    let mut marks = vec![];
+    let mut heard = vec![];
+    for (what, secs) in [("tick", 1.0), ("creak", 2.0), ("breath", 2.0), ("groan", 3.5)] {
+        let from = r.pcm.len() / 2;
+        marks.push(from as f64 / SR);
+        game::entities::glass::call(&mut r.g, ei, what);
+        play(&mut r, secs, |_| {});
+        heard.push((what, from, r.pcm.len() / 2));
+    }
+    save("glass_4242_L7", &r.pcm, &marks);
+    // each in its own band, its loudest 50 ms against the room's median there
+    let quiet = (marks[0] / 0.05) as usize;
+    let mut ups = vec![];
+    for (what, from, to) in heard {
+        let (lo, hi) = match what {
+            "tick" => (2500.0, 6000.0),
+            "creak" => (150.0, 600.0),
+            _ => (60.0, 8000.0),
+        };
+        let w = windows_band(&r.pcm, lo, hi);
+        let bed = median(&w[20..quiet]);
+        let peak = w[from / WIN..(to / WIN).min(w.len())].iter().cloned().fold(0.0, f64::max);
+        let up = db(peak / bed);
+        println!("glass: {what} {up:+.1} dB over the room at {lo:.0}-{hi:.0} Hz");
+        ups.push((what, up));
+    }
+    for (what, up) in ups {
+        assert!(up > 6.0, "its {what} is not heard over the room (6 dB)");
+    }
+}
+
 /// The one in the corner hums, low, its back to you 7 m ahead: in its band
 /// the hum stands 3 dB over the room, against the same room once it has
 /// stopped, so its stopping is heard. (That it stops when it is about to

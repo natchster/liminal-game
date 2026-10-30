@@ -112,6 +112,8 @@ impl Game {
         crate::entities::corner::place(self);
         // the Reader, where paper lies
         crate::entities::reader::place(self);
+        // the one behind the glass, behind a window off the way
+        crate::entities::glass::place(self);
         // a kind held back from learning on the last level learns now
         self.creature_learn_pending();
         self.build_light_map();

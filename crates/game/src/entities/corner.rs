@@ -262,26 +262,9 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
 
 // ------------------------------------------------------------ placing it
 
-/// Put the one in the corner on this level (after her camp is fitted:
-/// `session::flow`): from depth 2, on about half the levels (by the level,
-/// not by chance), in the quietest inside corner off the main way, far from
-/// the arrival, her camp and the door. None when there is no such corner.
-pub fn place(g: &mut Game) -> Option<usize> {
-    if g.depth() < 2 || g.building.is_some() || g.level_scp.is_some() || g.in_loop || g.in_stairwell {
-        return None;
-    }
-    // about half the levels: from the level's own seed, not the stream
-    let mut h = crate::base::rng::SplitMix64::new(g.current_seed, 0xC0_4E_E1_u64 ^ g.level_num as u64);
-    if h.next() > 0.55 {
-        return None;
-    }
-    let exit = g.exit_data.as_ref().map(|e| (g.tx(e.pos.x), g.tz(e.pos.z)))?;
-    let (sx, sz) = (g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z));
-    let from_exit = g.bfs(exit.0, exit.1);
-    let from_start = g.bfs(sx, sz);
-    let camp = g.story.camp.as_ref().map(|c| c.tile);
-    let from_camp = camp.map(|(x, z)| g.bfs(x, z));
-    // the main way: the walk from the arrival to the door, and two tiles round it
+/// The main way: the walk from the arrival (sx, sz) down the door's field
+/// `from_exit`, and two tiles round it (what a placed creature keeps off).
+pub fn main_way(g: &Game, from_exit: &[i32], sx: i32, sz: i32) -> Vec<bool> {
     let mut way = vec![false; (g.w * g.h) as usize];
     let (mut x, mut z) = (sx, sz);
     for _ in 0..(g.w * g.h) {
@@ -304,6 +287,29 @@ pub fn place(g: &mut Game) -> Option<usize> {
         x = nx;
         z = nz;
     }
+    way
+}
+
+/// Put the one in the corner on this level (after her camp is fitted:
+/// `session::flow`): from depth 2, on about half the levels (by the level,
+/// not by chance), in the quietest inside corner off the main way, far from
+/// the arrival, her camp and the door. None when there is no such corner.
+pub fn place(g: &mut Game) -> Option<usize> {
+    if g.depth() < 2 || g.building.is_some() || g.level_scp.is_some() || g.in_loop || g.in_stairwell {
+        return None;
+    }
+    // about half the levels: from the level's own seed, not the stream
+    let mut h = crate::base::rng::SplitMix64::new(g.current_seed, 0xC0_4E_E1_u64 ^ g.level_num as u64);
+    if h.next() > 0.55 {
+        return None;
+    }
+    let exit = g.exit_data.as_ref().map(|e| (g.tx(e.pos.x), g.tz(e.pos.z)))?;
+    let (sx, sz) = (g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z));
+    let from_exit = g.bfs(exit.0, exit.1);
+    let from_start = g.bfs(sx, sz);
+    let camp = g.story.camp.as_ref().map(|c| c.tile);
+    let from_camp = camp.map(|(x, z)| g.bfs(x, z));
+    let way = main_way(g, &from_exit, sx, sz);
     let mut best: Option<(f64, i32, i32, i32, i32)> = None;
     for z in 1..g.h - 1 {
         for x in 1..g.w - 1 {

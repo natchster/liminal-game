@@ -27,9 +27,10 @@ paths:
   hearing is along the way it would walk, `path_distance`, never through
   walls); the director's wishes arrive as `Order`s. Kinds are data
   (`KindData`) plus their own `think` / `animate` / `voice` (`hound.rs`,
-  `smiler.rs`, `watcher.rs`, `corner.rs`, `reader.rs`). A placed kind (the
-  one in the corner; the Reader, beside paper) is placed after the build
-  with no draws (`corner::place`, `reader::place`, from `session::flow`),
+  `smiler.rs`, `watcher.rs`, `corner.rs`, `reader.rs`, `glass.rs`). A placed kind (the
+  one in the corner; the Reader, beside paper; the one behind the glass,
+  behind a window) is placed after the build
+  with no draws (`corner::place`, `reader::place`, `glass::place`, from `session::flow`),
   and nothing of it may draw from the per-frame stream as the level starts
   or while it is far from you: make it inside `with_seed` (`add_entity`
   draws a heading), set its first timers from its place, and give what it

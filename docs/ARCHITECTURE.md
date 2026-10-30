@@ -155,7 +155,7 @@ Who lives on a level is its **ecology** (`Game::ecology`, by its places,
 no draws): one on the Lobby, two at depth 2, three deeper; the Smiler
 where it is dark, the Watcher among furnished rooms, the Reader beside
 paper, the Hound anywhere, each put in its own kind of place
-(`spawn_entities`; the Reader after the build, `reader::place`). **What
+(`spawn_entities`; the Reader after the build, `reader::place`; the one behind the glass behind a window, `glass::place`). **What
 they learn** (`creature::LEARNS`): a run counts your habits with each kind
 (`creature_habit`); at its count a kind learns one new behaviour, at most
 one kind a level, shown the first time where you can see it

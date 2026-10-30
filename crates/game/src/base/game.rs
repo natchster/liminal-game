@@ -147,6 +147,8 @@ pub struct Game {
     /// build, and the windows finished on its final walls
     pub window_plans: Vec<crate::core_props::window::Plan>,
     pub windows: Vec<crate::core_props::window::Window>,
+    /// The one behind the glass of this level, and its window (`entities::glass`)
+    pub behind_glass: Option<crate::entities::glass::Bind>,
     /// The game's textures (wallpaper and carpet variants, dust sprite, static, ...)
     pub tex: crate::visuals::textures::Textures,
     /// Procedural surface textures (from `make_surfaces`)
@@ -707,6 +709,7 @@ impl Game {
             vending: vec![],
             window_plans: vec![],
             windows: vec![],
+            behind_glass: None,
             tex: crate::visuals::textures::Textures::placeholder(),
             // (`rnd`: each painter draws inside `canvas_tex`, on its own stream)
             surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::rnd),

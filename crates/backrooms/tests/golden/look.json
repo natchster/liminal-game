@@ -149,6 +149,36 @@
     "luminance": 0.4441,
     "shadow": 0.0037
   },
+  "glass_0m": {
+    "colourfulness": 15.94,
+    "contrast": 0.0961,
+    "luminance": 0.3016,
+    "shadow": 0.0063
+  },
+  "glass_32m": {
+    "colourfulness": 12.8,
+    "contrast": 0.0773,
+    "luminance": 0.254,
+    "shadow": 0.0053
+  },
+  "glass_8m": {
+    "colourfulness": 12.53,
+    "contrast": 0.0784,
+    "luminance": 0.2471,
+    "shadow": 0.0129
+  },
+  "glass_death": {
+    "colourfulness": 15.25,
+    "contrast": 0.1409,
+    "luminance": 0.2508,
+    "shadow": 0.0443
+  },
+  "glass_in": {
+    "colourfulness": 18.9,
+    "contrast": 0.0868,
+    "luminance": 0.2163,
+    "shadow": 0.0451
+  },
   "hound_2m": {
     "colourfulness": 20.49,
     "contrast": 0.0752,

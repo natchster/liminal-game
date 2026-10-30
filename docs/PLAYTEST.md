@@ -122,6 +122,8 @@ and never name a creature, its rule or its counter first):
   near it, and from how far? Did you look at its face? On purpose? Twice?
 - The one reading as it walked: what did you do when it looked up? Did
   dropping paper feel like your idea?
+- Out of a window: did you see anyone out there? When did you stop
+  looking out, and why? If it came to the glass, what did you do?
 - Did anything you had beaten before come at you differently later? What
   changed, and when did you notice?
 - When something caught you, did it matter? Did you feel the game was

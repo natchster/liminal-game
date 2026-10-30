@@ -27,6 +27,7 @@ pub mod brain;
 pub mod corner;
 pub mod creature;
 pub mod director;
+pub mod glass;
 pub mod hound;
 pub mod reader;
 pub mod smiler;

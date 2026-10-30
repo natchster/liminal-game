@@ -111,9 +111,18 @@ fn every_creature_has_goldens_and_behaviour_tests() {
     kinds.dedup();
     assert!(kinds.len() >= 5, "found the creature kinds in creature::on_new_brain: {kinds:?}");
     let shots = read("xtask/src/shots.rs");
-    let rules = read("crates/game/tests/creatures_rules.rs");
-    let arenas = read("crates/game/tests/creatures_arenas.rs");
+    // (a kind that lives behind a real window, the one behind the glass:
+    // its window is cut into a real wall and lit by its lamp, which no arena
+    // room has, so its rules and its counter are held on real floors, in
+    // crates/backrooms/tests/<kind>.rs)
+    const ON_REAL_FLOORS: &[&str] = &["glass"];
     for k in &kinds {
+        let (rules, arenas) = if ON_REAL_FLOORS.contains(&k.as_str()) {
+            let f = read(&format!("crates/backrooms/tests/{k}.rs"));
+            (f.clone(), f)
+        } else {
+            (read("crates/game/tests/creatures_rules.rs"), read("crates/game/tests/creatures_arenas.rs"))
+        };
         assert!(shots.contains(&format!("\"{k}\"")), "creature {k} has no golden shots: add it to CREATURES in xtask/src/shots.rs, then `cargo xtask shots --accept {k}_2m,{k}_4m,{k}_8m,{k}_death --reason …`");
         assert!(
             rules.contains(&format!("\"{k}\"")),

@@ -61,6 +61,12 @@ const FIGURES: &[(&str, &[&str])] = &[
     ("seated_2m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure"]),
     ("seated_1m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure-near"]),
 ];
+/// The one behind the glass (docs/WINDOWS.md 4), as you meet it: out of its
+/// window (4242's level 7, an office's strip window), standing far out on
+/// the track, closer, its face to the pane, come through into its light
+/// (`--showcase glass:OUT`, OUT m beyond the glass, below 0 inside), and
+/// its kill.
+const BEHIND_GLASS: (&str, &[(&str, &str)]) = ("glass", &[("32m", "32"), ("8m", "8"), ("0m", "0"), ("in", "-1")]);
 const DISTANCES: &[u32] = &[2, 4, 8];
 
 /// A difference below all of these is reported but passes: below what a
@@ -325,6 +331,20 @@ fn render_all() -> Result<Vec<Shot>, String> {
         c.arg("--screenshot").arg(out.join(format!("{name}.png")));
         jobs.push((name, c));
     }
+    {
+        let (kind, views) = BEHIND_GLASS;
+        for (death, (tag, at)) in views.iter().map(|v| (false, *v)).chain([(true, ("death", "-1"))]) {
+            let mut c = Command::new(&bin);
+            size(&mut c);
+            let name = format!("{kind}_{tag}");
+            c.args(["--seed", "4242", "--level", "7", "--play", "--frames", "90", "--showcase", &format!("{kind}:{at}")]);
+            if death {
+                c.arg("--death");
+            }
+            c.arg("--screenshot").arg(out.join(format!("{name}.png")));
+            jobs.push((name, c));
+        }
+    }
     for (name, args) in FIGURES {
         let mut c = Command::new(&bin);
         size(&mut c);
@@ -345,6 +365,12 @@ fn render_all() -> Result<Vec<Shot>, String> {
     let mut shots: Vec<Shot> = vec![];
     for kind in CREATURES {
         for name in DISTANCES.iter().map(|d| format!("{kind}_{d}m")).chain([format!("{kind}_death")]) {
+            shots.push(Shot { path: out.join(format!("{name}.png")), name });
+        }
+    }
+    {
+        let (kind, views) = BEHIND_GLASS;
+        for name in views.iter().map(|(tag, _)| format!("{kind}_{tag}")).chain([format!("{kind}_death")]) {
             shots.push(Shot { path: out.join(format!("{name}.png")), name });
         }
     }

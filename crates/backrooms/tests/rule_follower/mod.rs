@@ -43,6 +43,28 @@ pub fn counter(g: &Game, last_drop: f64, t: f64) -> Counter {
         let m = cr.brain.mode;
         let p = e.pos();
         let d = ((p.x - pp.x).powi(2) + (p.z - pp.z).powi(2)).sqrt();
+        // the one behind the glass: never stare out of its window (it is
+        // far out on the track while its glass is beside you); in the room,
+        // keep out of its light
+        if e.kind == "glass" {
+            if game::entities::glass::outside(g, i) {
+                if game::entities::glass::eyes_on_glass(g) && cr.get("stare") > 1.0 {
+                    if let Some(b) = g.behind_glass.as_ref() {
+                        let n = g.windows[b.win].normal;
+                        c.face = Some((pp.x + n.x * 3.0, pp.z + n.z * 3.0));
+                        c.why = "a window: eyes off it";
+                    }
+                }
+            } else if d < 10.0 {
+                c.away_from = Some((p.x, p.z));
+                let lit = g.behind_glass.as_ref().is_some_and(|b| g.windows[b.win].lit_at(pp.x, pp.z));
+                if lit {
+                    c.gait = Gait::Run;
+                }
+                c.why = "the one behind the glass: out of its light";
+            }
+            continue;
+        }
         if d > 30.0 {
             continue;
         }

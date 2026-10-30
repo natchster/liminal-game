@@ -136,7 +136,7 @@ fn rig_contract() {
     // every kind `add_entity` makes (a level's spawns, the cry's extra one)
     // is a creature of the redesign, on a body from `bodies.bin`, with no
     // billboard face (the old builders went in E7)
-    for kind in ["smiler", "hound", "watcher", "corner", "reader"] {
+    for kind in ["smiler", "hound", "watcher", "corner", "reader", "glass"] {
         let ei = g.add_entity(kind, 3, 3, 0);
         let c = g.creature(ei).unwrap_or_else(|| panic!("{kind}: not a creature of the redesign"));
         assert!(c.body.ix("root").is_some() || c.body.ix("hips").is_some(), "{kind}: no skeleton");

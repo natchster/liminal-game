@@ -628,6 +628,10 @@ impl Game {
     /// camera, facing it, and send the others away (`--showcase`, for
     /// looking at a creature headless). Adds one if the level has none.
     pub fn showcase_entity(&mut self, kind: &str, dist: f64) {
+        // the one behind the glass as you meet it: out of its window
+        if kind == "glass" && crate::entities::glass::showcase(self, dist).is_some() {
+            return;
+        }
         let ei = match self.entities.iter().position(|e| e.kind == kind) {
             Some(i) => i,
             None => {

@@ -122,10 +122,13 @@ must not be (opposite gaze rules read best, `research/backrooms-and-samosbor.md`
 | **The Watcher** | stalker | (it moves only when **unseen**) | **keeping it in sight**: look at it, light it, back away | furnished rooms, among the sheeted furniture |
 | **The one in the corner** | sentinel | **your eyes on its face** | **not looking**: pass behind it, keep your lamp off its face | the far corners of quiet rooms |
 | **The Reader** | hunter | **sight**, at middle range, in light | **paper**: drop a sheet and it must stop and read it | office wings, wherever paper lies |
+| **The one behind the glass** | sentinel | **your eyes on its window's glass**, added up | **not staring out of windows**; inside, **keeping out of its lamp's light** | far out on the track a window looks out on |
 
 The Smiler, the Hound, the Watcher and the Reader are *sent* by the
 director (§5), one at a time; the one in the corner is placed and never
-sent, and comes only if you look at it. None of them walks the Building
+sent, and comes only if you look at it. The sixth came with the windows
+(`WINDOWS.md` 4): the one behind the glass, placed and never sent like the
+one in the corner, which comes only for a long look out of its window. None of them walks the Building
 (levels 1–3): there, what comes is the self-assembly, and what knocks at
 the cell door stays unexplained.
 
@@ -315,6 +318,58 @@ stop for candy thrown down (both public domain): a compulsion you can use.*
 - **What it learns**: once you have escaped it with paper twice, it
   tears the sheets in half unread (1 s) instead of reading them: you hear the
   tearing, and paper buys you less.
+
+#### The one behind the glass
+
+*New with the windows (`WINDOWS.md` 4). After SCP-2885 (a view that
+sharpens the longer you look), SCP-3052 (a figure that faces you from every
+angle), SCP-L682 (through glass like plastic wrap) and the Backrooms'
+Windows (Entity 2: a reach from the window), all CC BY-SA 3.0; Kunekune (the
+danger in looking closely, a motif); and, public domain, Gogol's* Viy *and*
+Wuthering Heights *(a window that will not open, a grip through the glass).*
+
+- **What it is.** Someone in a pale raincoat, belted, the hood up and drawn
+  round its face, standing far out on the track a window looks out on
+  (32 m: in the fog there, a smudge you are not sure of). It always faces
+  you. Close, its face pressed to the glass is a person's, pale, the hood's
+  rim on the pane, its hands either side of it.
+- **Its sound.** Glass only: the pane's tick (a click and its short ring),
+  the creak of the pane under it, its breath on the glass, the long groan
+  of the glass bowing in. No voice. Heard only where its glass is heard
+  (within 9 m of it, in its room).
+- **The rule you learn.** *Do not stare out of a window too long.* What
+  counts is your eyes on its glass: your view's line through one of its
+  window's lights within 8 m, nothing between, the glass uncovered. It adds
+  up across glances (a second a second, draining a quarter as fast when you
+  look away). At 3 s the pane ticks: it has seen you (a tell). At 5 s it
+  comes up the track at 2.6 m/s while your eyes are on its glass and stands
+  when they are not; it never goes back. Within 7 m of the glass (its
+  lamp's light) it needs your look no longer: it comes to the glass (the
+  creak, then its breath misting the pane: tells), and 2 s later, unless the
+  glass is covered or the place lies quiet after a close call, the pane bows
+  in round it like film and it comes through (2.4 s) and down onto the floor,
+  into its lamp's light.
+- **Its reach is the light.** Inside it can be only where its lamp's light
+  falls through its window (`Window::lit_at`): it goes to the edge of the
+  light nearest you, at 1.8 m/s, and stands there facing you, breathing on
+  you (a tell every 2 s). In its light, within its reach, it takes you
+  (`touch_nerve` 40: it kills only a mind it leaves spent, never at a first
+  meeting) and you are thrown down out of the light. Out of its sight 4 s
+  (or 12 m off), it goes back out through the glass (2 s) and stands in the
+  lamp's light 1.4 m out; a long look then brings it straight back.
+- **Modes.** Hold (out on the track) → Alert (it has seen you) → Stalk
+  (coming while you look) → Hunt (to the glass, through, in its light) →
+  Strike → Withdraw (back out) → Alert. To the director only Hunt and
+  Strike are a hunt and Stalk a search; standing out there it is nothing
+  (`glass::legacy_state`), and nothing of it reaches the room while it is
+  out there (no pressure through its wall, no sighting through its glass).
+- **Placed** (`glass::place`, after the build, no draws) behind one window
+  of about four in ten of the floors with windows (a coin from the level's
+  seed), never where an anomaly is: its window's lights uncovered and
+  lighting the floor, the first open tile before it off the main way (two
+  tiles from the walk from the arrival to the door), 8 tiles from the
+  arrival, 5 from the door and her camp; the furthest from the arrival. Its
+  window's panes are made a fine grid then, so they can bow.
 
 ### 2. One brain
 

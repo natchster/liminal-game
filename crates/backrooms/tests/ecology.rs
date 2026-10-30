@@ -62,7 +62,9 @@ fn who_lives_where() {
             levels += 1;
             // ---- the ecology
             let want = g.ecology();
-            let sent: Vec<&str> = g.entities.iter().map(|e| e.kind.as_str()).filter(|k| *k != "corner").collect();
+            // (the placed kinds are the place's, not the ecology's: the one in
+            // the corner, and the one behind the glass, behind a window)
+            let sent: Vec<&str> = g.entities.iter().map(|e| e.kind.as_str()).filter(|k| !matches!(*k, "corner" | "glass")).collect();
             let depth = g.depth();
             let count = match depth {
                 1 => 1,

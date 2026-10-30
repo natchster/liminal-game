@@ -293,6 +293,40 @@
     },
     {
       "checks": [
+        "shots:glass_32m",
+        "shots:glass_8m",
+        "shots:glass_0m",
+        "shots:glass_in",
+        "shots:glass_death",
+        "test:backrooms/glass",
+        "test:backrooms/beatable",
+        "test:game/bodies",
+        "test:backrooms/listen",
+        "test:backrooms/pacing",
+        "test:game/entities_smoke"
+      ],
+      "id": "creature/glass",
+      "kind": "creature",
+      "last_checked": "2026-10-30",
+      "last_human_review": null,
+      "name": "the one behind the glass",
+      "notes": "New with the windows (docs/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "passes": {
+        "shots:glass_32m": true,
+        "shots:glass_8m": true,
+        "shots:glass_0m": true,
+        "shots:glass_in": true,
+        "shots:glass_death": true,
+        "test:backrooms/glass": true,
+        "test:backrooms/beatable": true,
+        "test:game/bodies": true,
+        "test:backrooms/listen": true,
+        "test:backrooms/pacing": true,
+        "test:game/entities_smoke": true
+      }
+    },
+    {
+      "checks": [
         "shots:reader_2m",
         "shots:reader_4m",
         "shots:reader_8m",

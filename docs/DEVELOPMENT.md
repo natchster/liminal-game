@@ -65,7 +65,7 @@
   is written as `impl Game` blocks in the module that owns it, so `Game`
   stays one plain struct of state. One exception: each creature kind
   (`entities/hound.rs`, `entities/smiler.rs`, `entities/watcher.rs`,
-  `entities/corner.rs`, `entities/reader.rs`) is free functions
+  `entities/corner.rs`, `entities/reader.rs`, `entities/glass.rs`) is free functions
   (`think`, `animate`, `voice`, `call`, `place`) taking `&mut Game`,
   dispatched by kind from `entities/creature.rs` (`.claude/rules/entities.md`):
   a kind is its data and its own rules, not more methods on `Game`.

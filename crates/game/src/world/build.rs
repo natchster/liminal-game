@@ -210,6 +210,7 @@ impl Game {
             }
         }
         self.windows.clear();
+        self.behind_glass = None;
         self.window_plans.clear();
         self.pp.vending_positions.clear();
         self.vacuum_bot = None;

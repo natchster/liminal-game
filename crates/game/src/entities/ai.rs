@@ -290,13 +290,20 @@ impl Game {
                 }
                 continue;
             }
-            nearest = nearest.min(d);
+            // (the one behind the glass, out there, is nothing to the room:
+            // no pressure through its wall, no sighting through its glass)
+            let out_there = kind == "glass" && crate::entities::glass::outside(self, ei);
+            if !out_there {
+                nearest = nearest.min(d);
+            }
             // the creatures of the redesign run their own brain (`creature`)
             if crate::entities::creature::on_new_brain(&kind) {
                 if self.entities[ei].freeze > 0.0 {
                     // held still (a showcase, a level's first seconds): it only breathes
                     self.entities[ei].freeze -= dt;
-                    self.entity_drive(ei, dt, 0.0);
+                    if kind != "glass" {
+                        self.entity_drive(ei, dt, 0.0);
+                    }
                     crate::entities::creature::kind_animate(self, ei, dt);
                     if let Some(c) = self.creature(ei) {
                         c.body.sync();
@@ -310,7 +317,7 @@ impl Game {
                 if self.entities[ei].state == "hunt" {
                     any_hunt = true;
                 }
-                let los = d < 26.0 && self.e_los(pos.x, pos.z, self.player.pos.x, self.player.pos.z);
+                let los = !out_there && d < 26.0 && self.e_los(pos.x, pos.z, self.player.pos.x, self.player.pos.z);
                 if los && d < 22.0 && !self.director.sighted.contains(&kind) {
                     let mut to_e = v3(pos.x - self.player.pos.x, 0.0, pos.z - self.player.pos.z);
                     to_e.normalize();
