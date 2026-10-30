@@ -108,6 +108,8 @@ pub struct State {
     /// rule 9 (a dead one): you looked at it close; it knocked
     pub looked: bool,
     pub knocked: bool,
+    /// a coil turning by itself (`vending_phantom`): which, from when
+    pub spin: Option<(usize, f64)>,
 }
 
 /// One of a machine's verbs
@@ -131,7 +133,7 @@ impl Game {
         if s.down || s.toppling.is_some() {
             return None;
         }
-        if s.vend.is_some() || s.shove.is_some() || s.falling.is_some() || s.coin_at.is_some() {
+        if s.vend.is_some() || s.spin.is_some() || s.shove.is_some() || s.falling.is_some() || s.coin_at.is_some() {
             return None;
         }
         if s.bin.is_some() {
@@ -191,6 +193,7 @@ impl Game {
                 m.state.vend = Some((k, now + 0.6));
                 m.body.lift(k);
                 m.state.near = None;
+                self.vending_sound(i, Sfx::Motor);
             }
             Verb::Rock => {
                 let m = &mut self.vending[i];
@@ -229,6 +232,7 @@ impl Game {
     pub fn vending_frame(&mut self, i: usize, dt: f64) {
         let now = self.perf_t;
         self.vending_lights(i, now);
+        self.vending_hum(i, dt, now);
         self.vending_topple(i, now);
         self.vending_restock(i, dt);
         self.vending_knock(i);
@@ -243,6 +247,7 @@ impl Game {
             self.show_msg("A COIN IN THE CUP", 1.6);
         }
         self.vending_turn(i, now);
+        self.vending_spin(i, now);
         self.vending_shove(i, now);
         self.vending_fall(i, now);
         self.vending_flap(i, now);
@@ -586,6 +591,7 @@ pub enum Sfx {
     Flap,
     Click,
     Thump,
+    Motor,
     Creak,
     Crash,
     Knock,
@@ -608,13 +614,33 @@ impl Game {
                 g.blip(900.0, 0.02, "square", 0.02, None, 0.0, 0.0);
             }
             Sfx::CoinRing => {
-                // down through the mechanism, then a ring in the steel cup
-                for (k, d) in [0.0, 0.07, 0.13, 0.22].iter().enumerate() {
-                    g.noise_burst(0.025, 3200.0 - k as f64 * 300.0, 6.0, 0.05, "bandpass", None, *d, 0.0);
+                // the mechanism letting it go, the coin's fall through its
+                // chute (each tick a little later and duller), then the cup:
+                // a small steel bowl rung once (its partials inharmonic, the
+                // higher ones gone first), the coin rattling still in it
+                g.noise_burst(0.02, 2400.0, 3.0, 0.04, "bandpass", None, 0.0, 0.0);
+                for (k, d) in [0.18, 0.26, 0.31, 0.40, 0.44].iter().enumerate() {
+                    g.noise_burst(0.02, 4200.0 - k as f64 * 380.0, 7.0, 0.045 - k as f64 * 0.004, "bandpass", None, *d, 0.0);
                 }
-                g.blip(4180.0, 0.5, "sine", 0.05, None, 0.30, 0.0);
-                g.blip(6230.0, 0.35, "sine", 0.03, None, 0.30, 0.0);
-                g.blip(2710.0, 0.6, "sine", 0.025, None, 0.31, 0.0);
+                for (f, a, len) in [(2873.0, 0.045, 0.9), (4411.0, 0.03, 0.55), (6260.0, 0.02, 0.32), (8120.0, 0.012, 0.2)] {
+                    g.blip(f, len, "sine", a, None, 0.52, 0.0);
+                }
+                for d in [0.64, 0.71, 0.76, 0.80] {
+                    g.noise_burst(0.015, 5200.0, 8.0, 0.02, "bandpass", None, d, 0.0);
+                }
+            }
+            Sfx::Motor => {
+                // a geared DC motor turning the spiral once: its whine,
+                // its gears' teeth, and the spiral ticking past its stop
+                if let (Some(ss), Some(dest)) = (g.soundscape(), g.sfx_route.as_ref().and_then(|r| r.dest.clone())) {
+                    let t = g.ac.as_ref().map(|a| a.current_time()).unwrap_or(0.0);
+                    ss.note(&dest, t + 0.6, VEND_T, 92.0, 0.035, "sawtooth", Some(86.0), 0.08, 0.15);
+                    ss.note(&dest, t + 0.6, VEND_T, 184.0, 0.018, "square", Some(172.0), 0.08, 0.15);
+                    ss.note(&dest, t + 0.6, VEND_T, 1380.0, 0.004, "sine", Some(1290.0), 0.1, 0.2);
+                }
+                for k in 0..12 {
+                    g.noise_burst(0.012, 3000.0, 6.0, 0.012, "bandpass", None, 0.65 + k as f64 * VEND_T / 12.0, 0.0);
+                }
             }
             Sfx::CoinIn => {
                 g.noise_burst(0.04, 3600.0, 5.0, 0.05, "bandpass", None, 0.0, 0.0);
@@ -625,9 +651,15 @@ impl Game {
                 g.noise_burst(0.12, 900.0, 1.2, 0.04, "bandpass", None, 0.0, 0.0);
             }
             Sfx::Bang => {
-                g.blip(62.0, 0.30, "sine", 0.35, Some(40.0), 0.0, 0.0);
-                g.noise_burst(0.25, 400.0, 0.8, 0.22, "lowpass", Some(120.0), 0.0, 0.0);
-                g.noise_burst(0.35, 2600.0, 2.0, 0.05, "bandpass", None, 0.03, 0.0);
+                // 300 kg of steel dropping back on its feet: the thud, the
+                // cabinet's sheet ringing, the glass in its frame, the goods
+                // shifting on their spirals
+                g.blip(58.0, 0.35, "sine", 0.38, Some(38.0), 0.0, 0.0);
+                g.noise_burst(0.28, 380.0, 0.8, 0.24, "lowpass", Some(110.0), 0.0, 0.0);
+                g.blip(212.0, 0.5, "triangle", 0.03, Some(198.0), 0.01, 0.0);
+                g.blip(331.0, 0.4, "triangle", 0.02, Some(319.0), 0.01, 0.0);
+                g.noise_burst(0.3, 3400.0, 3.0, 0.05, "bandpass", None, 0.02, 0.0);
+                g.noise_burst(0.35, 1500.0, 1.0, 0.03, "bandpass", Some(900.0), 0.08, 0.0);
             }
             Sfx::Thunk => {
                 g.blip(110.0, 0.12, "sine", 0.12, Some(70.0), 0.0, 0.0);
@@ -951,6 +983,87 @@ impl Game {
             o.set_pos_v(&p);
             o.set_quat(&q);
             self.world.add(&o);
+        }
+    }
+}
+
+impl Game {
+    /// Its hum, from its top behind the glass: while it is lit and not
+    /// silent (rule 5), softened in the director's hush; made the first
+    /// time it is heard (no soundscape, no hum)
+    fn vending_hum(&mut self, i: usize, dt: f64, now: f64) {
+        let m = &self.vending[i];
+        if !m.powered {
+            return;
+        }
+        let level =
+            if m.state.lit && !m.state.down && now >= m.state.silent_until { 1.0 - 0.75 * self.amb_hush.clamp(0.0, 1.0) } else { 0.0 };
+        if m.hum.is_none() {
+            if level <= 0.0 {
+                return;
+            }
+            let Some(ss) = self.soundscape() else { return };
+            self.vending[i].hum = Some(ss.machine_hum());
+        }
+        let m = &self.vending[i];
+        let p = m.world(CAB[0], 1.55, D / 2.0 - 0.1);
+        if let Some(h) = &m.hum {
+            h.update(dt, p.x, p.y, p.z, level);
+        }
+    }
+
+    /// Now and then, near a lit machine, one of its coils turns by itself
+    /// (the ambience's `vending-hum`, rule 8's other side: something else
+    /// uses it): the motor's whine from it, and the spiral turning, if it
+    /// is lit and doing nothing else; nothing comes forward
+    pub fn vending_phantom(&mut self, near: Vec3) {
+        let Some(i) = (0..self.vending.len()).filter(|&i| self.vending[i].powered).min_by(|&a, &b| {
+            let (pa, pb) = (self.vending[a].pos(), self.vending[b].pos());
+            hypot2(pa.x - near.x, pa.z - near.z).total_cmp(&hypot2(pb.x - near.x, pb.z - near.z))
+        }) else {
+            return;
+        };
+        let m = &self.vending[i];
+        let s = &m.state;
+        if !s.lit || s.down || s.vend.is_some() || s.toppling.is_some() || s.falling.is_some() || m.body.lifted.is_some() {
+            return;
+        }
+        let n = m.places.len();
+        let k = (m.seed as usize).wrapping_add(m.state.restocks as usize * 7 + (self.perf_t * 10.0) as usize) % n;
+        let now = self.perf_t;
+        self.vending_sound(i, Sfx::Motor);
+        let m = &mut self.vending[i];
+        m.body.lift(k);
+        m.state.near = None;
+        m.state.spin = Some((k, now + 0.6));
+    }
+
+    /// A coil turning by itself (`vending_phantom`): it spins once, its
+    /// goods stay where they are
+    fn vending_spin(&mut self, i: usize, now: f64) {
+        let Some((k, t0)) = self.vending[i].state.spin else { return };
+        let _ = k;
+        if now < t0 {
+            return;
+        }
+        let s = ((now - t0) / VEND_T).min(1.0);
+        let m = &mut self.vending[i];
+        let Some((_, lifted)) = m.body.lifted.clone() else { return };
+        let ease = s * s * (3.0 - 2.0 * s);
+        for (pi, o) in &lifted {
+            let p = &m.body.pieces[*pi];
+            if p.slot == Slot::Coil {
+                let (_, q, _) = p.m.decompose();
+                let spin = Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), -PI * 2.0 * ease);
+                let mut q2 = q;
+                q2.multiply(&spin);
+                o.set_quat(&q2);
+            }
+        }
+        if s >= 1.0 {
+            m.state.spin = None;
+            m.body.settle();
+            m.state.near = None;
         }
     }
 }

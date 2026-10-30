@@ -61,6 +61,8 @@ pub struct Machine {
     /// coil was built
     pub seed: u32,
     pub full: Vec<usize>,
+    /// its hum (made when it is first heard; `rules::vending_hum`)
+    pub hum: Option<crate::audio::soundscape::MachineHum>,
     /// what it is doing (`rules`)
     pub state: rules::State,
 }
@@ -571,6 +573,7 @@ fn build_machine(g: &mut Game, seed: u32) -> Built {
         print,
         seed,
         full,
+        hum: None,
         // how many shoves shake what hangs loose: its own, 2 to 4 (rule 6)
         state: rules::State {
             drop_on: irand(2, 4) as u32,

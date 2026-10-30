@@ -198,6 +198,11 @@ impl Game {
         self.ambient_log.clear();
         self.rain_windows.clear();
         self.drawer_props.clear();
+        for m in &self.vending {
+            if let Some(h) = &m.hum {
+                h.stop();
+            }
+        }
         self.vending.clear();
         self.pp.vending_positions.clear();
         self.vacuum_bot = None;

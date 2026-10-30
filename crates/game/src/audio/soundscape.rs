@@ -549,6 +549,106 @@ impl Hum {
     }
 }
 
+// ================================================================ a machine's hum
+/// A vending machine's hum (`Soundscape::machine_hum`), held from where it
+/// stands while it is lit: its tube's magnetic ballast (120 Hz and its
+/// series, brighter and smaller than a ceiling's), the buzz of the arc
+/// re-striking twice a cycle, the transformer under it at 60 Hz, and the
+/// air of its fan. Its level glides; at 0 it is silent.
+pub struct MachineHum {
+    ac: AudioContext,
+    /// Where it is heard from
+    pub slot: VoiceSlot,
+    sum: AudioNode,
+    oscs: Vec<AudioNode>,
+    level: Cell<f64>,
+}
+impl MachineHum {
+    fn new(ac: &AudioContext, slot: VoiceSlot, noise: &AudioBuffer) -> MachineHum {
+        let sum = ac.create_gain();
+        sum.gain().set_value(0.0);
+        sum.connect(&slot.input);
+        let mut oscs = vec![];
+        // the ballast: 120 Hz, a thin series above it (each partial its own weight)
+        for (n, w) in [(1.0, 0.55), (2.0, 0.42), (3.0, 0.30), (4.0, 0.18), (5.0, 0.10), (7.0, 0.05)] {
+            let o = ac.create_oscillator();
+            o.set_type("sine");
+            o.frequency().set_value(120.0 * n + 0.07 * n);
+            let g = ac.create_gain();
+            g.gain().set_value(w);
+            o.connect(&g);
+            g.connect(&sum);
+            o.start(0.0);
+            oscs.push(o);
+        }
+        // the transformer's 60 Hz under it
+        {
+            let o = ac.create_oscillator();
+            o.frequency().set_value(60.0);
+            let g = ac.create_gain();
+            g.gain().set_value(0.12);
+            o.connect(&g);
+            g.connect(&sum);
+            o.start(0.0);
+            oscs.push(o);
+        }
+        // the buzz: a band of noise chopped at 120 Hz
+        let bz = noise_src(ac, noise, true);
+        let bp = ac.create_biquad_filter();
+        bp.set_type("bandpass");
+        bp.frequency().set_value(2600.0);
+        bp.q().set_value(1.1);
+        let chop = ac.create_gain();
+        chop.gain().set_value(0.0);
+        let lfo = ac.create_oscillator();
+        lfo.set_type("square");
+        lfo.frequency().set_value(120.0);
+        let depth = ac.create_gain();
+        depth.gain().set_value(0.07);
+        lfo.connect(&depth);
+        depth.connect_param(&chop.gain());
+        bz.connect(&bp);
+        bp.connect(&chop);
+        chop.connect(&sum);
+        bz.start(0.0);
+        lfo.start(0.0);
+        oscs.push(lfo);
+        oscs.push(bz);
+        // the fan: soft air, low
+        let air = noise_src(ac, noise, true);
+        let lp = ac.create_biquad_filter();
+        lp.set_type("lowpass");
+        lp.frequency().set_value(700.0);
+        let ag = ac.create_gain();
+        ag.gain().set_value(0.10);
+        air.connect(&lp);
+        lp.connect(&ag);
+        ag.connect(&sum);
+        air.start(0.0);
+        oscs.push(air);
+        MachineHum { ac: ac.clone(), slot, sum, oscs, level: Cell::new(0.0) }
+    }
+    /// Per frame: from (x, y, z), at `level` (0 silent … 1 near and lit)
+    pub fn update(&self, dt: f64, x: f64, y: f64, z: f64, level: f64) {
+        self.slot.at(x, y, z);
+        let l = self.level.get() + (level - self.level.get()) * (dt * 6.0).min(1.0);
+        self.level.set(l);
+        self.sum.gain().set_target_at_time(l * 0.04, self.ac.current_time(), 0.03);
+    }
+    /// The level it is gliding to (for the tests)
+    pub fn level(&self) -> f64 {
+        self.level.get()
+    }
+    /// Quiet at once and for good (the machine is gone with its level)
+    pub fn stop(&self) {
+        self.sum.gain().set_target_at_time(0.0, self.ac.current_time(), 0.05);
+        let t = self.ac.current_time() + 0.5;
+        for o in &self.oscs {
+            o.stop(t);
+        }
+    }
+}
+
 // ================================================================ child voice
 /// A source-filter voice (`create_child_voice(dest)`'s return value): a buzzy
 /// glottal source (band-limited sawtooth at a child's pitch) through three
@@ -957,6 +1057,10 @@ impl Soundscape {
     /// Source → occlusion lowpass → gain → panner → world
     pub fn voice_slot(&self, ref_dist: f64) -> VoiceSlot {
         VoiceSlot::new(&self.ac, self.hrtf, &self.world, ref_dist)
+    }
+    /// A vending machine's hum, held where it stands (`MachineHum`)
+    pub fn machine_hum(&self) -> MachineHum {
+        MachineHum::new(&self.ac, self.voice_slot(1.2), &self.noise)
     }
 
     // ------------------------------------------------------------ one-shots ---

@@ -605,3 +605,73 @@ fn the_reader_whispers() {
     assert!(whisper > bed * 2.0, "its whisper should stand 6 dB over the room at 2.6–4.8 kHz");
     assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Idle), "it stopped reading");
 }
+
+/// The vending machine is heard (`docs/VENDING.md`, V4): standing 1.5 m
+/// before a lit one, its hum (its ballast's 120 Hz series, its buzz and its
+/// fan) rises over the room, and stops when it goes dark and when a coin
+/// buys its silence; its coin ringing down into the cup and a shove's bang
+/// stand out of the bed. With the hum's gain at 0, this fails.
+#[test]
+fn the_vending_machine_is_heard() {
+    use game::core_props::vending::model::D;
+    use game::core_props::vending::rules::Verb;
+    game::base::rng::seed_native(0x7E2D_0001);
+    // a floor with a lit machine
+    let found = [(4242u32, 9), (4242, 6), (4242, 5), (4242, 4), (77, 4), (77, 6)].into_iter().find_map(|(seed, level)| {
+        let r = start(seed, level);
+        let i = r.g.vending.iter().position(|m| m.powered)?;
+        Some((r, i, seed, level))
+    });
+    let (mut r, i, seed, level) = found.expect("a floor with a lit vending machine");
+    for e in &r.g.entities {
+        e.g.remove_from_parent();
+    }
+    r.g.entities.clear();
+    // no rhythm while it is measured: lit until it is put out
+    r.g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
+    let stand = |g: &mut Game| {
+        let m = &g.vending[i];
+        let p = m.world(0.0, 0.0, D / 2.0 + 1.5);
+        g.player.pos.x = p.x;
+        g.player.pos.z = p.z;
+        g.player.yaw = m.yaw();
+    };
+    stand(&mut r.g);
+    let at = r.pcm.len();
+    play(&mut r, 8.0, stand);
+    let lit_part = r.pcm[at..].to_vec();
+    // dark: its rhythm's dark beat
+    r.g.vending[i].state.rhythm = (0.001, 1e9, 0.0);
+    play(&mut r, 1.0, stand);
+    let at = r.pcm.len();
+    play(&mut r, 6.0, stand);
+    let dark_part = r.pcm[at..].to_vec();
+    let band = |pcm: &[f32]| median(&windows_band(pcm, 220.0, 520.0)[20..]);
+    let (lit, dark) = (band(&lit_part), band(&dark_part));
+    println!(
+        "seed {seed} L{level}, 1.5 m before it: its hum's band {:.1} dB lit, {:.1} dB dark ({:+.1} dB)",
+        db(lit),
+        db(dark),
+        db(lit / dark)
+    );
+    assert!(lit / dark >= 1.6, "its hum is heard over the room: only {:+.1} dB", db(lit / dark));
+    // lit again; the coin rings down; then the bang
+    r.g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
+    play(&mut r, 1.5, stand);
+    let at = r.pcm.len();
+    r.g.player.coins = 0;
+    r.g.vending_use(i, Verb::CoinReturn);
+    play(&mut r, 3.0, stand);
+    let ring = windows_band(&r.pcm[at..], 2500.0, 7000.0);
+    let (peak, bed) = (ring.iter().cloned().fold(0.0, f64::max), median(&ring));
+    println!("  the coin's ring peaks {:+.1} dB over its band's bed", db(peak / bed));
+    assert!(peak / bed >= 3.0, "the coin is heard ringing down: {:+.1} dB", db(peak / bed));
+    let at = r.pcm.len();
+    r.g.vending_use(i, Verb::Rock);
+    play(&mut r, 1.5, stand);
+    let bang = windows(&r.pcm[at..]);
+    let (peak, bed) = (bang.iter().cloned().fold(0.0, f64::max), median(&windows(&lit_part)));
+    println!("  a shove's bang peaks {:+.1} dB over the room", db(peak / bed));
+    assert!(peak / bed >= 3.0, "the bang stands out: {:+.1} dB", db(peak / bed));
+    save(&format!("vending_{seed}_L{level}"), &r.pcm, &[]);
+}

@@ -92,11 +92,11 @@ impl Game {
             self.phone_ring_timer = (600.0 + rnd() * 600.0) * etm; // 10-20 min
             self.log_ambient("phone-ring", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R280 vending machine compressor throb (< 12 m)
+        // a lit vending machine near you turns a coil by itself (< 12 m;
+        // docs/VENDING.md rule 8): its motor's whine from it, the spiral turning
         if let Some(h) = self.prop_due(|g| &mut g.vending_hum_timer, |g| &g.pp.vending_positions, 12.0, dt, m) {
-            let hum_gain = 0.016 * eg * h.g;
-            self.blip(30.0, 3.0, "sine", hum_gain, None, 0.0, h.pan);
-            self.blip(60.0, 3.0, "sine", hum_gain * 0.5, None, 0.0, h.pan);
+            let _ = eg;
+            self.vending_phantom(h.p);
             self.vending_hum_timer = (720.0 + rnd() * 780.0) * etm; // 12-25 min
             self.log_ambient("vending-hum", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
