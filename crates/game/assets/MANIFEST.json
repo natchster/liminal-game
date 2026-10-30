@@ -51,7 +51,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "the HTML version's pipeline (props.py, prop-assemble.mjs), converted byte for byte from its src/prop-meshes.js (fingerprint 9402a16016f4edb5) by cargo xtask assets import-js",
-      "fingerprint": "1a0ff613ad8c32f2",
+      "fingerprint": "1ab40694456aecfa",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",

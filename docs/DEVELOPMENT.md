@@ -371,9 +371,12 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   checked level's walk, sheets and camp from above into `target/story/`.
 * `--views` also prints `vending views: "x,z,yaw;…"` (`Game::vending_views`:
   in front of each vending machine and from its side, looking at its glass).
-  `--vending-demo hang|bin` with `--views-at` first plays every lit machine
-  to that state (`Game::vending_demo`: a coin in and a good hanging, or
-  rocked loose into the bin).
+  `--vending-demo hang|bin|fall|dark|print|inside` with `--views-at` first plays
+  every lit machine to that state (`Game::vending_demo`: a coin in and a
+  good hanging, rocked loose into the bin, rocked past its balance onto its
+  face, in its rhythm's dark beat), or shows every dead one's hand print
+  (`print`) or its flap held up from inside (`inside`).
+  A fallen machine lies where `vending views` stood: shoot it from beside.
 * `--views` also prints `lean views: "x,z,yaw;…"`: poses out in the room
   looking at the partitions that lean (`Game::lean_views`, the steepest
   first). `--dump-level … --screenshot x --views-at "x,z,yaw;…"` renders a

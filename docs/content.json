@@ -1182,6 +1182,7 @@
     {
       "checks": [
         "test:backrooms/vending",
+        "test:backrooms/listen",
         "test:backrooms/materials",
         "test:backrooms/level_sweep"
       ],
@@ -1190,9 +1191,10 @@
       "last_checked": "2026-10-30",
       "last_human_review": null,
       "name": "the vending machine (docs/VENDING.md: its body and its nine rules)",
-      "notes": "",
+      "notes": "none on the Lobby, the Showroom or the Borrowed House (it_stands_where_it_belongs); its hum is held by the_vending_machine_is_heard; no person has listened",
       "passes": {
         "test:backrooms/vending": true,
+        "test:backrooms/listen": true,
         "test:backrooms/materials": true,
         "test:backrooms/level_sweep": true
       }

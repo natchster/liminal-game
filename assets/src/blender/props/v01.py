@@ -65,14 +65,19 @@ def door_box():
 
 def cabinet():
     """The shell: 1.2 mm steel shown as 18 mm walls, rounded at its front
-    vertical edges, open in front (the door covers it)."""
+    vertical edges, open in front (the door covers it). Low on its back,
+    two banks of louvres pressed into the sheet: the air of its ballast
+    and its fan (seen when it lies on its face)."""
     d = D - DOOR_T
-    s = rbox(W, H - 0.02, d, r=0.009, seg=2)
-    inner = box(W - 0.036, H - 0.02 - 0.036, d).move(0, 0, 0.02)
+    h = H - 0.02
+    s = rbox(W, h, d, r=0.009, seg=2)
+    inner = box(W - 0.036, h - 0.036, d).move(0, 0, 0.02)
     s = cut(s, inner)
     # a seam where the top panel meets the sides, 1 mm, near the top
-    seam = box(W + 0.01, 0.0015, d + 0.01).move(0, (H - 0.02) / 2 - 0.035, 0)
-    return cut(s, seam)
+    seam = box(W + 0.01, 0.0015, d + 0.01).move(0, h / 2 - 0.035, 0)
+    # the louvres: slots 9 mm tall, 8 mm into the back
+    louvres = [box(0.28, 0.009, 0.016).move(sx * 0.19, -h / 2 + 0.14 + k * 0.026, -d / 2) for sx in (-1, 1) for k in range(7)]
+    return cut(s, seam, *louvres)
 
 
 def glass_frame():

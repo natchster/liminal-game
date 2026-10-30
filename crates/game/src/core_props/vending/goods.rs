@@ -1,7 +1,7 @@
 //! The goods' shapes (`docs/VENDING.md`): a bag of crisps is a pillow of
 //! foil sealed flat at its top and bottom, crimped; a bar is the same,
 //! slimmer, standing on its end in a narrow coil; a pastry is a flat pouch;
-//! almond water is a ribbed plastic bottle with a wrapped label; batteries
+//! almond water is a ribbed plastic bottle, nothing printed on it; batteries
 //! are a blister card. Each is made with UVs 0..1 over its printed face, so
 //! its wrapper comes from its cell of the goods' atlas (`paint::designs`).
 //! Each stands with its bottom at y = 0, centred on x and z, its face
@@ -69,9 +69,9 @@ pub fn card(w: f64, h: f64, d: f64) -> Geo {
 }
 
 /// The almond water's bottle: a ribbed body, its shoulder and neck, as a
-/// lathe (its own material), and the label band round its middle (the
-/// atlas); `(body, label, cap)`, the bottle 0.205 m tall.
-pub fn bottle() -> (Geo, Geo, Geo) {
+/// lathe (its own material), and its cap; `(body, cap)`, the bottle 0.205 m
+/// tall. Nothing is printed on it, as on the bottles found on the floors.
+pub fn bottle() -> (Geo, Geo) {
     let mut prof = vec![Vec2::new(0.0, 0.0), Vec2::new(0.026, 0.0), Vec2::new(0.0315, 0.006)];
     // the ribbed lower body
     for k in 0..6 {
@@ -88,9 +88,7 @@ pub fn bottle() -> (Geo, Geo, Geo) {
         Vec2::new(0.0135, 0.192),
     ]);
     let body = lathe_geometry(&prof, 18.0, 0.0, PI * 2.0);
-    let label = cylinder_geometry(0.0326, 0.0326, 0.050, 18.0, 1.0, true, 0.0, PI * 2.0);
-    label.translate(0.0, 0.115, 0.0);
     let cap = cylinder_geometry(0.0150, 0.0150, 0.016, 14.0, 1.0, false, 0.0, PI * 2.0);
     cap.translate(0.0, 0.197, 0.0);
-    (body, label, cap)
+    (body, cap)
 }

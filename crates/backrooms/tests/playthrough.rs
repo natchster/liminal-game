@@ -82,8 +82,10 @@ fn set_look(g: &mut Game, yaw: f64, pitch: f64) {
     g.player.yaw = yaw;
     g.player.pitch = pitch;
 }
+/// A wall, or a hole in the floor: a player walks round one as round the
+/// other (stepping in, you fall a level)
 fn blocked(g: &Game, x: f64, z: f64, r: f64) -> bool {
-    g.circle_hits_wall(x, z, r)
+    g.circle_hits_wall(x, z, r) || g.floor_holes.iter().any(|h| (h.x - x).hypot(h.z - z) < h.r + r)
 }
 fn freeze_entities(g: &mut Game) {
     for e in g.entities.iter_mut() {

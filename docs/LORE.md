@@ -19,7 +19,8 @@ living bible: change it when the game's truth changes, in the same commit.
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
-| Objects | Almond Water, batteries, paper, lore notes |
+| Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -29,6 +30,12 @@ these channels, and the `lore-keeper` reviewer checks it:
 
 - **Architecture and props**: what a place was for, shown by what is left in
   it (zone purposes, set dressing), never labelled beyond the zone caption.
+  A thing the rooms took carries the fixed printing a real one of its kind
+  carries about itself, word for word (a vending machine's prices, its PUSH,
+  its warning label): that is dressing, not the place speaking, even where
+  it says why. Never a word about the place, its creatures or its
+  anomalies; and what a display says as the thing acts (MAKE ANOTHER
+  SELECTION) is its behaviour, not dressing.
 - **Sound**: what is somewhere else, heard before it is seen (signatures,
   steps, the hum, crying).
 - **Creature behaviour**: rules that are learnable by playing, never told.
@@ -592,6 +599,78 @@ plaque that says STAIRS. Behind it:
 - **Crying** out loud is desperate. Something answers.
 - **Cells**, on the Building's floors: shut yourself in when the siren goes,
   and wait for the all-clear (*The self-assembly*).
+- **Coins** come from the lit vending machines' coin returns, one a
+  machine and one at a time. A coin goes down with you and is kept with
+  the run.
+- **A snack** shaken loose from a machine is eaten as you take it: stale,
+  and it steadies your nerve a little.
+
+## The vending machine
+
+On most floors of the rooms, against a wall where an office, a hall, the
+Poolrooms or a party room would have put one, stands a glass-front snack
+machine: painted steel, a tall window of spirals and bags and bars, a red
+display, a keypad, a coin slot, a flap at the bottom that says PUSH. None
+stands on the first floor of the rooms (the Lobby, level 4), whose
+emptiness is the point, nor in a place left for nothing, nor in the
+Showroom or the Borrowed House, whose light is their own. Most are still
+lit; some of the dead ones carry a handwritten OUT OF ORDER on their glass.
+What is taken from a lit one comes back, as the bottles on the floors
+"just... appear" (torn note 1). The torn note about it (*The Vending
+Machine*: "Insert coin, get nothing. Insert nothing, get coin. Do not
+attempt the reverse. It costs more than you have.") hints at three of its
+rules. What is true of it:
+
+- **A lit one is awake.** It throws its light on the floor before it and
+  hums from behind its glass, and now and then its tube clicks out for a
+  few seconds and strikes again, on a rhythm of its own. **It goes dark
+  when something comes**: while a thing that is after you, or one sent for
+  you, is near it, its light is out, and it comes back a little after that
+  has gone, without a sound: its own beat clicks out and thumps back, and
+  this does not. A dark machine is a warning, unless you heard its click;
+  in the quiet a coin bought it makes no sound at all, and there is no
+  telling.
+- **It knows what you are looking at.** Close to its glass, its display shows
+  the code of the coil your eyes are on, before you touch it. Otherwise it
+  says HAVE A NICE DAY.
+- **Insert nothing, get coin.** A lit one's coin return, pressed with
+  nothing in it, rings a coin down into the cup: once a machine, and only
+  into empty pockets (you carry one coin at a time). The ring carries:
+  what hears, near, hears it.
+- **Insert coin, get nothing.** The coin in, the coil you were looking at
+  turns, and what it holds comes forward and catches against the glass,
+  hanging. MAKE ANOTHER SELECTION. And then it goes quiet for a while: its
+  hum stops, and the place round it holds still (its own sounds, its
+  flickers); while you are within ten metres of it, walls or none, nothing
+  anywhere hears your steps. What comes still sounds as it does. Walk out
+  of its quiet and you are heard again.
+- **What hangs can be shaken loose, and that is heard.** A lit one can be
+  shoved while something hangs in it, or once it has given its coin and
+  your pockets are empty; a dead one, any time. Each shove bangs, and
+  what hears comes to look where the bang was. It takes a few. Almond water,
+  batteries, or a snack, eaten there and then.
+- **Never rock or tilt.** Its label says so, as the real ones do, and says
+  it can kill; it never does. With nothing hanging, the second shove
+  creaks, and the third it does not come back: it falls on its face, and
+  the whole floor hears it: whatever hears, anywhere on it, comes to where
+  it fell. Standing before it, you are thrown down. Its almond water and
+  batteries lie by it after.
+- **It fills in its dark.** Whatever you took from a coil is back when its
+  light comes back, whether the dark was its own beat or a thing passing
+  near it (not while something still hangs in it). Now and then, near a
+  lit one, a coil turns by itself, and nothing comes forward.
+- **Some of the dead ones are not empty.** Stand close before one's glass
+  a moment, and its flap lifts inward by itself: slowly, held up on the
+  dark of its bin, then let fall. While it is held, a hand print comes up
+  slowly on the inside of its glass, and stays. Only once a machine. Some
+  of the dead ones still have something hanging in them, bought with a
+  coin that was not yours.
+
+What fills them and what is in the dead ones stay unexplained: no note,
+page or sign may answer it. Their makers are nobody's: MIDWAY, HARTWELL,
+HOLLIS, BAYSIDE, SUNNYVALE, printed as real ones are. Their
+almond water is plain, nothing printed on its bottles, as on the bottles
+found on the floors.
 
 ## The sound of the place
 
@@ -607,6 +686,10 @@ plaque that says STAIRS. Behind it:
 - The Building sounds as big as it is: a long, sparse tail over the void in
   each of its places, the hum of the lamps over the cells, and the siren
   from its loudspeakers when it comes.
+- A lit vending machine is a second ballast at the lamps' 120 Hz, from
+  behind its glass, with its fan's soft air under it. Now and then, near
+  one, its motor whines and a coil turns by itself. A dead one's flap,
+  lifting by itself, squeals thinly on its hinge before it falls.
 
 ## Attribution and licensing
 

@@ -15,7 +15,7 @@ fn level_with(powered: bool) -> (Game, usize) {
     let mut g = common::new_game();
     for k in 0..40u32 {
         g.run_seed = k.wrapping_mul(2654435761) ^ 0x7E2D;
-        for level in [4, 5, 6, 8] {
+        for level in [5, 6, 8] {
             g.init_level(level);
             if let Some(i) = g.vending.iter().position(|m| m.powered == powered) {
                 g.state = "playing".into();
@@ -24,6 +24,38 @@ fn level_with(powered: bool) -> (Game, usize) {
         }
     }
     panic!("no level with a machine {}", if powered { "on" } else { "dead" });
+}
+
+/// A level of the rooms with a dead machine that has something in it
+/// (rule 9), or with `inhabited` false one that has nothing
+fn level_with_dead(inhabited: bool) -> (Game, usize) {
+    let mut g = common::new_game();
+    for k in 0..60u32 {
+        g.run_seed = k.wrapping_mul(2654435761) ^ 0x7E2D;
+        for level in [5, 6, 8] {
+            g.init_level(level);
+            let found = (0..g.vending.len()).find(|&i| {
+                let m = &g.vending[i];
+                !m.powered && m.state.inhabited == inhabited && stand_before(&g, i).is_some()
+            });
+            if let Some(i) = found {
+                g.state = "playing".into();
+                return (g, i);
+            }
+        }
+    }
+    panic!("no level with a dead machine (inhabited {inhabited})");
+}
+
+/// Where to stand before machine `i`'s glass, within rule 9's reach: the
+/// farthest open point, with nothing between (None in a tight spot)
+fn stand_before(g: &Game, i: usize) -> Option<Vec3> {
+    let m = &g.vending[i];
+    let glass = m.world(0.0, 0.9, D / 2.0);
+    [1.4, 1.2, 1.0, 0.8]
+        .into_iter()
+        .map(|d| m.world(0.0, 0.0, D / 2.0 + d))
+        .find(|p| !g.circle_hits_wall(p.x, p.z, 0.25) && g.los(p.x, p.z, glass.x, glass.z))
 }
 
 /// Stand at the machine's face and look at a point of it (its frame)
@@ -127,9 +159,13 @@ fn insert_coin_get_nothing() {
     // in the silence a body walking beside it is not heard
     let p = g.vending[i].world(0.0, 0.0, D / 2.0 + 1.0);
     assert!(g.vending_muffles(p.x, p.z));
-    assert!(g.vending_hush() > 0.5, "the place holds its breath");
+    assert!(g.vending_hush(p.x, p.z) > 0.99, "the room round it holds its breath");
     let far = g.vending[i].world(0.0, 0.0, D / 2.0 + SILENCE_REACH + 3.0);
     assert!(!g.vending_muffles(far.x, far.z), "only near it");
+    assert_eq!(g.vending_hush(far.x, far.z), 0.0, "and the room is hushed only round it");
+    let at = g.vending[i].pos();
+    g.vending_phantom(at);
+    assert!(g.vending[i].state.spin.is_none(), "no coil turns by itself in its silence");
     assert_eq!(seeded_draws(), d0, "a use draws nothing from the build's stream");
 }
 
@@ -208,6 +244,8 @@ fn it_keeps_its_rhythm() {
 fn it_goes_dark_when_something_comes() {
     // rule 2: a creature after you near it puts it out, until a moment after it has gone
     let (mut g, i) = level_with(true);
+    let front = g.vending[i].world(0.0, 0.0, D / 2.0 + 3.0);
+    g.player.pos = Vec3::new(front.x, EYE, front.z);
     g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
     run(&mut g, 0.2);
     assert!(g.vending[i].state.lit);
@@ -217,12 +255,19 @@ fn it_goes_dark_when_something_comes() {
     }
     run(&mut g, 0.2);
     assert!(!g.vending[i].state.lit, "dark while it comes");
+    assert_eq!(g.vending[i].state.last_sound, None, "out without a sound (its own beat clicks)");
     let far = g.vending[i].world(0.0, 0.0, D / 2.0 + DARK_REACH + 30.0);
     g.entities[ei].g.set_pos(far.x, 0.0, far.z);
     run(&mut g, DARK_HOLD - 1.0);
     assert!(!g.vending[i].state.lit, "still dark just after");
     run(&mut g, 1.5);
     assert!(g.vending[i].state.lit, "lit again once it has gone");
+    assert_eq!(g.vending[i].state.last_sound, None, "and back without a sound");
+    // its own beat, by contrast: a click
+    g.vending[i].state.rhythm = (0.001, 1e9, 0.0);
+    run(&mut g, 0.2);
+    assert!(!g.vending[i].state.lit);
+    assert!(matches!(g.vending[i].state.last_sound, Some((Sfx::Click, _))), "its beat clicks: {:?}", g.vending[i].state.last_sound);
 }
 
 #[test]
@@ -273,8 +318,9 @@ fn never_rock_or_tilt() {
 }
 
 #[test]
-fn it_restocks_when_no_one_is_looking() {
-    // rule 8: a coil you emptied is full again once you have not looked for a while
+fn it_restocks_in_its_dark() {
+    // rule 8: a coil you emptied is full again when its light comes back
+    // after a dark beat; not before, however long you look away
     let (mut g, i) = level_with(true);
     let (k, c) = stocked(&g, i, None);
     let full = g.vending[i].stock[k].count;
@@ -289,31 +335,137 @@ fn it_restocks_when_no_one_is_looking() {
     }
     g.vending_use(i, Verb::ReachIn);
     assert_eq!(g.vending[i].stock[k].count, full - 1);
-    // looking at it, nothing changes
+    // lit, looked at or not, nothing changes
+    g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
     let face = g.vending[i].world(0.0, 0.0, D / 2.0 + 2.0);
     g.player.pos = Vec3::new(face.x, EYE, face.z);
     g.player.yaw = g.vending[i].yaw();
-    run(&mut g, RESTOCK_T + 2.0);
-    assert_eq!(g.vending[i].stock[k].count, full - 1, "not while you look");
-    // your back turned
+    run(&mut g, 20.0);
     g.player.yaw += PI;
-    run(&mut g, RESTOCK_T + 1.0);
-    assert_eq!(g.vending[i].stock[k].count, full, "full again");
+    run(&mut g, 40.0);
+    assert_eq!(g.vending[i].stock[k].count, full - 1, "not while it is lit");
+    // a dark beat: still short in the dark, full as the light comes back
+    g.vending[i].state.rhythm = (0.001, 1e9, 0.0);
+    run(&mut g, 2.0);
+    assert!(!g.vending[i].state.lit);
+    assert_eq!(g.vending[i].stock[k].count, full - 1, "not in the dark itself");
+    g.vending[i].state.rhythm = (1e9, 0.0, 0.0);
+    run(&mut g, 0.1);
+    assert!(g.vending[i].state.lit);
+    assert_eq!(g.vending[i].stock[k].count, full, "full again with its light");
 }
 
 #[test]
 fn something_is_inside_the_dead_ones() {
-    // rule 9: look at a dead one close, turn your back: two knocks from
-    // inside its glass, and a hand on it; once
-    let (mut g, i) = level_with(false);
-    let face = g.vending[i].world(-0.125, 0.0, D / 2.0 + 1.4);
+    // rule 9: stand close before a dead one's glass a moment (whichever way
+    // you face) and, once, its flap lifts from inside, is held and let
+    // fall, and a hand print comes up on the inside of its glass
+    let (mut g, i) = level_with_dead(true);
+    let face = stand_before(&g, i).unwrap();
     g.player.pos = Vec3::new(face.x, EYE, face.z);
     g.player.yaw = g.vending[i].yaw();
     let print = g.vending[i].print.clone().expect("a dead one has its print");
+    let away = g.vending[i].world(0.0, 0.0, D / 2.0 + 4.0);
+    // passing is not enough: it waits for you to stand there
+    run(&mut g, INSIDE_WAIT * 0.6);
+    g.player.pos = Vec3::new(away.x, EYE, away.z);
     run(&mut g, 0.5);
-    assert!(g.vending[i].state.looked && !g.vending[i].state.knocked && !print.visible());
+    g.player.pos = Vec3::new(face.x, EYE, face.z);
+    run(&mut g, INSIDE_WAIT * 0.6);
+    assert!(g.vending[i].state.lifted.is_none() && !print.visible(), "not in passing");
+    // your back to it, standing there, it is the same
     g.player.yaw += PI;
-    run(&mut g, 0.2);
-    assert!(g.vending[i].state.knocked, "it knocked");
-    assert!(print.visible(), "a hand on the inside of the glass");
+    run(&mut g, INSIDE_WAIT * 0.5 + LIFT_T * 0.5);
+    g.player.yaw -= PI;
+    let t = g.vending[i].state.lifted;
+    assert!(t.is_some(), "its flap lifted");
+    assert!(g.vending[i].flap.rotation().x < -0.3, "held up from inside");
+    run(&mut g, LIFT_T);
+    assert!(g.vending[i].flap.rotation().x.abs() < 1e-9, "and let fall");
+    assert!(print.visible() && print.mat().m().opacity > 0.99, "a hand on the inside of the glass");
+    // once
+    g.player.pos = Vec3::new(away.x, EYE, away.z);
+    run(&mut g, 1.0);
+    g.player.pos = Vec3::new(face.x, EYE, face.z);
+    run(&mut g, INSIDE_WAIT + LIFT_T);
+    assert_eq!(g.vending[i].state.lifted, t, "once");
+    // and never from behind it: another dead one, met from behind its wall
+    let (mut g, i) = level_with_dead(true);
+    let back = g.vending[i].world(0.0, 0.0, -D / 2.0 - 0.6);
+    g.player.pos = Vec3::new(back.x, EYE, back.z);
+    g.player.yaw = g.vending[i].yaw() + PI;
+    run(&mut g, INSIDE_WAIT + LIFT_T);
+    assert!(g.vending[i].state.lifted.is_none(), "not through its wall");
+    // and not every dead one: one with nothing in it stays still
+    let (mut g, i) = level_with_dead(false);
+    let face = stand_before(&g, i).unwrap();
+    g.player.pos = Vec3::new(face.x, EYE, face.z);
+    run(&mut g, INSIDE_WAIT + LIFT_T);
+    assert!(g.vending[i].state.lifted.is_none(), "an empty one stays still");
+}
+
+#[test]
+fn it_stands_where_it_belongs() {
+    // none on the Lobby (its emptiness is the point), nor in the Showroom
+    // or the Borrowed House (their light is their own); on other floors of
+    // the rooms it does stand
+    let mut g = common::new_game();
+    let (mut lobby, mut store, mut house, mut elsewhere, mut stood) = (0, 0, 0, 0, 0);
+    for k in 0..40u32 {
+        g.run_seed = k.wrapping_mul(2654435761) ^ 0x7E2D;
+        for level in 4..=12 {
+            let scp = game::level::scp::scp_for_level(g.run_seed, level);
+            let (count, want) = match (level, scp) {
+                (4, _) if lobby < 3 => (&mut lobby, false),
+                (_, Some("store")) if store < 1 => (&mut store, false),
+                (_, Some("house")) if house < 1 => (&mut house, false),
+                (5 | 6, None) if elsewhere < 3 => (&mut elsewhere, true),
+                _ => continue,
+            };
+            g.init_level(level);
+            if want {
+                stood += usize::from(!g.vending.is_empty());
+            } else {
+                assert!(g.vending.is_empty(), "seed {} level {level} ({scp:?}) has a machine", g.run_seed);
+            }
+            *count += 1;
+        }
+        if lobby >= 3 && store >= 1 && house >= 1 && elsewhere >= 3 {
+            assert!(stood >= 2, "it stands on the other floors: {stood} of 3");
+            return;
+        }
+    }
+    panic!("not every kind of floor met: lobby {lobby} store {store} house {house} elsewhere {elsewhere}");
+}
+
+#[test]
+fn it_stands_where_an_office_or_a_hall_would_have_put_one() {
+    // where it stands, it stands in an office, a hall or the Poolrooms (or
+    // an office wing or a party room), never in a zone left bare (pillar 1)
+    let mut g = common::new_game();
+    let mut met = 0;
+    for k in 0..8u32 {
+        g.run_seed = k.wrapping_mul(2654435761) ^ 0x7E2D;
+        for level in 5..=10 {
+            g.init_level(level);
+            let Some(l) = g.layout.as_ref() else { continue };
+            for m in &g.vending {
+                // the floor it stands on: the first open tile before its face
+                // (moved onto a thin wall's face, it stands over the wall's
+                // own tile, whose zone is a neighbour's)
+                let (tx, tz) = (1..=12)
+                    .map(|k| m.world(0.0, 0.0, D / 2.0 + 0.25 * k as f64))
+                    .map(|p| (g.tx(p.x), g.tz(p.z)))
+                    .find(|&(x, z)| !g.is_wall_tile(x, z))
+                    .expect("open floor before it");
+                let z = l.zone_of[g.t_idx(tx, tz)] as usize;
+                let (arch, purpose) = (l.zones[z].arch, &g.zone_purposes[z]);
+                let at = format!("seed {} level {level}: zone {z} {arch} {:?}", g.run_seed, purpose.label);
+                assert!(purpose.primary.is_some(), "never in a zone left bare: {at}");
+                assert!(["office", "hall", "pool"].contains(&arch) || purpose.has_any(&["office", "party"]), "its home: {at}");
+                met += 1;
+            }
+        }
+    }
+    assert!(met >= 20, "machines met: {met}");
 }

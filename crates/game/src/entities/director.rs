@@ -335,8 +335,8 @@ impl Game {
                 _ => {}
             }
         }
-        // a vending machine's silence (VENDING.md rule 5) hushes the place too
-        let hush = hush.max(0.85 * self.vending_hush());
+        // a silent vending machine (VENDING.md rule 5) hushes the room round it
+        let hush = hush.max(0.85 * self.vending_hush(pp.x, pp.z));
         self.director.hush += (hush - self.director.hush) * (dt * if hush > self.director.hush { 0.8 } else { 0.25 }).min(1.0);
         self.amb_hush = self.director.hush;
     }

@@ -2373,7 +2373,7 @@ prop	VacuumCleaners__roller	cyl	378	396	-0.0200,-0.1440,-0.0200	0.0200,0.1440,0.
 prop	VacuumCleaners__wand	cyl	170	240	-0.0140,-0.3750,-0.0140	0.0140,0.3750,0.0140
 prop	VacuumCleaners__wheel	cyl	212	252	-0.0240,-0.0050,-0.0240	0.0240,0.0050,0.0240
 prop	Vending__bin	box	72	40	-0.3000,-0.1392,-0.1106	0.3000,0.1350,0.1106
-prop	Vending__cabinet	box	200	184	-0.4950,-0.9050,-0.4070	0.4950,0.9050,0.4070
+prop	Vending__cabinet	box	538	410	-0.4950,-0.9050,-0.4070	0.4950,0.9050,0.4070
 prop	Vending__coilBottle	box	936	916	-0.0525,-0.0526,-0.3145	0.0526,0.0526,0.3025
 prop	Vending__coilCandy	box	1330	1220	-0.0325,-0.0342,-0.3140	0.0325,0.0342,0.3020
 prop	Vending__coilChip	box	1320	1300	-0.0525,-0.0525,-0.3144	0.0525,0.0525,0.3024

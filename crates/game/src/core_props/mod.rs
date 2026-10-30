@@ -137,34 +137,40 @@ pub struct SpotInfo {
 }
 
 /// Where a kind of core prop belongs: zones of one of these archetypes, or
-/// whose purpose has one of these themes. On a level with no such zone it
+/// whose purpose has one of these themes (and with `skip_bare`, never a
+/// zone left bare, the `empty` purpose). On a level with no such zone it
 /// goes anywhere with chance `elsewhere`, and otherwise not at all.
 #[derive(Clone, Copy, Debug)]
 pub struct Home {
     pub arch: &'static [&'static str],
     pub themes: &'static [&'static str],
     pub elsewhere: f64,
+    pub skip_bare: bool,
 }
 
 // where the core props belong
-const OFFICE: Home = Home { arch: &["office", "lobby"], themes: &["office"], elsewhere: 1.0 };
-const LOCKER_ROOM: Home = Home { arch: &["office", "hall", "pool"], themes: &["office", "bathroom", "industrial"], elsewhere: 1.0 };
-const VENDING: Home = Home { arch: &["lobby", "office", "hall", "pool"], themes: &["office", "party"], elsewhere: 1.0 };
-const STORAGE: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 1.0 };
-const WET: Home = Home { arch: &["pool"], themes: &["bathroom"], elsewhere: 1.0 };
-const SERVICE: Home = Home { arch: &["hall", "tunnels", "electrical", "office"], themes: &["industrial", "office"], elsewhere: 1.0 };
-const PUBLIC: Home = Home { arch: &["lobby", "office", "hall", "pool"], themes: &["office", "party", "domestic"], elsewhere: 1.0 };
-const BATH_TOYS: Home = Home { arch: &["pool"], themes: &["bathroom", "toys"], elsewhere: 0.0 };
-const WORKS: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 0.5 };
-const HOME_CARE: Home = Home { arch: &[], themes: &["domestic", "victorian"], elsewhere: 0.25 };
-const NURSERY: Home = Home { arch: &[], themes: &["toys", "domestic", "victorian"], elsewhere: 0.25 };
-const LUGGAGE: Home = Home { arch: &["lobby", "hall"], themes: &["domestic", "victorian"], elsewhere: 1.0 };
-const READING: Home = Home { arch: &["office"], themes: &["office", "victorian", "domestic"], elsewhere: 1.0 };
-const CLOAKROOM: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0 };
-const LIVING: Home = Home { arch: &[], themes: &["domestic", "office"], elsewhere: 1.0 };
-const GREENERY: Home = Home { arch: &["lobby", "office"], themes: &["nature"], elsewhere: 1.0 };
-const SEATING: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "party"], elsewhere: 1.0 };
-const CLOCK_WALL: Home = Home { arch: &["office", "lobby", "hall"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0 };
+const OFFICE: Home = Home { arch: &["office", "lobby"], themes: &["office"], elsewhere: 1.0, skip_bare: false };
+const LOCKER_ROOM: Home =
+    Home { arch: &["office", "hall", "pool"], themes: &["office", "bathroom", "industrial"], elsewhere: 1.0, skip_bare: false };
+const VENDING: Home = Home { arch: &["office", "hall", "pool"], themes: &["office", "party"], elsewhere: 0.0, skip_bare: true };
+const STORAGE: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 1.0, skip_bare: false };
+const WET: Home = Home { arch: &["pool"], themes: &["bathroom"], elsewhere: 1.0, skip_bare: false };
+const SERVICE: Home =
+    Home { arch: &["hall", "tunnels", "electrical", "office"], themes: &["industrial", "office"], elsewhere: 1.0, skip_bare: false };
+const PUBLIC: Home =
+    Home { arch: &["lobby", "office", "hall", "pool"], themes: &["office", "party", "domestic"], elsewhere: 1.0, skip_bare: false };
+const BATH_TOYS: Home = Home { arch: &["pool"], themes: &["bathroom", "toys"], elsewhere: 0.0, skip_bare: false };
+const WORKS: Home = Home { arch: &["tunnels", "electrical", "hall"], themes: &["industrial"], elsewhere: 0.5, skip_bare: false };
+const HOME_CARE: Home = Home { arch: &[], themes: &["domestic", "victorian"], elsewhere: 0.25, skip_bare: false };
+const NURSERY: Home = Home { arch: &[], themes: &["toys", "domestic", "victorian"], elsewhere: 0.25, skip_bare: false };
+const LUGGAGE: Home = Home { arch: &["lobby", "hall"], themes: &["domestic", "victorian"], elsewhere: 1.0, skip_bare: false };
+const READING: Home = Home { arch: &["office"], themes: &["office", "victorian", "domestic"], elsewhere: 1.0, skip_bare: false };
+const CLOAKROOM: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0, skip_bare: false };
+const LIVING: Home = Home { arch: &[], themes: &["domestic", "office"], elsewhere: 1.0, skip_bare: false };
+const GREENERY: Home = Home { arch: &["lobby", "office"], themes: &["nature"], elsewhere: 1.0, skip_bare: false };
+const SEATING: Home = Home { arch: &["office", "lobby"], themes: &["office", "domestic", "party"], elsewhere: 1.0, skip_bare: false };
+const CLOCK_WALL: Home =
+    Home { arch: &["office", "lobby", "hall"], themes: &["office", "domestic", "victorian"], elsewhere: 1.0, skip_bare: false };
 
 /// Per zone, whether it is `home` to a prop. None without a layout or zone
 /// purposes (a synthetic level): the prop goes anywhere.
@@ -173,7 +179,13 @@ pub fn home_zones(g: &Game, home: &Home) -> Option<Vec<bool>> {
     if g.zone_purposes.len() != l.zones.len() {
         return None;
     }
-    Some(l.zones.iter().zip(&g.zone_purposes).map(|(z, p)| home.arch.contains(&z.arch) || p.has_any(home.themes)).collect())
+    Some(
+        l.zones
+            .iter()
+            .zip(&g.zone_purposes)
+            .map(|(z, p)| (home.arch.contains(&z.arch) || p.has_any(home.themes)) && !(home.skip_bare && p.primary.is_none()))
+            .collect(),
+    )
 }
 
 /// The zones a prop of `home` may use on this level: None for anywhere, an
@@ -509,13 +521,19 @@ impl Game {
         let floor = |home: Home, row: i32, spacing: f64| ScatterOpts { home: Some(home), row, spacing, ..Default::default() };
         scatter(g, &mut cx, build_filing_cabinet, 3, &ScatterOpts { can_stack: true, on_placed: Some(&reg), ..wall(0.3, OFFICE, 3, 0.66) });
         scatter(g, &mut cx, build_locker, 2, &ScatterOpts { can_stack: true, ..wall(0.28, LOCKER_ROOM, 2, 1.42) });
-        scatter(
-            g,
-            &mut cx,
-            vending::build_vending,
-            1,
-            &ScatterOpts { on_placed: Some(&vending::placed), ..wall(vending::model::D / 2.0 + 0.05, VENDING, 1, 0.0) },
-        );
+        // no machine on the Lobby (level 4: its emptiness is the point), nor
+        // in the Showroom or the Borrowed House, whose light is their own;
+        // elsewhere only where an office, a hall or the Poolrooms would have
+        // put one, never in a zone left bare (docs/VENDING.md, where it stands)
+        if g.level_num != 4 && !matches!(g.level_scp.as_deref(), Some("store" | "house")) {
+            scatter(
+                g,
+                &mut cx,
+                vending::build_vending,
+                1,
+                &ScatterOpts { on_placed: Some(&vending::placed), ..wall(vending::model::D / 2.0 + 0.05, VENDING, 1, 0.0) },
+            );
+        }
         scatter(g, &mut cx, build_cardboard_stack, 4, &floor(STORAGE, 3, 0.75));
         scatter(g, &mut cx, build_wet_floor_sign, 2, &floor(WET, 1, 0.0));
         scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { y: 0.0, ..wall(0.16, SERVICE, 1, 0.0) });

@@ -2,7 +2,7 @@
 //! (`vending_frame`) it keeps its rhythm and goes dark when something comes
 //! (rules 1, 2), reads where you look (rule 3), runs what it is doing (the
 //! coin ringing down, a coil turning, a shove, a good falling, the flap, its
-//! fall), restocks what nobody is watching (rule 8), knocks from inside the
+//! fall), restocks in its dark (rule 8), lifts its flap from inside the
 //! dead ones (rule 9), and keeps its fine detail for when you are near. Its
 //! uses are interactables at its face, one verb at a time
 //! (`vending_register`).
@@ -33,7 +33,8 @@ pub const FALL_T: f64 = 0.35;
 /// shove (rule 6), m
 pub const RING_REACH: f64 = 10.0;
 pub const BANG_REACH: f64 = 20.0;
-/// The silence a coin buys (rule 5): how long, and how near it you walk unheard
+/// The silence a coin buys (rule 5): how long, and how near it you walk
+/// unheard (the room hushed round it, fading out to there)
 pub const SILENCE_T: f64 = 40.0;
 pub const SILENCE_REACH: f64 = 10.0;
 /// What a snack does for your nerve
@@ -48,8 +49,11 @@ pub const CREAK_ON: u32 = 2;
 pub const FALL_ON: u32 = 3;
 pub const TOPPLE_T: f64 = 0.9;
 pub const TOPPLE_NERVE: f64 = 22.0;
-/// Rule 8: how long unseen before an emptied coil is full again, s
-pub const RESTOCK_T: f64 = 20.0;
+/// Rule 9: how near, and how long, you stand before a dead one's glass
+/// before its flap lifts, m and s; and the lift (up, held, let fall), s
+pub const INSIDE_REACH: f64 = 2.0;
+pub const INSIDE_WAIT: f64 = 1.5;
+pub const LIFT_T: f64 = 2.6;
 /// Its sounds are made only within this of you, m (its fall anywhere)
 pub const HEARD_WITHIN: f64 = 30.0;
 /// How much of its lit colour the inside keeps when it is dark (a dead
@@ -95,21 +99,27 @@ pub struct State {
     pub lit: bool,
     /// its first frame has been (it began as it is)
     pub started: bool,
-    /// rule 2: dark until then (something came)
+    /// rule 2: dark until then (something came); dark now for that (it
+    /// went out, and comes back, without a sound)
     pub dark_until: f64,
+    pub hushed_dark: bool,
     /// rule 7: shoves while nothing hung; it creaked; falling since; down
     pub free_shoves: u32,
     pub creaked: bool,
     pub toppling: Option<f64>,
     pub down: bool,
-    /// rule 8: seconds nobody has seen it, and how many times it restocked
-    pub unseen: f64,
+    /// rule 8: how many times it restocked (in its dark)
     pub restocks: u32,
-    /// rule 9 (a dead one): you looked at it close; it knocked
-    pub looked: bool,
-    pub knocked: bool,
+    /// rule 9 (a dead one): since when you have stood close before it, and
+    /// since when its flap was lifted from inside (once)
+    pub close_since: Option<f64>,
+    pub lifted: Option<f64>,
     /// a coil turning by itself (`vending_phantom`): which, from when
     pub spin: Option<(usize, f64)>,
+    /// rule 9: a dead one with something in it (half of them, from its seed)
+    pub inhabited: bool,
+    /// the last sound it made, and when (what was heard of it)
+    pub last_sound: Option<(Sfx, f64)>,
 }
 
 /// One of a machine's verbs
@@ -221,7 +231,8 @@ impl Game {
                     }
                     _ => {
                         self.player.sanity = (self.player.sanity + SNACK_NERVE).min(SAN_MAX);
-                        self.show_msg(&format!("{}. IT TASTES OF NOTHING.", de.name), 2.4);
+                        let t = crate::base::rng::with_native(|| self.pick_text("snackEat"));
+                        self.show_msg(&t, 2.4);
                     }
                 }
             }
@@ -234,8 +245,7 @@ impl Game {
         self.vending_lights(i, now);
         self.vending_hum(i, dt, now);
         self.vending_topple(i, now);
-        self.vending_restock(i, dt);
-        self.vending_knock(i);
+        self.vending_inside(i, now);
         self.vending_gaze(i);
         // the coin rings down into the cup
         if let Some(t) = self.vending[i].state.coin_at.filter(|&t| now >= t) {
@@ -538,14 +548,18 @@ impl Game {
             m.state.silent_until > now && hypot2(p.x - x, p.z - z) < SILENCE_REACH
         })
     }
-    /// How much the machines' silence hushes the place (0 or 1)
-    pub fn vending_hush(&self) -> f64 {
+    /// How much a silent machine (rule 5) hushes the room round it at
+    /// (x, z): all of it within half its reach, nothing past its reach
+    pub fn vending_hush(&self, x: f64, z: f64) -> f64 {
         let now = self.perf_t;
-        if self.vending.iter().any(|m| m.state.silent_until > now) {
-            1.0
-        } else {
-            0.0
-        }
+        self.vending
+            .iter()
+            .filter(|m| m.state.silent_until > now)
+            .map(|m| {
+                let p = m.pos();
+                ((SILENCE_REACH - hypot2(p.x - x, p.z - z)) / (SILENCE_REACH * 0.5)).clamp(0.0, 1.0)
+            })
+            .fold(0.0, f64::max)
     }
 
     /// Whether a body of radius `r` at (x, z) is inside a vending machine
@@ -594,7 +608,7 @@ pub enum Sfx {
     Motor,
     Creak,
     Crash,
-    Knock,
+    Lift,
 }
 
 impl Game {
@@ -608,6 +622,7 @@ impl Game {
         if what != Sfx::Crash && hypot2(pp.x - p.x, pp.z - p.z) > HEARD_WITHIN {
             return;
         }
+        self.vending[i].state.last_sound = Some((what, self.perf_t));
         self.play_from(p.x, p.y, p.z, 2.0, 1.0, 0.7, move |g| match what {
             Sfx::Lever => {
                 g.noise_burst(0.03, 2400.0, 3.0, 0.06, "bandpass", None, 0.0, 0.0);
@@ -693,12 +708,13 @@ impl Game {
                     g.noise_burst(0.05, 2000.0 + k as f64 * 400.0, 4.0, 0.05, "bandpass", None, 0.25 + k as f64 * 0.11, 0.0);
                 }
             }
-            Sfx::Knock => {
-                // two knuckles on glass, from inside
-                for d in [0.0, 0.28] {
-                    g.blip(240.0, 0.08, "sine", 0.06, Some(180.0), d, 0.0);
-                    g.noise_burst(0.03, 1900.0, 5.0, 0.04, "bandpass", None, d, 0.0);
-                }
+            Sfx::Lift => {
+                // the flap's hinge, pushed round slowly from inside (a thin
+                // dry squeal), and at the end the flap let fall on its frame
+                g.noise_burst(0.8, 2600.0, 9.0, 0.012, "bandpass", Some(3300.0), 0.0, 0.0);
+                g.blip(1900.0, 0.6, "triangle", 0.004, Some(2250.0), 0.05, 0.0);
+                g.noise_burst(0.05, 1500.0, 2.0, 0.05, "bandpass", None, LIFT_T - 0.2, 0.0);
+                g.blip(150.0, 0.08, "sine", 0.05, Some(105.0), LIFT_T - 0.2, 0.0);
             }
         });
     }
@@ -732,9 +748,19 @@ impl Game {
             return;
         }
         self.vending[i].state.lit = lit;
-        // (as the level begins it is simply as it is: no click, nothing heard)
-        if !first {
+        // its own beat clicks out and thumps back; a dark for something
+        // coming (rule 2) goes out and comes back without a sound: that is
+        // the tell. As the level begins it is simply as it is, and in the
+        // silence a coin bought it makes no sound either
+        let s = &mut self.vending[i].state;
+        let quiet = if lit { s.hushed_dark } else { now < s.dark_until };
+        s.hushed_dark = !lit && now < s.dark_until;
+        if !first && !quiet && now >= s.silent_until {
             self.vending_sound(i, if lit { Sfx::Thump } else { Sfx::Click });
+        }
+        // rule 8: what was taken from it is back when its light comes back
+        if lit && !first {
+            self.vending_restock(i);
         }
         self.vending_light_up(i, lit);
         self.build_light_map();
@@ -863,23 +889,15 @@ impl Game {
         }
     }
 
-    /// Rule 8: what was taken from it is back once nobody has looked at it
-    /// for a while (each coil as full as it was built)
-    fn vending_restock(&mut self, i: usize, dt: f64) {
-        let m = &self.vending[i];
+    /// Rule 8: what was taken from it is back after its dark (each coil as
+    /// full as it was built), called as its light comes back
+    fn vending_restock(&mut self, i: usize) {
+        let m = &mut self.vending[i];
         if m.state.down || m.state.vend.is_some() || m.state.hanging.is_some() || m.state.falling.is_some() || m.body.lifted.is_some() {
             return;
         }
-        let p = m.world(0.0, 1.2, D / 2.0);
-        let eye = self.player.pos;
-        let f = self.player.fwd();
-        let (dx, dz) = (p.x - eye.x, p.z - eye.z);
-        let d = hypot2(dx, dz).max(1e-6);
-        let seen = d < 30.0 && (f.x * dx + f.z * dz) / d > 0.35 && self.los(eye.x, eye.z, p.x, p.z);
         let short: Vec<usize> = (0..m.stock.len()).filter(|&k| m.stock[k].count < m.full[k]).collect();
-        let m = &mut self.vending[i];
-        m.state.unseen = if seen { 0.0 } else { m.state.unseen + dt };
-        if short.is_empty() || m.state.unseen < RESTOCK_T {
+        if short.is_empty() {
             return;
         }
         m.state.restocks += 1;
@@ -891,31 +909,52 @@ impl Game {
         m.state.near = None;
     }
 
-    /// Rule 9: a dead one you looked at close knocks, once, from inside its
-    /// glass when you turn your back; then there is a hand on the glass
-    fn vending_knock(&mut self, i: usize) {
+    /// Rule 9: stand close before a dead one's glass a moment and, once,
+    /// if something is in it (half of them), its flap lifts inward by
+    /// itself: slowly, held up on the dark of its bin,
+    /// let fall; while it is held a hand print comes up slowly on the inside
+    /// of its glass, and stays
+    fn vending_inside(&mut self, i: usize, now: f64) {
         let m = &self.vending[i];
-        if m.powered || m.state.down || m.state.knocked {
+        if m.powered || m.state.down || !m.state.inhabited {
             return;
         }
-        let p = m.world(-0.125, 1.2, D / 2.0);
-        let eye = self.player.pos;
-        let f = self.player.fwd();
-        let (dx, dz) = (p.x - eye.x, p.z - eye.z);
-        let d = hypot2(dx, dz).max(1e-6);
-        let toward = (f.x * dx + f.z * dz) / d;
-        if !m.state.looked {
-            if d < 2.5 && toward > 0.85 {
-                self.vending[i].state.looked = true;
+        if let Some(t0) = m.state.lifted {
+            let s = ((now - t0) / LIFT_T).min(1.0);
+            // up over its first third, held, let fall at the end
+            let a = if s < 0.35 {
+                let u = s / 0.35;
+                u * u * (3.0 - 2.0 * u)
+            } else if s < 0.92 {
+                1.0
+            } else {
+                (1.0 - s) / 0.08
+            };
+            let m = &mut self.vending[i];
+            if m.state.flap_t.is_none() {
+                m.flap.rotation().x = -0.5 * a;
             }
-            return;
-        }
-        if d < 5.0 && toward < -0.3 {
-            self.vending[i].state.knocked = true;
-            self.vending_sound(i, Sfx::Knock);
-            if let Some(h) = &self.vending[i].print {
+            if let Some(h) = &m.print {
                 h.set_visible(true);
+                h.mat().m().opacity = ((s - 0.2) / 0.6).clamp(0.0, 1.0);
             }
+            return;
+        }
+        // before its glass, with nothing between (not from behind its
+        // wall); whichever way you face
+        let p = m.world(0.0, 0.9, D / 2.0);
+        let eye = self.player.pos;
+        let before = m.local(&eye).z > D / 2.0;
+        let close = before && hypot2(p.x - eye.x, p.z - eye.z) < INSIDE_REACH && self.los(eye.x, eye.z, p.x, p.z);
+        let s = &mut self.vending[i].state;
+        match (close, s.close_since) {
+            (false, _) => s.close_since = None,
+            (true, None) => s.close_since = Some(now),
+            (true, Some(t)) if now - t >= INSIDE_WAIT => {
+                s.lifted = Some(now);
+                self.vending_sound(i, Sfx::Lift);
+            }
+            _ => {}
         }
     }
 }
@@ -1026,6 +1065,10 @@ impl Game {
         let m = &self.vending[i];
         let s = &m.state;
         if !s.lit || s.down || s.vend.is_some() || s.toppling.is_some() || s.falling.is_some() || m.body.lifted.is_some() {
+            return;
+        }
+        // (not in the silence a coin bought: rule 5)
+        if self.perf_t < s.silent_until {
             return;
         }
         let n = m.places.len();

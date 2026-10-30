@@ -131,6 +131,23 @@ and never name a creature, its rule or its counter first):
 - The tall shop staff, the shadows in the borrowed rooms, the man in the
   chair: one word for each.
 
+The vending machine (`docs/VENDING.md`; ask until a round has answered
+them. Ask the first two before any other, and never name its coin, its
+silence, its rhythm or its fall before the player has: the questions
+after the first two are for once they have, and skip any they have not
+met):
+
+- Did you notice a vending machine? Was it lit? Did it look real, or like
+  a game's? (Anything fake about it?)
+- What did you try with it? What happened? What did you think it wanted?
+- Did it ever go dark? What did you think it meant, the first time, and
+  later?
+- If it went quiet after you used it: what was that like? Did you use it
+  for anything?
+- Did you shove it? How many times? Why did you stop (or not)?
+- Did you see one that was dead? Did you go close? What happened?
+- Did anything about it make you uneasy? When?
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.

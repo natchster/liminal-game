@@ -48,7 +48,7 @@ pub static EPILOGUE_MEDAL_LINES: [(&str, fn(&Game) -> bool, &str); 5] = [
 ];
 
 /// Pick a fresh line each time so the world feels less repetitive
-pub static TEXT_POOLS: [(&str, &[&str]); 10] = [
+pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
     ("levelSubtitle", &[
         "THE HUM GROWS LOUDER", "DEEPER STILL", "THE WALLS ARE THINNER HERE",
         "SOMETHING WATCHES", "THE LIGHTS ARE DIMMER", "YOU ARE NOT ALONE",
@@ -88,6 +88,10 @@ pub static TEXT_POOLS: [(&str, &[&str]); 10] = [
     ("batteryPickup", &[
         "BATTERY — WARM IN YOUR HAND", "BATTERY — STILL HALF FULL",
         "BATTERY — SOMEONE MEANT TO COME BACK FOR IT", "BATTERY — YOU POCKET THE CELL",
+    ]),
+    ("snackEat", &[
+        "YOU EAT IT — STALE", "YOU EAT IT — TOO FAST",
+        "YOU EAT IT — CRUMBS DOWN YOUR FRONT", "YOU EAT IT — IT HELPS, A LITTLE",
     ]),
     ("almondDrink", &[
         "YOU DRINK — IT TASTES OF PENNIES", "YOU DRINK — YOUR LEGS REMEMBER",

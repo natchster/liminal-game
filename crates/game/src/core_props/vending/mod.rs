@@ -234,10 +234,10 @@ fn goods_pieces(k: usize, c: &CoilPlace, s: &Stock, next: &mut usize, out: &mut 
                 });
             }
             Ware::Almond => {
-                let (body, label, cap) = goods::bottle();
+                // the bottles found on the floors: nothing printed on them
+                let (body, cap) = goods::bottle();
                 let m = at_rot(c.x + jx, y, z, 0.0, rand1(PI * 2.0), 0.0);
                 out.push(Piece { geo: body, m, slot: Slot::Bottle, coil: Some(k), cell: None, item: Some(id) });
-                out.push(Piece { geo: label, m, slot: Slot::Goods, coil: Some(k), cell, item: Some(id) });
                 out.push(Piece { geo: cap, m, slot: Slot::Bottle, coil: Some(k), cell: None, item: Some(id) });
             }
         }
@@ -536,7 +536,7 @@ fn build_machine(g: &mut Game, seed: u32) -> Built {
     if !powered {
         let h = mesh(
             plane_geometry(0.16, 0.22, 1.0, 1.0),
-            lambert!({ map: handprint_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }),
+            lambert!({ map: handprint_tex(), transparent: true, opacity: 0.0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }),
         );
         h.set_pos((WIN[0] + WIN[1]) / 2.0 + rand2(-0.15, 0.15), rand2(1.05, 1.35), GLASS_Z - 0.003);
         h.rotation().z = rand2(-0.3, 0.3);
@@ -581,6 +581,9 @@ fn build_machine(g: &mut Game, seed: u32) -> Built {
             rhythm: (rand2(40.0, 60.0), rand2(6.0, 9.0), rand1(70.0)),
             lit: powered,
             hanging,
+            // rule 9: half the dead ones have something in them (a bit of
+            // its seed, not a draw: nothing after it moves)
+            inhabited: !powered && (seed >> 9) & 1 == 1,
             ..Default::default()
         },
     });

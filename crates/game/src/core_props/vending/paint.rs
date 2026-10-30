@@ -43,11 +43,11 @@ pub struct Design {
 const BAGS: [(&str, &str, &str, &str, &str, &str); 10] = [
     ("MIDWAY", "POTATO CHIPS", "ORIGINAL", "#c8a020", "#7a1a10", "#e8e0c8"),
     ("MIDWAY", "POTATO CHIPS", "SALT & VINEGAR", "#3c78a8", "#f2efe2", "#e8e0c8"),
-    ("COUNTY FAIR", "CHEESE CURLS", "BAKED", "#d8601a", "#2a1608", "#f0d050"),
+    ("HARTWELL", "CHEESE CURLS", "BAKED", "#d8601a", "#2a1608", "#f0d050"),
     ("HOLLIS", "PRETZEL TWISTS", "LIGHTLY SALTED", "#1e4e86", "#f4e6b0", "#c03020"),
     ("HOLLIS", "CORN CHIPS", "ORIGINAL", "#a83020", "#f6e8c0", "#e0b030"),
     ("BAYSIDE", "SALTED PEANUTS", "ROASTED", "#e4d6b0", "#7a2414", "#2a5a30"),
-    ("COUNTY FAIR", "BBQ CHIPS", "HICKORY", "#6a2a18", "#f0c060", "#d8a040"),
+    ("HARTWELL", "BBQ CHIPS", "HICKORY", "#6a2a18", "#f0c060", "#d8a040"),
     ("MIDWAY", "SOUR CREAM & ONION", "CHIPS", "#2a7040", "#f2f0e8", "#e8e0c8"),
     ("SUNNYVALE", "PORK RINDS", "HOT", "#b01818", "#f8e8a0", "#202020"),
     ("BAYSIDE", "TRAIL MIX", "NUTS & RAISINS", "#5a3a20", "#f0e0b0", "#c89040"),
@@ -290,24 +290,6 @@ fn paint_pastry(ctx: &mut Canvas, c: [f64; 4], p: &(&str, &str, &str, &str)) {
     ctx.fill_rect(x + w * 0.12, y, w * 0.08, h);
 }
 
-/// The almond water's label: the plain label of the bottles found on the
-/// floors, wrapped round the bottle
-fn paint_almond(ctx: &mut Canvas, c: [f64; 4]) {
-    let [x, y, w, h] = c;
-    ctx.set_fill_style("#e8e4d8");
-    ctx.fill_rect(x, y, w, h);
-    ctx.set_fill_style("#3a5a6a");
-    ctx.fill_rect(x, y + h * 0.10, w, h * 0.08);
-    ctx.fill_rect(x, y + h * 0.82, w, h * 0.08);
-    ctx.set_fill_style("#2a3a44");
-    ctx.set_text_align("center");
-    ctx.set_text_baseline("middle");
-    for k in [0.25, 0.75] {
-        fit_text(ctx, "ALMOND WATER", x + w * k, y + h * 0.45, w * 0.44, 22.0, "bold Gill Sans");
-        fit_text(ctx, "16.9 FL OZ", x + w * k, y + h * 0.66, w * 0.3, 11.0, "Gill Sans");
-    }
-}
-
 /// Two batteries on a blister card
 fn paint_battery(ctx: &mut Canvas, c: [f64; 4]) {
     let [x, y, w, h] = c;
@@ -360,7 +342,8 @@ pub fn goods_atlas() -> Tex {
                             paint_pastry(ctx, de.cell, &PASTRIES[pi]);
                             pi += 1;
                         }
-                        Ware::Almond => paint_almond(ctx, de.cell),
+                        // (almond water has nothing printed on it)
+                        Ware::Almond => {}
                         Ware::Battery => paint_battery(ctx, de.cell),
                     }
                 }
@@ -620,9 +603,7 @@ pub fn decal_tex() -> Tex {
         ctx.fill_rect(x + 37.0, y + 56.0, 6, 14);
         ctx.set_text_align("left");
         ctx.set_font("bold 10px Helvetica");
-        for (i, l) in
-            ["NEVER ROCK OR TILT.", "MACHINE WILL NOT DISPENSE", "FREE PRODUCT. TIPPING CAN", "CAUSE INJURY OR DEATH."].iter().enumerate()
-        {
+        for (i, l) in ["NEVER ROCK OR TILT.", "MACHINE CAN FALL OVER", "AND CAUSE SERIOUS", "INJURY OR DEATH."].iter().enumerate() {
             ctx.fill_text(l, x + 58.0, y + 30.0 + i as f64 * 12.0);
         }
     })

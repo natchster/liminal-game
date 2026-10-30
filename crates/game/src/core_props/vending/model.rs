@@ -357,6 +357,10 @@ pub fn hardware(places: &[CoilPlace]) -> Vec<Piece> {
     // the tube: across the top, inside the door, behind the window's top edge
     let (tx, ty, tz) = tube_xyz();
     put("Vending__tube", at_rot(tx, ty, tz, 0.0, 0.0, PI / 2.0), Slot::Tube, None);
+    // its data plate, riveted to its back high on one side (seen when it
+    // lies on its face): bare aluminium, 110 x 70 mm
+    let plate = box_geometry(0.110, 0.070, 0.0015, 1.0, 1.0, 1.0);
+    v.push(Piece { geo: plate, m: at(-0.26, 1.48, -D / 2.0 - 0.0008), slot: Slot::Metal, coil: None, cell: None, item: None });
     v
 }
 

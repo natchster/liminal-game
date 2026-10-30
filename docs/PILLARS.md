@@ -94,6 +94,10 @@ that the emptiness is watching.*
   - Rule: no tutorials, maps or explanations of creatures or anomalies;
     notes hint, never explain. The one exception is the Building's notices,
     which say what to do in a self-assembly, as notices do, and never why.
+    (A thing the rooms took carries the fixed printing a real one of its
+    kind carries about itself, word for word: a vending machine's warning
+    label says why, as real ones do. That is dressing, not the place
+    speaking; never a word about the place, its creatures or its anomalies.)
     *Test:* `lore-keeper` review.
   - Rule: the screen at rest is the place alone. A meter shows while it
     is not full, the pockets when they change, her line when it is new, a

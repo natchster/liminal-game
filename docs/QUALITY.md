@@ -57,7 +57,7 @@ Last sweep: 2026-10-29.
 | Anomalies (Stairwell, Showroom, House, Loop) | C | Fixture tests and the sweep; the Showroom has a golden view; the staff, the shadows and the seated man have goldens of their own (E9), the staff and the seated man on new bodies a blind review preferred (`tests/anomaly_bodies.rs` holds the staff to its rig and walks it untorn); the shadows keep the HTML version's body (a new one lost or tied four reviews) |
 | Zone purposes (14) | B | One golden view each; style bands measured from 631 views (five purposes with too few views share the pooled band) |
 | Prop families (10 themes, 649 placers) | B | Material lint, smoke tests, the look settle pass; no turntables |
-| The vending machine (`VENDING.md`) | C | Rebuilt as a real glass-front snack machine (V1: the Blender parts of batch `v01`, its goods and their printed wrappers, its light, its weight), preferred blind to the old COLA-Z in every frame that showed both (two reviewers, both orders; the dead black box it also replaces was not shown); its rules are the plan (V2–V5) | Its uses are not built yet (V2); its lit interiors are bright and colourful next to the rooms' muted palette (a reviewer's caveat, held by the look gate); no human verdict |
+| The vending machine (`VENDING.md`) | B | Rebuilt as a real glass-front snack machine (V1: the Blender parts of batch `v01`, its goods and their printed wrappers, its light, its weight), preferred blind to the old COLA-Z in every frame that showed both (two reviewers, both orders); its nine rules built (V2, V3, V5), each held by a test in `tests/vending.rs` that fails with its rule broken, and where it stands (offices, halls, the Poolrooms, never a zone left bare; none on the Lobby, the Showroom or the Borrowed House); its sound (V4: its hum, its coin, its motor, its bang) held by a listen test that fails with the hum at gain 0; its canon through three `lore-keeper` rounds (V5), what each found fixed | No person has played with it or listened to it (`PLAYTEST.md` has its questions); goods spilled by its fall take the floors' pickup lines ("SOMEONE LEFT IT FOR YOU"); its lit interiors are bright and colourful next to the rooms' muted palette (a reviewer's caveat, held by the look gate); a fallen one's back is seen only from above at eye height (its louvres faint in a dark room) |
 | Sound (mix, ambient) | B | Loudness and listening gates |
 | The Building's places (the Well, the Stair Halls, the Works) | B | Two golden frames each, `STYLE.md` bands, the navigation bands; their own notes, surveys and arrival lines; their surfaces photographed (the Well's panels and lit windows, the Stair Halls' granite, the Works' formwork and factory slab), preferred blind on 32 of 32 views in the last rounds; no human verdict |
 | Story (trail, camps, notebook, false trails, ending) | B | `tests/story.rs`; ledger entries `story/*`; no human verdict |
@@ -74,6 +74,19 @@ sweep counts the rows; the count should fall.
 
 ## History
 
+- 2026-10-30 — The vending machine (`VENDING.md`, V0–V5): C to B. Its
+  rules are built and each held by a test that fails with the rule broken
+  (it keeps its rhythm, goes dark when something comes, reads your eyes,
+  gives a coin for nothing and nothing for a coin, sells a silence round
+  it, is rocked loose and falls, fills in its dark, and something is
+  inside the dead ones); its sound by a listen test; where it stands by
+  two tests (offices, halls and the Poolrooms, never a zone left bare;
+  none on the Lobby or the anomaly floors); its canon through three
+  `lore-keeper` rounds, what each found fixed (the silence was floor-wide;
+  it stood in the Showroom, the Borrowed House and bare Lobby zones; its
+  almond water had a label the floors' bottles do not; a dead one could be
+  set off through its wall; the warning label had been edited to fit the
+  game). No person yet.
 - 2026-10-29 — Leaning walls (`ROOMS.md` R4): now and then a straight
   partition with a free end leans 2–10° about its corner, inside its wall
   tiles, on a salted stream of its own; a staircase of boxes inside the

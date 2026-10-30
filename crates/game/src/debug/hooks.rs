@@ -200,10 +200,11 @@ impl Game {
     /// (a coin in, for a bag on its second tray or else its first stocked
     /// coil: the good hangs at the glass), `bin` (and then rocked until it
     /// falls into the bin), `fall` (rocked past its balance), `dark` (in its
-    /// rhythm's dark beat), `print` (a dead one's hand on its glass). Time
-    /// runs for the machines alone.
+    /// rhythm's dark beat), `print` (a dead one's hand on its glass),
+    /// `inside` (a dead one's flap held up from inside, the hand coming up).
+    /// Time runs for the machines alone.
     pub fn vending_demo(&mut self, what: &str) {
-        use crate::core_props::vending::rules::{Verb, SHOVE_T, VEND_T};
+        use crate::core_props::vending::rules::{Verb, LIFT_T, SHOVE_T, VEND_T};
         let run = |g: &mut Game, i: usize, secs: f64| {
             for _ in 0..(secs * 60.0) as usize {
                 g.perf_t += 1.0 / 60.0;
@@ -215,6 +216,15 @@ impl Game {
             if what == "print" {
                 if let Some(h) = &self.vending[i].print {
                     h.set_visible(true);
+                    h.mat().m().opacity = 1.0;
+                }
+                continue;
+            }
+            // a dead one: its flap held up from inside (rule 9)
+            if what == "inside" {
+                if !self.vending[i].powered {
+                    self.vending[i].state.lifted = Some(self.perf_t - LIFT_T * 0.6);
+                    self.vending_frame(i, 1.0 / 60.0);
                 }
                 continue;
             }
