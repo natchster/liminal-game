@@ -518,10 +518,10 @@ fn the_hound_is_heard() {
 }
 
 /// The one behind the glass is heard as glass, at its window, by you
-/// standing before it: the pane's tick, the creak under its weight, wet
-/// skin squeaking on the pane, the long groan of the glass bowing in; and
-/// inside, the water dripping off its coat. Each stands over the room's
-/// bed where it falls.
+/// standing before it: the pane's tick (a knock and its ring), the creak
+/// under its weight, wet skin squeaking on the pane, the long groan of the
+/// glass bowing in; and its wet raincoat rustling. Each stands over the
+/// room's bed where it falls.
 #[test]
 fn the_one_behind_the_glass_is_heard_as_glass() {
     let mut r = start(4242, 7);
@@ -532,7 +532,7 @@ fn the_one_behind_the_glass_is_heard_as_glass() {
     play(&mut r, 3.0, |_| {});
     let mut marks = vec![];
     let mut heard = vec![];
-    for (what, secs) in [("tick", 1.0), ("creak", 2.0), ("squeak", 2.0), ("groan", 3.5), ("drip", 2.0)] {
+    for (what, secs) in [("tick", 1.0), ("creak", 2.0), ("squeak", 2.0), ("groan", 3.5), ("rustle", 2.0)] {
         let from = r.pcm.len() / 2;
         marks.push(from as f64 / SR);
         game::entities::glass::call(&mut r.g, ei, what);
@@ -545,10 +545,10 @@ fn the_one_behind_the_glass_is_heard_as_glass() {
     let mut ups = vec![];
     for (what, from, to) in heard {
         let (lo, hi) = match what {
-            "tick" => (2500.0, 6000.0),
+            "tick" => (900.0, 3200.0),
             "creak" => (150.0, 600.0),
-            "squeak" => (2000.0, 3400.0),
-            "drip" => (500.0, 3500.0),
+            "squeak" => (3000.0, 4400.0),
+            "rustle" => (600.0, 2000.0),
             _ => (60.0, 8000.0),
         };
         let w = windows_band(&r.pcm, lo, hi);

@@ -107,7 +107,7 @@ Five notes, in [`research/`](research/README.md). What they changed:
 
 ## The design
 
-### 1. Five creatures, five rules
+### 1. Six creatures, six rules
 
 Each creature finds you by a different sense and is beaten by a different
 verb; each has a role (the research's roles: hunter, ambusher, stalker,
@@ -335,10 +335,12 @@ Heights *(a window that will not open).*
   you. Close, its face pressed to the glass is cold, wet and drowned-pale,
   its eyes clouded, the hood's rim on the pane, its hands flat on it.
 - **Its sound.** Glass, and water: the pane's tick (a click and its short
-  ring), the creak of the pane under it, wet skin squeaking on the pane,
-  the long groan of the glass bowing in; inside, the water dripping off
-  its coat. No voice, no breath (four of the others breathe). Heard only
-  where its glass is heard (within 9 m of it, in its room).
+  ring, low and inharmonic: not the Smiler's click), the creak of the pane
+  under it, wet skin squeaking on the pane, the long groan of the glass
+  bowing in; inside, its wet raincoat rustling (the place's own drips were
+  too near). No voice; its breath is seen on the pane, never heard (four
+  of the others breathe). Heard only in its room: at its glass within 9 m,
+  and inside within 9 m of it with nothing between.
 - **The rule you learn.** *Do not stare out of a window too long.* What
   counts is your eyes on its glass: your view's line through any light of
   its window's row within 8 m (it is seen through all of them), nothing
@@ -347,7 +349,8 @@ Heights *(a window that will not open).*
   look away). At 3 s the pane ticks: it has seen you (a tell). At 5 s it
   comes up the track at 2.6 m/s while your eyes are on its glass and stands
   when they are not; it never goes back. Within 7 m of the glass (its
-  lamp's light) it needs your look no longer: it comes to the glass (the
+  lamp's light on its own) it needs your look no longer, a cover or the
+  quiet only holding it (`coming`): it comes to the glass (the
   creak, its breath misting the pane, the squeak: tells), and 2 s later,
   unless its glass is covered (it stands where it was) or the place lies
   quiet after a close call (it waits at the glass), the pane bows
@@ -355,8 +358,10 @@ Heights *(a window that will not open).*
   into its lamp's light.
 - **Its reach is the light.** Inside it can be only where its lamp's light
   falls through its window's row (`Window::lit_at`): it goes to the edge of
-  the light nearest you, at 1.8 m/s, and stands there facing you, water
-  dripping off it (a tell every 2 s). In its light, within its reach, it takes you
+  the light nearest you, at 1.8 m/s, and stands there facing you, its coat
+  rustling (a tell every 2 s). It backs off while the place lies quiet
+  (as they all do), and when it has seen you keep out of its light 12 s
+  (`KEPT_OUT`). In its light, within its reach, it takes you
   (`touch_nerve` 40: it kills only a mind already gone, spent before it
   touches, and never at a first meeting) and you are thrown down out of the light. Out of its sight 4 s
   (or 12 m off), it goes back out through the glass (2 s) and stands in the
@@ -450,7 +455,8 @@ Checked in code (`entities::brain`, the strike gate) and by the tests:
 
 A run keeps a count of your habits: hiding in the dark from a Smiler,
 outrunning a Hound, long stares at a Watcher, slipping behind the one in
-the corner, paper dropped for a Reader. Each kind unlocks **one new
+the corner, paper dropped for a Reader, getting away from the one behind
+the glass out of its light. Each kind unlocks **one new
 behaviour** (§1) when its count is reached, never from deaths, at most one
 unlock a level; the first time it happens it happens in plain sight.
 Learning you can see, not a stat that creeps up (Alien: Isolation; Hello

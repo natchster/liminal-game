@@ -28,8 +28,9 @@
 //!   your mind, `touch_nerve`), and you are thrown down out of its light.
 //!   Out of its sight `LOSES` s, or `FAR` off, it goes back out through the
 //!   glass and stands in the lamp's light, close.
-//! - **Its sound** is glass only: the tick, the creak, the breath on the
-//!   pane, the long groan of the glass bowing (`call`).
+//! - **Its sound** is glass, and its coat: the tick (a knock and the pane's
+//!   ring), the creak, wet skin squeaking on the pane, the long groan of
+//!   the glass bowing; inside, its wet raincoat rustling (`call`).
 //! - **Body**: `bodies.bin`'s `glass` (`assets/src/creatures/body_glass.py`).
 //!
 //! After SCP-2885 "Window to Another You" (Pythy, rewritten by Zyn),
@@ -85,8 +86,10 @@ pub const THROUGH_T: f64 = 2.4;
 pub const BACK_T: f64 = 2.0;
 /// Inside it moves this fast within its light, m/s
 pub const PACE: f64 = 1.8;
-/// Out of its sight this long, or this far, it goes back out, s / m
+/// Out of its sight this long, or this far, it goes back out, s / m; and
+/// when it has seen you keep out of its light this long, s
 pub const LOSES: f64 = 4.0;
+pub const KEPT_OUT: f64 = 12.0;
 pub const FAR: f64 = 12.0;
 /// Its sounds, and its tells, carry this far from its glass, m
 pub const HEARD: f64 = 9.0;
@@ -280,14 +283,17 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             }
         }
         Mode::Alert => {
-            if out <= AT_GLASS + 1e-6 {
-                // waiting at its glass: the blind up and the place no longer
-                // quiet, it presses again (two more seconds there)
+            if get(g, ei, "coming") > 0.0 {
+                // come into its lamp's light it needs your look no longer:
+                // stopped by a cover, or waiting out the quiet, it goes on
+                // when they end (at the glass, two more seconds there)
                 if !covered && !quiet {
                     set(g, ei, Mode::Hunt, "its glass uncovered");
-                    put(g, ei, "pressed_at", now);
-                    tell(g, ei, &b);
-                    call(g, ei, "creak");
+                    if out <= AT_GLASS + 1e-6 {
+                        put(g, ei, "pressed_at", now);
+                        tell(g, ei, &b);
+                        call(g, ei, "creak");
+                    }
                 }
             } else if stare >= COME {
                 set(g, ei, Mode::Stalk, "it comes while you look");
@@ -301,6 +307,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 put(g, ei, "moving", 1.0);
                 if o <= LAMP_LIGHT {
                     set(g, ei, Mode::Hunt, "in its lamp's light");
+                    put(g, ei, "coming", 1.0);
                     tell(g, ei, &b);
                 }
             } else {
@@ -314,6 +321,8 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             set(g, ei, Mode::Alert, "its glass covered");
         }
         Mode::Hunt if !inside && get(g, ei, "through") <= 0.0 => {
+            // (come on its own: a cover or the quiet only holds it)
+            put(g, ei, "coming", 1.0);
             if out > AT_GLASS + 1e-6 {
                 // to the glass on its own
                 let o = (out - WALK * dt).max(AT_GLASS);
@@ -376,6 +385,9 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 put(g, ei, "out", AT_GLASS + 1.2);
                 put(g, ei, "stare", NOTICE);
                 put(g, ei, "misted", 0.0);
+                put(g, ei, "coming", 0.0);
+                put(g, ei, "saw_you", 0.0);
+                put(g, ei, "kept_out", 0.0);
                 set(g, ei, Mode::Alert, "back out, close");
             }
         }
@@ -512,19 +524,34 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
         set(g, ei, Mode::Withdraw, "its light is gone");
         return;
     }
+    // the place lies quiet after a close call: it backs off, as they all do
+    let order = g.creature(ei).map(|c| c.brain.order).unwrap_or_default();
+    if g.director.phase == crate::entities::director::Phase::Relax || matches!(order, Order::Away(t) if t > 0.0) {
+        set(g, ei, Mode::Withdraw, "the place lies quiet");
+        return;
+    }
     let pos = g.entities[ei].pos();
     let pp = g.player.pos;
     let d = hypot2(pp.x - pos.x, pp.z - pos.z);
     let sees = d < FAR && g.e_los(pos.x, pos.z, pp.x, pp.z);
+    if sees {
+        put(g, ei, "saw_you", 1.0);
+    }
     let lost = if sees { 0.0 } else { get(g, ei, "lost_t") + dt };
     put(g, ei, "lost_t", lost);
-    if lost > LOSES {
-        set(g, ei, Mode::Withdraw, "out of its sight");
-        // you got away from it out of its light (what it learns from)
-        g.creature_habit("glass");
+    let you_lit = g.windows[b.win].lit_at(pp.x, pp.z);
+    // you in its sight and out of its light, long: it gives you up
+    let kept = if sees && !you_lit { get(g, ei, "kept_out") + dt } else { 0.0 };
+    put(g, ei, "kept_out", kept);
+    if lost > LOSES || kept > KEPT_OUT {
+        set(g, ei, Mode::Withdraw, if kept > KEPT_OUT { "you kept out of its light" } else { "out of its sight" });
+        // you got away from it out of its light (what it learns from; only
+        // if it saw you in here at all)
+        if get(g, ei, "saw_you") > 0.0 {
+            g.creature_habit("glass");
+        }
         return;
     }
-    let you_lit = g.windows[b.win].lit_at(pp.x, pp.z);
     if you_lit && d < DATA.reach && g.strike_allowed(ei) {
         set(g, ei, Mode::Strike, "you stood in its light");
         let dead = g.creature_contact(ei);
@@ -558,13 +585,13 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
         }
     }
     put(g, ei, "moving", if moving { 1.0 } else { 0.0 });
-    // it keeps giving you its tells while it is in here: the water
-    // running off its coat onto the floor
+    // it keeps giving you its tells while it is in here: its wet coat
+    // rustling
     let now = g.perf_t;
-    if now - get(g, ei, "drip_at") > 2.0 {
-        put(g, ei, "drip_at", now);
+    if now - get(g, ei, "rustle_at") > 2.0 {
+        put(g, ei, "rustle_at", now);
         tell(g, ei, b);
-        call(g, ei, "drip");
+        call(g, ei, "rustle");
     }
 }
 
@@ -971,14 +998,19 @@ fn voice_slot(g: &mut Game, ei: usize) -> Option<crate::audio::soundscape::Voice
     Some(slot)
 }
 
-/// Its calls: `tick`, `creak`, `squeak`, `groan`, and inside `drip` (only
-/// where its glass is heard: nothing is made for a sound no one could hear)
+/// Its calls: `tick`, `creak`, `squeak`, `groan`, and inside `rustle` (only
+/// where heard: at its glass, from in its room; inside, within `HEARD` of
+/// it with nothing between. Nothing is made for a sound no one could hear)
 pub fn call(g: &mut Game, ei: usize, what: &str) {
     if g.ac.is_none() {
         return;
     }
     let heard = match bound(g, ei) {
-        Some(b) => near_glass(g, &b) || get(g, ei, "inside") > 0.0,
+        Some(_) if get(g, ei, "inside") > 0.0 => {
+            let (p, pp) = (g.entities[ei].pos(), g.player.pos);
+            hypot2(p.x - pp.x, p.z - pp.z) < HEARD && g.e_los(p.x, p.z, pp.x, pp.z)
+        }
+        Some(b) => near_glass(g, &b),
         None => true,
     };
     if !heard {
@@ -988,10 +1020,12 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
     let Some(v) = voice_slot(g, ei).map(|slot| slot.input.clone()) else { return };
     let t = g.ac_time();
     match what {
-        // glass under stress: one sharp tick and the pane's short ring
+        // the pane under strain: a dull knock and the plate's ring, its
+        // partials inharmonic (not a click: the Smiler clicks)
         "tick" => {
-            s.burst(&v, t, 0.03, "bandpass", 4200.0, 2.0, 1.0, Some(3600.0), 0.001);
-            s.tone(&v, t, 0.3, 3900.0, 0.12, "sine", Some(3750.0), 0.001);
+            s.burst(&v, t, 0.02, "bandpass", 1300.0, 1.5, 0.5, None, 0.001);
+            s.tone(&v, t, 0.6, 1170.0, 0.10, "sine", Some(1160.0), 0.001);
+            s.tone(&v, t, 0.35, 2710.0, 0.05, "sine", Some(2690.0), 0.001);
         }
         // the pane under its weight: a low dry flex
         "creak" => {
@@ -1000,15 +1034,15 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
         }
         // wet skin dragged on the glass: a short squeal, twice
         "squeak" => {
-            s.burst(&v, t, 0.22, "bandpass", 2300.0, 9.0, 0.12, Some(2900.0), 0.02);
-            s.burst(&v, t + 0.42, 0.16, "bandpass", 2700.0, 9.0, 0.09, Some(2200.0), 0.02);
+            s.burst(&v, t, 0.22, "bandpass", 3300.0, 9.0, 0.06, Some(3900.0), 0.02);
+            s.burst(&v, t + 0.42, 0.16, "bandpass", 3700.0, 9.0, 0.045, Some(3200.0), 0.02);
         }
-        // the water running off its coat onto the floor: drips
-        "drip" => {
-            for (d, f) in [(0.0, 1500.0), (0.37, 1250.0), (0.81, 1650.0)] {
-                s.tone(&v, t + d, 0.06, f, 0.10, "sine", Some(f * 0.45), 0.001);
-                s.burst(&v, t + d, 0.02, "bandpass", f * 1.8, 4.0, 0.05, None, 0.001);
-            }
+        // its wet raincoat: rubberised cloth rustling, the stiff cloth
+        // creaking as it shifts (the place drips: this is not a drip)
+        "rustle" => {
+            s.burst(&v, t, 0.28, "bandpass", 1100.0, 0.9, 0.16, Some(800.0), 0.03);
+            s.burst(&v, t + 0.31, 0.2, "bandpass", 1300.0, 0.9, 0.12, Some(950.0), 0.03);
+            s.note(&v, t + 0.05, 0.35, 260.0, 0.04, "triangle", Some(215.0), 0.05, 0.15);
         }
         // the glass bowing in, long and low, and a wet squeal of skin on it
         "groan" => {

@@ -9,7 +9,7 @@ paths:
 
 # Creature and pacing rules
 
-- **The plan is `docs/ENTITIES.md`**: five creatures, five rules (one sense
+- **The plan is `docs/ENTITIES.md`**: six creatures, six rules (one sense
   and one counter each), one brain, fairness as invariants. Every kind
   `add_entity` makes is on the brain (`creature::on_new_brain`); `ai.rs`
   keeps only the shared steering and the update loop (the anomalies' staff
@@ -54,8 +54,8 @@ paths:
   through `creature_contact` (the first of a kind in a run knocks you down,
   never through your nerve: a contact that is not the end leaves
   `KNOCKED_LEAVES`; a second in a peak, or one on a spent nerve, kills; a kind with
-  `touch_nerve` takes that much nerve each touch and kills only a mind it
-  leaves spent); chases through
+  `touch_nerve` takes that much nerve each touch and kills only a mind
+  already spent before it touches); chases through
   `creature_go` (capped at `CHASE_CAP`), bursts through `creature_burst`
   (`BURST_CAP` over `BURST_LEN`). Give a tell with `creature_tell`; a kind that hunts must keep giving
   tells you could perceive while it comes (the Smiler's breath, the

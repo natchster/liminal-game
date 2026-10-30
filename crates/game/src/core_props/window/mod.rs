@@ -441,7 +441,9 @@ impl Game {
             let at = w.light_centre(k);
             let d = crate::base::numeric::hypot2(at.x - pp.x, at.z - pp.z);
             let open = (0..w.lights.len()).any(|k| !w.covered(k));
-            let level = if d < HUM_REACH && open { 1.0 - 0.75 * hush } else { 0.0 };
+            // (in its room: round the other side of its wall it is a wall)
+            let front = w.world(w.local(&at).x, 1.0, w.depth + 0.1);
+            let level = if d < HUM_REACH && open && self.los(pp.x, pp.z, front.x, front.z) { 1.0 - 0.75 * hush } else { 0.0 };
             if w.hum.is_none() {
                 if level <= 0.0 {
                     continue;

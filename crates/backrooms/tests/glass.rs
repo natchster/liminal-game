@@ -656,3 +656,99 @@ fn got_away_from_twice_its_lamp_hangs_lower_and_its_light_lies_further_in() {
     println!("its light reached {before:.2} m in, now {after:.2} m");
     assert!(after > before + 0.3, "its light lies no further in ({before:.2} m, now {after:.2} m)");
 }
+
+// ------------------------------------------------------------ the second lore review
+
+#[test]
+fn come_into_its_light_it_needs_your_look_no_longer_even_after_a_cover() {
+    let (mut g, ei) = level_with_one();
+    let b = g.behind_glass.clone().unwrap();
+    // it has come into its lamp's light on its own and is on its way in
+    put_out(&mut g, ei, LAMP_LIGHT + 0.1, Mode::Stalk, COME);
+    stand(&mut g, 1.6, true);
+    run(&mut g, ei, 0.2);
+    assert_eq!(mode(&g, ei), Mode::Hunt);
+    // covered on the way: it stands where it was
+    stand(&mut g, 1.6, false);
+    for &k in &b.row {
+        g.windows[b.win].lights[k].blind = Some(Blind { down: 1.0, open: 0.0, skew: 0.0 });
+    }
+    run(&mut g, ei, 1.0);
+    let held = get(&g, ei, "out");
+    assert!(held > AT_GLASS + 0.5, "covered, it came on to the glass ({held:.2} m)");
+    run(&mut g, ei, 2.0);
+    assert!((get(&g, ei, "out") - held).abs() < 1e-9, "covered, it moved");
+    // uncovered, with no look at all: it goes on to the glass and through
+    for &k in &b.row {
+        g.windows[b.win].lights[k].blind = Some(Blind { down: 0.0, open: 0.6, skew: 0.0 });
+    }
+    run(&mut g, ei, (held - AT_GLASS) / WALK + PRESS_T + THROUGH_T + 0.5);
+    assert!(!glass::outside(&g, ei), "uncovered, it waited for your look");
+}
+
+#[test]
+fn gone_back_out_it_needs_a_long_look_again() {
+    let (mut g, ei) = level_with_one();
+    inside(&mut g, ei);
+    // out of its sight: back out, close
+    let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
+        let p = g.entities[ei].pos();
+        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).hypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
+    });
+    let (x, z) = far.unwrap();
+    g.player.pos = Vec3::new(g.wx(x), g.player.pos.y, g.wz(z));
+    run(&mut g, ei, LOSES + glass::BACK_T + 0.5);
+    assert_eq!(mode(&g, ei), Mode::Alert);
+    // unwatched, it stays where it is
+    stand(&mut g, 1.6, false);
+    run(&mut g, ei, 5.0);
+    assert!(glass::outside(&g, ei) && (get(&g, ei, "out") - (AT_GLASS + 1.2)).abs() < 1e-9, "unwatched, it came again");
+    // a long look (its look drained a little while it stood unwatched):
+    // straight back
+    let need = COME - get(&g, ei, "stare");
+    assert!(need > 1.0, "it needs only {need:.2} s of your look");
+    stand(&mut g, 1.6, true);
+    run(&mut g, ei, need + 0.2);
+    assert_eq!(mode(&g, ei), Mode::Hunt, "a long look did not bring it");
+}
+
+#[test]
+fn inside_it_backs_off_when_the_place_lies_quiet_or_you_keep_out_of_its_light() {
+    // the place quiet: it goes back out
+    let (mut g, ei) = level_with_one();
+    inside(&mut g, ei);
+    g.director.phase = Phase::Relax;
+    run(&mut g, ei, 0.2);
+    assert_eq!(mode(&g, ei), Mode::Withdraw);
+    assert_eq!(why_into(&g, ei, Mode::Withdraw), Some("the place lies quiet"));
+    // you in its sight and out of its light: it gives you up, and that is a
+    // getting away from it
+    let (mut g, ei) = level_with_one();
+    inside(&mut g, ei);
+    let b = g.behind_glass.clone().unwrap();
+    let w = &g.windows[b.win];
+    let p = g.entities[ei].pos();
+    let spot = (2..40)
+        .map(|s| w.world(b.x, 0.0, w.depth + s as f64 * 0.2))
+        .find(|q| {
+            !w.lit_at(q.x, q.z) && !g.circle_hits_wall(q.x, q.z, 0.3) && g.los(q.x, q.z, p.x, p.z) && (q.x - p.x).hypot(q.z - p.z) > 1.5
+        })
+        .expect("no place out of its light in its sight");
+    g.player.pos = Vec3::new(spot.x, g.player.pos.y, spot.z);
+    let habits = g.creature_run.habits.get("glass").copied().unwrap_or(0);
+    run(&mut g, ei, glass::KEPT_OUT + 0.5);
+    assert_eq!(why_into(&g, ei, Mode::Withdraw), Some("you kept out of its light"));
+    assert_eq!(g.creature_run.habits.get("glass").copied().unwrap_or(0), habits + 1, "not counted as got away from");
+    // ... and going in and out of an empty room is no getting away
+    let (mut g, ei) = level_with_one();
+    inside(&mut g, ei);
+    let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
+        let p = g.entities[ei].pos();
+        !g.is_wall_tile(x, z) && (g.wx(x) - p.x).hypot(g.wz(z) - p.z) > 20.0 && !g.los(g.wx(x), g.wz(z), p.x, p.z)
+    });
+    let (x, z) = far.unwrap();
+    g.creature_mut(ei).unwrap().ease.insert("saw_you", 0.0);
+    g.player.pos = Vec3::new(g.wx(x), g.player.pos.y, g.wz(z));
+    run(&mut g, ei, LOSES + 0.5);
+    assert_eq!(g.creature_run.habits.get("glass").copied().unwrap_or(0), 0, "an empty room counted as getting away");
+}
