@@ -312,7 +312,7 @@ game takes ideas from them, writes its own words, and credits each in
 
 All CC BY-SA 3.0; authors as the wiki credits them.
 
-- [Backrooms Level 188 "The Courtyard of Windows"](https://backrooms-wiki.wikidot.com/level-188) by Kai4C: an atrium of white concrete with windows at exact intervals, cold and silent. Used for: the Well.
+- [Backrooms Level 188 "The Courtyard of Windows"](https://backrooms-wiki.wikidot.com/level-188) by 1000dumplings, rewritten by Kai4C: an atrium of white concrete with windows at exact intervals, cold and silent. Used for: the Well.
 - [SCP-2723 "The Prophet's Tower"](https://scp-wiki.wikidot.com/scp-2723) by HotCocoaNerd: open-sided floors round one stair in a fog, built on by something at the top that never stops. Used for: the Stair Halls (the architecture only).
 - [SCP-4370 "Post-Industrial"](https://scp-wiki.wikidot.com/scp-4370) by UraniumEmpire: endless works too big to be underground, ceilings lost in the dark, machines running untended. Used for: the Works (no hunter).
 - [SCP-5778 "Hidden In Plain Sight"](https://scp-wiki.wikidot.com/scp-5778) by MarcusLCrassus: concrete tunnels 15 × 20 × 180 m to one hub, placards and lights and air that never switch off. Used for: the Works' signs and lamps for nobody.
@@ -428,4 +428,21 @@ Gathered on 2026-10-29 by two research passes for
 - Read: SCP-261 (Dr Gears), SCP-294 (Arcibi), SCP-8733 (mothmanUXO), SCP-6593 (PlaguePJP), all CC BY-SA 3.0; Backrooms Levels 4, 6.1, 58, 187, 317 and Entity 36 (Wikidot), Levels 334, 986, 479 (Fandom), all CC BY-SA, with their authors in the note; Eiji Ohashi's *Roadside Lights* ([Hyperallergic](https://hyperallergic.com/409582/the-eerie-allure-of-japanese-vending-machines/)); Lethal Company's counter ([wiki](https://lethal-company.fandom.com/wiki/The_Company_Monster)); Control's altered vending machine; BioShock's Circus of Values; Japanese legends (motifs only).
 - Say: the lone lit machine is the image (the only living light, which leads you and draws what else is there); price everything in what the game has, noise above all, and warn before you punish; rules, not dice, fixed per machine; no talking, no jump scares, no gore, and a prop never becomes a creature; the real warning label reads like the canon note.
 - Used for: the rules (`VENDING.md`, the design): "insert coin, get nothing" as a silence (the note's *Change and Nothing*), the lit one's rhythm (*The Lit One*), rocking it loose and its fall (*Rock It*); nothing is taken from any one story.
+
+## 13. The windows: real windows, and windows that look back
+
+Gathered on 2026-10-30 by two research passes for
+[`WINDOWS.md`](WINDOWS.md); the notes are kept whole in
+[`research/`](research/README.md) (`windows-real.md`, `window-horror.md`),
+every claim linked.
+
+**The real window** ([`research/windows-real.md`](research/windows-real.md)).
+- Read: the US National Park Service's preservation briefs on [wood](https://www.nps.gov/orgs/1739/upload/preservation-brief-09-wood-windows.pdf) and [steel](https://www.nps.gov/orgs/1739/upload/preservation-brief-13-steel-windows.pdf) windows and its technical notes on [replacement sash](https://www.nps.gov/orgs/1739/upload/tech-note-windows-21-replacement-wood-sash.pdf) and [aluminium windows](https://www.nps.gov/orgs/1739/upload/tech-note-windows-22-historic-aluminum-windows.pdf); Marvin's and Andersen's manuals, Kawneer's framing; a contract mini blind's cut sheet; ASHRAE's history of post-war offices; the Fresnel equations, Toet and Alferdinck on dirty glass; van Dongen's interior mapping, Lagarde's parallax-corrected cubemaps, three.js's GroundedSkybox; Poly Haven's and ambientCG's CC0 licences and panoramas; photographs on Wikimedia Commons (each licence on its page).
+- Say: a double-hung sash's upper sash is outboard, a meeting rail at mid-height, muntins 19 mm, a frame 116 mm deep; office strip windows are fixed lights between 50 × 114 mm mullions over a convector; glass reflects 4% a face square on and all of it at a graze, and at night a lit room's window is a mirror; windows age where water stands; mini blinds hang crooked; a view without parallax, a box with no reveal and clean glass look fake; a ground-projected panorama is exact for flat ground from any eye.
+- Used for: the two kinds of window, their sizes and wear, the blinds, the glass, the view and how it is drawn (`WINDOWS.md` 1–2).
+
+**The window that looks back** ([`research/window-horror.md`](research/window-horror.md)).
+- Read: SCP-965 (ChazzK), SCP-1148 (Timmantha), SCP-675, SCP-419, SCP-2885 (Pythy, rewrite Zyn), SCP-508 (Hamsterhuey), SCP-7640, SCP-987-ARC, SCP-L682 (CRAt26), SCP-3052 (Witryso), SCP-2316 (djkaktus), SCP-397-JP, SCP-955-JP, SCP-CN-1779, SCP-CN-446, all CC BY-SA 3.0; the Backrooms' [Entity 2, "The Windows"](https://backrooms-wiki.wikidot.com/entity-2) (concept u/glassydude101, rewrite DrAkimoto) and Level 188 (1000dumplings, rewrite Kai4C), CC BY-SA 3.0; Kunekune and Yamanoke (2ch, motifs only); *Wuthering Heights*, *Dracula*, M. R. James, Gogol's *Viy*, Poe's "The Raven", Wells's "The Crystal Egg", Lovecraft's "The Music of Erich Zann" (public domain); Irish, Ukrainian and East Slavic customs; Slender, Look Outside and others (mechanics only).
+- Say: the look that takes time and sharpens; a reach short and exact; covering as the counter, and a counter that must not be inverted (SCP-397-JP); a figure that faces you from every angle; through the glass without breaking it; what came in known by its shadow on the floor; a line on the floor it cannot cross; the outside that should not exist.
+- Used for: the one behind the glass (`WINDOWS.md` 4): the look that adds up, its coming only while seen, its reach the lamp's light, the blind; nothing is taken from any one story.
 

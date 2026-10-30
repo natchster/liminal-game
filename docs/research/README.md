@@ -25,3 +25,12 @@ Two more notes were gathered on 2026-10-29 for the vending machine
 |---|---|
 | [`vending-machines.md`](vending-machines.md) | Real glass-front snack and lit-panel drink machines from their factory manuals (AP Snackshop 113/123/133, Crane National 167, Dixie-Narco 501E): sizes, the glass, trays and spirals (counts, depths, how a product sits and sticks), price rolls and codes, keypads and display messages, money and the delivery bin, feet and the lean, the one tube inside; how they age (photographs and their licences); their sounds; stuck snacks, drop sensors, tipping deaths; CC0 surfaces; what looks fake |
 | [`vending-horror.md`](vending-horror.md) | Uncanny vending machines: SCP-261, 294, 8733 and others; the Backrooms wikis' machines and the Backrooms games'; Japanese legends, creepypasta, Ohashi's *Roadside Lights*, the CPSC's tipping deaths; machines in games (BioShock, Half-Life, Lethal Company's counter, Control, Fallout, RE4, Yume Nikki); why a mundane machine turns uncanny, what players will try, design lessons; eight concepts and three picks |
+
+Two more were gathered on 2026-10-30 for the windows
+([`../WINDOWS.md`](../WINDOWS.md)), summed up in
+[`../SOURCES.md`](../SOURCES.md) section 13:
+
+| Note | What it covers |
+|---|---|
+| [`windows-real.md`](windows-real.md) | Real windows of the buildings the rooms imitate (wood double-hung sash, rolled-steel hoppers, aluminium, office storefront framing): their sizes, sills, reveals and trim, hardware, finishes, how they age (NPS briefs, manufacturers' manuals, a tower survey), blinds and curtains (a contract mini blind's cut sheet); how glass looks (Fresnel, the night mirror, double glazing, tint, old glass, dirt and veiling glare, smears); how games show a view beyond a window (skybox, ground-projected panoramas, interior mapping, parallax-corrected cubemaps, layered planes, portals) and what holds up; seventeen CC0 panoramas; what looks fake; window types, sizes and glass for this game |
+| [`window-horror.md`](window-horror.md) | Windows that look back: fifteen SCP articles (SCP-965, 1148, 2885, 508, 3052, L682 and others, with the Japanese and Chinese branches'), the Backrooms' Windows (Entity 2) and Level 188, Kunekune and Yamanoke, creepypasta, Soviet children's horror and Russian window taboos; public-domain literature (*Wuthering Heights*, *Dracula*, M. R. James, *Viy*, Poe, Wells, Lovecraft) and folk custom; games and films; why window horror works; how it must differ from the canon's gaze rules; seven concepts and three picks |

@@ -740,7 +740,8 @@ found on the floors.
   outside, the siren, the fog, the hermetic door, the knocking at it, the
   cleaners after. We use the motifs and our own words, and no named
   character or story from any author. The Building's places also take from
-  **Backrooms Level 188** "The Courtyard of Windows" by **Kai4C**
+  **Backrooms Level 188** "The Courtyard of Windows" by **1000dumplings**,
+  rewritten by **Kai4C**
   (<https://backrooms-wiki.wikidot.com/level-188>), **SCP-2723** "The
   Prophet's Tower" by **HotCocoaNerd** (<https://scp-wiki.wikidot.com/scp-2723>),
   **SCP-4370** "Post-Industrial" by **UraniumEmpire**
