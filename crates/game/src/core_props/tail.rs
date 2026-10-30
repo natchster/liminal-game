@@ -247,9 +247,10 @@ impl Game {
         }
     }
 
-    /// A torn page on the floor with a
-    /// glow; boosted (arc continuation) notes glow brighter in the arc colour
-    /// and get a billboarded beacon.
+    /// A torn page on the floor, one corner curled up, a few lines of
+    /// writing on it: lit only as the floor is (no glow). A note that
+    /// continues a story already begun is written in that story's ink
+    /// (`ink_of` its colour), which only a near look tells.
     pub(crate) fn build_lore_note_mesh(&mut self, boosted: bool, arc_color: Option<u32>) -> Obj {
         let g = group();
         // torn sheet at floor level
@@ -262,50 +263,36 @@ impl Game {
         curl.rotation().x = -0.5;
         curl.rotation().z = 0.3;
         g.add(&curl);
-        // scribbled ink lines
-        let ink_mat = lambert!({ color: 0x1a1408 });
+        // its lines of writing
+        let ink = match arc_color {
+            Some(c) if boosted && c != 0 => ink_of(c),
+            _ => INK,
+        };
+        let ink_mat = lambert!({ color: ink });
         for l in 0..4 {
             let line = mesh(box_geo!(0.20, 0.001, 0.006), &ink_mat);
             line.set_pos(0, 0.010, -0.10 + l as f64 * 0.06);
             g.add(&line);
         }
-        let glow_radius = if boosted { 0.32 } else { 0.20 };
-        let glow_opacity = if boosted { 0.35 } else { 0.15 };
-        let glow_color: u32 = match arc_color {
-            Some(c) if boosted && c != 0 => c,
-            _ => {
-                if boosted {
-                    0xffd070
-                } else {
-                    0xf8e0a0
-                }
-            }
-        };
-        let glow = mesh(
-            circle_geo!(glow_radius, 14),
-            basic_mat!({ color: glow_color, transparent: true, opacity: glow_opacity, blending: AdditiveBlending, depthWrite: false }),
-        );
-        glow.rotation().x = -PI / 2.0;
-        glow.position().y = 0.02;
-        g.add(&glow);
-        // a taller vertical "beacon" halo for boosted notes
-        if boosted {
-            self.add_lore_beacon(&g, glow_color);
-        }
         g
     }
 
-    /// The tall halo over a note that continues a story already begun,
-    /// billboarded toward the camera.
-    pub(crate) fn add_lore_beacon(&mut self, g: &Obj, color: u32) {
-        let beacon = mesh(
-            plane_geo!(0.18, 0.60),
-            basic_mat!({ color: color, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }),
-        );
-        beacon.position().y = 0.32;
-        g.add(&beacon);
-        // billboard the beacon toward the camera each frame
-        self.animate(move |g, _dt, _t| crate::core_props::weather_fx::look_at_level(&beacon, &g.camera));
+    /// A note you have read (when every note here was read): its curled
+    /// corner turned down flat over it, as you left it
+    pub(crate) fn turn_down_note(g: &Obj) {
+        if let Some(curl) = g.children().get(1) {
+            curl.set_pos(0.08, 0.0115, 0.11);
+            curl.rotation().x = 0.0;
+            curl.rotation().z = 0.0;
+        }
+    }
+
+    /// A note's writing, in `color`'s ink
+    pub(crate) fn ink_note(g: &Obj, color: u32) {
+        let m = lambert!({ color: ink_of(color) });
+        for line in g.children().iter().skip(2) {
+            line.set_mat(m.clone());
+        }
     }
 
     /// LORE NOTES: 2–4 per level (plus the level's anomaly notes first), each
@@ -336,28 +323,6 @@ impl Game {
         all.extend(pool);
         let pool = all;
         let note_count = irand(2, 4) + scp_notes.len() as i64;
-        // hand-drawn downward arrows (three chevrons + "?"), rust-red like the graffiti
-        let lore_arrow_tex = canvas_tex_opt(128, 256, false, |ctx, w, h| {
-            ctx.set_fill_style("rgba(0,0,0,0)");
-            ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style("rgba(140,20,15,0.95)");
-            ctx.set_line_width(10);
-            ctx.set_line_cap("round");
-            for i in 0..3 {
-                let y = 55.0 + i as f64 * 60.0;
-                ctx.begin_path();
-                ctx.move_to(24, y);
-                ctx.line_to(w / 2.0, y + 45.0);
-                ctx.line_to(w - 24.0, y);
-                ctx.stroke();
-            }
-            ctx.set_font("bold 42px monospace");
-            ctx.set_fill_style("rgba(140,20,15,0.9)");
-            ctx.set_text_align("center");
-            ctx.fill_text("?", w / 2.0, 44);
-        });
-        let lore_arrow_mat = basic_mat!({ map: lore_arrow_tex, transparent: true, depthWrite: false });
-        let lore_check_mat = lore_check_mat();
 
         let mut i = 0i64;
         while i < note_count {
@@ -375,29 +340,11 @@ impl Game {
             m.set_pos_v(&jitter_pos(self, &c, 0.0));
             m.rotation().y = rand1(PI * 2.0);
             self.world.add(&m);
-            self.lore_notes.push(LoreNote { g: m.clone(), taken: false, id, clue: None });
-            // a wall clue if the note tile has an adjacent wall
-            let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { continue };
-            let already_read = self.lore_found.contains(&id);
-            let clue_mat = if already_read {
-                lore_check_mat.clone()
-            } else if s_lore_note_boosted(self, id) && arc_for_note.is_some() {
-                // arc-tinted arrow so the wall trail matches the beacon
-                let m = lore_arrow_mat.duplicate();
-                m.m().color.set_hex(arc_color.unwrap_or(0));
-                m
-            } else {
-                lore_arrow_mat.clone()
-            };
-            let clue = mesh(plane_geo!(0.35, 0.70), &clue_mat);
-            clue.set_pos_v(&off_wall(&spot, 0.035));
-            clue.position().y = 1.35 + rand2(-0.05, 0.05);
-            clue.rotation().y = spot.yaw;
-            // tiny rotation about the wall normal for a hand-scribbled look
-            clue.rotation().z = rand2(-0.10, 0.10);
-            self.world.add(&clue);
-            if let Some(n) = self.lore_notes.last_mut() {
-                n.clue = Some(clue.clone());
+            self.lore_notes.push(LoreNote { g: m.clone(), taken: false, id });
+            // (the draws of the wall's mark that once pointed at it, kept so
+            // nothing placed after it moves: a note lies as paper lies)
+            if s_wall_adj_spot(self, c.x, c.z).is_some() {
+                let _ = (rand2(-0.05, 0.05), rand2(-0.10, 0.10));
             }
         }
     }
@@ -1565,23 +1512,10 @@ impl Game {
 }
 
 /// The wall mark over a note already read: a pencil check and READ.
-pub(crate) fn lore_check_mat() -> Mat {
-    let lore_check_tex = canvas_tex_opt(128, 256, false, |ctx, w, h| {
-        ctx.set_fill_style("rgba(0,0,0,0)");
-        ctx.fill_rect(0, 0, w, h);
-        ctx.set_stroke_style("rgba(90,75,55,0.7)");
-        ctx.set_line_width(12);
-        ctx.set_line_cap("round");
-        ctx.set_line_join("round");
-        ctx.begin_path();
-        ctx.move_to(w * 0.20, h * 0.55);
-        ctx.line_to(w * 0.45, h * 0.78);
-        ctx.line_to(w * 0.85, h * 0.30);
-        ctx.stroke();
-        ctx.set_font("bold 26px monospace");
-        ctx.set_fill_style("rgba(90,75,55,0.65)");
-        ctx.set_text_align("center");
-        ctx.fill_text("READ", w / 2.0, 40);
-    });
-    basic_mat!({ map: lore_check_tex, transparent: true, depthWrite: false, opacity: 0.65 })
+/// The ink of an ordinary note
+const INK: u32 = 0x1a1408;
+/// A story's colour as ink: dark, as ink dries on paper
+pub(crate) fn ink_of(color: u32) -> u32 {
+    let ch = |k: u32| (((color >> k) & 0xff) as f64 * 0.42 + 8.0).min(255.0) as u32;
+    (ch(16) << 16) | (ch(8) << 8) | ch(0)
 }

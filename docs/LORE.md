@@ -118,8 +118,11 @@ region (the light carries down a dark hall), and it **calls**, every nine
 seconds or so: air drawn under the door and the sign's relay ticking,
 heard from a few rooms away and muffled by walls. In a hush it goes quiet
 with everything else. The Loop's ordinary office door has neither. Crying
-out for help may still answer with arrows on the floor (or with something
-else), and so may a payphone.
+out for help may still be answered by the place, never by a sign: the lit
+panels over the way to the door stutter one after another away from you
+toward it, or wet bare footprints, nobody's, walk ahead of you toward it a
+pace apart and dry away (or something else answers). A payphone may say
+where to look, and the place shows the rest.
 
 Deeper levels rot: more of the floor is grimy, more regions are dark, the fog
 is thicker and the hum wanders off pitch. The Lobby leaks into every level of
@@ -237,20 +240,37 @@ Someone came this way before you, and you can follow her down.
   went in after him, followed his marks down, and left her own. Neither of
   them is ever named in full, and nothing says how they are related; the
   pages let you work it out.
-- **Her trail.** From where you arrive, sheets of paper folded twice, each
-  with a pencil arrow, lie along the way she walked: to her camp, then on to
-  the door. Each one can be seen from the last, but only just, and they get
-  sparser as you go down (every three tiles of walk at first, every five
-  deep down); from level 4 a stretch after her camp has lost its sheets
-  (two from level 7), and you have to find where she went.
+- **Her trail.** From where you arrive, her marks lie along the way she
+  walked: to her camp, then on to the door. At first they are sheets of
+  paper folded twice, each with a small pencil arrow; she runs short of
+  paper as she goes down, and marks the way with what she has: three bits
+  of whatever lies there, stacked, the third set beside them the way she
+  went (concrete chips on the Building's decks, bits of ceiling tile,
+  bottle caps); her arrow in pencil on a wall at hip height (from the
+  second floor); two short strokes on the wall where her way turns, the
+  upper set toward the turn (from the third); a corner torn off a sheet,
+  its tip on, and a chalk stroke low on a wall, leaning on (from the
+  fifth); a strip of reflective tape on a wall in the dark, which only a
+  lamp brings out (from the seventh). Most of her marks are sheets on the
+  Building's floors, about half on levels 4 to 6, under a third on 7 to
+  10, few at the bottom. One
+  hand runs through them all: her arrows are drawn open, never filled, the
+  left barb longer than the right. Nothing says so. None of them glows.
+  Each can be seen from the last, but only just (a small mark lies nearer
+  the last than a sheet does), and they get sparser as you go down (every
+  three tiles of walk at first, every five deep down); from level 4 a
+  stretch after her camp has lost its marks (two from level 7), and you
+  have to find where she went (`docs/SECRETS.md` 1).
 - **Trails that are not hers.** From the floor of her page that says *not
   all the paper down here is mine* (the sixth of her floor pages), a trail
-  of whole, flat sheets with heavy black arrows leaves hers and goes into a
-  dead end; two from the floor of her seventh. Something is waiting at the
-  end: you hear it breathe close by in the dark, and something is sent for
-  you, or the one already coming learns where you are. Hers are folded
-  twice; nothing says so but her first page. Who lays the flat sheets is
-  never said.
+  of whole, flat sheets leaves hers and goes into a dead end; two from the
+  floor of her seventh. They are laid as no tired person walks: one in the
+  middle of the floor every two tiles, the same heavy black arrow stamped
+  on every one, filled and even. Something is waiting at the end: you hear
+  it breathe close by in the dark, and something is sent for you, or the
+  one already coming learns where you are. Hers are folded twice, and
+  drawn by a hand; nothing says so but her first page. Who lays the flat
+  sheets is never said.
 - **Her camp.** On every floor, somewhere off the straight way, against a
   wall (on the Building's floors, in a cell): a bedroll with a blanket
   thrown over it, her pack, a candle lantern
@@ -636,8 +656,10 @@ plaque that says STAIRS. Behind it:
   other way. Whatever reads in the office wings must stop for a sheet on the
   floor, and keeps the ones you drop.
 - **Lore notes** are torn pages left by those who came before: Elias, M., the
-  field surveys, the Stairwell logs. The notebook (Tab) keeps them, typed,
-  after hers.
+  field surveys, the Stairwell logs. They lie as paper lies, lit only as
+  the floor is; one that goes on with a story you began is written in that
+  story's ink, and one you have read lies with its corner turned down. The
+  notebook (Tab) keeps them, typed, after hers.
 - **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
 - **Crying** out loud is desperate. Something answers.

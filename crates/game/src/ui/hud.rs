@@ -1505,14 +1505,14 @@ impl Game {
         // No compass: the way down is found by the place (the door's light
         // and sound, her trail) or by asking for help. The payphone's hint
         // (`answer_payphone` sets `hintUntil`) is answered the same way as a
-        // cry for help that is heard: the arrows on the floor.
+        // cry for help that is heard: the place shows the way (`show_the_way`).
         let hint = self.phone_data.as_ref().map(|ph| (ph.f.get("hintUntil").copied().unwrap_or(0.0), ph.f.contains_key("hintShown")));
         if let Some((until, shown)) = hint {
             if until != 0.0 && self.perf_t < until && !shown {
                 if let Some(ph) = self.phone_data.as_mut() {
                     ph.f.insert("hintShown".into(), 1.0);
                 }
-                self.spawn_guide_arrows();
+                self.show_the_way();
             }
         }
 

@@ -658,6 +658,10 @@ fn the_whole_run_live() {
         .map(|s| s.split(',').filter_map(|x| x.parse().ok()).collect())
         .unwrap_or_else(|| vec![101, 202, 303]);
     for seed in seeds {
+        // the frames' randomness from the run's seed, not the clock: a run
+        // that fails can be played again as it was (it had run out of time
+        // on one level in a few runs and passed in the next)
+        game::base::rng::seed_native(seed as u64);
         let (met, deaths) = play(seed, 14, true);
         println!("run {seed}, live: {} levels, {} deaths {deaths:?}", met.len(), deaths.len());
         assert!(deaths.len() <= 4, "run {seed}: {} deaths on the way: {deaths:?}", deaths.len());

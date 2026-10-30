@@ -48,7 +48,8 @@ impl Game {
     /// is the same place. Here, after the build, a note already read is
     /// swapped for one not yet read (chosen on a stream of its own, so the
     /// build's draws never move), a note continuing a story already begun
-    /// glows in that story's colour, and a note left read gets the READ mark.
+    /// is written in that story's ink, and a note left read lies with its
+    /// corner turned down.
     pub fn fit_lore_notes(&mut self) {
         let n = self.lore_entry_count();
         let placed: std::collections::BTreeSet<usize> = self.lore_notes.iter().map(|x| x.id).collect();
@@ -66,29 +67,14 @@ impl Game {
                     self.lore_notes[k].id = new;
                 }
             }
-            let (id, g, clue) = (self.lore_notes[k].id, self.lore_notes[k].g.clone(), self.lore_notes[k].clue.clone());
+            let (id, g) = (self.lore_notes[k].id, self.lore_notes[k].g.clone());
             if self.lore_found.contains(&id) {
-                if let Some(c) = clue {
-                    c.set_mat(crate::core_props::tail::lore_check_mat());
-                }
+                Game::turn_down_note(&g);
                 continue;
             }
             let Some(arc) = self.lore_arc_for(id).filter(|_| self.lore_note_boosted(id)) else { continue };
-            let color = self.lore_arc_color(arc);
-            // the glow under the sheet (its last part, built plain): wider,
-            // brighter, in the story's colour
-            if let Some(glow) = g.children().last() {
-                glow.scale().set(1.6, 1.6, 1.6);
-                let m = glow.mat();
-                m.m().color.set_hex(color);
-                m.m().opacity = 0.35;
-            }
-            self.add_lore_beacon(&g, color);
-            if let Some(c) = clue {
-                let m = c.mat().duplicate();
-                m.m().color.set_hex(color);
-                c.set_mat(m);
-            }
+            // written in the ink of the story it continues
+            Game::ink_note(&g, self.lore_arc_color(arc));
         }
     }
 }

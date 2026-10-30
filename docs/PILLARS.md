@@ -112,6 +112,14 @@ that the emptiness is watching.*
     line; the door is lit into the light map and calls from where it stands.
     *Test:* the HUD has no compass (`tests/hud.rs`); `the_door_is_heard`
     (gate, `tests/listen.rs`); the exit view in `--dump-level … --views`.
+  - Rule: what guides you was made by someone or is the place itself,
+    never a sign: her marks are a hand you learn to read (one quirk through
+    many kinds, less paper deeper down, never lit), and a cry is answered by
+    the place (the lights along the way, footprints), with no glow, chime or
+    line. *Test:* `her_marks_change_as_she_goes_down`,
+    `her_trail_leads_through_her_camp_to_the_door` (gate, `tests/story.rs`),
+    `the_way_is_shown_along_the_way_to_the_door` (gate,
+    `crates/game/tests/player.rs`); the mark views in `--views`.
 
 ## 5. Dread, then release
 

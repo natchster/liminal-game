@@ -1,5 +1,5 @@
 //! The player module on a synthetic level:
-//! movement, stamina, battery, items, pickups, markers, crying, guide arrows,
+//! movement, stamina, battery, items, pickups, markers, crying, the way shown,
 //! the vacuum bot, the broken elevator, safe room / dark zones, pools, faulty
 //! light switches and the keydown actions.
 //!
@@ -11,6 +11,7 @@
 
 use engine::audio::AudioContext;
 use game::base::records::*;
+use game::player::{WAY_PACE, WAY_PRINTS, WAY_PRINT_LIFE, WAY_PRINT_STEP};
 use game::prelude::*;
 use game::visuals::lighting::RF_DARK;
 use std::collections::HashMap;
@@ -88,7 +89,7 @@ fn release(g: &mut Game, code: &str) {
     g.key_up(code);
 }
 
-/// One frame of the player-side loop: `update_player`, the guide arrows / cry
+/// One frame of the player-side loop: `update_player`, the way's prints / cry
 /// timers, the clocks, the timeouts.
 fn frame(r: &mut Rig, dt: f64) {
     let g = &mut r.g;
@@ -106,7 +107,7 @@ fn frame(r: &mut Rig, dt: f64) {
         g.player.pos = p;
     }
     let t = g.perf_t;
-    g.update_guide_arrows(dt, t);
+    g.update_way(dt);
     g.update_vacuum_bot(dt);
     g.update_broken_elevator(dt, t);
     for s in g.scuffs.iter_mut().chain(g.ripples.iter_mut()) {
@@ -387,14 +388,14 @@ fn lore_notes_pickup_and_whisper() {
         o.set_pos(x, 0.0, z);
         o
     };
-    r.g.lore_notes.push(LoreNote { g: note(p.x + 0.5, p.z), taken: false, id: 4, clue: None });
+    r.g.lore_notes.push(LoreNote { g: note(p.x + 0.5, p.z), taken: false, id: 4 });
     frame(&mut r, DT);
     assert!(r.g.lore_found.contains(&4));
     assert!(r.g.lore_notes[0].taken && !r.g.lore_notes[0].g.visible());
     assert!(r.g.msg_text.starts_with("NOTE FOUND — "), "{}", r.g.msg_text);
     // a re-spawned copy of a read note whispers its title once per approach
     let copy = note(p.x + 1.2, p.z);
-    r.g.lore_notes.push(LoreNote { g: copy.clone(), taken: false, id: 4, clue: None });
+    r.g.lore_notes.push(LoreNote { g: copy.clone(), taken: false, id: 4 });
     r.g.msg_t = 0.0;
     frame(&mut r, DT);
     assert!(!r.g.lore_notes[1].taken, "a read note is not picked up again");
@@ -470,23 +471,24 @@ fn cry_for_help_cooldown_and_outcomes() {
     r.g.cry_for_help();
     assert_eq!(r.g.msg_text, "WAIT 22s");
     assert_eq!(r.g.timeouts.len(), 1);
-    // the cooldown ticks in `update_guide_arrows` (61 frames: 60 × 1/60 leaves 21.000…01)
+    // the cooldown ticks in `update_way` (61 frames: 60 × 1/60 leaves 21.000…01)
     frames(&mut r, 61);
     r.g.cry_for_help();
     assert_eq!(r.g.msg_text, "WAIT 21s");
 
-    // many cries (seeded): both outcomes happen
+    // many cries (seeded): both outcomes happen; the way is shown without a word
     let (mut arrows, mut alerts) = (0, 0);
     with_seed(777, || {
         for _ in 0..24 {
             r.g.cry_cooldown = 0.0;
             r.g.cry_dim_t = 0.0;
             let n0 = r.g.entities.len();
+            let shown = r.g.ways_shown;
             r.g.cry_for_help();
             r.g.now_ms += 1000.0;
             r.g.run_scheduled();
             match r.g.msg_text.as_str() {
-                "SOMETHING SHOWS THE WAY" => {
+                "YOU CRY OUT..." if r.g.ways_shown == shown + 1 => {
                     arrows += 1;
                     assert_eq!(r.g.cry_dim_t, 8.0);
                 }
@@ -524,10 +526,11 @@ fn cry_for_help_cooldown_and_outcomes() {
         for _ in 0..40 {
             r.g.cry_cooldown = 0.0;
             let n0 = r.g.entities.len();
+            let shown = r.g.ways_shown;
             r.g.cry_for_help();
             r.g.now_ms += 1000.0;
             r.g.run_scheduled();
-            if r.g.msg_text == "SOMETHING SHOWS THE WAY" {
+            if r.g.ways_shown > shown {
                 arrows9 += 1;
             }
             if r.g.entities.len() > n0 && r.g.entities[n0].kind == "hound" {
@@ -556,66 +559,92 @@ fn cry_dim_envelope() {
 }
 
 #[test]
-fn guide_arrows_pulse_fade_and_expire() {
+fn the_ways_prints_come_up_wet_and_dry_away() {
     let mut r = rig(53, 5);
     r.g.init_player();
     for i in 1..4 {
-        let m = mesh(r.g.arrow_geo.clone(), r.g.arrow_mat.duplicate());
-        m.set_pos(r.g.wx(1), 0.1, r.g.wz(i));
+        let m = mesh(r.g.print_geo.clone(), r.g.print_mat.duplicate());
+        m.set_pos(r.g.wx(1), 0.006, r.g.wz(i));
         r.g.world.add(&m);
-        r.g.guide_arrows.push(GuideArrow { mesh: m, life: 14.0 - i as f64, start_y: 0.1, index: i as usize });
+        r.g.way_prints.push(WayPrint { mesh: m, life: WAY_PRINT_LIFE - i as f64, index: i as usize });
     }
     let kids = r.g.world.child_count();
-    frames(&mut r, 60);
-    for a in &r.g.guide_arrows {
-        let y = a.mesh.pos().y;
-        assert!((0.3 - 1e-9..=0.4 + 1e-9).contains(&y), "arrow bob {y}");
-        let o = a.mesh.mat().opacity_v();
-        assert!((0.2 - 1e-9..=0.9 + 1e-9).contains(&o), "arrow opacity {o}");
-    }
-    // 10.5 s in: the shortest-lived one is fading
-    frames(&mut r, 570);
-    let a = &r.g.guide_arrows[2];
-    assert!(a.life < 2.0 && a.mesh.mat().opacity_v() <= a.life / 2.0 * 0.9 + 1e-9);
-    frames(&mut r, 3 * 60);
-    assert!(r.g.guide_arrows.is_empty());
+    // a breath in, each at its wettest; never lit, never pulsing
+    frames(&mut r, 30);
+    let o: Vec<f64> = r.g.way_prints.iter().map(|a| a.mesh.mat().opacity_v()).collect();
+    assert!(o.iter().all(|&o| (0.5..=0.85).contains(&o)), "wet {o:?}");
+    assert!(r.g.way_prints.iter().all(|a| a.mesh.mat().m().emissive.get_hex() == 0), "a print that glows");
+    // drying: fainter as they go, gone at the end of their life
+    frames(&mut r, 10 * 60);
+    let o2: Vec<f64> = r.g.way_prints.iter().map(|a| a.mesh.mat().opacity_v()).collect();
+    assert!(o2.iter().zip(&o).all(|(b, a)| b < a), "drying {o2:?} after {o:?}");
+    frames(&mut r, 10 * 60);
+    assert!(r.g.way_prints.is_empty());
     assert_eq!(r.g.world.child_count(), kids - 3);
-    // the shared arrow geometry is the flat chevron
-    assert!(r.g.arrow_geo.vertex_count() >= 7);
-    assert_eq!(r.g.arrow_mat.opacity_v(), 0.9);
 }
 
 #[test]
-fn spawn_guide_arrows_follows_the_bfs() {
+fn the_way_is_shown_along_the_way_to_the_door() {
     let mut r = rig(54, 5);
+    r.g.init_player();
     let (ex, ez) = (1, 17);
     r.g.exit_data = Some(ExitData { pos: Vec3::new(r.g.wx(ex), 0.0, r.g.wz(ez)), ..Default::default() });
-    // a stale arrow is cleared first
-    let old = mesh(r.g.arrow_geo.clone(), r.g.arrow_mat.duplicate());
-    r.g.world.add(&old);
-    r.g.guide_arrows.push(GuideArrow { mesh: old.clone(), life: 3.0, start_y: 0.1, index: 1 });
-    r.g.spawn_guide_arrows();
-    assert!(old.parent().is_none());
-    assert_eq!(r.g.cry_dim_t, 8.0);
-    assert_eq!(r.g.msg_text, "SOMETHING SHOWS THE WAY");
-    let bfs_real = r.g.bfs(ex, ez).iter().any(|&d| d >= 0);
-    if bfs_real {
-        // column x=1 is open: the greedy descent walks straight down it
-        assert_eq!(r.g.guide_arrows.len(), (ez - 1) as usize);
-        for (k, a) in r.g.guide_arrows.iter().enumerate() {
-            assert_eq!(a.index, k + 1);
-            assert_eq!(a.life, 14.0);
-            assert_eq!(a.mesh.scl(), Vec3::new(2.4, 2.4, 2.4));
-        }
-    } else {
-        eprintln!("bfs is still a stub: no path, no arrows");
-        assert!(r.g.guide_arrows.is_empty());
+    if !r.g.bfs(ex, ez).iter().any(|&d| d >= 0) {
+        eprintln!("bfs is still a stub: no path, no way");
+        return;
     }
-    // no exit, no arrows
-    r.g.exit_data = None;
+    // no panels over the way: footprints, a pace apart, walking toward the door
+    r.g.panels.clear();
     r.g.msg_text.clear();
-    r.g.spawn_guide_arrows();
-    assert!(r.g.msg_text.is_empty());
+    assert_eq!(r.g.show_the_way(), Some(WayAnswer::Prints));
+    assert_eq!(r.g.cry_dim_t, 8.0);
+    assert!(r.g.msg_text.is_empty(), "the place said something: {:?}", r.g.msg_text);
+    assert!(r.g.way_prints.is_empty(), "the prints come one after another, not at once");
+    let mut seen = 0;
+    for _ in 0..(WAY_PRINTS as f64 * WAY_PRINT_STEP / DT) as usize + 10 {
+        frame(&mut r, DT);
+        assert!(r.g.way_prints.len() >= seen, "a print went before its time");
+        seen = r.g.way_prints.len();
+    }
+    assert!(seen >= WAY_PRINTS - 2, "{seen} prints");
+    let (px, pz) = (r.g.player.pos.x, r.g.player.pos.z);
+    let mut last = -1.0;
+    for (k, a) in r.g.way_prints.iter().enumerate() {
+        let p = a.mesh.pos();
+        // down the open column x = 1 toward the door, each further on, a pace apart
+        assert!((p.x - r.g.wx(1)).abs() < 0.2, "print {k} off the way at x {:.2}", p.x);
+        let along = (p.x - px).hypot(p.z - pz);
+        assert!(along > last, "print {k} not further on");
+        if k > 0 {
+            assert!((along - last - WAY_PACE).abs() < 0.25, "print {k}: {:.2} m from the last", along - last);
+        }
+        last = along;
+        assert!(r.g.exit_data.as_ref().unwrap().pos.z > p.z - 0.5);
+    }
+    // lit panels over the way: they answer next, in the order you would walk under them
+    for z in [3, 5, 7, 9] {
+        let mut p = Panel::default();
+        p.wx = r.g.wx(1);
+        p.wz = r.g.wz(z);
+        r.g.panels.push(p);
+    }
+    assert_eq!(r.g.show_the_way(), Some(WayAnswer::Lights));
+    assert!(r.g.way_prints.is_empty(), "the last answer's prints dry at once");
+    let mut order = vec![];
+    for _ in 0..(1.5 / DT) as usize {
+        frame(&mut r, DT);
+        for (i, p) in r.g.panels.iter().enumerate() {
+            if p.flicker > 0.0 && !order.contains(&i) {
+                order.push(i);
+            }
+        }
+    }
+    assert_eq!(order, vec![0, 1, 2, 3], "the lights did not go toward the door in turn");
+    // and not the lights twice running, while prints can answer
+    assert_eq!(r.g.way_answer_here(), Some(WayAnswer::Prints));
+    // no exit, no way
+    r.g.exit_data = None;
+    assert_eq!(r.g.show_the_way(), None);
 }
 
 // ------------------------------------------------------------ vacuum bot / elevator

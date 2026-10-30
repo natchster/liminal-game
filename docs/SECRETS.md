@@ -118,7 +118,7 @@ sheets' maker's, and the folded sheet stays her signature.
 | **Turn** | Two short strokes 5 cm apart, the upper one set toward the turn | The wall ahead where her way turns, at hip height | The offset | 3 |
 | **Corner** | A torn corner of her paper, 6 cm, its tip on | On the floor against a wall or a jamb | The tip | 5 |
 | **Chalk** | A chalk stroke 8 cm long leaning on, the chalk of her tallies | Low on the wall (10–20 cm), the side she kept her hand on | The lean | 5 |
-| **Tape** | A strip of reflective tape 5 × 2 cm, grey in the room's light, a white glint when the lamp finds it | A wall beside her way, in the dark (unlit tiles) only | None: one after another | 7 |
+| **Tape** | A strip of reflective tape 8 × 2.5 cm, grey in the room's light, a white glint when the lamp finds it | A wall beside her way, in the dark (unlit tiles) only | None: one after another | 7 |
 
 - **Fewer sheets as she goes down**: sheets are all of her marks on the
   Building's floors but for the stacks and a pencil arrow or two; about
@@ -139,9 +139,10 @@ sheets' maker's, and the folded sheet stays her signature.
   lights a mark is the place's light or your lamp. Tape is the one kind the
   lamp brings out, as tape does.
 - **The flat sheets stay one stamp.** The trails that are not hers are laid
-  as no tired person walks: a whole flat page every three tiles exactly,
-  mid-floor, the same heavy black arrow every time, filled and even (the
-  over-marking the research names). No kind but the page.
+  as no tired person walks: a whole flat page every two tiles (nearer only
+  where the next could not be seen), mid-floor, the same heavy black arrow
+  every time, filled and even (the over-marking the research names). No
+  kind but the page.
 
 ### 2. The place answers more quietly
 
@@ -270,18 +271,18 @@ commit.
 
 | # | Milestone | Done when |
 |---|---|---|
-| S0 | Research (two notes) and this design | the notes; `lore-keeper` on the canon with S5 |
-| S1 | **Her marks**: the seven kinds in her hand, the mix by depth, each kind's distance, pairing, turns; the flat sheets one even stamp | `tests/story.rs`: the trail by kind (each in sight of the last at its distance, the first a sheet, pairing, turns only at turns, the mix by depth over many floors), the flat sheets even and stamped; reference levels and goldens re-recorded with a reason; trail views of each kind |
-| S2 | **The place answers more quietly**: the lights and the footprints for a cry and the payphone; the notes without halo, beam or stencil | `tests/player.rs`: the answer follows the way to the door, its sounds from where they are; frames |
-| S3 | **Secrets**: the hiding places and their tells, the sign, what is put away (the things, modelled), the run's plan, the verbs, fitted after the build, the notebook's page, saves | `tests/secrets.rs`: off the way and reachable, the same on every build, a sign near its place, taken stays taken across a retry and a Continue, the plan over a run; frames of each place and thing |
-| S4 | **What stays with you**: the body's changes, bounded, felt; the hole's exchange | `tests/secrets.rs`: each thing measured on its system; the bounds and E10; personas and the beatable run unchanged without them |
-| S5 | **The canon and the reviews**: `LORE.md`, `GAMEPLAY.md`, `PLAYTEST.md`, `QUALITY.md`, the ledger; `lore-keeper` rounds; a blind review of the marks and the things; the full check | the reviews, the full check |
+| S0 | Research (two notes) and this design | the notes; `lore-keeper` on the canon with S4 |
+| S1 | **Her marks, and the place answers more quietly**: the seven kinds in her hand, the mix by depth, each kind's distance, pairing, turns; the flat sheets one even stamp; the lights and the footprints for a cry and the payphone; the notes without halo, beam or stencil | `tests/story.rs`: the trail by kind (each in sight of the last at its distance, the first a sheet, pairing, turns only at turns, on a wall's face), the mix by depth over 39 floors, nothing glows, the flat sheets even and stamped; `crates/game/tests/player.rs`: the answer follows the way to the door, one after another, no line; reference levels, the core props' fixture and goldens re-recorded with a reason; mark views and the prints' screen |
+| S2 | **Secrets**: the hiding places and their tells, the sign, what is put away (the things, modelled), the run's plan, the verbs, fitted after the build, the notebook's page, saves | `tests/secrets.rs`: off the way and reachable, the same on every build, a sign near its place, taken stays taken across a retry and a Continue, the plan over a run; frames of each place and thing |
+| S3 | **What stays with you**: the body's changes, bounded, felt; the hole's exchange | `tests/secrets.rs`: each thing measured on its system; the bounds and E10; personas and the beatable run unchanged without them |
+| S4 | **The canon and the reviews**: `LORE.md`, `GAMEPLAY.md`, `PLAYTEST.md`, `QUALITY.md`, the ledger; `lore-keeper` rounds; a blind review of the marks and the things; the full check | the reviews, the full check |
 
 ## Progress
 
 | # | Commit | Notes |
 |---|---|---|
-| S0 | (this commit) | The research (`research/wayfinding-and-secrets.md`, `research/secret-items.md`) and this design |
+| S0 | `8b50e49` | The research (`research/wayfinding-and-secrets.md`, `research/secret-items.md`) and this design |
+| S1 | (this commit) | **Her marks** (`story/marks.rs`): seven kinds in her hand (the left barb longer), each where it fits at the furthest step in sight of the last at its own distance (a sheet as before; a stack 12 m, a pencil arrow or a turn 9, chalk 7, a corner 6, tape 16), a sheet where no other fits; the first a sheet; where a kind first appears, a sheet beside it; a turn only where the way turns; marks on walls only on a flat face of a wall that stands where it was drawn (never a partition that leans, never the void's railing). Over 39 floors of three runs sheets are 87% of her marks on levels 1–3, 53% on 4–6, 30% on 7–10, 14% on 11–13 (meant: 75, 50, 25, 10%; where nothing else fits she left a sheet); in the rooms a stack is the last resort before a sheet (bits on a floor read as litter). None glows (the sheets lost their emissive lift); tape glints only in the lamp (one animator a level for all of it; one each had added nine to a level). Settling the props nudged a corner touching a wall out of it: the marks are put back where she left them after (`story_marks_settled`). **The flat sheets**: one stamp, a filled black arrow, mid-floor every two tiles. **The place's answer** (`show_the_way`): the lit panels over the first 30 m of the way stutter in turn toward the door (each relay ticking where it hangs), or sixteen wet footprints a pace apart, a wet step each, drying over 20 s; not the lights twice running; no chime, no line; the payphone says only where to look. **The notes**: no halo, beam or wall stencil (its draws kept); a story's ink, a corner turned down when read. The core props' tail (the HTML version's recording) leaves the notes' retired parts out of its comparison, as it does the old windows. Evidence: `--views` (a view of each kind, by the lamp where dark), `--screen way-prints`. Tests: `tests/story.rs` (the trail by kind; `her_marks_change_as_she_goes_down`; the flat sheets even and stamped), `crates/game/tests/player.rs` (the prints; the way shown along the way, in order, without a word) |
 
 ## What only people can tell
 

@@ -1,11 +1,12 @@
 //! What M. left: her camp (a bedroll against a wall, her pack, her lamp
 //! still burning, empty bottles, a count of days scratched on the wall, and
 //! what she could spare: a bottle of almond water, a battery deeper down)
-//! and her sheets (folded twice, a pencil arrow on each).
+//! and her marks (`marks`): her sheets folded twice, and what she marked
+//! the way with when paper ran short.
 //!
 //! Everything here draws from the story layer's own stream, passed in; the
 //! textures are painted on the native stream (`canvas_tex_opt`).
-use super::{Camp, StoryPlan};
+use super::{Camp, MarkKind, PlanMark, StoryPlan};
 use crate::base::records::Pickup;
 use crate::prelude::*;
 
@@ -329,13 +330,212 @@ impl Game {
         }
     }
 
-    /// The geometry and material all her sheets share.
-    pub(crate) fn trail_sheet_parts(&self) -> (Geo, Mat) {
-        let tex = canvas_tex_opt(128, 96, false, |ctx, w, h| {
-            ctx.set_fill_style("#e6dfcc");
+    /// One of her marks (or a flat page), as planned, made and put where it
+    /// lies; its parts shared through `kit`. Draws from `r` (the story's
+    /// dressing stream) for how its bits lie.
+    pub(crate) fn dress_mark(&mut self, kit: &mut MarkKit, m: &PlanMark, r: &mut SplitMix64) -> Obj {
+        let fy = self.floor_y_at(m.x, m.z);
+        let worn = self.level_num >= 7;
+        let o = match m.kind {
+            MarkKind::Sheet => {
+                let (geo, mat) = kit.sheet(worn, r.next() < 0.5);
+                let o = mesh(&geo, &mat);
+                o.position().set(m.x, fy + 0.012, m.z);
+                o.rotation().y = m.yaw;
+                o
+            }
+            MarkKind::Flat => {
+                let (geo, mat) = kit.flat();
+                let o = mesh(&geo, &mat);
+                o.position().set(m.x, fy + 0.012, m.z);
+                o.rotation().y = m.yaw;
+                o
+            }
+            MarkKind::Corner => {
+                let (geo, mat) = kit.corner(worn);
+                let o = mesh(&geo, &mat);
+                o.position().set(m.x, fy + 0.008, m.z);
+                o.rotation().y = m.yaw;
+                o
+            }
+            MarkKind::Stack => {
+                let what = if !self.ground.is_empty() {
+                    Bits::Concrete
+                } else if self.ceil_mat_key(self.t_idx(self.tx(m.x), self.tz(m.z))).starts_with("tiles:") {
+                    Bits::CeilingTile
+                } else {
+                    Bits::Caps
+                };
+                let o = kit.stack(what, r);
+                o.position().set(m.x, fy, m.z);
+                o.rotation().y = m.yaw;
+                o
+            }
+            MarkKind::Pencil | MarkKind::Turn | MarkKind::Chalk | MarkKind::Tape => {
+                // which way along the wall she went: her arrow is turned
+                // (never mirrored: her hand stays hers), a lean or an offset
+                // is painted the other way round
+                let face = m.normal.0.atan2(m.normal.1);
+                let (ax, az) = (face.cos(), -face.sin());
+                let to_right = -(m.yaw.sin()) * ax + -(m.yaw.cos()) * az >= 0.0;
+                let (geo, mat) = match m.kind {
+                    MarkKind::Pencil => kit.pencil(),
+                    MarkKind::Turn => kit.turn(to_right),
+                    MarkKind::Chalk => kit.chalk(to_right),
+                    _ => kit.tape(),
+                };
+                let o = mesh(&geo, &mat);
+                o.position().set(m.x, fy + m.y, m.z);
+                o.rotation().y = face;
+                if m.kind == MarkKind::Pencil && !to_right {
+                    o.rotation().z = PI;
+                }
+                if m.kind == MarkKind::Tape {
+                    o.rotation().z = r.range(-0.08, 0.08);
+                }
+                o
+            }
+        };
+        o.user().gameplay = true;
+        self.world.add(&o);
+        o
+    }
+
+    /// Reflective tape gives your lamp back: a white glint when the beam
+    /// finds it (in front of it, in the middle of the beam, nothing
+    /// between), as bright as the lamp is near; grey in the room's light.
+    /// One animator for every strip of her trail (`place_story`).
+    pub(crate) fn tape_glints(&mut self) {
+        if !self.story.trail.iter().any(|m| m.kind == MarkKind::Tape) {
+            return;
+        }
+        self.animate(move |g, _dt, _t| {
+            let lamp = g.player.flashlight_on;
+            let c = g.camera.pos();
+            let f = g.player.fwd();
+            for m in g.story.trail.iter().filter(|m| m.kind == MarkKind::Tape) {
+                let Some(o) = &m.g else { continue };
+                let mut k = 0.0;
+                if lamp {
+                    let p = o.pos();
+                    let (dx, dy, dz) = (p.x - c.x, p.y - c.y, p.z - c.z);
+                    let d = (dx * dx + dy * dy + dz * dz).sqrt().max(1e-6);
+                    let facing = -(dx * m.normal.0 + dz * m.normal.1) / d;
+                    let centred = (dx * f.x + dy * f.y + dz * f.z) / d;
+                    if d < 20.0 && facing > 0.2 && centred > 0.96 && g.los(c.x, c.z, p.x + m.normal.0 * 0.2, p.z + m.normal.1 * 0.2) {
+                        k = facing.min(1.0) * ((centred - 0.96) / 0.04).min(1.0) * (1.0 - d / 20.0).max(0.0).powf(0.6);
+                    }
+                }
+                let e = (k * 255.0) as u32;
+                o.mat().m().emissive.set_hex((e << 16) | (e << 8) | e);
+            }
+        });
+    }
+}
+
+/// What the stack of a mark is made of: what lies about where she was
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Bits {
+    /// Chips of concrete (the Building's floors)
+    Concrete,
+    /// Broken bits of a ceiling tile (under a tiled ceiling)
+    CeilingTile,
+    /// Bottle caps
+    Caps,
+}
+
+/// Her arrow: open, never filled, its left barb (to the left of the way it
+/// points) the longer, from the tail (x0, y0) to the tip (x1, y1).
+pub(crate) fn her_arrow(ctx: &mut Canvas, x0: f64, y0: f64, x1: f64, y1: f64) {
+    let (dx, dy) = (x1 - x0, y1 - y0);
+    let len = (dx * dx + dy * dy).sqrt().max(1e-6);
+    let (ux, uy) = (dx / len, dy / len);
+    // left of the way it points (the canvas's y runs down)
+    let (lx, ly) = (uy, -ux);
+    ctx.begin_path();
+    // the shaft, a little bowed, as a hand draws it
+    ctx.move_to(x0, y0);
+    ctx.quadratic_curve_to((x0 + x1) / 2.0 + lx * len * 0.03, (y0 + y1) / 2.0 + ly * len * 0.03, x1, y1);
+    for (side, l) in [(1.0, 0.42), (-1.0, 0.27)] {
+        let (bx, by) = (x1 - ux * len * l * 0.82 + lx * side * len * l * 0.55, y1 - uy * len * l * 0.82 + ly * side * len * l * 0.55);
+        ctx.move_to(x1, y1);
+        ctx.line_to(bx, by);
+    }
+    ctx.stroke();
+}
+
+/// What her marks share, made when first needed (geometry and materials)
+#[derive(Default)]
+pub struct MarkKit {
+    sheets: Vec<((bool, bool), (Geo, Mat))>,
+    flat: Option<(Geo, Mat)>,
+    corner: Vec<(bool, (Geo, Mat))>,
+    pencil: Option<(Geo, Mat)>,
+    turn: Vec<(bool, (Geo, Mat))>,
+    chalk: Vec<(bool, (Geo, Mat))>,
+    tape: Option<Geo>,
+    bits: Vec<(&'static str, Geo, Mat)>,
+}
+
+/// A sheet `w` × `h` flat on the floor, one corner lifted `lift` m (a
+/// curled sheet); its texture's top toward −z
+fn sheet_geo(w: f64, h: f64, lift: f64) -> Geo {
+    let (nu, nv) = (4usize, 3usize);
+    let (mut pos, mut uv, mut idx) = (vec![], vec![], vec![]);
+    for j in 0..=nv {
+        for i in 0..=nu {
+            let (s, t) = (i as f64 / nu as f64, j as f64 / nv as f64);
+            let (x, z) = ((s - 0.5) * w, (t - 0.5) * h);
+            // the corner at +x, +z curls up
+            let c = ((s - 0.5).max(0.0) * 2.0 * (t - 0.5).max(0.0) * 2.0).powf(1.5);
+            pos.extend_from_slice(&[x as f32, (lift * c) as f32, z as f32]);
+            uv.extend_from_slice(&[s as f32, (1.0 - t) as f32]);
+        }
+    }
+    let row = (nu + 1) as u32;
+    for j in 0..nv as u32 {
+        for i in 0..nu as u32 {
+            let (a, b, c, d) = (j * row + i, j * row + i + 1, (j + 1) * row + i + 1, (j + 1) * row + i);
+            idx.extend_from_slice(&[a, d, c, a, c, b]);
+        }
+    }
+    let g = Geo::new();
+    g.set_position(pos).set_uv(uv).set_index(idx);
+    g.compute_vertex_normals();
+    g
+}
+
+/// A decal on a wall: `w` × `h`, facing +z
+fn wall_mat(tex: Tex, color: u32) -> Mat {
+    lambert!({ map: tex, color: color, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+}
+
+impl MarkKit {
+    /// Her sheet: folded twice, her arrow in pencil; deeper down greyer,
+    /// stained, its pencil fainter; half of them with a corner curled up
+    fn sheet(&mut self, worn: bool, curled: bool) -> (Geo, Mat) {
+        if let Some((_, p)) = self.sheets.iter().find(|(k, _)| *k == (worn, curled)) {
+            return p.clone();
+        }
+        let tex = canvas_tex_opt(128, 96, false, move |ctx, w, h| {
+            ctx.set_fill_style(if worn { "#cfc8b4" } else { "#e2dbc8" });
             ctx.fill_rect(0, 0, w, h);
+            // paper's grain
+            for _ in 0..220 {
+                let (x, y) = (rnd() * w, rnd() * h);
+                ctx.set_fill_style(format!("rgba(80,70,50,{:.3})", 0.03 + rnd() * 0.05));
+                ctx.fill_rect(x, y, 1.0 + rnd() * 2.0, 1.0);
+            }
+            if worn {
+                // a damp stain from the floor
+                let gr = ctx.create_radial_gradient(w * 0.7, h * 0.65, 2.0, w * 0.7, h * 0.65, w * 0.35);
+                gr.add_color_stop(0.0, "rgba(110,90,55,0.28)");
+                gr.add_color_stop(1.0, "rgba(110,90,55,0)");
+                ctx.set_fill_style(&gr);
+                ctx.fill_rect(0, 0, w, h);
+            }
             // the folds: a crease across, and one down the middle
-            ctx.set_stroke_style("rgba(70,60,40,0.22)");
+            ctx.set_stroke_style("rgba(70,60,40,0.24)");
             ctx.set_line_width(2);
             ctx.begin_path();
             ctx.move_to(0, h / 2.0);
@@ -343,55 +543,201 @@ impl Game {
             ctx.move_to(w / 2.0, 0);
             ctx.line_to(w / 2.0, h);
             ctx.stroke();
-            // the arrow, in pencil, pointing up the sheet
-            ctx.set_stroke_style("rgba(45,42,40,0.85)");
-            ctx.set_line_width(6);
+            // her arrow, in pencil, small, up the sheet
+            ctx.set_stroke_style(if worn { "rgba(60,58,55,0.5)" } else { "rgba(55,52,48,0.7)" });
+            ctx.set_line_width(3.5);
             ctx.set_line_cap("round");
             ctx.set_line_join("round");
-            ctx.begin_path();
-            ctx.move_to(w / 2.0, h * 0.86);
-            ctx.line_to(w / 2.0, h * 0.16);
-            ctx.move_to(w * 0.30, h * 0.40);
-            ctx.line_to(w / 2.0, h * 0.14);
-            ctx.line_to(w * 0.70, h * 0.40);
-            ctx.stroke();
+            her_arrow(ctx, w * 0.53, h * 0.74, w * 0.5, h * 0.24);
         });
-        let geo = plane_geo!(0.2, 0.15);
-        geo.rotate_x(-PI / 2.0);
-        (geo, lambert!({ map: tex, emissive: 0x080705 }))
+        let p = (sheet_geo(0.2, 0.15, if curled { 0.018 } else { 0.0 }), lambert!({ map: tex, side: DoubleSide }));
+        self.sheets.push(((worn, curled), p.clone()));
+        p
     }
 
-    /// The sheets of a trail that is not hers: a whole page, flat, never
-    /// folded, its arrow drawn heavier and longer than hers.
-    pub(crate) fn false_sheet_parts(&self) -> (Geo, Mat) {
+    /// The flat pages of a trail that is not hers: a whole page, never
+    /// folded, the same heavy black arrow stamped on every one, filled and
+    /// even
+    fn flat(&mut self) -> (Geo, Mat) {
+        if let Some(p) = &self.flat {
+            return p.clone();
+        }
         let tex = canvas_tex_opt(96, 128, false, |ctx, w, h| {
             ctx.set_fill_style("#e9e6dc");
             ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style("rgba(30,28,26,0.9)");
-            ctx.set_line_width(8);
-            ctx.set_line_cap("round");
-            ctx.set_line_join("round");
+            ctx.set_fill_style("rgba(24,22,20,0.94)");
             ctx.begin_path();
-            ctx.move_to(w * 0.52, h * 0.9);
-            ctx.line_to(w * 0.48, h * 0.1);
-            ctx.move_to(w * 0.22, h * 0.32);
-            ctx.line_to(w * 0.48, h * 0.08);
-            ctx.line_to(w * 0.76, h * 0.30);
-            ctx.stroke();
+            ctx.move_to(w * 0.5, h * 0.08);
+            ctx.line_to(w * 0.86, h * 0.42);
+            ctx.line_to(w * 0.62, h * 0.42);
+            ctx.line_to(w * 0.62, h * 0.9);
+            ctx.line_to(w * 0.38, h * 0.9);
+            ctx.line_to(w * 0.38, h * 0.42);
+            ctx.line_to(w * 0.14, h * 0.42);
+            ctx.close_path();
+            ctx.fill();
         });
         let geo = plane_geo!(0.21, 0.28);
         geo.rotate_x(-PI / 2.0);
-        (geo, lambert!({ map: tex, emissive: 0x080705 }))
+        let p = (geo, lambert!({ map: tex }));
+        self.flat = Some(p.clone());
+        p
     }
 
-    /// One of her sheets at (x, z), its arrow pointing along `yaw`.
-    pub(crate) fn dress_sheet(&mut self, parts: &(Geo, Mat), x: f64, z: f64, yaw: f64) -> Obj {
-        let m = mesh(&parts.0, &parts.1);
-        m.position().set(x, self.floor_y_at(x, z) + 0.014, z);
-        m.rotation().y = yaw;
-        m.user().gameplay = true;
-        self.world.add(&m);
-        m
+    /// A corner torn from one of her sheets: a ragged triangle 6 cm a side,
+    /// its tip the way she went (−z)
+    fn corner(&mut self, worn: bool) -> (Geo, Mat) {
+        if let Some((_, p)) = self.corner.iter().find(|(k, _)| *k == worn) {
+            return p.clone();
+        }
+        // two clean edges (the sheet's corner) meeting at the tip, and the
+        // torn side across, ragged
+        let mut shape = Shape::new();
+        shape.move_to(0.0, 0.055);
+        let torn = [
+            (0.026, -0.012),
+            (0.019, -0.016),
+            (0.012, -0.013),
+            (0.006, -0.019),
+            (-0.003, -0.015),
+            (-0.011, -0.02),
+            (-0.018, -0.014),
+            (-0.024, -0.017),
+        ];
+        for (x, y) in torn {
+            shape.line_to(x, y);
+        }
+        shape.line_to(0.0, 0.055);
+        let geo = shape_geo!(shape);
+        geo.rotate_x(-PI / 2.0);
+        let p = (geo, lambert!({ color: if worn { 0xc9c1ad } else { 0xdcd5c2 }, side: DoubleSide }));
+        self.corner.push((worn, p.clone()));
+        p
+    }
+
+    /// Her arrow in pencil on a wall, 10 cm, pointing along it (+x)
+    fn pencil(&mut self) -> (Geo, Mat) {
+        if let Some(p) = &self.pencil {
+            return p.clone();
+        }
+        let tex = canvas_tex_opt(128, 64, false, |ctx, w, h| {
+            ctx.clear_rect(0, 0, w, h);
+            ctx.set_stroke_style("rgba(52,52,56,0.8)");
+            ctx.set_line_width(3.2);
+            ctx.set_line_cap("round");
+            ctx.set_line_join("round");
+            her_arrow(ctx, w * 0.1, h * 0.55, w * 0.9, h * 0.47);
+        });
+        let p = (plane_geo!(0.12, 0.06), wall_mat(tex, 0xffffff));
+        self.pencil = Some(p.clone());
+        p
+    }
+
+    /// Two short pencil strokes 5 cm apart, the upper set toward the turn
+    /// (`to_right`: toward +x)
+    fn turn(&mut self, to_right: bool) -> (Geo, Mat) {
+        if let Some((_, p)) = self.turn.iter().find(|(k, _)| *k == to_right) {
+            return p.clone();
+        }
+        let tex = canvas_tex_opt(64, 64, false, move |ctx, w, h| {
+            ctx.clear_rect(0, 0, w, h);
+            ctx.set_stroke_style("rgba(48,48,52,0.85)");
+            ctx.set_line_width(4.5);
+            ctx.set_line_cap("round");
+            let s = if to_right { 1.0 } else { -1.0 };
+            ctx.begin_path();
+            // the upper, set toward the turn
+            ctx.move_to(w * (0.5 + s * 0.13) - w * 0.25, h * 0.28);
+            ctx.line_to(w * (0.5 + s * 0.13) + w * 0.25, h * 0.25);
+            // the lower
+            ctx.move_to(w * 0.5 - w * 0.25, h * 0.72);
+            ctx.line_to(w * 0.5 + w * 0.25, h * 0.71);
+            ctx.stroke();
+        });
+        let p = (plane_geo!(0.09, 0.075), wall_mat(tex, 0xffffff));
+        self.turn.push((to_right, p.clone()));
+        p
+    }
+
+    /// A chalk stroke 8 cm long leaning on (`to_right`: toward +x)
+    fn chalk(&mut self, to_right: bool) -> (Geo, Mat) {
+        if let Some((_, p)) = self.chalk.iter().find(|(k, _)| *k == to_right) {
+            return p.clone();
+        }
+        let tex = canvas_tex_opt(64, 128, false, move |ctx, w, h| {
+            ctx.clear_rect(0, 0, w, h);
+            let s = if to_right { 1.0 } else { -1.0 };
+            // chalk on a rough wall: a stroke broken where the wall is low,
+            // heavier where it was pressed at the start
+            for k in 0..220 {
+                let t = k as f64 / 220.0;
+                let x = w * 0.5 + s * (t - 0.5) * w * 0.5 + (rnd() - 0.5) * 3.0;
+                let y = h * (0.9 - t * 0.8) + (rnd() - 0.5) * 2.0;
+                if rnd() < 0.86 {
+                    let a = (0.95 - t * 0.35) * (0.6 + rnd() * 0.4);
+                    ctx.set_fill_style(format!("rgba(232,228,214,{a:.3})"));
+                    ctx.fill_rect(x - 4.5, y - 2.0, 9.0, 4.0);
+                }
+            }
+        });
+        let p = (plane_geo!(0.07, 0.12), wall_mat(tex, 0xffffff));
+        self.chalk.push((to_right, p.clone()));
+        p
+    }
+
+    /// A strip of reflective tape, 8 × 2.5 cm: its own material (each glints
+    /// on its own)
+    fn tape(&mut self) -> (Geo, Mat) {
+        let geo = self.tape.get_or_insert_with(|| plane_geo!(0.08, 0.025)).clone();
+        (geo, lambert!({ color: 0x8c8c88, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }))
+    }
+
+    /// Three bits of `what`: a large one, a small one on it, a third beside
+    /// them the way she went (−z)
+    fn stack(&mut self, what: Bits, r: &mut SplitMix64) -> Obj {
+        let key = match what {
+            Bits::Concrete => "concrete",
+            Bits::CeilingTile => "tile",
+            Bits::Caps => "caps",
+        };
+        if !self.bits.iter().any(|b| b.0 == key) {
+            let (geo, mat) = match what {
+                Bits::Concrete => (dodeca_geo!(1.0), lambert!({ color: 0x8b867c })),
+                Bits::CeilingTile => (box_geo!(1.0, 1.0, 1.0), lambert!({ color: 0xd2ccbc })),
+                Bits::Caps => (cyl_geo!(1.0, 1.0, 1.0, 10), lambert!({ color: 0x2c4f9a })),
+            };
+            self.bits.push((key, geo, mat));
+        }
+        let (_, geo, mat) = self.bits.iter().find(|b| b.0 == key).unwrap();
+        let g = group();
+        // (size across, height) of the large, the small and the third
+        let sizes: [(f64, f64); 3] = match what {
+            Bits::Concrete => [(0.07, 0.045), (0.04, 0.028), (0.045, 0.03)],
+            Bits::CeilingTile => [(0.09, 0.016), (0.05, 0.016), (0.06, 0.016)],
+            Bits::Caps => [(0.03, 0.012), (0.03, 0.012), (0.03, 0.012)],
+        };
+        let mut top = 0.0;
+        for (k, &(w, h)) in sizes.iter().enumerate() {
+            let o = mesh(geo, mat);
+            let s = 1.0 + r.range(-0.15, 0.15);
+            match what {
+                Bits::Concrete => o.scale().set(w / 2.0 * s, h / 2.0, w / 2.0 * (2.0 - s)),
+                Bits::CeilingTile => o.scale().set(w * s, h, w * 0.7 * (2.0 - s)),
+                Bits::Caps => o.scale().set(w / 2.0, h, w / 2.0),
+            };
+            o.rotation().y = r.range(0.0, PI * 2.0);
+            let (x, z, y) = match k {
+                0 => (0.0, 0.0, h / 2.0),
+                1 => (r.range(-0.006, 0.006), r.range(-0.006, 0.006), top + h / 2.0),
+                _ => (r.range(-0.015, 0.015), -0.13 - r.range(0.0, 0.03), h / 2.0),
+            };
+            if k == 0 {
+                top = h;
+            }
+            o.position().set(x, y, z);
+            g.add(&o);
+        }
+        g
     }
 }
 

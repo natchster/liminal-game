@@ -1020,8 +1020,8 @@ impl Game {
 
     /// answering the payphone — R769 three-outcome phone answer:
     ///  40% whisper — sanity drain (~15 pts).
-    ///  35% exit hint — brief compass arrow shows toward nearest exit
-    ///      (until `phone_data.f["hintUntil"]`).
+    ///  35% exit hint — the place shows the way to the door
+    ///      (`show_the_way`, from `update_hud` while `phone_data.f["hintUntil"]`).
     ///  25% alert — distant scream, all entities snap to hunt.
     pub fn answer_payphone(&mut self) {
         let g = self;
@@ -1042,7 +1042,7 @@ impl Game {
             let l = lines[(rnd() * lines.len() as f64).floor() as usize];
             g.show_msg(l, 2.8);
         } else if roll < 0.75 {
-            // Exit hint — briefly boost compass visibility toward nearest exit.
+            // Exit hint — the place shows the way (`update_hud` calls `show_the_way`).
             if g.exit_data.is_some() {
                 let until = g.perf_t + 8.0; // 8s of arrow highlight
                 if let Some(p) = g.phone_data.as_mut() {
@@ -1053,7 +1053,12 @@ impl Game {
                     g.noise_burst(0.10, 900.0, 0.7, 0.06, "bandpass", None, 0.0, 0.0);
                     g.blip(320.0, 0.30, "sine", 0.10, None, 0.0, 0.0);
                 }
-                g.show_msg("\"...north. the door is north.\"", 2.5);
+                // it says only where to look; the place shows the rest
+                let line = match g.way_answer_here() {
+                    Some(WayAnswer::Lights) => "\"...watch the lights.\"",
+                    _ => "\"...it walked this way. it is still wet.\"",
+                };
+                g.show_msg(line, 2.5);
             } else {
                 // No exit yet — fall back to whisper hint.
                 g.sfx_whisper();

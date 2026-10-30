@@ -677,6 +677,10 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.pos = engine::math::Vec3::new(x, g.floor_y_at(x, z) + game::prelude::EYE, z);
                     g.player.yaw = yaw;
                     g.player.pitch = pitch;
+                    // her marks in the dark are seen as a player sees them there: by the lamp
+                    let lamp = name.starts_with("mark_") && g.region_light_at(g.tx(x), g.tz(z)) < 0.3;
+                    g.player.flashlight_on = lamp;
+                    g.player.battery = game::prelude::BAT_MAX;
                     // the props' cull runs a few times a second; run it for this view
                     g.prop_cull.t = 0.0;
                     g.fixed_step_dt = 1.0 / 60.0;
@@ -689,7 +693,8 @@ fn level_check(o: &Options, dir: &str) {
                     let (tw, th, px) = r.read_texture(t);
                     engine::png::write_rgba(&format!("{base}_{name}.png"), tw as u32, th as u32, &px).expect("write png");
                     g.sim_frozen = false;
-                    print!(" (+{name} view)");
+                    g.player.flashlight_on = false;
+                    print!(" (+{name} view{})", if lamp { ", by the lamp" } else { "" });
                 }
                 let lean: Vec<String> = g.lean_views(8).iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" ({} leaning, lean views: \"{}\")", g.angled.len(), lean.join(";"));

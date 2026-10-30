@@ -3,10 +3,11 @@
 //! `docs/LORE.md`, *M.'s descent*.
 //!
 //! On each level M. came in where you did, camped somewhere off the straight
-//! way, and went on to the door, leaving sheets of paper folded twice with a
-//! pencil arrow on each. `plan_story` decides, from the level as built, where
-//! her camp is, the walk she took (arrival → camp → door, along the floor
-//! plan) and which tiles of it got a sheet; `place_story` dresses it.
+//! way, and went on to the door, marking the way: sheets of paper folded
+//! twice with a pencil arrow on each, and as her paper ran short, what she
+//! had (`marks`). `plan_story` decides, from the level as built, where her
+//! camp is, the walk she took (arrival → camp → door, along the floor plan)
+//! and which tiles of it got a mark; `place_story` dresses it.
 //!
 //! Placement runs inside the level build once settling has made the walls
 //! final (its sight lines must hold in the finished level) and before
@@ -20,13 +21,17 @@
 //! place is waiting there (`plan_false_trails`, `story_lure`). Two from the
 //! floor of `f7`. Hers are folded twice.
 //!
-//! The trail is meant to be read, not followed blindly: a sheet is placed
-//! where the last one can be seen from, at most `spacing` tiles of walk on,
-//! and from level `GAP_FROM` one stretch after the camp has lost its sheets
-//! (two from level 7). The sheets get sparser as you go down, as she did.
+//! The trail is meant to be read, not followed blindly: a mark is placed
+//! where the last one can be seen from, at most `spacing` tiles of walk on
+//! (a small one nearer: `MarkKind::reach`), and from level `GAP_FROM` one
+//! stretch after the camp has lost its marks (two from level 7). They get
+//! sparser as you go down, as she did.
 pub mod dress;
 pub mod ending;
+pub mod marks;
 pub mod notebook;
+
+pub use marks::{MarkKind, PlanMark};
 
 use crate::prelude::*;
 
@@ -36,8 +41,6 @@ pub const STORY_SALT: u64 = 0x5703_7EA1_C0FF_EE11;
 pub const LURE_REACH: f64 = 2.5;
 /// From this level, a stretch of the trail after the camp has lost its sheets
 pub const GAP_FROM: i32 = 4;
-/// How far the sheets lie from the centre of their tile at most, m
-const JITTER: f64 = 0.35;
 /// The fixed order neighbouring tiles are tried in (N, E, S, W)
 const DIRS: [(i32, i32); 4] = [(0, -1), (1, 0), (0, 1), (-1, 0)];
 
@@ -76,16 +79,32 @@ pub struct Camp {
     pub page_taken: bool,
 }
 
-/// One of her sheets.
+/// One of her marks (or a flat page of a trail that is not hers).
 #[derive(Clone, Debug)]
 pub struct TrailMark {
     /// Its index in the walk
     pub step: usize,
+    pub kind: MarkKind,
+    /// Where it is: on the floor, or on a wall's face (`normal` out of the
+    /// wall, `y` up from the floor)
     pub x: f64,
     pub z: f64,
-    /// The way its arrow points (a yaw: forward is (−sin, −cos))
+    pub y: f64,
+    /// The way it shows (a yaw: forward is (−sin, −cos))
     pub yaw: f64,
+    pub normal: (f64, f64),
     pub g: Option<Obj>,
+}
+
+impl TrailMark {
+    /// A mark as planned, and what was made of it
+    pub fn of(m: &PlanMark, g: Option<Obj>) -> Self {
+        TrailMark { step: m.step, kind: m.kind, x: m.x, z: m.z, y: m.y, yaw: m.yaw, normal: m.normal, g }
+    }
+    /// Where it is seen from in its sight lines (`PlanMark::seen_at`)
+    pub fn seen_at(&self) -> (f64, f64) {
+        (self.x + self.normal.0 * marks::SEEN_OFF, self.z + self.normal.1 * marks::SEEN_OFF)
+    }
 }
 
 /// The story layer of the level being played.
@@ -104,11 +123,11 @@ pub struct StoryLevel {
 }
 
 /// A trail that is not hers, as planned: the walk (its first tile on hers)
-/// and its sheets (step, x, z, yaw).
+/// and its flat pages.
 #[derive(Clone, Debug, PartialEq)]
 pub struct FalsePlan {
     pub walk: Vec<(i32, i32)>,
-    pub marks: Vec<(usize, f64, f64, f64)>,
+    pub marks: Vec<PlanMark>,
 }
 
 /// A trail that is not hers, on the level: where it goes, its sheets, its
@@ -128,8 +147,8 @@ pub struct StoryPlan {
     pub wall: (i32, i32),
     pub walk: Vec<(i32, i32)>,
     pub camp_step: usize,
-    /// (walk step, x, z, yaw) of each sheet
-    pub marks: Vec<(usize, f64, f64, f64)>,
+    /// Her marks, in the order of the walk
+    pub marks: Vec<PlanMark>,
     pub gaps: Vec<(usize, usize)>,
     pub false_trails: Vec<FalsePlan>,
 }
@@ -306,22 +325,22 @@ impl Game {
         let n = walk.len();
         // at the last camp her paper goes no further than her camp
         let last = if self.level_num == notebook::LAST_LEVEL { camp_step } else { n.saturating_sub(2) };
-        let mut marks = self.lay_sheets(&walk, 2.min(n - 1), last, Some(camp_step), k, &mut r);
+        let mut marks = self.lay_marks(&walk, 2.min(n - 1), last, Some(camp_step), k, true, &mut r);
 
         // deeper down, a stretch after the camp has lost its sheets
         let mut gaps = vec![];
         if self.depth() >= GAP_FROM {
             let lose = if self.depth() >= 7 { 2 } else { 1 };
             // sheets after the camp, not the last two (by the door)
-            let after: Vec<usize> = (0..marks.len()).filter(|&i| marks[i].0 > camp_step).collect();
+            let after: Vec<usize> = (0..marks.len()).filter(|&i| marks[i].step > camp_step).collect();
             if after.len() >= lose + 3 {
                 let room = after.len() - lose - 2;
                 let at = after[(r.next() * room as f64) as usize % room.max(1)];
-                // the mark the stretch starts from: a sheet, or her camp
-                let prev = marks.iter().rev().find(|m| m.0 < marks[at].0).map(|m| m.0).unwrap_or(camp_step);
-                let before = if camp_step < marks[at].0 { prev.max(camp_step) } else { prev };
+                // the mark the stretch starts from: a mark, or her camp
+                let prev = marks.iter().rev().find(|m| m.step < marks[at].step).map(|m| m.step).unwrap_or(camp_step);
+                let before = if camp_step < marks[at].step { prev.max(camp_step) } else { prev };
                 let gone: Vec<usize> = (at..at + lose).collect();
-                let resume = marks[at + lose].0;
+                let resume = marks[at + lose].step;
                 gaps.push((before, resume));
                 for i in gone.into_iter().rev() {
                     marks.remove(i);
@@ -335,78 +354,6 @@ impl Game {
     /// Her page on this level, if she left one (`notebook::page_on`).
     pub fn story_page(&self) -> Option<&'static notebook::Page> {
         notebook::page_on(self.run_seed, self.level_num, self.level_scp.as_deref())
-    }
-
-    /// Sheets along `walk` from step `first` to step `last` at most: each
-    /// where the last can be seen from, at most `k` steps on (the furthest
-    /// such step; the next one if none can be seen), never on the `anchor`
-    /// step (her camp, which is its own mark, seen from the middle of its
-    /// tile); each arrow pointing along the walk two tiles on. (step, x, z,
-    /// yaw).
-    fn lay_sheets(
-        &self,
-        walk: &[(i32, i32)],
-        first: usize,
-        last: usize,
-        anchor: Option<usize>,
-        k: usize,
-        r: &mut SplitMix64,
-    ) -> Vec<(usize, f64, f64, f64)> {
-        let n = walk.len();
-        let pos = |step: usize, r: &mut SplitMix64| {
-            let (x, z) = walk[step];
-            if Some(step) == anchor {
-                return (self.wx(x), self.wz(z));
-            }
-            (self.wx(x) + r.range(-JITTER, JITTER), self.wz(z) + r.range(-JITTER, JITTER))
-        };
-        let (mut px, mut pz) = pos(first, r);
-        let mut cur = first;
-        let mut steps = vec![(first, px, pz)];
-        while cur < last {
-            let mut j = (cur + k).min(last);
-            if let Some(a) = anchor.filter(|&a| cur < a && j > a) {
-                j = a;
-            }
-            // the furthest step in reach that this sheet can be seen from
-            // (never on a flight's steps: paper lies on a floor)
-            let on_stair = |j: usize| {
-                let (x, z) = walk[j];
-                self.ground.get((z * self.w + x) as usize).is_some_and(|g| g.kind == crate::level::archgen::GROUND_STAIR)
-            };
-            let mut placed = None;
-            while j > cur {
-                if on_stair(j) {
-                    j -= 1;
-                    continue;
-                }
-                let mut rr = *r;
-                let (x, z) = pos(j, &mut rr);
-                if self.los(px, pz, x, z) {
-                    *r = rr;
-                    placed = Some((j, x, z));
-                    break;
-                }
-                j -= 1;
-            }
-            let (j, x, z) = placed.unwrap_or_else(|| {
-                let (x, z) = pos(cur + 1, r);
-                (cur + 1, x, z)
-            });
-            steps.push((j, x, z));
-            (px, pz, cur) = (x, z, j);
-        }
-        let mut marks = vec![];
-        for &(step, x, z) in &steps {
-            if Some(step) == anchor {
-                continue;
-            }
-            let ahead = walk[(step + 2).min(n - 1)];
-            let (dx, dz) = (self.wx(ahead.0) - x, self.wz(ahead.1) - z);
-            let yaw = (-dx).atan2(-dz) + r.range(-0.12, 0.12);
-            marks.push((step, x, z, yaw));
-        }
-        marks
     }
 
     /// How many trails that are not hers lie on this level: none above the
@@ -460,7 +407,7 @@ impl Game {
                 let mut fw = self.story_descend(&d, end);
                 fw.reverse();
                 fw.insert(0, walk[i]);
-                let marks = self.lay_sheets(&fw, 1, fw.len() - 1, None, spacing(self.depth()), r);
+                let marks = self.lay_marks(&fw, 1, fw.len() - 1, None, spacing(self.depth()), false, r);
                 used.extend(fw.iter().copied());
                 out.push(FalsePlan { walk: fw, marks });
                 break;
@@ -495,20 +442,15 @@ impl Game {
             );
         }
         let mut trail = vec![];
-        let sheet = self.trail_sheet_parts();
-        for &(step, x, z, yaw) in &plan.marks {
-            let g = self.dress_sheet(&sheet, x, z, yaw);
-            trail.push(TrailMark { step, x, z, yaw, g: Some(g) });
+        let mut kit = dress::MarkKit::default();
+        for m in &plan.marks {
+            let g = self.dress_mark(&mut kit, m, &mut r);
+            trail.push(TrailMark::of(m, Some(g)));
         }
         // the trails that are not hers, and the place waiting at their ends
-        let flat = self.false_sheet_parts();
         let mut false_trails = vec![];
         for (k, f) in plan.false_trails.iter().enumerate() {
-            let trail = f
-                .marks
-                .iter()
-                .map(|&(step, x, z, yaw)| TrailMark { step, x, z, yaw, g: Some(self.dress_sheet(&flat, x, z, yaw)) })
-                .collect();
+            let trail = f.marks.iter().map(|m| TrailMark::of(m, Some(self.dress_mark(&mut kit, m, &mut r)))).collect();
             let e = *f.walk.last().unwrap();
             let end = (self.wx(e.0), self.wz(e.1));
             false_trails.push(FalseTrail { walk: f.walk.clone(), trail, end, sprung: false });
@@ -522,6 +464,7 @@ impl Game {
             });
         }
         self.story = StoryLevel { camp: Some(camp), walk: plan.walk, camp_step: plan.camp_step, trail, gaps: plan.gaps, false_trails };
+        self.tape_glints();
         // placed after settling, which brings every other prop's world matrix
         // up to date; the prop cull reads them (a stale one at the origin
         // hides the thing as far away)
@@ -534,6 +477,20 @@ impl Game {
 }
 
 impl Game {
+    /// Her marks stay where she left them: settling the props round them
+    /// (`settle_placement`) nudges a thing touching a wall out of it, and a
+    /// torn corner against a wall or a mark on one is meant to touch it.
+    pub fn story_marks_settled(&mut self) {
+        let marks = self.story.trail.iter().chain(self.story.false_trails.iter().flat_map(|f| f.trail.iter()));
+        for m in marks {
+            if let Some(o) = &m.g {
+                o.position().x = m.x;
+                o.position().z = m.z;
+                o.update_world_matrix(true, true);
+            }
+        }
+    }
+
     /// Fit the story layer of a level just built to the run's progress: her
     /// page here, if it was already taken (a retry, a Continue), is gone.
     pub fn fit_story(&mut self) {

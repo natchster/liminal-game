@@ -42,29 +42,71 @@ fn wpick<T>(f: fn(&str) -> Option<T>, wk: &str) -> T {
 /// sign had spent a nerve no creature had touched (E8).
 pub const DARK_FLOOR: f64 = 40.0;
 
+/// The place's answer to a cry (`Game::show_the_way`): how far along the
+/// way the lights answer, m, and how long after the last each one stutters, s
+pub const WAY_LIGHTS_REACH: f64 = 30.0;
+pub const WAY_LIGHT_STEP: f64 = 0.25;
+/// Its footprints: how many, the first this far along the way, a pace
+/// apart, each this long after the last, and how long one takes to dry, s
+pub const WAY_PRINTS: usize = 16;
+pub const WAY_PRINT_FIRST: f64 = 1.6;
+pub const WAY_PACE: f64 = 0.72;
+pub const WAY_PRINT_STEP: f64 = 0.45;
+pub const WAY_PRINT_LIFE: f64 = 20.0;
+
+/// How wet a print looks with `life` s left: up in its first half second,
+/// then drying away
+pub fn way_print_opacity(life: f64) -> f64 {
+    let age = WAY_PRINT_LIFE - life;
+    let up = (age / 0.5).clamp(0.0, 1.0);
+    let dry = (life / WAY_PRINT_LIFE).clamp(0.0, 1.0).powf(0.7);
+    0.85 * up * dry
+}
+
+/// A wet bare footprint, toes toward the top (−z once laid flat): heel,
+/// the outer edge of the sole, the ball and five toes, darker where it
+/// pressed, a sheen at its rim
+fn wet_print_tex() -> Tex {
+    canvas_tex_opt(64, 152, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        // water soaks out a little round where the foot pressed: each part
+        // a soft rim under a darker core
+        let blot = |ctx: &mut Canvas, x: f64, y: f64, rx: f64, ry: f64, rot: f64, a: f64| {
+            for (k, s) in [(0.35, 1.18), (0.7, 1.0)] {
+                ctx.set_fill_style(format!("rgba(16,14,12,{:.3})", a * k));
+                ctx.begin_path();
+                ctx.ellipse(x, y, rx * s, ry * s, rot, 0.0, PI * 2.0);
+                ctx.fill();
+            }
+        };
+        // a right foot (its arch on the left): heel, the outer edge of the
+        // sole joining it to the ball, the ball
+        blot(ctx, w * 0.54, h * 0.83, w * 0.22, h * 0.1, 0.0, 0.8);
+        blot(ctx, w * 0.66, h * 0.62, w * 0.12, h * 0.17, -0.12, 0.62);
+        blot(ctx, w * 0.52, h * 0.38, w * 0.29, h * 0.1, -0.15, 0.82);
+        // toes, the big one first
+        for (k, (x, y, r)) in
+            [(0.28, 0.2, 0.11), (0.47, 0.16, 0.075), (0.61, 0.17, 0.066), (0.73, 0.2, 0.058), (0.83, 0.25, 0.05)].iter().enumerate()
+        {
+            blot(ctx, w * x, h * y, w * r, w * r * 1.15, 0.0, 0.72 - k as f64 * 0.05);
+        }
+    })
+}
+
 impl Game {
     /// start-up work (paper marker / guide arrow geometry, ...)
     pub fn init_player(&mut self) {
         self.paper_marker_geo = box_geo!(0.22, 0.008, 0.28);
         self.paper_marker_mat = lambert!({ color: 0xf2ead0, emissive: 0x0a0906 });
-        // — flat pointing chevron; body is 3 triangles: two wings + shaft
-        self.arrow_geo = {
-            let mut shape = Shape::new();
-            shape.move_to(0.0, 0.22);
-            shape.line_to(0.18, -0.05);
-            shape.line_to(0.06, -0.05);
-            shape.line_to(0.06, -0.20);
-            shape.line_to(-0.06, -0.20);
-            shape.line_to(-0.06, -0.05);
-            shape.line_to(-0.18, -0.05);
-            shape.line_to(0.0, 0.22);
-            let geo = shape_geo!(shape);
-            geo.rotate_x(-PI / 2.0); // flat on the floor
+        // a wet bare footprint (the place's answer to a cry: `show_the_way`)
+        self.print_geo = {
+            let geo = plane_geo!(0.11, 0.26);
+            geo.rotate_x(-PI / 2.0);
             geo
         };
-        self.arrow_mat = basic_mat!({
-            color: 0x60ffb0, transparent: true, opacity: 0.9,
-            blending: AdditiveBlending, depthWrite: false, side: DoubleSide,
+        self.print_mat = lambert!({
+            map: wet_print_tex(), color: 0xffffff, transparent: true, opacity: 0.0, depthWrite: false,
+            polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: DoubleSide,
         });
     }
 
@@ -231,9 +273,9 @@ impl Game {
         self.sfx_paper_rustle();
     }
 
-    /// H = shout for help. Coin flip (biased by level):
-    /// either luminous arrows show the path to the exit, or nearby entities
-    /// aggro on the player. Higher levels shift the odds toward the entities.
+    /// H = shout for help. Coin flip (biased by level): either the place
+    /// shows the way to the door (`show_the_way`), or nearby entities aggro
+    /// on the player. Higher levels shift the odds toward the entities.
     pub fn cry_for_help(&mut self) {
         if self.state != "playing" {
             return;
@@ -246,10 +288,12 @@ impl Game {
         self.cry_cooldown = 22.0;
         self.sfx_cry();
         self.show_msg("YOU CRY OUT...", 1.6);
-        // odds by level: level 1 => 50/50 arrows/aggro. Every level -8% arrows, +8% aggro.
-        let arrow_chance = clamp(0.5 - (self.depth() - 1) as f64 * 0.08, 0.05, 0.5);
-        if rnd() < arrow_chance {
-            self.schedule(900.0, |g| g.spawn_guide_arrows());
+        // odds by level: level 1 => 50/50 the way/aggro. Every level -8% the way, +8% aggro.
+        let way_chance = clamp(0.5 - (self.depth() - 1) as f64 * 0.08, 0.05, 0.5);
+        if rnd() < way_chance {
+            self.schedule(900.0, |g| {
+                g.show_the_way();
+            });
         } else {
             self.schedule(600.0, |g| g.alert_entities_to_player());
         }
@@ -291,34 +335,18 @@ impl Game {
         }
     }
 
-    /// BFS from the exit, greedy descent from the
-    /// player, one glowing arrow per step.
-    pub fn spawn_guide_arrows(&mut self) {
-        if self.state != "playing" || self.exit_data.is_none() {
-            return;
-        }
-        // clear any previous arrows immediately
-        for a in &self.guide_arrows {
-            self.world.remove(&a.mesh);
-        }
-        self.guide_arrows.clear();
-        self.sfx_guide_chime();
-        self.show_msg("SOMETHING SHOWS THE WAY", 2.0);
-        self.cry_dim_t = 8.0; // rooms darken for 8 seconds
-        let ep = self.exit_data.as_ref().unwrap().pos;
+    /// The way from here to the door, tile by tile (BFS from the exit,
+    /// greedy descent from the player); empty without an exit or a way.
+    pub fn way_to_the_door(&self) -> Vec<(i32, i32)> {
+        let Some(ep) = self.exit_data.as_ref().map(|e| e.pos) else { return vec![] };
         let (exit_x, exit_z) = (self.tx(ep.x), self.tz(ep.z));
         let field = self.bfs(exit_x, exit_z);
         let (mut cx, mut cz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
         if self.is_wall_tile(cx, cz) {
-            return;
+            return vec![];
         }
         let mut path = vec![(cx, cz)];
-        let mut safety = 0;
-        while (cx != exit_x || cz != exit_z) && {
-            let s = safety;
-            safety += 1;
-            s < 800
-        } {
+        while (cx != exit_x || cz != exit_z) && path.len() < 800 {
             let here = field.get(self.t_idx(cx, cz)).copied().unwrap_or(-1);
             if here <= 0 {
                 break;
@@ -335,27 +363,132 @@ impl Game {
                 }
             }
             let Some(b) = best else { break };
-            cx = b.0;
-            cz = b.1;
+            (cx, cz) = (b.0, b.1);
             path.push((cx, cz));
         }
-        // place arrows at each step (skip first — that's under player's feet)
-        for i in 1..path.len() {
-            let (x, z) = path[i];
-            let (px, _pz) = path[i - 1];
-            // NB: `dir_z` deliberately uses `wz(px)` (the previous tile's x, not its z)
-            let dir_x = self.wx(x) - self.wx(px);
-            let dir_z = self.wz(z) - self.wz(px);
-            let yaw = dir_x.atan2(dir_z);
-            let arrow = mesh(self.arrow_geo.clone(), self.arrow_mat.duplicate());
-            let (ax, az) = (self.wx(x), self.wz(z));
-            let ay = self.floor_y_at(ax, az) + 0.1;
-            arrow.position().set(ax, ay, az);
-            arrow.rotation().y = yaw;
-            arrow.scale().set(2.4, 2.4, 2.4);
-            self.world.add(&arrow);
-            self.guide_arrows.push(GuideArrow { mesh: arrow, life: 14.0, start_y: ay, index: i });
+        path
+    }
+
+    /// The panels that would answer along `path`: lit ones (not dead, not
+    /// switched off) over its first `WAY_LIGHTS_REACH` m, within 2.2 m of
+    /// it, in the order you would walk under them.
+    fn way_lights(&self, path: &[(i32, i32)]) -> Vec<usize> {
+        let mut out: Vec<(usize, usize)> = vec![];
+        let tiles = ((WAY_LIGHTS_REACH / CELL).ceil() as usize + 1).min(path.len());
+        for (i, p) in self.panels.iter().enumerate() {
+            if p.dead || p.switched_off {
+                continue;
+            }
+            let near = path[..tiles]
+                .iter()
+                .enumerate()
+                .filter(|(_, t)| hypot2(self.wx(t.0) - p.wx, self.wz(t.1) - p.wz) < 2.2)
+                .map(|(k, _)| k)
+                .next();
+            if let Some(k) = near.filter(|&k| k > 0) {
+                out.push((k, i));
+            }
         }
+        out.sort_by_key(|&(k, i)| {
+            let t = path[k];
+            (k, (hypot2(self.panels[i].wx - self.wx(t.0), self.panels[i].wz - self.wz(t.1)) * 1000.0) as i64)
+        });
+        out.into_iter().map(|(_, i)| i).collect()
+    }
+
+    /// How the place would answer a cry here: the lights along the way where
+    /// at least three lit panels hang over it (and the last answer was not
+    /// the lights, if prints could do), else wet footprints. None without a
+    /// way to the door.
+    pub fn way_answer_here(&self) -> Option<WayAnswer> {
+        let path = self.way_to_the_door();
+        if path.len() < 2 {
+            return None;
+        }
+        let lights = self.way_lights(&path).len() >= 3;
+        Some(if lights && self.last_way != Some(WayAnswer::Lights) { WayAnswer::Lights } else { WayAnswer::Prints })
+    }
+
+    /// The place shows the way to the door (a cry heard, the payphone's
+    /// hint), never by a sign and not always the same way: the lit panels
+    /// over the way stutter one after another away from you toward it (each
+    /// relay ticking where it hangs), or wet bare footprints appear on the
+    /// floor ahead, a pace apart, walking toward it, and dry away. No line
+    /// and no chime; the rooms darken a little while it lasts. Returns how
+    /// it answered.
+    pub fn show_the_way(&mut self) -> Option<WayAnswer> {
+        if self.state != "playing" {
+            return None;
+        }
+        let answer = self.way_answer_here()?;
+        let path = self.way_to_the_door();
+        // (the last answer's prints dry at once)
+        for a in self.way_prints.drain(..) {
+            self.world.remove(&a.mesh);
+        }
+        self.cry_dim_t = 8.0;
+        self.last_way = Some(answer);
+        self.ways_shown += 1;
+        match answer {
+            WayAnswer::Lights => {
+                for (k, i) in self.way_lights(&path).into_iter().enumerate() {
+                    let (wx, wz) = (self.panels[i].wx, self.panels[i].wz);
+                    self.schedule(k as f64 * WAY_LIGHT_STEP * 1000.0, move |g| {
+                        if g.state != "playing" {
+                            return;
+                        }
+                        // (only the same panel: a rebuilt level's panels are not it)
+                        if let Some(p) = g.panels.get_mut(i).filter(|p| p.wx == wx && p.wz == wz) {
+                            p.flicker = 0.45;
+                            let y = if p.y > 0.0 { p.y } else { WALL_H };
+                            g.play_from(wx, y, wz, 3.0, 0.9, 0.6, |g| g.sfx_relay());
+                        }
+                    });
+                }
+            }
+            WayAnswer::Prints => {
+                // along the way: from where you stand through the middle of each tile
+                let mut pts: Vec<(f64, f64)> = vec![(self.player.pos.x, self.player.pos.z)];
+                pts.extend(path[1..].iter().map(|t| (self.wx(t.0), self.wz(t.1))));
+                let mut prints = vec![];
+                let (mut along, mut next) = (0.0, WAY_PRINT_FIRST);
+                for w in pts.windows(2) {
+                    let (dx, dz) = (w[1].0 - w[0].0, w[1].1 - w[0].1);
+                    let len = dx.hypot(dz);
+                    if len < 1e-6 {
+                        continue;
+                    }
+                    while next <= along + len && prints.len() < WAY_PRINTS {
+                        let t = (next - along) / len;
+                        let side = if prints.len() % 2 == 0 { -1.0 } else { 1.0 };
+                        let (ux, uz) = (dx / len, dz / len);
+                        let (x, z) = (w[0].0 + dx * t - uz * side * 0.1, w[0].1 + dz * t + ux * side * 0.1);
+                        prints.push((x, z, (-ux).atan2(-uz), side));
+                        next += WAY_PACE;
+                    }
+                    along += len;
+                }
+                for (k, (x, z, yaw, side)) in prints.into_iter().enumerate() {
+                    if self.circle_hits_wall(x, z, 0.08) {
+                        continue;
+                    }
+                    self.schedule(k as f64 * WAY_PRINT_STEP * 1000.0, move |g| {
+                        if g.state != "playing" {
+                            return;
+                        }
+                        let m = mesh(g.print_geo.clone(), g.print_mat.duplicate());
+                        m.position().set(x, g.floor_y_at(x, z) + 0.006, z);
+                        m.rotation().y = yaw;
+                        // the left foot is the right one turned over
+                        m.scale().x = side;
+                        g.world.add(&m);
+                        g.way_prints.push(WayPrint { mesh: m, life: WAY_PRINT_LIFE, index: k });
+                        g.play_from(x, 0.05, z, 3.0, 1.0, 0.6, |g| g.sfx_wet_step());
+                    });
+                }
+            }
+        }
+        Some(answer)
     }
 
     /// Pulsing red light + occasional scrape
@@ -574,9 +707,10 @@ impl Game {
         }
     }
 
-    /// Also ticks the cry cooldown and the
-    /// cry-dim envelope.
-    pub fn update_guide_arrows(&mut self, dt: f64, t: f64) {
+    /// The place's footprints dry away (they come up wet in a breath and
+    /// fade over their life); also ticks the cry cooldown and the cry-dim
+    /// envelope.
+    pub fn update_way(&mut self, dt: f64) {
         if self.cry_cooldown > 0.0 {
             self.cry_cooldown -= dt;
         }
@@ -587,25 +721,17 @@ impl Game {
         let cry_dim_target = if self.cry_dim_t > 0.0 { 1.0 } else { 0.0 };
         let cry_dim_k = if cry_dim_target > self.cry_dim_lerp { (dt / 0.7).min(1.0) } else { (dt / 2.0).min(1.0) };
         self.cry_dim_lerp += (cry_dim_target - self.cry_dim_lerp) * cry_dim_k;
-        if self.guide_arrows.is_empty() {
-            return;
-        }
-        let mut i = self.guide_arrows.len();
+        let mut i = self.way_prints.len();
         while i > 0 {
             i -= 1;
-            self.guide_arrows[i].life -= dt;
-            if self.guide_arrows[i].life <= 0.0 {
-                let a = self.guide_arrows.remove(i);
+            self.way_prints[i].life -= dt;
+            if self.way_prints[i].life <= 0.0 {
+                let a = self.way_prints.remove(i);
                 self.world.remove(&a.mesh);
                 continue;
             }
-            let a = &self.guide_arrows[i];
-            // pulse: rising bob + brightness pulse; sequential shimmer sweeps along path
-            let bob = (t * 3.0 + a.index as f64 * 0.7).sin() * 0.05;
-            a.mesh.position().y = a.start_y + 0.25 + bob;
-            // fade out at end
-            let fade = if a.life < 2.0 { a.life / 2.0 } else { 1.0 };
-            a.mesh.mat().set_opacity(fade * (0.55 + 0.35 * (t * 6.0 + a.index as f64 * 0.7).sin()));
+            let a = &self.way_prints[i];
+            a.mesh.mat().set_opacity(way_print_opacity(a.life));
         }
     }
 

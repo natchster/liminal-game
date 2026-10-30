@@ -486,7 +486,7 @@ impl Game {
             m.position().set(px, self.floor_y_at(px, pz), pz);
             m.rotation().y = rand1(PI * 2.0);
             self.world.add(&m);
-            self.lore_notes.push(LoreNote { g: m, taken: false, id, clue: None });
+            self.lore_notes.push(LoreNote { g: m, taken: false, id });
         }
     }
 }

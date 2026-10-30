@@ -577,13 +577,149 @@ fn window_zone_nodes(case: &Json) -> HashSet<usize> {
     out
 }
 
+/// The recorded world children that were the torn notes' marks on the
+/// walls (three chevrons and "?", or READ: a 0.35 × 0.7 m plane): a note
+/// lies as paper lies now (`docs/SECRETS.md` 3), the mark's draws kept
+fn note_mark_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let plane = |t: &Json| {
+        let g = t.get("g");
+        let ps = g.get("params");
+        let par = |k: &str| ps.arr().iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f());
+        t.get("k").s() == "mesh" && g.get("type").s() == "plane" && par("width") == Some(0.35) && par("height") == Some(0.7)
+    };
+    tree.iter().enumerate().filter(|(_, t)| plane(t)).map(|(i, _)| i).collect()
+}
+
+/// The recorded torn notes (world children whose first part is the note's
+/// 0.26 × 0.32 m sheet): their glow and beam are gone, so only the sheet,
+/// its curl and its four lines of writing are compared
+fn note_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let sheet = |t: &Json| {
+        let c = if t.has("c") { t.get("c").arr() } else { &[] };
+        c.first().is_some_and(|c0| {
+            let ps = c0.get("g").get("params");
+            let par = |k: &str| match ps {
+                Json::Arr(v) => v.iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f()),
+                _ => None,
+            };
+            par("width") == Some(0.26) && par("depth") == Some(0.32)
+        })
+    };
+    tree.iter().enumerate().filter(|(_, t)| t.get("k").s() == "group" && sheet(t)).map(|(i, _)| i).collect()
+}
+
+/// `case` with each recorded note (`note_nodes`) cut to its paper and
+/// writing: in the build's tree (children under "c") and in every run-time
+/// tree (children the seventh entry of a node)
+fn quiet_notes(case: &Json) -> Json {
+    let notes = note_nodes(case);
+    // a note that continues a story already begun (its glow in the story's
+    // colour, brighter) is written in that story's ink now (`tail::ink_of`)
+    let ink_of = |c: i64| -> f64 {
+        let ch = |k: i64| (((c >> k) & 0xff) as f64 * 0.42 + 8.0).min(255.0) as i64;
+        ((ch(16) << 16) | (ch(8) << 8) | ch(0)) as f64
+    };
+    let recolour = |line: &Json, ink: f64| -> Json {
+        let Json::Obj(f) = line else { return line.clone() };
+        Json::Obj(
+            f.iter()
+                .map(|(k, v)| {
+                    let v = match (k.as_str(), v) {
+                        ("m", Json::Obj(m)) => Json::Obj(
+                            m.iter().map(|(mk, mv)| (mk.clone(), if mk == "color" { Json::Num(ink) } else { mv.clone() })).collect(),
+                        ),
+                        _ => v.clone(),
+                    };
+                    (k.clone(), v)
+                })
+                .collect(),
+        )
+    };
+    let cut_build = |t: &Json| -> Json {
+        let Json::Obj(fields) = t else { return t.clone() };
+        let kids = t.get("c").arr();
+        let glow = kids.get(6).map(|g| (g.get("m").get("color").i(), g.get("m").get("op").f()));
+        let ink = glow.filter(|&(c, op)| op == 0.35 && c != 0xffd070 && c != 0xf8e0a0).map(|(c, _)| ink_of(c));
+        let cut: Vec<Json> = kids[..6.min(kids.len())]
+            .iter()
+            .enumerate()
+            .map(|(i, c)| match ink {
+                Some(k) if i >= 2 => recolour(c, k),
+                _ => c.clone(),
+            })
+            .collect();
+        Json::Obj(fields.iter().map(|(k, v)| (k.clone(), if k == "c" { Json::Arr(cut.clone()) } else { v.clone() })).collect())
+    };
+    let cut_run = |t: &Json| -> Json {
+        let Json::Arr(v) = t else { return t.clone() };
+        let mut v = v.clone();
+        if v.len() > 6 {
+            let kids = v[6].arr()[..6.min(v[6].len())].to_vec();
+            v[6] = Json::Arr(kids);
+        }
+        Json::Arr(v)
+    };
+    let tree = |t: &Json, run: bool| -> Json {
+        Json::Arr(
+            t.arr()
+                .iter()
+                .enumerate()
+                .map(|(i, n)| {
+                    if !notes.contains(&i) {
+                        n.clone()
+                    } else if run {
+                        cut_run(n)
+                    } else {
+                        cut_build(n)
+                    }
+                })
+                .collect(),
+        )
+    };
+    let with = |o: &Json, key: &str, v: Json| -> Json {
+        let Json::Obj(fields) = o else { return o.clone() };
+        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
+    };
+    let mut c = case.clone();
+    let b = c.get("build").clone();
+    // and the beam over each such note was turned to the camera by an animator
+    let beams = b
+        .get("tree")
+        .arr()
+        .iter()
+        .enumerate()
+        .filter(|(i, t)| notes.contains(i) && t.get("c").arr().get(6).is_some_and(|g| g.get("m").get("op").f() == 0.35))
+        .count();
+    let b = with(&b, "animators", Json::Num((b.get("animators").i() - beams as i64) as f64));
+    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
+    if c.get("sim").has("frames") {
+        let sim = c.get("sim").clone();
+        let frames: Vec<Json> = sim
+            .get("frames")
+            .arr()
+            .iter()
+            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
+            .collect();
+        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
+    }
+    if c.has("final") {
+        let f = c.get("final").clone();
+        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
+    }
+    c
+}
+
 /// A recorded list of world children without the old window zone's
 fn without<'a>(jt: &'a [Json], drop: &HashSet<usize>) -> Vec<&'a Json> {
     jt.iter().enumerate().filter(|(i, _)| !drop.contains(i)).map(|(_, j)| j).collect()
 }
 
 fn run_case(case: &Json, real_builders: bool) {
-    let drop = window_zone_nodes(case);
+    let case = &quiet_notes(case);
+    let mut drop = window_zone_nodes(case);
+    drop.extend(note_mark_nodes(case));
     let name = format!("{}{}", case.get("name").s(), if real_builders { " (real builders)" } else { "" });
     let spec = case.get("spec");
     let Setup { mut g, mut cx, base, log } = setup(case, real_builders);

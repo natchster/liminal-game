@@ -63,8 +63,6 @@ pub struct LoreNote {
     pub g: Obj,
     pub taken: bool,
     pub id: usize,
-    /// The mark on the nearest wall (an arrow, or READ), if there is a wall
-    pub clue: Option<Obj>,
 }
 
 /// A paper the player dropped on the floor to mark a trail
@@ -220,12 +218,21 @@ pub struct Drawer {
     pub f: HashMap<String, f64>,
 }
 
-/// A floor arrow of the guide path (fades out over its life)
+/// How the place answered a cry for help (`Game::show_the_way`)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WayAnswer {
+    /// The lit panels over the way stuttered one after another toward the door
+    Lights,
+    /// Wet bare footprints walked toward it
+    Prints,
+}
+
+/// A wet footprint of the place's answer (dries away over its life)
 #[derive(Clone, Debug)]
-pub struct GuideArrow {
+pub struct WayPrint {
     pub mesh: Obj,
     pub life: f64,
-    pub start_y: f64,
+    /// Its place in the walk of prints
     pub index: usize,
 }
 

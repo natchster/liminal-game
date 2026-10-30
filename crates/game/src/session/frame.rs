@@ -71,7 +71,7 @@ impl Game {
             self.update_flicker_wave(dt);
             let moving = self.player.bob_amp > 0.02;
             self.update_ghost_footsteps(dt, moving);
-            self.update_guide_arrows(dt, perf_t);
+            self.update_way(dt);
             self.update_vacuum_bot(dt);
             self.update_broken_elevator(dt, perf_t);
             self.update_sanity_effects(dt);

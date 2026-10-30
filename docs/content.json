@@ -1054,7 +1054,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "trails that are not hers",
-      "notes": "From the floor of her page f5; the tell (folded twice) is only hinted. Whether players notice it is a playtest question.",
+      "notes": "From the floor of her page f6; flat pages, one stamp, every two tiles mid-floor; the tell (folded twice, a hand) is only hinted. Whether players notice it is a playtest question.",
       "passes": {
         "test:backrooms/story": true
       }
@@ -1085,8 +1085,8 @@
       "kind": "story",
       "last_checked": "2026-10-29",
       "last_human_review": null,
-      "name": "M.'s trail",
-      "notes": "Her walk arrival -> camp -> door, sheets in sight of each other; sparser and with lost stretches deeper down. Visibility in the dark is untested with people.",
+      "name": "M.'s trail (her marks)",
+      "notes": "Her walk arrival -> camp -> door; her marks in sight of each other, each at its kind's distance: sheets, stacks, pencil arrows, turns, torn corners, chalk, tape in the dark, in one hand (the left barb longer), fewer sheets deeper down (SECRETS.md 1); with lost stretches deeper down. Whether people read the small marks as hers, and find them in the dark, is untested with people.",
       "passes": {
         "test:backrooms/level_sweep": true,
         "test:backrooms/reference_levels": true,
@@ -1200,17 +1200,19 @@
     {
       "checks": [
         "test:backrooms/listen",
-        "test:game/hud"
+        "test:game/hud",
+        "test:game/player"
       ],
       "id": "wayfinding/exit",
       "kind": "system",
       "last_checked": "2026-10-29",
       "last_human_review": null,
-      "name": "the exit's light and call (no compass)",
-      "notes": "the_door_is_heard measures the door alone; the payphone's hint line still says 'north' (pinned by the core-props fixture).",
+      "name": "the exit's light and call, and the place's answer to a cry (no compass)",
+      "notes": "the_door_is_heard measures the door alone; a cry or the payphone is answered by the place (the lights along the way, or footprints; SECRETS.md 2), the_way_is_shown_along_the_way_to_the_door.",
       "passes": {
         "test:backrooms/listen": true,
-        "test:game/hud": true
+        "test:game/hud": true,
+        "test:game/player": true
       }
     },
     {

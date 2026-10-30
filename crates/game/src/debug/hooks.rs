@@ -123,6 +123,34 @@ impl Game {
             let (x, z) = (a.x + yaw.sin() * d, a.z + yaw.cos() * d);
             out.push(("trail", x, z, yaw, -0.42));
         }
+        // the first of each kind of her marks, from a few steps short of it,
+        // looking at it
+        let mut seen = vec![];
+        for m in &s.trail {
+            if seen.contains(&m.kind) {
+                continue;
+            }
+            seen.push(m.kind);
+            let (sx, sz) = m.seen_at();
+            let (fx, fz) = (-m.yaw.sin(), -m.yaw.cos());
+            // a mark on a wall from out in the room, a little short of it;
+            // one on the floor from a few steps short of it
+            let at = |d: f64| {
+                if m.kind.on_wall() {
+                    (m.x + m.normal.0 * d * 0.85 - fx * d * 0.5, m.z + m.normal.1 * d * 0.85 - fz * d * 0.5)
+                } else {
+                    (sx - fx * d, sz - fz * d)
+                }
+            };
+            let back = [2.6, 2.0, 1.4, 0.9].into_iter().find(|&d| {
+                let (x, z) = at(d);
+                !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, sx, sz)
+            });
+            let (x, z) = at(back.unwrap_or(0.6));
+            let (dx, dz) = (m.x - x, m.z - z);
+            let pitch = ((m.y + 0.02) - crate::prelude::EYE).atan2(dx.hypot(dz).max(0.3)).clamp(-1.2, 0.3);
+            out.push((m.kind.view_name(), x, z, face(x, z, m.x, m.z), pitch));
+        }
         // and down a trail that is not hers, from her walk
         if let Some(f) = s.false_trails.first().filter(|f| f.trail.len() >= 2) {
             let (a, b) = (&f.trail[0], &f.trail[1]);
@@ -694,6 +722,25 @@ impl Game {
                     crate::core_props::window::view::set_lamp_drop(self, b.win, crate::entities::glass::LAMP_DROP);
                     crate::core_props::window::view::rethrow(self, b.win);
                 }
+            }
+            return;
+        }
+        // the place's answer to a cry, as footprints, all of them down and
+        // wet, and you turned to look along them (`show_the_way`)
+        if name == "way-prints" {
+            self.last_way = Some(crate::base::records::WayAnswer::Lights);
+            let path = self.way_to_the_door();
+            if let Some(&t) = path.get(3).or(path.last()) {
+                let (dx, dz) = (self.wx(t.0) - self.player.pos.x, self.wz(t.1) - self.player.pos.z);
+                self.player.yaw = (-dx).atan2(-dz);
+                self.player.pitch = -0.38;
+            }
+            self.state = "playing".into();
+            self.show_the_way();
+            self.now_ms += 20_000.0;
+            self.run_scheduled();
+            for a in &self.way_prints {
+                a.mesh.mat().set_opacity(crate::player::way_print_opacity(crate::player::WAY_PRINT_LIFE - 2.0));
             }
             return;
         }

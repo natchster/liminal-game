@@ -47,7 +47,7 @@ fn bed(g: &mut Game, pick: fn(&Game) -> engine::audio::AudioNode, level: f64, se
 fn items() -> Vec<Item> {
     let mut v: Vec<Item> = vec![];
     let long = |n: &str| match n {
-        "glitch" | "chime" | "guideChime" | "piano" => 2.0,
+        "glitch" | "chime" | "piano" => 2.0,
         "distantScream" | "scream" | "cry" => 1.6,
         "distantFootsteps" | "laugh" => 1.4,
         _ => 0.9,

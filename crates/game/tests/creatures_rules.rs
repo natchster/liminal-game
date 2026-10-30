@@ -974,7 +974,16 @@ fn it_never_reads_her_sheets_nor_the_flat_ones() {
     sheet.set_pos(g.wx(7), 0.0, g.wz(3) + 1.0);
     g.world.add(&sheet);
     let (sx, sz) = (sheet.pos().x, sheet.pos().z);
-    g.story.trail.push(game::story::TrailMark { step: 0, x: sx, z: sz, yaw: 0.0, g: Some(sheet.clone()) });
+    g.story.trail.push(game::story::TrailMark {
+        step: 0,
+        kind: game::story::MarkKind::Sheet,
+        x: sx,
+        z: sz,
+        y: 0.0,
+        yaw: 0.0,
+        normal: (0.0, 0.0),
+        g: Some(sheet.clone()),
+    });
     assert!(paper_near(&g, ei).is_none());
     for _ in 0..(10.0 / DT) as usize {
         step(&mut g, DT, None, Gait::Still);

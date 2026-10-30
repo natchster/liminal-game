@@ -293,9 +293,13 @@ pub struct Game {
     // ============================================================ player
     pub paper_marker_geo: Geo,
     pub paper_marker_mat: Mat,
-    pub guide_arrows: Vec<GuideArrow>,
-    pub arrow_geo: Geo,
-    pub arrow_mat: Mat,
+    /// The place's footprints toward the door (`show_the_way`), drying
+    pub way_prints: Vec<WayPrint>,
+    pub print_geo: Geo,
+    pub print_mat: Mat,
+    /// How it last answered a cry, and how many times it has
+    pub last_way: Option<WayAnswer>,
+    pub ways_shown: u32,
     pub touch_input: TouchInput,
 
     // ============================================================ hud
@@ -848,9 +852,11 @@ impl Game {
             zones_seen: HashSet::new(),
             paper_marker_geo: box_geo!(0.22, 0.008, 0.28),
             paper_marker_mat: lambert!({ color: 0xf2ead0, emissive: 0x0a0906 }),
-            guide_arrows: vec![],
-            arrow_geo: Geo::new(),
-            arrow_mat: basic_mat!(),
+            way_prints: vec![],
+            print_geo: Geo::new(),
+            print_mat: basic_mat!(),
+            last_way: None,
+            ways_shown: 0,
             touch_input: TouchInput::default(),
             last_rendered_cur: None,
             lore_found: BTreeSet::new(),

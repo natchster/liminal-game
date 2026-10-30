@@ -32,6 +32,7 @@ const FAST_SKIP: &[&str] = &[
     "the_hush_quiets_the_ambience",
     "the_door_is_heard",
     "her_trail_leads_through_her_camp_to_the_door",
+    "her_marks_change_as_she_goes_down",
     "lit_surfaces_have_plausible_albedo",
     "the_mix_holds_its_loudness_and_varies",
     "generated_levels_are_walkable_and_repeatable",

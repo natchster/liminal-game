@@ -450,6 +450,7 @@ impl Game {
             self.tag_placed(c0, "place_story");
         }
         self.settle_placement(prop_start);
+        self.story_marks_settled();
         self.free_buried_pickups();
         self.vending_settled();
         // the windows, on the final walls (their openings are cut as the walls are drawn)

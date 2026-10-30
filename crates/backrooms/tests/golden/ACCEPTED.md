@@ -109,3 +109,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-30, on top of 1d1697d: look anchors: glass_0m, glass_in, glass_death. Reason: W2: the figure's final pose and coat
 
 - 2026-10-30, on top of 6452ff3: frames: glass_0m. Reason: W3: within reach of its window's blind, the HUD offers [E] LOWER THE BLIND beside its face at the glass; nothing else changed (error map: only the prompt)
+
+- 2026-10-30, on top of 8b50e49: frames: 33 shots. Reason: Secrets S1: her trail's sheets are her marks now (fewer sheets, smaller pencil arrows, stacks, marks on walls), and the torn notes lie without a glow or a mark on the wall; each diff is a patch of 2-122 px where a mark or a note's halo was

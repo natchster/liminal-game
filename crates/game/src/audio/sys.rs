@@ -58,7 +58,7 @@ pub struct AudioSys {
 }
 
 /// The keys of the sfx table, in declaration order.
-pub const SFX_NAMES: [&str; 29] = [
+pub const SFX_NAMES: [&str; 30] = [
     "step",
     "pickup",
     "door",
@@ -82,7 +82,8 @@ pub const SFX_NAMES: [&str; 29] = [
     "laugh",
     "chime",
     "cry",
-    "guideChime",
+    "relay",
+    "wetStep",
     "splash",
     "piano",
     "dripHeavy",
@@ -649,12 +650,17 @@ impl Game {
         osc.start(t0);
         osc.stop(t0 + 1.05);
     }
-    /// Guide chime — ascending shimmery tone for the arrow guidance
-    pub fn sfx_guide_chime(&self) {
-        self.blip(880.0, 1.2, "sine", 0.10, None, 0.0, 0.0);
-        self.blip(1320.0, 1.4, "sine", 0.07, None, 0.12, 0.0);
-        self.blip(1760.0, 1.6, "sine", 0.05, None, 0.24, 0.0);
-        self.blip(2640.0, 1.8, "sine", 0.03, None, 0.36, 0.0);
+    /// A panel's relay as its tube stutters: a dry click and the ballast's
+    /// short buzz (`show_the_way`'s lights; play it where the panel hangs)
+    pub fn sfx_relay(&self) {
+        self.blip(1650.0, 0.018, "square", 0.045, None, 0.0, 0.0);
+        self.blip(120.0, 0.16, "sawtooth", 0.035, Some(110.0), 0.01, 0.0);
+    }
+    /// A wet bare foot set down: a soft slap and the water's squelch
+    /// (`show_the_way`'s prints; play it where the print is)
+    pub fn sfx_wet_step(&self) {
+        self.noise_burst(0.09, 520.0, 0.9, 0.09, "lowpass", None, 0.0, 0.0);
+        self.noise_burst(0.06, 2600.0, 2.2, 0.03, "bandpass", Some(1800.0), 0.03, 0.0);
     }
     /// Splash — stepping into or through water (`loud` for running)
     pub fn sfx_splash(&self, loud: bool) {
@@ -721,7 +727,8 @@ impl Game {
             "laugh" => self.sfx_laugh(),
             "chime" => self.sfx_chime(),
             "cry" => self.sfx_cry(),
-            "guideChime" | "guide_chime" => self.sfx_guide_chime(),
+            "relay" => self.sfx_relay(),
+            "wetStep" | "wet_step" => self.sfx_wet_step(),
             "splash" => self.sfx_splash(false),
             "piano" => self.sfx_piano(),
             "dripHeavy" | "drip_heavy" => self.sfx_drip_heavy(),

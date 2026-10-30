@@ -257,11 +257,16 @@ fn ends(g: &Game) -> ((i32, i32), (i32, i32)) {
 
 /// What must hold for her trail on a level built for (seed, level): a walk
 /// from the arrival through her camp to the door over open floor; her camp
-/// off the straight way when the level has room for that; the first sheet
-/// close to the arrival and the last close to the door; and each sheet in
-/// sight of the one before and at most `spacing` tiles of walk on, except
-/// across a stretch the plan says lost its sheets.
+/// off the straight way when the level has room for that; the first mark
+/// close to the arrival (a sheet: her signature) and the last close to the
+/// door; each mark in sight of the one before, at most `spacing` tiles of
+/// walk on and near enough to be seen at all at its kind's distance
+/// (`MarkKind::reach`), except across a stretch the plan says lost its
+/// marks; each kind only from the level she first used it, a turn only
+/// where her way turns, and on that first level the first of a kind with a
+/// sheet beside it.
 fn check_trail(g: &Game) -> Result<String, String> {
+    use game::story::MarkKind;
     let s = &g.story;
     let what = format!("seed {} L{}", g.run_seed, g.level_num);
     let camp = s.camp.as_ref().ok_or(format!("{what}: no camp"))?;
@@ -281,40 +286,91 @@ fn check_trail(g: &Game) -> Result<String, String> {
     let straight = ds[i(exit)];
     let detour = ds[i(camp.tile)] + de[i(camp.tile)] - straight;
     if s.trail.is_empty() {
-        return Err(format!("{what}: no sheets"));
+        return Err(format!("{what}: no marks"));
+    }
+    if s.trail[0].kind != MarkKind::Sheet {
+        return Err(format!("{what}: her first mark is a {:?}, not a sheet", s.trail[0].kind));
     }
     let first = s.trail[0].step;
     let last = s.walk.len() - 1 - s.trail.last().unwrap().step;
     if first > 3 || last > 3 {
-        return Err(format!("{what}: the first sheet is {first} steps from the arrival, the last {last} from the door"));
+        return Err(format!("{what}: the first mark is {first} steps from the arrival, the last {last} from the door"));
     }
     let k = game::story::spacing(g.depth());
-    // the marks in walk order: her sheets and her camp
-    let mut marks: Vec<(usize, f64, f64)> = s.trail.iter().map(|m| (m.step, m.x, m.z)).collect();
-    marks.push((s.camp_step, g.wx(camp.tile.0), g.wz(camp.tile.1)));
+    // the marks in walk order: hers and her camp (seen from where each is seen)
+    let mut marks: Vec<(usize, f64, f64, MarkKind)> = s.trail.iter().map(|m| (m.step, m.seen_at().0, m.seen_at().1, m.kind)).collect();
+    marks.push((s.camp_step, g.wx(camp.tile.0), g.wz(camp.tile.1), MarkKind::Sheet));
     marks.sort_by_key(|m| m.0);
     for w in marks.windows(2) {
         let gap = s.gaps.iter().any(|&(a, b)| a == w[0].0 && b == w[1].0);
         let apart = w[1].0 - w[0].0;
         let limit = if gap { k * 3 + 2 } else { k };
         if apart > limit {
-            return Err(format!("{what}: {apart} steps between sheets at steps {} and {} (at most {limit})", w[0].0, w[1].0));
+            return Err(format!("{what}: {apart} steps between marks at steps {} and {} (at most {limit})", w[0].0, w[1].0));
         }
         if !gap && !g.los(w[0].1, w[0].2, w[1].1, w[1].2) {
-            return Err(format!("{what}: the sheet at step {} cannot be seen from the one at step {}", w[1].0, w[0].0));
+            return Err(format!("{what}: the {:?} at step {} cannot be seen from the mark at step {}", w[1].3, w[1].0, w[0].0));
+        }
+        let d = (w[1].1 - w[0].1).hypot(w[1].2 - w[0].2);
+        if !gap && w[1].0 != s.camp_step && d > w[1].3.reach() + 1e-6 {
+            return Err(format!("{what}: the {:?} at step {} is {d:.1} m from the last, seen only {} m", w[1].3, w[1].0, w[1].3.reach()));
+        }
+    }
+    let mut kinds: Vec<(MarkKind, usize)> = vec![];
+    for m in &s.trail {
+        if m.kind.from_level() > g.level_num || m.kind == MarkKind::Flat {
+            return Err(format!("{what}: a {:?} before she used them (from L{})", m.kind, m.kind.from_level()));
+        }
+        if m.kind == MarkKind::Turn {
+            let (a, b, c) = (s.walk[m.step - 1], s.walk[m.step], s.walk[m.step + 1]);
+            if (b.0 - a.0, b.1 - a.1) == (c.0 - b.0, c.1 - b.1) {
+                return Err(format!("{what}: a turn's mark at step {} where her way goes straight on", m.step));
+            }
+        }
+        if m.kind.on_wall() {
+            // on a wall's face: something solid just behind it, and open in front
+            let (bx, bz) = (m.x - m.normal.0 * 0.03, m.z - m.normal.1 * 0.03);
+            let (fx, fz) = (m.x + m.normal.0 * 0.1, m.z + m.normal.1 * 0.1);
+            if !g.circle_hits_wall(bx, bz, 0.02) || g.circle_hits_wall(fx, fz, 0.02) {
+                return Err(format!("{what}: the {:?} at step {} is not on a wall's face", m.kind, m.step));
+            }
+        }
+        match kinds.iter_mut().find(|k| k.0 == m.kind) {
+            Some(k) => k.1 += 1,
+            None => kinds.push((m.kind, 1)),
+        }
+    }
+    for &(kind, _) in &kinds {
+        if kind != MarkKind::Sheet && kind.from_level() == g.level_num {
+            let i = s.trail.iter().position(|m| m.kind == kind).unwrap();
+            let paired = s.trail.iter().any(|m| m.kind == MarkKind::Sheet && m.step == s.trail[i].step);
+            if !paired {
+                return Err(format!("{what}: the first {:?} (first used here) has no sheet beside it", kind));
+            }
         }
     }
     for m in &s.trail {
-        let o = m.g.as_ref().ok_or(format!("{what}: a sheet with no object"))?;
+        let o = m.g.as_ref().ok_or(format!("{what}: a mark with no object"))?;
         if o.parent().is_none() || (o.pos().x - m.x).abs() > 1e-6 || (o.pos().z - m.z).abs() > 1e-6 {
-            return Err(format!("{what}: the sheet at step {} is not where the plan put it", m.step));
+            return Err(format!(
+                "{what}: the {:?} at step {} is not where the plan put it ({:.3}, {:.3} for {:.3}, {:.3}; in the world: {})",
+                m.kind,
+                m.step,
+                o.pos().x,
+                o.pos().z,
+                m.x,
+                m.z,
+                o.parent().is_some()
+            ));
         }
     }
+    let kinds: Vec<String> = kinds.iter().map(|(k, n)| format!("{} {n}", k.name())).collect();
     Ok(format!(
-        "{what}: walk {} tiles (straight {straight}), camp {} steps in, {detour} off the straight way, {} sheets, gaps {:?}",
+        "{what}: walk {} tiles (straight {straight}), camp {} steps in, {detour} off the straight way, {} marks ({}), gaps {:?}",
         s.walk.len() - 1,
         s.camp_step,
         s.trail.len(),
+        kinds.join(", "),
         s.gaps
     ))
 }
@@ -407,6 +463,56 @@ fn her_trail_leads_through_her_camp_to_the_door() {
         }
     }
     assert!(bad.is_empty(), "{bad:#?}");
+}
+
+/// She ran short of paper as she went down: on the Building's floors her
+/// marks are mostly sheets, deep down mostly the others; every kind of hers
+/// is met somewhere, and none glows (what lights a mark is the place, or
+/// your lamp on tape).
+#[test]
+fn her_marks_change_as_she_goes_down() {
+    use game::story::MarkKind;
+    // (sheets, marks) on levels 1-3, 4-6, 7-10, 11-13
+    let mut bands = [(0usize, 0usize); 4];
+    let mut met: Vec<MarkKind> = vec![];
+    for seed in [4242u32, 7, 1999] {
+        for level in 1..=13 {
+            let mut g = new_game();
+            g.run_seed = seed;
+            g.init_level(level);
+            let b = match level {
+                ..=3 => 0,
+                4..=6 => 1,
+                7..=10 => 2,
+                _ => 3,
+            };
+            for m in &g.story.trail {
+                bands[b].1 += 1;
+                if m.kind == MarkKind::Sheet {
+                    bands[b].0 += 1;
+                }
+                if !met.contains(&m.kind) {
+                    met.push(m.kind);
+                }
+                let mut lit = false;
+                m.g.as_ref().unwrap().traverse(&mut |o| {
+                    if let Some(mat) = o.try_mat() {
+                        lit |= mat.m().emissive.get_hex() != 0;
+                    }
+                });
+                assert!(!lit, "seed {seed} L{level}: a {:?} glows", m.kind);
+            }
+        }
+    }
+    let share: Vec<f64> = bands.iter().map(|b| b.0 as f64 / b.1.max(1) as f64).collect();
+    println!("sheets among her marks by depth (1-3, 4-6, 7-10, 11-13): {share:.2?} of {:?}", bands.map(|b| b.1));
+    println!("kinds met: {met:?}");
+    assert!(share[0] >= 0.6, "the Building's floors: sheets {:.2}", share[0]);
+    assert!(share[3] <= 0.4, "deep down: sheets {:.2}", share[3]);
+    assert!(share[0] > share[1] && share[1] > share[2] && share[2] >= share[3], "fewer sheets as she went down: {share:.2?}");
+    for k in game::story::marks::HER_KINDS {
+        assert!(met.contains(&k), "never met her {k:?}");
+    }
 }
 
 /// Her notebook follows the descent on every run: thirteen pages, each once;
@@ -587,9 +693,20 @@ fn trails_that_are_not_hers_lead_nowhere() {
             let walls = [(0, -1), (1, 0), (0, 1), (-1, 0)].iter().filter(|(dx, dz)| g.is_wall_tile(e.0 + dx, e.1 + dz)).count();
             assert!(walls >= 3, "L{level} #{n}: ends in the open ({walls} walls)");
             assert!(de[(e.1 * g.w + e.0) as usize] >= 8, "L{level} #{n}: ends by the door");
-            assert!(!f.trail.is_empty() && f.trail[0].step <= 2, "L{level} #{n}: its first sheet is not at the branch");
+            assert!(!f.trail.is_empty() && f.trail[0].step <= 2, "L{level} #{n}: its first page is not at the branch");
+            assert!(f.trail.iter().all(|m| m.kind == game::story::MarkKind::Flat), "L{level} #{n}: a mark of hers on it");
             for w in f.trail.windows(2) {
                 assert!(w[1].step - w[0].step <= k && g.los(w[0].x, w[0].z, w[1].x, w[1].z), "L{level} #{n}: cannot be followed");
+            }
+            // one stamp, as no tired person walks: mid-floor, every two tiles where it can be seen
+            let even = f.trail.windows(2).filter(|w| w[1].step - w[0].step == game::story::marks::FLAT_EVERY).count();
+            assert!(even * 2 >= f.trail.len().saturating_sub(2), "L{level} #{n}: not even ({even} of {})", f.trail.len());
+            for m in &f.trail {
+                let t = f.walk[m.step];
+                assert!(
+                    (m.x - g.wx(t.0)).abs() < 1e-9 && (m.z - g.wz(t.1)).abs() < 1e-9,
+                    "L{level} #{n}: a page off the middle of its tile"
+                );
             }
             println!(
                 "L{level}: a trail not hers leaves her walk at step {} and goes {} tiles to a dead end, {} sheets",

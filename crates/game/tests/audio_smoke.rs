@@ -144,7 +144,8 @@ fn every_sound_then_a_second_of_updates() {
     g.sfx_laugh();
     g.sfx_chime();
     g.sfx_cry();
-    g.sfx_guide_chime();
+    g.sfx_relay();
+    g.sfx_wet_step();
     g.sfx_splash(true);
     g.sfx_splash(false);
     g.sfx_piano();
@@ -163,7 +164,7 @@ fn every_sound_then_a_second_of_updates() {
         "dial_tone",
         "distant_footsteps",
         "ghost_step",
-        "guide_chime",
+        "wet_step",
         "drip_heavy",
         "page_flip",
     ] {

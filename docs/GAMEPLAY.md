@@ -58,9 +58,10 @@ that the paper is yours.
 The verbs this gives a level, in place of "follow the arrow":
 
 1. **Find the trail.** Her first sheet is within sight of where you arrive,
-   but the trail is sparse, has gaps, and gets sparser as she did. Deeper
-   down, other trails lie (flat sheets that do not go down). Reading the
-   trail is a skill; it is never explained.
+   but the trail is sparse, has gaps, and gets sparser as she did; deeper
+   down it is less and less paper (her marks: [`SECRETS.md`](SECRETS.md)
+   1). Deeper down, other trails lie (flat sheets that do not go down).
+   Reading the trail is a skill; it is never explained.
 2. **Choose the detour.** Her camp is off the straight way. It holds supplies
    and the page. Taking the page wakes the place: her lamp gutters out and the
    calm is cut short. You choose when the dread starts.
