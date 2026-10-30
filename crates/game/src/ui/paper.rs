@@ -19,6 +19,8 @@ enum Kind {
     Typed,
     /// the index, the medals, the epilogue
     Index,
+    /// what you took (`secrets`), in your own hand, in pen
+    Mine,
 }
 
 pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
@@ -28,6 +30,7 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let kind = match cur {
         Some(c) if c <= -100 => Kind::Hers,
         Some(c) if c >= 0 => Kind::Typed,
+        Some(-4) => Kind::Mine,
         _ => Kind::Index,
     };
     let (w, h) = (f.w, f.h);
@@ -43,7 +46,7 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let title_font = match kind {
         Kind::Hers => Font::sans(12.0),
         Kind::Typed => Font::new(14.0).bold(),
-        Kind::Index => Font::sans(13.0).bold(),
+        Kind::Index | Kind::Mine => Font::sans(13.0).bold(),
     };
     // (typed paper keeps its capitals; her pages and the index are written)
     let title_text =
@@ -51,7 +54,7 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let title =
         TextBlock::plain(&title_text, if kind == Kind::Hers { pencil } else { ink }, &[], 0.0, title_font, Ws::Normal, Some(iw), None);
     let (body_font, lh) = match kind {
-        Kind::Hers => (Font::hand(19.0), 28.0),
+        Kind::Hers | Kind::Mine => (Font::hand(19.0), 28.0),
         Kind::Typed => (Font::new(13.5), 13.5 * 1.65),
         Kind::Index => (Font::sans(14.0), 14.0 * 1.6),
     };
@@ -111,8 +114,8 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
         p.c.line_to(px, py + ph);
         p.c.close_path();
         p.c.fill();
-        // ruled lines (and a margin) on her paper
-        if kind == Kind::Hers {
+        // ruled lines (and a margin) on her paper, and yours
+        if kind == Kind::Hers || kind == Kind::Mine {
             let first = py + top + title.height() + 18.0;
             let mut y = first + lh - 6.0;
             while y < py + ph - 30.0 {

@@ -385,6 +385,9 @@ fn register_cabinet_drawers(g: &mut Game, built: &Built, si: &SpotInfo, bat_tip_
                     g.world.add(&p.g);
                     g.papers.push(PaperPile { g: p.g.clone(), taken: false });
                     g.show_msg("A STACK OF PAPER", 1.6);
+                } else if let Some(i) = content_type.strip_prefix("secret:").and_then(|i| i.parse::<usize>().ok()) {
+                    // something taped under it (`secrets`)
+                    g.open_secret(i);
                 } else {
                     g.show_msg("EMPTY.", 1.2);
                 }

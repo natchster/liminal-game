@@ -297,6 +297,10 @@ impl Game {
         if self.notebook.is_empty() {
             ids.clear();
         }
+        // what you took (`secrets`), after her pages: the act, never the effect
+        if !self.took.is_empty() {
+            ids.push(-4);
+        }
         ids.extend(self.lore_found.iter().map(|&i| i as JournalId));
         if ids.is_empty() {
             return ids;
@@ -390,6 +394,7 @@ impl Game {
             -1 => self.current_epilogue(),
             -2 => ("INDEX".to_string(), self.journal_cover_text()),
             -3 => ("MEDALS".to_string(), self.medals_page_html()),
+            -4 => ("WHAT I TOOK".to_string(), self.what_i_took_page()),
             c if c <= -100 => {
                 let n = (-100 - c) as i32;
                 let book = crate::story::notebook::notebook(self.run_seed);

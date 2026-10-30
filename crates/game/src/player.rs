@@ -198,6 +198,7 @@ impl Game {
             return false;
         }
         self.player.bottles -= 1;
+        self.last_used = Some(crate::secrets::Thing::Almond);
         self.player.stamina = clamp(self.player.stamina + DRINK_STAMINA, 0.0, STAM_MAX);
         self.player.stam_delay = 0.0; // drinking cancels the post-sprint regen pause
         self.sfx_drip();
@@ -220,6 +221,7 @@ impl Game {
             return false;
         }
         self.player.batteries -= 1;
+        self.last_used = Some(crate::secrets::Thing::Battery);
         self.player.battery = clamp(self.player.battery + SWAP_BATTERY, 0.0, BAT_MAX);
         self.sfx_clank();
         let t = self.pick_text("batterySwap");

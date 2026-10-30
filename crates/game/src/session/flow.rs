@@ -34,6 +34,9 @@ pub struct SaveData {
     pub arc_done: bool,
     /// What the run remembers of the creatures (met, your habits, what they learned)
     pub creatures: crate::entities::creature::RunMemory,
+    /// What you took (`secrets::keeps`), and the places emptied (key, uses)
+    pub took: Vec<crate::secrets::keeps::Took>,
+    pub secrets_taken: std::collections::BTreeMap<String, u32>,
 }
 
 impl Game {
@@ -108,6 +111,7 @@ impl Game {
         self.lore_found = found;
         self.fit_lore_notes();
         self.fit_story();
+        self.fit_secrets();
         // the one in the corner, after her camp (never near it): by the place
         crate::entities::corner::place(self);
         // the Reader, where paper lies
@@ -208,6 +212,8 @@ impl Game {
             "notebook": self.notebook.iter().collect::<Vec<_>>(),
             "arcDone": self.arc_done,
             "creatures": self.creature_run.to_json(),
+            "took": self.took.iter().map(|t| serde_json::json!([t.what, t.level, t.place])).collect::<Vec<_>>(),
+            "secrets": self.secrets_taken,
             "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
         });
         self.storage_set(SAVE_KEY, &data.to_string());
@@ -248,6 +254,27 @@ impl Game {
                 .unwrap_or_default(),
             arc_done: flag("arcDone"),
             creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
+            took: d
+                .get("took")
+                .and_then(|v| v.as_array())
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|t| {
+                            let t = t.as_array()?;
+                            Some(crate::secrets::keeps::Took {
+                                what: t.first()?.as_str()?.to_string(),
+                                level: t.get(1)?.as_f64()? as i32,
+                                place: t.get(2)?.as_str()?.to_string(),
+                            })
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            secrets_taken: d
+                .get("secrets")
+                .and_then(|v| v.as_object())
+                .map(|o| o.iter().filter_map(|(k, v)| Some((k.clone(), v.as_f64()? as u32))).collect())
+                .unwrap_or_default(),
             notebook: d
                 .get("notebook")
                 .and_then(|v| v.as_array())
@@ -281,6 +308,9 @@ impl Game {
         self.notebook = d.notebook.iter().cloned().collect();
         self.arc_done = d.arc_done;
         self.creature_run = d.creatures.clone();
+        self.took = d.took.clone();
+        self.secrets_taken = d.secrets_taken.clone();
+        self.refresh_body();
         // the thread: the last line of the latest page of hers taken
         self.thread = crate::story::notebook::notebook(self.run_seed)
             .into_iter()
@@ -546,6 +576,10 @@ impl Game {
         self.creature_run = Default::default();
         self.notebook.clear();
         self.thread.clear();
+        self.secrets_taken.clear();
+        self.took.clear();
+        self.refresh_body();
+        self.last_used = None;
         self.journal_newest = None;
         self.arc_done = false;
         self.lore_archivist_shown = false;
@@ -592,6 +626,7 @@ impl Game {
         self.apply_saved(&d);
         self.fit_lore_notes();
         self.fit_story();
+        self.fit_secrets();
         self.state = "playing".into();
         self.hide_overlay();
         self.show_level_card("");

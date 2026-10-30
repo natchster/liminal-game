@@ -1095,6 +1095,24 @@
     },
     {
       "checks": [
+        "test:backrooms/secrets",
+        "test:backrooms/reference_levels",
+        "test:backrooms/level_sweep"
+      ],
+      "id": "secrets/places",
+      "kind": "story",
+      "last_checked": "2026-10-31",
+      "last_human_review": null,
+      "name": "what is put away: the hiding places, their tells, the chalk sign, the things",
+      "notes": "Two to four places a floor off the way (one at most on the Lobby), each kind with its tell; the run lays its thirteen things over the first descent; the hole gives back and takes; the notebook's page keeps what and where. Whether people find them by the tell or the sign, and whether they start lifting every tile, is untested with people.",
+      "passes": {
+        "test:backrooms/level_sweep": true,
+        "test:backrooms/reference_levels": true,
+        "test:backrooms/secrets": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/menus",
         "test:backrooms/story",
         "test:backrooms/playthrough",

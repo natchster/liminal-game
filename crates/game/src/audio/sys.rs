@@ -656,6 +656,53 @@ impl Game {
         self.blip(1650.0, 0.018, "square", 0.045, None, 0.0, 0.0);
         self.blip(120.0, 0.16, "sawtooth", 0.035, Some(110.0), 0.01, 0.0);
     }
+    /// A hiding place opened (`secrets`; play it where it is): a ceiling
+    /// tile scraped up out of its grid and grit falling, a grille's screws
+    /// giving and its tin, a rag pulled out from behind iron, plaster
+    /// crumbling round a hand
+    pub fn sfx_secret_open(&self, kind: crate::secrets::PlaceKind) {
+        use crate::secrets::PlaceKind as K;
+        match kind {
+            K::Tile => {
+                self.noise_burst(0.3, 1700.0, 1.6, 0.06, "bandpass", Some(1200.0), 0.0, 0.0);
+                for k in 0..4 {
+                    self.noise_burst(0.04, 3200.0, 2.0, 0.025, "bandpass", None, 0.25 + k as f64 * 0.07, 0.0);
+                }
+            }
+            K::Vent => {
+                self.blip(420.0, 0.16, "sawtooth", 0.03, Some(300.0), 0.0, 0.0);
+                self.noise_burst(0.08, 2400.0, 3.0, 0.06, "bandpass", None, 0.18, 0.0);
+            }
+            K::Radiator => {
+                self.noise_burst(0.35, 900.0, 0.8, 0.05, "lowpass", None, 0.0, 0.0);
+            }
+            K::Hole => {
+                for k in 0..3 {
+                    self.noise_burst(0.07, 1400.0, 1.2, 0.04, "lowpass", None, k as f64 * 0.11, 0.0);
+                }
+            }
+            _ => {
+                self.noise_burst(0.12, 1100.0, 1.0, 0.04, "lowpass", None, 0.0, 0.0);
+            }
+        }
+    }
+    /// A thing taken (`secrets`; play it where it was): eaten (a soft
+    /// chew), drunk (a swallow), put on or pocketed (cloth, paper)
+    pub fn sfx_take_thing(&self, t: crate::secrets::Thing) {
+        use crate::secrets::Thing as T;
+        match t {
+            T::PaleMushrooms | T::BrownMushrooms | T::Seeds | T::Jelly | T::Ration | T::Sweets => {
+                for k in 0..3 {
+                    self.noise_burst(0.05, 700.0, 1.0, 0.04, "lowpass", None, k as f64 * 0.18, 0.0);
+                }
+            }
+            T::Medicine | T::YellowWater => {
+                self.blip(180.0, 0.12, "sine", 0.05, Some(120.0), 0.0, 0.0);
+                self.blip(160.0, 0.12, "sine", 0.04, Some(110.0), 0.22, 0.0);
+            }
+            _ => self.noise_burst(0.18, 2600.0, 1.0, 0.035, "bandpass", None, 0.0, 0.0),
+        }
+    }
     /// A wet bare foot set down: a soft slap and the water's squelch
     /// (`show_the_way`'s prints; play it where the print is)
     pub fn sfx_wet_step(&self) {

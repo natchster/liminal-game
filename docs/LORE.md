@@ -19,7 +19,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
-| Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns) |
+| Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns, and what is put away); and a few things put away off the way, signed now and then in chalk, whose effect stays with you and is never said (*What is put away*) |
 | Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
@@ -48,6 +48,8 @@ these channels, and the `lore-keeper` reviewer checks it:
   (`story/notebook.rs`), which hints as a survivor would and never explains.
   The last line of the last page you took stays at the top of the screen
   (the *thread*): a line she wrote, never an instruction.
+- **Your own page**: the notebook's page of what you took (*What is put
+  away*), in your hand: what and where and the floor, never what it did.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
 
@@ -670,6 +672,69 @@ plaque that says STAIRS. Behind it:
   the run.
 - **A snack** shaken loose from a machine is eaten as you take it: stale,
   and it steadies your nerve a little.
+
+## What is put away
+
+On every floor a few places off the way (two to four; on the Lobby one at
+most, its emptiness is the point; none in the Showroom or the Borrowed
+House) hold something somebody put there (`docs/SECRETS.md` 4–5). They are never on
+her way, nor where the flat sheets go, nor in the one in the corner's
+corner; they are found by looking where a real building hides things,
+and each has the same tell all run:
+
+- **A ceiling tile** that sits askew in its grid, a dark gap along an
+  edge, a chair under it (someone stood there): LIFT THE TILE.
+- **A vent grille** low on a wall, hanging by the two screws left in it:
+  PRISE THE GRILLE.
+- **A filing cabinet's drawer** that will not quite shut: something is
+  taped under it.
+- **A radiator** on the Building's floors with a rag stuffed down behind
+  its fins: REACH BEHIND.
+- **A cell's bench**, on the Building's floors, in a cell off the way;
+  the cell where salt was left has two small cones of salt by its door.
+- **The hole in the wall**, at hand height, fist-wide, dark inside, a
+  little plaster under it on the floor: REACH IN. It gives back what you
+  last used up (another bottle like the one you drank, another battery
+  like the one you changed) and takes one thing you carry. With nothing
+  on you, something touches your wrist, and it takes from you instead.
+  Once a hole; three on the first descent.
+- **Lying where nobody would leave it**: the end of a dead end, a wet
+  corner, the floor of a corridor, a small table against a wall in an
+  empty room, a coat hook in an office wing.
+
+Most hold what any floor holds (almond water, a battery, a coin, a few
+sheets of paper) or nothing but dust. One or two a floor hold one of
+the things below, which floors is the run's. Some are signed, by a hand
+that is neither hers nor the flat sheets' maker's: a small chalk circle
+with a stroke through it, at shoulder height on a wall near the place,
+never on it and never pointing: *something is put away near here*. The
+same circle crossed out means *taken*. On the first floor, where a place
+there has a wall to sign, one is found already opened and empty, its
+sign crossed out. Who draws them is never said.
+
+The things (each a real, small, ordinary thing; only what a real one
+carries is printed on it):
+
+| Thing | Where | Taken |
+|---|---|---|
+| Pale mushrooms, half again a field mushroom's size, in the wet carpet | A wet corner (the Lobby's floors, the Poolrooms, an overgrown atrium, washrooms) | Eaten: cold, and earthy |
+| Brown mushrooms | The same wet corners, from the sixth floor | Eaten: dry, and bitter |
+| A white dish of boiled sweets in twists of cellophane, a tent card in a hand: *please take one* | A small table in an empty office, lobby or hall | One at a time; the dish gives three |
+| A twist of paper with a few red seeds, on a saucer | The end of a dead end | Eaten: sharp, sweet, and cold |
+| A small cloth bag on a cord, sewn shut | Behind a radiator, in a cell, behind a vent, under a drawer | Put on: it smells of earth |
+| A paper sachet of salt (SALT on it) | A cell with salt by its door; a drawer | Pocketed |
+| A small jar of blue jelly, no label | Above a ceiling tile | Eaten: it tastes of nothing at all |
+| A briquette in brown paper (КОНЦЕНТРАТ ПИЩЕВОЙ, 300 г) | A cell, behind a radiator: the Building's floors | Eaten: salt and cardboard |
+| A small amber medicine bottle, its label soaked off | Behind a vent, under a drawer, above a tile | Drunk: bitter, then warm |
+| A tweed cap | On a coat hook in an office wing | Put on: it fits |
+| A foreign coin with a hole through it, on a loop of string | Behind a radiator or a vent, under a drawer | Put on: cold against your chest |
+| An almond water, faintly yellow, its seal broken | Under a drawer, on a table, in a corner | Drunk: it tastes of cashews (and it is almond water too) |
+| A red envelope with a lock of dark hair caught at its flap | The floor of a corridor | Picked up: there is hair in it |
+
+What each does stays with you for the rest of the run, and is never
+said (*Things that change you*). The notebook keeps a page of its own,
+in your hand, after hers: *What I took*, a line a thing, what and where
+and the floor; never what it did.
 
 ## The vending machine
 

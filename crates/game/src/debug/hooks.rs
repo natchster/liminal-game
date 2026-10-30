@@ -151,6 +151,46 @@ impl Game {
             let pitch = ((m.y + 0.02) - crate::prelude::EYE).atan2(dx.hypot(dz).max(0.3)).clamp(-1.2, 0.3);
             out.push((m.kind.view_name(), x, z, face(x, z, m.x, m.z), pitch));
         }
+        // each hiding place (`secrets`): a place on a wall from out in the
+        // room, a ceiling tile from under its edge, a thing on the floor
+        // from a step or two off
+        for (k, s) in self.secrets.list.iter().enumerate() {
+            let p = &s.plan;
+            let kind = match p.kind {
+                crate::secrets::PlaceKind::Tile => "secret_tile",
+                crate::secrets::PlaceKind::Vent => "secret_vent",
+                crate::secrets::PlaceKind::Drawer => "secret_drawer",
+                crate::secrets::PlaceKind::Radiator => "secret_radiator",
+                crate::secrets::PlaceKind::Cell => "secret_cell",
+                crate::secrets::PlaceKind::Hole => "secret_hole",
+                crate::secrets::PlaceKind::Corner => "secret_corner",
+                crate::secrets::PlaceKind::Table => "secret_table",
+                crate::secrets::PlaceKind::Hook => "secret_hook",
+            };
+            // (a view's name lives as long as the program: a debug view's few bytes)
+            let name: &'static str = Box::leak(format!("{kind}{k}").into_boxed_str());
+            let (tx, tz) = (self.wx(p.tile.0), self.wz(p.tile.1));
+            let (ox, oz) = if p.normal != (0.0, 0.0) {
+                p.normal
+            } else {
+                let (dx, dz) = (tx - p.x, tz - p.z);
+                let l = dx.hypot(dz).max(1e-6);
+                (dx / l, dz / l)
+            };
+            let at = [2.2, 1.7, 1.2]
+                .into_iter()
+                .map(|d| (p.x + ox * d, p.z + oz * d))
+                .find(|&(x, z)| !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, p.x + ox * 0.3, p.z + oz * 0.3));
+            let Some((x, z)) = at else { continue };
+            let y = match p.kind {
+                crate::secrets::PlaceKind::Tile => p.y - 0.1,
+                crate::secrets::PlaceKind::Drawer => 0.6,
+                _ => p.y.max(0.05),
+            };
+            let d = (p.x - x).hypot(p.z - z).max(0.3);
+            let pitch = (y - crate::prelude::EYE).atan2(d).clamp(-1.2, 1.0);
+            out.push((name, x, z, face(x, z, p.x, p.z), pitch));
+        }
         // and down a trail that is not hers, from her walk
         if let Some(f) = s.false_trails.first().filter(|f| f.trail.len() >= 2) {
             let (a, b) = (&f.trail[0], &f.trail[1]);

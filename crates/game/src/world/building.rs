@@ -123,6 +123,9 @@ impl Game {
             let c0 = self.world.child_count();
             self.place_story();
             self.tag_placed(c0, "place_story");
+            let c0 = self.world.child_count();
+            self.place_secrets();
+            self.tag_placed(c0, "place_secrets");
         }
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {

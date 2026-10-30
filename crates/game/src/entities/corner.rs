@@ -295,11 +295,35 @@ pub fn main_way(g: &Game, from_exit: &[i32], sx: i32, sz: i32) -> Vec<bool> {
     way
 }
 
+/// Where the one in the corner will stand on this level (its tile), if it
+/// is placed: pure, from the level as built (`place`'s choice). What is
+/// put away (`secrets`) keeps clear of it.
+pub fn corner_spot(g: &Game) -> Option<(i32, i32)> {
+    chosen(g).map(|((x, z, _, _), _)| (x, z))
+}
+
 /// Put the one in the corner on this level (after her camp is fitted:
 /// `session::flow`): from depth 2, on about half the levels (by the level,
 /// not by chance), in the quietest inside corner off the main way, far from
 /// the arrival, her camp and the door. None when there is no such corner.
 pub fn place(g: &mut Game) -> Option<usize> {
+    let ((x, z, cx, cz), mut h) = chosen(g)?;
+    // nothing of it draws from the per-frame stream as the level starts (a
+    // draw there would shift every frame after it): its making draws on a
+    // stream of its own, and its first look round is set by the place
+    let own = (h.next() * u32::MAX as f64) as u32;
+    let ei = crate::base::rng::with_seed(own, || g.add_entity("corner", x, z, 0));
+    stand_in(g, ei, x, z, cx, cz);
+    let first = LOOKS_EVERY.0 + (LOOKS_EVERY.1 - LOOKS_EVERY.0) * h.next();
+    if let Some(c) = g.creature_mut(ei) {
+        c.ease.insert("turn_in", first);
+    }
+    Some(ei)
+}
+
+/// The corner `place` chooses (its tile and the way into the corner), and
+/// the level's own stream after the choice
+fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix64)> {
     if g.depth() < 2 || g.building.is_some() || g.level_scp.is_some() || g.in_loop || g.in_stairwell {
         return None;
     }
@@ -341,17 +365,7 @@ pub fn place(g: &mut Game) -> Option<usize> {
         }
     }
     let (_, x, z, cx, cz) = best?;
-    // nothing of it draws from the per-frame stream as the level starts (a
-    // draw there would shift every frame after it): its making draws on a
-    // stream of its own, and its first look round is set by the place
-    let own = (h.next() * u32::MAX as f64) as u32;
-    let ei = crate::base::rng::with_seed(own, || g.add_entity("corner", x, z, 0));
-    stand_in(g, ei, x, z, cx, cz);
-    let first = LOOKS_EVERY.0 + (LOOKS_EVERY.1 - LOOKS_EVERY.0) * h.next();
-    if let Some(c) = g.creature_mut(ei) {
-        c.ease.insert("turn_in", first);
-    }
-    Some(ei)
+    Some(((x, z, cx, cz), h))
 }
 
 /// Stand creature `ei` in the corner of tile (x, z) toward (cx, cz) (each

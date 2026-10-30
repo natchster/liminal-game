@@ -300,6 +300,16 @@ pub struct Game {
     /// How it last answered a cry, and how many times it has
     pub last_way: Option<WayAnswer>,
     pub ways_shown: u32,
+    /// The secrets of this level (`secrets`): where things are put away
+    pub secrets: crate::secrets::SecretsLevel,
+    /// The run's: the places emptied (their key, and how many times used),
+    /// what you took, and what that has made of you (`secrets::keeps`)
+    pub secrets_taken: std::collections::BTreeMap<String, u32>,
+    pub took: Vec<crate::secrets::keeps::Took>,
+    pub body: crate::secrets::keeps::Body,
+    /// What you last used up (a bottle drunk, a battery changed): what the
+    /// hole in the wall gives back
+    pub last_used: Option<crate::secrets::Thing>,
     pub touch_input: TouchInput,
 
     // ============================================================ hud
@@ -857,6 +867,11 @@ impl Game {
             print_mat: basic_mat!(),
             last_way: None,
             ways_shown: 0,
+            secrets: Default::default(),
+            secrets_taken: Default::default(),
+            took: vec![],
+            body: Default::default(),
+            last_used: None,
             touch_input: TouchInput::default(),
             last_rendered_cur: None,
             lore_found: BTreeSet::new(),

@@ -448,6 +448,10 @@ impl Game {
             let c0 = self.world.child_count();
             self.place_story();
             self.tag_placed(c0, "place_story");
+            // and what is put away off her way (`secrets`), on a stream of its own
+            let c0 = self.world.child_count();
+            self.place_secrets();
+            self.tag_placed(c0, "place_secrets");
         }
         self.settle_placement(prop_start);
         self.story_marks_settled();
