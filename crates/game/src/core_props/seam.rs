@@ -24,7 +24,6 @@ pub enum TailBuild {
     BabyDoll,
     PottedPlant,
     FloorPlant,
-    Window,
     PaperPile,
     FloorHole,
     /// `build_broken_mirror(yaw)`
@@ -44,7 +43,6 @@ impl TailBuild {
             TailBuild::BabyDoll => "build_baby_doll",
             TailBuild::PottedPlant => "build_potted_plant",
             TailBuild::FloorPlant => "build_floor_plant",
-            TailBuild::Window => "build_window",
             TailBuild::PaperPile => "build_paper_pile",
             TailBuild::FloorHole => "build_floor_hole",
             TailBuild::BrokenMirror(_) => "build_broken_mirror",
@@ -62,7 +60,6 @@ impl TailBuild {
             TailBuild::BabyDoll => build_baby_doll(g, cx),
             TailBuild::PottedPlant => build_potted_plant(g, cx),
             TailBuild::FloorPlant => build_floor_plant(g, cx),
-            TailBuild::Window => build_window(g, cx),
             TailBuild::PaperPile => build_paper_pile(g, cx),
             TailBuild::FloorHole => build_floor_hole(g, cx),
             TailBuild::BrokenMirror(yaw) => build_broken_mirror(g, cx, yaw),

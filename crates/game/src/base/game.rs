@@ -143,6 +143,10 @@ pub struct Game {
     pub angled: Vec<crate::world::angled::Wall>,
     /// The level's vending machines (`core_props::vending`)
     pub vending: Vec<crate::core_props::vending::Machine>,
+    /// The level's windows (`core_props::window`): the rows chosen in the
+    /// build, and the windows finished on its final walls
+    pub window_plans: Vec<crate::core_props::window::Plan>,
+    pub windows: Vec<crate::core_props::window::Window>,
     /// The game's textures (wallpaper and carpet variants, dust sprite, static, ...)
     pub tex: crate::visuals::textures::Textures,
     /// Procedural surface textures (from `make_surfaces`)
@@ -701,6 +705,8 @@ impl Game {
             solids: None,
             angled: vec![],
             vending: vec![],
+            window_plans: vec![],
+            windows: vec![],
             tex: crate::visuals::textures::Textures::placeholder(),
             // (`rnd`: each painter draws inside `canvas_tex`, on its own stream)
             surfaces: crate::visuals::surfaces::make_surfaces(crate::base::rng::rnd),

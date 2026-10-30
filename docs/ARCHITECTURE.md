@@ -50,7 +50,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `world` | Grid and collision queries, the partitions that lean (`angled`), zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling; the Building's floors as built (`building`: slabs, flights, parapets, masses, lamps, the door, pickups) and dressed (`building_dress`: cells and their hermetic doors, sealed doors, the galleries above and below, windows, the door's lit tower, storey numbers, loudspeakers, the Well's lift cage, each place's own); the self-assembly (`assembly`) and the figure across the void (`far_figures`: its perches, where it can be seen from, and its standing, turning and going, on a stream of its own) |
 | `assets` | The embedded prop and creature meshes (`assets/*.bin`), fitted to each placer's size; the creatures' bodies (`assets::bodies`: skeletons and the meshes bound to them, `bodies.bin`) |
 | `placers` | The kit placers build with (`canvas_tex`, `pg`, joints, shared materials and tables) |
-| `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras; the vending machine (`core_props/vending/`: its body from the Blender parts merged by material, its goods and what is printed on it, its rules; `docs/VENDING.md`) |
+| `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras; the vending machine (`core_props/vending/`: its body from the Blender parts merged by material, its goods and what is printed on it, its rules; `docs/VENDING.md`); the windows (`core_props/window/`: chosen in the build, finished on the final walls with their openings cut out of the drawn walls, built from the Blender parts, and what they look out on, its lamp and the light it throws in; `docs/WINDOWS.md`) |
 | `entities` | The creatures: rigs, skinning, animation, AI, voices, and the pacing director (`director`); a body built from `bodies.bin` and posed by aiming bones (`body`); the brain every creature of the redesign shares (`brain`: modes, percepts, awareness, memory, orders; `docs/ENTITIES.md`) |
 | `anomalies` | The Showroom (a store that closes at night), the Borrowed House, the human rig they share |
 | `modes` | The Stairwell and the Loop: self-contained spaces with their own movement, entered from a level |
@@ -234,7 +234,14 @@ affects a level's build.
    texels a tile: the light, how open each place is, its ceiling),
    world-space architecture UVs with a photographed detail over them
    (`ArchDetail`, the rooms' surfaces: `visuals::photo::arch_detail`), skin detail, the smiler's eyes, the watcher's sheet,
-   the shadows' smoke edge, the stairwell face.
+   the shadows' smoke edge, the stairwell face; a window's view
+   (`WindowView`: a panorama traced per pixel onto a ground disc and a
+   dome round a point outside the glass, its lamp's pool and halo) and its
+   glass (`Glass`: Fresnel, dirt, milk, mist). A material may also be drawn
+   *beyond a window* (`Material::portal`, the `PORTAL` constant): what lies
+   past the window's plane is slid along each eye ray onto a thin slab in
+   front of the view, clipped to the opening and lit by the view's sky, so
+   real geometry stands out there and is hidden by what is before the glass.
 5. **Composite:** 4× MSAA into a scene texture at the quality governor's
    resolution, then the camera grade (a little less saturation, a gentle
    S-curve, the lens vignette), then the colour filter, then each HUD layer

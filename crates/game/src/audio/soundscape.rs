@@ -628,6 +628,54 @@ impl MachineHum {
         oscs.push(air);
         MachineHum { ac: ac.clone(), slot, sum, oscs, level: Cell::new(0.0) }
     }
+    /// A sodium streetlamp's ballast heard through a window's glass
+    /// (`core_props::window`): its 120 Hz and a little of its series, the
+    /// arc's buzz thin and high, all of it dulled by the glass (lowpassed);
+    /// no fan. Its level glides; at 0 it is silent.
+    fn lamp(ac: &AudioContext, slot: VoiceSlot, noise: &AudioBuffer) -> MachineHum {
+        let sum = ac.create_gain();
+        sum.gain().set_value(0.0);
+        let glass = ac.create_biquad_filter();
+        glass.set_type("lowpass");
+        glass.frequency().set_value(900.0);
+        glass.q().set_value(0.6);
+        sum.connect(&glass);
+        glass.connect(&slot.input);
+        let mut oscs = vec![];
+        for (n, w) in [(1.0, 0.70), (2.0, 0.30), (3.0, 0.14), (4.0, 0.06)] {
+            let o = ac.create_oscillator();
+            o.set_type("sine");
+            o.frequency().set_value(120.0 * n - 0.11 * n);
+            let g = ac.create_gain();
+            g.gain().set_value(w);
+            o.connect(&g);
+            g.connect(&sum);
+            o.start(0.0);
+            oscs.push(o);
+        }
+        let bz = noise_src(ac, noise, true);
+        let bp = ac.create_biquad_filter();
+        bp.set_type("bandpass");
+        bp.frequency().set_value(1800.0);
+        bp.q().set_value(1.4);
+        let chop = ac.create_gain();
+        chop.gain().set_value(0.0);
+        let lfo = ac.create_oscillator();
+        lfo.set_type("square");
+        lfo.frequency().set_value(120.0);
+        let depth = ac.create_gain();
+        depth.gain().set_value(0.05);
+        lfo.connect(&depth);
+        depth.connect_param(&chop.gain());
+        bz.connect(&bp);
+        bp.connect(&chop);
+        chop.connect(&sum);
+        bz.start(0.0);
+        lfo.start(0.0);
+        oscs.push(lfo);
+        oscs.push(bz);
+        MachineHum { ac: ac.clone(), slot, sum, oscs, level: Cell::new(0.0) }
+    }
     /// Per frame: from (x, y, z), at `level` (0 silent … 1 near and lit)
     pub fn update(&self, dt: f64, x: f64, y: f64, z: f64, level: f64) {
         self.slot.at(x, y, z);
@@ -1061,6 +1109,10 @@ impl Soundscape {
     /// A vending machine's hum, held where it stands (`MachineHum`)
     pub fn machine_hum(&self) -> MachineHum {
         MachineHum::new(&self.ac, self.voice_slot(1.2), &self.noise)
+    }
+    /// A streetlamp outside a window, heard through the glass (`MachineHum::lamp`)
+    pub fn lamp_hum(&self) -> MachineHum {
+        MachineHum::lamp(&self.ac, self.voice_slot(1.0), &self.noise)
     }
 
     // ------------------------------------------------------------ one-shots ---

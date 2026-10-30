@@ -695,6 +695,8 @@ fn level_check(o: &Options, dir: &str) {
                 print!(" ({} leaning, lean views: \"{}\")", g.angled.len(), lean.join(";"));
                 let vend: Vec<String> = g.vending_views().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" (vending views: \"{}\", {})", vend.join(";"), g.vending_states().join(" "));
+                let win: Vec<String> = g.window_views().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
+                print!(" (window views: \"{}\")", win.join(";"));
             }
             if let Some(what) = o.vending_demo.as_deref() {
                 g.vending_demo(what);

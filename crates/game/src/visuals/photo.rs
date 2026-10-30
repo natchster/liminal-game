@@ -159,3 +159,50 @@ pub fn lit_window_tex(cell: usize) -> Tex {
     t.set_offset(cell.min(LIT_CELLS - 1) as f64 / LIT_CELLS as f64, 0.0);
     t
 }
+
+/// What the windows of the rooms look out on (`docs/WINDOWS.md`): a farm
+/// track running away into fog, half the turn round it (`Patch::WindowView`)
+static WINDOW_VIEW: &[u8] = texture!("view.jpg");
+/// The dirt on the windows' glass: how much, grey (`Patch::Glass`)
+static GLASS_DIRT: &[u8] = texture!("glass.jpg");
+
+/// The windows' view, decoded once (every window shares it and its upload)
+pub fn window_view_tex() -> Tex {
+    thread_local! { static VIEW: std::cell::RefCell<Option<Tex>> = const { std::cell::RefCell::new(None) }; }
+    VIEW.with(|l| {
+        l.borrow_mut()
+            .get_or_insert_with(|| {
+                let t = Tex::from_image(Canvas::from_jpeg(WINDOW_VIEW).expect("assets/textures/view.jpg does not decode").to_image());
+                {
+                    let mut tt = t.t();
+                    tt.color_space = ColorSpace::Srgb;
+                    tt.anisotropy = 4;
+                }
+                t
+            })
+            .clone()
+    })
+}
+
+/// The dirt on a pane of the windows' glass: one decoded image, each pane
+/// its own part of it (`u0`, `v0`, how much of it across)
+pub fn glass_dirt_tex(u0: f64, v0: f64, size: f64) -> Tex {
+    thread_local! { static DIRT: std::cell::RefCell<Option<Tex>> = const { std::cell::RefCell::new(None) }; }
+    let base = DIRT.with(|l| {
+        l.borrow_mut()
+            .get_or_insert_with(|| {
+                let t = Tex::from_image(Canvas::from_jpeg(GLASS_DIRT).expect("assets/textures/glass.jpg does not decode").to_image());
+                {
+                    let mut tt = t.t();
+                    tt.wrap_s = Wrap::Repeat;
+                    tt.wrap_t = Wrap::Repeat;
+                }
+                t
+            })
+            .clone()
+    });
+    let t = base.duplicate();
+    t.set_repeat(size, size);
+    t.set_offset(u0, v0);
+    t
+}

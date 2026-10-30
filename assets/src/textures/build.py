@@ -129,6 +129,21 @@ def polyhaven(asset, part):
     return out
 
 
+def polyhaven_hdri(asset):
+    """A Poly Haven panorama as Poly Haven tonemapped it (the 8K JPEG beside
+    each HDRI), fetched once and checked by its SHA-1."""
+    a = SOURCES["polyhaven_hdris"]["assets"][asset]
+    name = f"{asset}.jpg"
+    out = os.path.join(CACHE, "polyhaven", "hdri_" + name)
+    if not os.path.exists(out) or sha1(out) != a["sha1"]:
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        print("fetching", name, "(tonemapped panorama) from Poly Haven")
+        fetch(f"https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/{name}", out)
+    if sha1(out) != a["sha1"]:
+        raise SystemExit(f"{name}: SHA-1 {sha1(out)}, not {a['sha1']}")
+    return out
+
+
 # ---------------------------------------------------------------- details ---
 # The rooms keep their painted surfaces (palettes, grime, wallpaper motifs:
 # visuals/textures.rs); over them the game lays a photographed detail in
@@ -586,7 +601,64 @@ def lit():
     return np.concatenate(cells, 1)
 
 
-TEXTURES = {"panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
+# ----------------------------------------------------------------- the view ---
+
+VIEW_W, VIEW_H = 3072, 2304
+# what a window can show: half the turn round the way ahead, from 80 deg
+# below the horizon (the ground under the glass) to 55 deg above it
+VIEW_EL = (55.0, -80.0)
+
+
+def view():
+    """What the windows of the rooms look out on (`Patch::WindowView`, docs/
+    WINDOWS.md): Poly Haven's misty_farm_road (Greg Zaal, CC0), two gravel
+    tracks between ploughed fields running away into fog, trees standing in
+    it. Turned so the left-hand track runs straight away from the glass (it
+    meets the horizon at 0.293 of the turn), cut to what a window can show
+    (half the turn round it, 80 deg below the horizon to 55 deg above), and
+    graded from a foggy afternoon to the last of the light: cooler, the
+    colour thinned, the fog dimming upward to a dark overcast. The game sets
+    how much light is left (the exposure) by how deep the floor is."""
+    img = T.load(polyhaven_hdri("misty_farm_road"))
+    h, w = img.shape[:2]
+    az = ((np.arange(VIEW_W) + 0.5) / VIEW_W - 0.5) * np.pi
+    el = np.radians(VIEW_EL[0] + (np.arange(VIEW_H) + 0.5) / VIEW_H * (VIEW_EL[1] - VIEW_EL[0]))
+    u = (0.293 + az / (2 * np.pi)) % 1.0
+    v = 0.5 - el / np.pi
+    sx, sy = np.meshgrid(u * w, v * h)
+    lin = T.to_lin(np.clip(T.sample(img, sx, sy), 0, 1))
+    # dusk: cooler, thinner colour; the overcast darkening toward the top
+    lin = lin * np.array([0.80, 0.93, 1.16], np.float32)
+    L = T.lum(lin)[..., None]
+    lin = L + (lin - L) * 0.62
+    up = np.clip(np.degrees(el) / 50.0, 0.0, 1.0)[:, None, None]
+    lin = lin * (1.0 - 0.55 * up * up * (3 - 2 * up))
+    # the horizon's fog at about a fifth of white (the game sets the light left)
+    hz = T.lum(lin[np.abs(np.degrees(el)) < 2.0]).mean()
+    lin = lin * (0.2 / max(hz, 1e-4))
+    return T.to_srgb(np.clip(lin, 0, 1))
+
+
+def glass():
+    """The dirt on the windows' glass (`Patch::Glass`): how much of it there
+    is, grey (the game reads it as a share). A film of dust
+    (SurfaceImperfections015), dirt run down it in streaks
+    (SurfaceImperfections003) and a cloth's wipe across it (Smear004's
+    roughness), all ambientCG, CC0; 1024 px, seamless (a pane takes a part
+    of it of its own)."""
+    film = T.resize(T.load(ambientcg("SurfaceImperfections015", "Opacity")), 1088, 1088)
+    runs = T.resize(T.load(ambientcg("SurfaceImperfections003", "Opacity")), 1088, 1088)
+    sm = T.load(ambientcg("Smear004", "Roughness"))
+    n = min(sm.shape[0], sm.shape[1])
+    wipe = T.resize(sm[:n, :n], 1088, 1088)
+    # each from its own floor: what is darker than its usual is clean glass
+    def lift(a, lo, hi):
+        return np.clip((a - np.percentile(a, lo)) / (np.percentile(a, hi) - np.percentile(a, lo) + 1e-6), 0.0, 1.0)
+    g = 0.30 * lift(film, 10, 99) + 0.45 * lift(runs, 30, 99.5) ** 1.4 + 0.25 * lift(wipe, 50, 99.5)
+    return T.periodic(np.clip(g, 0.0, 1.0), 64)
+
+
+TEXTURES = {"view": view, "glass": glass, "panel": panel, "ashlar": ashlar, "poured": poured, "formwork": formwork, "deck": deck, "stone": stone, "factory": factory, "ribbed": ribbed, "lit": lit,
             "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor}
 
 

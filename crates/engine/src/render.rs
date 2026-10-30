@@ -208,6 +208,7 @@ struct MaterialU {
     arch: [f32; 4],
     patch: [f32; 16],
     surf: [f32; 4],
+    portal: [f32; 16],
 }
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -242,6 +243,7 @@ struct VariantKey {
     size_atten: bool,
     vc_data: bool,
     wear: bool,
+    portal: bool,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 struct PipeKey {
@@ -608,6 +610,7 @@ impl Renderer {
             set_b(20, v.size_atten);
             set_b(21, v.vc_data);
             set_b(22, v.wear);
+            set_b(23, v.portal);
         }
         let vf = self
             .lib
@@ -1332,6 +1335,12 @@ impl Renderer {
             mu.patch[0] = pu.f[0];
             mu.patch[1] = pu.f[1];
         }
+        if matches!(m.patch, Patch::WindowView | Patch::Glass) {
+            mu.patch = m.patch_uniforms.borrow().f;
+        }
+        if let Some(p) = &m.portal {
+            mu.portal = p.borrow().f;
+        }
         // light list: lights whose reach touches this object
         let mut ll = LightListU { count: 0, pad: [0; 3], idx: [0; 96] };
         if key.v.kind == 1 || key.v.kind == 2 {
@@ -1602,6 +1611,8 @@ fn variant_for(
             }
         }
         Patch::Stairwell { .. } => 7,
+        Patch::WindowView => 8,
+        Patch::Glass => 9,
         Patch::Named(_) => 0,
     };
     let blend = if m.blending == Blending::Normal && !m.transparent {
@@ -1640,6 +1651,7 @@ fn variant_for(
         size_atten: m.size_attenuation,
         vc_data: vc_size > 0,
         wear: m.wear > 0.0 && (kind == 1 || kind == 2),
+        portal: m.portal.is_some(),
     };
     PipeKey { v, blend, color_write: m.color_write }
 }

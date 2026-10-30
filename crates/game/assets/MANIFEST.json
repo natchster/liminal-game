@@ -51,7 +51,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "the HTML version's pipeline (props.py, prop-assemble.mjs), converted byte for byte from its src/prop-meshes.js (fingerprint 9402a16016f4edb5) by cargo xtask assets import-js",
-      "fingerprint": "1ab40694456aecfa",
+      "fingerprint": "c9d5907d72b2e9f2",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",
@@ -181,7 +181,7 @@
       "generative_model": null,
       "generator": "procedural bpy scripts",
       "licence": "MIT",
-      "parts": 2567,
+      "parts": 2587,
       "rebuild": "cargo xtask assets props [--write]; Blender 5.2.2 reproduces every part but the frozen ones exactly",
       "rebuilt_with": "Blender 5.2.2 LTS",
       "sources": [
@@ -302,6 +302,20 @@
         "assets/src/textures/sources.json"
       ]
     },
+    "textures/glass.jpg": {
+      "authors": "ambientCG (Lennart Demes), SurfaceImperfections015, SurfaceImperfections003 and Smear004 (CC0); processed by coding agents under the developer's direction",
+      "built_with": "a film of dust, dirt run down in streaks and a cloth's wipe, grey (how much dirt), the windows' glass",
+      "fingerprint": "0d084cf6d5663815",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
     "textures/lit.jpg": {
       "authors": "Kureca (PanelkaPack, CC0); processed by coding agents under the developer's direction",
       "built_with": "four photographed windows as lit from inside (frames in silhouette)",
@@ -390,6 +404,20 @@
       "authors": "Antares 610 (Wikimedia Commons, CC0); processed by coding agents under the developer's direction",
       "built_with": "the granite floor of Arsenalna station, Kyiv (1960): its grain unforeshortened and quilted, laid as 1 m x 0.5 m slabs",
       "fingerprint": "bb0129060da83e34",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py; Pillow, NumPy and SciPy); the photographs and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
+    "textures/view.jpg": {
+      "authors": "Greg Zaal (Poly Haven, misty_farm_road, CC0); processed by coding agents under the developer's direction",
+      "built_with": "a panorama of a farm track in fog, turned so the track runs away from the glass, half its turn round the way ahead from 80 deg below the horizon to 55 above, graded to the last of the light: what every window of the rooms looks out on",
+      "fingerprint": "570c29bd411db2df",
       "generative_model": null,
       "generator": "photographs, processed by scripts",
       "licence": "CC0-1.0",

@@ -186,8 +186,13 @@ wall and the wall is a wall.
 Where a real building would have them: offices and office wings, halls,
 living quarters, parlours and party rooms (a `Home`, as the vending
 machine's), on a straight wall (never one that leans), its face whole over
-the opening, a clear floor before it; in rows of one to three a few metres
-apart, two to four windows a floor. None on the Lobby (level 4: its
+the opening and half a metre past it either side (never a pillar's face,
+nor a block standing out of its wall), a clear floor before it, nothing
+already hung there; in rows of one to three lights or windows. The rows
+stand on the three tiles the old window zone took, with its draws, so
+nothing placed after them moves; one is planned only where its tile's zone
+is a window's home (most floors below the Lobby have some: 52 of 74
+over fourteen runs). None on the Lobby (level 4: its
 emptiness is the point), none in the Showroom or the Borrowed House (their
 light is their own), none on the Building's floors (whose windows are its
 own, the Well's), none on the Loop's or the Stairwell's. The three themed
@@ -316,7 +321,8 @@ a creature costs.
 
 | Part | Commit | What was done |
 |---|---|---|
-| W0 | (this commit) | The research (`research/windows-real.md`, `research/window-horror.md`), the three prototypes, this design |
+| W0 | `19efe5c` | The research (`research/windows-real.md`, `research/window-horror.md`), the three prototypes, this design |
+| W1 | (this commit) | The window. A row is chosen in the core props' tail on the three tiles the old window zone took, with its draws (a take and a wall side each, on every floor of the rooms: nothing placed after it moves; the HTML version's recorded tail still matches, its old windows aside), planned only on floors with windows and where the tile's zone is a window's home (`WINDOW_HOME`); one to three lights or windows a row and its own seed from a stream of its own. It is finished after the props settle on the final walls (`windows_settled`, no draws): the wall's face probed from the solids over the span and half a metre past it at the sill, the middle and the head (never a doorway, a corner, a pillar's face or a partition that leans), nothing already hung there, the wall's thickness measured, and the drawn wall less a box as deep as the wall less 12 mm (0.30 m into a wall that fills its tile; `build_walls`, `box_minus`); the solids stay whole, and a piece of wallpaper under a window keeps its wall's height (its skirting runs on). Two kinds from Blender parts (batch `w01`, 20 parts): a wood double-hung sash window 0.91 x 1.37 m (one-over-one or two-over-two, painted off-white, cream, dark green or brown, its lock and lifts, casing, stool stretched across the reveal, apron) in halls and homes; an office strip window, lights 1.2 m wide between 50 mm mullions over steel convectors, in offices. Each light its glass (`Patch::Glass`: Fresnel 8% to all, the room in it, dirt from three CC0 ambientCG maps lit by the room and by the view, a failed unit's milk); a mini blind raised, let down crooked with its slats open, or pulled down and left; now and then newspaper and sheets taped over it; dead flies on the sill. The view (`Patch::WindowView`): Poly Haven's *misty_farm_road* (Greg Zaal, CC0) turned so a track runs away from the glass, half its turn graded to the last of the light (`assets/src/textures`, `view.jpg`), traced on a ground disc and a dome round a point just outside the glass, the same from every window, later the deeper the floor (night from depth 7). A streetlamp close outside drawn beyond the glass (`Material::portal`), its pool on the ground and its halo in the fog; its light thrown in on the floor (a decal: the window's shape, the muntin's and the blind's shadows, soft-edged, falling off as a lamp's does, never through a wall; its lit cells kept as the window's light, `Window::lit_at`); its ballast heard through the glass within 7 m (`MachineHum::lamp`). The old framed window (`build_window`, `tail_window_zone`) is gone. Found on the way: the broken window frame's shards lay in a circle round it, half inside its wall (a leaning wall showed it: now half a turn about the way out). Blind review (a fresh reviewer, the art-critic's brief, both orders, 22 window views of 11 floors from each build): the new windows preferred in all 22 ("a real opening cut into the wall, with depth… plausible glass and outside" against "a printed panel"); what it found broken on the new side fixed (a papered light read as plaster: now newsprint and sheets; the skirting jogged under windows in tall halls; a window in a pillar and in a block standing out of its wall: a wall round it now; the lamp's pole an unfogged black bar). `tests/windows.rs` (6): where they stand, the cut and the solids, the same on every build, the light on its own room's floor, the same place from every window and later deeper, the lamp heard only near |
 
 ## What only people can tell
 

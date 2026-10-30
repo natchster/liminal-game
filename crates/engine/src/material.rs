@@ -64,6 +64,24 @@ pub enum Patch {
     Shadow { edge: bool },
     /// the Stairwell's own patch (see stairwell module)
     Stairwell { kind: u32 },
+    /// a window's view of an outside that is not there: the map is half the
+    /// turn of a panorama round the way ahead (u: -90..90 deg, v: 55 deg
+    /// above the horizon to 80 below), laid on a ground disc and a dome round
+    /// a point just outside the glass, so near ground moves with your head
+    /// and the far land does not; a lamp out there pools its light on the
+    /// ground and haloes in the fog. `patch_uniforms`: [0..3] the point
+    /// (world) and its height over the ground; [4..7] the way ahead (x, z),
+    /// the dome's radius, the exposure; [8..11] the lamp's head (world) and
+    /// its strength; [12] how far into the night (0..1)
+    WindowView,
+    /// a pane of glass (a lit, transparent material): the room reflected in
+    /// it by Fresnel, the dirt on it (its map's grey) lit by the room and from
+    /// behind by the view, a failed unit's milk, a breath's mist on it.
+    /// `patch_uniforms`: [0] how bright the room reads in it, [1..3] the
+    /// view's light behind it (linear); [4..7] the mist's centre (uv), its
+    /// radius and amount; [8] how much of the map's grey is dirt, [9..11]
+    /// the dirt's colour; [12] milk, [13] its reflectance square on
+    Glass,
     /// a generic hook: renderer looks it up by name
     Named(String),
 }
@@ -79,6 +97,22 @@ pub struct ArchDetail {
     pub metres: f64,
     pub tint: f64,
     pub relief: f64,
+}
+
+/// A window a thing is seen through (`Material::portal`). What lies beyond
+/// the window's plane is slid along each eye ray onto a thin slab just in
+/// front of it (nearer things a little nearer), so it stands where it is on
+/// the screen and is hidden by whatever is in front of the glass; what falls
+/// outside the opening is not drawn, and it is lit by the view's sky, not by
+/// the room. What has come through into the room is drawn as anything is.
+/// `f`: [0..3] the opening's centre (world) and half width; [4..7] its right
+/// axis (unit) and half height; [8..11] its normal into the room (unit) and
+/// the slab's depth (metres: what is beyond lies between the plane and that
+/// far in front of it, the nearest nearest); [12..15] the view's sky light
+/// (linear rgb) and its haze per metre.
+#[derive(Clone, Debug, Default)]
+pub struct PortalU {
+    pub f: [f32; 16],
 }
 
 /// Per-frame uniforms some patches read (set by the game each frame).
@@ -132,6 +166,9 @@ pub struct Material {
     pub wear: f64,
     /// Free for the game: marks a material whose look it has already settled
     pub look_settled: bool,
+    /// Drawn beyond a window (a thing outside it, seen through it): see
+    /// [`PortalU`]; set it per frame through the shared cell
+    pub portal: Option<Rc<RefCell<PortalU>>>,
     /// bumped by `needs_update`
     pub version: u64,
 }
@@ -177,6 +214,7 @@ impl Material {
             patch_uniforms: Rc::new(RefCell::new(PatchUniforms::default())),
             wear: 0.0,
             look_settled: false,
+            portal: None,
             version: 1,
         }
     }

@@ -148,6 +148,8 @@ fn setup(case: &Json, real_builders: bool) -> Setup {
         case.get("builders")
             .arr()
             .iter()
+            // the old framed window is not built here any more (`window_zone_nodes`)
+            .filter(|b| b.get("name").s() != OLD_WINDOW)
             .map(|b| Logged {
                 name: b.get("name").s().to_string(),
                 args: b.get("args").fs(),
@@ -553,7 +555,35 @@ fn use_interactable(g: &mut Game, i: usize) {
     f(g);
     g.interactables[i].on_use = f;
 }
+/// The old window zone's builder: the windows are only chosen in the tail
+/// now, on the tiles it took and with its draws (`core_props::window`), and
+/// finished after the props settle, so its windows and their lights are not
+/// in the world the tail builds.
+const OLD_WINDOW: &str = "build_window";
+
+/// The recorded world children that were the old window zone's: each window
+/// (a builder node) and the point light hung before it
+fn window_zone_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let mut out = HashSet::new();
+    for (i, t) in tree.iter().enumerate() {
+        if t.get("k").s() == "builder" && t.get("b").s() == OLD_WINDOW {
+            out.insert(i);
+            if tree.get(i + 1).is_some_and(|l| l.get("k").s() == "plight" && l.get("l").at(0).i() == 0x8090a8) {
+                out.insert(i + 1);
+            }
+        }
+    }
+    out
+}
+
+/// A recorded list of world children without the old window zone's
+fn without<'a>(jt: &'a [Json], drop: &HashSet<usize>) -> Vec<&'a Json> {
+    jt.iter().enumerate().filter(|(i, _)| !drop.contains(i)).map(|(_, j)| j).collect()
+}
+
 fn run_case(case: &Json, real_builders: bool) {
+    let drop = window_zone_nodes(case);
     let name = format!("{}{}", case.get("name").s(), if real_builders { " (real builders)" } else { "" });
     let spec = case.get("spec");
     let Setup { mut g, mut cx, base, log } = setup(case, real_builders);
@@ -571,10 +601,10 @@ fn run_case(case: &Json, real_builders: bool) {
     // ---- the build
     let b = case.get("build");
     let kids = g.world.children();
-    let jt = b.get("tree").arr();
+    let jt = without(b.get("tree").arr(), &drop);
     assert_eq!(kids.len(), jt.len(), "{name}: world children");
     for (i, o) in kids.iter().enumerate() {
-        cmp_tree(o, &jt[i], &format!("{name}: world/{i}"));
+        cmp_tree(o, jt[i], &format!("{name}: world/{i}"));
     }
     cmp_interactables(&g, b.get("interactables"), TOL, true, &format!("{name} build"));
     assert_eq!(g.animators.len() as i64, b.get("animators").i(), "{name}: animators");
@@ -651,10 +681,10 @@ fn run_case(case: &Json, real_builders: bool) {
                 let st = rec.get("state");
                 let what = format!("{name} frame {f}");
                 let kids = g.world.children();
-                let jt = st.get("tree").arr();
+                let jt = without(st.get("tree").arr(), &drop);
                 assert_eq!(kids.len(), jt.len(), "{what}: world children");
                 for (i, o) in kids.iter().enumerate() {
-                    cmp_rtree(o, &jt[i], &format!("{what}: world/{i}"));
+                    cmp_rtree(o, jt[i], &format!("{what}: world/{i}"));
                 }
                 cmp_records(&g, st.get("records"), RTOL, &what);
                 cmp_interactables(&g, st.get("interactables"), RTOL, false, &what);
@@ -676,10 +706,10 @@ fn run_case(case: &Json, real_builders: bool) {
     let fin = case.get("final");
     let what = format!("{name} final");
     let kids = g.world.children();
-    let jt = fin.get("tree").arr();
+    let jt = without(fin.get("tree").arr(), &drop);
     assert_eq!(kids.len(), jt.len(), "{what}: world children");
     for (i, o) in kids.iter().enumerate() {
-        cmp_rtree(o, &jt[i], &format!("{what}: world/{i}"));
+        cmp_rtree(o, jt[i], &format!("{what}: world/{i}"));
     }
     let added: Vec<Obj> = kids.iter().filter(|o| !build_set.contains(*o)).cloned().collect();
     let ja = fin.get("added").arr();

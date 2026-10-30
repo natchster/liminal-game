@@ -10,6 +10,7 @@ pub mod seam;
 pub mod tail;
 pub mod vending;
 pub mod weather_fx;
+pub mod window;
 
 use crate::base::records::*;
 use crate::prelude::*;

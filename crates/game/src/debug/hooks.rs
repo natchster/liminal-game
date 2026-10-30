@@ -180,6 +180,28 @@ impl Game {
     pub fn vending_states(&self) -> Vec<&'static str> {
         self.vending.iter().map(|m| if m.powered { "lit" } else { "dead" }).collect()
     }
+    /// Camera poses on the windows (`core_props::window`): for each row,
+    /// one square in front of its middle 2.4 m out from its wall, and one
+    /// 1.6 m out and 1.1 m to its side looking at its glass. (x, z, yaw) in
+    /// world coordinates; a pose where a body does not fit, or that does not
+    /// see the glass, is left out.
+    pub fn window_views(&self) -> Vec<(f64, f64, f64)> {
+        let mut out = vec![];
+        for w in &self.windows {
+            let k = w.lights.len() / 2;
+            let target = w.light_centre(k);
+            for (x, z) in [(0.0, 2.4), (-1.1, 1.6)] {
+                let p = w.world((w.lights[k].rect[0] + w.lights[k].rect[1]) / 2.0 + x, 0.0, w.depth + z);
+                let face = w.world((w.lights[k].rect[0] + w.lights[k].rect[1]) / 2.0, 0.0, w.depth + 0.15);
+                if self.circle_hits_wall(p.x, p.z, 0.3) || !self.los(p.x, p.z, face.x, face.z) {
+                    continue;
+                }
+                out.push((p.x, p.z, (-(target.x - p.x)).atan2(-(target.z - p.z))));
+            }
+        }
+        out
+    }
+
     pub fn vending_views(&self) -> Vec<(f64, f64, f64)> {
         let mut out = vec![];
         for m in &self.vending {

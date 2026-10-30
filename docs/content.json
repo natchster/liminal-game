@@ -1198,6 +1198,24 @@
         "test:backrooms/materials": true,
         "test:backrooms/level_sweep": true
       }
+    },
+    {
+      "checks": [
+        "test:backrooms/windows",
+        "test:backrooms/materials",
+        "test:backrooms/level_sweep"
+      ],
+      "id": "props/windows",
+      "kind": "prop with rules",
+      "last_checked": "2026-10-30",
+      "last_human_review": null,
+      "name": "the windows (docs/WINDOWS.md: cut into real walls, the view, the lamp outside)",
+      "notes": "none on the Lobby, the Showroom or the Borrowed House (windows_stand_where_a_building_would_have_them); the view is one CC0 panorama for every window; no person has looked out of one",
+      "passes": {
+        "test:backrooms/windows": true,
+        "test:backrooms/materials": true,
+        "test:backrooms/level_sweep": true
+      }
     }
   ]
 }

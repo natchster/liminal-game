@@ -93,3 +93,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-29, on top of 49e683a: look anchors: 7_L5_overgrown_atrium. Reason: Vending V1: the half-height partition in front of this view is gone (its 25% chance drawn anew after the vending machine's builder took one draw), so more of the lit wall behind shows: less deep shadow (0.916 to 0.864); content moved, not the look
 
 - 2026-10-30, on top of 50da029: frames: 11 shots. Reason: Vending V5: no machine in the Showroom (4242 L10, staff) and none on seed 7 L5 (no office, hall or pool zone with a purpose there: the machine stands only where one would have put it, never in a bare zone); the props placed after it are placed from where the stream now is (a box stack and cone, a pillar wrap, a lit machine's glow gone). Looked at each frame and error map.
+
+- 2026-10-30, on top of 19efe5c: frames: 4242_L7_maintenance, 7_L5_play_area. Reason: Windows W1: a window far off in each frame is now an opening cut into its wall onto the view (the old framed picture gone); nothing else in either frame moved (the windows keep the old window zone's draws)

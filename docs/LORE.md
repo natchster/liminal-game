@@ -20,7 +20,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside (*The windows*, `WINDOWS.md`) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -672,6 +672,32 @@ HOLLIS, BAYSIDE, SUNNYVALE, printed as real ones are. Their
 almond water is plain, nothing printed on its bottles, as on the bottles
 found on the floors.
 
+## The windows
+
+The rooms have no outside. Their windows look out on one anyway. Below the
+first floor of the rooms (the Lobby has none), where an office, a hall or
+someone's rooms would have had windows, a few are cut into the walls, one
+to three side by side: in the offices, strip windows of aluminium over the
+heaters under them; elsewhere, wood sash windows painted over many times.
+Most have a blind, raised, or let down crooked, its slats tilted.
+
+Every one of them looks out on the same place, from the same place,
+whichever way it faces and whatever is on the other side of its wall: a
+ploughed field in fog, a gravel track running straight away from the glass
+into it, a few trees standing out there, and close outside, beside the
+track, a streetlamp, its sodium light orange on the gravel. It is the last
+of the light, and the deeper the floor, the later it is, until it is night.
+Nothing out there moves. The lamp's light comes in through the glass and
+lies on the floor in the shape of the window, the shadows of its bars and
+its blind across it, and standing near the glass you hear the lamp's
+ballast through it. Here and there someone has covered one: paper taped
+over the glass from inside, or the blind pulled all the way down and left.
+Go round to the other side of its wall, and it is a wall.
+
+The torn note *Windows* ("The windows here do not open. What they show
+does not exist. Do not stare too long or it will begin to stare back.") is
+about them.
+
 ## The sound of the place
 
 - The lamps hum at **120 Hz, twice the mains frequency**, with a full harmonic
@@ -690,6 +716,8 @@ found on the floors.
   behind its glass, with its fan's soft air under it. Now and then, near
   one, its motor whines and a coil turns by itself. A dead one's flap,
   lifting by itself, squeals thinly on its hinge before it falls.
+- Near a window you hear the streetlamp outside through the glass: its
+  ballast, dulled, steady. Nothing else of out there is heard.
 
 ## Attribution and licensing
 

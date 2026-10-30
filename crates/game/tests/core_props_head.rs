@@ -678,7 +678,6 @@ fn builders_match_reference() {
                 "build_pile" => build_pile(&mut g, &mut cx),
                 "build_potted_plant" => build_potted_plant(&mut g, &mut cx),
                 "build_floor_plant" => build_floor_plant(&mut g, &mut cx),
-                "build_window" => build_window(&mut g, &mut cx),
                 "build_elevator" => build_elevator(&mut g, &mut cx, args[0].as_bool().unwrap()),
                 "build_paper_pile" => build_paper_pile(&mut g, &mut cx),
                 "build_floor_hole" => build_floor_hole(&mut g, &mut cx),
@@ -712,7 +711,8 @@ fn builders_match_reference() {
         }
         n += 1;
     }
-    assert_eq!(n, 153);
+    // (153 recorded, less the old framed window's six: `RETIRED`)
+    assert_eq!(n, 147);
 }
 
 // ---------------------------------------------------------------- re-recording
@@ -1010,7 +1010,6 @@ fn record_builder(g: &mut Game, c: &mut Value) {
             "build_pile" => build_pile(g, &mut cx),
             "build_potted_plant" => build_potted_plant(g, &mut cx),
             "build_floor_plant" => build_floor_plant(g, &mut cx),
-            "build_window" => build_window(g, &mut cx),
             "build_elevator" => build_elevator(g, &mut cx, args[0].as_bool().unwrap()),
             "build_paper_pile" => build_paper_pile(g, &mut cx),
             "build_floor_hole" => build_floor_hole(g, &mut cx),
@@ -1046,6 +1045,9 @@ fn record_builder(g: &mut Game, c: &mut Value) {
     };
 }
 
+/// Builders no longer in the code, whose recorded cases a rerecord drops
+const RETIRED: &[&str] = &["build_window"];
+
 #[test]
 #[ignore]
 fn rerecord() {
@@ -1058,6 +1060,9 @@ fn rerecord() {
     std::fs::write(format!("{dir}/core_props_head.json"), serde_json::to_string(&cases).unwrap()).unwrap();
     let p = format!("{dir}/core_props_builders.json");
     let mut builders: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(&p).unwrap()).unwrap();
+    // builders that are gone (the old framed window: `core_props::window`
+    // builds the windows now, on the final walls)
+    builders.retain(|c| !RETIRED.contains(&c["name"].as_str().unwrap_or("")));
     let mut g = Game::new_bare();
     for c in builders.iter_mut() {
         record_builder(&mut g, c);

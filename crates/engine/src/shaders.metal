@@ -21,7 +21,7 @@ constant bool DOUBLE_SIDE [[function_constant(9)]];
 constant bool FLIP_SIDED  [[function_constant(10)]];
 constant bool FLAT        [[function_constant(11)]];
 constant bool LL          [[function_constant(12)]]; // local light-map patch
-constant int  PATCH       [[function_constant(13)]]; // Patch: 0 none 1 ArchUV 2 SkinDetail 3 SmilerEye 4 WatcherSheet 5 Shadow body 6 Shadow edge 7 Stairwell
+constant int  PATCH       [[function_constant(13)]]; // Patch: 0 none 1 ArchUV 2 SkinDetail 3 SmilerEye 4 WatcherSheet 5 Shadow body 6 Shadow edge 7 Stairwell 8 WindowView 9 Glass
 constant bool HAS_NORMAL  [[function_constant(14)]];
 constant bool HAS_UV      [[function_constant(15)]];
 constant bool OPAQUE      [[function_constant(16)]];
@@ -31,6 +31,7 @@ constant bool MORPH_REL   [[function_constant(19)]];
 constant bool SIZE_ATTEN  [[function_constant(20)]];
 constant bool HAS_VC_DATA [[function_constant(21)]]; // geometry actually has colours
 constant bool WEAR        [[function_constant(22)]]; // procedural wear (lit prop surfaces)
+constant bool PORTAL      [[function_constant(23)]]; // seen through a window (Material::portal)
 
 // ------------------------------------------------------------ uniforms
 struct Frame {
@@ -71,6 +72,7 @@ struct Material {
     float4 arch; // ArchUV: x scale, y vscale, z wallpaper
     float4 patch[4]; // patch parameters
     float4 surf; // x wear amount, y tone-mapped
+    float4 portal[4]; // PortalU: centre + half width, right + half height, normal + slab, sky + haze
 };
 struct LightList { uint count; uint pad[3]; ushort idx[96]; };
 
@@ -148,6 +150,8 @@ struct VOut {
     float3 detNrm;
     float4 extra; // shadow: x wisp, y rim, z floorY
     float3 smokeP;
+    float  portal; // 1 beyond the window's plane (PORTAL)
+    float  portalDist; // its true distance from the eye
 };
 
 vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
@@ -246,9 +250,28 @@ vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
     } else {
         mvPosition = O.modelView * float4(transformed, 1.0);
     }
+    // beyond a window: slid along the eye ray onto a thin slab in front of
+    // the window's plane (nearer things a little nearer), same place on screen
+    o.portal = 0.0;
+    o.portalDist = length(mvPosition.xyz);
+    o.fogDepth = -mvPosition.z;
+    if (PORTAL) {
+        float3 pc = (F.view * float4(M.portal[0].xyz, 1.0)).xyz;
+        float3 pn = (F.view * float4(M.portal[2].xyz, 0.0)).xyz;
+        float sP = dot(mvPosition.xyz - pc, pn);
+        float sE = dot(-pc, pn);
+        if (sP < 0.0 && sE > 0.0) {
+            float t = dot(pc, pn) / dot(mvPosition.xyz, pn);
+            // the slab: `portal[2].w` metres in front of the plane at most,
+            // nearer things nearer (by the log of the distance, 0.3-300 m)
+            float dp = t * o.portalDist;
+            float near = 1.0 - saturate(log(max(o.portalDist, 0.3) / 0.3) / 6.9077553);
+            mvPosition.xyz *= t * (1.0 - M.portal[2].w * near / max(dp, 0.05));
+            o.portal = 1.0;
+        }
+    }
     o.position = F.proj * mvPosition;
     o.viewPos = -mvPosition.xyz;
-    o.fogDepth = -mvPosition.z;
     o.pointSize = 1.0;
     if (KIND == 3) {
         o.pointSize = M.misc.y;
@@ -301,6 +324,8 @@ struct FIn {
     float3 detNrm;
     float4 extra;
     float3 smokeP;
+    float  portal;
+    float  portalDist;
 };
 
 static inline float llLit(float3 p, constant Frame& F, texture2d<float> llMap, sampler llS) {
@@ -318,6 +343,66 @@ static inline float detH(float3 p, float3 detNrm, float scale, texture2d<float> 
     return bump.sample(bs, p.yz).x * w.x + bump.sample(bs, p.xz).x * w.y + bump.sample(bs, p.xy).x * w.z;
 }
 
+// a window's view of an outside that is not there (Patch::WindowView): a
+// photograph laid on a ground disc and a dome round the point it was taken
+// from, just outside the glass (three.js's GroundedSkybox, traced per
+// pixel): the near ground moves with your head, the far land does not. The
+// map holds half the turn round the way ahead (u: -90..90 deg), from 55 deg
+// above the horizon (v = 0) to 80 deg below it (v = 1). A lamp outside
+// pools its light on the ground and haloes in the fog.
+// patch[0] = the point (world) and its height over the ground;
+// patch[1] = the way ahead (x, z, unit), the dome's radius, the exposure;
+// patch[2] = the lamp's head (world) and its strength;
+// patch[3] = x how far into the night it is (0 dusk .. 1 night)
+static inline float3 windowView(float3 P, constant Frame& F, constant Material& M, texture2d<float> map, sampler mapS) {
+    float3 eye = (float4(-F.view[3].xyz, 0.0) * F.view).xyz;
+    float3 rd = normalize(P - eye);
+    float3 O = M.patch[0].xyz;
+    float yg = O.y - M.patch[0].w;
+    float R = M.patch[1].z;
+    float3 oc = eye - O;
+    float b = dot(oc, rd);
+    float t = -b + sqrt(max(b * b - (dot(oc, oc) - R * R), 0.0));
+    float3 hit = eye + rd * t;
+    bool ground = false;
+    if (hit.y < yg && rd.y < 0.0) {
+        hit = eye + rd * ((yg - eye.y) / rd.y);
+        ground = true;
+    }
+    float3 d = normalize(hit - O);
+    float2 fw = M.patch[1].xy;
+    float az = atan2(d.x * -fw.y + d.z * fw.x, d.x * fw.x + d.z * fw.y);
+    float el = asin(clamp(d.y, -1.0, 1.0));
+    float u = clamp(0.5 + az * 0.31830989, 0.0, 1.0);
+    float v = clamp((0.95993109 - el) / 2.35619449, 0.0, 1.0);
+    float3 c = map.sample(mapS, float2(u, v)).rgb;
+    float night = M.patch[3].x;
+    // night: what light is left goes, and the colour with it
+    float lumc = dot(c, float3(0.2126, 0.7152, 0.0722));
+    c = mix(c, float3(lumc) * float3(0.85, 0.95, 1.2), 0.5 * night);
+    c *= M.patch[1].w;
+    // the lamp: its pool on the ground (cosine over distance squared) and
+    // its halo in the fog round its head
+    float3 L = M.patch[2].xyz;
+    float ls = M.patch[2].w;
+    float3 sodium = float3(1.0, 0.42, 0.10);
+    if (ground && ls > 0.0) {
+        float3 tl = L - hit;
+        float dl = length(tl);
+        float E = max(tl.y, 0.0) / (dl * dl * dl);
+        c += map.sample(mapS, float2(u, v)).rgb * sodium * ls * E * 6.0;
+    }
+    if (ls > 0.0) {
+        float3 tl = L - eye;
+        float cosA = dot(rd, normalize(tl));
+        float a = acos(clamp(cosA, -1.0, 1.0));
+        float far = length(tl);
+        float halo = 0.06 / (1.0 + pow(a * far / 0.9, 2.0)) + 0.012 * exp(-a * 6.0);
+        c += sodium * ls * halo * (0.6 + 0.8 * night);
+    }
+    return c;
+}
+
 fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2 pc [[point_coord]],
                         constant Frame& F [[buffer(0)]],
                         constant Material& M [[buffer(2)]],
@@ -332,6 +417,7 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
                         sampler llS [[sampler(1)]],
                         sampler bumpS [[sampler(2)]])
 {
+    if (PATCH == 8) return float4(srgbOETF(windowView(in.llPos, F, M, map, mapS)), 1.0);
     float4 diffuseColor = M.diffuse;
     // diffuse map (points sample it at the point coordinate)
     if (HAS_MAP) {
@@ -360,6 +446,12 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         }
     }
     if (ALPHA_TEST && diffuseColor.a < M.misc.x) discard_fragment();
+    // beyond a window: only what is seen through its opening
+    bool beyond = PORTAL && in.portal > 0.5;
+    if (beyond) {
+        float3 pw = in.llPos - M.portal[0].xyz;
+        if (abs(dot(pw, M.portal[1].xyz)) > M.portal[0].w || abs(dot(pw - dot(pw, M.portal[2].xyz) * M.portal[2].xyz, normalize(cross(M.portal[2].xyz, M.portal[1].xyz)))) > M.portal[1].w) discard_fragment();
+    }
 
     float3 outgoing;
     if (KIND == 1 || KIND == 2) {
@@ -376,6 +468,12 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             if (DOUBLE_SIDE) normal *= faceDirection;
         }
         float specularStrength = 1.0;
+        // glass: how much dirt is on it, from its map's grey (Patch::Glass)
+        float glassDirt = 0.0;
+        if (PATCH == 9) {
+            glassDirt = saturate((HAS_MAP ? diffuseColor.r : 1.0) * M.patch[2].x);
+            diffuseColor.rgb = M.patch[2].yzw;
+        }
         // skin detail: triplanar bump at the rest-pose position
         if ((PATCH == 2 || PATCH == 4) && HAS_BUMP) {
             float sc = M.patch[0].x;
@@ -439,7 +537,7 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             diff *= mix(float3(1.0), float3(0.74, 0.70, 0.62), grime);
         }
         float3 spec = M.specular.rgb; float shin = M.specular.a;
-        for (uint li = 0; li < LLst.count; li++) {
+        for (uint li = 0; li < (beyond ? 0u : LLst.count); li++) {
             uint k = LLst.idx[li];
             float3 Ldir, Lcol;
             if (k < 32768u) {
@@ -472,7 +570,10 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         // beside a wall for a floor or a ceiling, and the ceiling over a wall
         // just above it; a plain wall's own face is that far off
         float aoCorner = 1.0;
-        if (LL && F.llParams.x > 0.5) {
+        if (beyond) {
+            // the view's own light: its sky over, a darker ground under
+            irradiance = mix(M.portal[3].rgb * 0.3, M.portal[3].rgb, 0.5 * wN.y + 0.5);
+        } else if (LL && F.llParams.x > 0.5) {
             float4 llO = llAt(in.llPos + wN * 0.8, F, llMap, llS);
             float llK = llO.r * F.llParams.y;
             irradiance += (1.0 - llK) * (F.llAmbD.rgb + mix(F.llGndD.rgb, F.llSkyD.rgb, 0.5 * wN.y + 0.5));
@@ -493,6 +594,26 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         }
         float3 indirectDiffuse = irradiance * BRDF_Lambert(diff) * ao * aoCorner;
         outgoing = directDiffuse + indirectDiffuse + directSpecular + totalEmissive;
+        // a pane of glass (Patch::Glass): the room seen in it by Fresnel (two
+        // faces, 4% each square on, all of it at a graze), the dust and smears
+        // on it (the map's alpha) lit by the room and, from behind, by the
+        // view; a breath's mist on its far face (patch[1]). patch[0]: x how
+        // bright the room reads in it, yzw the light of the view behind (linear)
+        if (PATCH == 9) {
+            float cosT = saturate(abs(dot(geometryNormal, geometryViewDir)));
+            float fr = M.patch[3].y + (1.0 - M.patch[3].y) * pow(1.0 - cosT, 5.0);
+            float dirt = glassDirt;
+            float2 dm = (in.uv - M.patch[1].xy) / max(M.patch[1].z, 1e-3);
+            float mist = M.patch[1].w * (1.0 - smoothstep(0.35, 1.0, length(dm * float2(1.0, 1.3))));
+            float milk = M.patch[3].x;
+            float3 room = irradiance * M.patch[0].x;
+            float3 back = M.patch[0].yzw;
+            float3 dust = directDiffuse + indirectDiffuse + back * diff * 0.6;
+            float a = saturate(dirt + milk + mist * 0.7 + fr * (1.0 - dirt));
+            float3 prem = dust * dirt + (back * 0.8 + room * 0.3) * milk + back * mist * 0.55 + room * fr * (1.0 - dirt) + directSpecular;
+            outgoing = prem / max(a, 1e-3);
+            diffuseColor.a = a;
+        }
         if (PATCH == 4) {
             float3 over = max(outgoing - 0.5, 0.0);
             outgoing = min(outgoing, 0.5) + 0.143 * log(1.0 + over / 0.143);
@@ -505,7 +626,10 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
     if (OPAQUE) diffuseColor.a = 1.0;
     float4 col = float4(srgbOETF(outgoing), diffuseColor.a);
     // exponential-squared fog, applied after the sRGB encode, with the local light patch
-    if (USE_FOG) {
+    if (beyond) {
+        float hz = 1.0 - exp(-M.portal[3].w * in.portalDist);
+        col.rgb = mix(col.rgb, srgbOETF(M.portal[3].rgb * 0.6), hz);
+    } else if (USE_FOG) {
         float llFogK = (LL && F.llParams.x > 0.5) ? llLit(in.llPos, F, llMap, llS) : 0.0;
         float d = F.fog.a * ((LL) ? mix(1.0, F.llParams.z, llFogK) : 1.0);
         float fogFactor = 1.0 - exp(-d * d * in.fogDepth * in.fogDepth);

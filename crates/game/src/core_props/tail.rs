@@ -117,7 +117,8 @@ impl Game {
         let vac = self.tail_robot_vacuum(cx);
         self.tail_safe_room(cx);
         self.tail_plant_zone(cx);
-        self.tail_window_zone(cx);
+        // the windows (`core_props::window`): chosen here, finished on the final walls
+        crate::core_props::window::place_windows(self, cx);
         self.tail_broken_elevator(cx);
         self.tail_elevators(cx);
         self.tail_floor_hole(cx);
@@ -1022,31 +1023,6 @@ impl Game {
             p.g.set_pos(self.wx(c.x) + a.cos() * 1.2, 0, self.wz(c.z) + a.sin() * 1.2);
             p.g.rotation().y = rand1(PI * 2.0);
             self.world.add(&p.g);
-        }
-    }
-
-    /// A window on the tile's wall with a faint light spill
-    fn place_window_at(&mut self, cx: &mut PropsCtx, c: &Cand) -> bool {
-        let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { return false };
-        let built = s_build(self, cx, TailBuild::Window);
-        built.g.set_pos_v(&off_wall(&spot, 0.05));
-        built.g.position().y = 1.55;
-        built.g.rotation().y = spot.yaw;
-        self.world.add(&built.g);
-        // faint light spill from the "window"
-        let spill = point_light!(0x8090a8, 0.4, 4, 1.6);
-        let mut sp = built.g.pos();
-        sp.add_scaled_vector(&spot.normal, 0.6);
-        spill.set_pos_v(&sp);
-        self.world.add(&spill);
-        true
-    }
-
-    /// WINDOW ZONE: up to 3 windows on wall tiles
-    fn tail_window_zone(&mut self, cx: &mut PropsCtx) {
-        for _ in 0..3 {
-            let Some(c) = s_take(self, cx, true) else { break };
-            self.place_window_at(cx, &c);
         }
     }
 

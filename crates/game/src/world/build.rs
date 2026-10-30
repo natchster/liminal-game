@@ -204,6 +204,13 @@ impl Game {
             }
         }
         self.vending.clear();
+        for w in &self.windows {
+            if let Some(h) = &w.hum {
+                h.stop();
+            }
+        }
+        self.windows.clear();
+        self.window_plans.clear();
         self.pp.vending_positions.clear();
         self.vacuum_bot = None;
         // the Building's per-floor things (a floor of the rooms has none)
@@ -444,6 +451,8 @@ impl Game {
         self.settle_placement(prop_start);
         self.free_buried_pickups();
         self.vending_settled();
+        // the windows, on the final walls (their openings are cut as the walls are drawn)
+        self.windows_settled();
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {
             self.settle_prop_looks(prop_start);

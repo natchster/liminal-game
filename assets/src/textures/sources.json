@@ -67,6 +67,27 @@
           "Carpet016_2K-JPG_Color.jpg": "50608a8b246be0cde66773367159fef4c0c67884",
           "Carpet016_2K-JPG_Displacement.jpg": "ee00bd4e8f362d68890a64637c6f8a9475e56982"
         }
+      }  ,
+      "Smear004": {
+        "what": "a wiped smear on glass (photo-based; its Roughness map), for the windows' glass",
+        "zip_sha1": "169d45ca1dbeae3f3498651c3df9d229751fc1c6",
+        "files": {
+          "Smear004_2K-JPG_Roughness.jpg": "0f7ec8464c63189a68f10bebafe2e691f1b314f4"
+        }
+      },
+      "SurfaceImperfections003": {
+        "what": "dirt run down a surface in streaks (its Opacity map), for the windows' glass",
+        "zip_sha1": "b70107caa2b50beb024b4e0880355e3f63a1aea1",
+        "files": {
+          "SurfaceImperfections003_2K-JPG_Opacity.jpg": "f3641d6f7a9c47a43935557dbc8ec667b295fa38"
+        }
+      },
+      "SurfaceImperfections015": {
+        "what": "a mottled film of dust (its Opacity map), for the windows' glass",
+        "zip_sha1": "9d6e26564ad36176ddea6dccfa277ff19825df03",
+        "files": {
+          "SurfaceImperfections015_2K-JPG_Opacity.jpg": "d702bcb779c9e16912ccca4082eda9001eddb1ec"
+        }
       }
     }
   },
@@ -97,6 +118,18 @@
           "rough_concrete_diff_2k.jpg": "aabfc3e798777b59830ec29083c5f3e8c6915074",
           "rough_concrete_disp_2k.jpg": "ccfad47f8e2e5762b9faf367a57e649777497ad5"
         }
+      }
+    }
+  },
+  "polyhaven_hdris": {
+    "about": "Poly Haven (https://polyhaven.com) panoramas, all CC0 1.0 (https://polyhaven.com/license: \"You can redistribute them\", in a product you sell, no credit needed). Each is fetched as the 8K JPEG Poly Haven tonemapped from its HDRI, from https://dl.polyhaven.org/file/ph-assets/HDRIs/extra/Tonemapped%20JPG/<asset>.jpg, and checked by its SHA-1.",
+    "licence": "CC0-1.0",
+    "assets": {
+      "misty_farm_road": {
+        "what": "two gravel farm tracks between ploughed fields running away into fog, trees standing in it; a foggy afternoon, 2022-11-12 (the windows' view, docs/WINDOWS.md)",
+        "authors": "Greg Zaal",
+        "page": "https://polyhaven.com/a/misty_farm_road",
+        "sha1": "3a831919c5ab3ba0716a371b193da389a3a37468"
       }
     }
   }

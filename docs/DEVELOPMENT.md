@@ -377,6 +377,9 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   face, in its rhythm's dark beat), or shows every dead one's hand print
   (`print`) or its flap held up from inside (`inside`).
   A fallen machine lies where `vending views` stood: shoot it from beside.
+* `--views` also prints `window views: "x,z,yaw;…"` (`Game::window_views`:
+  for each row of windows, one 2.4 m out from its wall before its middle
+  light and one 1.6 m out and 1.1 m aside, looking at its glass).
 * `--views` also prints `lean views: "x,z,yaw;…"`: poses out in the room
   looking at the partitions that lean (`Game::lean_views`, the steepest
   first). `--dump-level … --screenshot x --views-at "x,z,yaw;…"` renders a

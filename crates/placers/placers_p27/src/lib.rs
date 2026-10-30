@@ -998,10 +998,14 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         let wshard = mesh(plane_geo!(0.014 + rnd() * 0.026, 0.018 + rnd() * 0.028), &floor_shard_mat);
         wshard.rotation().x = -PI / 2.0;
         wshard.rotation().z = rnd() * PI * 2.0;
-        let sh_ang = rnd() * PI * 2.0;
+        // on the room's side of the wall (they had lain in a circle round
+        // the frame, half of them inside its wall): half a turn about the way out
+        let sh_ang = (rnd() - 0.5) * PI;
         let sh_rad = 0.12 + rnd() * 0.45;
         let wp = win.pos();
-        wshard.position().set(wp.x + sh_ang.cos() * sh_rad, 0.003, wp.z + sh_ang.sin() * sh_rad);
+        let (ox, oz) = (-c.dx as f64, -c.dz as f64);
+        let (ca, sa) = (sh_ang.cos(), sh_ang.sin());
+        wshard.position().set(wp.x + (ox * ca - oz * sa) * sh_rad, 0.003, wp.z + (ox * sa + oz * ca) * sh_rad);
         g.world.add(&wshard);
     }
 }

@@ -107,6 +107,16 @@ impl Game {
         if let Some(m) = self.arch_mats.get(key) {
             return m.clone();
         }
+        // `<key>@<top>`: the wallpaper of a wall `top` high, on a piece of it
+        // that stops short of its top (under a window)
+        if let Some((base, top)) = key.split_once('@') {
+            let m = self.arch_mat(base).duplicate();
+            if let Patch::ArchUV { scale_y, .. } = &mut m.m().patch {
+                *scale_y = top.parse::<f64>().unwrap_or(*scale_y);
+            }
+            self.arch_mats.insert(key.to_string(), m.clone());
+            return m;
+        }
         let parts: Vec<&str> = key.split(':').collect();
         let (a, b, c) = (parts[0], parts.get(1).copied().unwrap_or(""), parts.get(2).copied().unwrap_or(""));
         let num = |s: &str| s.parse::<f64>().unwrap_or(f64::NAN);
@@ -469,9 +479,35 @@ impl Game {
             });
             groups[i].1.push(m);
         };
+        // the windows cut their openings out of what is drawn (`core_props::window`;
+        // the solids, what you walk into, stay whole)
+        let cuts = self.window_cut_boxes();
+        let to_world =
+            |b: &[f64; 6]| [(b[0] - w / 2.0) * CELL, b[4], (b[1] - h / 2.0) * CELL, (b[2] - w / 2.0) * CELL, b[5], (b[3] - h / 2.0) * CELL];
+        let to_tile =
+            |a: &[f64; 6]| [a[0] / CELL + w / 2.0, a[2] / CELL + h / 2.0, a[3] / CELL + w / 2.0, a[5] / CELL + h / 2.0, a[1], a[4]];
         for b in 0..s.count {
             for (key, part) in self.wall_box_parts(&s, b) {
-                put(key, draw(&part));
+                if cuts.is_empty() {
+                    put(key, draw(&part));
+                    continue;
+                }
+                let mut pieces = vec![to_world(&part)];
+                for c in &cuts {
+                    pieces = pieces.iter().flat_map(|p| crate::core_props::window::box_minus(p, c)).collect();
+                }
+                // wallpaper is laid up a wall to its top (`Patch::ArchUV`):
+                // a piece under a window on a wall taller than the paper's
+                // own height keeps its wall's top, so its skirting runs on
+                let top = part[5];
+                for p in pieces {
+                    let k = if key.starts_with("wp:") && p[4] < top - 1e-6 && top > WALL_H + 1e-6 {
+                        format!("{key}@{top:.3}")
+                    } else {
+                        key.clone()
+                    };
+                    put(k, draw(&to_tile(&p)));
+                }
             }
         }
         // the partitions that lean: what they were made of, turned
