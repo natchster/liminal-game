@@ -235,12 +235,13 @@ impl RunMemory {
 /// first set (4, 3, 5, 4, 3): in twelve bot runs of ten levels no kind ever
 /// learned, the most any habit reached being 2; what is learned must be
 /// seen, so a kind you meet often learns within a run.
-pub const LEARNS: [(&str, &str, u32); 5] = [
+pub const LEARNS: [(&str, &str, u32); 6] = [
     ("smiler", "you hid from it in the dark", 2),
     ("hound", "you outran it", 2),
     ("watcher", "you held it with a long stare", 3),
     ("corner", "you passed behind it", 2),
     ("reader", "you escaped it with paper", 2),
+    ("glass", "you got away from it out of its light", 2),
 ];
 
 impl Game {
@@ -573,7 +574,7 @@ impl Game {
         self.entities[ei].state = if kind == "corner" && mode == Mode::Hold {
             "wander"
         } else if kind == "glass" {
-            crate::entities::glass::legacy_state(mode)
+            crate::entities::glass::legacy_state(mode, self.creature(ei).is_some_and(|c| c.get("moving") > 0.0))
         } else {
             mode.legacy_state()
         }

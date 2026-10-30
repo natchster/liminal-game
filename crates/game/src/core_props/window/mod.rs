@@ -13,6 +13,7 @@
 //! A window's frame: x across the opening (to your right as you face it from
 //! the room), y up from the floor, z out of the wall into the room from the
 //! back of the cut (z = 0: where the outside begins).
+pub mod blind;
 pub mod model;
 pub mod view;
 
@@ -88,8 +89,21 @@ pub struct Light {
     /// a muntin down its middle (a two-light sash)
     pub muntin: bool,
     /// the floor its lamp lights through it: the lit cells (world x, z
-    /// corners, in order round each)
+    /// corners, in order round each), and that light drawn on the floor
     pub patch: Vec<[(f64, f64); 4]>,
+    pub glow: Option<Obj>,
+}
+
+/// A blind as it hangs (its own, so it can be let down and drawn up): the
+/// lights it covers, where it hangs (window frame: x0, x1, its head's and
+/// the sill's height, z), what it is drawn with, and its slats on their way
+pub struct Hang {
+    pub lights: Vec<usize>,
+    pub at: [f64; 5],
+    pub obj: Obj,
+    pub mats: (Mat, Mat),
+    /// let down or drawn up: from, to, and when it began (game time)
+    pub moving: Option<(Blind, Blind, f64)>,
 }
 
 /// A row of windows (or the lights of one strip window) on one wall
@@ -106,13 +120,19 @@ pub struct Window {
     pub sill: f64,
     pub head: f64,
     pub lights: Vec<Light>,
+    /// its blinds, each its own
+    pub blinds: Vec<Hang>,
     /// what is cut out of the drawn walls (world boxes x0 y0 z0 x1 y1 z1)
     pub cuts: Vec<[f64; 6]>,
     /// its view's material (one for the row) and what is drawn beyond it
     pub view: Mat,
     pub portal: std::rc::Rc<std::cell::RefCell<PortalU>>,
-    /// the lamp's head outside (world)
+    /// the lamp's head outside (world), the lamp itself, and how much
+    /// lower than a streetlamp's it hangs (what the one behind its glass
+    /// learns), m
     pub lamp: Vec3,
+    pub lamp_obj: Option<Obj>,
+    pub lamp_drop: f64,
     /// its lamp's ballast heard through the glass (made when first heard)
     pub hum: Option<crate::audio::soundscape::MachineHum>,
     /// its own stream's seed
@@ -136,9 +156,18 @@ impl Window {
         let l = &self.lights[k];
         self.world((l.rect[0] + l.rect[1]) / 2.0, (l.rect[2] + l.rect[3]) / 2.0, l.glass_z)
     }
-    /// Whether the floor at (x, z) is in the light of any of its lights
+    /// Whether the floor at (x, z) is in the light of any of its lights (a
+    /// covered light throws none)
     pub fn lit_at(&self, x: f64, z: f64) -> bool {
-        self.lights.iter().any(|l| l.patch.iter().any(|q| in_quad(q, x, z)))
+        (0..self.lights.len()).any(|k| !self.covered(k) && self.lights[k].patch.iter().any(|q| in_quad(q, x, z)))
+    }
+    /// The floor light `k` lights now (none while it is covered)
+    pub fn lit_cells(&self, k: usize) -> &[[(f64, f64); 4]] {
+        if self.covered(k) {
+            &[]
+        } else {
+            &self.lights[k].patch
+        }
     }
     /// Whether light `k` is covered: its blind down and shut, or papered over
     pub fn covered(&self, k: usize) -> bool {
@@ -392,15 +421,18 @@ impl Game {
         self.window_plans = plans;
         for i in 0..self.windows.len() {
             view::finish(self, i);
+            self.window_blinds_register(i);
         }
         if !self.windows.is_empty() {
             self.animate(|g, dt, _t| g.windows_frame(dt));
         }
     }
 
-    /// Per frame: each window's lamp heard through its glass, near it (made
-    /// the first time it is near, silent and far it is nothing)
+    /// Per frame: blinds on their way (`blind`), and each window's lamp
+    /// heard through its glass, near it (made the first time it is near,
+    /// silent and far it is nothing)
     pub fn windows_frame(&mut self, dt: f64) {
+        self.blinds_frame();
         let pp = self.player.pos;
         let hush = self.amb_hush.clamp(0.0, 1.0);
         for i in 0..self.windows.len() {

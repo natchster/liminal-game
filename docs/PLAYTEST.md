@@ -124,6 +124,7 @@ and never name a creature, its rule or its counter first):
   dropping paper feel like your idea?
 - Out of a window: did you see anyone out there? When did you stop
   looking out, and why? If it came to the glass, what did you do?
+- Did you ever let a blind down? Why then? Did you draw it up again?
 - Did anything you had beaten before come at you differently later? What
   changed, and when did you notice?
 - When something caught you, did it matter? Did you feel the game was

@@ -21,6 +21,11 @@
 //! - **Its sound**: it hums, low and tuneless, a room away; the hum stops
 //!   when it is about to turn; the scream.
 //! - **Body**: `bodies.bin`'s `corner` (`assets/src/creatures/body_corner.py`).
+//!
+//! Its rule (seeing its face is what wakes it) is after SCP-096 "The Shy
+//! Guy" by Dr Dan, CC BY-SA 3.0: this file is CC BY-SA 3.0 and keeps this
+//! attribution (`docs/LORE.md`, Attribution). The turned back is a motif of
+//! the Rake; its face is the Thatcher illusion (Peter Thompson, 1980).
 use crate::base::numeric::hypot2;
 use crate::entities::body::{two_bone, BodyRig};
 use crate::entities::brain::*;

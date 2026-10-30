@@ -5,7 +5,7 @@
 //!
 //! The window's frame (see `super`): x across (to your right from the
 //! room), y up from the floor, z into the room from the back of the cut.
-use super::{Blind, Frame, Kind, Light, Plan, Window, SLAB};
+use super::{Blind, Frame, Hang, Kind, Light, Plan, Window, SLAB};
 use crate::assets::props::prop_part_as_modelled;
 use crate::base::rng::SplitMix64;
 use crate::prelude::*;
@@ -245,7 +245,7 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
         root.add(&rain);
         g.rain_windows.push(rain);
         let muntin = p.kind == Kind::DoubleHung && two_lights;
-        lights_out.push(Light { rect: *rect, glass_z: *gz, glass, blind, papered, muntin, patch: vec![] });
+        lights_out.push(Light { rect: *rect, glass_z: *gz, glass, blind, papered, muntin, patch: vec![], glow: None });
     }
     // a double-hung window's blind covers both its lights: the lower takes the pair's
     if p.kind == Kind::DoubleHung {
@@ -256,7 +256,9 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
             }
         }
     }
-    // ---- the blinds, the paper and the wear
+    // ---- the blinds (each its own: it can be let down and drawn up), the
+    // paper and the wear
+    let mut hangs: Vec<(Vec<usize>, [f64; 5], Blind)> = vec![];
     for k in 0..lights_out.len() {
         let l = &lights_out[k];
         if p.kind == Kind::DoubleHung && k % 2 == 1 {
@@ -269,7 +271,11 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
             let bottom = if p.kind == Kind::DoubleHung { f.sill + FRAME_SILL } else { l.rect[2] };
             let inside = depth - (back + if p.kind == Kind::Strip { ST_D } else { DH_D }) > 0.06;
             let bz = if inside { back + if p.kind == Kind::Strip { ST_D } else { DH_D } + 0.03 } else { depth + CASE_T + 0.025 };
-            blind(&mut put, x0, x1, top, bottom, bz, &b);
+            let mut covers = vec![k];
+            if p.kind == Kind::DoubleHung && k + 1 < lights_out.len() && lights_out[k + 1].blind.is_some() {
+                covers.push(k + 1);
+            }
+            hangs.push((covers, [x0, x1, top, bottom, bz], b));
         }
     }
     for l in lights_out.iter().filter(|l| l.papered) {
@@ -300,6 +306,15 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
         let o = mesh(merge(&list), mats(s));
         root.add(&o);
     }
+    let blinds: Vec<Hang> = hangs
+        .into_iter()
+        .map(|(lights, at, b)| {
+            let m = (mats(Slot::Blind), mats(Slot::Cord));
+            let obj = hang_blind(&at, &b, &m);
+            root.add(&obj);
+            Hang { lights, at, obj, mats: m, moving: None }
+        })
+        .collect();
     g.world.add(&root);
     let portal = std::rc::Rc::new(std::cell::RefCell::new(PortalU::default()));
     Window {
@@ -311,10 +326,13 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
         sill: f.sill,
         head: f.head,
         lights: lights_out,
+        blinds,
         cuts,
         view: Mat::basic(),
         portal,
         lamp: Vec3::default(),
+        lamp_obj: None,
+        lamp_drop: 0.0,
         hum: None,
         seed: p.seed,
     }
@@ -408,6 +426,21 @@ fn rain_overlay(g: &Game, rect: &[f64; 4], z: f64) -> Obj {
 }
 
 /// A mini blind from `top` (its headrail) toward `bottom` over x0..x1 at z
+/// A blind as it hangs now (`at`: x0, x1, its head's and the sill's
+/// height, z, the window frame), its slats and its cords each one mesh
+pub fn hang_blind(at: &[f64; 5], b: &Blind, mats: &(Mat, Mat)) -> Obj {
+    let mut pieces: Vec<(Slot, Geo, Mat4)> = vec![];
+    blind(&mut |s, geo, m| pieces.push((s, geo, m)), at[0], at[1], at[2], at[3], at[4], b);
+    let grp = group();
+    for (s, m) in [(Slot::Blind, &mats.0), (Slot::Cord, &mats.1)] {
+        let list: Vec<(Geo, Mat4)> = pieces.iter().filter(|p| p.0 == s).map(|p| (p.1.clone(), p.2)).collect();
+        if !list.is_empty() {
+            grp.add(&mesh(merge(&list), m));
+        }
+    }
+    grp
+}
+
 fn blind(put: &mut impl FnMut(Slot, Geo, Mat4), x0: f64, x1: f64, top: f64, bottom: f64, z: f64, b: &Blind) {
     let w = x1 - x0;
     let cx = (x0 + x1) / 2.0;

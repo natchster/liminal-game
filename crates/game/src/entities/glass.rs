@@ -31,6 +31,13 @@
 //! - **Its sound** is glass only: the tick, the creak, the breath on the
 //!   pane, the long groan of the glass bowing (`call`).
 //! - **Body**: `bodies.bin`'s `glass` (`assets/src/creatures/body_glass.py`).
+//!
+//! After SCP-2885 "Window to Another You" (Pythy, rewritten by Zyn),
+//! SCP-3052 (Witryso), SCP-L682 (CRAt26) and the Backrooms wiki's Entity 2
+//! "The Windows" (u/glassydude101, rewritten by DrAkimoto), all CC BY-SA
+//! 3.0: this file and what it draws on them are CC BY-SA 3.0 and keep this
+//! attribution (`docs/LORE.md`, Attribution). Kunekune (a motif); Gogol's
+//! *Viy* and Brontë's *Wuthering Heights* (public domain).
 use crate::base::numeric::hypot2;
 use crate::core_props::window::view::GROUND;
 use crate::entities::body::two_bone;
@@ -83,6 +90,10 @@ pub const LOSES: f64 = 4.0;
 pub const FAR: f64 = 12.0;
 /// Its sounds, and its tells, carry this far from its glass, m
 pub const HEARD: f64 = 9.0;
+/// Once it has learned, its lamp hangs this much lower, m, and the first
+/// time comes down over this long, s
+pub const LAMP_DROP: f64 = 1.0;
+pub const LOWERING: f64 = 3.0;
 /// Its face on the glass: how high over the ground outside, m
 const FACE_H: f64 = 1.52;
 
@@ -105,9 +116,13 @@ pub fn material(slot: &str) -> Mat {
 #[derive(Clone, Debug, Default)]
 pub struct Bind {
     /// the creature, its window (`Game::windows`) and that window's lights
+    /// (the one or two it presses on and comes through), and its row's
+    /// lights (it is seen through all of them: your look counts through
+    /// any, and its light is all of theirs)
     pub ei: usize,
     pub win: usize,
     pub lights: Vec<usize>,
+    pub row: Vec<usize>,
     /// the middle of its lights across (the window's frame): its track
     pub x: f64,
     /// each of its lights' panes at rest (a fine grid, so it can bow)
@@ -144,11 +159,13 @@ pub fn outside(g: &Game, ei: usize) -> bool {
 
 /// How the director reads it: coming to the glass, through it and in its
 /// light is a hunt; coming up the track while you look, a search; standing
-/// out there, nothing (it had kept every peak open, wherever you were)
-pub fn legacy_state(mode: Mode) -> &'static str {
+/// out there, or waiting at a covered pane or while the place lies quiet,
+/// nothing (a hunt waiting behind a blind had held the floor in a peak
+/// with no end, and a search standing unwatched every peak open)
+pub fn legacy_state(mode: Mode, moving: bool) -> &'static str {
     match mode {
         Mode::Hunt | Mode::Strike => "hunt",
-        Mode::Stalk => "search",
+        Mode::Stalk if moving => "search",
         _ => "wander",
     }
 }
@@ -170,7 +187,7 @@ pub fn eyes_on_glass(g: &Game) -> bool {
     // into the window's frame (its +z goes into the room)
     let le = w.local(&eye);
     let fl = Vec3::new(f.x * w.right.x + f.z * w.right.z, f.y, f.x * w.normal.x + f.z * w.normal.z);
-    for &k in &b.lights {
+    for &k in &b.row {
         if w.covered(k) {
             continue;
         }
@@ -263,7 +280,16 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             }
         }
         Mode::Alert => {
-            if stare >= COME {
+            if out <= AT_GLASS + 1e-6 {
+                // waiting at its glass: the blind up and the place no longer
+                // quiet, it presses again (two more seconds there)
+                if !covered && !quiet {
+                    set(g, ei, Mode::Hunt, "its glass uncovered");
+                    put(g, ei, "pressed_at", now);
+                    tell(g, ei, &b);
+                    call(g, ei, "creak");
+                }
+            } else if stare >= COME {
                 set(g, ei, Mode::Stalk, "it comes while you look");
             }
         }
@@ -280,6 +306,12 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             } else {
                 put(g, ei, "moving", 0.0);
             }
+        }
+        Mode::Hunt if !inside && get(g, ei, "through") <= 0.0 && covered => {
+            // its glass covered: it stands where it was (at the glass, there
+            // when the blind goes up)
+            put(g, ei, "moving", 0.0);
+            set(g, ei, Mode::Alert, "its glass covered");
         }
         Mode::Hunt if !inside && get(g, ei, "through") <= 0.0 => {
             if out > AT_GLASS + 1e-6 {
@@ -298,10 +330,14 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 if since > 0.8 && get(g, ei, "misted") <= 0.0 {
                     put(g, ei, "misted", 1.0);
                     tell(g, ei, &b);
-                    call(g, ei, "breath");
+                    call(g, ei, "squeak");
                 }
-                // through, unless the glass is covered or the place is quiet
-                if since >= PRESS_T && !covered && !quiet {
+                if quiet {
+                    // the place lies quiet after a close call: it waits at
+                    // the glass (nothing to the director while it does)
+                    set(g, ei, Mode::Alert, "it waits at the glass");
+                } else if since >= PRESS_T {
+                    // through
                     put(g, ei, "through", now);
                     tell(g, ei, &b);
                     call(g, ei, "groan");
@@ -364,6 +400,55 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         g.entities[ei].g.set_pos(p.x, p.y, p.z);
     }
     glass_frame(g, ei, &b, dt);
+    lamp_learned(g, &b);
+}
+
+/// What it learns (design 4): got away from twice out of its light, the
+/// lamp outside its window hangs lower (`LAMP_DROP`), so its light lies
+/// further into the room. The first time it comes down where you see it
+/// (in its window's room, near: its light creeps in across the floor over
+/// `LOWERING` s); after that it hangs low from the first.
+fn lamp_learned(g: &mut Game, b: &Bind) {
+    if !g.creature_learned("glass") {
+        return;
+    }
+    let w = &g.windows[b.win];
+    if w.lamp_drop >= LAMP_DROP {
+        return;
+    }
+    let now = g.perf_t;
+    let started = get(g, b.ei, "lowering");
+    if started <= 0.0 {
+        if g.creature_run.shown.iter().any(|k| k == "glass") {
+            lamps_drop(g, LAMP_DROP, true);
+            return;
+        }
+        if !near_glass(g, b) {
+            return;
+        }
+        g.creature_run.shown.push("glass".into());
+        g.director_note("shown");
+        put(g, b.ei, "lowering", now);
+        return;
+    }
+    let k = smoothstep(0.0, LOWERING, now - started);
+    // its light creeping in, a few times a second, and where it comes to rest
+    let step = ((now - started) / 0.2).floor();
+    let again = k >= 1.0 || get(g, b.ei, "lowered_step") != step;
+    put(g, b.ei, "lowered_step", step);
+    lamps_drop(g, LAMP_DROP * k, again);
+}
+
+/// Every lamp outside this floor's windows hung `drop` m lower (every
+/// window looks out on the same place: its lamp is all of theirs), their
+/// light thrown again if `rethrow`
+fn lamps_drop(g: &mut Game, drop: f64, rethrow: bool) {
+    for i in 0..g.windows.len() {
+        crate::core_props::window::view::set_lamp_drop(g, i, drop);
+        if rethrow {
+            crate::core_props::window::view::rethrow(g, i);
+        }
+    }
 }
 
 /// Its place out there, or along its way through the window (`pass` 0..1)
@@ -403,8 +488,8 @@ fn cell_mid(q: &[(f64, f64); 4]) -> (f64, f64) {
 fn entry(g: &Game, b: &Bind) -> Vec3 {
     let w = &g.windows[b.win];
     let mut best: Option<(f64, f64, f64)> = None;
-    for &k in &b.lights {
-        for q in &w.lights[k].patch {
+    for &k in &b.row {
+        for q in w.lit_cells(k) {
             let (mx, mz) = cell_mid(q);
             let l = w.local(&Vec3::new(mx, 0.0, mz));
             let d = (l.z - w.depth - 0.5).abs() + (l.x - b.x).abs() * 0.5;
@@ -422,6 +507,11 @@ fn entry(g: &Game, b: &Bind) -> Vec3 {
 /// Inside: only where its lamp's light falls; to its edge nearest you, and
 /// you, if you are in it and within its reach
 fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
+    // its window's light covered (blinds let down): nowhere is its
+    if b.row.iter().all(|&k| g.windows[b.win].covered(k)) {
+        set(g, ei, Mode::Withdraw, "its light is gone");
+        return;
+    }
     let pos = g.entities[ei].pos();
     let pp = g.player.pos;
     let d = hypot2(pp.x - pos.x, pp.z - pos.z);
@@ -430,6 +520,8 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
     put(g, ei, "lost_t", lost);
     if lost > LOSES {
         set(g, ei, Mode::Withdraw, "out of its sight");
+        // you got away from it out of its light (what it learns from)
+        g.creature_habit("glass");
         return;
     }
     let you_lit = g.windows[b.win].lit_at(pp.x, pp.z);
@@ -444,8 +536,8 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
     // the point of its light nearest you
     let w = &g.windows[b.win];
     let mut best = (f64::INFINITY, pos.x, pos.z);
-    for &k in &b.lights {
-        for q in &w.lights[k].patch {
+    for &k in &b.row {
+        for q in w.lit_cells(k) {
             let (mx, mz) = cell_mid(q);
             let dd = hypot2(pp.x - mx, pp.z - mz);
             if dd < best.0 {
@@ -466,12 +558,13 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
         }
     }
     put(g, ei, "moving", if moving { 1.0 } else { 0.0 });
-    // it keeps giving you its tells while it is in here (its breath)
+    // it keeps giving you its tells while it is in here: the water
+    // running off its coat onto the floor
     let now = g.perf_t;
-    if now - get(g, ei, "breath_at") > 2.0 {
-        put(g, ei, "breath_at", now);
+    if now - get(g, ei, "drip_at") > 2.0 {
+        put(g, ei, "drip_at", now);
         tell(g, ei, b);
-        call(g, ei, "breath");
+        call(g, ei, "drip");
     }
 }
 
@@ -597,6 +690,12 @@ pub fn place(g: &mut Game) -> Option<usize> {
 /// whatever the level's coin and the way say
 fn place_with(g: &mut Game, force: bool) -> Option<usize> {
     g.behind_glass = None;
+    // what it learned, already seen: every floor's lamps hang low from the
+    // first, whether it is behind one of its windows or not (fitted after
+    // the build, as the run's progress is)
+    if g.creature_learned("glass") && g.creature_run.shown.iter().any(|k| k == "glass") && !g.windows.is_empty() {
+        lamps_drop(g, LAMP_DROP, true);
+    }
     if g.depth() < 2 || g.building.is_some() || g.level_scp.is_some() || g.in_loop || g.in_stairwell || g.windows.is_empty() {
         return None;
     }
@@ -619,7 +718,7 @@ fn place_with(g: &mut Game, force: bool) -> Option<usize> {
             crate::core_props::window::Kind::Strip => (0..w.lights.len()).map(|k| vec![k]).collect(),
         };
         for lights in groups {
-            if lights.iter().any(|&k| w.covered(k) || w.lights[k].papered) || lights.iter().all(|&k| w.lights[k].patch.is_empty()) {
+            if lights.iter().any(|&k| w.covered(k) || w.lights[k].papered) || lights.iter().all(|&k| w.lit_cells(k).is_empty()) {
                 continue;
             }
             let x = lights.iter().map(|&k| (w.lights[k].rect[0] + w.lights[k].rect[1]) / 2.0).sum::<f64>() / lights.len() as f64;
@@ -632,7 +731,7 @@ fn place_with(g: &mut Game, force: bool) -> Option<usize> {
             }
             let score = ds.min(40) as f64 + (wi * 7 + lights[0] * 3) as f64 * 0.001;
             if best.as_ref().map(|b| score > b.0).unwrap_or(true) {
-                best = Some((score, Bind { ei: 0, win: wi, lights, x, panes: vec![] }));
+                best = Some((score, Bind { ei: 0, win: wi, lights, row: (0..w.lights.len()).collect(), x, panes: vec![] }));
             }
         }
     }
@@ -763,11 +862,10 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
     let t = g.perf_t;
     let Some(c) = g.creature_mut(ei) else { return };
     let rig = c.body.clone();
-    let mode = c.brain.mode;
     let moving = c.get("moving") > 0.0;
     let pass = c.get("pass");
     let inside = c.get("inside") > 0.0;
-    let pressing = b.is_some() && mode == Mode::Hunt && !inside && pass <= 0.0 && c.get("out") <= AT_GLASS + 1e-3;
+    let pressing = b.is_some() && !inside && pass <= 0.0 && c.get("out") <= AT_GLASS + 1e-3;
     rig.rest();
     // its face to the glass: the morph, its body leaning to it
     let press = c.eased("press", if pressing { 1.0 } else { 0.0 }, 3.0, dt);
@@ -873,8 +971,8 @@ fn voice_slot(g: &mut Game, ei: usize) -> Option<crate::audio::soundscape::Voice
     Some(slot)
 }
 
-/// Its calls: `tick`, `creak`, `breath`, `groan` (only where its glass is
-/// heard: nothing is made for a sound no one could hear)
+/// Its calls: `tick`, `creak`, `squeak`, `groan`, and inside `drip` (only
+/// where its glass is heard: nothing is made for a sound no one could hear)
 pub fn call(g: &mut Game, ei: usize, what: &str) {
     if g.ac.is_none() {
         return;
@@ -900,8 +998,18 @@ pub fn call(g: &mut Game, ei: usize, what: &str) {
             s.burst(&v, t, 0.9, "bandpass", 420.0, 1.6, 0.6, Some(260.0), 0.08);
             s.note(&v, t + 0.05, 0.8, 190.0, 0.12, "triangle", Some(150.0), 0.1, 0.3);
         }
-        // its breath on the glass, close
-        "breath" => s.burst(&v, t, 1.2, "lowpass", 900.0, 0.7, 0.22, Some(600.0), 0.35),
+        // wet skin dragged on the glass: a short squeal, twice
+        "squeak" => {
+            s.burst(&v, t, 0.22, "bandpass", 2300.0, 9.0, 0.12, Some(2900.0), 0.02);
+            s.burst(&v, t + 0.42, 0.16, "bandpass", 2700.0, 9.0, 0.09, Some(2200.0), 0.02);
+        }
+        // the water running off its coat onto the floor: drips
+        "drip" => {
+            for (d, f) in [(0.0, 1500.0), (0.37, 1250.0), (0.81, 1650.0)] {
+                s.tone(&v, t + d, 0.06, f, 0.10, "sine", Some(f * 0.45), 0.001);
+                s.burst(&v, t + d, 0.02, "bandpass", f * 1.8, 4.0, 0.05, None, 0.001);
+            }
+        }
         // the glass bowing in, long and low, and a wet squeal of skin on it
         "groan" => {
             s.burst(&v, t, 2.2, "bandpass", 300.0, 3.0, 0.42, Some(180.0), 0.4);

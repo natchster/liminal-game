@@ -310,7 +310,7 @@
       "last_checked": "2026-10-30",
       "last_human_review": null,
       "name": "the one behind the glass",
-      "notes": "New with the windows (docs/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "notes": "New with the windows (docs/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor; a blind let down (or paper over the glass) keeps it out and puts its light out; got away from twice, its lamp hangs lower. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
       "passes": {
         "shots:glass_32m": true,
         "shots:glass_8m": true,

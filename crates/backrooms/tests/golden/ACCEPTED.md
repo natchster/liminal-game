@@ -107,3 +107,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-30, on top of 1d1697d: frames: glass_0m, glass_in, glass_death. Reason: W2, after the second blind review's findings: its hands flat on the glass at its chin, the upper arms hanging (lifted from the shoulder, skinning had swung the coat's shoulders up into fins beside the hood); the hood moved only by the head, neck and chest; the coat wet (a sheen); looked at frame by frame
 
 - 2026-10-30, on top of 1d1697d: look anchors: glass_0m, glass_in, glass_death. Reason: W2: the figure's final pose and coat
+
+- 2026-10-30, on top of 6452ff3: frames: glass_0m. Reason: W3: within reach of its window's blind, the HUD offers [E] LOWER THE BLIND beside its face at the glass; nothing else changed (error map: only the prompt)

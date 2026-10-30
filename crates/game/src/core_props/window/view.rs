@@ -40,9 +40,9 @@ fn lamp_side(w: &Window) -> f64 {
     }
 }
 
-/// The lamp's head (the window's frame)
+/// The lamp's head (the window's frame), as low as it hangs
 pub fn lamp_head_local(w: &Window) -> Vec3 {
-    Vec3::new(lamp_side(w), HEAD_Y, -HEAD_OUT)
+    Vec3::new(lamp_side(w), HEAD_Y - w.lamp_drop, -HEAD_OUT)
 }
 
 /// Finish window `i`'s outside: its view, its lamp, the light it throws in
@@ -59,7 +59,7 @@ pub fn finish(g: &mut Game, i: usize) {
         m.name = "window_view".into();
     }
     let o = w.world(0.0, GROUND + CAMERA_H, 0.0);
-    let lamp = w.world(lamp_head_local(w).x, HEAD_Y, -HEAD_OUT);
+    let lamp = w.world(lamp_head_local(w).x, lamp_head_local(w).y, -HEAD_OUT);
     {
         let pu = view.r().patch_uniforms.clone();
         let f = &mut pu.borrow_mut().f;
@@ -140,12 +140,14 @@ pub fn finish(g: &mut Game, i: usize) {
     let steel = lit(phong!({ color: 0x8e908b, specular: 0x303030, shininess: 30 }));
     let housing = lit(phong!({ color: 0x8a8b86, specular: 0x404040, shininess: 40 }));
     let lens = lit(basic_mat!({ color: Color::rgb_linear(1.0, 0.62, 0.30), fog: false }));
+    // (in this order: `set_lamp_drop` reads the pole first)
     for (name, m) in [("Window__lampPole", &steel), ("Window__lampHead", &housing), ("Window__lampLens", &lens)] {
         if let Some(geo) = crate::assets::props::prop_part_as_modelled(name) {
             lamp_g.add(&mesh(geo, m));
         }
     }
     w.root.add(&lamp_g);
+    let lamp_obj = lamp_g.clone();
     // ---- the glass: the view's light behind it
     let back = view_light(expo, night);
     for l in &w.lights {
@@ -158,14 +160,53 @@ pub fn finish(g: &mut Game, i: usize) {
     }
     g.windows[i].view = view;
     g.windows[i].lamp = lamp;
+    g.windows[i].lamp_obj = Some(lamp_obj);
     // ---- the light it throws in, a light at a time
+    rethrow(g, i);
+}
+
+/// Throw window `i`'s light in afresh (its lamp moved, a blind let down or
+/// drawn up): each light's lit floor and its glow, the old taken away
+pub fn rethrow(g: &mut Game, i: usize) {
+    let (_, night) = light_left(g.depth());
     for k in 0..g.windows[i].lights.len() {
+        if let Some(o) = g.windows[i].lights[k].glow.take() {
+            g.world.remove(&o);
+        }
         let (patch, obj) = throw_light(g, i, k, night);
         g.windows[i].lights[k].patch = patch;
-        if let Some(o) = obj {
-            g.world.add(&o);
+        if let Some(o) = &obj {
+            g.world.add(o);
+        }
+        g.windows[i].lights[k].glow = obj;
+    }
+}
+
+/// Hang window `i`'s lamp `drop` m lower: its head and lens down its pole
+/// (the pole drawn shorter), its pool and halo in the view with it. The
+/// light it throws is not thrown again here (`rethrow`).
+pub fn set_lamp_drop(g: &mut Game, i: usize, drop: f64) {
+    let w = &mut g.windows[i];
+    w.lamp_drop = drop;
+    let head = lamp_head_local(w);
+    let lamp = w.world(head.x, head.y, head.z);
+    w.lamp = lamp;
+    if let Some(lg) = &w.lamp_obj {
+        let parts = lg.children();
+        for (k, o) in parts.iter().enumerate() {
+            if k == 0 {
+                // the pole, its foot on the ground
+                o.scale().set(1.0, ((HEAD_Y - GROUND - drop) / (HEAD_Y - GROUND)).max(0.2), 1.0);
+            } else {
+                o.set_pos(0.0, -drop, 0.0);
+            }
         }
     }
+    let pu = w.view.r().patch_uniforms.clone();
+    let f = &mut pu.borrow_mut().f;
+    f[8] = lamp.x as f32;
+    f[9] = lamp.y as f32;
+    f[10] = lamp.z as f32;
 }
 
 /// The view's sky light on what stands out there (linear)
@@ -188,7 +229,8 @@ fn view_light(expo: f64, night: f64) -> [f64; 3] {
 fn throw_light(g: &Game, i: usize, k: usize, night: f64) -> (Vec<[(f64, f64); 4]>, Option<Obj>) {
     let w = &g.windows[i];
     let l = &w.lights[k];
-    if l.papered {
+    // (papered over, or its blind down and shut: no light comes in by it)
+    if w.covered(k) {
         return (vec![], None);
     }
     let lamp = lamp_head_local(w);

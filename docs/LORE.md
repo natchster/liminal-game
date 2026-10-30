@@ -20,7 +20,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside (*The windows*, `WINDOWS.md`) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -366,27 +366,39 @@ The rules are learnable, and learning them is the game.
   gather scattered seed, and the slit-mouthed woman of Japanese legend, who
   must stop for sweets thrown down.)
 - **The one behind the glass.** Far out on the track a window looks out
-  on, in the fog, someone stands in a pale raincoat, belted, the hood up
+  on, in the fog, there is a figure in a pale raincoat, belted, the hood up
   and drawn round its face: a smudge you are not sure of. It always faces
-  you. **Do not stare out of a window too long.** It counts your eyes on its
-  glass, across glances: after a few seconds the pane ticks, sharp, as glass
-  does under strain, and it has seen you; look longer and it comes up the
-  track toward you, evenly, while your eyes are on its glass, and stands
-  where it is when they are not. It never goes back. Once it is in the
-  streetlamp's light outside it needs your look no longer: it comes to the
-  glass, the rim of its hood and its face to the pane and its hands either
-  side of it; the glass creaks under it and its breath mists the pane on
-  your side. Then, unless the place lies quiet after a close call, the pane
-  bows in round it like film and does not break, and it comes through and
-  down onto the floor, into the lamp's light. **Its reach is that light**:
-  inside it can be only where the lamp's light through its window lies on
-  the floor, and it stands at the edge of it nearest you. Stand in the light
-  by it and it takes you: your mind drains and you are thrown down, out of
-  the light (it kills only a mind already gone, and never the first time).
-  Out of its sight a few seconds, it goes back out through the glass and
-  stands close in the lamp's light, and a long look then brings it straight
-  back. It is heard only as glass: the tick, the creak, its breath on the
-  pane, the long groan of the glass bowing. Nothing sends it: it stands
+  you. **Do not stare out of a window too long.** It counts your eyes on
+  the glass of its window (any light of that row), across glances: after a
+  few seconds the pane ticks, sharp, as glass does under strain, and it has
+  seen you; look longer and it comes up the track toward you, evenly,
+  while your eyes are on its glass, and stands where it is when they are
+  not. It never goes back. Once it is in the streetlamp's light outside it
+  needs your look no longer: it comes to the glass, the rim of its hood
+  and its face to the pane and its hands flat on it; the glass creaks
+  under it, its breath mists the pane on your side, wet skin squeaks on
+  it. Then, unless the place lies quiet after a close call (it waits at
+  the glass), the pane bows in round it like film and does not break, and
+  it comes through and down onto the floor, into the lamp's light. **Its
+  reach is that light**: inside it can be only where the lamp's light
+  through its window lies on the floor, and it stands at the edge of it
+  nearest you, the water running off its coat. Stand in the light by it
+  and it takes you: your mind drains and you are thrown down, out of the
+  light (it kills only a mind already gone, and never the first time). Out
+  of its sight a few seconds, it goes back out through the glass and
+  stands close in the lamp's light, and a long look then brings it
+  straight back. **A covered window keeps it out**: let a blind all the
+  way down (its slats clatter, and what hunts by ear comes to see; drawn
+  up again, they clatter as loud) or find one someone papered over, and no
+  look counts through that glass, no light comes in by it, and it does not
+  come through it; it stands where it was, and is there when the blind
+  goes up, at the glass two seconds before it comes. If it is in when all
+  its window's light is covered, its light is gone, and it goes back out.
+  Get away from it twice out of its light and the streetlamps outside the
+  windows hang lower on their poles from then on: their light lies
+  further into the rooms. It is heard only as glass and water: the tick,
+  the creak, the squeak of wet skin on the pane, the long groan of the
+  glass bowing, and in the room the dripping. Nothing sends it: it stands
   behind one window of a floor, off the way, never behind a covered one
   (only below the Lobby, never where an anomaly is).
 - **The Face** (the Stairwell only). See below.
@@ -410,7 +422,9 @@ learn your habits**: hide from a Smiler in the dark often enough and it
 waits, silent, where you went dark; outrun a Hound and it stops baying and
 runs for where you are heading; keep a Watcher in your stare too long and
 the lights over it fail while you watch; slip behind the one in the corner and it looks round
-more often; feed a Reader paper and it tears the sheets in half unread. Each
+more often; feed a Reader paper and it tears the sheets in half unread; get
+away from the one behind the glass out of its light and the streetlamps
+outside the windows hang lower, their light further in. Each
 learns one thing, never from your deaths, no two on the same floor, and you
 see it the first time.
 Who lives on a floor depends on the floor: Smilers where it is dark,
@@ -701,11 +715,13 @@ found on the floors.
 ## The windows
 
 The rooms have no outside. Their windows look out on one anyway. Below the
-first floor of the rooms (the Lobby has none), where an office, a hall or
-someone's rooms would have had windows, a few are cut into the walls, one
+first floor of the rooms (the Lobby has none), where an office, a hall, a
+party room or someone's rooms would have had windows, a few are cut into
+the walls, one
 to three side by side: in the offices, strip windows of aluminium over the
 heaters under them; elsewhere, wood sash windows painted over many times.
-Most have a blind, raised, or let down crooked, its slats tilted.
+Most have a blind, raised, or let down crooked, its slats tilted; you
+can let one all the way down, or draw it up.
 
 Every one of them looks out on the same place, from the same place,
 whichever way it faces and whatever is on the other side of its wall: a
@@ -713,11 +729,11 @@ ploughed field in fog, a gravel track running straight away from the glass
 into it, a few trees standing out there, and close outside, beside the
 track, a streetlamp, its sodium light orange on the gravel. It is the last
 of the light, and the deeper the floor, the later it is, until it is night.
-Nothing out there moves, except, on some floors, someone standing far out
-on the track (*Things that live here*: the one behind the glass). The lamp's light comes in through the glass and
+Nothing out there moves, except, on some floors, a figure far out on the
+track (*Things that live here*: the one behind the glass). The lamp's light comes in through the glass and
 lies on the floor in the shape of the window, the shadows of its bars and
 its blind across it, and standing near the glass you hear the lamp's
-ballast through it. Here and there someone has covered one: paper taped
+ballast through it (not through a row whose every light is covered). Here and there someone has covered one: paper taped
 over the glass from inside, or the blind pulled all the way down and left.
 Go round to the other side of its wall, and it is a wall.
 
@@ -744,7 +760,9 @@ about them.
   one, its motor whines and a coil turns by itself. A dead one's flap,
   lifting by itself, squeals thinly on its hinge before it falls.
 - Near a window you hear the streetlamp outside through the glass: its
-  ballast, dulled, steady. Nothing else of out there is heard.
+  ballast, dulled, steady. Nothing else of out there is heard; now and
+  then, the glass itself (*the one behind the glass*). A blind let down or
+  drawn up clatters, dull aluminium, to the bottom rail's knock.
 
 ## Attribution and licensing
 
@@ -772,15 +790,19 @@ about them.
   (Peter Thompson, 1980). `crates/game/src/entities/corner.rs` and
   `assets/src/creatures/body_corner.py` keep this attribution.
 - **The one behind the glass** takes its sharpening look from **SCP-2885**
+  "Window to Another You" by **Pythy**, rewritten by **Zyn**
   (<https://scp-wiki.wikidot.com/scp-2885>), its face that turns with you
-  from **SCP-3052** (<https://scp-wiki.wikidot.com/scp-3052>) and its way
-  through glass "like a finger through plastic wrap" from **SCP-L682**
-  (the SCP Wiki's Library), all **CC BY-SA 3.0**; its reach from a window
-  from the Backrooms wiki's Windows (Entity 2, Wikidot, **CC BY-SA 3.0**);
-  the danger in looking closely from the Japanese internet legend Kunekune
-  (the motif only); and, public domain, the window that will not open and
-  the grip through its glass from Emily Brontë's *Wuthering Heights* (1847)
-  and "Don't look!" from Gogol's *Viy* (1835). The raincoat, the track and
+  from **SCP-3052** by **Witryso** (<https://scp-wiki.wikidot.com/scp-3052>)
+  and its way through glass "like a finger through plastic wrap" from
+  **SCP-L682** by **CRAt26** (<https://scp-wiki.wikidot.com/scp-l682>), all
+  **CC BY-SA 3.0**; its reach from a window, and covering windows against
+  it, from the Backrooms wiki's Entity 2 "The Windows" (the concept by
+  u/glassydude101, rewritten by **DrAkimoto**;
+  <https://backrooms-wiki.wikidot.com/entity-2>, **CC BY-SA 3.0**); the
+  danger in looking closely from the Japanese internet legend Kunekune
+  (the motif only); and, public domain, the window that will not open from
+  Emily Brontë's *Wuthering Heights* (1847) and, from Gogol's *Viy* (1835),
+  "Don't look!" and a line it cannot cross. The raincoat, the track and
   its light are this game's own. `crates/game/src/entities/glass.rs` and
   `assets/src/creatures/body_glass.py` keep this attribution.
 - **The Reader** takes its compulsion from folklore, public domain: the
@@ -830,8 +852,8 @@ about them.
   wiki (<http://backrooms-wiki.wikidot.com/entity-8>; Palico22, rewritten by
   1000dumplings), made blind here.
 - **The creatures' bodies** (the Hound's, the Smiler's, the Watcher's, the
-  one in the corner's, the Reader's, the Showroom's staff's and the seated
-  man's of the Loop) start from MakeHuman's base mesh and targets
+  one in the corner's, the Reader's, the one behind the glass's, the
+  Showroom's staff's and the seated man's of the Loop) start from MakeHuman's base mesh and targets
   (<https://github.com/makehumancommunity/makehuman>), **CC0 1.0** since
   September 2020 (`assets/src/creatures/sources.json`).
 - The original 2019 yellow-room photograph was released **CC0** by the

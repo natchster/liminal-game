@@ -11,6 +11,9 @@ bowed (the forehead to the corner); each eye with its brow, and the mouth,
 turned half round in the face, easing off at their edges; the nightshirt a
 tube of cloth gathered at the neck and let fall over him by Blender's cloth
 (`cloth.py`) over his shoulders and his arms to the shins.
+
+The creature it is the body of takes its rule from SCP-096 by Dr Dan, CC
+BY-SA 3.0 (`docs/LORE.md`, Attribution); its body is MakeHuman's (CC0 1.0).
 """
 import numpy as np
 

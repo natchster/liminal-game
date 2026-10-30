@@ -122,7 +122,7 @@ must not be (opposite gaze rules read best, `research/backrooms-and-samosbor.md`
 | **The Watcher** | stalker | (it moves only when **unseen**) | **keeping it in sight**: look at it, light it, back away | furnished rooms, among the sheeted furniture |
 | **The one in the corner** | sentinel | **your eyes on its face** | **not looking**: pass behind it, keep your lamp off its face | the far corners of quiet rooms |
 | **The Reader** | hunter | **sight**, at middle range, in light | **paper**: drop a sheet and it must stop and read it | office wings, wherever paper lies |
-| **The one behind the glass** | sentinel | **your eyes on its window's glass**, added up | **not staring out of windows**; inside, **keeping out of its lamp's light** | far out on the track a window looks out on |
+| **The one behind the glass** | sentinel | **your eyes on its window's glass**, added up | **not staring out of windows**, or **covering the glass** (a blind let down); inside, **keeping out of its lamp's light** | far out on the track a window looks out on |
 
 The Smiler, the Hound, the Watcher and the Reader are *sent* by the
 director (§5), one at a time; the one in the corner is placed and never
@@ -324,43 +324,66 @@ stop for candy thrown down (both public domain): a compulsion you can use.*
 *New with the windows (`WINDOWS.md` 4). After SCP-2885 (a view that
 sharpens the longer you look), SCP-3052 (a figure that faces you from every
 angle), SCP-L682 (through glass like plastic wrap) and the Backrooms'
-Windows (Entity 2: a reach from the window), all CC BY-SA 3.0; Kunekune (the
-danger in looking closely, a motif); and, public domain, Gogol's* Viy *and*
-Wuthering Heights *(a window that will not open, a grip through the glass).*
+Windows (Entity 2: a reach from the window, and covering as the counter),
+all CC BY-SA 3.0; Kunekune (the danger in looking closely, a motif); and,
+public domain, Gogol's* Viy *(a line it cannot cross) and* Wuthering
+Heights *(a window that will not open).*
 
-- **What it is.** Someone in a pale raincoat, belted, the hood up and drawn
+- **What it is.** A figure in a pale raincoat, belted, the hood up and drawn
   round its face, standing far out on the track a window looks out on
   (32 m: in the fog there, a smudge you are not sure of). It always faces
-  you. Close, its face pressed to the glass is a person's, pale, the hood's
-  rim on the pane, its hands either side of it.
-- **Its sound.** Glass only: the pane's tick (a click and its short ring),
-  the creak of the pane under it, its breath on the glass, the long groan
-  of the glass bowing in. No voice. Heard only where its glass is heard
-  (within 9 m of it, in its room).
+  you. Close, its face pressed to the glass is cold, wet and drowned-pale,
+  its eyes clouded, the hood's rim on the pane, its hands flat on it.
+- **Its sound.** Glass, and water: the pane's tick (a click and its short
+  ring), the creak of the pane under it, wet skin squeaking on the pane,
+  the long groan of the glass bowing in; inside, the water dripping off
+  its coat. No voice, no breath (four of the others breathe). Heard only
+  where its glass is heard (within 9 m of it, in its room).
 - **The rule you learn.** *Do not stare out of a window too long.* What
-  counts is your eyes on its glass: your view's line through one of its
-  window's lights within 8 m, nothing between, the glass uncovered. It adds
+  counts is your eyes on its glass: your view's line through any light of
+  its window's row within 8 m (it is seen through all of them), nothing
+  between, that light uncovered. It adds
   up across glances (a second a second, draining a quarter as fast when you
   look away). At 3 s the pane ticks: it has seen you (a tell). At 5 s it
   comes up the track at 2.6 m/s while your eyes are on its glass and stands
   when they are not; it never goes back. Within 7 m of the glass (its
   lamp's light) it needs your look no longer: it comes to the glass (the
-  creak, then its breath misting the pane: tells), and 2 s later, unless the
-  glass is covered or the place lies quiet after a close call, the pane bows
+  creak, its breath misting the pane, the squeak: tells), and 2 s later,
+  unless its glass is covered (it stands where it was) or the place lies
+  quiet after a close call (it waits at the glass), the pane bows
   in round it like film and it comes through (2.4 s) and down onto the floor,
   into its lamp's light.
 - **Its reach is the light.** Inside it can be only where its lamp's light
-  falls through its window (`Window::lit_at`): it goes to the edge of the
-  light nearest you, at 1.8 m/s, and stands there facing you, breathing on
-  you (a tell every 2 s). In its light, within its reach, it takes you
-  (`touch_nerve` 40: it kills only a mind it leaves spent, never at a first
-  meeting) and you are thrown down out of the light. Out of its sight 4 s
+  falls through its window's row (`Window::lit_at`): it goes to the edge of
+  the light nearest you, at 1.8 m/s, and stands there facing you, water
+  dripping off it (a tell every 2 s). In its light, within its reach, it takes you
+  (`touch_nerve` 40: it kills only a mind already gone, spent before it
+  touches, and never at a first meeting) and you are thrown down out of the light. Out of its sight 4 s
   (or 12 m off), it goes back out through the glass (2 s) and stands in the
   lamp's light 1.4 m out; a long look then brings it straight back.
-- **Modes.** Hold (out on the track) → Alert (it has seen you) → Stalk
+- **Covered** (`core_props::window::blind`): a blind let all the way down
+  (`[E] LOWER THE BLIND`, 1 s, its clatter heard 10 m along the way by
+  what hears, low and dull, well under the pane's tick) or paper taped over
+  a light covers its glass: no look counts through it, its light throws
+  none (`lit_at`, `lit_cells`), and it does not come through it; inside
+  when its row's light is all covered, it goes back out ("its light is
+  gone"). `[E] RAISE THE BLIND` draws it up, as loud. A row whose every
+  light is covered goes quiet (its lamp's ballast not heard).
+- **What it learns**: got away from twice out of its light (`creature_habit`
+  where it goes back out unseen), the lamps outside the windows hang 1 m
+  lower (`view::set_lamp_drop`, every window's of the floor, the light
+  thrown again: its window stays unmarked): its light reaches 4.3 m into
+  the room for 2.6 m. The first time they come down where you can see it
+  (in its window's room, near: the light creeping in over 3 s; its own
+  check, as the shared one sees nothing through a wall); after that on
+  every floor with windows from the first (fitted after the build).
+- **Modes.** Hold (out on the track) → Alert (it has seen you; or waiting:
+  at a covered pane, or at the glass while the place lies quiet) → Stalk
   (coming while you look) → Hunt (to the glass, through, in its light) →
   Strike → Withdraw (back out) → Alert. To the director only Hunt and
-  Strike are a hunt and Stalk a search; standing out there it is nothing
+  Strike are a hunt and Stalk a search while it comes; standing out there,
+  or waiting, it is nothing (a hunt waiting behind a blind had held the
+  floor in a peak with no end)
   (`glass::legacy_state`), and nothing of it reaches the room while it is
   out there (no pressure through its wall, no sighting through its glass).
 - **Placed** (`glass::place`, after the build, no draws) behind one window
@@ -438,7 +461,9 @@ As built (E7, `creature::LEARNS`; the counts as E8 set them): twice hidden
 from a Smiler in the dark (it loses you with your lamp out), twice outrun
 by a Hound (it loses you 15 m or more off), three long stares at a sent
 Watcher (over 8 s), two passes behind the one in the corner (within 3 m of
-its back), two sheets dropped for a Reader that was after you. (E7's
+its back), two sheets dropped for a Reader that was after you; and, with
+the windows (`WINDOWS.md` 4), twice got away from the one behind the glass
+out of its light (the lamps outside the windows hang lower). (E7's
 counts, 4, 3, 5, 4 and 3, were never reached: in twelve bot runs of ten
 levels no kind learned, and the most any habit came to was 2. Whether a
 kind now learns too soon is for people.) A kind that reaches its

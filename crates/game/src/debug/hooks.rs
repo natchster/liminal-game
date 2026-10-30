@@ -674,6 +674,29 @@ impl Game {
     /// brightness line chosen, Controls, or the title)
     pub fn debug_screen(&mut self, name: &str) {
         use crate::ui::menu::Screen;
+        // the one behind the glass's window: its blinds let down (at once),
+        // or its lamp hung low as when it has learned (`--showcase glass:…`)
+        if name == "blind-down" || name == "lamp-low" {
+            if let Some(b) = self.behind_glass.clone() {
+                if name == "blind-down" {
+                    let now = self.perf_t;
+                    for h in 0..self.windows[b.win].blinds.len() {
+                        let k = self.windows[b.win].blinds[h].lights[0];
+                        let from = self.windows[b.win].lights[k].blind.unwrap_or(crate::core_props::window::Blind {
+                            down: 0.0,
+                            open: 0.6,
+                            skew: 0.0,
+                        });
+                        let to = crate::core_props::window::Blind { down: 1.0, open: 0.05, skew: 0.0 };
+                        self.windows[b.win].blinds[h].moving = Some((from, to, now - 2.0));
+                    }
+                } else {
+                    crate::core_props::window::view::set_lamp_drop(self, b.win, crate::entities::glass::LAMP_DROP);
+                    crate::core_props::window::view::rethrow(self, b.win);
+                }
+            }
+            return;
+        }
         // the self-assembly at its crest on a floor of the Building: its
         // surface below you, or you in it (`world::assembly`)
         if (name == "fog-below" || name == "fog-in") && self.building.is_some() {

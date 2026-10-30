@@ -215,21 +215,45 @@ fn covered_or_in_a_quiet_place_it_does_not_come_through() {
         let b = g.behind_glass.clone().unwrap();
         put_out(&mut g, ei, AT_GLASS + 0.5, Mode::Hunt, COME);
         stand(&mut g, 1.6, false);
-        if how == "covered" {
+        let blind = |g: &mut Game, down: bool| {
             for &k in &b.lights {
-                g.windows[b.win].lights[k].blind = Some(Blind { down: 1.0, open: 0.0, skew: 0.0 });
+                g.windows[b.win].lights[k].blind = Some(Blind { down: if down { 1.0 } else { 0.0 }, open: 0.0, skew: 0.0 });
             }
-        } else {
-            g.creature_mut(ei).unwrap().brain.order = Order::Away(20.0);
-        }
-        run(&mut g, ei, 8.0);
-        assert!(glass::outside(&g, ei), "{how}, it came through");
-        assert!((get(&g, ei, "out") - AT_GLASS).abs() < 1e-6, "{how}, it is not at the glass");
-        // a covered glass takes no look
+        };
         if how == "covered" {
+            blind(&mut g, true);
+        } else {
+            g.creature_mut(ei).unwrap().brain.order = Order::Away(8.0);
+        }
+        run(&mut g, ei, 6.0);
+        assert!(glass::outside(&g, ei), "{how}, it came through");
+        if how == "covered" {
+            // it stands where it was, and a covered glass takes no look
+            assert!((get(&g, ei, "out") - (AT_GLASS + 0.5)).abs() < 1e-6, "covered, it came on to {:.2} m", get(&g, ei, "out"));
             stand(&mut g, 1.6, true);
             assert!(!glass::eyes_on_glass(&g), "a look counted through a covered glass");
+            stand(&mut g, 1.6, false);
+        } else {
+            // it comes to the glass and waits there
+            assert!((get(&g, ei, "out") - AT_GLASS).abs() < 1e-6, "quiet, it is not at the glass");
         }
+        // waiting, it is nothing to the director (a hunt waiting there had
+        // held the floor in a peak with no end)
+        assert_ne!(g.entities[ei].state, "hunt", "{how}, waiting it reads as a hunt");
+        assert_eq!(mode(&g, ei), Mode::Alert);
+        // the blind up, or the quiet over: at the glass two seconds more, then through
+        if how == "covered" {
+            blind(&mut g, false);
+            put_out(&mut g, ei, AT_GLASS + 0.5, Mode::Hunt, COME);
+            run(&mut g, ei, (0.5 / WALK) + 0.1);
+        } else {
+            run(&mut g, ei, 3.0);
+        }
+        assert!(glass::outside(&g, ei));
+        run(&mut g, ei, PRESS_T - 0.3);
+        assert!(glass::outside(&g, ei), "{how}: through at once, without its two seconds at the glass");
+        run(&mut g, ei, THROUGH_T + 0.6);
+        assert!(!glass::outside(&g, ei), "{how}: after it, it never came through");
     }
 }
 
@@ -320,9 +344,14 @@ fn out_there_it_is_nothing_to_the_director_and_it_is_never_sent() {
     g.creature_mut(ei).unwrap().brain.order = Order::Away(30.0);
     run(&mut g, ei, 1.0);
     assert_eq!(mode(&g, ei), Mode::Hold);
+    // coming up the track while you look, a search; standing unwatched, nothing
     put_out(&mut g, ei, 20.0, Mode::Stalk, COME);
+    stand(&mut g, 1.6, true);
     run(&mut g, ei, 0.1);
     assert_eq!(g.entities[ei].state, "search");
+    stand(&mut g, 1.6, false);
+    run(&mut g, ei, 0.1);
+    assert_eq!(g.entities[ei].state, "wander", "standing unwatched on the track it reads as a search");
     put_out(&mut g, ei, 5.0, Mode::Hunt, COME);
     run(&mut g, ei, 0.1);
     assert_eq!(g.entities[ei].state, "hunt");
@@ -333,20 +362,42 @@ fn out_there_it_is_nothing_to_the_director_and_it_is_never_sent() {
 // ------------------------------------------------------------ its counter
 
 /// How a run of trials went: the share untouched, and the share where it
-/// came through at all
+/// came through at all, and where its lamp hung low
 #[derive(Debug)]
 struct Outcome {
     trials: usize,
     untouched: f64,
     came_in: f64,
+    lamp_low: f64,
 }
 
-/// One trial on a floor with it: you in its window's room for 75 s. With
-/// the counter (a player who knows it): you glance out now and then (a
-/// second and a half in twelve) and never once it has seen you, and
-/// should it come in, you keep out of its light. Without: you stare out,
-/// and when it comes in you go to it. → (touched, it came in)
-fn trial(g: &mut Game, seed: u32, level: i32, counter: bool) -> (bool, bool) {
+/// How you play it
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Way {
+    /// its counter: you glance out now and then (a second and a half in
+    /// twelve) and never once it has seen you; should it come in, you keep
+    /// out of its light
+    Eyes,
+    /// none: you stare out, and when it comes in you go to it
+    Stare,
+    /// you stare out, and when it comes to the glass you let the blind down
+    Blind,
+}
+
+/// The blind over light `k` of window `i`, if it has one
+fn blind_over(g: &Game, i: usize, k: usize) -> Option<usize> {
+    g.windows[i].blinds.iter().position(|h| h.lights.contains(&k))
+}
+
+/// One trial on a floor with it: you in its window's room for 75 s, playing
+/// it `way`; `learned`: it has learned, and you have seen it (its lamp low
+/// from the first). → (touched, it came in, its lamp low)
+fn trial(g: &mut Game, seed: u32, level: i32, way: Way, learned: bool) -> (bool, bool, bool) {
+    g.creature_run = Default::default();
+    if learned {
+        g.creature_run.learned = vec!["glass".into()];
+        g.creature_run.shown = vec!["glass".into()];
+    }
     g.run_seed = seed;
     g.init_level(level);
     let ei = g.behind_glass.as_ref().unwrap().ei;
@@ -354,69 +405,99 @@ fn trial(g: &mut Game, seed: u32, level: i32, counter: bool) -> (bool, bool) {
     g.level_start_t = g.perf_t - 100.0;
     g.director.phase = Phase::Calm;
     let b = g.behind_glass.clone().unwrap();
-    // where you stand: 1.6 m in; with the counter, the first place out of
+    // where you stand: 1.6 m in; with its counter, the first place out of
     // its light along the same line
     let mut back = 1.6;
-    if counter {
+    if way == Way::Eyes {
         let w = &g.windows[b.win];
         while back < 4.0 && w.lit_at(w.world(b.x, 0.0, w.depth + back).x, w.world(b.x, 0.0, w.depth + back).z) {
             back += 0.2;
         }
     }
-    stand(g, back, !counter);
+    stand(g, back, way != Way::Eyes);
     let sanity = g.player.sanity;
     let mut came_in = false;
+    let mut let_down = false;
     for k in 0..(75.0 / DT) as usize {
         let t = k as f64 * DT;
         let seen = g.creature(ei).unwrap().noticed_at.is_some();
         if glass::outside(g, ei) {
-            let look = !counter || (!seen && t % 12.0 < 1.5);
+            let look = way != Way::Eyes || (!seen && t % 12.0 < 1.5);
             stand(g, back, look);
+            if way == Way::Blind && !let_down && get(g, ei, "out") <= AT_GLASS + 0.5 {
+                if let Some(h) = blind_over(g, b.win, b.lights[0]) {
+                    g.blind_use(b.win, h, true);
+                }
+                let_down = true;
+            }
         } else {
             came_in = true;
             let p = g.entities[ei].pos();
             let pp = g.player.pos;
             let (dx, dz) = (p.x - pp.x, p.z - pp.z);
             let d = dx.hypot(dz).max(1e-6);
-            if !counter && d > 0.4 {
+            if way != Way::Eyes && d > 0.4 {
                 // to it, at a walk
                 g.player.pos.x += dx / d * 1.4 * DT;
                 g.player.pos.z += dz / d * 1.4 * DT;
             }
         }
         g.perf_t += DT;
+        g.windows_frame(DT);
         g.update_creature(ei, DT);
     }
-    (g.player.sanity < sanity - 1.0, came_in)
+    let low = g.windows[b.win].lamp_drop >= glass::LAMP_DROP - 1e-9;
+    (g.player.sanity < sanity - 1.0, came_in, low)
+}
+
+/// The floors (seed, level) that have it, its window's first light under a
+/// blind if `blinded` (and every light of its row, if `all`)
+fn floors_with_it(g: &mut Game, n: usize, blinded: bool) -> Vec<(u32, i32)> {
+    floors_where(g, n, blinded, false)
+}
+
+fn floors_where(g: &mut Game, n: usize, blinded: bool, all: bool) -> Vec<(u32, i32)> {
+    let mut floors = vec![];
+    for k in 0..60u32 {
+        g.run_seed = k.wrapping_mul(2654435761) ^ 0x51_D0;
+        for level in 5..=12 {
+            g.init_level(level);
+            if let Some(b) = g.behind_glass.clone() {
+                let ok = if all {
+                    b.row.iter().all(|&k| blind_over(g, b.win, k).is_some())
+                } else {
+                    blind_over(g, b.win, b.lights[0]).is_some()
+                };
+                if !blinded || ok {
+                    floors.push((g.run_seed, level));
+                }
+            }
+        }
+        if floors.len() >= n {
+            break;
+        }
+    }
+    floors
+}
+
+/// Its trials over `floors`, played `way`
+fn report_way(g: &mut Game, floors: &[(u32, i32)], way: Way, learned: bool) -> Outcome {
+    let r: Vec<(bool, bool, bool)> = floors.iter().map(|&(s, l)| trial(g, s, l, way, learned)).collect();
+    let n = r.len() as f64;
+    Outcome {
+        trials: r.len(),
+        untouched: r.iter().filter(|o| !o.0).count() as f64 / n,
+        came_in: r.iter().filter(|o| o.1).count() as f64 / n,
+        lamp_low: r.iter().filter(|o| o.2).count() as f64 / n,
+    }
 }
 
 /// Its counter's trials over the floors that have it (both ways)
 fn report(kind: &str) -> (Outcome, Outcome) {
     assert_eq!(kind, "glass");
-    let mut floors = vec![];
     let mut g = common::new_game();
-    for k in 0..40u32 {
-        g.run_seed = k.wrapping_mul(2654435761) ^ 0x51_D0;
-        for level in 5..=12 {
-            g.init_level(level);
-            if g.behind_glass.is_some() {
-                floors.push((g.run_seed, level));
-            }
-        }
-        if floors.len() >= 20 {
-            break;
-        }
-    }
-    let mut run = |counter: bool| {
-        let r: Vec<(bool, bool)> = floors.iter().map(|&(s, l)| trial(&mut g, s, l, counter)).collect();
-        let n = r.len() as f64;
-        Outcome {
-            trials: r.len(),
-            untouched: r.iter().filter(|o| !o.0).count() as f64 / n,
-            came_in: r.iter().filter(|o| o.1).count() as f64 / n,
-        }
-    };
-    (run(true), run(false))
+    let floors = floors_with_it(&mut g, 20, false);
+    (report_way(&mut g, &floors, Way::Eyes, false), report_way(&mut g, &floors, Way::Stare, false))
 }
 
 #[test]
@@ -427,4 +508,151 @@ fn its_counter_holds_on_real_floors() {
     assert!(with.untouched >= 0.95, "with its counter only {:.0}% went untouched", with.untouched * 100.0);
     assert!(without.untouched <= 0.70, "without its counter {:.0}% went untouched", without.untouched * 100.0);
     assert!(without.came_in >= 0.9, "stared at, it came in on only {:.0}% of floors", without.came_in * 100.0);
+}
+
+#[test]
+fn a_blind_let_down_in_time_keeps_it_out() {
+    let mut g = common::new_game();
+    let floors = floors_with_it(&mut g, 12, true);
+    let o = report_way(&mut g, &floors, Way::Blind, false);
+    println!("the one behind the glass, its blind let down at the glass: {o:?}");
+    assert!(o.trials >= 8, "only {} floors with a blind over it", o.trials);
+    assert!(o.came_in <= 0.05, "it came through a covered window on {:.0}% of floors", o.came_in * 100.0);
+    assert!(o.untouched >= 0.95, "with the blind down only {:.0}% went untouched", o.untouched * 100.0);
+}
+
+#[test]
+fn what_it_learns_leaves_its_counter_working() {
+    let mut g = common::new_game();
+    let floors = floors_with_it(&mut g, 12, false);
+    let with = report_way(&mut g, &floors, Way::Eyes, true);
+    let without = report_way(&mut g, &floors, Way::Stare, true);
+    println!("the one behind the glass, learned: with its counter {with:?}; without {without:?}");
+    assert!(with.untouched >= 0.95, "learned, with its counter only {:.0}% went untouched", with.untouched * 100.0);
+    assert!(
+        with.lamp_low >= 0.99 && without.lamp_low >= 0.99,
+        "what it learned is not shown: its lamp low on {:.0}%",
+        with.lamp_low * 100.0
+    );
+}
+
+// ------------------------------------------------------------ the blind (W3)
+
+/// A floor with it whose window's first light hangs under a blind: (game,
+/// it, the blind)
+fn level_with_one_blinded() -> (Game, usize, usize) {
+    let mut g = common::new_game();
+    let (seed, level) = floors_where(&mut g, 1, true, true)[0];
+    g.run_seed = seed;
+    g.init_level(level);
+    g.state = "playing".into();
+    g.level_start_t = g.perf_t - 100.0;
+    g.director.phase = Phase::Calm;
+    let b = g.behind_glass.clone().unwrap();
+    let h = blind_over(&g, b.win, b.lights[0]).unwrap();
+    (g, b.ei, h)
+}
+
+/// `secs` of its mind and of the windows (the blinds on their way)
+fn run_all(g: &mut Game, ei: usize, secs: f64) {
+    for _ in 0..(secs / DT).round() as usize {
+        g.perf_t += DT;
+        g.windows_frame(DT);
+        g.update_creature(ei, DT);
+    }
+}
+
+#[test]
+fn a_blind_let_down_covers_its_glass_and_puts_out_its_light() {
+    let (mut g, ei, h) = level_with_one_blinded();
+    let b = g.behind_glass.clone().unwrap();
+    // it in, in its light
+    inside(&mut g, ei);
+    let p = g.entities[ei].pos();
+    assert!(g.windows[b.win].lit_at(p.x, p.z));
+    assert_eq!(g.blind_verb(b.win, h), Some(true), "no [E] LOWER THE BLIND over an uncovered light");
+    g.blind_use(b.win, h, true);
+    assert_eq!(g.blind_verb(b.win, h), None, "a blind on its way offers a verb");
+    // (its light is its whole row's: every blind of the row let down)
+    for o in 0..g.windows[b.win].blinds.len() {
+        if o != h {
+            g.blind_use(b.win, o, true);
+        }
+    }
+    run_all(&mut g, ei, glass::BACK_T + 1.2);
+    let w = &g.windows[b.win];
+    for &k in &g.windows[b.win].blinds[h].lights.clone() {
+        assert!(w.covered(k), "light {k} not covered with its blind down");
+        assert!(w.lit_cells(k).is_empty() && w.lights[k].glow.is_none(), "light {k} still throws its light");
+    }
+    assert!(!w.lit_at(p.x, p.z), "the floor it stood on still lit");
+    // its light gone, it goes back out, and no look counts through the blind
+    assert!(glass::outside(&g, ei), "it stayed in with its light gone");
+    stand(&mut g, 1.6, true);
+    assert!(!glass::eyes_on_glass(&g), "a look counted through a blind let down");
+    // drawn up again: the glass and its light are back
+    assert_eq!(g.blind_verb(b.win, h), Some(false), "no [E] RAISE THE BLIND over a covered light");
+    g.blind_use(b.win, h, false);
+    run_all(&mut g, ei, 1.2);
+    let w = &g.windows[b.win];
+    assert!(!w.covered(b.lights[0]) && !w.lit_cells(b.lights[0]).is_empty(), "drawn up, its light is not back");
+}
+
+#[test]
+fn a_blind_rattles_and_what_hears_comes_to_look() {
+    let (mut g, _ei, h) = level_with_one_blinded();
+    let b = g.behind_glass.clone().unwrap();
+    // a Hound a room off, held where it stands
+    let (near, f) = {
+        let w = &g.windows[b.win];
+        (w.world(b.x, 0.0, w.depth + 5.0), w.world(0.0, 0.0, w.depth + 0.8))
+    };
+    let (x, z) = g.open_point(near.x, near.z);
+    let (tx, tz) = (g.tx(x), g.tz(z));
+    let hound = g.add_entity("hound", tx, tz, 0);
+    g.entities[hound].g.set_pos(x, 0.0, z);
+    stand(&mut g, 1.6, false);
+    assert!(g.creature(hound).unwrap().brain.mem.heard.is_none());
+    g.blind_use(b.win, h, true);
+    let heard = g.creature(hound).unwrap().brain.mem.heard.expect("the Hound did not hear the blind");
+    let (gx, gz) = (heard.0, heard.1);
+    assert!((gx - f.x).hypot(gz - f.z) < 3.0, "it heard it somewhere else ({gx:.1}, {gz:.1})");
+}
+
+#[test]
+fn got_away_from_twice_its_lamp_hangs_lower_and_its_light_lies_further_in() {
+    let (mut g, ei) = level_with_one();
+    let b = g.behind_glass.clone().unwrap();
+    let reach = |g: &Game| {
+        let w = &g.windows[b.win];
+        b.lights
+            .iter()
+            .flat_map(|&k| w.lit_cells(k).iter().flat_map(|q| q.iter().map(|c| w.local(&Vec3::new(c.0, 0.0, c.1)).z)))
+            .fold(0.0, f64::max)
+    };
+    let before = reach(&g);
+    // it learns from your getting away from it out of its light, twice
+    let need = game::entities::creature::LEARNS.iter().find(|l| l.0 == "glass").unwrap().2;
+    for _ in 0..need {
+        assert!(!g.creature_learned("glass"));
+        g.creature_habit("glass");
+    }
+    assert!(g.creature_learned("glass"));
+    // not where you cannot see it: only with you in its room, near
+    let far = (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
+        let w = &g.windows[b.win];
+        let c = w.world(b.x, 0.0, w.depth + 0.1);
+        !g.is_wall_tile(x, z) && (g.wx(x) - c.x).hypot(g.wz(z) - c.z) > 20.0
+    });
+    let (fx, fz) = far.expect("no place far from its window");
+    g.player.pos = Vec3::new(g.wx(fx), g.player.pos.y, g.wz(fz));
+    run_all(&mut g, ei, 1.0);
+    assert_eq!(g.windows[b.win].lamp_drop, 0.0, "its lamp came down unseen");
+    stand(&mut g, 1.6, false);
+    run_all(&mut g, ei, glass::LOWERING + 0.5);
+    assert!((g.windows[b.win].lamp_drop - glass::LAMP_DROP).abs() < 1e-9, "its lamp hangs {:.2} m lower", g.windows[b.win].lamp_drop);
+    assert!(g.creature_run.shown.iter().any(|k| k == "glass"));
+    let after = reach(&g);
+    println!("its light reached {before:.2} m in, now {after:.2} m");
+    assert!(after > before + 0.3, "its light lies no further in ({before:.2} m, now {after:.2} m)");
 }
