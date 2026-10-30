@@ -1,0 +1,295 @@
+# Marks and secrets
+
+How the way down is hinted, and what is hidden off it: the plan that turns
+the level's guides from one loud sign into a hand you learn to read, and
+scatters secrets through the floors, small things that change the one who
+takes them for the rest of the run, without a word or a look that says how.
+The canon it extends is [`LORE.md`](LORE.md) (*M.'s descent*, *Survival*);
+the design it changes is [`GAMEPLAY.md`](GAMEPLAY.md) (her trail, the door
+found by the place); the pillars it serves are [`PILLARS.md`](PILLARS.md) 1,
+2 and 4 above all. The research behind it is
+[`research/wayfinding-and-secrets.md`](research/wayfinding-and-secrets.md)
+(real route marks, guides in games, secrets in level design, real hiding
+places and dead-drop signals) and
+[`research/secret-items.md`](research/secret-items.md) (Alice, the other
+world's food, SCP, the Backrooms' objects, creepypasta and charms, games
+with hidden effects), summed up in [`SOURCES.md`](SOURCES.md) section 14.
+
+## The brief (2026-10-30)
+
+"Make navigation hints on levels more subtle and varied. Add secrets
+scattered around. Secret items should have slightly positive or negative
+lasting effect on player. This effect should not be directly obvious from
+look or text on item. The best reference of the way it should be is "eat
+me"/"drink me" items from Alice in Wonderland. Use creepypasta and SCP lore
+to select secret items and their properties."
+
+## The analysis
+
+What guides the player now, read from the code (`story/`, `player.rs`,
+`core_props/tail.rs`, `ui/lore.rs`):
+
+- **Her trail is one mark, repeated.** Every sheet is the same pale paper,
+  0.20 × 0.15 m, with the same heavy pencil arrow (a 6 px stroke on 128 px,
+  about 10 cm long), lifted a hair off the dark by an emissive tint, every
+  3–5 tiles of walk (12–20 m), each in sight of the last
+  (`trail_sheet_parts`, `lay_sheets`). From the Lobby down one stretch
+  after her camp has lost its sheets. It is a line of road signs: nothing
+  in it reads as a person's but the fold.
+- **The trails that are not hers** are the same thing larger and darker
+  (a whole flat page, a heavier arrow), laid by the same rule.
+- **The answer to a cry for help is a game's.** Luminous green chevrons
+  (additive, 90% opaque, about a metre long) on every tile of the shortest
+  way to the door, bobbing and pulsing for 14 s, with a chime and the line
+  SOMETHING SHOWS THE WAY (`spawn_guide_arrows`). The payphone's hint says
+  "north. the door is north." whichever way the door is, and shows the
+  same arrows (a leftover of the compass).
+- **Every torn note glows and points at itself.** An additive halo lies
+  under each (0.2 m; 0.32 m and brighter, in its story's colour, for a note
+  that continues a story begun, with a tall billboard beam over it), and on
+  the nearest wall a rust-red stencil 0.35 × 0.7 m of three chevrons under a
+  "?" points down at it (a check mark once read).
+- **The door** is found by the place: its green sign and lamps light its
+  corner, and it calls (air under the door, the sign's relay). That works
+  and stays, as do the Showroom's floor arrows (a store's own signage).
+- **Nothing is hidden.** What a floor holds lies in the open (almond water,
+  batteries, paper, notes) or in a filing cabinet's drawers. Nothing a
+  player takes changes them beyond a meter's worth: there is no lasting
+  effect of anything in the game except what the creatures learn.
+
+## What the research says
+
+Two notes, in [`research/`](research/README.md). What they changed:
+
+- **Real route marks are spaced by sight and carry little direction.** The
+  Appalachian Trail's blazes are rectangles, one in view at a time, a
+  doubled blaze before a turn with the upper one offset toward it, and "too
+  many blazes" spoil the trail; a scout's stone sign is a stone on a stone
+  and a third beside them the way to go; cavers flag with tape and take it
+  out; a caver's or diver's personal marker carries an initial or a notch,
+  so its owner knows it. Hansel's pebbles show only by moonlight.
+- **A mark reads as a person's** by its variety in hand and medium, its
+  unevenness, its wear and its owner's quirk (*Left 4 Dead*'s many-handed
+  walls; *Half-Life 2*'s lambda by some caches and not others). The yellow
+  paint debate: marks the place did not make break the place.
+- **Secrets**: notice before you find (a tell seen first), teach the tell
+  early and keep it, off the critical path, few a level where searching
+  costs (*Doom* about four or five a map, *Half-Life 2* about three a
+  chapter). Real hiding places: a ceiling tile, a toilet cistern, behind a
+  radiator (Penkovsky's dead drop), taped under a drawer, a vent. A dead
+  drop is signalled apart from it: a chalk mark that says "loaded", never
+  where; the same mark crossed says "taken".
+- **Alice's bottle and cake**: an invitation with no explanation; her
+  caution settles nothing; the effect felt in the room, not told; two-sided
+  (small fits the door and loses the key); learned in steps (try,
+  generalise, predict, the mushroom's half a rule). **The other world's
+  food** binds a little (Persephone's seed, a third of the year; Izanami;
+  Laura in *Goblin Market*, who after one taste could no longer hear what
+  called her). **SCP**: SCP-330's bowl, two free and a third that costs;
+  the old SCP-1162, a hole that gives back and takes; SCP-268's cap of
+  neglect; SCP-1916's coloured sweets that change the body; SCP-362, whose
+  cost comes on removal. **The Backrooms' objects**: Moth Jelly (the blue
+  silences your steps), Cashew Water (an Almond Water that is not),
+  Liquid Pain (a broken seal is a warning), Royal Rations. **Charms**: the
+  ladanka and the omamori (sewn shut, never opened), salt cones by a door,
+  the lucky coin worn and not spent, the red envelope on the road.
+- **Games**: Isaac's pills (learned once taken), NetHack's naming, Darkest
+  Dungeon's quirks (at most five each way), Brogue (good or bad shows
+  before what), Harris's "no cyanide" rule (no unknown thing kills), and
+  "every bad item gives something". Effects big enough to feel: 6–8 cm of
+  eye height, 15–25% of a creature's range or time, 10–15% of a meter.
+
+## The design
+
+### 1. Her marks
+
+Her trail stays the trail of one person going down, but she runs short of
+paper as she goes, and marks the way with what she has. **Her hand** runs
+through every kind of mark: her arrows are drawn open, never filled, the
+**left barb longer than the right**, in pencil grey or chalk white, never
+black. It is never explained; it is how a player tells hers from the flat
+sheets' maker's, and the folded sheet stays her signature.
+
+| Kind | What | Where | Its way | From |
+|---|---|---|---|---|
+| **Sheet** | A sheet folded twice, a small pencil arrow in her hand, curled and greyer deeper down | The floor of her walk | The arrow | the first floor |
+| **Stack** | Three bits of what lies there: a large one, a small one on it, a third beside them the way she went. Concrete chips on the Building's floors, bits of ceiling tile, bottle caps | Open floor (the Building's decks and halls, pillar fields) | The third bit | 1 |
+| **Pencil** | Her arrow on the wall, 10 cm, graphite (a dull sheen in the lamp) | A wall beside her way at hip height (0.9–1.1 m), on the side she kept | The arrow | 2 |
+| **Turn** | Two short strokes 5 cm apart, the upper one set toward the turn | The wall ahead where her way turns, at hip height | The offset | 3 |
+| **Corner** | A torn corner of her paper, 6 cm, its tip on | On the floor against a wall or a jamb | The tip | 5 |
+| **Chalk** | A chalk stroke 8 cm long leaning on, the chalk of her tallies | Low on the wall (10–20 cm), the side she kept her hand on | The lean | 5 |
+| **Tape** | A strip of reflective tape 5 × 2 cm, grey in the room's light, a white glint when the lamp finds it | A wall beside her way, in the dark (unlit tiles) only | None: one after another | 7 |
+
+- **Fewer sheets as she goes down**: sheets are all of her marks on the
+  Building's floors but for the stacks and a pencil arrow or two; about
+  half on levels 4–6, a quarter on 7–10, one in ten on 11–13. The rest are
+  the other kinds, each where it can be (a wall beside the way, open floor,
+  the dark).
+- **Each in sight of the last, at its own distance.** The trail's rule
+  holds for every kind (`lay_sheets`: the furthest step in reach that can
+  be seen from the last mark), but a small mark must be near enough to be
+  seen at all: a sheet as now (up to the spacing), a stack 12 m, a pencil
+  arrow or a turn 9 m, chalk 7 m, a corner 6 m, tape 16 m (in the beam).
+  Where no small mark fits, she left a sheet. Small marks lie closer
+  together; the trail has more marks deep down, each fainter.
+- **Taught by pairing.** Her first mark on every floor is a sheet, in sight
+  of the arrival. On the floor where a kind first appears, its first one
+  lies with a sheet beside it. Turns are marked only at turns.
+- **Never lit, never glowing.** The sheets lose their emissive lift; what
+  lights a mark is the place's light or your lamp. Tape is the one kind the
+  lamp brings out, as tape does.
+- **The flat sheets stay one stamp.** The trails that are not hers are laid
+  as no tired person walks: a whole flat page every three tiles exactly,
+  mid-floor, the same heavy black arrow every time, filled and even (the
+  over-marking the research names). No kind but the page.
+
+### 2. The place answers more quietly
+
+A cry for help that is answered (and the payphone's hint) is answered by
+the place, never by a sign, and not always the same way:
+
+- **The lights.** Where the way to the door runs under lit panels, they
+  stutter one after another along it, away from you toward the door, a
+  quarter of a second apart, as far as 30 m (each panel's relay ticking as
+  it goes). The way is read from the order.
+- **Footprints.** Elsewhere (or where the way ahead is dark), wet
+  footprints appear on the floor ahead of you, a pace apart, one after
+  another, walking toward the door, sixteen of them, each with a wet step
+  where it lands; they dry away over 20 s. Bare feet, nobody's.
+- No chime, no line on the screen, no glow. The rooms still darken a little
+  while it happens (`cry_dim`). The payphone's voice says only where to
+  look ("...watch the lights." or "...it walked this way. it is still
+  wet."), and the hint follows from it.
+
+### 3. The torn notes, quiet
+
+A note lies as paper lies: no halo under it, no beam over it, no stencil on
+the wall. A note that continues a story already begun is written in that
+story's ink (its colour, the journal's), which only a near look tells. A
+note you have read (when every note was read) lies with its corner turned
+down.
+
+### 4. Secrets: where things are put away
+
+On each floor a few things are put away off the way: never on her walk, a
+room or two off it or at the end of an ordinary dead end, never at a false
+trail's end. Each **hiding place** has a tell you can see before you look,
+the same everywhere in the run, and a verb in the game's own style; looking
+takes a second or two and makes a sound where it is.
+
+| Place | Where | Its tell | Verb |
+|---|---|---|---|
+| **Ceiling tile** | Under a tiled ceiling (the Lobby, offices, halls) | One tile sits askew, a dark gap along an edge, a chair under it | [E] LIFT THE TILE |
+| **Vent** | Low on a wall (offices, utility halls, the electrical station, halls) | A grille hanging by two screws, the other two gone, a wiped arc in its dust | [E] PRISE THE GRILLE |
+| **Drawer** | A filing cabinet's drawer (the level's own) | The drawer not quite shut | [E] OPEN DRAWER (something taped under it) |
+| **Radiator** | The Building's floors | A rag stuffed behind its fins | [E] REACH BEHIND |
+| **Cell** | A cell on the Building's floors, off the way | Two small cones of salt by its door (the salt's own cell) | [E] TAKE … from its bench |
+| **The hole** | A wall off the way, at hand height: wallpaper and plaster in the rooms, concrete on the Building's | A fist-wide hole, dark inside, crumbs under it | [E] REACH IN |
+| **Off the way** | The end of a dead end, a wet corner, a desk in an empty room, a hook | The thing itself, where nobody would leave it | [E] TAKE / EAT / … |
+
+**The sign.** Some hiding places are signed by a third hand, neither hers
+nor the flat sheets' maker's: a small chalk circle with one stroke through
+it, 6 cm, at 1.4–1.6 m on a jamb or a pillar's corner by the room (never on
+the place, never pointing). It says *something is put away near here*. The
+same circle crossed out says *taken*: the first one a run shows is crossed,
+beside a lifted tile with nothing above it, on the Building's first floor
+with a hiding place. About half the hiding places are signed; the rest are
+found by their tell. Who draws them is never said.
+
+**How many**: two or three hiding places a floor on the Building's floors,
+none or one on the Lobby (its emptiness is the point), two to four on the
+floors below. Most hold something ordinary (almond water, a battery, a
+coin, paper) or nothing; one or two a floor hold one of the things below.
+
+### 5. What is put away
+
+Each thing is a real, small, ordinary object, found where such a thing
+could be. What it does lasts the rest of the run: a small change to one or
+two numbers the game already has, never told, never shown in a meter's
+words. Its look and its words (only what a real one carries: a card on a
+bowl) say nothing of it. Taking it is felt (a moment in the body: the eye
+easing down, a heartbeat, the hum dipping for a breath) and then learned
+(the Hound that did not turn, the stamina that ends further on).
+
+| Thing | Where | Draws on | Verb | What stays with you |
+|---|---|---|---|---|
+| **Pale mushrooms** in the wet carpet | A wet corner (the Lobby's soaked patches, the Poolrooms' edge, an overgrown atrium) | Alice's mushroom; SCP-1916 (Smapti) | Eat | Smaller: the eye 7 cm lower (crouched 5), your steps heard 12% less far, 4% slower |
+| **Brown mushrooms** on a rotten skirting board | A damp dead end, deeper down | the same | Eat | Larger: the eye 7 cm higher, steps heard 12% further, 4% faster. One of each: your own size again; at most two steps either way |
+| **A bowl of wrapped sweets**, a card PLEASE TAKE ONE | A desk or a counter in an empty office or reception | SCP-330 (Dr Kondraki); "Please Take Just One" (Umbrello) | Take (eaten as taken) | The first and the second: nerve refills 10% faster each. The third: your hands shake for the rest of the run (the beam trembles) and a Smiler sees your lamp from 20% further |
+| **The hole in the wall** | Off the way | The first SCP-1162 (author unknown) | Reach in | It gives back what you last used up (the bottle you drank, the battery you changed) and takes one thing you carry; with empty pockets it takes from you: the stamina ceiling 15 lower |
+| **Red seeds in a twist of paper**, on a saucer | The end of a dead end | Persephone; Izanami; *Goblin Market*; the Lotus-eaters | Eat | The place takes you a little for its own: the dark takes your nerve 20% slower and a Smiler sees your lamp 15% less far, but the door's call carries 20% less far |
+| **A cloth bag on a cord, sewn shut** | Hung on a nail behind a radiator, or in a cupboard | The ladanka; the omamori | Put on | The dark takes your nerve 25% slower and leaves you 45, not 40 |
+| **A paper sachet of salt** | On the bench of a cell with salt cones by its door; in the rooms, a drawer | Morijio; the Midnight Game's salt circle | Keep | A touch takes 20% less nerve |
+| **A jar of blue jelly**, no label | Above a lifted ceiling tile | Moth Jelly (KingofGarbage); Liquid Silence (Atom_Rutherford) | Eat | Your steps heard 15% less far |
+| **A briquette in brown paper** | A cell, a radiator's shelf: the Building's floors | The Samosbor's food concentrate (ProfessorSacred); Royal Rations (Sariastuff, zakkun_) | Eat | The stamina ceiling 112, but almond water gives 20% less |
+| **A small brown medicine bottle**, its label soaked off | Behind a vent grille, in a drawer | Alice's bottle with no label; SCP-714 (Arcalane) | Drink | Nerve refills 20% faster, stamina 10% slower |
+| **A tweed cap** | On a coat hook in an office wing | SCP-268 (Pair Of Ducks) | Put on | A Hound takes 25% longer to find you standing still; a cry is answered with the way half as often |
+| **A coin with a hole, on a string** | Behind a radiator, in the dust of a vent | The lucky coin worn and not spent; SCP-832 (Inglonias) | Put on | A cry is answered with the way 15 points more often (60% at most), but no machine's coin return rings for you again |
+| **An almond water, faintly yellow, its seal broken** | A drawer, a desk | Cashew Water (yoyoflux; Taangeerine); Liquid Pain's broken seal (ReyDay) | Drink | Stamina now, as almond water; a Hound finds you standing still 20% sooner |
+| **A red envelope**, a lock of dark hair in it | On the floor of a corridor, on floors with windows | The red envelope on the road (Taiwan) | Pick up | The one behind the glass notices your look 25% sooner |
+
+- **Bounded.** Each system moves at most two steps either way, and nothing
+  may break the fairness the creatures keep: no change lowers what the
+  dark leaves you or raises what a touch takes so far that the dark and one
+  touch kill (`creature.rs`, E10), and no thing kills. Leaving a thing where
+  it is is always a fine choice.
+- **The run decides where.** Which things lie on which floors is a
+  function of the run's seed (each on one or two floors, the mushrooms of
+  both kinds, the bowl and the hole on two or three), so each floor stays a
+  function of `(run_seed, level)`; where a thing finds no place on its
+  floor, it is not there.
+- **What the notebook keeps.** The act, never the effect: a page at the
+  back, *What I took*, one line a thing in the order taken, what and where
+  ("Pale mushrooms, in a wet corner. Level 5."). It answers "did I eat one
+  of those?" and nothing else.
+- **Felt, then learned.** On taking, one line in the toast's words, naming
+  the thing and its taste or feel, never its effect (YOU EAT THEM — COLD,
+  AND EARTHY). The change itself comes over a few seconds.
+
+### 6. What it must not break
+
+- **Levels are a pure function of `(run_seed, level)`.** The marks are
+  planned on the story's stream (her trail's plan is re-recorded once, with
+  a reason); the hiding places and what is in them on a stream of their own
+  (`SECRET_SALT`), placed inside the build after her trail (gameplay
+  objects: the props round them make room), never from `rnd()`. What was
+  taken (a retry, a Continue) is fitted afterwards, as her page is.
+- **Light and sound belong to places.** No mark glows; the lights' answer
+  is the panels' own flicker; every sound of a hiding place, a print or a
+  thing comes from where it is, silent until you are within earshot (they
+  draw the frame stream).
+- **The screen at rest is the place alone.** No meter, icon or line says
+  what a thing did; the effects change what is already there.
+- **The creatures' fairness** holds whatever is taken (above).
+
+## Milestones
+
+Each ends with its gates (`cargo xtask check --fast`, the full check where
+it touches the level build, rendering or audio), evidence and its own
+commit.
+
+| # | Milestone | Done when |
+|---|---|---|
+| S0 | Research (two notes) and this design | the notes; `lore-keeper` on the canon with S5 |
+| S1 | **Her marks**: the seven kinds in her hand, the mix by depth, each kind's distance, pairing, turns; the flat sheets one even stamp | `tests/story.rs`: the trail by kind (each in sight of the last at its distance, the first a sheet, pairing, turns only at turns, the mix by depth over many floors), the flat sheets even and stamped; reference levels and goldens re-recorded with a reason; trail views of each kind |
+| S2 | **The place answers more quietly**: the lights and the footprints for a cry and the payphone; the notes without halo, beam or stencil | `tests/player.rs`: the answer follows the way to the door, its sounds from where they are; frames |
+| S3 | **Secrets**: the hiding places and their tells, the sign, what is put away (the things, modelled), the run's plan, the verbs, fitted after the build, the notebook's page, saves | `tests/secrets.rs`: off the way and reachable, the same on every build, a sign near its place, taken stays taken across a retry and a Continue, the plan over a run; frames of each place and thing |
+| S4 | **What stays with you**: the body's changes, bounded, felt; the hole's exchange | `tests/secrets.rs`: each thing measured on its system; the bounds and E10; personas and the beatable run unchanged without them |
+| S5 | **The canon and the reviews**: `LORE.md`, `GAMEPLAY.md`, `PLAYTEST.md`, `QUALITY.md`, the ledger; `lore-keeper` rounds; a blind review of the marks and the things; the full check | the reviews, the full check |
+
+## Progress
+
+| # | Commit | Notes |
+|---|---|---|
+| S0 | (this commit) | The research (`research/wayfinding-and-secrets.md`, `research/secret-items.md`) and this design |
+
+## What only people can tell
+
+- Do players read her marks as hers, and notice the first one that is not
+  a sheet? Do they tell the flat sheets from hers, and by what?
+- Is the trail too faint deep down, or right: found by those who look?
+- Do they find a hiding place by its tell, by the sign, or not at all? Do
+  they start lifting every tile (the tell too weak, or the reward too
+  strong)?
+- Do they notice a change in themselves, and put it down to what they ate?
+  Do they eat the next thing, or leave it?

@@ -446,3 +446,20 @@ every claim linked.
 - Say: the look that takes time and sharpens; a reach short and exact; covering as the counter, and a counter that must not be inverted (SCP-397-JP); a figure that faces you from every angle; through the glass without breaking it; what came in known by its shadow on the floor; a line on the floor it cannot cross; the outside that should not exist.
 - Used for: the one behind the glass (`WINDOWS.md` 4): the look that adds up, its coming only while seen, its reach the lamp's light, the blind; nothing is taken from any one story.
 
+
+## 14. Marks and secrets: route marks, hiding places, and things that change you
+
+Gathered on 2026-10-30 by two research passes for
+[`SECRETS.md`](SECRETS.md); the notes are kept whole in
+[`research/`](research/README.md) (`wayfinding-and-secrets.md`,
+`secret-items.md`), every claim linked.
+
+**Marks and hiding places** ([`research/wayfinding-and-secrets.md`](research/wayfinding-and-secrets.md)).
+- Read: the Appalachian Trail Conservancy's *Marking the Trail*; the Scouts' tracking signs; cave and cave-diving markers (the BLM's cave worksheet, line arrows and cookies); FEMA's urban search and rescue marks; the Berliner Mieterverein on the shelter arrows; Grimm's *Hansel and Gretel* (public domain); the Level Design Book on wayfinding; Valve's *Left 4 Dead* graffiti, *Half-Life 2*'s lambda, *Rayman Legends*' secrets, *Link's Awakening*, *Outer Wilds*' signalscope; El-Nasr and Rao on attention in 3D scenes; the dead drops of Ames, Hanssen and Penkovsky; where people hide money (games and real reports; mechanics and facts only).
+- Say: one mark in view at a time, by sight; few marks carry direction, and a turn is marked by an offset; an owner's quirk makes a mark someone's; marks wear and vanish; too many marks spoil a trail; notice before you find, a tell kept the same; a dead drop's signal is apart from it, says "loaded", and crossed says "taken".
+- Used for: her marks and their mix (`SECRETS.md` 1), the flat sheets' even stamp, the hiding places and their tells, the chalk sign (`SECRETS.md` 4).
+
+**Things that change you** ([`research/secret-items.md`](research/secret-items.md)).
+- Read: Carroll's *Alice's Adventures in Wonderland*, the *Hymn to Demeter*, the *Kojiki*, Child 37, Hartland, Rossetti's *Goblin Market*, the *Odyssey*, Grimm (public domain); SCP-330 (Dr Kondraki), the first SCP-1162 (author unknown, via the Japanese archive), SCP-427 (Dr Ouros), SCP-268 (Pair Of Ducks), SCP-714 (Arcalane), SCP-207 (Aeish), SCP-178 (91stCataclysm), SCP-1916 (Smapti), SCP-832 (Inglonias), SCP-362 (PaulSharke), CC BY-SA 3.0; the Backrooms' Almond Water (Natedagreat563, Poliacci; 1000dumplings), Cashew Water (yoyoflux, Positive123; Taangeerine), Liquid Pain (ReyDay), Royal Rations (Sariastuff, zakkun_), Liquid Silence (Atom_Rutherford), Moth Jelly (KingofGarbage), CC BY-SA; the Samosbor wiki's food concentrate (ProfessorSacred, CC BY-SA); the Creepypasta Wiki's Midnight Game and *Please Take Just One* (Umbrello), CC BY-SA; omamori, the ladanka, morijio, the red envelope, found coins (folk); games' hidden-effect items (mechanics only); John Harris's rules of roguelike design.
+- Say: an invitation with no explanation; the effect felt, then learned; two-sided changes in small steps; one taste binds a little, and can take away what calls you; two free and the third costs; a hole that gives back and takes; a charm that works sewn shut; a bad thing shown by a tell; nothing unknown may kill; caps on how far it all goes.
+- Used for: what is put away and what stays with you (`SECRETS.md` 5); no SCP number or object name appears in the game.
