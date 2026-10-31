@@ -307,6 +307,8 @@ pub struct Game {
     pub secrets_taken: std::collections::BTreeMap<String, u32>,
     pub took: Vec<crate::secrets::keeps::Took>,
     pub body: crate::secrets::keeps::Body,
+    /// Your size as it has come over you so far (eye height added, m)
+    pub size_eye: f64,
     /// What you last used up (a bottle drunk, a battery changed): what the
     /// hole in the wall gives back
     pub last_used: Option<crate::secrets::Thing>,
@@ -871,6 +873,7 @@ impl Game {
             secrets_taken: Default::default(),
             took: vec![],
             body: Default::default(),
+            size_eye: 0.0,
             last_used: None,
             touch_input: TouchInput::default(),
             last_rendered_cur: None,

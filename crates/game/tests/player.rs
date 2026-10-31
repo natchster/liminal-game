@@ -1025,3 +1025,68 @@ fn seeded_runs_are_reproducible() {
     };
     assert_eq!(run(), run());
 }
+
+// ------------------------------------------------------------ what you took
+fn took(ids: &[&str]) -> Vec<game::secrets::keeps::Took> {
+    ids.iter().map(|w| game::secrets::keeps::Took { what: w.to_string(), level: 5, place: "corner".into() }).collect()
+}
+
+/// What you took changes you where it says (`docs/SECRETS.md` 5): a pale
+/// mushroom, smaller (the eye lower, eased in over a few seconds, the walk
+/// slower); the ration, a higher stamina ceiling; the medicine, nerve
+/// faster and stamina slower; the bag, the dark slower and leaving more;
+/// the jelly, your steps reach less far; nothing on the screen.
+#[test]
+fn what_you_took_changes_you() {
+    use game::secrets::keeps::SIZE_EYE;
+    let mut r = rig(91, 5);
+    face_south(&mut r.g);
+    r.g.took = took(&["pale_mushrooms"]);
+    r.g.refresh_body();
+    frame(&mut r, DT);
+    assert!(r.g.player.eye_h > EYE - SIZE_EYE * 0.5, "it came over you at once: eye {}", r.g.player.eye_h);
+    frames(&mut r, 4 * 60);
+    assert!((r.g.player.eye_h - (EYE - SIZE_EYE)).abs() < 0.005, "smaller: eye {}", r.g.player.eye_h);
+    let z0 = r.g.player.pos.z;
+    press(&mut r.g, "KeyW");
+    frames(&mut r, 30);
+    release(&mut r.g, "KeyW");
+    let moved = r.g.player.pos.z - z0;
+    assert!((moved - WALK * 0.5 * 0.96).abs() < 0.03, "smaller, slower: {moved}");
+    // your steps carry less far (the creatures hear `steps_heard`)
+    press(&mut r.g, "KeyW");
+    frame(&mut r, DT);
+    let reach = r.g.player.audible_range;
+    assert!((r.g.steps_heard() - reach * 0.88).abs() < 1e-9);
+    release(&mut r.g, "KeyW");
+    // and you can still get away (invariant 4): a chase is 0.95 of your sprint as it is
+    r.g.took = took(&["pale_mushrooms", "pale_mushrooms"]);
+    r.g.refresh_body();
+    assert!(r.g.chase_cap() <= 0.95 * SPRINT * r.g.body.pace + 1e-9, "a chase {} outruns you", r.g.chase_cap());
+    r.g.took = took(&["pale_mushrooms"]);
+    r.g.refresh_body();
+    // stamina: the ration's ceiling, the medicine's slower wind
+    r.g.took = took(&["ration", "medicine"]);
+    r.g.refresh_body();
+    r.g.player.stamina = 50.0;
+    r.g.player.stam_delay = 0.0;
+    frames(&mut r, 60);
+    assert!((r.g.player.stamina - (50.0 + STAM_REGEN * 0.9)).abs() < 0.2, "wind {}", r.g.player.stamina);
+    frames(&mut r, 20 * 60);
+    assert!((r.g.player.stamina - (STAM_MAX + 12.0)).abs() < 1e-9, "ceiling {}", r.g.player.stamina);
+    // nerve: the medicine refills it faster
+    r.g.player.sanity = 50.0;
+    frames(&mut r, 60);
+    assert!((r.g.player.sanity - (50.0 + SAN_REGEN * 1.2)).abs() < 0.1, "nerve {}", r.g.player.sanity);
+    // the dark: the bag, slower and leaving more
+    r.g.took = took(&["bag"]);
+    r.g.refresh_body();
+    let n = (r.g.w * r.g.h) as usize;
+    r.g.region_map = vec![1; n];
+    r.g.region_info = vec![RegionInfo::default(), RegionInfo { flags: RF_DARK, ..Default::default() }];
+    r.g.player.sanity = SAN_MAX;
+    frames(&mut r, 60);
+    assert!((r.g.player.sanity - (SAN_MAX - 6.5 * 0.75)).abs() < 0.1, "the dark {}", r.g.player.sanity);
+    frames(&mut r, 30 * 60);
+    assert!((r.g.player.sanity - (game::player::DARK_FLOOR + 5.0)).abs() < 1e-9, "it leaves {}", r.g.player.sanity);
+}

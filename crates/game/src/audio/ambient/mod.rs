@@ -963,12 +963,14 @@ impl Game {
         // the door is a step back from where you use it
         let (x, z) = (p.x - n.x * 0.8, p.z - n.z * 0.8);
         let (dx, dz) = (x - self.player.pos.x, z - self.player.pos.z);
-        if dx * dx + dz * dz > EXIT_HEARD * EXIT_HEARD {
+        // (the seeds: what calls you is fainter, `secrets::keeps`)
+        let heard = EXIT_HEARD * self.body.door;
+        if dx * dx + dz * dz > heard * heard {
             return;
         }
         // (at the door's own floor: on the Building's floors that has height)
         let y = p.y - EYE + 1.2;
-        let pan = self.play_from(x, y, z, EXIT_REF_DIST, EXIT_GAIN * m.gain, EXIT_OCCLUDE, |g| g.sfx_exit_call());
+        let pan = self.play_from(x, y, z, EXIT_REF_DIST * self.body.door, EXIT_GAIN * m.gain, EXIT_OCCLUDE, |g| g.sfx_exit_call());
         self.log_ambient("exit-call", Some(x), Some(z), Some(pan));
     }
 

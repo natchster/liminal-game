@@ -469,3 +469,19 @@ fn it_stands_where_an_office_or_a_hall_would_have_put_one() {
     }
     assert!(met >= 20, "machines met: {met}");
 }
+
+#[test]
+fn the_coin_you_wear_keeps_the_cup_empty() {
+    // a holed coin worn on a string (`secrets::keeps`): the lever pulls, the
+    // coin return gives nothing for you, and rings for no one
+    let (mut g, i) = level_with(true);
+    g.took = vec![game::secrets::keeps::Took { what: "coin".into(), level: g.level_num, place: "vent".into() }];
+    g.refresh_body();
+    g.player.coins = 0;
+    look_at(&mut g, i, 0.35, 1.2, D / 2.0);
+    assert_eq!(verb(&g, i), Some(Verb::CoinReturn));
+    g.vending_use(i, Verb::CoinReturn);
+    run(&mut g, RETURN_T + 0.5);
+    assert_eq!(g.player.coins, 0, "a coin came for you");
+    assert!(g.vending[i].state.coin_at.is_none() && g.vending[i].state.coin_given);
+}

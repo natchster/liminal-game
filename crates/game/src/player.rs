@@ -41,6 +41,8 @@ fn wpick<T>(f: fn(&str) -> Option<T>, wk: &str) -> T {
 /// strongest sign of a stalker (12, `director.rs`): at 30, the dark and one
 /// sign had spent a nerve no creature had touched (E8).
 pub const DARK_FLOOR: f64 = 40.0;
+/// How fast a change of your size comes over you, m/s
+pub const SIZE_EASE: f64 = 0.025;
 
 /// The place's answer to a cry (`Game::show_the_way`): how far along the
 /// way the lights answer, m, and how long after the last each one stutters, s
@@ -193,13 +195,13 @@ impl Game {
             self.sfx_clank();
             return false;
         }
-        if self.player.stamina >= STAM_MAX * NEARLY_FULL {
+        if self.player.stamina >= self.body.stam_max * NEARLY_FULL {
             self.show_msg("YOU ARE NOT TIRED YET", 1.2);
             return false;
         }
         self.player.bottles -= 1;
         self.last_used = Some(crate::secrets::Thing::Almond);
-        self.player.stamina = clamp(self.player.stamina + DRINK_STAMINA, 0.0, STAM_MAX);
+        self.player.stamina = clamp(self.player.stamina + DRINK_STAMINA * self.body.drink, 0.0, self.body.stam_max);
         self.player.stam_delay = 0.0; // drinking cancels the post-sprint regen pause
         self.sfx_drip();
         let t = self.pick_text("almondDrink");
@@ -291,7 +293,8 @@ impl Game {
         self.sfx_cry();
         self.show_msg("YOU CRY OUT...", 1.6);
         // odds by level: level 1 => 50/50 the way/aggro. Every level -8% the way, +8% aggro.
-        let way_chance = clamp(0.5 - (self.depth() - 1) as f64 * 0.08, 0.05, 0.5);
+        // (what you wear changes how readily the place answers: `secrets::keeps`)
+        let way_chance = (clamp(0.5 - (self.depth() - 1) as f64 * 0.08, 0.05, 0.5) * self.body.cry_mul + self.body.cry_add).min(0.6);
         if rnd() < way_chance {
             self.schedule(900.0, |g| {
                 g.show_the_way();
@@ -780,8 +783,8 @@ impl Game {
             }
             None => false,
         };
-        // water slows movement and dampens sprint
-        let water_mul = if in_pool { 0.55 } else { 1.0 };
+        // water slows movement and dampens sprint; your size (`secrets::keeps`)
+        let water_mul = if in_pool { 0.55 } else { 1.0 } * self.body.pace;
         let speed = (if sprinting && moving {
             SPRINT
         } else if self.player.crouch {
@@ -869,9 +872,9 @@ impl Game {
         } else if self.player.stam_delay > 0.0 {
             self.player.stam_delay -= dt;
         } else {
-            self.player.stamina += STAM_REGEN * dt;
+            self.player.stamina += STAM_REGEN * self.body.wind * dt;
         }
-        self.player.stamina = clamp(self.player.stamina, 0.0, STAM_MAX);
+        self.player.stamina = clamp(self.player.stamina, 0.0, self.body.stam_max);
 
         // flashlight battery drain and auto-off when depleted
         if self.player.flashlight_on {
@@ -897,6 +900,10 @@ impl Game {
                 }
             }
         };
+        // your size (`secrets::keeps`): it comes over you over a few seconds
+        let size_to = if self.player.crouch { self.body.crouch_eye } else { self.body.eye };
+        self.size_eye += (size_to - self.size_eye).clamp(-SIZE_EASE * dt, SIZE_EASE * dt);
+        let eye_target = if self.player.hide_eye.is_some() { eye_target } else { eye_target + self.size_eye };
         let eye_k = (dt * if self.player.hide_eye.is_some() { 5.0 } else { 9.0 }).min(1.0);
         self.player.eye_h = lerp(self.player.eye_h, eye_target, eye_k);
 
@@ -1001,10 +1008,18 @@ impl Game {
         self.flashlight.position().copy(&cp);
         let fwd = self.player.fwd();
         let pitch_cos = self.player.pitch.cos();
+        // hands that shake (a third sweet: `secrets::keeps`): the beam
+        // trembles, a hand's few hertz on the game's clock, no draws
+        let (tx, ty) = if self.body.shake {
+            let t = self.perf_t;
+            (0.035 * ((t * 7.1).sin() + 0.6 * (t * 11.3).sin()), 0.03 * ((t * 8.3).sin() + 0.5 * (t * 13.7).cos()))
+        } else {
+            (0.0, 0.0)
+        };
         self.flashlight_target.position().set(
-            cp.x + fwd.x * pitch_cos * 5.0,
-            cp.y + self.player.pitch.sin() * 5.0,
-            cp.z + fwd.z * pitch_cos * 5.0,
+            cp.x + fwd.x * pitch_cos * 5.0 - fwd.z * tx,
+            cp.y + self.player.pitch.sin() * 5.0 + ty,
+            cp.z + fwd.z * pitch_cos * 5.0 + fwd.x * tx,
         );
 
         // almond water pickup
@@ -1109,10 +1124,11 @@ impl Game {
             // take it further, for a while (it comes back to the floor as it
             // does anywhere). A dead lamp in a dark zone had spent the nerve
             // of every bot that died, leaving any touch fatal (E8)
-            if self.player.sanity > DARK_FLOOR {
-                self.player.sanity = (self.player.sanity - 6.5 * dt).max(DARK_FLOOR);
+            let floor = self.body.dark_floor;
+            if self.player.sanity > floor {
+                self.player.sanity = (self.player.sanity - 6.5 * self.body.dark * dt).max(floor);
             } else {
-                self.player.sanity = (self.player.sanity + SAN_REGEN * dt).min(DARK_FLOOR);
+                self.player.sanity = (self.player.sanity + SAN_REGEN * self.body.nerve * dt).min(floor);
             }
             self.dark_heart_t += dt;
             if self.dark_heart_t > 0.85 {
@@ -1121,9 +1137,9 @@ impl Game {
             }
         } else if in_safe_room {
             // ~3x the normal regen while standing in the safe room
-            self.player.sanity = clamp(self.player.sanity + SAN_REGEN * 3.2 * dt, 0.0, SAN_MAX);
+            self.player.sanity = clamp(self.player.sanity + SAN_REGEN * 3.2 * self.body.nerve * dt, 0.0, SAN_MAX);
         } else if self.player.sanity < SAN_MAX {
-            self.player.sanity = clamp(self.player.sanity + SAN_REGEN * dt, 0.0, SAN_MAX);
+            self.player.sanity = clamp(self.player.sanity + SAN_REGEN * self.body.nerve * dt, 0.0, SAN_MAX);
         }
         // motion-triggered light switches (only faulty ones)
         self.light_switch_motion(dt);

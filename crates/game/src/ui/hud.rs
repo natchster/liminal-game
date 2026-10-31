@@ -1485,7 +1485,7 @@ impl Game {
     pub fn update_hud(&mut self, dt: f64) {
         self.update_rest(dt);
         let p = self.player.clone();
-        self.ui.staminabar.set_style("width", &format!("{}%", ns(p.stamina)));
+        self.ui.staminabar.set_style("width", &format!("{}%", ns(p.stamina.min(STAM_MAX))));
         self.ui.stamina.toggle_class("low", p.stamina < 25.0);
         self.ui.sanitybar.set_style("width", &format!("{}%", ns(p.sanity)));
         self.ui.sanity.toggle_class("low", p.sanity < 30.0);

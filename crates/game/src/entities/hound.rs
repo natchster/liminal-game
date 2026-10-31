@@ -157,7 +157,9 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     // how far it hears your step now: twice anyone's, less while it moves,
     // unaware or sent away
     let ears = DATA.hearing * if moving { MOVING_EARS } else { 1.0 } * if unaware { 0.8 } else { 1.0 } * if relaxed { 0.55 } else { 1.0 };
-    let range = g.player.audible_range * ears;
+    let range = g.steps_heard() * ears;
+    // (the cap: you are overlooked standing still; the yellow water: found sooner)
+    let still = g.body.still;
     let mut sense = if range > 0.0 && p.path < range { ((range - p.path) / (range * 0.35).max(0.5)).clamp(0.0, 1.0) } else { 0.0 };
     if mode == Mode::Withdraw {
         sense = 0.0;
@@ -180,7 +182,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     {
         let c = g.creature_mut(ei).unwrap();
         c.smell_t = if smelling && mode != Mode::Withdraw { c.smell_t + dt } else { 0.0 };
-        if c.smell_t >= SMELL_T {
+        if c.smell_t >= SMELL_T * still {
             c.brain.mem.awareness = 1.0;
             c.brain.mem.heard = Some((pp.x, pp.z, now));
         }

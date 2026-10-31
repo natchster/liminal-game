@@ -1113,6 +1113,24 @@
     },
     {
       "checks": [
+        "test:backrooms/secrets",
+        "test:game/player",
+        "test:backrooms/vending"
+      ],
+      "id": "secrets/keeps",
+      "kind": "story",
+      "last_checked": "2026-10-31",
+      "last_human_review": null,
+      "name": "what stays with you: each thing's lasting change, bounded, felt, never told",
+      "notes": "body_of the run's list: each thing on its system, two steps at most, never below what fairness rests on (E10). Whether people notice a change in themselves and put it down to what they ate is the playtest's question.",
+      "passes": {
+        "test:backrooms/secrets": true,
+        "test:backrooms/vending": true,
+        "test:game/player": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/menus",
         "test:backrooms/story",
         "test:backrooms/playthrough",

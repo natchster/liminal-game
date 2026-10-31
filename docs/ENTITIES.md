@@ -443,13 +443,22 @@ Checked in code (`entities::brain`, the strike gate) and by the tests:
 3. **Death is postponed.** A strike kills on the second contact in the same
    peak, or on the first when your nerve is below 25.
 4. **You can always get away.** A sustained chase is at most 0.95 of your
-   sprint (6.1 m/s); a burst (the Smiler's lunge, the Hound's spring) is at
-   most 7 m/s over at most 4 m.
+   sprint (6.1 m/s; of your sprint as it is, when what you took has made
+   you smaller and slower: `chase_cap`, `docs/SECRETS.md` 5); a burst (the
+   Smiler's lunge, the Hound's spring) is at most 7 m/s over at most 4 m.
 5. **Grace.** No death in a level's first 30 s, and none within 2 s of a
    creature's first notice of you.
 6. **Nothing is born where you are.** No creature spawns within sight or 24
    m of the arrival, her camp or the door; none relocates where you could
    see it.
+
+What you took (`docs/SECRETS.md` 5, `LORE.md` *Things that change you*)
+moves a few of the numbers below a step for the rest of the run (how far
+your steps carry, how far a Smiler sees your lamp, how long a Hound takes
+to smell you standing still, how fast your look out of a window adds up,
+what a blow takes), and never what these invariants rest on: no thing
+lowers what the dark leaves you or raises what a touch takes, and a chase
+stays under your sprint.
 
 ### 4. What they learn (the habit ledger)
 

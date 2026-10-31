@@ -320,7 +320,7 @@ impl Game {
         // sound: your step's reach against the way it would walk to you
         let path_d = self.path_distance(pos.x, pos.z, dist);
         // (beside a vending machine gone silent, nothing hears you walk: VENDING.md rule 5)
-        let aud = if self.vending_muffles(pp.x, pp.z) { 0.0 } else { self.player.audible_range * kd.hearing };
+        let aud = if self.vending_muffles(pp.x, pp.z) { 0.0 } else { self.steps_heard() * kd.hearing };
         let sound = if aud > 0.0 && path_d < aud { ((aud - path_d) / (aud * 0.35).max(1.0)).clamp(0.0, 1.0) } else { 0.0 };
         Percept {
             dist,
@@ -338,6 +338,12 @@ impl Game {
             crouched: self.player.crouch,
             hidden: false,
         }
+    }
+
+    /// How far your steps carry, m: their reach as you move (`audible_range`)
+    /// and what you took (`secrets::keeps`: your size, the jelly)
+    pub fn steps_heard(&self) -> f64 {
+        self.player.audible_range * self.body.steps
     }
 
     /// The length of the way from (x, z) to you along the level (the player's
@@ -454,7 +460,7 @@ impl Game {
                 30.0
             } else {
                 22.0
-            };
+            } * self.body.touch;
             // a contact that is not the end never takes the last of your
             // nerve (a first meeting on a spent nerve had killed through it)
             self.knock_down(blow.min((self.player.sanity - KNOCKED_LEAVES).max(0.0)));
@@ -492,10 +498,17 @@ impl Game {
         }
     }
 
+    /// The fastest a creature may chase you for long now: 0.95 of your
+    /// sprint as it is (smaller from a pale mushroom, `secrets::keeps`, and
+    /// they slower with you; never faster for your being larger)
+    pub fn chase_cap(&self) -> f64 {
+        CHASE_CAP * self.body.pace.min(1.0)
+    }
+
     /// Steer creature `ei` toward (x, z) along the level at `speed` (m/s,
     /// capped for fairness), or straight at you when `at_you`.
     pub fn creature_go(&mut self, ei: usize, goal: Option<(f64, f64)>, at_you: bool, speed: f64, dt: f64) {
-        let speed = speed.min(CHASE_CAP);
+        let speed = speed.min(self.chase_cap());
         if at_you {
             let pf = self.player_field.clone();
             let pp = self.player.pos;
@@ -522,7 +535,7 @@ impl Game {
     pub fn creature_burst(&mut self, ei: usize, speed: f64, dt: f64) {
         let speed = speed.min(BURST_CAP);
         let used = self.creature(ei).map(|c| c.burst_m).unwrap_or(BURST_LEN);
-        let sp = if used < BURST_LEN { speed } else { CHASE_CAP.min(speed) };
+        let sp = if used < BURST_LEN { speed } else { self.chase_cap().min(speed) };
         let before = self.entities[ei].pos();
         let pf = self.player_field.clone();
         let pp = self.player.pos;

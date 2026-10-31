@@ -131,7 +131,8 @@ impl Game {
         self.player.pos = self.spawn_pos;
         self.player.yaw = -PI / 4.0;
         self.player.pitch = 0.0;
-        self.player.stamina = STAM_MAX;
+        self.player.stamina = self.body.stam_max;
+        self.size_eye = if self.player.crouch { self.body.crouch_eye } else { self.body.eye };
         self.player.sanity = SAN_MAX.min(self.player.sanity + 30.0);
         self.player.battery = BAT_MAX.min(self.player.battery + 20.0);
         self.heart_t = 0.0;

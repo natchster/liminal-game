@@ -259,7 +259,8 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     // the look: it adds up, and drains slowly
     let stare = {
         let s = get(g, ei, "stare");
-        let s = if looking { s + dt } else { (s - STARE_DRAIN * dt).max(0.0) };
+        // (a red envelope picked up: it notices your look sooner, `secrets::keeps`)
+        let s = if looking { s + dt * g.body.look } else { (s - STARE_DRAIN * dt).max(0.0) };
         put(g, ei, "stare", s);
         s
     };

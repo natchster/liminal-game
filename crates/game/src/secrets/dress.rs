@@ -472,6 +472,9 @@ impl Game {
             self.player.stamina = (self.player.stamina + crate::player::DRINK_STAMINA * self.body.drink).min(self.body.stam_max);
         }
         self.refresh_body();
+        // felt, not told: a heartbeat in your ears, and what changes comes
+        // over you after it (your size eases in over a few seconds)
+        self.schedule(700.0, |g| g.sfx_heartbeat());
     }
 
     /// What you are now, from what you took

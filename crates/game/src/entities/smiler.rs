@@ -140,17 +140,17 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     let relaxed = g.director.phase == crate::entities::director::Phase::Relax || matches!(order, Order::Away(_));
     let dull = if relaxed { 0.55 } else { 1.0 };
     // ---- the senses: your lamp from far off, your lit body near, your steps
-    let lamp_seen = p.lamp && p.line && p.dist < LAMP_SIGHT * dull && (p.in_view || p.lamp_on_it);
+    let lamp_seen = p.lamp && p.line && p.dist < LAMP_SIGHT * g.body.lamp_seen * dull && (p.in_view || p.lamp_on_it);
     let lit = p.lamp || p.you_lit > 0.35;
     let body_seen = lit && p.line && p.in_view && p.dist < PANIC_RANGE;
-    let hear_range = g.player.audible_range * DATA.hearing * dull;
+    let hear_range = g.steps_heard() * DATA.hearing * dull;
     let heard = hear_range > 0.0 && p.path < hear_range;
     // it walked into you in the dark
     let touched = p.dist < TOUCH;
     let sighted = lamp_seen || body_seen || touched;
     let mut feed = 0.0;
     if lamp_seen {
-        feed += DATA.sight_gain * (1.0 - p.dist / LAMP_SIGHT).max(0.25);
+        feed += DATA.sight_gain * (1.0 - p.dist / (LAMP_SIGHT * g.body.lamp_seen)).max(0.25);
     }
     if body_seen || touched {
         feed += DATA.sight_gain;
@@ -402,7 +402,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             // learned: it waits where you went dark, silent, no clicks; your
             // lamp on now, anywhere it could see it, and it has you
             g.entity_drive(ei, dt, 0.0);
-            if (p.lamp && p.line && p.dist < LAMP_SIGHT) || body_seen || touched {
+            if (p.lamp && p.line && p.dist < LAMP_SIGHT * g.body.lamp_seen) || body_seen || touched {
                 g.creature_mut(ei).unwrap().brain.mem.awareness = 1.0;
                 notice(g, ei);
             } else if mode_t > WAITS {

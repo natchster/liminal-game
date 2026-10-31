@@ -832,7 +832,7 @@ impl Game {
             let range = if self.player.flashlight_on { 18.0 } else { 5.0 };
             let ep = self.entities[ei].pos();
             let seen = !hidden && d < range && self.los(ep.x, ep.z, pp.x, pp.z);
-            let heard = !hidden && d < or0(self.player.audible_range) * 1.4;
+            let heard = !hidden && d < or0(self.steps_heard()) * 1.4;
             if seen || heard {
                 if self.entities[ei].state != "hunt" {
                     self.entities[ei].state = "hunt".into();

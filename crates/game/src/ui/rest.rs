@@ -36,6 +36,7 @@ impl Game {
         let now = (p.bottles, p.batteries, p.papers, self.lore_found.len(), self.thread.clone(), p.flashlight_on, p.coins);
         let glance = self.held(Act::Glance);
         let (stamina, sanity, battery, light) = (p.stamina, p.sanity, p.battery, p.flashlight_on);
+        let stam_max = self.body.stam_max;
         let r = &mut self.rest;
         // (the first frame of a run only learns where things stand)
         if r.seen.is_none() {
@@ -45,7 +46,7 @@ impl Game {
         for t in [&mut r.stamina, &mut r.sanity, &mut r.battery, &mut r.pockets, &mut r.thread] {
             *t = (*t - dt).max(0.0);
         }
-        if stamina < STAM_MAX - 0.5 {
+        if stamina < stam_max - 0.5 {
             r.stamina = r.stamina.max(1.2);
         }
         // nerve shows when it is going, or low

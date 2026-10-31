@@ -248,13 +248,17 @@ impl Game {
         self.vending_inside(i, now);
         self.vending_gaze(i);
         // the coin rings down into the cup
-        if let Some(t) = self.vending[i].state.coin_at.filter(|&t| now >= t) {
+        // (the coin you wear: no coin return rings for you, `secrets::keeps`)
+        if let Some(t) = self.vending[i].state.coin_at.filter(|&t| now >= t && !self.body.no_coin_return) {
             let _ = t;
             self.vending[i].state.coin_at = None;
             self.player.coins += 1;
             self.vending_sound(i, Sfx::CoinRing);
             self.vending_noise(i, RING_REACH, 0.6);
             self.show_msg("A COIN IN THE CUP", 1.6);
+        }
+        if self.body.no_coin_return && self.vending[i].state.coin_at.is_some_and(|t| now >= t) {
+            self.vending[i].state.coin_at = None;
         }
         self.vending_turn(i, now);
         self.vending_spin(i, now);

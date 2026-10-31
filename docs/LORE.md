@@ -736,6 +736,51 @@ said (*Things that change you*). The notebook keeps a page of its own,
 in your hand, after hers: *What I took*, a line a thing, what and where
 and the floor; never what it did.
 
+## Things that change you
+
+What a thing put away does stays with you for the rest of the run
+(`secrets/keeps.rs`), and nothing says it: not the thing, not a meter's
+words, not the notebook. Taking one is felt (your heart twice in your
+ears; a change of size comes over you in about three seconds), and then
+learned by what follows. Each moves one or two numbers the place already
+has, a step at a time:
+
+- **Pale mushrooms**: you are smaller. Your eye is 7 cm lower (5 cm
+  crouched), your steps carry 12% less far, you walk and run 4% slower.
+  **Brown mushrooms**: larger, the other way. One of each and you are your
+  own size again; two steps at most either way.
+- **A sweet from the dish**: nerve comes back 10% faster (two count). **A
+  third from one dish**: your hands shake for the rest of the run (the
+  lamp's beam trembles), and a Smiler sees your lamp from a fifth further.
+- **The red seeds**: the place takes you a little for its own. The dark
+  takes your nerve a fifth slower and a Smiler sees your lamp from 15% less
+  far, but the door's call carries a fifth less far.
+- **The sewn bag**: the dark takes your nerve a quarter slower and leaves
+  you 45, not 40.
+- **The salt**: a creature's blow takes a fifth less of your nerve.
+- **The blue jelly**: your steps carry 15% less far.
+- **The ration**: you can run longer (stamina to 112, not 100), but
+  almond water gives a fifth less.
+- **The medicine**: nerve comes back a fifth faster, stamina a tenth
+  slower.
+- **The tweed cap**: a Hound takes a quarter longer to smell you standing
+  still; a cry is answered with the way half as often (what helps
+  overlooks you too).
+- **The holed coin**: a cry is answered with the way more often (15
+  points, 60% at most), and no machine's coin return gives you a coin
+  again.
+- **The yellowish almond water**: it is almond water; and a Hound smells
+  you standing still sooner (2.5 s, not 3).
+- **The red envelope**: your look out of a window adds up a quarter
+  faster, so the one behind the glass ticks and comes sooner.
+- **The hole in the wall**, reached into with nothing on you: your stamina
+  stops 15 short of where it did.
+
+Each system moves two steps at most, and nothing taken lowers what the
+dark leaves you or raises what a touch takes (the creatures' fairness:
+`ENTITIES.md`); no thing kills. Leaving a thing where it is is always a
+fine choice.
+
 ## The vending machine
 
 On most floors of the rooms, against a wall where an office, a hall, the

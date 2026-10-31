@@ -282,3 +282,78 @@ fn the_first_sign_is_crossed_out() {
         );
     }
 }
+
+fn took(ids: &[&str]) -> Vec<game::secrets::keeps::Took> {
+    ids.iter().map(|w| game::secrets::keeps::Took { what: w.to_string(), level: 6, place: "corner".into() }).collect()
+}
+
+/// Each thing moves what it says it does, by its step, and nothing else
+/// (`docs/SECRETS.md` 5): read from the run's list alone.
+#[test]
+fn each_thing_does_what_it_says() {
+    use game::secrets::keeps::{body_of, Body, SIZE_EYE};
+    let base = Body::default();
+    let one = |id: &str| body_of(&took(&[id]));
+    let close = |a: f64, b: f64| (a - b).abs() < 1e-9;
+    let pale = one("pale_mushrooms");
+    assert!(pale.size == -1 && close(pale.eye, -SIZE_EYE) && close(pale.steps, 0.88) && close(pale.pace, 0.96));
+    let brown = one("brown_mushrooms");
+    assert!(brown.size == 1 && close(brown.eye, SIZE_EYE) && close(brown.steps, 1.12) && close(brown.pace, 1.04));
+    assert_eq!(body_of(&took(&["pale_mushrooms", "brown_mushrooms"])), base, "one of each: your own size");
+    assert_eq!(body_of(&took(&["pale_mushrooms"; 3])).size, -2, "two steps at most");
+    assert!(close(one("sweet").nerve, 1.1) && close(body_of(&took(&["sweet", "sweet"])).nerve, 1.2));
+    let third = body_of(&took(&["sweet", "sweet", "third_sweet"]));
+    assert!(third.shake && close(third.lamp_seen, 1.2) && close(third.nerve, 1.2));
+    let seeds = one("seeds");
+    assert!(close(seeds.dark, 0.8) && close(seeds.lamp_seen, 0.85) && close(seeds.door, 0.8));
+    let bag = one("bag");
+    assert!(close(bag.dark, 0.75) && bag.dark_floor == game::player::DARK_FLOOR + 5.0);
+    assert!(close(one("salt").touch, 0.8));
+    assert!(close(one("jelly").steps, 0.85));
+    let ration = one("ration");
+    assert!(ration.stam_max == game::prelude::STAM_MAX + 12.0 && close(ration.drink, 0.8));
+    let medicine = one("medicine");
+    assert!(close(medicine.nerve, 1.2) && close(medicine.wind, 0.9));
+    let cap = one("cap");
+    assert!(close(cap.still, 1.25) && close(cap.cry_mul, 0.5));
+    let coin = one("coin");
+    assert!(close(coin.cry_add, 0.15) && coin.no_coin_return);
+    assert!(close(one("yellow_water").still, 1.0 / 1.2));
+    assert!(close(one("envelope").look, 1.25));
+    assert!(one("hole_took").stam_max == game::prelude::STAM_MAX - 15.0);
+    assert_eq!(one("hole"), base, "the hole's exchange itself leaves you as you were");
+    // and each thing changes only its own (every field but those, as it was)
+    for t in SPECIAL {
+        let b = one(t.id());
+        assert_ne!(b, base, "{t:?} does nothing");
+    }
+}
+
+/// Whatever is taken, and however often, it stays within its bounds: each
+/// system two steps at most, and never what the creatures' fairness rests
+/// on (the dark leaves you at least what it did, a touch takes at most what
+/// it did: E10), and no thing kills.
+#[test]
+fn what_stays_with_you_is_bounded() {
+    use game::secrets::keeps::body_of;
+    let ids: Vec<&str> = SPECIAL.iter().map(|t| t.id()).chain(["third_sweet", "hole_took"]).collect();
+    // every thing three times over, in turn, and all of them together
+    let mut lists: Vec<Vec<&str>> = ids.iter().map(|&i| vec![i; 3]).collect();
+    lists.push(ids.iter().flat_map(|&i| [i, i, i]).collect());
+    lists.push(ids.clone());
+    for l in lists {
+        let b = body_of(&took(&l));
+        let w = format!("{l:?}");
+        assert!((-2..=2).contains(&b.size), "{w}: size {}", b.size);
+        assert!(b.dark_floor >= game::player::DARK_FLOOR, "{w}: the dark leaves {}", b.dark_floor);
+        assert!(b.touch <= 1.0 && b.touch >= 0.6, "{w}: a touch takes ×{}", b.touch);
+        assert!(b.dark > 0.0 && b.dark <= 1.0, "{w}: the dark ×{}", b.dark);
+        assert!(b.stam_max >= 70.0 && b.stam_max <= 112.0, "{w}: stamina {}", b.stam_max);
+        assert!((0.7..=1.3).contains(&b.steps), "{w}: steps ×{}", b.steps);
+        assert!((0.9..=1.1).contains(&b.pace), "{w}: pace ×{}", b.pace);
+        assert!(b.nerve >= 1.0 && b.nerve <= 1.4, "{w}: nerve ×{}", b.nerve);
+        assert!(b.look <= 1.5 && b.lamp_seen <= 1.25 && b.door >= 0.6, "{w}");
+        // (the chance itself is capped at 60% where a cry is answered: `cry_for_help`)
+        assert!(b.cry_mul <= 1.0 && b.cry_add <= 0.15, "{w}");
+    }
+}
