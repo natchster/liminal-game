@@ -1519,6 +1519,8 @@ prop	ReadingGlassesAndBooks__pages	box	346	304	-0.0500,-0.0030,-0.0700	0.0500,0.
 prop	ReadingGlassesAndBooks__rim	torus	260	260	-0.0218,-0.0220,-0.0015	0.0218,0.0220,0.0015
 prop	ReadingGlassesAndBooks__spine	cyl	82	120	-0.0029,-0.0700,-0.0030	0.0029,0.0700,0.0030
 prop	ReadingGlassesAndBooks__temple	cyl	128	108	-0.0009,-0.0240,-0.0009	0.0009,0.0240,0.0009
+prop	Real__wetSignHinge	box	366	280	-0.1050,-0.0080,-0.0080	0.1050,0.0080,0.0080
+prop	Real__wetSignPanel	box	748	608	-0.1447,0.0000,-0.0020	0.1447,0.6550,0.0215
 prop	RecordStacks__record	cyl	392	560	-0.0672,-0.0015,-0.0672	0.0672,0.0015,0.0672
 prop	RecordStacks__sleeve	box	249	318	-0.0700,-0.0687,-0.0027	0.0700,0.0687,0.0026
 prop	ReligiousTriptychs__bar	box	445	630	-0.2340,-0.0120,-0.0100	0.2340,0.0120,0.0100

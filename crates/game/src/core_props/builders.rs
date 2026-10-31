@@ -235,90 +235,159 @@ pub fn build_cardboard_stack(g: &mut Game, cx: &mut PropsCtx) -> Built {
 
 /// A-frame with printed warning face
 pub fn build_wet_floor_sign(g: &mut Game, cx: &mut PropsCtx) -> Built {
-    let _ = cx;
+    let _ = (g, cx);
+    // the common 2-sided A-frame (Blender batch `r01`): two moulded yellow
+    // panels hinged at the top, splayed 0.30 m at the foot, each printed
+    // CAUTION / WET FLOOR in black, scuffed (docs/PROPS.md)
+    use crate::assets::props::prop_part_as_modelled;
+    const PANEL_H: f64 = 0.655;
+    const FACE_Z: f64 = 0.0195; // the printed face, in the panel's frame
+    let splay = (0.15f64 / PANEL_H).asin();
+    let hinge_y = PANEL_H * splay.cos();
     let wg = group();
-    let sign_face_tex = canvas_tex_opt(256, 384, false, |ctx, w, h| {
-        ctx.set_fill_style("#e6c020");
-        ctx.fill_rect(0, 0, w, h);
-        // border stripes at top/bottom
-        ctx.set_fill_style("#101010");
-        ctx.fill_rect(0, 0, w, 12);
-        ctx.fill_rect(0, h - 12.0, w, 12);
-        // stick figure slipping
-        ctx.set_stroke_style("#101010");
-        ctx.set_line_width(8);
-        ctx.set_line_cap("round");
-        // head
-        ctx.begin_path();
-        ctx.arc(128, 90, 22, 0, 7);
-        ctx.stroke();
-        // body
-        ctx.begin_path();
-        ctx.move_to(128, 112);
-        ctx.line_to(150, 190);
-        ctx.stroke();
-        // legs (one up, sliding)
-        ctx.begin_path();
-        ctx.move_to(150, 190);
-        ctx.line_to(80, 210);
-        ctx.stroke();
-        ctx.begin_path();
-        ctx.move_to(150, 190);
-        ctx.line_to(200, 240);
-        ctx.stroke();
-        // arms flailing
-        ctx.begin_path();
-        ctx.move_to(135, 140);
-        ctx.line_to(90, 100);
-        ctx.stroke();
-        ctx.begin_path();
-        ctx.move_to(135, 140);
-        ctx.line_to(190, 100);
-        ctx.stroke();
-        // motion swoosh
-        ctx.begin_path();
-        ctx.move_to(60, 200);
-        ctx.line_to(85, 215);
-        ctx.stroke();
-        // "CAUTION" text
-        ctx.set_fill_style("#101010");
-        ctx.set_font("bold 32px Impact, sans-serif");
-        ctx.set_text_align("center");
-        ctx.fill_text("CAUTION", 128, 300);
-        ctx.set_font("bold 18px Impact, sans-serif");
-        ctx.fill_text("WET FLOOR", 128, 340);
-    });
-    let sign_mat = lambert!({ map: &sign_face_tex });
-    for s in [-1.0, 1.0] {
-        let side = mesh(plane_geo!(0.4, 0.72), &sign_mat);
-        side.position().set(0, 0.4, s * 0.09);
-        side.rotation().y = s * PI / 2.0 + PI / 2.0;
-        side.rotation().x = s * 0.14;
-        wg.add(&side);
-        // plastic frame behind
-        let back = mesh(pg("Props__wetSign_board", box_geo!(0.38, 0.7, 0.015)), &g.mats.plastic_yellow);
-        back.position().set(0, 0.4, s * 0.075);
-        back.rotation().x = s * 0.14;
-        wg.add(&back);
+    let plastic = lambert!({ color: 0xc9a227 });
+    let print_mat = lambert!({ map: &wet_sign_print_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    let panel_geo = prop_part_as_modelled("Real__wetSignPanel").unwrap_or_else(|| box_geo!(0.28, PANEL_H, 0.02));
+    for side in [0.0, PI] {
+        // each panel hangs from the hinge, its foot out to its own side
+        let turn = group();
+        turn.rotation().y = side;
+        turn.position().y = hinge_y;
+        let swing = group();
+        swing.rotation().x = -splay;
+        let panel = mesh(panel_geo.clone(), &plastic);
+        panel.position().y = -PANEL_H;
+        swing.add(&panel);
+        let print = mesh(plane_geo!(0.222, 0.47), &print_mat);
+        print.position().set(0, -PANEL_H + 0.2925, FACE_Z + 0.0009);
+        swing.add(&print);
+        turn.add(&swing);
+        wg.add(&turn);
     }
-    // hinge at top
-    let hinge = mesh(pg("Props__wetSign_hinge", cyl_geo!(0.015, 0.015, 0.35, 6)), lambert!({ color: 0x2a2018 }));
-    hinge.rotation().z = PI / 2.0;
-    hinge.position().y = 0.72;
-    wg.add(&hinge);
-    // base plate
-    let base = mesh(pg("Props__wetSign_base", box_geo!(0.4, 0.03, 0.35)), &g.mats.plastic_yellow);
-    base.position().y = 0.015;
-    wg.add(&base);
-    // little puddle around base
-    let puddle = mesh(circle_geo!(0.35, 12), basic_mat!({ color: 0x2a2820, transparent: true, opacity: 0.55 }));
+    if let Some(h) = prop_part_as_modelled("Real__wetSignHinge") {
+        let hinge = mesh(h, lambert!({ color: 0x9a7c1c }));
+        hinge.position().y = hinge_y;
+        wg.add(&hinge);
+    }
+    // the wet it stands in: a soft, uneven patch, darker than the floor
+    let puddle = mesh(plane_geo!(0.9, 0.7), wet_patch_mat());
     puddle.rotation().x = -PI / 2.0;
-    puddle.position().y = 0.002;
     let px = rand2(-0.3, 0.3);
     let pz = rand2(-0.3, 0.3);
     puddle.position().set(px, 0.002, pz);
     wg.add(&puddle);
     Built::new(wg, 0.85)
+}
+
+/// The wet floor sign's print: CAUTION over the slipping figure, WET FLOOR
+/// and the same in two more languages, black on the yellow it is laid on,
+/// rubbed off at its edges and scratched (transparent where not printed)
+fn wet_sign_print_tex() -> Tex {
+    canvas_tex_opt(256, 544, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        ctx.set_fill_style("#141210");
+        ctx.set_text_align("center");
+        ctx.set_text_baseline("alphabetic");
+        ctx.set_font("bold 54px Helvetica Neue");
+        ctx.fill_text_max("CAUTION", w / 2.0, 66, w - 16.0);
+        // the slipping figure (ISO 7010 W011's person, in solid strokes)
+        ctx.set_stroke_style("#141210");
+        ctx.set_line_cap("round");
+        ctx.set_line_join("round");
+        ctx.set_line_width(19);
+        let (cx0, cy0) = (w / 2.0 + 6.0, 255.0);
+        ctx.begin_path();
+        ctx.arc(cx0 + 34.0, cy0 - 104.0, 19, 0, 7);
+        ctx.fill();
+        ctx.begin_path(); // the body, falling back
+        ctx.move_to(cx0 + 22.0, cy0 - 74.0);
+        ctx.line_to(cx0 - 8.0, cy0 + 4.0);
+        ctx.stroke();
+        ctx.begin_path(); // the leg thrown up
+        ctx.move_to(cx0 - 8.0, cy0 + 4.0);
+        ctx.line_to(cx0 + 40.0, cy0 + 22.0);
+        ctx.line_to(cx0 + 72.0, cy0 - 4.0);
+        ctx.stroke();
+        ctx.begin_path(); // the leg under it
+        ctx.move_to(cx0 - 8.0, cy0 + 4.0);
+        ctx.line_to(cx0 - 26.0, cy0 + 50.0);
+        ctx.line_to(cx0 - 6.0, cy0 + 72.0);
+        ctx.stroke();
+        ctx.begin_path(); // the arms thrown out
+        ctx.move_to(cx0 - 64.0, cy0 - 70.0);
+        ctx.line_to(cx0 + 12.0, cy0 - 50.0);
+        ctx.line_to(cx0 + 78.0, cy0 - 92.0);
+        ctx.stroke();
+        // the floor, and the wet on it
+        ctx.set_line_width(7);
+        ctx.begin_path();
+        ctx.move_to(24, cy0 + 86.0);
+        ctx.line_to(w - 24.0, cy0 + 86.0);
+        ctx.stroke();
+        ctx.set_line_width(4);
+        for k in 0..3 {
+            let x = 52.0 + k as f64 * 58.0;
+            ctx.begin_path();
+            ctx.move_to(x, cy0 + 100.0);
+            ctx.bezier_curve_to(x + 10.0, cy0 + 94.0, x + 20.0, cy0 + 106.0, x + 30.0, cy0 + 100.0);
+            ctx.stroke();
+        }
+        ctx.set_font("bold 40px Helvetica Neue");
+        ctx.fill_text_max("WET FLOOR", w / 2.0, 418, w - 20.0);
+        ctx.set_font("bold 25px Helvetica Neue");
+        ctx.fill_text_max("PISO MOJADO", w / 2.0, 458, w - 20.0);
+        ctx.set_font("bold 19px Helvetica Neue");
+        ctx.fill_text_max("ATTENTION SOL GLISSANT", w / 2.0, 490, w - 20.0);
+        // worn: rubbed thin where hands and mops touch it, and scratched
+        ctx.set_global_composite_operation("destination-out");
+        for _ in 0..90 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_global_alpha(0.15 + 0.35 * rnd());
+            ctx.begin_path();
+            ctx.ellipse(x, y, 2.0 + rnd() * 9.0, 1.0 + rnd() * 4.0, rnd() * 3.0, 0, 7);
+            ctx.fill();
+        }
+        ctx.set_line_width(1.2);
+        for _ in 0..40 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * 6.3;
+            let l = 8.0 + rnd() * 40.0;
+            ctx.set_global_alpha(0.4 + 0.5 * rnd());
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.stroke();
+        }
+        // the foot, where the mop and the shoes rub it
+        let grad = ctx.create_linear_gradient(0, h - 70.0, 0, h);
+        grad.add_color_stop(0, "rgba(0,0,0,0)");
+        grad.add_color_stop(1, "rgba(0,0,0,0.6)");
+        ctx.set_global_alpha(1);
+        ctx.set_fill_style(grad);
+        ctx.fill_rect(0, h - 70.0, w, 70);
+        ctx.set_global_composite_operation("source-over");
+    })
+}
+
+/// A wet patch on the floor: dark, uneven, soft at its edge (the floor
+/// shows through it)
+fn wet_patch_mat() -> Mat {
+    let tex = canvas_tex_opt(128, 128, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        for _ in 0..14 {
+            let (x, y) = (w * (0.25 + 0.5 * rnd()), h * (0.25 + 0.5 * rnd()));
+            let r = w * (0.12 + 0.16 * rnd());
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, "rgba(20,18,14,0.5)");
+            gr.add_color_stop(0.6, "rgba(20,18,14,0.35)");
+            gr.add_color_stop(1, "rgba(20,18,14,0)");
+            ctx.set_fill_style(gr);
+            ctx.begin_path();
+            ctx.ellipse(x, y, r, r * (0.6 + 0.4 * rnd()), rnd() * 3.0, 0, 7);
+            ctx.fill();
+        }
+    });
+    lambert!({ map: &tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
 }
 
 /// A bank of 2–3 lockers, sometimes one ajar
