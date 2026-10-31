@@ -5,6 +5,18 @@
 //!
 //! The state both halves share lives in `PropsCtx`; the builders are free
 //! functions in `core_props/builders.rs`, re-exported here.
+
+/// Runs a core prop step and tags what it added with its kind
+/// (`Game::tag_kind`: for the prop census; no draw, nothing recorded)
+macro_rules! kind {
+    ($g:expr, $kind:expr, $step:expr) => {{
+        let c0 = $g.world.child_count();
+        let r = $step;
+        $g.tag_kind(c0, $kind);
+        r
+    }};
+}
+
 pub mod builders;
 pub mod seam;
 pub mod tail;
@@ -502,14 +514,14 @@ impl Game {
             i -= 1;
         }
 
-        g.props_exit_door(&mut cx);
-        let (bat_tip_geo, bat_tip_mat) = g.props_pickups(&mut cx);
-        g.props_chairs(&mut cx);
-        g.props_crt_tv(&mut cx);
-        g.props_wall_clock(&mut cx);
-        g.props_balloon(&mut cx);
-        g.props_payphone(&mut cx);
-        g.props_mannequin(&mut cx);
+        kind!(g, "exit_door", g.props_exit_door(&mut cx));
+        let (bat_tip_geo, bat_tip_mat) = kind!(g, "pickups", g.props_pickups(&mut cx));
+        kind!(g, "chairs", g.props_chairs(&mut cx));
+        kind!(g, "crt_tv", g.props_crt_tv(&mut cx));
+        kind!(g, "wall_clock", g.props_wall_clock(&mut cx));
+        kind!(g, "balloon", g.props_balloon(&mut cx));
+        kind!(g, "payphone", g.props_payphone(&mut cx));
+        kind!(g, "mannequin", g.props_mannequin(&mut cx));
 
         // place each prop type with random counts, sometimes stacked absurdly;
         // each kind keeps to the places it belongs in, a few side by side
@@ -523,38 +535,56 @@ impl Game {
             ..Default::default()
         };
         let floor = |home: Home, row: i32, spacing: f64| ScatterOpts { home: Some(home), row, spacing, ..Default::default() };
-        scatter(g, &mut cx, build_filing_cabinet, 3, &ScatterOpts { can_stack: true, on_placed: Some(&reg), ..wall(0.3, OFFICE, 3, 0.66) });
-        scatter(g, &mut cx, build_locker, 2, &ScatterOpts { can_stack: true, ..wall(0.28, LOCKER_ROOM, 2, 1.42) });
+        kind!(
+            g,
+            "filing_cabinet",
+            scatter(
+                g,
+                &mut cx,
+                build_filing_cabinet,
+                3,
+                &ScatterOpts { can_stack: true, on_placed: Some(&reg), ..wall(0.3, OFFICE, 3, 0.66) }
+            )
+        );
+        kind!(g, "locker", scatter(g, &mut cx, build_locker, 2, &ScatterOpts { can_stack: true, ..wall(0.28, LOCKER_ROOM, 2, 1.42) }));
         // no machine on the Lobby (level 4: its emptiness is the point), nor
         // in the Showroom or the Borrowed House, whose light is their own;
         // elsewhere only where an office, a hall or the Poolrooms would have
         // put one, never in a zone left bare (docs/VENDING.md, where it stands)
         if g.level_num != 4 && !matches!(g.level_scp.as_deref(), Some("store" | "house")) {
-            scatter(
+            kind!(
                 g,
-                &mut cx,
-                vending::build_vending,
-                1,
-                &ScatterOpts { on_placed: Some(&vending::placed), ..wall(vending::model::D / 2.0 + 0.05, VENDING, 1, 0.0) },
+                "vending",
+                scatter(
+                    g,
+                    &mut cx,
+                    vending::build_vending,
+                    1,
+                    &ScatterOpts { on_placed: Some(&vending::placed), ..wall(vending::model::D / 2.0 + 0.05, VENDING, 1, 0.0) },
+                )
             );
         }
-        scatter(g, &mut cx, build_cardboard_stack, 4, &floor(STORAGE, 3, 0.75));
-        scatter(g, &mut cx, build_wet_floor_sign, 2, &floor(WET, 1, 0.0));
-        scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { y: 0.0, ..wall(0.16, SERVICE, 1, 0.0) });
-        scatter(g, &mut cx, build_trash_can, 3, &floor(PUBLIC, 1, 0.0));
-        scatter(g, &mut cx, build_rubber_duck, 3, &floor(BATH_TOYS, 3, 0.3));
-        scatter(g, &mut cx, build_traffic_cone, 3, &floor(WORKS, 3, 0.9));
-        scatter(g, &mut cx, build_wheelchair, 1, &floor(HOME_CARE, 1, 0.0));
-        scatter(g, &mut cx, build_baby_doll, 1, &floor(NURSERY, 1, 0.0));
-        scatter(g, &mut cx, build_suitcase, 2, &floor(LUGGAGE, 2, 0.7));
-        scatter(g, &mut cx, build_book_stack, 3, &floor(READING, 2, 0.55));
-        scatter(g, &mut cx, build_coat_rack, 2, &floor(CLOAKROOM, 1, 0.0));
-        scatter(g, &mut cx, build_fluorescent_tube, 3, &floor(WORKS, 3, 0.35));
-        scatter(g, &mut cx, build_tv_on_floor, 1, &floor(LIVING, 1, 0.0));
-        scatter(g, &mut cx, build_pile, 2, &floor(STORAGE, 1, 0.0));
+        kind!(g, "cardboard_stack", scatter(g, &mut cx, build_cardboard_stack, 4, &floor(STORAGE, 3, 0.75)));
+        kind!(g, "wet_floor_sign", scatter(g, &mut cx, build_wet_floor_sign, 2, &floor(WET, 1, 0.0)));
+        kind!(
+            g,
+            "fire_extinguisher",
+            scatter(g, &mut cx, build_fire_extinguisher, 2, &ScatterOpts { y: 0.0, ..wall(0.16, SERVICE, 1, 0.0) })
+        );
+        kind!(g, "trash_can", scatter(g, &mut cx, build_trash_can, 3, &floor(PUBLIC, 1, 0.0)));
+        kind!(g, "rubber_duck", scatter(g, &mut cx, build_rubber_duck, 3, &floor(BATH_TOYS, 3, 0.3)));
+        kind!(g, "traffic_cone", scatter(g, &mut cx, build_traffic_cone, 3, &floor(WORKS, 3, 0.9)));
+        kind!(g, "wheelchair", scatter(g, &mut cx, build_wheelchair, 1, &floor(HOME_CARE, 1, 0.0)));
+        kind!(g, "baby_doll", scatter(g, &mut cx, build_baby_doll, 1, &floor(NURSERY, 1, 0.0)));
+        kind!(g, "suitcase", scatter(g, &mut cx, build_suitcase, 2, &floor(LUGGAGE, 2, 0.7)));
+        kind!(g, "book_stack", scatter(g, &mut cx, build_book_stack, 3, &floor(READING, 2, 0.55)));
+        kind!(g, "coat_rack", scatter(g, &mut cx, build_coat_rack, 2, &floor(CLOAKROOM, 1, 0.0)));
+        kind!(g, "fluorescent_tube", scatter(g, &mut cx, build_fluorescent_tube, 3, &floor(WORKS, 3, 0.35)));
+        kind!(g, "tv_on_floor", scatter(g, &mut cx, build_tv_on_floor, 1, &floor(LIVING, 1, 0.0)));
+        kind!(g, "pile", scatter(g, &mut cx, build_pile, 2, &floor(STORAGE, 1, 0.0)));
         // scattered single plants — signs someone cared once
-        scatter(g, &mut cx, build_potted_plant, 3, &floor(GREENERY, 1, 0.0));
-        scatter(g, &mut cx, build_floor_plant, 1, &floor(GREENERY, 1, 0.0));
+        kind!(g, "potted_plant", scatter(g, &mut cx, build_potted_plant, 3, &floor(GREENERY, 1, 0.0)));
+        kind!(g, "floor_plant", scatter(g, &mut cx, build_floor_plant, 1, &floor(GREENERY, 1, 0.0)));
         cx
     }
 

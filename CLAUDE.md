@@ -18,6 +18,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/ROOMS.md`](docs/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid, and the plan behind them |
 | [`docs/VENDING.md`](docs/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it), and the plan behind them |
 | [`docs/WINDOWS.md`](docs/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass, and the plan behind them |
+| [`docs/PROPS.md`](docs/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
 | [`docs/SECRETS.md`](docs/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
@@ -47,6 +48,8 @@ Headless evidence (never capture the screen — render offscreen):
 ```sh
 cargo run --release -- --fresh --screenshot out.png --level 1 --seed 4242 --play --frames 90
 cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2 --screenshot x --views   # + exit, camp, trail views
+cargo run --release -- --dump-level DIR --seed 4242 --levels 4,5 --screenshot x --prop-census 1 [--census-only core_wet_floor_sign]   # every kind of prop, framed; DIR/census/census.tsv keeps each camera
+cargo run --release -- --dump-level DIR --seed 4242 --levels 5 --screenshot x --shots-at "name:x,y,z,yaw,pitch;…"   # those cameras again (a prop before and after)
 cargo run --release -- --screenshot out.png --level 4 --seed 4242 --play --showcase hound:3 [--death]   # a floor of the rooms: nothing walks the Building
 cargo run --release -- --fresh --screenshot out.png --frames 120                      # the title over the live Well (level 1)
 cargo run --release -- --fresh --screenshot out.png --seed 4242 --play --frames 90 --screen pause   # or leave, settings, brightness, controls, dead, ending, notebook, notebook-typed; on levels 1-3 also fog-below, fog-in, figure; on level 1 lift

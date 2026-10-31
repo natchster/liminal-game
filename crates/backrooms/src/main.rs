@@ -76,6 +76,16 @@ struct Options {
     /// each of these poses (world metres, radians), `_v00` on: the same poses
     /// in two builds (`--views` prints the poses along the walls that lean)
     views_at: Vec<(f64, f64, f64)>,
+    /// `--prop-census N`: with `--dump-level --screenshot`, a PNG of up to N
+    /// of each kind of placed prop, framed (`Game::census_shots`), and an
+    /// index of them (`census.tsv`)
+    prop_census: Option<usize>,
+    /// `--census-only a,b`: the census of these kinds only
+    census_only: Vec<String>,
+    /// `--shots-at "name:x,y,z,yaw,pitch;…"`: with `--dump-level
+    /// --screenshot`, a PNG from each camera exactly (`census.tsv` records
+    /// each census shot's camera: the same shot of a changed prop)
+    shots_at: Vec<(String, [f64; 5])>,
     /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
     /// machine is first played to that state (`Game::vending_demo`)
     vending_demo: Option<String>,
@@ -119,6 +129,9 @@ fn parse_args() -> Options {
         death: false,
         views: false,
         views_at: vec![],
+        prop_census: None,
+        census_only: vec![],
+        shots_at: vec![],
         vending_demo: None,
         fresh: false,
         metrics: None,
@@ -168,6 +181,18 @@ fn parse_args() -> Options {
             }
             "--scale" => o.scale = next(&mut i).parse().unwrap_or(1.0),
             "--dump-level" => o.dump_level = Some(next(&mut i)),
+            "--prop-census" => o.prop_census = next(&mut i).parse().ok(),
+            "--census-only" => o.census_only = next(&mut i).split(',').map(|s| s.to_string()).collect(),
+            "--shots-at" => {
+                o.shots_at = next(&mut i)
+                    .split(';')
+                    .filter_map(|v| {
+                        let (name, rest) = v.split_once(':')?;
+                        let n: Vec<f64> = rest.split(',').filter_map(|x| x.trim().parse().ok()).collect();
+                        (n.len() == 5).then(|| (name.to_string(), [n[0], n[1], n[2], n[3], n[4]]))
+                    })
+                    .collect()
+            }
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
@@ -707,6 +732,49 @@ fn level_check(o: &Options, dir: &str) {
                 let sec: Vec<String> = g.secret_poses().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" (secret poses: \"{}\")", sec.join(";"));
             }
+            if let Some(per) = o.prop_census.or((!o.shots_at.is_empty()).then_some(0)) {
+                let dir = format!("{dir}/census");
+                std::fs::create_dir_all(&dir).expect("create census dir");
+                let mut index = String::new();
+                let shots: Vec<_> =
+                    g.census_shots(per).into_iter().filter(|s| o.census_only.is_empty() || o.census_only.contains(&s.0)).collect();
+                let shots = census_or_given(shots, &o.shots_at);
+                for (label, k, x, y, z, yaw, pitch) in &shots {
+                    g.player.pos = engine::math::Vec3::new(*x, g.floor_y_at(*x, *z) + game::prelude::EYE, *z);
+                    g.player.yaw = *yaw;
+                    g.player.pitch = *pitch;
+                    // seen as a player sees it in the dark: by the lamp
+                    g.player.flashlight_on = g.region_light_at(g.tx(*x), g.tz(*z)) < 0.3;
+                    g.player.battery = game::prelude::BAT_MAX;
+                    g.prop_cull.t = 0.0;
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    g.frame(1.0 / 60.0);
+                    g.fixed_step_dt = 0.0;
+                    // the eye where the census put it (lowered for a small thing)
+                    g.camera.position().set(*x, *y, *z);
+                    g.camera.rotation().x = *pitch;
+                    g.camera.rotation().y = *yaw;
+                    g.camera.rotation().z = 0.0;
+                    // (no toast: the census camera walks over pickups)
+                    g.msg_t = 0.0;
+                    g.ui.msg.set_opacity(0.0);
+                    g.ui.msg.set_text(""); // (its opacity eases out over 0.4 s)
+                    g.sim_frozen = true;
+                    let cb = draw(&mut g, &mut r, t, w, h);
+                    cb.commit();
+                    cb.waitUntilCompleted();
+                    let (tw, th, px) = r.read_texture(t);
+                    let name = if o.shots_at.is_empty() { format!("{label}__{seed}_L{l}_{k}") } else { label.clone() };
+                    engine::png::write_rgba(&format!("{dir}/{name}.png"), tw as u32, th as u32, &px).expect("write png");
+                    g.sim_frozen = false;
+                    g.player.flashlight_on = false;
+                    index.push_str(&format!("{name}\t{label}\t{seed}\t{l}\t{k}\t{x:.4},{y:.4},{z:.4},{yaw:.5},{pitch:.5}\n"));
+                }
+                use std::io::Write as _;
+                let mut f = std::fs::OpenOptions::new().create(true).append(true).open(format!("{dir}/census.tsv")).expect("census index");
+                f.write_all(index.as_bytes()).expect("write census index");
+                print!(" (+{} census shots)", shots.len());
+            }
             if let Some(what) = o.vending_demo.as_deref() {
                 g.vending_demo(what);
             }
@@ -729,6 +797,18 @@ fn level_check(o: &Options, dir: &str) {
         }
         println!();
     }
+}
+
+/// The census's shots, or (`--shots-at`) the cameras given: (name, k, x, y,
+/// z, yaw, pitch), k unknown (0) for a given camera.
+fn census_or_given(
+    census: Vec<(String, usize, f64, f64, f64, f64, f64)>,
+    given: &[(String, [f64; 5])],
+) -> Vec<(String, usize, f64, f64, f64, f64, f64)> {
+    if given.is_empty() {
+        return census;
+    }
+    given.iter().map(|(n, p)| (n.clone(), 0, p[0], p[1], p[2], p[3], p[4])).collect()
 }
 
 /// `--metrics FILE`: start a run like New Game, build each level in order and

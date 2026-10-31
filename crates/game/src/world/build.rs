@@ -70,6 +70,14 @@ impl Game {
             }
         }
     }
+    /// What a core prop step added carries its kind (`kind` in its strings;
+    /// read by the prop census, never by the build)
+    pub fn tag_kind(&mut self, c0: usize, kind: &str) {
+        for k in c0..self.world.child_count() {
+            let c = self.world.child(k).unwrap();
+            c.user().s.entry("kind".into()).or_insert_with(|| kind.to_string());
+        }
+    }
     fn run_placer(&mut self, name: &str, f: Option<PlacerFn>, dist: &[i32]) -> bool {
         let Some(f) = f else {
             log_missing(name);

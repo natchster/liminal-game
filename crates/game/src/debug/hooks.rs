@@ -65,6 +65,62 @@ impl Game {
         out
     }
 
+    /// The prop census (`--prop-census`): for each kind of placed prop (a
+    /// core prop's kind, else its placer), up to `per_label` of them, a
+    /// camera that sees it whole: (label, the prop's index in the world,
+    /// eye x, y, z, yaw, pitch). The camera stands off the prop's face
+    /// where it can (else round it), clear of the walls and in sight of it,
+    /// far enough for it to fill about half the frame, its eye lowered for
+    /// a small thing as you would crouch to it.
+    pub fn census_shots(&self, per_label: usize) -> Vec<(String, usize, f64, f64, f64, f64, f64)> {
+        let mut by: std::collections::BTreeMap<String, Vec<(usize, Obj)>> = Default::default();
+        for (k, o) in self.world.children().iter().enumerate() {
+            let u = o.user();
+            let Some(placer) = u.placer.clone() else { continue };
+            let label = u.s.get("kind").map(|k| format!("core_{k}")).unwrap_or(placer);
+            drop(u);
+            by.entry(label).or_default().push((k, o.clone()));
+        }
+        let mut out = vec![];
+        for (label, objs) in by {
+            let n = objs.len();
+            let picks: Vec<usize> = if per_label >= n { (0..n).collect() } else { (0..per_label).map(|i| i * n / per_label).collect() };
+            for i in picks {
+                let (k, o) = &objs[i];
+                o.update_world_matrix(true, true);
+                let mut bb = Box3::empty();
+                bb.set_from_object(o);
+                if bb.is_empty() {
+                    continue;
+                }
+                let c = Vec3::new((bb.min.x + bb.max.x) / 2.0, (bb.min.y + bb.max.y) / 2.0, (bb.min.z + bb.max.z) / 2.0);
+                let s = (bb.max.x - bb.min.x).max(bb.max.y - bb.min.y).max(bb.max.z - bb.min.z).max(0.05);
+                let floor = self.floor_y_at(c.x, c.z);
+                let ry = o.rot().y;
+                let face = (ry.sin(), ry.cos());
+                let mut dirs: Vec<(f64, f64)> = (0..16).map(|j| j as f64 * PI / 8.0).map(|a| (a.sin(), a.cos())).collect();
+                dirs.sort_by(|a, b| (b.0 * face.0 + b.1 * face.1).total_cmp(&(a.0 * face.0 + a.1 * face.1)));
+                let mut pose = None;
+                'find: for scale in [1.0, 0.75, 0.55] {
+                    let d = (s * 1.8 * scale).clamp(0.6, 6.0) + (bb.max.x - bb.min.x).max(bb.max.z - bb.min.z) / 2.0;
+                    for &(dx, dz) in &dirs {
+                        let (x, z) = (c.x + dx * d, c.z + dz * d);
+                        if !self.circle_hits_wall(x, z, 0.2) && self.los(x, z, c.x, c.z) {
+                            pose = Some((x, z, d));
+                            break 'find;
+                        }
+                    }
+                }
+                let Some((x, z, d)) = pose else { continue };
+                let y = (c.y + 0.25 + 0.35 * d).clamp(floor + 0.45, floor + crate::prelude::EYE);
+                let yaw = (-(c.x - x)).atan2(-(c.z - z));
+                let pitch = (c.y - y).atan2(d).clamp(-1.3, 1.0);
+                out.push((label.clone(), *k, x, y, z, yaw, pitch));
+            }
+        }
+        out
+    }
+
     /// A camera pose looking at the exit door down the floor plan: of the
     /// open tiles 3–7 tiles' walk from the door that can see it and stand in
     /// front of it (within 60° of the way it faces), the furthest in a

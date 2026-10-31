@@ -109,23 +109,23 @@ impl Game {
     /// The second half of `place_props`.
     pub fn place_props_tail(&mut self, cx: &mut PropsCtx, dist: &[i32]) {
         let _ = dist;
-        self.tail_weather_extras(cx);
-        self.tail_light_switches(cx);
-        self.tail_paper_piles(cx);
-        self.tail_lore_notes(cx);
-        self.tail_pool_room(cx);
-        let vac = self.tail_robot_vacuum(cx);
-        self.tail_safe_room(cx);
-        self.tail_plant_zone(cx);
+        kind!(self, "weather_extras", self.tail_weather_extras(cx));
+        kind!(self, "light_switches", self.tail_light_switches(cx));
+        kind!(self, "paper_piles", self.tail_paper_piles(cx));
+        kind!(self, "lore_notes", self.tail_lore_notes(cx));
+        kind!(self, "pool_room", self.tail_pool_room(cx));
+        let vac = kind!(self, "robot_vacuum", self.tail_robot_vacuum(cx));
+        kind!(self, "safe_room", self.tail_safe_room(cx));
+        kind!(self, "plant_zone", self.tail_plant_zone(cx));
         // the windows (`core_props::window`): chosen here, finished on the final walls
-        crate::core_props::window::place_windows(self, cx);
-        self.tail_broken_elevator(cx);
-        self.tail_elevators(cx);
-        self.tail_floor_hole(cx);
-        self.tail_barricades(cx);
-        self.tail_wall_mirrors(cx);
-        self.tail_tableaux(cx);
-        self.tail_graffiti(cx);
+        kind!(self, "windows", crate::core_props::window::place_windows(self, cx));
+        kind!(self, "broken_elevator", self.tail_broken_elevator(cx));
+        kind!(self, "elevators", self.tail_elevators(cx));
+        kind!(self, "floor_hole", self.tail_floor_hole(cx));
+        kind!(self, "barricades", self.tail_barricades(cx));
+        kind!(self, "wall_mirrors", self.tail_wall_mirrors(cx));
+        kind!(self, "tableaux", self.tail_tableaux(cx));
+        kind!(self, "graffiti", self.tail_graffiti(cx));
         self.tail_bobbing(vac);
     }
 

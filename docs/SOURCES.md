@@ -463,3 +463,25 @@ Gathered on 2026-10-30 by two research passes for
 - Read: Carroll's *Alice's Adventures in Wonderland*, the *Hymn to Demeter*, the *Kojiki*, Child 37, Hartland, Rossetti's *Goblin Market*, the *Odyssey*, Grimm (public domain); SCP-330 (Dr Kondraki), the first SCP-1162 (author unknown, via the Japanese archive), SCP-427 (Dr Ouros), SCP-268 (Pair Of Ducks), SCP-714 (Arcalane), SCP-207 (Aeish), SCP-178 (91stCataclysm), SCP-1916 (Smapti), SCP-832 (Inglonias), SCP-362 (PaulSharke), CC BY-SA 3.0; the Backrooms' Almond Water (Natedagreat563, Poliacci; 1000dumplings), Cashew Water (yoyoflux, Positive123; Taangeerine), Liquid Pain (ReyDay), Royal Rations (Sariastuff, zakkun_), Liquid Silence (Atom_Rutherford), Moth Jelly (KingofGarbage), CC BY-SA; the Samosbor wiki's food concentrate (ProfessorSacred, CC BY-SA); the Creepypasta Wiki's Midnight Game and *Please Take Just One* (Umbrello), CC BY-SA; omamori, the ladanka, morijio, the red envelope, found coins (folk); games' hidden-effect items (mechanics only); John Harris's rules of roguelike design.
 - Say: an invitation with no explanation; the effect felt, then learned; two-sided changes in small steps; one taste binds a little, and can take away what calls you; two free and the third costs; a hole that gives back and takes; a charm that works sewn shut; a bad thing shown by a tell; nothing unknown may kill; caps on how far it all goes.
 - Used for: what is put away and what stays with you (`SECRETS.md` 5); no SCP number or object name appears in the game.
+
+## 15. The props: real things, barricades, things a hand can use
+
+Gathered on 2026-10-31 for [`PROPS.md`](PROPS.md); the notes are kept
+whole in [`research/`](research/README.md) (`props-census.md`,
+`barricades.md`, `props-interactions.md`), every claim linked.
+
+**The census** ([`research/props-census.md`](research/props-census.md)).
+- Read: the game itself, every kind of prop on 272 floors, graded by seven reviewers against `STYLE.md`; on what makes a model read as real: bevels and the highlight a real edge catches (Radiator's *Bevels in video games*; Polycount threads), wear where handling puts it, albedo ranges of real materials (Lagarde's chart; the Corona albedo list).
+- Say: a third of the kinds read as toys; the toy is in the composition of primitives and the flat colour, not in the parts; the props that read as real were modelled whole from a real one, their print painted.
+- Used for: what is remodelled and in what order (`PROPS.md` 1, the milestones).
+
+**Barricades** ([`research/barricades.md`](research/barricades.md)).
+- Read: the U.S. Fire Administration's *Board-up procedures*; the CITB's guide to temporary hoardings; lockdown guidance (UConn, the University of Houston); makers' sheets for plywood, dimensional lumber, steel desks, vertical files, stacking and task chairs, GMA pallets, boltless shelving, hollow-core doors and twin mattresses.
+- Say: a board-up is a sheet over the opening, braced across and bolted through; a furniture barricade is the heaviest flat things against the opening, upended and wedged; nothing real is a pile in the middle of a room.
+- Used for: where barricades go and what they are made of (`PROPS.md` 2).
+
+**Things a hand can use** ([`research/props-interactions.md`](research/props-interactions.md)).
+- Read: the game's own canon and rules (`LORE.md`, `PILLARS.md`, `UI.md`, `VENDING.md`, `WINDOWS.md`, `SECRETS.md`); the Backrooms wiki's Level 1 and Level 2 (CC BY-SA), where they fit the canon.
+- Say: a verb is a real hand's; its rules are fixed per thing, never dice; its effects are never said; its sound comes from it; it never sets a creature hunting.
+- Used for: the verbs (`PROPS.md` 3).
+
