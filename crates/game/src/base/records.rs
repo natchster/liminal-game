@@ -225,6 +225,9 @@ pub enum WayAnswer {
     Lights,
     /// Wet bare footprints walked toward it
     Prints,
+    /// The door called at once, louder than its own call (the Building's
+    /// floors, where nothing walks)
+    Call,
 }
 
 /// A wet footprint of the place's answer (dries away over its life)

@@ -28,15 +28,21 @@ impl Game {
         let place = group();
         match p.kind {
             PlaceKind::Tile => {
-                // the tile askew, a dark gap along one edge, the void above it
-                // (the dark over the grid is no lit surface: unlit, as a fallen tile's gap)
-                let void = mesh(plane_geo!(TILE, TILE), basic_mat!({ color: 0x050504 }));
+                // the tile let down out of its grid, hanging from the edge still
+                // in it, and the dark of the void over the ceiling where it
+                // was (drawn just under the ceiling, which would hide it;
+                // unlit, as a fallen tile's gap: no lit surface is black)
+                let void = mesh(
+                    plane_geo!(TILE - 0.02, TILE - 0.02),
+                    basic_mat!({ color: 0x050504, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+                );
                 void.rotation().x = PI / 2.0;
-                void.position().set(p.x, p.y + 0.004, p.z);
+                void.position().set(p.x, p.y - 0.003, p.z);
                 place.add(&void);
                 let tile = mesh(pg("FallenCeilingTiles__tile", box_geo!(TILE - 0.02, 0.016, TILE - 0.02)), self.secret_tile_mat());
-                tile.position().set(p.x + 0.07, p.y - 0.03, p.z);
-                tile.rotation().z = 0.13;
+                let (half, a) = ((TILE - 0.02) / 2.0, TILE_HANG);
+                tile.position().set(p.x + half - half * a.cos(), p.y - 0.012 - half * a.sin(), p.z);
+                tile.rotation().z = a;
                 place.add(&tile);
                 s.lid = Some(tile);
                 // a chair under it (someone stood there)
@@ -174,9 +180,9 @@ impl Game {
         place.user().gameplay = true;
         self.world.add(&place);
         s.place = Some(place);
-        // the sign, a third hand's: a chalk circle with a stroke through it
+        // the sign, a third hand's: a circle with a point in it, scratched in
         if let Some((x, z, y, n)) = p.sign {
-            let sign = mesh(plane_geo!(0.07, 0.07), sign_mat(p.crossed));
+            let sign = mesh(plane_geo!(0.08, 0.08), sign_mat(p.crossed));
             // (the floor in front of its wall: at the face itself it is the wall's)
             sign.position().set(x, self.floor_y_at(x + n.0 * 0.3, z + n.1 * 0.3) + y, z);
             sign.rotation().y = n.0.atan2(n.1);
@@ -251,8 +257,10 @@ impl Game {
         let p = &s.plan;
         match p.kind {
             PlaceKind::Tile => {
-                lid.position().set(p.x + 0.36, p.y + 0.02, p.z);
-                lid.rotation().z = 0.0;
+                // taken down and stood against the chair's legs on the floor
+                let fy = self.floor_y_of(p.tile.0, p.tile.1);
+                lid.position().set(p.x + 0.45, fy + 0.3, p.z);
+                lid.rotation().z = 1.35;
             }
             PlaceKind::Vent => {
                 lid.rotation().z = -1.45;
@@ -325,7 +333,8 @@ impl Game {
                 self.player.batteries += 1;
                 "A BATTERY"
             }
-            Thing::Penny => {
+            // (one coin at a time: none is put away, but never a second)
+            Thing::Penny if self.player.coins == 0 => {
                 self.player.coins += 1;
                 "A COIN"
             }
@@ -341,7 +350,7 @@ impl Game {
 
     /// Take the thing in place `i` (eat it, drink it, put it on, keep it):
     /// it is gone from where it was, the notebook keeps what and where, and
-    /// what it does stays with you (`keeps`). The bowl keeps its sweets
+    /// what it does stays with you (`keeps`). The dish keeps its sweets
     /// until the third.
     pub fn take_secret(&mut self, i: usize) {
         let Some(s) = self.secrets.list.get(i).cloned() else { return };
@@ -355,7 +364,7 @@ impl Game {
         self.show_msg(line, 2.6);
         let p = s.plan.clone();
         self.play_from(p.x, self.floor_y_at(p.x, p.z) + 0.5, p.z, 2.0, 1.0, 0.6, move |g| g.sfx_take_thing(t));
-        // a sweet from the bowl: the bowl stays until it is three
+        // a sweet from the dish: the dish stays until it is three
         let gone = t != Thing::Sweets || uses >= 3;
         if gone {
             if let Some(o) = &s.thing {
@@ -383,15 +392,15 @@ impl Game {
 
     /// Fit the secrets of a level just built to the run: what was taken
     /// from a place (or found empty) is gone, the place found open; the
-    /// bowl has fewer sweets.
+    /// dish has fewer sweets.
     pub fn fit_secrets(&mut self) {
         for i in 0..self.secrets.list.len() {
             let key = self.secrets.list[i].key.clone();
             let Some(&uses) = self.secrets_taken.get(&key) else { continue };
             let s = &mut self.secrets.list[i];
             s.uses = uses;
-            let bowl = s.plan.thing == Thing::Sweets && uses < 3;
-            if bowl {
+            let dish = s.plan.thing == Thing::Sweets && uses < 3;
+            if dish {
                 continue;
             }
             s.opened = true;
@@ -446,7 +455,7 @@ impl Game {
             }
             self.took.push(Took { what: "hole".into(), level: self.level_num, place: place.kind.name().into() });
         }
-        let line = match gives {
+        let found = match gives {
             Some(Thing::Almond) => {
                 self.player.bottles += 1;
                 "YOUR FINGERS FIND A BOTTLE"
@@ -455,10 +464,11 @@ impl Game {
                 self.player.batteries += 1;
                 "YOUR FINGERS FIND A BATTERY"
             }
-            _ if have.is_empty() => "NOTHING IN THERE. SOMETHING TOUCHES YOUR WRIST",
             _ => "YOUR FINGERS FIND NOTHING",
         };
-        self.show_msg(line, 2.6);
+        // with nothing on you, whatever it gave, it takes from you: felt
+        let line = if have.is_empty() { format!("{found}. SOMETHING TOUCHES YOUR WRIST") } else { found.to_string() };
+        self.show_msg(&line, 2.6);
         self.secret_emptied(i, None);
     }
 
@@ -471,10 +481,11 @@ impl Game {
         if t == Thing::YellowWater {
             self.player.stamina = (self.player.stamina + crate::player::DRINK_STAMINA * self.body.drink).min(self.body.stam_max);
         }
+        // felt only as what it is (its taste or its weight: the line) and,
+        // for your size, the change coming over you (`SIZE_EASE`); the rest
+        // is learned by what follows (every sound and sway of the body is
+        // some other thing's already: the dread's heart, the Watcher's ring)
         self.refresh_body();
-        // felt, not told: a heartbeat in your ears, and what changes comes
-        // over you after it (your size eases in over a few seconds)
-        self.schedule(700.0, |g| g.sfx_heartbeat());
     }
 
     /// What you are now, from what you took
@@ -505,7 +516,7 @@ impl Game {
             };
             let line = match t.what.as_str() {
                 "hole" | "hole_took" => format!("I reached into a hole in a wall. Level {}.", t.level),
-                "third_sweet" => format!("A third sweet from the bowl. Level {}.", t.level),
+                "third_sweet" => format!("A third sweet from the dish. Level {}.", t.level),
                 id => {
                     let Some(th) = Thing::from_id(id) else { continue };
                     format!("{}, {}. Level {}.", thing_words(th), place_words(place(&t.place), th), t.level)
@@ -519,6 +530,9 @@ impl Game {
 
 /// A ceiling tile's side, m (the grid's cell)
 const TILE: f64 = CELL / 6.0;
+/// How far a let-down ceiling tile hangs from its edge, radians (its free
+/// edge some 14 cm down)
+const TILE_HANG: f64 = 0.22;
 
 /// The verb for a thing
 pub fn verb_of(t: Thing) -> &'static str {
@@ -536,58 +550,66 @@ pub fn verb_of(t: Thing) -> &'static str {
 }
 
 /// What taking it is like: the thing and its taste or feel, never what it
-/// does (the toast's words). The `uses`-th from the bowl.
+/// does (the toast's words). The `uses`-th from the dish.
 pub fn taste_of(t: Thing, uses: u32) -> &'static str {
     match t {
-        Thing::PaleMushrooms => "YOU EAT THEM — COLD, AND EARTHY",
+        Thing::PaleMushrooms => "YOU EAT THEM — SOFT, LIKE BREAD",
         Thing::BrownMushrooms => "YOU EAT THEM — DRY, AND BITTER",
         Thing::Sweets => match uses {
             1 => "A SWEET — SUGAR, THEN PENNIES",
             2 => "ANOTHER — THE SAME",
             _ => "ONE MORE — IT STICKS TO YOUR TEETH",
         },
-        Thing::Seeds => "YOU EAT THEM — SHARP, SWEET, AND COLD",
-        Thing::Bag => "YOU PUT IT ON — IT SMELLS OF EARTH",
+        Thing::Seeds => "YOU EAT THEM — SHARP, AND SWEET",
+        Thing::Bag => "YOU PUT IT ON — IT SMELLS OF SOMEONE ELSE",
         Thing::Salt => "YOU POCKET THE SALT",
         Thing::Jelly => "YOU EAT IT — IT TASTES OF NOTHING AT ALL",
-        Thing::Ration => "YOU EAT IT — SALT AND CARDBOARD",
-        Thing::Medicine => "YOU DRINK IT — BITTER, THEN WARM",
+        Thing::Ration => "YOU EAT IT — FLOURY, AND IT CRUMBLES",
+        Thing::Medicine => "YOU DRINK IT — SYRUP, THEN WARM",
         Thing::Cap => "YOU PUT IT ON — IT FITS",
-        Thing::Coin => "YOU PUT IT ON — COLD AGAINST YOUR CHEST",
+        Thing::Coin => "YOU PUT IT ON — IT TAPS AGAINST YOUR CHEST",
         Thing::YellowWater => "YOU DRINK — IT TASTES OF CASHEWS",
         Thing::Envelope => "YOU PICK IT UP — THERE IS HAIR IN IT",
         _ => "",
     }
 }
 
-/// The chalk sign: a circle with a stroke through it; crossed out, an X over it
+/// The mark in a third hand: a small circle with a point in it, scratched
+/// into the paint or the concrete (pale where the surface is broken);
+/// crossed out, an X scored over it
 fn sign_mat(crossed: bool) -> Mat {
     let tex = canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
-        let chalk = |ctx: &mut Canvas, pts: &[(f64, f64)]| {
-            for wn in pts.windows(2) {
-                let (a, b) = (wn[0], wn[1]);
-                for k in 0..12 {
-                    let t = k as f64 / 12.0;
-                    let (x, y) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
-                    if rnd() < 0.85 {
-                        ctx.set_fill_style(format!("rgba(230,226,212,{:.3})", 0.55 + rnd() * 0.4));
-                        ctx.fill_rect(x - 2.0, y - 2.0, 4.0, 4.0);
+        let scratch = |ctx: &mut Canvas, pts: &[(f64, f64)]| {
+            // a key's point dragged: a fine pale line, broken here and there, its edge darker
+            for (col, wid) in [("rgba(40,36,30,0.35)", 3.4), ("rgba(226,220,204,0.8)", 1.6)] {
+                ctx.set_stroke_style(col);
+                ctx.set_line_width(wid);
+                ctx.set_line_cap("round");
+                ctx.begin_path();
+                for (k, p) in pts.iter().enumerate() {
+                    let (x, y) = (p.0 + (rnd() - 0.5) * 0.8, p.1 + (rnd() - 0.5) * 0.8);
+                    if k == 0 || rnd() < 0.06 {
+                        ctx.move_to(x, y);
+                    } else {
+                        ctx.line_to(x, y);
                     }
                 }
+                ctx.stroke();
             }
         };
-        let circle: Vec<(f64, f64)> = (0..=24)
+        let circle: Vec<(f64, f64)> = (0..=28)
             .map(|k| {
-                let a = k as f64 / 24.0 * PI * 2.0;
-                (w / 2.0 + a.cos() * w * 0.32, h / 2.0 + a.sin() * h * 0.32)
+                let a = k as f64 / 28.0 * PI * 2.0;
+                (w / 2.0 + a.cos() * w * 0.3, h / 2.0 + a.sin() * h * 0.3)
             })
             .collect();
-        chalk(ctx, &circle);
-        chalk(ctx, &[(w * 0.3, h * 0.72), (w * 0.7, h * 0.28)]);
+        scratch(ctx, &circle);
+        // the point at its middle, dug in
+        scratch(ctx, &[(w * 0.48, h * 0.48), (w * 0.53, h * 0.53), (w * 0.5, h * 0.52)]);
         if crossed {
-            chalk(ctx, &[(w * 0.12, h * 0.12), (w * 0.88, h * 0.88)]);
-            chalk(ctx, &[(w * 0.88, h * 0.12), (w * 0.12, h * 0.88)]);
+            scratch(ctx, &[(w * 0.12, h * 0.12), (w * 0.88, h * 0.88)]);
+            scratch(ctx, &[(w * 0.88, h * 0.12), (w * 0.12, h * 0.88)]);
         }
     });
     lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })

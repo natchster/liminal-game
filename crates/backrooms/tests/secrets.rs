@@ -108,6 +108,9 @@ fn secrets_lie_off_the_way() {
         assert_eq!(plan, level(seed, l).plan_secrets(), "seed {seed} L{l}: the plan is not a function of the level");
         let (want, hole) = run_things(seed, l);
         let n = plan.len();
+        if l == 4 {
+            assert!(plan.iter().all(|p| p.thing == Thing::PaleMushrooms), "seed {seed}: the Lobby holds more than what grows");
+        }
         let band = match l {
             _ if game::secrets::whole_floor_anomaly(g.level_scp.as_deref()) => 0..=0,
             ..=3 => 2..=4,
@@ -234,19 +237,22 @@ fn the_hole_gives_back_and_takes() {
     assert!(g.secrets.list[i].emptied, "once a hole");
     assert_eq!(g.took.last().map(|t| t.what.as_str()), Some("hole"));
     let max = g.body.stam_max;
-    // the next floor's hole, with nothing on you
+    // the next floor's hole, with nothing on you (the bottle you drank given
+    // back all the same): it takes from you, and you feel it
     let (mut h, j) = find(game::secrets::PlaceKind::Hole, None);
     (h.player.bottles, h.player.batteries, h.player.papers, h.player.coins) = (0, 0, 0, 0);
-    h.last_used = None;
+    h.last_used = Some(Thing::Almond);
     h.open_secret(j);
     assert_eq!(h.took.last().map(|t| t.what.as_str()), Some("hole_took"));
     assert!(h.body.stam_max < max, "it took nothing from you: ceiling {}", h.body.stam_max);
+    assert_eq!(h.player.bottles, 1, "it gave back the bottle");
+    assert!(h.msg_text.contains("TOUCHES YOUR WRIST"), "not felt: {:?}", h.msg_text);
 }
 
-/// The bowl: a sweet is taken and eaten, the bowl stays; the third is the
+/// The dish: a sweet is taken and eaten, the dish stays; the third is the
 /// last it gives, and the run knows it was a third.
 #[test]
-fn the_bowl_and_its_third_sweet() {
+fn the_dish_and_its_third_sweet() {
     let (mut g, i) = find(game::secrets::PlaceKind::Table, Some(Thing::Sweets));
     for k in 1..=3 {
         g.take_secret(i);
@@ -256,7 +262,7 @@ fn the_bowl_and_its_third_sweet() {
     let what: Vec<&str> = g.took.iter().map(|t| t.what.as_str()).collect();
     assert_eq!(what, ["sweet", "sweet", "third_sweet"]);
     assert!(g.body.shake);
-    // and a retry: the bowl empty
+    // and a retry: the dish empty
     let key = g.secrets.list[i].key.clone();
     let l = g.level_num;
     g.init_level(l);
@@ -347,13 +353,29 @@ fn what_stays_with_you_is_bounded() {
         assert!((-2..=2).contains(&b.size), "{w}: size {}", b.size);
         assert!(b.dark_floor >= game::player::DARK_FLOOR, "{w}: the dark leaves {}", b.dark_floor);
         assert!(b.touch <= 1.0 && b.touch >= 0.6, "{w}: a touch takes ×{}", b.touch);
-        assert!(b.dark > 0.0 && b.dark <= 1.0, "{w}: the dark ×{}", b.dark);
-        assert!(b.stam_max >= 70.0 && b.stam_max <= 112.0, "{w}: stamina {}", b.stam_max);
-        assert!((0.7..=1.3).contains(&b.steps), "{w}: steps ×{}", b.steps);
-        assert!((0.9..=1.1).contains(&b.pace), "{w}: pace ×{}", b.pace);
-        assert!(b.nerve >= 1.0 && b.nerve <= 1.4, "{w}: nerve ×{}", b.nerve);
-        assert!(b.look <= 1.5 && b.lamp_seen <= 1.25 && b.door >= 0.6, "{w}");
+        // each system two steps at most, a step the smallest a thing moves it
+        assert!(b.dark >= 0.6 && b.dark <= 1.0, "{w}: the dark ×{}", b.dark);
+        assert!(b.stam_max >= 85.0 && b.stam_max <= 112.0, "{w}: stamina {}", b.stam_max);
+        assert!((0.76..=1.24).contains(&b.steps), "{w}: steps ×{}", b.steps);
+        assert!((0.92..=1.08).contains(&b.pace), "{w}: pace ×{}", b.pace);
+        assert!(b.nerve >= 1.0 && b.nerve <= 1.2, "{w}: nerve ×{}", b.nerve);
+        assert!((0.7..=1.2).contains(&b.lamp_seen), "{w}: a Smiler sees your lamp ×{}", b.lamp_seen);
+        assert!(b.look <= 1.5 && b.door >= 0.6, "{w}");
         // (the chance itself is capped at 60% where a cry is answered: `cry_for_help`)
         assert!(b.cry_mul <= 1.0 && b.cry_add <= 0.15, "{w}");
+    }
+}
+
+/// On the Building's floors nothing walks: a cry there is never answered
+/// by footprints (the lights, or the door's own call).
+#[test]
+fn on_the_buildings_floors_nothing_walks() {
+    for seed in [4242u32, 7, 1999] {
+        for l in 1..=3 {
+            let g = level(seed, l);
+            let a = g.way_answer_here();
+            assert!(a.is_some(), "seed {seed} L{l}: no way to the door");
+            assert_ne!(a, Some(game::base::records::WayAnswer::Prints), "seed {seed} L{l}: footprints on the Building's floors");
+        }
     }
 }

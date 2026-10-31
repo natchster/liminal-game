@@ -1,6 +1,6 @@
 //! The hiding places (`docs/SECRETS.md` 4): where each kind fits on a
 //! level, what it looks like (its tell, the same all run), its verb, and
-//! what happens when it is opened; the chalk sign near some of them.
+//! what happens when it is opened; the scratched sign near some of them.
 use super::{PlaceKind, SecretPlan, Thing};
 use crate::level::archgen;
 use crate::prelude::*;
@@ -128,7 +128,7 @@ impl Game {
                 let ok = match thing {
                     // a dead end
                     Thing::Seeds => walls >= 3,
-                    // the wet carpet, the rotten skirting
+                    // the wet carpet
                     Thing::PaleMushrooms | Thing::BrownMushrooms => walls >= 2 && wet,
                     // a corridor's floor
                     Thing::Envelope => walls == 2,
@@ -152,7 +152,7 @@ impl Game {
         }
     }
 
-    /// A chalk sign near tile `t`, on a flat wall seen from the tile's
+    /// A scratched sign near tile `t`, on a flat wall seen from the tile's
     /// middle, at 1.4–1.6 m: (x, z, y, normal)
     pub(crate) fn sign_near(&self, t: (i32, i32), r: &mut SplitMix64) -> Option<(f64, f64, f64, (f64, f64))> {
         let y = r.range(1.4, 1.6);

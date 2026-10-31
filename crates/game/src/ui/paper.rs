@@ -39,6 +39,8 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let iw = pw - 2.0 * pad;
     let ink: Rgba = match kind {
         Kind::Typed => col("#24211c"),
+        // yours: a ballpoint's blue, not her pencil
+        Kind::Mine => col("#26346a"),
         _ => col("#2a2620"),
     };
     let pencil = col("#4a4a52");
@@ -54,7 +56,8 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let title =
         TextBlock::plain(&title_text, if kind == Kind::Hers { pencil } else { ink }, &[], 0.0, title_font, Ws::Normal, Some(iw), None);
     let (body_font, lh) = match kind {
-        Kind::Hers | Kind::Mine => (Font::hand(19.0), 28.0),
+        Kind::Hers => (Font::hand(19.0), 28.0),
+        Kind::Mine => (Font::hand(17.0), 25.0),
         Kind::Typed => (Font::new(13.5), 13.5 * 1.65),
         Kind::Index => (Font::sans(14.0), 14.0 * 1.6),
     };
@@ -90,6 +93,8 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
         }
         let paper = match kind {
             Kind::Typed => rgba(214.0, 210.0, 199.0, 0.97),
+            // yours: a whiter, newer page than hers
+            Kind::Mine => rgba(240.0, 238.0, 230.0, 0.97),
             _ => rgba(233.0, 224.0, 200.0, 0.97),
         };
         p.tr();
@@ -114,8 +119,8 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
         p.c.line_to(px, py + ph);
         p.c.close_path();
         p.c.fill();
-        // ruled lines (and a margin) on her paper, and yours
-        if kind == Kind::Hers || kind == Kind::Mine {
+        // ruled lines (and a margin) on her paper; yours is plain
+        if kind == Kind::Hers {
             let first = py + top + title.height() + 18.0;
             let mut y = first + lh - 6.0;
             while y < py + ph - 30.0 {

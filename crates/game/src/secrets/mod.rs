@@ -9,6 +9,18 @@
 //! (`SECRET_SALT`), never `rnd()`; which things lie on which floors is the
 //! run's, from its seed alone (`run_things`). What was taken (a retry, a
 //! Continue) is fitted afterwards (`fit_secrets`), as her page is.
+//!
+//! Attribution (CC BY-SA 3.0 / CC BY-SA; the full list in `docs/LORE.md`,
+//! *Attribution and licensing*): SCP-330 by Dr Kondraki and "Please Take
+//! Just One" by Umbrello (the dish), the first SCP-1162 (author unknown;
+//! the hole), SCP-268 by Pair Of Ducks (the cap), SCP-1916 by Smapti,
+//! SCP-714 by Arcalane, SCP-832 by Inglonias; the Backrooms wikis' Moth Jelly
+//! (KingofGarbage), Liquid Silence (Atom_Rutherford), Cashew Water
+//! (yoyoflux, Positive123; Taangeerine), Liquid Pain (ReyDay), Royal Rations
+//! (Sariastuff, zakkun_); the Samosbor wiki's food concentrate
+//! (ProfessorSacred); "The Midnight Game" (author unknown). Public domain:
+//! Carroll's *Alice*, Persephone, Izanami, Rossetti's *Goblin Market*, folk
+//! custom. The things, their places and what each does are this game's own.
 pub mod dress;
 pub mod keeps;
 pub mod places;
@@ -161,16 +173,16 @@ impl Thing {
         match self {
             Thing::PaleMushrooms => (4, 13, 2),
             Thing::BrownMushrooms => (6, 13, 2),
-            Thing::Sweets => (4, 13, 2),
+            Thing::Sweets => (5, 13, 2),
             Thing::Seeds => (5, 13, 1),
             Thing::Bag => (1, 13, 1),
             Thing::Salt => (1, 6, 1),
-            Thing::Jelly => (4, 13, 1),
+            Thing::Jelly => (5, 13, 1),
             Thing::Ration => (1, 3, 1),
-            Thing::Medicine => (4, 13, 1),
+            Thing::Medicine => (5, 13, 1),
             Thing::Cap => (5, 13, 1),
             Thing::Coin => (1, 13, 1),
-            Thing::YellowWater => (4, 13, 1),
+            Thing::YellowWater => (5, 13, 1),
             Thing::Envelope => (5, 13, 1),
             _ => (1, i32::MAX, 0),
         }
@@ -203,7 +215,8 @@ pub fn run_things(run_seed: u32, level: i32) -> (Vec<Thing>, bool) {
     let ordinary = |n: i32| !whole_floor_anomaly(crate::level::scp::scp_for_level(run_seed, n));
     if level > RUN_FLOORS {
         let mut r = SplitMix64::new(run_seed, RUN_SALT ^ (level as u64).wrapping_mul(0x9E37_79B9));
-        let things: Vec<Thing> = SPECIAL.iter().copied().filter(|t| t.floors().0 >= 4).collect();
+        // (not what only the Building's floors hold: the ration, the salt in its cells)
+        let things: Vec<Thing> = SPECIAL.iter().copied().filter(|t| t.floors().1 > 6).collect();
         let one = (r.next() < 0.6).then(|| things[((r.next() * things.len() as f64) as usize).min(things.len() - 1)]);
         let hole = r.next() < 0.25;
         return (one.into_iter().collect(), hole);
@@ -212,7 +225,8 @@ pub fn run_things(run_seed: u32, level: i32) -> (Vec<Thing>, bool) {
     let mut on: Vec<Vec<Thing>> = vec![vec![]; RUN_FLOORS as usize + 1];
     for t in SPECIAL {
         let (lo, hi, n) = t.floors();
-        let mut pool: Vec<i32> = (lo..=hi.min(RUN_FLOORS)).filter(|&l| ordinary(l)).collect();
+        // (on the Lobby only what grows there: its emptiness is the point)
+        let mut pool: Vec<i32> = (lo..=hi.min(RUN_FLOORS)).filter(|&l| ordinary(l) && (l != 4 || t == Thing::PaleMushrooms)).collect();
         for _ in 0..n {
             // the least crowded floors first, among them by the stream
             let fewest = pool.iter().map(|&l| on[l as usize].len()).min().unwrap_or(2);
@@ -253,7 +267,7 @@ pub struct SecretPlan {
     pub normal: (f64, f64),
     /// The cabinet and drawer it is under (`Drawer`)
     pub drawer: Option<(usize, usize)>,
-    /// The chalk sign near it (x, z, y, normal), if it is signed, and
+    /// The scratched sign near it (x, z, y, normal), if it is signed, and
     /// whether the sign is crossed out (opened, nothing left)
     pub sign: Option<(f64, f64, f64, (f64, f64))>,
     pub crossed: bool,
@@ -268,7 +282,7 @@ pub struct Secret {
     pub opened: bool,
     /// What was in it is gone (taken, eaten, or there was nothing)
     pub emptied: bool,
-    /// How many times it was used (the bowl's sweets)
+    /// How many times it was used (the dish's sweets)
     pub uses: u32,
     /// What it is made of (the place, the thing in it, its sign)
     pub place: Option<Obj>,
@@ -335,10 +349,11 @@ impl Game {
         let mut r = SplitMix64::new(self.current_seed, SECRET_SALT);
         let (things, hole) = run_things(self.run_seed, self.level_num);
         // how many places this floor has: two or three on the Building's,
-        // none or one on the Lobby, two to four below
+        // on the Lobby only what grows there, two to four below
         let n = match self.level_num {
             ..=3 => 2 + (r.next() < 0.5) as usize,
-            4 => (r.next() < 0.5) as usize,
+            // the Lobby holds only what grows there (its emptiness is the point)
+            4 => 0,
             _ => 2 + (r.next() * 3.0) as usize,
         }
         .max(things.len() + hole as usize);
@@ -363,10 +378,10 @@ impl Game {
         }
         while wants.len() < n {
             let u = r.next();
+            // (no coin: you carry one at a time, from the machines' coin returns)
             let t = match u {
-                u if u < 0.3 => Thing::Almond,
-                u if u < 0.55 => Thing::Battery,
-                u if u < 0.7 => Thing::Penny,
+                u if u < 0.35 => Thing::Almond,
+                u if u < 0.65 => Thing::Battery,
                 u if u < 0.8 => Thing::Paper,
                 _ => Thing::Nothing,
             };

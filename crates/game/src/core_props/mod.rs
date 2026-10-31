@@ -1046,8 +1046,8 @@ impl Game {
             g.show_msg(l, 2.8);
         } else if roll < 0.75 {
             // Exit hint — the place shows the way (`update_hud` calls `show_the_way`).
-            if g.exit_data.is_some() {
-                let until = g.perf_t + 8.0; // 8s of arrow highlight
+            if let Some(answer) = g.way_answer_here() {
+                let until = g.perf_t + 8.0; // (the hint is answered within this while)
                 if let Some(p) = g.phone_data.as_mut() {
                     p.f.insert("hintUntil".into(), until);
                 }
@@ -1057,13 +1057,14 @@ impl Game {
                     g.blip(320.0, 0.30, "sine", 0.10, None, 0.0, 0.0);
                 }
                 // it says only where to look; the place shows the rest
-                let line = match g.way_answer_here() {
-                    Some(WayAnswer::Lights) => "\"...watch the lights.\"",
-                    _ => "\"...it walked this way. it is still wet.\"",
+                let line = match answer {
+                    WayAnswer::Lights => "\"...the lights know the way.\"",
+                    WayAnswer::Prints => "\"...look at the floor.\"",
+                    WayAnswer::Call => "\"...listen for the door.\"",
                 };
                 g.show_msg(line, 2.5);
             } else {
-                // No exit yet — fall back to whisper hint.
+                // No way to the door from here — fall back to whisper hint.
                 g.sfx_whisper();
                 g.player.sanity = clamp(g.player.sanity - 8.0, 0.0, SAN_MAX);
                 g.show_msg("\"...you are not looking hard enough.\"", 2.5);

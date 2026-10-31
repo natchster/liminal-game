@@ -1,6 +1,6 @@
 //! Her marks (`docs/SECRETS.md` 1): what M. left to find her way by. She
-//! ran short of paper as she went down and marked the way with what she
-//! had: a folded sheet, three bits stacked with a third the way she went,
+//! spared her paper as she went down (she wrote on it) and marked the way
+//! with what she had: a folded sheet, three bits stacked with a third the way she went,
 //! her arrow in pencil on a wall, two strokes before a turn, a torn corner,
 //! a chalk stroke low on a wall, reflective tape in the dark. One hand runs
 //! through all of them (her arrow open, its left barb the longer); the
@@ -100,7 +100,7 @@ impl MarkKind {
     }
 }
 
-/// How many of her marks on a level are sheets (she ran short of paper as
+/// How many of her marks on a level are sheets (she spared her paper as
 /// she went down)
 pub fn sheet_share(level: i32) -> f64 {
     match level {

@@ -403,21 +403,24 @@ impl Game {
 
     /// How the place would answer a cry here: the lights along the way where
     /// at least three lit panels hang over it (and the last answer was not
-    /// the lights, if prints could do), else wet footprints. None without a
-    /// way to the door.
+    /// the lights), else wet footprints (on the Building's floors, where
+    /// nothing walks, the door's own call). None without a way to the door.
     pub fn way_answer_here(&self) -> Option<WayAnswer> {
         let path = self.way_to_the_door();
         if path.len() < 2 {
             return None;
         }
         let lights = self.way_lights(&path).len() >= 3;
-        Some(if lights && self.last_way != Some(WayAnswer::Lights) { WayAnswer::Lights } else { WayAnswer::Prints })
+        // on the Building's floors nothing walks: no prints there, the door calls
+        let walked = if self.ground.is_empty() { WayAnswer::Prints } else { WayAnswer::Call };
+        Some(if lights && self.last_way != Some(WayAnswer::Lights) { WayAnswer::Lights } else { walked })
     }
 
     /// The place shows the way to the door (a cry heard, the payphone's
-    /// hint), never by a sign and not always the same way: the lit panels
+    /// hint), never by a marker put there for you, and not always the same way: the lit panels
     /// over the way stutter one after another away from you toward it (each
-    /// relay ticking where it hangs), or wet bare footprints appear on the
+    /// relay ticking where it hangs), or (on the Building's floors, where
+    /// nothing walks) the door calls at once, louder, or wet bare footprints appear on the
     /// floor ahead, a pace apart, walking toward it, and dry away. No line
     /// and no chime; the rooms darken a little while it lasts. Returns how
     /// it answered.
@@ -451,6 +454,7 @@ impl Game {
                     });
                 }
             }
+            WayAnswer::Call => self.exit_call_now(),
             WayAnswer::Prints => {
                 // along the way: from where you stand through the middle of each tile
                 let mut pts: Vec<(f64, f64)> = vec![(self.player.pos.x, self.player.pos.z)];

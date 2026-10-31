@@ -296,7 +296,8 @@ impl Game {
     }
 
     /// LORE NOTES: 2–4 per level (plus the level's anomaly notes first), each
-    /// an unread id when possible, with a wall clue (arrow / READ check).
+    /// an unread id when possible, lying as paper lies (no glow, no mark on
+    /// the wall: `docs/SECRETS.md` 3).
     fn tail_lore_notes(&mut self, cx: &mut PropsCtx) {
         let n = s_lore_count(self);
         let has_scp = |g: &Game, i: usize| s_lore_scp(g, i).map(|s| !s.is_empty()).unwrap_or(false);

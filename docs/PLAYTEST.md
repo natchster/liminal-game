@@ -151,6 +151,28 @@ met):
 - Did you see one that was dead? Did you go close? What happened?
 - Did anything about it make you uneasy? When?
 
+Her marks, the place's answers, what is put away (`docs/SECRETS.md`; ask
+until a round has answered them, and never name a mark's kind, a hiding
+place, the scratched circle or a thing's effect first; ask the effect
+questions only of a player who took something):
+
+- How did you find your way down? What did you follow? When did you first
+  notice a mark that was not a sheet of paper? Whose did you think it was?
+- Did the marks ever disappear on you? What did you do then? Were they too
+  faint to follow, or right (found by looking)?
+- Did you cry out? What happened? Did you understand what the place was
+  showing you, and did you follow it?
+- Did you find anything put away? How (you saw something odd, a scratched
+  mark on a wall, or by chance)? Did you start searching every ceiling
+  tile and vent? (If yes: the tell is too weak or the reward too strong.)
+- Did you eat, drink or put on anything you found? Why, or why not? Did
+  you go back to the notebook's last page afterwards?
+- After you took something, did anything about you change? What, and
+  when did you notice? What do you think caused it? Would you take one
+  like it again?
+- The hole in the wall: did you reach in? Twice? What did you think it
+  wanted?
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.

@@ -1,7 +1,7 @@
 //! What is put away (`docs/SECRETS.md` 5): each a small, ordinary thing,
 //! made as it is, its bottom at y = 0, centred, its front toward +z. Its
 //! look says nothing of what it does; only what a real one carries is
-//! printed on it (a card by a bowl, a sachet's word).
+//! printed on it (a card by a dish, a sachet's word).
 use super::Thing;
 use crate::prelude::*;
 
@@ -17,7 +17,7 @@ impl Game {
         match t {
             Thing::PaleMushrooms => mushrooms(false, seed),
             Thing::BrownMushrooms => mushrooms(true, seed),
-            Thing::Sweets => sweets_bowl(seed),
+            Thing::Sweets => sweets_dish(seed),
             Thing::Seeds => seeds_saucer(seed),
             Thing::Bag => cloth_bag(),
             Thing::Salt => salt_sachet(),
@@ -69,20 +69,20 @@ fn mushrooms(brown: bool, seed: f64) -> Obj {
     g
 }
 
-/// A shallow glass bowl of boiled sweets each in a twist of cellophane,
-/// and a tent card beside it in a hand: PLEASE TAKE ONE
-fn sweets_bowl(seed: f64) -> Obj {
+/// A white dish of boiled sweets, each in a twist of cellophane, and a
+/// tent card beside it in a hand: please take one
+fn sweets_dish(seed: f64) -> Obj {
     let g = group();
     // a plain white dish, crazed with age
     let dish = lambert!({ color: 0xd6d0c2 });
-    let bowl = mesh(
+    let dish = mesh(
         pg(
             "CeramicBowls__bowl",
             lathe(&[(0.0, 0.0), (0.045, 0.0), (0.075, 0.03), (0.088, 0.055), (0.084, 0.056), (0.07, 0.032), (0.0, 0.006)], 20.0),
         ),
         &dish,
     );
-    g.add(&bowl);
+    g.add(&dish);
     let colours = [0x8a1c1c, 0xc9a227, 0x2c6a3a, 0x8a1c1c, 0xd8d0c0, 0x6a2a6a, 0xc9a227];
     for k in 0..9 {
         let a = k as f64 * 2.4 + seed;
@@ -130,7 +130,7 @@ fn sweet(color: u32) -> Obj {
 }
 
 /// A saucer, and on it a twist of paper opened out on a few red seeds,
-/// wet, like a pomegranate's
+/// a pomegranate's
 fn seeds_saucer(seed: f64) -> Obj {
     let g = group();
     let saucer = mesh(
@@ -224,27 +224,32 @@ fn jelly_jar() -> Obj {
     g
 }
 
-/// A ration briquette in brown wrapping paper, its printing in Russian
-/// (food concentrate, its weight)
+/// A ration of concentrate as the Building gives it out: a grey
+/// briquette in a paper wrapper printed as its coupon is (ONE PORTION.
+/// CONCENTRATE, GREY.)
 fn ration() -> Obj {
     let tex = canvas_tex_opt(128, 64, false, |ctx, w, h| {
-        ctx.set_fill_style("#8a6e4c");
+        ctx.set_fill_style("#b9b4a6");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..160 {
-            ctx.set_fill_style(format!("rgba(40,28,16,{:.3})", 0.05 + rnd() * 0.1));
+            ctx.set_fill_style(format!("rgba(60,58,52,{:.3})", 0.05 + rnd() * 0.1));
             ctx.fill_rect(rnd() * w, rnd() * h, 2.0, 1.0);
         }
-        ctx.set_fill_style("rgba(30,24,20,0.8)");
+        ctx.set_fill_style("rgba(30,30,28,0.8)");
         ctx.set_font("bold 13px sans-serif");
         ctx.set_text_align("center");
-        ctx.fill_text("КОНЦЕНТРАТ", w / 2.0, h * 0.42);
+        ctx.fill_text("ONE PORTION", w / 2.0, h * 0.42);
         ctx.set_font("11px sans-serif");
-        ctx.fill_text("ПИЩЕВОЙ  300 г", w / 2.0, h * 0.72);
+        ctx.fill_text("CONCENTRATE, GREY", w / 2.0, h * 0.72);
     });
     let g = group();
     let b = mesh(box_geo!(0.11, 0.03, 0.06), lambert!({ map: tex }));
     b.position().y = 0.015;
     g.add(&b);
+    // a corner of the wrapper torn back on the grey of it
+    let c = mesh(box_geo!(0.03, 0.031, 0.02), lambert!({ color: 0x77756e }));
+    c.position().set(0.045, 0.0155, 0.022);
+    g.add(&c);
     g
 }
 

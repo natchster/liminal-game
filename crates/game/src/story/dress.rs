@@ -1,8 +1,8 @@
 //! What M. left: her camp (a bedroll against a wall, her pack, her lamp
-//! still burning, empty bottles, a count of days scratched on the wall, and
+//! still burning, empty bottles, a count of days in chalk on the wall, and
 //! what she could spare: a bottle of almond water, a battery deeper down)
 //! and her marks (`marks`): her sheets folded twice, and what she marked
-//! the way with when paper ran short.
+//! the way with as she spared her paper.
 //!
 //! Everything here draws from the story layer's own stream, passed in; the
 //! textures are painted on the native stream (`canvas_tex_opt`).

@@ -297,11 +297,11 @@ impl Game {
         if self.notebook.is_empty() {
             ids.clear();
         }
-        // what you took (`secrets`), after her pages: the act, never the effect
+        ids.extend(self.lore_found.iter().map(|&i| i as JournalId));
+        // what you took (`secrets`), last, in your hand: the act, never the effect
         if !self.took.is_empty() {
             ids.push(-4);
         }
-        ids.extend(self.lore_found.iter().map(|&i| i as JournalId));
         if ids.is_empty() {
             return ids;
         }

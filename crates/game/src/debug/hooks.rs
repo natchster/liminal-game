@@ -205,6 +205,48 @@ impl Game {
         out
     }
 
+    /// Camera poses along her walk (x, z, yaw): every eighth step from the
+    /// fifth, at most `n`, in the middle of its tile looking two tiles on.
+    /// The walk is planned before her marks, so the same poses serve a
+    /// build before and after a change to them (`--views-at`).
+    pub fn walk_views(&self, n: usize) -> Vec<(f64, f64, f64)> {
+        let w = &self.story.walk;
+        (5..w.len().saturating_sub(2))
+            .step_by(8)
+            .take(n)
+            .map(|k| {
+                let (a, b) = (w[k], w[k + 2]);
+                let (x, z) = (self.wx(a.0), self.wz(a.1));
+                (x, z, (-(self.wx(b.0) - x)).atan2(-(self.wz(b.1) - z)))
+            })
+            .collect()
+    }
+
+    /// Camera poses facing each hiding place from 3 m off it (x, z, yaw),
+    /// for frames of the same spot with and without it (`--views-at`)
+    pub fn secret_poses(&self) -> Vec<(f64, f64, f64)> {
+        let mut out = vec![];
+        for s in &self.secrets.list {
+            let p = &s.plan;
+            let (tx, tz) = (self.wx(p.tile.0), self.wz(p.tile.1));
+            let (ox, oz) = if p.normal != (0.0, 0.0) {
+                p.normal
+            } else {
+                let (dx, dz) = (tx - p.x, tz - p.z);
+                let l = dx.hypot(dz).max(1e-6);
+                (dx / l, dz / l)
+            };
+            let at = [3.0, 2.4, 1.8]
+                .into_iter()
+                .map(|d| (p.x + ox * d, p.z + oz * d))
+                .find(|&(x, z)| !self.circle_hits_wall(x, z, 0.3) && self.los(x, z, p.x + ox * 0.3, p.z + oz * 0.3));
+            if let Some((x, z)) = at {
+                out.push((x, z, (-(p.x - x)).atan2(-(p.z - z))));
+            }
+        }
+        out
+    }
+
     /// Camera poses on the partitions that lean (`world::angled`), the
     /// steepest first (at most `n`): out in the room beside one, level with
     /// its free half, looking back at it and what it turns about, so its

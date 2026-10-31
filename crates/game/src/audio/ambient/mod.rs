@@ -974,6 +974,18 @@ impl Game {
         self.log_ambient("exit-call", Some(x), Some(z), Some(pan));
     }
 
+    /// The place's answer to a cry on the Building's floors (`show_the_way`):
+    /// the door calls at once, louder and heard further than its own call,
+    /// and its own waits a full while after
+    pub fn exit_call_now(&mut self) {
+        let Some((p, n)) = self.exit_data.as_ref().map(|e| (e.pos, e.normal)) else { return };
+        let (x, z) = (p.x - n.x * 0.8, p.z - n.z * 0.8);
+        let y = p.y - EYE + 1.2;
+        self.exit_call_t = EXIT_CALL_PERIOD;
+        let pan = self.play_from(x, y, z, EXIT_REF_DIST * 2.0, EXIT_GAIN * 1.4, EXIT_OCCLUDE * 0.7, |g| g.sfx_exit_call());
+        self.log_ambient("exit-call-answer", Some(x), Some(z), Some(pan));
+    }
+
     /// Sanity-crossing chimes and flashes, the
     /// critical-sanity heartbeat, whispers and hallucinated silhouettes
     pub fn update_sanity_effects(&mut self, dt: f64) {

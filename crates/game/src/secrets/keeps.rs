@@ -100,24 +100,26 @@ pub fn body_of(took: &[Took]) -> Body {
     b.eye = s * SIZE_EYE;
     b.crouch_eye = s * SIZE_CROUCH_EYE;
     b.pace = 1.0 + 0.04 * s;
+    // (each system moves two steps at most, a step being the smallest a
+    // thing moves it: what several things do together is held there)
     // your steps: size, and the jelly
-    b.steps = (1.0 + 0.12 * s) * (1.0 - 0.15 * steps2(n(Thing::Jelly.id())));
-    // nerve: the sweets (two at most count), the medicine; a third sweet
-    // from one bowl is its price
-    b.nerve = 1.0 + 0.1 * steps2(n(Thing::Sweets.id())) + 0.2 * steps2(n(Thing::Medicine.id())).min(1.0);
+    b.steps = ((1.0 + 0.12 * s) * (1.0 - 0.15 * steps2(n(Thing::Jelly.id())))).clamp(0.76, 1.24);
+    // nerve: the sweets, the medicine (a third sweet from one dish is its price)
+    b.nerve = (1.0 + 0.1 * steps2(n(Thing::Sweets.id())) + 0.2 * steps2(n(Thing::Medicine.id()))).min(1.2);
     b.wind = 1.0 - 0.1 * steps2(n(Thing::Medicine.id()));
     // stamina: the ration's ceiling, the hole's price
-    b.stam_max = crate::prelude::STAM_MAX + 12.0 * steps2(n(Thing::Ration.id())).min(1.0) - 15.0 * steps2(n("hole_took"));
+    b.stam_max =
+        (crate::prelude::STAM_MAX + 12.0 * steps2(n(Thing::Ration.id())).min(1.0) - 15.0 * steps2(n("hole_took"))).clamp(85.0, 112.0);
     b.drink = 1.0 - 0.2 * steps2(n(Thing::Ration.id()));
     // the dark: the bag, the seeds
     let bag = n(Thing::Bag.id()) > 0;
     let seeds = steps2(n(Thing::Seeds.id()));
-    b.dark = if bag { 0.75 } else { 1.0 } * (1.0 - 0.2 * seeds).max(0.6);
+    b.dark = (if bag { 0.75 } else { 1.0 } * (1.0 - 0.2 * seeds)).max(0.6);
     b.dark_floor = crate::player::DARK_FLOOR + if bag { 5.0 } else { 0.0 };
     b.touch = 1.0 - 0.2 * steps2(n(Thing::Salt.id()));
     // a Smiler and your lamp: the seeds, a third sweet's shaking hands
     b.shake = n("third_sweet") > 0;
-    b.lamp_seen = (1.0 - 0.15 * seeds) * if b.shake { 1.2 } else { 1.0 };
+    b.lamp_seen = ((1.0 - 0.15 * seeds) * if b.shake { 1.2 } else { 1.0 }).clamp(0.7, 1.2);
     b.door = 1.0 - 0.2 * seeds;
     b.look = 1.0 + 0.25 * steps2(n(Thing::Envelope.id()));
     // a Hound and you standing still: the cap, the yellow water
@@ -153,13 +155,13 @@ pub fn thing_words(t: Thing) -> &'static str {
     match t {
         Thing::PaleMushrooms => "Pale mushrooms",
         Thing::BrownMushrooms => "Brown mushrooms",
-        Thing::Sweets => "A sweet from a bowl",
+        Thing::Sweets => "A sweet from a dish",
         Thing::Seeds => "Red seeds on a saucer",
         Thing::Bag => "A cloth bag on a cord, sewn shut",
         Thing::Salt => "A sachet of salt",
         Thing::Jelly => "A jar of blue jelly",
-        Thing::Ration => "A briquette in brown paper",
-        Thing::Medicine => "A brown medicine bottle",
+        Thing::Ration => "A ration of grey concentrate",
+        Thing::Medicine => "A small amber medicine bottle",
         Thing::Cap => "A tweed cap",
         Thing::Coin => "A coin with a hole, on a string",
         Thing::YellowWater => "An almond water, yellowish, its seal broken",

@@ -58,7 +58,7 @@ pub struct AudioSys {
 }
 
 /// The keys of the sfx table, in declaration order.
-pub const SFX_NAMES: [&str; 31] = [
+pub const SFX_NAMES: [&str; 30] = [
     "step",
     "pickup",
     "door",
@@ -84,7 +84,6 @@ pub const SFX_NAMES: [&str; 31] = [
     "cry",
     "relay",
     "wetStep",
-    "heartbeat",
     "splash",
     "piano",
     "dripHeavy",
@@ -704,14 +703,6 @@ impl Game {
             _ => self.noise_burst(0.18, 2600.0, 1.0, 0.035, "bandpass", None, 0.0, 0.0),
         }
     }
-    /// Your own heart, twice, heard in your ears (the body's, not the
-    /// place's: a thing you took coming over you)
-    pub fn sfx_heartbeat(&self) {
-        for (k, g) in [(0.0, 0.16), (0.3, 0.11)] {
-            self.blip(58.0, 0.14, "sine", g, Some(42.0), k, 0.0);
-            self.noise_burst(0.06, 120.0, 0.7, g * 0.4, "lowpass", None, k, 0.0);
-        }
-    }
     /// A wet bare foot set down: a soft slap and the water's squelch
     /// (`show_the_way`'s prints; play it where the print is)
     pub fn sfx_wet_step(&self) {
@@ -785,7 +776,6 @@ impl Game {
             "cry" => self.sfx_cry(),
             "relay" => self.sfx_relay(),
             "wetStep" | "wet_step" => self.sfx_wet_step(),
-            "heartbeat" => self.sfx_heartbeat(),
             "splash" => self.sfx_splash(false),
             "piano" => self.sfx_piano(),
             "dripHeavy" | "drip_heavy" => self.sfx_drip_heavy(),

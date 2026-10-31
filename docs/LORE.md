@@ -19,7 +19,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
-| Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns, and what is put away); and a few things put away off the way, signed now and then in chalk, whose effect stays with you and is never said (*What is put away*) |
+| Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
 | Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
@@ -48,8 +48,15 @@ these channels, and the `lore-keeper` reviewer checks it:
   (`story/notebook.rs`), which hints as a survivor would and never explains.
   The last line of the last page you took stays at the top of the screen
   (the *thread*): a line she wrote, never an instruction.
-- **Your own page**: the notebook's page of what you took (*What is put
-  away*), in your hand: what and where and the floor, never what it did.
+- **Your own page**: the notebook's page after the torn notes, of what you
+  took (*What is put away*), in your hand (a ballpoint's blue on plain,
+  whiter paper, never her pencil on ruled): what and where and the floor,
+  never what it did.
+- **What you take**: one line as you take a thing put away (or reach into
+  the hole): what it is and its taste or feel, never what it does, never
+  why.
+- **The payphone**: a voice on a ringing line, a few words: a whisper, where
+  to look, or worse; never why.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
 
@@ -120,11 +127,14 @@ region (the light carries down a dark hall), and it **calls**, every nine
 seconds or so: air drawn under the door and the sign's relay ticking,
 heard from a few rooms away and muffled by walls. In a hush it goes quiet
 with everything else. The Loop's ordinary office door has neither. Crying
-out for help may still be answered by the place, never by a sign: the lit
+out for help may still be answered by the place, never by a marker put
+there for you: the lit
 panels over the way to the door stutter one after another away from you
 toward it, or wet bare footprints, nobody's, walk ahead of you toward it a
-pace apart and dry away (or something else answers). A payphone may say
-where to look, and the place shows the rest.
+pace apart and dry away (on the Building's floors, where nothing walks,
+the door calls at once instead, louder than its own call); or something
+else answers. A payphone may say where to look, and the place shows the
+rest.
 
 Deeper levels rot: more of the floor is grimy, more regions are dark, the fog
 is thicker and the hum wanders off pitch. The Lobby leaks into every level of
@@ -244,11 +254,12 @@ Someone came this way before you, and you can follow her down.
   pages let you work it out.
 - **Her trail.** From where you arrive, her marks lie along the way she
   walked: to her camp, then on to the door. At first they are sheets of
-  paper folded twice, each with a small pencil arrow; she runs short of
-  paper as she goes down, and marks the way with what she has: three bits
-  of whatever lies there, stacked, the third set beside them the way she
-  went (concrete chips on the Building's decks, bits of ceiling tile,
-  bottle caps); her arrow in pencil on a wall at hip height (from the
+  paper folded twice, each with a small pencil arrow; she spares her paper
+  as she goes down (she writes on it), and marks the way with what she
+  has: three bits of whatever lies there, stacked, the third set beside
+  them the way she went (concrete chips on the Building's open decks,
+  where a sheet would blow off into the void; bits of ceiling tile, bottle
+  caps below); her arrow in pencil on a wall at hip height (from the
   second floor); two short strokes on the wall where her way turns, the
   upper set toward the turn (from the third); a corner torn off a sheet,
   its tip on, and a chalk stroke low on a wall, leaning on (from the
@@ -277,7 +288,7 @@ Someone came this way before you, and you can follow her down.
   wall (on the Building's floors, in a cell): a bedroll with a blanket
   thrown over it, her pack, a candle lantern
   still burning (it lights its corner), empty
-  bottles, a count of days scratched on the wall, and what she could spare:
+  bottles, a count of days in chalk on the wall, and what she could spare:
   almond water, and from level 3 a battery.
 - **Her notebook.** At each camp lies one page torn from it, for that floor:
   thirteen in all. Eight follow her down the ordinary floors in turn: the
@@ -675,9 +686,10 @@ plaque that says STAIRS. Behind it:
 
 ## What is put away
 
-On every floor a few places off the way (two to four; on the Lobby one at
-most, its emptiness is the point; none in the Showroom or the Borrowed
-House) hold something somebody put there (`docs/SECRETS.md` 4–5). They are never on
+On every floor a few places off the way (two or three on the Building's,
+two to four below; on the Lobby nothing but what grows there, its
+emptiness is the point; none in the Showroom or the Borrowed House, nor in
+the Stairwell or the Loop themselves) hold something somebody put there (`docs/SECRETS.md` 4–5). They are never on
 her way, nor where the flat sheets go, nor in the one in the corner's
 corner; they are found by looking where a real building hides things,
 and each has the same tell all run:
@@ -696,19 +708,25 @@ and each has the same tell all run:
   little plaster under it on the floor: REACH IN. It gives back what you
   last used up (another bottle like the one you drank, another battery
   like the one you changed) and takes one thing you carry. With nothing
-  on you, something touches your wrist, and it takes from you instead.
-  Once a hole; three on the first descent.
+  on you, something touches your wrist, and it takes from you instead
+  (once: after that it has nothing more to take, but you feel it all the
+  same). Once a hole; three on the first descent (never on its first floor
+  nor the Lobby).
 - **Lying where nobody would leave it**: the end of a dead end, a wet
   corner, the floor of a corridor, a small table against a wall in an
   empty room, a coat hook in an office wing.
 
-Most hold what any floor holds (almond water, a battery, a coin, a few
-sheets of paper) or nothing but dust. One or two a floor hold one of
-the things below, which floors is the run's. Some are signed, by a hand
-that is neither hers nor the flat sheets' maker's: a small chalk circle
-with a stroke through it, at shoulder height on a wall near the place,
-never on it and never pointing: *something is put away near here*. The
-same circle crossed out means *taken*. On the first floor, where a place
+Most hold what any floor holds (almond water, a battery, a few sheets of
+paper) or nothing but dust (never a coin: you carry one at a time, from
+the machines). One or two a floor hold one of
+the things below, which floors is the run's (on the first descent; below
+the last camp one on about three floors in five, and a hole one floor in
+four, but never the Building's ration or its salt). Some are signed, by a
+hand that is neither hers nor the flat sheets' maker's: a small circle
+with a point in it, scratched into the paint or the concrete with a key's
+point, at shoulder height on a wall near the place, never on it and never
+pointing: *something is put away near here*. The same circle scored
+through with an X means *taken*. On the first floor, where a place
 there has a wall to sign, one is found already opened and empty, its
 sign crossed out. Who draws them is never said.
 
@@ -717,17 +735,17 @@ carries is printed on it):
 
 | Thing | Where | Taken |
 |---|---|---|
-| Pale mushrooms, half again a field mushroom's size, in the wet carpet | A wet corner (the Lobby's floors, the Poolrooms, an overgrown atrium, washrooms) | Eaten: cold, and earthy |
+| Pale mushrooms, half again a field mushroom's size, in the wet carpet | A wet corner (the Lobby's floors, the Poolrooms, an overgrown atrium, washrooms) | Eaten: soft, like bread |
 | Brown mushrooms | The same wet corners, from the sixth floor | Eaten: dry, and bitter |
 | A white dish of boiled sweets in twists of cellophane, a tent card in a hand: *please take one* | A small table in an empty office, lobby or hall | One at a time; the dish gives three |
-| A twist of paper with a few red seeds, on a saucer | The end of a dead end | Eaten: sharp, sweet, and cold |
-| A small cloth bag on a cord, sewn shut | Behind a radiator, in a cell, behind a vent, under a drawer | Put on: it smells of earth |
+| A twist of paper with a few red seeds, on a saucer | The end of a dead end | Eaten: sharp, and sweet |
+| A small cloth bag on a cord, sewn shut | Behind a radiator, in a cell, behind a vent, under a drawer | Put on: it smells of someone else |
 | A paper sachet of salt (SALT on it) | A cell with salt by its door; a drawer | Pocketed |
 | A small jar of blue jelly, no label | Above a ceiling tile | Eaten: it tastes of nothing at all |
-| A briquette in brown paper (КОНЦЕНТРАТ ПИЩЕВОЙ, 300 г) | A cell, behind a radiator: the Building's floors | Eaten: salt and cardboard |
-| A small amber medicine bottle, its label soaked off | Behind a vent, under a drawer, above a tile | Drunk: bitter, then warm |
+| A ration of grey concentrate in a paper wrapper printed as the Building's coupon is (ONE PORTION. CONCENTRATE, GREY) | A cell, behind a radiator: the Building's floors | Eaten: floury, and it crumbles |
+| A small amber medicine bottle, its label soaked off | Behind a vent, under a drawer, above a tile | Drunk: syrup, then warm |
 | A tweed cap | On a coat hook in an office wing | Put on: it fits |
-| A foreign coin with a hole through it, on a loop of string | Behind a radiator or a vent, under a drawer | Put on: cold against your chest |
+| A foreign coin with a hole through it, on a loop of string | Behind a radiator or a vent, under a drawer | Put on: it taps against your chest |
 | An almond water, faintly yellow, its seal broken | Under a drawer, on a table, in a corner | Drunk: it tastes of cashews (and it is almond water too) |
 | A red envelope with a lock of dark hair caught at its flap | The floor of a corridor | Picked up: there is hair in it |
 
@@ -740,16 +758,17 @@ and the floor; never what it did.
 
 What a thing put away does stays with you for the rest of the run
 (`secrets/keeps.rs`), and nothing says it: not the thing, not a meter's
-words, not the notebook. Taking one is felt (your heart twice in your
-ears; a change of size comes over you in about three seconds), and then
-learned by what follows. Each moves one or two numbers the place already
+words, not the notebook. Taking one is felt only as what it is (its taste
+or its weight, the line as you take it; a change of size comes over you
+in about three seconds), and then learned by what follows. Each moves one or two numbers the place already
 has, a step at a time:
 
 - **Pale mushrooms**: you are smaller. Your eye is 7 cm lower (5 cm
   crouched), your steps carry 12% less far, you walk and run 4% slower.
   **Brown mushrooms**: larger, the other way. One of each and you are your
   own size again; two steps at most either way.
-- **A sweet from the dish**: nerve comes back 10% faster (two count). **A
+- **A sweet from the dish**: nerve comes back 10% faster (two count, and
+  with the medicine a fifth faster at most). **A
   third from one dish**: your hands shake for the rest of the run (the
   lamp's beam trembles), and a Smiler sees your lamp from a fifth further.
 - **The red seeds**: the place takes you a little for its own. The dark
@@ -774,11 +793,17 @@ has, a step at a time:
 - **The red envelope**: your look out of a window adds up a quarter
   faster, so the one behind the glass ticks and comes sooner.
 - **The hole in the wall**, reached into with nothing on you: your stamina
-  stops 15 short of where it did.
+  stops 15 short of where it did (once; a second hole has nothing more to
+  take).
 
-Each system moves two steps at most, and nothing taken lowers what the
-dark leaves you or raises what a touch takes (the creatures' fairness:
-`ENTITIES.md`); no thing kills. Leaving a thing where it is is always a
+Each system moves two steps at most, a step being the smallest change a
+thing makes to it (what several things do together stops there: your
+steps a quarter either way, nerve a fifth faster, the dark's drain at
+most two fifths slower, the stamina ceiling between 85 and 112, a
+Smiler's sight of your lamp between 0.7 and 1.2 of itself); nothing
+taken lowers what the dark leaves you or raises what a touch takes (the
+creatures' fairness: `ENTITIES.md`), a chase stays under your sprint as
+it is, and no thing kills. Leaving a thing where it is is always a
 fine choice.
 
 ## The vending machine
@@ -809,7 +834,8 @@ rules. What is true of it:
 - **It knows what you are looking at.** Close to its glass, its display shows
   the code of the coil your eyes are on, before you touch it. Otherwise it
   says HAVE A NICE DAY.
-- **Insert nothing, get coin.** A lit one's coin return, pressed with
+- **Insert nothing, get coin.** (Not for one who wears the holed coin on
+  a string: *Things that change you*.) A lit one's coin return, pressed with
   nothing in it, rings a coin down into the cup: once a machine, and only
   into empty pockets (you carry one coin at a time). The ring carries:
   what hears, near, hears it.
@@ -942,6 +968,39 @@ about them.
   "Don't look!" and a line it cannot cross. The raincoat, the track and
   its light are this game's own. `crates/game/src/entities/glass.rs` and
   `assets/src/creatures/body_glass.py` keep this attribution.
+- **What is put away** (`docs/SECRETS.md`) takes its rules from: the dish
+  of sweets, two free and the third costing, from **SCP-330** "Take Only
+  Two" by **Dr Kondraki** (<https://scp-wiki.wikidot.com/scp-330>) and the
+  Creepypasta Wiki's "Please Take Just One" by **Umbrello**
+  (<https://creepypasta.fandom.com/wiki/Please_Take_Just_One>); the hole in
+  the wall that gives back and takes from the first **SCP-1162** "A Hole in
+  the Wall" (author unknown; the Japanese branch's archive,
+  <http://scp-jp.wikidot.com/old:scp-1162>); the cap that has you overlooked
+  from **SCP-268** "Cap of Neglect" by **Pair Of Ducks**
+  (<https://scp-wiki.wikidot.com/scp-268>); a body changed by what it eats
+  from **SCP-1916** "Moon Rocks" by **Smapti**
+  (<https://scp-wiki.wikidot.com/scp-1916>); calm bought with slowness from
+  **SCP-714** "The Jaded Ring" by **Arcalane**
+  (<https://scp-wiki.wikidot.com/scp-714>); a coin that changes who keeps it
+  from **SCP-832** "Accountant's Coin" by **Inglonias**
+  (<https://scp-wiki.wikidot.com/scp-832>), all **CC BY-SA 3.0**; the blue
+  jelly that silences your steps from the Backrooms Fandom wiki's Moth
+  Jelly (Object 6, **KingofGarbage**, **CC BY-SA**) and Wikidot's Liquid
+  Silence (Object 17, **Atom_Rutherford**, **CC BY-SA 3.0**); the almond
+  water that is not, from Cashew Water (Wikidot Object 44, **yoyoflux**,
+  rewritten by **Positive123**; Fandom, **Taangeerine**) and Liquid Pain's
+  broken seal (Wikidot Object 48, **ReyDay**), **CC BY-SA**; the ration
+  from the Samosbor wiki's food concentrate (**ProfessorSacred**, **CC
+  BY-SA**) and Royal Rations (Wikidot Object 16, **Sariastuff**,
+  **zakkun_**, **CC BY-SA 3.0**); the salt from the Creepypasta Wiki's "The
+  Midnight Game" (author unknown, **CC BY-SA**) and the Japanese custom of
+  morijio; and, public domain, Lewis Carroll's *Alice's Adventures in
+  Wonderland* (1865: the bottle, the cake, the mushroom), Persephone's seeds
+  (the *Homeric Hymn to Demeter*), Izanami in the *Kojiki*, Christina
+  Rossetti's *Goblin Market* (1862), and folk custom (the omamori and the
+  ladanka sewn shut, the red envelope on the road, the coin worn and not
+  spent). The things, their places and what each does are this game's own.
+  `crates/game/src/secrets/` keeps this attribution.
 - **The Reader** takes its compulsion from folklore, public domain: the
   upyr (upiór) of East Slavic belief, kept busy by poppy seed scattered for
   it to gather, and Kuchisake-onna, the slit-mouthed woman of Japanese urban

@@ -36,7 +36,8 @@ impl Game {
         let now = (p.bottles, p.batteries, p.papers, self.lore_found.len(), self.thread.clone(), p.flashlight_on, p.coins);
         let glance = self.held(Act::Glance);
         let (stamina, sanity, battery, light) = (p.stamina, p.sanity, p.battery, p.flashlight_on);
-        let stam_max = self.body.stam_max;
+        // (full is your own ceiling, or the meter's end: past it the bar is full and hides)
+        let stam_max = self.body.stam_max.min(STAM_MAX);
         let r = &mut self.rest;
         // (the first frame of a run only learns where things stand)
         if r.seen.is_none() {

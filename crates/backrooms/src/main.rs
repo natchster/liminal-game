@@ -702,6 +702,10 @@ fn level_check(o: &Options, dir: &str) {
                 print!(" (vending views: \"{}\", {})", vend.join(";"), g.vending_states().join(" "));
                 let win: Vec<String> = g.window_views().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" (window views: \"{}\")", win.join(";"));
+                let walk: Vec<String> = g.walk_views(6).iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
+                print!(" (walk views: \"{}\")", walk.join(";"));
+                let sec: Vec<String> = g.secret_poses().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
+                print!(" (secret poses: \"{}\")", sec.join(";"));
             }
             if let Some(what) = o.vending_demo.as_deref() {
                 g.vending_demo(what);
