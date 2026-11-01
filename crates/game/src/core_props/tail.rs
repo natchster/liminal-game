@@ -247,33 +247,68 @@ impl Game {
         }
     }
 
-    /// A torn page on the floor, one corner curled up, a few lines of
-    /// writing on it: lit only as the floor is (no glow). A note that
+    /// A torn page on the floor, one corner curled up, typed: lit only as
+    /// the floor is (no glow). Its children: the sheet, the corner's pivot
+    /// (`turn_down_note`), the type (`ink_note`). A note that
     /// continues a story already begun is written in that story's ink
     /// (`ink_of` its colour), which only a near look tells.
     pub(crate) fn build_lore_note_mesh(&mut self, boosted: bool, arc_color: Option<u32>) -> Obj {
+        // a sheet of typewriter bond (Blender batch `r04`): US letter, folded
+        // in three and once more, its lower third torn away, its top right
+        // corner curled up (or, read, folded down over it: `turn_down_note`),
+        // typed in Courier; the sheet's frame: x across the page from its
+        // left edge, z down it from its head
+        use crate::assets::props::{prop_part_as_modelled, prop_part_info};
         let g = group();
-        // torn sheet at floor level
-        let sheet = mesh(pg("Props__loreNote_sheet", box_geo!(0.26, 0.006, 0.32)), &self.mats.paper);
-        sheet.position().y = 0.005;
-        g.add(&sheet);
-        // one corner curled up
-        let curl = mesh(pg("Props__loreNote_curl", box_geo!(0.10, 0.005, 0.10)), &self.mats.paper);
-        curl.set_pos(0.08, 0.03, 0.11);
-        curl.rotation().x = -0.5;
-        curl.rotation().z = 0.3;
-        g.add(&curl);
-        // its lines of writing
         let ink = match arc_color {
             Some(c) if boosted && c != 0 => ink_of(c),
             _ => INK,
         };
-        let ink_mat = lambert!({ color: ink });
-        for l in 0..4 {
-            let line = mesh(box_geo!(0.20, 0.001, 0.006), &ink_mat);
-            line.set_pos(0, 0.010, -0.10 + l as f64 * 0.06);
-            g.add(&line);
+        // the page in the note's frame: turned so the dog-ear's fold runs
+        // along x, the page's middle at the origin
+        let th = 1.25 * PI;
+        let (s, c) = th.sin_cos();
+        let turn = |x: f64, z: f64| (x * c + z * s, -x * s + z * c);
+        let (mx, mz) = (NOTE_W - NOTE_A / 2.0, NOTE_A / 2.0); // the fold's middle on the page
+        let (dx, dz) = turn(NOTE_W / 2.0 - mx, NOTE_MID - mz);
+        let (fx, fz) = (-dx, -dz); // ... in the note's frame
+        let (tx, tz) = turn(mx, mz);
+        let (sx, sz) = (fx - tx, fz - tz);
+        let sheet_geo = prop_part_as_modelled("Real__noteSheet").unwrap_or_else(|| {
+            let b = box_geo!(NOTE_W, 0.0003, 0.18);
+            b.translate(NOTE_W / 2.0, NOTE_BASE, 0.09);
+            b
+        });
+        // where the page lies in its texture (the part's bounds give its UVs)
+        let bounds =
+            prop_part_info("Real__noteSheet").map(|m| (m.fmin[0], m.fmax[0], m.fmin[2], m.fmax[2])).unwrap_or((0.0, NOTE_W, 0.0, 0.18));
+        let sheet = mesh(sheet_geo.clone(), lambert!({ map: &note_paper_tex(bounds) }));
+        sheet.rotation().y = th;
+        sheet.set_pos(sx, 0, sz);
+        g.add(&sheet);
+        // the corner (child 1): modelled folded down flat (`turn_down_note`
+        // puts its pivot at (0.08, 0.0115, 0.11), unturned); here lifted
+        // back along its fold, curled up off the floor
+        let pivot = group();
+        if let Some(geo) = prop_part_as_modelled("Real__noteCorner") {
+            let corner = mesh(geo, lambert!({ map: &note_corner_tex() }));
+            let (ox, oy, oz) = (fx - 0.08, NOTE_BASE + 0.0006 - 0.0115, fz - 0.11);
+            corner.set_pos(ox, oy, oz);
+            pivot.add(&corner);
+            let a = PI - NOTE_CURL;
+            let (sa, ca) = a.sin_cos();
+            pivot.set_pos(fx - ox, NOTE_BASE - (oy * ca - oz * sa), fz - (oy * sa + oz * ca));
+            pivot.rotation().x = a;
         }
+        g.add(&pivot);
+        // its type (child 2), in the note's ink: on the same sheet, drawn over it
+        let typed = mesh(
+            sheet_geo,
+            lambert!({ map: &note_type_tex(bounds), color: ink, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+        );
+        typed.rotation().y = th;
+        typed.set_pos(sx, 0, sz);
+        g.add(&typed);
         g
     }
 
@@ -287,11 +322,15 @@ impl Game {
         }
     }
 
-    /// A note's writing, in `color`'s ink
+    /// A note's writing, in `color`'s ink (its type keeps its print)
     pub(crate) fn ink_note(g: &Obj, color: u32) {
-        let m = lambert!({ color: ink_of(color) });
         for line in g.children().iter().skip(2) {
-            line.set_mat(m.clone());
+            let m = match line.try_mat() {
+                Some(old) => old.duplicate(),
+                None => lambert!(),
+            };
+            m.set_color(ink_of(color));
+            line.set_mat(m);
         }
     }
 
@@ -1512,6 +1551,246 @@ impl Game {
 /// The wall mark over a note already read: a pencil check and READ.
 /// The ink of an ordinary note
 const INK: u32 = 0x1a1408;
+
+/// The torn note's sheet (`r04.py`): its width (US letter), the dog-ear's
+/// legs, its middle down from its head, its underside above the floor, how
+/// far an unread note's corner is lifted (rad), its first fold
+const NOTE_W: f64 = 0.2159;
+const NOTE_A: f64 = 0.045;
+const NOTE_MID: f64 = 0.088;
+const NOTE_BASE: f64 = 0.0015;
+const NOTE_CURL: f64 = 0.95;
+const NOTE_FOLD: f64 = 0.2794 / 3.0;
+/// The paper a typed note is on: 20 lb bond gone the colour of old paper
+const NOTE_PAPER: &str = "#d6cdb5";
+
+/// A note's paper, laid out as its sheet's UVs are (`b`: the part's x and z
+/// bounds): toned at its edges, a fold broken into each crease, foxing in a
+/// cluster or two, sometimes a water mark, grime toward the torn foot
+fn note_paper_tex(b: (f64, f64, f64, f64)) -> Tex {
+    let (x0, x1, z0, z1) = b;
+    canvas_tex_opt(512, 448, false, move |ctx, w, h| {
+        let px = |x: f64| (x - x0) / (x1 - x0) * w;
+        let pz = |z: f64| (z - z0) / (z1 - z0) * h;
+        ctx.set_fill_style(NOTE_PAPER);
+        ctx.fill_rect(0, 0, w, h);
+        // the fibre's mottle
+        for k in 0..220 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let r = 4.0 + rnd() * 26.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, if k % 3 == 0 { "rgba(244,238,222,0.10)" } else { "rgba(140,118,80,0.06)" });
+            gr.add_color_stop(1, "rgba(140,118,80,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - r, y - r, r * 2.0, r * 2.0);
+        }
+        // toned in from its edges (the cut ones; the tear is newer)
+        for (ax, ay, bx, by) in [(0.0, 0.0, 22.0, 0.0), (w, 0.0, w - 22.0, 0.0), (0.0, 0.0, 0.0, 22.0)] {
+            let gr = ctx.create_linear_gradient(ax, ay, bx, by);
+            gr.add_color_stop(0, "rgba(150,118,62,0.30)");
+            gr.add_color_stop(1, "rgba(150,118,62,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, 0, w, h);
+        }
+        // grime toward the torn foot, where it lay on the floor longest
+        let gr = ctx.create_linear_gradient(0, pz(0.14), 0, h);
+        gr.add_color_stop(0, "rgba(100,86,62,0)");
+        gr.add_color_stop(1, "rgba(100,86,62,0.30)");
+        ctx.set_fill_style(gr);
+        ctx.fill_rect(0, 0, w, h);
+        // the creases: the fold breaks the fibres (a pale line), dirt beside it
+        ctx.set_line_cap("butt");
+        for (vertical, at) in [(true, px(NOTE_W / 2.0)), (false, pz(NOTE_FOLD))] {
+            for (dx, col, lw) in [(0.0, "rgba(246,240,226,0.55)", 1.3), (1.6, "rgba(96,80,56,0.22)", 1.2)] {
+                ctx.set_stroke_style(col);
+                ctx.set_line_width(lw);
+                ctx.begin_path();
+                if vertical {
+                    ctx.move_to(at + dx, 0);
+                    ctx.line_to(at + dx + (rnd() - 0.5) * 3.0, h);
+                } else {
+                    ctx.move_to(0, at + dx);
+                    ctx.line_to(w, at + dx + (rnd() - 0.5) * 3.0);
+                }
+                ctx.stroke();
+            }
+        }
+        // foxing: rust-brown specks in a cluster or two, each with its halo
+        let clusters = 1 + (rnd() * 3.0) as usize;
+        for _ in 0..clusters {
+            let (cx, cy) = (rnd() * w, rnd() * h);
+            let spread = 20.0 + rnd() * 60.0;
+            for _ in 0..(6.0 + rnd() * 18.0) as usize {
+                let (x, y) = (cx + (rnd() - 0.5) * spread * 2.0, cy + (rnd() - 0.5) * spread * 2.0);
+                let r = 0.6 + rnd() * rnd() * 3.2;
+                ctx.set_fill_style(format!("rgba(176,128,70,{})", 0.10 + 0.10 * rnd()));
+                ctx.begin_path();
+                ctx.arc(x, y, r * 3.0, 0, 7);
+                ctx.fill();
+                ctx.set_fill_style(format!("rgba(126,78,36,{})", 0.35 + 0.4 * rnd()));
+                ctx.begin_path();
+                ctx.arc(x, y, r, 0, 7);
+                ctx.fill();
+            }
+        }
+        // a water mark: a drop that dried with a hard brown edge
+        if rnd() < 0.6 {
+            let (cx, cy, r) = (rnd() * w, rnd() * h, 25.0 + rnd() * 70.0);
+            let k0 = rnd() * 6.0;
+            ctx.begin_path();
+            for k in 0..=36 {
+                let a = k as f64 / 36.0 * PI * 2.0;
+                let rr = r * (1.0 + 0.16 * (a * 3.0 + k0).sin() + 0.08 * (a * 7.0 + k0 * 2.0).sin());
+                let (x, y) = (cx + a.cos() * rr, cy + a.sin() * rr * 0.8);
+                if k == 0 {
+                    ctx.move_to(x, y);
+                } else {
+                    ctx.line_to(x, y);
+                }
+            }
+            ctx.set_fill_style("rgba(170,140,90,0.10)");
+            ctx.fill();
+            ctx.set_stroke_style("rgba(128,92,48,0.34)");
+            ctx.set_line_width(1.6);
+            ctx.stroke();
+        }
+        // a shoe went over it once
+        if rnd() < 0.45 {
+            let (cx, cy) = (rnd() * w, h * (0.4 + 0.6 * rnd()));
+            let a = rnd() * PI;
+            ctx.set_line_cap("round");
+            for k in 0..7 {
+                let o = (k as f64 - 3.0) * 7.0;
+                ctx.set_stroke_style(format!("rgba(74,64,50,{})", 0.06 + 0.10 * rnd()));
+                ctx.set_line_width(2.0 + rnd() * 4.0);
+                ctx.begin_path();
+                ctx.move_to(cx + a.cos() * -70.0 - a.sin() * o, cy + a.sin() * -70.0 + a.cos() * o);
+                ctx.line_to(cx + a.cos() * 70.0 - a.sin() * o, cy + a.sin() * 70.0 + a.cos() * o);
+                ctx.stroke();
+            }
+        }
+        // grit
+        for _ in 0..70 {
+            ctx.set_fill_style(format!("rgba(58,48,38,{})", 0.2 + 0.4 * rnd()));
+            ctx.begin_path();
+            ctx.arc(rnd() * w, rnd() * h, 0.5 + rnd() * 0.9, 0, 7);
+            ctx.fill();
+        }
+    })
+}
+
+/// The corner of a note's paper (both its sides, as its frame lays them:
+/// the fold along its foot): the same bond, greyed by the floor it lay on
+/// and the hands that turned it, the fold a crease
+fn note_corner_tex() -> Tex {
+    canvas_tex_opt(64, 64, false, |ctx, w, h| {
+        ctx.set_fill_style(NOTE_PAPER);
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_fill_style("rgba(118,104,82,0.20)");
+        ctx.fill_rect(0, 0, w, h);
+        for _ in 0..30 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_fill_style(format!("rgba(110,94,70,{})", 0.05 + 0.08 * rnd()));
+            ctx.begin_path();
+            ctx.arc(x, y, 2.0 + rnd() * 6.0, 0, 7);
+            ctx.fill();
+        }
+        // toward its tip, where it was handled
+        let gr = ctx.create_linear_gradient(0, h, 0, 0);
+        gr.add_color_stop(0.3, "rgba(96,80,58,0)");
+        gr.add_color_stop(1, "rgba(96,80,58,0.30)");
+        ctx.set_fill_style(gr);
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_fill_style("rgba(80,66,48,0.55)");
+        ctx.fill_rect(0, h - 2.0, w, 2);
+    })
+}
+
+/// A note's type, as its sheet's UVs lay it out: Courier at ten to the
+/// inch, six lines to the inch, inch margins, paragraphs indented five; the
+/// ribbon inks each word a little differently, a word struck out here and
+/// there; drawn white (the material's colour is the ink), cut off by the
+/// torn foot. It looks like type; what it says is read in the notebook
+fn note_type_tex(b: (f64, f64, f64, f64)) -> Tex {
+    let (x0, x1, z0, z1) = b;
+    canvas_tex_opt(512, 448, false, move |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        let ppm = w / (x1 - x0);
+        let px = |x: f64| (x - x0) * ppm;
+        let pz = |z: f64| (z - z0) / (z1 - z0) * h;
+        let adv = 0.00254 * ppm; // one character
+        let font = adv / 0.6;
+        let pitch = if rnd() < 0.3 { 2.0 } else { 1.0 } * 0.004233;
+        ctx.set_font(&format!("{font:.2}px Courier New"));
+        ctx.set_text_align("left");
+        ctx.set_text_baseline("alphabetic");
+        const LETTERS: &[u8] = b"eeeeeeeeeeeettttttttaaaaaaaooooooiiiiiinnnnnnssssssshhhhhrrrrrrddddllllcccuuummwwffggyyppbbvk";
+        let cols = ((NOTE_W - 0.0254 - 0.0254) / 0.00254) as i32; // 65
+        let mut z = 0.0254 + 0.0035 + rnd() * 0.004;
+        let mut col = 5; // the first paragraph indented
+        let mut left_in_par = 3 + (rnd() * 6.0) as i32;
+        let mut cap = true;
+        let ribbon = 0.75 + rnd() * 0.2;
+        while pz(z) < h + font {
+            let line_k = 0.85 + rnd() * 0.15;
+            // the line's words, ragged at the right; short at the head,
+            // clear of the corner that turns down
+            let mut line_end = cols - (rnd() * 6.0) as i32;
+            if z < NOTE_A + 0.004 {
+                line_end = line_end.min(((NOTE_W - NOTE_A - 0.0254 - 0.006) / 0.00254) as i32);
+            }
+            left_in_par -= 1;
+            if left_in_par <= 0 {
+                line_end = 10 + (rnd() * (cols - 20) as f64) as i32;
+            }
+            while col < line_end {
+                let len = 1 + (rnd() * rnd() * 9.0) as i32;
+                if col + len > line_end {
+                    break;
+                }
+                let mut word = String::new();
+                for k in 0..len {
+                    let ch = LETTERS[(rnd() * LETTERS.len() as f64) as usize] as char;
+                    word.push(if k == 0 && cap { ch.to_ascii_uppercase() } else { ch });
+                }
+                cap = false;
+                let r = rnd();
+                if r < 0.07 {
+                    word.push(',');
+                } else if r < 0.13 {
+                    word.push('.');
+                    cap = true;
+                }
+                let x = px(0.0254) + col as f64 * adv;
+                let y = pz(z) + (rnd() - 0.5) * 0.8;
+                let a = (ribbon * line_k * (0.7 + 0.3 * rnd())).min(1.0);
+                ctx.set_fill_style(format!("rgba(255,255,255,{a:.3})"));
+                ctx.fill_text(&word, x, y);
+                // the ribbon fresh in places: a letter doubled over itself
+                if rnd() < 0.2 {
+                    ctx.set_fill_style(format!("rgba(255,255,255,{:.3})", 0.35 * a));
+                    ctx.fill_text(&word, x + 0.35, y + 0.2);
+                }
+                // struck out
+                if rnd() < 0.025 {
+                    ctx.set_fill_style(format!("rgba(255,255,255,{a:.3})"));
+                    ctx.fill_text(&"x".repeat(word.len()), x, y);
+                }
+                col += word.len() as i32 + 1;
+            }
+            z += pitch;
+            col = 0;
+            if left_in_par <= 0 {
+                left_in_par = 3 + (rnd() * 6.0) as i32;
+                col = 5;
+                cap = true;
+                if pitch < 0.005 && rnd() < 0.5 {
+                    z += pitch; // a blank line between paragraphs
+                }
+            }
+        }
+    })
+}
 /// A story's colour as ink: dark, as ink dries on paper
 pub(crate) fn ink_of(color: u32) -> u32 {
     let ch = |k: u32| (((color >> k) & 0xff) as f64 * 0.42 + 8.0).min(255.0) as u32;
