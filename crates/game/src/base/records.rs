@@ -50,6 +50,52 @@ pub struct Pickup {
     pub phase: f64,
 }
 
+/// A barricade across an opening (`docs/PROPS.md` 2): the tile it stands
+/// in, the slab a body cannot pass and a look cannot cross (world x0, z0 –
+/// x1, z1, from the floor to `top`), and which way the way through ran
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Barricade {
+    pub tile: usize,
+    /// the way through ran along x (the slab spans z), else along z
+    pub along_x: bool,
+    pub x0: f64,
+    pub z0: f64,
+    pub x1: f64,
+    pub z1: f64,
+    pub top: f64,
+}
+impl Barricade {
+    /// Does a circle (x, z, r) touch the slab?
+    pub fn hits(&self, x: f64, z: f64, r: f64) -> bool {
+        let cx = x.clamp(self.x0, self.x1);
+        let cz = z.clamp(self.z0, self.z1);
+        (x - cx).powi(2) + (z - cz).powi(2) < r * r
+    }
+    /// Does the segment (ax, az)–(bx, bz) cross the slab? (slab test)
+    pub fn crosses(&self, ax: f64, az: f64, bx: f64, bz: f64) -> bool {
+        let (dx, dz) = (bx - ax, bz - az);
+        let (mut t0, mut t1) = (0.0f64, 1.0f64);
+        for (p, d, lo, hi) in [(ax, dx, self.x0, self.x1), (az, dz, self.z0, self.z1)] {
+            if d.abs() < 1e-12 {
+                if p < lo || p > hi {
+                    return false;
+                }
+            } else {
+                let (mut a, mut b) = ((lo - p) / d, (hi - p) / d);
+                if a > b {
+                    std::mem::swap(&mut a, &mut b);
+                }
+                t0 = t0.max(a);
+                t1 = t1.min(b);
+                if t0 > t1 {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+}
+
 /// A collectable paper pile
 #[derive(Clone, Debug)]
 pub struct PaperPile {

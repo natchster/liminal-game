@@ -1662,7 +1662,7 @@ impl Solids {
     /// Tile index of in-grid (or NaN) f64 tile coordinates; NaN → None, and
     /// the caller skips the tile
     #[inline]
-    fn tile_of(&self, x: f64, z: f64) -> Option<usize> {
+    pub fn tile_of(&self, x: f64, z: f64) -> Option<usize> {
         if x.is_nan() || z.is_nan() {
             None
         } else {

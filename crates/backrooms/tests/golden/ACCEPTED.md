@@ -111,3 +111,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-10-30, on top of 6452ff3: frames: glass_0m. Reason: W3: within reach of its window's blind, the HUD offers [E] LOWER THE BLIND beside its face at the glass; nothing else changed (error map: only the prompt)
 
 - 2026-10-30, on top of 8b50e49: frames: 33 shots. Reason: Secrets S1: her trail's sheets are her marks now (fewer sheets, smaller pencil arrows, stacks, marks on walls), and the torn notes lie without a glow or a mark on the wall; each diff is a patch of 2-122 px where a mark or a note's halo was
+
+- 2026-11-01, on top of 024cdba: frames: shadow_2m, shadow_4m, shadow_8m, 4242_L7_storage_hall, 4242_L7_service_tunnels, 7_L5_spawn. Reason: Props P5: barricades close real openings (a board-up ends the service tunnel's corridor; the old pile in the Poolrooms is gone: no barricade in a pool hall; her camp and marks move round the new ones)
+
+- 2026-11-01, on top of 024cdba: frames: 4242_L7_office_wing, 4242_L7_storage_hall. Reason: Props P5: her marks keep off a wall face something stands against (a machine, a barricade): one moved

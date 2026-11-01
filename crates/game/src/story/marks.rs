@@ -176,6 +176,12 @@ impl Game {
         if leans {
             return None;
         }
+        // never a face something stands against (a machine, a barricade, a
+        // cell's door): what stops a body covers the mark
+        let (ox, oz) = (fx - side.0 as f64 * 0.1, fz - side.1 as f64 * 0.1);
+        if self.circle_hits_wall(ox, oz, 0.02) {
+            return None;
+        }
         // on the Building's floors: building, never the void's railing
         if !self.ground.is_empty() {
             let (tx, tz) = (self.tx(fx + side.0 as f64 * 0.05), self.tz(fz + side.1 as f64 * 0.05));

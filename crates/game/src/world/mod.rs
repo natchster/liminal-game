@@ -242,8 +242,48 @@ impl Game {
         dist
     }
 
+    /// Tile distances from (sx, sz) as a body walks them, -1 unreachable:
+    /// [`Game::bfs`] with the barricades' tiles closed (the creatures' ways
+    /// and the place's way to the door; the build's own queries keep `bfs`)
+    pub fn bfs_open(&self, sx: i32, sz: i32) -> Vec<i32> {
+        if self.barricades.is_empty() {
+            return self.bfs(sx, sz);
+        }
+        let (w, h) = (self.w, self.h);
+        let mut dist = vec![-1i32; (w * h).max(0) as usize];
+        if !self.in_grid(sx, sz) || self.is_wall_tile(sx, sz) {
+            return self.bfs(sx, sz);
+        }
+        let closed = |i: usize| self.barricade_tiles.contains(&i);
+        let mut q: Vec<usize> = vec![self.t_idx(sx, sz)];
+        dist[q[0]] = 0;
+        let mut qi = 0;
+        while qi < q.len() {
+            let cur = q[qi];
+            let (cx, cz) = ((cur as i32) % w, (cur as i32) / w);
+            let d = dist[cur] + 1;
+            for (dx, dz) in N4 {
+                let (nx, nz) = (cx + dx, cz + dz);
+                if self.in_grid(nx, nz) {
+                    let ni = self.t_idx(nx, nz);
+                    if self.tiles[ni] == 0 && dist[ni] == -1 && !closed(ni) {
+                        dist[ni] = d;
+                        q.push(ni);
+                    }
+                }
+            }
+            qi += 1;
+        }
+        let _ = h;
+        dist
+    }
+
     /// Sight line at 1.5 m (world coords)
     pub fn los(&self, ax: f64, az: f64, bx: f64, bz: f64) -> bool {
+        // a barricade closes its opening to a look as to a body
+        if self.barricades.iter().any(|b| b.crosses(ax, az, bx, bz)) {
+            return false;
+        }
         if let Some(s) = &self.solids {
             if !self.ground.is_empty() {
                 // each end at 1.5 m over its own floor
@@ -286,6 +326,11 @@ impl Game {
             // a vending machine
             if !self.vending.is_empty() && self.hits_vending(px, pz, r) {
                 return true;
+            }
+            // a barricade: its slab across the opening (once built), else,
+            // while the level is built, the old choice's whole tiles
+            if !self.barricades.is_empty() {
+                return self.barricades.iter().any(|b| b.hits(px, pz, r));
             }
             if self.barricade_tiles.is_empty() {
                 return false;

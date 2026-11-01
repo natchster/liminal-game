@@ -69,12 +69,11 @@ const FINE: i32 = 16;
 const EXIT_REACH: f64 = 2.5;
 /// A pickup is in reach from this close.
 const PICKUP_REACH: f64 = 1.5;
-/// Open issue (found by this sweep, 2026-10-25): barricades only keep spawn →
-/// exit solvable, so one can lock a pickup away (a battery on seed
-/// 1161854898 L7 and one on 928196632 L4; about 1 level in 20). Reported, not failed, while this is
-/// true; set it to false once `tail_barricades` keeps pickups reachable too
-/// (and re-record the reference levels). Pickups lost any other way fail.
-const PICKUPS_BEHIND_BARRICADES: bool = true;
+/// Found by this sweep (2026-10-25): barricades once kept only spawn → exit
+/// solvable, so one could lock a pickup away (about 1 level in 20). Since
+/// `barricades_settled` (`docs/PROPS.md` 2) keeps every pickup in reach, a
+/// pickup lost behind one fails like any other.
+const PICKUPS_BEHIND_BARRICADES: bool = false;
 
 struct Report {
     /// the fine grid: 0 unknown, 1 free, 2 blocked; and which free cells were reached
@@ -248,7 +247,12 @@ fn pockets(g: &Game, r: &Report) -> Vec<Pocket> {
             }
         }
         let barricaded = |x: i32, z: i32| g.barricade_tiles.contains(&g.t_idx(x, z));
-        let cause = if sealed.is_empty() {
+        // a barricade closes its opening with a slab, so its own tile is
+        // half walked on: what lies behind it touches it
+        let behind = tiles.iter().any(|&(x, z)| [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().any(|&(dx, dz)| barricaded(x + dx, z + dz)));
+        let cause = if sealed.iter().all(|&(x, z)| barricaded(x, z)) && behind {
+            "behind a barricade (by design)"
+        } else if sealed.is_empty() {
             "no way in on the tile grid"
         } else if sealed.iter().all(|&(x, z)| barricaded(x, z)) {
             "behind a barricade (by design)"

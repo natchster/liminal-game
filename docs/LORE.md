@@ -243,6 +243,19 @@ nothing at all. The purpose decides what is left lying there, and its
 wallpaper, grime and darkness change at its walls. Most of the Lobby is for
 nothing.
 
+**Barricades.** Now and then a doorway or a corridor of the rooms is closed
+(never on the Building's floors, nor on a floor with rules of its own, nor
+in a pool hall; one at most on the Lobby): boarded with sheets of plywood
+braced and bolted through, or boards nailed across, or what the place had
+shoved into it, an office's desk on end, its filing cabinets and chairs, a
+store room's pallets and shelving, a home's mattresses, a door off its
+hinges and a dresser. It fills the opening wall to wall and nearly to the
+ceiling, and nothing passes it: not a body, not a look, not a creature's
+way to you nor what it hears of you, not the place's answer to a cry. None
+stands near where a floor begins, shuts the way to the door or shuts away
+anything there is to pick up. Somebody built them; who, and against what,
+is never said.
+
 ## M.'s descent
 
 Someone came this way before you, and you can follow her down.

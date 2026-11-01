@@ -1272,6 +1272,20 @@
       }
     },
     {
+      "id": "props/barricades",
+      "kind": "prop with rules",
+      "last_checked": "2026-11-01",
+      "last_human_review": null,
+      "name": "the barricades (docs/PROPS.md 2: real openings closed by boards, sheets or what the place had)",
+      "notes": "each seals its opening, fits under the ceiling, stands on its own tile (each_barricade_seals_its_opening); spawn to exit, every pickup and her walk stay whole (the_floor_stays_whole_round_them); none on a floor with rules of its own, one at most on the Lobby (where_barricades_stand); the old choice's draws kept (core_props_tail); no person has walked into one",
+      "passes": {
+        "test:backrooms/barricades": true,
+        "test:backrooms/level_sweep": true,
+        "test:game/core_props_tail": true,
+        "test:backrooms/materials": true
+      }
+    },
+    {
       "checks": [
         "test:backrooms/windows",
         "test:backrooms/materials",

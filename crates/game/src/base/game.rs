@@ -175,8 +175,12 @@ pub struct Game {
     pub region_info: Vec<RegionInfo>,
     pub ceil_region: Vec<u8>,
     pub floor_holes: Vec<FloorHole>,
-    /// Barricaded tiles (tile indices)
+    /// Barricaded tiles (tile indices): while the level is built, the old
+    /// choice's (its draws kept: `tail_barricades`), then the barricades'
+    /// own (`barricades_settled`)
     pub barricade_tiles: Vec<usize>,
+    /// The barricades as built: the slab each closes its opening with
+    pub barricades: Vec<Barricade>,
     pub pool_bounds: Option<PoolBounds>,
     pub papers: Vec<PaperPile>,
     pub lore_notes: Vec<LoreNote>,
@@ -744,6 +748,7 @@ impl Game {
             ceil_region: vec![],
             floor_holes: vec![],
             barricade_tiles: vec![],
+            barricades: vec![],
             pool_bounds: None,
             papers: vec![],
             lore_notes: vec![],

@@ -345,7 +345,8 @@ impl Game {
     pub fn way_to_the_door(&self) -> Vec<(i32, i32)> {
         let Some(ep) = self.exit_data.as_ref().map(|e| e.pos) else { return vec![] };
         let (exit_x, exit_z) = (self.tx(ep.x), self.tz(ep.z));
-        let field = self.bfs(exit_x, exit_z);
+        // (round a barricade, never into one)
+        let field = self.bfs_open(exit_x, exit_z);
         let (mut cx, mut cz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
         if self.is_wall_tile(cx, cz) {
             return vec![];
@@ -359,7 +360,7 @@ impl Game {
             let mut best: Option<(i32, i32, i32)> = None;
             for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
                 let (nx, nz) = (cx + dx, cz + dz);
-                if !self.in_grid(nx, nz) || self.is_wall_tile(nx, nz) {
+                if !self.in_grid(nx, nz) || self.is_wall_tile(nx, nz) || self.barricade_tiles.contains(&self.t_idx(nx, nz)) {
                     continue;
                 }
                 let nd = field.get(self.t_idx(nx, nz)).copied().unwrap_or(-1);

@@ -17,6 +17,7 @@ macro_rules! kind {
     }};
 }
 
+pub mod barricade;
 pub mod builders;
 pub mod seam;
 pub mod tail;

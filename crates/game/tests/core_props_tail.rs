@@ -577,6 +577,28 @@ fn window_zone_nodes(case: &Json) -> HashSet<usize> {
     out
 }
 
+/// The recorded world children that were the old barricades' piles: a
+/// filing cabinet, a book stack, a cardboard stack and a cone, built in that
+/// order for each. They are built for their draws alone now and never added
+/// (the barricades are chosen and built once the walls are final,
+/// `core_props::barricade`; `docs/PROPS.md` 2), so the draw count still
+/// holds them to the old choice
+fn barricade_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let is = |i: usize, b: &str| tree.get(i).is_some_and(|t| t.get("k").s() == "builder" && t.get("b").s() == b);
+    let mut out = HashSet::new();
+    for i in 0..tree.len() {
+        if is(i, "build_filing_cabinet")
+            && is(i + 1, "build_book_stack")
+            && is(i + 2, "build_cardboard_stack")
+            && is(i + 3, "build_traffic_cone")
+        {
+            out.extend(i..i + 4);
+        }
+    }
+    out
+}
+
 /// The recorded world children that were the torn notes' marks on the
 /// walls (three chevrons and "?", or READ: a 0.35 × 0.7 m plane): a note
 /// lies as paper lies now (`docs/SECRETS.md` 3), the mark's draws kept
@@ -720,6 +742,7 @@ fn run_case(case: &Json, real_builders: bool) {
     let case = &quiet_notes(case);
     let mut drop = window_zone_nodes(case);
     drop.extend(note_mark_nodes(case));
+    drop.extend(barricade_nodes(case));
     let name = format!("{}{}", case.get("name").s(), if real_builders { " (real builders)" } else { "" });
     let spec = case.get("spec");
     let Setup { mut g, mut cx, base, log } = setup(case, real_builders);

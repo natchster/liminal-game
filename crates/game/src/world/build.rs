@@ -188,6 +188,7 @@ impl Game {
         self.battery_items.clear();
         self.floor_holes.clear();
         self.barricade_tiles.clear();
+        self.barricades.clear();
         self.pool_bounds = None;
         self.papers.clear();
         self.paper_markers.clear();
@@ -449,6 +450,12 @@ impl Game {
         // reconcile the props with the real walls, then build the walls themselves
         self.settle_props(prop_start);
         self.build_lap("settle", bt0);
+        // the barricades, in the real openings of the final walls, on a
+        // stream of their own (`core_props::barricade`): before her trail,
+        // which goes round them, and before placement, which clears them
+        if core {
+            self.barricades_settled();
+        }
         // her camp and her trail (`story`): once the walls are final (settling
         // rebuilds them), before placement so the props round them make room;
         // on a stream of its own, so no checkpoint moves

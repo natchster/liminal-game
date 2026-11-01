@@ -515,7 +515,8 @@ impl Game {
     pub(crate) fn e_bfs(&self, sx: i32, sz: i32) -> Vec<i32> {
         match entity_nav() {
             Some(n) => n.bfs(self, sx, sz),
-            None => self.bfs(sx, sz),
+            // (a barricade closes its way to them: `PROPS.md` 2)
+            None => self.bfs_open(sx, sz),
         }
     }
     pub(crate) fn e_los(&self, ax: f64, az: f64, bx: f64, bz: f64) -> bool {

@@ -1392,24 +1392,21 @@ impl Game {
                 continue;
             }
             self.barricade_tiles.push(blocked_idx);
-            // a visual barricade at that tile
+            // the old pile (a cabinet, books, boxes, a cone), built for its
+            // draws alone and never added: the barricades are chosen and
+            // built once the walls are final (`barricades_settled`), and
+            // these tiles stand in for them until then
             let (ccx, ccz) = (self.wx(bx), self.wz(bz));
             let cab = s_build(self, cx, TailBuild::FilingCabinet);
             cab.g.set_pos(ccx, 0, ccz);
             cab.g.rotation().y = rand1(PI * 2.0);
-            self.world.add(&cab.g);
-            // books perched on top
-            let chair_on_top = s_build(self, cx, TailBuild::BookStack);
-            chair_on_top.g.set_pos(ccx + 0.1, cab.top, ccz + 0.05);
-            self.world.add(&chair_on_top.g);
+            let books = s_build(self, cx, TailBuild::BookStack);
+            books.g.set_pos(ccx + 0.1, cab.top, ccz + 0.05);
             let box_side = s_build(self, cx, TailBuild::CardboardStack);
             box_side.g.set_pos(ccx + rand2(-0.4, 0.4), 0, ccz + rand2(-0.4, 0.4));
-            self.world.add(&box_side.g);
-            // a cone leaning
             let cone = s_build(self, cx, TailBuild::TrafficCone);
             cone.g.set_pos(ccx + rand2(-0.6, 0.6), 0, ccz + rand2(-0.6, 0.6));
             cone.g.rotation().z = rand2(-0.3, 0.3);
-            self.world.add(&cone.g);
         }
     }
 

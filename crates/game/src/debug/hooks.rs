@@ -82,6 +82,35 @@ impl Game {
             by.entry(label).or_default().push((k, o.clone()));
         }
         let mut out = vec![];
+        // a barricade from 3.2 m along the way on each side (`PROPS.md` 2):
+        // its own slab hides it from the framing below
+        let bar = self.barricades.clone();
+        if let Some(objs) = by.remove("core_barricades") {
+            for (i, b) in bar.iter().enumerate() {
+                let (cx, cz) = ((b.x0 + b.x1) / 2.0, (b.z0 + b.z1) / 2.0);
+                let k = objs
+                    .iter()
+                    .map(|(k, o)| (*k, o.pos()))
+                    .min_by(|a, c| (a.1.x - cx).hypot(a.1.z - cz).total_cmp(&(c.1.x - cx).hypot(c.1.z - cz)))
+                    .map(|a| a.0)
+                    .unwrap_or(0);
+                for side in [1.0, -1.0] {
+                    let (x, z) = if b.along_x { (cx + side * 3.2, cz) } else { (cx, cz + side * 3.2) };
+                    if self.circle_hits_wall(x, z, 0.2)
+                        || out.iter().filter(|s: &&(String, usize, f64, f64, f64, f64, f64)| s.0 == "core_barricades").count()
+                            >= per_label * 2
+                    {
+                        continue;
+                    }
+                    let y = self.floor_y_at(x, z) + crate::prelude::EYE;
+                    let yaw = (-(cx - x)).atan2(-(cz - z));
+                    let pitch = (1.1 - crate::prelude::EYE).atan2(3.2);
+                    let _ = i;
+                    // (each side its own shot: the object's index, then 1 or 2)
+                    out.push(("core_barricades".to_string(), k * 10 + if side > 0.0 { 1 } else { 2 }, x, y, z, yaw, pitch));
+                }
+            }
+        }
         for (label, objs) in by {
             let n = objs.len();
             let picks: Vec<usize> = if per_label >= n { (0..n).collect() } else { (0..per_label).map(|i| i * n / per_label).collect() };
@@ -105,7 +134,8 @@ impl Game {
                     let d = (s * 1.8 * scale).clamp(0.6, 6.0) + (bb.max.x - bb.min.x).max(bb.max.z - bb.min.z) / 2.0;
                     for &(dx, dz) in &dirs {
                         let (x, z) = (c.x + dx * d, c.z + dz * d);
-                        if !self.circle_hits_wall(x, z, 0.2) && self.los(x, z, c.x, c.z) {
+                        // (in sight of its near side: a barricade's own slab hides its middle)
+                        if !self.circle_hits_wall(x, z, 0.2) && self.los(x, z, c.x + dx * 0.4, c.z + dz * 0.4) {
                             pose = Some((x, z, d));
                             break 'find;
                         }
