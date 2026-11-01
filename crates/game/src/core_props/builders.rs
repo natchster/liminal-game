@@ -841,29 +841,134 @@ pub fn build_baby_doll(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(dg, 0.22)
 }
 
-/// Lid open, clothes spilling
+/// An old hard-shell suitcase lying open on its back, the lid stood up
+/// behind, clothes folded in it and a cardigan pulled half out
 pub fn build_suitcase(g: &mut Game, cx: &mut PropsCtx) -> Built {
-    let _ = (g, cx);
-    let sg = group();
-    // lid open
-    let bottom = mesh(pg("Props__suitcase_base", box_geo!(0.55, 0.14, 0.4)), lambert!({ color: 0x5a3d22 }));
-    bottom.position().y = 0.07;
-    sg.add(&bottom);
-    let lid = mesh(pg("Props__suitcase_lid", box_geo!(0.55, 0.14, 0.4)), lambert!({ color: 0x4a3319 }));
-    lid.position().set(0, 0.14, -0.19);
-    lid.rotation().x = -0.9;
-    sg.add(&lid);
-    // spilled contents (clothes as small shapes)
-    for _i in 0..5 {
-        let cloth_mat = lambert!({ color: [0x7a3a2au32, 0x2a3a5a, 0xa08560, 0x555555][irand(0, 3) as usize] });
-        let cloth = mesh(pg("Props__suitcase_clothes", sphere_geo!(rand2(0.04, 0.08), 6, 4)), &cloth_mat);
+    let _ = cx;
+    // a moulded 1960s case (23 x 16 x 7 in), modelled in the batch `r02`:
+    // the shells, their linings and aluminium trim (valance, hinges,
+    // latches), the grip; the lid stood open on its hinges, held by its
+    // check straps (docs/PROPS.md)
+    use crate::assets::props::prop_part_as_modelled;
+    const HINGE_Y: f64 = 0.112;
+    const HINGE_Z: f64 = -0.209;
+    const OPEN: f64 = PI / 2.0 + 0.21;
+    // the lining's floor inside
+    const FLOOR: f64 = 0.0063;
+    // the old draws, call for call: five things in it, each its colour, its
+    // size and where it lay
+    let mut drawn = [(0usize, 0.0f64, 0.0f64, 0.0f64, 0.0f64); 5];
+    for d in drawn.iter_mut() {
+        let k = irand(0, 3) as usize;
+        let r = rand2(0.04, 0.08);
         let x = rand2(-0.2, 0.2);
         let y = 0.15 + rand2(0.0, 0.05);
         let z = rand2(-0.1, 0.1);
-        cloth.position().set(x, y, z);
-        sg.add(&cloth);
+        *d = (k, r, x, y, z);
+    }
+    let sg = group();
+    let put = |parent: &Obj, name: &str, mat: &Mat, x: f64, y: f64, z: f64, yaw: f64| {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            let m = mesh(geo, mat);
+            m.position().set(x, y, z);
+            m.rotation().y = yaw;
+            parent.add(&m);
+        }
+    };
+    // the shell's colour (the last thing's height said it): saddle tan,
+    // oxblood, slate blue, olive grey, all gone dull
+    let shells = [0x7a5c40u32, 0x5a3029, 0x4a5560, 0x5c5a48];
+    let shell = lambert!({ color: shells[(((drawn[4].3 - 0.15) / 0.05 * 4.0) as usize).min(3)] });
+    let lining = lambert!({ map: &suitcase_lining_tex() });
+    let trim = &g.mats.chrome;
+    let grip = lambert!({ color: 0x2a231e });
+    for (name, mat) in [
+        ("Real__suitcaseBase", &shell),
+        ("Real__suitcaseBaseLining", &lining),
+        ("Real__suitcaseBaseTrim", trim),
+        ("Real__suitcaseHandle", &grip),
+    ] {
+        put(&sg, name, mat, 0.0, 0.0, 0.0, 0.0);
+    }
+    let lid = group();
+    lid.position().set(0, HINGE_Y, HINGE_Z);
+    lid.rotation().x = -OPEN;
+    for (name, mat) in [("Real__suitcaseLid", &shell), ("Real__suitcaseLidLining", &lining), ("Real__suitcaseLidTrim", trim)] {
+        put(&lid, name, mat, 0.0, -HINGE_Y, -HINGE_Z, 0.0);
+    }
+    sg.add(&lid);
+    // what is in it, each where it was packed, nudged by its draws: trousers
+    // folded at the back, a shirt on them, a jumper at the front, socks in
+    // the corner, a cardigan pulled out over the rim (or still folded on the
+    // jumper); packed from the left or the right (the first thing's height
+    // said which, the last thing's place whether the cardigan was pulled)
+    const PALETTES: [[u32; 4]; 5] = [
+        [0x38383a, 0x2a2e3a, 0x4a3c2e, 0x5e5a54], // trousers: charcoal, navy, brown, grey
+        [0x9a8e76, 0x34463a, 0x5a2c2c, 0x6a6864], // jumper: oatmeal, bottle green, burgundy, grey
+        [0xc4beb0, 0x9eaab4, 0xb8ae98, 0xbca49c], // shirt: white, pale blue, cream, faded pink
+        [0x2c2a2a, 0x625e5a, 0x2a3040, 0x4a3c30], // socks
+        [0x76623e, 0x5a2a2c, 0x2c3446, 0x56626a], // cardigan: mustard, maroon, navy, grey-blue
+    ];
+    const SLOTS: [(&str, f64, f64, f64); 4] = [
+        ("Real__suitcaseTrousers", -0.07, -0.085, 0.0),
+        ("Real__suitcaseSweater", 0.12, 0.085, 0.0),
+        ("Real__suitcaseShirt", -0.11, -0.08, 0.050),
+        ("Real__suitcaseSocks", -0.205, 0.12, 0.0),
+    ];
+    let flip = if drawn[0].3 > 0.175 { -1.0 } else { 1.0 };
+    for (i, &(name, sx, sz, sy)) in SLOTS.iter().enumerate() {
+        let (k, r, x, _, z) = drawn[i];
+        let cloth = lambert!({ color: PALETTES[i][k] });
+        let yaw = (r - 0.06) * 2.0 + if i == 3 { 0.5 } else { 0.0 };
+        put(&sg, name, &cloth, flip * (sx + x * 0.06), FLOOR + sy, sz + z * 0.1, flip * yaw);
+    }
+    let (k, r, x, _, z) = drawn[4];
+    let cloth = lambert!({ color: PALETTES[4][k] });
+    if z > -0.03 {
+        put(&sg, "Real__suitcaseSpill", &cloth, x * 0.04, 0.0, 0.0, 0.0);
+    } else {
+        put(&sg, "Real__suitcaseSweater", &cloth, flip * (0.11 + x * 0.05), FLOOR + 0.075, 0.08, flip * (0.12 + (r - 0.06) * 2.0));
     }
     Built::new(sg, 0.4)
+}
+
+/// The suitcase's lining: rayon gone the colour of weak tea, a faint
+/// stripe woven in, water-marked and grubby in its corners
+fn suitcase_lining_tex() -> Tex {
+    canvas_tex_opt(256, 256, false, |ctx, w, h| {
+        ctx.set_fill_style("#8a7c70");
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_global_alpha(0.2);
+        ctx.set_fill_style("#6e6258");
+        let mut x = 0.0;
+        while x < w {
+            ctx.fill_rect(x, 0, 2, h);
+            x += 6.0;
+        }
+        // tide marks
+        for _ in 0..3 {
+            let (cx0, cy0, r) = (rnd() * w, rnd() * h, 20.0 + rnd() * 50.0);
+            ctx.set_global_alpha(0.25);
+            ctx.set_stroke_style("#6e5c48");
+            ctx.set_line_width(2.0 + rnd() * 2.0);
+            ctx.begin_path();
+            ctx.ellipse(cx0, cy0, r, r * (0.6 + 0.4 * rnd()), rnd() * 3.0, 0, 7);
+            ctx.stroke();
+            ctx.set_global_alpha(0.1);
+            ctx.set_fill_style("#7a6a58");
+            ctx.fill();
+        }
+        // grime toward the edges (the corners and the rim)
+        for (x0, y0, x1, y1) in [(0.0, 0.0, 0.0, 30.0), (0.0, h, 0.0, h - 30.0), (0.0, 0.0, 30.0, 0.0), (w, 0.0, w - 30.0, 0.0)] {
+            let gr = ctx.create_linear_gradient(x0, y0, x1, y1);
+            gr.add_color_stop(0, "rgba(60,48,36,0.35)");
+            gr.add_color_stop(1, "rgba(60,48,36,0)");
+            ctx.set_global_alpha(1);
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, 0, w, h);
+        }
+        ctx.set_global_alpha(1);
+    })
 }
 
 /// (`yaw` is unused)
@@ -961,82 +1066,432 @@ pub fn build_tv_on_floor(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(tg, 0.9)
 }
 
+/// A stack of old books, hardbacks and paperbacks, laid askew
 pub fn build_book_stack(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
-    let bg = group();
-    let colors = [0x6a3a2au32, 0x2a5a6a, 0x5a4a2a, 0x4a2a4a, 0x2a4a2a, 0x8a4020, 0x203a5a, 0x60553a];
-    let mut y = 0.0;
+    // each book modelled in the batch `r02` at its real size (cloth
+    // hardbacks of three sizes, their boards over the page block, their
+    // spines rounded; a trade paperback), its covers, spine and pages
+    // painted in one atlas for the stack (docs/PROPS.md)
+    use crate::assets::props::prop_part_as_modelled;
+    const CLOTHS: [usize; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
+    // (boards, spine, pages, thickness, board width): hardbacks A, B, C, the paperback
+    const KINDS: [(&str, &str, &str, f64, f64); 4] = [
+        ("Real__bookHbABoards", "Real__bookHbASpine", "Real__bookHbAPages", 0.0352, 0.146),
+        ("Real__bookHbBBoards", "Real__bookHbBSpine", "Real__bookHbBPages", 0.0492, 0.164),
+        ("Real__bookHbCBoards", "Real__bookHbCSpine", "Real__bookHbCPages", 0.0262, 0.128),
+        ("Real__bookPbCovers", "Real__bookPbSpine", "Real__bookPbPages", 0.0234, 0.140),
+    ];
+    // the old draws, call for call: how many, each book's size, cloth,
+    // place, turn and ribbon (now a slip of paper kept in it), then the one
+    // that stood on top (now one more laid there, turned across the rest)
+    let mut books: Vec<(usize, usize, f64, f64, f64, f64, Option<f64>)> = vec![];
     let n = irand(3, 6);
-    for _i in 0..n {
+    for _ in 0..n {
         let w = rand2(0.18, 0.26);
         let h = rand2(0.035, 0.055);
-        let d = rand2(0.14, 0.2);
-        let color = choice(&colors);
-        let book = mesh(pg("Props__book_cover", box_geo!(w, h, d)), lambert!({ color: color }));
+        let _ = rand2(0.14, 0.2); // (its depth: the kind says it now)
+        let cloth = choice(&CLOTHS);
         let px = rand2(-0.03, 0.03);
         let pz = rand2(-0.03, 0.03);
-        book.position().set(px, y + h / 2.0, pz);
-        book.rotation().y = rand2(-0.3, 0.3);
-        // page stripe on the side (paper interior)
-        let pages = mesh(pg("Props__book_pages", box_geo!(w - 0.01, h * 0.7, d - 0.005)), lambert!({ color: 0xe8ddc0 }));
-        pages.position().y = 0.001;
-        book.add(&pages);
-        // spine text (tiny darker rectangle)
-        let spine_text = mesh(box_geo!(w * 0.5, h * 0.5, 0.003), lambert!({ color: 0xd8c880 }));
-        spine_text.position().set(0, 0, d / 2.0 + 0.001);
-        book.add(&spine_text);
-        // spine text on other side too
-        let spine_text2 = mesh(box_geo!(w * 0.5, h * 0.5, 0.003), lambert!({ color: 0xd8c880 }));
-        spine_text2.position().set(0, 0, -d / 2.0 - 0.001);
-        book.add(&spine_text2);
-        // occasional bookmark ribbon
-        if rnd() < 0.25 {
-            let ribbon = mesh(pg("Props__book_ribbon", box_geo!(0.015, h + 0.06, 0.005)), lambert!({ color: 0xa02020 }));
-            ribbon.position().set(rand2(-0.05, 0.05), 0.02, d / 2.0 - 0.005);
-            book.add(&ribbon);
-        }
-        bg.add(&book);
-        y += h;
+        let yaw = rand2(-0.3, 0.3);
+        let slip = if rnd() < 0.25 { Some(rand2(-0.05, 0.05)) } else { None };
+        // which book its size made it: a small hardback, a paperback, a
+        // novel, a big one; its thickness scales it a little
+        let u = (w - 0.18) / 0.08;
+        let kind = if u < 0.22 {
+            2
+        } else if u < 0.47 {
+            3
+        } else if u < 0.78 {
+            0
+        } else {
+            1
+        };
+        books.push((kind, cloth, 0.94 + (h - 0.035) * 6.0, px, pz, yaw, slip));
     }
-    // occasional standing book on top, leaning
     if rnd() < 0.5 {
-        let standing = mesh(pg("Props__book_standing", box_geo!(0.16, 0.22, 0.035)), lambert!({ color: choice(&colors) }));
+        let cloth = choice(&CLOTHS);
         let px = rand2(-0.06, 0.06);
         let pz = rand2(-0.06, 0.06);
-        standing.position().set(px, y + 0.11, pz);
-        standing.rotation().z = rand2(-0.5, 0.5);
-        standing.rotation().y = rand2(0.0, PI * 2.0);
-        bg.add(&standing);
-        y += 0.24;
+        let lean = rand2(-0.5, 0.5);
+        let turn = rand2(0.0, PI * 2.0);
+        books.push((if lean < 0.0 { 3 } else { 0 }, cloth, 1.0, px, pz, turn, None));
+    }
+    let atlas = book_atlas(books.iter().map(|b| (b.0 == 3, b.1)).collect());
+    // one cell of the atlas (pixels, from its top left), inset a pixel
+    let cell = |x0: f64, y0: f64, w: f64, h: f64| {
+        let t = atlas.duplicate();
+        t.set_offset((x0 + 1.0) / 512.0, 1.0 - (y0 + h - 1.0) / 512.0);
+        t.set_repeat((w - 2.0) / 512.0, (h - 2.0) / 512.0);
+        lambert!({ map: &t })
+    };
+    let pages = cell(0.0, 384.0, 512.0, 128.0);
+    let paper = lambert!({ color: 0xcdc4ad });
+    let bg = group();
+    let mut y = 0.0;
+    for (j, &(kind, _, s, px, pz, yaw, slip)) in books.iter().enumerate() {
+        let (boards, spine, block, thick, width) = KINDS[kind];
+        let book = group();
+        book.position().set(px, y, pz);
+        book.rotation().y = yaw;
+        book.scale().set(s, s, s);
+        let cover = cell((j % 4) as f64 * 128.0, (j / 4) as f64 * 128.0, 128.0, 128.0);
+        let back = cell((j % 2) as f64 * 256.0, 256.0 + (j / 2) as f64 * 32.0, 256.0, 32.0);
+        for (name, mat) in [(boards, &cover), (spine, &back), (block, &pages)] {
+            if let Some(geo) = prop_part_as_modelled(name) {
+                book.add(&mesh(geo, mat));
+            }
+        }
+        if let (Some(x), Some(geo)) = (slip, prop_part_as_modelled("Real__bookSlip")) {
+            let m = mesh(geo, &paper);
+            m.position().set(x, thick * 0.5, -width / 2.0 + 0.04);
+            book.add(&m);
+        }
+        bg.add(&book);
+        y += thick * s;
     }
     Built::new(bg, y)
 }
 
-pub fn build_coat_rack(g: &mut Game, cx: &mut PropsCtx) -> Built {
-    let _ = cx;
-    let rg = group();
-    let pole = mesh(pg("Props__coatRack_pole", cyl_geo!(0.025, 0.025, 1.7, 8)), &g.mats.wood);
-    pole.position().y = 0.85;
-    rg.add(&pole);
-    let base = mesh(pg("Props__coatRack_base", cyl_geo!(0.22, 0.22, 0.04, 12)), &g.mats.wood);
-    base.position().y = 0.02;
-    rg.add(&base);
-    for i in 0..4 {
-        let hook = mesh(pg("Props__coatRack_hook", torus_geo!(0.06, 0.012, 4, 8)), &g.mats.chrome);
-        // one upright loop per side, sticking out radially from the pole (its
-        // near side in the pole); centred on the pole they coincided in pairs
-        let ha = i as f64 * (PI / 2.0);
-        hook.position().set(ha.cos() * 0.079, 1.6, ha.sin() * 0.079);
-        hook.rotation().y = -ha;
-        rg.add(&hook);
+/// Book cloth, faded (sRGB): maroon, bottle green, navy, brown, tan
+/// buckram, slate, olive, black gone brown
+const BOOK_CLOTH: [(f64, f64, f64); 8] = [
+    (98.0, 46.0, 42.0),
+    (50.0, 76.0, 60.0),
+    (46.0, 56.0, 78.0),
+    (94.0, 68.0, 50.0),
+    (152.0, 130.0, 98.0),
+    (88.0, 100.0, 108.0),
+    (98.0, 94.0, 62.0),
+    (48.0, 44.0, 40.0),
+];
+/// A paperback's printed cover: its ground and its band
+const BOOK_PRINT: [((f64, f64, f64), (f64, f64, f64)); 8] = [
+    ((172.0, 118.0, 76.0), (204.0, 194.0, 170.0)),
+    ((86.0, 106.0, 88.0), (202.0, 192.0, 168.0)),
+    ((80.0, 96.0, 118.0), (200.0, 190.0, 168.0)),
+    ((198.0, 190.0, 168.0), (128.0, 64.0, 54.0)),
+    ((112.0, 60.0, 54.0), (198.0, 186.0, 160.0)),
+    ((72.0, 98.0, 100.0), (200.0, 190.0, 168.0)),
+    ((158.0, 136.0, 82.0), (52.0, 48.0, 44.0)),
+    ((118.0, 116.0, 110.0), (196.0, 188.0, 170.0)),
+];
+const BOOK_TITLES: [&str; 20] = [
+    "THE SILENT HOUSE",
+    "COLLECTED POEMS",
+    "A WINTER JOURNEY",
+    "HOUSEHOLD MANAGEMENT",
+    "ELEMENTS OF GEOMETRY",
+    "THE NORTHERN SHORE",
+    "LETTERS",
+    "TALES OF THE SEA",
+    "PRACTICAL ARITHMETIC",
+    "THE OLD ROAD",
+    "BIRDS OF THE FIELD",
+    "GENERAL CHEMISTRY",
+    "THE GARDEN YEAR",
+    "SHORT STORIES",
+    "THE HOLLOW TREE",
+    "ROADS AND BRIDGES",
+    "A SHORT HISTORY",
+    "THE LONG AFTERNOON",
+    "SELECTED ESSAYS",
+    "THE MAP ROOM",
+];
+const BOOK_AUTHORS: [&str; 10] =
+    ["H. MARLOWE", "E. M. GRAY", "J. ASHBY", "R. T. HALE", "M. WREN", "A. C. FORD", "L. DUNMORE", "S. KEMP", "F. ORME", "D. LATHAM"];
+
+fn rgb(c: (f64, f64, f64), a: f64) -> String {
+    format!("rgba({},{},{},{a})", c.0 as u8, c.1 as u8, c.2 as u8)
+}
+
+/// A stack's books painted in one 512 px atlas: each book's front cover
+/// (128 px cells, two rows; its head to the left, its fore-edge up, as its
+/// board's top takes it), its spine (256 x 32 cells, four rows; head to the
+/// left, the front board up) and the page edges all of them share (the
+/// bottom 128 px)
+fn book_atlas(looks: Vec<(bool, usize)>) -> Tex {
+    canvas_tex_opt(512, 512, false, move |ctx, _, _| {
+        for (i, &(paperback, c)) in looks.iter().enumerate() {
+            let title = BOOK_TITLES[((rnd() * 20.0) as usize).min(19)];
+            let author = BOOK_AUTHORS[((rnd() * 10.0) as usize).min(9)];
+            let (x0, y0) = ((i % 4) as f64 * 128.0, (i / 4) as f64 * 128.0);
+            let (sx, sy) = ((i % 2) as f64 * 256.0, 256.0 + (i / 2) as f64 * 32.0);
+            ctx.save();
+            ctx.begin_path();
+            ctx.rect(x0, y0, 128, 128);
+            ctx.clip();
+            if paperback {
+                book_print_cover(ctx, x0, y0, c, title, author);
+            } else {
+                book_cloth_cover(ctx, x0, y0, c, title);
+            }
+            ctx.restore();
+            ctx.save();
+            ctx.begin_path();
+            ctx.rect(sx, sy, 256, 32);
+            ctx.clip();
+            book_spine(ctx, sx, sy, paperback, c, title, author);
+            ctx.restore();
+        }
+        book_pages(ctx, 0.0, 384.0, 512.0, 128.0);
+    })
+}
+
+/// a cloth's weave: a fine speckle lighter and darker than its ground
+fn book_weave(ctx: &mut Canvas, x0: f64, y0: f64, w: f64, h: f64, n: usize) {
+    for k in 0..n {
+        let (x, y) = (x0 + rnd() * w, y0 + rnd() * h);
+        ctx.set_fill_style(if k % 2 == 0 { "rgba(255,245,225,0.10)" } else { "rgba(0,0,0,0.12)" });
+        ctx.fill_rect(x, y, 1.0 + rnd(), 1);
     }
-    // hanging coat: on the +z hook, its back against the pole (it was pierced by it)
-    if rnd() < 0.7 {
-        let coat = mesh(pg("Props__coatRack_coat", box_geo!(0.4, 0.7, 0.1)), lambert!({ color: 0x2a2a2a }));
-        coat.position().set(0, 1.18, 0.085);
+}
+
+/// a soft blotch (a water mark, a ring, grime)
+fn book_stain(ctx: &mut Canvas, x: f64, y: f64, r: f64, ring: bool, col: &str) {
+    let gr = ctx.create_radial_gradient(x, y, r * if ring { 0.75 } else { 0.0 }, x, y, r);
+    gr.add_color_stop(0, "rgba(0,0,0,0)");
+    gr.add_color_stop(if ring { 0.85 } else { 0.0 }, col);
+    gr.add_color_stop(1, "rgba(0,0,0,0)");
+    ctx.set_fill_style(gr);
+    ctx.fill_rect(x - r, y - r, 2.0 * r, 2.0 * r);
+}
+
+/// A cloth board: the ground faded where the light found it, the weave, a
+/// blind-stamped rule, sometimes a title stamped in gilt, the corners
+/// bumped through to the board, the edges rubbed, a stain
+fn book_cloth_cover(ctx: &mut Canvas, x0: f64, y0: f64, c: usize, title: &str) {
+    let col = BOOK_CLOTH[c];
+    ctx.set_fill_style(rgb(col, 1.0));
+    ctx.fill_rect(x0, y0, 128, 128);
+    // faded toward the fore-edge, where it lay in the light
+    let gr = ctx.create_linear_gradient(x0, y0 + 128.0, x0, y0);
+    gr.add_color_stop(0, "rgba(210,200,180,0.0)");
+    gr.add_color_stop(1, &format!("rgba(210,200,180,{})", 0.10 + 0.15 * rnd()));
+    ctx.set_fill_style(gr);
+    ctx.fill_rect(x0, y0, 128, 128);
+    book_weave(ctx, x0, y0, 128.0, 128.0, 1800);
+    // where another book lay on it the cloth kept its colour
+    if rnd() < 0.5 {
+        ctx.set_fill_style("rgba(0,0,0,0.10)");
+        ctx.fill_rect(x0 + 128.0 * rnd() * 0.4, y0 + 40.0 + 60.0 * rnd(), 128, 128);
+    }
+    ctx.set_stroke_style("rgba(0,0,0,0.22)");
+    ctx.set_line_width(1.3);
+    ctx.stroke_rect(x0 + 7.0, y0 + 7.0, 114, 114);
+    if rnd() < 0.45 {
+        // the title stamped on the front, in the cover's own frame (its top at the head)
+        ctx.save();
+        ctx.translate(x0, y0 + 128.0);
+        ctx.rotate(-PI / 2.0);
+        ctx.scale(128.0 / 146.0, 128.0 / 222.0);
+        ctx.set_fill_style("rgba(170,146,92,0.75)");
+        ctx.set_text_align("center");
+        ctx.set_font("bold 10px Times New Roman");
+        ctx.fill_text_max(title, 73, 52, 100);
+        ctx.restore();
+    }
+    // bumped corners (the fore-edge's, top left and right of the cell) and rubbed edges
+    for (x, y) in [(x0, y0), (x0 + 128.0, y0)] {
+        book_stain(ctx, x, y, 7.0 + rnd() * 6.0, false, "rgba(176,164,140,0.75)");
+    }
+    for (x, y, w, h) in [(x0, y0, 128.0, 3.0), (x0, y0, 3.0, 128.0), (x0 + 125.0, y0, 3.0, 128.0)] {
+        ctx.set_fill_style("rgba(200,190,170,0.22)");
+        ctx.fill_rect(x, y, w, h);
+    }
+    if rnd() < 0.6 {
+        let (x, y) = (x0 + 20.0 + rnd() * 88.0, y0 + 20.0 + rnd() * 88.0);
+        book_stain(ctx, x, y, 10.0 + rnd() * 18.0, rnd() < 0.5, "rgba(40,30,20,0.22)");
+    }
+}
+
+/// A paperback's front: its printed ground and band, the title, the
+/// author, the publisher's mark; creased, its corners and edges worn white
+fn book_print_cover(ctx: &mut Canvas, x0: f64, y0: f64, c: usize, title: &str, author: &str) {
+    let (ground, band) = BOOK_PRINT[c];
+    ctx.save();
+    ctx.translate(x0, y0 + 128.0);
+    ctx.rotate(-PI / 2.0);
+    ctx.scale(128.0 / 140.0, 128.0 / 216.0);
+    // the cover, 140 x 216 (mm): its spine at the left
+    ctx.set_fill_style(rgb(ground, 1.0));
+    ctx.fill_rect(0, 0, 140, 216);
+    ctx.set_fill_style(rgb(band, 1.0));
+    ctx.fill_rect(0, 70, 140, 70);
+    ctx.set_fill_style(rgb(ground, 0.9));
+    ctx.set_text_align("center");
+    ctx.set_font("bold 13px Gill Sans");
+    for (k, line) in title.splitn(2, ' ').enumerate() {
+        ctx.fill_text_max(line, 70, 98.0 + k as f64 * 17.0, 120);
+    }
+    ctx.set_fill_style(rgb(band, 0.9));
+    ctx.set_font("10px Gill Sans");
+    ctx.fill_text_max(author, 70, 40, 120);
+    ctx.begin_path();
+    ctx.arc(70, 185, 9, 0, 7);
+    ctx.fill();
+    // a crease where it was bent back at the spine, and across a corner
+    ctx.set_stroke_style("rgba(235,228,212,0.7)");
+    ctx.set_line_width(1);
+    ctx.begin_path();
+    ctx.move_to(9, 0);
+    ctx.line_to(10, 216);
+    ctx.stroke();
+    ctx.begin_path();
+    ctx.move_to(140.0 - 30.0 * rnd() - 10.0, 216);
+    ctx.line_to(140, 216.0 - 30.0 * rnd() - 12.0);
+    ctx.stroke();
+    // the edges worn white
+    ctx.set_fill_style("rgba(235,228,212,0.35)");
+    for (x, y, w, h) in [(0.0, 0.0, 140.0, 3.0), (0.0, 213.0, 140.0, 3.0), (137.0, 0.0, 3.0, 216.0)] {
+        ctx.fill_rect(x, y, w, h);
+    }
+    ctx.restore();
+    for (x, y) in [(x0, y0), (x0 + 128.0, y0)] {
+        book_stain(ctx, x, y, 6.0 + rnd() * 5.0, false, "rgba(236,230,214,0.7)");
+    }
+    book_weave(ctx, x0, y0, 128.0, 128.0, 500);
+    if rnd() < 0.6 {
+        let (x, y) = (x0 + 20.0 + rnd() * 88.0, y0 + 20.0 + rnd() * 88.0);
+        book_stain(ctx, x, y, 12.0 + rnd() * 16.0, rnd() < 0.6, "rgba(60,44,24,0.25)");
+    }
+}
+
+/// A spine (head at the left, the front board up): cloth faded more than
+/// its boards, the title and author stamped (gilt, or ink on a light
+/// cloth), the rules at head and tail, the ends frayed; or a paperback's
+/// printed spine, cracked along its length where it was read
+fn book_spine(ctx: &mut Canvas, x0: f64, y0: f64, paperback: bool, c: usize, title: &str, author: &str) {
+    let (ink, ground) = if paperback {
+        let (g0, b0) = BOOK_PRINT[c];
+        ctx.set_fill_style(rgb(g0, 1.0));
+        ctx.fill_rect(x0, y0, 256, 32);
+        ctx.set_fill_style(rgb(b0, 1.0));
+        ctx.fill_rect(x0 + 70.0, y0, 110, 32);
+        (rgb(g0, 0.95), b0)
+    } else {
+        let col = BOOK_CLOTH[c];
+        let f = 0.18 + 0.2 * rnd();
+        let faded = (col.0 + (196.0 - col.0) * f, col.1 + (186.0 - col.1) * f, col.2 + (166.0 - col.2) * f);
+        ctx.set_fill_style(rgb(faded, 1.0));
+        ctx.fill_rect(x0, y0, 256, 32);
+        book_weave(ctx, x0, y0, 256.0, 32.0, 900);
+        let light = col.0 + col.1 + col.2 > 300.0;
+        ctx.set_fill_style(if light { "rgba(40,30,24,0.8)" } else { "rgba(180,152,92,0.8)" });
+        for x in [x0 + 12.0, x0 + 15.0, x0 + 241.0, x0 + 244.0] {
+            ctx.fill_rect(x, y0, 1.2, 32);
+        }
+        ((if light { "rgba(40,30,24,0.85)" } else { "rgba(184,156,96,0.85)" }).to_string(), faded)
+    };
+    ctx.set_fill_style(ink.as_str());
+    ctx.set_text_align("left");
+    ctx.set_text_baseline("middle");
+    ctx.set_font(if paperback { "bold 9px Gill Sans" } else { "bold 9px Times New Roman" });
+    ctx.fill_text_max(title, x0 + if paperback { 78.0 } else { 30.0 }, y0 + 17.0, if paperback { 96.0 } else { 140.0 });
+    ctx.set_font(if paperback { "7px Gill Sans" } else { "7px Times New Roman" });
+    if paperback {
+        ctx.set_fill_style(rgb(ground, 0.9));
+        ctx.fill_text_max(author, x0 + 186.0, y0 + 17.0, 64);
+    } else {
+        ctx.fill_text_max(author, x0 + 182.0, y0 + 17.0, 54);
+    }
+    ctx.set_text_baseline("alphabetic");
+    // the stamping rubbed: specks of the ground over it
+    for _ in 0..140 {
+        ctx.set_fill_style(rgb(ground, 0.6));
+        ctx.fill_rect(x0 + rnd() * 256.0, y0 + rnd() * 32.0, 1.5, 1.5);
+    }
+    if paperback {
+        ctx.set_stroke_style("rgba(236,230,214,0.75)");
+        ctx.set_line_width(0.8);
+        for _ in 0..(2.0 + rnd() * 4.0) as usize {
+            let y = y0 + 4.0 + rnd() * 24.0;
+            let x = x0 + rnd() * 60.0;
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + 60.0 + rnd() * 140.0, y + rnd() * 2.0 - 1.0);
+            ctx.stroke();
+        }
+    } else {
+        // frayed at head and tail
+        for x in [x0, x0 + 250.0] {
+            ctx.set_fill_style("rgba(200,188,166,0.35)");
+            ctx.fill_rect(x, y0, 6, 32);
+        }
+    }
+    // dust settled on its upper edge
+    let gr = ctx.create_linear_gradient(x0, y0, x0, y0 + 8.0);
+    gr.add_color_stop(0, "rgba(150,140,120,0.35)");
+    gr.add_color_stop(1, "rgba(150,140,120,0)");
+    ctx.set_fill_style(gr);
+    ctx.fill_rect(x0, y0, 256, 8);
+}
+
+/// Page edges: old paper gone yellow, the leaves' fine lines, tanned
+/// darker toward the boards, foxed, grimy
+fn book_pages(ctx: &mut Canvas, x0: f64, y0: f64, w: f64, h: f64) {
+    ctx.set_fill_style("#d2c4a0");
+    ctx.fill_rect(x0, y0, w, h);
+    let mut y = y0;
+    while y < y0 + h {
+        ctx.set_fill_style(format!("rgba(90,70,40,{})", 0.05 + 0.12 * rnd()));
+        ctx.fill_rect(x0, y, w, 0.6 + rnd() * 0.8);
+        y += 1.0 + rnd() * 2.0;
+    }
+    for (ya, yb) in [(y0, y0 + 16.0), (y0 + h, y0 + h - 16.0)] {
+        let gr = ctx.create_linear_gradient(x0, ya, x0, yb);
+        gr.add_color_stop(0, "rgba(120,86,40,0.45)");
+        gr.add_color_stop(1, "rgba(120,86,40,0)");
+        ctx.set_fill_style(gr);
+        ctx.fill_rect(x0, y0, w, h);
+    }
+    for _ in 0..60 {
+        let (x, y) = (x0 + rnd() * w, y0 + rnd() * h);
+        book_stain(ctx, x, y, 1.0 + rnd() * 3.0, false, "rgba(130,84,40,0.35)");
+    }
+    let gr = ctx.create_linear_gradient(x0, y0, x0 + w, y0);
+    gr.add_color_stop(0, "rgba(60,50,40,0.15)");
+    gr.add_color_stop(0.5, "rgba(60,50,40,0)");
+    gr.add_color_stop(1, "rgba(60,50,40,0.15)");
+    ctx.set_fill_style(gr);
+    ctx.fill_rect(x0, y0, w, h);
+}
+
+/// A bentwood coat stand, most often with an overcoat hung on it by its loop
+pub fn build_coat_rack(g: &mut Game, cx: &mut PropsCtx) -> Built {
+    let _ = (g, cx);
+    // a Thonet-style stand (74 in: a turned pole, four bent legs and their
+    // ring, six coat hooks and six hat hooks) and a wool overcoat hanging by
+    // the loop in its collar from the front coat hook, both modelled in the
+    // batch `r02` (docs/PROPS.md)
+    use crate::assets::props::prop_part_as_modelled;
+    let rg = group();
+    // dark-stained beech, its varnish worn
+    let wood = lambert!({ color: 0x3f2819 });
+    for name in ["Real__coatStandPole", "Real__coatStandLegs", "Real__coatStandHooks"] {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            rg.add(&mesh(geo, &wood));
+        }
+    }
+    // the old draw: a coat on seven stands of ten; what it drew says which
+    let r = rnd();
+    if r < 0.7 {
+        // charcoal, navy, camel, brown, loden: wool, dulled
+        let colours = [0x47474au32, 0x343a48, 0x86694a, 0x56463a, 0x4a5444];
+        let wool = lambert!({ color: colours[((r / 0.7 * 5.0) as usize).min(4)] });
+        let horn = lambert!({ color: 0x2b211a });
+        let coat = group();
+        // the loop rests in the bottom of the hook's J
+        coat.position().set(0, 1.515, 0.128);
+        for (name, mat) in [("Real__coat", &wool), ("Real__coatButtons", &horn)] {
+            if let Some(geo) = prop_part_as_modelled(name) {
+                coat.add(&mesh(geo, mat));
+            }
+        }
         rg.add(&coat);
     }
-    Built::new(rg, 1.7)
+    Built::new(rg, 1.88)
 }
 
 /// A dropped tube on the floor
@@ -1057,49 +1512,197 @@ pub fn build_fluorescent_tube(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(tg, 0.1)
 }
 
-/// A junk colour (cardboard, cloth, plastic, rust, grey) from one drawn
-/// number: which of them from its low bits, how light (`lo`..`hi` of the
-/// colour, sRGB) from the rest
-fn junk_colour(n: i64, lo: f64, hi: f64) -> u32 {
-    const JUNK: [(f64, f64, f64); 6] =
-        [(0.62, 0.48, 0.32), (0.45, 0.42, 0.40), (0.38, 0.30, 0.24), (0.52, 0.30, 0.20), (0.30, 0.34, 0.36), (0.55, 0.52, 0.44)];
-    let (r, g, b) = JUNK[(n.rem_euclid(6)) as usize];
-    let k = lo + (hi - lo) * ((n / 6).rem_euclid(1000) as f64 / 999.0);
-    let c = |v: f64| ((v * k / 0.62).clamp(0.0, 1.0) * 255.0).round() as u32;
-    (c(r) << 16) | (c(g) << 8) | c(b)
-}
-
-/// Absurd amalgam of small junk
+/// A heap of debris swept up in a store or a tunnel: grit and plaster dust,
+/// bits of brick and concrete, and on it broken pieces of what the place
+/// was built of
 pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
+    // the mound and the pieces are modelled in the batch `r02`; the pieces
+    // lie on the mound, whose height is PL_H (1 - (x/RX)^2 - (z/RZ)^2)^1.3
+    // (docs/PROPS.md)
+    use crate::assets::props::prop_part_as_modelled;
+    const RX: f64 = 0.28;
+    const RZ: f64 = 0.235;
+    const PL_H: f64 = 0.14;
+    let heap_h = |x: f64, z: f64| {
+        let q = 1.0 - (x / RX).powi(2) - (z / RZ).powi(2);
+        if q > 0.0 {
+            PL_H * q.powf(1.3)
+        } else {
+            0.0
+        }
+    };
     let pg_ = group();
-    // the bound `irand(4, 8)` is deliberately redrawn every pass
+    let dust = lambert!({ color: 0x858078 });
+    let concrete = lambert!({ color: 0x64615b });
+    let plaster = lambert!({ color: 0xa6a194 });
+    let brick = lambert!({ color: 0x634438 });
+    for (name, mat) in [
+        ("Real__pileHeap", &dust),
+        ("Real__pileConcreteBits", &concrete),
+        ("Real__pilePlasterBits", &plaster),
+        ("Real__pileBrickBits", &brick),
+    ] {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            pg_.add(&mesh(geo, mat));
+        }
+    }
+    // the dust it has shed round it
+    let shed = mesh(plane_geo!(1.2, 1.0), pile_dust_mat());
+    shed.rotation().x = -PI / 2.0;
+    shed.position().y = 0.0015;
+    pg_.add(&shed);
+    // the old draws, call for call (the bound `irand(4, 8)` redrawn every
+    // pass): a flat piece or a lump, its size and colour, where, how turned
+    let mut pieces = vec![];
     let mut i = 0i64;
     while i < irand(4, 8) {
-        // (each colour from one draw, as it always was, but a junk colour:
-        // a random hex between two had come out any colour at all, lime and
-        // orange among them)
-        let block = || {
-            mesh(
-                pg("Props__pile_block", box_geo!(rand2(0.1, 0.3), rand2(0.05, 0.2), rand2(0.1, 0.3))),
-                lambert!({ color: junk_colour(irand(0x111111, 0xaaaaaa), 0.10, 0.62) }),
-            )
+        let piece = if choice(&[0, 1]) == 0 {
+            let (a, _, _) = (rand2(0.1, 0.3), rand2(0.05, 0.2), rand2(0.1, 0.3));
+            let n = irand(0x111111, 0xaaaaaa);
+            let u = (n - 0x111111) as f64 / (0xaaaaaa - 0x111111) as f64;
+            // drywall, a ceiling tile's corner, a brick
+            let kind = if u < 0.38 {
+                0
+            } else if u < 0.72 {
+                1
+            } else {
+                2
+            };
+            (kind, 0.92 + (a - 0.1) * 0.8)
+        } else {
+            let r = rand2(0.06, 0.12);
+            let n = irand(0x222222, 0xbb9955);
+            let u = (n - 0x222222) as f64 / (0xbb9955 - 0x222222) as f64;
+            // a lump of concrete, half a brick, a small lump
+            let kind = if u < 0.4 {
+                3
+            } else if u < 0.7 {
+                4
+            } else {
+                5
+            };
+            (kind, 0.92 + (r - 0.06) / 0.06 * 0.16)
         };
-        let lump = || {
-            mesh(
-                pg("Props__pile_lump", sphere_geo!(rand2(0.06, 0.12), 6, 4)),
-                lambert!({ color: junk_colour(irand(0x222222, 0xbb9955), 0.14, 0.70) }),
-            )
-        };
-        let shape = if choice(&[0, 1]) == 0 { block() } else { lump() };
-        let (x, y, z) = (rand2(-0.3, 0.3), rand2(0.05, 0.35), rand2(-0.3, 0.3));
-        shape.position().set(x, y, z);
+        let (x, _, z) = (rand2(-0.3, 0.3), rand2(0.05, 0.35), rand2(-0.3, 0.3));
         let (a, b, c) = (rand2(0.0, 7.0), rand2(0.0, 7.0), rand2(0.0, 7.0));
-        shape.rotation().set(a, b, c);
-        pg_.add(&shape);
+        pieces.push((piece.0, piece.1, x, z, (a - 3.5) * 0.035, b, (c - 3.5) * 0.035));
         i += 1;
     }
+    // each laid on the mound, or on what was laid before it there, tipped to
+    // the slope
+    const KINDS: [(&str, u32, f64, f64); 6] = [
+        // part, colour, footprint radius, thickness
+        ("Real__pileDrywall", 0xb3ad9e, 0.17, 0.013),
+        ("Real__pileTile", 0xaea690, 0.15, 0.016),
+        ("Real__pileBrick", 0x664638, 0.10, 0.057),
+        ("Real__pileConcrete", 0x7a776f, 0.09, 0.08),
+        ("Real__pileHalfBrick", 0x624234, 0.06, 0.057),
+        ("Real__pileConcreteSmall", 0x7d7a72, 0.055, 0.05),
+    ];
+    let mut laid: Vec<(f64, f64, f64, f64)> = vec![]; // x, z, radius, top
+    for (kind, s, x, z, tx, yaw, tz) in pieces {
+        let (name, colour, rad, thick) = KINDS[kind];
+        let mut y = heap_h(x, z) - 0.006;
+        for &(lx, lz, lr, top) in &laid {
+            let d = ((x - lx).powi(2) + (z - lz).powi(2)).sqrt();
+            if d < (rad + lr) * 0.75 {
+                y = y.max(top - 0.01 - 0.02 * d / (rad + lr));
+            }
+        }
+        laid.push((x, z, rad * s, y + thick * s));
+        let e = 0.01;
+        let sx = (heap_h(x + e, z) - heap_h(x - e, z)) / (2.0 * e);
+        let sz = (heap_h(x, z + e) - heap_h(x, z - e)) / (2.0 * e);
+        let Some(geo) = prop_part_as_modelled(name) else { continue };
+        let tilt = group();
+        tilt.position().set(x, y, z);
+        // a broad flat piece bridges the lumps: it takes less of the slope
+        let k = if kind < 2 { 0.55 } else { 0.85 };
+        tilt.rotation().set(-(sz * k).atan() + tx, 0, (sx * k).atan() + tz);
+        let mat = if kind == 1 { lambert!({ map: &ceiling_tile_tex() }) } else { lambert!({ color: colour }) };
+        let m = mesh(geo, mat);
+        m.scale().set(s, s, s);
+        m.rotation().y = yaw;
+        tilt.add(&m);
+        // nothing of it through the floor
+        tilt.update_matrix_world(true);
+        let mut b = Box3::default();
+        b.set_from_object(&tilt);
+        if !b.is_empty() && b.min.y < 0.0 {
+            tilt.position().y = y - b.min.y;
+        }
+        pg_.add(&tilt);
+    }
     Built::new(pg_, 0.4)
+}
+
+/// Pale dust on the floor round a heap of rubble: thick at the heap, thin
+/// and patchy away from it, grit strewn in it, a few drags of a broom
+fn pile_dust_mat() -> Mat {
+    let tex = canvas_tex_opt(256, 256, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        for _ in 0..26 {
+            let a = rnd() * 6.3;
+            let d = rnd() * 0.2;
+            let (x, y) = (w * (0.5 + a.cos() * d), h * (0.5 + a.sin() * d));
+            let r = w * (0.1 + 0.16 * rnd());
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, "rgba(140,135,124,0.4)");
+            gr.add_color_stop(1, "rgba(140,135,124,0)");
+            ctx.set_fill_style(gr);
+            ctx.begin_path();
+            ctx.ellipse(x, y, r, r * (0.5 + 0.5 * rnd()), rnd() * 3.0, 0, 7);
+            ctx.fill();
+        }
+        for k in 0..500 {
+            let a = rnd() * 6.3;
+            let d = 0.15 + 0.3 * rnd() * rnd();
+            let (x, y) = (w * (0.5 + a.cos() * d), h * (0.5 + a.sin() * d));
+            ctx.set_fill_style(if k % 3 == 0 { "rgba(70,66,60,0.7)" } else { "rgba(170,164,152,0.6)" });
+            let s = 0.8 + rnd() * 2.0;
+            ctx.fill_rect(x, y, s, s * (0.5 + rnd()));
+        }
+        ctx.set_stroke_style("rgba(160,154,142,0.14)");
+        for _ in 0..7 {
+            let a = rnd() * 6.3;
+            let (x, y) = (w * (0.5 + a.cos() * 0.2), h * (0.5 + a.sin() * 0.2));
+            ctx.set_line_width(2.0 + rnd() * 4.0);
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * 50.0, y + a.sin() * 50.0);
+            ctx.stroke();
+        }
+    });
+    lambert!({ map: &tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+}
+
+/// A mineral fibre ceiling tile's face: off-white gone yellow, its fine
+/// fissures, a water stain
+fn ceiling_tile_tex() -> Tex {
+    canvas_tex_opt(128, 128, false, |ctx, w, h| {
+        ctx.set_fill_style("#b4ab94");
+        ctx.fill_rect(0, 0, w, h);
+        ctx.set_stroke_style("rgba(70,62,50,0.55)");
+        ctx.set_line_cap("round");
+        for _ in 0..140 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * 6.3;
+            let l = 2.0 + rnd() * 5.0;
+            ctx.set_line_width(0.6 + rnd() * 0.8);
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.quadratic_curve_to(x + (a + 1.0).cos() * l, y + (a + 1.0).sin() * l, x + a.cos() * l * 1.6, y + a.sin() * l * 1.6);
+            ctx.stroke();
+        }
+        let (x, y, r) = (w * (0.3 + 0.4 * rnd()), h * (0.3 + 0.4 * rnd()), w * 0.3);
+        let gr = ctx.create_radial_gradient(x, y, r * 0.6, x, y, r);
+        gr.add_color_stop(0, "rgba(120,96,60,0.12)");
+        gr.add_color_stop(0.85, "rgba(110,84,50,0.35)");
+        gr.add_color_stop(1, "rgba(110,84,50,0)");
+        ctx.set_fill_style(gr);
+        ctx.fill_rect(0, 0, w, h);
+    })
 }
 
 /// A curved leaf (a flat shape geometry
