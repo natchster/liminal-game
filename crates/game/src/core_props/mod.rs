@@ -825,24 +825,7 @@ impl Game {
         cg.position().copy(&spot.pos).add_scaled_vector(&spot.normal, 0.05);
         cg.position().y = 2.1;
         cg.rotation().y = spot.yaw;
-        let face_c = mesh(circle_geo!(0.3, 24), lambert!({ color: 0xd9d4c2 }));
-        cg.add(&face_c);
-        let rim = mesh(pg("Props__clock_rim", torus_geo!(0.3, 0.025, 8, 24)), &g.mats.metal);
-        cg.add(&rim);
-        let hand_m = basic_mat!({ color: 0x141210 });
-        let hour_h = mesh(pg("Props__clock_hourHand", box_geo!(0.03, 0.16, 0.01)), &hand_m);
-        hour_h.position().y = 0.06;
-        hour_h.rotation().z = 2.4;
-        let hour_pivot = group();
-        hour_pivot.add(&hour_h);
-        hour_pivot.position().z = 0.012;
-        cg.add(&hour_pivot);
-        let sec_h = mesh(pg("Props__clock_secondHand", box_geo!(0.012, 0.24, 0.008)), basic_mat!({ color: 0x8a1a12 }));
-        sec_h.position().y = 0.09;
-        let sec_pivot = group();
-        sec_pivot.add(&sec_h);
-        sec_pivot.position().z = 0.02;
-        cg.add(&sec_pivot);
+        let sec_pivot = wall_clock_body(&cg);
         g.world.add(&cg);
         g.clock_data = Some(ClockData { sec_pivot, world: cg.pos(), acc: 0.0, tock: false, normal: spot.normal });
     }
@@ -1132,23 +1115,7 @@ impl Game {
         let px = g.wx(c.x) + rand2(-0.7, 0.7);
         let pz = g.wz(c.z) + rand2(-0.7, 0.7);
         mg.position().set(px, 0, pz);
-        let skin = lambert!({ color: 0xcfc8ba });
-        let torso = mesh(pg("Props__mannequin_torso", capsule_geo!(0.21, 0.62, 4, 10)), &skin);
-        torso.position().y = 1.12;
-        mg.add(&torso);
-        let head = mesh(pg("Props__mannequin_head", sphere_geo!(0.155, 14, 10)), &skin);
-        head.position().y = 1.72;
-        head.scale().y = 1.25;
-        mg.add(&head);
-        for s in [-1.0, 1.0] {
-            let leg = mesh(pg("Props__mannequin_leg", capsule_geo!(0.075, 0.62, 4, 8)), &skin);
-            leg.position().set(s * 0.11, 0.42, 0);
-            mg.add(&leg);
-            let arm = mesh(pg("Props__mannequin_arm", capsule_geo!(0.055, 0.52, 4, 8)), &skin);
-            arm.position().set(s * 0.3, 1.1, 0);
-            arm.rotation().z = s * 0.12;
-            mg.add(&arm);
-        }
+        mannequin_body(&mg);
         mg.rotation().y = rand1(PI * 2.0);
         g.world.add(&mg);
         let timer0 = rand2(3.0, 6.0);
@@ -1193,6 +1160,237 @@ impl Game {
             }
         });
     }
+}
+
+/// The mannequin's body (Blender batch `r04`): a fibreglass male display
+/// mannequin with an egg head, 1.89 m on its plate, its arms, hands, torso
+/// and head off at their join lines, the paint knocked off its edges, on a
+/// black steel base plate with a chrome calf rod; placed as modelled, its
+/// front +z (it turns to face you).
+fn mannequin_body(mg: &Obj) {
+    use crate::assets::props::prop_part_as_modelled;
+    // gloss white paint over the fibreglass, yellowed and dulled by years
+    let shell = phong!({ color: 0xd2ccbe, specular: 0x1c1c1c, shininess: 24 });
+    // where it is knocked off: the grey filler and gelcoat under the paint
+    let under = lambert!({ color: 0x8e8574 });
+    // a join line: the hairline gap between two pieces, dirt in it
+    let seam = lambert!({ color: 0x3e3933 });
+    let plate = phong!({ color: 0x151514, specular: 0x262626, shininess: 34 });
+    let chrome = phong!({ color: 0x46484a, specular: 0x8a8a88, shininess: 70 });
+    let parts: [(&str, &Mat); 13] = [
+        ("Real__manTorso", &shell),
+        ("Real__manHead", &shell),
+        ("Real__manLegL", &shell),
+        ("Real__manLegR", &shell),
+        ("Real__manArmL", &shell),
+        ("Real__manArmR", &shell),
+        ("Real__manHandL", &shell),
+        ("Real__manHandR", &shell),
+        ("Real__manSeams", &seam),
+        ("Real__manJoins", &seam),
+        ("Real__manChips", &under),
+        ("Real__manPlate", &plate),
+        ("Real__manRod", &chrome),
+    ];
+    for (name, mat) in parts {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            mg.add(&mesh(geo, mat));
+        }
+    }
+}
+
+/// The wall clock's body (Blender batch `r04`): the 12-inch school and
+/// office clock, 34 cm across and 5 cm deep, a black steel case, a domed
+/// glass gone dull, a printed metal dial; its hands stopped at twenty-five
+/// past seven but for the second hand, which sweeps on. Built into `cg`
+/// (its face toward +z, its back on the wall); returns the second hand's
+/// pivot.
+fn wall_clock_body(cg: &Obj) -> Obj {
+    use crate::assets::props::prop_part_as_modelled;
+    // the case's back against the wall (the group stands 5 cm proud of where
+    // the wall spot was found; the wall's face is about 2.8 cm behind it)
+    const BACK: f64 = -0.028;
+    const DIAL: f64 = BACK + 0.0301;
+    let part = |name: &str| prop_part_as_modelled(name);
+    let paint = phong!({ color: 0x1b1b1c, specular: 0x242424, shininess: 30 });
+    if let Some(geo) = part("Real__clockCase") {
+        let case = mesh(geo, &paint);
+        case.position().z = BACK;
+        cg.add(&case);
+    }
+    let dial = mesh(circle_geo!(0.1499, 72), lambert!({ map: &clock_dial_tex() }));
+    dial.position().z = DIAL;
+    cg.add(&dial);
+    // the hands: stamped steel, black; the sweep hand red
+    let black = lambert!({ color: 0x151412 });
+    let hand = |name: &str, z: f64, turn: f64, mat: &Mat| {
+        let pivot = group();
+        if let Some(geo) = part(name) {
+            pivot.add(&mesh(geo, mat));
+        }
+        pivot.position().z = z;
+        pivot.rotation().z = turn;
+        cg.add(&pivot);
+        pivot
+    };
+    // twenty-five past seven: the hour hand where it always was (2.4 rad)
+    hand("Real__clockHour", DIAL + 0.0016, 2.4, &black);
+    hand("Real__clockMinute", DIAL + 0.0030, -(25.0 / 60.0) * PI * 2.0, &black);
+    let sec_pivot = hand("Real__clockSecond", DIAL + 0.0044, 0.0, &lambert!({ color: 0x8c2418 }));
+    if let Some(geo) = part("Real__clockHub") {
+        let hub = mesh(geo, lambert!({ color: 0x1c1b1a }));
+        hub.position().z = DIAL + 0.0052;
+        cg.add(&hub);
+    }
+    // the glass: dull with the dust on it, heaviest along its top
+    if let Some(geo) = part("Real__clockGlass") {
+        let glass = mesh(geo, phong!({ map: &clock_glass_tex(), transparent: true, depthWrite: false, specular: 0x4a4a4a, shininess: 80 }));
+        glass.position().z = BACK;
+        cg.add(&glass);
+    }
+    sec_pivot
+}
+
+/// The clock's dial: printed on aged white enamel, the minute track (its
+/// five-minute marks heavier), the hours in a bold grotesque, the 24-hour
+/// numerals small in red inside them, QUARTZ under the pivot; yellowed
+/// toward its rim, a water mark dried along its foot, fly specks
+fn clock_dial_tex() -> Tex {
+    canvas_tex_opt(1024, 1024, false, |ctx, w, h| {
+        let (cx, cy, r) = (w / 2.0, h / 2.0, w / 2.0);
+        ctx.set_fill_style("#ddd5c1");
+        ctx.fill_rect(0, 0, w, h);
+        // yellowed, more at its rim, as a painted dial goes behind its glass
+        let g0 = ctx.create_radial_gradient(cx, cy, r * 0.6, cx, cy, r);
+        g0.add_color_stop(0, "rgba(180,155,105,0)");
+        g0.add_color_stop(1, "rgba(165,138,88,0.30)");
+        ctx.set_fill_style(g0);
+        ctx.fill_rect(0, 0, w, h);
+        // a blotchy mottle in the paint
+        for _ in 0..70 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 20.0 + rnd() * 90.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, "rgba(160,136,92,0.09)");
+            gr.add_color_stop(1, "rgba(160,136,92,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        // the minute track
+        ctx.set_stroke_style("rgba(24,22,20,0.92)");
+        ctx.set_line_cap("butt");
+        for k in 0..60 {
+            let a = k as f64 / 60.0 * PI * 2.0;
+            let five = k % 5 == 0;
+            let (r0, r1) = if five { (0.835, 0.955) } else { (0.895, 0.955) };
+            ctx.set_line_width(if five { 13.0 } else { 4.5 });
+            ctx.begin_path();
+            ctx.move_to(cx + a.sin() * r * r0, cy - a.cos() * r * r0);
+            ctx.line_to(cx + a.sin() * r * r1, cy - a.cos() * r * r1);
+            ctx.stroke();
+        }
+        ctx.set_line_width(3);
+        ctx.begin_path();
+        ctx.arc(cx, cy, r * 0.958, 0, 7);
+        ctx.stroke();
+        // the hours
+        ctx.set_fill_style("rgba(22,20,18,0.94)");
+        ctx.set_text_align("center");
+        ctx.set_text_baseline("middle");
+        ctx.set_font("bold 128px Helvetica Neue");
+        for k in 1..=12 {
+            let a = k as f64 / 12.0 * PI * 2.0;
+            ctx.fill_text(&k.to_string(), cx + a.sin() * r * 0.66, cy - a.cos() * r * 0.66 + 4.0);
+        }
+        // the 24-hour numerals, in red
+        ctx.set_fill_style("rgba(150,40,30,0.88)");
+        ctx.set_font("bold 40px Helvetica Neue");
+        for k in 13..=24 {
+            let a = (k - 12) as f64 / 12.0 * PI * 2.0;
+            ctx.fill_text(&k.to_string(), cx + a.sin() * r * 0.45, cy - a.cos() * r * 0.45 + 2.0);
+        }
+        ctx.set_fill_style("rgba(22,20,18,0.85)");
+        ctx.set_font("30px Helvetica Neue");
+        ctx.fill_text("QUARTZ", cx, cy + r * 0.27);
+        ctx.set_font("18px Helvetica Neue");
+        ctx.fill_text("MADE IN U.S.A.", cx, cy + r * 0.775);
+        // a water mark: damp got in once and dried along the foot
+        let (ty, tr) = (cy + r * (0.55 + 0.1 * rnd()), r * (0.8 + 0.2 * rnd()));
+        ctx.set_fill_style("rgba(150,115,60,0.10)");
+        ctx.begin_path();
+        ctx.ellipse(cx + (rnd() - 0.5) * r * 0.3, ty + tr * 0.5, tr, tr * 0.55, 0, 0, 7);
+        ctx.fill();
+        ctx.set_stroke_style("rgba(120,85,40,0.28)");
+        ctx.set_line_width(3);
+        ctx.begin_path();
+        let mut first = true;
+        for k in 0..=40 {
+            let x = cx - tr + 2.0 * tr * k as f64 / 40.0;
+            let y = ty + (rnd() - 0.5) * 6.0 + ((x - cx) / tr).powi(2) * tr * 0.18;
+            if first {
+                ctx.move_to(x, y);
+                first = false;
+            } else {
+                ctx.line_to(x, y);
+            }
+        }
+        ctx.stroke();
+        // fly specks and the odd fleck of rust
+        for _ in 0..70 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_fill_style(format!("rgba(50,38,25,{})", 0.3 + 0.5 * rnd()));
+            ctx.begin_path();
+            ctx.arc(x, y, 0.8 + rnd() * 1.8, 0, 7);
+            ctx.fill();
+        }
+    })
+}
+
+/// The clock's glass: a film of dust, heaviest along its top edge where it
+/// settles, wiped once across the middle long ago, fly specks
+fn clock_glass_tex() -> Tex {
+    canvas_tex_opt(512, 512, false, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        ctx.set_fill_style("rgba(196,190,176,0.20)");
+        ctx.fill_rect(0, 0, w, h);
+        let g0 = ctx.create_linear_gradient(0, 0, 0, h * 0.6);
+        g0.add_color_stop(0, "rgba(190,182,166,0.45)");
+        g0.add_color_stop(1, "rgba(190,182,166,0)");
+        ctx.set_fill_style(g0);
+        ctx.fill_rect(0, 0, w, h);
+        // the room in it: a soft pale band where the ceiling's light lies on the dome
+        let g1 = ctx.create_linear_gradient(w * 0.18, h * 0.12, w * 0.42, h * 0.40);
+        g1.add_color_stop(0, "rgba(235,232,220,0)");
+        g1.add_color_stop(0.5, "rgba(235,232,220,0.16)");
+        g1.add_color_stop(1, "rgba(235,232,220,0)");
+        ctx.set_fill_style(g1);
+        ctx.fill_rect(0, 0, w, h);
+        for _ in 0..240 {
+            let (x, y) = (rnd() * w, rnd() * h * (0.3 + 0.7 * rnd()));
+            ctx.set_fill_style(format!("rgba(200,192,176,{})", 0.05 + 0.12 * rnd()));
+            ctx.begin_path();
+            ctx.arc(x, y, 2.0 + rnd() * 9.0, 0, 7);
+            ctx.fill();
+        }
+        // a wipe across it once: clearer, in an arc
+        ctx.set_global_composite_operation("destination-out");
+        ctx.set_line_cap("round");
+        ctx.set_stroke_style("rgba(0,0,0,0.45)");
+        ctx.set_line_width(h * 0.12);
+        ctx.begin_path();
+        let y0 = h * (0.45 + 0.15 * rnd());
+        ctx.move_to(w * 0.12, y0 + h * 0.08);
+        ctx.quadratic_curve_to(w * 0.5, y0 - h * 0.1, w * 0.9, y0 + h * 0.04);
+        ctx.stroke();
+        ctx.set_global_composite_operation("source-over");
+        for _ in 0..30 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_fill_style(format!("rgba(40,32,22,{})", 0.4 + 0.4 * rnd()));
+            ctx.begin_path();
+            ctx.arc(x, y, 0.6 + rnd() * 1.2, 0, 7);
+            ctx.fill();
+        }
+    })
 }
 
 /// (one of `chair_cushion_colors` for the cushion)
