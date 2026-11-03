@@ -386,9 +386,15 @@ pub fn place_horseshoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shoe);
 }
 
-// R657 hanging cast iron pan: 4% chance per level. Round skillet body + long
-// handle + hanger loop.
+// R657 a cast-iron skillet hung on the wall (Blender batch `r16`): a 10 1/4
+// in skillet of the Lodge L8SK3 class, hung by the hole in its handle from
+// a nail, its bottom against the wall and its cooking face to the room; its
+// seasoning gone dull and flaking at the rim, rusted where it was put away
+// wet: a tide of orange rust low in the pan where the water stood, rust run
+// down from it and blooming at the pour lips and in the hole. 4% chance per
+// level.
 pub fn place_cast_iron_pans(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -397,31 +403,129 @@ pub fn place_cast_iron_pans(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z, dx, dz) = pick(&walls);
-    let iron_mat = lambert!({ color: 0x201818 });
     let pan = group();
-    let mount_y = 1.80;
-    // Round pan body (short cylinder viewed side-on).
-    let body = mesh(pg("CastIronPans__body", cyl_geo!(0.09, 0.09, 0.030, 14)), &iron_mat);
-    body.rotation().x = PI / 2.0;
-    body.position().set(-0.03, mount_y, 0.015);
-    pan.add(&body);
-    // Pan interior recess (slightly smaller darker disc).
-    let inner = mesh(pg("CastIronPans__inner", cyl_geo!(0.076, 0.076, 0.015, 14)), lambert!({ color: 0x101010 }));
-    inner.rotation().x = PI / 2.0;
-    inner.position().set(-0.03, mount_y, 0.021); // top 1.5 mm below the rim (0.030), not proud of it
-    pan.add(&inner);
-    // Long handle extending to right.
-    let handle = mesh(pg("CastIronPans__handle", box_geo!(0.20, 0.014, 0.014)), &iron_mat);
-    handle.position().set(0.115, mount_y, 0.015);
-    pan.add(&handle);
-    // Hanger hole loop at handle end.
-    let lp = mesh(pg("CastIronPans__loop", torus_geo!(0.006, 0.002, 3, 8)), &iron_mat);
-    // Upright ring (XY plane, facing the room) hooked through the handle tip (x 0.215).
-    lp.position().set(0.220, mount_y, 0.015);
-    pan.add(&lp);
+    // its rust differs floor to floor: from where it hangs (no draw)
+    let salt = ((x * 7919 + z * 104_729 + dx * 31 + dz * 17) as u32).wrapping_mul(0x9e37_79b9);
+    // the nail's hole 1.93 m up, so the pan's middle is at 1.68 m (the old
+    // pan's 1.80 m middle and its handle)
+    let lift = PAN_NAIL_Y - PAN_HOLE_Y;
+    if let Some(geo) = prop_part_as_modelled("Real__panBody") {
+        let body = mesh(geo, phong!({ map: &pan_iron_tex(salt), color: 0xffffff, specular: 0x201e1c, shininess: 18 }));
+        body.position().set(0, lift, -0.015);
+        pan.add(&body);
+    }
+    if let Some(geo) = prop_part_as_modelled("Real__panNail") {
+        let nail = mesh(geo, phong!({ color: 0x4a3c32, specular: 0x262422, shininess: 18 }));
+        nail.position().set(0, lift, -0.015);
+        pan.add(&nail);
+    }
     pan.rotation().y = face_yaw(dx, dz);
     pan.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&pan);
+}
+
+/// The skillet as hung (`Real__panBody`): its bounds (x, y; r16.py), its
+/// middle at y = 0, the hanging hole's centre, and where the nail is
+const PAN_BOUNDS: [f64; 4] = [-0.1393, -0.1697, 0.1393, 0.2631];
+const PAN_HOLE_Y: f64 = 0.2482;
+const PAN_NAIL_Y: f64 = 1.93;
+/// The cooking face's radius, and the inside of the rim (r16.py `PAN_PROFILE`)
+const PAN_FLOOR_R: f64 = 0.0915;
+const PAN_RIM_R: f64 = 0.1284;
+
+/// A hash of an integer lattice point
+fn r16_hash(seed: u32, x: i32, y: i32) -> f64 {
+    let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
+    h = (h ^ (h >> 13)).wrapping_mul(0xcb1a_b31f);
+    h ^= h >> 16;
+    h as f64 / 4_294_967_296.0
+}
+/// Smooth value noise in [0, 1]
+fn r16_noise(seed: u32, x: f64, y: f64) -> f64 {
+    let (xf, yf) = (x.floor(), y.floor());
+    let (fx, fy) = (x - xf, y - yf);
+    let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
+    let (xi, yi) = (xf as i32, yf as i32);
+    let (a, b) = (r16_hash(seed, xi, yi), r16_hash(seed, xi + 1, yi));
+    let (c, d) = (r16_hash(seed, xi, yi + 1), r16_hash(seed, xi + 1, yi + 1));
+    a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy
+}
+/// Three octaves of it
+fn r16_fbm(seed: u32, x: f64, y: f64) -> f64 {
+    0.55 * r16_noise(seed, x, y) + 0.3 * r16_noise(seed ^ 0x51, x * 2.3, y * 2.3) + 0.15 * r16_noise(seed ^ 0xa2, x * 5.1, y * 5.1)
+}
+fn r16_mix(c: &mut [f64; 3], to: [f64; 3], k: f64) {
+    let k = k.clamp(0.0, 1.0);
+    for i in 0..3 {
+        c[i] += (to[i] - c[i]) * k;
+    }
+}
+
+/// The iron, seen from the room (the box's texture coordinates: u across,
+/// v up over the hung pan's bounds): black seasoning gone dull, worn grey
+/// where it was scoured, flaking at the rim; rust where it was left wet: a
+/// tide low in the pan where water stood when it lay flat, spots and
+/// blooms, rust run down the walls from the lips and the rim, and in the
+/// hanging hole; the handle polished dark by hands.
+fn pan_iron_tex(salt: u32) -> Tex {
+    canvas_tex_opt(256, 384, false, move |ctx, w, h| {
+        let seed = salt ^ 0x1a0e;
+        let [x0, y0, x1, y1] = PAN_BOUNDS;
+        let mut r = SplitMix64::new(salt, 0xfe20);
+        // where the water stood: a pool low in the pan (the pan lay flat;
+        // it dried from its edges), its centre off the middle
+        let pool = (r.range(-0.025, 0.025), r.range(-0.04, -0.015), r.range(0.055, 0.075));
+        let n = w as usize;
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, n * 4, |j, out| {
+            let py = y1 - (j as f64 + 0.5) / h * (y1 - y0);
+            for i in 0..n {
+                let px = x0 + (i as f64 + 0.5) / w * (x1 - x0);
+                let rr = (px * px + py * py).sqrt();
+                let f = r16_fbm(seed, px * 40.0, py * 40.0);
+                let grain = r16_noise(seed ^ 3, px * 900.0, py * 900.0);
+                // the seasoning: near-black, a little brown, its cast grain
+                let mut c = [27.0 + 7.0 * f + 5.0 * grain, 25.0 + 6.0 * f + 4.0 * grain, 24.0 + 5.0 * f + 3.0 * grain];
+                // dulled grey-brown where a spatula and steel wool went
+                let inside = rr < PAN_FLOOR_R + 0.008;
+                if inside {
+                    let scour = (r16_fbm(seed ^ 5, px * 25.0, py * 25.0) - 0.5).max(0.0) * 1.2;
+                    r16_mix(&mut c, [52.0, 48.0, 44.0], scour * 0.35);
+                }
+                // flaking at the rim: the seasoning lifted to grey iron
+                let rim = (1.0 - ((rr - PAN_RIM_R) / 0.010).abs()).max(0.0);
+                let flake = ((r16_noise(seed ^ 7, px * 160.0, py * 160.0) - 0.55) * 3.0).max(0.0) * rim;
+                r16_mix(&mut c, [62.0, 56.0, 50.0], flake * 0.7);
+                // rust where the water stood when it lay flat: a ragged pool,
+                // uneven inside (orange powder, dark crust), blooms round it
+                let (pxc, pyc, pr) = pool;
+                let dpool = (((px - pxc) / 1.2).powi(2) + (py - pyc).powi(2)).sqrt() / pr;
+                let ragged = dpool + 0.55 * (r16_fbm(seed ^ 9, px * 22.0, py * 22.0) - 0.5);
+                let in_pool = ((1.0 - ragged) * 4.0).clamp(0.0, 1.0) * (0.55 + 0.45 * r16_fbm(seed ^ 17, px * 70.0, py * 70.0));
+                let bloom = ((r16_fbm(seed ^ 11, px * 34.0, py * 34.0) - 0.6).max(0.0) * 4.0).min(1.0);
+                let spots = ((r16_noise(seed ^ 19, px * 260.0, py * 260.0) - 0.8).max(0.0) * 5.0).min(1.0);
+                let wet = if inside { 1.0 } else { 0.25 };
+                // rust at the pour lips, where water ran out
+                let lip = ((px.abs() - 0.118) / 0.012).clamp(0.0, 1.0) * (1.0 - (py.abs() / 0.02).min(1.0));
+                let rust = ((in_pool + bloom * 0.8 + spots * 0.6) * wet + lip * 0.4 + rim * flake * 0.5).min(1.0);
+                // rust's own colour: orange-brown powder, dark where it crusted
+                let rk = r16_noise(seed ^ 15, px * 300.0, py * 300.0);
+                let crust = r16_noise(seed ^ 21, px * 90.0, py * 90.0);
+                let rc = [96.0 + 44.0 * rk - 30.0 * crust, 46.0 + 20.0 * rk - 14.0 * crust, 24.0 + 10.0 * rk - 6.0 * crust];
+                r16_mix(&mut c, rc, rust * (0.8 + 0.2 * grain));
+                // the handle, polished dark by hands, the hole rusted
+                if py > 0.14 {
+                    let dh = ((py - PAN_HOLE_Y).powi(2) + px * px).sqrt();
+                    let hole = (1.0 - (dh - 0.008) / 0.005).clamp(0.0, 1.0);
+                    let polish = ((0.23 - py) / 0.06).clamp(0.0, 1.0) * 0.3;
+                    r16_mix(&mut c, [19.0, 18.0, 18.0], polish);
+                    r16_mix(&mut c, [104.0, 52.0, 26.0], hole * 0.7);
+                }
+                out[i * 4..i * 4 + 4].copy_from_slice(&[c[0] as u8, c[1] as u8, c[2] as u8, 255]);
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    })
 }
 
 // R657 wooden staved bucket: 4% chance per level. Barrel-style bucket w/
@@ -518,8 +622,14 @@ pub fn place_cast_iron_kettles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kettle);
 }
 
-// R659 firewood stack: 5% chance per level. 3-5 short logs piled on floor.
+// R659 a stack of firewood (Blender batch `r16`): 3-5 splits of stove wood,
+// 300 mm long (a quarter of a big round, half a small one, a slab off a big
+// one, a branch round), a bottom row and one or two laid in its grooves as
+// the old stack was; their bark (oak, ash, elm or birch: the old bark
+// colours), the faces they were split along gone grey, their sawn ends'
+// rings round the pith, checked by drying. 5% chance per level.
 pub fn place_firewood_stacks(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -528,51 +638,265 @@ pub fn place_firewood_stacks(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
+    // the old bark colours: oak, ash, elm, birch
     let bark_colors: [u32; 4] = [0x6b3f1f, 0x805030, 0x503020, 0x9a6f4b];
     let bark_color = pick(&bark_colors);
-    let bark_mat = lambert!({ color: bark_color });
-    let core_mat = lambert!({ color: 0xd0a870 });
-    let stack = group();
+    let species = bark_colors.iter().position(|&c| c == bark_color).unwrap_or(0);
     let count = 3 + (rnd() * 3.0).floor() as i32;
-    // Build pyramid stack: bottom row (count logs), then decreasing.
+    // the old stack's loop: one draw a log (its turn); now the grain's seed
     let layers = 2i32.min((count as f64 / 2.0).floor() as i32);
-    // bottom row leaves logs for the rows above (3 → 2+1, 4 → 3+1, 5 → 3+2);
-    // it used to take all `count` logs, so no stack ever formed
     let bottom_row = ((count + 1) as f64 / 2.0).ceil() as i32;
     let mut idx = 0;
-    for layer in 0..=layers {
+    let mut salt: u32 = 0x9e37_79b9 ^ count as u32;
+    'rows: for layer in 0..=layers {
         let row_count = bottom_row - layer;
         if row_count <= 0 {
             break;
         }
-        for i in 0..row_count {
-            // Log body + end grain cap.
-            let lg = group();
-            let body = mesh(pg("FirewoodStacks__log", cyl_geo!(0.030, 0.030, 0.15, 8)), &bark_mat);
-            body.rotation().z = PI / 2.0;
-            body.position().y = 0.030;
-            lg.add(&body);
-            // End cap w/ light-colored core (visible one end).
-            let cap = mesh(circle_geo!(0.030, 8), &core_mat);
-            cap.rotation().y = PI / 2.0;
-            cap.position().set(0.076, 0.030, 0);
-            lg.add(&cap);
-            // rows centred, 1 mm apart; upper logs sit in the grooves below
-            lg.position().set(0.006 * layer as f64, layer as f64 * 0.0517, -0.061 * (row_count - 1) as f64 / 2.0 + i as f64 * 0.061);
-            lg.rotation().y = (rnd() - 0.5) * 0.1;
-            stack.add(&lg);
+        for _ in 0..row_count {
+            let turn = (rnd() - 0.5) * 0.1;
+            salt = salt.rotate_left(7) ^ (turn * 1.0e7) as i64 as u32;
             idx += 1;
             if idx >= count {
-                break;
+                break 'rows;
             }
         }
-        if idx >= count {
-            break;
+    }
+    let n = count.clamp(3, 5) as usize;
+    let stack = group();
+    let mats = [
+        lambert!({ map: &wood_bark_tex(species, salt) }),
+        lambert!({ map: &wood_split_tex(species, salt) }),
+        lambert!({ map: &wood_end_tex(species, salt, WOOD_PITHS[n - 3][0], false) }),
+        lambert!({ map: &wood_end_tex(species, salt ^ 0x55, WOOD_PITHS[n - 3][1], true) }),
+    ];
+    for (k, part) in ["Bark", "Split", "EndL", "EndR"].iter().enumerate() {
+        if let Some(geo) = prop_part_as_modelled(&format!("Real__woodStack{n}{part}")) {
+            stack.add(&mesh(geo, &mats[k]));
         }
     }
     stack.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
     stack.rotation().y = rnd() * PI * 2.0;
     g.world.add(&stack);
+}
+
+/// Each stack's piths on its two sawn ends, in its end parts' texture
+/// coordinates (u, v), and the bark's radius about each (in u and in v):
+/// printed by r16.py (`_print_piths`) from the stacks as modelled
+type WoodPiths = &'static [(f64, f64, f64, f64)];
+const WOOD_PITHS: [[WoodPiths; 2]; 3] = [
+    [
+        &[(0.0055, 0.0258, 0.4243, 0.7347), (0.7389, 0.0258, 0.2586, 0.4478), (0.4235, 0.7248, 0.1697, 0.2939)],
+        &[(0.9943, 0.0088, 0.4355, 0.7218), (0.2787, 0.0088, 0.2655, 0.4400), (0.5191, 0.6956, 0.1742, 0.2887)],
+    ],
+    [
+        &[
+            (0.2930, 0.0111, 0.2904, 0.4692),
+            (0.1308, 0.0111, 0.4701, 0.7596),
+            (0.8206, 0.0111, 0.1770, 0.2860),
+            (0.1485, 0.5248, 0.2904, 0.4692),
+        ],
+        &[
+            (0.7007, 0.0166, 0.2948, 0.4647),
+            (0.8432, 0.0166, 0.4774, 0.7523),
+            (0.1846, 0.0166, 0.1797, 0.2832),
+            (0.8263, 0.5254, 0.2948, 0.4647),
+        ],
+    ],
+    [
+        &[
+            (0.1849, 0.0213, 0.1769, 0.3314),
+            (0.8716, 0.0213, 0.4700, 0.8802),
+            (0.6964, 0.0213, 0.2903, 0.5436),
+            (0.3737, 0.6553, 0.1161, 0.2175),
+            (0.6888, 0.6590, 0.1769, 0.3314),
+        ],
+        &[
+            (0.8206, 0.0135, 0.1771, 0.3313),
+            (0.1686, 0.0135, 0.4704, 0.8801),
+            (0.2960, 0.0135, 0.2906, 0.5436),
+            (0.6333, 0.6475, 0.1162, 0.2174),
+            (0.3105, 0.6512, 0.1771, 0.3313),
+        ],
+    ],
+];
+
+/// Bark by species (sRGB): its ridges, its fissures
+const WOOD_BARK: [([f64; 3], [f64; 3]); 4] = [
+    ([104.0, 96.0, 84.0], [44.0, 38.0, 32.0]),   // oak: grey-brown ridges, deep dark fissures
+    ([128.0, 124.0, 112.0], [70.0, 66.0, 58.0]), // ash: grey, a diamond net of shallow fissures
+    ([92.0, 74.0, 58.0], [40.0, 30.0, 24.0]),    // elm: brown, corky
+    ([196.0, 192.0, 180.0], [42.0, 38.0, 34.0]), // birch: white, black lenticels and cracks
+];
+/// The wood itself, fresh-split and weathered (sRGB)
+const WOOD_GRAIN: [([f64; 3], [f64; 3]); 4] = [
+    ([170.0, 138.0, 100.0], [128.0, 122.0, 112.0]),
+    ([186.0, 168.0, 132.0], [138.0, 132.0, 122.0]),
+    ([150.0, 112.0, 80.0], [118.0, 108.0, 96.0]),
+    ([198.0, 180.0, 146.0], [146.0, 140.0, 128.0]),
+];
+
+/// The bark round every log (the box's texture coordinates over the whole
+/// stack: u along the logs): ridges along the grain between fissures (birch
+/// across it: lenticels and peeling), lichen and dirt here and there
+fn wood_bark_tex(species: usize, salt: u32) -> Tex {
+    canvas_tex_opt(512, 256, false, move |ctx, w, h| {
+        let seed = salt ^ 0xba4c;
+        let (ridge, fissure) = WOOD_BARK[species];
+        let n = w as usize;
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, n * 4, |j, out| {
+            let y = j as f64;
+            for i in 0..n {
+                let x = i as f64;
+                let mut c = ridge;
+                if species == 3 {
+                    // birch: white, dark lenticels across the grain (short
+                    // lines along v... the logs run along u), black cracks
+                    let len = r16_noise(seed, x / 2.0, y / 14.0);
+                    let crack = (r16_fbm(seed ^ 1, x / 40.0, y / 6.0) - 0.62).max(0.0) * 4.0;
+                    let dirt = r16_fbm(seed ^ 2, x / 60.0, y / 60.0);
+                    r16_mix(&mut c, fissure, ((len - 0.8).max(0.0) * 6.0).min(0.9) + crack);
+                    r16_mix(&mut c, [150.0, 140.0, 120.0], (dirt - 0.4).max(0.0));
+                } else {
+                    // ridges along u, fissures between, net-like for ash
+                    let stretch = if species == 1 { 9.0 } else { 18.0 };
+                    let f = r16_fbm(seed, x / stretch / 4.0, y / 4.5);
+                    let fis = (1.0 - ((f - 0.5).abs() * 4.0).min(1.0)).powf(2.0);
+                    let tone = r16_noise(seed ^ 3, x / 3.0, y / 3.0);
+                    r16_mix(&mut c, fissure, fis * 0.9);
+                    for k in 0..3 {
+                        c[k] *= 0.85 + 0.3 * tone;
+                    }
+                }
+                // lichen, grey-green, in patches; dirt where it lay
+                let lichen = (r16_fbm(seed ^ 4, x / 30.0, y / 30.0) - 0.68).max(0.0) * 3.5;
+                r16_mix(&mut c, [130.0, 136.0, 110.0], lichen * 0.6);
+                out[i * 4..i * 4 + 4].copy_from_slice(&[
+                    c[0].clamp(0.0, 255.0) as u8,
+                    c[1].clamp(0.0, 255.0) as u8,
+                    c[2].clamp(0.0, 255.0) as u8,
+                    255,
+                ]);
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    })
+}
+
+/// The faces it was split along (u along the logs): torn fibres along the
+/// grain, the wood gone grey where the air had it, darker in the tears,
+/// a few dark streaks of rot and dirt
+fn wood_split_tex(species: usize, salt: u32) -> Tex {
+    canvas_tex_opt(512, 256, false, move |ctx, w, h| {
+        let seed = salt ^ 0x5b17;
+        let (fresh, grey) = WOOD_GRAIN[species];
+        let n = w as usize;
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, n * 4, |j, out| {
+            let y = j as f64;
+            for i in 0..n {
+                let x = i as f64;
+                let fib = r16_noise(seed, x / 40.0, y / 1.3) * 0.5 + r16_noise(seed ^ 1, x / 12.0, y / 0.7) * 0.5;
+                let weather = 0.55 + 0.4 * r16_fbm(seed ^ 2, x / 50.0, y / 20.0);
+                let mut c = fresh;
+                r16_mix(&mut c, grey, weather);
+                for k in 0..3 {
+                    c[k] *= 0.78 + 0.36 * fib;
+                }
+                let tear = (r16_noise(seed ^ 3, x / 25.0, y / 2.0) - 0.78).max(0.0) * 4.0;
+                r16_mix(&mut c, [60.0, 50.0, 42.0], tear * 0.7);
+                let rot = (r16_fbm(seed ^ 4, x / 70.0, y / 10.0) - 0.7).max(0.0) * 3.0;
+                r16_mix(&mut c, [74.0, 60.0, 50.0], rot * 0.6);
+                out[i * 4..i * 4 + 4].copy_from_slice(&[
+                    c[0].clamp(0.0, 255.0) as u8,
+                    c[1].clamp(0.0, 255.0) as u8,
+                    c[2].clamp(0.0, 255.0) as u8,
+                    255,
+                ]);
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    })
+}
+
+/// One end of the stack: each log's sawn end grain, its rings round its
+/// pith (the heart darker for oak and elm), checks split out from the pith
+/// as it dried, the chainsaw's faint arcs, the bark round it; weathered grey.
+/// `piths`: (u, v, the bark's radius in u, in v) for each log.
+fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)], right: bool) -> Tex {
+    canvas_tex_opt(512, 320, false, move |ctx, w, h| {
+        let seed = salt ^ if right { 0xe2d1 } else { 0xe2d0 };
+        let (fresh, grey) = WOOD_GRAIN[species];
+        let (ridge, _) = WOOD_BARK[species];
+        let mut r = SplitMix64::new(seed, 0x4e11);
+        // each log's checks: angles of the cracks out from its pith, how far
+        let checks: Vec<Vec<(f64, f64)>> = piths
+            .iter()
+            .map(|_| (0..3 + (r.next() * 4.0) as usize).map(|_| (r.range(0.0, PI * 2.0), r.range(0.35, 0.95))).collect())
+            .collect();
+        let n = w as usize;
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, n * 4, |j, out| {
+            let v = 1.0 - (j as f64 + 0.5) / h;
+            for i in 0..n {
+                let u = (i as f64 + 0.5) / w;
+                // the nearest pith (in units of its bark's radius)
+                let mut best = (f64::INFINITY, 0usize, 0.0, 0.0, 0.0);
+                for (k, &(pu, pv, ru, rv)) in piths.iter().enumerate() {
+                    let (du, dv) = ((u - pu) / ru, (v - pv) / rv);
+                    let d = (du * du + dv * dv).sqrt();
+                    if d < best.0 {
+                        best = (d, k, du, dv, ru);
+                    }
+                }
+                let (d, k, du, dv, ru) = best;
+                // the log's radius in metres (the ends are about 0.35 m across)
+                let rad = ru * 0.35;
+                let ang = dv.atan2(du);
+                let wob = 0.025 * (r16_noise(seed ^ k as u32, ang * 2.5 + 10.0, d * 2.0) - 0.5);
+                let rings = ((d + wob) * rad / 0.0032).fract();
+                let late = (1.0 - ((rings - 0.82) / 0.12).abs()).max(0.0);
+                let mut c = fresh;
+                let heart = if species == 0 || species == 2 { (1.0 - d / 0.7).clamp(0.0, 1.0) } else { 0.0 };
+                let dark = [c[0] * 0.74, c[1] * 0.66, c[2] * 0.6];
+                r16_mix(&mut c, dark, heart.sqrt() * 0.8);
+                for q in 0..3 {
+                    c[q] *= 1.0 - 0.28 * late;
+                }
+                // weathered grey, more toward the rim; the pith a dark speck
+                r16_mix(&mut c, grey, 0.35 + 0.25 * d.min(1.0));
+                if d * rad < 0.0025 {
+                    r16_mix(&mut c, [70.0, 56.0, 44.0], 0.7);
+                }
+                // the bark round it, a band its own thickness
+                let band = 1.0 - 0.006 / rad.max(0.01);
+                if d > band {
+                    r16_mix(&mut c, [ridge[0] * 0.9, ridge[1] * 0.88, ridge[2] * 0.86], ((d - band) / 0.03).min(1.0) * 0.85);
+                }
+                // checks out from the pith
+                for &(a, l) in &checks[k] {
+                    let da = ((ang - a + PI).rem_euclid(PI * 2.0) - PI).abs();
+                    let wid = 0.0012 / rad.max(0.01) * (1.0 - d / l).max(0.0);
+                    if d < l && da * d.max(0.02) < wid {
+                        r16_mix(&mut c, [40.0, 32.0, 26.0], 0.85);
+                    }
+                }
+                // the chainsaw's arcs, faint
+                let saw = (((u * 3.0 + v * 0.4) * 60.0 + (u * 7.0).sin() * 3.0).fract() - 0.5).abs();
+                for q in 0..3 {
+                    c[q] *= 0.96 + 0.08 * saw;
+                }
+                out[i * 4..i * 4 + 4].copy_from_slice(&[
+                    c[0].clamp(0.0, 255.0) as u8,
+                    c[1].clamp(0.0, 255.0) as u8,
+                    c[2].clamp(0.0, 255.0) as u8,
+                    255,
+                ]);
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    })
 }
 
 // R659 wagon wheel (wall): 3% chance per level. Round rim + spokes + hub,
