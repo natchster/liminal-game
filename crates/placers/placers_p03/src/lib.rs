@@ -144,23 +144,40 @@ fn place_smoke_detectors(g: &mut Game, _dist: &[i32]) {
 
 // R584 dental floss container: 8% chance per level.
 fn place_floss_containers(g: &mut Game, _dist: &[i32]) {
+    // A 50 m dental floss dispenser (batch `r18`): a moulded polypropylene box
+    // and its flip lid, the steel cutter in the lid, lying on its back; its
+    // printed label rubbed, the end of the floss left out of it and lying
+    // curled on the floor (r18.notes.md)
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.92 {
         return;
     }
     let Some((x, z)) = pick_open(g) else { return };
+    // the old colour draw: which of four (a body and its lid)
     let body_colors = [0xe0e0e0, 0x4080c0, 0xc0c0f0, 0xf0e0f0];
-    let body_mat = lambert!({ color: choice(&body_colors) });
-    let lid_mat = lambert!({ color: 0x606080 });
+    let c = choice(&body_colors);
+    let kind = body_colors.iter().position(|&k| k == c).unwrap_or(0);
+    let (body_col, lid_col) = r18_floss::COLOURS[kind];
+    let salt = (x as u32).wrapping_mul(0x9e37_79b9) ^ (z as u32).wrapping_mul(0x85eb_ca6b) ^ kind as u32;
     let floss = group();
-    let body = mesh(pg("FlossContainers__body", box_geo!(0.045, 0.014, 0.038)), &body_mat);
-    body.position().y = 0.007;
-    floss.add(&body);
-    let lid = mesh(pg("FlossContainers__lid", box_geo!(0.042, 0.004, 0.035)), &lid_mat);
-    lid.position().y = 0.016;
-    floss.add(&lid);
-    let notch = mesh(pg("FlossContainers__notch", box_geo!(0.010, 0.004, 0.006)), lambert!({ color: 0x202020 }));
-    notch.position().set(0.018, 0.014, 0);
-    floss.add(&notch);
+    let put = |name: &str, mat: &Mat| {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            floss.add(&mesh(geo, mat));
+        }
+    };
+    let scuffs = r18_floss::scuff_tex(salt);
+    put("Real__flossBody", &phong!({ map: &scuffs, color: body_col, specular: 0x262626, shininess: 34 }));
+    put("Real__flossLid", &phong!({ map: &scuffs, color: lid_col, specular: 0x262626, shininess: 34 }));
+    put("Real__flossCutter", &phong!({ color: 0x8a8a86, specular: 0x8a8a8a, shininess: 60 }));
+    put("Real__flossThread", &lambert!({ color: 0xd2cfc4 }));
+    // the label printed on its face
+    let label = mesh(
+        plane_geo!(0.030, 0.026),
+        &lambert!({ map: &r18_floss::label_tex(kind, salt), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+    );
+    label.rotation().x = -PI / 2.0;
+    label.position().set(0.0, 0.0201, -0.0085);
+    floss.add(&label);
     let (px, pz) = jitter(g, x, z, 2.4);
     floss.position().set(px, 0, pz);
     floss.rotation().y = rnd() * PI * 2.0;
@@ -1555,5 +1572,145 @@ mod tests {
         let mut list = vec![];
         super::register(&mut list);
         game::debug::testkit::smoke_placers(&list);
+    }
+}
+
+/// The floss dispenser of `place_floss_containers` (batch `r18`)
+mod r18_floss {
+    use super::*;
+
+    /// Its own stream starts the same on every floor: a placed thing's salt
+    /// moves where it starts, so the strokes differ from floor to floor
+    fn skip(salt: u32) {
+        for _ in 0..(salt % 61) {
+            let _ = rnd();
+        }
+    }
+
+    /// Body and lid (sRGB hex): white and teal, blue and white, white and
+    /// lavender, white and pink, each gone a little yellow
+    pub(super) const COLOURS: [(u32, u32); 4] = [(0xd6d3c8, 0x4e7f78), (0x4f7394, 0xd6d3c8), (0xd6d3c8, 0x7f7aa0), (0xd8d2c8, 0xa98690)];
+
+    // ---- painting kit (per-pixel, pure: safe for `par_rows`) ----
+    fn hash(seed: u32, i: i32, j: i32) -> f64 {
+        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+        h ^= h >> 16;
+        f64::from(h) / 4_294_967_296.0
+    }
+    fn vn(seed: u32, x: f64, y: f64) -> f64 {
+        let (xf, yf) = (x.floor(), y.floor());
+        let (i, j) = (xf as i32, yf as i32);
+        let (u, v) = (x - xf, y - yf);
+        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
+        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+    }
+    fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
+        for k in 0..oct {
+            s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
+            n += amp;
+            amp *= 0.5;
+            f *= 2.03;
+        }
+        s / n
+    }
+    fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
+        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+        t * t * (3.0 - 2.0 * t)
+    }
+    fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
+        let t = t.clamp(0.0, 1.0);
+        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+    }
+    /// The two nearest distances to a jittered lattice (cells of 1)
+    fn worley(seed: u32, x: f64, y: f64) -> (f64, f64) {
+        let (mut d1, mut d2) = (9.0f64, 9.0f64);
+        for dj in -1..=1 {
+            for di in -1..=1 {
+                let (ii, jj) = (x.floor() as i32 + di, y.floor() as i32 + dj);
+                let fx = ii as f64 + hash(seed, ii, jj);
+                let fy = jj as f64 + hash(seed ^ 77, ii, jj);
+                let d = (fx - x).hypot(fy - y);
+                if d < d1 {
+                    d2 = d1;
+                    d1 = d;
+                } else if d < d2 {
+                    d2 = d;
+                }
+            }
+        }
+        (d1, d2)
+    }
+    /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right,
+    /// v up, both 0..1, as the texture is laid) gives straight sRGB and alpha
+    fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
+        let (iw, _) = (w as usize, h as usize);
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, iw * 4, |j, out| {
+            for i in 0..iw {
+                let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
+                for k in 0..4 {
+                    out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
+                }
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    }
+    fn rgb(c: [f64; 3]) -> [f64; 4] {
+        [c[0], c[1], c[2], 1.0]
+    }
+    fn css(c: [f64; 3], a: f64) -> String {
+        format!("rgba({},{},{},{:.3})", (c[0] * 255.0) as u8, (c[1] * 255.0) as u8, (c[2] * 255.0) as u8, a)
+    }
+
+    /// The plastic's wear (a grey to multiply its colour by): scuffs, grime
+    /// in its corners, a dull film
+    pub(super) fn scuff_tex(salt: u32) -> Tex {
+        canvas_tex_opt(64, 64, false, move |ctx, w, h| {
+            let seed = salt ^ 0xf1055;
+            fill(ctx, w, h, |u, v| {
+                let n = fbm(seed, u * 6.0, v * 6.0, 3);
+                let g = 0.82 + 0.12 * n - (vn(seed ^ 1, u * 50.0, v * 50.0) - 0.75).max(0.0) * 1.2;
+                rgb([g, g * 0.98, g * 0.95])
+            });
+        })
+    }
+
+    /// The printed label (its own maker's: no real one): DENTAL FLOSS, waxed
+    /// mint, 50 m, a band of the lid's colour; rubbed at its edges
+    pub(super) fn label_tex(kind: usize, salt: u32) -> Tex {
+        canvas_tex_opt(120, 104, false, move |ctx, w, h| {
+            skip(salt);
+            ctx.clear_rect(0, 0, w, h);
+            let band = ["#3f6e68", "#3d5f7e", "#6a668c", "#8e6c76"][kind.min(3)];
+            ctx.set_fill_style(band);
+            ctx.fill_rect(0, 0, w, 26);
+            ctx.set_fill_style("#f2efe6");
+            ctx.set_font("bold 15px Helvetica Neue");
+            ctx.set_text_align("center");
+            ctx.fill_text_max("DENTAL FLOSS", w / 2.0, 19.0, w - 8.0);
+            ctx.set_fill_style("#2a2826");
+            ctx.set_font("13px Helvetica Neue");
+            ctx.fill_text_max("waxed \u{b7} mint", w / 2.0, 50.0, w - 8.0);
+            ctx.set_font("bold 22px Helvetica Neue");
+            ctx.fill_text_max("50 m", w / 2.0, 82.0, w - 8.0);
+            ctx.set_font("9px Helvetica Neue");
+            ctx.fill_text_max("54.6 yd", w / 2.0, 98.0, w - 8.0);
+            // rubbed off where thumbs went, and scratched
+            ctx.set_global_composite_operation("destination-out");
+            for _ in 0..40 {
+                let (x, y) = (rnd() * w, rnd() * h);
+                ctx.set_global_alpha(0.15 + 0.4 * rnd());
+                ctx.begin_path();
+                ctx.ellipse(x, y, 2.0 + rnd() * 6.0, 1.0 + rnd() * 3.0, rnd() * 3.0, 0, 7);
+                ctx.fill();
+            }
+            ctx.set_global_alpha(0.6);
+            ctx.fill_rect(0, h - 3.0, w, 3);
+        })
     }
 }
