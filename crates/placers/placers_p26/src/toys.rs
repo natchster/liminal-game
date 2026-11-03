@@ -239,9 +239,15 @@ pub fn place_small_kites(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kite);
 }
 
-/// R418 small pinwheel: 10% chance per level. 4 colored triangles
-/// arranged around central hub on a thin stick.
+/// R418 small pinwheel: 10% chance per level. A paper party pinwheel
+/// (Blender batch r17): a 10 cm square of printed paper cut and curled into
+/// four vanes, pinned through a bead into a 28 cm birch dowel, dropped and
+/// lying face up on the floor (never standing on its stick's point): the
+/// dowel on the floor, the wheel over its end, the curls standing up, the
+/// paper faded, water-marked and grimed. Three in ten stir on the pin in a
+/// draught.
 pub fn place_small_pinwheels(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -250,61 +256,143 @@ pub fn place_small_pinwheels(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
-    let stick_mat = lambert!({ color: 0x6a4820 });
-    let hub_mat = lambert!({ color: 0x2a2418 });
-    let pw_colors = [0xd82020, 0x2050d8, 0xd8b820, 0x30a030];
+    // the four vanes' papers: the old red, blue, yellow and green, faded
+    let papers: [u32; 4] = [0xa4473a, 0x3e5a88, 0xbf9c44, 0x4b7449];
     let pinwheel = group();
-    // Stick.
-    let stick = mesh(pg("SmallPinwheels__stick", cyl_geo!(0.005, 0.005, 0.28, 5)), &stick_mat);
-    stick.position().set(0, 0.14, -0.0055); // just behind the sail plane (z 0)
-    pinwheel.add(&stick);
-    // Central hub cylinder.
-    let hub = mesh(pg("SmallPinwheels__hub", cyl_geo!(0.010, 0.010, 0.008, 6)), &hub_mat);
-    hub.rotation().x = PI / 2.0;
-    hub.position().set(0, 0.27, 0.004); // pin head in front of the sails' centre
-    pinwheel.add(&hub);
-    // 4 triangle sails in a sub-group (stood up in the XY plane facing +Z,
-    // centred on the hub) so the spin animator's rotation.y spins them about
-    // the hub axis.
-    let sails_group = group();
-    sails_group.rotation().x = -PI / 2.0;
-    sails_group.position().set(0, 0.27, 0);
-    for s in 0..4 {
-        let sail_color = pw_colors[s];
-        let sail_mat = lambert!({ color: sail_color, side: DoubleSide });
-        let ang = (s as f64 / 4.0) * PI * 2.0;
-        let sail_geo = buf_geo(
-            &[
-                0.0,
-                0.0,
-                0.0, // center
-                ang.cos() * 0.05,
-                0.0,
-                ang.sin() * 0.05,
-                (ang + PI / 4.0).cos() * 0.06,
-                0.0,
-                (ang + PI / 4.0).sin() * 0.06,
-            ],
-            &[0, 1, 2],
-        );
-        let sail = mesh(sail_geo, &sail_mat); // flat in the group's XZ plane
-        sails_group.add(&sail);
+    if let Some(geo) = prop_part_as_modelled("Real__pinwheelStick") {
+        pinwheel.add(&mesh(geo, lambert!({ color: 0xffffff, map: &pinwheel_dowel_tex() })));
     }
-    pinwheel.add(&sails_group);
+    // the wheel turns on the pin about the hub (the parts' origin)
+    let wheel = group();
+    if let Some(geo) = prop_part_as_modelled("Real__pinwheelVane") {
+        for (k, &paper) in papers.iter().enumerate() {
+            let vane = mesh(geo.clone(), lambert!({ color: 0xffffff, map: &pinwheel_paper_tex(paper), side: DoubleSide }));
+            vane.rotation().y = k as f64 * PI / 2.0;
+            wheel.add(&vane);
+        }
+    }
+    if let Some(geo) = prop_part_as_modelled("Real__pinwheelPin") {
+        wheel.add(&mesh(geo, phong!({ color: 0xcfc8b8, specular: 0x262626, shininess: 40 })));
+    }
+    pinwheel.add(&wheel);
     pinwheel.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     pinwheel.rotation().y = rnd() * PI * 2.0;
-    // Slight lean.
-    pinwheel.rotation().z = (rnd() - 0.5) * 0.15;
+    // (the old lean, within ±0.075): how far the wheel has turned on its pin
+    // from the dowel, within ±20 degrees of the dowel lying under a side's
+    // middle (where the sheet clears it; a drooping corner would not)
+    let lean = (rnd() - 0.5) * 0.15;
+    wheel.rotation().y = lean / 0.075 * 0.35;
     g.world.add(&pinwheel);
-    // R419 30% chance: slow spin animator, period 4-8 s.
+    // R419 30% chance: a draught along the floor stirs it on its pin, slowly
+    // (a wheel lying on its corners cannot turn round), period 4-8 s.
     if rnd() < 0.30 {
         let spin_period = 4.0 + rnd() * 4.0;
         let spin_dir = if rnd() < 0.5 { -1.0 } else { 1.0 };
-        let sg = sails_group.clone();
+        let wg = wheel.clone();
+        let base = wheel.rotation().y;
         g.animate(move |_g, _dt, t| {
-            sg.rotation().y = t * (PI * 2.0 / spin_period) * spin_dir;
+            wg.rotation().y = base + spin_dir * 0.07 * (t * PI * 2.0 / spin_period).sin();
         });
     }
+}
+
+/// A vane's paper (sRGB `paper`): printed one side with rows of small white
+/// dots, faded toward white unevenly, a tide line where it got wet and
+/// dried, grey dirt from the floor, a crease, rubbed where it was handled
+fn pinwheel_paper_tex(paper: u32) -> Tex {
+    canvas_tex(128, 128, move |ctx, w, h| {
+        let (r, g, b) = ((paper >> 16) & 255, (paper >> 8) & 255, paper & 255);
+        ctx.set_fill_style(format!("rgb({r},{g},{b})"));
+        ctx.fill_rect(0, 0, w, h);
+        // the print: small dots in offset rows, not quite white (the ink was
+        // cheap), some rubbed off
+        for row in 0..9 {
+            for col in 0..9 {
+                let x = (col as f64 + if row % 2 == 0 { 0.25 } else { 0.75 }) * w / 9.0;
+                let y = (row as f64 + 0.5) * h / 9.0;
+                let a = 0.55 + rnd() * 0.25;
+                if rnd() < 0.12 {
+                    continue;
+                }
+                ctx.set_fill_style(format!("rgba(226,220,204,{a:.2})"));
+                ctx.begin_path();
+                ctx.arc(x, y, 2.6, 0, 7);
+                ctx.fill();
+            }
+        }
+        // faded unevenly toward the paper's own white
+        for _ in 0..14 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 14.0 + rnd() * 30.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, "rgba(232,226,210,0.28)");
+            gr.add_color_stop(1, "rgba(232,226,210,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        // a tide line: it got wet and dried, its edge darker
+        let (tx, ty, tr) = (rnd() * w, rnd() * h, 26.0 + rnd() * 22.0);
+        ctx.set_stroke_style("rgba(92,76,52,0.30)");
+        ctx.set_line_width(2.2);
+        ctx.begin_path();
+        ctx.arc(tx, ty, tr, 0, 7);
+        ctx.stroke();
+        ctx.set_fill_style("rgba(150,132,96,0.10)");
+        ctx.begin_path();
+        ctx.arc(tx, ty, tr, 0, 7);
+        ctx.fill();
+        // floor dirt: grey patches and specks
+        for _ in 0..10 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 6.0 + rnd() * 16.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, "rgba(70,64,56,0.22)");
+            gr.add_color_stop(1, "rgba(70,64,56,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        for _ in 0..60 {
+            ctx.set_fill_style(format!("rgba(60,54,46,{:.2})", 0.2 + rnd() * 0.35));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd(), 1.0 + rnd());
+        }
+        // a crease across it, light on one side, dark on the other
+        let (x0, y0) = (0.0, rnd() * h);
+        let (x1, y1) = (w, rnd() * h);
+        ctx.set_line_width(1.0);
+        ctx.set_stroke_style("rgba(240,236,226,0.35)");
+        ctx.begin_path();
+        ctx.move_to(x0, y0);
+        ctx.line_to(x1, y1);
+        ctx.stroke();
+        ctx.set_stroke_style("rgba(40,34,28,0.30)");
+        ctx.begin_path();
+        ctx.move_to(x0, y0 + 1.2);
+        ctx.line_to(x1, y1 + 1.2);
+        ctx.stroke();
+    })
+}
+
+/// The birch dowel: pale wood gone grey-brown with handling and the floor,
+/// its fibres in fine streaks, darker specks
+fn pinwheel_dowel_tex() -> Tex {
+    canvas_tex(64, 64, |ctx, w, h| {
+        ctx.set_fill_style("#9a7d58");
+        ctx.fill_rect(0, 0, w, h);
+        for _ in 0..90 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let light = rnd() < 0.5;
+            ctx.set_fill_style(if light { "rgba(196,170,128,0.30)" } else { "rgba(74,58,40,0.28)" });
+            if rnd() < 0.5 {
+                ctx.fill_rect(x, y, 4.0 + rnd() * 10.0, 1.0);
+            } else {
+                ctx.fill_rect(x, y, 1.0, 4.0 + rnd() * 10.0);
+            }
+        }
+        for _ in 0..30 {
+            ctx.set_fill_style("rgba(50,42,34,0.35)");
+            ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
+        }
+    })
 }
 
 /// R417 small doll: 8% chance per level. Humanoid stick doll —
@@ -362,9 +450,13 @@ pub fn place_small_dolls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&doll);
 }
 
-/// R416 small toy car: 10% chance per level. Body + roof + 4 wheels
-/// — classic Matchbox-style toy car silhouette.
+/// R416 small toy car: 10% chance per level. A 1:64 die-cast saloon of the
+/// 1970s (Blender batch r17), 76 mm long: its zinc body in chipped enamel,
+/// clear glazing gone grey, silver-painted bumpers, grille and lamps, thin
+/// plastic wheels on steel axles, a black baseplate. A quarter lie on
+/// their side.
 pub fn place_toy_cars(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -373,34 +465,113 @@ pub fn place_toy_cars(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
+    // the old colours stand for the enamels die-cast cars came in, faded
     let body_colors = [0xd82020, 0x2050d8, 0xd8b820, 0x30a030, 0xd0d0d0, 0x181818];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let wheel_mat = lambert!({ color: 0x181410 });
+    let col = pick(&body_colors);
+    let k = body_colors.iter().position(|&c| c == col).unwrap_or(0);
+    let paint = TOY_CAR_PAINT[k];
     let car = group();
-    // Body: main box.
-    let body = mesh(pg("ToyCars__body", box_geo!(0.08, 0.02, 0.05)), &body_mat);
-    body.position().y = 0.023;
-    car.add(&body);
-    // Roof: smaller box on top.
-    let roof = mesh(pg("ToyCars__roof", box_geo!(0.04, 0.018, 0.045)), &body_mat);
-    roof.position().y = 0.042;
-    car.add(&roof);
-    // 4 wheels: small cylinders at corners.
-    for (wx1, wz1) in [(-0.028, -0.020), (0.028, -0.020), (-0.028, 0.020), (0.028, 0.020)] {
-        let wheel = mesh(pg("ToyCars__wheel", cyl_geo!(0.010, 0.010, 0.008, 8)), &wheel_mat);
-        wheel.rotation().x = PI / 2.0; // axle across the car (Z), in the body's wheel arches
-        wheel.position().set(wx1, 0.010, wz1);
-        car.add(&wheel);
+    // the car in its own frame (x across, y up, z out of its nose)
+    let body = group();
+    let mut half_w: f64 = 0.015;
+    let parts: [(&str, Mat); 6] = [
+        ("Real__toyCarBody", phong!({ color: 0xffffff, map: &toy_car_paint_tex(paint), specular: 0x2c2c2c, shininess: 36 })),
+        ("Real__toyCarGlass", phong!({ color: 0x23272a, specular: 0x4a4a4a, shininess: 70 })),
+        ("Real__toyCarBright", phong!({ color: 0x7e7d78, specular: 0x5a5a5a, shininess: 48 })),
+        ("Real__toyCarTail", lambert!({ color: 0x6e2a24 })),
+        ("Real__toyCarBase", lambert!({ color: 0x24221f })),
+        ("Real__toyCarTyres", lambert!({ color: 0x1f1e1c })),
+    ];
+    for (name, mat) in parts {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            let bb = geo.bounding_box();
+            half_w = half_w.max(bb.max.x.abs()).max(bb.min.x.abs());
+            body.add(&mesh(geo, mat));
+        }
     }
+    car.add(&body);
     car.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     car.rotation().y = rnd() * PI * 2.0;
-    // R417 25% chance: car flipped on side (roll about its length axis, then yaw).
+    // R417 25% chance: car on its side (rolled about its length), resting on
+    // its flank.
     if rnd() < 0.25 {
-        car.set_rotation_order(EulerOrder::YXZ);
-        car.rotation().x = PI / 2.0 * (if rnd() < 0.5 { -1.0 } else { 1.0 });
-        car.position().y = 0.025; // sits on side, body half-width above floor
+        body.rotation().z = PI / 2.0 * (if rnd() < 0.5 { -1.0 } else { 1.0 });
+        body.position().y = half_w;
     }
     g.world.add(&car);
+}
+
+/// The toy car's enamels (sRGB): red, blue, mustard, green, silver-grey,
+/// black, as years and the light left them.
+const TOY_CAR_PAINT: [u32; 6] = [0x8c2f28, 0x2f4878, 0xb08a32, 0x34583a, 0x8e908c, 0x2a2a2a];
+
+/// The body's enamel (sRGB `paint`): a little uneven, dulled, chipped back
+/// to the grey zinc in flecks and a few bigger chips (each with its dark
+/// edge), fine scratches through it, dust in its hollows
+fn toy_car_paint_tex(paint: u32) -> Tex {
+    canvas_tex(128, 128, move |ctx, w, h| {
+        let (r, g, b) = ((paint >> 16) & 255, (paint >> 8) & 255, paint & 255);
+        ctx.set_fill_style(format!("rgb({r},{g},{b})"));
+        ctx.fill_rect(0, 0, w, h);
+        // dulled unevenly: lighter and darker washes
+        for _ in 0..16 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 10.0 + rnd() * 26.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, if rnd() < 0.5 { "rgba(200,196,186,0.14)" } else { "rgba(30,26,22,0.14)" });
+            gr.add_color_stop(1, "rgba(0,0,0,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        // chips back to the zinc: a few bigger ones, ragged, with a dark
+        // edge where the enamel broke; many tiny flecks
+        for i in 0..22 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let big = i < 4;
+            let r0 = if big { 1.6 + rnd() * 2.2 } else { 0.4 + rnd() * 0.6 };
+            let n = 7;
+            let pts: Vec<(f64, f64)> = (0..n)
+                .map(|k| {
+                    let a = k as f64 / n as f64 * PI * 2.0;
+                    let rr = r0 * (0.5 + rnd() * 0.7);
+                    (x + a.cos() * rr * 1.4, y + a.sin() * rr)
+                })
+                .collect();
+            for (grow, style) in [(0.6, "rgba(34,32,30,0.45)"), (0.0, "rgba(146,146,140,0.9)")] {
+                ctx.set_fill_style(style);
+                ctx.begin_path();
+                for (k, &(px, py)) in pts.iter().enumerate() {
+                    let (dx, dy) = (px - x, py - y);
+                    let d = (dx * dx + dy * dy).sqrt().max(1e-6);
+                    let (qx, qy) = (px + dx / d * grow, py + dy / d * grow);
+                    if k == 0 {
+                        ctx.move_to(qx, qy);
+                    } else {
+                        ctx.line_to(qx, qy);
+                    }
+                }
+                ctx.close_path();
+                ctx.fill();
+            }
+        }
+        // fine scratches, light
+        ctx.set_line_width(0.6);
+        for _ in 0..22 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * PI;
+            let l = 4.0 + rnd() * 14.0;
+            ctx.set_stroke_style(format!("rgba(180,178,170,{:.2})", 0.25 + rnd() * 0.35));
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.stroke();
+        }
+        // dust and dirt specks
+        for _ in 0..70 {
+            ctx.set_fill_style(format!("rgba(96,88,74,{:.2})", 0.2 + rnd() * 0.3));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
+        }
+    })
 }
 
 /// R415 marble scatter: 10% chance per level. 4-7 tiny colored
@@ -620,9 +791,12 @@ pub fn place_drawing_papers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paper);
 }
 
-/// R412 small rubber ball: 10% chance per level. Sphere with 2-color
-/// hemisphere split (top/bottom halves in different colors).
+/// R412 small rubber ball: 10% chance per level. A 4 in hollow rubber ball
+/// of two moulded halves, each its own colour, joined at a seam (Blender
+/// batch r17); years on the floor have let the air out of it, so it sags
+/// flat where it rests, and faded, scuffed and grimed it.
 pub fn place_rubber_balls(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -631,25 +805,70 @@ pub fn place_rubber_balls(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
+    // the old colours stand for the two halves' rubber, faded
     let ball_colors_a = [0xd82020, 0x2050d8, 0xd8b820, 0x30a030];
     let ball_colors_b = [0xf0f0f0, 0x181818, 0xd8b820, 0x8020d8];
     let c_a = pick(&ball_colors_a);
     let c_b = pick(&ball_colors_b);
-    let top_mat = lambert!({ color: c_a });
-    let bot_mat = lambert!({ color: c_b });
+    let ka = ball_colors_a.iter().position(|&c| c == c_a).unwrap_or(0);
+    let kb = ball_colors_b.iter().position(|&c| c == c_b).unwrap_or(0);
+    let rubber_a: [u32; 4] = [0x8e3a30, 0x3b5478, 0xb09048, 0x4d6d45];
+    let rubber_b: [u32; 4] = [0xbcb5a3, 0x2c2a28, 0xa98a46, 0x5c4a68];
+    let wear = rubber_ball_tex();
     let ball = group();
-    // Top half sphere.
-    let top = mesh(pg("RubberBalls__half", sphere_geo!(0.05, 10, 6, 0.0, PI * 2.0, 0.0, PI / 2.0)), &top_mat);
-    top.position().y = 0.05;
-    ball.add(&top);
-    // Bottom half sphere.
-    let bot = mesh(pg("RubberBalls__half", sphere_geo!(0.05, 10, 6, 0.0, PI * 2.0, 0.0, PI / 2.0)), &bot_mat);
-    bot.rotation().x = PI;
-    bot.position().y = 0.05;
-    ball.add(&bot);
+    for (name, col) in [("Real__rubberBallHalfA", rubber_a[ka]), ("Real__rubberBallHalfB", rubber_b[kb])] {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            ball.add(&mesh(geo, phong!({ color: col, map: &wear, specular: 0x1c1c1c, shininess: 14 })));
+        }
+    }
     ball.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     ball.rotation().y = rnd() * PI * 2.0;
     g.world.add(&ball);
+}
+
+/// The rubber's wear (multiplies its colour): faded to a chalky bloom in
+/// patches, grime rolled into it, scuffs where it hit things, specks of grit
+fn rubber_ball_tex() -> Tex {
+    canvas_tex(128, 128, |ctx, w, h| {
+        ctx.set_fill_style("#e4dfd4");
+        ctx.fill_rect(0, 0, w, h);
+        // the bloom: rubber goes chalky and pale where the light found it
+        for _ in 0..12 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 14.0 + rnd() * 30.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, "rgba(255,252,244,0.35)");
+            gr.add_color_stop(1, "rgba(255,252,244,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        // grime rolled in: soft dark patches
+        for _ in 0..16 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let rr = 8.0 + rnd() * 22.0;
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, "rgba(64,56,44,0.22)");
+            gr.add_color_stop(1, "rgba(64,56,44,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+        }
+        // scuffs: short pale smears and dark scrapes
+        for _ in 0..26 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * PI;
+            let l = 3.0 + rnd() * 9.0;
+            ctx.set_line_width(1.0 + rnd() * 1.6);
+            ctx.set_stroke_style(if rnd() < 0.6 { "rgba(250,246,236,0.35)" } else { "rgba(40,34,28,0.35)" });
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.stroke();
+        }
+        for _ in 0..90 {
+            ctx.set_fill_style(format!("rgba(52,46,38,{:.2})", 0.25 + rnd() * 0.35));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
+        }
+    })
 }
 
 /// R411 plush toy bear: 6% chance per level. Stubby brown plush
