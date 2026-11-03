@@ -3,6 +3,7 @@
 //! look says nothing of what it does; only what a real one carries is
 //! printed on it (a card by a dish, a sachet's word).
 use super::Thing;
+use crate::assets::props::prop_part_as_modelled;
 use crate::prelude::*;
 
 /// A lathe from a profile of (radius, height) pairs
@@ -159,23 +160,49 @@ fn seeds_saucer(seed: f64) -> Obj {
     g
 }
 
-/// A small cloth bag sewn shut, on a cord: a charm, worn; hung on a nail
+/// A small cloth bag sewn shut, on a cord: a charm, worn (a ladanka, an
+/// omamori), lying where it was put: a pouch of coarse linen 6 by 7.5 cm,
+/// stuffed, its mouth gathered, bound and sewn; the cord wound three times
+/// round its neck and knotted, its loop lying loose beside it (Blender batch
+/// `r09`)
 fn cloth_bag() -> Obj {
     let g = group();
-    let cloth = lambert!({ color: 0x5e4a3a });
-    let bag = mesh(sphere_geo!(0.03, 10, 8), &cloth);
-    bag.scale().set(1.0, 1.2, 0.55);
-    bag.position().y = 0.036;
-    g.add(&bag);
-    // the seam across its top, gathered
-    let neck = mesh(cyl_geo!(0.008, 0.016, 0.014, 8), &cloth);
-    neck.position().y = 0.074;
-    g.add(&neck);
-    // the cord, a loop up to where it hangs
-    let cord = mesh(torus_geo!(0.045, 0.0016, 4, 18), lambert!({ color: 0x2a2018 }));
-    cord.position().y = 0.12;
-    cord.scale().set(0.55, 1.0, 1.0);
-    g.add(&cord);
+    let weave = canvas_tex(64, 64, |ctx, w, h| {
+        ctx.set_fill_style("#6a5a48");
+        ctx.fill_rect(0, 0, w, h);
+        // a plain weave of thick, uneven thread, darker in the hollows
+        for k in 0..32 {
+            let v = rnd();
+            ctx.set_fill_style(format!("rgba({},{},{},0.5)", 120 + (v * 40.0) as i32, 104 + (v * 34.0) as i32, 82 + (v * 24.0) as i32));
+            ctx.fill_rect(0, k as f64 * 2.0, w, 1.2);
+            ctx.set_fill_style(format!("rgba(40,32,24,{:.3})", 0.2 + rnd() * 0.2));
+            ctx.fill_rect(k as f64 * 2.0, 0, 0.8, h);
+        }
+        // handled: dark where the fingers held it, a pale stain
+        for _ in 0..6 {
+            let (x, y, r) = (rnd() * w, rnd() * h, 6.0 + rnd() * 14.0);
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, &format!("rgba(30,24,18,{:.3})", 0.15 + rnd() * 0.2));
+            gr.add_color_stop(1, "rgba(30,24,18,0)");
+            ctx.set_fill_style(&gr);
+            ctx.begin_path();
+            ctx.arc(x, y, r, 0, 7);
+            ctx.fill();
+        }
+    });
+    weave.t().repeat.set(3, 3);
+    let parts: [(&str, Mat); 2] =
+        [("Real__secretBag", lambert!({ color: 0xffffff, map: &weave })), ("Real__secretBagCord", lambert!({ color: 0x2e251c }))];
+    for (name, mat) in parts {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            g.add(&mesh(geo, &mat));
+        }
+    }
+    if g.child_count() == 0 {
+        let bag = mesh(box_geo!(0.06, 0.024, 0.075), lambert!({ color: 0x5e4a3a }));
+        bag.position().y = 0.012;
+        g.add(&bag);
+    }
     g
 }
 
@@ -272,45 +299,77 @@ fn medicine_bottle() -> Obj {
     g
 }
 
-/// A tweed flat cap, worn, hung by its brim
+/// A tweed flat cap, worn, hung on its coat hook by the inside of its
+/// crown: its opening to the wall, the crown out, the peak hanging at its
+/// foot (Blender batch `r09`: modelled as it hangs, in the frame the hook's
+/// pose turns, `dress.rs`). Brown herringbone with flecks of colour in it,
+/// rubbed and faded at the roll
 fn tweed_cap() -> Obj {
     let tex = canvas_tex_opt(64, 64, true, |ctx, w, h| {
-        ctx.set_fill_style("#5b5245");
+        ctx.set_fill_style("#5d5548");
         ctx.fill_rect(0, 0, w, h);
-        for y in 0..32 {
-            for x in 0..32 {
-                if (x + y) % 3 == 0 || rnd() < 0.15 {
-                    ctx.set_fill_style(format!("rgba({},{},{},0.5)", 70 + (rnd() * 40.0) as i32, 62 + (rnd() * 30.0) as i32, 48,));
-                    ctx.fill_rect(x as f64 * 2.0, y as f64 * 2.0, 2.0, 2.0);
-                }
+        // herringbone: columns of twill, each turned against the last
+        for col in 0..8 {
+            let x0 = col as f64 * 8.0;
+            let dir = if col % 2 == 0 { 1.0 } else { -1.0 };
+            for k in -8..24 {
+                let v = rnd();
+                let (light, a) = (k % 2 == 0, 0.35 + v * 0.3);
+                ctx.set_stroke_style(if light {
+                    format!("rgba({},{},{},{a:.3})", 150 + (v * 30.0) as i32, 136 + (v * 24.0) as i32, 110 + (v * 16.0) as i32)
+                } else {
+                    format!("rgba(40,34,28,{a:.3})")
+                });
+                ctx.set_line_width(1.4);
+                let y = k as f64 * 3.0;
+                ctx.begin_path();
+                ctx.move_to(x0, y);
+                ctx.line_to(x0 + 8.0, y + dir * 8.0);
+                ctx.stroke();
             }
         }
+        // the flecks of a Donegal yarn: rust, moss, cream
+        for _ in 0..70 {
+            let c =
+                ["rgba(138,74,42,0.8)", "rgba(92,104,58,0.7)", "rgba(196,184,150,0.8)", "rgba(60,70,92,0.6)"][(rnd() * 4.0) as usize % 4];
+            ctx.set_fill_style(c);
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd(), 1);
+        }
     });
-    let wool = lambert!({ map: tex });
+    tex.t().repeat.set(6, 6);
+    let wool = lambert!({ color: 0xffffff, map: &tex });
     let g = group();
-    let crown = mesh(sphere_geo!(0.1, 14, 8, 0.0, PI * 2.0, 0.0, PI / 2.0), &wool);
-    crown.scale().set(1.0, 0.35, 1.18);
-    crown.position().set(0, 0, -0.02);
-    g.add(&crown);
-    let brim = mesh(cyl_geo!(0.07, 0.075, 0.006, 14, 1, false, -PI / 2.0, PI), &wool);
-    brim.scale().set(1.0, 1.0, 0.75);
-    brim.position().set(0, 0.002, 0.09);
-    g.add(&brim);
+    for name in ["Real__secretCap", "Real__secretCapPeak"] {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            g.add(&mesh(geo, &wool));
+        }
+    }
+    if g.child_count() == 0 {
+        let c = mesh(box_geo!(0.2, 0.06, 0.26), &wool);
+        c.position().y = 0.03;
+        g.add(&c);
+    }
     g
 }
 
-/// A foreign coin with a hole through it, on a loop of string
+/// A foreign coin of brass, 22 mm, a hole through it, worn smooth, lying
+/// on the loop of string through its hole, knotted (Blender batch `r09`)
 fn holed_coin() -> Obj {
     let g = group();
-    let coin =
-        mesh(pg("CoinScatters__coin", torus_geo!(0.0085, 0.0045, 6, 16)), phong!({ color: 0x8a7a5a, specular: 0x9a9070, shininess: 40 }));
-    coin.scale().set(1.0, 1.0, 0.35);
-    coin.position().y = 0.013;
-    g.add(&coin);
-    let string = mesh(torus_geo!(0.05, 0.0012, 4, 18), lambert!({ color: 0x3a3226 }));
-    string.position().y = 0.06;
-    string.scale().set(0.5, 1.0, 1.0);
-    g.add(&string);
+    let parts: [(&str, Mat); 2] = [
+        ("Real__secretCoin", phong!({ color: 0x7a6a48, specular: 0x8a7a50, shininess: 40 })),
+        ("Real__secretCoinString", lambert!({ color: 0x3a3226 })),
+    ];
+    for (name, mat) in parts {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            g.add(&mesh(geo, &mat));
+        }
+    }
+    if g.child_count() == 0 {
+        let c = mesh(cyl_geo!(0.011, 0.011, 0.0016, 16), lambert!({ color: 0x8a7a5a }));
+        c.position().y = 0.0008;
+        g.add(&c);
+    }
     g
 }
 
@@ -327,30 +386,85 @@ fn yellow_water() -> Obj {
     g
 }
 
-/// A red envelope, a little gold on it, a lock of dark hair caught at its flap
+/// A red envelope, a hongbao (9 by 17 cm), lying on a floor: its gold
+/// print (a border and the character for luck) rubbed, the red faded and
+/// dusty, creased; a lock of dark hair caught at its flap, out over its end
+/// onto the floor (Blender batch `r09`)
 fn red_envelope() -> Obj {
-    let tex = canvas_tex_opt(128, 64, false, |ctx, w, h| {
-        ctx.set_fill_style("#9a1a18");
+    let tex = canvas_tex_opt(256, 128, false, |ctx, w, h| {
+        // the paper, red gone dull, faded in streaks where light fell on it
+        ctx.set_fill_style("#7c2621");
         ctx.fill_rect(0, 0, w, h);
-        ctx.set_stroke_style("rgba(200,160,70,0.85)");
-        ctx.set_line_width(2);
-        ctx.stroke_rect(8, 8, w - 16.0, h - 16.0);
-        ctx.begin_path();
-        ctx.arc(w / 2.0, h / 2.0, 9.0, 0.0, PI * 2.0);
-        ctx.stroke();
-        // the hair at the flap
-        ctx.set_stroke_style("rgba(12,10,10,0.9)");
-        ctx.set_line_width(1);
-        for k in 0..9 {
-            ctx.begin_path();
-            ctx.move_to(w * 0.62 + k as f64, 0);
-            ctx.quadratic_curve_to(w * 0.7 + k as f64 * 1.5, h * 0.2, w * 0.66 + k as f64 * 2.0, h * 0.42);
-            ctx.stroke();
+        for _ in 0..30 {
+            ctx.set_fill_style(format!("rgba(160,96,80,{:.3})", 0.05 + rnd() * 0.10));
+            ctx.fill_rect(rnd() * w, 0, 6.0 + rnd() * 30.0, h);
         }
+        // the gold: a double border, the character upright along it (its top
+        // to the flap's end), in a ring
+        ctx.set_stroke_style("rgba(166,138,82,0.85)");
+        ctx.set_line_width(2);
+        ctx.stroke_rect(9, 9, w - 18.0, h - 18.0);
+        ctx.set_line_width(1);
+        ctx.stroke_rect(14, 14, w - 28.0, h - 28.0);
+        ctx.save();
+        ctx.translate(w * 0.55, h / 2.0);
+        ctx.rotate(PI / 2.0);
+        ctx.set_line_width(2);
+        ctx.begin_path();
+        ctx.arc(0, 0, 40, 0, 7);
+        ctx.stroke();
+        ctx.set_fill_style("rgba(170,142,84,0.9)");
+        ctx.set_text_align("center");
+        ctx.set_text_baseline("middle");
+        ctx.set_font("bold 58px serif");
+        ctx.fill_text("\u{798F}", 0, 2);
+        ctx.restore();
+        // rubbed: the gold worn through to the red, dust settled, a crease
+        for _ in 0..260 {
+            ctx.set_fill_style(format!("rgba(120,34,28,{:.3})", 0.3 + rnd() * 0.5));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 2.0);
+        }
+        // dust settled on it, thicker away from where it was touched
+        for _ in 0..1400 {
+            ctx.set_fill_style(format!("rgba(140,132,118,{:.3})", 0.10 + rnd() * 0.25));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
+        }
+        for _ in 0..12 {
+            let (x, y, r) = (rnd() * w, rnd() * h, 10.0 + rnd() * 30.0);
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, &format!("rgba(130,122,108,{:.3})", 0.10 + rnd() * 0.15));
+            gr.add_color_stop(1, "rgba(130,122,108,0)");
+            ctx.set_fill_style(&gr);
+            ctx.begin_path();
+            ctx.arc(x, y, r, 0, 7);
+            ctx.fill();
+        }
+        ctx.set_stroke_style("rgba(40,10,8,0.35)");
+        ctx.set_line_width(1.2);
+        ctx.begin_path();
+        ctx.move_to(w * 0.18, 0);
+        ctx.line_to(w * 0.30, h);
+        ctx.stroke();
+        ctx.set_stroke_style("rgba(200,120,100,0.25)");
+        ctx.begin_path();
+        ctx.move_to(w * 0.18 + 1.5, 0);
+        ctx.line_to(w * 0.30 + 1.5, h);
+        ctx.stroke();
     });
     let g = group();
-    let e = mesh(pg("DroppedMailScatters__envelope", box_geo!(0.16, 0.003, 0.08)), lambert!({ map: tex }));
-    e.position().y = 0.0015;
-    g.add(&e);
+    let parts: [(&str, Mat); 2] = [
+        ("Real__secretEnvelope", lambert!({ color: 0xffffff, map: &tex })),
+        ("Real__secretEnvelopeHair", lambert!({ color: 0x1c1714, side: DoubleSide })),
+    ];
+    for (name, mat) in parts {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            g.add(&mesh(geo, &mat));
+        }
+    }
+    if g.child_count() == 0 {
+        let e = mesh(box_geo!(0.17, 0.003, 0.09), lambert!({ map: &tex }));
+        e.position().y = 0.0015;
+        g.add(&e);
+    }
     g
 }

@@ -876,8 +876,13 @@ fn place_leaning_frames(g: &mut Game, _dist: &[i32]) {
     g.world.add(&frame);
 }
 
-// R375 broken window frame: 15% chance per level. Rectangular
-// frame + dark inner void + jagged glass shard remnants.
+// R375 broken window frame: 15% chance per level. The lower sash of an old
+// timber double-hung window (Blender batch `r09`), taken out and left
+// leaning on a wall, two over two lights: its white paint gone cream and
+// peeling to the grey wood, the putty cracked, a few shards of its glass
+// still in the putty, the stub of its cord; the rest of the glass on the
+// floor in front of it. Now and then a damp streak down the wall behind it,
+// and the wet at its foot.
 fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
@@ -887,91 +892,69 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = candidates[pick(candidates.len())];
-    let frame_mat = lambert!({ color: 0x2a2418 });
-    let void_mat = basic_mat!({ color: 0x040404 });
     let shard_mat_col = shard_color_by_weather(g.weather_key());
-    let shard_mat = basic_mat!({ color: shard_mat_col, transparent: true, opacity: 0.7, side: DoubleSide });
-    let win = group();
-    // Overall window 0.5 × 0.6 m frame at 1.4 m center height.
-    let (fw, fh, bar) = (0.50, 0.60, 0.03);
-    // 4 border bars.
-    for (sx, sy, w, h) in [
-        (0.0, fh / 2.0 - bar / 2.0, fw, bar),
-        (0.0, -fh / 2.0 + bar / 2.0, fw, bar),
-        (-fw / 2.0 + bar / 2.0, 0.0, bar, fh - 2.0 * bar),
-        (fw / 2.0 - bar / 2.0, 0.0, bar, fh - 2.0 * bar),
-    ] {
-        let seg = mesh(box_geo!(w, h, 0.025), &frame_mat);
-        seg.position().set(sx, sy, 0);
-        win.add(&seg);
+    let glass = sash_glass_mat(shard_mat_col);
+    let sash = group();
+    {
+        use game::assets::props::prop_part_as_modelled as part;
+        let frame = part("Real__sashFrame").unwrap_or_else(|| {
+            let g = box_geo!(SASH_W, SASH_H, SASH_T);
+            g.translate(0, SASH_H / 2.0, -SASH_T / 2.0);
+            g
+        });
+        sash.add(&mesh(frame, lambert!({ color: 0xffffff, map: &sash_paint_tex() })));
+        if let Some(geo) = part("Real__sashPutty") {
+            sash.add(&mesh(geo, lambert!({ color: 0x9a927e })));
+        }
+        if let Some(geo) = part("Real__sashCord") {
+            sash.add(&mesh(geo, lambert!({ color: 0x80766a })));
+        }
     }
-    // Dark void plane inside (looking into blackness).
-    let void_plane = mesh(plane_geo!(fw - 2.0 * bar - 0.005, fh - 2.0 * bar - 0.005), &void_mat);
-    void_plane.position().z = -0.008;
-    win.add(&void_plane);
-    // 3-5 jagged shard triangles clinging to frame edges.
+    // 3-5 shards still held in the putty, each at an edge of a light (the
+    // edge, where along it, which way it leans and how big: its four draws)
     let shard_count = 3 + (rnd() * 3.0).floor() as i32;
     for _s in 0..shard_count {
         let s_size = 0.04 + rnd() * 0.05;
-        // Random triangle vertex, pointing inward from a frame edge.
         let edge = (rnd() * 4.0).floor() as i32;
-        let (sx, sy, dx_v, dy_v);
-        if edge == 0 {
-            // top
-            sx = (rnd() - 0.5) * (fw - 2.0 * bar);
-            sy = fh / 2.0 - bar;
-            dx_v = (rnd() - 0.5) * s_size;
-            dy_v = -s_size;
-        } else if edge == 1 {
-            // bottom
-            sx = (rnd() - 0.5) * (fw - 2.0 * bar);
-            sy = -fh / 2.0 + bar;
-            dx_v = (rnd() - 0.5) * s_size;
-            dy_v = s_size;
-        } else if edge == 2 {
-            // left
-            sx = -fw / 2.0 + bar;
-            sy = (rnd() - 0.5) * (fh - 2.0 * bar);
-            dx_v = s_size;
-            dy_v = (rnd() - 0.5) * s_size;
-        } else {
-            // right
-            sx = fw / 2.0 - bar;
-            sy = (rnd() - 0.5) * (fh - 2.0 * bar);
-            dx_v = -s_size;
-            dy_v = (rnd() - 0.5) * s_size;
-        }
-        let sh_geo = tri_geo([sx, sy, 0.001, sx + s_size * 0.4, sy + s_size * 0.1, 0.001, sx + dx_v, sy + dy_v, 0.001], [0, 1, 2]);
-        let shard = mesh(sh_geo, &shard_mat);
-        win.add(&shard);
+        let along = rnd();
+        let lean = rnd() - 0.5;
+        sash.add(&mesh(sash_shard_geo(s_size, edge, along, lean), &glass));
     }
+    // leaning on the wall: its foot out from the wall, its top against it
+    let lean_a = SASH_LEAN;
+    let out = SASH_H * lean_a.sin() + SASH_T * lean_a.cos();
+    sash.set_rotation_order(EulerOrder::YXZ);
+    sash.rotation().x = -lean_a;
+    // (the wall point it was hung at, along the wall by the old draw)
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.010);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.010);
-    wall_mount(&win, &c, wall_x, wall_z, 1.4, 1.0);
-    g.world.add(&win);
-    // R379 30% chance: wall streak running down from window bottom
-    // to floor — implies rain/moisture ingressed through open frame.
+    let (mx, mz) = if c.dx.abs() == 1 {
+        sash.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        (wall_x, wall_z + (rnd() - 0.5) * 1.0)
+    } else {
+        sash.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        (wall_x + (rnd() - 0.5) * 1.0, wall_z)
+    };
+    let back = out - 0.010;
+    sash.position().set(mx - c.dx as f64 * back, SASH_T * lean_a.sin(), mz - c.dz as f64 * back);
+    g.world.add(&sash);
+    // R379 30% chance: a damp streak down the wall behind it, from above
+    // to the floor, soft and uneven, a tide line at its foot
     let mut has_streak_under_window = false;
     if rnd() < 0.30 {
         let ws_color = by_weather(g.weather_key(), 0x1a2028, 0x1a1408, 0x180a08, 0x1a1610, 0x181410, 0x181410);
-        let ws_mat = basic_mat!({ color: ws_color, transparent: true, opacity: 0.55, depthWrite: false, side: DoubleSide });
         let ws_w = 0.07 + rnd() * 0.05;
         let ws_h = 1.0 + rnd() * 0.2;
-        let ws = mesh(plane_geo!(ws_w, ws_h), &ws_mat);
-        ws.rotation().y = win.rot().y;
-        // Position aligned with window center, starting just below frame.
-        let wp = win.pos();
-        if c.dx.abs() == 1 {
-            ws.position().set(wp.x, 1.4 - fh / 2.0 - ws_h / 2.0 + 0.05, wp.z);
-        } else {
-            ws.position().set(wp.x, 1.4 - fh / 2.0 - ws_h / 2.0 + 0.05, wp.z);
-        }
+        let ws_mat = lambert!({ color: 0xffffff, map: &sash_streak_tex(ws_color), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+        let ws = mesh(plane_geo!(ws_w * 2.2, ws_h), &ws_mat);
+        ws.rotation().y = sash.rot().y;
+        ws.position().set(mx + c.dx as f64 * 0.006, 1.4 - 0.3 - ws_h / 2.0 + 0.05, mz + c.dz as f64 * 0.006);
         g.world.add(&ws);
         has_streak_under_window = true;
     }
-    // R380 40% chance (if streak present): small 3D puddle at streak base.
+    // R380 40% chance (if streak present): the wet at its foot, soaked into the floor
     if has_streak_under_window && rnd() < 0.40 {
-        let (wp_color, wp_emissive) = by_weather(
+        let (wp_color, _) = by_weather(
             g.weather_key(),
             (0x1a2830, 0x08101a),
             (0x201808, 0x100804),
@@ -980,34 +963,311 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
             (0x101820, 0x040810),
             (0x101820, 0x040810),
         );
-        let wp_mat = lambert!({ color: wp_color, emissive: wp_emissive, transparent: true, opacity: 0.85 });
-        let wpuddle = mesh(sphere_geo!(0.13 + rnd() * 0.08, 10, 5, 0, PI * 2.0, 0, PI / 2.0), &wp_mat);
-        wpuddle.scale().y = 0.07;
-        // Puddle at floor beneath streak — nudge slightly out from wall.
-        let wp = win.pos();
-        let puddle_x = wp.x - c.dx as f64 * 0.16;
-        let puddle_z = wp.z - c.dz as f64 * 0.16;
-        wpuddle.position().set(puddle_x, 0.001, puddle_z);
-        wpuddle.rotation().y = rnd() * PI * 2.0;
-        g.world.add(&wpuddle);
+        let r = 0.13 + rnd() * 0.08;
+        let wet = mesh(
+            plane_geo!(r * 2.6, r * 1.8),
+            lambert!({ color: 0xffffff, map: &sash_wet_tex(wp_color), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
+        );
+        wet.rotation().x = -PI / 2.0;
+        wet.rotation().z = rnd() * PI * 2.0;
+        wet.position().set(mx - c.dx as f64 * 0.16, 0.002, mz - c.dz as f64 * 0.16);
+        g.world.add(&wet);
     }
-    // R376 spawn 4-7 floor shards beneath broken window.
-    let floor_shard_mat = basic_mat!({ color: shard_mat_col, transparent: true, opacity: 0.8, depthWrite: false, side: DoubleSide });
+    // R376 4-7 shards of its glass on the floor in front of it
     let ws_count = 4 + (rnd() * 4.0).floor() as i32;
     for _sh in 0..ws_count {
-        let wshard = mesh(plane_geo!(0.014 + rnd() * 0.026, 0.018 + rnd() * 0.028), &floor_shard_mat);
-        wshard.rotation().x = -PI / 2.0;
-        wshard.rotation().z = rnd() * PI * 2.0;
-        // on the room's side of the wall (they had lain in a circle round
-        // the frame, half of them inside its wall): half a turn about the way out
+        let (w, h) = (0.014 + rnd() * 0.026, 0.018 + rnd() * 0.028);
+        let wshard = mesh(floor_shard_geo(w, h), &glass);
+        wshard.rotation().y = rnd() * PI * 2.0;
+        // on the room's side of the wall: half a turn about the way out
         let sh_ang = (rnd() - 0.5) * PI;
         let sh_rad = 0.12 + rnd() * 0.45;
-        let wp = win.pos();
         let (ox, oz) = (-c.dx as f64, -c.dz as f64);
         let (ca, sa) = (sh_ang.cos(), sh_ang.sin());
-        wshard.position().set(wp.x + (ox * ca - oz * sa) * sh_rad, 0.003, wp.z + (ox * sa + oz * ca) * sh_rad);
+        wshard.position().set(mx + (ox * ca - oz * sa) * sh_rad, 0.0, mz + (ox * sa + oz * ca) * sh_rad);
         g.world.add(&wshard);
     }
+}
+
+/// The sash (`r09`): its width, height and thickness, m
+const SASH_W: f64 = 0.60;
+const SASH_H: f64 = 0.70;
+const SASH_T: f64 = 0.044;
+/// How far it leans back against the wall, radians
+const SASH_LEAN: f64 = 0.21;
+
+/// Window glass: thin, a little green at its edges, dusty; it catches the light
+fn sash_glass_mat(tint: u32) -> Mat {
+    // (the weather's tint of the shards, darkened: glass shows what is behind it)
+    let ch = |sh: u32| ((tint >> sh) & 255) * 7 / 10;
+    let color = (ch(16) << 16) | (ch(8) << 8) | ch(0);
+    phong!({ color: color, specular: 0x6a7472, shininess: 90, transparent: true, opacity: 0.24, depthWrite: false, side: DoubleSide })
+}
+
+/// A shard still in the putty at `edge` (0 top, 1 bottom, 2 left, 3 right)
+/// of a light: its foot buried in the rebate, its point into the light,
+/// jagged; 3 mm of glass on the glass's plane
+fn sash_shard_geo(size: f64, edge: i32, along: f64, lean: f64) -> Geo {
+    // the four lights' sight openings (`r09`'s `sash_lights`)
+    let (x0, x1, y0, y1) = (-SASH_W / 2.0 + 0.050, SASH_W / 2.0 - 0.050, 0.080, SASH_H - 0.050);
+    let (xm, ym, hb) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0, 0.011);
+    let half = (along >= 0.5) as usize;
+    // the outer edge of a light, or (leaning far) its edge on the glazing bar
+    let bar = lean.abs() > 0.3;
+    // (the edge as a line: its start, its direction along it, inward)
+    let (sx, sy, tx, ty, nx, ny, len) = match (edge, bar) {
+        (0, false) => (if half == 0 { x0 } else { xm + hb }, y1, 1.0, 0.0, 0.0, -1.0, xm - hb - x0),
+        (0, true) => (if half == 0 { x0 } else { xm + hb }, ym - hb, 1.0, 0.0, 0.0, -1.0, xm - hb - x0),
+        (1, false) => (if half == 0 { x0 } else { xm + hb }, y0, 1.0, 0.0, 0.0, 1.0, xm - hb - x0),
+        (1, true) => (if half == 0 { x0 } else { xm + hb }, ym + hb, 1.0, 0.0, 0.0, 1.0, xm - hb - x0),
+        (2, false) => (x0, if half == 0 { y0 } else { ym + hb }, 0.0, 1.0, 1.0, 0.0, ym - hb - y0),
+        (2, true) => (xm + hb, if half == 0 { y0 } else { ym + hb }, 0.0, 1.0, 1.0, 0.0, ym - hb - y0),
+        (_, false) => (x1, if half == 0 { y0 } else { ym + hb }, 0.0, 1.0, -1.0, 0.0, ym - hb - y0),
+        (_, true) => (xm - hb, if half == 0 { y0 } else { ym + hb }, 0.0, 1.0, -1.0, 0.0, ym - hb - y0),
+    };
+    let f = 0.12 + 0.76 * ((along * 2.0).fract());
+    let (bw, depth) = (size * (0.7 + 0.8 * lean.abs()), size * (1.0 + 0.6 * (0.5 - lean.abs())));
+    // its outline in (along the edge, into the light), from under the putty
+    let reb = 0.009;
+    let a0 = (f * len - bw / 2.0).max(0.004);
+    let a1 = (a0 + bw).min(len - 0.004);
+    let tip = (a0 + a1) / 2.0 + lean * size * 1.2;
+    let pts = [
+        (a0, -reb),
+        (a1, -reb),
+        (a1 - bw * 0.08, depth * 0.35),
+        (a1 - bw * (0.25 + lean * 0.3), depth * 0.62),
+        (tip, depth),
+        (a0 + bw * 0.12, depth * 0.48),
+    ];
+    let z0 = -0.0125;
+    let to_sash = |a: f64, d: f64| (sx + tx * a + nx * d, sy + ty * a + ny * d);
+    let p2: Vec<(f64, f64)> = pts.iter().map(|&(a, d)| to_sash(a, d)).collect();
+    slab_geo(&p2, z0, z0 + 0.003)
+}
+
+/// A shard on the floor, w by h, lying flat: an irregular five-sided piece
+fn floor_shard_geo(w: f64, h: f64) -> Geo {
+    let k = (w * 977.0 + h * 613.0).fract();
+    let pts = [
+        (-w / 2.0, -h / 2.0 + h * 0.1 * k),
+        (w * (0.2 + 0.25 * k), -h / 2.0),
+        (w / 2.0, h * (0.1 - 0.2 * k)),
+        (w * 0.1, h / 2.0),
+        (-w / 2.0 + w * 0.15 * k, h * 0.2),
+    ];
+    // (x across, its other side along z, from the floor up 2.5 mm)
+    let g = slab_geo(&pts, 0.0, 0.0025);
+    g.rotate_x(-PI / 2.0);
+    g.translate(0, 0, 0);
+    g
+}
+
+/// A flat convex piece: the outline (x, y) between z0 and z1, its edges
+fn slab_geo(pts: &[(f64, f64)], z0: f64, z1: f64) -> Geo {
+    let n = pts.len();
+    let mut pos = vec![];
+    let mut idx = vec![];
+    for &z in &[z0, z1] {
+        for &(x, y) in pts {
+            pos.extend_from_slice(&[x as f32, y as f32, z as f32]);
+        }
+    }
+    for i in 1..n - 1 {
+        idx.extend_from_slice(&[0, (i + 1) as u32, i as u32]);
+        idx.extend_from_slice(&[n as u32, (n + i) as u32, (n + i + 1) as u32]);
+    }
+    let base = pos.len() as u32 / 3;
+    for i in 0..n {
+        let j = (i + 1) % n;
+        let (a, b) = (pts[i], pts[j]);
+        for &(x, y, z) in &[(a.0, a.1, z0), (b.0, b.1, z0), (b.0, b.1, z1), (a.0, a.1, z1)] {
+            pos.extend_from_slice(&[x as f32, y as f32, z as f32]);
+        }
+        let q = base + i as u32 * 4;
+        idx.extend_from_slice(&[q, q + 1, q + 2, q, q + 2, q + 3]);
+    }
+    let g = Geo::new();
+    g.set_position(pos);
+    g.set_index(idx);
+    g.compute_vertex_normals();
+    g
+}
+
+/// The sash's paint (u across it, v up it): white gloss gone cream and
+/// grey, crazed, peeled in flakes to the grey wood, most of all on the
+/// bottom rail where the water stood; dirt in the corners of the lights
+fn sash_paint_tex() -> Tex {
+    canvas_tex_opt(256, 256, false, |ctx, w, h| {
+        // the paint: white gloss gone cream and grey, uneven
+        ctx.set_fill_style("#bfb7a1");
+        ctx.fill_rect(0, 0, w, h);
+        for _ in 0..40 {
+            let (x, y, r) = (rnd() * w, rnd() * h, 10.0 + rnd() * 40.0);
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            gr.add_color_stop(0, &format!("rgba(150,140,118,{:.3})", 0.1 + rnd() * 0.2));
+            gr.add_color_stop(1, "rgba(150,140,118,0)");
+            ctx.set_fill_style(&gr);
+            ctx.begin_path();
+            ctx.arc(x, y, r, 0, 7);
+            ctx.fill();
+        }
+        // crazed: a net of fine cracks
+        ctx.set_stroke_style("rgba(70,62,52,0.4)");
+        ctx.set_line_width(0.7);
+        for _ in 0..260 {
+            let (mut x, mut y) = (rnd() * w, rnd() * h);
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            for _ in 0..3 {
+                let vert = rnd() < 0.6;
+                x += if vert { (rnd() - 0.5) * 3.0 } else { (rnd() - 0.5) * 14.0 };
+                y += if vert { (rnd() - 0.5) * 14.0 } else { (rnd() - 0.5) * 3.0 };
+                ctx.line_to(x, y);
+            }
+            ctx.stroke();
+        }
+        // the bottom rail, where the water stood: the paint mostly gone, the
+        // grey wood bare and checked along its grain, islands of paint left
+        let (stile, bot, top) = (0.050 / SASH_W, 0.080 / SASH_H, 0.050 / SASH_H);
+        let rail_y = (1.0 - bot * 1.15) * h;
+        ctx.set_fill_style("#8c8576");
+        ctx.fill_rect(0, rail_y, w, h - rail_y);
+        for _ in 0..80 {
+            ctx.set_fill_style(format!("rgba(64,58,50,{:.3})", 0.15 + rnd() * 0.3));
+            ctx.fill_rect(rnd() * w, rail_y + rnd() * (h - rail_y), 10.0 + rnd() * 50.0, 0.7);
+        }
+        for _ in 0..26 {
+            let (x, y) = (rnd() * w, rail_y + rnd() * (h - rail_y));
+            let (rx, ry) = (3.0 + rnd() * 12.0, 1.0 + rnd() * 3.0);
+            let mut pts = vec![];
+            for i in 0..10 {
+                let a = i as f64 / 10.0 * PI * 2.0;
+                let k = 0.6 + rnd() * 0.5;
+                pts.push((x + a.cos() * rx * k, y + a.sin() * ry * k));
+            }
+            for (col, dy) in [("rgba(40,34,28,0.45)", 0.8), ("#c3bba5", 0.0)] {
+                ctx.set_fill_style(col);
+                ctx.begin_path();
+                for (i, &(px, py)) in pts.iter().enumerate() {
+                    if i == 0 {
+                        ctx.move_to(px, py + dy);
+                    } else {
+                        ctx.line_to(px, py + dy);
+                    }
+                }
+                ctx.close_path();
+                ctx.fill();
+            }
+        }
+        // elsewhere flakes gone along each member's grain (up the stiles and
+        // the bar, across the rails), a shadow under the lifted edge
+        for _ in 0..70 {
+            let (u, v) = (rnd(), bot * 1.15 + rnd() * (1.0 - bot * 1.15));
+            let across = v > 1.0 - top || (v - (bot + (1.0 - top)) / 2.0).abs() < 0.02;
+            let along_u = across && !(u < stile || u > 1.0 - stile || (u - 0.5).abs() < 0.02);
+            let (x, y) = (u * w, (1.0 - v) * h);
+            let r = 1.2 + rnd() * 3.5;
+            let (ex, ey) = if along_u { (2.8, 0.6) } else { (0.6, 2.8) };
+            let mut pts = vec![];
+            for i in 0..8 {
+                let a = i as f64 / 8.0 * PI * 2.0;
+                let rr = r * (0.5 + rnd() * 0.7);
+                pts.push((x + a.cos() * rr * ex, y + a.sin() * rr * ey));
+            }
+            for (col, d) in [("rgba(60,52,44,0.35)", 0.8), ("#8f887a", 0.0)] {
+                ctx.set_fill_style(col);
+                ctx.begin_path();
+                for (i, &(px, py)) in pts.iter().enumerate() {
+                    if i == 0 {
+                        ctx.move_to(px + d, py + d);
+                    } else {
+                        ctx.line_to(px + d, py + d);
+                    }
+                }
+                ctx.close_path();
+                ctx.fill();
+            }
+        }
+        // grime: settled along the bottom rail, run down from the corners
+        let gr = ctx.create_linear_gradient(0, h, 0, h * 0.75);
+        gr.add_color_stop(0, "rgba(54,46,36,0.5)");
+        gr.add_color_stop(1, "rgba(54,46,36,0)");
+        ctx.set_fill_style(&gr);
+        ctx.fill_rect(0, h * 0.75, w, h * 0.25);
+        // mould in the corners of the lights (their sight corners, in the texture)
+        let (sx0, sx1) = ((0.050 / SASH_W) * w, (1.0 - 0.050 / SASH_W) * w);
+        let (sy0, sy1) = (h - (0.080 / SASH_H) * h, (0.050 / SASH_H) * h);
+        let (smx, smy) = ((sx0 + sx1) / 2.0, (sy0 + sy1) / 2.0);
+        for (cx, cy) in [(sx0, sy0), (smx, sy0), (sx1, sy0), (sx0, smy), (smx, smy), (sx1, smy), (sx0, sy1), (smx, sy1), (sx1, sy1)] {
+            for _ in 0..14 {
+                let (x, y, r) = (cx + (rnd() - 0.5) * 18.0, cy + (rnd() - 0.5) * 18.0, 0.6 + rnd() * 2.2);
+                ctx.set_fill_style(format!("rgba(36,34,26,{:.3})", 0.2 + rnd() * 0.4));
+                ctx.begin_path();
+                ctx.arc(x, y, r, 0, 7);
+                ctx.fill();
+            }
+        }
+    })
+}
+
+/// A damp streak run down a wall: drips from above, soft-edged, darker
+/// where it dried at the foot (the tide line); transparent round it
+fn sash_streak_tex(col: u32) -> Tex {
+    let (r, gg, b) = ((col >> 16) & 255, (col >> 8) & 255, col & 255);
+    canvas_tex_opt(64, 256, false, move |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        for _ in 0..9 {
+            let x = w * (0.25 + rnd() * 0.5);
+            let len = h * (0.5 + rnd() * 0.5);
+            let wid = 2.0 + rnd() * 7.0;
+            let gr = ctx.create_linear_gradient(0, 0, 0, len);
+            gr.add_color_stop(0, &format!("rgba({r},{gg},{b},0)"));
+            gr.add_color_stop(0.2, &format!("rgba({r},{gg},{b},{:.3})", 0.15 + rnd() * 0.15));
+            gr.add_color_stop(1, &format!("rgba({r},{gg},{b},{:.3})", 0.25 + rnd() * 0.2));
+            ctx.set_fill_style(&gr);
+            ctx.begin_path();
+            ctx.move_to(x - wid * 0.3, 0);
+            ctx.quadratic_curve_to(x - wid, len * 0.5, x - wid * 0.4, len);
+            ctx.arc(x, len, wid * 0.45, PI, 0);
+            ctx.quadratic_curve_to(x + wid, len * 0.5, x + wid * 0.3, 0);
+            ctx.close_path();
+            ctx.fill();
+        }
+        // the tide line where it stood and dried
+        ctx.save();
+        ctx.translate(w / 2.0, h - 8.0);
+        ctx.scale(1, 0.25);
+        let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, w * 0.5);
+        gr.add_color_stop(0, &format!("rgba({r},{gg},{b},0.35)"));
+        gr.add_color_stop(1, &format!("rgba({r},{gg},{b},0)"));
+        ctx.set_fill_style(&gr);
+        ctx.begin_path();
+        ctx.arc(0, 0, w * 0.5, 0, 7);
+        ctx.fill();
+        ctx.restore();
+    })
+}
+
+/// The wet soaked into the floor: a soft, uneven dark patch, a darker rim
+/// where it is drying
+fn sash_wet_tex(col: u32) -> Tex {
+    let (r, gg, b) = ((col >> 16) & 255, (col >> 8) & 255, col & 255);
+    canvas_tex_opt(128, 128, false, move |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        for k in 0..7 {
+            let (x, y) = (w / 2.0 + (rnd() - 0.5) * w * 0.35, h / 2.0 + (rnd() - 0.5) * h * 0.35);
+            let rr = w * (0.18 + rnd() * 0.18) * if k == 0 { 1.4 } else { 1.0 };
+            let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+            gr.add_color_stop(0, &format!("rgba({r},{gg},{b},0.4)"));
+            gr.add_color_stop(0.75, &format!("rgba({r},{gg},{b},0.32)"));
+            gr.add_color_stop(1, &format!("rgba({r},{gg},{b},0)"));
+            ctx.set_fill_style(&gr);
+            ctx.begin_path();
+            ctx.arc(x, y, rr, 0, 7);
+            ctx.fill();
+        }
+    })
 }
 
 // R393 wooden broom: 12% chance per level. Thin wooden pole +
@@ -1205,8 +1465,11 @@ fn place_small_handbells(g: &mut Game, _dist: &[i32]) {
     g.pp.handbell_positions.push(v3(bp.x, 0.05, bp.z));
 }
 
-// R386 wooden crate: 15% chance per level. Small brown crate box
-// with 3 dark slat lines on each visible face.
+// R386 wooden crate: 15% chance per level. A nailed slatted crate of rough
+// sawn pine gone grey (Blender batch `r09`): its boards with gaps between
+// them nailed to corner posts, a slatted lid, wood wool packed inside;
+// stencilled on its long sides. Now and then a board stove in, splinters and
+// wood wool on the floor by it; a smaller crate stacked on it.
 fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
@@ -1216,85 +1479,342 @@ fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    let wood_colors = [0x704028, 0x5a3018, 0x6a3820, 0x503020];
-    let wood_mat = lambert!({ color: wood_colors[pick(wood_colors.len())] });
-    let slat_mat = lambert!({ color: 0x2a1810 });
-    let crate_ = group();
-    let cs = 0.35 + rnd() * 0.10; // 35-45 cm cubes
-                                  // Body: main cube.
-    let body = mesh(pg("WoodenCrates__body", box_geo!(cs, cs, cs)), &wood_mat);
-    body.position().y = cs / 2.0;
-    crate_.add(&body);
-    // 3 thin dark slat lines on each of the 4 visible side faces.
-    for (rot_y, _off_z) in [(0.0, cs / 2.0 + 0.001), (PI / 2.0, 0.0), (PI, cs / 2.0 + 0.001), (-PI / 2.0, 0.0)] {
-        for sl in 0..3 {
-            let slat = mesh(plane_geo!(cs, 0.008), &slat_mat);
-            slat.rotation().y = rot_y;
-            // Position slats along face height with even spacing.
-            let rel_y = cs * 0.25 + sl as f64 * cs * 0.25 - cs / 2.0;
-            if rot_y.sin().abs() < 0.5 {
-                // Facing Z axis.
-                slat.position().set(0, rel_y + cs / 2.0, sign_of(rot_y.cos()) * (cs / 2.0 + 0.001));
-            } else {
-                // Facing X axis.
-                slat.position().set(sign_of(rot_y.sin()) * (cs / 2.0 + 0.001), rel_y + cs / 2.0, 0);
-            }
-            crate_.add(&slat);
-        }
-    }
+    // the pine as it weathered: grey, grey-brown, a dull honey, darkened by damp
+    let tones = [0x8c8476, 0x7e7262, 0x9a8566, 0x6e665a];
+    let tone = tones[pick(tones.len())];
+    let cs = 0.35 + rnd() * 0.10; // 35-45 cm: the 0.40 m crate, a little smaller or larger
+    let s = cs / CRATE_W;
+    // (what is painted on it differs from crate to crate by its size: no draw of its own)
+    let look = CrateLook::new(tone, (cs * 7919.0).fract());
+    let (crate_, sides) = crate_group("", &look);
+    crate_.scale().set(s, s, s);
     crate_.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     crate_.rotation().y = rnd() * PI * 2.0;
     g.world.add(&crate_);
-    // R388 20% chance: 1-2 dark broken-slat holes on random visible face.
+    // R388 20% chance: one or two boards stove in (a face, a board), wood
+    // wool pulled out through the hole
     let has_broken_holes = rnd() < 0.20;
     if has_broken_holes {
-        let hole_mat = basic_mat!({ color: 0x0a0806 });
         let hole_count = 1 + (rnd() * 2.0).floor() as i32;
+        // (face -> its boards broken: +z, -z, +x, -x as the face draw counts them)
+        let mut broken: [Vec<usize>; 4] = Default::default();
         for _hh in 0..hole_count {
-            let hole = mesh(plane_geo!(cs * 0.30, cs * 0.14), &hole_mat);
-            // Random face pick (Z+, Z-, X+, X-).
             let face = (rnd() * 4.0).floor() as usize;
-            let (hr_y, hz_off, hx_off) = [
-                (0.0, cs / 2.0 + 0.003, 0.0),
-                (PI, -cs / 2.0 - 0.003, 0.0),
-                (PI / 2.0, 0.0, cs / 2.0 + 0.003),
-                (-PI / 2.0, 0.0, -cs / 2.0 - 0.003),
-            ][face];
-            hole.rotation().y = hr_y;
             let hy = cs * 0.3 + rnd() * cs * 0.4;
-            // Position hole in crate local space, then apply to crate.
+            let (_, n, _, gap, _, _, bw) = crate_dims("");
+            let k = ((hy / s / (bw + gap)).floor() as usize).clamp(1, n - 2);
+            if !broken[face].contains(&k) {
+                broken[face].push(k);
+            }
+            // the wood wool pulled out through it, hanging from the gap
+            let (hx_off, hz_off) = [(0.0, 1.0), (0.0, -1.0), (1.0, 0.0), (-1.0, 0.0)][face];
             let cp = crate_.pos();
             let cry = crate_.rot().y;
-            hole.position().set(cp.x + hx_off * cry.cos() + hz_off * cry.sin(), hy, cp.z - hx_off * cry.sin() + hz_off * cry.cos());
-            hole.rotation().y += cry;
-            g.world.add(&hole);
+            let yk = (k as f64 * (bw + gap) + bw * 0.35) * s;
+            let tuft = group();
+            if let Some(gm) = game::assets::props::prop_part_as_modelled("Real__crateWoolTuft") {
+                let m = mesh(gm, &look.wool);
+                m.rotation().x = -1.2;
+                m.position().set(0.0, -0.012, -0.012);
+                tuft.add(&m);
+            }
+            let r = cs / 2.0 + 0.006;
+            let (lx, lz) = (hx_off * r, hz_off * r);
+            tuft.position().set(cp.x + lx * cry.cos() + lz * cry.sin(), yk, cp.z - lx * cry.sin() + lz * cry.cos());
+            tuft.rotation().y = cry + [0.0, PI, PI / 2.0, -PI / 2.0][face];
+            tuft.scale().set(s, s, s);
+            g.world.add(&tuft);
+        }
+        // each stove-in face: its side made again with those boards snapped
+        // (slot: +z 0, +x 1, -z 2, -x 3)
+        for (face, ks) in broken.iter().enumerate() {
+            if ks.is_empty() {
+                continue;
+            }
+            let slot = [0, 2, 1, 3][face];
+            let tag = if ks.len() > 1 {
+                "12"
+            } else if ks[0] == 1 {
+                "1"
+            } else {
+                "2"
+            };
+            let ab = if slot % 2 == 0 { "A" } else { "B" };
+            if let Some(gm) = game::assets::props::prop_part_as_modelled(&format!("Real__crateSide{ab}Broken{tag}")) {
+                sides[slot].set_geo(gm);
+            }
         }
     }
-    // R389 if broken holes: 50% chance spawn 4-6 small pellets scattered
-    // near crate — spilled contents through broken slats.
+    // R389 if broken holes: 50% chance 4-6 splinters of the board and tufts
+    // of wood wool on the floor by it
     if has_broken_holes && rnd() < 0.50 {
-        let pellet_mat = lambert!({ color: 0x3a2818 });
         let pellet_count = 4 + (rnd() * 3.0).floor() as i32;
-        for _p in 0..pellet_count {
-            let pellet = mesh(pg("WoodenCrates__pellet", sphere_geo!(0.008 + rnd() * 0.004, 4, 3)), &pellet_mat);
+        for p in 0..pellet_count {
+            let size = 0.008 + rnd() * 0.004;
             let p_ang = rnd() * PI * 2.0;
             let p_rad = cs * 0.5 + rnd() * 0.30;
             let cp = crate_.pos();
-            pellet.position().set(cp.x + p_ang.cos() * p_rad, 0.008, cp.z + p_ang.sin() * p_rad);
-            g.world.add(&pellet);
+            // clear of the crate's own footprint (it is square, and turned)
+            let cry = crate_.rot().y;
+            let (dx, dz) = (p_ang.cos(), p_ang.sin());
+            let (lx, lz) = (dx * cry.cos() - dz * cry.sin(), dx * cry.sin() + dz * cry.cos());
+            let foot = cs / 2.0 / lx.abs().max(lz.abs()).max(1e-3) + 0.03;
+            let rad = p_rad.max(foot);
+            let name = if p % 2 == 0 { "Real__crateSplinter" } else { "Real__crateWoolTuft" };
+            let bit = group();
+            if let Some(gm) = game::assets::props::prop_part_as_modelled(name) {
+                let m = mesh(gm, if p % 2 == 0 { &look.split } else { &look.wool });
+                bit.add(&m);
+            }
+            let k = 0.9 + (size - 0.008) / 0.004 * 0.2;
+            bit.scale().set(k, k, k);
+            bit.rotation().y = p_ang * 2.7 + p as f64;
+            bit.position().set(cp.x + dx * rad, 0.0, cp.z + dz * rad);
+            g.world.add(&bit);
         }
     }
-    // R387 25% chance: smaller crate stacked atop (freight pile).
+    // R387 25% chance: a smaller crate stacked on its lid (freight pile)
     if rnd() < 0.25 {
         let cs2 = cs * (0.55 + rnd() * 0.20); // 55-75% of base
-        let sib_crate = clone_obj(&crate_);
-        sib_crate.scale().set(cs2 / cs, cs2 / cs, cs2 / cs);
-        sib_crate.position().y = cs + cs2 / 2.0; // sit atop base
+                                              // the smaller crates are their own (0.30 or 0.225 m, their boards
+                                              // thinner), scaled within 15% of that
+        let key = if cs2 < 0.26 { "S" } else { "M" };
+        let (w2, ..) = crate_dims(key);
+        let (sib_crate, _) = crate_group(key, &look);
+        let s2 = cs2 / w2;
+        sib_crate.scale().set(s2, s2, s2);
+        let cp = crate_.pos();
+        sib_crate.position().set(cp.x, cs, cp.z); // on the lid
         sib_crate.position().x += (rnd() - 0.5) * cs * 0.15;
         sib_crate.position().z += (rnd() - 0.5) * cs * 0.15;
         sib_crate.rotation().y = rnd() * PI * 2.0;
         g.world.add(&sib_crate);
     }
+}
+
+/// The big crate's side, m (`r09`'s `CRATES`)
+const CRATE_W: f64 = 0.40;
+
+/// A crate's sizes (`r09`'s `crate_dims`): W, boards a side, board
+/// thickness, gap, post, the sides' height, a board's width
+fn crate_dims(key: &str) -> (f64, usize, f64, f64, f64, f64, f64) {
+    let (w, n, t, gap, post) = match key {
+        "M" => (0.30, 3, 0.010, 0.018, 0.026),
+        "S" => (0.225, 3, 0.009, 0.014, 0.022),
+        _ => (CRATE_W, 4, 0.012, 0.020, 0.030),
+    };
+    let hs = w - t;
+    (w, n, t, gap, post, hs, (hs - (n - 1) as f64 * gap) / n as f64)
+}
+
+/// What a crate is made of: its boards (grain, and the long sides'
+/// stencils), the posts and bottom, the nails, the wood wool, the raw wood
+/// of a splinter
+struct CrateLook {
+    side_a: Mat,
+    side_b: Mat,
+    frame: Mat,
+    nails: Mat,
+    wool: Mat,
+    split: Mat,
+}
+
+impl CrateLook {
+    fn new(tone: u32, v: f64) -> CrateLook {
+        let wool_tex = crate_wool_tex();
+        wool_tex.t().repeat.set(3, 3);
+        CrateLook {
+            side_a: lambert!({ color: tone, map: &crate_board_tex(true, v) }),
+            side_b: lambert!({ color: tone, map: &crate_board_tex(false, v) }),
+            frame: lambert!({ color: tone }),
+            nails: lambert!({ color: 0x3a3029 }),
+            wool: lambert!({ color: 0xb09a74, map: &wool_tex }),
+            split: lambert!({ color: 0xa88f6c }),
+        }
+    }
+}
+
+/// A crate built of its parts as modelled (`r09`), its bottom at y = 0:
+/// the group, and its four sides (+z, +x, -z, -x) so a stove-in one can be
+/// swapped in
+fn crate_group(key: &str, look: &CrateLook) -> (Obj, Vec<Obj>) {
+    use game::assets::props::prop_part_as_modelled as part;
+    let c = group();
+    let (w, ..) = crate_dims(key);
+    let mut sides = vec![];
+    for slot in 0..4 {
+        let ab = if slot % 2 == 0 { "A" } else { "B" };
+        let geo = part(&format!("Real__crateSide{ab}{key}")).unwrap_or_else(|| {
+            let g = box_geo!(w, w, 0.012);
+            g.translate(0, w / 2.0, w / 2.0 - 0.006);
+            g
+        });
+        let m = mesh(geo, if slot % 2 == 0 { &look.side_a } else { &look.side_b });
+        m.rotation().y = slot as f64 * PI / 2.0;
+        c.add(&m);
+        sides.push(m);
+    }
+    for (name, mat) in [("Frame", &look.frame), ("Lid", &look.side_b), ("Nails", &look.nails), ("Wool", &look.wool)] {
+        if let Some(geo) = part(&format!("Real__crate{name}{key}")) {
+            c.add(&mesh(geo, mat));
+        }
+    }
+    (c, sides)
+}
+
+/// A side's boards (u along them, v up the side): the grain of rough sawn
+/// pine gone grey, its knots, each board a shade of its own, darker where
+/// it stood in the wet; on the long sides a shipper's stencil, worn
+fn crate_board_tex(stencil: bool, v: f64) -> Tex {
+    canvas_tex_opt(256, 256, false, move |ctx, w, h| {
+        // (the painter's own stream, moved on by this crate's own value)
+        for _ in 0..(v * 61.0) as usize {
+            rnd();
+        }
+        ctx.set_fill_style("#e4ded2");
+        ctx.fill_rect(0, 0, w, h);
+        // each board its own shade (4 boards and 3 gaps up the side)
+        let (bw, gap) = (0.082 / 0.388 * h, 0.020 / 0.388 * h);
+        for k in 0..4 {
+            let y0 = h - (k as f64 * (bw + gap) + bw);
+            let v = rnd();
+            ctx.set_fill_style(format!("rgba({},{},{},{:.3})", 70 + (v * 40.0) as i32, 62 + (v * 30.0) as i32, 50, 0.06 + rnd() * 0.12));
+            ctx.fill_rect(0, y0, w, bw);
+        }
+        // the grain: long wavy lines along the boards, and the fibres torn up by the saw
+        for _ in 0..170 {
+            let y = rnd() * h;
+            let (a, f, ph) = (0.6 + rnd() * 2.0, 0.01 + rnd() * 0.03, rnd() * 6.3);
+            ctx.set_stroke_style(format!("rgba(70,58,44,{:.3})", 0.05 + rnd() * 0.16));
+            ctx.set_line_width(0.6 + rnd() * 1.4);
+            ctx.begin_path();
+            let x0 = rnd() * w * 0.5 - 20.0;
+            let len = 60.0 + rnd() * 240.0;
+            let mut x = x0;
+            ctx.move_to(x, y);
+            while x < x0 + len {
+                x += 8.0;
+                ctx.line_to(x, y + (x * f + ph).sin() * a);
+            }
+            ctx.stroke();
+        }
+        for _ in 0..900 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_fill_style(format!("rgba(255,250,240,{:.3})", 0.05 + rnd() * 0.10));
+            ctx.fill_rect(x, y, 2.0 + rnd() * 6.0, 1);
+            ctx.set_fill_style(format!("rgba(50,42,34,{:.3})", 0.05 + rnd() * 0.10));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 4.0, 1);
+        }
+        // knots: a dark heart, its rings, the grain swept round it
+        for _ in 0..(2 + (rnd() * 3.0) as i32) {
+            let (x, y, r) = (rnd() * w, rnd() * h, 2.5 + rnd() * 4.5);
+            for ring in (0..4).rev() {
+                ctx.set_fill_style(format!("rgba(60,44,30,{:.3})", 0.10 + 0.18 * (4 - ring) as f64 / 4.0));
+                ctx.begin_path();
+                ctx.ellipse(x, y, r * (1.0 + ring as f64 * 0.9) * 1.7, r * (1.0 + ring as f64 * 0.6), 0, 0, 7);
+                ctx.fill();
+            }
+        }
+        // the weather: grey bleaching in streaks, and the damp it stood in at the foot
+        for _ in 0..30 {
+            ctx.set_fill_style(format!("rgba(200,200,196,{:.3})", 0.04 + rnd() * 0.08));
+            ctx.fill_rect(rnd() * w, rnd() * h, 30.0 + rnd() * 120.0, 2.0 + rnd() * 6.0);
+        }
+        let damp = ctx.create_linear_gradient(0, h, 0, h * 0.6);
+        damp.add_color_stop(0, "rgba(40,32,24,0.45)");
+        damp.add_color_stop(1, "rgba(40,32,24,0)");
+        ctx.set_fill_style(&damp);
+        ctx.fill_rect(0, h * 0.6, w, h * 0.4);
+        if stencil {
+            // a shipper's stencil, sprayed black through a card: the spray's
+            // soft edge and its overspray, the bridges of the letters left
+            // open; then rubbed and weathered thin
+            let marks: [(&str, &str); 6] = [
+                ("FRAGILE", "No 47"),
+                ("HANDLE WITH CARE", "LOT 3"),
+                ("THIS SIDE UP", "No 112"),
+                ("KEEP DRY", "No 8"),
+                ("GLASS", "No 21"),
+                ("DO NOT DROP", "LOT 9"),
+            ];
+            let (big, small) = marks[((v * 6.0) as usize).min(5)];
+            ctx.set_text_align("center");
+            ctx.set_text_baseline("middle");
+            // the third board from the floor, and the second
+            let row = |k: f64| h - (k * (bw + gap) + bw / 2.0);
+            let (dx, dy) = ((rnd() - 0.5) * 16.0, (rnd() - 0.5) * 4.0);
+            for (a, o) in [(0.2, 1.2), (0.2, -1.0), (0.5, 0.0)] {
+                ctx.set_fill_style(format!("rgba(26,24,22,{a})"));
+                ctx.set_font("bold 44px Avenir Next Condensed");
+                ctx.fill_text_max(big, w / 2.0 + dx + o, row(2.0) + 2.0 + dy + o * 0.5, w * 0.84);
+                ctx.set_font("bold 30px Avenir Next Condensed");
+                ctx.fill_text_max(small, w * 0.5 + dx * 0.5 + o, row(1.0) + 2.0 - o * 0.4, w * 0.5);
+            }
+            for _ in 0..500 {
+                let (x, y) = (w / 2.0 + dx + (rnd() - 0.5) * w * 0.9, row(2.0) + (rnd() - 0.5) * bw * 1.1);
+                ctx.set_fill_style(format!("rgba(26,24,22,{:.3})", 0.1 + rnd() * 0.25));
+                ctx.fill_rect(x, y, 1, 1);
+            }
+            ctx.set_global_composite_operation("destination-out");
+            ctx.set_fill_style("rgba(0,0,0,1)");
+            // the bridges: a thin bar of card across each letter's middle
+            for k in 0..44 {
+                let x = 8.0 + k as f64 * (w - 16.0) / 44.0 + rnd() * 2.0;
+                ctx.fill_rect(x, row(2.0) - 1.0 + dy, 1.4, 3.0 + rnd() * 2.0);
+            }
+            // weathered: whole patches gone thin, flakes gone
+            for _ in 0..60 {
+                let (x, y, r) = (rnd() * w, row(1.0 + rnd() * 1.2), 3.0 + rnd() * 14.0);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(1, 0.45);
+                let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+                let a = 0.2 + rnd() * 0.5;
+                gr.add_color_stop(0, &format!("rgba(0,0,0,{a:.3})"));
+                gr.add_color_stop(1, "rgba(0,0,0,0)");
+                ctx.set_fill_style(&gr);
+                ctx.begin_path();
+                ctx.arc(0, 0, r, 0, 7);
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.set_global_composite_operation("source-over");
+        }
+        // worn: rubbed through to the wood here and there, and scuffed
+        ctx.set_global_composite_operation("source-atop");
+        for _ in 0..140 {
+            ctx.set_fill_style(format!("rgba(214,206,192,{:.3})", 0.2 + rnd() * 0.5));
+            ctx.begin_path();
+            ctx.ellipse(rnd() * w, rnd() * h, 1.0 + rnd() * 6.0, 0.6 + rnd() * 2.0, 0, 0, 7);
+            ctx.fill();
+        }
+        ctx.set_global_composite_operation("source-over");
+    })
+}
+
+/// Wood wool: fine curled shavings, pale straw with darker ones among them
+fn crate_wool_tex() -> Tex {
+    canvas_tex(128, 128, |ctx, w, h| {
+        ctx.set_fill_style("#8a7656");
+        ctx.fill_rect(0, 0, w, h);
+        for _ in 0..420 {
+            let v = rnd();
+            ctx.set_stroke_style(format!(
+                "rgba({},{},{},{:.3})",
+                190 + (v * 50.0) as i32,
+                168 + (v * 50.0) as i32,
+                120 + (v * 40.0) as i32,
+                0.35 + rnd() * 0.5
+            ));
+            ctx.set_line_width(0.6 + rnd() * 1.0);
+            let (x, y) = (rnd() * w, rnd() * h);
+            let (a, l) = (rnd() * 6.3, 6.0 + rnd() * 26.0);
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.quadratic_curve_to(x + (a + 1.2).cos() * l, y + (a + 1.2).sin() * l, x + a.cos() * l * 1.4, y + a.sin() * l * 1.4);
+            ctx.stroke();
+        }
+    })
 }
 
 #[cfg(test)]
