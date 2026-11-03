@@ -62,6 +62,26 @@ pub fn canvas_tex_opt<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl Num
     t
 }
 
+/// Fills an image's rows, `row(j, out)` for row `j`, on every core at once.
+/// For a per-pixel painter whose pixels are a pure function of where they
+/// are (no draws and no canvas calls in the loop: its draws are made before
+/// it): the same bytes as one row after the other, sooner
+pub fn par_rows(data: &mut [u8], row_len: usize, row: impl Fn(usize, &mut [u8]) + Sync) {
+    let rows = data.len() / row_len.max(1);
+    let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(1, rows.max(1));
+    let per = rows.div_ceil(n).max(1);
+    std::thread::scope(|s| {
+        for (c, chunk) in data.chunks_mut(per * row_len).enumerate() {
+            let row = &row;
+            s.spawn(move || {
+                for (k, out) in chunk.chunks_mut(row_len).enumerate() {
+                    row(c * per + k, out);
+                }
+            });
+        }
+    });
+}
+
 /// The Blender-made prop part `name` fitted to the primitive `geo`.
 pub fn pg(name: &str, geo: Geo) -> Geo {
     crate::assets::props::prop_part(name, geo, false)

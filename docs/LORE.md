@@ -20,7 +20,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -678,7 +678,8 @@ plaque that says STAIRS. Behind it:
 - **Almond Water** restores stamina when you drink it. Carry it for when things
   get bad.
 - **Batteries** recharge the lamp. The lamp draws Smilers.
-- **Paper** marks your path. Sometimes you find someone else's trail going the
+- **Paper** marks your path; boxes, bins and books below the Lobby give
+  more (*Within reach*). Sometimes you find someone else's trail going the
   other way. Whatever reads in the office wings must stop for a sheet on the
   floor, and keeps the ones you drop.
 - **Lore notes** are torn pages left by those who came before: Elias, M., the
@@ -917,6 +918,54 @@ The torn note *Windows* ("The windows here do not open. What they show
 does not exist. Do not stare too long or it will begin to stare back.") is
 about them.
 
+## Within reach
+
+Below the Lobby (from level 5), on every floor but one with rules of its
+own, some of what was left behind still works as it did (`PROPS.md` 3).
+Nothing says what a thing does or what it is for; what is found is said as
+a pickup is said. What each one holds was settled when the floor was made,
+not when it is used, and each is used once (a lift's button and the
+television excepted).
+
+- **A box** on top of a stack opens: its tape slit, its flaps out, packing
+  paper in it. About one in four holds a few sheets of paper as well (two
+  to four). What is written on a box (BOOKS, DO NOT OPEN, a name) never
+  says what is in it.
+- **A bin** can be looked into. Mostly litter; about one in three has a
+  sheet or two worth keeping.
+- **A stack of books** gives three to five of its pages to write on, once,
+  torn out of the top book; deeper down (from level 9), only a page or
+  two. Nothing torn out is left on the floor.
+- **A locker** whose padlock hangs open (its shackle lifted out of the
+  lock and turned; about two in five of the shut ones) swings open on
+  someone's things: a jacket on its hook, a jumper folded on its floor; now
+  and then (about one in seven) a bottle of almond water in the jacket's
+  pocket. Whose they were is never said; a locker's tag carries a number or
+  a word, never a name.
+- **A dead lift's button** (a lift that does not come; a floor's first lift
+  still does, and is a way down) can be pressed. It lights, weakly, for
+  less than a second, and goes out. Behind about one in three of them, a
+  few seconds later, a car is heard going by behind its doors. Pressed
+  again, it does the same. Where the car goes is never said,
+  and it is never a way.
+- **The television** on its wooden stand by a wall (in someone's rooms or
+  an office; one a floor), snow on its screen, its cold light flickering on
+  what is near, hissing to one close by, can be switched off: its picture
+  falls to a dot and goes, and its light and its hiss with it. And on
+  again. It stands lit on the Lobby and the floors with rules of their own
+  too, where no hand can switch it off; so does the small portable set left
+  on, now and then, anywhere. The set lying dead on the floor is only that.
+
+(On any floor of the rooms, a filing cabinet's drawers slide out: a
+battery, almond water, a stack of paper, or nothing, EMPTY.)
+
+Only a Hound or a Smiler hears them. The tape tearing, a locker's door and
+a set coming on are loud: one near stops to listen, and a Hound may come to
+look near where the sound was, never told where you are. A bin's rustle and
+a page torn out are quiet: they stop nothing, but a Hound already crouched
+to listen goes to look near them. A set switched off, a lift's button and
+the car behind its doors are heard by nothing but you.
+
 ## The sound of the place
 
 - The lamps hum at **120 Hz, twice the mains frequency**, with a full harmonic
@@ -939,6 +988,10 @@ about them.
   ballast, dulled, steady. Nothing else of out there is heard; now and
   then, the glass itself (*the one behind the glass*). A blind let down or
   drawn up clatters, dull aluminium, to the bottom rail's knock.
+- What a hand does is heard from where it is done, and only near: a box's
+  tape, a bin's rustle, a page torn out, a locker's door, a lift's button
+  and the car going by behind it, a set's whine as it goes off or comes on,
+  and a lit set's hiss close by (*Within reach*).
 
 ## Attribution and licensing
 

@@ -1272,6 +1272,12 @@
       }
     },
     {
+      "checks": [
+        "test:backrooms/barricades",
+        "test:backrooms/level_sweep",
+        "test:game/core_props_tail",
+        "test:backrooms/materials"
+      ],
       "id": "props/barricades",
       "kind": "prop with rules",
       "last_checked": "2026-11-01",
@@ -1301,6 +1307,26 @@
         "test:backrooms/windows": true,
         "test:backrooms/materials": true,
         "test:backrooms/level_sweep": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/usable",
+        "test:backrooms/level_sweep",
+        "test:game/core_props_head",
+        "test:backrooms/materials"
+      ],
+      "id": "props/usable",
+      "kind": "prop with rules",
+      "last_checked": "2026-11-03",
+      "last_human_review": null,
+      "name": "the things a hand can use (docs/PROPS.md 3, LORE.md Within reach: a box, a bin, a book stack, a locker left unlocked, a dead lift, the television)",
+      "notes": "none on the Building's floors, the Lobby or a floor with rules of its own; what each holds is fixed when the floor is built, from a stream of its own (USE_SALT), given once (what_they_give_is_fixed_and_given_once); each verb where its prop is (every_usable_prop_has_its_verb); the TV off and on (the_tv_switches_off_and_on); the tape, a locker and a set coming on stop a creature near, a bin and a page do not (a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not); the sounds are synthesized, no person has listened to them or used a verb",
+      "passes": {
+        "test:backrooms/usable": true,
+        "test:backrooms/level_sweep": true,
+        "test:game/core_props_head": true,
+        "test:backrooms/materials": true
       }
     }
   ]

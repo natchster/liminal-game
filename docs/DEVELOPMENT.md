@@ -88,7 +88,12 @@ Levels must be a pure function of `(run_seed, level)`:
   the thread made before. `canvas_tex` does this for every texture (its
   painter's stream, from where the painter is in the code, its size and how
   many it has made since the level began); `tests/story.rs`
-  `a_levels_frames_are_the_same_whatever_came_before` holds it.
+  `a_levels_frames_are_the_same_whatever_came_before` holds it. A painter
+  that works pixel by pixel may fill its rows on every core (`par_rows`)
+  when each pixel is a pure function of where it is: its draws made before
+  the loop, no canvas call in it. Canvas calls stay on one thread:
+  CoreGraphics rasterizes a path a little differently while another
+  thread rasterizes (a few pixels changed from run to run).
 * The native stream starts from the clock. A test whose outcome depends on
   per-frame draws (a creature's choices, the ambience's timing) seeds it
   first, `game::base::rng::seed_native(…)`, from its own seed; otherwise

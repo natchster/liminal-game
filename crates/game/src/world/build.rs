@@ -222,6 +222,9 @@ impl Game {
         self.behind_glass = None;
         self.window_plans.clear();
         self.pp.vending_positions.clear();
+        // a CRT's hiss is the floor's own (`place_old_crt_tvs` fills it when it
+        // places one, `usable_settled` adds the lit set)
+        self.pp.crt_positions.clear();
         self.vacuum_bot = None;
         // the Building's per-floor things (a floor of the rooms has none)
         self.cell_doors.clear();
@@ -474,6 +477,11 @@ impl Game {
         self.vending_settled();
         // the windows, on the final walls (their openings are cut as the walls are drawn)
         self.windows_settled();
+        // the verbs of what a hand can use, now that nothing will move
+        // (`core_props::usable`; an interactable pins the walls near it)
+        if core {
+            self.usable_settled();
+        }
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {
             self.settle_prop_looks(prop_start);

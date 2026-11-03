@@ -297,9 +297,13 @@ fn props(args: &[String]) -> Result<(), String> {
         .collect();
     let rebuild_frozen = flag(args, "--rebuild-frozen");
     let (mut same, mut changed, mut new, mut kept) = (0, vec![], vec![], 0);
+    // the same part: its bytes and its place (positions are stored quantized
+    // within its bounds, so a part that only moved has the same bytes)
+    let same_part =
+        |c: &PropPart, p: &PropPart| c.raw == p.raw && c.n == p.n && c.t == p.t && c.frame == p.frame && c.min == p.min && c.max == p.max;
     for (name, p) in &built {
         match by_name.get(name.as_str()) {
-            Some(c) if c.raw == p.raw && c.n == p.n && c.t == p.t && c.frame == p.frame && c.min == p.min && c.max == p.max => same += 1,
+            Some(c) if same_part(c, p) => same += 1,
             Some(_) if frozen.contains(name) => kept += 1,
             Some(_) => changed.push(name.clone()),
             None => new.push(name.clone()),
@@ -328,8 +332,8 @@ fn props(args: &[String]) -> Result<(), String> {
         let parts: Vec<PropPart> = built
             .into_values()
             .map(|p| match by_name.get(p.name.as_str()) {
-                // the stored part, byte for byte: unchanged, or frozen
-                Some(c) if c.raw == p.raw || (frozen.contains(&p.name) && !rebuild_frozen) => PropPart {
+                // the stored part, byte for byte: unchanged (bytes and place), or frozen
+                Some(c) if same_part(c, &p) || (frozen.contains(&p.name) && !rebuild_frozen) => PropPart {
                     name: c.name.clone(),
                     frame: c.frame,
                     n: c.n,

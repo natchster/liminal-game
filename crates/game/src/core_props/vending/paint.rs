@@ -451,6 +451,8 @@ pub fn paint_display(ctx: &mut Canvas, text: &str, scroll: usize, on: f64) {
     ctx.fill_rect(0, 0, DISPLAY_W, DISPLAY_H);
     let chars: Vec<char> = text.chars().collect();
     let lit_rgb = (255.0 * on, 70.0 * on + 8.0, 24.0 * on + 4.0);
+    let glow = format!("rgba({:.0},{:.0},{:.0},0.30)", lit_rgb.0, lit_rgb.1, lit_rgb.2);
+    let core = format!("rgb({:.0},{:.0},{:.0})", lit_rgb.0, lit_rgb.1, lit_rgb.2);
     for col in 0..DISPLAY_CHARS {
         let c = chars.get(col + scroll).copied().unwrap_or(' ');
         let g = glyph(c);
@@ -460,11 +462,11 @@ pub fn paint_display(ctx: &mut Canvas, text: &str, scroll: usize, on: f64) {
                 let x = ((col * 6 + 1 + b) as f64 + 0.5) * DOT;
                 let y = ((row + 1) as f64 + 0.5) * DOT;
                 if lit && on > 0.0 {
-                    ctx.set_fill_style(format!("rgba({:.0},{:.0},{:.0},0.30)", lit_rgb.0, lit_rgb.1, lit_rgb.2));
+                    ctx.set_fill_style(&glow);
                     ctx.begin_path();
                     ctx.arc(x, y, DOT * 0.75, 0, PI * 2.0);
                     ctx.fill();
-                    ctx.set_fill_style(format!("rgb({:.0},{:.0},{:.0})", lit_rgb.0, lit_rgb.1, lit_rgb.2));
+                    ctx.set_fill_style(&core);
                 } else {
                     ctx.set_fill_style("#1a0a06");
                 }

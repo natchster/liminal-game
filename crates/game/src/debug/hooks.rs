@@ -57,8 +57,9 @@ impl Game {
                 }
             });
             let r = o.rot();
+            let kind = o.user().s.get("kind").cloned();
             out.push(json!({
-                "k": k, "placer": placer, "pos": v3(&o.pos()), "rot": [r6(r.x), r6(r.y), r6(r.z)],
+                "k": k, "placer": placer, "kind": kind, "pos": v3(&o.pos()), "rot": [r6(r.x), r6(r.y), r6(r.z)],
                 "min": v3(&bb.min), "max": v3(&bb.max), "meshes": meshes, "interact": !o.user().static_prop,
             }));
         }

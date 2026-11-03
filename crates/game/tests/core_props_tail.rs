@@ -365,6 +365,9 @@ fn cmp_mat(m: &Mat, j: &Json, path: &str) {
 /// Compare an object with its recorded tree node.
 #[track_caller]
 fn cmp_tree(o: &Obj, j: &Json, path: &str) {
+    if j.get("k").s() == "web" {
+        return cmp_web(o, &j.get("p").fs(), path);
+    }
     let k = kind_of(o);
     assert_eq!(k, j.get("k").s(), "{path}: kind");
     assert_vec_close(&[o.pos().x, o.pos().y, o.pos().z], &j.get("p").fs()[..], TOL, &format!("{path}: position"));
@@ -404,6 +407,9 @@ fn cmp_tree(o: &Obj, j: &Json, path: &str) {
 /// Compare an object with its recorded run-time tree node.
 #[track_caller]
 fn cmp_rtree(o: &Obj, j: &Json, path: &str) {
+    if j.at(0).s() == "web" {
+        return cmp_web(o, &j.at(1).fs()[..3], path);
+    }
     let k = kind_of(o);
     assert_eq!(k, j.at(0).s(), "{path}: kind");
     let (p, r, s) = (o.pos(), o.rot(), o.scl());
@@ -647,6 +653,88 @@ fn note_nodes(case: &Json) -> HashSet<usize> {
     tree.iter().enumerate().filter(|(_, t)| t.get("k").s() == "group" && sheet(t)).map(|(i, _)| i).collect()
 }
 
+/// The recorded still floors' cobwebs (a 0.7 m square decal of a drawn
+/// wheel, 0.35 m under the ceiling): a web is modelled now and hangs from
+/// the ceiling in a corner looked for beside its spot
+/// (`weather_fx::tail_still_cobwebs`, `docs/PROPS.md` P1), its draws kept
+fn web_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let web = |t: &Json| {
+        let g = t.get("g");
+        let ps = g.get("params");
+        let par = |k: &str| ps.arr().iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f());
+        let m = t.get("m");
+        t.get("k").s() == "mesh"
+            && g.get("type").s() == "plane"
+            && par("width") == Some(0.7)
+            && par("height") == Some(0.7)
+            && m.get("type").s() == "basic"
+            && !m.get("map").is_null()
+            && m.get("map").get("w").f() == 128.0
+    };
+    tree.iter().enumerate().filter(|(_, t)| web(t)).map(|(i, _)| i).collect()
+}
+
+/// `case` with each recorded web (`web_nodes`) marked "web": what is
+/// compared is that a group hangs at the ceiling within a tile of the
+/// recorded spot
+fn modelled_webs(case: &Json) -> Json {
+    let webs = web_nodes(case);
+    if webs.is_empty() {
+        return case.clone();
+    }
+    let with = |o: &Json, key: &str, v: Json| -> Json {
+        let Json::Obj(fields) = o else { return o.clone() };
+        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
+    };
+    let tree = |t: &Json, run: bool| -> Json {
+        Json::Arr(
+            t.arr()
+                .iter()
+                .enumerate()
+                .map(|(i, n)| match (webs.contains(&i), run, n) {
+                    (false, ..) => n.clone(),
+                    (true, false, _) => with(n, "k", Json::Str("web".into())),
+                    (true, true, Json::Arr(v)) => {
+                        let mut v = v.clone();
+                        v[0] = Json::Str("web".into());
+                        Json::Arr(v)
+                    }
+                    _ => n.clone(),
+                })
+                .collect(),
+        )
+    };
+    let mut c = case.clone();
+    let b = c.get("build").clone();
+    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
+    if c.get("sim").has("frames") {
+        let sim = c.get("sim").clone();
+        let frames: Vec<Json> = sim
+            .get("frames")
+            .arr()
+            .iter()
+            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
+            .collect();
+        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
+    }
+    if c.has("final") {
+        let f = c.get("final").clone();
+        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
+    }
+    c
+}
+
+/// A modelled web against the recorded decal's place (`modelled_webs`)
+#[track_caller]
+fn cmp_web(o: &Obj, p: &[f64], path: &str) {
+    assert_eq!(kind_of(o), "group", "{path}: a web is modelled");
+    let q = o.pos();
+    assert_close(q.y, p[1] + 0.35, TOL, &format!("{path}: a web hangs from the ceiling"));
+    let d = ((q.x - p[0]).powi(2) + (q.z - p[2]).powi(2)).sqrt();
+    assert!(d <= CELL, "{path}: a web {d:.2} m from its spot");
+}
+
 /// `case` with each recorded note (`note_nodes`) cut to its paper and
 /// writing: in the build's tree (children under "c") and in every run-time
 /// tree (children the seventh entry of a node)
@@ -748,7 +836,7 @@ fn without<'a>(jt: &'a [Json], drop: &HashSet<usize>) -> Vec<&'a Json> {
 }
 
 fn run_case(case: &Json, real_builders: bool) {
-    let case = &quiet_notes(case);
+    let case = &modelled_webs(&quiet_notes(case));
     let mut drop = window_zone_nodes(case);
     drop.extend(note_mark_nodes(case));
     drop.extend(barricade_nodes(case));

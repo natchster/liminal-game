@@ -1372,6 +1372,10 @@ impl Game {
             let Some(spot) = s_wall_adj_spot(self, c.x, c.z) else { continue };
             let functional = elevator_placed == 0; // first one always works
             let built = s_build(self, cx, TailBuild::Elevator(functional));
+            if !functional {
+                // a dead one: its button can still be pressed (`core_props::usable`)
+                built.g.user().s.insert("dead_lift".into(), "yes".into());
+            }
             // flush with the wall
             built.g.set_pos_v(&off_wall(&spot, 0.075));
             built.g.rotation().y = spot.yaw;

@@ -45,6 +45,30 @@ while it is among the last three runs of its series).
   it was paid on level 1 (4–6 ms dearer then). And 4242 L5's triangles,
   137k → 168k: the ecology put another creature in the camera's view
   (content). Both well within budget; kept.
+- **Props P1–P6** (`2a35e3b+`, flagged by their full check): the floors of
+  the rooms build slower, 4242 L5 210 → 515 ms and 7 L5 345 → 547, L4 and
+  L6 by 170–260 ms; and their triangles grew (4242 L6 174k → 242k). The
+  props made real are modelled parts and paint their own textures, one for
+  each thing (a torn note's sheet and type, a book stack's atlas, a
+  mirror's silver and film, each stain and web of the marks, the
+  barricades' plywood and boards). Painted as they were, 7 L5 took 666 ms,
+  over its budget. Two changes, both giving the same pixels: a radial
+  gradient whose end stop is clear is shaded only inside its end circle
+  (`Canvas::draw_gradient`; 25 ms), and the marks' per-pixel painters (the
+  ceiling and wall stains, 15% of a build) fill their rows on every core
+  (`par_rows`): 7 L5 547 ms. Painting whole canvases on a pool of threads
+  was tried and dropped: CoreGraphics rasterizes a path a little
+  differently while another thread rasterizes, and a golden changed from
+  run to run. The rest is the content; within budget, kept.
+- **The vending machine** (`49e683a+` and after, flagged by the same
+  check): the update's p99 on the floors with a lit machine, 0.78 →
+  1.53 ms. Its display scrolls HAVE A NICE DAY three characters a second,
+  and every lit machine repainted its 350 dots (a fill and a CSS colour
+  parsed for each) every third of a second, wherever you were: 0.75 ms,
+  on the film grain's frames 1.5. It repaints now only within 14 m (its
+  dots are a few pixels from further off; the first paint always
+  happens), its two colours parsed once: the p99 back to the grain's
+  0.8 ms.
 
 ## What the first run measured (2026-10-25, Apple Silicon, macOS 27)
 

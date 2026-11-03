@@ -165,6 +165,10 @@ pub struct TvData {
     pub world: Vec3,
     pub acc: f64,
     pub normal: Vec3,
+    /// its screen (static, or the dead tube once switched off)
+    pub screen: Obj,
+    /// switched on (`core_props::usable`)
+    pub on: bool,
 }
 
 /// The payphone prop: position, ring state and handset

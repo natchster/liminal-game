@@ -174,6 +174,7 @@ extern "C" {
     pub fn CGContextEOFillPath(c: CGContextRef);
     pub fn CGContextStrokePath(c: CGContextRef);
     pub fn CGContextClip(c: CGContextRef);
+    pub fn CGContextClipToRect(c: CGContextRef, rect: CGRect);
     pub fn CGContextEOClip(c: CGContextRef);
     pub fn CGContextClearRect(c: CGContextRef, r: CGRect);
     pub fn CGContextFillRect(c: CGContextRef, r: CGRect);

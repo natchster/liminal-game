@@ -707,6 +707,18 @@ impl Canvas {
                     CGContextDrawLinearGradient(self.ctx, cg, CGPoint { x: x0, y: y0 }, CGPoint { x: x1, y: y1 }, opts)
                 }
                 GradKind::Radial { x0, y0, r0, x1, y1, r1 } => {
+                    // a soft blob (its end stop clear, its start circle inside its end
+                    // circle) paints nothing outside the end circle under source-over:
+                    // shade only that circle's box, not the whole clip (the same pixels)
+                    let clear_end = gd.stops.last().is_some_and(|s| s.1[3] == 0.0);
+                    let inside = ((x1 - x0).powi(2) + (y1 - y0).powi(2)).sqrt() + r0 <= r1;
+                    if clear_end && inside && self.st.composite == kCGBlendModeNormal {
+                        let r = r1 + 1.0;
+                        CGContextClipToRect(
+                            self.ctx,
+                            CGRect { origin: CGPoint { x: x1 - r, y: y1 - r }, size: CGSize { width: 2.0 * r, height: 2.0 * r } },
+                        );
+                    }
                     CGContextDrawRadialGradient(self.ctx, cg, CGPoint { x: x0, y: y0 }, r0, CGPoint { x: x1, y: y1 }, r1, opts)
                 }
             }
@@ -1048,6 +1060,11 @@ impl Canvas {
 
     /// Unpremultiplied RGBA pixels, rows top-down (the texture upload format).
     pub fn to_image(&self) -> Image {
+        Image::new_rgba(self.w, self.h, self.pixels())
+    }
+    /// The pixels as RGBA8 with straight alpha, rows top-down (what
+    /// `to_image` holds)
+    pub fn pixels(&self) -> Vec<u8> {
         unsafe { CGContextFlush(self.ctx) };
         let mut data = self.buf.clone();
         for px in data.chunks_exact_mut(4) {
@@ -1059,7 +1076,7 @@ impl Canvas {
                 px[k] = ((px[k] as u32 * 255 + a / 2) / a).min(255) as u8;
             }
         }
-        Image::new_rgba(self.w, self.h, data)
+        data
     }
     /// Premultiplied pixels (for compositing the HUD).
     pub fn premultiplied(&self) -> &[u8] {

@@ -21,6 +21,7 @@ pub mod barricade;
 pub mod builders;
 pub mod seam;
 pub mod tail;
+pub mod usable;
 pub mod vending;
 pub mod weather_fx;
 pub mod window;
@@ -807,6 +808,8 @@ impl Game {
         g.world.add(&tg);
         g.tv_data = Some(TvData {
             light,
+            screen,
+            on: true,
             world: v3(px, 1, pz),
             acc: 0.0,
             normal: match spot {

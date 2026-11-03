@@ -117,3 +117,9 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-01, on top of 024cdba: frames: 4242_L7_office_wing, 4242_L7_storage_hall. Reason: Props P5: her marks keep off a wall face something stands against (a machine, a barricade): one moved
 
 - 2026-11-03, on top of 13a00f9: frames: 4242_L7_storage_hall, 4242_L7_living_quarters, 7_L5_play_area. Reason: Props P1: remodelled props in view (the bentwood coat stand and its coat; a pile, a book stack)
+
+- 2026-11-03, on top of 2a35e3b: frames: 7 shots. Reason: Props P1 (3): r07's wall marks painted soft (the Lobby's water streak in the spawn and staff views); remodelled props far off in the L7 views (looked at each frame and its error map)
+
+- 2026-11-03, on top of 2a35e3b: frames: smiler_4m, smiler_8m, watcher_8m, staff_2m, staff_4m. Reason: P6: the Lobby's lit set now hisses close by (its place in the CRTs' hiss list); the ambience reschedules it from the frame stream while you are out of earshot, so the film grain of these Lobby showcases is drawn from a shifted stream (scene identical; error maps an even speckle)
+
+- 2026-11-03, on top of 2a35e3b: frames: 15 shots. Reason: P6: a lit set now hisses close by (its place in the CRTs' hiss list); the ambience reschedules it from the frame stream while you are out of earshot, so these frames' film grain is drawn from a shifted stream (scenes identical: mean 0.002, no tile over 0.008)

@@ -970,10 +970,12 @@ fn hole_back_tex(masonry: bool) -> Tex {
                 ctx.fill_rect(0, h * 0.55, w, h * 0.45);
                 // the light: only what comes in through the hole
                 let lg = ctx.create_radial_gradient(w / 2.0, h / 2.0, 6, w / 2.0, h / 2.0, w * 0.55);
-                lg.add_color_stop(0, "rgba(0,0,0,0.55)");
-                lg.add_color_stop(0.22, "rgba(0,0,0,0.75)");
-                lg.add_color_stop(0.6, "rgba(0,0,0,0.88)");
-                lg.add_color_stop(1, "rgba(0,0,0,0.95)");
+                // (the bay's own shade, not its darkness: the light map darkens it as
+                // it darkens the room, and an albedo under 0.008 is no paper's)
+                lg.add_color_stop(0, "rgba(0,0,0,0.35)");
+                lg.add_color_stop(0.22, "rgba(0,0,0,0.5)");
+                lg.add_color_stop(0.6, "rgba(0,0,0,0.65)");
+                lg.add_color_stop(1, "rgba(0,0,0,0.75)");
                 ctx.set_fill_style(lg);
                 ctx.fill_rect(0, 0, w, h);
             });

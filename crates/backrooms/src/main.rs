@@ -82,6 +82,9 @@ struct Options {
     prop_census: Option<usize>,
     /// `--census-only a,b`: the census of these kinds only
     census_only: Vec<String>,
+    /// `--census-use`: use every prop's verb (`core_props::usable`) first,
+    /// and let them settle, to shoot them used
+    census_use: bool,
     /// `--shots-at "name:x,y,z,yaw,pitch;…"`: with `--dump-level
     /// --screenshot`, a PNG from each camera exactly (`census.tsv` records
     /// each census shot's camera: the same shot of a changed prop)
@@ -131,6 +134,7 @@ fn parse_args() -> Options {
         views_at: vec![],
         prop_census: None,
         census_only: vec![],
+        census_use: false,
         shots_at: vec![],
         vending_demo: None,
         fresh: false,
@@ -183,6 +187,7 @@ fn parse_args() -> Options {
             "--dump-level" => o.dump_level = Some(next(&mut i)),
             "--prop-census" => o.prop_census = next(&mut i).parse().ok(),
             "--census-only" => o.census_only = next(&mut i).split(',').map(|s| s.to_string()).collect(),
+            "--census-use" => o.census_use = true,
             "--shots-at" => {
                 o.shots_at = next(&mut i)
                     .split(';')
@@ -218,6 +223,12 @@ fn parse_args() -> Options {
             _ => {}
         }
         i += 1;
+    }
+    // the census and its cameras are evidence for a blind review: a shot
+    // taken twice must be the same shot (the per-frame randomness drives a
+    // floor's tint, its flicker and its dust; the save fits her notes)
+    if o.prop_census.is_some() || !o.shots_at.is_empty() {
+        o.fresh = true;
     }
     o
 }
@@ -736,6 +747,28 @@ fn level_check(o: &Options, dir: &str) {
                 let dir = format!("{dir}/census");
                 std::fs::create_dir_all(&dir).expect("create census dir");
                 let mut index = String::new();
+                if o.census_use {
+                    const VERBS: [&str; 6] = [
+                        "[E] OPEN THE BOX",
+                        "[E] LOOK INSIDE",
+                        "[E] TEAR OUT PAGES",
+                        "[E] OPEN THE LOCKER",
+                        "[E] SWITCH IT OFF",
+                        "[E] PRESS THE BUTTON",
+                    ];
+                    for k in 0..g.interactables.len() {
+                        if VERBS.contains(&g.interactables[k].prompt.as_str()) && (g.interactables[k].enabled)(&g) {
+                            let mut f = std::mem::replace(&mut g.interactables[k].on_use, Box::new(|_| {}));
+                            f(&mut g);
+                            g.interactables[k].on_use = f;
+                        }
+                    }
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    for _ in 0..90 {
+                        g.frame(1.0 / 60.0);
+                    }
+                    g.fixed_step_dt = 0.0;
+                }
                 let shots: Vec<_> =
                     g.census_shots(per).into_iter().filter(|s| o.census_only.is_empty() || o.census_only.contains(&s.0)).collect();
                 let shots = census_or_given(shots, &o.shots_at);

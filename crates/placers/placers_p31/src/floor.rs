@@ -520,7 +520,7 @@ pub fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
             let (sn, cs) = turn.sin_cos();
             let mut img = ctx.create_image_data(cw, cw);
             let n = cw as usize;
-            for j in 0..n {
+            par_rows(&mut img.data, n * 4, |j, out| {
                 for i in 0..n {
                     let (lx, lz) = ((i as f64 + 0.5) * s - side / 2.0, side / 2.0 - (j as f64 + 0.5) * s);
                     let (wx, wz) = (cx + lx, cz + lz);
@@ -569,12 +569,11 @@ pub fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                             }
                         }
                     }
-                    let k = (j * n + i) * 4;
                     for (c, v) in px.iter().enumerate() {
-                        img.data[k + c] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+                        out[i * 4 + c] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
                     }
                 }
-            }
+            });
             ctx.put_image_data(&img, 0, 0);
         });
         // where it is clear, the rims' colour, so its mips keep it at the edges

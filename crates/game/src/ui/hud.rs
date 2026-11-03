@@ -1535,7 +1535,7 @@ impl Game {
         // prop animation + proximity devices
         let t = self.perf_t;
         self.run_hud_animators(dt, t);
-        if let Some(tv) = self.tv_data.clone() {
+        if let Some(tv) = self.tv_data.clone().filter(|t| t.on) {
             let d2 = tv.world.distance_to_squared(&self.player.pos);
             tv.light.set_intensity(if d2 < 900.0 { rand2(0.0, 2.6) } else { 0.0 });
             let mut redraw = false;

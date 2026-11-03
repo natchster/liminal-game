@@ -19,7 +19,8 @@ paths:
 - **Canvas textures draw from a stream of their own** (`canvas_tex`:
   `with_own_stream`, seeded by the painter's place in the code, its size and
   how many it has made since the level began); never the level's stream nor
-  the per-frame one. The Building's surfaces
+  the per-frame one. Never draw on a canvas from two threads at once (CoreGraphics
+  rasterizes differently then); a pure per-pixel loop may use `par_rows`. The Building's surfaces
   are photographs (`visuals/photo.rs`, built by `assets/src/textures/`) and
   draw nothing; a new one comes from a CC0 photograph listed in
   `sources.json` (the manifest allows MIT, CC0, CC BY 4.0 only), graded to

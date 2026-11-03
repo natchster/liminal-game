@@ -479,6 +479,8 @@ impl Game {
     /// What its display says: the coil under your eyes, its price; or what
     /// it is saying (it runs across); or HAVE A NICE DAY, running across
     fn vending_display(&mut self, i: usize, now: f64) {
+        /// How near its display is read (m)
+        const DISPLAY_SEEN: f64 = 14.0;
         let m = &mut self.vending[i];
         let (text, on) = if !m.powered || !m.state.lit || m.state.down {
             (String::new(), 0.0)
@@ -509,6 +511,14 @@ impl Game {
         };
         let key = (text.clone(), scroll, (on * 10.0) as i32);
         if m.state.shown == key {
+            return;
+        }
+        // its dots are a few pixels from further off: what it says there is
+        // painted when you come near (and once when it is first lit)
+        let p = m.pos();
+        let far = (p.x - self.player.pos.x).hypot(p.z - self.player.pos.z) > DISPLAY_SEEN;
+        let m = &mut self.vending[i];
+        if far && !m.state.shown.0.is_empty() {
             return;
         }
         m.state.shown = key;
