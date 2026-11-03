@@ -172,41 +172,87 @@ impl Game {
         }
     }
 
-    /// STILL: cobweb decals hanging in the corners of walls
+    /// STILL: dusty cobwebs left where the walls meet the ceiling: in a
+    /// room's corner where two walls do, or along a wall's top where there
+    /// is no corner (Blender batch `r05`)
     fn tail_still_cobwebs(&mut self, cx: &mut PropsCtx) {
-        let web_tex = canvas_tex_opt(128, 128, false, |ctx, w, h| {
-            ctx.set_fill_style("rgba(0,0,0,0)");
-            ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style("rgba(232,224,208,0.55)");
-            ctx.set_line_width(0.7);
-            // radial threads from a corner
-            let (cx, cy) = (6.0, 6.0);
-            for r in 0..12 {
-                let a = (r as f64 / 12.0) * (PI * 0.5);
-                ctx.begin_path();
-                ctx.move_to(cx, cy);
-                ctx.line_to(cx + a.cos() * 130.0, cy + a.sin() * 130.0);
-                ctx.stroke();
+        use crate::assets::props::prop_part_as_modelled;
+        // the sheets: silk gone grey with dust, torn, sagging; the threads
+        // catch the light
+        let sheet_mat = lambert!({ map: &cobweb_silk_tex(), vertexColors: true, transparent: true, depthWrite: false });
+        let strand_mat = phong!({ color: 0xb8b4aa, specular: 0x3a3936, shininess: 30, transparent: true, opacity: 0.6, depthWrite: false });
+        let web_of = |sheet: &str, strands: &str, corner: bool| -> Obj {
+            let w = group();
+            if let Some(geo) = prop_part_as_modelled(sheet) {
+                w.add(&mesh(cobweb_sheet_geo(&geo, corner), &sheet_mat));
             }
-            // concentric arcs
-            for ring in 1..6 {
-                ctx.begin_path();
-                ctx.arc(cx, cy, ring as f64 * 18.0, 0, PI * 0.5);
-                ctx.stroke();
+            if let Some(geo) = prop_part_as_modelled(strands) {
+                w.add(&mesh(cobweb_lit(&geo, corner, false), &strand_mat));
             }
-        });
-        let web_mat = basic_mat!({ map: web_tex, transparent: true, depthWrite: false });
+            w
+        };
+        // the loop bound is deliberately re-drawn every iteration
         let mut i = 0;
         while i < irand(4, 8) {
             let Some(c) = s_take(self, cx, true) else { break };
             if let Some(spot) = s_wall_adj_spot(self, c.x, c.z) {
-                let web = mesh(plane_geo!(0.7, 0.7), &web_mat);
-                web.set_pos_v(&off_wall(&spot, 0.05));
-                web.position().y = WALL_H - 0.35; // near ceiling corner
-                web.rotation().y = spot.yaw;
-                // random 90° rotation so the corner attaches to different quadrants
-                web.rotation().z = irand(0, 3) as f64 * (PI / 2.0);
-                self.world.add(&web);
+                // the old quarter turn's draw: which web, and which side's corner is looked for first
+                let k = irand(0, 3);
+                // the wall's way (from the tile into it) and its two sides along it
+                let (dx, dz) = (-spot.normal.x.round() as i32, -spot.normal.z.round() as i32);
+                let sides = if k & 2 == 0 { [(dz, -dx), (-dz, dx)] } else { [(-dz, dx), (dz, -dx)] };
+                // a corner: the side is a wall that meets this one (the tile between them a wall too)
+                let corner = sides
+                    .into_iter()
+                    .find(|&(px, pz)| self.is_wall_tile(c.x + px, c.z + pz) && self.is_wall_tile(c.x + px + dx, c.z + pz + dz));
+                let g = group();
+                match corner {
+                    Some((px, pz)) => {
+                        let web = if k & 1 == 0 {
+                            web_of("Real__cobwebCornerSheetA", "Real__cobwebCornerStrandsA", true)
+                        } else {
+                            web_of("Real__cobwebCornerSheetB", "Real__cobwebCornerStrandsB", true)
+                        };
+                        // the web's frame: one wall behind it (+z out of it), the other to its
+                        // left (+x out of it); turned so both are the corner's walls
+                        let (ax, az) = (-dx as f64, -dz as f64); // out of this wall
+                        let (bx, bz) = (-px as f64, -pz as f64); // out of the side wall
+                        let yaw = if (az - bx).abs() + (-ax - bz).abs() < 1e-6 { ax.atan2(az) } else { bx.atan2(bz) };
+                        // the corner at the tile's corner; the group stands in the middle of the
+                        // web, so settling finds both walls' faces beside it (its probes either
+                        // side of the group stay on the web's own stretch of each wall)
+                        let mut bb = Box3::default();
+                        bb.set_from_object(&web);
+                        let (in_x, in_z) = ((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
+                        let half = CELL / 2.0;
+                        let (ex, ez) = (self.wx(c.x) + (dx + px) as f64 * half, self.wz(c.z) + (dz + pz) as f64 * half);
+                        g.set_pos(ex + ax * in_z + bx * in_x, WALL_H, ez + az * in_z + bz * in_x);
+                        g.rotation().y = yaw;
+                        web.position().set(-in_x, 0, -in_z);
+                        g.add(&web);
+                    }
+                    None => {
+                        // along the wall's top; a partition's end or a slim pillar is narrow: the small
+                        // web; a pillar's face that is not takes the big one, all its width
+                        let (sx, sz) = sides[0];
+                        let (wx, wz) = (c.x + dx, c.z + dz);
+                        let runs = self.is_wall_tile(wx + sx, wz + sz) || self.is_wall_tile(wx - sx, wz - sz);
+                        let pillar = !runs && !self.is_wall_tile(wx + dx, wz + dz);
+                        let wide = runs || self.zone_ref(wx, wz).is_none_or(|zn| zn.wall != "thin" || pillar && zn.pillar >= 0.7);
+                        let web = if wide && (k & 1 == 0 || pillar) {
+                            web_of("Real__cobwebEdgeSheetA", "Real__cobwebEdgeStrandsA", false)
+                        } else {
+                            web_of("Real__cobwebEdgeSheetB", "Real__cobwebEdgeStrandsB", false)
+                        };
+                        // the spot stands 0.11 m out from the wall's face (as the old decal did)
+                        g.set_pos_v(&off_wall(&spot, 0.05));
+                        g.position().y = WALL_H;
+                        g.rotation().y = spot.yaw;
+                        web.position().z = -0.11;
+                        g.add(&web);
+                    }
+                }
+                self.world.add(&g);
             }
             i += 1;
         }
@@ -867,4 +913,228 @@ fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, fl
     if was_forced_mercy {
         g.show_msg("THE WICK CAUGHT — AT LAST.", 1.4);
     }
+}
+
+/// A deterministic lumpiness in [-1, 1] at a point (a few crossed waves; no
+/// random draws), so the silk thins unevenly
+fn cobweb_lumps(x: f64, y: f64, z: f64) -> f64 {
+    let a = (x * 23.0 + y * 7.0).sin() * (z * 19.0 - x * 5.0).cos();
+    let b = (y * 31.0 + z * 11.0 + 1.3).sin() * (x * 13.0 + 0.7).sin();
+    (0.6 * a + 0.4 * b).clamp(-1.0, 1.0)
+}
+
+/// A cobweb's sheets made ready to draw (the parts' frames: r05.py): how
+/// thick the silk is at each point (vertex alpha: thickest in the corner, or
+/// along the wall's top, thinning unevenly outward, frayed to nothing at
+/// every edge of a sheet, so no sheet shows its outline), and the silk's map laid on at
+/// its real scale (a repeat every 0.3 m, from the sheet's own facing) rather
+/// than stretched over the part's box
+fn cobweb_sheet_geo(geo: &Geo, corner: bool) -> Geo {
+    let g = geo.duplicate();
+    {
+        let mut gg = g.g();
+        let n = gg.position.len() / 3;
+        // the sheets' edges (an edge of one triangle only, the vertices
+        // welded by where they are), where the silk frays out to nothing
+        let key = |i: usize| -> (i64, i64, i64) {
+            let q = |v: f32| (v as f64 * 1e4).round() as i64;
+            (q(gg.position[i * 3]), q(gg.position[i * 3 + 1]), q(gg.position[i * 3 + 2]))
+        };
+        let keys: Vec<(i64, i64, i64)> = (0..n).map(key).collect();
+        let mut edges: std::collections::BTreeMap<((i64, i64, i64), (i64, i64, i64)), u32> = std::collections::BTreeMap::new();
+        if let Some(ix) = gg.index.as_ref() {
+            for t in ix.chunks(3) {
+                for (a, b) in [(t[0], t[1]), (t[1], t[2]), (t[2], t[0])] {
+                    let (ka, kb) = (keys[a as usize], keys[b as usize]);
+                    *edges.entry(if ka < kb { (ka, kb) } else { (kb, ka) }).or_insert(0) += 1;
+                }
+            }
+        }
+        // how far each point is from a sheet's edge, along the sheet (metres,
+        // relaxed over its edges until nothing shortens; at most FRAY)
+        const FRAY: f64 = 0.035;
+        let mut dist: std::collections::BTreeMap<(i64, i64, i64), f64> = keys.iter().map(|k| (*k, FRAY)).collect();
+        for ((a, b), _) in edges.iter().filter(|(_, &c)| c == 1) {
+            dist.insert(*a, 0.0);
+            dist.insert(*b, 0.0);
+        }
+        let len = |a: &(i64, i64, i64), b: &(i64, i64, i64)| {
+            (((a.0 - b.0).pow(2) + (a.1 - b.1).pow(2) + (a.2 - b.2).pow(2)) as f64).sqrt() * 1e-4
+        };
+        loop {
+            let mut changed = false;
+            for (a, b) in edges.keys() {
+                let l = len(a, b);
+                let (da, db) = (dist[a], dist[b]);
+                if da + l < db - 1e-9 {
+                    dist.insert(*b, da + l);
+                    changed = true;
+                } else if db + l < da - 1e-9 {
+                    dist.insert(*a, db + l);
+                    changed = true;
+                }
+            }
+            if !changed {
+                break;
+            }
+        }
+        let mut col = Vec::with_capacity(n * 4);
+        let mut uv = Vec::with_capacity(n * 2);
+        for i in 0..n {
+            let (x, y, z) = (gg.position[i * 3] as f64, gg.position[i * 3 + 1] as f64, gg.position[i * 3 + 2] as f64);
+            let f = dist[&keys[i]] / FRAY;
+            let fray = f * f * (3.0 - 2.0 * f);
+            let (nx, ny, nz) = (gg.normal[i * 3].abs(), gg.normal[i * 3 + 1].abs(), gg.normal[i * 3 + 2].abs());
+            let lump = cobweb_lumps(x, y, z);
+            // the dust packed into the angle itself (thick, gone within a hand's
+            // breadth), and the veils that sag from it (thin, thinning outward)
+            let a = if corner {
+                let r = (x * x + y * y + z * z).sqrt();
+                1.2 - (r / 0.52).powf(1.8) * (0.9 + 0.25 * lump)
+            } else {
+                let r = (y * y + z * z).sqrt();
+                let ends = (x.abs() / 0.3).min(1.0);
+                (1.2 - (r / 0.38).powf(1.8) * (0.9 + 0.25 * lump)) * (1.0 - 0.8 * ends.powi(3))
+            };
+            col.extend_from_slice(&[1.0, 1.0, 1.0, (a.clamp(0.0, 1.0) * fray) as f32]);
+            let (u, v) = if ny >= nx && ny >= nz {
+                (x, z)
+            } else if nx >= nz {
+                (z, y)
+            } else {
+                (x, y)
+            };
+            uv.extend_from_slice(&[(u / 0.3) as f32, (v / 0.3) as f32]);
+        }
+        gg.color = col;
+        gg.color_size = 4;
+        gg.uv = uv;
+        gg.touch();
+    }
+    cobweb_lit(&g, corner, true)
+}
+
+/// Silk scatters the light through it: a web is lit as a surface turned out
+/// into the room from its corner (or its wall), whichever side of a thread
+/// or a sheet is seen (`both`: each sheet's triangles both ways round)
+fn cobweb_lit(geo: &Geo, corner: bool, both: bool) -> Geo {
+    let g = if both { geo.clone() } else { geo.duplicate() };
+    {
+        let mut gg = g.g();
+        let n = if corner { [0.7f32, -0.1, 0.7] } else { [0.0f32, -0.1, 0.99] };
+        let count = gg.position.len() / 3;
+        gg.normal = (0..count).flat_map(|_| n).collect();
+        if both {
+            if let Some(ix) = gg.index.as_mut() {
+                let back: Vec<u32> = ix.chunks(3).flat_map(|t| [t[0], t[2], t[1]]).collect();
+                ix.extend(back);
+            }
+        }
+        gg.touch();
+    }
+    g
+}
+
+/// The cobwebs' silk, a repeating patch 0.3 m across: a grey film of fine
+/// silk, threads every way over it (most in two or three runs, as a tangle
+/// is laid), dust caught in it in soft drifts, clumps and specks, the film
+/// torn through in places (transparent there)
+fn cobweb_silk_tex() -> Tex {
+    canvas_tex(256, 256, |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        // everything is drawn again across the edges it crosses, so the patch repeats
+        let wraps = |x: f64, y: f64, r: f64| -> Vec<(f64, f64)> {
+            let mut out = vec![];
+            for dy in [-h, 0.0, h] {
+                for dx in [-w, 0.0, w] {
+                    let (px, py) = (x + dx, y + dy);
+                    if px + r >= 0.0 && px - r <= w && py + r >= 0.0 && py - r <= h {
+                        out.push((dx, dy));
+                    }
+                }
+            }
+            out
+        };
+        // the film: fine silk too fine to see a thread of, grey with dust
+        ctx.set_fill_style("rgba(128,123,114,0.5)");
+        ctx.fill_rect(0, 0, w, h);
+        // dust drifts, heavier in some places than others
+        for _ in 0..34 {
+            let (x, y, r) = (rnd() * w, rnd() * h, 8.0 + rnd() * 34.0);
+            let a = 0.3 + 0.45 * rnd();
+            let (sq, rot) = (0.35 + 0.65 * rnd(), rnd() * 3.0);
+            let stops = [
+                (0.0, format!("rgba(112,106,97,{a:.3})")),
+                (0.6, format!("rgba(112,106,97,{:.3})", a * 0.5)),
+                (1.0, "rgba(112,106,97,0)".into()),
+            ];
+            for (dx, dy) in wraps(x, y, r) {
+                soft_blob(ctx, x + dx, y + dy, r, sq, rot, &stops);
+            }
+        }
+        // the threads, catching the light
+        ctx.set_line_cap("round");
+        let runs = [rnd() * 3.2, rnd() * 3.2, rnd() * 3.2];
+        for i in 0..520 {
+            let a = if i % 4 == 3 { rnd() * 6.3 } else { runs[i % 3] + (rnd() - 0.5) * 0.6 };
+            let (x, y) = (rnd() * w, rnd() * h);
+            let l = 10.0 + rnd() * rnd() * 150.0;
+            let (x1, y1) = (x + a.cos() * l, y + a.sin() * l);
+            let bend = (rnd() - 0.5) * l * 0.3;
+            let (mx, my) = ((x + x1) / 2.0 - a.sin() * bend, (y + y1) / 2.0 + a.cos() * bend);
+            let light = rnd() < 0.7;
+            let (c, al) = if light { (206, 0.3 + 0.45 * rnd()) } else { (120, 0.35 + 0.4 * rnd()) };
+            let lw = 0.5 + 0.9 * rnd() * rnd();
+            for (dx, dy) in wraps((x + x1) / 2.0, (y + y1) / 2.0, l) {
+                ctx.set_stroke_style(format!("rgba({c},{},{},{al:.3})", c - 4, c - 11));
+                ctx.set_line_width(lw);
+                ctx.begin_path();
+                ctx.move_to(x + dx, y + dy);
+                ctx.quadratic_curve_to(mx + dx, my + dy, x1 + dx, y1 + dy);
+                ctx.stroke();
+            }
+        }
+        // clumps of fluff and specks of grit
+        for i in 0..340 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let r = if i % 9 == 0 { 2.0 + rnd() * 4.0 } else { 0.4 + rnd() * rnd() * 2.2 };
+            let v = if rnd() < 0.75 { 96 } else { 170 };
+            let al = 0.45 + 0.45 * rnd();
+            for (dx, dy) in wraps(x, y, r) {
+                ctx.set_fill_style(format!("rgba({v},{},{},{al:.2})", v - 5, v - 12));
+                ctx.begin_path();
+                ctx.arc(x + dx, y + dy, r, 0, 7);
+                ctx.fill();
+            }
+        }
+        // torn through
+        ctx.set_global_composite_operation("destination-out");
+        for _ in 0..9 {
+            let (x, y, rx, ry, rot) = (rnd() * w, rnd() * h, 6.0 + rnd() * 22.0, 3.0 + rnd() * 10.0, rnd() * 3.0);
+            let stops = [(0.0, "rgba(0,0,0,0.85)".to_string()), (0.7, "rgba(0,0,0,0.6)".into()), (1.0, "rgba(0,0,0,0)".into())];
+            for (dx, dy) in wraps(x, y, rx) {
+                soft_blob(ctx, x + dx, y + dy, rx, ry / rx, rot, &stops);
+            }
+        }
+        ctx.set_global_composite_operation("source-over");
+    })
+}
+
+/// A soft blob painted on a canvas: a radial fade of radius `r` squashed to
+/// `k` of it across and turned by `turn`, the canvas squashed so the fade is
+/// never cut off by its outline
+fn soft_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(turn);
+    ctx.scale(1.0, k);
+    let g = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+    for (at, c) in stops {
+        g.add_color_stop(*at, c);
+    }
+    ctx.set_fill_style(&g);
+    ctx.begin_path();
+    ctx.arc(0, 0, r, 0, 7);
+    ctx.fill();
+    ctx.restore();
 }
