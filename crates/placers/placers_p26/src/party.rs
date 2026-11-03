@@ -228,9 +228,12 @@ pub fn place_birthday_hats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hat);
 }
 
-/// R425 small hair ribbon: 10% chance per level. Thin curved plane
-/// simulating a ribbon dropped on floor.
+/// R425 curled gift ribbon: 10% chance per level. Curling ribbon cut from
+/// round a present (Blender batch r14b: 3/16 in polypropylene, crimped and
+/// glossy): the knot with four tails rolled in ringlets, or a single cut
+/// length curled at its ends; faded, trodden flat in places.
 pub fn place_small_ribbons(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -239,24 +242,22 @@ pub fn place_small_ribbons(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
+    // the old colour draw: the ribbon's colour, faded
     let ribbon_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xf0a0a0];
-    let ribbon_mat = lambert!({ color: pick(&ribbon_colors), side: DoubleSide });
+    let c = pick(&ribbon_colors);
+    let k = ribbon_colors.iter().position(|&r| r == c).unwrap_or(0);
     let ribbon = group();
-    // Central bow loop: small torus.
-    let bow = mesh(torus_geo!(0.015, 0.004, 4, 8), &ribbon_mat);
-    bow.rotation().x = -PI / 2.0;
-    bow.position().y = 0.005;
-    ribbon.add(&bow);
-    // 2 curly ribbon tails: thin planes extending out.
-    for tail_dir in [-1.0, 1.0] {
-        let tail = mesh(plane_geo!(0.10, 0.008), &ribbon_mat);
-        tail.rotation().x = -PI / 2.0;
-        tail.rotation().z = tail_dir * 0.3;
-        tail.position().set(tail_dir * 0.06, 0.004, 0);
-        ribbon.add(&tail);
-    }
     ribbon.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     ribbon.rotation().y = rnd() * PI * 2.0;
+    let p = ribbon.pos();
+    let seed = r14b_kit::seed_of(&[p.x, p.z]);
+    let faded = [0xa85464, 0x56689a, 0xb8a052, 0x5a8458, 0x865684, 0xcaa29e][k];
+    let mat = phong!({ color: faded, specular: 0x585858, shininess: 52, side: DoubleSide });
+    mat.m().map = Some(r14b_kit::faded_tex(seed));
+    let name = if seed % 10 < 7 { "Real__ribbonKnot" } else { "Real__ribbonLength" };
+    if let Some(geo) = prop_part_as_modelled(name) {
+        ribbon.add(&mesh(geo, &mat));
+    }
     g.world.add(&ribbon);
 }
 
@@ -506,4 +507,52 @@ pub fn place_childrens_books(g: &mut Game, _dist: &[i32]) {
     cbook.rotation().y = rnd() * PI * 2.0;
     cbook.rotation().x = (rnd() - 0.5) * 0.12;
     g.world.add(&cbook);
+}
+
+/// Batch r14b's kit (the ribbon): a seed from where it lies, and the fading
+/// painted over the ribbon's colour.
+mod r14b_kit {
+    use game::prelude::*;
+
+    /// A seed from values already fixed (a position): no draws
+    pub fn seed_of(v: &[f64]) -> u32 {
+        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
+        for a in v {
+            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
+                x ^= u64::from(b);
+                x = x.wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        ((x ^ (x >> 32)) as u32) | 1
+    }
+
+    /// Fading over the ribbon's colour (multiplied): bleached paler in
+    /// patches where the light lay, grimy where it was trodden
+    pub fn faded_tex(seed: u32) -> Tex {
+        canvas_tex_opt(64, 64, false, move |ctx, w, h| {
+            ctx.set_fill_style("#e8e8e8");
+            ctx.fill_rect(0, 0, w, h);
+            let mut r = SplitMix64::new(seed, 0x21bb);
+            for _ in 0..10 {
+                let (x, y, rr) = (r.range(0.0, w), r.range(0.0, h), r.range(6.0, 18.0));
+                let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+                gr.add_color_stop(0, "rgba(255,255,255,0.7)");
+                gr.add_color_stop(1, "rgba(255,255,255,0)");
+                ctx.set_fill_style(gr);
+                ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+            }
+            for _ in 0..8 {
+                let (x, y, rr) = (r.range(0.0, w), r.range(0.0, h), r.range(4.0, 12.0));
+                let gr = ctx.create_radial_gradient(x, y, 0, x, y, rr);
+                gr.add_color_stop(0, "rgba(70,60,50,0.55)");
+                gr.add_color_stop(1, "rgba(70,60,50,0)");
+                ctx.set_fill_style(gr);
+                ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
+            }
+            for _ in 0..40 {
+                ctx.set_fill_style(&format!("rgba(40,34,28,{:.2})", r.range(0.2, 0.6)));
+                ctx.fill_rect(r.range(0.0, w), r.range(0.0, h), r.range(0.6, 1.6), r.range(0.6, 1.6));
+            }
+        })
+    }
 }
