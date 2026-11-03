@@ -483,8 +483,19 @@ fn place_fallen_ceiling_tiles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gap);
 }
 
-// R368 wall water streak: 20% chance per level, 1-2 streaks.
-// Vertical elongated dark plane on wall.
+/// The narrowest a streak's plane is: just under the width (8 cm) past which
+/// `settle_props` probes a wall's face at its sides as well as its middle
+const STREAK_W: f64 = 0.0799;
+
+// R368 wall water streak: 20% chance per level, 1-2 streaks. Where water has
+// come down a wall from the ceiling's edge, again and again, and dried
+// (`r07.notes.md`): it runs straight down from where it came through, narrow
+// there and wider below, splitting into runs that end in drips; the edge of
+// each run is a darker deposit (a tide line), its middle a fainter wash of
+// what it carried: grey-brown on paint and paper, a dark damp run with a
+// white salt crust on concrete and brick, a faint rust on glazed tile.
+// Painted on a transparent plane from the ceiling's edge to where the old
+// streak ended.
 fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -495,49 +506,61 @@ fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
     let mut i = 0;
     while i < count && i < candidates.len() {
         let c = candidates[i];
-        // Biome-influenced dark streak color (matches R343 ceiling stain).
-        let streak_color = streak_color_by_weather(g.weather_key());
-        let streak_mat = basic_mat!({ color: streak_color, transparent: true, opacity: 0.55, depthWrite: false, side: DoubleSide });
-        // Long thin vertical plane: 0.06-0.10 m wide × 0.8-1.8 m tall.
+        let surface = wall_surface(g, c.x, c.z);
+        // the old streak's draws: its width (how far its runs spread, 6-10
+        // cm) and its length (0.8-1.8 m below its old top, 10 cm under the
+        // ceiling). Its plane's middle is where the old one's was and it is
+        // as wide, or 8 cm where it was narrower (`settle_props` probes the
+        // wall's face from there, across the width when it is 8 cm or more:
+        // so it finds what it found); it reaches up to the ceiling and as
+        // far again below its foot
         let streak_w = 0.06 + rnd() * 0.04;
         let streak_h = 0.8 + rnd() * 1.0;
-        let streak = mesh(plane_geo!(streak_w, streak_h), &streak_mat);
+        let streak_top = WALL_H - 0.10;
+        let up = WALL_H - 0.005 - streak_top;
+        let streak = streak_mesh(streak_w.max(STREAK_W), streak_h + 2.0 * up, streak_h + up, surface, true);
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
-        let streak_top = WALL_H - 0.10; // starts near ceiling
         wall_mount(&streak, &c, wall_x, wall_z, streak_top - streak_h / 2.0, 1.4);
         g.world.add(&streak);
-        // R372 25% chance: small dark floor stain at bottom of streak.
+        // R372 25% chance: where it dripped and stood, a dried ring on the
+        // floor below (its old radius 9-16 cm, 1.3 × 0.85 of it)
         if rnd() < 0.25 {
-            let fs_color = streak_color_by_weather(g.weather_key());
-            let fs_mat = basic_mat!({ color: fs_color, transparent: true, opacity: 0.55, depthWrite: false });
-            let fs = mesh(circle_geo!(0.09 + rnd() * 0.07, 12), &fs_mat);
+            // (on the old disc, 1.3 × 0.85 of its radius: its outline the
+            // old one's, the ring painted inside it)
+            let r = 0.09 + rnd() * 0.07;
+            let floor = floor_kind(g, c.x, c.z);
+            let fs = mesh(circle_geo!(r, 12), &foot_ring_mat(r, floor));
             fs.rotation().x = -PI / 2.0;
             fs.rotation().z = rnd() * PI * 2.0;
             fs.scale().set(1.3, 0.85, 1);
-            // Position just below the streak bottom, nudged out from wall.
-            let nudge_x = -c.dx as f64 * 0.14;
-            let nudge_z = -c.dz as f64 * 0.14;
+            // just below the streak, out from the wall
             let sp = streak.pos();
-            fs.position().set(sp.x + nudge_x, 0.004, sp.z + nudge_z);
+            fs.position().set(sp.x - c.dx as f64 * 0.14, 0.004, sp.z - c.dz as f64 * 0.14);
             g.world.add(&fs);
         }
-        // R370 25% chance: 1-2 sibling streaks close by.
+        // R370 25% chance: 1-2 more runs close by, from the same edge
         if rnd() < 0.25 {
             let sib_count = 1 + (rnd() * 2.0).floor() as i32;
             for _sib in 0..sib_count {
+                // the old sibling's draws: width, length, side, offset, drop
                 let sib_w = 0.04 + rnd() * 0.04;
                 let sib_h = 0.5 + rnd() * 0.7;
-                let sib_mesh = mesh(plane_geo!(sib_w, sib_h), &streak_mat);
-                sib_mesh.rotation().y = streak.rot().y;
                 let sib_off = (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.10 + rnd() * 0.10);
+                let drop = rnd() * 0.12;
+                // from the ceiling's edge to where the old one ended (its
+                // middle and width as the old one's)
+                let up = WALL_H - 0.005 - (streak_top - drop);
+                let sib = streak_mesh(sib_w.max(STREAK_W), sib_h + 2.0 * up, sib_h + up, surface, false);
+                sib.rotation().y = streak.rot().y;
                 let sp = streak.pos();
+                let y = streak_top - drop - sib_h / 2.0;
                 if c.dx.abs() == 1 {
-                    sib_mesh.position().set(sp.x, streak_top - sib_h / 2.0 - rnd() * 0.12, sp.z + sib_off);
+                    sib.position().set(sp.x, y, sp.z + sib_off);
                 } else {
-                    sib_mesh.position().set(sp.x + sib_off, streak_top - sib_h / 2.0 - rnd() * 0.12, sp.z);
+                    sib.position().set(sp.x + sib_off, y, sp.z);
                 }
-                g.world.add(&sib_mesh);
+                g.world.add(&sib);
             }
         }
         i += 1;
@@ -691,8 +714,12 @@ fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R362 floor puddle: 15% chance per level (25% in wet biome).
-// Shallow scaled sphere with emissive-hint water color.
+// R362 floor puddle: 15% chance per level (25% in wet biome). Water on the
+// floor (`r07.notes.md`): on carpet it has soaked in, a dark wet patch with a
+// soft, ragged edge and a darker ring where the dirt wicked out to it; on a
+// hard floor it stands, a thin film darker than the dry floor round it, its
+// edge sharp and irregular, a damp margin outside it and a sheen of the
+// lights on it. Painted on a transparent plane flat on the floor.
 fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
     let chance = if g.weather_key() == "wet" { 0.25 } else { 0.15 };
     if rnd() > chance {
@@ -703,29 +730,28 @@ fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // Water tone slightly emissive so puddle catches ambient bounce.
-    let (spec_color, spec_emissive) = puddle_spec_by_weather(g.weather_key());
-    let puddle_mat = lambert!({ color: spec_color, emissive: spec_emissive, transparent: true, opacity: 0.85 });
+    // the old puddle's draws: its radius (16-30 cm) and how much longer
+    // than wide it was (1-1.3)
     let puddle_r = 0.16 + rnd() * 0.14;
-    let puddle = mesh(sphere_geo!(puddle_r, 12, 6, 0, PI * 2.0, 0, PI / 2.0), &puddle_mat);
-    puddle.scale().y = 0.08; // very shallow bulge
-    puddle.scale().z = 1.0 + rnd() * 0.3; // stretch for organic shape
-    puddle.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0.001, g.wz(z) + (rnd() - 0.5) * 2.2);
+    let long = 1.0 + rnd() * 0.3;
+    let (rx, rz) = (puddle_r, puddle_r * long);
+    let floor = floor_kind(g, x, z);
+    let (puddle_mat, sheen) = puddle_mat(rx, rz, floor);
+    let geo = plane_geo!(rx * 2.5, rz * 2.5);
+    geo.rotate_x(-PI / 2.0);
+    let puddle = mesh(geo, &puddle_mat);
+    puddle.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0.003, g.wz(z) + (rnd() - 0.5) * 2.2);
     puddle.rotation().y = rnd() * PI * 2.0;
     g.world.add(&puddle);
-    // R363 25% chance: slow scale-XZ pulse animator suggesting subtle
-    // ripples on the puddle surface. Period 4-7 s, ±3% scale.
+    // R363 25% chance: where it is fed by a drip, the sheen on it trembles
+    // (period 4-7 s; it was a swell of the old disc)
     if rnd() < 0.25 {
-        let base_sx = puddle.scl().x;
-        let base_sz = puddle.scl().z;
         let r_phase = rnd() * PI * 2.0;
         let r_period = 4.0 + rnd() * 3.0;
-        let p2 = puddle.clone();
+        let m2 = puddle_mat.clone();
         g.animate(move |_g, _dt, t| {
-            let s = 1.0 + (t * (PI * 2.0 / r_period) + r_phase).sin() * 0.03;
-            let mut sc = p2.scale();
-            sc.x = base_sx * s;
-            sc.z = base_sz * s;
+            let s = 1.0 + (t * (PI * 2.0 / r_period) + r_phase).sin() * 0.15;
+            m2.m().specular.set_rgb(sheen * s, sheen * s, sheen * s);
         });
     }
 }
@@ -1052,8 +1078,13 @@ fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paper);
 }
 
-// R347 ceiling cracks: 20% chance per level, 1-2 cracks.
-// Thin dark jagged line on ceiling.
+// R347 ceiling cracks: 20% chance per level, 1-2 cracks. A crack is in what
+// the ceiling is (`r07.notes.md`): a suspended ceiling's mineral-fibre tile
+// cracks within itself, edge to edge across the one tile (the grid holds
+// each tile apart), its two halves a little out of line; a concrete slab or a
+// plaster ceiling cracks in a jagged, branching line that thins to nothing at
+// its ends, white with leached salts along a slab's. Painted on a
+// transparent plane under the ceiling.
 fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -1061,43 +1092,82 @@ fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
     let count = 1 + (rnd() * 2.0).floor() as usize;
     let mut open = open_tiles(g);
     shuffle(&mut open);
-    let crack_mat = basic_mat!({ color: 0x0e0a08, transparent: true, opacity: 0.75, depthWrite: false, side: DoubleSide });
     let mut i = 0;
     while i < count && i < open.len() {
         let (x, z) = open[i];
-        // Build jagged crack as 3-segment thin plane strip.
-        let crack_group = group();
-        let (mut cur_x, mut cur_z) = (0.0f64, 0.0f64);
-        let mut cur_ang = rnd() * PI * 2.0;
+        // the old crack's draws: its heading, then three runs, each its
+        // length and the turn after it (the line it follows on a slab or in
+        // plaster; its kinks across a tile)
+        let mut ang = rnd() * PI * 2.0;
+        let mut path = vec![(0.0f64, 0.0f64)];
+        let mut turns = vec![];
         for _s in 0..3 {
             let seg_len = 0.35 + rnd() * 0.25;
-            let seg = mesh(plane_geo!(seg_len, 0.012), &crack_mat);
-            seg.rotation().x = PI / 2.0; // lay flat facing down
-            seg.rotation().z = cur_ang;
-            seg.position().set(cur_x + cur_ang.cos() * seg_len * 0.5, 0, cur_z + cur_ang.sin() * seg_len * 0.5);
-            crack_group.add(&seg);
-            cur_x += cur_ang.cos() * seg_len;
-            cur_z += cur_ang.sin() * seg_len;
-            cur_ang += (rnd() - 0.5) * 1.0; // jagged angle drift
+            let (px, pz) = *path.last().unwrap();
+            path.push((px + ang.cos() * seg_len, pz + ang.sin() * seg_len));
+            let turn = (rnd() - 0.5) * 1.0;
+            turns.push(turn);
+            ang += turn;
         }
+        let crack_group = group();
         crack_group.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, WALL_H - 0.005, g.wz(z) + (rnd() - 0.5) * 1.6);
-        crack_group.rotation().y = rnd() * PI * 2.0;
+        let yaw = rnd() * PI * 2.0;
+        let cp = crack_group.pos();
+        let ceiling = ceiling_kind(g, x, z);
+        if ceiling == 0 {
+            // one tile of the grid, the one over where it was (or the next
+            // one along, off a fitting); edge to edge at the old heading
+            let (cx, cz) = ceiling_cell(g, cp.x, cp.z);
+            let side = CELL / 6.0;
+            let plane = mesh(plane_geo!(side, side), &tile_crack_mat(yaw, &turns, path[1].0.hypot(path[1].1)));
+            plane.rotation().x = PI / 2.0;
+            plane.position().set(cx - cp.x, 0, cz - cp.z);
+            crack_group.add(&plane);
+        } else {
+            crack_group.rotation().y = yaw;
+            let (x0, x1) = path.iter().fold((f64::MAX, f64::MIN), |a, p| (a.0.min(p.0), a.1.max(p.0)));
+            let (z0, z1) = path.iter().fold((f64::MAX, f64::MIN), |a, p| (a.0.min(p.1), a.1.max(p.1)));
+            let (pw, ph) = (x1 - x0 + 0.3, z1 - z0 + 0.3);
+            let (mx, mz) = ((x0 + x1) / 2.0, (z0 + z1) / 2.0);
+            let local: Vec<(f64, f64)> = path.iter().map(|p| (p.0 - mx, p.1 - mz)).collect();
+            let plane = mesh(plane_geo!(pw, ph), &slab_crack_mat(pw, ph, &local, ceiling == 1));
+            plane.rotation().x = PI / 2.0;
+            plane.position().set(mx, 0, mz);
+            crack_group.add(&plane);
+        }
         g.world.add(&crack_group);
-        // R348 30% chance: 2-4 tiny concrete chunks on floor directly below crack.
+        // R348 30% chance: 2-4 bits fallen from it on the floor below (8-12
+        // when a piece came down): of the tile (aged off-white mineral
+        // fibre), or chips of the slab or the plaster (`r07.py`)
         if rnd() < 0.30 {
-            // R351 per-weather chunk color.
-            let chunk_color = ceiling_debris_by_weather(g.weather_key());
+            // (what it was made of, at its own albedo: a tile's aged
+            // mineral fibre, the slab's concrete, the plaster's lime)
+            let chunk_color = match ceiling {
+                0 => 0xb0a998,
+                1 => 0x8e897e,
+                _ => 0xc2baa8,
+            };
             let chunk_mat = lambert!({ color: chunk_color });
             // R352 10% chance: major-fall cluster (8-12 chunks).
             let is_major = rnd() < 0.10;
             let chunk_count = if is_major { 8 + (rnd() * 5.0).floor() as i32 } else { 2 + (rnd() * 3.0).floor() as i32 };
+            let bits = if ceiling == 0 {
+                ["Real__ceilingCracksTileBitA", "Real__ceilingCracksTileBitB", "Real__ceilingCracksTileBitC"]
+            } else {
+                ["Real__ceilingCracksChipA", "Real__ceilingCracksChipB", "Real__ceilingCracksChipC"]
+            };
             for _ch in 0..chunk_count {
-                let chunk =
-                    mesh(pg("CeilingCracks__chunk", box_geo!(0.03 + rnd() * 0.04, 0.02 + rnd() * 0.02, 0.03 + rnd() * 0.04)), &chunk_mat);
+                // the old chunk's three sizes: now which bit it is, and how
+                // big (within 13% of as modelled)
+                let (sa, sb, sc) = (rnd(), rnd(), rnd());
+                let geo = game::assets::props::prop_part_as_modelled(bits[(sa * 3.0) as usize % 3])
+                    .unwrap_or_else(|| box_geo!(0.04, 0.016, 0.04));
+                let chunk = mesh(geo, &chunk_mat);
+                let s = 0.87 + 0.13 * (sb + sc);
+                chunk.scale().set(s, s, s);
                 let ch_ang = rnd() * PI * 2.0;
                 let ch_rad = 0.08 + rnd() * (if is_major { 0.55 } else { 0.25 });
                 let ch_sink = ((rnd() - 0.5) * 0.005).abs();
-                let cp = crack_group.pos();
                 chunk.position().set(cp.x + ch_ang.cos() * ch_rad, 0, cp.z + ch_ang.sin() * ch_rad);
                 chunk.rotation().set((rnd() - 0.5) * 0.6, rnd() * PI * 2.0, (rnd() - 0.5) * 0.6);
                 // rest the tilted chunk's lowest corner on the floor (settled in ≤ 2.5 mm)
@@ -1111,8 +1181,13 @@ fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R346 ceiling cobwebs: 25% chance per level, 1-3 cobwebs.
-// Small triangular white plane wedged into a ceiling-wall corner.
+// R346 ceiling cobwebs: 25% chance per level, 1-3 cobwebs. An old cobweb in
+// the angle of a wall and the ceiling (`r07.notes.md`): a cobweb spider's
+// tangle, long abandoned, its threads grey with the dust they caught, slung
+// across the angle and sagging, thick where the tangle is and thin out to
+// the few anchor threads that hold it to the wall and the ceiling. Its veil
+// and its threads painted on a sagging sheet across the angle, torn and
+// ragged at its edges, seen from both sides.
 fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
         return;
@@ -1120,99 +1195,69 @@ fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
     let count = 1 + (rnd() * 3.0).floor() as usize;
     let mut candidates = wall_candidates(g);
     shuffle(&mut candidates);
+    // R347 per-weather cobweb tint (pale greys), greyed by the dust in it
+    let dusty = srgb3(cobweb_color_by_weather(g.weather_key())).map(|c| c * 0.92);
     let mut i = 0;
     while i < count && i < candidates.len() {
         let c = candidates[i];
-        // Build a small right-angle triangle (custom geometry).
+        // the old web's draws: its size (now its reach along the wall,
+        // 0.34-0.6 m, and across the angle), where along the wall, its
+        // threads' anchors, the sway, a caught insect and its pose, and
+        // smaller webs beside it
         let size = 0.20 + rnd() * 0.15;
-        let geo = tri_geo(
-            [
-                0.0,
-                0.0,
-                0.0, // corner (at wall+ceiling meet)
-                size,
-                0.0,
-                0.0, // extending along wall (Z-ish)
-                0.0,
-                -size * 0.9,
-                0.0, // hanging down along wall
-            ],
-            [0, 1, 2],
-        );
-        // R347 per-weather cobweb tint.
-        let web_color = cobweb_color_by_weather(g.weather_key());
-        let web_mat = basic_mat!({ color: web_color, transparent: true, opacity: 0.4, depthWrite: false, side: DoubleSide });
-        let web = mesh(geo, &web_mat);
+        let web = group();
         // Position at ceiling corner along the wall face.
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.02);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.02);
-        // Orient so triangle sits flush against wall + tucks under ceiling.
         wall_mount(&web, &c, wall_x, wall_z, WALL_H - 0.02, 1.5);
-        g.world.add(&web);
-        // R351 add 3-4 thin line strands radiating from web corner.
         let strand_count = 3 + (rnd() * 2.0).floor() as i32;
-        let strand_mat = line_mat!({ color: web_color, transparent: true, opacity: 0.3 });
-        for _sr in 0..strand_count {
-            // Random point on hypotenuse (opposite side of right-angle corner).
-            let t_param = 0.1 + rnd() * 0.85;
-            let strand_end = v3(size * t_param, -size * 0.9 * (1.0 - t_param), 0);
-            let strand_geo = Geo::from_points(&[v3(0, 0, 0), strand_end]);
-            let strand_line = line(strand_geo, &strand_mat);
-            strand_line.rotation().y = web.rot().y;
-            strand_line.position().copy(&web.pos());
-            g.world.add(&strand_line);
-        }
-        // R350 20% chance: very slow rotational sway around the web's hanging axis.
-        if rnd() < 0.20 {
-            let base_rot_y = web.rot().y;
-            let sway_phase = rnd() * PI * 2.0;
-            let sway_period = 12.0 + rnd() * 8.0; // 12-20 s (very slow)
-            let w2 = web.clone();
-            g.animate(move |_g, _dt, t| {
-                w2.rotation().y = base_rot_y + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.025;
-            });
-        }
-        // R350 5% chance: tiny dark speckle "insect" caught inside web.
-        if rnd() < 0.05 {
-            let insect_mat = basic_mat!({ color: 0x080604, transparent: true, opacity: 0.85, depthWrite: false, side: DoubleSide });
-            let insect = mesh(plane_geo!(0.012, 0.008), &insect_mat);
-            // Center of web triangle roughly at (size/3, -size*0.3, 0).
-            insect.rotation().y = web.rot().y;
-            insect.rotation().z = rnd() * PI * 2.0;
-            let wp = web.pos();
-            if c.dx.abs() == 1 {
-                insect.position().set(
-                    wp.x,
-                    wp.y - 0.06 - rnd() * 0.04,
-                    wp.z + (if c.dx > 0 { -1.0 } else { 1.0 }) * (size * 0.25 + rnd() * 0.03),
-                );
-            } else {
-                insect.position().set(
-                    wp.x + (if c.dz > 0 { -1.0 } else { 1.0 }) * (size * 0.25 + rnd() * 0.03),
-                    wp.y - 0.06 - rnd() * 0.04,
-                    wp.z,
-                );
-            }
-            g.world.add(&insect);
-        }
-        // R349 25% chance: 1-2 smaller "sibling" webs in the same corner region.
+        let anchors: Vec<f64> = (0..strand_count).map(|_| 0.1 + rnd() * 0.85).collect();
+        // R350 20% chance: very slow sway in the air that moves through
+        let sway = if rnd() < 0.20 { Some((rnd() * PI * 2.0, 12.0 + rnd() * 8.0)) } else { None };
+        // R350 5% chance: a dead insect caught in it (its turn, and where:
+        // the old draws, in the old order for the wall it is on)
+        let insect = if rnd() < 0.05 {
+            let (spin, a, b) = (rnd(), rnd(), rnd());
+            let (drop, along) = if c.dx.abs() == 1 { (a, b) } else { (b, a) };
+            Some((spin, drop, along))
+        } else {
+            None
+        };
+        // R349 25% chance: 1-2 smaller webs in the same stretch of the angle
+        let mut sibs = vec![];
         if rnd() < 0.25 {
             let sib_count = 1 + (rnd() * 2.0).floor() as i32;
             for _sib in 0..sib_count {
                 let sib_size = 0.10 + rnd() * 0.10;
-                let sib_geo = tri_geo([0.0, 0.0, 0.0, sib_size, 0.0, 0.0, 0.0, -sib_size * 0.9, 0.0], [0, 1, 2]);
-                let sib_web = mesh(sib_geo, &web_mat);
-                sib_web.rotation().y = web.rot().y;
-                // Offset along wall by 0.20-0.40 m and drop slightly.
                 let sib_off = (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.20 + rnd() * 0.20);
-                let wp = web.pos();
-                if c.dx.abs() == 1 {
-                    sib_web.position().set(wp.x, wp.y - rnd() * 0.08, wp.z + sib_off);
-                } else {
-                    sib_web.position().set(wp.x + sib_off, wp.y - rnd() * 0.08, wp.z);
-                }
-                g.world.add(&sib_web);
+                let drop = rnd() * 0.08;
+                sibs.push((sib_size, sib_off, drop));
             }
+        }
+        // as long along the wall as the old one and as deep in all (its
+        // middle where the old one's was: what `settle_props` probes with)
+        web.add(&web_sheet(size, size * 0.62, size * 0.5, -0.9 * size - 0.018, dusty, &anchors, insect, 320.0));
+        g.world.add(&web);
+        if let Some((sway_phase, sway_period)) = sway {
+            let base_rot_y = web.rot().y;
+            let w2 = web.clone();
+            g.animate(move |_g, _dt, t| {
+                w2.rotation().y = base_rot_y + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.012;
+            });
+        }
+        for (sib_size, sib_off, drop) in sibs {
+            // anchored under the same ceiling: its drop is how much further
+            // down the wall it reaches
+            let low = -2.0 * drop - 0.9 * sib_size - 0.018;
+            let sib = web_sheet(sib_size, sib_size * 0.62 + drop, sib_size * 0.5, low, dusty, &[], None, 192.0);
+            sib.rotation().y = web.rot().y;
+            let wp = web.pos();
+            if c.dx.abs() == 1 {
+                sib.position().set(wp.x, wp.y, wp.z + sib_off);
+            } else {
+                sib.position().set(wp.x + sib_off, wp.y, wp.z);
+            }
+            g.world.add(&sib);
         }
         i += 1;
     }
@@ -1335,6 +1380,892 @@ fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
             c2.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
         });
     }
+}
+
+// ------------------------------------------------- painted marks (r07)
+//
+// The water streaks and the rings they leave, the puddles, the cracks and the
+// cobwebs are painted as transparent textures on planes, soft and uneven,
+// each from its painter's own stream (`canvas_tex_opt`): never a polygon's
+// hard edge. (`assets/src/blender/props/r07.notes.md`: what real ones are.)
+
+/// What the wall seen from open tile (x, z) is: 0 paper or paint (wallpaper,
+/// drywall), 1 masonry (concrete, brick), 2 glazed tile
+fn wall_surface(g: &Game, x: i32, z: i32) -> u8 {
+    if g.region_flags_at(x, z) & game::visuals::lighting::RF_MOSS != 0 {
+        return 0;
+    }
+    match g.zone_ref(x, z).map(|zn| zn.wall_mat) {
+        Some("concrete" | "brick") => 1,
+        Some("tile") => 2,
+        _ => 0,
+    }
+}
+
+/// What the floor of tile (x, z) is: 0 carpet (or carpet tiles), 1 concrete,
+/// 2 glazed tile
+fn floor_kind(g: &Game, x: i32, z: i32) -> u8 {
+    if g.region_flags_at(x, z) & game::visuals::lighting::RF_MOSS != 0 {
+        return 0;
+    }
+    match g.zone_ref(x, z).map(|zn| zn.floor_mat) {
+        Some("concrete") => 1,
+        Some("tile") => 2,
+        _ => 0,
+    }
+}
+
+/// What the ceiling over tile (x, z) is: 0 mineral-fibre tiles on a T-bar
+/// grid, 1 a concrete slab, 2 plaster (`World::ceil_mat_key`)
+fn ceiling_kind(g: &Game, x: i32, z: i32) -> u8 {
+    if g.region_flags_at(x, z) & game::visuals::lighting::RF_MOSS != 0 {
+        return 0;
+    }
+    match g.zone_ref(x, z).map(|zn| zn.ceil_mat) {
+        Some("slab") => 1,
+        Some("plaster") => 2,
+        _ => 0,
+    }
+}
+
+/// The centre of the ceiling tile over world (px, pz) on the T-bar grid
+/// (`visuals::textures::CEIL_CELLS`: 6 tiles a 4 m tile, the bars through the
+/// tile's edge along x and half a tile off it along z), or the next one along
+/// z where a fitting hung at the tile's centre fills it (2 × 1 of them)
+fn ceiling_cell(g: &Game, px: f64, pz: f64) -> (f64, f64) {
+    let c = CELL / 6.0;
+    let (tx, tz) = (g.wx(g.tx(px)), g.wz(g.tz(pz)));
+    let cx = tx + ((px - tx) / c).floor() * c + c / 2.0;
+    let mut cz = tz + ((pz - tz - c / 2.0) / c).floor() * c + c;
+    if (cx - tx).abs() < c && (cz - tz).abs() < c / 2.0 {
+        cz += if pz > tz { c } else { -c };
+    }
+    (cx, cz)
+}
+
+/// An sRGB `0xRRGGBB` as three 0..1 values
+fn srgb3(h: u32) -> [f64; 3] {
+    [((h >> 16) & 255) as f64 / 255.0, ((h >> 8) & 255) as f64 / 255.0, (h & 255) as f64 / 255.0]
+}
+
+/// A hash of (seed, i, j) in [0, 1)
+fn hash01(seed: u32, i: i32, j: i32) -> f64 {
+    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+    h ^= h >> 16;
+    f64::from(h) / 4_294_967_296.0
+}
+
+/// Smooth value noise in [0, 1]
+fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
+    let (xf, yf) = (x.floor(), y.floor());
+    let (i, j) = (xf as i32, yf as i32);
+    let (u, v) = (x - xf, y - yf);
+    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+    let (a, b) = (hash01(seed, i, j), hash01(seed, i + 1, j));
+    let (c, d) = (hash01(seed, i, j + 1), hash01(seed, i + 1, j + 1));
+    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+}
+
+/// Fractal value noise of `oct` octaves, in [0, 1]
+fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
+    for k in 0..oct {
+        s += amp * vnoise(seed.wrapping_add(k * 7919), x * f, y * f);
+        n += amp;
+        amp *= 0.5;
+        f *= 2.03;
+    }
+    s / n
+}
+
+/// Smoothstep from `e0` to `e1` (either way round)
+fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
+    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
+}
+
+/// The smooth minimum of two distances, blended over `k`
+fn smin(a: f64, b: f64, k: f64) -> f64 {
+    let h = (0.5 + 0.5 * (b - a) / k).clamp(0.0, 1.0);
+    b + (a - b) * h - k * h * (1.0 - h)
+}
+
+/// How a dried water mark shades at signed distance `d` (m, < 0 inside) from
+/// one of its rims: the rim sharp on its outside (over `aa`, about a texel),
+/// what the water left there fading inward over `ew`
+fn tide(d: f64, aa: f64, ew: f64) -> f64 {
+    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
+}
+
+/// The white salts water leaves on concrete and brick (sRGB)
+const SALT: [f64; 3] = [0.78, 0.77, 0.72];
+
+/// A pixel's straight sRGB colour and alpha, built up by laying marks over it
+#[derive(Clone, Copy)]
+struct Px {
+    c: [f64; 3],
+    a: f64,
+}
+impl Px {
+    const CLEAR: Px = Px { c: [0.0; 3], a: 0.0 };
+    /// `c` at alpha `a` laid over what is there
+    fn lay(&mut self, c: [f64; 3], a: f64) {
+        let a = a.clamp(0.0, 1.0);
+        let out = a + self.a * (1.0 - a);
+        if out > 1e-6 {
+            for (k, v) in self.c.iter_mut().enumerate() {
+                *v = (c[k] * a + *v * self.a * (1.0 - a)) / out;
+            }
+        }
+        self.a = out;
+    }
+    fn rgba(self) -> [f64; 4] {
+        [self.c[0], self.c[1], self.c[2], self.a]
+    }
+}
+
+/// Paints the canvas pixel by pixel: `f(i, j)` gives pixel (i, j)'s straight
+/// sRGB and alpha (0..1)
+fn paint_px(ctx: &mut Canvas, w: f64, h: f64, mut f: impl FnMut(usize, usize) -> [f64; 4]) {
+    let (iw, ih) = (w as usize, h as usize);
+    let mut img = ctx.create_image_data(w, h);
+    for j in 0..ih {
+        for i in 0..iw {
+            let c = f(i, j);
+            let k = (j * iw + i) * 4;
+            for (n, v) in c.iter().enumerate() {
+                img.data[k + n] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+            }
+        }
+    }
+    ctx.put_image_data(&img, 0, 0);
+}
+
+/// A transparent mark `w × h` px painted by `paint` (on its own stream);
+/// where it is clear its colour is `bleed` (sRGB), so its smaller mips keep
+/// the mark's colour at its soft edges instead of darkening them
+fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
+    let tex = canvas_tex_opt(w, h, false, paint);
+    {
+        let img = tex.image();
+        let mut im = img.borrow_mut();
+        for px in im.data.chunks_exact_mut(4) {
+            let k = sstep(0.0, 0.3, f64::from(px[3]) / 255.0);
+            for (c, b) in px.iter_mut().zip(bleed) {
+                *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;
+            }
+        }
+        im.version += 1;
+    }
+    tex
+}
+
+/// The decal material of a mark painted in `tex`, lit as the surface under it
+fn mark_mat(tex: &Tex) -> Mat {
+    lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+}
+
+/// One run of a water streak, in its plane's metres (x across, y down from
+/// the ceiling's edge): where it starts, how it leans, where it ends, its
+/// half width at its start and at its widest, how much it narrows again
+/// toward its foot, its noise
+struct Run {
+    xs: f64,
+    lean: f64,
+    y0: f64,
+    y1: f64,
+    w0: f64,
+    w1: f64,
+    taper: f64,
+    s: u32,
+}
+impl Run {
+    /// Its middle at depth `y`: straight down, wavering a little as it goes
+    fn centre(&self, y: f64) -> f64 {
+        let wander = (fbm(self.s, y * 3.0, 0.5, 3) - 0.5) * 0.016 + (vnoise(self.s ^ 0x5bd1, y * 40.0, 0.5) - 0.5) * 0.0025;
+        self.xs + self.lean * (y - self.y0) + wander * ((y - self.y0) / 0.1).clamp(0.0, 1.0)
+    }
+    /// Its half width at depth `y`: narrow where it starts, wider below as
+    /// it slowed and spread, narrowing again to the drop it ended in
+    fn half(&self, y: f64) -> f64 {
+        let t = ((y - self.y0) / (self.y1 - self.y0)).clamp(0.0, 1.0);
+        let grow = self.w0 + (self.w1 - self.w0) * (t / 0.45).min(1.0).powf(0.6);
+        grow * (1.0 - self.taper * sstep(0.45, 1.0, t)) * (0.6 + 0.8 * fbm(self.s ^ 0x2c1b, y * 7.0, 2.5, 2))
+    }
+}
+
+/// A dried run of dirty water down a wall from the ceiling's edge (the top
+/// of a plane `w × ph` m facing +z), its runs spreading across it to about
+/// `w` and the longest ending `foot` m down; on `surface` (`wall_surface`);
+/// `main`: the first of a group, with more runs
+fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
+    let pw = w;
+    let (tw, th) = (128.0, (ph / 0.003).round().clamp(160.0, 640.0));
+    // (sRGB) its tide lines, the wash inside them, and how strong each is
+    let (line, fill, k_line, k_fill) = match surface {
+        1 => ([0.12, 0.115, 0.105], [0.17, 0.165, 0.15], 0.42, 0.56),
+        2 => ([0.45, 0.34, 0.22], [0.55, 0.46, 0.35], 0.38, 0.26),
+        _ => ([0.29, 0.22, 0.14], [0.38, 0.31, 0.21], 0.45, 0.52),
+    };
+    let tex = mark_tex(tw, th, line, move |ctx, cw, ch| {
+        let seed = (rnd() * 4.0e9) as u32;
+        let (sx, sy) = (pw / cw, ph / ch);
+        let aa = sx.max(sy * 0.5);
+        // where it came through at the ceiling's edge, spread a little along it
+        let x0 = pw * (0.45 + 0.1 * rnd());
+        let (src_rx, src_ry) = (w * (0.32 + 0.14 * rnd()), 0.035 + 0.05 * rnd());
+        // the runs: side by side from there, the first to the old foot, the
+        // rest shorter and fainter, some branching off lower down
+        let n = if main { 3 + (rnd() * 3.0) as usize } else { 2 + (rnd() * 2.0) as usize };
+        let mut runs: Vec<(Run, f64)> = vec![];
+        for k in 0..n {
+            let s = seed.wrapping_add(1 + k as u32 * 7919);
+            let (y0, xs) = if k == 0 || rnd() < 0.55 {
+                (0.0, (x0 + if k == 0 { 0.0 } else { (rnd() - 0.5) * 2.2 * src_rx }).clamp(0.008, pw - 0.008))
+            } else {
+                let y0 = ph * (0.05 + 0.3 * rnd());
+                (y0, runs[0].0.centre(y0))
+            };
+            let y1 = if k == 0 { foot - 0.01 * rnd() } else { y0 + (foot - y0) * (0.25 + 0.65 * rnd()) };
+            let lean = (rnd() - 0.5) * w * 0.2 / ph;
+            // a few millimetres wide where it set off, wider as it slowed:
+            // the first a broad wet run, the rest rivulets
+            let w0 = (0.002 + 0.002 * rnd()) / (1.0 + 0.3 * k as f64);
+            let w1 = if k == 0 { w * (0.2 + 0.1 * rnd()) } else { (0.003 + 0.006 * rnd()) / (1.0 + 0.2 * k as f64) };
+            let taper = if k == 0 { 0.5 + 0.2 * rnd() } else { 0.1 + 0.2 * rnd() };
+            let strength = if k == 0 { 1.0 } else { 0.4 + 0.5 * rnd() };
+            runs.push((Run { xs, lean, y0, y1, w0, w1, taper, s }, strength));
+        }
+        // the drop each ended in, dried a little fuller than its trail:
+        // (x, y, half width, half length)
+        let tips: Vec<(f64, f64, f64, f64)> = runs
+            .iter()
+            .map(|(r, _)| {
+                let rb = r.half(r.y1) * 1.2 + 0.0008;
+                (r.centre(r.y1 - rb * 1.4), r.y1 - rb * 1.4, rb, rb * 1.4)
+            })
+            .collect();
+        let rows: Vec<Vec<(f64, f64)>> = (0..ch as usize)
+            .map(|j| {
+                let y = (j as f64 + 0.5) * sy;
+                runs.iter().map(|(r, _)| (r.centre(y), r.half(y))).collect()
+            })
+            .collect();
+        paint_px(ctx, cw, ch, |i, j| {
+            let (x, y) = ((i as f64 + 0.5) * sx, (j as f64 + 0.5) * sy);
+            let wob = (vnoise(seed, x * 260.0, y * 90.0) - 0.5) * 0.0014 + (vnoise(seed ^ 0x77, x * 60.0, y * 14.0) - 0.5) * 0.004;
+            // the wetted patch it came from, under the ceiling
+            let src = (((x - x0) / src_rx).hypot(y / src_ry) - 1.0) * src_ry + wob;
+            let (mut fill_a, mut line_a, mut near) = (0.0f64, 0.0f64, f64::MAX);
+            let mut add = |d: f64, strength: f64, fade: f64| {
+                near = near.min(d);
+                if d > 0.006 {
+                    return;
+                }
+                let inside = (0.5 - d / aa).clamp(0.0, 1.0);
+                // streaked down the way it ran, thinner in places
+                let streaks = 0.5 + 0.5 * vnoise(seed ^ 0xabc, x * 380.0, y * 7.0);
+                let f = inside * k_fill * strength * fade * streaks * (0.7 + 0.3 * vnoise(seed ^ 0x3c3c, x * 40.0, y * 12.0));
+                let t0 = tide(d, aa, 0.003);
+                let t1 = tide(d + 0.0028 + (vnoise(seed ^ 0x1f, x * 150.0, y * 40.0) - 0.5) * 0.002, aa, 0.0018) * 0.4;
+                let l = (1.0 - (1.0 - t0) * (1.0 - t1))
+                    * k_line
+                    * strength
+                    * (0.6 + 0.4 * fade)
+                    * (0.4 + 0.6 * vnoise(seed ^ 0x6e, x * 30.0, y * 5.0));
+                fill_a = 1.0 - (1.0 - fill_a) * (1.0 - f);
+                line_a = 1.0 - (1.0 - line_a) * (1.0 - l);
+            };
+            add(src, 1.0, 1.0);
+            for (((r, strength), &(xc, hw)), &(bx, by, bw, bh)) in runs.iter().zip(&rows[j]).zip(&tips) {
+                let along = if y < r.y0 {
+                    (x - r.xs).hypot(y - r.y0) - r.w0
+                } else if y <= by {
+                    (x - xc).abs() - hw
+                } else {
+                    1.0
+                };
+                let tip = (((x - bx) / bw).hypot((y - by) / bh) - 1.0) * bw;
+                let d = smin(along, tip, 0.002) + wob;
+                // fainter as it ran thin, darker again where the drop dried
+                let t = ((y - r.y0) / (r.y1 - r.y0)).clamp(0.0, 1.0);
+                let fade = 1.1 - 0.5 * t + 0.4 * sstep(by - bh, by, y);
+                add(d, *strength, fade);
+            }
+            let mut px = Px::CLEAR;
+            // the faint wetting round them all, soft-edged
+            let halo = sstep(0.018, 0.0, near + (vnoise(seed ^ 0x4a, x * 40.0, y * 8.0) - 0.5) * 0.012);
+            px.lay(fill, halo * k_fill * 0.22);
+            px.lay(fill, fill_a);
+            px.lay(line, line_a);
+            if surface == 1 {
+                // the salts it left: a soft white bloom along its edges and
+                // where the drops dried, in patches
+                let bloom = sstep(0.45, 0.72, fbm(seed ^ 0x99, x * 110.0, y * 22.0, 3));
+                let crust = ((line_a * 1.3 + fill_a * 0.6) * bloom * 0.75).min(0.6);
+                px.lay(SALT, crust);
+            }
+            // (and nothing at the plane's sides)
+            let side = sstep(0.0, 0.004, x.min(pw - x));
+            [px.c[0], px.c[1], px.c[2], px.a * side]
+        });
+    });
+    mesh(plane_geo!(pw, ph), &mark_mat(&tex))
+}
+
+/// The dried ring where water dripped and stood on a floor of `floor`
+/// (`floor_kind`), for a disc of radius `r` (`circle_geo!`, its UVs the
+/// square round it) scaled 1.3 × 0.85: an irregular ellipse inside the
+/// scaled disc, a tide line at its rim and older ones inside it, its middle
+/// paler (painted as it will look once scaled)
+fn foot_ring_mat(r: f64, floor: u8) -> Mat {
+    let (rx, rz) = (r * 1.3 * 0.78, r * 0.85 * 0.78);
+    let (pw, ph) = (r * 2.0 * 1.3, r * 2.0 * 0.85);
+    let (tw, th) = (160.0, 160.0);
+    let (line, fill, k_line, k_fill) = match floor {
+        1 => ([0.15, 0.145, 0.135], [0.22, 0.21, 0.2], 0.45, 0.2),
+        2 => ([0.45, 0.38, 0.28], [0.6, 0.55, 0.47], 0.4, 0.1),
+        _ => ([0.2, 0.15, 0.09], [0.3, 0.24, 0.16], 0.55, 0.18),
+    };
+    let tex = mark_tex(tw, th, line, move |ctx, cw, ch| {
+        let seed = (rnd() * 4.0e9) as u32;
+        let (sx, sy) = (pw / cw, ph / ch);
+        let aa = sx.max(sy) * 1.1;
+        let r0 = rx.min(rz);
+        // each wetting's rim: (how far inside the last, how strong, its noise)
+        let rings: Vec<(f64, f64, u32)> = (0..2 + (rnd() * 2.0) as usize)
+            .map(|k| {
+                let (o, s) = if k == 0 { (0.0, 1.0) } else { (0.08 + 0.3 * rnd(), 0.35 + 0.4 * rnd()) };
+                (o, s, seed.wrapping_add(k as u32 * 977 + 1))
+            })
+            .collect();
+        paint_px(ctx, cw, ch, |i, j| {
+            let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
+            let (u, v) = (x / rx, y / rz);
+            let rho = u.hypot(v);
+            if rho > 1.45 {
+                return [line[0], line[1], line[2], 0.0];
+            }
+            let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
+            let fine = (vnoise(seed ^ 0x51, x * 160.0, y * 160.0) - 0.5) * 0.0018;
+            let (mut d0, mut lines) = (0.0, 0.0);
+            for (k, &(o, s, rs)) in rings.iter().enumerate() {
+                let lobe = 1.0
+                    + 0.3 * (fbm(rs, cu * 1.3 + 7.0, cv * 1.3 + 7.0, 3) - 0.5)
+                    + 0.07 * (vnoise(rs ^ 0x33, cu * 5.0 + 3.0, cv * 5.0 + 3.0) - 0.5);
+                let d = (rho - (1.0 - o) * lobe) * r0 + fine;
+                if k == 0 {
+                    d0 = d;
+                }
+                lines = 1.0 - (1.0 - lines) * (1.0 - tide(d, aa, 0.004) * s);
+            }
+            let mut px = Px::CLEAR;
+            let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
+            let pale = 0.55 + 0.45 * sstep(0.0, 0.8, rho);
+            px.lay(fill, inside * k_fill * pale * (0.7 + 0.3 * vnoise(seed ^ 0x3c, x * 40.0, y * 40.0)));
+            px.lay(line, lines * k_line);
+            if floor == 1 {
+                px.lay(SALT, (lines * (vnoise(seed ^ 0x99, x * 300.0, y * 300.0) - 0.45).max(0.0) * 1.5).min(0.5));
+            }
+            px.rgba()
+        });
+    });
+    mark_mat(&tex)
+}
+
+/// Water on a floor of `floor` (`floor_kind`), about `rx × rz` m, on a plane
+/// `2.5 rx × 2.5 rz`: soaked into carpet, a dark patch with a soft ragged
+/// edge and a darker rim where the dirt wicked out; standing on a hard floor,
+/// a dark film with a sharp, irregular edge, a damp margin outside it and a
+/// sheen. Its material, and the sheen (linear specular) it was given.
+fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
+    let (pw, ph) = (rx * 2.5, rz * 2.5);
+    let (tw, th) = (192.0, (192.0 * rz / rx).round().clamp(96.0, 256.0));
+    let hard = floor != 0;
+    let wet = if hard { [0.09, 0.09, 0.095] } else { [0.12, 0.1, 0.08] };
+    let tex = mark_tex(tw, th, wet, move |ctx, cw, ch| {
+        let seed = (rnd() * 4.0e9) as u32;
+        let (sx, sy) = (pw / cw, ph / ch);
+        let aa = sx.max(sy) * 1.2;
+        let r0 = rx.min(rz);
+        // on a hard floor, smaller pools beside it, joined to it or not
+        let sats: Vec<(f64, f64, f64)> = if hard {
+            (0..(rnd() * 3.5) as usize)
+                .map(|_| {
+                    let (a, rr) = (rnd() * PI * 2.0, 0.65 + 0.25 * rnd());
+                    (a.cos() * rx * rr, a.sin() * rz * rr, r0 * (0.1 + 0.15 * rnd()))
+                })
+                .collect()
+        } else {
+            vec![]
+        };
+        paint_px(ctx, cw, ch, |i, j| {
+            let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
+            let (u, v) = (x / rx, y / rz);
+            let rho = u.hypot(v);
+            let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
+            let lobe = 1.0
+                + 0.5 * (fbm(seed, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
+                + 0.16 * (vnoise(seed ^ 0x9, cu * 4.0 + 2.0, cv * 4.0 + 2.0) - 0.5)
+                + 0.07 * (vnoise(seed ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
+            let mut d = (rho - 0.88 * lobe) * r0;
+            for &(qx, qz, qr) in &sats {
+                d = smin(d, (x - qx).hypot(y - qz) - qr, 0.012);
+            }
+            let mut px = Px::CLEAR;
+            if hard {
+                d += (vnoise(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.004;
+                // the damp margin outside it, the film, and the dark line of
+                // its edge
+                if d > 0.0 {
+                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).exp() * (0.6 + 0.4 * vnoise(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                }
+                px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.4 + 0.08 * vnoise(seed ^ 0x3c, x * 25.0, y * 25.0)));
+                px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
+            } else {
+                // soaked in: the edge ragged and soft, a darker rim at it
+                let dd = d + (fbm(seed ^ 0x77, x * 14.0, y * 14.0, 3) - 0.5) * 0.035;
+                px.lay(wet, sstep(0.012, -0.025, dd) * (0.55 + 0.15 * vnoise(seed ^ 0x3c, x * 30.0, y * 30.0)));
+                px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).exp());
+            }
+            px.rgba()
+        });
+    });
+    let (sheen, shine) = if hard { (0.3, 40.0) } else { (0.03, 18.0) };
+    let m = phong!({ map: &tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, shininess: shine });
+    m.m().specular.set_rgb(sheen, sheen, sheen);
+    (m, sheen)
+}
+
+/// A jagged path from `a` to `b`: midpoint displacement, `depth` times, each
+/// midpoint pushed sideways by up to `rough` of its span (own stream)
+fn jagged(a: (f64, f64), b: (f64, f64), depth: u32, rough: f64) -> Vec<(f64, f64)> {
+    let mut pts = vec![a, b];
+    for _ in 0..depth {
+        let mut next = Vec::with_capacity(pts.len() * 2);
+        for w in pts.windows(2) {
+            let (p, q) = (w[0], w[1]);
+            let off = (rnd() - 0.5) * 2.0 * rough;
+            next.push(p);
+            next.push(((p.0 + q.0) / 2.0 - (q.1 - p.1) * off, (p.1 + q.1) / 2.0 + (q.0 - p.0) * off));
+        }
+        next.push(b);
+        pts = next;
+    }
+    pts
+}
+
+/// Strokes `pts` (px) segment by segment, `width(t)` px wide at t (0..1
+/// along it), round-capped, in `style`
+fn stroke_tapered(ctx: &mut Canvas, pts: &[(f64, f64)], style: &str, width: impl Fn(f64) -> f64) {
+    ctx.set_stroke_style(style);
+    ctx.set_line_cap("round");
+    let n = pts.len().saturating_sub(1);
+    for k in 0..n {
+        ctx.set_line_width(width((k as f64 + 0.5) / n as f64).max(0.2));
+        ctx.begin_path();
+        ctx.move_to(pts[k].0, pts[k].1);
+        ctx.line_to(pts[k + 1].0, pts[k + 1].1);
+        ctx.stroke();
+    }
+}
+
+/// Strokes `pts` (px) as one path, `width` px, in `style`
+fn stroke_path(ctx: &mut Canvas, pts: &[(f64, f64)], style: &str, width: f64) {
+    if pts.len() < 2 {
+        return;
+    }
+    ctx.set_stroke_style(style);
+    ctx.set_line_cap("round");
+    ctx.set_line_join("round");
+    ctx.set_line_width(width);
+    ctx.begin_path();
+    ctx.move_to(pts[0].0, pts[0].1);
+    for p in &pts[1..] {
+        ctx.line_to(p.0, p.1);
+    }
+    ctx.stroke();
+}
+
+/// A branch off a crack at `pts[k]`, turned by `turn` from the crack's
+/// heading there, `len` long (in `pts`' units), jagged
+fn crack_branch(pts: &[(f64, f64)], k: usize, turn: f64, len: f64) -> Vec<(f64, f64)> {
+    let (p, q) = (pts[k], pts[(k + 1).min(pts.len() - 1)]);
+    let a = (q.1 - p.1).atan2(q.0 - p.0) + turn;
+    jagged(p, (p.0 + a.cos() * len, p.1 + a.sin() * len), 4, 0.2)
+}
+
+/// A crack across one mineral-fibre ceiling tile: its plane is the tile
+/// (`CELL / 6` square, the grid's bars at its edges), the crack edge to edge
+/// at heading `yaw`, kinked by the old crack's `turns`, its halves a little
+/// out of line (a broken edge lit on one side, a shadow on the other)
+fn tile_crack_mat(yaw: f64, turns: &[f64], span: f64) -> Mat {
+    let side = CELL / 6.0;
+    let turns = turns.to_vec();
+    let tex = mark_tex(512.0, 512.0, [0.1, 0.09, 0.08], move |ctx, cw, _ch| {
+        let s = side / cw; // m a px
+        let hs = side / 2.0 - 0.0125; // the tile's face inside the bars' flanges
+        let to_px = |p: (f64, f64)| ((p.0 + side / 2.0) / s, (side / 2.0 - p.1) / s);
+        // nothing on the bars: only the tile's face
+        let inset = (side / 2.0 - hs) / s;
+        ctx.begin_path();
+        ctx.rect(inset, inset, cw - 2.0 * inset, cw - 2.0 * inset);
+        ctx.clip();
+        // the line it breaks along: through a point near the middle, at yaw
+        let (dx, dz) = (yaw.cos(), yaw.sin());
+        let off = (rnd() - 0.5) * 0.3 * hs;
+        let c0 = (-dz * off, dx * off);
+        // where that line meets the tile's edges either way
+        let reach = |sg: f64| {
+            let tx = if dx.abs() > 1e-9 { (hs * dx.signum() * sg - c0.0) / (dx * sg) } else { f64::MAX };
+            let tz = if dz.abs() > 1e-9 { (hs * dz.signum() * sg - c0.1) / (dz * sg) } else { f64::MAX };
+            tx.min(tz)
+        };
+        let (ta, tb) = (reach(-1.0), reach(1.0));
+        let a = (c0.0 - dx * ta, c0.1 - dz * ta);
+        let mut b = (c0.0 + dx * tb, c0.1 + dz * tb);
+        // sometimes it has not broken through yet: it stops inside the tile
+        let open_end = rnd() < 0.4;
+        if open_end {
+            let k = 0.55 + 0.3 * rnd();
+            b = (a.0 + (b.0 - a.0) * k, a.1 + (b.1 - a.1) * k);
+        }
+        // kinked where the old crack turned
+        let len = (b.0 - a.0).hypot(b.1 - a.1);
+        let (nx, nz) = (-(b.1 - a.1) / len, (b.0 - a.0) / len);
+        let at = |t: f64, kink: f64| (a.0 + (b.0 - a.0) * t + nx * kink * len * 0.12, a.1 + (b.1 - a.1) * t + nz * kink * len * 0.12);
+        let macro_pts = [a, at(1.0 / 3.0, turns[0]), at(2.0 / 3.0, turns[1]), b];
+        let mut pts = vec![];
+        for w in macro_pts.windows(2) {
+            let mut seg = jagged(w[0], w[1], 5, 0.16);
+            if !pts.is_empty() {
+                seg.remove(0);
+            }
+            pts.extend(seg);
+        }
+        let clamp_in = |p: (f64, f64)| (p.0.clamp(-hs, hs), p.1.clamp(-hs, hs));
+        let pts: Vec<(f64, f64)> = pts.into_iter().map(|p| to_px(clamp_in(p))).collect();
+        // how wide it is open: most at the edge it started from, thinning
+        // to nothing where it stops inside
+        let wmax = (0.0045 + 0.002 * (span - 0.35) / 0.25) / s;
+        let width = |t: f64| wmax * if open_end { (1.0 - t).powf(0.7) } else { 0.75 + 0.25 * (PI * t).sin() };
+        // the edge of the half that dropped, lit; the shadow it casts
+        let lit: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 + nx * 1.6, p.1 - nz * 1.6)).collect();
+        let shade: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 - nx * 4.0, p.1 + nz * 4.0)).collect();
+        let sag: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 - nx * 30.0, p.1 + nz * 30.0)).collect();
+        // the dropped half a shade darker, most near the break
+        stroke_path(ctx, &sag, "rgba(40,34,28,0.07)", 60.0);
+        stroke_path(ctx, &shade, "rgba(38,33,27,0.2)", 9.0);
+        stroke_tapered(ctx, &lit, "rgba(222,214,196,0.6)", |t| width(t) * 0.8 + 0.8);
+        stroke_tapered(ctx, &pts, "rgb(24,21,18)", width);
+        // a branch or two, finer
+        for _ in 0..(rnd() * 2.6) as usize {
+            let k = ((0.2 + 0.6 * rnd()) * pts.len() as f64) as usize;
+            let turn = (0.5 + 0.6 * rnd()) * if rnd() < 0.5 { -1.0 } else { 1.0 };
+            let br: Vec<(f64, f64)> = crack_branch(&pts, k, turn, (0.04 + 0.1 * rnd()) / s)
+                .into_iter()
+                .map(|p| (p.0.clamp(0.0125 / s, cw - 0.0125 / s), p.1.clamp(0.0125 / s, cw - 0.0125 / s)))
+                .collect();
+            let w0 = width(k as f64 / pts.len() as f64) * 0.6;
+            stroke_tapered(ctx, &br, "rgb(30,26,22)", |t| w0 * (1.0 - t).powf(0.8));
+        }
+        // crumbs of the broken face along it
+        ctx.set_fill_style("rgba(40,35,30,0.6)");
+        for _ in 0..(6.0 + 10.0 * rnd()) as usize {
+            let p = pts[(rnd() * pts.len() as f64) as usize % pts.len()];
+            ctx.begin_path();
+            ctx.arc(p.0 + (rnd() - 0.5) * 4.0, p.1 + (rnd() - 0.5) * 4.0, 0.5 + rnd(), 0, PI * 2.0);
+            ctx.fill();
+        }
+    });
+    mark_mat(&tex)
+}
+
+/// A crack in a concrete slab (`slab`) or a plaster ceiling, along `path`
+/// (m, the plane's own frame), on a plane `pw × ph` m: jagged and branching,
+/// widest along its middle and thinning to nothing at its ends; on a slab,
+/// white with the salts the water leached out of it here and there, in
+/// plaster the paint flaked along its lips
+fn slab_crack_mat(pw: f64, ph: f64, path: &[(f64, f64)], slab: bool) -> Mat {
+    let s = (pw.max(ph) / 1024.0).max(0.0016);
+    let (tw, th) = ((pw / s).round(), (ph / s).round());
+    let path = path.to_vec();
+    let tex = mark_tex(tw, th, [0.1, 0.09, 0.08], move |ctx, _, _| {
+        let to_px = |p: (f64, f64)| ((p.0 + pw / 2.0) / s, (ph / 2.0 - p.1) / s);
+        let mut pts = vec![];
+        for w in path.windows(2) {
+            let mut seg = jagged(to_px(w[0]), to_px(w[1]), 6, 0.13);
+            if !pts.is_empty() {
+                seg.remove(0);
+            }
+            pts.extend(seg);
+        }
+        let seed = (rnd() * 4.0e9) as u32;
+        let wmax = (0.003 + 0.0015 * rnd()) / s;
+        let width = |t: f64| wmax * (PI * t).sin().powf(0.6) * (0.7 + 0.6 * vnoise(seed, t * 9.0, 0.5));
+        let mut branches = vec![];
+        for _ in 0..2 + (rnd() * 3.0) as usize {
+            let t = 0.1 + 0.8 * rnd();
+            let k = (t * pts.len() as f64) as usize;
+            let turn = (0.4 + 0.6 * rnd()) * if rnd() < 0.5 { -1.0 } else { 1.0 };
+            let br = crack_branch(&pts, k, turn, (0.06 + 0.24 * rnd()) / s);
+            let w0 = width(t) * 0.6;
+            branches.push((br, w0));
+        }
+        if slab {
+            // the salts: a soft white along stretches of it, a rust stain
+            for _ in 0..1 + (rnd() * 2.0) as usize {
+                let (a, b) = (rnd(), rnd());
+                let (k0, k1) = ((a.min(b) * pts.len() as f64) as usize, (a.max(b) * pts.len() as f64) as usize);
+                if k1 > k0 + 1 {
+                    stroke_path(ctx, &pts[k0..k1], "rgba(214,209,196,0.12)", 12.0 + 8.0 * rnd());
+                    stroke_path(ctx, &pts[k0..k1], "rgba(222,218,206,0.22)", 4.0);
+                }
+            }
+            let p = pts[(rnd() * pts.len() as f64) as usize % pts.len()];
+            let r = 10.0 + 16.0 * rnd();
+            let gr = ctx.create_radial_gradient(p.0, p.1, 1, p.0, p.1, r);
+            gr.add_color_stop(0, "rgba(110,78,48,0.16)");
+            gr.add_color_stop(1, "rgba(110,78,48,0)");
+            ctx.set_fill_style(&gr);
+            ctx.fill_rect(p.0 - r, p.1 - r, r * 2.0, r * 2.0);
+        } else {
+            // the paint's lips along it, and flakes of it gone
+            let lip: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 + 1.2, p.1 - 1.2)).collect();
+            stroke_tapered(ctx, &lip, "rgba(232,226,212,0.4)", |t| width(t) * 0.7 + 0.5);
+            ctx.set_fill_style("rgba(150,138,120,0.35)");
+            for _ in 0..(4.0 + 6.0 * rnd()) as usize {
+                let p = pts[(rnd() * pts.len() as f64) as usize % pts.len()];
+                ctx.begin_path();
+                ctx.ellipse(
+                    p.0 + (rnd() - 0.5) * 6.0,
+                    p.1 + (rnd() - 0.5) * 6.0,
+                    1.5 + 3.0 * rnd(),
+                    1.0 + 2.0 * rnd(),
+                    rnd() * PI,
+                    0,
+                    PI * 2.0,
+                );
+                ctx.fill();
+            }
+        }
+        // its shadow side, then the crack itself
+        let shade: Vec<(f64, f64)> = pts.iter().map(|p| (p.0 - 1.0, p.1 + 1.0)).collect();
+        stroke_tapered(ctx, &shade, "rgba(30,27,24,0.25)", |t| width(t) + 1.0);
+        let core = if slab { "rgb(26,24,22)" } else { "rgb(34,30,26)" };
+        stroke_tapered(ctx, &pts, core, width);
+        for (br, w0) in &branches {
+            stroke_tapered(ctx, br, core, |t| w0 * (1.0 - t).powf(0.8));
+            // and now and then a finer one off the branch
+            if rnd() < 0.4 && br.len() > 4 {
+                let k = br.len() / 2;
+                let sub = crack_branch(br, k, (rnd() - 0.5) * 1.6, (0.03 + 0.06 * rnd()) / s);
+                stroke_tapered(ctx, &sub, core, |t| w0 * 0.5 * (1.0 - t));
+            }
+        }
+    });
+    mark_mat(&tex)
+}
+
+/// A sheet across the angle of a wall and the ceiling, from x = 0 to `len`
+/// along the wall: from the wall `down` below the ceiling to the ceiling
+/// `out` from the wall, narrowing to the angle at both ends and sagging into
+/// the room between its anchors, deepened or shallowed so its lowest point
+/// is at `low` (its box is then the old web's, what `settle_props` probes
+/// the wall with). In `wall_mount`'s frame (x along the wall, y up, z out of
+/// it) with its origin `gap` off the wall and the ceiling; UVs u along the
+/// wall, v from the wall (0) to the ceiling (1)
+fn web_geo(len: f64, down: f64, out: f64, gap: f64, low: f64) -> Geo {
+    let (nu, nv) = (12usize, 6usize);
+    let (mut pos, mut uv, mut idx): (Vec<[f64; 3]>, Vec<f32>, Vec<u32>) = (vec![], vec![], vec![]);
+    for j in 0..=nv {
+        for i in 0..=nu {
+            let (u, v) = (i as f64 / nu as f64, j as f64 / nv as f64);
+            let env = 0.4 + 0.6 * (PI * u).sin().powf(0.45);
+            let (dn, ot) = (down * env, out * env);
+            // straight from the wall (2 mm off it) to the ceiling (2 mm under it)
+            let (wy, wz) = (-dn, -gap + 0.002);
+            let (cy, cz) = (gap - 0.002, ot);
+            let sag = 0.2 * dn.hypot(ot) * 4.0 * v * (1.0 - v);
+            let y = wy + (cy - wy) * v - sag * std::f64::consts::FRAC_1_SQRT_2;
+            let z = wz + (cz - wz) * v + sag * std::f64::consts::FRAC_1_SQRT_2;
+            pos.push([u * len, y, z]);
+            uv.extend([u as f32, v as f32]);
+        }
+    }
+    let (top, bottom) = (gap - 0.002, pos.iter().fold(f64::MAX, |m, p| m.min(p[1])));
+    let k = (low - top) / (bottom - top);
+    let pos: Vec<f32> = pos.iter().flat_map(|p| [p[0] as f32, (top + (p[1] - top) * k) as f32, p[2] as f32]).collect();
+    for j in 0..nv {
+        for i in 0..nu {
+            let a = (j * (nu + 1) + i) as u32;
+            let (b, c) = (a + 1, a + (nu + 1) as u32);
+            idx.extend([a, b, c, b, c + 1, c]);
+        }
+    }
+    let geo = Geo::new();
+    geo.set_position(pos);
+    geo.set_uv(uv);
+    geo.set_index(idx);
+    geo.compute_vertex_normals();
+    geo
+}
+
+/// An old cobweb across the angle of a wall and the ceiling (`web_geo`), its
+/// silk `col` (sRGB) gone grey with the dust it caught: a cobweb spider's
+/// tangle, long abandoned. A veil of silk too fine to see thread by thread,
+/// thickest in the tangle and torn in places; taut threads criss-crossing it
+/// from junction to junction, out to anchors on the wall and the ceiling
+/// (some at `anchors`, 0..1 along it); the dust beaded along them and matted
+/// in clumps; and `insect` (turn, drop, along: 0..1) caught in it. `tw`: its
+/// texture's width (px).
+#[allow(clippy::too_many_arguments)]
+fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[f64], insect: Option<(f64, f64, f64)>, tw: f64) -> Obj {
+    let geo = web_geo(len, down, out, 0.02, low);
+    let th = (tw * down.hypot(out) * 1.2 / len).round().clamp(64.0, 256.0);
+    let anchors = anchors.to_vec();
+    let tex = mark_tex(tw, th, col, move |ctx, cw, ch| {
+        let seed = (rnd() * 4.0e9) as u32;
+        let mm = cw / (len * 1000.0); // px a millimetre
+        let shade = |k: f64| col.map(|c| (c * k).min(1.0));
+        let rgba = |k: f64, a: f64| {
+            let c = shade(k);
+            format!("rgba({:.0},{:.0},{:.0},{:.3})", c[0] * 255.0, c[1] * 255.0, c[2] * 255.0, a)
+        };
+        // where the tangle is thick (the canvas's top row is the ceiling's
+        // edge of the sheet, its bottom the wall's)
+        let (bx, by) = (cw * (0.42 + 0.16 * rnd()), ch * (0.35 + 0.3 * rnd()));
+        let (brx, bry) = (cw * (0.44 + 0.12 * rnd()), ch * (0.4 + 0.14 * rnd()));
+        let in_blob = |k: f64| {
+            let (a, r) = (rnd() * PI * 2.0, rnd().powf(0.6) * k);
+            ((bx + a.cos() * r * brx).clamp(0.0, cw), (by + a.sin() * r * bry).clamp(0.0, ch))
+        };
+        // 1. the veil: silk too fine to see thread by thread, thickest in the
+        // tangle, thin out to the ends, wispy along the way it was spun
+        let veil = shade(0.97);
+        let (wa, wb) = (rnd() * PI, rnd() * PI);
+        paint_px(ctx, cw, ch, |i, j| {
+            let (x, y) = ((i as f64 + 0.5) / cw, (j as f64 + 0.5) / ch);
+            let q = ((x * cw - bx) / brx).hypot((y * ch - by) / bry);
+            let dens = (-q * q * 0.8).exp();
+            // its edges ragged: torn short of the wall (the bottom) and of its ends
+            let rag = fbm(seed ^ 0x99, x * 7.0, y * 2.0, 3) - 0.5;
+            let ends = sstep(0.0, 0.16, x.min(1.0 - x) + rag * 0.12) * sstep(0.0, 0.3, 1.0 - y + rag * 0.45);
+            // wisps: noise stretched along two ways it was spun
+            let (u1, u2) = (x * wa.cos() + y * wa.sin(), -x * wa.sin() + y * wa.cos());
+            let (v1, v2) = (x * wb.cos() + y * wb.sin(), -x * wb.sin() + y * wb.cos());
+            let wisp = 0.5 * vnoise(seed ^ 0x5e, u1 * 3.0, u2 * 50.0) + 0.5 * vnoise(seed ^ 0x6f, v1 * 3.0, v2 * 50.0);
+            [veil[0], veil[1], veil[2], ((0.06 + 0.62 * dens) * ends * (0.35 + 1.1 * wisp * wisp)).min(0.72)]
+        });
+        ctx.set_line_cap("round");
+        let thread = |ctx: &mut Canvas, a: (f64, f64), b: (f64, f64), sag: f64, style: &str, w: f64| {
+            let (mx, my) = ((a.0 + b.0) / 2.0, (a.1 + b.1) / 2.0);
+            let l = (b.0 - a.0).hypot(b.1 - a.1).max(1e-6);
+            let (nx, ny) = (-(b.1 - a.1) / l, (b.0 - a.0) / l);
+            ctx.set_stroke_style(style);
+            ctx.set_line_width(w);
+            ctx.begin_path();
+            ctx.move_to(a.0, a.1);
+            ctx.quadratic_curve_to(mx + nx * sag * l, my + ny * sag * l, b.0, b.1);
+            ctx.stroke();
+        };
+        let px_w = |w_mm: f64| (w_mm * mm).max(0.8);
+        // 2. the strands: long, nearly straight, crossing at shallow angles
+        // along the two ways it was spun, so many over each other in the
+        // tangle that they felt into a grey mat
+        let span = cw.max(ch);
+        for k in 0..140 + (rnd() * 80.0) as usize {
+            let c = in_blob(1.1);
+            let a = if k % 2 == 0 { wa } else { wb } + (rnd() - 0.5) * 0.9;
+            let l = span * (0.15 + 0.5 * rnd());
+            let (dx, dy) = (a.cos() * l / 2.0, a.sin() * l / 2.0);
+            thread(
+                ctx,
+                (c.0 - dx, c.1 - dy),
+                (c.0 + dx, c.1 + dy),
+                (rnd() - 0.5) * 0.08,
+                &rgba(1.08 + 0.12 * rnd(), 0.12 + 0.24 * rnd()),
+                px_w(0.6 + 0.6 * rnd()),
+            );
+        }
+        // the lines it hangs by: from the tangle out to anchors on the
+        // ceiling (top) and the wall (bottom), a few heavy with dust (thicker,
+        // greyer, sagging)
+        let mut fixed: Vec<(f64, f64)> = anchors.iter().map(|&t| (t * cw, 0.0)).collect();
+        for _ in 0..8 + (rnd() * 8.0) as usize {
+            fixed.push((cw * (0.04 + 0.92 * rnd()), if rnd() < 0.5 { 0.0 } else { ch }));
+        }
+        for &f in &fixed {
+            let a = in_blob(0.6);
+            let dusty = rnd() < 0.3;
+            let (k_col, al, w, sag) = if dusty {
+                (0.84, 0.3 + 0.2 * rnd(), 1.0 + 0.9 * rnd(), 0.05 + 0.06 * rnd())
+            } else {
+                (1.12, 0.25 + 0.25 * rnd(), 0.6 + 0.5 * rnd(), (rnd() - 0.5) * 0.04)
+            };
+            thread(ctx, a, f, sag, &rgba(k_col, al), px_w(w));
+        }
+        // 3. the dust: specks caught all through the tangle, matted in
+        // clumps where it is thickest
+        for _ in 0..90 + (rnd() * 80.0) as usize {
+            let p = in_blob(1.0);
+            ctx.set_fill_style(rgba(0.85 + 0.25 * rnd(), 0.15 + 0.3 * rnd()));
+            ctx.begin_path();
+            ctx.arc(p.0, p.1, px_w(0.25 + 0.6 * rnd()), 0, PI * 2.0);
+            ctx.fill();
+        }
+        for _ in 0..3 + (rnd() * 5.0) as usize {
+            let p = in_blob(0.7);
+            let r = (3.0 + 7.0 * rnd()) * mm;
+            let gr = ctx.create_radial_gradient(p.0, p.1, 0, p.0, p.1, r);
+            gr.add_color_stop(0, &rgba(0.92, 0.4));
+            gr.add_color_stop(0.5, &rgba(0.92, 0.18));
+            gr.add_color_stop(1, &rgba(0.92, 0.0));
+            ctx.set_fill_style(&gr);
+            ctx.fill_rect(p.0 - r, p.1 - r, r * 2.0, r * 2.0);
+        }
+        // 4. torn: holes through all of it where it has come away
+        let mut img = ctx.get_image_data(0, 0, cw, ch);
+        let (iw, ih) = (cw as usize, ch as usize);
+        for j in 0..ih {
+            for i in 0..iw {
+                let (x, y) = ((i as f64 + 0.5) / cw, (j as f64 + 0.5) / ch);
+                let q = ((x * cw - bx) / brx).hypot((y * ch - by) / bry);
+                let keep = sstep(0.3, 0.46, fbm(seed ^ 0x7a, x * 4.0, y * 2.5, 4) + 0.18 * (-q * q).exp());
+                let k = (j * iw + i) * 4 + 3;
+                img.data[k] = (f64::from(img.data[k]) * keep).round() as u8;
+            }
+        }
+        ctx.put_image_data(&img, 0, 0);
+        // a fly, long dead, wrapped in it
+        if let Some((spin, drop, along)) = insect {
+            let p = (bx + (along - 0.5) * brx, by + (drop - 0.5) * bry);
+            ctx.save();
+            ctx.translate(p.0, p.1);
+            ctx.rotate(spin * PI * 2.0);
+            ctx.set_stroke_style("rgba(36,30,24,0.8)");
+            ctx.set_line_width(0.5 * mm);
+            for k in 0..6 {
+                let (sx, sy) = (if k < 3 { -1.0 } else { 1.0 }, (k % 3) as f64 - 1.0);
+                ctx.begin_path();
+                ctx.move_to(sx * 0.8 * mm, sy * 1.2 * mm);
+                ctx.line_to(sx * 2.6 * mm, sy * 2.2 * mm);
+                ctx.stroke();
+            }
+            ctx.set_fill_style("rgba(190,186,176,0.35)");
+            ctx.begin_path();
+            ctx.ellipse(0.0, 1.8 * mm, 1.4 * mm, 2.6 * mm, 0.3, 0, PI * 2.0);
+            ctx.fill();
+            ctx.set_fill_style("rgba(34,28,22,0.92)");
+            ctx.begin_path();
+            ctx.ellipse(0.0, 0.0, 1.5 * mm, 2.6 * mm, 0.0, 0, PI * 2.0);
+            ctx.fill();
+            ctx.restore();
+        }
+    });
+    mesh(geo, &lambert!({ map: &tex, transparent: true, depthWrite: false, side: DoubleSide }))
 }
 
 #[cfg(test)]
