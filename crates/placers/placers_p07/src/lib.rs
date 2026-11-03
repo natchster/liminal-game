@@ -129,8 +129,14 @@ fn place_mason_jars(g: &mut Game, _dist: &[i32]) {
     g.world.add(&jar);
 }
 
-// R661 wall broom (hanging): 4% chance per level. Long handle
-// + bristle bundle attached to wall bracket.
+// R661 wall broom (hanging): 4% chance per level (Blender batch `r13b`): a
+// hand-made round hearth broom, 0.71 m, hung on a nail by a jute loop through
+// the hole in its handle's top, its head's back against the wall: broomcorn
+// bound round a hardwood stick with twine, its ends splayed, worn short on
+// one side and bent over from standing on it, straws sticking out; the
+// handle dark where hands held it. (No wider along the wall than the old
+// one and spanning the same heights, so it meets the wall's face where the
+// old one did.)
 fn place_wall_brooms(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -140,35 +146,142 @@ fn place_wall_brooms(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z, dx, dz) = pick(&wt);
-    let handle_mat = lambert!({ color: 0x8b5a2b });
-    let bristle_mat = lambert!({ color: 0xa08040 });
-    let bracket_mat = lambert!({ color: 0x404040 });
+    // which broom this is comes from where it hangs (no draws)
+    let vary = kitchen_hash(x, z, 0x6b70);
+    let wood = [0x8a6a48, 0x7a5c3c, 0x9a7a54, 0x6e5238][(vary % 4) as usize];
+    let twine = [0x8a4436, 0x4e5e3e, 0x9a8a68][((vary >> 4) % 3) as usize];
+    let handle_mat = lambert!({ map: &broom_handle_tex(wood, vary) });
+    let corn_mat = lambert!({ map: &broom_corn_tex(vary) });
+    let steel = phong!({ color: 0x4a4641, specular: 0x262626, shininess: 26 });
+    let twine_mat = lambert!({ color: twine });
+    let cord_mat = lambert!({ color: 0x7a6a4c });
     let broom = group();
-    let mount_y = 1.55;
-    // Long vertical handle.
-    let handle = mesh(pg("WallBrooms__handle", cyl_geo!(0.010, 0.010, 0.60, 6)), &handle_mat);
-    handle.position().y = mount_y;
-    broom.add(&handle);
-    // Wall bracket (2 small clamps).
-    for i in 0..2 {
-        let clamp = mesh(pg("WallBrooms__clip", torus_geo!(0.014, 0.003, 3, 8, PI)), &bracket_mat);
-        // Horizontal half ring wrapped round the handle's front, ends toward the wall.
-        clamp.rotation().x = PI / 2.0;
-        clamp.position().set(0, mount_y + if i == 0 { 0.18 } else { -0.18 }, -0.005);
-        broom.add(&clamp);
+    // the nail, so the broom spans the old one's 1.14-1.85 m; the parts as
+    // modelled about where it enters the wall, 10 mm behind the group's origin
+    let nail_y = 1.8415;
+    for (name, mat) in [
+        ("Real__broomHandle", &handle_mat),
+        ("Real__broomCorn", &corn_mat),
+        ("Real__broomNail", &steel),
+        ("Real__broomTwine", &twine_mat),
+        ("Real__broomCord", &cord_mat),
+    ] {
+        if let Some(geo) = game::assets::props::prop_part_as_modelled(name) {
+            let m = mesh(geo, mat);
+            m.position().set(0, nail_y, -0.010);
+            broom.add(&m);
+        }
     }
-    // Bristle bundle at bottom (tapered wider cone).
-    let bristles = mesh(pg("WallBrooms__bristles", cone_geo!(0.055, 0.14, 8)), &bristle_mat);
-    bristles.position().set(0, mount_y - 0.34, 0);
-    broom.add(&bristles);
-    // Rope/twine binding above bristles.
-    let binding = mesh(pg("WallBrooms__twine", torus_geo!(0.014, 0.003, 3, 10)), &bracket_mat);
-    binding.rotation().x = PI / 2.0;
-    binding.position().set(0, mount_y - 0.28, 0);
-    broom.add(&binding);
     broom.rotation().y = face_wall(dx, dz);
     broom.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.010), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.010));
     g.world.add(&broom);
+}
+
+/// A hash of a tile and a salt: what a thing placed there is, with no draw
+fn kitchen_hash(x: i32, z: i32, salt: u32) -> u32 {
+    let mut h = salt ^ (x as u32).wrapping_mul(0x27d4_eb2d) ^ (z as u32).wrapping_mul(0x1656_67b1);
+    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+    h ^ (h >> 16)
+}
+
+/// The broom's handle round its length (u round it, v up it): a hardwood
+/// stick oiled long ago, its grain and a knot, gone dark at the top where it
+/// was held, grimed toward the broomcorn
+fn broom_handle_tex(wood: u32, vary: u32) -> Tex {
+    canvas_tex(32, 128, move |ctx, w, h| {
+        let seed = (rnd() * 4.0e9) as u32 ^ vary;
+        with_own_stream(seed, || {
+            ctx.set_fill_style(&format!("#{wood:06x}"));
+            ctx.fill_rect(0, 0, w, h);
+            // the grain, up the stick
+            for _ in 0..24 {
+                let x = rnd() * w;
+                ctx.set_stroke_style(&format!("rgba(40,26,14,{})", 0.10 + rnd() * 0.2));
+                ctx.set_line_width(0.5 + rnd());
+                ctx.begin_path();
+                ctx.move_to(x, 0);
+                ctx.line_to(x + (rnd() - 0.5) * 3.0, h);
+                ctx.stroke();
+            }
+            // a knot or two in it
+            for _ in 0..2 {
+                let (x, y) = (rnd() * w, rnd() * h);
+                ctx.set_fill_style("rgba(50,32,18,0.45)");
+                ctx.begin_path();
+                ctx.ellipse(x, y, 1.5, 3.0, 0, 0, 7);
+                ctx.fill();
+            }
+            // the top, where hands held it: dark and greasy
+            let gr = ctx.create_linear_gradient(0, 0, 0, h * 0.45);
+            gr.add_color_stop(0, "rgba(30,20,12,0.40)");
+            gr.add_color_stop(1, "rgba(30,20,12,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, 0, w, h * 0.45);
+            // grime toward its foot
+            let gr = ctx.create_linear_gradient(0, h * 0.7, 0, h);
+            gr.add_color_stop(0, "rgba(30,24,18,0)");
+            gr.add_color_stop(1, "rgba(30,24,18,0.35)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, h * 0.7, w, h * 0.3);
+        });
+    })
+}
+
+/// The broomcorn seen from the front (u across, v up the head): straws side
+/// by side in their own shades of straw, green-gold to brown, the sweep's
+/// ends gone dark with what it swept, dust in it
+fn broom_corn_tex(vary: u32) -> Tex {
+    canvas_tex(64, 192, move |ctx, w, h| {
+        let seed = (rnd() * 4.0e9) as u32 ^ vary;
+        with_own_stream(seed, || {
+            ctx.set_fill_style("#a48a5a");
+            ctx.fill_rect(0, 0, w, h);
+            for _ in 0..300 {
+                let x = rnd() * w;
+                let (y0, y1) = (rnd() * h * 0.5, h * (0.55 + 0.45 * rnd()));
+                let k = rnd();
+                let (r, gg, b) = if k < 0.55 {
+                    (196.0, 170.0, 112.0)
+                } else if k < 0.75 {
+                    (168.0, 158.0, 98.0)
+                } else if k < 0.92 {
+                    (150.0, 112.0, 70.0)
+                } else {
+                    (112.0, 84.0, 56.0)
+                };
+                let s = 0.8 + 0.3 * rnd();
+                ctx.set_stroke_style(&format!("rgba({},{},{},{})", (r * s) as i32, (gg * s) as i32, (b * s) as i32, 0.5 + 0.5 * rnd()));
+                ctx.set_line_width(0.6 + rnd() * 1.1);
+                ctx.begin_path();
+                ctx.move_to(x, y0);
+                ctx.line_to(x + (rnd() - 0.5) * 3.0, y1);
+                ctx.stroke();
+            }
+            // the gaps between straws
+            for _ in 0..90 {
+                ctx.set_stroke_style(&format!("rgba(40,30,18,{})", 0.15 + rnd() * 0.25));
+                ctx.set_line_width(0.5);
+                let x = rnd() * w;
+                ctx.begin_path();
+                ctx.move_to(x, rnd() * h);
+                ctx.line_to(x + (rnd() - 0.5) * 2.0, rnd() * h);
+                ctx.stroke();
+            }
+            // the sweep's ends: dirt worked into them
+            let gr = ctx.create_linear_gradient(0, h * 0.62, 0, h);
+            gr.add_color_stop(0, "rgba(58,48,36,0)");
+            gr.add_color_stop(0.7, "rgba(58,48,36,0.45)");
+            gr.add_color_stop(1, "rgba(48,40,30,0.7)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, h * 0.62, w, h * 0.38);
+            // dust caught in it
+            for _ in 0..60 {
+                ctx.set_fill_style(&format!("rgba(170,160,140,{})", 0.10 + rnd() * 0.15));
+                ctx.fill_rect(rnd() * w, rnd() * h, 2.0 + rnd() * 6.0, 1.0 + rnd() * 3.0);
+            }
+        });
+    })
 }
 
 // R662 hanging herbs bundle: 5% chance per level. Wall
@@ -370,8 +483,11 @@ fn place_whisks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&whisk);
 }
 
-// R665 hanging wall apron: 5% chance per level. Wall bracket
-// + folded fabric apron w/ pocket.
+// R665 hanging wall apron: 5% chance per level (Blender batch `r13b`): a
+// cotton bib apron, 72 x 86 cm, hung by its neck strap on a cast iron hook
+// (`r06`'s): the bib's top fallen into a cowl between the strap's ends, the
+// waist's corners dropped, the skirt against the wall in folds, its patch
+// pocket, its ties hanging; faded, stained where hands were wiped on it.
 fn place_wall_aprons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -382,39 +498,141 @@ fn place_wall_aprons(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z, dx, dz) = pick(&wt);
     let apron_colors: [u32; 6] = [0xc02020, 0x2060a0, 0x408040, 0xc0a040, 0x606060, 0xd050a0];
-    let apron_mat = lambert!({ color: pick(&apron_colors), side: DoubleSide });
-    let strap_mat = lambert!({ color: 0x604020 });
-    let hook_mat = lambert!({ color: 0x808080 });
+    // the old pick, as a real cloth: its dye faded (the blue a butcher's
+    // stripe, painted in its map)
+    let (cloth, stripe) = match pick(&apron_colors) {
+        0xc02020 => (0x8c3d34, false),
+        0x2060a0 => (0xffffff, true),
+        0x408040 => (0x66705a, false),
+        0xc0a040 => (0xa68e5e, false),
+        0x606060 => (0x77746c, false),
+        _ => (0xa67876, false),
+    };
+    let vary = kitchen_hash(x, z, 0xa970);
     let apron = group();
-    let mount_y = 1.75;
-    let hook = mesh(pg("WallAprons__peg", cyl_geo!(0.004, 0.004, 0.015, 4)), &hook_mat);
-    hook.rotation().x = PI / 2.0;
-    hook.position().set(0, mount_y + 0.24, 0.008);
+    // the hook at 1.85 m, its plate on the wall (8 mm behind the group's
+    // origin); the apron as modelled hanging from it
+    let hook_y = 1.85;
+    let iron = phong!({ color: 0x1c1b1a, specular: 0x1a1a1a, shininess: 22 });
+    let hook = mesh(game::assets::props::prop_part_as_modelled("Real__coatHook").unwrap_or_else(|| box_geo!(0.026, 0.12, 0.1)), &iron);
+    hook.position().set(0, hook_y, -0.008);
     apron.add(&hook);
-    let neck_strap = mesh(pg("WallAprons__strap", torus_geo!(0.020, 0.003, 3, 10, PI)), &strap_mat);
-    // Loop draped over the peg in the wall plane (inner top on the peg), its ends
-    // tucked behind the bib's top edge.
-    neck_strap.scale().set(3.6, 3.6, 1);
-    neck_strap.position().set(0, mount_y + 0.17, 0.008);
-    apron.add(&neck_strap);
-    let bib = mesh(plane_geo!(0.20, 0.15), &apron_mat);
-    bib.position().set(0, mount_y + 0.10, 0.014);
-    apron.add(&bib);
-    let skirt = mesh(plane_geo!(0.32, 0.28), &apron_mat);
-    skirt.position().set(0, mount_y - 0.10, 0.014);
-    apron.add(&skirt);
-    let pocket = mesh(plane_geo!(0.20, 0.08), lambert!({ color: 0x000000, opacity: 0.15, transparent: true }));
-    pocket.position().set(0, mount_y - 0.06, 0.015);
-    apron.add(&pocket);
-    for side in [-1.0, 1.0] {
-        let tie = mesh(plane_geo!(0.08, 0.10), &apron_mat);
-        tie.position().set(side * 0.13, mount_y + 0.02, 0.014);
-        tie.rotation().z = side * 0.4;
-        apron.add(&tie);
+    if let Some(geo) = game::assets::props::prop_part_as_modelled("Real__apronCloth") {
+        let bb = geo.bounding_box();
+        let mat = lambert!({ map: &apron_tex(stripe, vary, [bb.min.x, bb.max.x, bb.min.y, bb.max.y]), color: cloth, side: DoubleSide });
+        let m = mesh(geo, &mat);
+        m.position().set(0, hook_y, -0.008);
+        apron.add(&m);
     }
     apron.rotation().y = face_wall(dx, dz);
     apron.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
     g.world.add(&apron);
+}
+
+/// The apron's cloth seen from the front over its bounds `b` (x0, x1, y0,
+/// y1 in its frame, the hook at the origin): cotton twill, white to be laid
+/// over its colour (or a butcher's navy stripe), faded, grease spotted down
+/// the bib, hands wiped at the hips and the pocket's mouth, the hem grimed
+fn apron_tex(stripe: bool, vary: u32, b: [f64; 4]) -> Tex {
+    canvas_tex(256, 512, move |ctx, w, h| {
+        let seed = (rnd() * 4.0e9) as u32 ^ vary;
+        with_own_stream(seed, || {
+            let (x0, x1, y0, y1) = (b[0], b[1], b[2], b[3]);
+            // where a point of the apron (its frame) is on the map
+            let at = |x: f64, y: f64| ((x - x0) / (x1 - x0) * w, (1.0 - (y - y0) / (y1 - y0)) * h);
+            let px_m = w / (x1 - x0);
+            ctx.set_fill_style(if stripe { "#d6d1c4" } else { "#f2f0ea" });
+            ctx.fill_rect(0, 0, w, h);
+            if stripe {
+                // the butcher's stripe: 3 mm navy every 9 mm, down it
+                ctx.set_fill_style("#2e3a52");
+                let mut x = 0.0;
+                while x < w {
+                    ctx.fill_rect(x, 0, (0.003 * px_m).max(1.0), h);
+                    x += 0.009 * px_m;
+                }
+            }
+            // the twill's diagonal and the weave's unevenness
+            ctx.set_line_width(1);
+            let mut d = -h;
+            while d < w {
+                ctx.set_stroke_style(&format!("rgba(0,0,0,{})", 0.03 + rnd() * 0.04));
+                ctx.begin_path();
+                ctx.move_to(d, 0);
+                ctx.line_to(d + h * 0.5, h);
+                ctx.stroke();
+                d += 2.0;
+            }
+            // grease and old splashes down the bib and the skirt: each a
+            // cluster of soft blots, uneven, some run down a little
+            for _ in 0..6 {
+                let (cx, cy) = ((rnd() - 0.5) * 0.30, -0.42 - rnd() * 0.50);
+                let size = 0.006 + rnd() * 0.02;
+                let a = 0.10 + rnd() * 0.12;
+                for _ in 0..(3 + (rnd() * 4.0) as i32) {
+                    let (x, y) = at(cx + (rnd() - 0.5) * size * 2.5, cy + (rnd() - 0.5) * size * 2.0);
+                    let r = size * (0.4 + rnd()) * px_m;
+                    ctx.save();
+                    ctx.translate(x, y);
+                    ctx.rotate(rnd() * 3.0);
+                    ctx.scale(1, 0.5 + 0.6 * rnd());
+                    let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+                    gr.add_color_stop(0, &format!("rgba(74,56,34,{a})"));
+                    gr.add_color_stop(0.7, &format!("rgba(74,56,34,{})", a * 0.7));
+                    gr.add_color_stop(1, "rgba(74,56,34,0)");
+                    ctx.set_fill_style(gr);
+                    ctx.begin_path();
+                    ctx.arc(0, 0, r, 0, 7);
+                    ctx.fill();
+                    ctx.restore();
+                }
+                if rnd() < 0.5 {
+                    // a run down from it
+                    let (x, y) = at(cx, cy);
+                    let l = (0.02 + rnd() * 0.05) * px_m;
+                    let gr = ctx.create_linear_gradient(0, y, 0, y + l);
+                    gr.add_color_stop(0, &format!("rgba(74,56,34,{})", a * 0.8));
+                    gr.add_color_stop(1, "rgba(74,56,34,0)");
+                    ctx.set_fill_style(gr);
+                    ctx.fill_rect(x - 1.0, y, 2.0 + rnd() * 1.5, l);
+                }
+            }
+            // hands wiped at the hips and at the pocket's mouth
+            for (hx, hy, rx, ry, a) in [(-0.24, -0.70, 0.07, 0.12, 0.30), (0.24, -0.70, 0.07, 0.12, 0.30), (0.0, -0.80, 0.18, 0.03, 0.22)] {
+                let (x, y) = at(hx + (rnd() - 0.5) * 0.04, hy + (rnd() - 0.5) * 0.04);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(1, ry / rx);
+                let r = rx * px_m;
+                let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+                gr.add_color_stop(0, &format!("rgba(56,44,32,{a})"));
+                gr.add_color_stop(1, "rgba(56,44,32,0)");
+                ctx.set_fill_style(gr);
+                ctx.begin_path();
+                ctx.arc(0, 0, r, 0, 7);
+                ctx.fill();
+                ctx.restore();
+            }
+            // the hem and the ties' ends grimed, the top faded paler
+            let (_, yh) = at(0.0, -1.10);
+            let gr = ctx.create_linear_gradient(0, yh, 0, h);
+            gr.add_color_stop(0, "rgba(50,42,34,0)");
+            gr.add_color_stop(1, "rgba(50,42,34,0.35)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, yh, w, h - yh);
+            let (_, yt) = at(0.0, -0.55);
+            let gr = ctx.create_linear_gradient(0, 0, 0, yt);
+            gr.add_color_stop(0, "rgba(236,232,222,0.22)");
+            gr.add_color_stop(1, "rgba(236,232,222,0)");
+            ctx.set_fill_style(gr);
+            ctx.fill_rect(0, 0, w, yt);
+            for _ in 0..400 {
+                let v = if rnd() < 0.5 { "255,255,255" } else { "0,0,0" };
+                ctx.set_fill_style(&format!("rgba({v},{})", 0.03 + rnd() * 0.06));
+                ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
+            }
+        });
+    })
 }
 
 // R667 teapot on trivet: 4% chance per level.
