@@ -115,3 +115,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-01, on top of 024cdba: frames: shadow_2m, shadow_4m, shadow_8m, 4242_L7_storage_hall, 4242_L7_service_tunnels, 7_L5_spawn. Reason: Props P5: barricades close real openings (a board-up ends the service tunnel's corridor; the old pile in the Poolrooms is gone: no barricade in a pool hall; her camp and marks move round the new ones)
 
 - 2026-11-01, on top of 024cdba: frames: 4242_L7_office_wing, 4242_L7_storage_hall. Reason: Props P5: her marks keep off a wall face something stands against (a machine, a barricade): one moved
+
+- 2026-11-03, on top of 13a00f9: frames: 4242_L7_storage_hall, 4242_L7_living_quarters, 7_L5_play_area. Reason: Props P1: remodelled props in view (the bentwood coat stand and its coat; a pile, a book stack)

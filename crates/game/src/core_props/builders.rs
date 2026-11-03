@@ -377,14 +377,21 @@ fn wet_patch_mat() -> Mat {
         for _ in 0..14 {
             let (x, y) = (w * (0.25 + 0.5 * rnd()), h * (0.25 + 0.5 * rnd()));
             let r = w * (0.12 + 0.16 * rnd());
-            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            let (squash, turn) = (0.6 + 0.4 * rnd(), rnd() * 3.0);
+            // squashed as a whole, so the fade reaches its edge
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(turn);
+            ctx.scale(1, squash);
+            let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
             gr.add_color_stop(0, "rgba(20,18,14,0.5)");
             gr.add_color_stop(0.6, "rgba(20,18,14,0.35)");
             gr.add_color_stop(1, "rgba(20,18,14,0)");
             ctx.set_fill_style(gr);
             ctx.begin_path();
-            ctx.ellipse(x, y, r, r * (0.6 + 0.4 * rnd()), rnd() * 3.0, 0, 7);
+            ctx.arc(0, 0, r, 0, 7);
             ctx.fill();
+            ctx.restore();
         }
     });
     lambert!({ map: &tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
@@ -1647,13 +1654,21 @@ fn pile_dust_mat() -> Mat {
             let d = rnd() * 0.2;
             let (x, y) = (w * (0.5 + a.cos() * d), h * (0.5 + a.sin() * d));
             let r = w * (0.1 + 0.16 * rnd());
-            let gr = ctx.create_radial_gradient(x, y, 0, x, y, r);
+            let (squash, turn) = (0.5 + 0.5 * rnd(), rnd() * 3.0);
+            // squashed as a whole, so the fade reaches its edge (an ellipse
+            // cut from a round fade leaves a hard rim)
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(turn);
+            ctx.scale(1, squash);
+            let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
             gr.add_color_stop(0, "rgba(140,135,124,0.4)");
             gr.add_color_stop(1, "rgba(140,135,124,0)");
             ctx.set_fill_style(gr);
             ctx.begin_path();
-            ctx.ellipse(x, y, r, r * (0.5 + 0.5 * rnd()), rnd() * 3.0, 0, 7);
+            ctx.arc(0, 0, r, 0, 7);
             ctx.fill();
+            ctx.restore();
         }
         for k in 0..500 {
             let a = rnd() * 6.3;

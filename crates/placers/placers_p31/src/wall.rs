@@ -112,7 +112,7 @@ pub fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
             coat.position().set(x_off, -0.047, -0.006 + 0.058);
             row.add(&coat);
             let buttons =
-                mesh(real_part("Real__coatButtons", 0.03, 0.4, 0.01), phong!({ color: 0x2a2018, specular: 0x202020, shininess: 40 }));
+                mesh(real_part("Real__hookCoatButtons", 0.03, 0.4, 0.01), phong!({ color: 0x2a2018, specular: 0x202020, shininess: 40 }));
             buttons.position().copy(&coat.pos());
             row.add(&buttons);
         }
@@ -913,6 +913,11 @@ fn build_wall_hole(g: &mut Game, c: &crate::Cand, w: f64, hole_h: f64, h_height:
         "B" => 1,
         _ => 2,
     };
+    // what is inside the wall (the broken edge, the paper pushed in, the
+    // bay, the mask) is the wall's own inside, not a thing stood in it
+    for k in 0..hg.child_count() {
+        hg.child(k).unwrap().user().arch = true;
+    }
     let decal = mesh(plane_geo!(0.56, 0.56), lambert!({ map: &hole_decal_tex(ki), transparent: true, depthWrite: false }));
     decal.position().z = 0.0008;
     hg.add(&decal);

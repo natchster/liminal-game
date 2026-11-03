@@ -866,7 +866,7 @@ auto('Real__hookRail', hook_rail, 500)
 auto('Real__hookScrew', hook_screw, 130)
 auto('Real__coatHook', coat_hook, 900)
 auto('Real__coatHung', coat_hung, 3200)
-auto('Real__coatButtons', coat_buttons, 400)
+auto('Real__hookCoatButtons', coat_buttons, 400)
 
 for _nm, _args in (('A2', (0.420, 0.594, 14, 20, 2, 0.022, 0.085, 1)), ('Tabloid', (0.279, 0.432, 10, 16, 0, 0.016, 0.060, 2)),
                    ('Letter', (0.216, 0.279, 8, 12, 1, 0.012, 0.045, 3))):

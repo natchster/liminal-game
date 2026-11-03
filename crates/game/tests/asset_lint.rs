@@ -30,7 +30,9 @@ const DEGENERATE_EXCEPTIONS: &[(&str, &str)] = &[
 ];
 
 /// Parts given a budget of their own in their batch script
-/// (`part('Name', …, budget=N)` in `assets/src/blender/props/*.py`).
+/// (`part('Name', …, budget=N)` in `assets/src/blender/props/*.py`, or
+/// `auto('Name', build, N)` in the batches whose parts are placed as
+/// modelled: its last argument).
 fn script_budgets() -> std::collections::HashMap<String, usize> {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/src/blender/props");
     let mut out = std::collections::HashMap::new();
@@ -41,6 +43,14 @@ fn script_budgets() -> std::collections::HashMap<String, usize> {
             if let Some(b) =
                 line.split("budget=").nth(1).and_then(|r| r.split(|c: char| !c.is_ascii_digit()).next()).and_then(|n| n.parse().ok())
             {
+                out.insert(name.to_string(), b);
+            }
+        }
+        for line in text.lines().filter(|l| l.trim_start().starts_with("auto('")) {
+            let l = line.trim_start();
+            let name = l[6..].split('\'').next().unwrap_or("");
+            let last = l.trim_end().trim_end_matches(')').rsplit(',').next().unwrap_or("").trim();
+            if let Ok(b) = last.parse::<usize>() {
                 out.insert(name.to_string(), b);
             }
         }
