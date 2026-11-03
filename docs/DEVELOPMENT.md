@@ -104,6 +104,12 @@ Levels must be a pure function of `(run_seed, level)`:
 * Keep draw order stable: a new random draw in a placer shifts every later
   placer. If you change a placer on purpose, re-record the reference levels
   (below) and say so in the commit.
+* A wall prop's size can change the walls. `settle_props` probes a wall's
+  face across a wall prop's width; where a probe misses (a pillar's end, a
+  partition's), the face is pinned to the tile edge, and that side becomes
+  a wall a body meets. The reference levels record the settled walls
+  (`counts.solidBoxes`, `counts.solidsHash`): a remodel that changes them
+  has changed the level, not only its looks.
 * Use `base::numeric` where exact results matter (`round_half_up`,
   `nan_min` / `nan_max`, `hypot2` / `hypot3`, `fmt_fixed`, `round_decimals`).
 

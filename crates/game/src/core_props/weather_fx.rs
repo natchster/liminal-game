@@ -127,7 +127,18 @@ impl Game {
             puddle.rotation().x = -PI / 2.0;
             puddle.rotation().z = rand2(0.0, PI * 2.0);
             puddle.set_pos_v(&jitter_pos(self, &c, 0.003));
-            self.world.add(&puddle);
+            // none on the pool's water (its room is made after: `tail_pool_room`);
+            // its draws made all the same
+            let reach = rx.max(rz) * 1.25;
+            let p = puddle.pos();
+            let on_pool = self.pool_plan.as_ref().is_some_and(|pl| {
+                let (x0, x1) = (self.wx(pl.x) - CELL / 2.0, self.wx(pl.x + pl.pw - 1) + CELL / 2.0);
+                let (z0, z1) = (self.wz(pl.z) - CELL / 2.0, self.wz(pl.z + pl.ph - 1) + CELL / 2.0);
+                p.x + reach > x0 && p.x - reach < x1 && p.z + reach > z0 && p.z - reach < z1
+            });
+            if !on_pool {
+                self.world.add(&puddle);
+            }
             i += 1;
         }
     }
@@ -407,7 +418,7 @@ impl Game {
             spark.set_pos(CABLE_SPARK[0], CABLE_SPARK[1], CABLE_SPARK[2]);
             g.add(&spark);
             // small point light over the bared ends that pulses with the spark
-            let spark_light = point_light!(0xfff2a0, 0, 3, 2.0);
+            let spark_light = point_light!(0xdfe6ff, 0, 3, 2.0);
             spark_light.set_pos(0, 0.14, 0);
             g.add(&spark_light);
             self.world.add(&g);

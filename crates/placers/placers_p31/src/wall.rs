@@ -1212,8 +1212,10 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
         joints.push(x);
         match end {
             0 => {
-                // into the wall: the elbow's other leg back, a nipple, its collar
-                run.add(&pipe_fitting("Real__pipeElbow", &fit_mat, v3(x, 0, 0), oy, (-sx * PI / 2.0, 0.0)));
+                // into the wall: the elbow's other leg back (its legs are +x and +y as
+                // modelled; turned about x its +y leg goes to -z, the wall, on either
+                // side once the outer turn is applied), a nipple, its collar
+                run.add(&pipe_fitting("Real__pipeElbow", &fit_mat, v3(x, 0, 0), oy, (sx * PI / 2.0, 0.0)));
                 run.add(&pipe_length(&pipe_mat, v3(x, 0, -EA + IN), v3(x, 0, WALL)));
                 let col = mesh(real_part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
                 col.position().set(x, 0, WALL);

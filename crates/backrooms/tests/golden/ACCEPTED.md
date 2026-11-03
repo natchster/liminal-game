@@ -123,3 +123,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-03, on top of 2a35e3b: frames: smiler_4m, smiler_8m, watcher_8m, staff_2m, staff_4m. Reason: P6: the Lobby's lit set now hisses close by (its place in the CRTs' hiss list); the ambience reschedules it from the frame stream while you are out of earshot, so the film grain of these Lobby showcases is drawn from a shifted stream (scene identical; error maps an even speckle)
 
 - 2026-11-03, on top of 2a35e3b: frames: 15 shots. Reason: P6: a lit set now hisses close by (its place in the CRTs' hiss list); the ambience reschedules it from the frame stream while you are out of earshot, so these frames' film grain is drawn from a shifted stream (scenes identical: mean 0.002, no tile over 0.008)
+
+- 2026-11-03, on top of 4993562: frames: 7_L5_play_area. Reason: P2: a small thing on the floor far off remodelled (one tile's pixels; looked at the frame and its error map)

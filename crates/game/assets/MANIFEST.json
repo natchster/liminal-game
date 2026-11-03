@@ -51,7 +51,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "the HTML version's pipeline (props.py, prop-assemble.mjs), converted byte for byte from its src/prop-meshes.js (fingerprint 9402a16016f4edb5) by cargo xtask assets import-js",
-      "fingerprint": "510f03bd1594b5b0",
+      "fingerprint": "c3d2d6bb25a9f29e",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",
@@ -181,7 +181,7 @@
       "generative_model": null,
       "generator": "procedural bpy scripts",
       "licence": "MIT",
-      "parts": 2826,
+      "parts": 3208,
       "rebuild": "cargo xtask assets props [--write]; Blender 5.2.2 reproduces every part but the frozen ones exactly",
       "rebuilt_with": "Blender 5.2.2 LTS",
       "sources": [

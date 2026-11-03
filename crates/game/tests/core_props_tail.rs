@@ -368,6 +368,10 @@ fn cmp_tree(o: &Obj, j: &Json, path: &str) {
     if j.get("k").s() == "web" {
         return cmp_web(o, &j.get("p").fs(), path);
     }
+    if j.get("k").s().starts_with("weather") {
+        let jr = j.get("r");
+        return cmp_weather(o, j.get("k").s(), &j.get("p").fs(), &[jr.at(0).f(), jr.at(1).f(), jr.at(2).f()], path);
+    }
     let k = kind_of(o);
     assert_eq!(k, j.get("k").s(), "{path}: kind");
     assert_vec_close(&[o.pos().x, o.pos().y, o.pos().z], &j.get("p").fs()[..], TOL, &format!("{path}: position"));
@@ -409,6 +413,10 @@ fn cmp_tree(o: &Obj, j: &Json, path: &str) {
 fn cmp_rtree(o: &Obj, j: &Json, path: &str) {
     if j.at(0).s() == "web" {
         return cmp_web(o, &j.at(1).fs()[..3], path);
+    }
+    if j.at(0).s().starts_with("weather") {
+        let t = j.at(1).fs();
+        return cmp_weather(o, j.at(0).s(), &t[..3], &t[3..6], path);
     }
     let k = kind_of(o);
     assert_eq!(k, j.at(0).s(), "{path}: kind");
@@ -725,6 +733,103 @@ fn modelled_webs(case: &Json) -> Json {
     c
 }
 
+/// The recorded things a floor's weather left (`weather_fx`, the first world
+/// children of the second half): the wet floors' puddle decals, the
+/// derelict floors' debris (a group of five, the last its dust disc), the
+/// electric floors' cables (a group of six, the last its spark and its light)
+/// and the haunted floors' candles (a group of six, the last its light and its
+/// melt ring). Each is modelled now (batch `r10`,
+/// `docs/PROPS.md` P2) where it was, its draws kept: what is compared is
+/// its kind, where it lies (a puddle 8 mm lower, painted on the floor) and
+/// how it is turned (a candle turns by where it stands)
+fn weather_nodes(case: &Json) -> HashSet<usize> {
+    let tree = case.get("build").get("tree").arr();
+    let weather = case.get("name").s().split('_').next().unwrap_or("").to_string();
+    let kids = |t: &Json| if t.has("c") { t.get("c").arr().to_vec() } else { vec![] };
+    // what child `i` is (a light, or a mesh's geometry)
+    let kid = |t: &Json, i: usize| {
+        kids(t)
+            .get(i)
+            .map(|c| if c.get("k").s() == "plight" { "plight".to_string() } else { c.get("g").get("type").s().to_string() })
+            .unwrap_or_default()
+    };
+    let is = |t: &Json| match weather.as_str() {
+        "wet" => t.get("k").s() == "mesh" && t.get("g").get("type").s() == "plane" && (t.get("p").fs()[1] - 0.011).abs() < 1e-9,
+        "derelict" => t.get("k").s() == "group" && kids(t).len() == 5 && kid(t, 4) == "circle",
+        "electric" => t.get("k").s() == "group" && kids(t).len() == 6 && kid(t, 4) == "plane" && kid(t, 5) == "plight",
+        "haunted" => t.get("k").s() == "group" && kids(t).len() == 6 && kid(t, 4) == "plight" && kid(t, 5) == "circle",
+        _ => false,
+    };
+    tree.iter().take_while(|t| is(t)).enumerate().map(|(i, _)| i).collect()
+}
+
+/// `case` with each recorded thing of its weather (`weather_nodes`) marked
+/// "weather"
+fn modelled_weather(case: &Json) -> Json {
+    let nodes = weather_nodes(case);
+    if nodes.is_empty() {
+        return case.clone();
+    }
+    let with = |o: &Json, key: &str, v: Json| -> Json {
+        let Json::Obj(fields) = o else { return o.clone() };
+        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
+    };
+    let haunted = case.get("name").s().starts_with("haunted");
+    let mark = if haunted { "weather-turned" } else { "weather" };
+    let tree = |t: &Json, run: bool| -> Json {
+        Json::Arr(
+            t.arr()
+                .iter()
+                .enumerate()
+                .map(|(i, n)| match (nodes.contains(&i), run, n) {
+                    (false, ..) => n.clone(),
+                    (true, false, _) => with(n, "k", Json::Str(format!("{mark}:{}", n.get("k").s()))),
+                    (true, true, Json::Arr(v)) => {
+                        let mut v = v.clone();
+                        v[0] = Json::Str(format!("{mark}:{}", v[0].s()));
+                        Json::Arr(v)
+                    }
+                    _ => n.clone(),
+                })
+                .collect(),
+        )
+    };
+    let mut c = case.clone();
+    let b = c.get("build").clone();
+    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
+    if c.get("sim").has("frames") {
+        let sim = c.get("sim").clone();
+        let frames: Vec<Json> = sim
+            .get("frames")
+            .arr()
+            .iter()
+            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
+            .collect();
+        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
+    }
+    if c.has("final") {
+        let f = c.get("final").clone();
+        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
+    }
+    c
+}
+
+/// A modelled weather thing against the recorded one's kind and place
+/// (`modelled_weather`): `mark` "weather:<kind>" or "weather-turned:<kind>"
+#[track_caller]
+fn cmp_weather(o: &Obj, mark: &str, p: &[f64], r: &[f64], path: &str) {
+    let (how, kind) = mark.split_once(':').unwrap();
+    assert_eq!(kind_of(o), kind, "{path}: kind");
+    let q = o.pos();
+    assert_close(q.x, p[0], TOL, &format!("{path}: position x"));
+    assert_close(q.z, p[2], TOL, &format!("{path}: position z"));
+    assert!((q.y - p[1]).abs() < 0.02, "{path}: lies {:.3} m from its recorded height", q.y - p[1]);
+    if how == "weather" {
+        let rr = o.rot();
+        assert_vec_close(&[rr.x, rr.y, rr.z], r, 1e-8, &format!("{path}: rotation"));
+    }
+}
+
 /// A modelled web against the recorded decal's place (`modelled_webs`)
 #[track_caller]
 fn cmp_web(o: &Obj, p: &[f64], path: &str) {
@@ -836,7 +941,7 @@ fn without<'a>(jt: &'a [Json], drop: &HashSet<usize>) -> Vec<&'a Json> {
 }
 
 fn run_case(case: &Json, real_builders: bool) {
-    let case = &modelled_webs(&quiet_notes(case));
+    let case = &modelled_weather(&modelled_webs(&quiet_notes(case)));
     let mut drop = window_zone_nodes(case);
     drop.extend(note_mark_nodes(case));
     drop.extend(barricade_nodes(case));

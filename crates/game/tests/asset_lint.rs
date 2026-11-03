@@ -31,11 +31,62 @@ const DEGENERATE_EXCEPTIONS: &[(&str, &str)] = &[
 
 /// Parts given a budget of their own in their batch script
 /// (`part('Name', …, budget=N)` in `assets/src/blender/props/*.py`, or
-/// `auto('Name', build, N)` in the batches whose parts are placed as
-/// modelled: its last argument).
-fn script_budgets() -> std::collections::HashMap<String, usize> {
+/// `auto('Name', build, N, …)` in the batches whose parts are placed as
+/// modelled: its third argument, before any keyword). A name made in a loop
+/// (`auto(f'Real__keysKey{_i}', …)`) is a pattern: what stands for `{…}`
+/// matches any letters and digits.
+struct ScriptBudgets {
+    exact: std::collections::HashMap<String, usize>,
+    patterns: Vec<(String, String, usize)>,
+}
+
+impl ScriptBudgets {
+    fn get(&self, name: &str) -> Option<usize> {
+        self.exact.get(name).copied().or_else(|| {
+            self.patterns.iter().find_map(|(pre, post, b)| {
+                let mid = name.strip_prefix(pre.as_str())?.strip_suffix(post.as_str())?;
+                (!mid.is_empty() && mid.chars().all(|c| c.is_ascii_alphanumeric())).then_some(*b)
+            })
+        })
+    }
+}
+
+/// The top-level arguments of a call's text after its `(`
+fn call_args(rest: &str) -> Vec<String> {
+    let (mut out, mut cur, mut depth, mut quote) = (vec![], String::new(), 0i32, None::<char>);
+    for c in rest.chars() {
+        match (quote, c) {
+            (Some(q), c) if c == q => {
+                quote = None;
+                cur.push(c);
+            }
+            (Some(_), c) => cur.push(c),
+            (None, '\'' | '"') => {
+                quote = Some(c);
+                cur.push(c);
+            }
+            (None, '(' | '[' | '{') => {
+                depth += 1;
+                cur.push(c);
+            }
+            (None, ')' | ']' | '}') if depth == 0 => break,
+            (None, ')' | ']' | '}') => {
+                depth -= 1;
+                cur.push(c);
+            }
+            (None, ',') if depth == 0 => out.push(std::mem::take(&mut cur).trim().to_string()),
+            (None, c) => cur.push(c),
+        }
+    }
+    if !cur.trim().is_empty() {
+        out.push(cur.trim().to_string());
+    }
+    out
+}
+
+fn script_budgets() -> ScriptBudgets {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/src/blender/props");
-    let mut out = std::collections::HashMap::new();
+    let mut out = ScriptBudgets { exact: Default::default(), patterns: vec![] };
     for e in std::fs::read_dir(dir).into_iter().flatten().flatten() {
         let text = std::fs::read_to_string(e.path()).unwrap_or_default();
         for line in text.lines().filter(|l| l.trim_start().starts_with("part('")) {
@@ -43,15 +94,27 @@ fn script_budgets() -> std::collections::HashMap<String, usize> {
             if let Some(b) =
                 line.split("budget=").nth(1).and_then(|r| r.split(|c: char| !c.is_ascii_digit()).next()).and_then(|n| n.parse().ok())
             {
-                out.insert(name.to_string(), b);
+                out.exact.insert(name.to_string(), b);
             }
         }
-        for line in text.lines().filter(|l| l.trim_start().starts_with("auto('")) {
+        for line in text.lines() {
             let l = line.trim_start();
-            let name = l[6..].split('\'').next().unwrap_or("");
-            let last = l.trim_end().trim_end_matches(')').rsplit(',').next().unwrap_or("").trim();
-            if let Ok(b) = last.parse::<usize>() {
-                out.insert(name.to_string(), b);
+            let Some(rest) = l.strip_prefix("auto(") else { continue };
+            let args = call_args(rest);
+            // a keyword argument is a bare name then `=` (a lambda's default is not one)
+            let keyword = |a: &str| {
+                let n = a.split('=').next().unwrap_or("").trim();
+                a.contains('=') && !n.is_empty() && !n.contains(' ') && n.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+            };
+            let positional: Vec<&String> = args.iter().filter(|a| !keyword(a)).collect();
+            let (Some(name), Some(b)) = (positional.first(), positional.get(2).and_then(|b| b.parse::<usize>().ok())) else { continue };
+            let templated = name.starts_with("f'") || name.starts_with("f\"");
+            let name = name.trim_start_matches('f').trim_matches(|c| c == '\'' || c == '"');
+            match (templated, name.find('{'), name.rfind('}')) {
+                (true, Some(i), Some(j)) => out.patterns.push((name[..i].to_string(), name[j + 1..].to_string(), b)),
+                _ => {
+                    out.exact.insert(name.to_string(), b);
+                }
             }
         }
     }
@@ -171,7 +234,7 @@ fn prop_parts_are_sound() {
         if dev > MAX_FRAME_DEV {
             bad.push(format!("{name}: {:.0}% away from its frame (wrong frame or orientation?)", dev * 100.0));
         }
-        let budget = budgets.get(*name).copied().unwrap_or_else(|| budget_for(p.fmin, p.fmax)) * 5 / 4;
+        let budget = budgets.get(name).unwrap_or_else(|| budget_for(p.fmin, p.fmax)) * 5 / 4;
         if p.t > budget {
             over_budget.push(format!("(\"{name}\", {}),", p.t));
         }

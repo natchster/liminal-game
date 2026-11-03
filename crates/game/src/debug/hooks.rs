@@ -734,6 +734,20 @@ impl Game {
             "batteries": self.battery_items.iter().filter(|a| !a.taken).count(),
             "interactables": self.interactables.len(),
             "animators": self.animators.len(),
+            // the settled walls a body meets (`settle_props` pins a face where a
+            // wall prop's probe misses, and a pillar's end becomes a wall): how
+            // many boxes, and a hash of every coordinate
+            "solidBoxes": self.solids.as_ref().map(|s| s.count).unwrap_or(0),
+            "solidsHash": self.solids.as_ref().map(|s| {
+                let mut x: u64 = 0xcbf2_9ce4_8422_2325;
+                for v in &s.boxes[..s.count * 8] {
+                    for b in v.to_bits().to_le_bytes() {
+                        x ^= u64::from(b);
+                        x = x.wrapping_mul(0x0100_0000_01b3);
+                    }
+                }
+                format!("{x:016x}")
+            }).unwrap_or_default(),
         });
         let entities: Vec<Value> = self
             .entities
