@@ -727,9 +727,11 @@ fn place_wall_doors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&door);
 }
 
-// R553 single sock: 10% chance per level. Flat sock w/ toe
-// + heel + cuff.
+// R553 single sock: 10% chance per level: a crew sock lost and lying limp on
+// the floor, grey with dirt (Blender batch r08: the knit body, its heel and
+// toe, the two bands knitted round a sports sock's cuff).
 fn place_single_socks(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -738,26 +740,88 @@ fn place_single_socks(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = choice(&open);
+    // the old colours stand for the socks people lose: a white sports sock
+    // (grey heel and toe, navy bands), black, burgundy, navy, grey marl
     let sock_colors = [0xf0ece0, 0x181410, 0xa02040, 0x2050c0, 0xd8b040];
-    let sock_mat = lambert!({ color: choice(&sock_colors) });
-    let stripe_mat = lambert!({ color: 0x181410 });
+    let (body, heel, bands) = match choice(&sock_colors) {
+        0xf0ece0 => (0xb6b1a4, 0x86827a, Some(0x2e3550)),
+        0x181410 => (0x2b2927, 0x34312d, None),
+        0xa02040 => (0x5a2c30, 0x4a2528, None),
+        0x2050c0 => (0x2e3446, 0x262b38, None),
+        _ => (0x878480, 0x6a6763, Some(0x4a4844)),
+    };
+    let knit = sock_knit_tex();
     let sock = group();
-    // Foot + cuff (L-shape).
-    let foot = mesh(pg("SingleSocks__foot", box_geo!(0.10, 0.014, 0.036)), &sock_mat);
-    foot.position().y = 0.007;
-    sock.add(&foot);
-    // Cuff angled up.
-    let cuff = mesh(pg("SingleSocks__cuff", box_geo!(0.04, 0.014, 0.036)), &sock_mat);
-    cuff.position().set(-0.05, 0.007, 0);
-    sock.add(&cuff);
-    // 2 stripe bands.
-    for cx in [-0.045, 0.045] {
-        let stripe = mesh(pg("SingleSocks__stripe", box_geo!(0.010, 0.015, 0.036)), &stripe_mat);
-        stripe.position().set(cx, 0.007, 0);
-        sock.add(&stripe);
+    let mut part = |name: &str, color: u32| {
+        if let Some(geo) = prop_part_as_modelled(name) {
+            sock.add(&mesh(geo, lambert!({ map: &knit, color: color })));
+        }
+    };
+    part("Real__sock", body);
+    part("Real__sockHeelToe", heel);
+    if let Some(b) = bands {
+        part("Real__sockBands", b);
     }
     scatter(g, &sock, x, z, 2.4);
     g.world.add(&sock);
+}
+/// A soft round spot at `at`: `r` px, `k` times as tall as it is wide, turned
+/// `turn`, its colour fading out from the middle (the context squashed, so
+/// the fade is never cut by an edge).
+fn r08_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
+    let (cr, cg, cb, a) = rgba;
+    ctx.save();
+    ctx.translate(at.0, at.1);
+    ctx.rotate(turn);
+    ctx.scale(1, k);
+    let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+    gr.add_color_stop(0, &format!("rgba({cr},{cg},{cb},{a:.3})"));
+    gr.add_color_stop(1, &format!("rgba({cr},{cg},{cb},0)"));
+    ctx.set_fill_style(&gr);
+    ctx.begin_path();
+    ctx.arc(0, 0, r, 0, 7);
+    ctx.fill();
+    ctx.restore();
+}
+
+/// The sock's cotton as it lies (laid over it from above: u along x, v
+/// against z of `r08.py`'s sock): the knit's fine grain, washed-out patches,
+/// and the dirt of a floor, heaviest at its toe (u 0.95, v 0.83) and heel
+/// (u 0.3, v 0.7) where it was walked in.
+fn sock_knit_tex() -> Tex {
+    canvas_tex_opt(256, 256, false, |ctx, w, h| {
+        ctx.set_fill_style("#e9e6df");
+        ctx.fill_rect(0, 0, w, h);
+        // the knit: fine wales, a fleck of fibre
+        for i in 0..(w as i32) {
+            if i % 3 == 0 {
+                ctx.set_fill_style("rgba(120,116,108,0.10)");
+                ctx.fill_rect(i as f64, 0, 1, h);
+            }
+        }
+        for _ in 0..1600 {
+            let v = 150.0 + rnd() * 100.0;
+            ctx.set_fill_style(format!("rgba({v:.0},{v:.0},{:.0},0.22)", v - 6.0));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0 + rnd() * 2.0);
+        }
+        // greyed all over, in washes
+        for _ in 0..40 {
+            let at = (rnd() * w, rnd() * h);
+            r08_soft(ctx, at, 18.0 + rnd() * 40.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (110, 102, 90, 0.08 + rnd() * 0.12));
+        }
+        // walked in: the toe and the heel
+        for (u, v, n) in [(0.95, 0.83, 40), (0.30, 0.70, 30)] {
+            for _ in 0..n {
+                let at = (u * w + (rnd() - 0.5) * 70.0, v * h + (rnd() - 0.5) * 60.0);
+                r08_soft(ctx, at, 8.0 + rnd() * 16.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (74, 64, 50, 0.10 + rnd() * 0.16));
+            }
+        }
+        // a few bits of the floor caught in it
+        for _ in 0..60 {
+            ctx.set_fill_style(format!("rgba(60,52,40,{:.2})", 0.3 + rnd() * 0.4));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 1.5, 1.0 + rnd() * 1.5);
+        }
+    })
 }
 
 // R553 ceiling motion detector: 5% chance per level. Small
@@ -1034,9 +1098,12 @@ fn place_broken_pens(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R550 bottle caps scatter: 10% chance per level. 8-14 small
-// colored discs.
+// R550 bottle caps: 10% chance per level: 8-14 crown caps prised off bottles
+// and dropped in one place (Blender batch r08: 29 mm across, their 21 flutes
+// crimped, their printed tops faded and scratched to the tin, some bent by
+// the opener, some lying on their backs showing the liner).
 fn place_bottle_caps(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -1045,25 +1112,220 @@ fn place_bottle_caps(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = choice(&open);
+    // the old colours stand for five printed caps (none a real brand)
     let cap_colors = [0xa02020, 0x30a030, 0x2050c0, 0xd8b040, 0xc0c0c0];
+    let mut crowns: Vec<Option<Mat>> = vec![None; cap_colors.len()];
+    let mut tops: Vec<Option<Mat>> = vec![None; cap_colors.len()];
+    let liner = lambert!({ color: 0xb2ac9c });
     let grp = group();
+    let mut down: Vec<(f64, f64)> = vec![];
     let n_caps = 8 + (rnd() * 7.0).floor() as i32;
     for i in 0..n_caps {
-        let cap_mat = lambert!({ color: choice(&cap_colors) });
-        let cap = mesh(pg("BottleCaps__cap", cyl_geo!(0.010, 0.011, 0.003, 12)), &cap_mat);
+        let col = choice(&cap_colors);
+        let k = cap_colors.iter().position(|&c| c == col).unwrap_or(0);
         let px = (rnd() - 0.5) * 0.25;
         let pz = (rnd() - 0.5) * 0.25;
-        cap.position().set(px, 0.0015, pz);
-        // 25% edge-on tipped.
-        if rnd() < 0.25 {
-            cap.rotation().z = PI / 2.0;
-            cap.position().y = 0.010;
+        // 25% on its back (it was edge-on)
+        let flipped = rnd() < 0.25;
+        let ry = rnd() * PI * 2.0;
+        // a third bent by the opener (from where it fell: no new draw)
+        let bent = ((px + 0.5) * 53.0).fract() < 0.34;
+        // clear of the caps already down
+        let (mut qx, mut qz) = (px, pz);
+        for _ in 0..4 {
+            for &(ax, az) in &down {
+                let (dx, dz) = (qx - ax, qz - az);
+                let d = (dx * dx + dz * dz).sqrt();
+                if d < 0.031 {
+                    let (ux, uz) = if d > 1e-6 { (dx / d, dz / d) } else { (1.0, 0.0) };
+                    qx += ux * (0.032 - d);
+                    qz += uz * (0.032 - d);
+                }
+            }
         }
-        cap.rotation().y = rnd() * PI * 2.0;
+        down.push((qx, qz));
+        let (crown_n, top_n, liner_n) = if bent {
+            ("Real__capCrownBent", "Real__capTopBent", "Real__capLinerBent")
+        } else {
+            ("Real__capCrown", "Real__capTop", "Real__capLiner")
+        };
+        let Some(crown_geo) = prop_part_as_modelled(crown_n) else { continue };
+        let height = crown_geo.bounding_box().max.y;
+        let crown_mat = crowns[k].get_or_insert_with(|| cap_crown_mat(k)).clone();
+        let cap = group();
+        cap.add(&mesh(crown_geo, &crown_mat));
+        if flipped {
+            if let Some(geo) = prop_part_as_modelled(liner_n) {
+                cap.add(&mesh(geo, &liner));
+            }
+            cap.rotation().x = PI;
+            cap.position().set(qx, height, qz);
+        } else {
+            if let Some(geo) = prop_part_as_modelled(top_n) {
+                let top_mat = tops[k].get_or_insert_with(|| cap_top_mat(k)).clone();
+                cap.add(&mesh(geo, &top_mat));
+            }
+            cap.position().set(qx, 0, qz);
+        }
+        cap.rotation().y = ry;
         grp.add(&cap);
     }
     scatter(g, &grp, x, z, 2.4);
     g.world.add(&grp);
+}
+
+/// The five caps' lacquer (sRGB): red, bottle green, navy, gold, tin.
+const CAP_PAINT: [u32; 5] = [0x7e2a24, 0x2f4b33, 0x2b3a5e, 0x9a7c3a, 0x9c9c96];
+
+/// A cap's skirt (round it, u; up it, v): its lacquer, the flutes' crests
+/// rubbed to the tin, rust along the cut edge, scratches.
+fn cap_crown_mat(k: usize) -> Mat {
+    let paint = CAP_PAINT[k];
+    let tex = canvas_tex(126, 32, move |ctx, w, h| {
+        let (r, g, b) = ((paint >> 16) & 255, (paint >> 8) & 255, paint & 255);
+        ctx.set_fill_style(format!("rgb({r},{g},{b})"));
+        ctx.fill_rect(0, 0, w, h);
+        // 21 flutes: their crests rubbed bright, toward the edge
+        for f in 0..21 {
+            let x = (f as f64 + 0.5) / 21.0 * w;
+            let gr = ctx.create_linear_gradient(0, 0, 0, h);
+            gr.add_color_stop(0, "rgba(176,174,166,0)");
+            gr.add_color_stop(1, "rgba(176,174,166,0.55)");
+            ctx.set_fill_style(&gr);
+            ctx.fill_rect(x - 1.0, h * 0.3, 2.0, h * 0.7);
+        }
+        // rust at the cut edge (it is tinplate: the edge is bare steel)
+        for _ in 0..50 {
+            ctx.set_fill_style(format!("rgba({:.0},{:.0},30,{:.2})", 100.0 + rnd() * 30.0, 56.0 + rnd() * 14.0, 0.35 + rnd() * 0.45));
+            ctx.fill_rect(rnd() * w, h - 1.0 - rnd() * rnd() * 10.0, 1.0 + rnd() * 3.0, 1.0 + rnd() * 2.0);
+        }
+        ctx.set_line_width(0.7);
+        for _ in 0..16 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            ctx.set_stroke_style(format!("rgba(178,176,168,{:.2})", 0.3 + rnd() * 0.4));
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + (rnd() - 0.5) * 16.0, y + (rnd() - 0.5) * 6.0);
+            ctx.stroke();
+        }
+    });
+    phong!({ map: &tex, color: 0xffffff, specular: 0x484848, shininess: 46 })
+}
+
+/// A cap's printed top (seen from above: the disc fills the square): a
+/// plain mark of a beer or a soda that never was, faded, rubbed, scratched
+/// to the tin, a ring pressed in it by the bottle's lip.
+fn cap_top_mat(k: usize) -> Mat {
+    let paint = CAP_PAINT[k];
+    let tex = canvas_tex_opt(128, 128, false, move |ctx, w, h| {
+        let (r, g, b) = ((paint >> 16) & 255, (paint >> 8) & 255, paint & 255);
+        ctx.set_fill_style(format!("rgb({r},{g},{b})"));
+        ctx.fill_rect(0, 0, w, h);
+        let (cx, cy) = (w / 2.0, h / 2.0);
+        let ink = if k == 3 || k == 4 { "rgba(40,30,22,0.85)" } else { "rgba(226,220,204,0.85)" };
+        ctx.set_fill_style(ink);
+        ctx.set_stroke_style(ink);
+        ctx.set_text_align("center");
+        ctx.set_text_baseline("middle");
+        let ring = |ctx: &mut Canvas, rr: f64, lw: f64| {
+            ctx.set_line_width(lw);
+            ctx.begin_path();
+            ctx.arc(cx, cy, rr, 0, 7);
+            ctx.stroke();
+        };
+        match k {
+            0 => {
+                ring(ctx, 50.0, 3.0);
+                ctx.set_font("bold 25px Futura");
+                ctx.fill_text_max("LAGER", cx, cy + 6.0, 86);
+                // a small star over it
+                ctx.begin_path();
+                for i in 0..10 {
+                    let a = -PI / 2.0 + i as f64 * PI / 5.0;
+                    let rr = if i % 2 == 0 { 9.0 } else { 3.8 };
+                    let (x, y) = (cx + a.cos() * rr, cy - 22.0 + a.sin() * rr);
+                    if i == 0 {
+                        ctx.move_to(x, y);
+                    } else {
+                        ctx.line_to(x, y);
+                    }
+                }
+                ctx.close_path();
+                ctx.fill();
+            }
+            1 => {
+                ring(ctx, 52.0, 1.5);
+                ring(ctx, 46.0, 1.5);
+                ctx.set_font("bold 19px Gill Sans");
+                ctx.fill_text_max("PILSNER", cx, cy, 84);
+                ctx.set_font("10px Gill Sans");
+                ctx.fill_text("BREWED SINCE 1898", cx, cy + 20.0);
+            }
+            2 => {
+                ctx.set_font("bold 30px Futura");
+                ctx.fill_text_max("SODA", cx, cy - 4.0, 90);
+                ctx.set_line_width(2.5);
+                ctx.begin_path();
+                ctx.move_to(cx - 34.0, cy + 18.0);
+                ctx.bezier_curve_to(cx - 14.0, cy + 10.0, cx + 6.0, cy + 26.0, cx + 34.0, cy + 16.0);
+                ctx.stroke();
+            }
+            3 => {
+                // a shield, EXPORT across it
+                ctx.set_line_width(2.5);
+                ctx.begin_path();
+                ctx.move_to(cx - 26.0, cy - 30.0);
+                ctx.line_to(cx + 26.0, cy - 30.0);
+                ctx.line_to(cx + 26.0, cy + 2.0);
+                ctx.quadratic_curve_to(cx + 24.0, cy + 26.0, cx, cy + 36.0);
+                ctx.quadratic_curve_to(cx - 24.0, cy + 26.0, cx - 26.0, cy + 2.0);
+                ctx.close_path();
+                ctx.stroke();
+                ctx.set_font("bold 15px Rockwell");
+                ctx.fill_text_max("EXPORT", cx, cy - 2.0, 50);
+            }
+            _ => {
+                ring(ctx, 50.0, 2.0);
+                for i in 0..24 {
+                    let a = i as f64 / 24.0 * PI * 2.0;
+                    ctx.begin_path();
+                    ctx.arc(cx + a.cos() * 42.0, cy + a.sin() * 42.0, 1.8, 0, 7);
+                    ctx.fill();
+                }
+                ctx.set_font("bold 26px Copperplate");
+                ctx.fill_text_max("BEER", cx, cy, 70);
+            }
+        }
+        // faded: the print rubbed thin in patches, the lacquer worn off
+        ctx.set_global_alpha(1.0);
+        for _ in 0..26 {
+            let at = (rnd() * w, rnd() * h);
+            r08_soft(ctx, at, 8.0 + rnd() * 16.0, 0.5 + rnd() * 0.4, rnd() * 3.0, (r as u8, g as u8, b as u8, 0.25 + rnd() * 0.45));
+        }
+        // scratched to the tin
+        ctx.set_line_width(0.9);
+        for _ in 0..22 {
+            let (x, y, a) = (rnd() * w, rnd() * h, rnd() * PI);
+            let l = 6.0 + rnd() * 40.0;
+            ctx.set_stroke_style(format!("rgba(186,184,176,{:.2})", 0.35 + rnd() * 0.45));
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.stroke();
+        }
+        // the ring the bottle's lip pressed into it, a little bright
+        ctx.set_stroke_style("rgba(190,186,176,0.25)");
+        ctx.set_line_width(2.0);
+        ctx.begin_path();
+        ctx.arc(cx, cy, 56.0, 0, 7);
+        ctx.stroke();
+        // dirt
+        for _ in 0..30 {
+            ctx.set_fill_style(format!("rgba(60,52,40,{:.2})", 0.1 + rnd() * 0.25));
+            ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 3.0);
+        }
+    });
+    phong!({ map: &tex, color: 0xffffff, specular: 0x404040, shininess: 44 })
 }
 
 // R549 wall fuse box: 4% chance per level. Gray metal box w/

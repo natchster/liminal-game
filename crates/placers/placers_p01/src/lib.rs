@@ -95,35 +95,272 @@ fn vsub(a: Vec3, b: Vec3) -> Vec3 {
     v
 }
 
-// R246 discarded scrap papers: 1-3 small crumpled paper meshes per level.
+// R246 discarded scrap papers: 1-3 sheets of office paper per level, balled up
+// and thrown away or smoothed out again and dropped (Blender batch r08: a
+// sheet of A4 balled tight, one crumpled loosely, one flattened out; printed).
 fn place_scrap_papers(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     let count = 1 + (rnd() * 3.0).floor() as usize; // 1-3 scraps
     let mut open_tiles = open_tiles(g);
     shuffle(&mut open_tiles);
-    let paper_mat = lambert!({ color: 0xd0c8b4 });
+    let mut wad_mat: Option<Mat> = None;
+    let mut page_mat: Option<Mat> = None;
     let mut i = 0;
     while i < count && i < open_tiles.len() {
         let (x, z) = open_tiles[i];
-        // Irregular crumple shape: small box scaled non-uniformly.
+        // the old crumple's sizes: which scrap it is (x), how big (z)
         let size_x = 0.06 + rnd() * 0.05;
         let size_y = 0.04 + rnd() * 0.03;
         let size_z = 0.06 + rnd() * 0.05;
-        let geo = pg("ScrapPapers__wad", box_geo!(size_x, size_y, size_z));
-        let scrap = mesh(geo, &paper_mat);
-        // Rest on floor with random rotation.
-        let rx = (rnd() - 0.5) * 0.4;
+        let u = (size_x - 0.06) / 0.05;
+        let (name, sheet) = if u < 0.42 {
+            ("Real__paperBall", false)
+        } else if u < 0.78 {
+            ("Real__paperWad", false)
+        } else {
+            ("Real__paperSheet", true)
+        };
+        let mat =
+            if sheet { page_mat.get_or_insert_with(scrap_page_mat).clone() } else { wad_mat.get_or_insert_with(scrap_wad_mat).clone() };
+        let geo = prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(size_x, size_y, size_z));
+        let scrap = mesh(geo, &mat);
+        // the old tilts are kept as draws: a ball rests on its flattest side,
+        // a sheet lies where it fell
+        let _rx = rnd();
         let ry = rnd() * PI * 2.0;
-        let rz = (rnd() - 0.5) * 0.4;
-        scrap.rotation().set(rx, ry, rz);
+        let _rz = rnd();
+        // a ball a little bigger or smaller (a sheet is A4)
+        let k = if sheet { 1.0 } else { 0.9 + (size_z - 0.06) / 0.05 * 0.2 };
+        scrap.scale().set(k, k, k);
+        scrap.rotation().y = ry;
         let ox = (rnd() - 0.5) * 2.6;
         let oz = (rnd() - 0.5) * 2.6;
-        scrap.position().set(g.wx(x) + ox, size_y * 0.5, g.wz(z) + oz);
+        scrap.position().set(g.wx(x) + ox, 0, g.wz(z) + oz);
         g.world.add(&scrap);
         i += 1;
     }
 }
 
-// R246 chalk marks: 0-3 small white streak decals on random walls.
+/// Office paper balled up: fragments of its print turned every way, the
+/// creases' grime, a footprint's dust (laid on the ball by its box faces).
+fn scrap_wad_mat() -> Mat {
+    let tex = canvas_tex(256, 256, |ctx, w, h| {
+        ctx.set_fill_style("#e4e0d4");
+        ctx.fill_rect(0, 0, w, h);
+        // the paper's own unevenness
+        for _ in 0..260 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let v = 212.0 + rnd() * 30.0;
+            ctx.set_fill_style(format!("rgba({v:.0},{:.0},{:.0},0.18)", v - 4.0, v - 14.0));
+            ctx.fill_rect(x, y, 3.0 + rnd() * 9.0, 3.0 + rnd() * 9.0);
+        }
+        // the print: patches of type, each a facet of the sheet turned its own way
+        for _ in 0..16 {
+            let (cx, cy) = (rnd() * w, rnd() * h);
+            let r = 20.0 + rnd() * 30.0;
+            ctx.save();
+            ctx.begin_path();
+            let n = 5 + (rnd() * 3.0).floor() as usize;
+            for k in 0..n {
+                let t = (k as f64 + rnd() * 0.4) / n as f64 * PI * 2.0;
+                let rr = r * (0.6 + 0.4 * rnd());
+                if k == 0 {
+                    ctx.move_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                } else {
+                    ctx.line_to(cx + t.cos() * rr, cy + t.sin() * rr);
+                }
+            }
+            ctx.close_path();
+            ctx.clip();
+            ctx.translate(cx, cy);
+            ctx.rotate(rnd() * PI * 2.0);
+            paper_type_lines(ctx, -r - 10.0, -r - 10.0, 2.0 * r + 20.0, 2.0 * r + 20.0, 9.0, 0.35 + rnd() * 0.3);
+            ctx.restore();
+        }
+        // crease lines: grime in the valleys
+        ctx.set_line_width(0.8);
+        for _ in 0..40 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * PI;
+            let l = 10.0 + rnd() * 40.0;
+            ctx.set_stroke_style(format!("rgba(70,64,52,{:.2})", 0.08 + rnd() * 0.12));
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+            ctx.stroke();
+        }
+        // dust from the floor
+        for _ in 0..16 {
+            let at = (rnd() * w, rnd() * h);
+            scrap_soft(ctx, at, 8.0 + rnd() * 20.0, 0.5 + rnd() * 0.4, rnd() * 3.0, (96, 86, 66, 0.06 + rnd() * 0.12));
+        }
+    });
+    lambert!({ map: &tex, color: 0xffffff })
+}
+
+/// The flattened sheet: a stock count printed on it (a title, a ruled table
+/// of stationery), its creases, a shoe's dusty print across it.
+fn scrap_page_mat() -> Mat {
+    let tex = canvas_tex_opt(384, 544, false, |ctx, w, h| {
+        ctx.set_fill_style("#e2ded2");
+        ctx.fill_rect(0, 0, w, h);
+        let ink = "rgba(36,34,32,0.86)";
+        ctx.set_fill_style(ink);
+        ctx.set_text_align("left");
+        ctx.set_text_baseline("alphabetic");
+        ctx.set_font("bold 17px Helvetica");
+        ctx.fill_text("Stock Count Sheet", 34, 58);
+        ctx.set_font("10px Helvetica");
+        ctx.fill_text("Stationery store, ground floor", 34, 74);
+        ctx.fill_text("Counted by: ____________   Date: ___ / ___ / ______", 34, 92);
+        // the table
+        let rows = [
+            ("1043-A", "Copy paper A4, 80 g/m2, ream", "112"),
+            ("1043-B", "Copy paper A3, ream", "14"),
+            ("2210", "Toner cartridge, black", "6"),
+            ("2211", "Toner cartridge, cyan", "2"),
+            ("3105", "Staples 26/6, box of 5000", "38"),
+            ("3112", "Binder clips 32 mm, box", "21"),
+            ("3120", "Paper clips, box of 100", "45"),
+            ("4001", "Folders, manila, pack of 50", "9"),
+            ("4007", "Lever arch files, A4", "27"),
+            ("5020", "Ballpoint pens, blue, box", "16"),
+            ("5021", "Ballpoint pens, black, box", "11"),
+            ("5040", "Highlighters, assorted", "7"),
+            ("6110", "Envelopes C4, box of 250", "4"),
+            ("6115", "Envelopes DL, box of 500", "5"),
+            ("7002", "Labels, address, sheet", "300"),
+            ("7010", "Tape, clear, 19 mm", "24"),
+            ("7015", "Sticky notes 76 x 76", "60"),
+            ("8001", "Correction fluid", "13"),
+        ];
+        let (x0, x1, x2, x3, x4) = (34.0, 92.0, 270.0, 312.0, w - 30.0);
+        let top = 112.0;
+        let rh = 19.0;
+        ctx.set_stroke_style("rgba(40,38,36,0.7)");
+        ctx.set_line_width(1.0);
+        for k in 0..=rows.len() + 1 {
+            let y = top + k as f64 * rh;
+            ctx.begin_path();
+            ctx.move_to(x0, y);
+            ctx.line_to(x4, y);
+            ctx.stroke();
+        }
+        for x in [x0, x1, x2, x3, x4] {
+            ctx.begin_path();
+            ctx.move_to(x, top);
+            ctx.line_to(x, top + (rows.len() + 1) as f64 * rh);
+            ctx.stroke();
+        }
+        ctx.set_font("bold 10px Helvetica");
+        for (x, t) in [(x0, "Item"), (x1, "Description"), (x2, "Qty"), (x3, "Counted")] {
+            ctx.fill_text(t, x + 4.0, top + 13.5);
+        }
+        ctx.set_font("10px Times");
+        for (k, (a, b, c)) in rows.iter().enumerate() {
+            let y = top + (k + 1) as f64 * rh + 13.5;
+            ctx.fill_text(a, x0 + 4.0, y);
+            ctx.fill_text(b, x1 + 4.0, y);
+            ctx.fill_text(c, x2 + 4.0, y);
+        }
+        ctx.set_font("9px Helvetica");
+        ctx.fill_text("Page 2 of 3", w / 2.0 - 22.0, h - 26.0);
+        // the creases: thin lines darker on one side, lighter on the other
+        for _ in 0..34 {
+            let (x, y) = (rnd() * w, rnd() * h);
+            let a = rnd() * PI;
+            let l = 30.0 + rnd() * 140.0;
+            let (dx, dy) = (a.cos() * l, a.sin() * l);
+            ctx.set_line_width(1.0);
+            ctx.set_stroke_style(format!("rgba(80,72,58,{:.2})", 0.10 + rnd() * 0.15));
+            ctx.begin_path();
+            ctx.move_to(x, y);
+            ctx.line_to(x + dx, y + dy);
+            ctx.stroke();
+            ctx.set_stroke_style("rgba(255,255,250,0.10)");
+            ctx.begin_path();
+            ctx.move_to(x + 1.2, y + 1.2);
+            ctx.line_to(x + dx + 1.2, y + dy + 1.2);
+            ctx.stroke();
+        }
+        // a shoe stepped on it: the dusty print of a sole's tread, half of it
+        let (sx, sy, sa) = (w * (0.35 + rnd() * 0.3), h * (0.45 + rnd() * 0.3), rnd() * PI);
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(sa);
+        ctx.begin_path();
+        ctx.ellipse(0, -40.0, 46.0, 62.0, 0, 0, 7);
+        ctx.ellipse(0, 70.0, 34.0, 38.0, 0, 0, 7);
+        ctx.clip();
+        for k in 0..26 {
+            let y = -110.0 + k as f64 * 8.0;
+            ctx.set_fill_style(format!("rgba(92,82,64,{:.2})", 0.10 + rnd() * 0.10));
+            ctx.fill_rect(-50.0 + rnd() * 6.0, y, 100.0, 4.0);
+        }
+        ctx.restore();
+        // dirt at its edges, where it lay longest on the floor
+        for _ in 0..40 {
+            let (x, y) = if rnd() < 0.5 {
+                (rnd() * w, if rnd() < 0.5 { rnd() * 30.0 } else { h - rnd() * 30.0 })
+            } else {
+                (if rnd() < 0.5 { rnd() * 24.0 } else { w - rnd() * 24.0 }, rnd() * h)
+            };
+            scrap_soft(ctx, (x, y), 8.0 + rnd() * 18.0, 0.5 + rnd() * 0.4, rnd() * 3.0, (96, 86, 66, 0.08 + rnd() * 0.14));
+        }
+    });
+    lambert!({ map: &tex, color: 0xffffff, side: DoubleSide })
+}
+/// A soft round spot at `at`: `r` px, `k` times as tall as it is wide, turned
+/// `turn`, its colour fading out from the middle (the context squashed, so
+/// the fade is never cut by an edge).
+fn scrap_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
+    let (cr, cg, cb, a) = rgba;
+    ctx.save();
+    ctx.translate(at.0, at.1);
+    ctx.rotate(turn);
+    ctx.scale(1, k);
+    let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+    gr.add_color_stop(0, &format!("rgba({cr},{cg},{cb},{a:.3})"));
+    gr.add_color_stop(1, &format!("rgba({cr},{cg},{cb},0)"));
+    ctx.set_fill_style(&gr);
+    ctx.begin_path();
+    ctx.arc(0, 0, r, 0, 7);
+    ctx.fill();
+    ctx.restore();
+}
+
+/// Lines of small printed type (words of an office's papers) filling the box
+/// (x, y, w, h), `size` px, its ink `alpha`.
+fn paper_type_lines(ctx: &mut Canvas, x: f64, y: f64, w: f64, h: f64, size: f64, alpha: f64) {
+    const WORDS: [&str; 32] = [
+        "the", "and", "of", "to", "for", "account", "total", "date", "please", "report", "per", "unit", "page", "item", "order", "review",
+        "with", "that", "office", "copy", "received", "amount", "number", "dept.", "on", "is", "be", "as", "by", "this", "invoice",
+        "meeting",
+    ];
+    ctx.set_fill_style(format!("rgba(34,32,30,{alpha:.2})"));
+    ctx.set_font(&format!("{size:.0}px Times"));
+    ctx.set_text_align("left");
+    let mut yy = y + size;
+    while yy < y + h {
+        let mut xx = x + rnd() * 6.0;
+        let end = x + w - rnd() * w * 0.25;
+        while xx < end {
+            let word = WORDS[(rnd() * WORDS.len() as f64) as usize % WORDS.len()];
+            ctx.fill_text(word, xx, yy);
+            xx += ctx.measure_text(word).width + size * 0.35;
+        }
+        yy += size * 1.3;
+    }
+}
+
+// R246 chalk marks: 0-3 marks in chalk on random walls, in a stranger's hand:
+// a number underlined, a looping scribble where someone tried the chalk, a
+// fitter's measure (a line with a tick at each end, its length over it);
+// never a lone stroke, a tally, an arrow or a circle (hers and the place's
+// are those), the grain of the chalk dragged over the wall, its dust under
+// it. The mark is laid on the wall in upright strips each no wider than the
+// old streak's settling probe takes in at once (`CHALK_STRIP`), so settling
+// finds the same wall face for it and pins nothing new.
 fn place_chalk_marks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.35 {
         return;
@@ -132,26 +369,277 @@ fn place_chalk_marks(g: &mut Game, _dist: &[i32]) {
     let mut candidates = wall_candidates(g);
     shuffle(&mut candidates);
     let chalk_color = chalk_color_by_weather(g.weather_key());
-    let chalk_mat = basic_mat!({ color: chalk_color, transparent: true, opacity: 0.75, depthWrite: false, side: DoubleSide });
     let mut i = 0;
     while i < count && i < candidates.len() {
         let c = candidates[i];
-        // Short vertical tally: 0.015 wide x 0.10-0.16 tall.
+        // the old streak's width and height: which scrawl, and its size
         let w = 0.012 + rnd() * 0.006;
         let h = 0.10 + rnd() * 0.06;
-        let mark = mesh(plane_geo!(w, h), &chalk_mat);
+        let u = (w - 0.012) / 0.006;
+        let kind = ((u * 3.0).floor() as usize).min(2);
+        let code = ((u * 1.0e6) as u64) ^ (((h - 0.10) / 0.06 * 1.0e6) as u64).rotate_left(17);
+        let full = CHALK_PLANE * (0.88 + (h - 0.10) / 0.06 * 0.24);
+        let tex = chalk_scrawl_tex(kind, code);
+        let chalk_mat = lambert!({
+            map: &tex,
+            color: chalk_color,
+            transparent: true,
+            depthWrite: false,
+            side: DoubleSide,
+            polygonOffset: true,
+            polygonOffsetFactor: -2,
+            polygonOffsetUnits: -2
+        });
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.02);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.02);
         let mid_height = 0.6 + rnd() * 0.8; // 0.6 - 1.4 m
-        if c.dx.abs() == 1 {
-            mark.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
-            mark.position().set(wall_x, mid_height, wall_z + (rnd() - 0.5) * 1.4);
+        let (turn, mx, mz) = if c.dx.abs() == 1 {
+            (if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 }, wall_x, wall_z + (rnd() - 0.5) * 1.4)
         } else {
-            mark.rotation().y = if c.dz > 0 { PI } else { 0.0 };
-            mark.position().set(wall_x + (rnd() - 0.5) * 1.4, mid_height, wall_z);
+            (if c.dz > 0 { PI } else { 0.0 }, wall_x + (rnd() - 0.5) * 1.4, wall_z)
+        };
+        // where the wall's face steps (a jamb, a pillar, a corner) within its
+        // width, a smaller one, so none of it hangs off an edge
+        let (ax, az) = (turn.cos(), -turn.sin());
+        let (px, pz) = (mx - c.dx as f64 * 0.01, mz - c.dz as f64 * 0.01);
+        let inside = |off: f64| g.circle_hits_wall(px + ax * off, pz + az * off, 0.01);
+        let mid = inside(0.0);
+        let mut size = full;
+        while size > 0.09 && (inside(-size / 2.0) != mid || inside(size / 2.0) != mid) {
+            size *= 0.8;
+        }
+        // the strips, left to right across the wall, each at the old streak's
+        // place with its slice of the scrawl beside it (a group at the origin:
+        // settling takes each strip by itself, where it took the streak)
+        let mark = group();
+        let n = (size / CHALK_STRIP).ceil().max(1.0) as usize;
+        let sw = size / n as f64;
+        for k in 0..n {
+            let geo = plane_geo!(sw, size);
+            let (u0, u1) = (k as f32 / n as f32, (k + 1) as f32 / n as f32);
+            geo.set_uv(vec![u0, 1.0, u1, 1.0, u0, 0.0, u1, 0.0]);
+            geo.translate((k as f64 + 0.5) * sw - size / 2.0, 0, 0);
+            let strip = mesh(geo, &chalk_mat);
+            strip.rotation().y = turn;
+            strip.position().set(mx, mid_height, mz);
+            mark.add(&strip);
         }
         g.world.add(&mark);
         i += 1;
+    }
+}
+
+/// The chalk mark's square (m): its scrawl in the upper part, the dust below.
+const CHALK_PLANE: f64 = 0.22;
+/// The widest strip a mark is laid in (m): settling probes a wall face only
+/// at the middle of anything narrower than 8 cm, as it did the old streak.
+const CHALK_STRIP: f64 = 0.07;
+
+/// A scrawl in chalk on a wall (`kind` 0 a number underlined, 1 a looping
+/// scribble, 2 a fitter's measure), drawn with a stick of blackboard chalk
+/// (10 mm: a stroke 6-8 mm wide), its grain broken by the wall's tooth, its
+/// dust fallen below it. White, tinted by the material.
+fn chalk_scrawl_tex(kind: usize, code: u64) -> Tex {
+    canvas_tex_opt(256, 256, false, move |ctx, w, h| {
+        ctx.clear_rect(0, 0, w, h);
+        // 1 px = 0.86 mm; the scrawl in the upper two thirds
+        let mut strokes: Vec<Vec<(f64, f64)>> = vec![];
+        let jig = |p: (f64, f64), k: f64| (p.0 + (rnd() - 0.5) * k, p.1 + (rnd() - 0.5) * k);
+        // a number in a quick upright hand, its digits `dw` x `dh`, centred on cx
+        let number = |strokes: &mut Vec<Vec<(f64, f64)>>, n: u64, cx: f64, y0: f64, dw: f64, dh: f64, slant: f64| -> f64 {
+            let digits: Vec<u32> = n.to_string().chars().filter_map(|c| c.to_digit(10)).collect();
+            let gap = dw * 0.28;
+            let total = digits.len() as f64 * (dw + gap) - gap;
+            let mut x0 = cx - total / 2.0;
+            for d in digits {
+                for st in chalk_digit(d) {
+                    strokes.push(st.iter().map(|&(u, v)| jig((x0 + u * dw + (1.0 - v) * dh * slant, y0 + v * dh), 2.0)).collect());
+                }
+                x0 += dw + gap;
+            }
+            total
+        };
+        match kind {
+            0 => {
+                // a number, 9 cm tall, underlined quickly
+                let slant = 0.06 + (code % 7) as f64 * 0.015;
+                let total = number(&mut strokes, 2 + code % 97, w / 2.0, 28.0, 56.0, 100.0, slant);
+                let ul_y = 28.0 + 100.0 + 14.0;
+                strokes.push(vec![((w - total) / 2.0 - 10.0, ul_y + 3.0), (w / 2.0, ul_y), ((w + total) / 2.0 + 14.0, ul_y - 4.0)]);
+            }
+            1 => {
+                // a looping scribble along a line, as a hand tries the chalk
+                let loops = 5.0 + (code % 3) as f64;
+                let mut pts = vec![];
+                let (x0, x1, cy) = (34.0, w - 34.0, 92.0 + (code % 13) as f64);
+                for k in 0..=220 {
+                    let t = k as f64 / 220.0;
+                    let a = t * loops * PI * 2.0;
+                    let r = 24.0 + 9.0 * (t * 7.0 + code as f64 * 0.1).sin();
+                    pts.push((x0 + (x1 - x0) * t + r * 0.55 * a.cos(), cy - r * 0.8 * a.sin() + 10.0 * (t * 3.0).sin()));
+                }
+                strokes.push(pts);
+            }
+            _ => {
+                // a fitter's measure: a line across with a tick at each end,
+                // its length in centimetres written over it
+                let (x0, x1) = (30.0 + (code % 11) as f64, w - 28.0 - (code % 7) as f64);
+                let y = 132.0 + (code % 9) as f64;
+                strokes.push(vec![jig((x0, y), 2.0), jig(((x0 + x1) / 2.0, y + 1.5), 2.0), jig((x1, y - 2.0), 2.0)]);
+                strokes.push(vec![jig((x0 + 1.5, y - 17.0), 1.5), jig((x0 - 1.0, y + 15.0), 1.5)]);
+                strokes.push(vec![jig((x1 + 1.5, y - 19.0), 1.5), jig((x1 - 1.0, y + 13.0), 1.5)]);
+                number(&mut strokes, 60 + code % 140, (x0 + x1) / 2.0, y - 78.0, 34.0, 58.0, 0.08);
+            }
+        }
+        let mut low = 0.0f64;
+        let (mut lx, mut hx) = (w, 0.0f64);
+        for st in &strokes {
+            let pts = chalk_smooth(st);
+            chalk_stroke(ctx, &pts, 9.5);
+            for &(x, y) in &pts {
+                low = low.max(y);
+                lx = lx.min(x);
+                hx = hx.max(x);
+            }
+        }
+        // its dust: a faint powder down the wall under the strokes, and specks
+        for _ in 0..14 {
+            let x = lx + rnd() * (hx - lx);
+            let y = low + 4.0 + rnd() * 26.0;
+            chalk_soft(ctx, x, y, 7.0 + rnd() * 10.0, 1.6 + rnd(), 0.05 + rnd() * 0.06);
+        }
+        for _ in 0..160 {
+            let x = lx - 6.0 + rnd() * (hx - lx + 12.0);
+            let y = low - 10.0 + rnd() * rnd() * (h - low + 6.0);
+            ctx.set_fill_style(format!("rgba(255,255,255,{:.2})", 0.15 + rnd() * 0.45));
+            ctx.fill_rect(x, y, 0.8 + rnd(), 0.8 + rnd());
+        }
+    })
+}
+
+/// A soft round of chalk dust at (x, y), `r` px, drawn out `k` times as tall
+/// as it is wide (the context squashed, so its fade is never cut).
+fn chalk_soft(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, alpha: f64) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(1, k);
+    let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
+    gr.add_color_stop(0, &format!("rgba(255,255,255,{alpha:.3})"));
+    gr.add_color_stop(1, "rgba(255,255,255,0)");
+    ctx.set_fill_style(&gr);
+    ctx.begin_path();
+    ctx.arc(0, 0, r, 0, 7);
+    ctx.fill();
+    ctx.restore();
+}
+
+/// The strokes of a digit in a unit box (u across, v down), as a quick hand
+/// draws it.
+fn chalk_digit(d: u32) -> Vec<Vec<(f64, f64)>> {
+    let arc = |cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64| -> Vec<(f64, f64)> {
+        (0..=12).map(|k| a0 + (a1 - a0) * k as f64 / 12.0).map(|a| (cx + rx * a.cos(), cy + ry * a.sin())).collect()
+    };
+    match d {
+        0 => vec![arc(0.5, 0.5, 0.48, 0.5, -1.4, 4.95)],
+        1 => vec![vec![(0.22, 0.2), (0.55, 0.0), (0.55, 1.0)]],
+        2 => {
+            let mut s = arc(0.5, 0.28, 0.45, 0.28, 3.4, 6.6);
+            s.extend([(0.05, 1.0), (1.0, 0.98)]);
+            vec![s]
+        }
+        3 => {
+            let mut s = arc(0.45, 0.25, 0.45, 0.25, 3.6, 7.6);
+            s.extend(arc(0.45, 0.73, 0.5, 0.27, -1.4, 2.6));
+            vec![s]
+        }
+        4 => vec![vec![(0.7, 1.0), (0.7, 0.0), (0.0, 0.68), (1.0, 0.68)]],
+        5 => {
+            let mut s = vec![(0.9, 0.0), (0.18, 0.0), (0.12, 0.43)];
+            s.extend(arc(0.45, 0.68, 0.5, 0.31, -2.4, 2.7));
+            vec![s]
+        }
+        6 => {
+            let mut s = vec![(0.85, 0.05), (0.45, 0.2), (0.08, 0.62)];
+            s.extend(arc(0.5, 0.72, 0.43, 0.27, 3.1, 9.4));
+            vec![s]
+        }
+        7 => vec![vec![(0.0, 0.02), (0.95, 0.0), (0.35, 1.0)]],
+        8 => {
+            let mut s = arc(0.5, 0.25, 0.38, 0.25, 1.6, 7.6);
+            s.extend(arc(0.5, 0.74, 0.46, 0.26, -1.6, 4.7));
+            vec![s]
+        }
+        _ => {
+            let mut s = arc(0.48, 0.3, 0.44, 0.3, 0.2, 6.6);
+            s.extend([(0.9, 0.4), (0.62, 1.0)]);
+            vec![s]
+        }
+    }
+}
+
+/// A hand's line through the points (Chaikin, twice).
+fn chalk_smooth(p: &[(f64, f64)]) -> Vec<(f64, f64)> {
+    let mut p = p.to_vec();
+    for _ in 0..2 {
+        if p.len() < 3 {
+            break;
+        }
+        let mut q = vec![p[0]];
+        for k in 0..p.len() - 1 {
+            let (a, b) = (p[k], p[k + 1]);
+            q.push((a.0 * 0.75 + b.0 * 0.25, a.1 * 0.75 + b.1 * 0.25));
+            q.push((a.0 * 0.25 + b.0 * 0.75, a.1 * 0.25 + b.1 * 0.75));
+        }
+        q.push(p[p.len() - 1]);
+        p = q;
+    }
+    p
+}
+
+/// The wall's tooth at (x, y) px: what catches the chalk (0..1), fixed for
+/// the wall so every stroke skips in the same places.
+fn chalk_tooth(x: f64, y: f64) -> f64 {
+    let (i, j) = ((x / 1.6).floor() as i64, (y / 1.6).floor() as i64);
+    let mut v = (i.wrapping_mul(374_761_393) ^ j.wrapping_mul(668_265_263)) as u64;
+    v = (v ^ (v >> 13)).wrapping_mul(1_274_126_177);
+    ((v ^ (v >> 16)) & 0xffff) as f64 / 65535.0
+}
+
+/// A stroke of chalk along the points: grains caught on the wall's tooth,
+/// heavier where pressed, broken where it skipped, its ends lifting.
+fn chalk_stroke(ctx: &mut Canvas, pts: &[(f64, f64)], width: f64) {
+    let mut len = 0.0;
+    for k in 1..pts.len() {
+        len += ((pts[k].0 - pts[k - 1].0).powi(2) + (pts[k].1 - pts[k - 1].1).powi(2)).sqrt();
+    }
+    let mut s = 0.0;
+    let wob = rnd() * 6.0;
+    for k in 1..pts.len() {
+        let (a, b) = (pts[k - 1], pts[k]);
+        let seg = ((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt();
+        if seg < 1e-6 {
+            continue;
+        }
+        let (tx, ty) = ((b.0 - a.0) / seg, (b.1 - a.1) / seg);
+        let (nx, ny) = (-ty, tx);
+        let steps = (seg / 0.7).ceil() as usize;
+        for j in 0..steps {
+            let t = j as f64 / steps as f64;
+            let (cx, cy) = (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t);
+            let at = (s + seg * t) / len.max(1e-6);
+            let ends = (at / 0.06).min(1.0) * ((1.0 - at) / 0.1).min(1.0);
+            let press = (0.62 + 0.25 * (at * 9.0 + wob).sin() + 0.13 * (at * 23.0 + wob).sin()) * (0.4 + 0.6 * ends);
+            for _ in 0..6 {
+                let off = (rnd() - 0.5) * width * (0.7 + 0.3 * ends);
+                let (x, y) = (cx + nx * off, cy + ny * off);
+                let edge = 1.0 - (2.0 * off / width).abs();
+                if chalk_tooth(x, y) + 0.3 * rnd() < press * (0.75 + 0.6 * edge) {
+                    ctx.set_fill_style(format!("rgba(255,255,255,{:.2})", 0.55 + 0.45 * rnd()));
+                    ctx.fill_rect(x - 0.8, y - 0.8, 1.4 + rnd() * 1.0, 1.4 + rnd() * 1.0);
+                }
+            }
+        }
+        s += seg;
     }
 }
 
