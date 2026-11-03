@@ -610,8 +610,14 @@ pub(crate) fn place_alarm_bells(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bell);
 }
 
-// R517 rust stain streak: 5% chance per level. Vertical rust drip decal on wall.
+// R517 rust stain streak (`assets/src/blender/props/r11b.notes.md`): a
+// steel fixing left in the wall (a stud anchor and its nut, or the corner
+// brace a shelf stood on) rusting, and what the damp carried down from it: dark round
+// the fixing where it began, then orange-brown runs, several side by side,
+// paler and thinner as they go, each ending where it dried, a fainter wash
+// between them. Painted on a transparent plane the old decal's size.
 pub(crate) fn place_rust_stain_streaks(g: &mut Game, _dist: &[i32]) {
+    use r11b_kit::*;
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -620,10 +626,37 @@ pub(crate) fn place_rust_stain_streaks(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let mat = basic_mat!({ map: rust_stain_texture(), transparent: true, opacity: 0.9, depthWrite: false });
-    let decal = mesh(plane_geo!(0.24, 0.60), &mat);
-    mount_on_wall(g, &decal, &c, 0.005, 1.5, 0.5);
-    g.world.add(&decal);
+    let (pw, ph) = (0.24, 0.60);
+    let grp = group();
+    mount_on_wall(g, &grp, &c, 0.005, 1.5, 0.5);
+    // what it is, from where it is (no draws)
+    let p = grp.pos();
+    let mut r = Rng(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]));
+    let bracket = r.f() < 0.4;
+    // the fixing: a hand's breadth under the top of the old decal; the rust
+    // runs from the anchor's nut, or from the brace's screws and its foot
+    let (fx, fy) = ((r.f() - 0.5) * 0.03, ph / 2.0 - if bracket { 0.05 } else { 0.07 });
+    let from = if bracket { fy - 0.045 } else { fy };
+    let len = 0.30 + 0.18 * r.f();
+    // the plane: the old decal's, on the wall's face (its back 5 mm behind the old one)
+    let tex = rust_streak_tex(r.u(), pw, ph, (pw / 2.0 + fx, ph / 2.0 - from), len, if bracket { 0.013 } else { 0.009 });
+    let decal = mesh(plane_geo!(pw, ph), &decal_mat(&tex));
+    decal.position().z = -0.004;
+    grp.add(&decal);
+    let name = if bracket { "Real__rustStreakBracket" } else { "Real__rustStreakAnchor" };
+    let fixing = mesh(
+        game::assets::props::prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(0.024, 0.024, 0.027)),
+        &lambert!({ map: &rust_steel_tex(), color: 0xffffff }),
+    );
+    fixing.position().set(fx, fy, -0.005);
+    if !bracket {
+        // the nut turned as it was tightened
+        fixing.rotation().z = r.f() * PI;
+    }
+    grp.add(&fixing);
+    // a mark on the wall: the placement pass leaves it where the settle put it
+    grp.user().floats = true;
+    g.world.add(&grp);
 }
 
 // R517 forgotten wristwatch: 6% chance per level. Watch face + leather band on floor.
@@ -2104,4 +2137,246 @@ pub(crate) fn place_deer_head_mounts(g: &mut Game, _dist: &[i32]) {
     }
     mount_on_wall(g, &mount, &c, 0.005, 2.00, 0.6);
     g.world.add(&mount);
+}
+
+/// Batch r11b's painting kit (the marks on the walls): hashed noise, a seeded
+/// generator for a mark's layout (no level draws), and a per-pixel painter
+/// filled on every core (`par_rows`).
+mod r11b_kit {
+    use game::prelude::*;
+
+    /// A small generator for a mark's own layout, seeded from where it is
+    pub struct Rng(pub u32);
+    impl Rng {
+        pub fn u(&mut self) -> u32 {
+            let mut x = self.0;
+            x ^= x << 13;
+            x ^= x >> 17;
+            x ^= x << 5;
+            self.0 = x;
+            x
+        }
+        /// in [0, 1)
+        pub fn f(&mut self) -> f64 {
+            f64::from(self.u()) / 4_294_967_296.0
+        }
+    }
+
+    /// A seed from values already fixed (a position, a side): no draws
+    pub fn seed_of(v: &[f64]) -> u32 {
+        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
+        for a in v {
+            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
+                x ^= u64::from(b);
+                x = x.wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        ((x ^ (x >> 32)) as u32) | 1
+    }
+
+    /// A hash of (seed, i, j) in [0, 1)
+    pub fn h01(seed: u32, i: i32, j: i32) -> f64 {
+        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+        h ^= h >> 16;
+        f64::from(h) / 4_294_967_296.0
+    }
+
+    /// Smooth value noise in [0, 1]
+    pub fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
+        let (xf, yf) = (x.floor(), y.floor());
+        let (i, j) = (xf as i32, yf as i32);
+        let (u, v) = (x - xf, y - yf);
+        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+        let (a, b) = (h01(seed, i, j), h01(seed, i + 1, j));
+        let (c, d) = (h01(seed, i, j + 1), h01(seed, i + 1, j + 1));
+        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+    }
+
+    /// Fractal value noise of `oct` octaves, in [0, 1]
+    pub fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
+        for k in 0..oct {
+            s += amp * vnoise(seed.wrapping_add(k * 7919), x * f, y * f);
+            n += amp;
+            amp *= 0.5;
+            f *= 2.03;
+        }
+        s / n
+    }
+
+    /// 0 below `e0`, 1 above `e1`, smooth between
+    pub fn smooth(e0: f64, e1: f64, x: f64) -> f64 {
+        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+        t * t * (3.0 - 2.0 * t)
+    }
+
+    pub fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
+        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+    }
+
+    /// `c` at alpha `a` over straight colour and alpha `dst`
+    pub fn lay(dst: &mut [f64; 4], c: [f64; 3], a: f64) {
+        let a = a.clamp(0.0, 1.0);
+        if a <= 0.0 {
+            return;
+        }
+        let out = a + dst[3] * (1.0 - a);
+        if out > 1e-6 {
+            for k in 0..3 {
+                dst[k] = (c[k] * a + dst[k] * dst[3] * (1.0 - a)) / out;
+            }
+        }
+        dst[3] = out;
+    }
+
+    /// Specks: a dot in each `cell` (m) with likelihood `like`, its radius
+    /// `r0` + up to `r1`, anti-aliased over `aa`: (coverage, the dot's hash)
+    #[allow(clippy::too_many_arguments)]
+    pub fn specks(seed: u32, x: f64, y: f64, cell: f64, like: f64, r0: f64, r1: f64, aa: f64) -> (f64, f64) {
+        let (gi, gj) = ((x / cell).floor() as i32, (y / cell).floor() as i32);
+        let (mut best, mut hk) = (0.0f64, 0.0);
+        for k in 0..9 {
+            let (ci, cj) = (gi + k % 3 - 1, gj + k / 3 - 1);
+            let h = h01(seed, ci, cj);
+            if h >= like {
+                continue;
+            }
+            let (px, py) = ((f64::from(ci) + h01(seed ^ 0x77, ci, cj)) * cell, (f64::from(cj) + h01(seed ^ 0x78, ci, cj)) * cell);
+            let r = r0 + r1 * h01(seed ^ 0x79, ci, cj);
+            let cov = (0.5 - ((x - px).hypot(y - py) - r) / aa).clamp(0.0, 1.0);
+            if cov > best {
+                best = cov;
+                hk = h01(seed ^ 0x7a, ci, cj);
+            }
+        }
+        (best, hk)
+    }
+
+    /// A transparent mark `tw` x `th` px across a plane `pw` x `ph` m: each
+    /// pixel `px(x, y, aa)` (m from the plane's top left, y down; `aa` a
+    /// pixel's size) in straight sRGB and alpha. Where it is clear its colour
+    /// is `bleed`, so a mark's edge does not filter toward black.
+    pub fn decal_tex(tw: usize, th: usize, pw: f64, ph: f64, bleed: [f64; 3], px: impl Fn(f64, f64, f64) -> [f64; 4] + Sync) -> Tex {
+        let tex = canvas_tex_opt(tw as f64, th as f64, false, move |ctx, cw, ch| {
+            let (sx, sy) = (pw / cw, ph / ch);
+            let aa = sx.max(sy) * 1.1;
+            let mut img = ctx.create_image_data(cw, ch);
+            par_rows(&mut img.data, tw * 4, |j, out| {
+                let y = (j as f64 + 0.5) * sy;
+                for i in 0..tw {
+                    let x = (i as f64 + 0.5) * sx;
+                    let p = px(x, y, aa);
+                    for (c, v) in p.iter().enumerate() {
+                        out[i * 4 + c] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+                    }
+                }
+            });
+            ctx.put_image_data(&img, 0, 0);
+        });
+        // what is clear (it came back black through the canvas) takes the
+        // bleed colour, and what is nearly clear goes toward it
+        {
+            let img = tex.image();
+            let mut im = img.borrow_mut();
+            for p in im.data.chunks_exact_mut(4) {
+                let t = smooth(0.0, 0.06, f64::from(p[3]) / 255.0);
+                for (c, b) in p.iter_mut().zip(bleed) {
+                    *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * t).round().clamp(0.0, 255.0) as u8;
+                }
+            }
+            im.version += 1;
+        }
+        tex
+    }
+
+    /// The decal material: lit, see-through, drawn over the wall
+    pub fn decal_mat(tex: &Tex) -> Mat {
+        lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
+    }
+
+    /// The rust that ran from a fixing at `from` (m from the plane's top left)
+    /// down a plane `pw` x `ph`, about `len` long, as wide as the fixing
+    /// (`w0`, half).
+    pub fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: f64) -> Tex {
+        let mut r = Rng(seed | 1);
+        let s = r.u();
+        // (sRGB) where it began, the runs, and paler where it thinned
+        const DARK: [f64; 3] = [0.27, 0.13, 0.055];
+        const RUST: [f64; 3] = [0.5, 0.29, 0.14];
+        const PALE: [f64; 3] = [0.58, 0.42, 0.25];
+        let (sx, sy) = from;
+        // the runs: (offset at the top, how far it got, width, strength, seed)
+        let runs: Vec<(f64, f64, f64, f64, u32)> = (0..5 + (r.f() * 5.0) as usize)
+            .map(|k| {
+                let o = (r.f() - 0.5) * 2.6 * w0;
+                let reach = len * if k == 0 { 0.9 + 0.1 * r.f() } else { 0.25 + 0.7 * r.f() };
+                (o, reach, 0.0014 + 0.003 * r.f(), 0.5 + 0.4 * r.f(), r.u())
+            })
+            .collect();
+        let tex = decal_tex(192, 480, pw, ph, RUST, move |x, y, aa| {
+            let mut px = [RUST[0], RUST[1], RUST[2], 0.0];
+            let dy = y - sy;
+            let t = (dy / len).clamp(0.0, 1.0);
+            let shade = |t: f64| mix(mix(DARK, RUST, smooth(0.0, 0.3, t)), PALE, smooth(0.45, 1.0, t));
+            // the wash: as wide as the runs spread, fading down, streaked along
+            if dy > -0.004 {
+                let xc = sx + (fbm(s, 0.5, y * 7.0, 2) - 0.5) * 0.02 * t;
+                let hw = w0 * 1.5 + 0.042 * t.sqrt() + 0.008 * (fbm(s ^ 0x3, 1.5, y * 11.0, 2) - 0.5);
+                let streak = 0.5 + 0.5 * vnoise(s ^ 0x9, x * 650.0, y * 7.0);
+                let a = (0.6 * (1.0 - t).powf(0.7) + 0.25 * (-dy / 0.03).exp())
+                    * (-((x - xc) / hw).powi(2) * 1.1).exp()
+                    * streak
+                    * smooth(-0.004, 0.006, dy);
+                lay(&mut px, shade(t), a);
+            }
+            // the runs, each darker along its edges where it dried, ending in a drop
+            for &(o, reach, w, st, rs) in &runs {
+                if dy < -0.002 || dy > reach + 0.01 {
+                    continue;
+                }
+                let tk = (dy / reach).clamp(0.0, 1.0);
+                let xk = sx + o * (1.0 + 1.2 * tk) + (fbm(rs, 0.5, y * 9.0, 3) - 0.5) * 0.016 * tk.sqrt();
+                let wk = w * (1.0 + 0.6 * tk) * (0.6 + 0.8 * fbm(rs ^ 0x5, 2.5, y * 30.0, 2));
+                let along = (x - xk).abs() - wk;
+                // the drop it ended in
+                let end = (((x - xk) / (wk * 1.7)).hypot((dy - reach) / (wk * 2.2)) - 1.0) * wk * 1.7;
+                let d = if dy < reach { along.min(end) } else { end };
+                if d > aa * 2.0 {
+                    continue;
+                }
+                let inside = (0.5 - d / aa).clamp(0.0, 1.0);
+                let rim = 0.65 + 0.35 * smooth(-wk * 0.9, 0.0, d);
+                lay(&mut px, shade(tk * reach / len), inside * st * rim * (1.0 - 0.55 * tk));
+            }
+            // dark round the fixing, where the rust began, and the ring it dried to
+            let n = fbm(s ^ 0x11, x * 90.0, y * 90.0, 3);
+            let rr = (x - sx).hypot((y - sy) * if dy < 0.0 { 1.6 } else { 0.7 }) * (0.75 + 0.5 * n);
+            let ring = w0 + 0.01;
+            lay(&mut px, DARK, 0.7 * (-(rr / ring).powi(2) * 1.8).exp() * (0.7 + 0.6 * n));
+            lay(&mut px, mix(DARK, RUST, 0.4), 0.22 * (-((rr - ring) / 0.004).powi(2)).exp() * smooth(0.35, 0.65, n));
+            // nothing at the plane's edges
+            px[3] *= smooth(0.0, 0.015, x.min(pw - x).min(y).min(ph - y));
+            px
+        });
+        tex
+    }
+
+    /// Rusted steel: dark scale and orange bloom, pitted (one, shared).
+    pub fn rust_steel_tex() -> Tex {
+        thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
+        T.with(|c| {
+            c.get_or_init(|| {
+                decal_tex(64, 64, 0.03, 0.03, [0.3, 0.16, 0.08], |x, y, _| {
+                    let n = fbm(0x5157, x * 260.0, y * 260.0, 3);
+                    let mut c = mix([0.2, 0.11, 0.06], [0.48, 0.25, 0.1], smooth(0.4, 0.75, n));
+                    let pit = vnoise(0x7a11, x * 1400.0, y * 1400.0);
+                    c = mix(c, [0.1, 0.06, 0.04], smooth(0.75, 0.95, pit) * 0.7);
+                    [c[0], c[1], c[2], 1.0]
+                })
+            })
+            .clone()
+        })
+    }
 }
