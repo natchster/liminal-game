@@ -471,8 +471,13 @@ fn place_glasses_cases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gc);
 }
 
-// R710 watch on wristband (floor): 7% chance per level.
+// R710 watch on wristband (floor): 7% chance per level. A 38 mm quartz
+// wristwatch (Blender batch r14b; the Timex Weekender class) lying on its
+// back, unbuckled, its two-piece strap lying out from the lugs, its tip
+// curled: the case plated, worn through at the edges; a domed acrylic
+// crystal, scratched; a printed dial, its hands where they stopped.
 fn place_wristwatches(g: &mut Game, _dist: &[i32]) {
+    use game::assets::props::prop_part_as_modelled;
     g.pp.wristwatch_positions = vec![]; // R712 reset per level
     if rnd() < 0.93 {
         return;
@@ -482,125 +487,90 @@ fn place_wristwatches(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
+    // the old colour draws, call for call: the strap, the case, the dial
     let band_colors = [0x101010, 0x603020, 0xa0a0a8, 0xc0a060, 0x201050, 0x804a20];
-    let band_mat = lambert!({ color: choice(&band_colors) });
+    let band_c = choice(&band_colors);
+    let band = band_colors.iter().position(|&c| c == band_c).unwrap_or(0);
     let case_colors = [0xc0a060, 0xa0a0a8, 0xe0d8c0, 0x606060];
-    let watch_case_mat = lambert!({ color: choice(&case_colors) });
+    let case_c = choice(&case_colors);
+    let case_k = case_colors.iter().position(|&c| c == case_c).unwrap_or(0);
     let face_colors = [0xf0e8d0, 0x101010, 0xf0f0f0, 0x2060a0];
-    let face_mat = lambert!({ color: choice(&face_colors) });
-    let hand_mat = lambert!({ color: 0x101010 });
-    let wg = group();
-    // Watch case — round.
-    let case_r = 0.020;
-    let watch_case = mesh(pg("Wristwatches__case", cyl_geo!(case_r, case_r, 0.010, 12)), &watch_case_mat);
-    watch_case.position().y = 0.005;
-    wg.add(&watch_case);
-    // Watch face disc — slightly smaller.
-    let face = mesh(circle_geo!(case_r * 0.85, 12), &face_mat);
-    face.rotation().x = -PI / 2.0;
-    face.position().y = 0.0097; // on the dial (case top 0.0095 inside the bezel)
-    wg.add(&face);
-    // 12 hour tick marks around face. Long axis (local Z) points radially.
-    for i in 0..12 {
-        let ang = (i as f64 / 12.0) * PI * 2.0;
-        let tick_r = case_r * 0.75;
-        let is_big = i % 3 == 0;
-        let tick = mesh(box_geo!(0.001, 0.0008, if is_big { 0.004 } else { 0.002 }), &hand_mat);
-        tick.position().set(ang.cos() * tick_r, 0.0102, ang.sin() * tick_r);
-        tick.rotation().y = PI / 2.0 - ang;
-        wg.add(&tick);
-    }
-    // Hour hand + minute hand + second hand, each pointing out from the pivot.
+    let face_c = choice(&face_colors);
+    let dial = face_colors.iter().position(|&c| c == face_c).unwrap_or(0);
+    // where the hands stopped (the old hands' draws): the hour from its own
+    // draw, carried on by the minutes; the second hand
     let hour_ang = rnd() * PI * 2.0;
     let min_ang = rnd() * PI * 2.0;
-    let hour = mesh(pg("Wristwatches__hourHand", box_geo!(0.0015, 0.0009, 0.008)), &hand_mat);
-    hour.position().set(hour_ang.cos() * 0.004, 0.0105, hour_ang.sin() * 0.004);
-    hour.rotation().y = PI / 2.0 - hour_ang;
-    wg.add(&hour);
-    let minute = mesh(pg("Wristwatches__minuteHand", box_geo!(0.001, 0.0009, 0.014)), &hand_mat);
-    minute.position().set(min_ang.cos() * 0.007, 0.0107, min_ang.sin() * 0.007);
-    minute.rotation().y = PI / 2.0 - min_ang;
-    wg.add(&minute);
-    // Second hand (thinner, red).
-    let sec_mat = lambert!({ color: 0xa02020 });
-    let second = mesh(box_geo!(0.0006, 0.0006, 0.016), &sec_mat);
     let sec_ang = rnd() * PI * 2.0;
-    second.position().set(sec_ang.cos() * 0.008, 0.0109, sec_ang.sin() * 0.008);
-    second.rotation().y = PI / 2.0 - sec_ang;
-    wg.add(&second);
     // R711 stepped-tick second hand — 40% chance ("still ticking").
     let is_ticking = rnd() < 0.4;
+    let px = g.wx(x) + (rnd() - 0.5) * 2.4;
+    let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
+    let yaw = rnd() * PI * 2.0;
+    let frac = |a: f64| ((a + PI / 2.0) / (PI * 2.0)).rem_euclid(1.0);
+    let minutes = frac(min_ang);
+    let hours = ((frac(hour_ang) * 12.0).floor() + minutes) / 12.0;
+    let seconds = frac(sec_ang);
+    let seed = r14b_kit::seed_of(&[px, pz]);
+    let wg = group();
+    // the case: plating over brass (dark, its colour in its highlight)
+    let (col, spec, shin) =
+        [(0x4a3c22, 0x8c7448, 54.0), (0x404042, 0x8e8e90, 70.0), (0x58564f, 0x6c6a64, 26.0), (0x1e1e20, 0x46464a, 40.0)][case_k];
+    let metal = phong!({ color: col, specular: spec, shininess: shin });
+    {
+        let mut mm = metal.m();
+        mm.map = Some(r14b_kit::plating_tex(case_k, seed));
+    }
+    if let Some(geo) = prop_part_as_modelled("Real__watchCase") {
+        wg.add(&mesh(geo, &metal));
+    }
+    if let Some(geo) = prop_part_as_modelled("Real__watchStrap") {
+        let bb = geo.bounding_box();
+        let (z0, z1) = (bb.min.z, bb.max.z);
+        let strap = mesh(geo, r14b_kit::strap_mat(band, z0, z1, seed));
+        wg.add(&strap);
+    }
+    // the dial, printed, under its hands
+    let face = mesh(circle_geo!(0.0158, 48), lambert!({ map: &r14b_kit::dial_tex(dial, seed) }));
+    face.rotation().x = -PI / 2.0;
+    face.position().y = 0.0061;
+    wg.add(&face);
+    let dark = dial == 1 || dial == 3;
+    let hand_mat = if dark { lambert!({ color: 0xcfc8b2 }) } else { lambert!({ color: 0x161514 }) };
+    let hand = |name: &str, y: f64, frac: f64, mat: &Mat| {
+        let pivot = group();
+        if let Some(geo) = prop_part_as_modelled(name) {
+            pivot.add(&mesh(geo, mat));
+        }
+        pivot.position().y = y;
+        pivot.rotation().y = -frac * PI * 2.0;
+        wg.add(&pivot);
+        pivot
+    };
+    hand("Real__watchHour", 0.00618, hours, &hand_mat);
+    hand("Real__watchMinute", 0.00636, minutes, &hand_mat);
+    let second = hand("Real__watchSecond", 0.00654, seconds, &lambert!({ color: if dark { 0xa0402c } else { 0x7a2218 } }));
+    if let Some(geo) = prop_part_as_modelled("Real__watchCrystal") {
+        let crystal = mesh(geo, r14b_kit::crystal_mat(&r14b_kit::crystal_dirt_tex(seed)));
+        crystal.set_render_order(2);
+        wg.add(&crystal);
+    }
     if is_ticking {
-        let mut sec_tick_state = sec_ang;
-        let mut sec_tick_timer = 0.0;
-        let sec_len = 0.016;
-        let second2 = second.clone();
+        // still going: the second hand steps once a second
+        let mut ang = -seconds * PI * 2.0;
+        let mut timer = 0.0;
         g.animate(move |_g, dt, _t| {
-            sec_tick_timer += dt;
-            if sec_tick_timer >= 1.0 {
-                sec_tick_timer -= 1.0;
-                sec_tick_state += PI * 2.0 / 60.0;
-                // Reposition + rotate around watch center.
-                second2.position().set(sec_tick_state.cos() * (sec_len * 0.5), 0.0109, sec_tick_state.sin() * (sec_len * 0.5));
-                second2.rotation().y = PI / 2.0 - sec_tick_state;
+            timer += dt;
+            if timer >= 1.0 {
+                timer -= 1.0;
+                ang -= PI * 2.0 / 60.0;
+                second.rotation().y = ang;
             }
         });
     }
     wg.user().set("isTicking", is_ticking);
-    // Center pivot dot.
-    let pivot = mesh(circle_geo!(0.0015, 6), &hand_mat);
-    pivot.rotation().x = -PI / 2.0;
-    pivot.position().y = 0.0112;
-    wg.add(&pivot);
-    // Crown knob (small cylinder on side).
-    let crown = mesh(pg("Wristwatches__crown", cyl_geo!(0.002, 0.002, 0.004, 6)), &watch_case_mat);
-    crown.rotation().z = PI / 2.0;
-    crown.position().set(case_r + 0.002, 0.005, 0);
-    wg.add(&crown);
-    // Band segments — 2 arcs curling from case in opposite directions.
-    let arc_segs = 6;
-    for side in 0..2 {
-        let dir: f64 = if side == 0 { -1.0 } else { 1.0 };
-        let mut prev = v3(0, 0.005, dir * case_r);
-        for i in 0..arc_segs {
-            let t = (i + 1) as f64 / arc_segs as f64;
-            // Curve outward + arc up slightly then down.
-            let cx = 0.0 + dir * (t * PI * 0.9).sin() * 0.045;
-            // From the lug (y 0.005) down onto the floor (3 mm strap, centre 0.0015).
-            let cy = 0.0015 + 0.0035 * (1.0 - t) * (1.0 - t);
-            let cz = dir * (case_r + t * 0.06);
-            let next = v3(cx, cy, cz);
-            let dir_len = next.distance_to(&prev);
-            if dir_len > 0.001 {
-                let seg = mesh(pg("Wristwatches__strap", box_geo!(0.012, 0.003, dir_len)), &band_mat);
-                let mut mid = prev;
-                mid.add(&next).multiply_scalar(0.5);
-                seg.position().copy(&mid);
-                let mut v = next;
-                v.sub(&prev).normalize();
-                seg.quaternion().set_from_unit_vectors(&v3(0, 0, 1), &v);
-                wg.add(&seg);
-            }
-            prev = next;
-        }
-        // Buckle end on one side.
-        if dir == 1.0 {
-            let buckle = mesh(pg("Wristwatches__buckle", box_geo!(0.014, 0.005, 0.016)), &watch_case_mat);
-            buckle.position().set(prev.x, 0.0025, prev.z);
-            buckle.rotation().y = 0.3;
-            wg.add(&buckle);
-            // Small pin: the tongue lies flat across the frame along the strap.
-            let pin = mesh(pg("Wristwatches__tongue", cyl_geo!(0.001, 0.001, 0.014, 4)), &watch_case_mat);
-            pin.rotation().x = PI / 2.0;
-            pin.rotation().z = -0.3;
-            pin.position().set(prev.x, 0.004, prev.z);
-            wg.add(&pin);
-        }
-    }
-    let px = g.wx(x) + (rnd() - 0.5) * 2.4;
-    let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
     wg.position().set(px, 0, pz);
-    wg.rotation().y = rnd() * PI * 2.0;
+    wg.rotation().y = yaw;
     g.world.add(&wg);
     // R712 register position only for ticking watches.
     if is_ticking {
@@ -1439,5 +1409,274 @@ mod tests {
         let mut list = vec![];
         super::register(&mut list);
         game::debug::testkit::smoke_placers(&list);
+    }
+}
+
+/// Batch r14b's kit (the wristwatch): a seed from where it lies, hashed
+/// noise, and what is painted: the dial, the strap's leather or webbing,
+/// the plating worn through, the crystal's scratches.
+mod r14b_kit {
+    use game::prelude::*;
+
+    /// A seed from values already fixed (a position): no draws
+    pub fn seed_of(v: &[f64]) -> u32 {
+        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
+        for a in v {
+            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
+                x ^= u64::from(b);
+                x = x.wrapping_mul(0x0100_0000_01b3);
+            }
+        }
+        ((x ^ (x >> 32)) as u32) | 1
+    }
+
+    fn h01(seed: u32, i: i32, j: i32) -> f64 {
+        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+        h ^= h >> 16;
+        f64::from(h) / 4_294_967_296.0
+    }
+
+    /// Smooth value noise in [0, 1]
+    fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
+        let (xf, yf) = (x.floor(), y.floor());
+        let (i, j) = (xf as i32, yf as i32);
+        let (u, v) = (x - xf, y - yf);
+        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+        let (a, b) = (h01(seed, i, j), h01(seed, i + 1, j));
+        let (c, d) = (h01(seed, i, j + 1), h01(seed, i + 1, j + 1));
+        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+    }
+
+    /// The dials (sRGB): aged cream, black, white gone grey, navy; and the
+    /// ink printed on each
+    const DIALS: [(&str, &str, &str); 4] = [
+        ("#d6ccb0", "rgba(26,24,22,0.92)", "rgba(150,40,30,0.85)"),
+        ("#1d1c1b", "rgba(222,214,196,0.9)", "rgba(196,92,60,0.85)"),
+        ("#d2cfc6", "rgba(26,24,22,0.92)", "rgba(150,40,30,0.85)"),
+        ("#29384e", "rgba(222,216,200,0.9)", "rgba(206,120,80,0.85)"),
+    ];
+
+    /// A watch's dial seen from above (12 at the top): the minute track, the
+    /// hours in a plain grotesque, the 24-hour ring small inside them, the
+    /// maker's name (none real) and QUARTZ; dulled toward its rim, freckled
+    /// where damp got under the crystal
+    pub fn dial_tex(k: usize, seed: u32) -> Tex {
+        canvas_tex_opt(256, 256, false, move |ctx, w, h| {
+            let (ground, ink, red) = DIALS[k];
+            let (cx, cy, r) = (w / 2.0, h / 2.0, w / 2.0);
+            ctx.set_fill_style(ground);
+            ctx.fill_rect(0, 0, w, h);
+            let g0 = ctx.create_radial_gradient(cx, cy, r * 0.55, cx, cy, r);
+            g0.add_color_stop(0, "rgba(120,100,70,0)");
+            g0.add_color_stop(1, "rgba(120,100,70,0.22)");
+            ctx.set_fill_style(g0);
+            ctx.fill_rect(0, 0, w, h);
+            ctx.set_stroke_style(ink);
+            ctx.set_line_cap("butt");
+            for i in 0..60 {
+                let a = i as f64 / 60.0 * PI * 2.0;
+                let five = i % 5 == 0;
+                let (r0, r1) = if five { (0.86, 0.97) } else { (0.92, 0.97) };
+                ctx.set_line_width(if five { 3.2 } else { 1.2 });
+                ctx.begin_path();
+                ctx.move_to(cx + a.sin() * r * r0, cy - a.cos() * r * r0);
+                ctx.line_to(cx + a.sin() * r * r1, cy - a.cos() * r * r1);
+                ctx.stroke();
+            }
+            ctx.set_fill_style(ink);
+            ctx.set_text_align("center");
+            ctx.set_text_baseline("middle");
+            ctx.set_font("bold 30px Helvetica Neue");
+            for i in 1..=12 {
+                let a = i as f64 / 12.0 * PI * 2.0;
+                ctx.fill_text(&i.to_string(), cx + a.sin() * r * 0.70, cy - a.cos() * r * 0.70 + 1.0);
+            }
+            ctx.set_fill_style(red);
+            ctx.set_font("bold 11px Helvetica Neue");
+            for i in 13..=24 {
+                let a = (i - 12) as f64 / 12.0 * PI * 2.0;
+                ctx.fill_text(&i.to_string(), cx + a.sin() * r * 0.47, cy - a.cos() * r * 0.47);
+            }
+            ctx.set_fill_style(ink);
+            ctx.set_font("bold 12px Futura");
+            ctx.fill_text("HALDEN", cx, cy - r * 0.26);
+            ctx.set_font("8px Helvetica Neue");
+            ctx.fill_text("QUARTZ", cx, cy + r * 0.26);
+            ctx.fill_text("WATER RESISTANT", cx, cy + r * 0.36);
+            // freckles where damp got in, and the print dulled
+            let mut rr = SplitMix64::new(seed, 0xd1a1);
+            let n = 30 + (rr.next() * 50.0) as usize;
+            for _ in 0..n {
+                let a = rr.range(0.0, PI * 2.0);
+                let d = r * rr.range(0.2, 0.98).sqrt();
+                ctx.set_fill_style(&format!("rgba(110,78,40,{:.2})", rr.range(0.15, 0.5)));
+                ctx.begin_path();
+                ctx.arc(cx + a.cos() * d, cy + a.sin() * d, rr.range(0.6, 2.2), 0, 7);
+                ctx.fill();
+            }
+            if rr.next() < 0.5 {
+                // a tide mark low on the dial, where water stood once
+                let y = cy + r * rr.range(0.35, 0.6);
+                let gr = ctx.create_linear_gradient(0, y - 18.0, 0, h);
+                gr.add_color_stop(0, "rgba(120,90,50,0)");
+                gr.add_color_stop(0.15, "rgba(120,90,50,0.22)");
+                gr.add_color_stop(1, "rgba(120,90,50,0.10)");
+                ctx.set_fill_style(gr);
+                ctx.fill_rect(0, y - 18.0, w, h - y + 18.0);
+            }
+        })
+    }
+
+    /// The strap (seen from above, its length down the canvas from z1 at
+    /// the top to z0): leather's grain, creased and darkened at the hole it
+    /// was worn on and where the wrist sweated; scuffed pale; or a woven
+    /// webbing's ribs
+    pub fn strap_mat(band: usize, z0: f64, z1: f64, seed: u32) -> Mat {
+        // black, dark brown, grey webbing, tan, navy webbing, brown (sRGB)
+        let col: [(f64, f64, f64); 6] =
+            [(30.0, 28.0, 26.0), (64.0, 42.0, 28.0), (92.0, 92.0, 90.0), (118.0, 86.0, 56.0), (38.0, 42.0, 62.0), (88.0, 56.0, 34.0)];
+        let webbing = band == 2 || band == 4;
+        let c = col[band];
+        let tex = canvas_tex_opt(64, 512, false, move |ctx, w, h| {
+            let vy = |z: f64| (1.0 - (z - z0) / (z1 - z0)) * h;
+            let n = w as usize;
+            let mut img = ctx.create_image_data(w, h);
+            let s = seed;
+            par_rows(&mut img.data, n * 4, |j, out| {
+                for i in 0..n {
+                    let (x, y) = (i as f64, j as f64);
+                    let k = if webbing {
+                        let rib = (x * 1.9).sin() * 0.5 + 0.5;
+                        0.86 + 0.12 * rib + 0.06 * (vnoise(s, x * 0.3, y * 0.05) - 0.5)
+                    } else {
+                        let grain = vnoise(s, x * 0.9, y * 0.9) * 0.5 + vnoise(s ^ 5, x * 0.25, y * 0.25) * 0.5;
+                        0.84 + 0.22 * grain
+                    };
+                    let px = |v: f64| (v * k).clamp(0.0, 255.0) as u8;
+                    out[i * 4..i * 4 + 4].copy_from_slice(&[px(c.0), px(c.1), px(c.2), 255]);
+                }
+            });
+            ctx.put_image_data(&img, 0, 0);
+            // where it was worn: the hole it was buckled on, creased across
+            // and darkened, the sweat band behind the case on both pieces
+            let worn = vy(0.0905);
+            for (y, a) in [(worn, 0.35), (vy(0.032), 0.22), (vy(-0.030), 0.22)] {
+                let gr = ctx.create_linear_gradient(0, y - 20.0, 0, y + 20.0);
+                gr.add_color_stop(0, "rgba(10,8,6,0)");
+                gr.add_color_stop(0.5, &format!("rgba(10,8,6,{a})"));
+                gr.add_color_stop(1, "rgba(10,8,6,0)");
+                ctx.set_fill_style(gr);
+                ctx.fill_rect(0, y - 20.0, w, 40);
+            }
+            let mut r = SplitMix64::new(seed, 0x57a9);
+            ctx.set_line_width(1.0);
+            for k in 0..5 {
+                let y = worn + (k as f64 - 2.0) * 3.0 + r.range(-1.0, 1.0);
+                ctx.set_stroke_style(if webbing { "rgba(20,18,16,0.25)" } else { "rgba(14,10,8,0.45)" });
+                ctx.begin_path();
+                ctx.move_to(0, y);
+                ctx.bezier_curve_to(w * 0.3, y + r.range(-2.0, 2.0), w * 0.7, y + r.range(-2.0, 2.0), w, y + r.range(-1.0, 1.0));
+                ctx.stroke();
+            }
+            // scuffs, pale, and the finish rubbed off in patches
+            for _ in 0..40 {
+                let (x, y) = (r.range(0.0, w), r.range(0.0, h));
+                ctx.set_fill_style(&format!("rgba(200,184,160,{:.2})", r.range(0.05, 0.18)));
+                ctx.begin_path();
+                ctx.ellipse(x, y, r.range(1.0, 5.0), r.range(0.6, 2.0), r.range(0.0, 3.0), 0, 7);
+                ctx.fill();
+            }
+        });
+        if webbing {
+            lambert!({ map: &tex })
+        } else {
+            phong!({ map: &tex, specular: 0x161412, shininess: 18 })
+        }
+    }
+
+    /// The plating rubbed through at the edges and lugs to the brass under
+    /// it, and grime in the joints (multiplied over the metal's colour)
+    pub fn plating_tex(k: usize, seed: u32) -> Tex {
+        canvas_tex_opt(64, 64, false, move |ctx, w, h| {
+            ctx.set_fill_style("#ffffff");
+            ctx.fill_rect(0, 0, w, h);
+            let mut r = SplitMix64::new(seed, 0x91a7 + k as u64);
+            let brass = if k == 0 { "rgba(170,120,60,0.55)" } else { "rgba(150,110,60,0.45)" };
+            for _ in 0..26 {
+                let (x, y) = (r.range(0.0, w), r.range(0.0, h));
+                ctx.set_fill_style(brass);
+                ctx.begin_path();
+                ctx.ellipse(x, y, r.range(1.0, 4.0), r.range(0.5, 2.0), r.range(0.0, 3.0), 0, 7);
+                ctx.fill();
+            }
+            for _ in 0..30 {
+                let (x, y) = (r.range(0.0, w), r.range(0.0, h));
+                ctx.set_fill_style(&format!("rgba(40,34,26,{:.2})", r.range(0.2, 0.5)));
+                ctx.fill_rect(x, y, r.range(1.0, 3.0), r.range(1.0, 2.0));
+            }
+        })
+    }
+
+    /// The domed acrylic: polished once, now hazed and scratched (grey:
+    /// how much)
+    pub fn crystal_dirt_tex(seed: u32) -> Tex {
+        canvas_tex_opt(128, 128, false, move |ctx, w, h| {
+            let n = w as usize;
+            let mut img = ctx.create_image_data(w, h);
+            let s = seed;
+            par_rows(&mut img.data, n * 4, |j, out| {
+                for i in 0..n {
+                    let (x, y) = (i as f64 / w, j as f64 / h);
+                    let d = vnoise(s, x * 5.0, y * 5.0) * 0.6 + vnoise(s ^ 3, x * 19.0, y * 19.0) * 0.4;
+                    let v = ((0.16 + 0.30 * d) * 255.0) as u8;
+                    out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);
+                }
+            });
+            ctx.put_image_data(&img, 0, 0);
+            let mut r = SplitMix64::new(seed, 0xc4a5);
+            ctx.set_line_cap("round");
+            for _ in 0..60 {
+                let (x0, y0) = (r.range(0.0, w), r.range(0.0, h));
+                let a = r.range(0.0, PI);
+                let l = r.range(4.0, 26.0);
+                ctx.set_stroke_style(&format!("rgba(240,240,240,{:.2})", r.range(0.3, 0.75)));
+                ctx.set_line_width(r.range(0.5, 1.0));
+                ctx.begin_path();
+                ctx.move_to(x0, y0);
+                ctx.line_to(x0 + a.cos() * l, y0 + a.sin() * l);
+                ctx.stroke();
+            }
+        })
+    }
+
+    /// The crystal as the windows' glass (`Patch::Glass`): the room seen in
+    /// it by Fresnel, its haze from the map's grey
+    pub fn crystal_mat(map: &Tex) -> Mat {
+        let m = phong!({ color: 0xffffff, specular: 0x9a9a9a, shininess: 220, transparent: true, depthWrite: false });
+        {
+            let mut mm = m.m();
+            mm.map = Some(map.clone());
+            mm.patch = Patch::Glass;
+            mm.look_settled = true;
+            mm.name = "watch_crystal".into();
+        }
+        {
+            let pu = m.r().patch_uniforms.clone();
+            let f = &mut pu.borrow_mut().f;
+            f[0] = 0.5;
+            f[4] = 0.5;
+            f[5] = 0.6;
+            f[6] = 0.3;
+            f[7] = 0.0;
+            f[8] = 1.4;
+            f[9] = 0.2;
+            f[10] = 0.195;
+            f[11] = 0.18;
+            f[12] = 0.0;
+            f[13] = 0.07;
+        }
+        m
     }
 }
