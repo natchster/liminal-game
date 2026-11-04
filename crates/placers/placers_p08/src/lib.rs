@@ -370,45 +370,9 @@ fn place_donuts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&donut);
 }
 
-// R684 makeup sponge: 9% chance per level. Small teardrop
-// beauty blender sponge — pastel color.
-fn place_makeup_sponges(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.91 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    // Sponge color pool — pastel.
-    let sponge_colors: [u32; 6] = [0xf0a0a0, 0xa0d0f0, 0xf0c0e0, 0xd0e0a0, 0xf8c088, 0xe0c0f0];
-    let sponge_mat = lambert!({ color: pick(&sponge_colors) });
-    let sp = group();
-    // Body — sphere w/ Y-scale for teardrop shape.
-    let body = mesh(pg("MakeupSponges__body", sphere_geo!(0.030, 8, 6)), &sponge_mat);
-    body.scale().y = 1.3;
-    body.position().y = 0.035;
-    sp.add(&body);
-    // Pointed tip — small cone.
-    let tip = mesh(pg("MakeupSponges__tip", cone_geo!(0.014, 0.024, 6)), &sponge_mat);
-    tip.position().y = 0.078;
-    sp.add(&tip);
-    // Optional darker smudge patch — 55% chance: signifies "used".
-    if rnd() < 0.55 {
-        let smudge_colors: [u32; 4] = [0x704030, 0x8b6040, 0x604020, 0x503020];
-        let smudge_mat = lambert!({ color: pick(&smudge_colors) });
-        let smudge = mesh(circle_geo!(0.010, 6), &smudge_mat);
-        smudge.position().set(0.020, 0.045, 0.020);
-        smudge.look_at(0.10, 0.045, 0.10);
-        sp.add(&smudge);
-    }
-    sp.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    sp.rotation().y = rnd() * PI * 2.0;
-    // Random tilt as if fell over.
-    sp.rotation().z = (rnd() - 0.5) * 0.5;
-    g.world.add(&sp);
-}
+// R684 makeup sponge: batch `t03`'s (`t03.rs`)
+mod t03;
+use t03::place_makeup_sponges;
 
 // R684 framed embroidery hoop (wall): 4% chance per level.
 // Wooden hoop stretching fabric w/ visible embroidered pattern.

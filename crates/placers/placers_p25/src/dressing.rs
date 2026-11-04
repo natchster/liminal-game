@@ -58,49 +58,10 @@ pub fn place_small_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&jewel);
 }
 
-/// R443 small perfume bottle: 8% chance per level. Glass bottle
-/// with atomizer bulb + tassel. Dressing-table family.
-pub fn place_small_perfumes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let glass_colors = [0xd0e0f0, 0xe0d0f0, 0xf0d8d8, 0xd8f0e0, 0xf0e8d0];
-    let glass_mat = basic_mat!({ color: pick(&glass_colors), transparent: true, opacity: 0.65 });
-    let cap_mat = lambert!({ color: 0xd8b040 });
-    let bulb_mat = basic_mat!({ color: 0xa02040, transparent: true, opacity: 0.75 });
-    let tassel_mat = lambert!({ color: 0xd8b040 });
-    let perfume = group();
-    // Body: cube-like flat bottle.
-    let body = mesh(box_geo!(0.045, 0.060, 0.025), &glass_mat);
-    body.position().y = 0.030;
-    perfume.add(&body);
-    // Neck: thin cylinder.
-    let neck = mesh(cyl_geo!(0.006, 0.006, 0.014, 6), &glass_mat);
-    neck.position().y = 0.067;
-    perfume.add(&neck);
-    // Cap: gold band on neck.
-    let cap = mesh(pg("SmallPerfumes__cap", cyl_geo!(0.009, 0.009, 0.010, 8)), &cap_mat);
-    cap.position().y = 0.079;
-    perfume.add(&cap);
-    // Atomizer bulb: sphere on side.
-    let bulb = mesh(sphere_geo!(0.012, 8, 6), &bulb_mat);
-    bulb.position().set(0.020, 0.080, 0); // pressed against the atomizer collar
-    perfume.add(&bulb);
-    // Tassel: 3 tiny gold cords hanging from bulb.
-    for i in 0..3 {
-        let cord = mesh(pg("SmallPerfumes__cord", cyl_geo!(0.001, 0.001, 0.014, 3)), &tassel_mat);
-        cord.position().set(0.020 + (i as f64 - 1.0) * 0.003, 0.067, 0);
-        perfume.add(&cord);
-    }
-    perfume.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    perfume.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&perfume);
-}
+/// R443 small perfume bottle: batch `t03`'s (`t03.rs`)
+#[path = "t03.rs"]
+mod t03;
+pub use t03::place_small_perfumes;
 
 /// R443 small nail polish bottle: 10% chance per level. Small
 /// square glass bottle with brush cap. Dressing-table family.
