@@ -662,6 +662,17 @@ TEXTURES = {"view": view, "glass": glass, "panel": panel, "ashlar": ashlar, "pou
             "paper": paper, "carpet": carpet, "acoustic": acoustic, "plaster": plaster, "concrete": concrete, "concrete_floor": concrete_floor}
 
 
+def pictures():
+    """The pictures the rooms' framed photographs and paintings show: old
+    photographs and paintings (CC0, the Rijksmuseum via Commons), each in its
+    cell of one atlas, ungraded (pictures.py; the game ages each print)."""
+    import pictures as PIC
+    return PIC.build(SOURCES, CACHE, fetch, sha1)
+
+
+TEXTURES["pictures"] = pictures
+
+
 def main():
     write = "--write" in sys.argv
     only = None

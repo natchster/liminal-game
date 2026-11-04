@@ -3,6 +3,9 @@
 use crate::*;
 use game::prelude::*;
 
+mod t01;
+pub use t01::place_ancient_portraits;
+
 // R492 reliquary box: 4% chance per level. Small ornate wooden
 // box with 4 gem accents + gold trim + optional gem glow.
 pub fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
@@ -251,43 +254,6 @@ game::lazy_static_tex!(
         }
     })
 );
-
-// R490 ancient portrait: 4% chance per level. Wall-mounted dark
-// oil painting w/ figure silhouette. Vintage/Halloween family.
-pub fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let candidates = wall_cands(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let frame_mat = lambert!({ color: 0x603820 });
-    let canvas_mat = lambert!({ map: portrait_texture(), side: DoubleSide });
-    let portrait = group();
-    let (w, h, t, fw) = (0.36, 0.48, 0.020, 0.026);
-    // Outer frame (4 boxes).
-    for (bar_w, bar_h, bx, by) in [
-        (w + fw * 2.0, fw, 0.0, h / 2.0 + fw / 2.0),
-        (w + fw * 2.0, fw, 0.0, -h / 2.0 - fw / 2.0),
-        (fw, h, -w / 2.0 - fw / 2.0, 0.0),
-        (fw, h, w / 2.0 + fw / 2.0, 0.0),
-    ] {
-        let bar = mesh(pg("AncientPortraits__bar", box_geo!(bar_w, bar_h, t)), &frame_mat);
-        bar.position().set(bx, by, 0);
-        portrait.add(&bar);
-    }
-    // Canvas.
-    let canvas = mesh(plane_geo!(w, h), &canvas_mat);
-    canvas.position().set(0, 0, t / 2.0 + 0.001);
-    portrait.add(&canvas);
-    // Wall placement.
-    hang_on_wall(g, &portrait, &c, 0.014, 1.65);
-    // Small tilt for organic hang.
-    portrait.rotation().z = (rnd() - 0.5) * 0.05;
-    g.world.add(&portrait);
-}
 
 // R490 wall crucifix: 5% chance per level. Simple wooden cross
 // on wall. Halloween/vintage family.

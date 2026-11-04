@@ -5,6 +5,9 @@
 use game::prelude::*;
 use std::collections::HashSet;
 
+mod t01;
+use t01::place_miniature_portrait_clusters;
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_servant_hall_bell_racks", place_servant_hall_bell_racks));
@@ -983,98 +986,6 @@ fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cs);
     let p = cs.pos();
     g.pp.chess_set_positions.push(v3(p.x, 0, p.z)); // R763
-}
-
-// R762 cluster of 3-4 small oval portrait miniatures (wall): 3% chance per level.
-fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let frame_colors = [0xc0a060, 0x8b6f30, 0x907040, 0x2a1810]; // gold, patinated gold, olive gold, dark wood
-    let gold_mat = lambert!({ color: 0xc0a060, emissive: 0x201810 });
-    let mp = group();
-    // Portrait silhouette pool (dark head silhouettes).
-    let silh_colors = [0x181810, 0x201810, 0x302010, 0x281810];
-    let paper_mat = lambert!({ color: 0xd0b898 });
-    let mini_count = 3 + (rnd() * 2.0).floor() as i32; // 3 or 4 miniatures
-                                                       // Cluster arrangement pattern.
-    let arrangements: Vec<Vec<(f64, f64)>> = vec![
-        // 3-miniature triangle.
-        vec![(-0.10, 0.06), (0.10, 0.06), (0.0, -0.08)],
-        // 3-miniature horizontal row.
-        vec![(-0.14, 0.0), (0.0, 0.0), (0.14, 0.0)],
-        // 3-miniature vertical.
-        vec![(0.0, 0.12), (0.0, 0.0), (0.0, -0.12)],
-        // 4-miniature diamond.
-        vec![(0.0, 0.12), (-0.12, 0.0), (0.12, 0.0), (0.0, -0.12)],
-        // 4-miniature 2x2 grid.
-        vec![(-0.08, 0.08), (0.08, 0.08), (-0.08, -0.08), (0.08, -0.08)],
-    ];
-    let pick = if mini_count == 3 { (rnd() * 3.0).floor() as usize } else { 3 + (rnd() * 2.0).floor() as usize };
-    let arr_idx = (arrangements.len() - 1).min(pick);
-    let arrangement = &arrangements[arr_idx];
-    let use_count = (mini_count as usize).min(arrangement.len());
-    for i in 0..use_count {
-        let (ox, oy) = arrangement[i];
-        let is_shared_frame = rnd() < 0.7;
-        let frame_color = if is_shared_frame { frame_colors[0] } else { choice(&frame_colors) };
-        let frame_mat = lambert!({ color: frame_color, emissive: 0x201810 });
-        // Oval frame (torus).
-        let mini_r = 0.045 + rnd() * 0.010;
-        let frame = mesh(pg("MiniaturePortraitClusters__frame", torus_geo!(mini_r, 0.006, 5, 16)), &frame_mat);
-        // Upright oval in the wall plane (XY), its back on the wall.
-        frame.scale().y = 1.3;
-        frame.position().set(ox, oy, 0.002);
-        mp.add(&frame);
-        // Portrait face (dark aged paper).
-        let face = mesh(circle_geo!(mini_r - 0.003, 16), &paper_mat);
-        face.position().set(ox, oy, 0.005);
-        face.scale().y = 1.3;
-        mp.add(&face);
-        // Dark silhouette head.
-        let silh_mat = lambert!({ color: choice(&silh_colors) });
-        let silhouette = mesh(circle_geo!(mini_r * 0.6, 12), &silh_mat);
-        silhouette.scale().set(0.85, 1.4, 1.0);
-        silhouette.position().set(ox, oy + mini_r * 0.15, 0.006);
-        mp.add(&silhouette);
-        // 60%: small gold hook above frame.
-        if rnd() < 0.6 {
-            let hook = mesh(pg("MiniaturePortraitClusters__hook", torus_geo!(0.003, 0.001, 3, 6, PI)), &gold_mat);
-            // Upright hanging loop, its ends set into the top of the oval frame.
-            hook.position().set(ox, oy + (mini_r + 0.004) * 1.3, 0.002);
-            mp.add(&hook);
-        }
-    }
-    // 40%: central connecting decorative bar.
-    if rnd() < 0.4 && use_count >= 4 {
-        let decor_mat = lambert!({ color: frame_colors[0], emissive: 0x201810 });
-        let decor = mesh(pg("MiniaturePortraitClusters__decor", box_geo!(0.15, 0.004, 0.003)), &decor_mat);
-        decor.position().set(0, 0, 0.005);
-        mp.add(&decor);
-    }
-    mount_on_wall(g, &mp, &c, 0.004, 1.55, 0.4);
-    mp.rotation().z = (rnd() - 0.5) * 0.010;
-    g.world.add(&mp);
-    // R763 frame-tilt animator — one random frame drifts slightly askew then
-    // returns. Only torus children qualify (frames and hooks; a Blender prop
-    // part is a plain geometry and never matches).
-    let frame_children: Vec<Obj> = mp.children().into_iter().filter(|ch| is_torus_geometry(ch)).collect();
-    if !frame_children.is_empty() {
-        let target_frame = frame_children[(rnd() * frame_children.len() as f64).floor() as usize].clone();
-        let base_rot_z = target_frame.rot().z;
-        let tilt_freq = (PI * 2.0) / (20.0 + rnd() * 20.0); // 20-40 s cycle
-        let tilt_phase = rnd() * PI * 2.0;
-        g.animate(move |_g, _dt, t| {
-            let raw = (t * tilt_freq + tilt_phase).sin();
-            let envelope = sign_of(raw) * raw.abs().powf(2.5);
-            target_frame.rotation().z = base_rot_z + envelope * 0.05; // ±3 deg peak
-        });
-    }
 }
 
 // R764 dress form / tailor's mannequin on tripod stand (floor): 2.5% chance.

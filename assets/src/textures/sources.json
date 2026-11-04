@@ -132,5 +132,255 @@
         "sha1": "3a831919c5ab3ba0716a371b193da389a3a37468"
       }
     }
+  },
+  "pictures": {
+    "about": "The pictures the rooms' framed photographs and paintings show (crates/game/assets/textures/pictures.jpg, one atlas, by build.py's pictures()): old photographs of anonymous sitters (before 1930) and paintings of the Rijksmuseum, each released by the museum as CC0 1.0 and fetched from Wikimedia Commons, checked by the SHA-1 Commons publishes. Each is cropped (`crop`: x0, y0, x1, y1 of the original, as fractions; narrowed to its cell's shape about the crop's middle) and laid in its cell of the atlas (`cell`: x, y, w, h in px). Nothing is graded here: the game fades, yellows, silvers or cracks each print as it paints it (visuals::pictures).",
+    "licence": "CC0-1.0",
+    "atlas": {
+      "size": [1600, 1440],
+      "background": [0.5, 0.5, 0.5]
+    },
+    "files": {
+      "baby_basket": {
+        "title": "File:Portret van een baby, zittend in een mand met bloemen, RP-F-F00707-CQ.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e9/Portret_van_een_baby%2C_zittend_in_een_mand_met_bloemen%2C_RP-F-F00707-CQ.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_baby,_zittend_in_een_mand_met_bloemen,_RP-F-F00707-CQ.jpg",
+        "sha1": "daf6b37f92a10eef9413a801432e9980e19297d7",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-F00707-CQ)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.289077",
+        "what": "an albumen print of a baby sitting in a wicker basket with flowers, 1870-1900 (the baby photographs)",
+        "crop": [0.14, 0.11, 0.85, 0.89],
+        "cell": [0, 0, 320, 400]
+      },
+      "baby_chair": {
+        "title": "File:Portret van een baby in een witte jurk met bont in de hand, zittend op een stoel, RP-F-F00657-AN.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/51/Portret_van_een_baby_in_een_witte_jurk_met_bont_in_de_hand%2C_zittend_op_een_stoel%2C_RP-F-F00657-AN.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_baby_in_een_witte_jurk_met_bont_in_de_hand,_zittend_op_een_stoel,_RP-F-F00657-AN.jpg",
+        "sha1": "10f5994107e80f76ed2454a5eb8cbfd5ec48e4e4",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-F00657-AN)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.292321",
+        "what": "a baby in a white dress on a carved chair, a fur over it, 1882-1940 (the baby photographs)",
+        "crop": [0.15, 0.17, 0.86, 0.88],
+        "cell": [320, 0, 320, 400]
+      },
+      "graduate": {
+        "title": "File:Portret man in toga, RP-F-F22403.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/39/Portret_man_in_toga%2C_RP-F-F22403.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_man_in_toga,_RP-F-F22403.jpg",
+        "sha1": "a955c8d04c47c6431b966d7c381da1357c465444",
+        "maker": "Jac. & S. Schotel, Rotterdam (studio; the sitter unnamed; Rijksmuseum RP-F-F22403)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.256599",
+        "what": "a young man in his academic gown, bands and cap, November 1899 (the graduation photograph)",
+        "crop": [0.06, 0.04, 0.94, 0.86],
+        "cell": [640, 0, 320, 400]
+      },
+      "mother_children": {
+        "title": "File:Portret van een vrouw met twee kinderen met zonnehoeden en matrozenpakjes, RP-F-F01012-19.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/2/26/Portret_van_een_vrouw_met_twee_kinderen_met_zonnehoeden_en_matrozenpakjes%2C_RP-F-F01012-19.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_vrouw_met_twee_kinderen_met_zonnehoeden_en_matrozenpakjes,_RP-F-F01012-19.jpg",
+        "sha1": "dbed683185b7608e629aa022bf644b201b35da07",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-F01012-19)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.527689",
+        "what": "a woman with two children in sun hats and sailor suits, 1885-1914 (the snapshots kept at a desk)",
+        "crop": [0.03, 0.03, 0.97, 0.97],
+        "cell": [960, 0, 320, 400]
+      },
+      "couple_reading": {
+        "title": "File:Portret van een echtpaar, RP-F-2007-121.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/16/Portret_van_een_echtpaar%2C_RP-F-2007-121.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_echtpaar,_RP-F-2007-121.jpg",
+        "sha1": "b565f71a0a122bc8dc9e881d098a2939b8339ccd",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-2007-121)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.462543",
+        "what": "a couple at home, he reading, she leaning on his chair, 1910-1920 (the snapshots kept at a desk)",
+        "crop": [0.07, 0.05, 0.93, 0.92],
+        "cell": [1280, 0, 320, 400]
+      },
+      "family_parlour": {
+        "title": "File:Groepsportret van een familie met een opengeslagen fotoalbum op tafel, RP-F-F18721.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/5/5d/Groepsportret_van_een_familie_met_een_opengeslagen_fotoalbum_op_tafel%2C_RP-F-F18721.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Groepsportret_van_een_familie_met_een_opengeslagen_fotoalbum_op_tafel,_RP-F-F18721.jpg",
+        "sha1": "edbb5e891e20e89633396704e3fbe35a6763d28d",
+        "maker": "anonymous studio, Gorinchem (Rijksmuseum RP-F-F18721)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.291783",
+        "what": "a family of ten round a table with an open album, 1887-1904 (the family portraits)",
+        "crop": [0.15, 0.06, 0.96, 0.92],
+        "cell": [0, 400, 400, 320]
+      },
+      "family_room": {
+        "title": "File:Groepsportret van een familie in een huiskamer, RP-F-00-7800.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/79/Groepsportret_van_een_familie_in_een_huiskamer%2C_RP-F-00-7800.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Groepsportret_van_een_familie_in_een_huiskamer,_RP-F-00-7800.jpg",
+        "sha1": "9514ab6cf6b84f51b0a3a7868445a03d0933e09a",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-00-7800)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.562775",
+        "what": "a family of eighteen in a sitting room, 1890-1915 (the family portraits)",
+        "crop": [0.02, 0.02, 0.97, 0.88],
+        "cell": [400, 400, 400, 320]
+      },
+      "family_door": {
+        "title": "File:Groepsportret van een familie in Le Pouliguen, RP-F-F01142-AV.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Groepsportret_van_een_familie_in_Le_Pouliguen%2C_RP-F-F01142-AV.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Groepsportret_van_een_familie_in_Le_Pouliguen,_RP-F-F01142-AV.jpg",
+        "sha1": "b18fb8ecbd26f2e2ad81050b46f780d92832ac23",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-F01142-AV)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.581099",
+        "what": "a family on the steps before a door, Le Pouliguen, 16 August 1898 (the family portraits)",
+        "crop": [0.08, 0.05, 0.95, 0.83],
+        "cell": [800, 400, 400, 320]
+      },
+      "land_pond": {
+        "title": "File:Landschap met boerderij bij een plas, SK-A-2710.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/b/b7/Landschap_met_boerderij_bij_een_plas%2C_SK-A-2710.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Landschap_met_boerderij_bij_een_plas,_SK-A-2710.jpg",
+        "sha1": "400d84587f1eb044237c245e3dc1a1458b8d1554",
+        "maker": "Johan Hendrik Weissenbruch (Rijksmuseum SK-A-2710)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.7934",
+        "what": "a farm by a pond under a grey sky, oil, 1870-1903 (the landscapes)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [1200, 400, 400, 320]
+      },
+      "garden_family": {
+        "title": "File:Portret van een stel met twee kinderen in de tuin van een huis in Frankrijk, RP-F-2007-66-17-1.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/45/Portret_van_een_stel_met_twee_kinderen_in_de_tuin_van_een_huis_in_Frankrijk%2C_RP-F-2007-66-17-1.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_stel_met_twee_kinderen_in_de_tuin_van_een_huis_in_Frankrijk,_RP-F-2007-66-17-1.jpg",
+        "sha1": "3639c1563f94ec841c9be44b760e384282f940cc",
+        "maker": "anonymous photographer (Rijksmuseum RP-F-2007-66-17-1)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.632118",
+        "what": "a couple with two children on the grass of a garden in France, September 1883 (the snapshots kept at a desk)",
+        "crop": [0.03, 0.03, 0.97, 0.97],
+        "cell": [0, 720, 320, 400]
+      },
+      "oil_man": {
+        "title": "File:Portret van een man, SK-A-1248.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e4/Portret_van_een_man%2C_SK-A-1248.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_man,_SK-A-1248.jpg",
+        "sha1": "8befcfa0dcd032321028d2bd234db48e9bda908a",
+        "maker": "anonymous painter, Holland (Rijksmuseum SK-A-1248)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.8714",
+        "what": "portrait of an old man in a ruff, oil on panel, 1640 (the old portraits)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [320, 720, 320, 400]
+      },
+      "oil_woman2": {
+        "title": "File:Portret van een vrouw, SK-A-4053.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d0/Portret_van_een_vrouw%2C_SK-A-4053.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_vrouw,_SK-A-4053.jpg",
+        "sha1": "7a330c51f99edf790967b95e236b9ee5e95084da",
+        "maker": "Abraham de Vries (Rijksmuseum SK-A-4053)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.6495",
+        "what": "portrait of a woman in a millstone ruff, oil, c. 1642 (the old portraits)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [640, 720, 320, 400]
+      },
+      "mini_a": {
+        "title": "File:Portret van een vrouw, SK-A-4861.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Portret_van_een_vrouw%2C_SK-A-4861.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_vrouw,_SK-A-4861.jpg",
+        "sha1": "5c12d4dba68914d38f244c691fb4c07971cc8fd0",
+        "maker": "Anthonie Joseph Helant (Rijksmuseum SK-A-4861)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.4577",
+        "what": "portrait miniature of a woman, 1790-1800 (the miniatures)",
+        "crop": [0.12, 0.12, 0.88, 0.9],
+        "cell": [960, 720, 160, 200]
+      },
+      "mini_b": {
+        "title": "File:Portret van een man, SK-A-4813.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/82/Portret_van_een_man%2C_SK-A-4813.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_man,_SK-A-4813.jpg",
+        "sha1": "2ba71a6bd8eba82736acc320a02c8ceb5f9956f9",
+        "maker": "anonymous painter, Northern Netherlands (Rijksmuseum SK-A-4813)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.4592",
+        "what": "portrait miniature of a man, oil on ivory, c. 1795 (the miniatures)",
+        "crop": [0.28, 0.2, 0.74, 0.8],
+        "cell": [1120, 720, 160, 200]
+      },
+      "mini_c": {
+        "title": "File:Portret van een vrouw, SK-A-4803.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/8/80/Portret_van_een_vrouw%2C_SK-A-4803.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_vrouw,_SK-A-4803.jpg",
+        "sha1": "e3996765047c1412610a35db08ec5fd738152782",
+        "maker": "George Nikolaus Ritter (Rijksmuseum SK-A-4803)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.4598",
+        "what": "portrait miniature of a woman, watercolour on ivory, 1758-1809 (the miniatures)",
+        "crop": [0.12, 0.17, 0.88, 0.96],
+        "cell": [960, 920, 160, 200]
+      },
+      "mini_d": {
+        "title": "File:Portret van een man, SK-A-3058.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/0/0e/Portret_van_een_man%2C_SK-A-3058.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_man,_SK-A-3058.jpg",
+        "sha1": "49e2539407bd47fcd05d2672b0c2fa9f1ee86bd1",
+        "maker": "Adrianus de Visser (Rijksmuseum SK-A-3058)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.9510",
+        "what": "portrait miniature of an old man, on copper, 1795 (the miniatures)",
+        "crop": [0.05, 0.05, 0.95, 0.97],
+        "cell": [1120, 920, 160, 200]
+      },
+      "oil_woman": {
+        "title": "File:Portret van een vrouw, SK-A-1596.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Portret_van_een_vrouw%2C_SK-A-1596.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Portret_van_een_vrouw,_SK-A-1596.jpg",
+        "sha1": "6275833266a810695b6c6ad6253b26b057c5c46d",
+        "maker": "Jan van Bijlert (Rijksmuseum SK-A-1596)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.7435",
+        "what": "portrait of a woman with a white collar, oil, c. 1650 (the old portraits)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [1280, 720, 320, 400]
+      },
+      "land_road": {
+        "title": "File:Zandweg, SK-A-2494.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/e/e8/Zandweg%2C_SK-A-2494.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Zandweg,_SK-A-2494.jpg",
+        "sha1": "2990d9f342bb50796077b2c2cac1fd2ba3e2a088",
+        "maker": "Theophile de Bock (Rijksmuseum SK-A-2494)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.6086",
+        "what": "a sandy path by a village, a woman bleaching linen, oil, 1870-1904 (the landscapes)",
+        "crop": [0.02, 0.02, 0.98, 0.98],
+        "cell": [0, 1120, 400, 320]
+      },
+      "still_peaches": {
+        "title": "File:Stilleven met vruchten, SK-A-1698.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/3/3c/Stilleven_met_vruchten%2C_SK-A-1698.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Stilleven_met_vruchten,_SK-A-1698.jpg",
+        "sha1": "2445114d11611efebce950c440387bfe59706116",
+        "maker": "Willem Hekking (I) (Rijksmuseum SK-A-1698)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.COLLECT.8657",
+        "what": "still life with peaches and grapes, oil, 1830-1862 (the still lifes)",
+        "crop": [0.0, 0.3, 1.0, 0.93],
+        "cell": [400, 1120, 400, 320]
+      },
+      "still_dark": {
+        "title": "File:Stilleven met vruchten, SK-A-2346.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/4/4d/Stilleven_met_vruchten%2C_SK-A-2346.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:Stilleven_met_vruchten,_SK-A-2346.jpg",
+        "sha1": "ad29311245358567496eba4ecb82101aad9316ba",
+        "maker": "Jacob van Walscapelle (Rijksmuseum SK-A-2346)",
+        "licence": "CC0-1.0",
+        "record": "https://hdl.handle.net/10934/RM0001.collect.7726",
+        "what": "still life with fruit on a stone ledge, oil, c. 1670-1727 (the still lifes)",
+        "crop": [0.0, 0.17, 1.0, 0.92],
+        "cell": [800, 1120, 400, 320]
+      }
+    }
   }
 }

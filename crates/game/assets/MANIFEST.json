@@ -358,6 +358,21 @@
         "assets/src/textures/sources.json"
       ]
     },
+    "textures/pictures.jpg": {
+      "authors": "the Rijksmuseum, Amsterdam (CC0 1.0, via Wikimedia Commons): photographs by anonymous photographers and the studio of Jac. & S. Schotel (1883-1920); paintings by Johan Hendrik Weissenbruch, Theophile de Bock, Abraham de Vries, Jan van Bijlert, Willem Hekking (I), Jacob van Walscapelle, an anonymous Dutch painter (1640) and, as miniatures, Anthonie Joseph Helant, George Nikolaus Ritter, Adrianus de Visser and an anonymous painter; processed by coding agents under the developer's direction",
+      "built_with": "twenty old photographs and paintings, each cropped and laid in its cell of one atlas, ungraded (the game fades, yellows and cracks each print as it paints it: visuals::pictures); every source with its SHA-1 in assets/src/textures/sources.json (pictures)",
+      "fingerprint": "e812484e20dc8130",
+      "generative_model": null,
+      "generator": "photographs, processed by scripts",
+      "licence": "CC0-1.0",
+      "rebuild": "cargo xtask assets textures [--write] (build.py, pictures.py; Pillow, NumPy and SciPy); the pictures and their SHA-1s are in assets/src/textures/sources.json",
+      "sources": [
+        "assets/src/textures/build.py",
+        "assets/src/textures/pictures.py",
+        "assets/src/textures/texlib.py",
+        "assets/src/textures/sources.json"
+      ]
+    },
     "textures/plaster.jpg": {
       "authors": "Rob Tuytel (Poly Haven, plastered_wall_04, CC0); processed by coding agents under the developer's direction",
       "built_with": "a plastered interior wall's height and shading (photogrammetry), without what changes over more than 10 cm, its contrast made even and laid again from its own patches (Efros-Freeman), a grey detail over the rooms' painted drywall, painted walls and plaster ceilings every 3.2 m",
