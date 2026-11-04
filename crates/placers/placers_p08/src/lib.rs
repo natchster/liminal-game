@@ -5,6 +5,9 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
+mod t07;
+use t07::{place_hanging_colanders, place_herb_sieves};
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_knitting_baskets", place_knitting_baskets));
@@ -179,129 +182,7 @@ fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&basket);
 }
 
-// R682 hanging colander: 4% chance per level. Wall-mounted
-// perforated metal bowl.
-fn place_hanging_colanders(g: &mut Game, _dist: &[i32]) {
-    g.pp.colander_positions.clear(); // R721 reset per level
-    if rnd() < 0.96 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    // 3-color metal pool: brushed steel, copper, dark iron.
-    let metal_colors: [u32; 3] = [0xa0a0a8, 0xc08050, 0x505050];
-    let metal_mat = lambert!({ color: pick(&metal_colors) });
-    let hole_mat = lambert!({ color: 0x0a0a0a });
-    let col = group();
-    let mount_y = 1.75;
-    // Bowl body — inverted half-sphere (bottom half only, opening faces +Z away from wall).
-    let bowl = mesh(pg("HangingColanders__bowl", sphere_geo!(0.12, 12, 8, 0, PI * 2.0, 0, PI / 2.0)), &metal_mat);
-    bowl.rotation().x = PI; // Flip so cavity faces down/out.
-                            // Centre 0.115 off the mount: the rim's back (0.126) clears the wall face
-                            // (z -0.015) instead of passing 3 cm into it.
-    bowl.position().set(0, mount_y, 0.115);
-    col.add(&bowl);
-    // Rim torus at the wide (rim) end.
-    let rim = mesh(pg("HangingColanders__rim", torus_geo!(0.12, 0.006, 4, 16)), &metal_mat);
-    rim.rotation().x = PI / 2.0;
-    rim.position().set(0, mount_y, 0.115);
-    col.add(&rim);
-    // Perforation dots on the outer surface (scattered).
-    for i in 0..14 {
-        let u = rnd() * PI * 2.0;
-        let v = rnd() * (PI / 2.0 - 0.2) + 0.1;
-        let rr = 0.121;
-        let hx = u.cos() * v.sin() * rr;
-        let hy = -v.cos() * rr;
-        let hz = u.sin() * v.sin() * rr;
-        let hole = mesh(circle_geo!(0.007, 5), &hole_mat);
-        hole.position().set(hx, mount_y + hy, 0.115 + hz);
-        hole.look_at(0, mount_y, 0.115);
-        hole.rotate_y(PI); // face out of the bowl (look_at pointed the front face inward: culled)
-        col.add(&hole);
-    }
-    // Handle: short bar sticking out from the rim.
-    let handle = mesh(pg("HangingColanders__handle", box_geo!(0.08, 0.010, 0.020)), &metal_mat);
-    handle.position().set(0.14, mount_y, 0.115);
-    col.add(&handle);
-    // Hanging cord (short vertical line from top of rim to peg on wall).
-    let cord_mat = lambert!({ color: 0x604020 });
-    let cord = mesh(pg("HangingColanders__cord", cyl_geo!(0.002, 0.002, 0.10, 4)), &cord_mat);
-    // From the peg (0.16) down to the rim's back point (y 0, z -0.005); it ended 6 cm short.
-    cord.scale().y = 1.6;
-    cord.position().set(0, mount_y + 0.08, 0.003);
-    col.add(&cord);
-    let peg = mesh(pg("HangingColanders__peg", cyl_geo!(0.006, 0.006, 0.010, 5)), &metal_mat);
-    peg.rotation().x = PI / 2.0;
-    peg.position().set(0, mount_y + 0.16, 0.005);
-    col.add(&peg);
-    col.rotation().y = face_wall(dx, dz);
-    let (px, pz) = wall_pos(g, x, z, dx, dz, 0.015);
-    col.position().set(px, 0, pz);
-    g.world.add(&col);
-    let p = col.pos();
-    g.pp.colander_positions.push(v3(p.x, 0, p.z)); // R721
-}
-
-// R683 hanging herb sieve: 4% chance per level. Wall-
-// mounted round mesh strainer w/ handle.
-fn place_herb_sieves(g: &mut Game, _dist: &[i32]) {
-    g.pp.herb_sieve_positions.clear(); // R701 reset per level
-    if rnd() < 0.96 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    let metal_colors: [u32; 3] = [0xb0b0b8, 0xa08040, 0x606060];
-    let metal_mat = lambert!({ color: pick(&metal_colors) });
-    let mesh_mat = lambert!({ color: 0x282828, transparent: true, opacity: 0.7 });
-    let sieve = group();
-    let mount_y = 1.65;
-    // Ring frame — flat torus facing wall.
-    let ring = mesh(pg("HerbSieves__ring", torus_geo!(0.09, 0.006, 5, 20)), &metal_mat);
-    ring.position().set(0, mount_y, 0.02);
-    sieve.add(&ring);
-    // Dark mesh disc (semi-transparent).
-    let net = mesh(circle_geo!(0.088, 20), &mesh_mat);
-    net.position().set(0, mount_y, 0.018);
-    sieve.add(&net);
-    // 4 crossing bars simulating woven mesh (2 horizontal + 2 vertical bar hints).
-    for i in 0..4 {
-        let bar = mesh(box_geo!(if i < 2 { 0.176 } else { 0.002 }, if i < 2 { 0.002 } else { 0.176 }, 0.002), &metal_mat);
-        let off = ((i % 2) as f64 - 0.5) * 0.045;
-        bar.position().set(if i < 2 { 0.0 } else { off }, mount_y + if i < 2 { off } else { 0.0 }, 0.019);
-        sieve.add(&bar);
-    }
-    // Handle — flat bar extending to the side.
-    let handle = mesh(pg("HerbSieves__handle", box_geo!(0.15, 0.014, 0.006)), &metal_mat);
-    handle.position().set(0.165, mount_y, 0.02);
-    sieve.add(&handle);
-    let handle_hole_mat = lambert!({ color: 0x0a0a0a });
-    let hole = mesh(circle_geo!(0.005, 6), &handle_hole_mat);
-    hole.position().set(0.23, mount_y, 0.024);
-    sieve.add(&hole);
-    // Hanging cord + peg.
-    let cord_mat = lambert!({ color: 0x604020 });
-    let cord = mesh(pg("HangingColanders__cord", cyl_geo!(0.002, 0.002, 0.08, 4)), &cord_mat);
-    cord.position().set(0, mount_y + 0.13, 0.01);
-    sieve.add(&cord);
-    let peg = mesh(pg("HangingColanders__peg", cyl_geo!(0.006, 0.006, 0.010, 5)), &metal_mat);
-    peg.rotation().x = PI / 2.0;
-    peg.position().set(0, mount_y + 0.17, 0.005);
-    sieve.add(&peg);
-    sieve.rotation().y = face_wall(dx, dz);
-    let (px, pz) = wall_pos(g, x, z, dx, dz, 0.015);
-    sieve.position().set(px, 0, pz);
-    g.world.add(&sieve);
-    let p = sieve.pos();
-    g.pp.herb_sieve_positions.push(v3(p.x, 0, p.z)); // R701
-}
+// R682 hanging colander, R683 hanging herb sieve: batch `t07` (t07.rs).
 
 // R683 donut on napkin: 8% chance per level. Glazed torus
 // donut resting on a folded paper napkin square.
