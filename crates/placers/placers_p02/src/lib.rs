@@ -396,64 +396,9 @@ fn place_ornate_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mirror);
 }
 
-// R468 small crow silhouette: 5% chance per level.
-fn place_small_crows(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let crow_mat = lambert!({ color: 0x0a0806 });
-    let beak_mat = lambert!({ color: 0x101008 });
-    let eye_mat = basic_mat!({ color: 0xf0d020 });
-    let crow = group();
-    // Body: elongated sphere.
-    let body = mesh(pg("SmallCrows__body", sphere_geo!(0.030, 10, 8)), &crow_mat);
-    body.scale().set(1.4, 1, 1);
-    body.position().y = 0.038;
-    crow.add(&body);
-    // Head: smaller sphere.
-    let head = mesh(pg("SmallCrows__head", sphere_geo!(0.020, 8, 6)), &crow_mat);
-    head.position().set(0.038, 0.058, 0);
-    crow.add(&head);
-    // Beak: cone.
-    let beak = mesh(pg("SmallCrows__beak", cone_geo!(0.005, 0.018, 4)), &beak_mat);
-    beak.rotation().z = -PI / 2.0;
-    beak.position().set(0.062, 0.058, 0);
-    crow.add(&beak);
-    // 2 folded wings on sides (flat triangles).
-    for s in [-1.0f64, 1.0] {
-        let wing_geo = tri_geo([-0.025, 0.038, s * 0.020, 0.020, 0.038, s * 0.020, -0.010, 0.055, s * 0.028]);
-        let wing = mesh(wing_geo, &crow_mat);
-        crow.add(&wing);
-    }
-    // Tail: 3 short feathers as triangles.
-    for i in 0..3 {
-        let k = (i - 1) as f64;
-        let tail_geo = tri_geo([-0.038, 0.038, k * 0.006, -0.058, 0.036, k * 0.008, -0.038, 0.048, k * 0.006]);
-        let tail = mesh(tail_geo, &crow_mat);
-        crow.add(&tail);
-    }
-    // 2 legs (thin cylinders).
-    for s in [-1.0f64, 1.0] {
-        let leg = mesh(pg("SmallCrows__leg", cyl_geo!(0.002, 0.002, 0.024, 4)), &beak_mat);
-        leg.position().set(0.008, 0.012, s * 0.006);
-        crow.add(&leg);
-    }
-    // 2 tiny glowing yellow eyes, on the side of the head: 18 mm out along
-    // (0.45, 0.25, ±0.86).
-    for s in [-1.0f64, 1.0] {
-        let eye = mesh(sphere_geo!(0.0025, 5, 4), &eye_mat);
-        eye.position().set(0.038 + 0.018 * 0.449, 0.058 + 0.018 * 0.249, s * 0.018 * 0.858);
-        crow.add(&eye);
-    }
-    crow.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    crow.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&crow);
-}
+// R468 small crow: batch `t08`'s (`t08.rs`)
+mod t08;
+use t08::place_small_crows;
 
 // R467 small vintage candelabra: 4% chance per level, 3 lit candles.
 fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
