@@ -16,6 +16,8 @@ mod r18;
 pub(crate) use r18::place_mop_buckets;
 mod t01;
 pub(crate) use t01::place_family_portraits;
+mod t07;
+pub(crate) use t07::place_opened_suitcases;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -847,56 +849,6 @@ pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &grp, x, z, 1.8);
     g.world.add(&grp);
-}
-
-// R507 opened suitcase: 5% chance per level. Base + lifted lid + clothes piles.
-pub(crate) fn place_opened_suitcases(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let leather_colors = [0x603820, 0x502010, 0x8a5030, 0x201a10];
-    let leather_mat = lambert!({ color: pick_hex(&leather_colors) });
-    let brass_mat = lambert!({ color: 0xc89040 });
-    let cloth_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030, 0xa020a0, 0xf0ece0, 0x2a2418];
-    let suitcase = group();
-    let (bw, bh, bd) = (0.22, 0.05, 0.14);
-    // Base (bottom half).
-    let base = mesh(pg("OpenedSuitcases__base", box_geo!(bw, bh, bd)), &leather_mat);
-    base.position().y = bh / 2.0;
-    suitcase.add(&base);
-    // Lid (raised, tilted open), pivoting on its back bottom edge (the hinge).
-    let lid = group();
-    let lid_box = mesh(pg("OpenedSuitcases__lid", box_geo!(bw, bh, bd)), &leather_mat);
-    lid_box.position().set(0, bh / 2.0, bd / 2.0);
-    lid.add(&lid_box);
-    lid.position().set(0, bh, -bd / 2.0);
-    lid.rotation().x = -PI / 3.0;
-    suitcase.add(&lid);
-    // Brass corner reinforcements at 4 corners of base.
-    for (cx, cz) in [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)] {
-        let corner = mesh(pg("OpenedSuitcases__stud", cyl_geo!(0.008, 0.008, 0.008, 5)), &brass_mat);
-        corner.position().set(cx * (bw / 2.0 - 0.004), 0.004, cz * (bd / 2.0 - 0.004));
-        suitcase.add(&corner);
-    }
-    // 4-6 clothes piles inside base.
-    let n_clothes = 4 + (rnd() * 3.0).floor() as i32;
-    for i in 0..n_clothes {
-        let cloth_mat = lambert!({ color: pick_hex(&cloth_colors) });
-        // Wrinkled cloth.
-        let cloth =
-            mesh(pg("OpenedSuitcases__cloth", box_geo!(0.05 + rnd() * 0.04, 0.008 + rnd() * 0.006, 0.03 + rnd() * 0.03)), &cloth_mat);
-        cloth.position().set((rnd() - 0.5) * (bw - 0.05), bh + 0.005 + i as f64 * 0.003, (rnd() - 0.5) * (bd - 0.03));
-        cloth.rotation().y = rnd() * PI * 2.0;
-        cloth.rotation().z = (rnd() - 0.5) * 0.2;
-        suitcase.add(&cloth);
-    }
-    scatter_on_floor(g, &suitcase, x, z, 1.8);
-    g.world.add(&suitcase);
 }
 
 // R506 rusted tin can: 8% chance per level. Small rusted can, sometimes tipped.

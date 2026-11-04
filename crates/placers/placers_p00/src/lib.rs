@@ -4,6 +4,9 @@
 use game::base::state::GameplayR1State;
 use game::prelude::*;
 
+mod t07;
+use t07::place_smoking_ashtrays;
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_gameplay_r1_trigger", place_gameplay_r1_trigger));
@@ -181,106 +184,6 @@ fn place_floor_stains(g: &mut Game, _dist: &[i32]) {
         g.world.add(&decal);
         i += 1;
     }
-}
-
-fn place_smoking_ashtrays(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let mut open_tiles: Vec<(i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                open_tiles.push((x, z));
-            }
-        }
-    }
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = open_tiles[(rnd() * open_tiles.len() as f64).floor() as usize];
-    let glass_colors = [0xd0d0e0, 0xc0a880, 0x808080, 0x606080];
-    let ash_mat = lambert!({ color: glass_colors[(rnd() * glass_colors.len() as f64).floor() as usize], transparent: true, opacity: 0.55 });
-    let filter_mat = lambert!({ color: 0xd0a060 });
-    let paper_mat = lambert!({ color: 0xf0e8d0 });
-    let ember_mat = basic_mat!({ color: 0xff4020 });
-    let a = group();
-    let base = mesh(cyl_geo!(0.055, 0.060, 0.010, 12), &ash_mat);
-    base.position().y = 0.005;
-    a.add(&base);
-    for i in 0..4 {
-        let ang = (i as f64 / 4.0) * PI * 2.0;
-        let notch = mesh(box_geo!(0.010, 0.004, 0.005), &ash_mat);
-        notch.position().set(ang.cos() * 0.052, 0.010, ang.sin() * 0.052);
-        notch.rotation().y = ang;
-        a.add(&notch);
-    }
-    let ash_pile_mat = lambert!({ color: 0x404040 });
-    let ash_pile = mesh(pg("SmokingAshtrays__ash", cyl_geo!(0.020, 0.020, 0.003, 8)), &ash_pile_mat);
-    ash_pile.position().set(-0.010, 0.011, -0.005);
-    a.add(&ash_pile);
-    let (cig_x, cig_z) = (0.030, 0.030);
-    let mut cig_dir = v3(-1, 0, -1);
-    cig_dir.normalize();
-    let cig_len = 0.070;
-    let cig_paper = mesh(pg("SmokingAshtrays__paper", cyl_geo!(0.003, 0.003, cig_len * 0.7, 6)), &paper_mat);
-    cig_paper.rotation().z = -PI / 2.0;
-    cig_paper.rotation().y = -PI / 4.0;
-    cig_paper.position().set(cig_x - cig_dir.x * cig_len * 0.35, 0.013, cig_z - cig_dir.z * cig_len * 0.35);
-    a.add(&cig_paper);
-    let filter = mesh(pg("SmokingAshtrays__filter", cyl_geo!(0.003, 0.003, cig_len * 0.3, 6)), &filter_mat);
-    filter.rotation().z = -PI / 2.0;
-    filter.rotation().y = -PI / 4.0;
-    filter.position().set(cig_x + cig_dir.x * cig_len * 0.15, 0.013, cig_z + cig_dir.z * cig_len * 0.15);
-    a.add(&filter);
-    let ember_tip_x = cig_x - cig_dir.x * cig_len * 0.7;
-    let ember_tip_z = cig_z - cig_dir.z * cig_len * 0.7;
-    let ember = mesh(sphere_geo!(0.0045, 6, 5), &ember_mat);
-    ember.position().set(ember_tip_x, 0.013, ember_tip_z);
-    a.add(&ember);
-    let ember_light = point_light!(0xff4020, 0.15, 0.4, 2);
-    ember_light.position().copy(&ember.pos());
-    a.add(&ember_light);
-    let smoke_mat = basic_mat!({ color: 0xe8e8e8, transparent: true, opacity: 0.20 });
-    struct Wisp {
-        mesh: Obj,
-        phase: f64,
-        base_y: f64,
-        base_x: f64,
-        base_z: f64,
-    }
-    let mut wisps: Vec<Wisp> = vec![];
-    for i in 0..2 {
-        let wisp = mesh(sphere_geo!(0.012, 6, 5), &smoke_mat);
-        wisp.scale().y = 2.5;
-        let px = ember_tip_x + (rnd() - 0.5) * 0.01;
-        let py = 0.030 + i as f64 * 0.03;
-        let pz = ember_tip_z + (rnd() - 0.5) * 0.01;
-        wisp.position().set(px, py, pz);
-        let p = wisp.pos();
-        wisps.push(Wisp { mesh: wisp.clone(), phase: rnd() * PI * 2.0, base_y: p.y, base_x: p.x, base_z: p.z });
-        a.add(&wisp);
-    }
-    let ember_base_intensity = 0.15;
-    let ember_phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        let f = 0.85 + (t * 3.0 + ember_phase).sin() * 0.12 + (t * 7.0 + ember_phase * 1.7).sin() * 0.06;
-        ember_light.set_intensity(ember_base_intensity * f);
-        ember.scale().set(f, f, f);
-        for w in &wisps {
-            {
-                let mut p = w.mesh.position();
-                p.y = w.base_y + (t * 0.5 + w.phase).sin() * 0.020 + 0.010;
-                p.x = w.base_x + (t * 0.4 + w.phase).sin() * 0.012;
-                p.z = w.base_z + (t * 0.6 + w.phase).cos() * 0.012;
-            }
-            let s = 0.9 + (t * 0.7 + w.phase).sin() * 0.20;
-            w.mesh.scale().set(s, 2.5 * s, s);
-        }
-    });
-    a.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    a.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&a);
 }
 
 #[cfg(test)]

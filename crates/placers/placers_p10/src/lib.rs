@@ -7,6 +7,9 @@ use game::prelude::*;
 mod textures;
 use textures::*;
 
+mod t07;
+use t07::{place_coat_racks, place_vacuum_cleaners};
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_car_keys", place_car_keys));
@@ -385,125 +388,7 @@ fn place_shoe_pairs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R703 wall coat rack w/ 2-3 hanging coats: 3% chance per level.
-fn place_coat_racks(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let wall_tiles = wall_tiles(g);
-    if wall_tiles.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wall_tiles[(rnd() * wall_tiles.len() as f64).floor() as usize];
-    let wood_colors = [0x8b5a2b, 0x604020, 0xa07040, 0x504030];
-    let wood_mat = lambert!({ color: pick(&wood_colors) });
-    let brass_mat = lambert!({ color: 0xc0a060 });
-    let rack = group();
-    let mount_y = 1.75;
-    // Horizontal rail — flat wide box.
-    let rail_w = 0.60;
-    let rail = mesh(pg("CoatRacks__rail", box_geo!(rail_w, 0.020, 0.030)), &wood_mat);
-    rail.position().set(0, mount_y, 0.015);
-    rack.add(&rail);
-    // 5 brass peg hooks along rail.
-    let mut peg_positions: Vec<f64> = vec![];
-    for i in 0..5 {
-        let px = -rail_w * 0.4 + i as f64 * (rail_w * 0.2);
-        // Peg — small cylinder extending outward, w/ tiny knob.
-        let peg = mesh(pg("CoatRacks__peg", cyl_geo!(0.004, 0.004, 0.025, 5)), &brass_mat);
-        peg.rotation().x = PI / 2.0;
-        peg.position().set(px, mount_y, 0.032);
-        rack.add(&peg);
-        let peg_knob = mesh(pg("CoatRacks__knob", sphere_geo!(0.006, 5, 4)), &brass_mat);
-        peg_knob.position().set(px, mount_y - 0.003, 0.045);
-        rack.add(&peg_knob);
-        peg_positions.push(px);
-    }
-    // Coat colors — rich saturated pool.
-    let coat_colors = [0x603030, 0x101020, 0x408060, 0x201010, 0xa02040, 0x203060, 0x604020, 0x2a2a2a];
-    // Hang 2-3 coats on random pegs (deduplicated).
-    let coat_count = 2 + (rnd() * 2.0).floor() as i32;
-    let mut used_pegs: Vec<usize> = vec![]; // a Set
-    for c in 0..coat_count {
-        let mut peg_idx;
-        let mut attempts = 0;
-        loop {
-            peg_idx = (rnd() * peg_positions.len() as f64).floor() as usize;
-            attempts += 1;
-            if !(used_pegs.contains(&peg_idx) && attempts < 10) {
-                break;
-            }
-        }
-        if used_pegs.contains(&peg_idx) {
-            break;
-        }
-        used_pegs.push(peg_idx);
-        let px = peg_positions[peg_idx];
-        let coat_mat = lambert!({ color: pick(&coat_colors) });
-        // Coat silhouette — shoulders + body box + sleeves.
-        let coat = group();
-        // Shoulder wedge (small box at top).
-        let shoulder = mesh(pg("CoatRacks__shoulders", box_geo!(0.13, 0.025, 0.06)), &coat_mat);
-        shoulder.position().set(0, 0, 0);
-        coat.add(&shoulder);
-        // Body — tapered downward (taller box).
-        let body = mesh(pg("CoatRacks__coat", box_geo!(0.15, 0.28, 0.05)), &coat_mat);
-        body.position().set(0, -0.150, 0);
-        coat.add(&body);
-        // Sleeves — 2 thin box arms.
-        for side in [-1.0, 1.0] {
-            let sleeve = mesh(pg("CoatRacks__sleeve", box_geo!(0.035, 0.22, 0.045)), &coat_mat);
-            sleeve.position().set(side * 0.080, -0.130, 0);
-            sleeve.rotation().z = side * 0.15; // Slight outward tilt.
-            coat.add(&sleeve);
-        }
-        // Optional collar strip.
-        let collar_mat = lambert!({ color: 0x101010 });
-        let collar = mesh(pg("CoatRacks__collar", box_geo!(0.09, 0.010, 0.045)), &collar_mat);
-        collar.position().set(0, 0.012, 0.008);
-        coat.add(&collar);
-        coat.position().set(px, mount_y - 0.020, 0.055);
-        rack.add(&coat);
-        // R729 subtle sway animator — 35% chance per coat.
-        if rnd() < 0.35 {
-            let sway_phase = rnd() * PI * 2.0;
-            let sway_phase2 = rnd() * PI * 2.0;
-            let coat2 = coat.clone();
-            g.animate(move |_g, _dt, t| {
-                // Multi-freq sway: X-axis (front/back) + Z-axis (side/side).
-                coat2.rotation().x = (t * 0.5 + sway_phase).sin() * 0.015;
-                coat2.rotation().z = (t * 0.4 + sway_phase2).sin() * 0.010;
-            });
-        }
-    }
-    // Optional: scarf draped over one empty peg (40% if empty pegs exist).
-    if used_pegs.len() < 5 && rnd() < 0.4 {
-        let mut scarf_peg_idx;
-        loop {
-            scarf_peg_idx = (rnd() * peg_positions.len() as f64).floor() as usize;
-            if !used_pegs.contains(&scarf_peg_idx) {
-                break;
-            }
-        }
-        let scarf_px = peg_positions[scarf_peg_idx];
-        let scarf_colors = [0xa02040, 0x408060, 0xd0a040, 0x203060, 0xf0e0a0];
-        let scarf_mat = lambert!({ color: pick(&scarf_colors) });
-        // 2 hanging strips + short cross-band at top.
-        for side in [-1.0, 1.0] {
-            let strip = mesh(pg("CoatRacks__scarf", box_geo!(0.020, 0.24, 0.008)), &scarf_mat);
-            strip.position().set(scarf_px + side * 0.010, mount_y - 0.12, 0.050);
-            strip.rotation().z = side * 0.05;
-            rack.add(&strip);
-            // Small fringe tag at bottom of each strip.
-            let fringe = mesh(pg("CoatRacks__fringe", box_geo!(0.020, 0.008, 0.006)), &scarf_mat);
-            fringe.position().set(scarf_px + side * 0.010, mount_y - 0.244, 0.050);
-            rack.add(&fringe);
-        }
-    }
-    rack.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
-    rack.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    g.world.add(&rack);
-}
+// R703 wall coat rack: batch `t07` (t07.rs).
 
 // R703 single dropped glove (floor): 8% chance per level. One glove dropped
 // and left, lying limp (Blender batch r14a, the glove of
@@ -1346,109 +1231,7 @@ fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R705 vacuum cleaner unattended (floor): 3% chance per level.
-// R706: track positions for optional motor whine audio.
-fn place_vacuum_cleaners(g: &mut Game, _dist: &[i32]) {
-    g.pp.vacuum_positions = vec![]; // R706 reset per level
-    if rnd() < 0.97 {
-        return;
-    }
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = open_tiles[(rnd() * open_tiles.len() as f64).floor() as usize];
-    let body_colors = [0xa02040, 0x2060a0, 0x606060, 0x101010, 0xd0a040, 0x40a060];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let gray_mat = lambert!({ color: 0x606060 });
-    let dark_mat = lambert!({ color: 0x1a1a1a });
-    let cord_mat = lambert!({ color: 0x0a0a0a });
-    let dust_mat = lambert!({ color: 0xe0d8c0, transparent: true, opacity: 0.35 });
-    let v = group();
-    // Base — wide flat pad w/ brush roller line.
-    let (base_w, base_h, base_d) = (0.32, 0.045, 0.20);
-    let base = mesh(pg("VacuumCleaners__base", box_geo!(base_w, base_h, base_d)), &body_mat);
-    base.position().y = base_h / 2.0 + 0.002;
-    v.add(&base);
-    // Brush roller (dark cylinder on underside front).
-    let roller = mesh(pg("VacuumCleaners__roller", cyl_geo!(0.020, 0.020, base_w * 0.9, 6)), &dark_mat);
-    roller.rotation().z = PI / 2.0;
-    roller.position().set(0, 0.020, base_d * 0.40);
-    v.add(&roller);
-    // 2 rear wheels, just outside the base's side faces.
-    for side in [-1.0, 1.0] {
-        let wheel = mesh(pg("VacuumCleaners__wheel", cyl_geo!(0.024, 0.024, 0.010, 8)), &dark_mat);
-        wheel.rotation().z = PI / 2.0;
-        wheel.position().set(side * (base_w / 2.0 + 0.005), 0.024, -base_d * 0.30);
-        v.add(&wheel);
-    }
-    // Vertical body — canister rising up.
-    let can_h = 0.42;
-    let canister = mesh(pg("VacuumCleaners__canister", box_geo!(0.16, can_h, 0.15)), &body_mat);
-    canister.position().set(-0.02, base_h + can_h / 2.0 + 0.002, -base_d * 0.15);
-    canister.rotation().x = -0.20; // Tilted back slightly.
-    v.add(&canister);
-    // Dust chamber (clear-ish window) — transparent box.
-    let dust_cham = mesh(box_geo!(0.12, 0.16, 0.11), &dust_mat);
-    dust_cham.position().set(-0.005, base_h + can_h * 0.30, -base_d * 0.12);
-    dust_cham.rotation().x = -0.20;
-    v.add(&dust_cham);
-    // Handle — long thin cylinder rising up.
-    let handle_len = 0.75;
-    let handle = mesh(pg("VacuumCleaners__wand", cyl_geo!(0.014, 0.014, handle_len, 6)), &gray_mat);
-    handle.rotation().x = -0.20;
-    handle.position().set(-0.02, base_h + can_h + handle_len * 0.42, -base_d * 0.15 - 0.06);
-    v.add(&handle);
-    // Grip on handle — larger cylinder near top.
-    let grip = mesh(pg("VacuumCleaners__grip", cyl_geo!(0.020, 0.020, 0.080, 6)), &dark_mat);
-    grip.rotation().x = -0.20;
-    grip.position().set(-0.02, base_h + can_h + handle_len * 0.90, -base_d * 0.15 - 0.14);
-    v.add(&grip);
-    // Power switch button (bright color on grip).
-    let btn_mat = lambert!({ color: 0xa02020 });
-    let btn = mesh(pg("VacuumCleaners__button", box_geo!(0.006, 0.010, 0.008)), &btn_mat);
-    // On the wand's +X surface (axis x -0.02, r 0.014), following its tilt.
-    btn.position().set(-0.004, base_h + can_h + handle_len * 0.75, -base_d * 0.15 - 0.110);
-    btn.rotation().x = -0.20;
-    v.add(&btn);
-    // Cord — 10-segment curve trailing away to floor + plug.
-    let cord_start = v3(-0.04, base_h + can_h + handle_len * 0.05, -base_d * 0.15 + 0.03);
-    let cord_end = v3(-0.35 - rnd() * 0.15, 0.005, 0.15 + rnd() * 0.10);
-    let cord_segs = 10;
-    let mut prev = cord_start;
-    for i in 0..cord_segs {
-        let t = (i + 1) as f64 / cord_segs as f64;
-        let arc_amt = (t * PI).sin() * 0.04;
-        let cx = cord_start.x + (cord_end.x - cord_start.x) * t + (t * PI * 2.0).sin() * arc_amt;
-        let cy = cord_start.y + (cord_end.y - cord_start.y) * t + (t * PI * 1.2).sin().abs() * 0.012;
-        let cz = cord_start.z + (cord_end.z - cord_start.z) * t + (t * PI * 2.0).cos() * arc_amt * 0.6;
-        let next = v3(cx, cy, cz);
-        let dir_len = next.distance_to(&prev);
-        if dir_len > 0.001 {
-            let seg = mesh(pg("IroningBoards__cord", cyl_geo!(0.003, 0.003, dir_len, 4)), &cord_mat);
-            orient_seg(&seg, &prev, &next);
-            v.add(&seg);
-        }
-        prev = next;
-    }
-    // Plug at cord end (dark box + prongs).
-    let plug = mesh(pg("VacuumCleaners__plug", box_geo!(0.020, 0.010, 0.014)), &cord_mat);
-    plug.position().copy(&cord_end);
-    plug.position().y = 0.005;
-    v.add(&plug);
-    let prong_mat = lambert!({ color: 0x808080 });
-    for side in [-1.0, 1.0] {
-        let prong = mesh(pg("VacuumCleaners__prong", box_geo!(0.010, 0.002, 0.003)), &prong_mat);
-        prong.position().set(cord_end.x + 0.010, 0.005, cord_end.z + side * 0.003);
-        v.add(&prong);
-    }
-    v.position().set(g.wx(x) + (rnd() - 0.5) * 1.4, 0, g.wz(z) + (rnd() - 0.5) * 1.4);
-    v.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&v);
-    // R706 register position for motor whine audio.
-    let p = v.pos();
-    g.pp.vacuum_positions.push(v3(p.x, 0, p.z));
-}
+// R705 vacuum cleaner: batch `t07` (t07.rs).
 
 // R706 mop + bucket w/ water puddle (floor): 4% chance per level.
 fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
