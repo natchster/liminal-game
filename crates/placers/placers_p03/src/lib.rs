@@ -184,43 +184,9 @@ fn place_floss_containers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&floss);
 }
 
-// R585 makeup compact: 8% chance per level. Sometimes open (mirror + powder visible).
-fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let case_colors = [0xd050a0, 0x202020, 0xe0c040, 0xffffff, 0x40a0a0];
-    let case_mat = lambert!({ color: choice(&case_colors) });
-    let compact = group();
-    let is_open = rnd() < 0.4; // 40% open
-    let bottom = mesh(pg("MakeupCompacts__base", cyl_geo!(0.028, 0.028, 0.006, 12)), &case_mat);
-    bottom.position().y = 0.003;
-    compact.add(&bottom);
-    if is_open {
-        let top = mesh(pg("MakeupCompacts__lidOpen", cyl_geo!(0.028, 0.028, 0.006, 12)), &case_mat);
-        top.position().set(0, 0.028, 0.028);
-        top.rotation().x = -PI / 2.0;
-        compact.add(&top);
-        // Mirror faces -Z, out of the lid toward the powder; 0.3 mm proud of the seat.
-        let mirror = mesh(circle_geo!(0.021, 12), lambert!({ color: 0xf8f8f8 }));
-        mirror.rotation().y = PI;
-        mirror.position().set(0, 0.028, 0.0253);
-        compact.add(&mirror);
-        let powder = mesh(circle_geo!(0.022, 12), lambert!({ color: 0xe0b090 }));
-        powder.rotation().x = -PI / 2.0;
-        powder.position().y = 0.0065;
-        compact.add(&powder);
-    } else {
-        let top = mesh(pg("MakeupCompacts__lid", cyl_geo!(0.028, 0.028, 0.006, 12)), &case_mat);
-        top.position().y = 0.009;
-        compact.add(&top);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    compact.position().set(px, 0, pz);
-    compact.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&compact);
-}
+// R585 makeup compact, R603 perfume bottle and nail polish: batch `t03`'s (`t03.rs`)
+mod t03;
+use t03::{place_makeup_compacts, place_nail_polish, place_perfume_bottles};
 
 // R586 exit-arrow sign: 5% chance per level. Small green directional sign w/ white arrow.
 fn place_exit_arrow_signs(g: &mut Game, _dist: &[i32]) {
@@ -1295,66 +1261,6 @@ fn place_eyeshadow_palettes(g: &mut Game, _dist: &[i32]) {
     palette.position().set(px, 0, pz);
     palette.rotation().y = rnd() * PI * 2.0;
     g.world.add(&palette);
-}
-
-// R603 perfume bottle: 5% chance per level. Glass body + atomizer bulb.
-fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let glass_colors = [0xe0c8a0, 0xd0a0c0, 0xa0c0e0, 0xf0d060, 0xe08080];
-    let glass_mat = lambert!({ color: choice(&glass_colors), transparent: true, opacity: 0.75 });
-    let cap_mat = lambert!({ color: 0xd0a040 });
-    let bulb_mat = lambert!({ color: 0xc02040, transparent: true, opacity: 0.65 });
-    let perfume = group();
-    let body = mesh(box_geo!(0.040, 0.055, 0.030), &glass_mat);
-    body.position().y = 0.028;
-    perfume.add(&body);
-    let cap = mesh(pg("PerfumeBottles__cap", cyl_geo!(0.012, 0.014, 0.010, 8)), &cap_mat);
-    cap.position().y = 0.060;
-    perfume.add(&cap);
-    // Atomizer bulb (40% chance).
-    if rnd() < 0.4 {
-        let bulb = mesh(sphere_geo!(0.010, 8, 6), &bulb_mat);
-        bulb.position().set(0.030, 0.045, 0);
-        perfume.add(&bulb);
-        // Thin connector tube from the cap's side down into the bulb.
-        let tube = mesh(pg("PerfumeBottles__tube", cyl_geo!(0.001, 0.001, 0.018, 4)), &cap_mat);
-        tube.rotation().z = 1.131;
-        tube.position().set(0.0205, 0.056, 0);
-        perfume.add(&tube);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    perfume.position().set(px, 0, pz);
-    perfume.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&perfume);
-}
-
-// R603 nail polish bottle: 8% chance per level.
-fn place_nail_polish(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let polish_colors = [0xc02040, 0xd050a0, 0x804060, 0x40a0c0, 0x808080, 0x202020, 0xe0d040];
-    let polish_mat = lambert!({ color: choice(&polish_colors) });
-    let cap_mat = lambert!({ color: 0xe0e0e0 });
-    let polish = group();
-    let body = mesh(pg("NailPolish__body", cyl_geo!(0.014, 0.014, 0.020, 8)), &polish_mat);
-    body.position().y = 0.010;
-    polish.add(&body);
-    let cap = mesh(pg("NailPolish__cap", cyl_geo!(0.012, 0.012, 0.025, 8)), &cap_mat);
-    cap.position().y = 0.032;
-    polish.add(&cap);
-    let (px, pz) = jitter(g, x, z, 2.4);
-    polish.position().set(px, 0, pz);
-    polish.rotation().y = rnd() * PI * 2.0;
-    // 25% chance tipped over.
-    if rnd() < 0.25 {
-        polish.rotation().z = PI / 2.0;
-    }
-    g.world.add(&polish);
 }
 
 // R604 mascara wand: 7% chance per level. Tube + optional separated brush wand.

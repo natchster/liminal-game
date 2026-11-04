@@ -812,44 +812,9 @@ fn place_toilet_paper_dispensers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tp);
 }
 
-// R572 shampoo bottle shelf: 5% chance per level, 2-3 bottles.
-fn place_shampoo_shelves(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let wall_tiles = wall_tiles_first(g);
-    if wall_tiles.is_empty() {
-        return;
-    }
-    let c = pick(&wall_tiles);
-    let shelf_mat = lambert!({ color: 0xc0b8a8 });
-    let bottle_colors = [0x40a0c0, 0xe08080, 0x80c060, 0xf0d040, 0xd050a0];
-    let cap_mat = lambert!({ color: 0x303030 });
-    let shelf_group = group();
-    let shelf_y = 1.20;
-    // Shelf plank.
-    let shelf = mesh(pg("ShampooShelves__shelf", box_geo!(0.50, 0.020, 0.14)), &shelf_mat);
-    shelf.position().y = shelf_y;
-    shelf_group.add(&shelf);
-    // 2-3 bottles standing on shelf.
-    let bottle_count = 2 + (rnd() * 2.0).floor() as i32;
-    for b in 0..bottle_count {
-        let b_color = pick(&bottle_colors);
-        let b_mat = lambert!({ color: b_color });
-        let b_h = 0.14 + rnd() * 0.06;
-        let bottle = mesh(pg("ShampooShelves__bottle", cyl_geo!(0.030, 0.032, b_h, 8)), &b_mat);
-        let bx = -0.15 + b as f64 * 0.15;
-        bottle.position().set(bx, shelf_y + b_h / 2.0 + 0.010, 0);
-        shelf_group.add(&bottle);
-        // Cap.
-        let cap = mesh(pg("ShampooShelves__cap", cyl_geo!(0.020, 0.020, 0.020, 8)), &cap_mat);
-        cap.position().set(bx, shelf_y + b_h + 0.020, 0);
-        shelf_group.add(&cap);
-    }
-    shelf_group.rotation().y = face_wall_yaw(c.dx, c.dz);
-    shelf_group.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.060), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.060));
-    g.world.add(&shelf_group);
-}
+// R572 shampoo bottle shelf and R578 shower cap: batch `t03`'s (`t03.rs`)
+mod t03;
+use t03::{place_shampoo_shelves, place_shower_caps};
 
 // R573 towel bar with hanging towel: 5% chance per level.
 fn place_towel_bars(g: &mut Game, _dist: &[i32]) {
@@ -1149,34 +1114,6 @@ fn place_switch_plates(g: &mut Game, _dist: &[i32]) {
     sw.rotation().y = face_wall_yaw(c.dx, c.dz);
     sw.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.005), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.005));
     g.world.add(&sw);
-}
-
-// R578 shower cap: 6% chance per level.
-fn place_shower_caps(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let cap_colors = [0xffffff, 0xf0d0e0, 0x8080e0, 0xf0f0a0, 0xe0e0e0];
-    let cap_mat = lambert!({ color: pick(&cap_colors), side: DoubleSide });
-    let band_mat = lambert!({ color: 0xa0a0a0 });
-    let cap = group();
-    // Dome (half sphere).
-    let dome = mesh(sphere_geo!(0.09, 12, 6, 0, PI * 2.0, 0, PI / 2.0), &cap_mat);
-    dome.position().y = 0.005;
-    cap.add(&dome);
-    // Elastic band (thin torus at bottom edge).
-    let band = mesh(pg("ShowerCaps__band", torus_geo!(0.088, 0.005, 4, 16)), &band_mat);
-    band.rotation().x = PI / 2.0;
-    band.position().y = 0.006;
-    cap.add(&band);
-    cap.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    cap.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&cap);
 }
 
 // R578 hair tie band: 10% chance per level.
