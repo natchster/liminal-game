@@ -9,6 +9,8 @@ use game::prelude::*;
 
 mod textures;
 use textures::*;
+mod t01;
+use t01::place_framed_photos;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -347,29 +349,6 @@ fn place_envelopes(g: &mut Game, _dist: &[i32]) {
     env.position().set(px, 0, pz);
     env.rotation().y = rnd() * PI * 2.0;
     g.world.add(&env);
-}
-
-// R612 small framed photo (personal): 4% chance per level.
-fn place_framed_photos(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    }
-    let Some((x, z, dx, dz)) = pick_wall(g) else { return };
-    let frame_colors = [0x604020, 0x202020, 0xd0b070, 0x606060];
-    let frame_mat = lambert!({ color: choice(&frame_colors) });
-    let photo_mat = lambert!({ map: photo_texture() });
-    let frame = group();
-    let mount_y = 1.60;
-    let outer = mesh(pg("FramedPhotos__frame", box_geo!(0.16, 0.20, 0.014)), &frame_mat);
-    outer.position().y = mount_y;
-    frame.add(&outer);
-    let photo = mesh(plane_geo!(0.13, 0.17), &photo_mat);
-    photo.position().set(0, mount_y, 0.009);
-    frame.add(&photo);
-    // Slight tilt (photos never perfectly straight).
-    frame.rotation().z = (rnd() - 0.5) * 0.06;
-    wall_mount(g, &frame, x, z, dx, dz, 0.006);
-    g.world.add(&frame);
 }
 
 // R613 dropped receipt: 9% chance per level. Thin white strip with printed "text" lines.

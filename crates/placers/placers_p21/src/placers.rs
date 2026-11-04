@@ -14,6 +14,8 @@ mod r16;
 pub(crate) use r16::place_broken_bottles;
 mod r18;
 pub(crate) use r18::place_mop_buckets;
+mod t01;
+pub(crate) use t01::place_family_portraits;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -559,33 +561,6 @@ pub(crate) fn place_crayon_graffiti(g: &mut Game, _dist: &[i32]) {
     let decal = mesh(plane_geo!(0.60, 0.50), &mat);
     mount_on_wall(g, &decal, &c, 0.008, 0.9, 0.6); // low-mounted (child-height)
     g.world.add(&decal);
-}
-
-// R511 family portrait: 5% chance per level. Framed photo w/ 3-4 silhouettes.
-pub(crate) fn place_family_portraits(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let frame_mat = lambert!({ color: 0x6a3820 });
-    let photo_mat = lambert!({ map: family_portrait_texture(), side: DoubleSide });
-    let portrait = group();
-    let (w, h, t, fw) = (0.20, 0.16, 0.015, 0.014);
-    for (bar_w, bar_h, bx, by) in frame_bars(w, h, fw) {
-        let bar = mesh(pg("FamilyPortraits__bar", box_geo!(bar_w, bar_h, t)), &frame_mat);
-        bar.position().set(bx, by, 0);
-        portrait.add(&bar);
-    }
-    let photo = mesh(plane_geo!(w, h), &photo_mat);
-    photo.position().set(0, 0, t / 2.0 + 0.001);
-    portrait.add(&photo);
-    mount_on_wall(g, &portrait, &c, 0.010, 1.60, 0.6);
-    portrait.rotation().z = (rnd() - 0.5) * 0.05;
-    g.world.add(&portrait);
 }
 
 // R511 cassette tape: 8% chance per level. Rectangle w/ 2 spool holes + label.

@@ -6,6 +6,8 @@ use game::prelude::*;
 
 mod textures;
 use textures::*;
+mod t01;
+use t01::place_graduation_photos;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -70,51 +72,6 @@ fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
     let mut v = *next;
     v.sub(prev).normalize();
     seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
-}
-
-// R690 framed graduation photo w/ tassel (wall): 2.5% chance per level.
-fn place_graduation_photos(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let wall_tiles = wall_tiles(g);
-    if wall_tiles.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wall_tiles[(rnd() * wall_tiles.len() as f64).floor() as usize];
-    let frame_colors = [0x604020, 0xd0a040, 0x808080, 0x8b5a2b];
-    let frame_mat = lambert!({ color: pick(&frame_colors) });
-    let photo_mat = lambert!({ map: graduation_photo_texture() });
-    let gp = group();
-    let mount_y = 1.60;
-    let (frame_w, frame_h) = (0.18, 0.22);
-    let frame = mesh(pg("GraduationPhotos__frame", box_geo!(frame_w, frame_h, 0.014)), &frame_mat);
-    frame.position().set(0, mount_y, 0.011);
-    gp.add(&frame);
-    let photo = mesh(plane_geo!(frame_w - 0.018, frame_h - 0.018), &photo_mat);
-    photo.position().set(0, mount_y, 0.019);
-    gp.add(&photo);
-    // Add a small real hanging fabric tassel below the frame — 3D touch.
-    let tassel_color_pool = [0xd0a040, 0xa02040, 0x2060a0, 0x408060];
-    let tassel_mat = lambert!({ color: pick(&tassel_color_pool) });
-    let tassel_cord = mesh(pg("HangingColanders__cord", cyl_geo!(0.001, 0.001, 0.04, 3)), &tassel_mat);
-    tassel_cord.position().set(frame_w * 0.35, mount_y - frame_h * 0.55, 0.014);
-    gp.add(&tassel_cord);
-    let tassel_knot = mesh(sphere_geo!(0.004, 5, 4), &tassel_mat);
-    tassel_knot.position().set(frame_w * 0.35, mount_y - frame_h * 0.55 - 0.024, 0.014);
-    gp.add(&tassel_knot);
-    // Tassel strands — 5 thin cylinders splaying down.
-    for i in 0..5 {
-        let fi = i as f64;
-        let strand = mesh(cyl_geo!(0.0006, 0.0006, 0.026, 3), &tassel_mat);
-        strand.position().set(frame_w * 0.35 + (fi - 2.0) * 0.002, mount_y - frame_h * 0.55 - 0.038, 0.014);
-        strand.rotation().z = (fi - 2.0) * 0.05;
-        gp.add(&strand);
-    }
-    gp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
-    gp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    gp.rotation().z = (rnd() - 0.5) * 0.04;
-    g.world.add(&gp);
 }
 
 // R691 half-eaten sandwich on plate (floor): 6% chance per level.

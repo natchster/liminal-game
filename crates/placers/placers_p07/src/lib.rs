@@ -6,6 +6,9 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
+mod t01;
+use t01::{place_abstract_landscapes, place_still_lifes};
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_mason_jars", place_mason_jars));
@@ -1004,70 +1007,6 @@ fn place_shaker_pair(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R671 framed abstract landscape: 4% chance per level.
-game::lazy_static_tex!(
-    landscape_texture,
-    canvas_tex(160, 120, |ctx, w, h| {
-        let sky = ctx.create_linear_gradient(0, 0, 0, h * 0.6);
-        let sky_top = ["#e0a080", "#a0c0e0", "#d0d0d0", "#f0d060"][(rnd() * 4.0).floor() as usize];
-        let sky_bot = ["#f0c090", "#c0d8e8", "#e0e0e0", "#f0e090"][(rnd() * 4.0).floor() as usize];
-        sky.add_color_stop(0, sky_top);
-        sky.add_color_stop(1, sky_bot);
-        ctx.set_fill_style(&sky);
-        ctx.fill_rect(0, 0, w, h * 0.6);
-        ctx.set_fill_style("#f8e0a0");
-        ctx.begin_path();
-        ctx.arc(w * 0.7, h * 0.30, 14, 0, PI * 2.0);
-        ctx.fill();
-        ctx.set_fill_style("#605060");
-        ctx.begin_path();
-        ctx.move_to(0, h * 0.6);
-        for i in 0..6 {
-            ctx.line_to(i as f64 * w / 5.0, h * 0.55 + rnd() * h * 0.1);
-        }
-        ctx.line_to(w, h * 0.6);
-        ctx.close_path();
-        ctx.fill();
-        ctx.set_fill_style("#405030");
-        ctx.fill_rect(0, h * 0.6, w, h * 0.4);
-        ctx.set_fill_style("#202018");
-        let tree_count = 4 + (rnd() * 3.0).floor() as i32;
-        for _ in 0..tree_count {
-            let tx = 20.0 + rnd() * (w - 40.0);
-            let ty = h * 0.6 - 10.0 + rnd() * 20.0;
-            ctx.fill_rect(tx - 1.0, ty, 2, 20);
-            ctx.begin_path();
-            ctx.arc(tx, ty - 4.0, 8.0 + rnd() * 4.0, 0, PI * 2.0);
-            ctx.fill();
-        }
-    })
-);
-
-fn place_abstract_landscapes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    let frame_mat = lambert!({ color: 0xd0a040 });
-    let art_mat = lambert!({ map: landscape_texture() });
-    let painting = group();
-    let mount_y = 1.65;
-    let frame = mesh(pg("AbstractLandscapes__frame", box_geo!(0.32, 0.24, 0.012)), &frame_mat);
-    frame.position().y = mount_y;
-    painting.add(&frame);
-    let art = mesh(plane_geo!(0.28, 0.20), &art_mat);
-    art.position().set(0, mount_y, 0.0); // in the frame's rebate (floor z -0.001), behind the sight edge
-    painting.add(&art);
-    painting.rotation().z = (rnd() - 0.5) * 0.04;
-    painting.rotation().y = face_wall(dx, dz);
-    painting.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
-    g.world.add(&painting);
-}
-
 // R673 a loaf left on its board (Blender batch `r16`): a small white bloomer
 // on a beech bread board, its end cut off long ago; stale, shrunk and
 // cracked, its crust gone dull, mould grown over it in blue-green and white
@@ -1336,63 +1275,6 @@ fn loaf_board_tex(salt: u32) -> Tex {
         ctx.arc(cx, cy, 26.0, 0.3, 5.6);
         ctx.stroke();
     })
-}
-
-// R673 framed still-life (fruit bowl): 3% chance per level.
-game::lazy_static_tex!(
-    stilllife_texture,
-    canvas_tex(160, 128, |ctx, w, h| {
-        ctx.set_fill_style("#4a3a2a");
-        ctx.fill_rect(0, 0, w, h);
-        ctx.set_fill_style("#8b5a2b");
-        ctx.fill_rect(0, h * 0.65, w, h * 0.35);
-        ctx.set_fill_style("#c0a070");
-        ctx.begin_path();
-        ctx.ellipse(w / 2.0, h * 0.65, w * 0.20, h * 0.14, 0, 0, PI);
-        ctx.fill();
-        let fruit_colors = ["#c02020", "#e0c020", "#a04020", "#c04060", "#606030"];
-        for i in 0..5 {
-            let fx = w * 0.35 + (i % 3) as f64 * w * 0.10;
-            let fy = h * 0.55 + (i / 3) as f64 * h * 0.08;
-            ctx.set_fill_style(fruit_colors[i % 5]);
-            ctx.begin_path();
-            ctx.arc(fx, fy, 10.0 + rnd() * 3.0, 0, PI * 2.0);
-            ctx.fill();
-            ctx.set_fill_style("#f8e8b0");
-            ctx.begin_path();
-            ctx.arc(fx - 3.0, fy - 3.0, 2, 0, PI * 2.0);
-            ctx.fill();
-        }
-    })
-);
-
-fn place_still_lifes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    let frame_mat = lambert!({ color: 0x604020 });
-    let gild_mat = lambert!({ color: 0xd0a040 });
-    let art_mat = lambert!({ map: stilllife_texture() });
-    let still = group();
-    let mount_y = 1.65;
-    let outer = mesh(pg("StillLifes__outer", box_geo!(0.34, 0.28, 0.016)), &frame_mat);
-    outer.position().y = mount_y;
-    still.add(&outer);
-    let inner = mesh(pg("StillLifes__slip", box_geo!(0.31, 0.25, 0.012)), &gild_mat);
-    inner.position().set(0, mount_y, 0.011);
-    still.add(&inner);
-    let art = mesh(plane_geo!(0.27, 0.22), &art_mat);
-    art.position().set(0, mount_y, 0.017);
-    still.add(&art);
-    still.rotation().z = (rnd() - 0.5) * 0.04;
-    still.rotation().y = face_wall(dx, dz);
-    still.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.017), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.017));
-    g.world.add(&still);
 }
 
 // R674 wine bottle: 6% chance per level.

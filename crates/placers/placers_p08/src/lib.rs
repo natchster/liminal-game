@@ -5,6 +5,9 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
+mod t01;
+use t01::place_baby_photos;
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_knitting_baskets", place_knitting_baskets));
@@ -1183,140 +1186,6 @@ fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
     brush.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     brush.rotation().y = rnd() * PI * 2.0;
     g.world.add(&brush);
-}
-
-// R688 framed baby photo w/ pastel border (wall): 2.5% chance
-// per level. Small square photo w/ soft focus baby silhouette
-// + pastel decorated frame.
-game::lazy_static_tex!(
-    baby_photo_texture,
-    canvas_tex(180, 180, |ctx, w, h| {
-        // Soft cream background gradient (very light).
-        let grad = ctx.create_radial_gradient(w / 2.0, h / 2.0, 20, w / 2.0, h / 2.0, w * 0.7);
-        grad.add_color_stop(0, "#fff0e0");
-        grad.add_color_stop(1, "#f0d8c0");
-        ctx.set_fill_style(&grad);
-        ctx.fill_rect(0, 0, w, h);
-        // Subtle grain.
-        ctx.set_fill_style("rgba(200,170,140,0.15)");
-        for _ in 0..120 {
-            ctx.begin_path();
-            let (ax, ay) = (rnd() * w, rnd() * h);
-            ctx.arc(ax, ay, 1, 0, PI * 2.0);
-            ctx.fill();
-        }
-        // Central baby silhouette — soft round head w/ hint of body.
-        let (cx, cy) = (w / 2.0, h * 0.55);
-        // Head — large soft radial (skin tone).
-        let head_grad = ctx.create_radial_gradient(cx, cy - 25.0, 5, cx, cy - 25.0, 40);
-        head_grad.add_color_stop(0, "rgba(230,180,140,0.95)");
-        head_grad.add_color_stop(0.55, "rgba(210,160,120,0.6)");
-        head_grad.add_color_stop(1, "rgba(210,160,120,0)");
-        ctx.set_fill_style(&head_grad);
-        ctx.begin_path();
-        ctx.arc(cx, cy - 25.0, 40, 0, PI * 2.0);
-        ctx.fill();
-        // Body — softer blanket.
-        let body_grad = ctx.create_radial_gradient(cx, cy + 20.0, 5, cx, cy + 20.0, 55);
-        body_grad.add_color_stop(0, "rgba(240,220,240,0.85)");
-        body_grad.add_color_stop(0.6, "rgba(230,210,230,0.5)");
-        body_grad.add_color_stop(1, "rgba(230,210,230,0)");
-        ctx.set_fill_style(&body_grad);
-        ctx.begin_path();
-        ctx.ellipse(cx, cy + 20.0, 50, 40, 0, 0, PI * 2.0);
-        ctx.fill();
-        // Tiny eye smudges + smile.
-        ctx.set_fill_style("rgba(60,40,30,0.5)");
-        ctx.begin_path();
-        ctx.arc(cx - 10.0, cy - 32.0, 2, 0, PI * 2.0);
-        ctx.arc(cx + 10.0, cy - 32.0, 2, 0, PI * 2.0);
-        ctx.fill();
-        ctx.set_stroke_style("rgba(160,80,60,0.4)");
-        ctx.set_line_width(2);
-        ctx.begin_path();
-        ctx.arc(cx, cy - 22.0, 6, 0.2, PI - 0.2);
-        ctx.stroke();
-        // Pastel decorative border — hearts + circles.
-        let border_palettes: [[&str; 3]; 3] =
-            [["#f0a0c0", "#c0d0f0", "#e0c0f0"], ["#a0d0f0", "#c0f0d0", "#f0e0a0"], ["#f0c0a0", "#c0e0e0", "#e0a0c0"]];
-        let p = border_palettes[(rnd() * border_palettes.len() as f64).floor() as usize];
-        // Solid pastel border.
-        ctx.set_fill_style(p[0]);
-        ctx.fill_rect(0, 0, w, 12);
-        ctx.fill_rect(0, h - 12.0, w, 12);
-        ctx.fill_rect(0, 0, 12, h);
-        ctx.fill_rect(w - 12.0, 0, 12, h);
-        // Decorative motifs — small hearts + circles alternating on border.
-        let motifs = 8;
-        for side in 0..4 {
-            for i in 0..motifs {
-                let t = (i as f64 + 0.5) / motifs as f64;
-                let (mx, my);
-                if side == 0 {
-                    mx = t * w;
-                    my = 6.0;
-                } else if side == 1 {
-                    mx = w - 6.0;
-                    my = t * h;
-                } else if side == 2 {
-                    mx = t * w;
-                    my = h - 6.0;
-                } else {
-                    mx = 6.0;
-                    my = t * h;
-                }
-                ctx.set_fill_style(p[1 + (i % 2) as usize]);
-                if i % 2 == 0 {
-                    // Heart-ish shape (simplified — two small circles).
-                    ctx.begin_path();
-                    ctx.arc(mx - 2.0, my, 2, 0, PI * 2.0);
-                    ctx.arc(mx + 2.0, my, 2, 0, PI * 2.0);
-                    ctx.fill();
-                } else {
-                    ctx.begin_path();
-                    ctx.arc(mx, my, 2.5, 0, PI * 2.0);
-                    ctx.fill();
-                }
-            }
-        }
-        // Baby name + date caption on cream area bottom.
-        let names = ["Baby Anna", "Little Sam", "Baby Grace", "Our Lily", "Baby Noah"];
-        let dates = ["2 mo.", "3 mo.", "Christmas '84", "April 1991", "newborn"];
-        let nm = names[(rnd() * names.len() as f64).floor() as usize];
-        let dt = dates[(rnd() * dates.len() as f64).floor() as usize];
-        ctx.set_fill_style("#603030");
-        ctx.set_font("italic 12px cursive");
-        ctx.set_text_align("center");
-        ctx.fill_text(&format!("{}, {}", nm, dt), w / 2.0, h - 22.0);
-    })
-);
-
-fn place_baby_photos(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    let frame_colors: [u32; 4] = [0xf0d8e8, 0xd8e8f0, 0xf0f0d0, 0xf0d0d0];
-    let frame_mat = lambert!({ color: pick(&frame_colors) });
-    let photo_mat = lambert!({ map: baby_photo_texture() });
-    let bp = group();
-    let mount_y = 1.55;
-    let frame_size = 0.20;
-    let frame = mesh(pg("BabyPhotos__frame", box_geo!(frame_size, frame_size, 0.014)), &frame_mat);
-    frame.position().set(0, mount_y, 0.011);
-    bp.add(&frame);
-    let photo = mesh(plane_geo!(frame_size - 0.018, frame_size - 0.018), &photo_mat);
-    photo.position().set(0, mount_y, 0.019);
-    bp.add(&photo);
-    bp.rotation().y = face_wall(dx, dz);
-    let (px, pz) = wall_pos(g, x, z, dx, dz, 0.015);
-    bp.position().set(px, 0, pz);
-    bp.rotation().z = (rnd() - 0.5) * 0.04;
-    g.world.add(&bp);
 }
 
 // R689 small mirror on stand w/ optional smudge (floor):
