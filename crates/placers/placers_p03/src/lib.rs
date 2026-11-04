@@ -6,6 +6,12 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
+mod t05;
+use t05::{
+    place_bird_nests, place_butterfly_wings, place_grass_clumps, place_leaf_litter, place_moss_patches, place_snail_shells,
+    place_spider_webs, place_twigs,
+};
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_smoke_detectors", place_smoke_detectors));
@@ -648,77 +654,6 @@ fn place_keyring_with_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ring);
 }
 
-// R592 crushed leaf litter: 8% chance per level. 4-8 small leaf-shape circles.
-fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let leaf_colors = [0x805020, 0xa06030, 0x604020, 0x907040, 0xc08040];
-    let cluster = group();
-    let count = 4 + (rnd() * 5.0).floor() as i32;
-    // R636 track for drift animator: (leaf, base_x, base_z, phase_x, phase_z)
-    let mut leaves: Vec<(Obj, f64, f64, f64, f64)> = vec![];
-    for _i in 0..count {
-        let leaf_mat = lambert!({ color: choice(&leaf_colors), side: DoubleSide });
-        // Elongated ellipse: a scaled circle geometry.
-        let leaf = mesh(circle_geo!(0.020, 6), &leaf_mat);
-        leaf.rotation().x = -PI / 2.0;
-        leaf.scale().set(1.5, 0.7, 1);
-        let base_x = (rnd() - 0.5) * 0.16;
-        let base_z = (rnd() - 0.5) * 0.16;
-        leaf.position().set(base_x, 0.003 + rnd() * 0.004, base_z);
-        leaf.rotation().z = rnd() * PI * 2.0;
-        let phase_x = rnd() * PI * 2.0;
-        let phase_z = rnd() * PI * 2.0;
-        {
-            let mut u = leaf.user();
-            u.base_x = base_x;
-            u.base_z = base_z;
-            u.set("phaseX", phase_x);
-            u.set("phaseZ", phase_z);
-        }
-        leaves.push((leaf.clone(), base_x, base_z, phase_x, phase_z));
-        cluster.add(&leaf);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    cluster.position().set(px, 0, pz);
-    g.world.add(&cluster);
-    // R636 subtle wind-drift animator (leaves shift 4-6 mm in wind).
-    g.animate(move |_g, _dt, t| {
-        for (l, bx, bz, phx, phz) in &leaves {
-            let mut p = l.position();
-            p.x = bx + (t * 0.3 + phx).sin() * 0.005;
-            p.z = bz + (t * 0.28 + phz).cos() * 0.004;
-        }
-    });
-}
-
-// R593 small twigs cluster: 7% chance per level.
-fn place_twigs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let twig_colors = [0x503020, 0x604030, 0x402010, 0x705040];
-    let cluster = group();
-    let count = 3 + (rnd() * 4.0).floor() as i32;
-    for _i in 0..count {
-        let twig_mat = lambert!({ color: choice(&twig_colors) });
-        let len = 0.040 + rnd() * 0.060;
-        let rr = 0.0025 + rnd() * 0.0015;
-        let twig = mesh(pg("Twigs__twig", cyl_geo!(rr * 0.7, rr, len, 5)), &twig_mat);
-        twig.rotation().z = PI / 2.0;
-        twig.rotation().y = rnd() * PI * 2.0;
-        twig.position().set((rnd() - 0.5) * 0.16, rr, (rnd() - 0.5) * 0.16);
-        twig.rotation().x = (rnd() - 0.5) * 0.3;
-        cluster.add(&twig);
-    }
-    let (px, pz) = jitter(g, x, z, 2.5);
-    cluster.position().set(px, 0, pz);
-    g.world.add(&cluster);
-}
-
 // R593 acorn/nut cluster: 6% chance per level.
 fn place_acorns(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -885,36 +820,6 @@ fn place_dandelions(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-// R596 moss patch: 5% chance per level. Small bumpy green carpet on floor.
-fn place_moss_patches(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let moss_colors = [0x407030, 0x506040, 0x304018, 0x607040];
-    let patch = group();
-    let base_color = choice(&moss_colors);
-    let base = mesh(pg("MossPatches__mat", circle_geo!(0.14, 8)), lambert!({ color: base_color }));
-    base.rotation().x = -PI / 2.0;
-    base.position().y = 0.003;
-    patch.add(&base);
-    // 12 tiny bumps for tufted texture.
-    for _i in 0..12 {
-        let bump_mat = lambert!({ color: choice(&moss_colors) });
-        let bump_r = 0.008 + rnd() * 0.010;
-        let bump = mesh(pg("MossPatches__tuft", sphere_geo!(bump_r, 6, 4)), &bump_mat);
-        let a = rnd() * PI * 2.0;
-        let r = rnd() * 0.10;
-        bump.position().set(a.cos() * r, bump_r * 0.5, a.sin() * r);
-        bump.scale().y = 0.5;
-        patch.add(&bump);
-    }
-    let (px, pz) = jitter(g, x, z, 2.2);
-    patch.position().set(px, 0, pz);
-    patch.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&patch);
-}
-
 // R596 fern frond: 6% chance per level. Central stem + pairs of leaflets.
 fn place_ferns(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -966,112 +871,6 @@ fn place_ferns(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-// R597 grass blade clump: 6% chance per level.
-fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let grass_colors = [0x407030, 0x506028, 0x608040, 0x304018];
-    let clump_color = choice(&grass_colors);
-    let grass_mat = lambert!({ color: clump_color, side: DoubleSide });
-    let clump = group();
-    let count = 6 + (rnd() * 6.0).floor() as i32;
-    let mut blades: Vec<Obj> = vec![]; // R601 track for sway animator
-    for _i in 0..count {
-        let h = 0.040 + rnd() * 0.050;
-        let blade = mesh(plane_geo!(0.005, h), &grass_mat);
-        blade.position().set((rnd() - 0.5) * 0.06, h / 2.0, (rnd() - 0.5) * 0.06);
-        blade.rotation().y = rnd() * PI;
-        let base_z = (rnd() - 0.5) * 0.3;
-        blade.rotation().z = base_z; // slight lean
-        blade.user().base_z = base_z;
-        blade.user().phase = rnd() * PI * 2.0;
-        blades.push(blade.clone());
-        clump.add(&blade);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    clump.position().set(px, 0, pz);
-    g.world.add(&clump);
-    // R601 gentle sway animator (0.5 Hz sinusoid + per-blade phase).
-    g.animate(move |_g, _dt, t| {
-        for b in &blades {
-            let (bz, ph) = {
-                let n = b.r();
-                (n.user.base_z, n.user.phase)
-            };
-            b.rotation().z = bz + (t * 0.5 + ph).sin() * 0.08;
-        }
-    });
-}
-
-// R597 butterfly wing: 5% chance per level. Single detached translucent wing.
-fn place_butterfly_wings(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let wing_colors = [0xd08040, 0x4060c0, 0x8040c0, 0xd0c040, 0x804020];
-    let wing_mat = lambert!({ color: choice(&wing_colors), transparent: true, opacity: 0.75, side: DoubleSide });
-    let dot_mat = lambert!({ color: 0x101010 });
-    let wing = group();
-    // Custom teardrop shape via 2 triangles.
-    let wing_geom = tri_geo(
-        vec![
-            // Upper triangle.
-            0.0, 0.0, 0.0, 0.05, 0.005, 0.04, 0.02, 0.005, 0.055, // Lower triangle.
-            0.0, 0.0, 0.0, 0.05, 0.005, 0.04, 0.045, 0.005, -0.010,
-        ],
-        vec![0, 1, 2, 3, 4, 5],
-    );
-    let wing_mesh = mesh(wing_geom, &wing_mat);
-    wing.add(&wing_mesh);
-    // 2 small dark spots on wing (eyespots).
-    for i in 0..2 {
-        let dot = mesh(circle_geo!(0.005, 6), &dot_mat);
-        dot.rotation().x = -PI / 2.0;
-        dot.position().set(0.020 + i as f64 * 0.010, 0.006, 0.020 + i as f64 * 0.008);
-        wing.add(&dot);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    wing.position().set(px, 0, pz);
-    wing.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&wing);
-}
-
-// R598 snail shell: 5% chance per level. Small spiral shell (stacked descending rings).
-fn place_snail_shells(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let shell_colors = [0xc8a888, 0xa08060, 0xd0b090, 0x604020];
-    let shell_mat = lambert!({ color: choice(&shell_colors) });
-    let shell = group();
-    // 6 descending ring segments simulating spiral.
-    let rings = 6;
-    for i in 0..rings {
-        let t = i as f64 / rings as f64;
-        let r = 0.020 * (1.0 - t * 0.85);
-        let ring = mesh(pg("SnailShells__ring", torus_geo!(r, r * 0.35, 4, 10)), &shell_mat);
-        ring.rotation().x = PI / 2.0;
-        // Spiral upward + slight side offset per ring.
-        ring.position().set((t * PI * 3.0).cos() * 0.006, 0.006 + i as f64 * 0.007, (t * PI * 3.0).sin() * 0.006);
-        shell.add(&ring);
-    }
-    // Small opening lip (front torus half): the aperture rim, a C in the YZ plane.
-    let lip = mesh(pg("SnailShells__lip", torus_geo!(0.018, 0.006, 4, 8, PI)), &shell_mat);
-    lip.rotation().set(-0.52, -PI / 2.0, -PI / 2.0);
-    lip.scale().set_scalar(0.83);
-    lip.position().set(0.006, 0.015, 0.0145);
-    shell.add(&lip);
-    let (px, pz) = jitter(g, x, z, 2.5);
-    shell.position().set(px, 0, pz);
-    shell.rotation().y = rnd() * PI * 2.0;
-    shell.rotation().z = if rnd() < 0.4 { PI * 0.5 } else { 0.0 }; // sometimes on side
-    g.world.add(&shell);
-}
-
 // R598 pine needle cluster: 7% chance per level.
 fn place_pine_needles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -1092,86 +891,6 @@ fn place_pine_needles(g: &mut Game, _dist: &[i32]) {
     let (px, pz) = jitter(g, x, z, 2.4);
     cluster.position().set(px, 0, pz);
     g.world.add(&cluster);
-}
-
-// R599 bird nest: 4% chance per level. Woven twig bowl on floor.
-fn place_bird_nests(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let twig_colors = [0x604020, 0x503018, 0x705030];
-    let nest = group();
-    // Outer ring of woven twigs (12 short cylinders in a circle).
-    let outer_r = 0.070;
-    for i in 0..12 {
-        let twig_mat = lambert!({ color: choice(&twig_colors) });
-        let twig = mesh(pg("BirdNests__twig", cyl_geo!(0.003, 0.003, 0.055, 4)), &twig_mat);
-        let a = (i as f64 / 12.0) * PI * 2.0;
-        twig.position().set(a.cos() * outer_r, 0.020, a.sin() * outer_r);
-        // Laid tangent to the ring, weaving up/down by the random tilt.
-        let tilt = (rnd() - 0.5) * 0.5;
-        {
-            let mut r = twig.rotation();
-            r.set(0, PI / 2.0 - a, PI / 2.0 + tilt);
-            r.order = EulerOrder::YZX;
-        }
-        nest.add(&twig);
-    }
-    // Inner ring (smaller radius, higher).
-    let inner_r = 0.055;
-    for i in 0..10 {
-        let twig_mat = lambert!({ color: choice(&twig_colors) });
-        let twig = mesh(pg("BirdNests__twigThin", cyl_geo!(0.002, 0.002, 0.040, 4)), &twig_mat);
-        let a = (i as f64 / 10.0) * PI * 2.0 + 0.2;
-        twig.position().set(a.cos() * inner_r, 0.035, a.sin() * inner_r);
-        let tilt = (rnd() - 0.5) * 0.3;
-        {
-            let mut r = twig.rotation();
-            r.set(0, PI / 2.0 - a, PI / 2.0 + tilt);
-            r.order = EulerOrder::YZX;
-        }
-        nest.add(&twig);
-    }
-    // 30% chance 1-2 tiny eggs in the middle.
-    if rnd() < 0.30 {
-        let egg_mat = lambert!({ color: 0xd8d8c0 });
-        let egg_count = 1 + (rnd() * 2.0).floor() as i32;
-        for _e in 0..egg_count {
-            let egg = mesh(pg("BirdNests__egg", sphere_geo!(0.010, 8, 6)), &egg_mat);
-            egg.scale().y = 1.3;
-            egg.position().set((rnd() - 0.5) * 0.020, 0.013, (rnd() - 0.5) * 0.020);
-            nest.add(&egg);
-        }
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    nest.position().set(px, 0, pz);
-    nest.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&nest);
-}
-
-// R599 spider web: 5% chance per level. Small cobweb in the wall-ceiling corner.
-fn place_spider_webs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z, dx, dz)) = pick_wall(g) else { return };
-    let web_mat = lambert!({ color: 0xf0f0f0, transparent: true, opacity: 0.5, side: DoubleSide });
-    let web = group();
-    let mount_y = WALL_H - 0.10;
-    // Triangular web plane: 3 triangles fanning from corner.
-    let web_geom = tri_geo(
-        vec![
-            0.0, 0.0, 0.0, 0.18, -0.15, 0.0, 0.18, 0.0, 0.10, 0.0, 0.0, 0.0, 0.18, -0.15, 0.0, -0.18, -0.15, 0.0, 0.0, 0.0, 0.0, -0.18,
-            -0.15, 0.0, -0.18, 0.0, 0.10,
-        ],
-        vec![0, 1, 2, 3, 4, 5, 6, 7, 8],
-    );
-    let web_mesh = mesh(web_geom, &web_mat);
-    web_mesh.position().y = mount_y;
-    web.add(&web_mesh);
-    wall_mount(g, &web, x, z, dx, dz, 0.020);
-    g.world.add(&web);
 }
 
 // R602 chestnut cluster: 5% chance per level. Spiky husks + smooth brown nuts.
