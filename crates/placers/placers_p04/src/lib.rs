@@ -206,25 +206,9 @@ fn place_emergency_lanterns(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lantern);
 }
 
-// R609 soap-smudge wall mirror: 4% chance per level.
-fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    }
-    let Some((x, z, dx, dz)) = pick_wall(g) else { return };
-    let frame_mat = lambert!({ color: 0x404038 });
-    let mirror_mat = lambert!({ map: soap_smudge_texture() });
-    let mirror = group();
-    let mount_y = 1.55;
-    let frame = mesh(pg("SmudgeMirrors__frame", box_geo!(0.42, 0.55, 0.008)), &frame_mat);
-    frame.position().y = mount_y;
-    mirror.add(&frame);
-    let glass = mesh(plane_geo!(0.38, 0.50), &mirror_mat);
-    glass.position().set(0, mount_y, 0.005);
-    mirror.add(&glass);
-    wall_mount(g, &mirror, x, z, dx, dz, 0.005);
-    g.world.add(&mirror);
-}
+// R609 soap-smudged mirror, R611 frosted window: batch `t04`'s (`t04.rs`)
+mod t04;
+use t04::{place_frosted_windows, place_smudge_mirrors};
 
 // R611 analog wall clock: 3% chance per level. Round face + slowly moving hands.
 fn place_analog_clocks(g: &mut Game, _dist: &[i32]) {
@@ -275,39 +259,6 @@ fn place_analog_clocks(g: &mut Game, _dist: &[i32]) {
         let p = clock.pos();
         g.pp.clock_positions.push(v3(p.x, 0, p.z)); // R633 only ticking clocks
     }
-}
-
-// R611 frosted-glass wall window: 3% chance per level. Optional interior warm glow.
-fn place_frosted_windows(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let Some((x, z, dx, dz)) = pick_wall(g) else { return };
-    let frame_mat = lambert!({ color: 0x707068 });
-    let glass_mat = basic_mat!({ color: 0xd8d8d0, transparent: true, opacity: 0.85 });
-    let window_ = group();
-    let mount_y = 1.70;
-    let frame = mesh(pg("FrostedWindows__frame", box_geo!(0.65, 0.55, 0.012)), &frame_mat);
-    frame.position().y = mount_y;
-    window_.add(&frame);
-    let glass = mesh(plane_geo!(0.60, 0.50), &glass_mat);
-    glass.position().set(0, mount_y, 0.008);
-    window_.add(&glass);
-    // Cross muntin bars (vertical + horizontal).
-    let v_bar = mesh(pg("FrostedWindows__vbar", box_geo!(0.015, 0.50, 0.006)), &frame_mat);
-    v_bar.position().set(0, mount_y, 0.010);
-    window_.add(&v_bar);
-    let h_bar = mesh(pg("FrostedWindows__hbar", box_geo!(0.60, 0.015, 0.006)), &frame_mat);
-    h_bar.position().set(0, mount_y, 0.010);
-    window_.add(&h_bar);
-    // 50% chance: soft warm glow from "behind" window.
-    if rnd() < 0.5 {
-        let glow = point_light!(0xffe4a0, 0.20, 1.5);
-        glow.position().set(0, mount_y, -0.05);
-        window_.add(&glow);
-    }
-    wall_mount(g, &window_, x, z, dx, dz, 0.006);
-    g.world.add(&window_);
 }
 
 // R612 dropped envelope: 7% chance per level. Optional letter poking out.

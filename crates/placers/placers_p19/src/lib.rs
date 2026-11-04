@@ -16,6 +16,9 @@ mod r14b;
 use r14b::place_safety_glasses;
 mod r15;
 use r15::{place_crumpled_receipts, place_paperback_books, place_tape_rolls};
+// R562 towel bar, R544 emergency strobe: batch `t04`'s (`t04.rs`)
+mod t04;
+use t04::{place_emergency_strobes, place_hand_towel_bars};
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -131,40 +134,6 @@ fn scatter(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
     let pz = g.wz(z) + (rnd() - 0.5) * spread;
     o.position().set(px, 0, pz);
     o.rotation().y = rnd() * PI * 2.0;
-}
-
-// R562 wall towel bar: 6% chance per level. Chrome bar + 2
-// support brackets + hanging cloth towel.
-fn place_hand_towel_bars(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = choice(&candidates);
-    let chrome_mat = lambert!({ color: 0xc0c8d0 });
-    let towel_colors = [0xf0ece0, 0xf0c0d0, 0xd0e0f0, 0xd0e0d0];
-    let towel_mat = lambert!({ color: choice(&towel_colors), side: DoubleSide });
-    let bar = group();
-    // Chrome bar.
-    let bar_cyl = mesh(pg("HandTowelBars__bar", cyl_geo!(0.006, 0.006, 0.36, 6)), &chrome_mat);
-    bar_cyl.rotation().z = PI / 2.0;
-    bar.add(&bar_cyl);
-    // 2 brackets.
-    for s in [-1.0, 1.0] {
-        let bracket = mesh(pg("HandTowelBars__bracket", box_geo!(0.010, 0.014, 0.020)), &chrome_mat);
-        bracket.position().set(s * 0.16, 0, 0);
-        bar.add(&bracket);
-    }
-    // Hanging towel drape.
-    let towel = mesh(plane_geo!(0.28, 0.28), &towel_mat);
-    towel.position().set(0, -0.14, 0.010);
-    bar.add(&towel);
-    let (wall_x, wall_z) = wall_xz(g, c, 0.010);
-    mount(&bar, c, wall_x, wall_z, 1.15, None);
-    g.world.add(&bar);
 }
 
 // R560 dropped clipboard: 8% chance per level. Wooden clipboard
@@ -1328,56 +1297,6 @@ fn place_unrolled_tp_rolls(g: &mut Game, _dist: &[i32]) {
     tp.add(&trail2);
     scatter(g, &tp, x, z, 2.0);
     g.world.add(&tp);
-}
-
-// R544 emergency strobe: 3% chance per level. Red dome bulb
-// on wall base + occasional flash animator.
-fn place_emergency_strobes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = choice(&candidates);
-    let base_mat = lambert!({ color: 0x181410 });
-    let dome_mat = basic_mat!({ color: 0xa02020, transparent: true, opacity: 0.6 });
-    let strobe = group();
-    // Base plate.
-    let base = mesh(pg("EmergencyStrobes__base", cyl_geo!(0.030, 0.030, 0.010, 8)), &base_mat);
-    base.rotation().x = PI / 2.0;
-    base.position().z = 0.005;
-    strobe.add(&base);
-    // Red dome (half sphere).
-    let dome = mesh(sphere_geo!(0.030, 12, 8, 0, PI * 2.0, 0, PI / 2.0), &dome_mat);
-    dome.rotation().x = PI / 2.0; // +π/2 turns the hemisphere's +Y cap to +Z (into the room, not the wall)
-    dome.position().z = 0.010;
-    strobe.add(&dome);
-    // Point light inside.
-    let flash = point_light!(0xd82020, 0.0, 1.5, 2.0);
-    flash.position().z = 0.020;
-    strobe.add(&flash);
-    // Flash animator (occasional bright pop).
-    let mut next_flash = 8.0 + rnd() * 20.0;
-    {
-        let flash = flash.clone();
-        g.animate(move |_g, _dt, t| {
-            if t >= next_flash {
-                // Bright pop.
-                flash.set_intensity(1.5);
-                next_flash = t + 4.0 + rnd() * 8.0;
-            } else {
-                // Rapid decay.
-                let v = flash.intensity() * 0.85;
-                flash.set_intensity(v);
-            }
-        });
-    }
-    // group origin = the base's back face (local z 0): 0.5 mm off the wall
-    let (wall_x, wall_z) = wall_xz(g, c, 0.0005);
-    mount(&strobe, c, wall_x, wall_z, 2.30, Some(0.6));
-    g.world.add(&strobe);
 }
 
 // ------------------------------------------------------------ batch r12
