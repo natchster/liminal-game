@@ -16,6 +16,9 @@ mod r14b;
 use r14b::place_keychain_keys;
 mod r15;
 use r15::place_newspaper_stacks;
+// R539 spray bottle: batch `t04`'s (`t04.rs`)
+mod t04;
+use t04::place_spray_bottles;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -219,50 +222,6 @@ fn place_crushed_water_bottles(g: &mut Game, _dist: &[i32]) {
     bottle.add(&label);
     // the wide end (r 0.024 about y 0.020) rests on the floor
     scatter_y(g, &bottle, x, z, 2.4, 0.004);
-    g.world.add(&bottle);
-}
-
-// R539 spray bottle: 8% chance per level. Trigger-spray
-// cleaning bottle w/ colored liquid.
-fn place_spray_bottles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = choice(&open);
-    let liquid_colors = [0x30d040, 0x2050d8, 0xf0d020, 0xd82040];
-    let liquid_color = choice(&liquid_colors);
-    let liquid_mat = basic_mat!({ color: liquid_color, transparent: true, opacity: 0.75 });
-    let trigger_mat = lambert!({ color: 0xe0e0e0 });
-    let bottle = group();
-    // Body.
-    let body = mesh(cyl_geo!(0.028, 0.030, 0.14, 10), &liquid_mat);
-    body.position().y = 0.070;
-    bottle.add(&body);
-    // Trigger head.
-    let trigger_head = mesh(pg("SprayBottles__head", box_geo!(0.035, 0.030, 0.020)), &trigger_mat);
-    trigger_head.position().set(0.005, 0.155, 0);
-    bottle.add(&trigger_head);
-    // Trigger lever.
-    let lever = mesh(pg("SprayBottles__lever", box_geo!(0.024, 0.006, 0.010)), &trigger_mat);
-    // Hangs under the nozzle at the front (+X), finger scallops forward (was sticking out the back).
-    lever.rotation().z = PI / 2.0 + 0.4;
-    lever.position().set(0.027, 0.146, 0);
-    bottle.add(&lever);
-    // Nozzle.
-    let nozzle = mesh(pg("SprayBottles__nozzle", cyl_geo!(0.003, 0.003, 0.014, 5)), &trigger_mat);
-    nozzle.rotation().z = PI / 2.0;
-    nozzle.position().set(0.028, 0.158, 0);
-    bottle.add(&nozzle);
-    // 30% chance tipped.
-    if rnd() < 0.30 {
-        bottle.rotation().z = PI / 2.0;
-        bottle.position().y = 0.028;
-    }
-    scatter_xz(g, &bottle, x, z, 2.0);
     g.world.add(&bottle);
 }
 

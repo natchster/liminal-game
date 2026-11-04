@@ -2,36 +2,6 @@
 //! Built on first use on the native RNG (never the level's seeded stream).
 use game::prelude::*;
 
-// `soap_smudge_texture`: mirror silver base + wipe streaks + smudge blobs.
-game::lazy_static_tex!(
-    soap_smudge_texture,
-    canvas_tex(128, 160, |ctx, w, h| {
-        // Mirror silver base.
-        ctx.set_fill_style("#e8e8e8");
-        ctx.fill_rect(0, 0, w, h);
-        // Long vertical streaks (imperfect wipe strokes).
-        ctx.set_stroke_style("rgba(180, 180, 180, 0.5)");
-        for _i in 0..8 {
-            ctx.begin_path();
-            ctx.set_line_width(2.0 + rnd() * 4.0);
-            let sx = rnd() * w;
-            ctx.move_to(sx, 0);
-            ctx.bezier_curve_to(sx + (rnd() - 0.5) * 40.0, h * 0.4, sx + (rnd() - 0.5) * 30.0, h * 0.7, sx + (rnd() - 0.5) * 30.0, h);
-            ctx.stroke();
-        }
-        // Smudge blobs.
-        ctx.set_fill_style("rgba(150, 150, 150, 0.4)");
-        for _i in 0..6 {
-            let cx = rnd() * w;
-            let cy = rnd() * h;
-            let r = 6.0 + rnd() * 10.0;
-            ctx.begin_path();
-            ctx.arc(cx, cy, r, 0, PI * 2.0);
-            ctx.fill();
-        }
-    })
-);
-
 // `clock_face_texture`: 12 tick marks + centre dot.
 game::lazy_static_tex!(
     clock_face_texture,

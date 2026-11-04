@@ -1245,52 +1245,9 @@ fn place_rubber_ducks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&duck);
 }
 
-// R565 wall sink faucet: 6% chance per level.
-fn place_sink_faucets(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let chrome_mat = lambert!({ color: 0xc0c8d0 });
-    let handle_mat = lambert!({ color: 0x181410 });
-    let faucet = group();
-    // Backplate.
-    let plate = mesh(pg("SinkFaucets__plate", box_geo!(0.16, 0.06, 0.008)), &chrome_mat);
-    plate.position().set(0, 0, -0.004);
-    faucet.add(&plate);
-    // Vertical spout base.
-    let base = mesh(pg("SinkFaucets__base", cyl_geo!(0.012, 0.012, 0.05, 6)), &chrome_mat);
-    base.position().set(0, 0.005, 0.008);
-    faucet.add(&base);
-    // Curved spout (torus quarter), arcing in the YZ plane from the riser
-    // top toward the room and down to the outlet.
-    let spout = mesh(pg("SinkFaucets__spout", torus_geo!(0.06, 0.010, 4, 8, PI * 0.5)), &chrome_mat);
-    spout.rotation().y = -PI / 2.0;
-    spout.position().set(0, -0.040, 0.008);
-    faucet.add(&spout);
-    // 2 handle knobs.
-    for s in [-1.0, 1.0] {
-        let knob = mesh(pg("SinkFaucets__knob", cyl_geo!(0.014, 0.014, 0.008, 6)), &handle_mat);
-        knob.rotation().x = PI / 2.0;
-        knob.position().set(s * 0.05, -0.01, 0.004); // on the plate face
-        faucet.add(&knob);
-        // Cross handle top: both arms in the knob's face plane, forming a "+".
-        let cross1 = mesh(pg("SinkFaucets__cross1", box_geo!(0.020, 0.002, 0.003)), &handle_mat);
-        cross1.rotation().x = PI / 2.0;
-        cross1.position().set(s * 0.05, -0.01, 0.009);
-        faucet.add(&cross1);
-        let cross2 = mesh(pg("SinkFaucets__cross2", box_geo!(0.003, 0.002, 0.020)), &handle_mat);
-        cross2.rotation().x = PI / 2.0;
-        cross2.position().set(s * 0.05, -0.01, 0.009);
-        faucet.add(&cross2);
-    }
-    mount_on_wall(g, &faucet, &c, 0.004, 0.95, 0.6);
-    g.world.add(&faucet);
-}
+// R565 wall sink faucet: batch `t04`'s (`t04.rs`)
+mod t04;
+use t04::place_sink_faucets;
 
 // R565 soap bar: 10% chance per level.
 fn place_soap_bars(g: &mut Game, _dist: &[i32]) {
