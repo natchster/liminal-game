@@ -157,15 +157,14 @@ impl Stroke {
         rad + 9.0 * (2.0 * q + p1).sin() + 5.0 * (5.0 * q + p2).sin()
     }
     /// The distance from (x, y) to the stroke (mm) and how far along it it
-    /// is (0..1); None when far from it
-    fn at(&self, x: f64, y: f64) -> Option<(f64, f64)> {
+    /// is (0..1), given its polar coordinates about the decal's middle
+    /// (`rho`, `q`); None when far from it
+    fn at(&self, x: f64, y: f64, rho: f64, q: f64) -> Option<(f64, f64)> {
         match *self {
             Stroke::Arc { a0, span, rad, p1, p2, .. } => {
-                let rho = (x * x + y * y).sqrt();
                 if (rho - rad).abs() > 60.0 {
                     return None;
                 }
-                let q = y.atan2(x);
                 let rel = (q - a0).rem_euclid(PI * 2.0);
                 if rel <= span {
                     let r = Stroke::radius(rad, p1, p2, a0 + rel);
@@ -240,10 +239,11 @@ fn pentagram_tex(salt: u32) -> Tex {
         let mm_px = PENT_SIZE * 1000.0 / w;
         fill(ctx, w, h, move |u, v| {
             let (x, y) = ((u - 0.5) * PENT_SIZE * 1000.0, (v - 0.5) * PENT_SIZE * 1000.0);
+            let (rho, q) = ((x * x + y * y).sqrt(), y.atan2(x));
             let mut a = 0.0f64;
             let mut haze = 0.0f64;
             for st in &strokes {
-                if let Some((d, along)) = st.at(x, y) {
+                if let Some((d, along)) = st.at(x, y, rho, q) {
                     let ends = (along / 0.04).min(1.0) * ((1.0 - along) / 0.06).min(1.0);
                     let wob = st.wob();
                     // pressed harder and lighter along it, and broken where it
