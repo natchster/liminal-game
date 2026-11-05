@@ -10,11 +10,12 @@ in its prop's own frame: x across, y up from the floor, z out of its front;
 the round things about the y axis (angles from +z toward +x, as the game's
 cylinder texture coordinates run).
 
-paperCupOuter / Inner    a 9 oz paper hot/cold cup: the printed outside of
-                         the wall (its side seam a board proud, the foot
-                         folded in under the bottom); the white inside, the
-                         rim's curl, the floor and the bottom's underside
-paperCupSqueezedOuter / Inner   the same cup squeezed in a fist
+paperCupOuter / Inner / Rim / Bottom   a 9 oz paper hot/cold cup: the
+                         printed outside of the wall (its side seam a board
+                         proud, the foot folded in under the bottom); the
+                         white inside of the wall; the rim's curl; the floor
+                         and the bottom disc's underside
+paperCupSqueezed*        the same cup squeezed in a fist
 paperPlateTop / Under    a 7 in coated paper dessert plate, pressed: its
                          well, wall and flange, pleated; the printed top
                          face and the plain board under it
@@ -164,16 +165,29 @@ def cup_outer():
     return lathe_r(prof, CUP_ANG, cup_seam)
 
 
-def cup_inner():
-    cx, cy = CUP_C
-    curl = [(cx + CUP_RC * math.cos(math.radians(225 + 52.5 * k)), cy + CUP_RC * math.sin(math.radians(225 + 52.5 * k)))
+CUP_CURL = [(CUP_C[0] + CUP_RC * math.cos(math.radians(225 + 52.5 * k)), CUP_C[1] + CUP_RC * math.sin(math.radians(225 + 52.5 * k)))
             for k in range(7)]
-    wall = [(cup_r(y) - CUP_T, y) for y in (0.082, 0.070, 0.058, 0.046, 0.034, 0.022, 0.012, CUP_FLOOR + 0.002)]
-    floor = [(cup_r(CUP_FLOOR) - CUP_T - 0.0006, CUP_FLOOR + 0.0003), (cup_r(CUP_FLOOR) - CUP_T - 0.0016, CUP_FLOOR),
+CUP_WALL_FOOT = (cup_r(CUP_FLOOR + 0.002) - CUP_T, CUP_FLOOR + 0.002)
+
+
+def cup_rim():
+    """The curl, from the outside's top over to the inside's."""
+    return lathe_r(CUP_CURL, even(36))
+
+
+def cup_inner():
+    """The inside of the wall, from the curl down to the floor's crease."""
+    wall = [CUP_CURL[-1]] + [(cup_r(y) - CUP_T, y) for y in (0.082, 0.070, 0.058, 0.046, 0.034, 0.022, 0.012)] + [CUP_WALL_FOOT]
+    return lathe_r(wall, even(36))
+
+
+def cup_bottom():
+    """The floor inside, its crease into the wall, and the bottom disc's
+    underside in the foot."""
+    floor = [CUP_WALL_FOOT, (cup_r(CUP_FLOOR) - CUP_T - 0.0006, CUP_FLOOR + 0.0003), (cup_r(CUP_FLOOR) - CUP_T - 0.0016, CUP_FLOOR),
              (0.012, CUP_FLOOR), (0.0, CUP_FLOOR)]
-    inner = lathe_r(curl + wall + floor, even(36))
     under = lathe_r([(0.0, CUP_DISC), (0.012, CUP_DISC), (CUP_RB - CUP_FOOT, CUP_DISC)], even(36))
-    return inner + under
+    return lathe_r(floor, even(36)) + under
 
 
 def cup_squeeze(p):
@@ -484,37 +498,43 @@ def muffin(seed, dome, cracks):
             L2 = ax * ax + az * az
             t = max(0.0, min(1.0, ((p.x - x0) * ax + (p.z - z0) * az) / L2))
             dist = math.hypot(p.x - (x0 + ax * t), p.z - (z0 + az * t))
-            w = 0.0030
+            w = 0.0036
             if dist < w:
                 pp.y -= depth * (1 - dist / w) ** 2 * up * math.sin(math.pi * min(1.0, 0.15 + t * 0.85)) ** 0.5
         out.v[i] = pp
     return out
 
 
+MUFFIN_CRACKS = {
+    'A': [(-0.024, 0.006, 0.022, -0.004, 0.0034), (0.004, 0.0, 0.010, 0.020, 0.0024)],
+    'B': [(-0.018, -0.016, 0.0, 0.002, 0.0030), (0.0, 0.002, 0.021, -0.006, 0.0028), (0.0, 0.002, -0.004, 0.022, 0.0026)],
+}
+
+
 def muffin_a():
-    return muffin(3, 0.0150, [(-0.024, 0.006, 0.022, -0.004, 0.0028), (0.004, 0.0, 0.010, 0.020, 0.0018)])
+    return muffin(3, 0.0185, MUFFIN_CRACKS['A'])
 
 
 def muffin_b():
-    return muffin(8, 0.0118, [(-0.018, -0.016, 0.0, 0.002, 0.0024), (0.0, 0.002, 0.021, -0.006, 0.0022),
-                              (0.0, 0.002, -0.004, 0.022, 0.0020)])
+    return muffin(8, 0.0160, MUFFIN_CRACKS['B'])
 
 
 # ------------------------------------------------------------ the parts ---
 SQUEEZED = {}
 
 
-def squeezed(k):
-    if not SQUEEZED:
-        SQUEEZED['outer'] = cup_outer().warp(cup_squeeze)
-        SQUEEZED['inner'] = cup_inner().warp(cup_squeeze)
-    return SQUEEZED[k]
+def squeezed(build):
+    return lambda: build().warp(cup_squeeze)
 
 
-auto('Real__paperCupOuter', cup_outer, 1000, kind='cyl')
-auto('Real__paperCupInner', cup_inner, 1300, kind='cyl')
-auto('Real__paperCupSqueezedOuter', lambda: squeezed('outer'), 1000, smooth=50.0, kind='cyl')
-auto('Real__paperCupSqueezedInner', lambda: squeezed('inner'), 1300, smooth=50.0, kind='cyl')
+auto('Real__paperCupOuter', cup_outer, 1100, kind='cyl')
+auto('Real__paperCupInner', cup_inner, 700, kind='cyl')
+auto('Real__paperCupRim', cup_rim, 500, kind='cyl')
+auto('Real__paperCupBottom', cup_bottom, 400, kind='cyl')
+auto('Real__paperCupSqueezedOuter', squeezed(cup_outer), 1100, smooth=50.0, kind='cyl')
+auto('Real__paperCupSqueezedInner', squeezed(cup_inner), 700, smooth=50.0, kind='cyl')
+auto('Real__paperCupSqueezedRim', squeezed(cup_rim), 500, smooth=50.0, kind='cyl')
+auto('Real__paperCupSqueezedBottom', squeezed(cup_bottom), 400, smooth=50.0, kind='cyl')
 auto('Real__paperPlateTop', plate_top, 1700)
 auto('Real__paperPlateUnder', plate_under, 1600)
 auto('Real__paperPlateBentTop', lambda: plate_top().warp(plate_tread), 1700, smooth=50.0)
@@ -524,7 +544,7 @@ auto('Real__cakeStandPlate', stand_plate, 2400, smooth=25.0, kind='cyl')
 auto('Real__cakeStandCake', cake_tiers, 4600, smooth=60.0, kind='cyl')
 auto('Real__cakeStandCandle', cake_candle, 900, smooth=50.0, kind='cyl')
 auto('Real__cakeStandWick', cake_wick, 120, smooth=60.0)
-auto('Real__cornMuffinCase', muffin_case, 700, kind='cyl')
+auto('Real__cornMuffinCase', muffin_case, 760, kind='cyl')
 auto('Real__cornMuffinA', muffin_a, 1300, smooth=60.0, kind='cyl')
 auto('Real__cornMuffinB', muffin_b, 1300, smooth=60.0, kind='cyl')
 

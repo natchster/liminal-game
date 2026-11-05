@@ -10,8 +10,11 @@ use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use kit::*;
 
-/// The cake as modelled (`t13.py`): the bottom tier's radius
+/// The cake as modelled (`t13.py`): the bottom tier's radius; the cake
+/// part's heights (its bounds) and where the top tier's foot is
 const CAKE_R1: f64 = 0.098;
+const CAKE_Y: (f64, f64) = (0.1152, 0.2572);
+const CAKE_TIER2: f64 = 0.1915;
 /// The stand's plate (its bounds: half width, and heights)
 const STAND_PLATE: (f64, f64, f64) = (0.139_866, 0.1000, 0.1203);
 /// The candle's flame root, over the wick (`t13.py` prints it)
@@ -66,11 +69,7 @@ pub(crate) fn place_cake_stands(g: &mut Game, _dist: &[i32]) {
     let salt = salt(px, pz, 679);
     let stand = group();
     let dust = stand_dust_tex(salt, cake.is_some(), milk);
-    let glass = if milk {
-        phong!({ map: &dust, color: 0xffffff, specular: 0x2c2c2c, shininess: 40 })
-    } else {
-        clear_glass_mat(&dust)
-    };
+    let glass = if milk { phong!({ map: &dust, color: 0xffffff, specular: 0x2c2c2c, shininess: 40 }) } else { clear_glass_mat(&dust) };
     if let Some(m) = put_split(&stand, "Real__cakeStandFoot", &glass) {
         // the foot writes depth: the placement measures the stand by it
         m.mat().depthWrite(true);
@@ -136,13 +135,15 @@ fn clear_glass_mat(map: &Tex) -> Mat {
         f[6] = 0.3;
         f[7] = 0.0;
         // dust: how much of the map's grey, its colour (linear)
-        f[8] = 0.75;
+        f[8] = 1.0;
         f[9] = 0.20;
         f[10] = 0.19;
         f[11] = 0.17;
-        f[12] = 0.0;
-        // thick pressed glass: a little more of it seen square on
-        f[13] = 0.10;
+        // thick pressed glass is never quite clear: a little of the room
+        // held in it
+        f[12] = 0.06;
+        // and more of the room seen in it square on than a thin glass
+        f[13] = 0.16;
     }
     m
 }
@@ -165,7 +166,7 @@ fn stand_dust_tex(salt: u32, cake: bool, milk: bool) -> Tex {
                 let fx = (v - 0.5) * 2.0;
                 let (xx, zz) = ((fx * 2.0 - 1.0) * STAND_PLATE.0, (fz * 2.0 - 1.0) * STAND_PLATE.0);
                 let rr = (xx * xx + zz * zz).sqrt();
-                d = 0.55 + 0.35 * n;
+                d = 0.62 + 0.33 * n;
                 if cake && rr < CAKE_R1 + 0.004 {
                     d *= 0.15;
                 }
@@ -175,7 +176,7 @@ fn stand_dust_tex(salt: u32, cake: bool, milk: bool) -> Tex {
                 }
                 top = true;
             } else {
-                d = 0.18 + 0.25 * n;
+                d = 0.32 + 0.3 * n;
                 // the rim's smears: where hands took it
                 let sm = vn(seed ^ 3, u * 6.0, v * 40.0);
                 d += 0.3 * sstep(0.65, 0.9, sm) * sstep(0.42, 0.48, v);
@@ -234,10 +235,19 @@ fn cake_tex(flavour: usize, salt: u32) -> Tex {
             let mut c = mix(fresh, aged, 0.75 + 0.25 * n);
             // the net of cracks the frosting split into as it dried, and the
             // fine crazing between
-            let net = (1.0 - ((vn(seed ^ 1, cu * 7.0, cv * 7.0) - 0.5).abs() * 22.0).min(1.0)).powi(2);
-            let craze = (1.0 - ((vn(seed ^ 2, cu * 26.0, cv * 26.0) - 0.5).abs() * 18.0).min(1.0)) * 0.35;
-            c = mix(c, sponge, net * 0.8);
+            let e = (vn(seed ^ 1, cu * 3.5, cv * 3.5) - 0.5).abs() + 0.02 * (n - 0.5);
+            let craze = (1.0 - ((vn(seed ^ 2, cu * 14.0, cv * 14.0) - 0.5).abs() * 10.0).min(1.0)) * 0.3;
+            // the frosting lifted at a crack's lips, the sponge down in it,
+            // dark at its bottom
+            c = mix(c, sponge, sstep(0.07, 0.035, e) * 0.85);
+            c = mix(c, [0.16, 0.12, 0.09], sstep(0.022, 0.006, e) * 0.85);
             c = mix(c, mix(aged, [0.0, 0.0, 0.0], 0.4), craze);
+            if !top {
+                // fat seeped out and darkened round each tier's foot
+                let y = CAKE_Y.0 + v * 2.0 * (CAKE_Y.1 - CAKE_Y.0);
+                let foot = sstep(0.012, 0.0, y - CAKE_Y.0) + sstep(0.010, 0.0, (y - CAKE_TIER2).abs()) * 0.7;
+                c = mix(c, mix(aged, [0.20, 0.15, 0.10], 0.6), foot * (0.4 + 0.3 * n));
+            }
             if flavour == 3 {
                 // fat bloom on the chocolate: grey-white
                 c = mix(c, [0.62, 0.58, 0.52], sstep(0.55, 0.8, fbm(seed ^ 5, cu * 3.0, cv * 3.0, 2)) * 0.5);
@@ -311,7 +321,7 @@ pub(crate) fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
-    // the old golden colours: which muffin (two shapes) and how brown
+    // the old golden colours: which muffin (two shapes, as they split)
     let golden_colors: [u32; 4] = [0xe0b060, 0xd8a850, 0xd0a044, 0xc89840];
     let count = 3 + (rnd() * 3.0).floor() as i32;
     // each muffin's old draws: its colour, where round the middle, how far
@@ -338,8 +348,8 @@ pub(crate) fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
     for &(k, ang, rr, turn) in &each {
         let muffin = group();
         put(&muffin, "Real__cornMuffinCase", &case);
-        put_split(&muffin, if k % 2 == 0 { "Real__cornMuffinA" } else { "Real__cornMuffinB" }, &crowns[k / 2]);
-        let r2 = ring + (rr - 0.02) * 0.4;
+        put_split(&muffin, if k % 2 == 0 { "Real__cornMuffinA" } else { "Real__cornMuffinB" }, &crowns[k % 2]);
+        let r2 = ring + (rr - 0.02) * 0.7;
         muffin.position().set(ang.cos() * r2, 0, ang.sin() * r2);
         muffin.rotation().y = turn;
         cluster.add(&muffin);
@@ -367,7 +377,7 @@ fn case_tex(salt: u32) -> Tex {
         let kind = (salt >> 7) % 4;
         let paper = match kind {
             2 => [0.60, 0.48, 0.34],
-            _ => [0.84, 0.82, 0.76],
+            _ => [0.86, 0.82, 0.72],
         };
         fill(ctx, w, h, |u, v| {
             let y = v * CASE_H;
@@ -385,21 +395,29 @@ fn case_tex(salt: u32) -> Tex {
             let gb = fbm(seed ^ 4, u * 9.0, v * 3.0, 3) + 0.25 * (1.0 - v);
             let blot = sstep(0.52, 0.62, gb);
             let tide = sstep(0.03, 0.0, (gb - 0.56).abs());
-            c = mix(c, [0.62, 0.52, 0.34], blot * 0.45);
-            c = mix(c, [0.45, 0.36, 0.22], tide * 0.35);
+            c = mix(c, [0.66, 0.54, 0.32], blot * 0.55);
+            c = mix(c, [0.46, 0.36, 0.20], tide * 0.4);
             // dust on the rim, grime at the foot
-            c = mix(c, [0.58, 0.56, 0.51], 0.12 + 0.2 * sstep(0.025, 0.033, y));
+            c = mix(c, [0.60, 0.57, 0.50], 0.08 + 0.2 * sstep(0.025, 0.033, y));
             c = mix(c, [0.38, 0.35, 0.30], 0.4 * sstep(0.004, 0.0, y));
             [c[0], c[1], c[2], 1.0]
         });
     })
 }
 
+/// The cracks across each muffin's crown (`t13.py`'s MUFFIN_CRACKS: x0,
+/// z0, x1, z1 in m) and the crown's half width
+const MUFFIN_CRACKS: [&[(f64, f64, f64, f64)]; 2] = [
+    &[(-0.024, 0.006, 0.022, -0.004), (0.004, 0.0, 0.010, 0.020)],
+    &[(-0.018, -0.016, 0.0, 0.002), (0.0, 0.002, 0.021, -0.006), (0.0, 0.002, -0.004, 0.022)],
+];
+const CROWN_R: f64 = 0.033;
+
 /// The muffin, laid as `put_split` lays it (its sides round and up below,
-/// its crown from above in the upper left): cornbread's golden crust gone
-/// dull and grey-brown, pebbled with the coarse meal, browner at the
-/// shoulder; mould colonies (the loaf's); dust on the crown. `k`: the old
-/// golden colours in two pairs, a paler and a browner bake
+/// its crown from above in the upper left): cornbread's crust, golden gone
+/// dull and dusty, pebbled with the coarse meal, browner at the shoulder;
+/// the cracks across the crown (shape `k`'s) dark, the paler crumb at
+/// their lips; mould colonies (the loaf's); dust on the crown
 fn muffin_tex(salt: u32, k: usize) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
         let seed = salt ^ 0x3fb ^ (k as u32 * 0x91);
@@ -407,38 +425,50 @@ fn muffin_tex(salt: u32, k: usize) -> Tex {
         let cols: Vec<(f64, f64, f64)> = (0..7)
             .map(|i| {
                 if i < 4 {
-                    (r.range(0.1, 0.9) * w * 0.5, r.range(0.05, 0.45) * h, if i < 1 { r.range(6.0, 10.0) } else { r.range(2.0, 5.0) })
+                    (r.range(0.1, 0.9) * w * 0.5, r.range(0.05, 0.45) * h, if i < 1 { r.range(5.0, 8.0) } else { r.range(2.0, 4.0) })
                 } else {
                     (r.next() * w, h * r.range(0.5, 0.62), r.range(2.0, 5.0))
                 }
             })
             .collect();
-        let bake = if k == 0 { [0.70, 0.54, 0.30] } else { [0.62, 0.45, 0.24] };
+        let bake = [0.74, 0.56, 0.28];
         fill(ctx, w, h, |u, v| {
             let (px, py) = (u * w, (1.0 - v) * h);
             let top = v >= 0.5;
             let n = fbm(seed, u * 10.0, v * 10.0, 3);
-            let mut c = mix(bake, [0.50, 0.44, 0.36], 0.35 + 0.15 * n);
+            let mut c = mix(bake, [0.56, 0.47, 0.34], 0.25 + 0.15 * n);
             // the coarse meal: flecks paler and darker
             let g1 = vn(seed ^ 2, px * 0.9, py * 0.9);
             let g2 = vn(seed ^ 3, px * 1.3 + 7.0, py * 1.3);
-            c = mix(c, [0.78, 0.66, 0.42], sstep(0.72, 0.9, g1) * 0.5);
-            c = mix(c, [0.30, 0.22, 0.14], sstep(0.75, 0.92, g2) * 0.45);
+            c = mix(c, [0.84, 0.70, 0.42], sstep(0.70, 0.9, g1) * 0.5);
+            c = mix(c, [0.36, 0.24, 0.12], sstep(0.74, 0.92, g2) * 0.45);
             if top {
-                // browner toward the shoulder (the crown's rim, from above)
-                let fz = (u * 2.0).fract();
-                let fx = (v - 0.5) * 2.0;
-                let rr = ((fx * 2.0 - 1.0).powi(2) + (fz * 2.0 - 1.0).powi(2)).sqrt();
-                c = mix(c, [0.40, 0.30, 0.19], sstep(0.6, 0.95, rr) * 0.35);
-                c = mix(c, [0.58, 0.56, 0.51], 0.22 + 0.15 * n);
+                let (x, z) = (((v - 0.5) * 2.0 * 2.0 - 1.0) * CROWN_R, ((u * 2.0).fract() * 2.0 - 1.0) * CROWN_R);
+                let rr = (x * x + z * z).sqrt() / CROWN_R;
+                // browner toward the shoulder
+                c = mix(c, [0.46, 0.32, 0.17], sstep(0.6, 0.95, rr) * 0.4);
+                // the cracks: dark down in them, the crumb paler at their lips
+                let mut dist = 1.0f64;
+                for &(x0, z0, x1, z1) in MUFFIN_CRACKS[k] {
+                    let (ax, az) = (x1 - x0, z1 - z0);
+                    let t = (((x - x0) * ax + (z - z0) * az) / (ax * ax + az * az)).clamp(0.0, 1.0);
+                    let d =
+                        ((x - x0 - ax * t).powi(2) + (z - z0 - az * t).powi(2)).sqrt() + 0.0015 * (1.0 - (PI * (0.15 + 0.85 * t)).sin());
+                    dist = dist.min(d);
+                }
+                let wob = 0.0005 * (vn(seed ^ 12, x * 900.0, z * 900.0) - 0.5);
+                c = mix(c, [0.82, 0.68, 0.42], sstep(0.0028, 0.0016, dist + wob) * 0.6);
+                c = mix(c, [0.24, 0.16, 0.08], sstep(0.0016, 0.0006, dist + wob) * 0.85);
+                c = mix(c, [0.60, 0.57, 0.51], 0.16 + 0.12 * n);
             } else {
-                // the side: the crumb paler in the case, the crust above it
+                // the side: the crumb paler down in the case, the crust above
                 let y = v * 2.0;
-                c = mix(c, [0.66, 0.56, 0.38], sstep(0.62, 0.5, y) * 0.5);
+                c = mix(c, [0.72, 0.60, 0.38], sstep(0.62, 0.5, y) * 0.5);
+                c = mix(c, [0.60, 0.57, 0.51], 0.08);
             }
             let (s, wr, st) = loaf_mould(&cols, px, py, seed ^ 7);
-            c = mix(c, [0.52, 0.46, 0.32], st * 0.3);
-            c = mix(c, [0.80, 0.80, 0.76], wr * 0.6);
+            c = mix(c, [0.56, 0.50, 0.32], st * 0.3);
+            c = mix(c, [0.82, 0.82, 0.78], wr * 0.6);
             let sp = vn(seed ^ 9, px / 1.2, py / 1.2);
             c = mix(c, [0.34 + 0.1 * sp, 0.40 + 0.08 * sp, 0.33 + 0.05 * sp], s * 0.9);
             [c[0], c[1], c[2], 1.0]
@@ -511,24 +541,100 @@ mod kit {
         grp.add(&m);
         Some(m)
     }
-    /// The same, its texture coordinates folded so its sides and its tops
-    /// get their own places on one map: the sides (round and up, as the
-    /// game lays a cylinder's) in the lower half, the faces that look up or
-    /// down (the disc the game lays on them) in the upper left quarter (and
-    /// a seam's copies of them right of it)
-    pub(super) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+    /// The same, its texture coordinates laid from above at its real scale
+    /// (u along x, v against z, `half` m from its middle to the map's edge)
+    pub(super) fn put_top(grp: &Obj, name: &str, mat: &Mat, half: f64) -> Option<Obj> {
         let geo = prop_part_as_modelled(name)?.duplicate();
         {
             let mut gg = geo.g();
             let n = gg.position.len() / 3;
             for i in 0..n {
-                if gg.normal[i * 3 + 1].abs() > 0.75 {
-                    gg.uv[i * 2] *= 0.5;
-                    gg.uv[i * 2 + 1] = 0.5 + gg.uv[i * 2 + 1] * 0.5;
-                } else {
-                    gg.uv[i * 2 + 1] *= 0.5;
+                let (x, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 2]));
+                gg.uv[i * 2] = ((x / half + 1.0) * 0.5) as f32;
+                gg.uv[i * 2 + 1] = (1.0 - (z / half + 1.0) * 0.5) as f32;
+            }
+            gg.touch();
+        }
+        let m = mesh(geo, mat.clone());
+        grp.add(&m);
+        Some(m)
+    }
+    /// The same, its texture coordinates folded so its sides and its tops
+    /// each get their own place on one map: a triangle that mostly looks up
+    /// or down takes the disc the game lays on a cylinder's caps (from
+    /// above), folded into the upper left quarter; any other the round and
+    /// up of its sides, folded into the lower half. A corner the two kinds
+    /// share is doubled, so no triangle runs across the map from one to
+    /// the other.
+    pub(super) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+        let geo = prop_part_as_modelled(name)?.duplicate();
+        {
+            let mut gg = geo.g();
+            let idx = gg.index.clone()?;
+            let n = gg.position.len() / 3;
+            let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+            for i in 0..n {
+                for k in 0..3 {
+                    let p = f64::from(gg.position[i * 3 + k]);
+                    lo[k] = lo[k].min(p);
+                    hi[k] = hi[k].max(p);
                 }
             }
+            let ex = [0, 1, 2].map(|k| if hi[k] - lo[k] > 1e-9 { hi[k] - lo[k] } else { 1.0 });
+            let ny = |i: usize| gg.normal[i * 3 + 1];
+            let cap = |i: usize| ny(i).abs() > 0.75;
+            let (mut pos, mut nrm) = (gg.position.clone(), gg.normal.clone());
+            let mut uv: Vec<f32> = Vec::with_capacity(gg.uv.len());
+            for i in 0..n {
+                let (u, v) = (gg.uv[i * 2], gg.uv[i * 2 + 1]);
+                if cap(i) {
+                    uv.extend_from_slice(&[u * 0.5, 0.5 + v * 0.5]);
+                } else {
+                    uv.extend_from_slice(&[u, v * 0.5]);
+                }
+            }
+            let mut out = Vec::with_capacity(idx.len());
+            let mut dup: std::collections::HashMap<(u32, u8), u32> = std::collections::HashMap::new();
+            for t in idx.chunks(3) {
+                let tri_cap = t.iter().map(|&i| ny(i as usize).abs()).sum::<f32>() / 3.0 > 0.6;
+                let up = t.iter().map(|&i| ny(i as usize)).sum::<f32>() >= 0.0;
+                let side_u = t.iter().map(|&i| i as usize).find(|&i| !cap(i)).map(|i| uv[i * 2]);
+                for &i in t {
+                    let iu = i as usize;
+                    if cap(iu) == tri_cap {
+                        out.push(i);
+                        continue;
+                    }
+                    let f = [0, 1, 2].map(|k| (f64::from(gg.position[iu * 3 + k]) - lo[k]) / ex[k]);
+                    let (u, v, key) = if tri_cap {
+                        (f[2] * 0.5, 0.5 + if up { f[0] } else { 1.0 - f[0] } * 0.5, u8::from(up))
+                    } else {
+                        let mut u = ((f[0] * 2.0 - 1.0).atan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
+                        let mut key = 2;
+                        if let Some(m) = side_u.map(f64::from) {
+                            if u - m > 0.5 {
+                                u -= 1.0;
+                                key = 3;
+                            } else if m - u > 0.5 {
+                                u += 1.0;
+                                key = 4;
+                            }
+                        }
+                        (u, f[1] * 0.5, key)
+                    };
+                    let d = *dup.entry((i, key)).or_insert_with(|| {
+                        pos.extend_from_slice(&[gg.position[iu * 3], gg.position[iu * 3 + 1], gg.position[iu * 3 + 2]]);
+                        nrm.extend_from_slice(&[gg.normal[iu * 3], gg.normal[iu * 3 + 1], gg.normal[iu * 3 + 2]]);
+                        uv.extend_from_slice(&[u as f32, v as f32]);
+                        (pos.len() / 3 - 1) as u32
+                    });
+                    out.push(d);
+                }
+            }
+            gg.position = pos;
+            gg.normal = nrm;
+            gg.uv = uv;
+            gg.index = Some(out);
             gg.touch();
         }
         let m = mesh(geo, mat.clone());

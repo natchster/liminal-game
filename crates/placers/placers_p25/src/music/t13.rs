@@ -8,11 +8,12 @@ use game::prelude::*;
 use kit::*;
 
 /// The cup as modelled (`t13.py`): the outside's height and half width
-/// (its bounds), the inside's (with the curl, the floor and the bottom's
-/// underside), the floor's height and radius
+/// (its bounds), the inside of the wall's heights, the bottom's half width
+/// and the floor's height
 const CUP_OUT: (f64, f64) = (0.0870, 0.0352);
-const CUP_IN: (f64, f64, f64) = (0.0060, 0.089_426, 0.037_565);
-const CUP_FLOOR: (f64, f64) = (0.0066, 0.0262);
+const CUP_IN: (f64, f64) = (0.0086, 0.088_025);
+const CUP_BOTTOM: f64 = 0.026;
+const CUP_FLOOR: f64 = 0.0066;
 /// Lying on its side: the curl's outermost radius and height, and the
 /// base's edge; it rests on both
 const CUP_CURL: (f64, f64) = (0.037_65, 0.088_03);
@@ -60,14 +61,15 @@ pub fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
     let drink = ((salt >> 4) % 3) as usize;
     let used = !matches!(how, Cup::Nested(_));
     let fill = 0.040 + 0.022 * f64::from((salt >> 12) % 100) / 100.0;
-    let outer = lambert!({ map: &print_tex(look, salt, used) });
-    let inner = lambert!({ map: &inside_tex(drink, fill, salt, how) });
+    let mats = CupMats {
+        outer: lambert!({ map: &print_tex(look, salt, used) }),
+        inner: lambert!({ map: &inside_tex(drink, fill, salt, how) }),
+        bottom: lambert!({ map: &bottom_tex(drink, salt, how) }),
+        rim: lambert!({ color: 0xb4ae9f }),
+    };
     let cup = group();
     match how {
-        Cup::Squeezed => {
-            put_split(&cup, "Real__paperCupSqueezedOuter", &outer);
-            put_split(&cup, "Real__paperCupSqueezedInner", &inner);
-        }
+        Cup::Squeezed => one_cup(&cup, "Real__paperCupSqueezed", &mats, None),
         Cup::Nested(n) => {
             // the inside of all but the top one is out of sight: the top
             // one's is clean, dusty
@@ -75,25 +77,18 @@ pub fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
                 let one = group();
                 one.position().y = f64::from(i) * CUP_NEST;
                 one.rotation().y = f64::from(i) * 1.9 + f64::from(salt % 7);
-                put_split(&one, "Real__paperCupOuter", &outer);
-                put_split(&one, "Real__paperCupInner", &inner);
+                one_cup(&one, "Real__paperCup", &mats, None);
                 cup.add(&one);
             }
         }
-        Cup::Standing => {
-            put_split(&cup, "Real__paperCupOuter", &outer);
-            put_split(&cup, "Real__paperCupInner", &inner);
-        }
+        Cup::Standing => one_cup(&cup, "Real__paperCup", &mats, None),
         Cup::Lying => {
             // on its side, resting on the curl and the base's edge: its
-            // mouth toward -x, the axis rising to it
+            // mouth toward -x, the axis rising to it (the parts themselves
+            // turned: the placement measures a turned part by its turned
+            // box, whose corner would dip into the floor and lift it)
             let theta = CUP_CURL.1.atan2(CUP_CURL.0 - CUP_BASE);
-            let lie = group();
-            lie.rotation().z = theta;
-            lie.position().y = CUP_BASE * theta.sin();
-            put_split(&lie, "Real__paperCupOuter", &outer);
-            put_split(&lie, "Real__paperCupInner", &inner);
-            cup.add(&lie);
+            one_cup(&cup, "Real__paperCup", &mats, Some((theta, CUP_BASE * theta.sin())));
             // what was in it ran out of the mouth and dried into the floor
             let stain = mesh(
                 plane_geo!(0.20, 0.13),
@@ -117,6 +112,32 @@ pub fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cup);
 }
 
+struct CupMats {
+    outer: Mat,
+    inner: Mat,
+    bottom: Mat,
+    rim: Mat,
+}
+
+/// A cup's four parts (`Real__paperCup…` or `Real__paperCupSqueezed…`),
+/// upright or turned about z by `lie`'s angle and lifted by its height
+fn one_cup(grp: &Obj, stem: &str, m: &CupMats, lie: Option<(f64, f64)>) {
+    let geos = [
+        (part_split(&format!("{stem}Outer")), &m.outer),
+        (part(&format!("{stem}Inner")), &m.inner),
+        (part(&format!("{stem}Rim")), &m.rim),
+        (part_top(&format!("{stem}Bottom"), CUP_BOTTOM), &m.bottom),
+    ];
+    for (geo, mat) in geos {
+        let Some(geo) = geo else { continue };
+        let geo = match lie {
+            Some((theta, lift)) => turned(&geo, theta, lift),
+            None => geo,
+        };
+        grp.add(&mesh(geo, mat.clone()));
+    }
+}
+
 #[derive(Clone, Copy, PartialEq)]
 enum Cup {
     Standing,
@@ -132,7 +153,7 @@ const DRINK: [[f64; 3]; 3] = [[0.26, 0.14, 0.07], [0.42, 0.11, 0.10], [0.66, 0.3
 /// The board's white, gone dull
 const BOARD: [f64; 3] = [0.83, 0.80, 0.74];
 
-/// The printed outside, laid as `put_split` lays it: its wall round (u,
+/// The printed outside, laid as `part_split` lays it: its wall round (u,
 /// from the seam) and up (v below a half), the foot's underside above. The
 /// print as the party cups are printed: a solid ground and a pattern in
 /// white, or confetti on white, or a greeting; faded, rubbed off at the
@@ -177,9 +198,9 @@ fn print_tex(look: usize, salt: u32, used: bool) -> Tex {
                 let du = ((u - d0 + 0.5).rem_euclid(1.0) - 0.5) * around + 0.0012 * (y * 300.0).sin();
                 let top = CUP_OUT.0 - 0.001;
                 if y > top - len && y < top {
-                    let wdt = 0.0016 * (1.0 + 0.6 * ((top - y) / len));
-                    let k = sstep(wdt, 0.0, du.abs()) * (0.45 + 0.25 * sstep(top - len + 0.004, top - len, y));
-                    c = mix(c, [0.36, 0.22, 0.12], k);
+                    let wdt = 0.0022 * (1.0 + 0.5 * ((top - y) / len));
+                    let k = sstep(wdt, 0.0, du.abs()) * (0.18 + 0.2 * sstep(top - len + 0.005, top - len, y));
+                    c = mix(c, [0.40, 0.27, 0.16], k);
                 }
             }
             // dust and grime in the board's grain
@@ -231,11 +252,7 @@ fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
             let along = dx * ang.cos() + dy * ang.sin();
             let across = -dx * ang.sin() + dy * ang.cos();
             let dot = h(5) < 0.3;
-            let ink = if dot {
-                (dx * dx + dy * dy).sqrt() < 0.0011
-            } else {
-                along.abs() < 0.0016 && across.abs() < 0.0006
-            };
+            let ink = if dot { (dx * dx + dy * dy).sqrt() < 0.0011 } else { along.abs() < 0.0016 && across.abs() < 0.0006 };
             if ink && h(6) < 0.8 {
                 [[0.74, 0.30, 0.32], [0.30, 0.44, 0.68], [0.86, 0.70, 0.30], [0.38, 0.60, 0.42]][(h(4) * 4.0) as usize % 4]
             } else {
@@ -293,69 +310,72 @@ fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
     }
 }
 
-/// The inside, laid as `put_split` lays it: the wall round and up (v below
-/// a half), the floor and the curl's top from above (the upper left
-/// quarter, and its copy right of it). White coated board, dusty; drunk
-/// from: the drink's film dried down the wall from where it stood, its
-/// tide lines, a dark crackled crust on the floor (lying: dried along the
-/// side it lay on, out to the mouth)
+/// The inside of the wall (round from the seam, and up): white coated
+/// board, dusty; drunk from: the drink's film dried down the wall from
+/// where it stood, its tide lines, darker low; a lip's grime under the rim
+/// (lying: dried along the side it lay on, out to the mouth)
 fn inside_tex(drink: usize, level: f64, salt: u32, how: Cup) -> Tex {
-    canvas_tex_opt(256, 256, false, move |ctx, w, h| {
+    canvas_tex_opt(256, 128, false, move |ctx, w, h| {
         let seed = salt ^ 0x1a5e;
         let dc = DRINK[drink];
         let used = !matches!(how, Cup::Nested(_));
         let lying = how == Cup::Lying;
         fill(ctx, w, h, |u, v| {
-            let n = fbm(seed, u * 30.0, v * 30.0, 3);
+            let n = fbm(seed, u * 30.0, v * 12.0, 3);
             let mut c = mix(BOARD, [0.74, 0.71, 0.65], 0.3 * n);
-            if v < 0.5 {
-                let y = CUP_IN.0 + v * 2.0 * (CUP_IN.1 - CUP_IN.0);
-                if used && !lying {
-                    // the film from where it stood down, darker low
-                    let below = sstep(level + 0.0008, level - 0.0008, y);
-                    let k = below * (0.22 + 0.30 * sstep(level, CUP_FLOOR.0, y)) * (0.75 + 0.25 * n);
-                    c = mix(c, dc, k);
-                    // the tide lines: where it stood, and where it stood
-                    // for a while as it went down
-                    for (i, step) in [0.0, 0.006, 0.013].iter().enumerate() {
-                        let i = i as f64;
-                        let ty = level - step + 0.0006 * (u * PI * 6.0 + i).sin();
-                        c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.0007, 0.0, (y - ty).abs()) * (0.55 - 0.15 * i));
-                    }
-                }
-                if lying {
-                    // along the side it lay on (-x: u = 3/4), out to the mouth
-                    let du = (u - 0.75).abs();
-                    let k = sstep(0.09 + 0.02 * n, 0.05, du);
-                    c = mix(c, dc, k * 0.5);
-                    c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.006, 0.0, (du - 0.07 - 0.02 * n).abs()) * 0.5);
-                }
-                // dust settled on the lower wall; grime round the rim from lips
-                c = mix(c, [0.60, 0.58, 0.53], 0.12 * sstep(0.05, 0.01, y));
-                c = mix(c, [0.62, 0.55, 0.48], 0.25 * sstep(0.082, 0.088, y) * f64::from(used as u8) * n);
-            } else {
-                // from above: the floor in the middle, the curl round the edge
-                let fz = (u * 2.0).fract();
-                let fx = (v - 0.5) * 2.0;
-                let (xx, zz) = ((fx * 2.0 - 1.0) * CUP_IN.2, (fz * 2.0 - 1.0) * CUP_IN.2);
-                let rr = (xx * xx + zz * zz).sqrt();
-                if rr < CUP_FLOOR.1 {
-                    if used && !lying {
-                        // the crust: dark, crackled into flakes
-                        let cr = (1.0 - ((vn(seed ^ 4, xx * 900.0, zz * 900.0) - 0.5).abs() * 12.0).min(1.0)).powi(2);
-                        c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.45), 0.8 * (0.8 + 0.2 * n));
-                        c = mix(c, mix(dc, BOARD, 0.5), cr * 0.6);
-                    } else if lying {
-                        let k = sstep(0.006, -0.004, xx);
-                        c = mix(c, dc, k * 0.5);
-                    }
-                    // the dust that settled in it
-                    c = mix(c, [0.58, 0.55, 0.50], 0.25 + 0.2 * vn(seed ^ 6, xx * 400.0, zz * 400.0));
-                } else {
-                    // the curl: white, grey with dust on its top
-                    c = mix(BOARD, [0.60, 0.58, 0.53], 0.30 + 0.2 * n);
+            let y = CUP_IN.0 + v * (CUP_IN.1 - CUP_IN.0);
+            if used && !lying {
+                // the film from where it stood down, darker low
+                let below = sstep(level + 0.0008, level - 0.0008, y);
+                let k = below * (0.22 + 0.30 * sstep(level, CUP_FLOOR, y)) * (0.75 + 0.25 * n);
+                c = mix(c, dc, k);
+                // the tide lines: where it stood, and where it stood for a
+                // while as it went down
+                for (i, step) in [0.0, 0.006, 0.013].iter().enumerate() {
+                    let i = i as f64;
+                    let ty = level - step + 0.0006 * (u * PI * 6.0 + i).sin();
+                    c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.0007, 0.0, (y - ty).abs()) * (0.55 - 0.15 * i));
                 }
             }
+            if lying {
+                // along the side it lay on (-x: u = 3/4), out to the mouth
+                let du = (u - 0.75).abs();
+                c = mix(c, dc, sstep(0.09 + 0.02 * n, 0.05, du) * 0.5);
+                c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.006, 0.0, (du - 0.07 - 0.02 * n).abs()) * 0.5);
+            }
+            // dust settled low; grime under the rim where lips were
+            c = mix(c, [0.60, 0.58, 0.53], 0.12 * sstep(0.05, 0.01, y));
+            if used {
+                c = mix(c, [0.62, 0.55, 0.48], 0.3 * sstep(0.080, 0.087, y) * n);
+            }
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// The floor inside, from above (u along x, v against z; the bottom
+/// disc's underside sees the same): drunk from, a dark crust crackled
+/// into flakes, the board showing between; lying, a stain toward the side
+/// it lay on; dust in it
+fn bottom_tex(drink: usize, salt: u32, how: Cup) -> Tex {
+    canvas_tex_opt(96, 96, false, move |ctx, w, h| {
+        let seed = salt ^ 0xb077;
+        let dc = DRINK[drink];
+        fill(ctx, w, h, |u, v| {
+            let (x, z) = ((u * 2.0 - 1.0) * CUP_BOTTOM, ((1.0 - v) * 2.0 - 1.0) * CUP_BOTTOM);
+            let n = fbm(seed, u * 8.0, v * 8.0, 3);
+            let mut c = mix([0.88, 0.86, 0.80], [0.78, 0.75, 0.69], 0.3 * n);
+            match how {
+                Cup::Standing | Cup::Squeezed => {
+                    let cr = (1.0 - ((vn(seed ^ 4, x * 700.0, z * 700.0) - 0.5).abs() * 9.0).min(1.0)).powi(2);
+                    c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.45), 0.85 * (0.8 + 0.2 * n));
+                    c = mix(c, mix(dc, BOARD, 0.5), cr * 0.6);
+                }
+                Cup::Lying => c = mix(c, dc, sstep(0.006, -0.008, x) * 0.5),
+                Cup::Nested(_) => {}
+            }
+            // the dust that settled in it
+            c = mix(c, [0.58, 0.55, 0.50], 0.22 + 0.2 * vn(seed ^ 6, x * 400.0, z * 400.0));
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -373,14 +393,15 @@ fn spill_tex(drink: usize, salt: u32) -> Tex {
             let (x, y) = (1.0 - u, v - 0.5);
             let edge = 0.30 + 0.14 * sstep(0.0, 0.7, x) + 0.10 * (fbm(seed, u * 5.0, v * 5.0, 3) - 0.5);
             let reach = 0.85 + 0.1 * (fbm(seed ^ 2, v * 4.0, 0.3, 2) - 0.5);
-            let d = (y.abs() / edge).max(x / reach);
-            if d >= 1.0 || x < 0.02 {
+            // a soft round end, not a box's
+            let d = ((y / edge).powi(2) + (x / reach).powi(4)).sqrt();
+            if d >= 1.0 {
                 return [dc[0], dc[1], dc[2], 0.0];
             }
-            let tide = sstep(0.75, 0.97, d) * (1.0 - sstep(0.97, 1.0, d));
-            let a = 0.28 + 0.35 * tide + 0.1 * fbm(seed ^ 3, u * 14.0, v * 14.0, 2);
-            let c = mix(dc, [0.0, 0.0, 0.0], 0.3 * tide);
-            [c[0], c[1], c[2], a * sstep(0.02, 0.08, x)]
+            let tide = sstep(0.72, 0.92, d) * (1.0 - sstep(0.92, 1.0, d));
+            let a = 0.10 + 0.22 * tide + 0.08 * fbm(seed ^ 3, u * 14.0, v * 14.0, 2);
+            let c = mix(mix(dc, [0.12, 0.09, 0.06], 0.45), [0.0, 0.0, 0.0], 0.3 * tide);
+            [c[0], c[1], c[2], a * sstep(1.0, 0.9, d) * sstep(0.0, 0.06, x)]
         });
     })
 }
@@ -443,29 +464,127 @@ mod kit {
     pub(super) fn salt(x: f64, z: f64, k: u32) -> u32 {
         ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ k.wrapping_mul(0x9e37_79b9)
     }
-    /// The part `name` as modelled, added to `grp` in `mat`, its texture
-    /// coordinates folded so its sides and its tops get their own places on
-    /// one map: the sides (round and up, as the game lays a cylinder's) in
-    /// the lower half, the faces that look up or down (the disc the game
-    /// lays on them) in the upper left quarter (and a seam's copies of them
-    /// right of it)
-    pub(super) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+    /// The part `name` of a Blender batch as modelled (shared: never
+    /// changed in place)
+    pub(super) fn part(name: &str) -> Option<Geo> {
+        prop_part_as_modelled(name)
+    }
+    /// A copy of `geo` turned about z by `theta` and lifted by `lift`, its
+    /// texture coordinates kept and its bounds its own
+    pub(super) fn turned(geo: &Geo, theta: f64, lift: f64) -> Geo {
+        let out = geo.duplicate();
+        {
+            let mut gg = out.g();
+            let (s, c) = (theta.sin() as f32, theta.cos() as f32);
+            let turn = |arr: &mut Vec<f32>, dy: f32| {
+                for p in arr.chunks_mut(3) {
+                    let (x, y) = (p[0], p[1]);
+                    p[0] = x * c - y * s;
+                    p[1] = x * s + y * c + dy;
+                }
+            };
+            turn(&mut gg.position, lift as f32);
+            turn(&mut gg.normal, 0.0);
+            gg.compute_bounding_box();
+            gg.compute_bounding_sphere();
+            gg.touch();
+        }
+        out
+    }
+    /// The same, its texture coordinates laid from above at its real scale
+    /// (u along x, v against z, `half` m from its middle to the map's edge)
+    pub(super) fn part_top(name: &str, half: f64) -> Option<Geo> {
         let geo = prop_part_as_modelled(name)?.duplicate();
         {
             let mut gg = geo.g();
             let n = gg.position.len() / 3;
             for i in 0..n {
-                if gg.normal[i * 3 + 1].abs() > 0.75 {
-                    gg.uv[i * 2] *= 0.5;
-                    gg.uv[i * 2 + 1] = 0.5 + gg.uv[i * 2 + 1] * 0.5;
-                } else {
-                    gg.uv[i * 2 + 1] *= 0.5;
-                }
+                let (x, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 2]));
+                gg.uv[i * 2] = ((x / half + 1.0) * 0.5) as f32;
+                gg.uv[i * 2 + 1] = (1.0 - (z / half + 1.0) * 0.5) as f32;
             }
             gg.touch();
         }
-        let m = mesh(geo, mat.clone());
-        grp.add(&m);
-        Some(m)
+        Some(geo)
+    }
+    /// The same, its texture coordinates folded so its sides and its tops
+    /// each get their own place on one map: a triangle that mostly looks up
+    /// or down takes the disc the game lays on a cylinder's caps (from
+    /// above), folded into the upper left quarter; any other the round and
+    /// up of its sides, folded into the lower half. A corner the two kinds
+    /// share is doubled, so no triangle runs across the map from one to
+    /// the other.
+    pub(super) fn part_split(name: &str) -> Option<Geo> {
+        let geo = prop_part_as_modelled(name)?.duplicate();
+        {
+            let mut gg = geo.g();
+            let idx = gg.index.clone()?;
+            let n = gg.position.len() / 3;
+            let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+            for i in 0..n {
+                for k in 0..3 {
+                    let p = f64::from(gg.position[i * 3 + k]);
+                    lo[k] = lo[k].min(p);
+                    hi[k] = hi[k].max(p);
+                }
+            }
+            let ex = [0, 1, 2].map(|k| if hi[k] - lo[k] > 1e-9 { hi[k] - lo[k] } else { 1.0 });
+            let ny = |i: usize| gg.normal[i * 3 + 1];
+            let cap = |i: usize| ny(i).abs() > 0.75;
+            let (mut pos, mut nrm) = (gg.position.clone(), gg.normal.clone());
+            let mut uv: Vec<f32> = Vec::with_capacity(gg.uv.len());
+            for i in 0..n {
+                let (u, v) = (gg.uv[i * 2], gg.uv[i * 2 + 1]);
+                if cap(i) {
+                    uv.extend_from_slice(&[u * 0.5, 0.5 + v * 0.5]);
+                } else {
+                    uv.extend_from_slice(&[u, v * 0.5]);
+                }
+            }
+            let mut out = Vec::with_capacity(idx.len());
+            let mut dup: std::collections::HashMap<(u32, u8), u32> = std::collections::HashMap::new();
+            for t in idx.chunks(3) {
+                let tri_cap = t.iter().map(|&i| ny(i as usize).abs()).sum::<f32>() / 3.0 > 0.6;
+                let up = t.iter().map(|&i| ny(i as usize)).sum::<f32>() >= 0.0;
+                let side_u = t.iter().map(|&i| i as usize).find(|&i| !cap(i)).map(|i| uv[i * 2]);
+                for &i in t {
+                    let iu = i as usize;
+                    if cap(iu) == tri_cap {
+                        out.push(i);
+                        continue;
+                    }
+                    let f = [0, 1, 2].map(|k| (f64::from(gg.position[iu * 3 + k]) - lo[k]) / ex[k]);
+                    let (u, v, key) = if tri_cap {
+                        (f[2] * 0.5, 0.5 + if up { f[0] } else { 1.0 - f[0] } * 0.5, u8::from(up))
+                    } else {
+                        let mut u = ((f[0] * 2.0 - 1.0).atan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
+                        let mut key = 2;
+                        if let Some(m) = side_u.map(f64::from) {
+                            if u - m > 0.5 {
+                                u -= 1.0;
+                                key = 3;
+                            } else if m - u > 0.5 {
+                                u += 1.0;
+                                key = 4;
+                            }
+                        }
+                        (u, f[1] * 0.5, key)
+                    };
+                    let d = *dup.entry((i, key)).or_insert_with(|| {
+                        pos.extend_from_slice(&[gg.position[iu * 3], gg.position[iu * 3 + 1], gg.position[iu * 3 + 2]]);
+                        nrm.extend_from_slice(&[gg.normal[iu * 3], gg.normal[iu * 3 + 1], gg.normal[iu * 3 + 2]]);
+                        uv.extend_from_slice(&[u as f32, v as f32]);
+                        (pos.len() / 3 - 1) as u32
+                    });
+                    out.push(d);
+                }
+            }
+            gg.position = pos;
+            gg.normal = nrm;
+            gg.uv = uv;
+            gg.index = Some(out);
+            gg.touch();
+        }
+        Some(geo)
     }
 }

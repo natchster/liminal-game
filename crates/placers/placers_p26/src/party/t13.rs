@@ -66,8 +66,8 @@ pub fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
                 let k = f64::from(i);
                 one.position().set(0.0015 * (k * 2.3 + f64::from(salt % 5)).sin(), k * 0.0016, 0.0015 * (k * 1.7).cos());
                 one.rotation().y = k * 0.7 + f64::from((salt >> 3) % 9) * 0.1;
-                put(&one, "Real__paperPlateTop", &top);
-                put(&one, "Real__paperPlateUnder", &under);
+                put_top(&one, "Real__paperPlateTop", &top, PLATE_R);
+                put_top(&one, "Real__paperPlateUnder", &under, PLATE_R);
                 plate.add(&one);
             }
         }
@@ -75,14 +75,14 @@ pub fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
             let flip = group();
             flip.rotation().x = PI;
             flip.position().y = PLATE_H;
-            put(&flip, "Real__paperPlateTop", &top);
-            put(&flip, "Real__paperPlateUnder", &under);
+            put_top(&flip, "Real__paperPlateTop", &top, PLATE_R);
+            put_top(&flip, "Real__paperPlateUnder", &under, PLATE_R);
             plate.add(&flip);
         }
         Plate::Eaten | Plate::Trodden => {
             let bent = how == Plate::Trodden;
-            put(&plate, if bent { "Real__paperPlateBentTop" } else { "Real__paperPlateTop" }, &top);
-            put(&plate, if bent { "Real__paperPlateBentUnder" } else { "Real__paperPlateUnder" }, &under);
+            put_top(&plate, if bent { "Real__paperPlateBentTop" } else { "Real__paperPlateTop" }, &top, PLATE_R);
+            put_top(&plate, if bent { "Real__paperPlateBentUnder" } else { "Real__paperPlateUnder" }, &under, PLATE_R);
             if !bent {
                 if let Some(geo) = prop_part_as_modelled("Real__breadCrumbs") {
                     let crumbs = mesh(geo, lambert!({ color: 0x8a7458 }));
@@ -111,8 +111,7 @@ const BOARD: [[f64; 3]; 4] = [[0.86, 0.84, 0.79], [0.84, 0.80, 0.73], [0.82, 0.7
 /// green, a purple), as printed on board and faded
 const INK: [[f64; 3]; 5] = [[0.70, 0.28, 0.40], [0.30, 0.40, 0.66], [0.80, 0.66, 0.30], [0.36, 0.56, 0.38], [0.52, 0.34, 0.58]];
 
-/// The top face from above (u along x, v against z, as the game lays a
-/// box's top): the coated white, the pleats' light and shade across the
+/// The top face from above (u along x, v against z, as `put_top` lays it): the coated white, the pleats' light and shade across the
 /// wall and flange; printed: dots on an ink band, ink rays, or confetti;
 /// eaten from: frosting smeared and dried, grease soaked in round it, the
 /// fork's scrapes, crumbs; trodden: a sole's grime across it; dust.
@@ -121,8 +120,8 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
         let seed = salt ^ 0x9a7e;
         let mut r = SplitMix64::new(salt, 0x2b1);
         let design = (salt >> 5) % 3;
-        let smear = (r.range(-0.03, 0.03), r.range(-0.03, 0.03), r.range(0.0, PI), r.range(0.012, 0.022));
-        let frost = [[0.80, 0.74, 0.62], [0.78, 0.62, 0.62], [0.36, 0.24, 0.17]][(salt >> 9) as usize % 3];
+        let smear = (r.range(-0.03, 0.03), r.range(-0.03, 0.03), r.range(0.0, PI), r.range(0.020, 0.032));
+        let frost = [[0.74, 0.64, 0.46], [0.70, 0.52, 0.50], [0.32, 0.21, 0.15]][(salt >> 9) as usize % 3];
         let grease = (r.range(-0.03, 0.03), r.range(-0.03, 0.03), r.range(0.018, 0.03));
         let sole = (r.range(0.0, PI), r.range(-0.02, 0.02));
         let eaten = matches!(how, Plate::Eaten | Plate::Trodden | Plate::FaceDown);
@@ -157,7 +156,8 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
                         let ang = hash(seed ^ 3, ci as i32, cj as i32) * PI;
                         let al = dx * ang.cos() + dz * ang.sin();
                         let ac = -dx * ang.sin() + dz * ang.cos();
-                        (al.abs() < 0.0018 && ac.abs() < 0.0007 && hash(seed ^ 4, ci as i32, cj as i32) < 0.6) || (rr > 0.084 && rr < PLATE_FLANGE.1)
+                        (al.abs() < 0.0018 && ac.abs() < 0.0007 && hash(seed ^ 4, ci as i32, cj as i32) < 0.6)
+                            || (rr > 0.084 && rr < PLATE_FLANGE.1)
                     }
                 };
                 if ink_here {
@@ -178,10 +178,12 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
                 let (dx, dz) = (x - sx, z - sz);
                 let al = dx * sa.cos() + dz * sa.sin();
                 let ac = -dx * sa.sin() + dz * sa.cos();
-                let body = sstep(1.0, 0.7, ((al / sl).powi(2) + (ac / (sl * 0.45)).powi(2)).sqrt() + 0.3 * (n - 0.5));
-                let tines = (0.5 + 0.5 * (ac * 2600.0).sin()).powi(3) * 0.3;
+                let body = sstep(1.0, 0.75, ((al / sl).powi(2) + (ac / (sl * 0.45)).powi(2)).sqrt() + 0.3 * (n - 0.5));
+                let tines = (0.5 + 0.5 * (ac * 2600.0).sin()).powi(3) * 0.25;
                 let crack = (1.0 - ((vn(seed ^ 6, x * 900.0, z * 900.0) - 0.5).abs() * 14.0).min(1.0)) * 0.5;
-                c = mix(c, mix(frost, [0.30, 0.26, 0.22], crack), body * (0.85 - tines));
+                c = mix(c, mix(frost, [0.30, 0.26, 0.22], crack), body * (0.95 - tines));
+                // its edge a darker rim where the fat ran into the coating
+                c = mix(c, mix(frost, [0.2, 0.15, 0.1], 0.5), body * (1.0 - body) * 1.2);
                 // grease soaked into the coating round it
                 let (gx, gz, gr) = grease;
                 let gd = (((x - gx).powi(2) + (z - gz).powi(2)).sqrt() / gr) + 0.25 * (n - 0.5);
@@ -193,13 +195,19 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
                 }
             }
             if how == Plate::Trodden {
-                // a sole's grime: the tread's bars across it
+                // a sole's grime: the forefoot of a shoe, its tread's lugs
+                // (blocks in rows), printed only where it pressed hardest
                 let (sa, so) = sole;
                 let along = x * sa.cos() + z * sa.sin();
                 let across = -x * sa.sin() + z * sa.cos() - so;
-                let in_sole = sstep(0.05, 0.04, across.abs()) * sstep(0.10, 0.07, along.abs());
-                let bars = sstep(0.3, 0.6, (along * 260.0).sin()) * (0.6 + 0.4 * n);
-                c = mix(c, [0.32, 0.29, 0.25], in_sole * bars * 0.55);
+                let half_w = 0.045 * (1.0 - (along / 0.13).powi(2)).max(0.0).sqrt();
+                let in_sole = sstep(half_w, half_w - 0.006, across.abs());
+                let row = (along / 0.008).floor();
+                let (la, lc) =
+                    ((along / 0.008).rem_euclid(1.0), ((across + if row as i64 % 2 == 0 { 0.0 } else { 0.004 }) / 0.008).rem_euclid(1.0));
+                let lug = sstep(0.42, 0.32, (la - 0.5).abs()) * sstep(0.42, 0.30, (lc - 0.5).abs());
+                let press = sstep(0.35, 0.6, fbm(seed ^ 11, x * 30.0, z * 30.0, 2));
+                c = mix(c, [0.36, 0.33, 0.28], in_sole * (0.10 + 0.25 * lug) * press);
             }
             // dust, and grime at the edge where it met the floor
             c = mix(c, [0.60, 0.58, 0.53], 0.12 + 0.18 * n + if matches!(how, Plate::Stack(_)) { 0.1 } else { 0.0 });
@@ -209,8 +217,8 @@ fn top_tex(board: usize, ink: Option<usize>, salt: u32, how: Plate) -> Tex {
     })
 }
 
-/// The underside (u along x, v along z: the top's map seen through the
-/// board): plain grey-white board, its fibres, the pleats; grease soaked
+/// The underside (laid from above as the top is: the top's map seen
+/// through the board): plain grey-white board, its fibres, the pleats; grease soaked
 /// through under where it was eaten from; floor grime
 fn under_tex(board: usize, salt: u32, used: bool) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
@@ -222,7 +230,7 @@ fn under_tex(board: usize, salt: u32, used: bool) -> Tex {
         let b = mix(BOARD[board], [0.70, 0.68, 0.62], 0.4);
         fill(ctx, w, h, |u, v| {
             let x = (u * 2.0 - 1.0) * PLATE_R;
-            let z = (v * 2.0 - 1.0) * PLATE_R;
+            let z = ((1.0 - v) * 2.0 - 1.0) * PLATE_R;
             let rr = (x * x + z * z).sqrt();
             let n = fbm(seed, u * 30.0, v * 30.0, 3);
             let mut c = mix(b, [0.62, 0.60, 0.55], 0.4 * n);
@@ -299,6 +307,106 @@ mod kit {
     /// The part `name` of a Blender batch as modelled, added to `grp` in `mat`
     pub(super) fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
         let geo = prop_part_as_modelled(name)?;
+        let m = mesh(geo, mat.clone());
+        grp.add(&m);
+        Some(m)
+    }
+    /// The same, its texture coordinates laid from above at its real scale
+    /// (u along x, v against z, `half` m from its middle to the map's edge)
+    pub(super) fn put_top(grp: &Obj, name: &str, mat: &Mat, half: f64) -> Option<Obj> {
+        let geo = prop_part_as_modelled(name)?.duplicate();
+        {
+            let mut gg = geo.g();
+            let n = gg.position.len() / 3;
+            for i in 0..n {
+                let (x, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 2]));
+                gg.uv[i * 2] = ((x / half + 1.0) * 0.5) as f32;
+                gg.uv[i * 2 + 1] = (1.0 - (z / half + 1.0) * 0.5) as f32;
+            }
+            gg.touch();
+        }
+        let m = mesh(geo, mat.clone());
+        grp.add(&m);
+        Some(m)
+    }
+    /// The same, its texture coordinates folded so its sides and its tops
+    /// each get their own place on one map: a triangle that mostly looks up
+    /// or down takes the disc the game lays on a cylinder's caps (from
+    /// above), folded into the upper left quarter; any other the round and
+    /// up of its sides, folded into the lower half. A corner the two kinds
+    /// share is doubled, so no triangle runs across the map from one to
+    /// the other.
+    pub(super) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+        let geo = prop_part_as_modelled(name)?.duplicate();
+        {
+            let mut gg = geo.g();
+            let idx = gg.index.clone()?;
+            let n = gg.position.len() / 3;
+            let (mut lo, mut hi) = ([f64::MAX; 3], [f64::MIN; 3]);
+            for i in 0..n {
+                for k in 0..3 {
+                    let p = f64::from(gg.position[i * 3 + k]);
+                    lo[k] = lo[k].min(p);
+                    hi[k] = hi[k].max(p);
+                }
+            }
+            let ex = [0, 1, 2].map(|k| if hi[k] - lo[k] > 1e-9 { hi[k] - lo[k] } else { 1.0 });
+            let ny = |i: usize| gg.normal[i * 3 + 1];
+            let cap = |i: usize| ny(i).abs() > 0.75;
+            let (mut pos, mut nrm) = (gg.position.clone(), gg.normal.clone());
+            let mut uv: Vec<f32> = Vec::with_capacity(gg.uv.len());
+            for i in 0..n {
+                let (u, v) = (gg.uv[i * 2], gg.uv[i * 2 + 1]);
+                if cap(i) {
+                    uv.extend_from_slice(&[u * 0.5, 0.5 + v * 0.5]);
+                } else {
+                    uv.extend_from_slice(&[u, v * 0.5]);
+                }
+            }
+            let mut out = Vec::with_capacity(idx.len());
+            let mut dup: std::collections::HashMap<(u32, u8), u32> = std::collections::HashMap::new();
+            for t in idx.chunks(3) {
+                let tri_cap = t.iter().map(|&i| ny(i as usize).abs()).sum::<f32>() / 3.0 > 0.6;
+                let up = t.iter().map(|&i| ny(i as usize)).sum::<f32>() >= 0.0;
+                let side_u = t.iter().map(|&i| i as usize).find(|&i| !cap(i)).map(|i| uv[i * 2]);
+                for &i in t {
+                    let iu = i as usize;
+                    if cap(iu) == tri_cap {
+                        out.push(i);
+                        continue;
+                    }
+                    let f = [0, 1, 2].map(|k| (f64::from(gg.position[iu * 3 + k]) - lo[k]) / ex[k]);
+                    let (u, v, key) = if tri_cap {
+                        (f[2] * 0.5, 0.5 + if up { f[0] } else { 1.0 - f[0] } * 0.5, u8::from(up))
+                    } else {
+                        let mut u = ((f[0] * 2.0 - 1.0).atan2(f[2] * 2.0 - 1.0) / (2.0 * PI) + 1.0) % 1.0;
+                        let mut key = 2;
+                        if let Some(m) = side_u.map(f64::from) {
+                            if u - m > 0.5 {
+                                u -= 1.0;
+                                key = 3;
+                            } else if m - u > 0.5 {
+                                u += 1.0;
+                                key = 4;
+                            }
+                        }
+                        (u, f[1] * 0.5, key)
+                    };
+                    let d = *dup.entry((i, key)).or_insert_with(|| {
+                        pos.extend_from_slice(&[gg.position[iu * 3], gg.position[iu * 3 + 1], gg.position[iu * 3 + 2]]);
+                        nrm.extend_from_slice(&[gg.normal[iu * 3], gg.normal[iu * 3 + 1], gg.normal[iu * 3 + 2]]);
+                        uv.extend_from_slice(&[u as f32, v as f32]);
+                        (pos.len() / 3 - 1) as u32
+                    });
+                    out.push(d);
+                }
+            }
+            gg.position = pos;
+            gg.normal = nrm;
+            gg.uv = uv;
+            gg.index = Some(out);
+            gg.touch();
+        }
         let m = mesh(geo, mat.clone());
         grp.add(&m);
         Some(m)
