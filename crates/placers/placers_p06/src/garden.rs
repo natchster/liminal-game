@@ -7,6 +7,10 @@ use game::prelude::*;
 // made real by batch `t06` (`t06.rs`)
 pub use crate::t06::{place_bird_baths, place_garden_aprons, place_garden_gnomes, place_seed_catalogs, place_soil_bags};
 
+// R651 framed botanical: made real by batch `t17` (`garden/t17.rs`)
+mod t17;
+pub use t17::place_botanicals;
+
 // R646 metal bucket: 5% chance per level. Tapered cylinder pail + curved handle.
 pub fn place_metal_buckets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -426,77 +430,4 @@ pub fn place_bird_feeders(g: &mut Game, _dist: &[i32]) {
     feeder.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     feeder.rotation().y = rnd() * PI * 2.0;
     g.world.add(&feeder);
-}
-
-// R651 framed botanical illustration: 3% chance per level. Wall art w/
-// detailed plant sketch.
-game::lazy_static_tex!(
-    botanical_texture,
-    canvas_tex(112, 168, |ctx, w, h| {
-        // Cream paper.
-        ctx.set_fill_style("#f0e8c8");
-        ctx.fill_rect(0, 0, w, h);
-        let cx = w / 2.0;
-        // Vertical stem line.
-        ctx.set_stroke_style("#405020");
-        ctx.set_line_width(2);
-        ctx.begin_path();
-        ctx.move_to(cx, h - 8.0);
-        ctx.line_to(cx, 30);
-        ctx.stroke();
-        // 4 pairs of alternating leaves along stem.
-        ctx.set_fill_style("#506030");
-        for i in 0..4 {
-            let y = h - 30.0 - i as f64 * 30.0;
-            let side = if i % 2 == 0 { -1.0 } else { 1.0 };
-            ctx.begin_path();
-            ctx.ellipse(cx + side * 14.0, y, 12, 4, side * 0.4, 0, PI * 2.0);
-            ctx.fill();
-            ctx.begin_path();
-            ctx.ellipse(cx - side * 14.0, y - 10.0, 10, 3, -side * 0.4, 0, PI * 2.0);
-            ctx.fill();
-        }
-        // Flower cluster top.
-        let petal_color = ["#c04060", "#f0c020", "#d060c0"][(rnd() * 3.0).floor() as usize];
-        ctx.set_fill_style(petal_color);
-        for p in 0..6 {
-            let a = (p as f64 / 6.0) * PI * 2.0;
-            ctx.begin_path();
-            ctx.arc(cx + a.cos() * 8.0, 20.0 + a.sin() * 8.0, 5, 0, PI * 2.0);
-            ctx.fill();
-        }
-        ctx.set_fill_style("#f0e020");
-        ctx.begin_path();
-        ctx.arc(cx, 20, 3, 0, PI * 2.0);
-        ctx.fill();
-        // Latin name (bar placeholder at bottom).
-        ctx.set_fill_style("#403020");
-        ctx.fill_rect(20, h - 18.0, w - 40.0, 3);
-    })
-);
-
-pub fn place_botanicals(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let frame_mat = lambert!({ color: 0x604020 });
-    let paper_mat = lambert!({ map: botanical_texture() });
-    let bot = group();
-    let mount_y = 1.65;
-    let frame = mesh(pg("Botanicals__frame", box_geo!(0.20, 0.30, 0.014)), &frame_mat);
-    frame.position().y = mount_y;
-    bot.add(&frame);
-    let paper = mesh(plane_geo!(0.16, 0.26), &paper_mat);
-    // On the backing board (front z 0.001) behind the reeded frame's sight edge.
-    paper.position().set(0, mount_y, 0.0015);
-    bot.add(&paper);
-    bot.rotation().z = (rnd() - 0.5) * 0.05;
-    bot.rotation().y = face_yaw(dx, dz);
-    bot.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
-    g.world.add(&bot);
 }

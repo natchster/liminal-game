@@ -7,10 +7,12 @@
 use game::prelude::*;
 
 mod t05;
+mod t17;
 use t05::{
     place_bird_nests, place_butterfly_wings, place_grass_clumps, place_leaf_litter, place_moss_patches, place_snail_shells,
     place_spider_webs, place_twigs,
 };
+use t17::{place_acorns, place_chestnuts, place_ferns, place_pine_cones, place_pine_needles};
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -654,74 +656,6 @@ fn place_keyring_with_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ring);
 }
 
-// R593 acorn/nut cluster: 6% chance per level.
-fn place_acorns(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let nut_colors = [0x8b5a2b, 0x6b3f1f, 0x9b7a3b];
-    let cap_mat = lambert!({ color: 0x4a2f1a });
-    let cluster = group();
-    let count = 2 + (rnd() * 4.0).floor() as i32;
-    for _i in 0..count {
-        let nut_mat = lambert!({ color: choice(&nut_colors) });
-        let acorn = group();
-        // Body (ellipsoid via scaled sphere).
-        let body = mesh(pg("Acorns__nut", sphere_geo!(0.011, 8, 6)), &nut_mat);
-        body.scale().y = 1.3;
-        body.position().y = 0.012;
-        acorn.add(&body);
-        // Cap (half-sphere on top).
-        let cap = mesh(pg("Acorns__cap", sphere_geo!(0.011, 8, 4, 0, PI * 2.0, 0, PI / 2.0)), &cap_mat);
-        cap.position().y = 0.020;
-        acorn.add(&cap);
-        // Tiny stem.
-        let stem = mesh(cyl_geo!(0.001, 0.001, 0.005, 4), &cap_mat);
-        stem.position().y = 0.024;
-        acorn.add(&stem);
-        acorn.position().set((rnd() - 0.5) * 0.13, 0, (rnd() - 0.5) * 0.13);
-        acorn.rotation().y = rnd() * PI * 2.0;
-        acorn.rotation().z = (rnd() - 0.5) * 0.4;
-        cluster.add(&acorn);
-    }
-    let (px, pz) = jitter(g, x, z, 2.5);
-    cluster.position().set(px, 0, pz);
-    g.world.add(&cluster);
-}
-
-// R594 pine cone: 6% chance per level. Layered scale ellipsoid.
-fn place_pine_cones(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let cone_colors = [0x604020, 0x503018, 0x705030, 0x402010];
-    let cone_mat = lambert!({ color: choice(&cone_colors) });
-    let cone = group();
-    let core = mesh(pg("PineCones__core", cyl_geo!(0.012, 0.008, 0.055, 6)), &cone_mat);
-    core.rotation().z = PI / 2.0;
-    core.position().y = 0.014;
-    cone.add(&core);
-    // 4 rings of scale bumps around core.
-    for ring in 0..4 {
-        let ring_radius = 0.014 - ring as f64 * 0.002;
-        let ring_x = -0.020 + ring as f64 * 0.012;
-        let bumps = 6;
-        for b in 0..bumps {
-            let a = (b as f64 / bumps as f64) * PI * 2.0 + ring as f64 * 0.4;
-            let scale = mesh(pg("PineCones__scale", box_geo!(0.006, 0.005, 0.008)), &cone_mat);
-            scale.position().set(ring_x, 0.014 + a.cos() * ring_radius, a.sin() * ring_radius);
-            scale.rotation().x = a;
-            cone.add(&scale);
-        }
-    }
-    let (px, pz) = jitter(g, x, z, 2.5);
-    cone.position().set(px, 0, pz);
-    cone.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&cone);
-}
-
 // R594 fallen bird feather: 7% chance per level.
 fn place_feathers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -818,122 +752,6 @@ fn place_dandelions(g: &mut Game, _dist: &[i32]) {
     g.animate(move |_g, _dt, t| {
         dandelion.rotation().z = base_z + (t * 0.35 + phase).sin() * 0.05;
     });
-}
-
-// R596 fern frond: 6% chance per level. Central stem + pairs of leaflets.
-fn place_ferns(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let stem_mat = lambert!({ color: 0x506030 });
-    let leaflet_colors = [0x407030, 0x306028, 0x507838];
-    let leaflet_mat = lambert!({ color: choice(&leaflet_colors), side: DoubleSide });
-    let fern = group();
-    let stem_len = 0.14;
-    let stem = mesh(pg("Ferns__stem", cyl_geo!(0.0015, 0.0025, stem_len, 4)), &stem_mat);
-    stem.rotation().z = PI / 2.0;
-    stem.position().set(0, 0.003, 0);
-    fern.add(&stem);
-    // Pairs of leaflets along stem, decreasing size toward tip.
-    let pairs = 6;
-    let mut leaflets: Vec<Obj> = vec![]; // R608 track for sway animator
-    for p in 0..pairs {
-        let t = p as f64 / (pairs - 1) as f64;
-        let stem_x = -stem_len / 2.0 + t * stem_len + 0.010;
-        let size = 0.030 * (1.0 - t * 0.5);
-        for side in [-1.0f64, 1.0] {
-            let leaflet = mesh(circle_geo!(size, 5), &leaflet_mat);
-            leaflet.rotation().x = -PI / 2.0;
-            let base_z = side * (0.8 - t * 0.2);
-            leaflet.rotation().z = base_z;
-            leaflet.position().set(stem_x, 0.004, side * size * 0.6);
-            leaflet.scale().set(1.4, 0.5, 1);
-            leaflet.user().base_z = base_z;
-            leaflet.user().phase = rnd() * PI * 2.0 + p as f64 * 0.4;
-            leaflets.push(leaflet.clone());
-            fern.add(&leaflet);
-        }
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    fern.position().set(px, 0, pz);
-    fern.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&fern);
-    // R608 gentle sway animator (per-leaflet phase).
-    g.animate(move |_g, _dt, t| {
-        for l in &leaflets {
-            let (bz, ph) = {
-                let n = l.r();
-                (n.user.base_z, n.user.phase)
-            };
-            l.rotation().z = bz + (t * 0.4 + ph).sin() * 0.06;
-        }
-    });
-}
-
-// R598 pine needle cluster: 7% chance per level.
-fn place_pine_needles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let needle_colors = [0x304018, 0x405020, 0x203010];
-    let cluster = group();
-    let count = 10 + (rnd() * 10.0).floor() as i32;
-    for _i in 0..count {
-        let needle_mat = lambert!({ color: choice(&needle_colors) });
-        let needle = mesh(pg("PineNeedles__needle", cyl_geo!(0.0007, 0.0005, 0.030, 3)), &needle_mat);
-        needle.rotation().z = PI / 2.0;
-        needle.rotation().y = rnd() * PI * 2.0;
-        needle.position().set((rnd() - 0.5) * 0.14, 0.0008, (rnd() - 0.5) * 0.14);
-        cluster.add(&needle);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    cluster.position().set(px, 0, pz);
-    g.world.add(&cluster);
-}
-
-// R602 chestnut cluster: 5% chance per level. Spiky husks + smooth brown nuts.
-fn place_chestnuts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let nut_mat = lambert!({ color: 0x5a3018 });
-    let husk_mat = lambert!({ color: 0x808040 });
-    let cluster = group();
-    let count = 2 + (rnd() * 3.0).floor() as i32;
-    for _i in 0..count {
-        let chestnut = group();
-        let nut = mesh(pg("Chestnuts__nut", sphere_geo!(0.014, 8, 6)), &nut_mat);
-        nut.scale().set(1, 0.7, 1);
-        nut.position().y = 0.010;
-        chestnut.add(&nut);
-        let tip = mesh(pg("Chestnuts__tip", cone_geo!(0.004, 0.005, 5)), lambert!({ color: 0xa08060 }));
-        tip.position().y = 0.018;
-        chestnut.add(&tip);
-        // Optional spiky husk (60% chance).
-        if rnd() < 0.60 {
-            for s in 0..8 {
-                let spike = mesh(pg("Chestnuts__spike", cone_geo!(0.0015, 0.008, 4)), &husk_mat);
-                let a = (s as f64 / 8.0) * PI * 2.0;
-                // Radiate from the nut at two alternating latitudes, apex along the normal.
-                let e = 0.25 + 0.3 * (s % 2) as f64;
-                let sp = v3(0.014 * e.cos() * a.cos(), 0.010 + 0.0098 * e.sin(), 0.014 * e.cos() * a.sin());
-                let mut sn = v3(e.cos() * a.cos() / 0.014, e.sin() / 0.0098, e.cos() * a.sin() / 0.014);
-                sn.normalize();
-                spike.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &sn);
-                spike.position().copy(&sp).add_scaled_vector(&sn, 0.003);
-                chestnut.add(&spike);
-            }
-        }
-        chestnut.position().set((rnd() - 0.5) * 0.13, 0, (rnd() - 0.5) * 0.13);
-        chestnut.rotation().y = rnd() * PI * 2.0;
-        cluster.add(&chestnut);
-    }
-    let (px, pz) = jitter(g, x, z, 2.5);
-    cluster.position().set(px, 0, pz);
-    g.world.add(&cluster);
 }
 
 // R602 eyeshadow palette: 7% chance per level. Case w/ colored pans, sometimes open.

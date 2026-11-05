@@ -5,6 +5,11 @@ use game::prelude::*;
 // R638 hanging plant: made real by batch `t06` (`t06.rs`)
 pub use crate::t06::place_hanging_plants;
 
+// R641 gardening gloves, R644 garden rake: made real by batch `t17`
+// (`garden/t17.rs`)
+mod t17;
+pub use t17::{place_garden_rakes, place_gardening_gloves};
+
 // R635 framed cross-stitch: 4% chance per level. An alphabet sampler on
 // linen, framed (batch r13a).
 pub fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
@@ -824,52 +829,6 @@ pub fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
     g.world.add(&can);
 }
 
-// R641 gardening gloves (pair): 7% chance per level. Two glove shapes lying on
-// floor.
-pub fn place_gardening_gloves(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    } // 7% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let glove_colors: [u32; 5] = [0x408040, 0xa04020, 0x808030, 0x604020, 0xc0a060];
-    let glove_mat = lambert!({ color: pick(&glove_colors) });
-    let cuff_mat = lambert!({ color: 0x604020 });
-    let pair = group();
-    // Draw 2 gloves side-by-side.
-    for gi in 0..2 {
-        let glove = group();
-        // Palm block.
-        let palm = mesh(pg("GardeningGloves__palm", box_geo!(0.045, 0.010, 0.055)), &glove_mat);
-        palm.position().y = 0.005;
-        glove.add(&palm);
-        // Thumb bump.
-        let thumb = mesh(pg("GardeningGloves__thumb", sphere_geo!(0.010, 6, 5)), &glove_mat);
-        thumb.scale().set(1, 0.5, 1.4);
-        thumb.position().set(-0.028, 0.005, -0.010);
-        glove.add(&thumb);
-        // 4 finger stubs.
-        for f in 0..4 {
-            let finger = mesh(pg("GardeningGloves__finger", box_geo!(0.008, 0.010, 0.020)), &glove_mat);
-            finger.position().set(-0.014 + f as f64 * 0.010, 0.005, 0.035);
-            glove.add(&finger);
-        }
-        // Cuff (darker band at wrist).
-        let cuff = mesh(pg("GardeningGloves__cuff", box_geo!(0.048, 0.012, 0.012)), &cuff_mat);
-        cuff.position().set(0, 0.006, -0.030);
-        glove.add(&cuff);
-        glove.position().set(if gi == 0 { -0.030 } else { 0.030 }, 0, 0);
-        glove.rotation().y = if gi == 0 { 0.15 } else { -0.15 };
-        pair.add(&glove);
-    }
-    pair.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
-    pair.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pair);
-}
-
 // R643 pruning shears: 6% chance per level. 2 curved blades + 2 handles + pivot.
 pub fn place_pruning_shears(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -963,51 +922,6 @@ pub fn place_garden_hoes(g: &mut Game, _dist: &[i32]) {
     hoe.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
     hoe.rotation().y = rnd() * PI * 2.0;
     g.world.add(&hoe);
-}
-
-// R644 garden rake: 4% chance per level. Long handle + crossbar + tines fan.
-pub fn place_garden_rakes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let wood_mat = lambert!({ color: 0x8b5a2b });
-    let head_mat = lambert!({ color: 0x505050 });
-    let rake = group();
-    // Long handle.
-    let handle = mesh(pg("GardenHoes__handle", cyl_geo!(0.011, 0.011, 0.60, 8)), &wood_mat);
-    handle.rotation().z = PI / 2.0;
-    handle.position().y = 0.014;
-    rake.add(&handle);
-    // Collar at head.
-    let collar = mesh(pg("GardenHoes__collar", cyl_geo!(0.013, 0.013, 0.020, 8)), &head_mat);
-    collar.rotation().z = PI / 2.0;
-    collar.position().set(-0.295, 0.014, 0);
-    rake.add(&collar);
-    // Crossbar (short horizontal).
-    let bar = mesh(pg("GardenRakes__bar", box_geo!(0.005, 0.008, 0.100)), &head_mat);
-    bar.position().set(-0.307, 0.014, 0); // against the collar's end (-0.305)
-    rake.add(&bar);
-    // 8 tine spikes descending from crossbar.
-    // The rake lies on its back: each tine's thick root (+Y) is set 1 mm
-    // into the bar's top (y 0.018), the point rising 0.3 rad forward (-X).
-    for i in 0..8 {
-        let tine = mesh(pg("GardenRakes__tine", cyl_geo!(0.001, 0.0018, 0.040, 4)), &head_mat);
-        tine.position().set(-0.307 - 0.020 * 0.3f64.sin(), 0.017 + 0.020 * 0.3f64.cos(), -0.045 + i as f64 * 0.013);
-        tine.rotation().z = 0.3 - PI; // angle tines forward slightly
-        rake.add(&tine);
-    }
-    // End cap.
-    let cap = mesh(pg("GardenRakes__cap", sphere_geo!(0.013, 6, 5)), &wood_mat);
-    cap.position().set(0.302, 0.014, 0);
-    rake.add(&cap);
-    rake.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
-    rake.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&rake);
 }
 
 // R644 garden hose coil: 5% chance per level. Concentric tori forming coiled hose.
