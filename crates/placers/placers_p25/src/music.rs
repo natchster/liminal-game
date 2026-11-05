@@ -576,36 +576,6 @@ pub fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-/// R430 small paper cup: 12% chance per level. Tapered paper cup.
-/// Party-remnant.
-pub fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.88 {
-        return;
-    } // 12% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let cup_colors = [0xf0ece4, 0xf0c0d0, 0xd0d8f0, 0xf0d8a0, 0xd8f0d0, 0xe8d8c8];
-    let cup_mat = lambert!({ color: pick(&cup_colors), side: DoubleSide });
-    let cup = group();
-    // Body: tapered cylinder (wider at top).
-    let body = mesh(cyl_geo!(0.035, 0.025, 0.08, 12, 1, true), &cup_mat);
-    body.position().y = 0.04;
-    cup.add(&body);
-    // Bottom disc.
-    let bottom = mesh(circle_geo!(0.025, 12), &cup_mat);
-    bottom.rotation().x = -PI / 2.0;
-    bottom.position().y = 0.001;
-    cup.add(&bottom);
-    // 25% chance tipped on side (crushed party cup vibe).
-    if rnd() < 0.25 {
-        cup.rotation().z = PI / 2.0;
-        cup.position().y = 0.035;
-    }
-    cup.position().x = g.wx(x) + (rnd() - 0.5) * 2.4;
-    cup.position().z = g.wz(z) + (rnd() - 0.5) * 2.4;
-    cup.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&cup);
-}
+// R430 small paper cup: batch `t13`'s (`music/t13.rs`)
+mod t13;
+pub use t13::place_small_paper_cups;

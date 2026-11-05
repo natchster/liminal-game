@@ -73,37 +73,9 @@ pub fn place_small_paper_napkins(g: &mut Game, _dist: &[i32]) {
     g.world.add(&napkin);
 }
 
-/// R428 small paper plate: 12% chance per level. Thin disc + slight
-/// rim. Party-remnant family.
-pub fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.88 {
-        return;
-    } // 12% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let plate_colors = [0xf0ece4, 0xece0d0, 0xe8d8c8, 0xf4e8d8];
-    let pattern_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0];
-    let plate_mat = lambert!({ color: pick(&plate_colors), side: DoubleSide });
-    let plate = group();
-    // Body: flat disc.
-    let body = mesh(cyl_geo!(0.10, 0.10, 0.004, 16), &plate_mat);
-    body.position().y = 0.002;
-    plate.add(&body);
-    // Optional: colored rim ring (60% chance).
-    if rnd() < 0.60 {
-        let rim_mat = lambert!({ color: pick(&pattern_colors) });
-        let rim = mesh(pg("SmallPaperPlates__rim", torus_geo!(0.095, 0.006, 4, 16)), &rim_mat);
-        rim.rotation().x = PI / 2.0;
-        rim.position().y = 0.0066; // lip rests on the floor
-        plate.add(&rim);
-    }
-    plate.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    plate.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&plate);
-}
+// R428 small paper plate: batch `t13`'s (`party/t13.rs`)
+mod t13;
+pub use t13::place_small_paper_plates;
 
 /// R428 small birthday candle: 8% chance per level. Wax cylinder +
 /// wick + optional tiny flame with faint point light. Party-remnant.
