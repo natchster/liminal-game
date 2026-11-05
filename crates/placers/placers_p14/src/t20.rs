@@ -169,7 +169,15 @@ fn or_dial_tex(vary: u32) -> Tex {
         for k in 0..360 {
             let a = (k as f64).to_radians();
             let (c, s) = (a.cos(), a.sin());
-            let l: f64 = if k % 30 == 0 { 0.016 } else if k % 10 == 0 { 0.0045 } else if k % 5 == 0 { 0.0032 } else { 0.002 };
+            let l: f64 = if k % 30 == 0 {
+                0.016
+            } else if k % 10 == 0 {
+                0.0045
+            } else if k % 5 == 0 {
+                0.0032
+            } else {
+                0.002
+            };
             ctx.begin_path();
             ctx.move_to(cx + c * 0.110 * px, cy + s * 0.110 * px);
             ctx.line_to(cx + c * (0.110 + l) * px, cy + s * (0.110 + l) * px);
@@ -204,9 +212,11 @@ fn or_dial_tex(vary: u32) -> Tex {
                 ctx.restore();
             }
         };
-        let signs = ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO", "LIBRA", "SCORPIO", "SAGITTAR.", "CAPRICORN", "AQUARIUS", "PISCES"];
+        let signs =
+            ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO", "LIBRA", "SCORPIO", "SAGITTAR.", "CAPRICORN", "AQUARIUS", "PISCES"];
         words(ctx, &signs, 0.1175, 30.0, 10.0, 15.0);
-        let months = ["MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY"];
+        let months =
+            ["MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY"];
         words(ctx, &months, 0.1315, 30.0, 9.0, 25.0);
         let planets = ["MERCURY", "VENUS", "THE EARTH"];
         for (k, (t, r)) in planets.iter().zip([0.050, 0.075, 0.104]).enumerate() {

@@ -203,14 +203,23 @@ fn gl_horizon_tex(vary: u32) -> Tex {
         for k in 0..360 {
             let a = (k as f64).to_radians();
             let (c, s) = (a.cos(), a.sin());
-            let len = if k % 10 == 0 { 0.0055 } else if k % 5 == 0 { 0.0040 } else { 0.0025 };
+            let len = if k % 10 == 0 {
+                0.0055
+            } else if k % 5 == 0 {
+                0.0040
+            } else {
+                0.0025
+            };
             ctx.begin_path();
             ctx.move_to(cx + c * 0.2085 * px, cy + s * 0.2085 * px);
             ctx.line_to(cx + c * (0.2085 - len) * px, cy + s * (0.2085 - len) * px);
             ctx.stroke();
             ctx.begin_path();
             ctx.move_to(cx + c * 0.1815 * px, cy + s * 0.1815 * px);
-            ctx.line_to(cx + c * (0.1815 - if k % 30 == 0 { 0.007 } else { 0.0022 }) * px, cy + s * (0.1815 - if k % 30 == 0 { 0.007 } else { 0.0022 }) * px);
+            ctx.line_to(
+                cx + c * (0.1815 - if k % 30 == 0 { 0.007 } else { 0.0022 }) * px,
+                cy + s * (0.1815 - if k % 30 == 0 { 0.007 } else { 0.0022 }) * px,
+            );
             ctx.stroke();
         }
         ctx.set_fill_style("rgba(34,26,18,0.9)");
@@ -229,9 +238,11 @@ fn gl_horizon_tex(vary: u32) -> Tex {
         };
         let compass = ["E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW", "N", "NNE", "NE", "ENE"];
         words(ctx, &compass, 0.2018, 22.5, 8.0, 0.0);
-        let signs = ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO", "LIBRA", "SCORPIO", "SAGITTARIUS", "CAPRICORN", "AQUARIUS", "PISCES"];
+        let signs =
+            ["ARIES", "TAURUS", "GEMINI", "CANCER", "LEO", "VIRGO", "LIBRA", "SCORPIO", "SAGITTARIUS", "CAPRICORN", "AQUARIUS", "PISCES"];
         words(ctx, &signs, 0.1900, 30.0, 7.0, 15.0);
-        let months = ["MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY"];
+        let months =
+            ["MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER", "JANUARY", "FEBRUARY"];
         words(ctx, &months, 0.1780, 30.0, 7.0, 25.0);
         // the varnish gone amber, rubbed through where it was leant on, a
         // tide mark, dust; computed over what was printed

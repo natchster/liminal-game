@@ -593,7 +593,13 @@ fn pw_dial_tex(vary: u32) -> Tex {
         ctx.stroke();
         for k in 0..60 {
             let a = k as f64 * PI / 30.0;
-            let l = if k % 15 == 0 { 1.2 } else if k % 5 == 0 { 0.9 } else { 0.5 };
+            let l = if k % 15 == 0 {
+                1.2
+            } else if k % 5 == 0 {
+                0.9
+            } else {
+                0.5
+            };
             ctx.begin_path();
             ctx.move_to(sx + a.sin() * 5.0 * mm, sy - a.cos() * 5.0 * mm);
             ctx.line_to(sx + a.sin() * (5.0 - l) * mm, sy - a.cos() * (5.0 - l) * mm);
