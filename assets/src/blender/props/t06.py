@@ -1055,7 +1055,7 @@ auto('Real__herbTwine', herb_twine, 1000, smooth=60.0)
 
 
 # ============================================================== gnome ===
-# A garden gnome of painted cast resin, 12 in (Alpine's and Design House's
+# A garden gnome of painted cast concrete, 12 in (Alpine's and Design House's
 # 12 in gnomes: 305 mm tall, 125-150 mm across): a rotund old man standing
 # on a rock, his hands folded on his belly over his belt, his beard to his
 # belt, a pointed cap with its tip falling back; each colour its own part
