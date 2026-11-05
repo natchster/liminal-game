@@ -6,6 +6,9 @@ use game::prelude::*;
 
 mod t02;
 use t02::place_antique_maps;
+// the cut-paper silhouette in its oval frame: batch `t19`'s (`t19.rs`)
+mod t19;
+use t19::place_silhouette_portraits;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -251,153 +254,6 @@ fn place_chair_arm_books(g: &mut Game, _dist: &[i32]) {
     cab.position().set(g.wx(x) + (rnd() - 0.5) * 1.2, 0, g.wz(z) + (rnd() - 0.5) * 1.2);
     cab.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cab);
-}
-
-// R745 framed Victorian silhouette portrait texture.
-game::lazy_static_tex!(
-    silhouette_portrait_texture,
-    canvas_tex(180, 220, |ctx, w, h| {
-        // Cream background.
-        ctx.set_fill_style("#f0e8c8");
-        ctx.fill_rect(0, 0, w, h);
-        // Very subtle vignette darkening corners.
-        let rg = ctx.create_radial_gradient(w / 2.0, h / 2.0, 30, w / 2.0, h / 2.0, w);
-        rg.add_color_stop(0, "rgba(0,0,0,0)");
-        rg.add_color_stop(1, "rgba(80,60,40,0.25)");
-        ctx.set_fill_style(&rg);
-        ctx.fill_rect(0, 0, w, h);
-        // Central profile silhouette — black.
-        ctx.set_fill_style("#0a0a0a");
-        let (cx, cy) = (w / 2.0, h * 0.5);
-        let variant = (rnd() * 3.0).floor() as i32;
-        ctx.begin_path();
-        if variant == 0 {
-            // Adult male profile — angular jaw + short hair.
-            ctx.move_to(cx - 5.0, cy - 55.0);
-            ctx.quadratic_curve_to(cx + 28.0, cy - 60.0, cx + 32.0, cy - 30.0);
-            ctx.quadratic_curve_to(cx + 34.0, cy - 15.0, cx + 25.0, cy - 12.0);
-            ctx.quadratic_curve_to(cx + 40.0, cy - 5.0, cx + 42.0, cy);
-            ctx.quadratic_curve_to(cx + 30.0, cy + 5.0, cx + 26.0, cy + 8.0);
-            ctx.quadratic_curve_to(cx + 32.0, cy + 15.0, cx + 24.0, cy + 20.0);
-            ctx.quadratic_curve_to(cx + 30.0, cy + 30.0, cx + 20.0, cy + 38.0);
-            ctx.quadratic_curve_to(cx + 10.0, cy + 45.0, cx - 15.0, cy + 50.0);
-            ctx.line_to(cx - 30.0, cy + 70.0);
-            ctx.line_to(cx - 30.0, cy + 100.0);
-            ctx.line_to(cx - 40.0, cy + 100.0);
-            ctx.line_to(cx - 35.0, cy + 55.0);
-            ctx.line_to(cx - 20.0, cy + 20.0);
-            ctx.line_to(cx - 22.0, cy - 30.0);
-            ctx.line_to(cx - 20.0, cy - 50.0);
-            ctx.close_path();
-        } else if variant == 1 {
-            // Adult female profile — softer curves + updo hair bun.
-            ctx.move_to(cx - 8.0, cy - 55.0);
-            ctx.quadratic_curve_to(cx + 25.0, cy - 60.0, cx + 30.0, cy - 30.0);
-            ctx.quadratic_curve_to(cx + 34.0, cy - 10.0, cx + 40.0, cy - 5.0);
-            ctx.quadratic_curve_to(cx + 36.0, cy + 3.0, cx + 28.0, cy + 5.0);
-            ctx.quadratic_curve_to(cx + 32.0, cy + 12.0, cx + 24.0, cy + 16.0);
-            ctx.quadratic_curve_to(cx + 30.0, cy + 26.0, cx + 22.0, cy + 32.0);
-            ctx.quadratic_curve_to(cx + 12.0, cy + 40.0, cx - 10.0, cy + 45.0);
-            ctx.line_to(cx - 30.0, cy + 65.0);
-            ctx.line_to(cx - 35.0, cy + 100.0);
-            ctx.line_to(cx - 50.0, cy + 100.0);
-            ctx.line_to(cx - 45.0, cy + 55.0);
-            ctx.line_to(cx - 30.0, cy + 15.0);
-            // Hair bun — small circle at back-top of head.
-            ctx.line_to(cx - 34.0, cy - 30.0);
-            ctx.quadratic_curve_to(cx - 42.0, cy - 50.0, cx - 30.0, cy - 55.0);
-            ctx.close_path();
-        } else {
-            // Child profile — smaller, rounder head + shorter neck.
-            ctx.move_to(cx - 5.0, cy - 40.0);
-            ctx.quadratic_curve_to(cx + 22.0, cy - 45.0, cx + 26.0, cy - 20.0);
-            ctx.quadratic_curve_to(cx + 30.0, cy - 5.0, cx + 34.0, cy);
-            ctx.quadratic_curve_to(cx + 28.0, cy + 6.0, cx + 20.0, cy + 8.0);
-            ctx.quadratic_curve_to(cx + 24.0, cy + 15.0, cx + 18.0, cy + 18.0);
-            ctx.quadratic_curve_to(cx + 22.0, cy + 26.0, cx + 15.0, cy + 30.0);
-            ctx.line_to(cx - 8.0, cy + 38.0);
-            ctx.line_to(cx - 22.0, cy + 55.0);
-            ctx.line_to(cx - 22.0, cy + 85.0);
-            ctx.line_to(cx - 32.0, cy + 85.0);
-            ctx.line_to(cx - 28.0, cy + 50.0);
-            ctx.line_to(cx - 15.0, cy + 15.0);
-            ctx.line_to(cx - 18.0, cy - 25.0);
-            ctx.close_path();
-        }
-        ctx.fill();
-        // Oval-shaped mat frame.
-        ctx.set_stroke_style("#a06030");
-        ctx.set_line_width(3);
-        ctx.begin_path();
-        ctx.ellipse(cx, cy, w * 0.42, h * 0.42, 0, 0, PI * 2.0);
-        ctx.stroke();
-        // Gold rim inside oval.
-        ctx.set_stroke_style("#c0a060");
-        ctx.set_line_width(1);
-        ctx.begin_path();
-        ctx.ellipse(cx, cy, w * 0.40, h * 0.40, 0, 0, PI * 2.0);
-        ctx.stroke();
-        // Signature/name at bottom.
-        ctx.set_fill_style("#402020");
-        ctx.set_font("italic 10px cursive");
-        ctx.set_text_align("center");
-        let names = [
-            "Charles W., aet 34",
-            "Elizabeth, aet 28",
-            "Little Sarah",
-            "Master James",
-            "Mrs. Anderson",
-            "Papa, 1889",
-            "Mother, 1902",
-            "Young Thomas",
-        ];
-        ctx.fill_text(names[ri(names.len())], w / 2.0, h - 12.0);
-    })
-);
-
-fn place_silhouette_portraits(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let mut wall_tiles: Vec<(i32, i32, i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        wall_tiles.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    if wall_tiles.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wall_tiles[ri(wall_tiles.len())];
-    let frame_colors: [u32; 4] = [0x604020, 0xd0a040, 0x2a1810, 0xc0a060];
-    let frame_mat = lambert!({ color: frame_colors[ri(frame_colors.len())] });
-    let gold_mat = lambert!({ color: 0xc0a060 });
-    let portrait_mat = lambert!({ map: silhouette_portrait_texture() });
-    let sp = group();
-    let mount_y = 1.60;
-    let (frame_w, frame_h) = (0.18, 0.22);
-    let frame = mesh(pg("SilhouettePortraits__frame", box_geo!(frame_w, frame_h, 0.014)), &frame_mat);
-    frame.position().set(0, mount_y, 0.011);
-    sp.add(&frame);
-    // Gold inner mat.
-    let gold_inner = mesh(pg("SilhouettePortraits__mat", box_geo!(frame_w - 0.010, frame_h - 0.010, 0.002)), &gold_mat);
-    gold_inner.position().set(0, mount_y, 0.018);
-    sp.add(&gold_inner);
-    // Portrait face plane.
-    let portrait = mesh(plane_geo!(frame_w - 0.024, frame_h - 0.024), &portrait_mat);
-    portrait.position().set(0, mount_y, 0.020);
-    sp.add(&portrait);
-    sp.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
-    sp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    sp.rotation().z = (rnd() - 0.5) * 0.03;
-    g.world.add(&sp);
 }
 
 // R746 ottoman / footstool (floor): 4% chance per level.

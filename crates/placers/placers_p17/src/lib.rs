@@ -10,6 +10,9 @@ use t01::place_miniature_portrait_clusters;
 // the floor vase and its peacock feathers: batch `t11`'s (`t11.rs`)
 mod t11;
 use t11::place_peacock_feather_vases;
+// where a picture hung: batch `t19`'s (`t19.rs`)
+mod t19;
+use t19::place_empty_painting_outlines;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -489,76 +492,6 @@ fn place_correspondence_cards(g: &mut Game, _dist: &[i32]) {
     mount_on_wall(g, &cc, &c, 0.005, 1.55, 0.5);
     cc.rotation().z = (rnd() - 0.5) * 0.030;
     g.world.add(&cc);
-}
-
-// R760 empty painting outline (wall): 3% chance per level. Absence-as-prop.
-fn place_empty_painting_outlines(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let ep = group();
-    // Random landscape / portrait orientation.
-    let is_landscape = rnd() < 0.5;
-    let outline_w = if is_landscape { 0.28 + rnd() * 0.14 } else { 0.20 + rnd() * 0.10 };
-    let outline_h = if is_landscape { 0.20 + rnd() * 0.10 } else { 0.30 + rnd() * 0.14 };
-    // Cleaner-wall patch where the paint didn't fade.
-    let clean_patch_mat = lambert!({ color: 0xd8d0c0, transparent: true, opacity: 0.35 });
-    let clean_patch = mesh(plane_geo!(outline_w, outline_h), &clean_patch_mat);
-    clean_patch.position().set(0, 0, 0.001);
-    ep.add(&clean_patch);
-    // Dust/faded outer border — 4 thin darker strips.
-    let dust_mat = lambert!({ color: 0x6a5a48, transparent: true, opacity: 0.50 });
-    let border_t = 0.005; // 5 mm dust border
-    let top_border = mesh(plane_geo!(outline_w + border_t * 2.0, border_t), &dust_mat);
-    top_border.position().set(0, outline_h / 2.0 + border_t / 2.0, 0.0015);
-    ep.add(&top_border);
-    let bot_border = mesh(plane_geo!(outline_w + border_t * 2.0, border_t), &dust_mat);
-    bot_border.position().set(0, -outline_h / 2.0 - border_t / 2.0, 0.0015);
-    ep.add(&bot_border);
-    let left_border = mesh(plane_geo!(border_t, outline_h), &dust_mat);
-    left_border.position().set(-outline_w / 2.0 - border_t / 2.0, 0, 0.0015);
-    ep.add(&left_border);
-    let right_border = mesh(plane_geo!(border_t, outline_h), &dust_mat);
-    right_border.position().set(outline_w / 2.0 + border_t / 2.0, 0, 0.0015);
-    ep.add(&right_border);
-    // 2 tiny picture hooks at the top corners.
-    let hook_mat = lambert!({ color: 0x606060 });
-    for hx_side in [-1.0, 1.0] {
-        let nail = mesh(pg("EmptyPaintingOutlines__nail", cyl_geo!(0.0012, 0.0012, 0.006, 4)), &hook_mat);
-        nail.rotation().x = PI / 2.0;
-        nail.position().set(hx_side * outline_w * 0.32, outline_h * 0.35, 0.004);
-        ep.add(&nail);
-        let hook = mesh(pg("EmptyPaintingOutlines__hook", torus_geo!(0.003, 0.0008, 3, 6, PI)), &hook_mat);
-        hook.rotation().x = PI / 2.0;
-        hook.rotation().z = PI;
-        hook.position().set(hx_side * outline_w * 0.32, outline_h * 0.34, 0.005);
-        ep.add(&hook);
-    }
-    // 40%: hanging wire piece still attached to one hook.
-    if rnd() < 0.4 {
-        let wire_mat = lambert!({ color: 0x606060 });
-        let wire = mesh(pg("EmptyPaintingOutlines__wire", cyl_geo!(0.0008, 0.0008, 0.06, 3)), &wire_mat);
-        wire.position().set(-outline_w * 0.32, outline_h * 0.30, 0.005);
-        wire.rotation().z = 0.4;
-        ep.add(&wire);
-    }
-    // 30%: small dark scratch mark below the outline.
-    if rnd() < 0.3 {
-        let scratch_mat = lambert!({ color: 0x4a3020, transparent: true, opacity: 0.55 });
-        let scratch = mesh(plane_geo!(0.015, 0.06), &scratch_mat);
-        let sx = (rnd() - 0.5) * outline_w * 0.7;
-        let sy = -outline_h / 2.0 - 0.03 - rnd() * 0.04;
-        scratch.position().set(sx, sy, 0.0015);
-        scratch.rotation().z = (rnd() - 0.5) * 0.3;
-        ep.add(&scratch);
-    }
-    mount_on_wall(g, &ep, &c, 0.002, 1.60, 0.5);
-    g.world.add(&ep);
 }
 
 // R760 small memorial shrine (floor): 2.5% chance per level.

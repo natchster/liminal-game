@@ -944,7 +944,8 @@ WH_W = 0.019
 WH_DISH = 0.003
 WH_HUB = 0.045
 WH_SPOKES = 10
-WH_SPOKE0 = math.pi / 2 + math.pi / WH_SPOKES    # the top between two spokes
+WH_SPOKE0 = math.pi / 2 + math.pi / WH_SPOKES    # the first spoke: the top between two spokes
+WH_JOINT0 = WH_SPOKE0 + math.pi / WH_SPOKES      # the first felloe joint, half way to the next spoke
 
 
 def wheel_tyre():
@@ -961,7 +962,7 @@ def wheel_iron():
         s = s + ring_sweep(rrect_section(0.0268, 0.0300, zc - 0.0040, zc + 0.0040, 0.0008, 1), n=28)
     s = s + ring_sweep(rrect_section(0.0100, 0.0150, WH_HUB - 0.006, WH_HUB + 0.0035, 0.0010, 1), n=28)
     for k in range(5):
-        a = WH_SPOKE0 + TAU * k / 5 + math.pi / WH_SPOKES
+        a = WH_JOINT0 + TAU * k / 5 + TAU / 10
         p = Vector((math.cos(a), math.sin(a), 0))
         head = ellipsoid(0.0042, 0.0016, 0.0042, seg=8)
         s = s + place_on(head, p * WH_R + Vector((0, 0, WH_DISH)), p)
@@ -984,7 +985,7 @@ def wheel_spokes():
     s = Shape()
     rs = [0.026, 0.040, 0.062, 0.085, 0.104, WH_FEL[0] + 0.004]
     for k in range(WH_SPOKES):
-        a = WH_SPOKE0 + TAU * k / WH_SPOKES + math.pi / WH_SPOKES
+        a = WH_SPOKE0 + TAU * k / WH_SPOKES
         d = Vector((math.cos(a), math.sin(a), 0))
         t = Vector((-d.y, d.x, 0))
         rings = []
@@ -1006,7 +1007,7 @@ def wheel_felloes():
     sec = rrect_section(WH_FEL[0], WH_FEL[1], z0, z1, 0.0020, 2)
     gap = 0.0007 / WH_FEL[1]
     for k in range(5):
-        a0 = WH_SPOKE0 + TAU * k / 5 + gap / 2
+        a0 = WH_JOINT0 + TAU * k / 5 + gap / 2
         a1 = a0 + TAU / 5 - gap
         s = s + noisy(ring_sweep(sec, a0, a1, n=14), 0.00022, scale=160.0, seed=23 + k)
     return s
