@@ -49,6 +49,9 @@ fn new_game() -> Game {
 }
 
 fn floor(seed: u32, l: i32) -> Game {
+    // the per-frame stream from the floor, not the clock: a creature's rough
+    // guess at a sound (an angle and a metre or three) repeats run to run
+    game::base::rng::seed_native((u64::from(seed) << 8) | l as u64);
     let mut g = new_game();
     g.run_seed = seed;
     g.init_level(l);
