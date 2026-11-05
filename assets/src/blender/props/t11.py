@@ -789,12 +789,10 @@ def _head_regions():
 
 
 def _pale(c, n):
-    """Where the roe's coat is pale: the chin and the lower lip, the band
-    over the muzzle behind the nose, the throat's patch."""
+    """Where the roe's coat is pale: the chin and the lower lip, the
+    throat's patch."""
     h = _to_h(c)
     if h.y < -0.034 and h.z > 0.090:
-        return True
-    if 0.118 < h.z < 0.130 and h.y > -0.022:
         return True
     # the throat's patch: an oval under the jaw, on the neck's front
     if c.z > 0.075 and n.y < 0.2 and (c.x / 0.027) ** 2 + ((c.y + 0.050) / 0.017) ** 2 < 1.0:

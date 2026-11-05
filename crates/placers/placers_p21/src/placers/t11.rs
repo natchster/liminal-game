@@ -66,10 +66,10 @@ fn hide_tex(salt: u32) -> Tex {
             c = mix(c, [0.62, 0.56, 0.47], sstep(0.68, 0.9, fleck) * 0.45);
             // the coat's lie: broad soft waves
             let wave = fbm(seed ^ 5, u * 7.0, v * 7.0, 3);
-            c = mix(c, [0.48, 0.41, 0.32], (wave - 0.5).max(0.0) * 0.9);
+            c = mix(c, [0.47, 0.40, 0.31], (wave - 0.5).max(0.0) * 0.45);
             // moth-eaten spots: the hair gone to the tanned skin
-            let moth = fbm(seed ^ 7, u * 16.0, v * 16.0, 3);
-            c = mix(c, [0.56, 0.47, 0.36], sstep(0.70, 0.74, moth) * 0.7);
+            let moth = fbm(seed ^ 7, u * 22.0, v * 22.0, 3);
+            c = mix(c, [0.54, 0.46, 0.36], sstep(0.73, 0.76, moth) * 0.5);
             // faded and dusty
             c = mix(c, [0.55, 0.52, 0.47], 0.12);
             [c[0], c[1], c[2], 1.0]
@@ -77,7 +77,7 @@ fn hide_tex(salt: u32) -> Tex {
     })
 }
 
-/// The pale hair of the chin, the muzzle's band, the throat's patch and
+/// The pale hair of the chin and the lower lip, the throat's patch and
 /// the ears' insides: an old white gone cream and grey, streaked
 fn pale_tex(salt: u32) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
@@ -92,7 +92,7 @@ fn pale_tex(salt: u32) -> Tex {
             // hairs in tufts along them
             let ear = sstep(0.42, 0.5, v);
             let tuft = sstep(0.55, 0.8, fbm(seed ^ 5, u * 40.0, v * 14.0, 2));
-            c = mix(c, mix([0.30, 0.26, 0.22], [0.62, 0.59, 0.53], tuft), ear);
+            c = mix(c, mix([0.30, 0.26, 0.22], [0.52, 0.49, 0.44], tuft), ear);
             [c[0], c[1], c[2], 1.0]
         });
     })

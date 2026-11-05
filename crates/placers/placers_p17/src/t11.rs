@@ -159,7 +159,7 @@ fn glaze_tex(salt: u32, glaze: usize, gilt: bool) -> Tex {
 /// (a kidney of deep blue, rings of teal, bronze and green-gold, a dark
 /// edge, the loose barbs round it); the rachis. Its alpha is the barbs.
 fn feather_tex(salt: u32) -> Tex {
-    canvas_tex_opt(96, 512, false, move |ctx, w, h| {
+    canvas_tex_opt(128, 512, false, move |ctx, w, h| {
         let seed = salt ^ 0x3b5;
         // the vane's size (m): across, up
         let (fw, fh) = (0.162, 0.455);
@@ -201,7 +201,7 @@ fn feather_tex(salt: u32) -> Tex {
         // ends, sparse and short low down, longer toward the eye (each from
         // the salt: every vase's feathers their own)
         ctx.set_line_cap("round");
-        let n = 95;
+        let n = 130;
         for (si, side) in [-1.0f64, 1.0].into_iter().enumerate() {
             for i in 0..n {
                 let r = |k: i32| hash(seed ^ (k as u32).wrapping_mul(0x9e37), i, si as i32);
@@ -217,7 +217,7 @@ fn feather_tex(salt: u32) -> Tex {
                 let (cr, cg, cb) = if r(6) < 0.25 { (100.0, 78.0, 40.0) } else { (78.0, 86.0, 40.0) };
                 let col = format!("rgb({},{},{})", (cr * g) as u8, (cg * g) as u8, (cb * g) as u8);
                 ctx.set_stroke_style(col.as_str());
-                ctx.set_line_width(1.0);
+                ctx.set_line_width(1.6);
                 ctx.begin_path();
                 ctx.move_to(x0, y0);
                 ctx.quadratic_curve_to(cx, cy, x1, y1);

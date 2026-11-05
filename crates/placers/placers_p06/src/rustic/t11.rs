@@ -287,8 +287,8 @@ fn trout_tex(salt: u32, kind: usize) -> Tex {
                 // the fins: rays (along the tail; up the dorsal and anal),
                 // the membrane between them darker
                 let ray = if s > 0.97 { (y * 900.0).sin() } else { (x * 700.0 + y * 120.0).sin() };
-                c = mix(flank, back, 0.45);
-                c = [c[0] * 0.88, c[1] * 0.88, c[2] * 0.86];
+                c = mix(flank, back, 0.72);
+                c = [c[0] * 0.9, c[1] * 0.9, c[2] * 0.88];
                 c = mix(c, [0.16, 0.13, 0.10], (0.5 - 0.5 * ray) * 0.4);
                 match kind {
                     0 | 2 => {

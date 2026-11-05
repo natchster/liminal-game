@@ -99,18 +99,18 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     c = mix(c, [0.66, 0.54, 0.30], sstep(0.88, 0.95, g) * 0.8);
                 }
                 1 => {
-                    // blue waves (seigaiha) on indigo
+                    // white waves (seigaiha) on indigo: rows of nested arcs
                     c = [0.15, 0.19, 0.32];
-                    let cell = 0.016;
+                    let cell = 0.028;
                     let (gx, gz) = (x / cell, z / (cell * 0.5));
                     let row = gz.floor();
                     let off = if (row as i64).rem_euclid(2) == 0 { 0.0 } else { 0.5 };
                     let cx = (gx + off).floor() - off + 0.5;
                     let (dx, dz) = ((gx - cx) * cell, (gz - row) * cell * 0.5);
                     let d = dx.hypot(dz);
-                    let ring = ((d / 0.0021).fract() - 0.5).abs();
-                    let inside = 1.0 - sstep(0.0072, 0.0078, d);
-                    c = mix(c, [0.70, 0.74, 0.80], (1.0 - sstep(0.12, 0.22, ring)) * inside * 0.85);
+                    let ring = ((d / 0.0042).fract() - 0.5).abs();
+                    let inside = 1.0 - sstep(0.0128, 0.0136, d);
+                    c = mix(c, [0.70, 0.74, 0.80], (1.0 - sstep(0.16, 0.26, ring)) * inside * 0.85);
                 }
                 2 => {
                     // maple leaves on gold leaf gone dull
@@ -137,28 +137,45 @@ fn leaf_tex(salt: u32, design: usize) -> Tex {
                     c = mix(c, [0.20, 0.36, 0.20], 1.0 - sstep(0.8, 1.0, leaf));
                 }
                 4 => {
-                    // wisteria hanging in clusters on violet
+                    // wisteria on violet: racemes hanging from the leaf's top
+                    // edge in toward the rivet, each a tapering drop of florets
                     c = [0.36, 0.27, 0.40];
-                    let (d, a, k) = motif(seed, x, z, 0.03, 0.8);
-                    // a cluster: a drop of florets hanging out from the rivet
-                    let along = d * (a - th).cos();
-                    let across = d * (a - th).sin();
-                    let drop = (along / 0.013).powi(2) + (across / (0.006 * (1.0 - along / 0.02).clamp(0.2, 1.4))).powi(2);
-                    let floret = vn(seed ^ 7, x * 700.0, z * 700.0);
-                    let m = (1.0 - sstep(0.7, 1.0, drop)) * sstep(0.35, 0.5, floret);
-                    c = mix(c, if k < 0.6 { [0.74, 0.67, 0.82] } else { [0.86, 0.84, 0.86] }, m);
+                    let n = 9.0;
+                    let slot = ((th + FAN_OPEN / 2.0) / FAN_OPEN * n).floor();
+                    let mut m = 0.0f64;
+                    for k in [slot - 1.0, slot, slot + 1.0] {
+                        let ki = k as i32;
+                        let tk = -FAN_OPEN / 2.0 + (k + 0.3 + 0.4 * hash(seed, ki, 1)) / n * FAN_OPEN;
+                        let len = 0.035 + 0.03 * hash(seed, ki, 2);
+                        let along = (LEAF_R.1 - 0.004 - r) / len;
+                        if !(0.0..=1.0).contains(&along) {
+                            continue;
+                        }
+                        let across = ((th - tk) * r).abs();
+                        let wid = 0.0075 * (1.0 - along).powf(0.7) + 0.0012;
+                        m = m.max(1.0 - sstep(wid * 0.8, wid, across));
+                    }
+                    let floret = vn(seed ^ 7, x * 800.0, z * 800.0);
+                    c = mix(c, [0.70, 0.64, 0.80], m * sstep(0.3, 0.45, floret));
+                    c = mix(c, [0.86, 0.84, 0.86], m * sstep(0.75, 0.85, floret));
+                    // the vine's leaves along the top edge
+                    let lf = vn(seed ^ 9, th * 40.0, rr * 6.0);
+                    c = mix(c, [0.30, 0.38, 0.24], sstep(0.88, 0.97, rr) * sstep(0.45, 0.6, lf));
                 }
                 _ => {
-                    // a mountain in ink on cream: ridges washed grey, paler further
+                    // mountains in ink on cream: a far range pale and high,
+                    // a near one dark and low, each wash darkest at its ridge
+                    // and fading down into mist; a pine's dots on the near
                     c = [0.84, 0.80, 0.70];
-                    for (k, base) in [0.25f64, 0.45, 0.62].iter().enumerate() {
-                        let ridge = base + 0.22 * fbm(seed ^ (k as u32 * 13), th * 2.2 + k as f64, 0.5, 3) - 0.1;
-                        let ink = sstep(ridge + 0.02, ridge - 0.12, rr) * (1.0 - sstep(ridge - 0.12, ridge - 0.4, rr) * 0.6);
-                        c = mix(c, [0.30, 0.30, 0.30], ink * (0.75 - 0.2 * k as f64));
+                    for (k, (base, hgt, ink)) in [(0.52f64, 0.34f64, 0.35f64), (0.22, 0.30, 0.72)].into_iter().enumerate() {
+                        let f = 2.2 + k as f64 * 1.3;
+                        let tri = 1.0 - (2.0 * (th * f + 0.37 * k as f64 + hash(seed, k as i32, 3)).rem_euclid(1.0) - 1.0).abs();
+                        let ridge = base + hgt * tri.powf(1.6) + 0.06 * (fbm(seed ^ (k as u32 * 13 + 1), th * 9.0, 0.5, 3) - 0.5);
+                        let wash = sstep(ridge - 0.32, ridge - 0.015, rr) * (1.0 - sstep(ridge - 0.015, ridge + 0.005, rr));
+                        c = mix(c, [0.24, 0.24, 0.24], wash * ink);
                     }
-                    // a pine's dots on the near ridge
                     let p = vn(seed ^ 9, x * 500.0, z * 500.0);
-                    c = mix(c, [0.16, 0.16, 0.15], sstep(0.85, 0.92, p) * (1.0 - sstep(0.3, 0.4, rr)));
+                    c = mix(c, [0.16, 0.16, 0.15], sstep(0.86, 0.92, p) * (1.0 - sstep(0.3, 0.4, rr)));
                 }
             }
             // the pleats: each panel a shade in turn, rubbed pale on the folds
