@@ -248,6 +248,20 @@ def mirror_x(s):
     return s.copy().scale(-1, 1, 1)
 
 
+def shell(s, d, floor=None):
+    """The pile's tips: the surface pushed out `d` along its normals (drawn
+    stippled by the game, an alpha-tested layer that softens the outline as
+    a pile does); kept off the floor."""
+    bm = propkit.to_bmesh(s)
+    bm.normal_update()
+    bm.verts.index_update()
+    out = Shape([v.co + v.normal * d for v in bm.verts], [tuple(v.index for v in f.verts) for f in bm.faces])
+    bm.free()
+    if floor is not None:
+        out.warp(lambda p: Vector((p.x, max(p.y, floor), p.z)))
+    return out
+
+
 def fibres(rng, centre, radius, n, length, r=0.00035, up=0.5):
     """Loose fibres or threads: short curled strands about `centre`."""
     out = Shape()
@@ -453,7 +467,7 @@ def limb_leg_hole():
     return _limb_hole(0.0142).move(0, _limb('leg')[1], 0)
 
 
-auto('Real__dollHeadNeckLip', head_neck_lip, 360, smooth=60)
+auto('Real__dollHeadNeckLip', head_neck_lip, 440, smooth=60)
 auto('Real__dollHeadNeckHole', head_neck_hole, 100, kind='plane')
 auto('Real__dollHeadLidsUp', lambda: r03_lids((0.97, 0.50)), 280, smooth=70)
 auto('Real__dollHeadLashesUp', lambda: r03_lashes((0.97, 0.50)), 100)
@@ -461,3 +475,169 @@ auto('Real__dollLimbArm', limb_arm, 900, smooth=70)
 auto('Real__dollLimbArmHole', limb_arm_hole, 100)
 auto('Real__dollLimbLeg', limb_leg, 860, smooth=70)
 auto('Real__dollLimbLegHole', limb_leg_hole, 100)
+
+
+# ======================================================= the mohair teddy ===
+# A jointed mohair teddy bear of the 1950s, 18 cm standing (Steiff's and
+# its imitators': golden or dark brown mohair pile on a woven cotton
+# backing, stuffed hard with wood wool; jointed at the neck, shoulders and
+# hips by discs inside; glass eyes; the nose and mouth embroidered in black
+# floss; felt pads on the paws and feet; long arms curved at the paws, a
+# hump on the back, a long clipped muzzle). Sitting as a jointed bear sits,
+# its legs out in front. Its frame: x across, y up from the floor, z out of
+# its front. The head is built in its own frame (origin at the neck joint)
+# and placed by the game at TEDDY_NECK, where it turns on its joint.
+TEDDY_NECK = Vector((0.0, 0.0705, -0.006))
+TEDDY_HC = Vector((0.0, 0.026, 0.0))          # the head's centre in its frame
+TEDDY_ARMS = [(Vector((sx * 0.026, 0.061, -0.001)), Vector((sx * 0.031, 0.041, 0.012)), Vector((sx * 0.027, 0.025, 0.028)))
+              for sx in (-1, 1)]
+TEDDY_LEGS = [(Vector((sx * 0.016, 0.015, 0.008)), Vector((sx * 0.020, 0.012, 0.050)), Vector((sx * 0.021, 0.019, 0.057)))
+              for sx in (-1, 1)]
+_teddy = {}
+
+
+def teddy_torso():
+    el = [('ell', (0, 0.030, 0.003), (0.025, 0.030, 0.022)),
+          ('ell', (0, 0.055, -0.002), (0.020, 0.020, 0.018), 1.8),
+          ('ell', (0, 0.059, -0.012), (0.015, 0.014, 0.011), 1.6),            # the hump
+          ('ell', (0, 0.022, 0.010), (0.021, 0.016, 0.015), 1.6)]            # the round tummy
+    s = meta(el, res=0.0012)
+    s.rot(-0.10, 0, 0)
+    s = flatten_below(to_floor(s), 0.005, 0.15)
+    # the seams: down the middle of the front and the back
+    s = groove(s, lambda p: abs(p.x), 0.0005, 0.0012, lambda p: Vector((0, p.y, 0.0)))
+    return to_floor(s)
+
+
+def teddy_arm(i):
+    S, M, P = TEDDY_ARMS[i]
+    sx = -1 if i == 0 else 1
+    d = (P - M).normalized()
+    el = [('ball', tuple(S + Vector((0, 0.003, -0.001))), 0.0088, 2.0),
+          ('cap', tuple(S), tuple(M), 0.0086, 2.0), ('cap', tuple(M), tuple(P), 0.0079, 2.0),
+          # the paw: a spoon, curved in toward the body and up at its end
+          ('ell', tuple(P + d * 0.004 + Vector((-sx * 0.001, 0, 0))), (0.0080, 0.0068, 0.0102), 2.0,
+           (-0.55, sx * 0.25, 0))]
+    return meta(el, res=0.0011)
+
+
+def teddy_leg(i):
+    H, A, F = TEDDY_LEGS[i]
+    el = [('ball', tuple(H + Vector((0, 0.002, 0.004))), 0.0138, 1.8),         # the thigh, round at its joint
+          ('cap', tuple(H + Vector((0, 0, 0.006))), tuple(A), 0.0112, 2.0),
+          ('ball', tuple(A - Vector((0, 0, 0.012))), 0.0104, 1.6),
+          # the foot: long, oval, its sole forward
+          ('ell', tuple(F), (0.0096, 0.0170, 0.0082), 2.0, (-0.20, 0, 0))]
+    return meta(el, res=0.0011)
+
+
+def teddy_body_mesh():
+    if 'body' not in _teddy:
+        torso = decimate(teddy_torso(), 520)
+        arms = [decimate(teddy_arm(i), 230) for i in range(2)]
+        legs = [decimate(teddy_leg(i), 260) for i in range(2)]
+        legs = [to_floor(flatten_below(l.copy(), l.bounds()[0].y + 0.003, 0.2)) for l in legs]
+        _teddy['torso'], _teddy['arms'], _teddy['legs'] = torso, arms, legs
+    return _teddy
+
+
+def teddy_body():
+    m = teddy_body_mesh()
+    return m['torso'] + m['arms'][0] + m['arms'][1] + m['legs'][0] + m['legs'][1]
+
+
+def teddy_pads():
+    """Felt pads: an oval on the front of each paw, one on each sole."""
+    m = teddy_body_mesh()
+    out = Shape()
+    for i in range(2):
+        sx = -1 if i == 0 else 1
+        S, M, P = TEDDY_ARMS[i]
+        bvh = bvh_of(m['arms'][i])
+        c = P + (P - M).normalized() * 0.004
+        hit, n = on_surface(bvh, c, Vector((-sx * 0.45, -0.25, 0.85)))
+        out = out + project_patch(bvh, hit, n, (P - M), 0.0100, 0.0150, 0.0014, seg=16, rings=3)
+        H, A, F = TEDDY_LEGS[i]
+        bvh = bvh_of(m['legs'][i])
+        hit, n = on_surface(bvh, F + Vector((0, 0.0, -0.002)), Vector((0, 0.18, 1)))
+        out = out + project_patch(bvh, hit, n, (0, 1, 0), 0.0135, 0.0245, 0.0014, seg=18, rings=3)
+    return out
+
+
+def teddy_head_raw():
+    el = [('ell', tuple(TEDDY_HC), (0.0255, 0.0235, 0.0225)),
+          ('ell', (0, 0.034, -0.004), (0.020, 0.016, 0.018), 1.6),                 # the crown, broad
+          ('cap', (0, 0.021, 0.012), (0, 0.0175, 0.032), 0.0086, 2.0),             # the muzzle, long
+          ('ball', (0, 0.0175, 0.0335), 0.0074, 2.0)]
+    for sx in (-1, 1):
+        el.append(('ell', (sx * 0.011, 0.019, 0.010), (0.013, 0.012, 0.012), 1.5))   # the cheeks
+    s = meta(el, res=0.0010)
+    # the gusset's two seams, from the muzzle over the crown to the nape
+    for sx in (-1, 1):
+        s = groove(s, lambda p, sx=sx: abs(p.x - sx * (0.0045 + 0.0035 * max(0.0, min(1.0, (0.02 - p.z) / 0.02)))) if p.y > 0.012 else 1.0,
+                   0.0003, 0.0014, lambda p: TEDDY_HC)
+    return s
+
+
+def teddy_ear(sx):
+    """An ear: two layers of mohair sewn into a cup, its open side forward,
+    set across the head's seam (its lower third in the head)."""
+    e = sphere(1.0, seg=12, rings=8).scale(0.0108, 0.0098, 0.0030)
+    e = e.warp(lambda p: Vector((p.x, p.y, p.z + 90.0 * (p.x * p.x + 0.5 * p.y * p.y))))   # cupped
+    e.rot(0.15, 0, -sx * 0.30)
+    return e.move(sx * 0.0185, 0.0445, -0.007)
+
+
+def teddy_head_mesh():
+    if 'head' not in _teddy:
+        h = decimate(teddy_head_raw(), 760)
+        _teddy['head'] = h
+        _teddy['head_bvh'] = bvh_of(h)
+    return _teddy['head']
+
+
+def teddy_head():
+    return teddy_head_mesh() + teddy_ear(-1) + teddy_ear(1)
+
+
+def teddy_eyes():
+    """Glass eyes on wires, set close by the muzzle's root."""
+    teddy_head_mesh()
+    bvh = _teddy['head_bvh']
+    out = Shape()
+    for sx in (-1, 1):
+        hit, n = on_surface(bvh, TEDDY_HC, Vector((sx * 0.42, 0.16, 0.89)), sink=0.0010)
+        out = out + sphere(0.0029, seg=10, rings=6).move(*hit)
+    return out
+
+
+def teddy_nose():
+    """The nose embroidered in black floss, satin stitches across a shield
+    on the muzzle's end, and the mouth: a stitch down from it and two out."""
+    teddy_head_mesh()
+    bvh = _teddy['head_bvh']
+    inside = Vector((0, 0.0175, 0.022))
+    out = Shape()
+    top, bot = 0.0222, 0.0150           # the shield's top and point (y), at the muzzle's end
+    for k in range(11):
+        t = (k - 5) / 5.0
+        x = t * 0.0056
+        y0 = bot + (top - bot) * (0.25 + 0.75 * abs(t) ** 1.6) * 0.95
+        pts = surface_path(bvh, [(x, top, 0.045), (x * 0.95, (top + y0) / 2, 0.045), (x * 0.9, y0, 0.045)], 0.0004, inside)
+        out = out + tube(pts, 0.00072, seg=4, caps=True)
+    # the mouth: down from the nose's point, then out each way
+    mid = surface_path(bvh, [(0, bot, 0.045), (0, bot - 0.0045, 0.045)], 0.0003, inside)
+    out = out + tube(mid, 0.00045, seg=4)
+    for sx in (-1, 1):
+        arm = surface_path(bvh, [(0, bot - 0.0045, 0.045), (sx * 0.0030, bot - 0.0058, 0.045), (sx * 0.0058, bot - 0.0052, 0.045)], 0.0003, inside)
+        out = out + tube(arm, 0.00045, seg=4)
+    return out
+
+
+auto('Real__teddyBody', teddy_body, 1500, smooth=70)
+auto('Real__teddyBodyPile', lambda: shell(teddy_body(), 0.0011, floor=0.0004), 1500, smooth=70)
+auto('Real__teddyPads', teddy_pads, 360, smooth=60)
+auto('Real__teddyHead', teddy_head, 1150, smooth=70)
+auto('Real__teddyHeadPile', lambda: shell(teddy_head(), 0.0010), 1150, smooth=70)
+auto('Real__teddyEyes', teddy_eyes, 280, smooth=80)
+auto('Real__teddyNose', teddy_nose, 560, smooth=60)
