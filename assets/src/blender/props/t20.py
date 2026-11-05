@@ -733,13 +733,13 @@ def watch_link():
     for i in range(11):
         a = math.pi * 2 * i / 10
         pts.append((0.0029 * math.cos(a), 0.00045 * math.sin(2 * a), 0.0018 * math.sin(a)))
-    return sweep(pts, lambda t: 0.00055, seg=5).move(0, 0.0006, 0)
+    return sweep(pts, lambda t: 0.00055, seg=5).move(0, 0.0010, 0)
 
 
 def watch_tbar():
     bar = capsule(0.0013, 0.024, seg=10, cap_rings=2).rot(x=math.pi / 2)
     knobs = [sphere(0.0019, seg=10, rings=6).move(0, 0, s * 0.0130) for s in (-1, 1)]
-    ring = torus(0.0028, 0.0007, seg=14, tseg=5).rot(y=math.pi / 2).move(-0.0035, 0, 0)
+    ring = torus(0.0028, 0.0007, seg=14, tseg=5).rot(x=math.pi / 2).move(-0.0042, -0.0012, 0)
     return (bar + sum(knobs) + ring).move(0, 0.0019, 0)
 
 
@@ -749,7 +749,7 @@ def watch_key():
     barrel = cyl(0.0019, h=0.012, seg=10, bevel_r=0.0003).rot(z=math.pi / 2).move(0.006, 0, 0)
     bow = prism(round_outline([(-0.0050, -0.0045), (0.0010, -0.0045), (0.0020, 0.0), (0.0010, 0.0045), (-0.0050, 0.0045), (-0.0065, 0.0)], 0.0015, seg=2), 0.0012, bevel_r=0.0002)
     bow = cut(bow, cyl(0.0022, h=0.004, seg=12).rot(x=math.pi / 2).move(-0.0028, 0, 0))
-    ring = torus(0.0024, 0.0006, seg=12, tseg=5).rot(y=math.pi / 2).move(-0.0085, 0, 0)
+    ring = torus(0.0024, 0.0006, seg=12, tseg=5).rot(x=math.pi / 2).move(-0.0085, -0.0013, 0)
     return (barrel + bow + ring).move(0, 0.0019, 0)
 
 

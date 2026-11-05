@@ -968,46 +968,6 @@ pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
 mod t02;
 pub use t02::place_vintage_maps;
 
-// R660 hearth bellows: 4% chance per level. Accordion pleated body + 2 wooden
-// handles.
-pub fn place_bellows(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let wood_mat = lambert!({ color: 0x604020 });
-    let leather_mat = lambert!({ color: 0x4a2f1a });
-    let brass_mat = lambert!({ color: 0xa08040 });
-    let bel = group();
-    // 2 wooden paddles (top + bottom).
-    for i in 0..2 {
-        let paddle = mesh(pg("Bellows__paddle", box_geo!(0.10, 0.008, 0.06)), &wood_mat);
-        paddle.position().set(0, 0.015 + i as f64 * 0.030, 0);
-        bel.add(&paddle);
-    }
-    // 4 pleated leather bellows layers between paddles.
-    for i in 0..4 {
-        let pleat = mesh(pg("Bellows__pleat", box_geo!(0.095, 0.006, 0.055)), &leather_mat);
-        pleat.position().set(0, 0.022 + i as f64 * 0.006, 0);
-        bel.add(&pleat);
-    }
-    // 2 wooden handle extensions (rear).
-    for i in 0..2 {
-        let handle = mesh(pg("Bellows__handle", cyl_geo!(0.008, 0.008, 0.10, 6)), &wood_mat);
-        handle.rotation().z = PI / 2.0;
-        handle.position().set(0.100, 0.015 + i as f64 * 0.030, 0);
-        bel.add(&handle);
-    }
-    // Brass nozzle at front tip.
-    let nozzle = mesh(pg("Bellows__nozzle", cyl_geo!(0.006, 0.010, 0.024, 6)), &brass_mat);
-    nozzle.rotation().z = PI / 2.0;
-    nozzle.position().set(-0.062, 0.030, 0);
-    bel.add(&nozzle);
-    bel.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    bel.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bel);
-}
+// R660 hearth bellows: batch `t20`'s (`rustic/t20.rs`)
+mod t20;
+pub use t20::place_bellows;

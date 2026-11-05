@@ -894,56 +894,9 @@ fn place_small_scales(g: &mut Game, _dist: &[i32]) {
     g.world.add(&scales);
 }
 
-// R478 small vintage abacus: 6% chance per level.
-fn place_small_abacuses(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let frame_mat = lambert!({ color: 0x8a5030 });
-    let rod_mat = lambert!({ color: 0xc89040 });
-    let bead_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030];
-    let abacus = group();
-    let (w, h, t) = (0.15, 0.12, 0.008);
-    // Frame (4 boxes making rectangle border).
-    for (fw, fh, fx, fy) in [
-        (w, 0.012, 0.0, h / 2.0 - 0.006),
-        (w, 0.012, 0.0, -h / 2.0 + 0.006),
-        (0.012, h - 0.024, -w / 2.0 + 0.006, 0.0),
-        (0.012, h - 0.024, w / 2.0 - 0.006, 0.0),
-    ] {
-        let bar = mesh(pg("SmallAbacuses__bar", box_geo!(fw, fh, t)), &frame_mat);
-        bar.position().set(fx, 0.060 + fy, 0);
-        abacus.add(&bar);
-    }
-    // 4 rod rows with beads.
-    let n_rows = 4;
-    let n_beads = 10;
-    for row in 0..n_rows {
-        let row_y = 0.060 - h / 2.0 + 0.020 + row as f64 * 0.020;
-        // Rod.
-        let rod = mesh(pg("SmallAbacuses__rod", cyl_geo!(0.0015, 0.0015, w - 0.020, 4)), &rod_mat);
-        rod.rotation().z = PI / 2.0;
-        rod.position().set(0, row_y, 0);
-        abacus.add(&rod);
-        // Beads.
-        let bead_mat = lambert!({ color: bead_colors[row % bead_colors.len()] });
-        for b in 0..n_beads {
-            let bead = mesh(pg("SmallAbacuses__bead", cyl_geo!(0.007, 0.007, 0.010, 8)), &bead_mat);
-            bead.rotation().z = PI / 2.0;
-            // End beads stop 0.5 mm short of the stiles' inner faces (±0.063).
-            bead.position().set(-w / 2.0 + 0.0175 + b as f64 * ((w - 0.035) / (n_beads - 1) as f64), row_y, 0);
-            abacus.add(&bead);
-        }
-    }
-    abacus.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    abacus.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&abacus);
-}
+// R478 small abacus: batch `t20`'s (`t20.rs`)
+mod t20;
+use t20::place_small_abacuses;
 
 // R477 small telegraph key: 8% chance per level.
 fn place_small_telegraph_keys(g: &mut Game, _dist: &[i32]) {
