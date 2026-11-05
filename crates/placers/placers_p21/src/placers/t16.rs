@@ -97,6 +97,8 @@ struct Wax {
     ink: Vec<f32>,
     col: Vec<u8>,
     strokes: u32,
+    /// where the drawing's left edge is on the texture (px)
+    ox: f64,
 }
 
 impl Wax {
@@ -170,7 +172,7 @@ impl Wax {
                 let ends = (at / 0.05).min(1.0) * ((1.0 - at) / 0.08).min(1.0);
                 let pr = press * (0.82 + 0.12 * (at * 11.0 + wob).sin() + 0.06 * (at * 29.0 + wob).sin()) * (0.55 + 0.45 * ends);
                 let r = width / 2.0 * (0.9 + 0.1 * (at * 7.0 + wob).cos());
-                self.dab(cx, cy, r, pr, -ty, tx, id, col);
+                self.dab(cx + self.ox, cy, r, pr, -ty, tx, id, col);
             }
             s += seg;
         }
@@ -268,8 +270,11 @@ fn crayon_tex(salt: u32) -> Tex {
         for _ in 0..4 {
             hand.f();
         }
-        let mut wax = Wax { ink: vec![0.0; TEX_W * TEX_H], col: vec![0; TEX_W * TEX_H], strokes: 0 };
-        let (w, h) = (TEX_W as f64, TEX_H as f64);
+        // the drawing kept to the middle of the plane, clear of a corner it
+        // may run into (the plane is the old decal's width)
+        let x0 = TEX_W as f64 * 0.06;
+        let mut wax = Wax { ink: vec![0.0; TEX_W * TEX_H], col: vec![0; TEX_W * TEX_H], strokes: 0, ox: x0 };
+        let (w, h) = (TEX_W as f64 - 2.0 * x0, TEX_H as f64);
         let ground = h * hand.range(0.80, 0.86);
         let sun_left = hand.f() < 0.5;
         let house = hand.f() < 0.6;
@@ -344,6 +349,8 @@ fn crayon_tex(salt: u32) -> Tex {
         let n = 2 + (hand.f() * 3.0) as usize;
         let span_l = if hx0 > w * 0.4 { 30.0 } else { hx1 + 10.0 };
         let span_r = if hx0 > w * 0.4 { hx0 - 10.0 } else { w - 30.0 };
+        // no more of them than stand side by side there
+        let n = n.min(((span_r - span_l) / 64.0).floor().max(1.0) as usize);
         let step = ((span_r - span_l) / n as f64).min(96.0);
         let mut prev_hand: Option<(f64, f64)> = None;
         for k in 0..n {
@@ -474,8 +481,11 @@ fn crayon_tex(salt: u32) -> Tex {
             wax.stroke(&mut hand, &pts, 5.5, 0.75, col);
         }
         // someone tried to scrub it off: the wax thinned in a band, smeared
-        let scrub =
-            if hand.f() < 0.4 { Some((hand.range(w * 0.2, w * 0.8), hand.range(h * 0.3, h * 0.7), hand.range(60.0, 120.0))) } else { None };
+        let scrub = if hand.f() < 0.4 {
+            Some((x0 + hand.range(w * 0.2, w * 0.8), hand.range(h * 0.3, h * 0.7), hand.range(60.0, 120.0)))
+        } else {
+            None
+        };
         let seed = salt;
         let (ink, col) = (wax.ink, wax.col);
         let mut img = ctx.create_image_data(cw, ch);
