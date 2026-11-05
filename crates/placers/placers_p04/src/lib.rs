@@ -11,6 +11,8 @@ mod textures;
 use textures::*;
 mod t01;
 use t01::place_framed_photos;
+mod t14;
+use t14::place_teddy_bears;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -1017,78 +1019,6 @@ fn place_jump_ropes(g: &mut Game, _dist: &[i32]) {
     rope.position().set(px, 0, pz);
     rope.rotation().y = rnd() * PI * 2.0;
     g.world.add(&rope);
-}
-
-// R625 small teddy bear: 4% chance per level. Body + head + 4 limbs + 2 ears + eyes.
-fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
-    g.pp.plush_positions.clear(); // R666 reset per level (shared across plush classes)
-    if rnd() < 0.96 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let bear_colors = [0x8b5a2b, 0x604020, 0xc0a080, 0xf0e0c0, 0x804060];
-    let bear_mat = lambert!({ color: choice(&bear_colors) });
-    let eye_mat = lambert!({ color: 0x101010 });
-    let bear = group();
-    let body = mesh(pg("TeddyBears__body", sphere_geo!(0.045, 10, 8)), &bear_mat);
-    body.scale().set(1, 0.9, 1);
-    body.position().y = 0.045;
-    bear.add(&body);
-    // R666 head assembly group (allows unified rotation).
-    let head_group = group();
-    let head = mesh(pg("TeddyBears__head", sphere_geo!(0.035, 10, 8)), &bear_mat);
-    head.position().y = 0.098;
-    head_group.add(&head);
-    // 2 ears (children of head_group so they rotate w/ head).
-    for side in [-1.0f64, 1.0] {
-        let ear = mesh(pg("TeddyBears__ear", sphere_geo!(0.010, 6, 5)), &bear_mat);
-        ear.position().set(side * 0.020, 0.126, -0.005);
-        head_group.add(&ear);
-    }
-    bear.add(&head_group);
-    // 2 arms (out from body sides), a little forward toward the face (-Z).
-    for side in [-1.0f64, 1.0] {
-        let arm = mesh(pg("TeddyBears__arm", sphere_geo!(0.020, 6, 5)), &bear_mat);
-        arm.scale().set(1.5, 0.8, 0.8);
-        arm.position().set(side * 0.045, 0.050, -0.008);
-        bear.add(&arm);
-    }
-    // 2 legs, sticking out forward under the face, soles out, level with the seat.
-    for side in [-1.0f64, 1.0] {
-        let leg = mesh(pg("TeddyBears__leg", sphere_geo!(0.022, 6, 5)), &bear_mat);
-        leg.scale().set(1, 0.6, 1.3);
-        leg.rotation().y = PI;
-        leg.position().set(side * 0.020, 0.0177, -0.030);
-        bear.add(&leg);
-    }
-    // 2 eyes (in head assembly so they follow the head).
-    for side in [-1.0f64, 1.0] {
-        let eye = mesh(pg("TeddyBears__eye", sphere_geo!(0.003, 5, 4)), &eye_mat);
-        eye.position().set(side * 0.010, 0.100, -0.030);
-        head_group.add(&eye);
-    }
-    let nose = mesh(pg("TeddyBears__nose", sphere_geo!(0.005, 5, 4)), &eye_mat);
-    nose.position().set(0, 0.090, -0.034);
-    head_group.add(&nose);
-    let (px, pz) = jitter(g, x, z, 2.2);
-    bear.position().set(px, 0, pz);
-    bear.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bear);
-    // R666 subtle head-turn animator: mostly still; occasionally the head turns 0.3 rad and returns.
-    let bear_phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        let cycle = (t * 0.15 + bear_phase).sin();
-        if cycle > 0.85 {
-            let local_phase = (cycle - 0.85) / 0.15; // 0..1
-            let turn_amount = (local_phase * PI).sin() * 0.3;
-            head_group.rotation().y = turn_amount;
-        } else {
-            head_group.rotation().y = 0.0;
-        }
-    });
-    // R666 track for plush shuffle audio.
-    let p = bear.pos();
-    g.pp.plush_positions.push(v3(p.x, 0, p.z));
 }
 
 #[cfg(test)]

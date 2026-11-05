@@ -5,6 +5,9 @@ use game::prelude::*;
 // the carnival mask: batch `t09`'s (`toys/t09.rs`)
 mod t09;
 pub use t09::place_small_masks;
+// the plush teddy and the small doll: batch `t14`'s (`toys/t14.rs`)
+mod t14;
+pub use t14::{place_plush_bears, place_small_dolls};
 
 /// R421 small pacifier: 8% chance per level. Nipple cylinder +
 /// guard disc + ring handle.
@@ -359,61 +362,6 @@ fn pinwheel_dowel_tex() -> Tex {
             ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
         }
     })
-}
-
-/// R417 small doll: 8% chance per level. Humanoid stick doll —
-/// body cylinder + head sphere + 4 short limb cylinders.
-pub fn place_small_dolls(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let body_colors = [0xd0b898, 0xa08060, 0x684030, 0xd8b8a0];
-    let dress_colors = [0xd8a0c0, 0xa0c0d8, 0xc0d8a0, 0xd8c8a0, 0xa0a0d8];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let dress_mat = lambert!({ color: pick(&dress_colors) });
-    let eye_mat = basic_mat!({ color: 0x080604 });
-    let doll = group();
-    // Torso.
-    let torso = mesh(pg("SmallDolls__dress", cyl_geo!(0.020, 0.020, 0.07, 8)), &dress_mat);
-    torso.position().y = 0.075;
-    doll.add(&torso);
-    // Head sphere.
-    let head = mesh(pg("SmallDolls__head", sphere_geo!(0.028, 8, 6)), &body_mat);
-    head.position().y = 0.136; // chin 2 mm into the torso top (0.110)
-    doll.add(&head);
-    // 2 tiny dot eyes.
-    for e_off in [-0.010, 0.010] {
-        let eye = mesh(circle_geo!(0.0025, 6), &eye_mat);
-        eye.position().set(e_off, 0.141, 0.026);
-        doll.add(&eye);
-    }
-    // 2 arm cylinders sticking out.
-    for a_off in [-0.030, 0.030] {
-        let arm = mesh(pg("SmallDolls__arm", cyl_geo!(0.008, 0.008, 0.06, 6)), &body_mat);
-        arm.rotation().z = PI / 2.0 + (if a_off > 0.0 { -0.4 } else { 0.4 });
-        arm.position().set(a_off, 0.09, 0);
-        doll.add(&arm);
-    }
-    // 2 leg cylinders extending down.
-    for l_off in [-0.012, 0.012] {
-        let leg = mesh(pg("SmallDolls__leg", cyl_geo!(0.009, 0.009, 0.06, 6)), &body_mat);
-        leg.position().set(l_off, 0.03, 0);
-        doll.add(&leg);
-    }
-    doll.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    doll.rotation().y = rnd() * PI * 2.0;
-    // 40% chance doll lies on its back, face up, resting on the back of its head.
-    if rnd() < 0.40 {
-        doll.set_rotation_order(EulerOrder::YXZ);
-        doll.rotation().x = -PI / 2.0;
-        doll.position().y = 0.028;
-    }
-    g.world.add(&doll);
 }
 
 /// R416 small toy car: 10% chance per level. A 1:64 die-cast saloon of the
@@ -835,55 +783,6 @@ fn rubber_ball_tex() -> Tex {
             ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
         }
     })
-}
-
-/// R411 plush toy bear: 6% chance per level. Stubby brown plush
-/// silhouette — very rare, deeply unsettling in institutional space.
-pub fn place_plush_bears(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let bear_colors = [0x6a4020, 0x8a5028, 0x3a2810, 0xa08050];
-    let bear_mat = lambert!({ color: pick(&bear_colors) });
-    let eye_mat = basic_mat!({ color: 0x080604 });
-    let bear = group();
-    // Body: chunky rounded box (sphere approximation).
-    let body = mesh(pg("PlushBears__body", sphere_geo!(0.06, 8, 6)), &bear_mat);
-    body.scale().set(1.1, 1.3, 0.9);
-    body.position().y = 0.08;
-    bear.add(&body);
-    // Head: smaller sphere on top.
-    let head = mesh(pg("PlushBears__head", sphere_geo!(0.045, 8, 6)), &bear_mat);
-    head.position().y = 0.19;
-    bear.add(&head);
-    // 2 ears: tiny spheres on head.
-    for ex in [-0.030, 0.030] {
-        let ear = mesh(pg("PlushBears__ear", sphere_geo!(0.015, 6, 4)), &bear_mat);
-        ear.position().set(ex, 0.225, 0);
-        bear.add(&ear);
-    }
-    // R412 30% chance: only 1 eye (missing damage variant).
-    let missing_eye = rnd() < 0.30;
-    let eye_offsets: Vec<f64> = if missing_eye { vec![if rnd() < 0.5 { -0.014 } else { 0.014 }] } else { vec![-0.014, 0.014] };
-    for &ex in &eye_offsets {
-        let eye = mesh(circle_geo!(0.004, 6), &eye_mat);
-        eye.position().set(ex, 0.195, 0.043);
-        bear.add(&eye);
-    }
-    // 2 short arms (small spheres on sides).
-    for ax in [-0.065, 0.065] {
-        let arm = mesh(pg("PlushBears__arm", sphere_geo!(0.028, 6, 4)), &bear_mat);
-        arm.position().set(ax, 0.08, 0);
-        bear.add(&arm);
-    }
-    bear.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    bear.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bear);
 }
 
 /// R410 small handbasket: 10% chance per level. Shallow open box +

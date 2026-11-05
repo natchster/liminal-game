@@ -7,6 +7,10 @@ use game::prelude::*;
 mod t15;
 pub use t15::{place_action_figures, place_baby_rattles, place_toy_dinosaurs};
 
+// the bean-bag elephant: batch `t14`'s (`toys/t14.rs`)
+mod t14;
+pub use t14::place_stuffed_elephants;
+
 // R625 crayon cluster: 8% chance per level. 5-9 short colored sticks.
 pub fn place_crayons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -654,100 +658,6 @@ pub fn place_stuffed_rabbits(g: &mut Game, _dist: &[i32]) {
             } else {
                 ear.rotation().z = 0.0;
             }
-        }
-    });
-}
-
-// R635 stuffed elephant: 3% chance per level. Body + head + trunk + big ears +
-// 4 legs + 2 tusks.
-pub fn place_stuffed_elephants(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let body_colors: [u32; 4] = [0x8090a0, 0xa090b0, 0xc0a080, 0x606870];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let tusk_mat = lambert!({ color: 0xf0e8d0 });
-    let eye_mat = lambert!({ color: 0x101010 });
-    let eleph = group();
-    // Body (large ellipsoid).
-    let body = mesh(pg("StuffedElephants__body", sphere_geo!(0.045, 10, 8)), &body_mat);
-    body.scale().set(1.6, 1, 1);
-    body.position().y = 0.045;
-    eleph.add(&body);
-    // Head sphere.
-    let head = mesh(pg("StuffedElephants__head", sphere_geo!(0.030, 10, 8)), &body_mat);
-    head.position().set(-0.055, 0.070, 0);
-    eleph.add(&head);
-    // Trunk (3 tapered segments curling down).
-    for i in 0..3 {
-        let t = i as f64 / 2.0;
-        let r = 0.014 * (1.0 - t * 0.4);
-        let seg = mesh(pg("StuffedElephants__trunk", cyl_geo!(r, r * 0.85, 0.014, 6)), &body_mat);
-        seg.rotation().z = PI / 6.0 - i as f64 * 0.3;
-        seg.position().set(-0.075 - i as f64 * 0.008, 0.055 - i as f64 * 0.011, 0);
-        eleph.add(&seg);
-    }
-    // 2 big ears (flat discs).
-    // R669 track for ear flap animator: (pivot, base y, side, phase)
-    let mut eleph_ears: Vec<(Obj, f64, f64, f64)> = vec![];
-    for side in [-1.0f64, 1.0] {
-        let ear_mesh = mesh(pg("StuffedElephants__ear", circle_geo!(0.024, 8)), &body_mat);
-        // hinged at its root, 4.5 mm inside the side of the head (the pivot
-        // group the flap animator turns); the whole disc reaches out sideways
-        let ear = group();
-        ear_mesh.position().x = -0.024; // local -X is outward on both sides
-        ear.add(&ear_mesh);
-        ear.rotation().y = side * PI / 2.0;
-        ear.position().set(-0.050, 0.078, side * 0.023);
-        let base_y = side * PI / 2.0;
-        let phase = rnd() * PI * 2.0 + (if side > 0.0 { 0.7 } else { 0.0 });
-        {
-            let mut u = ear.user();
-            u.base_y = base_y;
-            u.set("side", side);
-            u.phase = phase;
-        }
-        eleph_ears.push((ear.clone(), base_y, side, phase));
-        eleph.add(&ear);
-    }
-    // 4 stumpy legs.
-    for i in 0..4 {
-        let leg = mesh(pg("StuffedElephants__leg", cyl_geo!(0.012, 0.012, 0.025, 6)), &body_mat);
-        leg.position().set(if i < 2 { -0.030 } else { 0.030 }, 0.012, if i % 2 == 0 { -0.020 } else { 0.020 });
-        eleph.add(&leg);
-    }
-    // 2 tusks.
-    for side in [-1.0, 1.0] {
-        let tusk = mesh(pg("StuffedElephants__tusk", cone_geo!(0.003, 0.014, 5)), &tusk_mat);
-        tusk.rotation().z = PI / 2.0;
-        tusk.position().set(-0.086, 0.056, side * 0.010); // base 1 mm into the head
-        eleph.add(&tusk);
-    }
-    // 2 eyes.
-    for side in [-1.0, 1.0] {
-        let eye = mesh(pg("TeddyBears__eye", sphere_geo!(0.003, 5, 4)), &eye_mat);
-        eye.position().set(-0.0716, 0.0811, side * 0.0200); // 2 mm proud of the head (was inside it)
-        eleph.add(&eye);
-    }
-    eleph.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
-    eleph.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&eleph);
-    let p = eleph.pos();
-    g.pp.plush_positions.push(v3(p.x, 0, p.z)); // R666
-                                                // R669 gentle ear flap — very slow rotation w/ occasional stronger flap.
-    g.animate(move |_g, _dt, t| {
-        for (ear, base, side, phase) in &eleph_ears {
-            // Base rest rotation + slow drift (±0.15 rad).
-            let drift = (t * 0.35 + phase).sin() * 0.15;
-            // Occasional bigger flap when high sin threshold met.
-            let flap = (t * 0.18 + phase * 1.3).sin();
-            let big_flap = if flap > 0.92 { ((flap - 0.92) / 0.08 * PI).sin() * 0.35 * side } else { 0.0 };
-            ear.rotation().y = base + drift + big_flap;
         }
     });
 }

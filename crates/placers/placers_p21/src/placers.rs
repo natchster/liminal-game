@@ -20,6 +20,8 @@ mod t07;
 pub(crate) use t07::place_opened_suitcases;
 mod t11;
 pub(crate) use t11::place_deer_head_mounts;
+mod t14;
+pub(crate) use t14::place_teddy_paws;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -398,44 +400,6 @@ pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &grp, x, z, 2.4);
     g.world.add(&grp);
-}
-
-// R515 teddy paw: 6% chance per level. Dismembered plush paw + torn stuffing.
-pub(crate) fn place_teddy_paws(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let fur_colors = [0x8a5030, 0x604020, 0x503020];
-    let fur_mat = lambert!({ color: pick_hex(&fur_colors) });
-    let stuffing_mat = lambert!({ color: 0xe8e0d0, transparent: true, opacity: 0.85 });
-    let seam_mat = lambert!({ color: 0x2a1810 });
-    let paw = group();
-    // Paw ball (sphere).
-    let ball = mesh(pg("TeddyPaws__paw", sphere_geo!(0.020, 8, 6)), &fur_mat);
-    ball.scale().set(1, 1.4, 1);
-    ball.position().y = 0.020;
-    paw.add(&ball);
-    // Torn edge: faces up into the ragged crater on the paw's top.
-    let torn = mesh(circle_geo!(0.018, 8), &seam_mat);
-    torn.rotation().x = -PI / 2.0;
-    torn.scale().set_scalar(0.62);
-    torn.position().y = 0.0445;
-    paw.add(&torn);
-    // Stuffing puffs (3 small clouds nearby).
-    for i in 0..3 {
-        let puff = mesh(sphere_geo!(0.008, 6, 5), &stuffing_mat);
-        puff.scale().set(1.0 + rnd() * 0.5, 0.6, 1.0 + rnd() * 0.5);
-        puff.position().set((rnd() - 0.5) * 0.08, 0.006, 0.04 + (rnd() - 0.5) * 0.04);
-        paw.add(&puff);
-    }
-    scatter_on_floor(g, &paw, x, z, 2.4);
-    paw.rotation().z = (rnd() - 0.5) * 0.4;
-    g.world.add(&paw);
 }
 
 // R514 caution tape strip: 5% chance per level. Striped tape on wall.
