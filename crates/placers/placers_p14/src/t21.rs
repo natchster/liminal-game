@@ -80,7 +80,7 @@ pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
             let _ = rnd(); // its heading
             let phase = rnd();
             if i == 0 {
-                water = Some(0.05 + 0.10 * fy);
+                water = Some(0.03 + 0.08 * fy);
                 ripple_phase = phase * PI * 2.0;
             }
         }
@@ -112,7 +112,7 @@ pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
     put(&aq, "Real__aquariumKnobs", &black);
     put(&aq, "Real__aquariumTrim", &black);
     put(&aq, "Real__aquariumGravel", &lambert!({ map: &gravel_tex(salt, level.is_some()) }));
-    put(&aq, "Real__aquariumAirline", &lambert!({ color: if level.is_some() { 0x6e6c58 } else { 0xb8ae8a } }));
+    put(&aq, "Real__aquariumAirline", &lambert!({ color: if level.is_some() { 0x5c5a48 } else { 0x8a8470 } }));
     put(&aq, "Real__aquariumAirstone", &lambert!({ color: if level.is_some() { 0x5c6248 } else { 0x9a958a } }));
     // the dead plant's stems lying over on the gravel, its leaves fallen
     let wet = level.is_some();
@@ -161,10 +161,8 @@ pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
     let mut surface: Option<Obj> = None;
     if let Some(top) = level {
         let (iw, id) = (2.0 * AQ_IN.0 - 0.001, 2.0 * AQ_IN.1 - 0.001);
-        let body = mesh(
-            box_geo!(iw, top - AQ_FLOOR, id),
-            lambert!({ color: 0x3a4526, transparent: true, opacity: 0.78, depthWrite: false }),
-        );
+        let body =
+            mesh(box_geo!(iw, top - AQ_FLOOR, id), lambert!({ color: 0x3a4526, transparent: true, opacity: 0.78, depthWrite: false }));
         body.position().set(0, (AQ_FLOOR + top) / 2.0, 0);
         body.set_render_order(1);
         aq.add(&body);
@@ -176,7 +174,8 @@ pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
         surface = Some(film);
         let rise = top - AQ_STONE.1;
         if rise > 0.02 {
-            let bubble_mat = phong!({ color: 0xc8d0c0, specular: 0x8a8a8a, shininess: 120, transparent: true, opacity: 0.5, depthWrite: false });
+            let bubble_mat =
+                phong!({ color: 0xc8d0c0, specular: 0x8a8a8a, shininess: 120, transparent: true, opacity: 0.5, depthWrite: false });
             for d in &bubbles_d {
                 let [r, bx, bz, by, offset, speed] = *d;
                 let b = mesh(sphere_geo!(0.0015 + r * 0.0015, 6, 4), &bubble_mat);

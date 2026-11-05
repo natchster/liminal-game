@@ -166,7 +166,9 @@ fn leather_tex(salt: u32, wood: usize) -> Tex {
                 c = c.map(|k| k * 0.72);
             }
             // scuffed where it was written on: the middle toward the hinge
-            let scuff = (fbm(seed ^ 0x51, x * 40.0, y * 60.0, 3) - 0.55).max(0.0) * 2.0 * (1.0 - sstep(0.05, 0.20, (u - 0.5).abs() * 0.4 + v * 0.2));
+            let scuff = (fbm(seed ^ 0x51, x * 40.0, y * 60.0, 3) - 0.55).max(0.0)
+                * 2.0
+                * (1.0 - sstep(0.05, 0.20, (u - 0.5).abs() * 0.4 + v * 0.2));
             c = mix(c, [0.40, 0.37, 0.32], scuff * 0.5);
             // an ink blot, and a ring where a glass stood
             let (bx, by) = (0.10 + 0.20 * hash(seed, 1, 1), 0.06 + 0.10 * hash(seed, 1, 2));

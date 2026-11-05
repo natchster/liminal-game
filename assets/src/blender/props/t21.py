@@ -9,23 +9,24 @@ its real size in its prop's own frame: x across its front, y up, z out of
 its front. Every part is named `Real__<prop><Part>`:
 
 lantern*      a small Victorian-style brass candle lantern, 150 mm square
-              over its base, 365 mm from its drop to the top of its ring;
+              over its base, 390 mm from its drop to the top of its ring;
               y = 0 is where its candle's flame burns (the light):
               Brass (the base tray and its drop, the corner posts, rails,
               the pyramid roof, the vented chimney and its cap, the finial
               and ring, the door's hinges and latch, the candle cup), Glass
               (four panes), Candle (a 7/8 in taper burnt to a stub in the
               cup, its runs over the cup's rim; the wick and flame are t09's
-              `Real__brassStickWickB` / `FlameB`, set 180 mm lower), Canopy
+              `Real__brassStickWickB` / `FlameB`, set 180 mm lower), Soot
+              (the roof's underside over the panes, black), Canopy
               (the ceiling cup and hook; its top at y = 0), Chain1, Chain4,
               Chain16 (jack chain links, their foot at y = 0, up +y)
 secDesk*      a petite drop-front desk on tapered legs, 570 x 355 x 1100 mm,
               its fall front open (lying flat, its free edge 470 mm out from
               the middle); the floor at y = 0, the case centred on z = 0:
-              Case (legs, sides, rails, bed, back, top, crest, the fitted
-              interior: small drawers' carcase, pigeonholes and valances),
-              Fronts (the two drawer fronts, the four small ones, the fall
-              front), Leather (the fall's writing leather), Brass (bail
+              Case (legs, sides, rails, bed, back, the fitted interior:
+              small drawers' carcase, pigeonholes and valances), Fronts (the
+              two drawer fronts, the four small ones, the fall front, the
+              top and its crest: their grain across), Leather (the fall's writing leather), Brass (bail
               pulls, escutcheons, knobs, the fall's hinges and its stays),
               LettersA / LettersB (what stands in a pigeonhole, on its
               floor at the origin), Sheet (a half sheet of note paper,
@@ -33,7 +34,8 @@ secDesk*      a petite drop-front desk on tapered legs, 570 x 355 x 1100 mm,
               cap), Ink (the ink dried in it)
 aquarium*     a standard 10 gallon tank (20 1/4 x 10 1/2 x 12 5/8 in) on a
               low laminated particleboard cabinet stand; the floor at y = 0:
-              Stand (the cabinet, its doors, its swollen foot), Knobs,
+              Stand (the cabinet, its doors, its swollen foot), StandTop
+              (its top board, apart for its own grain), Knobs,
               Glass (five panes), Trim (the black rims and the corner
               silicone), Gravel, Hood (a black full hood, its feeding flap),
               Tube (its fluorescent tube, under the hood), Airline (the
@@ -460,7 +462,7 @@ def sd_top():
     """The top, a board with its front and side edges rounded over, and the
     crest along its back (their grain across, as the fronts')."""
     parts = []
-    # the top: a board with a moulded front and side edge (ovolo over a fillet)
+    # the top: a board, its edges rounded over, overhanging the case
     top_w, top_d = 0.570, 0.355
     tb = rbox(top_w, 0.018, top_d, r=0.0045, seg=2)
     parts.append(tb.move(0, SD_TOP0 + 0.009, SD_BACK + top_d / 2))
@@ -676,7 +678,7 @@ def aq_stand():
     parts.append(box(w - 0.032, 0.050, 0.016).move(0, 0.025, d / 2 - 0.048))
     parts.append(box(w - 0.032, 0.016, d - 0.040).move(0, 0.058, -0.016))
     back = box(w - 0.020, h - 0.019, 0.004).move(0, (h - 0.019) / 2, -d / 2 + 0.004)
-    notch = rbox(0.080, 0.050, 0.02, r=0.012, seg=3).move(-0.15, h - 0.040, -d / 2 + 0.004)
+    notch = rbox(0.060, 0.050, 0.02, r=0.012, seg=3).move(-0.205, h - 0.040, -d / 2 + 0.004)
     parts.append(cut(back, notch))
     # two doors, overlaying the sides, a 3 mm gap between them
     dw = (w - 0.003) / 2
@@ -847,12 +849,12 @@ def aq_airline():
     """3/16 in vinyl air line: from the stone at the back left corner up
     the back glass, over the rim and down the back into the stand's notch."""
     w, h, d = AQ_TANK
-    x = -0.150
+    x = -0.212
     zin = -AQ_IN[1] + 0.006
     zout = -d / 2 - 0.004
     ytop = AQ_Y0 + h + 0.012
-    pts = [(-0.200, AQ_FLOOR + 0.062, -0.090), (-0.190, AQ_FLOOR + 0.070, zin + 0.020), (x - 0.02, AQ_FLOOR + 0.10, zin),
-           (x - 0.01, AQ_Y0 + 0.20, zin), (x, ytop - 0.040, zin), (x, ytop, zin + 0.004), (x, ytop + 0.006, (zin + zout) / 2),
+    pts = [(-0.200, AQ_FLOOR + 0.062, -0.090), (-0.204, AQ_FLOOR + 0.072, zin + 0.014), (x + 0.004, AQ_FLOOR + 0.10, zin),
+           (x + 0.002, AQ_Y0 + 0.20, zin), (x, ytop - 0.040, zin), (x, ytop, zin + 0.004), (x, ytop + 0.006, (zin + zout) / 2),
            (x, ytop, zout - 0.002), (x, ytop - 0.040, zout - 0.006), (x + 0.004, AQ_Y0 + 0.15, zout - 0.008),
            (x + 0.002, AQ_Y0 + 0.020, zout - 0.010), (x, AQ_Y0 - 0.010, -AQ_STAND[2] / 2 + 0.010)]
     return tube(pts, 0.0032, seg=7, smooth=2)

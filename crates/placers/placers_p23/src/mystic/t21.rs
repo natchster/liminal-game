@@ -177,8 +177,8 @@ fn glass_tex(salt: u32, lead: usize) -> Tex {
             // one field piece cracked across, the crack dark, its two sides
             // a little apart in tone
             if id == cracked {
-                let cr = (x * 0.8 + y * 0.6 - (hash(seed, 3, 3) - 0.5) * 0.06).abs()
-                    - 0.0006 * (1.0 + vn(seed ^ 0xc4, x * 400.0, y * 400.0));
+                let cr =
+                    (x * 0.8 + y * 0.6 - (hash(seed, 3, 3) - 0.5) * 0.06).abs() - 0.0006 * (1.0 + vn(seed ^ 0xc4, x * 400.0, y * 400.0));
                 if cr < 0.0 {
                     c = c.map(|k| k * 0.35);
                 } else if x * 0.8 + y * 0.6 > 0.0 {
