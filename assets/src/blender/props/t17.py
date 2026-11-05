@@ -1302,5 +1302,8 @@ def gloves():
     return _GLOVES
 
 
-for _g in ('RBody', 'RCuff', 'LBody', 'LCuff'):
-    auto(f'Real__glove{_g}', lambda _g=_g: gloves()[_g], 2600 if 'Body' in _g else 600, smooth=70.0)
+# each budget a literal of its own: the asset lint reads them from the calls
+for _g in ('RBody', 'LBody'):
+    auto(f'Real__glove{_g}', lambda _g=_g: gloves()[_g], 2600, smooth=70.0)
+for _g in ('RCuff', 'LCuff'):
+    auto(f'Real__glove{_g}', lambda _g=_g: gloves()[_g], 700, smooth=70.0)
