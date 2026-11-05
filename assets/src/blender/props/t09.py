@@ -12,6 +12,7 @@ its front (a face's), unless its section says otherwise.
 from propkit import *
 from propkit import _mesh_obj, _eval_to_shape, _drop
 import propkit
+import os
 import random
 import zlib
 from mathutils.bvhtree import BVHTree
@@ -21,6 +22,9 @@ from mathutils.bvhtree import BVHTree
 def auto(name, build, budget, smooth=35.0, kind='box'):
     """Register a part whose frame is its own bounds: the game places it as
     built, at a scale of one. Its randomness is seeded from its name."""
+    only = os.environ.get('T09_ONLY')
+    if only and not any(name.startswith(o) for o in only.split(',')):
+        return
     random.seed(zlib.crc32(name.encode()))
     shape = build()
     lo, hi = shape.bounds()
@@ -322,20 +326,22 @@ def _nose_cutter():
 
 def _jaw_path(face=1.0):
     """The mandible's path from the chin round to each condyle:
-    (centre, long axis, half long, half thin) in millimetres"""
+    (centre, long axis, half long, half thin) in millimetres. The ramus
+    stands in front of the ear's opening (z = 0), a broad plate 32 mm
+    across, its back border running down to the angle"""
     right = [
         ((0, -86, 83), (0, 1, 0), 16.0, 7.0),
         ((13 * face, -85.5, 78.5), (0, 1, 0), 15.5, 6.5),
         ((24 * face, -84, 66), (0, 1, 0.05), 14.5, 6.5),
         ((31, -82.5, 50), (0, 1, 0.1), 13.0, 6.5),
-        ((37, -81.5, 32), (0, 1, 0.1), 12.0, 6.0),
-        ((43, -80.5, 18), (0, 1, 0.1), 11.5, 6.0),
-        ((46, -79, 12), (0, 1, 0.3), 11.0, 5.5),
-        ((47, -70, 4), (0, 0.4, 1), 12.0, 5.0),
-        ((47.5, -55, 6), (0, 0, 1), 15.0, 4.5),
-        ((48.5, -38, 8), (0, 0, 1), 14.0, 4.5),
-        ((49.5, -25, 7), (0, 0, 1), 9.0, 4.5),
-        ((50, -15, 4), (0, 0, 1), 6.0, 5.5),
+        ((37, -81.5, 34), (0, 1, 0.1), 12.0, 6.0),
+        ((43, -80.5, 24), (0, 1, 0.1), 11.5, 6.0),
+        ((46, -78, 18), (0, 0.8, 0.6), 11.0, 5.5),
+        ((47, -68, 16), (0, 0.3, 1), 14.0, 4.5),
+        ((47.5, -55, 18), (0, 0, 1), 16.5, 4.0),
+        ((48.5, -40, 19), (0, 0, 1), 15.5, 4.0),
+        ((49.5, -27, 17), (0, 0, 1), 9.5, 4.2),
+        ((50, -17, 14), (0, 0, 1), 6.0, 5.0),
     ]
     return right
 
@@ -345,11 +351,14 @@ def skull_jaw_mm(face=1.0):
     left = [((-c[0], c[1], c[2]), ax, a, b) for c, ax, a, b in reversed(right[1:])]
     s = tube_frames(left + right, seg=14)
     for sx in (1, -1):
-        # the condyle, across its neck; the coronoid, a blade up under the arch
-        s = s + ellipsoid(10, 5.5, 6.5, seg=14).move(sx * 50, -12, 3)
-        s = s + tube_frames([((sx * 47.5, -44, 16), (0, 0, 1), 6.0, 2.5),
-                             ((sx * 46.5, -32, 22), (0, 0, 1), 4.0, 2.2),
-                             ((sx * 45.5, -24, 26), (0, 0, 1), 1.5, 1.8)], seg=10)
+        # the condyle, across its neck, in its fossa before the ear; the
+        # coronoid, a blade up under the arch
+        s = s + ellipsoid(10, 5.5, 6.5, seg=14).move(sx * 50, -13, 13)
+        s = s + tube_frames([((sx * 47.5, -46, 28), (0, 0, 1), 6.5, 3.0),
+                             ((sx * 46.5, -34, 33), (0, 0, 1), 4.5, 2.5),
+                             ((sx * 45.5, -25, 37), (0, 0, 1), 1.8, 2.0)], seg=10)
+        # the chin's mental tubercles, and the ridge below the molars
+        s = s + ellipsoid(7, 5, 4, seg=10).move(sx * 9, -95, 85)
     return s
 
 
@@ -411,8 +420,58 @@ def _teeth(row, y0, down, front, back, missing=()):
 _SKULL = {}
 
 
+def _orbit_local(p, sx):
+    """`p` (mm) in the orbit cutter's own frame (its depth -z)"""
+    q = p - Vector((sx * 30, 16, 92))
+    q.rotate(Euler((math.radians(4), sx * math.radians(20), 0), 'XYZ').to_matrix().inverted())
+    q.rotate(Euler((0, 0, -sx * math.radians(12)), 'XYZ').to_matrix().inverted())
+    return q
+
+
+def _in_orbit(p, sx, grow=1.12):
+    q = _orbit_local(p, sx)
+    d = -q.z
+    prof = [(-30, 1.08), (0, 1.0), (12, 0.86), (26, 0.6), (40, 0.28), (48, 0.08)]
+    if d < -30 or d > 50:
+        return False, d
+    sc = prof[-1][1]
+    for (d0, s0), (d1, s1) in zip(prof, prof[1:]):
+        if d0 <= d <= d1:
+            sc = s0 + (s1 - s0) * (d - d0) / (d1 - d0)
+            break
+    sc = sc * grow + 1.5 / 19.5
+    k = (abs(q.x) / (19.5 * sc)) ** (4 / 3) + (abs(q.y) / (16.5 * sc)) ** (4 / 3)
+    return k <= 1.0, d
+
+
+def _in_nose(p, grow=1.15):
+    q = p - Vector((0, -11, 101))
+    d = -q.z
+    if d < -20 or d > 40:
+        return False, d
+    sc = (1.0 - 0.4 * max(0.0, d) / 34) * grow + 0.04
+    if abs(q.y) > 16.5 * sc:
+        return False, d
+    w = (12.5 - 7.5 * smoothstep(-16.5, 16.5, q.y / sc) ** 1.4) * sc
+    return abs(q.x) <= w, d
+
+
+def _hollow(c, n):
+    """A face of the cranium (mm, before it is turned) inside an orbit, the
+    nasal aperture or an ear's opening: where the antiquing wash lies"""
+    for sx in (1, -1):
+        inside, d = _in_orbit(c, sx, 1.1)
+        if inside and d > 4.0:
+            return True
+        if (c - Vector((sx * 64, -3, 2))).length < 7.0 and n.x * sx < 0.6:
+            return True
+    inside, d = _in_nose(c, 1.04)
+    return inside and d > 4.0
+
+
 def skull_raw():
-    """The resin (cranium, nasal septum, the jaw, wired on) and the teeth, in
+    """The resin (cranium with the jaw wired on), the hollows the wash
+    darkened (the orbits, the nasal aperture, the ears) and the teeth, in
     metres on the floor (cached)"""
     if 'raw' in _SKULL:
         return _SKULL['raw']
@@ -431,78 +490,112 @@ def skull_raw():
         cran = cran + ellipsoid(4.5, 3.5, 12, seg=10).move(sx * 7, -21, 78)
     cran = remesh(cran, 1.1)
     cran = smooth_shape(cran, 0.5, 2)
+    hollow, cran = split_faces(cran, _hollow)
+    cran = decimate(cran, 3300)
+    hollow = decimate(hollow, 800)
     jaw = remesh(skull_jaw_mm(), 1.1)
     jaw = smooth_shape(jaw, 0.5, 3)
+    jaw = decimate(jaw, 1300)
     random.seed(4091)
+    # the bite closed: the lower incisors' edges just behind the upper's
     teeth = _teeth(UPPER, -50.5, True, 87.0, 47.0, missing={(1, 4), (-1, 6)}) + \
-        _teeth(LOWER, -71.0, False, 83.5, 46.5, missing={(-1, 1)})
+        _teeth(LOWER, -69.0, False, 83.0, 46.5, missing={(-1, 1)})
     out = []
-    for s in (cran, jaw, teeth):
-        out.append(s.copy().scale(MM).rot(SKULL_TILT, 0, 0))
+    for sh in (cran, jaw, hollow, teeth):
+        out.append(sh.copy().scale(MM).rot(SKULL_TILT, 0, 0))
     lo, _ = (out[0] + out[1]).bounds()
-    for s in out:
-        s.move(0, -lo.y, 0)
+    for sh in out:
+        sh.move(0, -lo.y, 0)
     _SKULL['raw'] = out
+    _SKULL['lift'] = -lo.y
     return out
 
 
+def skull_placed(sh):
+    """A shape built in the skull's millimetres, turned and lifted as the
+    skull is"""
+    skull_raw()
+    return sh.copy().scale(MM).rot(SKULL_TILT, 0, 0).move(0, _SKULL['lift'], 0)
+
+
 def skull_bone():
-    cran, jaw, _ = skull_raw()
-    return decimate(cran, 3600) + decimate(jaw, 1100)
+    cran, jaw, _, _ = skull_raw()
+    return cran + jaw
 
 
-def skull_teeth():
+def skull_hollows():
     return skull_raw()[2]
 
 
+def skull_teeth():
+    return skull_raw()[3]
+
+
 auto('Real__skullStackBone', skull_bone, 4800, smooth=50.0)
+auto('Real__skullStackHollows', skull_hollows, 900, smooth=50.0)
 auto('Real__skullStackTeeth', skull_teeth, 1400, smooth=40.0)
 
 
 # ======================================================== crystal skull ===
 # A cast glass skull ornament (place_crystal_skulls), the small kind sold as
 # a "crystal skull": lead-free glass, 105 mm deep, 80 mm across, 83 mm high
-# (t09.notes.md), the skull simplified as such ornaments are: the jaw fused
-# to it and short, the teeth a band with the gaps between them cut, polished
-# smooth all over, its base ground flat to stand.
+# (t09.notes.md). Cast from a skull simplified as such ornaments are: the
+# resin skull's cranium, jaw and teeth fused into one body (the jaw shut,
+# the teeth a band with the gaps between them shallow), its edges softened
+# by the fire polish, its base ground flat to stand.
+def _scaled(sh, c, k):
+    """A cutter `sh` scaled by `k` about the point `c` (both mm)"""
+    c = Vector(c)
+    return Shape([(p - c) * k + c for p in sh.v], sh.f)
+
+
 def crystal_skull():
-    el = _mm([
-        ('ell', (0, 50, -9), (36, 33, 45)),           # the vault
-        ('ell', (0, 47, 12), (32, 31, 34)),           # the forehead
-        ('cap', (-20, 41, 41), (20, 41, 41), 5.0),    # the brow
-        ('ell', (0, 27, 35), (26, 17, 17)),           # the face
-        ('ell', (24, 25, 38), (9, 9, 9)), ('ell', (-24, 25, 38), (9, 9, 9)),   # the cheekbones
-        ('cap', (28, 22, 34), (35, 22, 8), 3.5), ('cap', (-28, 22, 34), (-35, 22, 8), 3.5),  # the arches
-        ('ell', (0, 15, 39), (17, 9, 11)),            # the upper jaw, to the teeth
-        ('ell', (0, 6, 36), (18, 7, 12)),             # the jaw, short
-        ('ell', (0, 16, -14), (31, 17, 33)),          # the base
-    ])
-    s = meta(el, res=0.0016)
+    cran, jaw, hollow, teeth = skull_raw()
+    # the mould fills what glass cannot hold: the mouth behind the teeth,
+    # between each ramus and the base, the temples' deep hollows
+    fill = ellipsoid(30, 13, 26, seg=16).move(0, -61, 62)
+    for sx in (1, -1):
+        fill = fill + ellipsoid(12, 30, 24, seg=14).move(sx * 42, -44, 22)
+        fill = fill + ellipsoid(12, 18, 22, seg=14).move(sx * 58, 6, 32)
+        fill = fill + ellipsoid(10, 12, 20, seg=14).move(sx * 50, -18, 40)
+        fill = fill + ellipsoid(13, 15, 26, seg=14).move(sx * 36, -64, 38)
+    s = cran + jaw + hollow + teeth + skull_placed(fill)
     s = Shape([p / MM for p in s.v], s.f)
-    cutters = []
-    for sx in (1, -1):
-        o = _orbit_cutter(sx)
-        o = Shape([(p - Vector((sx * 30, 16, 92))) * 0.58 + Vector((sx * 15.5, 35, 47)) for p in o.v], o.f)
-        cutters.append(o)
-    nose = _nose_cutter()
-    nose = Shape([(p - Vector((0, -11, 101))) * 0.5 + Vector((0, 22, 49)) for p in nose.v], nose.f)
-    cutters.append(nose)
-    for sx in (1, -1):
-        cutters.append(ellipsoid(8, 12, 14, seg=16).move(sx * 43, 33, 22))   # the temple
+    # its own scale: 105 mm deep, and a little broader for the mould
+    lo, hi = s.bounds()
+    k = 105.0 / (hi.z - lo.z)
+    ks = (k * 1.04, k, k)
+    s.scale(*ks)
+    s = remesh(s, 1.7)
+    s = smooth_shape(s, 0.6, 8)
+
+    def orn(c):
+        """a cutter in the skull's millimetres, in the ornament's"""
+        c = skull_placed(c)
+        return Shape([p / MM for p in c.v], c.f).scale(*ks)
+    # the sockets and the nose cut again, deeper and rounder than the fused
+    # casting keeps them, as the mould has them
+    cutters = [orn(_scaled(_orbit_cutter(sx), (sx * 30, 16, 92), 1.06)) for sx in (1, -1)]
+    cutters.append(orn(_scaled(_nose_cutter(), (0, -11, 101), 1.05)))
+    # the teeth: the line between the rows, and the gaps between the teeth
+    grooves = [tube([(x, -60.5, _arch_z(abs(x), 89.5, 52.0, 27.0)) for x in range(-30, 31, 3)], 1.6, seg=6)]
+    xs, acc = [], 0.0
+    for w, _, _ in UPPER[:6]:
+        acc += w * 0.93 + 0.3
+        xs.append(acc)
+    for x0 in [0.0] + xs:
+        for sx in ((1, -1) if x0 > 0 else (1,)):
+            xx = min(x0 * 0.93, 27.0) * sx
+            z = _arch_z(abs(xx), 89.5, 52.0, 27.0)
+            ang = math.atan2(-2 * (89.5 - 52.0) * xx / 27.0 ** 2, 1.0)
+            for y0, h in ((-55.0, 11.0), (-65.5, 10.0)):
+                grooves.append(rbox(2.0, h, 4.0, r=0.6, seg=1).rot(0, -ang, 0).move(xx, y0, z + 3.5))
+    cutters += [orn(gr) for gr in grooves]
     s = cut(s, *cutters)
-    s = remesh(s, 0.7)
-    s = smooth_shape(s, 0.5, 3)
-    # the teeth: the line between the rows, and the gaps between the teeth,
-    # cut after the polish
-    teeth = [rbox(32, 2.0, 30, r=0.6, seg=1).move(0, 11.0, 43)]
-    for i in range(-5, 6):
-        x = i * 3.3
-        z = 49 - 0.035 * x * x
-        teeth.append(box(1.4, 9.5, 8).rot(0, math.atan(0.07 * x), 0).move(x, 11.0, z))
-    s = cut(s, *teeth)
+    s = smooth_shape(s, 0.5, 2)
     lo, hi = s.bounds()
     # the base ground flat
-    s.warp(lambda p: Vector((p.x, max(p.y, lo.y + 2.0), p.z)))
+    s.warp(lambda p: Vector((p.x, max(p.y, lo.y + 3.0), p.z)))
     s = Shape([p * MM for p in s.v], s.f)
     s = to_floor(s)
     return decimate(_fix(s), 2400)
@@ -533,7 +626,7 @@ STICK_PROFILE = [               # (r, y) mm, from the hollow underside up
 
 
 def stick_body():
-    s = lathe([(r * MM, y * MM) for r, y in STICK_PROFILE], seg=40, cap_bottom=False, cap_top=False)
+    s = lathe([(r * MM, y * MM) for r, y in STICK_PROFILE], seg=36, cap_bottom=False, cap_top=False)
     return _fix(s)
 
 
@@ -622,8 +715,278 @@ def stick_wick(stub):
     return s.move(0, STICK_SOCKET_FLOOR, 0)
 
 
-auto('Real__brassStickBody', stick_body, 2400, smooth=40.0, kind='cyl')
-auto('Real__brassStickCandleA', lambda: stick_candle('A'), 2200, smooth=45.0, kind='cyl')
-auto('Real__brassStickCandleB', lambda: stick_candle('B'), 2200, smooth=45.0, kind='cyl')
-auto('Real__brassStickWickA', lambda: stick_wick('A'), 200, smooth=60.0)
-auto('Real__brassStickWickB', lambda: stick_wick('B'), 200, smooth=60.0)
+auto('Real__brassStickBody', stick_body, 4000, smooth=40.0, kind='cyl')
+auto('Real__brassStickCandleA', lambda: stick_candle('A'), 3000, smooth=45.0, kind='cyl')
+auto('Real__brassStickCandleB', lambda: stick_candle('B'), 3000, smooth=45.0, kind='cyl')
+auto('Real__brassStickWickA', lambda: stick_wick('A'), 260, smooth=60.0)
+auto('Real__brassStickWickB', lambda: stick_wick('B'), 260, smooth=60.0)
+
+
+def stick_flame(stub):
+    """The flame over the wick (lit sticks only): a candle's teardrop, 11 mm
+    across at its widest, 27 mm from its blue root to its tip; its root just
+    above the crater, round the wick's tip"""
+    H = _taper_top(stub)
+    prof = [(0, 0.0), (1.8, 0.4), (3.8, 2.0), (5.2, 5.0), (5.5, 8.0), (5.0, 12.0), (3.8, 16.5), (2.3, 21.0), (1.0, 24.6), (0, 27.0)]
+    s = lathe([(r * MM, (y + H - 1.0) * MM) for r, y in prof], seg=16)
+    return s.move(0, STICK_SOCKET_FLOOR, 0)
+
+
+auto('Real__brassStickFlameA', lambda: stick_flame('A'), 300, smooth=80.0, kind='cyl')
+auto('Real__brassStickFlameB', lambda: stick_flame('B'), 300, smooth=80.0, kind='cyl')
+
+
+# ================================================================== owl ===
+# A carved wooden owl (place_small_owls), the souvenir kind carved from one
+# block of lime or walnut and stained dark: a horned owl standing on a rock
+# carved with it, its feet gripping the rock's front, 15 cm to the tips of
+# its ear tufts (the Black Forest owl of t09.notes.md is 17 cm), set with
+# glass eyes (amber, the pupil painted on the back). The feathers' chisel
+# cuts are painted in the game (the stain lying in them).
+def owl_wood():
+    el = _mm([
+        ('ell', (0, 58, -2), (34, 40, 30)),             # the body
+        ('ell', (0, 70, 8), (30, 30, 26)),              # the breast
+        ('ell', (0, 104, 3), (33, 25, 27)),             # the head, broad
+        ('ell', (0, 93, 0), (31, 14, 25)),              # no neck: the head sits on the body
+        ('ell', (0, 40, -24), (14, 14, 8), 2.0, (-0.6, 0, 0)),     # the tail's root
+        ('cap', (20, 112, 6), (23, 129, 2), 5.0),      # the ear tufts
+        ('cap', (-20, 112, 6), (-23, 129, 2), 5.0),
+        ('ell', (0, 98, 26), (5, 8, 6)),                # the beak's root
+    ])
+    s = meta(el, res=0.0018)
+    s = Shape([p / MM for p in s.v], s.f)
+    # the facial disc: two shallow dishes round the eyes, the ruff between
+    dishes = [ellipsoid(15, 15, 9, seg=20).move(sx * 12.5, 104, 33) for sx in (1, -1)]
+    s = cut(s, *dishes)
+    # the folded wings: each a carved shell over the side, its edge standing
+    # off the body; their tips crossed over the tail
+    wings = Shape()
+    for sx in (1, -1):
+        w = ellipsoid(9, 38, 27, seg=20)
+        w.warp(lambda p: Vector((p.x, p.y, p.z + 0.004 * p.y * p.y)))
+        w.rot(0.18, 0, -sx * 0.10).move(sx * 29, 64, -5)
+        wings = wings + w
+        tip = ellipsoid(6, 24, 3.5, seg=12).rot(-0.45, sx * 0.25, 0).move(sx * 6, 38, -31)
+        wings = wings + tip
+    # the tail, a flat wedge of feathers down onto the rock
+    tail = rbox(26, 30, 6, r=2.5, seg=2)
+    tail.warp(lambda p: Vector((p.x * (1.0 - 0.006 * p.y), p.y, p.z)))
+    tail.rot(-0.95, 0, 0).move(0, 26, -36)
+    # the beak: a hooked point down out of the disc
+    beak = tube([(0, 103, 25), (0, 100.5, 32), (0, 96.5, 35.5), (0, 92.5, 35.0), (0, 90.5, 33.2)], 4.2, seg=10, smooth=2, r_end=0.7)
+    beak.warp(lambda p: Vector((p.x * 0.8, p.y, p.z)))
+    # the feet: three toes forward over the rock's edge, talons into it
+    feet = Shape()
+    for sx in (1, -1):
+        for k in (-1, 0, 1):
+            a = k * 0.32
+            x0 = sx * 13 + math.sin(a) * 2
+            pts = [(x0, 27, 10), (x0 + math.sin(a) * 6, 24.5, 15 + math.cos(a) * 3), (x0 + math.sin(a) * 9, 21.5, 19 + math.cos(a) * 4),
+                   (x0 + math.sin(a) * 10, 17.5, 21 + math.cos(a) * 4)]
+            feet = feet + tube(pts, 2.6, seg=8, smooth=1, r_end=1.0)
+        feet = feet + ellipsoid(8, 6, 8, seg=12).move(sx * 13, 28, 8)
+    # the rock: a block carved rough, its faces chiselled flat
+    rock = rbox(96, 22, 74, r=6, seg=2).move(0, 11, -2)
+    rock = remesh(rock, 2.0)
+    rock = noisy(rock, 3.4, scale=0.05, seed=3)
+    rock.warp(lambda p: Vector((p.x, max(0.0, min(p.y, 21 + 2.5 * noise.noise(Vector((p.x * 0.05, 3.0, p.z * 0.05))))), p.z)))
+    s = remesh(s + wings + tail + beak + feet + rock, 1.0)
+    s = smooth_shape(s, 0.5, 2)
+    # the chisel's facets on the rock and the body: a little flat-planed
+    s = Shape([p * MM for p in s.v], s.f)
+    s = to_floor(s)
+    return decimate(_fix(s), 5600)
+
+
+OWL_EYE = (12.5, 104.5, 25.5, 7.5)       # x, y, z of the glass's centre, its radius (mm)
+
+
+def owl_eyes():
+    x, y, z, r = OWL_EYE
+    out = Shape()
+    for sx in (1, -1):
+        out = out + sphere(r, seg=16).move(sx * x, y, z)
+    return to_floor_like_owl(out)
+
+
+def owl_pupils():
+    x, y, z, r = OWL_EYE
+    out = Shape()
+    for sx in (1, -1):
+        # painted on the glass's back, seen through it: a disc just under the
+        # front of the glass, looking a little in toward the beak
+        d = cyl(3.4, h=0.8, seg=12, bevel_r=0.25).rot(math.pi / 2, 0, 0)
+        out = out + d.move(sx * (x - 0.6), y, z + r - 0.35)
+    return to_floor_like_owl(out)
+
+
+def to_floor_like_owl(s):
+    """mm to metres, lifted as the wood was (its rock's foot at y = 0)"""
+    return Shape([p * MM for p in s.v], s.f)
+
+
+auto('Real__owlWood', owl_wood, 5800, smooth=50.0)
+auto('Real__owlEyes', owl_eyes, 700, smooth=70.0)
+auto('Real__owlPupils', owl_pupils, 300, smooth=40.0)
+
+
+# ================================================================= mask ===
+# A Venetian volto (place_small_masks): a full-face carnival mask of
+# papier-mache, gessoed and painted, the eyes cut through, gilt round the
+# eyes and the edge, tied on by two satin ribbons from the temples; 15 cm
+# across, 21.5 cm brow to chin (t09.notes.md). Lying on its back, face up,
+# on its side rims and its brow's edge, the ribbons out across the floor.
+# Modelled as a face (X across, Y up the face, Z out of it, mm), then laid
+# down: Z up (y), Y toward -z (its brow at -z).
+MASK_W, MASK_TOP, MASK_CHIN = 75.0, 106.0, -110.0
+MASK_EYES = ((32.0, 22.0), 16.0, 7.4)       # centre (+-x, y), half width, half height
+MASK_TILT = math.radians(4.0)
+
+
+def _g(x, y, cx, cy, sx, sy):
+    return math.exp(-(((x - cx) / sx) ** 2 + ((y - cy) / sy) ** 2))
+
+
+def mask_height(x, y):
+    """The face's relief: Z (mm) at (X, Y)"""
+    ax = abs(x)
+    z = -(x * x) / (2 * 64.0) - (y * y) / (2 * 260.0)
+    z += 4.5 * _g(x, y, 0, 72, 42, 30)                                  # the forehead
+    z += 5.0 * math.exp(-((y - 37) / 9.0) ** 2) * math.exp(-(x / 48.0) ** 4)   # the brow
+    z -= 7.0 * _g(ax, y, 32, 21, 19, 11)                                # the eye sockets
+    z += 7.5 * _g(ax, y, 38, -10, 19, 20)                               # the cheekbones
+    # the nose: its bridge from the brow, its tip, its wings
+    t = smoothstep(32, -16, y) * (1 - smoothstep(-16, -27, y))
+    w = 5.5 + 7.0 * smoothstep(32, -16, y)
+    z += (3.0 + 21.0 * t ** 1.3) * math.exp(-(x / w) ** 2) * (1 - smoothstep(-22, -30, y) * 0.6) * (1 - smoothstep(30, 44, y))
+    z += 6.5 * _g(ax, y, 11, -21, 6, 6)
+    z += 5.5 * _g(x, y, 0, -44, 20, 5.5)                                # the upper lip
+    z += 5.0 * _g(x, y, 0, -55.5, 17, 5.0)                              # the lower lip
+    z -= 2.4 * math.exp(-((y + 49.6) / 1.3) ** 2) * math.exp(-(x / 19.0) ** 4)  # the mouth, closed
+    z += 8.0 * _g(x, y, 0, -82, 19, 14)                                 # the chin
+    return z
+
+
+def _mask_outline(k=1.0):
+    """The volto's outline (X, Y), a little square at the brow, narrower at the
+    chin"""
+    pts = []
+    for j in range(72):
+        q = TAU * j / 72
+        c, sn = math.cos(q), math.sin(q)
+        if sn >= 0:
+            e = 2.6
+            y = MASK_TOP * abs(sn) ** (2 / e)
+        else:
+            e = 1.8
+            y = MASK_CHIN * abs(sn) ** (2 / e)
+        x = MASK_W * math.copysign(abs(c) ** (2 / (2.6 if sn >= 0 else 2.3)), c)
+        if sn < 0:
+            x *= 1.0 - 0.25 * abs(sn) ** 2
+        pts.append((x * k, y * k))
+    return pts
+
+
+def _eye_outline(sx):
+    (cx, cy), hw, hh = MASK_EYES
+    pts = []
+    for j in range(28):
+        q = TAU * j / 28
+        x = math.cos(q) * hw
+        # an almond: its inner corner lower and rounder, the outer drawn up
+        y = math.sin(q) * hh * (1 - 0.35 * (x / hw) ** 2) + 2.2 * (x / hw) * sx * 0.5 * (1 + math.cos(q))
+        pts.append((sx * x + sx * cx, y + cy))
+    return pts
+
+
+def _solidify(s, t, offset=-1.0):
+    ob = _mesh_obj('_t09so', s)
+    m = ob.modifiers.new('so', 'SOLIDIFY')
+    m.thickness = t
+    m.offset = offset
+    m.use_even_offset = True
+    out = _eval_to_shape(ob)
+    _drop(ob)
+    return out
+
+
+_MASK = {}
+
+
+def mask_face_mm():
+    """The shell in the face's own frame (mm)"""
+    if 'face' in _MASK:
+        return _MASK['face']
+    st = 1.6
+    nx, ny = int(170 / st), int(240 / st)
+    v, f = [], []
+    for j in range(ny + 1):
+        y = -120 + j * st
+        for i in range(nx + 1):
+            x = -85 + i * st
+            v.append(Vector((x, y, mask_height(x, y))))
+    for j in range(ny):
+        for i in range(nx):
+            a = j * (nx + 1) + i
+            f.append((a, a + 1, a + nx + 2, a + nx + 1))
+    sheet = Shape(v, f)
+    shell = _solidify(sheet, 2.6, -1.0)
+    shell = _fix(shell)
+    keep = prism(_mask_outline(), 200)
+    shell = boolean(shell, keep, 'INTERSECT')
+    shell = cut(shell, *[prism(_eye_outline(sx), 200) for sx in (1, -1)])
+    # the rim rolled a little: the edge is the paper's turned edge
+    _MASK['face'] = shell
+    return shell
+
+
+def _mask_lay(s):
+    """mm face frame -> metres, lying face up, tilted onto its brow's edge"""
+    s = s.copy().rot(-math.pi / 2, 0, 0).rot(-MASK_TILT, 0, 0)
+    return Shape([p * MM for p in s.v], s.f)
+
+
+def _mask_lift():
+    lo, _ = _mask_lay(mask_face_mm()).bounds()
+    return -lo.y
+
+
+def mask_face():
+    return decimate(_mask_lay(mask_face_mm()).move(0, _mask_lift(), 0), 4200)
+
+
+def mask_ribbons():
+    """Two satin ribbons (10 mm, a hole at each temple) from the mask's side
+    rims out across the floor, lying loose: one long and curled back, one
+    short"""
+    lift = _mask_lift()
+    out = Shape()
+    for sx, path in ((1, [(0, 0), (30, -10), (70, 5), (110, 40), (135, 90), (128, 150), (100, 175)]),
+                     (-1, [(0, 0), (35, 8), (80, 2), (120, -30), (160, -36), (205, -20)])):
+        # where it is tied: the temple's edge, X = +-74, Y = 22
+        a = _mask_lay(Shape([Vector((sx * 72.5, 22.0, mask_height(sx * 72.5, 22.0) - 1.3))], [])).move(0, lift, 0).v[0] / MM
+        pts = []
+        # down off the rim to the floor
+        pts.append(((a.x, a.y, a.z), (0, 0, 1), 5.0, 0.35))
+        pts.append(((a.x + sx * 6, a.y * 0.45, a.z + 2), (0, 0, 1), 5.0, 0.35))
+        floor = [Vector((a.x + sx * (dx + 12), 0.45, a.z + 4 + dz)) for dx, dz in path]
+        for _ in range(2):           # the turns soft (Chaikin)
+            q = [floor[0]]
+            for p0, p1 in zip(floor, floor[1:]):
+                q += [p0.lerp(p1, 0.25), p0.lerp(p1, 0.75)]
+            floor = q + [floor[-1]]
+        for k, p in enumerate(floor):
+            nxt = floor[min(k + 1, len(floor) - 1)] - floor[max(k - 1, 0)]
+            side = Vector((-nxt.z, 0, nxt.x)).normalized()
+            # a ribbon lying flat, a twist or two where it turned over
+            tw = 0.25 * math.sin(k * 0.21 + sx)
+            ax = side * math.cos(tw) + Vector((0, 1, 0)) * math.sin(tw)
+            pts.append(((p.x, p.y + 0.6 * abs(math.sin(tw)) * 5, p.z), tuple(ax), 5.0, 0.35))
+        r = tube_frames(pts, seg=6)
+        out = out + Shape([p * MM for p in r.v], r.f)
+    return out
+
+
+auto('Real__maskFace', mask_face, 4400, smooth=40.0)
+auto('Real__maskRibbons', mask_ribbons, 800, smooth=60.0)
