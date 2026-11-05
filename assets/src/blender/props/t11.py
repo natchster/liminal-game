@@ -584,9 +584,9 @@ def fish_fins_paired():
     # pectoral: a paddle 34 mm long, swept back and out 35 degrees
     pec = prism(round_outline([(0.0, 0.004), (0.010, 0.006), (0.030, 0.005), (0.036, 0.0), (0.031, -0.007),
                                (0.012, -0.008), (0.0, -0.004)], 0.002, seg=2), 0.0012, bevel_r=0.0004, bevel_seg=1)
-    pec = pec.rot(0, math.radians(-22), math.radians(-16))
-    p = fish_point(0.235, -math.pi / 2 + 0.95)
-    out = out + pec.move(p.x, p.y, p.z - 0.002)
+    pec = pec.rot(0, math.radians(-12), math.radians(-14))
+    p = fish_point(0.235, -math.pi / 2 + 1.05)
+    out = out + pec.move(p.x, p.y, p.z - 0.0035)
     # pelvic: smaller, under the dorsal's middle
     pel = prism(round_outline([(0.0, 0.003), (0.020, 0.003), (0.025, -0.001), (0.019, -0.006), (0.0, -0.003)],
                               0.0015, seg=2), 0.0012, bevel_r=0.0004, bevel_seg=1)
@@ -796,14 +796,15 @@ def _pale(c, n):
         return True
     if 0.118 < h.z < 0.130 and h.y > -0.022:
         return True
-    if -0.072 < c.y < -0.030 and c.z > 0.075 and abs(c.x) < 0.034 and n.y < 0.2:
+    # the throat's patch: an oval under the jaw, on the neck's front
+    if c.z > 0.075 and n.y < 0.2 and (c.x / 0.027) ** 2 + ((c.y + 0.050) / 0.017) ** 2 < 1.0:
         return True
     return False
 
 
 def _nose(c, n):
     h = _to_h(c)
-    return h.z > 0.140 and h.y > -0.031
+    return h.z > 0.142 and h.y > -0.027
 
 
 def head_hide():
