@@ -2,6 +2,10 @@
 use crate::{buf_geo, open_tiles, pick, set_rot_order, wall_candidates};
 use game::prelude::*;
 
+// the carnival mask: batch `t09`'s (`toys/t09.rs`)
+mod t09;
+pub use t09::place_small_masks;
+
 /// R421 small pacifier: 8% chance per level. Nipple cylinder +
 /// guard disc + ring handle.
 pub fn place_small_pacifiers(g: &mut Game, _dist: &[i32]) {
@@ -34,44 +38,6 @@ pub fn place_small_pacifiers(g: &mut Game, _dist: &[i32]) {
     paci.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     paci.rotation().y = rnd() * PI * 2.0;
     g.world.add(&paci);
-}
-
-/// R421 small face mask: 6% chance per level. Oval face plate +
-/// 2 dark eye holes + strap.
-pub fn place_small_masks(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance (rarest)
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let face_colors = [0xd0b898, 0xa08060, 0xd0d0c0, 0xe8ccb0, 0xa0a0a0];
-    let face_mat = lambert!({ color: pick(&face_colors) });
-    let hole_mat = basic_mat!({ color: 0x080604 });
-    let strap_mat = lambert!({ color: 0x2a1810 });
-    let mask = group();
-    // Face plate: oval ellipsoid (scaled sphere).
-    let face = mesh(pg("SmallMasks__face", sphere_geo!(0.06, 10, 6, 0.0, PI * 2.0, 0.0, PI / 2.0)), &face_mat);
-    face.scale().set(1, 0.15, 1.3);
-    face.position().y = 0.010;
-    mask.add(&face);
-    // 2 dark eye holes.
-    for ex_off in [-0.020, 0.020] {
-        let eye = mesh(circle_geo!(0.008, 6), &hole_mat);
-        eye.rotation().x = -PI / 2.0;
-        eye.position().set(ex_off, 0.019, -0.01);
-        mask.add(&eye);
-    }
-    // Elastic strap behind (under) the face-up plate at eye level.
-    let strap = mesh(pg("SmallMasks__strap", cyl_geo!(0.002, 0.002, 0.14, 4)), &strap_mat);
-    strap.rotation().z = PI / 2.0;
-    strap.position().set(0, 0.008, -0.01);
-    mask.add(&strap);
-    mask.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    mask.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&mask);
 }
 
 /// R420 small toy drum: 8% chance per level. Cylinder body + top +
