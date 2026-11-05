@@ -26,7 +26,7 @@ pub fn place_skipping_ropes(g: &mut Game, _dist: &[i32]) {
     let old = pick(&rope_colors);
     let k = rope_colors.iter().position(|&c| c == old).unwrap_or(0);
     let pvc = [0x8a3c34, 0x3c5084, 0xae9a4c, 0xb8b4a8][k];
-    let handles = [0xa48a46, 0x8a3a32, 0x3e5280, 0x8a3a32][k];
+    let handles = [0x8e7c4a, 0x7a4642, 0x44506c, 0x7a4642][k];
     let rope = group();
     let px = g.wx(x) + (rnd() - 0.5) * 2.2;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.2;

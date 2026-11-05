@@ -22,7 +22,8 @@ pub fn place_small_skateboards(g: &mut Game, _dist: &[i32]) {
     let deck_colors = [0xd82040, 0x2050d8, 0x30a030, 0xa020a0, 0xd8b040, 0x201a10];
     let old = pick_color(&deck_colors);
     let k = deck_colors.iter().position(|&c| c == old).unwrap_or(0);
-    let plastic = [[0.55, 0.22, 0.20], [0.24, 0.33, 0.52], [0.30, 0.46, 0.32], [0.42, 0.30, 0.45], [0.70, 0.60, 0.30], [0.17, 0.16, 0.15]][k];
+    let plastic =
+        [[0.55, 0.22, 0.20], [0.24, 0.33, 0.52], [0.30, 0.46, 0.32], [0.42, 0.30, 0.45], [0.70, 0.60, 0.30], [0.17, 0.16, 0.15]][k];
     let skate = group();
     scatter_pos(g, &skate, x, z, 2.0);
     skate.rotation().y = rnd() * PI * 2.0;
@@ -52,7 +53,9 @@ fn deck_tex(plastic: [f64; 3], salt: u32) -> Tex {
         let streak = t16_ss(0.55, 0.75, t16_fbm(salt ^ 0x2d, u * 60.0, v * 6.0, 3));
         c = t16_mix(c, [0.74, 0.72, 0.68], 0.75 * ends * streak);
         // where feet stood: darker, the grip worn smooth
-        let feet = (-(((u - 0.30) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2))).exp().max((-(((u - 0.72) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2))).exp());
+        let feet = (-(((u - 0.30) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2)))
+            .exp()
+            .max((-(((u - 0.72) / 0.10).powi(2) + ((v - 0.5) / 0.35).powi(2))).exp());
         c = t16_mix(c, [c[0] * 0.70, c[1] * 0.70, c[2] * 0.70], 0.5 * feet);
         let dirt = t16_ss(0.5, 0.85, t16_fbm(salt ^ 0x4d, u * 10.0, v * 3.0, 3));
         t16_mix(c, [0.28, 0.26, 0.23], 0.45 * dirt)

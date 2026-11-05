@@ -52,7 +52,7 @@ fn cotton_tex(dye: [f64; 3], salt: u32) -> Tex {
 fn beech_tex(salt: u32) -> Tex {
     t16_paint(128, 128, move |u, v| {
         let grain = t16_fbm(salt ^ 0x3c, u * 6.0, v * 90.0, 3);
-        let mut c = t16_mix([0.62, 0.48, 0.33], [0.50, 0.37, 0.24], grain);
+        let mut c = t16_mix([0.58, 0.47, 0.36], [0.47, 0.37, 0.27], grain);
         let worn = t16_ss(0.55, 0.75, t16_fbm(salt ^ 0x19, u * 5.0, v * 5.0, 3));
         c = t16_mix(c, [0.55, 0.52, 0.47], 0.55 * worn);
         t16_mix(c, [0.24, 0.20, 0.16], 0.35 * t16_ss(0.6, 0.85, t16_fbm(salt ^ 0x2b, u * 12.0, v * 12.0, 2)))

@@ -32,7 +32,9 @@ pub(crate) fn place_crayon_graffiti(g: &mut Game, _dist: &[i32]) {
     }
     let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
     // the drawing, by the wall it is on and the floor (no draw)
-    let salt = (c.x as u32).wrapping_mul(0x9E37_79B1) ^ (c.z as u32).wrapping_mul(0x85EB_CA77) ^ ((c.dx + 2) as u32 * 5 + (c.dz + 2) as u32).wrapping_mul(0xC2B2_AE3D);
+    let salt = (c.x as u32).wrapping_mul(0x9E37_79B1)
+        ^ (c.z as u32).wrapping_mul(0x85EB_CA77)
+        ^ ((c.dx + 2) as u32 * 5 + (c.dz + 2) as u32).wrapping_mul(0xC2B2_AE3D);
     let tex = crayon_tex(salt ^ g.current_seed);
     let mat = lambert!({
         map: &tex,
@@ -122,6 +124,34 @@ impl Wax {
             q.push(p[p.len() - 1]);
             p = q;
         }
+        self.lay(hand, &p, width, press, col, id);
+    }
+
+    /// A stroke with corners: straight runs between `pts`, each wavering a
+    /// little as a hand's does, the corners kept
+    fn lines(&mut self, hand: &mut Hand, pts: &[(f64, f64)], width: f64, press: f64, col: u8) {
+        if pts.len() < 2 {
+            return;
+        }
+        self.strokes += 1;
+        let id = self.strokes;
+        let mut q = vec![];
+        for k in 0..pts.len() - 1 {
+            let (a, b) = (pts[k], pts[k + 1]);
+            let n = ((b.0 - a.0).hypot(b.1 - a.1) / 10.0).ceil().max(1.0) as usize;
+            for j in 0..n {
+                let t = j as f64 / n as f64;
+                let wob = if j == 0 { 0.0 } else { 1.0 };
+                q.push((a.0 + (b.0 - a.0) * t + wob * hand.range(-1.0, 1.0), a.1 + (b.1 - a.1) * t + wob * hand.range(-1.0, 1.0)));
+            }
+        }
+        q.push(pts[pts.len() - 1]);
+        self.lay(hand, &q, width, press, col, id);
+    }
+
+    /// The wax along the line `p`, dab by dab
+    #[allow(clippy::too_many_arguments)]
+    fn lay(&mut self, hand: &mut Hand, p: &[(f64, f64)], width: f64, press: f64, col: u8, id: u32) {
         let len: f64 = p.windows(2).map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1)).sum();
         let wob = hand.range(0.0, 6.0);
         let mut s = 0.0;
@@ -178,7 +208,16 @@ impl Wax {
     /// A shape filled the way a child fills it: the crayon on its side,
     /// back and forth across it at a slant, inside `inside`
     #[allow(clippy::too_many_arguments)]
-    fn hatch(&mut self, hand: &mut Hand, bx: (f64, f64, f64, f64), inside: &dyn Fn(f64, f64) -> bool, gap: f64, slant: f64, press: f64, col: u8) {
+    fn hatch(
+        &mut self,
+        hand: &mut Hand,
+        bx: (f64, f64, f64, f64),
+        inside: &dyn Fn(f64, f64) -> bool,
+        gap: f64,
+        slant: f64,
+        press: f64,
+        col: u8,
+    ) {
         let (x0, y0, x1, y1) = bx;
         let mut y = y0 + gap * 0.5;
         let mut fwd = true;
@@ -237,7 +276,7 @@ fn crayon_tex(salt: u32) -> Tex {
         // the sun, in its corner: round, filled, its rays
         {
             let (cx, cy) = (if sun_left { hand.range(62.0, 92.0) } else { w - hand.range(62.0, 92.0) }, hand.range(58.0, 78.0));
-            let r = hand.range(26.0, 34.0);
+            let r = hand.range(32.0, 42.0);
             let col = if hand.f() < 0.7 { YELLOW } else { ORANGE };
             let fill = move |x: f64, y: f64| (x - cx).hypot(y - cy) < r - 2.0;
             wax.hatch(&mut hand, (cx - r, cy - r, cx + r, cy + r), &fill, 6.0, 0.25, 0.55, col);
@@ -252,16 +291,16 @@ fn crayon_tex(salt: u32) -> Tex {
         }
         // the house on the ground, its roof, door and window
         let (hx0, hx1) = if house {
-            let hw = hand.range(118.0, 150.0);
+            let hw = hand.range(150.0, 185.0);
             let x0 = if sun_left { w * hand.range(0.52, 0.60) } else { w * hand.range(0.14, 0.22) };
-            let hh = hand.range(96.0, 120.0);
+            let hh = hand.range(118.0, 145.0);
             let top = ground - hh;
             let wall = hand.pick(&[BROWN, BLACK, BLUE, RED]);
             let tilt = hand.range(-5.0, 5.0);
             let lean = hand.range(-4.0, 4.0);
-            wax.stroke(&mut hand, &[(x0, ground), (x0 + tilt, top), (x0 + hw + tilt, top + lean), (x0 + hw, ground)], 6.0, 0.9, wall);
+            wax.lines(&mut hand, &[(x0, ground), (x0 + tilt, top), (x0 + hw + tilt, top + lean), (x0 + hw, ground)], 6.0, 0.9, wall);
             let roof = hand.pick(&[RED, RED, BROWN, ORANGE]);
-            let apex = (x0 + hw / 2.0 + hand.range(-12.0, 12.0), top - hand.range(58.0, 80.0));
+            let apex = (x0 + hw / 2.0 + hand.range(-14.0, 14.0), top - hand.range(70.0, 96.0));
             let rp = [(x0 - 14.0, top + 2.0), apex, (x0 + hw + 14.0, top + 2.0), (x0 - 10.0, top + 1.0)];
             let (ax, ay) = apex;
             let inroof = move |x: f64, y: f64| {
@@ -269,27 +308,27 @@ fn crayon_tex(salt: u32) -> Tex {
                 (0.0..1.0).contains(&t) && (x - ax).abs() < t * (hw / 2.0 + 12.0)
             };
             wax.hatch(&mut hand, (x0 - 14.0, ay, x0 + hw + 14.0, top), &inroof, 7.0, -0.35, 0.6, roof);
-            wax.stroke(&mut hand, &rp, 6.5, 0.9, roof);
+            wax.lines(&mut hand, &rp, 6.5, 0.9, roof);
             // the door, its knob
-            let (dw, dh) = (hand.range(26.0, 34.0), hand.range(44.0, 56.0));
+            let (dw, dh) = (hand.range(32.0, 42.0), hand.range(56.0, 70.0));
             let dx = x0 + hw * hand.range(0.18, 0.55);
-            wax.stroke(&mut hand, &[(dx, ground), (dx, ground - dh), (dx + dw, ground - dh), (dx + dw, ground)], 5.5, 0.85, BROWN);
+            wax.lines(&mut hand, &[(dx, ground), (dx, ground - dh), (dx + dw, ground - dh), (dx + dw, ground)], 5.5, 0.85, BROWN);
             wax.stroke(&mut hand, &[(dx + dw - 7.0, ground - dh / 2.0), (dx + dw - 6.0, ground - dh / 2.0 + 1.0)], 5.0, 0.9, BLACK);
             // a window with its cross
-            let ws = hand.range(24.0, 30.0);
+            let ws = hand.range(30.0, 38.0);
             let wx = if dx - x0 > hw * 0.4 { x0 + 14.0 } else { x0 + hw - ws - 14.0 };
             let wy = top + hand.range(14.0, 22.0);
-            wax.stroke(&mut hand, &[(wx, wy), (wx + ws, wy), (wx + ws, wy + ws), (wx, wy + ws), (wx, wy - 1.0)], 5.0, 0.85, BLUE);
+            wax.lines(&mut hand, &[(wx, wy), (wx + ws, wy), (wx + ws, wy + ws), (wx, wy + ws), (wx, wy - 1.0)], 5.0, 0.85, BLUE);
             wax.stroke(&mut hand, &[(wx + ws / 2.0, wy), (wx + ws / 2.0, wy + ws)], 4.5, 0.8, BLUE);
             wax.stroke(&mut hand, &[(wx, wy + ws / 2.0), (wx + ws, wy + ws / 2.0)], 4.5, 0.8, BLUE);
             (x0 - 20.0, x0 + hw + 20.0)
         } else {
             // else a tree: its trunk and a scribbled crown
             let tx = if sun_left { w * hand.range(0.70, 0.80) } else { w * hand.range(0.18, 0.28) };
-            let th = hand.range(70.0, 100.0);
+            let th = hand.range(90.0, 125.0);
             wax.stroke(&mut hand, &[(tx - 9.0, ground), (tx - 7.0, ground - th)], 6.0, 0.9, BROWN);
             wax.stroke(&mut hand, &[(tx + 9.0, ground), (tx + 8.0, ground - th)], 6.0, 0.9, BROWN);
-            let (cx, cy, r) = (tx, ground - th - 36.0, hand.range(40.0, 52.0));
+            let (cx, cy, r) = (tx, ground - th - 44.0, hand.range(50.0, 64.0));
             let crown = move |x: f64, y: f64| ((x - cx) / r).hypot((y - cy) / (r * 0.85)) < 0.95;
             wax.hatch(&mut hand, (cx - r, cy - r, cx + r, cy + r), &crown, 6.0, 0.4, 0.6, GREEN);
             let mut pts = vec![];
@@ -305,11 +344,11 @@ fn crayon_tex(salt: u32) -> Tex {
         let n = 2 + (hand.f() * 3.0) as usize;
         let span_l = if hx0 > w * 0.4 { 30.0 } else { hx1 + 10.0 };
         let span_r = if hx0 > w * 0.4 { hx0 - 10.0 } else { w - 30.0 };
-        let step = ((span_r - span_l) / n as f64).min(78.0);
+        let step = ((span_r - span_l) / n as f64).min(96.0);
         let mut prev_hand: Option<(f64, f64)> = None;
         for k in 0..n {
             let fx = span_l + step * (k as f64 + 0.5) + hand.range(-6.0, 6.0);
-            let tall = if k < 2 && n > 2 { hand.range(118.0, 140.0) } else { hand.range(78.0, 110.0) };
+            let tall = if k < 2 && n > 2 { hand.range(150.0, 180.0) } else { hand.range(100.0, 140.0) };
             let col = hand.pick(&[RED, BLUE, PURPLE, BLACK, GREEN, ORANGE, PINK, BROWN]);
             let head_r = tall * hand.range(0.13, 0.16);
             let (hx, hy) = (fx, ground - tall + head_r);
@@ -319,25 +358,29 @@ fn crayon_tex(salt: u32) -> Tex {
             // the face: two eyes, a smile
             wax.stroke(&mut hand, &[(hx - head_r * 0.38, hy - head_r * 0.2), (hx - head_r * 0.36, hy - head_r * 0.15)], 4.5, 0.9, BLACK);
             wax.stroke(&mut hand, &[(hx + head_r * 0.36, hy - head_r * 0.2), (hx + head_r * 0.38, hy - head_r * 0.15)], 4.5, 0.9, BLACK);
-            let smile: Vec<(f64, f64)> = (0..=6).map(|q| {
-                let a = PI * (0.2 + 0.6 * q as f64 / 6.0);
-                (hx + head_r * 0.5 * a.cos(), hy + head_r * 0.15 + head_r * 0.38 * a.sin())
-            }).collect();
+            let smile: Vec<(f64, f64)> = (0..=6)
+                .map(|q| {
+                    let a = PI * (0.2 + 0.6 * q as f64 / 6.0);
+                    (hx + head_r * 0.5 * a.cos(), hy + head_r * 0.15 + head_r * 0.38 * a.sin())
+                })
+                .collect();
             wax.stroke(&mut hand, &smile, 4.0, 0.85, RED);
             // hair
             let hair = hand.pick(&[BROWN, YELLOW, BLACK, ORANGE]);
-            let hp: Vec<(f64, f64)> = (0..9).map(|q| {
-                let a = PI * (1.1 + 0.8 * q as f64 / 8.0);
-                let rr = head_r * if q % 2 == 0 { 1.05 } else { 1.35 };
-                (hx + rr * a.cos(), hy + rr * a.sin())
-            }).collect();
+            let hp: Vec<(f64, f64)> = (0..9)
+                .map(|q| {
+                    let a = PI * (1.1 + 0.8 * q as f64 / 8.0);
+                    let rr = head_r * if q % 2 == 0 { 1.05 } else { 1.35 };
+                    (hx + rr * a.cos(), hy + rr * a.sin())
+                })
+                .collect();
             wax.stroke(&mut hand, &hp, 4.5, 0.85, hair);
             // the body: a line, or a dress
             let neck = hy + head_r;
             let hip = ground - tall * 0.36;
             if hand.f() < 0.45 {
                 let dw = tall * 0.2;
-                wax.stroke(&mut hand, &[(fx, neck), (fx - dw, hip + 4.0), (fx + dw, hip + 4.0), (fx, neck)], 5.5, 0.9, col);
+                wax.lines(&mut hand, &[(fx, neck), (fx - dw, hip + 4.0), (fx + dw, hip + 4.0), (fx, neck)], 5.5, 0.9, col);
             } else {
                 let lean = hand.range(-2.0, 2.0);
                 wax.stroke(&mut hand, &[(fx, neck), (fx + lean, hip)], 5.5, 0.9, col);
@@ -411,7 +454,13 @@ fn crayon_tex(salt: u32) -> Tex {
         }
         if hand.f() < 0.35 {
             let (bx, by) = (hand.range(w * 0.35, w * 0.65), hand.range(90.0, 130.0));
-            wax.stroke(&mut hand, &[(bx - 12.0, by), (bx - 6.0, by - 6.0), (bx, by), (bx + 6.0, by - 6.0), (bx + 12.0, by)], 4.0, 0.85, BLACK);
+            wax.stroke(
+                &mut hand,
+                &[(bx - 12.0, by), (bx - 6.0, by - 6.0), (bx, by), (bx + 6.0, by - 6.0), (bx + 12.0, by)],
+                4.0,
+                0.85,
+                BLACK,
+            );
         }
         // a younger hand's scribble over a corner of it
         if hand.f() < 0.3 {
@@ -425,7 +474,8 @@ fn crayon_tex(salt: u32) -> Tex {
             wax.stroke(&mut hand, &pts, 5.5, 0.75, col);
         }
         // someone tried to scrub it off: the wax thinned in a band, smeared
-        let scrub = if hand.f() < 0.4 { Some((hand.range(w * 0.2, w * 0.8), hand.range(h * 0.3, h * 0.7), hand.range(60.0, 120.0))) } else { None };
+        let scrub =
+            if hand.f() < 0.4 { Some((hand.range(w * 0.2, w * 0.8), hand.range(h * 0.3, h * 0.7), hand.range(60.0, 120.0))) } else { None };
         let seed = salt;
         let (ink, col) = (wax.ink, wax.col);
         let mut img = ctx.create_image_data(cw, ch);

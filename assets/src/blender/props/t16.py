@@ -289,7 +289,9 @@ def lr_plan():
          (0.26, 0.010), (0.31, 0.110), (0.43, 0.215), (0.57, 0.250), (0.69, 0.200),
          (0.75, 0.080), (0.73, -0.070), (0.62, -0.190), (0.44, -0.255), (0.25, -0.220),
          (0.11, -0.100), (0.05, -0.030), (0.02, -0.016), (0.000, LR_HZ[1])]
-    return c
+    # drawn a little large: taken in to the rope's 8 ft (its ends kept at the handles)
+    k = 0.85
+    return c[:2] + [(x * k, z * k) for x, z in c[2:-2]] + c[-2:]
 
 
 def lr_axis():
@@ -406,12 +408,12 @@ def panel_mesh(corners, R, n=4, puff=0.010, seam=0.012):
     return propkit._fix_winding(Shape(v, f))
 
 
-def deflate(s, R, hc=0.36, eps=0.075, crease=0.05, folds=5, seed=0.0):
+def deflate(s, R, hc=0.36, eps=0.075, crease=0.05, folds=5, seed=0.0, tilt=(0.13, 0.07), wave=0.0):
     """The ball gone soft: its top (above hc R along a dent axis tipped a
     little) folded in on itself to a dish, the fold rounded over eps R and
     creased `folds` ways; the whole sagged, its bottom spread on the floor.
     Its parts are put on the floor together (`on_floor`)."""
-    ax = Vector((0.13, 1.0, 0.07)).normalized()
+    ax = Vector((tilt[0], 1.0, tilt[1])).normalized()
     e1 = ax.cross(Vector((0, 0, 1))).normalized()
     e2 = ax.cross(e1)
     out = s.copy()
@@ -420,8 +422,9 @@ def deflate(s, R, hc=0.36, eps=0.075, crease=0.05, folds=5, seed=0.0):
         rad = p - ax * y
         rr = rad.length
         th = math.atan2(rad.dot(e2), rad.dot(e1)) if rr > 1e-9 else 0.0
-        u = y - hc * R
-        y2 = hc * R - math.sqrt(u * u + (eps * R) ** 2) + eps * R
+        h0 = (hc + wave * min(1.0, rr / (0.8 * R)) ** 2 * (math.sin(2 * th + seed) + 0.4 * math.sin(3 * th + 2 * seed))) * R
+        u = y - h0
+        y2 = h0 - math.sqrt(u * u + (eps * R) ** 2) + eps * R
         # creases from the fold: the skin buckles in a few lobes
         w = math.exp(-(u / (0.30 * R)) ** 2)
         lob = math.sin(folds * th + 0.8 * math.sin(2 * th + seed) + seed) + 0.35 * n1(th * 2.0, seed, 3.3)
@@ -453,6 +456,7 @@ def on_floor(*shapes):
 
 
 _balls = {}
+FB_DENT = dict(hc=0.36, eps=0.08, crease=0.05, folds=5, seed=1.3, tilt=(0.20, 0.10), wave=0.06)
 
 
 def football(black):
@@ -463,11 +467,11 @@ def football(black):
             w = w + panel_mesh(c, FB_R)
         for c in pents:
             b = b + panel_mesh(c, FB_R)
-        _balls['fb'] = on_floor(deflate(w, FB_R, seed=1.3), deflate(b, FB_R, seed=1.3))
+        _balls['fb'] = on_floor(deflate(w, FB_R, **FB_DENT), deflate(b, FB_R, **FB_DENT))
     return _balls['fb'][1 if black else 0].copy()
 
 
-BB_DENT = dict(hc=0.50, eps=0.085, crease=0.06, folds=4, seed=2.1)
+BB_DENT = dict(hc=0.42, eps=0.09, crease=0.07, folds=3, seed=2.1, tilt=(0.32, 0.18), wave=0.10)
 
 
 def basketball(lines):
@@ -838,7 +842,7 @@ def cruiser_wheel(c):
     prof = [(0.0115, -0.0185), (0.0115, -0.0215), (0.019, -0.0225), (0.025, -0.0218), (0.0285, -0.0175),
             (0.0295, -0.009), (0.0295, 0.009), (0.0285, 0.0175), (0.025, 0.0218), (0.019, 0.0225),
             (0.0115, 0.0215), (0.0115, 0.0185)]
-    return lathe(prof, seg=18, cap_bottom=True, cap_top=True).rot(math.pi / 2, 0, 0).move(*c)
+    return lathe(prof, seg=24, cap_bottom=True, cap_top=True).rot(math.pi / 2, 0, 0).move(*c)
 
 
 def cruiser(kind):
@@ -880,11 +884,11 @@ def cruiser_flipped(kind):
 auto('Real__cruiserDeck', lambda: cruiser('deck'), 1800)
 auto('Real__cruiserTrucks', lambda: cruiser('trucks'), 2800)
 auto('Real__cruiserBushings', lambda: cruiser('bushings'), 400)
-auto('Real__cruiserWheels', lambda: cruiser('wheels'), 1800)
+auto('Real__cruiserWheels', lambda: cruiser('wheels'), 2400)
 auto('Real__cruiserDeckFlip', lambda: cruiser_flipped('deck'), 1800)
 auto('Real__cruiserTrucksFlip', lambda: cruiser_flipped('trucks'), 2800)
 auto('Real__cruiserBushingsFlip', lambda: cruiser_flipped('bushings'), 400)
-auto('Real__cruiserWheelsFlip', lambda: cruiser_flipped('wheels'), 1800)
+auto('Real__cruiserWheelsFlip', lambda: cruiser_flipped('wheels'), 2400)
 
 
 # =============================================================== the kite ===

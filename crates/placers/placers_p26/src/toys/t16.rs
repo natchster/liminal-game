@@ -80,10 +80,7 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         let band = t16_ss(0.020, 0.022, edge) * (1.0 - t16_ss(0.030, 0.032, edge));
         let (sx, sz) = (x, z - 0.04);
         let r = sx.hypot(sz);
-        let a = sz.atan2(sx) + PI / 2.0;
-        let arm = (a * 5.0 / 2.0).rem_euclid(PI) - PI / 2.0;
-        let star_r = 0.115 * (0.42 + 0.58 * (1.0 - (arm.abs() / (PI / 2.0))).powf(1.6));
-        let star = 1.0 - t16_ss(star_r - 0.002, star_r + 0.002, r);
+        let star = 1.0 - t16_ss(-0.002, 0.002, r - star_edge(sz.atan2(sx), 0.115, 0.045));
         let ring = t16_ss(0.150, 0.152, r) * (1.0 - t16_ss(0.158, 0.160, r));
         let printed = band.max(star).max(ring);
         // the print rubbed and faded unevenly
@@ -92,11 +89,25 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         c = t16_mix(c, [0.80, 0.77, 0.70], 0.30 * t16_ss(0.45, 0.85, fade));
         // the hem: the paper doubled over the string, darker, grimy
         c = t16_mix(c, [c[0] * 0.78, c[1] * 0.76, c[2] * 0.74], t16_ss(0.014, 0.010, edge));
-        // creases of its crumpling: thin light and dark lines
-        let cr1 = (t16_fbm(salt ^ 0x41, u * 7.0, v * 7.0, 3) - 0.5).abs();
-        let cr2 = (t16_fbm(salt ^ 0x43, u * 11.0, v * 11.0, 2) - 0.5).abs();
-        c = t16_mix(c, [c[0] * 0.70, c[1] * 0.68, c[2] * 0.66], (1.0 - t16_ss(0.0, 0.012, cr1)) * 0.7);
-        c = t16_mix(c, [0.86, 0.84, 0.80], (1.0 - t16_ss(0.0, 0.008, cr2)) * 0.25);
+        // creases where it was folded and crumpled: straight folds across
+        // it, each dark on one side and catching the light on the other
+        let (mut dark, mut lit) = (0.0f64, 0.0f64);
+        for k in 0..10 {
+            let a = t16_hash(salt ^ 0x91, k, 0) * PI;
+            let (x0, z0) = (-0.2 + 0.4 * t16_hash(salt ^ 0x92, k, 1), -0.25 + 0.5 * t16_hash(salt ^ 0x93, k, 2));
+            let (nx, nz) = (a.cos(), a.sin());
+            let d = (x - x0) * nx + (z - z0) * nz;
+            let along = (z - z0) * nx - (x - x0) * nz;
+            let len = 0.06 + 0.18 * t16_hash(salt ^ 0x94, k, 3);
+            let fade = t16_ss(len, len * 0.5, along.abs());
+            if d < 0.0 {
+                dark = dark.max(t16_ss(0.0016, 0.0, -d) * fade);
+            } else {
+                lit = lit.max(t16_ss(0.0020, 0.0, d) * fade);
+            }
+        }
+        c = t16_mix(c, [c[0] * 0.66, c[1] * 0.64, c[2] * 0.62], 0.75 * dark);
+        c = t16_mix(c, [0.86, 0.84, 0.80], 0.22 * lit);
         // a tide line where water stood on it, and its stain inside
         let wet = t16_fbm(salt ^ 0x63, u * 3.0, v * 3.0, 3) + 0.25 * (1.0 - u);
         let inside = t16_ss(0.58, 0.60, wet);
@@ -115,6 +126,21 @@ fn sail_tex(paper: [f64; 3], ink: [f64; 3], salt: u32) -> Tex {
         let dust = t16_ss(0.45, 0.9, t16_fbm(salt ^ 0x11, u * 9.0, v * 9.0, 3));
         t16_mix(c, [0.62, 0.60, 0.56], 0.35 * dust)
     })
+}
+
+/// A regular five pointed star's edge (outer radius `ro`, inner `ri`, a
+/// point toward +z: the kite's head) at the angle `a` from its middle
+fn star_edge(a: f64, ro: f64, ri: f64) -> f64 {
+    let sector = PI / 5.0;
+    // from the nearest point's direction, folded into one half sector
+    let f = (a - PI / 2.0).rem_euclid(2.0 * sector);
+    let phi = if f > sector { 2.0 * sector - f } else { f };
+    // the edge from the point (ro, 0) to the notch (ri at the half sector)
+    let (ax, ay) = (ro, 0.0);
+    let (bx, by) = (ri * sector.cos(), ri * sector.sin());
+    let (ex, ey) = (bx - ax, by - ay);
+    let (dx, dy) = (phi.cos(), phi.sin());
+    (ax * ey - ay * ex) / (dx * ey - dy * ex)
 }
 
 /// A colour as hex from sRGB in 0..1

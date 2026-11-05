@@ -99,7 +99,7 @@ fn enamel_tex(salt: u32) -> Tex {
                 // how far in from the bar's edge (m)
                 let edge = (BAR_W / 2.0 - dx).min(bar_len(k) / 2.0 - dz);
                 let metal = t16_mix([0.66, 0.67, 0.68], [0.52, 0.53, 0.54], t16_fbm(salt ^ 0x15, u * 30.0, v * 15.0, 2));
-                let mut c = t16_mix(COLS[k], [0.70, 0.68, 0.64], 0.25 * t16_ss(0.45, 0.8, t16_fbm(salt, u * 8.0, v * 4.0, 3)));
+                let mut c = t16_mix(COLS[k], [0.70, 0.68, 0.64], 0.15 * t16_ss(0.45, 0.8, t16_fbm(salt, u * 8.0, v * 4.0, 3)));
                 let chip_n = t16_fbm(salt ^ 0x25, u * 60.0, v * 30.0, 3);
                 let corner = t16_ss(0.006, 0.0, (BAR_W / 2.0 - dx).max(0.0).hypot((bar_len(k) / 2.0 - dz).max(0.0)) - 0.002);
                 let chip = t16_ss(0.0035, 0.0005, edge).max(corner) * t16_ss(0.45, 0.6, chip_n);
@@ -108,12 +108,12 @@ fn enamel_tex(salt: u32) -> Tex {
                 let strike = (-(sx * sx + sz * sz)).exp() * t16_ss(0.3, 0.6, t16_fbm(salt ^ 0x35, u * 90.0, v * 45.0, 2));
                 c = t16_mix(c, metal, chip.max(strike * 0.85));
                 let scratch = (t16_fbm(salt ^ 0x45, u * 4.0, v * 70.0, 2) - 0.5).abs();
-                c = t16_mix(c, [0.78, 0.77, 0.74], 0.35 * (1.0 - t16_ss(0.0, 0.01, scratch)));
+                c = t16_mix(c, [0.78, 0.77, 0.74], 0.25 * (1.0 - t16_ss(0.0, 0.006, scratch)));
                 // grime round the pins and dust
                 let pin = (x - bar_x(k)).hypot(dz - bar_len(k) * (0.5 - 0.224));
                 c = t16_mix(c, [0.22, 0.20, 0.18], 0.5 * t16_ss(0.006, 0.0025, pin));
                 let dust = t16_ss(0.5, 0.85, t16_fbm(salt ^ 0x55, u * 12.0, v * 6.0, 3));
-                c = t16_mix(c, [0.55, 0.53, 0.50], 0.35 * dust);
+                c = t16_mix(c, [0.55, 0.53, 0.50], 0.2 * dust);
                 for q in 0..3 {
                     out[i * 4 + q] = (c[q].clamp(0.0, 1.0) * 255.0).round() as u8;
                 }
