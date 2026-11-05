@@ -7,6 +7,8 @@ mod r11b;
 pub(crate) use r11b::place_peeling_wallpapers;
 mod r13a;
 pub(crate) use r13a::{place_cracked_mirrors, place_wall_chalkboards};
+mod t14;
+pub(crate) use t14::{place_doll_body_parts, place_doll_heads};
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -403,52 +405,6 @@ pub(crate) fn place_dead_moths(g: &mut Game, _dist: &[i32]) {
     g.world.add(&moth);
 }
 
-// R499 doll body parts: 4% chance per level. 2-3 severed doll limbs scattered.
-pub(crate) fn place_doll_body_parts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let porcelain_mat = lambert!({ color: 0xf0d8c0 });
-    let joint_mat = lambert!({ color: 0x8a3020 });
-    let grp = group();
-    let n_parts = 2 + (rnd() * 2.0).floor() as i32;
-    for i in 0..n_parts {
-        let is_arm = rnd() < 0.5;
-        let part = group();
-        // Limb main cylinder (thicker for leg, thinner for arm).
-        let limb_r = if is_arm { 0.010 } else { 0.014 };
-        let limb_len = if is_arm { 0.065 } else { 0.080 };
-        let limb = mesh(pg("DollBodyParts__limb", cyl_geo!(limb_r, limb_r, limb_len, 8)), &porcelain_mat);
-        limb.rotation().z = PI / 2.0;
-        part.add(&limb);
-        // End joint (dark socket).
-        let socket = mesh(pg("DollBodyParts__socket", cyl_geo!(limb_r + 0.002, limb_r + 0.002, 0.006, 8)), &joint_mat);
-        socket.rotation().z = PI / 2.0;
-        socket.position().x = -limb_len / 2.0 - 0.002;
-        part.add(&socket);
-        // Hand/foot ball at other end.
-        let ext = mesh(pg("DollBodyParts__hand", sphere_geo!(limb_r * 1.4, 6, 5)), &porcelain_mat);
-        ext.position().x = limb_len / 2.0 + limb_r * 0.5;
-        part.add(&ext);
-        part.position().set((rnd() - 0.5) * 0.30, limb_r, (rnd() - 0.5) * 0.20);
-        part.rotation().y = rnd() * PI * 2.0;
-        part.rotation().z = (rnd() - 0.5) * 0.4;
-        // Height from the tilt: whichever end is lower rests on the floor.
-        let rz = part.rot().z;
-        let (tsn, tcs) = (rz.sin(), rz.cos());
-        let py = (limb_r * 1.4 - ext.pos().x * tsn).max((limb_r + 0.002) * tcs + 0.003 * tsn.abs() - socket.pos().x * tsn);
-        part.position().y = py;
-        grp.add(&part);
-    }
-    scatter_on_floor(g, &grp, x, z, 1.8);
-    g.world.add(&grp);
-}
-
 // R499 single child shoe: 6% chance per level. One small child's shoe on floor.
 pub(crate) fn place_single_child_shoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -810,58 +766,6 @@ pub(crate) fn place_scattered_pages(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &grp, x, z, 2.0);
     g.world.add(&grp);
-}
-
-// R494 severed porcelain doll head: 3% chance per level.
-pub(crate) fn place_doll_heads(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let porcelain_mat = lambert!({ color: 0xf0d8c0 });
-    let hair_colors = [0x604020, 0x201810, 0xd8a040, 0x8a2020];
-    let hair_mat = lambert!({ color: pick_hex(&hair_colors) });
-    let eye_mat = basic_mat!({ color: 0x0080a0 });
-    let mouth_mat = lambert!({ color: 0x802040 });
-    let doll = group();
-    // Head sphere.
-    let head = mesh(pg("DollHeads__head", sphere_geo!(0.045, 12, 10)), &porcelain_mat);
-    head.scale().set(1, 1.1, 0.95);
-    head.position().y = 0.045;
-    doll.add(&head);
-    // 2 glass eyes.
-    for s in [-1.0, 1.0] {
-        let eye = mesh(sphere_geo!(0.006, 6, 5), &eye_mat);
-        eye.position().set(s * 0.014, 0.052, 0.038);
-        doll.add(&eye);
-    }
-    // Small mouth (dark curve).
-    let mouth = mesh(plane_geo!(0.020, 0.006), &mouth_mat);
-    mouth.position().set(0, 0.030, 0.043);
-    doll.add(&mouth);
-    // Hair patch (curved top).
-    let hair = mesh(pg("DollHeads__hair", sphere_geo!(0.040, 10, 6, 0, PI * 2.0, 0, PI / 2.0)), &hair_mat);
-    hair.position().y = 0.058;
-    hair.scale().set(1.1, 0.9, 1.1);
-    doll.add(&hair);
-    // Neck stub (dark, torn), poking 5 mm out under the head.
-    let neck_mat = lambert!({ color: 0x8a3020 });
-    let neck = mesh(pg("DollHeads__neck", cyl_geo!(0.014, 0.010, 0.010, 8)), &neck_mat);
-    neck.position().y = -0.003;
-    doll.add(&neck);
-    // Tipped on side often.
-    if rnd() < 0.60 {
-        doll.rotation().z = PI / 2.0;
-        doll.position().y = 0.030;
-    }
-    doll.position().x = g.wx(x) + (rnd() - 0.5) * 2.4;
-    doll.position().z = g.wz(z) + (rnd() - 0.5) * 2.4;
-    doll.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&doll);
 }
 
 // R494 wall coat hooks with robe: 5% chance per level. 3 hooks + optional robe.
