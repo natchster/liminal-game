@@ -29,18 +29,25 @@ pub(crate) fn place_cotton_swabs(g: &mut Game, _dist: &[i32]) {
     let Some(kit) = swab_kit() else { return };
     let cluster = group();
     let count = 4 + (rnd() * 5.0).floor() as i32;
-    for _ in 0..count {
+    // Two by two, a swab and the next are the same (the odd last one too):
+    // none is the only one of its kind, so every swab is drawn instanced, as
+    // the old ones were
+    let mut kind: Option<usize> = None;
+    for i in 0..count {
         let sx = (rnd() - 0.5) * 0.12;
         let sz = (rnd() - 0.5) * 0.12;
         let yaw = rnd() * PI * 2.0;
-        // which swab: from where it fell (no draw); most are as they came
-        let s = salt(sx * 100.0, sz * 100.0, 579);
-        let k = match s % 10 {
-            0 => 1,
-            1 => 2,
-            2 => 3,
-            _ => 0,
-        };
+        // which swab: from where the first of two fell (no draw); most are
+        // as they came
+        if (i % 2 == 0 && i + 1 < count) || kind.is_none() {
+            kind = Some(match salt(sx * 100.0, sz * 100.0, 579) % 10 {
+                0 => 1,
+                1 => 2,
+                2 => 3,
+                _ => 0,
+            });
+        }
+        let k = kind.unwrap_or(0);
         let swab = mesh(kit.swabs[k].clone(), &kit.mat);
         // spread a little wider than the old sticks (twice as long)
         swab.position().set(sx * 1.5, 0.0, sz * 1.5);

@@ -30,18 +30,25 @@ pub fn place_candy_corn_scatters(g: &mut Game, _dist: &[i32]) {
     let Some(kit) = corn_kit() else { return };
     let grp = group();
     let n_pieces = 8 + (rnd() * 7.0).floor() as i32;
-    for _ in 0..n_pieces {
+    // Two by two, a piece and the next are the same (the odd last one too):
+    // none is the only one of its kind, so every piece is drawn instanced,
+    // as the old ones were
+    let mut kind: Option<(usize, bool)> = None;
+    for i in 0..n_pieces {
         let cx = (rnd() - 0.5) * 0.30;
         let cz = (rnd() - 0.5) * 0.25;
         let yaw = rnd() * PI * 2.0;
-        // which piece and how stale: from where it fell (no draw)
-        let s = salt(cx * 100.0, cz * 100.0, 465);
-        let k = match s % 9 {
-            0 => 1,
-            1 => 2,
-            _ => 0,
-        };
-        let stale = (s >> 5) % 4 == 0;
+        // which piece and how stale: from where the first of two fell (no draw)
+        if (i % 2 == 0 && i + 1 < n_pieces) || kind.is_none() {
+            let s = salt(cx * 100.0, cz * 100.0, 465);
+            let k = match s % 9 {
+                0 => 1,
+                1 => 2,
+                _ => 0,
+            };
+            kind = Some((k, (s >> 5) % 4 == 0));
+        }
+        let (k, stale) = kind.unwrap_or((0, false));
         let candy = mesh(kit.corns[k].clone(), &kit.mats[usize::from(stale)]);
         candy.position().set(cx, 0.0, cz);
         candy.rotation().y = yaw;

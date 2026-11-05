@@ -54,34 +54,50 @@ pub fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
         let n_butts = 2 + (rnd() * 5.0).floor() as i32; // 2-6 per pile
                                                         // the smoker's brand: cork tipping, or one in four white (no draw)
         let brand = usize::from(salt(g.wx(x) + px, g.wz(z) + pz, 251) % 4 == 0);
-        for _ in 0..n_butts {
+        // Two by two, a butt and the next are the same kind (the odd last
+        // one too): no butt is the only one of its kind on its chunk, so
+        // every butt is drawn instanced, as the old ones were
+        let mut kind: Option<(usize, bool)> = None;
+        for i in 0..n_butts {
             // Position within ~0.15 m radius of pile center.
             let bx = px + (rnd() - 0.5) * 0.30;
             let bz = pz + (rnd() - 0.5) * 0.30;
             let yaw = rnd() * PI * 2.0;
-            // the old tilt's draw: which butt (stubbed out the most)
+            // the old tilt's draw: which butt (stubbed out the most), and
+            // whether its ash lies by it; for the second of two, how much
+            // longer or shorter it is (within 4%)
             let which = rnd();
-            let k = match which {
-                w if w < 0.42 => 0,
-                w if w < 0.66 => 1,
-                w if w < 0.82 => 2,
-                _ => 3,
-            };
             let (wx, wz) = (g.wx(x) + bx, g.wz(z) + bz);
+            let lead = i % 2 == 0 && i + 1 < n_butts;
+            let size = if lead || kind.is_none() {
+                let k = match which {
+                    w if w < 0.42 => 0,
+                    w if w < 0.66 => 1,
+                    w if w < 0.82 => 2,
+                    _ => 3,
+                };
+                // the ash knocked off them (not under a shoe): one pair in three
+                kind = Some((k, k != 3 && salt(wx, wz, 0x251) % 3 == 0));
+                1.0
+            } else {
+                0.96 + 0.08 * which
+            };
+            let (k, ashed) = kind.unwrap_or((0, false));
             let butt = group();
             let (geo, len) = &kit.butts[k];
             let m = mesh(geo.clone(), &kit.paper[brand]);
             m.position().x = -len / 2.0;
             butt.add(&m);
-            // the ash knocked off it, beside its burnt end (not under a shoe)
-            let s = salt(wx, wz, 0x251);
-            if k != 3 && s % 3 == 0 {
+            if ashed {
+                // beside its burnt end
+                let s = salt(wx, wz, 0x252);
                 let ash = mesh(kit.ash.clone(), &kit.ash_mat);
-                let side = if (s >> 4) & 1 == 0 { 1.0 } else { -1.0 };
+                let side = if s & 1 == 0 { 1.0 } else { -1.0 };
                 ash.position().set(len / 2.0 + 0.002, 0.0, side * 0.006);
                 ash.rotation().y = f64::from((s >> 5) % 628) / 100.0;
                 butt.add(&ash);
             }
+            butt.scale().set(size, size, size);
             butt.position().set(wx, 0.0, wz);
             butt.rotation().y = yaw;
             g.world.add(&butt);

@@ -32,28 +32,37 @@ pub(crate) fn place_paperclip_clusters(g: &mut Game, _dist: &[i32]) {
     ];
     let grp = group();
     let n_clips = 6 + (rnd() * 9.0).floor() as i32;
-    for _ in 0..n_clips {
+    // Two by two, a clip and the next are the same clip with the same
+    // finish (the odd last one too): none is the only one of its kind, so
+    // every clip is drawn instanced, as the old ones were
+    let mut kind: Option<(usize, usize)> = None;
+    for i in 0..n_clips {
         let yaw = rnd() * PI * 2.0;
         let px = (rnd() - 0.5) * 0.15;
         let pz = (rnd() - 0.5) * 0.12;
-        // the old two scale draws: which clip, and its finish
+        // the old two scale draws: which clip, and its finish (the second
+        // of two takes the first's)
         let shape = rnd();
         let finish = rnd();
-        let geo = if shape < 0.78 {
-            &gem
-        } else if shape < 0.92 {
-            &pulled
-        } else {
-            &jumbo
-        };
-        let mat = &finishes[if finish < 0.62 {
-            0
-        } else if finish < 0.90 {
-            1
-        } else {
-            2
-        }];
-        let clip = mesh(geo.clone(), mat);
+        if (i % 2 == 0 && i + 1 < n_clips) || kind.is_none() {
+            let k = if shape < 0.78 {
+                0
+            } else if shape < 0.92 {
+                1
+            } else {
+                2
+            };
+            let f = if finish < 0.62 {
+                0
+            } else if finish < 0.90 {
+                1
+            } else {
+                2
+            };
+            kind = Some((k, f));
+        }
+        let (k, f) = kind.unwrap_or((0, 0));
+        let clip = mesh([&gem, &pulled, &jumbo][k].clone(), &finishes[f]);
         clip.position().set(px, 0.0, pz);
         clip.rotation().y = yaw;
         grp.add(&clip);

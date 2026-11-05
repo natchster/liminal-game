@@ -63,12 +63,14 @@ pub fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
         // the way the curve runs there
         let (da, dp) = (total_len, (p * PI + curve_phase).cos() * curve_amp * PI);
         // the old puff's draws: its size (a length a little fuller or
-        // thinner), which length, one kept; its turn (a little askew)
+        // thinner), how far along it sits, one kept; its turn (a little
+        // askew). The lengths take turns (four of each, so each is drawn
+        // instanced, as the old puffs were)
         let size = rnd();
-        let which = rnd();
+        let slide = rnd();
         let _ = rnd(); // keeps the old draw (the puff's depth)
         let askew = rnd();
-        let (core, feathers) = &lengths[((which * 3.0) as usize).min(2)];
+        let (core, feathers) = &lengths[i % 3];
         let len = group();
         for (geo, mat) in [(core, &core_mat), (feathers, &feather_mat)] {
             if let Some(geo) = geo {
@@ -77,7 +79,9 @@ pub fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
         }
         let s = 0.92 + 0.16 * size;
         len.scale().set(s, s, s);
-        len.position().set(ca * shrink, 0.0, cp * shrink);
+        let nudge = (slide - 0.5) * 0.008;
+        let (ux, uz) = (da / hypot2(da, dp), dp / hypot2(da, dp));
+        len.position().set(ca * shrink + ux * nudge, 0.0, cp * shrink + uz * nudge);
         len.rotation().y = (-dp).atan2(da) + (askew - 0.5) * 0.3;
         boa.add(&len);
     }
