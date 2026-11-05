@@ -1122,7 +1122,6 @@ fn place_silver_trays(g: &mut Game, _dist: &[i32]) {
     g.world.add(&st);
 }
 
-
 // R751 open pocket watch on chain (floor): 4% chance per level.
 fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
     g.pp.pocket_watch_positions_r755.clear(); // R755 reset per level

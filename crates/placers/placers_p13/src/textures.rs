@@ -61,8 +61,6 @@ pub fn shuffle_by_random_comparator<T: Clone>(v: &mut Vec<T>) {
     }
 }
 
-
-
 game::lazy_static_tex!(
     chalk_content_texture,
     canvas_tex(240, 180, |ctx, w, h| {
@@ -218,4 +216,3 @@ game::lazy_static_tex!(
         ctx.fill_text("Standard Reference — Chemistry Dept.", w - 8.0, h - 4.0);
     })
 );
-

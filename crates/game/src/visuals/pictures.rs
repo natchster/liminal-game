@@ -340,14 +340,24 @@ pub fn sheet_tex(size: (f64, f64), ppm: f64, age: Age, vary: u32, draw: impl FnO
 /// from its edges, silvered, cracked, foxed, stained and grimed by `age`,
 /// computed on every core; then a crease and scratches drawn
 #[allow(clippy::too_many_arguments)]
-fn age_sheet(ctx: &mut Canvas, w: f64, h: f64, size: (f64, f64), ppm: f64, age: Age, vary: u32, src: &(dyn Fn(f64, f64, usize, usize) -> [f64; 3] + Sync)) {
+fn age_sheet(
+    ctx: &mut Canvas,
+    w: f64,
+    h: f64,
+    size: (f64, f64),
+    ppm: f64,
+    age: Age,
+    vary: u32,
+    src: &(dyn Fn(f64, f64, usize, usize) -> [f64; 3] + Sync),
+) {
     let mut r = SplitMix64::new(vary, 0x9a1c);
     let seed = (r.next() * 4.0e9) as u32;
     // foxing: soft brown spots, a few with a darker heart
     let spots: Vec<(f64, f64, f64, f64)> =
         (0..age.spots).map(|_| (r.next() * w, r.next() * h, r.range(0.6, 3.2) * ppm / 1000.0, r.range(0.15, 0.55))).collect();
     // the losses: flakes off an oil, the ground showing
-    let losses: Vec<(f64, f64, f64)> = (0..age.losses).map(|_| (r.next() * w, r.range(0.4, 1.0) * h, r.range(0.4, 1.4) * ppm / 1000.0)).collect();
+    let losses: Vec<(f64, f64, f64)> =
+        (0..age.losses).map(|_| (r.next() * w, r.range(0.4, 1.0) * h, r.range(0.4, 1.4) * ppm / 1000.0)).collect();
     let tide = r.range(0.06, 0.16);
     let n = w as usize;
     let mut img = ctx.create_image_data(w, h);

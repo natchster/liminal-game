@@ -94,7 +94,9 @@ pub(crate) fn place_antique_maps(g: &mut Game, _dist: &[i32]) {
     let body = pictures::hang(&map, 0.0, 0.007, APEX, SIZE.1, 0.010, tilt);
     let pic = ["map_world", "map_dvina", "map_sky", "map_mexico"][(vary % 4) as usize];
     let frame_mat = match finish {
-        Finish::Ebony => phong!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, finish, 1000.0, vary), specular: 0x1a1a1a, shininess: 30 }),
+        Finish::Ebony => {
+            phong!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, finish, 1000.0, vary), specular: 0x1a1a1a, shininess: 30 })
+        }
         _ => lambert!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, finish, 1000.0, vary) }),
     };
     let dirt = 0.3 + 0.3 * (vary % 67) as f32 / 67.0;

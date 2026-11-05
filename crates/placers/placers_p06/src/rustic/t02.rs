@@ -54,7 +54,10 @@ pub fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
     pictures::add_parts(
         &body,
         &[
-            ("Real__vintageMapFrame", lambert!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, Finish::Wood(stain), 1100.0, vary) })),
+            (
+                "Real__vintageMapFrame",
+                lambert!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, Finish::Wood(stain), 1100.0, vary) }),
+            ),
             ("Real__vintageMapGlass", pictures::glass_mat(vary, dirt)),
             ("Real__vintageMapPrint", lambert!({ map: &pictures::print_tex(pic, PRINT, 1450.0, Age::engraving(vary), vary) })),
             ("Real__vintageMapBack", lambert!({ color: 0x4a3a2a })),

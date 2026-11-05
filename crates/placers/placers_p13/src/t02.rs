@@ -174,15 +174,8 @@ pub(crate) fn place_anatomy_charts(g: &mut Game, _dist: &[i32]) {
 const WP_SIZE: (f64, f64) = (0.200, 0.280);
 const WP_PAPER: (f64, f64) = (0.184, 0.264);
 /// The cheap moulding's face, outer edge to sight (d, z), as `poster_frame`
-static WP_FACE: [(f64, f64); 7] = [
-    (0.0, 0.0118),
-    (0.0008, 0.0134),
-    (0.0024, 0.0140),
-    (0.0092, 0.0140),
-    (0.0106, 0.0134),
-    (0.0115, 0.0124),
-    (0.012, 0.0112),
-];
+static WP_FACE: [(f64, f64); 7] =
+    [(0.0, 0.0118), (0.0008, 0.0134), (0.0024, 0.0140), (0.0092, 0.0140), (0.0106, 0.0134), (0.0115, 0.0124), (0.012, 0.0112)];
 
 /// A line of a poster: its words, its face, its share of the type area's
 /// width it fills at most, its cap height (px) and its ink
@@ -333,7 +326,10 @@ pub(crate) fn place_propaganda_posters(g: &mut Game, _dist: &[i32]) {
         &[
             ("Real__warPosterFrame", lambert!({ map: &pictures::moulding_tex(WP_SIZE, &WP_FACE, Outline::Rect, finish, 1300.0, vary) })),
             ("Real__warPosterGlass", pictures::glass_mat(vary, dirt)),
-            ("Real__warPosterPaper", lambert!({ map: &pictures::sheet_tex(WP_PAPER, 1500.0, age, vary, move |ctx, w, h| paint_poster(ctx, w, h, design, vary)) })),
+            (
+                "Real__warPosterPaper",
+                lambert!({ map: &pictures::sheet_tex(WP_PAPER, 1500.0, age, vary, move |ctx, w, h| paint_poster(ctx, w, h, design, vary)) }),
+            ),
             ("Real__warPosterBack", lambert!({ color: 0x4a3a2a })),
         ],
     );

@@ -70,7 +70,10 @@ pub(crate) fn place_botanical_prints(g: &mut Game, _dist: &[i32]) {
     pictures::add_parts(
         &body,
         &[
-            ("Real__botanicalPrintFrame", lambert!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, Finish::Wood(stain), 1200.0, vary) })),
+            (
+                "Real__botanicalPrintFrame",
+                lambert!({ map: &pictures::moulding_tex(SIZE, &FACE, Outline::Rect, Finish::Wood(stain), 1200.0, vary) }),
+            ),
             (
                 "Real__botanicalPrintMat",
                 lambert!({ map: &pictures::mat_tex(MAT, Window::Rect(WIN.0, WIN.1, WIN.2), [0xdc, 0xd4, 0xbe], vary, None) }),

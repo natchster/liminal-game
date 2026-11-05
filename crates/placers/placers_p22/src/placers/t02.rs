@@ -41,9 +41,7 @@ pub(crate) fn place_religious_triptychs(g: &mut Game, _dist: &[i32]) {
     age.weave = 0.0;
     age.crack = (age.crack.0 * 0.6, age.crack.1 * 0.6);
     age.losses = age.losses.min(2);
-    let panel = |name: &str, size: (f64, f64), salt: u32| {
-        phong!({ map: &pictures::print_tex(name, size, 1400.0, age, vary ^ salt), specular: 0x1c1a16, shininess: 18 })
-    };
+    let panel = |name: &str, size: (f64, f64), salt: u32| phong!({ map: &pictures::print_tex(name, size, 1400.0, age, vary ^ salt), specular: 0x1c1a16, shininess: 18 });
     pictures::add_parts(&body, &[("Real__triptychCentre", panel("trip_c", CENTRE, 0))]);
     // the wings, opened forward on their hinges at the centre's front edges
     let open = 0.30 + 0.30 * f64::from((vary >> 5) % 101) / 100.0;
