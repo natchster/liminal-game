@@ -4,6 +4,9 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
+mod t15;
+use t15::place_pet_toys;
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_tall_floor_lamps", place_tall_floor_lamps));
@@ -834,93 +837,6 @@ fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
         let p = pb.pos();
         g.pp.pet_bowl_positions.push(v3(p.x, 0, p.z));
     }
-}
-
-// R722 pet toy — squeaky bone or ball (floor): 7% chance per level.
-fn place_pet_toys(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let pt = group();
-    let is_bone = rnd() < 0.55;
-    if is_bone {
-        // Squeaky bone — 2 rounded ends w/ narrow shaft between.
-        let bone_colors = [0xf0e0c0, 0xd0c0a0, 0xf0d8b0, 0xe0d0a0];
-        let bone_mat = lambert!({ color: choice(&bone_colors) });
-        // Central shaft.
-        let shaft_len = 0.14;
-        let shaft = mesh(pg("PetToys__shaft", cyl_geo!(0.014, 0.014, shaft_len, 8)), &bone_mat);
-        shaft.rotation().z = PI / 2.0;
-        shaft.position().y = 0.020;
-        pt.add(&shaft);
-        // 4 rounded "knob" ends (2 spheres per end, offset).
-        for side in [-1.0f64, 1.0] {
-            for off_z in [-0.014, 0.014] {
-                let knob = mesh(pg("PetToys__knob", sphere_geo!(0.020, 6, 5)), &bone_mat);
-                knob.position().set(side * shaft_len / 2.0, 0.020, off_z);
-                pt.add(&knob);
-            }
-        }
-        // Small tooth-mark divots — 2-3 dark spots on shaft.
-        let mark_count = 2 + (rnd() * 2.0).floor() as i32;
-        for i in 0..mark_count {
-            let mark_mat = lambert!({ color: 0x604020 });
-            let mark = mesh(circle_geo!(0.004, 5), &mark_mat);
-            let mark_x = (rnd() - 0.5) * shaft_len * 0.7;
-            let mz = (rnd() - 0.5) * 0.010;
-            mark.position().set(mark_x, 0.020 + 0.015, mz);
-            mark.rotation().x = -PI / 2.0 + (rnd() - 0.5) * 0.5;
-            pt.add(&mark);
-        }
-        // Slight tilt as if fallen over: a roll about its long axis, lifted so
-        // the lower knobs rest on the floor. Y last keeps the random heading.
-        let roll = (rnd() - 0.5) * 0.25;
-        pt.set_rotation_order(EulerOrder::YXZ);
-        pt.rotation().x = roll;
-        pt.position().y = 0.020 * (1.0 - roll.cos()) + 0.014 * roll.sin().abs();
-    } else {
-        // Rubber ball — 1 vibrant sphere w/ tooth marks.
-        let ball_colors = [0xa02040, 0x2060a0, 0xf0d040, 0x40a030, 0xf07020, 0xa040a0];
-        let ball_mat = lambert!({ color: choice(&ball_colors) });
-        let ball_r = 0.038;
-        let ball = mesh(pg("PetToys__ball", sphere_geo!(ball_r, 10, 8)), &ball_mat);
-        ball.position().y = ball_r;
-        pt.add(&ball);
-        // 2-4 dark dimple/bite marks scattered on ball.
-        let mark_count = 2 + (rnd() * 3.0).floor() as i32;
-        for i in 0..mark_count {
-            let u = rnd() * PI * 2.0;
-            let v = rnd() * (PI * 0.6) + PI * 0.2;
-            let mark = mesh(circle_geo!(0.006, 5), lambert!({ color: 0x201010 }));
-            let mx = u.cos() * v.sin() * ball_r * 1.005;
-            let my = v.cos() * ball_r * 1.005;
-            let mz = u.sin() * v.sin() * ball_r * 1.005;
-            mark.position().set(mx, ball_r + my, mz);
-            mark.look_at(0, ball_r, 0);
-            // Flip so face-out.
-            mark.rotation().y += PI;
-            pt.add(&mark);
-        }
-        // Optional decorative white stripe across ball equator.
-        if rnd() < 0.4 {
-            let stripe_mat = lambert!({ color: 0xf0f0f0 });
-            let stripe = mesh(pg("PetToys__stripe", torus_geo!(ball_r * 1.005, 0.003, 3, 12)), &stripe_mat);
-            stripe.rotation().x = PI / 2.0;
-            stripe.position().y = ball_r;
-            pt.add(&stripe);
-        }
-    }
-    let py = pt.pos().y; // the bone's roll lift (0 otherwise)
-    let px = g.wx(x) + (rnd() - 0.5) * 2.4;
-    let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
-    pt.position().set(px, py, pz);
-    pt.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pt);
 }
 
 // R722 framed pet portrait (wall).

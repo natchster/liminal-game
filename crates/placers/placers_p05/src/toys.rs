@@ -2,6 +2,11 @@
 use crate::{face_yaw, open_tiles, pick, set_rot_order, wall_tiles};
 use game::prelude::*;
 
+// the action figure, the baby rattle and the toy dinosaur: batch `t15`'s
+// (`toys/t15.rs`)
+mod t15;
+pub use t15::{place_action_figures, place_baby_rattles, place_toy_dinosaurs};
+
 // R625 crayon cluster: 8% chance per level. 5-9 short colored sticks.
 pub fn place_crayons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -276,153 +281,6 @@ fn puzzle_board_tex() -> Tex {
             ctx.fill_rect(x, y, 1.0 + rnd() * 2.0, 1.0);
         }
     })
-}
-
-// R627 plastic action figure: 4% chance per level. Head + torso + limbs.
-pub fn place_action_figures(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let body_colors: [u32; 5] = [0x2060c0, 0x40a040, 0xc02020, 0x606060, 0xd0a040];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let skin_mat = lambert!({ color: 0xd8b090 });
-    let fig = group();
-    // 60% chance lying down (fallen posture), 40% chance upright.
-    let is_down = rnd() < 0.60;
-    // Torso.
-    let torso = mesh(pg("ActionFigures__torso", box_geo!(0.024, 0.032, 0.014)), &body_mat);
-    // lying on its back: every part's top (+Y) turns to -Z, toward the head,
-    // and each rests on the floor
-    torso.position().y = if is_down { 0.007 } else { 0.040 };
-    if is_down {
-        torso.rotation().x = -PI / 2.0;
-    }
-    fig.add(&torso);
-    // Head.
-    let head = mesh(pg("ActionFigures__head", sphere_geo!(0.011, 8, 6)), &skin_mat);
-    head.position().y = if is_down { 0.011 } else { 0.068 };
-    head.position().z = if is_down { -0.024 } else { 0.0 };
-    if is_down {
-        head.rotation().x = -PI / 2.0;
-    } // neck peg to the torso
-    fig.add(&head);
-    // 2 arms.
-    for side in [-1.0, 1.0] {
-        let arm = mesh(pg("ActionFigures__arm", box_geo!(0.006, 0.024, 0.006)), &body_mat);
-        arm.position().set(side * 0.014, if is_down { 0.003 } else { 0.040 }, if is_down { -0.004 } else { 0.0 });
-        if is_down {
-            arm.rotation().x = -PI / 2.0;
-        }
-        fig.add(&arm);
-    }
-    // 2 legs.
-    for side in [-1.0, 1.0] {
-        let leg = mesh(pg("ActionFigures__leg", box_geo!(0.008, 0.024, 0.008)), &body_mat);
-        leg.position().set(side * 0.006, if is_down { 0.004 } else { 0.014 }, if is_down { 0.018 } else { 0.0 });
-        if is_down {
-            leg.rotation().x = -PI / 2.0;
-        }
-        fig.add(&leg);
-    }
-    fig.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    fig.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&fig);
-}
-
-// R628 baby rattle: 6% chance per level. Ball head on handle w/ ring.
-pub fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let rattle_colors: [u32; 4] = [0xf0c0c0, 0xc0c0f0, 0xf0e0a0, 0xa0e0c0];
-    let rattle_mat = lambert!({ color: pick(&rattle_colors) });
-    let handle_mat = lambert!({ color: 0xf8f0e8 });
-    let rattle = group();
-    // Ball head.
-    let ball = mesh(pg("BabyRattles__ball", sphere_geo!(0.020, 8, 6)), &rattle_mat);
-    ball.position().set(-0.030, 0.020, 0);
-    rattle.add(&ball);
-    // Handle stem.
-    let handle = mesh(pg("BabyRattles__handle", cyl_geo!(0.005, 0.005, 0.055, 6)), &handle_mat);
-    // aimed at the ball centre (its end 7 mm inside the ball), sloping down
-    // to the grip ring, whose near side it enters
-    handle.rotation().z = PI / 2.0 - 0.222;
-    handle.position().set(0.0095, 0.0111, 0);
-    rattle.add(&handle);
-    // Grip ring at end, lying flat on the floor.
-    let ring = mesh(pg("BabyRattles__ring", torus_geo!(0.014, 0.004, 5, 12)), &handle_mat);
-    ring.rotation().x = PI / 2.0;
-    ring.position().set(0.0483, 0.004, 0);
-    rattle.add(&ring);
-    // 3 small stars/dots on ball for decoration.
-    for i in 0..3 {
-        let dot = mesh(circle_geo!(0.003, 6), lambert!({ color: 0xffffff }));
-        let a = (i as f64 / 3.0) * PI * 2.0;
-        // on the ball's crown (they were 3 mm inside it), tilted with its curve
-        dot.position().set(-0.030 + a.cos() * 0.007, 0.0389, a.sin() * 0.007);
-        set_rot_order(&dot, -PI / 2.0 + 0.42, PI / 2.0 - a, 0.0, EulerOrder::YXZ);
-        rattle.add(&dot);
-    }
-    rattle.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    rattle.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&rattle);
-}
-
-// R628 toy dinosaur: 4% chance per level. Body + legs + tail + head.
-pub fn place_toy_dinosaurs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let dino_colors: [u32; 5] = [0x408040, 0x2060c0, 0xa04020, 0xc0a040, 0x804080];
-    let dino_mat = lambert!({ color: pick(&dino_colors) });
-    let dino = group();
-    // Body (ellipsoid via scaled sphere).
-    let body = mesh(pg("ToyDinosaurs__body", sphere_geo!(0.020, 8, 6)), &dino_mat);
-    body.scale().set(1.8, 0.9, 1);
-    body.position().y = 0.020;
-    dino.add(&body);
-    // Head (smaller ellipsoid at front).
-    let head = mesh(pg("ToyDinosaurs__head", sphere_geo!(0.012, 8, 6)), &dino_mat);
-    head.scale().set(1.3, 1, 1);
-    head.position().set(-0.032, 0.028, 0);
-    dino.add(&head);
-    // Tail (cone stretching back).
-    let tail = mesh(pg("ToyDinosaurs__tail", cone_geo!(0.010, 0.045, 6)), &dino_mat);
-    tail.rotation().z = -PI / 2.0;
-    tail.position().set(0.045, 0.018, 0);
-    dino.add(&tail);
-    // 4 stubby legs.
-    for i in 0..4 {
-        let leg = mesh(pg("ToyDinosaurs__leg", cyl_geo!(0.006, 0.006, 0.014, 6)), &dino_mat);
-        leg.position().set(if i < 2 { -0.015 } else { 0.015 }, 0.007, if i % 2 == 0 { -0.010 } else { 0.010 });
-        dino.add(&leg);
-    }
-    // Optional 3 back spikes (50% chance = stegosaurus variant).
-    if rnd() < 0.5 {
-        for s in 0..3 {
-            let spike = mesh(pg("ToyDinosaurs__plate", cone_geo!(0.005, 0.010, 4)), &dino_mat);
-            spike.position().set(-0.010 + s as f64 * 0.010, 0.038, 0);
-            dino.add(&spike);
-        }
-    }
-    dino.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    dino.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&dino);
 }
 
 // R630 gum-ball dispenser: 3% chance per level. Wall-mounted glass globe on
