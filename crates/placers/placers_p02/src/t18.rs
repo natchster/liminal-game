@@ -108,7 +108,7 @@ pub(super) fn place_pentagram_chalks(g: &mut Game, _dist: &[i32]) {
     let tex = pentagram_tex(salt(px, pz, 0x5e7));
     let mat = lambert!({
         map: &tex,
-        color: chalk_color_by_weather(g.weather_key()),
+        color: pale(chalk_color_by_weather(g.weather_key())),
         transparent: true,
         depthWrite: false,
         polygonOffset: true,
@@ -120,6 +120,13 @@ pub(super) fn place_pentagram_chalks(g: &mut Game, _dist: &[i32]) {
     decal.position().set(px, 0.005, pz);
     decal.rotation().z = spin;
     g.world.add(&decal);
+}
+
+/// The place's chalk colour (r08's, by the weather) as a stick of it
+/// leaves it on a floor: two thirds white
+fn pale(c: u32) -> u32 {
+    let ch = |s: u32| (255.0 - (255.0 - f64::from((c >> s) & 0xff)) * 0.35).round() as u32;
+    (ch(16) << 16) | (ch(8) << 8) | ch(0)
 }
 
 /// The chalked square (m) and its texture's side (px: 1.37 mm a pixel)
@@ -254,7 +261,7 @@ fn pentagram_tex(salt: u32) -> Tex {
                         let skip = 0.75 + 0.25 * vn(seed ^ 0x44, along * 140.0 + wob * 10.0, 0.5);
                         let k = press * skip * (0.9 + 0.5 * edge) - tooth * 0.85;
                         let grain = sstep(-0.05, 0.3, k) * sstep(half + mm_px, half - mm_px, d);
-                        a = a.max(grain * (0.3 + 0.6 * press) * (0.6 + 0.4 * edge));
+                        a = a.max(grain * (0.45 + 0.55 * press) * (0.7 + 0.3 * edge));
                     }
                     haze = haze.max(0.13 * (-d / 24.0).exp() * press * (0.6 + 0.4 * vn(seed ^ 0x12, x / 20.0, y / 20.0)));
                 }
@@ -353,7 +360,7 @@ fn talk_board_tex(salt: u32) -> Tex {
     let k = 1024.0 / BOARD.0;
     canvas_tex_opt(1024.0, (BOARD.1 * k).round(), false, move |ctx, w, h| {
         let ink = "rgb(38,28,22)";
-        ctx.set_fill_style("rgb(204,180,134)");
+        ctx.set_fill_style("rgb(184,160,118)");
         ctx.fill_rect(0, 0, w, h);
         ctx.save();
         ctx.scale(k, k);
@@ -382,7 +389,7 @@ fn talk_board_tex(salt: u32) -> Tex {
         ctx.begin_path();
         ctx.arc(420.0, 40.0, 15.0, 0, PI * 2.0);
         ctx.fill();
-        ctx.set_fill_style("rgb(204,180,134)");
+        ctx.set_fill_style("rgb(184,160,118)");
         ctx.begin_path();
         ctx.arc(427.0, 35.0, 13.5, 0, PI * 2.0);
         ctx.fill();
@@ -428,11 +435,11 @@ fn talk_board_tex(salt: u32) -> Tex {
                 let (x, y) = ((i as f64 + 0.5) / k, (j as f64 + 0.5) / k);
                 let o = (j * iw + i) * 4;
                 let px = [f64::from(src.data[o]) / 255.0, f64::from(src.data[o + 1]) / 255.0, f64::from(src.data[o + 2]) / 255.0];
-                let paper = [204.0 / 255.0, 180.0 / 255.0, 134.0 / 255.0];
+                let paper = [184.0 / 255.0, 160.0 / 255.0, 118.0 / 255.0];
                 let inkness = (1.0 - (px[0] - 0.149) / (paper[0] - 0.149)).clamp(0.0, 1.0);
                 // the ground mottled, the ink lifted where rubbed
                 let n = fbm(seed, x * 0.03, y * 0.03, 4);
-                let mut c = mix(paper, [0.70, 0.60, 0.43], n * 0.7);
+                let mut c = mix(paper, [0.62, 0.52, 0.37], n * 0.7);
                 let (rx, ry) = ((x - BOARD.0 / 2.0) / 175.0, (y - 185.0) / 78.0);
                 let rub = (1.0 - sstep(0.6, 1.15, (rx * rx + ry * ry).sqrt())) * (0.55 + 0.45 * vn(seed ^ 5, x * 0.4, y * 0.04));
                 let ink_left = inkness * (1.0 - 0.55 * rub);
