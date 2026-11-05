@@ -20,6 +20,8 @@ mod t07;
 pub(crate) use t07::place_opened_suitcases;
 mod t11;
 pub(crate) use t11::place_deer_head_mounts;
+mod t16;
+pub(crate) use t16::place_crayon_graffiti;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -549,22 +551,6 @@ pub(crate) fn place_mouse_traps(g: &mut Game, _dist: &[i32]) {
     trap.add(&cheese);
     scatter_on_floor(g, &trap, x, z, 2.4);
     g.world.add(&trap);
-}
-
-// R512 wall crayon graffiti: 5% chance per level. Child-drawn scene on wall.
-pub(crate) fn place_crayon_graffiti(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let mat = basic_mat!({ map: crayon_graffiti_texture(), transparent: true, opacity: 0.85, depthWrite: false });
-    let decal = mesh(plane_geo!(0.60, 0.50), &mat);
-    mount_on_wall(g, &decal, &c, 0.008, 0.9, 0.6); // low-mounted (child-height)
-    g.world.add(&decal);
 }
 
 // R511 cassette tape: 8% chance per level. Rectangle w/ 2 spool holes + label.

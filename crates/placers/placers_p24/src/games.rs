@@ -2,46 +2,9 @@
 use crate::{pick_color, pick_open_tile, scatter_pos, scatter_xz};
 use game::prelude::*;
 
-// R451 small skateboard: 8% chance per level. Deck + 4 wheels
-// + 2 trucks. Playground family.
-pub fn place_small_skateboards(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let deck_colors = [0xd82040, 0x2050d8, 0x30a030, 0xa020a0, 0xd8b040, 0x201a10];
-    let deck_mat = lambert!({ color: pick_color(&deck_colors) });
-    let truck_mat = lambert!({ color: 0x606870 });
-    let wheel_mat = lambert!({ color: 0xf0ece0 });
-    let skate = group();
-    let deck_len = 0.32;
-    let deck_w = 0.08;
-    // Deck (main).
-    let deck = mesh(pg("SmallSkateboards__deck", box_geo!(deck_len, 0.008, deck_w)), &deck_mat);
-    deck.position().y = 0.036;
-    skate.add(&deck);
-    // 2 trucks under deck.
-    for tx in [-0.10, 0.10] {
-        let truck = mesh(pg("SmallSkateboards__truck", box_geo!(0.012, 0.010, deck_w - 0.010)), &truck_mat);
-        truck.position().set(tx, 0.026, 0);
-        skate.add(&truck);
-        // 2 wheels at each truck.
-        for wz2 in [-(deck_w / 2.0 - 0.006), deck_w / 2.0 - 0.006] {
-            let wheel = mesh(pg("SmallSkateboards__wheel", cyl_geo!(0.014, 0.014, 0.010, 10)), &wheel_mat);
-            wheel.rotation().x = PI / 2.0;
-            wheel.position().set(tx, 0.014, wz2);
-            skate.add(&wheel);
-        }
-    }
-    scatter_pos(g, &skate, x, z, 2.0);
-    skate.rotation().y = rnd() * PI * 2.0;
-    // 15% chance flipped upside down.
-    if rnd() < 0.15 {
-        skate.rotation().z = PI;
-        skate.position().y = 0.048;
-    }
-    g.world.add(&skate);
-}
+// the small skateboard: batch `t16`'s (`games/t16.rs`)
+mod t16;
+pub use t16::place_small_skateboards;
 
 // R450 small hula hoop: 6% chance per level. Large colorful
 // torus lying on floor. Playground family.

@@ -2,6 +2,10 @@
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
+// the skipping rope: batch `t16`'s (`party/t16.rs`)
+mod t16;
+pub use t16::place_skipping_ropes;
+
 /// R430 small cupcake wrapper: 10% chance per level. Empty pleated
 /// paper wrapper ("who ate the cupcake?").
 pub fn place_small_cupcake_wrappers(g: &mut Game, _dist: &[i32]) {
@@ -359,45 +363,6 @@ pub fn place_small_tambourines(g: &mut Game, _dist: &[i32]) {
     tamb.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     tamb.rotation().y = rnd() * PI * 2.0;
     g.world.add(&tamb);
-}
-
-/// R422 small skipping rope: 8% chance per level. Coiled rope torus
-/// + 2 wooden handle cylinders.
-pub fn place_skipping_ropes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let rope_colors = [0xd82020, 0x2050d8, 0xd8b820, 0xf0f0f0];
-    let rope_mat = lambert!({ color: pick(&rope_colors) });
-    let handle_mat = lambert!({ color: 0x6a4820 });
-    let rope = group();
-    // Coiled rope: horizontal torus laid flat.
-    let coil = mesh(pg("SkippingRopes__coil", torus_geo!(0.10, 0.008, 4, 12)), &rope_mat);
-    coil.rotation().x = -PI / 2.0;
-    coil.position().y = 0.008;
-    rope.add(&coil);
-    // 2 wooden handle cylinders on opposite sides of coil.
-    for h in 0..2 {
-        let handle_ang = h as f64 * PI;
-        let handle = mesh(pg("SkippingRopes__handle", cyl_geo!(0.010, 0.010, 0.06, 6)), &handle_mat);
-        // The coil's two ends go into the handles' ends: each handle carries on
-        // from its rope end, splayed 0.6 rad outward, resting on the floor.
-        let side = handle_ang.cos();
-        let splay = 0.6f64;
-        let reach = 0.026;
-        handle.set_rotation_order(EulerOrder::YXZ);
-        handle.rotation().set(PI / 2.0, side * splay, 0);
-        handle.position().set(side * (0.1015 - 0.0025 * side) + side * splay.sin() * reach, 0.010, splay.cos() * reach);
-        rope.add(&handle);
-    }
-    rope.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
-    rope.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&rope);
 }
 
 // R422 children's book texture — colorful cartoon cover simplification

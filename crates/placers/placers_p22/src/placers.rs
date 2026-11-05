@@ -9,72 +9,12 @@ mod r13a;
 pub(crate) use r13a::{place_cracked_mirrors, place_wall_chalkboards};
 mod t02;
 pub(crate) use t02::place_religious_triptychs;
+mod t16;
+pub(crate) use t16::place_overturned_tricycles;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
     a[(rnd() * a.len() as f64).floor() as usize]
-}
-
-// R505 overturned tricycle: 4% chance per level. Small kid tricycle tipped on side.
-pub(crate) fn place_overturned_tricycles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let frame_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030];
-    let frame_mat = lambert!({ color: pick_hex(&frame_colors) });
-    let wheel_mat = lambert!({ color: 0x181008 });
-    let seat_mat = lambert!({ color: 0xa02040 });
-    let handle_mat = lambert!({ color: 0xf0ece0 });
-    let tri = group();
-    // Main frame bar (from front to back).
-    let main_bar = mesh(pg("OverturnedTricycles__mainbar", cyl_geo!(0.010, 0.010, 0.20, 6)), &frame_mat);
-    main_bar.rotation().z = PI / 2.0;
-    main_bar.position().set(0, 0.10, 0);
-    tri.add(&main_bar);
-    // Front fork (angled up); dropout end on the front axle (0.11, 0.055).
-    let fork = mesh(pg("OverturnedTricycles__fork", cyl_geo!(0.008, 0.008, 0.14, 6)), &frame_mat);
-    fork.rotation().z = 0.3;
-    fork.position().set(0.11 - 0.07 * (0.3f64).sin(), 0.055 + 0.07 * (0.3f64).cos(), 0);
-    tri.add(&fork);
-    // Handlebars, clamped on the fork top.
-    let handle_bar = mesh(pg("OverturnedTricycles__handlebar", cyl_geo!(0.008, 0.008, 0.12, 6)), &frame_mat);
-    handle_bar.rotation().x = PI / 2.0;
-    handle_bar.position().set(0.069, 0.186, 0);
-    tri.add(&handle_bar);
-    // Handle grips.
-    for s in [-1.0, 1.0] {
-        let grip = mesh(pg("OverturnedTricycles__grip", cyl_geo!(0.010, 0.010, 0.024, 6)), &handle_mat);
-        grip.rotation().x = PI / 2.0;
-        grip.position().set(0.069, 0.186, s * 0.070);
-        tri.add(&grip);
-    }
-    // Seat, on the main bar.
-    let seat = mesh(pg("OverturnedTricycles__seat", box_geo!(0.070, 0.014, 0.050)), &seat_mat);
-    seat.position().set(-0.06, 0.117, 0);
-    tri.add(&seat);
-    // Front wheel (bigger).
-    let front_wheel = mesh(pg("OverturnedTricycles__frontwheel", cyl_geo!(0.055, 0.055, 0.020, 12)), &wheel_mat);
-    front_wheel.rotation().x = PI / 2.0;
-    front_wheel.position().set(0.11, 0.055, 0);
-    tri.add(&front_wheel);
-    // 2 back wheels (smaller).
-    for s in [-1.0, 1.0] {
-        let wheel = mesh(pg("OverturnedTricycles__rearwheel", cyl_geo!(0.035, 0.035, 0.020, 10)), &wheel_mat);
-        wheel.rotation().x = PI / 2.0;
-        wheel.position().set(-0.09, 0.035, s * 0.060);
-        tri.add(&wheel);
-    }
-    // Tip on side: rolled about the front-back axis (x); 'YXZ' rolls first, then the yaw.
-    tri.set_rotation_order(EulerOrder::YXZ);
-    tri.rotation().x = PI / 2.0;
-    tri.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0.082, g.wz(z) + (rnd() - 0.5) * 1.8);
-    tri.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&tri);
 }
 
 // R503 old CRT TV: 4% chance per level. Boxy TV with static screen + antennae.
