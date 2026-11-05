@@ -173,8 +173,8 @@ pub fn place_gardening_gloves(g: &mut Game, _dist: &[i32]) {
     // the old colour's draw: the jersey's dye (sage green, brick red, olive,
     // brown, oatmeal), faded
     let col = pick(&glove_colors);
-    const JERSEY: [u32; 5] = [0x667a5c, 0x8a4a38, 0x7a7650, 0x6a5440, 0xb0a084];
-    const RIB: [u32; 5] = [0x4c5a46, 0x6a3a2e, 0x5a583c, 0x4e3e30, 0x8a7c64];
+    const JERSEY: [u32; 5] = [0x7a8c6c, 0x9a5644, 0x8a8660, 0x866e56, 0xb8aa8e];
+    const RIB: [u32; 5] = [0x56644e, 0x723e30, 0x646244, 0x5c4a38, 0x948670];
     let k = glove_colors.iter().position(|&c| c == col).unwrap_or(0);
     let pair = group();
     let (px, pz) = (g.wx(x) + (rnd() - 0.5) * 2.2, g.wz(z) + (rnd() - 0.5) * 2.2);
