@@ -6,6 +6,9 @@ use game::prelude::*;
 
 mod textures;
 use textures::*;
+// the orrery: batch `t20`'s (`t20.rs`)
+mod t20;
+use t20::place_orrery_models;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -329,88 +332,6 @@ fn place_mission_patches(g: &mut Game, _dist: &[i32]) {
     mp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     mp.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&mp);
-}
-
-fn place_orrery_models(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let wood_mat = lambert!({ color: 0x604020 });
-    let brass_mat = lambert!({ color: 0xc0a060 });
-    let sun_mat = basic_mat!({ color: 0xf0c040 });
-    let orr = group();
-    // Base — flat wooden disc.
-    let base = mesh(pg("OrreryModels__base", cyl_geo!(0.10, 0.11, 0.014, 12)), &wood_mat);
-    base.position().y = 0.007;
-    orr.add(&base);
-    // Central column w/ brass gear-hub feel.
-    let column = mesh(pg("OrreryModels__column", cyl_geo!(0.010, 0.012, 0.20, 8)), &brass_mat);
-    column.position().y = 0.115;
-    orr.add(&column);
-    // Hub disc at top of column.
-    let hub = mesh(pg("OrreryModels__hub", cyl_geo!(0.024, 0.024, 0.010, 8)), &brass_mat);
-    hub.position().y = 0.220;
-    orr.add(&hub);
-    // Central sun sphere (self-lit).
-    let sun = mesh(sphere_geo!(0.030, 12, 10), &sun_mat);
-    sun.position().y = 0.255; // resting on the hub gear (top 0.225)
-    orr.add(&sun);
-    // Small PointLight from sun.
-    let sun_light = point_light!(0xf0c040, 0.35, 1.5, 2);
-    sun_light.position().copy(&sun.pos());
-    orr.add(&sun_light);
-    // 5 planets — Mercury, Venus, Earth, Mars, Jupiter (simplified). (r, color, size)
-    let planets: [(f64, u32, f64); 5] = [
-        (0.045, 0x808080, 0.006), // Mercury
-        (0.070, 0xd0a060, 0.010), // Venus
-        (0.100, 0x2060a0, 0.011), // Earth
-        (0.135, 0xa03020, 0.008), // Mars
-        (0.180, 0xc09060, 0.020), // Jupiter
-    ];
-    let planet_group = group(); // Rotates around Y for animator.
-    let mut planet_groups: Vec<(Obj, f64)> = vec![]; // Per-planet groups for independent rotation.
-    for i in 0..planets.len() {
-        let (pr, pcolor, psize) = planets[i];
-        // Arm — thin brass wire extending from hub to planet.
-        let arm = mesh(pg("OrreryModels__arm", cyl_geo!(0.001, 0.001, pr, 3)), &brass_mat);
-        arm.rotation().z = PI / 2.0;
-        arm.position().set(pr / 2.0, 0.220, 0); // arms radiate from the hub gear, not through the sun
-                                                // Wrap arm+planet in group for individual planet spin.
-        let pgrp = group();
-        pgrp.add(&arm);
-        let planet = mesh(pg("OrreryModels__planet", sphere_geo!(psize, 8, 6)), lambert!({ color: pcolor }));
-        planet.position().set(pr, 0.220, 0);
-        pgrp.add(&planet);
-        // Optional ring for Jupiter (largest planet, i == 4).
-        if i == 4 {
-            let ring_mat = basic_mat!({ color: 0xc0a080, transparent: true, opacity: 0.5 });
-            let ring = mesh(torus_geo!(psize * 1.6, psize * 0.15, 4, 12), &ring_mat);
-            ring.rotation().x = PI / 2.0 - 0.15;
-            ring.position().set(pr, 0.220, 0);
-            pgrp.add(&ring);
-        }
-        // Initial angular offset — evenly distributed.
-        pgrp.rotation().y = (i as f64 / planets.len() as f64) * PI * 2.0;
-        planet_group.add(&pgrp);
-        planet_groups.push((pgrp.clone(), 0.15 - i as f64 * 0.020)); // Inner planets faster.
-    }
-    orr.add(&planet_group);
-    // 60% chance: slow revolution animator — each planet at own speed.
-    if rnd() < 0.6 {
-        g.animate(move |_g, dt, _t| {
-            for (grp, speed) in &planet_groups {
-                grp.rotation().y += dt * speed;
-            }
-        });
-    }
-    orr.position().set(g.wx(x) + (rnd() - 0.5) * 1.2, 0, g.wz(z) + (rnd() - 0.5) * 1.2);
-    orr.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&orr);
 }
 
 fn place_birdcages(g: &mut Game, _dist: &[i32]) {

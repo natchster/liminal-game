@@ -8,6 +8,9 @@ mod textures;
 use textures::*;
 mod t02;
 use t02::{place_anatomy_charts, place_framed_maps, place_propaganda_posters};
+// the floor globe: batch `t20`'s (`t20.rs`)
+mod t20;
+use t20::place_floor_globes;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -237,106 +240,6 @@ fn place_framed_newspapers(g: &mut Game, _dist: &[i32]) {
     fnw.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     fnw.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&fnw);
-}
-
-fn place_floor_globes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let wood_colors = [0x604020, 0x8b5a2b, 0x2a1810, 0x8b6030, 0x505030];
-    let wood_mat = lambert!({ color: choice(&wood_colors) });
-    let brass_mat = lambert!({ color: 0xc0a060 });
-    let fg = group();
-    // Base — 3-leg tripod or 4-leg square base. Random 50/50.
-    let is_tripod = rnd() < 0.5;
-    if is_tripod {
-        for i in 0..3 {
-            let ang = (i as f64 / 3.0) * PI * 2.0;
-            let leg = mesh(pg("FloorGlobes__leg", cyl_geo!(0.006, 0.008, 0.34, 5)), &wood_mat);
-            // (tops lean in to meet under the globe: -x tilt for +z legs)
-            leg.rotation().z = ang.cos() * 0.35;
-            leg.rotation().x = -ang.sin() * 0.35;
-            leg.position().set(ang.cos() * 0.06, 0.17, ang.sin() * 0.06);
-            fg.add(&leg);
-        }
-        let base_connector = mesh(pg("FloorGlobes__tripodBase", cyl_geo!(0.13, 0.15, 0.010, 3)), &wood_mat);
-        base_connector.position().y = 0.005;
-        fg.add(&base_connector);
-    } else {
-        let base_pad = mesh(pg("FloorGlobes__squareBase", cyl_geo!(0.14, 0.15, 0.014, 4)), &wood_mat);
-        base_pad.rotation().y = PI / 4.0;
-        base_pad.position().y = 0.007;
-        fg.add(&base_pad);
-        let column = mesh(pg("FloorGlobes__column", cyl_geo!(0.012, 0.014, 0.32, 6)), &wood_mat);
-        column.position().y = 0.17;
-        fg.add(&column);
-    }
-    // Yoke/support arch — half torus arcing around globe (brass).
-    let globe_r = 0.14;
-    // The meridian's lowest point (r 0.157) rests on the column / leg tops (0.33).
-    let globe_center_y = 0.345 + globe_r;
-    let yoke = mesh(pg("FloorGlobes__yoke", torus_geo!(globe_r + 0.012, 0.005, 4, 16, PI * 1.15)), &brass_mat);
-    yoke.rotation().x = 0.0;
-    yoke.rotation().z = PI / 2.0 + 0.4 - PI * 0.075;
-    yoke.position().y = globe_center_y;
-    fg.add(&yoke);
-    // Meridian degree markers on yoke — tiny dark boxes at 4 positions.
-    for i in 0..4 {
-        let ang = yoke.rot().z + (i as f64 + 0.5) * PI * 1.15 / 4.0; // along the meridian
-        let mark = mesh(box_geo!(0.003, 0.002, 0.002), lambert!({ color: 0x1a1a1a }));
-        mark.rotation().z = ang; // radial tick on the band's front face
-        mark.position().set((globe_r + 0.012) * ang.cos(), globe_center_y + ang.sin() * (globe_r + 0.012), 0.0055);
-        fg.add(&mark);
-    }
-    // Axis pole through globe (thin brass rod tilted).
-    let axis_rod = mesh(pg("FloorGlobes__axis", cyl_geo!(0.002, 0.002, globe_r * 2.4, 4)), &brass_mat);
-    axis_rod.rotation().z = 0.4;
-    axis_rod.position().y = globe_center_y;
-    fg.add(&axis_rod);
-    // Globe sphere — earth tones (ocean blue + land patches painted-on).
-    let globe_group = group();
-    let ocean_mat = lambert!({ color: 0x2060a0 });
-    let globe = mesh(pg("FloorGlobes__globe", sphere_geo!(globe_r, 20, 14)), &ocean_mat);
-    globe_group.add(&globe);
-    // 8-12 land patches — small green/brown ellipses stuck to sphere.
-    let land_colors = [0x408030, 0x6a5030, 0x805030, 0xa0a040];
-    let land_count = 8 + (rnd() * 5.0).floor() as i32;
-    for i in 0..land_count {
-        let land_mat = lambert!({ color: choice(&land_colors) });
-        // Random point on sphere.
-        let u = rnd() * PI * 2.0;
-        let v = rnd() * (PI * 0.75) + PI * 0.125;
-        let rr = globe_r * 1.005;
-        let lx = u.cos() * v.sin() * rr;
-        let ly = v.cos() * rr;
-        let lz = u.sin() * v.sin() * rr;
-        let land_patch = mesh(circle_geo!(0.014 + rnd() * 0.012, 6), &land_mat);
-        land_patch.position().set(lx, ly, lz);
-        land_patch.look_at(0, 0, 0);
-        land_patch.rotation().y += PI; // Flip to face outward.
-        land_patch.rotation().z = rnd() * PI;
-        land_patch.scale().set(1.3 + rnd() * 0.5, 1.0, 1.0);
-        globe_group.add(&land_patch);
-    }
-    // Position globe centered on axis rod, tilted.
-    globe_group.rotation().z = 0.4;
-    globe_group.position().y = globe_center_y;
-    fg.add(&globe_group);
-    // 40% chance: globe slowly spinning animator.
-    if rnd() < 0.4 {
-        let gg = globe_group.clone();
-        g.animate(move |_g, dt, _t| {
-            gg.rotation().y += dt * 0.35; // slow spin ~5 rpm
-        });
-    }
-    fg.position().set(g.wx(x) + (rnd() - 0.5) * 1.2, 0, g.wz(z) + (rnd() - 0.5) * 1.2);
-    fg.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&fg);
 }
 
 fn place_vintage_typewriters(g: &mut Game, _dist: &[i32]) {

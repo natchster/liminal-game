@@ -6,6 +6,9 @@ use game::prelude::*;
 // `t15`'s (`toys/t15.rs`)
 mod t15;
 pub use t15::{place_small_princess_wands, place_small_toy_dinos, place_small_toy_microphones};
+// the music box: batch `t20`'s (`toys/t20.rs`)
+mod t20;
+pub use t20::place_small_music_boxes;
 
 // R457 small toy robot: 6% chance per level. Blocky humanoid
 // robot with head + body + limbs + antenna. Child-toy family.
@@ -559,47 +562,6 @@ pub fn place_small_toy_boats(g: &mut Game, _dist: &[i32]) {
         boat.position().y = 0.0225;
     }
     g.world.add(&boat);
-}
-
-// R452 small children's music box: 6% chance per level. Cube
-// wood box + wind-up crank. Child-music family.
-pub fn place_small_music_boxes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let box_colors = [0xa06030, 0x8a5030, 0x603820, 0xd82060, 0xd8b040];
-    let box_mat = lambert!({ color: pick_color(&box_colors) });
-    let brass_mat = lambert!({ color: 0xc89040 });
-    let wick_mat = lambert!({ color: 0x201a10 });
-    let bx = group();
-    let box_size = 0.09;
-    // Body: cube.
-    let body = mesh(pg("SmallMusicBoxes__body", box_geo!(box_size, box_size * 0.7, box_size)), &box_mat);
-    body.position().y = box_size * 0.35;
-    bx.add(&body);
-    // Brass border trim (thin band around body top).
-    let trim = mesh(pg("SmallMusicBoxes__trim", box_geo!(box_size + 0.003, 0.004, box_size + 0.003)), &brass_mat);
-    trim.position().y = box_size * 0.7;
-    bx.add(&trim);
-    // Crank handle on side.
-    let shaft = mesh(pg("SmallMusicBoxes__shaft", cyl_geo!(0.003, 0.003, 0.020, 5)), &brass_mat);
-    shaft.rotation().z = PI / 2.0;
-    shaft.position().set(box_size / 2.0 + 0.010, box_size * 0.35, 0);
-    bx.add(&shaft);
-    let crank_arm = mesh(pg("SmallMusicBoxes__arm", box_geo!(0.004, 0.030, 0.004)), &brass_mat);
-    // Arm pinned to the shaft at its lower boss (it was centred on the shaft).
-    crank_arm.position().set(box_size / 2.0 + 0.020, box_size * 0.35 + 0.013, 0);
-    bx.add(&crank_arm);
-    let crank_handle = mesh(pg("SmallMusicBoxes__handle", cyl_geo!(0.004, 0.004, 0.012, 6)), &wick_mat);
-    // Knob sticks out sideways (+X) from the arm's upper boss, parallel to the
-    // shaft, instead of standing on the arm's line.
-    crank_handle.rotation().z = -PI / 2.0;
-    crank_handle.position().set(box_size / 2.0 + 0.022 + 0.006, box_size * 0.35 + 0.026, 0);
-    bx.add(&crank_handle);
-    scatter_pos(g, &bx, x, z, 2.4);
-    bx.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bx);
 }
 
 // R451 small toy plane: 8% chance per level. Toy airplane with
