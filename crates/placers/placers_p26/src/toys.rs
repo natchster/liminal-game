@@ -9,6 +9,10 @@ pub use t09::place_small_masks;
 mod t14;
 pub use t14::{place_plush_bears, place_small_dolls};
 
+// the kite: batch `t16`'s (`toys/t16.rs`)
+mod t16;
+pub use t16::place_small_kites;
+
 /// R421 small pacifier: 8% chance per level. Nipple cylinder +
 /// guard disc + ring handle.
 pub fn place_small_pacifiers(g: &mut Game, _dist: &[i32]) {
@@ -159,53 +163,6 @@ pub fn place_small_yo_yos(g: &mut Game, _dist: &[i32]) {
     yoyo.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     yoyo.rotation().y = rnd() * PI * 2.0;
     g.world.add(&yoyo);
-}
-
-/// R418 small kite: 8% chance per level. Diamond-shape plane + 3
-/// small bow ribbons on tail. Laid flat on floor.
-pub fn place_small_kites(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let kite_colors = [0xd82020, 0x2050d8, 0xd8b820, 0x30a030, 0xd050a0];
-    let k_mat = lambert!({ color: pick(&kite_colors), side: DoubleSide });
-    let bow_mat = lambert!({ color: pick(&kite_colors) });
-    let string_mat = lambert!({ color: 0x181410 });
-    let kite = group();
-    // Diamond kite: 2 triangles arranged in diamond (custom geometry).
-    let k_geo = buf_geo(
-        &[
-            0.0, 0.0, 0.12, // top
-            -0.09, 0.0, 0.0, // left
-            0.0, 0.0, -0.14, // bottom (longer)
-            0.09, 0.0, 0.0, // right
-        ],
-        &[0, 1, 2, 0, 2, 3],
-    );
-    let k_mesh = mesh(k_geo, &k_mat);
-    k_mesh.position().y = 0.003;
-    kite.add(&k_mesh);
-    // Tail: thin cylinder extending from bottom of kite.
-    let tail = mesh(pg("SmallKites__tail", cyl_geo!(0.002, 0.002, 0.25, 4)), &string_mat);
-    tail.rotation().x = PI / 2.0;
-    tail.position().set(0, 0.004, -0.24);
-    kite.add(&tail);
-    // 3 bow ribbons on tail.
-    for b in 0..3 {
-        let bow = mesh(pg("SmallKites__bow", plane_geo!(0.02, 0.015)), &bow_mat);
-        bow.rotation().x = -PI / 2.0;
-        bow.rotation().z = rnd() * PI * 2.0;
-        bow.position().set(0, 0.005, -0.15 - b as f64 * 0.06);
-        kite.add(&bow);
-    }
-    kite.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    kite.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&kite);
 }
 
 /// R418 small pinwheel: 10% chance per level. A paper party pinwheel

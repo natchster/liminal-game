@@ -22,6 +22,9 @@ use t04::place_spray_bottles;
 // R535 bookshelf, R530 metal locker: batch `t10`'s (`t10.rs`)
 mod t10;
 use t10::{place_bookshelves, place_metal_lockers};
+// the deflated ball: batch `t16`'s (`t16.rs`)
+mod t16;
+use t16::place_deflated_balls;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -264,59 +267,6 @@ fn place_soap_dispensers(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.080);
     mount(&dispenser, c, wall_x, wall_z, 1.30, 0.4);
     g.world.add(&dispenser);
-}
-
-// R538 deflated sport ball: 7% chance per level. Flattened
-// sphere w/ hex/pentagon panels.
-fn place_deflated_balls(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    } // 7% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = choice(&open);
-    let is_soccer = rnd() < 0.5;
-    let ball_color = if is_soccer { 0xe8dcc0 } else { 0xd87020 };
-    let ball_mat = lambert!({ color: ball_color });
-    let patch_mat = lambert!({ color: if is_soccer { 0x181410 } else { 0x181410 } });
-    let ball = group();
-    // Flattened body.
-    let body = mesh(pg("DeflatedBalls__body", sphere_geo!(0.075, 12, 8)), &ball_mat);
-    body.scale().set(1, 0.55, 1);
-    body.position().y = 0.042;
-    ball.add(&body);
-    // 3-4 patches (pentagons or lines).
-    let n_patches = 3 + (rnd() * 2.0).floor() as i32;
-    let npf = n_patches as f64;
-    for i in 0..n_patches {
-        let fi = i as f64;
-        let a = (fi / npf) * PI * 2.0;
-        if is_soccer {
-            // Dark pentagon patches.
-            let patch = mesh(circle_geo!(0.014, 5), &patch_mat);
-            // on the flattish top, spread over the arc clear of the buckled side
-            // (+X), tilted with the crown's slope and resting on it
-            let pa = 1.1 + ((fi + 0.5) / npf) * 4.3;
-            {
-                let mut r = patch.rotation();
-                r.set(-PI / 2.0 + 0.16, PI / 2.0 - pa, 0);
-                r.order = EulerOrder::YXZ;
-            }
-            patch.position().set(pa.cos() * 0.028, 0.0814, pa.sin() * 0.028);
-            ball.add(&patch);
-        } else {
-            // Basket lines.
-            let line = mesh(box_geo!(0.10, 0.001, 0.002), &patch_mat);
-            line.rotation().y = a;
-            line.scale().x = 0.45; // only across the crown, where a straight line can lie on it
-            line.position().y = 0.0831;
-            ball.add(&line);
-        }
-    }
-    scatter(g, &ball, x, z, 2.0);
-    g.world.add(&ball);
 }
 
 // R537 matchbook: 8% chance per level. Small booklet + 4-6

@@ -2,6 +2,10 @@
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
+// the small xylophone: batch `t16`'s (`music/t16.rs`)
+mod t16;
+pub use t16::place_small_xylophones;
+
 // the paper crown, the crepe streamers, the tassel garland and the piñata:
 // batch `t12`'s (`t12.rs`)
 #[path = "t12.rs"]
@@ -112,53 +116,6 @@ pub fn place_conductor_batons(g: &mut Game, _dist: &[i32]) {
     baton.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     baton.rotation().y = rnd() * PI * 2.0;
     g.world.add(&baton);
-}
-
-/// R436 small xylophone: 6% chance per level. Toy xylophone with
-/// 7 rainbow bars on wood frame + beater. Child-music family.
-pub fn place_small_xylophones(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let rainbow = [0xd82030, 0xe07020, 0xd8b820, 0x30a030, 0x2080c8, 0x4030c0, 0x8020a0];
-    let frame_mat = lambert!({ color: 0x8a6540 });
-    let beater_mat = lambert!({ color: 0x2a2418 });
-    let xylo = group();
-    let n_bars = 7;
-    let frame_w = 0.24;
-    let frame_d = 0.10;
-    // Trapezoidal frame: 2 side rails.
-    for i in 0..2 {
-        let s = if i == 0 { -1.0 } else { 1.0 };
-        let rail = mesh(pg("SmallXylophones__rail", box_geo!(frame_w, 0.010, 0.010)), &frame_mat);
-        // converge toward the short bars so every bar end rests on a rail
-        rail.position().set(0, 0.005, s * 0.032);
-        rail.rotation().y = s * (0.003f64 / 0.035).atan();
-        xylo.add(&rail);
-    }
-    // 7 bars descending in width (like real xylophone).
-    for i in 0..n_bars {
-        let bar_len = frame_d - 0.010 - i as f64 * 0.006;
-        let bar = mesh(pg("SmallXylophones__bar", box_geo!(0.024, 0.006, bar_len)), lambert!({ color: rainbow[i] }));
-        bar.position().set(-frame_w / 2.0 + 0.015 + i as f64 * ((frame_w - 0.03) / (n_bars - 1) as f64), 0.013, 0);
-        xylo.add(&bar);
-    }
-    // Beater: wood shaft + ball head laid nearby.
-    let shaft = mesh(pg("SmallXylophones__shaft", cyl_geo!(0.003, 0.003, 0.08, 5)), &frame_mat);
-    shaft.rotation().z = PI / 2.0;
-    shaft.position().set(0.06, 0.004, 0.09);
-    xylo.add(&shaft);
-    let head = mesh(pg("SmallXylophones__head", sphere_geo!(0.008, 8, 6)), &beater_mat);
-    head.position().set(0.10, 0.008, 0.09);
-    xylo.add(&head);
-    xylo.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    xylo.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&xylo);
 }
 
 /// R436 small kazoo: 8% chance per level. Short cylinder with

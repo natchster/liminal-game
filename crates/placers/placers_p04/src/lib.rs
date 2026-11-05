@@ -14,6 +14,10 @@ use t01::place_framed_photos;
 mod t14;
 use t14::place_teddy_bears;
 
+// the jump rope: batch `t16`'s (`t16.rs`)
+mod t16;
+use t16::place_jump_ropes;
+
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_coin_clusters", place_coin_clusters));
@@ -988,37 +992,6 @@ fn place_lego_bricks(g: &mut Game, _dist: &[i32]) {
     let (px, pz) = jitter(g, x, z, 2.4);
     cluster.position().set(px, 0, pz);
     g.world.add(&cluster);
-}
-
-// R624 coiled jump rope: 5% chance per level. Loose spiral + 2 handle caps.
-fn place_jump_ropes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let rope_colors = [0xc04020, 0x2060c0, 0x40a040, 0xf0e020, 0xd050a0];
-    let rope_mat = lambert!({ color: choice(&rope_colors) });
-    let handle_mat = lambert!({ color: 0x605040 });
-    let rope = group();
-    // 3 concentric torus loops for coiled spiral read.
-    for i in 0..3 {
-        let r = 0.060 - i as f64 * 0.014;
-        let lp = mesh(pg("JumpRopes__loop", torus_geo!(r, 0.004, 5, 16)), &rope_mat);
-        lp.rotation().x = PI / 2.0;
-        lp.position().y = 0.004; // side by side, so each rests on the floor
-        rope.add(&lp);
-    }
-    // 2 wooden handle caps.
-    for i in 0..2 {
-        let handle = mesh(pg("JumpRopes__handle", cyl_geo!(0.006, 0.006, 0.030, 8)), &handle_mat);
-        handle.rotation().z = PI / 2.0;
-        handle.position().set(if i == 0 { 0.070 } else { -0.070 }, 0.006, if i == 0 { 0.005 } else { -0.005 });
-        rope.add(&handle);
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    rope.position().set(px, 0, pz);
-    rope.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&rope);
 }
 
 #[cfg(test)]
