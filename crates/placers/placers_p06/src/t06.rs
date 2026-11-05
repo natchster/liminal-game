@@ -7,7 +7,7 @@
 //! Each placer keeps its old draws call for call (the comments at each say
 //! what a draw now chooses, or that it is kept for its place in the stream).
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
-use game::assets::props::prop_part_as_modelled;
+use game::assets::props::{prop_part_as_modelled, prop_part_info};
 use game::prelude::*;
 use game::visuals::pictures::{self, Finish, Outline, Window};
 
@@ -303,7 +303,16 @@ fn soil_print_tex(salt: u32) -> Tex {
             for _ in 0..26 {
                 let a = r.range(-2.9, -0.25);
                 let d = r.range(6.0, 40.0);
-                blob(ctx, cx + a.cos() * d, base - pot_h - 6.0 + a.sin() * d * 0.75, r.range(6.0, 11.0), 0.6, a, mix(hex(0x2c4a22), hex(0x6f9a46), r.next()), 0.85);
+                blob(
+                    ctx,
+                    cx + a.cos() * d,
+                    base - pot_h - 6.0 + a.sin() * d * 0.75,
+                    r.range(6.0, 11.0),
+                    0.6,
+                    a,
+                    mix(hex(0x2c4a22), hex(0x6f9a46), r.next()),
+                    0.85,
+                );
             }
             // the flowers: geranium heads, petunias
             let fl = [hex(0xc0283a), hex(0xd8a0c0), hex(0xe8e0d0)][k];
@@ -312,7 +321,16 @@ fn soil_print_tex(salt: u32) -> Tex {
                 let d = r.range(14.0, 38.0);
                 let (fx, fy) = (cx + a.cos() * d, base - pot_h - 10.0 + a.sin() * d * 0.8);
                 for _ in 0..5 {
-                    blob(ctx, fx + r.range(-5.0, 5.0), fy + r.range(-4.0, 4.0), r.range(3.0, 5.5), 1.0, 0.0, mix(fl, [1.0, 1.0, 1.0], r.next() * 0.3), 0.9);
+                    blob(
+                        ctx,
+                        fx + r.range(-5.0, 5.0),
+                        fy + r.range(-4.0, 4.0),
+                        r.range(3.0, 5.5),
+                        1.0,
+                        0.0,
+                        mix(fl, [1.0, 1.0, 1.0], r.next() * 0.3),
+                        0.9,
+                    );
                 }
             }
         }
@@ -367,13 +385,27 @@ fn soil_print_tex(salt: u32) -> Tex {
                 ctx.set_line_width(1.4);
                 ctx.begin_path();
                 ctx.move_to(x + off, y + off);
-                ctx.quadratic_curve_to(x + a.cos() * l * 0.5 + s.range(-8.0, 8.0), y + a.sin() * l * 0.5, x + a.cos() * l + off, y + a.sin() * l + off);
+                ctx.quadratic_curve_to(
+                    x + a.cos() * l * 0.5 + s.range(-8.0, 8.0),
+                    y + a.sin() * l * 0.5,
+                    x + a.cos() * l + off,
+                    y + a.sin() * l + off,
+                );
                 ctx.stroke();
             }
         }
         // the split at the bottom right corner: soil smeared out of it
         for _ in 0..30 {
-            blob(ctx, w - s.range(4.0, 60.0), h - s.range(4.0, 46.0), s.range(4.0, 14.0), s.range(0.4, 1.0), s.range(0.0, 3.0), hex(0x2a1f17), s.range(0.3, 0.8));
+            blob(
+                ctx,
+                w - s.range(4.0, 60.0),
+                h - s.range(4.0, 46.0),
+                s.range(4.0, 14.0),
+                s.range(0.4, 1.0),
+                s.range(0.0, 3.0),
+                hex(0x2a1f17),
+                s.range(0.3, 0.8),
+            );
         }
         ctx.set_stroke_style("rgba(12,9,6,0.95)");
         ctx.set_line_width(3);
@@ -397,18 +429,22 @@ fn soil_print_tex(salt: u32) -> Tex {
     })
 }
 
-/// Soil out of a bag: dark peat, crumbs and fibres of bark, the white
-/// grains of perlite; dried paler on top (a repeat every 6 cm)
+/// Soil out of a bag, from above over the heap (200 x 165 mm): dark peat,
+/// crumbs and fibres of bark, the white grains of perlite; dried paler on
+/// top in patches
 fn soil_tex(salt: u32) -> Tex {
-    canvas_tex(128, 128, move |ctx, w, h| {
+    canvas_tex_opt(256, 256, false, move |ctx, w, h| {
         let seed = salt ^ 0x0e17;
         fill(ctx, w, h, |u, v| {
+            // peat: near black-brown, dried a dusty grey-brown in patches
             let n = fbm_tile(seed, u * 8.0, v * 8.0, 8.0, 4);
-            let mut c = mix([0.2, 0.16, 0.12], [0.42, 0.36, 0.29], n);
+            let mut c = mix([0.1, 0.08, 0.065], [0.27, 0.22, 0.18], n);
+            let dry = fbm_tile(seed ^ 5, u * 3.0, v * 3.0, 3.0, 2);
+            c = mix(c, [0.34, 0.3, 0.26], sstep(0.55, 0.75, dry) * 0.45);
             let bark = (vn(seed ^ 2, u * 40.0, v * 40.0) - 0.75).max(0.0) * 3.0;
-            c = mix(c, [0.36, 0.22, 0.13], bark);
-            let perl = (vn(seed ^ 3, u * 70.0, v * 70.0) - 0.9).max(0.0) * 9.0;
-            c = mix(c, [0.8, 0.79, 0.74], perl.min(1.0));
+            c = mix(c, [0.3, 0.18, 0.1], bark);
+            let perl = (vn(seed ^ 3, u * 70.0, v * 70.0) - 0.92).max(0.0) * 9.0;
+            c = mix(c, [0.74, 0.73, 0.68], perl.min(1.0));
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -425,14 +461,24 @@ fn soil_scatter_tex(salt: u32) -> Tex {
             let a = r.range(-0.2, 1.7);
             let d = r.next().powf(0.7) * 0.75;
             let (x, y) = (w * 0.3 + a.cos() * d * w * 0.6, h * 0.25 + a.sin() * d * h * 0.7);
-            blob(ctx, x, y, r.range(8.0, 26.0) * (1.0 - 0.6 * d), r.range(0.5, 1.0), r.range(0.0, 3.0), hex(0x2c241c), r.range(0.15, 0.4) * (1.0 - d));
+            blob(
+                ctx,
+                x,
+                y,
+                r.range(8.0, 26.0) * (1.0 - 0.6 * d),
+                r.range(0.5, 1.0),
+                r.range(0.0, 3.0),
+                hex(0x1e1914),
+                r.range(0.15, 0.4) * (1.0 - d),
+            );
         }
         // crumbs and bits of bark, perlite
         for _ in 0..140 {
             let a = r.range(-0.4, 1.9);
             let d = r.next().powf(0.6);
             let (x, y) = (w * 0.3 + a.cos() * d * w * 0.65, h * 0.25 + a.sin() * d * h * 0.75);
-            let c = if r.next() < 0.1 { [0.78, 0.76, 0.7] } else { mix(hex(0x1e1712), hex(0x4a3a2c), r.next()) };
+            // a grain of perlite now and then, dulled with the dust
+            let c = if r.next() < 0.05 { [0.62, 0.6, 0.56] } else { mix(hex(0x161210), hex(0x3a2e24), r.next()) };
             ctx.set_fill_style(&css(c, r.range(0.6, 0.95)));
             ctx.begin_path();
             ctx.arc(x, y, r.range(0.6, 2.2), 0, 7);
@@ -463,7 +509,9 @@ pub fn place_soil_bags(g: &mut Game, _dist: &[i32]) {
     let print = phong!({ map: &soil_print_tex(salt), specular: 0x1c1c1a, shininess: 18 });
     put_uv(&bag, "Real__soilBag", &print, top(-BAG_X, BAG_X, -BAG_Z, BAG_Z));
     put_uv(&bag, "Real__soilBagSeals", &print, top(-BAG_X, BAG_X, -BAG_Z, BAG_Z));
-    put_uv(&bag, "Real__soilBagSpill", &lambert!({ map: &soil_tex(salt) }), world(0.06));
+    // the soil run out of the split: peat is matte (no sheen to grey it
+    // under a lamp), its map laid on from above over the heap
+    put_uv(&bag, "Real__soilBagSpill", &phong!({ map: &soil_tex(salt), specular: 0x0c0c0c, shininess: 6 }), top(0.02, 0.22, 0.15, 0.315));
     // the fine soil and crumbs scattered round the heap
     let scatter = mesh(
         plane_geo!(0.34, 0.3),
@@ -527,7 +575,7 @@ pub fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
     let apron_colors: [u32; 5] = [0x408040, 0x604040, 0x808030, 0xa07040, 0x506080];
     let canvas = match pick(&apron_colors) {
         0x408040 => 0x5f6448,
-        0x604040 => 0x6a5040,
+        0x604040 => 0x6e5640,
         0x808030 => 0x8a7e5c,
         0xa07040 => 0xb0a282,
         _ => 0x56667a,
@@ -542,15 +590,24 @@ pub fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
     let lay = || top(-0.17, 0.17, -0.17, 0.17);
     put_uv(&apron, "Real__apronGardenCloth", &cloth, lay());
     put_uv(&apron, "Real__apronGardenPocket", &cloth, lay());
-    put(&apron, "Real__apronGardenTies", &lambert!({ color: 0x847a66 }));
+    // the ties: cotton twill tape dyed to match, as dirty as the rest
+    put_uv(&apron, "Real__apronGardenTies", &cloth, lay());
     g.world.add(&apron);
 }
 
 // ========================================================== seed catalogs
 /// The seed catalogue's frame: its face from the outer edge to the sight
 /// (d, z), as `seed_cat_frame` in `t06.py`
-static SC_FACE: [(f64, f64); 8] =
-    [(0.0, 0.0145), (0.0012, 0.0168), (0.0040, 0.0182), (0.0080, 0.0187), (0.0120, 0.0180), (0.0150, 0.0160), (0.0178, 0.0122), (0.020, 0.0112)];
+static SC_FACE: [(f64, f64); 8] = [
+    (0.0, 0.0145),
+    (0.0012, 0.0168),
+    (0.0040, 0.0182),
+    (0.0080, 0.0187),
+    (0.0120, 0.0180),
+    (0.0150, 0.0160),
+    (0.0178, 0.0122),
+    (0.020, 0.0112),
+];
 const SC_SIZE: (f64, f64) = (0.220, 0.300);
 const SC_MAT: (f64, f64) = (0.195, 0.275);
 
@@ -561,7 +618,7 @@ const SC_MAT: (f64, f64) = (0.195, 0.275);
 fn seed_cover_tex(vary: u32) -> Tex {
     canvas_tex_opt(456, 687, false, move |ctx, w, h| {
         let seed = vary ^ 0x5eed;
-        let paper = hex(0xbcab84);
+        let paper = hex(0xab9a72);
         ctx.set_fill_style(&css(paper, 1.0));
         ctx.fill_rect(0, 0, w, h);
         let ink = hex(0x1e281a);
@@ -579,16 +636,16 @@ fn seed_cover_tex(vary: u32) -> Tex {
         ctx.set_font("bold 22px Copperplate");
         ctx.fill_text_max("WARBECK'S", w / 2.0, 92, w - 120.0);
         ctx.set_fill_style(&css(red, 1.0));
-        ctx.set_font("bold 54px Baskerville");
+        ctx.set_font("bold 54px Times New Roman");
         ctx.fill_text_max("Garden Book", w / 2.0, 146, w - 100.0);
         ctx.set_fill_style(&css(ink, 1.0));
-        ctx.set_font("italic 20px Baskerville");
+        ctx.set_font("italic 20px Times New Roman");
         ctx.fill_text_max("Vegetable \u{b7} Flower \u{b7} Field Seeds", w / 2.0, 176, w - 110.0);
         // the year in a banner
         ctx.set_fill_style(&css(hex(0x3f6a3a), 1.0));
         ctx.fill_rect(w / 2.0 - 60.0, 188, 120, 34);
         ctx.set_fill_style(&css(paper, 1.0));
-        ctx.set_font("bold 28px Baskerville");
+        ctx.set_font("bold 28px Times New Roman");
         ctx.fill_text_max("1937", w / 2.0, 215, 110);
         // the picture: a still life of the garden's yield
         let mut r = SplitMix64::new(11, 0xc0f);
@@ -626,7 +683,12 @@ fn seed_cover_tex(vary: u32) -> Tex {
             let a = k as f64 / 9.0 * PI * 2.0 + 0.3;
             ctx.begin_path();
             ctx.move_to(cx + a.cos() * 8.0, cy + a.sin() * 8.0);
-            ctx.quadratic_curve_to(cx + (a + 0.3).cos() * 40.0, cy + (a + 0.3).sin() * 34.0, cx + (a + 0.2).cos() * 66.0, cy + (a + 0.2).sin() * 52.0);
+            ctx.quadratic_curve_to(
+                cx + (a + 0.3).cos() * 40.0,
+                cy + (a + 0.3).sin() * 34.0,
+                cx + (a + 0.2).cos() * 66.0,
+                cy + (a + 0.2).sin() * 52.0,
+            );
             ctx.stroke();
         }
         // carrots across the front, their tops feathery
@@ -669,7 +731,9 @@ fn seed_cover_tex(vary: u32) -> Tex {
             }
         }
         // tomatoes on the vine, left
-        for (k, (tx, ty, tr)) in [(130.0, 330.0, 40.0), (190.0, 352.0, 34.0), (112.0, 400.0, 36.0), (174.0, 418.0, 30.0)].into_iter().enumerate() {
+        for (k, (tx, ty, tr)) in
+            [(130.0, 330.0, 40.0), (190.0, 352.0, 34.0), (112.0, 400.0, 36.0), (174.0, 418.0, 30.0)].into_iter().enumerate()
+        {
             let gr = ctx.create_radial_gradient(tx - tr * 0.35, ty - tr * 0.4, tr * 0.1, tx, ty, tr);
             gr.add_color_stop(0, &css(hex(0xd8806a), 1.0));
             gr.add_color_stop(0.35, &css(hex(0xb8341f), 1.0));
@@ -705,7 +769,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
         ctx.set_fill_style(&css(ink, 1.0));
         ctx.set_font("bold 17px Copperplate");
         ctx.fill_text_max("WARBECK SEED CO.", w / 2.0, 598, w - 120.0);
-        ctx.set_font("italic 15px Baskerville");
+        ctx.set_font("italic 15px Times New Roman");
         ctx.fill_text_max("Columbus, Ohio \u{b7} Established 1884", w / 2.0, 622, w - 120.0);
         // aged: the paper yellowed and browned toward its edges, the inks
         // faded toward it, foxing, a tide line where it once got wet
@@ -714,10 +778,10 @@ fn seed_cover_tex(vary: u32) -> Tex {
         let tide = (s.range(0.0, 1.0), s.range(0.0, 0.3), s.range(0.18, 0.35));
         over(ctx, w, h, move |u, v, c| {
             let n = fbm(seed, u * 7.0, v * 10.0, 4);
-            let mut o = mix(c, paper, 0.05 + 0.06 * n);
-            o = mix(o, [0.7, 0.58, 0.38], 0.06 + 0.08 * n);
-            let edge = sstep(0.07, 0.0, u.min(1.0 - u).min(v.min(1.0 - v)));
-            o = mix(o, [0.55, 0.42, 0.26], edge * 0.5);
+            let mut o = mix(c, paper, 0.08 + 0.08 * n);
+            o = mix(o, [0.64, 0.5, 0.3], 0.12 + 0.1 * n);
+            let edge = sstep(0.09, 0.0, u.min(1.0 - u).min(v.min(1.0 - v)));
+            o = mix(o, [0.5, 0.37, 0.22], edge * 0.6);
             for &(fx, fy, fr) in &fox {
                 let d = (u - fx).hypot((v - fy) * 1.5) / fr;
                 o = mix(o, [0.58, 0.42, 0.26], sstep(1.0, 0.3, d) * 0.6);
@@ -754,8 +818,16 @@ pub fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
     catalog.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = catalog.pos();
     let vary = pictures::vary_of(p.x, p.z, 0.47);
-    put(&body, "Real__seedCatFrame", &lambert!({ map: &pictures::moulding_tex(SC_SIZE, &SC_FACE, Outline::Rect, Finish::Wood([0x6a, 0x48, 0x2c]), 1100.0, vary) }));
-    put(&body, "Real__seedCatMat", &lambert!({ map: &pictures::mat_tex(SC_MAT, Window::Rect(0.136, 0.212, 0.0), [0xc6, 0xba, 0x9a], vary, None) }));
+    put(
+        &body,
+        "Real__seedCatFrame",
+        &lambert!({ map: &pictures::moulding_tex(SC_SIZE, &SC_FACE, Outline::Rect, Finish::Wood([0x6a, 0x48, 0x2c]), 1100.0, vary) }),
+    );
+    put(
+        &body,
+        "Real__seedCatMat",
+        &lambert!({ map: &pictures::mat_tex(SC_MAT, Window::Rect(0.136, 0.212, 0.0), [0xb8, 0xaa, 0x88], vary, None) }),
+    );
     put(&body, "Real__seedCatCover", &lambert!({ map: &seed_cover_tex(vary) }));
     put(&body, "Real__seedCatBack", &lambert!({ color: 0x4a3c2e }));
     // the glass: a little dust, the room faint in it
@@ -783,10 +855,12 @@ fn concrete_tex(salt: u32, streaks: bool) -> Tex {
             // u wraps: the noise blends across the seam
             let wrap = |sd: u32, fu: f64, fv: f64, o: u32| fbm(sd, u * fu, v * fv, o) * (1.0 - u) + fbm(sd, (u - 1.0) * fu, v * fv, o) * u;
             let n = wrap(seed, 24.0, 16.0, 4);
-            let mut c = mix([0.42, 0.41, 0.38], [0.6, 0.59, 0.55], n);
-            let agg = (vn(seed ^ 2, u * 300.0, v * 200.0) - 0.7).max(0.0) * 2.5;
-            c = mix(c, [0.32, 0.3, 0.27], agg);
-            let pit = (vn(seed ^ 3, u * 500.0, v * 330.0) - 0.88).max(0.0) * 6.0;
+            let mut c = mix([0.38, 0.37, 0.34], [0.54, 0.53, 0.49], n);
+            // the aggregate and the pits where air was trapped, at the scale
+            // the map holds (2 mm a pixel round the column)
+            let agg = (vn(seed ^ 2, u * 160.0, v * 110.0) - 0.7).max(0.0) * 2.0;
+            c = mix(c, [0.3, 0.28, 0.25], agg);
+            let pit = (vn(seed ^ 3, u * 190.0, v * 125.0) - 0.9).max(0.0) * 5.0;
             c = mix(c, [0.16, 0.15, 0.14], pit.min(1.0));
             // lichen: pale grey-green rosettes; black algae in the damp
             let li = wrap(seed ^ 4, 18.0, 12.0, 3);
@@ -815,18 +889,23 @@ fn bowl_tex(salt: u32) -> Tex {
             let (x, y) = (u - 0.5, v - 0.5);
             let r = x.hypot(y) * 0.41; // m from the middle
             let n = fbm(seed, u * 30.0, v * 30.0, 4);
-            let mut c = mix([0.42, 0.41, 0.38], [0.58, 0.57, 0.53], n);
-            let agg = (vn(seed ^ 2, u * 400.0, v * 400.0) - 0.7).max(0.0) * 2.0;
+            let mut c = mix([0.38, 0.37, 0.34], [0.52, 0.51, 0.47], n);
+            let agg = (vn(seed ^ 2, u * 220.0, v * 220.0) - 0.7).max(0.0) * 2.0;
             c = mix(c, [0.32, 0.3, 0.27], agg);
             // the algae's crust over the dish's floor, ragged at its edge
             let crust = sstep(0.16, 0.12, r + 0.02 * (fbm(seed ^ 3, u * 14.0, v * 14.0, 3) - 0.5));
             let ac = mix([0.16, 0.18, 0.12], [0.3, 0.33, 0.22], fbm(seed ^ 4, u * 60.0, v * 60.0, 3));
             c = mix(c, ac, crust * 0.85);
-            // tide lines: rings where the water stood
-            for (k, tr) in [0.118, 0.135, 0.151, 0.168].into_iter().enumerate() {
-                let d = (r - tr - 0.004 * (fbm(seed ^ (10 + k as u32), u * 9.0, v * 9.0, 2) - 0.5)).abs();
-                c = mix(c, [0.2, 0.19, 0.16], sstep(0.0035, 0.0, d) * (0.5 - 0.08 * k as f64));
-                c = mix(c, [0.66, 0.64, 0.58], sstep(0.003, 0.0, (r - tr - 0.003).abs()) * 0.25);
+            // tide lines where the water stood and dried: wavering, broken,
+            // strong here and gone there, a paler crust just outside each
+            let (ca, sa) = (y.atan2(x).cos(), y.atan2(x).sin());
+            for (k, tr) in [0.121, 0.142, 0.163].into_iter().enumerate() {
+                let sd = seed ^ (10 + k as u32);
+                let wob = 0.009 * (fbm(sd, ca * 2.5 + 7.0, sa * 2.5, 3) - 0.5) + 0.003 * (fbm(sd ^ 1, u * 22.0, v * 22.0, 2) - 0.5);
+                let d = r - tr - wob;
+                let on = sstep(0.4, 0.62, fbm(sd ^ 2, ca * 1.8 + 3.0, sa * 1.8 + 3.0, 3));
+                c = mix(c, [0.22, 0.21, 0.17], sstep(0.003, 0.0, d.abs()) * on * (0.45 - 0.1 * k as f64));
+                c = mix(c, [0.6, 0.58, 0.52], sstep(0.004, 0.0, (d - 0.0035).abs()) * on * 0.2);
             }
             // the rim: dusty, droppings long dried
             c = mix(c, [0.62, 0.6, 0.55], sstep(0.18, 0.2, r) * 0.25);
@@ -835,6 +914,156 @@ fn bowl_tex(salt: u32) -> Tex {
             [c[0], c[1], c[2], 1.0]
         });
     })
+}
+
+// ============================================================ dead leaves
+/// Batch `t05`'s dead leaves (`t05.py` LEAVES; `placers_p03`'s `t05.rs`
+/// paints them so, and its painter is copied here): the part, the blade's
+/// length, its envelope's half width, oak or beech
+const LEAVES: [(&str, f64, f64, bool); 5] = [
+    ("Real__leafBeechA", 0.072, 0.0225, false),
+    ("Real__leafBeechB", 0.062, 0.0195, false),
+    ("Real__leafBeechC", 0.056, 0.0180, false),
+    ("Real__leafOakA", 0.086, 0.0265, true),
+    ("Real__leafOakB", 0.070, 0.0220, true),
+];
+
+/// Each leaf's colour (sRGB): beech russet, beech brown, beech pale tan, oak
+/// brown, oak dark (wet once)
+const LEAF_RGB: [[f64; 3]; 5] = [[0.56, 0.37, 0.21], [0.48, 0.34, 0.22], [0.63, 0.49, 0.33], [0.54, 0.42, 0.28], [0.42, 0.32, 0.22]];
+
+/// The bounds (frame) part `name` was modelled in
+fn frame(name: &str) -> ([f64; 3], [f64; 3]) {
+    prop_part_info(name).map(|m| (m.fmin, m.fmax)).unwrap_or(([-0.05; 3], [0.05; 3]))
+}
+
+/// The half width of leaf `k`'s blade at a fraction `a` of its length, on
+/// side `side` (±1): beech ovate with a wavy margin, oak lobed, each a little
+/// ragged, and one tear (as `t05` cuts them)
+fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
+    let (_, _, w, oak) = LEAVES[k];
+    if !(0.0..=1.0).contains(&a) {
+        return 0.0;
+    }
+    let seed = 0x1ea0 + k as u32 * 17;
+    let mut hw = if oak {
+        let env = (PI * a.powf(0.62)).sin().max(0.0).powf(0.75) * (1.0 - 0.15 * (1.0 - a)) + 0.18 * (-((a - 0.03) / 0.05).powi(2)).exp();
+        let t = (a * 5.2 + 0.2 + 0.08 * side).fract();
+        let lobe = if a > 0.1 { 0.58 + 0.42 * (1.0 - (2.0 * t - 1.0).powi(2)).max(0.0).sqrt() } else { 1.0 };
+        w * env * lobe
+    } else {
+        let env = (PI * a.powf(1.15)).sin().max(0.0).powf(0.8);
+        w * env * (1.0 - 0.04 * (0.5 + 0.5 * (2.0 * PI * a * 8.5).cos()))
+    } - 0.0006;
+    hw *= 1.0 - 0.07 * sstep(0.55, 0.8, fbm(seed, a * 18.0, side * 3.0, 3));
+    let ta = 0.35 + 0.3 * hash(seed, 1, 0);
+    if side > 0.0 && k % 2 == 0 {
+        let d = ((a - ta) / 0.025).abs();
+        hw *= 1.0 - 0.7 * (1.0 - d).max(0.0);
+    }
+    hw.max(0.0)
+}
+
+/// Leaf `k` seen from above in its part's frame (as `t05` paints it): the
+/// blade's outline cut out, holes eaten through, mottled, darker at the
+/// dried margin, fungal spots, the veins paler; made once a thread
+fn leaf_tex(k: usize) -> Tex {
+    thread_local! { static T: RefCell<Vec<Option<Tex>>> = RefCell::new(vec![None; 5]); }
+    let k = k.min(4);
+    if let Some(t) = T.with(|t| t.borrow()[k].clone()) {
+        return t;
+    }
+    let (name, l, _, oak) = LEAVES[k];
+    let (lo, hi) = frame(name);
+    let (ex, ez) = (hi[0] - lo[0], hi[2] - lo[2]);
+    let th = (256.0 * ez / ex).round().max(32.0);
+    let base = LEAF_RGB[k];
+    let seed = 0x1ea7 + k as u32 * 31;
+    let tex = canvas_tex_opt(256, th, false, move |ctx, w, h| {
+        let px_m = ex / w;
+        // pixel rows top down (z from lo[2]); `fill` gives v up
+        fill(ctx, w, h, |u, v| {
+            let x = l - (hi[0] - (lo[0] + u * ex));
+            let z = lo[2] + (1.0 - v) * ez;
+            let a = x / l;
+            if x < 0.0004 {
+                // the petiole
+                let c = mix([0.34, 0.24, 0.15], [0.26, 0.18, 0.12], vn(seed, u * w * 0.3, v * h * 0.3));
+                return [c[0], c[1], c[2], 1.0];
+            }
+            let side = if z > 0.0 { 1.0 } else { -1.0 };
+            let hw = leaf_half(k, a, side);
+            let edge = (hw - z.abs()) / px_m;
+            let inside = (edge + 0.5).clamp(0.0, 1.0);
+            let hole_n = fbm(seed ^ 0x40, x * 260.0, z * 260.0, 3);
+            let hole = sstep(0.77, 0.79, hole_n);
+            let skel = sstep(0.70, 0.77, hole_n) * (1.0 - hole);
+            let m = fbm(seed ^ 0x11, x * 120.0, z * 120.0, 4);
+            let mut c = mix(base, mix(base, [0.30, 0.22, 0.15], 0.6), sstep(0.45, 0.8, m));
+            let margin = 1.0 - sstep(0.0, 0.004, hw - z.abs());
+            c = mix(c, [0.30, 0.23, 0.17], 0.5 * margin);
+            let sp = fbm(seed ^ 0x77, x * 300.0, z * 300.0, 2);
+            c = mix(c, [0.24, 0.18, 0.13], 0.55 * sstep(0.76, 0.79, sp));
+            let mid_w = 0.0007 - 0.0005 * a;
+            let midrib = 1.0 - sstep(mid_w * 0.5, mid_w, z.abs());
+            let (pairs, slope) = if oak { (6.0, 0.62) } else { (8.0, 0.9) };
+            let q = (x - z.abs() * slope) / l * pairs - 0.35;
+            let dq = (q - q.round()).abs() * l / pairs;
+            let lateral =
+                (1.0 - sstep(0.00018, 0.00042, dq)) * sstep(0.0, 0.02, q / pairs) * (1.0 - sstep(0.85, 1.0, z.abs() / hw.max(1e-6)));
+            let net = (1.0 - sstep(0.0, 0.08, (vn(seed ^ 0x9, x * 900.0, z * 900.0) - 0.5).abs())) * 0.25;
+            let vein = midrib.max(lateral * 0.8).max(net * 0.4);
+            c = mix(c, mix(c, [0.78, 0.66, 0.50], 0.45), vein);
+            c = mix(c, [0.62, 0.55, 0.45], 0.5 * skel);
+            [c[0], c[1], c[2], inside * (1.0 - hole)]
+        });
+    });
+    // where it is clear its colour is the leaf's, so its smaller mips keep
+    // the leaf's colour at the cut edge instead of black
+    {
+        let img = tex.image();
+        let mut im = img.borrow_mut();
+        for px in im.data.chunks_exact_mut(4) {
+            let a = sstep(0.0, 0.5, f64::from(px[3]) / 255.0);
+            for (c, b) in px.iter_mut().zip(base) {
+                *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * a).round().clamp(0.0, 255.0) as u8;
+            }
+        }
+        im.version += 1;
+    }
+    T.with(|t| t.borrow_mut()[k] = Some(tex.clone()));
+    tex
+}
+
+/// Dead leaf `k` (one of `t05`'s), its back up or not, a shade darker or
+/// lighter; its lowest point at the origin
+fn dead_leaf(k: usize, back_up: bool, shade: f64) -> Obj {
+    let leaf = group();
+    let name = LEAVES[k.min(4)].0;
+    if let Some(geo) = prop_part_as_modelled(name) {
+        let tint = ((shade.clamp(0.0, 1.0) * 255.0) as u32) * 0x010101;
+        let m = mesh(geo, lambert!({ map: &leaf_tex(k), color: tint, alphaTest: 0.5, side: DoubleSide }));
+        if back_up {
+            m.rotation().x = PI;
+            m.position().y = frame(name).1[1];
+        }
+        leaf.add(&m);
+    }
+    leaf
+}
+
+/// The dish inside the basin (`t06.py` `_bowl_profile`): its height over
+/// its lowest point and its slope at `r` m from the middle
+fn bb_dish(r: f64) -> (f64, f64) {
+    const P: [(f64, f64); 5] = [(0.0, 0.0), (0.07, 0.004), (0.12, 0.014), (0.16, 0.030), (0.18, 0.038)];
+    for w in P.windows(2) {
+        let ((r0, y0), (r1, y1)) = (w[0], w[1]);
+        if r <= r1 {
+            let s = (y1 - y0) / (r1 - r0);
+            return (y0 + (r.max(r0) - r0) * s, s);
+        }
+    }
+    (0.038, 0.4)
 }
 
 // R651 bird bath: 3% chance per level.
@@ -849,8 +1078,8 @@ pub fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick(&open);
     // A small cast concrete pedestal bird bath (Blender batch `t06`), long
     // dry: lichen and black algae on it, its basin crusted, tide lines where
-    // the water stood and fell, a last puddle of dark still water, leaves in
-    // it and at its foot
+    // the water stood and fell, a last puddle of dark still water, dead
+    // leaves blown in (`t05`'s beech and oak) in it and at its foot
     let bath = group();
     // where it stands and how it is turned (the old draws)
     bath.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
@@ -859,34 +1088,65 @@ pub fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     let salt = salt_of(p.x, p.z);
     put(&bath, "Real__birdBathPedestal", &lambert!({ map: &concrete_tex(salt, true) }));
     put(&bath, "Real__birdBathBowlOut", &lambert!({ map: &concrete_tex(salt ^ 0x77, false) }));
-    put_uv(&bath, "Real__birdBathBowlIn", &lambert!({ map: &bowl_tex(salt) }), top(-0.205, 0.205, -0.205, 0.205));
-    // the water: stagnant, tea dark, a skin of dust on it
-    let water = mesh(circle_geo!(BB_WATER_R, 40), phong!({ color: 0x2c2b20, specular: 0x3a3a34, shininess: 80, transparent: true, opacity: 0.9 }));
+    // the basin inside: weathered concrete is matte (little sheen under a lamp)
+    put_uv(
+        &bath,
+        "Real__birdBathBowlIn",
+        &phong!({ map: &bowl_tex(salt), specular: 0x0e0e0e, shininess: 8 }),
+        top(-0.205, 0.205, -0.205, 0.205),
+    );
+    // the water: stagnant, tea dark, its surface still (the lamp's
+    // reflection in it small and sharp)
+    let water = mesh(
+        circle_geo!(BB_WATER_R, 40),
+        phong!({ color: 0x2a2920, specular: 0x181816, shininess: 400, transparent: true, opacity: 0.92 }),
+    );
     water.rotation().x = -PI / 2.0;
     water.position().y = BB_WATER_Y;
     bath.add(&water);
-    // dead leaves: one afloat, two dried on the dish, two at its foot
-    let leaf = lambert!({ color: 0x6a5238, side: DoubleSide });
-    let k = f64::from(salt % 1000) / 1000.0 * PI * 2.0;
-    for (i, (lx, ly, lz, turn)) in [(0.03, BB_WATER_Y + 0.0005, -0.02, 0.4), (0.13, BB_DISH_Y + 0.022, 0.06, 2.1), (-0.11, BB_DISH_Y + 0.018, 0.1, 4.0), (0.17, 0.0, 0.05, 1.2), (-0.05, 0.0, 0.2, 5.1)]
-        .into_iter()
-        .enumerate()
-    {
-        let (s, c) = (k + i as f64 * 1.3).sin_cos();
-        let l = group();
-        if put(&l, "Real__deadPlantFallen", &leaf).is_some() {
-            l.position().set(lx * c - lz * s, ly, lx * s + lz * c);
-            l.rotation().y = turn + k;
-            // the leaves in the basin lie on its slope
-            if i == 1 || i == 2 {
-                l.rotation().z = if lx > 0.0 { 0.2 } else { -0.2 };
-            }
-            bath.add(&l);
-        }
+    // the dead leaves (which of `t05`'s, which side up, how dark: from
+    // where it stands, no draw): one afloat, two dried on the dish's slope
+    // (along it, lying on it), two on the floor at its foot
+    let turn0 = f64::from(salt % 1000) / 1000.0 * PI * 2.0;
+    let pickk = |i: u32| ((salt >> (3 * i)) % 5) as usize;
+    let back = |i: u32| (salt >> (16 + i)) & 3 == 0;
+    // afloat, wet and dark, near the middle
+    let afloat = dead_leaf(pickk(0), back(0), 0.62);
+    let (fx, fz) = (0.03 * turn0.cos(), 0.03 * turn0.sin());
+    afloat.position().set(fx, BB_WATER_Y + 0.0004, fz);
+    afloat.rotation().y = turn0;
+    bath.add(&afloat);
+    for (i, (r, a, turn)) in [(0.118, 2.2, 0.25), (0.106, 4.3, -0.35)].into_iter().enumerate() {
+        let (h, slope) = bb_dish(r);
+        let phi = turn0 + a;
+        // the pivot's +z out along the slope, tipped up with it
+        let pivot = group();
+        pivot.set_rotation_order(EulerOrder::YXZ);
+        pivot.position().set(r * phi.sin(), BB_DISH_Y + h + 0.0025, r * phi.cos());
+        pivot.rotation().set(-slope.atan(), phi, 0.0);
+        let l = dead_leaf(pickk(1 + i as u32), back(1 + i as u32), 0.82 + 0.1 * i as f64);
+        l.rotation().y = turn;
+        pivot.add(&l);
+        bath.add(&pivot);
+    }
+    for (i, (r, a)) in [(0.19, 1.1), (0.235, 3.5)].into_iter().enumerate() {
+        let phi = turn0 + a;
+        let l = dead_leaf(pickk(3 + i as u32), back(3 + i as u32), 0.9 + 0.08 * i as f64);
+        l.position().set(r * phi.sin(), 0.0, r * phi.cos());
+        l.rotation().y = phi + 1.3 + i as f64 * 2.0;
+        bath.add(&l);
     }
     g.world.add(&bath);
-    // the old ripple's phase (its draw, kept): the water is still now
-    let _ = rnd() * PI * 2.0;
+    // the old ripple's phase (its draw, kept), and its animation: the leaf
+    // afloat drifts and turns a little on the still water in a draught
+    let phase = rnd() * PI * 2.0;
+    g.animate(move |_g, _dt, t| {
+        let mut q = afloat.position();
+        q.x = fx + (t * 0.07 + phase).cos() * 0.006;
+        q.z = fz + (t * 0.05 + phase).sin() * 0.005;
+        drop(q);
+        afloat.rotation().y = turn0 + (t * 0.04 + phase).sin() * 0.4;
+    });
 }
 
 // ============================================================ garden gnomes
@@ -953,6 +1213,50 @@ fn spike_tex(base: [f64; 3]) -> Tex {
     })
 }
 
+/// The spike as modelled (`t06.py` SPIKE_L): its length, where its middle
+/// is from its head, where a snapped one broke (0.58 of it)
+const SPIKE_L: f64 = 0.052;
+const SPIKE_MID: f64 = 0.0275;
+const SPIKE_SNAP: f64 = 0.58 * SPIKE_L;
+
+/// A spike (or what is left of it whole) lying in the cluster: its head
+/// end and far end on the floor (x, z), the end it pivots on, the sine of
+/// its tilt, its length
+struct Laid {
+    a0: (f64, f64),
+    a1: (f64, f64),
+    pivot: (f64, f64),
+    sin: f64,
+    len: f64,
+}
+
+impl Laid {
+    /// The height of its top at `u` (0 the head end, 1 the far end): its
+    /// thickness there (the octagon across its flats, tapering to the
+    /// point) over its lift off the floor
+    fn top(&self, u: f64) -> f64 {
+        let t = u * self.len / SPIKE_L;
+        let thick = if t < 0.58 { 0.0079 - 0.0009 * t } else { 0.0074 * (1.0 - 0.72 * ((t - 0.58) / 0.42).powf(1.15)) };
+        let p = (self.a0.0 + (self.a1.0 - self.a0.0) * u, self.a0.1 + (self.a1.1 - self.a0.1) * u);
+        let lift = (p.0 - self.pivot.0).hypot(p.1 - self.pivot.1) * self.sin;
+        lift + thick
+    }
+}
+
+/// Where segments a0-a1 and b0-b1 cross: the fraction along each
+fn seg_cross(a0: (f64, f64), a1: (f64, f64), b0: (f64, f64), b1: (f64, f64)) -> Option<(f64, f64)> {
+    let (rx, ry) = (a1.0 - a0.0, a1.1 - a0.1);
+    let (sx, sy) = (b1.0 - b0.0, b1.1 - b0.1);
+    let den = rx * sy - ry * sx;
+    if den.abs() < 1e-12 {
+        return None;
+    }
+    let (qx, qy) = (b0.0 - a0.0, b0.1 - a0.1);
+    let t = (qx * sy - qy * sx) / den;
+    let u = (qx * ry - qy * rx) / den;
+    ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then_some((t, u))
+}
+
 // R653 fertilizer spike cluster: 8% chance per level.
 pub fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -972,6 +1276,7 @@ pub fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
     let cluster = group();
     let count = 3 + (rnd() * 3.0).floor() as i32;
     let mut pack: Option<Mat> = None;
+    let mut down: Vec<Laid> = vec![];
     for i in 0..count {
         let c = pick(&spike_colors);
         let kind = spike_colors.iter().position(|&k| k == c).unwrap_or(0);
@@ -986,24 +1291,58 @@ pub fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
                 lambert!({ map: &spike_tex(hex(tone)) })
             })
             .clone();
+        let whole = i == 0 || kind < 2;
+        // where it lies and how it is turned (the old draws)
+        let (sx, sz) = ((rnd() - 0.5) * 0.12, (rnd() - 0.5) * 0.12);
+        let turn = rnd() * PI * 2.0;
+        // its length along the floor (the spike's middle at the group's
+        // origin): the head end, the far end of what lies whole
+        let (x0, x1) = (-SPIKE_MID, if whole { SPIKE_L - SPIKE_MID } else { SPIKE_SNAP - SPIKE_MID });
+        let dir = (turn.cos(), -turn.sin());
+        let a0 = (sx + dir.0 * x0, sz + dir.1 * x0);
+        let a1 = (sx + dir.0 * x1, sz + dir.1 * x1);
+        // where it crosses one already down it rests on it: it pivots on its
+        // end farther from the crossing, raised over the other's top there
+        let mut best: Option<(f64, bool)> = None; // (sin of its tilt, pivot at the head)
+        for d in &down {
+            if let Some((t, u)) = seg_cross(a0, a1, d.a0, d.a1) {
+                let len = x1 - x0;
+                let at = t * len; // from the head end
+                let top = d.top(u);
+                let (dist, head) = if at > len / 2.0 { (at, true) } else { (len - at, false) };
+                let k = (top / dist.max(0.004)).min(0.42);
+                if best.is_none_or(|(b, _)| k > b) {
+                    best = Some((k, head));
+                }
+            }
+        }
         let spike = group();
-        // the spike's middle at the group's origin
+        spike.position().set(sx, 0, sz);
+        spike.rotation().y = turn;
+        let tilt = group();
+        spike.add(&tilt);
+        let (sin, head) = best.unwrap_or((0.0, true));
+        let pivot = if head { x0 } else { x1 };
+        tilt.position().x = pivot;
+        tilt.rotation().z = if head { sin.asin() } else { -sin.asin() };
         let inner = group();
-        inner.position().x = -0.0275;
-        spike.add(&inner);
+        inner.position().x = -SPIKE_MID - pivot;
+        tilt.add(&inner);
+        // what broke off lies on the floor
+        let apart = group();
+        apart.position().x = -SPIKE_MID;
+        spike.add(&apart);
         let size = 0.02;
-        if i == 0 || kind < 2 {
+        if whole {
             put_uv(&inner, "Real__fertSpike", &mat, world(size));
         } else if kind == 2 {
             put_uv(&inner, "Real__fertSpikeHead", &mat, world(size));
-            put_uv(&inner, "Real__fertSpikeTip", &mat, world(size));
+            put_uv(&apart, "Real__fertSpikeTip", &mat, world(size));
         } else {
             put_uv(&inner, "Real__fertSpikeHead", &mat, world(size));
-            put_uv(&inner, "Real__fertCrumbs", &mat, world(size));
+            put_uv(&apart, "Real__fertCrumbs", &mat, world(size));
         }
-        // where it lies and how it is turned (the old draws)
-        spike.position().set((rnd() - 0.5) * 0.12, 0, (rnd() - 0.5) * 0.12);
-        spike.rotation().y = rnd() * PI * 2.0;
+        down.push(Laid { a0, a1, pivot: if head { a0 } else { a1 }, sin, len: x1 - x0 });
         cluster.add(&spike);
     }
     cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);

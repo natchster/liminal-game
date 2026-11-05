@@ -1171,9 +1171,11 @@ def gnome_skin():
     head = ellipsoid(0.033, 0.034, 0.032, seg=20).move(0, 0.206, 0.006)
     out = out + head
     for sg in (-1, 1):
-        out = out + ellipsoid(0.013, 0.011, 0.011, seg=12).move(sg * 0.015, 0.199, 0.030)       # cheeks
+        # the cheeks: round, rosy, set out beside the nose and half under the
+        # moustache (not as big as the nose)
+        out = out + ellipsoid(0.010, 0.0085, 0.008, seg=12).move(sg * 0.019, 0.200, 0.029)
         out = out + ellipsoid(0.006, 0.010, 0.004, seg=10).rot(0, sg * 0.3, sg * 0.2).move(sg * 0.033, 0.207, 0.004)   # ears
-    out = out + ellipsoid(0.010, 0.0115, 0.011, seg=14).move(0, 0.203, 0.040)                   # the nose
+    out = out + ellipsoid(0.0115, 0.0125, 0.012, seg=14).move(0, 0.203, 0.041)                  # the nose, bulbous
     # the hands: mittens with a thumb, one over the other
     for sg, dz, dy in ((-1, 0.0, 0.0), (1, 0.004, 0.006)):
         h = ellipsoid(0.014, 0.010, 0.0085, seg=12).rot(0, 0, sg * 0.4).move(sg * 0.008, 0.121 + dy, 0.060 + dz)
@@ -1421,9 +1423,9 @@ def apron_drop():
         d = -v
         # lying, its front up, its length along -z, bunched a little across
         # (soft waves the solver lays down as folds)
-        X = x * 0.8 + 0.016 * math.sin(d * 13.0 + 0.5)
-        Z = -(d - AW_L / 2) * 0.86 + 0.03 * math.sin(x * 6.0)
-        Y = 0.05 + 0.03 * max(0.0, math.sin(X * 17.0 + d * 5.0)) + 0.02 * max(0.0, math.sin(d * 21.0 + x * 7.0)) + 0.004 * noise.noise(Vector((x * 9, v * 9, 0.21)))
+        X = x * 0.74 + 0.02 * math.sin(d * 13.0 + 0.5)
+        Z = -(d - AW_L / 2) * 0.8 + 0.035 * math.sin(x * 6.0)
+        Y = 0.05 + 0.045 * max(0.0, math.sin(X * 15.0 + d * 5.0)) + 0.03 * max(0.0, math.sin(d * 19.0 + x * 7.0)) + 0.006 * noise.noise(Vector((x * 9, v * 9, 0.21)))
         if X < FOLD:
             # over the fold: turned back over the rest, a roll at the fold,
             # askew
@@ -1463,7 +1465,7 @@ def apron_drop():
     s.tension_stiffness = 25.0
     s.compression_stiffness = 25.0
     s.shear_stiffness = 8.0
-    s.bending_stiffness = 0.35
+    s.bending_stiffness = 0.8      # 10 oz duck: its folds broad and round
     s.air_damping = 2.0
     s.rest_shape_key = basis
     c = cl.collision_settings

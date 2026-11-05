@@ -17,6 +17,84 @@ fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
     Some(m)
 }
 
+/// Part `name` with its texture coordinates laid on at their real scale
+/// (`size` m a repeat) from the side each vertex faces most
+fn put_world(grp: &Obj, name: &str, mat: &Mat, size: f64) -> Option<Obj> {
+    let geo = prop_part_as_modelled(name)?.duplicate();
+    {
+        let mut gg = geo.g();
+        let n = gg.position.len() / 3;
+        let mut uv = Vec::with_capacity(n * 2);
+        for i in 0..n {
+            let (x, y, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 1]), f64::from(gg.position[i * 3 + 2]));
+            let (ax, ay, az) = (gg.normal[i * 3].abs(), gg.normal[i * 3 + 1].abs(), gg.normal[i * 3 + 2].abs());
+            let (u, v) = if ay >= ax && ay >= az {
+                (x, z)
+            } else if ax >= az {
+                (z, y)
+            } else {
+                (x, y)
+            };
+            uv.push((u / size) as f32);
+            uv.push((v / size) as f32);
+        }
+        gg.uv = uv;
+        gg.touch();
+    }
+    let m = mesh(geo, mat);
+    grp.add(&m);
+    Some(m)
+}
+
+fn hash(seed: u32, i: i32, j: i32) -> f64 {
+    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+    h ^= h >> 16;
+    f64::from(h) / 4_294_967_296.0
+}
+
+/// Value noise that repeats every `p` cells
+fn vn(seed: u32, x: f64, y: f64, p: i32) -> f64 {
+    let (xf, yf) = (x.floor(), y.floor());
+    let (i, j) = (xf as i32, yf as i32);
+    let (u, v) = (x - xf, y - yf);
+    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+    let w = |a: i32| a.rem_euclid(p);
+    let (a, b) = (hash(seed, w(i), w(j)), hash(seed, w(i + 1), w(j)));
+    let (c, d) = (hash(seed, w(i), w(j + 1)), hash(seed, w(i + 1), w(j + 1)));
+    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+}
+
+/// A dried leaf's surface as a tint over its colour (a repeat every 15 mm):
+/// mottled where it dried unevenly, a network of darker veins sunk in the
+/// crinkled blade, a pale bloom of fine hairs; the same on every floor (one
+/// texture, made once a thread)
+fn dried_tex() -> Tex {
+    thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
+    T.with(|t| {
+        t.get_or_init(|| {
+            canvas_tex(96, 96, |ctx, w, h| {
+                let iw = w as usize;
+                let mut img = ctx.create_image_data(w, h);
+                par_rows(&mut img.data, iw * 4, |j, out| {
+                    for i in 0..iw {
+                        let (x, y) = ((i as f64 + 0.5) / w, (j as f64 + 0.5) / h);
+                        let m = 0.6 * vn(0x5a6e, x * 6.0, y * 6.0, 6) + 0.4 * vn(0x5a6f, x * 12.0, y * 12.0, 12);
+                        let vein = 1.0 - ((vn(0x5a70, x * 9.0, y * 9.0, 9) - 0.5).abs() * 14.0).min(1.0);
+                        let hair = (vn(0x5a71, x * 48.0, y * 48.0, 48) - 0.7).max(0.0) * 1.6;
+                        let k = (0.84 + 0.2 * m - 0.16 * vein + 0.12 * hair).clamp(0.0, 1.0);
+                        let c = (k * 255.0).round() as u8;
+                        out[i * 4..i * 4 + 4].copy_from_slice(&[c, c, (f64::from(c) * 0.97) as u8, 255]);
+                    }
+                });
+                ctx.put_image_data(&img, 0, 0);
+            })
+        })
+        .clone()
+    })
+}
+
 /// The herbs: sage, rosemary or lavender; each its parts (`t06.py`) and its
 /// colours dried
 #[derive(Clone, Copy)]
@@ -60,13 +138,17 @@ pub(crate) fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
     let n = stem_count as f64;
     // each stem dried a little differently: every other one darker
     let shade = |c: u32, k: f64| {
-        let [r, gg, b] = [(c >> 16) & 255, (c >> 8) & 255, c & 255].map(|v| (f64::from(v) * k).round() as u32);
+        let [r, gg, b] = [(c >> 16) & 255, (c >> 8) & 255, c & 255].map(|v| (f64::from(v) * k).round().min(255.0) as u32);
         (r << 16) | (gg << 8) | b
     };
+    // each tinted by the dried surface (mottled, veined, a bloom of hairs);
+    // the colours a shade lighter to keep their tone under the tint
+    let dried = dried_tex();
+    let mat = |c: u32, k: f64| lambert!({ map: &dried, color: shade(c, k * 1.08), side: DoubleSide });
     let mats_for = |k: f64| -> (Mat, Mat) {
         match herb {
-            Herb::Sage(c) => (lambert!({ color: shade(c, k), side: DoubleSide }), lambert!({ color: shade(c, k), side: DoubleSide })),
-            Herb::Rosemary(w, l) | Herb::Lavender(w, l) => (lambert!({ color: shade(w, k), side: DoubleSide }), lambert!({ color: shade(l, k), side: DoubleSide })),
+            Herb::Sage(c) => (mat(c, k), mat(c, k)),
+            Herb::Rosemary(w, l) | Herb::Lavender(w, l) => (mat(w, k), mat(l, k)),
         }
     };
     let both = [mats_for(1.0), mats_for(0.86)];
@@ -83,15 +165,15 @@ pub(crate) fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
         let mats = &both[i as usize % 2];
         match herb {
             Herb::Sage(_) => {
-                put(&stem, &format!("Real__herbSage{v}"), &mats.0);
+                put_world(&stem, &format!("Real__herbSage{v}"), &mats.0, 0.015);
             }
             Herb::Rosemary(..) => {
-                put(&stem, &format!("Real__herbRosemaryWood{v}"), &mats.0);
-                put(&stem, &format!("Real__herbRosemaryNeedles{v}"), &mats.1);
+                put_world(&stem, &format!("Real__herbRosemaryWood{v}"), &mats.0, 0.015);
+                put_world(&stem, &format!("Real__herbRosemaryNeedles{v}"), &mats.1, 0.015);
             }
             Herb::Lavender(..) => {
-                put(&stem, &format!("Real__herbLavenderStem{v}"), &mats.0);
-                put(&stem, &format!("Real__herbLavenderSpike{v}"), &mats.1);
+                put_world(&stem, &format!("Real__herbLavenderStem{v}"), &mats.0, 0.015);
+                put_world(&stem, &format!("Real__herbLavenderSpike{v}"), &mats.1, 0.015);
             }
         }
         body.add(&stem);
