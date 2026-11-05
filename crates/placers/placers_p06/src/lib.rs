@@ -7,6 +7,7 @@ use game::prelude::*;
 
 mod garden;
 mod rustic;
+mod t06;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {

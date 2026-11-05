@@ -3,6 +3,9 @@
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
 use game::prelude::*;
 
+// R653 fertilizer spikes: made real by batch `t06` (`t06.rs`)
+pub use crate::t06::place_fertilizer_spikes;
+
 // R653 mounted deer antler pair: 3% chance per level. Wooden plaque +
 // branching antler cylinders.
 pub fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
@@ -55,41 +58,6 @@ pub fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
     mount.rotation().y = face_yaw(dx, dz);
     mount.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&mount);
-}
-
-// R653 fertilizer spike cluster: 8% chance per level. 3-5 short colored
-// plastic sticks on floor.
-pub fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let spike_colors: [u32; 4] = [0x408040, 0x2060c0, 0xc02020, 0xf0e020];
-    let cluster = group();
-    let count = 3 + (rnd() * 3.0).floor() as i32;
-    for _i in 0..count {
-        let spike_mat = lambert!({ color: pick(&spike_colors) });
-        let spike = group();
-        // Main stick.
-        let body = mesh(pg("FertilizerSpikes__body", cyl_geo!(0.003, 0.004, 0.055, 6)), &spike_mat);
-        body.rotation().z = PI / 2.0;
-        body.position().y = 0.003;
-        spike.add(&body);
-        // Pointed cone tip.
-        let tip = mesh(pg("FertilizerSpikes__tip", cone_geo!(0.004, 0.012, 5)), &spike_mat);
-        tip.rotation().z = -PI / 2.0;
-        tip.position().set(0.033, 0.003, 0);
-        spike.add(&tip);
-        spike.position().set((rnd() - 0.5) * 0.12, 0, (rnd() - 0.5) * 0.12);
-        spike.rotation().y = rnd() * PI * 2.0;
-        cluster.add(&spike);
-    }
-    cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    g.world.add(&cluster);
 }
 
 // R654 rustic wooden wall sign: 4% chance per level. Three pine boards

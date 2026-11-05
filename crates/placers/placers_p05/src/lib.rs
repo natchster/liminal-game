@@ -7,6 +7,7 @@
 use game::prelude::*;
 
 mod garden;
+mod t06;
 mod toys;
 
 /// Every placer in this crate, by its registered name.
