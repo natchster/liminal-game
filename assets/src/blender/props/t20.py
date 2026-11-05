@@ -754,9 +754,9 @@ def watch_key():
 
 
 auto('Real__pocketWatchCase', watch_case, 3000)
-auto('Real__pocketWatchCover', watch_cover, 900)
-auto('Real__pocketWatchDial', watch_dial, 300)
-auto('Real__pocketWatchCrystal', watch_crystal, 700)
+auto('Real__pocketWatchCover', watch_cover, 1250)
+auto('Real__pocketWatchDial', watch_dial, 500)
+auto('Real__pocketWatchCrystal', watch_crystal, 800)
 auto('Real__pocketWatchHour', lambda: watch_hand(0.0125, 'spade'), 120)
 auto('Real__pocketWatchMinute', lambda: watch_hand(0.0185, 'whip'), 120)
 auto('Real__pocketWatchSecond', lambda: watch_hand(0.0052, 'needle'), 100)
@@ -880,7 +880,7 @@ auto('Real__musicBoxCase', music_case, 500)
 auto('Real__musicBoxLid', music_lid, 500)
 auto('Real__musicBoxPaper', music_paper, 40)
 auto('Real__musicBoxBrass', music_brass, 1600)
-auto('Real__musicBoxComb', music_comb, 1300)
+auto('Real__musicBoxComb', music_comb, 1650)
 auto('Real__musicBoxGlass', music_glass, 40)
 auto('Real__musicBoxKnob', music_knob, 200)
 
@@ -933,6 +933,18 @@ def gl_socket():
     return cup.move(0, GL_SOCKET_Y + 0.006, 0)
 
 
+# a turned leg's radius down its length (0 under the horizon, 1 at the foot)
+GL_LEG = [(0.0, 0.014), (0.05, 0.016), (0.08, 0.012), (0.14, 0.015), (0.30, 0.022), (0.46, 0.016), (0.56, 0.012),
+          (0.60, 0.017), (0.64, 0.012), (0.90, 0.010), (0.96, 0.013), (1.0, 0.011)]
+
+
+def interp(table, t):
+    for (t0, a), (t1, b) in zip(table, table[1:]):
+        if t <= t1:
+            return a + (b - a) * (t - t0) / max(t1 - t0, 1e-9)
+    return table[-1][1]
+
+
 def globe_tripod():
     """Three turned legs from under the horizon out to the floor, stretchers
     to a turned hub, the column up to the meridian's socket."""
@@ -944,16 +956,15 @@ def globe_tripod():
         top = Vector((GL_HOR[0] * 1.12 * ca, GL_CY - GL_HOR[2], GL_HOR[0] * 1.12 * sa))
         foot = Vector((0.265 * ca, 0.020, 0.265 * sa))
         path = []
-        for i in range(17):
-            t = i / 16
+        for i in range(33):
+            t = i / 32
             p = top.lerp(foot, t)
-            # a gentle outward bow, as a turner's leg is set
-            p += Vector((ca, 0, sa)) * 0.018 * math.sin(math.pi * t)
+            # a slight outward bow
+            p += Vector((ca, 0, sa)) * 0.006 * math.sin(math.pi * t)
             path.append(p)
-        prof = lambda t: 0.0105 + 0.0045 * math.sin(math.pi * min(1.0, t * 1.6)) - 0.003 * smoothstep(0.7, 1.0, t) + 0.002 * (1 - smoothstep(0.0, 0.06, t))
-        out = out + sweep(path, prof, seg=10)
+        out = out + sweep(path, lambda t: interp(GL_LEG, t), seg=10)
         # a bun foot
-        out = out + turned([(0.012, 0.0), (0.017, 0.006), (0.0175, 0.012), (0.013, 0.020), (0.010, 0.024)], seg=14).move(foot.x, 0, foot.z)
+        out = out + turned([(0.014, 0.0), (0.021, 0.007), (0.022, 0.014), (0.016, 0.022), (0.011, 0.026)], seg=14).move(foot.x, 0, foot.z)
         # the stretcher to the hub
         sp = top.lerp(foot, (top.y - hub_y) / (top.y - foot.y)) + Vector((ca, 0, sa)) * 0.016
         out = out + sweep([Vector((0.02 * ca, hub_y, 0.02 * sa)), Vector((sp.x, hub_y, sp.z))], lambda t: 0.0075, seg=8)
@@ -971,14 +982,14 @@ def globe_tripod():
 def globe_horizon():
     r0, r1, t = GL_HOR
     ring = ring_lathe([(r0, GL_CY - t), (r1 - 0.004, GL_CY - t), (r1, GL_CY - t + 0.004), (r1, GL_CY - 0.002),
-                       (r1 - 0.002, GL_CY), (r0, GL_CY)], seg=72)
+                       (r1 - 0.002, GL_CY), (r0, GL_CY)], seg=64)
     # the brass guides at N and S that the meridian runs in
     return bevel(ring, 0.0005, seg=1)
 
 
 def globe_horizon_paper():
     r0, r1, t = GL_HOR
-    return ring_lathe([(r0 + 0.002, GL_CY), (r1 - 0.004, GL_CY), (r1 - 0.004, GL_CY + 0.0004), (r0 + 0.002, GL_CY + 0.0004)], seg=72)
+    return ring_lathe([(r0 + 0.002, GL_CY), (r1 - 0.004, GL_CY), (r1 - 0.004, GL_CY + 0.0004), (r0 + 0.002, GL_CY + 0.0004)], seg=64)
 
 
 def globe_pedestal():
@@ -997,11 +1008,11 @@ def globe_pedestal():
 
 
 auto('Real__globeBall', globe_ball, 2600, kind='sphere')
-auto('Real__globeMeridian', globe_meridian, 700)
-auto('Real__globePins', globe_pins, 500)
-auto('Real__globeTripod', globe_tripod, 3200)
-auto('Real__globeHorizon', globe_horizon, 900)
-auto('Real__globeHorizonPaper', globe_horizon_paper, 300)
+auto('Real__globeMeridian', globe_meridian, 1200)
+auto('Real__globePins', globe_pins, 650)
+auto('Real__globeTripod', globe_tripod, 3500)
+auto('Real__globeHorizon', globe_horizon, 1600)
+auto('Real__globeHorizonPaper', globe_horizon_paper, 560)
 auto('Real__globePedestal', globe_pedestal, 2400)
 
 
@@ -1089,8 +1100,8 @@ def orrery_crank():
 
 def orrery_crank_knob():
     a = math.pi * 0.62
-    y = 0.066 - 0.025 * math.cos(math.pi - a)
-    z = -0.025 * math.sin(math.pi - a)
+    y = 0.066 + 0.0255 * math.cos(a)
+    z = 0.0255 * math.sin(a)
     k = lathe([(0.0, 0.0), (0.0028, 0.0), (0.0040, 0.006), (0.0042, 0.013), (0.0030, 0.019), (0.0, 0.0205)], seg=12)
     return k.rot(z=-math.pi / 2).move(OR_R + 0.010, y, z)
 
@@ -1105,3 +1116,171 @@ for _i in range(5):
 auto('Real__orreryMoon', orrery_moon, 120)
 auto('Real__orreryCrank', orrery_crank, 500)
 auto('Real__orreryCrankKnob', orrery_crank_knob, 200)
+
+
+# ============================================================ the chess ===
+# A Victorian tripod table, its round top 520 mm across and 700 mm high, a
+# folding board of 35 mm squares on it and a game of Staunton chessmen
+# (boxwood and ebony, a 64 mm king) left on it; a small cast brass ashtray
+# with a cigar gone out on its rest (t20.notes.md).
+CH_TOP_R, CH_TOP_Y = 0.260, 0.700       # the top's radius, its face
+CH_BOARD = 0.300                        # the board: 8 x 35 mm and a 10 mm border
+CH_BOARD_T = 0.014
+CH_KING = 0.064
+
+
+def chess_table_top():
+    t = 0.020
+    y0 = CH_TOP_Y - t
+    top = turned([(CH_TOP_R - 0.012, y0 - 0.002), (CH_TOP_R - 0.004, y0), (CH_TOP_R, y0 + 0.004), (CH_TOP_R + 0.001, y0 + 0.012),
+                  (CH_TOP_R - 0.001, y0 + 0.017), (CH_TOP_R - 0.004, CH_TOP_Y), (CH_TOP_R - 0.010, CH_TOP_Y + 0.0006)], seg=64)
+    # under it: the two bearers and the block the column's tenon goes into
+    bearers = [rbox(0.38, 0.022, 0.040, r=0.004, seg=1).move(0, y0 - 0.011, s * 0.085) for s in (-1, 1)]
+    block = rbox(0.13, 0.030, 0.13, r=0.004, seg=1).move(0, y0 - 0.026 - 0.001, 0)
+    return top + sum(bearers) + block
+
+
+def chess_table_base():
+    out = Shape()
+    col = [(0.030, 0.150), (0.044, 0.165), (0.044, 0.200), (0.034, 0.215), (0.040, 0.240), (0.052, 0.300), (0.050, 0.360),
+           (0.036, 0.420), (0.026, 0.480), (0.022, 0.540), (0.030, 0.560), (0.022, 0.580), (0.024, 0.620), (0.032, 0.635), (0.030, 0.650)]
+    out = out + turned(col, seg=20)
+    for k in range(3):
+        a = math.pi / 2 + TAU * k / 3
+        ca, sa = math.cos(a), math.sin(a)
+        # a cabriole leg: out of the column's foot, its knee, its ankle, a pad foot
+        pts2 = [(0.028, 0.205), (0.060, 0.190), (0.105, 0.158), (0.150, 0.110), (0.190, 0.062), (0.222, 0.030), (0.245, 0.016), (0.262, 0.012)]
+        path = []
+        for i in range(25):
+            t = i / 24
+            u = t * (len(pts2) - 1)
+            j = min(int(u), len(pts2) - 2)
+            f = u - j
+            r = pts2[j][0] + (pts2[j + 1][0] - pts2[j][0]) * f
+            y = pts2[j][1] + (pts2[j + 1][1] - pts2[j][1]) * f
+            path.append((r * ca, y, r * sa))
+        rad = lambda t: 0.026 - 0.013 * smoothstep(0.0, 0.85, t) + 0.004 * math.sin(math.pi * min(1.0, t * 2.5))
+        leg = sweep(path, rad, seg=10)
+        # flattened top to bottom, as a leg is sawn from a plank
+        leg = leg.warp(lambda p: Vector((p.x, p.y, p.z)))
+        out = out + leg
+        out = out + turned([(0.014, 0.0), (0.020, 0.004), (0.021, 0.008), (0.016, 0.013), (0.012, 0.016)], seg=14).move(0.262 * ca, 0, 0.262 * sa)
+    return out
+
+
+def chess_board():
+    s = rbox(CH_BOARD, CH_BOARD_T, CH_BOARD, r=0.0025, seg=2).move(0, CH_TOP_Y + CH_BOARD_T / 2, 0)
+    # the fold down its middle
+    s = cut(s, box(0.0012, 0.0012, CH_BOARD + 0.01).move(0, CH_TOP_Y + CH_BOARD_T, 0))
+    # its two hinges let into the edge at the fold
+    return s
+
+
+def chess_board_hinges():
+    out = Shape()
+    for z in (-0.100, 0.100):
+        out = out + box(0.016, 0.0055, 0.0008).move(0, CH_TOP_Y + CH_BOARD_T * 0.5, z + 0.0)
+    out = Shape()
+    for sz in (-1, 1):
+        leaf = rbox(0.022, 0.008, 0.0009, r=0.0003, seg=1).move(0, CH_TOP_Y + CH_BOARD_T * 0.5, sz * (CH_BOARD / 2 + 0.00045))
+        knuckle = cyl(0.0012, h=0.008, seg=8, bevel_r=0.0002).move(0, CH_TOP_Y + CH_BOARD_T * 0.5, sz * (CH_BOARD / 2 + 0.0012))
+        out = out + leaf + knuckle
+    return out
+
+
+def staunton(prof, seg=16):
+    """A chessman turned from its profile [(r, y)] from its foot up, its
+    foot on y = 0, a felt-thin base."""
+    return turned(prof, seg=seg)
+
+
+def st_base(r):
+    return [(r * 0.96, 0.0), (r, 0.0012), (r, 0.0035), (r * 0.92, 0.0045), (r * 0.94, 0.0058), (r * 0.80, 0.0078)]
+
+
+def chess_king():
+    H = CH_KING
+    prof = st_base(0.0130) + [(0.0090, 0.012), (0.0068, 0.020), (0.0058, 0.030), (0.0060, 0.036), (0.0088, 0.0385), (0.0090, 0.0400),
+                              (0.0060, 0.0415), (0.0068, 0.0460), (0.0090, 0.0505), (0.0094, 0.0520), (0.0072, 0.0535), (0.0040, 0.0550)]
+    body = staunton(prof)
+    v = rbox(0.0030, 0.0110, 0.0030, r=0.0007, seg=1).move(0, 0.0605, 0)
+    h = rbox(0.0080, 0.0030, 0.0030, r=0.0007, seg=1).move(0, 0.0615, 0)
+    neck = cyl(0.0020, h=0.0025, seg=8, bevel_r=0).move(0, 0.0555, 0)
+    return body + v + h + neck
+
+
+def chess_queen():
+    prof = st_base(0.0125) + [(0.0085, 0.011), (0.0064, 0.018), (0.0052, 0.027), (0.0056, 0.032), (0.0084, 0.0345), (0.0086, 0.0358),
+                              (0.0056, 0.0372), (0.0062, 0.0410), (0.0084, 0.0455), (0.0088, 0.0470), (0.0060, 0.0482), (0.0001, 0.0490)]
+    body = staunton(prof)
+    # the coronet: eight points round its crown, the ball on top
+    pts = [cone(0.0016, 0.0040, seg=6).move(0.0076 * math.cos(TAU * k / 8), 0.0490, 0.0076 * math.sin(TAU * k / 8)) for k in range(8)]
+    ball = sphere(0.0034, seg=10, rings=6).move(0, 0.0530, 0)
+    return body + sum(pts) + ball
+
+
+def chess_bishop():
+    prof = st_base(0.0120) + [(0.0080, 0.010), (0.0060, 0.016), (0.0046, 0.024), (0.0050, 0.028), (0.0076, 0.0305), (0.0078, 0.0318),
+                              (0.0050, 0.0330), (0.0060, 0.0360), (0.0066, 0.0395), (0.0056, 0.0430), (0.0030, 0.0458), (0.0018, 0.0466),
+                              (0.0024, 0.0476), (0.0026, 0.0490), (0.0016, 0.0502), (0.0001, 0.0505)]
+    body = staunton(prof, seg=16)
+    # the mitre's cut
+    slot = box(0.016, 0.0016, 0.020).rot(z=0.75).move(0.0030, 0.0405, 0)
+    return cut(body, slot)
+
+
+def chess_rook():
+    prof = st_base(0.0125) + [(0.0088, 0.010), (0.0076, 0.016), (0.0074, 0.026), (0.0088, 0.0280), (0.0094, 0.0292), (0.0094, 0.0370),
+                              (0.0001, 0.0370)]
+    body = staunton(prof, seg=20)
+    for k in range(4):
+        body = cut(body, box(0.0035, 0.004, 0.024).rot(y=TAU * k / 8).move(0, 0.0370, 0))
+    body = cut(body, cyl(0.0066, h=0.006, seg=16, bevel_r=0).move(0, 0.0372, 0))
+    return body
+
+
+def chess_pawn():
+    prof = st_base(0.0110) + [(0.0075, 0.009), (0.0052, 0.015), (0.0040, 0.020), (0.0064, 0.0215), (0.0066, 0.0225), (0.0036, 0.0238),
+                              (0.0034, 0.0248)]
+    body = staunton(prof, seg=14)
+    ball = sphere(0.0056, seg=12, rings=7).move(0, 0.0290, 0)
+    return body + ball
+
+
+def chess_knight():
+    """The base turned, the horse's head carved: its profile cut from a slab,
+    rounded hard, narrower at the muzzle; the mane's ridge."""
+    base = staunton(st_base(0.0125) + [(0.0090, 0.0100), (0.0070, 0.0130), (0.0072, 0.0150), (0.0001, 0.0152)], seg=20)
+    head = [(-0.0060, 0.0145), (0.0055, 0.0145), (0.0060, 0.0200), (0.0068, 0.0260), (0.0090, 0.0300), (0.0112, 0.0340),
+            (0.0108, 0.0372), (0.0080, 0.0388), (0.0040, 0.0400), (0.0018, 0.0425), (0.0000, 0.0445), (-0.0012, 0.0428),
+            (-0.0040, 0.0420), (-0.0062, 0.0395), (-0.0072, 0.0350), (-0.0075, 0.0290), (-0.0072, 0.0220)]
+    s = prism(head, 0.0085, bevel_r=0.0022, bevel_seg=2)
+    # the muzzle narrower than the jowl
+    s = s.warp(lambda p: Vector((p.x, p.y, p.z * (1.0 - 0.35 * smoothstep(0.004, 0.011, p.x)))))
+    mane = rbox(0.0030, 0.020, 0.0034, r=0.0012, seg=1).rot(z=0.25).move(-0.0062, 0.0330, 0)
+    ears = [cone(0.0013, 0.0040, seg=5).rot(z=0.2).move(-0.0006, 0.0448, s2 * 0.0018) for s2 in (-1, 1)]
+    return base + s + mane + sum(ears)
+
+
+def chess_ashtray():
+    """A cast brass cigar ashtray, 90 mm: its dish, a rim with two rests."""
+    dish = lathe([(0.0, 0.0), (0.040, 0.0), (0.044, 0.003), (0.045, 0.011), (0.0435, 0.0142), (0.0395, 0.0142),
+                  (0.0370, 0.0080), (0.0330, 0.0050), (0.0, 0.0046)], seg=40, cap_bottom=False, cap_top=False)
+    dish = weld(dish).rot(y=math.pi / 40)
+    for a in (0.0, math.pi):
+        rest = cyl(0.0075, h=0.02, seg=12).rot(z=math.pi / 2).move(0.042 * math.cos(a), 0.0168, 0.042 * math.sin(a))
+        dish = cut(dish, rest)
+    return dish
+
+
+auto('Real__chessTableTop', chess_table_top, 1200)
+auto('Real__chessTableBase', chess_table_base, 2600)
+auto('Real__chessBoard', chess_board, 400)
+auto('Real__chessBoardHinges', chess_board_hinges, 300)
+auto('Real__chessKing', chess_king, 720)
+auto('Real__chessQueen', chess_queen, 800)
+auto('Real__chessBishop', chess_bishop, 820)
+auto('Real__chessKnight', chess_knight, 860)
+auto('Real__chessRook', chess_rook, 820)
+auto('Real__chessPawn', chess_pawn, 560)
+auto('Real__chessAshtray', chess_ashtray, 900)
