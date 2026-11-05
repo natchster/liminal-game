@@ -34,9 +34,10 @@ static FACE: [(f64, f64); 10] = [
 /// gentleman in a high stock and coat, a lady with her hair in a knot and a
 /// lace collar, a child in a frilled collar; each bust cut off below in a
 /// curve, as the cutters did
-static GENTLEMAN: [(f64, f64); 41] = [
-    (-22.0, 2.0),
-    (-27.0, -18.0),
+static GENTLEMAN: [(f64, f64); 42] = [
+    (-18.0, -2.0),
+    (-23.0, -10.0),
+    (-27.0, -22.0),
     (-27.0, -38.0),
     (-20.0, -53.0),
     (-6.0, -61.0),
@@ -74,8 +75,8 @@ static GENTLEMAN: [(f64, f64); 41] = [
     (-36.0, 48.0),
     (-36.0, 36.0),
     (-33.0, 24.0),
-    (-26.0, 14.0),
-    (-21.0, 8.0),
+    (-25.0, 14.0),
+    (-19.0, 6.0),
 ];
 static LADY: [(f64, f64); 44] = [
     (-14.0, -2.0),
@@ -224,7 +225,7 @@ fn silhouette_tex(vary: u32) -> Tex {
     let mut age = Age::engraving(vary);
     age.crease = false;
     age.stain = 0.0;
-    age.fade = 0.06 + 0.06 * (vary % 7) as f64 / 7.0;
+    age.fade = 0.02 + 0.04 * (vary % 7) as f64 / 7.0;
     pictures::sheet_tex(CARD, ppm, age, vary, move |ctx, w, h| {
         let mm = ppm / 1000.0;
         ctx.set_fill_style("#e4dbc4");

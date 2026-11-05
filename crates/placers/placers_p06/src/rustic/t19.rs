@@ -37,8 +37,8 @@ pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
     // what is left of the cart's paint: none, a red, a green
     let paint = match k % 3 {
         0 => None,
-        1 => Some([0.42, 0.16, 0.11]),
-        _ => Some([0.20, 0.28, 0.18]),
+        1 => Some([0.38, 0.17, 0.12]),
+        _ => Some([0.20, 0.27, 0.18]),
     };
     let wheel = group();
     let w = group();
@@ -62,8 +62,8 @@ fn weathered(seed: u32, along: f64, across: f64, shelter: f64, paint: Option<[f6
     let mut c = mix([0.42, 0.37, 0.30], [0.25, 0.20, 0.15], sstep(0.42, 0.72, g) * 0.8);
     c = mix(c, [0.48, 0.45, 0.40], sstep(0.5, 0.8, fbm(seed ^ 5, along * 9.0, across * 40.0, 2)) * 0.3);
     if let Some(p) = paint {
-        let keep = sstep(0.55, 0.62, fbm(seed ^ 7, along * 40.0, across * 120.0, 3) + 0.25 * shelter);
-        c = mix(c, p, keep * 0.85);
+        let keep = sstep(0.60, 0.66, fbm(seed ^ 7, along * 40.0, across * 120.0, 3) + 0.22 * shelter);
+        c = mix(c, p, keep * 0.75);
     }
     let check = (fbm(seed ^ 9, along * 4.0, across * 300.0, 2) - 0.5).abs();
     c = mix(c, [0.08, 0.06, 0.05], (1.0 - sstep(0.0, 0.012, check)) * sstep(0.5, 0.7, vn(seed ^ 11, along * 10.0, across * 30.0)) * 0.8);

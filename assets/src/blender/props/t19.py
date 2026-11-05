@@ -530,14 +530,10 @@ def crucifix_corpus():
           ('ell', (0.0, 0.0250, z), (0.0115, 0.0115, 0.0062)),
           ('ell', (0.0, 0.0120, z - 0.0004), (0.0085, 0.0100, 0.0056)),
           ('ell', (0.0, 0.0040, z - 0.0006), (0.0076, 0.0060, 0.0050))]
-    # the arms: up to the hands nailed near the crossbar's ends, the elbows
-    # sagging a little
+    # the hands nailed near the crossbar's ends (the arms are swept below)
     for sx in (-1, 1):
-        sh = (sx * 0.0100, 0.0320, z)
-        el = (sx * 0.0300, 0.0418, z - 0.0005)
-        wr = (sx * 0.0490, 0.0545, z - 0.0012)
-        e += [('cap', sh, el, 0.0037), ('cap', el, wr, 0.0031),
-              ('ell', (sx * 0.0535, 0.0570, z - 0.0015), (0.0048, 0.0026, 0.0020), 2.0, (0, 0, sx * 0.5))]
+        e += [('ell', (sx * 0.0535, 0.0570, z - 0.0015), (0.0048, 0.0026, 0.0020), 2.0, (0, 0, sx * 0.5)),
+              ('ell', (sx * 0.0100, 0.0310, z), (0.0050, 0.0042, 0.0045), 2.0)]
     # the loincloth, its knot and fall at one hip
     e += [('ell', (0.0, -0.0040, z + 0.0004), (0.0102, 0.0062, 0.0066)),
           ('ell', (0.0085, -0.0065, z + 0.0010), (0.0032, 0.0070, 0.0036))]
@@ -548,6 +544,12 @@ def crucifix_corpus():
     e += [('cap', (0.0012, -0.0600, z), (-0.0004, -0.0700, z - 0.0010), 0.0024),
           ('cap', (-0.0012, -0.0598, z - 0.0016), (0.0004, -0.0695, z - 0.0026), 0.0023)]
     s = meta(e, res=0.0006)
+    # the arms: smooth tubes from the shoulders up to the hands, the elbows
+    # sagging a little, the forearms thinner
+    for sx in (-1, 1):
+        pts = [(sx * 0.0090, 0.0315, z), (sx * 0.0200, 0.0372, z - 0.0002), (sx * 0.0300, 0.0418, z - 0.0005),
+               (sx * 0.0400, 0.0485, z - 0.0009), (sx * 0.0500, 0.0552, z - 0.0013)]
+        s = s + tube(pts, 0.0036, seg=10, smooth=2, r_end=0.0024)
     s = remesh(s, 0.0005)
     s = smooth_shape(s, 0.6, 6)
     s = bump_along_normals(s, lambda p: 0.00008 * noise.noise(Vector((p.x * 900, p.y * 900, p.z * 900))))
@@ -658,7 +660,7 @@ def roe_skull_h(buck):
         # from the frontal, the socket open to the side and a little forward
         e += [('ell', (sx * 0.0330, -0.0320, 0.0250), (0.0110, 0.0125, 0.0150), 2.0),
               ('cap', (sx * 0.0300, -0.0200, 0.0120), (sx * 0.0380, -0.0240, 0.0300), 0.0050, 2.0)]
-        e += [('cap', (sx * 0.030, -0.048, 0.032), (sx * 0.034, -0.050, -0.008), 0.0042, 2.0),   # the zygomatic arch
+        e += [('cap', (sx * 0.027, -0.047, 0.030), (sx * 0.028, -0.048, -0.008), 0.0052, 2.0),   # the zygomatic arch
               ('cap', (sx * 0.020, -0.042, 0.044), (sx * 0.024, -0.052, 0.098), 0.0090, 2.0),    # the maxilla's side
               ('cap', (sx * 0.006, -0.056, 0.112), (sx * 0.007, -0.056, 0.132), 0.0048, 2.0),    # the premaxilla's tip
               ('-ell', (sx * 0.0465, -0.0340, 0.0280), (0.0090, 0.0115, 0.0120), 2.0),             # the orbit

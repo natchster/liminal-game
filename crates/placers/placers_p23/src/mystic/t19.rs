@@ -47,7 +47,7 @@ pub fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
     let turn = rnd() * PI * 2.0;
     let k = salt(px, pz, 19);
     let relic = group();
-    put(&relic, "Real__reliquaryBrass", &phong!({ map: &gilt_tex(k), specular: 0x7a6640, shininess: 46 }));
+    put(&relic, "Real__reliquaryBrass", &phong!({ map: &gilt_tex(k), specular: 0x7a6030, shininess: 44 }));
     put(&relic, "Real__reliquaryCushion", &lambert!({ map: &velvet_tex(k) }));
     put(&relic, "Real__reliquaryRelic", &lambert!({ map: &relic_bone_tex(k) }));
     put(&relic, "Real__reliquaryLabel", &lambert!({ map: &label_tex(k), side: DoubleSide }));
@@ -88,17 +88,26 @@ fn stone(grp: &Obj, name: &str, mat: Mat, x: f64, side: f64) {
 /// Gilt brass gone dull: the gold rubbed through to the brass in patches,
 /// tarnish brown-black where it was never rubbed, dust
 fn gilt_tex(salt: u32) -> Tex {
-    canvas_tex_opt(96, 96, false, move |ctx, w, h| {
+    canvas_tex_opt(160, 160, false, move |ctx, w, h| {
         let seed = salt ^ 0x61;
         fill(ctx, w, h, |u, v| {
             // the gilding: a dark gold in the diffuse (its colour is in the highlight)
-            let mut c = [0.36, 0.27, 0.12];
+            let mut c = [0.28, 0.21, 0.10];
             // rubbed through to the paler, greener brass in patches
             let n = fbm(seed, u * 9.0, v * 9.0, 3);
-            c = mix(c, [0.38, 0.33, 0.17], sstep(0.58, 0.72, n) * 0.6);
+            c = mix(c, [0.32, 0.28, 0.15], sstep(0.58, 0.72, n) * 0.6);
             // tarnish in specks and blotches
             let t = fbm(seed ^ 5, u * 22.0, v * 22.0, 2);
             c = mix(c, [0.14, 0.10, 0.06], sstep(0.55, 0.85, t) * 0.55);
+            // the chased diaper: a lattice of lozenges, a quatrefoil in
+            // each, the tarnish dark in the grooves
+            let (a, b) = ((u + v) * 6.0, (u - v) * 6.0);
+            let (fa, fb) = (a - a.floor() - 0.5, b - b.floor() - 0.5);
+            let lattice = (0.5 - fa.abs()).min(0.5 - fb.abs());
+            let rr = (fa * fa + fb * fb).sqrt();
+            let foil = ((fa.atan2(fb) * 2.0).cos() * 0.05 + 0.20 - rr).abs();
+            let groove = (1.0 - sstep(0.02, 0.07, lattice)) + (1.0 - sstep(0.015, 0.045, foil));
+            c = mix(c, [0.09, 0.07, 0.04], groove.min(1.0) * 0.7);
             let d = vn(seed ^ 9, u * 60.0, v * 60.0);
             c = mix(c, [0.44, 0.42, 0.38], sstep(0.75, 0.95, d) * 0.3 + 0.05);
             [c[0], c[1], c[2], 1.0]
@@ -241,7 +250,7 @@ fn cross_tex(salt: u32, stain: [f64; 3]) -> Tex {
             let d = fbm(seed ^ 9, u * 30.0, v * 50.0, 2);
             c = mix(c, [0.50, 0.47, 0.42], (top * 0.45 + 0.06) * (0.6 + 0.8 * d));
             let knock = vn(seed ^ 11, u * 70.0, v * 120.0);
-            c = mix(c, [0.10, 0.07, 0.05], sstep(0.92, 0.97, knock) * 0.5);
+            c = mix(c, [0.10, 0.07, 0.05], sstep(0.95, 0.985, knock) * 0.4);
             [c[0], c[1], c[2], 1.0]
         });
     })

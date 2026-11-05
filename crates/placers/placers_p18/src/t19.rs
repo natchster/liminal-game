@@ -240,8 +240,8 @@ fn age_paint(ctx: &mut Canvas, w: f64, h: f64, seed: u32, scale: f64) {
             let crack = (vn(seed, x * 1.3, y * 1.3) - 0.5).abs().min((vn(seed ^ 3, x * 2.7, y * 2.7) - 0.5).abs() * 1.4);
             c = mix(c, [0.12, 0.09, 0.06], (1.0 - sstep(0.0, 0.025, crack)) * 0.55);
             let chip = fbm(seed ^ 5, x * 1.7, y * 1.7, 3) * (0.75 + 0.25 * fbm(seed ^ 6, x * 0.2, y * 0.2, 2));
-            c = mix(c, [0.78, 0.74, 0.64], sstep(0.665, 0.675, chip));
-            c = mix(c, [0.36, 0.25, 0.16], sstep(0.70, 0.71, chip));
+            c = mix(c, [0.64, 0.60, 0.51], sstep(0.705, 0.715, chip));
+            c = mix(c, [0.34, 0.24, 0.16], sstep(0.735, 0.745, chip));
             let dark = fbm(seed ^ 7, x * 0.3, y * 0.3, 3);
             c = c.map(|q| q * (0.82 + 0.25 * dark));
             let d = vn(seed ^ 9, x * 4.0, y * 4.0);
