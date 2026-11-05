@@ -169,68 +169,6 @@ fn place_open_journals(g: &mut Game, _dist: &[i32]) {
     g.pp.paper_positions.push(v3(jp.x, 0.01, jp.z));
 }
 
-// R470 tarot card fan: 5% chance per level, 5 cards with 1 face-up.
-fn place_tarot_card_fans(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let back_mat = lambert!({ map: tarot_back_texture(), side: DoubleSide });
-    let face_mat = lambert!({ map: tarot_face_texture(), side: DoubleSide });
-    let cards = group();
-    let (card_w, card_h, card_t) = (0.055, 0.090, 0.0012);
-    let n_cards = 5;
-    for i in 0..n_cards {
-        // 1 face-up in center, others face-down fanned.
-        let is_face_up = i == 2;
-        let mat = if is_face_up { &face_mat } else { &back_mat };
-        let card = mesh(plane_geo!(card_w, card_h), mat);
-        card.rotation().x = -PI / 2.0;
-        // Fan angle.
-        let fan_angle = -PI / 8.0 + (i as f64 / (n_cards - 1) as f64) * (PI / 4.0);
-        card.rotation().z = fan_angle;
-        // Position along arc.
-        card.position().set(fan_angle.sin() * 0.045, 0.004 + i as f64 * 0.0005, -fan_angle.cos() * 0.045 + 0.045);
-        cards.add(&card);
-    }
-    cards.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    cards.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&cards);
-}
-
-// R470 pentagram chalk decal: 3% chance per level, faint pulsing red glow.
-fn place_pentagram_chalks(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let mat = basic_mat!({ map: pentagram_texture(), transparent: true, opacity: 0.85, depthWrite: false });
-    let decal = mesh(plane_geo!(1.4, 1.4), &mat);
-    decal.rotation().x = -PI / 2.0;
-    decal.position().set(g.wx(x) + (rnd() - 0.5) * 1.5, 0.005, g.wz(z) + (rnd() - 0.5) * 1.5);
-    decal.rotation().z = rnd() * PI * 2.0;
-    g.world.add(&decal);
-    // R486 faint red mystical glow rising from pentagram center.
-    let glow = point_light!(0xa02040, 0.30, 0.9, 2);
-    let dp = decal.pos();
-    glow.position().set(dp.x, 0.20, dp.z);
-    g.world.add(&glow);
-    // Slow pulsing.
-    let pulse_phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        let p = (t * 0.9 + pulse_phase).sin() * 0.5 + 0.5;
-        glow.set_intensity(0.15 + p * 0.20);
-    });
-}
-
 // R469 small hourglass: 5% chance per level, animated falling stream.
 fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
     g.pp.hourglass_positions.clear(); // R483 reset per level
@@ -306,41 +244,10 @@ fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
     g.pp.hourglass_positions.push(v3(hp.x, 0.07, hp.z));
 }
 
-// R469 ouija board decal: 4% chance per level, drifting planchette.
-fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let board_mat = lambert!({ map: ouija_texture(), side: DoubleSide });
-    let board = mesh(plane_geo!(0.64, 0.40), &board_mat);
-    board.rotation().x = -PI / 2.0;
-    board.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0.004, g.wz(z) + (rnd() - 0.5) * 2.0);
-    board.rotation().z = rnd() * PI * 2.0;
-    g.world.add(&board);
-    // Planchette (small heart-shaped indicator sitting on board).
-    let planchette_mat = lambert!({ color: 0xd0d0d0 });
-    let pl = mesh(pg("OuijaBoards__planchette", cyl_geo!(0.030, 0.024, 0.012, 3)), &planchette_mat);
-    let base_x = board.pos().x + (rnd() - 0.5) * 0.30;
-    let base_z = board.pos().z + (rnd() - 0.5) * 0.15;
-    pl.position().set(base_x, 0.010, base_z);
-    pl.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pl);
-    // R484 subtle mysterious sway: the planchette slowly drifts as if moved
-    // by unseen hands.
-    let sway_phase_x = rnd() * PI * 2.0;
-    let sway_phase_z = rnd() * PI * 2.0;
-    let sway_period = 14.0 + rnd() * 10.0;
-    g.animate(move |_g, _dt, t| {
-        let mut p = pl.position();
-        p.x = base_x + (t * (PI * 2.0 / sway_period) + sway_phase_x).sin() * 0.010;
-        p.z = base_z + (t * (PI * 2.0 / sway_period * 1.3) + sway_phase_z).sin() * 0.008;
-    });
-}
+// R470 tarot card fan, R470 pentagram chalk, R469 talking board, R467 chain
+// links: batch `t18`'s (`t18.rs`)
+mod t18;
+use t18::{place_ouija_boards, place_pentagram_chalks, place_small_chain_links, place_tarot_card_fans};
 
 // R468 ornate wall mirror: batch `t10`'s (`t10.rs`)
 mod t10;
@@ -432,44 +339,6 @@ fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
     cand.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     cand.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cand);
-}
-
-// R467 small chain links: 8% chance per level, 5-8 interlinked torus rings.
-fn place_small_chain_links(g: &mut Game, _dist: &[i32]) {
-    g.pp.chain_positions.clear(); // R486 reset per level
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let chain_colors = [0x606870, 0x808088, 0x40484c];
-    let chain_mat = lambert!({ color: pick(&chain_colors) });
-    let chain = group();
-    let n_links = 5 + (rnd() * 4.0).floor() as i32;
-    let link_r = 0.024;
-    // Rest pose: the on-edge links stand on the floor (centre R + r), the flat
-    // links rest across their lower wires (y 0.0155).
-    let link_step = link_r * 1.25;
-    for i in 0..n_links {
-        let link = mesh(pg("SmallChainLinks__link", torus_geo!(link_r, 0.005, 6, 12)), &chain_mat);
-        link.position().set(i as f64 * link_step, if i % 2 == 0 { 0.0155 } else { link_r + 0.005 }, 0);
-        // Alternate rotation (vertical / horizontal).
-        if i % 2 == 0 {
-            link.rotation().x = PI / 2.0;
-        } else {
-            link.rotation().z = PI / 2.0;
-        }
-        chain.add(&link);
-    }
-    chain.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    chain.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&chain);
-    // R486 track for jangle audio.
-    let cp = chain.pos();
-    g.pp.chain_positions.push(v3(cp.x, 0.02, cp.z));
 }
 
 // R567 ceiling fan: 3% chance per level, spinning blades.

@@ -34,7 +34,7 @@ static ATLAS: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/asset
 
 /// The pictures and their cells in the atlas, px (x, y, w, h): as
 /// `sources.json` lays them (`pictures.files.*.cell`)
-pub const CELLS: [(&str, [u32; 4]); 37] = [
+pub const CELLS: [(&str, [u32; 4]); 39] = [
     ("baby_basket", [0, 0, 320, 400]),
     ("baby_chair", [320, 0, 320, 400]),
     ("graduate", [640, 0, 320, 400]),
@@ -73,6 +73,9 @@ pub const CELLS: [(&str, [u32; 4]); 37] = [
     ("map_paris", [0, 2640, 398, 300]),
     ("map_trier", [398, 2640, 398, 300]),
     ("map_antwerp", [796, 2640, 456, 296]),
+    // two cards of the Rider tarot (1910, public domain; batch t18)
+    ("tarot_death", [1200, 1120, 186, 320]),
+    ("tarot_moon", [1386, 1120, 186, 320]),
 ];
 
 /// The decoded atlas: straight RGBA, rows top-down

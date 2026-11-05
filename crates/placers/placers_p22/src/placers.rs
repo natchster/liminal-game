@@ -9,6 +9,8 @@ mod r13a;
 pub(crate) use r13a::{place_cracked_mirrors, place_wall_chalkboards};
 mod t02;
 pub(crate) use t02::place_religious_triptychs;
+mod t18;
+pub(crate) use t18::place_hanging_censers;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -875,70 +877,6 @@ pub(crate) fn place_coat_hooks(g: &mut Game, _dist: &[i32]) {
     }
     mount_on_wall(g, &hook_group, &c, 0.007, 2.10, 0.6);
     g.world.add(&hook_group);
-}
-
-// R493 hanging censer: 4% chance per level. Brass censer on 3 chains + gentle sway.
-pub(crate) fn place_hanging_censers(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let brass_mat = lambert!({ color: 0xc89040 });
-    let chain_mat = lambert!({ color: 0x8a7050 });
-    let censer = group();
-    let chain_len = 0.5 + rnd() * 0.5;
-    let bowl_y = WALL_H - chain_len - 0.05;
-    // 3 chains from ceiling to bowl: 2 mm into the ceiling down to the rim bead.
-    for i in 0..3 {
-        let a = (i as f64 / 3.0) * PI * 2.0;
-        let anchor_top = v3(a.cos() * 0.020, WALL_H + 0.002, a.sin() * 0.020);
-        let anchor_bot = v3(a.cos() * 0.035, bowl_y + 0.002, a.sin() * 0.035);
-        let mut chain_dir = Vec3::ZERO;
-        chain_dir.sub_vectors(&anchor_bot, &anchor_top);
-        let chain_len_actual = chain_dir.length();
-        let chain = mesh(pg("HangingCensers__chain", cyl_geo!(0.002, 0.002, chain_len_actual, 3)), &chain_mat);
-        chain.position().set((anchor_top.x + anchor_bot.x) / 2.0, (anchor_top.y + anchor_bot.y) / 2.0, (anchor_top.z + anchor_bot.z) / 2.0);
-        let mut q = Quat::IDENTITY;
-        q.set_from_unit_vectors(&v3(0, 1, 0), &chain_dir.normalized());
-        chain.quaternion().copy(&q);
-        censer.add(&chain);
-    }
-    // Bowl (half-sphere).
-    let bowl = mesh(pg("HangingCensers__bowl", sphere_geo!(0.035, 12, 6, 0, PI * 2.0, PI / 2.0, PI / 2.0)), &brass_mat);
-    bowl.position().y = bowl_y;
-    censer.add(&bowl);
-    // Rim.
-    let rim = mesh(pg("HangingCensers__rim", torus_geo!(0.035, 0.004, 5, 12)), &brass_mat);
-    rim.rotation().x = PI / 2.0;
-    rim.position().y = bowl_y;
-    censer.add(&rim);
-    // Lid (small dome).
-    let lid = mesh(pg("HangingCensers__lid", sphere_geo!(0.030, 10, 6, 0, PI * 2.0, 0, PI / 2.0)), &brass_mat);
-    lid.position().y = bowl_y;
-    censer.add(&lid);
-    // Handle knob on top.
-    let knob = mesh(pg("HangingCensers__knob", sphere_geo!(0.008, 6, 5)), &brass_mat);
-    knob.position().y = bowl_y + 0.033;
-    censer.add(&knob);
-    // Faint ember glow underneath.
-    let glow = point_light!(0xff8030, 0.15, 0.4, 2);
-    glow.position().y = bowl_y;
-    censer.add(&glow);
-    // Slow sway.
-    let sway_phase = rnd() * PI * 2.0;
-    let sway_period = 10.0 + rnd() * 6.0;
-    {
-        let censer = censer.clone();
-        g.animate(move |_g, _dt, t| {
-            censer.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
-        });
-    }
-    scatter_on_floor(g, &censer, x, z, 1.8);
-    g.world.add(&censer);
 }
 
 // R493 broken wall clock: 5% chance per level. Clock face frozen at an odd time.
