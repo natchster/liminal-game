@@ -620,3 +620,142 @@ auto('Real__partyHornConeTrod', lambda: party_horn_cone(True), 1500, smooth=40.0
 auto('Real__partyHornMouth', party_horn_mouth, 420, smooth=40.0)
 auto('Real__partyHornFringe', party_horn_fringe, 800, smooth=60.0)
 auto('Real__partyHornFringeTrod', lambda: party_horn_fringe(True), 800, smooth=60.0)
+
+
+# =========================================================== the paper crown ==
+# A party crown die-cut from foil card (or printed card): 3.5 in (89 mm)
+# tall, a 30 mm band under eight points, 575 mm long with its tab; fastened
+# round by its tab through a slot (530 mm round, a head's size). Two kinds:
+#   paperCrown       fastened, set down on its band's edge and trodden: the
+#                    ring pressed oval, a crease across the band, three
+#                    points bent over at their roots (out, in, out)
+#   paperCrownOpen   its tab come out of the slot: the card sprung open in a
+#                    loose curl standing on its edge, a point bent
+# Each is in its own frame: the ring's (or the curl's) middle over the
+# origin, y up from the floor. The game lays its print on by where each
+# vertex is round the ring (CR_* in the placer).
+CR_C, CR_OV = 0.530, 0.045                     # round, the tab's overlap
+CR_HB, CR_HP, CR_T = 0.030, 0.059, 0.0006      # band, points, card
+CR_NP = 8
+CR_PITCH = (CR_C - CR_OV) / CR_NP
+CR_VF = CR_HB + 0.004                          # where a bent point is folded
+CR_AX, CR_AZ = 0.094, 0.075                    # the ring pressed oval: half axes
+CR_OPEN_R = 0.130                              # the open one's curl
+CR_FOLDS = {'ring': {1: 0.62, 4: -0.42, 6: 0.30}, 'open': {2: 0.55, 5: -0.25}}
+
+
+def _cr_top(u, length):
+    """The card's top edge at u along it: the band's top, or a point's."""
+    if u <= CR_OV + 1e-9 or u >= CR_C - 1e-9:
+        return CR_HB if u < length - CR_OV + 1e-9 or length < CR_C + 1e-9 else CR_HB * 0.80
+    f = ((u - CR_OV) / CR_PITCH) % 1.0
+    t = 1.0 - abs(2 * f - 1)
+    # the point's tip rounded a little
+    return CR_HB + CR_HP * (t - 0.06 * max(0.0, t - 0.92) / 0.08)
+
+
+def _cr_columns(length):
+    us = [0.0, CR_OV * 0.5, CR_OV]
+    for k in range(CR_NP):
+        for f in (0.25, 0.46, 0.5, 0.54, 0.75, 1.0):
+            us.append(CR_OV + (k + f) * CR_PITCH)
+    if length > CR_C + 1e-9:
+        us += [CR_C + CR_OV * 0.33, CR_C + CR_OV * 0.66, CR_C + CR_OV]
+    return us
+
+
+def _cr_card(length):
+    """The card's front in (u, v): vertices and faces (a band of quads, the
+    points fanned from their roots)."""
+    us = _cr_columns(length)
+    V, F = [], []
+    cols = []
+    for u in us:
+        top = _cr_top(u, length)
+        ids = []
+        for j in range(4):
+            V.append((u, CR_HB * j / 3 if top >= CR_HB - 1e-9 else top * j / 3))
+            ids.append(len(V) - 1)
+        if top > CR_HB + 1e-6:
+            for j in (1, 2, 3):
+                V.append((u, CR_HB + (top - CR_HB) * j / 3))
+                ids.append(len(V) - 1)
+        cols.append(ids)
+    for a, b in zip(cols, cols[1:]):
+        for j in range(3):
+            F.append((a[j], b[j], b[j + 1], a[j + 1]))
+        if len(a) > 4 and len(b) > 4:
+            for j in range(3, 6):
+                F.append((a[j], b[j], b[j + 1], a[j + 1]))
+        elif len(b) > 4:
+            for j in range(3, 6):
+                F.append((a[3], b[j], b[j + 1]))
+        elif len(a) > 4:
+            for j in range(3, 6):
+                F.append((a[j], b[3], a[j + 1]))
+    return V, F
+
+
+def _cr_local(u, v, w, folds, length):
+    """Folded points, the card's waviness and the crease: (v, w) after them."""
+    if v > CR_VF and CR_OV < u < CR_C:
+        k = int((u - CR_OV) / CR_PITCH)
+        a = folds.get(k, 0.0)
+        if a:
+            dv = v - CR_VF
+            v, w = CR_VF + dv * math.cos(a) - w * math.sin(a), dv * math.sin(a) + w * math.cos(a)
+    w += 0.0012 * n1(u * 22.0, v * 22.0, 0.7) + 0.0008 * n1(u * 61.0, v * 61.0, 2.1)
+    return v, w
+
+
+def _cr_ring_place(u, v, w):
+    th = TAU * u / CR_C
+    e = Vector((CR_AX * math.sin(th), v, CR_AZ * math.cos(th)))
+    nrm = Vector((CR_AZ * math.sin(th), 0.0, CR_AX * math.cos(th))).normalized()
+    # the tab lies over the band's start, outside it
+    w += CR_T * 1.6 * smoothstep(CR_C - 0.004, CR_C, u)
+    # trodden: a crease pressed in across the band
+    kink = 0.0055 * max(0.0, 1.0 - abs(u - 0.205) / 0.016) * (1.0 - 0.5 * v / (CR_HB + CR_HP))
+    return e + nrm * (w - kink)
+
+
+def _cr_open_place(u, v, w):
+    length = CR_C + CR_OV
+    span = length / CR_OPEN_R
+    th0 = math.pi + (TAU - span) / 2
+    th = th0 + u / CR_OPEN_R
+    # it springs open more at its free ends
+    r = CR_OPEN_R * (1.0 + 0.10 * (abs(2 * u / length - 1) ** 3))
+    nrm = Vector((math.sin(th), 0.0, math.cos(th)))
+    return Vector((r * math.sin(th), v, r * math.cos(th))) + nrm * w
+
+
+def paper_crown(kind):
+    length = CR_C + CR_OV
+    folds = CR_FOLDS[kind]
+    place = _cr_ring_place if kind == 'ring' else _cr_open_place
+    V, F = _cr_card(length)
+    nv = len(V)
+    pts = []
+    for layer, w0 in ((0, CR_T / 2), (1, -CR_T / 2)):
+        for (u, v) in V:
+            vv, ww = _cr_local(u, v, w0, folds, length)
+            pts.append(place(u, vv, ww))
+    faces = list(F) + [tuple(reversed([i + nv for i in f])) for f in F]
+    # the card's cut edge: stitch the outline of front and back
+    count = {}
+    for f in F:
+        for k in range(len(f)):
+            a, b = f[k], f[(k + 1) % len(f)]
+            count[(a, b)] = count.get((a, b), 0) + 1
+    for (a, b), c in count.items():
+        if c == 1 and (b, a) not in count:
+            faces.append((b, a, a + nv, b + nv))
+    s = Shape(pts, faces)
+    s = propkit._fix_winding(s)
+    lo, hi = s.bounds()
+    return s.move(0, -lo.y, 0)
+
+
+auto('Real__paperCrown', lambda: paper_crown('ring'), 1600, smooth=50.0)
+auto('Real__paperCrownOpen', lambda: paper_crown('open'), 1600, smooth=50.0)

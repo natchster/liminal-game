@@ -2,6 +2,12 @@
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
+// the paper crown, the crepe streamers, the tassel garland and the piñata:
+// batch `t12`'s (`t12.rs`)
+#[path = "t12.rs"]
+mod t12;
+pub use t12::place_small_paper_crowns;
+
 // R437 music sheet paper texture: staff lines + notes on cream paper.
 game::lazy_static_tex!(
     music_sheet_texture,
