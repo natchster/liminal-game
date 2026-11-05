@@ -64,7 +64,7 @@ pub(crate) fn place_doll_heads(g: &mut Game, _dist: &[i32]) {
         put(&head, "Real__dollHeadLashesUp", &lash);
     }
     put(&head, "Real__dollHeadNeckLip", &vinyl);
-    put(&head, "Real__dollHeadNeckHole", &lambert!({ color: 0x0d0a09 }));
+    put(&head, "Real__dollHeadNeckHole", &lambert!({ color: 0x1c1716 }));
     if lying {
         // as the doll lies: on the back of its head, rolled toward its right
         head.position().set(DOLL_NECK.0, DOLL_NECK.1, DOLL_NECK.2);
@@ -108,7 +108,7 @@ pub(crate) fn place_doll_body_parts(g: &mut Game, _dist: &[i32]) {
     let k = salt(g.wx(x), g.wz(z), 499);
     // one doll's: the same vinyl, yellowed alike
     let vinyl = lambert!({ map: &vinyl_tex(k, 0xd3ae97) });
-    let dark = lambert!({ color: 0x0d0a09 });
+    let dark = lambert!({ color: 0x1c1716 });
     let grp = group();
     let n_parts = 2 + (rnd() * 2.0).floor() as i32;
     let mut placed: Vec<(f64, f64)> = vec![];

@@ -1152,9 +1152,12 @@ auto('Real__elephantTag', el_tag, 100, smooth=40)
 # back (A), or on its front with its head turned onto its cheek (B).
 #
 # Built standing (x across, y up from its soles, z out of its front), then
-# posed at its joints and laid on the floor. The head's parts are in r03's
-# head frame scaled by SD_K (origin under the neck): the game places them
-# by SD_HEAD[pose] (a position and an XYZ euler), which this file prints.
+# posed at its joints and laid on the floor. The face, eyes, lids and
+# lashes are in r03's head frame scaled by SD_K (origin under the neck):
+# the game places them by SD_HEAD[pose] (a position and an XYZ euler),
+# which this file prints; the skull and the wig are laid in the pose here
+# (turned whole, their boxes would reach under the floor and the placement
+# pass would lift the doll off it).
 SD_K = 0.47
 SD_NECK = Vector((0.0, 0.1365, -0.002))
 SD_SHOULDER = [Vector((sx * 0.0185, 0.1240, 0.0)) for sx in (-1, 1)]
@@ -1441,6 +1444,16 @@ def sd_dress(pose):
     return flatten_below(s, 0.0008, 0.0)
 
 
+def sd_skull(pose):
+    """The head but its face, laid as the pose lays it (its box, turned,
+    would reach under the floor and lift the doll)."""
+    return _floor(_apply(sd_head_half(False), sd_pose(pose)['head']))
+
+
+def sd_wig_posed(pose):
+    return _floor(_apply(sd_wig(), sd_pose(pose)['head']))
+
+
 def sd_lids(pose):
     return r03_lids(SD_POSES[pose]['lids']).scale(SD_K)
 
@@ -1456,8 +1469,8 @@ for _p in ('A', 'B'):
     auto(f'Real__smallDoll{_p}Shoes', lambda p=_p: sd_shoes(p), 560, smooth=50)
     auto(f'Real__smallDoll{_p}Lids', lambda p=_p: sd_lids(p), 280, smooth=70)
     auto(f'Real__smallDoll{_p}Lashes', lambda p=_p: sd_lashes(p), 100)
-auto('Real__smallDollHead', lambda: sd_head_half(False), 560, smooth=70)
+    auto(f'Real__smallDoll{_p}Skull', lambda p=_p: sd_skull(p), 560, smooth=70)
+    auto(f'Real__smallDoll{_p}Wig', lambda p=_p: sd_wig_posed(p), 1000, smooth=50)
 auto('Real__smallDollFace', lambda: sd_head_half(True), 560, kind='plane', smooth=70)
 auto('Real__smallDollEyeR', lambda: R03['doll_eye'](0).scale(SD_K), 280, kind='sphere', smooth=80)
 auto('Real__smallDollEyeL', lambda: R03['doll_eye'](1).scale(SD_K), 280, kind='sphere', smooth=80)
-auto('Real__smallDollWig', sd_wig, 1000, smooth=50)

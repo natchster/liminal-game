@@ -66,7 +66,7 @@ pub fn place_stuffed_elephants(g: &mut Game, _dist: &[i32]) {
         put(ear, name, &fabric);
         eleph.add(ear);
     }
-    put(&eleph, "Real__elephantEyes", &phong!({ color: 0x151413, specular: 0x4a4a4a, shininess: 70 }));
+    put(&eleph, "Real__elephantEyes", &phong!({ color: 0x1c1a19, specular: 0x4a4a4a, shininess: 70 }));
     put(&eleph, "Real__elephantTag", &lambert!({ map: &tag_tex(), side: DoubleSide }));
     eleph.position().set(px, 0, pz);
     eleph.rotation().y = rnd() * PI * 2.0;

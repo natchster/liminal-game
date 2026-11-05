@@ -45,15 +45,15 @@ pub fn place_plush_bears(g: &mut Game, _dist: &[i32]) {
     let velour = if k == 3 { [0.70, 0.60, 0.48] } else { [0.76, 0.68, 0.57] };
     put(&bear, "Real__plushBearAccent", &lambert!({ map: &velour_tex(s, velour) }));
     // safety eyes and the moulded nose: black plastic, scuffed dull
-    let plastic = phong!({ color: 0x141312, specular: 0x484848, shininess: 60 });
+    let plastic = phong!({ color: 0x1c1b1a, specular: 0x484848, shininess: 60 });
     if keep_right != Some(false) {
         put(&bear, "Real__plushBearEyeR", &plastic);
     }
     if keep_right != Some(true) {
         put(&bear, "Real__plushBearEyeL", &plastic);
     }
-    put(&bear, "Real__plushBearEyeHoles", &lambert!({ color: 0x15100c }));
-    put(&bear, "Real__plushBearNose", &phong!({ color: 0x1a1817, specular: 0x303030, shininess: 30 }));
+    put(&bear, "Real__plushBearEyeHoles", &lambert!({ color: 0x1c1512 }));
+    put(&bear, "Real__plushBearNose", &phong!({ color: 0x1c1a19, specular: 0x303030, shininess: 30 }));
     put(&bear, "Real__plushBearMouth", &lambert!({ color: 0x1d1a18 }));
     // satin ribbon gone dull: a faded red or a faded blue, by where it lies
     let ribbon = if hash(s, 3, 1) < 0.6 { 0x7e3f3a } else { 0x4b5a6e };
@@ -117,11 +117,12 @@ pub fn place_small_dolls(g: &mut Game, _dist: &[i32]) {
     put(&doll, &format!("Real__smallDoll{p}Dress"), &lambert!({ map: &dress_tex(s, rgb(DRESS[kd])) }));
     put(&doll, &format!("Real__smallDoll{p}Socks"), &lambert!({ map: &sock_tex(s) }));
     put(&doll, &format!("Real__smallDoll{p}Shoes"), &phong!({ color: 0x1d1b1a, specular: 0x2e2e2e, shininess: 28 }));
+    // the skull and the wig, laid as the pose lays them
+    put(&doll, &format!("Real__smallDoll{p}Skull"), &skin);
     let head = group();
     let ((hx, hy, hz), (rx, ry, rz)) = SD_HEAD[i];
     head.position().set(hx, hy, hz);
     head.rotation().set(rx, ry, rz);
-    put(&head, "Real__smallDollHead", &skin);
     put(&head, "Real__smallDollFace", &phong!({ map: &small_face_tex(s, rgb(SKIN[ks])), specular: 0x1c1a18, shininess: 22 }));
     let eye = phong!({ map: &small_eye_tex(s), specular: 0x2a2a2a, shininess: 70 });
     put(&head, "Real__smallDollEyeR", &eye);
@@ -130,7 +131,11 @@ pub fn place_small_dolls(g: &mut Game, _dist: &[i32]) {
     put(&head, &format!("Real__smallDoll{p}Lashes"), &lambert!({ color: 0x2e2620, side: DoubleSide }));
     // the wig: a blonde, a mid brown, an auburn or a dark brown, by where it lies
     let hair = [0xa88c62, 0x7c5e40, 0x7e4a30, 0x46342a][(hash(s, 5, 5) * 4.0) as usize % 4];
-    put(&head, "Real__smallDollWig", &phong!({ map: &wig_tex(s, rgb(hair)), specular: 0x262422, shininess: 14, side: DoubleSide }));
+    put(
+        &doll,
+        &format!("Real__smallDoll{p}Wig"),
+        &phong!({ map: &wig_tex(s, rgb(hair)), specular: 0x262422, shininess: 14, side: DoubleSide }),
+    );
     doll.add(&head);
     doll.position().set(px, 0, pz);
     doll.rotation().y = turn;
