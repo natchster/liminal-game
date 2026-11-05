@@ -964,87 +964,9 @@ pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wheel);
 }
 
-// R660 framed vintage map: 3% chance per level. Antique paper map w/
-// continent shapes + compass rose.
-game::lazy_static_tex!(
-    vintage_map_texture,
-    canvas_tex(128, 96, |ctx, w, h| {
-        // Aged paper.
-        ctx.set_fill_style("#e8d8a8");
-        ctx.fill_rect(0, 0, w, h);
-        // Sea (bottom half, faint blue).
-        ctx.set_fill_style("rgba(100, 140, 180, 0.3)");
-        ctx.fill_rect(0, h * 0.5, w, h * 0.5);
-        // 3 land-mass blob outlines (irregular).
-        ctx.set_fill_style("#c0a870");
-        ctx.set_stroke_style("#604020");
-        ctx.set_line_width(1);
-        for i in 0..3 {
-            ctx.begin_path();
-            let cx = 20.0 + i as f64 * 40.0;
-            let cy = h * 0.3 + rnd() * h * 0.4;
-            ctx.move_to(cx, cy);
-            for a in 0..8 {
-                let angle = (a as f64 / 8.0) * PI * 2.0;
-                let r = 15.0 + rnd() * 10.0;
-                ctx.line_to(cx + angle.cos() * r, cy + angle.sin() * r);
-            }
-            ctx.close_path();
-            ctx.fill();
-            ctx.stroke();
-        }
-        // Compass rose (top-right corner).
-        ctx.set_stroke_style("#403020");
-        ctx.set_line_width(1.5);
-        let (rx, ry) = (w - 20.0, 16.0);
-        ctx.begin_path();
-        ctx.move_to(rx, ry - 8.0);
-        ctx.line_to(rx, ry + 8.0);
-        ctx.move_to(rx - 8.0, ry);
-        ctx.line_to(rx + 8.0, ry);
-        ctx.move_to(rx - 5.0, ry - 5.0);
-        ctx.line_to(rx + 5.0, ry + 5.0);
-        ctx.move_to(rx + 5.0, ry - 5.0);
-        ctx.line_to(rx - 5.0, ry + 5.0);
-        ctx.stroke();
-        // Grid latitude lines.
-        ctx.set_stroke_style("rgba(80, 60, 30, 0.2)");
-        ctx.set_line_width(0.5);
-        for i in 1..5 {
-            ctx.begin_path();
-            ctx.move_to(0, i as f64 * h / 5.0);
-            ctx.line_to(w, i as f64 * h / 5.0);
-            ctx.move_to(i as f64 * w / 6.0, 0);
-            ctx.line_to(i as f64 * w / 6.0, h);
-            ctx.stroke();
-        }
-    })
-);
-
-pub fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let frame_mat = lambert!({ color: 0x604020 });
-    let paper_mat = lambert!({ map: vintage_map_texture() });
-    let map = group();
-    let mount_y = 1.65;
-    let frame = mesh(pg("VintageMaps__frame", box_geo!(0.30, 0.22, 0.014)), &frame_mat);
-    frame.position().y = mount_y;
-    map.add(&frame);
-    let paper = mesh(plane_geo!(0.26, 0.18), &paper_mat);
-    paper.position().set(0, mount_y, 0.009);
-    map.add(&paper);
-    map.rotation().z = (rnd() - 0.5) * 0.05;
-    map.rotation().y = face_yaw(dx, dz);
-    map.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
-    g.world.add(&map);
-}
+// R660 framed vintage map (Blender batch `t02`).
+mod t02;
+pub use t02::place_vintage_maps;
 
 // R660 hearth bellows: 4% chance per level. Accordion pleated body + 2 wooden
 // handles.
