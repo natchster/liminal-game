@@ -738,41 +738,6 @@ pub fn place_overturned_chair(g: &mut Game, _dist: &[i32]) {
     g.world.add(&chair);
 }
 
-// R251 cigarette butts: 0-2 small piles per level (2-6 butts per pile).
-pub fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.55 {
-        return;
-    } // 45% chance of pile(s)
-    let pile_count = 1 + (rnd() * 2.0).floor() as usize; // 1-2 piles
-    let mut open_tiles = open_tiles(g);
-    shuffle(&mut open_tiles);
-    let but_mat = lambert!({ color: 0x3a3028 });
-    let filter_mat = lambert!({ color: 0xa0906c });
-    let mut p = 0;
-    while p < pile_count && p < open_tiles.len() {
-        let (x, z) = open_tiles[p];
-        // Pile center within cell, biased toward wall corners.
-        let corner_bias = rnd() < 0.7;
-        let px = if corner_bias { (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.9 + rnd() * 0.5) } else { (rnd() - 0.5) * 2.0 };
-        let pz = if corner_bias { (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.9 + rnd() * 0.5) } else { (rnd() - 0.5) * 2.0 };
-        let n_butts = 2 + (rnd() * 5.0).floor() as i32; // 2-6 per pile
-        for b in 0..n_butts {
-            // Position within ~0.15 m radius of pile center.
-            let bx = px + (rnd() - 0.5) * 0.30;
-            let bz = pz + (rnd() - 0.5) * 0.30;
-            // Two-part butt: dark burnt end + lighter filter end.
-            let butt = group();
-            let burnt = mesh(pg("CigaretteButts__burnt", box_geo!(0.016, 0.005, 0.005)), &but_mat);
-            burnt.position().x = -0.005;
-            butt.add(&burnt);
-            let filter = mesh(pg("CigaretteButts__filter", box_geo!(0.010, 0.005, 0.005)), &filter_mat);
-            filter.position().x = 0.008;
-            butt.add(&filter);
-            butt.position().set(g.wx(x) + bx, 0.003, g.wz(z) + bz);
-            butt.rotation().y = rnd() * PI * 2.0;
-            butt.rotation().z = (rnd() - 0.5) * 0.2;
-            g.world.add(&butt);
-        }
-        p += 1;
-    }
-}
+// R251 cigarette butts: batch `t22`'s (`floor/t22.rs`)
+mod t22;
+pub use t22::place_cigarette_butts;

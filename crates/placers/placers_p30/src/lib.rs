@@ -1325,32 +1325,9 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R267 wet floor sign: 20% chance per level, 1 yellow A-frame sign.
-fn place_wet_floor_signs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.80 {
-        return;
-    } // 20% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let pk = pick(&open);
-    let yellow_mat = lambert!({ color: 0xe8b820 });
-    let sign = group();
-    // Two panels forming A-frame.
-    for side in [-1.0f64, 1.0] {
-        let panel = mesh(pg("WetFloorSigns__panel", plane_geo!(0.28, 0.42)), &yellow_mat);
-        panel.rotation().y = side * (PI / 12.0); // 15° tilt from vertical
-        panel.rotation().z = 0.0;
-        // Lean each leaf 15° about X: tops meet at z = 0, feet 22 cm apart, fronts facing out.
-        panel.rotation().set(-side * (PI / 12.0), if side < 0.0 { PI } else { 0.0 }, 0);
-        panel.position().set(0, 0.21 * (PI / 12.0).cos() + 0.002, side * 0.21 * (PI / 12.0).sin());
-        sign.add(&panel);
-    }
-    sign.position().set(g.wx(pk.0) + (rnd() - 0.5) * 1.8, 0, g.wz(pk.1) + (rnd() - 0.5) * 1.8);
-    sign.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&sign);
-}
+// R267 wet floor sign: batch `t22`'s (`t22.rs`), the core's sign
+mod t22;
+use t22::place_wet_floor_signs;
 
 // R265 emergency light: 20% chance per level, 1 wall-mounted 2-bulb fixture.
 fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
