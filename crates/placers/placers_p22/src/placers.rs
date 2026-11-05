@@ -7,6 +7,8 @@ mod r11b;
 pub(crate) use r11b::place_peeling_wallpapers;
 mod r13a;
 pub(crate) use r13a::{place_cracked_mirrors, place_wall_chalkboards};
+mod t02;
+pub(crate) use t02::place_religious_triptychs;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -223,40 +225,6 @@ pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &grp, x, z, 2.0);
     g.world.add(&grp);
-}
-
-// R501 religious triptych: 4% chance per level. 3-panel wall hanging w/ icons.
-pub(crate) fn place_religious_triptychs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let frame_mat = lambert!({ color: 0xd8b040 });
-    let panel_mat = lambert!({ map: triptych_texture(), side: DoubleSide });
-    let triptych = group();
-    let (w, h, t, fw) = (0.42, 0.34, 0.020, 0.024);
-    // Frame.
-    for (bar_w, bar_h, bx, by) in frame_bars(w, h, fw) {
-        let bar = mesh(pg("ReligiousTriptychs__bar", box_geo!(bar_w, bar_h, t)), &frame_mat);
-        bar.position().set(bx, by, 0);
-        triptych.add(&bar);
-    }
-    // 2 dividers between panels.
-    for px in [-w / 6.0, w / 6.0] {
-        let div = mesh(pg("ReligiousTriptychs__divider", box_geo!(0.008, h, t)), &frame_mat);
-        div.position().set(px, 0, 0);
-        triptych.add(&div);
-    }
-    // Canvas, recessed 8 mm behind the frame's face.
-    let canvas = mesh(plane_geo!(w, h), &panel_mat);
-    canvas.position().set(0, 0, t / 2.0 - 0.008);
-    triptych.add(&canvas);
-    mount_on_wall(g, &triptych, &c, 0.014, 1.68, 0.6);
-    g.world.add(&triptych);
 }
 
 // R501 shattered vase: 6% chance per level. Broken pottery + upright base.

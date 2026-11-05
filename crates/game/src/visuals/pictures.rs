@@ -1,9 +1,10 @@
-//! `visuals::pictures` — what the rooms' framed photographs and paintings
-//! show, and how a print, a canvas and a frame are painted (docs/PROPS.md 1,
-//! "its picture a picture").
+//! `visuals::pictures` — what the rooms' framed photographs, paintings,
+//! maps, plates and prints show, and how a print, a canvas, a printed sheet
+//! and a frame are painted (docs/PROPS.md 1, "its picture a picture").
 //!
 //! The pictures are real: old photographs of anonymous sitters (before
-//! 1930) and paintings, released as CC0 by the Rijksmuseum, laid each in
+//! 1930), paintings, maps and botanical and anatomical plates, released as
+//! CC0 by the Rijksmuseum and the Cleveland Museum of Art, laid each in
 //! its cell of one atlas (`crates/game/assets/textures/pictures.jpg`, built
 //! by `assets/src/textures/build.py` from the files `sources.json` lists
 //! under `pictures`, with their SHA-1s; the licence and makers in
@@ -21,7 +22,9 @@
 //! faces of a Blender part: the frame's bounds): stained wood, ebonised
 //! wood, old gilding and paint, each from where on its moulding's profile a
 //! pixel lies ([`moulding_tex`]); the mat a print is cut into ([`mat_tex`]);
-//! the glass over it ([`glass_mat`]).
+//! the glass over it ([`glass_mat`]). A sheet whose design the game sets
+//! (a poster's type) is painted and then aged as a print ([`sheet_tex`]); a
+//! picture on its wire hangs from a brass hook ([`hang`]).
 use crate::base::rng::SplitMix64;
 use crate::placers::kit::{canvas_tex_opt, par_rows};
 use crate::prelude::*;
@@ -31,7 +34,7 @@ static ATLAS: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), "/asset
 
 /// The pictures and their cells in the atlas, px (x, y, w, h): as
 /// `sources.json` lays them (`pictures.files.*.cell`)
-pub const CELLS: [(&str, [u32; 4]); 20] = [
+pub const CELLS: [(&str, [u32; 4]); 37] = [
     ("baby_basket", [0, 0, 320, 400]),
     ("baby_chair", [320, 0, 320, 400]),
     ("graduate", [640, 0, 320, 400]),
@@ -52,6 +55,24 @@ pub const CELLS: [(&str, [u32; 4]); 20] = [
     ("land_road", [0, 1120, 400, 320]),
     ("still_peaches", [400, 1120, 400, 320]),
     ("still_dark", [800, 1120, 400, 320]),
+    // the maps, plates, prints and the triptych (batch t02)
+    ("map_world", [0, 1440, 480, 400]),
+    ("map_dvina", [480, 1440, 480, 400]),
+    ("map_sky", [960, 1440, 480, 400]),
+    ("trip_l", [1440, 1440, 156, 400]),
+    ("map_mexico", [0, 1840, 480, 400]),
+    ("trip_c", [480, 1840, 308, 400]),
+    ("trip_r", [788, 1840, 156, 400]),
+    ("anat_front", [944, 1840, 287, 400]),
+    ("anat_back", [1231, 1840, 287, 400]),
+    ("bot_rose", [0, 2240, 285, 400]),
+    ("bot_pulmonaria", [285, 2240, 285, 400]),
+    ("bot_magnolia", [570, 2240, 285, 400]),
+    ("bot_poppy", [855, 2240, 285, 400]),
+    ("map_cook", [1140, 2240, 456, 296]),
+    ("map_paris", [0, 2640, 398, 300]),
+    ("map_trier", [398, 2640, 398, 300]),
+    ("map_antwerp", [796, 2640, 456, 296]),
 ];
 
 /// The decoded atlas: straight RGBA, rows top-down
@@ -238,6 +259,27 @@ impl Age {
             border: 0.0,
         }
     }
+    /// An engraving, a map or a plate on rag paper, decades on a wall:
+    /// yellowed most at its edges, foxed, now and then a damp tide line or a
+    /// crease; `vary` sets how much
+    pub fn engraving(vary: u32) -> Age {
+        let mut r = SplitMix64::new(vary, 0xe9a7);
+        let y = r.range(0.0, 1.0);
+        Age {
+            fade: r.range(0.0, 0.08),
+            tone: [1.0, 0.94 - 0.04 * y, 0.80 - 0.08 * y],
+            edge: r.range(0.3, 0.7),
+            silver: 0.0,
+            spots: (r.range(10.0, 40.0)) as usize,
+            crease: r.next() < 0.15,
+            stain: if r.next() < 0.3 { r.range(0.3, 0.7) } else { 0.0 },
+            crack: (0.0, 0.0),
+            grime: r.range(0.02, 0.12),
+            losses: 0,
+            weave: 0.0,
+            border: 0.0,
+        }
+    }
     /// An oil painting of two or three centuries: its varnish gone amber,
     /// cracked into islands, grimed
     pub fn oil(vary: u32) -> Age {
@@ -268,136 +310,198 @@ pub fn print_tex(name: &str, size: (f64, f64), ppm: f64, age: Age, vary: u32) ->
     canvas_tex_opt(pw, ph, false, move |ctx, w, h| {
         let at = atlas();
         let atr: &Atlas = &at;
-        let mut r = SplitMix64::new(vary, 0x9a1c);
-        let seed = (r.next() * 4.0e9) as u32;
         // the picture's middle, cut to this print's shape
         let (aspect, ca) = (size.0 / size.1, c.w / c.h);
         let (ku, kv) = if aspect > ca { (1.0, ca / aspect) } else { (aspect / ca, 1.0) };
-        // foxing: soft brown spots, a few with a darker heart
-        let spots: Vec<(f64, f64, f64, f64)> =
-            (0..age.spots).map(|_| (r.next() * w, r.next() * h, r.range(0.6, 3.2) * ppm / 1000.0, r.range(0.15, 0.55))).collect();
-        // the losses: flakes off an oil, the ground showing
-        let losses: Vec<(f64, f64, f64)> =
-            (0..age.losses).map(|_| (r.next() * w, r.range(0.4, 1.0) * h, r.range(0.4, 1.4) * ppm / 1000.0)).collect();
-        let tide = r.range(0.06, 0.16);
-        let n = w as usize;
-        let mut img = ctx.create_image_data(w, h);
-        par_rows(&mut img.data, n * 4, |j, out| {
-            let y = j as f64 + 0.5;
-            for i in 0..n {
-                let x = i as f64 + 0.5;
-                // m from the print's nearest edge
-                let e = (x.min(w - x).min(y).min(h - y)) / ppm;
-                let (mut u, mut v) = (x / w, y / h);
-                let bd = age.border;
-                let in_border = bd > 0.0 && e < bd;
-                if bd > 0.0 {
-                    u = (x / ppm - bd) / (size.0 - 2.0 * bd);
-                    v = (y / ppm - bd) / (size.1 - 2.0 * bd);
-                }
-                let s = atr.sample(&c, 0.5 + (u - 0.5) * ku, 0.5 + (v - 0.5) * kv);
-                let mut o = if in_border { [0.93, 0.92, 0.88] } else { s };
-                // faded: the blacks lifted toward the paper
-                o = o.map(|k| 1.0 - (1.0 - k) * (1.0 - age.fade));
-                // the paper (or varnish) yellowed, most in the light tones and
-                // more toward the edges
-                let edge = age.edge * (1.0 - smooth(0.0, 0.03, e));
-                let lum = 0.3 * o[0] + 0.59 * o[1] + 0.11 * o[2];
-                for k in 0..3 {
-                    let t = age.tone[k];
-                    let tt = 1.0 - (1.0 - t) * (0.55 + 0.45 * lum) * (1.0 + edge);
-                    o[k] *= tt.max(0.0);
-                }
-                o = o.map(|k| k * (1.0 - 0.25 * edge));
-                // silvered out: the dark tones near the edges gone a grey metallic sheen
-                if age.silver > 0.0 {
-                    let sv = age.silver * (1.0 - smooth(0.0, 0.025, e)) * (1.0 - lum).powi(2) * (0.6 + 0.4 * fbm(seed, x * 0.08, y * 0.08));
-                    o = mix3(o, [0.48, 0.5, 0.52], sv.min(0.7));
-                }
-                // an oil's cracks: dark lines between islands, each island
-                // cupped a little (its own shade)
-                if age.crack.0 > 0.0 {
-                    let (d, id) = islands(seed ^ 0x3c, x / ppm, y / ppm, age.crack.0);
-                    let line = 1.0 - smooth(0.0, 0.7 / ppm, d);
-                    o = o.map(|k| k * (1.0 - age.crack.1 * line) * (0.985 + 0.03 * id));
-                }
-                // the canvas's weave under the paint
-                if age.weave > 0.0 {
-                    let wv = (x * 2.4).sin() * (y * 2.4).sin();
-                    o = o.map(|k| k * (1.0 + 0.03 * age.weave * wv));
-                }
-                // foxing
-                for &(sx, sy, rr, k) in &spots {
-                    let d2 = ((x - sx) * (x - sx) + (y - sy) * (y - sy)) / (rr * rr);
-                    if d2 < 9.0 {
-                        let f = k * (-d2).exp();
-                        o = [o[0] * (1.0 - 0.25 * f), o[1] * (1.0 - 0.45 * f), o[2] * (1.0 - 0.65 * f)];
-                    }
-                }
-                // a damp tide line up from the foot: browned below, a darker rim
-                if age.stain > 0.0 {
-                    let line = h * (1.0 - tide) + (fbm(seed ^ 7, x * 0.03, 0.5) - 0.5) * h * 0.06;
-                    if y > line {
-                        o = [o[0] * 0.95, o[1] * 0.9, o[2] * 0.8];
-                    }
-                    let rim = (-((y - line) / 1.5).powi(2)).exp() * age.stain;
-                    o = [o[0] * (1.0 - 0.18 * rim), o[1] * (1.0 - 0.26 * rim), o[2] * (1.0 - 0.36 * rim)];
-                }
-                // losses: the ground (a warm off-white) where paint has flaked
-                for &(lx, ly, rr) in &losses {
-                    let d = ((x - lx) * (x - lx) + (y - ly) * (y - ly)).sqrt();
-                    let edge_n = fbm(seed ^ 11, x * 0.4, y * 0.4);
-                    if d < rr * (0.6 + 0.8 * edge_n) {
-                        o = [0.6, 0.54, 0.43];
-                    }
-                }
-                // grime: a darkening, blotchy, heavier at the foot
-                let g = age.grime * (0.6 + 0.8 * fbm(seed ^ 13, x * 0.02, y * 0.02)) * (0.7 + 0.6 * y / h);
-                o = o.map(|k| k * (1.0 - g.min(0.6)));
-                // the paper's tooth
-                let tooth = 1.0 + 0.035 * (hash(seed ^ 17, i as i32, j as i32) - 0.5);
-                put(out, i, o.map(|k| k * tooth));
-            }
-        });
-        ctx.put_image_data(&img, 0, 0);
-        if age.crease {
-            // a crease across a corner: a pale ridge with its shadow, the
-            // emulsion cracked off along it
-            let (fx, fy) = if r.next() < 0.5 { (0.0, h) } else { (w, h) };
-            let k = r.range(0.18, 0.32);
-            let (ax, ay) = (fx + if fx > 0.0 { -w * k } else { w * k }, fy);
-            let (bx, by) = (fx, fy - h * k * 1.1);
-            ctx.set_line_width(1.0);
-            ctx.set_stroke_style("rgba(250,244,226,0.55)");
-            ctx.begin_path();
-            ctx.move_to(ax, ay);
-            ctx.quadratic_curve_to((ax + bx) / 2.0 + 2.0, (ay + by) / 2.0 + 2.0, bx, by);
-            ctx.stroke();
-            ctx.set_stroke_style("rgba(40,30,20,0.35)");
-            ctx.begin_path();
-            ctx.move_to(ax + 1.0, ay + 0.5);
-            ctx.quadratic_curve_to((ax + bx) / 2.0 + 3.0, (ay + by) / 2.0 + 3.0, bx + 1.0, by + 0.5);
-            ctx.stroke();
-            for _ in 0..12 {
-                let t = r.next();
-                let (px, py) = (ax + (bx - ax) * t + r.range(-1.5, 1.5), ay + (by - ay) * t + r.range(-1.5, 1.5));
-                ctx.set_fill_style("rgba(238,232,214,0.8)");
-                ctx.fill_rect(px, py, r.range(0.6, 1.8), r.range(0.6, 1.4));
-            }
-        }
-        // a few scratches in the emulsion or the varnish, catching the light
-        for _ in 0..(r.range(2.0, 8.0) as usize) {
-            let (x, y) = (r.next() * w, r.next() * h);
-            let a = r.next() * PI;
-            let l = r.range(4.0, 22.0);
-            ctx.set_stroke_style(format!("rgba(236,228,206,{:.2})", r.range(0.12, 0.3)));
-            ctx.set_line_width(0.5);
-            ctx.begin_path();
-            ctx.move_to(x, y);
-            ctx.line_to(x + a.cos() * l, y + a.sin() * l);
-            ctx.stroke();
-        }
+        age_sheet(ctx, w, h, size, ppm, age, vary, &|u, v, _, _| atr.sample(&c, 0.5 + (u - 0.5) * ku, 0.5 + (v - 0.5) * kv));
     })
+}
+
+/// A sheet `size` m at `ppm` px a metre whose design the game paints
+/// (`draw`, in px: a poster's type and inks, on its own stream), then aged
+/// by `age` as [`print_tex`] ages a print
+pub fn sheet_tex(size: (f64, f64), ppm: f64, age: Age, vary: u32, draw: impl FnOnce(&mut Canvas, f64, f64)) -> Tex {
+    let (pw, ph) = ((size.0 * ppm).round().max(8.0), (size.1 * ppm).round().max(8.0));
+    canvas_tex_opt(pw, ph, false, move |ctx, w, h| {
+        draw(ctx, w, h);
+        let src = ctx.get_image_data(0, 0, w, h);
+        let n = w as usize;
+        let px = |i: usize, j: usize| {
+            let k = (j * n + i) * 4;
+            [f64::from(src.data[k]) / 255.0, f64::from(src.data[k + 1]) / 255.0, f64::from(src.data[k + 2]) / 255.0]
+        };
+        age_sheet(ctx, w, h, size, ppm, age, vary, &|_, _, i, j| px(i, j));
+    })
+}
+
+/// The ageing of a print or a sheet (w x h px, `size` m): every pixel from
+/// `src` (u, v of the sheet, 0..1 v down, or its px i, j), faded, yellowed
+/// from its edges, silvered, cracked, foxed, stained and grimed by `age`,
+/// computed on every core; then a crease and scratches drawn
+#[allow(clippy::too_many_arguments)]
+fn age_sheet(ctx: &mut Canvas, w: f64, h: f64, size: (f64, f64), ppm: f64, age: Age, vary: u32, src: &(dyn Fn(f64, f64, usize, usize) -> [f64; 3] + Sync)) {
+    let mut r = SplitMix64::new(vary, 0x9a1c);
+    let seed = (r.next() * 4.0e9) as u32;
+    // foxing: soft brown spots, a few with a darker heart
+    let spots: Vec<(f64, f64, f64, f64)> =
+        (0..age.spots).map(|_| (r.next() * w, r.next() * h, r.range(0.6, 3.2) * ppm / 1000.0, r.range(0.15, 0.55))).collect();
+    // the losses: flakes off an oil, the ground showing
+    let losses: Vec<(f64, f64, f64)> = (0..age.losses).map(|_| (r.next() * w, r.range(0.4, 1.0) * h, r.range(0.4, 1.4) * ppm / 1000.0)).collect();
+    let tide = r.range(0.06, 0.16);
+    let n = w as usize;
+    let mut img = ctx.create_image_data(w, h);
+    par_rows(&mut img.data, n * 4, |j, out| {
+        let y = j as f64 + 0.5;
+        for i in 0..n {
+            let x = i as f64 + 0.5;
+            // m from the print's nearest edge
+            let e = (x.min(w - x).min(y).min(h - y)) / ppm;
+            let (mut u, mut v) = (x / w, y / h);
+            let bd = age.border;
+            let in_border = bd > 0.0 && e < bd;
+            if bd > 0.0 {
+                u = (x / ppm - bd) / (size.0 - 2.0 * bd);
+                v = (y / ppm - bd) / (size.1 - 2.0 * bd);
+            }
+            let s = src(u, v, i, j);
+            let mut o = if in_border { [0.93, 0.92, 0.88] } else { s };
+            // faded: the blacks lifted toward the paper
+            o = o.map(|k| 1.0 - (1.0 - k) * (1.0 - age.fade));
+            // the paper (or varnish) yellowed, most in the light tones and
+            // more toward the edges
+            let edge = age.edge * (1.0 - smooth(0.0, 0.03, e));
+            let lum = 0.3 * o[0] + 0.59 * o[1] + 0.11 * o[2];
+            for k in 0..3 {
+                let t = age.tone[k];
+                let tt = 1.0 - (1.0 - t) * (0.55 + 0.45 * lum) * (1.0 + edge);
+                o[k] *= tt.max(0.0);
+            }
+            o = o.map(|k| k * (1.0 - 0.25 * edge));
+            // silvered out: the dark tones near the edges gone a grey metallic sheen
+            if age.silver > 0.0 {
+                let sv = age.silver * (1.0 - smooth(0.0, 0.025, e)) * (1.0 - lum).powi(2) * (0.6 + 0.4 * fbm(seed, x * 0.08, y * 0.08));
+                o = mix3(o, [0.48, 0.5, 0.52], sv.min(0.7));
+            }
+            // an oil's cracks: dark lines between islands, each island
+            // cupped a little (its own shade)
+            if age.crack.0 > 0.0 {
+                let (d, id) = islands(seed ^ 0x3c, x / ppm, y / ppm, age.crack.0);
+                let line = 1.0 - smooth(0.0, 0.7 / ppm, d);
+                o = o.map(|k| k * (1.0 - age.crack.1 * line) * (0.985 + 0.03 * id));
+            }
+            // the canvas's weave under the paint
+            if age.weave > 0.0 {
+                let wv = (x * 2.4).sin() * (y * 2.4).sin();
+                o = o.map(|k| k * (1.0 + 0.03 * age.weave * wv));
+            }
+            // foxing
+            for &(sx, sy, rr, k) in &spots {
+                let d2 = ((x - sx) * (x - sx) + (y - sy) * (y - sy)) / (rr * rr);
+                if d2 < 9.0 {
+                    let f = k * (-d2).exp();
+                    o = [o[0] * (1.0 - 0.25 * f), o[1] * (1.0 - 0.45 * f), o[2] * (1.0 - 0.65 * f)];
+                }
+            }
+            // a damp tide line up from the foot: browned below, a darker rim
+            if age.stain > 0.0 {
+                let line = h * (1.0 - tide) + (fbm(seed ^ 7, x * 0.03, 0.5) - 0.5) * h * 0.06;
+                if y > line {
+                    o = [o[0] * 0.95, o[1] * 0.9, o[2] * 0.8];
+                }
+                let rim = (-((y - line) / 1.5).powi(2)).exp() * age.stain;
+                o = [o[0] * (1.0 - 0.18 * rim), o[1] * (1.0 - 0.26 * rim), o[2] * (1.0 - 0.36 * rim)];
+            }
+            // losses: the ground (a warm off-white) where paint has flaked
+            for &(lx, ly, rr) in &losses {
+                let d = ((x - lx) * (x - lx) + (y - ly) * (y - ly)).sqrt();
+                let edge_n = fbm(seed ^ 11, x * 0.4, y * 0.4);
+                if d < rr * (0.6 + 0.8 * edge_n) {
+                    o = [0.6, 0.54, 0.43];
+                }
+            }
+            // grime: a darkening, blotchy, heavier at the foot
+            let g = age.grime * (0.6 + 0.8 * fbm(seed ^ 13, x * 0.02, y * 0.02)) * (0.7 + 0.6 * y / h);
+            o = o.map(|k| k * (1.0 - g.min(0.6)));
+            // the paper's tooth
+            let tooth = 1.0 + 0.035 * (hash(seed ^ 17, i as i32, j as i32) - 0.5);
+            put(out, i, o.map(|k| k * tooth));
+        }
+    });
+    ctx.put_image_data(&img, 0, 0);
+    if age.crease {
+        // a crease across a corner: a pale ridge with its shadow, the
+        // emulsion cracked off along it
+        let (fx, fy) = if r.next() < 0.5 { (0.0, h) } else { (w, h) };
+        let k = r.range(0.18, 0.32);
+        let (ax, ay) = (fx + if fx > 0.0 { -w * k } else { w * k }, fy);
+        let (bx, by) = (fx, fy - h * k * 1.1);
+        ctx.set_line_width(1.0);
+        ctx.set_stroke_style("rgba(250,244,226,0.55)");
+        ctx.begin_path();
+        ctx.move_to(ax, ay);
+        ctx.quadratic_curve_to((ax + bx) / 2.0 + 2.0, (ay + by) / 2.0 + 2.0, bx, by);
+        ctx.stroke();
+        ctx.set_stroke_style("rgba(40,30,20,0.35)");
+        ctx.begin_path();
+        ctx.move_to(ax + 1.0, ay + 0.5);
+        ctx.quadratic_curve_to((ax + bx) / 2.0 + 3.0, (ay + by) / 2.0 + 3.0, bx + 1.0, by + 0.5);
+        ctx.stroke();
+        for _ in 0..12 {
+            let t = r.next();
+            let (px, py) = (ax + (bx - ax) * t + r.range(-1.5, 1.5), ay + (by - ay) * t + r.range(-1.5, 1.5));
+            ctx.set_fill_style("rgba(238,232,214,0.8)");
+            ctx.fill_rect(px, py, r.range(0.6, 1.8), r.range(0.6, 1.4));
+        }
+    }
+    // a few scratches in the emulsion or the varnish, catching the light
+    for _ in 0..(r.range(2.0, 8.0) as usize) {
+        let (x, y) = (r.next() * w, r.next() * h);
+        let a = r.next() * PI;
+        let l = r.range(4.0, 22.0);
+        ctx.set_stroke_style(format!("rgba(236,228,206,{:.2})", r.range(0.12, 0.3)));
+        ctx.set_line_width(0.5);
+        ctx.begin_path();
+        ctx.move_to(x, y);
+        ctx.line_to(x + a.cos() * l, y + a.sin() * l);
+        ctx.stroke();
+    }
+}
+
+/// A picture's hanging: a brass picture hook on the wall at its wire's apex
+/// (`apex` above the picture's middle at `mount_y`, the wall `wall` behind
+/// the spot), the frame swinging about it by `tilt` and leaning out `lean`
+/// at its top from its foot (`h` its height); returns the body its parts go
+/// in (the frame of `t01.py` and `t02.py`: z = 0 the wall)
+pub fn hang(o: &Obj, mount_y: f64, wall: f64, apex: f64, h: f64, lean: f64, tilt: f64) -> Obj {
+    let nail = group();
+    nail.position().set(0, mount_y + apex, -wall);
+    nail.rotation().z = tilt;
+    o.add(&nail);
+    if let Some(geo) = crate::assets::props::prop_part_as_modelled("Real__oldPortraitHook") {
+        nail.add(&mesh(geo, phong!({ color: 0x6a5630, specular: 0x5a4a2a, shininess: 36 })));
+    }
+    let foot = group();
+    foot.position().y = -apex - h / 2.0;
+    foot.rotation().x = (lean / h).atan();
+    nail.add(&foot);
+    let body = group();
+    body.position().y = h / 2.0;
+    foot.add(&body);
+    body
+}
+
+/// The parts of a picture (`Real__…` names, each with its material), as
+/// modelled, into `body`; a glass drawn after what is behind it
+pub fn add_parts(body: &Obj, parts: &[(&str, Mat)]) {
+    for (name, mat) in parts {
+        if let Some(geo) = crate::assets::props::prop_part_as_modelled(name) {
+            let m = mesh(geo, mat);
+            if name.ends_with("Glass") {
+                m.set_render_order(2);
+            }
+            body.add(&m);
+        }
+    }
 }
 
 // -------------------------------------------------------------------- mats ---

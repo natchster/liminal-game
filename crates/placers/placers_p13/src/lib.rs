@@ -6,6 +6,8 @@ use game::prelude::*;
 
 mod textures;
 use textures::*;
+mod t02;
+use t02::{place_anatomy_charts, place_framed_maps, place_propaganda_posters};
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -139,33 +141,6 @@ fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
     rs.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
     rs.rotation().y = rnd() * PI * 2.0;
     g.world.add(&rs);
-}
-
-fn place_propaganda_posters(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wt[(rnd() * wt.len() as f64).floor() as usize];
-    let frame_colors = [0x604020, 0x101010, 0x804a20, 0x2a2a2a];
-    let frame_mat = lambert!({ color: choice(&frame_colors) });
-    let poster_mat = lambert!({ map: propaganda_poster_texture() });
-    let pp = group();
-    let mount_y = 1.60;
-    let (frame_w, frame_h) = (0.20, 0.28);
-    let frame = mesh(pg("PropagandaPosters__frame", box_geo!(frame_w, frame_h, 0.012)), &frame_mat);
-    frame.position().set(0, mount_y, 0.010);
-    pp.add(&frame);
-    let poster = mesh(plane_geo!(frame_w - 0.014, frame_h - 0.014), &poster_mat);
-    poster.position().set(0, mount_y, 0.017);
-    pp.add(&poster);
-    pp.rotation().y = face_wall(dx, dz);
-    pp.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    pp.rotation().z = (rnd() - 0.5) * 0.03;
-    g.world.add(&pp);
 }
 
 fn place_turntables(g: &mut Game, _dist: &[i32]) {
@@ -547,41 +522,6 @@ fn place_vintage_typewriters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tw);
 }
 
-fn place_anatomy_charts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wt[(rnd() * wt.len() as f64).floor() as usize];
-    let frame_colors = [0x604020, 0x8b5a2b, 0x202020, 0x504030];
-    let frame_mat = lambert!({ color: choice(&frame_colors) });
-    let chart_mat = lambert!({ map: anatomy_chart_texture() });
-    let ac = group();
-    let mount_y = 1.60;
-    let (frame_w, frame_h) = (0.22, 0.32);
-    let frame = mesh(pg("AnatomyCharts__frame", box_geo!(frame_w, frame_h, 0.014)), &frame_mat);
-    frame.position().set(0, mount_y, 0.011);
-    ac.add(&frame);
-    let chart = mesh(plane_geo!(frame_w - 0.020, frame_h - 0.020), &chart_mat);
-    chart.position().set(0, mount_y, 0.019);
-    ac.add(&chart);
-    // Roller dowel top + bottom.
-    let dowel_mat = lambert!({ color: 0x8b5a2b });
-    for y_off in [frame_h * 0.5 + 0.005, -frame_h * 0.5 - 0.005] {
-        let dowel = mesh(pg("AnatomyCharts__dowel", cyl_geo!(0.004, 0.004, frame_w + 0.010, 6)), &dowel_mat);
-        dowel.rotation().z = PI / 2.0;
-        dowel.position().set(0, mount_y + y_off, 0.019);
-        ac.add(&dowel);
-    }
-    ac.rotation().y = face_wall(dx, dz);
-    ac.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    ac.rotation().z = (rnd() - 0.5) * 0.03;
-    g.world.add(&ac);
-}
-
 fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
     g.pp.chalkboard_positions.clear(); // R732 reset per level
     if rnd() < 0.975 {
@@ -890,33 +830,6 @@ fn place_spilled_backpacks(g: &mut Game, _dist: &[i32]) {
     sp.position().set(g.wx(x) + (rnd() - 0.5) * 1.4, 0, g.wz(z) + (rnd() - 0.5) * 1.4);
     sp.rotation().y = rnd() * PI * 2.0;
     g.world.add(&sp);
-}
-
-fn place_framed_maps(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.975 {
-        return;
-    }
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = wt[(rnd() * wt.len() as f64).floor() as usize];
-    let frame_colors = [0x604020, 0x8b5a2b, 0x2a2a2a, 0xd0a040];
-    let frame_mat = lambert!({ color: choice(&frame_colors) });
-    let map_mat = lambert!({ map: framed_map_texture() });
-    let fm = group();
-    let mount_y = 1.60;
-    let (frame_w, frame_h) = (0.30, 0.22);
-    let frame = mesh(pg("FramedMaps__frame", box_geo!(frame_w, frame_h, 0.014)), &frame_mat);
-    frame.position().set(0, mount_y, 0.011);
-    fm.add(&frame);
-    let map = mesh(plane_geo!(frame_w - 0.016, frame_h - 0.016), &map_mat);
-    map.position().set(0, mount_y, 0.019);
-    fm.add(&map);
-    fm.rotation().y = face_wall(dx, dz);
-    fm.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    fm.rotation().z = (rnd() - 0.5) * 0.03;
-    g.world.add(&fm);
 }
 
 #[cfg(test)]
