@@ -47,7 +47,7 @@ pub fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
     let turn = rnd() * PI * 2.0;
     let k = salt(px, pz, 19);
     let relic = group();
-    put(&relic, "Real__reliquaryBrass", &phong!({ map: &gilt_tex(k), specular: 0x5a4c30, shininess: 34 }));
+    put(&relic, "Real__reliquaryBrass", &phong!({ map: &gilt_tex(k), specular: 0x7a6640, shininess: 46 }));
     put(&relic, "Real__reliquaryCushion", &lambert!({ map: &velvet_tex(k) }));
     put(&relic, "Real__reliquaryRelic", &lambert!({ map: &relic_bone_tex(k) }));
     put(&relic, "Real__reliquaryLabel", &lambert!({ map: &label_tex(k), side: DoubleSide }));
@@ -91,13 +91,16 @@ fn gilt_tex(salt: u32) -> Tex {
     canvas_tex_opt(96, 96, false, move |ctx, w, h| {
         let seed = salt ^ 0x61;
         fill(ctx, w, h, |u, v| {
-            let mut c = [0.50, 0.40, 0.21];
-            let n = fbm(seed, u * 7.0, v * 7.0, 3);
-            c = mix(c, [0.44, 0.38, 0.22], sstep(0.55, 0.7, n) * 0.7);
-            let t = fbm(seed ^ 5, u * 13.0, v * 13.0, 3);
-            c = mix(c, [0.16, 0.12, 0.07], sstep(0.45, 0.8, t) * 0.75);
+            // the gilding: a dark gold in the diffuse (its colour is in the highlight)
+            let mut c = [0.36, 0.27, 0.12];
+            // rubbed through to the paler, greener brass in patches
+            let n = fbm(seed, u * 9.0, v * 9.0, 3);
+            c = mix(c, [0.38, 0.33, 0.17], sstep(0.58, 0.72, n) * 0.6);
+            // tarnish in specks and blotches
+            let t = fbm(seed ^ 5, u * 22.0, v * 22.0, 2);
+            c = mix(c, [0.14, 0.10, 0.06], sstep(0.55, 0.85, t) * 0.55);
             let d = vn(seed ^ 9, u * 60.0, v * 60.0);
-            c = mix(c, [0.46, 0.44, 0.40], sstep(0.7, 0.95, d) * 0.4 + 0.06);
+            c = mix(c, [0.44, 0.42, 0.38], sstep(0.75, 0.95, d) * 0.3 + 0.05);
             [c[0], c[1], c[2], 1.0]
         });
     })

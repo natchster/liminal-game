@@ -140,6 +140,17 @@ def vnormals(s):
     return [n.normalized() if n.length > 1e-12 else Vector((0, 1, 0)) for n in nr]
 
 
+def smooth_shape(s, factor=0.5, iterations=4):
+    """Blender's smooth modifier."""
+    ob = _mesh_obj('_t19sm', s)
+    m = ob.modifiers.new('s', 'SMOOTH')
+    m.factor = factor
+    m.iterations = iterations
+    out = _eval_to_shape(ob)
+    _drop(ob)
+    return out
+
+
 def bump_along_normals(s, fn):
     """Push every vertex along its normal by fn(p) metres."""
     ns = vnormals(s)
@@ -510,36 +521,38 @@ def crucifix_cross():
 def crucifix_corpus():
     z = CR_FRONT + 0.0062
     e = []
-    # the head, bowed to its right and forward, the hair and beard
-    e += [('ell', (-0.0035, 0.0438, z + 0.0020), (0.0058, 0.0072, 0.0062), 2.0, (0.25, 0, 0.30)),
-          ('ell', (-0.0050, 0.0395, z + 0.0040), (0.0036, 0.0040, 0.0034), 2.0),
-          ('ell', (-0.0010, 0.0420, z - 0.0010), (0.0068, 0.0082, 0.0050), 2.0, (0, 0, 0.30))]
+    # the head, bowed to its right and forward, the hair falling, the beard
+    e += [('ell', (-0.0040, 0.0440, z + 0.0018), (0.0066, 0.0082, 0.0068), 2.0, (0.25, 0, 0.30)),
+          ('ell', (-0.0058, 0.0392, z + 0.0042), (0.0040, 0.0042, 0.0036), 2.0),
+          ('ell', (-0.0005, 0.0418, z - 0.0012), (0.0074, 0.0090, 0.0052), 2.0, (0, 0, 0.30))]
     # the neck, the chest, the ribs' cage, the belly
-    e += [('cap', (-0.0010, 0.0350, z), (-0.0030, 0.0400, z + 0.0010), 0.0030),
-          ('ell', (0.0, 0.0255, z), (0.0105, 0.0110, 0.0060)),
-          ('ell', (0.0, 0.0120, z - 0.0004), (0.0080, 0.0100, 0.0055)),
-          ('ell', (0.0, 0.0040, z - 0.0006), (0.0072, 0.0060, 0.0050))]
-    # the arms: up to the hands nailed near the crossbar's ends
+    e += [('cap', (-0.0010, 0.0345, z), (-0.0032, 0.0395, z + 0.0012), 0.0032),
+          ('ell', (0.0, 0.0250, z), (0.0115, 0.0115, 0.0062)),
+          ('ell', (0.0, 0.0120, z - 0.0004), (0.0085, 0.0100, 0.0056)),
+          ('ell', (0.0, 0.0040, z - 0.0006), (0.0076, 0.0060, 0.0050))]
+    # the arms: up to the hands nailed near the crossbar's ends, the elbows
+    # sagging a little
     for sx in (-1, 1):
-        sh = (sx * 0.0095, 0.0330, z)
-        el = (sx * 0.0300, 0.0450, z - 0.0005)
-        wr = (sx * 0.0490, 0.0560, z - 0.0012)
-        e += [('cap', sh, el, 0.0032), ('cap', el, wr, 0.0026),
-              ('ell', (sx * 0.0535, 0.0575, z - 0.0015), (0.0045, 0.0022, 0.0018), 2.0, (0, 0, sx * 0.5))]
+        sh = (sx * 0.0100, 0.0320, z)
+        el = (sx * 0.0300, 0.0418, z - 0.0005)
+        wr = (sx * 0.0490, 0.0545, z - 0.0012)
+        e += [('cap', sh, el, 0.0037), ('cap', el, wr, 0.0031),
+              ('ell', (sx * 0.0535, 0.0570, z - 0.0015), (0.0048, 0.0026, 0.0020), 2.0, (0, 0, sx * 0.5))]
     # the loincloth, its knot and fall at one hip
-    e += [('ell', (0.0, -0.0040, z + 0.0004), (0.0098, 0.0058, 0.0064)),
-          ('ell', (0.0080, -0.0060, z + 0.0010), (0.0030, 0.0065, 0.0035))]
+    e += [('ell', (0.0, -0.0040, z + 0.0004), (0.0102, 0.0062, 0.0066)),
+          ('ell', (0.0085, -0.0065, z + 0.0010), (0.0032, 0.0070, 0.0036))]
     # the legs, the knees a little bent, the right foot over the left
     for sx in (-1, 1):
-        e += [('cap', (sx * 0.0045, -0.0070, z), (sx * 0.0038, -0.0320, z + 0.0016), 0.0040),
-              ('cap', (sx * 0.0038, -0.0320, z + 0.0016), (sx * 0.0012, -0.0600, z - 0.0004), 0.0031)]
-    e += [('cap', (0.0012, -0.0600, z), (-0.0004, -0.0700, z - 0.0010), 0.0022),
-          ('cap', (-0.0012, -0.0598, z - 0.0016), (0.0004, -0.0695, z - 0.0026), 0.0021)]
-    s = meta(e, res=0.0007)
-    s = remesh(s, 0.0006)
-    s = bump_along_normals(s, lambda p: 0.00012 * noise.noise(Vector((p.x * 900, p.y * 900, p.z * 900))))
+        e += [('cap', (sx * 0.0046, -0.0070, z), (sx * 0.0040, -0.0320, z + 0.0018), 0.0042),
+              ('cap', (sx * 0.0040, -0.0320, z + 0.0018), (sx * 0.0013, -0.0600, z - 0.0004), 0.0032)]
+    e += [('cap', (0.0012, -0.0600, z), (-0.0004, -0.0700, z - 0.0010), 0.0024),
+          ('cap', (-0.0012, -0.0598, z - 0.0016), (0.0004, -0.0695, z - 0.0026), 0.0023)]
+    s = meta(e, res=0.0006)
+    s = remesh(s, 0.0005)
+    s = smooth_shape(s, 0.6, 6)
+    s = bump_along_normals(s, lambda p: 0.00008 * noise.noise(Vector((p.x * 900, p.y * 900, p.z * 900))))
+    s = decimate(s, 3100)
     # the nails' heads in the hands and the feet
-    s = decimate(s, 2400)
     for sx in (-1, 1):
         s = s + cyl(0.0013, h=0.0010, seg=8, bevel_r=0.0003).rot(math.pi / 2, 0, 0).move(sx * 0.0535, 0.0575, z + 0.0012)
     s = s + cyl(0.0013, h=0.0010, seg=8, bevel_r=0.0003).rot(math.pi / 2, 0, 0).move(0.0, -0.0665, z + 0.0008)
@@ -556,7 +569,7 @@ def crucifix_title():
 
 
 auto('Real__crucifixCross', crucifix_cross, 900, smooth=30.0)
-auto('Real__crucifixCorpus', crucifix_corpus, 2800, smooth=55.0)
+auto("Real__crucifixCorpus", crucifix_corpus, 3600, smooth=60.0)
 auto('Real__crucifixTitle', crucifix_title, 120, smooth=50.0)
 
 
@@ -641,17 +654,14 @@ def roe_skull_h(buck):
          ('cap', (0, -0.040, 0.100), (0, -0.050, 0.128), 0.0090, 2.0),    # the premaxillae
          ('ell', (0, -0.058, 0.060), (0.021, 0.010, 0.044), 2.0)]         # the palate's sides
     for sx in (-1, 1):
-        # the orbit's rim: a ring of bone round the eye, facing out and forward
-        c = Vector((sx * 0.034, -0.034, 0.026))
-        u = Vector((0, 1, 0))
-        w = Vector((sx * 0.25, 0, 1)).normalized()
-        ring = [c + (u * math.cos(TAU * k / 8) + w * math.sin(TAU * k / 8)) * 0.0155 for k in range(8)]
-        for k in range(8):
-            e.append(('cap', tuple(ring[k]), tuple(ring[(k + 1) % 8]), 0.0040, 2.0))
+        # the orbit's rim: a thick bony boss round the eye, standing out
+        # from the frontal, the socket open to the side and a little forward
+        e += [('ell', (sx * 0.0330, -0.0320, 0.0250), (0.0110, 0.0125, 0.0150), 2.0),
+              ('cap', (sx * 0.0300, -0.0200, 0.0120), (sx * 0.0380, -0.0240, 0.0300), 0.0050, 2.0)]
         e += [('cap', (sx * 0.030, -0.048, 0.032), (sx * 0.034, -0.050, -0.008), 0.0042, 2.0),   # the zygomatic arch
               ('cap', (sx * 0.020, -0.042, 0.044), (sx * 0.024, -0.052, 0.098), 0.0090, 2.0),    # the maxilla's side
               ('cap', (sx * 0.006, -0.056, 0.112), (sx * 0.007, -0.056, 0.132), 0.0048, 2.0),    # the premaxilla's tip
-              ('-ell', (sx * 0.042, -0.034, 0.027), (0.010, 0.0125, 0.0125), 2.0),               # the orbit
+              ('-ell', (sx * 0.0465, -0.0340, 0.0280), (0.0090, 0.0115, 0.0120), 2.0),             # the orbit
               ('-ell', (sx * 0.020, -0.023, 0.055), (0.0055, 0.0060, 0.0085), 2.0),              # the ethmoid gap
               ('-ell', (sx * 0.031, -0.038, 0.052), (0.0050, 0.0055, 0.0070), 2.0)]              # the lachrymal pit
         if buck:
