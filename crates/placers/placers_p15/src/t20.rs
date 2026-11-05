@@ -2,9 +2,10 @@
 //! Blender batch `assets/src/blender/props/t20.py`, its notes
 //! `t20.notes.md`): the humidor with its cigars, and the hunter-case pocket
 //! watch on its chain. Each keeps the old placer's draws, call for call;
-//! the spilled cigars still rock where the old ones did, the watch keeps
-//! its place (`pocket_watch_positions_r755`, its ticking). The old watch
-//! cases glowed a little (an emissive): these are metal, lit by the room.
+//! the watch keeps its place (`pocket_watch_positions_r755`, its ticking).
+//! The old spilled cigars rocked by themselves, with nothing moving them:
+//! these lie still where they fell (their draws kept). The old watch cases
+//! glowed a little (an emissive): these are metal, lit by the room.
 use super::*;
 use game::visuals::pictures;
 use t20_kit::*;
@@ -26,8 +27,8 @@ const CG_R: f64 = 0.00825;
 // (mahogany, burr walnut, rosewood or ebonised: the old colour's draw),
 // lined with Spanish cedar or zinc (the old lining's draw), the lid open
 // on its brass hinges, a brass escutcheon and name plate; Coronas lying in
-// it and spilled on the floor, their bands printed, a few rocking where
-// they fell; now and then a steel cutter, a paper matchbook. The veneer's
+// it and spilled on the floor where they fell, their bands printed; now
+// and then a steel cutter, a paper matchbook. The veneer's
 // polish gone dull and crazed, the cedar pale, the cigars dried.
 pub(super) fn place_humidors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
@@ -50,7 +51,6 @@ pub(super) fn place_humidors(g: &mut Game, _dist: &[i32]) {
         at: (f64, f64),
         inside: bool,
         band: usize,
-        rock: Option<(f64, f64, f64)>,
     }
     let mut cigars: Vec<Cigar> = vec![];
     for i in 0..cigar_count {
@@ -61,16 +61,15 @@ pub(super) fn place_humidors(g: &mut Game, _dist: &[i32]) {
         let inside = i < 3;
         let at = (rnd(), rnd());
         let band = ri(4);
-        let rock = if !inside && rnd() < 0.5 {
-            let phase = rnd() * PI * 2.0;
-            let freq = 0.35 + rnd() * 0.4;
-            let amp = 0.05 + rnd() * 0.05;
-            Some((phase, freq, amp))
-        } else {
-            None
-        };
+        // keeps the old draws of a spilled cigar's rocking (50%: its phase,
+        // speed and swing): it lies still now
+        if !inside && rnd() < 0.5 {
+            let _ = rnd();
+            let _ = rnd();
+            let _ = rnd();
+        }
         // the old length's draw scales the whole cigar a little (0.92-1.06)
-        cigars.push(Cigar { leaf, scale: 0.92 + (len - 0.11) / 0.03 * 0.14, dry, yaw, at, inside, band, rock });
+        cigars.push(Cigar { leaf, scale: 0.92 + (len - 0.11) / 0.03 * 0.14, dry, yaw, at, inside, band });
     }
     let cutter = rnd() < 0.4;
     let matchbook = if rnd() < 0.3 { Some((rnd() - 0.5) * 0.5) } else { None };
@@ -102,7 +101,6 @@ pub(super) fn place_humidors(g: &mut Game, _dist: &[i32]) {
     // the cigars: three lying in it (each on the one under it where they
     // cross), the rest spilled on the floor beside it
     let mut laid: Vec<(f64, f64, f64, f64)> = vec![];
-    let mut rocking: Vec<(Obj, f64, f64, f64, f64)> = vec![];
     for c in &cigars {
         let half = CG_L * 0.5 * c.scale;
         let (ex, ez) = (c.yaw.cos().abs() * half + CG_R, c.yaw.sin().abs() * half + CG_R);
@@ -133,17 +131,6 @@ pub(super) fn place_humidors(g: &mut Game, _dist: &[i32]) {
         put(&body, "Real__humidorCigarBand", &lambert!({ map: &hu_band_tex(c.band) }));
         put(&body, "Real__humidorCigarFoot", &lambert!({ map: &hu_filler_tex() }));
         hm.add(&cg);
-        if let Some((phase, freq, amp)) = c.rock {
-            rocking.push((cg.clone(), c.yaw, phase, freq, amp));
-        }
-    }
-    // R747 cigar rocking animator: the spilled ones still rock where they fell
-    if !rocking.is_empty() {
-        g.animate(move |_g, _dt, t| {
-            for (cg, base, phase, freq, amp) in &rocking {
-                cg.rotation().y = base + (t * freq + phase).sin() * amp;
-            }
-        });
     }
     // a steel guillotine cutter beside it
     if cutter {

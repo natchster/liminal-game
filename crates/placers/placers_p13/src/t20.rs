@@ -5,7 +5,9 @@
 //! (CC0, Rijksmuseum, `visuals::pictures`' `map_world`), laid back onto the
 //! sphere from its projection, the polar insets of the sheet taken out and
 //! the polar caps a globe has added; varnished, gone amber, crazed, rubbed
-//! by hands. It keeps the old placer's draws, call for call.
+//! by hands. It keeps the old placer's draws, call for call. The old ball
+//! turned by itself, with nothing turning it: this one stands still where it
+//! was last turned (its spin's draw kept).
 use super::*;
 use game::visuals::pictures::{self, Age};
 use t20_kit::*;
@@ -33,8 +35,7 @@ const BL_INSETS: [(f64, f64, f64); 2] = [(88.8, 298.8, 37.5), (385.0, 299.5, 37.
 // joined by stretchers to a hub, the wooden horizon ring papered with its
 // calendar and zodiac, or a turned pedestal on a cross of four feet; the
 // brass meridian, the axis pins, the hour circle at the north pole. The
-// ball tilted in its meridian, stopped where it was last turned; now and
-// then (as the old one) still turning slowly.
+// ball tilted in its meridian, stopped where it was last turned.
 pub(super) fn place_floor_globes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -45,7 +46,7 @@ pub(super) fn place_floor_globes(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
     // the old draws, call for call: the wood, the stand, the land patches
-    // (their colour, place, size, turn and stretch), the spin, where it
+    // (their colour, place, size, turn and stretch), the old spin's, where it
     // stands and how it is turned
     let wood_colors = [0x604020, 0x8b5a2b, 0x2a1810, 0x8b6030, 0x505030];
     let wood = choice(&wood_colors);
@@ -65,7 +66,7 @@ pub(super) fn place_floor_globes(g: &mut Game, _dist: &[i32]) {
             stop = u * PI * 2.0;
         }
     }
-    let spinning = rnd() < 0.4;
+    let _ = rnd(); // keeps the old draw of its spin (40%): nothing turns it now
     let px = g.wx(x) + (rnd() - 0.5) * 1.2;
     let pz = g.wz(z) + (rnd() - 0.5) * 1.2;
     let turn = rnd() * PI * 2.0;
@@ -95,13 +96,6 @@ pub(super) fn place_floor_globes(g: &mut Game, _dist: &[i32]) {
     ball.rotation().y = stop;
     tilt.add(&ball);
     put(&ball, "Real__globeBall", &phong!({ map: &gl_map_tex(vary), specular: 0x1c1a16, shininess: 22 }));
-    // 40% chance (the old draw): still turning slowly about its axis
-    if spinning {
-        let b = ball.clone();
-        g.animate(move |_g, dt, _t| {
-            b.rotation().y += dt * 0.35;
-        });
-    }
     g.world.add(&fg);
 }
 

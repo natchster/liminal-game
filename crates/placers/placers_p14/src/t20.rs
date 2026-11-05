@@ -1,9 +1,10 @@
 //! Batch `t20`'s orrery, made real (`docs/PROPS.md` P3; the Blender batch
 //! `assets/src/blender/props/t20.py`, its notes `t20.notes.md`): a London
 //! planetary orrery of about 1820, left on the floor. It keeps the old
-//! placer's draws, call for call; its planets still go round when the old
-//! one's did. The old sun was a lamp (a glowing ball and a point light):
-//! this one is brass, as a real one is, and lights nothing.
+//! placer's draws, call for call. The old one's planets went round by
+//! themselves, with no hand on its crank: these stand still where they were
+//! left (the draw kept). The old sun was a lamp (a glowing ball and a point
+//! light): this one is brass, as a real one is, and lights nothing.
 use super::*;
 use t20_kit::*;
 
@@ -29,9 +30,9 @@ pub(super) fn place_orrery_models(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    // the old draws, call for call: whether its planets turn, where it
+    // the old draws, call for call: whether its planets turned, where it
     // stands and how it is turned
-    let turning = rnd() < 0.6;
+    let _ = rnd(); // keeps the old draw of its planets' turning (60%): they stand still now
     let px = g.wx(x) + (rnd() - 0.5) * 1.2;
     let pz = g.wz(z) + (rnd() - 0.5) * 1.2;
     let turn = rnd() * PI * 2.0;
@@ -47,8 +48,8 @@ pub(super) fn place_orrery_models(g: &mut Game, _dist: &[i32]) {
     put(&orr, "Real__orreryCrank", &brass);
     let ivory = lambert!({ color: 0xbfae8c });
     put(&orr, "Real__orreryCrankKnob", &ivory);
-    // the planets on their arms, each its own group turning about the pillar
-    let mut planet_groups: Vec<(Obj, f64)> = vec![];
+    // the planets on their arms, each its own group about the pillar, where
+    // the crank last left them
     for i in 0..5 {
         let pgrp = group();
         put(&pgrp, &format!("Real__orreryArm{i}"), &brass);
@@ -61,15 +62,6 @@ pub(super) fn place_orrery_models(g: &mut Game, _dist: &[i32]) {
         }
         pgrp.rotation().y = (i as f64 / 5.0) * PI * 2.0;
         orr.add(&pgrp);
-        planet_groups.push((pgrp, 0.15 - i as f64 * 0.020)); // inner planets faster
-    }
-    // 60% chance (the old draw): the planets going slowly round
-    if turning {
-        g.animate(move |_g, dt, _t| {
-            for (grp, speed) in &planet_groups {
-                grp.rotation().y += dt * speed;
-            }
-        });
     }
     g.world.add(&orr);
 }
