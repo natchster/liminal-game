@@ -12,6 +12,10 @@ pub use t08::{
     place_small_skeleton_hands,
 };
 
+// the crystal ball: batch `t18`'s (`halloween/t18.rs`)
+mod t18;
+pub use t18::place_small_crystal_balls;
+
 // R463 small spider: 5% chance per level. Dark body + 8 legs.
 // Halloween family.
 pub fn place_small_spiders(g: &mut Game, _dist: &[i32]) {
@@ -171,72 +175,6 @@ pub fn place_small_witch_hats(g: &mut Game, _dist: &[i32]) {
     hat.position().z = g.wz(z) + (rnd() - 0.5) * 2.0;
     hat.rotation().y = rnd() * PI * 2.0;
     g.world.add(&hat);
-}
-
-// R459 small crystal ball: 5% chance per level. Translucent
-// sphere on tripod stand. Fortune-teller family.
-pub fn place_small_crystal_balls(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick_tile(&open);
-    let ball_colors: [u32; 4] = [0xc0e0f0, 0xe0d0f0, 0xd8e8d8, 0xf0e0d0];
-    let ball_mat = basic_mat!({ color: pick_u32(&ball_colors), transparent: true, opacity: 0.45 });
-    let stand_mat = lambert!({ color: 0x201a10 });
-    let ball = group();
-    let b_radius = 0.045;
-    // Base plate.
-    let base = mesh(pg("SmallCrystalBalls__base", cyl_geo!(0.035, 0.045, 0.008, 12)), &stand_mat);
-    base.position().y = 0.004;
-    ball.add(&base);
-    // 3 support prongs.
-    for i in 0..3 {
-        let a = (i as f64 / 3.0) * PI * 2.0;
-        let prong = mesh(pg("SmallCrystalBalls__prong", cyl_geo!(0.003, 0.003, 0.018, 4)), &stand_mat);
-        prong.position().set(a.cos() * 0.020, 0.018, a.sin() * 0.020);
-        // Splay radially: tilt the top 0.4 rad toward local -X, then turn -X
-        // onto this prong's outward direction (the claw's hook, +X, curls in).
-        {
-            let mut r = prong.rotation();
-            r.set(0, PI - a, 0.4);
-            r.order = EulerOrder::YXZ;
-        }
-        ball.add(&prong);
-    }
-    // Sphere on top.
-    let sphere = mesh(sphere_geo!(b_radius, 16, 12), &ball_mat);
-    sphere.position().y = 0.008 + 0.018 + b_radius - 0.008;
-    ball.add(&sphere);
-    // Tiny inner sparkle sphere.
-    let spark = mesh(sphere_geo!(0.008, 6, 5), basic_mat!({ color: 0xffffff, transparent: true, opacity: 0.7 }));
-    let spark_base_y = 0.008 + 0.018 + b_radius - 0.008 + 0.010;
-    spark.position().set(-0.010, spark_base_y, -0.010);
-    ball.add(&spark);
-    // R485 subtle rotating inner mystical light + shimmer.
-    let inner_light = point_light!(0xa0b0e0, 0.25, 0.5, 2);
-    inner_light.position().y = 0.008 + 0.018 + b_radius - 0.008;
-    ball.add(&inner_light);
-    let shim_phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        let a = t * 0.6 + shim_phase;
-        let orb_r = 0.015;
-        {
-            let mut p = spark.position();
-            p.x = a.cos() * orb_r;
-            p.z = a.sin() * orb_r;
-            p.y = spark_base_y + (t * 1.2 + shim_phase).sin() * 0.006;
-        }
-        let pulse = 0.5 + (t * 1.7 + shim_phase).sin() * 0.5;
-        inner_light.set_intensity(0.15 + pulse * 0.15);
-        spark.scale().set_scalar(0.8 + pulse * 0.4);
-    });
-    ball.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    ball.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&ball);
 }
 
 // R459 small toy sword: 8% chance per level. Kid's foam/plastic

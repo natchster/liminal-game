@@ -592,6 +592,28 @@
         "crop": [0.035, 0.11, 0.965, 0.895],
         "pad": true,
         "cell": [796, 2640, 456, 296]
+      },
+      "tarot_death": {
+        "title": "File:RWS Tarot 13 Death.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/d/d7/RWS_Tarot_13_Death.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_13_Death.jpg",
+        "sha1": "a49bfe7b626af084f33a67dbb22c001718f80a80",
+        "maker": "Pamela Colman Smith, the Rider tarot (the \"Pam-A\" printing, William Rider & Son, London, 1910)",
+        "licence": "public domain (Commons: PD-old-auto-expired and PD-US-expired; the artist died in 1951)",
+        "what": "XIII, Death: a card of the Rider tarot, lithographed, scanned whole with its border and its corners (the tarot fan's face-up card, batch t18)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [1200, 1120, 186, 320]
+      },
+      "tarot_moon": {
+        "title": "File:RWS Tarot 18 Moon.jpg",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7f/RWS_Tarot_18_Moon.jpg",
+        "page": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_18_Moon.jpg",
+        "sha1": "e85cd51cdb95ef3b46284c0c317f72414b4ef30e",
+        "maker": "Pamela Colman Smith, the Rider tarot (the \"Pam-A\" printing, William Rider & Son, London, 1910)",
+        "licence": "public domain (Commons: PD-old-auto-expired and PD-US-expired; the artist died in 1951)",
+        "what": "XVIII, The Moon: a card of the Rider tarot, lithographed, scanned whole with its border and its corners (the tarot fan's face-up card, batch t18)",
+        "crop": [0.0, 0.0, 1.0, 1.0],
+        "cell": [1386, 1120, 186, 320]
       }
     }
   }
