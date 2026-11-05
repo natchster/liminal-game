@@ -1,0 +1,213 @@
+//! Batch `t19`'s wheel, made real (`docs/PROPS.md` P3; the Blender batch
+//! `assets/src/blender/props/t19.py`, its notes `t19.notes.md`): a small
+//! wooden wheel of the wheelwright's kind, 30 cm over its iron tyre (the
+//! old wheel's size: the wall's probes): an elm hub banded with iron, ten
+//! oak spokes, five ash felloes, the tyre shrunk on and bolted; hung on a
+//! wrought nail under its top felloe. The wood gone grey and checked, the
+//! cart's old paint left in the corners, the iron rusted. It keeps the old
+//! placer's draws, call for call, and hangs where the old one hung.
+use crate::{face_yaw, pick, wall_tiles};
+use game::prelude::*;
+
+/// Where the wheel's centre is in the mount (`t19.py`: the hub's back on
+/// the wall, 18 mm behind the spot), its height (the old wheel's)
+const WHEEL: [f64; 3] = [0.0, 1.75, 0.028];
+/// The first spoke's angle, the first felloe joint's (`WH_SPOKE0`, `WH_JOINT0`)
+const SPOKE0: f64 = PI / 2.0 + PI / 10.0;
+const JOINT0: f64 = SPOKE0 + PI / 10.0;
+/// The parts' half extents across the wheel's face (their textures are laid across them)
+const SPOKES: (f64, f64) = (0.1211, 0.1168);
+const FELLOES: f64 = 0.1450;
+const TYRE: f64 = 0.1500;
+const HUB: f64 = 0.0360;
+
+// R659 wagon wheel (wall): 3% chance per level. A 12 in wheel (a hand
+// cart's or a goat cart's) hung on a nail.
+pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.97 {
+        return;
+    } // 3% chance
+    let walls = wall_tiles(g);
+    if walls.is_empty() {
+        return;
+    }
+    let (x, z, dx, dz) = pick(&walls);
+    let (wx, wz) = (g.wx(x) + dx as f64 * (CELL * 0.5 - 0.018), g.wz(z) + dz as f64 * (CELL * 0.5 - 0.018));
+    let k = salt(wx, wz, 41);
+    // what is left of the cart's paint: none, a red, a green
+    let paint = match k % 3 {
+        0 => None,
+        1 => Some([0.38, 0.17, 0.12]),
+        _ => Some([0.20, 0.27, 0.18]),
+    };
+    let wheel = group();
+    let w = group();
+    w.position().set(WHEEL[0], WHEEL[1], WHEEL[2]);
+    put(&w, "Real__wagonWheelSpokes", &lambert!({ map: &spokes_tex(k, paint) }));
+    put(&w, "Real__wagonWheelFelloes", &lambert!({ map: &felloes_tex(k, paint) }));
+    put(&w, "Real__wagonWheelHub", &lambert!({ map: &hub_tex(k) }));
+    put(&w, "Real__wagonWheelTyre", &phong!({ map: &rust_tex(k, true), specular: 0x1a1816, shininess: 12 }));
+    put(&w, "Real__wagonWheelIron", &phong!({ map: &rust_tex(k ^ 0x55, false), specular: 0x1a1816, shininess: 12 }));
+    wheel.add(&w);
+    wheel.rotation().y = face_yaw(dx, dz);
+    wheel.position().set(wx, 0, wz);
+    g.world.add(&wheel);
+}
+
+/// Oak gone grey in the weather and then indoors: its grain along `along`
+/// (m) and across it, open checks along the grain, the old paint left in
+/// patches where it was sheltered (`shelter` 0..1)
+fn weathered(seed: u32, along: f64, across: f64, shelter: f64, paint: Option<[f64; 3]>) -> [f64; 3] {
+    let g = fbm(seed, along * 18.0, across * 900.0 + fbm(seed ^ 3, along * 6.0, across * 60.0, 2) * 5.0, 3);
+    let mut c = mix([0.42, 0.37, 0.30], [0.25, 0.20, 0.15], sstep(0.42, 0.72, g) * 0.8);
+    c = mix(c, [0.48, 0.45, 0.40], sstep(0.5, 0.8, fbm(seed ^ 5, along * 9.0, across * 40.0, 2)) * 0.3);
+    if let Some(p) = paint {
+        let keep = sstep(0.60, 0.66, fbm(seed ^ 7, along * 40.0, across * 120.0, 3) + 0.22 * shelter);
+        c = mix(c, p, keep * 0.75);
+    }
+    let check = (fbm(seed ^ 9, along * 4.0, across * 300.0, 2) - 0.5).abs();
+    c = mix(c, [0.08, 0.06, 0.05], (1.0 - sstep(0.0, 0.012, check)) * sstep(0.5, 0.7, vn(seed ^ 11, along * 10.0, across * 30.0)) * 0.8);
+    c
+}
+
+/// The spokes (u, v across the wheel's face): each spoke's grain along its
+/// own length; the paint kept near the hub and the felloe
+fn spokes_tex(salt: u32, paint: Option<[f64; 3]>) -> Tex {
+    canvas_tex_opt(192, 186, false, move |ctx, w, h| {
+        let seed = salt ^ 0x31;
+        fill(ctx, w, h, |u, v| {
+            let (x, y) = ((u * 2.0 - 1.0) * SPOKES.0, (v * 2.0 - 1.0) * SPOKES.1);
+            let r = (x * x + y * y).sqrt();
+            let step = PI / 5.0;
+            let a = (y.atan2(x) - SPOKE0).rem_euclid(step);
+            let k = ((y.atan2(x) - SPOKE0).rem_euclid(PI * 2.0) / step).round() as u32 % 10;
+            let off = if a > step / 2.0 { a - step } else { a };
+            let shelter = 1.0 - sstep(0.04, 0.07, r) + sstep(0.09, 0.115, r);
+            let c = weathered(seed ^ k.wrapping_mul(97), r, r * off.sin(), shelter, paint);
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// The felloes (u, v across the wheel's face): the grain round the rim, a
+/// dark joint between each two, the paint kept along the tyre's edge
+fn felloes_tex(salt: u32, paint: Option<[f64; 3]>) -> Tex {
+    canvas_tex_opt(208, 208, false, move |ctx, w, h| {
+        let seed = salt ^ 0x43;
+        fill(ctx, w, h, |u, v| {
+            let (x, y) = ((u * 2.0 - 1.0) * FELLOES, (v * 2.0 - 1.0) * FELLOES);
+            let r = (x * x + y * y).sqrt();
+            let th = y.atan2(x);
+            let rel = (th - JOINT0).rem_euclid(PI * 2.0 / 5.0);
+            let k = ((th - JOINT0).rem_euclid(PI * 2.0) / (PI * 2.0 / 5.0)).floor() as u32;
+            let shelter = sstep(0.136, 0.144, r);
+            let mut c = weathered(seed ^ k.wrapping_mul(131), rel * 0.13, r, shelter, paint);
+            let joint = (rel.min(PI * 2.0 / 5.0 - rel)) * r;
+            c = mix(c, [0.07, 0.05, 0.04], (1.0 - sstep(0.0004, 0.0016, joint)) * 0.8);
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// The hub's face: elm's end grain, its rings round the axle box, checks
+/// running out from it, grease gone black round the box
+fn hub_tex(salt: u32) -> Tex {
+    canvas_tex_opt(96, 96, false, move |ctx, w, h| {
+        let seed = salt ^ 0x57;
+        fill(ctx, w, h, |u, v| {
+            let (x, y) = ((u * 2.0 - 1.0) * HUB, (v * 2.0 - 1.0) * HUB);
+            let r = (x * x + y * y).sqrt();
+            let th = y.atan2(x);
+            let ring = ((r * 900.0 + fbm(seed, th * 3.0, r * 40.0, 2) * 4.0).sin() * 0.5 + 0.5).powf(3.0);
+            let mut c = mix([0.36, 0.30, 0.23], [0.20, 0.15, 0.11], ring * 0.6);
+            c = mix(c, [0.44, 0.40, 0.34], sstep(0.5, 0.8, fbm(seed ^ 3, x * 60.0, y * 60.0, 2)) * 0.3);
+            let check = (fbm(seed ^ 5, th * 6.0, r * 8.0, 2) - 0.5).abs();
+            c = mix(c, [0.06, 0.05, 0.04], (1.0 - sstep(0.0, 0.02, check)) * sstep(0.014, 0.020, r) * 0.8);
+            c = mix(c, [0.07, 0.06, 0.05], (1.0 - sstep(0.012, 0.019, r)) * 0.85);
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// Wrought iron rusted: dark scale with brown-orange rust in blooms, worn
+/// to the bare metal on the tyre's tread; `tyre`: laid across the tyre's
+/// face (its tread the outer ring)
+fn rust_tex(salt: u32, tyre: bool) -> Tex {
+    canvas_tex_opt(160, 160, false, move |ctx, w, h| {
+        let seed = salt ^ 0x69;
+        fill(ctx, w, h, |u, v| {
+            let mut c = [0.14, 0.12, 0.11];
+            let r1 = fbm(seed, u * 14.0, v * 14.0, 3);
+            c = mix(c, [0.32, 0.18, 0.09], sstep(0.45, 0.7, r1) * 0.85);
+            c = mix(c, [0.42, 0.24, 0.11], sstep(0.65, 0.8, fbm(seed ^ 3, u * 40.0, v * 40.0, 2)) * 0.5);
+            if tyre {
+                let (x, y) = ((u * 2.0 - 1.0) * TYRE, (v * 2.0 - 1.0) * TYRE);
+                let r = (x * x + y * y).sqrt();
+                c = mix(c, [0.24, 0.23, 0.22], sstep(0.1485, 0.1498, r) * 0.6);
+            }
+            c = mix(c, [0.46, 0.43, 0.38], sstep(0.75, 0.95, vn(seed ^ 5, u * 60.0, v * 60.0)) * 0.25);
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// Value noise, a pixel fill on every core (pure), a salt from where a
+/// thing is, a part placed (as batch `t19`'s other painters)
+fn hash(seed: u32, i: i32, j: i32) -> f64 {
+    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+    h ^= h >> 16;
+    f64::from(h) / 4_294_967_296.0
+}
+fn vn(seed: u32, x: f64, y: f64) -> f64 {
+    let (xf, yf) = (x.floor(), y.floor());
+    let (i, j) = (xf as i32, yf as i32);
+    let (u, v) = (x - xf, y - yf);
+    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+    let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+    let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
+    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+}
+fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
+    for k in 0..oct {
+        s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
+        n += amp;
+        amp *= 0.5;
+        f *= 2.03;
+    }
+    s / n
+}
+fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
+    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+    t * t * (3.0 - 2.0 * t)
+}
+fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
+    let t = t.clamp(0.0, 1.0);
+    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+}
+/// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v
+/// up, both 0..1, as the texture is laid) gives straight sRGB and alpha
+fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
+    let iw = w as usize;
+    let mut img = ctx.create_image_data(w, h);
+    par_rows(&mut img.data, iw * 4, |j, out| {
+        for i in 0..iw {
+            let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
+            for k in 0..4 {
+                out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
+            }
+        }
+    });
+    ctx.put_image_data(&img, 0, 0);
+}
+fn salt(x: f64, z: f64, k: u32) -> u32 {
+    ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ k.wrapping_mul(0x9e37_79b9)
+}
+fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+    let geo = game::assets::props::prop_part_as_modelled(name)?;
+    let m = mesh(geo, mat.clone());
+    grp.add(&m);
+    Some(m)
+}

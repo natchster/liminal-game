@@ -9,59 +9,9 @@ pub use t01::place_ancient_portraits;
 // `t09`'s (`mystic/t09.rs`)
 mod t09;
 pub use t09::{place_brass_candlesticks, place_crystal_skulls, place_skull_stacks, place_small_owls};
-
-// R492 reliquary box: 4% chance per level. Small ornate wooden
-// box with 4 gem accents + gold trim + optional gem glow.
-pub fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick_tile(&open);
-    let box_mat = lambert!({ color: 0x603820 });
-    let gold_mat = lambert!({ color: 0xd8b040 });
-    let gem_colors: [u32; 4] = [0xd82040, 0x2080d8, 0x30c060, 0xa020d0];
-    let relic = group();
-    // Body: rectangular chest.
-    let body = mesh(pg("ReliquaryBoxes__body", box_geo!(0.14, 0.06, 0.09)), &box_mat);
-    body.position().y = 0.030;
-    relic.add(&body);
-    // Gold trim strips (top edge + bottom edge).
-    for yy in [0.005, 0.055] {
-        let trim = mesh(pg("ReliquaryBoxes__trim", box_geo!(0.144, 0.006, 0.094)), &gold_mat);
-        trim.position().y = yy;
-        relic.add(&trim);
-    }
-    // 4 corner gems on lid.
-    for (gx, gz) in [(-1.0, -1.0), (-1.0, 1.0), (1.0, -1.0), (1.0, 1.0)] {
-        let gem_color = pick_u32(&gem_colors);
-        let gem_mat = basic_mat!({ color: gem_color, transparent: true, opacity: 0.9 });
-        let gem = mesh(sphere_geo!(0.006, 6, 5), &gem_mat);
-        gem.position().set(gx * 0.055, 0.061, gz * 0.030);
-        relic.add(&gem);
-    }
-    // Central medallion gem (larger).
-    let med_mat = basic_mat!({ color: pick_u32(&gem_colors), transparent: true, opacity: 0.9 });
-    let med = mesh(sphere_geo!(0.010, 8, 6), &med_mat);
-    med.position().set(0, 0.062, 0);
-    relic.add(&med);
-    // Faint glow from medallion.
-    let glow = point_light!(med_mat.color_v().get_hex(), 0.20, 0.5, 2);
-    glow.position().set(0, 0.062, 0);
-    relic.add(&glow);
-    // Slow pulse.
-    let pulse_phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        let p = (t * 0.8 + pulse_phase).sin() * 0.5 + 0.5;
-        glow.set_intensity(0.10 + p * 0.15);
-    });
-    relic.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    relic.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&relic);
-}
+// the reliquary and the crucifix: batch `t19`'s (`mystic/t19.rs`)
+mod t19;
+pub use t19::{place_reliquary_boxes, place_wall_crucifixes};
 
 // R491 stained glass window texture.
 game::lazy_static_tex!(
@@ -214,36 +164,6 @@ game::lazy_static_tex!(
         }
     })
 );
-
-// R490 wall crucifix: 5% chance per level. Simple wooden cross
-// on wall. Halloween/vintage family.
-pub fn place_wall_crucifixes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let candidates = wall_cands(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let cross_colors: [u32; 3] = [0x603820, 0x8a5030, 0x2a1810];
-    let cross_mat = lambert!({ color: pick_u32(&cross_colors) });
-    let cross = group();
-    let (v_len, h_len, t) = (0.28, 0.16, 0.020);
-    // Vertical bar.
-    let v_bar = mesh(pg("WallCrucifixes__upright", box_geo!(0.026, v_len, t)), &cross_mat);
-    v_bar.position().y = 0.0;
-    cross.add(&v_bar);
-    // Horizontal bar.
-    let h_bar = mesh(pg("WallCrucifixes__crossbar", box_geo!(h_len, 0.024, t)), &cross_mat);
-    h_bar.position().y = 0.050;
-    cross.add(&h_bar);
-    // Wall placement.
-    hang_on_wall(g, &cross, &c, 0.014, 1.70);
-    // Slight tilt.
-    cross.rotation().z = (rnd() - 0.5) * 0.08;
-    g.world.add(&cross);
-}
 
 // R466 small skull: 5% chance per level. Bone skull with 2 eye
 // sockets + nose gap + teeth. Halloween family.

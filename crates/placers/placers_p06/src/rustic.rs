@@ -923,46 +923,9 @@ fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)
     })
 }
 
-// R659 wagon wheel (wall): 3% chance per level. Round rim + spokes + hub,
-// hanging on wall.
-pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let wood_mat = lambert!({ color: 0x8b5a2b });
-    let iron_mat = lambert!({ color: 0x303030 });
-    let wheel = group();
-    let mount_y = 1.75;
-    // Outer iron rim.
-    let rim = mesh(pg("WagonWheels__rim", torus_geo!(0.14, 0.010, 5, 20)), &iron_mat);
-    rim.position().set(0, mount_y, 0.014);
-    wheel.add(&rim);
-    // Wooden outer band inside rim.
-    let band = mesh(pg("WagonWheels__band", torus_geo!(0.128, 0.014, 4, 20)), &wood_mat);
-    band.position().set(0, mount_y, 0.014);
-    wheel.add(&band);
-    // Central hub.
-    let hub = mesh(pg("WagonWheels__hub", cyl_geo!(0.025, 0.025, 0.030, 10)), &wood_mat);
-    hub.rotation().x = PI / 2.0;
-    hub.position().set(0, mount_y, 0.020);
-    wheel.add(&hub);
-    // 8 wooden spokes.
-    for i in 0..8 {
-        let a = (i as f64 / 8.0) * PI * 2.0;
-        let spoke = mesh(pg("WagonWheels__spoke", box_geo!(0.008, 0.115, 0.008)), &wood_mat);
-        spoke.rotation().z = a - PI / 2.0; // local +Y along the radius (cos a, sin a)
-        spoke.position().set(a.cos() * 0.068, mount_y + a.sin() * 0.068, 0.014);
-        wheel.add(&spoke);
-    }
-    wheel.rotation().y = face_yaw(dx, dz);
-    wheel.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.018), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.018));
-    g.world.add(&wheel);
-}
+// R659 wagon wheel: made real by batch `t19` (`rustic/t19.rs`)
+mod t19;
+pub use t19::place_wagon_wheels;
 
 // R660 framed vintage map (Blender batch `t02`).
 mod t02;
