@@ -12,19 +12,14 @@ its front (a face's), unless its section says otherwise.
 from propkit import *
 from propkit import _mesh_obj, _eval_to_shape, _drop
 import propkit
-import os
 import random
 import zlib
-from mathutils.bvhtree import BVHTree
 
 
 # ---------------------------------------------------------------- parts ---
 def auto(name, build, budget, smooth=35.0, kind='box'):
     """Register a part whose frame is its own bounds: the game places it as
     built, at a scale of one. Its randomness is seeded from its name."""
-    only = os.environ.get('T09_ONLY')
-    if only and not any(name.startswith(o) for o in only.split(',')):
-        return
     random.seed(zlib.crc32(name.encode()))
     shape = build()
     lo, hi = shape.bounds()
@@ -131,34 +126,9 @@ def smooth_shape(s, factor=0.5, iterations=4):
     return out
 
 
-def bvh_of(s):
-    return BVHTree.FromPolygons([p.copy() for p in s.v], [list(f) for f in s.f])
-
-
 def to_floor(s):
     lo, _ = s.bounds()
     return s.move(0, -lo.y, 0)
-
-
-def split_faces(s, keep):
-    """Two shapes: the faces for which keep(centre, normal) is true, and the
-    rest (each compacted)."""
-    a, b = [], []
-    for f in s.f:
-        p = [s.v[i] for i in f]
-        c = sum(p, Vector((0, 0, 0))) / len(p)
-        n = (p[1] - p[0]).cross(p[2] - p[0])
-        n = n.normalized() if n.length > 1e-12 else Vector((0, 1, 0))
-        (a if keep(c, n) else b).append(f)
-    return _compact(s, a), _compact(s, b)
-
-
-def _compact(s, faces):
-    used = sorted({i for f in faces for i in f})
-    m = {o: k for k, o in enumerate(used)}
-    return Shape([s.v[i].copy() for i in used], [tuple(m[i] for i in f) for f in faces])
-
-
 
 
 def remesh(s, voxel):
@@ -418,55 +388,6 @@ def _teeth(row, y0, down, front, back, missing=()):
 
 
 _SKULL = {}
-
-
-def _orbit_local(p, sx):
-    """`p` (mm) in the orbit cutter's own frame (its depth -z)"""
-    q = p - Vector((sx * 30, 16, 92))
-    q.rotate(Euler((math.radians(4), sx * math.radians(20), 0), 'XYZ').to_matrix().inverted())
-    q.rotate(Euler((0, 0, -sx * math.radians(12)), 'XYZ').to_matrix().inverted())
-    return q
-
-
-def _in_orbit(p, sx, grow=1.12):
-    q = _orbit_local(p, sx)
-    d = -q.z
-    prof = [(-30, 1.08), (0, 1.0), (12, 0.86), (26, 0.6), (40, 0.28), (48, 0.08)]
-    if d < -30 or d > 50:
-        return False, d
-    sc = prof[-1][1]
-    for (d0, s0), (d1, s1) in zip(prof, prof[1:]):
-        if d0 <= d <= d1:
-            sc = s0 + (s1 - s0) * (d - d0) / (d1 - d0)
-            break
-    sc = sc * grow + 1.5 / 19.5
-    k = (abs(q.x) / (19.5 * sc)) ** (4 / 3) + (abs(q.y) / (16.5 * sc)) ** (4 / 3)
-    return k <= 1.0, d
-
-
-def _in_nose(p, grow=1.15):
-    q = p - Vector((0, -11, 101))
-    d = -q.z
-    if d < -20 or d > 40:
-        return False, d
-    sc = (1.0 - 0.4 * max(0.0, d) / 34) * grow + 0.04
-    if abs(q.y) > 16.5 * sc:
-        return False, d
-    w = (12.5 - 7.5 * smoothstep(-16.5, 16.5, q.y / sc) ** 1.4) * sc
-    return abs(q.x) <= w, d
-
-
-def _hollow(c, n):
-    """A face of the cranium (mm, before it is turned) inside an orbit, the
-    nasal aperture or an ear's opening: where the antiquing wash lies"""
-    for sx in (1, -1):
-        inside, d = _in_orbit(c, sx, 1.1)
-        if inside and d > 4.0:
-            return True
-        if (c - Vector((sx * 64, -3, 2))).length < 7.0 and n.x * sx < 0.6:
-            return True
-    inside, d = _in_nose(c, 1.04)
-    return inside and d > 4.0
 
 
 def _orbit_rings(sx, d0=3.0, k=0.9):
@@ -834,7 +755,7 @@ def owl_wood():
     # the tail, a flat wedge of feathers down onto the rock
     tail = rbox(26, 30, 6, r=2.5, seg=2)
     tail.warp(lambda p: Vector((p.x * (1.0 - 0.006 * p.y), p.y, p.z)))
-    tail.rot(-0.95, 0, 0).move(0, 26, -36)
+    tail.rot(-0.38, 0, 0).move(0, 33, -31)
     # the beak: a hooked point down out of the disc
     beak = tube([(0, 103, 25), (0, 100.5, 32), (0, 96.5, 35.5), (0, 92.5, 35.0), (0, 90.5, 33.2)], 4.2, seg=10, smooth=2, r_end=0.7)
     beak.warp(lambda p: Vector((p.x * 0.8, p.y, p.z)))
@@ -849,9 +770,11 @@ def owl_wood():
             feet = feet + tube(pts, 2.6, seg=8, smooth=1, r_end=1.0)
         feet = feet + ellipsoid(8, 6, 8, seg=12).move(sx * 13, 28, 8)
     # the rock: a block carved rough, its faces chiselled flat
-    rock = rbox(96, 22, 74, r=6, seg=2).move(0, 11, -2)
+    rock = ellipsoid(46, 24, 36, seg=24).move(0, 0, -2) + ellipsoid(26, 20, 24, seg=16).move(-24, 0, 12) + \
+        ellipsoid(24, 18, 22, seg=16).move(27, 0, -14) + ellipsoid(20, 16, 18, seg=16).move(14, 0, 22)
     rock = remesh(rock, 2.0)
-    rock = noisy(rock, 3.4, scale=0.05, seed=3)
+    rock = noisy(rock, 4.0, scale=0.035, seed=3)
+    rock = noisy(rock, 1.2, scale=0.12, seed=5)
     rock.warp(lambda p: Vector((p.x, max(0.0, min(p.y, 21 + 2.5 * noise.noise(Vector((p.x * 0.05, 3.0, p.z * 0.05))))), p.z)))
     s = remesh(s + wings + tail + beak + feet + rock, 1.0)
     s = smooth_shape(s, 0.5, 2)

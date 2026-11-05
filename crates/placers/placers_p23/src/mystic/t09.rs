@@ -51,7 +51,7 @@ fn glass_mat(map: &Tex) -> Mat {
         let pu = m.r().patch_uniforms.clone();
         let f = &mut pu.borrow_mut().f;
         // the room in it, and nothing lit behind it
-        f[0] = 0.45;
+        f[0] = 0.55;
         // no mist
         f[4] = 0.5;
         f[5] = 0.6;
@@ -63,7 +63,7 @@ fn glass_mat(map: &Tex) -> Mat {
         f[10] = 0.19;
         f[11] = 0.17;
         // the cast's body: grey through 8 cm of glass full of seeds
-        f[12] = 0.22;
+        f[12] = 0.34;
         // a solid's two faces and its inside: brighter than a pane square on
         f[13] = 0.14;
     }
@@ -214,11 +214,7 @@ pub fn place_brass_candlesticks(g: &mut Game, _dist: &[i32]) {
     let k = if short { "B" } else { "A" };
     let salt = salt(px, pz, 3);
     let stick = group();
-    put(
-        &stick,
-        "Real__brassStickBody",
-        &phong!({ map: &tarnish_tex(salt), color: 0x8a6a34, specular: 0x6a5430, shininess: 30 }),
-    );
+    put(&stick, "Real__brassStickBody", &phong!({ map: &tarnish_tex(salt), color: 0x8a6a34, specular: 0x6a5430, shininess: 30 }));
     put(&stick, &format!("Real__brassStickCandle{k}"), &lambert!({ map: &wax_tex(salt) }));
     put(&stick, &format!("Real__brassStickWick{k}"), &lambert!({ color: 0x1c1915 }));
     if let Some((flicker_phase, flicker_rate)) = flicker {
@@ -226,11 +222,9 @@ pub fn place_brass_candlesticks(g: &mut Game, _dist: &[i32]) {
         // the flame scales from its root as it flickers
         let flame = group();
         flame.position().y = root;
-        if let Some(m) = put(
-            &flame,
-            &format!("Real__brassStickFlame{k}"),
-            &basic_mat!({ map: &flame_tex(), transparent: true, depthWrite: false }),
-        ) {
+        if let Some(m) =
+            put(&flame, &format!("Real__brassStickFlame{k}"), &basic_mat!({ map: &flame_tex(), transparent: true, depthWrite: false }))
+        {
             m.position().y = -root;
             m.set_render_order(3);
         }
@@ -341,7 +335,8 @@ pub fn place_skull_stacks(g: &mut Game, _dist: &[i32]) {
     let px = g.wx(x) + (rnd() - 0.5) * 2.0;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.0;
     let turn = rnd() * PI * 2.0;
-    let places: &[(f64, f64)] = if n_skulls == 2 { &[(0.0, 0.0), (0.0, STACK_ON_ONE)] } else { &[(-STACK_APART, 0.0), (STACK_APART, 0.0), (0.0, STACK_ON_TWO)] };
+    let places: &[(f64, f64)] =
+        if n_skulls == 2 { &[(0.0, 0.0), (0.0, STACK_ON_ONE)] } else { &[(-STACK_APART, 0.0), (STACK_APART, 0.0), (0.0, STACK_ON_TWO)] };
     let bone = lambert!({ map: &bone_tex(salt(px, pz, 4)) });
     let wash = lambert!({ color: 0x3e3226 });
     let teeth = lambert!({ color: 0xbfae88 });
