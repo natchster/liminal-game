@@ -2,72 +2,10 @@
 use crate::{pick_color, pick_open_tile, scatter_pos, scatter_xz, tri_geo};
 use game::prelude::*;
 
-// R458 small princess wand: 6% chance per level. Star top + wood
-// wand + trailing ribbons. Party-costume family.
-pub fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let star_colors = [0xd8b040, 0xf0d0d0, 0xd050a0, 0x2080d8];
-    let star_mat = basic_mat!({ color: pick_color(&star_colors), side: DoubleSide });
-    let stick_mat = lambert!({ color: 0xd8b040 });
-    let ribbon_colors = [0xd050a0, 0xd82040, 0xd8b040, 0xa020a0];
-    let wand = group();
-    // Wood stick.
-    let stick_len = 0.18;
-    let stick = mesh(pg("SmallPrincessWands__stick", cyl_geo!(0.004, 0.004, stick_len, 6)), &stick_mat);
-    stick.rotation().z = PI / 2.0;
-    stick.position().set(stick_len / 2.0, 0.008, 0);
-    wand.add(&stick);
-    // 5-point star at end.
-    let mut star_verts: Vec<f64> = vec![];
-    let outer_r = 0.028;
-    let inner_r = 0.012;
-    let n_pts = 5;
-    for i in 0..n_pts * 2 {
-        let r = if i % 2 == 0 { outer_r } else { inner_r };
-        let a = -PI / 2.0 + (i as f64 / (n_pts * 2) as f64) * PI * 2.0;
-        star_verts.push(stick_len + a.cos() * r);
-        star_verts.push(0.008 + a.sin() * r);
-        star_verts.push(0.0);
-    }
-    // Triangulate as fan from center.
-    let center_idx = (n_pts * 2) as u32;
-    star_verts.push(stick_len);
-    star_verts.push(0.008);
-    star_verts.push(0.0);
-    let mut indices: Vec<u32> = vec![];
-    for i in 0..(n_pts * 2) as u32 {
-        indices.push(center_idx);
-        indices.push(i);
-        indices.push((i + 1) % (n_pts * 2) as u32);
-    }
-    let star_geo = tri_geo(&star_verts, indices);
-    let star = mesh(star_geo, &star_mat);
-    // The star is built upright round (stick_len, 0.008), which put its lower
-    // points 2 cm under the floor; lay it flat with the wand, turned about its
-    // own centre on the stick's tip.
-    let star_pivot = group();
-    star_pivot.position().set(stick_len, 0.008, 0);
-    star_pivot.rotation().x = -PI / 2.0;
-    star.position().set(-stick_len, -0.008, 0);
-    star_pivot.add(&star);
-    wand.add(&star_pivot);
-    // 3 trailing ribbons from stick end.
-    for i in 0..3 {
-        let r_mat = lambert!({ color: pick_color(&ribbon_colors), side: DoubleSide });
-        let ribbon_len = 0.08 + rnd() * 0.06;
-        let ribbon = mesh(plane_geo!(0.012, ribbon_len), &r_mat);
-        ribbon.rotation().x = -PI / 2.0;
-        ribbon.rotation().z = -PI / 6.0 + (i as f64 / 2.0) * (PI / 3.0);
-        ribbon.position().set(-0.005 - (-PI / 6.0 + (i as f64 / 2.0) * (PI / 3.0)).cos() * ribbon_len / 2.0, 0.008, 0);
-        wand.add(&ribbon);
-    }
-    scatter_pos(g, &wand, x, z, 2.4);
-    wand.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&wand);
-}
+// the fairy wand, the toy microphone and the small tyrannosaurus: batch
+// `t15`'s (`toys/t15.rs`)
+mod t15;
+pub use t15::{place_small_princess_wands, place_small_toy_dinos, place_small_toy_microphones};
 
 // R457 small toy robot: 6% chance per level. Blocky humanoid
 // robot with head + body + limbs + antenna. Child-toy family.
@@ -131,94 +69,6 @@ pub fn place_small_toy_robots(g: &mut Game, _dist: &[i32]) {
         robot.position().y = 0.020;
     }
     g.world.add(&robot);
-}
-
-// R457 small toy microphone: 8% chance per level. Kid karaoke
-// microphone (bulb head + handle). Child-toy family.
-pub fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let handle_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030, 0xa020a0, 0x181008];
-    let handle_mat = lambert!({ color: pick_color(&handle_colors) });
-    let head_mat = lambert!({ color: 0x2a2418 });
-    let mic = group();
-    // Handle: cylinder.
-    let handle = mesh(pg("SmallToyMicrophones__handle", cyl_geo!(0.010, 0.012, 0.10, 8)), &handle_mat);
-    // One axis through the grille centre (-0.010, 0.020), sloping down 0.072 rad
-    // so the butt rests on the floor: collar at 1.6 cm along it, handle from
-    // 1.4 cm (inside the collar) to 11.4 cm.
-    let mic_tilt: f64 = 0.072;
-    handle.rotation().z = PI / 2.0 - mic_tilt;
-    handle.position().set(-0.010 + 0.064 * mic_tilt.cos(), 0.020 - 0.064 * mic_tilt.sin(), 0);
-    mic.add(&handle);
-    // Head: mesh bulb (dark sphere).
-    let head = mesh(pg("SmallToyMicrophones__grille", sphere_geo!(0.020, 12, 10)), &head_mat);
-    head.position().set(-0.010, 0.020, 0);
-    mic.add(&head);
-    // Ring between handle + head.
-    let ring = mesh(pg("SmallToyMicrophones__collar", cyl_geo!(0.014, 0.014, 0.004, 8)), &handle_mat);
-    ring.rotation().z = PI / 2.0 - mic_tilt;
-    ring.position().set(-0.010 + 0.016 * mic_tilt.cos(), 0.020 - 0.016 * mic_tilt.sin(), 0);
-    mic.add(&ring);
-    scatter_pos(g, &mic, x, z, 2.4);
-    mic.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&mic);
-}
-
-// R456 small toy dinosaur: 6% chance per level. Green T-Rex
-// silhouette (body + head + tail + legs). Child-toy family.
-pub fn place_small_toy_dinos(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let dino_colors = [0x408040, 0x306030, 0x504020, 0x805040, 0x2050d8];
-    let dino_mat = lambert!({ color: pick_color(&dino_colors) });
-    let eye_mat = lambert!({ color: 0x181008 });
-    let dino = group();
-    // Torso: elongated ellipsoid.
-    let torso = mesh(pg("SmallToyDinos__torso", sphere_geo!(0.028, 10, 8)), &dino_mat);
-    torso.scale().set(1.6, 1, 0.9);
-    torso.position().y = 0.040;
-    dino.add(&torso);
-    // Head: smaller sphere at front.
-    let head = mesh(pg("SmallToyDinos__head", sphere_geo!(0.020, 8, 6)), &dino_mat);
-    head.scale().set(1.5, 1, 1);
-    head.position().set(0.048, 0.060, 0);
-    dino.add(&head);
-    // Snout: box extending forward.
-    let snout = mesh(pg("SmallToyDinos__snout", box_geo!(0.020, 0.014, 0.014)), &dino_mat);
-    snout.position().set(0.076, 0.058, 0); // muzzle out past the head front (x 0.078), back half in it
-    dino.add(&snout);
-    // 2 tiny arms (short cylinders).
-    for s in [-1.0, 1.0] {
-        let arm = mesh(pg("SmallToyDinos__arm", cyl_geo!(0.004, 0.004, 0.012, 5)), &dino_mat);
-        arm.position().set(0.030, 0.048, s * 0.020);
-        arm.rotation().z = -PI / 6.0;
-        dino.add(&arm);
-    }
-    // 2 big legs.
-    for s in [-1.0, 1.0] {
-        let leg = mesh(pg("SmallToyDinos__leg", box_geo!(0.014, 0.030, 0.014)), &dino_mat);
-        leg.position().set(0.005, 0.020, s * 0.014);
-        dino.add(&leg);
-    }
-    // Tail: elongated cone extending back.
-    let tail = mesh(pg("SmallToyDinos__tail", cone_geo!(0.014, 0.06, 6)), &dino_mat);
-    tail.rotation().z = PI / 2.0;
-    tail.position().set(-0.060, 0.040, 0);
-    dino.add(&tail);
-    // 2 eyes.
-    for s in [-1.0, 1.0] {
-        let eye = mesh(pg("SmallPiggyBanks__eye", sphere_geo!(0.003, 5, 4)), &eye_mat);
-        eye.position().set(0.053, 0.070, s * 0.014);
-        dino.add(&eye);
-    }
-    scatter_pos(g, &dino, x, z, 2.4);
-    dino.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&dino);
 }
 
 // R456 small toy phone: 8% chance per level. Toy phone base +

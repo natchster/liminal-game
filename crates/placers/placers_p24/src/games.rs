@@ -2,6 +2,10 @@
 use crate::{pick_color, pick_open_tile, scatter_pos, scatter_xz};
 use game::prelude::*;
 
+// the spinning top: batch `t15`'s (`games/t15.rs`)
+mod t15;
+pub use t15::place_small_spinning_tops;
+
 // R451 small skateboard: 8% chance per level. Deck + 4 wheels
 // + 2 trucks. Playground family.
 pub fn place_small_skateboards(g: &mut Game, _dist: &[i32]) {
@@ -99,57 +103,6 @@ pub fn place_small_chalk_sticks(g: &mut Game, _dist: &[i32]) {
     scatter_pos(g, &grp, x, z, 2.4);
     grp.rotation().y = rnd() * PI * 2.0;
     g.world.add(&grp);
-}
-
-// R449 small spinning top: 5% chance per level. Wooden top
-// with rainbow segments + spin animator. Games/toy family.
-pub fn place_small_spinning_tops(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
-    let rainbow = [0xd82030, 0xe07020, 0xd8b820, 0x30a030, 0x2080c8, 0x4030c0];
-    let cap_mat = lambert!({ color: pick_color(&rainbow) });
-    let stem_mat = lambert!({ color: 0x201a10 });
-    let is_spinning = rnd() < 0.60;
-    let top = group();
-    // Body: cone hat (colored).
-    let cap = mesh(pg("SmallSpinningTops__body", cone_geo!(0.028, 0.036, 12)), &cap_mat);
-    cap.position().y = 0.028;
-    cap.rotation().x = PI;
-    top.add(&cap);
-    // Alternating color wedge overlay (6 pie slices).
-    for i in 0..6 {
-        let wedge_mat = lambert!({ color: rainbow[i], side: DoubleSide });
-        let wedge_geo = circle_geo!(0.026, 5, (i as f64 / 6.0) * PI * 2.0, PI * 2.0 / 6.0);
-        let wedge = mesh(wedge_geo, &wedge_mat);
-        wedge.rotation().x = -PI / 2.0;
-        wedge.position().y = 0.046;
-        top.add(&wedge);
-    }
-    // Stem: thin cylinder rising from cap top.
-    let stem = mesh(pg("SmallSpinningTops__stem", cyl_geo!(0.003, 0.003, 0.016, 5)), &stem_mat);
-    stem.position().y = 0.0545; // foot reaches the sunk top face (y 0.0452) through the wedges
-    top.add(&stem);
-    // Tip: small cone at bottom.
-    let tip = mesh(pg("SmallSpinningTops__tip", cone_geo!(0.003, 0.008, 5)), &stem_mat);
-    tip.position().y = 0.006;
-    tip.rotation().x = PI;
-    top.add(&tip);
-    if is_spinning {
-        // Spin animator (2-5 rev/sec).
-        let spin_rate = 12.0 + rnd() * 20.0;
-        let t2 = top.clone();
-        g.animate(move |_g, _dt, t| {
-            t2.rotation().y = t * spin_rate;
-        });
-    } else {
-        // Tipped on side.
-        top.rotation().z = PI / 2.0;
-        top.position().y = 0.020;
-    }
-    scatter_xz(g, &top, x, z, 2.4);
-    g.world.add(&top);
 }
 
 // R449 hopscotch chalk decal: 4% chance per level. Canvas

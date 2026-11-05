@@ -10,6 +10,8 @@ mod t01;
 use t01::{place_abstract_landscapes, place_still_lifes};
 mod t06;
 use t06::place_herb_bundles;
+mod t15;
+use t15::place_teething_rings;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -1334,40 +1336,6 @@ fn place_pencil_eyeliners(g: &mut Game, _dist: &[i32]) {
     pen.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     pen.rotation().y = rnd() * PI * 2.0;
     g.world.add(&pen);
-}
-
-// R676 teething ring: 8% chance per level. Colored ring w/ handle.
-fn place_teething_rings(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let ring_colors: [u32; 5] = [0xf0c0c0, 0xc0c0f0, 0xa0e0c0, 0xf0e0a0, 0xd0a0e0];
-    let ring_mat = lambert!({ color: pick(&ring_colors) });
-    let ring = group();
-    let lp = mesh(pg("TeethingRings__loop", torus_geo!(0.022, 0.005, 5, 14)), &ring_mat);
-    lp.rotation().x = PI / 2.0;
-    lp.position().y = 0.005;
-    ring.add(&lp);
-    let handle = mesh(pg("TeethingRings__handle", cyl_geo!(0.004, 0.004, 0.028, 5)), &ring_mat);
-    handle.rotation().z = PI / 2.0;
-    handle.position().set(0.034, 0.005, 0);
-    ring.add(&handle);
-    ring.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    ring.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&ring);
-    // R678 subtle wobble: gentle Y-tilt as if barely settled.
-    let wobble_phase = rnd() * PI * 2.0;
-    let base_rot_y = ring.rot().y;
-    let ring2 = ring.clone();
-    g.animate(move |_g, _dt, t| {
-        ring2.rotation().z = (t * 1.3 + wobble_phase).sin() * 0.04;
-        ring2.rotation().y = base_rot_y + (t * 0.9 + wobble_phase).sin() * 0.03;
-    });
 }
 
 // R677 kitchen wall clock: 4% chance per level. Round face
