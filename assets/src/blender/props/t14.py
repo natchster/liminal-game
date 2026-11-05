@@ -1139,3 +1139,325 @@ auto('Real__elephantEarL', lambda: el_ear(1), 460, smooth=60)
 auto('Real__elephantEarR', lambda: el_ear(-1), 460, smooth=60)
 auto('Real__elephantEyes', el_eyes, 240, smooth=60)
 auto('Real__elephantTag', el_tag, 100, smooth=40)
+
+
+# ======================================================== the small doll ===
+# An 8 in (20 cm) toddler doll of the 1950s-60s, the small "walker" kind
+# (Vogue's Ginny and its many imitators): hard plastic, jointed at the
+# neck, shoulders and hips; sleep eyes with painted lashes under them; a
+# synthetic wig glued on, cut in a bob with a fringe; a cotton dress with
+# puffed sleeves and a gathered skirt, white socks, oilcloth shoes. Its
+# head is batch r03's baby's sculpt (the same mould, a smaller size; its
+# mouth closed), its body a toddler's. Found as it was dropped: on its
+# back (A), or on its front with its head turned onto its cheek (B).
+#
+# Built standing (x across, y up from its soles, z out of its front), then
+# posed at its joints and laid on the floor. The head's parts are in r03's
+# head frame scaled by SD_K (origin under the neck): the game places them
+# by SD_HEAD[pose] (a position and an XYZ euler), which this file prints.
+SD_K = 0.47
+SD_NECK = Vector((0.0, 0.1365, -0.002))
+SD_SHOULDER = [Vector((sx * 0.0185, 0.1240, 0.0)) for sx in (-1, 1)]
+SD_HIP = [Vector((sx * 0.0095, 0.0860, 0.0)) for sx in (-1, 1)]
+# each pose: the root's turn about x, the arms' and legs' swing at their
+# joints (about x: + takes a limb back), the head's turn on its neck
+SD_POSES = {
+    'A': dict(root=-math.pi / 2, arms=(-0.12, 2.94), legs=(0.0, -0.08), neck=0.35, lids=(0.0, 0.10)),
+    'B': dict(root=math.pi / 2, arms=(-0.05, 3.30), legs=(0.0, 0.0), neck=-1.35, lids=(0.55, 0.40)),
+}
+_sd = {}
+
+
+def sd_torso():
+    el = [('ell', (0, 0.1215, 0.0), (0.0165, 0.0120, 0.0115)),
+          ('ell', (0, 0.1040, 0.002), (0.0175, 0.0160, 0.0140)),         # the toddler's belly
+          ('ell', (0, 0.0890, -0.001), (0.0185, 0.0110, 0.0125)),
+          ('cap', (0, 0.1300, -0.001), (0, 0.1390, -0.002), 0.0058, 2.0)]   # the neck, into the head
+    return meta(el, res=0.0008)
+
+
+def sd_arm(i):
+    sx = -1 if i == 0 else 1
+    S = SD_SHOULDER[i]
+    E = S + Vector((sx * 0.003, -0.024, 0.003))
+    W = E + Vector((0.0, -0.020, 0.005))
+    el = [('ball', tuple(S), 0.0068, 2.0), ('cap', tuple(S), tuple(E), 0.0060, 2.0), ('cap', tuple(E), tuple(W), 0.0054, 2.0),
+          ('ell', tuple(W + Vector((-sx * 0.0005, -0.0075, 0.002))), (0.0034, 0.0082, 0.0058), 2.0, (0.15, 0, 0)),   # the hand
+          ('ball', tuple(W + Vector((-sx * 0.0035, -0.0040, 0.0055))), 0.0022, 2.0)]                                   # the thumb
+    return meta(el, res=0.0006)
+
+
+def sd_leg(i):
+    sx = -1 if i == 0 else 1
+    H = SD_HIP[i]
+    K_ = Vector((sx * 0.0100, 0.0500, 0.001))
+    A = Vector((sx * 0.0100, 0.0120, 0.0))
+    el = [('ball', (sx * 0.0095, 0.0830, 0.001), 0.0102, 2.0), ('cap', tuple(H), tuple(K_), 0.0092, 2.0),
+          ('cap', tuple(K_), tuple(A), 0.0076, 2.0), ('ball', (sx * 0.0100, 0.0320, -0.0015), 0.0083, 1.6),
+          ('ball', tuple(K_ + Vector((0, 0.002, 0.003))), 0.0080, 1.6)]
+    return meta(el, res=0.0007)
+
+
+def sd_sock(i):
+    """An ankle sock, its cuff turned down."""
+    sx = -1 if i == 0 else 1
+    s = lathe([(0.0080, 0.004), (0.0083, 0.012), (0.0082, 0.018), (0.0089, 0.019), (0.0090, 0.024),
+               (0.0080, 0.0245)], seg=16, cap_bottom=False, cap_top=False)
+    return s.move(sx * 0.0100, 0.0, 0.0)
+
+
+def sd_shoe(i):
+    """A one-strap shoe of oilcloth: its sole, toe, the strap over the
+    instep, a button."""
+    sx = -1 if i == 0 else 1
+    el = [('ell', (sx * 0.0100, 0.0068, 0.0060), (0.0074, 0.0068, 0.0138)),
+          ('ell', (sx * 0.0100, 0.0050, 0.0140), (0.0068, 0.0050, 0.0068), 1.8)]
+    s = meta(el, res=0.0006)
+    s = s.warp(lambda p: Vector((p.x, max(p.y, 0.0012) if p.y < 0.002 else p.y, p.z)))
+    strap = torus(0.0088, 0.0009, seg=16, tseg=4).rot(0, math.pi / 2, 0).rot(0.35, 0, 0).move(sx * 0.0100, 0.0095, 0.0045)
+    return s + strap
+
+
+def sd_head_raw():
+    """r03's head sculpt, its eyes' openings cut, its mouth closed (no bottle
+    hole): the head frame (r03's size; scaled after)."""
+    s = R03['_sphere_grid'](56, 36, R03['head_point'])
+    for i in range(2):
+        sx = -1 if i == 0 else 1
+        c = R03['eye_centre'](i)
+        pts = [(x, y + sx * x * 0.10) for x, y in R03['_almond']()]
+        cutter = prism(pts, 0.05).move(c.x, c.y, c.z + 0.026)
+        s = boolean(s, cutter, 'DIFFERENCE')
+    return s
+
+
+def sd_head_mesh():
+    if 'head' not in _sd:
+        h = decimate(sd_head_raw(), 760)
+        _sd['head'] = h
+    return _sd['head']
+
+
+def sd_head_half(face):
+    s = sd_head_mesh()
+    keep = [f for f in s.f if R03['_face_side'](s, f) == face]
+    used = sorted({i for f in keep for i in f})
+    remap = {i: k for k, i in enumerate(used)}
+    return Shape([s.v[i] * SD_K for i in used], [tuple(remap[i] for i in f) for f in keep])
+
+
+def _hairline(az):
+    """Where the wig ends round the head (az 0: the face): a fringe straight
+    across the brow, over the ears, the bob to the jaw at the sides and
+    back (elevations, radians)."""
+    k = min(1.0, abs(az) / 1.05)
+    return math.radians(24) * (1 - k) + math.radians(-36) * k
+
+
+def sd_wig_raw():
+    """The wig: a bob of synthetic hair glued over the scalp, its fringe
+    cut straight, hanging to the jaw at the sides and the nape, thick at its
+    ends (r03's head frame, r03's size)."""
+    na, nt = 48, 14
+    rows = []
+    for k in range(na):
+        az = -math.pi + TAU * k / na
+        e_end = _hairline(az)
+        col = []
+        for j in range(nt + 1):
+            t = j / nt
+            el = math.pi / 2 + (e_end - math.pi / 2) * t
+            if el >= 0:
+                d = R03['_dir'](az, el)
+                off = 0.0035 + 0.0045 * t
+                p = R03['head_point'](d, off)
+            else:
+                # below the head's widest it hangs: straight down, flaring a little
+                d0 = R03['_dir'](az, 0.0)
+                p0 = R03['head_point'](d0, 0.0080)
+                drop = (0 - el) / (math.pi / 2) * 0.090
+                p = p0 + Vector((d0.x, 0, d0.z)) * (drop * 0.12) + Vector((0, -drop, 0))
+            # combed waves, cut ends uneven
+            p = p + (p - R03['HC']).normalized() * 0.0008 * t * math.sin(az * 18 + t * 5)
+            col.append(p)
+        rows.append(col)
+    v = [R03['head_point'](Vector((0, 1, 0)), 0.0036)]
+    for col in rows:
+        v += col[1:]
+    f = []
+    n = nt
+    for k in range(na):
+        k2 = (k + 1) % na
+        f.append((0, 1 + k2 * n, 1 + k * n))
+        for j in range(n - 1):
+            a0, b0 = 1 + k * n + j, 1 + k2 * n + j
+            f.append((a0, b0, b0 + 1, a0 + 1))
+    return R03['_fix_winding_out'](Shape(v, f), R03['HC'])
+
+
+def sd_wig():
+    w = decimate(sd_wig_raw(), 900)
+    return w.scale(SD_K)
+
+
+# ---------------------------------------------------- posing the doll ---
+def _sd_mats(pose, tilt):
+    P = SD_POSES[pose]
+    root = Matrix.Rotation(P['root'] + tilt, 4, 'X')
+    arms = [root @ Matrix.Translation(S) @ Matrix.Rotation(a, 4, 'X') @ Matrix.Translation(-S) for S, a in zip(SD_SHOULDER, P['arms'])]
+    legs = [root @ Matrix.Translation(H) @ Matrix.Rotation(a, 4, 'X') @ Matrix.Translation(-H) for H, a in zip(SD_HIP, P['legs'])]
+    head = root @ Matrix.Translation(SD_NECK) @ Matrix.Rotation(P['neck'], 4, 'Y')
+    return root, arms, legs, head
+
+
+def _sd_pieces():
+    if 'pieces' not in _sd:
+        _sd['pieces'] = dict(
+            torso=decimate(sd_torso(), 360),
+            arms=[decimate(sd_arm(i), 200) for i in range(2)],
+            legs=[decimate(sd_leg(i), 220) for i in range(2)],
+            socks=[sd_sock(i) for i in range(2)],
+            shoes=[decimate(sd_shoe(i), 200) for i in range(2)],
+            head=sd_head_half(False) + sd_head_half(True),
+            wig=sd_wig())
+    return _sd['pieces']
+
+
+def _apply(s, m):
+    return s.copy().apply(m)
+
+
+def sd_pose(pose):
+    """The pose laid on the floor: the root turned (and tilted so the doll
+    rests on what touches), lifted onto the floor, centred: the matrices."""
+    if pose in _sd:
+        return _sd[pose]
+    pc = _sd_pieces()
+
+    def lowest(tilt, region):
+        root, arms, legs, head = _sd_mats(pose, tilt)
+        ys = []
+        if region == 'head':
+            for s in (pc['head'], pc['wig']):
+                ys += [(head @ p).y for p in s.v]
+        else:
+            for i in range(2):
+                ys += [(legs[i] @ p).y for p in pc['shoes'][i].v]
+        return min(ys)
+    # tilt about x until the head and the feet rest at the same height
+    lo, hi = -0.35, 0.35
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        d = lowest(mid, 'head') - lowest(mid, 'feet')
+        dl = lowest(lo, 'head') - lowest(lo, 'feet')
+        if (d > 0) == (dl > 0):
+            lo = mid
+        else:
+            hi = mid
+    tilt = (lo + hi) / 2
+    root, arms, legs, head = _sd_mats(pose, tilt)
+    allv = [root @ p for p in pc['torso'].v]
+    for i in range(2):
+        allv += [arms[i] @ p for p in pc['arms'][i].v] + [legs[i] @ p for p in pc['legs'][i].v + pc['shoes'][i].v]
+    allv += [head @ p for p in pc['head'].v + pc['wig'].v]
+    ymin = min(p.y for p in allv)
+    cx = (min(p.x for p in allv) + max(p.x for p in allv)) / 2
+    cz = (min(p.z for p in allv) + max(p.z for p in allv)) / 2
+    lift = Matrix.Translation(Vector((-cx, -ymin + 0.0004, -cz)))
+    out = dict(root=lift @ root, arms=[lift @ a for a in arms], legs=[lift @ l for l in legs], head=lift @ head)
+    hp = out['head'].to_translation()
+    he = out['head'].to_euler('ZYX')       # three.js's XYZ order
+    print(f"SMALLDOLL {pose} head pos ({hp.x:.5f}, {hp.y:.5f}, {hp.z:.5f}) rot ({he.x:.5f}, {he.y:.5f}, {he.z:.5f})")
+    _sd[pose] = out
+    return out
+
+
+def _floor(s):
+    return s.warp(lambda p: Vector((p.x, max(p.y, 0.0004), p.z)))
+
+
+def sd_body(pose):
+    m = sd_pose(pose)
+    pc = _sd_pieces()
+    s = _apply(pc['torso'], m['root'])
+    for i in range(2):
+        s = s + _apply(pc['arms'][i], m['arms'][i]) + _apply(pc['legs'][i], m['legs'][i])
+    return _floor(s)
+
+
+def sd_socks(pose):
+    m = sd_pose(pose)
+    pc = _sd_pieces()
+    return _floor(sum((_apply(pc['socks'][i], m['legs'][i]) for i in range(2)), Shape()))
+
+
+def sd_shoes(pose):
+    m = sd_pose(pose)
+    pc = _sd_pieces()
+    return _floor(sum((_apply(pc['shoes'][i], m['legs'][i]) for i in range(2)), Shape()))
+
+
+def sd_dress(pose):
+    """The dress, as it lies with the doll: a bodice and puffed sleeves on
+    the posed torso and arms, the skirt gathered at the waist and fallen to
+    the floor round the hips and thighs, in soft folds (metaballs)."""
+    m = sd_pose(pose)
+    root = m['root']
+    el = []
+
+    def ell_at(mat, c, half, stiff=2.0):
+        q = mat @ Vector(c)
+        e = mat.to_3x3().to_euler('XYZ')
+        el.append(('ell', tuple(q), half, stiff, (e.x, e.y, e.z)))
+    ell_at(root, (0, 0.1190, 0.0003), (0.0182, 0.0150, 0.0130))
+    ell_at(root, (0, 0.1060, 0.0020), (0.0188, 0.0080, 0.0150), 1.8)
+    for i in range(2):
+        sx = -1 if i == 0 else 1
+        ell_at(m['arms'][i], (sx * 0.0200, 0.1195, 0.0005), (0.0085, 0.0090, 0.0088), 1.8)
+    # the skirt: from the waist over the hips and down the thighs ...
+    w = root @ Vector((0, 0.104, 0.001))
+    hem = root @ Vector((0, 0.061, 0.001))
+    el.append(('cap', tuple(w), tuple(w.lerp(hem, 0.55)), 0.0215, 2.0))
+    el.append(('cap', tuple(w.lerp(hem, 0.55)), tuple(hem), 0.0240, 2.0))      # full at its hem
+    # ... its sides fallen out onto the floor either side of the hips and
+    # thighs, in folds
+    axis = (hem - w).normalized()
+    side = Vector((axis.z, 0.0, -axis.x)).normalized()
+    yaw = math.atan2(axis.x, axis.z)
+    rng = random.Random(4561 + ord(pose))
+    for sgn in (-1, 1):
+        for k in range(3):
+            t = 0.15 + 0.35 * k
+            c = w.lerp(hem, t) + side * sgn * rng.uniform(0.019, 0.022)
+            c.y = rng.uniform(0.0035, 0.005)
+            el.append(("ell", tuple(c), (0.0095, 0.0032, 0.012), 1.6, (0, yaw + rng.uniform(-0.3, 0.3), 0)))
+    s = meta(el, res=0.0008)
+    # the cotton's folds and gathers
+    def fold(p):
+        q = Vector((p.x * 160, p.y * 90, p.z * 160))
+        return p + Vector((0, 0.0008 * noise.noise(q), 0)) + Vector((0.0006 * noise.noise(q * 1.7), 0, 0.0006 * noise.noise(q * 1.9 + Vector((3, 1, 7)))))
+    s = s.warp(fold)
+    s = decimate(s, 1000)
+    return flatten_below(s, 0.0008, 0.0)
+
+
+def sd_lids(pose):
+    return r03_lids(SD_POSES[pose]['lids']).scale(SD_K)
+
+
+def sd_lashes(pose):
+    return r03_lashes(SD_POSES[pose]['lids']).scale(SD_K)
+
+
+for _p in ('A', 'B'):
+    auto(f'Real__smallDoll{_p}Body', lambda p=_p: sd_body(p), 1300, smooth=70)
+    auto(f'Real__smallDoll{_p}Dress', lambda p=_p: sd_dress(p), 1100, smooth=70)
+    auto(f'Real__smallDoll{_p}Socks', lambda p=_p: sd_socks(p), 340, smooth=60)
+    auto(f'Real__smallDoll{_p}Shoes', lambda p=_p: sd_shoes(p), 560, smooth=50)
+    auto(f'Real__smallDoll{_p}Lids', lambda p=_p: sd_lids(p), 280, smooth=70)
+    auto(f'Real__smallDoll{_p}Lashes', lambda p=_p: sd_lashes(p), 100)
+auto('Real__smallDollHead', lambda: sd_head_half(False), 560, smooth=70)
+auto('Real__smallDollFace', lambda: sd_head_half(True), 560, kind='plane', smooth=70)
+auto('Real__smallDollEyeR', lambda: R03['doll_eye'](0).scale(SD_K), 280, kind='sphere', smooth=80)
+auto('Real__smallDollEyeL', lambda: R03['doll_eye'](1).scale(SD_K), 280, kind='sphere', smooth=80)
+auto('Real__smallDollWig', sd_wig, 1000, smooth=50)
