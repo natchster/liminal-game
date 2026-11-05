@@ -44,12 +44,15 @@ import propkit
 import random
 
 
-def auto(name, build, budget):
+def auto(name, build, budget, kind='box'):
     """Register a part whose frame is its own bounds: the game places it as
-    built, at a scale of one."""
+    built, at a scale of one. A painted panel in its frame is `plane`: its
+    picture laid on from the front, so its edges and sides take the
+    picture's edge (with `box` its sides would show the whole picture
+    squeezed across its depth)."""
     shape = build()
     lo, hi = shape.bounds()
-    part(name, f_bounds(tuple(lo), tuple(hi), 'box'), lambda: shape, budget=budget)
+    part(name, f_bounds(tuple(lo), tuple(hi), kind), lambda: shape, budget=budget)
 
 
 # ------------------------------------------------------------------ kit ---
@@ -491,6 +494,6 @@ auto('Real__warPosterFrame', poster_frame, 200)
 auto('Real__warPosterGlass', poster_glass, 60)
 auto('Real__warPosterPaper', poster_paper, 700)
 auto('Real__warPosterBack', poster_back, 60)
-auto('Real__triptychCentre', triptych_centre, 300)
-auto('Real__triptychWing', triptych_wing, 300)
+auto('Real__triptychCentre', triptych_centre, 300, 'plane')
+auto('Real__triptychWing', triptych_wing, 300, 'plane')
 auto('Real__triptychHinge', triptych_hinge, 400)
