@@ -128,7 +128,7 @@ fn clear_glass_mat(map: &Tex) -> Mat {
         let pu = m.r().patch_uniforms.clone();
         let f = &mut pu.borrow_mut().f;
         // the room in it, and nothing lit behind it
-        f[0] = 0.30;
+        f[0] = 0.40;
         // no mist
         f[4] = 0.5;
         f[5] = 0.6;
@@ -141,7 +141,7 @@ fn clear_glass_mat(map: &Tex) -> Mat {
         f[11] = 0.17;
         // thick pressed glass is never quite clear: a little of the room
         // held in it
-        f[12] = 0.06;
+        f[12] = 0.10;
         // and more of the room seen in it square on than a thin glass
         f[13] = 0.16;
     }
@@ -303,7 +303,7 @@ fn flame_tex() -> Tex {
 
 /// The muffin's case: how far its ring had to open for real muffins to sit
 /// side by side (a case's top is 71 mm across)
-const MUFFIN_CLEAR: f64 = 0.0365;
+const MUFFIN_CLEAR: f64 = 0.0356;
 /// The crumbs (`r16.py`'s `Real__breadCrumbs`, on its board) moved to the
 /// middle of the muffins, on the floor
 const CRUMBS_AT: (f64, f64, f64) = (-0.066, -0.0178, 0.011);
@@ -349,7 +349,7 @@ pub(crate) fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
         let muffin = group();
         put(&muffin, "Real__cornMuffinCase", &case);
         put_split(&muffin, if k % 2 == 0 { "Real__cornMuffinA" } else { "Real__cornMuffinB" }, &crowns[k % 2]);
-        let r2 = ring + (rr - 0.02) * 0.7;
+        let r2 = ring + (rr - 0.02) * 0.3;
         muffin.position().set(ang.cos() * r2, 0, ang.sin() * r2);
         muffin.rotation().y = turn;
         cluster.add(&muffin);

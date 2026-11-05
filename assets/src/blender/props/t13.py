@@ -199,7 +199,7 @@ def cup_squeeze(p):
     r = math.hypot(p.x, p.z)
     y = p.y
     k = r / 0.031
-    s = 0.50 * smoothstep(0.010, 0.078, y)
+    s = 0.44 * smoothstep(0.018, 0.084, y)
     fold = smoothstep(0.008, 0.060, y)
     # creases: sharp inward folds where the fingers pressed, a softer
     # outward bulge between them, and the board's crumple
@@ -207,12 +207,12 @@ def cup_squeeze(p):
     for m, ph, depth in ((5, 0.6, 0.0030), (3, 2.2, 0.0018)):
         c = math.cos(m * a + ph + 9.0 * y)
         crease -= depth * max(0.0, c) ** 6
-        crease += depth * 0.25 * max(0.0, -c)
+        crease += depth * 0.08 * max(0.0, -c)
     q = Vector((math.sin(a) * 3.0, y * 40.0, math.cos(a) * 3.0))
     crumple = 0.0012 * noise.noise(q) + 0.0005 * noise.noise(q * 3.1 + Vector((4.0, 1.0, 7.0)))
     rr = r + (crease + crumple) * fold * k
     x = rr * math.sin(a) * (1 - s)
-    z = rr * math.cos(a) * (1 + 0.55 * s)
+    z = rr * math.cos(a) * (1 + 0.45 * s)
     # leaning a little, the rim down on its -z side
     x += 0.06 * (y ** 2) / 0.087
     y2 = y - 0.005 * smoothstep(0.05, 0.088, y) * (1 - math.cos(a)) / 2
