@@ -7,6 +7,9 @@ use std::collections::HashSet;
 
 mod t01;
 use t01::place_miniature_portrait_clusters;
+// the floor vase and its peacock feathers: batch `t11`'s (`t11.rs`)
+mod t11;
+use t11::place_peacock_feather_vases;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -1139,125 +1142,6 @@ fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
     df.position().set(px, 0, pz);
     df.rotation().y = rnd() * PI * 2.0;
     g.world.add(&df);
-}
-
-// R764 tall ceramic floor vase with 3-5 peacock feathers (floor): 3% chance.
-fn place_peacock_feather_vases(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    // Vase glaze colour pool — Victorian ceramic tones.
-    let vase_colors = [0x2a4060, 0x603030, 0x304020, 0x604040, 0x505060];
-    let vase_color = choice(&vase_colors);
-    let vase_mat = lambert!({ color: vase_color, emissive: 0x080808 });
-    // Optional gold trim pattern (60% chance).
-    let use_gold_trim = rnd() < 0.6;
-    let gold_mat = lambert!({ color: 0xc0a060, emissive: 0x201810 });
-    let pf = group();
-    // Vase — narrow at top + widest at hip + narrower at base.
-    let vase_h = 0.40 + rnd() * 0.10; // 40-50 cm tall
-    let vase_base_r = 0.055;
-    let vase_hip_r = 0.075;
-    let vase_neck_r = 0.035;
-    // Base disc.
-    let base = mesh(pg("PeacockFeatherVases__base", cyl_geo!(vase_base_r, vase_base_r * 0.9, 0.012, 12)), &vase_mat);
-    base.position().y = 0.006;
-    pf.add(&base);
-    // Body bottom section (rising to hip).
-    let bottom_section = mesh(pg("PeacockFeatherVases__lower", cyl_geo!(vase_hip_r, vase_base_r, vase_h * 0.55, 12)), &vase_mat);
-    bottom_section.position().y = 0.012 + vase_h * 0.275;
-    pf.add(&bottom_section);
-    // Body top section (hip narrowing to neck).
-    let top_section = mesh(pg("PeacockFeatherVases__upper", cyl_geo!(vase_neck_r, vase_hip_r, vase_h * 0.45, 12)), &vase_mat);
-    top_section.position().y = 0.012 + vase_h * 0.775;
-    pf.add(&top_section);
-    // Neck rim (flared torus).
-    let rim = mesh(pg("PeacockFeatherVases__rim", torus_geo!(vase_neck_r, 0.006, 5, 14)), &vase_mat);
-    rim.rotation().x = PI / 2.0;
-    rim.position().y = 0.012 + vase_h;
-    pf.add(&rim);
-    // Gold trim decorative rings (60% chance).
-    if use_gold_trim {
-        for ry in [vase_h * 0.25, vase_h * 0.55, vase_h * 0.85] {
-            let trim = mesh(pg("PeacockFeatherVases__trim", torus_geo!(vase_hip_r * 0.9, 0.002, 3, 14)), &gold_mat);
-            trim.rotation().x = PI / 2.0;
-            // The middle ring sits at the hip (r 0.075): widen it onto the surface.
-            if ry == vase_h * 0.55 {
-                trim.scale().set(0.0765 / (vase_hip_r * 0.9), 0.0765 / (vase_hip_r * 0.9), 1);
-            }
-            trim.position().y = 0.012 + ry;
-            pf.add(&trim);
-        }
-    }
-    // 3-5 peacock feathers spraying out top of vase.
-    let feather_count = 3 + (rnd() * 3.0).floor() as i32;
-    for i in 0..feather_count {
-        let angle = (i as f64 / feather_count as f64) * PI * 2.0 + rnd() * 0.3;
-        // Peacock feather shaft — long thin cylinder.
-        let shaft_len = 0.35 + rnd() * 0.15;
-        let shaft_mat = lambert!({ color: 0x203020 });
-        let shaft = mesh(pg("PeacockFeatherVases__shaft", cyl_geo!(0.001, 0.0015, shaft_len, 4)), &shaft_mat);
-        // Base of shaft at rim, tip flared outward and up.
-        let shaft_base_x = angle.cos() * 0.010;
-        let shaft_base_z = angle.sin() * 0.010;
-        let shaft_tip_x = angle.cos() * (0.010 + shaft_len * 0.45);
-        let shaft_tip_z = angle.sin() * (0.010 + shaft_len * 0.45);
-        let shaft_tip_y = 0.012 + vase_h + shaft_len * 0.88;
-        // Position shaft midpoint.
-        shaft.position().set((shaft_base_x + shaft_tip_x) / 2.0, 0.012 + vase_h + shaft_len * 0.44, (shaft_base_z + shaft_tip_z) / 2.0);
-        // Aim shaft from base to tip.
-        shaft.look_at(shaft_tip_x, shaft_tip_y, shaft_tip_z);
-        shaft.rotate_x(PI / 2.0);
-        pf.add(&shaft);
-        // Feather barbs along shaft (small green ellipsoids).
-        let barb_mat = lambert!({ color: 0x306030 });
-        let barb_count = 8;
-        for b in 0..barb_count {
-            let t = b as f64 / barb_count as f64;
-            let bx = shaft_base_x + (shaft_tip_x - shaft_base_x) * t;
-            let by = 0.012 + vase_h + shaft_len * 0.88 * t;
-            let bz = shaft_base_z + (shaft_tip_z - shaft_base_z) * t;
-            let barb = mesh(pg("PeacockFeatherVases__barb", sphere_geo!(0.010 + t * 0.008, 5, 4)), &barb_mat);
-            barb.scale().set(0.3, 0.5, 1.5);
-            barb.position().set(bx, by, bz);
-            barb.look_at(shaft_tip_x, shaft_tip_y, shaft_tip_z);
-            pf.add(&barb);
-        }
-        // Peacock eye at tip — layered discs (outer brown, mid green, inner blue).
-        let outer_mat = lambert!({ color: 0x604828, side: DoubleSide });
-        let outer_eye = mesh(circle_geo!(0.026, 8), &outer_mat);
-        outer_eye.position().set(shaft_tip_x, shaft_tip_y, shaft_tip_z);
-        outer_eye.look_at(0, shaft_tip_y + 0.1, 0);
-        outer_eye.scale().set(0.7, 1.0, 1.0);
-        pf.add(&outer_eye);
-        // Middle gold/green ring.
-        let mid_mat = lambert!({ color: 0x60a040, side: DoubleSide, emissive: 0x101008 });
-        let mid_eye = mesh(circle_geo!(0.020, 8), &mid_mat);
-        mid_eye.position().set(shaft_tip_x, shaft_tip_y, shaft_tip_z);
-        mid_eye.look_at(0, shaft_tip_y + 0.1, 0);
-        mid_eye.scale().set(0.7, 1.0, 1.0);
-        // Slightly forward to avoid Z-fighting.
-        mid_eye.translate_z(0.001);
-        pf.add(&mid_eye);
-        // Inner dark blue eye.
-        let inner_mat = lambert!({ color: 0x1a1050, side: DoubleSide, emissive: 0x0a0820 });
-        let inner_eye = mesh(circle_geo!(0.014, 8), &inner_mat);
-        inner_eye.position().set(shaft_tip_x, shaft_tip_y, shaft_tip_z);
-        inner_eye.look_at(0, shaft_tip_y + 0.1, 0);
-        inner_eye.scale().set(0.7, 1.0, 1.0);
-        inner_eye.translate_z(0.002);
-        pf.add(&inner_eye);
-    }
-    let px = g.wx(x) + (rnd() - 0.5) * 1.2;
-    let pz = g.wz(z) + (rnd() - 0.5) * 1.2;
-    pf.position().set(px, 0, pz);
-    pf.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pf);
 }
 
 #[cfg(test)]

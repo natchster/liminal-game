@@ -261,54 +261,10 @@ pub fn place_small_hand_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mirror);
 }
 
-/// R441 small folding fan: 6% chance per level. Party accordion
-/// fan on floor. Party-costume family.
-pub fn place_small_folding_fans(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let fan_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xf0e8d8];
-    let fan_mat = lambert!({ color: pick(&fan_colors), side: DoubleSide });
-    let stick_mat = lambert!({ color: 0x201a10 });
-    let fan = group();
-    // 8 sticks arranged in fan sweep (75° arc).
-    let n_sticks = 8;
-    let sweep = PI * 0.42;
-    let stick_len = 0.12;
-    for i in 0..n_sticks {
-        let a = -sweep / 2.0 + (i as f64 / (n_sticks - 1) as f64) * sweep;
-        let stick = mesh(pg("SmallFoldingFans__stick", cyl_geo!(0.002, 0.002, stick_len, 4)), &stick_mat);
-        stick.position().set(a.sin() * stick_len / 2.0, 0.005, a.cos() * stick_len / 2.0);
-        // Laid flat (x) then swung to its heading (y) about the rivet: order YXZ.
-        set_rot_order(&stick, PI / 2.0, a, 0.0, EulerOrder::YXZ);
-        fan.add(&stick);
-    }
-    // Paper: triangular arc pieces between sticks.
-    for i in 0..n_sticks - 1 {
-        let a0 = -sweep / 2.0 + (i as f64 / (n_sticks - 1) as f64) * sweep;
-        let a1 = -sweep / 2.0 + ((i + 1) as f64 / (n_sticks - 1) as f64) * sweep;
-        let p0x = a0.sin() * stick_len;
-        let p0z = a0.cos() * stick_len;
-        let p1x = a1.sin() * stick_len;
-        let p1z = a1.cos() * stick_len;
-        let geo = buf_geo(&[0.0, 0.0, 0.0, p0x, 0.0, p0z, p1x, 0.0, p1z], &[0, 1, 2]);
-        let panel = mesh(geo, &fan_mat);
-        panel.position().y = 0.007;
-        fan.add(&panel);
-    }
-    // Pivot knob at base.
-    let knob = mesh(pg("SmallFoldingFans__knob", sphere_geo!(0.008, 6, 5)), &stick_mat);
-    knob.position().y = 0.008;
-    fan.add(&knob);
-    fan.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    fan.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&fan);
-}
+/// R441 small folding fan: batch `t11`'s (`t11.rs`)
+#[path = "t11.rs"]
+mod t11;
+pub use t11::place_small_folding_fans;
 
 /// R440 small paper crown: 8% chance per level. Jagged strip of
 /// colored paper on floor. Party-costume family.

@@ -3,62 +3,12 @@
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
 use game::prelude::*;
 
+// the antlers and the trout: batch `t11`'s (`rustic/t11.rs`)
+mod t11;
+pub use t11::{place_mounted_antlers, place_mounted_fish};
+
 // R653 fertilizer spikes: made real by batch `t06` (`t06.rs`)
 pub use crate::t06::place_fertilizer_spikes;
-
-// R653 mounted deer antler pair: 3% chance per level. Wooden plaque +
-// branching antler cylinders.
-pub fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let plaque_mat = lambert!({ color: 0x604020 });
-    let antler_mat = lambert!({ color: 0xd0c090 });
-    let mount = group();
-    let mount_y = 1.80;
-    // Shield-shape wooden plaque (rounded top).
-    let plaque = mesh(pg("MountedAntlers__plaque", box_geo!(0.18, 0.22, 0.020)), &plaque_mat);
-    plaque.position().y = mount_y;
-    mount.add(&plaque);
-    // Rounded top of plaque (half-sphere).
-    let plaque_top = mesh(pg("MountedAntlers__crest", sphere_geo!(0.09, 8, 5, 0, PI * 2.0, 0, PI / 2.0)), &plaque_mat);
-    plaque_top.position().y = mount_y + 0.11;
-    plaque_top.scale().set(1, 0.5, 0.2);
-    mount.add(&plaque_top);
-    // 2 antlers extending upward from base.
-    for side in [-1.0f64, 1.0] {
-        // Main antler trunk.
-        let trunk = mesh(pg("MountedAntlers__trunk", cyl_geo!(0.006, 0.010, 0.14, 6)), &antler_mat);
-        // burrs together near the middle, beams leaning outwards (a V, not a Λ)
-        trunk.rotation().z = -side * 0.3;
-        trunk.position().set(side * 0.035, mount_y + 0.10, 0.014);
-        mount.add(&trunk);
-        // 2 branching prongs per antler: tines rising from the beam (base 45 % and
-        // 75 % of the way up it), pointing up and forward, the lower one a little inwards.
-        let beam_dir = [side * 0.3f64.sin(), 0.3f64.cos()];
-        for b in 0..2 {
-            let prong = mesh(pg("MountedAntlers__prong", cyl_geo!(0.004, 0.005, 0.055, 5)), &antler_mat);
-            prong.rotation().z = side * (0.25 - b as f64 * 0.15);
-            prong.rotation().x = 0.4;
-            let along = (0.45 + b as f64 * 0.30 - 0.5) * 0.14;
-            let tz = prong.rot().z;
-            prong.position().set(
-                side * 0.035 + beam_dir[0] * along - tz.sin() * 0.0275,
-                mount_y + 0.10 + beam_dir[1] * along + tz.cos() * 0.4f64.cos() * 0.0275,
-                0.014 + tz.cos() * 0.4f64.sin() * 0.0275,
-            );
-            mount.add(&prong);
-        }
-    }
-    mount.rotation().y = face_yaw(dx, dz);
-    mount.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
-    g.world.add(&mount);
-}
 
 // R654 rustic wooden wall sign: 4% chance per level. Three pine boards
 // nailed to two battens, its name burned in, hung by a cord (batch r13a).
@@ -278,53 +228,6 @@ fn rustic_board_tex(vary: u32) -> Tex {
             }
         })
     })
-}
-
-// R654 mounted trophy fish: 3% chance per level. Wood plaque + elongated fish
-// body w/ tail + fins.
-pub fn place_mounted_fish(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let plaque_mat = lambert!({ color: 0x604020 });
-    let fish_colors: [u32; 4] = [0x408090, 0x60a080, 0x808060, 0x80a0c0];
-    let fish_mat = lambert!({ color: pick(&fish_colors) });
-    let eye_mat = lambert!({ color: 0x101010 });
-    let mount = group();
-    let mount_y = 1.65;
-    // Wooden plaque (horizontal oval).
-    let plaque = mesh(pg("MountedFish__plaque", box_geo!(0.35, 0.15, 0.018)), &plaque_mat);
-    plaque.position().y = mount_y;
-    mount.add(&plaque);
-    // Fish body (elongated ellipsoid).
-    let body = mesh(pg("MountedFish__body", sphere_geo!(0.045, 10, 8)), &fish_mat);
-    body.scale().set(2.5, 1, 0.6);
-    body.position().set(-0.02, mount_y, 0.020);
-    mount.add(&body);
-    // Tail (triangular fin).
-    let tail = mesh(pg("MountedFish__tail", cone_geo!(0.028, 0.040, 3)), &fish_mat);
-    tail.rotation().z = -PI / 2.0;
-    tail.rotation().x = PI / 2.0;
-    tail.position().set(0.115, mount_y, 0.020);
-    mount.add(&tail);
-    // Dorsal fin (triangle on top).
-    let dorsal = mesh(pg("MountedFish__dorsal", cone_geo!(0.020, 0.030, 3)), &fish_mat);
-    dorsal.rotation().x = PI / 2.0;
-    // fin's foot on the back (body top +0.045): the crest stands clear, the root stays in the body
-    dorsal.position().set(-0.010, mount_y + 0.043, 0.020);
-    mount.add(&dorsal);
-    // Eye.
-    let eye = mesh(pg("MountedFish__eye", sphere_geo!(0.006, 5, 4)), &eye_mat);
-    eye.position().set(-0.090, mount_y + 0.005, 0.038);
-    mount.add(&eye);
-    mount.rotation().y = face_yaw(dx, dz);
-    mount.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.017), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.017));
-    g.world.add(&mount);
 }
 
 // R655 cuckoo clock: 3% chance per level. Chalet body w/ peaked roof + face +

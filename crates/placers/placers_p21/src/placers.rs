@@ -18,6 +18,8 @@ mod t01;
 pub(crate) use t01::place_family_portraits;
 mod t07;
 pub(crate) use t07::place_opened_suitcases;
+mod t11;
+pub(crate) use t11::place_deer_head_mounts;
 
 /// A uniformly random element (one `rnd()` draw). for colour tables.
 fn pick_hex(a: &[u32]) -> u32 {
@@ -888,70 +890,4 @@ pub(crate) fn place_rusted_tin_cans(g: &mut Game, _dist: &[i32]) {
     can.position().z = g.wz(z) + (rnd() - 0.5) * 2.4;
     can.rotation().y = rnd() * PI * 2.0;
     g.world.add(&can);
-}
-
-// R505 wall taxidermy deer head: 4% chance per level. Deer bust on a plaque.
-pub(crate) fn place_deer_head_mounts(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let plaque_mat = lambert!({ color: 0x603820 });
-    let deer_mat = lambert!({ color: 0x8a6540 });
-    let antler_mat = lambert!({ color: 0xe8dcc0 });
-    let eye_mat = basic_mat!({ color: 0x100804 });
-    let mount = group();
-    // Wood plaque (shield shape approximation).
-    let plaque = mesh(pg("DeerHeadMounts__plaque", box_geo!(0.28, 0.32, 0.020)), &plaque_mat);
-    plaque.position().set(0, 0, -0.014);
-    mount.add(&plaque);
-    // Deer head (elongated sphere).
-    let head = mesh(pg("DeerHeadMounts__head", sphere_geo!(0.070, 12, 10)), &deer_mat);
-    head.scale().set(0.85, 1.2, 0.90);
-    head.position().set(0, 0, 0.040);
-    mount.add(&head);
-    // Snout.
-    let snout = mesh(pg("DeerHeadMounts__snout", sphere_geo!(0.040, 8, 6)), &deer_mat);
-    snout.scale().set(0.7, 0.7, 1);
-    snout.position().set(0, -0.055, 0.075);
-    mount.add(&snout);
-    // Nose.
-    let nose = mesh(sphere_geo!(0.008, 6, 5), &eye_mat);
-    nose.position().set(0, -0.075, 0.105);
-    mount.add(&nose);
-    // 2 eyes.
-    for s in [-1.0, 1.0] {
-        let eye = mesh(sphere_geo!(0.006, 5, 4), &eye_mat);
-        eye.position().set(s * 0.024, 0.010, 0.088);
-        mount.add(&eye);
-    }
-    // 2 ears (small triangles): tips lean outwards, base on the head's crown.
-    for s in [-1.0, 1.0] {
-        let ear = mesh(pg("DeerHeadMounts__ear", cone_geo!(0.014, 0.030, 4)), &deer_mat);
-        ear.position().set(s * 0.050, 0.065, 0.020);
-        ear.rotation().z = -s * 0.5;
-        mount.add(&ear);
-    }
-    // 2 antlers - each with branches (Y-shape approximation).
-    for s in [-1.0, 1.0] {
-        // Main stem.
-        let stem = mesh(pg("DeerHeadMounts__beam", cyl_geo!(0.005, 0.005, 0.10, 4)), &antler_mat);
-        stem.position().set(s * 0.025, 0.100, 0.020);
-        stem.rotation().z = s * -0.3;
-        mount.add(&stem);
-        // Branches.
-        for b in 0..3 {
-            let b = b as f64;
-            let branch = mesh(pg("DeerHeadMounts__tine", cyl_geo!(0.003, 0.003, 0.05, 4)), &antler_mat);
-            branch.position().set(s * (0.040 + b * 0.010), 0.100 + b * 0.020 - 0.010, 0.020);
-            branch.rotation().z = s * -0.9;
-            mount.add(&branch);
-        }
-    }
-    mount_on_wall(g, &mount, &c, 0.005, 2.00, 0.6);
-    g.world.add(&mount);
 }
