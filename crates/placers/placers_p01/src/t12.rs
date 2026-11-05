@@ -14,8 +14,8 @@ const HORN_RB: f64 = 0.024;
 const HORN_RT: f64 = 0.0048;
 const HORN_SEAM1: f64 = 2.5;
 /// Laid down: the turn about z that rests it on its bell's rim and its
-/// mouthpiece, and the lift onto the floor (`t12.py` prints both), whole
-/// and trodden flat
+/// mouthpiece, and the lift onto the floor, whole and trodden flat, as its
+/// parts were built lying (`t12.py` prints both); undone to lay its print on
 const HORN_LIE: [f64; 2] = [1.646_985, 1.585_626];
 const HORN_LIFT: [f64; 2] = [0.024_163, 0.015_483];
 /// The print's share of the texture; above it the card of its inside
@@ -49,17 +49,10 @@ pub(crate) fn place_small_party_horns(g: &mut Game, _dist: &[i32]) {
     // the foil: dark in its diffuse, its colour in the highlight
     let spec = [0x8a5a6a, 0x5a6a8e, 0x8e7a46, 0x5a7a5a, 0x7a5a84][design];
     let foil = phong!({ map: &horn_print_tex(design, trod == 1, salt), specular: spec, shininess: 34 });
+    // built lying (see HORN_LIE); its print laid on by where each vertex is
+    // on the cone as it stands
     put_with(&horn, ["Real__partyHornCone", "Real__partyHornConeTrod"][trod], &foil, |gg| {
-        // outside: the print as the cylinder mapping lays it; inside: card
-        let n = gg.position.len() / 3;
-        for i in 0..n {
-            let (x, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 2]));
-            let (nx, nz) = (f64::from(gg.normal[i * 3]), f64::from(gg.normal[i * 3 + 2]));
-            let l = x.hypot(z).max(1e-6);
-            let inside = (nx * x + nz * z) / l < -0.3;
-            let v = f64::from(gg.uv[i * 2 + 1]);
-            gg.uv[i * 2 + 1] = if inside { PRINT_V + 0.02 + 0.06 * v } else { (v * PRINT_V).min(PRINT_V - 0.002) } as f32;
-        }
+        cone_uv(gg, HORN_LIE[trod], HORN_LIFT[trod], HORN_L, PRINT_V)
     });
     // the fringe in gold or silver foil, the mouthpiece white plastic gone
     // cream
@@ -69,9 +62,7 @@ pub(crate) fn place_small_party_horns(g: &mut Game, _dist: &[i32]) {
         ["Real__partyHornFringe", "Real__partyHornFringeTrod"][trod],
         &phong!({ color: fd, specular: fs, shininess: 24, side: DoubleSide }),
     );
-    put(&horn, "Real__partyHornMouth", &phong!({ color: 0xbdb5a0, specular: 0x262626, shininess: 30 }));
-    horn.rotation().z = HORN_LIE[trod];
-    horn.position().y = HORN_LIFT[trod];
+    put(&horn, ["Real__partyHornMouth", "Real__partyHornMouthTrod"][trod], &phong!({ color: 0xbdb5a0, specular: 0x262626, shininess: 30 }));
     g.world.add(&horn);
 }
 
@@ -230,6 +221,61 @@ mod kit {
             }
         });
         ctx.put_image_data(&img, 0, 0);
+    }
+    /// Texture coordinates for a cone of card (a hat, a horn), from where
+    /// each vertex is on it as it stands (`beta`, `lift`: the turn about z
+    /// and the lift it was built lying with, undone): u round its axis, v up
+    /// it over `ymax` into the print's share `print_v`; its inside (by the
+    /// normal) the band above, by how deep in. Triangles across u's wrap
+    /// get their low corners again at u + 1.
+    pub(super) fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
+        let (c, s) = (beta.cos(), beta.sin());
+        let n = gg.position.len() / 3;
+        let mut uv = vec![0f32; n * 2];
+        for i in 0..n {
+            let (x, y, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 1]) - lift, f64::from(gg.position[i * 3 + 2]));
+            let (px, py) = (x * c + y * s, -x * s + y * c);
+            let (nx0, ny0, nz) = (f64::from(gg.normal[i * 3]), f64::from(gg.normal[i * 3 + 1]), f64::from(gg.normal[i * 3 + 2]));
+            let nx = nx0 * c + ny0 * s;
+            let l = px.hypot(z).max(1e-6);
+            let inside = (nx * px + nz * z) / l < -0.3;
+            let u = px.atan2(z).rem_euclid(2.0 * PI) / (2.0 * PI);
+            let f = (py / ymax).clamp(0.0, 1.0);
+            uv[i * 2] = u as f32;
+            uv[i * 2 + 1] = if inside { print_v + 0.02 + 0.06 * f } else { (f * print_v).min(print_v - 0.002) } as f32;
+        }
+        let mut idx: Vec<u32> = gg.index.clone().unwrap_or_else(|| (0..n as u32).collect());
+        let mut dup: Vec<Option<u32>> = vec![None; n];
+        for t in idx.chunks_mut(3) {
+            let us = [uv[t[0] as usize * 2], uv[t[1] as usize * 2], uv[t[2] as usize * 2]];
+            let (lo, hi) = (us.iter().cloned().fold(f32::MAX, f32::min), us.iter().cloned().fold(f32::MIN, f32::max));
+            if hi - lo <= 0.5 {
+                continue;
+            }
+            for k in 0..3 {
+                let v = t[k] as usize;
+                if v < n && uv[v * 2] < 0.5 {
+                    let d = match dup[v] {
+                        Some(d) => d,
+                        None => {
+                            let d = (gg.position.len() / 3) as u32;
+                            for a in 0..3 {
+                                let (p, q) = (gg.position[v * 3 + a], gg.normal[v * 3 + a]);
+                                gg.position.push(p);
+                                gg.normal.push(q);
+                            }
+                            uv.push(uv[v * 2] + 1.0);
+                            uv.push(uv[v * 2 + 1]);
+                            dup[v] = Some(d);
+                            d
+                        }
+                    };
+                    t[k] = d;
+                }
+            }
+        }
+        gg.uv = uv;
+        gg.index = Some(idx);
     }
     /// A salt from where a thing is (no draw): its painters' strokes differ
     /// from floor to floor

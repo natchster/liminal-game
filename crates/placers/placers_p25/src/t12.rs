@@ -335,7 +335,7 @@ pub fn place_paper_garlands(g: &mut Game, _dist: &[i32]) {
     let tape = lambert!({ color: 0x8e7b58 });
     for sx in [-1.0, 1.0] {
         let t = group();
-        t.position().set(sx * (span / 2.0 + 0.016), -0.0018, 0);
+        t.position().set(sx * (span / 2.0 + 0.016), -0.0031, 0);
         t.rotation().y = PI / 2.0;
         swag.add(&t);
         if let Some(m) = put(&t, "Real__posterTape", &tape) {

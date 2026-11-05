@@ -6,20 +6,22 @@ No map file: the game builds each prop from these parts by name, placed as
 modelled (a scale of one, `prop_part_as_modelled`). Each part is in its
 own frame, given with it: x across, y up, z out of its front; a floor
 thing's floor is y = 0, a ceiling thing's ceiling is y = 0 (it hangs below).
+Cloth (the streamers, the tassels' strands, the piñata's tails) is draped
+by Blender's own solver, headless (`cloth_drape`, as r13b's apron).
 
-The party hat (a printed card cone, 175 mm tall, 115 mm across its rim)
-partyHatCone          the cone of card (0.4 mm), its glued flap's edge, a dent
-                      creased into one side, the point bent; inside and out
-                      (the game maps the print outside, plain card inside);
-                      standing on its rim (y up its axis)
-partyHatTassel        the foil fringe pushed into its point, burst out
-partyHatElastic       the round elastic, knotted inside through two holes,
-                      lying on the floor in a loop (the hat standing)
-partyHatElasticLying  the same with the hat lying on its side (the game's
-                      turn, HAT_LIE, and lift, HAT_LIFT; modelled in the
-                      cone's frame)
-partyHatTasselLying   the fringe of a hat lying, the strands under it
-                      pressed flat on the floor
+partyHat{Cone,Tassel,Elastic}{,Lying}
+                      the printed card party hat (175 x 115 mm), its foil
+                      pompom and its round elastic, standing or lying
+partyHorn{Cone,Mouth,Fringe}{,Trod}
+                      the 9 in foil party horn, whole or trodden flat
+paperCrown, paperCrownOpen
+                      the die-cut party crown, fastened and trodden, or
+                      come open in a curl
+streamer{A,B,C,D}     crepe streamer lengths hanging from their tape
+garlandTassel{A,B,C}, garlandTwine{S,M,L}
+                      the tissue tassel garland: its tassels, its twine
+pinata{FringeBody,FringeCones,Tails,TailsB,Broken,Inside,CordS,CordM,
+       CordL,Hook}    the star piñata, split open, on its cord and hook
 """
 import math
 import random
@@ -148,7 +150,7 @@ HAT_HOLE = 1.45                                  # the elastic's holes: here and
 HAT_HOLE_S = 0.012 / HAT_SLANT                   # 12 mm up the slant
 HAT_TIP_S = 0.972                                # where the point is closed round the fringe
 HAT_BEND = (0.95, 0.80, 0.30)                    # the point bent: towards, from s, by (rad)
-HAT_LIE = math.pi / 2 + HAT_A                    # the game's turn (about z) of a hat lying
+HAT_LIE = math.pi / 2 + HAT_A                    # a hat lying: turned so about z (built so)
 
 
 def _hat_bend(p):
@@ -325,14 +327,25 @@ def hat_lift():
 
 
 def _hat_floor_press(s):
+    """Laid down as the hat lies (HAT_LIE, HAT_LIFT), what would go under
+    the floor pressed flat on it."""
     lift = hat_lift()
     out = s.copy()
     for i, p in enumerate(out.v):
         q = _hat_pose(p, lift)
         if q.y < 0.0004:
             q.y = 0.0002 + 0.0002 * n1(q.x * 300, q.z * 300)
-        out.v[i] = _hat_unpose(q, lift)
+        out.v[i] = q
     return out
+
+
+def partyhat_cone_lying():
+    """The cone lying on its side, as the game would have turned it (built
+    so: a mesh turned off its axes is boxed by its corners, and the
+    placement pass would lift it off the floor by them)."""
+    lift = hat_lift()
+    c = partyhat_cone()
+    return Shape([_hat_pose(p, lift) for p in c.v], c.f)
 
 
 def _elastic_tube(path, r=0.00065):
@@ -416,12 +429,13 @@ def partyhat_elastic_lying():
             p.y = r_
     s = _elastic_tube(pts, r_)
     s = s.warp(lambda p: Vector((p.x, max(p.y, 0.00005), p.z)))
-    s = Shape([_hat_unpose(p, lift) for p in s.v], s.f)
-    return s + _knots()
+    k = _knots()
+    return s + Shape([_hat_pose(p, lift) for p in k.v], k.f)
 
 
 auto('Real__partyHatCone', partyhat_cone, 2400, smooth=40.0)
 auto('Real__partyHatTassel', partyhat_tassel, 800, smooth=60.0)
+auto('Real__partyHatConeLying', partyhat_cone_lying, 2400, smooth=40.0)
 auto('Real__partyHatTasselLying', lambda: partyhat_tassel(True), 800, smooth=60.0)
 auto('Real__partyHatElastic', partyhat_elastic, 700, smooth=60.0)
 auto('Real__partyHatElasticLying', partyhat_elastic_lying, 700, smooth=60.0)
@@ -431,8 +445,10 @@ auto('Real__partyHatElasticLying', partyhat_elastic_lying, 700, smooth=60.0)
 # A 9 in (229 mm) party horn: a cone of card covered in printed foil, a
 # white plastic mouthpiece with its reed pushed into the narrow end, a
 # foil fringe glued round the bell. Built standing on its bell (y up its
-# axis, the bell's rim at y = 0); the game lays it down (HORN_LIE*: its turn
-# about z, and the lift that puts it on the floor, printed as it builds).
+# axis, the bell's rim at y = 0), then laid down as it lies (HORN_LIE*: its
+# turn about z, and the lift that puts it on the floor, printed as it
+# builds): every part of it is built lying (a mesh turned off its axes is
+# boxed by its corners, and the placement pass lifts it by them).
 HORN_L, HORN_RB, HORN_RT, HORN_T = 0.200, 0.024, 0.0048, 0.0004
 HORN_A = math.atan2(HORN_RB - HORN_RT, HORN_L)
 HORN_SEAM0, HORN_FLAP = 2.2, 0.30
@@ -610,14 +626,22 @@ def party_horn_fringe(trod=False):
         q = _pose_z(p, beta, lift)
         if q.y < 0.0004:
             q.y = 0.0002 + 0.00015 * n1(q.x * 400, q.z * 400)
-        out.v[i] = _unpose_z(q, beta, lift)
+        out.v[i] = q
     return out
 
 
-CYL_FRAMED |= {'Real__partyHornCone', 'Real__partyHornConeTrod'}
-auto('Real__partyHornCone', party_horn_cone, 1500, smooth=40.0)
-auto('Real__partyHornConeTrod', lambda: party_horn_cone(True), 1500, smooth=40.0)
-auto('Real__partyHornMouth', party_horn_mouth, 420, smooth=40.0)
+def party_horn_lying(build, trod):
+    """A part of the horn as it lies (built lying, not turned by the game,
+    so its box is the floor's way up)."""
+    beta, lift = horn_lie(trod)
+    sh = build()
+    return Shape([_pose_z(p, beta, lift) for p in sh.v], sh.f)
+
+
+auto('Real__partyHornCone', lambda: party_horn_lying(party_horn_cone, False), 1500, smooth=40.0)
+auto('Real__partyHornConeTrod', lambda: party_horn_lying(lambda: party_horn_cone(True), True), 1500, smooth=40.0)
+auto('Real__partyHornMouth', lambda: party_horn_lying(party_horn_mouth, False), 420, smooth=40.0)
+auto('Real__partyHornMouthTrod', lambda: party_horn_lying(party_horn_mouth, True), 420, smooth=40.0)
 auto('Real__partyHornFringe', party_horn_fringe, 800, smooth=60.0)
 auto('Real__partyHornFringeTrod', lambda: party_horn_fringe(True), 800, smooth=60.0)
 
@@ -932,7 +956,7 @@ def streamer(kind):
 
 
 for _k in 'ABCD':
-    auto('Real__streamer' + _k, lambda k=_k: streamer(k), 900, smooth=70.0)
+    auto(f'Real__streamer{_k}', lambda k=_k: streamer(k), 900, smooth=70.0)
 
 
 # ======================================================= the tassel garland ==
@@ -1059,13 +1083,13 @@ def garland_twine(span):
     n = int(span / 0.045)
     # the end laid under the tape, then out and down
     for k in range(4):
-        pts.append(Vector((-span / 2 - 0.035 + k * 0.009, -0.0012, 0.0)))
+        pts.append(Vector((-span / 2 - 0.035 + k * 0.009, -0.0015, 0.0)))
     for k in range(n + 1):
         x = -span / 2 + span * k / n
-        y = garland_y(span, x) if 0 < k < n else -0.0012
+        y = garland_y(span, x) if 0 < k < n else -0.0015
         pts.append(Vector((x, y, 0.0012 * n1(x * 9, 0.3))))
     for k in range(1, 4):
-        pts.append(Vector((span / 2 + k * 0.009, -0.0012, 0.0)))
+        pts.append(Vector((span / 2 + k * 0.009, -0.0015, 0.0)))
     # a cut tail beyond the far tape, hanging
     tail = pts[-1]
     for k in range(1, 6):
@@ -1075,9 +1099,9 @@ def garland_twine(span):
 
 
 for _k in 'ABC':
-    auto('Real__garlandTassel' + _k, lambda k=_k: garland_tassel(k), 1500, smooth=70.0)
+    auto(f'Real__garlandTassel{_k}', lambda k=_k: garland_tassel(k), 1500, smooth=70.0)
 for _k, _sp in GT_SPANS.items():
-    auto('Real__garlandTwine' + _k, lambda sp=_sp: garland_twine(sp), 700, smooth=60.0)
+    auto(f'Real__garlandTwine{_k}', lambda sp=_sp: garland_twine(sp), 700, smooth=60.0)
     print('t12: GT span %.2f catenary a %.6f sag %.4f' % (_sp, garland_cat(_sp), garland_sag(_sp)))
 
 
@@ -1306,9 +1330,11 @@ def pinata_tails_sim():
             a = TAU * t / cnt + rng.uniform(-0.4, 0.4)
             _, u, w, _ = _pn_cone_frame(k)
             sd = (u * math.cos(a) + w * math.sin(a)).normalized()
-            # out from the tip, beginning to fall
-            go = (d + Vector((0, -0.6, 0)) + sd * 0.3).normalized()
+            # out of the tip and straight down (gravity does the rest)
+            go = (Vector((0, -1, 0)) + d * 0.25 + sd * 0.15).normalized()
             across = go.cross(sd).normalized()
+            if across.length < 1e-6:
+                across = u
             base = len(pts)
             for j in range(rows + 1):
                 c = tip + go * (L * j / rows)
@@ -1427,5 +1453,5 @@ auto('Real__pinataTailsB', lambda: pinata_tails(1), 700, smooth=70.0)
 auto('Real__pinataBroken', pinata_broken, 300, smooth=40.0)
 auto('Real__pinataInside', pinata_inside, 500, smooth=60.0)
 for _k, _L in PN_CORDS.items():
-    auto('Real__pinataCord' + _k, lambda L=_L: pinata_cord(L), 600, smooth=60.0)
+    auto(f'Real__pinataCord{_k}', lambda L=_L: pinata_cord(L), 600, smooth=60.0)
 auto('Real__pinataHook', pinata_hook, 360, smooth=40.0)
