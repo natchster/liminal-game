@@ -45,7 +45,10 @@ fireplace*     a Victorian bedroom fireplace against the wall: Mantel (painted
                pine), Insert (the cast-iron arched register, its canopy),
                Grate (the basket and the fret), Firebox (the firebrick back
                and cheeks), Hearth (slate), Ash, LogA..LogD (charred ends,
-               along x, at their own origin)
+               along x, at their own origin); a lit fire's Embers (the bed
+               of coals), LogAGlow..LogDGlow (each end's underside burning)
+               and FlameA..C (tongues of flame, tall to short, up +y from
+               their root at the origin)
 """
 from propkit import *
 import propkit
@@ -876,8 +879,9 @@ auto('Real__cuckooWeights', cuckoo_weights, 1800)
 # 1100 mm to its shelf, its pilasters on plinths, corbels under the shelf, a
 # frieze with a centre tablet; in its opening a cast-iron arched register
 # insert (660 x 850 mm, the arch 420 mm wide) with its canopy, fire basket
-# and fret; a firebrick back sooted black; a slate hearth. Cold: ash and
-# charred ends in the basket. Its wall at z = 0, the floor at y = 0.
+# and fret; a firebrick back sooted black; a slate hearth. Ash and charred
+# ends in the basket; when a fire was lit (the game's draw), embers under
+# them and tongues of flame. Its wall at z = 0, the floor at y = 0.
 FP_W, FP_SHELF_Y, FP_SHELF_T, FP_SHELF_D = 0.960, 1.070, 0.030, 0.210
 FP_PIL_W, FP_PIL_D = 0.140, 0.140
 FP_OPEN_W = FP_W - 2 * FP_PIL_W            # 0.68
@@ -1055,6 +1059,76 @@ def _charred(length, r, seed):
     return s.rot(z=math.pi / 2)
 
 
+# ---- the fire, when one was lit (the old draw): a low wood fire in the basket
+FP_LOG_Z = 0.080                   # where the logs lie (z), as the game lays them
+
+
+def _faces_down(sh, below=-0.15):
+    """Keep the faces of `sh` whose normal points down (y < below)."""
+    keep = []
+    for f in sh.f:
+        a, b, c = sh.v[f[0]], sh.v[f[1]], sh.v[f[2]]
+        n = (b - a).cross(c - a)
+        if n.length > 1e-12 and n.normalized().y < below:
+            keep.append(f)
+    used = sorted({i for f in keep for i in f})
+    remap = {o: k for k, o in enumerate(used)}
+    return Shape([sh.v[i] for i in used], [tuple(remap[i] for i in f) for f in keep])
+
+
+def _charred_glow(length, r, seed):
+    """A charred end's underside burning: its shell a hair outside the char,
+    the faces that look down only (the game draws its cracks glowing)."""
+    s = _charred(length, r, seed)
+    for p in s.v:
+        p.y *= 1.04
+        p.z *= 1.04
+    return _faces_down(s)
+
+
+def fireplace_embers():
+    """The bed of embers on the ash under and among the logs: coals of
+    every size, the mound glowing under them."""
+    bw, b0, _ = FP_BASKET
+    rng = random.Random(77)
+    s = ellipsoid(bw / 2 - 0.035, 0.012, 0.050, seg=14).move(0, b0 + 0.016, FP_LOG_Z - 0.004)
+    s = cut(s, box(1, 0.1, 1).move(0, b0 + 0.016 - 0.05, 0))
+    warp_noise(s, 0.003, 50.0, 12)
+    for k in range(34):
+        r = rng.uniform(0.006, 0.014)
+        x = rng.uniform(-bw / 2 + 0.03, bw / 2 - 0.03)
+        z = FP_LOG_Z + rng.uniform(-0.050, 0.045)
+        c = sphere(r, seg=8).scale(1.0, rng.uniform(0.55, 0.8), rng.uniform(0.8, 1.1)).rot(y=rng.uniform(0, TAU))
+        warp_noise(c, r * 0.3, 140.0, 20 + k)
+        s = s + c.move(x, b0 + 0.020 + r * 0.4, z)
+    return s
+
+
+def _tongue(h, r, lean, seed, n=11, seg=12):
+    """A flame's tongue: a teardrop drawn up from its root at the origin,
+    widest a quarter of the way up, flattened across, leaning and wavering
+    as it rises."""
+    prof = [(0.0, 0.0)]
+    for i in range(1, n):
+        t = i / n
+        prof.append((r * math.sin(math.pi * min(1.0, t ** 0.55)) ** 1.2 * (1 - 0.6 * t), h * t))
+    prof.append((0.0, h))
+    s = lathe(prof, seg=seg)
+    for p in s.v:
+        t = max(0.0, p.y / h)
+        p.z *= 0.55
+        p.x += lean * h * t * t + 0.12 * r * math.sin(t * 5.0 + seed) * t
+    return s
+
+
+def fireplace_flame(kind):
+    """One tongue of a fire's flame, its root at the origin."""
+    def build():
+        h, r, lean = {'A': (0.200, 0.026, 0.10), 'B': (0.150, 0.021, -0.16), 'C': (0.105, 0.017, 0.24)}[kind]
+        return _tongue(h, r, lean, ord(kind))
+    return build
+
+
 auto('Real__fireplaceMantel', fireplace_mantel, 2200)
 auto('Real__fireplaceInsert', fireplace_insert, 5200)
 auto('Real__fireplaceGrate', fireplace_grate, 2200)
@@ -1065,3 +1139,11 @@ auto('Real__fireplaceLogA', lambda: _charred(0.240, 0.040, 1), 400)
 auto('Real__fireplaceLogB', lambda: _charred(0.210, 0.034, 2), 400)
 auto('Real__fireplaceLogC', lambda: _charred(0.180, 0.030, 3), 400)
 auto('Real__fireplaceLogD', lambda: _charred(0.150, 0.026, 4), 400)
+auto('Real__fireplaceLogAGlow', lambda: _charred_glow(0.240, 0.040, 1), 200)
+auto('Real__fireplaceLogBGlow', lambda: _charred_glow(0.210, 0.034, 2), 200)
+auto('Real__fireplaceLogCGlow', lambda: _charred_glow(0.180, 0.030, 3), 200)
+auto('Real__fireplaceLogDGlow', lambda: _charred_glow(0.150, 0.026, 4), 200)
+auto('Real__fireplaceEmbers', fireplace_embers, 4600)
+auto('Real__fireplaceFlameA', fireplace_flame('A'), 300, smooth=80.0)
+auto('Real__fireplaceFlameB', fireplace_flame('B'), 300, smooth=80.0)
+auto('Real__fireplaceFlameC', fireplace_flame('C'), 300, smooth=80.0)
