@@ -1018,3 +1018,124 @@ auto('Real__teddyArmStuffing', ta_stuffing, 1100, smooth=80)
 auto('Real__teddyArmStuffingWisps', lambda: shell(ta_stuffing(), 0.0012, floor=0.0004), 1100, smooth=80)
 auto('Real__teddyArmTuft', ta_tuft, 460, smooth=80)
 auto('Real__teddyArmTuftWisps', lambda: shell(ta_tuft(), 0.0010, floor=0.0003), 460, smooth=80)
+
+
+# ======================================================== the elephant ===
+# A bean-bag plush elephant of the 1990s, 19 cm from tail to trunk (the
+# pellet-filled kind sold by the million: short plush on a knit backing, its
+# body loosely filled with PVC pellets so it lies limp, its head stuffed
+# with fibre; big floppy ears of two layers sewn round, plastic eyes, a
+# thin plush tail; a fabric law tag sewn into the seam at its rear).
+# Lying on its belly, its legs splayed. Its frame: x across, y up from the
+# floor, z out of its front (the trunk). The ears are built in their hinge
+# frames (origin at the root on the head's side, EL_EAR), where the game
+# hangs them.
+EL_EAR = [Vector((sx * 0.0290, 0.058, 0.052)) for sx in (-1, 1)]
+EL_HC = Vector((0.0, 0.054, 0.054))
+
+
+def el_body_raw():
+    el = [('ell', (0, 0.026, -0.010), (0.040, 0.026, 0.054)),
+          ('ell', (0, 0.020, -0.040), (0.036, 0.020, 0.024), 1.6),             # the haunches, slumped
+          ('ell', tuple(EL_HC), (0.031, 0.029, 0.027)),                          # the head
+          ('ell', (0, 0.066, 0.046), (0.024, 0.016, 0.020), 1.6),               # the brow, domed
+          ('cap', (0, 0.048, 0.074), (0, 0.034, 0.092), 0.0105, 2.0),           # the trunk, down to the floor
+          ('cap', (0, 0.034, 0.092), (0, 0.016, 0.101), 0.0086, 2.0),
+          ('cap', (0, 0.016, 0.101), (0, 0.009, 0.113), 0.0070, 2.0),
+          ('ball', (0, 0.011, 0.118), 0.0064, 2.0)]                              # its end, turned up
+    for sx in (-1, 1):
+        for sz, z0, z1 in ((1, 0.030, 0.046), (-1, -0.040, -0.056)):
+            el.append(('cap', (sx * 0.026, 0.018, z0), (sx * 0.046, 0.010, z1), 0.0125, 2.0))   # the legs, splayed
+            el.append(('ell', (sx * 0.049, 0.010, z1 + sz * 0.002), (0.0045, 0.0110, 0.0110), 2.0, (0, 0, sx * 0.4)))  # the sole
+    s = meta(el, res=0.0013)
+    s = flatten_below(to_floor(s), 0.008, 0.2)
+    s = lumpy(s, 0.0009, 55.0, 17)
+    # the seams: along the back and over the head to the trunk's root
+    s = groove(s, lambda p: abs(p.x) if p.y > 0.035 or p.z < -0.02 else 1.0, 0.0008, 0.0018,
+               lambda p: Vector((0, max(0.012, p.y - 0.02), p.z)))
+    return to_floor(s)
+
+
+def el_body_mesh():
+    if 'el' not in _pb:
+        b = decimate(el_body_raw(), 1150)
+        _pb['el'] = b
+        _pb['el_bvh'] = bvh_of(b)
+    return _pb['el']
+
+
+def el_tail():
+    """The tail: a thin twisted plush tube with a tuft, off its rump."""
+    pts = [(0.0, 0.030, -0.060), (0.002, 0.024, -0.071), (0.006, 0.014, -0.077), (0.009, 0.006, -0.080)]
+    return tube(pts, 0.0022, seg=6, smooth=1, r_end=0.0018) + sphere(0.0032, seg=8, rings=5).move(0.0095, 0.0045, -0.081)
+
+
+def el_body():
+    return el_body_mesh() + el_tail()
+
+
+def el_ear(sx):
+    """An ear: two layers of plush sewn round a D, unstuffed, floppy, hanging
+    from its root on the head's side, back and down; its hinge frame."""
+    out = [(0.0, 0.016), (-0.016, 0.023), (-0.037, 0.018), (-0.053, -0.002), (-0.051, -0.028),
+           (-0.034, -0.046), (-0.013, -0.049), (0.0, -0.030)]
+    e = prism(round_outline(out, 0.006, seg=3), 0.0036, bevel_r=0.0014, bevel_seg=2)
+    # the D lies in the y-z plane, its flat side facing out (+x)
+    e.rot(0, -math.pi / 2, 0)
+    e = Shape([Vector((p.x, p.y, p.z)) for p in e.v], e.f)
+    # floppy: cupped toward the head, its lower edge falling away, a ripple
+    def flop(p):
+        z, y = p.z, p.y
+        x = p.x + 5.0 * z * z + 4.0 * max(0.0, -y) ** 2 + 0.0012 * math.sin(z * 220 + y * 80)
+        return Vector((x + 0.0014, y, z))
+    e = e.warp(flop)
+    e = subdivide(e, 1)
+    e = decimate(e, 420)
+    if sx < 0:
+        e = e.scale(-1, 1, 1)
+    return e
+
+
+def el_eyes():
+    el_body_mesh()
+    bvh = _pb['el_bvh']
+    out = Shape()
+    for sx in (-1, 1):
+        hit, n = on_surface(bvh, EL_HC, Vector((sx * 0.55, 0.22, 0.80)))
+        dome = lathe([(0.0034, 0.0), (0.0034, 0.0005), (0.0028, 0.0018), (0.0016, 0.0027), (0.0, 0.0030)], seg=14, cap_bottom=True)
+        q = Vector((0, 1, 0)).rotation_difference(n).to_matrix().to_4x4()
+        out = out + dome.apply(q).move(*(hit - n * 0.0006))
+    return out
+
+
+def el_tag():
+    """The law tag: a satin label folded in two, its ends sewn into the seam
+    at the rump, lying on the flank (printed by the game)."""
+    el_body_mesh()
+    bvh = _pb['el_bvh']
+    root = Vector((0.0, 0.034, -0.058))
+    out = Shape()
+    # a strip folded over itself: two layers 0.6 mm apart, laid on the body
+    w, l = 0.012, 0.024
+    for k, off in enumerate((0.0007, 0.0013)):
+        g = grid_plane(w, l, 2, 6)
+        v = []
+        for p in g.v:
+            t = (p.y + l / 2) / l
+            q = root + Vector((0.004 + t * 0.016 + p.x * 0.3, -t * 0.014, -t * 0.006 + p.x))
+            d = (q - Vector((0, 0.022, -0.030))).normalized()
+            hit = bvh.ray_cast(Vector((0, 0.022, -0.030)), d, 0.2)
+            v.append(hit[0] + hit[1].normalized() * off if hit[0] is not None else q)
+        sh = Shape(v, g.f)
+        if k == 1:
+            sh.f = [tuple(reversed(f)) for f in sh.f]
+        out = out + sh
+    return out
+
+
+auto('Real__elephantBody', el_body, 1360, smooth=70)
+auto('Real__elephantPile', lambda: shell(el_body_mesh(), 0.0011, floor=0.0004), 1200, smooth=70)
+auto('Real__elephantEarL', lambda: el_ear(1), 460, smooth=60)
+auto('Real__elephantEarR', lambda: el_ear(-1), 460, smooth=60)
+auto('Real__elephantEyes', el_eyes, 240, smooth=60)
+auto('Real__elephantTag', el_tag, 100, smooth=40)
