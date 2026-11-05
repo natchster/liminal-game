@@ -67,6 +67,8 @@ pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
     body.position().y = lantern_y - (WALL_H + PIVOT);
     pivot.add(&body);
     put(&body, "Real__lanternBrass", &brass);
+    // the roof's underside, black with the candle's soot
+    put(&body, "Real__lanternSoot", &lambert!({ color: 0x1d1915 }));
     if let Some(m) = put(&body, "Real__lanternGlass", &lantern_glass_mat(&soot_tex(salt))) {
         m.set_render_order(2);
     }

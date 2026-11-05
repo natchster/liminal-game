@@ -166,14 +166,14 @@ def lantern_brass():
     parts = []
     # the tray: a moulded square rim round the floor the candle stands on,
     # its underside an inverted pyramid down to the drop
-    tray = sq_lathe([(0.0, -0.1000), (0.0220, -0.1000), (0.0240, -0.0985), (0.0660, -0.0790), (0.0725, -0.0775),
+    tray = sq_lathe([(0.0, -0.1120), (0.0200, -0.1120), (0.0225, -0.1100), (0.0660, -0.0800), (0.0725, -0.0775),
                      (0.0755, -0.0745), (0.0755, -0.0715), (0.0725, -0.0690), (0.0705, -0.0670), (0.0705, -0.0655),
                      (0.0670, -0.0650), (0.0, -0.0650)])
     parts.append(tray)
     # the drop under it: a turned finial
-    drop = lathe([(0.0, -0.1310), (0.0035, -0.1305), (0.0065, -0.1270), (0.0085, -0.1220), (0.0080, -0.1170),
-                  (0.0050, -0.1130), (0.0040, -0.1090), (0.0068, -0.1060), (0.0110, -0.1030), (0.0150, -0.0995),
-                  (0.0, -0.0990)], seg=14)
+    drop = lathe([(0.0, -0.1430), (0.0035, -0.1425), (0.0065, -0.1390), (0.0085, -0.1340), (0.0080, -0.1290),
+                  (0.0050, -0.1250), (0.0040, -0.1210), (0.0068, -0.1180), (0.0110, -0.1150), (0.0140, -0.1115),
+                  (0.0, -0.1110)], seg=14)
     parts.append(drop)
     # four corner posts, a bead down each, a cast knob on each top corner
     for sx in (-1, 1):
@@ -191,7 +191,7 @@ def lantern_brass():
     # the roof: a pyramid of sheet from its eave up to the chimney, its rolled
     # eave edge; then the vented chimney, its cap on four legs, the finial
     roof = sq_lathe([(LT_HALF - 0.003, 0.1040), (0.0760, 0.1040), (0.0790, 0.1065), (0.0780, 0.1090),
-                     (0.0300, 0.1500), (0.0260, 0.1510), (0.0, 0.1510)])
+                     (0.0300, 0.1500), (0.0260, 0.1510), (0.0, 0.1510)], cap_bottom=False)
     parts.append(roof)
     chim = sq_lathe([(0.0230, 0.1500), (0.0230, 0.1790), (0.0205, 0.1790), (0.0205, 0.1500)], cap_bottom=False, cap_top=False)
     holes = []
@@ -229,6 +229,13 @@ def lantern_brass():
                 cap_bottom=False, cap_top=False)
     parts.append(cup)
     return sum(parts, Shape())
+
+
+def lantern_soot():
+    """The roof's underside over the panes, black with the candle's soot:
+    a plate facing down, closing the roof's sheet."""
+    h = LT_HALF - 0.0028
+    return plane(2 * h, 2 * h).rot(math.pi / 2, 0, 0).move(0, 0.1039, 0)
 
 
 def lantern_glass():
@@ -339,6 +346,7 @@ def chain(n):
 
 
 auto('Real__lanternBrass', lantern_brass, 4200, smooth=40.0)
+auto('Real__lanternSoot', lantern_soot, 20, smooth=10.0)
 auto('Real__lanternGlass', lantern_glass, 120, smooth=10.0)
 auto('Real__lanternCandle', lantern_candle, 2600, smooth=45.0, kind='cyl')
 auto('Real__lanternCanopy', lantern_canopy, 700, smooth=45.0, kind='cyl')
@@ -419,27 +427,6 @@ def sd_case():
     # under each drawer and its sides, set back (seen in the reveal)
     for y0, y1 in SD_DRAWERS:
         parts.append(box(2 * SD_INNER, 0.010, SD_D - 0.040).move(0, y0 - 0.002, -0.012))
-    # the top: a board with a moulded front and side edge (ovolo over a fillet)
-    top_w, top_d = 0.570, 0.355
-    prof = [(0.0, 0.0), (0.0, 0.010), (0.003, 0.0145), (0.0075, 0.0175), (0.012, 0.018)]
-    outline = [(-top_w / 2 + d, z) for d, z in []]
-    tb = rbox(top_w, 0.018, top_d, r=0.0045, seg=2)
-    parts.append(tb.move(0, SD_TOP0 + 0.009, SD_BACK + top_d / 2))
-    # the crest at its back: a shaped board, rising to the middle in a
-    # gentle arch, its ends scrolled down
-    crest = []
-    n = 24
-    cw = 0.52
-    for i in range(n + 1):
-        x = -cw / 2 + cw * i / n
-        t = abs(x) / (cw / 2)
-        y = 0.020 + 0.022 * (1 - t * t) ** 0.7
-        if t > 0.86:
-            y = 0.020 * (1 - (t - 0.86) / 0.14) + 0.006
-        crest.append((x, y))
-    outline = [(cw / 2, 0.0), (-cw / 2, 0.0)] + crest
-    c = prism(outline, 0.016, bevel_r=0.0015)
-    parts.append(c.move(0, SD_TOP0 + 0.018, SD_BACK + 0.016))
     # the fitted interior: the small drawers' carcase, the pigeonholes
     fit_d = SD_FIT_Z - (SD_BACK + 0.010)
     fz = (SD_FIT_Z + SD_BACK + 0.010) / 2
@@ -469,6 +456,32 @@ def sd_case():
     return sum(parts, Shape())
 
 
+def sd_top():
+    """The top, a board with its front and side edges rounded over, and the
+    crest along its back (their grain across, as the fronts')."""
+    parts = []
+    # the top: a board with a moulded front and side edge (ovolo over a fillet)
+    top_w, top_d = 0.570, 0.355
+    tb = rbox(top_w, 0.018, top_d, r=0.0045, seg=2)
+    parts.append(tb.move(0, SD_TOP0 + 0.009, SD_BACK + top_d / 2))
+    # the crest at its back: a shaped board, rising to the middle in a
+    # gentle arch, its ends scrolled down
+    crest = []
+    n = 24
+    cw = 0.52
+    for i in range(n + 1):
+        x = -cw / 2 + cw * i / n
+        t = abs(x) / (cw / 2)
+        y = 0.020 + 0.022 * (1 - t * t) ** 0.7
+        if t > 0.86:
+            y = 0.020 * (1 - (t - 0.86) / 0.14) + 0.006
+        crest.append((x, y))
+    outline = [(cw / 2, 0.0), (-cw / 2, 0.0)] + crest
+    c = prism(outline, 0.016, bevel_r=0.0015)
+    parts.append(c.move(0, SD_TOP0 + 0.018, SD_BACK + 0.016))
+    return sum(parts, Shape())
+
+
 def sd_fronts():
     parts = []
     # the two drawers: fronts a little inside their openings (a 2 mm
@@ -489,6 +502,7 @@ def sd_fronts():
     recess = box(0.440, 0.004, 0.236).move(0, ft / 2, 0.012)
     fall = cut(fall, recess)
     parts.append(fall.move(0, SD_BED - ft / 2, SD_FRONT + fd / 2 + 0.001))
+    parts.append(sd_top())
     return sum(parts, Shape())
 
 
@@ -656,8 +670,6 @@ AQ_IN = (AQ_TANK[0] / 2 - 0.006, AQ_TANK[2] / 2 - 0.006)   # half the inside
 def aq_stand():
     w, h, d = AQ_STAND
     parts = []
-    top = rbox(w, 0.019, d, r=0.004, seg=2).move(0, h - 0.0095, 0)
-    parts.append(top)
     for sx in (-1, 1):
         parts.append(rbox(0.016, h - 0.019, d - 0.004, r=0.0012, seg=1).move(sx * (w / 2 - 0.008), (h - 0.019) / 2, -0.002))
     # the toe kick under the doors (set back 40 mm), the bottom, the back
@@ -687,8 +699,17 @@ def aq_stand():
             p.x += sx * 0.0035 * k
         if p.z > d / 2 - 0.06 or p.z < -d / 2 + 0.02:
             p.z += sz * 0.0030 * k
-        p.y += 0.0012 * k * noise.noise(Vector((p.x * 80, 5.0, p.z * 80)))
+        if p.y > 0.002:
+            p.y += 0.0012 * k * noise.noise(Vector((p.x * 80, 5.0, p.z * 80)))
     return s
+
+
+def aq_stand_top():
+    """The stand's top: a laminated board, its front edge rounded where the
+    laminate wraps it, its edges swollen a little where water stood."""
+    w, h, d = AQ_STAND
+    top = rbox(w, 0.019, d, r=0.004, seg=2).move(0, h - 0.0095, 0)
+    return top
 
 
 def aq_knobs():
@@ -819,7 +840,7 @@ def aq_tube():
     """The lamp: an 18 in T8 fluorescent tube (25 mm) in its two sockets,
     under the hood's housing."""
     tube_ = cyl(0.0127, h=0.430, seg=14, bevel_r=0.004).rot(0, 0, math.pi / 2)
-    return tube_.move(0, AQ_Y0 + AQ_TANK[1] + 0.034, -AQ_TANK[2] / 2 + 0.085)
+    return tube_.move(0, AQ_Y0 + AQ_TANK[1] + 0.020, -AQ_TANK[2] / 2 + 0.085)
 
 
 def aq_airline():
@@ -845,6 +866,7 @@ def aq_airstone():
 
 
 auto('Real__aquariumStand', aq_stand, 2200, smooth=30.0)
+auto('Real__aquariumStandTop', aq_stand_top, 300, smooth=30.0)
 auto('Real__aquariumKnobs', aq_knobs, 400, smooth=45.0)
 auto('Real__aquariumGlass', aq_glass, 80, smooth=10.0)
 auto('Real__aquariumTrim', aq_trim, 900, smooth=30.0)
