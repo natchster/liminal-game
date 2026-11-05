@@ -469,6 +469,66 @@ def _hollow(c, n):
     return inside and d > 4.0
 
 
+def _orbit_rings(sx, d0=3.0, k=0.9):
+    """The socket's rings (as `_orbit_cutter`) from `d0` mm behind its rim to
+    its back, drawn in by `k`"""
+    prof = [(0, 1.0), (12, 0.86), (26, 0.6), (40, 0.28), (48, 0.08)]
+    sc0 = 1.0 + (0.86 - 1.0) * d0 / 12
+    rings, seg = [], 24
+    for dz, sc in [(d0, sc0)] + [q for q in prof if q[0] > d0]:
+        ring = []
+        for j in range(seg):
+            q = TAU * j / seg
+            cx, cy = math.cos(q), math.sin(q)
+            ex = math.copysign(abs(cx) ** 0.75, cx) * 19.5
+            ey = math.copysign(abs(cy) ** 0.75, cy) * 16.5
+            ring.append(Vector((ex * sc * k, ey * sc * k, -dz)))
+        rings.append(ring)
+    out = []
+    for ring in rings:
+        r = Shape(ring, [])
+        r.rot(0, 0, -sx * math.radians(12))
+        r.rot(math.radians(4), sx * math.radians(20), 0)
+        out.append([p + Vector((sx * 30, 16, 92)) for p in r.v])
+    return out
+
+
+def _nose_rings(d0=3.0, k=0.88):
+    rings, seg = [], 24
+    for dz, sc in [(d0, 1.0 - 0.15 * d0 / 16), (16, 0.85), (34, 0.6)]:
+        ring = []
+        for j in range(seg):
+            q = TAU * j / seg
+            y = math.sin(q) * 16.5
+            w = 12.5 - 7.5 * smoothstep(-16.5, 16.5, y) ** 1.4
+            ring.append(Vector((math.cos(q) * w * sc * k, y * sc * k, -dz)) + Vector((0, -11, 101)))
+        rings.append(ring)
+    return rings
+
+
+def _liner(rings):
+    """A lining facing in, open at its front ring, closed at its back"""
+    n, seg = len(rings), len(rings[0])
+    v = [p for r in rings for p in r]
+    c = sum(rings[0], Vector((0, 0, 0))) / seg
+    f = []
+    for i in range(n - 1):
+        for j in range(seg):
+            j2 = (j + 1) % seg
+            f.append((i * seg + j, i * seg + j2, (i + 1) * seg + j2, (i + 1) * seg + j))
+    f.append(tuple((n - 1) * seg + j for j in range(seg)))
+    s = Shape(v, f)
+    # facing the axis: the face's normal toward the front ring's middle
+    out = []
+    for fc in s.f:
+        p = [s.v[i] for i in fc]
+        m = sum(p, Vector((0, 0, 0))) / len(p)
+        nrm = (p[1] - p[0]).cross(p[2] - p[0])
+        axis_pt = c + (rings[-1][0] * 0 + sum(rings[-1], Vector((0, 0, 0))) / seg - c) * 0.5
+        out.append(fc if nrm.dot(axis_pt - m) > 0 else tuple(reversed(fc)))
+    return Shape(v, out)
+
+
 def skull_raw():
     """The resin (cranium with the jaw wired on), the hollows the wash
     darkened (the orbits, the nasal aperture, the ears) and the teeth, in
@@ -484,15 +544,17 @@ def skull_raw():
         # the temple's hollow behind the orbit, over the arch; the ear's opening
         cran = cut(cran, ellipsoid(16, 24, 26, seg=20).move(sx * 76, 14, 36))
         cran = cut(cran, cyl(4.2, h=24, seg=12).rot(0, 0, math.pi / 2).move(sx * 66, -3, 2))
-    # the septum, a thin plate down the nasal cavity, and the conchae
-    cran = cran + rbox(2.0, 22, 24, r=0.8, seg=1).move(0.6, -15, 76)
-    for sx in (1, -1):
-        cran = cran + ellipsoid(4.5, 3.5, 12, seg=10).move(sx * 7, -21, 78)
     cran = remesh(cran, 1.1)
     cran = smooth_shape(cran, 0.5, 2)
-    hollow, cran = split_faces(cran, _hollow)
-    cran = decimate(cran, 3300)
-    hollow = decimate(hollow, 800)
+    cran = decimate(cran, 4300)
+    # the wash in the sockets and the nose: a lining just inside each, from
+    # a few mm behind its rim to the back
+    hollow = _liner(_orbit_rings(1)) + _liner(_orbit_rings(-1)) + _liner(_nose_rings())
+    # in the nose's dark, the septum (a thin plate a little to one side) and
+    # the conchae
+    hollow = hollow + rbox(2.0, 22, 26, r=0.8, seg=1).move(0.6, -15, 82)
+    for sx in (1, -1):
+        hollow = hollow + ellipsoid(4.0, 3.5, 12, seg=10).move(sx * 6.5, -21, 80)
     jaw = remesh(skull_jaw_mm(), 1.1)
     jaw = smooth_shape(jaw, 0.5, 3)
     jaw = decimate(jaw, 1300)
@@ -531,7 +593,7 @@ def skull_teeth():
     return skull_raw()[3]
 
 
-auto('Real__skullStackBone', skull_bone, 4800, smooth=50.0)
+auto('Real__skullStackBone', skull_bone, 5600, smooth=50.0)
 auto('Real__skullStackHollows', skull_hollows, 900, smooth=50.0)
 auto('Real__skullStackTeeth', skull_teeth, 1400, smooth=40.0)
 
@@ -559,7 +621,7 @@ def crystal_skull():
         fill = fill + ellipsoid(12, 18, 22, seg=14).move(sx * 58, 6, 32)
         fill = fill + ellipsoid(10, 12, 20, seg=14).move(sx * 50, -18, 40)
         fill = fill + ellipsoid(13, 15, 26, seg=14).move(sx * 36, -64, 38)
-    s = cran + jaw + hollow + teeth + skull_placed(fill)
+    s = cran + jaw + teeth + skull_placed(fill)
     s = Shape([p / MM for p in s.v], s.f)
     # its own scale: 105 mm deep, and a little broader for the mould
     lo, hi = s.bounds()
