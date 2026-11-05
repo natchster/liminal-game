@@ -841,6 +841,9 @@ fn place_small_gift_boxes(g: &mut Game, _dist: &[i32]) {
 // R427 small party horn: batch `t12`'s (`t12.rs`)
 mod t12;
 use t12::place_small_party_horns;
+// the hanging brass lantern: batch `t21`'s (`t21.rs`)
+mod t21;
+use t21::place_hanging_brass_lanterns;
 
 // R478 small vintage brass scales: 5% chance per level, gentle sway.
 fn place_small_scales(g: &mut Game, _dist: &[i32]) {
@@ -1323,102 +1326,6 @@ fn sew_thread_tex() -> Tex {
         })
         .clone()
     })
-}
-
-// R476 hanging brass lantern: 4% chance per level, hanging from the ceiling.
-fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
-    g.pp.brass_lantern_positions.clear(); // R480 reset per level
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let brass_mat = lambert!({ color: 0xc89040 });
-    let glass_mat = basic_mat!({ color: 0xffe0a0, transparent: true, opacity: 0.35 });
-    let chain_mat = lambert!({ color: 0x8a7050 });
-    let lantern = group();
-    let chain_len = 0.5 + rnd() * 0.4;
-    let lantern_y = WALL_H - chain_len - 0.10;
-    // Chain from ceiling: stretched 2.2 cm so it runs from the ceiling down
-    // into the top cap's boss.
-    let chain = mesh(pg("HangingBrassLanterns__chain", cyl_geo!(0.003, 0.003, chain_len, 4)), &chain_mat);
-    chain.scale().y = (chain_len + 0.022) / chain_len;
-    chain.position().y = WALL_H + 0.002 - (chain_len + 0.022) / 2.0;
-    lantern.add(&chain);
-    // Top cap.
-    let top_cap = mesh(pg("HangingBrassLanterns__topCap", cyl_geo!(0.030, 0.040, 0.015, 6)), &brass_mat);
-    top_cap.position().y = lantern_y + 0.085;
-    lantern.add(&top_cap);
-    // 4 corner posts (thin cylinders).
-    for i in 0..4 {
-        let a = (i as f64 / 4.0) * PI * 2.0 + PI / 4.0;
-        let post = mesh(pg("HangingBrassLanterns__post", cyl_geo!(0.003, 0.003, 0.14, 4)), &brass_mat);
-        post.position().set(a.cos() * 0.028, lantern_y, a.sin() * 0.028);
-        lantern.add(&post);
-    }
-    // 4 glass panels between posts (sides of the square whose corners are the posts).
-    for i in 0..4 {
-        let a = (i as f64 / 4.0) * PI * 2.0;
-        let panel = mesh(plane_geo!(0.038, 0.14), &glass_mat);
-        panel.position().set(
-            a.cos() * 0.028 * std::f64::consts::FRAC_1_SQRT_2,
-            lantern_y,
-            a.sin() * 0.028 * std::f64::consts::FRAC_1_SQRT_2,
-        );
-        panel.rotation().y = -a + PI / 2.0;
-        lantern.add(&panel);
-    }
-    // Bottom cap.
-    let bot_cap = mesh(pg("HangingBrassLanterns__botCap", cyl_geo!(0.040, 0.030, 0.015, 6)), &brass_mat);
-    bot_cap.position().y = lantern_y - 0.085;
-    lantern.add(&bot_cap);
-    // Inner light + candle flame.
-    let flame_mat = basic_mat!({ color: 0xffd070, transparent: true, opacity: 0.9 });
-    let flame = mesh(cone_geo!(0.010, 0.030, 6), &flame_mat);
-    flame.position().y = lantern_y;
-    lantern.add(&flame);
-    let glow = point_light!(0xffb060, 0.7, 1.5, 2);
-    glow.position().y = lantern_y;
-    lantern.add(&glow);
-    // R484 warm halo sphere inside lantern glass.
-    let halo_mat = basic_mat!({ color: 0xffc070, transparent: true, opacity: 0.35, depthWrite: false });
-    let halo = mesh(sphere_geo!(0.036, 8, 6), &halo_mat);
-    halo.position().y = lantern_y;
-    lantern.add(&halo);
-    // Flicker.
-    let flicker_phase = rnd() * PI * 2.0;
-    let flicker_rate = 5.0 + rnd() * 3.0;
-    {
-        let (glow, flame, halo) = (glow.clone(), flame.clone(), halo.clone());
-        g.animate(move |_g, _dt, t| {
-            let p = t * flicker_rate + flicker_phase;
-            let wobble = p.sin() * 0.5 + (p * 1.7).sin() * 0.3;
-            glow.set_intensity(0.7 + wobble * 0.15);
-            flame.scale().y = 1.0 + wobble * 0.10;
-            halo.scale().set_scalar(1.0 + wobble * 0.10);
-        });
-    }
-    lantern.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    lantern.rotation().y = rnd() * PI * 2.0;
-    // Slow sway.
-    let is_swaying = rnd() < 0.60;
-    if is_swaying {
-        let sway_phase = rnd() * PI * 2.0;
-        let sway_period = 8.0 + rnd() * 6.0;
-        let lantern2 = lantern.clone();
-        g.animate(move |_g, _dt, t| {
-            lantern2.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.03;
-        });
-    }
-    g.world.add(&lantern);
-    // R480 track swaying lanterns for creak audio.
-    if is_swaying {
-        let lp = lantern.pos();
-        g.pp.brass_lantern_positions.push(v3(lp.x, lantern_y, lp.z));
-    }
 }
 
 // R476 small vintage suitcase: 8% chance per level.

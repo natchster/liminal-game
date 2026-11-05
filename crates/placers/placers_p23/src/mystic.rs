@@ -9,6 +9,9 @@ pub use t01::place_ancient_portraits;
 // `t09`'s (`mystic/t09.rs`)
 mod t09;
 pub use t09::{place_brass_candlesticks, place_crystal_skulls, place_skull_stacks, place_small_owls};
+// the stained glass panel: batch `t21`'s (`mystic/t21.rs`)
+mod t21;
+pub use t21::place_stained_glass_windows;
 
 // R492 reliquary box: 4% chance per level. Small ornate wooden
 // box with 4 gem accents + gold trim + optional gem glow.
@@ -63,55 +66,6 @@ pub fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&relic);
 }
 
-// R491 stained glass window texture.
-game::lazy_static_tex!(
-    stained_glass_texture,
-    canvas_tex(192, 256, |ctx, w, h| {
-        // Dark lead outline background.
-        ctx.set_fill_style("#0a0a10");
-        ctx.fill_rect(0, 0, w, h);
-        // Cell colors palette.
-        let palette = ["#a02040", "#d8b040", "#2050d8", "#30a030", "#a020d0", "#f0a020"];
-        // 6-8 rows of cells with irregular shapes.
-        let (rows, cols) = (8, 5);
-        for r in 0..rows {
-            for c in 0..cols {
-                ctx.set_fill_style(palette[(r + c * 3) % palette.len()]);
-                let cx = c as f64 * (w / cols as f64) + 4.0;
-                let cy = r as f64 * (h / rows as f64) + 4.0;
-                let cw = w / cols as f64 - 8.0;
-                let ch = h / rows as f64 - 8.0;
-                ctx.begin_path();
-                // Irregular hexagon-ish shape.
-                ctx.move_to(cx + cw * 0.2, cy);
-                ctx.line_to(cx + cw * 0.8, cy);
-                ctx.line_to(cx + cw, cy + ch * 0.5);
-                ctx.line_to(cx + cw * 0.8, cy + ch);
-                ctx.line_to(cx + cw * 0.2, cy + ch);
-                ctx.line_to(cx, cy + ch * 0.5);
-                ctx.close_path();
-                ctx.fill();
-            }
-        }
-        // Central medallion.
-        ctx.set_fill_style("#f0d020");
-        ctx.begin_path();
-        ctx.arc(w / 2.0, h / 2.0, 26, 0, PI * 2.0);
-        ctx.fill();
-        ctx.set_stroke_style("#0a0a10");
-        ctx.set_line_width(3);
-        ctx.stroke();
-        // Cross inside medallion.
-        ctx.set_line_width(4);
-        ctx.begin_path();
-        ctx.move_to(w / 2.0, h / 2.0 - 18.0);
-        ctx.line_to(w / 2.0, h / 2.0 + 18.0);
-        ctx.move_to(w / 2.0 - 12.0, h / 2.0);
-        ctx.line_to(w / 2.0 + 12.0, h / 2.0);
-        ctx.stroke();
-    })
-);
-
 /// The wall-hung panel placement shared by the window / portrait / crucifix:
 /// returns nothing, sets rotation.y and position (one draw for the slide).
 fn hang_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64) {
@@ -124,49 +78,6 @@ fn hang_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64) {
         o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
         o.position().set(wall_x + (rnd() - 0.5) * 0.6, center_y, wall_z);
     }
-}
-
-// R491 stained glass window: 4% chance per level. Wall-mounted
-// glass fragment with canvas texture + colored inner light.
-pub fn place_stained_glass_windows(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let candidates = wall_cands(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    let frame_mat = lambert!({ color: 0x2a2418 });
-    let glass_mat = basic_mat!({ map: stained_glass_texture(), side: DoubleSide });
-    let window = group();
-    let (w, h, t, fw) = (0.30, 0.44, 0.012, 0.020);
-    // Dark iron frame.
-    for (bar_w, bar_h, bx, by) in [
-        (w + fw * 2.0, fw, 0.0, h / 2.0 + fw / 2.0),
-        (w + fw * 2.0, fw, 0.0, -h / 2.0 - fw / 2.0),
-        (fw, h, -w / 2.0 - fw / 2.0, 0.0),
-        (fw, h, w / 2.0 + fw / 2.0, 0.0),
-    ] {
-        let bar = mesh(pg("StainedGlassWindows__bar", box_geo!(bar_w, bar_h, t)), &frame_mat);
-        bar.position().set(bx, by, 0);
-        window.add(&bar);
-    }
-    // Glass panel.
-    let glass = mesh(plane_geo!(w, h), &glass_mat);
-    glass.position().set(0, 0, t / 2.0 + 0.001);
-    window.add(&glass);
-    let center_y = 1.70;
-    hang_on_wall(g, &window, &c, 0.010, center_y);
-    g.world.add(&window);
-    // Colored inner light casting from window position.
-    let lit_colors: [u32; 3] = [0xf0d020, 0xd8b040, 0xa02040];
-    let lit_color = pick_u32(&lit_colors);
-    let w_light = point_light!(lit_color, 0.20, 1.2, 2);
-    let wp = window.pos();
-    let ry = window.rot().y;
-    w_light.position().set(wp.x + ry.sin() * 0.15, center_y, wp.z + ry.cos() * 0.15);
-    g.world.add(&w_light);
 }
 
 // R490 ancient portrait texture: dark oil painting w/ figure silhouette.
