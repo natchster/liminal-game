@@ -740,7 +740,7 @@ WAND_STAR_Z = 96.5          # the star's centre: the rod 6 mm into its foot
 
 def wand_star():
     """The star lying face up: its back flat on the floor, each arm's ridge
-    rising to the raised centre (4.6 mm), its edge 1.4 mm thick; one point
+    rising to the raised centre (6 mm), its edge 1.4 mm thick; one point
     toward +z, the rod's socket between the two at -z."""
     pts = []
     for i in range(10):
@@ -749,7 +749,7 @@ def wand_star():
         pts.append((r * math.cos(a), r * math.sin(a)))
     n = len(pts)
     v = [Vector((x, 0.0, -y)) for x, y in pts] + [Vector((x, 1.4, -y)) for x, y in pts]
-    v.append(Vector((0, 4.6, 0)))
+    v.append(Vector((0, 6.0, 0)))
     v.append(Vector((0, 0.0, 0)))
     top, bot = 2 * n, 2 * n + 1
     f = []

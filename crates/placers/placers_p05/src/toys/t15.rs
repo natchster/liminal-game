@@ -50,8 +50,8 @@ pub fn place_action_figures(g: &mut Game, _dist: &[i32]) {
     let u = rgb(uniform);
     put_world(&fig, &format!("Real__actionFigureBody{pose}"), &plastic(u, u, 0.0, 0.45, 0.5, 1), size);
     put_world(&fig, &format!("Real__actionFigureSkin{pose}"), &plastic(flesh, flesh, 0.0, 0.5, 0.3, 2), size);
-    put_world(&fig, &format!("Real__actionFigureKit{pose}"), &plastic(rgb(0x1c1b19), u, 0.12, 0.2, 0.5, 3), size);
-    put_world(&fig, &format!("Real__actionFigureHelmet{pose}"), &plastic(rgb(helmet), flesh, 0.05, 0.4, 0.4, 4), size);
+    put_world(&fig, &format!("Real__actionFigureKit{pose}"), &plastic(rgb(0x1c1b19), u, 0.08, 0.2, 0.5, 3), size);
+    put_world(&fig, &format!("Real__actionFigureHelmet{pose}"), &plastic(rgb(helmet), flesh, 0.04, 0.4, 0.3, 4), size);
     put(&fig, &format!("Real__actionFigureEyes{pose}"), &lambert!({ color: 0x1e1a17 }));
     fig.position().set(px, 0, pz);
     fig.rotation().y = turn;
@@ -87,7 +87,7 @@ pub fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
         // the printed stars, rubbed half away (two to a tile, 9 mm across)
         for k in 0..2 {
             let (cx, cy) = (0.25 + 0.5 * f64::from(k), 0.3 + 0.4 * f64::from(k));
-            let ink = star(u - cx, v - cy, 0.075, 0.4 * f64::from(k)) * ss(0.38, 0.5, fbmp(salt ^ 13, u, v, 6, 3));
+            let ink = star(u - cx, v - cy, 0.075, 0.4 * f64::from(k)) * ss(0.3, 0.42, fbmp(salt ^ 13, u, v, 6, 3));
             c = mix(c, [0.93, 0.91, 0.86], ink * 0.85);
         }
         c
@@ -308,9 +308,9 @@ fn wear_at(seed: u32, u: f64, v: f64, w: &Wear) -> [f64; 3] {
     }
     if w.rub > 0.0 {
         // rubbed through in small patches: `rub` is about the share of the
-        // surface (fractal noise sits near 0.5, its spread about 0.12)
-        let r = fbmp(seed ^ 0x2b3c, u, v, 7, 4);
-        let t = 0.72 - 0.6 * w.rub;
+        // surface (this fractal noise sits near 0.49, its spread about 0.15)
+        let r = fbmp(seed ^ 0x2b3c, u, v, 12, 3);
+        let t = 0.8 - 0.9 * w.rub;
         c = mix(c, w.alt, ss(t, t + 0.025, r));
     }
     // grime settled in soft patches

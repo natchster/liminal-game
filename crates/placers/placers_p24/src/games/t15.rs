@@ -194,9 +194,9 @@ fn wear_at(seed: u32, u: f64, v: f64, w: &Wear) -> [f64; 3] {
     }
     if w.rub > 0.0 {
         // rubbed through in small patches: `rub` is about the share of the
-        // surface (fractal noise sits near 0.5, its spread about 0.12)
-        let r = fbmp(seed ^ 0x2b3c, u, v, 7, 4);
-        let t = 0.72 - 0.6 * w.rub;
+        // surface (this fractal noise sits near 0.49, its spread about 0.15)
+        let r = fbmp(seed ^ 0x2b3c, u, v, 12, 3);
+        let t = 0.8 - 0.9 * w.rub;
         c = mix(c, w.alt, ss(t, t + 0.025, r));
     }
     // grime settled in soft patches

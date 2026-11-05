@@ -108,12 +108,14 @@ pub fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
     let grille_tex = paint_tile(128, move |u, v| {
         let w = Wear { base: rgb(0x9c9c98), alt: rgb(0x46484a), rub: 0.15, grime: 0.5, scuff: 0.2, mottle: 0.08, scales: 0 };
         let c = wear_at(salt ^ 51, u, v, &w);
-        // the mesh's holes, 2 mm apart, in staggered rows
+        // the mesh's holes, about 2 mm apart, each a little off its place
+        // (so the sides the texture is laid from meet without a seam)
         let (gx, gy) = (u * 10.0, v * 10.0);
-        let row = gy.floor();
-        let fx = (gx + if row as i32 % 2 == 0 { 0.0 } else { 0.5 }).fract() - 0.5;
-        let fy = gy.fract() - 0.5;
-        let hole = 1.0 - ss(0.26, 0.34, (fx * fx + fy * fy).sqrt());
+        let (ci, cj) = (gx.floor() as i32, gy.floor() as i32);
+        let jx = (hash(salt ^ 55, ci.rem_euclid(10), cj.rem_euclid(10)) - 0.5) * 0.3;
+        let jy = (hash(salt ^ 57, ci.rem_euclid(10), cj.rem_euclid(10)) - 0.5) * 0.3;
+        let (fx, fy) = (gx.fract() - 0.5 - jx, gy.fract() - 0.5 - jy);
+        let hole = 1.0 - ss(0.24, 0.32, (fx * fx + fy * fy).sqrt());
         mix(c, [0.05, 0.05, 0.05], hole * 0.92)
     });
     put_world(&mic, "Real__toyMicGrille", &phong!({ map: &grille_tex, specular: 0x4a4a4a, shininess: 40 }), 0.02);
@@ -292,9 +294,9 @@ fn wear_at(seed: u32, u: f64, v: f64, w: &Wear) -> [f64; 3] {
     }
     if w.rub > 0.0 {
         // rubbed through in small patches: `rub` is about the share of the
-        // surface (fractal noise sits near 0.5, its spread about 0.12)
-        let r = fbmp(seed ^ 0x2b3c, u, v, 7, 4);
-        let t = 0.72 - 0.6 * w.rub;
+        // surface (this fractal noise sits near 0.49, its spread about 0.15)
+        let r = fbmp(seed ^ 0x2b3c, u, v, 12, 3);
+        let t = 0.8 - 0.9 * w.rub;
         c = mix(c, w.alt, ss(t, t + 0.025, r));
     }
     // grime settled in soft patches
