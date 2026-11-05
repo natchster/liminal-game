@@ -78,13 +78,6 @@ fn t10_fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 3] +
     ctx.put_image_data(&img, 0, 0);
 }
 
-/// Distance from (x, y) to the segment a-b
-fn t10_seg(x: f64, y: f64, a: (f64, f64), b: (f64, f64)) -> f64 {
-    let (dx, dy) = (b.0 - a.0, b.1 - a.1);
-    let t = (((x - a.0) * dx + (y - a.1) * dy) / (dx * dx + dy * dy).max(1e-12)).clamp(0.0, 1.0);
-    ((x - a.0 - t * dx).powi(2) + (y - a.1 - t * dy).powi(2)).sqrt()
-}
-
 // ===================================================== the bookshelf
 
 /// The shelf (t10.py `BS_*`): its width, a board's thickness, its back's, its
@@ -340,7 +333,9 @@ fn bs_spine_atlas(looks: Vec<(usize, usize)>, vary: u32) -> Tex {
             let author = BS_AUTHORS[((r.next() * 8.0) as usize).min(7)];
             ctx.set_text_baseline("middle");
             ctx.set_text_align("center");
-            if r.next() < 0.4 {
+            let label = r.next() < 0.4;
+            let gilt = if label { "rgba(168,140,80,0.80)" } else { gilt };
+            if label {
                 // a leather label, the title on it
                 ctx.set_fill_style("rgba(30,20,14,0.85)");
                 ctx.fill_rect(x0 + 34.0, y0 + 5.0, 128, 22);
@@ -473,14 +468,6 @@ fn lk_paint_tex(vary: u32, paint: [f64; 3], door: bool) -> Tex {
             let mut o = paint.map(|c| c * (0.9 + 0.16 * m));
             // faded and dulled
             o = t10_mix(o, [0.55, 0.53, 0.50], 0.12 + 0.08 * t10_fbm(seed ^ 3, x * 3.0, y * 2.0, 2));
-            // scratches: through to the grey primer, the deepest to the steel
-            for &(a, b, k) in &scratches {
-                let d = t10_seg(u, v, a, b) * 640.0;
-                if d < 1.4 {
-                    let t = 1.0 - d / 1.4;
-                    o = t10_mix(o, if k > 0.8 { [0.55, 0.56, 0.56] } else { [0.62, 0.61, 0.58] }, 0.7 * t * k);
-                }
-            }
             // the foot and the edges: rust come through the paint, bleeding down
             let edge = (u.min(1.0 - u) * 0.30).min(if door { v.min(1.0 - v) * 1.45 } else { 1.0 });
             let foot = if door { v * 1.45 } else { (v * 1.68 - 0.15).max(0.0) };
@@ -502,6 +489,16 @@ fn lk_paint_tex(vary: u32, paint: [f64; 3], door: bool) -> Tex {
             }
             o
         });
+        // scratches: through to the grey primer, the deepest to the steel
+        ctx.set_line_cap("round");
+        for &(a, b, k) in &scratches {
+            ctx.set_stroke_style(if k > 0.8 { "rgba(140,143,143,0.75)" } else { "rgba(158,156,148,0.6)" });
+            ctx.set_line_width(0.6 + 0.8 * k);
+            ctx.begin_path();
+            ctx.move_to(a.0 * w, (1.0 - a.1) * h);
+            ctx.line_to(b.0 * w, (1.0 - b.1) * h);
+            ctx.stroke();
+        }
     })
 }
 

@@ -21,6 +21,31 @@ snifter*       a 5.5 oz brandy snifter (the Libbey Embassy 3702 class) on a
                surface), CoasterWood (turned, its rim), CoasterCork,
                CoasterLeather (square, stitched), Rocks (a 2 oz heavy-base
                whisky glass) and RocksDregs (what dried in it)
+ornateMirror*  a small Italian giltwood mirror, 300 x 400 mm over its moulding:
+               Frame (the moulding swept round, its rebate; y = 0 the glass's
+               middle) and Crest (the rocaille crest, the corners' leaves,
+               the apron: carved ornament, gilt apart)
+bookshelf*     a hanging wall bookshelf, 600 x 160 mm, 300 mm tall: Sides
+               (scrolled at the foot), Boards (top and bottom), Back
+               (hardboard); its books are r02's
+locker*        a single-tier steel locker, 12 x 12 x 60 in on 6 in legs:
+               Case (sides, back, top, bottom, the frame round the door, the
+               legs and feet, the hinges), Door (the pan, its louvres and
+               their hoods, the latch's pocket), Latch (the cup's rim, the
+               lift handle, the padlock staple), Plate (the number plate and
+               its rivets, at its own origin)
+cuckoo*        a carved Black Forest cuckoo clock (y = 0 the dial's middle):
+               Case (back board, case, mouldings, the cuckoo's door, the
+               dial's seat), Carving (oak leaves, acorns, the bird), Dial,
+               Hour and Minute (bone hands, up +y from their boss at the
+               origin), PendRod (its hook at the origin) and PendBob (a
+               carved leaf), Chains (brass, two weighted strands and two free
+               ends with rings), Weights (two cast pine cones)
+fireplace*     a Victorian bedroom fireplace against the wall: Mantel (painted
+               pine), Insert (the cast-iron arched register, its canopy),
+               Grate (the basket and the fret), Firebox (the firebrick back
+               and cheeks), Hearth (slate), Ash, LogA..LogD (charred ends,
+               along x, at their own origin)
 """
 from propkit import *
 import propkit
@@ -307,20 +332,27 @@ def coaster_leather():
     return s.rot(x=-math.pi / 2).move(0, 0.0021, 0)
 
 
-# A 2 oz heavy-base whisky glass: 51 mm across, 60 mm tall, its base 14 mm
+# A 2 oz heavy-base whisky glass (the Libbey 48 class): 2 in (51 mm) across
+# its rim, 1 1/2 in (38 mm) at its foot, 2 3/8 in (60 mm) tall, its base 14 mm
 RK_R, RK_H, RK_BASE = 0.0255, 0.060, 0.014
 
 
+def _rk_out(y):
+    return 0.0192 + (RK_R - 0.0192) * min(1.0, max(0.0, y / RK_H))
+
+
 def rocks_glass():
-    prof = [(0.0, 0.0006), (0.0230, 0.0004), (0.0245, 0.0018), (0.0248, 0.0100),
+    prof = [(0.0, 0.0006), (0.0178, 0.0004), (0.0190, 0.0018), (_rk_out(0.010), 0.0100),
             (RK_R, RK_H - 0.0008), (RK_R - 0.0007, RK_H), (RK_R - 0.0016, RK_H - 0.0006),
-            (0.0236, 0.0200), (0.0228, RK_BASE + 0.0012), (0.0200, RK_BASE), (0.0, RK_BASE - 0.0004)]
+            (_rk_out(0.020) - 0.0016, 0.0200), (_rk_out(RK_BASE) - 0.0020, RK_BASE + 0.0012),
+            (_rk_out(RK_BASE) - 0.0045, RK_BASE), (0.0, RK_BASE - 0.0004)]
     return lathe(prof, seg=36)
 
 
 def rocks_dregs():
-    prof = [(0.0, RK_BASE - 0.0002), (0.0200, RK_BASE + 0.0001), (0.0226, RK_BASE + 0.0014),
-            (0.0229, RK_BASE + 0.0026), (0.0200, RK_BASE + 0.0021), (0.0, RK_BASE + 0.0020)]
+    r = _rk_out(RK_BASE) - 0.0021
+    prof = [(0.0, RK_BASE - 0.0002), (r - 0.0026, RK_BASE + 0.0001), (r - 0.0002, RK_BASE + 0.0014),
+            (r, RK_BASE + 0.0026), (r - 0.0026, RK_BASE + 0.0021), (0.0, RK_BASE + 0.0020)]
     return lathe(prof, seg=32)
 
 
@@ -653,7 +685,7 @@ auto('Real__lockerPlate', locker_plate, 200)
 # A carved Black Forest cuckoo clock of the traditional kind, one-day,
 # weight driven (the leaf-and-bird "Jagdstueck" style): the case 170 x 200
 # x 110 mm on its back board, a 100 mm dial, oak leaves carved round it
-# and a bird with its wings spread on its top, 260 mm across the leaves;
+# and a bird with its wings spread on its top, 220 mm across the leaves;
 # a carved leaf on the pendulum, two cast pine-cone weights on brass chains.
 # Its wall at z = 0, the dial's middle at y = 0.
 CK_CW, CK_CH, CK_CD = 0.170, 0.200, 0.110
