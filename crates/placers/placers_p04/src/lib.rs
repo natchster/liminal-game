@@ -868,59 +868,9 @@ fn place_yoyos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&yoyo);
 }
 
-// R623 rubik's cube: 5% chance per level. 3x3 grid of colored stickers on each face.
-fn place_rubiks_cubes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    }
-    let Some((x, z)) = pick_open(g) else { return };
-    let body_mat = lambert!({ color: 0x0a0a0a });
-    // Standard rubik's colors: W Y R O G B.
-    let sticker_colors = [0xffffff, 0xf0e020, 0xc02020, 0xd06010, 0x40a040, 0x2040c0];
-    let size = 0.055;
-    let cube = group();
-    let core = mesh(pg("RubiksCubes__core", box_geo!(size, size, size)), &body_mat);
-    core.position().y = size / 2.0;
-    cube.add(&core);
-    // (axis, sign, u, v) with axes x=0, y=1, z=2.
-    let face_planes: [(usize, f64, usize, usize); 6] = [
-        (0, 1.0, 2, 1),  // +X
-        (0, -1.0, 2, 1), // -X
-        (1, 1.0, 0, 2),  // +Y
-        (1, -1.0, 0, 2), // -Y
-        (2, 1.0, 0, 1),  // +Z
-        (2, -1.0, 0, 1), // -Z
-    ];
-    let scrambled = rnd() < 0.6; // 60% chance scrambled
-    for f_idx in 0..6 {
-        let (axis, sign, u, v) = face_planes[f_idx];
-        for r in -1..=1 {
-            for c in -1..=1 {
-                let sticker_color = if scrambled { sticker_colors[(rnd() * 6.0).floor() as usize] } else { sticker_colors[f_idx] };
-                let sticker = mesh(plane_geo!(size * 0.28, size * 0.28), lambert!({ color: sticker_color }));
-                // Position on face.
-                let mut pos = [0.0, size / 2.0, 0.0];
-                pos[axis] += sign * (size / 2.0 + 0.001);
-                pos[u] += c as f64 * (size / 3.0);
-                pos[v] += r as f64 * (size / 3.0);
-                sticker.position().set(pos[0], pos[1], pos[2]);
-                // Orient sticker.
-                if axis == 0 {
-                    sticker.rotation().y = if sign > 0.0 { PI / 2.0 } else { -PI / 2.0 };
-                } else if axis == 1 {
-                    sticker.rotation().x = if sign > 0.0 { -PI / 2.0 } else { PI / 2.0 };
-                } else if axis == 2 && sign < 0.0 {
-                    sticker.rotation().y = PI;
-                }
-                cube.add(&sticker);
-            }
-        }
-    }
-    let (px, pz) = jitter(g, x, z, 2.4);
-    cube.position().set(px, 0, pz);
-    cube.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&cube);
-}
+// R623 twisty puzzle cube: batch `t22`'s (`t22.rs`)
+mod t22;
+use t22::place_rubiks_cubes;
 
 // R623 marbles cluster: 8% chance per level. 5-10 small translucent glass spheres.
 fn place_marbles(g: &mut Game, _dist: &[i32]) {

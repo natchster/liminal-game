@@ -265,46 +265,9 @@ pub fn place_small_potions(g: &mut Game, _dist: &[i32]) {
     g.world.add(&potion);
 }
 
-// R465 candy corn scatter: 8% chance per level. 8-14 tri-color
-// candy corn pieces scattered. Halloween family.
-pub fn place_candy_corn_scatters(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick_tile(&open);
-    let white_mat = lambert!({ color: 0xf0ece0 });
-    let orange_mat = lambert!({ color: 0xe07020 });
-    let yellow_mat = lambert!({ color: 0xf0d020 });
-    let grp = group();
-    let n_pieces = 8 + (rnd() * 7.0).floor() as i32;
-    for _ in 0..n_pieces {
-        let candy = group();
-        // 3-tone cone divided into thirds vertically.
-        let yellow = mesh(pg("CandyCornScatters__yellow", cyl_geo!(0.006, 0.008, 0.008, 4)), &yellow_mat);
-        yellow.position().y = 0.004;
-        candy.add(&yellow);
-        let orange = mesh(pg("CandyCornScatters__orange", cyl_geo!(0.004, 0.006, 0.008, 4)), &orange_mat);
-        orange.position().y = 0.012;
-        candy.add(&orange);
-        let white = mesh(pg("CandyCornScatters__white", cone_geo!(0.004, 0.008, 4)), &white_mat);
-        white.position().y = 0.020;
-        candy.add(&white);
-        // Tipped on side (candy on floor lying flat): past 90° by the taper so
-        // the kernel rests along its side, not on its 8 mm base edge sunk 2 mm
-        // into the floor with the axis level at 6 mm.
-        candy.rotation().z = PI / 2.0 + 0.28f64.atan();
-        candy.position().set((rnd() - 0.5) * 0.30, 0.0082, (rnd() - 0.5) * 0.25);
-        candy.rotation().y = rnd() * PI * 2.0;
-        grp.add(&candy);
-    }
-    grp.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    grp.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&grp);
-}
+// R465 candy corn scatter: batch `t22`'s (`mystic/t22.rs`)
+mod t22;
+pub use t22::place_candy_corn_scatters;
 
 // R465 small trick-or-treat pail: 6% chance per level. Orange
 // plastic pumpkin-shaped candy pail. Halloween family.

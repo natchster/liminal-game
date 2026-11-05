@@ -19,6 +19,9 @@ use r15::{place_crumpled_receipts, place_paperback_books, place_tape_rolls};
 // R562 towel bar, R544 emergency strobe: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::{place_emergency_strobes, place_hand_towel_bars};
+// the paper clips: batch `t22`'s (`t22.rs`)
+mod t22;
+use t22::place_paperclip_clusters;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -1106,37 +1109,6 @@ fn place_wall_intercoms(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.010);
     mount(&intercom, c, wall_x, wall_z, 1.55, Some(0.6));
     g.world.add(&intercom);
-}
-
-// R548 paperclip cluster: 10% chance per level. 6-14 metal
-// paperclip torus scattered.
-fn place_paperclip_clusters(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.90 {
-        return;
-    } // 10% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = choice(&open);
-    let clip_mat = lambert!({ color: 0xc0c0c0 });
-    let grp = group();
-    let n_clips = 6 + (rnd() * 9.0).floor() as i32;
-    for i in 0..n_clips {
-        let clip = mesh(pg("PaperclipClusters__clip", torus_geo!(0.008, 0.001, 4, 8, PI * 1.8)), &clip_mat);
-        clip.rotation().x = -PI / 2.0;
-        clip.rotation().z = rnd() * PI * 2.0;
-        let px = (rnd() - 0.5) * 0.15;
-        let pz = (rnd() - 0.5) * 0.12;
-        clip.position().set(px, 0.001, pz);
-        // Slight scale variance.
-        let sx = 0.9 + rnd() * 0.4;
-        let sz = 0.9 + rnd() * 0.4;
-        clip.scale().set(sx, 1, sz);
-        grp.add(&clip);
-    }
-    scatter(g, &grp, x, z, 2.4);
-    g.world.add(&grp);
 }
 
 // R547 ceiling sprinkler head: 6% chance per level. Small

@@ -1064,40 +1064,9 @@ fn place_contact_lens_cases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&c_case);
 }
 
-// R579 scattered cotton swabs (Q-tips): 10% chance per level, 4-8 sticks.
-fn place_cotton_swabs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.90 {
-        return;
-    } // 10% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let stick_mat = lambert!({ color: 0xe0d8b0 });
-    let fluff_mat = lambert!({ color: 0xffffff });
-    let cluster = group();
-    let count = 4 + (rnd() * 5.0).floor() as i32;
-    for s in 0..count {
-        let swab = group();
-        // Stick (thin cylinder laid flat).
-        let stick = mesh(pg("CottonSwabs__stick", cyl_geo!(0.0012, 0.0012, 0.040, 4)), &stick_mat);
-        stick.rotation().z = PI / 2.0;
-        swab.add(&stick);
-        // 2 cotton tufts (small spheres each end).
-        let t1 = mesh(pg("CottonSwabs__tuft", sphere_geo!(0.0035, 6, 4)), &fluff_mat);
-        t1.position().x = -0.020;
-        swab.add(&t1);
-        let t2 = mesh(pg("CottonSwabs__tuft", sphere_geo!(0.0035, 6, 4)), &fluff_mat);
-        t2.position().x = 0.020;
-        swab.add(&t2);
-        swab.position().set((rnd() - 0.5) * 0.12, 0.004, (rnd() - 0.5) * 0.12);
-        swab.rotation().y = rnd() * PI * 2.0;
-        cluster.add(&swab);
-    }
-    cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    g.world.add(&cluster);
-}
+// R579 scattered cotton swabs: batch `t22`'s (`t22.rs`)
+mod t22;
+use t22::place_cotton_swabs;
 
 // R580 cotton ball cluster: 8% chance per level, 3-6 puffs.
 fn place_cotton_balls(g: &mut Game, _dist: &[i32]) {

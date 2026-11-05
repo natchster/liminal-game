@@ -249,51 +249,9 @@ pub fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tri);
 }
 
-/// R434 small maracas: 8% chance per level. Pair of maracas
-/// (bulb + handle) on floor. Latin-percussion child-music family.
-pub fn place_small_maracas(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let bulb_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0];
-    let handle_mat = lambert!({ color: 0x8a6540 });
-    let bulb_color = pick(&bulb_colors);
-    let bulb_mat = lambert!({ color: bulb_color });
-    let pair = group();
-    for i in 0..2 {
-        let maraca = group();
-        // Bulb: slightly oblate sphere. Upright = standing head-down on the bulb, neck up.
-        let bulb = mesh(pg("SmallMaracas__bulb", sphere_geo!(0.028, 10, 8)), &bulb_mat);
-        bulb.scale().y = 0.85;
-        bulb.rotation().x = PI;
-        bulb.position().y = 0.0238;
-        maraca.add(&bulb);
-        // Handle: rises out of the bulb's neck (collar 4 mm inside it), knob up.
-        let handle = mesh(pg("SmallMaracas__handle", cyl_geo!(0.007, 0.006, 0.08, 6)), &handle_mat);
-        handle.rotation().x = PI;
-        handle.position().y = 0.0836;
-        maraca.add(&handle);
-        // 30% chance tipped on side: rests on the bulb and the handle's knob
-        // end, so it lies tilted 0.22 rad.
-        if rnd() < 0.30 {
-            maraca.rotation().z = PI / 2.0 + 0.222;
-            maraca.position().y = 0.0333;
-        }
-        // Position side by side.
-        maraca.position().x = (if i == 0 { -0.030 } else { 0.030 }) + (rnd() - 0.5) * 0.02;
-        maraca.position().z = (rnd() - 0.5) * 0.02;
-        maraca.rotation().y = rnd() * PI * 2.0;
-        pair.add(&maraca);
-    }
-    pair.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    pair.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pair);
-}
+/// R434 small maracas: batch `t22`'s (`music/t22.rs`)
+mod t22;
+pub use t22::place_small_maracas;
 
 /// R433 small trumpet: 6% chance per level. Small brass toy
 /// trumpet with bell + tube + 3 valves.

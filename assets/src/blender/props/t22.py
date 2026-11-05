@@ -42,10 +42,10 @@ twistyCubies    a 57 mm 3x3x3 twisty puzzle's 26 cubies, black plastic,
                 their edges rounded, the gaps between the layers
 twistyStickers  its 53 stickers (one gone), top faces only, two peeling at
                 a corner (the game paints the colours by face)
-boaCoreS, boaFeathersS   a lightweight chandelle boa (1.8 m) dropped in
-                a loose S: the dense fluff round its cord, and its
-                feathers, each a curled vane of barbs
-boaCoreO, boaFeathersO   the same boa dropped in a loop
+boaCoreA..C, boaFeathersA..C   three lengths of a short chandelle boa
+                (75 mm of it each, along x): the dense fluff round its
+                cord, and its feathers, each a curled vane of barbs; the
+                game lays twelve along the curve the boa fell in
 """
 from propkit import *
 import propkit
@@ -317,26 +317,27 @@ def paperclip_gem():
 
 
 def paperclip_open():
-    """Pulled open: the outer loop swung out round its bend until the clip
-    is a long S, the inner loop splayed; all still on the floor."""
-    p = gem_path()
-    out = []
-    for x, z in p:
-        out.append((x, z))
-    # unbend: points past the outer left bend's middle are turned about it
-    pivot = (0.0048, 0.0)
-    pts = []
-    n = len(out)
-    for i, (x, z) in enumerate(out):
-        t = i / (n - 1)
-        if t > 0.55:
-            a = -math.radians(150) * smoothstep(0.55, 0.75, t)
-            dx, dz = x - pivot[0], z - pivot[1]
-            x, z = pivot[0] + dx * math.cos(a) - dz * math.sin(a), pivot[1] + dx * math.sin(a) + dz * math.cos(a)
-        if t < 0.25:
-            z += 0.002 * (0.25 - t) / 0.25
-        pts.append((x, 0.0, z))
-    s = wire(pts)
+    """Pulled open by a fidgeting hand: the inner loop as it was, the big
+    bend opened out to a hook, the outer loop standing off it; all still on
+    the floor (a half-unbent clip's S)."""
+    za, zb = 0.0014, -0.0026
+    pts = [(0.0095, za)]
+    pts += arc_pts((0.0285, (za + zb) / 2), (za - zb) / 2, math.pi / 2, -math.pi / 2, 8)
+    c, r = (0.0060, 0.00085), 0.00345
+    end_a = -math.pi / 2 - math.radians(100)
+    pts += arc_pts(c, r, -math.pi / 2, end_a, 7)
+    x0, z0 = pts[-1]
+    h = (math.sin(end_a), -math.cos(end_a))            # the way the wire runs on
+    x1, z1 = x0 + h[0] * 0.018, z0 + h[1] * 0.018
+    pts.append((x1, z1))
+    right = (h[1], -h[0])
+    r2 = 0.0043
+    c2 = (x1 + right[0] * r2, z1 + right[1] * r2)
+    a0 = math.atan2(z1 - c2[1], x1 - c2[0])
+    pts += arc_pts(c2, r2, a0, a0 - math.pi, 10)[1:]
+    xe, ze = pts[-1]
+    pts.append((xe - h[0] * 0.014, ze - h[1] * 0.014))
+    s = wire([(x, 0.0, z) for x, z in pts])
     lo, hi = s.bounds()
     return on_floor(s.move(-(lo.x + hi.x) / 2, 0, -(lo.z + hi.z) / 2))
 
@@ -540,135 +541,89 @@ def twisty_stickers():
 
 
 # ================================================================== boa ===
-# A lightweight chandelle boa: turkey feathers twisted into a cord, 1.83 m
-# (2 yd), about 110 mm across; lying, it settles to about 70 mm high.
-BOA_LEN = 1.83
-BOA_R = 0.055
+# A short chandelle boa, a child's dress-up one: turkey feathers twisted on
+# a cord, about 90 mm across, lying it settles to about 65 mm high. Made of
+# lengths: the game lays twelve of them along the curve it fell in,
+# overlapping (each one 75 mm along its cord, x; its middle at the origin).
+BOA_SEG_L = 0.075
 
 
-def boa_path(shape):
-    """Its cord's centre line on the floor [(x, z)], about 1.83 m long."""
-    pts = []
-    n = 90
-    for i in range(n + 1):
-        t = i / n
-        if shape == 'S':
-            x = (t - 0.5) * 0.74
-            z = 0.20 * math.sin(t * TAU * 1.25 + 0.3) + 0.04 * math.sin(t * TAU * 3.1)
-            # a lazy hook at one end where it fell over itself
-            if t > 0.82:
-                u = (t - 0.82) / 0.18
-                x -= 0.20 * u * u
-                z += 0.16 * u
-        else:
-            a = t * TAU * 0.95 + 0.4
-            rr = 0.22 + 0.05 * math.sin(t * TAU * 2.0) + 0.03 * t
-            x = rr * math.cos(a) + 0.12 * (t - 0.5)
-            z = rr * math.sin(a) * 0.75
-        pts.append(Vector((x, 0.0, z)))
-    # scale to its length
-    L = sum((b - a).length for a, b in zip(pts, pts[1:]))
-    k = BOA_LEN / L
-    return [Vector((p.x * k, 0.0, p.z * k)) for p in pts]
-
-
-def boa_frames(path):
-    out = []
-    for i, p in enumerate(path):
-        t = path[min(i + 1, len(path) - 1)] - path[max(i - 1, 0)]
-        t.normalize()
-        side = Vector((-t.z, 0.0, t.x))
-        out.append((p, t, side))
-    return out
-
-
-def boa_core(shape):
-    """The dense fluff round the cord: a lumpy rope 60 mm across, settled."""
-    path = boa_path(shape)
-    fr = boa_frames(path)
+def boa_seg_core(seed):
+    """The dense fluff round the cord: a lumpy rope 46 mm across, settled
+    onto the floor, its ends tapering into the next length's."""
+    rnd_ = random.Random(seed)
     rings = []
     seg = 9
-    for i, (p, t, side) in enumerate(fr[::2]):
+    n = 6
+    for i in range(n + 1):
+        x = -BOA_SEG_L / 2 + BOA_SEG_L * i / n
+        k = 1.0 - 0.25 * (abs(x) / (BOA_SEG_L / 2)) ** 3
         ring = []
         for j in range(seg):
             a = TAU * j / seg
-            r = 0.030 * (1.0 + 0.18 * math.sin(i * 1.7 + j * 2.3))
-            q = p + side * (math.cos(a) * r) + Vector((0, 1, 0)) * (math.sin(a) * r * 0.75 + 0.024)
-            ring.append(q)
+            r = 0.016 * k * (1.0 + 0.16 * math.sin(i * 1.7 + j * 2.3 + seed))
+            ring.append(Vector((x, 0.028 + math.sin(a) * r * 0.85, math.cos(a) * r)))
         rings.append(ring)
     s = loft(rings, cap0=True, cap1=True)
-    s = noisy(s, 0.006, scale=40, seed=5)
-    s.warp(lambda q: Vector((q.x, max(q.y, 0.0005 + 0.15 * q.y), q.z)))
+    s = noisy(s, 0.004, scale=60, seed=seed)
+    s.warp(lambda q: Vector((q.x, max(q.y, 0.0012 + 0.0004 * math.sin(q.x * 900 + q.z * 700)), q.z)))
     return s
 
 
-def feather(base, out, up, length, width, curl, rnd_):
+def plume(base, out, up, length, curl, rnd_):
     """One chandelle feather from `base` toward `out`: its rachis curling
-    over, barbs on either side as thin blades, wispy toward the tip."""
+    over, its barbs fine and long, each a thin blade, shorter toward the
+    tip, wisping out to either side and lifting."""
     tris_v, tris_f = [], []
     side = out.cross(up).normalized()
-    n = 4
+    n = 5
     pts = []
     for i in range(n + 1):
         t = i / n
         a = curl * t * t
         d = (out * math.cos(a) + up * math.sin(a)).normalized()
-        if i == 0:
-            pts.append(base.copy())
-        else:
-            pts.append(pts[-1] + d * (length / n))
-    # barbs: pairs of thin blades along the rachis, each one triangle
+        pts.append(base.copy() if i == 0 else pts[-1] + d * (length / n))
     for i in range(1, n + 1):
         t = i / n
-        p = pts[i]
-        q = pts[i - 1]
-        w = width * (0.55 + 0.6 * math.sin(math.pi * min(1.0, t * 1.1)))
+        p, q = pts[i], pts[i - 1]
+        along = (p - q).normalized()
+        bl = length * 0.55 * (1.0 - 0.45 * t) * rnd_.uniform(0.8, 1.15)
         for sgn in (-1, 1):
-            tip = p + side * (sgn * w) + (p - q) * rnd_.uniform(0.2, 0.7) + up * rnd_.uniform(-0.3, 0.6) * w
+            tip = p + side * (sgn * bl * 0.6) + along * bl * rnd_.uniform(0.4, 0.8) + up * bl * rnd_.uniform(-0.3, 0.3)
+            w = side * 0.0016 + up * 0.0006
             k = len(tris_v)
-            tris_v += [q.copy(), p.copy(), tip]
-            tris_f.append((k, k + 1, k + 2) if sgn > 0 else (k, k + 2, k + 1))
-    # the wispy tip
+            tris_v += [p - w, p + w, tip]
+            tris_f.append((k, k + 1, k + 2))
     k = len(tris_v)
-    tip = pts[-1] + (pts[-1] - pts[-2]) * 0.8 + side * rnd_.uniform(-0.3, 0.3) * width
-    tris_v += [pts[-2] + side * width * 0.25, pts[-2] - side * width * 0.25, tip]
+    tip = pts[-1] + (pts[-1] - pts[-2]) * 1.2
+    tris_v += [pts[-1] + side * 0.001, pts[-1] - side * 0.001, tip]
     tris_f.append((k, k + 1, k + 2))
     return Shape(tris_v, tris_f)
 
 
-def boa_feathers(shape):
-    rnd_ = random.Random(zlib.crc32(shape.encode()))
-    path = boa_path(shape)
-    fr = boa_frames(path)
+def boa_seg_feathers(seed):
+    """The feathers of one length, wound round its cord: standing out all
+    round and leaning back along it, those underneath pressed out flat on
+    the floor, a few strays longer."""
+    rnd_ = random.Random(seed)
     s = Shape()
-    count = 330
+    count = 80
+    t = Vector((1, 0, 0))
     for i in range(count):
-        u = (i + rnd_.random()) / count
-        k = min(len(fr) - 1, int(u * (len(fr) - 1)))
-        p, t, side = fr[k]
-        a = rnd_.uniform(0, TAU)
-        # round the cord, but the ones underneath pressed out flat on the floor
-        dirv = side * math.cos(a) + Vector((0, 1, 0)) * math.sin(a)
+        x = -BOA_SEG_L / 2 + BOA_SEG_L * (i + rnd_.random()) / count
+        a = TAU * (i * 0.382 + rnd_.uniform(-0.1, 0.1))
+        dirv = Vector((0, math.sin(a), math.cos(a)))
         if dirv.y < -0.2:
-            dirv = Vector((dirv.x, -0.05, dirv.z))
-        dirv = (dirv + t * rnd_.uniform(-0.6, 0.6)).normalized()
-        base = p + Vector((0, 0.026, 0)) + dirv * 0.012
+            dirv = Vector((0, 0.1, math.copysign(1.0, dirv.z)))
+        dirv = (dirv + t * rnd_.uniform(-0.7, 0.3) + Vector((0, 0.3, 0))).normalized()
+        base = Vector((x, 0.028, 0.0)) + dirv * 0.009
         up = t.cross(dirv).normalized() if abs(t.dot(dirv)) < 0.95 else Vector((0, 1, 0))
-        length = rnd_.uniform(0.040, 0.062)
-        width = rnd_.uniform(0.006, 0.010)
-        curl = rnd_.uniform(0.4, 1.3) * (1 if rnd_.random() < 0.5 else -1)
-        s = s + feather(base, dirv, up, length, width, curl, rnd_)
+        length = rnd_.uniform(0.032, 0.046) * (1.3 if rnd_.random() < 0.08 else 1.0)
+        curl = rnd_.uniform(0.15, 0.6) * (1 if rnd_.random() < 0.5 else -1)
+        s = s + plume(base, dirv, up, length, curl, rnd_)
     # nothing below the floor: what reaches it lies on it
-    s.warp(lambda q: Vector((q.x, max(q.y, 0.0004 + 0.08 * q.y), q.z)))
+    s.warp(lambda q: Vector((q.x, max(q.y, 0.0010 + 0.0004 * math.sin(q.x * 900 + q.z * 700)), q.z)))
     return s
-
-
-def boa_centre(s, shape):
-    """Both parts of one shape are moved alike: the path's middle to x = z = 0."""
-    path = boa_path(shape)
-    lo = Vector((min(p.x for p in path), 0, min(p.z for p in path)))
-    hi = Vector((max(p.x for p in path), 0, max(p.z for p in path)))
-    return s.move(-(lo.x + hi.x) / 2, 0, -(lo.z + hi.z) / 2)
 
 
 # ---------------------------------------------------------------- parts ---
@@ -692,7 +647,9 @@ auto('Real__maracaHead', lambda: maraca_lying('head'), 1300, smooth=50.0)
 auto('Real__maracaHandle', lambda: maraca_lying('handle'), 600, smooth=50.0)
 auto('Real__twistyCubies', twisty_cubies, 3200)
 auto('Real__twistyStickers', twisty_stickers, 900)
-auto('Real__boaCoreS', lambda: boa_centre(boa_core('S'), 'S'), 900, smooth=180.0)
-auto('Real__boaFeathersS', lambda: boa_centre(boa_feathers('S'), 'S'), 5000, smooth=180.0)
-auto('Real__boaCoreO', lambda: boa_centre(boa_core('O'), 'O'), 900, smooth=180.0)
-auto('Real__boaFeathersO', lambda: boa_centre(boa_feathers('O'), 'O'), 5000, smooth=180.0)
+auto('Real__boaCoreA', lambda: boa_seg_core(1), 140, smooth=180.0)
+auto('Real__boaCoreB', lambda: boa_seg_core(2), 140, smooth=180.0)
+auto('Real__boaCoreC', lambda: boa_seg_core(3), 140, smooth=180.0)
+auto('Real__boaFeathersA', lambda: boa_seg_feathers(11), 960, smooth=180.0)
+auto('Real__boaFeathersB', lambda: boa_seg_feathers(12), 960, smooth=180.0)
+auto('Real__boaFeathersC', lambda: boa_seg_feathers(13), 960, smooth=180.0)
