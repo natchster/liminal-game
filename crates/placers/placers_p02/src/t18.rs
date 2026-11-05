@@ -39,14 +39,15 @@ pub(super) fn place_tarot_card_fans(g: &mut Game, _dist: &[i32]) {
     let bent = (vary >> 4) % 5;
     let cards = group();
     // fanned from a point 10 mm in from their feet (+z), each turned about
-    // it; the face-up card the middle one
+    // it; the face-up card the middle one, turned over and laid back on top
     let r = CARD.1 / 2.0 - 0.010;
     for i in 0..5 {
-        let a = -PI / 8.0 + (f64::from(i) / 4.0) * (PI / 4.0);
+        let a = -0.48 + (f64::from(i) / 4.0) * 0.96;
         let name = if i as u32 == bent && i != 2 { "Real__tarotCardBent" } else { "Real__tarotCard" };
         let mat = if i == 2 { &face_mat } else { &back_mat };
+        let layer = if i == 2 { 5.0 } else { f64::from(i) };
         if let Some(m) = put(&cards, name, mat) {
-            m.position().set(a.sin() * r, f64::from(i) * 0.0004, r - a.cos() * r);
+            m.position().set(a.sin() * r, layer * 0.0004, r - a.cos() * r);
             m.rotation().y = -a;
         }
     }
@@ -203,7 +204,7 @@ fn pentagram_tex(salt: u32) -> Tex {
             for part in 0..2 {
                 let span = PI + if part == 0 { 0.1 + 0.1 * r.f() } else { 0.05 + 0.12 * r.f() };
                 let off = (r.f() - 0.5) * 6.0;
-                strokes.push(Stroke::Arc { a0: a, span, rad: rad + off, p1, p2, width: 8.5 + 2.5 * r.f(), wob: r.f() * 6.0 });
+                strokes.push(Stroke::Arc { a0: a, span, rad: rad + off, p1, p2, width: 15.0 + 5.0 * r.f(), wob: r.f() * 6.0 });
                 a += span - 0.08;
             }
         }
@@ -224,7 +225,7 @@ fn pentagram_tex(salt: u32) -> Tex {
             let t0 = -(2.0 + 20.0 * r.f()) / l;
             let t1 = 1.0 + (6.0 + 30.0 * r.f()) / l;
             let bow = (r.f() - 0.5) * 22.0;
-            strokes.push(Stroke::Line { a, d: (dx / l, dy / l), l, t0, t1, bow, width: 8.5 + 2.5 * r.f(), wob: r.f() * 6.0 });
+            strokes.push(Stroke::Line { a, d: (dx / l, dy / l), l, t0, t1, bow, width: 15.0 + 5.0 * r.f(), wob: r.f() * 6.0 });
         }
         // where feet crossed it: scuffs through the lines, the chalk smeared
         let scuffs: Vec<(f64, f64, f64, f64)> =
@@ -238,18 +239,24 @@ fn pentagram_tex(salt: u32) -> Tex {
                 if let Some((d, along)) = st.at(x, y) {
                     let ends = (along / 0.04).min(1.0) * ((1.0 - along) / 0.06).min(1.0);
                     let wob = st.wob();
-                    let press = (0.66 + 0.22 * (along * 11.0 + wob).sin() + 0.12 * (along * 29.0 + wob * 2.0).sin()) * (0.45 + 0.55 * ends);
-                    let half = st.width() * 0.5 * (0.75 + 0.25 * ends);
+                    // pressed harder and lighter along it, and broken where it
+                    // skipped over the pile
+                    let press = (0.35 + 0.65 * vn(seed ^ 0x61, along * 18.0 + wob * 7.0, 0.5)) * (0.45 + 0.55 * ends);
+                    let press = press * sstep(0.1, 0.24, vn(seed ^ 0x62, along * 30.0 + wob * 3.0, 1.5));
+                    // its edge ragged where the stick rolled and the floor's pile caught it
+                    let half = st.width() * 0.5 * (0.75 + 0.25 * ends) * (0.8 + 0.4 * vn(seed ^ 0x21, x / 5.0, y / 5.0));
                     if d < half + mm_px {
                         let edge = 1.0 - (d / half).min(1.0);
-                        // the floor's tooth: grains caught on it, at 1.4 mm
-                        let tooth = hash(seed, (x / 1.4).floor() as i32, (y / 1.4).floor() as i32) * 0.7
-                            + vn(seed ^ 0x33, x / 0.7, y / 0.7) * 0.3;
-                        let k = press * (0.7 + 0.6 * edge) - tooth;
-                        let grain = sstep(-0.05, 0.25, k) * sstep(half + mm_px, half - mm_px, d);
-                        a = a.max(grain * (0.55 + 0.45 * press));
+                        // the floor's tooth: grains caught on the pile's tips (1.4
+                        // mm), in clumps (3 mm), skipping where the stick skipped
+                        let tooth = hash(seed, (x / 1.4).floor() as i32, (y / 1.4).floor() as i32) * 0.5
+                            + vn(seed ^ 0x33, x / 3.0, y / 3.0) * 0.5;
+                        let skip = 0.75 + 0.25 * vn(seed ^ 0x44, along * 140.0 + wob * 10.0, 0.5);
+                        let k = press * skip * (0.9 + 0.5 * edge) - tooth * 0.85;
+                        let grain = sstep(-0.05, 0.3, k) * sstep(half + mm_px, half - mm_px, d);
+                        a = a.max(grain * (0.3 + 0.6 * press) * (0.6 + 0.4 * edge));
                     }
-                    haze = haze.max(0.10 * (-d / 18.0).exp() * press);
+                    haze = haze.max(0.13 * (-d / 24.0).exp() * press * (0.6 + 0.4 * vn(seed ^ 0x12, x / 20.0, y / 20.0)));
                 }
             }
             if a <= 0.0 && haze <= 0.004 {
@@ -485,7 +492,7 @@ fn planchette_tex(salt: u32) -> Tex {
         let seed = salt ^ 0x91a;
         fill(ctx, w, h, |u, v| {
             let g = (vn(seed, u * 3.0, v * 40.0) * 0.6 + fbm(seed ^ 3, u * 8.0, v * 8.0, 2) * 0.4).clamp(0.0, 1.0);
-            let mut c = mix([0.56, 0.40, 0.24], [0.44, 0.30, 0.17], g);
+            let mut c = mix([0.54, 0.43, 0.30], [0.43, 0.33, 0.22], g);
             let rim = (((u - 0.5).abs().max((v - 0.5).abs())) - 0.36).max(0.0) * 6.0;
             c = mix(c, [0.26, 0.18, 0.11], rim.min(0.7));
             [c[0], c[1], c[2], 1.0]
