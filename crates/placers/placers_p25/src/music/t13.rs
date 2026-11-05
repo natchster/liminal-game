@@ -1,0 +1,471 @@
+//! Batch `t13`'s paper cup, made real (`docs/PROPS.md` P3, "the party and
+//! the shrine"): a 9 oz printed paper cup left from a party, years on
+//! (`assets/src/blender/props/t13.py`; what the real one is and where its
+//! size comes from: `t13.notes.md`). It keeps the old placer's draws, call
+//! for call (the comments at each say what a draw now chooses).
+use crate::{open_tiles, pick};
+use game::prelude::*;
+use kit::*;
+
+/// The cup as modelled (`t13.py`): the outside's height and half width
+/// (its bounds), the inside's (with the curl, the floor and the bottom's
+/// underside), the floor's height and radius
+const CUP_OUT: (f64, f64) = (0.0870, 0.0352);
+const CUP_IN: (f64, f64, f64) = (0.0060, 0.089_426, 0.037_565);
+const CUP_FLOOR: (f64, f64) = (0.0066, 0.0262);
+/// Lying on its side: the curl's outermost radius and height, and the
+/// base's edge; it rests on both
+const CUP_CURL: (f64, f64) = (0.037_65, 0.088_03);
+const CUP_BASE: f64 = 0.0254;
+/// How far a cup stands up out of the one it is nested in
+const CUP_NEST: f64 = 0.011;
+
+// R430 small paper cup: 12% chance per level. A 9 oz printed paper cup of
+// the party kind (coated cupstock, 76 mm across its rolled rim, 89 mm
+// tall), its print faded and scuffed, what was in it dried to a crust and
+// a tide line inside, a run of it dried down the outside; standing where
+// it was put down, two or three still nested as they came, squeezed in a
+// fist, or knocked over and the drink dried into the floor at its mouth.
+pub fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
+    if rnd() < 0.88 {
+        return;
+    } // 12% chance
+    let open = open_tiles(g);
+    if open.is_empty() {
+        return;
+    }
+    let (x, z) = pick(&open);
+    // the old colour draw: which print (white with confetti, pink with
+    // dots, blue striped, yellow with zigzags, green with dots, cream with
+    // its greeting)
+    let cup_colors = [0xf0ece4, 0xf0c0d0, 0xd0d8f0, 0xf0d8a0, 0xd8f0d0, 0xe8d8c8];
+    let col = pick(&cup_colors);
+    let look = cup_colors.iter().position(|&c| c == col).unwrap_or(0);
+    // the old 25%: knocked over, lying on its side
+    let tipped = rnd() < 0.25;
+    let px = g.wx(x) + (rnd() - 0.5) * 2.4;
+    let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
+    let yaw = rnd() * PI * 2.0;
+    // what else: from where it is (no draw)
+    let salt = salt(px, pz, 13);
+    let how = if tipped {
+        Cup::Lying
+    } else {
+        match salt % 6 {
+            0..=2 => Cup::Standing,
+            3 => Cup::Nested(2 + (salt >> 8) % 2),
+            _ => Cup::Squeezed,
+        }
+    };
+    let drink = ((salt >> 4) % 3) as usize;
+    let used = !matches!(how, Cup::Nested(_));
+    let fill = 0.040 + 0.022 * f64::from((salt >> 12) % 100) / 100.0;
+    let outer = lambert!({ map: &print_tex(look, salt, used) });
+    let inner = lambert!({ map: &inside_tex(drink, fill, salt, how) });
+    let cup = group();
+    match how {
+        Cup::Squeezed => {
+            put_split(&cup, "Real__paperCupSqueezedOuter", &outer);
+            put_split(&cup, "Real__paperCupSqueezedInner", &inner);
+        }
+        Cup::Nested(n) => {
+            // the inside of all but the top one is out of sight: the top
+            // one's is clean, dusty
+            for i in 0..n {
+                let one = group();
+                one.position().y = f64::from(i) * CUP_NEST;
+                one.rotation().y = f64::from(i) * 1.9 + f64::from(salt % 7);
+                put_split(&one, "Real__paperCupOuter", &outer);
+                put_split(&one, "Real__paperCupInner", &inner);
+                cup.add(&one);
+            }
+        }
+        Cup::Standing => {
+            put_split(&cup, "Real__paperCupOuter", &outer);
+            put_split(&cup, "Real__paperCupInner", &inner);
+        }
+        Cup::Lying => {
+            // on its side, resting on the curl and the base's edge: its
+            // mouth toward -x, the axis rising to it
+            let theta = CUP_CURL.1.atan2(CUP_CURL.0 - CUP_BASE);
+            let lie = group();
+            lie.rotation().z = theta;
+            lie.position().y = CUP_BASE * theta.sin();
+            put_split(&lie, "Real__paperCupOuter", &outer);
+            put_split(&lie, "Real__paperCupInner", &inner);
+            cup.add(&lie);
+            // what was in it ran out of the mouth and dried into the floor
+            let stain = mesh(
+                plane_geo!(0.20, 0.13),
+                lambert!({
+                    map: &spill_tex(drink, salt),
+                    color: 0xffffff,
+                    transparent: true,
+                    depthWrite: false,
+                    polygonOffset: true,
+                    polygonOffsetFactor: -2,
+                    polygonOffsetUnits: -2
+                }),
+            );
+            stain.rotation().x = -PI / 2.0;
+            stain.position().set(-0.135, 0.0012, 0.0);
+            cup.add(&stain);
+        }
+    }
+    cup.position().set(px, 0, pz);
+    cup.rotation().y = yaw;
+    g.world.add(&cup);
+}
+
+#[derive(Clone, Copy, PartialEq)]
+enum Cup {
+    Standing,
+    Nested(u32),
+    Squeezed,
+    Lying,
+}
+
+/// The drinks a party has (sRGB, 0..1): a cola, a red fruit punch, an orange
+/// squash; dried, each goes darker and browner
+const DRINK: [[f64; 3]; 3] = [[0.26, 0.14, 0.07], [0.42, 0.11, 0.10], [0.66, 0.38, 0.10]];
+
+/// The board's white, gone dull
+const BOARD: [f64; 3] = [0.83, 0.80, 0.74];
+
+/// The printed outside, laid as `put_split` lays it: its wall round (u,
+/// from the seam) and up (v below a half), the foot's underside above. The
+/// print as the party cups are printed: a solid ground and a pattern in
+/// white, or confetti on white, or a greeting; faded, rubbed off at the
+/// foot and where it was held, dust, and a dried run of the drink down
+/// from the rim.
+fn print_tex(look: usize, salt: u32, used: bool) -> Tex {
+    canvas_tex_opt(512, 256, false, move |ctx, w, h| {
+        let seed = salt ^ 0x51c0;
+        let mut r = SplitMix64::new(salt, 0x7c11);
+        let drip: Vec<(f64, f64)> = (0..if used { 2 } else { 0 }).map(|_| (r.next(), 0.02 + 0.05 * r.next())).collect();
+        let held = (r.next(), 0.035 + 0.02 * r.next());
+        let around = 2.0 * PI * 0.031;
+        fill(ctx, w, h, |u, v| {
+            if v >= 0.5 {
+                // the foot's underside: the board, floor grime
+                let g = vn(seed, u * 30.0, v * 30.0);
+                let c = mix([0.62, 0.59, 0.53], [0.40, 0.37, 0.32], 0.4 + 0.4 * g);
+                return [c[0], c[1], c[2], 1.0];
+            }
+            let y = v * 2.0 * CUP_OUT.0;
+            // across the seam the print does not meet itself
+            let seam = if u < 0.0318 { 0.0024 } else { 0.0 };
+            let rad = CUP_BASE + (CUP_OUT.1 - CUP_BASE) * y / CUP_OUT.0;
+            let mut c = pattern(look, u * around + seam, u * 2.0 * PI * rad + seam, y, seed);
+            // the margins: the print stops short of the foot and the curl
+            let margin = sstep(0.0035, 0.0025, y) + sstep(0.0835, 0.0855, y);
+            c = mix(c, BOARD, margin);
+            // the seam's edge: a hair of shadow
+            if (u - 0.0318).abs() < 0.0012 {
+                c = mix(c, [0.30, 0.28, 0.25], 0.35);
+            }
+            // the ink faded
+            c = mix(c, [0.86, 0.84, 0.79], 0.22);
+            // rubbed where a hand held it, and at the foot
+            let du = ((u - held.0 + 0.5).rem_euclid(1.0) - 0.5) * around;
+            let rub = (1.0 - ((du / 0.020).powi(2) + ((y - held.1) / 0.016).powi(2))).max(0.0);
+            let n = fbm(seed ^ 3, u * 40.0, v * 12.0, 3);
+            c = mix(c, [0.76, 0.73, 0.67], rub * (0.3 + 0.5 * n));
+            c = mix(c, [0.42, 0.39, 0.34], sstep(0.010, 0.0, y) * (0.35 + 0.35 * n));
+            // the drink run down from the rim, dried
+            for &(d0, len) in &drip {
+                let du = ((u - d0 + 0.5).rem_euclid(1.0) - 0.5) * around + 0.0012 * (y * 300.0).sin();
+                let top = CUP_OUT.0 - 0.001;
+                if y > top - len && y < top {
+                    let wdt = 0.0016 * (1.0 + 0.6 * ((top - y) / len));
+                    let k = sstep(wdt, 0.0, du.abs()) * (0.45 + 0.25 * sstep(top - len + 0.004, top - len, y));
+                    c = mix(c, [0.36, 0.22, 0.12], k);
+                }
+            }
+            // dust and grime in the board's grain
+            let d = vn(seed ^ 9, u * 260.0, v * 90.0);
+            c = mix(c, [0.58, 0.56, 0.51], 0.10 + 0.12 * fbm(seed ^ 5, u * 8.0, v * 4.0, 2) + 0.2 * sstep(0.75, 1.0, d));
+            [c[0], c[1], c[2], 1.0]
+        });
+        if look == 5 {
+            // the greeting, twice round, in a printer's script, faded and
+            // rubbed (a pixel is 0.38 mm round and 0.68 mm up: the type
+            // squeezed to stand true)
+            ctx.set_text_align("center");
+            ctx.set_text_baseline("middle");
+            for k in 0..2 {
+                let cx = (0.27 + 0.5 * f64::from(k)) * w;
+                for (text, font, ink, vy) in [
+                    ("Happy Birthday", "italic bold 34px Georgia", "rgba(150,62,58,0.70)", 0.56),
+                    ("\u{2605}   \u{2605}   \u{2605}", "bold 18px Helvetica", "rgba(70,96,140,0.55)", 0.40),
+                ] {
+                    ctx.save();
+                    ctx.translate(cx, h * (1.0 - 0.5 * vy));
+                    ctx.scale(1, 0.38 / 0.68);
+                    ctx.set_font(font);
+                    ctx.set_fill_style(ink);
+                    ctx.fill_text(text, 0, 0);
+                    ctx.restore();
+                }
+            }
+            // dust over the ink as over the rest
+            ctx.set_fill_style("rgba(150,144,132,0.16)");
+            ctx.fill_rect(0, h * 0.5, w, h * 0.5);
+        }
+    })
+}
+
+/// The print at (round the wall from the seam: `xa` as the blank's rays
+/// run, at the wall's middle; `x` at this height; y up), before its wear
+fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
+    let white = [0.90, 0.88, 0.84];
+    match look {
+        // confetti: short dashes and dots of four inks on white
+        0 => {
+            let cell = 0.0072;
+            let (ci, cj) = ((x / cell).floor(), (y / cell).floor());
+            let (fx, fy) = (x / cell - ci, y / cell - cj);
+            let h = |k: u32| hash(seed ^ k, ci as i32, cj as i32);
+            let (ox, oy, ang) = (0.3 + 0.4 * h(1), 0.3 + 0.4 * h(2), h(3) * PI);
+            let (dx, dy) = ((fx - ox) * cell, (fy - oy) * cell);
+            let along = dx * ang.cos() + dy * ang.sin();
+            let across = -dx * ang.sin() + dy * ang.cos();
+            let dot = h(5) < 0.3;
+            let ink = if dot {
+                (dx * dx + dy * dy).sqrt() < 0.0011
+            } else {
+                along.abs() < 0.0016 && across.abs() < 0.0006
+            };
+            if ink && h(6) < 0.8 {
+                [[0.74, 0.30, 0.32], [0.30, 0.44, 0.68], [0.86, 0.70, 0.30], [0.38, 0.60, 0.42]][(h(4) * 4.0) as usize % 4]
+            } else {
+                white
+            }
+        }
+        // a pink ground, white polka dots in a staggered grid
+        1 => {
+            let s = 0.0090;
+            let row = (y / s).floor();
+            let xo = if row as i64 % 2 == 0 { 0.0 } else { s / 2.0 };
+            let (fx, fy) = (((x + xo) / s).fract() - 0.5, (y / s).fract() - 0.5);
+            if (fx * fx + fy * fy).sqrt() * s < 0.0022 {
+                white
+            } else {
+                [0.84, 0.60, 0.64]
+            }
+        }
+        // blue, white stripes up it
+        2 => {
+            if (xa / 0.012).fract() < 0.36 {
+                white
+            } else {
+                [0.52, 0.63, 0.80]
+            }
+        }
+        // yellow, white zigzags round it
+        3 => {
+            let p = 0.010;
+            let zz = ((xa / p).fract() - 0.5).abs() * 0.007;
+            if ((y + zz) / 0.016).fract() < 0.22 {
+                white
+            } else {
+                [0.90, 0.77, 0.44]
+            }
+        }
+        // green, small white dots, a white band near the rim
+        4 => {
+            let s = 0.0062;
+            let (fx, fy) = ((x / s).fract() - 0.5, (y / s).fract() - 0.5);
+            if (fx * fx + fy * fy).sqrt() * s < 0.0012 || (y > 0.072 && y < 0.077) {
+                white
+            } else {
+                [0.62, 0.77, 0.58]
+            }
+        }
+        // cream, its greeting drawn on after; a red band at the rim
+        _ => {
+            if y > 0.0765 && y < 0.0805 {
+                [0.66, 0.30, 0.28]
+            } else {
+                [0.90, 0.84, 0.72]
+            }
+        }
+    }
+}
+
+/// The inside, laid as `put_split` lays it: the wall round and up (v below
+/// a half), the floor and the curl's top from above (the upper left
+/// quarter, and its copy right of it). White coated board, dusty; drunk
+/// from: the drink's film dried down the wall from where it stood, its
+/// tide lines, a dark crackled crust on the floor (lying: dried along the
+/// side it lay on, out to the mouth)
+fn inside_tex(drink: usize, level: f64, salt: u32, how: Cup) -> Tex {
+    canvas_tex_opt(256, 256, false, move |ctx, w, h| {
+        let seed = salt ^ 0x1a5e;
+        let dc = DRINK[drink];
+        let used = !matches!(how, Cup::Nested(_));
+        let lying = how == Cup::Lying;
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 30.0, v * 30.0, 3);
+            let mut c = mix(BOARD, [0.74, 0.71, 0.65], 0.3 * n);
+            if v < 0.5 {
+                let y = CUP_IN.0 + v * 2.0 * (CUP_IN.1 - CUP_IN.0);
+                if used && !lying {
+                    // the film from where it stood down, darker low
+                    let below = sstep(level + 0.0008, level - 0.0008, y);
+                    let k = below * (0.22 + 0.30 * sstep(level, CUP_FLOOR.0, y)) * (0.75 + 0.25 * n);
+                    c = mix(c, dc, k);
+                    // the tide lines: where it stood, and where it stood
+                    // for a while as it went down
+                    for (i, step) in [0.0, 0.006, 0.013].iter().enumerate() {
+                        let i = i as f64;
+                        let ty = level - step + 0.0006 * (u * PI * 6.0 + i).sin();
+                        c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.0007, 0.0, (y - ty).abs()) * (0.55 - 0.15 * i));
+                    }
+                }
+                if lying {
+                    // along the side it lay on (-x: u = 3/4), out to the mouth
+                    let du = (u - 0.75).abs();
+                    let k = sstep(0.09 + 0.02 * n, 0.05, du);
+                    c = mix(c, dc, k * 0.5);
+                    c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.3), sstep(0.006, 0.0, (du - 0.07 - 0.02 * n).abs()) * 0.5);
+                }
+                // dust settled on the lower wall; grime round the rim from lips
+                c = mix(c, [0.60, 0.58, 0.53], 0.12 * sstep(0.05, 0.01, y));
+                c = mix(c, [0.62, 0.55, 0.48], 0.25 * sstep(0.082, 0.088, y) * f64::from(used as u8) * n);
+            } else {
+                // from above: the floor in the middle, the curl round the edge
+                let fz = (u * 2.0).fract();
+                let fx = (v - 0.5) * 2.0;
+                let (xx, zz) = ((fx * 2.0 - 1.0) * CUP_IN.2, (fz * 2.0 - 1.0) * CUP_IN.2);
+                let rr = (xx * xx + zz * zz).sqrt();
+                if rr < CUP_FLOOR.1 {
+                    if used && !lying {
+                        // the crust: dark, crackled into flakes
+                        let cr = (1.0 - ((vn(seed ^ 4, xx * 900.0, zz * 900.0) - 0.5).abs() * 12.0).min(1.0)).powi(2);
+                        c = mix(c, mix(dc, [0.0, 0.0, 0.0], 0.45), 0.8 * (0.8 + 0.2 * n));
+                        c = mix(c, mix(dc, BOARD, 0.5), cr * 0.6);
+                    } else if lying {
+                        let k = sstep(0.006, -0.004, xx);
+                        c = mix(c, dc, k * 0.5);
+                    }
+                    // the dust that settled in it
+                    c = mix(c, [0.58, 0.55, 0.50], 0.25 + 0.2 * vn(seed ^ 6, xx * 400.0, zz * 400.0));
+                } else {
+                    // the curl: white, grey with dust on its top
+                    c = mix(BOARD, [0.60, 0.58, 0.53], 0.30 + 0.2 * n);
+                }
+            }
+            [c[0], c[1], c[2], 1.0]
+        });
+    })
+}
+
+/// What ran out of a knocked-over cup and dried into the floor: a tide-lined
+/// stain, darkest at its edge, from the mouth outward (+x of the plane is
+/// toward the cup)
+fn spill_tex(drink: usize, salt: u32) -> Tex {
+    canvas_tex_opt(160, 104, false, move |ctx, w, h| {
+        let seed = salt ^ 0x5b1;
+        let dc = DRINK[drink];
+        fill(ctx, w, h, |u, v| {
+            // its shape: fed from the mouth (u = 1), spread out and ragged
+            let (x, y) = (1.0 - u, v - 0.5);
+            let edge = 0.30 + 0.14 * sstep(0.0, 0.7, x) + 0.10 * (fbm(seed, u * 5.0, v * 5.0, 3) - 0.5);
+            let reach = 0.85 + 0.1 * (fbm(seed ^ 2, v * 4.0, 0.3, 2) - 0.5);
+            let d = (y.abs() / edge).max(x / reach);
+            if d >= 1.0 || x < 0.02 {
+                return [dc[0], dc[1], dc[2], 0.0];
+            }
+            let tide = sstep(0.75, 0.97, d) * (1.0 - sstep(0.97, 1.0, d));
+            let a = 0.28 + 0.35 * tide + 0.1 * fbm(seed ^ 3, u * 14.0, v * 14.0, 2);
+            let c = mix(dc, [0.0, 0.0, 0.0], 0.3 * tide);
+            [c[0], c[1], c[2], a * sstep(0.02, 0.08, x)]
+        });
+    })
+}
+
+mod kit {
+    use game::assets::props::prop_part_as_modelled;
+    use game::prelude::*;
+
+    pub(super) fn hash(seed: u32, i: i32, j: i32) -> f64 {
+        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
+        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
+        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
+        h ^= h >> 16;
+        f64::from(h) / 4_294_967_296.0
+    }
+    pub(super) fn vn(seed: u32, x: f64, y: f64) -> f64 {
+        let (xf, yf) = (x.floor(), y.floor());
+        let (i, j) = (xf as i32, yf as i32);
+        let (u, v) = (x - xf, y - yf);
+        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
+        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
+        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
+    }
+    pub(super) fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
+        for k in 0..oct {
+            s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
+            n += amp;
+            amp *= 0.5;
+            f *= 2.03;
+        }
+        s / n
+    }
+    pub(super) fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
+        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
+        t * t * (3.0 - 2.0 * t)
+    }
+    pub(super) fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
+        let t = t.clamp(0.0, 1.0);
+        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+    }
+    /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v
+    /// up, both 0..1, as the texture is laid) gives straight sRGB and alpha
+    pub(super) fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
+        let iw = w as usize;
+        let mut img = ctx.create_image_data(w, h);
+        par_rows(&mut img.data, iw * 4, |j, out| {
+            for i in 0..iw {
+                let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
+                for k in 0..4 {
+                    out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
+                }
+            }
+        });
+        ctx.put_image_data(&img, 0, 0);
+    }
+    /// A salt from where a thing is (no draw): its painters' strokes differ
+    /// from floor to floor
+    pub(super) fn salt(x: f64, z: f64, k: u32) -> u32 {
+        ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ k.wrapping_mul(0x9e37_79b9)
+    }
+    /// The part `name` as modelled, added to `grp` in `mat`, its texture
+    /// coordinates folded so its sides and its tops get their own places on
+    /// one map: the sides (round and up, as the game lays a cylinder's) in
+    /// the lower half, the faces that look up or down (the disc the game
+    /// lays on them) in the upper left quarter (and a seam's copies of them
+    /// right of it)
+    pub(super) fn put_split(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
+        let geo = prop_part_as_modelled(name)?.duplicate();
+        {
+            let mut gg = geo.g();
+            let n = gg.position.len() / 3;
+            for i in 0..n {
+                if gg.normal[i * 3 + 1].abs() > 0.75 {
+                    gg.uv[i * 2] *= 0.5;
+                    gg.uv[i * 2 + 1] = 0.5 + gg.uv[i * 2 + 1] * 0.5;
+                } else {
+                    gg.uv[i * 2 + 1] *= 0.5;
+                }
+            }
+            gg.touch();
+        }
+        let m = mesh(geo, mat.clone());
+        grp.add(&m);
+        Some(m)
+    }
+}
