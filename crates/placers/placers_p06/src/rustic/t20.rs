@@ -44,7 +44,7 @@ fn bw_oak_tex(vary: u32) -> Tex {
     canvas_tex_opt(256, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x0a4;
         fill(ctx, w, h, |u, v| {
-            let mut o = wood(seed, u, v, [0.26, 0.16, 0.085], 12.0, 26.0);
+            let mut o = wood(seed, u, v, [0.32, 0.21, 0.12], 12.0, 26.0);
             // the rays: short pale flecks across the grain
             let ray = ss(0.78, 0.9, vn(seed ^ 7, u * 60.0, v * 9.0)) * 0.6;
             o = mix(o, [0.36, 0.25, 0.14], ray * 0.5);

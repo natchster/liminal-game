@@ -85,6 +85,7 @@ pub(super) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
     put(&cs, "Real__chessTableTop", &phong!({ map: &ch_top_tex(vary, stain), specular: 0x1a1814, shininess: 18 }));
     put(&cs, "Real__chessTableBase", &phong!({ map: &ch_wood_tex(vary, stain), specular: 0x161412, shininess: 14 }));
     put(&cs, "Real__chessBoard", &phong!({ map: &ch_board_tex(vary), specular: 0x1a1814, shininess: 20 }));
+    put(&cs, "Real__chessBoardBody", &phong!({ map: &ch_wood_tex(vary ^ 0xb0d, [0.24, 0.15, 0.09]), specular: 0x161412, shininess: 16 }));
     put(&cs, "Real__chessBoardHinges", &phong!({ color: 0x6a5631, specular: 0x4a3c22, shininess: 30 }));
     // the chessmen: boxwood gone honey-yellow, ebony
     let boxwood = phong!({ color: 0xb08a58, specular: 0x2a241a, shininess: 26 });
@@ -197,7 +198,7 @@ fn ch_top_tex(vary: u32, stain: [f64; 3]) -> Tex {
             let mut o = wood(seed, u, v, stain, 10.0, 34.0);
             for &(cx, cy, cr) in &rings {
                 let d = (((u - cx).powi(2) + (v - cy).powi(2)).sqrt() - cr).abs();
-                o = mix(o, [0.55, 0.50, 0.42], (1.0 - ss(0.0, 0.01, d)) * 0.35);
+                o = mix(o, [0.50, 0.45, 0.38], (1.0 - ss(0.0, 0.006, d)) * 0.18);
             }
             let scratch = ss(0.93, 0.97, vn(seed ^ 3, u * 3.0 + v * 40.0, v * 3.0 - u * 2.0));
             o = mix(o, [0.45, 0.33, 0.22], scratch * 0.5);

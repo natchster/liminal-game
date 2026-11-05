@@ -371,8 +371,9 @@ const PW_DIAL_Y: f64 = 0.0090;
 const PW_HINGE: (f64, f64) = (-0.0256, 0.0106);
 const PW_CHAIN_X: f64 = 0.0505;
 const PW_SUB_Z: f64 = 0.0098;
-/// The open cover's turn past upright: its rim down on the floor
-const PW_COVER_DROP: f64 = 0.18;
+/// The open cover's turn past upright, its rim down on the floor (t20.py
+/// `PW_COVER_DROP`: the part is modelled open)
+const PW_COVER_DROP: f64 = 0.174;
 
 // R751 open pocket watch on chain (floor): 4% chance per level. A 16-size
 // hunter-case pocket watch of about 1900 (Blender batch `t20`): gold-filled,
@@ -435,13 +436,13 @@ pub(super) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
         pw.add(&hg);
     }
     // the front cover open on its hinge at IX, its rim down on the floor
-    let hinge = group();
-    hinge.position().set(PW_HINGE.0, PW_HINGE.1, 0);
-    hinge.rotation().z = PI + PW_COVER_DROP;
-    pw.add(&hinge);
-    put(&hinge, "Real__pocketWatchCover", &case);
+    put(&pw, "Real__pocketWatchCover", &case);
     // 30% (the old draw): an inscription engraved inside the cover
     if engraved {
+        let hinge = group();
+        hinge.position().set(PW_HINGE.0, PW_HINGE.1, 0);
+        hinge.rotation().z = PI + PW_COVER_DROP;
+        pw.add(&hinge);
         let ins = mesh(
             plane_geo!(0.030, 0.022),
             lambert!({ map: &pw_inscription_tex(vary), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),

@@ -375,18 +375,18 @@ fn gl_map_tex(vary: u32) -> Tex {
             o = [o[0] * 0.93 * am, o[1] * 0.80 * am, o[2] * 0.55 * am];
             // crazed: the varnish's fine cracks
             let d = crack(seed ^ 4, u * 140.0, v * 70.0);
-            o = o.map(|c| c * (1.0 - 0.28 * (1.0 - ss(0.0, 0.05, d))));
+            o = o.map(|c| c * (1.0 - 0.18 * (1.0 - ss(0.0, 0.05, d))));
             // rubbed round its middle by the hands that turned it: the
             // varnish and the print worn to the pale paper, grime round it
             let band = 1.0 - ss(0.0, 0.45, lat.abs());
-            let rub = band * ss(0.58, 0.78, fbm(seed ^ 6, u * 24.0, v * 14.0, 3));
-            o = mix(o, [0.72, 0.66, 0.52], rub * 0.55);
+            let rub = band * ss(0.62, 0.8, fbm(seed ^ 6, u * 24.0, v * 14.0, 3));
+            o = mix(o, [0.72, 0.66, 0.52], rub * 0.45);
             o = o.map(|c| c * (1.0 - 0.15 * band * fbm(seed ^ 8, u * 10.0, v * 10.0, 2)));
             // foxing
             let fox = ss(0.82, 0.92, fbm(seed ^ 10, u * 50.0, v * 25.0, 2));
             o = [o[0] * (1.0 - 0.2 * fox), o[1] * (1.0 - 0.3 * fox), o[2] * (1.0 - 0.4 * fox)];
             // dust settled on its top
-            let dust = ss(0.55, 0.95, v) * (0.15 + 0.25 * fbm(seed ^ 12, u * 12.0, v * 8.0, 3)) + 0.05;
+            let dust = ss(0.6, 0.97, v) * (0.10 + 0.20 * fbm(seed ^ 12, u * 12.0, v * 8.0, 3)) + 0.03;
             opaque(mix(o, [0.45, 0.42, 0.37], dust))
         });
     })

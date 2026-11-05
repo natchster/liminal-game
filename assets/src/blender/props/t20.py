@@ -34,7 +34,8 @@ orrery*      a London planetary orrery of about 1820: Base (the turned drum
              middle), Crank and CrankKnob (its handle)
 chess*       a tripod table and a game left on it: TableTop (the moulded
              round top), TableBase (the turned column, the three cabriole
-             legs), Board (a folding board, 300 mm), King, Queen, Bishop,
+             legs), Board (a folding board's inlaid face, 300 mm) and
+             BoardBody (its two halves), King, Queen, Bishop,
              Knight, Rook, Pawn (Staunton chessmen, a 64 mm king, their foot
              on y = 0), Ashtray (a cast brass cigar ashtray)
 abacus*      a small Chinese abacus (suanpan) lying flat, 13 rods: Frame
@@ -50,7 +51,7 @@ humidor*     a Victorian cigar humidor, 260 x 190 mm: Box (the veneered
 watch*       a 16-size hunter-case pocket watch lying on its back, its
              pendant to +x: Case (the band, the domed back, the bezel, the
              pendant, the crown and the bow), Cover (the front lid, modelled
-             shut, its hinge line along z at x = 0), Dial, Crystal, Hour,
+             open on its hinge at IX, its rim on the floor), Dial, Crystal, Hour,
              Minute, Second (blued hands, pointing to -z from their arbor at
              the origin), Link (one curb link of its Albert chain, along x),
              TBar, Key
@@ -680,15 +681,21 @@ def watch_case():
     return s + pend + crown + bow
 
 
+PW_COVER_DROP = 0.174         # the open cover's turn past upright: its rim down on the floor
+
+
 def watch_cover():
-    """The front lid, shut, its hinge line on the z axis and itself out to +x."""
+    """The front lid open on its hinge at IX, turned over past upright till
+    its rim rests on the floor (modelled shut about its hinge line, then
+    turned there)."""
     prof = [(0.0, 0.0146), (0.010, 0.0144), (0.017, 0.0138), (0.0222, 0.0127), (0.0245, 0.0116), (PW_R, 0.0108),
             (PW_R, 0.0102), (0.0242, 0.0102), (0.0238, 0.0108), (0.0215, 0.0119), (0.016, 0.0129), (0.0, 0.0134)]
     s = ring_lathe(list(reversed(prof))[:-1] + [(0.0001, 0.0134), (0.0001, 0.0146)], seg=40)
     s = s + cyl(0.0016, h=0.0080, seg=8, bevel_r=0.0003).rot(x=math.pi / 2).move(PW_HINGE[0], PW_HINGE[1] - 0.0002, 0)
     # the lift's spring catch at III
     s = s + rbox(0.0024, 0.0012, 0.0036, r=0.0004, seg=1).move(PW_R + 0.0006, 0.0104, 0)
-    return s.move(-PW_HINGE[0], -PW_HINGE[1], 0)
+    s.move(-PW_HINGE[0], -PW_HINGE[1], 0).rot(z=math.pi + PW_COVER_DROP)
+    return s.move(PW_HINGE[0], PW_HINGE[1], 0)
 
 
 def watch_dial():
@@ -748,7 +755,7 @@ def watch_key():
     end), its flat bow pierced."""
     barrel = cyl(0.0019, h=0.012, seg=10, bevel_r=0.0003).rot(z=math.pi / 2).move(0.006, 0, 0)
     bow = prism(round_outline([(-0.0050, -0.0045), (0.0010, -0.0045), (0.0020, 0.0), (0.0010, 0.0045), (-0.0050, 0.0045), (-0.0065, 0.0)], 0.0015, seg=2), 0.0012, bevel_r=0.0002)
-    bow = cut(bow, cyl(0.0022, h=0.004, seg=12).rot(x=math.pi / 2).move(-0.0028, 0, 0))
+    bow = cut(bow, cyl(0.0022, h=0.004, seg=12).rot(x=math.pi / 2).move(-0.0028, 0, 0)).rot(x=-math.pi / 2)
     ring = torus(0.0024, 0.0006, seg=12, tseg=5).rot(x=math.pi / 2).move(-0.0085, -0.0013, 0)
     return (barrel + bow + ring).move(0, 0.0019, 0)
 
@@ -802,7 +809,8 @@ def music_lid():
 
 def music_paper():
     """The print pasted inside the lid, on the hollow's ceiling, facing down."""
-    return box(MB_W - 2 * MB_T - 0.002, 0.0003, MB_D - 2 * MB_T - 0.002).move(0, MB_HL - 0.003 - 0.00015, MB_D / 2)
+    ceiling = MB_HL - 0.003 - 0.0005
+    return box(MB_W - 2 * MB_T - 0.002, 0.0003, MB_D - 2 * MB_T - 0.002).move(0, ceiling - 0.00016, MB_D / 2)
 
 
 def music_brass():
@@ -1169,11 +1177,16 @@ def chess_table_base():
 
 
 def chess_board():
-    s = rbox(CH_BOARD, CH_BOARD_T, CH_BOARD, r=0.0025, seg=2).move(0, CH_TOP_Y + CH_BOARD_T / 2, 0)
-    # the fold down its middle
-    s = cut(s, box(0.0012, 0.0012, CH_BOARD + 0.01).move(0, CH_TOP_Y + CH_BOARD_T, 0))
-    # its two hinges let into the edge at the fold
-    return s
+    """The board's inlaid face, a veneer on its body, the fold down its middle."""
+    t = 0.0015
+    s = rbox(CH_BOARD - 0.001, t, CH_BOARD - 0.001, r=0.0006, seg=1).move(0, CH_TOP_Y + CH_BOARD_T - t / 2, 0)
+    return cut(s, box(0.0012, 0.0012, CH_BOARD + 0.01).move(0, CH_TOP_Y + CH_BOARD_T, 0))
+
+
+def chess_board_body():
+    """The board's two halves under their face: walnut, the edges rounded."""
+    s = rbox(CH_BOARD, CH_BOARD_T - 0.0012, CH_BOARD, r=0.0025, seg=2).move(0, CH_TOP_Y + (CH_BOARD_T - 0.0012) / 2, 0)
+    return cut(s, box(0.0012, 0.004, CH_BOARD + 0.01).move(0, CH_TOP_Y + CH_BOARD_T - 0.0012, 0))
 
 
 def chess_board_hinges():
@@ -1275,7 +1288,8 @@ def chess_ashtray():
 
 auto('Real__chessTableTop', chess_table_top, 1200)
 auto('Real__chessTableBase', chess_table_base, 2600)
-auto('Real__chessBoard', chess_board, 400)
+auto('Real__chessBoard', chess_board, 200)
+auto('Real__chessBoardBody', chess_board_body, 400)
 auto('Real__chessBoardHinges', chess_board_hinges, 300)
 auto('Real__chessKing', chess_king, 720)
 auto('Real__chessQueen', chess_queen, 800)
