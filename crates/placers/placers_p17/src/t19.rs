@@ -98,7 +98,13 @@ fn ghost_tex(salt: u32, pw: f64, ph: f64) -> Tex {
             }
             let top = oy > ox && y > 0.0;
             let foot = oy > ox && y < 0.0;
-            let (line, wide) = if top { (0.46, 0.012) } else if foot { (0.14, 0.005) } else { (0.26, 0.007) };
+            let (line, wide) = if top {
+                (0.46, 0.012)
+            } else if foot {
+                (0.14, 0.005)
+            } else {
+                (0.26, 0.007)
+            };
             let ghost = line * (-d / 0.0045).exp() + 0.16 * (-d / wide).exp();
             let al = ghost * (0.55 + 0.7 * mottle) * fade;
             [0.22, 0.19, 0.15, al.min(0.6)]

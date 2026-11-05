@@ -32,9 +32,9 @@ const FIELD_Y: (f64, f64) = (-0.1883, 0.1890);
 // shield, its edge moulded with a bead and a cove into the field; the
 // field gessoed and painted, the ordinary carved proud of it and painted,
 // its charges painted; the bead gilt over red bole. Invented arms, of no
-// real family: vert a chevron between three acorns or; gules a bend
-// argent between two mullets or; azure a cross or between four annulets
-// argent. The paint crazed, chipped to the gesso at its knocks, the gold
+// real family: azure a chevron between three acorns or; gules a bend
+// argent between two mullets or; vert a cross argent between four
+// annulets or. The paint crazed, chipped to the gesso at its knocks, the gold
 // rubbed to the bole, dust on the top of the bead.
 pub(crate) fn place_heraldic_crests(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
@@ -64,7 +64,7 @@ pub(crate) fn place_heraldic_crests(g: &mut Game, _dist: &[i32]) {
     let (ordinary, metal) = match arms {
         0 => ("Real__crestChevron", true),
         1 => ("Real__crestBend", false),
-        _ => ("Real__crestCross", true),
+        _ => ("Real__crestCross", false),
     };
     let tex = crest_tincture_tex(k, metal);
     let mat = if metal { phong!({ map: &tex, specular: 0x4a3c22, shininess: 30 }) } else { lambert!({ map: &tex }) };
@@ -130,9 +130,9 @@ fn crest_field_tex(salt: u32, arms: usize) -> Tex {
         let px = |x: f64| (x - FIELD_X.0) * ppm;
         let py = |y: f64| (FIELD_Y.1 - y) * ppm;
         let (field, charge) = match arms {
-            0 => ("#2f4a2c", "#a88a48"),
+            0 => ("#24385c", "#a88a48"),
             1 => ("#7a2621", "#a88a48"),
-            _ => ("#23365a", "#c8c2b0"),
+            _ => ("#2f4a2c", "#a88a48"),
         };
         ctx.set_fill_style(field);
         ctx.fill_rect(0, 0, w, h);
@@ -242,8 +242,9 @@ fn age_paint(ctx: &mut Canvas, w: f64, h: f64, seed: u32, scale: f64) {
             let chip = fbm(seed ^ 5, x * 1.7, y * 1.7, 3) * (0.75 + 0.25 * fbm(seed ^ 6, x * 0.2, y * 0.2, 2));
             c = mix(c, [0.64, 0.60, 0.51], sstep(0.705, 0.715, chip));
             c = mix(c, [0.34, 0.24, 0.16], sstep(0.735, 0.745, chip));
+            // the varnish over it gone amber, darker where it pooled
             let dark = fbm(seed ^ 7, x * 0.3, y * 0.3, 3);
-            c = c.map(|q| q * (0.82 + 0.25 * dark));
+            c = [c[0] * 0.93, c[1] * 0.86, c[2] * 0.72].map(|q| q * (0.72 + 0.32 * dark));
             let d = vn(seed ^ 9, x * 4.0, y * 4.0);
             c = mix(c, [0.52, 0.50, 0.46], sstep(0.75, 0.95, d) * 0.25 + 0.06);
             for q in 0..3 {
@@ -352,7 +353,8 @@ fn skull_bone_tex(salt: u32, base: [f64; 3], buck: bool) -> Tex {
             c = mix(c, base.map(|k| k * 0.82), sstep(0.4, 0.75, n) * 0.7);
             c = mix(c, [0.55, 0.46, 0.32], sstep(0.55, 1.0, v) * 0.35);
             if buck {
-                let ped = (-(((u - 0.26).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp() + (-(((u - 0.74).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp();
+                let ped = (-(((u - 0.26).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp()
+                    + (-(((u - 0.74).powi(2) + (v - 0.68).powi(2)) / 0.004)).exp();
                 c = mix(c, [0.40, 0.30, 0.19], ped * 0.7);
             }
             let x = (u - 0.5) * 0.083;
