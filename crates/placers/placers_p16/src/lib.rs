@@ -6,6 +6,9 @@ use game::prelude::*;
 
 mod t02;
 use t02::place_botanical_prints;
+// the drop-front desk: batch `t21`'s (`t21.rs`)
+mod t21;
+use t21::place_secretary_desks;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -811,144 +814,6 @@ fn place_specimen_domes(g: &mut Game, _dist: &[i32]) {
     sd.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     sd.rotation().y = rnd() * PI * 2.0;
     g.world.add(&sd);
-}
-
-// R754 vertical secretary desk with drop-front writing surface (floor): 2%.
-fn place_secretary_desks(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.98 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[ri(open.len())];
-    // 4-color wood pool.
-    let wood_colors: [u32; 4] = [0x604020, 0x2a1810, 0x8b6f47, 0x502010];
-    let wood_mat = lambert!({ color: wood_colors[ri(wood_colors.len())] });
-    let brass_mat = lambert!({ color: 0xa07030, emissive: 0x1a1005 });
-    let sec = group();
-    // Main dimensions.
-    let (body_w, body_d, body_h) = (0.55, 0.35, 0.60);
-    let leg_h = 0.20;
-    // Cabinet body.
-    let cabinet = mesh(pg("SecretaryDesks__cabinet", box_geo!(body_w, body_h, body_d)), &wood_mat);
-    cabinet.position().y = leg_h + body_h / 2.0;
-    sec.add(&cabinet);
-    // 4 tapered legs at corners.
-    for cx in [-body_w * 0.42, body_w * 0.42] {
-        for cz in [-body_d * 0.42, body_d * 0.42] {
-            let leg = mesh(pg("SecretaryDesks__leg", cyl_geo!(0.014, 0.020, leg_h, 6)), &wood_mat);
-            leg.position().set(cx, leg_h / 2.0, cz);
-            sec.add(&leg);
-        }
-    }
-    // 2 drawers on cabinet front + brass drawer pulls.
-    let drawer_y0 = leg_h + body_h * 0.14;
-    let drawer_h = body_h * 0.28;
-    for i in 0..2 {
-        let d_y = drawer_y0 + i as f64 * (drawer_h + 0.008);
-        let drawer = mesh(pg("SecretaryDesks__drawer", box_geo!(body_w * 0.95, drawer_h, 0.005)), lambert!({ color: 0x4a3020 }));
-        drawer.position().set(0, d_y, body_d / 2.0 + 0.003);
-        sec.add(&drawer);
-        for pside in [-1.0f64, 1.0] {
-            let pull = mesh(pg("SecretaryDesks__pull", cyl_geo!(0.008, 0.008, 0.006, 8)), &brass_mat);
-            pull.rotation().x = PI / 2.0;
-            pull.position().set(pside * body_w * 0.20, d_y, body_d / 2.0 + 0.008);
-            sec.add(&pull);
-            let backplate = mesh(pg("SecretaryDesks__backplate", box_geo!(0.020, 0.010, 0.001)), &brass_mat);
-            backplate.position().set(pside * body_w * 0.20, d_y, body_d / 2.0 + 0.006);
-            sec.add(&backplate);
-        }
-    }
-    // Top compartment — drop-front writing surface (currently open).
-    let top_y = leg_h + body_h;
-    let drop_w = body_w * 0.85;
-    let drop_h = 0.30;
-    // The group sits on the hinge line; local +Z runs out along the open fall.
-    let drop_surf = group();
-    drop_surf.position().set(0, top_y, body_d / 2.0);
-    drop_surf.rotation().x = 0.05; // Almost fully open
-    let drop_panel = mesh(pg("SecretaryDesks__dropPanel", box_geo!(drop_w, 0.010, drop_h)), &wood_mat);
-    drop_panel.position().set(0, -0.005, drop_h / 2.0);
-    drop_surf.add(&drop_panel);
-    // Small brass hinges at the joint.
-    for hside in [-1.0f64, 1.0] {
-        let hinge = mesh(pg("SecretaryDesks__hinge", box_geo!(0.012, 0.012, 0.002)), &brass_mat);
-        hinge.position().set(hside * drop_w * 0.30, -0.012, 0.001);
-        drop_surf.add(&hinge);
-    }
-    sec.add(&drop_surf);
-    // Support stays holding the drop-surface open.
-    for cside in [-1.0f64, 1.0] {
-        let arm = mesh(pg("SecretaryDesks__stay", cyl_geo!(0.001, 0.001, 0.14, 3)), &brass_mat);
-        arm.position().set(cside * drop_w * 0.45, top_y - 0.066, body_d / 2.0 + 0.045);
-        arm.rotation().x = 0.7;
-        sec.add(&arm);
-    }
-    // Upper compartment (behind the dropped panel).
-    let upper_comp_h = 0.30;
-    let upper_comp = mesh(pg("SecretaryDesks__upper", box_geo!(body_w * 0.85, upper_comp_h, body_d * 0.75)), &wood_mat);
-    upper_comp.position().set(0, top_y + upper_comp_h / 2.0, -body_d * 0.05);
-    sec.add(&upper_comp);
-    // Pigeonhole cubbies.
-    let hole_count = 6;
-    let hole_w = body_w * 0.85 / hole_count as f64 * 0.85;
-    let hole_h = upper_comp_h * 0.55;
-    for i in 0..hole_count {
-        let hole_x = -body_w * 0.85 / 2.0 + (i as f64 + 0.5) * (body_w * 0.85 / hole_count as f64);
-        let hole_back = mesh(box_geo!(hole_w, hole_h, 0.001), lambert!({ color: 0x0a0a0a }));
-        hole_back.position().set(hole_x, top_y + upper_comp_h * 0.55, body_d * 0.32);
-        sec.add(&hole_back);
-        // 30% chance small rolled paper visible in cubby.
-        if rnd() < 0.3 {
-            let paper_mat = lambert!({ color: 0xf0e8d0 });
-            let roll = mesh(pg("SecretaryDesks__roll", cyl_geo!(0.004, 0.004, hole_w * 0.7, 6)), &paper_mat);
-            roll.rotation().z = PI / 2.0;
-            roll.position().set(hole_x, top_y + upper_comp_h * 0.4, body_d * 0.32);
-            sec.add(&roll);
-        }
-    }
-    // 4 small drawers above pigeonholes.
-    let small_drawer_y = top_y + upper_comp_h * 0.10;
-    for i in 0..4 {
-        let sd_x = -body_w * 0.85 / 2.0 + (i as f64 + 0.5) * (body_w * 0.85 / 4.0);
-        let sdrawer = mesh(pg("SecretaryDesks__sdrawer", box_geo!(body_w * 0.85 / 4.0 * 0.85, 0.05, 0.005)), lambert!({ color: 0x4a3020 }));
-        sdrawer.position().set(sd_x, small_drawer_y, body_d * 0.32 + 0.003);
-        sec.add(&sdrawer);
-        let knob = mesh(pg("SecretaryDesks__knob", sphere_geo!(0.003, 5, 4)), &brass_mat);
-        knob.position().set(sd_x, small_drawer_y, body_d * 0.32 + 0.008);
-        sec.add(&knob);
-    }
-    // 60% chance: papers on the dropped writing surface (children of drop_surf).
-    if rnd() < 0.6 {
-        let paper_mat = lambert!({ color: 0xf0e8d0 });
-        let paper_count = 1 + (rnd() * 3.0).floor() as i32;
-        for i in 0..paper_count {
-            let paper = mesh(pg("SecretaryDesks__paper", box_geo!(0.10, 0.001, 0.14)), &paper_mat);
-            paper.position().set((rnd() - 0.5) * drop_w * 0.5, 0.0005 + i as f64 * 0.001, drop_h * 0.5);
-            paper.rotation().y = (rnd() - 0.5) * 0.3;
-            drop_surf.add(&paper);
-        }
-        // 40% chance: small inkwell on surface.
-        if rnd() < 0.4 {
-            let ink_glass_mat = lambert!({ color: 0x505860, transparent: true, opacity: 0.55 });
-            let inkwell_jar = mesh(cyl_geo!(0.012, 0.012, 0.014, 8), &ink_glass_mat);
-            inkwell_jar.position().set(drop_w * 0.35, 0.007, drop_h * 0.3);
-            drop_surf.add(&inkwell_jar);
-            let ink_top = mesh(circle_geo!(0.010, 8), lambert!({ color: 0x080810 }));
-            ink_top.rotation().x = -PI / 2.0;
-            ink_top.position().set(drop_w * 0.35, 0.0125, drop_h * 0.3);
-            drop_surf.add(&ink_top);
-        }
-    }
-    // Top ornamental cornice.
-    let cornice = mesh(pg("SecretaryDesks__cornice", box_geo!(body_w + 0.020, 0.020, body_d * 0.85 + 0.020)), &wood_mat);
-    cornice.position().y = top_y + upper_comp_h + 0.010;
-    sec.add(&cornice);
-    sec.position().set(g.wx(x) + (rnd() - 0.5) * 0.6, 0, g.wz(z) + (rnd() - 0.5) * 0.6);
-    sec.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&sec);
 }
 
 // R754 tarnished gilded ornate wall mirror texture.
