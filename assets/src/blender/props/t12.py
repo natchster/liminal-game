@@ -759,3 +759,673 @@ def paper_crown(kind):
 
 auto('Real__paperCrown', lambda: paper_crown('ring'), 1600, smooth=50.0)
 auto('Real__paperCrownOpen', lambda: paper_crown('open'), 1600, smooth=50.0)
+
+
+# ================================================================ the cloth ==
+def cloth_drape(name, pts, faces, pins, colliders=(), frames=140, mass=0.01, tension=15.0, shear=5.0,
+                bending=0.03, air=4.0, quality=6, self_col=False, self_dist=0.0015, col_dist=0.0015,
+                friction=5.0, gravity=-9.81):
+    """Blender's cloth solver, headless (as batch r13b's apron): the sheet
+    `pts`/`faces` let fall under gravity (-y) from where it is, `pins` held,
+    against `colliders` (Shapes). Returns the settled points."""
+    t0 = time.time()
+    me = bpy.data.meshes.new(name)
+    me.from_pydata([tuple(p) for p in pts], [], [tuple(f) for f in faces])
+    me.update()
+    ob = bpy.data.objects.new(name, me)
+    bpy.context.scene.collection.objects.link(ob)
+    if pins:
+        g = ob.vertex_groups.new(name='pin')
+        g.add(sorted(set(pins)), 1.0, 'REPLACE')
+    cobs = []
+    for k, cs in enumerate(colliders):
+        cm = bpy.data.meshes.new(f'{name}_col{k}')
+        cm.from_pydata([tuple(p) for p in cs.v], [], [tuple(f) for f in cs.f])
+        cm.update()
+        co = bpy.data.objects.new(cm.name, cm)
+        bpy.context.scene.collection.objects.link(co)
+        co.modifiers.new('col', 'COLLISION')
+        co.collision.thickness_outer = 0.0015
+        co.collision.cloth_friction = friction
+        cobs.append((co, cm))
+    sc = bpy.context.scene
+    grav = tuple(sc.gravity)
+    sc.gravity = (0.0, gravity, 0.0)
+    cl = ob.modifiers.new('cloth', 'CLOTH')
+    s = cl.settings
+    s.quality = quality
+    s.mass = mass
+    s.tension_stiffness = tension
+    s.compression_stiffness = tension
+    s.shear_stiffness = shear
+    s.bending_stiffness = bending
+    s.air_damping = air
+    if pins:
+        s.vertex_group_mass = 'pin'
+    c = cl.collision_settings
+    c.use_collision = bool(colliders)
+    c.distance_min = col_dist
+    c.use_self_collision = self_col
+    c.self_distance_min = self_dist
+    c.collision_quality = 3
+    sc.frame_start, sc.frame_end = 1, frames
+    cl.point_cache.frame_start, cl.point_cache.frame_end = 1, frames
+    for fr in range(1, frames + 1):
+        sc.frame_set(fr)
+    dg = bpy.context.evaluated_depsgraph_get()
+    em = ob.evaluated_get(dg).to_mesh()
+    out = [Vector(vv.co) for vv in em.vertices]
+    ob.evaluated_get(dg).to_mesh_clear()
+    sc.frame_set(1)
+    sc.gravity = grav
+    bpy.data.objects.remove(ob)
+    bpy.data.meshes.remove(me)
+    for co, cm in cobs:
+        bpy.data.objects.remove(co)
+        bpy.data.meshes.remove(cm)
+    print('t12: %s draped in %.1f s' % (name, time.time() - t0))
+    return out
+
+
+def ceiling_plane(size=3.0, y=0.0):
+    return Shape([(-size, y, -size), (size, y, -size), (size, y, size), (-size, y, size)], [(0, 1, 2, 3)])
+
+
+def _vnormals(P, faces):
+    N = [Vector((0, 0, 0)) for _ in P]
+    for f in faces:
+        a, b, c = P[f[0]], P[f[1]], P[f[2]]
+        n = (b - a).cross(c - a)
+        if len(f) == 4:
+            n += (c - a).cross(P[f[3]] - a)
+        for i in f:
+            N[i] += n
+    return [n.normalized() if n.length > 1e-12 else Vector((0, 0, 1)) for n in N]
+
+
+# ========================================================= the streamers ==
+# Crepe paper streamer (1.75 in, 44.5 mm wide, off an 81 ft roll), twisted
+# as it was hung and taped to the ceiling; the swag it was part of torn
+# long ago, so each length hangs from its tape, the crepe stretched and
+# sagged, its end torn. Draped by Blender's cloth: the taped end held flat
+# against the ceiling, the rest let fall from where the swag ran.
+# Each in its own frame: the ceiling at y = 0, the tape's middle over the
+# origin, the length hanging below it. (The game tapes it with r06's
+# masking tape, Real__posterTape.)
+STR_W = 0.0445
+STR_KINDS = {'A': (1.62, 2.6, 0.4, 12.0), 'B': (1.36, 1.6, 1.3, -20.0), 'C': (1.12, 0.6, 2.2, 5.0), 'D': (0.92, 2.0, 3.1, -8.0)}   # length, turns, seed, heading (deg)
+STR_STEP = 0.016
+STR_TAPE = 0.034                               # the length held under the tape
+_STR = {}
+
+
+def streamer_sim(kind):
+    if kind in _STR:
+        return _STR[kind]
+    L, turns, seed, head = STR_KINDS[kind]
+    rng = random.Random(int(seed * 1000))
+    nu, nv = 3, int(round(L / STR_STEP))
+    head = math.radians(head)
+    run = Vector((math.cos(head), 0, math.sin(head)))            # the way the swag ran
+    side0 = Vector((-run.z, 0, run.x))
+    # the torn end: ragged across, a little on the slant
+    tear = [rng.uniform(-0.012, 0.012) + (i / nu - 0.5) * rng.uniform(-0.03, 0.03) for i in range(nu + 1)]
+    pts, faces, pins = [], [], []
+    drop = math.radians(rng.uniform(78, 88))
+    bend = 0.05                                    # from the tape's edge it turns down over this
+    for j in range(nv + 1):
+        s = j * L / nv
+        for i in range(nu + 1):
+            a = (i / nu - 0.5) * STR_W
+            if j == nv:
+                s = L + tear[i]
+            if s <= STR_TAPE:
+                p = run * (s - STR_TAPE / 2) + side0 * a + Vector((0, -0.0004, 0))
+                pins.append(len(pts))
+            else:
+                t = s - STR_TAPE
+                # round a quarter bend from the ceiling, then straight down
+                # (a little off true, the way the swag pulled it)
+                if t < bend:
+                    ang = drop * t / bend
+                    rr = bend / max(drop, 1e-6)
+                    c = run * (STR_TAPE / 2 + rr * math.sin(ang)) + Vector((0, -0.0007 - rr * (1 - math.cos(ang)), 0))
+                    d = run * math.cos(ang) + Vector((0, -math.sin(ang), 0))
+                else:
+                    rr = bend / max(drop, 1e-6)
+                    c0 = run * (STR_TAPE / 2 + rr * math.sin(drop)) + Vector((0, -0.0007 - rr * (1 - math.cos(drop)), 0))
+                    d = run * math.cos(drop) + Vector((0, -math.sin(drop), 0))
+                    c = c0 + d * (t - bend)
+                d = d.normalized()
+                # twisted about its own line as it was hung (the paper set so)
+                ph = TAU * turns * (t / L) + 0.35 * n1(t * 3.0, seed)
+                ph *= smoothstep(0.0, 0.10, t)
+                sd = (side0 * math.cos(ph) + d.cross(side0).normalized() * math.sin(ph))
+                p = c + sd * a
+            pts.append(p)
+    for j in range(nv):
+        for i in range(nu):
+            k = j * (nu + 1) + i
+            faces.append((k, k + 1, k + nu + 2, k + nu + 1))
+    out = cloth_drape('streamer' + kind, pts, faces, pins, colliders=[ceiling_plane()], frames=150, mass=0.004,
+                      tension=20.0, shear=4.0, bending=0.015, air=2.5)
+    _STR[kind] = (out, faces, nu, nv)
+    return _STR[kind]
+
+
+def streamer(kind):
+    P, faces, nu, nv = streamer_sim(kind)
+    seed = STR_KINDS[kind][2]
+    P = [p.copy() for p in P]
+    N = _vnormals(P, faces)
+    for j in range(nv + 1):
+        for i in range(nu + 1):
+            k = j * (nu + 1) + i
+            if P[k].y > -0.002:
+                continue
+            # the crepe's crinkle, and its edges gone frilled where it stretched
+            e = abs(i / nu - 0.5) * 2
+            w = 0.0011 * n1(j * 0.9, i * 0.7, seed) + 0.0016 * e * math.sin(j * 1.9 + seed * 3)
+            P[k] = P[k] + N[k] * w
+    s = Shape(P, faces)
+    return s
+
+
+for _k in 'ABCD':
+    auto('Real__streamer' + _k, lambda k=_k: streamer(k), 900, smooth=70.0)
+
+
+# ======================================================= the tassel garland ==
+# A tissue paper tassel garland: tassels each a sheet of tissue (20 x 26 in)
+# folded, fringed and rolled, its middle twisted into a loop that the jute
+# twine (2 mm) runs through; the twine swagged between two pieces of tape
+# on the ceiling. Years on the tissue has faded and gone limp, the strands
+# hang in clumps, some torn short.
+#   garlandTassel{A,B,C}   a tassel: its loop round the twine (the twine along
+#                          x through the origin), the twisted neck, the strands
+#                          draped by Blender's cloth (A, B whole; C torn)
+#   garlandTwine{S,M,L}    the twine for a span of 1.55, 1.90, 2.25 m: a
+#                          catenary from tape to tape (the ceiling y = 0, the
+#                          span's middle over the origin), its ends laid flat
+#                          under the tape and a cut tail beyond
+GT_KINDS = {'A': (40, 0.235, 5.1, 0), 'B': (36, 0.255, 6.3, 0.08), 'C': (26, 0.215, 7.7, 0.35)}   # strands, length, seed, torn share
+GT_LOOP_R = 0.011
+GT_NECK = (-0.024, -0.042)
+GT_SPANS = {'S': 1.55, 'M': 1.90, 'L': 2.25}
+GT_DROP = 0.004                                # the twine's ends, under the ceiling
+
+
+def garland_sag(span):
+    return 0.12 * span + 0.02
+
+
+def garland_cat(span):
+    """The catenary's parameter for a span and its sag."""
+    d = garland_sag(span)
+    lo, hi = 0.05, 50.0
+    for _ in range(80):
+        a = (lo + hi) / 2
+        if a * (math.cosh(span / (2 * a)) - 1) > d:
+            lo = a
+        else:
+            hi = a
+    return (lo + hi) / 2
+
+
+def garland_y(span, x):
+    a = garland_cat(span)
+    return a * (math.cosh(x / a) - math.cosh(span / (2 * a))) - GT_DROP
+
+
+_GT = {}
+
+
+def tassel_sim(kind):
+    if kind in _GT:
+        return _GT[kind]
+    n, L, seed, torn = GT_KINDS[kind]
+    rng = random.Random(int(seed * 1000))
+    rows = 11
+    pts, faces, pins, strands = [], [], [], []
+    for k in range(n):
+        a = TAU * (k + rng.uniform(-0.3, 0.3)) / n
+        rad = Vector((math.cos(a), 0, math.sin(a)))
+        side = Vector((-math.sin(a), 0, math.cos(a)))
+        root = Vector((0, GT_NECK[1], 0)) + rad * rng.uniform(0.003, 0.007)
+        # torn short, some of them
+        Lk = L * (rng.uniform(0.35, 0.8) if rng.random() < torn else rng.uniform(0.9, 1.05))
+        lean = math.radians(rng.uniform(6, 30))
+        d = (Vector((0, -1, 0)) * math.cos(lean) + rad * math.sin(lean)).normalized()
+        wk = rng.uniform(0.0045, 0.0065)
+        twist = rng.uniform(-1.2, 1.2)
+        base = len(pts)
+        for j in range(rows + 1):
+            t = j / rows
+            c = root + d * (Lk * t) + Vector((rng.uniform(-1, 1), 0, rng.uniform(-1, 1))) * 0.002 * t
+            sd = (side * math.cos(twist * t) + rad * math.sin(twist * t)).normalized()
+            for e in (-0.5, 0.5):
+                pts.append(c + sd * (e * wk * (1.0 - 0.15 * t)))
+            if j == 0:
+                pins += [len(pts) - 2, len(pts) - 1]
+        for j in range(rows):
+            q = base + j * 2
+            faces.append((q, q + 1, q + 3, q + 2))
+        strands.append((base, rows))
+    # the neck and loop as something the strands lie against
+    neck = cyl(0.008, 0.006, GT_NECK[0] - GT_NECK[1], seg=10).move(0, (GT_NECK[0] + GT_NECK[1]) / 2, 0)
+    out = cloth_drape('tassel' + kind, pts, faces, pins, colliders=[neck], frames=110, mass=0.003,
+                      tension=15.0, shear=3.0, bending=0.01, air=3.0, self_col=True, self_dist=0.0012)
+    _GT[kind] = (out, faces)
+    return _GT[kind]
+
+
+def _gt_loop(rng):
+    """The tissue's middle twisted into a rope and looped over the twine,
+    its ends twisted together into the neck."""
+    s = Shape()
+    # the loop: a twisted rope ring in the y-z plane, its top on the twine
+    m = 26
+    ring = []
+    for k in range(m + 1):
+        a = -math.pi / 2 + TAU * k / m
+        ring.append(Vector((0.0015 * math.sin(a * 3), -GT_LOOP_R + GT_LOOP_R * math.sin(a) + 0.0016, GT_LOOP_R * math.cos(a) * 0.85)))
+    rr = [0.0026 + 0.0006 * math.sin(k * 2.3) for k in range(m + 1)]
+    s = s + sweep(ring, rr, seg=7, cap0=False, cap1=False)
+    # the neck: twisted, a few turns showing as ridges
+    prof = []
+    for k in range(9):
+        t = k / 8
+        y = GT_NECK[0] + (GT_NECK[1] - GT_NECK[0]) * t + 0.004
+        prof.append((0.0062 - 0.0012 * t + 0.0009 * math.sin(t * 20), y))
+    s = s + lathe([(0.0, prof[-1][1] - 0.001)] + list(reversed(prof)) + [(0.0, prof[0][1] + 0.002)], seg=9).warp(
+        lambda p: Vector((p.x + 0.0008 * math.sin(p.y * 300), p.y, p.z)))
+    return s
+
+
+def garland_tassel(kind):
+    P, faces = tassel_sim(kind)
+    rng = random.Random(kind)
+    P = [p.copy() for p in P]
+    N = _vnormals(P, faces)
+    for i, p in enumerate(P):
+        # tissue's crinkle
+        P[i] = p + N[i] * 0.0008 * n1(p.x * 90, p.y * 90, p.z * 90)
+    return Shape(P, faces) + _gt_loop(rng)
+
+
+def garland_twine(span):
+    a = garland_cat(span)
+    pts = []
+    n = int(span / 0.045)
+    # the end laid under the tape, then out and down
+    for k in range(4):
+        pts.append(Vector((-span / 2 - 0.035 + k * 0.009, -0.0012, 0.0)))
+    for k in range(n + 1):
+        x = -span / 2 + span * k / n
+        y = garland_y(span, x) if 0 < k < n else -0.0012
+        pts.append(Vector((x, y, 0.0012 * n1(x * 9, 0.3))))
+    for k in range(1, 4):
+        pts.append(Vector((span / 2 + k * 0.009, -0.0012, 0.0)))
+    # a cut tail beyond the far tape, hanging
+    tail = pts[-1]
+    for k in range(1, 6):
+        pts.append(tail + Vector((0.006 + 0.002 * k, -0.012 * k, 0.003 * math.sin(k))))
+    rr = [0.0014] * len(pts)
+    return sweep(pts, rr, seg=5)
+
+
+for _k in 'ABC':
+    auto('Real__garlandTassel' + _k, lambda k=_k: garland_tassel(k), 1500, smooth=70.0)
+for _k, _sp in GT_SPANS.items():
+    auto('Real__garlandTwine' + _k, lambda sp=_sp: garland_twine(sp), 700, smooth=60.0)
+    print('t12: GT span %.2f catenary a %.6f sag %.4f' % (_sp, garland_cat(_sp), garland_sag(_sp)))
+
+
+# ============================================================== the piñata ==
+# A small star piñata (a 13 in star, as sold): a ball of papier-mâché, 170 mm,
+# seven cones of card (four up, three down), all of it under rows of
+# fringed tissue glued on in shingles, tissue streamers at the cones' tips;
+# hung by a cotton cord from a cup hook in the ceiling. Split open on one
+# side where it was hit (the shell's torn edge, its dark inside), one cone
+# crushed; the tissue faded, the strands lifted and torn.
+# The body's frame: the cord's tie on top of the ball at the origin, the
+# ball below it; the cord's and hook's frame: the ceiling at y = 0, the hook
+# over the origin, the cord down to its tie (PN_CORDS).
+#   pinataShell        the shell under the fringe (in the body's tissue), the
+#                      cones' card under theirs is pinataCones
+#   pinataFringeBody   the ball's fringe, its strands hanging down it
+#   pinataFringeCones  the cones' card and fringe (strands towards the base)
+#   pinataTails{,B}    the tissue streamers from the tips, draped by cloth (in
+#                      the ball's tissue, and in the cones')
+#   pinataBroken       the split: the papier-mâché's torn edge (newsprint)
+#   pinataInside       its inside, dark
+#   pinataCord{S,M,L}  the cord, 0.45, 0.60, 0.75 m, over the hook
+#   pinataHook         a brass cup hook screwed into the ceiling
+PN_R = 0.085
+PN_C = Vector((0.0, -0.010 - PN_R, 0.0))          # the ball's middle, under the tie
+PN_CONE_L, PN_CONE_R = 0.118, 0.031
+PN_CONES = [(45, 30), (135, 30), (225, 30), (315, 30), (0, -42), (120, -42), (240, -42)]   # azimuth, elevation (deg)
+PN_HOLE = (75.0, -12.0, 0.46)                     # the split: azimuth, elevation, angular radius (rad)
+PN_CRUSH = 5                                      # the cone crushed
+PN_CORDS = {'S': 0.45, 'M': 0.60, 'L': 0.75}
+PN_STRAND_W = 0.010
+
+
+def _pn_dir(az, el):
+    a, e = math.radians(az), math.radians(el)
+    return Vector((math.cos(e) * math.sin(a), math.sin(e), math.cos(e) * math.cos(a)))
+
+
+def _pn_hole_dir():
+    return _pn_dir(PN_HOLE[0], PN_HOLE[1])
+
+
+def _pn_in_hole(d, margin=0.0):
+    """Is the ball's direction d inside the split (its edge ragged)?"""
+    h = _pn_hole_dir()
+    ang = math.acos(max(-1.0, min(1.0, d.dot(h))))
+    # the ragged edge: a function of the angle round the hole's middle
+    ref = h.cross(Vector((0, 1, 0))).normalized()
+    q = (d - h * d.dot(h))
+    phi = math.atan2(q.dot(h.cross(ref)), q.dot(ref)) if q.length > 1e-9 else 0.0
+    edge = PN_HOLE[2] * (1.0 + 0.22 * math.sin(3 * phi + 0.5) + 0.12 * math.sin(7 * phi + 1.3) + 0.08 * math.sin(13 * phi))
+    return ang < edge + margin
+
+
+def _pn_cone_frame(k):
+    az, el = PN_CONES[k]
+    d = _pn_dir(az, el)
+    u = d.cross(Vector((0, 1, 0)))
+    if u.length < 1e-6:
+        u = Vector((1, 0, 0))
+    u.normalize()
+    w = d.cross(u).normalized()
+    base = PN_C + d * (PN_R - 0.014)
+    return d, u, w, base
+
+
+def _pn_cone_point(k, s, phi, off=0.0):
+    """Cone k's surface at s (0 base .. 1 tip) and angle phi round it."""
+    d, u, w, base = _pn_cone_frame(k)
+    r = PN_CONE_R * (1.0 - s)
+    rad = u * math.cos(phi) + w * math.sin(phi)
+    a = math.atan2(PN_CONE_R, PN_CONE_L)
+    n = (rad * math.cos(a) + d * math.sin(a)).normalized()
+    p = base + d * (PN_CONE_L * s) + rad * r + n * off
+    if k == PN_CRUSH:
+        # crushed: its tip bent over and its side pressed in
+        if s > 0.45:
+            ang = 0.55 * smoothstep(0.45, 1.0, s)
+            p = rot_about(p, base + d * (PN_CONE_L * 0.45), w, ang)
+        p -= u * (0.006 * max(0.0, math.cos(phi)) * math.sin(math.pi * min(1.0, s / 0.8)))
+    return p, n, d
+
+
+def _pn_ball_ok(d):
+    """Is the ball's surface at direction d out from under a cone?"""
+    for k in range(len(PN_CONES)):
+        cd = _pn_dir(*PN_CONES[k])
+        if math.acos(max(-1.0, min(1.0, d.dot(cd)))) < 0.31:
+            return False
+    return True
+
+
+def _pn_strand(rng, root, along, normal, length, width, lift):
+    side = along.cross(normal).normalized()
+    pts, sides, ws = [], [], []
+    tw = rng.uniform(-0.5, 0.5)
+    for k in range(3):
+        t = k / 2
+        lf = lift * t * t + 0.0012
+        p = root + along * (length * t) + normal * lf
+        sd = (side * math.cos(tw * t) + normal * math.sin(tw * t)).normalized()
+        pts.append(p)
+        sides.append(sd)
+        ws.append(width * (1.0 - 0.18 * t))
+    return strip(pts, sides, ws)
+
+
+def pinata_shell():
+    """The ball's skin under its fringe (in the tissue's colour), the split
+    cut out of it."""
+    nu, nv = 32, 16
+    v, f = [], []
+    idx = {}
+    for j in range(nv + 1):
+        th = math.pi * j / nv
+        for i in range(nu):
+            ph = TAU * i / nu
+            d = Vector((math.sin(th) * math.sin(ph), -math.cos(th), math.sin(th) * math.cos(ph)))
+            idx[(j, i)] = len(v)
+            v.append(PN_C + d * (PN_R + 0.0005 * n1(d.x * 9, d.y * 9, d.z * 9)))
+    for j in range(nv):
+        for i in range(nu):
+            q = [idx[(j, i)], idx[(j, (i + 1) % nu)], idx[(j + 1, (i + 1) % nu)], idx[(j + 1, i)]]
+            c = sum((v[x] - PN_C for x in q), Vector()) / 4
+            if _pn_in_hole(c.normalized(), -0.02):
+                continue
+            f.append(tuple(q))
+    s = weld(Shape(v, f), 1e-6)
+    return s
+
+
+def pinata_fringe_body():
+    rng = random.Random(901)
+    s = Shape()
+    rows = 15
+    for j in range(rows):
+        th = 0.20 + (math.pi - 0.42) * j / (rows - 1)           # the strands' roots (from the bottom)
+        count = max(5, int(round(TAU * PN_R * math.sin(th) / (PN_STRAND_W * 1.05))))
+        off = rng.uniform(0, TAU)
+        for i in range(count):
+            ph = off + TAU * (i + rng.uniform(-0.15, 0.15)) / count
+            d = Vector((math.sin(th) * math.sin(ph), -math.cos(th), math.sin(th) * math.cos(ph)))
+            if not _pn_ball_ok(d) or _pn_in_hole(d, 0.05):
+                continue
+            if rng.random() < 0.06:
+                continue                                          # torn off
+            root = PN_C + d * (PN_R + 0.001)
+            # down the ball: along the meridian towards its bottom
+            along = Vector((-math.cos(th) * math.sin(ph), -math.sin(th), -math.cos(th) * math.cos(ph))) * -1
+            along = (along - d * along.dot(d)).normalized()
+            if along.y > 0:
+                along = -along
+            L = rng.uniform(0.024, 0.033) * (0.5 if rng.random() < 0.08 else 1.0)
+            s = s + _pn_strand(rng, root, along, d, L, PN_STRAND_W, rng.uniform(0.002, 0.007))
+    return s + pinata_shell()
+
+
+def pinata_fringe_cones():
+    rng = random.Random(902)
+    s = Shape()
+    for k in range(len(PN_CONES)):
+        # the cone's card (under the fringe; the tissue glued round it)
+        ns, nphi = 6, 12
+        v, f = [], []
+        for j in range(ns + 1):
+            for i in range(nphi):
+                p, n, d = _pn_cone_point(k, 0.97 * j / ns, TAU * i / nphi)
+                v.append(p)
+        for j in range(ns):
+            for i in range(nphi):
+                i2 = (i + 1) % nphi
+                f.append((j * nphi + i, j * nphi + i2, (j + 1) * nphi + i2, (j + 1) * nphi + i))
+        tip, _, d = _pn_cone_point(k, 1.0, 0.0)
+        v.append(tip)
+        for i in range(nphi):
+            f.append((ns * nphi + i, ns * nphi + (i + 1) % nphi, len(v) - 1))
+        s = s + Shape(v, f)
+        # the fringe, row on row from the tip back to the base, the strands
+        # lying towards the base
+        for j, sj in enumerate((0.88, 0.76, 0.64, 0.52, 0.40, 0.28, 0.16)):
+            r = PN_CONE_R * (1.0 - sj)
+            count = max(4, int(round(TAU * r / (PN_STRAND_W * 1.0))))
+            off = rng.uniform(0, TAU)
+            for i in range(count):
+                ph = off + TAU * (i + rng.uniform(-0.15, 0.15)) / count
+                if rng.random() < 0.05:
+                    continue
+                root, n, d = _pn_cone_point(k, sj, ph, 0.001)
+                back, _, _ = _pn_cone_point(k, max(0.0, sj - 0.1), ph, 0.001)
+                along = (back - root).normalized()
+                L = rng.uniform(0.022, 0.03)
+                s = s + _pn_strand(rng, root, along, n, L, PN_STRAND_W * 0.95, rng.uniform(0.003, 0.009))
+    return s
+
+
+def _pn_body_collider():
+    s = ellipsoid(PN_R + 0.006, PN_R + 0.006, PN_R + 0.006, seg=20).move(*PN_C)
+    for k in range(len(PN_CONES)):
+        d, u, w, base = _pn_cone_frame(k)
+        c = cone(PN_CONE_R + 0.006, PN_CONE_L, seg=10)
+        c.move(0, PN_CONE_L / 2, 0)
+        m = Matrix((u, d, w)).transposed().to_4x4()
+        c.apply(m)
+        c.move(*base)
+        s = s + c
+    return s
+
+
+_PN_TAILS = None
+
+
+def pinata_tails_sim():
+    global _PN_TAILS
+    if _PN_TAILS is not None:
+        return _PN_TAILS
+    rng = random.Random(903)
+    pts, faces, pins = [], [], []
+    owner = []
+    for k in range(len(PN_CONES)):
+        tip, n, d = _pn_cone_point(k, 0.99, 0.0)
+        cnt = 4 if k != PN_CRUSH else 2
+        for t in range(cnt):
+            L = rng.uniform(0.13, 0.26) * (0.55 if rng.random() < 0.2 else 1.0)
+            rows = max(4, int(L / 0.013))
+            wdt = rng.uniform(0.011, 0.016)
+            a = TAU * t / cnt + rng.uniform(-0.4, 0.4)
+            _, u, w, _ = _pn_cone_frame(k)
+            sd = (u * math.cos(a) + w * math.sin(a)).normalized()
+            # out from the tip, beginning to fall
+            go = (d + Vector((0, -0.6, 0)) + sd * 0.3).normalized()
+            across = go.cross(sd).normalized()
+            base = len(pts)
+            for j in range(rows + 1):
+                c = tip + go * (L * j / rows)
+                for e in (-0.5, 0.5):
+                    pts.append(c + across * (e * wdt))
+                if j == 0:
+                    pins += [len(pts) - 2, len(pts) - 1]
+            for j in range(rows):
+                q = base + j * 2
+                faces.append((q, q + 1, q + 3, q + 2))
+                owner.append(t % 2)
+    out = cloth_drape('pinataTails', pts, faces, pins, colliders=[_pn_body_collider()], frames=220, mass=0.004,
+                      tension=15.0, shear=3.0, bending=0.01, air=1.5, self_col=False)
+    _PN_TAILS = (out, faces, owner)
+    return _PN_TAILS
+
+
+def pinata_tails(which):
+    """The streamers in the ball's tissue (0) or the cones' (1)."""
+    P, faces, owner = pinata_tails_sim()
+    P = [p.copy() for p in P]
+    N = _vnormals(P, faces)
+    for i, p in enumerate(P):
+        P[i] = p + N[i] * 0.0012 * n1(p.x * 70, p.y * 70, p.z * 70)
+    mine = [f for f, o in zip(faces, owner) if o == which]
+    used = sorted({i for f in mine for i in f})
+    remap = {old: new for new, old in enumerate(used)}
+    return Shape([P[i] for i in used], [tuple(remap[i] for i in f) for f in mine])
+
+
+def _pn_hole_ring(r):
+    """The split's ragged edge on a sphere of radius r: a closed loop."""
+    h = _pn_hole_dir()
+    ref = h.cross(Vector((0, 1, 0))).normalized()
+    ref2 = h.cross(ref).normalized()
+    out = []
+    for i in range(48):
+        phi = TAU * i / 48
+        edge = PN_HOLE[2] * (1.0 + 0.22 * math.sin(3 * phi + 0.5) + 0.12 * math.sin(7 * phi + 1.3) + 0.08 * math.sin(13 * phi))
+        edge -= 0.02
+        d = h * math.cos(edge) + (ref * math.cos(phi) + ref2 * math.sin(phi)) * math.sin(edge)
+        out.append(PN_C + d.normalized() * r)
+    return out
+
+
+def pinata_broken():
+    """The torn edge of the papier-mâché round the split (4 mm of layered
+    newsprint), a little ragged in and out."""
+    outer = _pn_hole_ring(PN_R + 0.0008)
+    inner = _pn_hole_ring(PN_R - 0.004)
+    n = len(outer)
+    v = outer + inner
+    f = []
+    for i in range(n):
+        i2 = (i + 1) % n
+        f.append((i, i2, n + i2, n + i))
+    s = Shape(v, f)
+    return s.warp(lambda p: p + (p - PN_C).normalized() * 0.0012 * n1(p.x * 200, p.y * 200, p.z * 200))
+
+
+def pinata_inside():
+    """Its hollow (only the half the split shows), dark."""
+    nu, nv = 20, 10
+    v, f = [], []
+    for j in range(nv + 1):
+        th = math.pi * j / nv
+        for i in range(nu):
+            ph = TAU * i / nu
+            d = Vector((math.sin(th) * math.sin(ph), -math.cos(th), math.sin(th) * math.cos(ph)))
+            v.append(PN_C + d * (PN_R - 0.004))
+    for j in range(nv):
+        for i in range(nu):
+            i2 = (i + 1) % nu
+            f.append((j * nu + i, (j + 1) * nu + i, (j + 1) * nu + i2, j * nu + i2))     # facing in
+    return weld(Shape(v, f), 1e-6)
+
+
+def pinata_cord(L):
+    """The cord: from its loop over the hook down to its tie on the ball,
+    twisted cotton 4 mm."""
+    pts = []
+    hook = Vector((0.0, -0.022, 0.0))
+    # the loop over the hook's bend
+    for k in range(9):
+        a = math.pi * k / 8
+        pts.append(hook + Vector((0.0045 * math.cos(a), 0.0045 * math.sin(a) - 0.001, 0.0)))
+    pts.reverse()
+    knot = hook + Vector((0, -0.030, 0))
+    pts.append(knot)
+    n = int(L / 0.04)
+    for k in range(1, n + 1):
+        y = knot.y + (-L - knot.y) * k / n
+        pts.append(Vector((0.0015 * math.sin(k * 1.7), y, 0.0015 * math.cos(k * 1.3))))
+    s = sweep(pts, [0.002] * len(pts), seg=6)
+    s = s + lump(knot, 0.0045, (1.0, 1.3, 1.0), seg=7)
+    return s
+
+
+def pinata_hook():
+    """A brass cup hook screwed into the ceiling: its flange against the
+    tile, the hook's open bend below."""
+    flange = cyl(0.0055, 0.0055, 0.0015, seg=12).move(0, -0.00075, 0)
+    pts = [Vector((0, -0.0015, 0))]
+    for k in range(12):
+        a = math.pi * k / 11
+        pts.append(Vector((0.006 * math.sin(a), -0.016 - 0.006 * (1 - math.cos(a)), 0.0)))
+    pts = [Vector((0, -0.0015, 0)), Vector((0, -0.010, 0))] + [Vector((-0.006 * math.cos(math.pi * k / 11) + 0.0, -0.016 - 0.006 * math.sin(math.pi * k / 11), 0.0)) for k in range(12)]
+    pts.append(pts[-1] + Vector((0.0, 0.006, 0.0)))
+    return flange + sweep(pts, [0.0016] * len(pts), seg=6)
+
+
+auto('Real__pinataFringeBody', pinata_fringe_body, 3200, smooth=60.0)
+auto('Real__pinataFringeCones', pinata_fringe_cones, 3600, smooth=60.0)
+auto('Real__pinataTails', lambda: pinata_tails(0), 700, smooth=70.0)
+auto('Real__pinataTailsB', lambda: pinata_tails(1), 700, smooth=70.0)
+auto('Real__pinataBroken', pinata_broken, 300, smooth=40.0)
+auto('Real__pinataInside', pinata_inside, 500, smooth=60.0)
+for _k, _L in PN_CORDS.items():
+    auto('Real__pinataCord' + _k, lambda L=_L: pinata_cord(L), 600, smooth=60.0)
+auto('Real__pinataHook', pinata_hook, 360, smooth=40.0)
