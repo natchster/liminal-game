@@ -295,7 +295,7 @@ fn pentagram_tex(salt: u32) -> Tex {
 // words in a serif face, a sun by YES and a moon by NO; warped, its print
 // rubbed through where the planchette went round and round, grimed at its
 // edges, a corner knocked off. Its planchette a wooden teardrop on three
-// felted legs, which drifts now and then as the old one did.
+// felted legs, lying still where it was left.
 pub(super) fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -333,16 +333,11 @@ pub(super) fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
     pl.position().set(base_x, board_face_y(lx, lz), base_z);
     pl.rotation().y = pturn;
     g.world.add(&pl);
-    // R484 subtle mysterious sway: the planchette slowly drifts as if moved
-    // by unseen hands.
-    let sway_phase_x = rnd() * PI * 2.0;
-    let sway_phase_z = rnd() * PI * 2.0;
-    let sway_period = 14.0 + rnd() * 10.0;
-    g.animate(move |_g, _dt, t| {
-        let mut p = pl.position();
-        p.x = base_x + (t * (PI * 2.0 / sway_period) + sway_phase_x).sin() * 0.010;
-        p.z = base_z + (t * (PI * 2.0 / sway_period * 1.3) + sway_phase_z).sin() * 0.008;
-    });
+    // the old drift's two phases and its period (the planchette lies still:
+    // one that moves by itself would be a working board)
+    let _ = rnd();
+    let _ = rnd();
+    let _ = rnd();
 }
 
 /// The board (mm, `t18.py`): its size and how it has warped, as modelled
