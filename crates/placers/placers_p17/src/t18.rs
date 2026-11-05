@@ -129,7 +129,13 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
         let cx = (i as f64 - (n - 1) as f64 / 2.0) * 0.055;
         let cz = 0.068;
         // the old candle's height says how far this one has burnt
-        let (k, top) = CANDLE_TOPS[if h < 0.06 { 0 } else if h < 0.07 { 1 } else { 2 }];
+        let (k, top) = CANDLE_TOPS[if h < 0.06 {
+            0
+        } else if h < 0.07 {
+            1
+        } else {
+            2
+        }];
         let c = group();
         c.position().set(cx, BOARD_TOP, cz);
         c.rotation().y = f64::from((salt >> (i * 5)) % 64) * 0.1;
@@ -146,7 +152,8 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
             let flame = group();
             flame.position().y = root;
             c.add(&flame);
-            if let Some(m) = put(&flame, "Real__brassStickFlameA", &basic_mat!({ map: &flame_tex(), transparent: true, depthWrite: false })) {
+            if let Some(m) = put(&flame, "Real__brassStickFlameA", &basic_mat!({ map: &flame_tex(), transparent: true, depthWrite: false }))
+            {
                 m.position().y = -FLAME_ROOT;
                 m.set_render_order(3);
             }
@@ -263,7 +270,8 @@ fn board_tex(salt: u32, stain: u32) -> Tex {
         let (kx, ky) = (0.2 + 0.6 * hash(seed, 1, 2), 0.3 + 0.4 * hash(seed, 3, 4));
         fill(ctx, w, h, |u, v| {
             let warp = fbm(seed, u * 3.0, v * 2.0, 2) * 0.6;
-            let ring = ((v * 26.0 + warp * 6.0 + ((u - kx).powi(2) * 4.0 + (v - ky).powi(2) * 30.0).sqrt() * 8.0).sin() * 0.5 + 0.5).powi(3);
+            let ring =
+                ((v * 26.0 + warp * 6.0 + ((u - kx).powi(2) * 4.0 + (v - ky).powi(2) * 30.0).sqrt() * 8.0).sin() * 0.5 + 0.5).powi(3);
             let mut c = mix(base, [base[0] * 0.62, base[1] * 0.58, base[2] * 0.55], ring * 0.7);
             let knot = ((u - kx).powi(2) * 16.0 + (v - ky).powi(2) * 60.0).sqrt();
             c = mix(c, [0.16, 0.10, 0.06], (1.0 - sstep(0.04, 0.12, knot)) * 0.85);

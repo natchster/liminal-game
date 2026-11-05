@@ -256,8 +256,8 @@ fn pentagram_tex(salt: u32) -> Tex {
                         let edge = 1.0 - (d / half).min(1.0);
                         // the floor's tooth: grains caught on the pile's tips (1.4
                         // mm), in clumps (3 mm), skipping where the stick skipped
-                        let tooth = hash(seed, (x / 1.4).floor() as i32, (y / 1.4).floor() as i32) * 0.5
-                            + vn(seed ^ 0x33, x / 3.0, y / 3.0) * 0.5;
+                        let tooth =
+                            hash(seed, (x / 1.4).floor() as i32, (y / 1.4).floor() as i32) * 0.5 + vn(seed ^ 0x33, x / 3.0, y / 3.0) * 0.5;
                         let skip = 0.75 + 0.25 * vn(seed ^ 0x44, along * 140.0 + wob * 10.0, 0.5);
                         let k = press * skip * (0.9 + 0.5 * edge) - tooth * 0.85;
                         let grain = sstep(-0.05, 0.3, k) * sstep(half + mm_px, half - mm_px, d);
@@ -456,13 +456,19 @@ fn talk_board_tex(salt: u32) -> Tex {
                 }
                 // grime at the edges, darker at the near edge where hands held it
                 let edge = x.min(BOARD.0 - x).min(y).min(BOARD.1 - y);
-                let grime = (1.0 - sstep(2.0, 26.0, edge)) * (0.4 + 0.4 * fbm(seed ^ 8, x * 0.08, y * 0.08, 2)) + sstep(255.0, 305.0, y) * 0.12;
+                let grime =
+                    (1.0 - sstep(2.0, 26.0, edge)) * (0.4 + 0.4 * fbm(seed ^ 8, x * 0.08, y * 0.08, 2)) + sstep(255.0, 305.0, y) * 0.12;
                 c = mix(c, [0.24, 0.19, 0.13], grime);
                 // a tide line where water stood on its far left
                 let tq = ((x - 70.0).powi(2) / 1.6 + (y - 70.0).powi(2)).sqrt() / 92.0 + (vn(seed ^ 9, x * 0.05, y * 0.05) - 0.5) * 0.25;
-                c = mix(c, [0.46, 0.36, 0.24], sstep(0.84, 0.97, tq) * (1.0 - sstep(0.97, 1.03, tq)) * 0.6 + (1.0 - sstep(0.0, 0.97, tq)) * 0.08);
+                c = mix(
+                    c,
+                    [0.46, 0.36, 0.24],
+                    sstep(0.84, 0.97, tq) * (1.0 - sstep(0.97, 1.03, tq)) * 0.6 + (1.0 - sstep(0.0, 0.97, tq)) * 0.08,
+                );
                 // the knocked corner (near right): the face gone to the board
-                let cd = ((x - (BOARD.0 - 4.0)).powi(2) + (y - (BOARD.1 - 6.0)).powi(2)).sqrt() + (vn(seed ^ 10, x * 0.5, y * 0.5) - 0.5) * 5.0;
+                let cd =
+                    ((x - (BOARD.0 - 4.0)).powi(2) + (y - (BOARD.1 - 6.0)).powi(2)).sqrt() + (vn(seed ^ 10, x * 0.5, y * 0.5) - 0.5) * 5.0;
                 if cd < 12.0 {
                     c = mix(c, [0.33, 0.24, 0.15], 0.9);
                 }
