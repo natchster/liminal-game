@@ -1,11 +1,12 @@
 //! Batch `t02`'s prop in this crate, made real (`docs/PROPS.md` P3): the
-//! devotional triptych. A small Flemish triptych of about 1510 as a real one
-//! is made and painted (CC0, `visuals::pictures`: Jan Provoost's Virgin and
-//! Child with St John and Mary Magdalene on its wings, Rijksmuseum
-//! SK-A-2570, photographed open, its frames with it): the centre panel in its
-//! engaged frame (a carved, painted and silvered band, a gilt cove), the
-//! wings on iron hinges along its front edges, opened to the room and
-//! angled forward; hung flush on its nail. Its varnish gone amber, cracked,
+//! devotional triptych: a reproduction of a Flemish triptych of about 1510,
+//! as religious shops sell them, at about half the original's size (CC0,
+//! `visuals::pictures`: Jan Provoost's Virgin and Child with St John and
+//! Mary Magdalene on its wings, Rijksmuseum SK-A-2570, photographed open,
+//! its frames with it), printed on three panels: the centre in its engaged
+//! frame (a carved, painted and silvered band, a gilt cove), the wings on
+//! iron hinges along its front edges, opened to the room and angled
+//! forward; hung flush on its nail. Its varnish gone amber, cracked,
 //! grimed.
 use super::*;
 use game::visuals::pictures::{self, Age};
