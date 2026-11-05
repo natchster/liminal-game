@@ -54,7 +54,7 @@ pub fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
             Wear { base: glitter, alt: mix(glitter, [0.75, 0.73, 0.7], 0.5), rub: 0.12, grime: 0.35, scuff: 0.2, mottle: 0.06, scales: 0 };
         let mut c = wear_at(salt ^ 31, u, v, &w);
         // the glitter: flakes catching the light, and dark ones
-        let s = hash(salt ^ 33, (u * 128.0) as i32, (v * 128.0) as i32);
+        let s = hash(salt ^ 33, (u * 64.0) as i32, (v * 64.0) as i32);
         if s > 0.9 {
             c = mix(c, [0.96, 0.94, 0.88], (s - 0.9) * 7.0);
         } else if s < 0.12 {
@@ -76,8 +76,7 @@ pub fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
     let satins = [0xa0627e, 0x92404a, 0xa8925c, 0x744a76];
     for (i, &(kc, len)) in ribbons.iter().enumerate() {
         let satin = rgb(satins[kc]);
-        let w =
-            Wear { base: satin, alt: mix(satin, [0.85, 0.82, 0.78], 0.35), rub: 0.05, grime: 0.5, scuff: 0.15, mottle: 0.08, scales: 0 };
+        let w = Wear { base: satin, alt: mix(satin, [0.85, 0.82, 0.78], 0.35), rub: 0.0, grime: 0.5, scuff: 0.15, mottle: 0.08, scales: 0 };
         let mat = phong!({ map: &wear_tex(salt ^ (40 + i as u32), 64, w), specular: 0x2c2c2c, shininess: 22 });
         put_world(&wand, &format!("Real__fairyWandRibbon{i}{len}"), &mat, 0.04);
         if i == 0 {
@@ -107,7 +106,7 @@ pub fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
     let p = mic.pos();
     let salt = salt_at(p.x, p.z);
     let grille_tex = paint_tile(128, move |u, v| {
-        let w = Wear { base: rgb(0x9c9c98), alt: rgb(0x46484a), rub: 0.25, grime: 0.5, scuff: 0.2, mottle: 0.08, scales: 0 };
+        let w = Wear { base: rgb(0x9c9c98), alt: rgb(0x46484a), rub: 0.15, grime: 0.5, scuff: 0.2, mottle: 0.08, scales: 0 };
         let c = wear_at(salt ^ 51, u, v, &w);
         // the mesh's holes, 2 mm apart, in staggered rows
         let (gx, gy) = (u * 10.0, v * 10.0);
@@ -119,7 +118,7 @@ pub fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
     });
     put_world(&mic, "Real__toyMicGrille", &phong!({ map: &grille_tex, specular: 0x4a4a4a, shininess: 40 }), 0.02);
     put(&mic, "Real__toyMicBand", &phong!({ color: 0x2a2826, specular: 0x202020, shininess: 30 }));
-    let w = Wear { base: plastic, alt: mix(plastic, [0.82, 0.8, 0.76], 0.35), rub: 0.04, grime: 0.5, scuff: 0.6, mottle: 0.06, scales: 0 };
+    let w = Wear { base: plastic, alt: mix(plastic, [0.82, 0.8, 0.76], 0.35), rub: 0.0, grime: 0.5, scuff: 0.5, mottle: 0.06, scales: 0 };
     put_world(&mic, "Real__toyMicHandle", &phong!({ map: &wear_tex(salt ^ 52, 128, w), specular: 0x222222, shininess: 26 }), 0.04);
     put(&mic, "Real__toyMicKnob", &phong!({ color: 0x24221f, specular: 0x202020, shininess: 20 }));
     g.world.add(&mic);
@@ -143,7 +142,7 @@ pub fn place_small_toy_dinos(g: &mut Game, _dist: &[i32]) {
     dino.rotation().y = rnd() * PI * 2.0;
     let p = dino.pos();
     let salt = salt_at(p.x, p.z);
-    let w = Wear { base: pvc, alt: mix(pvc, [0.85, 0.82, 0.75], 0.3), rub: 0.03, grime: 0.45, scuff: 0.45, mottle: 0.07, scales: 22 };
+    let w = Wear { base: pvc, alt: mix(pvc, [0.85, 0.82, 0.75], 0.3), rub: 0.0, grime: 0.45, scuff: 0.4, mottle: 0.07, scales: 22 };
     put_world(&dino, "Real__smallTrexBody", &phong!({ map: &wear_tex(salt ^ 61, 256, w), specular: 0x141414, shininess: 14 }), 0.05);
     put(&dino, "Real__smallTrexTeeth", &lambert!({ color: 0xbdb39a }));
     put(&dino, "Real__smallTrexEyes", &lambert!({ color: 0x1c1915 }));

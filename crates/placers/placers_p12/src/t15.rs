@@ -69,11 +69,11 @@ pub(crate) fn place_pet_toys(g: &mut Game, _dist: &[i32]) {
         put_world(&pt, "Real__petBone", &mat, 0.06);
         put_world(&pt, "Real__petBoneSeam", &mat, 0.06);
     } else {
-        let w = Wear { base: b, alt: mix(b, [0.8, 0.78, 0.72], 0.4), rub: 0.05, grime: 0.5, scuff: 0.6, mottle: 0.1, scales: 0 };
+        let w = Wear { base: b, alt: b, rub: 0.0, grime: 0.5, scuff: 0.6, mottle: 0.1, scales: 0 };
         put_world(&pt, "Real__petBall", &phong!({ map: &wear_tex(salt ^ 97, 128, w), specular: 0x161616, shininess: 10 }), 0.06);
         if band {
             let off = rgb(0xc4bdae);
-            let w = Wear { base: off, alt: mix(off, [0.4, 0.36, 0.3], 0.5), rub: 0.06, grime: 0.5, scuff: 0.5, mottle: 0.1, scales: 0 };
+            let w = Wear { base: off, alt: off, rub: 0.0, grime: 0.5, scuff: 0.5, mottle: 0.1, scales: 0 };
             put_world(&pt, "Real__petBallBand", &phong!({ map: &wear_tex(salt ^ 98, 64, w), specular: 0x161616, shininess: 10 }), 0.06);
         }
     }

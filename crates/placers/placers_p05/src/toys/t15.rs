@@ -48,10 +48,10 @@ pub fn place_action_figures(g: &mut Game, _dist: &[i32]) {
     let fig = group();
     let size = 0.03;
     let u = rgb(uniform);
-    put_world(&fig, &format!("Real__actionFigureBody{pose}"), &plastic(u, mix(u, [0.8, 0.78, 0.72], 0.35), 0.03, 0.45, 0.6, 1), size);
-    put_world(&fig, &format!("Real__actionFigureSkin{pose}"), &plastic(flesh, mix(flesh, [0.9, 0.86, 0.8], 0.4), 0.0, 0.5, 0.3, 2), size);
+    put_world(&fig, &format!("Real__actionFigureBody{pose}"), &plastic(u, u, 0.0, 0.45, 0.5, 1), size);
+    put_world(&fig, &format!("Real__actionFigureSkin{pose}"), &plastic(flesh, flesh, 0.0, 0.5, 0.3, 2), size);
     put_world(&fig, &format!("Real__actionFigureKit{pose}"), &plastic(rgb(0x1c1b19), u, 0.12, 0.2, 0.5, 3), size);
-    put_world(&fig, &format!("Real__actionFigureHelmet{pose}"), &plastic(rgb(helmet), flesh, 0.1, 0.4, 0.4, 4), size);
+    put_world(&fig, &format!("Real__actionFigureHelmet{pose}"), &plastic(rgb(helmet), flesh, 0.05, 0.4, 0.4, 4), size);
     put(&fig, &format!("Real__actionFigureEyes{pose}"), &lambert!({ color: 0x1e1a17 }));
     fig.position().set(px, 0, pz);
     fig.rotation().y = turn;
@@ -81,24 +81,20 @@ pub fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
     let turn = rnd() * PI * 2.0;
     let salt = salt_at(px, pz);
     let rattle = group();
-    let ball = Wear { base: pastel, alt: mix(pastel, [0.92, 0.9, 0.86], 0.4), rub: 0.05, grime: 0.4, scuff: 0.5, mottle: 0.07, scales: 0 };
+    let ball = Wear { base: pastel, alt: mix(pastel, [0.92, 0.9, 0.86], 0.4), rub: 0.0, grime: 0.4, scuff: 0.45, mottle: 0.07, scales: 0 };
     let ball_tex = paint_tile(128, move |u, v| {
         let mut c = wear_at(salt ^ 11, u, v, &ball);
-        // the printed stars, rubbed half away (two to a tile)
-        for s in 0..2 {
-            let (cx, cy) = (0.25 + 0.5 * f64::from(s), 0.3 + 0.4 * f64::from(s));
-            let (dx, dy) = (u - cx, v - cy);
-            let r = (dx * dx + dy * dy).sqrt();
-            let a = dy.atan2(dx) + f64::from(s);
-            let star = 0.085 * (0.62 + 0.38 * (5.0 * a).cos().max(-1.0)).max(0.45);
-            let ink = (1.0 - ss(star - 0.01, star + 0.01, r)) * ss(0.35, 0.55, fbmp(salt ^ 13, u, v, 6, 3));
+        // the printed stars, rubbed half away (two to a tile, 9 mm across)
+        for k in 0..2 {
+            let (cx, cy) = (0.25 + 0.5 * f64::from(k), 0.3 + 0.4 * f64::from(k));
+            let ink = star(u - cx, v - cy, 0.075, 0.4 * f64::from(k)) * ss(0.38, 0.5, fbmp(salt ^ 13, u, v, 6, 3));
             c = mix(c, [0.93, 0.91, 0.86], ink * 0.85);
         }
         c
     });
     put_world(&rattle, "Real__babyRattleBall", &phong!({ map: &ball_tex, specular: 0x262626, shininess: 34 }), 0.06);
     let cream = rgb(0xd2c7aa);
-    let handle = Wear { base: cream, alt: mix(cream, [0.6, 0.5, 0.3], 0.3), rub: 0.06, grime: 0.5, scuff: 0.4, mottle: 0.08, scales: 0 };
+    let handle = Wear { base: cream, alt: mix(cream, [0.6, 0.5, 0.3], 0.3), rub: 0.0, grime: 0.5, scuff: 0.4, mottle: 0.08, scales: 0 };
     put_world(
         &rattle,
         "Real__babyRattleHandle",
@@ -134,7 +130,7 @@ pub fn place_toy_dinosaurs(g: &mut Game, _dist: &[i32]) {
     let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
     let turn = rnd() * PI * 2.0;
     let salt = salt_at(px, pz);
-    let w = Wear { base: pvc, alt: mix(pvc, [0.85, 0.82, 0.75], 0.3), rub: 0.03, grime: 0.45, scuff: 0.45, mottle: 0.07, scales: 22 };
+    let w = Wear { base: pvc, alt: mix(pvc, [0.85, 0.82, 0.75], 0.3), rub: 0.0, grime: 0.45, scuff: 0.4, mottle: 0.07, scales: 22 };
     let skin = phong!({ map: &wear_tex(salt ^ 21, 256, w), specular: 0x141414, shininess: 14 });
     let eyes = lambert!({ color: 0x1c1915 });
     let dino = group();
@@ -150,6 +146,24 @@ pub fn place_toy_dinosaurs(g: &mut Game, _dist: &[i32]) {
     dino.rotation().y = turn;
     g.world.add(&dino);
 }
+/// How much of a five-pointed star (`r` to its points, turned `turn`) covers
+/// the point (x, y) from its centre: 1 inside, 0 outside, soft at its edge
+fn star(x: f64, y: f64, r: f64, turn: f64) -> f64 {
+    let sector = PI * 2.0 / 5.0;
+    let d = (x * x + y * y).sqrt();
+    let mut phi = (y.atan2(x) + turn).rem_euclid(sector);
+    if phi > sector / 2.0 {
+        phi = sector - phi;
+    }
+    // the edge from a point (r, 0) to the notch beside it (0.4 r at 36 degrees)
+    let (p0x, p0y) = (r, 0.0);
+    let (p1x, p1y) = (0.4 * r * (PI / 5.0).cos(), 0.4 * r * (PI / 5.0).sin());
+    let (px, py) = (d * phi.cos(), d * phi.sin());
+    let (ex, ey) = (p1x - p0x, p1y - p0y);
+    let side = (ex * (py - p0y) - ey * (px - p0x)) / (ex * ex + ey * ey).sqrt();
+    ss(-0.004, 0.004, side)
+}
+
 // ------------------------------------------------------------- the paint ---
 
 /// Part `name` of batch `t15` as modelled, added to `grp` in `mat`

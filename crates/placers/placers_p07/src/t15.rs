@@ -31,7 +31,7 @@ pub(crate) fn place_teething_rings(g: &mut Game, _dist: &[i32]) {
     let _ = rnd();
     let salt = salt_at(px, pz);
     let tex = paint_tile(128, move |u, v| {
-        let w = Wear { base: pvc, alt: mix(pvc, [0.9, 0.9, 0.86], 0.45), rub: 0.05, grime: 0.4, scuff: 0.3, mottle: 0.08, scales: 0 };
+        let w = Wear { base: pvc, alt: mix(pvc, [0.9, 0.9, 0.86], 0.45), rub: 0.0, grime: 0.4, scuff: 0.3, mottle: 0.08, scales: 0 };
         let mut c = wear_at(salt ^ 81, u, v, &w);
         // the water inside gone cloudy, and black mould in clusters of specks
         let cloud = fbmp(salt ^ 83, u, v, 2, 3);
