@@ -2,6 +2,9 @@
 use crate::{face_yaw, open_tiles, pick, set_rot_order, wall_tiles};
 use game::prelude::*;
 
+// R638 hanging plant: made real by batch `t06` (`t06.rs`)
+pub use crate::t06::place_hanging_plants;
+
 // R635 framed cross-stitch: 4% chance per level. An alphabet sampler on
 // linen, framed (batch r13a).
 pub fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
@@ -609,78 +612,6 @@ pub fn place_watercolors(g: &mut Game, _dist: &[i32]) {
     painting.rotation().y = face_yaw(dx, dz);
     painting.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&painting);
-}
-
-// R638 hanging plant (vine hanger): 3% chance per level. Wall-mount macramé
-// cord + pot + trailing vines.
-pub fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let bracket_mat = lambert!({ color: 0x404040 });
-    let pot_colors: [u32; 4] = [0x8b5a2b, 0x606060, 0xa0603c, 0xd0a070];
-    let pot_mat = lambert!({ color: pick(&pot_colors) });
-    let leaf_colors: [u32; 4] = [0x408040, 0x306028, 0x507838, 0x60a058];
-    let leaf_mat = lambert!({ color: pick(&leaf_colors), side: DoubleSide });
-    let dirt_mat = lambert!({ color: 0x2d1a0d });
-    let plant = group();
-    let mount_y = 1.90;
-    // Wall bracket arm out from wall.
-    let arm = mesh(pg("HangingPlants__arm", box_geo!(0.010, 0.014, 0.14)), &bracket_mat);
-    arm.position().set(0, mount_y, 0.07);
-    plant.add(&arm);
-    // Hanging chain link.
-    let chain = mesh(pg("HangingPlants__chain", cyl_geo!(0.0015, 0.0015, 0.06, 3)), &bracket_mat);
-    // Stretched from the bracket's eye down into the pot (top mount_y - 0.066).
-    chain.scale().y = 0.070 / 0.06;
-    chain.position().set(0, mount_y - 0.035, 0.13);
-    plant.add(&chain);
-    // Pot (bowl below chain).
-    let pot = mesh(pg("HangingPlants__pot", cyl_geo!(0.055, 0.045, 0.048, 12)), &pot_mat);
-    pot.position().set(0, mount_y - 0.09, 0.13);
-    plant.add(&pot);
-    // Dirt disc top of pot.
-    let dirt = mesh(circle_geo!(0.052, 12), &dirt_mat);
-    dirt.rotation().x = -PI / 2.0;
-    dirt.position().set(0, mount_y - 0.066, 0.13);
-    plant.add(&dirt);
-    // 5-8 trailing vine leaves cascading below pot.
-    let vine_count = 5 + (rnd() * 4.0).floor() as i32;
-    // R639 track for sway animator: (leaf, base z, phase, depth)
-    let mut vine_leaves: Vec<(Obj, f64, f64, f64)> = vec![];
-    for i in 0..vine_count {
-        let t = i as f64 / (vine_count - 1) as f64;
-        let leaf = mesh(circle_geo!(0.018 * (1.0 - t * 0.3), 6), &leaf_mat);
-        leaf.scale().set(0.6, 1.4, 1);
-        let swing = (rnd() - 0.5) * 0.06;
-        leaf.position().set(swing, mount_y - 0.09 - i as f64 * 0.032, 0.13 + (rnd() - 0.5) * 0.03);
-        let base_z = (rnd() - 0.5) * 0.6;
-        leaf.rotation().z = base_z;
-        let phase = rnd() * PI * 2.0 + i as f64 * 0.3;
-        {
-            let mut u = leaf.user();
-            u.base_z = base_z;
-            u.phase = phase;
-            u.set("depth", t);
-        }
-        vine_leaves.push((leaf.clone(), base_z, phase, t));
-        plant.add(&leaf);
-    }
-    plant.rotation().y = face_yaw(dx, dz);
-    plant.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.080), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.080));
-    g.world.add(&plant);
-    // R639 gentle sway animator (lower leaves sway more — pendulum effect).
-    g.animate(move |_g, _dt, t| {
-        for (l, base_z, phase, depth) in &vine_leaves {
-            let amp = 0.04 + depth * 0.06; // lower leaves swing wider
-            l.rotation().z = base_z + (t * 0.32 + phase).sin() * amp;
-        }
-    });
 }
 
 // R638 potted seedling: 7% chance per level. Small pot w/ tiny green sprout.

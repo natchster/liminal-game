@@ -8,6 +8,8 @@ use game::prelude::*;
 
 mod t01;
 use t01::{place_abstract_landscapes, place_still_lifes};
+mod t06;
+use t06::place_herb_bundles;
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -285,58 +287,6 @@ fn broom_corn_tex(vary: u32) -> Tex {
             }
         });
     })
-}
-
-// R662 hanging herbs bundle: 5% chance per level. Wall
-// bunch of dried herbs tied w/ string.
-fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let wt = wall_tiles(g);
-    if wt.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&wt);
-    let string_mat = lambert!({ color: 0x604020 });
-    let herb_colors: [u32; 5] = [0x506030, 0x405020, 0x607040, 0x304018, 0x807040];
-    let bundle = group();
-    let mount_y = 1.85;
-    // Small hook at wall.
-    let hook = mesh(pg("HerbBundles__hook", cyl_geo!(0.003, 0.003, 0.010, 4)), &string_mat);
-    hook.rotation().x = PI / 2.0;
-    // Rosette on the wall (z -0.008); the twine loop's back hangs on its
-    // upturned tip (it was 3 cm above the binding, 9 mm off the wall).
-    hook.position().set(0, mount_y + 0.053, -0.003);
-    bundle.add(&hook);
-    // Twine binding.
-    let twine = mesh(pg("HerbBundles__twine", torus_geo!(0.010, 0.002, 3, 8)), &string_mat);
-    twine.rotation().x = PI / 2.0;
-    twine.position().set(0, mount_y + 0.05, 0.010);
-    bundle.add(&twine);
-    // 5-8 herb stems hanging down (thin cylinders).
-    let stem_count = 5 + (rnd() * 4.0).floor() as i32;
-    let cluster_color = pick(&herb_colors);
-    for i in 0..stem_count {
-        let herb_mat = lambert!({ color: cluster_color, side: DoubleSide });
-        // Stem.
-        let stem = mesh(cyl_geo!(0.001, 0.001, 0.12, 3), &herb_mat);
-        let off = (i as f64 - stem_count as f64 / 2.0) * 0.008;
-        stem.position().set(off, mount_y - 0.010, 0.014);
-        stem.rotation().z = off * 0.6;
-        bundle.add(&stem);
-        // Small leaf clusters along stem (3 per).
-        for l in 0..3 {
-            let leaf = mesh(circle_geo!(0.006, 5), &herb_mat);
-            leaf.position().set(off - 0.003, mount_y - 0.020 - l as f64 * 0.030, 0.016);
-            leaf.rotation().y = PI / 2.0;
-            leaf.rotation().x = (rnd() - 0.5) * 0.4;
-            bundle.add(&leaf);
-        }
-    }
-    bundle.rotation().y = face_wall(dx, dz);
-    bundle.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
-    g.world.add(&bundle);
 }
 
 // R662 wooden rolling pin: 6% chance per level. Central roll

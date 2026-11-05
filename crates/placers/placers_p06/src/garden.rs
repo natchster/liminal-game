@@ -3,61 +3,9 @@
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
 use game::prelude::*;
 
-// R645 bag of soil: 6% chance per level. Bulging plastic sack w/ printed label.
-game::lazy_static_tex!(
-    soil_bag_texture,
-    canvas_tex(96, 128, |ctx, w, h| {
-        // Beige/tan bag.
-        ctx.set_fill_style("#a08050");
-        ctx.fill_rect(0, 0, w, h);
-        // Title bar band.
-        ctx.set_fill_style("#403020");
-        ctx.fill_rect(0, h * 0.18, w, h * 0.10);
-        // "POTTING SOIL" title placeholder (bold bar).
-        ctx.set_fill_style("#f0e8d0");
-        ctx.fill_rect(w * 0.15, h * 0.21, w * 0.70, h * 0.04);
-        // Center soil illustration — dark clumps.
-        ctx.set_fill_style("#2d1a0d");
-        for _i in 0..12 {
-            ctx.begin_path();
-            let cx = w * (0.15 + rnd() * 0.7);
-            let cy = h * (0.45 + rnd() * 0.3);
-            let r = 6.0 + rnd() * 6.0;
-            ctx.arc(cx, cy, r, 0, PI * 2.0);
-            ctx.fill();
-        }
-        // Bottom weight label.
-        ctx.set_fill_style("#f0e8d0");
-        ctx.fill_rect(w * 0.30, h * 0.85, w * 0.40, 4);
-    })
-);
-
-pub fn place_soil_bags(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let bag_mat = lambert!({ map: soil_bag_texture() });
-    let bag = group();
-    // Main bag body — bulging via slightly compressed box + rounded ends.
-    let body = mesh(pg("SoilBags__body", box_geo!(0.12, 0.08, 0.20)), &bag_mat);
-    body.position().y = 0.04;
-    bag.add(&body);
-    // 2 rounded end caps (spheres flattened).
-    for side in [-1.0, 1.0] {
-        let cap = mesh(pg("SoilBags__cap", sphere_geo!(0.055, 8, 6)), &bag_mat);
-        cap.scale().set(1, 0.7, 0.6);
-        cap.position().set(0, 0.04, side * 0.09);
-        bag.add(&cap);
-    }
-    bag.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    bag.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bag);
-}
+// R645 soil bag, R647 seed catalogue, R648 apron, R651 bird bath, R652 gnome:
+// made real by batch `t06` (`t06.rs`)
+pub use crate::t06::{place_bird_baths, place_garden_aprons, place_garden_gnomes, place_seed_catalogs, place_soil_bags};
 
 // R646 metal bucket: 5% chance per level. Tapered cylinder pail + curved handle.
 pub fn place_metal_buckets(g: &mut Game, _dist: &[i32]) {
@@ -183,76 +131,6 @@ pub fn place_twine_balls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&twine);
 }
 
-// R647 framed vintage seed catalog: 3% chance per level. Wall art w/ botanical
-// illustration.
-game::lazy_static_tex!(
-    seed_catalog_texture,
-    canvas_tex(128, 168, |ctx, w, h| {
-        // Cream paper.
-        ctx.set_fill_style("#f0e8c8");
-        ctx.fill_rect(0, 0, w, h);
-        // Vintage border (double lines).
-        ctx.set_stroke_style("#604020");
-        ctx.set_line_width(1);
-        ctx.stroke_rect(6, 6, w - 12.0, h - 12.0);
-        ctx.stroke_rect(10, 10, w - 20.0, h - 20.0);
-        // Top title bar (dark).
-        ctx.set_fill_style("#4a3020");
-        ctx.fill_rect(14, 16, w - 28.0, 12);
-        // Center vegetable illustration — tomato-ish shape.
-        let (cx, cy) = (w / 2.0, h * 0.5);
-        ctx.set_fill_style("#c02020");
-        ctx.begin_path();
-        ctx.arc(cx, cy, 22, 0, PI * 2.0);
-        ctx.fill();
-        // Green leaves on top.
-        ctx.set_fill_style("#408040");
-        for i in 0..5 {
-            let a = (i as f64 / 5.0) * PI - PI / 2.0;
-            ctx.begin_path();
-            ctx.ellipse(cx + a.cos() * 12.0, cy - 20.0 + a.sin() * 6.0, 8, 4, a, 0, PI * 2.0);
-            ctx.fill();
-        }
-        // Small stem.
-        ctx.set_fill_style("#604020");
-        ctx.fill_rect(cx - 1.0, cy - 30.0, 2, 8);
-        // Bottom description bars.
-        ctx.set_fill_style("#403020");
-        for i in 0..4 {
-            ctx.fill_rect(20, h - 40.0 + i as f64 * 6.0, w - 40.0 - rnd() * 20.0, 2);
-        }
-    })
-);
-
-pub fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let walls = wall_tiles(g);
-    if walls.is_empty() {
-        return;
-    }
-    let (x, z, dx, dz) = pick(&walls);
-    let frame_mat = lambert!({ color: 0x604020 });
-    let paper_mat = lambert!({ map: seed_catalog_texture() });
-    let catalog = group();
-    let mount_y = 1.65;
-    // Frame.
-    let frame = mesh(pg("SeedCatalogs__frame", box_geo!(0.22, 0.30, 0.012)), &frame_mat);
-    frame.position().y = mount_y;
-    catalog.add(&frame);
-    // Catalog page.
-    let paper = mesh(plane_geo!(0.18, 0.25), &paper_mat);
-    // On the frame's recessed backing board (front z 0.002), edges under the
-    // moulding's sight edge.
-    paper.position().set(0, mount_y, 0.0025);
-    catalog.add(&paper);
-    catalog.rotation().z = (rnd() - 0.5) * 0.05;
-    catalog.rotation().y = face_yaw(dx, dz);
-    catalog.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
-    g.world.add(&catalog);
-}
-
 // R648 framed pressed flower: 3% chance per level. Small shadow-box w/ pressed
 // flower silhouette.
 game::lazy_static_tex!(
@@ -334,44 +212,6 @@ pub fn place_pressed_flowers(g: &mut Game, _dist: &[i32]) {
     flower.rotation().y = face_yaw(dx, dz);
     flower.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&flower);
-}
-
-// R648 folded gardening apron: 5% chance per level. Rectangular fabric w/
-// pocket band + tied strap.
-pub fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let apron_colors: [u32; 5] = [0x408040, 0x604040, 0x808030, 0xa07040, 0x506080];
-    let apron_mat = lambert!({ color: pick(&apron_colors), side: DoubleSide });
-    let pocket_mat = lambert!({ color: 0xc0a870 });
-    let apron = group();
-    // Main folded fabric block (2 folded layers).
-    let layer1 = mesh(box_geo!(0.14, 0.008, 0.18), &apron_mat);
-    layer1.position().y = 0.004;
-    apron.add(&layer1);
-    let layer2 = mesh(box_geo!(0.13, 0.008, 0.17), &apron_mat);
-    layer2.position().set(0.006, 0.012, -0.008);
-    apron.add(&layer2);
-    // Pocket band across middle of top layer (contrasting color).
-    let pocket = mesh(pg("GardenAprons__pocket", box_geo!(0.12, 0.002, 0.05)), &pocket_mat);
-    pocket.position().set(0.006, 0.017, -0.008);
-    apron.add(&pocket);
-    // 2 tied strap loops (torus segments).
-    for i in 0..2 {
-        let strap = mesh(cyl_geo!(0.003, 0.003, 0.055, 4), &apron_mat);
-        strap.rotation().z = PI / 2.0;
-        strap.position().set(-0.020 + i as f64 * 0.030, 0.019, -0.075);
-        apron.add(&strap);
-    }
-    apron.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    apron.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&apron);
 }
 
 // R649 garden tool tote bag: 4% chance per level. Fabric bag w/ tool handles
@@ -588,48 +428,6 @@ pub fn place_bird_feeders(g: &mut Game, _dist: &[i32]) {
     g.world.add(&feeder);
 }
 
-// R651 bird bath: 3% chance per level. Pedestal + bowl + water disc.
-pub fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let stone_mat = lambert!({ color: 0x909090 });
-    let water_mat = lambert!({ color: 0x60a0c0, transparent: true, opacity: 0.75 });
-    let bath = group();
-    // Base disc.
-    let base = mesh(pg("BirdBaths__base", cyl_geo!(0.10, 0.12, 0.020, 12)), &stone_mat);
-    base.position().y = 0.010;
-    bath.add(&base);
-    // Pedestal (tall column).
-    let pedestal = mesh(pg("BirdBaths__pedestal", cyl_geo!(0.045, 0.055, 0.32, 10)), &stone_mat);
-    pedestal.position().y = 0.18;
-    bath.add(&pedestal);
-    // Bowl top (wider, shallow dish).
-    let bowl = mesh(pg("BirdBaths__bowl", cyl_geo!(0.14, 0.11, 0.030, 14)), &stone_mat);
-    bowl.position().y = 0.355;
-    bath.add(&bowl);
-    // Water surface disc.
-    let water = mesh(circle_geo!(0.128, 14), &water_mat);
-    water.rotation().x = -PI / 2.0;
-    water.position().y = 0.368;
-    bath.add(&water);
-    bath.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
-    bath.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&bath);
-    // R652 subtle water ripple animator (tiny Y bob + XZ scale breathing).
-    let phase = rnd() * PI * 2.0;
-    g.animate(move |_g, _dt, t| {
-        water.position().y = 0.368 + (t * 0.9 + phase).sin() * 0.0006;
-        let s = 1.0 + (t * 0.7 + phase).sin() * 0.015;
-        water.scale().set(s, 1, s);
-    });
-}
-
 // R651 framed botanical illustration: 3% chance per level. Wall art w/
 // detailed plant sketch.
 game::lazy_static_tex!(
@@ -701,62 +499,4 @@ pub fn place_botanicals(g: &mut Game, _dist: &[i32]) {
     bot.rotation().y = face_yaw(dx, dz);
     bot.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     g.world.add(&bot);
-}
-
-// R652 garden gnome: 3% chance per level. Classic figurine w/ pointed red hat
-// + beard + body + boots.
-pub fn place_garden_gnomes(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let hat_mat = lambert!({ color: 0xc02020 });
-    let body_colors: [u32; 4] = [0x2060a0, 0x408040, 0xa04040, 0x604020];
-    let body_mat = lambert!({ color: pick(&body_colors) });
-    let skin_mat = lambert!({ color: 0xf0c898 });
-    let beard_mat = lambert!({ color: 0xf0f0f0 });
-    let boot_mat = lambert!({ color: 0x604020 });
-    let gnome = group();
-    // Boots (2 blocks).
-    for side in [-1.0, 1.0] {
-        let boot = mesh(pg("GardenGnomes__boot", box_geo!(0.014, 0.016, 0.020)), &boot_mat);
-        // Toes (-Z, the face side) peek out from under the robe's hem.
-        boot.position().set(side * 0.009, 0.008, -0.016);
-        gnome.add(&boot);
-    }
-    // Body/robe (tapered cylinder).
-    let body = mesh(pg("GardenGnomes__body", cyl_geo!(0.030, 0.024, 0.070, 8)), &body_mat);
-    body.position().y = 0.050;
-    gnome.add(&body);
-    // Head (skin sphere).
-    let head = mesh(pg("GardenGnomes__head", sphere_geo!(0.024, 8, 6)), &skin_mat);
-    head.position().y = 0.098;
-    gnome.add(&head);
-    // White beard (triangular cone below face).
-    let beard = mesh(pg("GardenGnomes__beard", cone_geo!(0.018, 0.030, 6)), &beard_mat);
-    // On the face side (-Z, with the nose): wide top at the chin under the
-    // nose, the point hanging down over the chest, tipped 0.2 rad forward.
-    beard.rotation().x = PI + 0.2;
-    beard.position().set(0, 0.074, -0.026);
-    gnome.add(&beard);
-    // Pointed red hat (tall cone).
-    let hat = mesh(pg("GardenGnomes__hat", cone_geo!(0.026, 0.070, 8)), &hat_mat);
-    hat.position().y = 0.140;
-    gnome.add(&hat);
-    // Hat brim (small torus).
-    let brim = mesh(pg("GardenGnomes__brim", torus_geo!(0.022, 0.005, 4, 12)), &hat_mat);
-    brim.rotation().x = PI / 2.0;
-    brim.position().y = 0.115;
-    gnome.add(&brim);
-    // Small nose (skin sphere).
-    let nose = mesh(pg("GardenGnomes__nose", sphere_geo!(0.005, 5, 4)), &skin_mat);
-    nose.position().set(0, 0.098, -0.020);
-    gnome.add(&nose);
-    gnome.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
-    gnome.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&gnome);
 }
