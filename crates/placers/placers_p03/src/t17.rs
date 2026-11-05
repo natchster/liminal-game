@@ -342,15 +342,15 @@ fn acorn_cup_geo() -> Option<Geo> {
 fn nut_tex(k: usize, holed: bool) -> Tex {
     t17_kind_tex!(6, k * 2 + holed as usize, |kk: usize| {
         let (k, holed) = (kk / 2, kk % 2 == 1);
-        let base = [[0.50, 0.32, 0.16], [0.33, 0.21, 0.12], [0.55, 0.45, 0.33]][k];
+        let base = [[0.50, 0.32, 0.16], [0.33, 0.21, 0.12], [0.50, 0.40, 0.28]][k];
         let seed = 0xac0 + kk as u32 * 13;
         canvas_tex_opt(128, 64, false, move |ctx, w, h| {
             paint_px(ctx, w, h, |px, py| {
                 let (u, v) = (px / w, 1.0 - py / h);
                 let mut c = base;
                 // fine stripes along it (lines of one angle), a little wavy
-                let st = fbm(seed, u * 6.0, v * 26.0 + 2.0 * fbm(seed ^ 3, u * 3.0, v * 3.0, 2), 3);
-                c = scale3(c, 0.86 + 0.26 * st);
+                let st = fbm(seed, u * 6.0, v * 34.0 + 2.0 * fbm(seed ^ 3, u * 3.0, v * 3.0, 2), 3);
+                c = scale3(c, 0.80 + 0.40 * st);
                 // its shoulder toward the tip a shade darker, the tip's felt
                 // greyer and paler round the style
                 c = mix(c, scale3(c, 0.8), sstep(0.70, 0.85, u));
@@ -369,8 +369,8 @@ fn nut_tex(k: usize, holed: bool) -> Tex {
                 c = mix(c, scale3(base, 0.5), 0.6 * rot);
                 c = mix(c, [0.56, 0.52, 0.46], 0.18 * (1.0 - sstep(0.0, 0.5, v)));
                 if holed {
-                    // the weevil larva's exit hole: round, 2.5 mm, on the top
-                    let d = ((u - 0.52) / 0.040).hypot(v / 0.050);
+                    // the weevil larva's exit hole: round, 2 mm, on the top
+                    let d = ((u - 0.52) / 0.033).hypot(v / 0.042);
                     c = mix(c, [0.36, 0.26, 0.17], 0.8 * (1.0 - sstep(1.0, 1.5, d)));
                     c = mix(c, [0.05, 0.035, 0.03], 1.0 - sstep(0.75, 0.95, d));
                 }
@@ -378,6 +378,15 @@ fn nut_tex(k: usize, holed: bool) -> Tex {
             });
         })
     })
+}
+
+/// A nut's material: a ripe one keeps a little of its gloss
+fn nut_mat(k: usize, holed: bool) -> Mat {
+    if k == 0 {
+        phong!({ map: &nut_tex(k, holed), specular: 0x1c1813, shininess: 28 })
+    } else {
+        lambert!({ map: &nut_tex(k, holed) })
+    }
 }
 
 /// A cup (u round it, v its outside then its inside, foot to rim): felted
@@ -403,12 +412,18 @@ fn cup_tex() -> Tex {
                 let kk = hh * rows;
                 let row = kk.floor();
                 let fv = kk - row;
-                let fu = (u * 13.0 + 0.5 * (row as i32 % 2) as f64).fract();
-                let mut c = mix([0.56, 0.50, 0.40], [0.47, 0.41, 0.32], felt);
-                // each scale paler toward its tip, its outline dark
-                c = mix(c, [0.66, 0.60, 0.50], 0.5 * fv.powf(1.5));
-                let edge = (1.0 - sstep(0.0, 0.12, fu.min(1.0 - fu))).max(1.0 - sstep(0.85, 0.98, 1.0 - fv));
-                c = mix(c, [0.26, 0.20, 0.15], 0.65 * edge);
+                let col = (u * 13.0 + 0.5 * (row as i32 % 2) as f64).floor();
+                // each scale a little out of line with its neighbours
+                let jit = hash(seed ^ 0x5c, col as i32, row as i32) - 0.5;
+                let fu = (u * 13.0 + 0.5 * (row as i32 % 2) as f64 + 0.25 * jit * fv).fract();
+                let fv = (fv + 0.2 * (hash(seed ^ 0x5d, col as i32, row as i32) - 0.5) * (1.0 - fv)).clamp(0.0, 1.0);
+                let tone = 0.9 + 0.2 * hash(seed ^ 0x5e, col as i32, row as i32);
+                let mut c = scale3(mix([0.50, 0.44, 0.34], [0.42, 0.36, 0.27], felt), tone);
+                // each scale paler and felted toward its tip, its lower edge
+                // shadowed by the one over it
+                c = mix(c, [0.60, 0.55, 0.45], 0.45 * fv.powf(1.5));
+                let edge = (1.0 - sstep(0.0, 0.12, fu.min(1.0 - fu))) * 0.8 + (1.0 - sstep(0.0, 0.22, fv));
+                c = mix(c, [0.22, 0.17, 0.13], 0.75 * edge.min(1.0));
                 // the lip of the rim, the stub at the foot
                 c = mix(c, [0.52, 0.46, 0.37], sstep(0.92, 0.98, hh));
                 c = mix(c, [0.30, 0.22, 0.14], 1.0 - sstep(0.05, 0.12, hh));
@@ -419,9 +434,9 @@ fn cup_tex() -> Tex {
 }
 
 // R593 acorn/nut cluster: 6% chance per level. Acorns of the pedunculate
-// oak (Blender batch `t17`): most fallen bare from their cups, a few still in
-// theirs, an empty cup; ripe brown, old and dark, or dried pale; one in
-// three of the bare holed by a weevil.
+// oak (Blender batch `t17`): fallen bare from their cups or still in them,
+// now and then an empty cup; ripe brown and glossy, old and dark, or dried
+// pale; one in three of the bare holed by a weevil.
 pub(super) fn place_acorns(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -434,7 +449,8 @@ pub(super) fn place_acorns(g: &mut Game, _dist: &[i32]) {
     let mut down: Vec<(f64, f64, f64)> = vec![];
     for _i in 0..count {
         // the old acorn's draws: its colour (the nut's), where it lies, its
-        // turn, its tilt (now whether it lies bare, in its cup or is a cup)
+        // turn, its tilt (now whether it lies bare (two in five), in its cup
+        // (two in five) or is an empty cup)
         let col = choice(&nut_colors);
         let k = nut_colors.iter().position(|&c| c == col).unwrap_or(0);
         let ax = (rnd() - 0.5) * 0.13;
@@ -443,15 +459,15 @@ pub(super) fn place_acorns(g: &mut Game, _dist: &[i32]) {
         let tilt = (rnd() - 0.5) * 0.4;
         let t = tilt / 0.4 + 0.5;
         let acorn = group();
-        let r = if t < 0.55 {
+        let r = if t < 0.40 {
             // bare: fallen from its cup; one in three holed
-            let holed = t < 0.55 / 3.0;
+            let holed = t < 0.40 / 3.0;
             if let Some(geo) = acorn_nut_geo() {
-                acorn.add(&mesh(geo, lambert!({ map: &nut_tex(k, holed) })));
+                acorn.add(&mesh(geo, nut_mat(k, holed)));
             }
             0.013
-        } else if t < 0.85 {
-            let nut = lambert!({ map: &nut_tex(k, false) });
+        } else if t < 0.80 {
+            let nut = nut_mat(k, false);
             if let (Some(n), Some(c)) = (acorn_pair_nut_geo(), acorn_pair_cup_geo()) {
                 acorn.add(&mesh(n, &nut));
                 acorn.add(&mesh(c, &cup_mat));
@@ -712,13 +728,14 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
         for i in 0..240 {
             let (a, d) = (r.range(0.0, 2.0 * PI), r.next().powf(0.8) * 0.45 * w);
             let (x, y) = (w / 2.0 + a.cos() * d, h / 2.0 + a.sin() * d);
-            let len = r.range(0.004, 0.030) * ppm * (1.0 - 0.5 * d / (0.45 * w));
+            // whole needles (a third) and the bits of broken ones
+            let len = if i % 3 == 0 { r.range(0.036, 0.055) } else { r.range(0.005, 0.025) } * ppm * (1.0 - 0.4 * d / (0.45 * w));
             let t = r.range(0.0, 2.0 * PI);
             let tone = r.next();
-            let c = mix([0.42, 0.26, 0.13], [0.30, 0.24, 0.17], tone);
+            let c = mix([0.36, 0.25, 0.15], [0.27, 0.22, 0.17], tone);
             let fade = 1.0 - sstep(0.25, 0.45, d / w);
-            ctx.set_stroke_style(&css(c, 0.85 * fade));
-            ctx.set_line_width(if i % 3 == 0 { 1.6 } else { 1.1 });
+            ctx.set_stroke_style(&css(c, 0.8 * fade));
+            ctx.set_line_width(if i % 3 == 0 { 2.0 } else { 1.4 });
             ctx.begin_path();
             ctx.move_to(x, y);
             let bend = r.range(-0.15, 0.15);
@@ -808,7 +825,8 @@ const FERN_ANG: f64 = 64.0 * PI / 180.0;
 fn fern_seg(k: usize, side: f64) -> (f64, f64, f64) {
     let t = (k as f64 + if side > 0.0 { 0.0 } else { 0.45 }) / FERN_N as f64;
     let x = FERN_L * (0.02 + 0.86 * t);
-    let l = 0.036 * (PI * (0.16 + 0.84 * t).min(1.0).powf(0.72)).sin().max(0.0).powf(0.9) * (0.88 + 0.12 * (t * 5.0).min(1.0)) + 0.004;
+    let k = if t < 0.5 { 0.90 + 0.10 * (t * 4.0).min(1.0) } else { ((t - 0.5) / 0.5 * PI / 2.0).cos().max(0.0).powf(0.8) };
+    let l = 0.032 * k + 0.004;
     let hw = 0.0036 + 0.0006 * (1.0 - t);
     (x, l, hw)
 }

@@ -635,7 +635,11 @@ def fern_seg(k, side):
     the rachis, its length, its half width)."""
     t = (k + (0.0 if side > 0 else 0.45)) / FERN_N
     x = FERN_L * (0.02 + 0.86 * t)
-    L = 0.036 * (math.sin(math.pi * min(1.0, 0.16 + 0.84 * t) ** 0.72) ** 0.9) * (0.88 + 0.12 * min(1.0, t * 5)) + 0.004
+    # the segments much of a length up the lower half (the blade's sides
+    # nearly parallel), the lowest pair a little shorter, then shortening
+    # to the tip
+    k = 0.90 + 0.10 * min(1.0, t * 4) if t < 0.5 else max(0.0, math.cos((t - 0.5) / 0.5 * math.pi / 2)) ** 0.8
+    L = 0.032 * k + 0.004
     hw = 0.0036 + 0.0006 * (1 - t)
     return x, L, hw
 
@@ -714,7 +718,7 @@ def fern_stipe():
     # the stipe: from the blade's base back to where it broke, down to the
     # floor, bent a little
     y0 = pts[0].y
-    sp = [Vector((0.002, y0, 0.0)), Vector((-0.015, y0 * 0.8, 0.002)), Vector((-0.032, 0.0016, 0.004)), Vector((-FERN_STIPE, 0.0010, 0.003))]
+    sp = [Vector((0.002, y0, 0.0)), Vector((-0.015, y0 * 0.8, 0.002)), Vector((-0.032, 0.0019, 0.004)), Vector((-FERN_STIPE, 0.0014, 0.003))]
     sp = chaikin(sp, 2)
     stipe = sweep(sp, [0.0010 + 0.0003 * i / (len(sp) - 1) for i in range(len(sp))], seg=6, cap0=False, cap1=True)
     return rach + stipe

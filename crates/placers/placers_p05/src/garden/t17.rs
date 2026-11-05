@@ -114,14 +114,15 @@ fn glove_tex(base: [f64; 3], w: f64, d: f64, dots: bool, tips_low: bool, salt: u
             // faded unevenly
             c = mix(c, [0.55, 0.53, 0.48], 0.18 * fbm(salt ^ 7, x * 30.0, z * 30.0, 3));
             if dots {
-                // PVC dots, 2.6 mm, staggered rows 4.5 mm apart
-                let (gx, gz) = (x / 0.0045, z / 0.0045);
+                // PVC dots, 2.4 mm, staggered rows 5.5 mm apart, worn away
+                // in patches where it gripped
+                let (gx, gz) = (x / 0.0055, z / 0.0055);
                 let row = gz.round();
                 let off = if (row as i64) % 2 == 0 { 0.0 } else { 0.5 };
-                let (dx, dz) = ((gx - off - (gx - off).round()) * 0.0045, (gz - row) * 0.0045);
+                let (dx, dz) = ((gx - off - (gx - off).round()) * 0.0055, (gz - row) * 0.0055);
                 let r = dx.hypot(dz);
-                let worn = sstep(0.45, 0.75, fbm(salt ^ 0x33, x * 60.0, z * 60.0, 3));
-                let dot = (1.0 - sstep(0.0011, 0.0014, r)) * (1.0 - 0.85 * worn);
+                let worn = sstep(0.40, 0.62, fbm(salt ^ 0x33, x * 40.0, z * 40.0, 3));
+                let dot = (1.0 - sstep(0.0010, 0.0013, r)) * (1.0 - 0.92 * worn);
                 c = mix(c, [0.10, 0.10, 0.09], dot * 0.9);
             }
             // soil: dried into it in patches, ground into the fingers' end
