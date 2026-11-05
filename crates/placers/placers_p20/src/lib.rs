@@ -19,6 +19,9 @@ use r15::place_newspaper_stacks;
 // R539 spray bottle: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::place_spray_bottles;
+// R535 bookshelf, R530 metal locker: batch `t10`'s (`t10.rs`)
+mod t10;
+use t10::{place_bookshelves, place_metal_lockers};
 
 /// Every placer in this crate, by its registered name.
 pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
@@ -446,55 +449,7 @@ fn place_cigarette_packs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pack);
 }
 
-// R535 wall bookshelf: 3% chance per level. Wooden shelf w/
-// multi-color book spines.
-fn place_bookshelves(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.97 {
-        return;
-    } // 3% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = choice(&candidates);
-    let wood_mat = lambert!({ color: 0x603820 });
-    let book_colors = [0xa02040, 0x2050a0, 0x30a030, 0xd8b040, 0x604020, 0x181410, 0xd8a080];
-    let shelf = group();
-    let (bw, bh, bd) = (0.60, 0.16, 0.16);
-    // Shelf back panel.
-    let back = mesh(pg("Bookshelves__back", box_geo!(bw, bh, 0.014)), &wood_mat);
-    back.position().set(0, bh / 2.0, -bd / 2.0 + 0.007);
-    shelf.add(&back);
-    // Top + bottom shelves.
-    for yy in [0.0, bh] {
-        let board = mesh(pg("Bookshelves__board", box_geo!(bw, 0.014, bd)), &wood_mat);
-        board.position().set(0, yy, 0);
-        shelf.add(&board);
-    }
-    // 2 side panels.
-    for s in [-1.0, 1.0] {
-        let side = mesh(pg("Bookshelves__side", box_geo!(0.014, bh, bd)), &wood_mat);
-        side.position().set(s * (bw / 2.0 - 0.007), bh / 2.0, 0);
-        shelf.add(&side);
-    }
-    // 12-18 book spines standing.
-    let n_books = 12 + (rnd() * 7.0).floor() as i32;
-    for i in 0..n_books {
-        let book_mat = lambert!({ color: choice(&book_colors) });
-        let spine_w = 0.014 + rnd() * 0.014;
-        let spine_h = 0.11 + rnd() * 0.03;
-        let book = mesh(pg("Bookshelves__book", box_geo!(spine_w, spine_h, 0.08)), &book_mat);
-        book.position().set(-bw / 2.0 + 0.014 + (i as f64 + 0.5) * ((bw - 0.028) / n_books as f64), spine_h / 2.0 + 0.008, -0.020);
-        // 20% chance leaning.
-        if rnd() < 0.20 {
-            book.rotation().z = (rnd() - 0.5) * 0.3;
-        }
-        shelf.add(&book);
-    }
-    let (wall_x, wall_z) = wall_xz(g, c, 0.080);
-    mount(&shelf, c, wall_x, wall_z, 1.4, 0.4);
-    g.world.add(&shelf);
-}
+// R535 wall bookshelf: batch `t10`'s (`t10.rs`)
 
 // R534 safety vest: 8% chance per level. Folded neon vest w/
 // reflective silver stripes.
@@ -696,48 +651,7 @@ fn place_dropped_mail_scatters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R530 metal locker: 4% chance per level. Wall-adjacent tall
-// gray/green locker w/ vent slats + handle.
-fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
-    g.pp.locker_positions = vec![]; // R531 reset per level
-    if rnd() < 0.96 {
-        return;
-    } // 4% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = choice(&candidates);
-    let locker_colors = [0x606870, 0x506050, 0x403830, 0xd8b060];
-    let body_mat = lambert!({ color: choice(&locker_colors) });
-    let dark_mat = lambert!({ color: 0x101410 });
-    let locker = group();
-    // Body (tall box).
-    let body = mesh(pg("MetalLockers__body", box_geo!(0.30, 1.60, 0.30)), &body_mat);
-    body.position().set(0, 0.80, -0.15);
-    locker.add(&body);
-    // 4 vent slats on top of door.
-    for i in 0..4 {
-        let vent = mesh(box_geo!(0.14, 0.004, 0.002), &dark_mat);
-        vent.position().set(0, 1.44 + i as f64 * 0.010, 0);
-        locker.add(&vent);
-    }
-    // Handle.
-    let handle = mesh(pg("MetalLockers__handle", box_geo!(0.010, 0.030, 0.010)), &dark_mat);
-    handle.position().set(0.10, 0.90, 0);
-    locker.add(&handle);
-    // Number plate.
-    let plate = mesh(plane_geo!(0.05, 0.03), &dark_mat);
-    plate.position().set(-0.06, 1.35, 0.001);
-    locker.add(&plate);
-    // origin = the door face; the 0.30-deep body (local z −0.30…0) backs onto the wall
-    let (wall_x, wall_z) = wall_xz(g, c, 0.300);
-    mount(&locker, c, wall_x, wall_z, 0.0, 0.4);
-    g.world.add(&locker);
-    // R531 track for slam audio.
-    let p = locker.pos();
-    g.pp.locker_positions.push(v3(p.x, 0.8, p.z));
-}
+// R530 metal locker: batch `t10`'s (`t10.rs`)
 
 // R529 pizza box: 7% chance per level. Empty square box w/
 // grease stain interior.

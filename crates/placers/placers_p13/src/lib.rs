@@ -58,88 +58,9 @@ fn face_wall(dx: i32, dz: i32) -> f64 {
     (-(dx as f64)).atan2(-(dz as f64))
 }
 
-fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.96 {
-        return;
-    }
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let rs = group();
-    // 3-5 record sleeves — vertical square-ish cardboard.
-    let sleeve_colors = [0xa02040, 0x2060a0, 0x408060, 0xd0a040, 0x101010, 0x804060, 0x6060a0, 0xa04020, 0x606060, 0xd0d040, 0x40a080];
-    let record_count = 3 + (rnd() * 3.0).floor() as i32;
-    let sleeve_w = 0.14;
-    let mut stack_offset = 0.0;
-    for i in 0..record_count {
-        let sleeve_mat = lambert!({ color: choice(&sleeve_colors) });
-        let sleeve = mesh(pg("RecordStacks__sleeve", box_geo!(sleeve_w, sleeve_w * 0.98, 0.005)), &sleeve_mat);
-        // Lean slightly against back.
-        let lean_amt = -0.15;
-        sleeve.rotation().x = lean_amt;
-        sleeve.position().set(0, sleeve_w * 0.49 - 0.0004, stack_offset); // leaned corner on the floor
-        sleeve.position().x += (i as f64 - record_count as f64 / 2.0) * 0.008;
-        rs.add(&sleeve);
-        let sp = sleeve.pos();
-        // Cover label — smaller square centered.
-        let label_colors = [0xf0e0c0, 0xd0d0d0, 0xe0c0a0, 0xa0a0a0];
-        let label_mat = lambert!({ color: choice(&label_colors) });
-        let label = mesh(plane_geo!(sleeve_w * 0.6, sleeve_w * 0.15), &label_mat);
-        label.rotation().x = lean_amt;
-        label.position().set(sp.x, sp.y, stack_offset + 0.003);
-        rs.add(&label);
-        // Tiny center vinyl-hole hint (dark circle).
-        let hole_mat = lambert!({ color: 0x0a0a0a });
-        let hole = mesh(circle_geo!(sleeve_w * 0.20, 12), &hole_mat);
-        hole.rotation().x = -PI / 2.0 + PI / 2.0 + lean_amt;
-        hole.position().set(sp.x, sp.y, stack_offset + 0.004);
-        // Actually, we want it face-out. Use rotation to face forward.
-        hole.rotation().x = lean_amt;
-        hole.rotation().y = 0.0;
-        rs.add(&hole);
-        // Center label dot on hole — spinning label color.
-        let center_label_mat = lambert!({ color: choice(&[0xa02040, 0x2060a0, 0x408060, 0xd0a040]) });
-        let center_label = mesh(circle_geo!(sleeve_w * 0.10, 10), &center_label_mat);
-        center_label.rotation().x = lean_amt;
-        center_label.position().set(sp.x, sp.y, stack_offset + 0.005);
-        rs.add(&center_label);
-        // Small center hole dot.
-        let center_hole = mesh(circle_geo!(0.003, 6), &hole_mat);
-        center_hole.rotation().x = lean_amt;
-        center_hole.position().set(sp.x, sp.y, stack_offset + 0.006);
-        rs.add(&center_hole);
-        stack_offset += 0.0055; // 5 mm sleeves packed face to face
-    }
-    // 60% chance: one record out of sleeve, propped against pile.
-    if rnd() < 0.6 {
-        let bare_record_mat = lambert!({ color: 0x0a0a0a });
-        let bare_record = mesh(pg("RecordStacks__record", cyl_geo!(sleeve_w * 0.48, sleeve_w * 0.48, 0.003, 24)), &bare_record_mat);
-        bare_record.rotation().z = PI / 2.0;
-        bare_record.rotation().y = 0.4;
-        bare_record.position().set(sleeve_w * 0.7, sleeve_w * 0.48, 0.05);
-        rs.add(&bare_record);
-        // Vinyl grooves — 3 subtle concentric rings.
-        let groove_mat = lambert!({ color: 0x1a1a1a });
-        for i in 0..3 {
-            let groove = mesh(torus_geo!(sleeve_w * (0.15 + i as f64 * 0.10), 0.0006, 3, 24), &groove_mat);
-            // In the record's plane (its axis is (-cos .4, 0, sin .4)), just
-            // proud of the grooved band on the +X face.
-            groove.rotation().y = PI / 2.0 + 0.4;
-            groove.position().set(sleeve_w * 0.7 + (0.4f64).cos() * 0.0010, sleeve_w * 0.48, 0.05 - (0.4f64).sin() * 0.0010);
-            rs.add(&groove);
-        }
-        // Center label on bare record.
-        let bare_label = mesh(circle_geo!(sleeve_w * 0.16, 10), lambert!({ color: 0xd04040 }));
-        bare_label.rotation().y = PI / 2.0 + 0.4; // on the record's +X face
-        bare_label.position().set(sleeve_w * 0.7 + (0.4f64).cos() * 0.0017, sleeve_w * 0.48, 0.05 - (0.4f64).sin() * 0.0017);
-        rs.add(&bare_label);
-    }
-    rs.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
-    rs.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&rs);
-}
+// the record stack: batch `t10`'s (`t10.rs`)
+mod t10;
+use t10::place_record_stacks;
 
 fn place_propaganda_posters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {

@@ -342,59 +342,9 @@ fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-// R468 ornate wall mirror: 5% chance per level, gilded frame, wall-mounted.
-fn place_ornate_wall_mirrors(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let candidates = wall_candidates(g);
-    if candidates.is_empty() {
-        return;
-    }
-    let c = pick(&candidates);
-    let gold_mat = lambert!({ color: 0xd8b040 });
-    let mirror_mat = basic_mat!({ color: 0x506878 });
-    let mirror = group();
-    let (w, h, t) = (0.28, 0.42, 0.020);
-    // Outer gold frame (as 4 boxes).
-    let frame_w = 0.020;
-    for (fw, fh, fx, fy) in [
-        (w + frame_w * 2.0, frame_w, 0.0, h / 2.0 + frame_w / 2.0),
-        (w + frame_w * 2.0, frame_w, 0.0, -h / 2.0 - frame_w / 2.0),
-        (frame_w, h, -w / 2.0 - frame_w / 2.0, 0.0),
-        (frame_w, h, w / 2.0 + frame_w / 2.0, 0.0),
-    ] {
-        let bar = mesh(pg("OrnateWallMirrors__bar", box_geo!(fw, fh, t)), &gold_mat);
-        bar.position().set(fx, fy, 0);
-        mirror.add(&bar);
-    }
-    // 4 corner ornaments (spheres).
-    for (cx, cy) in [(-1.0f64, 1.0f64), (1.0, 1.0), (-1.0, -1.0), (1.0, -1.0)] {
-        let ornament = mesh(pg("OrnateWallMirrors__ornament", sphere_geo!(0.020, 8, 6)), &gold_mat);
-        ornament.position().set(cx * (w / 2.0 + frame_w / 2.0), cy * (h / 2.0 + frame_w / 2.0), 0.010);
-        mirror.add(&ornament);
-    }
-    // Center top crown ornament.
-    let crown = mesh(pg("OrnateWallMirrors__crown", cone_geo!(0.020, 0.045, 6)), &gold_mat);
-    crown.position().set(0, h / 2.0 + frame_w + 0.020, 0);
-    mirror.add(&crown);
-    // Mirror face (dark reflective panel).
-    let face = mesh(plane_geo!(w - 0.005, h - 0.005), &mirror_mat);
-    face.position().set(0, 0, t / 2.0 + 0.001);
-    mirror.add(&face);
-    // Position on wall.
-    let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.014);
-    let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.014);
-    let center_y = 1.60;
-    if c.dx.abs() == 1 {
-        mirror.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
-        mirror.position().set(wall_x, center_y, wall_z + (rnd() - 0.5) * 0.6);
-    } else {
-        mirror.rotation().y = if c.dz > 0 { PI } else { 0.0 };
-        mirror.position().set(wall_x + (rnd() - 0.5) * 0.6, center_y, wall_z);
-    }
-    g.world.add(&mirror);
-}
+// R468 ornate wall mirror: batch `t10`'s (`t10.rs`)
+mod t10;
+use t10::place_ornate_wall_mirrors;
 
 // R468 small crow: batch `t08`'s (`t08.rs`)
 mod t08;
