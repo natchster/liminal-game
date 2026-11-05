@@ -204,7 +204,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
     // 40%: a black ribbon bow on the frame's top left corner, its long tail
     // stirring in the draught as the old ribbon's did (R761: 3 mm)
     if let Some((sway_freq, sway_phase)) = d.ribbon {
-        let satin = phong!({ color: 0x0e0d0d, specular: 0x262626, shininess: 18, side: DoubleSide });
+        let satin = phong!({ color: 0x1e1c1b, specular: 0x262626, shininess: 18, side: DoubleSide });
         let knot = group();
         knot.position().set(-FRAME_OUTER.0 / 2.0 + 0.008, FRAME_OUTER.1 / 2.0 - 0.010, 0.0198);
         body.add(&knot);

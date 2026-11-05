@@ -123,9 +123,9 @@ pub(super) fn place_pentagram_chalks(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The place's chalk colour (r08's, by the weather) as a stick of it
-/// leaves it on a floor: two thirds white
+/// leaves it on a floor: two thirds chalk white (sRGB 235, linear 0.83)
 fn pale(c: u32) -> u32 {
-    let ch = |s: u32| (255.0 - (255.0 - f64::from((c >> s) & 0xff)) * 0.35).round() as u32;
+    let ch = |s: u32| (235.0 - (235.0 - f64::from((c >> s) & 0xff).min(235.0)) * 0.35).round() as u32;
     (ch(16) << 16) | (ch(8) << 8) | ch(0)
 }
 
