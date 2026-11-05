@@ -468,53 +468,7 @@ pub fn place_small_metronomes(g: &mut Game, _dist: &[i32]) {
     g.pp.metronome_periods.push(swing_period);
 }
 
-/// R438 small feather boa: 6% chance per level. Curved fluffy
-/// tube on floor. Party-costume family.
-pub fn place_small_feather_boas(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.94 {
-        return;
-    } // 6% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let boa_colors = [0xd85090, 0xa020a0, 0xd8b820, 0x2050d8, 0xf0f0f0, 0x181008];
-    let boa_color = pick(&boa_colors);
-    let feath_mat = lambert!({ color: boa_color });
-    let boa = group();
-    // 12-segment curved rope of fluffy spheres.
-    let n_segments = 12usize;
-    let total_len = 0.7 + rnd() * 0.4;
-    let curve_amp = 0.20;
-    let curve_phase = rnd() * PI * 2.0;
-    // Puffs go 4.5 cm apart by arc length along the curve, which is shrunk to
-    // fit, so the clumps overlap into one rope.
-    let curve = |t: f64| -> (f64, f64) { ((t - 0.5) * total_len, (t * PI + curve_phase).sin() * curve_amp) };
-    let mut arc: Vec<f64> = vec![0.0];
-    for k in 1..=64usize {
-        let (ax, az) = curve((k - 1) as f64 / 64.0);
-        let (bx, bz) = curve(k as f64 / 64.0);
-        let v = arc[k - 1] + hypot2(bx - ax, bz - az);
-        arc.push(v);
-    }
-    let shrink = 0.045 * (n_segments - 1) as f64 / arc[64];
-    for i in 0..n_segments {
-        let t = i as f64 / (n_segments - 1) as f64;
-        let mut k = 1usize;
-        while k < 64 && arc[k] < t * arc[64] {
-            k += 1;
-        }
-        let (ca, cp) = curve(((k - 1) as f64 + (t * arc[64] - arc[k - 1]) / (arc[k] - arc[k - 1])) / 64.0);
-        let along = ca * shrink;
-        let perp = cp * shrink;
-        let seg = mesh(pg("SmallFeatherBoas__puff", sphere_geo!(0.028, 6, 5)), &feath_mat);
-        seg.scale().set(1.0 + rnd() * 0.3, 0.9 + rnd() * 0.4, 1.0 + rnd() * 0.3);
-        seg.position().set(along, 0.025, perp);
-        seg.rotation().y = rnd() * PI;
-        boa.add(&seg);
-    }
-    boa.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    boa.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&boa);
-}
+/// R438 small feather boa: batch `t22`'s (`t22.rs`)
+#[path = "t22.rs"]
+mod t22;
+pub use t22::place_small_feather_boas;
