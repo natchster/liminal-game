@@ -2,6 +2,12 @@
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
+// the paper crown, the crepe streamers, the tassel garland and the piñata:
+// batch `t12`'s (`t12.rs`)
+#[path = "t12.rs"]
+mod t12;
+pub use t12::{place_hanging_streamers, place_paper_garlands, place_small_paper_crowns, place_small_pinatas};
+
 // R437 music sheet paper texture: staff lines + notes on cream paper.
 game::lazy_static_tex!(
     music_sheet_texture,
@@ -286,64 +292,6 @@ pub fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tri);
 }
 
-/// R434 paper garland: 7% chance per level. Chain of circular
-/// paper cutouts strung on catenary between two anchor points.
-pub fn place_paper_garlands(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.93 {
-        return;
-    } // 7% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let g_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xd050a0, 0xf0ece4];
-    let string_mat = lambert!({ color: 0xf0e8d8 });
-    let garland = group();
-    let span_len = 1.4 + rnd() * 1.0;
-    let sag = 0.20;
-    let anchor_y = WALL_H - 0.06;
-    let n_dots = 10 + (rnd() * 6.0).floor() as i32;
-    for i in 0..n_dots {
-        let t_frac = (i as f64 + 0.5) / n_dots as f64;
-        let x_pos = (t_frac - 0.5) * span_len;
-        let sag_y = anchor_y - sag * (1.0 - ((t_frac - 0.5) * 2.0).powi(2));
-        let cut_mat = lambert!({ color: pick(&g_colors), side: DoubleSide });
-        // Alternate circle / square / diamond cutout shapes.
-        let shape_choice = i % 3;
-        let cut;
-        if shape_choice == 0 {
-            cut = mesh(circle_geo!(0.030, 12), &cut_mat);
-        } else if shape_choice == 1 {
-            cut = mesh(plane_geo!(0.048, 0.048), &cut_mat);
-        } else {
-            cut = mesh(plane_geo!(0.048, 0.048), &cut_mat);
-            cut.rotation().z = PI / 4.0;
-        }
-        cut.position().set(x_pos, sag_y - 0.020, 0);
-        garland.add(&cut);
-    }
-    // Catenary string segments between successive cutouts.
-    // i = -1 and i = n_dots - 1 are the end strings, from the outer cutouts
-    // up to the ceiling at the span ends, so the garland hangs from something.
-    for i in -1..n_dots {
-        let t0 = 0f64.max((i as f64 + 0.5) / n_dots as f64);
-        let t1 = 1f64.min((i as f64 + 1.5) / n_dots as f64);
-        let x0 = (t0 - 0.5) * span_len;
-        let x1 = (t1 - 0.5) * span_len;
-        let y0 = if t0 == 0.0 { WALL_H } else { anchor_y - sag * (1.0 - ((t0 - 0.5) * 2.0).powi(2)) };
-        let y1 = if t1 == 1.0 { WALL_H } else { anchor_y - sag * (1.0 - ((t1 - 0.5) * 2.0).powi(2)) };
-        let seg_len = hypot2(x1 - x0, y1 - y0);
-        let seg = mesh(pg("PaperGarlands__string", cyl_geo!(0.0015, 0.0015, seg_len, 3)), &string_mat);
-        seg.position().set((x0 + x1) / 2.0, (y0 + y1) / 2.0, 0);
-        seg.rotation().z = -(x1 - x0).atan2(y1 - y0);
-        garland.add(&seg);
-    }
-    garland.position().set(g.wx(x) + (rnd() - 0.5) * 1.5, 0, g.wz(z) + (rnd() - 0.5) * 1.5);
-    garland.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&garland);
-}
-
 /// R434 small maracas: 8% chance per level. Pair of maracas
 /// (bulb + handle) on floor. Latin-percussion child-music family.
 pub fn place_small_maracas(g: &mut Game, _dist: &[i32]) {
@@ -497,43 +445,6 @@ pub fn place_hanging_balloon_bundles(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R432 hanging streamers: 8% chance per level. 3-6 vertical
-/// paper streamer ribbons hanging from ceiling with sway.
-pub fn place_hanging_streamers(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let streamer_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xd050a0];
-    let grp = group();
-    let n_streamers = 3 + (rnd() * 4.0).floor() as i32;
-    for _ in 0..n_streamers {
-        let mat = lambert!({ color: pick(&streamer_colors), side: DoubleSide });
-        let len = 0.9 + rnd() * 0.8;
-        let strip = mesh(plane_geo!(0.020, len), &mat);
-        strip.position().set((rnd() - 0.5) * 0.35, WALL_H - len / 2.0 - 0.02, (rnd() - 0.5) * 0.35);
-        strip.rotation().y = rnd() * PI * 2.0;
-        grp.add(&strip);
-        // Subtle sway per strip.
-        if rnd() < 0.50 {
-            let sway_phase = rnd() * PI * 2.0;
-            let sway_period = 6.0 + rnd() * 6.0;
-            let base_rot_z = strip.rot().z;
-            let s = strip.clone();
-            g.animate(move |_g, _dt, t| {
-                s.rotation().z = base_rot_z + (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.04;
-            });
-        }
-    }
-    grp.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    grp.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&grp);
-}
-
 /// R432 small party banner: 6% chance per level. Small horizontal
 /// paper banner strung between two ceiling anchor points with a
 /// gentle catenary sag.
@@ -663,64 +574,6 @@ pub fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
     cluster.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     cluster.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cluster);
-}
-
-/// R431 small piñata: 5% chance per level. Hanging star shape from
-/// ceiling with string. 6-point paper-mache star silhouette.
-pub fn place_small_pinatas(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.95 {
-        return;
-    } // 5% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let pin_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xd050a0];
-    let pin_body = lambert!({ color: pick(&pin_colors) });
-    let pin_accent = lambert!({ color: pick(&pin_colors) });
-    let string_mat = lambert!({ color: 0x8a7050 });
-    let pinata = group();
-    // String from ceiling down to piñata top.
-    let string_len = 0.4 + rnd() * 0.4;
-    let string_y = WALL_H - string_len / 2.0 - 0.02;
-    let strg = mesh(pg("SmallPinatas__string", cyl_geo!(0.003, 0.003, string_len, 4)), &string_mat);
-    strg.position().y = string_y;
-    pinata.add(&strg);
-    let body_y = WALL_H - string_len - 0.08 - 0.02;
-    // Core body: sphere.
-    let core = mesh(pg("SmallPinatas__core", sphere_geo!(0.09, 8, 6)), &pin_body);
-    core.position().y = body_y;
-    pinata.add(&core);
-    // 6 cone points around equator for star silhouette.
-    for i in 0..6 {
-        let angle = (i as f64 / 6.0) * PI * 2.0;
-        let point = mesh(pg("SmallPinatas__point", cone_geo!(0.03, 0.08, 5)), &pin_accent);
-        point.position().set(angle.cos() * 0.11, body_y, angle.sin() * 0.11);
-        point.rotation().z = -PI / 2.0;
-        point.rotation().y = -angle;
-        pinata.add(&point);
-    }
-    // Top point and bottom point for depth.
-    let top_pt = mesh(pg("SmallPinatas__point", cone_geo!(0.03, 0.06, 5)), &pin_accent);
-    top_pt.position().y = body_y + 0.10;
-    pinata.add(&top_pt);
-    let bot_pt = mesh(pg("SmallPinatas__point", cone_geo!(0.03, 0.06, 5)), &pin_accent);
-    bot_pt.position().y = body_y - 0.10;
-    bot_pt.rotation().z = PI;
-    pinata.add(&bot_pt);
-    pinata.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
-    pinata.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&pinata);
-    // Very subtle sway.
-    if rnd() < 0.60 {
-        let sway_phase = rnd() * PI * 2.0;
-        let sway_period = 10.0 + rnd() * 8.0;
-        let p = pinata.clone();
-        g.animate(move |_g, _dt, t| {
-            p.rotation().z = (t * (PI * 2.0 / sway_period) + sway_phase).sin() * 0.025;
-        });
-    }
 }
 
 /// R430 small paper cup: 12% chance per level. Tapered paper cup.

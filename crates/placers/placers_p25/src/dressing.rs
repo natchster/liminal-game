@@ -266,54 +266,8 @@ pub fn place_small_hand_mirrors(g: &mut Game, _dist: &[i32]) {
 mod t11;
 pub use t11::place_small_folding_fans;
 
-/// R440 small paper crown: 8% chance per level. Jagged strip of
-/// colored paper on floor. Party-costume family.
-pub fn place_small_paper_crowns(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let crown_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0, 0xd050a0];
-    let crown_mat = lambert!({ color: pick(&crown_colors), side: DoubleSide });
-    let crown = group();
-    // Build zig-zag strip with alternating base + spike vertices.
-    let n_points = 6;
-    let arc_len = 0.42;
-    let width = 0.035;
-    let spike_h = 0.030;
-    // 8-cylinder arc for ring band + jagged spike triangles above.
-    let radius = arc_len / (2.0 * PI) * 1.4;
-    for i in 0..n_points {
-        let a = -PI / 2.0 + (i as f64 / (n_points - 1) as f64) * (PI * 1.25);
-        let bx = a.cos() * radius;
-        let bz = a.sin() * radius;
-        // Base ring segment (as small box).
-        if i < n_points - 1 {
-            let a1 = -PI / 2.0 + ((i + 1) as f64 / (n_points - 1) as f64) * (PI * 1.25);
-            let bx1 = a1.cos() * radius;
-            let bz1 = a1.sin() * radius;
-            let seg_len = hypot2(bx1 - bx, bz1 - bz);
-            let seg = mesh(box_geo!(seg_len, 0.008, width), &crown_mat);
-            seg.position().set((bx + bx1) / 2.0, 0.004, (bz + bz1) / 2.0);
-            seg.rotation().y = -(bz1 - bz).atan2(bx1 - bx);
-            crown.add(&seg);
-        }
-        // Spike triangle rising from top.
-        let spike_geo = buf_geo(&[-width / 2.0 * 0.8, 0.008, 0.0, width / 2.0 * 0.8, 0.008, 0.0, 0.0, 0.008 + spike_h, 0.0], &[0, 1, 2]);
-        let spike = mesh(spike_geo, &crown_mat);
-        // Orient spike outward from ring center.
-        spike.position().set(bx, 0, bz);
-        spike.rotation().y = -bz.atan2(bx) + PI / 2.0;
-        crown.add(&spike);
-    }
-    crown.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    crown.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&crown);
-}
+/// R440 small paper crown: batch `t12`'s (`t12.rs`, beside the music)
+pub use crate::music::place_small_paper_crowns;
 
 /// R440 small opera glasses: 6% chance per level. Twin cylinders
 /// on handle. Party-costume family (fancy accessory).

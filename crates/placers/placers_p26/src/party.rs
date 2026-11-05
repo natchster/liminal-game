@@ -193,46 +193,10 @@ pub fn place_confetti_scatters(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R426 birthday cone hat: 8% chance per level. Cone body + colored
-/// band + tassel at top.
-pub fn place_birthday_hats(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open = open_tiles(g);
-    if open.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open);
-    let hat_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xd050a0];
-    let hat_mat = lambert!({ color: pick(&hat_colors) });
-    let band_colors = [0xf0f0f0, 0xd8b820, 0x2050d8, 0xd050a0];
-    let band_mat = lambert!({ color: pick(&band_colors) });
-    let tassel_mat = lambert!({ color: 0xf0d0a0 });
-    let hat = group();
-    // Cone body: tall cone.
-    let cone = mesh(pg("BirthdayHats__cone", cone_geo!(0.06, 0.18, 10)), &hat_mat);
-    cone.position().y = 0.09;
-    hat.add(&cone);
-    // Band ring at base.
-    let band = mesh(pg("BirthdayHats__band", torus_geo!(0.06, 0.005, 4, 12)), &band_mat);
-    band.rotation().x = PI / 2.0;
-    band.position().y = 0.005;
-    hat.add(&band);
-    // Tassel ball at cone tip.
-    let tassel = mesh(pg("BirthdayHats__tassel", sphere_geo!(0.010, 6, 4)), &tassel_mat);
-    tassel.position().y = 0.185;
-    hat.add(&tassel);
-    hat.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    hat.rotation().y = rnd() * PI * 2.0;
-    // 30% chance tipped on side: past 90° by the cone's half-angle, so the hat
-    // lies along its side (brim trim and tassel on the floor).
-    if rnd() < 0.30 {
-        hat.rotation().z = PI / 2.0 + 0.06f64.atan2(0.18);
-        hat.position().y = 0.068;
-    }
-    g.world.add(&hat);
-}
+/// R426 birthday party hat: batch `t12`'s (`t12.rs`)
+#[path = "t12.rs"]
+mod t12;
+pub use t12::place_birthday_hats;
 
 /// R425 curled gift ribbon: 10% chance per level. Curling ribbon cut from
 /// round a present (Blender batch r14b: 3/16 in polypropylene, crimped and

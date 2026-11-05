@@ -838,34 +838,9 @@ fn place_small_gift_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gift);
 }
 
-// R427 small party horn: 8% chance per level.
-fn place_small_party_horns(g: &mut Game, _dist: &[i32]) {
-    if rnd() < 0.92 {
-        return;
-    } // 8% chance
-    let open_tiles = open_tiles(g);
-    if open_tiles.is_empty() {
-        return;
-    }
-    let (x, z) = pick(&open_tiles);
-    let horn_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0];
-    let horn_mat = lambert!({ color: pick(&horn_colors), side: DoubleSide });
-    let mouth_mat = lambert!({ color: 0x2a2418 });
-    let horn = group();
-    // Body: long tapered cone laid horizontal.
-    let body = mesh(cone_geo!(0.015, 0.20, 6), &horn_mat);
-    body.rotation().z = -PI / 2.0;
-    body.position().set(0.10, 0.015, 0);
-    horn.add(&body);
-    // Mouthpiece: small dark disc at wide end.
-    let mouth = mesh(pg("SmallPartyHorns__mouth", cyl_geo!(0.014, 0.014, 0.005, 6)), &mouth_mat);
-    mouth.rotation().z = PI / 2.0;
-    mouth.position().set(0.005, 0.015, 0);
-    horn.add(&mouth);
-    horn.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
-    horn.rotation().y = rnd() * PI * 2.0;
-    g.world.add(&horn);
-}
+// R427 small party horn: batch `t12`'s (`t12.rs`)
+mod t12;
+use t12::place_small_party_horns;
 
 // R478 small vintage brass scales: 5% chance per level, gentle sway.
 fn place_small_scales(g: &mut Game, _dist: &[i32]) {
