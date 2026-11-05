@@ -260,14 +260,15 @@ impl Age {
         }
     }
     /// An engraving, a map or a plate on rag paper, decades on a wall:
-    /// yellowed most at its edges, foxed, now and then a damp tide line or a
-    /// crease; `vary` sets how much
+    /// browned all over (the museum's scan is of a sheet kept in the dark;
+    /// one on a wall goes the tan of old paper), yellowed most at its edges,
+    /// foxed, now and then a damp tide line or a crease; `vary` sets how much
     pub fn engraving(vary: u32) -> Age {
         let mut r = SplitMix64::new(vary, 0xe9a7);
         let y = r.range(0.0, 1.0);
         Age {
             fade: r.range(0.0, 0.08),
-            tone: [1.0, 0.94 - 0.04 * y, 0.80 - 0.08 * y],
+            tone: [0.93, 0.87 - 0.05 * y, 0.71 - 0.08 * y],
             edge: r.range(0.3, 0.7),
             silver: 0.0,
             spots: (r.range(10.0, 40.0)) as usize,
