@@ -15,7 +15,7 @@ doll): its sculpt is read from r03.py (the code before its parts), never
 built twice; the small doll is a smaller doll of the same mould.
 """
 from propkit import *
-from propkit import _mesh_obj, _eval_to_shape, _drop
+from propkit import _mesh_obj, _eval_to_shape, _drop, _fix_winding
 import propkit
 import os
 import random
@@ -641,3 +641,380 @@ auto('Real__teddyHead', teddy_head, 1150, smooth=70)
 auto('Real__teddyHeadPile', lambda: shell(teddy_head(), 0.0010), 1150, smooth=70)
 auto('Real__teddyEyes', teddy_eyes, 280, smooth=80)
 auto('Real__teddyNose', teddy_nose, 560, smooth=60)
+
+
+# ======================================================== the plush teddy ===
+# A machine-made plush teddy bear of the 1980s-90s, 30 cm standing (the
+# shop and fairground kind: acrylic plush pile on a knit backing, stuffed
+# with polyester fibre, unjointed, sewn to sit; a contrasting velour muzzle,
+# inner ears and foot pads; plastic safety eyes and a moulded nose; the
+# mouth stitched; a satin ribbon tied in a bow at its neck). Slumped where
+# it was left: its head fallen forward and to one side, its arms limp. Its
+# frame: x across, y up from the floor, z out of its front.
+PB_NECK = Vector((0.0, 0.119, -0.002))
+PB_HEAD_TURN = Euler((0.30, 0.10, 0.17), 'XYZ')       # forward, a little round, to its left
+PB_HC = Vector((0.0, 0.050, 0.0))                    # the head's centre in its own frame
+_pb = {}
+
+
+def pb_head_to_body(p):
+    return PB_NECK + PB_HEAD_TURN.to_matrix() @ Vector(p)
+
+
+def pb_body_raw():
+    el = [('ell', (0, 0.048, 0.004), (0.052, 0.048, 0.044)),
+          ('ell', (0, 0.089, -0.004), (0.040, 0.032, 0.034), 1.8),
+          ('ell', (0, 0.030, 0.020), (0.044, 0.026, 0.034), 1.6)]          # the belly sagging into the lap
+    for sx in (-1, 1):
+        el += [('cap', (sx * 0.030, 0.026, 0.020), (sx * 0.041, 0.023, 0.078), 0.0235, 2.0),
+               ('ell', (sx * 0.043, 0.032, 0.090), (0.022, 0.030, 0.015), 2.0, (-0.28, 0, 0)),          # the foot
+               ('cap', (sx * 0.040, 0.099, 0.004), (sx * 0.060, 0.060, 0.030), 0.0180, 2.0),          # the arm, limp
+               ('ball', (sx * 0.061, 0.053, 0.036), 0.0190, 2.0)]                                   # the paw
+    s = meta(el, res=0.0016)
+    s = flatten_below(to_floor(s), 0.006, 0.15)
+    s = lumpy(s, 0.0012, 45.0, 3)
+    # the seams: down the front and the back, the legs' insides
+    s = groove(s, lambda p: abs(p.x) if p.y > 0.035 else 1.0, 0.0010, 0.0020, lambda p: Vector((0, p.y, -0.004)))
+    return to_floor(s)
+
+
+def pb_head_raw():
+    el = [('ell', tuple(PB_HC), (0.056, 0.048, 0.049)),
+          ('ell', (0, 0.064, -0.006), (0.046, 0.032, 0.040), 1.6)]
+    for sx in (-1, 1):
+        el.append(('ell', (sx * 0.024, 0.036, 0.018), (0.030, 0.026, 0.028), 1.5))     # the cheeks
+    s = meta(el, res=0.0016)
+    s = lumpy(s, 0.0008, 40.0, 5)
+    # the head's gusset seams, crown to nape
+    for sx in (-1, 1):
+        s = groove(s, lambda p, sx=sx: abs(p.x - sx * 0.016) if p.y > 0.06 else 1.0, 0.0008, 0.0018, lambda p: PB_HC)
+    return s
+
+
+def pb_parts():
+    if 'body' not in _pb:
+        body = decimate(pb_body_raw(), 1150)
+        head = decimate(pb_head_raw(), 760)
+        _pb['body'], _pb['head'] = body, head
+        _pb['head_bvh'] = bvh_of(head)
+        _pb['body_bvh'] = bvh_of(body)
+    return _pb
+
+
+def pb_ear(sx, inner=False):
+    """An ear: two layers of plush sewn into a cup, its lower third in the
+    head; `inner`: the velour inside it."""
+    e = sphere(1.0, seg=14, rings=8).scale(0.0235, 0.0215, 0.0075)
+    e = e.warp(lambda p: Vector((p.x, p.y, p.z + 30.0 * (p.x * p.x + 0.6 * p.y * p.y))))
+    if inner:
+        bvh = bvh_of(e)
+        e = project_patch(bvh, Vector((0, 0.002, 0.03)), (0, 0, 1), (0, 1, 0), 0.032, 0.028, 0.0020, seg=14, rings=2)
+        e = Shape([p.copy() for p in e.v], e.f)
+    e.rot(0.10, 0, -sx * 0.32)
+    return e.move(sx * 0.043, 0.088, -0.008)
+
+
+def pb_muzzle_raw():
+    return meta([('ell', (0, 0.031, 0.040), (0.027, 0.020, 0.020)), ('ell', (0, 0.026, 0.046), (0.020, 0.014, 0.014), 1.6)], res=0.0012)
+
+
+def pb_fur():
+    p = pb_parts()
+    head = p['head'] + pb_ear(-1) + pb_ear(1)
+    return p['body'] + head.copy().warp(pb_head_to_body)
+
+
+def pb_accent():
+    """The velour: the muzzle, the inner ears, the soles."""
+    p = pb_parts()
+    out = decimate(pb_muzzle_raw(), 300) + pb_ear(-1, True) + pb_ear(1, True)
+    out.warp(pb_head_to_body)
+    bvh = p['body_bvh']
+    for sx in (-1, 1):
+        c = Vector((sx * 0.043, 0.032, 0.080))
+        hit, n = on_surface(bvh, c, Vector((0, 0.28, 1)))
+        out = out + project_patch(bvh, hit, n, (0, 1, 0), 0.034, 0.048, 0.0024, seg=18, rings=3)
+    return out
+
+
+def _pb_muzzle_bvh():
+    if 'mz' not in _pb:
+        _pb['mz'] = bvh_of(decimate(pb_muzzle_raw(), 300))
+    return _pb['mz']
+
+
+def _pb_eye_spot(sx):
+    hit, n = on_surface(pb_parts()['head_bvh'], PB_HC, Vector((sx * 0.37, 0.10, 0.92)))
+    return hit, n
+
+
+def pb_eye(sx):
+    """A safety eye: a black plastic dome, 12 mm, its shank through the
+    plush."""
+    hit, n = _pb_eye_spot(sx)
+    dome = lathe([(0.0060, 0.0), (0.0060, 0.0006), (0.0052, 0.0028), (0.0034, 0.0042), (0.0, 0.0047)], seg=16, cap_bottom=True)
+    q = Vector((0, 1, 0)).rotation_difference(n).to_matrix().to_4x4()
+    dome.apply(q).move(*(hit - n * 0.0012))
+    return dome.warp(pb_head_to_body)
+
+
+def pb_eye_holes():
+    """Where each eye goes through: the plush pierced, its pile parted round
+    a dark hole (seen where an eye has been pulled out)."""
+    bvh = pb_parts()['head_bvh']
+    out = Shape()
+    for sx in (-1, 1):
+        hit, n = _pb_eye_spot(sx)
+        rng = random.Random(77 + sx)
+        jit = [rng.uniform(0.8, 1.25) for _ in range(12)]
+        out = out + project_patch(bvh, hit, n, (0, 1, 0), 0.0072, 0.0072, 0.0004, seg=12, rings=2,
+                                  shape=lambda x, y, a, t: (x * jit[int(a / TAU * 12) % 12] ** t, y * jit[int(a / TAU * 12) % 12] ** t))
+    return out.warp(pb_head_to_body)
+
+
+def pb_nose():
+    """The moulded nose: a rounded triangle, its point down, on the
+    muzzle's top front."""
+    bvh = _pb_muzzle_bvh()
+    hit, n = on_surface(bvh, Vector((0, 0.028, 0.038)), Vector((0, 0.55, 0.84)), sink=0.0015)
+    tri = round_outline([(-0.0085, 0.0035), (0.0085, 0.0035), (0.0, -0.0060)], 0.0030, seg=4)
+    nose = prism(tri, 0.0060, bevel_r=0.0018, bevel_seg=2)
+    up = Vector((0, 1, 0))
+    m = Matrix((n.cross(up).normalized() * -1, (up - n * up.dot(n)).normalized(), n)).transposed().to_4x4()
+    nose.apply(m).move(*hit)
+    return nose.warp(pb_head_to_body)
+
+
+def pb_mouth():
+    """The mouth stitched in black thread: down from the nose and out."""
+    bvh = _pb_muzzle_bvh()
+    inside = Vector((0, 0.028, 0.036))
+    out = Shape()
+    top, low = 0.0285, 0.0215
+    out = out + tube(surface_path(bvh, [(0, top, 0.06), (0, low, 0.06)], 0.0003, inside), 0.0006, seg=4)
+    for sx in (-1, 1):
+        out = out + tube(surface_path(bvh, [(0, low, 0.06), (sx * 0.006, low - 0.0025, 0.06), (sx * 0.011, low - 0.0005, 0.06)], 0.0003, inside), 0.0006, seg=4)
+    return out.warp(pb_head_to_body)
+
+
+def pb_bow():
+    """A satin ribbon (25 mm) round the neck, tied at the front in a bow,
+    its tails hanging; its loops crushed flat."""
+    out = Shape()
+    # the band, round the neck where the head's seam meets the body, laid
+    # on the plush (cast out from the neck's axis), a little loose
+    bvh = bvh_of(pb_fur())
+    n, R = 40, 0.044
+    pts = []
+    for i in range(n + 1):
+        a = TAU * i / n
+        y = 0.115 + 0.003 * math.cos(a)
+        o = Vector((0.0, y, -0.004))
+        d = Vector((math.sin(a), 0.0, math.cos(a)))
+        hit = bvh.ray_cast(o, d, 0.2)
+        r = (hit[0] - o).length + 0.0012 if hit[0] is not None else R
+        pts.append(o + d * r)
+    band = _ribbon(pts, 0.016, 0.0012, lambda p: Vector((p.x, 0.0, p.z + 0.004)))
+    out = out + band
+    # the bow, slipped round to its right side of the chest (out from under
+    # the fallen head): built facing +z, turned to where it sits
+    k = 3
+    a_k = TAU * k / n
+    out_d = Vector((math.sin(a_k), 0.0, math.cos(a_k)))
+    rot = Matrix.Rotation(a_k, 4, 'Y')
+    knot = Vector((0.0, -0.004, 0.006))
+    bow = Shape()
+    for sx in (-1, 1):
+        # a loop: out to the side and back, flattened, drooping
+        lp = [knot + Vector((sx * 0.004, 0.002, 0.001)), knot + Vector((sx * 0.018, 0.008, 0.004)),
+              knot + Vector((sx * 0.030, 0.003, 0.004)), knot + Vector((sx * 0.028, -0.007, 0.003)),
+              knot + Vector((sx * 0.012, -0.004, 0.002)), knot + Vector((sx * 0.003, -0.001, 0.0))]
+        bow = bow + _ribbon(lp, 0.014, 0.0012, Vector((0, 0, 1)))
+        # a tail: down over the chest, its end cut square
+        tl = [knot + Vector((sx * 0.003, -0.004, 0.002)), knot + Vector((sx * 0.010, -0.020, 0.002)),
+              knot + Vector((sx * 0.015, -0.036, -0.002)), knot + Vector((sx * 0.017, -0.048, -0.008))]
+        bow = bow + _ribbon(tl, 0.013, 0.0012, Vector((0, 0, 1)))
+    bow = bow + rbox(0.010, 0.012, 0.006, r=0.002).move(*knot)
+    bow.apply(rot).move(*(pts[k] - out_d * 0.001))
+
+    # laid on the plush: nothing of it inside the bear
+    def lay(q):
+        o = q - out_d * 0.06
+        last, at = None, o
+        for _ in range(8):            # the outermost surface (the shells overlap)
+            hit = bvh.ray_cast(at, out_d, 0.12)
+            if hit[0] is None:
+                break
+            last, at = hit[0], hit[0] + out_d * 1e-4
+        if last is not None:
+            surf = (last - o).dot(out_d) + 0.0015
+            if (q - o).dot(out_d) < surf:
+                return o + out_d * surf + (q - o - out_d * (q - o).dot(out_d))
+        return q
+    return out + bow.warp(lay)
+
+
+def _ribbon(pts, w, t, face):
+    """A flat band along a polyline, `w` wide, `t` thick, its flat side
+    toward `face` (a vector, or a function of the point)."""
+    v, f = [], []
+    pts = [Vector(p) for p in pts]
+    for i, p in enumerate(pts):
+        d = (pts[min(i + 1, len(pts) - 1)] - pts[max(i - 1, 0)]).normalized()
+        fc = Vector(face(p) if callable(face) else face)
+        fc = (fc - d * fc.dot(d)).normalized()
+        across = fc.cross(d).normalized()
+        for sw, st in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+            v.append(p + across * (sw * w / 2) + fc * (st * t / 2))
+    k = len(pts)
+    for i in range(k - 1):
+        for j in range(4):
+            a, b = i * 4 + j, i * 4 + (j + 1) % 4
+            f.append((a, b, b + 4, a + 4))
+    f.append((3, 2, 1, 0))
+    f.append(tuple((k - 1) * 4 + j for j in range(4)))
+    return _fix_winding(Shape(v, f))
+
+
+auto('Real__plushBearFur', pb_fur, 2400, smooth=70)
+auto('Real__plushBearPile', lambda: shell(pb_fur(), 0.0016, floor=0.0004), 2400, smooth=70)
+auto('Real__plushBearAccent', pb_accent, 700, smooth=70)
+auto('Real__plushBearEyeL', lambda: pb_eye(1), 200, smooth=60)
+auto('Real__plushBearEyeR', lambda: pb_eye(-1), 200, smooth=60)
+auto('Real__plushBearEyeHoles', pb_eye_holes, 100)
+auto('Real__plushBearNose', pb_nose, 400, smooth=50)
+auto('Real__plushBearMouth', pb_mouth, 200)
+auto('Real__plushBearBow', pb_bow, 700, smooth=40)
+
+
+# ===================================================== the teddy's arm ===
+# A plush teddy's arm (a 40 cm bear of the plush teddy's kind) torn off at
+# its shoulder seam: the arm sewn of two pieces round its edge, a velour pad
+# on its paw, the seam's threads broken at the torn end and the polyester
+# fibre stuffing pulled out of it; tufts of it lying near. Lying on its
+# side. Its frame: x along the arm (the paw toward +x, the torn end at
+# -x), y up from the floor, z across.
+TA_Y = 0.0150                  # the arm's middle (its edge seam) above the floor
+TA_END = -0.050                # the torn end
+
+
+def ta_arm_raw():
+    el = [('ell', (-0.034, TA_Y, 0.000), (0.023, 0.0152, 0.0225)),
+          ('ell', (0.000, TA_Y - 0.0006, 0.001), (0.026, 0.0136, 0.0172)),
+          ('ell', (0.034, TA_Y - 0.0008, 0.002), (0.020, 0.0132, 0.0210), 1.8),
+          ('ell', (0.048, TA_Y - 0.0004, 0.003), (0.011, 0.0118, 0.0172), 1.6)]   # the paw: broad, flatter, its end round
+    s = meta(el, res=0.0011)
+    # curved as a teddy's arm is, toward its paw's inside
+    s = bend(s, 0.80, axis='y', along='x')
+    lo, hi = s.bounds()
+    s.move(0, 0, -(lo.z + hi.z) / 2)
+    s = lumpy(s, 0.0007, 70.0, 11)
+    # torn off: cut a little aslant
+    cutter = box(0.06, 0.08, 0.08).rot(0, 0.18, 0.10).move(TA_END - 0.030, TA_Y, 0)
+    s = boolean(s, cutter, 'DIFFERENCE')
+    # the edge seam round its outline, at the middle of its thickness
+    s = groove(s, lambda p: abs(p.y - TA_Y) if abs(p.z) > 0.008 or p.x > 0.04 else 1.0, 0.0010, 0.0022,
+               lambda p: Vector((p.x, TA_Y, 0.0)))
+    return s
+
+
+def ta_arm_mesh():
+    if 'ta' not in _pb:
+        a = decimate(ta_arm_raw(), 820)
+        lo, _ = a.bounds()
+        a = flatten_below(a.move(0, -lo.y, 0), 0.0012, 0.25)
+        _pb['ta'] = a
+        _pb['ta_bvh'] = bvh_of(a)
+    return _pb['ta']
+
+
+def ta_rim(n=14):
+    """Points round the torn end's rim (its cut face's edge)."""
+    arm = ta_arm_mesh()
+    bvh = _pb['ta_bvh']
+    pts = []
+    for i in range(n):
+        a = TAU * i / n
+        d = Vector((0.0, math.sin(a), math.cos(a)))
+        o = Vector((TA_END + 0.004, TA_Y, 0.0))
+        hit = bvh.ray_cast(o, d, 0.05)
+        pts.append(hit[0] if hit[0] is not None else o + d * 0.015)
+    return pts
+
+
+def ta_fur():
+    """The arm, and at its torn end the plush's ragged edge (flaps of it
+    turned out) and the seam's broken threads."""
+    out = ta_arm_mesh().copy()
+    rng = random.Random(4511)
+    for i, p in enumerate(ta_rim(14)):
+        r = Vector((0, p.y - TA_Y, p.z)).normalized()
+        if i % 3 != 1:
+            # a flap of the torn plush, turned a little out
+            w, l = rng.uniform(0.004, 0.008), rng.uniform(0.004, 0.009)
+            flap = Shape([(-w / 2, 0, 0), (w / 2, 0, 0), (w * 0.2, l, 0.0006), (-w * 0.3, l * 0.8, 0.0006)], [(0, 1, 2, 3)])
+            flap = flap + Shape([(-w / 2, 0, -0.0007), (-w * 0.3, l * 0.8, -0.0001), (w * 0.2, l, -0.0001), (w / 2, 0, -0.0007)], [(0, 1, 2, 3)])
+            ax = Vector((-1, 0, 0)) * 0.6 + r * 0.8
+            m = Matrix((r.cross(ax).normalized(), ax.normalized(), r)).transposed().to_4x4()
+            out = out + flap.apply(m).move(*(p - r * 0.0006))
+    out = out + fibres(rng, Vector((TA_END - 0.002, TA_Y, 0.0)), 0.016, 7, 0.010, r=0.00035, up=0.2)
+    lo, _ = out.bounds()
+    return out.warp(lambda q: Vector((q.x, max(q.y, 0.0003), q.z)))
+
+
+def ta_pad():
+    arm = ta_arm_mesh()
+    bvh = _pb['ta_bvh']
+    hit, n = on_surface(bvh, Vector((0.036, TA_Y, 0.003)), Vector((0.15, 1, 0.1)))
+    return project_patch(bvh, hit, n, (1, 0, 0), 0.032, 0.027, 0.0024, seg=18, rings=3)
+
+
+def fluff(rng, centre, radius, n, rmin, rmax, squash=1.0, res=0.0009):
+    """Polyester fibre stuffing: a soft cloud of small tufts run together,
+    and fibres standing out of it."""
+    el = []
+    pts = []
+    for _ in range(n):
+        while True:
+            q = Vector((rng.uniform(-1, 1), rng.uniform(-1, 1), rng.uniform(-1, 1)))
+            if q.length <= 1:
+                break
+        c = Vector(centre) + Vector((q.x, q.y * squash, q.z)) * radius
+        r = rng.uniform(rmin, rmax)
+        el.append(('ball', tuple(c), r, 1.2))
+        pts.append((c, r))
+    s = meta(el, res=res)
+    s = noisy(s, 0.0004, scale=400.0, seed=rng.randint(0, 99))
+    # loose fibres out of its surface, curled
+    for c, r in pts[: n // 2]:
+        s = s + fibres(rng, c, r * 1.05, 2, r * 0.9, r=0.00022, up=0.9)
+    return s
+
+
+def ta_stuffing():
+    """The stuffing pulled out of the torn end: a bulge of it, wisps."""
+    rng = random.Random(4523)
+    c = Vector((TA_END - 0.006, TA_Y + 0.001, 0.0))
+    s = fluff(rng, c, 0.0130, 40, 0.0035, 0.0070, squash=0.85)
+    s = s + fluff(rng, c + Vector((-0.013, -0.004, 0.006)), 0.008, 16, 0.0025, 0.0050, squash=0.7)
+    s = decimate(s, 1000)
+    return s.warp(lambda q: Vector((q.x, max(q.y, 0.0003), q.z)))
+
+
+def ta_tuft():
+    """A tuft of the stuffing lying loose: its origin on the floor under it."""
+    rng = random.Random(4537)
+    s = fluff(rng, Vector((0, 0.006, 0)), 0.011, 18, 0.0025, 0.0055, squash=0.55)
+    s = decimate(s, 420)
+    lo, _ = s.bounds()
+    s.move(0, -lo.y, 0)
+    return flatten_below(s, 0.0015, 0.3)
+
+
+auto('Real__teddyArmFur', ta_fur, 1100, smooth=70)
+auto('Real__teddyArmPile', lambda: shell(ta_arm_mesh(), 0.0016, floor=0.0004), 900, smooth=70)
+auto('Real__teddyArmPad', ta_pad, 400, smooth=60)
+auto('Real__teddyArmStuffing', ta_stuffing, 1100, smooth=80)
+auto('Real__teddyArmStuffingWisps', lambda: shell(ta_stuffing(), 0.0012, floor=0.0004), 1100, smooth=80)
+auto('Real__teddyArmTuft', ta_tuft, 460, smooth=80)
+auto('Real__teddyArmTuftWisps', lambda: shell(ta_tuft(), 0.0010, floor=0.0003), 460, smooth=80)
