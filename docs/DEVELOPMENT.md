@@ -396,6 +396,14 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   first). `--dump-level … --screenshot x --views-at "x,z,yaw;…"` renders a
   PNG from each given pose (`_v00.png` on), so two builds can be shot from
   the same places for a blind review.
+* `--far-figure` (with `--dump-level … --screenshot x` on levels 1–3)
+  stands the figure across the void where `--screen figure` shows it and
+  shoots it from 12 and 25 m along the line it is seen along (turned toward
+  you, and at 25 m its back turned) and from that view's own place
+  (`figure_S_LN_12m.png`, `_25m`, `_25m_back`, `_view`), each frame again
+  without it (`_none`: the same frame, so the two differ only where it
+  stands); it prints the cameras, and with `--shots-at` holds it toward
+  each camera given, so two builds can be shot alike for a blind review.
 * `--showcase smiler[:dist]` (or `hound`, `watcher`, `corner`, `reader`,
   and on their levels `staff`, `shadow`) keeps a creature standing in front
   of the camera for the shot; `kind:dist:walk` places it once and lets it

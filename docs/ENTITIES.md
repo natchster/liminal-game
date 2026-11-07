@@ -560,7 +560,10 @@ rooms like any.
   MakeHuman's own skin, before the remesh closes its eyes' holes into
   sockets that overhang). The Loop's seated man is never posed: his body
   (`body_seated.py`) sits on the Loop's own chair, drawn with it as one
-  instanced piece. Only what a blind review preferred ships (`cargo xtask
+  instanced piece. Nor is the Building's figure across the void (not a
+  creature; `docs/MEGASTRUCTURE.md` G7): its body (`body_far_figure.py`, a
+  man in a long grey work coat standing still) is drawn as one piece and
+  turned whole (`world::far_figures`). Only what a blind review preferred ships (`cargo xtask
   ab`, both orders, a fresh reviewer a round): the seated man won every
   round; the staff lost four (sticks for arms, spikes for hands, a flat
   egg for a face, a smock, a mock neck) and won the fifth with two

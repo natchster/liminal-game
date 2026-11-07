@@ -92,8 +92,10 @@ struct Options {
     /// `--far-figure`: with `--dump-level --screenshot` on the Building's
     /// floors, the figure across the void stood where `--screen figure`
     /// shows it and shot from 12 and 25 m along that line (turned toward
-    /// the camera, and at 25 m its back turned too), each camera printed
-    /// for `--shots-at`; with `--shots-at`, held toward each camera
+    /// the camera, and at 25 m its back turned too) and from that view's
+    /// own place, each frame also without it (`_none`: what it stands out
+    /// against), each camera printed for `--shots-at`; with `--shots-at`,
+    /// held toward each camera (its back turned for a name ending `_back`)
     far_figure: bool,
     /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
     /// machine is first played to that state (`Game::vending_demo`)
@@ -828,6 +830,13 @@ fn level_check(o: &Options, dir: &str) {
                 if let Some((n, c, _)) = cams.last().cloned() {
                     cams.push((format!("{n}_back"), c, true));
                 }
+                // (and from where that view stands)
+                if let Some(f) = g.far_figure.as_ref() {
+                    let d = ((g.player.pos.x - f.at.x).powi(2) + (g.player.pos.z - f.at.z).powi(2)).sqrt();
+                    for (_, c) in g.far_figure_cameras(&[d]) {
+                        cams.push((format!("figure_{seed}_L{l}_view"), c, false));
+                    }
+                }
                 if !o.shots_at.is_empty() {
                     cams = o.shots_at.iter().map(|(n, c)| (n.clone(), *c, n.ends_with("_back"))).collect();
                 }
@@ -852,11 +861,19 @@ fn level_check(o: &Options, dir: &str) {
                     g.ui.msg.set_opacity(0.0);
                     g.ui.msg.set_text("");
                     g.sim_frozen = true;
-                    let cb = draw(&mut g, &mut r, t, w, h);
-                    cb.commit();
-                    cb.waitUntilCompleted();
-                    let (tw, th, px) = r.read_texture(t);
-                    engine::png::write_rgba(&format!("{dir}/{name}.png"), tw as u32, th as u32, &px).expect("write png");
+                    // the frame, and the same frame without it (`_none`: what
+                    // it stands out against)
+                    for none in [false, true] {
+                        if let Some(f) = g.far_figure.as_ref() {
+                            f.body.set_visible(!none);
+                        }
+                        let cb = draw(&mut g, &mut r, t, w, h);
+                        cb.commit();
+                        cb.waitUntilCompleted();
+                        let (tw, th, px) = r.read_texture(t);
+                        let name = if none { format!("{name}_none") } else { name.clone() };
+                        engine::png::write_rgba(&format!("{dir}/{name}.png"), tw as u32, th as u32, &px).expect("write png");
+                    }
                     g.sim_frozen = false;
                 }
                 let at: Vec<String> =
