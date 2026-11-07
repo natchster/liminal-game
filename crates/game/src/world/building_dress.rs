@@ -32,6 +32,12 @@ pub const DRESS_SALT: u64 = 0xB01D_0D2E_55ED_0001;
 const STACK: i32 = 9;
 /// The share of windows lit
 const LIT_SHARE: f64 = 0.035;
+/// Tiles of the floor to each chain hung in the Stair Halls and to each line
+/// of washing across the Well (34 and 9 on the floors of 40 tiles a side
+/// they were first hung on; the floors are 28 a side since G1, and as thick
+/// with them as before)
+const TILES_PER_CHAIN: i32 = 47;
+const TILES_PER_LINE: i32 = 178;
 
 /// Instanced parts gathered while dressing: (geometry, material, matrices)
 #[derive(Default)]
@@ -538,7 +544,7 @@ impl Game {
         let cloth: Vec<usize> = cloths.iter().map(|m| parts.part(&cloth_geo, m)).collect();
         let mut made = 0;
         for _ in 0..400 {
-            if made >= 9 {
+            if made >= self.w * self.h / TILES_PER_LINE {
                 break;
             }
             let x = (r.next() * self.w as f64) as i32;
@@ -745,7 +751,7 @@ impl Game {
         if voids.is_empty() {
             return;
         }
-        for _ in 0..34 {
+        for _ in 0..self.w * self.h / TILES_PER_CHAIN {
             let (x, z) = voids[(r.next() * voids.len() as f64) as usize % voids.len()];
             let (cx, cz) = (self.wx(x) + r.range(-1.5, 1.5), self.wz(z) + r.range(-1.5, 1.5));
             let bottom = r.range(-12.0, 24.0);
@@ -754,6 +760,7 @@ impl Game {
             parts.put(ring, boxm(Vec3::new(cx, bottom - 0.2, cz), r.range(0.0, PI), Vec3::new(1.0, 1.0, 1.0)));
         }
         // flights crossing the void that no walk reaches: no parapet on them
+        // (as many as on the larger floors: they are where the figure stands)
         let stone = self.arch_mat("floor:stone:2");
         let unit = self.unit_box_geo.clone();
         let step = parts.part(&unit, &stone);

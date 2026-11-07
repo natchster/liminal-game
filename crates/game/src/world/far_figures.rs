@@ -28,8 +28,9 @@ pub const SEEN: f64 = 1.2;
 /// How long it takes to turn its back, seconds
 pub const TURN: f64 = 1.1;
 /// The first wait on a floor, and the waits after, seconds (long: the same
-/// thing seen again soon is no longer dread)
-pub const FIRST: f64 = 70.0;
+/// thing seen again soon is no longer dread). The first is half what it was
+/// when a floor took twice as long to cross (G1): it comes about once a floor
+pub const FIRST: f64 = 35.0;
 pub const AWAY: (f64, f64) = (100.0, 220.0);
 /// In the middle of the view (looked at), and anywhere in it
 pub const LOOKED: f64 = 0.96;
