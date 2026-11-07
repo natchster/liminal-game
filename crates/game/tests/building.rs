@@ -130,11 +130,15 @@ fn the_way_down_is_found_not_walked() {
 }
 
 /// `cargo test --release -p game --test building -- --ignored --nocapture census`
+/// (`CENSUS_SEEDS=200` for more than the 40 the bands are held on)
 #[test]
 #[ignore]
 fn census() {
+    let n: u32 = std::env::var("CENSUS_SEEDS").ok().and_then(|v| v.parse().ok()).unwrap_or(SEEDS.end - 1);
     for level in 1..=3 {
-        for (seed, m) in measures(level) {
+        for seed in 1..=n {
+            let (l, p) = build(seed, level);
+            let m = navigation(&l, &p);
             println!(
                 "L{level} seed {seed:>3}: detour {:.2} path {:>3} flights {:>2} climb {:>4.0} descent {:>4.0} range {:>4.0} decisions {:>2} dead {:>2} seen {} reach {:>2} cells {:>2} walk {}",
                 m.detour, m.path, m.flights, m.climb, m.descent, m.high - m.low, m.decisions, m.dead_ends, m.door_seen as u8, m.cell_reach, m.cells, m.walkable
