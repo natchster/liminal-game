@@ -89,6 +89,12 @@ struct Options {
     /// --screenshot`, a PNG from each camera exactly (`census.tsv` records
     /// each census shot's camera: the same shot of a changed prop)
     shots_at: Vec<(String, [f64; 5])>,
+    /// `--far-figure`: with `--dump-level --screenshot` on the Building's
+    /// floors, the figure across the void stood where `--screen figure`
+    /// shows it and shot from 12 and 25 m along that line (turned toward
+    /// the camera, and at 25 m its back turned too), each camera printed
+    /// for `--shots-at`; with `--shots-at`, held toward each camera
+    far_figure: bool,
     /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
     /// machine is first played to that state (`Game::vending_demo`)
     vending_demo: Option<String>,
@@ -136,6 +142,7 @@ fn parse_args() -> Options {
         census_only: vec![],
         census_use: false,
         shots_at: vec![],
+        far_figure: false,
         vending_demo: None,
         fresh: false,
         metrics: None,
@@ -198,6 +205,7 @@ fn parse_args() -> Options {
                     })
                     .collect()
             }
+            "--far-figure" => o.far_figure = true,
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
@@ -227,7 +235,7 @@ fn parse_args() -> Options {
     // the census and its cameras are evidence for a blind review: a shot
     // taken twice must be the same shot (the per-frame randomness drives a
     // floor's tint, its flicker and its dust; the save fits her notes)
-    if o.prop_census.is_some() || !o.shots_at.is_empty() {
+    if o.prop_census.is_some() || !o.shots_at.is_empty() || o.far_figure {
         o.fresh = true;
     }
     o
@@ -743,7 +751,7 @@ fn level_check(o: &Options, dir: &str) {
                 let sec: Vec<String> = g.secret_poses().iter().map(|(x, z, yaw)| format!("{x:.3},{z:.3},{yaw:.4}")).collect();
                 print!(" (secret poses: \"{}\")", sec.join(";"));
             }
-            if let Some(per) = o.prop_census.or((!o.shots_at.is_empty()).then_some(0)) {
+            if let Some(per) = o.prop_census.or((!o.shots_at.is_empty() && !o.far_figure).then_some(0)) {
                 let dir = format!("{dir}/census");
                 std::fs::create_dir_all(&dir).expect("create census dir");
                 let mut index = String::new();
@@ -807,6 +815,53 @@ fn level_check(o: &Options, dir: &str) {
                 let mut f = std::fs::OpenOptions::new().create(true).append(true).open(format!("{dir}/census.tsv")).expect("census index");
                 f.write_all(index.as_bytes()).expect("write census index");
                 print!(" (+{} census shots)", shots.len());
+            }
+            if o.far_figure && g.building.is_some() {
+                // the figure across the void, where `--screen figure` stands it,
+                // from nearer along the line it is seen along (or the cameras given)
+                g.show_far_figure();
+                let mut cams: Vec<(String, [f64; 5], bool)> = g
+                    .far_figure_cameras(&[12.0, 25.0])
+                    .into_iter()
+                    .map(|(d, c)| (format!("figure_{seed}_L{l}_{d:.0}m"), c, false))
+                    .collect();
+                if let Some((n, c, _)) = cams.last().cloned() {
+                    cams.push((format!("{n}_back"), c, true));
+                }
+                if !o.shots_at.is_empty() {
+                    cams = o.shots_at.iter().map(|(n, c)| (n.clone(), *c, n.ends_with("_back"))).collect();
+                }
+                g.god_mode = true;
+                for (name, c, back) in &cams {
+                    let eye = engine::math::Vec3::new(c[0], c[1], c[2]);
+                    g.player.pos = eye;
+                    g.player.yaw = c[3];
+                    g.player.pitch = c[4];
+                    g.prop_cull.t = 0.0;
+                    g.fixed_step_dt = 1.0 / 60.0;
+                    g.frame(1.0 / 60.0);
+                    g.fixed_step_dt = 0.0;
+                    g.camera.position().copy(&eye);
+                    g.camera.rotation().x = c[4];
+                    g.camera.rotation().y = c[3];
+                    g.camera.rotation().z = 0.0;
+                    g.hold_far_figure(eye, *back);
+                    // (no level card nor toast over it)
+                    g.level_card = None;
+                    g.msg_t = 0.0;
+                    g.ui.msg.set_opacity(0.0);
+                    g.ui.msg.set_text("");
+                    g.sim_frozen = true;
+                    let cb = draw(&mut g, &mut r, t, w, h);
+                    cb.commit();
+                    cb.waitUntilCompleted();
+                    let (tw, th, px) = r.read_texture(t);
+                    engine::png::write_rgba(&format!("{dir}/{name}.png"), tw as u32, th as u32, &px).expect("write png");
+                    g.sim_frozen = false;
+                }
+                let at: Vec<String> =
+                    cams.iter().map(|(n, c, _)| format!("{n}:{:.4},{:.4},{:.4},{:.5},{:.5}", c[0], c[1], c[2], c[3], c[4])).collect();
+                print!(" (figure cameras: \"{}\")", at.join(";"));
             }
             if let Some(what) = o.vending_demo.as_deref() {
                 g.vending_demo(what);

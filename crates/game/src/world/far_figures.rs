@@ -426,4 +426,38 @@ impl Game {
             f.body.set_visible(true);
         }
     }
+
+    /// For the evidence (`--dump-level … --far-figure`): after
+    /// `show_far_figure`, cameras on the line it is seen along, `d` metres
+    /// off it (level), looking just beside its middle as that view does (the
+    /// crosshair leaves it clear): (d, [x, y, z, yaw, pitch])
+    pub fn far_figure_cameras(&self, dists: &[f64]) -> Vec<(f64, [f64; 5])> {
+        let Some(f) = self.far_figure.as_ref().filter(|f| f.state != FigureState::Gone) else { return vec![] };
+        let (p, eye) = (f.at, self.player.pos);
+        let chest = Vec3::new(p.x, p.y + 1.2, p.z);
+        let far = hypot2(eye.x - p.x, eye.z - p.z).max(1e-6);
+        dists
+            .iter()
+            .map(|&d| {
+                let k = d / far;
+                let c = Vec3::new(chest.x + (eye.x - chest.x) * k, chest.y + (eye.y - chest.y) * k, chest.z + (eye.z - chest.z) * k);
+                let (dx, dy, dz) = (p.x - c.x, p.y + 1.0 - c.y, p.z - c.z);
+                (d, [c.x, c.y, c.z, (-dx).atan2(-dz) - 0.1, dy.atan2((dx * dx + dz * dz).sqrt())])
+            })
+            .collect()
+    }
+
+    /// For the evidence: the figure held standing where it is, turned
+    /// toward an eye at `eye` (or, `back`, its back to it), whatever its
+    /// rule would do there
+    pub fn hold_far_figure(&mut self, eye: Vec3, back: bool) {
+        if let Some(f) = self.far_figure.as_mut() {
+            f.state = FigureState::Standing;
+            f.t = -1e6;
+            f.yaw = (eye.x - f.at.x).atan2(eye.z - f.at.z);
+            f.body.position().copy(&f.at);
+            f.body.rotation().y = f.yaw + if back { PI } else { 0.0 };
+            f.body.set_visible(true);
+        }
+    }
 }
