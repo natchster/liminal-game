@@ -455,31 +455,35 @@ fn trial(g: &mut Game, seed: u32, level: i32, way: Way, learned: bool) -> (bool,
 
 /// The floors (seed, level) that have it, its window's first light under a
 /// blind if `blinded` (and every light of its row, if `all`)
-/// `f` on each of `items`, side by side: each on a thread of its own with a
-/// game of its own (so each plays as it would alone, whatever ran before it),
-/// sixteen at a time; what each gave, in order. A failure in one is raised
+/// `f` on each of `items`, side by side: on four threads, each with a game of
+/// its own booted once (a boot builds a floor: a game for each item would
+/// double the work), item `i` on thread `i` mod four, so the same items
+/// always share a thread and each trial, seeding its own per-frame stream,
+/// plays the same; what each gave, in order. A failure in one is raised
 /// here, as the test's.
 fn side_by_side<T: Sync, R: Send>(items: &[T], f: impl Fn(&mut Game, &T) -> R + Sync) -> Vec<R> {
     let f = &f;
-    let mut out = Vec::with_capacity(items.len());
-    for chunk in items.chunks(16) {
-        std::thread::scope(|sc| {
-            let handles: Vec<_> = chunk
-                .iter()
-                .map(|it| {
-                    std::thread::Builder::new()
-                        .stack_size(64 << 20)
-                        .spawn_scoped(sc, move || {
-                            let mut g = common::new_game();
-                            f(&mut g, it)
-                        })
-                        .unwrap()
-                })
-                .collect();
-            out.extend(handles.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))));
-        });
-    }
-    out
+    let n = items.len().clamp(1, 4);
+    let mut out: Vec<Option<R>> = std::iter::repeat_with(|| None).take(items.len()).collect();
+    std::thread::scope(|sc| {
+        let handles: Vec<_> = (0..n)
+            .map(|t| {
+                std::thread::Builder::new()
+                    .stack_size(64 << 20)
+                    .spawn_scoped(sc, move || {
+                        let mut g = common::new_game();
+                        items.iter().enumerate().skip(t).step_by(n).map(|(i, it)| (i, f(&mut g, it))).collect::<Vec<_>>()
+                    })
+                    .unwrap()
+            })
+            .collect();
+        for h in handles {
+            for (i, r) in h.join().unwrap_or_else(|e| std::panic::resume_unwind(e)) {
+                out[i] = Some(r);
+            }
+        }
+    });
+    out.into_iter().map(|r| r.expect("every item ran")).collect()
 }
 
 fn floors_with_it(n: usize, blinded: bool) -> Vec<(u32, i32)> {
@@ -487,8 +491,8 @@ fn floors_with_it(n: usize, blinded: bool) -> Vec<(u32, i32)> {
 }
 
 /// The floors (of the first runs, in order) that have it, until `n`: a run's
-/// eight levels at a time, sixteen runs side by side, and the floors kept
-/// exactly as the runs one after another would keep them
+/// eight levels at a time, sixteen runs at once (four side by side), and the
+/// floors kept exactly as the runs one after another would keep them
 fn floors_where(n: usize, blinded: bool, all: bool) -> Vec<(u32, i32)> {
     let seeds: Vec<u32> = (0..60u32).map(|k| k.wrapping_mul(2654435761) ^ 0x51_D0).collect();
     let mut floors = vec![];
