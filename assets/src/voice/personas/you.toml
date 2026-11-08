@@ -71,5 +71,10 @@ loudness_lufs = -16.0
 peak_dbtp = -1.0
 # words heard wrong, at most (a line that is only a sound is not transcribed)
 wer_max = 0.15
-# speaker similarity to the reference, at least (a scream is lower than a word)
+# speaker similarity to the reference, at least: on calm lines (intensity up
+# to 0.4; another man reads 0.33, a woman 0.04, his own takes 0.54-0.75),
+# falling to the loud floor at intensity 1 (his shouts read 0.13-0.34: a
+# shout is far from a calm reference, and on shouts ECAPA cannot tell him
+# from another man)
 similarity_min = 0.45
+similarity_min_loud = 0.1

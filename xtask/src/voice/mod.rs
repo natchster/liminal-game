@@ -7,7 +7,7 @@
 //! ```text
 //! cargo xtask voice doctor        uv, the environments, the models at their revisions, the licences
 //! cargo xtask voice fetch [--only ID,…]   the models into the Hugging Face cache
-//! cargo xtask voice reference|build|write …   the pipeline (`pipeline.rs`)
+//! cargo xtask voice reference|build|eval|write …   the pipeline (`pipeline.rs`)
 //! ```
 mod pipeline;
 
@@ -15,7 +15,7 @@ use crate::{flag, opt, root};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|write> …
+const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|eval|selftest|write> …
   doctor [--smoke]          uv, the two environments, every model in the cache at its
                             pinned revision, each synthesis model's licence kept and
                             allowed in MANIFEST.json; --smoke also says a sentence and
@@ -28,6 +28,13 @@ const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|writ
   build --persona P [--model M] [--only LINE,…]
                             every take of P's lines, raw then cleaned, into
                             target/voice/P/M/<line>/take<k>.wav
+  eval --persona P [--model M]
+                            every take judged (words, emotion, tone of voice, voice);
+                            each line's best passing take chosen; the gate:
+                            target/voice/P/M/report.md
+  selftest [--persona you]  the evaluation against known answers: wrong words, a calm
+                            read of a terrified line, two other voices must fail
+                            their check; three good takes must pass
   write --persona P [--model M] [--take K]
                             each line's chosen take (the evaluation's, or take K)
                             into crates/game/assets/voice/P/ and MANIFEST.json";
@@ -40,6 +47,8 @@ pub fn voice(args: &[String]) -> Result<(), String> {
         Some("reference") => pipeline::reference(rest),
         Some("build") => pipeline::build(rest),
         Some("write") => pipeline::write(rest),
+        Some("eval") => pipeline::eval(rest),
+        Some("selftest") => pipeline::selftest(rest),
         _ => Err(USAGE.into()),
     }
 }
@@ -326,6 +335,7 @@ const PERSONA: &[(&str, Kind, bool)] = &[
     ("targets.peak_dbtp", Kind::Num, true),
     ("targets.wer_max", Kind::Num, true),
     ("targets.similarity_min", Kind::Num, true),
+    ("targets.similarity_min_loud", Kind::Num, true),
 ];
 
 /// A line (`[[line]]` of `assets/src/voice/lines/<persona>.toml`)
@@ -472,8 +482,13 @@ pub fn check_sources() -> Vec<String> {
             problems.push(format!("{what}: targets.loudness_lufs (-40 to -6) or peak_dbtp (at most 0) out of range"));
         }
         let fraction = |v: f64| v > 0.0 && v < 1.0;
-        if !fraction(tg("wer_max")) || !fraction(tg("similarity_min")) {
-            problems.push(format!("{what}: targets.wer_max and similarity_min are fractions"));
+        if !fraction(tg("wer_max"))
+            || !fraction(tg("similarity_min"))
+            || !fraction(tg("similarity_min_loud"))
+            || tg("similarity_min_loud") > tg("similarity_min")
+        {
+            problems
+                .push(format!("{what}: targets.wer_max, similarity_min and similarity_min_loud (at most similarity_min) are fractions"));
         }
         let emotions: Vec<String> = t.get("emotions").and_then(|v| v.as_table()).map(|e| e.keys().cloned().collect()).unwrap_or_default();
         emotions_of.insert(stem.clone(), emotions);

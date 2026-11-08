@@ -7,6 +7,7 @@ cache at the revision tools/voice/models.toml pins, offline.
     evaluate.py hear --text T TAKE.wav     the words: two recognisers, the word error rate
     evaluate.py clean --lufs L --peak P RAW.wav OUT.wav   trimmed, 48 kHz, at loudness L, true peak under P
     evaluate.py clean-all ITEMS.json       each {"src", "dst", "lufs", "peak"}: a JSON line each
+    evaluate.py report JOB.json OUT_DIR    every take judged (judge.py): report.json, report.md, the gate
 """
 
 import argparse
@@ -175,7 +176,33 @@ def main():
     c.add_argument("dst")
     ca = sub.add_parser("clean-all")
     ca.add_argument("file")
+    rp = sub.add_parser("report")
+    rp.add_argument("job")
+    rp.add_argument("out_dir")
     a = ap.parse_args()
+    if a.cmd == "report":
+        import json
+
+        import judge
+
+        def finite(v):
+            # JSON has no NaN: a measure that could not be taken is null
+            if isinstance(v, float) and not np.isfinite(v):
+                return None
+            if isinstance(v, dict):
+                return {k: finite(x) for k, x in v.items()}
+            if isinstance(v, (list, tuple)):
+                return [finite(x) for x in v]
+            if isinstance(v, (np.floating, np.integer, np.bool_)):
+                return finite(v.item())
+            return v
+
+        rep = finite(judge.report(json.loads(pathlib.Path(a.job).read_text())))
+        out = pathlib.Path(a.out_dir)
+        (out / "report.json").write_text(json.dumps(rep, indent=1, allow_nan=False, default=str) + "\n")
+        (out / "report.md").write_text(judge.markdown(rep))
+        print(f"report: {out / 'report.md'} ({'passes' if rep['passes'] else 'FAILS'})")
+        sys.exit(0 if rep["passes"] else 1)
     if a.cmd == "clean-all":
         import json
 

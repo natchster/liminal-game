@@ -152,6 +152,49 @@ cargo xtask voice write --persona you [--model M] [--take K]        # the chosen
 Built twice, the first persona's forty takes are the same files, byte for
 byte, raw and cleaned.
 
+## The evaluation
+
+```sh
+cargo xtask voice eval --persona you [--model M]   # every take judged; target/voice/you/M/report.md; the gate
+cargo xtask voice selftest                         # the evaluation against known answers
+```
+
+Each take (cleaned, as it would ship) is judged on six checks
+(`tools/voice/judge.py`); a line's best take is the best-scoring one that
+passes all six, and the gate fails a persona with a line that has none.
+
+| Check | How | Passes when |
+|---|---|---|
+| words | Whisper large-v3-turbo and Parakeet TDT 0.6B, both normalized (Whisper's English normalizer), word error rate | Whisper's error ≤ `wer_max` (Parakeet's beside it, for a take the two hear differently) |
+| emotion | WavLM's arousal and valence (3loi's MSP-Podcast baseline, rebuilt here without its remote code); emotion2vec+ and WavLM's classes | arousal within ±0.25 of what the emotion asks at its intensity (two-sided: an exhausted line is not shouted) and valence ≤ 0.55; the classes only rank takes |
+| pitch | Praat's median F0 | within `f0_median_hz` (a man's 600 Hz "scream" is a falsetto shriek) |
+| tone | CLAP: the take against the persona's `like` and `never` phrases | nearer the nearest `like` than the nearest `never` |
+| voice | ECAPA speaker similarity to the reference | ≥ `similarity_min` up to intensity 0.4, falling to `similarity_min_loud` at 1 |
+| not synthetic | AudioSet's *Speech synthesizer* | below 0.5 |
+
+What the known answers taught (`voice selftest`, all seven right):
+
+- **The emotion recognisers hear frightened shouting as anger**, disgust or
+  surprise far more often than fear (emotion2vec+ called VoxCPM2's shouts
+  *angry* at 0.88–0.96), and the two families disagree (WavLM heard fear
+  where emotion2vec+ heard neutral). The classes cannot gate; **arousal
+  can**: a calm read of a terrified line is 0.33–0.37 where 0.80–0.86 is
+  wanted, the good loud takes 0.75–0.91.
+- **Speaker similarity works on calm lines and not on shouts**: another man
+  reads 0.33 and a woman 0.04 against his own calm takes' 0.54–0.75, but
+  his shouts read 0.13–0.34, where another man's shout (0.31) also falls. On
+  a loud line the check only catches a voice wholly unlike his; whether a
+  scream is still the same man is for an ear.
+- **CLAP hears every one of VoxCPM2's shouts as nearer "a cartoon
+  character"** than "a frightened man shouting for help"; the calm lines it
+  places the right way. Kept as a screen: it is the complaint people make of
+  synthetic screams.
+
+The first persona on VoxCPM2: seven of ten lines have a take that passes;
+the two loudest shouts (`help_me`, `help_scream`) and the most desperate
+line (`i_cant`, read too calmly) have none. That is where the bake-off
+(V5) starts.
+
 ## The research
 
 [`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
@@ -183,6 +226,7 @@ emotion control is promised more than it is measured).
 | V0 | done: `4810c24` |
 | V1–V2 | done: `voice doctor --smoke` passes (13 models at their revisions, the five synthesis licences kept and allowed, a sentence said by Qwen3-TTS and heard back by both recognisers, word error 0); the persona and line formats and their test; the first persona drafted |
 | V3 | done: the reference (six candidates, seed 4 kept), forty takes from VoxCPM2 made twice the same, the cleaning, `voice write` and the manifest test on voice files |
+| V4 | done: the six checks, `voice eval` (report and gate) and `voice selftest` (seven known answers, all right) |
 
 ## Personas
 
@@ -210,7 +254,8 @@ besides, never a narrator.*
 | Tone | A real man shouting into a huge empty building, not performing. The breath before the shout; the voice cracks when it is high. Never: a narrator, a radio announcer, a cartoon, a calm man talking, a stage actor declaiming. |
 | Emotions | unease (calling out, half expecting nothing), fear (breathless, shouting), terror (screaming, voice cracking), desperation (pleading, close to tears), exhaustion (hoarse, worn out from shouting). |
 | Lines | Ten cries (`lines/you.toml`): on the Building's floors he calls out ("Hello? Is anybody there?", "Can anyone hear me? Hello!"); in the rooms he shouts for help ("Help! Help me!", "Get me out of here! Please!"); deep down he is worn out ("Please. Somebody. Help.", "Help me. Please. I can't do this."); a scream ("Help!") when he cries again soon after the last. |
-| Targets | Median pitch 85–330 Hz (a scream goes high); −16 LUFS, true peak under −1 dBTP; words wrong at most 15%; speaker similarity to his reference at least 0.45. |
+| Targets | Median pitch 85–330 Hz (a scream goes high); −16 LUFS, true peak under −1 dBTP; words wrong at most 15%; speaker similarity to his reference at least 0.45 on calm lines, 0.1 on a scream. |
+| Reference | `personas/you.wav`: Qwen3-TTS VoiceDesign, seed 4 of six (106 Hz, the roughest, AudioSet's speech-synthesizer 0.03). |
 
 Next after the first: the child below you in the Stairwell ("please",
 "help", "down here", the sob and the wail).

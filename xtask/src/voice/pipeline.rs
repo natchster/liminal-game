@@ -265,3 +265,156 @@ pub fn write(args: &[String]) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// The takes of a persona's lines on a model that exist, as the evaluation
+/// reads them
+fn takes_of(p: &Persona, dir: &Path) -> Vec<Value> {
+    let mut out = vec![];
+    for l in &p.lines {
+        let id = s(l, "id").unwrap_or_default();
+        for k in 1..=l.get("takes").and_then(|v| v.as_integer()).unwrap_or(1) {
+            let path = dir.join(&id).join(format!("take{k}.wav"));
+            if path.is_file() {
+                out.push(json!({
+                    "line": id, "take": k, "path": path,
+                    "text": s(l, "text"), "emotion": s(l, "emotion"), "intensity": super::num(l.get("intensity")),
+                }));
+            }
+        }
+    }
+    out
+}
+
+/// Judge takes (`tools/voice/evaluate.py report`): whether they pass
+pub fn judge(p: &Persona, model: &str, takes: Vec<Value>, dir: &Path) -> Result<bool, String> {
+    let job = json!({
+        "persona": serde_json::to_value(&p.t).map_err(|e| e.to_string())?,
+        "reference": p.reference(),
+        "model": model,
+        "takes": takes,
+    });
+    let file = dir.join("eval.json");
+    std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    std::fs::write(&file, serde_json::to_string_pretty(&job).unwrap()).map_err(|e| e.to_string())?;
+    let st = uv_run("eval").arg(tools().join("evaluate.py")).arg("report").arg(&file).arg(dir).status().map_err(|e| e.to_string())?;
+    Ok(st.success())
+}
+
+/// `voice eval`: every take of a persona's lines on a model judged; each
+/// line's best passing take chosen; the gate fails when a line has none
+pub fn eval(args: &[String]) -> Result<(), String> {
+    let p = persona_arg(args)?;
+    let model = model_arg(&p, args)?;
+    let dir = p.work().join(&model);
+    let takes = takes_of(&p, &dir);
+    if takes.is_empty() {
+        return Err(format!("no takes in {}: cargo xtask voice build --persona {} --model {model}", dir.display(), p.id));
+    }
+    let n = takes.len();
+    let ok = judge(&p, &model, takes, &dir)?;
+    let rep: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    for (line, v) in rep["lines"].as_object().into_iter().flatten() {
+        println!("{line:22} chosen {:>4}  passing {}", v["chosen"].as_i64().map_or("none".into(), |k| format!("take {k}")), v["passing"]);
+    }
+    println!("{n} takes judged; {}", dir.join("report.md").display());
+    if ok {
+        Ok(())
+    } else {
+        Err(format!("{} on {model}: a line has no take that passes (see the report)", p.id))
+    }
+}
+
+/// A known answer for the evaluation: a take made on purpose, and which of
+/// its checks must fail (`None`: it must pass them all)
+struct Known {
+    name: &'static str,
+    expect: Option<&'static str>,
+}
+
+/// `voice selftest`: the evaluation against known answers (the first
+/// persona's voice): words that are not the line's, a calm read of a
+/// terrified line and two voices that are not his must each fail the check
+/// that is theirs; three of his own good takes must pass every check
+pub fn selftest(args: &[String]) -> Result<(), String> {
+    let p = Persona::load(opt(args, "--persona").unwrap_or("you"))?;
+    let dir = root().join("target/voice/selftest");
+    let line = |id: &str| {
+        p.lines.iter().find(|l| s(l, "id").as_deref() == Some(id)).cloned().ok_or_else(|| format!("selftest needs line {id} of {}", p.id))
+    };
+    let woman = "A young woman in her twenties with a bright, clear, high voice and a light British accent. She is uneasy and uncertain, calling out into the dark.";
+    let old_man = "An elderly man in his seventies with a deep, slow, gravelly voice and a Scottish accent. He is uneasy and uncertain, calling out into the dark.";
+    let raw = |n: &str| dir.join("raw").join(format!("{n}.wav"));
+    let mut jobs = vec![
+        json!({"model": "voxcpm2", "seed": 1, "text": "The lights hum the whole time.", "ref_audio": p.reference(), "instruct": p.emotion_words("fear"), "out": raw("wrong_words")}),
+        json!({"model": "voxcpm2", "seed": 1, "text": "Get me out of here! Please!", "ref_audio": p.reference(), "instruct": "calm, relaxed and cheerful, speaking softly and slowly", "out": raw("calm_terror")}),
+        json!({"model": "qwen3-tts-voicedesign", "seed": 1, "text": "Hello? Is anybody there?", "instruct": woman, "out": raw("other_woman")}),
+        json!({"model": "qwen3-tts-voicedesign", "seed": 2, "text": "Hello? Is anybody there?", "instruct": old_man, "out": raw("other_man_calm")}),
+    ];
+    // what each was meant to be, as the evaluation judges it
+    let own = |n: &str, t: &str, e: &str, x: f64| (n.to_string(), t.to_string(), e.to_string(), x);
+    let mut judged = vec![
+        own("wrong_words", "Help! Help me!", "fear", 0.75),
+        own("calm_terror", "Get me out of here! Please!", "terror", 0.8),
+        own("other_woman", "Hello? Is anybody there?", "unease", 0.35),
+        own("other_man_calm", "Hello? Is anybody there?", "unease", 0.35),
+    ];
+    let mut known = vec![
+        Known { name: "wrong_words", expect: Some("words") },
+        Known { name: "calm_terror", expect: Some("emotion") },
+        Known { name: "other_woman", expect: Some("voice") },
+        Known { name: "other_man_calm", expect: Some("voice") },
+    ];
+    // his own good takes, made as the pipeline makes them
+    for (name, id, take) in
+        [("good_hello", "hello_anyone", 2), ("good_hoarse", "please_help_hoarse", 1), ("good_somebody", "somebody_help", 4)]
+    {
+        let l = line(id)?;
+        jobs.push(job(&p, "voxcpm2", &l, take, &raw(name)));
+        judged.push((
+            name.to_string(),
+            s(&l, "text").unwrap_or_default(),
+            s(&l, "emotion").unwrap_or_default(),
+            super::num(l.get("intensity")),
+        ));
+        known.push(Known { name, expect: None });
+    }
+    synthesize(&jobs, &dir.join("jobs.json"))?;
+    let items: Vec<Value> = judged.iter().map(|(n, ..)| json!({"src": raw(n), "dst": dir.join(format!("{n}.wav")), "lufs": p.target("loudness_lufs"), "peak": p.target("peak_dbtp")})).collect();
+    clean_all(&items, &dir.join("clean.json"))?;
+    let takes: Vec<Value> = judged
+        .iter()
+        .map(|(n, text, emotion, x)| json!({"line": n, "take": 1, "path": dir.join(format!("{n}.wav")), "text": text, "emotion": emotion, "intensity": x}))
+        .collect();
+    judge(&p, "selftest", takes, &dir)?; // the gate fails by design: the bad ones fail
+    let rep: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    let mut wrong = vec![];
+    for k in &known {
+        let t =
+            rep["takes"].as_array().into_iter().flatten().find(|t| t["line"] == k.name).ok_or_else(|| format!("{}: not judged", k.name))?;
+        let failed: Vec<&str> =
+            t["checks"].as_object().into_iter().flatten().filter(|(_, v)| v == &&json!(false)).map(|(c, _)| c.as_str()).collect();
+        let right = match k.expect {
+            Some(c) => failed.contains(&c),
+            None => failed.is_empty(),
+        };
+        println!(
+            "{} {:16} must {:18} failed {:?}",
+            if right { "ok  " } else { "FAIL" },
+            k.name,
+            k.expect.map_or("pass".to_string(), |c| format!("fail {c}")),
+            failed
+        );
+        if !right {
+            wrong.push(k.name);
+        }
+    }
+    println!("{}", dir.join("report.md").display());
+    if wrong.is_empty() {
+        println!("voice selftest: the evaluation gives every known answer");
+        Ok(())
+    } else {
+        Err(format!("voice selftest: wrong on {wrong:?}"))
+    }
+}
