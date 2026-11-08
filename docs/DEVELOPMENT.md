@@ -48,9 +48,9 @@
 * **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
   `cargo xtask hook <event>` (through `.claude/hooks/xtask-hook.sh`, which
   calls the built binary directly so edits never wait on cargo's build lock):
-  * before an edit: the HTML/JS version in the parent folder and the recorded
-    fixtures, reference levels and goldens are refused — they change only
-    through REGEN / rerecord / accept;
+  * before an edit: anything outside this repository, and the recorded
+    fixtures, reference levels and goldens, are refused — the fixtures change
+    only through REGEN / rerecord / accept;
   * after an edit: rustfmt on the edited `.rs` file;
   * on stop: `cargo xtask check --fast` when code differs from the last
     passing check; a failure blocks the stop with its `ERROR` lines, at most
@@ -305,10 +305,13 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   from MakeHuman's CC0 base mesh and targets, fetched once and checked by
   their SHA-1 (`assets/src/creatures/sources.json`). The build repeats byte
   for byte. The game builds a body with `entities::body::build_body`.
-* The old creatures (`creature_meshes.bin`) still rebuild only in the HTML
-  version (they need its rig dumps); `cargo xtask assets import-js` converts
-  its generated modules (byte for byte). They go as each creature is rebuilt
-  on the new bodies (`docs/ENTITIES.md`).
+* The old creatures' meshes (`creature_meshes.bin`; the Borrowed House's
+  shadows still wear their body, `shBody`, and the Stairwell's face is its
+  `stairFace`) are kept as stored: their
+  Blender scripts (`assets/src/blender/creatures.py`, `skinned.py`,
+  `skin_*.py`) build over rest-pose rig dumps that nothing here writes, so
+  no command rebuilds the file. It goes when the last part still used moves
+  to a new body (`docs/ENTITIES.md`).
 * `crates/game/assets/MANIFEST.json` records each file's sources, generator,
   licence and fingerprint; `tests/structure.rs` fails on a file whose
   fingerprint changed without its entry, a licence or generator not on the

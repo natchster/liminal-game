@@ -30,13 +30,13 @@
     },
     "creature_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
-      "built_with": "the HTML version's pipeline (creatures.py, skinned.py over its rig dumps, creature-pack.mjs), converted byte for byte from its src/creature-meshes.js (fingerprint f8542507bbec07a3) by cargo xtask assets import-js",
+      "built_with": "Blender headless: rigid parts by creatures.py, skinned bodies by skinned.py and the skin_*.py scripts over rest-pose rig dumps, packed into this file (SKINNED.md); kept as stored",
       "fingerprint": "d461a5e0559c1e6e",
       "generative_model": null,
       "generator": "procedural bpy scripts",
       "licence": "MIT",
       "parts": 44,
-      "rebuild": "needs the HTML version's rig dumps (tools/rig-dump.mjs there), not yet ported; see assets/README.md",
+      "rebuild": "none: its scripts need rest-pose rig dumps that nothing in this repository writes; kept as stored until its last parts in use (shBody, stairFace) move to new bodies; see assets/README.md",
       "sources": [
         "assets/src/blender/creatures.py",
         "assets/src/blender/skinned.py",
@@ -50,7 +50,7 @@
     },
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
-      "built_with": "the HTML version's pipeline (props.py, prop-assemble.mjs), converted byte for byte from its src/prop-meshes.js (fingerprint 9402a16016f4edb5) by cargo xtask assets import-js",
+      "built_with": "Blender headless: props.py runs every batch module in assets/src/blender/props/ (propkit shapes, seeded noise, weighted normals); packed by cargo xtask assets props, the frozen parts kept as stored",
       "fingerprint": "22fb1608d0a7c51c",
       "frozen_parts": [
         "Acorns__cap",

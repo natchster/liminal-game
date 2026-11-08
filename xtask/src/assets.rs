@@ -2,7 +2,7 @@
 //!
 //! ```text
 //! cargo xtask assets props [--batch b01,b02] [--write [--rebuild-frozen]]
-//! cargo xtask assets import-js --props FILE.js --creatures FILE.js
+//! cargo xtask assets creatures [--only …] [--write]
 //! cargo xtask assets textures [--write]
 //! cargo xtask assets fingerprint
 //! ```
@@ -25,12 +25,11 @@
 //! `--rebuild-frozen` is given (then re-record the prop fixtures, which
 //! sample some of them, and take them out of the list).
 //!
-//! **Creatures** are rebuilt by `creatures.py` / `skinned.py`, which need the
-//! rig dumps of the HTML version (`tools/rig-dump.mjs` there); until that is
-//! ported, rebuild them in the HTML version and convert its
-//! `src/creature-meshes.js` with `assets import-js` (which also converts a
-//! `src/prop-meshes.js`; both conversions reproduce the committed files byte
-//! for byte).
+//! **Creatures**' bodies (`bodies.bin`) are built by
+//! `assets/src/creatures/build.py` (`assets creatures`, in `bodies.rs`). The
+//! old creatures' meshes (`creature_meshes.bin`) are kept as stored: no
+//! build here makes them, and they go as each creature that still uses them
+//! moves to the new bodies.
 //!
 //! **Textures** (the Building's photographed surfaces, `textures/*.jpg`) come
 //! from `assets/src/textures/build.py`, which fetches the CC0 photographs its
@@ -49,7 +48,6 @@ use std::process::Command;
 pub fn assets(args: &[String]) -> Result<(), String> {
     match args.first().map(String::as_str) {
         Some("props") => props(&args[1..]),
-        Some("import-js") => import_js(&args[1..]),
         Some("textures") => textures(&args[1..]),
         Some("creatures") => crate::bodies::creatures(&args[1..], &blender(), &asset_dir()),
         Some("fingerprint") => {
@@ -61,10 +59,10 @@ pub fn assets(args: &[String]) -> Result<(), String> {
             }
             Ok(())
         }
-        _ => Err(
-            "usage: cargo xtask assets props [--batch …] [--write] | creatures [--only …] [--write] | textures [--write] | import-js --props F --creatures F | fingerprint"
-                .into(),
-        ),
+        _ => {
+            Err("usage: cargo xtask assets props [--batch …] [--write] | creatures [--only …] [--write] | textures [--write] | fingerprint"
+                .into())
+        }
     }
 }
 
@@ -422,182 +420,9 @@ pub(crate) fn update_manifest(file: &str, bytes: &[u8], extra: Value) -> Result<
     write_json(&p, &m)
 }
 
-// ------------------------------------------------------------ the HTML version's modules
-
-/// `name: { key: value, … }` entries of a generated JS module, one per line.
-fn js_entries(src: &str) -> Vec<(String, BTreeMap<String, String>)> {
-    let mut out = vec![];
-    let mut cur: Option<(String, String)> = None;
-    for line in src.lines() {
-        let starts = line.starts_with("  ") && !line.starts_with("   ") && line.contains(": {");
-        if starts {
-            if let Some((n, b)) = cur.take() {
-                out.push((n, parse_fields(&b)));
-            }
-            let (n, rest) = line.trim_start().split_once(": {").unwrap();
-            cur = Some((n.to_string(), rest.to_string()));
-        } else if let Some((_, b)) = cur.as_mut() {
-            b.push(' ');
-            b.push_str(line.trim());
-        }
-    }
-    if let Some((n, b)) = cur {
-        out.push((n, parse_fields(&b)));
-    }
-    out.retain(|(n, _)| n.chars().all(|c| c.is_ascii_alphanumeric() || c == '_'));
-    out
-}
-
-fn parse_fields(body: &str) -> BTreeMap<String, String> {
-    let mut m = BTreeMap::new();
-    let b: Vec<char> = body.chars().collect();
-    let mut i = 0;
-    while i < b.len() {
-        while i < b.len() && (b[i] == ' ' || b[i] == ',') {
-            i += 1;
-        }
-        let ks = i;
-        while i < b.len() && (b[i].is_ascii_alphanumeric() || b[i] == '_') {
-            i += 1;
-        }
-        if i >= b.len() || b[i] != ':' || ks == i {
-            break;
-        }
-        let key: String = b[ks..i].iter().collect();
-        i += 1;
-        while i < b.len() && b[i] == ' ' {
-            i += 1;
-        }
-        let vs = i;
-        match b.get(i) {
-            Some('\'') => {
-                i += 1;
-                while i < b.len() && b[i] != '\'' {
-                    i += 1;
-                }
-                i += 1;
-            }
-            Some('[') => {
-                while i < b.len() && b[i] != ']' {
-                    i += 1;
-                }
-                i += 1;
-            }
-            _ => {
-                while i < b.len() && b[i] != ',' && b[i] != '}' {
-                    i += 1;
-                }
-            }
-        }
-        m.insert(key, b[vs..i.min(b.len())].iter().collect::<String>().trim().to_string());
-    }
-    m
-}
-
-fn import_js(args: &[String]) -> Result<(), String> {
-    let b64 = |s: &str| base64::engine::general_purpose::STANDARD.decode(s.trim_matches('\'')).map_err(|e| e.to_string());
-    let arr = |s: &str| -> [f64; 3] {
-        let v: Vec<f64> = s.trim_matches(|c| c == '[' || c == ']').split(',').filter_map(|x| x.trim().parse().ok()).collect();
-        [v.first().copied().unwrap_or(0.0), v.get(1).copied().unwrap_or(0.0), v.get(2).copied().unwrap_or(0.0)]
-    };
-    if let Some(p) = opt(args, "--props") {
-        let src = std::fs::read_to_string(p).map_err(|e| format!("{p}: {e}"))?;
-        let mut parts = vec![];
-        for (name, f) in js_entries(&src) {
-            let z = b64(f.get("z").map(String::as_str).unwrap_or(""))?;
-            let raw = miniz_oxide::inflate::decompress_to_vec(&z).map_err(|e| format!("{name}: {e:?}"))?;
-            parts.push(PropPart {
-                frame: frame_code(f.get("f").map(|s| s.trim_matches('\'')).unwrap_or("")),
-                n: f.get("n").and_then(|v| v.parse().ok()).unwrap_or(0),
-                t: f.get("t").and_then(|v| v.parse().ok()).unwrap_or(0),
-                min: arr(f.get("min").map(String::as_str).unwrap_or("")),
-                max: arr(f.get("max").map(String::as_str).unwrap_or("")),
-                fmin: arr(f.get("fmin").map(String::as_str).unwrap_or("")),
-                fmax: arr(f.get("fmax").map(String::as_str).unwrap_or("")),
-                name,
-                z,
-                raw,
-            });
-        }
-        let bytes = write_props(&parts);
-        std::fs::write(asset_dir().join("prop_meshes.bin"), &bytes).map_err(|e| e.to_string())?;
-        update_manifest(
-            "prop_meshes.bin",
-            &bytes,
-            json!({ "parts": parts.len(), "converted_from": p, "converted_from_fingerprint": fingerprint(src.as_bytes()) }),
-        )?;
-        println!("prop_meshes.bin: {} parts from {p}", parts.len());
-    }
-    if let Some(p) = opt(args, "--creatures") {
-        let src = std::fs::read_to_string(p).map_err(|e| format!("{p}: {e}"))?;
-        let entries = js_entries(&src);
-        let mut b = b"CREAMSH1".to_vec();
-        b.extend((entries.len() as u32).to_le_bytes());
-        for (name, f) in &entries {
-            b.extend((name.len() as u16).to_le_bytes());
-            b.extend(name.as_bytes());
-            let flags = u8::from(f.get("z").map(String::as_str) == Some("1"))
-                | (u8::from(f.contains_key("c")) << 1)
-                | (u8::from(f.contains_key("j")) << 2)
-                | (u8::from(f.contains_key("b")) << 3);
-            b.push(flags);
-            for k in ["n", "t"] {
-                b.extend(f.get(k).and_then(|v| v.parse::<u32>().ok()).unwrap_or(0).to_le_bytes());
-            }
-            for k in ["min", "max"] {
-                for v in arr(f.get(k).map(String::as_str).unwrap_or("")) {
-                    b.extend(v.to_le_bytes());
-                }
-            }
-            let bones: Vec<String> = f
-                .get("b")
-                .map(|s| {
-                    s.trim_matches(|c| c == '[' || c == ']')
-                        .split(',')
-                        .map(|x| x.trim().trim_matches('\'').to_string())
-                        .filter(|x| !x.is_empty())
-                        .collect()
-                })
-                .unwrap_or_default();
-            b.extend((bones.len() as u16).to_le_bytes());
-            for bn in &bones {
-                b.extend((bn.len() as u16).to_le_bytes());
-                b.extend(bn.as_bytes());
-            }
-            for k in ["v", "i", "c", "j", "w"] {
-                let blob = match f.get(k) {
-                    Some(s) => b64(s)?,
-                    None => vec![],
-                };
-                b.extend((blob.len() as u32).to_le_bytes());
-                b.extend(blob);
-            }
-        }
-        std::fs::write(asset_dir().join("creature_meshes.bin"), &b).map_err(|e| e.to_string())?;
-        update_manifest(
-            "creature_meshes.bin",
-            &b,
-            json!({ "parts": entries.len(), "converted_from": p, "converted_from_fingerprint": fingerprint(src.as_bytes()) }),
-        )?;
-        println!("creature_meshes.bin: {} parts from {p}", entries.len());
-    }
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn a_js_entry_parses_into_its_fields() {
-        let src = "export const X = {\n  Box__a: { f: 'box', n: 3, t: 1, r: 9, min: [-1, 0, 2.5], max: [1, 1, 3],\n    z: 'AAAA' },\n};\n";
-        let e = js_entries(src);
-        assert_eq!(e.len(), 1);
-        assert_eq!(e[0].0, "Box__a");
-        assert_eq!(e[0].1["f"], "'box'");
-        assert_eq!(e[0].1["min"], "[-1, 0, 2.5]");
-        assert_eq!(e[0].1["z"], "'AAAA'");
-    }
 
     #[test]
     fn fingerprints_differ_by_a_byte() {

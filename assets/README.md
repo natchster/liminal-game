@@ -13,7 +13,7 @@ make textures of CC0 photographs, no images. No generative model is used (see
 | `src/blender/props.py` | builds every prop part: runs each batch module in `src/blender/props/` (`bNN.py`, `s01.py`; `zz_selftest.py` is a test batch) |
 | `src/blender/propkit.py` | the shape kit the batches use (boxes, lathes, sweeps, noise, booleans, the `finish` step that bakes normals) and the triangle budgets |
 | `src/blender/props/*.map.json`, `*.notes.md` | which placer primitive each part replaces, and the batch's notes |
-| `src/blender/creatures.py`, `skinned.py`, `skin_*.py`, `SKINNED.md` | the old creatures: rigid parts, and skinned bodies built over the HTML version's rigs |
+| `src/blender/creatures.py`, `skinned.py`, `skin_*.py`, `SKINNED.md` | the old creatures (`creature_meshes.bin`, kept as stored): rigid parts, and skinned bodies built over rest-pose rig dumps |
 | `src/creatures/build.py`, `kit.py`, `hm08.py`, `body_*.py`, `sources.json` | the creatures' bodies (`bodies.bin`): skeletons, MakeHuman CC0 bodies and their targets, bone-heat weights |
 | `src/textures/sources.json` | the photographs the Building's surfaces are made of: where each is, its author, licence (CC0) and SHA-1 |
 | `src/textures/build.py`, `texlib.py` | fetch and check the photographs, and make each texture: rectify, cut along joints, quilt (Efros and Freeman), wrap along least-error seams, take off the slow light, grade to the surface it replaced |
@@ -80,19 +80,14 @@ their SHA-1s and fetched once into `target/creature-sources/`. Noise is
 `kit.noise3` (hashed value noise in NumPy), so the build repeats byte for
 byte.
 
-The **old creatures** (`creature_meshes.bin`) need the rig dumps of the
-HTML version (its `tools/rig-dump.mjs` writes `.cache/rigs/<type>.json`),
-which were never ported. Rebuild them there (`creatures.py`, then
-`skinned.py` per type, then `creature-pack.mjs`), and convert the module it
-writes:
-
-```sh
-cargo xtask assets import-js --creatures ../src/creature-meshes.js
-```
-
-(`--props ../src/prop-meshes.js` converts the HTML version's prop module the
-same way; both conversions reproduce the files byte for byte.) They go as
-each creature moves to the new bodies.
+The **old creatures** (`creature_meshes.bin`) are kept as stored. Their
+scripts (`creatures.py`, then `skinned.py` per type) build over a dump of
+each rig's rest pose (`.cache/rigs/<type>.json`: every bone's name, parent,
+matrix, head and tail), which nothing here writes, so no command rebuilds
+the file; `SKINNED.md` records how they were made. Two of its parts are
+still used: the Borrowed House's shadows' body (`shBody`, which blind
+reviews preferred to a new one) and the Stairwell's face (`stairFace`); the
+file goes when they move to new bodies.
 
 ## Gates
 

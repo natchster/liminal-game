@@ -10,7 +10,7 @@
 //! cargo xtask range [--look]    the generator's expressive range against its baseline
 //! cargo xtask ab prepare|score  blind A/B reviews of frames
 //! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
-//! cargo xtask assets props|import-js|fingerprint   rebuild and check the embedded meshes
+//! cargo xtask assets props|creatures|textures|fingerprint   rebuild and check the embedded assets
 //! cargo xtask bench [--no-record]   performance against budgets and its history
 //! cargo xtask heatmap REC.json…    where players went, from recorded sessions
 //! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
@@ -51,9 +51,10 @@ const USAGE: &str = "usage: cargo xtask <task>
   calibrate prepare | calibrate score ANSWERS.json --reviewer NAME
                              damaged goldens with known answers; accuracy and
                              Cohen's kappa of a reviewer
-  assets props [--batch …] [--write] | assets import-js --props F --creatures F
-                             rebuild the prop meshes in Blender (or convert the
-                             HTML version's modules) and compare with crates/game/assets
+  assets props [--batch …] [--write] | assets creatures [--only …] [--write]
+  assets textures [--write] | assets fingerprint
+                             rebuild the prop meshes, the creatures' bodies (Blender)
+                             or the photographed textures, and compare with crates/game/assets
   bench [--no-record]        frame, build and first-frame times against docs/PERF.md
                              and perf/history.csv (change points)
   heatmap REC.json …         heatmaps of recorded sessions (backrooms --record)
