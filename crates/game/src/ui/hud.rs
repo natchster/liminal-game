@@ -314,7 +314,7 @@ impl Game {
         }
         ids
     }
-    pub fn medals_page_html(&self) -> String {
+    pub fn medals_page_markup(&self) -> String {
         struct Row {
             earned: bool,
             color: &'static str,
@@ -393,7 +393,7 @@ impl Game {
         let (title, body) = match cur {
             -1 => self.current_epilogue(),
             -2 => ("INDEX".to_string(), self.journal_cover_text()),
-            -3 => ("MEDALS".to_string(), self.medals_page_html()),
+            -3 => ("MEDALS".to_string(), self.medals_page_markup()),
             -4 => ("WHAT I TOOK".to_string(), self.what_i_took_page()),
             c if c <= -100 => {
                 let n = (-100 - c) as i32;
@@ -421,10 +421,10 @@ impl Game {
             }
         }
         self.ui.journal_entry_title.set_text(&format!("{}{}", title, arc_suffix));
-        // Cover + medals pages use HTML (colour spans); lore + epilogue use plain text.
+        // Cover + medals pages use markup (colour spans); lore + epilogue use plain text.
         self.ui.journal_entry_body.remove_class("cover-fade");
         if cur == -2 || cur == -3 {
-            self.ui.journal_entry_body.set_html(&body);
+            self.ui.journal_entry_body.set_markup(&body);
             if cur == -2 {
                 // re-adding the class restarts the fade even after a previous cover render
                 self.ui.journal_entry_body.add_class("cover-fade");

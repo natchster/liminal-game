@@ -411,9 +411,9 @@ pub struct Run {
     pub ls: f64,
 }
 
-/// `inner_html` with the HUD's inline markup (`<span style=...>`, `<br>`,
+/// An element's `markup` (the HUD's inline markup: `<span style=...>`, `<br>`,
 /// entities) → runs, inheriting `base` for anything a span doesn't set.
-pub fn parse_inline_html(html: &str, base: &Run) -> Vec<Run> {
+pub fn parse_inline_markup(markup: &str, base: &Run) -> Vec<Run> {
     let mut out: Vec<Run> = vec![];
     let mut b0 = base.clone();
     b0.opacity = 1.0;
@@ -428,11 +428,11 @@ pub fn parse_inline_html(html: &str, base: &Run) -> Vec<Run> {
         }
     };
     let mut i = 0;
-    let b = html.as_bytes();
+    let b = markup.as_bytes();
     while i < b.len() {
         if b[i] == b'<' {
-            let end = html[i..].find('>').map(|e| i + e).unwrap_or(b.len() - 1);
-            let tag = &html[i + 1..end];
+            let end = markup[i..].find('>').map(|e| i + e).unwrap_or(b.len() - 1);
+            let tag = &markup[i + 1..end];
             flush(&mut text, &mut out, stack.last().unwrap());
             let tl = tag.trim().to_ascii_lowercase();
             if tl.starts_with("br") {
@@ -470,7 +470,7 @@ pub fn parse_inline_html(html: &str, base: &Run) -> Vec<Run> {
             }
             i = end + 1;
         } else {
-            let ch = html[i..].chars().next().unwrap();
+            let ch = markup[i..].chars().next().unwrap();
             text.push(ch);
             i += ch.len_utf8();
         }
@@ -1243,10 +1243,10 @@ fn lerp_c(a: Rgba, b: Rgba, t: f64) -> Rgba {
 fn hud_shadows() -> Vec<Shadow> {
     parse_shadows("0 0 4px #000, 0 0 2px #000")
 }
-/// the text of an element (`inner_html` wins when set)
+/// the text of an element (its `markup` wins when set)
 pub(crate) fn runs_of(el: &Element, base: &Run) -> Vec<Run> {
-    if !el.html.is_empty() {
-        parse_inline_html(&el.html, base)
+    if !el.markup.is_empty() {
+        parse_inline_markup(&el.markup, base)
     } else {
         let mut r = base.clone();
         r.text = el.text.clone();
