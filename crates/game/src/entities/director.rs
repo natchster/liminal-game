@@ -173,7 +173,7 @@ impl Game {
     pub fn director_wake(&mut self) {
         if self.building.is_some() {
             if self.director.phase == Phase::Calm {
-                self.assembly_wake(WAKE);
+                self.assembly_wake(crate::world::assembly::PAGE_WAKE);
                 self.director_note("wake");
             }
             return;

@@ -17,19 +17,27 @@
 use crate::entities::director::Phase;
 use crate::prelude::*;
 
-/// How long the siren sounds before the fog reaches the lowest walk, s
-pub const WARNING: f64 = 42.0;
+// (G2: every time here is half the first pass's, as a floor of the
+// Building is half as long to cross: the event and its rhythm twice as
+// quick, so a floor crossed at a walk meets its siren; `docs/MEGASTRUCTURE.md`)
+/// How long the siren sounds before the fog reaches the lowest walk, s (a
+/// cell is always within a walk of 0.43 of it: `level::building::CELL_REACH`)
+pub const WARNING: f64 = 21.0;
 /// How fast the fog rises among the walks, and how fast it sinks, m/s
-pub const RISE: f64 = 0.6;
-pub const SINK: f64 = 1.2;
-/// How long it stands at its crest, s (sealed in, you wait out a minute or
-/// two, not more)
-pub const CREST: (f64, f64) = (15.0, 22.0);
+pub const RISE: f64 = 1.2;
+pub const SINK: f64 = 2.4;
+/// How long it stands at its crest, s (sealed in, you wait out under a
+/// minute)
+pub const CREST: (f64, f64) = (7.5, 11.0);
 /// The quiet between two, s (the first on a floor is longer, and on the
 /// first floor longer again while her camp is there to find)
-pub const QUIET: (f64, f64) = (75.0, 115.0);
-pub const FIRST_QUIET: (f64, f64) = (95.0, 130.0);
-pub const FIRST_FLOOR_QUIET: (f64, f64) = (120.0, 160.0);
+pub const QUIET: (f64, f64) = (37.5, 57.5);
+pub const FIRST_QUIET: (f64, f64) = (47.5, 65.0);
+pub const FIRST_FLOOR_QUIET: (f64, f64) = (60.0, 80.0);
+/// Her page taken in a quiet: the siren within this many seconds
+pub const PAGE_WAKE: (f64, f64) = (2.0, 4.5);
+/// Sealed in while it is up: something at the door every this many seconds
+pub const KNOCK: (f64, f64) = (3.5, 7.5);
 /// Out in the fog: how fast your mind goes, per second, eyes under it or
 /// only feet; and how long you last in it at most, s
 pub const DRAIN: f64 = 11.0;
@@ -235,7 +243,7 @@ impl Game {
         if let (Some(ci), true) = (self.assembly.sealed, matches!(self.assembly.stage, Stage::Rising | Stage::Crest)) {
             self.assembly.knock_t -= dt;
             if self.assembly.knock_t <= 0.0 {
-                self.assembly.knock_t = rand2(7.0, 15.0);
+                self.assembly.knock_t = rand2(KNOCK.0, KNOCK.1);
                 let at = self.cell_door_at(ci);
                 if let (Some(ss), Some(at)) = (self.soundscape(), at) {
                     ss.knock(2 + (native_rnd() * 3.0) as i32, at.x, at.y, at.z, 0.45);
