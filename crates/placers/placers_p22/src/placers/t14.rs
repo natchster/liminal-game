@@ -14,7 +14,7 @@ const DOLL_TURN: f64 = -0.30;
 /// head frame's origin (`t14.py` `head_neck_lip`)
 const NECK_LIFT: f64 = 0.0139;
 
-// R494 a doll's head: 3% chance per level. A vinyl baby doll's head
+// A doll's head: 3% chance per level. A vinyl baby doll's head
 // (batch r03's: 10 cm across, moulded hair, sleep eyes with lashes, the
 // mouth open for its bottle) come off at its neck: the vinyl rolled in at
 // the rim, the hollow dark inside. Lying on the back of its head as the
@@ -90,7 +90,7 @@ pub(crate) fn place_doll_heads(g: &mut Game, _dist: &[i32]) {
     g.world.add(&doll);
 }
 
-// R499 a doll's arms and legs: 4% chance per level. Two or three of a vinyl
+// A doll's arms and legs: 4% chance per level. Two or three of a vinyl
 // baby doll's limbs (batch r03's doll: an arm bent at the elbow, its hand's
 // fingers moulded together; a leg bent at the knee, its foot with toes),
 // come off its cloth body: each limb's top a groove the cloth was tied in

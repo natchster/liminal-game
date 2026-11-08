@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R558 paperback book: 8% chance per level. A trade paperback dropped on
+// Paperback book: 8% chance per level. A trade paperback dropped on
 // the floor (Blender batches r02 and r15, 216 x 140 mm): six in ten lie
 // open face up, their pages printed in a serif and gone brown and dusty
 // where they lay open; the rest shut, its printed cover worn. The old draws
@@ -55,7 +55,7 @@ pub(super) fn place_paperback_books(g: &mut Game, _dist: &[i32]) {
     g.world.add(&book);
 }
 
-// R557 tape roll: 10% chance per level. A roll of PVC insulating tape,
+// Tape roll: 10% chance per level. A roll of PVC insulating tape,
 // half used (Blender batch r15: 19 mm wide on a 1.5 in paperboard core,
 // 60 mm across), lying on its face, its loose end peeled up and curled;
 // lint and grit stuck to its edges. The old draws are kept call for call.
@@ -92,7 +92,7 @@ pub(super) fn place_tape_rolls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tape);
 }
 
-// R556 crumpled receipt: 10% chance per level. A till receipt (80 mm
+// Crumpled receipt: 10% chance per level. A till receipt (80 mm
 // thermal paper) balled in a hand and dropped: batch r08's balled sheet
 // (`place_scrap_papers`), the size a strip of receipt makes of it, its
 // thermal print gone brown and faded. The old draws are kept call for call.

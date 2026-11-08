@@ -3,13 +3,13 @@ use crate::textures::{exit_sign_texture_2, thermostat_texture};
 use crate::{pick, poster_tint_by_weather, shuffle, wall_candidates};
 use game::prelude::*;
 
-// R264 fire alarm pull-station: 25% chance per level, 1 unit (Blender batch
+// Fire alarm pull-station: 25% chance per level, 1 unit (Blender batch
 // `r06`): a die-cast single-action station on its red surface back box, FIRE
 // raised over its lever, PULL DOWN on the lever, the glass rod across it, the
 // cover's screws, the conduit up the wall to a junction box. Now and then it
 // has been pulled: the lever down, the rod snapped, its glass on the floor.
 pub fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
-    g.pp.fire_alarm_positions.clear(); // R276 reset per level
+    g.pp.fire_alarm_positions.clear(); // reset per level
     if rnd() < 0.75 {
         return;
     } // 25% chance
@@ -30,11 +30,11 @@ pub fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
         alarm.position().set(wall_x + (rnd() - 0.5) * 1.2, alarm_height, wall_z);
     }
     g.world.add(&alarm);
-    // R276 track for beep audio events.
+    // Track for beep audio events.
     let ap = alarm.pos();
     g.pp.fire_alarm_positions.push(v3(ap.x, alarm_height, ap.z));
     let ceil = g.ceil_at_world(g.wx(c.x), g.wz(c.z));
-    // R295 15% chance: it was pulled; the glass rod's pieces on the floor below.
+    // 15% chance: it was pulled; the glass rod's pieces on the floor below.
     let pulled = rnd() < 0.15;
     let th = alarm.rot().y;
     let (along, out) = ((th.cos(), -th.sin()), (th.sin(), th.cos()));
@@ -63,7 +63,7 @@ pub fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
     alarm.add(&st);
 }
 
-// R263 coat hook rows: 20% chance per level, 1 rail of 3-5 hooks (Blender
+// Coat hook rows: 20% chance per level, 1 rail of 3-5 hooks (Blender
 // batch `r06`): an oak rail screwed to the wall, cast iron double coat-and-
 // hat hooks along it, now and then an overcoat still hanging from one.
 pub fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
@@ -89,7 +89,7 @@ pub fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
     }
     // 3-5 hooks along it
     let hook_count = 3 + (rnd() * 3.0).floor() as i32;
-    // R264: 15% chance one hook has a coat still hanging.
+    // 15% chance one hook has a coat still hanging.
     let coat_idx = if rnd() < 0.15 { (rnd() * hook_count as f64).floor() as i32 } else { -1 };
     let coat_colors = [0x2a1810, 0x1a1a2a, 0x2a1a1a, 0x1a2a1a];
     let iron = phong!({ color: 0x1c1b1a, specular: 0x1a1a1a, shininess: 22 });
@@ -130,7 +130,7 @@ pub fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
     g.world.add(&row);
 }
 
-// R262 missing photo hook: 25% chance per level, 1-2 hooks with a faded
+// Missing photo hook: 25% chance per level, 1-2 hooks with a faded
 // rectangle where a photo used to hang.
 pub fn place_missing_photo_hooks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
@@ -174,9 +174,9 @@ pub fn place_missing_photo_hooks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R260 water fountains: 15% chance per level. Wall-mounted steel unit.
+// Water fountains: 15% chance per level. Wall-mounted steel unit.
 pub fn place_water_fountains(g: &mut Game, _dist: &[i32]) {
-    g.pp.fountain_positions.clear(); // R272 reset per level
+    g.pp.fountain_positions.clear(); // reset per level
     if rnd() < 0.85 {
         return;
     } // 15% chance
@@ -222,10 +222,10 @@ pub fn place_water_fountains(g: &mut Game, _dist: &[i32]) {
         fountain.position().set(wall_x + (rnd() - 0.5) * 1.0, 0, wall_z);
     }
     g.world.add(&fountain);
-    // R272 track for drip-audio events.
+    // Track for drip-audio events.
     let fp = fountain.pos();
     g.pp.fountain_positions.push(v3(fp.x, 0.94, fp.z));
-    // R261 fountain leak stain: 40% chance a wet stain on the floor below.
+    // Fountain leak stain: 40% chance a wet stain on the floor below.
     if rnd() < 0.40 {
         let r = 0.35 + rnd() * 0.20;
         let stain_geo = circle_geo!(r, 12);
@@ -246,9 +246,9 @@ pub fn place_water_fountains(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R260 wall junction boxes: 20% chance per level, 1-2 units with conduits.
+// Wall junction boxes: 20% chance per level, 1-2 units with conduits.
 pub fn place_junction_boxes(g: &mut Game, _dist: &[i32]) {
-    g.pp.junction_box_positions.clear(); // R281 reset per level
+    g.pp.junction_box_positions.clear(); // reset per level
     if rnd() < 0.80 {
         return;
     } // 20% chance
@@ -295,7 +295,7 @@ pub fn place_junction_boxes(g: &mut Game, _dist: &[i32]) {
             }
             jbox.add(&conduit);
         }
-        // R305 25% chance: torn wire dangling from bottom of junction box.
+        // 25% chance: torn wire dangling from bottom of junction box.
         if rnd() < 0.25 {
             let wire_mat = lambert!({ color: 0x181410 });
             let copper_mat = lambert!({ color: 0xa87028 });
@@ -326,14 +326,14 @@ pub fn place_junction_boxes(g: &mut Game, _dist: &[i32]) {
             jbox.position().set(wall_x + (rnd() - 0.5) * 1.2, jb_height, wall_z);
         }
         g.world.add(&jbox);
-        // R281 track for arc audio events.
+        // Track for arc audio events.
         let jp = jbox.pos();
         g.pp.junction_box_positions.push(v3(jp.x, jb_height, jp.z));
         i += 1;
     }
 }
 
-// R258 bulletin boards: 15% chance per level, 1 corkboard with pinned notes.
+// Bulletin boards: 15% chance per level, 1 corkboard with pinned notes.
 pub fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
@@ -381,7 +381,7 @@ pub fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
         let np = note.pos();
         pin.position().set(np.x, np.y + nh * 0.42, 0.003);
         board.add(&pin);
-        // R298 10% chance this note flutters — subtle sway animator.
+        // 10% chance this note flutters — subtle sway animator.
         if rnd() < 0.10 {
             let flutter_phase = rnd() * PI * 2.0;
             let note2 = note.clone();
@@ -403,7 +403,7 @@ pub fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&board);
 }
 
-// R256 exit signs: 15% chance per level, at most 1 sign, mounted high
+// Exit signs: 15% chance per level, at most 1 sign, mounted high
 // (2.4-2.7 m). Faded green glow, optionally flickering.
 pub fn place_exit_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -417,9 +417,9 @@ pub fn place_exit_signs(g: &mut Game, _dist: &[i32]) {
     // Frame: dark box behind the glowing plane.
     let frame_mat = lambert!({ color: 0x181812 });
     let frame = mesh(pg("ExitSigns__housing", box_geo!(0.42, 0.20, 0.04)), &frame_mat);
-    // Glowing plane in front. R259: per-sign material for animator flicker.
+    // Glowing plane in front. Per-sign material for animator flicker.
     let glow_mat = basic_mat!({ map: exit_sign_texture_2(), transparent: true, opacity: 0.85, side: DoubleSide });
-    // R259 flicker animator: 30% chance the sign flickers — stable at 0.85,
+    // Flicker animator: 30% chance the sign flickers — stable at 0.85,
     // briefly dips to 0.15 for 40 ms at random 3-8 s intervals.
     if rnd() < 0.30 {
         let mut flicker_t = 3.0 + rnd() * 5.0;
@@ -462,7 +462,7 @@ pub fn place_exit_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&glow);
 }
 
-// R256 thermostats: 20% chance per level, 1 small wall unit (1.3-1.5 m).
+// Thermostats: 20% chance per level, 1 small wall unit (1.3-1.5 m).
 pub fn place_thermostats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -500,9 +500,9 @@ pub fn place_thermostats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dial);
 }
 
-// R255 radiator: 0-1 cast-iron ridged heater against a random wall.
+// Radiator: 0-1 cast-iron ridged heater against a random wall.
 pub fn place_radiators(g: &mut Game, _dist: &[i32]) {
-    g.pp.radiator_positions.clear(); // R272 reset per level
+    g.pp.radiator_positions.clear(); // reset per level
     if rnd() < 0.75 {
         return;
     } // 25% chance per level
@@ -539,12 +539,12 @@ pub fn place_radiators(g: &mut Game, _dist: &[i32]) {
         radiator.position().set(wall_x + (rnd() - 0.5) * 1.2, 0, wall_z);
     }
     g.world.add(&radiator);
-    // R272 track for steam-hiss audio events.
+    // Track for steam-hiss audio events.
     let rp = radiator.pos();
     g.pp.radiator_positions.push(v3(rp.x, 0.30, rp.z));
 }
 
-// R255 fire extinguisher: 0-1 red cylinder mounted in bracket on a random wall.
+// Fire extinguisher: 0-1 red cylinder mounted in bracket on a random wall.
 pub fn place_fire_extinguishers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
         return;
@@ -592,7 +592,7 @@ pub fn place_fire_extinguishers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&extg);
 }
 
-// R254 rusted pipes: 0-2 runs of 2 in steel pipe per level along walls,
+// Rusted pipes: 0-2 runs of 2 in steel pipe per level along walls,
 // low (0.15-0.35 m) (Blender batch `r06`): malleable iron fittings, strut
 // clamps, now and then a gate valve, the old paint flaking off them and rust
 // weeping from the joints down the wall.
@@ -626,11 +626,11 @@ pub fn place_rusted_pipes(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R253 stopped wall clock: 20% chance per level — circular wall prop with a
+// Stopped wall clock: 20% chance per level — circular wall prop with a
 // frozen cryptic time (1.9-2.4 m).
 pub fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
-    g.pp.wall_clock_positions.clear(); // R308 reset per level
-    g.pp.cracked_clock_positions.clear(); // R342 reset per level
+    g.pp.wall_clock_positions.clear(); // reset per level
+    g.pp.cracked_clock_positions.clear(); // reset per level
     if rnd() < 0.80 {
         return;
     } // 20% chance
@@ -640,7 +640,7 @@ pub fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
     }
     let c = pick(&candidates);
     let geo = circle_geo!(0.20, 24);
-    // R308: pick one of 6 clock face variants; R310 cracked variant is the last.
+    // Pick one of 6 clock face variants; the cracked variant is the last.
     let clock_textures = clock_textures();
     let clock_tex_idx = (rnd() * clock_textures.len() as f64).floor() as usize;
     let clock_tex = clock_textures[clock_tex_idx].clone();
@@ -657,13 +657,13 @@ pub fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
         clock.rotation().y = if c.dz > 0 { PI } else { 0.0 };
         clock.position().set(wall_x + (rnd() - 0.5) * 1.4, clock_height, wall_z);
     }
-    // R337 slight ±0.03 rad Z tilt for crooked-hang aesthetic.
+    // Slight ±0.03 rad Z tilt for crooked-hang aesthetic.
     clock.rotation().z = (rnd() - 0.5) * 0.06;
     g.world.add(&clock);
-    // R308 track for tick audio events.
+    // Track for tick audio events.
     let cp = clock.pos();
     g.pp.wall_clock_positions.push(v3(cp.x, clock_height, cp.z));
-    // R339 cracked variant sways slightly (0.10 Hz, ±0.015 rad).
+    // Cracked variant sways slightly (0.10 Hz, ±0.015 rad).
     if is_cracked {
         let base_sway_z = clock.rot().z;
         let sway_phase = rnd() * PI * 2.0;
@@ -671,10 +671,10 @@ pub fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
         g.animate(move |_g, _dt, t| {
             clock2.rotation().z = base_sway_z + (t * 0.2 * PI + sway_phase).sin() * 0.015;
         });
-        // R342 track cracked clock position for periodic creak audio.
+        // Track cracked clock position for periodic creak audio.
         g.pp.cracked_clock_positions.push(v3(cp.x, clock_height, cp.z));
     }
-    // R332 cracked-clock floor shards.
+    // Cracked-clock floor shards.
     if is_cracked {
         let shard_mat = basic_mat!({
             color: shard_color_by_weather(g.weather_key()), transparent: true, opacity: 0.8,
@@ -695,7 +695,7 @@ pub fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R253 cracked wall segments: a hole kicked or punched through the wall
+// Cracked wall segments: a hole kicked or punched through the wall
 // (Blender batch `r06`): the face paper torn back, the gypsum broken through
 // its 12.7 mm, chunks hanging in on their paper, the stud bay behind it (a
 // steel stud, the back of the far board), cracks out from it, the crumbs on
@@ -726,7 +726,7 @@ pub fn place_cracked_wall_holes(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R250 weathered posters: 0-2 per level on random walls at eye level
+// Weathered posters: 0-2 per level on random walls at eye level
 // (1.2-1.9 m) (Blender batch `r06`): what offices and halls put up (a safety
 // poster, a dance's bill, a bake sale, a recycling notice, flyers with their
 // tear-off tabs), printed as real ones are, sun-faded and foxed, taped at
@@ -745,7 +745,7 @@ pub fn place_weathered_posters(g: &mut Game, _dist: &[i32]) {
         let c = candidates[i];
         // which poster (the old texture choice's draw)
         let design = ((rnd() * POSTER_DESIGNS as f64).floor() as usize).min(POSTER_DESIGNS - 1);
-        // R338 per-weather tint, multiplied on the print
+        // Per-weather tint, multiplied on the print
         let poster_tint = poster_tint_by_weather(g.weather_key());
         // how long the sun has had it (the old opacity's draw)
         let faded = rnd() < 0.5;
@@ -762,7 +762,7 @@ pub fn place_weathered_posters(g: &mut Game, _dist: &[i32]) {
         }
         // Slight tilt: hung by hand.
         let tilt = (rnd() - 0.5) * 0.06;
-        // R316 8% chance: in a clip frame whose glass is broken
+        // 8% chance: in a clip frame whose glass is broken
         let framed = rnd() < 0.08;
         let sheet = build_poster(design, faded, poster_tint, framed);
         sheet.rotation().z = tilt;
@@ -770,7 +770,7 @@ pub fn place_weathered_posters(g: &mut Game, _dist: &[i32]) {
         poster.add(&sheet);
         g.world.add(&poster);
         if framed {
-            // R327 3-5 pieces of its glass on the floor beneath
+            // 3-5 pieces of its glass on the floor beneath
             let glass = lambert!({ color: 0xb8c6c0, transparent: true, opacity: 0.45 });
             let ps_count = 3 + (rnd() * 3.0).floor() as i32;
             let pp = poster.pos();

@@ -23,7 +23,7 @@ const FACE_Z: f64 = 0.0195;
 /// height (`build_wet_floor_sign`)
 const PRINT: (f64, f64, f64) = (0.222, 0.47, 0.2925);
 
-// R267 wet floor sign: 20% chance per level, 1 yellow A-frame sign: the
+// Wet floor sign: 20% chance per level, 1 yellow A-frame sign: the
 // core's sign (r01), its wear one of two (the old turn's draw), standing
 // where it was left.
 pub(crate) fn place_wet_floor_signs(g: &mut Game, _dist: &[i32]) {

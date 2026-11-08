@@ -31,7 +31,7 @@ fn hang_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64) {
     }
 }
 
-// R490 ancient portrait texture: dark oil painting w/ figure silhouette.
+// Ancient portrait texture: dark oil painting w/ figure silhouette.
 game::lazy_static_tex!(
     portrait_texture,
     canvas_tex(192, 256, |ctx, w, h| {
@@ -77,7 +77,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R466 small skull: 5% chance per level. Bone skull with 2 eye
+// Small skull: 5% chance per level. Bone skull with 2 eye
 // sockets + nose gap + teeth. Halloween family.
 pub fn place_small_skulls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -132,7 +132,7 @@ pub fn place_small_skulls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&skull);
 }
 
-// R466 small potion bottle: 8% chance per level. Glass vial
+// Small potion bottle: 8% chance per level. Glass vial
 // with colored liquid + cork stopper. Halloween/mystical family.
 pub fn place_small_potions(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -177,11 +177,11 @@ pub fn place_small_potions(g: &mut Game, _dist: &[i32]) {
     g.world.add(&potion);
 }
 
-// R465 candy corn scatter: batch `t22`'s (`mystic/t22.rs`)
+// Candy corn scatter: batch `t22`'s (`mystic/t22.rs`)
 mod t22;
 pub use t22::place_candy_corn_scatters;
 
-// R465 small trick-or-treat pail: 6% chance per level. Orange
+// Small trick-or-treat pail: 6% chance per level. Orange
 // plastic pumpkin-shaped candy pail. Halloween family.
 pub fn place_small_treat_pails(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {

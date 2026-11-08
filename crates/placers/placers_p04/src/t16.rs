@@ -7,7 +7,7 @@ use super::{jitter, pick_open};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R624 jump rope: 5% chance per level. A child's skipping rope (Blender
+/// Jump rope: 5% chance per level. A child's skipping rope (Blender
 /// batch `t16`): 2.3 m of 8 mm braided cotton between two turned beech
 /// handles (120 x 25 mm), wound round a hand once and dropped: three slack
 /// loops come apart and cross each other, the handles out of the coil side

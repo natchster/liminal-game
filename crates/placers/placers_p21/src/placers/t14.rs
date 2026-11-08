@@ -10,7 +10,7 @@ use t14_kit::{fbm, fill, mix, put, rgb, salt, ss, vn};
 const FUR_COLORS: [u32; 3] = [0x8a5030, 0x604020, 0x503020];
 const PLUSH: [u32; 3] = [0x86603f, 0x5c4331, 0x4a3628];
 
-// R515 a teddy's arm: 6% chance per level. A plush teddy's arm (a 40 cm
+// A teddy's arm: 6% chance per level. A plush teddy's arm (a 40 cm
 // bear's: acrylic pile sewn round its edge, a velour pad on its paw) torn
 // off at its shoulder seam, lying on its side: the plush ragged at the
 // tear, the seam's threads broken, the polyester fibre stuffing pulled out

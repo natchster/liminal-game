@@ -14,7 +14,7 @@ const HALF: f64 = 0.0285;
 const FACE_COLOURS: [[f64; 3]; 6] =
     [[0.66, 0.13, 0.11], [0.86, 0.42, 0.12], [0.84, 0.81, 0.70], [0.88, 0.76, 0.22], [0.14, 0.50, 0.26], [0.12, 0.24, 0.54]];
 
-// R623 twisty puzzle cube: 5% chance per level. A 3x3x3 puzzle cube of no
+// Twisty puzzle cube: 5% chance per level. A 3x3x3 puzzle cube of no
 // brand (the original's 57 mm), dropped and left: its black cubies
 // scuffed, its stickers faded and scratched, worn at their corners, two
 // peeling at a corner and one gone; scrambled as a hand left it (the old

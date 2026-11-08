@@ -26,7 +26,7 @@ fn bar_x(i: usize) -> f64 {
     -PITCH * (N_BARS - 1) as f64 / 2.0 + i as f64 * PITCH
 }
 
-/// R436 small xylophone: 6% chance per level. A child's eight note
+/// Small xylophone: 6% chance per level. A child's eight note
 /// "xylophone" (Blender batch `t16`): a metallophone of 3 mm aluminium bars
 /// enamelled in eight colours, C to C (100 to 68 mm), each pinned through
 /// its two nodes over a felt strip on a splayed pine frame (265 x 75 mm),

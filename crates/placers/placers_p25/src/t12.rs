@@ -30,7 +30,7 @@ const CR_KINK: f64 = 0.205;
 /// The print's share of the texture; above it the grey back of the card
 const PRINT_V: f64 = 0.92;
 
-/// R440 small paper crown: 8% chance per level. A party crown die-cut from
+/// Small paper crown: 8% chance per level. A party crown die-cut from
 /// foil card or printed card (Blender batch `t12`): 89 mm tall, eight points
 /// over a 30 mm band, a printed jewel in each point; fastened round by its
 /// tab and trodden (pressed oval, creased, three points bent over), or come
@@ -195,7 +195,7 @@ const STR_HEAD: [f64; 4] = [12.0, -20.0, 5.0, -8.0];
 /// fugitive)
 const CREPE: [u32; 6] = [0xb0707e, 0x6d7fa6, 0xcbb878, 0x7c9a76, 0x8f7495, 0xc597ac];
 
-/// R432 hanging streamers: 8% chance per level. Lengths of crepe paper
+/// Hanging streamers: 8% chance per level. Lengths of crepe paper
 /// streamer (1.75 in, Blender batch `t12`) hanging from the ceiling, each
 /// from the bit of masking tape that held it when it was a swag across the
 /// room: twisted as it was hung, the crepe stretched and sagged, the ends
@@ -293,7 +293,7 @@ const GT_DROP: f64 = 0.004;
 /// Tissue paper after years: each old colour faded
 const TISSUE: [u32; 7] = [0xb57884, 0x7383a6, 0xcdbd84, 0x86a07e, 0x96809c, 0xc9a2b3, 0xcfc8b8];
 
-/// R434 paper garland: 7% chance per level. A tissue paper tassel garland
+/// Paper garland: 7% chance per level. A tissue paper tassel garland
 /// (Blender batch `t12`): tassels of fringed tissue, each twisted into a
 /// loop on a jute twine swagged between two pieces of tape on the ceiling;
 /// the tissue faded and limp, the strands hanging in clumps, some torn
@@ -367,7 +367,7 @@ pub fn place_paper_garlands(g: &mut Game, _dist: &[i32]) {
 /// hook the ball's tie hangs
 const PN_CORD: [f64; 3] = [0.45, 0.60, 0.75];
 
-/// R431 small piñata: 5% chance per level. A small star piñata (Blender
+/// Small piñata: 5% chance per level. A small star piñata (Blender
 /// batch `t12`): a papier-mâché ball and seven card cones under rows of
 /// fringed tissue, tissue streamers at the tips, hung by its cotton cord
 /// from a cup hook in the ceiling; split open on one side where it was hit

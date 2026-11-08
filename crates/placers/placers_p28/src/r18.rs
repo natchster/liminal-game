@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R358 overturned bucket: 15% chance per level. Bucket tipped on
+// Overturned bucket: 15% chance per level. Bucket tipped on
 // its side — "someone kicked or knocked over a bucket".
 pub(super) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
     // A 10 l moulded polypropylene pail (batch `r18`), kicked over: on its
@@ -55,7 +55,7 @@ pub(super) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
     parent.rotation().y = bucket_yaw;
     parent.position().set(px, 0, pz);
     g.world.add(&parent);
-    // R359 40% chance: what was in it, run out and dried on the floor: from its
+    // 40% chance: what was in it, run out and dried on the floor: from its
     // mouth when it lies on its side, all round its rim when upside down
     if rnd() < 0.40 {
         let r = 0.20 + rnd() * 0.10;

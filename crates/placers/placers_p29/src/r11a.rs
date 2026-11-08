@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R298 wall handprints: very rare (5% chance per level). The grime a hand
+// Wall handprints: very rare (5% chance per level). The grime a hand
 // left on a wall (`assets/src/blender/props/r11a.notes.md`): someone leaned
 // on it at a hand's height, or put a hand out going down a corridor in the
 // dark; dirt, soot and the skin's oil came off where the hand pressed (the
@@ -24,7 +24,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
     let vary = hand_vary(c.x * 4 + c.dx, c.z * 4 + c.dz);
     // which hand it was (the second print, beside it, the other one)
     let right = vary & 1 == 0;
-    // R300 12% chance the print is actually an extreme drag streak.
+    // 12% chance the print is actually an extreme drag streak.
     let is_drag = rnd() < 0.12;
     if is_drag {
         let drag_mat = hand_mat(hand_drag_tex(right, grime, vary));
@@ -47,7 +47,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         }
         drag.rotation().z = (rnd() - 0.5) * 0.15;
         g.world.add(&drag);
-        // R301 20% chance a full handprint at the drag's start edge.
+        // 20% chance a full handprint at the drag's start edge.
         if rnd() < 0.20 {
             let start_hand = mesh(plane_geo!(0.15, 0.22), &hand_mat(hand_print_tex(right, grime, vary ^ 0x5a)));
             let dr = drag.rot();
@@ -61,7 +61,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         }
         return;
     }
-    // R299 20% chance downward-facing print (someone leaned) vs default upward.
+    // 20% chance downward-facing print (someone leaned) vs default upward.
     let is_downward = rnd() < 0.20;
     let make_hand = |tilt_z: f64, right: bool, k: u32| -> Obj {
         let h = mesh(plane_geo!(0.15, 0.22), &hand_mat(hand_print_tex(right, grime, vary ^ k)));
@@ -73,7 +73,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         }
         h
     };
-    // R769 handprint wall-stick fix: 15 mm off the wall face; jitter only where the wall continues.
+    // Handprint wall-stick fix: 15 mm off the wall face; jitter only where the wall continues.
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.015);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.015);
     let hand_height = if is_downward { 0.7 + rnd() * 0.4 } else { 1.1 + rnd() * 0.6 };
@@ -113,11 +113,11 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
     hand.rotation().y = rot_y;
     hand.position().set(pos_x, hand_height, pos_z);
     g.world.add(&hand);
-    // R299 15% chance second handprint 0.3-0.5 m along the wall: the other hand.
+    // 15% chance second handprint 0.3-0.5 m along the wall: the other hand.
     if rnd() < 0.15 {
         let spacing = 0.3 + rnd() * 0.2;
         let dir = if rnd() < 0.5 { 1.0 } else { -1.0 };
-        // R769 clamp second-print offset so combined jitter+spacing stays on wall.
+        // Clamp second-print offset so combined jitter+spacing stays on wall.
         let combined = clamp(jitter + dir * spacing, min_j, max_j);
         let tilt_z2 = (rnd() - 0.5) * 0.4;
         let hand2 = make_hand(tilt_z2, !right, 1);
@@ -129,7 +129,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         }
         g.world.add(&hand2);
     } else if rnd() < 0.05 && !is_downward {
-        // R300 5% vertical pair variant — one high (~1.7 m), one low (~0.9 m).
+        // 5% vertical pair variant — one high (~1.7 m), one low (~0.9 m).
         let tilt_z3 = (rnd() - 0.5) * 0.4;
         let high_hand = make_hand(tilt_z3, !right, 2);
         high_hand.rotation().y = rot_y;
@@ -138,7 +138,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         // Original hand also at 0.9 m for pair — override position.
         hand.position().y = 0.9;
     }
-    // R302 30% chance a stranger's chalk or a balled-up sheet near the handprint.
+    // 30% chance a stranger's chalk or a balled-up sheet near the handprint.
     if rnd() < 0.30 {
         if rnd() < 0.5 {
             // a date chalked beside it, someone's note of when they saw it
@@ -191,7 +191,7 @@ pub(super) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
             g.world.add(&scrap);
         }
     }
-    // R302 5% chance the handprint FADES cyclically.
+    // 5% chance the handprint FADES cyclically.
     if rnd() < 0.05 {
         let fade_mat = hand.mat();
         let base_opacity = fade_mat.opacity_v();

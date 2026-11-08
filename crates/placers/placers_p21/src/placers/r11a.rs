@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R519 water puddle: 8% chance per level. Where a drip from the ceiling
+// Water puddle: 8% chance per level. Where a drip from the ceiling
 // lands, and has gone on landing (`assets/src/blender/props/r11a.notes.md`):
 // on carpet the water has soaked in, a dark patch with a soft ragged edge and
 // a darker rim where the dirt wicked out to it, and where the drops land the
@@ -13,7 +13,7 @@ use super::*;
 // second. Painted on transparent planes flat on the floor, as wide as the old
 // disc.
 pub(crate) fn place_water_puddles(g: &mut Game, _dist: &[i32]) {
-    g.pp.puddle_positions.clear(); // R520 reset per level
+    g.pp.puddle_positions.clear(); // reset per level
     if rnd() < 0.92 {
         return;
     } // 8% chance
@@ -77,7 +77,7 @@ pub(crate) fn place_water_puddles(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &puddle, x, z, 2.4);
     g.world.add(&puddle);
-    // R520 track for drip audio.
+    // Track for drip audio.
     let p = puddle.pos();
     g.pp.puddle_positions.push(v3(p.x, 0.003, p.z));
 }
@@ -312,7 +312,7 @@ fn mark_wall_kind(g: &Game, x: i32, z: i32) -> u8 {
     }
 }
 
-// R516 wall claw marks: 4% chance per level. Something dragged its nails down
+// Wall claw marks: 4% chance per level. Something dragged its nails down
 // the wall (`assets/src/blender/props/r11a.notes.md`): three or four gouges
 // side by side a finger apart, dug in hard where they start and lifting
 // toward their ends, the nails skipping now and then. On paper or paint over
@@ -557,7 +557,7 @@ fn vary_by(a: i32, b: i32, c: i32) -> u32 {
     (hash01(0x7a3c_51d9 ^ c as u32, a, b) * 4.0e9) as u32
 }
 
-// R513 chalk arrow: 5% chance per level. A way-mark someone left on a wall at
+// Chalk arrow: 5% chance per level. A way-mark someone left on a wall at
 // eye height (`assets/src/blender/props/r11a.notes.md`): an arrow drawn
 // quickly in blackboard chalk, its head a closed triangle scribbled in (never
 // her open arrow with the longer left barb, docs/SECRETS.md), a word over it
@@ -897,7 +897,7 @@ fn chalk_raster(lines: &[ChalkLine], w: f64, h: f64, width: f64, seed: u32) -> V
     out
 }
 
-// R510 dust bunnies: 10% chance per level. Where no air moves, what a floor
+// Dust bunnies: 10% chance per level. Where no air moves, what a floor
 // sheds (textile lint, hair, skin, grit) felts itself into clumps held by
 // static and their own fibres (`assets/src/blender/props/r11a.notes.md`):
 // five to ten of them, from a small wisp to a sprawl of fluff 6 cm long

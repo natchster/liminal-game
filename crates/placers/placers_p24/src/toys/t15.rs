@@ -12,7 +12,7 @@ fn index_of(cs: &[u32], c: u32) -> usize {
     cs.iter().position(|&x| x == c).unwrap_or(0)
 }
 
-/// R458 small princess wand: 6% chance per level. A party-shop fairy wand:
+/// Small princess wand: 6% chance per level. A party-shop fairy wand:
 /// a faceted plastic star (56 mm) glittered, on a white plastic rod 18 cm
 /// long wound with a foil stripe, three satin ribbons tied under the star;
 /// lying on the floor, the ribbons trailing back beside the rod. The glitter
@@ -86,7 +86,7 @@ pub fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wand);
 }
 
-/// R457 small toy microphone: 8% chance per level. A child's toy
+/// Small toy microphone: 8% chance per level. A child's toy
 /// microphone, 14 cm: a round grille moulded as a mesh in grey plastic and
 /// painted silver, a dark band round it, a coloured handle with grip rings
 /// and a slide switch; lying on its grille and its butt. The silver rubbed
@@ -126,7 +126,7 @@ pub fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mic);
 }
 
-/// R456 small toy dinosaur: 6% chance per level. A solid PVC tyrannosaurus
+/// Small toy dinosaur: 6% chance per level. A solid PVC tyrannosaurus
 /// of the 1980s kind, 18 cm: its body level, the tail's tip on the floor,
 /// the mouth open on painted teeth, the eyes dots of paint; moulded in one
 /// colour, its skin sculpted in scales. Faded, scuffed, grime in its scales.

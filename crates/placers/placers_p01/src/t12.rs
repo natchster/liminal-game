@@ -21,7 +21,7 @@ const HORN_LIFT: [f64; 2] = [0.024_163, 0.015_483];
 /// The print's share of the texture; above it the card of its inside
 const PRINT_V: f64 = 0.92;
 
-/// R427 small party horn: 8% chance per level. A 9 in party horn (Blender
+/// Small party horn: 8% chance per level. A 9 in party horn (Blender
 /// batch `t12`): a cone of card covered in printed foil, a white plastic
 /// mouthpiece with its reed, a foil fringe round the bell; lying where it
 /// was dropped, one in three trodden flat at its bell; the foil dulled,

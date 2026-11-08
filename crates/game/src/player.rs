@@ -577,7 +577,7 @@ impl Game {
         }
         let (ppx, ppz) = (self.player.pos.x, self.player.pos.z);
         v.timer -= dt; // pick timer (next heading change)
-                       // R769 tick down follow/stun timers.
+                       // Tick down follow/stun timers.
         if v.follow_t > 0.0 {
             v.follow_t -= dt;
         }
@@ -727,7 +727,7 @@ impl Game {
         if self.cry_dim_t > 0.0 {
             self.cry_dim_t -= dt;
         }
-        // R195 cry-dim envelope: rise fast (0.7 s to full), fall slow (2 s)
+        // Cry-dim envelope: rise fast (0.7 s to full), fall slow (2 s)
         let cry_dim_target = if self.cry_dim_t > 0.0 { 1.0 } else { 0.0 };
         let cry_dim_k = if cry_dim_target > self.cry_dim_lerp { (dt / 0.7).min(1.0) } else { (dt / 2.0).min(1.0) };
         self.cry_dim_lerp += (cry_dim_target - self.cry_dim_lerp) * cry_dim_k;
@@ -797,7 +797,7 @@ impl Game {
         } else {
             WALK
         }) * water_mul;
-        // R769 audible range — how far entities hear the player.
+        // Audible range — how far entities hear the player.
         let mut aud = 0.0;
         if moving {
             if self.player.crouch {
@@ -839,9 +839,9 @@ impl Game {
                 p.y = self.floor_y_at(p.x, p.z) + EYE;
             }
             self.player.pos = p;
-            // R48/R182: bob tempo increases with descent
+            // Bob tempo increases with descent
             self.player.bob_phase += dt * speed * 2.1 * self.descent_boost_mul(0.15);
-            // R140/R178: bob amplitude scaled per weather + descent boost.
+            // Bob amplitude scaled per weather + descent boost.
             let bob_mul = bob_amp_mul_by_weather(wk).unwrap_or(1.0) * self.descent_amp_boost();
             let bob_target = (if sprinting {
                 0.075
@@ -851,8 +851,8 @@ impl Game {
                 0.045
             }) * bob_mul;
             self.player.bob_amp = lerp(self.player.bob_amp, bob_target, dt * 6.0);
-            // step sfx: crouched has a subtle shuffle (R211); pool = splash; else walk/run.
-            // R214 crouch step cadence per weather.
+            // step sfx: crouched has a subtle shuffle; pool = splash; else walk/run.
+            // Crouch step cadence per weather.
             let crouch_step_len = if self.player.crouch { Some(wpick(crouch_step_len_by_weather, wk)) } else { None };
             let step_len = if in_pool {
                 2.2
@@ -919,7 +919,7 @@ impl Game {
         let bob_y = self.player.bob_phase.sin().abs() * self.player.bob_amp * bob_k;
         let insanity_shake =
             if self.player.sanity < 40.0 { rand2(-1.0, 1.0) * (1.0 - self.player.sanity / 40.0) * 0.02 * shake_k } else { 0.0 };
-        // R135/R136/R144 idle breathing: weather-scaled amp+freq; at low sanity
+        // Idle breathing: weather-scaled amp+freq; at low sanity
         // the breath quickens and gets shallower.
         let idle_t = self.clock_ms() / 1000.0;
         let idle_weight = (1.0 - self.player.bob_amp / 0.02).max(0.0); // 1 at idle, 0 walking
@@ -950,12 +950,12 @@ impl Game {
             let k = (self.camera_dip_t / 0.35).max(0.0);
             pitch_dip = -0.22 * k * k * shake_k; // 12.6° max downward
         }
-        // R136/R137/R138/R146 crouch tilt: weather magnitude + sanity boost
+        // Crouch tilt: weather magnitude + sanity boost
         let crouch_tilt_mag_target = wpick(crouch_tilt_by_weather, wk);
         self.crouch_tilt_mag_current += (crouch_tilt_mag_target - self.crouch_tilt_mag_current) * (dt * 1.5).min(1.0);
         let san_frac2 = self.player.sanity / SAN_MAX;
         let sanity_crouch_boost = 1.0 + if san_frac2 < 0.30 { (1.0 - san_frac2 / 0.30) * 0.50 } else { 0.0 };
-        // R189/R191/R192 low-stamina wobble while crouched
+        // Low-stamina wobble while crouched
         let mut stamina_crouch_wobble = 0.0;
         if self.player.crouch && self.player.stamina < 40.0 {
             let fatigue_mag = 1.0 - self.player.stamina / 40.0;
@@ -966,12 +966,12 @@ impl Game {
         let crouch_pitch_target =
             if self.player.crouch { self.crouch_tilt_mag_current * sanity_crouch_boost + stamina_crouch_wobble } else { 0.0 };
         self.player.crouch_pitch_lerp += (crouch_pitch_target - self.player.crouch_pitch_lerp) * (dt * 5.0).min(1.0);
-        // R190/R192 low-stamina bent-over dip when standing
+        // Low-stamina bent-over dip when standing
         let dip_mag = wpick(stamina_dip_mag_by_weather, wk);
         let stamina_dip =
             if !self.player.crouch && self.player.stamina < 30.0 { (1.0 - self.player.stamina / 30.0) * dip_mag } else { 0.0 };
         cam.rotation().x = self.player.pitch + pitch_dip - self.player.crouch_pitch_lerp - stamina_dip;
-        // R138/R177 + R139/R179: sanity roll amp / freq per weather × descent boost
+        // Sanity roll amp / freq per weather × descent boost
         let sanity_roll_amp_target = wpick(sanity_roll_amp_by_weather, wk) * self.descent_amp_boost();
         let sanity_roll_freq_target = wpick(sanity_roll_freq_by_weather, wk) * self.descent_freq_boost();
         let k_sanity = (dt * 1.5).min(1.0);
@@ -994,7 +994,7 @@ impl Game {
             } else {
                 0.0
             };
-        // R238/R239 reality-shift FOV nudge
+        // Reality-shift FOV nudge
         let shift_spec_fov = wpick(shift_bend_by_weather, wk);
         let shift_fov_delta = if self.reality_shift_t > 0.0 {
             ((2.0 - self.reality_shift_t) * PI * 1.2).sin() * (self.reality_shift_t / 2.0) * shift_spec_fov.fov
@@ -1114,7 +1114,7 @@ impl Game {
         }
         // Safe-room glow vignette (the CSS 0.8 s transition handles the easing)
         self.ui.safe_room_glow.toggle_class("on", in_safe_room);
-        // Safe-room ambient hum; R117: with the flashlight on and a low battery
+        // Safe-room ambient hum; with the flashlight on and a low battery
         // the target dips up to 25%.
         if self.audio.safe_room_gain.is_some() {
             let batt_dip = if self.player.flashlight_on { self.beam_battery_scale(0.75) } else { 1.0 };
@@ -1167,12 +1167,12 @@ impl Game {
                 self.sfx_step(sprinting);
             }
         }
-        // R211 crouch footstep: very quiet drag/shuffle noise on each crouched step
+        // Crouch footstep: very quiet drag/shuffle noise on each crouched step
         else if !in_pool && self.ac.is_some() {
             let crouch_step_gain = wpick(crouch_step_gain_by_weather, wk);
             let crouch_step_freq = wpick(crouch_step_freq_by_weather, wk);
             self.noise_burst(0.06, crouch_step_freq, 0.6, crouch_step_gain, "lowpass", None, 0.0, 0.0);
-            // R212 crouch dust puff (derelict only)
+            // Crouch dust puff (derelict only)
             if wk == "derelict" {
                 if let Some(i) = self.free_scuff() {
                     let s = self.scuffs[i].obj.clone();
@@ -1187,7 +1187,7 @@ impl Game {
                     self.crouch_fx_tally.derelict += 1.0;
                 }
             }
-            // R213 crouch wet ripple
+            // Crouch wet ripple
             if wk == "wet" {
                 if let Some(i) = self.free_ripple() {
                     let r = self.ripples[i].obj.clone();
@@ -1201,7 +1201,7 @@ impl Game {
                 }
                 self.crouch_fx_tally.wet += 1.0;
             }
-            // R213 crouch electric spark: very rare (12%) and quieter
+            // Crouch electric spark: very rare (12%) and quieter
             if wk == "electric" && rnd() < 0.12 {
                 if let Some(i) = self.free_scuff() {
                     let s = self.scuffs[i].obj.clone();
@@ -1217,25 +1217,25 @@ impl Game {
                 self.blip(2200.0 + rand2(-80.0, 80.0), 0.03, "square", 0.006, None, 0.0, 0.0);
                 self.crouch_fx_tally.electric += 1.0;
             }
-            // R214 crouch haunted echo: 10%, half-pan, halved gain
+            // Crouch haunted echo: 10%, half-pan, halved gain
             if wk == "haunted" && rnd() < 0.10 {
                 let echo_pan = (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.35 + rnd() * 0.15);
                 self.blip(90.0 + rand2(-6.0, 6.0), 0.09, "sine", 0.010, Some(55.0), 0.30, echo_pan);
                 self.noise_burst(0.04, 160.0, 0.8, 0.006, "lowpass", None, 0.32, echo_pan);
                 self.crouch_fx_tally.haunted += 1.0;
             }
-            // R215 crouch still hush
+            // Crouch still hush
             if wk == "still" {
                 self.noise_burst(0.05, 160.0, 0.5, 0.007, "lowpass", None, 0.0, 0.0);
                 self.crouch_fx_tally.still += 1.0;
             }
-            // R215 crouch normal click: 4%
+            // Crouch normal click: 4%
             if wk == "normal" && rnd() < 0.04 {
                 self.blip(3000.0 + rand2(-150.0, 150.0), 0.02, "square", 0.006, None, 0.0, 0.0);
                 self.crouch_fx_tally.normal += 1.0;
             }
         }
-        // R130 wet-weather footstep ripple + R131 quiet splish; R134 sprint intensifies
+        // Wet-weather footstep ripple + quiet splish; a sprint intensifies
         if !crouch && !in_pool && wk == "wet" {
             let s_mul = if sprinting { 1.0 + 0.5 * (self.player.stamina / STAM_MAX) } else { 1.0 };
             if let Some(i) = self.free_ripple() {
@@ -1251,7 +1251,7 @@ impl Game {
             self.noise_burst(0.05, 900.0 + rand2(-100.0, 100.0), 1.2, 0.020 * s_mul, "bandpass", None, 0.0, 0.0);
             self.footstep_fx_tally.wet += 1.0;
         }
-        // R131 derelict-weather footstep dust scuff. R134: sprint bigger cloud.
+        // Derelict-weather footstep dust scuff; a sprint makes a bigger cloud.
         if !crouch && !in_pool && wk == "derelict" {
             let s_mul = if sprinting { 1.0 + 0.5 * (self.player.stamina / STAM_MAX) } else { 1.0 };
             if let Some(i) = self.free_scuff() {
@@ -1268,7 +1268,7 @@ impl Game {
             self.noise_burst(0.06, 1600.0 + rand2(-100.0, 100.0), 1.5, 0.014 * s_mul, "highpass", None, 0.0, 0.0);
             self.footstep_fx_tally.derelict += 1.0;
         }
-        // R132 electric-weather footstep spark; R134/R135 sprint + stamina scale it
+        // Electric-weather footstep spark; sprint and stamina scale it
         if !crouch && !in_pool && wk == "electric" {
             let stam_f = if sprinting { self.player.stamina / STAM_MAX } else { 0.0 };
             let sprint_prob = 0.35 + 0.20 * stam_f; // 0.35–0.55
@@ -1289,7 +1289,7 @@ impl Game {
                 self.footstep_fx_tally.electric += 1.0;
             }
         }
-        // R132 haunted-weather footstep echo: a shadow step behind the player,
+        // Haunted-weather footstep echo: a shadow step behind the player,
         // delayed 250 ms and panned hard to one side (35% of steps).
         if !crouch && !in_pool && wk == "haunted" && rnd() < 0.35 {
             let echo_pan = (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.60 + rnd() * 0.25);
@@ -1297,12 +1297,12 @@ impl Game {
             self.noise_burst(0.05, 180.0, 0.8, 0.010, "lowpass", None, 0.27, echo_pan);
             self.footstep_fx_tally.haunted += 1.0;
         }
-        // R133 still-weather footstep hush (every step)
+        // Still-weather footstep hush (every step)
         if !crouch && !in_pool && wk == "still" {
             self.noise_burst(0.10, 180.0, 0.5, 0.015, "lowpass", None, 0.0, 0.0);
             self.footstep_fx_tally.still += 1.0;
         }
-        // R133 normal-weather footstep click: rare (1 in 8)
+        // Normal-weather footstep click: rare (1 in 8)
         if !crouch && !in_pool && wk == "normal" && rnd() < 0.125 {
             self.blip(3200.0 + rand2(-200.0, 200.0), 0.025, "square", 0.014, None, 0.0, 0.0);
             self.footstep_fx_tally.normal += 1.0;
@@ -1348,7 +1348,7 @@ impl Game {
                     // Faint low-freq whisper — deniable.
                     self.noise_burst(0.6, 900.0, 2.5, 0.04, "bandpass", None, 0.0, 0.0);
                     self.blip(160.0 + (id % 40) as f64, 0.5, "sine", 0.035, Some(90.0), 0.15, 0.0);
-                    // R72/R73/R81 subtle title flash — only if no HUD toast is up.
+                    // Subtle title flash — only if no HUD toast is up.
                     if self.msg_t <= 0.0 {
                         let arc = self.lore_arc_for(id);
                         let w = self.whisper_for(arc, Some(id));
@@ -1414,7 +1414,7 @@ impl Game {
                 if self.lore_arcs_completed.len() >= arcs && !self.storyteller_shown {
                     self.schedule(4500.0, |g| g.fire_storyteller_achievement());
                 }
-                // R79 *ARCHIVE* recognition — the first time both gates hold.
+                // *ARCHIVE* recognition — the first time both gates hold.
                 if !self.archive_milestone_shown && self.lore_found.len() >= entries && self.lore_arcs_completed.len() >= arcs {
                     self.archive_milestone_shown = true;
                     self.schedule(8000.0, |g| g.show_msg("THE ARCHIVE IS COMPLETE", 2.6));

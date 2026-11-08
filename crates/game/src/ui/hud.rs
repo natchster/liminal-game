@@ -219,7 +219,7 @@ pub static LORE_ARCS: [LoreArc; 6] = [
 const BLOWOUT_MILESTONE_AT: f64 = 25.0;
 const RELIGHT_MILESTONE_AT: f64 = 15.0;
 
-/// the grain canvas size (R769: 480×300)
+/// the grain canvas size (480×300)
 pub const GRAIN_W: u32 = 480;
 pub const GRAIN_H: u32 = 300;
 
@@ -265,7 +265,7 @@ impl Game {
     // ------------------------------------------------------------ startup
     /// Startup work (grain canvas, journal, medals)
     pub fn init_hud(&mut self) {
-        // R769 grain resolution bump: 220×140 was pixelated on large screens.
+        // Grain resolution bump: 220×140 was pixelated on large screens.
         self.grain_canvas = Some(Rc::new(RefCell::new(Canvas::new(GRAIN_W, GRAIN_H))));
         self.hud_ui = crate::ui::draw::HudUi::default();
     }
@@ -661,17 +661,17 @@ impl Game {
             let pd_radius = tables::panel_dim_radius_by_weather(wk).or(tables::panel_dim_radius_by_weather("normal")).unwrap();
             let pd_live = self.beam_battery_scale(pd_floor);
             let pd_falloff = tables::panel_dim_falloff_by_weather(wk).or(tables::panel_dim_falloff_by_weather("normal")).unwrap();
-            let _ = write!(s, "─ battery cue (R110–R114 dying-beam) ─\n  bScale={}  lightMul={}  distMul={}  warm={}  candleBoost={}\n  panelDim  floor={}  depth={}  radius={}m  falloff={}  live={}\n",
+            let _ = write!(s, "─ battery cue (dying beam) ─\n  bScale={}  lightMul={}  distMul={}  warm={}  candleBoost={}\n  panelDim  floor={}  depth={}  radius={}m  falloff={}  live={}\n",
                 fx(bs, 2), fx(li, 2), fx(di, 2), warm, cboost, ns(pd_floor), fx(1.0 - pd_floor, 3), ns(pd_radius), ns(pd_falloff), fx(pd_live, 3));
         }
         let (ft, ct) = (self.footstep_fx_tally, self.crouch_fx_tally);
-        let _ = write!(s, "─ footstep fx tally (R130–R133/R216) ─\n  walk    wet={} still={} electric={} haunted={} derelict={} normal={}\n  crouch  wet={} still={} electric={} haunted={} derelict={} normal={}\n",
+        let _ = write!(s, "─ footstep fx tally ─\n  walk    wet={} still={} electric={} haunted={} derelict={} normal={}\n  crouch  wet={} still={} electric={} haunted={} derelict={} normal={}\n",
             ns(ft.wet), ns(ft.still), ns(ft.electric), ns(ft.haunted), ns(ft.derelict), ns(ft.normal),
             ns(ct.wet), ns(ct.still), ns(ct.electric), ns(ct.haunted), ns(ct.derelict), ns(ct.normal));
         let rain_gain = self.audio.rain_hiss_gain.as_ref().map(|n| fx(n.gain().value(), 3)).unwrap_or_else(|| "-".into());
         let _ = write!(
             s,
-            "─ rain hiss (R120) ─\n  rainScore={}  gain={}  windows={}\n",
+            "─ rain hiss ─\n  rainScore={}  gain={}  windows={}\n",
             fx(self.rain_score_current, 2),
             rain_gain,
             self.rain_windows.len()
@@ -695,7 +695,7 @@ impl Game {
                     .collect::<Vec<_>>()
                     .join("\n")
             };
-            let _ = write!(s, "─ ripples (R117/R118) ─\n{}\n", body);
+            let _ = write!(s, "─ ripples ─\n{}\n", body);
         }
         // ─ rare-tier timers ─
         {
@@ -729,7 +729,7 @@ impl Game {
             let dust_d = 0.75 + 0.25 * ld;
             let panel_amp_boost = 1.0 + (1.0 - ld) * 0.4;
             let int_desc = 0.65 + 0.35 * ld;
-            let _ = write!(s, "─ descent (R164–R168 deep-level effects) ─\n  level={}  vignette=+{}\n  atmos  fogMul={}  fog×={}  bg×={}  dust×{}\n  light  light×{}  int×{}  range×{}  panel×{}  amp×{}\n",
+            let _ = write!(s, "─ descent (deep-level effects) ─\n  level={}  vignette=+{}\n  atmos  fogMul={}  fog×={}  bg×={}  dust×{}\n  light  light×{}  int×{}  range×{}  panel×{}  amp×{}\n",
                 self.level_num, fx(dread, 3), fx(fog_mul, 3), fx(cd, 3), fx(cd, 3), fx(dust_d, 3),
                 fx(light_depth, 3), fx(int_desc, 3), fx(dist_descent, 3), fx(ld, 3), fx(panel_amp_boost, 3));
         }
@@ -737,7 +737,7 @@ impl Game {
             let src = self.audio.safe_room_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
             let flame = tables::flame_breath_amp_by_weather(wk).or(tables::flame_breath_amp_by_weather("normal")).unwrap();
             let slope = tables::level_depth_slope_by_weather(wk).or(tables::level_depth_slope_by_weather("normal")).unwrap();
-            let _ = write!(s, "─ room breath (R48/R63 LFO drives all) ─\n  src={}Hz  vignette={}  panel={}  flame={}  levelDepth={}  chimeDepth={}  slope={}  descentDread={}  fogMul={}\n",
+            let _ = write!(s, "─ room breath (LFO drives all) ─\n  src={}Hz  vignette={}  panel={}  flame={}  levelDepth={}  chimeDepth={}  slope={}  descentDread={}  fogMul={}\n",
                 src, fx(self.hum_pulse_amp_current, 3), fx(self.panel_lfo_amp_current, 3), fx(flame, 3), fx(self.level_depth_mul(), 3),
                 fx(self.chime_depth_mul(), 3), fx(slope, 3), fx((1.0 - self.level_depth_mul()) * 0.8, 3), fx(1.0 + (1.0 - self.chime_depth_mul()) * 1.05, 3));
         }
@@ -755,7 +755,7 @@ impl Game {
             let dread_period =
                 tables::sanity_dread_period_ms_by_weather(wk).or(tables::sanity_dread_period_ms_by_weather("normal")).unwrap()
                     / self.descent_freq_boost();
-            let _ = write!(s, "─ sanity breakdown (R138–R143) ─\n  s={}%  gates: roll={}  hue={}  detune={}  bright={}  dreadT={}ms\n  muls   sanTimer={}×dscTimer={}  sanGain={}×dscGain={}\n  chimes rec={} imp={} brk={} mini={}\n",
+            let _ = write!(s, "─ sanity breakdown ─\n  s={}%  gates: roll={}  hue={}  detune={}  bright={}  dreadT={}ms\n  muls   sanTimer={}×dscTimer={}  sanGain={}×dscGain={}\n  chimes rec={} imp={} brk={} mini={}\n",
                 fx(sv * 100.0, 0), yn(roll_active), yn(hue_active), yn(detune_active), yn(bright_active), fx(dread_period, 0),
                 fx(san_timer, 2), fx(dsc_timer, 2), fx(san_gain, 2), fx(dsc_gain, 2),
                 ns(self.sanity_recovery_tally), ns(self.sanity_impaired_tally), ns(self.sanity_breaking_tally), ns(self.sanity_mini_tally));
@@ -774,7 +774,7 @@ impl Game {
             } else {
                 "-".into()
             };
-            let _ = write!(s, "─ player rhythms (R135–R178) ─\n  idleAmp={}  idleFreq={}Hz  crouchTilt={}rad  bobDsc={}  bobRate={}\n  sanityAmp={}  sanityFreq={}Hz  active={}\n  panicBreath  freqMul={}x  ampMul={}x  panic={}  stamWobble={}  stamDip={}rad\n",
+            let _ = write!(s, "─ player rhythms ─\n  idleAmp={}  idleFreq={}Hz  crouchTilt={}rad  bobDsc={}  bobRate={}\n  sanityAmp={}  sanityFreq={}Hz  active={}\n  panicBreath  freqMul={}x  ampMul={}x  panic={}  stamWobble={}  stamDip={}rad\n",
                 fx(idle.amp, 3), fx(idle.freq, 2), fx(self.crouch_tilt_mag_current, 3), fx(self.descent_amp_boost(), 3), fx(2.1 * self.descent_boost_mul(0.15), 3),
                 fx(self.sanity_roll_amp_current, 3), fx(self.sanity_roll_freq_current, 2), active,
                 fx(1.0 + panic * 0.6, 2), fx(1.0 - panic * 0.30, 2), fx(panic, 2), stam_crouch_wobble, stam_dip);
@@ -790,7 +790,7 @@ impl Game {
             let sg = a.stamina_breath_sub_gain.as_ref().map(|n| fx(n.gain().value(), 4)).unwrap_or_else(|| "-".into());
             let sf = a.stamina_breath_sub_osc.as_ref().map(|n| fx(n.frequency().value(), 0)).unwrap_or_else(|| "-".into());
             let pn = a.stamina_breath_panner.as_ref().map(|n| fx(n.pan().value(), 2)).unwrap_or_else(|| "-".into());
-            let _ = write!(s, "─ stamina breath (R200–R207) ─\n  gain={}  freq={}Hz  lp={}Hz  q={}  sub={}@{}Hz  pan={}\n  peaks[{}]  g={}  rBase={}  rGain={}  sub={}@{}  pan={}@{}\n",
+            let _ = write!(s, "─ stamina breath ─\n  gain={}  freq={}Hz  lp={}Hz  q={}  sub={}@{}Hz  pan={}\n  peaks[{}]  g={}  rBase={}  rGain={}  sub={}@{}  pan={}@{}\n",
                 g, f, lp, q, sg, sf, pn, if wk.is_empty() { "?" } else { wk },
                 ns(br.gain), ns(br.rate_base), ns(br.rate_gain), ns(br.sub_gain), ns(br.sub_freq), ns(br.pan_depth), ns(br.pan_rate));
         }
@@ -810,7 +810,7 @@ impl Game {
             let ding_br = tables::ding_bright_by_weather(wk).or(tables::ding_bright_by_weather("normal")).unwrap();
             let static_ctr = tables::static_chrom_by_weather(wk).or(tables::static_chrom_by_weather("normal")).unwrap().contrast;
             let voice_hue_r = tables::voice_hue_by_weather(wk).or(tables::voice_hue_by_weather("normal")).unwrap().r;
-            let _ = write!(s, "─ rare events (R220–R227) ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  staticCtr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
+            let _ = write!(s, "─ rare events ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  staticCtr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
                 fx(self.distant_knock_timer, 0), fx(self.knock_flash_t, 2), fx(self.knock_tint_t, 2), fx(self.last_knock_pan, 2),
                 ns(kt.freq), ns(kt.noise), ns(kt.gain_mul),
                 fx(self.door_opened_timer, 0), fx(self.door_opened_flash_t, 2), fx(self.door_dim_pulse_t, 2),
@@ -823,7 +823,7 @@ impl Game {
                 fx(door_dim, 2), fx(ding_br, 2), fx(static_ctr, 2), fx(voice_hue_r, 2),
                 yn(stagger), fx(self.last_rare_fire_t, 2), age,
                 ta("knock"), ta("door"), ta("ding"), ta("voice"), ta("static"), ta("shift"), ta("pattern"), ta("skip"));
-            // R232 full per-weather rare-event tally block
+            // Full per-weather rare-event tally block
             let evs = [
                 ("knock", "k"),
                 ("door", "d"),
@@ -862,7 +862,7 @@ impl Game {
             let san_sum = sum_vals(self.death_tally.get("sanity"));
             let _ = write!(
                 s,
-                "─ death (R208/R209/R211) ─\n  count={}  lastCause={}  lastT={}s  age={}s\n  tally  entity={}  sanity={}\n",
+                "─ death ─\n  count={}  lastCause={}  lastT={}s  age={}s\n  tally  entity={}  sanity={}\n",
                 ns(self.death_count),
                 cause,
                 fx(self.last_death_t, 2),
@@ -880,7 +880,7 @@ impl Game {
             let beam_peak = tables::cry_beam_peak_by_weather(wk).or(tables::cry_beam_peak_by_weather("normal")).unwrap();
             let panel_peak = tables::cry_panel_peak_by_weather(wk).or(tables::cry_panel_peak_by_weather("normal")).unwrap();
             let l = self.cry_dim_lerp;
-            let _ = write!(s, "─ cry envelope (R195–R199) ─\n  active={}  remain={}s  cool={}s  lerp={}\n  peaks  beam={}  panel={}  vig={}\n  beam×{}  panel×{}  audio×{}  vig+{}\n",
+            let _ = write!(s, "─ cry envelope ─\n  active={}  remain={}s  cool={}s  lerp={}\n  peaks  beam={}  panel={}  vig={}\n  beam×{}  panel×{}  audio×{}  vig+{}\n",
                 active, remain, cool, fx(l, 2), fx(beam_peak, 2), fx(panel_peak, 2), fx(vig_peak, 2),
                 fx(1.0 - beam_peak * l, 3), fx(1.0 - panel_peak * l, 3), fx(1.0 - 0.25 * l, 3), fx(l * vig_peak, 3));
         }
@@ -894,9 +894,9 @@ impl Game {
                     self.ambient_tally.iter().map(|(k, per)| format!("{}={}", k, ns(per.values().sum()))).collect::<Vec<_>>().join("  ")
                 )
             };
-            let _ = write!(s, "─ ambient tally (R187/R188 session totals) ─\n{}\n", body);
+            let _ = write!(s, "─ ambient tally (session totals) ─\n{}\n", body);
         }
-        // ─ ambient log ─ (R127–R130 ASCII compass rose; markers fade over ~30 s)
+        // ─ ambient log ─ (ASCII compass rose; markers fade over ~30 s)
         {
             let names = ["NW", "N", "NE", "W", "C", "E", "SW", "S", "SE"];
             let mut cells: Vec<char> = vec!['.', '.', '.', '.', 'o', '.', '.', '.', '.'];
@@ -966,7 +966,7 @@ impl Game {
             };
             let _ = writeln!(s, "{}", log);
         }
-        // ─ candles ─ (the rate cell pushes the R87 rolling delta)
+        // ─ candles ─ (the rate cell pushes the rolling delta)
         {
             let rate = {
                 let denom = self.candle_fizzle_tally + self.candle_relight_tally;
@@ -1009,7 +1009,7 @@ impl Game {
                 None => "-".to_string(),
                 Some(a) => {
                     let sign = if a >= 0.0 { "+" } else { "" };
-                    // R90: remaining debounce ticks before the marker fires
+                    // Remaining debounce ticks before the marker fires
                     let pre_fire = a.abs() > tables::RATE_DRIFT_THRESHOLD && self.rate_drift_ticks < tables::RATE_DRIFT_DEBOUNCE;
                     let countdown =
                         if pre_fire { format!("({})", ns(tables::RATE_DRIFT_DEBOUNCE - self.rate_drift_ticks)) } else { String::new() };
@@ -1077,7 +1077,7 @@ impl Game {
             );
             let mut rows: Vec<(usize, usize, Option<usize>)> =
                 self.lore_notes.iter().enumerate().map(|(i, n)| (i, n.id, self.lore_arc_for(n.id))).collect();
-            // R74: sort by arc name (no arc sorts as '~', before every arc), then by id.
+            // Sort by arc name (no arc sorts as '~', before every arc), then by id.
             let key = |a: Option<usize>| -> (u8, &'static str) {
                 match a {
                     Some(k) => (1, LORE_ARCS[k].name),
@@ -1129,7 +1129,7 @@ impl Game {
     // ------------------------------------------------------------ grain
     pub fn update_grain(&mut self, dt: f64) {
         let Some(grain) = self.grain_canvas.clone() else { return };
-        // R769 smooth sanity-driven opacity every frame (not just on refresh)
+        // Smooth sanity-driven opacity every frame (not just on refresh)
         let s = self.player.sanity / SAN_MAX;
         let grain_target = 0.08 + (1.0 - s) * 0.28;
         let ab_scalar = (1.0 - s).powf(1.8);
@@ -1152,7 +1152,7 @@ impl Game {
             let (w, h) = (ctx.width() as usize, ctx.height() as usize);
             let mut img = ctx.create_image_data(w as f64, h as f64);
             let d = &mut img.data;
-            // R769 smoother grain — mix each row ~30% with the row above
+            // Smoother grain — mix each row ~30% with the row above
             let mut prev_row: Option<Vec<u8>> = None;
             for y in 0..h {
                 let row_start = y * w * 4;
@@ -1192,8 +1192,8 @@ impl Game {
         self.msg_text = text.to_string();
         self.ui.msg.set_text(text);
         self.ui.msg.set_opacity(1.0);
-        self.ui.msg.set_style("color", ""); // R73: clear any prior whisper-flash tint
-        self.ui.msg.set_style("textShadow", ""); // R74: clear any prior whisper arc glow
+        self.ui.msg.set_style("color", ""); // clear any prior whisper-flash tint
+        self.ui.msg.set_style("textShadow", ""); // clear any prior whisper arc glow
         self.msg_t = dur;
     }
     /// A random line from the `key` text pool (one `choice` draw)
@@ -1260,7 +1260,7 @@ impl Game {
     pub fn lore_arc_for(&self, id: usize) -> Option<usize> {
         LORE_ARCS.iter().position(|a| a.ids.contains(&id))
     }
-    /// (R78)
+    /// How long a lore whisper stays up: longer for a longer arc
     pub fn whisper_duration_for(&self, arc: Option<usize>) -> f64 {
         let w = match arc {
             Some(a) => (LORE_ARCS[a].ids.len() as f64 / 3.0).min(1.0).max(0.5),
@@ -1268,7 +1268,7 @@ impl Game {
         };
         0.6 + 0.6 * w
     }
-    /// (R79)
+    /// A lore whisper's glow in its arc's colour (none outside an arc)
     pub fn whisper_glow_for(&self, arc: Option<usize>) -> Option<WhisperGlow> {
         let a = &LORE_ARCS[arc?];
         let w = (a.ids.len() as f64 / 3.0).min(1.0).max(0.5);

@@ -1,7 +1,7 @@
 //! Canvas textures shared by this crate's placers.
 use game::prelude::*;
 
-// R471 open journal pages: simulated handwriting on aged paper.
+// Open journal pages: simulated handwriting on aged paper.
 game::lazy_static_tex!(
     journal_texture,
     canvas_tex_opt(384, 256, false, |ctx, w, h| {
@@ -43,7 +43,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R470 tarot card back: deep purple with gold pattern.
+// Tarot card back: deep purple with gold pattern.
 game::lazy_static_tex!(
     tarot_back_texture,
     canvas_tex_opt(128, 200, false, |ctx, w, h| {
@@ -82,7 +82,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R470 tarot face-up card: IX THE MOON.
+// Tarot face-up card: IX THE MOON.
 game::lazy_static_tex!(
     tarot_face_texture,
     canvas_tex_opt(128, 200, false, |ctx, w, h| {
@@ -112,7 +112,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R470 pentagram chalk drawing (transparent background).
+// Pentagram chalk drawing (transparent background).
 game::lazy_static_tex!(
     pentagram_texture,
     canvas_tex_opt(384, 384, false, |ctx, w, h| {
@@ -158,7 +158,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R469 ouija board: wood grain, YES/NO, alphabet, numbers, GOODBYE.
+// Ouija board: wood grain, YES/NO, alphabet, numbers, GOODBYE.
 game::lazy_static_tex!(
     ouija_texture,
     canvas_tex_opt(512, 320, false, |ctx, w, h| {

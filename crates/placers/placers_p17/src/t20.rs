@@ -20,7 +20,7 @@ const SN_A_IN: f64 = 0.0365 - 0.0012;
 const SN_B_IN: f64 = 0.034;
 const SN_LOW: f64 = 0.040;
 
-// R762 chess set mid-game on small side stand (floor): 3% chance per level.
+// Chess set mid-game on small side stand (floor): 3% chance per level.
 // A tripod table of about 1870 (Blender batch `t20`): a moulded round top
 // on its bearers, a turned column, three cabriole legs on pad feet; a
 // folding board of 35 mm squares on it, and a game of Staunton chessmen
@@ -30,7 +30,7 @@ const SN_LOW: f64 = 0.040;
 // ringed by wet glasses and dusty, the board's squares worn at the edge
 // the players sat at.
 pub(super) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
-    g.pp.chess_set_positions.clear(); // R763 reset per level
+    g.pp.chess_set_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -147,7 +147,7 @@ pub(super) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
     }
     g.world.add(&cs);
     let p = cs.pos();
-    g.pp.chess_set_positions.push(v3(p.x, 0, p.z)); // R763
+    g.pp.chess_set_positions.push(v3(p.x, 0, p.z));
 }
 
 fn ch_part(ty: &str) -> &'static str {

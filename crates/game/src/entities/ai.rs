@@ -354,13 +354,13 @@ impl Game {
         }
         let pressure = if any_hunt { clamp(1.0 - nearest / 16.0, 0.0, 1.0) } else { clamp(1.0 - nearest / 10.0, 0.0, 0.35) }
             .max(self.director.tension * 0.55);
-        // R92/R95 hum pulse: subtle vignette breath driven by the safe-room LFO
+        // Hum pulse: subtle vignette breath driven by the safe-room LFO
         let lfo_hz = self.audio.safe_room_lfo.as_ref().map(|n| n.frequency().value()).filter(|v| *v != 0.0 && !v.is_nan()).unwrap_or(0.35);
         self.hum_pulse_phase += dt * lfo_hz * PI * 2.0 * self.descent_freq_boost();
         let pulse_amp_target = vignette_pulse_amp_by_weather(wk).unwrap_or(VIGNETTE_PULSE_AMP_DEFAULT) * self.descent_boost_mul(0.4);
         self.hum_pulse_amp_current += (pulse_amp_target - self.hum_pulse_amp_current) * (dt * 1.5).min(1.0);
         let hum_pulse = self.hum_pulse_amp_current * (self.hum_pulse_phase.sin() * 0.5 + 0.5);
-        // R146 sanity dread pulse: "the darkness breathes with you"
+        // Sanity dread pulse: "the darkness breathes with you"
         let mut sanity_dread = 0.0;
         let san_for_vig = self.player.sanity / SAN_MAX;
         if san_for_vig < 0.30 {
@@ -369,28 +369,28 @@ impl Game {
                 sanity_dread_period_ms_by_weather(wk).or(sanity_dread_period_ms_by_weather("normal")).unwrap() / self.descent_freq_boost();
             sanity_dread = 0.18 * self.descent_boost_mul(0.4) * dread_mag * ((self.clock_ms() / dread_period).sin() * 0.5 + 0.5);
         }
-        // R164 level-descent vignette baseline
+        // Level-descent vignette baseline
         let descent_dread = (1.0 - self.level_depth_mul()) * 0.8;
         sanity_dread += descent_dread;
-        // R197/R198 cry-dim vignette pulse
+        // Cry-dim vignette pulse
         let cry_vig_peak = cry_vignette_peak_by_weather(wk).or(cry_vignette_peak_by_weather("normal")).unwrap();
         let cry_vignette = cry_vig_peak * self.cry_dim_lerp;
-        // R220 distant knock pulse
+        // Distant knock pulse
         if self.knock_flash_t > 0.0 {
             self.knock_flash_t -= dt;
         }
         let knock_pulse = if self.knock_flash_t > 0.0 { 0.10 * (self.knock_flash_t / 0.6) * (self.knock_flash_t / 0.6) } else { 0.0 };
-        // R223 door-opened pulse
+        // Door-opened pulse
         if self.door_opened_flash_t > 0.0 {
             self.door_opened_flash_t -= dt;
         }
         let door_pulse = if self.door_opened_flash_t > 0.0 { 0.08 * (PI * self.door_opened_flash_t / 1.0).sin() } else { 0.0 };
-        // R225 elevator ding pulse
+        // Elevator ding pulse
         if self.elevator_ding_flash_t > 0.0 {
             self.elevator_ding_flash_t -= dt;
         }
         let ding_pulse = if self.elevator_ding_flash_t > 0.0 { 0.06 * (self.elevator_ding_flash_t / 1.4) } else { 0.0 };
-        // R228 voice-sample pulse
+        // Voice-sample pulse
         if self.voice_sample_flash_t > 0.0 {
             self.voice_sample_flash_t -= dt;
         }
@@ -399,7 +399,7 @@ impl Game {
         } else {
             0.0
         };
-        // R230 static-burst pulse
+        // Static-burst pulse
         if self.static_burst_flash_t > 0.0 {
             self.static_burst_flash_t -= dt;
         }
@@ -408,15 +408,15 @@ impl Game {
         } else {
             0.0
         };
-        // R237 reality shift vignette pulse
+        // Reality shift vignette pulse
         let shift_pulse = if self.reality_shift_t > 0.0 {
             0.12 * (PI * (2.0 - self.reality_shift_t) / 2.0).sin() * (self.reality_shift_t / 2.0)
         } else {
             0.0
         };
-        // R243 pattern break vignette pulse
+        // Pattern break vignette pulse
         let pattern_pulse = if self.pattern_break_t > 0.0 { 0.03 * (PI * (1.0 - self.pattern_break_t / 4.0)).sin() } else { 0.0 };
-        // R243 clock skip vignette pulse
+        // Clock skip vignette pulse
         let skip_pulse = if self.clock_skip_t > 0.0 { 0.06 * (self.clock_skip_t / 0.5) } else { 0.0 };
         let ip = 1.0 - pressure;
         self.ui.vignette.set_opacity(clamp(
@@ -435,11 +435,11 @@ impl Game {
             0.0,
             0.95,
         ));
-        // R151 chime visual flash: brief coloured pulse via inset box-shadow
+        // Chime visual flash: brief coloured pulse via inset box-shadow
         if self.chime_flash_t > 0.0 {
             self.chime_flash_t -= dt;
             if self.chime_flash_t <= 0.0 {
-                // only clear the R151 flash, not the R103 electric surge tint
+                // only clear the chime's flash, not the electric surge tint
                 if self.electric_surge_t <= 0.0 {
                     self.ui.vignette.set_style("boxShadow", "");
                 }
@@ -449,7 +449,7 @@ impl Game {
                 self.ui.vignette.set_style("boxShadow", &format!("inset 0 0 240px 60px {c}, {alpha})"));
             }
         }
-        // R140/R141 sanity hue-shift; R232 static chromatic
+        // Sanity hue-shift; static chromatic
         let s01 = self.player.sanity / SAN_MAX;
         if self.static_chromatic_t > 0.0 {
             self.static_chromatic_t -= dt;
@@ -475,7 +475,7 @@ impl Game {
         } else if self.ui.vignette.style("filter").is_some() {
             self.ui.vignette.set_style("filter", "");
         }
-        // R141/R142 sanity safe-room detune: the hum sags at very low sanity
+        // Sanity safe-room detune: the hum sags at very low sanity
         if let (Some(lfo), Some(car)) = (self.audio.safe_room_lfo.clone(), self.audio.safe_room_trem_carrier.clone()) {
             let lfo_jit = ((self.current_seed & 0xff) as f64 / 255.0 - 0.5) * 0.20;
             let lfo_weather_mul = lfo_weather_mul(wk).unwrap_or(1.0);
@@ -488,7 +488,7 @@ impl Game {
             let car_nominal = (330.0 + car_jit + car_weather_off) * level_depth;
             car.frequency().set_value(car_nominal - 15.0 * sanity_mag);
         }
-        // R200–R207 stamina breath layer: below 30% stamina, breath becomes audible
+        // Stamina breath layer: below 30% stamina, breath becomes audible
         if let (Some(bgn), Some(blfo), Some(blp)) =
             (self.audio.stamina_breath_gain.clone(), self.audio.stamina_breath_lfo.clone(), self.audio.stamina_breath_lp.clone())
         {
@@ -498,33 +498,33 @@ impl Game {
             let target_gain = br_spec.gain * breath_mag;
             let bg = bgn.gain();
             bg.set_value(bg.value() + (target_gain - bg.value()) * (dt * 3.0).min(1.0));
-            // R202 sanity boost: panicked breath cadence without exhaustion
+            // Sanity boost: panicked breath cadence without exhaustion
             let san_frac = self.player.sanity / SAN_MAX;
             let sanity_breath_boost = if san_frac < 0.30 { (1.0 - san_frac / 0.30) * 0.10 } else { 0.0 };
             let target_freq = br_spec.rate_base + br_spec.rate_gain * breath_mag + sanity_breath_boost;
             let bf = blfo.frequency();
             bf.set_value(bf.value() + (target_freq - bf.value()) * (dt * 2.0).min(1.0));
-            // R202 filter sweep 220 → 400 Hz at peak fatigue
+            // Filter sweep 220 → 400 Hz at peak fatigue
             let target_lp = 220.0 + 180.0 * breath_mag;
             let bl = blp.frequency();
             bl.set_value(bl.value() + (target_lp - bl.value()) * (dt * 2.0).min(1.0));
-            // R203 Q sweep 0.4 → 0.7
+            // Q sweep 0.4 → 0.7
             let target_q = 0.4 + 0.3 * breath_mag;
             let bq = blp.q();
             bq.set_value(bq.value() + (target_q - bq.value()) * (dt * 2.0).min(1.0));
-            // R204/R205 sub-osc chest thump gain
+            // Sub-osc chest thump gain
             if let Some(sg) = &self.audio.stamina_breath_sub_gain {
                 let sub_mag = 0f64.max(breath_mag - 0.15) / 0.85;
                 let target_sub = br_spec.sub_gain * sub_mag;
                 let g = sg.gain();
                 g.set_value(g.value() + (target_sub - g.value()) * (dt * 3.0).min(1.0));
             }
-            // R206 sub-osc frequency toward the weather target
+            // Sub-osc frequency toward the weather target
             if let Some(so) = &self.audio.stamina_breath_sub_osc {
                 let sf = so.frequency();
                 sf.set_value(sf.value() + (br_spec.sub_freq - sf.value()) * (dt * 0.8).min(1.0));
             }
-            // R204/R206/R207 pan wander at peak fatigue
+            // Pan wander at peak fatigue
             if let Some(pn) = &self.audio.stamina_breath_panner {
                 let pan_depth = br_spec.pan_depth * breath_mag;
                 let target_pan = (self.perf_t * br_spec.pan_rate).sin() * pan_depth;
@@ -532,9 +532,9 @@ impl Game {
                 pp.set_value(pp.value() + (target_pan - pp.value()) * (dt * 2.0).min(1.0));
             }
         }
-        // (R142, the low-sanity room-tone brightening, is part of the room-tone
+        // (The low-sanity room-tone brightening is part of the room-tone
         // lerp in `update_ambient`)
-        // R103 electric surge tint: inset blue-white halo synced with the surge dim
+        // Electric surge tint: inset blue-white halo synced with the surge dim
         if self.electric_surge_t > 0.0 {
             let fade = self.electric_surge_t / 0.35;
             let alpha = fmt_fixed(0.55 * fade, 2);

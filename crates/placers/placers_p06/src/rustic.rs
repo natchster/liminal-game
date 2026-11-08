@@ -1,5 +1,5 @@
 //! Rustic cabin props: antlers, signs, trophy fish, cuckoo clock, lantern,
-//! cast iron, firewood, wagon wheel, map, bellows (R653–R660).
+//! cast iron, firewood, wagon wheel, map, bellows.
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
 use game::prelude::*;
 
@@ -7,10 +7,10 @@ use game::prelude::*;
 mod t11;
 pub use t11::{place_mounted_antlers, place_mounted_fish};
 
-// R653 fertilizer spikes: made real by batch `t06` (`t06.rs`)
+// Fertilizer spikes: made real by batch `t06` (`t06.rs`)
 pub use crate::t06::place_fertilizer_spikes;
 
-// R654 rustic wooden wall sign: 4% chance per level. Three pine boards
+// Rustic wooden wall sign: 4% chance per level. Three pine boards
 // nailed to two battens, its name burned in, hung by a cord (batch r13a).
 pub fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -230,10 +230,10 @@ fn rustic_board_tex(vary: u32) -> Tex {
     })
 }
 
-// R655 cuckoo clock: 3% chance per level. Chalet body w/ peaked roof + face +
+// Cuckoo clock: 3% chance per level. Chalet body w/ peaked roof + face +
 // pinecone weights.
 pub fn place_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.cuckoo_clock_positions.clear(); // R664 reset per level
+    g.pp.cuckoo_clock_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     } // 3% chance
@@ -292,10 +292,10 @@ pub fn place_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
     cuckoo.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.030), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.030));
     g.world.add(&cuckoo);
     let p = cuckoo.pos();
-    g.pp.cuckoo_clock_positions.push(v3(p.x, 0, p.z)); // R664 track for cuckoo call
+    g.pp.cuckoo_clock_positions.push(v3(p.x, 0, p.z)); // track for cuckoo call
 }
 
-// R655 metal candle lantern: 4% chance per level. Frame + glass panels +
+// Metal candle lantern: 4% chance per level. Frame + glass panels +
 // candle + handle.
 pub fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -350,7 +350,7 @@ pub fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
         let light = point_light!(0xffa040, 0.18, 1.5);
         light.position().y = 0.088;
         lantern.add(&light);
-        // R656 flame flicker animator (rapid noise-like intensity + scale wobble).
+        // Flame flicker animator (rapid noise-like intensity + scale wobble).
         let phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
             // Rapid flicker via combined sines (like turbulent flame).
@@ -369,7 +369,7 @@ pub fn place_candle_lanterns(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lantern);
 }
 
-// R656 hanging horseshoe: 5% chance per level. Wall-mounted U-shape iron shoe
+// Hanging horseshoe: 5% chance per level. Wall-mounted U-shape iron shoe
 // w/ nail holes.
 pub fn place_horseshoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -410,7 +410,7 @@ pub fn place_horseshoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shoe);
 }
 
-// R657 a cast-iron skillet hung on the wall (Blender batch `r16`): a 10 1/4
+// A cast-iron skillet hung on the wall (Blender batch `r16`): a 10 1/4
 // in skillet of the Lodge L8SK3 class, hung by the hole in its handle from
 // a nail, its bottom against the wall and its cooking face to the room; its
 // seasoning gone dull and flaking at the rim, rusted where it was put away
@@ -552,7 +552,7 @@ fn pan_iron_tex(salt: u32) -> Tex {
     })
 }
 
-// R657 wooden staved bucket: 4% chance per level. Barrel-style bucket w/
+// Wooden staved bucket: 4% chance per level. Barrel-style bucket w/
 // vertical staves + metal bands.
 pub fn place_wooden_buckets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -602,7 +602,7 @@ pub fn place_wooden_buckets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bucket);
 }
 
-// R658 hanging cast iron kettle: 3% chance per level. Wall-hung tea kettle w/
+// Hanging cast iron kettle: 3% chance per level. Wall-hung tea kettle w/
 // spout + handle.
 pub fn place_cast_iron_kettles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
@@ -646,7 +646,7 @@ pub fn place_cast_iron_kettles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kettle);
 }
 
-// R659 a stack of firewood (Blender batch `r16`): 3-5 splits of stove wood,
+// A stack of firewood (Blender batch `r16`): 3-5 splits of stove wood,
 // 300 mm long (a quarter of a big round, half a small one, a slab off a big
 // one, a branch round), a bottom row and one or two laid in its grooves as
 // the old stack was; their bark (oak, ash, elm or birch: the old bark
@@ -923,14 +923,14 @@ fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)
     })
 }
 
-// R659 wagon wheel: made real by batch `t19` (`rustic/t19.rs`)
+// Wagon wheel: made real by batch `t19` (`rustic/t19.rs`)
 mod t19;
 pub use t19::place_wagon_wheels;
 
-// R660 framed vintage map (Blender batch `t02`).
+// Framed vintage map (Blender batch `t02`).
 mod t02;
 pub use t02::place_vintage_maps;
 
-// R660 hearth bellows: batch `t20`'s (`rustic/t20.rs`)
+// Hearth bellows: batch `t20`'s (`rustic/t20.rs`)
 mod t20;
 pub use t20::place_bellows;

@@ -14,7 +14,7 @@ const PLANE_H: f64 = 0.50;
 const TEX_W: usize = 512;
 const TEX_H: usize = 427;
 
-/// R512 crayon drawing on a wall: 5% chance per level. A small child's
+/// Crayon drawing on a wall: 5% chance per level. A small child's
 /// drawing in wax crayon (a stick of 8 mm: strokes 5-8 mm wide, broader
 /// where its side filled a shape), low on the wall where the child could
 /// reach: the ground scribbled green, a sun in a corner, the family holding

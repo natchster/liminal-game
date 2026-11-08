@@ -133,7 +133,7 @@ fn t04_glass_mat(map: Tex, name: &str, room: f32, back: [f32; 3], milk: f32, fre
 const SM_GLASS: [f64; 3] = [0.380, 0.482, 0.0172];
 const SM_UNDER: f64 = 0.006;
 
-// R609 soap-smudged wall mirror: 4% chance per level. A 16 x 20 in
+// Soap-smudged wall mirror: 4% chance per level. A 16 x 20 in
 // stainless channel-frame washroom mirror (Blender batch `t04`, the Bradley
 // 781 class) on its hanger: silvered glass that gives back the room's light
 // (`Patch::Glass`), the silver just starting to go at its foot; on its face
@@ -369,7 +369,7 @@ const FW_PANES: [[f64; 4]; 4] =
 const FW_GLASS_Z: f64 = 0.0055;
 const FW_UNDER: f64 = 0.004;
 
-// R611 frosted-glass window: 3% chance per level. A small side-hung casement
+// Frosted-glass window: 3% chance per level. A small side-hung casement
 // of four lights in the wall (Blender batch `t04`): painted softwood, its
 // architrave, window board and apron, the sash with its glazing bars and
 // beads, a cockspur fastener; the glass acid-etched (frosted) so nothing

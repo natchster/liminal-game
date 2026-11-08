@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R532 single glove: 8% chance per level. One work glove lying limp on the
+// Single glove: 8% chance per level. One work glove lying limp on the
 // floor, back up (Blender batch r14a, the glove of `place_dropped_gloves`
 // too): a leather palm glove (canvas back, leather tips, knuckle strap and
 // thumb, a knitted wrist), an all-leather one, or a cotton jersey one.
@@ -71,7 +71,7 @@ pub(super) fn place_single_gloves(g: &mut Game, _dist: &[i32]) {
     g.world.add(&glove);
 }
 
-// R523 single worn boot: 8% chance per level. A 6 in lace-up work boot left on
+// Single worn boot: 8% chance per level. A 6 in lace-up work boot left on
 // the floor, standing or fallen on its side (Blender batch r14a: the shaft
 // and padded collar, the quarters lapped over the vamp, the lug sole, the
 // lace undone from its hooks).

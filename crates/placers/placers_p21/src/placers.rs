@@ -30,7 +30,7 @@ fn pick_hex(a: &[u32]) -> u32 {
     a[(rnd() * a.len() as f64).floor() as usize]
 }
 
-// R521 hospital cross: 4% chance per level. Red + cross box wall-mounted.
+// Hospital cross: 4% chance per level. Red + cross box wall-mounted.
 pub(crate) fn place_hospital_crosses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -60,7 +60,7 @@ pub(crate) fn place_hospital_crosses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cross);
 }
 
-// R521 children's tea set: 5% chance per level. 3-4 mini cups + teapot.
+// Children's tea set: 5% chance per level. 3-4 mini cups + teapot.
 pub(crate) fn place_childrens_tea_sets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -113,7 +113,7 @@ pub(crate) fn place_childrens_tea_sets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R520 coin scatter: 10% chance per level. 5-12 loose coins on floor.
+// Coin scatter: 10% chance per level. 5-12 loose coins on floor.
 pub(crate) fn place_coin_scatters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -142,7 +142,7 @@ pub(crate) fn place_coin_scatters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R519 wedding ring: 6% chance per level. Small gold torus on floor.
+// Wedding ring: 6% chance per level. Small gold torus on floor.
 pub(crate) fn place_wedding_rings(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -220,9 +220,9 @@ fn tide(d: f64, aa: f64, ew: f64) -> f64 {
     (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
 }
 
-// R518 porcelain cup + saucer: 7% chance per level.
+// Porcelain cup + saucer: 7% chance per level.
 pub(crate) fn place_porcelain_cup_saucers(g: &mut Game, _dist: &[i32]) {
-    g.pp.teacup_positions.clear(); // R525 reset per level
+    g.pp.teacup_positions.clear(); // reset per level
     if rnd() < 0.93 {
         return;
     } // 7% chance
@@ -275,12 +275,12 @@ pub(crate) fn place_porcelain_cup_saucers(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &set, x, z, 2.4);
     g.world.add(&set);
-    // R525 track for clink audio.
+    // Track for clink audio.
     let p = set.pos();
     g.pp.teacup_positions.push(v3(p.x, 0.02, p.z));
 }
 
-// R518 broken alarm bell: 4% chance per level. Wall bell dome + dangling clapper.
+// Broken alarm bell: 4% chance per level. Wall bell dome + dangling clapper.
 pub(crate) fn place_alarm_bells(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -323,7 +323,7 @@ pub(crate) fn place_alarm_bells(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bell);
 }
 
-// R517 forgotten wristwatch: 6% chance per level. Watch face + leather band on floor.
+// Forgotten wristwatch: 6% chance per level. Watch face + leather band on floor.
 pub(crate) fn place_forgotten_wristwatches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -363,7 +363,7 @@ pub(crate) fn place_forgotten_wristwatches(g: &mut Game, _dist: &[i32]) {
     g.world.add(&watch);
 }
 
-// R516 rusted nails: 10% chance per level. 6-12 rusted nails scattered on floor.
+// Rusted nails: 10% chance per level. 6-12 rusted nails scattered on floor.
 pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -404,7 +404,7 @@ pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R514 caution tape strip: 5% chance per level. Striped tape on wall.
+// Caution tape strip: 5% chance per level. Striped tape on wall.
 pub(crate) fn place_caution_tapes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -431,7 +431,7 @@ pub(crate) fn place_caution_tapes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tape);
 }
 
-// R513 shattered eyeglasses: 6% chance per level. Frame + lenses + broken temple.
+// Shattered eyeglasses: 6% chance per level. Frame + lenses + broken temple.
 pub(crate) fn place_shattered_eyeglasses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -477,7 +477,7 @@ pub(crate) fn place_shattered_eyeglasses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&glasses);
 }
 
-// R512 wooden mouse trap: 7% chance per level. Wood base + spring bar + cheese.
+// Wooden mouse trap: 7% chance per level. Wood base + spring bar + cheese.
 pub(crate) fn place_mouse_traps(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -517,9 +517,9 @@ pub(crate) fn place_mouse_traps(g: &mut Game, _dist: &[i32]) {
     g.world.add(&trap);
 }
 
-// R511 cassette tape: 8% chance per level. Rectangle w/ 2 spool holes + label.
+// Cassette tape: 8% chance per level. Rectangle w/ 2 spool holes + label.
 pub(crate) fn place_cassette_tapes(g: &mut Game, _dist: &[i32]) {
-    g.pp.cassette_positions.clear(); // R524 reset per level
+    g.pp.cassette_positions.clear(); // reset per level
     if rnd() < 0.92 {
         return;
     } // 8% chance
@@ -552,7 +552,7 @@ pub(crate) fn place_cassette_tapes(g: &mut Game, _dist: &[i32]) {
     }
     scatter_on_floor(g, &cass, x, z, 2.4);
     g.world.add(&cass);
-    // R524 track for hiss audio.
+    // Track for hiss audio.
     let p = cass.pos();
     g.pp.cassette_positions.push(v3(p.x, 0.01, p.z));
 }
@@ -691,7 +691,7 @@ fn dust_film_tex(spots: Vec<(f64, f64, f64)>, hard: bool, vary: u32) -> Tex {
     })
 }
 
-// R509 open coloring book: 6% chance per level. Cover + open spread + crayon.
+// Open coloring book: 6% chance per level. Cover + open spread + crayon.
 pub(crate) fn place_coloring_books(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -725,7 +725,7 @@ pub(crate) fn place_coloring_books(g: &mut Game, _dist: &[i32]) {
     g.world.add(&book);
 }
 
-// R509 loose vinyl record: 8% chance per level. Black disc w/ coloured label.
+// Loose vinyl record: 8% chance per level. Black disc w/ coloured label.
 pub(crate) fn place_vinyl_record_discs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -757,7 +757,7 @@ pub(crate) fn place_vinyl_record_discs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&disc);
 }
 
-// R508 broken picture frame: 6% chance per level. Frame face-down + glass shards.
+// Broken picture frame: 6% chance per level. Frame face-down + glass shards.
 pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -803,7 +803,7 @@ pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R506 rusted tin can: 8% chance per level. Small rusted can, sometimes tipped.
+// Rusted tin can: 8% chance per level. Small rusted can, sometimes tipped.
 pub(crate) fn place_rusted_tin_cans(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;

@@ -54,7 +54,7 @@ fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
     v
 }
 
-// R708 packed suitcase w/ hanging tag (floor): 4% chance per level.
+// Packed suitcase w/ hanging tag (floor): 4% chance per level.
 fn place_packed_suitcases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -188,7 +188,7 @@ fn place_packed_suitcases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&s);
 }
 
-// R709 passport + boarding pass (floor): 6% chance per level.
+// Passport + boarding pass (floor): 6% chance per level.
 game::lazy_static_tex!(
     passport_cover_texture,
     canvas_tex(96, 128, |ctx, w, h| {
@@ -377,7 +377,7 @@ fn place_travel_documents(g: &mut Game, _dist: &[i32]) {
     g.world.add(&td);
 }
 
-// R710 eyeglasses case opened w/ cleaning cloth (floor): 6% chance per level.
+// Eyeglasses case opened w/ cleaning cloth (floor): 6% chance per level.
 fn place_glasses_cases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -474,14 +474,14 @@ fn place_glasses_cases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gc);
 }
 
-// R710 watch on wristband (floor): 7% chance per level. A 38 mm quartz
+// Watch on wristband (floor): 7% chance per level. A 38 mm quartz
 // wristwatch (Blender batch r14b; the Timex Weekender class) lying on its
 // back, unbuckled, its two-piece strap lying out from the lugs, its tip
 // curled: the case plated, worn through at the edges; a domed acrylic
 // crystal, scratched; a printed dial, its hands where they stopped.
 fn place_wristwatches(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;
-    g.pp.wristwatch_positions = vec![]; // R712 reset per level
+    g.pp.wristwatch_positions = vec![]; // reset per level
     if rnd() < 0.93 {
         return;
     }
@@ -505,7 +505,7 @@ fn place_wristwatches(g: &mut Game, _dist: &[i32]) {
     let hour_ang = rnd() * PI * 2.0;
     let min_ang = rnd() * PI * 2.0;
     let sec_ang = rnd() * PI * 2.0;
-    // R711 stepped-tick second hand — 40% chance ("still ticking").
+    // Stepped-tick second hand — 40% chance ("still ticking").
     let is_ticking = rnd() < 0.4;
     let px = g.wx(x) + (rnd() - 0.5) * 2.4;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
@@ -575,14 +575,14 @@ fn place_wristwatches(g: &mut Game, _dist: &[i32]) {
     wg.position().set(px, 0, pz);
     wg.rotation().y = yaw;
     g.world.add(&wg);
-    // R712 register position only for ticking watches.
+    // Register position only for ticking watches.
     if is_ticking {
         let p = wg.pos();
         g.pp.wristwatch_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R711 opened wallet w/ credit cards fanned (floor): 5% chance per level.
+// Opened wallet w/ credit cards fanned (floor): 5% chance per level.
 fn place_opened_wallets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -702,7 +702,7 @@ fn place_opened_wallets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wg);
 }
 
-// R713 opened jewelry box w/ spilled contents (floor): 4% chance per level.
+// Opened jewelry box w/ spilled contents (floor): 4% chance per level.
 fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -719,7 +719,7 @@ fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     let gold_mat = lambert!({ color: 0xc0a060 });
     let silver_mat = lambert!({ color: 0xd0d0d8 });
     let jb = group();
-    // Bottom half — hinged box (larger than R710 glasses case).
+    // Bottom half — hinged box (larger than the glasses case).
     let (box_w, box_d, box_h) = (0.16, 0.11, 0.05);
     let bottom = mesh(pg("JewelryBoxes__base", box_geo!(box_w, box_h, box_d)), &box_mat);
     bottom.position().y = box_h / 2.0 + 0.002;
@@ -844,7 +844,7 @@ fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&jb);
 }
 
-// R713 framed diploma (wall).
+// Framed diploma (wall).
 game::lazy_static_tex!(
     diploma_texture_2,
     canvas_tex(200, 260, |ctx, w, h| {
@@ -1001,9 +1001,9 @@ fn place_formal_diplomas(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dp);
 }
 
-// R714 umbrella stand, R714 boot tray: batch `t07` (t07.rs).
+// Umbrella stand, boot tray: batch `t07` (t07.rs).
 
-// R715 wall hat rack w/ 2-3 hats (wall): 3% chance per level.
+// Wall hat rack w/ 2-3 hats (wall): 3% chance per level.
 fn place_hat_racks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -1109,9 +1109,9 @@ fn place_hat_racks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&rack);
 }
 
-// R715 grandfather clock w/ pendulum (floor near wall): 2% chance per level.
+// Grandfather clock w/ pendulum (floor near wall): 2% chance per level.
 fn place_grandfather_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.grandfather_clock_positions = vec![]; // R717 reset per level
+    g.pp.grandfather_clock_positions = vec![]; // reset per level
     if rnd() < 0.98 {
         return;
     }
@@ -1230,7 +1230,7 @@ fn place_grandfather_clocks(g: &mut Game, _dist: &[i32]) {
     let pz = g.wz(z) + dz as f64 * (CELL * 0.5 - 0.150);
     gc.position().set(px, 0, pz);
     g.world.add(&gc);
-    // R717 register position only for swinging clocks.
+    // Register position only for swinging clocks.
     if is_swinging {
         let p = gc.pos();
         g.pp.grandfather_clock_positions.push(v3(p.x, 0, p.z));

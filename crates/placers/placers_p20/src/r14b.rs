@@ -2,14 +2,14 @@
 //! placers and what only they use.
 use super::*;
 
-// R535 keychain w/ keys: 8% chance per level. A bunch of 3-5 keys on a
+// Keychain w/ keys: 8% chance per level. A bunch of 3-5 keys on a
 // 25 mm split ring, dropped (Blender batch r14b): house keys of the KW1 and
 // SC1 kinds, a padlock key, a small cabinet key, each cut brass, some
 // nickel-plated, lying fanned over one another, their bows bunched on the
 // ring; a metal-rimmed paper tag on it, written on once.
 pub(super) fn place_keychain_keys(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;
-    g.pp.keychain_positions = vec![]; // R543 reset per level
+    g.pp.keychain_positions = vec![]; // reset per level
     if rnd() < 0.92 {
         return;
     } // 8% chance
@@ -42,7 +42,7 @@ pub(super) fn place_keychain_keys(g: &mut Game, _dist: &[i32]) {
         keychain.add(&mesh(geo, lambert!({ map: &r14b_kit::tag_tex(seed) })));
     }
     g.world.add(&keychain);
-    // R543 track for jangle audio.
+    // Track for jangle audio.
     let p = keychain.pos();
     g.pp.keychain_positions.push(v3(p.x, 0.003, p.z));
 }

@@ -10,7 +10,7 @@ use game::prelude::*;
 /// game turns it
 const MAR_L: f64 = 0.133;
 
-/// R434 small maracas: 8% chance per level. A child's pair of maracas
+/// Small maracas: 8% chance per level. A child's pair of maracas
 /// (133 mm, turned beech: a hollow head of 45 mm painted in one lacquer
 /// colour, a bare handle and knob), dropped side by side: lying on the
 /// head and the knob as a maraca lies, the paint faded, chipped to the

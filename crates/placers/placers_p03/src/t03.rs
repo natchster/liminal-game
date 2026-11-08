@@ -12,7 +12,7 @@ fn t03_put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
     Some(m)
 }
 
-// R585 makeup compact: 8% chance per level. A pressed powder compact for a
+// Makeup compact: 8% chance per level. A pressed powder compact for a
 // 59 mm pan (Blender batch `t03`): a moulded case, its lid on a three-knuckle
 // hinge, the catch at the front; shut, or (the old 40%) open, its mirror gone
 // black at the edges and spotted, the powder in its aluminium pan worn into a
@@ -68,7 +68,7 @@ pub(super) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
 /// The compact's hinge pin: its height and how far back (t03.py prints it)
 const T03_HINGE: (f64, f64) = (0.009, -0.0398);
 
-// R603 perfume bottle: 5% chance per level. A 30 ml rectangular flacon
+// Perfume bottle: 5% chance per level. A 30 ml rectangular flacon
 // (Blender batch `t03`): heavy-bottomed glass, the scent left in it gone
 // darker and down to a fifth, a half or three quarters (a dried ring where it
 // stood higher), its dip tube; a crimped spray pump and the square overcap on
@@ -162,7 +162,7 @@ const T03_SCENT: [u32; 5] = [0xb07a2a, 0xa85a6c, 0x6a8cac, 0xb89a2a, 0xb25a4c];
 /// The bulb's silk net: crimson, faded rose, black, old gold
 const T03_SILK: [u32; 4] = [0x6a1a26, 0x8a5a60, 0x262426, 0x7a6430];
 
-// R603 nail polish bottle: 8% chance per level. A 13.5 ml bottle of nail
+// Nail polish bottle: 8% chance per level. A 13.5 ml bottle of nail
 // polish (batch `r18`'s parts): heavy-bottomed square glass, a white screw cap
 // with its brush, the lacquer dried down in it (pooled along its side when it
 // fell over wet), a dried drip down the glass; no maker's name. The old

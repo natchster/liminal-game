@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R502 peeling wallpaper (`assets/src/blender/props/r11b.notes.md`): the
+// Peeling wallpaper (`assets/src/blender/props/r11b.notes.md`): the
 // corner of a drop come away at its seam, lifted off the wall, turned over
 // and hanging, the paper's pale back to the room; behind it the bare wall
 // it was pasted to, stained with the old paste, a pencil plumb line by the

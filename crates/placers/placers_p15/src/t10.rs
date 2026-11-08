@@ -91,7 +91,7 @@ fn sn_inner_r(y: f64) -> f64 {
     SN_A_IN * (1.0 - k * k).max(0.0).sqrt()
 }
 
-// R748 brandy snifter + coaster (floor): 4% chance per level. A 5.5 oz
+// Brandy snifter + coaster (floor): 4% chance per level. A 5.5 oz
 // brandy snifter (Blender batch `t10`, the Libbey Embassy class) with a
 // pour of brandy still in it, trembling, on a coaster (turned wood, cork,
 // stitched leather or dark wood) ringed by years of wet glasses; ash
@@ -164,7 +164,7 @@ pub(super) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
     if let Some(m) = t10_put(&glass, "Real__snifterFoot", &sn_glass_mat(&sn_dust_tex(), 0.9, 0.7)) {
         m.set_render_order(2);
     }
-    // R749 liquid ripple animator.
+    // Liquid ripple animator.
     let surf_base_y = level;
     {
         let surface = surface.clone();

@@ -107,7 +107,7 @@ fn add_parts(body: &Obj, parts: &[(&str, Mat)]) {
     }
 }
 
-// R671 framed landscape: 4% chance per level.
+// Framed landscape: 4% chance per level.
 pub(crate) fn place_abstract_landscapes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -145,7 +145,7 @@ pub(crate) fn place_abstract_landscapes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&painting);
 }
 
-// R673 framed still life: 3% chance per level.
+// Framed still life: 3% chance per level.
 pub(crate) fn place_still_lifes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;

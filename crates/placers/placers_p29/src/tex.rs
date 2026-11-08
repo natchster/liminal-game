@@ -14,7 +14,7 @@ pub fn laptop_screen_textures() -> Vec<Tex> {
                     ("#0a1830", "#a0c8f0", "rgba(160,200,240,0.10)", false),
                     ("#1a1040", "#c0a0f0", "rgba(190,160,240,0.10)", false),
                     ("#301820", "#f0a0a0", "rgba(240,160,160,0.10)", false),
-                    // R325: BSOD variant — classic blue with :( face, error, fake trace.
+                    // BSOD variant — classic blue with :( face, error, fake trace.
                     ("#183090", "#f0f0f0", "rgba(255,255,255,0.05)", true),
                 ];
                 variants
@@ -31,7 +31,7 @@ pub fn laptop_screen_textures() -> Vec<Tex> {
                                 y += 2.0;
                             }
                             if bsod {
-                                // R325 BSOD: sad face + error code + fake stack lines.
+                                // BSOD: sad face + error code + fake stack lines.
                                 ctx.set_fill_style(fg);
                                 ctx.set_font("bold 20px sans-serif");
                                 ctx.set_text_align("left");
@@ -86,7 +86,7 @@ pub fn laptop_screen_textures() -> Vec<Tex> {
     })
 }
 
-// R291 laptop keyboard canvas texture.
+// Laptop keyboard canvas texture.
 game::lazy_static_tex!(
     laptop_keyboard_texture,
     canvas_tex_opt(256, 128, false, |ctx, w, h| {
@@ -450,7 +450,7 @@ pub fn photo_textures() -> Vec<Tex> {
     })
 }
 
-// R300 long-finger-streak canvas — extreme drag variant of handprint.
+// Long-finger-streak canvas — extreme drag variant of handprint.
 game::lazy_static_tex!(
     handdrag_texture,
     canvas_tex_opt(192, 96, false, |ctx, w, h| {
@@ -482,7 +482,7 @@ pub fn handprint_color_by_weather(key: &str) -> u32 {
     by_weather(key, 0x684030, 0x604828, 0x503048, 0x5a3820, 0x807870, 0x684838)
 }
 
-// R298 handprint canvas texture — stylized 5-finger palm print.
+// Handprint canvas texture — stylized 5-finger palm print.
 game::lazy_static_tex!(
     handprint_texture,
     canvas_tex_opt(64, 96, false, |ctx, w, h| {
@@ -504,7 +504,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R297 mirror smudge canvas texture.
+// Mirror smudge canvas texture.
 game::lazy_static_tex!(
     mirror_smudge_texture,
     canvas_tex_opt(128, 192, false, |ctx, w, h| {

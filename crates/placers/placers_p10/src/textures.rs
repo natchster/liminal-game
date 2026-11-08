@@ -1,7 +1,7 @@
 //! Canvas textures shared by this crate's placers (built lazily on the native RNG).
 use game::prelude::*;
 
-// R698 framed hospital birth announcement: pastel-bordered card w/ baby
+// Framed hospital birth announcement: pastel-bordered card w/ baby
 // footprints + hospital info + name + weight/length + time.
 game::lazy_static_tex!(
     birth_announcement_texture,
@@ -95,7 +95,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R700 framed vintage postcard: beach / mountain / cityscape front + stamp.
+// Framed vintage postcard: beach / mountain / cityscape front + stamp.
 game::lazy_static_tex!(
     postcard_texture,
     canvas_tex(240, 160, |ctx, w, h| {
@@ -279,7 +279,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R704 bulletin board w/ pinned photos + notes: cork board w/ mixed pinned
+// Bulletin board w/ pinned photos + notes: cork board w/ mixed pinned
 // items. (Referenced by no placer; kept for completeness, built only if
 // something asks for it.)
 game::lazy_static_tex!(

@@ -1,17 +1,17 @@
 //! Garden shed props: soil, buckets, twine, framed botanicals, bird feeders,
-//! gnome (R645–R652).
+//! gnome.
 use crate::{face_yaw, open_tiles, pick, wall_tiles};
 use game::prelude::*;
 
-// R645 soil bag, R647 seed catalogue, R648 apron, R651 bird bath, R652 gnome:
+// Soil bag, seed catalogue, apron, bird bath, gnome:
 // made real by batch `t06` (`t06.rs`)
 pub use crate::t06::{place_bird_baths, place_garden_aprons, place_garden_gnomes, place_seed_catalogs, place_soil_bags};
 
-// R651 framed botanical: made real by batch `t17` (`garden/t17.rs`)
+// Framed botanical: made real by batch `t17` (`garden/t17.rs`)
 mod t17;
 pub use t17::place_botanicals;
 
-// R646 metal bucket: 5% chance per level. Tapered cylinder pail + curved handle.
+// Metal bucket: 5% chance per level. Tapered cylinder pail + curved handle.
 pub fn place_metal_buckets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -60,7 +60,7 @@ pub fn place_metal_buckets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bucket);
 }
 
-// R646 garden kneeling pad: 7% chance per level. Foam pad w/ handle cutout.
+// Garden kneeling pad: 7% chance per level. Foam pad w/ handle cutout.
 pub fn place_kneeling_pads(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -87,7 +87,7 @@ pub fn place_kneeling_pads(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pad);
 }
 
-// R647 twine ball: 7% chance per level. Wound sphere w/ visible thread wraps +
+// Twine ball: 7% chance per level. Wound sphere w/ visible thread wraps +
 // trailing end.
 pub fn place_twine_balls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -135,7 +135,7 @@ pub fn place_twine_balls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&twine);
 }
 
-// R648 framed pressed flower: 3% chance per level. Small shadow-box w/ pressed
+// Framed pressed flower: 3% chance per level. Small shadow-box w/ pressed
 // flower silhouette.
 game::lazy_static_tex!(
     pressed_flower_texture,
@@ -218,7 +218,7 @@ pub fn place_pressed_flowers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&flower);
 }
 
-// R649 garden tool tote bag: 4% chance per level. Fabric bag w/ tool handles
+// Garden tool tote bag: 4% chance per level. Fabric bag w/ tool handles
 // poking out.
 pub fn place_tote_bags(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -258,7 +258,7 @@ pub fn place_tote_bags(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tote);
 }
 
-// R649 coat hooks pair: 6% chance per level. Small backboard w/ 2 J-hooks.
+// Coat hooks pair: 6% chance per level. Small backboard w/ 2 J-hooks.
 pub fn place_coat_hooks_pair(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -299,7 +299,7 @@ pub fn place_coat_hooks_pair(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R650 hand tool wall pegboard: 3% chance per level. Board w/ hole grid +
+// Hand tool wall pegboard: 3% chance per level. Board w/ hole grid +
 // hanging tool silhouettes.
 game::lazy_static_tex!(
     pegboard_texture,
@@ -380,7 +380,7 @@ pub fn place_tool_pegboards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&peg);
 }
 
-// R650 bird seed feeder: 4% chance per level. Tube feeder w/ perches +
+// Bird seed feeder: 4% chance per level. Tube feeder w/ perches +
 // optional visible seeds.
 pub fn place_bird_feeders(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {

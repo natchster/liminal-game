@@ -600,7 +600,7 @@ impl Game {
             }
             gg.touch();
         });
-        // R769 reflective sheen: two additive bands
+        // Reflective sheen: two additive bands
         let sheen_mat_a = basic_mat!({ color: 0xd0f0ff, transparent: true, opacity: 0.14, blending: AdditiveBlending, depthWrite: false });
         let sheen_a = mesh(plane_geo!(pool_width * 0.85, pool_depth * 0.55), &sheen_mat_a);
         sheen_a.rotation().x = -PI / 2.0;

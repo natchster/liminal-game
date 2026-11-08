@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R530 newspaper stack: 8% chance per level. Three to six dailies kept and
+// Newspaper stack: 8% chance per level. Three to six dailies kept and
 // stacked (Blender batch r15: a Berliner paper folded once, 315 x 235 mm),
 // each a little askew, every other one turned round; the top one's front
 // page printed (a local paper's masthead, a mundane lead, a photograph in

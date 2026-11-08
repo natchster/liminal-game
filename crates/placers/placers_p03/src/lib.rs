@@ -116,9 +116,9 @@ fn tri_geo(verts: Vec<f32>, idx: Vec<u32>) -> Geo {
     geom
 }
 
-// R582 ceiling smoke detector: 6% chance per level. Round puck on ceiling + red status LED.
+// Ceiling smoke detector: 6% chance per level. Round puck on ceiling + red status LED.
 fn place_smoke_detectors(g: &mut Game, _dist: &[i32]) {
-    g.pp.smoke_detector_positions.clear(); // R584 reset per level
+    g.pp.smoke_detector_positions.clear(); // reset per level
     if rnd() < 0.94 {
         return;
     } // 6% chance
@@ -137,7 +137,7 @@ fn place_smoke_detectors(g: &mut Game, _dist: &[i32]) {
     let led = mesh(sphere_geo!(0.003, 6, 4), basic_mat!({ color: 0xff2020 }));
     led.position().set(0.030, ceil_y - 0.030, 0.030);
     det.add(&led);
-    // R583 slow LED throb (0.4 Hz).
+    // Slow LED throb (0.4 Hz).
     let phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         let pulse = 0.7 + 0.3 * (t * 2.5 + phase).sin();
@@ -147,10 +147,10 @@ fn place_smoke_detectors(g: &mut Game, _dist: &[i32]) {
     det.position().set(px, 0, pz);
     g.world.add(&det);
     let p = det.pos();
-    g.pp.smoke_detector_positions.push(v3(p.x, ceil_y, p.z)); // R584 track for chirp
+    g.pp.smoke_detector_positions.push(v3(p.x, ceil_y, p.z)); // track for chirp
 }
 
-// R584 dental floss container: 8% chance per level.
+// Dental floss container: 8% chance per level.
 fn place_floss_containers(g: &mut Game, _dist: &[i32]) {
     // A 50 m dental floss dispenser (batch `r18`): a moulded polypropylene box
     // and its flip lid, the steel cutter in the lid, lying on its back; its
@@ -192,11 +192,11 @@ fn place_floss_containers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&floss);
 }
 
-// R585 makeup compact, R603 perfume bottle and nail polish: batch `t03`'s (`t03.rs`)
+// Makeup compact, perfume bottle and nail polish: batch `t03`'s (`t03.rs`)
 mod t03;
 use t03::{place_makeup_compacts, place_nail_polish, place_perfume_bottles};
 
-// R586 exit-arrow sign: 5% chance per level. Small green directional sign w/ white arrow.
+// Exit-arrow sign: 5% chance per level. Small green directional sign w/ white arrow.
 fn place_exit_arrow_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -222,7 +222,7 @@ fn place_exit_arrow_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sign);
 }
 
-// R587 shoe box: 5% chance per level. A two-piece chipboard box a pair of
+// Shoe box: 5% chance per level. A two-piece chipboard box a pair of
 // men's shoes came in, its lid on or (35%) off and lying beside it, tissue
 // paper left crumpled in it (Blender batch r14a: the doubled walls, a
 // corner of the lid trodden in, its end label, the lid's print).
@@ -494,7 +494,7 @@ fn r14a_box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
     })
 }
 
-// R588 crumpled tissue paper: 10% chance per level.
+// Crumpled tissue paper: 10% chance per level.
 fn place_crumpled_tissues(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -515,7 +515,7 @@ fn place_crumpled_tissues(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tissue);
 }
 
-// R589 dirt clod cluster: 8% chance per level. 3-6 small brown clumps.
+// Dirt clod cluster: 8% chance per level. 3-6 small brown clumps.
 fn place_dirt_clods(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -538,7 +538,7 @@ fn place_dirt_clods(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R590 pebble cluster: 8% chance per level.
+// Pebble cluster: 8% chance per level.
 fn place_pebbles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -561,7 +561,7 @@ fn place_pebbles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R590 broken glass shards: 5% chance per level. Small angular triangles on floor.
+// Broken glass shards: 5% chance per level. Small angular triangles on floor.
 fn place_glass_shards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -588,7 +588,7 @@ fn place_glass_shards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R591 paper airplane: 5% chance per level. A dart folded from a sheet of
+// Paper airplane: 5% chance per level. A dart folded from a sheet of
 // A4 (Blender batch r15: 297 mm long, its wings 61 mm each), flown into
 // something nose first and left where it fell, its wings gone soft, on its
 // keel and a wing tip; a typed page or a sheet of coloured paper, dusty.
@@ -616,7 +616,7 @@ fn place_paper_airplanes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&plane);
 }
 
-// R591 keyring w/ keys: 6% chance per level. Metal ring + 2-3 keys.
+// Keyring w/ keys: 6% chance per level. Metal ring + 2-3 keys.
 fn place_keyring_with_keys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -656,7 +656,7 @@ fn place_keyring_with_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ring);
 }
 
-// R594 fallen bird feather: 7% chance per level.
+// Fallen bird feather: 7% chance per level.
 fn place_feathers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -683,7 +683,7 @@ fn place_feathers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&feather);
 }
 
-// R595 mushroom cluster: 5% chance per level.
+// Mushroom cluster: 5% chance per level.
 fn place_mushrooms(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -713,7 +713,7 @@ fn place_mushrooms(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R595 dandelion puff: 6% chance per level. Fluffy white sphere w/ stem.
+// Dandelion puff: 6% chance per level. Fluffy white sphere w/ stem.
 fn place_dandelions(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -747,14 +747,14 @@ fn place_dandelions(g: &mut Game, _dist: &[i32]) {
     let base_z = (rnd() - 0.5) * 0.2;
     dandelion.rotation().z = base_z; // slight lean
     g.world.add(&dandelion);
-    // R633 gentle dandelion sway animator.
+    // Gentle dandelion sway animator.
     let phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         dandelion.rotation().z = base_z + (t * 0.35 + phase).sin() * 0.05;
     });
 }
 
-// R602 eyeshadow palette: 7% chance per level. Case w/ colored pans, sometimes open.
+// Eyeshadow palette: 7% chance per level. Case w/ colored pans, sometimes open.
 fn place_eyeshadow_palettes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -800,7 +800,7 @@ fn place_eyeshadow_palettes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&palette);
 }
 
-// R604 mascara wand: 7% chance per level. Tube + optional separated brush wand.
+// Mascara wand: 7% chance per level. Tube + optional separated brush wand.
 fn place_mascaras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -846,7 +846,7 @@ fn place_mascaras(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mascara);
 }
 
-// R604 bobby pin cluster: 9% chance per level. 4-8 tiny U-shaped hair pins.
+// Bobby pin cluster: 9% chance per level. 4-8 tiny U-shaped hair pins.
 fn place_bobby_pins(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
         return;
@@ -881,7 +881,7 @@ fn place_bobby_pins(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R605 cotton pads cluster: 8% chance per level. 3-6 flat circular pads.
+// Cotton pads cluster: 8% chance per level. 3-6 flat circular pads.
 fn place_cotton_pads(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -903,7 +903,7 @@ fn place_cotton_pads(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R605 makeup brush: 7% chance per level. Handle + ferrule + bristle head.
+// Makeup brush: 7% chance per level. Handle + ferrule + bristle head.
 fn place_makeup_brushes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -944,7 +944,7 @@ fn place_makeup_brushes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&brush);
 }
 
-// R606 hair claw clip: 7% chance per level. Two-jaw claw shape on floor.
+// Hair claw clip: 7% chance per level. Two-jaw claw shape on floor.
 fn place_hair_claws(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -979,7 +979,7 @@ fn place_hair_claws(g: &mut Game, _dist: &[i32]) {
     g.world.add(&clip);
 }
 
-// R606 tweezers: 7% chance per level. Two thin metal arms meeting at a point.
+// Tweezers: 7% chance per level. Two thin metal arms meeting at a point.
 fn place_tweezers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;

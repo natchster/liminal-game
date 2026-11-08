@@ -43,9 +43,9 @@ fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
     v
 }
 
-// R743 wingback armchair (floor): 2% chance per level.
+// Wingback armchair (floor): 2% chance per level.
 fn place_wingback_armchairs(g: &mut Game, _dist: &[i32]) {
-    g.pp.wingback_armchair_positions.clear(); // R747 reset per level
+    g.pp.wingback_armchair_positions.clear(); // reset per level
     if rnd() < 0.98 {
         return;
     }
@@ -108,7 +108,7 @@ fn place_wingback_armchairs(g: &mut Game, _dist: &[i32]) {
         let throw_h = mesh(pg("WingbackArmchairs__throwTop", box_geo!(0.13, 0.010, seat_d * 0.7)), &throw_mat);
         throw_h.position().set(side * (seat_w * 0.5 + 0.070), seat_y + seat_t / 2.0 + 0.300, 0.02);
         wa.add(&throw_h);
-        // R748 Hanging subgroup — pivots at top for pendulum sway.
+        // Hanging subgroup — pivots at top for pendulum sway.
         let hang_group = group();
         hang_group.position().set(side * (seat_w * 0.5 + 0.130), seat_y + seat_t / 2.0 + 0.300, 0.02);
         wa.add(&hang_group);
@@ -121,7 +121,7 @@ fn place_wingback_armchairs(g: &mut Game, _dist: &[i32]) {
             tassel.position().set(0, -0.22, (i as f64 - 1.0) * 0.014);
             hang_group.add(&tassel);
         }
-        // R748 breeze-sway animator — very slight pendulum motion.
+        // Breeze-sway animator — very slight pendulum motion.
         let sway_freq = 0.35 + rnd() * 0.25;
         let sway_phase = rnd() * PI * 2.0;
         g.animate(move |_g, _dt, t| {
@@ -141,10 +141,10 @@ fn place_wingback_armchairs(g: &mut Game, _dist: &[i32]) {
     wa.rotation().y = rnd() * PI * 2.0;
     g.world.add(&wa);
     let p = wa.pos();
-    g.pp.wingback_armchair_positions.push(v3(p.x, 0, p.z)); // R747
+    g.pp.wingback_armchair_positions.push(v3(p.x, 0, p.z));
 }
 
-// R745 open book on chair arm (floor): 5% chance per level.
+// Open book on chair arm (floor): 5% chance per level.
 fn place_chair_arm_books(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -256,7 +256,7 @@ fn place_chair_arm_books(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cab);
 }
 
-// R746 ottoman / footstool (floor): 4% chance per level.
+// Ottoman / footstool (floor): 4% chance per level.
 fn place_ottomans(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -331,15 +331,15 @@ fn place_ottomans(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ot);
 }
 
-// R746 the humidor and R751 the pocket watch: batch `t20`'s (`t20.rs`)
+// The humidor and the pocket watch: batch `t20`'s (`t20.rs`)
 mod t20;
 use t20::{place_humidors, place_pocket_watches};
 
-// R748 brandy snifter: batch `t10`'s (`t10.rs`)
+// Brandy snifter: batch `t10`'s (`t10.rs`)
 mod t10;
 use t10::place_brandy_snifters;
 
-// R749 partial letter texture: mid-word interruption pattern.
+// Partial letter texture: mid-word interruption pattern.
 game::lazy_static_tex!(
     partial_letter_texture,
     canvas_tex(180, 220, |ctx, w, h| {
@@ -432,7 +432,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R749 fountain pen + inkwell + partially-written letter (floor): 4% chance.
+// Fountain pen + inkwell + partially-written letter (floor): 4% chance.
 fn place_inkwell_letters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -481,7 +481,7 @@ fn place_inkwell_letters(g: &mut Game, _dist: &[i32]) {
     let ink_drop_base_y = -0.001;
     ink_drop.position().set(barrel_len * 0.62, ink_drop_base_y, 0);
     pen.add(&ink_drop);
-    // R750 ink drop grow+drop animator.
+    // Ink drop grow+drop animator.
     let drop_cycle = 6.0 + rnd() * 4.0;
     let drop_phase = rnd() * drop_cycle;
     g.animate(move |_g, _dt, t| {
@@ -558,7 +558,7 @@ fn place_inkwell_letters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&iw);
 }
 
-// R750 silver serving tray with optional teacups + biscuits + sugar bowl (floor): 4%.
+// Silver serving tray with optional teacups + biscuits + sugar bowl (floor): 4%.
 fn place_silver_trays(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -623,7 +623,7 @@ fn place_silver_trays(g: &mut Game, _dist: &[i32]) {
             tea_surf.rotation().x = -PI / 2.0;
             tea_surf.position().set((fi - 0.5) * 0.08, 0.0422, -0.03);
             st.add(&tea_surf);
-            // R751 steam wisp animator (60% per cup).
+            // Steam wisp animator (60% per cup).
             if rnd() < 0.6 {
                 let tea_steam_mat = basic_mat!({ color: 0xf0f0f0, transparent: true, opacity: 0.16 });
                 struct Wisp {

@@ -161,7 +161,7 @@ static CHILD: [(f64, f64); 31] = [
 const NAMES: [[&str; 2]; 3] =
     [["Mr. Jas. Holt, 1834", "Wm. Ashby, aet. 41"], ["Eliza Ann, aet. 23", "Mrs. Pell, 1839"], ["Little Mary", "Thos., aet. 6"]];
 
-// R744 silhouette portrait (wall): 3% chance per level. A cut-paper
+// Silhouette portrait (wall): 3% chance per level. A cut-paper
 // silhouette of the 1830s-60s in its oval frame, 18 x 22 cm, hung by its
 // ring a little askew (the old tilt's draw, now about its hook).
 pub(crate) fn place_silhouette_portraits(g: &mut Game, _dist: &[i32]) {

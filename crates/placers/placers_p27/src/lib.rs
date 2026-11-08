@@ -117,7 +117,7 @@ fn tri_geo(v: [f64; 9], idx: [u32; 3]) -> Geo {
     geo
 }
 
-// R407 wall emergency flashlight: 12% chance per level. Small dark
+// Wall emergency flashlight: 12% chance per level. Small dark
 // bracket + flashlight cylinder held horizontally on wall.
 fn place_wall_flashlights(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -158,7 +158,7 @@ fn place_wall_flashlights(g: &mut Game, _dist: &[i32]) {
     g.world.add(&fl);
 }
 
-// R405 vintage typewriter: 10% chance per level. Box + slanted key
+// Vintage typewriter: 10% chance per level. Box + slanted key
 // area + paper roller + platen. Very institutional/office vintage.
 fn place_typewriters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -196,7 +196,7 @@ fn place_typewriters(g: &mut Game, _dist: &[i32]) {
     tw.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
     tw.rotation().y = rnd() * PI * 2.0;
     g.world.add(&tw);
-    // R406 30% chance: 3-4 typed paper sheets scattered on floor.
+    // 30% chance: 3-4 typed paper sheets scattered on floor.
     if rnd() < 0.30 {
         let psheet_count = 3 + (rnd() * 2.0).floor() as i32;
         for _ps in 0..psheet_count {
@@ -212,14 +212,14 @@ fn place_typewriters(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R405 twin-bell alarm clock: 12% chance per level. A wind-up twin-bell
+// Twin-bell alarm clock: 12% chance per level. A wind-up twin-bell
 // alarm clock (Blender batch r14b: a 104 mm drum of painted steel on two
 // splayed feet, two bells and their hammer, a carrying handle, the wind keys
 // at its back), its printed dial yellowed behind a domed glass, its hands
 // stopped where it ran down; the paint chipped to rust.
 fn place_alarm_clocks(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;
-    g.pp.alarm_clock_positions = vec![]; // R406 reset per level
+    g.pp.alarm_clock_positions = vec![]; // reset per level
     if rnd() < 0.88 {
         return;
     } // 12% chance
@@ -272,12 +272,12 @@ fn place_alarm_clocks(g: &mut Game, _dist: &[i32]) {
         clock.add(&glass);
     }
     g.world.add(&clock);
-    // R406 track alarm clock position for rare ring audio events.
+    // Track alarm clock position for rare ring audio events.
     let cp = clock.pos();
     g.pp.alarm_clock_positions.push(v3(cp.x, 0.08, cp.z));
 }
 
-// R404 small clock radio: 12% chance per level. Block with tuning
+// Small clock radio: 12% chance per level. Block with tuning
 // dial + LED digital display. Classic bedside device.
 fn place_clock_radios(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -315,7 +315,7 @@ fn place_clock_radios(g: &mut Game, _dist: &[i32]) {
     g.world.add(&radio);
 }
 
-// R404 wall barometer: 10% chance per level. Tall dark-wood case
+// Wall barometer: 10% chance per level. Tall dark-wood case
 // with dial face + 2 hanging weights below.
 fn place_wall_barometers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -366,8 +366,8 @@ fn place_wall_barometers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&barometer);
 }
 
-// R402 small wall watch: 12% chance per level. Tiny 8-cm circle
-// on wall — differs from R253 20-cm analog clock and R400 digital.
+// Small wall watch: 12% chance per level. Tiny 8-cm circle
+// on wall — differs from the 20-cm analog clock and the digital one.
 fn place_wall_watches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
         return;
@@ -384,7 +384,7 @@ fn place_wall_watches(g: &mut Game, _dist: &[i32]) {
     let watch_height = 1.6 + rnd() * 0.30;
     wall_mount(&watch, &c, wall_x, wall_z, watch_height, 1.0);
     g.world.add(&watch);
-    // R403 10% chance: cracked-glass overlay atop watch face.
+    // 10% chance: cracked-glass overlay atop watch face.
     if rnd() < 0.10 {
         let wc_mat = basic_mat!({ map: cracked_glass_texture(), transparent: true, depthWrite: false, side: DoubleSide });
         let wcrack = mesh(plane_geo!(0.08, 0.08), &wc_mat);
@@ -398,11 +398,11 @@ fn place_wall_watches(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R400 digital wall clock: 15% chance per level. Small black
-// rectangle with red LED time display. Distinct from R253 analog
+// Digital wall clock: 15% chance per level. Small black
+// rectangle with red LED time display. Distinct from the analog
 // wall clock.
 fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.digital_clock_positions = vec![]; // R402 reset per level
+    g.pp.digital_clock_positions = vec![]; // reset per level
     if rnd() < 0.85 {
         return;
     } // 15% chance
@@ -420,10 +420,10 @@ fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
     wall_mount(&dc, &c, wall_x, wall_z, dc_height, 1.0);
     dc.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&dc);
-    // R402 track digital clock position for periodic mains-hum audio.
+    // Track digital clock position for periodic mains-hum audio.
     let dp = dc.pos();
     g.pp.digital_clock_positions.push(v3(dp.x, dc_height, dp.z));
-    // R401 40% chance: brief LED flicker animator (opacity/tint dip
+    // 40% chance: brief LED flicker animator (opacity/tint dip
     // simulating glitching digital display).
     if rnd() < 0.40 {
         // Convert to transparent material for opacity control.
@@ -445,7 +445,7 @@ fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
             }
         });
     }
-    // R403 25% chance: 1-2 sibling digital clocks 0.28-0.36 m in row.
+    // 25% chance: 1-2 sibling digital clocks 0.28-0.36 m in row.
     if rnd() < 0.25 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         let sib_dir = if rnd() < 0.5 { -1.0 } else { 1.0 };
@@ -462,7 +462,7 @@ fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
             g.pp.digital_clock_positions.push(v3(sp.x, dc_height, sp.z));
         }
     }
-    // R401 50% chance: small power cord from clock bottom running
+    // 50% chance: small power cord from clock bottom running
     // down to floor. Reads as "clock is plugged into unseen socket".
     if rnd() < 0.50 {
         let cord_mat = lambert!({ color: 0x181410 });
@@ -477,7 +477,7 @@ fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R395 wall no-smoking sign: 15% chance per level. Small round sign
+// Wall no-smoking sign: 15% chance per level. Small round sign
 // with pictogram + red slash. Institutional signage.
 fn place_no_smoking_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -498,7 +498,7 @@ fn place_no_smoking_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sign);
 }
 
-// R398 small ceramic bowl: 10% chance per level. Shallow wide
+// Small ceramic bowl: 10% chance per level. Shallow wide
 // cylinder with dark interior disc.
 fn place_ceramic_bowls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -517,7 +517,7 @@ fn place_ceramic_bowls(g: &mut Game, _dist: &[i32]) {
     let body = mesh(pg("CeramicBowls__bowl", cyl_geo!(0.06, 0.045, 0.04, 12)), &bowl_mat);
     body.position().y = 0.020;
     bowl.add(&body);
-    // R399 40% chance liquid disc replaces empty interior.
+    // 40% chance liquid disc replaces empty interior.
     if rnd() < 0.40 {
         let b_liq_colors = [0x8a5030, 0xa06840, 0x605a30, 0x3a2818]; // soup/tea/water/broth
         let b_liq_mat = lambert!({ color: b_liq_colors[pick(b_liq_colors.len())] });
@@ -536,7 +536,7 @@ fn place_ceramic_bowls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bowl);
 }
 
-// R396 ceramic mug: 12% chance per level. Straight-walled cylinder
+// Ceramic mug: 12% chance per level. Straight-walled cylinder
 // mug + curved handle.
 fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -551,7 +551,7 @@ fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     let mug_mat = lambert!({ color: mug_colors[pick(mug_colors.len())] });
     let inside_mat = lambert!({ color: 0x0a0806 });
     let mug = group();
-    // R399 25% chance: sit mug on a matching saucer plate.
+    // 25% chance: sit mug on a matching saucer plate.
     let has_saucer = rnd() < 0.25;
     let mut body_y = 0.045;
     if has_saucer {
@@ -564,7 +564,7 @@ fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     let body = mesh(pg("CeramicMugs__body", cyl_geo!(0.036, 0.036, 0.09, 12)), &mug_mat);
     body.position().y = body_y;
     mug.add(&body);
-    // R397 40% chance liquid disc replaces dark empty interior.
+    // 40% chance liquid disc replaces dark empty interior.
     let has_liquid = rnd() < 0.40;
     if has_liquid {
         let liquid_colors = [0x2a1810, 0x4a3018, 0x1a0a08, 0x8a6030]; // coffee/tea/dark/light-tea
@@ -587,7 +587,7 @@ fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     mug.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     mug.rotation().y = rnd() * PI * 2.0;
     g.world.add(&mug);
-    // R398 25% chance: small tea/coffee stain on floor nearby.
+    // 25% chance: small tea/coffee stain on floor nearby.
     if rnd() < 0.25 {
         let stain_colors = [0x2a1810, 0x4a3018, 0x1a0a08, 0x5a3818];
         let stain_mat = basic_mat!({ color: stain_colors[pick(stain_colors.len())], transparent: true, opacity: 0.55, depthWrite: false });
@@ -601,7 +601,7 @@ fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
         tea_stain.position().set(mp.x + s_ang.cos() * s_rad, 0.004, mp.z + s_ang.sin() * s_rad);
         g.world.add(&tea_stain);
     }
-    // R397 20% chance: 1-2 sibling mugs nearby (break room scene).
+    // 20% chance: 1-2 sibling mugs nearby (break room scene).
     if rnd() < 0.20 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         for _s in 0..sib_count {
@@ -616,7 +616,7 @@ fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R395 small trophy: 10% chance per level. Gold cup + base on floor.
+// Small trophy: 10% chance per level. Gold cup + base on floor.
 fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -634,7 +634,7 @@ fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
     let base = mesh(pg("SmallTrophies__base", box_geo!(0.10, 0.03, 0.10)), &base_mat);
     base.position().y = 0.015;
     trophy.add(&base);
-    // R400 small gold plaque on front face with tiny dark engraving lines.
+    // Small gold plaque on front face with tiny dark engraving lines.
     let plaque = mesh(pg("SmallTrophies__plaque", plane_geo!(0.07, 0.020)), &plaque_mat);
     plaque.position().set(0, 0.020, 0.051);
     trophy.add(&plaque);
@@ -665,7 +665,7 @@ fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
     }
     trophy.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     trophy.rotation().y = rnd() * PI * 2.0;
-    // R396 30% chance: trophy lies on side (Z-rotated 90°).
+    // 30% chance: trophy lies on side (Z-rotated 90°).
     if rnd() < 0.30 {
         trophy.rotation().z = PI / 2.0 * (if rnd() < 0.5 { -1.0 } else { 1.0 });
         trophy.position().y = 0.10; // roughly cup diameter above floor
@@ -673,7 +673,7 @@ fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
     g.world.add(&trophy);
 }
 
-// R392 wall analog gauge: 15% chance per level. Small circular
+// Wall analog gauge: 15% chance per level. Small circular
 // gauge on wall — pressure/temperature reading dial.
 fn place_wall_gauges(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -691,7 +691,7 @@ fn place_wall_gauges(g: &mut Game, _dist: &[i32]) {
     let gauge_height = 1.5 + rnd() * 0.30;
     wall_mount(&gauge, &c, wall_x, wall_z, gauge_height, 1.0);
     g.world.add(&gauge);
-    // R394 30% chance: 1-2 sibling gauges 0.24-0.30 m apart in row.
+    // 30% chance: 1-2 sibling gauges 0.24-0.30 m apart in row.
     if rnd() < 0.30 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         let sib_dir = if rnd() < 0.5 { -1.0 } else { 1.0 };
@@ -708,7 +708,7 @@ fn place_wall_gauges(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R390 wall calendar: 20% chance per level, 1 unit. Small
+// Wall calendar: 20% chance per level, 1 unit. Small
 // paper-hanging calendar with visible date grid.
 fn place_wall_calendars(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
@@ -728,7 +728,7 @@ fn place_wall_calendars(g: &mut Game, _dist: &[i32]) {
     // Slight crooked hang.
     cal.rotation().z = (rnd() - 0.5) * 0.08;
     g.world.add(&cal);
-    // R391 30% chance: X marks across some day cells + torn bottom-
+    // 30% chance: X marks across some day cells + torn bottom-
     // corner triangle. X marks read as "counting down days".
     if rnd() < 0.30 {
         // 4-6 X marks in random cells.
@@ -770,10 +770,10 @@ fn place_wall_calendars(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R356 wall thermostat: 20% chance per level, 1 unit. Small rectangular
+// Wall thermostat: 20% chance per level, 1 unit. Small rectangular
 // beige control panel with tiny dial.
 fn place_wall_thermostats(g: &mut Game, _dist: &[i32]) {
-    g.pp.thermostat_positions = vec![]; // R357 reset per level
+    g.pp.thermostat_positions = vec![]; // reset per level
     if rnd() < 0.80 {
         return;
     } // 20% chance
@@ -803,10 +803,10 @@ fn place_wall_thermostats(g: &mut Game, _dist: &[i32]) {
     let thermo_height = 1.4 + rnd() * 0.15;
     wall_mount(&thermo, &c, wall_x, wall_z, thermo_height, 1.0);
     g.world.add(&thermo);
-    // R357 track thermostat position for click audio events.
+    // Track thermostat position for click audio events.
     let tp = thermo.pos();
     g.pp.thermostat_positions.push(v3(tp.x, thermo_height, tp.z));
-    // R357 30% chance: subtle readout flicker animator — brief dim
+    // 30% chance: subtle readout flicker animator — brief dim
     // dips simulating an aged LCD glitching.
     if rnd() < 0.30 {
         let _readout_base_op = readout_mat.opacity_v();
@@ -833,7 +833,7 @@ fn place_wall_thermostats(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R358 empty picture frame leaning against wall: 15% chance per
+// Empty picture frame leaning against wall: 15% chance per
 // level. 4 thin frame planes + hollow center.
 fn place_leaning_frames(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -887,7 +887,7 @@ fn place_leaning_frames(g: &mut Game, _dist: &[i32]) {
     g.world.add(&frame);
 }
 
-// R375 broken window frame: 15% chance per level. The lower sash of an old
+// Broken window frame: 15% chance per level. The lower sash of an old
 // timber double-hung window (Blender batch `r09`), taken out and left
 // leaning on a wall, two over two lights: its white paint gone cream and
 // peeling to the grey wood, the putty cracked, a few shards of its glass
@@ -949,7 +949,7 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
     let back = out - 0.010;
     sash.position().set(mx - c.dx as f64 * back, SASH_T * lean_a.sin(), mz - c.dz as f64 * back);
     g.world.add(&sash);
-    // R379 30% chance: a damp streak down the wall behind it, from above
+    // 30% chance: a damp streak down the wall behind it, from above
     // to the floor, soft and uneven, a tide line at its foot
     let mut has_streak_under_window = false;
     if rnd() < 0.30 {
@@ -963,7 +963,7 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         g.world.add(&ws);
         has_streak_under_window = true;
     }
-    // R380 40% chance (if streak present): the wet at its foot, soaked into the floor
+    // 40% chance (if streak present): the wet at its foot, soaked into the floor
     if has_streak_under_window && rnd() < 0.40 {
         let (wp_color, _) = by_weather(
             g.weather_key(),
@@ -984,7 +984,7 @@ fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
         wet.position().set(mx - c.dx as f64 * 0.16, 0.002, mz - c.dz as f64 * 0.16);
         g.world.add(&wet);
     }
-    // R376 4-7 shards of its glass on the floor in front of it
+    // 4-7 shards of its glass on the floor in front of it
     let ws_count = 4 + (rnd() * 4.0).floor() as i32;
     for _sh in 0..ws_count {
         let (w, h) = (0.014 + rnd() * 0.026, 0.018 + rnd() * 0.028);
@@ -1281,7 +1281,7 @@ fn sash_wet_tex(col: u32) -> Tex {
     })
 }
 
-// R393 wooden broom: 12% chance per level. Thin wooden pole +
+// Wooden broom: 12% chance per level. Thin wooden pole +
 // bristle head, leaning against wall.
 fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -1325,7 +1325,7 @@ fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
     // Head (bottom at 0.02) down on the floor: its wall-side bottom edge is lowest.
     broom.position().y = -(0.02 * lean.cos() - 0.025 * lean.sin());
     g.world.add(&broom);
-    // R394 25% chance: small dark dust pile beside bristle head.
+    // 25% chance: small dark dust pile beside bristle head.
     if rnd() < 0.25 {
         let dust_mat = lambert!({ color: 0x3a3028 });
         let dust_pile = mesh(pg("WoodenBrooms__dust", sphere_geo!(0.05 + rnd() * 0.03, 6, 4)), &dust_mat);
@@ -1339,7 +1339,7 @@ fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R391 small wooden ladder: 12% chance per level. 2 vertical rails
+// Small wooden ladder: 12% chance per level. 2 vertical rails
 // + 4 horizontal rungs, leaning against wall.
 fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -1382,7 +1382,7 @@ fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
         ladder.position().set(g.wx(c.x) + (rnd() - 0.5) * 1.0, 0, wall_z);
     }
     g.world.add(&ladder);
-    // R392 25% chance: small paint bucket at ladder base.
+    // 25% chance: small paint bucket at ladder base.
     if rnd() < 0.25 {
         let bucket_colors = [0x8a8880, 0x707070, 0xa08040];
         let paint_bucket_mat = lambert!({ color: bucket_colors[pick(bucket_colors.len())] });
@@ -1409,7 +1409,7 @@ fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
         paint_bucket.position().set(lp.x + pfx + (rnd() - 0.5) * 0.15, 0, lp.z + pfz + (rnd() - 0.5) * 0.15);
         paint_bucket.rotation().y = rnd() * PI * 2.0;
         g.world.add(&paint_bucket);
-        // R393 25% chance: colored paint spill stain 0.2-0.4 m from bucket.
+        // 25% chance: colored paint spill stain 0.2-0.4 m from bucket.
         if rnd() < 0.25 {
             let paint_colors = [0xe0e0e0, 0x505050, 0x8a4028, 0xe0d0a0]; // white, gray, rust, tan
             let spill_mat =
@@ -1427,10 +1427,10 @@ fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R389 small handbell: 10% chance per level. Brass dome + wooden
+// Small handbell: 10% chance per level. Brass dome + wooden
 // handle + tiny inner clapper.
 fn place_small_handbells(g: &mut Game, _dist: &[i32]) {
-    g.pp.handbell_positions = vec![]; // R390 reset per level
+    g.pp.handbell_positions = vec![]; // reset per level
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -1471,12 +1471,12 @@ fn place_small_handbells(g: &mut Game, _dist: &[i32]) {
     bell.position().z = g.wz(z) + (rnd() - 0.5) * 2.4;
     bell.rotation().y = rnd() * PI * 2.0;
     g.world.add(&bell);
-    // R390 track handbell position for rare chime audio events.
+    // Track handbell position for rare chime audio events.
     let bp = bell.pos();
     g.pp.handbell_positions.push(v3(bp.x, 0.05, bp.z));
 }
 
-// R386 wooden crate: 15% chance per level. A nailed slatted crate of rough
+// Wooden crate: 15% chance per level. A nailed slatted crate of rough
 // sawn pine gone grey (Blender batch `r09`): its boards with gaps between
 // them nailed to corner posts, a slatted lid, wood wool packed inside;
 // stencilled on its long sides. Now and then a board stove in, splinters and
@@ -1502,7 +1502,7 @@ fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
     crate_.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     crate_.rotation().y = rnd() * PI * 2.0;
     g.world.add(&crate_);
-    // R388 20% chance: one or two boards stove in (a face, a board), wood
+    // 20% chance: one or two boards stove in (a face, a board), wood
     // wool pulled out through the hole
     let has_broken_holes = rnd() < 0.20;
     if has_broken_holes {
@@ -1556,7 +1556,7 @@ fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
             }
         }
     }
-    // R389 if broken holes: 50% chance 4-6 splinters of the board and tufts
+    // If broken holes: 50% chance 4-6 splinters of the board and tufts
     // of wood wool on the floor by it
     if has_broken_holes && rnd() < 0.50 {
         let pellet_count = 4 + (rnd() * 3.0).floor() as i32;
@@ -1584,7 +1584,7 @@ fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
             g.world.add(&bit);
         }
     }
-    // R387 25% chance: a smaller crate stacked on its lid (freight pile)
+    // 25% chance: a smaller crate stacked on its lid (freight pile)
     if rnd() < 0.25 {
         let cs2 = cs * (0.55 + rnd() * 0.20); // 55-75% of base
                                               // the smaller crates are their own (0.30 or 0.225 m, their boards

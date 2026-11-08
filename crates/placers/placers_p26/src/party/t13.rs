@@ -18,7 +18,7 @@ const PLATE_FLANGE: (f64, f64) = (0.0745, 0.0880);
 /// board): moved off the board onto the plate's well
 const CRUMBS_AT: (f64, f64, f64) = (-0.066, -0.0172, 0.011);
 
-// R428 small paper plate: 12% chance per level. A 7 in coated paper dessert
+// Small paper plate: 12% chance per level. A 7 in coated paper dessert
 // plate, pressed and pleated, white or printed round its flange in one of
 // the party inks; eaten from (a smear of frosting gone hard, grease soaked
 // in, crumbs), stacked three or four as they came, dropped face down, or

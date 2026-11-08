@@ -179,7 +179,7 @@ fn place_constellation_embroidery(g: &mut Game, _dist: &[i32]) {
 }
 
 fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
-    g.pp.telescope_positions.clear(); // R738 reset per level
+    g.pp.telescope_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -282,7 +282,7 @@ fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
     tube_group.rotation().z = tube_tilt;
     tube_group.position().y = tripod_h + 0.050 + tube_r - 0.004; // tube rests in the head's clamp
     tt.add(&tube_group);
-    // R738 subtle pan animator — 40% chance ("tracking a star").
+    // Subtle pan animator — 40% chance ("tracking a star").
     let is_tracking = rnd() < 0.4;
     if is_tracking {
         let pan_phase = rnd() * PI * 2.0;
@@ -300,7 +300,7 @@ fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
     tt.position().set(g.wx(x) + (rnd() - 0.5) * 1.0, 0, g.wz(z) + (rnd() - 0.5) * 1.0);
     tt.rotation().y = rnd() * PI * 2.0;
     g.world.add(&tt);
-    // R738 register only tracking telescopes for focus-knob click audio.
+    // Register only tracking telescopes for focus-knob click audio.
     if is_tracking {
         let p = tt.pos();
         g.pp.telescope_positions.push(v3(p.x, 0, p.z));

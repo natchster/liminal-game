@@ -1,5 +1,5 @@
 //! `update_ambient`, part 2: the per-weather ambient beds, the cross-weather
-//! rare events R220–R243 and the R237 reality-shift pitch bend. See
+//! rare events and the reality-shift pitch bend. See
 //! `audio::ambient` (mod.rs) for the overview.
 use crate::audio::ambient::{amb_due, AmbMix};
 use crate::base::tables::*;
@@ -13,7 +13,7 @@ fn rand_side(a: f64, b: f64) -> f64 {
 }
 
 /// `amb_due` for a rare event: due while another rare event is mid-flash
-/// (`busy`), it waits 1.5 s instead (R227)
+/// (`busy`), it waits 1.5 s instead
 fn rare_due(t: &mut f64, dt: f64, m: &AmbMix, busy: bool) -> bool {
     if !amb_due(t, dt, m) {
         return false;
@@ -38,44 +38,44 @@ impl Game {
         }
     }
 
-    /// wet: R91/R117/R123 drips, R97/R121 thunder, R118/R119 puddle splash,
-    /// R601 thunder rumbling through the building, R639 rain patter
+    /// wet: drips, thunder, puddle splash, thunder rumbling through the
+    /// building, rain patter
     fn amb_wet(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.wet_drip_timer, dt, m) {
-            // R123/R128: spawn position biased away from camera-forward
+            // Spawn position biased away from camera-forward
             let drip_ang = self.biased_spawn_angle();
             let drip_dist = 2.0 + rnd() * 3.0;
             let dsx = self.player.pos.x + drip_ang.cos() * drip_dist;
             let dsz = self.player.pos.z + drip_ang.sin() * drip_dist;
-            // R123 distance falloff
+            // Distance falloff
             let dgain = 1.0 / (1.0 + drip_dist * 0.15);
-            // R124 stereo pan from spawn position
+            // Stereo pan from spawn position
             let dpan = self.pan_for_world_pos(dsx, dsz);
-            // R129 air absorption
+            // Air absorption
             let df_shift = (0.6f64).max(1.0 - drip_dist * 0.08);
             // the "plink": 1400→520 Hz over ~120 ms
             self.blip(1400.0 * df_shift * ld, 0.12, "sine", 0.045 * dgain * eg, Some(520.0 * df_shift * ld), 0.0, dpan);
             self.blip(240.0 * df_shift * ld, 0.30, "sine", 0.018 * dgain * eg, Some(180.0 * df_shift * ld), 0.06, dpan);
             // (never twice within 8 s at an even nerve: the mix's rule against
             // a sound coming straight back, `tests/loudness.rs`)
-            self.wet_drip_timer = (8.0 + rnd() * 10.0) * etm; // R143 sanity-boosted
-                                                              // R117/R123: 30% chance of a visible ripple at the drip's spawn
+            self.wet_drip_timer = (8.0 + rnd() * 10.0) * etm; // sanity-boosted
+                                                              // 30% chance of a visible ripple at the drip's spawn
             if rnd() < 0.30 {
                 self.ripple_at(dsx, dsz, 0.55, 1.0, 1.5);
             }
             self.log_ambient("wet-drip", Some(dsx), Some(dsz), Some(dpan));
         }
-        // R97 distant thunder; R122: audio 150 ms after the R121 flash
+        // Distant thunder: its audio 150 ms after the flash
         if amb_due(&mut self.wet_thunder_timer, dt, m) {
             self.blip(55.0 * ld, 2.5, "sine", 0.045 * eg, Some(30.0 * ld), 0.15, 0.0);
             self.noise_burst(2.2, 90.0 * ld, 0.6, 0.028 * eg, "lowpass", None, 0.30, 0.0);
-            self.wet_thunder_timer = (35.0 + rnd() * 55.0) * etm; // R143
+            self.wet_thunder_timer = (35.0 + rnd() * 55.0) * etm;
             self.log_ambient("wet-thunder", None, None, None);
-            // R121 thunder visual: brief scene-wide light flash
+            // Thunder visual: brief scene-wide light flash
             self.thunder_flash_t = 0.9;
         }
-        // R118 rare puddle splash: audio + oversized ripple
+        // Rare puddle splash: audio + oversized ripple
         if amb_due(&mut self.wet_splash_timer, dt, m) {
             let spl_ang = self.biased_spawn_angle();
             let spl_dist = 4.0 + rnd() * 4.0; // 4–8 m
@@ -88,7 +88,7 @@ impl Game {
             self.noise_burst(0.18, 500.0 * sf_shift * ld, 1.5, 0.045 * sgain * eg, "lowpass", None, 0.0, span);
             self.blip(320.0 * sf_shift * ld, 0.14, "sine", 0.03 * sgain * eg, Some(90.0 * sf_shift * ld), 0.02, span);
             self.blip(180.0 * sf_shift * ld, 0.20, "sine", 0.020 * sgain * eg, Some(60.0 * sf_shift * ld), 0.10, span);
-            // oversized ripple further away (+ R119/R121 splash flash)
+            // oversized ripple further away (+ splash flash)
             if self.ripple_at(sx, sz, 0.75, 1.8, 1.8) {
                 self.splash_flash_light.set_pos(sx, 0.4, sz);
                 self.splash_flash_t = 0.30; // 300 ms of blue-white flash
@@ -99,10 +99,10 @@ impl Game {
                     self.splash_flash_light.light().distance = 3.5 * splash_battery;
                 }
             }
-            self.wet_splash_timer = (55.0 + rnd() * 85.0) * etm; // R143
+            self.wet_splash_timer = (55.0 + rnd() * 85.0) * etm;
             self.log_ambient("wet-splash", Some(sx), Some(sz), Some(span));
         }
-        // R601 distant thunder rumble (non-directional)
+        // Distant thunder rumble (non-directional)
         if amb_due(&mut self.thunder_rumble_timer, dt, m) {
             let tg = 0.020 * eg;
             self.noise_burst(1.5, 80.0, 0.4, tg, "lowpass", Some(55.0), 0.0, 0.0);
@@ -110,7 +110,7 @@ impl Game {
             self.thunder_rumble_timer = (200.0 + rnd() * 300.0) * etm;
             self.log_ambient("thunder-rumble", None, None, Some(0.0));
         }
-        // R639 distant rain patter: hiss + individual drops
+        // Distant rain patter: hiss + individual drops
         if amb_due(&mut self.rain_patter_timer, dt, m) {
             let rg = 0.011 * eg;
             self.noise_burst(2.5, 4200.0, 0.6, rg, "highpass", None, 0.0, 0.0);
@@ -123,7 +123,7 @@ impl Game {
         }
     }
 
-    /// still: R92 wind gust, R101 echo whisper, R610 distant wind gust
+    /// still: wind gust, echo whisper, distant wind gust
     fn amb_still(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.still_wind_timer, dt, m) {
@@ -131,19 +131,19 @@ impl Game {
             let (x, z, pan) = self.bed_at(self.bed_anchor("draught"), |g| {
                 g.noise_burst(1.6, 220.0 * ld, 0.6, 0.035 * eg, "bandpass", Some(380.0 * ld), 0.0, 0.0);
             });
-            self.still_wind_timer = (10.0 + rnd() * 18.0) * etm; // R143
+            self.still_wind_timer = (10.0 + rnd() * 18.0) * etm;
             self.log_ambient("still-wind", x, z, Some(pan));
         }
-        // R101 rare echo whisper: a formant burst + its echo 250 ms later
+        // Rare echo whisper: a formant burst + its echo 250 ms later
         if amb_due(&mut self.still_echo_timer, dt, m) {
             let (x, z, pan) = self.bed_at(self.bed_anchor("draught"), |g| {
                 g.noise_burst(0.7, (800.0 + rnd() * 200.0) * ld, 10.0, 0.018 * eg, "bandpass", Some(1200.0 * ld), 0.0, 0.0);
                 g.noise_burst(0.6, (800.0 + rnd() * 200.0) * ld, 10.0, 0.009 * eg, "bandpass", Some(1200.0 * ld), 0.25, 0.0);
             });
-            self.still_echo_timer = (90.0 + rnd() * 90.0) * etm; // R143
+            self.still_echo_timer = (90.0 + rnd() * 90.0) * etm;
             self.log_ambient("still-echo", x, z, Some(pan));
         }
-        // R610 a stronger gust through the same draught
+        // A stronger gust through the same draught
         if amb_due(&mut self.wind_gust_timer, dt, m) {
             let (x, z, pan) = self.bed_at(self.bed_anchor("draught"), |g| {
                 g.noise_burst(2.0, 180.0, 0.5, 0.016 * eg, "bandpass", Some(320.0), 0.0, 0.0);
@@ -153,7 +153,7 @@ impl Game {
         }
     }
 
-    /// derelict: R93/R126 HVAC clatter, R100 deep grinder
+    /// derelict: HVAC clatter, deep grinder
     fn amb_derelict(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.derelict_clatter_timer, dt, m) {
@@ -166,22 +166,22 @@ impl Game {
                     g.blip((90.0 + rnd() * 30.0) * ld, 0.09, "sine", 0.030 * eg, Some(55.0 * ld), d, 0.0);
                 }
             });
-            self.derelict_clatter_timer = (12.0 + rnd() * 20.0) * etm; // R143
+            self.derelict_clatter_timer = (12.0 + rnd() * 20.0) * etm;
             self.log_ambient("derelict-clatter", x, z, Some(clatter_pan));
         }
-        // R100/R126 rare deep grinder: somewhere a big fan is dying
+        // Rare deep grinder: somewhere a big fan is dying
         if amb_due(&mut self.derelict_grinder_timer, dt, m) {
             let (x, z, grinder_pan) = self.bed_at(self.bed_anchor("fan"), |g| {
                 g.blip(75.0 * ld, 2.5, "sawtooth", 0.030 * eg, Some(40.0 * ld), 0.0, 0.0);
                 g.noise_burst(2.2, 140.0 * ld, 0.4, 0.020 * eg, "lowpass", None, 0.20, 0.0);
                 g.noise_burst(0.35, 220.0 * ld, 1.5, 0.028 * eg, "bandpass", Some(90.0 * ld), 2.10, 0.0);
             });
-            self.derelict_grinder_timer = (60.0 + rnd() * 90.0) * etm; // R143
+            self.derelict_grinder_timer = (60.0 + rnd() * 90.0) * etm;
             self.log_ambient("derelict-grinder", x, z, Some(grinder_pan));
         }
     }
 
-    /// electric: R94 crackle, R250/R251 socket sparks, R281 junction arcs, R102 surge
+    /// electric: crackle, socket sparks, junction arcs, surge
     fn amb_electric(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.electric_crackle_timer, dt, m) {
@@ -194,20 +194,20 @@ impl Game {
                     g.noise_burst(0.05, 5600.0 * ld, 4.0, 0.028 * eg, "highpass", None, 0.20, 0.0);
                 }
             });
-            self.electric_crackle_timer = (8.0 + rnd() * 14.0) * etm; // R143
+            self.electric_crackle_timer = (8.0 + rnd() * 14.0) * etm;
             self.log_ambient("electric-crackle", x, z, Some(crackle_pan));
         }
-        // R250/R251 socket sparks: sound + yellow sprite at the nearest socket (< 10 m)
+        // Socket sparks: sound + yellow sprite at the nearest socket (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.socket_spark_timer, |g| &g.pp.socket_positions, 10.0, dt, m) {
             let s = h.p;
             self.blip(2800.0 + rnd() * 400.0, 0.04, "square", 0.014 * eg * h.g, None, 0.0, h.pan);
             self.noise_burst(0.05, 6000.0, 3.0, 0.012 * eg * h.g, "highpass", None, 0.02, h.pan);
-            // R251 visual sprite (R131 scuffs pool)
+            // Visual sprite (scuffs pool)
             self.scuff_flash(0xffe860, s.x, s.y, s.z, 0.85 * (1.0 - h.dn * 0.3), 0.06, 0.15);
             self.socket_spark_timer = (12.0 + rnd() * 24.0) * etm; // 12-36 s
             self.log_ambient("socket-spark", Some(s.x), Some(s.z), Some(h.pan));
         }
-        // R281 junction box arc: "loose wire arcing inside box" (< 12 m)
+        // Junction box arc: "loose wire arcing inside box" (< 12 m)
         if let Some(h) = self.prop_due(|g| &mut g.junction_arc_timer, |g| &g.pp.junction_box_positions, 12.0, dt, m) {
             let arc_gain = 0.012 * eg * h.g;
             // 3 rapid clicks + a brief high-pass burst
@@ -218,7 +218,7 @@ impl Game {
             self.junction_arc_timer = (20.0 + rnd() * 25.0) * etm;
             self.log_ambient("junction-arc", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R102/R127 rare flicker cascade: scene-wide panel dim + panned surge
+        // Rare flicker cascade: scene-wide panel dim + panned surge
         if amb_due(&mut self.electric_surge_timer, dt, m) {
             self.electric_surge_t = 0.35; // 350 ms of dimming
             let (x, z, surge_pan) = self.bed_at(self.nearest_fixture(), |g| {
@@ -226,12 +226,12 @@ impl Game {
                 g.noise_burst(0.30, 1400.0 * ld, 2.0, 0.028 * eg, "bandpass", None, 0.02, 0.0);
                 g.noise_burst(0.05, 6200.0 * ld, 5.0, 0.030 * eg, "highpass", None, 0.32, 0.0);
             });
-            self.electric_surge_timer = (60.0 + rnd() * 60.0) * etm; // R143
+            self.electric_surge_timer = (60.0 + rnd() * 60.0) * etm;
             self.log_ambient("electric-surge", x, z, Some(surge_pan));
         }
     }
 
-    /// haunted: R94 whisper, R102 distant footsteps
+    /// haunted: whisper, distant footsteps
     fn amb_haunted(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.haunted_whisper_timer, dt, m) {
@@ -252,10 +252,10 @@ impl Game {
                     g.noise_burst(0.5, 200.0, 1.5, 0.020 * eg, "lowpass", None, 0.20, 0.0);
                 }
             });
-            self.haunted_whisper_timer = (14.0 + rnd() * 22.0) * etm; // R143
+            self.haunted_whisper_timer = (14.0 + rnd() * 22.0) * etm;
             self.log_ambient("haunted-whisper", x, z, Some(whisper_pan));
         }
-        // R102/R125 rare distant footstep: someone walking in the next room
+        // Rare distant footstep: someone walking in the next room
         if amb_due(&mut self.haunted_step_timer, dt, m) {
             let steps = to_i32(2.0 + rnd() * 3.0);
             // muffled low thuds from the same room as the whispers
@@ -266,24 +266,24 @@ impl Game {
                     g.noise_burst(0.08, 180.0 * ld, 0.8, 0.014 * eg, "lowpass", None, d + 0.02, 0.0);
                 }
             });
-            self.haunted_step_timer = (80.0 + rnd() * 80.0) * etm; // R143
+            self.haunted_step_timer = (80.0 + rnd() * 80.0) * etm;
             self.log_ambient("haunted-step", x, z, Some(pan_cur));
         }
     }
 
-    /// normal / unknown weather: R104 very rare "the game noticed" chime
+    /// normal / unknown weather: a very rare "the game noticed" chime
     fn amb_normal(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
         if amb_due(&mut self.normal_notice_timer, dt, m) {
             self.blip(1760.0 * ld, 0.7, "sine", 0.020 * eg, Some(1320.0 * ld), 0.0, 0.0);
             self.blip(2640.0 * ld, 0.5, "sine", 0.012 * eg, Some(1980.0 * ld), 0.12, 0.0);
-            self.normal_notice_timer = (120.0 + rnd() * 120.0) * etm; // R143
+            self.normal_notice_timer = (120.0 + rnd() * 120.0) * etm;
             self.log_ambient("normal-chime", None, None, None);
         }
     }
 
     /// Count a rare event in `rare_event_tally[cause][wk]` (empty `wk` counts as
-    /// `"unknown"`) and set the R228/R236 fire stamps
+    /// `"unknown"`) and set the fire stamps
     fn rare_fired(&mut self, cause: &str, wk: &str) {
         let key = if wk.is_empty() { "unknown" } else { wk };
         let e = self.rare_event_tally.entry(cause.to_string()).or_default();
@@ -305,10 +305,10 @@ impl Game {
         }
     }
 
-    /// R220–R243 cross-weather rare events with the R227 stagger.
+    /// Cross-weather rare events, staggered.
     pub(crate) fn amb_rare_events(&mut self, dt: f64, wk: &str, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
-        // R227 stagger: any rare event mid-flash delays new fires by 1.5 s
+        // Stagger: any rare event mid-flash delays new fires by 1.5 s
         // (one that fires this frame counts too)
         let mut busy = self.knock_flash_t > 0.3
             || self.door_opened_flash_t > 0.3
@@ -318,10 +318,10 @@ impl Game {
             || self.reality_shift_t > 0.5
             || self.pattern_break_t > 0.5
             || self.clock_skip_t > 0.15;
-        // R230 sanity → rare event boost (up to 15% shorter timers at 0 sanity)
+        // Sanity → rare event boost (up to 15% shorter timers at 0 sanity)
         let rtm = 1.0 / (1.0 + m.sanity_mag * 0.18);
 
-        // R220/R221 distant knock — once per 4–8 min
+        // Distant knock — once per 4–8 min
         if rare_due(&mut self.distant_knock_timer, dt, m, busy) {
             busy = true;
             let knock_pan = rand_side(0.55, 0.30);
@@ -333,15 +333,15 @@ impl Game {
             self.noise_burst(0.08, kt.noise * ld, 0.5, knock_gain * 0.6, "lowpass", None, 0.02, knock_pan);
             self.noise_burst(0.08, kt.noise * ld, 0.5, knock_gain * 0.5, "lowpass", None, 0.18, knock_pan);
             self.distant_knock_timer = (240.0 + rnd() * 240.0) * etm * rtm; // 4–8 min × sanity boost
-            self.knock_flash_t = 0.6; // vignette pulse (R220)
+            self.knock_flash_t = 0.6; // vignette pulse
             self.rare_fired("knock", wk);
-            // R222 panel-tint direction hint on the knock's side
+            // Panel-tint direction hint on the knock's side
             self.knock_tint_t = 0.7;
             self.knock_tint_pan = knock_pan;
             self.last_knock_pan = knock_pan;
             self.log_ambient("distant-knock", None, None, Some(knock_pan));
         }
-        // R223/R224 door opened — 8–15 min: creak + airflow whoosh + sub tail
+        // Door opened — 8–15 min: creak + airflow whoosh + sub tail
         if rare_due(&mut self.door_opened_timer, dt, m, busy) {
             busy = true;
             let door_pan = rand_side(0.30, 0.40);
@@ -352,11 +352,11 @@ impl Game {
             self.blip(60.0 * ld, 0.6, "sine", door_gain * 0.4, Some(dt2.sub_end * ld), 0.50, door_pan);
             self.door_opened_timer = (480.0 + rnd() * 420.0) * etm * rtm; // 8–15 min × sanity boost
             self.door_opened_flash_t = 1.0; // longer vignette pulse than knock
-            self.door_dim_pulse_t = 0.5; // R224 "air guttered the lights"
+            self.door_dim_pulse_t = 0.5; // "air guttered the lights"
             self.rare_fired("door", wk);
             self.log_ambient("door-opened", None, None, Some(door_pan));
         }
-        // R225 elevator ding — 12–25 min: bell, counter-tone, machine rumble
+        // Elevator ding — 12–25 min: bell, counter-tone, machine rumble
         if rare_due(&mut self.elevator_ding_timer, dt, m, busy) {
             busy = true;
             let ding_pan = rand_side(0.20, 0.30);
@@ -367,11 +367,11 @@ impl Game {
             self.noise_burst(0.9, dt3.rumble * ld, 0.5, ding_gain * 0.5, "lowpass", None, 0.60, ding_pan);
             self.elevator_ding_timer = (720.0 + rnd() * 780.0) * etm * rtm; // 12–25 min × sanity boost
             self.elevator_ding_flash_t = 1.4;
-            self.ding_bright_pulse_t = 0.4; // R226 panel-brighten pulse
+            self.ding_bright_pulse_t = 0.4; // panel-brighten pulse
             self.rare_fired("ding", wk);
             self.log_ambient("elevator-ding", None, None, Some(ding_pan));
         }
-        // R228 voice sample — 15–30 min: an almost-word from very far off
+        // Voice sample — 15–30 min: an almost-word from very far off
         if rare_due(&mut self.voice_sample_timer, dt, m, busy) {
             busy = true;
             let voice_pan = rand_side(0.55, 0.30);
@@ -383,11 +383,11 @@ impl Game {
             self.noise_burst(0.25, vt.breath_lp * 0.44, 0.3, voice_gain * 0.25, "lowpass", None, 0.40, voice_pan);
             self.voice_sample_timer = (900.0 + rnd() * 900.0) * etm * rtm; // 15–30 min × sanity boost
             self.voice_sample_flash_t = 0.8;
-            self.voice_hue_shift_t = 1.0; // R232 panel hue shift
+            self.voice_hue_shift_t = 1.0; // panel hue shift
             self.rare_fired("voice", wk);
             self.log_ambient("voice-sample", None, None, Some(voice_pan));
         }
-        // R230 static burst — 7–14 min: hiss, pop clicks, fade tail
+        // Static burst — 7–14 min: hiss, pop clicks, fade tail
         if rare_due(&mut self.static_burst_timer, dt, m, busy) {
             busy = true;
             let static_pan = rand_side(0.40, 0.35);
@@ -403,24 +403,24 @@ impl Game {
             self.noise_burst(0.30, st.tail_freq, 0.8, static_gain * 0.4, "bandpass", None, 0.30, static_pan);
             self.static_burst_timer = (420.0 + rnd() * 420.0) * etm * rtm; // 7–14 min
             self.static_burst_flash_t = 0.5;
-            self.static_chromatic_t = 0.35; // R232 chromatic aberration punch
+            self.static_chromatic_t = 0.35; // chromatic aberration punch
             self.rare_fired("static", wk);
             self.log_ambient("static-burst", None, None, Some(static_pan));
         }
-        // R237 reality shift — 30–60 min: the ambient bed itself bends (see amb_shift_bend)
+        // Reality shift — 30–60 min: the ambient bed itself bends (see amb_shift_bend)
         if rare_due(&mut self.reality_shift_timer, dt, m, busy) {
             busy = true;
             self.reality_shift_t = 2.0; // 2 s envelope
             self.reality_shift_timer = (720.0 + rnd() * 720.0) * etm * rtm; // 12-24 min
             self.rare_fired("shift", wk);
             self.log_ambient("reality-shift", None, None, None);
-            // R239/R240 per-weather chance of a settle chord 5–8 s later
+            // Per-weather chance of a settle chord 5–8 s later
             let settle_spec = settle_chord_by_weather(wk).or(settle_chord_by_weather("normal")).unwrap();
             if rnd() < settle_spec.prob {
                 self.settle_timer = 5.0 + rnd() * 3.0;
             }
         }
-        // R239/R240 settle recovery: the pending countdown fires a descending chord
+        // Settle recovery: the pending countdown fires a descending chord
         if self.settle_timer > 0.0 && !m.hushed {
             self.settle_timer -= dt;
             if self.settle_timer <= 0.0 {
@@ -430,19 +430,19 @@ impl Game {
                 self.blip(n[0] * ld, 1.8, "sine", settle_gain, Some((n[0] - 12.0) * ld), 0.0, settle_pan);
                 self.blip(n[1] * ld, 1.8, "sine", settle_gain * 0.85, Some((n[1] - 10.0) * ld), 0.40, settle_pan);
                 self.blip(n[2] * ld, 2.0, "sine", settle_gain * 0.75, Some((n[2] - 8.0) * ld), 0.80, settle_pan);
-                self.settle_visual_t = 2.0; // R241 panel warmth pulse
+                self.settle_visual_t = 2.0; // panel warmth pulse
                 self.log_ambient("reality-settle", None, None, Some(settle_pan));
             }
         }
-        // R241 pattern break — 60–120 min: every panel LFO breathes in phase
+        // Pattern break — 60–120 min: every panel LFO breathes in phase
         if rare_due(&mut self.pattern_break_timer, dt, m, busy) {
             busy = true;
             let ps = pattern_sync_by_weather(wk).or(pattern_sync_by_weather("normal")).unwrap();
-            self.pattern_break_t = ps.dur; // R242 per-weather duration
+            self.pattern_break_t = ps.dur; // per-weather duration
             for p in self.panels.iter_mut() {
                 p.lfo_phase = 0.0;
             }
-            // R242 "the ceiling exhaled together" sub swell
+            // "the ceiling exhaled together" sub swell
             self.blip(ps.sub_freq * ld, ps.dur, "sine", ps.sub_gain * eg, Some((ps.sub_freq * 0.8) * ld), 0.0, 0.0);
             self.pattern_break_timer = (1200.0 + rnd() * 900.0) * etm * rtm; // 20-35 min
             self.rare_fired("pattern", wk);
@@ -451,7 +451,7 @@ impl Game {
         if self.pattern_break_t > 0.0 {
             self.pattern_break_t = (0.0f64).max(self.pattern_break_t - dt);
         }
-        // R243 clock skip — 90–180 min: panel LFOs freeze 0.5 s, resume offset
+        // Clock skip — 90–180 min: panel LFOs freeze 0.5 s, resume offset
         if rare_due(&mut self.clock_skip_timer, dt, m, busy) {
             self.clock_skip_t = 0.5; // 0.5 s freeze envelope
             for p in self.panels.iter_mut() {
@@ -470,7 +470,7 @@ impl Game {
         }
     }
 
-    /// R237/R238 shift envelope decay + pitch bend of the always-running
+    /// Shift envelope decay + pitch bend of the always-running
     /// safe-room LFO, tremolo carrier and room-tone lowpass.
     pub(crate) fn amb_shift_bend(&mut self, dt: f64) {
         if self.reality_shift_t <= 0.0 {
@@ -489,7 +489,7 @@ impl Game {
             let lfo_nominal = (0.35 + lfo_jit) * lfo_weather_mul * level_d;
             lfo.frequency().set_value(lfo_nominal * bend_mul);
         }
-        // R238 the tremolo carrier + room-tone LP pitch with it
+        // The tremolo carrier + room-tone LP pitch with it
         if let Some(car) = &self.audio.safe_room_trem_carrier {
             let car_jit = (((self.current_seed >> 8) & 0xff) as f64 / 255.0 - 0.5) * 40.0;
             let car_weather_off = carrier_weather_detune(wk).unwrap_or(0.0);

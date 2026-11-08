@@ -156,7 +156,7 @@ fn cuff_tex(base: [f64; 3], w: f64, d: f64, salt: u32) -> Tex {
     })
 }
 
-// R641 gardening gloves (pair): 7% chance per level. A pair of cotton jersey
+// Gardening gloves (pair): 7% chance per level. A pair of cotton jersey
 // gardening gloves with knitted wrists (Blender batch `t17`, draped by its
 // cloth): the right lying back up, the left dropped across it palm up, its
 // PVC grip dots half worn away; soil dried into both.
@@ -243,7 +243,7 @@ fn steel_tex(paint: [f64; 3], salt: u32) -> Tex {
     })
 }
 
-// R644 garden rake: 4% chance per level. A bow rake dropped on the floor
+// Garden rake: 4% chance per level. A bow rake dropped on the floor
 // (Blender batch `t17`): 14 tempered steel tines on a head carried by two
 // bows, a steel ferrule, a 54 in ash handle; its enamel chipped to rust, the
 // handle grey, dark where it was held. It lies on its tines and its handle's

@@ -75,7 +75,7 @@ fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
     seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
 }
 
-// R698 dropped car keys w/ keyring + tag (floor): 7% chance per level.
+// Dropped car keys w/ keyring + tag (floor): 7% chance per level.
 fn place_car_keys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -191,7 +191,7 @@ fn place_car_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&k);
 }
 
-// R698 framed hospital birth announcement (wall): 2.5% chance per level.
+// Framed hospital birth announcement (wall): 2.5% chance per level.
 fn place_birth_announcements(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;
@@ -219,7 +219,7 @@ fn place_birth_announcements(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ba);
 }
 
-// R700 wallet w/ ID card + spilled cash bills (floor): 6% chance per level.
+// Wallet w/ ID card + spilled cash bills (floor): 6% chance per level.
 fn place_wallets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -311,7 +311,7 @@ fn place_wallets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&w);
 }
 
-// R700 framed vintage postcard (wall): 3% chance per level.
+// Framed vintage postcard (wall): 3% chance per level.
 fn place_vintage_postcards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -339,7 +339,7 @@ fn place_vintage_postcards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&vp);
 }
 
-// R702 shoe pair (floor): 6% chance per level. A pair of men's derby shoes
+// Shoe pair (floor): 6% chance per level. A pair of men's derby shoes
 // kicked off and left: the left one standing, the right one fallen on its
 // side (Blender batch r14a: welted, the quarters lapped over the vamp,
 // creased where the foot bent it, a leather sole on a stacked heel).
@@ -388,9 +388,9 @@ fn place_shoe_pairs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R703 wall coat rack: batch `t07` (t07.rs).
+// Wall coat rack: batch `t07` (t07.rs).
 
-// R703 single dropped glove (floor): 8% chance per level. One glove dropped
+// Single dropped glove (floor): 8% chance per level. One glove dropped
 // and left, lying limp (Blender batch r14a, the glove of
 // `place_single_gloves` too): a lined leather dress glove, its three points
 // stitched on the back, or a knitted one; 40% with a stripe knitted round
@@ -980,7 +980,7 @@ fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
         })
     })
 }
-// R704 laundry basket w/ folded clothes (floor): 4% chance per level.
+// Laundry basket w/ folded clothes (floor): 4% chance per level.
 fn place_laundry_baskets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -1060,9 +1060,9 @@ fn place_laundry_baskets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lb);
 }
 
-// R705 ironing board upright w/ iron (floor): 3% chance per level.
+// Ironing board upright w/ iron (floor): 3% chance per level.
 fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
-    g.pp.hot_iron_positions = vec![]; // R712 reset per level
+    g.pp.hot_iron_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -1153,8 +1153,8 @@ fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
     iron.position().set(-0.10, board_h + 0.010, 0);
     iron.rotation().y = PI * 0.25;
     ib.add(&iron);
-    // R709 subtle steam-vent wisp — 40% chance (iron is "hot").
-    // R712: track hot irons for steam-hiss audio pairing.
+    // Subtle steam-vent wisp — 40% chance (iron is "hot").
+    // Track hot irons for steam-hiss audio pairing.
     let iron_is_hot = rnd() < 0.4;
     if iron_is_hot {
         let steam_mat = basic_mat!({ color: 0xf0f0f0, transparent: true, opacity: 0.15 });
@@ -1224,18 +1224,18 @@ fn place_ironing_boards(g: &mut Game, _dist: &[i32]) {
     ib.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
     ib.rotation().y = rnd() * PI * 2.0;
     g.world.add(&ib);
-    // R712 register position only for hot irons (with steam wisps).
+    // Register position only for hot irons (with steam wisps).
     if iron_is_hot {
         let p = ib.pos();
         g.pp.hot_iron_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R705 vacuum cleaner: batch `t07` (t07.rs).
+// Vacuum cleaner: batch `t07` (t07.rs).
 
-// R706 mop + bucket w/ water puddle (floor): 4% chance per level.
+// Mop + bucket w/ water puddle (floor): 4% chance per level.
 fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
-    g.pp.mop_bucket_positions = vec![]; // R707 reset per level
+    g.pp.mop_bucket_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -1348,12 +1348,12 @@ fn place_cleaning_mop_buckets(g: &mut Game, _dist: &[i32]) {
     mb.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
     mb.rotation().y = rnd() * PI * 2.0;
     g.world.add(&mb);
-    // R707 register mop bucket position for water-slosh audio.
+    // Register mop bucket position for water-slosh audio.
     let p = mb.pos();
     g.pp.mop_bucket_positions.push(v3(p.x, 0, p.z));
 }
 
-// R708 broom + dustpan pair (floor): 5% chance per level.
+// Broom + dustpan pair (floor): 5% chance per level.
 fn place_brooms_and_dustpans(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;

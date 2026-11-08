@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R526 mould: black mould grown on a damp wall (`assets/src/blender/props/
+// Mould: black mould grown on a damp wall (`assets/src/blender/props/
 // r11b.notes.md`). Colonies of Cladosporium / Stachybotrys: each a cluster
 // of dark specks (1-3 mm) grown out from where it began, packed into a sooty,
 // velvety film at its old middle, thinning to peppered dots at its edge,

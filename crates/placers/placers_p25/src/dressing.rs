@@ -1,8 +1,8 @@
-//! Dressing-table, party-costume and percussion props (R438-R444).
+//! Dressing-table, party-costume and percussion props.
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
-/// R444 small jewelry box: 6% chance per level. Small hinged box
+/// Small jewelry box: 6% chance per level. Small hinged box
 /// with visible gems inside (60% open). Dressing-table family.
 pub fn place_small_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -58,12 +58,12 @@ pub fn place_small_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&jewel);
 }
 
-/// R443 small perfume bottle: batch `t03`'s (`t03.rs`)
+/// Small perfume bottle: batch `t03`'s (`t03.rs`)
 #[path = "t03.rs"]
 mod t03;
 pub use t03::place_small_perfumes;
 
-/// R443 small nail polish bottle: 10% chance per level. Small
+/// Small nail polish bottle: 10% chance per level. Small
 /// square glass bottle with brush cap. Dressing-table family.
 pub fn place_small_nail_polishes(g: &mut Game, _dist: &[i32]) {
     // A small bottle of nail polish (batch `r18`): heavy-bottomed square glass,
@@ -118,7 +118,7 @@ mod r18_polish {
     pub(super) const LACQUER: [u32; 7] = [0x8a1c28, 0x5a2642, 0x23386a, 0x8a6a30, 0x2a5034, 0x561a26, 0x18191c];
 }
 
-/// R442 small lipstick tube: 10% chance per level. Two-tone tube
+/// Small lipstick tube: 10% chance per level. Two-tone tube
 /// with colored bullet tip. Dressing-table family.
 pub fn place_small_lipsticks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -167,7 +167,7 @@ pub fn place_small_lipsticks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stick);
 }
 
-/// R442 small makeup compact: 8% chance per level. Round clamshell
+/// Small makeup compact: 8% chance per level. Round clamshell
 /// compact with mirror lid + powder pan. Dressing-table family.
 pub fn place_small_compacts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -222,7 +222,7 @@ pub fn place_small_compacts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&compact);
 }
 
-/// R441 small hand mirror: 8% chance per level. Round mirror on
+/// Small hand mirror: 8% chance per level. Round mirror on
 /// handle. Dressing-table family.
 pub fn place_small_hand_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -261,15 +261,15 @@ pub fn place_small_hand_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mirror);
 }
 
-/// R441 small folding fan: batch `t11`'s (`t11.rs`)
+/// Small folding fan: batch `t11`'s (`t11.rs`)
 #[path = "t11.rs"]
 mod t11;
 pub use t11::place_small_folding_fans;
 
-/// R440 small paper crown: batch `t12`'s (`t12.rs`, beside the music)
+/// Small paper crown: batch `t12`'s (`t12.rs`, beside the music)
 pub use crate::music::place_small_paper_crowns;
 
-/// R440 small opera glasses: 6% chance per level. Twin cylinders
+/// Small opera glasses: 6% chance per level. Twin cylinders
 /// on handle. Party-costume family (fancy accessory).
 pub fn place_small_opera_glasses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -313,7 +313,7 @@ pub fn place_small_opera_glasses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&opera);
 }
 
-/// R439 small tiara: 5% chance per level. Thin gold ring with 5
+/// Small tiara: 5% chance per level. Thin gold ring with 5
 /// diamond spike accents. Party-costume family.
 pub fn place_small_tiaras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -365,7 +365,7 @@ pub fn place_small_tiaras(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tiara);
 }
 
-/// R439 small castanets: 8% chance per level. Pair of clamshell
+/// Small castanets: 8% chance per level. Pair of clamshell
 /// castanets. Music family (percussion).
 pub fn place_small_castanets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -407,10 +407,10 @@ pub fn place_small_castanets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-/// R438 small metronome: 6% chance per level. Pyramid body with
+/// Small metronome: 6% chance per level. Pyramid body with
 /// swinging pendulum arm animator. Music family.
 pub fn place_small_metronomes(g: &mut Game, _dist: &[i32]) {
-    g.pp.metronome_positions.clear(); // R479 reset per level
+    g.pp.metronome_positions.clear(); // reset per level
     g.pp.metronome_periods.clear();
     if rnd() < 0.94 {
         return;
@@ -461,14 +461,14 @@ pub fn place_small_metronomes(g: &mut Game, _dist: &[i32]) {
     metronome.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     metronome.rotation().y = rnd() * PI * 2.0;
     g.world.add(&metronome);
-    // R479 track metronome for tick audio (with its swing period, so ticks
+    // Track metronome for tick audio (with its swing period, so ticks
     // sync with the pendulum: kept in the parallel `metronome_periods`).
     let p = metronome.pos();
     g.pp.metronome_positions.push(v3(p.x, 0.06, p.z));
     g.pp.metronome_periods.push(swing_period);
 }
 
-/// R438 small feather boa: batch `t22`'s (`t22.rs`)
+/// Small feather boa: batch `t22`'s (`t22.rs`)
 #[path = "t22.rs"]
 mod t22;
 pub use t22::place_small_feather_boas;

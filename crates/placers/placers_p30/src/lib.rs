@@ -93,7 +93,7 @@ fn oil_stain_by_weather(key: &str) -> u32 {
     by_weather(key, 0x0a0c10, 0x0a0805, 0x1a0605, 0x100a08, 0x0a0806, 0x0a0806)
 }
 
-// R282 abandoned briefcase: 15% chance per level.
+// Abandoned briefcase: 15% chance per level.
 fn place_briefcases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
@@ -132,7 +132,7 @@ fn place_briefcases(g: &mut Game, _dist: &[i32]) {
         briefcase.rotation().z = PI / 2.0 * (if rnd() < 0.5 { 1.0 } else { -1.0 });
         briefcase.position().y = 0.18; // local x (±0.18, the width) becomes height
     }
-    // R283 10% chance briefcase is OPEN with scrap papers spilling out (not when tipped).
+    // 10% chance briefcase is OPEN with scrap papers spilling out (not when tipped).
     let is_open = !is_tipped && rnd() < 0.10;
     if is_open {
         let lid = mesh(pg("Briefcases__lid", box_geo!(0.36, 0.02, 0.28)), &leather_mat);
@@ -155,7 +155,7 @@ fn place_briefcases(g: &mut Game, _dist: &[i32]) {
     briefcase.position().z = g.wz(pk.1) + oz;
     briefcase.rotation().y = rnd() * PI * 2.0;
     g.world.add(&briefcase);
-    // R283 open briefcase spills 2-3 scrap papers around it.
+    // Open briefcase spills 2-3 scrap papers around it.
     if is_open {
         let paper_mat = lambert!({ color: 0xece0d0 });
         let scrap_count = 2 + (rnd() * 2.0).floor() as i32;
@@ -172,9 +172,9 @@ fn place_briefcases(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R282 keycard reader: 25% chance per level, 1-2 units.
+// Keycard reader: 25% chance per level, 1-2 units.
 fn place_keycard_readers(g: &mut Game, _dist: &[i32]) {
-    g.pp.keycard_reader_positions.clear(); // R283 reset per level
+    g.pp.keycard_reader_positions.clear(); // reset per level
     if rnd() < 0.75 {
         return;
     } // 25% chance
@@ -183,7 +183,7 @@ fn place_keycard_readers(g: &mut Game, _dist: &[i32]) {
     shuffle(&mut cands);
     let body_mat = lambert!({ color: 0x2a2828 });
     let slot_mat = lambert!({ color: 0x8a8880 });
-    // R284 per-weather LED color for readers (shares R259 palette).
+    // Per-weather LED color for readers (`led_color_by_weather`, as the motion sensors').
     let led_color = led_color_by_weather(g.weather_key());
     let red_led_mat = basic_mat!({ color: led_color });
     let mut i = 0;
@@ -211,21 +211,21 @@ fn place_keycard_readers(g: &mut Game, _dist: &[i32]) {
             reader.position().set(wall_x + (rnd() - 0.5) * 1.2, reader_height, wall_z);
         }
         g.world.add(&reader);
-        // R283 track for beep audio events.
+        // Track for beep audio events.
         let rp = reader.pos();
         g.pp.keycard_reader_positions.push(v3(rp.x, reader_height, rp.z));
         i += 1;
     }
 }
 
-// R277 wall phone: 15% chance per level, 1 unit. The office wall set of the
+// Wall phone: 15% chance per level, 1 unit. The office wall set of the
 // 2554 class (Blender batch `r12`): a moulded housing on its wall plate, the
 // handset hung down its front on the chrome hanger, its coiled cord looping
 // under it to the jack; off the hook the handset hangs on its drawn-out cord;
 // broken, the housing cracked, the cord cut short, and the burnt board's smoke.
 fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
-    g.pp.phone_positions.clear(); // R278 reset per level
-    g.pp.broken_phone_positions.clear(); // R325 reset per level
+    g.pp.phone_positions.clear(); // reset per level
+    g.pp.broken_phone_positions.clear(); // reset per level
     let chance = rnd();
     if chance < 0.85 {
         return;
@@ -265,7 +265,7 @@ fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
     o.add(&card);
     let hook = mesh(wp_part("Real__wallPhoneHook", 0.032, 0.03, 0.02), phong!({ color: 0x575752, specular: 0x3a3a3a, shininess: 22 }));
     o.add(&hook);
-    // R303 5% chance: broken phone with a cracked housing + no handset.
+    // 5% chance: broken phone with a cracked housing + no handset.
     let is_broken = rnd() < 0.05;
     let mut cracks = [(0.0, 0.0, 0.0, 0.0); 3];
     if is_broken {
@@ -283,9 +283,9 @@ fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
     let housing = mesh(wp_part("Real__wallPhoneHousing", WP_W, 0.232, WP_D), lambert!({ map: &housing_map, color: shell }));
     o.add(&housing);
     if is_broken {
-        // R335 40% chance: smoke from the burnt board, leaking at the top.
+        // 40% chance: smoke from the burnt board, leaking at the top.
         if rnd() < 0.40 {
-            // R342 per-weather smoke color.
+            // Per-weather smoke color.
             let smoke_color = smoke_wisp_by_weather(g.weather_key());
             // lit by the room (lambert), so paler than its tint: smoke scatters the light
             let pale = |c: u32, k: u32| (((c >> k) & 0xff) + 0xd8) / 2 << k;
@@ -304,7 +304,7 @@ fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
             wisp.position().set((rnd() - 0.5) * 0.04, base_y, 0.02);
             wisp.rotation().z = (rnd() - 0.5) * 0.3;
             phone.add(&wisp);
-            // R336 rise animator — wisp scales up + fades over a 6-10 s cycle.
+            // Rise animator — wisp scales up + fades over a 6-10 s cycle.
             let wisp_phase = rnd() * PI * 2.0;
             let wisp_period = 6.0 + rnd() * 4.0; // 6-10 s per rise cycle
             let wisp_base_op = smoke_mat.opacity_v();
@@ -320,7 +320,7 @@ fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
             });
         }
     }
-    // 25% chance handset off-hook; R303 broken phones have no handset at all.
+    // 25% chance handset off-hook; broken phones have no handset at all.
     let off_hook = !is_broken && rnd() < 0.25;
     let skip_handset = is_broken;
     let cord_mat = lambert!({ map: &wp_handset_tex(), color: shell });
@@ -353,11 +353,11 @@ fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
     }
     g.world.add(&phone);
     let pp = phone.pos();
-    // R278 track for ring audio events — only on-hook phones can ring.
+    // Track for ring audio events — only on-hook phones can ring.
     if !off_hook {
         g.pp.phone_positions.push(v3(pp.x, phone_height, pp.z));
     }
-    // R325 track broken phones separately for spark-crackle audio.
+    // Track broken phones separately for spark-crackle audio.
     if is_broken {
         g.pp.broken_phone_positions.push(v3(pp.x, phone_height, pp.z));
     }
@@ -627,7 +627,7 @@ fn wp_smoke_tex() -> Tex {
     })
 }
 
-// R277 mops: 30% chance per level, 1 mop leaning against a wall.
+// Mops: 30% chance per level, 1 mop leaning against a wall.
 fn place_mops(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.70 {
         return;
@@ -658,7 +658,7 @@ fn place_mops(g: &mut Game, _dist: &[i32]) {
         mop.position().set(wall_x + (rnd() - 0.5) * 1.2, 0, wall_z);
     }
     g.world.add(&mop);
-    // R278 40% chance mop bucket beside — janitorial co-location.
+    // 40% chance mop bucket beside — janitorial co-location.
     if rnd() < 0.40 {
         let bucket_mat = lambert!({ color: 0xd8b820 });
         let bucket = group();
@@ -680,7 +680,7 @@ fn place_mops(g: &mut Game, _dist: &[i32]) {
         handle_top.rotation().z = PI / 2.0;
         handle_top.position().y = 0.33;
         bucket.add(&handle_top);
-        // R279 30% chance bucket contains dark water surface.
+        // 30% chance bucket contains dark water surface.
         if rnd() < 0.30 {
             let water_mat = basic_mat!({ color: 0x1a1a20, transparent: true, opacity: 0.75, depthWrite: false });
             let water = mesh(circle_geo!(0.12, 12), &water_mat);
@@ -697,7 +697,7 @@ fn place_mops(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R274 dead potted plants: 0-1 per level (25% chance).
+// Dead potted plants: 0-1 per level (25% chance).
 fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     // Zonal geraniums in a 31 cm terracotta pot (batch `r18`), not watered for
     // years: the stems woody and grey, knuckled at their nodes, a leaf or two
@@ -705,7 +705,7 @@ fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     // cracked; salts bloomed white through the clay (r18.notes.md). One in
     // twelve is still alive, leggy, a few green leaves at its tips.
     use game::assets::props::prop_part_as_modelled;
-    g.pp.living_plant_positions.clear(); // R291 reset per level
+    g.pp.living_plant_positions.clear(); // reset per level
     if rnd() < 0.75 {
         return;
     } // 25% chance
@@ -714,7 +714,7 @@ fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let pk = pick(&open);
-    // R276 8% chance the plant is still ALIVE
+    // 8% chance the plant is still ALIVE
     let is_alive = rnd() < 0.08;
     let plant = group();
     let salt = (pk.0 as u32).wrapping_mul(0x9e37_79b9) ^ (pk.1 as u32).wrapping_mul(0x85eb_ca6b);
@@ -740,7 +740,7 @@ fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     let stem_count = 3 + (rnd() * 2.0).floor() as i32;
     for s in 0..stem_count {
         let ang = (s as f64 / stem_count as f64) * PI * 2.0 + rnd() * 0.5;
-        // living plants (R276) barely lean; the dead lean out further
+        // living plants barely lean; the dead lean out further
         let droop = if is_alive { 0.05 + rnd() * 0.15 } else { 0.4 + rnd() * 0.4 };
         let lean = if is_alive { droop * 0.6 } else { 0.12 + (droop - 0.4) * 0.7 };
         let stem_dir = v3(ang.cos() * lean.sin(), lean.cos(), ang.sin() * lean.sin());
@@ -774,17 +774,17 @@ fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     plant.rotation().y = rnd() * PI * 2.0;
     g.world.add(&plant);
     let pp = plant.pos();
-    // R291 track living plants for rustle audio events.
+    // Track living plants for rustle audio events.
     if is_alive {
         g.pp.living_plant_positions.push(v3(pp.x, 0.4, pp.z));
-        // the old glow's draws (R292, R293), kept: a plant gives no light
+        // the old glow's draws, kept: a plant gives no light
         if rnd() < 0.05 {
             if rnd() < 0.30 {
                 let _ = rnd(); // keeps the old draw (its pulse's phase)
             }
         }
     }
-    // R275/R276 40% chance: dry leaves fallen round the pot (dead plants only),
+    // 40% chance: dry leaves fallen round the pot (dead plants only),
     // each its old draws: its size, its tilt, its turn, where it lies
     if !is_alive && rnd() < 0.40 {
         let debris_count = 3 + (rnd() * 3.0).floor() as i32;
@@ -804,9 +804,9 @@ fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R274 ceiling speakers: 25% chance per level, 1-2 units flush on the ceiling.
+// Ceiling speakers: 25% chance per level, 1-2 units flush on the ceiling.
 fn place_ceiling_speakers(g: &mut Game, _dist: &[i32]) {
-    g.pp.speaker_positions.clear(); // R275 reset per level
+    g.pp.speaker_positions.clear(); // reset per level
     if rnd() < 0.75 {
         return;
     } // 25% chance
@@ -833,14 +833,14 @@ fn place_ceiling_speakers(g: &mut Game, _dist: &[i32]) {
         let oz = (rnd() - 0.5) * 1.4;
         speaker.position().set(g.wx(x) + ox, WALL_H - 0.01, g.wz(z) + oz); // trim top on the ceiling
         g.world.add(&speaker);
-        // R275 track for PA-announcement audio events.
+        // Track for PA-announcement audio events.
         let sp = speaker.pos();
         g.pp.speaker_positions.push(v3(sp.x, sp.y, sp.z));
         i += 1;
     }
 }
 
-// R270 handrail: 0-2 wall-mounted horizontal metal bars per level.
+// Handrail: 0-2 wall-mounted horizontal metal bars per level.
 fn place_handrails(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.60 {
         return;
@@ -884,7 +884,7 @@ fn place_handrails(g: &mut Game, _dist: &[i32]) {
             }
             g.world.add(&bracket);
         }
-        // R271 worn-spot variant: 15% chance a darker band at the rail midpoint.
+        // Worn-spot variant: 15% chance a darker band at the rail midpoint.
         if rnd() < 0.15 {
             let worn_mat = lambert!({ color: 0x4a4640 });
             let worn = mesh(pg("Handrails__worn", cyl_geo!(0.022, 0.022, 0.30, 8)), &worn_mat);
@@ -900,7 +900,7 @@ fn place_handrails(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R268 first aid kit: 20% chance per level, 1 wall-mounted unit.
+// First aid kit: 20% chance per level, 1 wall-mounted unit.
 fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -939,7 +939,7 @@ fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kit);
     let kp = kit.pos();
     let k_rot_y = kit.rot().y;
-    // R295 20% chance small orange pill bottle on floor near the kit.
+    // 20% chance small orange pill bottle on floor near the kit.
     if rnd() < 0.20 {
         let bottle_mat = lambert!({ color: 0xd8621a });
         let cap_mat = lambert!({ color: 0xf0f0e8 });
@@ -961,7 +961,7 @@ fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         bottle.position().set(kp.x + fx * bdist + (rnd() - 0.5) * 0.4, by, kp.z + fz * bdist + (rnd() - 0.5) * 0.4);
         bottle.rotation().y = rnd() * PI * 2.0;
         g.world.add(&bottle);
-        // R296 tipped bottles 60% chance spill 3-5 small white pills nearby.
+        // Tipped bottles 60% chance spill 3-5 small white pills nearby.
         if is_tipped_bottle && rnd() < 0.60 {
             let pill_mat = lambert!({ color: 0xf0eee4 });
             let pill_count = 3 + (rnd() * 3.0).floor() as i32;
@@ -975,7 +975,7 @@ fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
             }
         }
     }
-    // R297 8% chance small syringe on floor near the kit.
+    // 8% chance small syringe on floor near the kit.
     if rnd() < 0.08 {
         let barrel_mat = lambert!({ color: 0xd8d0c8 });
         let needle_mat = lambert!({ color: 0x808080 });
@@ -997,7 +997,7 @@ fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         syringe.rotation().y = rnd() * PI * 2.0;
         g.world.add(&syringe);
     }
-    // R269 25% chance a clipboard is dropped on the floor near the kit.
+    // 25% chance a clipboard is dropped on the floor near the kit.
     if rnd() < 0.25 {
         let board_mat = lambert!({ color: 0x9a7048 });
         let paper_mat = lambert!({ color: 0xece0d0 });
@@ -1019,10 +1019,10 @@ fn place_first_aid_kits(g: &mut Game, _dist: &[i32]) {
         clipboard.rotation().y = rnd() * PI * 2.0;
         g.world.add(&clipboard);
     }
-    // R307 25% chance safety goggles dropped near the kit.
+    // 25% chance safety goggles dropped near the kit.
     if rnd() < 0.25 {
         let strap_mat = lambert!({ color: 0x181818 });
-        // R323 per-weather lens tint.
+        // Per-weather lens tint.
         let lens_color = goggle_lens_by_weather(g.weather_key());
         let lens_mat = lambert!({ color: lens_color, transparent: true, opacity: 0.55 });
         let goggles = group();
@@ -1099,7 +1099,7 @@ pub fn restroom_sign_textures() -> Vec<Tex> {
     })
 }
 
-// R268 restroom signs: 20% chance per level, 1 wall-mounted pictogram.
+// Restroom signs: 20% chance per level, 1 wall-mounted pictogram.
 fn place_restroom_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -1126,7 +1126,7 @@ fn place_restroom_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sign);
 }
 
-// R267 supply cabinet doors: 20% chance per level, 1 two-door unit flush on a wall.
+// Supply cabinet doors: 20% chance per level, 1 two-door unit flush on a wall.
 fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -1144,7 +1144,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
     let door_w = 0.68;
     let door_h = 2.0;
     let gap = 0.04;
-    // R271 10% chance one door slightly ajar showing dark interior.
+    // 10% chance one door slightly ajar showing dark interior.
     let ajar_side: i32 = if rnd() < 0.10 {
         if rnd() < 0.5 {
             -1
@@ -1160,7 +1160,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
         let interior = mesh(plane_geo!(0.4, door_h * 0.9), &interior_mat);
         interior.position().set(ajar_f * (door_w / 2.0 + gap / 2.0), 0, -0.02);
         cabinet.add(&interior);
-        // R305 60% chance: small interior contents peek through the ajar gap.
+        // 60% chance: small interior contents peek through the ajar gap.
         if rnd() < 0.60 {
             let shelf_mat = lambert!({ color: 0x3a2a20 });
             let shelf_y = -0.15 + rnd() * 0.3; // shelf between -0.15 and 0.15 m
@@ -1188,7 +1188,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
         let sf = side as f64;
         let door = mesh(pg("CabinetDoors__door", plane_geo!(door_w, door_h)), &door_mat);
         door.position().set(sf * (door_w / 2.0 + gap / 2.0), 0, 0.005);
-        // R271 if this side is ajar, rotate the door outward slightly.
+        // If this side is ajar, rotate the door outward slightly.
         if side == ajar_side {
             door.rotation().y = sf * -0.35; // ~20° swing
             door.position().z = 0.03; // pull forward as it swings open
@@ -1216,7 +1216,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
         cabinet.position().set(wall_x, center_h, wall_z);
     }
     g.world.add(&cabinet);
-    // R309 30% chance: toolbox on floor 0.35-0.60 m in front of cabinet.
+    // 30% chance: toolbox on floor 0.35-0.60 m in front of cabinet.
     if rnd() < 0.30 {
         let body_tool_mat = lambert!({ color: 0x8a2020 });
         let trim_tool_mat = lambert!({ color: 0x2a1010 });
@@ -1225,7 +1225,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
         let tbody = mesh(pg("CabinetDoors__toolbox", box_geo!(0.24, 0.10, 0.12)), &body_tool_mat);
         tbody.position().y = 0.05;
         toolbox.add(&tbody);
-        // R313 20% chance: hinged-open lid variant showing 2-3 tiny tools inside.
+        // 20% chance: hinged-open lid variant showing 2-3 tiny tools inside.
         let is_open = rnd() < 0.20;
         if is_open {
             let interior_mat = basic_mat!({ color: 0x0a0605 });
@@ -1285,7 +1285,7 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
         toolbox.position().set(wall_x + fx * tdist + (rnd() - 0.5) * 0.5, 0, wall_z + fz * tdist + (rnd() - 0.5) * 0.5);
         toolbox.rotation().y = rnd() * PI * 2.0;
         g.world.add(&toolbox);
-        // R312 30% chance: small wrench dropped on floor 0.10-0.25 m from toolbox.
+        // 30% chance: small wrench dropped on floor 0.10-0.25 m from toolbox.
         if rnd() < 0.30 {
             let wrench_mat = lambert!({ color: 0x707878 });
             let wrench = group();
@@ -1308,9 +1308,9 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
             wrench.position().set(tp.x + w_ang.cos() * w_dist, 0.010, tp.z + w_ang.sin() * w_dist); // resting on the knurl ring
             wrench.rotation().y = rnd() * PI * 2.0;
             g.world.add(&wrench);
-            // R314 40% chance: small dark oil-stain circle beneath wrench.
+            // 40% chance: small dark oil-stain circle beneath wrench.
             if rnd() < 0.40 {
-                // R324 per-weather oil color.
+                // Per-weather oil color.
                 let oil_color = oil_stain_by_weather(g.weather_key());
                 let oil_mat = basic_mat!({ color: oil_color, transparent: true, opacity: 0.7, depthWrite: false });
                 let oil = mesh(circle_geo!(0.04 + rnd() * 0.03, 10), &oil_mat);
@@ -1325,13 +1325,13 @@ fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R267 wet floor sign: batch `t22`'s (`t22.rs`), the core's sign
+// Wet floor sign: batch `t22`'s (`t22.rs`), the core's sign
 mod t22;
 use t22::place_wet_floor_signs;
 
-// R265 emergency light: 20% chance per level, 1 wall-mounted 2-bulb fixture.
+// Emergency light: 20% chance per level, 1 wall-mounted 2-bulb fixture.
 fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
-    g.pp.glow_light_positions.clear(); // R273 reset per level
+    g.pp.glow_light_positions.clear(); // reset per level
     if rnd() < 0.80 {
         return;
     } // 20% chance
@@ -1345,7 +1345,7 @@ fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
     let light = group();
     let housing = mesh(pg("EmergencyLights__housing", box_geo!(0.30, 0.10, 0.10)), &housing_mat);
     light.add(&housing);
-    // R266 20% chance the bulbs flicker via animator.
+    // 20% chance the bulbs flicker via animator.
     let flickering = rnd() < 0.20;
     // Per-light material so animator can pulse individually.
     let bulb_mat = lambert!({ color: 0xe8e4c0, transparent: flickering, opacity: 1 });
@@ -1388,7 +1388,7 @@ fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
         light.position().set(wall_x + (rnd() - 0.5) * 1.2, light_height, wall_z);
     }
     g.world.add(&light);
-    // R269/R270 "on" variant: 10% chance the emergency light emits a real dim point light.
+    // "on" variant: 10% chance the emergency light emits a real dim point light.
     if rnd() < 0.10 {
         let base_int = 0.6;
         let point_l = point_light!(0xf5e090, base_int, 3.0, 2);
@@ -1399,13 +1399,13 @@ fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
         point_l.position().set(lp.x + fx * 0.15, lp.y - 0.02, lp.z + fz * 0.15);
         g.world.add(&point_l);
         bulb_mat.m().color.set_hex(0xfff8c0); // brighter "on" bulb color
-                                              // R270 subtle sin-wave flicker: ±10% at 0.7 Hz with random phase.
+                                              // Subtle sin-wave flicker: ±10% at 0.7 Hz with random phase.
         let flicker_phase = rnd() * PI * 2.0;
         let pl = point_l.clone();
         g.animate(move |_g, _dt, t| {
             pl.set_intensity(base_int * (0.90 + 0.10 * (t * 1.4 * PI + flicker_phase).sin()));
         });
-        // R273 track for spatial hum audio events.
+        // Track for spatial hum audio events.
         let pp = point_l.pos();
         g.pp.glow_light_positions.push(v3(pp.x, pp.y, pp.z));
     }

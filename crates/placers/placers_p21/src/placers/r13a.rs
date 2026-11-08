@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R515 biohazard sign: 4% chance per level. An ISO 7010 biological hazard
+// Biohazard sign: 4% chance per level. An ISO 7010 biological hazard
 // sign screwed to a wall (batch r13a).
 pub(crate) fn place_biohazard_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {

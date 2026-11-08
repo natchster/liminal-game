@@ -4,7 +4,7 @@
 use game::prelude::*;
 
 /// Book cover pool per weather; other keys get `[0x6a2020, 0x1a3040, 0x203020, 0x4a3820, 0x1a1a2a]`
-/// (still / normal have no entry, so they take the R380 baseline pool).
+/// (still / normal have no entry, so they take the baseline pool).
 pub fn book_cover_pool(key: &str) -> &'static [u32] {
     match key {
         "wet" => &[0x1a3040, 0x203040, 0x2a3438],      // cool blue-gray covers
@@ -38,7 +38,7 @@ pub fn rug_tint_by_weather(key: &str) -> u32 {
 pub fn ceiling_debris_by_weather(key: &str) -> u32 {
     by_weather(key, 0x8890a0, 0xa89880, 0xa88880, 0x988878, 0xa89890, 0xa89890)
 }
-/// The water-puddle spec `(color, emissive)` shared by R362/R370, per weather (else normal).
+/// The water-puddle spec `(color, emissive)` per weather (else normal).
 pub fn puddle_spec_by_weather(key: &str) -> (u32, u32) {
     by_weather(
         key,
@@ -50,12 +50,12 @@ pub fn puddle_spec_by_weather(key: &str) -> (u32, u32) {
         (0x101820, 0x040810),
     )
 }
-/// The R368 wall-streak colour per weather (else normal).
+/// The wall-streak colour per weather (else normal).
 pub fn streak_color_by_weather(key: &str) -> u32 {
     by_weather(key, 0x1a2028, 0x1a1408, 0x180a08, 0x1a1610, 0x181410, 0x181410)
 }
 
-// R361 floor rug remnant canvas — subtle 3-color grid pattern.
+// Floor rug remnant canvas — subtle 3-color grid pattern.
 // Built once, reused across all instances.
 game::lazy_static_tex!(
     rug_texture,
@@ -85,7 +85,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R356 folded newspaper on floor: small rectangular plane with dark
+// Folded newspaper on floor: small rectangular plane with dark
 // column-lines suggesting print.
 game::lazy_static_tex!(
     newspaper_texture_2,

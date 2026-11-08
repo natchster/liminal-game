@@ -21,7 +21,7 @@ const FELLOES: f64 = 0.1450;
 const TYRE: f64 = 0.1500;
 const HUB: f64 = 0.0360;
 
-// R659 wagon wheel (wall): 3% chance per level. A 12 in wheel (a hand
+// Wagon wheel (wall): 3% chance per level. A 12 in wheel (a hand
 // cart's or a goat cart's) hung on a nail.
 pub fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {

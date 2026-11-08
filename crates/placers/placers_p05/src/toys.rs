@@ -1,4 +1,4 @@
-//! Toys, nursery items, wall thermometer, plush animals (R625–R635).
+//! Toys, nursery items, wall thermometer, plush animals.
 use crate::{face_yaw, open_tiles, pick, set_rot_order, wall_tiles};
 use game::prelude::*;
 
@@ -11,7 +11,7 @@ pub use t15::{place_action_figures, place_baby_rattles, place_toy_dinosaurs};
 mod t14;
 pub use t14::place_stuffed_elephants;
 
-// R625 crayon cluster: 8% chance per level. 5-9 short colored sticks.
+// Crayon cluster: 8% chance per level. 5-9 short colored sticks.
 pub fn place_crayons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -52,7 +52,7 @@ pub fn place_crayons(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R626 puzzle piece: 9% chance per level. A piece of a children's jigsaw
+// Puzzle piece: 9% chance per level. A piece of a children's jigsaw
 // (Blender batch r17): 2 mm greyboard faced with printed paper, die cut
 // with round knobs, 5 cm across; a border piece, or (the old second tab) an
 // inner one with two. Its face a fragment of the picture, faded, rubbed
@@ -287,10 +287,10 @@ fn puzzle_board_tex() -> Tex {
     })
 }
 
-// R630 gum-ball dispenser: 3% chance per level. Wall-mounted glass globe on
+// Gum-ball dispenser: 3% chance per level. Wall-mounted glass globe on
 // stand + coin slot.
 pub fn place_gum_ball_dispensers(g: &mut Game, _dist: &[i32]) {
-    g.pp.gumball_positions.clear(); // R669 reset per level
+    g.pp.gumball_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     } // 3% chance
@@ -337,10 +337,10 @@ pub fn place_gum_ball_dispensers(g: &mut Game, _dist: &[i32]) {
     dispenser.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.060), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.060));
     g.world.add(&dispenser);
     let p = dispenser.pos();
-    g.pp.gumball_positions.push(v3(p.x, 0, p.z)); // R669
+    g.pp.gumball_positions.push(v3(p.x, 0, p.z));
 }
 
-// R631 pacifier: 7% chance per level. Nipple + shield + ring.
+// Pacifier: 7% chance per level. Nipple + shield + ring.
 pub fn place_pacifiers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -376,7 +376,7 @@ pub fn place_pacifiers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paci);
 }
 
-// R631 sippy cup: 6% chance per level. Colored cup + lid + spout + 2 handles.
+// Sippy cup: 6% chance per level. Colored cup + lid + spout + 2 handles.
 pub fn place_sippy_cups(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -424,7 +424,7 @@ pub fn place_sippy_cups(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cup);
 }
 
-// R632 wall thermometer strip: 4% chance per level. Long thin wall device w/
+// Wall thermometer strip: 4% chance per level. Long thin wall device w/
 // liquid column + tick marks.
 game::lazy_static_tex!(
     therm_texture,
@@ -481,7 +481,7 @@ pub fn place_thermometers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&therm);
 }
 
-// R632 baby bottle: 6% chance per level. Body + nipple + cap ring.
+// Baby bottle: 6% chance per level. Body + nipple + cap ring.
 pub fn place_baby_bottles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -522,7 +522,7 @@ pub fn place_baby_bottles(g: &mut Game, _dist: &[i32]) {
     bottle.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     bottle.rotation().y = rnd() * PI * 2.0;
     g.world.add(&bottle);
-    // R675 milk sloshing animator (tipped bottles slosh more).
+    // Milk sloshing animator (tipped bottles slosh more).
     let slphase = rnd() * PI * 2.0;
     let amp = if is_tipped { 0.06 } else { 0.02 }; // tipped bottles slosh visibly more
     g.animate(move |_g, _dt, t| {
@@ -533,7 +533,7 @@ pub fn place_baby_bottles(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-// R634 8-track tape cartridge: 5% chance per level. Chunky blocky cartridge w/
+// 8-track tape cartridge: 5% chance per level. Chunky blocky cartridge w/
 // label + notch cutout.
 pub fn place_8_track_tapes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -573,7 +573,7 @@ pub fn place_8_track_tapes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cartridge);
 }
 
-// R634 stuffed rabbit: 4% chance per level. Similar to bear but w/ long ears +
+// Stuffed rabbit: 4% chance per level. Similar to bear but w/ long ears +
 // smaller body.
 pub fn place_stuffed_rabbits(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -599,7 +599,7 @@ pub fn place_stuffed_rabbits(g: &mut Game, _dist: &[i32]) {
     head.position().y = 0.078;
     rabbit.add(&head);
     // 2 long tall ears (upright ellipsoids).
-    // R664 track for ear twitch animator: (ear, phase, side)
+    // Track for ear twitch animator: (ear, phase, side)
     let mut rabbit_ears: Vec<(Obj, f64, f64)> = vec![];
     for side in [-1.0f64, 1.0] {
         let ear = mesh(pg("StuffedRabbits__ear", sphere_geo!(0.008, 6, 5)), &bunny_mat);
@@ -647,8 +647,8 @@ pub fn place_stuffed_rabbits(g: &mut Game, _dist: &[i32]) {
     rabbit.rotation().y = rnd() * PI * 2.0;
     g.world.add(&rabbit);
     let p = rabbit.pos();
-    g.pp.plush_positions.push(v3(p.x, 0, p.z)); // R666
-                                                // R664 subtle ear twitch — rare rapid rotations w/ long idle.
+    g.pp.plush_positions.push(v3(p.x, 0, p.z));
+    // Subtle ear twitch — rare rapid rotations w/ long idle.
     g.animate(move |_g, _dt, t| {
         for (ear, phase, side) in &rabbit_ears {
             // Base + occasional short twitch (when sin > 0.96, add a rapid wobble).

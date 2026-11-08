@@ -30,25 +30,25 @@ pub struct AudioSys {
     pub safe_room_lfo: Option<AudioNode>,
     /// The 330 Hz tremolo carrier (oscillator)
     pub safe_room_trem_carrier: Option<AudioNode>,
-    /// R200 breath layer output gain
+    /// Breath layer output gain
     pub stamina_breath_gain: Option<AudioNode>,
     /// Breath cadence LFO (oscillator)
     pub stamina_breath_lfo: Option<AudioNode>,
     /// Breath noise lowpass (`.frequency`, `.Q` driven)
     pub stamina_breath_lp: Option<AudioNode>,
-    /// R204 chest-thump sub gain
+    /// Chest-thump sub gain
     pub stamina_breath_sub_gain: Option<AudioNode>,
-    /// R204 StereoPanner after the breath gain
+    /// StereoPanner after the breath gain
     pub stamina_breath_panner: Option<AudioNode>,
     /// Started, never connected (the sweep is done in the update loop)
     pub stamina_breath_pan_lfo: Option<AudioNode>,
-    /// R206 90 Hz sub oscillator (per-weather `.frequency`)
+    /// 90 Hz sub oscillator (per-weather `.frequency`)
     pub stamina_breath_sub_osc: Option<AudioNode>,
-    /// R96 always-on hiss floor
+    /// Always-on hiss floor
     pub room_tone_gain: Option<AudioNode>,
-    /// R97 room-tone lowpass (per-weather Hz)
+    /// Room-tone lowpass (per-weather Hz)
     pub room_tone_lp: Option<AudioNode>,
-    /// R120 rain hiss (window-view scaled)
+    /// Rain hiss (window-view scaled)
     pub rain_hiss_gain: Option<AudioNode>,
     /// The spatial soundscape (`audio::soundscape`) — `None` before
     /// `audio_init` or when `nosound` is set
@@ -202,7 +202,7 @@ impl Game {
         brush_g.connect(&vacuum_gain);
         brush_noise.start(0.0);
         // safe-room hum: warm low sine (~110 Hz) + subtle harmonic + tremolo LFO.
-        // R91: enriched with sub-bass (~55 Hz) + gently detuned choir triangle
+        // Enriched with sub-bass (~55 Hz) + gently detuned choir triangle
         // pair (~220±3 Hz) under the tremolo for a fuller, more oppressive body.
         // Gain driven by `update_player` from proximity to the safe room.
         let safe_room_gain = ac.create_gain();
@@ -230,7 +230,7 @@ impl Game {
             sub.start(0.0);
         }
         // Detuned choir triangle pair at ~220 Hz — subtle beating creates the
-        // "not-quite-still" feel that matches the R23 haunted-liminal vibe.
+        // "not-quite-still" feel that matches the haunted-liminal vibe.
         for detune in [-3.0, 3.0] {
             let c = ac.create_oscillator();
             c.set_type("triangle");
@@ -258,7 +258,7 @@ impl Game {
         safe_room_trem_carrier.connect(&trem);
         trem.connect(&safe_room_gain);
         safe_room_trem_carrier.start(0.0);
-        // R96/R97 always-running room-tone hiss floor. Filter frequency +
+        // Always-running room-tone hiss floor. Filter frequency +
         // gain reconfigured per-weather in `init_level` — wet = darker/warmer,
         // still = brighter/thinner, etc. All weathers get some tone so audio
         // never feels dead between events.
@@ -275,7 +275,7 @@ impl Game {
         rt_src.connect(&room_tone_lp);
         room_tone_lp.connect(&room_tone_gain);
         rt_src.start(0.0);
-        // R120 continuous rain hiss — always-running loop, bandpassed to a
+        // Continuous rain hiss — always-running loop, bandpassed to a
         // "distant static rain" band. Gain is set only when the player is
         // facing a rain-window on a wet-weather level (see `update_ambient`).
         let rain_hiss_gain = ac.create_gain();
@@ -291,11 +291,11 @@ impl Game {
         rh_src.connect(&rh_bp);
         rh_bp.connect(&rain_hiss_gain);
         rh_src.start(0.0);
-        // R200 stamina breath layer: always-running lowpass noise gated by a
+        // Stamina breath layer: always-running lowpass noise gated by a
         // slow LFO (~0.35 Hz base = ~21 bpm exhausted breathing). Output gain
         // driven from update loop based on fatigue. Signal chain:
         //   noise → lp(220 Hz) → `br_trem` (LFO-modulated) → `stamina_breath_gain` → master
-        // R204: `stamina_breath_gain` feeds a stereo panner (`stamina_breath_panner`),
+        // `stamina_breath_gain` feeds a stereo panner (`stamina_breath_panner`),
         // swept ±0.2 at peak fatigue from the update loop. The pan LFO is
         // started but never connected. Sub-oscillator (90 Hz sine, LFO-gated)
         // adds chest-thump weight to complement the airway whistle.
@@ -331,8 +331,8 @@ impl Game {
         stamina_breath_lp.connect(&br_trem);
         br_trem.connect(&stamina_breath_gain);
         br_src.start(0.0);
-        // R204 chest-thump sub-oscillator: 90 Hz sine, gated by its own gain
-        // stage that shares the R200 tremolo LFO. Gain driven from the update
+        // Chest-thump sub-oscillator: 90 Hz sine, gated by its own gain
+        // stage that shares the breath's tremolo LFO. Gain driven from the update
         // loop as breath magnitude × 0.020.
         let stamina_breath_sub_gain = ac.create_gain();
         stamina_breath_sub_gain.gain().set_value(0.0);

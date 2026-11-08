@@ -16,7 +16,7 @@ const FAN_OPEN: f64 = 110.0 * PI / 180.0;
 /// The pleats: twice the ribs less one
 const PANELS: f64 = 48.0;
 
-// R441 small folding fan: 6% chance per level. A lady's paper folding fan
+// Small folding fan: 6% chance per level. A lady's paper folding fan
 // (a sensu, 19.5 cm): 25 bamboo ribs riveted at their heads, the two
 // lacquered guards, the leaf of washi folded in pleats over them, printed
 // (the old colour pick: cherry blossom on rose, waves on indigo, maple

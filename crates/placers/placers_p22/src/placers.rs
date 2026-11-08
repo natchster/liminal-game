@@ -21,9 +21,9 @@ fn pick_hex(a: &[u32]) -> u32 {
     a[(rnd() * a.len() as f64).floor() as usize]
 }
 
-// R503 old CRT TV: 4% chance per level. Boxy TV with static screen + antennae.
+// Old CRT TV: 4% chance per level. Boxy TV with static screen + antennae.
 pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {
-    g.pp.crt_positions.clear(); // R504 reset per level
+    g.pp.crt_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -76,12 +76,12 @@ pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {
     });
     scatter_on_floor(g, &tv, x, z, 1.6);
     g.world.add(&tv);
-    // R504 track for static hiss audio.
+    // Track for static hiss audio.
     let p = tv.pos();
     g.pp.crt_positions.push(v3(p.x, 0.20, p.z));
 }
 
-// R503 overflowing ashtray: 6% chance per level. Ashtray + scattered butts.
+// Overflowing ashtray: 6% chance per level. Ashtray + scattered butts.
 pub(crate) fn place_overflowing_ashtrays(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -133,7 +133,7 @@ pub(crate) fn place_overflowing_ashtrays(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R502 spilled pill bottle: 8% chance per level. Tipped bottle + scattered capsules.
+// Spilled pill bottle: 8% chance per level. Tipped bottle + scattered capsules.
 pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -171,7 +171,7 @@ pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R501 shattered vase: 6% chance per level. Broken pottery + upright base.
+// Shattered vase: 6% chance per level. Broken pottery + upright base.
 pub(crate) fn place_shattered_vases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -210,7 +210,7 @@ pub(crate) fn place_shattered_vases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R500 worn teddy bear: 6% chance per level. Old teddy with a missing eye.
+// Worn teddy bear: 6% chance per level. Old teddy with a missing eye.
 pub(crate) fn place_worn_teddy_bears(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -278,7 +278,7 @@ pub(crate) fn place_worn_teddy_bears(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bear);
 }
 
-// R500 dead moth: 5% chance per level. Small dead moth on floor.
+// Dead moth: 5% chance per level. Small dead moth on floor.
 pub(crate) fn place_dead_moths(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -315,7 +315,7 @@ pub(crate) fn place_dead_moths(g: &mut Game, _dist: &[i32]) {
     g.world.add(&moth);
 }
 
-// R499 single child shoe: 6% chance per level. One small child's shoe on floor.
+// Single child shoe: 6% chance per level. One small child's shoe on floor.
 pub(crate) fn place_single_child_shoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -362,7 +362,7 @@ pub(crate) fn place_single_child_shoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shoe);
 }
 
-// R498 dead flowers in vase: 6% chance per level. Vase + dried stems + petals.
+// Dead flowers in vase: 6% chance per level. Vase + dried stems + petals.
 pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -422,7 +422,7 @@ pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&vase);
 }
 
-// R498 baby crib fragment: 3% chance per level. Wooden crib section with bars.
+// Baby crib fragment: 3% chance per level. Wooden crib section with bars.
 pub(crate) fn place_baby_crib_fragments(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -465,9 +465,9 @@ pub(crate) fn place_baby_crib_fragments(g: &mut Game, _dist: &[i32]) {
     g.world.add(&crib);
 }
 
-// R497 crystal chandelier: 3% chance per level. 6 arms + dangles + inner light.
+// Crystal chandelier: 3% chance per level. 6 arms + dangles + inner light.
 pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
-    g.pp.chandelier_positions.clear(); // R524 reset per level
+    g.pp.chandelier_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     } // 3% chance
@@ -547,7 +547,7 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
         glow.set_intensity(0.9 + p.sin() * 0.06 + (p * 1.7).sin() * 0.04);
     });
     scatter_on_floor(g, &chandelier, x, z, 1.5);
-    // R524 track for chime audio.
+    // Track for chime audio.
     let p = chandelier.pos();
     g.pp.chandelier_positions.push(v3(p.x, center_y, p.z));
     // Slow sway.
@@ -576,9 +576,9 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&chandelier);
 }
 
-// R496 rocking chair: 4% chance per level. Empty rocking chair, slow rock animator.
+// Rocking chair: 4% chance per level. Empty rocking chair, slow rock animator.
 pub(crate) fn place_rocking_chairs(g: &mut Game, _dist: &[i32]) {
-    g.pp.chair_positions.clear(); // R497 reset per level
+    g.pp.chair_positions.clear(); // reset per level
     g.pp.chair_periods.clear();
     if rnd() < 0.96 {
         return;
@@ -643,14 +643,14 @@ pub(crate) fn place_rocking_chairs(g: &mut Game, _dist: &[i32]) {
     // Yaw first, so the animator's rotation.x rocks the chair along its own rockers.
     chair.set_rotation_order(EulerOrder::YXZ);
     g.world.add(&chair);
-    // R497 track for creak audio (store period for sync: the ambient creak timer
+    // Track for creak audio (store period for sync: the ambient creak timer
     // reads it from the parallel `chair_periods`).
     let p = chair.pos();
     g.pp.chair_positions.push(v3(p.x, 0.30, p.z));
     g.pp.chair_periods.push(rock_period);
 }
 
-// R495 scattered pages: 8% chance per level. 5-10 loose sheets with writing.
+// Scattered pages: 8% chance per level. 5-10 loose sheets with writing.
 pub(crate) fn place_scattered_pages(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -678,7 +678,7 @@ pub(crate) fn place_scattered_pages(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R494 wall coat hooks with robe: 5% chance per level. 3 hooks + optional robe.
+// Wall coat hooks with robe: 5% chance per level. 3 hooks + optional robe.
 pub(crate) fn place_coat_hooks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -723,7 +723,7 @@ pub(crate) fn place_coat_hooks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hook_group);
 }
 
-// R493 broken wall clock: 5% chance per level. Clock face frozen at an odd time.
+// Broken wall clock: 5% chance per level. Clock face frozen at an odd time.
 pub(crate) fn place_broken_wall_clocks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -755,7 +755,7 @@ pub(crate) fn place_broken_wall_clocks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&clock);
 }
 
-// R492 ancient book stack: 8% chance per level. 3-4 leather-bound tomes stacked.
+// Ancient book stack: 8% chance per level. 3-4 leather-bound tomes stacked.
 pub(crate) fn place_ancient_book_stacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;

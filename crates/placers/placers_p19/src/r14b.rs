@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R559 safety glasses: 8% chance per level. A pair of clear wraparound
+// Safety glasses: 8% chance per level. A pair of clear wraparound
 // safety spectacles (Blender batch r14b: 125 mm across, one polycarbonate
 // lens with its side shields and nose notch, nylon temples 132 mm), put down
 // open on the lens's foot and the temples' tips, or folded and lying on

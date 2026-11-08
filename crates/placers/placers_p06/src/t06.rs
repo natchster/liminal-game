@@ -487,7 +487,7 @@ fn soil_scatter_tex(salt: u32) -> Tex {
     })
 }
 
-// R645 bag of soil: 6% chance per level.
+// Bag of soil: 6% chance per level.
 pub fn place_soil_bags(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -558,7 +558,7 @@ fn apron_tex(base: [f64; 3], salt: u32) -> Tex {
     })
 }
 
-// R648 garden apron: 5% chance per level.
+// Garden apron: 5% chance per level.
 pub fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -793,7 +793,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
     })
 }
 
-// R647 framed vintage seed catalogue: 3% chance per level.
+// Framed vintage seed catalogue: 3% chance per level.
 pub fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -1066,7 +1066,7 @@ fn bb_dish(r: f64) -> (f64, f64) {
     (0.038, 0.4)
 }
 
-// R651 bird bath: 3% chance per level.
+// Bird bath: 3% chance per level.
 pub fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -1150,7 +1150,7 @@ pub fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
 }
 
 // ============================================================ garden gnomes
-// R652 garden gnome: 3% chance per level.
+// Garden gnome: 3% chance per level.
 pub fn place_garden_gnomes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -1257,7 +1257,7 @@ fn seg_cross(a0: (f64, f64), a1: (f64, f64), b0: (f64, f64), b1: (f64, f64)) -> 
     ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then_some((t, u))
 }
 
-// R653 fertilizer spike cluster: 8% chance per level.
+// Fertilizer spike cluster: 8% chance per level.
 pub fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;

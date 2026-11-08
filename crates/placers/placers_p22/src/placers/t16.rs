@@ -8,7 +8,7 @@ use crate::open_tiles;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R505 overturned tricycle: 4% chance per level. A toddler's steel
+/// Overturned tricycle: 4% chance per level. A toddler's steel
 /// tricycle (Blender batch `t16`; 66 x 56 x 54 cm standing: a 10 in front
 /// wheel with pedals on its crank axle, 7 in rears, spoked, solid rubber
 /// tyres; a bent tube frame, a rear step, a moulded saddle, a plated

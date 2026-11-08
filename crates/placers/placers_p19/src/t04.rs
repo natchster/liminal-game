@@ -75,7 +75,7 @@ fn t04_fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] +
 
 // ============================================================ towel bar
 
-// R562 wall towel bar: 6% chance per level. A 12 in towel bar of the hardware
+// Wall towel bar: 6% chance per level. A 12 in towel bar of the hardware
 // store's kind (Blender batch `t04`): a 3/4 in chromed tube on two posts and
 // their rosettes, the plating dulled; over it a cotton terry hand towel
 // folded in half along its length, hung and left (draped by Blender's
@@ -194,7 +194,7 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
 const ST_LENS_FRONT: f64 = 0.0296;
 const ST_FIRE: [f64; 3] = [0.0, -0.031, 0.0213];
 
-// R544 emergency strobe: 3% chance per level. A fire alarm's wall strobe of
+// Emergency strobe: 3% chance per level. A fire alarm's wall strobe of
 // the compact kind (Blender batch `t04`, the Edwards Genesis G1RF-VM): a red
 // moulded housing faded and dusty, FIRE in white under a clear prismatic
 // lens, the xenon tube and its reflector behind it. Now and then it fires:

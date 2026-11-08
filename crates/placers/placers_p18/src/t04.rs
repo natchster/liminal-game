@@ -100,7 +100,7 @@ const SF_WASTE_Y: f64 = -0.430;
 /// The patch the basin left on the wall: its width and height, its middle
 const SF_GHOST: [f64; 3] = [0.58, 0.62, -0.245];
 
-// R565 wall sink faucet: 6% chance per level. A wall-mounted two-valve faucet
+// Wall sink faucet: 6% chance per level. A wall-mounted two-valve faucet
 // on 4 in centres (Blender batch `t04`, the Chicago Faucets 445 class):
 // chromed brass gone dull, limed and tarnished, four-arm handles with their
 // red and blue buttons, an L-type swing spout left swung aside. Its basin is

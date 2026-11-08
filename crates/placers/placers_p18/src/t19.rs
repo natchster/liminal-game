@@ -27,7 +27,7 @@ const CREST_CX: f64 = CREST_HW - CREST_R;
 const FIELD_X: (f64, f64) = (-0.1490, 0.1490);
 const FIELD_Y: (f64, f64) = (-0.1883, 0.1890);
 
-// R765 framed heraldic coat of arms: 2.5% chance per level. A carved
+// Framed heraldic coat of arms: 2.5% chance per level. A carved
 // armorial plaque of oak (33.6 x 41.6 cm, the old frame's size): a heater
 // shield, its edge moulded with a bead and a cove into the field; the
 // field gessoed and painted, the ordinary carved proud of it and painted,
@@ -256,7 +256,7 @@ fn age_paint(ctx: &mut Canvas, w: f64, h: f64, seed: u32, scale: f64) {
     ctx.put_image_data(&img, 0, 0);
 }
 
-// R766 mounted animal skull on a plaque (wall): 2.5% chance. A roe deer's
+// Mounted animal skull on a plaque (wall): 2.5% chance. A roe deer's
 // skull, boiled and bleached (the European mount: the whole skull bar the
 // jaw, its palate to the board, its nose down, its frontal to the room)
 // on a carved oak shield or an oval board (the old plaque's shape draw); a

@@ -27,7 +27,7 @@ fn pushed(geo: &Geo, push: f64) -> Geo {
     out
 }
 
-// R703 wall coat rack w/ 2-3 hanging coats: 3% chance per level. A 24 in
+// Wall coat rack w/ 2-3 hanging coats: 3% chance per level. A 24 in
 // board of stained hardwood screwed to the wall, five cast brass hooks on
 // it (batch `t07`), two or three wool overcoats hung by their loops (r06's,
 // one over the next where the hooks are close), now and then a knitted
@@ -109,7 +109,7 @@ pub(crate) fn place_coat_racks(g: &mut Game, _dist: &[i32]) {
             }
         }
         wall.add(&coat);
-        // R729 subtle sway animator — 35% chance per coat.
+        // Subtle sway animator — 35% chance per coat.
         if rnd() < 0.35 {
             let sway_phase = rnd() * PI * 2.0;
             let sway_phase2 = rnd() * PI * 2.0;
@@ -288,15 +288,15 @@ fn catmull(c: &[Vec3], per: usize) -> Vec<Vec3> {
     out
 }
 
-// R705 vacuum cleaner unattended (floor): 3% chance per level.
-// R706: track positions for optional motor whine audio. An upright of the
+// Vacuum cleaner unattended (floor): 3% chance per level.
+// Track positions for optional motor whine audio. An upright of the
 // Hoover Convertible kind (batch `t07`: 45 x 13 x 12 in), stood with its
 // handle locked up: the hood on its wheels, its headlight dark, the vinyl
 // bumper; the chromed handle; the cloth bag hung from its hook, sagging
 // full; the cord wound on its two hooks, its end let down to trail across
 // the floor to its plug.
 pub(crate) fn place_vacuum_cleaners(g: &mut Game, _dist: &[i32]) {
-    g.pp.vacuum_positions = vec![]; // R706 reset per level
+    g.pp.vacuum_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -354,7 +354,7 @@ pub(crate) fn place_vacuum_cleaners(g: &mut Game, _dist: &[i32]) {
     v.position().set(g.wx(x) + (rnd() - 0.5) * 1.4, 0, g.wz(z) + (rnd() - 0.5) * 1.4);
     v.rotation().y = rnd() * PI * 2.0;
     g.world.add(&v);
-    // R706 register position for motor whine audio.
+    // Register position for motor whine audio.
     let p = v.pos();
     g.pp.vacuum_positions.push(v3(p.x, 0, p.z));
 }

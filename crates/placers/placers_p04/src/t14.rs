@@ -15,7 +15,7 @@ const TEDDY_NECK: (f64, f64, f64) = (0.0, 0.0705, -0.006);
 const BEAR_COLORS: [u32; 5] = [0x8b5a2b, 0x604020, 0xc0a080, 0xf0e0c0, 0x804060];
 const MOHAIR: [u32; 5] = [0x8a6242, 0x4f3828, 0xae8a5c, 0xcbbd9f, 0x957670];
 
-// R625 small teddy bear: 4% chance per level. A jointed mohair teddy bear
+// Small teddy bear: 4% chance per level. A jointed mohair teddy bear
 // of the 1950s, 18 cm standing (the German and English makers' kind: mohair
 // pile on a woven backing, stuffed with wood wool, jointed at the neck,
 // shoulders and hips, glass eyes, the nose and mouth stitched in black
@@ -24,7 +24,7 @@ const MOHAIR: [u32; 5] = [0x8a6242, 0x4f3828, 0xae8a5c, 0xcbbd9f, 0x957670];
 // tummy and the paws, matted and dusty, a pad worn through to the wood
 // wool. Now and then its head turns a little on its joint and back.
 pub(crate) fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
-    g.pp.plush_positions.clear(); // R666 reset per level (shared across plush classes)
+    g.pp.plush_positions.clear(); // reset per level (shared across plush classes)
     if rnd() < 0.96 {
         return;
     }
@@ -51,7 +51,7 @@ pub(crate) fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
     bear.position().set(px, 0, pz);
     bear.rotation().y = rnd() * PI * 2.0;
     g.world.add(&bear);
-    // R666 subtle head-turn animator: mostly still; occasionally the head turns 0.3 rad and returns.
+    // Subtle head-turn animator: mostly still; occasionally the head turns 0.3 rad and returns.
     let bear_phase = rnd() * PI * 2.0;
     g.animate(move |_g, _dt, t| {
         let cycle = (t * 0.15 + bear_phase).sin();
@@ -63,7 +63,7 @@ pub(crate) fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
             head_group.rotation().y = 0.0;
         }
     });
-    // R666 track for plush shuffle audio.
+    // Track for plush shuffle audio.
     let p = bear.pos();
     g.pp.plush_positions.push(v3(p.x, 0, p.z));
 }

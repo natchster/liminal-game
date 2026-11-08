@@ -20,7 +20,7 @@ const SD_FALL: (f64, f64) = (0.512, 0.300);
 /// The leather's face (under the wood's by 1.6 mm)
 const SD_LEATHER_Y: f64 = SD_BED - 0.0016;
 
-// R754 vertical secretary desk with drop-front writing surface (floor): 2%.
+// Vertical secretary desk with drop-front writing surface (floor): 2%.
 // A petite drop-front desk of the 1920s (Blender batch `t21`): four square
 // tapered legs, two drawers with Hepplewhite bail pulls, the fall front
 // lying open on its brass stays over the fitted interior (four small

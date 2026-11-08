@@ -68,7 +68,7 @@ mod t10;
 use t10::place_record_stacks;
 
 fn place_turntables(g: &mut Game, _dist: &[i32]) {
-    g.pp.turntable_positions.clear(); // R729 reset per level
+    g.pp.turntable_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -169,7 +169,7 @@ fn place_turntables(g: &mut Game, _dist: &[i32]) {
                 spin_targets.push(child);
             }
         }
-        // R732: capture arm base Y-rotation for jitter animator.
+        // Capture arm base Y-rotation for jitter animator.
         let arm_base_y_rot = arm_group.rot().y;
         let jitter_phase = rnd() * PI * 2.0;
         let jitter_phase2 = rnd() * PI * 2.0;
@@ -185,14 +185,14 @@ fn place_turntables(g: &mut Game, _dist: &[i32]) {
                     target.rotation().z += rot;
                 }
             }
-            // R732 tonearm subtle jitter.
+            // Tonearm subtle jitter.
             arm2.rotation().y = arm_base_y_rot + (t * 0.7 + jitter_phase).sin() * 0.012 + (t * 2.3 + jitter_phase2).sin() * 0.004;
         });
     }
     tt.position().set(g.wx(x) + (rnd() - 0.5) * 1.4, 0, g.wz(z) + (rnd() - 0.5) * 1.4);
     tt.rotation().y = rnd() * PI * 2.0;
     g.world.add(&tt);
-    // R729 register only spinning turntables for vinyl-hiss audio.
+    // Register only spinning turntables for vinyl-hiss audio.
     if tt_is_playing {
         let p = tt.pos();
         g.pp.turntable_positions.push(v3(p.x, 0, p.z));
@@ -210,7 +210,7 @@ fn place_framed_newspapers(g: &mut Game, _dist: &[i32]) {
     let (x, z, dx, dz) = wt[(rnd() * wt.len() as f64).floor() as usize];
     let frame_colors = [0x604020, 0x8b5a2b, 0x202020, 0xc0a060];
     let frame_mat = lambert!({ color: choice(&frame_colors) });
-    // Reuse the R692 `newspaper_texture` for the front page.
+    // Reuse `newspaper_texture` for the front page.
     let news_mat = lambert!({ map: newspaper_texture() });
     let fnw = group();
     let mount_y = 1.60;
@@ -347,7 +347,7 @@ fn place_vintage_typewriters(g: &mut Game, _dist: &[i32]) {
 }
 
 fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
-    g.pp.chalkboard_positions.clear(); // R732 reset per level
+    g.pp.chalkboard_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -411,7 +411,7 @@ fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
             0.05 + board_t / 2.0 + 0.010,
         );
         ec.add(&chalk);
-        // R735 subtle chalk-stick roll animator — 30% chance per chalk.
+        // Subtle chalk-stick roll animator — 30% chance per chalk.
         if rnd() < 0.3 {
             let roll_phase = rnd() * PI * 2.0;
             let c2 = chalk.clone();
@@ -435,7 +435,7 @@ fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
     ec.rotation().y = rnd() * PI * 2.0;
     g.world.add(&ec);
     let p = ec.pos();
-    g.pp.chalkboard_positions.push(v3(p.x, 0, p.z)); // R732
+    g.pp.chalkboard_positions.push(v3(p.x, 0, p.z));
 }
 
 fn place_school_desks(g: &mut Game, _dist: &[i32]) {

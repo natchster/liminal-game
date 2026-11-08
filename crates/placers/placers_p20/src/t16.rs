@@ -7,7 +7,7 @@ use super::{open_tiles, scatter};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R538 deflated ball: 7% chance per level. A ball gone soft (Blender batch
+/// Deflated ball: 7% chance per level. A ball gone soft (Blender batch
 /// `t16`): half the time a size 3 football (19 cm; 32 machine-stitched PVC
 /// panels, the black pentagons and white hexagons puffed between their
 /// seams), else a size 3 rubber basketball (17.8 cm; pebbled, its eight

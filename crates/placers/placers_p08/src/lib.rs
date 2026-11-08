@@ -80,8 +80,8 @@ fn wall_pos(g: &Game, x: i32, z: i32, dx: i32, dz: i32, inset: f64) -> (f64, f64
     (g.wx(x) + dx as f64 * (CELL * 0.5 - inset), g.wz(z) + dz as f64 * (CELL * 0.5 - inset))
 }
 
-// R682 knitting basket w/ yarn ball + needles: 4% chance
-// per level. Twin variant of R680 sewing basket.
+// Knitting basket w/ yarn ball + needles: 4% chance
+// per level. Twin variant of the sewing basket.
 fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -113,7 +113,7 @@ fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
     let yarn = mesh(pg("KnittingBaskets__yarn", sphere_geo!(0.055, 8, 6)), &yarn_mat);
     yarn.position().set(0.020, 0.075, 0);
     basket.add(&yarn);
-    // R701 subtle yarn ball roll animator — 40% chance.
+    // Subtle yarn ball roll animator — 40% chance.
     // Tiny rotation on Z + gentle micro-shift on X, mimics "just settled".
     if rnd() < 0.4 {
         let roll_phase = rnd() * PI * 2.0;
@@ -184,9 +184,9 @@ fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&basket);
 }
 
-// R682 hanging colander, R683 hanging herb sieve: batch `t07` (t07.rs).
+// Hanging colander, hanging herb sieve: batch `t07` (t07.rs).
 
-// R683 donut on napkin: 8% chance per level. Glazed torus
+// Donut on napkin: 8% chance per level. Glazed torus
 // donut resting on a folded paper napkin square.
 fn place_donuts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -253,11 +253,11 @@ fn place_donuts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&donut);
 }
 
-// R684 makeup sponge: batch `t03`'s (`t03.rs`)
+// Makeup sponge: batch `t03`'s (`t03.rs`)
 mod t03;
 use t03::place_makeup_sponges;
 
-// R684 framed embroidery hoop (wall): 4% chance per level.
+// Framed embroidery hoop (wall): 4% chance per level.
 // Wooden hoop stretching fabric w/ visible embroidered pattern.
 game::lazy_static_tex!(
     embroidery_texture,
@@ -381,7 +381,7 @@ fn place_embroidery_hoops(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hoop);
 }
 
-// R685 lipstick tube: 9% chance per level. Slim cylinder w/
+// Lipstick tube: 9% chance per level. Slim cylinder w/
 // exposed lipstick nub in optional variants.
 fn place_lipsticks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
@@ -451,7 +451,7 @@ fn place_lipsticks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lip);
 }
 
-// R685 framed cross-stitch sampler w/ alphabet (wall):
+// Framed cross-stitch sampler w/ alphabet (wall):
 // 3% chance per level. Traditional embroidered alphabet
 // on aida cloth in wooden frame.
 game::lazy_static_tex!(
@@ -566,7 +566,7 @@ fn place_cross_stitch_samplers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sampler);
 }
 
-// R686 nail polish bottle: 8% chance per level. Small
+// Nail polish bottle: 8% chance per level. Small
 // squat glass bottle w/ colored polish + black cap.
 fn place_nail_polishes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -619,7 +619,7 @@ fn place_nail_polishes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bot);
 }
 
-// R686 framed child's crayon drawing (wall): 3% chance per level.
+// Framed child's crayon drawing (wall): 3% chance per level.
 // Simple stick-figure family + house on manila paper.
 game::lazy_static_tex!(
     child_drawing_texture,
@@ -776,7 +776,7 @@ fn place_child_drawings(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dw);
 }
 
-// R687 perfume bottle w/ atomizer bulb: 6% chance per level.
+// Perfume bottle w/ atomizer bulb: 6% chance per level.
 // Squat glass bottle w/ neck + rubber squeeze bulb.
 fn place_perfumes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -843,7 +843,7 @@ fn place_perfumes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&p);
 }
 
-// R687 framed family photograph w/ blurred figures (wall):
+// Framed family photograph w/ blurred figures (wall):
 // 3% chance per level. Sepia-toned photo w/ soft indistinct
 // human silhouettes — deeply liminal.
 game::lazy_static_tex!(
@@ -949,7 +949,7 @@ fn place_family_photos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&fp);
 }
 
-// R688 hairbrush w/ tangled hair strands: 7% chance per level.
+// Hairbrush w/ tangled hair strands: 7% chance per level.
 // Oval brush w/ bristles + optional wisp of dark hair.
 fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -1000,7 +1000,7 @@ fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
     }
     // 60% chance: tangled hair strands caught in bristles.
     if rnd() < 0.6 {
-        // Use oriented-segment-chain pattern (from R682) to draw curly hair.
+        // Use an oriented-segment-chain pattern to draw curly hair.
         let strand_count = 3 + (rnd() * 3.0).floor() as i32;
         for s in 0..strand_count {
             // Start point near random spot on pad top.
@@ -1032,7 +1032,7 @@ fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&brush);
 }
 
-// R689 small mirror on stand w/ optional smudge (floor):
+// Small mirror on stand w/ optional smudge (floor):
 // 6% chance per level. Vanity/table mirror on hinged frame
 // w/ 50% chance of visible fingerprint/lipstick smudge.
 fn place_standing_mirrors(g: &mut Game, _dist: &[i32]) {
@@ -1116,7 +1116,7 @@ fn place_standing_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mir);
 }
 
-// R689 framed black-and-white wedding photo (wall):
+// Framed black-and-white wedding photo (wall):
 // 2.5% chance per level. Vintage formal wedding portrait
 // w/ soft blurred figures.
 game::lazy_static_tex!(
@@ -1250,8 +1250,8 @@ fn place_wedding_photos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wp);
 }
 
-// R690 donut w/ single bite missing (floor): 5% chance per level.
-// Twin bimodal variant of R683 donut — partial ring w/ bite gap +
+// Donut w/ single bite missing (floor): 5% chance per level.
+// Twin bimodal variant of the donut — partial ring w/ bite gap +
 // crumbs. Uses the torus arc for the gap.
 fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -1268,7 +1268,7 @@ fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     let glaze_colors: [u32; 5] = [0xf0e8c0, 0x603020, 0xd0a0a8, 0xa0c090, 0xa07030];
     let glaze_mat = lambert!({ color: pick(&glaze_colors) });
     let bitten_donut = group();
-    // Napkin square (like R683 donut, more crumpled).
+    // Napkin square (like the donut's, more crumpled).
     let napkin = mesh(pg("BittenDonuts__napkin", box_geo!(0.20, 0.003, 0.20)), &napkin_mat);
     napkin.position().y = 0.0015;
     napkin.rotation().y = (rnd() - 0.5) * 0.4;

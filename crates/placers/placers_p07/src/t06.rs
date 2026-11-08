@@ -104,7 +104,7 @@ enum Herb {
     Lavender(u32, u32),
 }
 
-// R662 hanging herbs bundle: 5% chance per level.
+// Hanging herbs bundle: 5% chance per level.
 pub(crate) fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;

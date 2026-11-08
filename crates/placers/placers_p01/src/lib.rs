@@ -95,7 +95,7 @@ fn vsub(a: Vec3, b: Vec3) -> Vec3 {
     v
 }
 
-// R246 discarded scrap papers: 1-3 sheets of office paper per level, balled up
+// Discarded scrap papers: 1-3 sheets of office paper per level, balled up
 // and thrown away or smoothed out again and dropped (Blender batch r08: a
 // sheet of A4 balled tight, one crumpled loosely, one flattened out; printed).
 fn place_scrap_papers(g: &mut Game, _dist: &[i32]) {
@@ -353,7 +353,7 @@ fn paper_type_lines(ctx: &mut Canvas, x: f64, y: f64, w: f64, h: f64, size: f64,
     }
 }
 
-// R246 chalk marks: 0-3 marks in chalk on random walls, in a stranger's hand:
+// Chalk marks: 0-3 marks in chalk on random walls, in a stranger's hand:
 // a number underlined, a looping scribble where someone tried the chalk, a
 // fitter's measure (a line with a tick at each end, its length over it);
 // never a lone stroke, a tally, an arrow or a circle (hers and the place's
@@ -643,7 +643,7 @@ fn chalk_stroke(ctx: &mut Canvas, pts: &[(f64, f64)], width: f64) {
     }
 }
 
-// R290 small key prop: 25% chance per level, 1-3 tiny gold keys on the floor.
+// Small key prop: 25% chance per level, 1-3 tiny gold keys on the floor.
 fn place_small_keys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
         return;
@@ -681,7 +681,7 @@ fn place_small_keys(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R407 vintage camera: 10% chance per level.
+// Vintage camera: 10% chance per level.
 fn place_vintage_cameras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -715,7 +715,7 @@ fn place_vintage_cameras(g: &mut Game, _dist: &[i32]) {
     cam.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     cam.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cam);
-    // R408 25% chance: small film canister cylinder near camera.
+    // 25% chance: small film canister cylinder near camera.
     if rnd() < 0.25 {
         let can_colors = [0x8a2020, 0x282838, 0x2a2820, 0x505050];
         let can_body = lambert!({ color: pick(&can_colors) });
@@ -736,7 +736,7 @@ fn place_vintage_cameras(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R411 small backpack: 12% chance per level.
+// Small backpack: 12% chance per level.
 fn place_backpacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
         return;
@@ -777,7 +777,7 @@ fn place_backpacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bp);
 }
 
-// R427 small gift box: 10% chance per level.
+// Small gift box: 10% chance per level.
 fn place_small_gift_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -838,14 +838,14 @@ fn place_small_gift_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gift);
 }
 
-// R427 small party horn: batch `t12`'s (`t12.rs`)
+// Small party horn: batch `t12`'s (`t12.rs`)
 mod t12;
 use t12::place_small_party_horns;
 // the hanging brass lantern: batch `t21`'s (`t21.rs`)
 mod t21;
 use t21::place_hanging_brass_lanterns;
 
-// R478 small vintage brass scales: 5% chance per level, gentle sway.
+// Small vintage brass scales: 5% chance per level, gentle sway.
 fn place_small_scales(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -897,11 +897,11 @@ fn place_small_scales(g: &mut Game, _dist: &[i32]) {
     g.world.add(&scales);
 }
 
-// R478 small abacus: batch `t20`'s (`t20.rs`)
+// Small abacus: batch `t20`'s (`t20.rs`)
 mod t20;
 use t20::place_small_abacuses;
 
-// R477 small telegraph key: 8% chance per level.
+// Small telegraph key: 8% chance per level.
 fn place_small_telegraph_keys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -958,14 +958,14 @@ fn place_small_telegraph_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&key);
 }
 
-// R477 a portable sewing machine on the floor (Blender batch `r16`): a
+// A portable sewing machine on the floor (Blender batch `r16`): a
 // black-japanned machine of the Singer 221 class (378 x 184 x 248 mm), its
 // gold decals and its maker's name (HALDANE, no real maker) rubbed thin, its
 // bright parts tarnished, a spool of thread still on its pin; its handwheel
 // turning slowly by itself. 4% chance per level.
 fn place_small_sewing_machines(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;
-    g.pp.sewing_positions.clear(); // R481 reset per level
+    g.pp.sewing_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -1025,7 +1025,7 @@ fn place_small_sewing_machines(g: &mut Game, _dist: &[i32]) {
     sewing.position().set(px + (rnd() - 0.5) * 1.8, 0, pz + (rnd() - 0.5) * 1.8);
     sewing.rotation().y = rnd() * PI * 2.0;
     g.world.add(&sewing);
-    // R481 track for whirr audio.
+    // Track for whirr audio.
     let sp = sewing.pos();
     g.pp.sewing_positions.push(v3(sp.x, 0.10, sp.z));
 }
@@ -1281,7 +1281,7 @@ fn sew_thread_tex() -> Tex {
     })
 }
 
-// R476 small vintage suitcase: 8% chance per level.
+// Small vintage suitcase: 8% chance per level.
 fn place_small_suitcases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -1329,9 +1329,9 @@ fn place_small_suitcases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&suitcase);
 }
 
-// R475 small vintage phonograph: 4% chance per level.
+// Small vintage phonograph: 4% chance per level.
 fn place_small_phonographs(g: &mut Game, _dist: &[i32]) {
-    g.pp.phonograph_positions.clear(); // R480 reset per level
+    g.pp.phonograph_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -1399,12 +1399,12 @@ fn place_small_phonographs(g: &mut Game, _dist: &[i32]) {
     phono.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
     phono.rotation().y = rnd() * PI * 2.0;
     g.world.add(&phono);
-    // R480 track for vinyl crackle audio.
+    // Track for vinyl crackle audio.
     let pp = phono.pos();
     g.pp.phonograph_positions.push(v3(pp.x, 0.10, pp.z));
 }
 
-// R475 small rotary phone: 6% chance per level.
+// Small rotary phone: 6% chance per level.
 fn place_small_rotary_phones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -1463,7 +1463,7 @@ fn place_small_rotary_phones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&phone);
 }
 
-// R474 small vintage typewriter: 5% chance per level.
+// Small vintage typewriter: 5% chance per level.
 fn place_small_typewriters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -1518,7 +1518,7 @@ fn place_small_typewriters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tw);
 }
 
-// R474 small vintage globe texture.
+// Small vintage globe texture.
 game::lazy_static_tex!(
     globe_texture,
     canvas_tex(256, 128, |ctx, w, h| {
@@ -1564,9 +1564,9 @@ game::lazy_static_tex!(
     })
 );
 
-// R474 small vintage globe: 5% chance per level, slow spin.
+// Small vintage globe: 5% chance per level, slow spin.
 fn place_small_globes(g: &mut Game, _dist: &[i32]) {
-    g.pp.globe_positions.clear(); // R482 reset per level
+    g.pp.globe_positions.clear(); // reset per level
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -1609,12 +1609,12 @@ fn place_small_globes(g: &mut Game, _dist: &[i32]) {
     globe.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     globe.rotation().y = rnd() * PI * 2.0;
     g.world.add(&globe);
-    // R482 track for wood creak audio.
+    // Track for wood creak audio.
     let gp = globe.pos();
     g.pp.globe_positions.push(v3(gp.x, 0.12, gp.z));
 }
 
-// R473 small brass telescope: 6% chance per level.
+// Small brass telescope: 6% chance per level.
 fn place_small_telescopes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -1656,7 +1656,7 @@ fn place_small_telescopes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&scope);
 }
 
-// R473 small padlock + key: 10% chance per level.
+// Small padlock + key: 10% chance per level.
 fn place_small_padlock_keys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -1718,7 +1718,7 @@ fn place_small_padlock_keys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R472 small parchment scroll: 8% chance per level.
+// Small parchment scroll: 8% chance per level.
 fn place_parchment_scrolls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -1769,7 +1769,7 @@ fn place_parchment_scrolls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&scroll);
 }
 
-// R472 compass face texture.
+// Compass face texture.
 game::lazy_static_tex!(
     compass_face_texture,
     canvas_tex_opt(128, 128, false, |ctx, w, h| {
@@ -1821,7 +1821,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R472 small vintage compass: 8% chance per level.
+// Small vintage compass: 8% chance per level.
 fn place_small_compasses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -1858,9 +1858,9 @@ fn place_small_compasses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&compass);
 }
 
-// R481 small pocket watch: 8% chance per level.
+// Small pocket watch: 8% chance per level.
 fn place_small_pocket_watches(g: &mut Game, _dist: &[i32]) {
-    g.pp.pocket_watch_positions.clear(); // R481 reset per level
+    g.pp.pocket_watch_positions.clear(); // reset per level
     if rnd() < 0.92 {
         return;
     } // 8% chance
@@ -1897,7 +1897,7 @@ fn place_small_pocket_watches(g: &mut Game, _dist: &[i32]) {
     watch.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     watch.rotation().y = rnd() * PI * 2.0;
     g.world.add(&watch);
-    // R481 track for tick audio.
+    // Track for tick audio.
     let wp = watch.pos();
     g.pp.pocket_watch_positions.push(v3(wp.x, 0.01, wp.z));
 }

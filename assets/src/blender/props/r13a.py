@@ -19,7 +19,7 @@ wallMirrorFrameGilt   a gilt cushion frame: outer bead, a raised cushion,
 wallMirrorPlates      the four brass plates (two at the top, two at the
                       foot) and their countersunk wall screws
 
-Under it, when the old placer laid out its washroom (`R316`): a wall-hung
+Under it, when the old placer laid out its washroom: a wall-hung
 vitreous china basin, 50 x 40 cm, its rim 0.895 m from the floor (where
 the soap and the toothbrush lie). Its frame: x across, y up from the
 floor, z out of the wall.

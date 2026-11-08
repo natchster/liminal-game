@@ -2,12 +2,12 @@
 //! placers and what only they use.
 use super::*;
 
-// R560 lift button panel: 4% chance per level. A car operating panel's
+// Lift button panel: 4% chance per level. A car operating panel's
 // faceplate (Blender batch `r12`): brushed stainless, twelve floor buttons in
 // their bezels with the raised numeral and braille beside each, door open and
 // close, the alarm, the fire service key switch; the lit buttons' rings glow.
 pub(super) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
-    g.pp.elevator_panel_positions = vec![]; // R561 reset per level
+    g.pp.elevator_panel_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -48,7 +48,7 @@ pub(super) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
     );
     bell.position().set(EP_ALARM.0, EP_ALARM.1, EP_T + 0.0037);
     o.add(&bell);
-    // 4×3 = 12 floor buttons, top row first; R561 20% chance a button's ring is lit.
+    // 4×3 = 12 floor buttons, top row first; a 20% chance a button's ring is lit.
     let halo_mat = basic_mat!({ color: 0xffc274 });
     for by in 0..4 {
         for bx in 0..3 {
@@ -62,12 +62,12 @@ pub(super) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.008);
     mount(&panel, c, wall_x, wall_z, 1.30, Some(0.6));
     g.world.add(&panel);
-    // R561 track for beep audio.
+    // Track for beep audio.
     let p = panel.pos();
     g.pp.elevator_panel_positions.push(v3(p.x, 1.30, p.z));
 }
 
-// R559 wall extinguisher cabinet: 4% chance per level. A surface-mounted
+// Wall extinguisher cabinet: 4% chance per level. A surface-mounted
 // steel cabinet for a 5 lb extinguisher (Blender batch `r12`): white enamel
 // gone yellow and chipped, a full pane in its door frame, FIRE EXTINGUISHER
 // down the glass; in it the extinguisher stands on its foot, its hose in its
@@ -125,7 +125,7 @@ pub(super) fn place_extinguisher_cabinets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cab);
 }
 
-// R549 wall fuse box: 4% chance per level. A 6-space breaker panel on the
+// Wall fuse box: 4% chance per level. A 6-space breaker panel on the
 // surface (Blender batch `r12`): the grey enclosure, its front cover and dead
 // front, the door hanging open, six single-pole breakers on or off, the
 // circuits written on the card inside the door.
@@ -179,7 +179,7 @@ pub(super) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&fuse_box);
 }
 
-// R546 emergency phone: 4% chance per level. A ring-down phone (Blender batch
+// Emergency phone: 4% chance per level. A ring-down phone (Blender batch
 // `r12`): the 2554-class wall set in red with a blank plate where the keys
 // would be, EMERGENCY on it, its handset on the hook and the cord looping
 // under it; the engraved sign above.

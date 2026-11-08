@@ -16,7 +16,7 @@ pub use t08::{
 mod t18;
 pub use t18::place_small_crystal_balls;
 
-// R463 small spider: 5% chance per level. Dark body + 8 legs.
+// Small spider: 5% chance per level. Dark body + 8 legs.
 // Halloween family.
 pub fn place_small_spiders(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -81,7 +81,7 @@ pub fn place_small_spiders(g: &mut Game, _dist: &[i32]) {
     g.world.add(&spider);
 }
 
-// R462 small tombstone: 6% chance per level. Gray stone slab
+// Small tombstone: 6% chance per level. Gray stone slab
 // with rounded top + engraved cross. Halloween family.
 pub fn place_small_tombstones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -128,7 +128,7 @@ pub fn place_small_tombstones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stone);
 }
 
-// R460 small witch hat: 8% chance per level. Cone with brim on
+// Small witch hat: 8% chance per level. Cone with brim on
 // floor. Halloween family.
 pub fn place_small_witch_hats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -177,7 +177,7 @@ pub fn place_small_witch_hats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hat);
 }
 
-// R459 small toy sword: 8% chance per level. Kid's foam/plastic
+// Small toy sword: 8% chance per level. Kid's foam/plastic
 // sword with blade + guard + hilt. Party-costume family.
 pub fn place_small_toy_swords(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -229,10 +229,10 @@ pub fn place_small_toy_swords(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sword);
 }
 
-// R458 small toy piano: 6% chance per level. Rectangular piano
+// Small toy piano: 6% chance per level. Rectangular piano
 // with 7 white + 5 black keys. Child-music family.
 pub fn place_small_toy_pianos(g: &mut Game, _dist: &[i32]) {
-    g.pp.piano_positions = vec![]; // R488 reset per level
+    g.pp.piano_positions = vec![]; // reset per level
     if rnd() < 0.94 {
         return;
     } // 6% chance
@@ -266,7 +266,7 @@ pub fn place_small_toy_pianos(g: &mut Game, _dist: &[i32]) {
         piano.add(&key);
         white_keys.push(key);
     }
-    // R504 phantom key press animator — random key sinks briefly
+    // Phantom key press animator — random key sinks briefly
     // every 20-40 s. Deeply unsettling ("who pressed it?").
     let mut next_t = 20.0 + rnd() * 20.0;
     let mut active_key: i32 = -1;
@@ -300,7 +300,7 @@ pub fn place_small_toy_pianos(g: &mut Game, _dist: &[i32]) {
     piano.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     piano.rotation().y = rnd() * PI * 2.0;
     g.world.add(&piano);
-    // R488 track for random chord audio.
+    // Track for random chord audio.
     let pp = piano.pos();
     g.pp.piano_positions.push(v3(pp.x, 0.03, pp.z));
 }

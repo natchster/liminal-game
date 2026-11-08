@@ -10,7 +10,7 @@ const FLOOR: f64 = 0.0063;
 /// How far its lid stands open, held by its check straps
 const OPEN: f64 = PI / 2.0 + 0.21;
 
-// R507 opened suitcase: 5% chance per level. An old hard-shell suitcase
+// Opened suitcase: 5% chance per level. An old hard-shell suitcase
 // left open on the floor (r02's: a 1960s moulded case, 23 x 16 x 7 in, its
 // lid stood up on its straps), gone through: what was packed in it pushed
 // about, four to six things, a cardigan pulled half out over its rim.

@@ -30,7 +30,7 @@ static FACE: [(f64, f64); 11] = [
 ];
 const MINIATURES: [&str; 4] = ["mini_a", "mini_b", "mini_c", "mini_d"];
 
-// R762 cluster of 3-4 small oval portrait miniatures (wall): 3% chance per level.
+// Cluster of 3-4 small oval portrait miniatures (wall): 3% chance per level.
 pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -154,7 +154,7 @@ pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
         }
     }
     g.world.add(&mp);
-    // R763 frame-tilt animator: one miniature drifts slightly askew then
+    // Frame-tilt animator: one miniature drifts slightly askew then
     // returns. The old cluster drew it only from its fallback rings (props
     // off); so does this one
     if !ringed.is_empty() {

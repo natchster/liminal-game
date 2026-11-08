@@ -2,7 +2,7 @@
 //! Blender batch `assets/src/blender/props/t20.py`, its notes
 //! `t20.notes.md`): the humidor with its cigars, and the hunter-case pocket
 //! watch on its chain. Each keeps the old placer's draws, call for call;
-//! the watch keeps its place (`pocket_watch_positions_r755`, its ticking).
+//! the watch keeps its place (`hunter_watch_positions`, its ticking).
 //! The old spilled cigars rocked by themselves, with nothing moving them:
 //! these lie still where they fell (their draws kept). The old watch cases
 //! glowed a little (an emissive): these are metal, lit by the room.
@@ -22,7 +22,7 @@ const HU_OPEN: f64 = 1.72;
 const CG_L: f64 = 0.140;
 const CG_R: f64 = 0.00825;
 
-// R746 humidor cigar box w/ scattered cigars (floor): 3% chance per level.
+// Humidor cigar box w/ scattered cigars (floor): 3% chance per level.
 // A Victorian humidor (Blender batch `t20`): a veneered case on its plinth
 // (mahogany, burr walnut, rosewood or ebonised: the old colour's draw),
 // lined with Spanish cedar or zinc (the old lining's draw), the lid open
@@ -362,7 +362,7 @@ const PW_SUB_Z: f64 = 0.0098;
 /// `PW_COVER_DROP`: the part is modelled open)
 const PW_COVER_DROP: f64 = 0.174;
 
-// R751 open pocket watch on chain (floor): 4% chance per level. A 16-size
+// Open pocket watch on chain (floor): 4% chance per level. A 16-size
 // hunter-case pocket watch of about 1900 (Blender batch `t20`): gold-filled,
 // coin silver, rose gold or gunmetal (the old case's draw), its front cover
 // open on its hinge, a white enamel dial with Roman numerals and a seconds
@@ -371,7 +371,7 @@ const PW_COVER_DROP: f64 = 0.174;
 // broken off; now and then an inscription engraved inside its cover. The
 // case worn through at its edges, scratched, the enamel crazed.
 pub(super) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
-    g.pp.pocket_watch_positions_r755.clear(); // R755 reset per level
+    g.pp.hunter_watch_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -482,7 +482,7 @@ pub(super) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
     pw.add(&end);
     g.world.add(&pw);
     let p = pw.pos();
-    g.pp.pocket_watch_positions_r755.push(v3(p.x, 0, p.z)); // R755
+    g.pp.hunter_watch_positions.push(v3(p.x, 0, p.z));
 }
 
 /// The case's metal, as the old four: gold-filled, coin silver, rose gold,

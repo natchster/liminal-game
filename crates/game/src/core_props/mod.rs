@@ -1038,7 +1038,7 @@ impl Game {
         );
     }
 
-    /// answering the payphone — R769 three-outcome phone answer:
+    /// answering the payphone — the three-outcome phone answer:
     ///  40% whisper — sanity drain (~15 pts).
     ///  35% exit hint — the place shows the way to the door
     ///      (`show_the_way`, from `update_hud` while `phone_data.f["hintUntil"]`).

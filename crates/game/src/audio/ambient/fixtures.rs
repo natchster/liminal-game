@@ -1,4 +1,4 @@
-//! `update_ambient`, part 3: prop sounds R272–R584 and the R608–R672 props.
+//! `update_ambient`, part 3: the fixtures' prop sounds and the trinkets'.
 //! Each event: its cadence timer, the nearest prop of its `*_positions` list
 //! within the sound's audible radius (`prop_due`: level, pan from the true
 //! direction, muffled without line of sight), the sound, the next cadence,
@@ -8,30 +8,30 @@ use crate::audio::ambient::AmbMix;
 use crate::prelude::*;
 
 impl Game {
-    /// R272–R584: fountain … smoke detector.
+    /// Fountain … smoke detector.
     pub(crate) fn amb_props_fixtures(&mut self, dt: f64, m: &AmbMix) {
         let (eg, ld, etm) = (m.gain, m.depth, m.timer_mul);
-        // R272 fountain drip: two-tap high blip + low tail (< 12 m)
+        // Fountain drip: two-tap high blip + low tail (< 12 m)
         if let Some(h) = self.prop_due(|g| &mut g.fountain_drip_timer, |g| &g.pp.fountain_positions, 12.0, dt, m) {
             self.blip(1600.0 * ld, 0.06, "sine", 0.016 * eg * h.g, Some(800.0 * ld), 0.0, h.pan);
             self.blip(180.0 * ld, 0.10, "sine", 0.008 * eg * h.g, Some(100.0 * ld), 0.05, h.pan);
             self.fountain_drip_timer = (25.0 + rnd() * 30.0) * etm;
             self.log_ambient("fountain-drip", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R272 radiator hiss: bandpass noise sweep (< 10 m)
+        // Radiator hiss: bandpass noise sweep (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.radiator_hiss_timer, |g| &g.pp.radiator_positions, 10.0, dt, m) {
             self.noise_burst(0.5, 1200.0 * ld, 1.5, 0.014 * eg * h.g, "bandpass", Some(400.0 * ld), 0.0, h.pan);
             self.radiator_hiss_timer = (40.0 + rnd() * 40.0) * etm;
             self.log_ambient("radiator-hiss", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R273 emergency glow hum: 60 Hz mains (< 8 m)
+        // Emergency glow hum: 60 Hz mains (< 8 m)
         if let Some(h) = self.prop_due(|g| &mut g.glow_hum_timer, |g| &g.pp.glow_light_positions, 8.0, dt, m) {
             self.blip(60.0, 0.35, "sine", 0.012 * eg * h.g, None, 0.0, h.pan);
             self.blip(120.0, 0.35, "sine", 0.007 * eg * h.g, None, 0.0, h.pan);
             self.glow_hum_timer = (20.0 + rnd() * 25.0) * etm;
             self.log_ambient("glow-hum", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R479 cauldron bubble: a soft "blooip" (< 10 m)
+        // Cauldron bubble: a soft "blooip" (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.cauldron_bubble_timer, |g| &g.pp.cauldron_positions, 10.0, dt, m) {
             let g0 = 0.014 * eg * h.g;
             self.blip(160.0 * ld, 0.14, "sine", g0, Some(300.0 * ld), 0.0, h.pan);
@@ -40,7 +40,7 @@ impl Game {
             self.cauldron_bubble_timer = (12.0 + rnd() * 13.0) * etm;
             self.log_ambient("cauldron-bubble", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R479 metronome tick, at half the visible swing period (< 8 m)
+        // Metronome tick, at half the visible swing period (< 8 m)
         if let Some(h) = self.prop_due(|g| &mut g.metronome_tick_timer, |g| &g.pp.metronome_positions, 8.0, dt, m) {
             let tick_g = 0.020 * eg * h.g;
             self.blip(2400.0, 0.02, "square", tick_g, None, 0.0, h.pan);
@@ -48,7 +48,7 @@ impl Game {
             self.metronome_tick_timer = (self.metronome_period(h.i) * 0.5) * etm;
             self.log_ambient("metronome-tick", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R480 phonograph vinyl crackle: dust pops on a record still playing (< 10 m)
+        // Phonograph vinyl crackle: dust pops on a record still playing (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.phono_crackle_timer, |g| &g.pp.phonograph_positions, 10.0, dt, m) {
             let cg = 0.012 * eg * h.g;
             for i in 0..4 {
@@ -57,7 +57,7 @@ impl Game {
             self.phono_crackle_timer = (8.0 + rnd() * 8.0) * etm;
             self.log_ambient("phono-crackle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R480 hanging brass lantern rope creak (< 10 m)
+        // Hanging brass lantern rope creak (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.lantern_creak_timer, |g| &g.pp.brass_lantern_positions, 10.0, dt, m) {
             let cg2 = 0.014 * eg * h.g;
             self.blip(140.0, 0.5, "sawtooth", cg2, Some(90.0), 0.0, h.pan);
@@ -65,7 +65,7 @@ impl Game {
             self.lantern_creak_timer = (18.0 + rnd() * 22.0) * etm;
             self.log_ambient("lantern-creak", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R481 sewing machine whirr + stitches (< 10 m)
+        // Sewing machine whirr + stitches (< 10 m)
         if let Some(h) = self.prop_due(|g| &mut g.sewing_whirr_timer, |g| &g.pp.sewing_positions, 10.0, dt, m) {
             let sg = 0.012 * eg * h.g;
             self.blip(220.0, 0.5, "sawtooth", sg, Some(200.0), 0.0, h.pan);
@@ -75,7 +75,7 @@ impl Game {
             self.sewing_whirr_timer = (15.0 + rnd() * 15.0) * etm;
             self.log_ambient("sewing-whirr", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R481 pocket watch tick-tock (< 3 m)
+        // Pocket watch tick-tock (< 3 m)
         if let Some(h) = self.prop_due(|g| &mut g.watch_tick_timer, |g| &g.pp.pocket_watch_positions, 3.0, dt, m) {
             let wg = 0.010 * eg * h.g;
             self.blip(3200.0, 0.012, "square", wg, None, 0.0, h.pan);
@@ -83,7 +83,7 @@ impl Game {
             self.watch_tick_timer = (3.0 + rnd() * 3.0) * etm;
             self.log_ambient("watch-tick", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R482 bat squeak (< 14 m)
+        // Bat squeak (< 14 m)
         if let Some(h) = self.prop_due(|g| &mut g.bat_squeak_timer, |g| &g.pp.bat_positions, 14.0, dt, m) {
             let bg = 0.012 * eg * h.g;
             self.blip(6000.0, 0.04, "sine", bg, Some(4000.0), 0.0, h.pan);
@@ -91,7 +91,7 @@ impl Game {
             self.bat_squeak_timer = (25.0 + rnd() * 30.0) * etm;
             self.log_ambient("bat-squeak", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R482 spinning globe wood creak (< 8 m)
+        // Spinning globe wood creak (< 8 m)
         if let Some(h) = self.prop_due(|g| &mut g.globe_creak_timer, |g| &g.pp.globe_positions, 8.0, dt, m) {
             let gg = 0.010 * eg * h.g;
             self.blip(180.0, 0.4, "sawtooth", gg, Some(130.0), 0.0, h.pan);
@@ -99,13 +99,13 @@ impl Game {
             self.globe_creak_timer = (22.0 + rnd() * 23.0) * etm;
             self.log_ambient("globe-creak", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R483 hourglass sand whoosh (< 3 m)
+        // Hourglass sand whoosh (< 3 m)
         if let Some(h) = self.prop_due(|g| &mut g.hourglass_whoosh_timer, |g| &g.pp.hourglass_positions, 3.0, dt, m) {
             self.noise_burst(0.6, 3000.0, 4.0, 0.008 * eg * h.g, "bandpass", Some(3200.0), 0.0, h.pan);
             self.hourglass_whoosh_timer = (4.0 + rnd() * 4.0) * etm;
             self.log_ambient("hourglass-whoosh", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R485 ghost sheet whisper (< 12 m)
+        // Ghost sheet whisper (< 12 m)
         if let Some(h) = self.prop_due(|g| &mut g.ghost_whisper_timer, |g| &g.pp.ghost_positions, 12.0, dt, m) {
             let ghg = 0.014 * eg * h.g;
             self.noise_burst(0.7, 800.0, 1.2, ghg, "bandpass", Some(400.0), 0.0, h.pan);
@@ -113,7 +113,7 @@ impl Game {
             self.ghost_whisper_timer = (30.0 + rnd() * 40.0) * etm;
             self.log_ambient("ghost-whisper", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R486 chain jangle (< 4 m)
+        // Chain jangle (< 4 m)
         if let Some(h) = self.prop_due(|g| &mut g.chain_jangle_timer, |g| &g.pp.chain_positions, 4.0, dt, m) {
             let chg = 0.014 * eg * h.g;
             self.noise_burst(0.03, 4200.0, 8.0, chg, "bandpass", Some(3600.0), 0.0, h.pan);
@@ -121,7 +121,7 @@ impl Game {
             self.chain_jangle_timer = (8.0 + rnd() * 10.0) * etm;
             self.log_ambient("chain-jangle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R487 paper rustle near music sheets / journals (< 5 m)
+        // Paper rustle near music sheets / journals (< 5 m)
         if let Some(h) = self.prop_due(|g| &mut g.paper_rustle_timer, |g| &g.pp.paper_positions, 5.0, dt, m) {
             let ppg = 0.010 * eg * h.g;
             self.noise_burst(0.08, 4000.0, 3.0, ppg, "highpass", Some(5000.0), 0.0, h.pan);
@@ -129,7 +129,7 @@ impl Game {
             self.paper_rustle_timer = (20.0 + rnd() * 25.0) * etm;
             self.log_ambient("paper-rustle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R488 toy piano random note — "who pressed it?" (< 6 m)
+        // Toy piano random note — "who pressed it?" (< 6 m)
         if let Some(h) = self.prop_due(|g| &mut g.piano_chord_timer, |g| &g.pp.piano_positions, 6.0, dt, m) {
             let png = 0.020 * eg * h.g;
             const NOTES: [f64; 8] = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
@@ -139,7 +139,7 @@ impl Game {
             self.piano_chord_timer = (40.0 + rnd() * 50.0) * etm;
             self.log_ambient("piano-note", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R497 rocking chair creak, one per rock (< 6 m)
+        // Rocking chair creak, one per rock (< 6 m)
         if let Some(h) = self.prop_due(|g| &mut g.chair_creak_timer, |g| &g.pp.chair_positions, 6.0, dt, m) {
             let chg = 0.014 * eg * h.g;
             self.blip(200.0, 0.45, "sawtooth", chg, Some(140.0), 0.0, h.pan);
@@ -148,7 +148,7 @@ impl Game {
             self.chair_creak_timer = self.chair_period(h.i) * etm;
             self.log_ambient("chair-creak", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R504 CRT TV static hiss (< 4 m)
+        // CRT TV static hiss (< 4 m)
         if let Some(h) = self.prop_due(|g| &mut g.crt_hiss_timer, |g| &g.pp.crt_positions, 4.0, dt, m) {
             let tg = 0.014 * eg * h.g;
             self.noise_burst(0.4, 5000.0, 0.5, tg, "highpass", None, 0.0, h.pan);
@@ -156,7 +156,7 @@ impl Game {
             self.crt_hiss_timer = (4.0 + rnd() * 6.0) * etm;
             self.log_ambient("crt-hiss", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R508 exit sign buzz (< 5 m)
+        // Exit sign buzz (< 5 m)
         if let Some(h) = self.prop_due(|g| &mut g.exit_buzz_timer, |g| &g.pp.exit_sign_positions, 5.0, dt, m) {
             let egn = 0.010 * eg * h.g;
             self.blip(120.0, 0.5, "sawtooth", egn, None, 0.0, h.pan);
@@ -164,7 +164,7 @@ impl Game {
             self.exit_buzz_timer = (6.0 + rnd() * 6.0) * etm;
             self.log_ambient("exit-buzz", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R520 puddle drip (< 5 m)
+        // Puddle drip (< 5 m)
         if let Some(h) = self.prop_due(|g| &mut g.puddle_drip_timer, |g| &g.pp.puddle_positions, 5.0, dt, m) {
             let pg = 0.014 * eg * h.g;
             self.blip(1400.0 * ld, 0.05, "sine", pg, Some(700.0 * ld), 0.0, h.pan);
@@ -172,7 +172,7 @@ impl Game {
             self.puddle_drip_timer = (8.0 + rnd() * 8.0) * etm;
             self.log_ambient("puddle-drip", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R524 chandelier crystal chime (< 6 m)
+        // Chandelier crystal chime (< 6 m)
         if let Some(h) = self.prop_due(|g| &mut g.chandelier_chime_timer, |g| &g.pp.chandelier_positions, 6.0, dt, m) {
             let cg2 = 0.010 * eg * h.g;
             let base_f = 2100.0 + rnd() * 400.0;
@@ -182,13 +182,13 @@ impl Game {
             self.chandelier_chime_timer = (20.0 + rnd() * 20.0) * etm;
             self.log_ambient("chandelier-chime", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R524 cassette tape hiss (< 3 m)
+        // Cassette tape hiss (< 3 m)
         if let Some(h) = self.prop_due(|g| &mut g.cassette_hiss_timer, |g| &g.pp.cassette_positions, 3.0, dt, m) {
             self.noise_burst(0.5, 3500.0, 0.6, 0.008 * eg * h.g, "highpass", None, 0.0, h.pan);
             self.cassette_hiss_timer = (10.0 + rnd() * 10.0) * etm;
             self.log_ambient("cassette-hiss", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R525 teacup porcelain clink (< 3.5 m)
+        // Teacup porcelain clink (< 3.5 m)
         if let Some(h) = self.prop_due(|g| &mut g.teacup_clink_timer, |g| &g.pp.teacup_positions, 3.5, dt, m) {
             let tcg = 0.008 * eg * h.g;
             self.blip(3200.0, 0.03, "sine", tcg, None, 0.0, h.pan);
@@ -196,7 +196,7 @@ impl Game {
             self.teacup_clink_timer = (25.0 + rnd() * 25.0) * etm;
             self.log_ambient("teacup-clink", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R531 locker slam: sudden metal clang, carries (< 22 m)
+        // Locker slam: sudden metal clang, carries (< 22 m)
         if let Some(h) = self.prop_due(|g| &mut g.locker_slam_timer, |g| &g.pp.locker_positions, 22.0, dt, m) {
             let lkg = 0.028 * eg * h.g;
             self.blip(90.0, 0.06, "sine", lkg, Some(55.0), 0.0, h.pan);
@@ -205,7 +205,7 @@ impl Game {
             self.locker_slam_timer = (60.0 + rnd() * 60.0) * etm;
             self.log_ambient("locker-slam", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R534 bulletin board flutter (< 5 m)
+        // Bulletin board flutter (< 5 m)
         if let Some(h) = self.prop_due(|g| &mut g.bulletin_flutter_timer, |g| &g.pp.bulletin_positions, 5.0, dt, m) {
             let bbg = 0.010 * eg * h.g;
             for i in 0..3 {
@@ -214,7 +214,7 @@ impl Game {
             self.bulletin_flutter_timer = (15.0 + rnd() * 15.0) * etm;
             self.log_ambient("bulletin-flutter", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R541 fire alarm pull beep (< 7 m)
+        // Fire alarm pull beep (< 7 m)
         if let Some(h) = self.prop_due(|g| &mut g.alarm_beep_timer, |g| &g.pp.alarm_pull_positions, 7.0, dt, m) {
             let alg = 0.014 * eg * h.g;
             self.blip(3200.0, 0.06, "square", alg, None, 0.0, h.pan);
@@ -222,19 +222,19 @@ impl Game {
             self.alarm_beep_timer = (35.0 + rnd() * 35.0) * etm;
             self.log_ambient("alarm-beep", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R568 ceiling fan whoosh (< 5 m, nearly under it)
+        // Ceiling fan whoosh (< 5 m, nearly under it)
         if let Some(h) = self.prop_due(|g| &mut g.fan_whoosh_timer, |g| &g.pp.fan_positions, 5.0, dt, m) {
             self.noise_burst(0.9, 260.0, 1.2, 0.012 * eg * h.g, "bandpass", Some(220.0), 0.0, h.pan);
             self.fan_whoosh_timer = (8.0 + rnd() * 6.0) * etm;
             self.log_ambient("fan-whoosh", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R569 fan bearing squeak (< 6 m)
+        // Fan bearing squeak (< 6 m)
         if let Some(h) = self.prop_due(|g| &mut g.fan_squeak_timer, |g| &g.pp.fan_positions, 6.0, dt, m) {
             self.blip(2600.0, 0.05, "sine", 0.011 * eg * h.g, Some(2300.0), 0.0, h.pan);
             self.fan_squeak_timer = (25.0 + rnd() * 30.0) * etm;
             self.log_ambient("fan-squeak", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R584 smoke detector low-battery chirp (< 8 m)
+        // Smoke detector low-battery chirp (< 8 m)
         if let Some(h) = self.prop_due(|g| &mut g.detector_chirp_timer, |g| &g.pp.smoke_detector_positions, 8.0, dt, m) {
             self.blip(3800.0, 0.08, "sine", 0.013 * eg * h.g, None, 0.0, h.pan);
             self.detector_chirp_timer = (90.0 + rnd() * 110.0) * etm;
@@ -242,16 +242,16 @@ impl Game {
         }
     }
 
-    /// R608–R672 props: coin … teapot.
+    /// Props: coin … teapot.
     pub(crate) fn amb_props_trinkets(&mut self, dt: f64, m: &AmbMix) {
         let (eg, etm) = (m.gain, m.timer_mul);
-        // R608 coin cluster tink (< 3.5 m)
+        // Coin cluster tink (< 3.5 m)
         if let Some(h) = self.prop_due(|g| &mut g.coin_tink_timer, |g| &g.pp.coin_positions, 3.5, dt, m) {
             self.blip(4500.0, 0.04, "sine", 0.011 * eg * h.g, Some(4200.0), 0.0, h.pan);
             self.coin_tink_timer = (20.0 + rnd() * 25.0) * etm;
             self.log_ambient("coin-tink", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R633 ticking clock tick-tock (< 4 m)
+        // Ticking clock tick-tock (< 4 m)
         if let Some(h) = self.prop_due(|g| &mut g.tick_tock_timer, |g| &g.pp.clock_positions, 4.0, dt, m) {
             let ckg = 0.010 * eg * h.g;
             self.blip(2200.0, 0.03, "square", ckg, None, 0.0, h.pan);
@@ -259,7 +259,7 @@ impl Game {
             self.tick_tock_timer = (12.0 + rnd() * 13.0) * etm;
             self.log_ambient("tick-tock", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R664 cuckoo call near cuckoo clocks (< 6 m)
+        // Cuckoo call near cuckoo clocks (< 6 m)
         if let Some(h) = self.prop_due(|g| &mut g.cuckoo_call_timer, |g| &g.pp.cuckoo_clock_positions, 6.0, dt, m) {
             let ccg = 0.013 * eg * h.g;
             self.blip(700.0, 0.14, "sine", ccg, Some(680.0), 0.0, h.pan);
@@ -267,13 +267,13 @@ impl Game {
             self.cuckoo_call_timer = (90.0 + rnd() * 130.0) * etm;
             self.log_ambient("cuckoo-call", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R666 plush shuffle — the stuffed animal stirred (< 3 m)
+        // Plush shuffle — the stuffed animal stirred (< 3 m)
         if let Some(h) = self.prop_due(|g| &mut g.plush_shuffle_timer, |g| &g.pp.plush_positions, 3.0, dt, m) {
             self.noise_burst(0.15, 2400.0, 0.8, 0.009 * eg * h.g, "bandpass", Some(1800.0), 0.0, h.pan);
             self.plush_shuffle_timer = (150.0 + rnd() * 170.0) * etm;
             self.log_ambient("plush-shuffle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R669 gumball dispenser rattle (< 4 m)
+        // Gumball dispenser rattle (< 4 m)
         if let Some(h) = self.prop_due(|g| &mut g.gumball_rattle_timer, |g| &g.pp.gumball_positions, 4.0, dt, m) {
             let gpg = 0.010 * eg * h.g;
             let click_count = 3 + (rnd() * 3.0).floor() as i32;
@@ -283,7 +283,7 @@ impl Game {
             self.gumball_rattle_timer = (40.0 + rnd() * 50.0) * etm;
             self.log_ambient("gumball-rattle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
-        // R672 teapot whistle — "who's boiling water?" (< 5 m)
+        // Teapot whistle — "who's boiling water?" (< 5 m)
         if let Some(h) = self.prop_due(|g| &mut g.teapot_whistle_timer, |g| &g.pp.teapot_positions, 5.0, dt, m) {
             let tpg = 0.010 * eg * h.g;
             self.blip(2200.0, 0.9, "sine", tpg, Some(2800.0), 0.0, h.pan);

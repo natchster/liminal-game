@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R496 cracked wall mirror: 4% chance per level. A small mirror in a wooden
+// Cracked wall mirror: 4% chance per level. A small mirror in a wooden
 // frame, struck and cracked (batch r13a).
 pub(crate) fn place_cracked_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -598,7 +598,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
     })
 }
 
-// R495 wall chalkboard: 4% chance per level. A 30 x 40 cm wall board in a
+// Wall chalkboard: 4% chance per level. A 30 x 40 cm wall board in a
 // pine frame, a note left on it in chalk (batch r13a).
 pub(crate) fn place_wall_chalkboards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {

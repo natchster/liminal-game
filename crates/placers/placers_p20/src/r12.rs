@@ -2,12 +2,12 @@
 //! placers and what only they use.
 use super::*;
 
-// R540 fire alarm pull: 4% chance per level. A single-action pull station
+// Fire alarm pull: 4% chance per level. A single-action pull station
 // flush on its box in the wall (batch `r06`'s, the fire alarms'): FIRE raised
 // over the lever's well, PULL DOWN on the lever, the glass rod across it, and
 // an addressable station's LED blinking as the panel polls it.
 pub(super) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
-    g.pp.alarm_pull_positions = vec![]; // R541 reset per level
+    g.pp.alarm_pull_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -42,7 +42,7 @@ pub(super) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
     pivot.add(&mesh(pull_part("Real__pullHandle", 0.07, 0.03, 0.016), &red));
     pivot.add(&mesh(pull_part("Real__pullHandleText", 0.05, 0.008, 0.001), &white));
     add("Real__pullRod", &lambert!({ color: 0xc8d6d0, transparent: true, opacity: 0.5 }), 0.0, 0.002, 0.035 + 0.030 + 0.0045);
-    // R541 the station's LED, dark between the panel's polls.
+    // The station's LED, dark between the panel's polls.
     let led_mat = basic_mat!({ color: 0x3a0e0a });
     let led = mesh(pull_part("Real__fireAlarmPullLed", 0.007, 0.007, 0.002), &led_mat);
     led.position().set(0.036, 0.052, 0.035 + 0.030);
@@ -56,17 +56,17 @@ pub(super) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.008);
     mount(&alarm, c, wall_x, wall_z, 1.50, 0.6);
     g.world.add(&alarm);
-    // R541 track for beep audio.
+    // Track for beep audio.
     let p = alarm.pos();
     g.pp.alarm_pull_positions.push(v3(p.x, 1.50, p.z));
 }
 
-// R537 wall pay phone: 4% chance per level. A single-slot payphone of the Western
+// Wall pay phone: 4% chance per level. A single-slot payphone of the Western
 // kind (Blender batch `r12`): the stainless upper housing with its instruction
 // card, coin entry, keypad and coin return, the black vault under it, the
 // handset hung on the switchhook at its side on its armoured cord.
 pub(super) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {
-    g.pp.pay_phone_positions = vec![]; // R542 reset per level
+    g.pp.pay_phone_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -105,7 +105,7 @@ pub(super) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.050);
     mount(&phone, c, wall_x, wall_z, 0.7, 0.4);
     g.world.add(&phone);
-    // R542 track for ring audio.
+    // Track for ring audio.
     let p = phone.pos();
     g.pp.pay_phone_positions.push(v3(p.x, 1.0, p.z));
 }

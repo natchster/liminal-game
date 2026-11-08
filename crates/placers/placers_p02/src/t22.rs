@@ -13,7 +13,7 @@ const TUFT_L: f64 = 0.013;
 /// tuft pressed and stained), a tuft pulled off
 const SWABS: [&str; 4] = ["Real__swabA", "Real__swabB", "Real__swabC", "Real__swabD"];
 
-// R579 scattered cotton swabs: 10% chance per level, 4-8 of them spilled
+// Scattered cotton swabs: 10% chance per level, 4-8 of them spilled
 // where a box of them was dropped: 3 in double-tipped swabs (rolled white
 // paper sticks 2.2 mm across, cotton wound on each end), gone grey with
 // dust; one with its stick kinked, one used, one with a tuft pulled off.

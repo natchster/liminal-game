@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R552 peeled paint (`assets/src/blender/props/r11b.notes.md`): where damp
+// Peeled paint (`assets/src/blender/props/r11b.notes.md`): where damp
 // came through a painted wall the paint let go: cracked into flakes along
 // a network of fine cracks, the flakes come away in patches showing the
 // older coat beneath, and under that the plaster (or the board's paper), a
@@ -62,7 +62,7 @@ pub(super) fn place_peeled_paint_patches(g: &mut Game, _dist: &[i32]) {
     g.world.add(&patch);
 }
 
-// R545 wall pipe leak (`assets/src/blender/props/r11b.notes.md`): a short
+// Wall pipe leak (`assets/src/blender/props/r11b.notes.md`): a short
 // run of 2 in steel pipe out of the wall, along it and back in (batch r06's
 // malleable elbows, a coupling, the collars at the wall), painted once and
 // rusting; one elbow's thread by the wall weeps: a crust of lime and rust

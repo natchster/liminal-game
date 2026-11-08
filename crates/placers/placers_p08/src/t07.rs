@@ -55,12 +55,12 @@ fn sphere_uv(p: (f64, f64, f64), lo: &Vec3, hi: &Vec3) -> (f64, f64) {
     (u, v)
 }
 
-// R682 hanging colander: 4% chance per level. A two-handled colander (batch
+// Hanging colander: 4% chance per level. A two-handled colander (batch
 // `t07`: 24 cm, stamped, on a foot ring; graniteware enamel, stainless or
 // tin-lined copper) hung by an ear's hole on a nail in the wall, its rim to
 // the wall, its bottom out.
 pub(crate) fn place_hanging_colanders(g: &mut Game, _dist: &[i32]) {
-    g.pp.colander_positions.clear(); // R721 reset per level
+    g.pp.colander_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -107,7 +107,7 @@ pub(crate) fn place_hanging_colanders(g: &mut Game, _dist: &[i32]) {
     col.position().set(px, 0, pz);
     g.world.add(&col);
     let p = col.pos();
-    g.pp.colander_positions.push(v3(p.x, 0, p.z)); // R721
+    g.pp.colander_positions.push(v3(p.x, 0, p.z));
 }
 
 /// The colander's metal: graniteware (blue-grey enamel speckled white,
@@ -202,11 +202,11 @@ fn colander_tex(kind: usize, salt: u32, holes: Option<(Vec3, Vec3)>, wear: &[f64
     })
 }
 
-// R683 hanging herb sieve: 4% chance per level. A 7 in fine-mesh strainer
+// Hanging herb sieve: 4% chance per level. A 7 in fine-mesh strainer
 // (batch `t07`: a tinned band round a woven mesh bowl, a looped wire handle
 // and a pan hook) hung by its handle's loop on a nail, its rim to the wall.
 pub(crate) fn place_herb_sieves(g: &mut Game, _dist: &[i32]) {
-    g.pp.herb_sieve_positions.clear(); // R701 reset per level
+    g.pp.herb_sieve_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -239,7 +239,7 @@ pub(crate) fn place_herb_sieves(g: &mut Game, _dist: &[i32]) {
     sieve.position().set(px, 0, pz);
     g.world.add(&sieve);
     let p = sieve.pos();
-    g.pp.herb_sieve_positions.push(v3(p.x, 0, p.z)); // R701
+    g.pp.herb_sieve_positions.push(v3(p.x, 0, p.z));
 }
 
 /// The sieve's woven mesh, seen from in front (u along x, v up): its wires

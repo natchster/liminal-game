@@ -5,7 +5,7 @@
 use super::*;
 use game::assets::props::prop_part_as_modelled;
 
-// R572 shampoo bottle shelf: 5% chance per level, 2-3 bottles. A bathroom
+// Shampoo bottle shelf: 5% chance per level, 2-3 bottles. A bathroom
 // shelf of 8 mm toughened glass, 500 x 120 mm, in two chromed clamp brackets
 // (Blender batch `t03`), the bottles left standing on it: oval HDPE bottles
 // of shampoo, conditioner and shower gel with their print, Boston rounds of
@@ -112,7 +112,7 @@ fn t03_bottle(kind: usize, salt: u32) -> Obj {
     grp
 }
 
-// R578 shower cap: 6% chance per level. A reusable PEVA shower cap (Blender
+// Shower cap: 6% chance per level. A reusable PEVA shower cap (Blender
 // batch `t03`) dropped on the floor opening down: the crown fallen in on
 // itself in creases, spilled over its gathered elastic in two lobes, the
 // frill flopped out round it; printed (small flowers, dots) or plain, or a

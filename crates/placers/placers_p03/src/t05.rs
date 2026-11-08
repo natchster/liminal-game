@@ -260,7 +260,7 @@ fn cross2(a0: (f64, f64), a1: (f64, f64), b0: (f64, f64), b1: (f64, f64)) -> Opt
     ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then(|| (a0.0 + rx * t, a0.1 + rz * t))
 }
 
-// R593 small twigs: 7% chance per level. Oak twiglets the tree shed (Blender
+// Small twigs: 7% chance per level. Oak twiglets the tree shed (Blender
 // batch `t05`): grey-brown bark with its lenticels, the buds at the nodes
 // and the tip's cluster, a side shoot, a snapped end's pale wood; one lying
 // across another rests on it.
@@ -453,7 +453,7 @@ fn leaf_tex(k: usize) -> Tex {
     })
 }
 
-// R592 leaf litter: 8% chance per level. A drift of dead leaves blown in
+// Leaf litter: 8% chance per level. A drift of dead leaves blown in
 // (Blender batch `t05`): beech and oak, brown and crisp, curled or folded,
 // holed and torn, some lying on others; they stir a little in a draught.
 pub(super) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
@@ -464,7 +464,7 @@ pub(super) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
     let leaf_colors = [0x805020, 0xa06030, 0x604020, 0x907040, 0xc08040];
     let cluster = group();
     let count = 4 + (rnd() * 5.0).floor() as i32;
-    // R636 track for drift animator: (leaf, base_x, base_z, phase_x, phase_z)
+    // Track for drift animator: (leaf, base_x, base_z, phase_x, phase_z)
     let mut leaves: Vec<(Obj, f64, f64, f64, f64)> = vec![];
     let mut down: Vec<(f64, f64, f64, f64)> = vec![]; // where each lies, its reach, the height of its top
     for _i in 0..count {
@@ -517,7 +517,7 @@ pub(super) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
     let (px, pz) = jitter(g, x, z, 2.4);
     cluster.position().set(px, 0, pz);
     g.world.add(&cluster);
-    // R636 subtle drift in a draught (leaves shift 4-5 mm).
+    // Subtle drift in a draught (leaves shift 4-5 mm).
     g.animate(move |_g, _dt, t| {
         for (l, bx, bz, phx, phz) in &leaves {
             let mut p = l.position();
@@ -843,7 +843,7 @@ fn wing_tex(k: usize) -> Tex {
     })
 }
 
-// R597 butterfly wing: 5% chance per level. A single wing left on the floor
+// Butterfly wing: 5% chance per level. A single wing left on the floor
 // (Blender batch `t05`): a peacock's or a small tortoiseshell's, hibernating
 // indoors and eaten by a mouse over the winter but for its wings; its scales
 // rubbed to the membrane at the edges, its root torn.
@@ -1007,7 +1007,7 @@ fn shell_tex(k: usize) -> Tex {
     })
 }
 
-// R598 snail shell: 5% chance per level. An empty snail's shell (Blender
+// Snail shell: 5% chance per level. An empty snail's shell (Blender
 // batch `t05`): a garden snail's, 4.5 whorls, its bands following them, its
 // white lip turned back, or a grove snail's; lying on its aperture or on its
 // side.
@@ -1149,7 +1149,7 @@ fn nest_egg_tex() -> Tex {
     })
 }
 
-// R599 bird nest: 4% chance per level. A robin's nest fallen to the floor
+// Bird nest: 4% chance per level. A robin's nest fallen to the floor
 // (Blender batch `t05`): a cup of dry grass and twigs over mud, lined with
 // fine grass, loose stems trailing from it; now and then an egg or two left
 // in it, one broken.
@@ -1267,7 +1267,7 @@ fn moss_mat_tex(base: [f64; 3], salt: u32) -> Tex {
     })
 }
 
-// R596 moss patch: 5% chance per level. Moss grown on a floor kept damp
+// Moss patch: 5% chance per level. Moss grown on a floor kept damp
 // (Blender batch `t05`): a felted mat painted on the floor, cushions of
 // packed shoots rising out of it, here and there their setae and nodding
 // capsules.
@@ -1357,7 +1357,7 @@ fn silt_tex(salt: u32) -> Tex {
     })
 }
 
-// R597 grass clump: 6% chance per level. A tuft of annual meadow grass grown
+// Grass clump: 6% chance per level. A tuft of annual meadow grass grown
 // up out of a drift of silt on a damp floor (Blender batch `t05`): tillers of
 // folded, boat-tipped blades, pale and lank from the dark, a flowering stem
 // or two, the dead blades round its foot; it stirs in a draught.
@@ -1376,7 +1376,7 @@ pub(super) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
     let flower_mat = lambert!({ color: 0x9a9a78 });
     let clump = group();
     let count = 6 + (rnd() * 6.0).floor() as i32;
-    let mut tillers: Vec<(Obj, f64, f64)> = vec![]; // R601 track for sway animator: (tiller, lean, phase)
+    let mut tillers: Vec<(Obj, f64, f64)> = vec![]; // track for sway animator: (tiller, lean, phase)
     let mut first_turn = 0.0;
     for i in 0..count {
         // the old blade's draws: its height (which tiller), where it rises,
@@ -1418,7 +1418,7 @@ pub(super) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
     clump.position().set(px, 0, pz);
     clump.add(&floor_mark(&silt_tex(salt_of(px, pz)), 0.16, 0.16, 0.0, 0.0, first_turn));
     g.world.add(&clump);
-    // R601 a draught stirs it (0.5 Hz, each tiller its own phase)
+    // A draught stirs it (0.5 Hz, each tiller its own phase)
     g.animate(move |_g, _dt, t| {
         for (o, lean, ph) in &tillers {
             o.rotation().z = lean + (t * 0.5 + ph).sin() * 0.025;
@@ -1499,7 +1499,7 @@ fn web_veil_tex(salt: u32) -> Tex {
     })
 }
 
-// R599 spider web: 5% chance per level. A cellar spider's web in the angle of
+// Spider web: 5% chance per level. A cellar spider's web in the angle of
 // the wall and the ceiling (Blender batch `t05`): a loose tangle of fine
 // threads grey with dust, guy lines to the wall and the ceiling, strands
 // heavy with dust; the spider dead in it, hanging, prey wrapped and hung.

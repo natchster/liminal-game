@@ -24,7 +24,7 @@ const HAT_LIFT: f64 = 0.056_378;
 /// of its inside
 const PRINT_V: f64 = 0.92;
 
-/// R426 birthday party hat: 8% chance per level. A printed card party hat
+/// Birthday party hat: 8% chance per level. A printed card party hat
 /// (Blender batch `t12`): a cone of board 175 mm tall over a 115 mm rim,
 /// rolled from a printed sector and glued along its flap, a pompom of foil
 /// fringe in its point, its round elastic knotted through two holes; the

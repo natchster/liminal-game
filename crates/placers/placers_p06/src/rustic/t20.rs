@@ -7,7 +7,7 @@ use crate::{open_tiles, pick};
 use game::prelude::*;
 use t20_kit::*;
 
-// R660 hearth bellows: 4% chance per level. An English fireside bellows
+// Hearth bellows: 4% chance per level. An English fireside bellows
 // (Blender batch `t20`): two oak boards, the top one carved with a roundel,
 // joined by a gusset of leather nailed round their edges with brass nails,
 // a turned brass nozzle in the nose block. The oak gone dark, rubbed pale

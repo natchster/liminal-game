@@ -37,7 +37,7 @@ fn gravel_top(z: f64) -> f64 {
 // is the old one's): where there is water, its bubbles still rise from the
 // stone. The hood's lamp is still lit where the old one's light was on.
 pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
-    g.pp.aquarium_positions.clear(); // R744 reset per level
+    g.pp.aquarium_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -218,7 +218,7 @@ pub(super) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
     aq.rotation().y = turn;
     g.world.add(&aq);
     let p = aq.pos();
-    g.pp.aquarium_positions.push(v3(p.x, 0, p.z)); // R744
+    g.pp.aquarium_positions.push(v3(p.x, 0, p.z));
 }
 
 /// Glass as the windows' and the wine glass's (`Patch::Glass`): the room

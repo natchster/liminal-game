@@ -182,7 +182,7 @@ fn soil_tex(salt: u32) -> Tex {
     })
 }
 
-// R638 hanging plant: 3% chance per level.
+// Hanging plant: 3% chance per level.
 pub fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;

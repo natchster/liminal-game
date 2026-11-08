@@ -14,7 +14,7 @@ const MB_HB: f64 = 0.032;
 const MB_OPEN: f64 = 1.80;
 const MB_PRINT: (f64, f64) = (0.088, 0.058);
 
-// R452 small children's music box: 6% chance per level. A Swiss child's
+// Small children's music box: 6% chance per level. A Swiss child's
 // hand-crank music box (Blender batch `t20`): a little box of beech,
 // stained walnut, mahogany or dark oak, or painted red or yellow ochre (the
 // old colour's draw); its lid open, a chromolithograph pasted inside it;

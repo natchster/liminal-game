@@ -134,7 +134,7 @@ const HD_CORD_DIR: [f64; 3] = [-0.215, -0.057, -0.975];
 /// The cord's half-width and how flat it is (an SPT-2 flex, 18 AWG)
 const HD_CORD_R: f64 = 0.0029;
 
-// R695 hairdryer w/ cord + running hum audio (floor): 5% chance per level.
+// Hairdryer w/ cord + running hum audio (floor): 5% chance per level.
 // An 1875 W pistol-grip hair dryer of the common kind (Blender batch `t04`),
 // lying on its side where it fell: its barrel and nozzle, the intake's
 // grille furred with lint, the handle with its two slide switches and its
@@ -142,7 +142,7 @@ const HD_CORD_R: f64 = 0.0029;
 // floor in loose bends to the moulded plug. Its plastic the old colour, a
 // pale pink, burgundy, blue, grey, black or almond, scuffed and dusty.
 pub(super) fn place_hairdryers(g: &mut Game, _dist: &[i32]) {
-    g.pp.hairdryer_positions = vec![]; // R695 reset per level
+    g.pp.hairdryer_positions = vec![]; // reset per level
     if rnd() < 0.95 {
         return;
     }

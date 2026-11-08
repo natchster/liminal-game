@@ -12,7 +12,7 @@ const MASK_X: f64 = 150.0;
 const MASK_Y: f64 = 215.8;
 const MASK_Y0: f64 = 111.5;
 
-/// R421 small face mask: 6% chance per level. A Venetian volto (15 x 21.5
+/// Small face mask: 6% chance per level. A Venetian volto (15 x 21.5
 /// cm), a full-face carnival mask of papier-mache, gessoed and painted in
 /// one colour, gilt round the eyes and its edge, two satin ribbons from its
 /// temples; lying face up where it was dropped. Its gesso crazed, its paint

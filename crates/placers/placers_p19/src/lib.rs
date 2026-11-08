@@ -16,7 +16,7 @@ mod r14b;
 use r14b::place_safety_glasses;
 mod r15;
 use r15::{place_crumpled_receipts, place_paperback_books, place_tape_rolls};
-// R562 towel bar, R544 emergency strobe: batch `t04`'s (`t04.rs`)
+// Towel bar, emergency strobe: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::{place_emergency_strobes, place_hand_towel_bars};
 // the paper clips: batch `t22`'s (`t22.rs`)
@@ -139,7 +139,7 @@ fn scatter(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
     o.rotation().y = rnd() * PI * 2.0;
 }
 
-// R560 dropped clipboard: 8% chance per level. Wooden clipboard
+// Dropped clipboard: 8% chance per level. Wooden clipboard
 // + white paper w/ ink lines + clip.
 fn place_dropped_clipboards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -179,7 +179,7 @@ fn place_dropped_clipboards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&clipboard);
 }
 
-// R558 swipe card reader: 4% chance per level. Dark box w/
+// Swipe card reader: 4% chance per level. Dark box w/
 // slot + status LED.
 fn place_card_readers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -219,7 +219,7 @@ fn place_card_readers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&reader);
 }
 
-// R557 wall mail slot: 4% chance per level. Brass plate w/
+// Wall mail slot: 4% chance per level. Brass plate w/
 // dark slot cavity + flap.
 fn place_mail_slots(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -251,7 +251,7 @@ fn place_mail_slots(g: &mut Game, _dist: &[i32]) {
     g.world.add(&slot);
 }
 
-// R556 wall outlet: 7% chance per level. Cream plate w/ 2
+// Wall outlet: 7% chance per level. Cream plate w/ 2
 // slot pairs + optional plug inserted.
 fn place_wall_outlets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -301,7 +301,7 @@ fn place_wall_outlets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&outlet);
 }
 
-// R555 wall drain grate: 5% chance per level. Rectangular grate
+// Wall drain grate: 5% chance per level. Rectangular grate
 // w/ 5 horizontal slots + dark cavity.
 fn place_wall_drain_grates(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -342,7 +342,7 @@ fn place_wall_drain_grates(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grate);
 }
 
-// R555 post-it stack: 8% chance per level. 3-5 stacked
+// Post-it stack: 8% chance per level. 3-5 stacked
 // colored sticky notes.
 fn place_post_it_stacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -389,7 +389,7 @@ fn place_post_it_stacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R554 safety cone: 6% chance per level. Orange cone + white
+// Safety cone: 6% chance per level. Orange cone + white
 // reflective stripe + square base.
 fn place_safety_cones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -428,7 +428,7 @@ fn place_safety_cones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cone);
 }
 
-// R554 wall door with peephole: 4% chance per level. Wooden
+// Wall door with peephole: 4% chance per level. Wooden
 // door plane + handle + peephole disc.
 fn place_wall_doors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -468,7 +468,7 @@ fn place_wall_doors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&door);
 }
 
-// R553 single sock: 10% chance per level: a crew sock lost and lying limp on
+// Single sock: 10% chance per level: a crew sock lost and lying limp on
 // the floor, grey with dirt (Blender batch r08: the knit body, its heel and
 // toe, the two bands knitted round a sports sock's cuff).
 fn place_single_socks(g: &mut Game, _dist: &[i32]) {
@@ -565,7 +565,7 @@ fn sock_knit_tex() -> Tex {
     })
 }
 
-// R553 ceiling motion detector: 5% chance per level. Small
+// Ceiling motion detector: 5% chance per level. Small
 // dome + tiny LED indicator.
 fn place_motion_detector_domes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -606,7 +606,7 @@ fn place_motion_detector_domes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&det);
 }
 
-// R552 broken flashlight: 8% chance per level. Metal cylinder
+// Broken flashlight: 8% chance per level. Metal cylinder
 // w/ head lens (cracked) + faint dim glow inside.
 fn place_broken_flashlights(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -662,7 +662,7 @@ fn place_broken_flashlights(g: &mut Game, _dist: &[i32]) {
     g.world.add(&flashlight);
 }
 
-// R551 ceiling pipe run: 5% chance per level. Horizontal pipe
+// Ceiling pipe run: 5% chance per level. Horizontal pipe
 // segment attached to ceiling w/ 2 hanger straps.
 fn place_ceiling_pipes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -697,7 +697,7 @@ fn place_ceiling_pipes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pipe);
 }
 
-// R551 office lanyard w/ badge: 8% chance per level. Colored
+// Office lanyard w/ badge: 8% chance per level. Colored
 // strap loop + ID badge card.
 fn place_lanyards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -743,7 +743,7 @@ fn place_lanyards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lanyard);
 }
 
-// R550 broken pen cluster: 8% chance per level. 4-8 pens
+// Broken pen cluster: 8% chance per level. 4-8 pens
 // (some snapped in half) scattered.
 fn place_broken_pens(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -786,7 +786,7 @@ fn place_broken_pens(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R550 bottle caps: 10% chance per level: 8-14 crown caps prised off bottles
+// Bottle caps: 10% chance per level: 8-14 crown caps prised off bottles
 // and dropped in one place (Blender batch r08: 29 mm across, their 21 flutes
 // crimped, their printed tops faded and scratched to the tin, some bent by
 // the opener, some lying on their backs showing the liner).
@@ -1016,7 +1016,7 @@ fn cap_top_mat(k: usize) -> Mat {
     phong!({ map: &tex, color: 0xffffff, specular: 0x404040, shininess: 44 })
 }
 
-// R549 hanging bare bulb: 5% chance per level. Bulb + socket +
+// Hanging bare bulb: 5% chance per level. Bulb + socket +
 // cord from ceiling + faint warm glow.
 fn place_hanging_light_bulbs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -1072,7 +1072,7 @@ fn place_hanging_light_bulbs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bulb);
 }
 
-// R548 wall intercom: 4% chance per level. Small speaker box +
+// Wall intercom: 4% chance per level. Small speaker box +
 // grille + button.
 fn place_wall_intercoms(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -1111,7 +1111,7 @@ fn place_wall_intercoms(g: &mut Game, _dist: &[i32]) {
     g.world.add(&intercom);
 }
 
-// R547 ceiling sprinkler head: 6% chance per level. Small
+// Ceiling sprinkler head: 6% chance per level. Small
 // brass dome + 4 deflector arms hanging from ceiling.
 fn place_sprinkler_heads(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -1151,7 +1151,7 @@ fn place_sprinkler_heads(g: &mut Game, _dist: &[i32]) {
     g.world.add(&spr);
 }
 
-// R547 air freshener can: 10% chance per level. Small aerosol
+// Air freshener can: 10% chance per level. Small aerosol
 // can w/ cap.
 fn place_air_fresheners(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -1190,7 +1190,7 @@ fn place_air_fresheners(g: &mut Game, _dist: &[i32]) {
     g.world.add(&can);
 }
 
-// R546 dropped cell phone: 10% chance per level. Small
+// Dropped cell phone: 10% chance per level. Small
 // rectangular phone (flip or slab).
 fn place_dropped_cell_phones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -1237,7 +1237,7 @@ fn place_dropped_cell_phones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&phone);
 }
 
-// R545 unrolled TP: 8% chance per level. Cardboard tube +
+// Unrolled TP: 8% chance per level. Cardboard tube +
 // unrolled paper trail.
 fn place_unrolled_tp_rolls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {

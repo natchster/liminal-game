@@ -30,7 +30,7 @@ static FACE: [(f64, f64); 9] = [
     (0.016, 0.0146),
 ];
 
-// R651 framed botanical illustration: 3% chance per level. A botanical
+// Framed botanical illustration: 3% chance per level. A botanical
 // plate framed small (Blender batch `t17`): the print foxed and browned
 // under its glass, the mat's bevel gone brown, the moulding's stain rubbed
 // on its edges; askew on its wire.

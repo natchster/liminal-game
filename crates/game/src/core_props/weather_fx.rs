@@ -751,26 +751,26 @@ fn candle_frame(g: &mut Game, ci: usize, gp: Vec3, off: f64, glow: &Obj, flame: 
         return;
     }
     set_cb(g, ci, "wasNear", false); // relit — reset the approach state
-                                     // R108/R110: the safe-room LFO breath, weather-scaled amplitude
+                                     // The safe-room LFO breath, weather-scaled amplitude
     let lfo_hz = g.audio.safe_room_lfo.as_ref().map(|o| o.frequency().value()).filter(|v| *v != 0.0 && !v.is_nan()).unwrap_or(0.35);
     let flame_amp =
         flame_breath_amp_by_weather(g.weather_key()).or(flame_breath_amp_by_weather("normal")).unwrap() * g.descent_boost_mul(0.4);
     let room_breath = 1.0 + (t * lfo_hz * PI * 2.0 * g.descent_freq_boost() + off * 0.6).sin() * flame_amp;
     let fk = (0.85 + (t * 12.0 + off).sin() * 0.12 + (t * 21.3 + off).sin() * 0.05) * room_breath;
-    // R116: candles brighten a little as the flashlight dies
+    // Candles brighten a little as the flashlight dies
     let candle_boost = if g.player.flashlight_on { 1.0 + 0.15 * (1.0 - g.beam_battery_scale(0.0)) } else { 1.0 };
-    // R176 descent dim
+    // Descent dim
     glow.set_intensity(1.4 * fk * candle_boost * (0.65 + 0.35 * g.level_depth_mul()));
     flame.scale().y = 1.0 + (t * 10.0 + off).sin() * 0.18;
     look_at_level(flame, &g.camera);
-    // R106 inner core: faster, different-phase wobble
+    // Inner core: faster, different-phase wobble
     flame_core.scale().y = 1.0 + (t * 13.0 + off * 1.7).sin() * 0.24;
     flame_core.scale().x = 1.0 + (t * 17.0 + off * 2.1).sin() * 0.06;
     look_at_level(flame_core, &g.camera);
     if flame_core.visible() != flame.visible() {
         flame_core.set_visible(flame.visible());
     }
-    // R107 wick glow decay right after a relight
+    // Wick glow decay right after a relight
     let wg = cf(g, ci, "wickGlowT");
     if wg > 0.0 {
         let wg = 0f64.max(wg - dt);
@@ -786,7 +786,7 @@ fn candle_frame(g: &mut Game, ci: usize, gp: Vec3, off: f64, glow: &Obj, flame: 
 fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
     set_out(g, ci, true);
     g.candle_blowout_tally += 1.0;
-    // R68 milestone: a quiet toast on the 25th blowout of the session
+    // Milestone: a quiet toast on the 25th blowout of the session
     if !g.blowout_milestone_shown && g.candle_blowout_tally >= BLOWOUT_MILESTONE_AT {
         g.blowout_milestone_shown = true;
         g.schedule(1200.0, |g| g.show_msg("A HUNDRED SMALL DARKNESSES", 2.2));
@@ -865,7 +865,7 @@ fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
             look_at_level(&smoke, &g.camera);
         });
     }
-    // R66 tail beat ~2.8 s in (TAIL_BEAT_SPECS by weather)
+    // Tail beat ~2.8 s in (TAIL_BEAT_SPECS by weather)
     if g.ac.is_some() {
         let specs = tail_beat_specs(g.weather_key()).or(tail_beat_specs("normal")).unwrap();
         g.schedule(2800.0, move |g| {
@@ -948,7 +948,7 @@ fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, fl
                 f_smoke.mat().set_opacity(0.55 * (1.0 - p));
                 look_at_level(&f_smoke, &g.camera);
             });
-            // R52/R72: sometimes a fainter, warmer echo wisp 200 ms later
+            // Sometimes a fainter, warmer echo wisp 200 ms later
             let echo_prob = fizzle_echo_prob_by_weather(g.weather_key()).or(fizzle_echo_prob_by_weather("normal")).unwrap();
             if rnd() < echo_prob {
                 g.schedule(200.0, move |g| {
@@ -999,7 +999,7 @@ fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, fl
     let was_forced_mercy = force_success;
     set_out(g, ci, false);
     g.candle_relight_tally += 1.0;
-    // R69 milestone on the 15th relight of the session
+    // Milestone on the 15th relight of the session
     if !g.relight_milestone_shown && g.candle_relight_tally >= RELIGHT_MILESTONE_AT {
         g.relight_milestone_shown = true;
         g.schedule(1400.0, |g| g.show_msg("THE ROOM REMEMBERS YOUR HANDS", 2.2));
@@ -1011,7 +1011,7 @@ fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, fl
     flame_core.set_visible(true);
     flame_core.mat().set_opacity(0.85);
     glow.set_intensity(1.4);
-    set_cf(g, ci, "wickGlowT", 0.35); // R107: brief post-relight wick glow
+    set_cf(g, ci, "wickGlowT", 0.35); // brief post-relight wick glow
                                       // a mercy relight refunds 1%
     let cost = if was_forced_mercy { 2.0 } else { 3.0 };
     g.player.battery = clamp(g.player.battery - cost, 0.0, BAT_MAX);
@@ -1022,7 +1022,7 @@ fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, fl
         if was_forced_mercy {
             g.blip(1320.0, 0.14, "sine", 0.05, Some(1760.0), 0.11, 0.0);
         }
-        // R68 per-weather relight accent
+        // Per-weather relight accent
         let spark = relight_specs(g.weather_key()).or(relight_specs("normal")).unwrap();
         for &(f, jit, dur, ty, amp, delay_ms) in spark {
             g.blip(f + rand2(-jit, jit), dur, ty, amp, None, delay_ms / 1000.0, 0.0);

@@ -16,10 +16,10 @@ mod r14b;
 use r14b::place_keychain_keys;
 mod r15;
 use r15::place_newspaper_stacks;
-// R539 spray bottle: batch `t04`'s (`t04.rs`)
+// Spray bottle: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::place_spray_bottles;
-// R535 bookshelf, R530 metal locker: batch `t10`'s (`t10.rs`)
+// Bookshelf, metal locker: batch `t10`'s (`t10.rs`)
 mod t10;
 use t10::{place_bookshelves, place_metal_lockers};
 // the deflated ball: batch `t16`'s (`t16.rs`)
@@ -142,7 +142,7 @@ fn scatter_xz(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
     o.rotation().y = rnd() * PI * 2.0;
 }
 
-// R544 broken sunglasses: 7% chance per level. Frame + 2 lenses
+// Broken sunglasses: 7% chance per level. Frame + 2 lenses
 // (one cracked, one intact) + snapped temple.
 fn place_broken_sunglasses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -192,7 +192,7 @@ fn place_broken_sunglasses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&glasses);
 }
 
-// R540 crushed water bottle: 10% chance per level. Deformed
+// Crushed water bottle: 10% chance per level. Deformed
 // clear plastic w/ label.
 fn place_crushed_water_bottles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -231,7 +231,7 @@ fn place_crushed_water_bottles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bottle);
 }
 
-// R539 wall soap dispenser: 6% chance per level. Push-plunger
+// Wall soap dispenser: 6% chance per level. Push-plunger
 // wall unit w/ pink soap visible.
 fn place_soap_dispensers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -269,7 +269,7 @@ fn place_soap_dispensers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dispenser);
 }
 
-// R537 matchbook: 8% chance per level. Small booklet + 4-6
+// Matchbook: 8% chance per level. Small booklet + 4-6
 // scattered matches.
 fn place_matchbooks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -310,10 +310,10 @@ fn place_matchbooks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R536 small transistor radio: 6% chance per level. Small box
+// Small transistor radio: 6% chance per level. Small box
 // + dial + speaker grille + antenna.
 fn place_small_radios(g: &mut Game, _dist: &[i32]) {
-    g.pp.radio_positions = vec![]; // R542 reset per level
+    g.pp.radio_positions = vec![]; // reset per level
     if rnd() < 0.94 {
         return;
     } // 6% chance
@@ -354,12 +354,12 @@ fn place_small_radios(g: &mut Game, _dist: &[i32]) {
     radio.add(&ant);
     scatter(g, &radio, x, z, 2.4);
     g.world.add(&radio);
-    // R542 track for AM static audio.
+    // Track for AM static audio.
     let p = radio.pos();
     g.pp.radio_positions.push(v3(p.x, 0.035, p.z));
 }
 
-// R536 cigarette pack: 10% chance per level. Small flip-top
+// Cigarette pack: 10% chance per level. Small flip-top
 // box in red/blue/green colors.
 fn place_cigarette_packs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -399,9 +399,9 @@ fn place_cigarette_packs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pack);
 }
 
-// R535 wall bookshelf: batch `t10`'s (`t10.rs`)
+// Wall bookshelf: batch `t10`'s (`t10.rs`)
 
-// R534 safety vest: 8% chance per level. Folded neon vest w/
+// Safety vest: 8% chance per level. Folded neon vest w/
 // reflective silver stripes.
 fn place_safety_vests(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -431,7 +431,7 @@ fn place_safety_vests(g: &mut Game, _dist: &[i32]) {
     g.world.add(&vest);
 }
 
-// R533 bulletin board: 5% chance per level. Cork board with
+// Bulletin board: 5% chance per level. Cork board with
 // scattered notes + pushpins.
 // (Referenced by no placer; kept for completeness. Lazily built, so it
 // costs nothing unless used.)
@@ -481,7 +481,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R533 safety hard hat: 8% chance per level. Yellow domed hat
+// Safety hard hat: 8% chance per level. Yellow domed hat
 // w/ brim + chin strap.
 fn place_hard_hats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -519,7 +519,7 @@ fn place_hard_hats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hat);
 }
 
-// R532 fire hose reel: 4% chance per level. Red drum reel +
+// Fire hose reel: 4% chance per level. Red drum reel +
 // coiled hose + nozzle valve.
 fn place_fire_hose_reels(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -562,7 +562,7 @@ fn place_fire_hose_reels(g: &mut Game, _dist: &[i32]) {
     g.world.add(&reel);
 }
 
-// R531 dropped mail scatter: 8% chance per level. 5-9
+// Dropped mail scatter: 8% chance per level. 5-9
 // envelopes fanned on floor.
 fn place_dropped_mail_scatters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -601,9 +601,9 @@ fn place_dropped_mail_scatters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R530 metal locker: batch `t10`'s (`t10.rs`)
+// Metal locker: batch `t10`'s (`t10.rs`)
 
-// R529 pizza box: 7% chance per level. Empty square box w/
+// Pizza box: 7% chance per level. Empty square box w/
 // grease stain interior.
 fn place_pizza_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -639,7 +639,7 @@ fn place_pizza_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bx);
 }
 
-// R529 crushed soda can: 10% chance per level: a 355 ml aluminium can
+// Crushed soda can: 10% chance per level: a 355 ml aluminium can
 // crushed underfoot (Blender batch r08): stamped flat on its end, its printed
 // wall folded into rings and the lid with its tab slid off centre, or stepped
 // on lying down, pressed flat between its ends; its label a plain one of no
@@ -845,7 +845,7 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
     })
 }
 
-// R528 rusted hammer: 8% chance per level. Metal head + wood
+// Rusted hammer: 8% chance per level. Metal head + wood
 // handle on floor.
 fn place_rusted_hammers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -882,7 +882,7 @@ fn place_rusted_hammers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hammer);
 }
 
-// R528 broken wall light switch: 6% chance per level. Switch
+// Broken wall light switch: 6% chance per level. Switch
 // plate w/ hanging switch bat + exposed wires.
 fn place_broken_light_switches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -920,7 +920,7 @@ fn place_broken_light_switches(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sw);
 }
 
-// R527 overturned wastebasket: 6% chance per level. Tipped
+// Overturned wastebasket: 6% chance per level. Tipped
 // metal bin + 4-7 pieces of scattered trash.
 fn place_overturned_wastebaskets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -970,7 +970,7 @@ fn place_overturned_wastebaskets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R527 elevator call button: 4% chance per level. Small panel
+// Elevator call button: 4% chance per level. Small panel
 // with up/down arrows + LED.
 fn place_elevator_buttons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -1016,7 +1016,7 @@ fn place_elevator_buttons(g: &mut Game, _dist: &[i32]) {
     g.world.add(&panel);
 }
 
-// R526 folded umbrella: 8% chance per level. Compact folded
+// Folded umbrella: 8% chance per level. Compact folded
 // umbrella w/ handle and strap.
 fn place_folded_umbrellas(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -1070,7 +1070,7 @@ fn place_folded_umbrellas(g: &mut Game, _dist: &[i32]) {
 
 // ---- batch r14a: things worn and dropped (gloves, shoes, boots) ----------
 
-// R522 overturned wooden chair: 5% chance per level. Basic
+// Overturned wooden chair: 5% chance per level. Basic
 // 4-leg chair silhouette on side.
 fn place_overturned_chairs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -1111,7 +1111,7 @@ fn place_overturned_chairs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&chair);
 }
 
-// R522 torn photograph: 8% chance per level. Half-photo w/
+// Torn photograph: 8% chance per level. Half-photo w/
 // jagged tear edge (canvas texture).
 game::lazy_static_tex!(
     torn_photo_texture,

@@ -5,7 +5,7 @@ use crate::{open_tiles, pick};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R676 teething ring: 8% chance per level. A water-filled teething ring:
+/// Teething ring: 8% chance per level. A water-filled teething ring:
 /// two sheets of soft PVC welded round their edges and filled, 83 mm
 /// across, ribbed in two sectors and nubbed in two; lying flat. Its pastel
 /// faded, glossy still, the water gone cloudy with specks of black mould

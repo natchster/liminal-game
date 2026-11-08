@@ -17,7 +17,7 @@ const K_BOT: f64 = -0.300;
 const K_CROSS: f64 = 0.150;
 const K_HW: f64 = 0.250;
 
-/// R418 small kite: 8% chance per level. A child's paper diamond kite
+/// Small kite: 8% chance per level. A child's paper diamond kite
 /// (Blender batch `t16`): printed paper (600 x 500 mm) folded over a
 /// perimeter string on a 5 mm pine spine and cross spar, a tail of three
 /// tissue bows tied on a string, a two legged bridle and a length of its

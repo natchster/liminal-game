@@ -19,7 +19,7 @@ const STONE_X: f64 = 0.034;
 /// The crucifix's hole for its nail above the middle (it tilts about it)
 const NAIL_Y: f64 = 0.118;
 
-// R492 reliquary box: 4% chance per level. A small reliquary casket of
+// Reliquary box: 4% chance per level. A small reliquary casket of
 // gilt brass of the later 19th century, 14 x 9 cm on its four bun feet:
 // a stepped plinth, a glazed body between turned columns, a cornice, a
 // hipped lid with its cresting and a cross; paste stones in collets on the
@@ -166,7 +166,7 @@ fn label_tex(salt: u32) -> Tex {
     })
 }
 
-// R490 wall crucifix: 5% chance per level. A household wall crucifix of
+// Wall crucifix: 5% chance per level. A household wall crucifix of
 // the common kind: a cross of two boards half-lapped, 28 x 16 cm, its face's
 // edges chamfered, hung from a nail through a hole behind its head; a
 // cast corpus nailed on (spelter, its gilding worn to the grey metal on
