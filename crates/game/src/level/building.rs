@@ -11,13 +11,16 @@
 //! heights change only along a flight or across a mass or a void
 //! (`archgen::ground_breaks` is empty; `tests/building.rs` checks it).
 //!
-//! The walks are a spanning tree grown from the arrival by a random
-//! depth-first walk (long, winding ways), plus a few loops; the door is the
-//! far point of it, against the outer wall, and the lowest floor; heights
-//! fall from the arrival to the door along the way, with a step up now and
-//! then. Cells (recesses with a hermetic door, the shelters from the
-//! self-assembly) are cut into the masses so that every floor tile has one
-//! within `CELL_REACH` tiles of walk.
+//! The walks are a spanning tree grown from the arrival (on from the newest
+//! platform, a long winding way, and now and then from an older one, a
+//! branch: a choice, a walk that goes nowhere), plus a few loops; the door
+//! is the far point of it, against the outer wall, and the lowest floor;
+//! heights fall from the arrival to the door along the way, with a step up
+//! now and then. A lattice whose way is too straight, or has no choice on
+//! it, too few flights or too few dead ends, is grown again
+//! (`lattice_ok`). Cells (recesses with a hermetic door, the shelters from
+//! the self-assembly) are cut into the masses so that every floor tile has
+//! one within `CELL_REACH` tiles of walk.
 
 use crate::level::archgen::{
     build_ground_solids, ground_breaks, segment_clear_3d, Archetype, Ground, Layout, Room, Zone, DIRS, GROUND_FLOOR, GROUND_MASS,
@@ -128,6 +131,20 @@ pub static BUILDING_ARCHETYPES: [Archetype; 3] = [
     bld("works", "THE WORKS", "the Building", "formwork", "factory"),
 ];
 
+/// Platforms per side of a floor (a 28-tile floor, 112 m: the way from the
+/// arrival to the door a median 85 tiles of walk; 7 a side was 40 tiles and
+/// 165, `docs/MEGASTRUCTURE.md` G1)
+const PLATFORMS: i32 = 5;
+/// How often the tree grows on from an older platform than the newest (a
+/// branch): at 0 a depth-first walk, which on a small lattice winds through
+/// nearly every platform before the far one and leaves nothing off the way
+const BRANCH: f64 = 0.15;
+/// Lattices tried at most for one that keeps the bands (`lattice_ok`)
+const TRIES: usize = 16;
+/// The way to the door over the walks, at least this many times the
+/// straight line (the tiles add a little: `tests/building.rs` holds them to 2)
+const DETOUR: f64 = 2.2;
+
 /// What a style asks of the lattice.
 #[derive(Clone, Copy, Debug)]
 struct Params {
@@ -148,9 +165,9 @@ struct Params {
 }
 fn params(style: Style) -> Params {
     match style {
-        Style::Well => Params { n: 7, top: 5, range: 9, per_storey: 1, node_p: 0.9, loop_p: 0.18, mass_p: 0.0, floor_p: 0.0 },
-        Style::Halls => Params { n: 7, top: 6, range: 12, per_storey: 1, node_p: 0.85, loop_p: 0.28, mass_p: 0.3, floor_p: 0.0 },
-        Style::Works => Params { n: 7, top: 3, range: 6, per_storey: 2, node_p: 0.92, loop_p: 0.22, mass_p: 0.22, floor_p: 0.45 },
+        Style::Well => Params { n: PLATFORMS, top: 5, range: 9, per_storey: 1, node_p: 0.9, loop_p: 0.18, mass_p: 0.0, floor_p: 0.0 },
+        Style::Halls => Params { n: PLATFORMS, top: 6, range: 12, per_storey: 1, node_p: 0.85, loop_p: 0.28, mass_p: 0.3, floor_p: 0.0 },
+        Style::Works => Params { n: PLATFORMS, top: 3, range: 6, per_storey: 2, node_p: 0.92, loop_p: 0.22, mass_p: 0.22, floor_p: 0.45 },
     }
 }
 
@@ -262,20 +279,28 @@ fn grid_walk(grid: &Grid, from: &[(i32, i32)]) -> Vec<i32> {
     d
 }
 
-/// Generates the Building's floor for `level` (one of `BUILDING_FLOORS`),
-/// drawing from `rng` (the game passes `&mut || rnd()`).
-pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, BuildingPlan) {
-    let style = Style::of_level(level).unwrap_or(Style::Well);
-    let p = params(style);
+/// The platforms, the walks between them and their heights, before any
+/// tile is laid (steps 1–5 of `generate_building`).
+struct Lattice {
+    /// the Well's well: the squares from `wa` to `wb` (exclusive) each way
+    wa: i32,
+    wb: i32,
+    present: Vec<bool>,
+    edges: Vec<Edge>,
+    storey: Vec<i32>,
+    exit_node: usize,
+}
+
+/// A lattice of platforms for `style`, drawing from `rng`.
+fn lattice(style: Style, p: &Params, rng: &mut dyn FnMut() -> f64) -> Lattice {
     let n = p.n;
-    let w = side_for(n);
     let node_id = |i: i32, j: i32| (j * n + i) as usize;
-    let node_xy = |i: i32, j: i32| (PLAT / 2 + i * PITCH, PLAT / 2 + j * PITCH);
     let nn = (n * n) as usize;
 
     // ---- 1. which platforms are there ----
-    // (the Well's middle is its well: only a few islands stand in it)
-    let (wa, wb) = (irange(rng, 1, 2), irange(rng, n - 3, n - 2));
+    // (the Well's middle is its well, two or three squares across from the
+    // arrival's side: only a few islands stand in it)
+    let (wa, wb) = (1, irange(rng, n - 2, n - 1));
     let in_well = |i: i32, j: i32| style == Style::Well && i > wa && i < wb && j > wa && j < wb;
     let mut present = vec![false; nn];
     for j in 0..n {
@@ -328,12 +353,17 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         }
     }
 
-    // ---- 3. a spanning tree by a random depth-first walk from the arrival ----
+    // ---- 3. a spanning tree grown from the arrival: on from the newest
+    // platform (a long way round), now and then from an older one (a branch:
+    // a choice on the way, a walk that goes nowhere) ----
     let mut seen = vec![false; nn];
     seen[spawn_node] = true;
     let mut chosen = vec![false; cand.len()];
     let mut stack = vec![spawn_node];
-    while let Some(&cur) = stack.last() {
+    while !stack.is_empty() {
+        let at =
+            if stack.len() > 1 && rng() < BRANCH { ((rng() * stack.len() as f64) as usize).min(stack.len() - 1) } else { stack.len() - 1 };
+        let cur = stack[at];
         let opts: Vec<usize> = (0..cand.len())
             .filter(|&k| {
                 let e = cand[k];
@@ -341,7 +371,7 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
             })
             .collect();
         if opts.is_empty() {
-            stack.pop();
+            stack.remove(at);
             continue;
         }
         let k = opts[((rng() * opts.len() as f64) as usize).min(opts.len() - 1)];
@@ -502,6 +532,89 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         present[a] = present[a] && reach[a];
     }
     edges.retain(|e| present[e.a] && present[e.b]);
+
+    Lattice { wa, wb, present, edges, storey, exit_node }
+}
+
+/// Whether a lattice keeps the bands a floor is held to
+/// (`tests/building.rs`): over its walks (a short one `PITCH` tiles, a long
+/// one twice that), the way from the arrival to the door at least `DETOUR`
+/// times the straight line, a platform where three or more walks meet on
+/// it, three flights on it, and two walks that go nowhere.
+fn lattice_ok(l: &Lattice, n: i32) -> bool {
+    let nn = (n * n) as usize;
+    let len = |e: &Edge| if e.long { 2 * PITCH } else { PITCH };
+    let degree = |a: usize| l.edges.iter().filter(|e| e.a == a || e.b == a).count();
+    // the shortest way over the walks (a few dozen platforms: relax until still)
+    let mut d = vec![i32::MAX; nn];
+    d[0] = 0;
+    let mut changed = true;
+    while changed {
+        changed = false;
+        for e in &l.edges {
+            for (a, b) in [(e.a, e.b), (e.b, e.a)] {
+                if d[a] != i32::MAX && d[a] + len(e) < d[b] {
+                    d[b] = d[a] + len(e);
+                    changed = true;
+                }
+            }
+        }
+    }
+    let ex = l.exit_node;
+    if d[ex] == i32::MAX {
+        return false;
+    }
+    let (ie, je) = ((ex as i32) % n, (ex as i32) / n);
+    let straight = ((ie * PITCH) as f64).hypot((je * PITCH) as f64).max(1.0);
+    // back down the way from the door: its platforms and its flights
+    let (mut cur, mut decisions, mut flights) = (ex, 0, 0);
+    while cur != 0 {
+        let Some(e) = l
+            .edges
+            .iter()
+            .filter(|e| {
+                (e.a == cur || e.b == cur) && {
+                    let o = if e.a == cur { e.b } else { e.a };
+                    d[o] != i32::MAX && d[o] + len(e) == d[cur]
+                }
+            })
+            .min_by_key(|e| if e.a == cur { e.b } else { e.a })
+        else {
+            return false;
+        };
+        let o = if e.a == cur { e.b } else { e.a };
+        flights += usize::from(l.storey[e.a] != l.storey[e.b]);
+        if o != 0 && degree(o) >= 3 {
+            decisions += 1;
+        }
+        cur = o;
+    }
+    let dead = (1..nn).filter(|&a| a != ex && l.present[a] && degree(a) == 1).count();
+    d[ex] as f64 >= DETOUR * straight && decisions >= 1 && flights >= 3 && dead >= 2
+}
+
+/// Generates the Building's floor for `level` (one of `BUILDING_FLOORS`),
+/// drawing from `rng` (the game passes `&mut || rnd()`).
+pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, BuildingPlan) {
+    let style = Style::of_level(level).unwrap_or(Style::Well);
+    let p = params(style);
+    let n = p.n;
+    let w = side_for(n);
+    let node_id = |i: i32, j: i32| (j * n + i) as usize;
+    let node_xy = |i: i32, j: i32| (PLAT / 2 + i * PITCH, PLAT / 2 + j * PITCH);
+
+    // ---- 1–5. the platforms, the walks, their heights: a lattice that
+    // keeps the bands (a long way round, a choice on it, flights, dead
+    // ends), tried again if it does not ----
+    let mut lat = lattice(style, &p, rng);
+    for _ in 1..TRIES {
+        if lattice_ok(&lat, n) {
+            break;
+        }
+        lat = lattice(style, &p, rng);
+    }
+    let Lattice { wa, wb, present, edges, storey, exit_node } = lat;
+    let nn = (n * n) as usize;
 
     // ---- 6. the squares between the walks: building, void, or more floor ----
     let mut grid = Grid { w, g: vec![Ground::mass(VOID_DEPTH, MASS_TOP); (w * w) as usize] };
@@ -783,7 +896,7 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
             for z in 1..w - 1 {
                 for x in 1..w - 1 {
                     let v = df[grid.idx(x, z)];
-                    if (0..=6).contains(&v) && grid.get(x, z).kind == GROUND_FLOOR && !cells.iter().any(|c| c.tile == (x, z)) {
+                    if (0..=CELL_REACH / 2).contains(&v) && grid.get(x, z).kind == GROUND_FLOOR && !cells.iter().any(|c| c.tile == (x, z)) {
                         near.push((v, (x, z)));
                     }
                 }
