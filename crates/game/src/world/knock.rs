@@ -471,12 +471,12 @@ impl Game {
                 // a sheet folded once: its under half flat on the floor, its
                 // upper half sprung a little open on the fold
                 let paper = lambert!({ color: 0xd6d0bf, side: DoubleSide });
-                for (k, lift) in [(0.0, 0.0), (1.0, 0.28)] {
-                    let leaf = mesh(plane_geo!(0.075, 0.105), &paper);
+                for (k, lift) in [(0.0, 0.0), (1.0, 0.3)] {
+                    let leaf = mesh(plane_geo!(0.1, 0.145), &paper);
                     leaf.rotation().x = -PI / 2.0;
-                    leaf.position().x = 0.0375;
+                    leaf.position().x = 0.05;
                     let hinge = group();
-                    hinge.position().set(-0.0375, 0.002 + k * 0.002, 0.0);
+                    hinge.position().set(-0.05, 0.002 + k * 0.002, 0.0);
                     hinge.rotation().z = lift;
                     hinge.add(&leaf);
                     inner.add(&hinge);
@@ -605,14 +605,21 @@ impl Game {
         }
     }
 
-    /// For the evidence (`--knock-demo`): door `i`'s thing laid out where it
-    /// comes to rest, the hatch shut, as if it had answered a while ago
-    pub fn knock_lay_out(&mut self, i: usize) -> bool {
+    /// For the evidence (`--knock-demo`): door `i`'s thing held where it is
+    /// `t` seconds after it began to come out (0.35: the hatch open and it
+    /// half out; 1.25 and on: lying still, the hatch shut)
+    pub fn knock_lay_out(&mut self, i: usize, t: f64) -> bool {
         if self.knocks.doors.get(i).and_then(|d| d.gift).is_none() {
             return false;
         }
         self.knocks.doors[i].answered = true;
-        self.knock_answer(i, 1.25);
+        match self.knocks.given.iter().position(|gv| gv.door == i) {
+            Some(k) => {
+                self.knocks.given[k].t = t;
+                self.place_given(k);
+            }
+            None => self.knock_answer(i, t),
+        }
         true
     }
 
