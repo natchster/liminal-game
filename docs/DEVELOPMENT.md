@@ -242,7 +242,10 @@ Levels must be a pure function of `(run_seed, level)`:
   the game on no platform crate; level-build code takes no clock or foreign
   randomness; every themed placer has a theme; every creature has goldens
   and behaviour tests; no source file passes 2,400 lines; paths named in the
-  docs exist; the fast check skips only tests that exist.
+  docs exist; the fast check skips only tests that exist; no file names the
+  earlier version the game grew from, nor carries its development rounds'
+  tags (`nothing_names_the_earlier_version`, its few citations listed with
+  their reasons).
 * `crates/game/tests/zone_purpose.rs` checks the zone purposes and regions
   as properties (one purpose per area, themed placers only see welcoming
   floor, regions never cut through a room, determinism).
