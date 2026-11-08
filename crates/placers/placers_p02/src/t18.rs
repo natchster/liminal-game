@@ -10,7 +10,7 @@ use super::*;
 use game::visuals::pictures::{self, Age};
 use t18_kit::*;
 
-// R470 tarot card fan: 5% chance per level. Five cards of a tarot deck of
+// Tarot card fan: 5% chance per level. Five cards of a tarot deck of
 // the Rider's size (70 x 120 mm) fanned on the floor as a reading left
 // off: four face down, their backs the Rider's crackled brown, and one face
 // up, a card of Pamela Colman Smith's (public domain); the cards' edges
@@ -84,7 +84,7 @@ fn tarot_back_tex(age: Age, vary: u32) -> Tex {
     })
 }
 
-// R470 pentagram chalk decal: 3% chance per level. A circle drawn twice and
+// Pentagram chalk decal: 3% chance per level. A circle drawn twice and
 // a five-pointed star inside it, 1.3 m across, chalked on the floor by hand
 // with a stick of blackboard chalk: each line a stroke of grains caught on
 // the floor's tooth, heavier where pressed, its ends overshooting where the
@@ -289,7 +289,7 @@ fn pentagram_tex(salt: u32) -> Tex {
     })
 }
 
-// R469 ouija board decal: 4% chance per level. A printed talking board of
+// Ouija board decal: 4% chance per level. A printed talking board of
 // the old kind (no maker's name on it): a lithographed face on 1/8 in
 // hardboard, 18 x 12 in, its letters in two arcs, its numerals and the
 // words in a serif face, a sun by YES and a moon by NO; warped, its print
@@ -508,13 +508,13 @@ fn planchette_tex(salt: u32) -> Tex {
     })
 }
 
-// R467 small chain links: 8% chance per level. A short length of 3/8 in
+// Small chain links: 8% chance per level. A short length of 3/8 in
 // proof coil chain (5 to 8 welded links of 9.9 mm wire, 55 mm long) lying
 // where it was dropped, every other link flat and the ones between on edge,
 // leaning; galvanized gone dull with white rust, bare steel rusted, or
 // black oiled steel blooming rust, by the old colour.
 pub(super) fn place_small_chain_links(g: &mut Game, _dist: &[i32]) {
-    g.pp.chain_positions.clear(); // R486 reset per level
+    g.pp.chain_positions.clear(); // reset per level
     if rnd() < 0.92 {
         return;
     } // 8% chance
@@ -543,7 +543,7 @@ pub(super) fn place_small_chain_links(g: &mut Game, _dist: &[i32]) {
     chain.position().set(px, 0, pz);
     chain.rotation().y = turn;
     g.world.add(&chain);
-    // R486 track for jangle audio.
+    // Track for jangle audio.
     let cp = chain.pos();
     g.pp.chain_positions.push(v3(cp.x, 0.02, cp.z));
 }

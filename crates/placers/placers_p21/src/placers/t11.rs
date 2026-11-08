@@ -13,7 +13,7 @@ const HEAD_ANTLERS: [f64; 3] = [0.0, 0.080_494, 0.161_283];
 /// 52 degrees)
 const HEAD_ANTLER_TURN: f64 = -0.471_239;
 
-// R505 wall taxidermy deer head: 4% chance per level. A roe buck's head mount (a
+// Wall taxidermy deer head: 4% chance per level. A roe buck's head mount (a
 // Kopfpraeparat): the hide tanned and set over its form, the neck cut short
 // against a carved oak shield, the head turned a little down as if it
 // looked ahead, the big ears up and out, glass eyes that catch the light,

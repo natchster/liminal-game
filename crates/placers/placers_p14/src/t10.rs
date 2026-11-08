@@ -89,7 +89,7 @@ const CK_DIAL_Y: f64 = 1.70;
 const CK_DIAL_FACE: f64 = 0.008 + 0.110 + 0.004;
 const CK_PEND: (f64, f64, f64) = (0.0, -0.020 - 0.100, 0.030);
 
-// R741 ornate cuckoo clock: 3% chance per level. A carved Black Forest
+// Ornate cuckoo clock: 3% chance per level. A carved Black Forest
 // cuckoo clock of the traditional kind (Blender batch `t10`): oak leaves
 // and acorns carved round its dial, a bird with its wings spread on its
 // top, the cuckoo's door shut; a dark wooden dial with bone numerals and
@@ -97,7 +97,7 @@ const CK_PEND: (f64, f64, f64) = (0.0, -0.020 - 0.100, 0.030);
 // weights on brass chains. Linden stained dark, the stain rubbed from the
 // carving's high points, dust in its hollows.
 pub(super) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.cuckoo_clock_positions_r741.clear(); // R741 reset per level
+    g.pp.ornate_cuckoo_clock_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -138,7 +138,7 @@ pub(super) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
     t10_put(&pendulum_group, "Real__cuckooPendRod", &brass);
     t10_put(&pendulum_group, "Real__cuckooPendBob", &lambert!({ map: &ck_wood_tex(vary ^ 0x55, 0.35) }));
     body.add(&pendulum_group);
-    // 50% chance: pendulum swing animator (R741: tracked for cuckoo-call audio).
+    // 50% chance: pendulum swing animator (tracked for cuckoo-call audio).
     let is_swinging = rnd() < 0.5;
     if is_swinging {
         let swing_phase = rnd() * PI * 2.0;
@@ -150,7 +150,7 @@ pub(super) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cc);
     if is_swinging {
         let p = cc.pos();
-        g.pp.cuckoo_clock_positions_r741.push(v3(p.x, 0, p.z)); // R741
+        g.pp.ornate_cuckoo_clock_positions.push(v3(p.x, 0, p.z));
     }
 }
 
@@ -251,7 +251,7 @@ const FP_SHELF_TOP: f64 = 1.100;
 const FP_LOGS: [(&str, f64); 4] =
     [("Real__fireplaceLogA", 0.040), ("Real__fireplaceLogB", 0.034), ("Real__fireplaceLogC", 0.030), ("Real__fireplaceLogD", 0.026)];
 
-// R744 fireplace: 2.5% chance per level. A Victorian bedroom fireplace
+// Fireplace: 2.5% chance per level. A Victorian bedroom fireplace
 // against the wall (Blender batch `t10`): a painted pine mantelpiece on its
 // plinths, its corbels, frieze and shelf, the paint gone yellow and chipped
 // through its coats to the wood; a cast-iron arched register insert, its
@@ -262,7 +262,7 @@ const FP_LOGS: [(&str, f64); 4] =
 // it: a low wood fire burning in the basket, embers glowing under the logs
 // and in their cracks, tongues of flame, its light and its crackle.
 pub(super) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
-    g.pp.lit_fireplace_positions.clear(); // R744 reset per level
+    g.pp.lit_fireplace_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -378,7 +378,7 @@ pub(super) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
     soot.position().set(0, FP_SHELF_TOP + 0.40 - 0.02, 0.002);
     body.add(&soot);
     g.world.add(&fp);
-    // R744 register only lit fireplaces for crackle audio.
+    // Register only lit fireplaces for crackle audio.
     if is_lit {
         let p = fp.pos();
         g.pp.lit_fireplace_positions.push(v3(p.x, 0, p.z));

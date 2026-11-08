@@ -8,7 +8,7 @@ use crate::{open_tiles, pick_tile, pick_u32};
 use game::prelude::*;
 use t09_kit::*;
 
-// R491 crystal skull: 3% chance per level. A "crystal skull" as they are
+// Crystal skull: 3% chance per level. A "crystal skull" as they are
 // sold: a cast glass ornament, 10.5 cm deep, its jaw fused shut and its base
 // ground flat, standing on the floor; the room in its glass by Fresnel, dust
 // and a hand's smears on it. It catches the light; it never makes any.
@@ -85,7 +85,7 @@ fn glass_dust_tex(salt: u32) -> Tex {
     })
 }
 
-// R489 small owl figurine: 5% chance per level. A carved wooden owl (15 cm),
+// Small owl figurine: 5% chance per level. A carved wooden owl (15 cm),
 // the souvenir kind carved from one block and stained dark: a horned owl
 // standing on a rock carved with it, its feathers cut in rows of chisel
 // scallops (the stain lying dark in the cuts), its glass eyes amber with
@@ -182,7 +182,7 @@ fn owl_wood_tex(salt: u32, stain: u32) -> Tex {
 /// (m), the taper burnt down to 70 mm (A) or to a 38 mm stub (B)
 const STICK_FLAME_ROOT: [f64; 2] = [0.133 + 0.069, 0.133 + 0.037];
 
-// R489 brass candlestick with wax drips: 6% chance per level. A turned and
+// Brass candlestick with wax drips: 6% chance per level. A turned and
 // cast brass candlestick (15.5 cm) of the common kind, its brass gone dull
 // and brown, polished only where hands took it; its taper (a 7/8 in dinner
 // candle) burnt down, the wax run over the socket's rim and onto the pan
@@ -307,7 +307,7 @@ const STACK_ON_ONE: f64 = 0.201;
 const STACK_ON_TWO: f64 = 0.207;
 const STACK_APART: f64 = 0.077;
 
-// R488 skull stack cluster: 4% chance per level. Life-size cast resin skulls
+// Skull stack cluster: 4% chance per level. Life-size cast resin skulls
 // (the 19.6 cm kind sold as replicas), aged: an ivory resin under a brown
 // wash that lies dark in the orbits, the nose and the ears, the teeth a
 // yellower resin. Two, one set on the other's crown; or three, a pair side

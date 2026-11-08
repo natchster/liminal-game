@@ -22,7 +22,7 @@ const LT_FLAME_ROOT: f64 = LT_SOCKET_FLOOR + 0.037;
 const CANOPY_TOP: f64 = 0.002;
 const PIVOT: f64 = -0.012;
 
-// R476 hanging brass lantern: 4% chance per level, hanging from the
+// Hanging brass lantern: 4% chance per level, hanging from the
 // ceiling. A small brass candle lantern of the Victorian hall kind (Blender
 // batch `t21`): a square tray on a turned drop, four panes between corner
 // posts (the front one a door on two hinges), a pyramid roof up to a
@@ -32,7 +32,7 @@ const PIVOT: f64 = -0.012;
 // light the old light, flickering as before; it sways on its chain (from
 // the ceiling's hook now, not from the floor) as the old one swayed.
 pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
-    g.pp.brass_lantern_positions.clear(); // R480 reset per level
+    g.pp.brass_lantern_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -126,7 +126,7 @@ pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
         });
     }
     g.world.add(&lantern);
-    // R480 track swaying lanterns for creak audio.
+    // Track swaying lanterns for creak audio.
     if is_swaying {
         let lp = lantern.pos();
         g.pp.brass_lantern_positions.push(v3(lp.x, lantern_y, lp.z));

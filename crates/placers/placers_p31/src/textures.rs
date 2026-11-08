@@ -1,7 +1,7 @@
 //! Canvas textures shared by this crate's placers (built once, on the native RNG).
 use game::prelude::*;
 
-// R256 exit sign canvas texture — bright green EXIT text on dark background.
+// Exit sign canvas texture — bright green EXIT text on dark background.
 game::lazy_static_tex!(
     exit_sign_texture_2,
     canvas_tex_opt(96, 40, false, |ctx, w, h| {
@@ -22,7 +22,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R256 thermostat canvas texture — analog dial with tick marks + needle
+// Thermostat canvas texture — analog dial with tick marks + needle
 // frozen at random temp. One-per-load random reading.
 game::lazy_static_tex!(
     thermostat_texture,
@@ -124,7 +124,7 @@ pub fn poster_textures() -> Vec<Tex> {
                                 let sh = 1.0 + rnd() * 2.0;
                                 ctx.fill_rect(px, py, sw, sh);
                             }
-                            // R252 barely-legible text hint over the banner.
+                            // Barely-legible text hint over the banner.
                             let hints = ["EXIT", "13", "SAFE", "WAIT", "DO NOT", "???", "7", "HOLD", "BACK"];
                             let hint = hints[(rnd() * hints.len() as f64).floor() as usize];
                             ctx.set_fill_style(bg);

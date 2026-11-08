@@ -7,7 +7,7 @@ use crate::{pick_color, pick_open_tile, scatter_pos};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R451 small skateboard: 8% chance per level. A plastic cruiser board
+/// Small skateboard: 8% chance per level. A plastic cruiser board
 /// (Blender batch `t16`): a 22 x 6 in moulded polypropylene deck, its top
 /// textured for grip and its tail kicked, on 3 in cast aluminium trucks
 /// and 59 mm urethane wheels; one in seven lies upside down, resting on its

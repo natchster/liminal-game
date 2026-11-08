@@ -26,9 +26,9 @@ fn toothbrush_color_by_weather(key: &str) -> &'static [u32] {
     }
 }
 
-// R285 wall mirror: 20% chance per level, 1 framed mirror on a wall (batch r13a).
+// Wall mirror: 20% chance per level, 1 framed mirror on a wall (batch r13a).
 pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
-    g.pp.bathroom_bundle_positions.clear(); // R319 reset per level
+    g.pp.bathroom_bundle_positions.clear(); // reset per level
     if rnd() < 0.80 {
         return;
     } // 20% chance
@@ -45,7 +45,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     // dust on it, now and then hands' smears, now and then struck and
     // cracked, its splinters on the floor below (docs/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
-    // R297 30% chance smudged; R317 10% chance cracked (the old overlays' draws)
+    // 30% chance smudged; 10% chance cracked (the old overlays' draws)
     let smudged = rnd() < 0.30;
     let mirror_cracked = rnd() < 0.10;
     let mirror = group();
@@ -100,7 +100,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         body.add(&film);
     }
     g.world.add(&mirror);
-    // R286 2% chance: mirror imperceptibly sways.
+    // 2% chance: mirror imperceptibly sways.
     if rnd() < 0.02 {
         let base_rot_z = mirror.rot().z;
         let sway_phase = rnd() * PI * 2.0;
@@ -111,7 +111,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     }
     let mp = mirror.pos();
     let m_rot_y = mirror.rot().y;
-    // R318 if mirror is cracked, 3-6 splinters of it on the floor below: the
+    // If mirror is cracked, 3-6 splinters of it on the floor below: the
     // silvered face up or its painted back, in front of the wall
     if mirror_cracked {
         let face_up = phong!({ color: 0x1c1e1e, specular: 0x8a8c8c, shininess: 300 });
@@ -135,7 +135,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             g.world.add(&shard);
         }
     }
-    // R316 25% chance: small wall clock adjacent to the mirror — bathroom-vestibule bundle.
+    // 25% chance: small wall clock adjacent to the mirror — bathroom-vestibule bundle.
     if rnd() < 0.25 {
         let clocks = clock_textures();
         let clock_tex = clocks[(rnd() * clocks.len() as f64).floor() as usize].clone();
@@ -170,21 +170,21 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         } else {
             adj_clock.position().set(mp.x + adj_offset, adj_height, wall_z);
         }
-        // R337 slight ±0.03 rad Z tilt for bundle clock too.
+        // Slight ±0.03 rad Z tilt for bundle clock too.
         adj_clock.rotation().z = (rnd() - 0.5) * 0.06;
         g.world.add(&adj_clock);
         let cp = adj_clock.pos();
-        // Track for R308 tick audio events (same as R253 clocks).
+        // Track for tick audio events (as the wall clocks are).
         g.pp.wall_clock_positions.push(v3(cp.x, adj_height, cp.z));
-        // R319 track bathroom-bundle center for rare faucet-drip audio.
+        // Track bathroom-bundle center for rare faucet-drip audio.
         let bundle_cx = (mp.x + cp.x) * 0.5;
         let bundle_cz = (mp.z + cp.z) * 0.5;
         g.pp.bathroom_bundle_positions.push(v3(bundle_cx, 1.0, bundle_cz));
         // The basin under the mirror (batch r13a: a wall-hung vitreous china
         // basin, its rim 0.895 m up, where the soap and the toothbrush lie;
-        // its chrome waste and bottle trap). R320's draw (the old dark bar
+        // its chrome waste and bottle trap). The first draw (the old dark bar
         // of a "sink outline", 60%) now says whether its taps are still on
-        // it at all; R331's (50% of those) whether they are: else the deck
+        // it at all; the second (50% of those) whether they are: else the deck
         // shows the two holes they were taken from
         let sink_placed = rnd() < 0.60;
         let basin = group();
@@ -214,7 +214,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             }
         }
         g.world.add(&basin);
-        // R321 30% chance: small soap dispenser on the opposite side from the clock.
+        // 30% chance: small soap dispenser on the opposite side from the clock.
         let mut dispenser_placed = false;
         let mut dispenser_offset = 0.0;
         if rnd() < 0.30 {
@@ -239,7 +239,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             dispenser_placed = true;
             dispenser_offset = d_offset;
         }
-        // R335 30% chance (if dispenser present): small soap bar on the sink shelf.
+        // 30% chance (if dispenser present): small soap bar on the sink shelf.
         if dispenser_placed && rnd() < 0.30 {
             let bar_pool = soap_bar_color_by_weather(key);
             let bar_mat = lambert!({ color: pick(bar_pool) });
@@ -254,7 +254,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             }
             g.world.add(&soap_bar);
         }
-        // R320 40% chance: small dark drip stain on the floor at bundle center.
+        // 40% chance: small dark drip stain on the floor at bundle center.
         if rnd() < 0.40 {
             // (lit, soft and ragged: an unlit disc had glowed in the dark)
             let stain_mat = lambert!({
@@ -270,7 +270,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             stain.position().set(bundle_cx + nudge_x, 0.004, bundle_cz + nudge_z);
             g.world.add(&stain);
         }
-        // R328 40% chance: RESTROOM wayfinding sign above the mirror (window sign #3).
+        // 40% chance: RESTROOM wayfinding sign above the mirror (window sign #3).
         if rnd() < 0.40 {
             let sign_mat = lambert!({ map: window_sign_textures()[3].clone(), transparent: true, side: DoubleSide });
             let restroom_sign = mesh(plane_geo!(0.22, 0.11), &sign_mat);
@@ -284,7 +284,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
             }
             g.world.add(&restroom_sign);
         }
-        // R328 25% chance: tiny toothbrush laid on the sink shelf area.
+        // 25% chance: tiny toothbrush laid on the sink shelf area.
         if rnd() < 0.25 {
             let brush_pool = toothbrush_color_by_weather(key);
             let brush_mat = lambert!({ color: pick(brush_pool) });

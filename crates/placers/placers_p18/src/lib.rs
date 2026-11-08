@@ -97,7 +97,7 @@ fn set_rot_order(o: &Obj, x: f64, y: f64, z: f64, order: EulerOrder) {
     r.order = order;
 }
 
-// R765 whole broken porcelain doll on floor (floor): 3% chance per level.
+// Whole broken porcelain doll on floor (floor): 3% chance per level.
 fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -273,9 +273,9 @@ fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bd);
 }
 
-// R766 old wooden hobby horse child's toy (floor): 3% chance per level.
+// Old wooden hobby horse child's toy (floor): 3% chance per level.
 fn place_hobby_horses(g: &mut Game, _dist: &[i32]) {
-    g.pp.hobby_horse_wheeled_positions.clear(); // R767 reset per level
+    g.pp.hobby_horse_wheeled_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -395,11 +395,11 @@ fn place_hobby_horses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hh);
     if is_wheeled {
         let p = hh.pos();
-        g.pp.hobby_horse_wheeled_positions.push(v3(p.x, 0, p.z)); // R767
+        g.pp.hobby_horse_wheeled_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R768 Victorian bellows camera on tripod (floor): 2.5% chance per level.
+// Victorian bellows camera on tripod (floor): 2.5% chance per level.
 fn place_bellows_cameras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;
@@ -574,7 +574,7 @@ fn arm_span(m: &Obj, a: &Vec3, b: &Vec3, len: f64) {
     m.scale().y = a.distance_to(b) / len;
 }
 
-// R768 wall-mounted brass sconce w/ candle (wall): 4% chance per level.
+// Wall-mounted brass sconce w/ candle (wall): 4% chance per level.
 fn place_brass_sconces(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -668,7 +668,7 @@ fn place_brass_sconces(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sc);
 }
 
-// R769 half-height wall partition zone (floor scenery): 25% chance per level.
+// Half-height wall partition zone (floor scenery): 25% chance per level.
 // Purely decorative — no collision blocking.
 fn place_half_wall_partitions(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
@@ -766,7 +766,7 @@ fn place_half_wall_partitions(g: &mut Game, _dist: &[i32]) {
     g.world.add(&part_group);
 }
 
-// R566 inspirational poster texture.
+// Inspirational poster texture.
 game::lazy_static_tex!(
     poster_texture,
     canvas_tex(256, 320, |ctx, w, h| {
@@ -837,7 +837,7 @@ fn place_inspirational_posters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&poster);
 }
 
-// R566 rubber duck: 10% chance per level.
+// Rubber duck: 10% chance per level.
 fn place_rubber_ducks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -877,11 +877,11 @@ fn place_rubber_ducks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&duck);
 }
 
-// R565 wall sink faucet: batch `t04`'s (`t04.rs`)
+// Wall sink faucet: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::place_sink_faucets;
 
-// R565 soap bar: 10% chance per level.
+// Soap bar: 10% chance per level.
 fn place_soap_bars(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -912,9 +912,9 @@ fn place_soap_bars(g: &mut Game, _dist: &[i32]) {
     g.world.add(&soap);
 }
 
-// R563 potted plant: 5% chance per level.
+// Potted plant: 5% chance per level.
 fn place_potted_plants(g: &mut Game, _dist: &[i32]) {
-    g.pp.plant_positions.clear(); // R564 reset per level
+    g.pp.plant_positions.clear(); // reset per level
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -961,12 +961,12 @@ fn place_potted_plants(g: &mut Game, _dist: &[i32]) {
     plant.position().set(px, 0, pz);
     plant.rotation().y = rnd() * PI * 2.0;
     g.world.add(&plant);
-    // R564 track for rustle audio.
+    // Track for rustle audio.
     let p = plant.pos();
     g.pp.plant_positions.push(v3(p.x, 0.15, p.z));
 }
 
-// R563 bathroom mirror: 5% chance per level.
+// Bathroom mirror: 5% chance per level.
 fn place_bathroom_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;

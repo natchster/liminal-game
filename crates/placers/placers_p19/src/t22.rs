@@ -5,7 +5,7 @@
 use crate::{open_tiles, scatter};
 use game::prelude::*;
 
-// R548 paperclip cluster: 10% chance per level. 6-14 Gem clips spilled
+// Paperclip cluster: 10% chance per level. 6-14 Gem clips spilled
 // from a box: No. 1 clips of plated steel wire (35 mm, three loops of one
 // wire), one or two pulled open into an S by a fidgeting hand, now and
 // then a jumbo; most still bright, some dulled, a few rusted through

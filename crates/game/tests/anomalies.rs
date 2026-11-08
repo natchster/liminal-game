@@ -8,8 +8,8 @@
 //! compares against the matching variant; if the two modules disagree (one
 //! real, the other a stub) the run-dependent comparisons are skipped with a note.
 //!
-//! The staff's and the shadows' bodies are no longer the reference's: since
-//! E9 (`docs/ENTITIES.md`) they are MakeHuman bodies from `bodies.bin`, a
+//! The figures' skinned bodies are not the recording's: since E9
+//! (`docs/ENTITIES.md`) the staff's is a MakeHuman body from `bodies.bin`, a
 //! skinned mesh for each part, bound to the same rig. The trees are compared
 //! without their skinned meshes (the rig's bones, its walk and everything
 //! else still are); the bodies have tests of their own
@@ -279,7 +279,7 @@ fn cmp_tree(o: &Obj, j: &Value, mats: &Value, ids: &mut Ids, w: &str) {
         ac(l.distance, &jl[2], TOL, &format!("{w}: distance"));
         ac(l.decay, &jl[3], TOL, &format!("{w}: decay"));
     }
-    // (a skinned mesh is a body: since E9 not the reference's, see the top)
+    // (a skinned mesh is a body, held by its own tests: see the top)
     let kids: Vec<Obj> = o.children().into_iter().filter(|c| !matches!(c.r().kind, Kind::Skinned { .. })).collect();
     let jc: Vec<Value> =
         j.get("c").and_then(|c| c.as_array()).map(|a| a.iter().filter(|v| v.get("bones").is_none()).cloned().collect()).unwrap_or_default();
@@ -434,7 +434,7 @@ fn level_game(rec: &Value, scp: &'static str) -> Game {
     g.tiles = layout.tiles.clone();
     g.has_layout = true;
     g.layout = Some(layout);
-    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
+    // (the cases' levels count the rooms' floors, which begin after the Building's)
     g.level_num = level + game::level::building::BUILDING_FLOORS;
     g.level_scp = Some(scp.to_string());
     let ex = arr(&rec["exit"]);

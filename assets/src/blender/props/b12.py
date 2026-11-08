@@ -17,7 +17,7 @@ def _fw(s):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0):
     """Sweep a closed 2D section [(dr, dz), ...] around the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). arc < TAU caps the ends."""
+    plane (a torus_geo! with any cross-section). arc < TAU caps the ends."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     m = len(sec)
@@ -48,7 +48,7 @@ def circ_sec(r, n=8, sx=1.0, sy=1.0, a0=0.0):
 
 
 def arc_bounds(R, r, arc, kind='other'):
-    """Bounds of THREE.TorusGeometry(R, r, .., .., arc)."""
+    """Bounds of torus_geo!(R, r, .., .., arc)."""
     xs, ys = [], []
     for i in range(721):
         u = arc * i / 720

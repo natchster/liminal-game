@@ -48,9 +48,9 @@
 * **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
   `cargo xtask hook <event>` (through `.claude/hooks/xtask-hook.sh`, which
   calls the built binary directly so edits never wait on cargo's build lock):
-  * before an edit: the HTML/JS version in the parent folder and the recorded
-    fixtures, reference levels and goldens are refused — they change only
-    through REGEN / rerecord / accept;
+  * before an edit: anything outside this repository, and the recorded
+    fixtures, reference levels and goldens, are refused — the fixtures change
+    only through REGEN / rerecord / accept;
   * after an edit: rustfmt on the edited `.rs` file;
   * on stop: `cargo xtask check --fast` when code differs from the last
     passing check; a failure blocks the stop with its `ERROR` lines, at most
@@ -210,11 +210,14 @@ Levels must be a pure function of `(run_seed, level)`:
   meant to alter level generation, rebuild those levels with
   `backrooms --dump-level DIR --seed S --levels …` and review the
   difference before replacing them.
-* The core props' fixtures (`core_props_head.json`, `core_props_builders.json`,
-  first recorded from the HTML version) re-record from the current code with
-  each case's inputs kept, through the steps their tests take:
-  `cargo test --release -p game --test core_props_head -- --ignored rerecord`.
-  On unchanged code it reproduces every value the tests read.
+* The core props' fixtures (`core_props_head.json`, `core_props_builders.json`
+  for the first half and the builders, `core_props_tail.json` for the second
+  half: its hand-off state, the builder calls, the world it builds and a
+  scripted session) re-record from the current code with each case's inputs
+  kept, through the steps their tests take:
+  `cargo test --release -p game --test core_props_head -- --ignored rerecord`
+  and `cargo test --release -p game --test core_props_tail -- --ignored rerecord`.
+  On unchanged code each reproduces every value its tests read.
 * The level-generation fixtures re-record themselves from the current code
   (keeping each case's seeds and query points); run the ones a deliberate
   change affects, then review the diff:
@@ -239,7 +242,10 @@ Levels must be a pure function of `(run_seed, level)`:
   the game on no platform crate; level-build code takes no clock or foreign
   randomness; every themed placer has a theme; every creature has goldens
   and behaviour tests; no source file passes 2,400 lines; paths named in the
-  docs exist; the fast check skips only tests that exist.
+  docs exist; the fast check skips only tests that exist; no file names the
+  earlier version the game grew from, nor carries its development rounds'
+  tags (`nothing_names_the_earlier_version`, its few citations listed with
+  their reasons).
 * `crates/game/tests/zone_purpose.rs` checks the zone purposes and regions
   as properties (one purpose per area, themed placers only see welcoming
   floor, regions never cut through a room, determinism).
@@ -305,10 +311,13 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   from MakeHuman's CC0 base mesh and targets, fetched once and checked by
   their SHA-1 (`assets/src/creatures/sources.json`). The build repeats byte
   for byte. The game builds a body with `entities::body::build_body`.
-* The old creatures (`creature_meshes.bin`) still rebuild only in the HTML
-  version (they need its rig dumps); `cargo xtask assets import-js` converts
-  its generated modules (byte for byte). They go as each creature is rebuilt
-  on the new bodies (`docs/ENTITIES.md`).
+* The old creatures' meshes (`creature_meshes.bin`; the Borrowed House's
+  shadows still wear their body, `shBody`, and the Stairwell's face is its
+  `stairFace`) are kept as stored: their
+  Blender scripts (`assets/src/blender/creatures.py`, `skinned.py`,
+  `skin_*.py`) build over rest-pose rig dumps that nothing here writes, so
+  no command rebuilds the file. It goes when the last part still used moves
+  to a new body (`docs/ENTITIES.md`).
 * `crates/game/assets/MANIFEST.json` records each file's sources, generator,
   licence and fingerprint; `tests/structure.rs` fails on a file whose
   fingerprint changed without its entry, a licence or generator not on the

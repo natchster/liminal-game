@@ -62,7 +62,7 @@ def stack(pts, prof, ref=None):
 
 def ring_sec(R, sec, seg=32, arc=TAU, a0=0.0):
     """Sweep a closed section [(dr, dz), ...] around Z in the XY plane (a
-    TorusGeometry with any cross-section)."""
+    torus_geo! with any cross-section)."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     m = len(sec)

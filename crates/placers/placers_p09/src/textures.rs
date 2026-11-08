@@ -1,7 +1,7 @@
 //! Canvas textures shared by this crate's placers (built lazily on the native RNG).
 use game::prelude::*;
 
-// R690 framed graduation photo w/ tassel (wall). Formal portrait of graduate
+// Framed graduation photo w/ tassel (wall). Formal portrait of graduate
 // in cap+gown.
 game::lazy_static_tex!(
     graduation_photo_texture,
@@ -98,7 +98,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R693 crumpled letter w/ opening greeting: handwritten letter with
+// Crumpled letter w/ opening greeting: handwritten letter with
 // "Dear X..." visible + signature.
 game::lazy_static_tex!(
     letter_texture,
@@ -183,7 +183,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R694 open diary page spread: ruled pages, a dated entry, and an entry
+// Open diary page spread: ruled pages, a dated entry, and an entry
 // interrupted mid-line with a trailing pen tail.
 game::lazy_static_tex!(
     diary_page_texture,
@@ -214,7 +214,7 @@ game::lazy_static_tex!(
         ctx.set_text_align("right");
         let dates = ["Oct. 14, 1987", "Mar. 22, 1974", "Jul. 4, 1962", "Dec. 18, 1993"];
         ctx.fill_text(dates[(rnd() * dates.len() as f64).floor() as usize], w - 12.0, 16);
-        // Left column entry — cursive strokes (reused R693 pattern).
+        // Left column entry — cursive strokes (the same pattern, reused).
         ctx.set_stroke_style("rgba(30,20,10,0.85)");
         ctx.set_line_width(1.1);
         for row in 0..12 {

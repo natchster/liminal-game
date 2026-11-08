@@ -345,8 +345,8 @@ static inline float detH(float3 p, float3 detNrm, float scale, texture2d<float> 
 
 // a window's view of an outside that is not there (Patch::WindowView): a
 // photograph laid on a ground disc and a dome round the point it was taken
-// from, just outside the glass (three.js's GroundedSkybox, traced per
-// pixel): the near ground moves with your head, the far land does not. The
+// from, just outside the glass (a ground-projected sky, docs/SOURCES.md 13,
+// traced per pixel): the near ground moves with your head, the far land does not. The
 // map holds half the turn round the way ahead (u: -90..90 deg), from 55 deg
 // above the horizon (v = 0) to 80 deg below it (v = 1). A lamp outside
 // pools its light on the ground and haloes in the fog.

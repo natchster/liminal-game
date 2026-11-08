@@ -173,7 +173,7 @@ fn loop_build_matches_reference() {
             assert!(!o.r().frustum_culled);
         }
         // (the seated figure's body is E9's, `bodies.bin` "seated", not the
-        // reference's: its geometry is held by `tests/anomaly_bodies.rs`)
+        // recording's: its geometry is held by `tests/anomaly_bodies.rs`)
         if name != "loop:figure" {
             assert_geo(&o.geo(), j.get("geo"), name);
         }

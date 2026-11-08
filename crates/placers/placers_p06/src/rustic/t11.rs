@@ -15,7 +15,7 @@ const TROPHY_ANTLERS: [f64; 3] = [0.0, 0.052, 0.046];
 /// (`ROE_BETA`, 52 degrees)
 const TROPHY_ANTLER_TURN: f64 = 0.663_225;
 
-// R653 mounted deer antler pair: 3% chance per level. A roe buck's
+// Mounted deer antler pair: 3% chance per level. A roe buck's
 // antlers, a six-pointer, on the skull plate they grew from (the frontal
 // bones sawn through the orbits, boiled and bleached), screwed from behind
 // to a carved oak shield (15 x 22 cm) and hung on the wall: the burrs and
@@ -49,7 +49,7 @@ pub fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mount);
 }
 
-// R654 mounted trophy fish: 3% chance per level. A 30 cm trout as a
+// Mounted trophy fish: 3% chance per level. A 30 cm trout as a
 // taxidermist mounted one for fifty years: the skin over a carved body, its
 // show side out, its back flat to a walnut-stained oval board with an ogee
 // edge, the tail swept out off it, the fins spread, a glass eye; painted

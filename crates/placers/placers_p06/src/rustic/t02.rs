@@ -28,7 +28,7 @@ static FACE: [(f64, f64); 10] = [
     (0.0160, 0.0122),
 ];
 
-// R660 framed vintage map: 3% chance per level.
+// Framed vintage map: 3% chance per level.
 pub fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;

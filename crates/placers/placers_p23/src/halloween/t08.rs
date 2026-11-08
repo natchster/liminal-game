@@ -9,12 +9,12 @@ use crate::{open_tiles, pick_tile, pick_u32};
 use game::prelude::*;
 use t08_kit::*;
 
-// R464 small ghost sheet: 5% chance per level. A cheesecloth ghost (25 cm),
+// Small ghost sheet: 5% chance per level. A cheesecloth ghost (25 cm),
 // the tabletop kind: cheesecloth stiffened over a ball on a bottle, a string
 // at its neck, the form taken out; two black felt eyes glued on. The cloth
 // gone yellow-grey with dust, a glue run dried in it, a tear or two.
 pub fn place_small_ghost_sheets(g: &mut Game, _dist: &[i32]) {
-    g.pp.ghost_positions = vec![]; // R485 reset per level
+    g.pp.ghost_positions = vec![]; // reset per level
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -39,7 +39,7 @@ pub fn place_small_ghost_sheets(g: &mut Game, _dist: &[i32]) {
     ghost.position().set(px, 0, pz);
     ghost.rotation().y = turn;
     g.world.add(&ghost);
-    // R485 track for whisper audio.
+    // Track for whisper audio.
     let gp = ghost.pos();
     g.pp.ghost_positions.push(v3(gp.x, 0.20, gp.z));
     // the old glow's pulse phase (no light: a cloth does not shine)
@@ -77,7 +77,7 @@ fn cheesecloth_tex(salt: u32) -> Tex {
     })
 }
 
-// R464 small black cat figurine: 6% chance per level. A cast resin black
+// Small black cat figurine: 6% chance per level. A cast resin black
 // cat (15 cm), sitting, its tail round its feet, glazed black, its eyes
 // painted yellow-green with a black slit; the glaze dusty, chipped to the
 // grey resin at its ears and paws.
@@ -126,7 +126,7 @@ fn glaze_tex(salt: u32) -> Tex {
     })
 }
 
-// R463 small broom: 8% chance per level. A decorative witch's besom
+// Small broom: 8% chance per level. A decorative witch's besom
 // (90 cm): a crooked hazel stick, its bark on, birch twigs bound round its
 // end with two wraps of jute twine, lying on the floor; the twine dusty,
 // the twigs dry and brittle, some broken.
@@ -186,12 +186,12 @@ fn bark_tex(salt: u32) -> Tex {
     })
 }
 
-// R462 hanging bat: 5% chance per level. A hanging Halloween bat (48 cm
+// Hanging bat: 5% chance per level. A hanging Halloween bat (48 cm
 // across its wings): a flocked foam body on a plastic skeleton, its wings
 // plastic over mesh between moulded ribs, spread as in flight, hung level by
 // a cord taped to the ceiling; it turns and sways a little on its cord.
 pub fn place_hanging_bats(g: &mut Game, _dist: &[i32]) {
-    g.pp.bat_positions = vec![]; // R482 reset per level
+    g.pp.bat_positions = vec![]; // reset per level
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -227,12 +227,12 @@ pub fn place_hanging_bats(g: &mut Game, _dist: &[i32]) {
         });
     }
     g.world.add(&bat);
-    // R482 track for rare squeak audio.
+    // Track for rare squeak audio.
     let bp = bat.pos();
     g.pp.bat_positions.push(v3(bp.x, bat_y, bp.z));
 }
 
-// R461 small skeleton hand: 5% chance per level. A life-size moulded plastic
+// Small skeleton hand: 5% chance per level. A life-size moulded plastic
 // skeleton hand (18 cm), the shop kind, lying palm down, its fingers a
 // little curled; the plastic gone ivory, grimed in its joints, dusty.
 pub fn place_small_skeleton_hands(g: &mut Game, _dist: &[i32]) {
@@ -289,7 +289,7 @@ fn caul_floor(r: f64) -> f64 {
     0.052
 }
 
-// R461 small cauldron: 6% chance per level. A black plastic cauldron
+// Small cauldron: 6% chance per level. A black plastic cauldron
 // (15 cm), the candy-bowl kind: a moulded pot-bellied bowl on three stubby
 // feet, a rib round its shoulder, a plastic bail. Half of them hold stale
 // water (a drip from above: its plop is the old bubble's sound), tinted by
@@ -297,7 +297,7 @@ fn caul_floor(r: f64) -> f64 {
 // the rest are dry, dust and two sweet wrappers in the bottom. No glow:
 // nothing in it is alight.
 pub fn place_small_cauldrons(g: &mut Game, _dist: &[i32]) {
-    g.pp.cauldron_positions = vec![]; // R479 reset per level
+    g.pp.cauldron_positions = vec![]; // reset per level
     if rnd() < 0.94 {
         return;
     } // 6% chance
@@ -356,7 +356,7 @@ pub fn place_small_cauldrons(g: &mut Game, _dist: &[i32]) {
     cauldron.position().set(px, 0, pz);
     cauldron.rotation().y = turn;
     g.world.add(&cauldron);
-    // R479 the water's plop (a drip into it), where it stands
+    // The water's plop (a drip into it), where it stands
     if is_glowing {
         let cp = cauldron.pos();
         g.pp.cauldron_positions.push(v3(cp.x, 0.05, cp.z));
@@ -447,7 +447,7 @@ fn pot_dust_tex(salt: u32) -> Tex {
 /// The tea light in the pumpkin (batch `t08`): its wick's tip
 const PK_WICK: (f64, f64, f64) = (0.0032, 0.0095 + 0.0105, 0.004);
 
-// R460 small pumpkin: 5% chance per level. A small carving pumpkin (19 cm)
+// Small pumpkin: 5% chance per level. A small carving pumpkin (19 cm)
 // carved into a jack-o'-lantern and left: gone soft and slumped, its top
 // sunk, the lid fallen in askew, its skin dull, rotting brown in patches
 // and furred with mould, the cut flesh dried brown. Six in ten still have a

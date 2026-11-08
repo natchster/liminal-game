@@ -63,9 +63,9 @@ fn mount_on_wall(g: &Game, o: &Obj, x: i32, z: i32, dx: i32, dz: i32, inset: f64
     o.position().set(px, 0, pz);
 }
 
-// R716 tall floor lamp w/ shade + optional PointLight (floor): 3% chance per level.
+// Tall floor lamp w/ shade + optional PointLight (floor): 3% chance per level.
 fn place_tall_floor_lamps(g: &mut Game, _dist: &[i32]) {
-    g.pp.tall_lamp_positions = vec![]; // R718 reset per level
+    g.pp.tall_lamp_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -135,16 +135,16 @@ fn place_tall_floor_lamps(g: &mut Game, _dist: &[i32]) {
     fl.position().set(px, 0, pz);
     fl.rotation().y = rnd() * PI * 2.0;
     g.world.add(&fl);
-    // R718 register on-lamp positions for filament buzz audio.
+    // Register on-lamp positions for filament buzz audio.
     if lamp_is_on {
         let p = fl.pos();
         g.pp.tall_lamp_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R716 rocking chair w/ optional gentle rocking animator (floor): 3% chance per level.
+// Rocking chair w/ optional gentle rocking animator (floor): 3% chance per level.
 fn place_gentle_rockers(g: &mut Game, _dist: &[i32]) {
-    g.pp.rocking_chair_positions = vec![]; // R718 reset per level
+    g.pp.rocking_chair_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -245,14 +245,14 @@ fn place_gentle_rockers(g: &mut Game, _dist: &[i32]) {
     rock_group.position().set(px, 0, pz);
     rock_group.rotation().y = rnd() * PI * 2.0;
     g.world.add(&rock_group);
-    // R718 register rocking chair positions for wood-creak audio.
+    // Register rocking chair positions for wood-creak audio.
     if is_rocking {
         let p = rock_group.pos();
         g.pp.rocking_chair_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R717 wall-mounted bookshelf w/ books (wall): 2.5% chance per level.
+// Wall-mounted bookshelf w/ books (wall): 2.5% chance per level.
 fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;
@@ -322,7 +322,7 @@ fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
                 bs.add(&spine_line);
                 spine_line_ref = Some(spine_line);
             }
-            // R726 subtle tilt animator on leaning books — 40% chance per leaning book.
+            // Subtle tilt animator on leaning books — 40% chance per leaning book.
             if is_leaning && rnd() < 0.4 {
                 let tilt_phase = rnd() * PI * 2.0;
                 let book2 = book.clone();
@@ -376,7 +376,7 @@ fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bs);
 }
 
-// R719 hall side table w/ key tray + mail stack (floor near wall): 3% chance per level.
+// Hall side table w/ key tray + mail stack (floor near wall): 3% chance per level.
 fn place_hall_side_tables(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -480,7 +480,7 @@ fn place_hall_side_tables(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hst);
 }
 
-// R719 framed modernist abstract painting (wall).
+// Framed modernist abstract painting (wall).
 game::lazy_static_tex!(
     abstract_modernist_texture,
     canvas_tex(220, 220, |ctx, w, h| {
@@ -600,7 +600,7 @@ fn place_abstract_paintings(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ap);
 }
 
-// R720 kitchen calendar w/ marked dates (wall).
+// Kitchen calendar w/ marked dates (wall).
 game::lazy_static_tex!(
     kitchen_calendar_texture,
     canvas_tex(220, 260, |ctx, w, h| {
@@ -702,7 +702,7 @@ game::lazy_static_tex!(
 );
 
 fn place_kitchen_calendars(g: &mut Game, _dist: &[i32]) {
-    g.pp.kitchen_calendar_positions = vec![]; // R735 reset per level
+    g.pp.kitchen_calendar_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -735,12 +735,12 @@ fn place_kitchen_calendars(g: &mut Game, _dist: &[i32]) {
     kc.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&kc);
     let p = kc.pos();
-    g.pp.kitchen_calendar_positions.push(v3(p.x, 0, p.z)); // R735
+    g.pp.kitchen_calendar_positions.push(v3(p.x, 0, p.z));
 }
 
-// R720 pet bowls — dog food + water bowl pair (floor): 4% chance per level.
+// Pet bowls — dog food + water bowl pair (floor): 4% chance per level.
 fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
-    g.pp.pet_bowl_positions = vec![]; // R723 reset per level
+    g.pp.pet_bowl_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -832,14 +832,14 @@ fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
     pb.position().set(px, 0, pz);
     pb.rotation().y = rnd() * PI * 2.0;
     g.world.add(&pb);
-    // R723 register position only if water bowl variant has water.
+    // Register position only if water bowl variant has water.
     if has_water {
         let p = pb.pos();
         g.pp.pet_bowl_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R722 framed pet portrait (wall).
+// Framed pet portrait (wall).
 game::lazy_static_tex!(
     pet_portrait_texture,
     canvas_tex(200, 220, |ctx, w, h| {
@@ -1043,7 +1043,7 @@ fn place_pet_portraits(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pp);
 }
 
-// R724 dog leash coiled + hanging harness (floor): 5% chance per level.
+// Dog leash coiled + hanging harness (floor): 5% chance per level.
 fn place_dog_leashes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -1125,9 +1125,9 @@ fn place_dog_leashes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dl);
 }
 
-// R724 small ornate music box (floor): 4% chance per level.
+// Small ornate music box (floor): 4% chance per level.
 fn place_ornate_music_boxes(g: &mut Game, _dist: &[i32]) {
-    g.pp.music_box_positions = vec![]; // R725 reset per level
+    g.pp.music_box_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -1237,14 +1237,14 @@ fn place_ornate_music_boxes(g: &mut Game, _dist: &[i32]) {
     mb.position().set(px, 0, pz);
     mb.rotation().y = rnd() * PI * 2.0;
     g.world.add(&mb);
-    // R725 register position only for playing (spinning) music boxes.
+    // Register position only for playing (spinning) music boxes.
     if is_playing {
         let p = mb.pos();
         g.pp.music_box_positions.push(v3(p.x, 0, p.z));
     }
 }
 
-// R725 framed vintage travel poster (wall).
+// Framed vintage travel poster (wall).
 game::lazy_static_tex!(
     travel_poster_texture,
     canvas_tex(180, 260, |ctx, w, h| {

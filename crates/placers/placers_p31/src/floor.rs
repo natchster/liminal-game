@@ -2,7 +2,7 @@
 use crate::{open_tiles, pick, shuffle, trash_bag_color_by_weather};
 use game::prelude::*;
 
-// R265 clipboards: 0-2 dropped clipboards per level (30% chance).
+// Clipboards: 0-2 dropped clipboards per level (30% chance).
 pub fn place_clipboards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.70 {
         return;
@@ -36,7 +36,7 @@ pub fn place_clipboards(g: &mut Game, _dist: &[i32]) {
         clipboard.position().z = g.wz(z) + oz;
         clipboard.rotation().y = rnd() * PI * 2.0;
         g.world.add(&clipboard);
-        // R266 30% chance a pen is dropped next to the clipboard.
+        // 30% chance a pen is dropped next to the clipboard.
         if rnd() < 0.30 {
             let pen_mat = lambert!({ color: 0x1a1a1a });
             let pen = mesh(pg("Clipboards__pen", cyl_geo!(0.004, 0.004, 0.11, 6)), &pen_mat);
@@ -53,9 +53,9 @@ pub fn place_clipboards(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R263 cardboard boxes: 0-3 boxes per level (30% chance).
+// Cardboard boxes: 0-3 boxes per level (30% chance).
 pub fn place_cardboard_boxes(g: &mut Game, _dist: &[i32]) {
-    g.pp.cardboard_box_positions.clear(); // R287 reset per level
+    g.pp.cardboard_box_positions.clear(); // reset per level
     if rnd() < 0.70 {
         return;
     } // 30% chance
@@ -93,14 +93,14 @@ pub fn place_cardboard_boxes(g: &mut Game, _dist: &[i32]) {
         bx.position().z = g.wz(z) + oz;
         bx.rotation().y = rnd() * PI * 2.0;
         g.world.add(&bx);
-        // R287 track for shifting-audio events.
+        // Track for shifting-audio events.
         let p = bx.pos();
         g.pp.cardboard_box_positions.push(v3(p.x, sy / 2.0, p.z));
         i += 1;
     }
 }
 
-// R261 coffee cups: 0-3 small paper cups per level (30% chance).
+// Coffee cups: 0-3 small paper cups per level (30% chance).
 pub fn place_coffee_cups(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.70 {
         return;
@@ -137,7 +137,7 @@ pub fn place_coffee_cups(g: &mut Game, _dist: &[i32]) {
         cup.position().z = g.wz(z) + oz;
         cup.rotation().y = rnd() * PI * 2.0;
         g.world.add(&cup);
-        // R262 coffee spill: knocked-over cups 60% chance spill brown stain.
+        // Coffee spill: knocked-over cups 60% chance spill brown stain.
         if knocked_over && rnd() < 0.60 {
             let r = 0.10 + rnd() * 0.06;
             let spill_geo = circle_geo!(r, 8);
@@ -158,7 +158,7 @@ pub fn place_coffee_cups(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R257 trash cans: 0-1 per level (25% chance): a round steel office
+// Trash cans: 0-1 per level (25% chance): a round steel office
 // wastebasket, its black liner turned over its rim, standing full of
 // crumpled paper with a piece or two by it, or knocked over with the paper
 // spilled out of its mouth; sometimes a tied bag beside it (Blender batch
@@ -330,9 +330,9 @@ pub fn place_trash_cans(g: &mut Game, _dist: &[i32]) {
     can_group.position().set(cx, 0, cz);
     can_group.rotation().y = rnd() * PI * 2.0;
     g.world.add(&can_group);
-    // R296 30% chance a tied bag beside it
+    // 30% chance a tied bag beside it
     if rnd() < 0.30 {
-        // R306 per-weather bag film
+        // Per-weather bag film
         let bag_color = trash_bag_color_by_weather(g.weather_key());
         let bag_mat = phong!({ color: bag_color, specular: 0x4a4a4a, shininess: 24 });
         let bag = group();
@@ -353,9 +353,9 @@ pub fn place_trash_cans(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R257 motion sensors: 30% chance per level, 1-2 ceiling-mounted domes with LED.
+// Motion sensors: 30% chance per level, 1-2 ceiling-mounted domes with LED.
 pub fn place_motion_sensors(g: &mut Game, _dist: &[i32]) {
-    g.pp.motion_sensor_positions.clear(); // R273 reset per level
+    g.pp.motion_sensor_positions.clear(); // reset per level
     if rnd() < 0.70 {
         return;
     } // 30% chance
@@ -363,7 +363,7 @@ pub fn place_motion_sensors(g: &mut Game, _dist: &[i32]) {
     let mut open_tiles = open_tiles(g);
     shuffle(&mut open_tiles);
     let dome_mat = lambert!({ color: 0xe0d8c8 });
-    // Per-LED material created inline for R258 blink animation.
+    // Per-LED material created inline for the blink animation.
     let mut i = 0;
     while i < count && i < open_tiles.len() {
         let (x, z) = open_tiles[i];
@@ -377,7 +377,7 @@ pub fn place_motion_sensors(g: &mut Game, _dist: &[i32]) {
         dome.position().y = -0.01;
         dome.rotation().x = PI; // flip so it points down
         sensor.add(&dome);
-        // R258/R259 blinking LED, colour per weather.
+        // Blinking LED, colour per weather.
         let led_color = led_color_by_weather(g.weather_key());
         let led_mat_own = basic_mat!({ color: led_color, transparent: true, opacity: 1 });
         let led = mesh(box_geo!(0.008, 0.008, 0.008), &led_mat_own);
@@ -392,14 +392,14 @@ pub fn place_motion_sensors(g: &mut Game, _dist: &[i32]) {
         let oz = (rnd() - 0.5) * 1.4;
         sensor.position().set(g.wx(x) + ox, WALL_H - 0.01, g.wz(z) + oz); // base top on the ceiling
         g.world.add(&sensor);
-        // R273 track for proximity-click audio events.
+        // Track for proximity-click audio events.
         let p = sensor.pos();
         g.pp.motion_sensor_positions.push(v3(p.x, p.y, p.z));
         i += 1;
     }
 }
 
-// R254 ceiling water stains: 0-3 a level, where water came through the
+// Ceiling water stains: 0-3 a level, where water came through the
 // ceiling and dried (`assets/src/blender/props/r07.notes.md`). On a suspended
 // ceiling, a ring stain on the tile it dripped onto: brown-yellow tide lines,
 // one for each time it was wet and dried, sharp and wavy round a paler middle;
@@ -702,7 +702,7 @@ pub fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R252 overturned chair: very rare — a simple wooden chair lying on its side.
+// Overturned chair: very rare — a simple wooden chair lying on its side.
 pub fn place_overturned_chair(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
@@ -738,6 +738,6 @@ pub fn place_overturned_chair(g: &mut Game, _dist: &[i32]) {
     g.world.add(&chair);
 }
 
-// R251 cigarette butts: batch `t22`'s (`floor/t22.rs`)
+// Cigarette butts: batch `t22`'s (`floor/t22.rs`)
 mod t22;
 pub use t22::place_cigarette_butts;

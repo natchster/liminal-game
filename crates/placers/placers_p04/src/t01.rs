@@ -29,7 +29,7 @@ static WOOD_FACE: [(f64, f64); 9] = [
 /// The snapshots a desk keeps (portrait prints)
 const PHOTOS: [&str; 3] = ["mother_children", "couple_reading", "garden_family"];
 
-// R612 small framed photo (personal): 4% chance per level.
+// Small framed photo (personal): 4% chance per level.
 pub(crate) fn place_framed_photos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;

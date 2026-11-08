@@ -433,7 +433,7 @@ fn cup_tex() -> Tex {
     })
 }
 
-// R593 acorn/nut cluster: 6% chance per level. Acorns of the pedunculate
+// Acorn/nut cluster: 6% chance per level. Acorns of the pedunculate
 // oak (Blender batch `t17`): fallen bare from their cups or still in them,
 // now and then an empty cup; ripe brown and glossy, old and dark, or dried
 // pale; one in three of the bare holed by a weevil.
@@ -595,7 +595,7 @@ fn husk_in_tex() -> Tex {
     })
 }
 
-// R602 chestnut cluster: 5% chance per level. Horse chestnuts (Blender batch
+// Chestnut cluster: 5% chance per level. Horse chestnuts (Blender batch
 // `t17`): conkers fallen bare, and others still sitting in their husks split
 // open into three valves, the husks dried brown; fresh and glossy, dried
 // dull or old and wrinkled.
@@ -677,7 +677,7 @@ fn cone_tex(apo: bool) -> Tex {
     })
 }
 
-// R594 pine cone: 6% chance per level. A Scots pine's cone, open (Blender
+// Pine cone: 6% chance per level. A Scots pine's cone, open (Blender
 // batch `t17`): its woody scales spread from the axis, their rhombic ends
 // keeled with the small umbo; weathered grey-brown, the scales' hidden faces
 // darker.
@@ -764,7 +764,7 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
     })
 }
 
-// R598 pine needle cluster: 7% chance per level. Needles a Scots pine shed
+// Pine needle cluster: 7% chance per level. Needles a Scots pine shed
 // (Blender batch `t17`): pairs still in their papery sheaths and single
 // needles broken from them, rust brown, grey-brown or dark with damp, on a
 // drift of their own broken bits and dust.
@@ -942,7 +942,7 @@ fn fern_tex(state: usize, back: bool) -> Tex {
     })
 }
 
-// R596 fern frond: 6% chance per level. A frond of common polypody broken
+// Fern frond: 6% chance per level. A frond of common polypody broken
 // off and dropped (Blender batch `t17`): its blade cut nearly to the rachis
 // into narrow blunt segments, lying on its face or its back (the sori in
 // rows), green browning from its tips, withered or dead.
@@ -987,7 +987,7 @@ pub(super) fn place_ferns(g: &mut Game, _dist: &[i32]) {
     fern.position().set(px, 0, pz);
     fern.rotation().y = rnd() * PI * 2.0;
     g.world.add(&fern);
-    // R608 a draught stirs it (the old sway's rate and its first leaflet's
+    // A draught stirs it (the old sway's rate and its first leaflet's
     // phase): it turns a hair on the floor about its stalk's end
     let phase = ph[2] * PI * 2.0;
     g.animate(move |_g, _dt, t| {

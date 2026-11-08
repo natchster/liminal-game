@@ -1,4 +1,4 @@
-//! Party-remnant and children's-playtime props (R422-R430).
+//! Party-remnant and children's-playtime props.
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
@@ -6,7 +6,7 @@ use game::prelude::*;
 mod t16;
 pub use t16::place_skipping_ropes;
 
-/// R430 small cupcake wrapper: 10% chance per level. Empty pleated
+/// Small cupcake wrapper: 10% chance per level. Empty pleated
 /// paper wrapper ("who ate the cupcake?").
 pub fn place_small_cupcake_wrappers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -38,7 +38,7 @@ pub fn place_small_cupcake_wrappers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wrap);
 }
 
-/// R429 small paper napkin: 12% chance per level. A two-ply luncheon
+/// Small paper napkin: 12% chance per level. A two-ply luncheon
 /// napkin left from a party (Blender batch r15: 33 cm, folded in four): with
 /// three of the old crumples dropped half open, with four scrunched into a
 /// wad; its embossed border and printed spots, a smear of cake, dust. The
@@ -77,11 +77,11 @@ pub fn place_small_paper_napkins(g: &mut Game, _dist: &[i32]) {
     g.world.add(&napkin);
 }
 
-// R428 small paper plate: batch `t13`'s (`party/t13.rs`)
+// Small paper plate: batch `t13`'s (`party/t13.rs`)
 mod t13;
 pub use t13::place_small_paper_plates;
 
-/// R428 small birthday candle: 8% chance per level. Wax cylinder +
+/// Small birthday candle: 8% chance per level. Wax cylinder +
 /// wick + optional tiny flame with faint point light. Party-remnant.
 pub fn place_small_birthday_candles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -114,12 +114,12 @@ pub fn place_small_birthday_candles(g: &mut Game, _dist: &[i32]) {
         let flame_light = point_light!(0xffb060, 0.35, 0.9, 2);
         flame_light.position().y = 0.075;
         candle.add(&flame_light);
-        // R483 warm halo sphere for readable bloom.
+        // Warm halo sphere for readable bloom.
         let halo_mat = basic_mat!({ color: 0xffb060, transparent: true, opacity: 0.25, depthWrite: false });
         let halo = mesh(sphere_geo!(0.020, 6, 5), &halo_mat);
         halo.position().y = 0.076;
         candle.add(&halo);
-        // R429 subtle flicker.
+        // Subtle flicker.
         let flicker_phase = rnd() * PI * 2.0;
         let flicker_rate = 6.0 + rnd() * 4.0;
         g.animate(move |_g, _dt, t| {
@@ -141,7 +141,7 @@ pub fn place_small_birthday_candles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&candle);
 }
 
-/// R426 confetti scatter: 10% chance per level. 10-15 tiny colored
+/// Confetti scatter: 10% chance per level. 10-15 tiny colored
 /// planes scattered on floor in ~0.35 m radius circle.
 pub fn place_confetti_scatters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -169,12 +169,12 @@ pub fn place_confetti_scatters(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R426 birthday party hat: batch `t12`'s (`t12.rs`)
+/// Birthday party hat: batch `t12`'s (`t12.rs`)
 #[path = "t12.rs"]
 mod t12;
 pub use t12::place_birthday_hats;
 
-/// R425 curled gift ribbon: 10% chance per level. Curling ribbon cut from
+/// Curled gift ribbon: 10% chance per level. Curling ribbon cut from
 /// round a present (Blender batch r14b: 3/16 in polypropylene, crimped and
 /// glossy): the knot with four tails rolled in ringlets, or a single cut
 /// length curled at its ends; faded, trodden flat in places.
@@ -207,7 +207,7 @@ pub fn place_small_ribbons(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ribbon);
 }
 
-/// R423 small balloon: 10% chance per level. Colored sphere floating
+/// Small balloon: 10% chance per level. Colored sphere floating
 /// low with string extending down to floor. Children's party remnant.
 pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -222,7 +222,7 @@ pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
     let balloon_mat = lambert!({ color: pick(&balloon_colors) });
     let string_mat = lambert!({ color: 0xd8d8d8 });
     let balloon = group();
-    // R425 25% chance: fully deflated variant — flat rubber puddle.
+    // 25% chance: fully deflated variant — flat rubber puddle.
     let is_deflated = rnd() < 0.25;
     let body = if is_deflated {
         mesh(pg("SmallBalloons__skin", circle_geo!(0.08 + rnd() * 0.04, 10)), &balloon_mat)
@@ -254,7 +254,7 @@ pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
     }
     balloon.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);
     g.world.add(&balloon);
-    // R424 30% chance: slow sway animator (only on inflated variant).
+    // 30% chance: slow sway animator (only on inflated variant).
     if !is_deflated && rnd() < 0.30 {
         let sway_phase = rnd() * PI * 2.0;
         let sway_period = 8.0 + rnd() * 6.0;
@@ -271,7 +271,7 @@ pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
             b.rotation().z = wobble * 0.05;
         });
     }
-    // R424 25% chance: 1-2 sibling balloons at different heights.
+    // 25% chance: 1-2 sibling balloons at different heights.
     if rnd() < 0.25 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         for _ in 0..sib_count {
@@ -300,7 +300,7 @@ pub fn place_small_balloons(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R423 small tambourine: 8% chance per level. Torus rim + membrane
+/// Small tambourine: 8% chance per level. Torus rim + membrane
 /// surface + tiny jingle dots around rim.
 pub fn place_small_tambourines(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -337,7 +337,7 @@ pub fn place_small_tambourines(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tamb);
 }
 
-// R422 children's book texture — colorful cartoon cover simplification
+// Children's book texture — colorful cartoon cover simplification
 // (bright bg + big geometric shape center).
 game::lazy_static_tex!(
     child_book_texture,
@@ -387,7 +387,7 @@ game::lazy_static_tex!(
     })
 );
 
-/// Children's book (R422): 10% chance per level.
+/// Children's book: 10% chance per level.
 pub fn place_childrens_books(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -400,7 +400,7 @@ pub fn place_childrens_books(g: &mut Game, _dist: &[i32]) {
     let cover_mat = lambert!({ map: child_book_texture(), side: DoubleSide });
     let pages_mat = lambert!({ color: 0xd8ccb0 });
     let cbook = group();
-    // Slightly smaller than R380 adult book (10 × 14 cm).
+    // Slightly smaller than the adult book (10 × 14 cm).
     let cover = mesh(box_geo!(0.10, 0.005, 0.14), &cover_mat);
     cover.position().y = 0.020;
     cbook.add(&cover);

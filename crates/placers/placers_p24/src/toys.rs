@@ -10,7 +10,7 @@ pub use t15::{place_small_princess_wands, place_small_toy_dinos, place_small_toy
 mod t20;
 pub use t20::place_small_music_boxes;
 
-// R457 small toy robot: 6% chance per level. Blocky humanoid
+// Small toy robot: 6% chance per level. Blocky humanoid
 // robot with head + body + limbs + antenna. Child-toy family.
 pub fn place_small_toy_robots(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -74,7 +74,7 @@ pub fn place_small_toy_robots(g: &mut Game, _dist: &[i32]) {
     g.world.add(&robot);
 }
 
-// R456 small toy phone: 8% chance per level. Toy phone base +
+// Small toy phone: 8% chance per level. Toy phone base +
 // handset with cord. Child-toy family.
 pub fn place_small_toy_phones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -124,7 +124,7 @@ pub fn place_small_toy_phones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&phone);
 }
 
-// R455 small piggy bank: 6% chance per level. Pink piggy bank
+// Small piggy bank: 6% chance per level. Pink piggy bank
 // body + 4 legs + snout + ears + coin slot. Child-toy family.
 pub fn place_small_piggy_banks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -190,7 +190,7 @@ pub fn place_small_piggy_banks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pig);
 }
 
-// R455 small magnifying glass: 8% chance per level. Handle +
+// Small magnifying glass: 8% chance per level. Handle +
 // lens ring + tinted lens disc. Detective/kid family.
 pub fn place_small_magnifying_glasses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -228,7 +228,7 @@ pub fn place_small_magnifying_glasses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&glass);
 }
 
-// R454 small metal jacks: 8% chance per level. 4-8 six-point
+// Small metal jacks: 8% chance per level. 4-8 six-point
 // metal jack toys scattered with small rubber ball. Games family.
 pub fn place_small_jacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -295,7 +295,7 @@ pub fn place_small_jacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R454 magnetic letters: 10% chance per level. 4-8 plastic fridge letters
+// Magnetic letters: 10% chance per level. 4-8 plastic fridge letters
 // spilled on the floor (Blender batch r17): moulded capitals 38 mm tall,
 // a round magnet set in each one's back, in the faded colours of an
 // alphabet set; random letters, no word. Some landed on their backs.
@@ -415,7 +415,7 @@ fn fridge_letter_tex() -> Tex {
     })
 }
 
-// R453 small remote control: 10% chance per level. Rectangular
+// Small remote control: 10% chance per level. Rectangular
 // remote with buttons + antenna. Household family.
 pub fn place_small_remote_controls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -454,7 +454,7 @@ pub fn place_small_remote_controls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&remote);
 }
 
-// R453 kids drawing decal: 6% chance per level. Canvas texture
+// Kids drawing decal: 6% chance per level. Canvas texture
 // with random scribbles simulating child chalk drawing.
 game::lazy_static_tex!(
     kids_drawing_texture,
@@ -517,7 +517,7 @@ pub fn place_kids_drawings(g: &mut Game, _dist: &[i32]) {
     g.world.add(&decal);
 }
 
-// R452 small toy boat: 8% chance per level. Small wooden boat
+// Small toy boat: 8% chance per level. Small wooden boat
 // with mast + sail. Child-toy family.
 pub fn place_small_toy_boats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -564,7 +564,7 @@ pub fn place_small_toy_boats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&boat);
 }
 
-// R451 small toy plane: 8% chance per level. Toy airplane with
+// Small toy plane: 8% chance per level. Toy airplane with
 // fuselage + wings + tail + propeller. Child-toy family.
 pub fn place_small_toy_planes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {

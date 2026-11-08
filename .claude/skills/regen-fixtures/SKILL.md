@@ -18,7 +18,8 @@ change that was **meant** to change what the data records.
    - creatures: `REGEN=1 cargo test --release -p game --test entities`;
    - level generation: `cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord`;
    - reference levels: `cargo test --release -p backrooms --test reference_levels -- --ignored rerecord`;
-   - core props: `cargo test --release -p game --test core_props_head -- --ignored rerecord`;
+   - core props: `cargo test --release -p game --test core_props_head -- --ignored rerecord`,
+     and their second half: `cargo test --release -p game --test core_props_tail -- --ignored rerecord`;
    - frames: look at `target/xtask/shots/<name>.png` and `<name>-diff.png`
      first, then `cargo xtask shots --accept NAME,… --reason "…"`;
    - look anchors (rarely): `cargo xtask shots --accept-look NAME,… --reason "…"`;

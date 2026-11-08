@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R517 rust stain streak (`assets/src/blender/props/r11b.notes.md`): a
+// Rust stain streak (`assets/src/blender/props/r11b.notes.md`): a
 // steel fixing left in the wall (a stud anchor and its nut, or the corner
 // brace a shelf stood on) rusting, and what the damp carried down from it: dark round
 // the fixing where it began, then orange-brown runs, several side by side,

@@ -2,7 +2,7 @@
 #![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::prelude::*;
 
-// R402 tiny analog watch texture — small wristwatch-style face on
+// Tiny analog watch texture — small wristwatch-style face on
 // wall. Very small circle with minimal ticks.
 game::lazy_static_tex!(
     wall_watch_texture,
@@ -48,7 +48,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R400 digital wall clock texture — black bg with bright red LED
+// Digital wall clock texture — black bg with bright red LED
 // segmented time display like "12:34".
 game::lazy_static_tex!(
     digital_clock_texture,
@@ -71,7 +71,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R395 no-smoking pictogram texture — circular white bg with dark
+// No-smoking pictogram texture — circular white bg with dark
 // cigarette icon and red slash across.
 game::lazy_static_tex!(
     no_smoking_texture,
@@ -115,7 +115,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R392 wall gauge canvas — round dial face with tick marks and
+// Wall gauge canvas — round dial face with tick marks and
 // needle. Built once.
 game::lazy_static_tex!(
     gauge_texture,
@@ -160,7 +160,7 @@ game::lazy_static_tex!(
     })
 );
 
-// R390 wall calendar canvas — small rectangular paper with faded
+// Wall calendar canvas — small rectangular paper with faded
 // month title and grid. Built once, reused across levels.
 game::lazy_static_tex!(
     calendar_texture_2,

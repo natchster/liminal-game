@@ -1,24 +1,24 @@
 """Batch b06 — office props.
 
-placeCoffeeMugs        tapered stoneware mug (foot ring, hollow, rim bead, D-section handle)
-placeNewspapers        folded newspaper sheet + two crumpled lifted folds
-placeLetters           tri-folded letter, crumpled bits, envelope body/flap, perforated stamp
-placeOffHookPhones     rotary desk phone: housing, dial, hub, finger-hole rims, cradle plungers,
+place_coffee_mugs        tapered stoneware mug (foot ring, hollow, rim bead, D-section handle)
+place_newspapers        folded newspaper sheet + two crumpled lifted folds
+place_letters           tri-folded letter, crumpled bits, envelope body/flap, perforated stamp
+place_off_hook_phones     rotary desk phone: housing, dial, hub, finger-hole rims, cradle plungers,
                        handset cups and grip, curly-cord rings
-placeChessBoards       board, chamfered squares, Staunton-style turned pieces, knight head
-placeCarKeys           split ring, key bows/blades/teeth, remote fob, buttons, leather tag
-placeFormalDiplomas    moulded frame + gold fillet mat
-placeWideBookshelves   shelves, planked back, scalloped sides, hardcover books, vase,
+place_chess_boards       board, chamfered squares, Staunton-style turned pieces, knight head
+place_car_keys           split ring, key bows/blades/teeth, remote fob, buttons, leather tag
+place_formal_diplomas    moulded frame + gold fillet mat
+place_wide_bookshelves   shelves, planked back, scalloped sides, hardcover books, vase,
                        mini photo frame, trophy
-placeKitchenCalendars  nail + wire loop
-placeTravelPosters / PropagandaPosters / VintageAds / FramedNewspapers / PeriodicTables /
-placeFramedMaps / MissionPatches / AnatomyCharts   picture frames (one moulding each),
+place_kitchen_calendars  nail + wire loop
+place_travel_posters / PropagandaPosters / VintageAds / FramedNewspapers / PeriodicTables /
+place_framed_maps / MissionPatches / AnatomyCharts   picture frames (one moulding each),
                        mats, brass plaque, pull-down chart dowels
-placeVintageTypewriters  chassis with sloped hood, stepped keyboard, keycaps, platen, knobs...
-placeEaselChalkboards  easel battens, brace, board frame, chalk tray, chalk, eraser + felt
-placeSchoolDesks       desk top, lip, steel upright/foot, plywood seat/back, legs, wire rack,
+place_vintage_typewriters  chassis with sloped hood, stepped keyboard, keycaps, platen, knobs...
+place_easel_chalkboards  easel battens, brace, board frame, chalk tray, chalk, eraser + felt
+place_school_desks       desk top, lip, steel upright/foot, plywood seat/back, legs, wire rack,
                        open book, apple, pencil
-placeSmallTypewriters  compact portable typewriter
+place_small_typewriters  compact portable typewriter
 """
 from propkit import *
 import propkit
@@ -157,7 +157,7 @@ def mug_body():
 
 part('CoffeeMugs__body', f_cyl(0.038, 0.0342, 0.085), mug_body)
 
-# the rim bead: a smooth rolled lip (placer: TorusGeometry(bodyR, 0.003, 4, 14))
+# the rim bead: a smooth rolled lip (placer: torus_geo!(bodyR, 0.003, 4, 14))
 part('CoffeeMugs__rim', f_torus(0.038, 0.003), lambda: torus(0.038, 0.003, seg=28, tseg=5))
 
 

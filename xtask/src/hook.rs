@@ -2,9 +2,9 @@
 //!
 //! Each reads the hook's JSON from stdin and answers in the hook protocol:
 //!
-//! - `pre-edit` (PreToolUse on file edits): denies edits to the HTML/JS version
-//!   in the parent folder, and hand edits to recorded fixtures and goldens —
-//!   those change only through the REGEN / rerecord / accept commands.
+//! - `pre-edit` (PreToolUse on file edits): denies edits to anything outside
+//!   this repository, and hand edits to recorded fixtures and goldens — those
+//!   change only through the REGEN / rerecord / accept commands.
 //! - `post-edit` (PostToolUse on file edits): runs rustfmt on an edited `.rs`
 //!   file; a file rustfmt cannot parse is reported back (it does not block).
 //! - `stop` (Stop): runs `xtask check --fast` when code changed since the
@@ -17,7 +17,7 @@ use crate::root;
 use serde_json::{json, Value};
 use std::hash::{Hash, Hasher};
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
 /// Consecutive stop blocks before a failing check lets the session stop.
@@ -61,16 +61,49 @@ fn edited_path(input: &Value) -> Option<PathBuf> {
     Some(if p.is_absolute() { p.to_path_buf() } else { Path::new(input["cwd"].as_str().unwrap_or(".")).join(p) })
 }
 
-/// Why an edit of `path` must not happen, if it must not.
-fn edit_refusal(path: &Path, root: &Path) -> Option<String> {
-    let parent = root.parent()?;
-    if path.starts_with(parent) && !path.starts_with(root) {
-        return Some(format!(
-            "{} is part of the HTML/JS version in the parent folder, which is a read-only reference (CLAUDE.md, invariant 4).",
-            path.display()
-        ));
+/// `p` with `.` and `..` taken out and its longest existing ancestor
+/// resolved (symlinks such as macOS's `/tmp`), so a path can be compared with
+/// the repository's whatever way it was written. A file not yet written
+/// keeps its own name under its resolved folder.
+fn resolve(p: &Path) -> PathBuf {
+    let mut lexical = PathBuf::new();
+    for c in p.components() {
+        match c {
+            Component::CurDir => {}
+            Component::ParentDir => {
+                lexical.pop();
+            }
+            c => lexical.push(c),
+        }
     }
-    let rel = path.strip_prefix(root).ok()?.to_string_lossy().replace('\\', "/");
+    let mut rest = vec![];
+    let mut base = lexical.as_path();
+    loop {
+        if let Ok(real) = base.canonicalize() {
+            return rest.iter().rev().fold(real, |acc: PathBuf, c| acc.join(c));
+        }
+        match (base.parent(), base.file_name()) {
+            (Some(up), Some(name)) => {
+                rest.push(name.to_os_string());
+                base = up;
+            }
+            _ => return lexical,
+        }
+    }
+}
+
+/// Why an edit of `path` must not happen, if it must not: it is outside
+/// this repository, or it is recorded reference data.
+fn edit_refusal(path: &Path, root: &Path) -> Option<String> {
+    let (path, root) = (resolve(path), resolve(root));
+    let Ok(rel) = path.strip_prefix(&root) else {
+        return Some(format!(
+            "{} is outside this repository ({}): edits stay inside it (CLAUDE.md, invariant 4).",
+            path.display(),
+            root.display()
+        ));
+    };
+    let rel = rel.to_string_lossy().replace('\\', "/");
     if RECORDED.iter().any(|r| rel.starts_with(r)) {
         return Some(format!(
             "{rel} is recorded reference data: change it only by re-recording after an intended change \
@@ -185,14 +218,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn edits_to_the_parent_folder_and_to_fixtures_are_refused() {
-        let root = Path::new("/p/OpenCarole/native");
-        assert!(edit_refusal(Path::new("/p/OpenCarole/backrooms.js"), root).unwrap().contains("read-only"));
-        assert!(edit_refusal(Path::new("/p/OpenCarole/native/crates/game/tests/fixtures/entities.json"), root)
-            .unwrap()
-            .contains("re-recording"));
-        assert!(edit_refusal(Path::new("/p/OpenCarole/native/crates/backrooms/tests/reference/rs_1_L1.json"), root).is_some());
-        assert_eq!(edit_refusal(Path::new("/p/OpenCarole/native/crates/game/src/lib.rs"), root), None);
-        assert_eq!(edit_refusal(Path::new("/tmp/scratch/notes.md"), root), None);
+    fn edits_outside_the_repository_and_to_fixtures_are_refused() {
+        let root = Path::new("/p/work/game");
+        // anything outside: the folder above, a sibling, anywhere else
+        for outside in ["/p/work/notes.md", "/p/work/game-old/src/lib.rs", "/p/work/game/../other/x.rs", "/elsewhere/scratch/notes.md"] {
+            assert!(edit_refusal(Path::new(outside), root).unwrap().contains("outside this repository"), "{outside}");
+        }
+        assert!(edit_refusal(Path::new("/p/work/game/crates/game/tests/fixtures/entities.json"), root).unwrap().contains("re-recording"));
+        assert!(edit_refusal(Path::new("/p/work/game/crates/backrooms/tests/reference/rs_1_L1.json"), root).is_some());
+        assert_eq!(edit_refusal(Path::new("/p/work/game/crates/game/src/lib.rs"), root), None);
+        assert_eq!(edit_refusal(Path::new("/p/work/game/./docs/x/../DEVELOPMENT.md"), root), None);
+    }
+
+    #[test]
+    fn the_repository_itself_is_inside_however_it_is_written() {
+        let root = root();
+        assert_eq!(edit_refusal(&root.join("crates/game/src/lib.rs"), &root), None);
+        assert_eq!(edit_refusal(&root.join("xtask/../docs/new-note.md"), &root), None);
+        let beside = root.parent().unwrap().join("beside-the-repository.txt");
+        assert!(edit_refusal(&beside, &root).is_some(), "{} is outside", beside.display());
+        assert!(edit_refusal(&root.join("../beside-the-repository.txt"), &root).is_some());
     }
 }

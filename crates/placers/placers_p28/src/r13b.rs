@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R361 floor rug (Blender batch `r13b`): a Hamadan scatter rug, 2'5" x 4'
+// Floor rug (Blender batch `r13b`): a Hamadan scatter rug, 2'5" x 4'
 // (0.74 x 1.22 m and its fringe), wool pile on cotton, about 6 mm thick:
 // its pattern woven and faded, the pile worn down in a path across it, a
 // ripple where it has crept, its corners curling and its fringe matted;
@@ -17,7 +17,7 @@ pub(super) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // R362 per-weather rug tint: a wash over the wool, not a dye
+    // Per-weather rug tint: a wash over the wool, not a dye
     let tint = srgb3(rug_tint_by_weather(g.weather_key()));
     let rug_w = 0.9 + rnd() * 0.4;
     let rug_d = 0.6 + rnd() * 0.3;
@@ -27,7 +27,7 @@ pub(super) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     let yaw = rnd() * PI * 2.0;
     let px = g.wx(x) + (rnd() - 0.5) * 1.6;
     let pz = g.wz(z) + (rnd() - 0.5) * 1.6;
-    // R367 25% chance: one corner turned up (the old peel's size, lift, corner)
+    // 25% chance: one corner turned up (the old peel's size, lift, corner)
     let peel = if rnd() < 0.25 {
         let c_size = 0.16 + rnd() * 0.06;
         let lift = 0.5 + rnd() * 0.3;
@@ -75,7 +75,7 @@ pub(super) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
             0.0
         }
     };
-    // R365 25% chance: R359 table lamp placed on/near rug — reading-
+    // 25% chance: a table lamp placed on/near rug — reading-
     // corner narrative (inline reproduction).
     if rnd() < 0.25 {
         let base_colors = [0x2a2418, 0x1a1a1e, 0x3a2818];
@@ -104,7 +104,7 @@ pub(super) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
         lamp.rotation().y = rnd() * PI * 2.0;
         g.world.add(&lamp);
     }
-    // R366 25% chance: R356 newspaper laid on top of rug.
+    // 25% chance: a newspaper laid on top of rug.
     if rnd() < 0.25 {
         let paper_tint = newspaper_tint_by_weather(g.weather_key());
         let rp_mat = lambert!({ map: newspaper_texture(), color: paper_tint, side: DoubleSide });
@@ -461,7 +461,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
     (face, back)
 }
 
-// R360 wall coat hook: 15% chance per level, 1-2 hooks at 1.7-1.9 m
+// Wall coat hook: 15% chance per level, 1-2 hooks at 1.7-1.9 m
 // (Blender batch `r13b`, the hook of `r06`): a cast iron double coat-and-hat
 // hook screwed to an oak block on the wall; now and then 2-3 more along the
 // same wall (a cloakroom's row), now and then a knitted scarf left thrown
@@ -486,7 +486,7 @@ pub(super) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
         let hook_height = 1.7 + rnd() * 0.20;
         wall_mount(&hook, &c, wall_x, wall_z, hook_height, 1.4);
         g.world.add(&hook);
-        // R364 20% chance: 2-3 additional sibling hooks in a row along
+        // 20% chance: 2-3 additional sibling hooks in a row along
         // the same wall (cloakroom cluster).
         if rnd() < 0.20 {
             let sib_count = 2 + (rnd() * 2.0).floor() as i32;
@@ -503,7 +503,7 @@ pub(super) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
                 g.world.add(&s_hook);
             }
         }
-        // R361 25% chance: a wool scarf left on it, thrown over its arm (the
+        // 25% chance: a wool scarf left on it, thrown over its arm (the
         // old cloth's palette pick, its length and its sway: the scarf's
         // colour, size and hang)
         if rnd() < 0.25 {

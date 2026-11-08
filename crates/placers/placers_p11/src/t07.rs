@@ -7,7 +7,7 @@ use t07_kit::*;
 /// The boot tray as batch `t07` models it: its floor's top and its ribs'
 const TRAY_RIB_TOP: f64 = 0.0055 + 0.0040;
 
-// R714 boot tray w/ 1-2 pairs of boots (floor): 4% chance per level. A 32 x
+// Boot tray w/ 1-2 pairs of boots (floor): 4% chance per level. A 32 x
 // 16 in moulded rubber boot tray, ribbed (batch `t07`), a pair or two of
 // lace-up work boots on it (r14a's), the second pair's one fallen over;
 // dried grit and the salt's tide lines on it, and six times in ten the
@@ -133,7 +133,7 @@ const STAND_FLOOR: f64 = 0.0125;
 const STAND_REACH: f64 = 0.0985 - 0.029;
 const STAND_RIM: f64 = 0.490 - 0.0125;
 
-// R714 umbrella stand w/ 2-3 umbrellas (floor near wall): 3% chance per
+// Umbrella stand w/ 2-3 umbrellas (floor near wall): 3% chance per
 // level. A rolled steel umbrella stand (batch `t07`: 200 mm across, 490 mm
 // tall, its seam down the back), painted, chipped at its rim, rusting at its
 // foot; two or three furled stick umbrellas in it (r09's), stood on their

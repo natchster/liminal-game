@@ -1,7 +1,7 @@
 """Pilot batch: the worked example for every other batch.
 
-placeRadiators       cast-iron column radiator (body, front fins, top slat)
-placeOverturnedChair wooden chair on its side (seat, spindle back, turned legs)
+place_radiators       cast-iron column radiator (body, front fins, top slat)
+place_overturned_chair wooden chair on its side (seat, spindle back, turned legs)
 """
 from propkit import *
 

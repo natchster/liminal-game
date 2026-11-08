@@ -5,10 +5,12 @@
 //! and the lore tables (ui/hud.rs). `wall_adj_spot` goes through core_props'
 //! `props_wall_adj_spot` (and its `PropsHooks`), `take` / `has_wall_n` are
 //! core_props' own. The tests (game/tests/core_props_tail.rs) replay a
-//! recorded hand-off state and need these calls to answer as the recorded
-//! reference data does, so each goes through one of the `s_*` functions
-//! here: if a test installed an override with [`set_tail_seam`], it answers;
-//! otherwise the real function is called. Nothing is installed in the game.
+//! recorded hand-off state on a bare game (its tiles, no walls built) and
+//! answer some of these calls with stand-ins of their own (`alt_path_exists`
+//! from the tiles alone, the builders replaying a recorded log, synthetic
+//! lore tables), so each goes through one of the `s_*` functions here: if a
+//! test installed an override with [`set_tail_seam`], it answers; otherwise
+//! the real function is called. Nothing is installed in the game.
 use crate::base::records::WallSpot;
 use crate::core_props::*;
 use crate::prelude::*;

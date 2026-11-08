@@ -122,7 +122,7 @@ fn tri_geo(v: [f64; 9]) -> Geo {
     geo
 }
 
-// R471 small open journal: 6% chance per level, optional quill.
+// Small open journal: 6% chance per level, optional quill.
 fn place_open_journals(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -164,14 +164,14 @@ fn place_open_journals(g: &mut Game, _dist: &[i32]) {
     journal.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     journal.rotation().y = rnd() * PI * 2.0;
     g.world.add(&journal);
-    // R487 track for paper rustle audio (shared with music sheets).
+    // Track for paper rustle audio (shared with music sheets).
     let jp = journal.pos();
     g.pp.paper_positions.push(v3(jp.x, 0.01, jp.z));
 }
 
-// R469 small hourglass: 5% chance per level, animated falling stream.
+// Small hourglass: 5% chance per level, animated falling stream.
 fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
-    g.pp.hourglass_positions.clear(); // R483 reset per level
+    g.pp.hourglass_positions.clear(); // reset per level
     if rnd() < 0.95 {
         return;
     } // 5% chance
@@ -239,25 +239,25 @@ fn place_small_hourglasses(g: &mut Game, _dist: &[i32]) {
     hg.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     hg.rotation().y = rnd() * PI * 2.0;
     g.world.add(&hg);
-    // R483 track for sand whoosh audio.
+    // Track for sand whoosh audio.
     let hp = hg.pos();
     g.pp.hourglass_positions.push(v3(hp.x, 0.07, hp.z));
 }
 
-// R470 tarot card fan, R470 pentagram chalk, R469 talking board, R467 chain
+// Tarot card fan, pentagram chalk, talking board, chain
 // links: batch `t18`'s (`t18.rs`)
 mod t18;
 use t18::{place_ouija_boards, place_pentagram_chalks, place_small_chain_links, place_tarot_card_fans};
 
-// R468 ornate wall mirror: batch `t10`'s (`t10.rs`)
+// Ornate wall mirror: batch `t10`'s (`t10.rs`)
 mod t10;
 use t10::place_ornate_wall_mirrors;
 
-// R468 small crow: batch `t08`'s (`t08.rs`)
+// Small crow: batch `t08`'s (`t08.rs`)
 mod t08;
 use t08::place_small_crows;
 
-// R467 small vintage candelabra: 4% chance per level, 3 lit candles.
+// Small vintage candelabra: 4% chance per level, 3 lit candles.
 fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -320,7 +320,7 @@ fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
         let glow = point_light!(0xffb060, 0.3, 0.8, 2);
         glow.position().set(ax, ay + candle_len + 0.014, 0);
         cand.add(&glow);
-        // R484 warm halo sphere per candle.
+        // Warm halo sphere per candle.
         let halo_mat = basic_mat!({ color: 0xffb060, transparent: true, opacity: 0.25, depthWrite: false });
         let halo = mesh(sphere_geo!(0.018, 6, 5), &halo_mat);
         halo.position().set(ax, ay + candle_len + 0.014, 0);
@@ -341,9 +341,9 @@ fn place_small_candelabras(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cand);
 }
 
-// R567 ceiling fan: 3% chance per level, spinning blades.
+// Ceiling fan: 3% chance per level, spinning blades.
 fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
-    g.pp.fan_positions.clear(); // R568 reset per level
+    g.pp.fan_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     } // 3% chance
@@ -368,7 +368,7 @@ fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
     // Blade group (rotates).
     let blade_group = group();
     for i in 0..4 {
-        // R570 per-blade tint variance (±8% brightness for wear/dust).
+        // Per-blade tint variance (±8% brightness for wear/dust).
         let shade = 0.92 + rnd() * 0.16;
         let r2 = to_i32(255f64.min(((blade_base_color >> 16) & 0xff) as f64 * shade));
         let g2 = to_i32(255f64.min(((blade_base_color >> 8) & 0xff) as f64 * shade));
@@ -376,7 +376,7 @@ fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
         let per_blade_mat = lambert!({ color: (r2 << 16) | (g2 << 8) | b2, side: DoubleSide });
         let blade = mesh(pg("CeilingFans__blade", box_geo!(0.30, 0.008, 0.06)), &per_blade_mat);
         blade.position().x = 0.15;
-        blade.rotation().z = 0.14; // R569 8 deg tilt for realism (blade pitch)
+        blade.rotation().z = 0.14; // 8 deg tilt for realism (blade pitch)
         let arm = group();
         arm.rotation().y = (i as f64 / 4.0) * PI * 2.0;
         arm.add(&blade);
@@ -384,7 +384,7 @@ fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
     }
     blade_group.position().y = fan_y - 0.014;
     fan.add(&blade_group);
-    // R570 subtle warm downlight from motor (30% of fans get it).
+    // Subtle warm downlight from motor (30% of fans get it).
     if rnd() < 0.30 {
         let fan_light = point_light!(0xffe4b5, 0.12, 1.4);
         fan_light.position().y = fan_y - 0.05;
@@ -399,10 +399,10 @@ fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
     fan.position().set(g.wx(x) + (rnd() - 0.5) * 1.0, 0, g.wz(z) + (rnd() - 0.5) * 1.0);
     g.world.add(&fan);
     let fp = fan.pos();
-    g.pp.fan_positions.push(v3(fp.x, fan_y, fp.z)); // R568 track for whoosh audio
+    g.pp.fan_positions.push(v3(fp.x, fan_y, fp.z)); // track for whoosh audio
 }
 
-// R567 single flower stem: 8% chance per level, gently drifting petals.
+// Single flower stem: 8% chance per level, gently drifting petals.
 fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -431,7 +431,7 @@ fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
         flower.add(&leaf);
     }
     // 5 petal circle around center.
-    let mut petals: Vec<Obj> = vec![]; // R642 track for drift animator
+    let mut petals: Vec<Obj> = vec![]; // track for drift animator
     for p in 0..5 {
         let a = (p as f64 / 5.0) * PI * 2.0;
         let petal = mesh(circle_geo!(0.014, 6), &bloom_mat);
@@ -453,7 +453,7 @@ fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
     flower.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     flower.rotation().y = rnd() * PI * 2.0;
     g.world.add(&flower);
-    // R642 gentle petal drift (tiny X/Z oscillation, breathes-like).
+    // Gentle petal drift (tiny X/Z oscillation, breathes-like).
     g.animate(move |_g, _dt, t| {
         for p in &petals {
             let (bx, bz, ph) = {
@@ -467,7 +467,7 @@ fn place_flower_stems(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-// R571 bath mat: 6% chance per level, flat against a wall.
+// Bath mat: 6% chance per level, flat against a wall.
 fn place_bath_mats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -489,7 +489,7 @@ fn place_bath_mats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mat);
 }
 
-// R571 hair dryer wall mount: 4% chance per level.
+// Hair dryer wall mount: 4% chance per level.
 fn place_hair_dryers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -537,7 +537,7 @@ fn place_hair_dryers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&dryer);
 }
 
-// R572 toilet paper dispenser: 5% chance per level, wall-mounted.
+// Toilet paper dispenser: 5% chance per level, wall-mounted.
 fn place_toilet_paper_dispensers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -576,11 +576,11 @@ fn place_toilet_paper_dispensers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tp);
 }
 
-// R572 shampoo bottle shelf and R578 shower cap: batch `t03`'s (`t03.rs`)
+// Shampoo bottle shelf and shower cap: batch `t03`'s (`t03.rs`)
 mod t03;
 use t03::{place_shampoo_shelves, place_shower_caps};
 
-// R573 towel bar with hanging towel: 5% chance per level.
+// Towel bar with hanging towel: 5% chance per level.
 fn place_towel_bars(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -620,7 +620,7 @@ fn place_towel_bars(g: &mut Game, _dist: &[i32]) {
     g.world.add(&towel);
 }
 
-// R573 hair brush on floor: 8% chance per level.
+// Hair brush on floor: 8% chance per level.
 fn place_hair_brushes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -652,7 +652,7 @@ fn place_hair_brushes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&brush);
 }
 
-// R574 bathroom stall wall: 3% chance per level, free-standing partition.
+// Bathroom stall wall: 3% chance per level, free-standing partition.
 fn place_stall_walls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -681,7 +681,7 @@ fn place_stall_walls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stall);
 }
 
-// R574 toothbrush holder cup: 6% chance per level, 1-2 toothbrushes.
+// Toothbrush holder cup: 6% chance per level, 1-2 toothbrushes.
 fn place_toothbrush_holders(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -748,7 +748,7 @@ fn place_toothbrush_holders(g: &mut Game, _dist: &[i32]) {
     g.world.add(&holder);
 }
 
-// R575 single earring: 9% chance per level.
+// Single earring: 9% chance per level.
 fn place_single_earrings(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
         return;
@@ -777,7 +777,7 @@ fn place_single_earrings(g: &mut Game, _dist: &[i32]) {
     g.world.add(&earring);
 }
 
-// R576 nail clippers: 8% chance per level.
+// Nail clippers: 8% chance per level.
 fn place_nail_clippers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -810,7 +810,7 @@ fn place_nail_clippers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&clippers);
 }
 
-// R577 dropped washcloth: 8% chance per level.
+// Dropped washcloth: 8% chance per level.
 fn place_washcloths(g: &mut Game, _dist: &[i32]) {
     // A cotton terry washcloth (batch `r18`), dropped: folded over on itself,
     // its corner curled up off it, lying limp; the pile, the flat-woven band
@@ -843,7 +843,7 @@ fn place_washcloths(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cloth);
 }
 
-// R577 dead light switch plate: 7% chance per level (does nothing).
+// Dead light switch plate: 7% chance per level (does nothing).
 fn place_switch_plates(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -880,7 +880,7 @@ fn place_switch_plates(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sw);
 }
 
-// R578 hair tie band: 10% chance per level.
+// Hair tie band: 10% chance per level.
 fn place_hair_ties(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -901,7 +901,7 @@ fn place_hair_ties(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tie);
 }
 
-// R579 contact lens case: 7% chance per level, L/R colored caps.
+// Contact lens case: 7% chance per level, L/R colored caps.
 fn place_contact_lens_cases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -933,11 +933,11 @@ fn place_contact_lens_cases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&c_case);
 }
 
-// R579 scattered cotton swabs: batch `t22`'s (`t22.rs`)
+// Scattered cotton swabs: batch `t22`'s (`t22.rs`)
 mod t22;
 use t22::place_cotton_swabs;
 
-// R580 cotton ball cluster: 8% chance per level, 3-6 puffs.
+// Cotton ball cluster: 8% chance per level, 3-6 puffs.
 fn place_cotton_balls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -961,7 +961,7 @@ fn place_cotton_balls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R580 bathroom vent grate: 5% chance per level, high on the wall.
+// Bathroom vent grate: 5% chance per level, high on the wall.
 fn place_vent_grates(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -995,7 +995,7 @@ fn place_vent_grates(g: &mut Game, _dist: &[i32]) {
     g.world.add(&vent);
 }
 
-// R582 hand towel dispenser: 4% chance per level, visible paper tongue.
+// Hand towel dispenser: 4% chance per level, visible paper tongue.
 fn place_hand_towel_dispensers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;

@@ -40,7 +40,7 @@ def knurl(s, seg, depth, y0, y1, odd=True):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed 2D section [(dr, dz), ...] around the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). arc < TAU caps the ends.
+    plane (a torus_geo! with any cross-section). arc < TAU caps the ends.
     rmod(angle, j) -> (k_r, dz_add) wobbles the section along the ring."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
@@ -166,7 +166,7 @@ def oval_loft(profile, a, b, n=20, p=2.5):
 
 
 def torus_arc_bounds(R, r, arc, radial=4):
-    """Bounds of THREE.TorusGeometry(R, r, radial, .., arc) (XY plane)."""
+    """Bounds of torus_geo!(R, r, radial, .., arc) (XY plane)."""
     xs, ys = [], []
     for i in range(721):
         u = arc * i / 720

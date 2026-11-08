@@ -70,7 +70,7 @@ const EXEMPT: &[(&str, &str, &str, &str)] = &[
         "place_store",
         "",
         "clear map",
-        "known issue: the showroom's department signs are text on a clear canvas in an opaque material (as in the HTML version), so they read as dark plates; needs a look decision",
+        "known issue: the showroom's department signs are text on a clear canvas in an opaque material, so they read as dark plates; needs a look decision",
     ),
 ];
 

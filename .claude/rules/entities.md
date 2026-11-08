@@ -17,7 +17,7 @@ paths:
   rig of `anomalies::rig`; the staff's body, since E9, is MakeHuman's
   fitted to that rig's rest pose: `assets/src/creatures/figure.py`,
   `rigs.json`, held by `tests/anomaly_bodies.rs`; a rig that changes needs
-  `REGEN=1` and its body rebuilt; the shadows keep the HTML version's body,
+  `REGEN=1` and its body rebuilt; the shadows keep their old body,
   which blind reviews preferred to a new one). A new body for a figure
   ships only when a blind review prefers it (`cargo xtask ab`, both
   orders, a fresh reviewer each round, a second to confirm).

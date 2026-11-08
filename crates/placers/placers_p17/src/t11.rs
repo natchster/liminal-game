@@ -12,7 +12,7 @@ const VASE_H: f64 = 0.450;
 /// How far down the neck a feather's modelled foot stands
 const FEATHER_FOOT: f64 = 0.05;
 
-// R764 tall ceramic floor vase with 3-5 peacock feathers (floor): 3% chance.
+// Tall ceramic floor vase with 3-5 peacock feathers (floor): 3% chance.
 // A late Victorian earthenware floor vase (45 cm, scaled by the old height
 // draw), a baluster on a bare turned foot ring, the narrow neck and the
 // trumpet mouth, one glaze (the old colour pick) run thick and dark down

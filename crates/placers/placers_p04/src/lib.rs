@@ -114,9 +114,9 @@ fn tri_geo(verts: Vec<f32>, idx: Vec<u32>) -> Geo {
     geom
 }
 
-// R607 dropped coin cluster: 8% chance per level. 3-6 coins, some face-up + some on edge.
+// Dropped coin cluster: 8% chance per level. 3-6 coins, some face-up + some on edge.
 fn place_coin_clusters(g: &mut Game, _dist: &[i32]) {
-    g.pp.coin_positions.clear(); // R608 reset per level
+    g.pp.coin_positions.clear(); // reset per level
     if rnd() < 0.92 {
         return;
     }
@@ -143,10 +143,10 @@ fn place_coin_clusters(g: &mut Game, _dist: &[i32]) {
     cluster.position().set(px, 0, pz);
     g.world.add(&cluster);
     let p = cluster.pos();
-    g.pp.coin_positions.push(v3(p.x, 0, p.z)); // R608 track for tink audio
+    g.pp.coin_positions.push(v3(p.x, 0, p.z)); // track for tink audio
 }
 
-// R607 nail file (emery board): 7% chance per level.
+// Nail file (emery board): 7% chance per level.
 fn place_nail_files(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -168,7 +168,7 @@ fn place_nail_files(g: &mut Game, _dist: &[i32]) {
     g.world.add(&file);
 }
 
-// R609 hanging emergency lantern: 3% chance per level. Wall-mounted lantern w/ warm light.
+// Hanging emergency lantern: 3% chance per level. Wall-mounted lantern w/ warm light.
 fn place_emergency_lanterns(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -199,7 +199,7 @@ fn place_emergency_lanterns(g: &mut Game, _dist: &[i32]) {
     let lamp_light = point_light!(0xffe4a0, 0.30, 2.2);
     lamp_light.position().set(0, mount_y - 0.03, 0.15);
     lantern.add(&lamp_light);
-    // R610 subtle flicker animator: slow drift + very rare dip.
+    // Subtle flicker animator: slow drift + very rare dip.
     let phase = rnd() * PI * 2.0;
     let lens_m = lens.mat();
     g.animate(move |_g, _dt, t| {
@@ -214,13 +214,13 @@ fn place_emergency_lanterns(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lantern);
 }
 
-// R609 soap-smudged mirror, R611 frosted window: batch `t04`'s (`t04.rs`)
+// Soap-smudged mirror, frosted window: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::{place_frosted_windows, place_smudge_mirrors};
 
-// R611 analog wall clock: 3% chance per level. Round face + slowly moving hands.
+// Analog wall clock: 3% chance per level. Round face + slowly moving hands.
 fn place_analog_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.clock_positions.clear(); // R633 reset per level
+    g.pp.clock_positions.clear(); // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -265,11 +265,11 @@ fn place_analog_clocks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&clock);
     if !is_broken {
         let p = clock.pos();
-        g.pp.clock_positions.push(v3(p.x, 0, p.z)); // R633 only ticking clocks
+        g.pp.clock_positions.push(v3(p.x, 0, p.z)); // only ticking clocks
     }
 }
 
-// R612 dropped envelope: 7% chance per level. Optional letter poking out.
+// Dropped envelope: 7% chance per level. Optional letter poking out.
 fn place_envelopes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -308,7 +308,7 @@ fn place_envelopes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&env);
 }
 
-// R613 dropped receipt: 9% chance per level. Thin white strip with printed "text" lines.
+// Dropped receipt: 9% chance per level. Thin white strip with printed "text" lines.
 fn place_receipts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
         return;
@@ -323,7 +323,7 @@ fn place_receipts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&receipt);
 }
 
-// R613 wall barometer gauge: 4% chance per level. Needle at random angle.
+// Wall barometer gauge: 4% chance per level. Needle at random angle.
 fn place_barometers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -354,7 +354,7 @@ fn place_barometers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gauge);
 }
 
-// R614 dropped business card: 10% chance per level.
+// Dropped business card: 10% chance per level.
 fn place_business_cards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -370,7 +370,7 @@ fn place_business_cards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&card);
 }
 
-// R615 framed diploma: 3% chance per level. Ornate wall certificate.
+// Framed diploma: 3% chance per level. Ornate wall certificate.
 fn place_diplomas(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -394,7 +394,7 @@ fn place_diplomas(g: &mut Game, _dist: &[i32]) {
     g.world.add(&diploma);
 }
 
-// R616 playing card: 9% chance per level. Single upturned card.
+// Playing card: 9% chance per level. Single upturned card.
 fn place_playing_cards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
         return;
@@ -409,7 +409,7 @@ fn place_playing_cards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&card);
 }
 
-// R617 dice cluster: 6% chance per level. 2-4 six-sided cubes w/ pip decals.
+// Dice cluster: 6% chance per level. 2-4 six-sided cubes w/ pip decals.
 fn place_dice_clusters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -440,7 +440,7 @@ fn place_dice_clusters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R617 poker chip cluster: 6% chance per level. 4-8 chips in 1-3 small stacks.
+// Poker chip cluster: 6% chance per level. 4-8 chips in 1-3 small stacks.
 fn place_poker_chips(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -482,7 +482,7 @@ fn place_poker_chips(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R618 cassette tape: 6% chance per level. Shell w/ 2 reels + label.
+// Cassette tape: 6% chance per level. Shell w/ 2 reels + label.
 fn place_cassettes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -527,7 +527,7 @@ fn place_cassettes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cassette);
 }
 
-// R618 folded map: 5% chance per level. Folded paper square w/ road texture.
+// Folded map: 5% chance per level. Folded paper square w/ road texture.
 fn place_folded_maps(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -549,7 +549,7 @@ fn place_folded_maps(g: &mut Game, _dist: &[i32]) {
     g.world.add(&map);
 }
 
-// R619 floppy disk 3.5": 7% chance per level. Shell w/ metal shutter + label strip.
+// Floppy disk 3.5": 7% chance per level. Shell w/ metal shutter + label strip.
 fn place_floppy_disks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -582,7 +582,7 @@ fn place_floppy_disks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&floppy);
 }
 
-// R619 CD/DVD disc: 8% chance per level. Sometimes label side up.
+// CD/DVD disc: 8% chance per level. Sometimes label side up.
 fn place_cds(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -613,7 +613,7 @@ fn place_cds(g: &mut Game, _dist: &[i32]) {
     g.world.add(&disc);
 }
 
-// R620 cell phone (brick style): 6% chance per level.
+// Cell phone (brick style): 6% chance per level.
 fn place_cell_phones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -647,7 +647,7 @@ fn place_cell_phones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&phone);
 }
 
-// R620 gameboy-style handheld: 5% chance per level.
+// Gameboy-style handheld: 5% chance per level.
 fn place_gameboys(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -702,7 +702,7 @@ fn place_gameboys(g: &mut Game, _dist: &[i32]) {
     g.world.add(&gb);
 }
 
-// R621 TV remote control: 6% chance per level.
+// TV remote control: 6% chance per level.
 fn place_remotes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -748,7 +748,7 @@ fn place_remotes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&remote);
 }
 
-// R621 pager: 8% chance per level. Chunky body w/ tiny LCD screen + clip.
+// Pager: 8% chance per level. Chunky body w/ tiny LCD screen + clip.
 fn place_pagers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -781,7 +781,7 @@ fn place_pagers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pager);
 }
 
-// R622 pocket calculator: 6% chance per level. Solar strip + display + button grid.
+// Pocket calculator: 6% chance per level. Solar strip + display + button grid.
 fn place_calculators(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -818,7 +818,7 @@ fn place_calculators(g: &mut Game, _dist: &[i32]) {
     g.world.add(&calc);
 }
 
-// R622 yo-yo: 7% chance per level. Two disc halves + string trailing.
+// Yo-yo: 7% chance per level. Two disc halves + string trailing.
 fn place_yoyos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -868,11 +868,11 @@ fn place_yoyos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&yoyo);
 }
 
-// R623 twisty puzzle cube: batch `t22`'s (`t22.rs`)
+// Twisty puzzle cube: batch `t22`'s (`t22.rs`)
 mod t22;
 use t22::place_rubiks_cubes;
 
-// R623 marbles cluster: 8% chance per level. 5-10 small translucent glass spheres.
+// Marbles cluster: 8% chance per level. 5-10 small translucent glass spheres.
 fn place_marbles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -893,7 +893,7 @@ fn place_marbles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R624 LEGO brick scatter: 6% chance per level. 5-9 small blocks w/ studs, some stacked.
+// LEGO brick scatter: 6% chance per level. 5-9 small blocks w/ studs, some stacked.
 fn place_lego_bricks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;

@@ -1,4 +1,4 @@
-//! Toys, children's items and restroom/luggage fixtures (R408-R421).
+//! Toys, children's items and restroom/luggage fixtures.
 use crate::{buf_geo, open_tiles, pick, set_rot_order, wall_candidates};
 use game::prelude::*;
 
@@ -13,7 +13,7 @@ pub use t14::{place_plush_bears, place_small_dolls};
 mod t16;
 pub use t16::place_small_kites;
 
-/// R421 small pacifier: 8% chance per level. Nipple cylinder +
+/// Small pacifier: 8% chance per level. Nipple cylinder +
 /// guard disc + ring handle.
 pub fn place_small_pacifiers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -47,7 +47,7 @@ pub fn place_small_pacifiers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paci);
 }
 
-/// R420 small toy drum: 8% chance per level. Cylinder body + top +
+/// Small toy drum: 8% chance per level. Cylinder body + top +
 /// bottom membrane discs + loose strap.
 pub fn place_toy_drums(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -89,7 +89,7 @@ pub fn place_toy_drums(g: &mut Game, _dist: &[i32]) {
     g.world.add(&drum);
 }
 
-/// R420 small hat: 10% chance per level. Cylinder crown + flat brim.
+/// Small hat: 10% chance per level. Cylinder crown + flat brim.
 pub fn place_small_hats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -126,7 +126,7 @@ pub fn place_small_hats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hat);
 }
 
-/// R419 small yo-yo: 10% chance per level. 2 flat colored discs +
+/// Small yo-yo: 10% chance per level. 2 flat colored discs +
 /// connecting axle + short dangling string.
 pub fn place_small_yo_yos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -165,7 +165,7 @@ pub fn place_small_yo_yos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&yoyo);
 }
 
-/// R418 small pinwheel: 10% chance per level. A paper party pinwheel
+/// Small pinwheel: 10% chance per level. A paper party pinwheel
 /// (Blender batch r17): a 10 cm square of printed paper cut and curled into
 /// four vanes, pinned through a bead into a 28 cm birch dowel, dropped and
 /// lying face up on the floor (never standing on its stick's point): the
@@ -209,7 +209,7 @@ pub fn place_small_pinwheels(g: &mut Game, _dist: &[i32]) {
     let lean = (rnd() - 0.5) * 0.15;
     wheel.rotation().y = lean / 0.075 * 0.35;
     g.world.add(&pinwheel);
-    // R419 30% chance: a draught along the floor stirs it on its pin, slowly
+    // 30% chance: a draught along the floor stirs it on its pin, slowly
     // (a wheel lying on its corners cannot turn round), period 4-8 s.
     if rnd() < 0.30 {
         let spin_period = 4.0 + rnd() * 4.0;
@@ -321,7 +321,7 @@ fn pinwheel_dowel_tex() -> Tex {
     })
 }
 
-/// R416 small toy car: 10% chance per level. A 1:64 die-cast saloon of the
+/// Small toy car: 10% chance per level. A 1:64 die-cast saloon of the
 /// 1970s (Blender batch r17), 76 mm long: its zinc body in chipped enamel,
 /// clear glazing gone grey, silver-painted bumpers, grille and lamps, thin
 /// plastic wheels on steel axles, a black baseplate. A quarter lie on
@@ -363,7 +363,7 @@ pub fn place_toy_cars(g: &mut Game, _dist: &[i32]) {
     car.add(&body);
     car.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     car.rotation().y = rnd() * PI * 2.0;
-    // R417 25% chance: car on its side (rolled about its length), resting on
+    // 25% chance: car on its side (rolled about its length), resting on
     // its flank.
     if rnd() < 0.25 {
         body.rotation().z = PI / 2.0 * (if rnd() < 0.5 { -1.0 } else { 1.0 });
@@ -445,7 +445,7 @@ fn toy_car_paint_tex(paint: u32) -> Tex {
     })
 }
 
-/// R415 marble scatter: 10% chance per level. 4-7 tiny colored
+/// Marble scatter: 10% chance per level. 4-7 tiny colored
 /// spheres scattered on floor — "spilled marbles".
 pub fn place_marble_scatters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -471,7 +471,7 @@ pub fn place_marble_scatters(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R415 small building block: 10% chance per level. Colored cube with
+/// Small building block: 10% chance per level. Colored cube with
 /// 4 stud dots on top (LEGO-style silhouette).
 pub fn place_building_blocks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -500,7 +500,7 @@ pub fn place_building_blocks(g: &mut Game, _dist: &[i32]) {
     block.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     block.rotation().y = rnd() * PI * 2.0;
     g.world.add(&block);
-    // R416 25% chance: 1-2 sibling blocks stacked on top.
+    // 25% chance: 1-2 sibling blocks stacked on top.
     if rnd() < 0.25 {
         let stack_count = 1 + (rnd() * 2.0).floor() as i32;
         for s in 1..=stack_count {
@@ -522,7 +522,7 @@ pub fn place_building_blocks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R414 small children's shoe: 10% chance per level. Small shoe
+/// Small children's shoe: 10% chance per level. Small shoe
 /// silhouette (elongated body + toe bump + sole).
 pub fn place_children_shoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -555,7 +555,7 @@ pub fn place_children_shoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shoe);
 }
 
-/// R413 small crayon: 10% chance per level. Thin colored cylinder +
+/// Small crayon: 10% chance per level. Thin colored cylinder +
 /// small pointed cone tip.
 pub fn place_small_crayons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -582,7 +582,7 @@ pub fn place_small_crayons(g: &mut Game, _dist: &[i32]) {
     crayon.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0.008, g.wz(z) + (rnd() - 0.5) * 2.4);
     crayon.rotation().y = rnd() * PI * 2.0;
     g.world.add(&crayon);
-    // R414 30% chance: 1-3 sibling crayons scattered nearby.
+    // 30% chance: 1-3 sibling crayons scattered nearby.
     if rnd() < 0.30 {
         let sib_count = 1 + (rnd() * 3.0).floor() as i32;
         for _ in 0..sib_count {
@@ -606,7 +606,7 @@ pub fn place_small_crayons(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R413 drawing paper texture — cream paper with random crayon-color
+// Drawing paper texture — cream paper with random crayon-color
 // scribble strokes. Built once.
 game::lazy_static_tex!(
     drawing_paper_texture,
@@ -644,7 +644,7 @@ game::lazy_static_tex!(
     })
 );
 
-/// Drawing paper (R413): 10% chance per level.
+/// Drawing paper: 10% chance per level.
 pub fn place_drawing_papers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
@@ -662,7 +662,7 @@ pub fn place_drawing_papers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paper);
 }
 
-/// R412 small rubber ball: 10% chance per level. A 4 in hollow rubber ball
+/// Small rubber ball: 10% chance per level. A 4 in hollow rubber ball
 /// of two moulded halves, each its own colour, joined at a seam (Blender
 /// batch r17); years on the floor have let the air out of it, so it sags
 /// flat where it rests, and faded, scuffed and grimed it.
@@ -742,7 +742,7 @@ fn rubber_ball_tex() -> Tex {
     })
 }
 
-/// R410 small handbasket: 10% chance per level. Shallow open box +
+/// Small handbasket: 10% chance per level. Shallow open box +
 /// 2 arched handles. Reads as shopping-style handbasket.
 pub fn place_handbaskets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -779,7 +779,7 @@ pub fn place_handbaskets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&basket);
 }
 
-/// R410 small suitcase: 10% chance per level. Larger box + top handle
+/// Small suitcase: 10% chance per level. Larger box + top handle
 /// + 2 side latches.
 pub fn place_suitcases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -818,7 +818,7 @@ pub fn place_suitcases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&suitcase);
 }
 
-/// R409 wall paper towel dispenser: 12% chance per level. Tall
+/// Wall paper towel dispenser: 12% chance per level. Tall
 /// gray box + horizontal dispensing slot + small hanging paper end.
 pub fn place_paper_towel_dispensers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -860,7 +860,7 @@ pub fn place_paper_towel_dispensers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ptd);
 }
 
-/// R409 tissue box: 12% chance per level. A flat box of facial tissues
+/// Tissue box: 12% chance per level. A flat box of facial tissues
 /// (Blender batch r15, the 160-sheet carton at its real size, 225 x 121 x
 /// 88 mm): its printed board, the oval torn out along its perforation, a
 /// top corner trodden down, the last tissue drawn up gone limp over the
@@ -916,7 +916,7 @@ pub fn place_tissue_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tissue);
 }
 
-/// R408 wall electric hand dryer: 12% chance per level. Large white
+/// Wall electric hand dryer: 12% chance per level. Large white
 /// box + curved bottom nozzle — restroom institutional fixture.
 pub fn place_hand_dryers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {

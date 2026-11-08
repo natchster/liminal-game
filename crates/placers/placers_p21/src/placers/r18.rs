@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R510 mop bucket: 6% chance per level. Plastic bucket with a mop in it.
+// Mop bucket: 6% chance per level. Plastic bucket with a mop in it.
 pub(crate) fn place_mop_buckets(g: &mut Game, _dist: &[i32]) {
     // A 26 qt commercial mop bucket (batch `r18`): a moulded polyethylene tub
     // on four castors, a side-press wringer hooked over its end, a cotton wet

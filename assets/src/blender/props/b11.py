@@ -398,7 +398,7 @@ part('LaundryBaskets__drapeHang', f_box(0.06, 0.10, 0.005), drape_hang, smooth=7
 # ----------------------------------------------------------- ironing board --
 def half_lathe(profile, seg=12):
     """Revolve [(r, y), ...] (all r > 0) over half a turn, x >= 0 (like a
-    CylinderGeometry with thetaStart 0, thetaLength PI); closed flat side."""
+    cyl_geo! with thetaStart 0, thetaLength PI); closed flat side."""
     v, f, rings = [], [], []
     for r, y in profile:
         rings.append([len(v) + i for i in range(seg + 1)])

@@ -378,3 +378,122 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
     }
     assert!(problems.is_empty(), "{problems:#?}");
 }
+
+/// What the earlier version the game grew from was called, in the forms the
+/// repository once used for it. Spelled in pieces (`concat!`) so that this
+/// file does not match itself.
+const EARLIER_VERSION: &[&str] = &[
+    concat!("html", " version"),
+    concat!("html", "/js"),
+    concat!("html", "-recorded"),
+    concat!("js", " version"),
+    concat!("web", " version"),
+    concat!("backrooms", ".js"),
+    concat!("three", ".js"),
+    concat!("three", "js"),
+    concat!("ported", " from"),
+];
+
+/// Deliberate mentions, each with its reason: (file, the form it uses, why).
+const EARLIER_VERSION_EXCEPTIONS: &[(&str, &str, &str)] = &[
+    (
+        "docs/SOURCES.md",
+        concat!("three", ".js"),
+        "cites the source of the windows' ground-projected sky: the GroundedSkybox of that library, research, not this game's past",
+    ),
+    (
+        "docs/research/windows-real.md",
+        concat!("three", ".js"),
+        "research on the ground-projected sky: quotes that library's GroundedSkybox and links its docs and source",
+    ),
+    ("docs/research/windows-real.md", concat!("three", "js"), "the same research's link to that library's docs (its domain)"),
+];
+
+/// The development-round tags of the earlier version in a text: `R` and
+/// three or four digits standing alone (not inside a word, a path or a
+/// number), as (line number from 1, tag). EBU R-numbers (loudness) and the
+/// IRC's R-sections (building codes) are standards, not rounds.
+fn round_tags(text: &str) -> Vec<(usize, String)> {
+    let b = text.as_bytes();
+    let mut out = vec![];
+    for i in 0..b.len() {
+        if b[i] != b'R' {
+            continue;
+        }
+        let before_ok = i == 0 || !(b[i - 1].is_ascii_alphanumeric() || b"/_-.#".contains(&b[i - 1]));
+        let digits = b[i + 1..].iter().take_while(|c| c.is_ascii_digit()).count();
+        let after = i + 1 + digits;
+        let after_ok = after >= b.len() || !(b[after].is_ascii_alphanumeric() || b[after] == b'_');
+        let lead = text[..i].trim_end();
+        let standard = lead.ends_with("EBU") || lead.ends_with("IRC");
+        if before_ok && (3..=4).contains(&digits) && after_ok && !standard {
+            out.push((text[..i].matches('\n').count() + 1, text[i..after].to_string()));
+        }
+    }
+    out
+}
+
+/// The game stands on its own: no text file names the earlier version it
+/// grew from (`EARLIER_VERSION`, but for `EARLIER_VERSION_EXCEPTIONS`), and
+/// no Rust or Markdown file carries one of that version's round tags
+/// (`round_tags`). Say what a thing is or does in this game instead.
+#[test]
+fn nothing_names_the_earlier_version() {
+    const TEXT: &[&str] = &["rs", "md", "py", "toml", "json", "jsonl", "yml", "yaml", "sh", "metal", "txt", "tsv", "csv"];
+    let mut files = vec![];
+    let mut stack = vec![root()];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
+            let p = e.path();
+            let name = p.file_name().unwrap().to_string_lossy().to_string();
+            if p.is_dir() {
+                if !["target", ".git", "dist"].contains(&name.as_str()) {
+                    stack.push(p);
+                }
+            } else if p.extension().is_some_and(|x| TEXT.contains(&x.to_string_lossy().as_ref())) {
+                files.push(p);
+            }
+        }
+    }
+    files.sort();
+    let mut found = vec![];
+    for f in &files {
+        let Ok(text) = std::fs::read_to_string(f) else { continue };
+        let file = rel(f);
+        let ext = f.extension().unwrap().to_string_lossy().to_string();
+        for (n, line) in text.lines().enumerate() {
+            let lower = line.to_lowercase();
+            for form in EARLIER_VERSION {
+                let excused = EARLIER_VERSION_EXCEPTIONS.iter().any(|(ef, eform, _)| *ef == file && eform == form);
+                if lower.contains(form) && !excused {
+                    found.push(format!("{file}:{}: \"{form}\"", n + 1));
+                }
+            }
+        }
+        if ext == "rs" || ext == "md" {
+            for (n, tag) in round_tags(&text) {
+                found.push(format!("{file}:{n}: round tag {tag}"));
+            }
+        }
+    }
+    assert!(
+        found.is_empty(),
+        "these lines name the earlier version the game grew from; say what the thing is or does in this game \
+         (or, for a citation that must stay, add it to EARLIER_VERSION_EXCEPTIONS with its reason): {found:#?}"
+    );
+    // every exception is still needed
+    for (file, form, why) in EARLIER_VERSION_EXCEPTIONS {
+        let text = read(file).to_lowercase();
+        assert!(text.contains(form), "{file} no longer mentions \"{form}\": drop its exception ({why})");
+    }
+}
+
+#[test]
+fn round_tags_are_found_and_standards_are_not() {
+    let tag = concat!("R", "653");
+    assert_eq!(round_tags(&format!("// x\n// {tag} fertilizer spikes")), vec![(2, tag.to_string())]);
+    assert_eq!(round_tags(&format!("(R{}–R{})", 220, 227)).len(), 2);
+    assert!(round_tags(concat!("EBU R", "128 loudness, EBU\n  R", "128 again")).is_empty());
+    assert!(round_tags(concat!("(IRC R", "312.2.1)")).is_empty());
+    assert!(round_tags(concat!("frames/R", "0020 and R8Unorm, R", "2D, rooms R4, place_gameplay_r", "1_trigger")).is_empty());
+}

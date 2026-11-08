@@ -42,7 +42,7 @@ static SLIP_FACE: [(f64, f64); 9] = [
 ];
 const FAMILIES: [&str; 3] = ["family_parlour", "family_room", "family_door"];
 
-// R511 family portrait: 5% chance per level. A family group in its frame.
+// Family portrait: 5% chance per level. A family group in its frame.
 pub(crate) fn place_family_portraits(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;

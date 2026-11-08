@@ -2,7 +2,7 @@
 //! placers and what only they use.
 use super::*;
 
-// R514 a broken bottle (Blender batch `r16`): a 12 oz longneck dropped and
+// A broken bottle (Blender batch `r16`): a 12 oz longneck dropped and
 // burst on the floor, green, amber or clear glass (the old colours): its
 // base standing where it hit, its wall broken off in teeth; the neck and
 // shoulder in one piece, rolled away on their side; curved pieces of the

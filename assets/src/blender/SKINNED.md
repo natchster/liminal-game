@@ -1,58 +1,53 @@
-# Skinned creatures: the contract
+# The old creatures' skinned bodies: how they were made
 
-The creatures used to be a rigid part per joint, which read as an action
-figure: a visible ball at every knee and elbow. Now each creature's body is
-**one continuous skinned mesh** bound to the game's own rig, and the old
-procedural animation drives the same joints, bending skin instead of moving
-separate pieces. Heads, teeth, eyes, hair and similar stay rigid parts on
-their bones (`tools/blender/creatures.py`, as before).
+The old creatures' bodies in `crates/game/assets/creature_meshes.bin` are
+kept as stored (see `assets/README.md`): no build here makes them again,
+because these scripts build over dumps of each rig's rest pose that nothing
+in this repository writes. This is the record of how they were made. The
+creatures of the redesign are built by `assets/src/creatures/` instead
+(`cargo xtask assets creatures`); of this file's parts the game still uses
+the Borrowed House's shadows' body (`shBody`) and the Stairwell's face
+(`stairFace`).
 
-The Smiler is the worked example: `makeSmiler` in `backrooms.js`, and
-`tools/blender/skin_smiler.py`.
+Each body was **one continuous skinned mesh** bound to the creature's rig,
+so the animation bends skin instead of moving separate pieces (a rigid part
+per joint had read as an action figure: a visible ball at every knee and
+elbow). Heads, teeth, eyes, hair and similar stayed rigid parts on their
+bones (`creatures.py`). The Smiler was the worked example
+(`skin_smiler.py`).
 
-## The loop
+## The build
 
 ```sh
 T=smiler                                   # smiler | hound | staff | shadow | watcher
-node build-standalone.mjs backrooms        # the game, with your rig changes
-node tools/rig-dump.mjs $T                 # its rest pose -> .cache/rigs/$T.json
+# the rig's rest pose, dumped to .cache/rigs/$T.json (every bone's name,
+# parent, rest matrix, head and tail)
 /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-    --python tools/blender/skinned.py -- $T          # -> <name>Body in src/creature-meshes.js
-node tools/creature-pack.mjs               # deflate what the Blender scripts wrote plain
-node build-standalone.mjs backrooms        # again, with the new body
-node tools/entity-shot.mjs --only smiler --out shots/skin/$T                       # portraits
-node tools/entity-shot.mjs --only smiler --out shots/skin/$T --gap 1.3 --pitch 0.32 --views front,34,side --tag close
-node tools/entity-motion.mjs --levels 5,7  # smoothness numbers (turn, accel, zigzag, joint speed)
+    --python assets/src/blender/skinned.py -- $T          # -> the part <name>Body
 ```
 
-Rigid parts (heads etc.): `Blender ... --python tools/blender/creatures.py --
-src/creature-meshes.js partA,partB` rebuilds only those parts. Both scripts
-lock `src/creature-meshes.js` while they rewrite it, so several builds can
-run at once.
+Rigid parts (heads etc.): `Blender ... --python assets/src/blender/creatures.py
+-- OUT partA,partB` rebuilds only those parts. Both scripts lock their
+output while they rewrite it, so several builds can run at once. The parts
+were then packed into `creature_meshes.bin` (`assets::creatures` decodes
+it).
 
-## The rig (backrooms.js)
+## The rig
 
-- Build joints with `joint(geo, mat, parent, x, y, z, name)`. It makes a
-  named `THREE.Bone`; `geo` is the rigid part it carries, or `null` when the
-  creature has a skinned body (see `rigid()` in `makeSmiler`).
 - Every bone the body bends at needs a unique name (`thigh.L`, `finger21.R`).
-- `userData.tail = [x, y, z]` (local) gives a leaf bone its direction;
-  `userData.main = 'childName'` picks which child a bone points at. These
-  only matter for weighting (a bone's segment runs from its head to its tail).
-- The **rest pose** is the pose the make-function builds, before any
-  animation. The body is modelled in it and bound in it, so set every rest
-  rotation there (not in the animation).
-- After the rig is built, and before `g.position` is set:
-  `if (body) P.skin = skinBody(g, body, mat);` (`body` is
-  `creatureGeometry(THREE, '<name>Body')`, null until you have built one).
-- `skinDetail`: wrap the skin material in `withSkinDetail(mat, scale, strength)`
-  for pores, creases and varied shine (Smiler: `3.1, 1.05`).
-- Keep what the tests read: `parts.legs`, `parts.arms` (Smiler: hip/knee,
-  shoulder/elbow), `parts.head` whose first small `SphereGeometry` child is
-  an eye, `parts.neck`, `parts.jaw` (null for the Watcher), `parts.tail` for
-  the Hound, and `window.__game.rigs`.
+- A leaf bone's tail (local `[x, y, z]`) gives it its direction, and a bone
+  with several children points at the one named its main child. These only
+  matter for weighting (a bone's segment runs from its head to its tail).
+- The **rest pose** is the pose the rig is built in, before any animation.
+  The body is modelled in it and bound in it, so every rest rotation is set
+  there (not in the animation).
+- In the game, a body is bound to the built rig with
+  `entities::skin_body(root, geo, mat)` (`geo` from
+  `assets::creatures::creature_geometry("<name>Body")`), and its material
+  wrapped in `entities::with_skin_detail(mat, scale, strength)` for pores,
+  creases and varied shine (the Smiler's was `3.1, 1.05`).
 
-## The body (tools/blender/skin_<type>.py)
+## The body (`skin_<type>.py`)
 
 Run by `skinned.py` in its namespace: `C` is creatures.py's namespace (all
 its helpers — `ell`, `tube`, `chain`, `sweep`, `loft_y`, `M`, `xform` — and
@@ -91,5 +86,5 @@ BODY = dict(name='smBody', pieces=smiler_pieces, paint=smiler_paint,
 ## Budgets
 
 About 20,000 triangles for a body (both groups), the head and other rigid
-parts on top. Up to five creatures can be on screen. Check with
-`node tools/bench.mjs --levels 3,5,7` that frame times stay where they were.
+parts on top. Up to five creatures can be on screen; `cargo xtask bench`
+says whether frame times stay where they were.

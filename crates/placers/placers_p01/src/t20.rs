@@ -5,7 +5,7 @@
 use super::*;
 use t20_kit::*;
 
-// R478 small vintage abacus: 6% chance per level. A suanpan (Blender batch
+// Small vintage abacus: 6% chance per level. A suanpan (Blender batch
 // `t20`): hardwood rails strapped with brass at the corners, bamboo rods,
 // two beads above the beam and five below on each; cleared, or with a sum
 // left on it. The wood dark and dull, the beads polished by fingers, dust

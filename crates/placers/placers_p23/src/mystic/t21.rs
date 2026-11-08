@@ -17,7 +17,7 @@ const SG_INNER: (f64, f64) = (0.036, 0.055);
 const SG_PANES: (f64, f64) = (SG_W + 0.006, SG_H + 0.006);
 const SG_FRAME: (f64, f64) = (0.340, 0.480);
 
-// R491 stained glass window: 4% chance per level. A Victorian leaded panel
+// Stained glass window: 4% chance per level. A Victorian leaded panel
 // of the terraced-house kind (Blender batch `t21`), taken out of a door or
 // a landing window and hung on the wall in a dark-stained pine frame: a
 // border of coloured strips with a jewel square at each corner, a field of

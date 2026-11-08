@@ -6,7 +6,7 @@
 use crate::{open_tiles, pick};
 use game::prelude::*;
 
-/// R438 small feather boa: 6% chance per level. A child's dress-up boa
+/// Small feather boa: 6% chance per level. A child's dress-up boa
 /// (turkey feathers twisted on a cord, chandelle, about 90 mm across)
 /// dropped where a costume came off, lying in a lazy curve; its dye faded
 /// and dusty (the old colours: hot pink, purple, gold, royal blue, white,

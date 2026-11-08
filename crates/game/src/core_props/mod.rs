@@ -97,9 +97,9 @@ pub type Builder = fn(&mut Game, &mut PropsCtx) -> Built;
 // ---------------------------------------------------------------- test seam
 /// Stand-ins for the functions of other modules that `place_props` calls
 /// (`wall_adj_spot`, `level_has_stairwell`, `circle_hits_wall`). `None` (the
-/// default) calls the real `Game` method; tests install overrides here that
-/// answer as the recorded reference data does, so they do not depend on the
-/// state of those modules.
+/// default) calls the real `Game` method; tests install stand-ins here
+/// (answering from a bare game's tiles), so they do not depend on the state
+/// of those modules.
 #[derive(Clone, Copy)]
 pub struct PropsHooks {
     pub wall_adj_spot: Option<fn(&Game, i32, i32) -> Option<WallSpot>>,
@@ -1038,7 +1038,7 @@ impl Game {
         );
     }
 
-    /// answering the payphone — R769 three-outcome phone answer:
+    /// answering the payphone — the three-outcome phone answer:
     ///  40% whisper — sanity drain (~15 pts).
     ///  35% exit hint — the place shows the way to the door
     ///      (`show_the_way`, from `update_hud` while `phone_data.f["hintUntil"]`).

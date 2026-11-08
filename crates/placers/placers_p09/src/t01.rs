@@ -31,7 +31,7 @@ static FACE: [(f64, f64); 12] = [
     (0.018, 0.0110),
 ];
 
-// R690 framed graduation photo w/ tassel (wall): 2.5% chance per level.
+// Framed graduation photo w/ tassel (wall): 2.5% chance per level.
 pub(crate) fn place_graduation_photos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;

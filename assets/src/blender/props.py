@@ -1,15 +1,18 @@
 """
 Builds the Backrooms prop parts in Blender.
 
+    cargo xtask assets props [--batch b01,b02]        # runs this, packs and compares
     /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-        --python tools/blender/props.py -- [--batch b01,b02] [--parts NAME,...]
+        --python assets/src/blender/props.py -- [--batch b01,b02] [--parts NAME,...] [--out DIR]
 
-Every batch module in tools/blender/props/ (bNN.py) registers parts with
-`part(name, frame, build)` (see propkit.py for the conventions). Each built
-batch is written to .cache/props/<batch>.json; `node tools/prop-assemble.mjs`
-then packs every batch into src/prop-meshes.js, which the game decodes in
-src/props.js. A report of triangle counts and frame checks is printed and
-saved next to the batch output.
+Every batch module in assets/src/blender/props/ (bNN.py, rNN.py, tNN.py, ...)
+registers parts with `part(name, frame, build)` (the batches of real things
+through an `auto(name, build, budget)` of their own; see propkit.py for the
+conventions). Each built batch is written
+to <out>/<batch>.json (by default .cache/props/); `cargo xtask assets props`
+packs every part into crates/game/assets/prop_meshes.bin, which the game
+decodes in `assets::props`. A report of triangle counts and frame checks is
+printed and saved next to the batch output.
 """
 import bpy, sys, os, json, math, base64, struct, importlib.util, time, traceback, random, zlib
 from mathutils import Vector
@@ -110,8 +113,8 @@ for b, entries in REG.items():
         rec = {'name': name}
         try:
             # every part draws its randomness from a seed of its own name, so a
-            # build repeats exactly (the native port's `cargo xtask assets props`
-            # compares rebuilds with the committed meshes)
+            # build repeats exactly (`cargo xtask assets props` compares
+            # rebuilds with the committed meshes)
             random.seed(zlib.crc32(name.encode()))
             shape = sp['build']()
             if not shape.v or not shape.f:

@@ -10,7 +10,7 @@ pub use t15::place_small_spinning_tops;
 mod t16;
 pub use t16::place_small_skateboards;
 
-// R450 small hula hoop: 6% chance per level. Large colorful
+// Small hula hoop: 6% chance per level. Large colorful
 // torus lying on floor. Playground family.
 pub fn place_small_hula_hoops(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -43,7 +43,7 @@ pub fn place_small_hula_hoops(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hoop);
 }
 
-// R450 small chalk sticks: 12% chance per level. 2-4 colored
+// Small chalk sticks: 12% chance per level. 2-4 colored
 // chalk sticks scattered on floor. Playground family.
 pub fn place_small_chalk_sticks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -68,7 +68,7 @@ pub fn place_small_chalk_sticks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R449 hopscotch chalk decal: 4% chance per level. Canvas
+// Hopscotch chalk decal: 4% chance per level. Canvas
 // texture with numbered chalk squares on floor. Games family.
 game::lazy_static_tex!(hopscotch_texture, {
     let t = canvas_tex_opt(256, 512, false, |ctx, w, h| {
@@ -128,7 +128,7 @@ pub fn place_hopscotch_chalks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&decal);
 }
 
-// R448 small dart set: 8% chance per level. 2-3 darts with
+// Small dart set: 8% chance per level. 2-3 darts with
 // colored fins scattered. Games family.
 pub fn place_small_darts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -178,7 +178,7 @@ pub fn place_small_darts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R448 small pool cue: 6% chance per level. Long tapered wooden
+// Small pool cue: 6% chance per level. Long tapered wooden
 // cue with tip cap. Games family.
 pub fn place_small_pool_cues(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -223,7 +223,7 @@ fn domino_pips(count: i32) -> &'static [(f64, f64)] {
     }
 }
 
-// R447 small dominoes: 10% chance per level. 2-4 dominoes with
+// Small dominoes: 10% chance per level. 2-4 dominoes with
 // pip dots scattered. Games family.
 pub fn place_small_dominoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -269,7 +269,7 @@ pub fn place_small_dominoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R447 small pool ball: 8% chance per level. Colored sphere
+// Small pool ball: 8% chance per level. Colored sphere
 // with white numbered circle stripe. Games family.
 pub fn place_small_pool_balls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -307,7 +307,7 @@ pub fn place_small_pool_balls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ball);
 }
 
-// R446 small chess piece: 8% chance per level. Random pawn /
+// Small chess piece: 8% chance per level. Random pawn /
 // rook / bishop / knight silhouette. Games family.
 pub fn place_small_chess_pieces(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -374,7 +374,7 @@ pub fn place_small_chess_pieces(g: &mut Game, _dist: &[i32]) {
     g.world.add(&piece);
 }
 
-// R446 small poker chip stack: 8% chance per level. Stack of
+// Small poker chip stack: 8% chance per level. Stack of
 // colored casino chips. Games family.
 pub fn place_small_poker_chips(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -401,7 +401,7 @@ pub fn place_small_poker_chips(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stack);
 }
 
-// R445 small dice pair: 10% chance per level. 2 white cubes
+// Small dice pair: 10% chance per level. 2 white cubes
 // with random-face pip dots. Games family.
 pub fn place_small_dice_pairs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
@@ -448,7 +448,7 @@ pub fn place_small_dice_pairs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R445 small playing card stack: 8% chance per level. A pack of
+// Small playing card stack: 8% chance per level. A pack of
 // poker-size playing cards dropped (Blender batch r15, 63.5 x 88.9 mm, 0.3
 // mm a card): three in ten spread in a fan, face down but the one under
 // them; else the deck put down unsquared, its top few cards slid, the top
@@ -515,7 +515,7 @@ pub fn place_small_card_stacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cards);
 }
 
-// R444 small hairbrush: 10% chance per level. Oval brush pad
+// Small hairbrush: 10% chance per level. Oval brush pad
 // with bristle bumps + handle. Dressing-table family.
 pub fn place_small_hairbrushes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {

@@ -88,7 +88,7 @@ def stick(points, rfn, seg=6, smooth=0, cap0='flat', cap1='flat'):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed section [(dr, dz), ...] round the Z axis in the XY plane
-    (a TorusGeometry of any section). rmod(a) -> (k, dz) scales/offsets it."""
+    (a torus_geo! of any section). rmod(a) -> (k, dz) scales/offsets it."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     m = len(sec)
@@ -114,7 +114,7 @@ def oval(rx, rz, n=8, phase=0.0):
 
 
 def arc_bounds(R, r, arc):
-    """Frame of THREE.TorusGeometry(R, r, .., .., arc) (ideal bounds)."""
+    """Frame of torus_geo!(R, r, .., .., arc) (ideal bounds)."""
     xs, ys = [], []
     for i in range(361):
         u = arc * i / 360

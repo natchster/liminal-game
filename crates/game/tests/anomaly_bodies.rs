@@ -2,8 +2,8 @@
 //! Showroom's staff and the Borrowed House's shadows walk on the procedural
 //! human rig (`anomalies::rig`), not on a body's own skeleton: the staff's
 //! body, built in Blender (`assets/src/creatures/body_staff.py`), is skinned
-//! to the rig's bones as it stands at rest (the shadows keep the HTML
-//! version's, which blind reviews preferred). The scripts read
+//! to the rig's bones as it stands at rest (the shadows keep their old
+//! body, which blind reviews preferred). The scripts read
 //! that rest pose from `assets/src/creatures/rigs.json`, written here, and
 //! the bodies are held to it, so a rig that changes cannot leave its body
 //! bound to the wrong joints.
@@ -87,7 +87,7 @@ fn the_rigs_rest_pose_is_what_the_body_scripts_read() {
 const BUDGET: usize = 18_000;
 
 /// The figures on the rig with a body of their own in `bodies.bin` (the
-/// shadows keep the HTML version's: their MakeHuman body lost or tied four
+/// shadows keep their old one: their MakeHuman body lost or tied four
 /// blind reviews, E9)
 const FIGURES: [(&str, &HumanRig); 1] = [("staff", &HUMAN_RIG_STAFF)];
 

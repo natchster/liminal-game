@@ -62,7 +62,7 @@ fn wall_candidates(g: &Game) -> Vec<(i32, i32, i32, i32)> {
     candidates
 }
 
-// R752 wrought-iron fire tool set on stand (floor): 3% chance per level.
+// Wrought-iron fire tool set on stand (floor): 3% chance per level.
 fn place_fire_tool_sets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -208,7 +208,7 @@ fn place_fire_tool_sets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&fts);
 }
 
-// R753 a kettle left on the floor (Blender batch `r16`): a 2 l enamel
+// A kettle left on the floor (Blender batch `r16`): a 2 l enamel
 // stovetop kettle, its bail handle up, its enamel chipped to the black steel
 // and rusting at the chips, dented, limescale run white down from its lid
 // and spout where it boiled over, scorched brown at its foot; or the same
@@ -284,7 +284,7 @@ fn place_floor_kettles(g: &mut Game, _dist: &[i32]) {
             steam_wisps.push(Wisp { mesh: wisp.clone(), phase, base_y: py, base_x: px, base_z: pz });
             body.add(&wisp);
         }
-        // R755 pressure-breathing cycle: 20-30 s slow oscillation.
+        // Pressure-breathing cycle: 20-30 s slow oscillation.
         let pressure_cycle = 20.0 + rnd() * 10.0;
         let pressure_phase = rnd() * PI * 2.0;
         let sm = steam_mat.clone();
@@ -609,7 +609,7 @@ fn kettle_vapour_tex() -> Tex {
     })
 }
 
-// R753 Victorian glass-dome specimen display (floor): 3% chance per level.
+// Victorian glass-dome specimen display (floor): 3% chance per level.
 fn place_specimen_domes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;
@@ -816,7 +816,7 @@ fn place_specimen_domes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sd);
 }
 
-// R754 tarnished gilded ornate wall mirror texture.
+// Tarnished gilded ornate wall mirror texture.
 game::lazy_static_tex!(
     tarnished_mirror_texture,
     canvas_tex(256, 320, |ctx, w, h| {
@@ -987,7 +987,7 @@ fn place_tarnished_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tm);
 }
 
-// R756 dust-sheet-covered furniture (floor): 3.5% chance per level. Each
+// Dust-sheet-covered furniture (floor): 3.5% chance per level. Each
 // piece is one sheet of the Watcher's linen thrown over a chair, a table or
 // a wingback (`bodies.bin`'s `sheet_*`, `assets/src/creatures/sheeted.py`):
 // at a glance one is the other. (The draws of the old box-built shapes are
@@ -1041,7 +1041,7 @@ fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
     scf.position().set(g.wx(x) + (rnd() - 0.5) * 0.8, 0, g.wz(z) + (rnd() - 0.5) * 0.8);
     scf.rotation().y = rnd() * PI * 2.0;
     g.world.add(&scf);
-    // R757 the wingback's sheet breathes, very slightly (as it did)
+    // The wingback's sheet breathes, very slightly (as it did)
     if variant >= 2 {
         let breath_freq = (PI * 2.0) / (30.0 + rnd() * 15.0);
         let breath_phase = rnd() * PI * 2.0;
@@ -1054,9 +1054,9 @@ fn place_sheet_covered_furniture(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R756 Victorian servant's bell pull system (wall+ceiling): 2.5% chance per level.
+// Victorian servant's bell pull system (wall+ceiling): 2.5% chance per level.
 fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
-    g.pp.bell_pull_positions.clear(); // R757 reset per level
+    g.pp.bell_pull_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -1135,7 +1135,7 @@ fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
         strand.rotation().z = -angle.cos() * 0.15;
         bp.add(&strand);
     }
-    // R756 subtle sway animator on the cord + tassel + strands + braids.
+    // Subtle sway animator on the cord + tassel + strands + braids.
     let sway_group = group(); // unused
     let sway_freq = 0.28 + rnd() * 0.20;
     let sway_phase = rnd() * PI * 2.0;
@@ -1174,10 +1174,10 @@ fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
     }
     g.world.add(&bp);
     let p = bp.pos();
-    g.pp.bell_pull_positions.push(v3(p.x, 0, p.z)); // R757
+    g.pp.bell_pull_positions.push(v3(p.x, 0, p.z));
 }
 
-// R758 Victorian floor hall stand (floor): 2.5% chance per level.
+// Victorian floor hall stand (floor): 2.5% chance per level.
 fn place_victorian_hall_stands(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;

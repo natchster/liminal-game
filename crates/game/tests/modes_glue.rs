@@ -18,8 +18,8 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 const TOL: f64 = 1e-9;
-/// The recorded key mask's bits. Bit 5 is the reference's C, which crouched
-/// while held; the held crouch is Ctrl now (C toggles, `session/input.rs`),
+/// The recorded key mask's bits. Bit 5 is C, which crouched while held when
+/// the runs were recorded; the held crouch is Ctrl now (C toggles, `session/input.rs`),
 /// so a recorded C is replayed as Ctrl held: the same crouch, frame for frame.
 const KEYS: [&str; 8] = ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "ControlLeft", "ControlLeft", "ArrowUp"];
 /// the per-frame sound updates the fixture keeps only on sampled frames

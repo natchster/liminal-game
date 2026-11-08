@@ -1,25 +1,32 @@
 # Prop parts: the modelling contract
 
-Every prop in the game is built by a *placer* in `backrooms.js` (about 650
-`function placeXxx(dist)`) from three.js primitives. This directory rebuilds
-those props in Blender, finer: each primitive that matters gets a real modelled
-part. A part is swapped in at runtime by `PG('Name__role', new THREE.XGeometry(...))`
-(see `src/props.js`) and **fitted to the primitive's bounds**, so the placer's
-layout, sizes, randomness, colours, animation and gameplay stay exactly as they
-are. Only the shape gets better.
+Every prop in the game is built by a *placer* (a `place_xxx(g, dist)` in a
+placer crate under `crates/placers/`, about 650 of them, or a core-props
+builder in `crates/game/src/core_props/`) from the engine's primitives
+(`box_geo!`, `cyl_geo!`, `sphere_geo!`, …). This directory makes those
+props finer in Blender. There are two kinds of batch:
 
-The pilot batch `b00.py` / `b00.map.json` (radiator, overturned chair) is the
-worked example. Read it first.
+- **Fitted parts** (`bNN.py`, `s01.py`): each primitive that matters gets a
+  real modelled part, swapped in where the placer wraps it,
+  `pg("Name__role", box_geo!(…))` (or `pg_own`, a private copy the placer
+  may change afterwards; `crates/game/src/placers/kit.rs`), and **fitted to
+  the primitive's bounds** (`assets::props::prop_part`), so the placer's
+  layout, sizes, randomness, colours, animation and gameplay stay exactly as
+  they are. Only the shape gets better. This file is their contract.
+- **Real things** (`rNN.py`, `tNN.py`, `v01.py`, `w01.py`, `x01.py`): the
+  prop remodelled as the real object at its real size, each part registered
+  by the batch's own `auto(name, build, budget)` and used as modelled. Their
+  brief is `docs/PROPS.md`, "How a prop is remodelled".
+
+The pilot batch `b00.py` (radiator, overturned chair) is the worked example
+of a fitted batch. Read it first.
 
 ## Files per batch
 
 | File | What |
 |---|---|
 | `bNN.py` | The parts: `part(name, frame, build)` calls (Blender Python, `from propkit import *`) |
-| `bNN.map.json` | Which constructor in which placer becomes which part |
-| `bNN.notes.md` | Per placer: what you rebuilt, what you left and why, placement problems you saw |
-
-`BATCHES.json` says which placers belong to which batch.
+| `bNN.notes.md` | Per placer: what was rebuilt, what was left and why, placement problems seen |
 
 ## A part
 
@@ -27,26 +34,27 @@ worked example. Read it first.
 part('Radiators__body', f_box(0.70, 0.50, 0.10), radiator_body)   # build is a function returning a Shape
 ```
 
-- **Name:** `<PlacerNameWithoutPlace>__<role>`, e.g. `PocketWatches__case`. Use
-  letters, digits and `_` only. A part may be shared by several constructors
-  (same object, same frame kind), even across placers in your batch.
+- **Name:** `<PlacerNameWithoutPlace>__<role>` in CamelCase, e.g.
+  `PocketWatches__case` for `place_pocket_watches`. Use letters, digits and
+  `_` only. A part may be shared by several primitives (same object, same
+  frame kind), even across placers in the batch.
 - **Frame:** the primitive it replaces, with that primitive's *canonical*
   arguments as written in the placer. If an argument is an expression, use a
   typical value. The part is modelled **in the primitive's frame**:
 
-| three.js primitive | frame | where the part must sit |
+| primitive | frame | where the part must sit |
 |---|---|---|
-| `BoxGeometry(w, h, d)` | `f_box(w, h, d)` | centred on the origin |
-| `CylinderGeometry(rt, rb, h)` | `f_cyl(rt, rb, h)` | axis +Y, centred, y from −h/2 to h/2, top radius rt |
-| `ConeGeometry(r, h)` | `f_cone(r, h)` | axis +Y, centred, apex at +h/2 |
-| `SphereGeometry(r)` | `f_sphere(r)` | centred |
-| `TorusGeometry(R, r)` | `f_torus(R, r)` | ring in the **XY plane** around the Z axis |
-| `CapsuleGeometry(r, len)` | `f_capsule(r, len)` | axis +Y, centred, height len + 2r |
-| partial sphere/cylinder, Lathe, Shape, Octahedron… | `f_bounds(lo, hi)` | the primitive's own bounds |
-| `PlaneGeometry(w, h)` / `CircleGeometry(r)` | `f_bounds((-w/2,-h/2,0),(w/2,h/2,0), 'plane')` | front face at z = 0 facing +Z; any thickness goes **behind** (−Z, into the wall) |
+| `box_geo!(w, h, d)` | `f_box(w, h, d)` | centred on the origin |
+| `cyl_geo!(rt, rb, h)` | `f_cyl(rt, rb, h)` | axis +Y, centred, y from −h/2 to h/2, top radius rt |
+| `cone_geo!(r, h)` | `f_cone(r, h)` | axis +Y, centred, apex at +h/2 |
+| `sphere_geo!(r)` | `f_sphere(r)` | centred |
+| `torus_geo!(R, r)` | `f_torus(R, r)` | ring in the **XY plane** around the Z axis |
+| `capsule_geo!(r, len)` | `f_capsule(r, len)` | axis +Y, centred, height len + 2r |
+| partial sphere/cylinder, `lathe_geo!`, `shape_geo!`, `octa_geo!`… | `f_bounds(lo, hi)` | the primitive's own bounds |
+| `plane_geo!(w, h)` / `circle_geo!(r)` | `f_bounds((-w/2,-h/2,0),(w/2,h/2,0), 'plane')` | front face at z = 0 facing +Z; any thickness goes **behind** (−Z, into the wall) |
 
-- Coordinates are three.js: **+Y up**, metres. Blender does not care; the kit
-  builds straight in these coordinates.
+- Coordinates are the game's: **+Y up**, metres. Blender does not care; the
+  kit builds straight in these coordinates.
 - **The part must fill its frame.** The game maps the frame's bounds onto the
   primitive's bounds, so a part that is smaller than its frame shrinks the prop,
   and one that is rotated or off-centre ends up wrong. The build checks the fit
@@ -69,7 +77,9 @@ part('Radiators__body', f_box(0.70, 0.50, 0.10), radiator_body)   # build is a f
 - **Budget:** `budget_for(frame)` (from ~100 triangles for a key to ~1800 for
   big furniture). Over budget is a warning; over 125 % is an error. Spend
   triangles on silhouette and edges people see, not on hidden faces or tiny
-  details. The whole game ships these meshes, so cheap is good.
+  details. The whole game ships these meshes, so cheap is good. The asset
+  lint reads a `budget=` given to `part()` from the call's text: write it as
+  a literal number.
 - **Shading:** `part(..., smooth=35)` is the crease angle. Hard surfaces keep
   the default (weighted normals make flat faces flat and bevels soft). For
   organic or soft things use `smooth=180`; use `flat=True` for a faceted look.
@@ -77,81 +87,57 @@ part('Radiators__body', f_box(0.70, 0.50, 0.10), radiator_body)   # build is a f
 ## What to replace, what to leave
 
 - Replace every solid primitive a player would look at: box, cylinder,
-  sphere, torus, cone, capsule, and the Octahedron and Lathe ones where a
+  sphere, torus, cone, capsule, and the octahedron and lathe ones where a
   better shape exists.
 - **Leave** decals and flat textured quads (stains, posters, labels, clock
   faces, screens, shadows, glows) and anything with `transparent: true`,
-  `side: THREE.DoubleSide`, `depthWrite: false`, `MeshBasicMaterial` glows, or
-  `blending: THREE.AdditiveBlending`. They are texture work, not geometry. A
+  `side: DoubleSide`, `depth_write: false`, `basic_mat!` glows, or
+  `blending: AdditiveBlending`. They are texture work, not geometry. A
   *solid* body behind a textured face is fine as a `plane` frame part, but
   only on an opaque material.
 - **Leave** primitives whose geometry the code later reads or edits vertex by
-  vertex (`.attributes.position`, `setXYZ`). Geometries changed with
-  `.scale/.rotateX/.translate` are fine: the codemod gives them a private copy.
+  vertex (its position attribute). Geometry the placer scales, rotates or
+  translates afterwards is fine through `pg_own`, which gives it a private
+  copy.
 - Tiny bits (under ~1 cm: rivets, ticks, pins) only need a rounded or chamfered
   version (cheap), or can stay primitives. Say which in the notes.
 - Gameplay-critical objects (the exit door, pickups, notes, switches, phones)
   may be refined, but must keep exactly the same bounds. They do, by
   construction.
 
-## The map
-
-```json
-[
-  { "placer": "placeRadiators", "ctor": "new THREE.BoxGeometry(0.70, 0.50, 0.10)", "part": "Radiators__body" },
-  { "placer": "placeLamp", "ctor": "new THREE.CylinderGeometry(0.02, 0.02, h, 8)", "part": "Lamp__pole", "occ": 1 }
-]
-```
-
-- `ctor` is the constructor text **copied from the placer**. Matching ignores
-  whitespace, but everything else must be exact, including the arguments.
-- Without `occ`, every identical constructor text in that placer is mapped.
-  With `occ: k`, only the k-th (0-based) occurrence is.
-- Every entry must match (the gallery build prints "map problems").
-
-## Workflow (run from the project root)
+## Workflow
 
 ```sh
 B=b07
-# 1. build your parts in Blender (fast): errors, warnings, triangles
-/Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-    --python tools/blender/props.py -- --batch $B          # add --parts A,B to rebuild a few
-# 2. contact sheet: the old primitive (left) vs your part (right) in every cell
-node tools/prop-preview.mjs --batch $B --out shots/props/$B.png      # --page 1 … for >48 parts, --uv checks UVs
-# 3. in the game: a private build with only your batch applied, each placer
-#    forced to run on a real level and framed by a camera
-node tools/prop-gallery.mjs --batch $B --out shots/props/${B}_game.png --from 0 --count 12
-node tools/prop-gallery.mjs --batch $B --level 2 ...  # other levels have other zones and lighting
+# 1. build the batch in Blender headless: errors, warnings, triangles, and
+#    each part compared with crates/game/assets/prop_meshes.bin
+cargo xtask assets props --batch $B
+# 2. a full build writes prop_meshes.bin (unchanged parts keep their bytes),
+#    then refresh the parts table and review its diff
+cargo xtask assets props --write
+REGEN=1 cargo test --release -p game --test asset_lint
+# 3. in the game: every kind of prop on real levels, framed by a camera
+cargo run --release -- --dump-level DIR --seed 4242 --levels 4,5 --screenshot x \
+    --prop-census 1 --census-only place_radiators
 ```
 
-**Also handled centrally:** the level's placement pass (`src/placement.js`)
-lifts whole objects that sink into the floor, sets down hovering ones and
-pulls props out of walls and out of each other, and the gallery shows that.
-Log *part-to-part* problems (a handle off its mug, a lid buried in its box, a
-wrong rotation).
+**Handled by the level, not the placer:** the placement pass
+(`world::placement`) lifts whole objects that sink into the floor, sets down
+hovering ones and pulls props out of walls and out of each other; the census
+shots show it. Log *part-to-part* problems (a handle off its mug, a lid
+buried in its box, a wrong rotation) in the batch's notes.
 
-**Already fixed centrally, don't log it:** wall props that hung ~1.5 m off the
-wall facing it (`wx(x) + dx * 0.485`, `atan2(dx, dz)`) were moved onto the
-walls by `tools/fix-wall-offsets.mjs`. Keep private scratch scripts in your
-own subfolder of the session scratchpad (e.g. `scratchpad/b15w/`); other
-agents share the scratchpad root.
+**Work in small steps.** Write `bNN.py` a few placers at a time (a header
+plus the first 4–6 placers, then the rest, at most ~200 lines per step),
+and build after each step.
 
-**Work in small steps.** Write `bNN.py` a few placers at a time: `Write` a
-header plus the first 4–6 placers, then append the rest with `Edit`, at most
-~200 lines per step, and build after each step. A single huge write can stall
-the session and lose everything.
+Look at every image, fix and rebuild until each part reads as the real
+object, fits its frame, and sits right in the game. If a census shot shows
+nothing useful (a wall, the ceiling), try another `--seed`. Never run two
+`cargo xtask assets props --write` at once, and never edit another batch's
+files.
 
-Look at every image with the Read tool, fix and rebuild until each part reads
-as the real object, fits its frame, and sits right in the game. If a gallery
-shot shows nothing useful (a wall, the ceiling), try another `--seed`.
-
-**Never** run `node tools/prop-assemble.mjs`, `node tools/prop-codemod.mjs`
-without `--check`, `node build-standalone.mjs`, `npm run build` or `npm test`,
-and never edit `backrooms.js`, `src/*` or another batch's files. Other batches
-are being built at the same time; the gallery and preview tools give you a
-private build instead. Integration is done centrally afterwards.
-
-## Kit reference (`tools/blender/propkit.py`)
+## Kit reference (`assets/src/blender/propkit.py`)
 
 Shapes are vertex/face lists. Join them with `+` (or `sum([...], Shape())`).
 Transform them with `.move(x,y,z)`, `.rot(x,y,z)` (radians), `.scale(x,y,z)`,
@@ -188,5 +174,6 @@ Tips:
   use `vessel` for anything open.
 - `noisy` on a low-poly shape does nothing useful: subdivide first, or use
   `slab` / `grid_plane`.
-- Check in the preview that normals are not inverted (a part that renders dark
-  or inside-out). Constructors fix winding; `.scale(-1, ...)` flips it too.
+- Check in the census shots that normals are not inverted (a part that
+  renders dark or inside-out). Constructors fix winding; `.scale(-1, ...)`
+  flips it too.

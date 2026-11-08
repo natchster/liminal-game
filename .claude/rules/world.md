@@ -23,6 +23,7 @@ paths:
   - archgen / world layout → `cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord`
   - anything that changes the built level → `cargo test --release -p backrooms --test reference_levels -- --ignored rerecord`
   - core props → `cargo test --release -p game --test core_props_head -- --ignored rerecord`
+    (their second half: `--test core_props_tail -- --ignored rerecord`)
 - **Zones have one purpose each** (`world/purpose.rs`); themed placers only
   see floor whose purpose welcomes their theme (`THEME_COMPAT`,
   `PURPOSE_EMPTY`). A new placer goes into `THEMED_ORDER` and

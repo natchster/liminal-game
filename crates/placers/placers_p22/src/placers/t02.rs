@@ -18,7 +18,7 @@ const WING: (f64, f64) = (0.109, 0.280);
 const CENTRE_D: f64 = 0.028;
 const WING_D: f64 = 0.018;
 
-// R501 religious triptych: 4% chance per level.
+// Religious triptych: 4% chance per level.
 pub(crate) fn place_religious_triptychs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;

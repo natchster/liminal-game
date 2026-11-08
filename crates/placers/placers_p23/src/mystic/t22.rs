@@ -12,7 +12,7 @@ const CORN_L: f64 = 0.019;
 /// soft and slumped
 const CORNS: [&str; 3] = ["Real__candyCornA", "Real__candyCornB", "Real__candyCornC"];
 
-// R465 candy corn scatter: 8% chance per level. 8-14 pieces of candy corn
+// Candy corn scatter: 8% chance per level. 8-14 pieces of candy corn
 // spilled from a bag (19 mm, three bands of a sugar sweet, yellow at its
 // base, orange, a white tip, glazed with confectioner's wax), each lying
 // on a broad face; years on, a few stale and bloomed white and dusty, a

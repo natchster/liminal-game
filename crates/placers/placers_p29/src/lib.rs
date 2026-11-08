@@ -81,7 +81,7 @@ fn extension_cord_by_weather(key: &str) -> &'static [u32] {
         "electric" => &[0x201808, 0x282010],
         "haunted" => &[0x1a0808, 0x201014],
         "derelict" => &[0x181410, 0x201818],
-        // still / normal have no entry → R343 baseline
+        // still / normal have no entry → the baseline
         _ => &[0x181410, 0x201818, 0x202020, 0x141014],
     }
 }
@@ -102,12 +102,12 @@ fn mirror_glass_by_weather(key: &str) -> u32 {
     by_weather(key, 0x3a5060, 0x605020, 0x603030, 0x484038, 0x505860, 0x505860)
 }
 
-// R343 extension cord: 20% chance per level, 1 coiled cord on floor.
+// Extension cord: 20% chance per level, 1 coiled cord on floor.
 fn place_extension_cords(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
     } // 20% chance
-      // R348 30% chance: near a tracked R249 socket; R354 25%: near a tracked R287 laptop.
+      // 30% chance: near a tracked socket; 25%: near a tracked laptop.
     let (mut x, mut z) = (0i32, 0i32);
     let mut near_socket = false;
     let mut socket_pos: Option<Vec3> = None;
@@ -144,7 +144,7 @@ fn place_extension_cords(g: &mut Game, _dist: &[i32]) {
         x = p.0;
         z = p.1;
     }
-    // R349 per-weather cord palette biases the color pool.
+    // Per-weather cord palette biases the color pool.
     let cord_pool = extension_cord_by_weather(g.weather_key());
     let cord_mat = lambert!({ color: pick(cord_pool) });
     let plug_mat = lambert!({ color: 0x080604 });
@@ -186,9 +186,9 @@ fn place_extension_cords(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cord);
 }
 
-// R306 walkie talkie: 12% chance per level, 1 handheld radio on floor.
+// Walkie talkie: 12% chance per level, 1 handheld radio on floor.
 fn place_walkie_talkies(g: &mut Game, _dist: &[i32]) {
-    g.pp.walkie_talkie_positions.clear(); // R307 reset per level
+    g.pp.walkie_talkie_positions.clear(); // reset per level
     if rnd() < 0.88 {
         return;
     } // 12% chance
@@ -221,14 +221,14 @@ fn place_walkie_talkies(g: &mut Game, _dist: &[i32]) {
     let oz = (rnd() - 0.5) * 2.4;
     wt.position().set(g.wx(x) + ox, 0.03, g.wz(z) + oz); // on its side: half-width 0.03 is now the height
     g.world.add(&wt);
-    // R307 track for static-crackle audio events.
+    // Track for static-crackle audio events.
     let p = wt.pos();
     g.pp.walkie_talkie_positions.push(v3(p.x, 0.10, p.z));
 }
 
-// R287 abandoned laptop: 12% chance per level, 1 laptop on the floor.
+// Abandoned laptop: 12% chance per level, 1 laptop on the floor.
 fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
-    g.pp.laptop_positions.clear(); // R354 reset per level
+    g.pp.laptop_positions.clear(); // reset per level
     if rnd() < 0.88 {
         return;
     } // 12% chance
@@ -243,10 +243,10 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
     let base = mesh(pg("AbandonedLaptops__base", box_geo!(0.30, 0.02, 0.22)), &body_mat);
     base.position().y = 0.01;
     laptop.add(&base);
-    // R288 8% chance the laptop is open with a faint blue screen glow.
+    // 8% chance the laptop is open with a faint blue screen glow.
     let is_open = rnd() < 0.08;
     if is_open {
-        // R291 keyboard overlay on top face of base.
+        // Keyboard overlay on top face of base.
         let keyboard_mat = lambert!({ map: laptop_keyboard_texture() });
         let keyboard = mesh(plane_geo!(0.28, 0.20), &keyboard_mat);
         keyboard.rotation().x = -PI / 2.0;
@@ -258,7 +258,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         // Lid modelled closed, lying flat forward of the hinge (z 0…0.22).
         lid_open.position().set(0, 0.0075, 0.11);
         lid_group.add(&lid_open);
-        // R309: 50% chance a garbled-text canvas variant, else faint blue.
+        // 50% chance a garbled-text canvas variant, else faint blue.
         let use_garbled = rnd() < 0.50;
         let screen_mat = if use_garbled {
             let texs = laptop_screen_textures();
@@ -272,7 +272,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         screen.rotation().x = PI / 2.0;
         screen.position().set(0, -0.001, 0.11);
         lid_group.add(&screen);
-        // R312 30% of garbled screens: brief periodic tint flicker.
+        // 30% of garbled screens: brief periodic tint flicker.
         if use_garbled && rnd() < 0.30 {
             let flicker_phase = rnd() * PI * 2.0;
             let flicker_period = 1.2 + rnd() * 1.8; // 1.2–3.0 s
@@ -293,7 +293,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         let screen_light = point_light!(0x4060b0, base_int, 1.5, 2);
         screen_light.position().set(0, 0.15, 0.10);
         laptop.add(&screen_light);
-        // R289 30% chance screen flicker — subtle intensity dip pattern.
+        // 30% chance screen flicker — subtle intensity dip pattern.
         if rnd() < 0.30 {
             let mut flicker_t = 2.0 + rnd() * 4.0;
             let mut dip_t = 0.0;
@@ -312,7 +312,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
             });
         }
     } else {
-        // Closed variant: the R287 stacked lid.
+        // Closed variant: the stacked lid.
         let lid = mesh(pg("AbandonedLaptops__lid", box_geo!(0.30, 0.015, 0.22)), &body_mat);
         lid.position().y = 0.028;
         laptop.add(&lid);
@@ -329,10 +329,10 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
     laptop.position().z = g.wz(pk.1) + oz;
     laptop.rotation().y = rnd() * PI * 2.0;
     g.world.add(&laptop);
-    // R354 track laptop position for extension cord co-loc.
+    // Track laptop position for extension cord co-loc.
     let lp = laptop.pos();
     g.pp.laptop_positions.push(v3(lp.x, 0.02, lp.z));
-    // R289 20% chance a briefcase spawns adjacent to the laptop.
+    // 20% chance a briefcase spawns adjacent to the laptop.
     if rnd() < 0.20 {
         let leather_mat = lambert!({ color: 0x1e1610 });
         let clip_mat = lambert!({ color: 0x8a7a48 });
@@ -360,7 +360,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
         bc.rotation().y = rnd() * PI * 2.0;
         g.world.add(&bc);
     }
-    // R290 25% chance a coffee cup on floor near laptop.
+    // 25% chance a coffee cup on floor near laptop.
     if rnd() < 0.25 {
         let vc_mat = lambert!({ color: 0xece0d0 });
         let vcup = group();
@@ -379,7 +379,7 @@ fn place_abandoned_laptops(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R285 leaning umbrella: 15% chance per level, 1 closed umbrella against a
+// Leaning umbrella: 15% chance per level, 1 closed umbrella against a
 // wall: a classic stick umbrella (Blender batch `r09`), 0.89 m, furled and
 // strapped, stood on its ferrule with its crook against the wall.
 fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
@@ -391,7 +391,7 @@ fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = pick(&cands);
-    // R304: bias primary color to per-weather palette, 20% R285 grab-bag.
+    // Bias primary color to per-weather palette, 20% grab-bag.
     let fabric_colors: [u32; 4] = [0x1a1a2a, 0x2a1a1a, 0x1a2a1a, 0x0a0a0a];
     let weather_color = umbrella_color_by_weather(g.weather_key());
     let fabric_color = if rnd() < 0.8 { weather_color } else { pick(&fabric_colors) };
@@ -430,7 +430,7 @@ fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
         umbrella.position().set(wall_x + (rnd() - 0.5) * 1.0, 0, wall_z);
     }
     g.world.add(&umbrella);
-    // R286 30% chance: the wet it dripped, dried to a mark round its ferrule
+    // 30% chance: the wet it dripped, dried to a mark round its ferrule
     if rnd() < 0.30 {
         let r = 0.08 + rnd() * 0.05;
         let stain = mesh(
@@ -472,7 +472,7 @@ fn umbrella_drip_tex() -> Tex {
     })
 }
 
-// R304 window sign: 8% chance per level, 1 OPEN/CLOSED placard on a wall.
+// Window sign: 8% chance per level, 1 OPEN/CLOSED placard on a wall.
 fn place_window_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
@@ -496,10 +496,10 @@ fn place_window_signs(g: &mut Game, _dist: &[i32]) {
         sign.rotation().y = if c.dz > 0 { PI } else { 0.0 };
         sign.position().set(wall_x + (rnd() - 0.5) * 1.0, sign_height, wall_z);
     }
-    // R333 slight ±0.05 rad Z tilt for crooked-hang aesthetic.
+    // Slight ±0.05 rad Z tilt for crooked-hang aesthetic.
     sign.rotation().z = (rnd() - 0.5) * 0.10;
     g.world.add(&sign);
-    // R317 8% chance: cracked-glass overlay atop the sign.
+    // 8% chance: cracked-glass overlay atop the sign.
     if rnd() < 0.08 {
         let crack_mat = basic_mat!({ map: cracked_glass_texture(), transparent: true, depthWrite: false, side: DoubleSide });
         let crack = mesh(plane_geo!(0.22, 0.11), &crack_mat);
@@ -509,7 +509,7 @@ fn place_window_signs(g: &mut Game, _dist: &[i32]) {
         crack.position().x -= c.dx as f64 * 0.002;
         crack.position().z -= c.dz as f64 * 0.002;
         g.world.add(&crack);
-        // R327 2-4 tiny floor shards beneath cracked sign.
+        // 2-4 tiny floor shards beneath cracked sign.
         let shard_mat = basic_mat!({ color: shard_color_by_weather(g.weather_key()), transparent: true, opacity: 0.8, depthWrite: false, side: DoubleSide });
         let sh_count = 2 + (rnd() * 3.0).floor() as i32;
         let sp = sign.pos();
@@ -525,7 +525,7 @@ fn place_window_signs(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R303 pinned photos: 12% chance per level, 1 polaroid pinned to a wall.
+// Pinned photos: 12% chance per level, 1 polaroid pinned to a wall.
 fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
         return;
@@ -537,7 +537,7 @@ fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
     let c = pick(&cands);
     let texs = photo_textures();
     let tex = texs[(rnd() * texs.len() as f64).floor() as usize].clone();
-    // R311 per-weather color tint via material multiply.
+    // Per-weather color tint via material multiply.
     let photo_tint = photo_tint_by_weather(g.weather_key());
     let photo_mat = lambert!({ map: tex, color: photo_tint, transparent: true, side: DoubleSide });
     let photo = mesh(plane_geo!(0.14, 0.14), &photo_mat);
@@ -566,7 +566,7 @@ fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
     photo.rotation().z = (rnd() - 0.5) * 0.15;
     g.world.add(&photo);
     g.world.add(&pin);
-    // R318 5% chance: cracked-glass overlay atop the photo.
+    // 5% chance: cracked-glass overlay atop the photo.
     if rnd() < 0.05 {
         let crack_mat = basic_mat!({ map: cracked_glass_texture(), transparent: true, depthWrite: false, side: DoubleSide });
         let crack = mesh(plane_geo!(0.14, 0.14), &crack_mat);
@@ -575,7 +575,7 @@ fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
         crack.position().x -= c.dx as f64 * 0.001;
         crack.position().z -= c.dz as f64 * 0.001;
         g.world.add(&crack);
-        // R330 2-3 tiny floor shards beneath cracked photo.
+        // 2-3 tiny floor shards beneath cracked photo.
         let shard_mat = basic_mat!({ color: shard_color_by_weather(g.weather_key()), transparent: true, opacity: 0.8, depthWrite: false, side: DoubleSide });
         let sh_count = 2 + (rnd() * 2.0).floor() as i32;
         let pp = photo.pos();

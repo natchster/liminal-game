@@ -86,7 +86,7 @@ const SB_KINDS: [(&str, [f64; 3], &str); 4] = [
     ("BATHROOM CLEANER", [0.66, 0.30, 0.34], "#8a3440"),
 ];
 
-// R539 spray bottle: 8% chance per level. A 16 oz HDPE cylinder round of
+// Spray bottle: 8% chance per level. A 16 oz HDPE cylinder round of
 // cleaner with a 28/400 trigger sprayer (Blender batch `t04`): the natural
 // plastic gone yellow, the liquid left in it seen through it (the old four:
 // a green all-purpose cleaner, a blue glass cleaner, a yellow degreaser, a

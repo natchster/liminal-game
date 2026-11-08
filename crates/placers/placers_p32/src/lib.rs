@@ -55,7 +55,7 @@ fn shoe_color_by_weather(key: &str) -> u32 {
     by_weather(key, 0x2a2018, 0x3c2818, 0x1a0f0a, 0x4a3020, 0x4a3a28, 0x3c2818)
 }
 
-// R248 wall vents: 0-2 rusted grille boxes per level on random walls
+// Wall vents: 0-2 rusted grille boxes per level on random walls
 // at head height (1.6-2.1 m).
 fn place_wall_vents(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.45 {
@@ -97,7 +97,7 @@ fn place_wall_vents(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R248 dropped shoes: very rare small worn-shoe mesh on floor.
+// Dropped shoes: very rare small worn-shoe mesh on floor.
 fn place_dropped_shoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.75 {
         return;
@@ -113,7 +113,7 @@ fn place_dropped_shoes(g: &mut Game, _dist: &[i32]) {
     if open_tiles.is_empty() {
         return;
     }
-    // R249 variant: 60% solo, 30% pair (matched), 10% trail.
+    // Variant: 60% solo, 30% pair (matched), 10% trail.
     let variant_roll = rnd();
     let variant = if variant_roll < 0.60 {
         "solo"
@@ -177,9 +177,9 @@ fn place_dropped_shoes(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R249 wall sockets: 0-4 small floor-level outlets on random walls.
+// Wall sockets: 0-4 small floor-level outlets on random walls.
 fn place_wall_sockets(g: &mut Game, _dist: &[i32]) {
-    g.pp.socket_positions.clear(); // reset per level for R250 spark events
+    g.pp.socket_positions.clear(); // reset per level for spark events
     if rnd() < 0.30 {
         return;
     } // 30% chance NO sockets
@@ -227,14 +227,14 @@ fn place_wall_sockets(g: &mut Game, _dist: &[i32]) {
         g.world.add(&plate);
         g.world.add(&hole1);
         g.world.add(&hole2);
-        // R250 track for socket-spark events (electric biome only).
+        // Track for socket-spark events (electric biome only).
         let p = plate.pos();
         g.pp.socket_positions.push(v3(p.x, socket_height, p.z));
         i += 1;
     }
 }
 
-// R245 wall stains: where water came down a wall from the ceiling's edge
+// Wall stains: where water came down a wall from the ceiling's edge
 // and dried (`assets/src/blender/props/r07.notes.md`). The wetted patch hangs
 // from under the ceiling in lobes, each lobe as far as the water got; the
 // edge of every wetting dried as a sharp, wavy, darker tide line (what the

@@ -1,9 +1,7 @@
 # The Backrooms — game canon
 
 This is the game's own lore: what is true *in this game*, written in our own
-words, ported from the HTML version's canon (`../docs/LORE.md` in the parent
-folder, with the research behind it in `../docs/LORE_RESEARCH.md` and
-`../docs/SCP_LOCATIONS.md`; read-only references). When a design question
+words. When a design question
 comes up ("would a Hound do that?"), this document is the answer. It is a
 living bible: change it when the game's truth changes, in the same commit.
 
@@ -557,8 +555,8 @@ now and then, and every floor of the Building knows it (`world::assembly`):
 ## Anomalies
 
 The Backrooms have swallowed other places too, the kind the SCP Foundation
-files as buildings and rooms (researched in the HTML version's `SCP_LOCATIONS.md`:
-315 of them, Euclid and Keter). Four have found their way in:
+files as buildings and rooms (a survey of 315 of them, Euclid and Keter,
+went into choosing). Four have found their way in:
 
 | Anomaly | What it is | Inspired by |
 |---|---|---|
@@ -1137,9 +1135,9 @@ the car behind its doors are heard by nothing but you.
   `assets/src/creatures/body_far_figure.py`, `docs/MEGASTRUCTURE.md` and the
   Building's notes are CC BY-SA 3.0 and keep this attribution. Piranesi's
   *Carceri* (1750) is in the public domain.
-- The research catalogue `SCP_LOCATIONS.md` (HTML version's docs) summarizes 315
-  SCP Wiki articles in our own words, each with its author and link
-  (CC BY-SA 3.0).
+- The anomalies were chosen from a research survey (not in this repository)
+  that summarized 315 SCP Wiki articles in our own words, each with its
+  author and link (CC BY-SA 3.0).
 - **Backrooms** lore comes from the Backrooms wikis (Wikidot and Fandom),
   **CC BY-SA 3.0**. The zone archetypes, Smiler and Hound rules and Almond
   Water are adapted, not copied: the Hound after Entity 8 of the Wikidot

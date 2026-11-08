@@ -89,7 +89,7 @@ fn face_wall(dx: i32, dz: i32) -> f64 {
     (-(dx as f64)).atan2(-(dz as f64))
 }
 
-// R661 mason jar: 7% chance per level. Glass body + metal
+// Mason jar: 7% chance per level. Glass body + metal
 // screw lid + optional interior contents.
 fn place_mason_jars(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -136,7 +136,7 @@ fn place_mason_jars(g: &mut Game, _dist: &[i32]) {
     g.world.add(&jar);
 }
 
-// R661 wall broom (hanging): 4% chance per level (Blender batch `r13b`): a
+// Wall broom (hanging): 4% chance per level (Blender batch `r13b`): a
 // hand-made round hearth broom, 0.71 m, hung on a nail by a jute loop through
 // the hole in its handle's top, its head's back against the wall: broomcorn
 // bound round a hardwood stick with twine, its ends splayed, worn short on
@@ -291,7 +291,7 @@ fn broom_corn_tex(vary: u32) -> Tex {
     })
 }
 
-// R662 wooden rolling pin: 6% chance per level. Central roll
+// Wooden rolling pin: 6% chance per level. Central roll
 // + 2 handle knobs.
 fn place_rolling_pins(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -326,7 +326,7 @@ fn place_rolling_pins(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pin);
 }
 
-// R663 cutting board: 6% chance per level. Wooden board
+// Cutting board: 6% chance per level. Wooden board
 // w/ hole handle.
 fn place_cutting_boards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -358,7 +358,7 @@ fn place_cutting_boards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&board);
 }
 
-// R663 ceramic mixing bowl: 6% chance per level.
+// Ceramic mixing bowl: 6% chance per level.
 fn place_mixing_bowls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -390,7 +390,7 @@ fn place_mixing_bowls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bowl);
 }
 
-// R665 wire whisk: 7% chance per level. Handle + bulb of
+// Wire whisk: 7% chance per level. Handle + bulb of
 // curved wire loops.
 fn place_whisks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -438,7 +438,7 @@ fn place_whisks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&whisk);
 }
 
-// R665 hanging wall apron: 5% chance per level (Blender batch `r13b`): a
+// Hanging wall apron: 5% chance per level (Blender batch `r13b`): a
 // cotton bib apron, 72 x 86 cm, hung by its neck strap on a cast iron hook
 // (`r06`'s): the bib's top fallen into a cowl between the strap's ends, the
 // waist's corners dropped, the skirt against the wall in folds, its patch
@@ -590,9 +590,9 @@ fn apron_tex(stripe: bool, vary: u32, b: [f64; 4]) -> Tex {
     })
 }
 
-// R667 teapot on trivet: 4% chance per level.
+// Teapot on trivet: 4% chance per level.
 fn place_teapots(g: &mut Game, _dist: &[i32]) {
-    g.pp.teapot_positions.clear(); // R672 reset per level
+    g.pp.teapot_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -647,7 +647,7 @@ fn place_teapots(g: &mut Game, _dist: &[i32]) {
     );
     teapot.rotation().y = rnd() * PI * 2.0;
     g.world.add(&teapot);
-    // R672 subtle lid lift-and-settle: rare, brief Y bob when
+    // Subtle lid lift-and-settle: rare, brief Y bob when
     // sin(t*0.12 + phase) > 0.94 (~6% of time). Simulates steam
     // pressure lifting lid slightly.
     let phase = rnd() * PI * 2.0;
@@ -665,10 +665,10 @@ fn place_teapots(g: &mut Game, _dist: &[i32]) {
         }
     });
     let p = teapot.pos();
-    g.pp.teapot_positions.push(v3(p.x, 0, p.z)); // R672 track for whistle
+    g.pp.teapot_positions.push(v3(p.x, 0, p.z)); // track for whistle
 }
 
-// R667 cookie tin box: 6% chance per level.
+// Cookie tin box: 6% chance per level.
 game::lazy_static_tex!(
     cookie_tin_texture,
     canvas_tex(160, 160, |ctx, w, h| {
@@ -710,7 +710,7 @@ game::lazy_static_tex!(
 );
 
 fn place_cookie_tins(g: &mut Game, _dist: &[i32]) {
-    g.pp.cookie_tin_positions.clear(); // R678 reset per level
+    g.pp.cookie_tin_positions.clear(); // reset per level
     if rnd() < 0.94 {
         return;
     } // 6% chance
@@ -734,7 +734,7 @@ fn place_cookie_tins(g: &mut Game, _dist: &[i32]) {
     rim.rotation().x = PI / 2.0;
     rim.position().y = 0.056;
     tin.add(&rim);
-    // R699 subtle lid Y-jitter — 35% chance. Pairs w/ R678 rattle audio:
+    // Subtle lid Y-jitter — 35% chance. Pairs w/ the tin's rattle audio:
     // when the tin "rattles", visually the lid is also settling.
     if rnd() < 0.35 {
         let lid_base_y = 0.056;
@@ -750,10 +750,10 @@ fn place_cookie_tins(g: &mut Game, _dist: &[i32]) {
     tin.rotation().y = rnd() * PI * 2.0;
     g.world.add(&tin);
     let p = tin.pos();
-    g.pp.cookie_tin_positions.push(v3(p.x, 0, p.z)); // R678
+    g.pp.cookie_tin_positions.push(v3(p.x, 0, p.z));
 }
 
-// R668 teacup + saucer: 7% chance per level.
+// Teacup + saucer: 7% chance per level.
 fn place_teacups(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -790,10 +790,10 @@ fn place_teacups(g: &mut Game, _dist: &[i32]) {
     cup.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cup);
     let p = cup.pos();
-    g.pp.teacup_positions.push(v3(p.x, 0, p.z)); // R675
+    g.pp.teacup_positions.push(v3(p.x, 0, p.z));
 }
 
-// R668 hanging cast iron ladle: 4% chance per level.
+// Hanging cast iron ladle: 4% chance per level.
 fn place_cast_iron_ladles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -822,7 +822,7 @@ fn place_cast_iron_ladles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ladle);
 }
 
-// R670 spoon rest w/ spoon: 7% chance per level.
+// Spoon rest w/ spoon: 7% chance per level.
 fn place_spoon_rests(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -861,7 +861,7 @@ fn place_spoon_rests(g: &mut Game, _dist: &[i32]) {
     g.world.add(&rest);
 }
 
-// R670 framed hand-drawn recipe: 4% chance per level.
+// Framed hand-drawn recipe: 4% chance per level.
 game::lazy_static_tex!(
     recipe_texture,
     canvas_tex(112, 152, |ctx, w, h| {
@@ -913,7 +913,7 @@ fn place_framed_recipes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&rec);
 }
 
-// R671 salt shaker + pepper mill pair: 6% chance per level.
+// Salt shaker + pepper mill pair: 6% chance per level.
 fn place_shaker_pair(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -959,7 +959,7 @@ fn place_shaker_pair(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-// R673 a loaf left on its board (Blender batch `r16`): a small white bloomer
+// A loaf left on its board (Blender batch `r16`): a small white bloomer
 // on a beech bread board, its end cut off long ago; stale, shrunk and
 // cracked, its crust gone dull, mould grown over it in blue-green and white
 // colonies, thickest on the cut face; the board scored by knives, greyed,
@@ -1229,7 +1229,7 @@ fn loaf_board_tex(salt: u32) -> Tex {
     })
 }
 
-// R674 wine bottle: 6% chance per level.
+// Wine bottle: 6% chance per level.
 fn place_wine_bottles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -1272,7 +1272,7 @@ fn place_wine_bottles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bottle);
 }
 
-// R674 cheese wheel wedge: 7% chance per level.
+// Cheese wheel wedge: 7% chance per level.
 fn place_cheese_wedges(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -1307,7 +1307,7 @@ fn place_cheese_wedges(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wedge);
 }
 
-// R676 pencil eyeliner: 9% chance per level. Slim tapered pencil.
+// Pencil eyeliner: 9% chance per level. Slim tapered pencil.
 fn place_pencil_eyeliners(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.91 {
         return;
@@ -1338,10 +1338,10 @@ fn place_pencil_eyeliners(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pen);
 }
 
-// R677 kitchen wall clock: 4% chance per level. Round face
+// Kitchen wall clock: 4% chance per level. Round face
 // w/ 4 tick marks + hands.
 fn place_kitchen_clocks(g: &mut Game, _dist: &[i32]) {
-    g.pp.kitchen_clock_positions.clear(); // R681 reset per level
+    g.pp.kitchen_clock_positions.clear(); // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -1393,10 +1393,10 @@ fn place_kitchen_clocks(g: &mut Game, _dist: &[i32]) {
     clock.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&clock);
     let p = clock.pos();
-    g.pp.kitchen_clock_positions.push(v3(p.x, 0, p.z)); // R681
+    g.pp.kitchen_clock_positions.push(v3(p.x, 0, p.z));
 }
 
-// R677 rolling pin stand w/ 2 pins: 4% chance per level.
+// Rolling pin stand w/ 2 pins: 4% chance per level.
 fn place_rolling_pin_stands(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -1448,7 +1448,7 @@ fn place_rolling_pin_stands(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stand);
 }
 
-// R679 pie slice on plate: 7% chance per level. Triangular
+// Pie slice on plate: 7% chance per level. Triangular
 // wedge of pie (crust + filling) resting on ceramic plate.
 fn place_pie_slices(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
@@ -1510,11 +1510,11 @@ fn place_pie_slices(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pie);
 }
 
-// R679 cake stand, R680 cornbread muffins: batch `t13`'s (`t13.rs`)
+// Cake stand, cornbread muffins: batch `t13`'s (`t13.rs`)
 mod t13;
 use t13::{place_cake_stands, place_cornbread_muffins};
 
-// R680 sewing basket: 4% chance per level. Wicker basket
+// Sewing basket: 4% chance per level. Wicker basket
 // w/ folded fabric + spool of thread + optional needles.
 fn place_sewing_baskets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -1586,7 +1586,7 @@ fn place_sewing_baskets(g: &mut Game, _dist: &[i32]) {
             let by = pin.pos().y;
             pins.push((pin, by));
         }
-        // R723 subtle pincushion bob animator — 40% chance.
+        // Subtle pincushion bob animator — 40% chance.
         // Tiny Y-bob on cushion + pins together (as if soft fabric
         // is settling from being pressed).
         if rnd() < 0.4 {

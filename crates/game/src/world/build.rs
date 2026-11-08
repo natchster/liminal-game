@@ -200,9 +200,9 @@ impl Game {
         self.faulty_trip_count = 0.0;
         self.escalation_toast_fired = false;
         self.haunted_candles.clear();
-        // R88: a new weather doesn't inherit drift readings from the last level
+        // A new weather doesn't inherit drift readings from the last level
         self.rate_delta_buf.clear();
-        // R91–R767: per-weather ambient timers, rare-event timers and envelopes
+        // Per-weather ambient timers, rare-event timers and envelopes
         crate::world::tables::reset_level_timers(self);
         self.ambient_log.clear();
         self.rain_windows.clear();
@@ -383,7 +383,7 @@ impl Game {
         }
         self.world.add(&pm);
         self.panel_mesh = Some(pm);
-        // R247: 0-2 broken ceiling panels — a dead spotlight and a hanging tile piece
+        // 0-2 broken ceiling panels — a dead spotlight and a hanging tile piece
         let broken_count = if rnd() < 0.6 {
             if rnd() < 0.4 {
                 2

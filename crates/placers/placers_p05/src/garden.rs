@@ -1,16 +1,16 @@
-//! Wall crafts, hand mirror, plants and garden tools (R635–R645).
+//! Wall crafts, hand mirror, plants and garden tools.
 use crate::{face_yaw, open_tiles, pick, set_rot_order, wall_tiles};
 use game::prelude::*;
 
-// R638 hanging plant: made real by batch `t06` (`t06.rs`)
+// Hanging plant: made real by batch `t06` (`t06.rs`)
 pub use crate::t06::place_hanging_plants;
 
-// R641 gardening gloves, R644 garden rake: made real by batch `t17`
+// Gardening gloves, garden rake: made real by batch `t17`
 // (`garden/t17.rs`)
 mod t17;
 pub use t17::{place_garden_rakes, place_gardening_gloves};
 
-// R635 framed cross-stitch: 4% chance per level. An alphabet sampler on
+// Framed cross-stitch: 4% chance per level. An alphabet sampler on
 // linen, framed (batch r13a).
 pub fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
@@ -514,7 +514,7 @@ fn sp_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm: f64) 
     })
 }
 
-// R637 hand mirror: 6% chance per level. Round mirror w/ long handle laid flat
+// Hand mirror: 6% chance per level. Round mirror w/ long handle laid flat
 // on floor.
 pub fn place_hand_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -552,7 +552,7 @@ pub fn place_hand_mirrors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mirror);
 }
 
-// R637 framed watercolor: 4% chance per level. Ornate frame + pastel abstract
+// Framed watercolor: 4% chance per level. Ornate frame + pastel abstract
 // wash inside.
 game::lazy_static_tex!(
     watercolor_texture,
@@ -619,7 +619,7 @@ pub fn place_watercolors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&painting);
 }
 
-// R638 potted seedling: 7% chance per level. Small pot w/ tiny green sprout.
+// Potted seedling: 7% chance per level. Small pot w/ tiny green sprout.
 pub fn place_seedlings(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -660,7 +660,7 @@ pub fn place_seedlings(g: &mut Game, _dist: &[i32]) {
     g.world.add(&seedling);
 }
 
-// R640 gardening trowel: 6% chance per level. Metal scoop blade + handle.
+// Gardening trowel: 6% chance per level. Metal scoop blade + handle.
 pub fn place_trowels(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -710,7 +710,7 @@ pub fn place_trowels(g: &mut Game, _dist: &[i32]) {
     g.world.add(&trowel);
 }
 
-// R640 seed packet: 8% chance per level. Colored paper envelope w/ printed
+// Seed packet: 8% chance per level. Colored paper envelope w/ printed
 // flower image.
 game::lazy_static_tex!(
     seed_packet_texture,
@@ -765,7 +765,7 @@ pub fn place_seed_packets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&packet);
 }
 
-// R641 mini watering can: 5% chance per level. Body + spout + handle.
+// Mini watering can: 5% chance per level. Body + spout + handle.
 pub fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -829,7 +829,7 @@ pub fn place_watering_cans(g: &mut Game, _dist: &[i32]) {
     g.world.add(&can);
 }
 
-// R643 pruning shears: 6% chance per level. 2 curved blades + 2 handles + pivot.
+// Pruning shears: 6% chance per level. 2 curved blades + 2 handles + pivot.
 pub fn place_pruning_shears(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -887,7 +887,7 @@ pub fn place_pruning_shears(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shears);
 }
 
-// R643 garden hoe: 4% chance per level. Long wooden handle + metal flat blade.
+// Garden hoe: 4% chance per level. Long wooden handle + metal flat blade.
 pub fn place_garden_hoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -924,7 +924,7 @@ pub fn place_garden_hoes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hoe);
 }
 
-// R644 garden hose coil: 5% chance per level. Concentric tori forming coiled hose.
+// Garden hose coil: 5% chance per level. Concentric tori forming coiled hose.
 pub fn place_garden_hoses(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -966,7 +966,7 @@ pub fn place_garden_hoses(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hose);
 }
 
-// R645 garden shovel: 3% chance per level. Long handle + D-grip + spade blade.
+// Garden shovel: 3% chance per level. Long handle + D-grip + spade blade.
 pub fn place_garden_shovels(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;

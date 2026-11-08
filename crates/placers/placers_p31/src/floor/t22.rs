@@ -29,7 +29,7 @@ const BUTTS: [(&str, f64); 4] = [
     ("Real__cigButtD", CIG_FILTER + 0.012),
 ];
 
-// R251 cigarette butts: 0-2 small piles per level (2-6 butts per pile),
+// Cigarette butts: 0-2 small piles per level (2-6 butts per pile),
 // where someone stood and smoked: king-size filter cigarettes (84 mm,
 // 7.8 mm across, a 21 mm filter under cork-printed or white tipping paper)
 // smoked down and dropped, most stubbed out underfoot (the burning end

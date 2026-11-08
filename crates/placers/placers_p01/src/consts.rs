@@ -11,7 +11,7 @@ pub fn shoe_color_by_weather(key: &str) -> u32 {
 pub fn umbrella_color_by_weather(key: &str) -> u32 {
     by_weather(key, 0x0a1218, 0x282010, 0x2a0a0a, 0x3a3020, 0x1a1a2a, 0x1a1a1a)
 }
-/// Soap bar colour per weather (normal: `None` → the R335 4-colour baseline pool)
+/// Soap bar colour per weather (normal: `None` → the 4-colour baseline pool)
 pub fn soap_bar_color_by_weather(key: &str) -> Option<&'static [u32]> {
     by_weather(
         key,
@@ -23,7 +23,7 @@ pub fn soap_bar_color_by_weather(key: &str) -> Option<&'static [u32]> {
         None,
     )
 }
-/// Toothbrush colour per weather (normal: `None` → the R328 4-colour baseline pool)
+/// Toothbrush colour per weather (normal: `None` → the 4-colour baseline pool)
 pub fn toothbrush_color_by_weather(key: &str) -> Option<&'static [u32]> {
     by_weather(
         key,
@@ -55,7 +55,7 @@ pub fn poster_tint_by_weather(key: &str) -> u32 {
 pub fn mirror_glass_by_weather(key: &str) -> u32 {
     by_weather(key, 0x3a5060, 0x605020, 0x603030, 0x484038, 0x505860, 0x505860)
 }
-/// Dead plant pot per weather (still / normal: `None` → R379 baseline)
+/// Dead plant pot per weather (still / normal: `None` → the baseline)
 pub fn dead_plant_pot_by_weather(key: &str) -> Option<&'static [u32]> {
     by_weather(
         key,
@@ -67,7 +67,7 @@ pub fn dead_plant_pot_by_weather(key: &str) -> Option<&'static [u32]> {
         None,
     )
 }
-/// Book cover per weather (still / normal: `None` → R380 baseline)
+/// Book cover per weather (still / normal: `None` → the baseline)
 pub fn book_cover_by_weather(key: &str) -> Option<&'static [u32]> {
     by_weather(
         key,
@@ -91,7 +91,7 @@ pub fn rug_tint_by_weather(key: &str) -> u32 {
 pub fn ceiling_debris_by_weather(key: &str) -> u32 {
     by_weather(key, 0x8890a0, 0xa89880, 0xa88880, 0x988878, 0xa89890, 0xa89890)
 }
-/// Extension cord per weather (still / normal: `None` → R343 baseline)
+/// Extension cord per weather (still / normal: `None` → the baseline)
 pub fn extension_cord_by_weather(key: &str) -> Option<&'static [u32]> {
     by_weather(
         key,

@@ -85,7 +85,7 @@ Research note, 2026-10-29. Brief: rebuild the game's vending machine as a photor
 **Design lessons:**
 1. **Price everything in currencies the game already has:** noise (Hounds), light (Smilers), paper, nerve, time. The Company counter works because noise is both how you use it and the danger.
 2. **Warn before you punish.** The Company rumbles first; players who missed the cue called it unfair. Every penalty needs an audible tell and a beat to react.
-3. **Rules, not dice.** The web version's machine is a slot table: 40% Almond Water, 25% battery, 25% stuck, 10% speed soda (the HTML version's `ideas.md`, in the parent folder). Random outcomes cannot be learned (pillar 4). Seed any variation per machine (see Fallout's save-scum).
+3. **Rules, not dice.** An early idea for the machine was a slot table: 40% Almond Water, 25% battery, 25% stuck, 10% speed soda. Random outcomes cannot be learned (pillar 4). Seed any variation per machine (see Fallout's save-scum).
 4. **No talking, no jump scares, no gore.** SCP-6593 and the RE4 remake show talk turning into comedy and wearing out. SCP-8733 and the creepypasta eye work on the page; in first person they are one cheap shock.
 5. **Habituation.** Thomas Grip: after a first death, later encounters relax players, and gory cutscenes "make you relax" ([DSOGaming, 2014](https://www.dsogaming.com/news/frictional-games-dev-on-alien-isolation-horror-game-suffers-from-two-major-horror-design-issues)). Keep uncanny reveals rare and director-gated, and the mechanical rule stable.
 6. **A prop, never a creature.** It never moves or attacks (unlike Control's); danger comes only from what it makes you do.

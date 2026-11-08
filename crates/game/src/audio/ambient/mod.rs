@@ -19,19 +19,19 @@
 //! | step | function | file |
 //! |---|---|---|
 //! | mix factors (sanity, cadence, gain, level depth, hush) | `amb_mix` | here |
-//! | R118/R120 rain-window streaks + rain hiss | `amb_rain_windows` | here |
-//! | R117 ripples, R131 scuffs, R119 splash / R121 thunder flash decay | `amb_fx_decay` | here |
-//! | R99 room-tone lerp, R142 low-sanity brightening, hush dip | `amb_room_tone` | here |
+//! | rain-window streaks + rain hiss | `amb_rain_windows` | here |
+//! | ripples, scuffs, splash / thunder flash decay | `amb_fx_decay` | here |
+//! | room-tone lerp, low-sanity brightening, hush dip | `amb_room_tone` | here |
 //! | per-weather beds (wet / still / derelict / electric / haunted / normal) | `amb_weather_events` | weather.rs |
 //! | cross-weather rare events (knock … clock skip) | `amb_rare_events` | weather.rs |
-//! | prop sounds R272–R584 (fountain … smoke detector) | `amb_props_fixtures` | fixtures.rs |
-//! | R608–R672 props (coin … teapot) | `amb_props_trinkets` | fixtures.rs |
-//! | R678–R729 household props (cookie tin … turntable) | `amb_props_household` | household.rs |
-//! | R732–R767 parlour props (chalkboard … hobby horse) | `amb_props_parlour` | household.rs |
-//! | R542–R564 + R273 (pay phone … plant, motion sensor) | `amb_props_lobby` | lobby.rs |
-//! | R275–R325 rare fixtures (speaker … broken phone) | `amb_props_rare_fixtures` | lobby.rs |
+//! | the fixtures' prop sounds (fountain … smoke detector) | `amb_props_fixtures` | fixtures.rs |
+//! | trinkets (coin … teapot) | `amb_props_trinkets` | fixtures.rs |
+//! | household props (cookie tin … turntable) | `amb_props_household` | household.rs |
+//! | parlour props (chalkboard … hobby horse) | `amb_props_parlour` | household.rs |
+//! | lobby props (pay phone … plant, motion sensor) | `amb_props_lobby` | lobby.rs |
+//! | rare fixtures (speaker … broken phone) | `amb_props_rare_fixtures` | lobby.rs |
 //! | the level's signature sounds | `amb_signatures` | here |
-//! | R237 reality-shift pitch bend, R102 surge decay | `amb_shift_bend` | weather.rs |
+//! | reality-shift pitch bend, surge decay | `amb_shift_bend` | weather.rs |
 pub mod fixtures;
 pub mod household;
 pub mod lobby;
@@ -268,7 +268,7 @@ pub const CADENCES: &[Cadence] = &[
     cad("chalkboard-scratch", |g| &mut g.chalkboard_scratch_timer, 45.0, 45.0),
     cad("calendar-turn", |g| &mut g.kitchen_calendar_turn_timer, 90.0, 90.0),
     cad("telescope-click", |g| &mut g.telescope_click_timer, 20.0, 20.0),
-    cad("cuckoo-clock-call", |g| &mut g.cuckoo_call_timer_r741, 120.0, 180.0),
+    cad("cuckoo-clock-call", |g| &mut g.ornate_cuckoo_call_timer, 120.0, 180.0),
     cad("fireplace-crackle", |g| &mut g.fireplace_crackle_timer, 4.0, 6.0),
     cad("aquarium-hum", |g| &mut g.aquarium_hum_timer, 8.0, 7.0),
     cad("wingback-creak", |g| &mut g.wingback_creak_timer, 60.0, 60.0),
@@ -290,7 +290,7 @@ pub const CADENCES: &[Cadence] = &[
     cad("vending-hum", |g| &mut g.vending_hum_timer, 720.0, 780.0),
     cad("keycard-beep", |g| &mut g.keycard_beep_timer, 120.0, 120.0),
     cad("cardboard-shift", |g| &mut g.cardboard_shift_timer, 180.0, 180.0),
-    cad("living-plant-rustle", |g| &mut g.plant_rustle_timer_r291, 240.0, 240.0),
+    cad("living-plant-rustle", |g| &mut g.living_plant_rustle_timer, 240.0, 240.0),
     cad("walkie-static", |g| &mut g.walkie_static_timer, 180.0, 180.0),
     cad("wallclock-tick", |g| &mut g.wall_clock_tick_timer, 240.0, 240.0),
     cad("cracked-clock-creak", |g| &mut g.cracked_clock_creak_timer, 180.0, 180.0),
@@ -764,7 +764,7 @@ impl Game {
         self.amb_signatures(dt, &m);
         self.amb_exit(dt, &m);
         self.amb_shift_bend(dt);
-        // R102/R104 electric surge dim countdown (drives panel dim). Outside the
+        // Electric surge dim countdown (drives panel dim). Outside the
         // electric branch so a mid-surge weather change still decays the dim.
         if self.electric_surge_t > 0.0 {
             self.electric_surge_t = (0.0f64).max(self.electric_surge_t - dt);
@@ -773,8 +773,8 @@ impl Game {
 
     /// The mix factors.
     fn amb_mix(&self) -> AmbMix {
-        // R143 sanity ambient boost: below 30% sanity the next-cooldown values
-        // shrink (2/3 of nominal at 0%); R144 also boosts event gains.
+        // Sanity ambient boost: below 30% sanity the next-cooldown values
+        // shrink (2/3 of nominal at 0%); low sanity also boosts event gains.
         let sanity_mag = {
             let s = self.player.sanity / SAN_MAX;
             if s >= 0.30 {
@@ -783,9 +783,9 @@ impl Game {
                 1.0 - s / 0.30
             }
         };
-        // R143/R174: sanity timer shrink + descent timer shrink compose.
+        // Sanity timer shrink + descent timer shrink compose.
         let timer_mul = (1.0 / (1.0 + sanity_mag * 0.5)) * (1.0 / self.descent_boost_mul(0.15));
-        // R191 exhaustion muffle: below 20% stamina, up to 15% quieter.
+        // Exhaustion muffle: below 20% stamina, up to 15% quieter.
         let stam_mag = {
             let s = self.player.stamina / 100.0;
             if s >= 0.20 {
@@ -795,21 +795,21 @@ impl Game {
             }
         };
         let stam_gain = 1.0 - stam_mag * 0.15;
-        // R196 cry-dim audio pair: up to 25% muffle at `cry_dim_lerp` = 1.
+        // Cry-dim audio pair: up to 25% muffle at `cry_dim_lerp` = 1.
         let cry_gain = 1.0 - 0.25 * self.cry_dim_lerp;
         // the pacing director's hush
         let hush = if self.amb_hush.is_nan() { 0.0 } else { clamp(self.amb_hush, 0.0, 1.0) };
-        // R144/R172/R191/R196 and the hush compose multiplicatively.
+        // And the hush compose multiplicatively.
         let gain = (1.0 + sanity_mag * 0.35) * self.descent_boost_mul(0.25) * stam_gain * cry_gain * (1.0 - HUSH_DUCK * hush);
-        // R159 level-depth multiplier.
+        // Level-depth multiplier.
         let depth = self.level_depth_mul();
         AmbMix { sanity_mag, timer_mul, gain, depth, hush, hushed: hush > HUSH_HOLD }
     }
 
-    /// R118 rain streak overlays + R120 rain hiss.
+    /// Rain streak overlays + rain hiss.
     fn amb_rain_windows(&mut self, dt: f64, wk: &str) {
         let rain_target = if wk == "wet" { 0.55 } else { 0.0 };
-        let mut rain_score: f64 = 0.0; // R120 max over all rain windows
+        let mut rain_score: f64 = 0.0; // max over all rain windows
         let yaw = self.yaw0();
         let (cam_fx, cam_fz) = (-yaw.sin(), -yaw.cos());
         let windows = self.rain_windows.clone();
@@ -822,7 +822,7 @@ impl Game {
                     let y = t.t().offset.y;
                     t.t().offset.y = (y - dt * 0.6) % 1.0;
                 }
-                // R120: score = clamp(facing dot) × distance falloff.
+                // Score = clamp(facing dot) × distance falloff.
                 let wp = w.world_position();
                 let (dx, dz) = (wp.x - self.player.pos.x, wp.z - self.player.pos.z);
                 let d = (dx * dx + dz * dz).sqrt();
@@ -836,8 +836,8 @@ impl Game {
             }
             w.set_visible(mat.opacity_v() > 0.01);
         }
-        // R120 rain hiss gain: only active on wet weather + facing a window.
-        self.rain_score_current = rain_score; // R124 expose to K panel
+        // Rain hiss gain: only active on wet weather + facing a window.
+        self.rain_score_current = rain_score; // expose to K panel
         if let Some(n) = &self.audio.rain_hiss_gain {
             let target = if wk == "wet" { 0.025 * rain_score } else { 0.0 };
             let v = n.gain().value();
@@ -845,10 +845,10 @@ impl Game {
         }
     }
 
-    /// R117 ripple fade, R131 scuff decay, R119/R120 splash flash and R121
+    /// Ripple fade, scuff decay, splash flash and
     /// thunder flash decay.
     fn amb_fx_decay(&mut self, dt: f64) {
-        // R117 wet-ripple fade (every weather, so a weather change still fades them)
+        // Wet-ripple fade (every weather, so a weather change still fades them)
         for r in self.ripples.iter_mut() {
             if r.t <= 0.0 {
                 continue;
@@ -869,7 +869,7 @@ impl Game {
             let g = 1.0 + (1.0 - p) * 1.6; // grow 1× → 2.6× as it fades
             r.obj.scale().set(g, g, 1);
         }
-        // R131 dust-scuff decay (derelict footsteps). Rises + fades.
+        // Dust-scuff decay (derelict footsteps). Rises + fades.
         for s in self.scuffs.iter_mut() {
             if s.t <= 0.0 {
                 continue;
@@ -890,7 +890,7 @@ impl Game {
             s.obj.scale().set_scalar(0.35 + (1.0 - p) * 0.15);
             s.obj.position().y += dt * 0.25;
         }
-        // R119/R120 splash flash decay — t² curve
+        // Splash flash decay — t² curve
         if self.splash_flash_t > 0.0 {
             self.splash_flash_t -= dt;
             if self.splash_flash_t <= 0.0 {
@@ -900,7 +900,7 @@ impl Game {
                 self.splash_flash_light.set_intensity(self.splash_flash_peak * p * p);
             }
         }
-        // R121 thunder flash decay — t² curve, 0.9 s life, 0.35 peak
+        // Thunder flash decay — t² curve, 0.9 s life, 0.35 peak
         if self.thunder_flash_t > 0.0 {
             self.thunder_flash_t -= dt;
             if self.thunder_flash_t <= 0.0 {
@@ -912,7 +912,7 @@ impl Game {
         }
     }
 
-    /// R99 room-tone lerp toward the per-weather target. R142: below 30 %
+    /// Room-tone lerp toward the per-weather target. Below 30 %
     /// sanity it brightens toward 2.4 kHz; the director's hush dips its
     /// level by up to half.
     fn amb_room_tone(&mut self, dt: f64, wk: &str, m: &AmbMix) {
@@ -1017,13 +1017,13 @@ impl Game {
         self.halluc_animate(dt);
     }
 
-    /// R147–R152 recovery / impaired / breaking / mini chimes and their
+    /// Recovery / impaired / breaking / mini chimes and their
     /// flashes.
     fn sanity_crossing_chimes(&mut self, s: f64) {
         let wk = self.weather_key();
         let playing = self.state == "playing";
         let bat_gain = |g: &Game| 0.7 + 0.3 * clamp(g.player.battery / 100.0, 0.0, 1.0);
-        // Recovery chime on the upward crossing back above 55%; R149 impaired
+        // Recovery chime on the upward crossing back above 55%; an impaired
         // chime on the downward crossing.
         let is_impaired = s < 0.55 && playing;
         if self.sanity_was_impaired && !is_impaired && playing {
@@ -1031,11 +1031,11 @@ impl Game {
                 self.sfx_chime();
                 let mel = recovery_melody_by_weather(wk).or(recovery_melody_by_weather("normal")).unwrap();
                 let mel_gain = bat_gain(self);
-                let mel_depth = self.chime_depth_mul(); // R163: sanity chords treated as chime-tier
+                let mel_depth = self.chime_depth_mul(); // sanity chords treated as chime-tier
                 self.blip(mel.root * mel_depth, 0.55, "sine", 0.055 * mel_gain, None, 0.0, 0.0);
                 self.blip(mel.up * mel_depth, 0.65, "sine", 0.040 * mel_gain, None, 0.30, 0.0);
                 self.blip(mel.top * mel_depth, 0.75, "sine", 0.028 * mel_gain, None, 0.55, 0.0);
-                // R151 recovery visual flash: brief soft green-white pulse (relief).
+                // Recovery visual flash: brief soft green-white pulse (relief).
                 self.chime_flash_t = 0.9;
                 self.chime_flash_life = 0.9;
                 self.chime_flash_peak = 0.18;
@@ -1043,21 +1043,21 @@ impl Game {
                 self.sanity_recovery_tally += 1.0;
             }
         } else if !self.sanity_was_impaired && is_impaired && self.ac.is_some() {
-            // R149/R150 downward crossing: 3-note descending motif, battery-scaled.
+            // Downward crossing: 3-note descending motif, battery-scaled.
             let imp = impaired_melody_by_weather(wk).or(impaired_melody_by_weather("normal")).unwrap();
             let imp_gain = bat_gain(self);
             let imp_depth = self.chime_depth_mul();
             self.blip(imp.root * imp_depth, 0.45, "sine", 0.040 * imp_gain, None, 0.0, 0.0);
             self.blip(imp.down * imp_depth, 0.60, "sine", 0.030 * imp_gain, None, 0.25, 0.0);
             self.blip(imp.bottom * imp_depth, 0.75, "sine", 0.022 * imp_gain, None, 0.50, 0.0);
-            // R151 impaired visual flash: muted violet pulse (dread creeping in).
+            // Impaired visual flash: muted violet pulse (dread creeping in).
             self.chime_flash_t = 0.8;
             self.chime_flash_life = 0.8;
             self.chime_flash_peak = 0.22;
             self.chime_flash_color = Some("rgba(160, 120, 180".into());
             self.sanity_impaired_tally += 1.0;
         }
-        // R151 deep-breakdown chime below 20%; R152 warm mini-chime back above it.
+        // Deep-breakdown chime below 20%; a warm mini-chime back above it.
         let is_breaking = s < 0.20 && playing;
         if self.sanity_was_breaking && !is_breaking && playing && self.ac.is_some() {
             let brk = breaking_melody_by_weather(wk).or(breaking_melody_by_weather("normal")).unwrap();
@@ -1079,7 +1079,7 @@ impl Game {
             self.blip(brk.b * brk_depth, 0.75, "sine", 0.045 * brk_gain, None, 0.30, 0.0);
             self.blip(brk.c * brk_depth, 0.95, "sine", 0.038 * brk_gain, None, 0.65, 0.0);
             self.blip(brk.c * 0.5 * brk_depth, 1.10, "sine", 0.024 * brk_gain, None, 0.80, 0.0);
-            // R151 deep-breakdown visual flash: heavy red-black pulse.
+            // Deep-breakdown visual flash: heavy red-black pulse.
             self.chime_flash_t = 1.4;
             self.chime_flash_life = 1.4;
             self.chime_flash_peak = 0.42;

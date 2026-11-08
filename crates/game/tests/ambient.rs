@@ -102,11 +102,11 @@ macro_rules! all_lists {
             &mut $pp.chalkboard_positions,
             &mut $pp.kitchen_calendar_positions,
             &mut $pp.telescope_positions,
-            &mut $pp.cuckoo_clock_positions_r741,
+            &mut $pp.ornate_cuckoo_clock_positions,
             &mut $pp.lit_fireplace_positions,
             &mut $pp.aquarium_positions,
             &mut $pp.wingback_armchair_positions,
-            &mut $pp.pocket_watch_positions_r755,
+            &mut $pp.hunter_watch_positions,
             &mut $pp.bell_pull_positions,
             &mut $pp.bell_rack_positions,
             &mut $pp.chess_set_positions,
@@ -373,7 +373,7 @@ fn every_weather_for_minutes() {
         // the motion sensor clicked; the hum found a live panel
         assert!(g.motion_sensor_last_click_t > 0.0, "{wk}: motion sensor");
         assert!(seen.hum_panel, "{wk}: hum panel");
-        // R99 room tone settled on the weather's target
+        // Room tone settled on the weather's target
         let rt = game::base::tables::room_tone_by_weather(wk).unwrap();
         assert!((g.room_tone_cur_gain - rt.gain).abs() < 1e-4 && (g.room_tone_cur_lp - rt.lp).abs() < 1.0, "{wk}: room tone");
         // the sprite pools: sparks / splashes / drain bubbles use the scuffs everywhere
@@ -490,7 +490,7 @@ fn period_lists_and_fallbacks() {
     g.update_ambient(1.0 / 60.0);
     assert!((g.metronome_tick_timer - game::audio::ambient::METRONOME_PERIOD_DEFAULT * 0.5 * mul).abs() < 1e-12);
     assert!((g.chair_creak_timer - game::audio::ambient::CHAIR_PERIOD_DEFAULT * mul).abs() < 1e-12);
-    // low sanity shrinks every cadence (R143): 2/3 at zero sanity
+    // low sanity shrinks every cadence: 2/3 at zero sanity
     g.player.sanity = 0.0;
     g.metronome_tick_timer = 0.0;
     g.update_ambient(1.0 / 60.0);
@@ -931,7 +931,7 @@ fn hush_quiets_and_holds() {
 
 #[test]
 fn room_tone_brightens_at_low_sanity() {
-    // R142: below 30 % sanity the room tone opens up toward 2.4 kHz — and stays open
+    // Below 30 % sanity the room tone opens up toward 2.4 kHz — and stays open
     let mut g = live_level(63, 5);
     let rt = game::base::tables::room_tone_by_weather("normal").unwrap();
     let lp = g.audio.room_tone_lp.clone().unwrap();

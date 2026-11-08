@@ -93,7 +93,7 @@ const OM_FACE: [(f64, f64); 16] = [
 const OM_GLASS: [f64; 3] = [0.200, 0.300, 0.0125];
 const OM_UNDER: f64 = 0.010;
 
-// R468 ornate wall mirror: 5% chance per level. A small Italian giltwood
+// Ornate wall mirror: 5% chance per level. A small Italian giltwood
 // mirror in the rococo revival (Blender batch `t10`): a moulded frame of
 // gesso over carved wood, water gilt, a pierced rocaille crest of shell,
 // C-scrolls and acanthus, leaves breaking out at its corners and a little

@@ -1,11 +1,11 @@
 """Batch b10 - "domestic" theme: kitchen things, bread, shakers, sewing,
 framed pictures, photos, a diary, a wallet.
 
-placeSpoonRests          ceramic rest (rim wall, base plate), wooden spoon (handle, bowl)
-placeFramedRecipes       rustic grooved frame
-placeShakerPair          salt fill, ribbed shaker cap, turned pepper mill, finial nut
-placeAbstractLandscapes  gilt frame with beads and a cove
-placeBreadLoaves         bread board with juice groove, bâtard loaf, slashes
+place_spoon_rests          ceramic rest (rim wall, base plate), wooden spoon (handle, bowl)
+place_framed_recipes       rustic grooved frame
+place_shaker_pair          salt fill, ribbed shaker cap, turned pepper mill, finial nut
+place_abstract_landscapes  gilt frame with beads and a cove
+place_bread_loaves         bread board with juice groove, bâtard loaf, slashes
 ... (see the section headers below for the rest)
 """
 from propkit import *
@@ -106,7 +106,7 @@ def along_x(s):
 
 
 def hemi(r):
-    """Frame of an upper half sphere (SphereGeometry thetaLength PI/2)."""
+    """Frame of an upper half sphere (sphere_geo! thetaLength PI/2)."""
     return f_bounds((-r, 0, -r), (r, r, r))
 
 

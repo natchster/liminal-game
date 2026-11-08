@@ -4,7 +4,7 @@
 use super::*;
 use game::assets::props::prop_part_as_modelled;
 
-// R684 makeup sponge: 9% chance per level. A teardrop blending sponge of
+// Makeup sponge: 9% chance per level. A teardrop blending sponge of
 // polyurethane foam (Blender batch `t03`), dropped and lying on its side as
 // it rests, its old colour faded and greyed, its pores dark with dust; the
 // old 55% used: foundation dried into its point and down one side (the old

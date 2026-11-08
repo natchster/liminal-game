@@ -74,7 +74,7 @@ fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
     seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
 }
 
-// R691 half-eaten sandwich on plate (floor): 6% chance per level.
+// Half-eaten sandwich on plate (floor): 6% chance per level.
 fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
@@ -155,7 +155,7 @@ fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
     g.world.add(&s);
 }
 
-// R691 reading glasses and books (floor): 5% chance per level. A cloth
+// Reading glasses and books (floor): 5% chance per level. A cloth
 // hardback and a paperback on it (the book stack's books, batch r02), a slip
 // of paper kept in the hardback for a place, and a pair of plastic reading
 // glasses (batch r14b, 50-20-135) folded and put down on the books or beside
@@ -255,7 +255,7 @@ fn place_reading_glasses_and_books(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-// R692 coffee mug w/ steam + coffee stain ring (floor): 7% chance per level.
+// Coffee mug w/ steam + coffee stain ring (floor): 7% chance per level.
 fn place_coffee_mugs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.93 {
         return;
@@ -279,7 +279,7 @@ fn place_coffee_mugs(g: &mut Game, _dist: &[i32]) {
     coffee.rotation().x = -PI / 2.0;
     coffee.position().y = body_h - 0.005;
     m.add(&coffee);
-    // R707 subtle liquid ripple — 45% chance.
+    // Subtle liquid ripple — 45% chance.
     if rnd() < 0.45 {
         let coffee_base_y = coffee.pos().y;
         let ripple_phase = rnd() * PI * 2.0;
@@ -347,7 +347,7 @@ fn place_coffee_mugs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&m);
 }
 
-// R692 crumpled newspaper w/ headline text (floor): 5% chance per level.
+// Crumpled newspaper w/ headline text (floor): 5% chance per level.
 fn place_newspapers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -381,7 +381,7 @@ fn place_newspapers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&n);
 }
 
-// R693 crumpled letter w/ opening greeting (floor): 5% chance per level.
+// Crumpled letter w/ opening greeting (floor): 5% chance per level.
 fn place_letters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -398,7 +398,7 @@ fn place_letters(g: &mut Game, _dist: &[i32]) {
     let sheet = mesh(pg("Letters__sheet", box_geo!(sheet_w, 0.002, sheet_d)), &paper_mat);
     sheet.position().y = 0.001;
     l.add(&sheet);
-    // Reused crumpled-paper wrinkle pattern (R692) — 2 tilted plane bulges.
+    // Reused crumpled-paper wrinkle pattern — 2 tilted plane bulges.
     let fold1 = mesh(pg("Letters__fold", box_geo!(sheet_w * 0.5, 0.003, sheet_d * 0.35)), &paper_mat);
     fold1.position().set(sheet_w * 0.25, 0.019, -sheet_d * 0.25); // lowest corner on the sheet
     fold1.rotation().z = 0.30;
@@ -437,7 +437,7 @@ fn place_letters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&l);
 }
 
-// R694 open diary w/ pen on page (floor): 5% chance per level.
+// Open diary w/ pen on page (floor): 5% chance per level.
 fn place_open_diaries(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -504,9 +504,9 @@ fn place_open_diaries(g: &mut Game, _dist: &[i32]) {
     g.world.add(&d);
 }
 
-// R694 telephone off-hook w/ dial tone hum (floor): 4% chance per level.
+// Telephone off-hook w/ dial tone hum (floor): 4% chance per level.
 fn place_off_hook_phones(g: &mut Game, _dist: &[i32]) {
-    g.pp.off_hook_phone_positions = vec![]; // R694 reset per level
+    g.pp.off_hook_phone_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     }
@@ -593,7 +593,7 @@ fn place_off_hook_phones(g: &mut Game, _dist: &[i32]) {
     g.pp.off_hook_phone_positions.push(v3(handset_world_x, 0, handset_world_z));
 }
 
-// R695 chess board mid-game (floor): 4% chance per level.
+// Chess board mid-game (floor): 4% chance per level.
 fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -767,11 +767,11 @@ fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cb);
 }
 
-// R695 hair dryer: batch `t04`'s (`t04.rs`)
+// Hair dryer: batch `t04`'s (`t04.rs`)
 mod t04;
 use t04::place_hairdryers;
 
-// R696 a wine glass left on the floor (Blender batch `r16`): a stemmed 8 oz
+// A wine glass left on the floor (Blender batch `r16`): a stemmed 8 oz
 // glass of the Libbey Citation class (171 mm tall), the wine in it long gone
 // down to a dark crust in the bottom of the bowl, dried rings where it stood,
 // a lipstick print on the rim now and then; or knocked over, lying on its
@@ -1094,9 +1094,9 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
     })
 }
 
-// R696 sewing machine on stand (floor): 3% chance per level.
+// Sewing machine on stand (floor): 3% chance per level.
 fn place_sewing_machines(g: &mut Game, _dist: &[i32]) {
-    g.pp.sewing_machine_positions = vec![]; // R699 reset per level
+    g.pp.sewing_machine_positions = vec![]; // reset per level
     if rnd() < 0.97 {
         return;
     }
@@ -1141,8 +1141,8 @@ fn place_sewing_machines(g: &mut Game, _dist: &[i32]) {
     needle.scale().y = 4.4;
     needle.position().set(base_w * 0.32 - 0.0055, 0.074, 0);
     m.add(&needle);
-    // R697 needle up-down oscillator — 40% chance (machine "running").
-    // R699: track running machines for stitch-click audio.
+    // Needle up-down oscillator — 40% chance (machine "running").
+    // Track running machines for stitch-click audio.
     let is_running = rnd() < 0.4;
     if is_running {
         let needle_base_y = 0.074;
@@ -1207,14 +1207,14 @@ fn place_sewing_machines(g: &mut Game, _dist: &[i32]) {
     m.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0, g.wz(z) + (rnd() - 0.5) * 1.6);
     m.rotation().y = rnd() * PI * 2.0;
     g.world.add(&m);
-    // R699 register position only if this machine is "running" (has needle animator).
+    // Register position only if this machine is "running" (has needle animator).
     if is_running {
         let mp = m.pos();
         g.pp.sewing_machine_positions.push(v3(mp.x, 0, mp.z));
     }
 }
 
-// R697 opened pill bottle w/ scattered pills (floor): 5% chance per level.
+// Opened pill bottle w/ scattered pills (floor): 5% chance per level.
 fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
@@ -1312,7 +1312,7 @@ fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
         pill.rotation().y = rnd() * PI * 2.0;
         pill.rotation().z = (rnd() - 0.5) * 0.5;
         pb.add(&pill);
-        // R721 subtle wobble animator — 30% chance per pill.
+        // Subtle wobble animator — 30% chance per pill.
         if rnd() < 0.3 {
             let wobble_phase = rnd() * PI * 2.0;
             let base_rot_z = pill.rot().z;

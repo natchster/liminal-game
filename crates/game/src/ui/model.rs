@@ -5,12 +5,13 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-/// One element: its text/HTML, classes, inline styles and attributes.
+/// One element: its text or markup, classes, inline styles and attributes.
 #[derive(Clone, Debug, Default)]
 pub struct Element {
     pub text: String,
-    /// `inner_html` when set (takes precedence over `text` when non-empty)
-    pub html: String,
+    /// rich text in the HUD's inline markup (`<span style=...>`, `<br>`,
+    /// entities); takes precedence over `text` when non-empty
+    pub markup: String,
     pub classes: BTreeSet<String>,
     /// inline style properties in CSS names (`opacity`, `background`, `box-shadow`, `transform`, ...)
     pub style: BTreeMap<String, String>,
@@ -20,18 +21,18 @@ pub struct Element {
 }
 
 impl Element {
-    /// Set the text content (clears any HTML)
+    /// Set the text content (clears any markup)
     pub fn set_text(&mut self, s: &str) {
-        if self.text != s || !self.html.is_empty() {
+        if self.text != s || !self.markup.is_empty() {
             self.text = s.to_string();
-            self.html.clear();
+            self.markup.clear();
             self.version += 1;
         }
     }
-    /// Set the inner HTML (inline markup such as `<span style=...>` and `<br>`)
-    pub fn set_html(&mut self, s: &str) {
-        if self.html != s {
-            self.html = s.to_string();
+    /// Set the rich text (inline markup such as `<span style=...>` and `<br>`)
+    pub fn set_markup(&mut self, s: &str) {
+        if self.markup != s {
+            self.markup = s.to_string();
             self.version += 1;
         }
     }

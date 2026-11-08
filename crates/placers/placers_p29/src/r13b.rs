@@ -17,7 +17,7 @@ fn wall_yaw(c: &Cand) -> f64 {
     }
 }
 
-// R288 rolled carpet: 15% chance per level, 1 against a wall (Blender batch
+// Rolled carpet: 15% chance per level, 1 against a wall (Blender batch
 // `r13b`): an 8 x 10 ft rug rolled pile out and tied twice with jute twine,
 // lying along the wall: its pattern woven and faded, dust on its top, the
 // spiral of its turns at its ends, its outer end's fringe fallen to the
@@ -49,7 +49,7 @@ pub(super) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
     roll.rotation().y = yaw;
     roll.position().set(gx, 0, gz);
     g.world.add(&roll);
-    // R310 25% chance: second smaller rolled carpet stacked on top of the first.
+    // 25% chance: second smaller rolled carpet stacked on top of the first.
     if rnd() < 0.25 {
         // the carpet material's hex is the picked hex (exact sRGB round trip)
         let second_colors: Vec<u32> = carpet_colors.iter().copied().filter(|&cc| cc != carpet_hex).collect();
@@ -65,7 +65,7 @@ pub(super) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
         roll2.rotation().y = yaw;
         roll2.position().set(gx + w2x, 0, gz + w2z);
         g.world.add(&roll2);
-        // R322 5% chance: 3rd smallest roll perched atop the 2-stack.
+        // 5% chance: 3rd smallest roll perched atop the 2-stack.
         if rnd() < 0.05 {
             let third_colors: Vec<u32> = carpet_colors.iter().copied().filter(|&cc| cc != carpet_hex && cc != second_hex).collect();
             let third_pool: Vec<u32> = if !third_colors.is_empty() { third_colors } else { carpet_colors.to_vec() };

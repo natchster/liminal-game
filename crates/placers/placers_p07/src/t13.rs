@@ -24,7 +24,7 @@ const FLAME_ROOT: (f64, f64, f64) = (0.0208, 0.2881, 0.0107);
 const FLAME_FOOT: f64 = 0.170;
 const FLAME_SCALE: f64 = 0.55;
 
-// R679 cake stand: 5% chance per level. An 11 in pressed glass cake stand
+// Cake stand: 5% chance per level. An 11 in pressed glass cake stand
 // (a trumpet foot in twelve panels, a plate rayed underneath, its rim
 // scalloped), milk glass or clear, dusty; on it (55%) a two-tier
 // buttercream cake nobody ate, years on: dried and shrunk, slumped, its
@@ -308,7 +308,7 @@ const MUFFIN_CLEAR: f64 = 0.0356;
 /// middle of the muffins, on the floor
 const CRUMBS_AT: (f64, f64, f64) = (-0.066, -0.0178, 0.011);
 
-// R680 cornbread muffin cluster: 6% chance per level. Three to five
+// Cornbread muffin cluster: 6% chance per level. Three to five
 // cornbread muffins left in their paper baking cups, years on: dried hard
 // and shrunk from their cases, the crowns cracked, gone dull and grey,
 // mould in soft colonies; the cases stained with grease; crumbs.

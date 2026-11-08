@@ -55,7 +55,7 @@ struct Draws {
     turn: f64,
 }
 
-// R760 small memorial shrine (floor): 2.5% chance per level. A floor shrine
+// Small memorial shrine (floor): 2.5% chance per level. A floor shrine
 // someone made: a planed pine board laid on the floor, a small black
 // hardback on it, and standing on the book on its easel strut a 5 x 7 in
 // photograph in a wooden frame (an old portrait, faded); two or three 1/2 in
@@ -202,7 +202,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
         }
     }
     // 40%: a black ribbon bow on the frame's top left corner, its long tail
-    // stirring in the draught as the old ribbon's did (R761: 3 mm)
+    // stirring in the draught as the old ribbon's did (3 mm)
     if let Some((sway_freq, sway_phase)) = d.ribbon {
         let satin = phong!({ color: 0x1e1c1b, specular: 0x262626, shininess: 18, side: DoubleSide });
         let knot = group();

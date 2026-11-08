@@ -1,15 +1,13 @@
 # fixes-C — part-to-part bugs from b03 / b09 / b10 notes
 
-All edits are small in-place changes inside the named placers in `backrooms.js`.
-No `new THREE.XxxGeometry(...)` text and no `PG(...)` wrapper was changed, and
-no new constructor was added: where a missing piece was added, it reuses an
+All edits are small in-place changes inside the named placers.
+No primitive and no `pg(...)` wrapper was changed, and
+no new primitive was added: where a missing piece was added, it reuses an
 existing geometry object. Randomness, the order of random calls, gates,
 materials, animators and tracked arrays are all unchanged (animator base
-values were moved along with their meshes). `node --check` passes, and
-`prop-codemod --check` reports no match problems (the only problems it lists
-are unbuilt parts of b20–b24).
+values were moved along with their meshes).
 
-## b03 — placeProps
+## b03 — place_props
 
 - Exit door / sign plane z-fighting on the housing front — SKIPPED (no code needed: the housing part's 6 mm recess already fixes it)
 - Exit door / mounting hooks buried in the housing — FIXED: the hooks are turned along z (rotation.x π/2), stretched to 0.16 m (scale.y 2.67) and centred at z 0.02. They are now standoff rods from the wall face (z −0.06) to the housing back (z 0.10) at the top corners.
@@ -72,7 +70,7 @@ are unbuilt parts of b20–b24).
 - Teacups / handle flat against the cup — FIXED: a C out from the wall (rotation.z −π/2, x 0.0245).
 - CastIronLadles / handle stops 1.5 cm above the bowl — FIXED: bowl at (0, mountY − 0.172, 0.037), so its back rim meets the handle end. This also takes the bowl out of the wall.
 - CastIronLadles / ring floats 1.3 cm above the handle, horizontal — FIXED: upright ring at mountY + 0.176, its lower edge through the handle top.
-- "Other things seen" (wall props on walls, page errors) — SKIPPED (not placer bugs)
+- "Other things seen" (wall props on walls) — SKIPPED (not placer bugs)
 
 ## b10
 
@@ -112,4 +110,4 @@ are unbuilt parts of b20–b24).
 - b10: 21 fixed, 1 partial (wine label), 5 skipped, plus 1 unlogged extra fixed (clock ticks)
 - Total: 70 fixed + 1 partial + 1 extra; 15 skipped (7 already handled by parts or centrally, 2 need a new model, 6 not placer bugs or intended)
 
-Checked in: shots/fix/C_b09a.png, C_b09b.png, C_b09c.png, C_b09d_s3.png, C_b09d_s5.png, C_shoe_s3.png, C_b10a.png, C_b10b.png, C_b10c_s3.png, C_b10c_s9.png, C_final.png. For placeProps, a private harness framed each object on real levels: C_b03a.png, C_b03b.png, C_b03c.png, C_b03d.png, and front views C_front_vending.png, C_front_cabinet.png, C_front_payphone.png, C_front4_extinguisher.png.
+Checked on real levels; for place_props, each object framed on real levels, and front views of the vending machine, the cabinet, the payphone and the extinguisher.

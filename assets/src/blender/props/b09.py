@@ -1,38 +1,38 @@
 """Batch b09 - "domestic" theme: household things lying around or hung up.
 
-placeCoinScatters / placeCoinClusters   coin (rim, relief field), shared
-placeHospitalCrosses   rounded sign plate and cross bars (unlit)
-placeSingleBoots       lugged sole, toe box, heel counter, shaft with collar
-placeFoldedUmbrellas   fluted furled canopy, seam stripes, ferrule tip, crook handle
-placePizzaBoxes        corrugated box with lid seam and vents, open lid with flaps
-placeSingleGloves      puffy palm, soft fingers, ribbed knit cuff
-placeCigarettePacks    flip-top pack, lid
-placeMatchbooks        folded matchbook, square match stick, dipped head
-placeBrokenSunglasses  acetate rim, bridge, temple, snapped temple
-placeUnrolledTPRolls   hollow cardboard core with spiral seam
-placeBrokenFlashlights knurled barrel with tail cap, flared head with reflector
-placeShoeBoxes         box body, hollow lid
-placeCoatRacks         moulded rail, brass pegs and knobs, coat, collar, scarf
-placeCrumpledTissues   crumpled tissue lump
-placeVinylRecords      grooved LP, label, album sleeve
-placeGumBallDispensers cast base, gumball, turn knob
-placeCrossStitches     double embroidery hoop, thumb nut
-placeWatercolors       gold moulded frame, bevelled mat
-placeToteBags          open canvas tote, strap handles, tool handles
-placeCoatHooksPair     hook board, rosette, arm, hook curve
-placeCastIronPans      skillet, cooking surface, handle, hanging ring
-placeVintageMaps       wooden frame
-placeMasonJars         screw band, lid, preserve fill
-placeWallBrooms        handle, spring clip, besom bristles, twine binding
-placeRollingPins       roller, turned handle, knob
-placeCuttingBoards     board with hanging hole
-placeMixingBowls       bowl, rolled rim, dough
-placeWhisks            handle, end cap, ferrule, wire loop
-placeWallAprons        peg, neck strap
-placeTeapots           trivet, feet, body, spout, lid, knob, handle
-placeCookieTins        tin body with lid skirt, rolled rim
-placeTeacups           saucer, cup, handle, tea
-placeCastIronLadles    twisted handle, ring, bowl
+place_coin_scatters / place_coin_clusters   coin (rim, relief field), shared
+place_hospital_crosses   rounded sign plate and cross bars (unlit)
+place_single_boots       lugged sole, toe box, heel counter, shaft with collar
+place_folded_umbrellas   fluted furled canopy, seam stripes, ferrule tip, crook handle
+place_pizza_boxes        corrugated box with lid seam and vents, open lid with flaps
+place_single_gloves      puffy palm, soft fingers, ribbed knit cuff
+place_cigarette_packs    flip-top pack, lid
+place_matchbooks        folded matchbook, square match stick, dipped head
+place_broken_sunglasses  acetate rim, bridge, temple, snapped temple
+place_unrolled_tp_rolls   hollow cardboard core with spiral seam
+place_broken_flashlights knurled barrel with tail cap, flared head with reflector
+place_shoe_boxes         box body, hollow lid
+place_coat_racks         moulded rail, brass pegs and knobs, coat, collar, scarf
+place_crumpled_tissues   crumpled tissue lump
+place_vinyl_records      grooved LP, label, album sleeve
+place_gum_ball_dispensers cast base, gumball, turn knob
+place_cross_stitches     double embroidery hoop, thumb nut
+place_watercolors       gold moulded frame, bevelled mat
+place_tote_bags          open canvas tote, strap handles, tool handles
+place_coat_hooks_pair     hook board, rosette, arm, hook curve
+place_cast_iron_pans      skillet, cooking surface, handle, hanging ring
+place_vintage_maps       wooden frame
+place_mason_jars         screw band, lid, preserve fill
+place_wall_brooms        handle, spring clip, besom bristles, twine binding
+place_rolling_pins       roller, turned handle, knob
+place_cutting_boards     board with hanging hole
+place_mixing_bowls       bowl, rolled rim, dough
+place_whisks            handle, end cap, ferrule, wire loop
+place_wall_aprons        peg, neck strap
+place_teapots           trivet, feet, body, spout, lid, knob, handle
+place_cookie_tins        tin body with lid skirt, rolled rim
+place_teacups           saucer, cup, handle, tea
+place_cast_iron_ladles    twisted handle, ring, bowl
 """
 from propkit import *
 import propkit
@@ -84,7 +84,7 @@ def on_z(s):
 
 def arc_sweep(section, R, a0, a1, n, caps=True):
     """Sweep a closed 2D section [(dr, dz), ...] around the Z axis at radius R
-    from angle a0 to a1 (a ring segment in the XY plane, like TorusGeometry)."""
+    from angle a0 to a1 (a ring segment in the XY plane, like torus_geo!)."""
     m = len(section)
     v, f = [], []
     for i in range(n + 1):
@@ -191,7 +191,7 @@ def rod(points, r, seg=8, smooth=0, caps=2, r_end=None):
 
 
 def half_arc_rod(R, r, seg=8, n=12, caps=2):
-    """A rod along the half ring of TorusGeometry(R, r, .., PI), the domed
+    """A rod along the half ring of torus_geo!(R, r, .., PI), the domed
     ends landing on y = 0 like the torus's cut ends."""
     t0 = 0.0
     pts = [(R * math.cos(t0 + (math.pi - 2 * t0) * i / n), R * math.sin(t0 + (math.pi - 2 * t0) * i / n), 0)

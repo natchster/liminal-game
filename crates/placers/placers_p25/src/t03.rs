@@ -5,7 +5,7 @@ use crate::{open_tiles, pick};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R443 small perfume bottle: 8% chance per level. A dressing table's
+/// Small perfume bottle: 8% chance per level. A dressing table's
 /// perfume atomizer of pressed glass (Blender batch `t03`): a flat fluted
 /// bottle, the scent left in it gone darker and down (a dried ring where it
 /// stood higher), a gilt collar with its spray head, a rubber bulb in a

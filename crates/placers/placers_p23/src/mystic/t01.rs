@@ -44,7 +44,7 @@ static FACE: [(f64, f64); 22] = [
 ];
 const SITTERS: [&str; 3] = ["oil_man", "oil_woman2", "oil_woman"];
 
-// R490 ancient portrait: 4% chance per level. An old portrait in oil.
+// Ancient portrait: 4% chance per level. An old portrait in oil.
 pub fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;

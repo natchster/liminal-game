@@ -215,7 +215,7 @@ impl Game {
         self.dust_mat.set_map(dust_sprite);
         self.dust = points(&self.dust_geo, &self.dust_mat);
         self.scene.add(&self.dust.clone());
-        // R118 rain streaks
+        // Rain streaks
         crate::base::rng::with_native(|| {
             self.rain_streak_tex = canvas_tex_opt(128, 256, false, |ctx, w, h| {
                 ctx.set_fill_style("rgba(0,0,0,0)");
@@ -238,7 +238,7 @@ impl Game {
         });
         self.rain_streak_tex.set_repeat_wrapping();
         self.rain_windows.clear();
-        // R131 scuffs
+        // Scuffs
         self.scuffs.clear();
         for _ in 0..SCUFF_COUNT {
             let m = sprite_mat!({ map: dust_sprite, color: 0xa08060, transparent: true, depthWrite: false, blending: AdditiveBlending, opacity: 0 });
@@ -248,7 +248,7 @@ impl Game {
             self.scene.add(&s);
             self.scuffs.push(PooledFx { obj: s, t: 0.0 });
         }
-        // R117 ripples
+        // Ripples
         crate::base::rng::with_native(|| {
             self.ripple_tex = canvas_tex_opt(96, 96, false, |ctx, w, h| {
                 ctx.set_fill_style("rgba(0,0,0,0)");
@@ -263,7 +263,7 @@ impl Game {
                 }
             });
         });
-        // R119 splash flash light, R121 thunder flash
+        // Splash flash light, thunder flash
         self.splash_flash_light = point_light!(0xb8d0f0, 0, 3.5, 2.0);
         self.splash_flash_light.set_pos(0, 0.4, 0);
         self.scene.add(&self.splash_flash_light.clone());
@@ -281,7 +281,7 @@ impl Game {
             self.scene.add(&m);
             self.ripples.push(PooledFx { obj: m, t: 0.0 });
         }
-        // R105 sparkles
+        // Sparkles
         self.sparkles.clear();
         for _ in 0..SPARKLE_COUNT {
             let m = sprite_mat!({ map: dust_sprite, color: 0xfff8d0, transparent: true, depthWrite: false, blending: AdditiveBlending, opacity: 0 });

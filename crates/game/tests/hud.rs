@@ -174,7 +174,7 @@ fn el_json(e: &Element) -> String {
     let cls = e.classes.iter().map(|c| rec(c)).collect::<Vec<_>>().join(",");
     let st = e.style.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
     let at = e.attrs.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
-    format!("{{\"text\":{},\"html\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.html), cls, st, at)
+    format!("{{\"text\":{},\"markup\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.markup), cls, st, at)
 }
 const IDS: [&str; 53] = [
     "vignette",
@@ -541,9 +541,9 @@ fn hud_logic() {
     let (t, b) = g.current_epilogue();
     assert_eq!(t, "EPILOGUE");
     assert!(b.ends_with("Every page you found is now inside you.\nYou never fell. The dark never touched you long enough."));
-    assert!(g.medals_page_html().starts_with("Medals of this descent: <span style=\"color:#f8e0a0\">2</span> of 5."));
+    assert!(g.medals_page_markup().starts_with("Medals of this descent: <span style=\"color:#f8e0a0\">2</span> of 5."));
     assert!(
-        !g.medals_page_html().contains("NEXT") && !g.journal_cover_text().contains("arcs"),
+        !g.medals_page_markup().contains("NEXT") && !g.journal_cover_text().contains("arcs"),
         "the notebook still talks of buttons and arcs"
     );
     // completionist follows the other three after 4.5 s

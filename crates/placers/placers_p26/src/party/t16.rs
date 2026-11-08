@@ -7,7 +7,7 @@ use crate::{open_tiles, pick};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R422 skipping rope: 8% chance per level. A PVC "licorice" skipping rope
+/// Skipping rope: 8% chance per level. A PVC "licorice" skipping rope
 /// (Blender batch `t16`): 2.4 m of 4.8 mm solid PVC through two moulded
 /// polypropylene handles (114 mm), dropped with its handles together: the
 /// rope springs out in one loop that crossed itself. The PVC faded and

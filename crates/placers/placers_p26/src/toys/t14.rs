@@ -11,12 +11,12 @@ use t14_kit::{fbm, fill, hash, mix, put, rgb, salt, ss, vn};
 const PLUSH_COLORS: [u32; 4] = [0x6a4020, 0x8a5028, 0x3a2810, 0xa08050];
 const PLUSH: [u32; 4] = [0x6c4a33, 0x8a6446, 0x3e2e23, 0xa18565];
 
-/// R411 plush teddy: 6% chance per level. A machine-made plush teddy of the
+/// Plush teddy: 6% chance per level. A machine-made plush teddy of the
 /// 1980s-90s, 30 cm standing (acrylic pile on a knit backing, polyester
 /// fibre stuffing, sewn to sit; a velour muzzle, inner ears and soles;
 /// plastic safety eyes and a moulded nose, the mouth stitched; a satin
 /// ribbon in a bow at its neck), slumped where it was left, its head fallen
-/// forward. Its pile matted and faded, grimed, the ribbon gone dull. R412
+/// forward. Its pile matted and faded, grimed, the ribbon gone dull.
 /// 30%: an eye pulled out, the hole where it went through left.
 pub fn place_plush_bears(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -29,7 +29,7 @@ pub fn place_plush_bears(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick(&open);
     let col = pick(&PLUSH_COLORS);
     let k = PLUSH_COLORS.iter().position(|&c| c == col).unwrap_or(0);
-    // R412 30% chance: only 1 eye; the old kept the one at -x (its right)
+    // 30% chance: only 1 eye; the old kept the one at -x (its right)
     // when its second draw fell under a half
     let missing_eye = rnd() < 0.30;
     let keep_right = if missing_eye { Some(rnd() < 0.5) } else { None };
@@ -82,7 +82,7 @@ const SKIN: [u32; 4] = [0xd2b29c, 0xae8a6e, 0x6f4c38, 0xd8bcaa];
 const DRESS_COLORS: [u32; 5] = [0xd8a0c0, 0xa0c0d8, 0xc0d8a0, 0xd8c8a0, 0xa0a0d8];
 const DRESS: [u32; 5] = [0xbf98a6, 0x92a7b6, 0xa2ad8e, 0xc6b68e, 0x9c98b6];
 
-/// R417 small doll: 8% chance per level. An 8 in (20 cm) toddler doll of the
+/// Small doll: 8% chance per level. An 8 in (20 cm) toddler doll of the
 /// 1950s-60s, the small walker kind: hard plastic jointed at the neck,
 /// shoulders and hips, sleep eyes, a synthetic wig cut in a bob with a
 /// fringe, a cotton dress with puffed sleeves (gingham, sprigged or plain),

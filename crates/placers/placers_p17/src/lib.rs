@@ -18,7 +18,7 @@ use t19::place_empty_painting_outlines;
 mod t18;
 use t18::place_memorial_shrines;
 
-// R762 the chess table: batch `t20`'s (`t20.rs`)
+// The chess table: batch `t20`'s (`t20.rs`)
 mod t20;
 use t20::place_chess_side_stands;
 
@@ -102,9 +102,9 @@ fn is_torus_geometry(o: &Obj) -> bool {
     }
 }
 
-// R758 servant's-hall bell rack (wall): 2.5% chance per level.
+// Servant's-hall bell rack (wall): 2.5% chance per level.
 fn place_servant_hall_bell_racks(g: &mut Game, _dist: &[i32]) {
-    g.pp.bell_rack_positions.clear(); // R761 reset per level
+    g.pp.bell_rack_positions.clear(); // reset per level
     if rnd() < 0.975 {
         return;
     }
@@ -178,10 +178,10 @@ fn place_servant_hall_bell_racks(g: &mut Game, _dist: &[i32]) {
     br.rotation().z = (rnd() - 0.5) * 0.010;
     g.world.add(&br);
     let p = br.pos();
-    g.pp.bell_rack_positions.push(v3(p.x, 0, p.z)); // R761
+    g.pp.bell_rack_positions.push(v3(p.x, 0, p.z));
 }
 
-// R759 cast iron door-stop (floor): 4% chance per level. dog / boot / owl.
+// Cast iron door-stop (floor): 4% chance per level. dog / boot / owl.
 fn place_cast_iron_door_stops(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -317,7 +317,7 @@ fn place_cast_iron_door_stops(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ds);
 }
 
-// R759 framed correspondence: telegram / calling card / formal invitation.
+// Framed correspondence: telegram / calling card / formal invitation.
 game::lazy_static_tex!(
     correspondence_texture,
     canvas_tex(180, 240, |ctx, w, h| {
@@ -502,7 +502,7 @@ fn place_correspondence_cards(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cc);
 }
 
-// R764 dress form / tailor's mannequin on tripod stand (floor): 2.5% chance.
+// Dress form / tailor's mannequin on tripod stand (floor): 2.5% chance.
 fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
         return;
@@ -640,7 +640,7 @@ fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
             pin_mark.position().set(-0.06 + i as f64 * 0.06, torso_base_y + 0.30, pz);
             df.add(&pin_mark);
         }
-        // R767 slow breeze-sway animator on the loose flowing strip.
+        // Slow breeze-sway animator on the loose flowing strip.
         let sway_freq = 0.30 + rnd() * 0.25;
         let sway_phase = rnd() * PI * 2.0;
         let flow_base_rot_z = flow.rot().z;

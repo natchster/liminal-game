@@ -16,7 +16,7 @@ const EAR_OUT: f64 = 0.16;
 const BODY_COLORS: [u32; 4] = [0x8090a0, 0xa090b0, 0xc0a080, 0x606870];
 const PLUSH: [u32; 4] = [0x8995a2, 0x9b90a6, 0xb19e80, 0x6c7178];
 
-// R635 stuffed elephant: 3% chance per level. A bean-bag plush elephant of
+// Stuffed elephant: 3% chance per level. A bean-bag plush elephant of
 // the 1990s, 19 cm long (short plush on a knit backing, its body loosely
 // filled with plastic pellets so it lies limp, its head with fibre; big
 // floppy ears of two layers, plastic eyes, a thin tail, a law tag sewn in
@@ -72,8 +72,8 @@ pub fn place_stuffed_elephants(g: &mut Game, _dist: &[i32]) {
     eleph.rotation().y = rnd() * PI * 2.0;
     g.world.add(&eleph);
     let p = eleph.pos();
-    g.pp.plush_positions.push(v3(p.x, 0, p.z)); // R666
-                                                // R669 the ears stir: a slow drift, now and then a stronger flap, always out from the head
+    g.pp.plush_positions.push(v3(p.x, 0, p.z));
+    // The ears stir: a slow drift, now and then a stronger flap, always out from the head
     g.animate(move |_g, _dt, t| {
         for (ear, base, side, phase) in &eleph_ears {
             let drift = (t * 0.35 + phase).sin() * 0.12;

@@ -147,7 +147,7 @@ fn box_from_object(o: &Obj) -> Box3 {
     b
 }
 
-// R384 small candle: 12% chance per level. Small wax cylinder with
+// Small candle: 12% chance per level. Small wax cylinder with
 // tiny wick + optional dark melt drip on side.
 fn place_small_candles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -171,7 +171,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
     let wick = mesh(cyl_geo!(0.001, 0.001, 0.012, 4), &wick_mat);
     wick.position().y = body_h + 0.006;
     candle.add(&wick);
-    // R388 25% chance (independent of flame): thin smoke wisp above
+    // 25% chance (independent of flame): thin smoke wisp above
     // wick, implying "candle was just blown out".
     let has_wisp = rnd() < 0.25;
     if has_wisp {
@@ -181,7 +181,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
         wisp.rotation().z = (rnd() - 0.5) * 0.3;
         candle.add(&wisp);
     }
-    // R386 15% chance: small emissive flame tip with animator flicker.
+    // 15% chance: small emissive flame tip with animator flicker.
     // (Skip if wisp already spawned.)
     if !has_wisp && rnd() < 0.15 {
         let flame_mat = basic_mat!({ color: 0xf0c060, transparent: true, opacity: 0.85 });
@@ -189,7 +189,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
         flame.scale().set(0.7, 1.6, 0.7); // tall teardrop
         flame.position().y = body_h + 0.018;
         candle.add(&flame);
-        // R387 small warm PointLight for actual scene illumination.
+        // Small warm PointLight for actual scene illumination.
         let flame_light = point_light!(0xf0c060, 0.35, 1.6, 2);
         flame_light.position().y = body_h + 0.020;
         candle.add(&flame_light);
@@ -215,7 +215,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
     candle.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     candle.rotation().y = rnd() * PI * 2.0;
     g.world.add(&candle);
-    // R385 30% chance: wax pool circle stain on floor beneath candle.
+    // 30% chance: wax pool circle stain on floor beneath candle.
     if rnd() < 0.30 {
         let pool_mat = basic_mat!({ color: wax_mat.color_v().get_hex(), transparent: true, opacity: 0.65, depthWrite: false });
         let pool = mesh(circle_geo!(0.04 + rnd() * 0.03, 12), &pool_mat);
@@ -226,7 +226,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
         pool.position().set(cp.x, 0.003, cp.z);
         g.world.add(&pool);
     }
-    // R385 25% chance: 1-2 sibling candles nearby via clone (shared
+    // 25% chance: 1-2 sibling candles nearby via clone (shared
     // material; independent positions/rotations). Ritual scene.
     if rnd() < 0.25 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
@@ -242,7 +242,7 @@ fn place_small_candles(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R382 vinyl record: 12% chance per level. Round black disc with
+// Vinyl record: 12% chance per level. Round black disc with
 // color label at center.
 fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -270,7 +270,7 @@ fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     let hole = mesh(cyl_geo!(0.005, 0.005, 0.004, 8), &hole_mat);
     hole.position().y = 0.0034;
     record.add(&hole);
-    // R384 20% chance: dark crack line across disc surface.
+    // 20% chance: dark crack line across disc surface.
     if rnd() < 0.20 {
         let crack_mat = basic_mat!({ color: 0x1a1410, transparent: true, opacity: 0.9, depthWrite: false });
         let crack = mesh(plane_geo!(0.003, 0.24), &crack_mat);
@@ -282,7 +282,7 @@ fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     record.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     record.rotation().y = rnd() * PI * 2.0;
     g.world.add(&record);
-    // R383 25% chance: album sleeve (square card) 0.15-0.30 m from record.
+    // 25% chance: album sleeve (square card) 0.15-0.30 m from record.
     if rnd() < 0.25 {
         let sleeve_colors = [0x2a2020, 0x1a2028, 0x282018, 0x1a1a2a];
         let sleeve_mat = lambert!({ color: sleeve_colors[pick(sleeve_colors.len())] });
@@ -297,7 +297,7 @@ fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R380 small book on floor: 15% chance per level. Hardcover book
+// Small book on floor: 15% chance per level. Hardcover book
 // with visible colored cover.
 fn place_floor_books(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -308,7 +308,7 @@ fn place_floor_books(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // R381 per-weather cover color pool.
+    // Per-weather cover color pool.
     let cover_pool = book_cover_pool(g.weather_key());
     let cover_mat = lambert!({ color: cover_pool[pick(cover_pool.len())] });
     let pages_mat = lambert!({ color: 0xd8ccb0 });
@@ -330,7 +330,7 @@ fn place_floor_books(g: &mut Game, _dist: &[i32]) {
     // Slight tilt for organic drop.
     book.rotation().x = (rnd() - 0.5) * 0.15;
     g.world.add(&book);
-    // R381 25% chance: 1-2 more books stacked on top with slight offset.
+    // 25% chance: 1-2 more books stacked on top with slight offset.
     if rnd() < 0.25 {
         let stack_count = 1 + (rnd() * 2.0).floor() as i32;
         for s in 1..=stack_count {
@@ -354,7 +354,7 @@ fn place_floor_books(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R379 dead potted plant: 15% chance per level. Small pot with
+// Dead potted plant: 15% chance per level. Small pot with
 // 2-3 dark bent stems.
 fn place_dead_potted_plants(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -365,7 +365,7 @@ fn place_dead_potted_plants(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // R382 per-weather pot color pool.
+    // Per-weather pot color pool.
     let pot_pool = dead_plant_pot_pool(g.weather_key());
     let pot_mat = lambert!({ color: pot_pool[pick(pot_pool.len())] });
     let stem_mat = lambert!({ color: 0x2a1810 });
@@ -397,7 +397,7 @@ fn place_dead_potted_plants(g: &mut Game, _dist: &[i32]) {
     g.world.add(&plant);
 }
 
-// R375 traffic cone: 15% chance per level, 1 cone. Orange truncated
+// Traffic cone: 15% chance per level, 1 cone. Orange truncated
 // cone + white reflective band.
 fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -408,7 +408,7 @@ fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // R376 per-weather cone body color.
+    // Per-weather cone body color.
     let cone_color = traffic_cone_by_weather(g.weather_key());
     let orange_mat = lambert!({ color: cone_color });
     let band_mat = lambert!({ color: 0xf0f0e8 });
@@ -433,7 +433,7 @@ fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
     cone.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     cone.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cone);
-    // R377 25% chance: 1-2 sibling cones spaced 0.6-1.0 m in a row.
+    // 25% chance: 1-2 sibling cones spaced 0.6-1.0 m in a row.
     if rnd() < 0.25 {
         let sib_count = 1 + (rnd() * 2.0).floor() as i32;
         let sib_ang = rnd() * PI * 2.0;
@@ -448,7 +448,7 @@ fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
             g.world.add(&sib_cone);
             sib_positions.push(sib_cone.pos());
         }
-        // R378 safety tape line connecting sibling cones. Thin dark-
+        // Safety tape line connecting sibling cones. Thin dark-
         // yellow Line between consecutive cone tops at ~0.3 m height.
         let tape_mat = line_mat!({ color: 0xd8b040, transparent: true, opacity: 0.75 });
         for s in 0..sib_positions.len() - 1 {
@@ -461,7 +461,7 @@ fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R374 fallen ceiling tile: 15% chance per level. Small flat
+// Fallen ceiling tile: 15% chance per level. Small flat
 // rectangle on floor representing a dropped acoustic-ceiling tile.
 fn place_fallen_ceiling_tiles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -479,7 +479,7 @@ fn place_fallen_ceiling_tiles(g: &mut Game, _dist: &[i32]) {
     tile.rotation().x = (rnd() - 0.5) * 0.20;
     tile.rotation().z = (rnd() - 0.5) * 0.20;
     g.world.add(&tile);
-    // R378 dark rectangle in ceiling directly above tile position.
+    // Dark rectangle in ceiling directly above tile position.
     let gap_mat = basic_mat!({ color: 0x0a0806 });
     let gap = mesh(plane_geo!(0.55, 0.55), &gap_mat);
     gap.rotation().x = PI / 2.0; // face down from ceiling
@@ -492,7 +492,7 @@ fn place_fallen_ceiling_tiles(g: &mut Game, _dist: &[i32]) {
 /// `settle_props` probes a wall's face at its sides as well as its middle
 const STREAK_W: f64 = 0.0799;
 
-// R368 wall water streak: 20% chance per level, 1-2 streaks. Where water has
+// Wall water streak: 20% chance per level, 1-2 streaks. Where water has
 // come down a wall from the ceiling's edge, again and again, and dried
 // (`r07.notes.md`): it runs straight down from where it came through, narrow
 // there and wider below, splitting into runs that end in drips; the edge of
@@ -528,7 +528,7 @@ fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
         wall_mount(&streak, &c, wall_x, wall_z, streak_top - streak_h / 2.0, 1.4);
         g.world.add(&streak);
-        // R372 25% chance: where it dripped and stood, a dried ring on the
+        // 25% chance: where it dripped and stood, a dried ring on the
         // floor below (its old radius 9-16 cm, 1.3 × 0.85 of it)
         if rnd() < 0.25 {
             // (on the old disc, 1.3 × 0.85 of its radius: its outline the
@@ -544,7 +544,7 @@ fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
             fs.position().set(sp.x - c.dx as f64 * 0.14, 0.004, sp.z - c.dz as f64 * 0.14);
             g.world.add(&fs);
         }
-        // R370 25% chance: 1-2 more runs close by, from the same edge
+        // 25% chance: 1-2 more runs close by, from the same edge
         if rnd() < 0.25 {
             let sib_count = 1 + (rnd() * 2.0).floor() as i32;
             for _sib in 0..sib_count {
@@ -572,10 +572,10 @@ fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R368 floor drain grate: 15% chance per level, 1 drain. Round
+// Floor drain grate: 15% chance per level, 1 drain. Round
 // dark plate with cross-bar detail.
 fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
-    g.pp.drain_grate_positions = vec![]; // R369 reset per level
+    g.pp.drain_grate_positions = vec![]; // reset per level
     if rnd() < 0.85 {
         return;
     } // 15% chance
@@ -587,15 +587,15 @@ fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
     let grate_mat = lambert!({ color: 0x2a2620 });
     let bar_mat = lambert!({ color: 0x1a1610 });
     let drain = group();
-    // R371 deep-void interior: very dark disc at floor level inside the drain.
-    // R373 haunted-biome variant: faint red glow via a basic-material red tint.
+    // Deep-void interior: very dark disc at floor level inside the drain.
+    // Haunted-biome variant: faint red glow via a basic-material red tint.
     let is_haunted_drain = g.weather_key() == "haunted";
     let void_mat = basic_mat!({ color: if is_haunted_drain { 0x200404 } else { 0x040404 } });
     let void_disc = mesh(circle_geo!(0.085, 14), &void_mat);
     void_disc.rotation().x = -PI / 2.0;
     void_disc.position().y = 0.002;
     drain.add(&void_disc);
-    // R371 plate now a ring (annulus) so the void disc is visible through the hole.
+    // Plate now a ring (annulus) so the void disc is visible through the hole.
     let plate = mesh(pg("FloorDrainGrates__plate", ring_geo!(0.085, 0.11, 14)), &grate_mat);
     plate.rotation().x = -PI / 2.0;
     plate.position().y = 0.003;
@@ -615,10 +615,10 @@ fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
     drain.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     drain.rotation().y = rnd() * PI * 2.0;
     g.world.add(&drain);
-    // R369 track drain position for gurgle audio events.
+    // Track drain position for gurgle audio events.
     let dp = drain.pos();
     g.pp.drain_grate_positions.push(v3(dp.x, 0.02, dp.z));
-    // R371 15% chance: sibling drain 0.6-1.0 m away — shower-room feel.
+    // 15% chance: sibling drain 0.6-1.0 m away — shower-room feel.
     if rnd() < 0.15 {
         let sib_drain = clone_obj(&drain);
         let s_ang = rnd() * PI * 2.0;
@@ -629,7 +629,7 @@ fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
         let sp = sib_drain.pos();
         g.pp.drain_grate_positions.push(v3(sp.x, 0.02, sp.z));
     }
-    // R370 30% chance: shallow 3D puddle overlapping the drain.
+    // 30% chance: shallow 3D puddle overlapping the drain.
     if rnd() < 0.30 {
         let (dp_color, dp_emissive) = puddle_spec_by_weather(g.weather_key());
         let dpuddle_mat = lambert!({ color: dp_color, emissive: dp_emissive, transparent: true, opacity: 0.80 });
@@ -642,10 +642,10 @@ fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R364 rotary desk phone: 12% chance per level. Vintage-style
+// Rotary desk phone: 12% chance per level. Vintage-style
 // phone on floor: base box + rotary disc + handset with coiled cord.
 fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
-    g.pp.off_hook_rotary_positions = vec![]; // R366 reset per level
+    g.pp.off_hook_rotary_positions = vec![]; // reset per level
     if rnd() < 0.88 {
         return;
     } // 12% chance
@@ -671,7 +671,7 @@ fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
     let dial_center = mesh(pg("RotaryPhones__dialCenter", cyl_geo!(0.010, 0.010, 0.010, 8)), &body_mat);
     dial_center.position().set(0, 0.060, 0.02);
     phone.add(&dial_center);
-    // R365 25% chance: handset off-hook — placed on floor beside base.
+    // 25% chance: handset off-hook — placed on floor beside base.
     let off_hook = rnd() < 0.25;
     let handset = group();
     let bar = mesh(pg("RotaryPhones__handsetBar", box_geo!(0.16, 0.03, 0.03)), &body_mat);
@@ -712,14 +712,14 @@ fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
     phone.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0, g.wz(z) + (rnd() - 0.5) * 2.2);
     phone.rotation().y = rnd() * PI * 2.0;
     g.world.add(&phone);
-    // R366 track off-hook variants for dial-tone audio.
+    // Track off-hook variants for dial-tone audio.
     if off_hook {
         let pp = phone.pos();
         g.pp.off_hook_rotary_positions.push(v3(pp.x, 0.10, pp.z));
     }
 }
 
-// R362 floor puddle: 15% chance per level (25% in wet biome). Water on the
+// Floor puddle: 15% chance per level (25% in wet biome). Water on the
 // floor (`r07.notes.md`): on carpet it has soaked in, a dark wet patch with a
 // soft, ragged edge and a darker ring where the dirt wicked out to it; on a
 // hard floor it stands, a thin film darker than the dry floor round it, its
@@ -748,7 +748,7 @@ fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
     puddle.position().set(g.wx(x) + (rnd() - 0.5) * 2.2, 0.003, g.wz(z) + (rnd() - 0.5) * 2.2);
     puddle.rotation().y = rnd() * PI * 2.0;
     g.world.add(&puddle);
-    // R363 25% chance: where it is fed by a drip, the sheen on it trembles
+    // 25% chance: where it is fed by a drip, the sheen on it trembles
     // (period 4-7 s; it was a swell of the old disc)
     if rnd() < 0.25 {
         let r_phase = rnd() * PI * 2.0;
@@ -761,7 +761,7 @@ fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R360 ashtray: 12% chance per level. Small shallow disc with
+// Ashtray: 12% chance per level. Small shallow disc with
 // 2-3 tiny cigarette butt cylinders on top.
 fn place_ashtrays(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
@@ -810,7 +810,7 @@ fn place_ashtrays(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ashtray);
 }
 
-// R359 table lamp: 15% chance per level. 3-piece Group: circular
+// Table lamp: 15% chance per level. 3-piece Group: circular
 // base + narrower vertical stem + tapered shade at top. Dark/off.
 fn place_table_lamps(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
@@ -847,7 +847,7 @@ fn place_table_lamps(g: &mut Game, _dist: &[i32]) {
     g.world.add(&lamp);
 }
 
-// R356 folded newspaper on floor: 20% chance per level, 1 paper.
+// Folded newspaper on floor: 20% chance per level, 1 paper.
 fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
@@ -857,7 +857,7 @@ fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[pick(open.len())];
-    // R357 per-weather aged tint.
+    // Per-weather aged tint.
     let paper_tint = newspaper_tint_by_weather(g.weather_key());
     let paper_mat = lambert!({ map: newspaper_texture_2(), color: paper_tint, side: DoubleSide });
     let paper = mesh(plane_geo!(0.24, 0.16), &paper_mat);
@@ -867,7 +867,7 @@ fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&paper);
 }
 
-// R347 ceiling cracks: 20% chance per level, 1-2 cracks. A crack is in what
+// Ceiling cracks: 20% chance per level, 1-2 cracks. A crack is in what
 // the ceiling is (`r07.notes.md`): a suspended ceiling's mineral-fibre tile
 // cracks within itself, edge to edge across the one tile (the grid holds
 // each tile apart), its two halves a little out of line; a concrete slab or a
@@ -925,7 +925,7 @@ fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
             crack_group.add(&plane);
         }
         g.world.add(&crack_group);
-        // R348 30% chance: 2-4 bits fallen from it on the floor below (8-12
+        // 30% chance: 2-4 bits fallen from it on the floor below (8-12
         // when a piece came down): of the tile (aged off-white mineral
         // fibre), or chips of the slab or the plaster (`r07.py`)
         if rnd() < 0.30 {
@@ -937,7 +937,7 @@ fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
                 _ => 0xc2baa8,
             };
             let chunk_mat = lambert!({ color: chunk_color });
-            // R352 10% chance: major-fall cluster (8-12 chunks).
+            // 10% chance: major-fall cluster (8-12 chunks).
             let is_major = rnd() < 0.10;
             let chunk_count = if is_major { 8 + (rnd() * 5.0).floor() as i32 } else { 2 + (rnd() * 3.0).floor() as i32 };
             let bits = if ceiling == 0 {
@@ -970,7 +970,7 @@ fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R346 ceiling cobwebs: 25% chance per level, 1-3 cobwebs. An old cobweb in
+// Ceiling cobwebs: 25% chance per level, 1-3 cobwebs. An old cobweb in
 // the angle of a wall and the ceiling (`r07.notes.md`): a cobweb spider's
 // tangle, long abandoned, its threads grey with the dust they caught, slung
 // across the angle and sagging, thick where the tangle is and thin out to
@@ -984,7 +984,7 @@ fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
     let count = 1 + (rnd() * 3.0).floor() as usize;
     let mut candidates = wall_candidates(g);
     shuffle(&mut candidates);
-    // R347 per-weather cobweb tint (pale greys), greyed by the dust in it
+    // Per-weather cobweb tint (pale greys), greyed by the dust in it
     let dusty = srgb3(cobweb_color_by_weather(g.weather_key())).map(|c| c * 0.92);
     let mut i = 0;
     while i < count && i < candidates.len() {
@@ -1001,9 +1001,9 @@ fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
         wall_mount(&web, &c, wall_x, wall_z, WALL_H - 0.02, 1.5);
         let strand_count = 3 + (rnd() * 2.0).floor() as i32;
         let anchors: Vec<f64> = (0..strand_count).map(|_| 0.1 + rnd() * 0.85).collect();
-        // R350 20% chance: very slow sway in the air that moves through
+        // 20% chance: very slow sway in the air that moves through
         let sway = if rnd() < 0.20 { Some((rnd() * PI * 2.0, 12.0 + rnd() * 8.0)) } else { None };
-        // R350 5% chance: a dead insect caught in it (its turn, and where:
+        // 5% chance: a dead insect caught in it (its turn, and where:
         // the old draws, in the old order for the wall it is on)
         let insect = if rnd() < 0.05 {
             let (spin, a, b) = (rnd(), rnd(), rnd());
@@ -1012,7 +1012,7 @@ fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
         } else {
             None
         };
-        // R349 25% chance: 1-2 smaller webs in the same stretch of the angle
+        // 25% chance: 1-2 smaller webs in the same stretch of the angle
         let mut sibs = vec![];
         if rnd() < 0.25 {
             let sib_count = 1 + (rnd() * 2.0).floor() as i32;
@@ -1052,7 +1052,7 @@ fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R345 dead ceiling light fixture: 20% chance per level, 1-2 units.
+// Dead ceiling light fixture: 20% chance per level, 1-2 units.
 // Small dark disc + tiny protruding bulb-remnant on ceiling.
 fn place_dead_ceiling_lights(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
@@ -1084,7 +1084,7 @@ fn place_dead_ceiling_lights(g: &mut Game, _dist: &[i32]) {
         }
         light.position().set(g.wx(x) + (rnd() - 0.5) * 1.8, 0, g.wz(z) + (rnd() - 0.5) * 1.8);
         g.world.add(&light);
-        // R353 30% chance: small draped cobweb over the dead-light socket.
+        // 30% chance: small draped cobweb over the dead-light socket.
         if rnd() < 0.30 {
             let dw_size = 0.12 + rnd() * 0.06;
             let dw_geo = tri_geo([0.0, 0.0, 0.0, dw_size, 0.0, 0.0, 0.0, -dw_size * 0.7, 0.0], [0, 1, 2]);
@@ -1097,7 +1097,7 @@ fn place_dead_ceiling_lights(g: &mut Game, _dist: &[i32]) {
             dw.position().set(lp.x + (rnd() - 0.5) * 0.06, WALL_H - 0.03, lp.z + (rnd() - 0.5) * 0.06);
             g.world.add(&dw);
         }
-        // R346 25% chance: matching hanging cable co-located 0.35-0.60 m
+        // 25% chance: matching hanging cable co-located 0.35-0.60 m
         // from the dead light — "wire ripped from fixture" narrative.
         if rnd() < 0.25 {
             let cable_col_mat = lambert!({ color: 0x181410 });
@@ -1124,10 +1124,10 @@ fn place_dead_ceiling_lights(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-// R344 ceiling hanging cable: 15% chance per level, 1 unit.
+// Ceiling hanging cable: 15% chance per level, 1 unit.
 // Vertical thin cylinder dangling from ceiling + small plug head at bottom.
 fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
-    g.pp.ceiling_cable_plug_positions = vec![]; // R355 reset per level
+    g.pp.ceiling_cable_plug_positions = vec![]; // reset per level
     if rnd() < 0.85 {
         return;
     } // 15% chance
@@ -1155,10 +1155,10 @@ fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
     cable.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     cable.rotation().y = rnd() * PI * 2.0;
     g.world.add(&cable);
-    // R355 track cable plug tip world position for spark events.
+    // Track cable plug tip world position for spark events.
     let cp = cable.pos();
     g.pp.ceiling_cable_plug_positions.push(v3(cp.x, plug.pos().y, cp.z));
-    // R345 30% chance: very slow pendulum sway on the cable group.
+    // 30% chance: very slow pendulum sway on the cable group.
     // Small ±0.03 rad amplitude around Z, period 8-14 s.
     if rnd() < 0.30 {
         let sway_phase = rnd() * PI * 2.0;

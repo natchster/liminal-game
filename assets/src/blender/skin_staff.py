@@ -5,9 +5,9 @@ name badge), dark trousers with a belt, black work shoes, pale skin on the
 forearms, hands and neck, and a smooth, slightly too long head with only the
 faintest brow and nose under the skin: no eyes, no mouth.
 
-Run by tools/blender/skinned.py (`... --python tools/blender/skinned.py --
-staff`) on the rig makeStaff builds (HUMAN_RIGS.staff in backrooms.js, dumped
-by `node tools/rig-dump.mjs staff`). The clothes are part of the one skinned
+Run by skinned.py (`... --python assets/src/blender/skinned.py -- staff`) on
+the staff's rig (`anomalies::rig::HUMAN_RIG_STAFF`, its rest pose dumped).
+The clothes are part of the one skinned
 body: each piece is tagged shirt / trousers / belt / shoe / skin ..., and the
 painter colours a vertex by the pieces it lies on. The folds are sculpted:
 the shirt gathered over the belt, the trousers bunched behind the knees and

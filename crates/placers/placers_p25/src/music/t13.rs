@@ -21,7 +21,7 @@ const CUP_BASE: f64 = 0.0254;
 /// How far a cup stands up out of the one it is nested in
 const CUP_NEST: f64 = 0.011;
 
-// R430 small paper cup: 12% chance per level. A 9 oz printed paper cup of
+// Small paper cup: 12% chance per level. A 9 oz printed paper cup of
 // the party kind (coated cupstock, 76 mm across its rolled rim, 89 mm
 // tall), its print faded and scuffed, what was in it dried to a crust and
 // a tide line inside, a run of it dried down the outside; standing where

@@ -5,7 +5,7 @@ use crate::open_tiles;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// R722 pet toy (floor): 7% chance per level. A dog's squeaky bone (hollow
+/// Pet toy (floor): 7% chance per level. A dog's squeaky bone (hollow
 /// moulded vinyl, 15 cm, its squeaker's pip and its mould seam) or its
 /// rubber ball (solid natural rubber, 76 mm, its seam, some with a band of
 /// a second colour); chewed: tooth dents and holes, scraped, grimed where

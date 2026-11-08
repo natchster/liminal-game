@@ -8,7 +8,7 @@ tripod, brass wall sconce, ornate gilt mirror, pocket watch, open journal,
 parchment scroll.
 
 Glass (snifter), DoubleSide paper/cloth (canvases, pages, feather eyes,
-ribbons), flat painted marks and MeshBasic flames stay primitives; see
+ribbons), flat painted marks and basic material flames stay primitives; see
 b21.notes.md.
 """
 from propkit import *
@@ -45,7 +45,7 @@ def loft(rings, cap0=True, cap1=True):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed 2D section [(dr, dz), ...] round the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). arc < TAU caps the ends.
+    plane (a torus_geo! with any cross-section). arc < TAU caps the ends.
     rmod(angle, i) -> (k_r, dz_add[, dR]) varies the section along the ring.
     A ring the game lays flat with rotation.x = PI/2 has local -Z up."""
     full = arc >= TAU - 1e-6
@@ -98,7 +98,7 @@ def yloft(profile, w, d, rc, cseg=3):
 
 
 def torus_arc_bounds(R, r, arc, radial=24, tubular=128):
-    """Bounds of THREE.TorusGeometry(R, r, .., .., arc) as the game computes
+    """Bounds of torus_geo!(R, r, .., .., arc) as the game computes
     them (24 x 128 samples)."""
     xs, ys = [], []
     for i in range(tubular + 1):

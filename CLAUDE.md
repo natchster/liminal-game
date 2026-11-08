@@ -70,6 +70,7 @@ REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
 cargo test --release -p game --test core_props_head -- --ignored rerecord   # the core props
+cargo test --release -p game --test core_props_tail -- --ignored rerecord   # their second half
 cargo test --release -p backrooms --test loudness -- --ignored rerecord   # after listening
 ```
 
@@ -91,8 +92,8 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
    light map, and sounds come from props or fixed anchors (`play_from`).
 3. **Never capture the user's screen.** Use the headless modes above and read
    the PNG.
-4. **Never modify the HTML/JS version in the parent folder** (`../`). It is a
-   read-only reference.
+4. **Never modify anything outside this repository**, whatever is outside
+   it: edits stay inside the repository (the pre-edit hook refuses the rest).
 5. **Layering.** `engine` never depends on `game`; `game` never touches the
    window, Metal or CoreAudio devices. The game runs headless; tests rely on it.
 6. **Shader cost.** A texture read added to a global shader patch multiplies
@@ -102,8 +103,8 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
 
 ## Hooks
 
-`.claude/settings.json` runs `cargo xtask hook …`: edits to the parent folder
-and to recorded fixtures are refused, edited `.rs` files are formatted, and a
+`.claude/settings.json` runs `cargo xtask hook …`: edits outside this
+repository and to recorded fixtures are refused, edited `.rs` files are formatted, and a
 stop runs `cargo xtask check --fast` when code changed (a failure sends you
 back with its `ERROR` lines). See `docs/DEVELOPMENT.md`.
 

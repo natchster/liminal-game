@@ -6,7 +6,7 @@ Occult: mask, candle clusters, crystal ball stand, pumpkin, witch hat,
 skeleton hand, cauldron, tombstone, spider, broom, black cat, treat pail,
 skulls, potion cork, owl, brass candlestick.
 
-Transparent glass, glows, flames, halos, dark MeshBasic eye/face decals and
+Transparent glass, glows, flames, halos, dark basic material eye/face decals and
 the DoubleSide bat and ghost sheet stay primitives; see b22.notes.md.
 """
 from propkit import *
@@ -43,7 +43,7 @@ def loft(rings, cap0=True, cap1=True):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed 2D section [(dr, dz), ...] round the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). arc < TAU caps the ends.
+    plane (a torus_geo! with any cross-section). arc < TAU caps the ends.
     rmod(angle, t) -> (k_r, dz_add[, dR]) varies the section along the ring."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
@@ -107,7 +107,7 @@ def yloft(profile, w, d, rc, cseg=2):
 
 
 def torus_arc_bounds(R, r, arc, radial=24, tubular=128):
-    """Ideal bounds of THREE.TorusGeometry(R, r, .., .., arc) as the game
+    """Ideal bounds of torus_geo!(R, r, .., .., arc) as the game
     computes them (24 x 128 samples)."""
     xs, ys = [], []
     for i in range(tubular + 1):

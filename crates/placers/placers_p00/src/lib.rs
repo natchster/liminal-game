@@ -1,4 +1,4 @@
-//! Prop placers: the R1 gameplay trigger (a wall switch that lights a distant
+//! Prop placers: the gameplay trigger (a wall switch that lights a distant
 //! ceiling glow panel), floor stains and smoking ashtrays.
 #![allow(unused_variables, unused_mut, unused_assignments, clippy::all)]
 use game::base::state::GameplayR1State;

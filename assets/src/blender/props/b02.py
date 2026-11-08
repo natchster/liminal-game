@@ -1,25 +1,25 @@
 """Batch b02 - "core" theme: wall fixtures, ceiling fixtures and litter.
 
-placeEmergencyStrobes      strobe mounting base (the red dome is transparent)
-placeEmergencyPhones       red phone housing, handset grip, ear/mouth cups
-placeSprinklerHeads        threaded stub + hex, glass bulb, yoke arms, toothed deflector
-placeWallIntercoms         faceplate, speaker grille, grille bars, talk button
-placeBottleCaps            crimped crown cap
-placeSingleSocks           flattened sock foot, ribbed cuff, soft bands
-placeMotionDetectorDomes   ceiling mounting ring (the dome is transparent)
-placeWallDoors             door slab with moulding grooves, fielded panels, knob
-placeWallOutlets           duplex cover plate, moulded plug, cord
-placeCardReaders           reader housing with slot hood and tap ring
-placeExtinguisherCabinets  recessed cabinet tub, extinguisher cylinder, valve head
-placeElevatorPanels        steel plate with button bezels, push buttons
-placeCeilingFans           downrod, motor housing, blades
-placeSwitchPlates          wall plate, toggle lever, screws
-placeSmokeDetectors        detector body with side vents, vented centre cap
-placeExitArrowSigns        sign housing, arrow shaft, arrow head
-placeFrostedWindows        moulded window frame, muntin bars
-placeLeaningFrames         hardboard backing
-placeWallHandprints        crumpled scrap paper
-placePinnedPhotos          push pin
+place_emergency_strobes      strobe mounting base (the red dome is transparent)
+place_emergency_phones       red phone housing, handset grip, ear/mouth cups
+place_sprinkler_heads        threaded stub + hex, glass bulb, yoke arms, toothed deflector
+place_wall_intercoms         faceplate, speaker grille, grille bars, talk button
+place_bottle_caps            crimped crown cap
+place_single_socks           flattened sock foot, ribbed cuff, soft bands
+place_motion_detector_domes   ceiling mounting ring (the dome is transparent)
+place_wall_doors             door slab with moulding grooves, fielded panels, knob
+place_wall_outlets           duplex cover plate, moulded plug, cord
+place_card_readers           reader housing with slot hood and tap ring
+place_extinguisher_cabinets  recessed cabinet tub, extinguisher cylinder, valve head
+place_elevator_panels        steel plate with button bezels, push buttons
+place_ceiling_fans           downrod, motor housing, blades
+place_switch_plates          wall plate, toggle lever, screws
+place_smoke_detectors        detector body with side vents, vented centre cap
+place_exit_arrow_signs        sign housing, arrow shaft, arrow head
+place_frosted_windows        moulded window frame, muntin bars
+place_leaning_frames         hardboard backing
+place_wall_handprints        crumpled scrap paper
+place_pinned_photos          push pin
 """
 from propkit import *
 import propkit

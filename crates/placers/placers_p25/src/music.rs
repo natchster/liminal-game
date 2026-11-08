@@ -1,4 +1,4 @@
-//! Music, child-music and party-decoration props (R430-R437).
+//! Music, child-music and party-decoration props.
 use crate::{buf_geo, open_tiles, pick, set_rot_order};
 use game::prelude::*;
 
@@ -12,7 +12,7 @@ pub use t16::place_small_xylophones;
 mod t12;
 pub use t12::{place_hanging_streamers, place_paper_garlands, place_small_paper_crowns, place_small_pinatas};
 
-// R437 music sheet paper texture: staff lines + notes on cream paper.
+// Music sheet paper texture: staff lines + notes on cream paper.
 game::lazy_static_tex!(
     music_sheet_texture,
     canvas_tex_opt(256, 320, false, |ctx, w, h| {
@@ -62,10 +62,10 @@ game::lazy_static_tex!(
     })
 );
 
-/// R437 music sheet paper: 10% chance per level. Canvas-textured
+/// Music sheet paper: 10% chance per level. Canvas-textured
 /// paper with staff lines + notes on floor. Child-music family.
 pub fn place_music_sheets(g: &mut Game, _dist: &[i32]) {
-    g.pp.paper_positions.clear(); // R487 reset per level (shared with journals)
+    g.pp.paper_positions.clear(); // reset per level (shared with journals)
     if rnd() < 0.90 {
         return;
     } // 10% chance
@@ -84,12 +84,12 @@ pub fn place_music_sheets(g: &mut Game, _dist: &[i32]) {
         sheet.rotation().x = -PI / 2.0 + (rnd() - 0.5) * 0.2;
     }
     g.world.add(&sheet);
-    // R487 track for paper rustle audio.
+    // Track for paper rustle audio.
     let p = sheet.pos();
     g.pp.paper_positions.push(v3(p.x, 0.01, p.z));
 }
 
-/// R437 small conductor's baton: 8% chance per level. Thin white
+/// Small conductor's baton: 8% chance per level. Thin white
 /// baton with cork tip. Music family (conducting).
 pub fn place_conductor_batons(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -118,7 +118,7 @@ pub fn place_conductor_batons(g: &mut Game, _dist: &[i32]) {
     g.world.add(&baton);
 }
 
-/// R436 small kazoo: 8% chance per level. Short cylinder with
+/// Small kazoo: 8% chance per level. Short cylinder with
 /// membrane disc. Child-music family.
 pub fn place_small_kazoos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -152,7 +152,7 @@ pub fn place_small_kazoos(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kazoo);
 }
 
-/// R435 small recorder: 8% chance per level. Beige recorder flute
+/// Small recorder: 8% chance per level. Beige recorder flute
 /// with mouthpiece + 5 finger holes. Child-music family.
 pub fn place_small_recorders(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -195,7 +195,7 @@ pub fn place_small_recorders(g: &mut Game, _dist: &[i32]) {
     g.world.add(&recorder);
 }
 
-/// R435 small percussion triangle: 6% chance per level. Bent metal
+/// Small percussion triangle: 6% chance per level. Bent metal
 /// triangle + beater rod. Child-music family.
 pub fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -249,11 +249,11 @@ pub fn place_small_triangles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&tri);
 }
 
-/// R434 small maracas: batch `t22`'s (`music/t22.rs`)
+/// Small maracas: batch `t22`'s (`music/t22.rs`)
 mod t22;
 pub use t22::place_small_maracas;
 
-/// R433 small trumpet: 6% chance per level. Small brass toy
+/// Small trumpet: 6% chance per level. Small brass toy
 /// trumpet with bell + tube + 3 valves.
 pub fn place_small_trumpets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -296,7 +296,7 @@ pub fn place_small_trumpets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&trumpet);
 }
 
-/// R433 hanging balloon bundle: 6% chance per level. 3-4 balloons
+/// Hanging balloon bundle: 6% chance per level. 3-4 balloons
 /// on independent strings converging at ceiling anchor point.
 pub fn place_hanging_balloon_bundles(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -360,7 +360,7 @@ pub fn place_hanging_balloon_bundles(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// R432 small party banner: 6% chance per level. Small horizontal
+/// Small party banner: 6% chance per level. Small horizontal
 /// paper banner strung between two ceiling anchor points with a
 /// gentle catenary sag.
 pub fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
@@ -433,7 +433,7 @@ pub fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
     g.world.add(&banner);
 }
 
-/// R431 candle cluster: 8% chance per level. 3-5 R428-style
+/// Candle cluster: 8% chance per level. 3-5
 /// birthday candles arranged in a small ring (cake without cake).
 pub fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
@@ -468,7 +468,7 @@ pub fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
             let flame_light = point_light!(0xffb060, 0.28, 0.7, 2);
             flame_light.position().y = 0.075;
             candle.add(&flame_light);
-            // R483 warm halo sphere.
+            // Warm halo sphere.
             let halo_mat = basic_mat!({ color: 0xffb060, transparent: true, opacity: 0.25, depthWrite: false });
             let halo = mesh(sphere_geo!(0.018, 6, 5), &halo_mat);
             halo.position().y = 0.076;
@@ -491,6 +491,6 @@ pub fn place_candle_clusters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-// R430 small paper cup: batch `t13`'s (`music/t13.rs`)
+// Small paper cup: batch `t13`'s (`music/t13.rs`)
 mod t13;
 pub use t13::place_small_paper_cups;

@@ -5,7 +5,7 @@
 use super::*;
 use game::assets::props::prop_part_as_modelled;
 
-// R468 small crow: 5% chance per level. A moulded plastic Halloween crow
+// Small crow: 5% chance per level. A moulded plastic Halloween crow
 // (16 cm from beak to tail), standing on its wired legs: black polypropylene
 // with its wings and tail moulded on, the long feathers free, a stout beak,
 // two glass bead eyes that catch the light; dust in its feathers, its black

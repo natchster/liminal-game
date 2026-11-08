@@ -1,30 +1,30 @@
 """Batch b16 - "toys" and "party": bright, chunky, rounded plastic, rubber,
 plush and paper things lying on the floor.
 
-placeChildrensTeaSets  teapot (belly, gallery rim, lid), spout, handle, cup, saucer
-placeDeflatedBalls     slumped ball with a caved-in side and wrinkles
-placeRubberDucks       duck body with a raised tail and wings, head, bill
-placeGameboys          handheld body, bezel, LCD, D-pad arms, buttons, pills
-placeYoyos             yo-yo halves, string hub
-placeRubiksCubes       grooved core
-placeLegoBricks        hollow brick, stud
-placeJumpRopes         coiled cord, turned handle
-placeTeddyBears        plush body, head with muzzle, ears, arms, legs, eyes, nose
-placeCrayons           paper wrapper, sharpened tip, wax end
-placeActionFigures     torso, head, arm, leg
-placeBabyRattles       lobed ball, handle, teether ring
-placeToyDinosaurs      body, head, tail, legs, back plates
-placePacifiers         shield, teat, ring
-placeSippyCups         cup, screw lid, spout, handle
-placeBabyBottles       milk, screw collar, teat
-placeStuffedRabbits    body, head, ears, arms, feet, tail, nose
-placeStuffedElephants  body, head, trunk, ears, legs, tusks
-placeTeethingRings     nubbed ring, ribbed handle
-placeChildDrawings     moulded frame
-placePetToys           bone shaft and knobs, rubber ball, stripe
-placeBrokenWholeDolls  torso, dress, ruffles, head, ringlets, limbs, hand, shoe
-placeHobbyHorses       pole, knob, carved head, muzzle, ears, mane, reins, wheels
-placeSmallBalloons     balloon, knot, deflated skin, string
+place_childrens_tea_sets  teapot (belly, gallery rim, lid), spout, handle, cup, saucer
+place_deflated_balls     slumped ball with a caved-in side and wrinkles
+place_rubber_ducks       duck body with a raised tail and wings, head, bill
+place_gameboys          handheld body, bezel, LCD, D-pad arms, buttons, pills
+place_yoyos             yo-yo halves, string hub
+place_rubiks_cubes       grooved core
+place_lego_bricks        hollow brick, stud
+place_jump_ropes         coiled cord, turned handle
+place_teddy_bears        plush body, head with muzzle, ears, arms, legs, eyes, nose
+place_crayons           paper wrapper, sharpened tip, wax end
+place_action_figures     torso, head, arm, leg
+place_baby_rattles       lobed ball, handle, teether ring
+place_toy_dinosaurs      body, head, tail, legs, back plates
+place_pacifiers         shield, teat, ring
+place_sippy_cups         cup, screw lid, spout, handle
+place_baby_bottles       milk, screw collar, teat
+place_stuffed_rabbits    body, head, ears, arms, feet, tail, nose
+place_stuffed_elephants  body, head, trunk, ears, legs, tusks
+place_teething_rings     nubbed ring, ribbed handle
+place_child_drawings     moulded frame
+place_pet_toys           bone shaft and knobs, rubber ball, stripe
+place_broken_whole_dolls  torso, dress, ruffles, head, ringlets, limbs, hand, shoe
+place_hobby_horses       pole, knob, carved head, muzzle, ears, mane, reins, wheels
+place_small_balloons     balloon, knot, deflated skin, string
 """
 from propkit import *
 import propkit
@@ -73,7 +73,7 @@ def ring_lathe(profile, seg=24):
 
 def arc_sweep(section, R, a0, a1, n, caps=True, rfn=None):
     """Sweep a closed 2D section [(dr, dz), ...] around the Z axis at radius R
-    from angle a0 to a1 (a ring in the XY plane, like TorusGeometry).
+    from angle a0 to a1 (a ring in the XY plane, like torus_geo!).
     rfn(t) optionally scales the section along the sweep (t = 0..1)."""
     m = len(section)
     full = abs(a1 - a0) >= TAU - 1e-6
@@ -101,7 +101,7 @@ def circ(r, n=8, sx=1.0, sy=1.0):
 
 
 def half_torus_frame(R, r):
-    """Bounds of TorusGeometry(R, r, .., .., PI): the upper half ring."""
+    """Bounds of torus_geo!(R, r, .., .., PI): the upper half ring."""
     return f_bounds((-R - r, 0.0, -r), (R + r, R + r, r))
 
 

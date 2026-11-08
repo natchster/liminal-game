@@ -126,8 +126,8 @@ one in the corner and the Reader) run one brain (`entities::creature`,
 update loop and the screen's pressure, and the anomalies' staff and
 shadows, which keep their own rules on the procedural human rig; since
 E9 the staff's body is made for that rig, `anomalies::rig::bind_figure`,
-`assets/src/creatures/figure.py`, and the shadows keep the HTML
-version's): one
+`assets/src/creatures/figure.py`, and the shadows keep their old
+body): one
 `Mode` at a time (idle, roam, alert, search, stalk, hunt, strike, withdraw,
 ...), changed only by a rule of the kind and logged with its reason;
 percepts computed once a frame (hearing along the way it would walk to you,

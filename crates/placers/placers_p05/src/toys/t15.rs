@@ -13,7 +13,7 @@ fn index_of(cs: &[u32], c: u32) -> usize {
     cs.iter().position(|&x| x == c).unwrap_or(0)
 }
 
-/// R627 plastic action figure: 4% chance per level. A jointed 3 3/4 in
+/// Plastic action figure: 4% chance per level. A jointed 3 3/4 in
 /// (95 mm) soldier of the 1980s kind, no maker's: its O-ring body moulded
 /// in the uniform's plastic, the head and hands in flesh plastic, boots,
 /// belt and pouches painted black and rubbed through to the plastic, a
@@ -58,7 +58,7 @@ pub fn place_action_figures(g: &mut Game, _dist: &[i32]) {
     g.world.add(&fig);
 }
 
-/// R628 baby rattle: 6% chance per level. A hard plastic baby rattle of the
+/// Baby rattle: 6% chance per level. A hard plastic baby rattle of the
 /// 1960s, 12 cm: a fluted pastel ball moulded in two halves (the beads loose
 /// in it), a cream handle with the ring a small hand holds, a cap over the
 /// mould's gate; lying on the ball and the ring. Its pastel faded, a few
@@ -106,7 +106,7 @@ pub fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&rattle);
 }
 
-/// R628 toy dinosaur: 4% chance per level. A solid PVC dinosaur of the
+/// Toy dinosaur: 4% chance per level. A solid PVC dinosaur of the
 /// 1980s kind, sold loose from a tub: a stegosaurus (13 cm, its plates and
 /// tail spikes moulded with it) or a brontosaurus (16 cm, its neck raised);
 /// moulded in one colour, its skin sculpted in scales, the eyes dots of

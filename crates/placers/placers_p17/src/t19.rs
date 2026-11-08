@@ -16,7 +16,7 @@ use game::prelude::*;
 /// ghost fades out across this margin
 const MARGIN: f64 = 0.025;
 
-// R760 empty painting outline (wall): 3% chance per level. Absence-as-prop.
+// Empty painting outline (wall): 3% chance per level. Absence-as-prop.
 pub(crate) fn place_empty_painting_outlines(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {
         return;

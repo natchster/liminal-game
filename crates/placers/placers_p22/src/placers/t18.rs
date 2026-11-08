@@ -21,7 +21,7 @@ const HOOK_LOW: f64 = 0.035;
 const ON_RING: f64 = 0.0035;
 const ON_HOOK: f64 = 0.0033;
 
-// R493 hanging censer: 4% chance per level. A brass thurible (a bowl 108 mm
+// Hanging censer: 4% chance per level. A brass thurible (a bowl 108 mm
 // across on its foot, a pierced domed lid, three chains to a chain head)
 // hung by its finger ring from a brass swag hook screwed into the ceiling,
 // on as many links of lamp chain as bring its bowl where the old one hung;

@@ -143,7 +143,7 @@ struct BsBook {
     lean: Option<f64>,
 }
 
-// R535 wall bookshelf: 3% chance per level. A hanging wall bookshelf of
+// Wall bookshelf: 3% chance per level. A hanging wall bookshelf of
 // stained pine (Blender batch `t10`: 600 x 160 mm, 300 mm between its
 // boards, its sides scrolled at the foot, a hardboard back), r02's cloth
 // hardbacks standing in it, their spines faded by the years they faced the
@@ -392,14 +392,14 @@ const LK_DOOR_Z: f64 = 0.305 - 0.0015;
 /// hunter green, dark brown, sand
 const LK_PAINT: [[f64; 3]; 4] = [[0.42, 0.44, 0.45], [0.30, 0.37, 0.31], [0.26, 0.22, 0.18], [0.75, 0.69, 0.56]];
 
-// R530 metal locker: 4% chance per level. A single-tier steel locker, 12 x
+// Metal locker: 4% chance per level. A single-tier steel locker, 12 x
 // 12 x 60 in on its 6 in legs (Blender batch `t10`), its welded frame, its
 // door with six louvres top and bottom, its hinges and its recessed latch
 // with a padlock staple, a riveted aluminium number plate; its paint
 // scratched to the grey primer and the steel, rust coming through at its
 // foot and its edges, grime where hands opened it.
 pub(super) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
-    g.pp.locker_positions = vec![]; // R531 reset per level
+    g.pp.locker_positions = vec![]; // reset per level
     if rnd() < 0.96 {
         return;
     } // 4% chance
@@ -437,7 +437,7 @@ pub(super) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
         plate.position().set(0, LK_DOOR_Y0 + LK_DOOR_H - 0.135, LK_DOOR_Z);
     }
     g.world.add(&locker);
-    // R531 track for slam audio.
+    // Track for slam audio.
     let p = locker.pos();
     g.pp.locker_positions.push(v3(p.x, 0.8, p.z));
 }

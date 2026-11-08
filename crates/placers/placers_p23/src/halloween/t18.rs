@@ -6,7 +6,7 @@
 use crate::{open_tiles, pick_tile, pick_u32};
 use game::prelude::*;
 
-// R459 small crystal ball: 5% chance per level. A glass ball 80 mm across
+// Small crystal ball: 5% chance per level. A glass ball 80 mm across
 // in the cupped top of a turned, dark-stained hardwood stand: the room seen
 // in its glass by Fresnel, a faint tint in the glass (by the old colour),
 // dust settled on its crown and the smears of hands; the stand's stain worn
