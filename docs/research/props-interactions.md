@@ -13,7 +13,7 @@ Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "make mor
     Building's cells. Each has rules rather than dice, keeps its effects unsaid, plays its sounds from the
     prop with `play_from` only within earshot, charges noise that creatures hear, and draws no
     randomness from the build's stream.
-  - **Legacy interactions** (ported from the HTML version) break several of those rules: the vacuum, the
+  - **Legacy interactions** (older than these rules) break several of those rules: the vacuum, the
     payphone's roll, the shaft peer, the "(bad wiring)" switch, candle relighting, the R1 button and the
     safe-room toast. They are listed in §1.3. Fixing them is the cheapest way to stop the lore breaking.
 - The **common, non-interactive props are the core props**. They are on 22–27 of 27 levels, often 2–4 per

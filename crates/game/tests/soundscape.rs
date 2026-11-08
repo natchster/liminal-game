@@ -12,7 +12,7 @@ use game::audio::soundscape::*;
 use std::cell::Cell;
 use std::rc::Rc;
 
-/// The reference data's LCG, counting its draws.
+/// The LCG the data was recorded with, counting its draws.
 struct Lcg {
     seed: Cell<u32>,
     draws: Cell<u64>,

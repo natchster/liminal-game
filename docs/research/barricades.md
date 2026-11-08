@@ -6,8 +6,8 @@ Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "May barr
 
 1. **Barricades are chosen on the tile grid, which ignores most real walls.**
    `tail_barricades` picks a random open tile that has two open neighbours on
-   opposite sides (`tail.rs:1367-1384`). That rule came from the HTML version,
-   where every wall was a solid 4 m tile. In the thin-walled zones (Lobby,
+   opposite sides (`tail.rs:1367-1384`). That rule dates from when every wall
+   was a solid 4 m tile. In the thin-walled zones (Lobby,
    Pillar Field, Office, Hall, Showroom, Poolrooms) a wall tile is only a
    partition along its centre line (`archgen.rs:1757-1799`). Half of the
    neighbouring tile is open floor, so blocking one tile only closes a real
@@ -22,7 +22,7 @@ Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "May barr
    - `bfs` reads only the tiles (`world/mod.rs:203-241`). It drives the player flow field (`entities/ai.rs:249`), the creatures' hearing distance (`entities/creature.rs:351-362`) and the place's answer to a cry (`player.rs:345-372`).
    - Only her walk (`story/mod.rs:156-168`) and the test bot avoid barricades.
 4. **Existing bugs:**
-   - Duplicate tiles: there is no check, so 4 of the 18 rooms levels I dumped barricade the same tile twice. The HTML-recorded fixture has `[479, 479]` too.
+   - Duplicate tiles: there is no check, so 4 of the 18 rooms levels I dumped barricade the same tile twice. The core props' tail fixture has `[479, 479]` too.
    - Pickups locked away (`PICKUPS_BEHIND_BARRICADES`, `level_sweep.rs:72-77`).
    - The four pieces are separate, unprotected `place_props` objects, so placement pushes them apart (boxes and cone end up 0.6–0.7 m off).
 5. **Canon:** no doc says what barricades are or who built them. There is a lore decision to make (§4).
@@ -60,7 +60,7 @@ Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "May barr
   - If it fails, the attempt is spent (`continue`).
 - **No duplicate check:** `barricade_tiles.push(blocked_idx)` (`:1394`) can push a tile that is already there.
   - Seen in the dumps on 202 L6, 202 L7, 4242 L8 and 77 L6.
-  - The HTML-recorded fixture `crates/game/tests/fixtures/cp2_tail.json` holds `"barricades": [479, 479]`, so the bug came with the port.
+  - The core props' tail fixture (now `crates/game/tests/fixtures/core_props_tail.json`) holds `"barricades": [479, 479]`, so the bug is as old as that recording.
 - **No zone, purpose or archetype filter.**
 - **Frequency:** across levels 4–9 of seeds 4242, 77 and 202, 57 entries (53 unique tiles) on 18 levels, about 3 a level.
   - Purposes: empty 13, living quarters 12, service tunnels 9, showroom 6, office wing 5, others 8.
@@ -128,8 +128,8 @@ Four separate top-level groups at the tile centre:
   - A pocket is "behind a barricade (by design)" only if every sealing tile is a barricade tile (`:214-262`; `sealed_by` = open neighbour tiles with no free cell).
   - Pinned cases in `ALWAYS` (`:327-332`): 1161854898 L7 and 928196632 L4.
 - **`crates/backrooms/tests/reference_levels.rs:137-139`** compares `barricades`; `:140-...` compares the placed objects placer by placer, including `place_props`.
-- **`crates/game/tests/core_props_tail.rs:513-517`** compares `barricade_tiles` with `cp2_tail.json`.
-  - The fixture was recorded from the HTML version, and there is no rerecord function in that test file.
+- **`crates/game/tests/core_props_tail.rs:513-517`** compares `barricade_tiles` with its fixture.
+  - The fixture had no rerecord function then (`rerecord` writes it now).
   - The test also replays the recorded builder log: name, arguments, draw index and draws used (`:1-15`).
 - **`crates/game/tests/world_queries.rs:96,105,261,267`** loads the fixture barricades into the world queries.
 - **`crates/game/tests/core_props_head.rs:75`** treats a barricade as blocked.
@@ -441,12 +441,12 @@ Built at real sizes, fitted to the measured opening. Each fills the opening to w
    - **Option A (recommended; keeps the rest of the level):**
      - Keep the old selection loop. Add a draw-only replica of the four old builders: the same `rnd/irand/rand2/rand1/choice` calls in the same order, no meshes, its own local tile list for the old `alt_path` checks. The level stream then leaves `tail_barricades` exactly where it did.
      - Choose the new sites and dress them from `SplitMix64::new(current_seed, BARRICADE_SALT ^ tile)` (`base/rng.rs:171-195`; precedents `SECRET_SALT`, `secrets/mod.rs:32`, and `STORY_SALT`, `story/mod.rs:39`).
-     - Guard with a test: for many (seed, level), `seeded_draws()` after the replica equals the old code's count. `cp2_tail.json`'s builder log also records the draws each builder used.
+     - Guard with a test: for many (seed, level), `seeded_draws()` after the replica equals the old code's count. The tail fixture's builder log also records the draws each builder used.
      - The diff is then confined to the barricades, plus props whose placers test collision near them, plus anything placement nudges. Review it in the re-recorded reference levels.
    - **Option B:** drop the old draws, re-record everything, and say so in the commit.
    - **Either way:**
      - The reference levels change: `barricades` and the `place_props` objects (`reference_levels.rs:137-160`).
-     - `core_props_tail.rs` breaks: it replays the HTML-recorded builder log, and the barricade tiles and meshes are in the world subtree it compares. It needs either a rerecord path, which `cp2_tail.json` lacks, or a seam that stubs `tail_barricades` and checks only its draw count.
+     - `core_props_tail.rs` breaks: it replays the recorded builder log, and the barricade tiles and meshes are in the world subtree it compares. It needs either a rerecord path, which its fixture lacked then (it has `rerecord` now), or a seam that stubs `tail_barricades` and checks only its draw count.
      - `world_queries` loads the fixture barricades (`world_queries.rs:96,261`). Re-record it if the meaning of `circle_hits_wall` changes.
      - Goldens and the range baseline: re-accept them if a zone view shows a barricade.
      - New canvas textures (plywood grain) must use `canvas_tex` (its own stream).

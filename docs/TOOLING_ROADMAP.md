@@ -20,11 +20,11 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | M3 | 1.1 golden frames (`cargo xtask shots`, 31 frames, exact then ꟻLIP), 1.2 look statistics (per frame and set-wide anchors), 1.3 material lint (`tests/materials.rs`); `--fresh` reproducible headless renders | done; prop turntable sheets move to 3.1, goldens are kept in the repository at 480×300 (no Git LFS here) |
 | M4 | 1.7 audio gates (`tests/loudness.rs`: EBU R128 integrated loudness and range against a recording, −1 dBTP true peak, one-shot repetition) | done; the 30-minute whole-mix measurement is left for when the mix gets music or voices |
 | M5 | 1.5 level sweep through the collision geometry (`tests/level_sweep.rs`, proptest), 1.10 structural tests (`tests/structure.rs`) | done; the sweep found that barricades can lock a pickup away (about 1 level in 20), reported as an open issue until `tail_barricades` checks pickups too |
-| M6 | 0.3 `LORE.md` (ported, with delivery channels), `PILLARS.md`, `STYLE.md` (with look bands checked by `cargo xtask shots`); 0.6 content ledger `docs/content.json` (kept in step by `tests/structure.rs`); 0.7 scorecard `docs/QUALITY.md` | done; the bands start wide (one view per purpose) until the range report tightens them |
+| M6 | 0.3 `LORE.md` (the canon, with delivery channels), `PILLARS.md`, `STYLE.md` (with look bands checked by `cargo xtask shots`); 0.6 content ledger `docs/content.json` (kept in step by `tests/structure.rs`); 0.7 scorecard `docs/QUALITY.md` | done; the bands start wide (one view per purpose) until the range report tightens them |
 | M7 | 1.6 expressive range (`cargo xtask range`: 72 levels measured by `backrooms --metrics`, energy distance + permutation test, spread checks, scatter plots, a MAP-Elites seed archive; `--look` measures 631 zone views per purpose) | done; the `STYLE.md` bands are now measured percentiles, which showed that darkness follows region light rather than purpose |
 | M8 | Phase 2: eight skills (`.claude/skills/`), five read-only reviewers (`.claude/agents/`, `art-critic` with project memory), `cargo xtask ab` (blind pairs in both orders, scoring with ties, a verdict log) | done; `drift-sweep` comes with 5.2 |
 | M9 | 4.4 playtest kit (`docs/PLAYTEST.md`, `docs/playtests/TEMPLATE.md`); 4.5 calibration (`cargo xtask calibrate`, known-answer pairs, accuracy and Cohen's kappa logged) | done; first results: kappa 1.00 on strong damage, 0.45 on mild (mild over-saturation 0/3); human verdicts still to come |
-| M10 | 3.1 Blender sources in `assets/src/` and `cargo xtask assets` (rebuild + compare, `--write`, `import-js`); 3.2 `crates/game/assets/MANIFEST.json` with a licence/generator allowlist; 1.4 mesh lint and parts table (`crates/game/tests/asset_lint.rs`) | done for props; found and fixed an unrepeatable build (`noise_vector`); 123 parts frozen; creatures need the HTML version's rig dumps |
+| M10 | 3.1 Blender sources in `assets/src/` and `cargo xtask assets` (rebuild + compare, `--write`); 3.2 `crates/game/assets/MANIFEST.json` with a licence/generator allowlist; 1.4 mesh lint and parts table (`crates/game/tests/asset_lint.rs`) | done for props; found and fixed an unrepeatable build (`noise_vector`); 123 parts frozen; the old creatures' meshes are kept as stored (their scripts need rig dumps nothing here writes) |
 | M11 | 1.8 `cargo xtask bench` (`backrooms --bench`, budgets in `docs/PERF.md`, `perf/history.csv` with change-point detection); 1.9 replays (`game::debug::replay`, `tests/replay.rs`: per-frame state hashes, first divergent frame) | done; dhat heap tests left out (the process's peak memory is not a gate yet) |
 | M12 | 4.1 personas (`tests/personas.rs`: explorer, rusher, hider; shared oracles; coverage heatmaps); 4.2 run-log analysis (`Director::log`; peak, relief, sign repetition, sign→chase share, stings); 4.3 telemetry (`--record`, `--replay` with tension marks, `cargo xtask heatmap`) | done; found the director repeating one distant sign up to 7 times in a row (open in `QUALITY.md`) |
 | M13 | 5.1 CI (`.github/workflows/check.yml`: fast check per push, full check and a 200-case sweep nightly; no remote yet) and `cargo xtask nightly`; 5.2 drift sweep (`cargo xtask drift`: gates → ledger `passes`, *Latest sweep* in `QUALITY.md`, report; the `drift-sweep` skill); 5.3 the *Caught by people, missed by gates* table, counted by each sweep | done |
@@ -55,9 +55,9 @@ end; [SOURCES.md](SOURCES.md) covers the research behind the game itself.
 | **Sound** | Mix gets louder or quieter, events pile up, sounds stop coming from places | `listen.rs` (bed-relative checks), ambient tests | Loudness and true-peak gates, repetition checks |
 | **Space** | Levels feel random, unreadable or samey; pockets a body cannot reach | archgen / world fixtures, `zone_purpose.rs`, tile-grid reachability inside archgen, `playthrough.rs` | Many-seed expressive-range report, reachability through the real collision walls |
 | **Fear** | Scares repeat, cues always mean the same thing, the director gets too punishing or too soft | `pacing.rs` bands, creature behaviour tests | Event-log analysis, telemetry, human playtest data |
-| **Canon** | New things that do not belong in the Backrooms | `docs/LORE.md` — but only in the HTML version's folder | Canon in this repo, a canon check |
+| **Canon** | New things that do not belong in the Backrooms | nothing in this repository | Canon in this repo, a canon check |
 | **Performance** | Frame time, load time and memory creep | `engine` `perftest` example, counts printed by `--screenshot` | Budgets, a history, regression detection |
-| **Assets** | Meshes that cannot be rebuilt, unknown provenance | Magic-number check on `prop_meshes.bin` / `creature_meshes.bin` | The Blender sources (they live in the HTML version's `tools/blender`), a rebuild and check command, mesh lint, a licence manifest |
+| **Assets** | Meshes that cannot be rebuilt, unknown provenance | Magic-number check on `prop_meshes.bin` / `creature_meshes.bin` | The Blender sources in this repository, a rebuild and check command, mesh lint, a licence manifest |
 
 Two more observations from the last pass. The metrics that proved the
 realism and sound work (colourfulness, deep-shadow share, theme coherence,
@@ -118,7 +118,7 @@ and the invariants that have already cost time when broken:
 - levels are a pure function of `(run_seed, level)`;
 - lighting and ambience are tied to places, never to the player's position;
 - never capture the user's screen (offscreen renders and PNG readback only);
-- never modify the HTML/JS version in the parent folder;
+- never modify anything outside this repository;
 - commit only when asked, with the project's identity.
 
 Everything else stays in `ARCHITECTURE.md` and `DEVELOPMENT.md`, linked from
@@ -136,7 +136,7 @@ only when matching files are touched:
 | `entities.md` | `entities/**` | the director's invariants, the senses tests, the showcase shots |
 
 **0.3 Canon and taste, written down in this repo.**
-- `docs/LORE.md`: port the canon from the HTML version as a living bible
+- `docs/LORE.md`: the canon as a living bible
   (Megill): a short core summary, the canon list (levels, entities, objects,
   events), and the *delivery channels* the canon may use — notes, sound,
   architecture. The `lore-keeper` reviewer checks new text against both.
@@ -177,7 +177,7 @@ wastes the agent's context (Carlini). Every later gate plugs into it.
 | `PostToolUse` on `*.rs` edits | runs `rustfmt` on the edited file |
 | `Stop` | runs `cargo xtask check --fast`; honours `stop_hook_active` so it cannot loop |
 | `SessionStart` (matcher `compact`) | re-injects the invariants after compaction |
-| `PreToolUse` | blocks writes to the parent folder; blocks hand edits to fixtures and goldens, so they change only through the REGEN / accept commands |
+| `PreToolUse` | blocks writes outside the repository; blocks hand edits to fixtures and goldens, so they change only through the REGEN / accept commands |
 
 **0.6 Content ledger (`docs/content.json`).** One entry per creature, prop
 family, zone purpose, anomaly and sound signature. Each entry holds its
@@ -248,7 +248,7 @@ and a fixed sample in `--fast`. Proptest stores the seeds of failing cases
 in committed regression files and replays them first. The properties:
 - every walkable tile is reachable from spawn by a **player-sized body
   through the real collision walls**, not only on the logical tile grid
-  that archgen already checks (the HTML version had this flood test);
+  that archgen already checks;
 - spawn is clear;
 - exits and items are reachable;
 - no prop sinks into or overlaps another;
@@ -353,7 +353,7 @@ the author's reasoning:
 
 | Reviewer | Sees | Checks | Notes |
 |---|---|---|---|
-| `art-critic` | images, the `STYLE.md` rubric, anchor images | look against the rubric | Keeps project memory of human verdicts. Calibrated on labelled pairs rendered offscreen from deliberate regressions. (The problem screenshots in the HTML version's folder show the whole desktop, other windows included, so they are not copied into the repository.) |
+| `art-critic` | images, the `STYLE.md` rubric, anchor images | look against the rubric | Keeps project memory of human verdicts. Calibrated on labelled pairs rendered offscreen from deliberate regressions. (Screenshots of a whole desktop, other windows included, are never used as anchors or copied into the repository.) |
 | `lore-keeper` | new text, creatures and anomalies | contradictions with `LORE.md` and `PILLARS.md`, and canon delivered through channels the bible does not allow | Also tracks the variety of the agent's own notes and descriptions: expressive-range analysis applies to generated text too (Boucher et al.), and same-model writers repeat themselves. |
 | `level-analyst` | the range report, reachability and the zone views | explains drift; does not approve it | |
 | `audio-analyst` | loudness timelines, spectra, event logs | numbers only | Never asked whether a sound is good. |
@@ -367,14 +367,12 @@ anything.
 
 Weeks; do it before the next big batch of props or creatures.
 
-**3.1 Bring the Blender sources here.** Today `prop_meshes.bin` and
-`creature_meshes.bin` come from scripts in the HTML version's
-`tools/blender`:
-- `props/b00.py` … with their `.map.json` and notes;
-- `creatures.py`, `skinned.py`, `skin_*.py`;
-- the packers `creature-pack.mjs` and `prop-assemble.mjs`.
+**3.1 The Blender sources here.** `prop_meshes.bin` and
+`creature_meshes.bin` are made by Blender scripts:
+- the prop batches, `props/b00.py` … with their notes;
+- `creatures.py`, `skinned.py`, `skin_*.py`.
 
-Copy them into `assets/src/`. Then add `cargo xtask assets`: it runs a
+They live in `assets/src/`. `cargo xtask assets` runs a
 pinned Blender version headless from an empty scene, one `.blend` per
 process (the `bpy` docs), and packs the `.bin` files deterministically.
 `--check` proves the committed `.bin` files decode to what the sources
