@@ -1,11 +1,11 @@
 """
 The human body under the Showroom's staff and the Borrowed House's shadows.
-Not a body on its own: tools/blender/skin_staff.py and skin_shadow.py exec
+Not a body on its own: skin_staff.py and skin_shadow.py exec
 it, in skinned.py's namespace (C = creatures.py's helpers, Piece, V, BONES,
 bone_matrix, math), and build their bodies from these parts.
 
 Everything is modelled in world space on the rig's rest pose (the rig is
-humanRig() in backrooms.js, dumped by tools/rig-dump.mjs), so every shape
+`anomalies::rig::human_rig`'s, its rest pose dumped), so every shape
 sits on its bones exactly: a part is placed with a bone's rest frame
 (`fr('forearm.L') @ V(...)`: +Y back up the bone, the bone running down -Y,
 +Z forward, +X the figure's left), or straight from the bones' heads and

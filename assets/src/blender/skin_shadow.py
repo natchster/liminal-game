@@ -6,10 +6,10 @@ fingers, bare feet) and a smooth head with less of a face than the staff's;
 smoke wisps rise off the head and shoulders, trail from the elbows, heels
 and fingertips.
 
-Run by tools/blender/skinned.py (`... --python tools/blender/skinned.py --
-shadow`) on the rig makeShadow builds (HUMAN_RIGS.shadow in backrooms.js,
-dumped by `node tools/rig-dump.mjs shadow`). The game draws it with
-shadowMat / shadowEdgeMat (flat colour, no albedo), so the vertex colour
+Run by skinned.py (`... --python assets/src/blender/skinned.py -- shadow`)
+on the shadow's rig (`anomalies::rig::HUMAN_RIG_SHADOW`, its rest pose
+dumped). The game draws it with the shadow's materials (flat colour, no
+albedo), so the vertex colour
 carries data instead: red is how much of a wisp a vertex is (0 at the root,
 1 at the tip), which the smoke shader frays and stirs; green is the crease
 (the painter's cavity).

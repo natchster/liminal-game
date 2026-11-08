@@ -5,7 +5,7 @@ portraits, barometers, a mounted fish, cuckoo and grandfather clocks,
 candle lanterns, horseshoes, cast-iron kettles, wagon wheels, bellows, a
 rocking chair, a music box, records and a turntable, floor and moon globes.
 Carved wood, turned brass, cast iron and taxidermy. Crystal, glass, flames,
-glows and flat faces/labels are transparent, MeshBasic or decals in the game
+glows and flat faces/labels are transparent, basic material or decals in the game
 and stay primitives (see b18.notes.md).
 """
 from propkit import *
@@ -74,7 +74,7 @@ def ring_lathe(profile, seg=24, arc=TAU):
 
 def ring_sec(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed section [(dr, dz), ...] around Z in the XY plane (a
-    TorusGeometry with any cross-section). arc < TAU caps both ends.
+    torus_geo! with any cross-section). arc < TAU caps both ends.
     rmod(angle) -> (k_section, dz, dR) varies the section along the ring."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
@@ -192,7 +192,7 @@ def lobes(s, n, depth, y0, y1, phase=0.0):
 
 
 def torus_bounds(R, r, arc, kind='torus'):
-    """Ideal bounds of THREE.TorusGeometry(R, r, .., .., arc), as src/props.js
+    """Ideal bounds of torus_geo!(R, r, .., .., arc), as `assets::props`
     samples them (24 radial x 128 tubular)."""
     xs, ys = [], []
     for i in range(129):

@@ -1,5 +1,5 @@
 """
-The Smiler's skinned body (run by tools/blender/skinned.py, which provides
+The Smiler's skinned body (run by skinned.py, which provides
 C = creatures.py's helpers and builders, Piece, V, BONES, math, bpy).
 
 Starved, sinewy and wrong, not a mannequin: a ribcage of uneven ribs that
@@ -10,7 +10,7 @@ long limbs, knobbly knees, elbows and wrists, and long bony hands with
 swollen knuckles and long claws. Slightly asymmetric (ribs, shoulder blades,
 the spine). Every limb is built in its bone's rest frame (bone at the
 origin, hanging -Y, +Z forward; s = +1 left, -1 right, medial is -s * x).
-The finger numbers are SM_FINGERS in backrooms.js.
+The finger numbers are its rig's.
 """
 import random
 ell, tube, chain, sweep = C['ell'], C['tube'], C['chain'], C['sweep']
@@ -29,8 +29,8 @@ def solid(build, ops):
 
 
 # ------------------------------------------------------------------ torso ---
-# pelvis frame: the hip joints at y = 0, the clavicles at about 0.67 (SM_SHOULDER
-# in backrooms.js is on this torso), +Z forward. Stations: y, half-width, front
+# pelvis frame: the hip joints at y = 0, the clavicles at about 0.67 (the rig's
+# shoulder is on this torso), +Z forward. Stations: y, half-width, front
 # z, back z. The belly is sucked in under a flaring ribcage.
 TORSO = [
     (-0.10, 0.042, 0.030, -0.040), (-0.06, 0.095, 0.048, -0.072), (0.0, 0.116, 0.054, -0.082),
@@ -270,7 +270,7 @@ def neck(bm):
 # ------------------------------------------------------------------ hands ---
 # palm frame: wrist at the origin, hanging -Y, palm +Z, thumb +X (mirrored
 # for the right hand by its frame). Four long fingers of three bones, curled
-# a little at rest; the bone positions are SM_FINGERS in backrooms.js.
+# a little at rest; the bone positions are the rig's.
 FING_X, FING_SC = (-0.03, -0.01, 0.01, 0.03), (0.9, 1.0, 0.97, 0.84)
 FING_L, FING_CURL = (0.08, 0.07, 0.056), (0.32, 0.5, 0.45)
 def finger_pts(k):

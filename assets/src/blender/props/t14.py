@@ -1369,7 +1369,7 @@ def sd_pose(pose):
     lift = Matrix.Translation(Vector((-cx, -ymin + 0.0004, -cz)))
     out = dict(root=lift @ root, arms=[lift @ a for a in arms], legs=[lift @ l for l in legs], head=lift @ head)
     hp = out['head'].to_translation()
-    he = out['head'].to_euler('ZYX')       # three.js's XYZ order
+    he = out['head'].to_euler('ZYX')       # the game's XYZ Euler order
     print(f"SMALLDOLL {pose} head pos ({hp.x:.5f}, {hp.y:.5f}, {hp.z:.5f}) rot ({he.x:.5f}, {he.y:.5f}, {he.z:.5f})")
     _sd[pose] = out
     return out

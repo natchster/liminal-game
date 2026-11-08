@@ -1,4 +1,4 @@
-"""Batch b03: placeProps — the gameplay core placement.
+"""Batch b03: place_props — the gameplay core placement.
 
 Exit door + EXIT sign, Almond Water, batteries, chairs, CRT TVs, wall clock,
 balloon, payphone, mannequin, filing cabinets, cardboard, wet-floor sign,
@@ -31,7 +31,7 @@ def rod_z(L, r, seg=16, ease=None):
 
 
 def lathe_arc(profile, a0, a1, seg=16):
-    """Revolve [(r, y)] from angle a0 to a1 (three.js convention:
+    """Revolve [(r, y)] from angle a0 to a1 (the engine's convention:
     x = r sin a, z = r cos a) and close both ends with the profile."""
     v, f, rings = [], [], []
     for (r, y) in profile:

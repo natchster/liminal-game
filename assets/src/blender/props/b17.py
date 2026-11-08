@@ -38,7 +38,7 @@ def loft(rings, cap0=True, cap1=True):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed 2D section [(dr, dz), ...] around the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). arc < TAU caps the ends.
+    plane (a torus_geo! with any cross-section). arc < TAU caps the ends.
     rmod(angle, i) -> (k_r, dz_add[, dR]) wobbles the section along the ring."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
@@ -105,7 +105,7 @@ def oval_loft(profile, a, b, n=20, p=2.5):
 
 
 def torus_arc_bounds(R, r, arc, radial=24, tubular=128):
-    """Ideal bounds of THREE.TorusGeometry(R, r, .., .., arc) as the game
+    """Ideal bounds of torus_geo!(R, r, .., .., arc) as the game
     computes them (24 x 128 samples)."""
     xs, ys = [], []
     for i in range(tubular + 1):
@@ -575,7 +575,7 @@ PIE_F = f_bounds((0.0, -0.014, 0.0), (PIE_R * math.sin(PIE_A), 0.014, PIE_R))
 
 
 def wedge_outline(R, arc_pts=9, edge_pts=2, rfun=None):
-    """(x, z) outline of a slice wedge (THREE theta from +Z towards +X)."""
+    """(x, z) outline of a slice wedge (the engine's theta, from +Z towards +X)."""
     out = [(0.0, 0.0)]
     for k in range(1, edge_pts + 1):
         t = k / (edge_pts + 1)

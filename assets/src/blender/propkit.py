@@ -1,15 +1,18 @@
 """
 propkit — a small modelling kit for the Backrooms props, run inside Blender.
 
-Every prop in the game is assembled by a placer in backrooms.js from three.js
-primitives (BoxGeometry, CylinderGeometry, ...). A *part* made here replaces
-one of those primitives: it is modelled in the primitive's own frame and at
-its canonical size, and the game fits it to the primitive's bounding box at
-load (src/props.js), so the placer keeps its layout, colours and randomness.
+Every prop in the game is assembled by a placer (`place_*` in
+crates/placers/) from the engine's primitives (`box_geo!`, `cyl_geo!`,
+...). A *part* made here replaces one of those primitives: it is modelled in
+the primitive's own frame and at its canonical size, and the game fits it to
+the primitive's bounding box when it is built (`pg("Name__role", primitive)`,
+`assets::props::prop_part`), so the placer keeps its layout, colours and
+randomness. A batch of real things (through its `auto()`) models at the
+thing's real size instead (docs/PROPS.md, "How a prop is remodelled").
 
 Conventions (read these before writing a part):
 
-* Coordinates are **three.js space**: +Y up, metres. Build the part exactly
+* Coordinates are the game's: +Y up, metres. Build the part exactly
   where the primitive would be:
     box(w, h, d)            centred on the origin
     cyl(rt, rb, h)          axis +Y, centred (y from -h/2 to +h/2)
@@ -264,7 +267,7 @@ def capsule(r, length, seg=24, cap_rings=6):
 
 
 def torus(R, r, seg=32, tseg=12, arc=TAU):
-    """Ring in the XY plane around the Z axis, like THREE.TorusGeometry."""
+    """Ring in the XY plane around the Z axis, like the engine's `torus_geo!`."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     v, f = [], []
@@ -343,12 +346,12 @@ def prism(outline, depth, bevel_r=0.0, bevel_seg=1):
 
 
 def plane(w, h):
-    """Flat quad in XY facing +Z (like THREE.PlaneGeometry)."""
+    """Flat quad in XY facing +Z (like the engine's `plane_geo!`)."""
     return Shape([(-w / 2, -h / 2, 0), (w / 2, -h / 2, 0), (w / 2, h / 2, 0), (-w / 2, h / 2, 0)], [(0, 1, 2, 3)])
 
 
 def disc(r, seg=32):
-    """Flat disc in XY facing +Z (like THREE.CircleGeometry)."""
+    """Flat disc in XY facing +Z (like the engine's `circle_geo!`)."""
     v = [(0, 0, 0)] + [(r * math.cos(TAU * i / seg), r * math.sin(TAU * i / seg), 0) for i in range(seg)]
     return Shape(v, [(0, i + 1, (i + 1) % seg + 1) for i in range(seg)])
 

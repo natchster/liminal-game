@@ -1,5 +1,5 @@
 """
-The Hound's skinned body (run by tools/blender/skinned.py, which provides
+The Hound's skinned body (run by skinned.py, which provides
 C = creatures.py's helpers, Piece, V, BONES, bone_matrix, math).
 
 A starved adult on all fours. Seen from above: a knobbed spine between thin
@@ -10,7 +10,7 @@ the pelvis. From the side: a deep, narrow-bottomed chest, a hollow belly,
 stringy arms with knobbed elbows, long hands splayed flat with broken nails,
 thin legs on the balls of the feet with the heels up.
 
-Everything is placed from the rig (.cache/rigs/hound.json, from makeHound):
+Everything is placed from the rig (.cache/rigs/hound.json, its rest pose):
 the trunk and the shoulder blades are modelled in the root frame (the spine
 joint, 0.70 m up), the limbs in their bones' frames (the bone hanging -Y),
 the hands, feet and every digit segment in their bones' frames, so the

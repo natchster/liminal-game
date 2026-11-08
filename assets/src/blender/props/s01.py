@@ -1,17 +1,17 @@
 """Batch s01 - the Showroom (store level), plus two small sets for the lead.
 
-No map file: every primitive is already wrapped in PG('Store__...' / 'Staff__...')
-in the source (src/store.js storeKit, backrooms.js placeStore / makeStaff).
+Every primitive is wrapped in pg('Store__...' / 'Staff__...') in the game
+(`anomalies::store_kit`, the store's placer and `make_staff`).
 
-storeKit      bed, nightstand, table lamp, wardrobe, rug, sofa, armchair, coffee
+store_kit      bed, nightstand, table lamp, wardrobe, rug, sofa, armchair, coffee
               table, floor lamp, bookcase, TV bench + TV, kitchen run, fridge,
               dining table + chair, desk, office chair, bunk bed, toy box,
               pallet racking + cartons, shopping trolley, price-tag stand
-placeStore    department sign board, hours board post and frame
-makeStaff     the too-tall faceless employee: polo shirt torso, collar, badge,
+place_store    department sign board, hours board post and frame
+make_staff     the too-tall faceless employee: polo shirt torso, collar, badge,
               neck, blank head, sleeves, forearms, hands, trousers, shoes
-makeShadow    (Shade__) the Borrowed House's thin shadow figures: silhouettes
-placeHouse    (Nest__) the heaped brass/iron lamps and the wooden crate
+make_shadow    (Shade__) the Borrowed House's thin shadow figures: silhouettes
+place_house    (Nest__) the heaped brass/iron lamps and the wooden crate
 """
 from propkit import *
 import propkit
@@ -1363,7 +1363,7 @@ part('Store__board_frame', f_box(0.84, 0.46, 0.06), board_frame)
 
 
 # ================================================================ STAFF ===
-# The staff rig (makeStaff): hips at 1.06, a 2.27 m tall figure facing +Z.
+# The staff rig (make_staff): hips at 1.06, a 2.27 m tall figure facing +Z.
 # Everything is modelled at its true in-game shape; the torso and the head
 # are scaled by the rig afterwards (torso z * 0.62, head (0.92, 1.18, 1)),
 # so they are built at real size and stretched by the inverse here.
@@ -1728,7 +1728,7 @@ part('Staff__shoe', f_box(0.11, 0.08, 0.28), staff_shoe, smooth=50)
 
 
 # ========================================================= SHADOW FIGURES ===
-# makeShadow: flat black bodies with a pale back-face outline, so only the
+# make_shadow: flat black bodies with a pale back-face outline, so only the
 # silhouette counts: narrow sloping shoulders, a ribcage over a pinched waist,
 # long thin arms ending in long-fingered hands, legs with knees. The torso
 # (z * 0.6) and head (0.9, 1.15, 1) are scaled by the rig: built at real size
@@ -1825,7 +1825,7 @@ part('Shade__leg', f_capsule(0.065, 0.82), shade_leg, smooth=180)
 
 
 # ================================================================ NEST ===
-# placeHouse: the heap of old lamps the shadows guard (brass table lamps,
+# place_house: the heap of old lamps the shadows guard (brass table lamps,
 # iron floor lamps, open fabric shades) and the crates they are piled on.
 # Names chosen here; the placer still needs PG wrappers for them.
 def nest_lamp_base():

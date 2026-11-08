@@ -5,7 +5,7 @@ robot, microphone, piano, wand, sword) and the sadder nursery leftovers
 (doll heads and limbs, crib side, child shoe, teddies, tricycle, colouring
 book). Bright, chunky, rounded plastic and wood.
 
-Decals, DoubleSide/transparent/MeshBasic primitives, custom BufferGeometry
+Decals, DoubleSide/transparent/basic material primitives, custom buffer geometry
 and 1 mm cords are left alone (see b15.notes.md).
 """
 import propkit
@@ -66,7 +66,7 @@ def angular(s, fn):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0):
     """Sweep a closed section [(dr, dz), ...] around Z in the XY plane
-    (a TorusGeometry with any cross-section); arc < TAU caps the ends."""
+    (a torus_geo! with any cross-section); arc < TAU caps the ends."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     m = len(sec)

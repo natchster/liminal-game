@@ -52,7 +52,7 @@ def circ(r, n=8, sx=1.0, sy=1.0, phase=0.0):
 
 def ring_section(R, sec, seg=32, arc=TAU, rmod=None, twist=0.0):
     """Sweep a closed section [(dr, dz), ...] around the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). rmod(a) -> (k, dz, dR)
+    plane (a torus_geo! with any cross-section). rmod(a) -> (k, dz, dR)
     wobbles the section along the ring; twist turns it (turns per ring)."""
     full = abs(arc - TAU) < 1e-6
     n = seg if full else seg + 1
@@ -79,7 +79,7 @@ def ring_section(R, sec, seg=32, arc=TAU, rmod=None, twist=0.0):
 
 
 def torus_arc_bounds(R, r, arc, radial=24, tubular=128):
-    """Ideal bounds of THREE.TorusGeometry(R, r, .., .., arc) as the game
+    """Ideal bounds of torus_geo!(R, r, .., .., arc) as the game
     computes them (24 x 128 samples)."""
     xs, ys = [], []
     for i in range(tubular + 1):

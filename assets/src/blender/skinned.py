@@ -2,13 +2,14 @@
 Skinned creature bodies: one continuous, weighted surface per creature
 instead of a rigid part per joint.
 
-    node tools/rig-dump.mjs smiler                      # the rig, from the game
     /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-        --python tools/blender/skinned.py -- smiler [src/creature-meshes.js]
+        --python assets/src/blender/skinned.py -- smiler [OUT]
 
-The rig comes from the game (.cache/rigs/<type>.json: every bone's rest
-matrix, head and tail, written by tools/rig-dump.mjs from makeSmiler & co.),
-so the body is modelled in exactly the pose the game binds it in.
+The rig is a dump of the creature's rest pose (.cache/rigs/<type>.json:
+every bone's name, parent, rest matrix, head and tail), so the body is
+modelled in exactly the pose the game binds it in. Nothing in this
+repository writes those dumps, so the bodies made here are kept as stored
+(`creature_meshes.bin`) and these scripts are the record of how.
 
 A body is a list of pieces. A piece is built by a function in some bone's
 frame (most are creatures.py's part builders, which already model each limb
@@ -21,9 +22,9 @@ then weighted to the pieces it lies on: a soft nearest-piece choice, so a
 knee blends thigh and shin over a couple of centimetres while an arm hanging
 by the thigh never drags the leg's skin.
 
-Output: one part `<prefix>Body` in src/creature-meshes.js with four bone
-indices and weights per vertex and the bone names (decoded by
-src/creatures.js, bound by skinBody() in backrooms.js).
+Output: one part `<prefix>Body` with four bone indices and weights per
+vertex and the bone names, which the game binds to the creature's rig
+(`entities::skin_body`).
 """
 import bpy, bmesh, sys, os, math, json, base64, struct, re
 from mathutils import Matrix, Vector
@@ -48,7 +49,7 @@ BONES = {b['name']: b for b in RIG['bones']}
 BONE_ORDER = [b['name'] for b in RIG['bones']]
 
 def bone_matrix(name):
-    e = BONES[name]['matrix']   # three.js: column-major
+    e = BONES[name]['matrix']   # column-major
     return Matrix(((e[0], e[4], e[8], e[12]), (e[1], e[5], e[9], e[13]), (e[2], e[6], e[10], e[14]), (0, 0, 0, 1)))
 
 def seg_dist(p, a, b):
@@ -188,9 +189,9 @@ def export(name, verts, idx, cols, skin):
 
 
 # ======================================================================
-# The bodies live in tools/blender/skin_<type>.py, run in this namespace
+# The bodies live in assets/src/blender/skin_<type>.py, run in this namespace
 # (C, Piece, V, BONES, math, ...). Each defines BODY:
-#   name     the part name in src/creature-meshes.js (e.g. 'smBody')
+#   name     the part name (e.g. 'smBody')
 #   pieces() -> [Piece, ...]
 #   paint(p, n, cav) -> (r, g, b) sRGB 0..1; cav is 0 (convex) .. 1 (a crease)
 #   body / fine: fuse settings per group: voxel, smooth (iterations, factor),

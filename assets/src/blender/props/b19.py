@@ -1,12 +1,12 @@
 """b19: the "victorian" theme. Brass mechanisms, turned wood, wire cages,
 upholstery and glass showpieces.
 
-placeTripodTelescopes, placeOrreryModels, placeBirdcages, placeAquariums,
-placeOrnateCuckooClocks, placeFireplaces, placeLogBaskets,
-placeWingbackArmchairs, placeChairArmBooks, placeSilhouettePortraits,
-placeOttomans, placeHumidors, placeBrandySnifters.
+place_tripod_telescopes, place_orrery_models, place_birdcages, place_aquariums,
+place_ornate_cuckoo_clocks, place_fireplaces, place_log_baskets,
+place_wingback_armchairs, place_chair_arm_books, place_silhouette_portraits,
+place_ottomans, place_humidors, place_brandy_snifters.
 
-Glass, liquid, lenses, glows (MeshBasicMaterial), flat faces/decals and
+Glass, liquid, lenses, glows (basic material), flat faces/decals and
 sub-millimetre ink lines are left as primitives (see b19.notes.md).
 """
 import propkit
@@ -70,7 +70,7 @@ def loft(rings, cap0=True, cap1=True):
 
 def ring_section(R, sec, seg=32, arc=TAU, a0=0.0, rmod=None):
     """Sweep a closed section [(dr, dz), ...] around the Z axis in the XY
-    plane (a TorusGeometry with any cross-section). rmod(a) -> (k, dz)."""
+    plane (a torus_geo! with any cross-section). rmod(a) -> (k, dz)."""
     full = arc >= TAU - 1e-6
     n = seg if full else seg + 1
     m = len(sec)
@@ -97,7 +97,7 @@ def circ(r, n=8, sx=1.0, sy=1.0, phase=0.0):
 
 
 def torus_arc_bounds(R, r, arc, radial=4):
-    """Bounds of THREE.TorusGeometry(R, r, radial, .., arc) (XY plane)."""
+    """Bounds of torus_geo!(R, r, radial, .., arc) (XY plane)."""
     xs, ys = [], []
     for i in range(721):
         u = arc * i / 720
