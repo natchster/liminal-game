@@ -4,3 +4,4 @@
 pub mod ambient;
 pub mod soundscape;
 pub mod sys;
+pub mod voice;

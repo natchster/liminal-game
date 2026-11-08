@@ -608,6 +608,12 @@ pub struct Game {
     pub hinted_bottle: bool,
     pub hinted_battery: bool,
     pub cry_cooldown: f64,
+    /// Your cries this run and on this floor, when you last cried and what
+    /// you said (`audio::voice::choose_cry`)
+    pub cries: u32,
+    pub cries_on_floor: u32,
+    pub cry_last_at: Option<f64>,
+    pub cry_last_line: Option<String>,
     pub cry_dim_t: f64,
     pub cry_dim_lerp: f64,
     pub last_step: f64,
@@ -1092,6 +1098,10 @@ impl Game {
             hinted_bottle: false,
             hinted_battery: false,
             cry_cooldown: 0.0,
+            cries: 0,
+            cries_on_floor: 0,
+            cry_last_at: None,
+            cry_last_line: None,
             cry_dim_t: 0.0,
             cry_dim_lerp: 0.0,
             last_step: 0.0,

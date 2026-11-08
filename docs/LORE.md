@@ -719,7 +719,11 @@ plaque that says STAIRS. Behind it:
   notebook (Tab) keeps them, typed, after hers.
 - **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
-- **Crying** out loud is desperate. Something answers.
+- **Crying** out loud is desperate. Something answers. The voice is your
+  own, the only words you say: a man's, plain and tired, never brave
+  (`docs/VOICES.md`, *You*). On the Building's floors you call out to
+  anyone; in the rooms you shout for help; deep down you are worn out; and
+  a cry soon after the last is a scream. Who you are is never said.
 - **Cells**, on the Building's floors: shut yourself in when the siren goes,
   and wait for the all-clear (*The self-assembly*).
 - **Coins** come from the lit vending machines' coin returns, one a

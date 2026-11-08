@@ -293,6 +293,16 @@ reality glitch and the flicker wave wait. The engine renders the graph in
 128-frame quanta on CoreAudio's thread; the game talks to it through a
 command queue.
 
+The one kind of sound that is not synthesized is a spoken line
+(`audio::voice`, `docs/VOICES.md`): WAVs made outside the game by
+text-to-speech models from a persona's designed voice (`cargo xtask voice`,
+`tools/voice/`), embedded with an index of what each line is for
+(`assets/voice/lines.tsv`). Your cry for help (`say_cry`) is one of your
+lines, chosen by the level and how often you have cried from a stream of
+its own, decoded into a buffer once and played into the soundscape's
+`world` bus (centred, in the place's reverb); the formant cry `sfx_cry` is
+its fallback.
+
 ## Saves
 
 `Game::storage_get / storage_set` keep a small key-value store in

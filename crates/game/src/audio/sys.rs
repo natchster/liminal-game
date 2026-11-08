@@ -55,7 +55,14 @@ pub struct AudioSys {
     pub soundscape: Option<Rc<Soundscape>>,
     /// Debug switch: run without the soundscape (A/B comparison)
     pub nosound: bool,
+    /// The voice lines decoded so far (`say_cry`), by persona/id
+    pub voice_bufs: Vec<(String, AudioBuffer)>,
 }
+
+/// The level of a voice line in the mix: its WAV as made (-16 LUFS, true
+/// peak under -1 dBTP), so your cry stands far over the room and never clips
+/// (`tests/listen.rs`: the formant cry it replaces hit 0 dBFS)
+pub const VOICE_GAIN: f64 = 1.0;
 
 /// The keys of the sfx table, in declaration order.
 pub const SFX_NAMES: [&str; 30] = [
@@ -371,6 +378,8 @@ impl Game {
             rain_hiss_gain: Some(rain_hiss_gain),
             soundscape,
             nosound,
+            // a new context: the buffers decoded on the old one are not its
+            voice_bufs: vec![],
         };
         self.noise_buf = Some(noise_buf);
         self.master = Some(master);
@@ -626,7 +635,56 @@ impl Game {
         self.blip(rand2(1800.0, 2400.0), 1.5, "sine", 0.05, None, 0.12, 0.0);
         self.blip(rand2(2400.0, 3200.0), 1.8, "sine", 0.03, None, 0.24, 0.0);
     }
-    /// Cry — a male voice shouting "HEEEELP" via formant synthesis.
+    /// Your cry for help, said: a line of your voice (`audio::voice`) chosen
+    /// by the level and how often you have cried, into the place's reverb.
+    /// False when there is no line or no audio (the formant cry, `sfx_cry`,
+    /// is then the fallback).
+    pub fn say_cry(&mut self) -> bool {
+        let since = self.cry_last_at.map(|t| self.perf_t - t);
+        let Some(line) = crate::audio::voice::choose_cry(
+            self.level_num,
+            self.run_seed,
+            self.cries,
+            self.cries_on_floor,
+            since,
+            self.cry_last_line.as_deref(),
+        ) else {
+            return false;
+        };
+        self.cries += 1;
+        self.cries_on_floor += 1;
+        self.cry_last_at = Some(self.perf_t);
+        self.cry_last_line = Some(line.id.clone());
+        let (Some(ac), Some(master)) = (self.ac.clone(), self.master.clone()) else { return false };
+        let key = format!("{}/{}", line.persona, line.id);
+        let buf = match self.audio.voice_bufs.iter().find(|(k, _)| *k == key) {
+            Some((_, b)) => b.clone(),
+            None => {
+                let Some((rate, samples)) = crate::audio::voice::wav(&line.persona, &line.id).and_then(crate::audio::voice::decode) else {
+                    return false;
+                };
+                let b = ac.create_buffer(1, samples.len(), rate);
+                b.channel_mut(0).copy_from_slice(&samples);
+                self.audio.voice_bufs.push((key, b.clone()));
+                b
+            }
+        };
+        let src = ac.create_buffer_source();
+        src.set_buffer(&buf);
+        let g = ac.create_gain();
+        g.gain().set_value(VOICE_GAIN);
+        src.connect(&g);
+        // your own voice, heard in the place you stand (its reverb)
+        match &self.audio.soundscape {
+            Some(ss) => g.connect(&ss.world),
+            None => g.connect(&master),
+        };
+        src.start(ac.current_time());
+        true
+    }
+
+    /// Cry — a male voice shouting "HEEEELP" via formant synthesis (the
+    /// fallback when no voice line can be said: `say_cry`).
     ///  0.00–0.09 H (breathy fricative), 0.09–0.75 EEEE (sawtooth through two
     ///  peaking formants F1≈450, F2≈2200), 0.75–0.85 L (F2 → 1100),
     ///  0.85–0.95 P occlusion, 0.95–1.00 P burst.

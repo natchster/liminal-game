@@ -11,6 +11,11 @@ paths:
   signature at a fixed spot, or a weather-bed anchor (`BED_ANCHORS`,
   `bed_at`, `nearest_fixture`). Use `play_from(x, y, z, ref_dist, gain,
   occlude, f)`; never pan a one-shot relative to the player.
+- **Your own voice** (the cry for help, `say_cry`) is the one sound with
+  no place but you: centred, into the soundscape's `world` bus, so it is
+  heard in the reverb of the place you stand. Every other voice line comes
+  from a place like any sound. Voice lines are made by the voice pipeline
+  (`docs/VOICES.md`), chosen from a stream of their own.
 - **Carry and gain** of each signature live in `sig_carry`; a new ambient
   sound needs an entry there.
 - **The hush** (`amb_hush`, driven by the director) softens and holds

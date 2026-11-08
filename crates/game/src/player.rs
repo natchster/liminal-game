@@ -290,7 +290,11 @@ impl Game {
             return;
         }
         self.cry_cooldown = 22.0;
-        self.sfx_cry();
+        // your voice (a line of the persona, docs/VOICES.md); the formant cry
+        // if none can be said
+        if !self.say_cry() {
+            self.sfx_cry();
+        }
         self.show_msg("YOU CRY OUT...", 1.6);
         // odds by level: level 1 => 50/50 the way/aggro. Every level -8% the way, +8% aggro.
         // (what you wear changes how readily the place answers: `secrets::keeps`)

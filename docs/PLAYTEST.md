@@ -178,6 +178,17 @@ questions only of a player who took something):
 - The hole in the wall: did you reach in? Twice? What did you think it
   wanted?
 
+Your voice (the cry for help, `H`; `docs/VOICES.md`; before the session,
+also play the ten lines in `crates/game/assets/voice/you/` and the
+references in `assets/src/voice/personas/` to the developer):
+
+- When you cried out, whose voice was it? Did it sound like a person in
+  that place, or like someone reading a line?
+- Did it frighten you, or embarrass you, after the third or the tenth time?
+  Did you stop crying out because of how it sounded?
+- Did the screams sound like the same man as the calm calls? Did any line
+  sound like a cartoon, or like a machine?
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.

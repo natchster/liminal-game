@@ -62,6 +62,7 @@ impl Game {
         self.store_reset();
         self.house_reset();
         self.level_start_t = self.perf_t;
+        self.cries_on_floor = 0;
         if self.run_seed == 0 {
             self.run_seed = ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32;
         }

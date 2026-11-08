@@ -324,6 +324,46 @@ fn the_notice_is_loud() {
     assert!(peak > calm * 4.0, "the notice should stand 12 dB over the quiet before it");
 }
 
+/// Your cry is your own voice (`docs/VOICES.md`): a line said in the
+/// place you stand, standing far over the room, and never clipping (the
+/// formant cry it replaced hit 0 dBFS; it is measured beside it)
+#[test]
+fn the_cry_is_your_voice() {
+    // the room, then a cry, measured where a voice is (200 Hz - 3 kHz)
+    let hear = |say: fn(&mut Game) -> bool| {
+        let mut r = start(4242, 5);
+        hold_creatures(&mut r.g);
+        play(&mut r, 3.0, hold_creatures);
+        let at = r.pcm.len() / 2;
+        assert!(say(&mut r.g), "nothing was said");
+        play(&mut r, 3.0, hold_creatures);
+        let w = windows_band(&r.pcm, 200.0, 3000.0);
+        let b = at / WIN;
+        let bed = median(&w[20..b]);
+        let peak = w[b..].iter().cloned().fold(0.0, f64::max);
+        let line = r.g.cry_last_line.clone();
+        let top = r.pcm[at * 2..].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
+        (bed, peak, r.pcm, at as f64 / SR, line, top)
+    };
+    let (bed, peak, pcm, at, line, top) = hear(|g| g.say_cry());
+    let (fbed, fpeak, fpcm, fat, _, ftop) = hear(|g| {
+        g.sfx_cry();
+        true
+    });
+    save("cry_voice_4242_L5", &pcm, &[at]);
+    save("cry_formant_4242_L5", &fpcm, &[fat]);
+    println!(
+        "cry: the line {line:?}, {:.1} dB over the room, peak {:.1} dBFS; the formant cry {:.1} dB over it, peak {:.1} dBFS",
+        db(peak / bed),
+        db(top),
+        db(fpeak / fbed),
+        db(ftop)
+    );
+    assert!(line.is_some(), "the cry said no line");
+    assert!(peak > bed * 10.0, "your cry should stand 20 dB over the room ({:.1} dB)", db(peak / bed));
+    assert!(db(top) <= -1.0, "your cry must not clip ({:.1} dBFS)", db(top));
+}
+
 #[test]
 fn the_hush_quiets_the_ambience() {
     let mut out: Vec<(f64, Vec<f64>)> = vec![];

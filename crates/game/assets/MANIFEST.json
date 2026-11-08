@@ -449,6 +449,268 @@
         "assets/src/textures/texlib.py",
         "assets/src/textures/sources.json"
       ]
+    },
+    "voice/you/answer_me.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "918b8c36f9d86488",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "fear",
+        "id": "answer_me",
+        "persona": "you",
+        "seed": 1,
+        "text": "Somebody, please! Answer me!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only answer_me; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/can_anyone_hear.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "bf4cf9aa1e0b7235",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "fear",
+        "id": "can_anyone_hear",
+        "persona": "you",
+        "seed": 2,
+        "text": "Can anyone hear me? Hello!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only can_anyone_hear; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/get_me_out.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "2774ec1a3b9c178f",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "terror",
+        "id": "get_me_out",
+        "persona": "you",
+        "seed": 1,
+        "text": "Get me out of here! Please!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only get_me_out; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/personas/you.terror.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/hello_anyone.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "8dd046417d53cf0b",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "unease",
+        "id": "hello_anyone",
+        "persona": "you",
+        "seed": 4,
+        "text": "Hello? Is anybody there?"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only hello_anyone; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/help_me.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "6b0f244f3aa16856",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "fear",
+        "id": "help_me",
+        "persona": "you",
+        "seed": 2,
+        "text": "Help! Help me!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only help_me; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/help_scream.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "171e9ea63f6c1b55",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "terror",
+        "id": "help_scream",
+        "persona": "you",
+        "seed": 2,
+        "text": "Help! Help!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only help_scream; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/personas/you.terror.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/i_cant.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "47178b7ce0f1ceb3",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "desperation",
+        "id": "i_cant",
+        "persona": "you",
+        "seed": 1,
+        "text": "Help me. Please. I can't do this."
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only i_cant; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/im_here.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "23b31bd13180be3c",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "fear",
+        "id": "im_here",
+        "persona": "you",
+        "seed": 1,
+        "text": "I'm here! I'm right here!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only im_here; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/please_help_hoarse.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "6849f4b22dbe0eb3",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "exhaustion",
+        "id": "please_help_hoarse",
+        "persona": "you",
+        "seed": 2,
+        "text": "Please. Somebody. Help."
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only please_help_hoarse; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you/somebody_help.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -16 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "882dd6440eb6380d",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "desperation",
+        "id": "somebody_help",
+        "persona": "you",
+        "seed": 3,
+        "text": "Somebody help me, please!"
+      },
+      "rebuild": "cargo xtask voice build --persona you --model chatterbox --only somebody_help; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
     }
   }
 }

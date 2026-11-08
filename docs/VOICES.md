@@ -227,6 +227,32 @@ models, through the evaluation (`cargo xtask voice build|eval --model M`):
 - No model passes the desperate line `i_cant` but Chatterbox, nor
   `help_me` but Chatterbox and Ming: the hardest lines decide.
 
+## In the game (V6)
+
+- **The files**: `crates/game/assets/voice/<persona>/<line>.wav` (16-bit,
+  48 kHz, mono; 2.0 MB for the first persona's ten lines) and the index
+  `crates/game/assets/voice/lines.tsv` (each line's use, levels,
+  intensity, emotion, text), both written by `cargo xtask voice write`.
+  `audio::voice::WAVS` embeds them (one `wav!` line each, like the
+  photographed textures); a test holds the list and the index together and
+  decodes every file, and `voice::tests::the_games_index_of_lines_matches_the_line_files`
+  holds the index to the line files.
+- **The cry** (`Game::cry_for_help`, `H`): `say_cry` chooses a line
+  (`audio::voice::choose_cry`): one for the level (the Building's floors
+  call out, the rooms shout for help, deep down he is worn out), a louder
+  one from the second cry on a floor, never the one said last, and the
+  scream when you cry again within 45 s of the last. The choice comes from
+  a stream of its own (the run's seed, the level, the cry's number in the
+  run): a cry draws nothing from the per-frame stream, so no frame after it
+  changes. The line is played at its own level (`VOICE_GAIN` 1.0: its WAV
+  is at −16 LUFS, true peak −1 dBTP) into the soundscape's `world` bus:
+  centred, your own voice, but in the reverb of the place you stand. The
+  formant cry (`sfx_cry`) stays as the fallback when no line can be said.
+- **Heard**: `tests/listen.rs`'s `the_cry_is_your_voice` (a cry on level
+  5: 25.9 dB over the room in the voice's band, peaks at −2.1 dBFS; with
+  `VOICE_GAIN` at 0 it fails at 5.1 dB). The formant cry it replaced stood
+  36 dB over the room and hit 0 dBFS: it clipped.
+
 ## The research
 
 [`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
@@ -260,6 +286,7 @@ emotion control is promised more than it is measured).
 | V3 | done: the reference (six candidates, seed 4 kept), forty takes from VoxCPM2 made twice the same, the cleaning, `voice write` and the manifest test on voice files |
 | V4 | done: the six checks, `voice eval` (report and gate) and `voice selftest` (seven known answers, all right) |
 | V5 | done: the bake-off (four models, forty takes each); Chatterbox chosen; his terror cloned from a reference of its own |
+| V6, V8 | done: the ten lines in the game (Chatterbox, the evaluation's chosen takes), `say_cry` in place of `sfx_cry` (its fallback), the cry heard 25.9 dB over the room without clipping; the profile here and in `LORE.md`; the playtest's questions |
 
 ## Personas
 
