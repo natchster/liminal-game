@@ -2,8 +2,8 @@
 //! `game::world::knock`): in the quiet an ordinary door now and then
 //! answers, once, and gives its thing at its foot; a door the cleaners
 //! marked red knocks back in your own rhythm and the siren comes within
-//! seconds; a door taped round from inside never answers; nobody answers
-//! while the siren sounds or the fog is up; what was taken stays taken; and
+//! seconds; a door taped round never answers; nobody answers (and no hatch
+//! opens) while the siren sounds or the fog is up; what was taken stays taken; and
 //! the plan comes from a stream of its own after the build, the same for a
 //! seed whatever was built before, moving no other draw.
 mod common;
@@ -84,8 +84,11 @@ fn the_well_has_doors_to_knock_at_and_a_few_answer() {
         for d in &a {
             *gifts.entry(format!("{:?}", d.gift.unwrap())).or_insert(0) += 1;
             if d.gift.unwrap().is_note() {
+                if seed <= 6 {
+                    println!("  seed {} door {}: {}", seed * 7919, d.number, d.words);
+                }
                 assert!(
-                    d.words.contains(" from this door") && (d.words.contains(" 139") || d.words.contains(" 140")),
+                    d.words.contains(" from ") && (d.words.contains(" 139") || d.words.contains(" 140")),
                     "seed {seed}: a note says the way and the storey: {}",
                     d.words
                 );
@@ -213,7 +216,7 @@ fn a_taped_door_never_answers() {
                 step(&mut g, 4.0);
             }
         }
-        assert!(g.knocks.due.is_empty() && g.knocks.given.is_empty(), "seed {seed}: taped round from inside, never");
+        assert!(g.knocks.due.is_empty() && g.knocks.given.is_empty(), "seed {seed}: taped round, never");
         assert_eq!(g.assembly.stage, Stage::Quiet);
         assert!(g.assembly.t > 100.0, "seed {seed}: nor does it call the siren");
     }
@@ -245,6 +248,22 @@ fn nobody_answers_while_it_is_up() {
         step(&mut g, ANSWER_AFTER.1 + OUT_AFTER + 2.0);
         assert!(g.assembly.up());
         assert!(g.knocks.given.is_empty() && !g.knocks.doors[gift].answered, "seed {seed}: never opened while it was up");
+        // someone already at the door when the siren starts: the hatch stays shut
+        g.assembly.stage = Stage::Quiet;
+        g.assembly.y = f64::NEG_INFINITY;
+        g.assembly.t = 200.0;
+        knock(&mut g, gift);
+        for _ in 0..600 {
+            step(&mut g, DT);
+            if g.knocks.given.iter().any(|gv| gv.door == gift) {
+                break;
+            }
+        }
+        assert!(g.knocks.given.iter().any(|gv| gv.door == gift && gv.t < 0.0), "seed {seed}: someone at the door");
+        g.assembly.t = 0.0;
+        step(&mut g, OUT_AFTER + 2.0);
+        assert!(g.assembly.up());
+        assert!(g.knocks.given.is_empty() && !g.knocks.doors[gift].answered, "seed {seed}: no hatch opened while it was up");
         // in the quiet after, it does
         g.assembly.stage = Stage::Quiet;
         g.assembly.y = f64::NEG_INFINITY;

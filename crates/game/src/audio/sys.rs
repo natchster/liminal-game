@@ -544,8 +544,8 @@ impl Game {
             t += gaps.get(k).copied().unwrap_or(0.0);
         }
     }
-    /// Someone come to a sealed door from inside: two soft steps, and a bolt
-    /// drawn (`world::knock`; play it at the door)
+    /// Someone come to a sealed door from inside: two soft steps, and the
+    /// hatch's catch (`world::knock`; play it at the door)
     pub fn sfx_behind_door(&self) {
         for k in 0..2 {
             self.noise_burst(0.1, 300.0, 0.9, 0.16, "lowpass", None, k as f64 * 0.45, 0.0);

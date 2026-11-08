@@ -21,7 +21,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
 | Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*) |
-| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors, and its cleaners, known only by their log and their marks |
+| People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
 
@@ -44,6 +44,11 @@ these channels, and the `lore-keeper` reviewer checks it:
   explain; an anomaly's notes lie only on its level, and the Building's (its
   residents' notices, its cleaners' log, its surveys) only on its floors.
   A notice says what to do, as notices do; it never says why.
+- **A resident's note**: on the Well, a folded note slid under a sealed door
+  that answered a knock (`world::knock`), read as it is picked up: a word of
+  the way from that door in a resident's hand (the nearest cell by its
+  plate, or the way down: which way from the door, how many flights, the
+  storey there), and at most a line of what to do; never why, never a map.
 - **Her notebook**: one page at M.'s camp on each floor down to level 13
   (`story/notebook.rs`), which hints as a survivor would and never explains.
   The last line of the last page you took stays at the top of the screen
@@ -69,7 +74,7 @@ You noclipped out of reality, through the wall at the back of a storage room,
 and came out in **the Building**: concrete without end, galleries round a
 void with no top and no bottom, flights of stairs a hundred metres long,
 windows in their thousands and a door behind every one shut from inside.
-People lived here once; nobody opens now. Far off, now and then, a siren,
+People lived here once, and a few still do, behind doors they never open. Far off, now and then, a siren,
 and a fog that comes up out of the dark (*The self-assembly*).
 
 Inside its walls are **the Backrooms**: an endless building of damp,
@@ -191,20 +196,22 @@ floor). Most stay silent. In the quiet, four of a floor's ordinary doors
 (numbered, nothing else on them) answer, once each, and nobody opens:
 someone comes to the door, a hatch at its foot opens and a bottle of almond
 water or a battery is pushed out onto the gallery, or a folded note is slid
-under it, a resident's word of the way from that door, in a hand: the
-nearest cell by its plate, or the way down (under the lit windows), which
-way from the door, how many flights down or up, and the storey there. What
-was taken from a door stays taken for the run. A door the cleaners marked
-red answers wrong: it knocks back in your own rhythm, then is still, and
-the siren sounds within seconds (three to six after it knocks back). A
-door taped round from inside never answers. While the siren sounds or the
-fog is up nobody answers at all; a knock just before the siren is not
-answered either, and that door may answer another time. Nobody says why:
-the residents' notice says not to knock where the cleaners have marked and
-to answer no knock until it is over; the cleaners' log has one of them
-knock at a marked door by mistake, and the knock come back the way he
-knocked, and the siren; the survey of the Well has somebody still answering
-behind one door in a great many, and nobody behind the tape.
+under it, a resident's word of the way from that door, in one of three
+hands: the nearest cell by its plate, or the way down, which way from the
+door, how many flights down or up, and the storey there. What was taken
+from a door stays taken for the run. A door the cleaners marked red answers
+wrong: it knocks back in your own rhythm, then is still for the rest of
+that visit (after a death or a Continue it knocks back again), and the
+siren sounds within seconds (three to six after it knocks back). A door
+taped round never answers. While the siren sounds or the fog is up nobody
+answers at all; a knock just before the siren is not answered either (the
+hatch is never opened while it is up), and that door may answer another
+time. Nobody says why: the residents' notice says not to knock where the
+cleaners have marked and to answer no knock until it is over; the cleaners'
+log has one of them knock at a marked door by mistake, and the knock come
+back the way he had knocked, and the siren; the surveyor of the Well once
+had something left on the step of a door that did not open, and never
+heard anyone behind the tape.
 
 **Someone across the void.** *After the figures of SCP-3333; see
 Attribution.* Nothing walks the Building, but now and then, far off across
@@ -544,7 +551,8 @@ now and then, and every floor of the Building knows it (`world::assembly`):
 - Taking her page on a floor of the Building sounds the siren within
   seconds, as it wakes the place below; so does knocking at a door the
   cleaners marked (*Knocking*). The first quiet on the first floor
-  is long, so her camp can be found first.
+  is long, so her camp can be found first, unless a door the cleaners
+  marked is knocked at.
 
 ## Anomalies
 

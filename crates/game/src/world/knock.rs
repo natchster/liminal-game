@@ -1,15 +1,15 @@
 //! A knock at a sealed door (`docs/MEGASTRUCTURE.md`, G5). Along the
 //! Well's galleries the residents' doors are sealed from inside, numbered,
-//! some marked red by the cleaners, some taped round from inside
-//! (`building_dress`); `[E] KNOCK` raps on one. In the quiet, now and then
+//! some marked red by the cleaners, some taped round (`building_dress`);
+//! `[E] KNOCK` raps on one. In the quiet, now and then
 //! a resident answers without opening: a bottle of almond water or a battery
 //! is pushed out through a hatch at the foot of the door, or a folded note
 //! is slid under it (a word of the way from that door: the nearest cell, or
 //! the way down). A door answers at most once, and most stay silent. A door
 //! the cleaners marked answers wrong: it knocks back in your own rhythm,
 //! then is still, and the self-assembly comes within seconds instead of
-//! after its quiet. A door taped round from inside never answers. While the
-//! siren sounds or the fog is up nobody answers at all.
+//! after its quiet. A door taped round never answers. While the siren
+//! sounds or the fog is up nobody answers at all, and no hatch is opened.
 //!
 //! Which doors answer and what each gives is planned after the build, on a
 //! stream of its own seeded from the floor's seed (`KNOCK_SALT`): no draw of
@@ -56,7 +56,7 @@ pub enum Mark {
     Plain,
     /// the cleaners' red cross painted over it
     Red,
-    /// taped round its edges from inside
+    /// taped round its edges
     Taped,
 }
 
@@ -172,6 +172,49 @@ fn count_word(n: usize) -> String {
     W.get(n).map(|s| s.to_string()).unwrap_or_else(|| n.to_string())
 }
 
+/// The way from a door to somewhere, as a note gives it
+struct Way {
+    /// the first step from the door, facing it: "left", "right" or "out"
+    first: &'static str,
+    /// out first, then which way along
+    then: Option<&'static str>,
+    /// the runs of stairs down and up on the way
+    down: usize,
+    up: usize,
+    /// the storey painted there
+    storey: i32,
+}
+
+impl Way {
+    /// Which way from the door, in hand `h` (0 in words, 1 terse, 2 told)
+    fn dir(&self, h: usize) -> String {
+        let (lead, from) = match h {
+            0 => ("", "this door"),
+            1 => ("", "here"),
+            _ => ("go ", "the door"),
+        };
+        match (self.first, self.then) {
+            ("out", Some(s)) => format!("{lead}out from {from}, then {s}"),
+            ("out", None) => format!("{lead}straight out from {from}"),
+            (s, _) => format!("{lead}{s} from {from}"),
+        }
+    }
+    /// How many flights, in hand `h` (1: in figures, the rest in words)
+    fn flights(&self, h: usize) -> String {
+        let fl = |n: usize| if n == 1 { "flight" } else { "flights" };
+        match (h, self.down, self.up) {
+            (1, 0, 0) => "no stairs".to_string(),
+            (1, d, 0) => format!("{d} {} down", fl(d)),
+            (1, 0, u) => format!("{u} {} up", fl(u)),
+            (1, d, u) => format!("{d} {} down, {u} up", fl(d)),
+            (_, 0, 0) => "along the gallery".to_string(),
+            (_, d, 0) => format!("down {} {}", count_word(d), fl(d)),
+            (_, 0, u) => format!("up {} {}", count_word(u), fl(u)),
+            (_, d, u) => format!("down {} {} and up {}", count_word(d), fl(d), count_word(u)),
+        }
+    }
+}
+
 /// `s` with its first letter a capital (a sentence's start)
 fn cap(s: &str) -> String {
     let mut c = s.chars();
@@ -239,9 +282,9 @@ impl Game {
         }
     }
 
-    /// The way from door `i`'s walk to `goal`, a resident's words: which way
-    /// from the door, how many flights down (or up), and the storey there
-    fn knock_way(&self, i: usize, goal: (i32, i32)) -> Option<(String, String, i32)> {
+    /// The way from door `i`'s walk to `goal`: which way from the door,
+    /// how many flights down and up, and the storey there
+    fn knock_way(&self, i: usize, goal: (i32, i32)) -> Option<Way> {
         let door = &self.knocks.doors[i];
         let d = self.story_walk_dist(goal);
         let at = |p: (i32, i32)| if self.in_grid(p.0, p.1) { d[self.t_idx(p.0, p.1)] } else { -1 };
@@ -268,15 +311,9 @@ impl Game {
                 "out"
             }
         };
-        let first = path.get(1).map(|&b| side_of(path[0], b));
+        // (the goal at this very door: nothing worth writing)
+        let first = side_of(path[0], *path.get(1)?);
         let then = path.windows(2).map(|w| side_of(w[0], w[1])).find(|s| *s != "out");
-        let dir = match (first, then) {
-            // (the goal at this very door: nothing worth writing)
-            (None, _) => return None,
-            (Some("out"), Some(s)) => format!("out from this door, then {s}"),
-            (Some("out"), None) => "straight out from this door".to_string(),
-            (Some(s), _) => format!("{s} from this door"),
-        };
         // the flights on the way: each run of stairs, down or up
         let (mut down, mut up) = (0usize, 0usize);
         let stair = |p: (i32, i32)| self.ground_or_mass(p.0, p.1).kind == GROUND_STAIR;
@@ -297,17 +334,10 @@ impl Game {
                 up += 1;
             }
         }
-        let fl = |n: usize| if n == 1 { "flight" } else { "flights" };
-        let flights = match (down, up) {
-            (0, 0) => "along the gallery".to_string(),
-            (d, 0) => format!("down {} {}", count_word(d), fl(d)),
-            (0, u) => format!("up {} {}", count_word(u), fl(u)),
-            (d, u) => format!("down {} {} and up {}", count_word(d), fl(d), count_word(u)),
-        };
         let style = self.building.as_ref()?.style;
         let storey = crate::world::building_dress::storey_base(style)
             + (self.floor_y_of(goal.0, goal.1) / crate::level::building::STOREY).round() as i32;
-        Some((dir, flights, storey))
+        Some(Way { first, then: if first == "out" { then } else { None }, down, up, storey })
     }
 
     /// A folded note's words from door `i`: the nearest cell by the walk, or
@@ -325,20 +355,21 @@ impl Game {
                     .filter_map(|(ci, c)| from.get(self.t_idx(c.tile.0, c.tile.1)).filter(|&&s| s >= 0).map(|&s| (ci, s)))
                     .min_by_key(|&(ci, s)| (s, ci))?;
                 let plate = self.knocks.cell_plates.get(ci).cloned().unwrap_or_default();
-                let (dir, flights, storey) = self.knock_way(i, plan.cells[ci].tile)?;
-                let dir = cap(&dir);
+                let w = self.knock_way(i, plan.cells[ci].tile)?;
+                let s = w.storey;
                 Some(match hand {
-                    0 => format!("{plate} is open. {dir}, {flights}, storey {storey}. The lamp over it is lit."),
-                    1 => format!("Nearest cell {plate}. {dir}, {flights}, to {storey}. Turn the wheel till it stops."),
-                    _ => format!("Go to {plate}. {dir}, {flights}, storey {storey}. Go before the siren."),
+                    0 => format!("{plate} is open. {}, {}, storey {s}. The lamp over it is lit.", cap(&w.dir(0)), w.flights(0)),
+                    1 => format!("Nearest cell {plate}. {}. {}. {s}. Shut it behind you.", cap(&w.dir(1)), cap(&w.flights(1))),
+                    _ => format!("{}, {}, to {s}: cell {plate}. Go before the siren.", cap(&w.dir(2)), w.flights(0)),
                 })
             }
             _ => {
-                let (dir, flights, storey) = self.knock_way(i, plan.exit)?;
+                let w = self.knock_way(i, plan.exit)?;
+                let s = w.storey;
                 Some(match hand {
-                    0 => format!("Down is under the lit windows. {}, {flights}, to storey {storey}.", cap(&dir)),
-                    1 => format!("The door down is at {storey}, under the lit windows. {}, {flights}.", cap(&dir)),
-                    _ => format!("Down: {dir}, {flights}, storey {storey}. Go while it is quiet. Do not knock again."),
+                    0 => format!("Down is under the lit windows. {}, {}, to storey {s}.", cap(&w.dir(0)), w.flights(0)),
+                    1 => format!("Way down at {s}, the foot of the lit tower. {}. {}.", cap(&w.dir(1)), cap(&w.flights(1))),
+                    _ => format!("Down: {}, {}, to {s}. Go while it is quiet. Do not knock again.", w.dir(2), w.flights(0)),
                 })
             }
         }
@@ -370,7 +401,7 @@ impl Game {
                 let t = ANSWER_AFTER.0 + native_rnd() * (ANSWER_AFTER.1 - ANSWER_AFTER.0);
                 self.knocks.due.push((t, Due::Answer(i)));
             }
-            // taped round from inside: never; an ordinary door: silence
+            // taped round: never; an ordinary door: silence
             _ => {}
         }
     }
@@ -534,6 +565,23 @@ impl Game {
     /// come, a pickup once still, what was taken kept for the run
     fn update_given(&mut self, dt: f64) {
         let level = self.level_num;
+        // someone at a door when the siren starts goes away: no hatch is
+        // opened while it is up (the door may answer another time)
+        if self.assembly.up() {
+            for gv in self.knocks.given.iter().filter(|gv| gv.t < 0.0) {
+                gv.obj.set_visible(false);
+                if let Some((frame, _)) = &gv.hatch {
+                    frame.set_visible(false);
+                }
+            }
+            for k in 0..self.knocks.given.len() {
+                if self.knocks.given[k].t < 0.0 {
+                    let d = self.knocks.given[k].door;
+                    self.knocks.doors[d].answered = false;
+                }
+            }
+            self.knocks.given.retain(|gv| gv.t >= 0.0);
+        }
         for k in 0..self.knocks.given.len() {
             let (t0, gift, door) = {
                 let gv = &mut self.knocks.given[k];
