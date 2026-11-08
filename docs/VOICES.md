@@ -75,6 +75,43 @@ emotion before a person listens.
    them and choose the takes), each ending in its gates and evidence, as the
    content skills do.
 
+## The toolchain
+
+```sh
+cargo xtask voice doctor [--smoke]        # uv, both environments, every model at its revision, the licences
+cargo xtask voice fetch [--only ID,…]     # the models into the Hugging Face cache (once; ~25 GB)
+uv sync --project tools/voice/synth       # the environments (once; uv: `brew install uv`)
+uv sync --project tools/voice/eval
+```
+
+- **`tools/voice/models.toml`** pins every model to a full revision and says
+  which files it needs. A synthesis model (`role = "synth"`) makes what the
+  game ships: its code and weights must be Apache-2.0 or MIT, its upstream
+  card and licence are kept at the revision used in
+  `assets/src/voice/models/<id>/`, and its upstream is in `MANIFEST.json`'s
+  `allowed_models` (the doctor checks all three). An evaluation model
+  (`role = "eval"`) never ships; its licence is recorded, not gated
+  (emotion2vec+'s says nothing of commercial use). The MLX conversions'
+  tags can differ from the original's (`chatterbox-fp16` says Apache-2.0;
+  Resemble AI's weights are MIT): the upstream governs.
+- **Two environments**, each a `uv` project locked in `uv.lock`:
+  `tools/voice/synth` (Python 3.12, MLX and mlx-audio: VoxCPM2, Qwen3-TTS,
+  Chatterbox, Ming-3.0 on the GPU) and `tools/voice/eval` (Python 3.13,
+  torch: the recognisers, the emotion models, CLAP, AudioSet, ECAPA, Praat,
+  the loudness meter). They never share a process, so their pins never
+  meet. `common.py` is what both read: the pins, where a model is in the
+  cache, a take as samples.
+- **Nothing reaches the network once fetched**: the scripts set
+  `HF_HUB_OFFLINE`, and a model that loads a second repository as it starts
+  (Chatterbox loads CosyVoice 2's speech tokenizer) has that one pinned too.
+- **A download that stops** at the same byte every time (it happened to
+  `chatterbox-fp16` at 292,905,779 bytes, twice) is Hugging Face's chunked
+  transfer (xet) failing on that file: fetch it again with
+  `HF_HUB_DISABLE_XET=1` (plain HTTP, slower, resumes).
+- **A take is made again the same**: the same seed gives the same samples
+  on the same machine and versions, and the WAVs are written with headers of
+  our own (libsndfile stamps the time into a float WAV).
+
 ## The research
 
 [`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
@@ -99,9 +136,40 @@ emotion control is promised more than it is measured).
 | V8 | **The first persona**: the one who cries for help (you), profiled here and in `LORE.md`, their lines made, checked and in the game in place of `sfx_cry` | the evaluation passes; a listen render; a person listens (`PLAYTEST.md`) |
 | V9 | **Evidence and the ledger**: `QUALITY.md`, `content.json`, `ARCHITECTURE.md`; the full check; the bundle | full check passes |
 
+### Progress
+
+| # | State |
+|---|---|
+| V0 | done: `4810c24` |
+| V1–V2 | done: `voice doctor --smoke` passes (13 models at their revisions, the five synthesis licences kept and allowed, a sentence said by Qwen3-TTS and heard back by both recognisers, word error 0); the persona and line formats and their test; the first persona drafted |
+
 ## Personas
 
-(Each persona's profile, as it is made: V2 drafts the first.)
+A persona is two files: `assets/src/voice/personas/<id>.toml` (who, the
+voice's description, the tone, the emotions with the words a model is
+directed with, the targets) and `assets/src/voice/lines/<id>.toml` (each
+line: its text, emotion, intensity 0–1, where the game plays it, on which
+levels, how many takes). `cargo xtask check` reads both
+(`voice::tests::every_persona_and_line_file_is_complete`): a missing field,
+a field of the wrong kind, an unknown field (a misspelling), an emotion the
+persona does not have, a model that is not a synthesis model, a use the game
+does not play, all fail it.
+
+### You: the one who cries for help
+
+*The player's own voice, heard only when you cry out (`H`). Never a word
+besides, never a narrator.*
+
+| | |
+|---|---|
+| Who | An ordinary man of about thirty-six who went through the wall at the back of a storage room at the end of a night shift and came out in the Building. Not brave, not a talker; he has never shouted for help in his life before. The further down he goes, the less he expects an answer, and the more he cries out anyway. |
+| From | Somewhere in the American Midwest: plain speech, no strong accent. |
+| Never said | His name, his work, his face, how long he has been here. The game never says who you are; this profile is for casting the voice, not for the player. |
+| Voice | An untrained baritone, slightly rough and tired, General American; recorded close and dry. A stockroom worker's voice, not an announcer's or an actor's. Designed from that description (Qwen3-TTS VoiceDesign), never cloned from a person. |
+| Tone | A real man shouting into a huge empty building, not performing. The breath before the shout; the voice cracks when it is high. Never: a narrator, a radio announcer, a cartoon, a calm man talking, a stage actor declaiming. |
+| Emotions | unease (calling out, half expecting nothing), fear (breathless, shouting), terror (screaming, voice cracking), desperation (pleading, close to tears), exhaustion (hoarse, worn out from shouting). |
+| Lines | Ten cries (`lines/you.toml`): on the Building's floors he calls out ("Hello? Is anybody there?", "Can anyone hear me? Hello!"); in the rooms he shouts for help ("Help! Help me!", "Get me out of here! Please!"); deep down he is worn out ("Please. Somebody. Help.", "Help me. Please. I can't do this."); a scream ("Help!") when he cries again soon after the last. |
+| Targets | Median pitch 85–330 Hz (a scream goes high); −16 LUFS, true peak under −1 dBTP; words wrong at most 15%; speaker similarity to his reference at least 0.45. |
 
 Next after the first: the child below you in the Stairwell ("please",
 "help", "down here", the sob and the wail).

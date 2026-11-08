@@ -1,0 +1,6 @@
+upstream = "inclusionAI/Ming-3.0-tts-0.5B"
+upstream_revision = "7247f4c94a5b2e987404ed28a5cfec41b1a4ca61"
+repo = "mlx-community/Ming-3.0-tts-0.5B-bf16"
+revision = "283b3c342c6fb69a7a87832c97f9799567efe05d"
+licence = "MIT"
+kept = ["README.md"]

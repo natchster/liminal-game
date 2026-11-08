@@ -1,0 +1,6 @@
+upstream = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
+upstream_revision = "5ecdb67327fd37bb2e042aab12ff7391903235d3"
+repo = "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16"
+revision = "7d3824abff87e49756bb0f83fb5411de75d160c4"
+licence = "Apache-2.0"
+kept = ["README.md"]

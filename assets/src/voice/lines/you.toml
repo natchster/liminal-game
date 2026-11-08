@@ -1,0 +1,101 @@
+# The lines of the one who cries for help (personas/you.toml).
+#
+# `use` is where the game plays it; `levels` the levels it may be said on
+# (1-3 the Building, 4 and down the rooms); `intensity` 0-1 within its
+# emotion. A cry is chosen among the lines for its level, a louder one when
+# you have already cried on this floor (docs/VOICES.md).
+persona = "you"
+
+# ---- the Building: calling out across the void, half expecting nothing
+[[line]]
+id = "hello_anyone"
+text = "Hello? Is anybody there?"
+emotion = "unease"
+intensity = 0.35
+use = "cry"
+levels = [1, 3]
+takes = 4
+
+[[line]]
+id = "can_anyone_hear"
+text = "Can anyone hear me? Hello!"
+emotion = "fear"
+intensity = 0.5
+use = "cry"
+levels = [1, 3]
+takes = 4
+
+[[line]]
+id = "answer_me"
+text = "Somebody, please! Answer me!"
+emotion = "fear"
+intensity = 0.6
+use = "cry"
+levels = [1, 6]
+takes = 4
+
+# ---- the rooms: something is near
+[[line]]
+id = "help_me"
+text = "Help! Help me!"
+emotion = "fear"
+intensity = 0.75
+use = "cry"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "somebody_help"
+text = "Somebody help me, please!"
+emotion = "desperation"
+intensity = 0.7
+use = "cry"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "get_me_out"
+text = "Get me out of here! Please!"
+emotion = "terror"
+intensity = 0.8
+use = "cry"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "im_here"
+text = "I'm here! I'm right here!"
+emotion = "fear"
+intensity = 0.65
+use = "cry"
+levels = [2, 9]
+takes = 4
+
+# ---- deep down: worn out
+[[line]]
+id = "please_help_hoarse"
+text = "Please. Somebody. Help."
+emotion = "exhaustion"
+intensity = 0.6
+use = "cry"
+levels = [9, 99]
+takes = 4
+
+[[line]]
+id = "i_cant"
+text = "Help me. Please. I can't do this."
+emotion = "desperation"
+intensity = 0.85
+use = "cry"
+levels = [9, 99]
+takes = 4
+
+# ---- any floor: a cry again soon after the last
+[[line]]
+id = "help_scream"
+text = "Help!"
+emotion = "terror"
+intensity = 1.0
+use = "cry"
+levels = [1, 99]
+takes = 4

@@ -15,3 +15,4 @@ nv-flip = { workspace = true }
 png = { workspace = true }
 miniz_oxide = { workspace = true }
 base64 = { workspace = true }
+toml = { workspace = true }

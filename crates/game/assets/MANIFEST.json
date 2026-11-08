@@ -9,7 +9,13 @@
     "CC0-1.0",
     "CC-BY-4.0"
   ],
-  "allowed_models": [],
+  "allowed_models": [
+    "openbmb/VoxCPM2",
+    "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+    "ResembleAI/chatterbox",
+    "FunAudioLLM/CosyVoice2-0.5B",
+    "inclusionAI/Ming-3.0-tts-0.5B"
+  ],
   "files": {
     "bodies.bin": {
       "authors": "written by coding agents under the developer's direction; the bodies that were people start from MakeHuman's base mesh and targets (CC0 1.0, the MakeHuman team)",

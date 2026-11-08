@@ -1,0 +1,71 @@
+# The one who cries for help: you (docs/VOICES.md, Personas).
+#
+# The player's own voice, heard only when you cry out (H): never a word
+# besides, never a narrator (docs/LORE.md, "How canon reaches the player").
+id = "you"
+name = "You"
+used_for = "the cry for help (the H key): in place of the formant cry, sfx_cry"
+
+[person]
+summary = """
+An ordinary man who went through the wall at the back of a storage room at
+the end of a night shift and came out in the Building. He is not brave and
+not a talker; he has never shouted for help in his life before tonight.
+The further down he goes, the less he expects anyone to answer, and the
+more he cries out anyway."""
+age = 36
+sex = "male"
+from = "somewhere in the American Midwest: plain speech, no strong accent"
+here = "lost, alone; down in the Building and then the rooms below it, with a lamp and some paper"
+never_said = "his name, his work, his face, how long he has been here: the game never says who you are"
+
+[voice]
+# For the voice-design model: who the voice is, never who it sounds like
+description = """
+A man in his mid-thirties with an ordinary, untrained baritone voice and a
+plain General American accent. Slightly rough and tired, not deep or
+polished: the voice of a stockroom worker, not an announcer or an actor.
+Recorded close, dry, with no reverb."""
+reference_text = "I came in through the back of the storage room, and then the wall just wasn't there. I've been walking for hours. The lights hum the whole time, and nobody answers."
+design_model = "qwen3-tts-voicedesign"
+design_seed = 1
+# chosen by the bake-off (V5); until then the first synthesis model
+line_model = "voxcpm2"
+
+[tone]
+direction = [
+    "a real man shouting into a huge empty building, not performing",
+    "the breath before the shout; the voice cracks when it is high",
+    "no words beyond the line; never a line read for an audience",
+]
+# what the evaluation holds a take near (a text-audio model), and away from
+like = [
+    "a frightened man shouting for help in an empty concrete building",
+    "a desperate man calling out, his voice breaking",
+]
+never = [
+    "a narrator reading a story aloud",
+    "a radio announcer",
+    "a cartoon character",
+    "a calm man talking",
+    "a stage actor declaiming",
+]
+
+# The emotions he may take: each with the words a model is directed with
+[emotions]
+unease = "uneasy and uncertain, calling out into the dark, half expecting no answer"
+fear = "frightened and breathless, shouting"
+terror = "terrified, screaming at the top of his lungs, voice cracking"
+desperation = "desperate and pleading, close to tears, voice breaking"
+exhaustion = "exhausted and hoarse, worn out from shouting, barely holding together"
+
+[targets]
+# median pitch of any take (a man's voice; a scream goes high)
+f0_median_hz = [85.0, 330.0]
+# every chosen take is set to this integrated loudness, its true peak under the ceiling
+loudness_lufs = -16.0
+peak_dbtp = -1.0
+# words heard wrong, at most (a line that is only a sound is not transcribed)
+wer_max = 0.15
+# speaker similarity to the reference, at least (a scream is lower than a word)
+similarity_min = 0.45

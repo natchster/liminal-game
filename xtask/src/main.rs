@@ -15,6 +15,7 @@
 //! cargo xtask heatmap REC.json…    where players went, from recorded sessions
 //! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
 //! cargo xtask nightly             drift sweep + long level sweep + recorded bench
+//! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/VOICES.md)
 //! ```
 mod ab;
 mod assets;
@@ -30,6 +31,7 @@ mod look;
 mod range;
 mod shots;
 mod testpool;
+mod voice;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
@@ -61,6 +63,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   drift [--skip-check]       run the gates, write passes into docs/content.json and
                              the Latest sweep into docs/QUALITY.md
   nightly                    drift sweep, a 200-case level sweep, a recorded bench
+  voice doctor [--smoke] | voice fetch [--only ID,…]
+                             the voice-over pipeline (docs/VOICES.md): its toolchain
+                             and models
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -80,6 +85,7 @@ fn main() -> ExitCode {
         Some("heatmap") => heatmap::heatmap(rest),
         Some("drift") => drift::drift(rest),
         Some("nightly") => drift::nightly(rest),
+        Some("voice") => voice::voice(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

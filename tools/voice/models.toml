@@ -1,0 +1,169 @@
+# The models the voice pipeline uses, each pinned to a revision
+# (docs/VOICES.md, docs/research/voice-tts.md).
+#
+#   role = "synth"  makes what the game ships: its code AND weights must allow
+#                   selling what it makes (Apache-2.0 or MIT); its licence and
+#                   card are kept at the revision used under
+#                   assets/src/voice/models/<id>/ and it is listed in
+#                   crates/game/assets/MANIFEST.json's allowed_models
+#   role = "eval"   only checks takes; it never ships, so its licence is
+#                   recorded but not gated
+#
+# `repo`/`revision` is what is downloaded (the MLX conversion where there is
+# one); `upstream` is the original model, whose licence governs: an MLX
+# conversion's tag can differ from it (mlx-community/chatterbox-fp16 says
+# apache-2.0; Resemble AI's weights are MIT). `cargo xtask voice fetch`
+# downloads them into the Hugging Face cache (never this repository) and
+# `cargo xtask voice doctor` checks they are there at these revisions.
+
+[[model]]
+id = "voxcpm2"
+role = "synth"
+env = "synth"
+does = "clones a persona's reference voice and reads a line with a style instruction: (terrified, breathless)"
+repo = "mlx-community/VoxCPM2-bf16"
+revision = "a7fb80d9056983135a54ca3f71fcc5a637ccddf5"
+include = ["*.json", "*.safetensors"]
+upstream = "openbmb/VoxCPM2"
+upstream_revision = "32279effe8c1"
+licence = "Apache-2.0"
+
+[[model]]
+id = "qwen3-tts-voicedesign"
+role = "synth"
+env = "synth"
+does = "designs a voice from a description (a persona's reference clip); reads a line with an emotion instruction, the voice designed again each time"
+repo = "mlx-community/Qwen3-TTS-12Hz-1.7B-VoiceDesign-bf16"
+revision = "7d3824abff87e49756bb0f83fb5411de75d160c4"
+include = ["*.json", "*.safetensors", "*.txt", "speech_tokenizer/*"]
+upstream = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
+upstream_revision = "5ecdb67327fd"
+licence = "Apache-2.0"
+
+[[model]]
+id = "chatterbox"
+role = "synth"
+env = "synth"
+does = "clones a reference voice; exaggeration is a dial from calm to screaming; adds an inaudible watermark (PerTh) to what it makes"
+repo = "mlx-community/chatterbox-fp16"
+revision = "4923fcca09086356aeab5191a2348c5a17a23694"
+include = ["*.json", "*.safetensors"]
+upstream = "ResembleAI/chatterbox"
+upstream_revision = "5bb1f6ee58e5"
+licence = "MIT"
+
+[[model]]
+id = "s3tokenizer"
+role = "synth"
+env = "synth"
+does = "Chatterbox's speech tokenizer (CosyVoice 2's), which it loads from a repository of its own as it starts"
+repo = "mlx-community/S3TokenizerV2"
+revision = "e0c9886f0e1c35ae85b1f27277416fb19fc72bec"
+include = ["config.json", "model.safetensors"]
+upstream = "FunAudioLLM/CosyVoice2-0.5B"
+upstream_revision = "eec1ae6c7987"
+licence = "Apache-2.0"
+
+[[model]]
+id = "ming-tts"
+role = "synth"
+env = "synth"
+does = "clones a reference voice with an emotion label (fear, sad, ...); breathing and sighs as tags"
+repo = "mlx-community/Ming-3.0-tts-0.5B-bf16"
+revision = "283b3c342c6fb69a7a87832c97f9799567efe05d"
+include = ["*.json", "*.safetensors", "*.txt", "LICENSE"]
+upstream = "inclusionAI/Ming-3.0-tts-0.5B"
+upstream_revision = "7247f4c94a5b"
+licence = "MIT"
+
+[[model]]
+id = "whisper"
+role = "eval"
+env = "eval"
+does = "speech recognition: the words of a take, with word times (the rate, the pauses)"
+repo = "mlx-community/whisper-large-v3-turbo"
+revision = "a4aaeec0636e6fef84abdcbe3544cb2bf7e9f6fb"
+include = ["*.json", "*.safetensors"]
+upstream = "openai/whisper-large-v3-turbo"
+licence = "MIT"
+
+[[model]]
+id = "parakeet"
+role = "eval"
+env = "eval"
+does = "speech recognition of another family: a second opinion on the words"
+repo = "mlx-community/parakeet-tdt-0.6b-v3"
+revision = "ed2b7e8c15f9aaa0b5772e2efb986255eaef7e15"
+include = ["*.json", "*.safetensors", "tokenizer.*", "vocab.txt"]
+upstream = "nvidia/parakeet-tdt-0.6b-v3"
+licence = "CC-BY-4.0"
+
+[[model]]
+id = "emotion2vec"
+role = "eval"
+env = "eval"
+does = "speech emotion: angry, disgusted, fearful, happy, neutral, other, sad, surprised"
+repo = "emotion2vec/emotion2vec_plus_large"
+revision = "6c303ba987b86b93193de93e34bb2b077a6bedc4"
+include = ["*.yaml", "*.json", "*.pt", "tokens.txt"]
+licence = "FunASR Model Open Source License v1.1 (attribution; silent on commercial use: used to check, never shipped)"
+
+[[model]]
+id = "wavlm-categories"
+role = "eval"
+env = "eval"
+does = "speech emotion of another family: angry, sad, happy, surprise, fear, disgust, contempt, neutral"
+repo = "3loi/SER-Odyssey-Baseline-WavLM-Categorical-Attributes"
+revision = "50632bbc8b89cbaa45077f1404601d9776cfe387"
+include = ["*.json", "*.safetensors", "pipeline_utils.py"]
+licence = "MIT"
+
+[[model]]
+id = "wavlm-dimensions"
+role = "eval"
+env = "eval"
+does = "arousal (how intense), valence, dominance"
+repo = "3loi/SER-Odyssey-Baseline-WavLM-Multi-Attributes"
+revision = "00d0e12ba9bf957f5aeea36e8663c8c61cb50ac9"
+include = ["*.json", "*.safetensors", "pipeline_utils.py"]
+licence = "MIT"
+
+[[model]]
+id = "ast-audioset"
+role = "eval"
+env = "eval"
+does = "AudioSet's sound labels: Screaming, Shout, Yell, Whispering, Gasp, Crying/sobbing, Whimper, Sigh, Breathing, Pant, Groan"
+repo = "MIT/ast-finetuned-audioset-10-10-0.4593"
+revision = "f826b80d28226b62986cc218e5cec390b1096902"
+include = ["*.json", "*.safetensors"]
+licence = "BSD-3-Clause"
+
+[[model]]
+id = "clap"
+role = "eval"
+env = "eval"
+does = "how near a take is to a description in words: the persona's tone of voice against what it must never sound like"
+repo = "laion/larger_clap_general"
+revision = "ada0c23a36c4e8582805bb38fec3905903f18b41"
+include = ["*.json", "*.bin", "*.txt"]
+licence = "Apache-2.0"
+
+[[model]]
+id = "ecapa"
+role = "eval"
+env = "eval"
+does = "speaker similarity: is a take the persona's voice"
+repo = "speechbrain/spkrec-ecapa-voxceleb"
+revision = "0f99f2d0ebe89ac095bcc5903c4dd8f72b367286"
+include = ["*.ckpt", "*.yaml", "*.json", "label_encoder.txt"]
+licence = "Apache-2.0"
+
+[[model]]
+id = "wavlm-large-config"
+role = "eval"
+env = "eval"
+does = "the shape of the WavLM the two emotion heads are built on (their checkpoints hold its weights; only its config is needed)"
+repo = "microsoft/wavlm-large"
+revision = "c1423ed94bb01d80a3f5ce5bc39f6026a0f4828c"
+include = ["config.json"]
+licence = "MIT (the WavLM code, microsoft/unilm); only the config is read"

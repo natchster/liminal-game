@@ -1,0 +1,14 @@
+[project]
+name = "backrooms-voice-synth"
+version = "0.1.0"
+description = "Text-to-speech for the game's voices, on MLX (docs/VOICES.md)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "mlx==0.32.4",
+    "mlx-audio==0.6.4",
+    "soundfile",
+    "numpy",
+]
+
+[tool.uv]
+package = false

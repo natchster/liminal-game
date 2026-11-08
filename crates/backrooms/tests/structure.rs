@@ -204,7 +204,9 @@ fn docs_point_at_files_that_exist() {
             let p = e.path();
             let name = p.file_name().unwrap().to_string_lossy().to_string();
             if p.is_dir() {
-                if !["target", ".git", "dist"].contains(&name.as_str()) {
+                // build output, and the voice tools' Python environments
+                // (third-party code, ignored by git: tools/voice/*/.venv)
+                if !["target", ".git", "dist", ".venv", "__pycache__"].contains(&name.as_str()) {
                     all.push(format!("{}/", rel(&p)));
                     stack.push(p);
                 }
@@ -447,7 +449,9 @@ fn nothing_names_the_earlier_version() {
             let p = e.path();
             let name = p.file_name().unwrap().to_string_lossy().to_string();
             if p.is_dir() {
-                if !["target", ".git", "dist"].contains(&name.as_str()) {
+                // build output, and the voice tools' Python environments
+                // (third-party code, ignored by git: tools/voice/*/.venv)
+                if !["target", ".git", "dist", ".venv", "__pycache__"].contains(&name.as_str()) {
                     stack.push(p);
                 }
             } else if p.extension().is_some_and(|x| TEXT.contains(&x.to_string_lossy().as_ref())) {

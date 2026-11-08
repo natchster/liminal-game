@@ -1,0 +1,25 @@
+[project]
+name = "backrooms-voice-eval"
+version = "0.1.0"
+description = "Checks a voice take's words, emotion, tone of voice and voice (docs/VOICES.md)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "mlx-whisper",
+    "parakeet-mlx",
+    "jiwer",
+    "torch==2.11.0",
+    "torchaudio==2.11.0",
+    "transformers",
+    "speechbrain",
+    "funasr",
+    "praat-parselmouth",
+    "librosa",
+    "numba==0.67.0",
+    "scipy==1.18.1",
+    "pyloudnorm",
+    "soundfile",
+    "numpy",
+]
+
+[tool.uv]
+package = false

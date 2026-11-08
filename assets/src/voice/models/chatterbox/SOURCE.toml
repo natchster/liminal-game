@@ -1,0 +1,6 @@
+upstream = "ResembleAI/chatterbox"
+upstream_revision = "5bb1f6ee58e50c3b8d408bc82a6d3740c2db6e18"
+repo = "mlx-community/chatterbox-fp16"
+revision = "4923fcca09086356aeab5191a2348c5a17a23694"
+licence = "MIT"
+kept = ["README.md"]
