@@ -233,6 +233,7 @@ impl Game {
         self.far_figure = None;
         self.figure_perches.clear();
         self.lift_at = None;
+        self.knocks = Default::default();
         self.assembly = Default::default();
         self.tv_data = None;
         self.phone_data = None;

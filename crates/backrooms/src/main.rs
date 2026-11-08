@@ -97,6 +97,12 @@ struct Options {
     /// against), each camera printed for `--shots-at`; with `--shots-at`,
     /// held toward each camera (its back turned for a name ending `_back`)
     far_figure: bool,
+    /// `--knock-demo`: with `--dump-level --screenshot` on the Well (level
+    /// 1), the first door that answers with a bottle, with a battery and with
+    /// a note (`world::knock`), each shot from a camera stood back from it
+    /// looking down at its foot: first without the thing (`_none`), then
+    /// coming out (`_out`), then lying there; each camera printed
+    knock_demo: bool,
     /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
     /// machine is first played to that state (`Game::vending_demo`)
     vending_demo: Option<String>,
@@ -145,6 +151,7 @@ fn parse_args() -> Options {
         census_use: false,
         shots_at: vec![],
         far_figure: false,
+        knock_demo: false,
         vending_demo: None,
         fresh: false,
         metrics: None,
@@ -208,6 +215,7 @@ fn parse_args() -> Options {
                     .collect()
             }
             "--far-figure" => o.far_figure = true,
+            "--knock-demo" => o.knock_demo = true,
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
@@ -237,7 +245,7 @@ fn parse_args() -> Options {
     // the census and its cameras are evidence for a blind review: a shot
     // taken twice must be the same shot (the per-frame randomness drives a
     // floor's tint, its flicker and its dust; the save fits her notes)
-    if o.prop_census.is_some() || !o.shots_at.is_empty() || o.far_figure {
+    if o.prop_census.is_some() || !o.shots_at.is_empty() || o.far_figure || o.knock_demo {
         o.fresh = true;
     }
     o
@@ -879,6 +887,49 @@ fn level_check(o: &Options, dir: &str) {
                 let at: Vec<String> =
                     cams.iter().map(|(n, c, _)| format!("{n}:{:.4},{:.4},{:.4},{:.5},{:.5}", c[0], c[1], c[2], c[3], c[4])).collect();
                 print!(" (figure cameras: \"{}\")", at.join(";"));
+            }
+            if o.knock_demo && !g.knocks.doors.is_empty() {
+                // what a door pushes out, at its foot: the same camera before and after
+                let cams = g.knock_cameras();
+                for when in ["_none", "_out", ""] {
+                    for (_, i, _) in cams.iter().filter(|_| when != "_none") {
+                        g.knock_lay_out(*i, if when == "_out" { 0.35 } else { 1.25 });
+                    }
+                    for (name, _, c) in &cams {
+                        let eye = engine::math::Vec3::new(c[0], c[1], c[2]);
+                        g.player.pos = eye;
+                        g.player.yaw = c[3];
+                        g.player.pitch = c[4];
+                        g.prop_cull.t = 0.0;
+                        g.fixed_step_dt = 1.0 / 60.0;
+                        g.frame(1.0 / 60.0);
+                        g.fixed_step_dt = 0.0;
+                        g.camera.position().copy(&eye);
+                        g.camera.rotation().x = c[4];
+                        g.camera.rotation().y = c[3];
+                        g.camera.rotation().z = 0.0;
+                        // (no level card nor toast over it)
+                        g.level_card = None;
+                        g.msg_t = 0.0;
+                        g.ui.msg.set_opacity(0.0);
+                        g.ui.msg.set_text("");
+                        g.sim_frozen = true;
+                        let cb = draw(&mut g, &mut r, t, w, h);
+                        cb.commit();
+                        cb.waitUntilCompleted();
+                        let (tw, th, px) = r.read_texture(t);
+                        let file = format!("{dir}/knock_{seed}_L{l}_{name}{when}.png");
+                        engine::png::write_rgba(&file, tw as u32, th as u32, &px).expect("write png");
+                        g.sim_frozen = false;
+                    }
+                }
+                let at: Vec<String> = cams
+                    .iter()
+                    .map(|(n, i, c)| {
+                        format!("{n} (door {}):{:.4},{:.4},{:.4},{:.5},{:.5}", g.knocks.doors[*i].number, c[0], c[1], c[2], c[3], c[4])
+                    })
+                    .collect();
+                print!(" (knock cameras: \"{}\")", at.join(";"));
             }
             if let Some(what) = o.vending_demo.as_deref() {
                 g.vending_demo(what);

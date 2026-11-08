@@ -135,6 +135,8 @@ pub struct Game {
     pub figure_perches: Vec<Vec3>,
     /// Where the Well's lift cage hangs, if it has one
     pub lift_at: Option<Vec3>,
+    /// The Well's sealed doors and what answers a knock at them (`world::knock`)
+    pub knocks: crate::world::knock::Knocks,
     /// The archgen layout of the current level
     pub layout: Option<crate::level::archgen::Layout>,
     /// Archgen solid boxes (collision, sight, rendering)
@@ -723,6 +725,7 @@ impl Game {
             far_figure: None,
             figure_perches: vec![],
             lift_at: None,
+            knocks: Default::default(),
             layout: None,
             solids: None,
             angled: vec![],

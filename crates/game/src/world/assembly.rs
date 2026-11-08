@@ -383,3 +383,15 @@ impl Game {
         let _ = changed;
     }
 }
+
+impl Game {
+    /// A door the cleaners marked was knocked at and knocked back
+    /// (`world::knock`, G5): the siren within `secs` instead of after its
+    /// quiet, as her page brings it; already coming or up, nothing changes
+    pub fn assembly_called_early(&mut self, secs: (f64, f64)) {
+        if self.assembly.stage == Stage::Quiet {
+            self.assembly_wake(secs);
+            self.director_note("wake:knock");
+        }
+    }
+}

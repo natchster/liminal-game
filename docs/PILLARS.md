@@ -93,7 +93,8 @@ that the emptiness is watching.*
 - **Goal: rules are learned, not told.**
   - Rule: no tutorials, maps or explanations of creatures or anomalies;
     notes hint, never explain. The one exception is the Building's notices,
-    which say what to do in a self-assembly, as notices do, and never why.
+    which say what to do in a self-assembly and at the doors the cleaners
+    marked, as notices do, and never why.
     (A thing the rooms took carries the fixed printing a real one of its
     kind carries about itself, word for word: a vending machine's warning
     label says why, as real ones do. That is dressing, not the place
@@ -130,8 +131,10 @@ that the emptiness is watching.*
     threat backs off. *Test:* `tests/pacing.rs` phase bands (gate).
   - Rule: the player can choose when the dread starts: taking her page at
     her camp puts out her lamp and ends the quiet within seconds; the first
-    floor waits for it. *Test:* `her_page_wakes_the_place` (gate,
-    `tests/story.rs`).
+    floor waits for it. On the Well, knocking at a door the cleaners marked
+    ends it too. *Test:* `her_page_wakes_the_place` (gate,
+    `tests/story.rs`); `a_red_door_brings_the_siren_within_seconds` (gate,
+    `tests/knock.rs`).
   - Rule: the same scare never repeats soon, and the same cue does not always
     mean the same thing. *Test:* one-shot repetition in `tests/loudness.rs`
     (gate); run-log analysis (planned, roadmap 4.2).

@@ -9,7 +9,7 @@
 //!   inside, the wheel on it, a plate with its number, the lamp in a cage
 //!   over it, a bench.
 //! * The Well: doors sealed from inside along every gallery, numbered, some
-//!   marked red or taped round; the galleries of the storeys above and below
+//!   marked red or taped round (what answers a knock: `world::knock`); the galleries of the storeys above and below
 //!   yours, one over another up and down the face of the block, with their
 //!   parapets and doors; laundry across the well; a lift cage hanging in
 //!   the open void on its cables, its bulb still lit.
@@ -24,6 +24,7 @@ use crate::level::archgen::{build_ground_solids, segment_clear_3d, Ground, DIRS,
 use crate::level::building::{BuildingPlan, Style, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, STOREY, VOID_DEPTH};
 use crate::prelude::*;
 use crate::visuals::textures::{text_tex, TextTexOpts};
+use crate::world::knock::{KnockDoor, Mark};
 
 /// The salt of the stream the dressing draws from
 pub const DRESS_SALT: u64 = 0xB01D_0D2E_55ED_0001;
@@ -38,6 +39,16 @@ const LIT_SHARE: f64 = 0.035;
 /// with them as before)
 const TILES_PER_CHAIN: i32 = 47;
 const TILES_PER_LINE: i32 = 178;
+
+/// The storey painted by a walk at height 0, place by place (the Building
+/// counts its storeys in the thousands, and they count down as you go down)
+pub(crate) fn storey_base(style: Style) -> i32 {
+    match style {
+        Style::Well => 1400,
+        Style::Halls => 820,
+        Style::Works => 260,
+    }
+}
 
 /// Instanced parts gathered while dressing: (geometry, material, matrices)
 #[derive(Default)]
@@ -271,7 +282,10 @@ impl Game {
             // its number, by the door
             let n = 100 + (i as u32 * 37 + (r.next() * 30.0) as u32) % 900;
             let letter = ['A', 'B', 'C', 'D'][(r.next() * 4.0) as usize % 4];
-            let plate = self.plate(&format!("{n}-{letter}"), "#d8d2c0", "#30352f");
+            let name = format!("{n}-{letter}");
+            let plate = self.plate(&name, "#d8d2c0", "#30352f");
+            // (what a resident's note names it by: `world::knock`)
+            self.knocks.cell_plates.push(name);
             let pp = self.face_point(x, z, d, CELL_DOOR / 2.0 + 0.45, 0.012, h + 1.7);
             plate.position().copy(&pp);
             plate.rotation().y = yaw;
@@ -327,7 +341,6 @@ impl Game {
         let taped = parts.part(&unit, &tape);
         let cells: Vec<(i32, i32)> = plan.cells.iter().map(|c| c.tile).collect();
         let exit_wall = (plan.exit.0 + DIRS[plan.exit_side][0], plan.exit.1 + DIRS[plan.exit_side][1]);
-        let mut knockers: Vec<(Vec3, Vec3)> = vec![];
         for z in 0..self.h {
             for x in 0..self.w {
                 let g = self.ground_or_mass(x, z);
@@ -358,7 +371,7 @@ impl Game {
                     let yaw = yaw_to(d ^ 1);
                     let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, h);
                     self.hermetic_door(parts, at, yaw, 0.0, &steel);
-                    match r.next() {
+                    let mark = match r.next() {
                         // the cleaners' mark: painted red across it
                         v if v < 0.12 => {
                             for k in [-1.0, 1.0] {
@@ -370,6 +383,7 @@ impl Game {
                                 };
                                 parts.put(marks, Mat4::compose(&c, &q, &Vec3::new(1.5, 0.09, 0.01)));
                             }
+                            Mark::Red
                         }
                         // taped round, from inside out
                         v if v < 0.22 => {
@@ -381,15 +395,30 @@ impl Game {
                                 let c = self.face_point(mx, mz, d ^ 1, lx, 0.1, h + ly);
                                 parts.put(taped, boxm(c, yaw, Vec3::new(sx, sy, 0.005)));
                             }
+                            Mark::Taped
                         }
-                        _ => {}
-                    }
+                        _ => Mark::Plain,
+                    };
                     let n = 1000 + ((x * 31 + z * 17) as u32 * 7 + (r.next() * 9.0) as u32) % 8000;
                     let plate = self.plate(&format!("{n}"), "#cfc9b6", "#2e332e");
                     plate.position().copy(&self.face_point(mx, mz, d ^ 1, CELL_DOOR / 2.0 + 0.4, 0.012, h + 1.65));
                     plate.rotation().y = yaw;
                     self.world.add(&plate);
-                    knockers.push((self.face_point(mx, mz, d ^ 1, 0.0, 0.9, h + EYE), self.face_point(mx, mz, d ^ 1, 0.0, 0.0, h + 1.2)));
+                    // a knock at it (`world::knock`)
+                    let normal = (DIRS[d ^ 1][0] as f64, DIRS[d ^ 1][1] as f64);
+                    self.knocks.doors.push(KnockDoor {
+                        tile: (x, z),
+                        side: d,
+                        number: n,
+                        mark,
+                        foot: self.face_point(mx, mz, d ^ 1, 0.0, 0.0, h),
+                        normal,
+                        right: (-normal.1, normal.0),
+                        gift: None,
+                        words: String::new(),
+                        lie: (0.0, 0.0, 0.0),
+                        answered: false,
+                    });
                 }
                 // the galleries above and below, with their parapets and doors
                 for k in (-STACK..=STACK).filter(|&k| k != 0) {
@@ -419,22 +448,10 @@ impl Game {
                 }
             }
         }
-        // a knock on a sealed door; now and then something knocks back
-        for (at, door) in knockers {
-            self.interact(
-                at,
-                1.3,
-                "[E] KNOCK",
-                |_g| true,
-                move |g| {
-                    if let Some(ss) = g.soundscape() {
-                        ss.knock(3, door.x, door.y, door.z, 0.5);
-                        if native_rnd() < 0.08 {
-                            ss.knock(1, door.x, door.y, door.z, 0.28);
-                        }
-                    }
-                },
-            );
+        // a knock on a sealed door: who answers, and how, is `world::knock`'s
+        for i in 0..self.knocks.doors.len() {
+            let at = self.knocks.doors[i].stand();
+            self.interact(at, 1.3, "[E] KNOCK", |_g| true, move |g| g.knock_at(i));
         }
     }
 
@@ -649,11 +666,7 @@ impl Game {
     /// platforms where ways meet (the Building counts its storeys in the
     /// thousands, and they count down as you go down)
     fn dress_numbers(&mut self, plan: &BuildingPlan, r: &mut SplitMix64) {
-        let base = match plan.style {
-            Style::Well => 1400,
-            Style::Halls => 820,
-            Style::Works => 260,
-        };
+        let base = storey_base(plan.style);
         for nd in &plan.nodes {
             if nd.degree < 3 && r.next() > 0.3 {
                 continue;

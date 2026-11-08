@@ -105,6 +105,9 @@ name the siren's meaning, the cells, the fog or the figure first):
   comes; ask this one only after they have said what they did.)
 - What was it like to wait in the little room while something knocked?
   Too long, too short? Did you open the door?
+- Did you knock at any of the doors on the first floor? (Only if they say
+  yes: which, why those, what happened, and what did you make of the red
+  crosses and the tape?)
 - Did you see anyone up there? (Only if they say yes: where, what did it
   do, what did you do?)
 - When you came through the small warm door into the yellow rooms, what

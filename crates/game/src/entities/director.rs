@@ -196,6 +196,7 @@ impl Game {
             self.update_assembly(dt);
             self.update_cell_doors(dt);
             self.update_far_figure(dt);
+            self.update_knocks(dt);
             let hush = if self.assembly.up() { 0.55 } else { 0.0 };
             self.director.hush += (hush - self.director.hush) * (dt * 0.4).min(1.0);
             self.amb_hush = self.director.hush;

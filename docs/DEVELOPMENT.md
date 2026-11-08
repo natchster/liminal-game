@@ -424,6 +424,12 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   without it (`_none`: the same frame, so the two differ only where it
   stands); it prints the cameras, and with `--shots-at` holds it toward
   each camera given, so two builds can be shot alike for a blind review.
+* `--knock-demo` (with `--dump-level … --screenshot x` on level 1) takes
+  the first door of the Well that answers a knock with a bottle, with a
+  battery and with a note (`world::knock`) and shoots each from a camera
+  stood back from it looking down at its foot: without the thing
+  (`knock_S_L1_water_none.png`), coming out through its hatch (`_out`) and
+  lying there; it prints the cameras.
 * `--showcase smiler[:dist]` (or `hound`, `watcher`, `corner`, `reader`,
   and on their levels `staff`, `shadow`) keeps a creature standing in front
   of the camera for the shot; `kind:dist:walk` places it once and lets it

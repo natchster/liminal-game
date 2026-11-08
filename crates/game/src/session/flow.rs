@@ -112,6 +112,7 @@ impl Game {
         self.fit_lore_notes();
         self.fit_story();
         self.fit_secrets();
+        self.fit_knocks();
         // the one in the corner, after her camp (never near it): by the place
         crate::entities::corner::place(self);
         // the Reader, where paper lies
@@ -628,6 +629,7 @@ impl Game {
         self.fit_lore_notes();
         self.fit_story();
         self.fit_secrets();
+        self.fit_knocks();
         self.state = "playing".into();
         self.hide_overlay();
         self.show_level_card("");
