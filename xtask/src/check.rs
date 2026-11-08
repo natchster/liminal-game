@@ -12,7 +12,8 @@
 //!
 //! `--fast` leaves out the slow suites that play whole levels in real time
 //! (`FAST_SKIP`); they are filtered by name, so the report counts them as
-//! skipped rather than passed.
+//! skipped rather than passed. The tests run each in a process of its own on
+//! a pool as wide as the machine (`testpool`).
 use crate::{cargo, flag, opt, root};
 use std::path::Path;
 use std::process::Command;
@@ -69,15 +70,8 @@ pub fn check(args: &[String]) -> Result<(), String> {
     let mut clippy = cargo();
     clippy.args(["clippy", "--workspace", "--all-targets", "--release", "--", "-D", "warnings"]);
     steps.push(Step { name: "clippy", cmd: clippy, errors: rustc_errors });
-    let mut test = cargo();
-    test.args(["test", "--workspace", "--release", "--no-fail-fast"]);
-    if fast {
-        test.arg("--");
-        for t in FAST_SKIP {
-            test.args(["--skip", t]);
-        }
-    }
-    steps.push(Step { name: "test", cmd: test, errors: test_errors });
+    // the tests run on a pool of their own (`testpool`), not through this command
+    steps.push(Step { name: "test", cmd: cargo(), errors: test_errors });
     let mut shots = cargo();
     shots.args(["xtask", "shots"]);
     steps.push(Step { name: "shots", cmd: shots, errors: shot_errors });
@@ -101,18 +95,25 @@ pub fn check(args: &[String]) -> Result<(), String> {
         // prints a test binary's name on stderr and its results on stdout)
         let log = logs.join(format!("{}.log", s.name));
         let file = std::fs::File::create(&log).map_err(|e| format!("{}: {e}", log.display()))?;
-        let file2 = file.try_clone().map_err(|e| e.to_string())?;
-        let status = s.cmd.stdout(file).stderr(file2).status().map_err(|e| format!("{}: {e}", s.name))?;
+        let (ok, tail, status) = if s.name == "test" {
+            let mut file = file;
+            let o = crate::testpool::run(if fast { FAST_SKIP } else { &[] }, &mut file)?;
+            (o.built && o.failed == 0, test_summary(&o), format!("{} failed", o.failed))
+        } else {
+            let file2 = file.try_clone().map_err(|e| e.to_string())?;
+            let status = s.cmd.stdout(file).stderr(file2).status().map_err(|e| format!("{}: {e}", s.name))?;
+            (status.success(), String::new(), format!("exited with {status}"))
+        };
         let text = String::from_utf8_lossy(&std::fs::read(&log).unwrap_or_default()).into_owned();
         let secs = t0.elapsed().as_secs_f64();
-        if status.success() {
-            println!("ok    {:<8} {secs:6.1} s{}", s.name, summary(s.name, &text));
+        if ok {
+            println!("ok    {:<8} {secs:6.1} s{tail}", s.name);
             continue;
         }
         println!("FAIL  {:<8} {secs:6.1} s  log: {}", s.name, rel(&log));
         let mut errs = (s.errors)(&text);
         if errs.is_empty() {
-            errs.push(format!("exited with {status} (no recognisable error lines; read the log)"));
+            errs.push(format!("{status} (no recognisable error lines; read the log)"));
         }
         let n = errs.len();
         for e in errs.into_iter().take(MAX_ERRORS) {
@@ -136,22 +137,10 @@ fn rel(p: &Path) -> String {
     p.strip_prefix(root()).unwrap_or(p).display().to_string()
 }
 
-/// A short tail for a passing step (the test count).
-fn summary(step: &str, text: &str) -> String {
-    if step != "test" {
-        return String::new();
-    }
-    let (mut passed, mut ignored, mut filtered) = (0u32, 0u32, 0u32);
-    for l in text.lines().filter(|l| l.starts_with("test result:")) {
-        let num = |key: &str| -> u32 {
-            l.split(';').find(|p| p.contains(key)).and_then(|p| p.split_whitespace().filter_map(|t| t.parse().ok()).last()).unwrap_or(0)
-        };
-        passed += num(" passed");
-        ignored += num(" ignored");
-        filtered += num(" filtered out");
-    }
-    let skipped = if filtered > 0 { format!(", {filtered} skipped (fast)") } else { String::new() };
-    format!("  {passed} passed, {ignored} ignored{skipped}")
+/// A short tail for the test step: the tests run, and on how many at once
+fn test_summary(o: &crate::testpool::Outcome) -> String {
+    let skipped = if o.skipped > 0 { format!(", {} skipped (fast)", o.skipped) } else { String::new() };
+    format!("  {} passed, {} ignored{skipped}, {} at once", o.passed, o.ignored, o.workers)
 }
 
 /// `FAIL  …` lines of `cargo xtask range` and `cargo xtask bench`.
@@ -255,8 +244,8 @@ mod tests {
 
     #[test]
     fn the_summary_counts_passed_ignored_and_skipped() {
-        let log = "test result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 2 filtered out; finished in 0.1s\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.2s\n";
-        assert_eq!(summary("test", log), "  7 passed, 1 ignored, 2 skipped (fast)");
+        let o = crate::testpool::Outcome { built: true, passed: 7, failed: 0, ignored: 1, skipped: 2, workers: 14 };
+        assert_eq!(test_summary(&o), "  7 passed, 1 ignored, 2 skipped (fast), 14 at once");
     }
 
     #[test]

@@ -134,7 +134,15 @@ Levels must be a pure function of `(run_seed, level)`:
   step's output written to `target/xtask/check/<step>.log` and summarised as
   one `ERROR <step> …` line per problem. `--fast` skips the slow suites that
   play levels for minutes (`pacing`, `listen`, `playthrough`, `loudness`,
-  the material lint); `--only fmt,clippy` runs a subset.
+  the material lint); `--only fmt,clippy` runs a subset. The tests run on a
+  pool (`xtask/src/testpool.rs`): every test a process of its own, as many
+  at once as the machine has cores, the longest first by the last run's
+  times (`target/xtask/check/test-times.tsv`), so the suite takes about its
+  longest test, not the sum of its binaries (the fast suite went from about
+  17 minutes to about 3). A test that plays many floors runs them side by
+  side on threads of its own (`beatable`'s runs, `usable`'s floors,
+  `glass`'s floors and trials), each floor and trial seeding its per-frame
+  stream so it plays the same on any thread.
 * `cargo test --workspace --release` runs every test directly.
 * **Golden frames.** `cargo xtask shots` renders 48 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the

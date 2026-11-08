@@ -29,6 +29,7 @@ mod hook;
 mod look;
 mod range;
 mod shots;
+mod testpool;
 
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};

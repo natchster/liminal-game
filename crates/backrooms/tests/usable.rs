@@ -76,46 +76,58 @@ fn use_it(g: &mut Game, i: usize) {
 
 const SEEDS: [u32; 4] = [4242, 77, 202, 7];
 
+/// `f` on every floor of `levels` of every seed, the floors side by side
+/// (each on a thread of its own, built from nothing there: a floor does not
+/// depend on another); what each gave, in order of seed, then level. A
+/// failure in one is raised here, as the test's.
+fn each_floor<T: Send>(levels: &[i32], f: impl Fn(u32, i32) -> T + Sync) -> Vec<T> {
+    let f = &f;
+    std::thread::scope(|sc| {
+        let handles: Vec<_> = SEEDS
+            .iter()
+            .flat_map(|&seed| levels.iter().map(move |&l| (seed, l)))
+            .map(|(seed, l)| std::thread::Builder::new().stack_size(64 << 20).spawn_scoped(sc, move || f(seed, l)).unwrap())
+            .collect();
+        handles.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+    })
+}
+
 /// Every box stack, bin and book stack of a floor of the rooms has its verb,
 /// and the floor's TV its switch; none on the Building, the Lobby or a
 /// floor with rules of its own
 #[test]
 fn every_usable_prop_has_its_verb() {
-    let mut seen = 0;
-    for &seed in &SEEDS {
-        for l in 1..=10 {
-            let g = floor(seed, l);
-            let plain = l > 4 && g.level_scp.is_none();
-            for (kind, prompt) in
-                [("cardboard_stack", "[E] OPEN THE BOX"), ("trash_can", "[E] LOOK INSIDE"), ("book_stack", "[E] TEAR OUT PAGES")]
-            {
-                let want = if plain { kinds(&g, kind) } else { 0 };
-                assert_eq!(
-                    verbs(&g, prompt).len(),
-                    want,
-                    "seed {seed} L{l}: {prompt} on {} of {}",
-                    verbs(&g, prompt).len(),
-                    kinds(&g, kind)
-                );
-                seen += want;
-            }
-            let tv = if plain && g.tv_data.is_some() { 1 } else { 0 };
-            assert_eq!(verbs(&g, "[E] SWITCH IT OFF").len(), tv, "seed {seed} L{l}: the TV's switch");
-            // every dead lift's button; a locker only where a unit is shut
-            let dead = g.world.children().iter().filter(|o| o.user().s.contains_key("dead_lift")).count();
-            assert_eq!(verbs(&g, "[E] PRESS THE BUTTON").len(), if plain { dead } else { 0 }, "seed {seed} L{l}: the dead lifts' buttons");
-            let shut: usize = g
-                .world
-                .children()
-                .iter()
-                .filter(|o| o.user().s.get("kind").is_some_and(|k| k == "locker"))
-                .map(|o| o.user().o.keys().filter(|k| k.starts_with("door")).count())
-                .sum();
-            let lockers = verbs(&g, "[E] OPEN THE LOCKER").len();
-            assert!(lockers <= shut && (plain || lockers == 0), "seed {seed} L{l}: {lockers} lockers to open of {shut} shut");
-            seen += lockers + dead;
+    let levels: Vec<i32> = (1..=10).collect();
+    let seen: usize = each_floor(&levels, |seed, l| {
+        let mut seen = 0;
+        let g = floor(seed, l);
+        let plain = l > 4 && g.level_scp.is_none();
+        for (kind, prompt) in
+            [("cardboard_stack", "[E] OPEN THE BOX"), ("trash_can", "[E] LOOK INSIDE"), ("book_stack", "[E] TEAR OUT PAGES")]
+        {
+            let want = if plain { kinds(&g, kind) } else { 0 };
+            assert_eq!(verbs(&g, prompt).len(), want, "seed {seed} L{l}: {prompt} on {} of {}", verbs(&g, prompt).len(), kinds(&g, kind));
+            seen += want;
         }
-    }
+        let tv = if plain && g.tv_data.is_some() { 1 } else { 0 };
+        assert_eq!(verbs(&g, "[E] SWITCH IT OFF").len(), tv, "seed {seed} L{l}: the TV's switch");
+        // every dead lift's button; a locker only where a unit is shut
+        let dead = g.world.children().iter().filter(|o| o.user().s.contains_key("dead_lift")).count();
+        assert_eq!(verbs(&g, "[E] PRESS THE BUTTON").len(), if plain { dead } else { 0 }, "seed {seed} L{l}: the dead lifts' buttons");
+        let shut: usize = g
+            .world
+            .children()
+            .iter()
+            .filter(|o| o.user().s.get("kind").is_some_and(|k| k == "locker"))
+            .map(|o| o.user().o.keys().filter(|k| k.starts_with("door")).count())
+            .sum();
+        let lockers = verbs(&g, "[E] OPEN THE LOCKER").len();
+        assert!(lockers <= shut && (plain || lockers == 0), "seed {seed} L{l}: {lockers} lockers to open of {shut} shut");
+        seen += lockers + dead;
+        seen
+    })
+    .into_iter()
+    .sum();
     assert!(seen > 30, "only {seen} verbs");
 }
 
@@ -123,46 +135,44 @@ fn every_usable_prop_has_its_verb() {
 /// the same floor built again, whenever it is used
 #[test]
 fn what_they_give_is_fixed_and_given_once() {
-    for &seed in &SEEDS {
-        for l in [5, 6, 7, 9] {
-            let mut gains = vec![];
-            for _ in 0..2 {
-                let mut g = floor(seed, l);
-                let mut got = vec![];
-                for prompt in ["[E] OPEN THE BOX", "[E] LOOK INSIDE", "[E] TEAR OUT PAGES", "[E] OPEN THE LOCKER"] {
-                    for i in verbs(&g, prompt) {
-                        let before = g.player.papers + g.player.bottles;
-                        assert!((g.interactables[i].enabled)(&g), "seed {seed} L{l}: {prompt} not offered");
-                        use_it(&mut g, i);
-                        got.push(g.player.papers + g.player.bottles - before);
-                        assert!(!(g.interactables[i].enabled)(&g), "seed {seed} L{l}: {prompt} offered again");
-                    }
-                }
-                gains.push(got);
-            }
-            assert_eq!(gains[0], gains[1], "seed {seed} L{l}: what the props give changed between two builds");
-            // a book always gives pages; a box or a bin now and then
-            let g = floor(seed, l);
-            let books = verbs(&g, "[E] TEAR OUT PAGES").len();
-            let least = if l >= 9 { 1 } else { 3 };
-            assert!(gains[0].iter().filter(|&&n| n >= least).count() >= books, "seed {seed} L{l}: a book without pages");
-            // a locker opened swings its door: its leaf turned once the animators run
+    each_floor(&[5, 6, 7, 9], |seed, l| {
+        let mut gains = vec![];
+        for _ in 0..2 {
             let mut g = floor(seed, l);
-            if let Some(&i) = verbs(&g, "[E] OPEN THE LOCKER").first() {
-                use_it(&mut g, i);
-                for _ in 0..60 {
-                    g.run_animators(1.0 / 60.0, 0.0);
+            let mut got = vec![];
+            for prompt in ["[E] OPEN THE BOX", "[E] LOOK INSIDE", "[E] TEAR OUT PAGES", "[E] OPEN THE LOCKER"] {
+                for i in verbs(&g, prompt) {
+                    let before = g.player.papers + g.player.bottles;
+                    assert!((g.interactables[i].enabled)(&g), "seed {seed} L{l}: {prompt} not offered");
+                    use_it(&mut g, i);
+                    got.push(g.player.papers + g.player.bottles - before);
+                    assert!(!(g.interactables[i].enabled)(&g), "seed {seed} L{l}: {prompt} offered again");
                 }
-                let turned = g
-                    .world
-                    .children()
-                    .iter()
-                    .filter(|o| o.user().s.get("kind").is_some_and(|k| k == "locker"))
-                    .any(|o| o.children().iter().any(|c| c.rot().y < -1.5));
-                assert!(turned, "seed {seed} L{l}: the locker's door did not swing open");
             }
+            gains.push(got);
         }
-    }
+        assert_eq!(gains[0], gains[1], "seed {seed} L{l}: what the props give changed between two builds");
+        // a book always gives pages; a box or a bin now and then
+        let g = floor(seed, l);
+        let books = verbs(&g, "[E] TEAR OUT PAGES").len();
+        let least = if l >= 9 { 1 } else { 3 };
+        assert!(gains[0].iter().filter(|&&n| n >= least).count() >= books, "seed {seed} L{l}: a book without pages");
+        // a locker opened swings its door: its leaf turned once the animators run
+        let mut g = floor(seed, l);
+        if let Some(&i) = verbs(&g, "[E] OPEN THE LOCKER").first() {
+            use_it(&mut g, i);
+            for _ in 0..60 {
+                g.run_animators(1.0 / 60.0, 0.0);
+            }
+            let turned = g
+                .world
+                .children()
+                .iter()
+                .filter(|o| o.user().s.get("kind").is_some_and(|k| k == "locker"))
+                .any(|o| o.children().iter().any(|c| c.rot().y < -1.5));
+            assert!(turned, "seed {seed} L{l}: the locker's door did not swing open");
+        }
+    });
 }
 
 /// The TV switched off goes dark (its light out, its static stopped) and
@@ -217,49 +227,49 @@ fn hound_near(g: &mut Game, i: usize, d: f64, listening: bool) -> usize {
 #[test]
 fn a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not() {
     use game::entities::brain::Mode;
-    let (mut loud, mut quiet) = (false, false);
-    for &seed in &SEEDS {
-        for l in [5, 6, 7] {
-            let g0 = floor(seed, l);
-            if let Some(&i) = verbs(&g0, "[E] OPEN THE BOX").first() {
-                let mut g = floor(seed, l);
-                let ei = hound_near(&mut g, i, 2.0, false);
-                use_it(&mut g, i);
-                g.update_creature(ei, 1.0 / 60.0);
-                assert_eq!(g.creature(ei).unwrap().brain.mode, Mode::Alert, "seed {seed} L{l}: the tape did not stop a hound 2 m off");
-                loud = true;
-            }
-            if let Some(&i) = verbs(&g0, "[E] TEAR OUT PAGES").first() {
-                let mut g = floor(seed, l);
-                let ei = hound_near(&mut g, i, 2.0, false);
-                use_it(&mut g, i);
-                g.update_creature(ei, 1.0 / 60.0);
-                assert_ne!(g.creature(ei).unwrap().brain.mode, Mode::Alert, "seed {seed} L{l}: a page torn out stopped a roaming hound");
-                // one crouched to listen goes to look near it once all is still
-                let mut g = floor(seed, l);
-                let ei = hound_near(&mut g, i, 2.0, true);
-                let at = g.interactables[i].pos;
-                use_it(&mut g, i);
-                let mut went = false;
-                for _ in 0..360 {
-                    g.perf_t += 1.0 / 60.0;
-                    g.update_creature(ei, 1.0 / 60.0);
-                    let c = g.creature(ei).unwrap();
-                    if c.brain.mode == Mode::Search {
-                        let (x, z, _) = c.brain.mem.heard.expect("where it heard");
-                        assert!(
-                            (x - at.x).hypot(z - at.z) < 4.5,
-                            "seed {seed} L{l}: it went to look {:.1} m from the page",
-                            (x - at.x).hypot(z - at.z)
-                        );
-                        went = true;
-                        break;
-                    }
-                }
-                assert!(went, "seed {seed} L{l}: a listening hound did not go to look where the page was torn");
-                quiet = true;
-            }
+    let tried = each_floor(&[5, 6, 7], |seed, l| {
+        let (mut loud, mut quiet) = (false, false);
+        let g0 = floor(seed, l);
+        if let Some(&i) = verbs(&g0, "[E] OPEN THE BOX").first() {
+            let mut g = floor(seed, l);
+            let ei = hound_near(&mut g, i, 2.0, false);
+            use_it(&mut g, i);
+            g.update_creature(ei, 1.0 / 60.0);
+            assert_eq!(g.creature(ei).unwrap().brain.mode, Mode::Alert, "seed {seed} L{l}: the tape did not stop a hound 2 m off");
+            loud = true;
         }
-    }
+        if let Some(&i) = verbs(&g0, "[E] TEAR OUT PAGES").first() {
+            let mut g = floor(seed, l);
+            let ei = hound_near(&mut g, i, 2.0, false);
+            use_it(&mut g, i);
+            g.update_creature(ei, 1.0 / 60.0);
+            assert_ne!(g.creature(ei).unwrap().brain.mode, Mode::Alert, "seed {seed} L{l}: a page torn out stopped a roaming hound");
+            // one crouched to listen goes to look near it once all is still
+            let mut g = floor(seed, l);
+            let ei = hound_near(&mut g, i, 2.0, true);
+            let at = g.interactables[i].pos;
+            use_it(&mut g, i);
+            let mut went = false;
+            for _ in 0..360 {
+                g.perf_t += 1.0 / 60.0;
+                g.update_creature(ei, 1.0 / 60.0);
+                let c = g.creature(ei).unwrap();
+                if c.brain.mode == Mode::Search {
+                    let (x, z, _) = c.brain.mem.heard.expect("where it heard");
+                    assert!(
+                        (x - at.x).hypot(z - at.z) < 4.5,
+                        "seed {seed} L{l}: it went to look {:.1} m from the page",
+                        (x - at.x).hypot(z - at.z)
+                    );
+                    went = true;
+                    break;
+                }
+            }
+            assert!(went, "seed {seed} L{l}: a listening hound did not go to look where the page was torn");
+            quiet = true;
+        }
+        (loud, quiet)
+    });
+    let (loud, quiet) = (tried.iter().any(|t| t.0), tried.iter().any(|t| t.1));
     assert!(loud && quiet, "no box or no book on the floors tried");
 }

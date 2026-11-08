@@ -398,6 +398,9 @@ fn trial(g: &mut Game, seed: u32, level: i32, way: Way, learned: bool) -> (bool,
         g.creature_run.learned = vec!["glass".into()];
         g.creature_run.shown = vec!["glass".into()];
     }
+    // the per-frame stream from the floor and the way, not the clock: a
+    // trial plays the same every time
+    game::base::rng::seed_native((u64::from(seed) << 8) | level as u64 | ((way as u64) << 40) | (u64::from(learned) << 48));
     g.run_seed = seed;
     g.init_level(level);
     let ei = g.behind_glass.as_ref().unwrap().ei;
@@ -452,37 +455,75 @@ fn trial(g: &mut Game, seed: u32, level: i32, way: Way, learned: bool) -> (bool,
 
 /// The floors (seed, level) that have it, its window's first light under a
 /// blind if `blinded` (and every light of its row, if `all`)
-fn floors_with_it(g: &mut Game, n: usize, blinded: bool) -> Vec<(u32, i32)> {
-    floors_where(g, n, blinded, false)
+/// `f` on each of `items`, side by side: each on a thread of its own with a
+/// game of its own (so each plays as it would alone, whatever ran before it),
+/// sixteen at a time; what each gave, in order. A failure in one is raised
+/// here, as the test's.
+fn side_by_side<T: Sync, R: Send>(items: &[T], f: impl Fn(&mut Game, &T) -> R + Sync) -> Vec<R> {
+    let f = &f;
+    let mut out = Vec::with_capacity(items.len());
+    for chunk in items.chunks(16) {
+        std::thread::scope(|sc| {
+            let handles: Vec<_> = chunk
+                .iter()
+                .map(|it| {
+                    std::thread::Builder::new()
+                        .stack_size(64 << 20)
+                        .spawn_scoped(sc, move || {
+                            let mut g = common::new_game();
+                            f(&mut g, it)
+                        })
+                        .unwrap()
+                })
+                .collect();
+            out.extend(handles.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))));
+        });
+    }
+    out
 }
 
-fn floors_where(g: &mut Game, n: usize, blinded: bool, all: bool) -> Vec<(u32, i32)> {
+fn floors_with_it(n: usize, blinded: bool) -> Vec<(u32, i32)> {
+    floors_where(n, blinded, false)
+}
+
+/// The floors (of the first runs, in order) that have it, until `n`: a run's
+/// eight levels at a time, sixteen runs side by side, and the floors kept
+/// exactly as the runs one after another would keep them
+fn floors_where(n: usize, blinded: bool, all: bool) -> Vec<(u32, i32)> {
+    let seeds: Vec<u32> = (0..60u32).map(|k| k.wrapping_mul(2654435761) ^ 0x51_D0).collect();
     let mut floors = vec![];
-    for k in 0..60u32 {
-        g.run_seed = k.wrapping_mul(2654435761) ^ 0x51_D0;
-        for level in 5..=12 {
-            g.init_level(level);
-            if let Some(b) = g.behind_glass.clone() {
-                let ok = if all {
-                    b.row.iter().all(|&k| blind_over(g, b.win, k).is_some())
-                } else {
-                    blind_over(g, b.win, b.lights[0]).is_some()
-                };
-                if !blinded || ok {
-                    floors.push((g.run_seed, level));
+    for chunk in seeds.chunks(16) {
+        let found = side_by_side(chunk, |g, &seed| {
+            let mut found = vec![];
+            g.run_seed = seed;
+            for level in 5..=12 {
+                g.init_level(level);
+                if let Some(b) = g.behind_glass.clone() {
+                    let ok = if all {
+                        b.row.iter().all(|&k| blind_over(g, b.win, k).is_some())
+                    } else {
+                        blind_over(g, b.win, b.lights[0]).is_some()
+                    };
+                    if !blinded || ok {
+                        found.push((seed, level));
+                    }
                 }
             }
-        }
-        if floors.len() >= n {
-            break;
+            found
+        });
+        for f in found {
+            floors.extend(f);
+            if floors.len() >= n {
+                return floors;
+            }
         }
     }
     floors
 }
 
-/// Its trials over `floors`, played `way`
-fn report_way(g: &mut Game, floors: &[(u32, i32)], way: Way, learned: bool) -> Outcome {
-    let r: Vec<(bool, bool, bool)> = floors.iter().map(|&(s, l)| trial(g, s, l, way, learned)).collect();
+/// Its trials over `floors`, played `way`, side by side
+fn report_way(floors: &[(u32, i32)], way: Way, learned: bool) -> Outcome {
+    let r: Vec<(bool, bool, bool)> = side_by_side(floors, |g, &(s, l)| trial(g, s, l, way, learned));
     let n = r.len() as f64;
     Outcome {
         trials: r.len(),
@@ -495,9 +536,8 @@ fn report_way(g: &mut Game, floors: &[(u32, i32)], way: Way, learned: bool) -> O
 /// Its counter's trials over the floors that have it (both ways)
 fn report(kind: &str) -> (Outcome, Outcome) {
     assert_eq!(kind, "glass");
-    let mut g = common::new_game();
-    let floors = floors_with_it(&mut g, 20, false);
-    (report_way(&mut g, &floors, Way::Eyes, false), report_way(&mut g, &floors, Way::Stare, false))
+    let floors = floors_with_it(20, false);
+    (report_way(&floors, Way::Eyes, false), report_way(&floors, Way::Stare, false))
 }
 
 #[test]
@@ -512,9 +552,8 @@ fn its_counter_holds_on_real_floors() {
 
 #[test]
 fn a_blind_let_down_in_time_keeps_it_out() {
-    let mut g = common::new_game();
-    let floors = floors_with_it(&mut g, 12, true);
-    let o = report_way(&mut g, &floors, Way::Blind, false);
+    let floors = floors_with_it(12, true);
+    let o = report_way(&floors, Way::Blind, false);
     println!("the one behind the glass, its blind let down at the glass: {o:?}");
     assert!(o.trials >= 8, "only {} floors with a blind over it", o.trials);
     assert!(o.came_in <= 0.05, "it came through a covered window on {:.0}% of floors", o.came_in * 100.0);
@@ -523,10 +562,9 @@ fn a_blind_let_down_in_time_keeps_it_out() {
 
 #[test]
 fn what_it_learns_leaves_its_counter_working() {
-    let mut g = common::new_game();
-    let floors = floors_with_it(&mut g, 12, false);
-    let with = report_way(&mut g, &floors, Way::Eyes, true);
-    let without = report_way(&mut g, &floors, Way::Stare, true);
+    let floors = floors_with_it(12, false);
+    let with = report_way(&floors, Way::Eyes, true);
+    let without = report_way(&floors, Way::Stare, true);
     println!("the one behind the glass, learned: with its counter {with:?}; without {without:?}");
     assert!(with.untouched >= 0.95, "learned, with its counter only {:.0}% went untouched", with.untouched * 100.0);
     assert!(
@@ -542,7 +580,7 @@ fn what_it_learns_leaves_its_counter_working() {
 /// it, the blind)
 fn level_with_one_blinded() -> (Game, usize, usize) {
     let mut g = common::new_game();
-    let (seed, level) = floors_where(&mut g, 1, true, true)[0];
+    let (seed, level) = floors_where(1, true, true)[0];
     g.run_seed = seed;
     g.init_level(level);
     g.state = "playing".into();

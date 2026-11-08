@@ -478,11 +478,11 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
     Some(out)
 }
 
-/// One level, traced, after everything the sweep's thread plays before it
-/// (the runs of the seeds before, then this run's levels before), so it
-/// plays as it did there: what is made once a thread (the creatures' cloth,
-/// any canvas texture) draws on the per-frame stream the first time only, so
-/// a level's frames depend on what that thread played before.
+/// One level, traced, after this run's levels before it, so it plays as it
+/// did in the sweep, where each run plays on a thread of its own: what is
+/// made once a thread (the creatures' cloth, any canvas texture) draws on the
+/// per-frame stream the first time only, so a level's frames depend on what
+/// that thread played before.
 ///
 ///   BEATABLE_TRACE=seed:level cargo test --release -p backrooms --test beatable one_level -- --ignored --nocapture
 #[test]
@@ -490,12 +490,6 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
 fn one_level() {
     let v = std::env::var("BEATABLE_TRACE").expect("BEATABLE_TRACE=seed:level");
     let (seed, level): (u32, i32) = v.split_once(':').map(|(a, b)| (a.parse().unwrap(), b.parse().unwrap())).unwrap();
-    for &before in SEEDS.iter().take_while(|&&s| s != seed) {
-        let mut memory = RunMemory::default();
-        for l in LEVELS {
-            play(Bot::RuleFollower, before, l, &mut memory);
-        }
-    }
     let mut memory = RunMemory::default();
     for l in *LEVELS.start()..level {
         play(Bot::RuleFollower, seed, l, &mut memory);
@@ -504,9 +498,30 @@ fn one_level() {
     println!("the run's memory: {memory:?}");
 }
 
-/// Plays `bot` on every level of every run; its share finished, and the
-/// hard rules any death of it broke.
+/// One run of `bot`: every level of `seed` in order, the run's memory carried
+/// from each to the next; each level's outcome, and what the run learned
+fn run(bot: Bot, seed: u32) -> (Vec<(i32, Outcome)>, String) {
+    let mut memory = RunMemory::default();
+    let mut out = vec![];
+    for level in LEVELS {
+        if let Some(o) = play(bot, seed, level, &mut memory) {
+            out.push((level, o));
+        }
+    }
+    (out, format!("{seed}: {:?} (habits {:?})", memory.learned, memory.habits))
+}
+
+/// Plays `bot` on every level of every run, the runs side by side (each on a
+/// thread of its own, so a run plays as it would alone); its share finished,
+/// and the hard rules any death of it broke.
 fn sweep(bot: Bot) -> (f64, Vec<String>) {
+    let runs: Vec<(u32, (Vec<(i32, Outcome)>, String))> = std::thread::scope(|sc| {
+        let handles: Vec<_> = SEEDS
+            .iter()
+            .map(|&seed| std::thread::Builder::new().stack_size(64 << 20).spawn_scoped(sc, move || (seed, run(bot, seed))).unwrap())
+            .collect();
+        handles.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+    });
     let mut fails = vec![];
     let (mut levels, mut finished, mut deaths, mut dark_deaths, mut dark_spent) = (0, 0, 0, 0, 0.0);
     let (mut dark_counter, mut dark_battery) = (0.0, 0.0);
@@ -514,10 +529,8 @@ fn sweep(bot: Bot) -> (f64, Vec<String>) {
     let mut died = vec![];
     let mut unfinished = vec![];
     let mut learned = vec![];
-    for &seed in SEEDS {
-        let mut memory = RunMemory::default();
-        for level in LEVELS {
-            let Some(o) = play(bot, seed, level, &mut memory) else { continue };
+    for (seed, (outcomes, run_learned)) in runs {
+        for (level, o) in outcomes {
             levels += 1;
             if o.finished {
                 finished += 1;
@@ -544,7 +557,7 @@ fn sweep(bot: Bot) -> (f64, Vec<String>) {
                 fails.push(format!("{bot:?} {seed} L{level}: {f}"));
             }
         }
-        learned.push(format!("{seed}: {:?} (habits {:?})", memory.learned, memory.habits));
+        learned.push(run_learned);
     }
     let share = finished as f64 / levels.max(1) as f64;
     println!(
