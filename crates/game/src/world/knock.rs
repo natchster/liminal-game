@@ -428,7 +428,7 @@ impl Game {
             let (frame, hinge) = self.knock_hatch();
             frame.position().copy(&door.point(0.006, 0.0, 0.0));
             frame.rotation().y = door.yaw();
-            frame.set_visible(t >= 0.0 && t < 1.2);
+            frame.set_visible((0.0..1.2).contains(&t));
             self.world.add(&frame);
             (frame, hinge)
         });

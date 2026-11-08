@@ -154,9 +154,8 @@ lit where they start, her paper (`docs/MEGASTRUCTURE.md`).
   round a light well with no top and no bottom, the galleries of every
   storey above and below yours stacked up and down the face of the block,
   a window in every panel, a few lit, and a sealed door every few metres,
-  numbered in the thousands, some marked red, some taped round. Knock if
-  you like; once in a long while, something knocks back. Washing hangs on
-  lines across the well.
+  numbered in the thousands, some marked red, some taped round (*Knocking*,
+  below). Washing hangs on lines across the well.
 - **The Stair Halls** (level 2). A hall of stone with no far wall: piers
   standing up out of the void, flights of stairs at every height, bridges
   between them, stone balustrades. Chains hang out of the dark, and some
@@ -184,6 +183,28 @@ What every floor of the Building has:
   floor, counting down as you go down), **loudspeakers** on the walls, and
   the residents' notices.
 - Its own air: none of the rooms' weathers reach up here.
+
+**Knocking.** *The sealed door and the knock at it are the Samosbor's; see
+Attribution.* Knock at a sealed door on the Well's galleries if you like
+(`world::knock`; the only residents' doors are there, about ninety to a
+floor). Most stay silent. In the quiet, four of a floor's ordinary doors
+(numbered, nothing else on them) answer, once each, and nobody opens:
+someone comes to the door, a hatch at its foot opens and a bottle of almond
+water or a battery is pushed out onto the gallery, or a folded note is slid
+under it, a resident's word of the way from that door, in a hand: the
+nearest cell by its plate, or the way down (under the lit windows), which
+way from the door, how many flights down or up, and the storey there. What
+was taken from a door stays taken for the run. A door the cleaners marked
+red answers wrong: it knocks back in your own rhythm, then is still, and
+the siren sounds within seconds (three to six after it knocks back). A
+door taped round from inside never answers. While the siren sounds or the
+fog is up nobody answers at all; a knock just before the siren is not
+answered either, and that door may answer another time. Nobody says why:
+the residents' notice says not to knock where the cleaners have marked and
+to answer no knock until it is over; the cleaners' log has one of them
+knock at a marked door by mistake, and the knock come back the way he
+knocked, and the siren; the survey of the Well has somebody still answering
+behind one door in a great many, and nobody behind the tape.
 
 **Someone across the void.** *After the figures of SCP-3333; see
 Attribution.* Nothing walks the Building, but now and then, far off across
@@ -521,7 +542,8 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   answer, and never seen. The storeys they poured are high over the first
   floor, above every gallery you can see.
 - Taking her page on a floor of the Building sounds the siren within
-  seconds, as it wakes the place below. The first quiet on the first floor
+  seconds, as it wakes the place below; so does knocking at a door the
+  cleaners marked (*Knocking*). The first quiet on the first floor
   is long, so her camp can be found first.
 
 ## Anomalies
