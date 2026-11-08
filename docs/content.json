@@ -1027,6 +1027,22 @@
     },
     {
       "checks": [
+        "test:backrooms/listen",
+        "test:backrooms/structure"
+      ],
+      "id": "sound/voice",
+      "kind": "sound",
+      "last_checked": "2026-11-09",
+      "last_human_review": null,
+      "name": "voice lines: personas, their lines, the evaluation (docs/VOICES.md)",
+      "notes": "made and judged outside the check (cargo xtask voice build | eval | selftest, which need the Python environments and the models); the check holds the shipped files to the manifest and the index (structure, xtask voice tests, game audio::voice tests) and hears the cry (listen: the_cry_is_your_voice). A person has not listened yet.",
+      "passes": {
+        "test:backrooms/listen": true,
+        "test:backrooms/structure": true
+      }
+    },
+    {
+      "checks": [
         "test:backrooms/story",
         "test:backrooms/materials",
         "test:backrooms/level_sweep"
