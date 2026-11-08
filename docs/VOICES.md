@@ -195,6 +195,38 @@ the two loudest shouts (`help_me`, `help_scream`) and the most desperate
 line (`i_cant`, read too calmly) have none. That is where the bake-off
 (V5) starts.
 
+## The bake-off (V5)
+
+The first persona's ten lines, four takes each, from each of the four
+models, through the evaluation (`cargo xtask voice build|eval --model M`):
+
+| Model | Lines with a passing take | Takes passing | Mean voice similarity | Checks failed |
+|---|---|---|---|---|
+| **Chatterbox** | **10/10** | **32/40** | 0.59 | emotion 6, tone 2, words 1 |
+| VoxCPM2 | 8/10 | 17/40 | 0.44 | emotion 14, tone 7, voice 6, pitch 5, words 3 |
+| Ming-3.0 | 7/10 | 20/40 | 0.56 | emotion 14, tone 9, words 4, pitch 3, voice 3 |
+| Qwen3-TTS (voice designed each line) | 2/10 | 3/40 | 0.19 | voice 28, tone 19, emotion 13 |
+
+**Chatterbox makes his lines** (`line_model`). What the bake-off found:
+
+- **A cloning model takes its emotion from the clip it clones.** From his
+  calm reference, Chatterbox's terrified lines reached arousal 0.36–0.46 of
+  the 0.85 asked, at the top of its `exaggeration` dial; VoxCPM2 alone,
+  directed in words, reached 0.91. So his terror has a reference of its own
+  (`[references.terror]`: VoxCPM2 clones his calm voice saying a few lines
+  of terror; `cargo xtask voice reference --persona you --emotion terror`),
+  and Chatterbox clones the terrified lines from it: 0.81–0.96. Ming and
+  VoxCPM2 clone from it too.
+- **VoxCPM2 now and then says nothing** (two silent takes of forty) and its
+  shouts go falsetto (590–650 Hz); CLAP hears all its shouts as nearer "a
+  cartoon character" than a frightened man.
+- **Qwen3-TTS cannot keep a voice** when each line's emotion has to be
+  written into its description (similarity 0.19); it designs the persona's
+  reference well and nothing more here.
+- **A one-word scream is said twice** ("Help! Help!"); the line says so.
+- No model passes the desperate line `i_cant` but Chatterbox, nor
+  `help_me` but Chatterbox and Ming: the hardest lines decide.
+
 ## The research
 
 [`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
@@ -227,6 +259,7 @@ emotion control is promised more than it is measured).
 | V1–V2 | done: `voice doctor --smoke` passes (13 models at their revisions, the five synthesis licences kept and allowed, a sentence said by Qwen3-TTS and heard back by both recognisers, word error 0); the persona and line formats and their test; the first persona drafted |
 | V3 | done: the reference (six candidates, seed 4 kept), forty takes from VoxCPM2 made twice the same, the cleaning, `voice write` and the manifest test on voice files |
 | V4 | done: the six checks, `voice eval` (report and gate) and `voice selftest` (seven known answers, all right) |
+| V5 | done: the bake-off (four models, forty takes each); Chatterbox chosen; his terror cloned from a reference of its own |
 
 ## Personas
 
@@ -250,11 +283,11 @@ besides, never a narrator.*
 | Who | An ordinary man of about thirty-six who went through the wall at the back of a storage room at the end of a night shift and came out in the Building. Not brave, not a talker; he has never shouted for help in his life before. The further down he goes, the less he expects an answer, and the more he cries out anyway. |
 | From | Somewhere in the American Midwest: plain speech, no strong accent. |
 | Never said | His name, his work, his face, how long he has been here. The game never says who you are; this profile is for casting the voice, not for the player. |
-| Voice | An untrained baritone, slightly rough and tired, General American; recorded close and dry. A stockroom worker's voice, not an announcer's or an actor's. Designed from that description (Qwen3-TTS VoiceDesign), never cloned from a person. |
+| Voice | An untrained baritone, slightly rough and tired, General American; recorded close and dry. A stockroom worker's voice, not an announcer's or an actor's. Designed from that description (Qwen3-TTS VoiceDesign), never cloned from a person; his lines said by Chatterbox cloning it, his terror cloned from a terrified clip of the same voice (VoxCPM2). |
 | Tone | A real man shouting into a huge empty building, not performing. The breath before the shout; the voice cracks when it is high. Never: a narrator, a radio announcer, a cartoon, a calm man talking, a stage actor declaiming. |
 | Emotions | unease (calling out, half expecting nothing), fear (breathless, shouting), terror (screaming, voice cracking), desperation (pleading, close to tears), exhaustion (hoarse, worn out from shouting). |
-| Lines | Ten cries (`lines/you.toml`): on the Building's floors he calls out ("Hello? Is anybody there?", "Can anyone hear me? Hello!"); in the rooms he shouts for help ("Help! Help me!", "Get me out of here! Please!"); deep down he is worn out ("Please. Somebody. Help.", "Help me. Please. I can't do this."); a scream ("Help!") when he cries again soon after the last. |
-| Targets | Median pitch 85–330 Hz (a scream goes high); −16 LUFS, true peak under −1 dBTP; words wrong at most 15%; speaker similarity to his reference at least 0.45 on calm lines, 0.1 on a scream. |
+| Lines | Ten cries (`lines/you.toml`): on the Building's floors he calls out ("Hello? Is anybody there?", "Can anyone hear me? Hello!"); in the rooms he shouts for help ("Help! Help me!", "Get me out of here! Please!"); deep down he is worn out ("Please. Somebody. Help.", "Help me. Please. I can't do this."); a scream ("Help! Help!") when he cries again soon after the last. |
+| Targets | Median pitch 85–400 Hz (his scream goes to 300–400 Hz; a falsetto shriek is not him); −16 LUFS, true peak under −1 dBTP; words wrong at most 15%; speaker similarity to his reference at least 0.45 on calm lines, 0.1 on a scream. |
 | Reference | `personas/you.wav`: Qwen3-TTS VoiceDesign, seed 4 of six (106 Hz, the roughest, AudioSet's speech-synthesizer 0.03). |
 
 Next after the first: the child below you in the Stairwell ("please",

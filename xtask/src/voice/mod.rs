@@ -303,6 +303,8 @@ enum Kind {
     /// a table of names to non-empty strings (the emotions)
     Words,
     Table,
+    /// a table of names to tables, each checked on its own (the references)
+    Tables,
 }
 
 /// A persona (`assets/src/voice/personas/<id>.toml`): each field, what it
@@ -336,7 +338,14 @@ const PERSONA: &[(&str, Kind, bool)] = &[
     ("targets.wer_max", Kind::Num, true),
     ("targets.similarity_min", Kind::Num, true),
     ("targets.similarity_min_loud", Kind::Num, true),
+    // emotional references: an emotion's lines cloned from a clip of his
+    // voice in that emotion (`references.<emotion>`: model, text, seed)
+    ("references", Kind::Tables, false),
 ];
+
+/// An emotional reference (`[references.<emotion>]` of a persona): the
+/// model that clones his voice into the emotion, what it says, the seed kept
+const REFERENCE: &[(&str, Kind, bool)] = &[("model", Kind::Str, true), ("text", Kind::Str, true), ("seed", Kind::Int, true)];
 
 /// A line (`[[line]]` of `assets/src/voice/lines/<persona>.toml`)
 const LINE: &[(&str, Kind, bool)] = &[
@@ -365,6 +374,7 @@ fn kind_ok(v: &toml::Value, k: Kind) -> bool {
         Kind::IntPair => v.as_array().is_some_and(|a| a.len() == 2 && a.iter().all(|x| x.as_integer().is_some())),
         Kind::Words => v.as_table().is_some_and(|t| !t.is_empty() && t.values().all(|x| x.as_str().is_some_and(|s| !s.trim().is_empty()))),
         Kind::Table => v.as_table().is_some(),
+        Kind::Tables => v.as_table().is_some_and(|t| t.values().all(|x| x.as_table().is_some())),
     }
 }
 
@@ -395,6 +405,7 @@ fn check_fields(t: &toml::Table, spec: &[(&str, Kind, bool)], what: &str, proble
                     Kind::IntPair => "a pair of integers",
                     Kind::Words => "a table of names to non-empty strings",
                     Kind::Table => "a table",
+                    Kind::Tables => "a table of tables",
                 }
             )),
             Some(_) => {}
@@ -491,6 +502,22 @@ pub fn check_sources() -> Vec<String> {
                 .push(format!("{what}: targets.wer_max, similarity_min and similarity_min_loud (at most similarity_min) are fractions"));
         }
         let emotions: Vec<String> = t.get("emotions").and_then(|v| v.as_table()).map(|e| e.keys().cloned().collect()).unwrap_or_default();
+        for (e, r) in t.get("references").and_then(|v| v.as_table()).into_iter().flatten() {
+            let what = format!("{what}: references.{e}");
+            if !emotions.contains(e) {
+                problems.push(format!("{what}: {e} is not one of the persona's emotions"));
+            }
+            let Some(r) = r.as_table() else {
+                problems.push(format!("{what} is not a table"));
+                continue;
+            };
+            check_fields(r, REFERENCE, &what, &mut problems);
+            if let Some(m) = s(r, "model") {
+                if !synth.contains(&m) {
+                    problems.push(format!("{what}: model {m} is not a synthesis model"));
+                }
+            }
+        }
         emotions_of.insert(stem.clone(), emotions);
     }
     for (stem, path) in stems(&voice_src().join("lines")) {
@@ -564,6 +591,24 @@ mod tests {
         assert!(!stems(&voice_src().join("personas")).is_empty(), "no persona");
         let problems = check_sources();
         assert!(problems.is_empty(), "{problems:#?}");
+    }
+
+    /// The game's index of voice lines says what the line files say (for
+    /// every persona whose lines are in the game)
+    #[test]
+    fn the_games_index_of_lines_matches_the_line_files() {
+        let Ok(text) = std::fs::read_to_string(pipeline::index_path()) else { return };
+        let mut lines = text.lines();
+        assert_eq!(lines.next(), Some(pipeline::INDEX_HEADER));
+        let rows: Vec<&str> = lines.collect();
+        let personas: std::collections::BTreeSet<&str> = rows.iter().filter_map(|r| r.split('\t').next()).collect();
+        for id in personas {
+            let p = pipeline::Persona::load(id).unwrap();
+            let mut want = pipeline::index_rows(&p);
+            want.sort();
+            let got: Vec<String> = rows.iter().filter(|r| r.starts_with(&format!("{id}\t"))).map(|r| r.to_string()).collect();
+            assert_eq!(got, want, "lines.tsv is not what lines/{id}.toml says: run `cargo xtask voice write --persona {id}`");
+        }
     }
 
     /// The checker finds what is wrong: a missing field, a wrong kind, an

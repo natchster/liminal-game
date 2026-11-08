@@ -33,8 +33,10 @@ design_model = "qwen3-tts-voicedesign"
 # (HNR 11.4 dB) and the widest in pitch (10 semitones); seed 2 reads slowly
 # (15 s), and a clone keeps its pace. A person confirms by ear (PLAYTEST.md).
 design_seed = 4
-# chosen by the bake-off (V5); until then the first synthesis model
-line_model = "voxcpm2"
+# chosen by the bake-off (V5, docs/VOICES.md): every line has a take that
+# passes on Chatterbox (26-40 of 40 takes); VoxCPM2 8 of 10 lines, Ming-3.0
+# 6, Qwen3-TTS 2 (its voice designed again each line drifts)
+line_model = "chatterbox"
 
 [tone]
 direction = [
@@ -64,8 +66,9 @@ desperation = "desperate and pleading, close to tears, voice breaking"
 exhaustion = "exhausted and hoarse, worn out from shouting, barely holding together"
 
 [targets]
-# median pitch of any take (a man's voice; a scream goes high)
-f0_median_hz = [85.0, 330.0]
+# median pitch of any take: a man's voice, and his scream goes to 300-400
+# Hz; a falsetto shriek (600 Hz and over) is not him
+f0_median_hz = [85.0, 400.0]
 # every chosen take is set to this integrated loudness, its true peak under the ceiling
 loudness_lufs = -16.0
 peak_dbtp = -1.0
@@ -78,3 +81,14 @@ wer_max = 0.15
 # from another man)
 similarity_min = 0.45
 similarity_min_loud = 0.1
+
+# His terror is cloned from a clip of his voice already terrified: a model
+# that clones takes its emotion from the clip it clones (Chatterbox's loud
+# lines from the calm reference reached arousal 0.36-0.46 of the 0.85 asked;
+# from this clip 0.81-0.96). Of four candidates (VoxCPM2, seeds 1-4), seed
+# 1: arousal 0.91, speaker similarity 0.55 to his calm voice, 288 Hz, words
+# right, AudioSet's speech-synthesizer 0.09.
+[references.terror]
+model = "voxcpm2"
+text = "Help! Somebody help me! Please, I'm down here! Can anybody hear me? Please, help me!"
+seed = 1

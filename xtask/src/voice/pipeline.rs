@@ -52,6 +52,19 @@ impl Persona {
     pub fn reference(&self) -> PathBuf {
         voice_src().join(format!("personas/{}.wav", self.id))
     }
+    /// An emotion's own reference, if the persona has one
+    pub fn emotion_ref(&self, emotion: &str) -> Option<(PathBuf, toml::Table)> {
+        let r = self.table("references").get(emotion).and_then(|v| v.as_table()).cloned()?;
+        Some((voice_src().join(format!("personas/{}.{emotion}.wav", self.id)), r))
+    }
+    /// What a line of `emotion` is cloned from: its emotion's reference if
+    /// there is one, else the persona's; and what that clip says
+    pub fn clone_from(&self, emotion: &str) -> (PathBuf, String) {
+        match self.emotion_ref(emotion) {
+            Some((path, r)) if path.is_file() => (path, s(&r, "text").unwrap_or_default()),
+            _ => (self.reference(), self.voice("reference_text")),
+        }
+    }
     pub fn work(&self) -> PathBuf {
         root().join("target/voice").join(&self.id)
     }
@@ -87,6 +100,9 @@ fn clean_all(items: &[Value], name: &Path) -> Result<Vec<Value>, String> {
 /// the `design_seed` one, cleaned, as the persona's reference
 pub fn reference(args: &[String]) -> Result<(), String> {
     let p = persona_arg(args)?;
+    if let Some(e) = opt(args, "--emotion") {
+        return emotion_reference(&p, e, args);
+    }
     let n: i64 = opt(args, "--candidates").map_or(Ok(1), |v| v.parse().map_err(|_| "--candidates N"))?;
     let seed0 = p.table("voice").get("design_seed").and_then(|v| v.as_integer()).unwrap_or(1);
     let dir = p.work().join("reference");
@@ -136,9 +152,10 @@ pub fn job(p: &Persona, model: &str, line: &toml::Table, take: i64, out: &Path) 
         "intensity": super::num(line.get("intensity")),
         "out": out,
     });
+    let (ref_audio, ref_text) = p.clone_from(&emotion);
     let refer = |j: &mut Value| {
-        j["ref_audio"] = json!(p.reference());
-        j["ref_text"] = json!(p.voice("reference_text"));
+        j["ref_audio"] = json!(ref_audio);
+        j["ref_text"] = json!(ref_text);
     };
     match model {
         // the cloned voice, directed
@@ -238,6 +255,20 @@ pub fn write(args: &[String]) -> Result<(), String> {
             .ok()
             .and_then(|t| serde_json::from_str(&t).ok())
             .unwrap_or_default();
+        let mut sources = vec![
+            format!("assets/src/voice/personas/{}.toml", p.id),
+            format!("assets/src/voice/personas/{}.wav", p.id),
+            format!("assets/src/voice/lines/{}.toml", p.id),
+            format!("assets/src/voice/models/{model}/SOURCE.toml"),
+            "tools/voice/models.toml".into(),
+            "tools/voice/synth.py".into(),
+            "tools/voice/evaluate.py".into(),
+        ];
+        // cloned from an emotion's own reference
+        let (from, _) = p.clone_from(&s(l, "emotion").unwrap_or_default());
+        if from != p.reference() {
+            sources.insert(2, from.strip_prefix(root()).unwrap_or(&from).to_string_lossy().into_owned());
+        }
         crate::assets::update_manifest(
             &name,
             &bytes,
@@ -250,20 +281,50 @@ pub fn write(args: &[String]) -> Result<(), String> {
                 "licence": "MIT",
                 "rebuild": format!("cargo xtask voice build --persona {} --model {model} --only {id}; voice eval; voice write (take {take}, seed {take})", p.id),
                 "line": { "persona": p.id, "id": id, "text": s(l, "text"), "emotion": s(l, "emotion"), "seed": take },
-                "sources": [
-                    format!("assets/src/voice/personas/{}.toml", p.id),
-                    format!("assets/src/voice/personas/{}.wav", p.id),
-                    format!("assets/src/voice/lines/{}.toml", p.id),
-                    format!("assets/src/voice/models/{model}/SOURCE.toml"),
-                    "tools/voice/models.toml",
-                    "tools/voice/synth.py",
-                    "tools/voice/evaluate.py",
-                ],
+                "sources": sources,
             }),
         )?;
         println!("{name}: take {take} ({} bytes)", bytes.len());
     }
+    write_index(&p)?;
     Ok(())
+}
+
+/// The index the game reads (`crates/game/assets/voice/lines.tsv`): a row
+/// a line, the persona's rows replaced, the others' kept, sorted
+pub fn index_rows(p: &Persona) -> Vec<String> {
+    p.lines
+        .iter()
+        .map(|l| {
+            let lv: Vec<i64> =
+                l.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect()).unwrap_or_default();
+            format!(
+                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                p.id,
+                s(l, "id").unwrap_or_default(),
+                s(l, "use").unwrap_or_default(),
+                lv.first().unwrap_or(&1),
+                lv.get(1).unwrap_or(&99),
+                super::num(l.get("intensity")),
+                s(l, "emotion").unwrap_or_default(),
+                s(l, "text").unwrap_or_default()
+            )
+        })
+        .collect()
+}
+
+pub const INDEX_HEADER: &str = "persona\tid\tuse\tfirst\tlast\tintensity\temotion\ttext";
+
+pub fn index_path() -> PathBuf {
+    root().join("crates/game/assets/voice/lines.tsv")
+}
+
+fn write_index(p: &Persona) -> Result<(), String> {
+    let old = std::fs::read_to_string(index_path()).unwrap_or_default();
+    let mut rows: Vec<String> = old.lines().skip(1).filter(|r| !r.starts_with(&format!("{}\t", p.id))).map(String::from).collect();
+    rows.extend(index_rows(p));
+    rows.sort();
+    std::fs::write(index_path(), format!("{INDEX_HEADER}\n{}\n", rows.join("\n"))).map_err(|e| e.to_string())
 }
 
 /// The takes of a persona's lines on a model that exist, as the evaluation
@@ -417,4 +478,61 @@ pub fn selftest(args: &[String]) -> Result<(), String> {
     } else {
         Err(format!("voice selftest: wrong on {wrong:?}"))
     }
+}
+
+/// `voice reference --emotion E`: candidates for an emotion's reference,
+/// cloned from the persona's voice by the reference's model with the
+/// emotion's words (seeds `references.E.seed` on), each judged as a take of
+/// that emotion at intensity 0.9; `--write` keeps the seed's one as
+/// `assets/src/voice/personas/<id>.<E>.wav`
+fn emotion_reference(p: &Persona, e: &str, args: &[String]) -> Result<(), String> {
+    let (path, r) = p.emotion_ref(e).ok_or_else(|| format!("{} has no [references.{e}]", p.id))?;
+    if !p.reference().is_file() {
+        return Err(format!("make {}'s reference first: cargo xtask voice reference --persona {} --write", p.id, p.id));
+    }
+    let n: i64 = opt(args, "--candidates").map_or(Ok(1), |v| v.parse().map_err(|_| "--candidates N"))?;
+    let seed0 = r.get("seed").and_then(|v| v.as_integer()).unwrap_or(1);
+    let text = s(&r, "text").unwrap_or_default();
+    let dir = p.work().join("reference").join(e);
+    let jobs: Vec<Value> = (seed0..seed0 + n)
+        .map(|seed| {
+            json!({
+                "model": s(&r, "model").unwrap_or_default(), "text": text, "seed": seed,
+                "instruct": p.emotion_words(e), "emotion": e, "intensity": 0.9,
+                "ref_audio": p.reference(), "ref_text": p.voice("reference_text"),
+                "out": dir.join("raw").join(format!("seed{seed}.wav")),
+            })
+        })
+        .collect();
+    synthesize(&jobs, &dir.join("jobs.json"))?;
+    let items: Vec<Value> =
+        (seed0..seed0 + n).map(|seed| json!({"src": dir.join("raw").join(format!("seed{seed}.wav")), "dst": dir.join(format!("seed{seed}.wav")), "lufs": -20.0, "peak": -1.0})).collect();
+    clean_all(&items, &dir.join("clean.json"))?;
+    let takes: Vec<Value> = (seed0..seed0 + n)
+        .map(|seed| json!({"line": format!("seed{seed}"), "take": seed, "path": dir.join(format!("seed{seed}.wav")), "text": text, "emotion": e, "intensity": 0.9}))
+        .collect();
+    judge(p, &format!("reference {e}"), takes, &dir)?;
+    let rep: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    for t in rep["takes"].as_array().into_iter().flatten() {
+        let failed: Vec<&str> =
+            t["checks"].as_object().into_iter().flatten().filter(|(_, v)| v == &&json!(false)).map(|(c, _)| c.as_str()).collect();
+        println!(
+            "seed {}: arousal {:.2}, voice {:.2}, pitch {} Hz, tone {:+.3}, words {:?}; fails {failed:?}",
+            t["take"],
+            t["emotion"]["arousal"].as_f64().unwrap_or(f64::NAN),
+            t["similarity"].as_f64().unwrap_or(f64::NAN),
+            t["prosody"]["f0_median"],
+            t["tone"]["margin"].as_f64().unwrap_or(f64::NAN),
+            t["words"]["whisper"].as_str().unwrap_or("")
+        );
+    }
+    if flag(args, "--write") {
+        let chosen = dir.join(format!("seed{seed0}.wav"));
+        std::fs::copy(&chosen, &path).map_err(|e| format!("{}: {e}", chosen.display()))?;
+        println!("{}: the {e} reference (seed {seed0})", path.display());
+    } else {
+        println!("choose a seed, set references.{e}.seed to it and run again with --write");
+    }
+    Ok(())
 }

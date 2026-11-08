@@ -93,7 +93,7 @@ takes = 4
 # ---- any floor: a cry again soon after the last
 [[line]]
 id = "help_scream"
-text = "Help!"
+text = "Help! Help!"
 emotion = "terror"
 intensity = 1.0
 use = "cry"

@@ -346,3 +346,22 @@ openSMILE is not recommended: its licence is research/non-commercial, and this w
 - https://dev-discuss.pytorch.org/t/pytorch-2-15-0-general-availability/3470
 - https://pypi.org/project/mlx/
 - https://pypi.org/project/uv/
+
+---
+
+## Addendum: the bake-off (2026-11-09)
+
+Run in this repository after the note above was written (`docs/VOICES.md`,
+*The bake-off*): the first persona's ten lines, four takes each, from
+VoxCPM2, Qwen3-TTS, Chatterbox and Ming-3.0 on MLX (mlx-audio 0.6.4),
+judged by the evaluation stack of section 5. Chatterbox passed all ten
+lines (32 of 40 takes), VoxCPM2 eight, Ming-3.0 seven, Qwen3-TTS two. The
+recommendation of section 1 (VoxCPM2 first) did not hold for these lines:
+Chatterbox's emotion comes from its reference clip, and with a terrified
+reference made by VoxCPM2's controllable cloning (section 1's step 3) it
+delivered the screams VoxCPM2 itself could not keep in his voice. Two
+other findings: the speech emotion recognisers of section 5b hear
+frightened shouting as anger, so arousal, not the classes, tells a calm
+read from a terrified one; and the WavLM heads' own code needs an older
+transformers and downloads a third model, so they are rebuilt from their
+checkpoints.
