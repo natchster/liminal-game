@@ -23,6 +23,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/VOICES.md`](docs/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, and the plan behind them |
 | [`docs/AGENTS.md`](docs/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
+| [`docs/MILESTONES.md`](docs/MILESTONES.md) | every milestone still open across the docs, in one queue, done one by one |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
 | [`docs/SOURCES.md`](docs/SOURCES.md) | the research behind the game's design |
