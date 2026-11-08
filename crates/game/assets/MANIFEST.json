@@ -1,8 +1,9 @@
 {
-  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin and textures/*.jpg has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
+  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin, textures/*.jpg and voice/<persona>/*.wav has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
   "allowed_generators": [
     "procedural bpy scripts",
-    "photographs, processed by scripts"
+    "photographs, processed by scripts",
+    "text-to-speech models, processed by scripts"
   ],
   "allowed_licences": [
     "MIT",

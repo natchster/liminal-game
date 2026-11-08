@@ -7,23 +7,39 @@
 //! ```text
 //! cargo xtask voice doctor        uv, the environments, the models at their revisions, the licences
 //! cargo xtask voice fetch [--only ID,…]   the models into the Hugging Face cache
+//! cargo xtask voice reference|build|write …   the pipeline (`pipeline.rs`)
 //! ```
+mod pipeline;
+
 use crate::{flag, opt, root};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const USAGE: &str = "usage: cargo xtask voice <doctor|fetch> …
+const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|write> …
   doctor [--smoke]          uv, the two environments, every model in the cache at its
                             pinned revision, each synthesis model's licence kept and
                             allowed in MANIFEST.json; --smoke also says a sentence and
                             hears it back
-  fetch [--only ID,…]       download the models of tools/voice/models.toml";
+  fetch [--only ID,…]       download the models of tools/voice/models.toml
+  reference --persona P [--candidates N] [--write]
+                            candidates for P's voice from its description (seeds
+                            design_seed on), each heard back; --write keeps the
+                            design_seed one as assets/src/voice/personas/P.wav
+  build --persona P [--model M] [--only LINE,…]
+                            every take of P's lines, raw then cleaned, into
+                            target/voice/P/M/<line>/take<k>.wav
+  write --persona P [--model M] [--take K]
+                            each line's chosen take (the evaluation's, or take K)
+                            into crates/game/assets/voice/P/ and MANIFEST.json";
 
 pub fn voice(args: &[String]) -> Result<(), String> {
     let rest = args.get(1..).unwrap_or(&[]);
     match args.first().map(String::as_str) {
         Some("doctor") => doctor(rest),
         Some("fetch") => fetch(rest),
+        Some("reference") => pipeline::reference(rest),
+        Some("build") => pipeline::build(rest),
+        Some("write") => pipeline::write(rest),
         _ => Err(USAGE.into()),
     }
 }

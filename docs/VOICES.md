@@ -112,6 +112,46 @@ uv sync --project tools/voice/eval
   on the same machine and versions, and the WAVs are written with headers of
   our own (libsndfile stamps the time into a float WAV).
 
+## The pipeline
+
+```sh
+cargo xtask voice reference --persona you --candidates 6   # voices from the description, each heard back
+cargo xtask voice reference --persona you --write          # keep voice.design_seed's as personas/you.wav
+cargo xtask voice build --persona you [--model M] [--only LINE,…]   # every take, raw then cleaned
+cargo xtask voice write --persona you [--model M] [--take K]        # the chosen takes into the game
+```
+
+1. **The reference**: candidates designed from the persona's description
+   (its design model, seeds `design_seed` on), each heard back by both
+   recognisers. One is chosen (`voice.design_seed`) and kept, cleaned to
+   −20 LUFS, as `assets/src/voice/personas/<id>.wav`: every line is cloned
+   from it, so it is kept with the sources, not made again. AudioSet's
+   *Speech synthesizer* label tells a natural candidate from a machine-like
+   one (of the first persona's six, seed 1 scored 0.77, seed 4 0.03).
+2. **The takes**: each line's `takes`, seed = the take's number, from the
+   line model (or `--model`): VoxCPM2 clones the reference and takes the
+   emotion's words as its instruction; Qwen3-TTS designs the voice again
+   with the words added; Chatterbox clones it with exaggeration from the
+   intensity; Ming-3.0 clones it with its emotion label. Raw takes go to
+   `target/voice/<persona>/<model>/raw/<line>/take<k>.wav` with a JSON of how
+   each was made; the cleaned ones beside them.
+3. **The cleaning**: trimmed (60 ms before the first sound, 180 ms after the
+   last, short fades), 48 kHz, set to the persona's loudness with its true
+   peak under the ceiling by lowering the gain (never a limiter: a scream
+   keeps its shape and ends up quieter; the first persona's takes sit at a
+   median −17.9 LUFS for a −16 target), 16-bit. A take the model left
+   nearly silent is never raised more than 24 dB and is marked silent (one
+   of the first persona's forty).
+4. **Into the game** (`voice write`): each line's chosen take as
+   `crates/game/assets/voice/<persona>/<line>.wav`, its `MANIFEST.json`
+   entry written (the models that said it and designed its voice, both in
+   `allowed_models`; its text, emotion and seed; its sources; the
+   fingerprint). `tests/structure.rs` fails on a voice file whose
+   fingerprint, licence, generator or models are not right.
+
+Built twice, the first persona's forty takes are the same files, byte for
+byte, raw and cleaned.
+
 ## The research
 
 [`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
@@ -142,6 +182,7 @@ emotion control is promised more than it is measured).
 |---|---|
 | V0 | done: `4810c24` |
 | V1–V2 | done: `voice doctor --smoke` passes (13 models at their revisions, the five synthesis licences kept and allowed, a sentence said by Qwen3-TTS and heard back by both recognisers, word error 0); the persona and line formats and their test; the first persona drafted |
+| V3 | done: the reference (six candidates, seed 4 kept), forty takes from VoxCPM2 made twice the same, the cleaning, `voice write` and the manifest test on voice files |
 
 ## Personas
 

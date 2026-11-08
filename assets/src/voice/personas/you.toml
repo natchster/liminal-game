@@ -28,7 +28,11 @@ polished: the voice of a stockroom worker, not an announcer or an actor.
 Recorded close, dry, with no reverb."""
 reference_text = "I came in through the back of the storage room, and then the wall just wasn't there. I've been walking for hours. The lights hum the whole time, and nobody answers."
 design_model = "qwen3-tts-voicedesign"
-design_seed = 1
+# of six candidates (seeds 1-6), seed 4: words right, AudioSet's "speech
+# synthesizer" 0.03 (seed 1: 0.77, seed 5: 0.42), 106 Hz, the roughest
+# (HNR 11.4 dB) and the widest in pitch (10 semitones); seed 2 reads slowly
+# (15 s), and a clone keeps its pace. A person confirms by ear (PLAYTEST.md).
+design_seed = 4
 # chosen by the bake-off (V5); until then the first synthesis model
 line_model = "voxcpm2"
 

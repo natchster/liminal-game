@@ -83,14 +83,18 @@ def clean(src, dst, target_lufs, peak_dbtp):
     never limited: a scream keeps its shape and is quieter instead)"""
     a = trim(load(src, GAME_RATE), GAME_RATE)
     l0 = lufs(a, GAME_RATE)
-    g = 10 ** ((target_lufs - l0) / 20)
+    # a model now and then says nothing (a take of near silence): never
+    # raise a take more than 24 dB, and say it is silent (the words fail it)
+    silent = not np.isfinite(l0) or l0 < -50.0
+    g = 1.0 if not np.isfinite(l0) else min(10 ** ((target_lufs - l0) / 20), 10 ** (24 / 20))
     tp = true_peak_db(a * g, GAME_RATE)
     if tp > peak_dbtp:
         g *= 10 ** ((peak_dbtp - tp - 0.05) / 20)
     out = (a * g).astype(np.float32)
     write_pcm16(dst, out, GAME_RATE)
     back = load(dst, GAME_RATE)
-    return {"seconds": round(len(out) / GAME_RATE, 3), "lufs": round(float(lufs(back, GAME_RATE)), 2), "true_peak_db": round(float(true_peak_db(back, GAME_RATE)), 2), "gain_db": round(float(20 * np.log10(g)), 2)}
+    fin = lambda v: round(float(v), 2) if np.isfinite(v) else None  # noqa: E731
+    return {"seconds": round(len(out) / GAME_RATE, 3), "lufs": fin(lufs(back, GAME_RATE)), "true_peak_db": fin(true_peak_db(back, GAME_RATE)), "gain_db": fin(20 * np.log10(g)), "silent": bool(silent)}
 
 
 # ---------------------------------------------------------------- the words
@@ -178,12 +182,12 @@ def main():
         for it in json.loads(pathlib.Path(a.file).read_text())["items"]:
             r = clean(it["src"], it["dst"], float(it["lufs"]), float(it["peak"]))
             r["dst"] = it["dst"]
-            print(json.dumps(r), flush=True)
+            print(json.dumps(r, allow_nan=False), flush=True)
         return
     if a.cmd == "clean":
         import json
 
-        print(json.dumps(clean(a.src, a.dst, a.lufs, a.peak)))
+        print(json.dumps(clean(a.src, a.dst, a.lufs, a.peak), allow_nan=False))
         return
     if a.cmd == "hear":
         r = hear(a.take, a.text)

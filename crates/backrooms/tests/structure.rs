@@ -336,7 +336,23 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
     let allowed = |k: &str| -> Vec<String> { m[k].as_array().into_iter().flatten().filter_map(|v| v.as_str().map(String::from)).collect() };
     let (licences, generators, models) = (allowed("allowed_licences"), allowed("allowed_generators"), allowed("allowed_models"));
     let mut problems = vec![];
-    // the meshes, and the photographed textures (named `textures/<file>`)
+    // the meshes, the photographed textures (named `textures/<file>`) and
+    // the voice lines (`voice/<persona>/<line>.wav`)
+    let voices: Vec<(String, std::fs::DirEntry)> = std::fs::read_dir(root().join("crates/game/assets/voice"))
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|d| d.path().is_dir())
+        .flat_map(|d| {
+            let persona = d.file_name().to_string_lossy().to_string();
+            std::fs::read_dir(d.path())
+                .into_iter()
+                .flatten()
+                .flatten()
+                .map(move |e| (format!("voice/{persona}/{}", e.file_name().to_string_lossy()), e))
+                .filter(|(n, _)| n.ends_with(".wav"))
+        })
+        .collect();
     let files = std::fs::read_dir(root().join("crates/game/assets"))
         .unwrap()
         .flatten()
@@ -348,7 +364,8 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
                 .flatten()
                 .map(|e| (format!("textures/{}", e.file_name().to_string_lossy()), e))
                 .filter(|(n, _)| n.ends_with(".jpg")),
-        );
+        )
+        .chain(voices);
     for (name, e) in files {
         let entry = &m["files"][&name];
         if entry.is_null() {
@@ -357,7 +374,8 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
         }
         let fp = fnv64(&std::fs::read(e.path()).unwrap());
         if entry["fingerprint"].as_str() != Some(fp.as_str()) {
-            problems.push(format!("{name}: the file changed but its manifest entry did not (fingerprint {fp}); rebuild it with `cargo xtask assets …`, which records it, and say what changed"));
+            let how = if name.starts_with("voice/") { "cargo xtask voice write" } else { "cargo xtask assets …" };
+            problems.push(format!("{name}: the file changed but its manifest entry did not (fingerprint {fp}); rebuild it with `{how}`, which records it, and say what changed"));
         }
         let lic = entry["licence"].as_str().unwrap_or("");
         if !licences.iter().any(|l| l == lic) {
@@ -367,10 +385,16 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
         if !generators.iter().any(|g| g == gen) {
             problems.push(format!("{name}: generator \"{gen}\" is not in allowed_generators"));
         }
-        if let Some(model) = entry["generative_model"].as_str() {
-            if !models.iter().any(|x| x == model) {
-                problems.push(format!("{name}: generative model \"{model}\" is not in allowed_models (check its licence: non-commercial and territory-limited weights are not allowed)"));
+        // the model that made it, and (a voice line) the one that designed the voice it is cloned from
+        for key in ["generative_model", "reference_model"] {
+            if let Some(model) = entry[key].as_str() {
+                if !models.iter().any(|x| x == model) {
+                    problems.push(format!("{name}: {key} \"{model}\" is not in allowed_models (check its licence: non-commercial and territory-limited weights are not allowed)"));
+                }
             }
+        }
+        if name.starts_with("voice/") && entry["generative_model"].as_str().is_none() {
+            problems.push(format!("{name}: a voice line names the model that said it (generative_model)"));
         }
         for s in entry["sources"].as_array().into_iter().flatten().filter_map(|s| s.as_str()) {
             if !root().join(s).exists() {
