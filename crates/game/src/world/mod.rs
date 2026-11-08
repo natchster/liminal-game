@@ -9,7 +9,7 @@
 //! the placement checks; [`build`]: the prop themes, `themed` and
 //! `build_world`; [`purpose`]: what each zone is for; [`instancing`]:
 //! static-prop instancing; [`tables`]: the build tables; [`zones`]: zone
-//! record access.
+//! record access; [`knock`]: a knock at the Well's sealed doors.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod angled;
 pub mod arch;
@@ -19,6 +19,7 @@ pub mod building;
 pub mod building_dress;
 pub mod far_figures;
 pub mod instancing;
+pub mod knock;
 pub mod placement;
 pub mod purpose;
 pub mod settle;

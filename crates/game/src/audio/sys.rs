@@ -531,6 +531,60 @@ impl Game {
             self.blip(70.0, 0.25, "sine", 0.2, Some(45.0), 0.95, 0.0);
         }
     }
+    /// A knock at a sealed door (`world::knock`; play it at the door):
+    /// three raps `gaps` seconds apart, knuckles on steel; from the other
+    /// side (`behind`) duller and a little softer
+    pub fn sfx_knock(&self, gaps: &[f64], behind: bool) {
+        let (thud, ring, gain) = if behind { (260.0, 900.0, 0.26) } else { (380.0, 1400.0, 0.32) };
+        let mut t = 0.0;
+        for k in 0..=gaps.len() {
+            self.noise_burst(0.12, thud, 1.4, gain, "lowpass", None, t, 0.0);
+            self.blip(if behind { 82.0 } else { 95.0 }, 0.14, "sine", gain * 0.6, Some(58.0), t, 0.0);
+            self.noise_burst(0.03, ring, 2.0, gain * 0.25, "bandpass", None, t, 0.0);
+            t += gaps.get(k).copied().unwrap_or(0.0);
+        }
+    }
+    /// Someone come to a sealed door from inside: two soft steps, and a bolt
+    /// drawn (`world::knock`; play it at the door)
+    pub fn sfx_behind_door(&self) {
+        for k in 0..2 {
+            self.noise_burst(0.1, 300.0, 0.9, 0.09, "lowpass", None, k as f64 * 0.45, 0.0);
+        }
+        self.noise_burst(0.05, 1600.0, 3.0, 0.08, "bandpass", None, 0.75, 0.0);
+        self.blip(120.0, 0.08, "sine", 0.08, Some(80.0), 0.75, 0.0);
+    }
+    /// The hatch at a sealed door's foot opened or let fall shut; for a note,
+    /// the paper slid under the door (`world::knock`; play it at the foot)
+    pub fn sfx_hatch(&self, gift: crate::world::knock::Gift, open: bool) {
+        if gift.is_note() {
+            if open {
+                self.noise_burst(0.45, 3800.0, 1.2, 0.05, "highpass", Some(5200.0), 0.0, 0.0);
+            }
+            return;
+        }
+        if open {
+            self.noise_burst(0.2, 2200.0, 5.0, 0.035, "bandpass", Some(1600.0), 0.0, 0.0);
+        }
+        self.noise_burst(0.04, 1800.0, 2.5, 0.1, "bandpass", None, 0.0, 0.0);
+        self.blip(150.0, 0.07, "sine", 0.08, Some(90.0), 0.0, 0.0);
+    }
+    /// The thing pushed out coming to rest on the concrete: a bottle's glass,
+    /// a battery's tin, a note's paper (`world::knock`; play it at the foot)
+    pub fn sfx_pushed_out(&self, gift: crate::world::knock::Gift) {
+        use crate::world::knock::Gift;
+        match gift {
+            Gift::Water => {
+                self.noise_burst(0.4, 1400.0, 2.0, 0.06, "bandpass", Some(900.0), 0.0, 0.0);
+                self.blip(2600.0, 0.05, "sine", 0.03, None, 0.05, 0.0);
+                self.blip(2450.0, 0.05, "sine", 0.02, None, 0.32, 0.0);
+            }
+            Gift::Battery => {
+                self.noise_burst(0.25, 3200.0, 3.0, 0.045, "bandpass", None, 0.0, 0.0);
+                self.blip(1900.0, 0.03, "square", 0.012, None, 0.22, 0.0);
+            }
+            _ => self.noise_burst(0.12, 4200.0, 1.0, 0.03, "highpass", None, 0.0, 0.0),
+        }
+    }
     /// Footsteps: four paces at a walk
     pub fn sfx_distant_footsteps(&self) {
         // somebody walking: a heel strike and the body's weight landing, four
