@@ -46,6 +46,12 @@ pub const MASS_TOP: f32 = 150.0;
 /// had 16 tiles, 17.8 s of its 42; `tests/assembly.rs` holds the two
 /// together
 pub const CELL_REACH: i32 = 8;
+/// How far a booth stands over the walk it serves, metres: a storey for its
+/// cell and the slab over it. A booth rises from the void to there and no
+/// further: standing to the top of the building, the booths G2 doubled
+/// closed the Stair Halls' and the Works' void (a blind review preferred
+/// the floors without them 8 to 2, `MILESTONES.md` 1)
+pub const BOOTH_TOP: f32 = STOREY as f32 + 0.6;
 /// How the floor falls along the way from the arrival (the share of the
 /// way walked, to this power, is the share of the fall)
 const FALL: f64 = 0.55;
@@ -930,8 +936,9 @@ fn lay_floor(style: Style, p: &Params, lat: Lattice, rng: &mut dyn FnMut() -> f6
                 }
             }
         }
-        // none: a booth of building (3 × 2 tiles) stands out over the void
-        // beside the walk, and the cell is cut into it: off the line to the
+        // none: a booth of building (3 × 2 tiles, up from the void to a
+        // storey over the walk: `BOOTH_TOP`) stands out over the void beside
+        // the walk, and the cell is cut into it: off the line to the
         // door (a floor where only that would do is laid again), and over the
         // void rather than on a walk
         if best.is_none() {
@@ -969,8 +976,9 @@ fn lay_floor(style: Style, p: &Params, lat: Lattice, rng: &mut dyn FnMut() -> f6
                         }
                         let lost = block.iter().filter(|&&(bx, bz)| grid.walkable(bx, bz)).count();
                         let mut g2 = Grid { w, g: grid.g.clone() };
+                        let top = grid.get(x, z).h0 + BOOTH_TOP;
                         for &(bx, bz) in &block {
-                            g2.set(bx, bz, Ground::mass(VOID_DEPTH, MASS_TOP));
+                            g2.set(bx, bz, Ground::mass(VOID_DEPTH, top));
                         }
                         // nothing may be cut off, and the floor it serves stays in reach
                         let reach1 = grid_walk(&g2, &[(1, 1)]);
