@@ -1055,7 +1055,7 @@ fn anomalies_smoke() {
         let mut g = Game::new_bare();
         g.state = "playing".into();
         g.god_mode = true;
-        let ac = AudioContext::new();
+        let ac = AudioContext::new_silent();
         ac.set_muted(true);
         g.audio_init_with(ac);
         g.init_anomalies();

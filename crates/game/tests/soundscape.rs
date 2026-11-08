@@ -91,7 +91,7 @@ fn make_ir_matches_reference() {
 /// The whole api on a real context: draws per call and the IRs it caches.
 #[test]
 fn soundscape_draws_match_reference() {
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     let Some(r) = REFS.iter().find(|r| r.sr == ac.sample_rate()) else {
         eprintln!("no reference for sample rate {} — skipped", ac.sample_rate());

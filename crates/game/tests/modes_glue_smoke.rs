@@ -57,7 +57,7 @@ fn assert_out(g: &Game, scene_kids: usize, what: &str) {
 
 fn cycle(g: &mut Game, sound: bool, seed: u32) {
     if sound {
-        let ac = AudioContext::new();
+        let ac = AudioContext::new_silent();
         ac.set_muted(true);
         g.audio_init_with(ac);
         assert!(g.soundscape().is_some());

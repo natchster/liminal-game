@@ -12,7 +12,7 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 pub const QUANTUM: usize = 128;
@@ -197,10 +197,44 @@ const L_UX: u8 = 16;
 const L_UY: u8 = 17;
 const L_UZ: u8 = 18;
 
+/// Whether `AudioContext::new` may open the output device. The headless
+/// modes turn it off, so a shot, a dump or a bench never sounds through the
+/// speakers (`set_device_output`)
+static DEVICE_OUTPUT: AtomicBool = AtomicBool::new(true);
+
+/// Let `AudioContext::new` open the output device, or not (then it runs on a
+/// silent clock: the same graph, the same time, nothing heard)
+pub fn set_device_output(on: bool) {
+    DEVICE_OUTPUT.store(on, Ordering::Relaxed);
+}
+
+/// The output device may be opened: not turned off, not asked for silence
+/// (`BACKROOMS_SILENT` set, for any automated run), and not a test binary
+/// (cargo puts those in `…/deps/<name>-<16 hex digits>`): a test, a bot's
+/// playthrough or a check never plays through the speakers
+pub fn device_output() -> bool {
+    DEVICE_OUTPUT.load(Ordering::Relaxed) && std::env::var_os("BACKROOMS_SILENT").is_none() && !is_test_binary()
+}
+
+fn is_test_binary() -> bool {
+    let Some(exe) = std::env::current_exe().ok().or_else(|| std::env::args_os().next().map(Into::into)) else { return false };
+    let in_deps = exe.parent().and_then(|p| p.file_name()).is_some_and(|d| d == "deps");
+    let hashed = exe
+        .file_name()
+        .and_then(|n| n.to_str())
+        .and_then(|n| n.rsplit_once('-'))
+        .is_some_and(|(_, h)| h.len() == 16 && h.bytes().all(|b| b.is_ascii_hexdigit()));
+    in_deps && hashed
+}
+
 impl AudioContext {
-    /// Open the default output device. Falls back to a silent clock if there is none.
+    /// Open the default output device. Falls back to a silent clock if there
+    /// is none, or if the device may not be opened (`device_output`).
     pub fn new() -> AudioContext {
         use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+        if !device_output() {
+            return AudioContext::new_silent();
+        }
         let host = cpal::default_host();
         let dev = host.default_output_device();
         let cfg = dev.as_ref().and_then(|d| d.default_output_config().ok());
@@ -239,6 +273,26 @@ impl AudioContext {
             eprintln!("audio: no output device; running silent");
         }
         AudioContext::with_inner(inner)
+    }
+    /// A context that plays nothing and keeps real time: its graph is
+    /// rendered on a thread of its own, as with no device, and never heard
+    /// (tests, headless runs)
+    pub fn new_silent() -> AudioContext {
+        let sr = 48000.0;
+        let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
+        let mut engine = Engine::new(sr, shared.clone());
+        engine.silent_clock();
+        AudioContext::with_inner(Rc::new(CtxInner {
+            shared,
+            next_id: Cell::new(1),
+            stream: RefCell::new(None),
+            muted: Cell::new(false),
+            offline: RefCell::new(None),
+        }))
+    }
+    /// Whether this context sounds through an output device
+    pub fn plays_on_device(&self) -> bool {
+        self.inner.stream.borrow().is_some()
     }
     /// A context that plays nothing: its graph is rendered on this thread,
     /// on demand, by `render_offline` (recording a headless run, tests). Its

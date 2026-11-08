@@ -144,7 +144,7 @@ fn fired(g: &Game, tag: &str) -> bool {
 }
 
 fn muted_ac() -> AudioContext {
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     ac
 }

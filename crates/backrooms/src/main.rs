@@ -1076,6 +1076,10 @@ fn bench_creatures(o: &Options, path: &str) {
 
 fn main() {
     let o = parse_args();
+    if o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some() || o.bench_creatures.is_some() {
+        // a headless run plays its sounds to nobody: never the speakers
+        engine::audio::set_device_output(false);
+    }
     if let Some(p) = o.bench.clone() {
         bench(&o, &p);
         return;

@@ -18,7 +18,7 @@ fn entities_smoke() {
         let (mut g, dist) = Game::test_level(seed * 101 + 7, 31 + (seed as i32 % 2) * 8);
         g.level_num = 3 + seed as i32 * 2;
         g.init_entities();
-        let ac = AudioContext::new();
+        let ac = AudioContext::new_silent();
         ac.set_muted(true);
         g.audio_init_with(ac);
         assert!(g.soundscape().is_some());

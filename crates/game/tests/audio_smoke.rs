@@ -10,9 +10,21 @@ use game::audio::sys::SFX_NAMES;
 use game::Game;
 use std::time::Duration;
 
+/// A test never sounds through the speakers: in a test binary the output
+/// device is never opened, not by a test's own context nor by the game's
+/// `audio_init` (`engine::audio::device_output`)
+#[test]
+fn a_test_never_plays_through_the_speakers() {
+    assert!(!engine::audio::device_output(), "a test binary may open the output device");
+    assert!(!AudioContext::new().plays_on_device(), "AudioContext::new opened the device in a test");
+    let mut g = Game::new_bare();
+    g.audio_init();
+    assert!(!g.ac.as_ref().is_some_and(|c| c.plays_on_device()), "audio_init opened the device in a test");
+}
+
 fn live_game() -> Game {
     let mut g = Game::new_bare();
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     g.audio_init_with(ac);
     g
@@ -81,7 +93,7 @@ fn audio_init_twice_keeps_the_context() {
 fn muted_before_init_starts_silent() {
     let mut g = Game::new_bare();
     g.muted = true;
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     g.audio_init_with(ac);
     assert_eq!(g.master.as_ref().unwrap().gain().value(), 0.0);
@@ -91,7 +103,7 @@ fn muted_before_init_starts_silent() {
 fn nosound_skips_the_soundscape() {
     let mut g = Game::new_bare();
     g.audio.nosound = true;
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     g.audio_init_with(ac);
     assert!(g.audio.soundscape.is_none() && g.soundscape().is_none());

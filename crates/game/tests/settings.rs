@@ -176,7 +176,7 @@ fn a_wide_screen_does_not_stretch_the_walls() {
 #[test]
 fn the_volume_and_the_pause_set_the_master_gain() {
     let mut g = rig();
-    let ac = engine::audio::AudioContext::new();
+    let ac = engine::audio::AudioContext::new_silent();
     g.audio_init_with(ac);
     let gain = |g: &Game| g.master.as_ref().unwrap().gain().value();
     assert!((gain(&g) - 0.9).abs() < 1e-6, "the default master gain moved: {}", gain(&g));

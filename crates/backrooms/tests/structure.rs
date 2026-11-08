@@ -48,6 +48,30 @@ fn dependencies(manifest: &str) -> Vec<String> {
         .collect()
 }
 
+/// Playtesting never sounds through the speakers: the headless modes turn the
+/// output device off before anything is made, and no test opens it
+/// (`engine::audio::device_output`; a test binary is caught there too)
+#[test]
+fn automated_runs_never_open_the_output_device() {
+    let main = read("crates/backrooms/src/main.rs");
+    let at = main.find("fn main()").expect("main.rs has fn main");
+    let head = &main[at..main[at..].find("o.bench.clone()").map_or(main.len(), |i| at + i)];
+    assert!(
+        head.contains("engine::audio::set_device_output(false)"),
+        "main.rs: the headless modes must call engine::audio::set_device_output(false) first thing in main"
+    );
+    // spelt in two pieces, so this file does not match itself
+    let device = concat!("AudioContext::", "new()");
+    let guard = concat!("AudioContext::", "new().plays_on_device()");
+    for dir in ["crates/game/tests", "crates/backrooms/tests", "crates/engine/tests"] {
+        for f in rust_files(dir) {
+            // only the guard itself asks the device context whether it plays
+            let s = std::fs::read_to_string(&f).unwrap().replace(guard, "");
+            assert!(!s.contains(device), "{}: a test uses AudioContext::new_silent() or new_offline(), never the device", rel(&f));
+        }
+    }
+}
+
 #[test]
 fn layers_depend_downward_only() {
     let engine = dependencies("crates/engine/Cargo.toml");

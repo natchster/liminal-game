@@ -244,6 +244,14 @@ Levels must be a pure function of `(run_seed, level)`:
   seed, so a run is the same each time; `PACING_NATIVE=k` shifts it to see
   the spread, and `PACING_DEBUG=1` prints each creature's last mode
   changes and the director's log.
+* **Nothing automated sounds through the speakers.** A test makes its
+  context with `AudioContext::new_silent()` (real time, nothing heard) or
+  `new_offline()` (rendered on demand), never `AudioContext::new()`; a test
+  binary cannot open the output device even through the game's
+  `audio_init` (`engine::audio::device_output`), the headless modes
+  (`--screenshot`, `--dump-level`, `--metrics`, `--bench`) turn it off
+  first thing in `main`, and `BACKROOMS_SILENT=1` silences any other run.
+  `tests/structure.rs` and `audio_smoke.rs` hold this.
 * `crates/backrooms/tests/listen.rs` renders the game's audio offline and
   writes each run to `target/listen/*.wav` with a loudness timeline
   (`*.png`, dB per 50 ms window, red marks at events): listen to them after

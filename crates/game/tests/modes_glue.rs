@@ -96,7 +96,7 @@ fn setup(sc: &Json) -> (Game, Rc<Cell<u64>>) {
     let dust = g.tex.dust_sprite.clone();
     g.init_render(&dust);
     if sc.get("sound").b() {
-        let ac = AudioContext::new();
+        let ac = AudioContext::new_silent();
         ac.set_muted(true);
         g.audio_init_with(ac);
         assert!(g.soundscape().is_some());

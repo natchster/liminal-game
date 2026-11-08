@@ -67,7 +67,7 @@ fn rig(seed: u32, weather: usize) -> Rig {
     Rig { g, stub_collide }
 }
 fn with_audio(r: &mut Rig) {
-    let ac = AudioContext::new();
+    let ac = AudioContext::new_silent();
     ac.set_muted(true);
     r.g.audio_init_with(ac);
 }
