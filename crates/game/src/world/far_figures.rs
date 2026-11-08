@@ -70,34 +70,47 @@ pub struct FarFigure {
     pub rng: SplitMix64,
 }
 
+/// The figure's body (`bodies.bin` "far_figure", built by
+/// `assets/src/creatures/body_far_figure.py`: MakeHuman's man, CC0, in a
+/// long coat) as one geometry in its own colours: its soles on 0, the middle
+/// between its ankles over the origin, facing +Z. It is never posed (it
+/// turns whole), so its parts are drawn as they were built.
+pub fn far_figure_geometry() -> Option<Geo> {
+    let def = crate::assets::bodies::body("far_figure")?;
+    let mut out = Geometry { color_size: 3, ..Default::default() };
+    let mut index = vec![];
+    for m in &def.meshes {
+        let geo = crate::assets::bodies::body_geometry("far_figure", &m.name)?;
+        let part = geo.r();
+        let (base, n) = ((out.position.len() / 3) as u32, part.vertex_count());
+        out.position.extend_from_slice(&part.position);
+        out.normal.extend_from_slice(&part.normal);
+        if part.color.len() >= n * 3 {
+            out.color.extend_from_slice(&part.color[..n * 3]);
+        } else {
+            out.color.extend(std::iter::repeat_n(0.5, n * 3));
+        }
+        out.uv.extend(std::iter::repeat_n(0.0, n * 2));
+        index.extend(part.index.iter().flatten().map(|i| base + i));
+    }
+    out.index = Some(index);
+    out.compute_bounding_box();
+    out.compute_bounding_sphere();
+    Some(Geo::from_geometry(out))
+}
+
 impl Game {
-    /// A figure: tall, thin, grey, its head a little forward (unlit, a
-    /// little paler than the concrete: a shape against the dark far off and
-    /// against a lit face alike, whatever the light)
+    /// A figure: a man in a long dark coat, standing still, his arms down
+    /// (`far_figure_geometry`), one piece in his own colours, lit by the
+    /// place's light like everything else: far off, a dark shape against
+    /// the faces and the haze behind it, his face and hands paler
     fn make_far_figure(&self) -> Obj {
         let g = group();
-        let dark = basic_mat!({ color: 0x6b6a66 });
-        // read far off as a person: two legs from the ground, shoulders
-        // wider than the head, the head apart over a neck
-        for s in [-1.0, 1.0] {
-            let leg = mesh(capsule_geo!(0.075, 0.72, 2, 6), &dark);
-            leg.position().set(s * 0.11, 0.075 + 0.36, 0.0);
-            g.add(&leg);
+        if let Some(geo) = far_figure_geometry() {
+            let body = mesh(&geo, lambert!({ color: 0xffffff, vertexColors: true }));
+            body.set_name("far-figure:body");
+            g.add(&body);
         }
-        let body = mesh(capsule_geo!(0.18, 0.5, 3, 8), &dark);
-        body.position().y = 0.9 + 0.43;
-        body.scale().set(1.15, 1.0, 0.75);
-        g.add(&body);
-        let head = mesh(sphere_geo!(0.12, 8, 6), &dark);
-        head.position().set(0, 1.94, 0.04);
-        g.add(&head);
-        for s in [-1.0, 1.0] {
-            let arm = mesh(capsule_geo!(0.05, 0.78, 2, 6), &dark);
-            arm.position().set(s * 0.29, 1.2, 0.0);
-            g.add(&arm);
-        }
-        // a little taller than anyone
-        g.scale().set(1.12, 1.12, 1.12);
         g.set_visible(false);
         g.set_name("far-figure");
         g.user().gameplay = true;
@@ -423,6 +436,40 @@ impl Game {
             f.yaw = (eye.x - p.x).atan2(eye.z - p.z);
             f.body.position().copy(&p);
             f.body.rotation().y = f.yaw;
+            f.body.set_visible(true);
+        }
+    }
+
+    /// For the evidence (`--dump-level … --far-figure`): after
+    /// `show_far_figure`, cameras on the line it is seen along, `d` metres
+    /// off it (level), looking just beside its middle as that view does (the
+    /// crosshair leaves it clear): (d, [x, y, z, yaw, pitch])
+    pub fn far_figure_cameras(&self, dists: &[f64]) -> Vec<(f64, [f64; 5])> {
+        let Some(f) = self.far_figure.as_ref().filter(|f| f.state != FigureState::Gone) else { return vec![] };
+        let (p, eye) = (f.at, self.player.pos);
+        let chest = Vec3::new(p.x, p.y + 1.2, p.z);
+        let far = hypot2(eye.x - p.x, eye.z - p.z).max(1e-6);
+        dists
+            .iter()
+            .map(|&d| {
+                let k = d / far;
+                let c = Vec3::new(chest.x + (eye.x - chest.x) * k, chest.y + (eye.y - chest.y) * k, chest.z + (eye.z - chest.z) * k);
+                let (dx, dy, dz) = (p.x - c.x, p.y + 1.0 - c.y, p.z - c.z);
+                (d, [c.x, c.y, c.z, (-dx).atan2(-dz) - 0.1, dy.atan2((dx * dx + dz * dz).sqrt())])
+            })
+            .collect()
+    }
+
+    /// For the evidence: the figure held standing where it is, turned
+    /// toward an eye at `eye` (or, `back`, its back to it), whatever its
+    /// rule would do there
+    pub fn hold_far_figure(&mut self, eye: Vec3, back: bool) {
+        if let Some(f) = self.far_figure.as_mut() {
+            f.state = FigureState::Standing;
+            f.t = -1e6;
+            f.yaw = (eye.x - f.at.x).atan2(eye.z - f.at.z);
+            f.body.position().copy(&f.at);
+            f.body.rotation().y = f.yaw + if back { PI } else { 0.0 };
             f.body.set_visible(true);
         }
     }

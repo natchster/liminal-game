@@ -189,14 +189,16 @@ What every floor of the Building has:
 Attribution.* Nothing walks the Building, but now and then, far off across
 the void, someone stands where no walk reaches: on a gallery of another
 storey, on a flight that crosses the dark, on top of a machine or on a
-gantry under the ceiling. Grey, thin, a little taller than anyone, turned
-toward you. Look at it a moment and it turns its back; look away and it is
-gone, and if you watch it a long while, or come nearer, it is gone anyway.
-Long after, it stands somewhere else, always across the void, and never
-while the siren sounds or the fog is up (a figure standing when the siren
-starts turns its back and goes). It never comes near and it does nothing:
-it is not one of the things that live here, nothing sends it, and it does
-not announce itself, because it never comes. Nobody writes about it.
+gantry under the ceiling. A person in a long grey work coat, bare-headed,
+thin, a little taller than anyone, standing still with its arms at its
+sides, turned toward you. Look at it a moment and it turns its back; look
+away and it is gone, and if you watch it a long while, or come nearer, it is
+gone anyway. Long after, it stands somewhere else, always across the void,
+and never while the siren sounds or the fog is up (a figure standing when
+the siren starts turns its back and goes). It never comes near and it does
+nothing: it is not one of the things that live here, nothing sends it, and
+it does not announce itself, because it never comes. Nobody writes about
+it.
 
 **The lift.** In the Well, a lift cage hangs in the open shaft on its
 cables, stopped between storeys, its bulb still lit. Nothing reaches it.
@@ -1102,7 +1104,7 @@ the car behind its doors are heard by nothing but you.
   all **CC BY-SA 3.0**: `crates/game/src/level/building.rs`,
   `crates/game/src/world/building.rs`, `crates/game/src/world/building_dress.rs`,
   `crates/game/src/world/assembly.rs`, `crates/game/src/world/far_figures.rs`,
-  `docs/MEGASTRUCTURE.md` and the
+  `assets/src/creatures/body_far_figure.py`, `docs/MEGASTRUCTURE.md` and the
   Building's notes are CC BY-SA 3.0 and keep this attribution. Piranesi's
   *Carceri* (1750) is in the public domain.
 - The research catalogue `SCP_LOCATIONS.md` (HTML version's docs) summarizes 315
@@ -1115,7 +1117,8 @@ the car behind its doors are heard by nothing but you.
   1000dumplings), made blind here.
 - **The creatures' bodies** (the Hound's, the Smiler's, the Watcher's, the
   one in the corner's, the Reader's, the one behind the glass's, the
-  Showroom's staff's and the seated man's of the Loop) start from MakeHuman's base mesh and targets
+  Showroom's staff's, the seated man's of the Loop and the Building's figure
+  across the void) start from MakeHuman's base mesh and targets
   (<https://github.com/makehumancommunity/makehuman>), **CC0 1.0** since
   September 2020 (`assets/src/creatures/sources.json`).
 - The original 2019 yellow-room photograph was released **CC0** by the

@@ -172,6 +172,63 @@ fn the_figure_does_not_stand_while_the_fog_comes() {
     assert_eq!(g.far_figure.as_ref().unwrap().state, FigureState::Gone, "it waits out the fog");
 }
 
+/// Every part of the figure within this of its middle, level (it fits behind
+/// the Well's parapet, 0.32 m out from where it stands, and on a gantry's
+/// 0.7 m)
+const REACH: f64 = 0.3;
+
+/// Its body (G7): a person, MakeHuman's man in a long coat (`bodies.bin`
+/// "far_figure"), a little taller than anyone, facing +Z (its rule turns +Z
+/// toward you), its soles on the floor and every part of it near its
+/// middle; standing, it stands on its perch's floor, lit by the place's
+/// light (not glowing)
+#[test]
+fn the_figure_is_a_person_standing_on_its_perch() {
+    use engine::material::MatKind;
+    let geo = game::world::far_figures::far_figure_geometry().expect("bodies.bin: no far_figure");
+    let (mut lo, mut hi, mut reach) = (f64::MAX, f64::MIN, 0.0f64);
+    let (mut toe, mut heel) = (f64::MIN, f64::MAX);
+    let tris = geo.r().index.as_ref().map_or(0, |i| i.len() / 3);
+    for v in geo.r().position.chunks_exact(3) {
+        let (x, y, z) = (v[0] as f64, v[1] as f64, v[2] as f64);
+        lo = lo.min(y);
+        hi = hi.max(y);
+        reach = reach.max((x * x + z * z).sqrt());
+        if y < 0.05 {
+            toe = toe.max(z);
+            heel = heel.min(z);
+        }
+    }
+    println!("the figure: {tris} triangles, its soles at {lo:.3} m, {hi:.2} m tall, within {reach:.2} m of its middle, toes {toe:.2}, heels {heel:.2}");
+    assert!(tris <= 18_000, "{tris} triangles (a body's budget is 18k)");
+    assert!((-0.005..0.02).contains(&lo), "its soles {lo} m off the floor");
+    assert!((1.85..2.0).contains(&hi), "{hi:.2} m tall: a little taller than anyone");
+    assert!(reach < REACH, "a part of it {reach:.2} m from its middle");
+    assert!(toe > 0.12 && toe > -heel + 0.04, "it faces +Z: its toes at {toe:.2}, its heels at {heel:.2}");
+    for level in 1..=3 {
+        let mut g = floor(4242, level);
+        stand_where_it_is_seen(&mut g);
+        let f = g.far_figure.clone().unwrap();
+        let mut bb = engine::math::Box3::empty();
+        bb.set_from_object(&f.body);
+        assert!((bb.min.y - f.at.y).abs() < 0.02, "L{level}: its soles at {:.2}, its perch's floor at {:.2}", bb.min.y, f.at.y);
+        assert!((bb.max.y - bb.min.y - hi).abs() < 0.02, "L{level}: drawn at its own height");
+        let mut meshes = 0;
+        f.body.traverse(&mut |o| {
+            if !o.is_mesh() {
+                return;
+            }
+            meshes += 1;
+            for m in o.mats() {
+                let m = m.r();
+                assert!(matches!(m.kind, MatKind::Lambert | MatKind::Phong | MatKind::Standard), "L{level}: lit by the place");
+                assert!(m.emissive_intensity * m.emissive.r.max(m.emissive.g).max(m.emissive.b) < 0.01, "L{level}: it glows");
+            }
+        });
+        assert_eq!(meshes, 1, "L{level}: one piece");
+    }
+}
+
 /// A figure standing when the siren starts turns its back and goes
 #[test]
 fn the_figure_goes_when_the_siren_starts() {
