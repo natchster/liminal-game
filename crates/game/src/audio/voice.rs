@@ -111,6 +111,8 @@ pub fn decode(bytes: &[u8]) -> Option<(f64, Vec<f32>)> {
 
 /// A cry soon after the last (seconds): it is the loudest he has
 pub const CRY_AGAIN: f64 = 45.0;
+/// Whose lines a cry is: yours
+pub const CRY_PERSONA: &str = "you";
 const CRY_SALT: u64 = 0xC4_7F09_2B51_D3E1;
 
 /// The line a cry is, on `level`: the loudest one for the level if you
@@ -119,7 +121,8 @@ const CRY_SALT: u64 = 0xC4_7F09_2B51_D3E1;
 /// last. Chosen by the run's seed, the level and the cry's number in the
 /// run (`nth`), from a stream of its own.
 pub fn choose_cry(level: i32, run_seed: u32, nth: u32, on_floor: u32, since_last: Option<f64>, last: Option<&str>) -> Option<Line> {
-    let mut here: Vec<Line> = lines().into_iter().filter(|l| l.use_ == "cry" && l.first <= level && level <= l.last).collect();
+    let mut here: Vec<Line> =
+        lines().into_iter().filter(|l| l.persona == CRY_PERSONA && l.use_ == "cry" && l.first <= level && level <= l.last).collect();
     if here.is_empty() {
         return None;
     }
@@ -180,9 +183,15 @@ mod tests {
             assert!(a.first <= level && level <= a.last);
             assert_eq!(Some(a.clone()), choose_cry(level, 4242, 3, 0, None, None), "the same run, the same cry");
             assert!(a.intensity < 1.0, "a first cry is not the scream");
-            // cried again soon after: the loudest for the level
+            // cried again soon after: the loudest of yours for the level
             let again = choose_cry(level, 4242, 4, 1, Some(10.0), Some(&a.id)).unwrap();
-            assert_eq!(again.id, "help_scream");
+            let loudest = lines()
+                .into_iter()
+                .filter(|l| l.persona == CRY_PERSONA && l.use_ == "cry" && l.first <= level && level <= l.last)
+                .map(|l| l.intensity)
+                .fold(0.0, f64::max);
+            assert_eq!(again.intensity, loudest, "level {level}: {}", again.id);
+            assert_eq!(again.persona, CRY_PERSONA);
             // never the one said last
             let next = choose_cry(level, 4242, 4, 1, Some(120.0), Some(&a.id)).unwrap();
             assert_ne!(next.id, a.id, "level {level}");

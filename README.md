@@ -36,6 +36,26 @@ to her last camp on level 13, and on (`docs/GAMEPLAY.md`).
   nothing at all), and its wallpaper, grime and darkness change at its
   walls.
 
+## Built with agents, and their tooling built with the game
+
+The game is developed with coding agents (Claude Code), and the tooling
+they work with is part of the project and grows with it (`docs/AGENTS.md`):
+
+- **Custom skills** for each kind of content the game has (zones, props,
+  creatures, anomalies, sounds, pacing, voices, re-recording, the weekly
+  drift sweep), each ending in the game's own gates and evidence;
+- **Custom reviewers**, read-only agents that see one kind of evidence
+  each (an art critic on blind A/B frames, a lore keeper, a level analyst,
+  an audio analyst, a code reviewer), calibrated on known answers and on
+  people's verdicts;
+- **Hooks and rules** that hold the game's invariants (determinism,
+  recorded fixtures changed only by re-recording, edits kept inside the
+  repository, the quick check before an agent stops);
+- `CLAUDE.md`, the map an agent reads first.
+
+When a mistake happens twice it becomes a rule, a lint, a test or a skill
+step; a new system gets its skill when it is built.
+
 ## Requirements
 
 - A Mac with Apple Silicon (arm64), macOS 12 or newer.

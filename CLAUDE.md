@@ -21,6 +21,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/PROPS.md`](docs/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
 | [`docs/SECRETS.md`](docs/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
 | [`docs/VOICES.md`](docs/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, and the plan behind them |
+| [`docs/AGENTS.md`](docs/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
@@ -40,6 +41,12 @@ cargo xtask assets textures [--write]            # rebuild the Building's photog
 cargo xtask assets creatures [--write]           # rebuild the creatures' bodies in Blender (MakeHuman CC0 bodies), compare
 cargo xtask bench                                # performance vs docs/PERF.md, perf/history.csv and perf/creatures.csv (records a run)
 cargo xtask drift                                # every gate → docs/content.json passes, docs/QUALITY.md Latest sweep
+cargo xtask voice doctor [--smoke]               # the voice toolchain: uv, tools/voice/{synth,eval}, 14 pinned models, licences
+cargo xtask voice reference --persona P [--emotion E] --candidates N [--write]   # a persona's voice (and an emotion's) from its description
+cargo xtask voice build --persona P [--model M]  # every take of P's lines (text-to-speech on MLX), cleaned
+cargo xtask voice eval --persona P [--model M]   # words, emotion, tone of voice, voice: report.md and the gate
+cargo xtask voice write --persona P              # the chosen takes into crates/game/assets/voice/ and MANIFEST.json
+cargo xtask voice selftest                       # the evaluation against known answers
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -131,11 +138,19 @@ End the message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
 ## Skills and reviewers
 
+The skills, reviewers, rules and hooks are this project's own, written for
+the game and changed with it (`docs/AGENTS.md`): when the game grows a
+system, it grows a skill; when a mistake repeats, it becomes a check.
+
 Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
 `add-creature`, `add-anomaly`, `add-sound`, `tune-pacing`, `visual-review`,
-`drift-sweep` (weekly, in a fresh session: `cargo xtask drift`), and
-`regen-fixtures` (the only way to re-record; invoked by name). Each ends
-in its gates, evidence and a `docs/content.json` entry.
+`drift-sweep` (weekly, in a fresh session: `cargo xtask drift`),
+`regen-fixtures` (the only way to re-record; invoked by name), and the
+voices: `voice-persona` (who speaks: the persona, its reference voice),
+`voice-lines` (its lines, made, judged and into the game) and `voice-eval`
+(reading the evaluation, a bake-off, changing a threshold only through
+known answers). Each ends in its gates, evidence and a `docs/content.json`
+entry.
 
 Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from

@@ -118,17 +118,17 @@ pub fn reference(args: &[String]) -> Result<(), String> {
         })
         .collect();
     synthesize(&jobs, &dir.join("jobs.json"))?;
+    // each candidate judged with no emotion asked of it, against itself:
+    // what matters is its words, how natural it is and its pitch
     let text = p.voice("reference_text");
-    for seed in seed0..seed0 + n {
-        let wav = dir.join(format!("seed{seed}.wav"));
-        let o = uv_run("eval")
-            .arg(tools().join("evaluate.py"))
-            .args(["hear", "--text", &text])
-            .arg(&wav)
-            .output()
-            .map_err(|e| e.to_string())?;
-        println!("seed {seed}: {}\n  {}", wav.display(), String::from_utf8_lossy(&o.stdout).trim().replace('\n', "\n  "));
-    }
+    let takes: Vec<Value> = (seed0..seed0 + n)
+        .map(|seed| {
+            let wav = dir.join(format!("seed{seed}.wav"));
+            json!({"line": format!("seed{seed}"), "take": seed, "path": wav, "reference": wav, "text": text, "emotion": "", "intensity": 0.0})
+        })
+        .collect();
+    judge(&p, "reference", takes, &dir)?;
+    print_candidates(&dir, &["words", "pitch", "not_synthetic"])?;
     if flag(args, "--write") {
         let chosen = dir.join(format!("seed{seed0}.wav"));
         let item = json!({ "src": chosen, "dst": p.reference(), "lufs": -20.0, "peak": -1.0 });
@@ -137,6 +137,32 @@ pub fn reference(args: &[String]) -> Result<(), String> {
     } else {
         println!("listen, choose a seed, set voice.design_seed to it and run again with --write");
     }
+    Ok(())
+}
+
+/// The candidates of a reference as the evaluation judged them
+/// (`dir/report.json`): the measures to choose by, and which of the
+/// `checks` that matter for it each fails
+fn print_candidates(dir: &Path, checks: &[&str]) -> Result<(), String> {
+    let rep: Value =
+        serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
+    for t in rep["takes"].as_array().into_iter().flatten() {
+        let failed: Vec<&str> = checks.iter().copied().filter(|c| t["checks"][*c] == json!(false)).collect();
+        let f = |v: &Value| v.as_f64().map_or("-".to_string(), |x| format!("{x:.2}"));
+        println!(
+            "seed {}: synthetic {}, pitch {} Hz, HNR {} dB, arousal {}, voice {}, tone {}{}; words {:?}; fails {failed:?}",
+            t["take"],
+            f(&t["style"]["Speech synthesizer"]),
+            t["prosody"]["f0_median"],
+            f(&t["prosody"]["hnr_db"]),
+            f(&t["emotion"]["arousal"]),
+            f(&t["similarity"]),
+            f(&t["tone"]["margin"]),
+            if t["silent"] == json!(true) { ", silent" } else { "" },
+            t["words"]["whisper"].as_str().unwrap_or("")
+        );
+    }
+    println!("all of it: {}", dir.join("report.md").display());
     Ok(())
 }
 
@@ -181,8 +207,8 @@ fn line_ids(p: &Persona, args: &[String]) -> Vec<toml::Table> {
 
 pub fn model_arg(p: &Persona, args: &[String]) -> Result<String, String> {
     let m = opt(args, "--model").map(String::from).unwrap_or_else(|| p.voice("line_model"));
-    if !models()?.iter().any(|x| x.id == m && x.role == "synth") {
-        return Err(format!("{m} is not a synthesis model of tools/voice/models.toml"));
+    if !super::SPEAKERS.contains(&m.as_str()) {
+        return Err(format!("{m} cannot say a line: one of {:?}", super::SPEAKERS));
     }
     Ok(m)
 }
@@ -227,13 +253,23 @@ pub fn write(args: &[String]) -> Result<(), String> {
     let model = model_arg(&p, args)?;
     let dir = p.work().join(&model);
     let report: Option<Value> = std::fs::read_to_string(dir.join("report.json")).ok().and_then(|t| serde_json::from_str(&t).ok());
-    let forced: Option<i64> = opt(args, "--take").map(|v| v.parse().map_err(|_| "--take K")).transpose()?;
+    // `--take K` for every line, or `--take id=K,id2=K2` for some
+    let takes_given = opt(args, "--take").unwrap_or("");
+    let forced_all: Option<i64> = takes_given.parse().ok();
+    let mut forced_line = std::collections::HashMap::new();
+    for part in takes_given.split(',').filter(|p| p.contains('=')) {
+        let (id, k) = part.split_once('=').unwrap();
+        forced_line.insert(id.to_string(), k.parse::<i64>().map_err(|_| format!("--take {part}: id=K"))?);
+    }
+    if !takes_given.is_empty() && forced_all.is_none() && forced_line.is_empty() {
+        return Err("--take K, or --take id=K,…".into());
+    }
     let ms = models()?;
     let upstream = |id: &str| ms.iter().find(|m| m.id == id).and_then(|m| m.upstream.clone()).unwrap_or_default();
     let assets = root().join("crates/game/assets");
     for l in &p.lines {
         let id = s(l, "id").unwrap_or_default();
-        let take = match (forced, &report) {
+        let take = match (forced_line.get(&id).copied().or(forced_all), &report) {
             (Some(k), _) => k,
             (None, Some(r)) => r["lines"][&id]["chosen"]
                 .as_i64()
@@ -512,27 +548,44 @@ fn emotion_reference(p: &Persona, e: &str, args: &[String]) -> Result<(), String
         .map(|seed| json!({"line": format!("seed{seed}"), "take": seed, "path": dir.join(format!("seed{seed}.wav")), "text": text, "emotion": e, "intensity": 0.9}))
         .collect();
     judge(p, &format!("reference {e}"), takes, &dir)?;
-    let rep: Value =
-        serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
-    for t in rep["takes"].as_array().into_iter().flatten() {
-        let failed: Vec<&str> =
-            t["checks"].as_object().into_iter().flatten().filter(|(_, v)| v == &&json!(false)).map(|(c, _)| c.as_str()).collect();
-        println!(
-            "seed {}: arousal {:.2}, voice {:.2}, pitch {} Hz, tone {:+.3}, words {:?}; fails {failed:?}",
-            t["take"],
-            t["emotion"]["arousal"].as_f64().unwrap_or(f64::NAN),
-            t["similarity"].as_f64().unwrap_or(f64::NAN),
-            t["prosody"]["f0_median"],
-            t["tone"]["margin"].as_f64().unwrap_or(f64::NAN),
-            t["words"]["whisper"].as_str().unwrap_or("")
-        );
-    }
+    print_candidates(&dir, &["words", "emotion", "pitch", "tone", "voice", "not_synthetic"])?;
     if flag(args, "--write") {
         let chosen = dir.join(format!("seed{seed0}.wav"));
         std::fs::copy(&chosen, &path).map_err(|e| format!("{}: {e}", chosen.display()))?;
         println!("{}: the {e} reference (seed {seed0})", path.display());
     } else {
         println!("choose a seed, set references.{e}.seed to it and run again with --write");
+    }
+    Ok(())
+}
+
+/// `voice bakeoff`: the evaluation's reports for a persona side by side,
+/// one row a model that has one (`docs/VOICES.md`, *The bake-off*)
+pub fn bakeoff(args: &[String]) -> Result<(), String> {
+    let p = persona_arg(args)?;
+    println!("| Model | Lines with a passing take | Takes passing | Mean voice similarity | Checks failed |");
+    println!("|---|---|---|---|---|");
+    for m in super::SPEAKERS {
+        let Ok(text) = std::fs::read_to_string(p.work().join(m).join("report.json")) else { continue };
+        let rep: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+        let takes = rep["takes"].as_array().cloned().unwrap_or_default();
+        let lines = rep["lines"].as_object().map(|o| (o.values().filter(|v| !v["chosen"].is_null()).count(), o.len())).unwrap_or((0, 0));
+        let passing = takes.iter().filter(|t| t["passes"] == json!(true)).count();
+        let sim = takes.iter().filter_map(|t| t["similarity"].as_f64()).sum::<f64>() / takes.len().max(1) as f64;
+        let mut fails: Vec<(String, usize)> = vec![];
+        for t in &takes {
+            for (c, v) in t["checks"].as_object().into_iter().flatten() {
+                if v == &json!(false) {
+                    match fails.iter_mut().find(|(k, _)| k == c) {
+                        Some((_, n)) => *n += 1,
+                        None => fails.push((c.clone(), 1)),
+                    }
+                }
+            }
+        }
+        fails.sort_by(|a, b| b.1.cmp(&a.1));
+        let fails: Vec<String> = fails.iter().map(|(c, n)| format!("{c} {n}")).collect();
+        println!("| {m} | {}/{} | {passing}/{} | {sim:.2} | {} |", lines.0, lines.1, takes.len(), fails.join(", "));
     }
     Ok(())
 }

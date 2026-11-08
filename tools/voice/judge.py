@@ -296,10 +296,19 @@ def judge_take(t, persona, reference):
     from evaluate import hear
 
     tg = persona["targets"]
+    reference = t.get("reference") or reference
     r = {"line": t["line"], "take": t["take"], "path": t["path"]}
+    # a take the model left (nearly) silent
+    a = load(t["path"], 16000)
+    r["silent"] = bool(len(a) == 0 or float(np.abs(a).max()) < 0.02)
     words = hear(t["path"], t["text"])
     r["words"] = {k: words[k] for k in ("whisper", "parakeet", "wer", "wer_parakeet", "disagree")}
-    r["emotion"] = emotion(t["path"], t["emotion"], float(t["intensity"]))
+    if t.get("emotion"):
+        r["emotion"] = emotion(t["path"], t["emotion"], float(t["intensity"]))
+    else:
+        # a persona's calm reference: no emotion asked of it
+        dims = wavlm_dimensions(t["path"])
+        r["emotion"] = {"score": 0.0, "ok": True, "classes": 0.0, "arousal": round(dims.get("arousal", float("nan")), 3), "arousal_wanted": None, "valence": round(dims.get("valence", float("nan")), 3), "emotion2vec": {}, "wavlm": {}}
     r["prosody"] = prosody(t["path"], words["words"])
     r["tone"] = tone(t["path"], persona["tone"]["like"], persona["tone"]["never"])
     r["style"] = style(t["path"])
@@ -359,17 +368,23 @@ def report(job):
 def markdown(rep):
     """The report for people: a line a take, the chosen ones marked"""
     rows = [f"# Voice report: {rep['persona']} ({rep.get('model')})", "", f"Reference: `{rep['reference']}`. Gate: **{'passes' if rep['passes'] else 'FAILS'}**.", ""]
-    rows.append("| line | take | words (WER) | emotion | arousal (wanted) | pitch Hz | tone margin | voice | synth? | passes |")
-    rows.append("|---|---|---|---|---|---|---|---|---|---|")
+    rows.append("| line | take | words: WER (Parakeet's) and what Whisper heard | emotion: arousal (wanted), valence; score | pitch Hz | tone margin (nearest never) | voice | synth? | passes |")
+    rows.append("|---|---|---|---|---|---|---|---|---|")
+    num = lambda v, f: "-" if v is None else format(v, f)  # noqa: E731
     for r in rep["takes"]:
         chosen = rep["lines"][r["line"]]["chosen"] == r["take"]
-        c = r["checks"]
+        c, e = r["checks"], r["emotion"]
         mark = lambda ok: "" if ok else " ✗"  # noqa: E731
         rows.append(
-            f"| {r['line']}{' ★' if chosen else ''} | {r['take']} | {r['words']['wer']:.2f}{mark(c['words'])} \"{r['words']['whisper']}\" "
-            f"| {r['emotion']['score']:.2f}{mark(c['emotion'])} | {r['emotion']['arousal']:.2f} ({r['emotion']['arousal_wanted']:.2f}) "
-            f"| {r['prosody'].get('f0_median', '-')}{mark(c['pitch'])} | {r['tone']['margin']:+.3f}{mark(c['tone'])} | {r['similarity']:.2f}{mark(c['voice'])} "
-            f"| {r['style'].get('Speech synthesizer', 0):.2f}{mark(c['not_synthetic'])} | {'yes' if r['passes'] else 'no'} |"
+            f"| {r['line']}{' ★' if chosen else ''} | {r['take']}{' (silent)' if r.get('silent') else ''} "
+            f"| {r['words']['wer']:.2f} ({r['words']['wer_parakeet']:.2f}){mark(c['words'])} \"{r['words']['whisper']}\" "
+            f"| {num(e['arousal'], '.2f')} ({num(e['arousal_wanted'], '.2f')}), {num(e['valence'], '.2f')}{mark(c['emotion'])}; {e['score']:.2f} "
+            f"| {r['prosody'].get('f0_median', '-')}{mark(c['pitch'])} | {r['tone']['margin']:+.3f}{mark(c['tone'])} ({r['tone']['nearest_never']}) "
+            f"| {r['similarity']:.2f}{mark(c['voice'])} | {r['style'].get('Speech synthesizer', 0):.2f}{mark(c['not_synthetic'])} | {'yes' if r['passes'] else 'no'} |"
         )
-    rows += ["", "★ chosen. The machine screens; a person makes the last choice by ear (docs/PLAYTEST.md)."]
+    rows += [
+        "",
+        "★ chosen (the best score among the takes that pass). ✗ marks the check that failed: the emotion's is arousal and valence, never the score, which only ranks.",
+        "The machine screens; a person makes the last choice by ear (docs/PLAYTEST.md).",
+    ]
     return "\n".join(rows) + "\n"

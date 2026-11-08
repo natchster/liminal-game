@@ -18,9 +18,12 @@
   invariants, definition of done); `.claude/rules/*.md` hold rules that load
   only when files under their `paths:` are touched. Keep both short, and move
   a rule into a test or lint when it can be checked mechanically.
-* **Skills and reviewers.** `.claude/skills/<name>/SKILL.md` are the
-  content playbooks (zones, props, creatures, anomalies, sounds, pacing,
-  blind visual review, re-recording); `.claude/agents/*.md` are read-only
+* **Skills and reviewers** (the inventory: `docs/AGENTS.md`; all written
+  for this game and changed with it). `.claude/skills/<name>/SKILL.md` are
+  the content playbooks (zones, props, creatures, anomalies, sounds, pacing,
+  voices, blind visual review, re-recording, the drift sweep); a new one is
+  followed end to end by a fresh agent before it is committed;
+  `.claude/agents/*.md` are read-only
   reviewers (`art-critic` with a checked-in memory of people's verdicts in
   `.claude/agent-memory/art-critic/`, `lore-keeper`, `level-analyst`,
   `audio-analyst`, `code-reviewer`). `tests/structure.rs` checks that the

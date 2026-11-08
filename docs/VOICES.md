@@ -287,6 +287,7 @@ emotion control is promised more than it is measured).
 | V4 | done: the six checks, `voice eval` (report and gate) and `voice selftest` (seven known answers, all right) |
 | V5 | done: the bake-off (four models, forty takes each); Chatterbox chosen; his terror cloned from a reference of its own |
 | V6, V8 | done: the ten lines in the game (Chatterbox, the evaluation's chosen takes), `say_cry` in place of `sfx_cry` (its fallback), the cry heard 25.9 dB over the room without clipping; the profile here and in `LORE.md`; the playtest's questions |
+| V7 | done: the skills `voice-persona`, `voice-lines`, `voice-eval` and `CLAUDE.md`'s commands; followed end to end by a fresh agent, whose findings were fixed in the skills and the code (`voice bakeoff`; references judged; `--take id=K`; only models that speak; the cry keeps to your lines; the report shows Parakeet, valence, the nearest *never*, silence) |
 
 ## Personas
 

@@ -15,17 +15,20 @@ use crate::{flag, opt, root};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|eval|selftest|write> …
+const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|eval|bakeoff|selftest|write> …
   doctor [--smoke]          uv, the two environments, every model in the cache at its
                             pinned revision, each synthesis model's licence kept and
                             allowed in MANIFEST.json; --smoke also says a sentence and
                             hears it back
   fetch [--only ID,…]       download the models of tools/voice/models.toml
-  reference --persona P [--candidates N] [--write]
+  reference --persona P [--emotion E] [--candidates N] [--write]
                             candidates for P's voice from its description (seeds
-                            design_seed on), each heard back; --write keeps the
-                            design_seed one as assets/src/voice/personas/P.wav
+                            design_seed on), each judged; --write keeps the
+                            design_seed one as assets/src/voice/personas/P.wav.
+                            --emotion E: candidates for E's reference, cloned from
+                            P's voice ([references.E]; personas/P.E.wav)
   build --persona P [--model M] [--only LINE,…]
+                            M: voxcpm2, qwen3-tts-voicedesign, chatterbox, ming-tts;
                             every take of P's lines, raw then cleaned, into
                             target/voice/P/M/<line>/take<k>.wav
   eval --persona P [--model M]
@@ -35,7 +38,8 @@ const USAGE: &str = "usage: cargo xtask voice <doctor|fetch|reference|build|eval
   selftest [--persona you]  the evaluation against known answers: wrong words, a calm
                             read of a terrified line, two other voices must fail
                             their check; three good takes must pass
-  write --persona P [--model M] [--take K]
+  bakeoff --persona P       the reports of every model side by side (a table)
+  write --persona P [--model M] [--take K | --take LINE=K,…]
                             each line's chosen take (the evaluation's, or take K)
                             into crates/game/assets/voice/P/ and MANIFEST.json";
 
@@ -49,6 +53,7 @@ pub fn voice(args: &[String]) -> Result<(), String> {
         Some("write") => pipeline::write(rest),
         Some("eval") => pipeline::eval(rest),
         Some("selftest") => pipeline::selftest(rest),
+        Some("bakeoff") => pipeline::bakeoff(rest),
         _ => Err(USAGE.into()),
     }
 }
@@ -363,6 +368,14 @@ const LINE: &[(&str, Kind, bool)] = &[
 /// Where the game plays a voice line (`use`)
 pub const USES: &[&str] = &["cry"];
 
+/// The synthesis models that say a line (`synth.py`'s); s3tokenizer is a
+/// part of Chatterbox, not one
+pub const SPEAKERS: &[&str] = &["voxcpm2", "qwen3-tts-voicedesign", "chatterbox", "ming-tts"];
+/// The ones that design a voice from a description (a persona's reference)
+pub const DESIGNERS: &[&str] = &["qwen3-tts-voicedesign", "voxcpm2"];
+/// The ones that clone a voice (an emotional reference)
+pub const CLONERS: &[&str] = &["voxcpm2", "chatterbox", "ming-tts"];
+
 fn kind_ok(v: &toml::Value, k: Kind) -> bool {
     let num = |v: &toml::Value| v.as_float().is_some() || v.as_integer().is_some();
     match k {
@@ -475,10 +488,10 @@ pub fn check_sources() -> Vec<String> {
             problems.push(format!("{what}: id must be its file's name, {stem}"));
         }
         let voice = t.get("voice").and_then(|v| v.as_table());
-        for k in ["design_model", "line_model"] {
+        for (k, can) in [("design_model", DESIGNERS), ("line_model", SPEAKERS)] {
             if let Some(m) = voice.and_then(|v| s(v, k)) {
-                if !synth.contains(&m) {
-                    problems.push(format!("{what}: voice.{k} {m} is not a synthesis model of tools/voice/models.toml"));
+                if !synth.contains(&m) || !can.contains(&m.as_str()) {
+                    problems.push(format!("{what}: voice.{k} {m} is not one of {can:?}"));
                 }
             }
         }
@@ -513,8 +526,8 @@ pub fn check_sources() -> Vec<String> {
             };
             check_fields(r, REFERENCE, &what, &mut problems);
             if let Some(m) = s(r, "model") {
-                if !synth.contains(&m) {
-                    problems.push(format!("{what}: model {m} is not a synthesis model"));
+                if !synth.contains(&m) || !CLONERS.contains(&m.as_str()) {
+                    problems.push(format!("{what}: model {m} is not one of {CLONERS:?} (it clones the persona's voice)"));
                 }
             }
         }

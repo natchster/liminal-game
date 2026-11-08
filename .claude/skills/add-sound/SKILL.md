@@ -15,7 +15,10 @@ tell whether it sounds right. Plan for that from the start.
    occlude, f)`, never panned relative to the player.
 2. **Synthesis** (`crates/game/src/audio/sys.rs`, the node graph in
    `crates/engine/src/audio.rs`): build it from oscillators, noise, filters
-   and envelopes; no samples. Describe in a comment what it imitates.
+   and envelopes; no samples. Describe in a comment what it imitates. A
+   spoken line is the one exception: it comes from the voice pipeline
+   (`voice-persona`, `voice-lines` skills; `docs/VOICES.md`), never
+   synthesized by hand and never a recording of a person.
 3. **Carry and rhythm.** A signature or ambient event needs its `sig_carry`
    entry (near / far / reference distance / gain) and its cadence; per-level
    choices that must not shift the build use `SplitMix64` with a salt. The
