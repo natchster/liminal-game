@@ -54,3 +54,10 @@ Three more were gathered on 2026-10-31 for the props
 | [`barricades.md`](barricades.md) | How the barricades are chosen, built and collide; how much of an opening they fill (measured: half stand in open floor; a pile fills a third of a corridor's width); how real ones are built (FEMA's board-up procedure, construction hoarding, furniture piles; lumber, plywood, desks, cabinets, pallets, shelving, mattresses, doors at their real sizes); what the canon says; five kinds by purpose, the code (collision, sight, paths, the sweep, the draws kept) and the Blender parts |
 | [`props-interactions.md`](props-interactions.md) | Every verb the game has, where and how often; the interactions that break the canon now; the rules a new one must keep, each with its source; the props on every floor with no verb; fifteen proposals ranked, each with its verb, what it gives, its sound, the lines of `LORE.md` it touches and its cost; what not to do |
 
+
+One more was gathered on 2026-11-08 for the voices
+([`../VOICES.md`](../VOICES.md)):
+
+| Note | What it covers |
+|---|---|
+| [`voice-tts.md`](voice-tts.md) | Text-to-speech models that run on a 64 GB Apple Silicon Mac, each with its code and weights licence (the gate: what it makes may be sold), size, Mac support and speed, emotion and intensity control, nonverbals, voice design and cloning; the excluded ones and why (non-commercial weights, Llama terms, an audible disclaimer); the independent evidence (and its absence for emotion); English pronunciation; the evaluation stack (speech recognition, emotion recognition, AudioSet's nonverbal labels, speaker similarity, prosody); the Python environments; the risks |

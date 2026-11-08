@@ -20,6 +20,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/WINDOWS.md`](docs/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass, and the plan behind them |
 | [`docs/PROPS.md`](docs/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
 | [`docs/SECRETS.md`](docs/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
+| [`docs/VOICES.md`](docs/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, and the plan behind them |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
