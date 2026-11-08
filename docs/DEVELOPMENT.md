@@ -251,7 +251,11 @@ Levels must be a pure function of `(run_seed, level)`:
   close calls and deaths). It seeds the native stream from each level's
   seed, so a run is the same each time; `PACING_NATIVE=k` shifts it to see
   the spread, and `PACING_DEBUG=1` prints each creature's last mode
-  changes and the director's log.
+  changes and the director's log. On the Building's floors
+  (`the_building_paces_its_floors`) a bot crosses each floor to its door at
+  the playthrough's pace and shelters in the nearest cell at each siren:
+  the log has the self-assembly's phases, when the door was reached and
+  how many sirens a floor met on the way.
 * **Nothing automated sounds through the speakers.** A test makes its
   context with `AudioContext::new_silent()` (real time, nothing heard) or
   `new_offline()` (rendered on demand), never `AudioContext::new()`; a test

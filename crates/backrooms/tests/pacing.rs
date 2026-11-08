@@ -8,8 +8,16 @@
 //!   withdrawal (a close call survived), not only death;
 //! * the quiet and the relief between peaks stay within their lengths.
 //!
+//! On the Building's floors (levels 1–3) nothing walks: the director runs
+//! the self-assembly (`game::world::assembly`). There a bot crosses each
+//! floor to its door at the playthrough's pace (walking, sprinting while it
+//! has the breath) and, when the siren sounds, goes to the nearest cell,
+//! turns the wheel, waits for the all-clear and walks on: the phases are
+//! logged, with how many sirens a floor meets on the way down.
+//!
 //!   cargo test --release -p backrooms --test pacing -- --nocapture
 use game::entities::director::Phase;
+use game::world::assembly::{Stage, CREST, QUIET, WARNING};
 use game::Game;
 
 fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
@@ -277,4 +285,215 @@ fn the_director_paces_a_level() {
     assert!(logs.iter().map(|l| l.peaks).sum::<u32>() >= 4, "something reaches you");
     assert!(logs.iter().map(|l| l.survived).sum::<u32>() >= 2, "keeping away is rewarded: close calls survived");
     assert!(logs.iter().map(|l| l.withdrawals).sum::<u32>() >= 1, "the director calls a hunt off");
+}
+
+/// A floor of the Building crossed: the phases, the sirens met before the
+/// door, and how the bot fared. At the door in a quiet it stays on the
+/// floor, waiting each siren out in a cell (the log goes on); at the door
+/// with the siren sounding, it goes through.
+#[derive(Default, Debug)]
+struct Crossing {
+    spans: Vec<(Phase, f64)>,
+    /// seconds into the floor the door was reached (None: it was not)
+    door_at: Option<f64>,
+    /// seconds of it spent walking (not sealed in or waiting)
+    walked: f64,
+    /// when each siren began, and how long after it the bot was sealed in
+    sirens: Vec<f64>,
+    sealed_after: Vec<f64>,
+    deaths: u32,
+}
+impl Crossing {
+    /// the sirens that began before the door was reached
+    fn met(&self) -> usize {
+        self.sirens.iter().filter(|&&s| self.door_at.is_none_or(|d| s < d)).count()
+    }
+}
+
+/// The way over the floor's open tiles from (x, z) to `to` (tile centres)
+fn tile_way(g: &Game, from: (i32, i32), to: (i32, i32)) -> Option<Vec<(i32, i32)>> {
+    let (w, h) = (g.w, g.h);
+    let mut prev = vec![None; (w * h) as usize];
+    let idx = |x: i32, z: i32| (z * w + x) as usize;
+    prev[idx(from.0, from.1)] = Some(from);
+    let mut q = std::collections::VecDeque::from([from]);
+    while let Some((x, z)) = q.pop_front() {
+        if (x, z) == to {
+            break;
+        }
+        for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+            let (nx, nz) = (x + dx, z + dz);
+            if nx >= 0 && nz >= 0 && nx < w && nz < h && g.tiles[idx(nx, nz)] == 0 && prev[idx(nx, nz)].is_none() {
+                prev[idx(nx, nz)] = Some((x, z));
+                q.push_back((nx, nz));
+            }
+        }
+    }
+    prev[idx(to.0, to.1)]?;
+    let mut way = vec![to];
+    let mut c = to;
+    while c != from {
+        c = prev[idx(c.0, c.1)]?;
+        way.push(c);
+    }
+    way.reverse();
+    Some(way)
+}
+
+/// One step toward the centre of tile `t`: true once there
+fn walk_toward(g: &mut Game, t: (i32, i32)) -> bool {
+    let (tx, tz) = (g.wx(t.0), g.wz(t.1));
+    let (dx, dz) = (tx - g.player.pos.x, tz - g.player.pos.z);
+    if dx.hypot(dz) < 0.4 {
+        return true;
+    }
+    g.player.yaw = (-dx).atan2(-dz);
+    g.player.pitch = 0.0;
+    key(g, "KeyW", true);
+    // (as the playthrough's bot: a sprint while there is the breath for it)
+    key(g, "ShiftLeft", g.player.stamina > 25.0);
+    false
+}
+
+fn cross_floor(seed: u32, level: i32, secs: f64) -> Crossing {
+    let shift: u64 = std::env::var("PACING_NATIVE").ok().and_then(|v| v.parse().ok()).unwrap_or(0);
+    game::base::rng::seed_native(u64::from(seed) * 31 + level as u64 + shift * 1_000_003);
+    let mut g = Game::new_bare();
+    register_placers(&mut g.placers);
+    g.launch_flags = format!("seed={seed}&level={level}&nosound");
+    g.boot();
+    g.start_new_game();
+    assert!(g.building.is_some(), "seed {seed} L{level}: a floor of the Building");
+    let plan = g.building.clone().unwrap();
+    let mut c = Crossing::default();
+    let (mut phase, mut since) = (g.director.phase, 0.0);
+    let (mut t, mut stage) = (0.0, g.assembly.stage);
+    // what the bot is doing: walking to the door, to a cell, sealed in
+    let mut sealed: Option<usize> = None;
+    let mut to_cell: Option<usize> = None;
+    let mut way: Vec<(i32, i32)> = vec![];
+    let mut at = 0usize;
+    let mut stuck = 0usize;
+    let here = |g: &Game| (g.tx(g.player.pos.x), g.tz(g.player.pos.z));
+    for _ in 0..(secs * 60.0) as usize {
+        for k in ["KeyW", "ShiftLeft"] {
+            key(&mut g, k, false);
+        }
+        // the siren: to the nearest cell, unless the door is nearer (once
+        // there, it waits each one out in a cell: the log goes on)
+        if g.assembly.stage == Stage::Siren && stage == Stage::Quiet {
+            c.sirens.push(t);
+            let from = here(&g);
+            let door = if c.door_at.is_some() { usize::MAX } else { tile_way(&g, from, plan.exit).map_or(usize::MAX, |w| w.len()) };
+            let near = plan
+                .cells
+                .iter()
+                .enumerate()
+                .filter_map(|(i, cl)| tile_way(&g, from, cl.tile).map(|w| (w.len(), i, w)))
+                .min_by_key(|(n, i, _)| (*n, *i));
+            if let Some((n, i, w)) = near.filter(|n| n.0 < door) {
+                let _ = n;
+                to_cell = Some(i);
+                way = w;
+                at = 0;
+            }
+        }
+        // the all-clear: out, and on to the door
+        if let (Some(i), Stage::Quiet) = (sealed, g.assembly.stage) {
+            g.turn_cell_wheel(i, false);
+            sealed = None;
+            way.clear();
+        }
+        stage = g.assembly.stage;
+        if sealed.is_none() && (c.door_at.is_none() || to_cell.is_some()) {
+            if way.is_empty() {
+                way = tile_way(&g, here(&g), plan.exit).unwrap_or_default();
+                at = 0;
+            }
+            while at < way.len() && walk_toward(&mut g, way[at]) {
+                at += 1;
+                stuck = 0;
+            }
+            if at < way.len() {
+                if c.door_at.is_none() {
+                    c.walked += 1.0 / 60.0;
+                }
+                stuck += 1;
+                assert!(stuck < 60 * 8, "seed {seed} L{level}: stuck at {:?} on the way to {:?}", here(&g), way[at]);
+            } else if let Some(i) = to_cell.take() {
+                // in the cell: the wheel turned
+                g.turn_cell_wheel(i, true);
+                sealed = Some(i);
+                c.sealed_after.push(t - c.sirens.last().copied().unwrap_or(t));
+                way.clear();
+            } else {
+                c.door_at = Some(t);
+                way.clear();
+                // the siren sounding, through the door and down: the floor is left
+                if g.assembly.up() {
+                    break;
+                }
+            }
+        }
+        g.now_ms += 1000.0 / 60.0;
+        g.fixed_step_dt = 1.0 / 60.0;
+        g.frame(1.0 / 60.0);
+        g.fixed_step_dt = 0.0;
+        t += 1.0 / 60.0;
+        if g.state == "dead" {
+            c.deaths += 1;
+            break;
+        }
+        if g.director.phase != phase {
+            c.spans.push((phase, t - since));
+            phase = g.director.phase;
+            since = t;
+        }
+    }
+    c.spans.push((phase, t - since));
+    c
+}
+
+#[test]
+fn the_building_paces_its_floors() {
+    // the floors of the rooms' runs above, crossed for five minutes (the
+    // log goes on past the door: how the event comes again)
+    let mut runs = vec![];
+    for seed in [4242u32, 77, 9001, 31337] {
+        for level in 1..=3 {
+            let c = cross_floor(seed, level, 300.0);
+            let spans: Vec<String> = c.spans.iter().map(|(p, s)| format!("{} {s:.0}s", p.name())).collect();
+            println!(
+                "seed {seed} L{level}: the door at {} s ({:.0} s walked), {} siren(s) met on the way (at {:?} s; sealed in {:?} s after it), {} deaths\n  {}",
+                c.door_at.map_or("-".into(), |d| format!("{d:.0}")),
+                c.walked,
+                c.met(),
+                c.sirens.iter().map(|s| s.round()).collect::<Vec<_>>(),
+                c.sealed_after.iter().map(|s| (s * 10.0).round() / 10.0).collect::<Vec<_>>(),
+                c.deaths,
+                spans.join(" → ")
+            );
+            runs.push((seed, level, c));
+        }
+    }
+    let met = runs.iter().filter(|r| r.2.met() > 0).count();
+    println!("{met} of {} floors met a siren on the way to the door", runs.len());
+    for (seed, level, c) in &runs {
+        assert_eq!(c.deaths, 0, "seed {seed} L{level}: a cell is always in reach of the warning");
+        assert!(c.door_at.is_some(), "seed {seed} L{level}: the door was not reached");
+        for s in &c.sealed_after {
+            assert!(*s < WARNING, "seed {seed} L{level}: sealed in {s:.1} s after the siren (the warning is {WARNING} s)");
+        }
+        // the quiets between two, the siren, and the fog's stay, in their lengths
+        for (p, s) in &c.spans[1..c.spans.len().saturating_sub(1)] {
+            match p {
+                Phase::Calm => assert!(*s >= QUIET.0 - 1.0 && *s <= QUIET.1 + 1.0, "seed {seed} L{level}: a quiet of {s:.0} s"),
+                Phase::Build => assert!((s - WARNING).abs() < 1.0, "seed {seed} L{level}: a siren of {s:.0} s"),
+                Phase::Peak => assert!(*s >= CREST.0 && *s <= 60.0, "seed {seed} L{level}: the fog up {s:.0} s"),
+                _ => {}
+            }
+        }
+    }
+    // at the bot's pace, most floors meet a siren before their door
+    assert!(met * 4 >= runs.len() * 3, "{met} of {} floors met a siren on the way to the door", runs.len());
 }

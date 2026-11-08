@@ -26,6 +26,7 @@ const MAX_ERRORS: usize = 20;
 /// suite's run): the full check runs them, `--fast` does not.
 const FAST_SKIP: &[&str] = &[
     "the_director_paces_a_level",
+    "the_building_paces_its_floors",
     "playthrough_from_new_game",
     "a_level_opens_quietly",
     "signatures_are_heard",

@@ -175,9 +175,11 @@ backs the threat off after a peak; build-up, peak and relax phases):
 On the Building's floors nothing walks: the director runs the
 **self-assembly** there instead (`world::assembly`), in the same phases,
 so the log reads alike: calm (the quiet), build (the siren from the
-loudspeakers, the fog rising from far below toward the lowest walk in 42
-s), peak (the fog among the walks, then at its crest), relax (it sinks;
-the all-clear). Out in it the mind drains and you die (`assembly`);
+loudspeakers, the fog rising from far below toward the lowest walk in 21
+s), peak (the fog among the walks at 1.2 m/s, then at its crest for
+7.5–11 s), relax (it sinks at 2.4 m/s; the all-clear), and calm again for
+37–58 s (the first quiet on a floor 47–65 s, on the first floor 60–80 s
+while her camp is there to find). Out in it the mind drains and you die (`assembly`);
 sealed in a cell (its hermetic door shut by its wheel) you are safe. The
 lamps under its surface go out, and with your eyes under it the fog is
 what you see (the camera is in that place). Her page sounds the siren.

@@ -100,7 +100,9 @@ name the siren's meaning, the cells, the fog or the figure first):
 - Did finding the way down feel like a puzzle or a chore? Where were you
   lost, and did you mind?
 - What did you do when the siren went, the first time? What did you think
-  it meant? What made you think so?
+  it meant? What made you think so? Did you get where you were going in
+  time, and was it close? (Since G2 the siren sounds 21 s before anything
+  comes; ask this one only after they have said what they did.)
 - What was it like to wait in the little room while something knocked?
   Too long, too short? Did you open the door?
 - Did you see anyone up there? (Only if they say yes: where, what did it

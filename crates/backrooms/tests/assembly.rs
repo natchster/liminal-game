@@ -2,13 +2,14 @@
 //! B5; `game::world::assembly`): the siren before the fog, the fog rising
 //! out of the void and sinking again in the director's phases, a sealed
 //! cell keeps it out, out in it you are gone, her page sounds the siren,
-//! and every floor tile has a cell within reach of the warning at a walk.
+//! and every floor tile has a cell within reach of the warning at a walk
+//! (G2: each of these half as long as the first pass's).
 mod common;
 
 use game::base::config::{CELL, EYE, WALK};
 use game::entities::director::Phase;
 use game::level::building::CELL_REACH;
-use game::world::assembly::{Stage, WARNING};
+use game::world::assembly::{Stage, FIRST_FLOOR_QUIET, FIRST_QUIET, PAGE_WAKE, QUIET, WARNING};
 use game::Game;
 
 const DT: f64 = 1.0 / 60.0;
@@ -128,9 +129,9 @@ fn her_page_sounds_the_siren() {
     for level in 1..=3 {
         let mut g = floor(4242, level);
         assert_eq!(g.assembly.stage, Stage::Quiet);
-        assert!(g.assembly.t > 60.0, "level {level}: a long quiet first ({:.0} s)", g.assembly.t);
+        assert!(g.assembly.t >= FIRST_QUIET.0 - 1e-9, "level {level}: a long quiet first ({:.0} s)", g.assembly.t);
         g.take_page();
-        step(&mut g, 9.5);
+        step(&mut g, PAGE_WAKE.1 + 0.5);
         assert!(g.assembly.stage == Stage::Siren, "level {level}: the siren within seconds of her page ({:?})", g.assembly.stage);
     }
 }
@@ -138,9 +139,20 @@ fn her_page_sounds_the_siren() {
 #[test]
 fn a_cell_is_in_reach_of_the_warning() {
     // the farthest any floor tile is from a cell, at a walk, inside the
-    // siren's warning (before the fog reaches even the lowest walk)
-    let walk_s = CELL_REACH as f64 * CELL / WALK;
-    assert!(walk_s * 1.5 < WARNING, "{walk_s:.0} s to the farthest cell at a walk, {WARNING:.0} s of warning");
+    // siren's warning (before the fog reaches even the lowest walk), with
+    // half as long again to spare
+    let walk_s = |tiles: i32| tiles as f64 * CELL / WALK;
+    assert!(walk_s(CELL_REACH) * 1.5 < WARNING, "{:.0} s to the farthest cell at a walk, {WARNING:.0} s of warning", walk_s(CELL_REACH));
+    // and `CELL_REACH` follows the warning: what is walked in 0.43 of it
+    // (the first pass's 16 tiles were 17.8 s of 42 at a walk; G2's 8 are
+    // 8.9 s of 21)
+    const SHARE: f64 = 0.43;
+    assert!(
+        walk_s(CELL_REACH) <= SHARE * WARNING && walk_s(CELL_REACH + 1) > SHARE * WARNING,
+        "CELL_REACH {CELL_REACH} tiles ({:.1} s at a walk) should be what is walked in {SHARE} of the {WARNING} s warning ({:.1} s)",
+        walk_s(CELL_REACH),
+        SHARE * WARNING
+    );
     for level in 1..=3 {
         for seed in [4242u32, 7, 77, 1999] {
             let (l, p) = game::base::rng::with_seed(game::base::rng::seed_for_level(seed, level), || {
@@ -152,10 +164,11 @@ fn a_cell_is_in_reach_of_the_warning() {
     }
 }
 
-/// The Building's floors paced: on each, twelve minutes standing sealed in
-/// the first cell. The first siren comes within two and a half minutes (the
-/// first floor waits longer for her camp to be found), the quiet between
-/// two is long, and the fog comes again. A log, like `tests/pacing.rs`'s.
+/// The Building's floors paced: on each, six minutes standing sealed in
+/// the first cell. The first siren comes within its first quiet (the first
+/// floor waits longer for her camp to be found), the quiet between two is
+/// in its length, and the fog comes again. A log, like `tests/pacing.rs`'s
+/// (which crosses the floors).
 #[test]
 fn the_building_paces_a_floor() {
     for level in 1..=3 {
@@ -166,7 +179,7 @@ fn the_building_paces_a_floor() {
         g.turn_cell_wheel(0, true);
         let mut spans: Vec<(Phase, f64)> = vec![(g.director.phase, 0.0)];
         let (mut first_siren, mut t) = (None, 0.0);
-        for _ in 0..(720.0 / 0.5) as usize {
+        for _ in 0..(360.0 / 0.5) as usize {
             step(&mut g, 0.5);
             t += 0.5;
             if g.assembly.stage == Stage::Siren && first_siren.is_none() {
@@ -180,12 +193,12 @@ fn the_building_paces_a_floor() {
         let text: Vec<String> = spans.iter().map(|(p, s)| format!("{} {s:.0}s", p.name())).collect();
         println!("seed 4242 L{level}: {} assemblies, first siren at {first_siren:?} s\n  {}", g.assembly.count, text.join(" → "));
         let fs = first_siren.unwrap_or(f64::INFINITY);
-        let most = if level == 1 { 165.0 } else { 135.0 };
+        let most = if level == 1 { FIRST_FLOOR_QUIET.1 } else { FIRST_QUIET.1 } + 1.0;
         assert!(fs <= most, "L{level}: the first siren within {most} s ({fs:.0} s)");
-        assert!(g.assembly.count >= 3, "L{level}: it comes again ({} in 12 minutes)", g.assembly.count);
+        assert!(g.assembly.count >= 3, "L{level}: it comes again ({} in 6 minutes)", g.assembly.count);
         for (p, s) in &spans[1..spans.len() - 1] {
             if *p == Phase::Calm {
-                assert!(*s >= 60.0, "L{level}: a quiet between two of {s:.0} s");
+                assert!(*s >= QUIET.0 - 0.5 && *s <= QUIET.1 + 0.5, "L{level}: a quiet between two of {s:.0} s");
             }
         }
         assert_eq!(g.state, "playing");

@@ -19,8 +19,10 @@
 //! now and then. A lattice whose way is too straight, or has no choice on
 //! it, too few flights or too few dead ends, is grown again
 //! (`lattice_ok`). Cells (recesses with a hermetic door, the shelters from
-//! the self-assembly) are cut into the masses so that every floor tile has
-//! one within `CELL_REACH` tiles of walk.
+//! the self-assembly) are cut into the masses, or into booths that stand
+//! out over the void, so that every floor tile has one within `CELL_REACH`
+//! tiles of walk; a floor where that cannot be (the arrival's corner left
+//! with no building beside its walks) is laid again.
 
 use crate::level::archgen::{
     build_ground_solids, ground_breaks, segment_clear_3d, Archetype, Ground, Layout, Room, Zone, DIRS, GROUND_FLOOR, GROUND_MASS,
@@ -38,8 +40,12 @@ const GAP: i32 = PITCH - PLAT;
 /// Where the void's fog bottoms out, and how high the masses rise, metres
 pub const VOID_DEPTH: f32 = -100.0;
 pub const MASS_TOP: f32 = 150.0;
-/// Every floor tile has a cell within this many tiles of walk
-pub const CELL_REACH: i32 = 16;
+/// Every floor tile has a cell within this many tiles of walk: as far as
+/// you walk (`WALK`, 3.6 m/s) in 0.43 of the siren's warning
+/// (`world::assembly::WARNING`, 21 s): 8 tiles, 32 m, 8.9 s. The first pass
+/// had 16 tiles, 17.8 s of its 42; `tests/assembly.rs` holds the two
+/// together
+pub const CELL_REACH: i32 = 8;
 /// How the floor falls along the way from the arrival (the share of the
 /// way walked, to this power, is the share of the fall)
 const FALL: f64 = 0.55;
@@ -141,6 +147,8 @@ const PLATFORMS: i32 = 5;
 const BRANCH: f64 = 0.15;
 /// Lattices tried at most for one that keeps the bands (`lattice_ok`)
 const TRIES: usize = 16;
+/// Floors laid at most for one with a cell in reach of every tile
+const FLOOR_TRIES: usize = 8;
 /// The way to the door over the walks, at least this many times the
 /// straight line (the tiles add a little: `tests/building.rs` holds them to 2)
 const DETOUR: f64 = 2.2;
@@ -595,24 +603,42 @@ fn lattice_ok(l: &Lattice, n: i32) -> bool {
 
 /// Generates the Building's floor for `level` (one of `BUILDING_FLOORS`),
 /// drawing from `rng` (the game passes `&mut || rnd()`).
-pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, BuildingPlan) {
-    let style = Style::of_level(level).unwrap_or(Style::Well);
-    let p = params(style);
+/// A lattice of platforms for `style` that keeps the bands (a long way
+/// round, a choice on it, flights, dead ends; `lattice_ok`), tried up to
+/// `TRIES` times (steps 1–5 of `generate_building`).
+fn good_lattice(style: Style, p: &Params, rng: &mut dyn FnMut() -> f64) -> Lattice {
+    let mut lat = lattice(style, p, rng);
+    for _ in 1..TRIES {
+        if lattice_ok(&lat, p.n) {
+            break;
+        }
+        lat = lattice(style, p, rng);
+    }
+    lat
+}
+
+/// A floor laid on a lattice (steps 6–11 of `generate_building`).
+struct Floor {
+    grid: Grid,
+    exit: (i32, i32),
+    exit_side: usize,
+    /// the mass the door is set in
+    door_wall: (i32, i32),
+    cells: Vec<Cell>,
+    nodes: Vec<Node>,
+    /// the tiles of the line from the arrival to the door's light
+    kept: Vec<(i32, i32)>,
+    /// every floor tile has a cell within `CELL_REACH` tiles of walk
+    served: bool,
+}
+
+/// The squares, the platforms and walks, the door, the line to its light
+/// and the cells, on lattice `lat`.
+fn lay_floor(style: Style, p: &Params, lat: Lattice, rng: &mut dyn FnMut() -> f64) -> Floor {
     let n = p.n;
     let w = side_for(n);
     let node_id = |i: i32, j: i32| (j * n + i) as usize;
     let node_xy = |i: i32, j: i32| (PLAT / 2 + i * PITCH, PLAT / 2 + j * PITCH);
-
-    // ---- 1–5. the platforms, the walks, their heights: a lattice that
-    // keeps the bands (a long way round, a choice on it, flights, dead
-    // ends), tried again if it does not ----
-    let mut lat = lattice(style, &p, rng);
-    for _ in 1..TRIES {
-        if lattice_ok(&lat, n) {
-            break;
-        }
-        lat = lattice(style, &p, rng);
-    }
     let Lattice { wa, wb, present, edges, storey, exit_node } = lat;
     let nn = (n * n) as usize;
 
@@ -835,7 +861,11 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         }
     }
 
-    // ---- 11. cells: cut where the farthest floor is from any ----
+    // ---- 11. cells: every floor tile within `CELL_REACH` tiles of walk of one ----
+    // (the floor farthest from a cell is served each time, the arrival
+    // first, by the cell in reach of it that brings the most floor in reach:
+    // cut into the building beside a walk where one can be, else cut into a
+    // booth that stands out over the void beside the walk)
     // a cell: a mass tile (not on the border) with one floor neighbour, and building on its other three sides
     let cell_at = |grid: &Grid, cells: &[Cell], x: i32, z: i32| -> Option<usize> {
         if x < 1 || z < 1 || x > w - 2 || z > w - 2 || grid.get(x, z).kind != GROUND_MASS || (x, z) == door_wall {
@@ -853,15 +883,22 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         }
         door
     };
+    let in_reach = |v: i32| (0..=CELL_REACH).contains(&v);
+    // the floor a cell at `tile` would bring in reach that the walk from the
+    // cells there are (`d`) does not
+    let gain = |grid: &Grid, d: &[i32], tile: (i32, i32)| -> usize {
+        let dc = grid_walk(grid, &[tile]);
+        (0..grid.g.len()).filter(|&i| grid.g[i].walkable() && in_reach(dc[i]) && !in_reach(d[i])).count()
+    };
     let mut cells: Vec<Cell> = vec![];
     // floor no cell could be cut near (left out of the search after)
     let mut unserved: Vec<(i32, i32)> = vec![];
-    for _ in 0..48 {
+    for _ in 0..64 {
         let from: Vec<(i32, i32)> = cells.iter().map(|c| c.tile).collect();
-        let d = if from.is_empty() { vec![i32::MAX; (w * w) as usize] } else { grid_walk(&grid, &from) };
+        let d = if from.is_empty() { vec![-1; (w * w) as usize] } else { grid_walk(&grid, &from) };
         // the floor tile farthest from a cell (the arrival first)
         let mut far: Option<((i32, i32), i32)> = None;
-        if from.is_empty() {
+        if from.is_empty() && !unserved.contains(&(1, 1)) {
             far = Some(((1, 1), i32::MAX));
         } else {
             for z in 0..w {
@@ -875,88 +912,119 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
             }
         }
         let Some((f, _)) = far else { break };
-        // the nearest place to cut one, by walk from there
         let df = grid_walk(&grid, &[f]);
-        let mut best: Option<(Cell, i32)> = None;
+        // cut into the building beside a walk: of the places in reach of it,
+        // the one that brings the most floor in reach (the nearer of two)
+        let mut best: Option<(Cell, usize, i32)> = None;
         for z in 1..w - 1 {
             for x in 1..w - 1 {
-                if let Some(door) = cell_at(&grid, &cells, x, z) {
-                    let (dx, dz) = (x + DIRS[door][0], z + DIRS[door][1]);
-                    let v = df[grid.idx(dx, dz)];
-                    if v >= 0 && best.is_none_or(|b| v < b.1) {
-                        best = Some((Cell { tile: (x, z), door }, v));
-                    }
+                let Some(door) = cell_at(&grid, &cells, x, z) else { continue };
+                // (the cell is a step past its doorway)
+                let v = df[grid.idx(x + DIRS[door][0], z + DIRS[door][1])];
+                if v < 0 || v + 1 > CELL_REACH {
+                    continue;
+                }
+                let n = gain(&grid, &d, (x, z));
+                if best.as_ref().is_none_or(|b| n > b.1 || (n == b.1 && v < b.2)) {
+                    best = Some((Cell { tile: (x, z), door }, n, v));
                 }
             }
         }
-        // none near: a booth of building stands out over the void beside the
-        // walk (3 × 2 tiles), and the cell is cut into it
-        if best.is_none_or(|b| b.1 > CELL_REACH / 2) {
-            let mut near: Vec<(i32, (i32, i32))> = vec![];
+        // none: a booth of building (3 × 2 tiles) stands out over the void
+        // beside the walk, and the cell is cut into it: off the line to the
+        // door (a floor where only that would do is laid again), and over the
+        // void rather than on a walk
+        if best.is_none() {
+            let reach0 = grid_walk(&grid, &[(1, 1)]).iter().filter(|&&v| v >= 0).count();
+            // (the cell, the floor it brings in reach, the walk it takes, its distance, the floor with it)
+            let mut booth: Option<(Cell, usize, usize, i32, Vec<Ground>)> = None;
             for z in 1..w - 1 {
                 for x in 1..w - 1 {
                     let v = df[grid.idx(x, z)];
-                    if (0..=CELL_REACH / 2).contains(&v) && grid.get(x, z).kind == GROUND_FLOOR && !cells.iter().any(|c| c.tile == (x, z)) {
-                        near.push((v, (x, z)));
-                    }
-                }
-            }
-            near.sort();
-            // off the line to the door if it can be, on it if it must
-            'booth: for (spare_line, &(v, (x, z))) in [false, true].iter().flat_map(|&l| near.iter().map(move |n| (l, n))) {
-                for (d, dd) in DIRS.iter().enumerate() {
-                    let (px, pz) = if dd[0] != 0 { (0, 1) } else { (1, 0) };
-                    let block: Vec<(i32, i32)> = [0, 1]
-                        .iter()
-                        .flat_map(|&k| [-1, 0, 1].map(move |s| (x + dd[0] * (1 + k) + px * s, z + dd[1] * (1 + k) + pz * s)))
-                        .collect();
-                    let spare = |bx: i32, bz: i32| {
-                        let g = grid.get(bx, bz);
-                        let near_spawn = (bx, bz) == (1, 1);
-                        (g.kind == GROUND_VOID || g.kind == GROUND_FLOOR)
-                            && bx >= 1
-                            && bz >= 1
-                            && bx <= w - 2
-                            && bz <= w - 2
-                            && !near_spawn
-                            && (bx, bz) != exit
-                            && (spare_line || !kept.contains(&(bx, bz)))
-                            && !cells
-                                .iter()
-                                .any(|c| c.tile == (bx, bz) || (c.tile.0 + DIRS[c.door][0], c.tile.1 + DIRS[c.door][1]) == (bx, bz))
-                    };
-                    if !block.iter().all(|&(bx, bz)| spare(bx, bz)) {
+                    if !(0..CELL_REACH).contains(&v) || grid.get(x, z).kind != GROUND_FLOOR || cells.iter().any(|c| c.tile == (x, z)) {
                         continue;
                     }
-                    let before = grid.g.clone();
-                    let reach0 = grid_walk(&grid, &[(1, 1)]).iter().filter(|&&v| v >= 0).count();
-                    let lost = block.iter().filter(|&&(bx, bz)| grid.walkable(bx, bz)).count();
-                    for &(bx, bz) in &block {
-                        grid.set(bx, bz, Ground::mass(VOID_DEPTH, MASS_TOP));
+                    for (dir, dd) in DIRS.iter().enumerate() {
+                        let (px, pz) = if dd[0] != 0 { (0, 1) } else { (1, 0) };
+                        let block: Vec<(i32, i32)> = [0, 1]
+                            .iter()
+                            .flat_map(|&k| [-1, 0, 1].map(move |s| (x + dd[0] * (1 + k) + px * s, z + dd[1] * (1 + k) + pz * s)))
+                            .collect();
+                        let spare = |bx: i32, bz: i32| {
+                            let g = grid.get(bx, bz);
+                            (g.kind == GROUND_VOID || g.kind == GROUND_FLOOR)
+                                && bx >= 1
+                                && bz >= 1
+                                && bx <= w - 2
+                                && bz <= w - 2
+                                && (bx, bz) != (1, 1)
+                                && (bx, bz) != exit
+                                && !kept.contains(&(bx, bz))
+                                && !cells
+                                    .iter()
+                                    .any(|c| c.tile == (bx, bz) || (c.tile.0 + DIRS[c.door][0], c.tile.1 + DIRS[c.door][1]) == (bx, bz))
+                        };
+                        if !block.iter().all(|&(bx, bz)| spare(bx, bz)) {
+                            continue;
+                        }
+                        let lost = block.iter().filter(|&&(bx, bz)| grid.walkable(bx, bz)).count();
+                        let mut g2 = Grid { w, g: grid.g.clone() };
+                        for &(bx, bz) in &block {
+                            g2.set(bx, bz, Ground::mass(VOID_DEPTH, MASS_TOP));
+                        }
+                        // nothing may be cut off, and the floor it serves stays in reach
+                        let reach1 = grid_walk(&g2, &[(1, 1)]);
+                        let all = (0..g2.g.len()).all(|i| !g2.g[i].walkable() || reach1[i] >= 0);
+                        if !all || reach1.iter().filter(|&&v| v >= 0).count() + lost != reach0 {
+                            continue;
+                        }
+                        let cell = (x + dd[0], z + dd[1]);
+                        if !in_reach(grid_walk(&g2, &[cell])[g2.idx(f.0, f.1)]) {
+                            continue;
+                        }
+                        let n = gain(&g2, &d, cell);
+                        if booth.as_ref().is_none_or(|b| (lost, std::cmp::Reverse(n), v) < (b.2, std::cmp::Reverse(b.1), b.3)) {
+                            booth = Some((Cell { tile: cell, door: dir ^ 1 }, n, lost, v, g2.g));
+                        }
                     }
-                    // the door's side must be floor, and nothing else may be cut off
-                    let reach1 = grid_walk(&grid, &[(1, 1)]);
-                    let all = (0..grid.g.len()).all(|i| !grid.g[i].walkable() || reach1[i] >= 0);
-                    if all && reach1.iter().filter(|&&v| v >= 0).count() + lost == reach0 && grid.get(x, z).kind == GROUND_FLOOR {
-                        best = Some((Cell { tile: (x + dd[0], z + dd[1]), door: d ^ 1 }, v));
-                        break 'booth;
-                    }
-                    grid.g = before;
                 }
             }
+            if let Some((c, n, _, v, g)) = booth {
+                grid.g = g;
+                best = Some((c, n, v));
+            }
         }
-        let Some((c, v)) = best else {
+        let Some((c, _, _)) = best else {
             unserved.push(f);
             continue;
         };
-        if v > CELL_REACH {
-            unserved.push(f);
-        }
         let (dx, dz) = (c.tile.0 + DIRS[c.door][0], c.tile.1 + DIRS[c.door][1]);
         let h = grid.get(dx, dz).h0;
         grid.set(c.tile.0, c.tile.1, Ground::floor(h));
         cells.push(c);
     }
+    let reach = grid_walk(&grid, &cells.iter().map(|c| c.tile).collect::<Vec<_>>());
+    let served = (0..grid.g.len()).all(|i| !grid.g[i].walkable() || (0..=CELL_REACH).contains(&reach[i]));
+    Floor { grid, exit, exit_side, door_wall, cells, nodes: nodes_out, kept, served }
+}
+
+pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, BuildingPlan) {
+    let style = Style::of_level(level).unwrap_or(Style::Well);
+    let p = params(style);
+    let w = side_for(p.n);
+
+    // ---- 1–11. the platforms, the walks, their heights (a lattice that
+    // keeps the bands), the floor laid on them, the door and the cells: laid
+    // again on a new lattice while some floor has no cell in reach (where
+    // the arrival's corner leaves no building to cut one into) ----
+    let mut floor = lay_floor(style, &p, good_lattice(style, &p, rng), rng);
+    for _ in 1..FLOOR_TRIES {
+        if floor.served {
+            break;
+        }
+        floor = lay_floor(style, &p, good_lattice(style, &p, rng), rng);
+    }
+    let Floor { mut grid, exit, exit_side, door_wall, cells, nodes: nodes_out, kept, .. } = floor;
 
     // ---- 12. the Works' masses are machine housings: each block of them
     // stands 4–9 m over the highest floor beside it (the outer wall and the
