@@ -711,13 +711,13 @@ fn builders_match_reference() {
         }
         n += 1;
     }
-    // (153 recorded, less the old framed window's six: `RETIRED`)
+    // every recorded builder case
     assert_eq!(n, 147);
 }
 
 // ---------------------------------------------------------------- re-recording
-// The fixtures above were first recorded from the HTML version. When a core
-// prop is meant to change (the vending machine, docs/VENDING.md V1), they are
+// The fixtures above are recordings of this game. When a core prop is meant
+// to change (as the vending machine did, docs/VENDING.md V1), they are
 // re-recorded from the current code with every case's inputs kept (its seed,
 // level, tiles, distances), through the same steps the tests take:
 //   cargo test --release -p game --test core_props_head -- --ignored rerecord

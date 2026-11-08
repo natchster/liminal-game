@@ -210,11 +210,14 @@ Levels must be a pure function of `(run_seed, level)`:
   meant to alter level generation, rebuild those levels with
   `backrooms --dump-level DIR --seed S --levels …` and review the
   difference before replacing them.
-* The core props' fixtures (`core_props_head.json`, `core_props_builders.json`,
-  first recorded from the HTML version) re-record from the current code with
-  each case's inputs kept, through the steps their tests take:
-  `cargo test --release -p game --test core_props_head -- --ignored rerecord`.
-  On unchanged code it reproduces every value the tests read.
+* The core props' fixtures (`core_props_head.json`, `core_props_builders.json`
+  for the first half and the builders, `core_props_tail.json` for the second
+  half: its hand-off state, the builder calls, the world it builds and a
+  scripted session) re-record from the current code with each case's inputs
+  kept, through the steps their tests take:
+  `cargo test --release -p game --test core_props_head -- --ignored rerecord`
+  and `cargo test --release -p game --test core_props_tail -- --ignored rerecord`.
+  On unchanged code each reproduces every value its tests read.
 * The level-generation fixtures re-record themselves from the current code
   (keeping each case's seeds and query points); run the ones a deliberate
   change affects, then review the diff:

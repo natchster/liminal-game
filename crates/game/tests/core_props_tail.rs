@@ -1,18 +1,25 @@
-//! `game::core_props::tail` (`place_props`' second half) against recorded
-//! reference data (fixtures in `tests/fixtures/`).
+//! `game::core_props::tail` (`place_props`' second half) against its
+//! recorded runs (`tests/fixtures/core_props_tail.json`).
 //!
-//! Each case replays the recorded hand-off state (the shuffled
-//! `cands`, `taken`, the seeded stream advanced by the first half's draws,
-//! the exit, the pickups, the panels) and runs `place_props_tail` with the
-//! test seams: `wall_adj_spot` / `alt_path_exists` are reference stand-ins for
-//! the seam, and the builders either replay the recorded builder log (name, arguments, the draw
-//! index at the call, the draws the real builder used, `top`) with stand-in
-//! groups, or run core_props' real builders and check them against that log
-//! (draws used, `top`). Then it compares
-//! the draw count, the world subtree (transforms, geometry, materials,
-//! textures, lights), interactables, animators and records, and replays the
-//! recorded play session (animators, interactables, switch flips, timers) on a
-//! second seeded stream, comparing snapshots, messages and the end state.
+//! Each case replays its hand-off state (the shuffled `cands`, `taken`, the
+//! seeded stream advanced by the first half's draws, the exit, the pickups,
+//! the panels) on a bare game and runs `place_props_tail` with the test
+//! seams: `wall_adj_spot` / `alt_path_exists` answer from the tiles alone,
+//! and the builders either replay the recorded builder log (name, arguments,
+//! the draw index at the call, the draws the builder used, `top`) with
+//! stand-in groups, or run core_props' real builders and check them against
+//! that log. Then it compares the draw count, the world subtree (transforms,
+//! geometry, materials, textures, lights), interactables, animators and
+//! records, and plays a scripted session (animators, interactables, switch
+//! flips, timers) on a second seeded stream, comparing snapshots, messages
+//! and the end state.
+//!
+//! The recordings are this game's own. After an intended change to the
+//! second half, re-record them from the current code, every case's inputs
+//! kept (its tiles, seed, level, weather, hand-off state and session
+//! script), through the steps the tests take:
+//!   cargo test --release -p game --test core_props_tail -- --ignored rerecord
+//! then review the diff (each changed value) and say why in the commit.
 #[path = "json_common/mod.rs"]
 mod common;
 use common::*;
@@ -22,20 +29,19 @@ use game::base::rng::*;
 use game::core_props::seam::*;
 use game::core_props::*;
 use game::Game;
+use serde_json::{json, Value};
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeSet, HashSet, VecDeque};
 use std::rc::Rc;
 
+const FIXTURE: &str = "core_props_tail.json";
 const TOL: f64 = 1e-9;
-/// Builders remodelled as the real thing (`docs/PROPS.md` P1): what they
-/// build and how tall it stands are their own now, their draws the recorded
-/// ones
-const REMODELLED: &[&str] =
-    &["build_book_stack", "build_baby_doll", "build_floor_hole", "build_broken_mirror", "build_potted_plant", "build_floor_plant"];
-/// run-time snapshots: 12 significant digits in the fixture, platform sin/cos
+/// run-time snapshots (after hundreds of frames of animators)
 const RTOL: f64 = 2e-9;
 
-// ------------------------------------------------------------ reference stand-ins for the seam
+// ------------------------------------------------------------ stand-ins for the seam
+// The cases replay on a bare game (its tiles, no walls built), so these two
+// answer from the tiles alone.
 /// `wall_adj_spot(x, z)` — one `choice` draw
 fn wall_adj_spot_rec(g: &Game, x: i32, z: i32) -> Option<WallSpot> {
     let dirs: Vec<(i32, i32)> = [(1, 0), (-1, 0), (0, 1), (0, -1)].into_iter().filter(|&(dx, dz)| g.is_wall_tile(x + dx, z + dz)).collect();
@@ -93,6 +99,17 @@ struct Logged {
     top: f64,
 }
 
+/// How a case's builders run
+#[derive(Clone, Copy, PartialEq)]
+enum Builders {
+    /// stand-in groups replaying the recorded log (its draws, its `top`)
+    StandIn,
+    /// core_props' real builders, checked against the recorded log
+    Real,
+    /// the real builders, their calls logged (`rerecord`)
+    Record,
+}
+
 fn weather(key: &str) -> &'static game::base::state::Weather {
     game::base::state::WEATHER_BIASES.iter().find(|w| w.key == key).unwrap()
 }
@@ -110,7 +127,7 @@ struct Setup {
     base: Rc<Cell<u64>>,
     log: Rc<RefCell<VecDeque<Logged>>>,
 }
-fn setup(case: &Json, real_builders: bool) -> Setup {
+fn setup(case: &Json, builders: Builders) -> Setup {
     game::assets::props::clear_prop_cache();
     let spec = case.get("spec");
     let mut g = Game::new_bare();
@@ -118,8 +135,7 @@ fn setup(case: &Json, real_builders: bool) -> Setup {
     g.h = case.get("H").i() as i32;
     g.tiles = case.get("tiles").arr().iter().map(|v| v.i() as u8).collect();
     g.level_weather = weather(spec.get("weather").s());
-    // (the recorded levels are the rooms' depths: the rooms now begin on level 4)
-    g.level_num = spec.get("level").i() as i32 + game::level::building::BUILDING_FLOORS;
+    g.level_num = spec.get("level").i() as i32;
     g.level_scp = if spec.get("scp").is_null() { None } else { Some(spec.get("scp").s().to_string()) };
     g.lore_found = spec.get("loreFound").arr().iter().map(|v| v.i() as usize).collect::<BTreeSet<_>>();
     g.pool_plan = if case.get("poolPlan").is_null() {
@@ -149,12 +165,10 @@ fn setup(case: &Json, real_builders: bool) -> Setup {
         taken: h.get("taken").arr().iter().map(cand).collect(),
         exit_tile: None,
     };
-    let log: Rc<RefCell<VecDeque<Logged>>> = Rc::new(RefCell::new(
+    let recorded = || {
         case.get("builders")
             .arr()
             .iter()
-            // the old framed window is not built here any more (`window_zone_nodes`)
-            .filter(|b| b.get("name").s() != OLD_WINDOW)
             .map(|b| Logged {
                 name: b.get("name").s().to_string(),
                 args: b.get("args").fs(),
@@ -162,53 +176,48 @@ fn setup(case: &Json, real_builders: bool) -> Setup {
                 used: b.get("used").i() as u64,
                 top: b.get("top").f(),
             })
-            .collect(),
-    ));
-    let base = Rc::new(Cell::new(0u64));
-    let lore = case.get("lore");
-    set_props_hooks(PropsHooks { wall_adj_spot: Some(wall_adj_spot_rec), ..PropsHooks::NONE });
-    let mut seam = TailSeam {
-        alt_path_exists: Some(Box::new(alt_path_rec)),
-        build: None,
-        lore: Some(TailLore {
-            scp: lore.get("scp").arr().iter().map(|s| if s.is_null() { None } else { Some(s.s().to_string()) }).collect(),
-            arcs: lore
-                .get("arcs")
-                .arr()
-                .iter()
-                .map(|a| (a.at(0).arr().iter().map(|i| i.i() as usize).collect(), a.at(1).i() as u32))
-                .collect(),
-        }),
+            .collect()
     };
+    let log: Rc<RefCell<VecDeque<Logged>>> = Rc::new(RefCell::new(if builders == Builders::Record { VecDeque::new() } else { recorded() }));
+    let base = Rc::new(Cell::new(0u64));
+    set_props_hooks(PropsHooks { wall_adj_spot: Some(wall_adj_spot_rec), ..PropsHooks::NONE });
+    let mut seam = TailSeam { alt_path_exists: Some(Box::new(alt_path_rec)), build: None, lore: None };
     {
         let (log2, base2) = (log.clone(), base.clone());
         seam.build = Some(Box::new(move |g: &mut Game, cx: &mut PropsCtx, b: &TailBuild| {
-            let e = log2.borrow_mut().pop_front().unwrap_or_else(|| panic!("unexpected builder call {}", b.name()));
-            assert_eq!(b.name(), e.name, "builder order");
-            match b {
-                TailBuild::BrokenMirror(yaw) => assert_close(*yaw, e.args[0], TOL, "build_broken_mirror(yaw)"),
-                TailBuild::Elevator(f) => assert_eq!(*f as i64, e.args[0] as i64, "build_elevator(functional)"),
-                _ => assert!(e.args.is_empty(), "{} takes no arguments", e.name),
-            }
+            let args = match b {
+                TailBuild::BrokenMirror(yaw) => vec![*yaw],
+                TailBuild::Elevator(f) => vec![if *f { 1.0 } else { 0.0 }],
+                _ => vec![],
+            };
             let d0 = seeded_draws();
-            assert_eq!(d0 - base2.get(), e.at, "draws before {}", e.name);
-            let built = if real_builders {
-                // core_props' builder, checked against the recorded call
+            let built = if builders == Builders::Record {
                 let built = b.call(g, cx);
-                assert_eq!(seeded_draws() - d0, e.used, "draws of {}", e.name);
-                // a builder remodelled at its real size (docs/PROPS.md) has
-                // a top of its own; its draws are still the recorded ones
-                if !REMODELLED.contains(&e.name.as_str()) {
-                    assert_close(built.top, e.top, TOL, &format!("{}.top", e.name));
-                }
+                let used = seeded_draws() - d0;
+                log2.borrow_mut().push_back(Logged { name: b.name().into(), args, at: d0 - base2.get(), used, top: built.top });
                 built
             } else {
-                for _ in 0..e.used {
-                    rnd();
+                let e = log2.borrow_mut().pop_front().unwrap_or_else(|| panic!("unexpected builder call {}", b.name()));
+                assert_eq!(b.name(), e.name, "builder order");
+                assert_eq!(args.len(), e.args.len(), "{}: arguments", e.name);
+                for (a, r) in args.iter().zip(&e.args) {
+                    assert_close(*a, *r, TOL, &format!("{}: argument", e.name));
                 }
-                Built::new(group(), e.top)
+                assert_eq!(d0 - base2.get(), e.at, "draws before {}", e.name);
+                if builders == Builders::Real {
+                    // core_props' builder, checked against the recorded call
+                    let built = b.call(g, cx);
+                    assert_eq!(seeded_draws() - d0, e.used, "draws of {}", e.name);
+                    assert_close(built.top, e.top, TOL, &format!("{}.top", e.name));
+                    built
+                } else {
+                    for _ in 0..e.used {
+                        rnd();
+                    }
+                    Built::new(group(), e.top)
+                }
             };
-            built.g.set_name(&format!("Builder:{}", e.name));
+            built.g.set_name(&format!("Builder:{}", b.name()));
             built
         }));
     }
@@ -307,21 +316,6 @@ fn cmp_geo(geo: &Geo, j: &Json, path: &str) {
     assert_close(s, j.get("s").f(), 1e-7, &format!("{path}: position sum"));
     assert_close(sa, j.get("sa").f(), 1e-7, &format!("{path}: weighted position sum"));
 }
-/// the texture size a recorded texture implies (canvas w×h; `handwritten_tex` 1024×220 / `text_tex` 256×128 defaults)
-fn tex_size(j: &Json) -> (f64, f64) {
-    match j.get("kind").s() {
-        "canvas" => (j.get("w").f(), j.get("h").f()),
-        "hand" => {
-            let o = j.get("opts");
-            (if o.has("w") { o.get("w").f() } else { 1024.0 }, if o.has("h") { o.get("h").f() } else { 220.0 })
-        }
-        "text" => {
-            let o = j.get("opts");
-            (if o.has("w") { o.get("w").f() } else { 256.0 }, if o.has("h") { o.get("h").f() } else { 128.0 })
-        }
-        k => panic!("texture kind {k}"),
-    }
-}
 #[track_caller]
 fn cmp_mat(m: &Mat, j: &Json, path: &str) {
     let r = m.r();
@@ -333,26 +327,13 @@ fn cmp_mat(m: &Mat, j: &Json, path: &str) {
     assert_close(r.opacity, j.get("op").f(), TOL, &format!("{path}: opacity"));
     assert_eq!(r.transparent, j.get("tr").b(), "{path}: transparent");
     assert_eq!(r.depth_write, j.get("dw").b(), "{path}: depth_write");
-    let side = match r.side {
-        Side::Front => 0,
-        Side::Back => 1,
-        Side::Double => 2,
-    };
-    assert_eq!(side, j.get("side").i(), "{path}: side");
-    let bl = match r.blending {
-        Blending::None => 0,
-        Blending::Normal => 1,
-        Blending::Additive => 2,
-        Blending::Subtractive => 3,
-        Blending::Multiply => 4,
-    };
-    assert_eq!(bl, j.get("bl").i(), "{path}: blending");
+    assert_eq!(side_code(r.side), j.get("side").i(), "{path}: side");
+    assert_eq!(blend_code(r.blending), j.get("bl").i(), "{path}: blending");
     let jm = j.get("map");
     match (&r.map, jm.is_null()) {
         (None, true) => {}
         (Some(t), false) => {
-            let (w, h) = tex_size(jm);
-            assert_eq!((t.width() as f64, t.height() as f64), (w, h), "{path}: map size ({})", jm.get("kind").s());
+            assert_eq!((t.width() as f64, t.height() as f64), (jm.get("w").f(), jm.get("h").f()), "{path}: map size");
             let tt = t.r();
             assert_eq!(tt.wrap_s == Wrap::Repeat, jm.get("ws").b(), "{path}: map wrap_s");
             assert_eq!(tt.wrap_t == Wrap::Repeat, jm.get("wt").b(), "{path}: map wrap_t");
@@ -362,16 +343,25 @@ fn cmp_mat(m: &Mat, j: &Json, path: &str) {
         (a, _) => panic!("{path}: map presence got {} recorded {}", a.is_some(), !jm.is_null()),
     }
 }
+fn side_code(s: Side) -> i64 {
+    match s {
+        Side::Front => 0,
+        Side::Back => 1,
+        Side::Double => 2,
+    }
+}
+fn blend_code(b: Blending) -> i64 {
+    match b {
+        Blending::None => 0,
+        Blending::Normal => 1,
+        Blending::Additive => 2,
+        Blending::Subtractive => 3,
+        Blending::Multiply => 4,
+    }
+}
 /// Compare an object with its recorded tree node.
 #[track_caller]
 fn cmp_tree(o: &Obj, j: &Json, path: &str) {
-    if j.get("k").s() == "web" {
-        return cmp_web(o, &j.get("p").fs(), path);
-    }
-    if j.get("k").s().starts_with("weather") {
-        let jr = j.get("r");
-        return cmp_weather(o, j.get("k").s(), &j.get("p").fs(), &[jr.at(0).f(), jr.at(1).f(), jr.at(2).f()], path);
-    }
     let k = kind_of(o);
     assert_eq!(k, j.get("k").s(), "{path}: kind");
     assert_vec_close(&[o.pos().x, o.pos().y, o.pos().z], &j.get("p").fs()[..], TOL, &format!("{path}: position"));
@@ -398,9 +388,6 @@ fn cmp_tree(o: &Obj, j: &Json, path: &str) {
         assert_close(ld.distance, l.at(2).f(), TOL, &format!("{path}: light distance"));
         assert_close(ld.decay, l.at(3).f(), TOL, &format!("{path}: light decay"));
     }
-    if j.has("skipKids") {
-        return;
-    }
     let kids = o.children();
     let jk: &[Json] = if j.has("c") { j.get("c").arr() } else { &[] };
     assert_eq!(kids.len(), jk.len(), "{path}: child count");
@@ -408,16 +395,16 @@ fn cmp_tree(o: &Obj, j: &Json, path: &str) {
         cmp_tree(c, &jk[i], &format!("{path}/{i}"));
     }
 }
-/// Compare an object with its recorded run-time tree node.
+/// The sum of the positions of the pool's waving water (625 vertices), added
+/// left to right in f64
+fn water_sum(geo: &Geo) -> Option<f64> {
+    (geo.vertex_count() == 625).then(|| geo.r().position.iter().map(|&v| v as f64).sum())
+}
+/// Compare an object with its recorded run-time tree node: `[kind,
+/// transform, visible, a, b, c, children]`, where a mesh's a, b, c are its
+/// opacity, emissive and water sum, a light's a its intensity.
 #[track_caller]
 fn cmp_rtree(o: &Obj, j: &Json, path: &str) {
-    if j.at(0).s() == "web" {
-        return cmp_web(o, &j.at(1).fs()[..3], path);
-    }
-    if j.at(0).s().starts_with("weather") {
-        let t = j.at(1).fs();
-        return cmp_weather(o, j.at(0).s(), &t[..3], &t[3..6], path);
-    }
     let k = kind_of(o);
     assert_eq!(k, j.at(0).s(), "{path}: kind");
     let (p, r, s) = (o.pos(), o.rot(), o.scl());
@@ -429,10 +416,7 @@ fn cmp_rtree(o: &Obj, j: &Json, path: &str) {
         if m.r().kind == MatKind::Lambert {
             assert_eq!(m.emissive_v().get_hex() as i64, j.at(4).i(), "{path}: emissive");
         }
-        let geo = o.geo();
-        if geo.vertex_count() == 625 {
-            let sum: f64 = geo.r().position.iter().map(|&v| v as f64).sum();
-            // the recorded sum adds the f32 positions left to right in f64, like this
+        if let Some(sum) = water_sum(&o.geo()) {
             assert_close(sum, j.at(5).f(), 1e-6, &format!("{path}: water surface sum"));
         }
     }
@@ -440,9 +424,6 @@ fn cmp_rtree(o: &Obj, j: &Json, path: &str) {
         assert_close(o.intensity(), j.at(3).f(), RTOL, &format!("{path}: intensity"));
     }
     if k == "builder" {
-        return;
-    }
-    if j.len() > 6 && matches!(j.at(6), Json::Str(_)) {
         return;
     }
     let kids = o.children();
@@ -578,398 +559,229 @@ fn cmp_interactables(g: &Game, j: &Json, tol: f64, full: bool, what: &str) {
     }
 }
 
+// ------------------------------------------------------------ recording (the inverse of each comparison)
+/// The inverse of `cmp_geo`
+fn ser_geo(geo: &Geo) -> Value {
+    let r = geo.r();
+    let (mut s, mut sa) = (0.0f64, 0.0f64);
+    for (i, &v) in r.position.iter().enumerate() {
+        s += v as f64;
+        sa += (v as f64).abs() * ((i % 7) + 1) as f64;
+    }
+    let params: Vec<Value> = geo_params(&geo.params()).into_iter().map(|(k, v)| json!([k, v])).collect();
+    json!({
+        "type": geo.type_name(), "params": params, "n": r.position.len() / 3,
+        "idx": r.index.as_ref().map(|i| i.len()).unwrap_or(0), "s": s, "sa": sa,
+    })
+}
+/// The inverse of `cmp_mat`
+fn ser_mat(m: &Mat) -> Value {
+    let r = m.r();
+    let mut j = json!({
+        "type": mat_type(m), "color": r.color.get_hex(), "op": r.opacity, "tr": r.transparent, "dw": r.depth_write,
+        "side": side_code(r.side), "bl": blend_code(r.blending),
+    });
+    if r.kind == MatKind::Lambert {
+        j["emissive"] = json!(r.emissive.get_hex());
+    }
+    j["map"] = match &r.map {
+        None => Value::Null,
+        Some(t) => {
+            let tt = t.r();
+            json!({
+                "w": t.width(), "h": t.height(), "ws": tt.wrap_s == Wrap::Repeat, "wt": tt.wrap_t == Wrap::Repeat,
+                "rep": [tt.repeat.x, tt.repeat.y],
+            })
+        }
+    };
+    j
+}
+/// The inverse of `cmp_tree`
+fn ser_tree(o: &Obj) -> Value {
+    let k = kind_of(o);
+    let (p, r, s) = (o.pos(), o.rot(), o.scl());
+    let mut j = json!({
+        "k": k, "p": [p.x, p.y, p.z], "r": [r.x, r.y, r.z, order_name(r.order)], "s": [s.x, s.y, s.z], "v": o.visible(),
+    });
+    if k == "builder" {
+        j["b"] = json!(&o.name()["Builder:".len()..]);
+        return j;
+    }
+    if k == "mesh" {
+        j["g"] = ser_geo(&o.geo());
+        j["m"] = ser_mat(&o.mat());
+    }
+    if k == "plight" {
+        let l = o.light().clone();
+        j["l"] = json!([l.color.get_hex(), l.intensity, l.distance, l.decay]);
+    }
+    let kids: Vec<Value> = o.children().iter().map(ser_tree).collect();
+    if !kids.is_empty() {
+        j["c"] = Value::Array(kids);
+    }
+    j
+}
+/// The inverse of `cmp_rtree`
+fn ser_rtree(o: &Obj) -> Value {
+    let k = kind_of(o);
+    let (p, r, s) = (o.pos(), o.rot(), o.scl());
+    let mut v = vec![json!(k), json!([p.x, p.y, p.z, r.x, r.y, r.z, s.x, s.y, s.z]), json!(o.visible())];
+    if k == "builder" {
+        return Value::Array(v);
+    }
+    let abc = if k == "mesh" {
+        let m = o.mat();
+        let em = if m.r().kind == MatKind::Lambert { m.emissive_v().get_hex() as f64 } else { 0.0 };
+        [m.opacity_v(), em, water_sum(&o.geo()).unwrap_or(0.0)]
+    } else if k == "plight" {
+        [o.intensity(), 0.0, 0.0]
+    } else {
+        [0.0; 3]
+    };
+    v.extend(abc.iter().map(|x| json!(x)));
+    let kids: Vec<Value> = o.children().iter().map(ser_rtree).collect();
+    if !kids.is_empty() {
+        v.push(Value::Array(kids));
+    }
+    Value::Array(v)
+}
+fn v3v(v: &Vec3) -> Value {
+    json!([v.x, v.y, v.z])
+}
+/// The inverse of `cmp_records`
+fn ser_records(g: &Game) -> Value {
+    let switches: Vec<Value> = g
+        .light_switches
+        .iter()
+        .map(|s| {
+            let label = s.g.as_ref().and_then(|o| o.r().user.s.get("label").cloned()).unwrap_or_default();
+            json!({
+                "x": s.x, "z": s.z, "on": s.on, "faulty": s.faulty, "panels": s.panels, "label": label,
+                "rocker": s.objs["rocker"].rot().x, "mc": fv(&s.f, "motionCooldown"),
+            })
+        })
+        .collect();
+    let pool = match &g.pool_bounds {
+        None => Value::Null,
+        Some(b) => {
+            let mut v = vec![json!(b.min_x), json!(b.max_x), json!(b.min_z), json!(b.max_z), json!(b.water_y)];
+            v.extend(b.tiles.iter().map(|t| json!(t)));
+            Value::Array(v)
+        }
+    };
+    let vacuum = g.vacuum_bot.as_ref().map_or(Value::Null, |v| {
+        json!({
+            "p": v3v(&v.g.pos()), "yaw": v.dir, "speed": fv(&v.f, "speed"), "pick": v.timer, "spin": fv(&v.f, "spinPhase"),
+            "chase": fv(&v.f, "chaseT"), "follow": v.follow_t, "stun": fv(&v.f, "stunT"),
+        })
+    });
+    let broken = g.broken_elevator.as_ref().map_or(Value::Null, |b| {
+        json!({
+            "world": v3v(&b.world), "normal": v3v(&b.normal), "next": b.next_scrape, "peered": b.peered, "li": b.light.intensity(),
+        })
+    });
+    let candles: Vec<Value> = g
+        .haunted_candles
+        .iter()
+        .map(|c| {
+            json!({
+                "out": !c.lit, "fadeT": fv(&c.f, "fadeT"), "hint": fv(&c.f, "hintCooldown"),
+                "near": c.b.get("wasNear").copied().unwrap_or(false), "streak": fv(&c.f, "fizzleStreak"), "wick": fv(&c.f, "wickGlowT"),
+            })
+        })
+        .collect();
+    let pickups: Vec<Value> = g
+        .almonds
+        .iter()
+        .chain(g.battery_items.iter())
+        .map(|p| {
+            let (pp, r) = (p.g.pos(), p.g.rot());
+            json!([pp.x, pp.y, pp.z, r.y, r.z])
+        })
+        .collect();
+    json!({
+        "switches": switches,
+        "papers": g.papers.iter().map(|p| json!({"p": v3v(&p.g.pos()), "taken": p.taken})).collect::<Vec<_>>(),
+        "notes": g.lore_notes.iter().map(|n| json!({"p": v3v(&n.g.pos()), "id": n.id})).collect::<Vec<_>>(),
+        "pool": pool,
+        "poolPlanLeft": g.pool_plan.is_some(),
+        "vacuum": vacuum,
+        "safe": g.safe_room.as_ref().map_or(Value::Null, |s| json!([s.x, s.z, s.r, s.discovered as i32])),
+        "broken": broken,
+        "holes": g.floor_holes.iter().map(|h| json!([h.x, h.z, h.r])).collect::<Vec<_>>(),
+        "barricades": g.barricade_tiles,
+        "candles": candles,
+        "pickups": pickups,
+    })
+}
+/// The inverse of `cmp_interactables`
+fn ser_interactables(g: &Game) -> Value {
+    g.interactables.iter().map(|it| json!({"p": v3v(&it.pos), "en": (it.enabled)(g), "r": it.r, "prompt": it.prompt})).collect()
+}
+/// The lore tables the second half reads: each entry's anomaly (`None`
+/// for the pool's), and the arcs (their ids in order, their colour)
+fn ser_lore(g: &Game) -> Value {
+    let scp: Vec<Value> = (0..g.lore_entry_count()).map(|i| g.lore_entry_scp(i).map_or(Value::Null, Value::from)).collect();
+    let arcs: Vec<Value> = game::ui::hud::LORE_ARCS.iter().map(|a| json!([a.ids, a.color])).collect();
+    json!({ "scp": scp, "arcs": arcs })
+}
+
 // ------------------------------------------------------------ the play session
 fn use_interactable(g: &mut Game, i: usize) {
     let mut f = std::mem::replace(&mut g.interactables[i].on_use, Box::new(|_| {}));
     f(g);
     g.interactables[i].on_use = f;
 }
-/// The old window zone's builder: the windows are only chosen in the tail
-/// now, on the tiles it took and with its draws (`core_props::window`), and
-/// finished after the props settle, so its windows and their lights are not
-/// in the world the tail builds.
-const OLD_WINDOW: &str = "build_window";
-
-/// The recorded world children that were the old window zone's: each window
-/// (a builder node) and the point light hung before it
-fn window_zone_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let mut out = HashSet::new();
-    for (i, t) in tree.iter().enumerate() {
-        if t.get("k").s() == "builder" && t.get("b").s() == OLD_WINDOW {
-            out.insert(i);
-            if tree.get(i + 1).is_some_and(|l| l.get("k").s() == "plight" && l.get("l").at(0).i() == 0x8090a8) {
-                out.insert(i + 1);
-            }
-        }
-    }
-    out
-}
-
-/// The recorded world children that were the old barricades' piles: a
-/// filing cabinet, a book stack, a cardboard stack and a cone, built in that
-/// order for each. They are built for their draws alone now and never added
-/// (the barricades are chosen and built once the walls are final,
-/// `core_props::barricade`; `docs/PROPS.md` 2), so the draw count still
-/// holds them to the old choice
-fn barricade_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let is = |i: usize, b: &str| tree.get(i).is_some_and(|t| t.get("k").s() == "builder" && t.get("b").s() == b);
-    let mut out = HashSet::new();
-    for i in 0..tree.len() {
-        if is(i, "build_filing_cabinet")
-            && is(i + 1, "build_book_stack")
-            && is(i + 2, "build_cardboard_stack")
-            && is(i + 3, "build_traffic_cone")
-        {
-            out.extend(i..i + 4);
-        }
-    }
-    out
-}
-
-/// The recorded world children that were the torn notes' marks on the
-/// walls (three chevrons and "?", or READ: a 0.35 × 0.7 m plane): a note
-/// lies as paper lies now (`docs/SECRETS.md` 3), the mark's draws kept
-fn note_mark_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let plane = |t: &Json| {
-        let g = t.get("g");
-        let ps = g.get("params");
-        let par = |k: &str| ps.arr().iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f());
-        t.get("k").s() == "mesh" && g.get("type").s() == "plane" && par("width") == Some(0.35) && par("height") == Some(0.7)
-    };
-    tree.iter().enumerate().filter(|(_, t)| plane(t)).map(|(i, _)| i).collect()
-}
-
-/// The recorded torn notes (world children whose first part is the note's
-/// 0.26 × 0.32 m sheet): their glow and beam are gone, so only the sheet,
-/// its curl and its four lines of writing are compared
-fn note_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let sheet = |t: &Json| {
-        let c = if t.has("c") { t.get("c").arr() } else { &[] };
-        c.first().is_some_and(|c0| {
-            let ps = c0.get("g").get("params");
-            let par = |k: &str| match ps {
-                Json::Arr(v) => v.iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f()),
-                _ => None,
-            };
-            par("width") == Some(0.26) && par("depth") == Some(0.32)
-        })
-    };
-    tree.iter().enumerate().filter(|(_, t)| t.get("k").s() == "group" && sheet(t)).map(|(i, _)| i).collect()
-}
-
-/// The recorded still floors' cobwebs (a 0.7 m square decal of a drawn
-/// wheel, 0.35 m under the ceiling): a web is modelled now and hangs from
-/// the ceiling in a corner looked for beside its spot
-/// (`weather_fx::tail_still_cobwebs`, `docs/PROPS.md` P1), its draws kept
-fn web_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let web = |t: &Json| {
-        let g = t.get("g");
-        let ps = g.get("params");
-        let par = |k: &str| ps.arr().iter().find(|p| p.at(0).s() == k).map(|p| p.at(1).f());
-        let m = t.get("m");
-        t.get("k").s() == "mesh"
-            && g.get("type").s() == "plane"
-            && par("width") == Some(0.7)
-            && par("height") == Some(0.7)
-            && m.get("type").s() == "basic"
-            && !m.get("map").is_null()
-            && m.get("map").get("w").f() == 128.0
-    };
-    tree.iter().enumerate().filter(|(_, t)| web(t)).map(|(i, _)| i).collect()
-}
-
-/// `case` with each recorded web (`web_nodes`) marked "web": what is
-/// compared is that a group hangs at the ceiling within a tile of the
-/// recorded spot
-fn modelled_webs(case: &Json) -> Json {
-    let webs = web_nodes(case);
-    if webs.is_empty() {
-        return case.clone();
-    }
-    let with = |o: &Json, key: &str, v: Json| -> Json {
-        let Json::Obj(fields) = o else { return o.clone() };
-        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
-    };
-    let tree = |t: &Json, run: bool| -> Json {
-        Json::Arr(
-            t.arr()
-                .iter()
-                .enumerate()
-                .map(|(i, n)| match (webs.contains(&i), run, n) {
-                    (false, ..) => n.clone(),
-                    (true, false, _) => with(n, "k", Json::Str("web".into())),
-                    (true, true, Json::Arr(v)) => {
-                        let mut v = v.clone();
-                        v[0] = Json::Str("web".into());
-                        Json::Arr(v)
-                    }
-                    _ => n.clone(),
-                })
-                .collect(),
-        )
-    };
-    let mut c = case.clone();
-    let b = c.get("build").clone();
-    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
-    if c.get("sim").has("frames") {
-        let sim = c.get("sim").clone();
-        let frames: Vec<Json> = sim
-            .get("frames")
-            .arr()
-            .iter()
-            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
-            .collect();
-        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
-    }
-    if c.has("final") {
-        let f = c.get("final").clone();
-        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
-    }
-    c
-}
-
-/// The recorded things a floor's weather left (`weather_fx`, the first world
-/// children of the second half): the wet floors' puddle decals, the
-/// derelict floors' debris (a group of five, the last its dust disc), the
-/// electric floors' cables (a group of six, the last its spark and its light)
-/// and the haunted floors' candles (a group of six, the last its light and its
-/// melt ring). Each is modelled now (batch `r10`,
-/// `docs/PROPS.md` P2) where it was, its draws kept: what is compared is
-/// its kind, where it lies (a puddle 8 mm lower, painted on the floor) and
-/// how it is turned (a candle turns by where it stands)
-fn weather_nodes(case: &Json) -> HashSet<usize> {
-    let tree = case.get("build").get("tree").arr();
-    let weather = case.get("name").s().split('_').next().unwrap_or("").to_string();
-    let kids = |t: &Json| if t.has("c") { t.get("c").arr().to_vec() } else { vec![] };
-    // what child `i` is (a light, or a mesh's geometry)
-    let kid = |t: &Json, i: usize| {
-        kids(t)
-            .get(i)
-            .map(|c| if c.get("k").s() == "plight" { "plight".to_string() } else { c.get("g").get("type").s().to_string() })
-            .unwrap_or_default()
-    };
-    let is = |t: &Json| match weather.as_str() {
-        "wet" => t.get("k").s() == "mesh" && t.get("g").get("type").s() == "plane" && (t.get("p").fs()[1] - 0.011).abs() < 1e-9,
-        "derelict" => t.get("k").s() == "group" && kids(t).len() == 5 && kid(t, 4) == "circle",
-        "electric" => t.get("k").s() == "group" && kids(t).len() == 6 && kid(t, 4) == "plane" && kid(t, 5) == "plight",
-        "haunted" => t.get("k").s() == "group" && kids(t).len() == 6 && kid(t, 4) == "plight" && kid(t, 5) == "circle",
-        _ => false,
-    };
-    tree.iter().take_while(|t| is(t)).enumerate().map(|(i, _)| i).collect()
-}
-
-/// `case` with each recorded thing of its weather (`weather_nodes`) marked
-/// "weather"
-fn modelled_weather(case: &Json) -> Json {
-    let nodes = weather_nodes(case);
-    if nodes.is_empty() {
-        return case.clone();
-    }
-    let with = |o: &Json, key: &str, v: Json| -> Json {
-        let Json::Obj(fields) = o else { return o.clone() };
-        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
-    };
-    let haunted = case.get("name").s().starts_with("haunted");
-    let mark = if haunted { "weather-turned" } else { "weather" };
-    let tree = |t: &Json, run: bool| -> Json {
-        Json::Arr(
-            t.arr()
-                .iter()
-                .enumerate()
-                .map(|(i, n)| match (nodes.contains(&i), run, n) {
-                    (false, ..) => n.clone(),
-                    (true, false, _) => with(n, "k", Json::Str(format!("{mark}:{}", n.get("k").s()))),
-                    (true, true, Json::Arr(v)) => {
-                        let mut v = v.clone();
-                        v[0] = Json::Str(format!("{mark}:{}", v[0].s()));
-                        Json::Arr(v)
-                    }
-                    _ => n.clone(),
-                })
-                .collect(),
-        )
-    };
-    let mut c = case.clone();
-    let b = c.get("build").clone();
-    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
-    if c.get("sim").has("frames") {
-        let sim = c.get("sim").clone();
-        let frames: Vec<Json> = sim
-            .get("frames")
-            .arr()
-            .iter()
-            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
-            .collect();
-        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
-    }
-    if c.has("final") {
-        let f = c.get("final").clone();
-        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
-    }
-    c
-}
-
-/// A modelled weather thing against the recorded one's kind and place
-/// (`modelled_weather`): `mark` "weather:<kind>" or "weather-turned:<kind>"
-#[track_caller]
-fn cmp_weather(o: &Obj, mark: &str, p: &[f64], r: &[f64], path: &str) {
-    let (how, kind) = mark.split_once(':').unwrap();
-    assert_eq!(kind_of(o), kind, "{path}: kind");
-    let q = o.pos();
-    assert_close(q.x, p[0], TOL, &format!("{path}: position x"));
-    assert_close(q.z, p[2], TOL, &format!("{path}: position z"));
-    assert!((q.y - p[1]).abs() < 0.02, "{path}: lies {:.3} m from its recorded height", q.y - p[1]);
-    if how == "weather" {
-        let rr = o.rot();
-        assert_vec_close(&[rr.x, rr.y, rr.z], r, 1e-8, &format!("{path}: rotation"));
-    }
-}
-
-/// A modelled web against the recorded decal's place (`modelled_webs`)
-#[track_caller]
-fn cmp_web(o: &Obj, p: &[f64], path: &str) {
-    assert_eq!(kind_of(o), "group", "{path}: a web is modelled");
-    let q = o.pos();
-    assert_close(q.y, p[1] + 0.35, TOL, &format!("{path}: a web hangs from the ceiling"));
-    let d = ((q.x - p[0]).powi(2) + (q.z - p[2]).powi(2)).sqrt();
-    assert!(d <= CELL, "{path}: a web {d:.2} m from its spot");
-}
-
-/// `case` with each recorded note (`note_nodes`) cut to its paper and
-/// writing: in the build's tree (children under "c") and in every run-time
-/// tree (children the seventh entry of a node)
-fn quiet_notes(case: &Json) -> Json {
-    let notes = note_nodes(case);
-    // a note that continues a story already begun (its glow in the story's
-    // colour, brighter) is written in that story's ink now (`tail::ink_of`)
-    let ink_of = |c: i64| -> f64 {
-        let ch = |k: i64| (((c >> k) & 0xff) as f64 * 0.42 + 8.0).min(255.0) as i64;
-        ((ch(16) << 16) | (ch(8) << 8) | ch(0)) as f64
-    };
-    let recolour = |line: &Json, ink: f64| -> Json {
-        let Json::Obj(f) = line else { return line.clone() };
-        Json::Obj(
-            f.iter()
-                .map(|(k, v)| {
-                    let v = match (k.as_str(), v) {
-                        ("m", Json::Obj(m)) => Json::Obj(
-                            m.iter().map(|(mk, mv)| (mk.clone(), if mk == "color" { Json::Num(ink) } else { mv.clone() })).collect(),
-                        ),
-                        _ => v.clone(),
-                    };
-                    (k.clone(), v)
-                })
-                .collect(),
-        )
-    };
-    // the note's sheet is the remodelled paper now (`docs/PROPS.md` P1:
-    // `build_lore_note_mesh`): where it lies and how it is turned are
-    // compared, not what it is made of
-    let _ = (&ink_of, &recolour);
-    let cut_build = |t: &Json| -> Json {
-        let Json::Obj(fields) = t else { return t.clone() };
-        let mut f = fields.clone();
-        f.push(("skipKids".into(), Json::Bool(true)));
-        Json::Obj(f)
-    };
-    let cut_run = |t: &Json| -> Json {
-        let Json::Arr(v) = t else { return t.clone() };
-        let mut v = v.clone();
-        if v.len() > 6 {
-            v[6] = Json::Str("skip".into());
-        }
-        Json::Arr(v)
-    };
-    let tree = |t: &Json, run: bool| -> Json {
-        Json::Arr(
-            t.arr()
-                .iter()
-                .enumerate()
-                .map(|(i, n)| {
-                    if !notes.contains(&i) {
-                        n.clone()
-                    } else if run {
-                        cut_run(n)
-                    } else {
-                        cut_build(n)
-                    }
-                })
-                .collect(),
-        )
-    };
-    let with = |o: &Json, key: &str, v: Json| -> Json {
-        let Json::Obj(fields) = o else { return o.clone() };
-        Json::Obj(fields.iter().map(|(k, x)| (k.clone(), if k == key { v.clone() } else { x.clone() })).collect())
-    };
-    let mut c = case.clone();
-    let b = c.get("build").clone();
-    // and the beam over each such note was turned to the camera by an animator
-    let beams = b
-        .get("tree")
-        .arr()
-        .iter()
-        .enumerate()
-        .filter(|(i, t)| notes.contains(i) && t.get("c").arr().get(6).is_some_and(|g| g.get("m").get("op").f() == 0.35))
-        .count();
-    let b = with(&b, "animators", Json::Num((b.get("animators").i() - beams as i64) as f64));
-    c = with(&c, "build", with(&b, "tree", tree(b.get("tree"), false)));
-    if c.get("sim").has("frames") {
-        let sim = c.get("sim").clone();
-        let frames: Vec<Json> = sim
-            .get("frames")
-            .arr()
-            .iter()
-            .map(|f| with(f, "state", with(f.get("state"), "tree", tree(f.get("state").get("tree"), true))))
-            .collect();
-        c = with(&c, "sim", with(&sim, "frames", Json::Arr(frames)));
-    }
-    if c.has("final") {
-        let f = c.get("final").clone();
-        c = with(&c, "final", with(&f, "tree", tree(f.get("tree"), true)));
-    }
-    c
-}
-
-/// A recorded list of world children without the old window zone's
-fn without<'a>(jt: &'a [Json], drop: &HashSet<usize>) -> Vec<&'a Json> {
-    jt.iter().enumerate().filter(|(i, _)| !drop.contains(i)).map(|(_, j)| j).collect()
-}
-
-fn run_case(case: &Json, real_builders: bool) {
-    let case = &modelled_weather(&modelled_webs(&quiet_notes(case)));
-    let mut drop = window_zone_nodes(case);
-    drop.extend(note_mark_nodes(case));
-    drop.extend(barricade_nodes(case));
-    let name = format!("{}{}", case.get("name").s(), if real_builders { " (real builders)" } else { "" });
+// ------------------------------------------------------------ a case
+/// Runs case `case`: compares what the second half builds and does with its
+/// recording, or with `Builders::Record` returns the new recording's
+/// outputs (what the game builds and does now).
+fn run_case(case: &Json, builders: Builders) -> Option<serde_json::Map<String, Value>> {
+    let record = builders == Builders::Record;
+    let name = format!("{}{}", case.get("name").s(), if builders == Builders::Real { " (real builders)" } else { "" });
     let spec = case.get("spec");
-    let Setup { mut g, mut cx, base, log } = setup(case, real_builders);
+    let Setup { mut g, mut cx, base, log } = setup(case, builders);
     let h = case.get("handoff");
     let seed = spec.get("seed").i() as u32;
-    with_seed(seed, || {
+    let mut out = serde_json::Map::new();
+    let tail_draws = with_seed(seed, || {
         for _ in 0..h.get("draws").i() {
             rnd();
         }
         base.set(seeded_draws());
         g.place_props_tail(&mut cx, &[]);
-        assert_eq!(seeded_draws() - base.get(), case.get("tailDraws").i() as u64, "{name}: draws of the second half");
+        seeded_draws() - base.get()
     });
-    assert!(log.borrow().is_empty(), "{name}: builder calls left: {:?}", log.borrow());
-    // ---- the build
-    let b = case.get("build");
-    let kids = g.world.children();
-    let jt = without(b.get("tree").arr(), &drop);
-    assert_eq!(kids.len(), jt.len(), "{name}: world children");
-    for (i, o) in kids.iter().enumerate() {
-        cmp_tree(o, jt[i], &format!("{name}: world/{i}"));
+    if record {
+        out.insert("tailDraws".into(), json!(tail_draws));
+        let calls: Vec<Value> =
+            log.borrow().iter().map(|e| json!({"name": e.name, "args": e.args, "at": e.at, "used": e.used, "top": e.top})).collect();
+        out.insert("builders".into(), Value::Array(calls));
+    } else {
+        assert_eq!(tail_draws, case.get("tailDraws").i() as u64, "{name}: draws of the second half");
+        assert!(log.borrow().is_empty(), "{name}: builder calls left: {:?}", log.borrow());
     }
-    cmp_interactables(&g, b.get("interactables"), TOL, true, &format!("{name} build"));
-    assert_eq!(g.animators.len() as i64, b.get("animators").i(), "{name}: animators");
-    cmp_records(&g, b.get("records"), TOL, &format!("{name} build"));
+    // ---- the build
+    let kids = g.world.children();
+    if record {
+        out.insert(
+            "build".into(),
+            json!({
+                "tree": kids.iter().map(ser_tree).collect::<Vec<_>>(), "interactables": ser_interactables(&g),
+                "animators": g.animators.len(), "records": ser_records(&g),
+            }),
+        );
+    } else {
+        let b = case.get("build");
+        let jt = b.get("tree").arr();
+        assert_eq!(kids.len(), jt.len(), "{name}: world children");
+        for (i, o) in kids.iter().enumerate() {
+            cmp_tree(o, &jt[i], &format!("{name}: world/{i}"));
+        }
+        cmp_interactables(&g, b.get("interactables"), TOL, true, &format!("{name} build"));
+        assert_eq!(g.animators.len() as i64, b.get("animators").i(), "{name}: animators");
+        cmp_records(&g, b.get("records"), TOL, &format!("{name} build"));
+    }
     let build_set: HashSet<Obj> = kids.iter().cloned().collect();
     // ---- the session
     let sim = spec.get("sim");
@@ -982,7 +794,8 @@ fn run_case(case: &Json, real_builders: bool) {
     let low = sim.get("lowBattery").i();
     let (w, hh) = (g.w as f64, g.h as f64);
     let (x1, z1) = (g.wx(1), g.wz(1));
-    let jframes = case.get("sim").get("frames").arr();
+    let jframes: &[Json] = if record { &[] } else { case.get("sim").get("frames").arr() };
+    let mut frames_out: Vec<Value> = vec![];
     let mut snap_i = 0;
     let mut msgs: Vec<(i64, &str, String, f64)> = vec![];
     let runtime_seed = spec.get("runtimeSeed").i() as u32;
@@ -1037,74 +850,113 @@ fn run_case(case: &Json, real_builders: bool) {
                 }
             });
             if snap_i < snaps.len() && snaps[snap_i] == f {
-                let rec = &jframes[snap_i];
-                assert_eq!(rec.get("f").i(), f);
-                let st = rec.get("state");
-                let what = format!("{name} frame {f}");
                 let kids = g.world.children();
-                let jt = without(st.get("tree").arr(), &drop);
-                assert_eq!(kids.len(), jt.len(), "{what}: world children");
-                for (i, o) in kids.iter().enumerate() {
-                    cmp_rtree(o, jt[i], &format!("{what}: world/{i}"));
+                if record {
+                    frames_out.push(json!({"f": f, "state": {
+                        "tree": kids.iter().map(ser_rtree).collect::<Vec<_>>(), "records": ser_records(&g),
+                        "interactables": ser_interactables(&g),
+                    }}));
+                } else {
+                    let rec = &jframes[snap_i];
+                    assert_eq!(rec.get("f").i(), f);
+                    let st = rec.get("state");
+                    let what = format!("{name} frame {f}");
+                    let jt = st.get("tree").arr();
+                    assert_eq!(kids.len(), jt.len(), "{what}: world children");
+                    for (i, o) in kids.iter().enumerate() {
+                        cmp_rtree(o, &jt[i], &format!("{what}: world/{i}"));
+                    }
+                    cmp_records(&g, st.get("records"), RTOL, &what);
+                    cmp_interactables(&g, st.get("interactables"), RTOL, false, &what);
                 }
-                cmp_records(&g, st.get("records"), RTOL, &what);
-                cmp_interactables(&g, st.get("interactables"), RTOL, false, &what);
                 snap_i += 1;
             }
         }
     });
-    assert_eq!(snap_i, snaps.len(), "{name}: snapshots compared");
-    let sim_j = case.get("sim");
-    assert_eq!(seeded_draws() - d0, sim_j.get("draws").i() as u64, "{name}: run-time draws");
-    let jm = sim_j.get("msgs").arr();
-    assert_eq!(msgs.len(), jm.len(), "{name}: messages {:?}", msgs);
-    for (i, m) in msgs.iter().enumerate() {
-        let e = &jm[i];
-        assert_eq!((m.0, m.1, m.2.as_str()), (e.at(0).i(), e.at(1).s(), e.at(2).s()), "{name}: message {i}");
-        assert_close(m.3, e.at(3).f(), 0.0, &format!("{name}: message {i} duration"));
+    assert_eq!(snap_i, snaps.len(), "{name}: snapshots taken");
+    let sim_draws = seeded_draws() - d0;
+    if record {
+        let jm: Vec<Value> = msgs.iter().map(|m| json!([m.0, m.1, m.2, m.3])).collect();
+        out.insert("sim".into(), json!({"frames": frames_out, "draws": sim_draws, "msgs": jm}));
+    } else {
+        let sim_j = case.get("sim");
+        assert_eq!(sim_draws, sim_j.get("draws").i() as u64, "{name}: run-time draws");
+        let jm = sim_j.get("msgs").arr();
+        assert_eq!(msgs.len(), jm.len(), "{name}: messages {:?}", msgs);
+        for (i, m) in msgs.iter().enumerate() {
+            let e = &jm[i];
+            assert_eq!((m.0, m.1, m.2.as_str()), (e.at(0).i(), e.at(1).s(), e.at(2).s()), "{name}: message {i}");
+            assert_close(m.3, e.at(3).f(), 0.0, &format!("{name}: message {i} duration"));
+        }
     }
     // ---- the end state
-    let fin = case.get("final");
-    let what = format!("{name} final");
     let kids = g.world.children();
-    let jt = without(fin.get("tree").arr(), &drop);
-    assert_eq!(kids.len(), jt.len(), "{what}: world children");
-    for (i, o) in kids.iter().enumerate() {
-        cmp_rtree(o, jt[i], &format!("{what}: world/{i}"));
-    }
     let added: Vec<Obj> = kids.iter().filter(|o| !build_set.contains(*o)).cloned().collect();
-    let ja = fin.get("added").arr();
-    assert_eq!(added.len(), ja.len(), "{what}: objects added by the session");
-    for (i, o) in added.iter().enumerate() {
-        cmp_tree(o, &ja[i], &format!("{what}: added/{i}"));
-    }
-    cmp_records(&g, fin.get("records"), RTOL, &what);
     let off: Vec<i64> = g.panels.iter().map(|p| p.switched_off as i64).collect();
-    assert_eq!(off, fin.get("panelsOff").arr().iter().map(|v| v.i()).collect::<Vec<_>>(), "{what}: panels switched off");
-    let fp = case.get("finalPlayer");
-    assert_close(g.player.sanity, fp.get("sanity").f(), TOL, "sanity");
-    assert_close(g.player.battery, fp.get("battery").f(), TOL, "battery");
-    let fg = case.get("finalGlobals");
-    assert_close(g.shake_t, fg.get("shakeT").f(), 0.0, "shakeT");
-    assert_close(g.camera_dip_t, fg.get("cameraDipT").f(), 0.0, "cameraDipT");
-    let tl = fg.get("tallies");
-    assert_eq!(
-        [g.candle_blowout_tally, g.candle_relight_tally, g.candle_fizzle_tally],
-        [tl.at(0).f(), tl.at(1).f(), tl.at(2).f()],
-        "{what}: candle tallies"
-    );
-    assert_eq!(g.timeouts.len() as i64, fg.get("timers").i(), "{what}: pending timers");
-    let fl = fg.get("flash");
-    assert_eq!(
-        g.ui.flash.style("background").map(|s| s.to_string()),
-        if fl.has("background") { Some(fl.get("background").s().to_string()) } else { None },
-        "{what}: #flash background"
-    );
-    assert_eq!(g.ui.flash.opacity(), if fl.has("opacity") { Some(fl.get("opacity").f()) } else { None }, "{what}: #flash opacity");
-    let ab = fg.get("aberration");
-    match g.ui.aberration.opacity() {
-        Some(v) => assert_close(v, ab.get("opacity").f(), 1e-12, "aberration opacity"),
-        None => assert!(!ab.has("opacity"), "{what}: aberration opacity"),
+    let tallies = [g.candle_blowout_tally, g.candle_relight_tally, g.candle_fizzle_tally];
+    if record {
+        out.insert(
+            "final".into(),
+            json!({
+                "tree": kids.iter().map(ser_rtree).collect::<Vec<_>>(), "added": added.iter().map(ser_tree).collect::<Vec<_>>(),
+                "records": ser_records(&g), "panelsOff": off,
+            }),
+        );
+        out.insert("finalPlayer".into(), json!({"sanity": g.player.sanity, "battery": g.player.battery}));
+        let mut flash = serde_json::Map::new();
+        if let Some(b) = g.ui.flash.style("background") {
+            flash.insert("background".into(), json!(b));
+        }
+        if let Some(o) = g.ui.flash.opacity() {
+            flash.insert("opacity".into(), json!(o));
+        }
+        let mut aberration = serde_json::Map::new();
+        if let Some(o) = g.ui.aberration.opacity() {
+            aberration.insert("opacity".into(), json!(o));
+        }
+        out.insert(
+            "finalGlobals".into(),
+            json!({
+                "shakeT": g.shake_t, "cameraDipT": g.camera_dip_t, "tallies": tallies, "timers": g.timeouts.len(),
+                "flash": flash, "aberration": aberration,
+            }),
+        );
+    } else {
+        let fin = case.get("final");
+        let what = format!("{name} final");
+        let jt = fin.get("tree").arr();
+        assert_eq!(kids.len(), jt.len(), "{what}: world children");
+        for (i, o) in kids.iter().enumerate() {
+            cmp_rtree(o, &jt[i], &format!("{what}: world/{i}"));
+        }
+        let ja = fin.get("added").arr();
+        assert_eq!(added.len(), ja.len(), "{what}: objects added by the session");
+        for (i, o) in added.iter().enumerate() {
+            cmp_tree(o, &ja[i], &format!("{what}: added/{i}"));
+        }
+        cmp_records(&g, fin.get("records"), RTOL, &what);
+        assert_eq!(off, fin.get("panelsOff").arr().iter().map(|v| v.i()).collect::<Vec<_>>(), "{what}: panels switched off");
+        let fp = case.get("finalPlayer");
+        assert_close(g.player.sanity, fp.get("sanity").f(), TOL, "sanity");
+        assert_close(g.player.battery, fp.get("battery").f(), TOL, "battery");
+        let fg = case.get("finalGlobals");
+        assert_close(g.shake_t, fg.get("shakeT").f(), 0.0, "shakeT");
+        assert_close(g.camera_dip_t, fg.get("cameraDipT").f(), 0.0, "cameraDipT");
+        let tl = fg.get("tallies");
+        assert_eq!(tallies, [tl.at(0).f(), tl.at(1).f(), tl.at(2).f()], "{what}: candle tallies");
+        assert_eq!(g.timeouts.len() as i64, fg.get("timers").i(), "{what}: pending timers");
+        let fl = fg.get("flash");
+        assert_eq!(
+            g.ui.flash.style("background").map(|s| s.to_string()),
+            if fl.has("background") { Some(fl.get("background").s().to_string()) } else { None },
+            "{what}: #flash background"
+        );
+        assert_eq!(g.ui.flash.opacity(), if fl.has("opacity") { Some(fl.get("opacity").f()) } else { None }, "{what}: #flash opacity");
+        let ab = fg.get("aberration");
+        match g.ui.aberration.opacity() {
+            Some(v) => assert_close(v, ab.get("opacity").f(), 1e-12, "aberration opacity"),
+            None => assert!(!ab.has("opacity"), "{what}: aberration opacity"),
+        }
     }
     // the working elevator leaves the level (flow.rs)
     if let Some(i) = g.interactables.iter().position(|it| it.prompt == "[E] CALL THE ELEVATOR") {
@@ -1114,24 +966,25 @@ fn run_case(case: &Json, real_builders: bool) {
     }
     set_tail_seam(None);
     set_props_hooks(PropsHooks::NONE);
+    record.then_some(out)
 }
 
 /// The second half alone: stand-in builders replaying the recorded builder log.
 #[test]
 fn tail_matches_reference() {
-    let fx = Json::load("cp2_tail.json");
+    let fx = Json::load(FIXTURE);
     let cases = fx.get("cases").arr();
     assert!(cases.len() >= 20);
     for c in cases {
-        run_case(c, false);
+        run_case(c, Builders::StandIn);
     }
 }
 /// The same with core_props' real builders (their draws and `top` must match the recorded log).
 #[test]
 fn tail_matches_reference_with_real_builders() {
-    let fx = Json::load("cp2_tail.json");
+    let fx = Json::load(FIXTURE);
     for c in fx.get("cases").arr() {
-        run_case(c, true);
+        run_case(c, Builders::Real);
     }
 }
 
@@ -1271,33 +1124,26 @@ fn smoke() {
     }
 }
 
-/// The lore tables the second half reads (through the seam in the other
-/// tests) agree with the recorded tables: `LORE_ENTRIES[i].scp`, `lore_arc_for`, the arc
-/// colours, `lore_note_boosted`. Skipped while hud.rs's tables are stubs.
+/// The lore tables the second half reads (each entry's anomaly, the arcs
+/// and their colours) are the ones recorded with the cases: a change to them
+/// changes which notes a level lays and how they are inked, and shows here
+/// by name. `lore_arc_for` and `lore_note_boosted` agree with the arcs.
 #[test]
 fn lore_tables_match_reference() {
     let g0 = Game::new_bare();
-    if g0.lore_entry_count() == 0 {
-        eprintln!("LORE_ENTRIES empty here: skipped");
-        return;
-    }
-    let fx = Json::load("cp2_tail.json");
-    let lore = fx.get("cases").at(0).get("lore");
+    let fx = Json::load(FIXTURE);
+    let lore = fx.get("lore");
     let scp = lore.get("scp").arr();
-    // the recorded notes stand as they were; those after them are the
-    // Building's, added with its floors (`docs/MEGASTRUCTURE.md`, B6)
-    assert!(g0.lore_entry_count() >= scp.len());
+    assert_eq!(g0.lore_entry_count(), scp.len(), "lore entries");
     for (i, s) in scp.iter().enumerate() {
         assert_eq!(g0.lore_entry_scp(i), if s.is_null() { None } else { Some(s.s().to_string()) }, "LORE_ENTRIES[{i}].scp");
     }
-    for i in scp.len()..g0.lore_entry_count() {
-        assert_eq!(g0.lore_entry_scp(i).as_deref(), Some("building"), "LORE_ENTRIES[{i}] is the Building's");
-    }
     let arcs = lore.get("arcs").arr();
+    assert_eq!(game::ui::hud::LORE_ARCS.len(), arcs.len(), "lore arcs");
     for (a, arc) in arcs.iter().enumerate() {
         assert_eq!(g0.lore_arc_color(a) as i64, arc.at(1).i(), "LORE_ARCS[{a}].color");
     }
-    for found in [vec![], vec![7usize, 3], vec![36, 2, 9, 14]] {
+    for found in [vec![], vec![7usize, 3], vec![36, 2, 9, 14], vec![52, 54]] {
         let mut g = Game::new_bare();
         g.lore_found = found.iter().copied().collect();
         for id in 0..scp.len() {
@@ -1313,4 +1159,49 @@ fn lore_tables_match_reference() {
             assert_eq!(g.lore_note_boosted(id), rec_boost, "lore_note_boosted({id})");
         }
     }
+}
+
+// ------------------------------------------------------------ re-recording
+/// A recorded input as it was read
+fn value_of(j: &Json) -> Value {
+    match j {
+        Json::Null => Value::Null,
+        Json::Bool(b) => json!(b),
+        Json::Num(n) => json!(n),
+        Json::Str(s) => json!(s),
+        Json::Arr(v) => Value::Array(v.iter().map(value_of).collect()),
+        Json::Obj(v) => Value::Object(v.iter().map(|(k, x)| (k.clone(), value_of(x))).collect()),
+    }
+}
+/// Whole numbers written as integers (the file stays small; every number
+/// reads back the same)
+fn compact(v: Value) -> Value {
+    match v {
+        Value::Number(n) => match n.as_f64() {
+            Some(x) if n.is_f64() && x.fract() == 0.0 && x.abs() < 1e15 => json!(x as i64),
+            _ => Value::Number(n),
+        },
+        Value::Array(a) => Value::Array(a.into_iter().map(compact).collect()),
+        Value::Object(o) => Value::Object(o.into_iter().map(|(k, x)| (k, compact(x))).collect()),
+        v => v,
+    }
+}
+/// What a case is: its inputs, kept by a re-record
+const INPUTS: &[&str] = &["name", "spec", "W", "H", "tiles", "panels", "poolPlan", "handoff", "stickPos"];
+
+#[test]
+#[ignore]
+fn rerecord() {
+    let fx = Json::load(FIXTURE);
+    let mut cases = vec![];
+    for c in fx.get("cases").arr() {
+        let mut rec: serde_json::Map<String, Value> = INPUTS.iter().map(|k| (k.to_string(), value_of(c.get(k)))).collect();
+        rec.extend(run_case(c, Builders::Record).unwrap());
+        cases.push(Value::Object(rec));
+    }
+    let n = cases.len();
+    let out = compact(json!({ "lore": ser_lore(&Game::new_bare()), "cases": cases }));
+    let p = format!("{}/tests/fixtures/{FIXTURE}", env!("CARGO_MANIFEST_DIR"));
+    std::fs::write(&p, serde_json::to_string(&out).unwrap()).unwrap();
+    println!("re-recorded {n} cases into {p}");
 }
