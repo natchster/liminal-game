@@ -23,6 +23,10 @@ paths:
 - **Stable per-level choices** use `SplitMix64` with a salt, not the build
   stream (see `SIG_SALT`, `BED_SALT`). Rare cadences with `run: true` count
   down across levels.
+- **Beside a lamp** the ballast's hum (60 Hz, 120 Hz and its series to
+  1.08 kHz) is the bed. A sound that must be heard wherever it happens needs
+  a part above 1.2 kHz, and its listen test a place beside a lamp, measured
+  in that band (`tests/listen.rs`, `a_knock_is_heard_beside_a_lamp`).
 - **Gate:** `tests/loudness.rs` holds each scenario's integrated loudness
   (±1 LU), loudness range (±3 LU), true peak (≤ −1 dBTP) and repetition (no
   one-shot twice within 8 s). Re-record only after listening.

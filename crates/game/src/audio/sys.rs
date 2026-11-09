@@ -579,24 +579,40 @@ impl Game {
     }
     /// A knock at a sealed door (`world::knock`; play it at the door):
     /// three raps `gaps` seconds apart, knuckles on steel; from the other
-    /// side (`behind`) duller and a little softer
+    /// side (`behind`) duller and a little softer. Each rap is the thud of
+    /// the knuckles and the leaf's body under it, and the rap itself: the
+    /// knuckle's hard click on the steel and the leaf ringing on after it,
+    /// above the lamps' ballast (its 120 Hz series stops at 1.08 kHz),
+    /// so a knock is heard beside a lamp as well as away from one, and three
+    /// raps are heard as three (`tests/listen.rs`,
+    /// `a_knock_is_heard_beside_a_lamp`). No draws but the bursts' own.
     pub fn sfx_knock(&self, gaps: &[f64], behind: bool) {
-        let (thud, ring, gain) = if behind { (260.0, 900.0, 0.26) } else { (380.0, 1400.0, 0.32) };
+        let (thud, rap, gain) = if behind { (260.0, 1700.0, 0.26) } else { (380.0, 2300.0, 0.32) };
         let mut t = 0.0;
         for k in 0..=gaps.len() {
             self.noise_burst(0.12, thud, 1.4, gain, "lowpass", None, t, 0.0);
             self.blip(if behind { 82.0 } else { 95.0 }, 0.14, "sine", gain * 0.6, Some(58.0), t, 0.0);
-            self.noise_burst(0.03, ring, 2.0, gain * 0.25, "bandpass", None, t, 0.0);
+            // the knuckle's click, and the leaf's two lowest rings above the hum
+            self.noise_burst(0.035, rap, 1.1, gain * 0.6, "bandpass", None, t, 0.0);
+            self.blip(1310.0, 0.22, "sine", gain * 0.09, None, t, 0.0);
+            self.blip(2090.0, 0.14, "sine", gain * if behind { 0.03 } else { 0.05 }, None, t, 0.0);
             t += gaps.get(k).copied().unwrap_or(0.0);
         }
     }
     /// Someone come to a sealed door from inside: two soft steps, and the
-    /// hatch's catch (`world::knock`; play it at the door)
+    /// hatch's catch (`world::knock`; play it at the door). A step is the
+    /// floor's thud, under the lamps' 120 Hz, and its heel through the gaps
+    /// round the hatch, over the ballast's series: as a lowpassed thud
+    /// alone it sat in the hum's own band, and beside a lamp it was not
+    /// heard (`tests/listen.rs`, `a_knock_is_heard_beside_a_lamp`)
     pub fn sfx_behind_door(&self) {
         for k in 0..2 {
-            self.noise_burst(0.1, 300.0, 0.9, 0.16, "lowpass", None, k as f64 * 0.45, 0.0);
+            let t = k as f64 * 0.45;
+            self.noise_burst(0.1, 1900.0, 0.6, 0.12, "lowpass", None, t, 0.0);
+            self.blip(66.0, 0.13, "sine", 0.14, Some(42.0), t, 0.0);
         }
-        self.noise_burst(0.05, 1600.0, 3.0, 0.14, "bandpass", None, 0.75, 0.0);
+        // the catch: a latch's dry click, and its thunk
+        self.noise_burst(0.045, 2000.0, 2.0, 0.2, "bandpass", None, 0.75, 0.0);
         self.blip(120.0, 0.08, "sine", 0.12, Some(80.0), 0.75, 0.0);
     }
     /// The hatch at a sealed door's foot opened or let fall shut; for a note,

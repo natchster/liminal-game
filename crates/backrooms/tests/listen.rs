@@ -5,7 +5,10 @@
 //! * a level opens quietly: nothing piles up in its first second;
 //! * the moment a creature notices you is loud against what came before;
 //! * the director's hush quiets the ambience: fewer and softer events, a
-//!   lower room tone.
+//!   lower room tone;
+//! * what must be heard anywhere is heard beside a lamp too, where the
+//!   ballast's hum is the bed: measured in the band it is heard in
+//!   (`band_passed`; over the whole mix the hum's lines outweigh it).
 //!
 //!   cargo test --release -p backrooms --test listen -- --nocapture
 use engine::audio::AudioContext;
@@ -542,16 +545,125 @@ fn onsets(pcm: &[f32], from: f64, to: f64, floor: f64) -> Vec<f64> {
     out
 }
 
-/// A knock at the Well's sealed doors (`docs/MEGASTRUCTURE.md`, G5;
-/// `world::knock`), from where you stand to knock: your three raps; at an
-/// ordinary door that answers, someone at it and the thing pushed out
-/// (heard over the bed seconds after); at a red door, three raps back in
-/// your own rhythm, and the siren within seconds.
-#[test]
-fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
-    use game::world::knock::{Gift, Mark, ANSWER_AFTER, BACK_AFTER, OUT_AFTER};
+/// The mix through a band-pass from `lo` to `hi` Hz (two Butterworth
+/// high-passes at `lo`, two low-passes at `hi`: 24 dB an octave each side),
+/// each channel on its own
+fn band_passed(pcm: &[f32], lo: f64, hi: f64) -> Vec<f32> {
+    // RBJ's biquads, Q 1/sqrt(2)
+    let coef = |f: f64, high: bool| {
+        let w = 2.0 * std::f64::consts::PI * f / SR;
+        let (sn, cs) = w.sin_cos();
+        let a = sn / std::f64::consts::SQRT_2;
+        let (b0, b1) = if high { ((1.0 + cs) / 2.0, -(1.0 + cs)) } else { ((1.0 - cs) / 2.0, 1.0 - cs) };
+        let a0 = 1.0 + a;
+        [b0 / a0, b1 / a0, b0 / a0, -2.0 * cs / a0, (1.0 - a) / a0]
+    };
+    let stages = [coef(lo, true), coef(lo, true), coef(hi, false), coef(hi, false)];
+    let mut out = pcm.to_vec();
+    for ch in 0..2 {
+        for c in &stages {
+            let (mut x1, mut x2, mut y1, mut y2) = (0.0, 0.0, 0.0, 0.0);
+            for i in (ch..out.len()).step_by(2) {
+                let x = out[i] as f64;
+                let y = c[0] * x + c[1] * x1 + c[2] * x2 - c[3] * y1 - c[4] * y2;
+                (x2, x1, y2, y1) = (x1, x, y1, y);
+                out[i] = y as f32;
+            }
+        }
+    }
+    out
+}
+
+/// Where a knock is heard beside a lamp: over the ballast's hum (its 60 Hz,
+/// 120 Hz and the series up to 1.08 kHz, which fill the whole mix's bed
+/// within a few metres of a lamp) and under the grain's hiss
+const KNOCK_BAND: (f64, f64) = (1200.0, 6000.0);
+
+/// What was heard of a knock at an answering door and then at a red one,
+/// each against the bed at that door (dB over it), over the whole mix and in
+/// `KNOCK_BAND`; times in seconds from each knock
+struct Knocked {
+    /// each door's distance to the nearest lit lamp, metres
+    lamp: (f64, f64),
+    /// the beds at the answering door and at the red door, dB (the whole
+    /// mix; in the band)
+    bed: (f64, f64),
+    bed_band: (f64, f64),
+    /// your raps at the answering door, and your rhythm's gaps
+    raps: Vec<f64>,
+    raps_band: Vec<f64>,
+    mine: Vec<f64>,
+    /// someone at the door (from 2 s after the knock until the thing comes
+    /// out): its loudest, and what is heard come in the band (its steps and
+    /// the hatch's catch), from when it came
+    at_door: f64,
+    at_door_band: f64,
+    came: Vec<f64>,
+    /// the thing pushed out, its loudest in the 1.2 s after it began
+    answer: f64,
+    answer_band: f64,
+    out_after: f64,
+    /// at the red door: your raps, its raps back, your rhythm
+    ours: Vec<f64>,
+    ours_band: Vec<f64>,
+    back: Vec<f64>,
+    back_band: Vec<f64>,
+    back_peak_band: f64,
+    theirs: Vec<f64>,
+    siren: Option<f64>,
+}
+
+impl Knocked {
+    fn print(&self, what: &str) {
+        let r = |v: &[f64]| v.iter().map(|x| (x * 100.0).round() / 100.0).collect::<Vec<_>>();
+        println!(
+            "{what}: the answering door {:.1} m from a lit lamp, the red door {:.1} m; at {}-{} Hz:",
+            self.lamp.0, self.lamp.1, KNOCK_BAND.0, KNOCK_BAND.1
+        );
+        println!(
+            "  answering door: bed {:.1} dB ({:.1} in the band); your raps at {:?} s ({:?} in the band; gaps {:?}); someone at the door {:+.1} dB over the bed ({:+.1} in the band; heard come at {:?} s after it came), the thing pushed out {:+.1} dB ({:+.1} in the band), {:.2} s after the knock",
+            self.bed.0,
+            self.bed_band.0,
+            r(&self.raps),
+            r(&self.raps_band),
+            r(&self.mine),
+            self.at_door,
+            self.at_door_band,
+            r(&self.came),
+            self.answer,
+            self.answer_band,
+            self.out_after
+        );
+        let gaps = |o: &[f64]| r(&o.windows(2).map(|p| p[1] - p[0]).collect::<Vec<f64>>());
+        println!(
+            "  red door: bed {:.1} dB ({:.1} in the band); your raps {:?} ({:?} in the band), its raps back {:?} ({:?} in the band, the loudest {:+.1} dB; gaps {:?} against yours {:?}); the siren {:.1} s after the knock",
+            self.bed.1,
+            self.bed_band.1,
+            r(&self.ours),
+            r(&self.ours_band),
+            r(&self.back),
+            r(&self.back_band),
+            self.back_peak_band,
+            gaps(&self.back_band),
+            r(&self.theirs),
+            self.siren.unwrap_or(f64::NAN)
+        );
+    }
+}
+
+/// Knock at an answering door and then at a red one of `seed`'s Well (the
+/// doors `pick` chooses), from where you stand to knock at each; recorded as
+/// `target/listen/{name}.wav`
+fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize)) -> Knocked {
+    use game::world::knock::{ANSWER_AFTER, BACK_AFTER, OUT_AFTER, RAP};
     game::base::rng::seed_native(0x4B0C_0001);
-    let mut r = start(4242, 1);
+    let mut r = start(seed, 1);
+    let (answers, red) = pick(&r.g);
+    let lamp = |g: &Game, i: usize| {
+        let d = &g.knocks.doors[i];
+        g.panels.iter().filter(|p| p.bright >= 0.3).map(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z)).fold(f64::MAX, f64::min)
+    };
+    let lamps = (lamp(&r.g, answers), lamp(&r.g, red));
     let face = |g: &mut Game, i: usize| {
         let d = g.knocks.doors[i].clone();
         let p = d.stand();
@@ -559,18 +671,10 @@ fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
         g.player.yaw = d.normal.0.atan2(d.normal.1);
         g.player.pitch = 0.0;
     };
-    // (doors 8 m or more from a lamp: the ballast hum sits at the nearest
-    // one, at full strength within 5.6 m, and 4 m from a cell's lamp it is
-    // as loud as the knock this listens for)
-    let quiet = |d: &game::world::knock::KnockDoor| r.g.panels.iter().all(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z) >= 8.0);
-    let answers = r.g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water) && quiet(d)).expect("a door that gives water");
-    let red = r.g.knocks.doors.iter().position(|d| d.mark == Mark::Red && quiet(d)).expect("a red door");
     r.g.assembly.t = 300.0;
     // the bed at the answering door, then the knock
     face(&mut r.g, answers);
     play(&mut r, 4.0, |_| {});
-    let w = windows(&r.pcm);
-    let bed = median(&w[20..80]);
     let t0 = r.pcm.len() as f64 / 2.0 / SR;
     r.g.knock_at(answers);
     let mine = r.g.knocks.rhythm.clone();
@@ -582,19 +686,15 @@ fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
             out_at = Some(t);
         }
     });
-    let out_at = out_at.expect("the door answered");
-    let raps = onsets(&r.pcm, t0 - 0.1, t0 + 1.4, bed * 4.0);
-    let w = windows(&r.pcm);
-    // someone at the door (before the thing comes out), and the thing out
-    let peak = |a: f64, b: f64| w[(a / 0.05) as usize..((b / 0.05) as usize).min(w.len())].iter().cloned().fold(0.0, f64::max);
-    let at_door = peak(t0 + ANSWER_AFTER.0, out_at);
-    let answer = peak(out_at, out_at + 1.2);
-    // the red door
+    // (seen a frame after the frame that brought it out, whose sounds began
+    // as that frame began)
+    let out_at = out_at.expect("the door answered") - 2.0 / 60.0;
+    // the red door: its bed, then the knock
     face(&mut r.g, red);
     play(&mut r, 5.0, |_| {});
     let t1 = r.pcm.len() as f64 / 2.0 / SR;
     r.g.knock_at(red);
-    let theirs_gaps = r.g.knocks.rhythm.clone();
+    let theirs = r.g.knocks.rhythm.clone();
     let mut siren = None;
     let mut t = t1;
     play(&mut r, 12.0, |g| {
@@ -603,34 +703,139 @@ fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
             siren = Some(t);
         }
     });
-    let ours = onsets(&r.pcm, t1 - 0.1, t1 + 1.4, bed * 4.0);
-    let back = onsets(&r.pcm, t1 + BACK_AFTER.0 - 0.05, t1 + BACK_AFTER.1 + 1.4, bed * 4.0);
-    let gaps = |o: &[f64]| o.windows(2).map(|p| p[1] - p[0]).collect::<Vec<f64>>();
-    println!(
-        "the Well: bed {:.1} dB; your raps at {:?} s (gaps {:?}); someone at the door {:+.1} dB over the bed, the thing pushed out {:+.1} dB, {:.2} s after the knock; at the red door your raps {:?}, its raps back {:?} (gaps {:?} against yours {:?}); the siren {:.1} s after the knock",
-        db(bed),
-        raps.iter().map(|x| ((x - t0) * 100.0).round() / 100.0).collect::<Vec<_>>(),
+    save(name, &r.pcm, &[t0, out_at, t1, siren.unwrap_or(t1)]);
+    let band = band_passed(&r.pcm, KNOCK_BAND.0, KNOCK_BAND.1);
+    let (w, wb) = (windows(&r.pcm), windows(&band));
+    let k = |s: f64| ((s / 0.05) as usize).min(w.len());
+    // each door's bed: the median of its last three seconds before the knock
+    let bed = |w: &[f64], at: f64| median(&w[k(at - 3.0)..k(at)]);
+    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().cloned().fold(0.0, f64::max);
+    let (b0, b1, bb0, bb1) = (bed(&w, t0), bed(&w, t1), bed(&wb, t0), bed(&wb, t1));
+    let from = |o: Vec<f64>, at: f64| o.into_iter().map(|x| x - at).collect::<Vec<f64>>();
+    // (the steps come `OUT_AFTER` before the thing; the catch at 0.75 s)
+    let came_at = out_at - OUT_AFTER;
+    // (your raps end within `2 RAP.1` of the knock, before it can knock back)
+    let ours_to = t1 + 2.0 * RAP.1 + 0.1;
+    let back_from = t1 + BACK_AFTER.0 - 0.05;
+    let back_to = t1 + BACK_AFTER.1 + 1.4;
+    Knocked {
+        lamp: lamps,
+        bed: (db(b0), db(b1)),
+        bed_band: (db(bb0), db(bb1)),
+        raps: from(onsets(&r.pcm, t0 - 0.1, t0 + 1.4, b0 * 4.0), t0),
+        raps_band: from(onsets(&band, t0 - 0.1, t0 + 1.4, bb0 * 4.0), t0),
         mine,
-        db(at_door / bed),
-        db(answer / bed),
-        out_at - t0,
-        ours.iter().map(|x| ((x - t1) * 100.0).round() / 100.0).collect::<Vec<_>>(),
-        back.iter().map(|x| ((x - t1) * 100.0).round() / 100.0).collect::<Vec<_>>(),
-        gaps(&back),
-        theirs_gaps,
-        siren.map(|s| s - t1).unwrap_or(f64::NAN)
-    );
-    save("knock_4242_L1", &r.pcm, &[t0, out_at, t1, back.first().copied().unwrap_or(t1), siren.unwrap_or(t1)]);
-    assert_eq!(raps.len(), 3, "three raps of your own: {raps:?}");
-    assert!(at_door / bed >= 2.0, "someone at the door is heard over the bed: {:+.1} dB", db(at_door / bed));
-    assert!(answer / bed >= 2.0, "the thing pushed out is heard over the bed: {:+.1} dB", db(answer / bed));
-    assert!(out_at - t0 <= ANSWER_AFTER.1 + OUT_AFTER + 0.1);
-    assert_eq!(ours.len(), 3, "three raps at the red door: {ours:?}");
-    assert_eq!(back.len(), 3, "three raps back: {back:?}");
-    for (g, want) in gaps(&back).iter().zip(&theirs_gaps) {
-        assert!((g - want).abs() < 0.04, "in your own rhythm: {:?} against {theirs_gaps:?}", gaps(&back));
+        at_door: db(peak(&w, t0 + ANSWER_AFTER.0, out_at) / b0),
+        at_door_band: db(peak(&wb, t0 + ANSWER_AFTER.0, out_at) / bb0),
+        came: from(onsets(&band, came_at - 0.1, out_at - 0.05, bb0 * 4.0), came_at),
+        answer: db(peak(&w, out_at, out_at + 1.2) / b0),
+        answer_band: db(peak(&wb, out_at, out_at + 1.2) / bb0),
+        out_after: out_at - t0,
+        ours: from(onsets(&r.pcm, t1 - 0.1, ours_to, b1 * 4.0), t1),
+        ours_band: from(onsets(&band, t1 - 0.1, ours_to, bb1 * 4.0), t1),
+        back: from(onsets(&r.pcm, back_from, back_to, b1 * 4.0), t1),
+        back_band: from(onsets(&band, back_from, back_to, bb1 * 4.0), t1),
+        back_peak_band: db(peak(&wb, back_from, back_to) / bb1),
+        theirs,
+        siren: siren.map(|s| s - t1),
     }
-    assert!(siren.is_some_and(|s| s - t1 < 9.0), "the siren within seconds of the red door");
+}
+
+/// A knock at the Well's sealed doors (`docs/MEGASTRUCTURE.md`, G5;
+/// `world::knock`), from where you stand to knock: your three raps; at an
+/// ordinary door that answers, someone at it and the thing pushed out
+/// (heard over the bed seconds after); at a red door, three raps back in
+/// your own rhythm, and the siren within seconds. Here at doors 8 m or more
+/// from a lamp, over the whole mix, each door against its own bed; beside a
+/// lamp, where the ballast's hum fills the bed, `a_knock_is_heard_beside_a_lamp`.
+#[test]
+fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
+    use game::world::knock::{Gift, KnockDoor, Mark, ANSWER_AFTER, OUT_AFTER};
+    let quiet = |g: &Game, d: &KnockDoor| g.panels.iter().all(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z) >= 8.0);
+    let k = knock_and_listen(4242, "knock_4242_L1", |g| {
+        let answers = g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water) && quiet(g, d)).expect("a door that gives water");
+        let red = g.knocks.doors.iter().position(|d| d.mark == Mark::Red && quiet(g, d)).expect("a red door");
+        (answers, red)
+    });
+    k.print("the Well, away from the lamps");
+    assert_eq!(k.raps.len(), 3, "three raps of your own: {:?}", k.raps);
+    assert!(k.at_door >= 6.0, "someone at the door is heard over the bed: {:+.1} dB", k.at_door);
+    assert!(k.answer >= 6.0, "the thing pushed out is heard over the bed: {:+.1} dB", k.answer);
+    assert!(k.out_after <= ANSWER_AFTER.1 + OUT_AFTER + 0.1);
+    assert_eq!(k.ours.len(), 3, "three raps at the red door: {:?}", k.ours);
+    assert_eq!(k.back.len(), 3, "three raps back: {:?}", k.back);
+    let gaps: Vec<f64> = k.back.windows(2).map(|p| p[1] - p[0]).collect();
+    for (g, want) in gaps.iter().zip(&k.theirs) {
+        assert!((g - want).abs() < 0.04, "in your own rhythm: {gaps:?} against {:?}", k.theirs);
+    }
+    assert!(k.siren.is_some_and(|s| s < 9.0), "the siren within seconds of the red door");
+}
+
+/// The knock where its doors are nearest a lit lamp (`MILESTONES.md` 12).
+/// The ballast's hum sits at the nearest lamp, at full strength within
+/// 5.6 m, and there it fills the whole mix's bed with its 120 Hz series
+/// (−35 dB against −43 dB away from the lamps, nearly all of it under
+/// 1.2 kHz); the knock and someone at the door had been made in that same
+/// band (thuds lowpassed at 260–380 Hz, sines at 80–120 Hz) and were not
+/// heard there: your three raps never three (none at all at the answering
+/// doors), the red door's raps back 1–5 dB over the bed above 1.2 kHz and not
+/// one heard as a rap, someone at the door not a step (on 4242 the catch
+/// alone). Each is now heard where it carries over the hum, in `KNOCK_BAND`:
+/// your three raps and the three raps back in your rhythm, someone at the
+/// door (its two steps and the hatch's catch, each heard come: 12 dB over
+/// the band's bed in 10 ms) and the thing pushed out, 6 dB or more over it.
+/// Over the whole mix the hum's lines still outweigh them (2–5 dB): that is
+/// not where they are heard. On the Well of seed 4242 (an answering door
+/// 3.9 m from a cell's lamp, a red door 3.1 m), 77 and 1999 (both doors
+/// under the lamp of the cell beside them, 0.4 m; on 1999 a note slid under
+/// the door). With the answer's sounds at gain 0, this fails.
+#[test]
+fn a_knock_is_heard_beside_a_lamp() {
+    use game::world::knock::Mark;
+    // (every floor heard before any is judged)
+    let heard: Vec<(u32, Knocked)> = [4242u32, 77, 1999]
+        .into_iter()
+        .map(|seed| {
+            let k = knock_and_listen(seed, &format!("knock_lamp_{seed}_L1"), |g| {
+                // the answering door and the red door nearest a lit lamp
+                let near = |want: &dyn Fn(&game::world::knock::KnockDoor) -> bool| {
+                    (0..g.knocks.doors.len())
+                        .filter(|&i| want(&g.knocks.doors[i]))
+                        .map(|i| {
+                            let d = &g.knocks.doors[i];
+                            let m = g
+                                .panels
+                                .iter()
+                                .filter(|p| p.bright >= 0.3)
+                                .map(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z))
+                                .fold(f64::MAX, f64::min);
+                            (m, i)
+                        })
+                        .min_by(|a, b| a.0.total_cmp(&b.0))
+                        .map(|x| x.1)
+                };
+                let answers = near(&|d| d.gift.is_some()).expect("a door that answers");
+                let red = near(&|d| d.mark == Mark::Red).expect("a red door");
+                (answers, red)
+            });
+            k.print(&format!("seed {seed}'s Well, beside a lamp"));
+            (seed, k)
+        })
+        .collect();
+    for (seed, k) in &heard {
+        assert!(k.lamp.0 <= 4.0 && k.lamp.1 <= 4.0, "seed {seed}: doors beside a lamp: {:?} m", k.lamp);
+        assert_eq!(k.raps_band.len(), 3, "seed {seed}: three raps of your own: {:?}", k.raps_band);
+        assert!(k.at_door_band >= 6.0, "seed {seed}: someone at the door is heard over the hum: {:+.1} dB", k.at_door_band);
+        assert_eq!(k.came.len(), 3, "seed {seed}: someone heard come to the door, two steps and the catch: {:?}", k.came);
+        assert!(k.answer_band >= 6.0, "seed {seed}: the thing pushed out is heard over the hum: {:+.1} dB", k.answer_band);
+        assert_eq!(k.ours_band.len(), 3, "seed {seed}: three raps at the red door: {:?}", k.ours_band);
+        assert_eq!(k.back_band.len(), 3, "seed {seed}: three raps back: {:?}", k.back_band);
+        let gaps: Vec<f64> = k.back_band.windows(2).map(|p| p[1] - p[0]).collect();
+        for (g, want) in gaps.iter().zip(&k.theirs) {
+            assert!((g - want).abs() < 0.04, "seed {seed}: in your own rhythm: {gaps:?} against {:?}", k.theirs);
+        }
+        assert!(k.siren.is_some_and(|s| s < 9.0), "seed {seed}: the siren within seconds of the red door");
+    }
 }
 
 /// What knocks at your cell (`docs/MEGASTRUCTURE.md`, G6;

@@ -300,7 +300,11 @@ Levels must be a pure function of `(run_seed, level)`:
 * `crates/backrooms/tests/listen.rs` renders the game's audio offline and
   writes each run to `target/listen/*.wav` with a loudness timeline
   (`*.png`, dB per 50 ms window, red marks at events): listen to them after
-  a change to the sound. Its checks are measured against the room's bed.
+  a change to the sound. Its checks are measured against the room's bed,
+  in the band a sound is heard in where the bed is a hum: within a few
+  metres of a lit lamp the ballast's 120 Hz series fills the bed under
+  1.2 kHz, and over the whole mix it outweighs what a person hears above
+  it (`a_knock_is_heard_beside_a_lamp`).
 * `crates/backrooms/tests/loudness.rs` measures three level renders to EBU
   R128 (the `ebur128` crate): integrated loudness within 1 LU and loudness
   range within 3 LU of `tests/recorded/loudness.json`, true peak at or

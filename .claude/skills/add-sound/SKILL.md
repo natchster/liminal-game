@@ -19,6 +19,16 @@ tell whether it sounds right. Plan for that from the start.
    spoken line is the one exception: it comes from the voice pipeline
    (`voice-persona`, `voice-lines` skills; `docs/VOICES.md`), never
    synthesized by hand and never a recording of a person.
+
+   **Beside a lamp.** Within a few metres of a lit lamp the ballast's hum
+   is the bed (`Hum`: 60 Hz, 120 Hz and its series to 1.08 kHz, at full
+   strength within 5.6 m; the Well's bed −35 dB there against −43 dB away
+   from the lamps). A sound built only below 1.2 kHz (a lowpassed thud, a
+   low sine) is not heard there: give what must be heard anywhere a part
+   above it (a click, a ring, a heel), or, for a held note, measure it in
+   its critical band against the room's lines. This happened twice: the
+   one in the corner's hum (E10) and the knock and its answer
+   (`MILESTONES.md` 12).
 3. **Carry and rhythm.** A signature or ambient event needs its `sig_carry`
    entry (near / far / reference distance / gain) and its cadence; per-level
    choices that must not shift the build use `SplitMix64` with a salt. The
@@ -27,6 +37,11 @@ tell whether it sounds right. Plan for that from the start.
    - `cargo test --release -p game --test ambient --test soundscape`.
    - `cargo test --release -p backrooms --test listen -- --nocapture`: it
      rises over the bed when it should, nothing piles up at a level's start.
+     Listen where it is hardest to hear, beside a lamp too, and measure it
+     in the band it is heard in (`band_passed`, `KNOCK_BAND`;
+     `a_knock_is_heard_beside_a_lamp`): over the whole mix the hum's lines
+     outweigh what a person hears. The test must fail with the sound at
+     gain 0.
    - `cargo test --release -p backrooms --test loudness -- --nocapture`:
      integrated ±1 LU, range ±3 LU, true peak ≤ −1 dBTP, no one-shot twice
      within 8 s. Re-record only after a person has listened

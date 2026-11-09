@@ -203,7 +203,7 @@
       "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "a knock at the Well's sealed doors: four ordinary doors a floor answer once (water, a battery, a resident's word of the way), a red door knocks back and calls the siren, a taped door never answers, nobody answers while it is up",
-      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs (at a door 8 m or more from a cell's lamp: nearer, the lamp's hum covers the knock, docs/MILESTONES.md 12); whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
+      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs, away from the lamps and beside them (within a few metres of a cell's lamp its hum is the bed, and since docs/MILESTONES.md 12 your raps, someone at the door, the thing pushed out and the knock back carry above it); whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
       "passes": {
         "test:backrooms/knock": true,
         "test:backrooms/listen": true
