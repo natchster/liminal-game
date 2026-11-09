@@ -149,3 +149,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-09, on top of 2b6e022: frames: 39 shots. Reason: M8: the dust motes a few millimetres (they were 4.5-6.5 cm, glowing specks), the lamp's glints smaller, the wallpaper's torn patches soft and ragged, contact shadows under small props; looked at each frame and error map: scattered mote dots, the patches on the dirty walls
 
 - 2026-11-09, on top of 0931fa3: frames: 4242_L2_spawn, 4242_L2_stair_halls, 4242_L3_spawn, 4242_L3_works. Reason: Milestone 11: the Stair Halls' lamp heads are iron lanterns and a flight's foot lamp no longer stands in a cell's lamp; the Works' pipes run as pipes (joints, elbows into the wall, brackets, painted steel), none over a flight, and its floodlights have a hood
+
+- 2026-11-09, on top of fa45f64: frames: 4242_L3_spawn. Reason: Code review 3: the Works' pipes and elbows eight-sided (14 before) and the pipe open-ended; only the near pipes' silhouettes move by a pixel at their edges, they still read as round pipes (looked at the frame and its error map)

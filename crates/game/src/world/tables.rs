@@ -1420,7 +1420,6 @@ pub const PLACER_ALWAYS: [&str; 1] = ["place_gameplay_r1_trigger"];
 /// No draws (this runs inside the seeded build): `arm_level_ambient`
 /// staggers the cadences once the level is up.
 pub fn reset_level_timers(g: &mut crate::base::game::Game) {
-    g.rate_drift_ticks = 0.0;
     for c in crate::audio::ambient::CADENCES {
         if !c.run {
             *(c.timer)(g) = 0.0;

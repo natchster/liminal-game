@@ -281,8 +281,11 @@ Levels must be a pure function of `(run_seed, level)`:
   - A test binary can't open the device, even through the game's
     `audio_init`.
   - A test makes its context with `AudioContext::new_silent()` (real time,
-    nothing heard, nothing rendered) or `new_offline()` (rendered on
-    demand), never `AudioContext::new()`.
+    nothing heard, nothing rendered: what it is sent is dropped) or
+    `new_offline()` (rendered on demand, `render_offline`), never
+    `AudioContext::new()`. A test of the sound itself renders it offline:
+    on the silent clock a panic in the render cannot fail it
+    (`audio_smoke.rs` and `ambient.rs` had tested nothing so).
 
   `tests/structure.rs` (`automated_runs_never_open_the_output_device`),
   the engine's `the_speakers_start_off` and `audio_smoke.rs` hold this.

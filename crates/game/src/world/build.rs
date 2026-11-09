@@ -200,8 +200,8 @@ impl Game {
         self.faulty_trip_count = 0.0;
         self.escalation_toast_fired = false;
         self.haunted_candles.clear();
-        // A new weather doesn't inherit drift readings from the last level
-        self.rate_delta_buf.clear();
+        // (the last level's contact shadows)
+        self.prop_cull.shadows.clear();
         // Per-weather ambient timers, rare-event timers and envelopes
         crate::world::tables::reset_level_timers(self);
         self.ambient_log.clear();
@@ -484,23 +484,22 @@ impl Game {
             self.usable_settled();
         }
         self.build_lap("placement", bt0);
+        // each prop measured once, for its look and its contact shadow
+        let props = self.prop_boxes(prop_start);
         if !self.test_keep_prop_looks {
-            self.settle_prop_looks(prop_start);
+            self.settle_prop_looks(&props);
         }
         // the small things' contact shadows, from where they now lie (laid
         // after the instancing, which takes the repeated ones out)
-        let contact = self.contact_blobs(prop_start);
+        let contact = self.contact_blobs(&props);
+        drop(props);
         self.build_walls();
         self.build_ceilings();
         self.lay_panels();
         self.freeze_static();
         // repeated static parts become one instanced mesh per 10×10-tile chunk; #noinstance keeps them apart
         if !self.has_flag("noinstance") {
-            let (w, h) = (self.w as f64, self.h as f64);
-            let chunk_of = |x: f64, z: f64| {
-                ((x / CELL + w / 2.0).floor() / 10.0).floor() as i64 * 64 + ((z / CELL + h / 2.0).floor() / 10.0).floor() as i64
-            };
-            let st = crate::world::instancing::instancify_static(&self.world, &chunk_of);
+            let st = crate::world::instancing::instancify_static(&self.world, &|x, z| self.chunk_of(x, z));
             for (k, v) in
                 [("meshes", st.meshes), ("instanced", st.instanced), ("buckets", st.buckets), ("removedGroups", st.removed_groups)]
             {

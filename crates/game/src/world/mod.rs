@@ -40,9 +40,6 @@ pub const DECAY_STEP: f64 = 0.10;
 pub const DECAY_MAX: f64 = 0.92;
 /// How brightly a region reads, by grime
 pub const GRIME_LIGHT: [f64; 4] = [1.0, 0.78, 0.5, 0.3];
-pub const RATE_DELTA_WINDOW: usize = 30;
-pub const BLOWOUT_MILESTONE_AT: f64 = 25.0;
-pub const RELIGHT_MILESTONE_AT: f64 = 15.0;
 const N4: [(i32, i32); 4] = [(1, 0), (-1, 0), (0, 1), (0, -1)];
 
 /// [`choice`] that tolerates an empty list: it still makes its one draw, then
@@ -560,23 +557,6 @@ impl Game {
             }
         };
         *self.ambient_tally.entry(tag.to_string()).or_default().entry(wk.to_string()).or_insert(0.0) += 1.0;
-    }
-    /// Pushes a rate delta into the window; returns the running average
-    pub fn push_rate_delta(&mut self, delta: f64) -> Option<f64> {
-        self.rate_delta_buf.push(delta);
-        if self.rate_delta_buf.len() > RATE_DELTA_WINDOW {
-            self.rate_delta_buf.remove(0);
-        }
-        if self.rate_delta_buf.is_empty() {
-            return None;
-        }
-        Some(self.rate_delta_buf.iter().fold(0.0, |a, b| a + b) / self.rate_delta_buf.len() as f64)
-    }
-    pub fn current_rate_avg(&self) -> Option<f64> {
-        if self.rate_delta_buf.is_empty() {
-            return None;
-        }
-        Some(self.rate_delta_buf.iter().fold(0.0, |a, b| a + b) / self.rate_delta_buf.len() as f64)
     }
     pub fn maybe_fire_escalation_toast(&mut self) {
         if self.escalation_toast_fired {

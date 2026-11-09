@@ -369,18 +369,28 @@ impl Game {
     /// The sight line stops just short of the point, so a source on a wall is
     /// not hidden by its own wall.
     pub fn ear(&self, x: f64, z: f64) -> (f64, f64, bool) {
+        let (d, pan) = self.ear_pan(x, z);
+        if !(d > 1e-6) {
+            return (0.0, 0.0, true);
+        }
+        let (px, pz) = (self.player.pos.x, self.player.pos.z);
+        let (dx, dz) = (x - px, z - pz);
+        let back = (d * 0.5).min(0.6);
+        let clear = self.los(px, pz, x - dx / d * back, z - dz / d * back);
+        (d, pan, clear)
+    }
+
+    /// `ear` without the sight line: the distance and the stereo pan
+    pub fn ear_pan(&self, x: f64, z: f64) -> (f64, f64) {
         let (px, pz) = (self.player.pos.x, self.player.pos.z);
         let (dx, dz) = (x - px, z - pz);
         let d = (dx * dx + dz * dz).sqrt();
         if !(d > 1e-6) {
-            return (0.0, 0.0, true);
+            return (0.0, 0.0);
         }
         let yaw = self.yaw0();
         let side = dx * yaw.cos() - dz * yaw.sin();
-        let pan = clamp(side / d.max(0.5), -1.0, 1.0) * 0.8;
-        let back = (d * 0.5).min(0.6);
-        let clear = self.los(px, pz, x - dx / d * back, z - dz / d * back);
-        (d, pan, clear)
+        (d, clamp(side / d.max(0.5), -1.0, 1.0) * 0.8)
     }
 
     /// The nearest prop of `list` within `radius` m of the player; None when

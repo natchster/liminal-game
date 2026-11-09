@@ -210,21 +210,44 @@ fn settle_material(m: &Mat) -> bool {
     true
 }
 
+/// A placed prop measured once, for its look and its contact shadow
+/// (`visuals::contact`): its world box and the floor under its middle (0
+/// when the box is empty)
+pub struct PropBox {
+    pub top: Obj,
+    pub bb: Box3,
+    pub floor: f64,
+}
+
 impl Game {
-    /// Settle the look of every prop material under the world's children
-    /// from `start` on, and set each prop's wear by use on its meshes (see
-    /// the module notes). Pickups and gameplay markers are skipped. Returns
-    /// the number of materials changed.
-    pub fn settle_prop_looks(&mut self, start: usize) -> usize {
+    /// The props from the world's child `start` on that are settled
+    /// (pickups and gameplay markers keep their look), each measured where
+    /// it now lies
+    pub fn prop_boxes(&self, start: usize) -> Vec<PropBox> {
         let keep: Vec<Obj> = self.almonds.iter().chain(self.battery_items.iter()).map(|p| p.g.clone()).collect();
-        let mut n = 0;
+        let mut out = vec![];
         for top in self.world.children().into_iter().skip(start) {
             if top.user().gameplay || keep.iter().any(|k| k.ptr_eq(&top)) {
                 continue;
             }
-            n += self.settle_look_of(&top);
+            out.push(self.prop_box(top));
         }
-        n
+        out
+    }
+
+    /// `top` measured: its world box and the floor under its middle
+    fn prop_box(&self, top: Obj) -> PropBox {
+        let mut bb = Box3::empty();
+        bb.set_from_object(&top);
+        let floor = if bb.is_empty() { 0.0 } else { self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0) };
+        PropBox { top, bb, floor }
+    }
+
+    /// Settle the look of every prop material under `props` (`prop_boxes`)
+    /// and set each prop's wear by use on its meshes (see the module notes).
+    /// Returns the number of materials changed.
+    pub fn settle_prop_looks(&mut self, props: &[PropBox]) -> usize {
+        props.iter().map(|p| self.settle_look_with(p)).sum()
     }
 
     /// Settle the look of one prop (`top` and everything under it, placed
@@ -232,18 +255,19 @@ impl Game {
     /// materials changed. The furniture the Building's rooms are dressed
     /// with is settled so, as it is made (`building_dress::dress_rooms`)
     pub fn settle_look_of(&self, top: &Obj) -> usize {
+        self.settle_look_with(&self.prop_box(top.clone()))
+    }
+
+    fn settle_look_with(&self, p: &PropBox) -> usize {
         let mut n = 0;
-        let mut bb = Box3::empty();
-        bb.set_from_object(top);
-        let wear = if bb.is_empty() {
+        let wear = if p.bb.is_empty() {
             UseWear::default()
         } else {
-            let size = bb.get_size();
-            let floor = self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
-            let (handled, chips) = handled(bb.min.y - floor, size.y, size.x.max(size.y).max(size.z));
-            UseWear { handled, chips, floor }
+            let size = p.bb.get_size();
+            let (handled, chips) = handled(p.bb.min.y - p.floor, size.y, size.x.max(size.y).max(size.z));
+            UseWear { handled, chips, floor: p.floor }
         };
-        top.traverse(&mut |o: &Obj| {
+        p.top.traverse(&mut |o: &Obj| {
             if !o.is_mesh() {
                 return;
             }

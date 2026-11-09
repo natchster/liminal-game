@@ -5,10 +5,10 @@
 //! into its own small premultiplied canvas at device resolution; the canvas
 //! is only repainted when what it shows changes (a hash of its content), so
 //! CSS opacity transitions and keyframe animations are just layer opacities.
-//! The full-screen layers (#vignette, #weatherTint, #safeRoomGlow,
-//! #aberration, #flash, #fade, #achievementFlash) are radial-gradient / fill
-//! ops with their CSS mix-blend-mode; #grain is the 480×300 grain canvas
-//! stretched over the view (`image-rendering: pixelated`, overlay blend).
+//! The full-screen layers (#vignette, #weatherTint, #aberration, #flash,
+//! #fade, #achievementFlash) are radial-gradient / fill ops with their CSS
+//! mix-blend-mode; #grain is the 480×300 grain canvas stretched over the
+//! view (`image-rendering: pixelated`, overlay blend).
 //!
 //! Layout: "Courier New" metrics (ascent/descent rounded per size, 0.6em
 //! advances, trailing letter-spacing counted), line boxes with floored
@@ -1289,7 +1289,7 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
     // (the `#gl` canvas filter of body.low-sanity / .crit-sanity belongs to
     // the scene compositor, `crate::visuals::scene_fx` — not a HUD layer)
 
-    // ---- z 3: #vignette, #weatherTint, #safeRoomGlow
+    // ---- z 3: #vignette, #weatherTint
     {
         let el = &d.vignette;
         let op = f.tr("vignette.opacity", opacity_of(el, 0.0), 0.25, Ease::Ease);
@@ -1323,15 +1323,6 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
         if !bg.is_empty() {
             f.background(bg, 1.0, LayerBlend::Multiply);
         }
-    }
-    {
-        let el = &d.safe_room_glow;
-        let op = f.tr("safeRoomGlow.opacity", opacity_of(el, if el.has_class("on") { 1.0 } else { 0.0 }), 0.8, Ease::EaseOut);
-        f.background(
-            "radial-gradient(ellipse at center, transparent 25%, rgba(255, 176, 96, 0.10) 65%, rgba(255, 140, 60, 0.28) 100%)",
-            op,
-            LayerBlend::Screen,
-        );
     }
     // ---- z 4: #aberration (three gradients, multiply), then #hud
     {

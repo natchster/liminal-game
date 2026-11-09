@@ -214,11 +214,6 @@ pub static LORE_ARCS: [LoreArc; 6] = [
     LoreArc { name: "THE BUILDING", ids: &[52, 54, 55, 56, 57], color: 0xb8a4c4 }, // the fog's violet
 ];
 
-/// Candle blow-out / relight milestone thresholds (copies of the world
-/// build's values; only the debug panel reads them)
-const BLOWOUT_MILESTONE_AT: f64 = 25.0;
-const RELIGHT_MILESTONE_AT: f64 = 15.0;
-
 /// the grain canvas size (480×300)
 pub const GRAIN_W: u32 = 480;
 pub const GRAIN_H: u32 = 300;
@@ -574,15 +569,12 @@ impl Game {
             fx(self.sanity_whisper_t, 1)
         );
         // ─ audio keys ─
-        let bh = self.weather_pick(tables::battery_hint_dips, tables::battery_hint_dips("normal").unwrap());
         let lfo = self.audio.safe_room_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
         let carrier = self.audio.safe_room_trem_carrier.as_ref().map(|n| fx(n.frequency().value(), 1)).unwrap_or_else(|| "-".into());
         let det = tables::carrier_weather_detune(wk).unwrap_or(0.0);
         let _ = write!(
             s,
-            "─ audio keys ─\nbatteryHint {} / {} Hz\nsafeRoom    LFO={} Hz  carrier={} Hz  wMul={}  cOff={}\n",
-            ns(bh[0]),
-            ns(bh[1]),
+            "─ audio keys ─\nsafeRoom    LFO={} Hz  carrier={} Hz  wMul={}  cOff={}\n",
             lfo,
             carrier,
             fx(tables::lfo_weather_mul(wk).unwrap_or(1.0), 2),
@@ -637,13 +629,7 @@ impl Game {
         );
         let _ = writeln!(
             s,
-            "─ mileshown blowout={}({}/{}) relight={}({}/{}) archive={}({}/{}+{}/{}) ─",
-            yn(self.blowout_milestone_shown),
-            ns(self.candle_blowout_tally),
-            ns(BLOWOUT_MILESTONE_AT),
-            yn(self.relight_milestone_shown),
-            ns(self.candle_relight_tally),
-            ns(RELIGHT_MILESTONE_AT),
+            "─ mileshown archive={}({}/{}+{}/{}) ─",
             yn(self.archive_milestone_shown),
             self.lore_found.len(),
             LORE_ENTRIES.len(),
@@ -966,87 +952,17 @@ impl Game {
             };
             let _ = writeln!(s, "{}", log);
         }
-        // ─ candles ─ (the rate cell pushes the rolling delta)
+        // ─ candles ─
         {
-            let rate = {
-                let denom = self.candle_fizzle_tally + self.candle_relight_tally;
-                if denom == 0.0 {
-                    "-".to_string()
-                } else {
-                    let r = self.candle_fizzle_tally / denom;
-                    let target = tables::fizzle_prob_by_weather(wk).or(tables::fizzle_prob_by_weather("normal")).unwrap();
-                    let delta = r - target;
-                    let avg_delta = self.push_rate_delta(delta).unwrap_or(delta);
-                    let drift_now = denom >= tables::RATE_DRIFT_MIN_N && avg_delta.abs() > tables::RATE_DRIFT_THRESHOLD;
-                    self.rate_drift_ticks = if drift_now { self.rate_drift_ticks + 1.0 } else { 0.0 };
-                    let sign = if avg_delta >= 0.0 { "+" } else { "" };
-                    let marker = if self.rate_drift_ticks >= tables::RATE_DRIFT_DEBOUNCE {
-                        format!("*!{}{}*", sign, fx(avg_delta, 2))
-                    } else {
-                        String::new()
-                    };
-                    fx(r, 2) + &marker
-                }
-            };
             let tail = tables::tail_beat_specs(wk).or(tables::tail_beat_specs("normal")).unwrap().len();
-            let spark = tables::relight_specs(wk).or(tables::relight_specs("normal")).unwrap().len();
-            let echo_p = tables::fizzle_echo_prob_by_weather(wk).or(tables::fizzle_echo_prob_by_weather("normal")).unwrap();
-            let fiz_p = tables::fizzle_prob_by_weather(wk).or(tables::fizzle_prob_by_weather("normal")).unwrap();
-            let _ = writeln!(
-                s,
-                "─ candles ({}) blowouts={} relights={} fizzles={} rate={}  tail={}  spark={}  echoP={}  fizP={} ─",
-                self.haunted_candles.len(),
-                ns(self.candle_blowout_tally),
-                ns(self.candle_relight_tally),
-                ns(self.candle_fizzle_tally),
-                rate,
-                tail,
-                spark,
-                fx(echo_p, 2),
-                fx(fiz_p, 2)
-            );
-            let avg = match self.current_rate_avg() {
-                None => "-".to_string(),
-                Some(a) => {
-                    let sign = if a >= 0.0 { "+" } else { "" };
-                    // Remaining debounce ticks before the marker fires
-                    let pre_fire = a.abs() > tables::RATE_DRIFT_THRESHOLD && self.rate_drift_ticks < tables::RATE_DRIFT_DEBOUNCE;
-                    let countdown =
-                        if pre_fire { format!("({})", ns(tables::RATE_DRIFT_DEBOUNCE - self.rate_drift_ticks)) } else { String::new() };
-                    format!("{}{}{}", sign, fx(a, 2), countdown)
-                }
-            };
-            let mm = if self.rate_delta_buf.is_empty() {
-                String::new()
-            } else {
-                let mn = self.rate_delta_buf.iter().cloned().fold(f64::INFINITY, f64::min);
-                let mx = self.rate_delta_buf.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-                format!("  max={}{} min={}{}", if mx >= 0.0 { "+" } else { "" }, fx(mx, 2), if mn >= 0.0 { "+" } else { "" }, fx(mn, 2))
-            };
-            let _ = writeln!(
-                s,
-                "─ tuning driftT={} minN={} deb={}({}) win={}({}) avg={}{} minOp={} ─",
-                ns(tables::RATE_DRIFT_THRESHOLD),
-                ns(tables::RATE_DRIFT_MIN_N),
-                ns(tables::RATE_DRIFT_DEBOUNCE),
-                ns(self.rate_drift_ticks),
-                ns(tables::RATE_DELTA_WINDOW),
-                self.rate_delta_buf.len(),
-                avg,
-                mm,
-                ns(tables::WHISPER_MIN_OPACITY)
-            );
+            let _ = writeln!(s, "─ candles ({}) blowouts={}  tail={} ─", self.haunted_candles.len(), ns(self.candle_blowout_tally), tail);
             let rows = self
                 .haunted_candles
                 .iter()
                 .enumerate()
                 .map(|(i, c)| {
                     let extinguished = c.b.get("extinguished").copied().unwrap_or(!c.lit);
-                    let lit = if extinguished { "OUT" } else { "LIT" };
-                    let hc = c.f.get("hintCooldown").copied().unwrap_or(0.0);
-                    let cd = if hc > 0.0 { fx(hc, 1) } else { "-".into() };
-                    let near = if c.b.get("wasNear").copied().unwrap_or(false) { "IN " } else { "   " };
-                    format!("  #{} {} streak={} hintCD={} {}", i, lit, ns(c.f.get("fizzleStreak").copied().unwrap_or(0.0)), cd, near)
+                    format!("  #{} {}", i, if extinguished { "OUT" } else { "LIT" })
                 })
                 .collect::<Vec<_>>()
                 .join("\n");

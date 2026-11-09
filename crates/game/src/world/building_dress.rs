@@ -1218,8 +1218,11 @@ impl Game {
     fn works_pipes(&mut self, plan: &BuildingPlan, parts: &mut Parts, runs: &[((i32, i32), usize, usize, f64)]) {
         const R: f64 = 0.16;
         const BEND: f64 = 0.24;
-        let pipe_geo = cyl_geo!(R, R, 1.0, 14);
-        let elbow_geo = torus_geo!(BEND, R, 14, 8, PI / 2.0);
+        // (eight-sided, the pipe and the elbow alike, their sides meeting;
+        // the pipe open-ended: its ends are always in a flange, an elbow or
+        // a wall)
+        let pipe_geo = cyl_geo!(R, R, 1.0, 8, 1, true);
+        let elbow_geo = torus_geo!(BEND, R, 8, 4, PI / 2.0);
         let flange_geo = cyl_geo!(R + 0.05, R + 0.05, 1.0, 14);
         let unit = self.unit_box_geo.clone();
         let paint = phong!({ color: 0x5f6358, specular: 0x1c1c1a, shininess: 26 });
@@ -1235,6 +1238,9 @@ impl Game {
             // out of the wall, and along it (to the right seen from the walk)
             let n = Vec3::new(-(DIRS[d][0] as f64), 0.0, -(DIRS[d][1] as f64));
             let along = Vec3::new(-n.z, 0.0, n.x);
+            // a length laid along the face, and one stood out of the wall
+            let lie = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
+            let stand = Quat::from_axis_angle(&Vec3::new(along.x, 0.0, along.z), PI / 2.0);
             let off = 0.25 + k as f64 * 0.38;
             // the point `a` along from the tile's middle, `o` out from the wall
             let at = |a: f64, o: f64| self.face_point(xx, zz, d, 0.0, -o, y) + along * a;
@@ -1245,16 +1251,14 @@ impl Game {
                 if has(next, d, k, y) {
                     // a flanged joint, drawn once, from the tile on its left
                     if s > 0.0 {
-                        let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
-                        parts.put(flange, Mat4::compose(&at(edge, off), &q, &Vec3::new(1.0, 0.07, 1.0)));
+                        parts.put(flange, Mat4::compose(&at(edge, off), &lie, &Vec3::new(1.0, 0.07, 1.0)));
                     }
                     continue;
                 }
                 let wall = self.dress_ground(plan, next.0, next.1);
                 if wall.kind == GROUND_MASS && wall.h1 as f64 > y + R + 0.1 {
                     // into the wall the face turns into, a collar on it
-                    let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
-                    parts.put(flange, Mat4::compose(&at(edge - s * 0.015, off), &q, &Vec3::new(1.0, 0.03, 1.0)));
+                    parts.put(flange, Mat4::compose(&at(edge - s * 0.015, off), &lie, &Vec3::new(1.0, 0.03, 1.0)));
                     continue;
                 }
                 // bent back into its own wall short of the tile's end
@@ -1279,15 +1283,12 @@ impl Game {
                 // the length on into the wall, and its collar
                 let len = off - BEND;
                 if len > 0.01 {
-                    let q = Quat::from_axis_angle(&Vec3::new(along.x, 0.0, along.z), PI / 2.0);
-                    parts.put(pipe, Mat4::compose(&at(start + s * BEND, len / 2.0), &q, &Vec3::new(1.0, len + 0.02, 1.0)));
+                    parts.put(pipe, Mat4::compose(&at(start + s * BEND, len / 2.0), &stand, &Vec3::new(1.0, len + 0.02, 1.0)));
                 }
-                let q = Quat::from_axis_angle(&Vec3::new(along.x, 0.0, along.z), PI / 2.0);
-                parts.put(flange, Mat4::compose(&at(start + s * BEND, 0.015), &q, &Vec3::new(1.0, 0.03, 1.0)));
+                parts.put(flange, Mat4::compose(&at(start + s * BEND, 0.015), &stand, &Vec3::new(1.0, 0.03, 1.0)));
             }
             // the length along the face, between its ends
-            let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
-            parts.put(pipe, Mat4::compose(&at((lo + hi) / 2.0, off), &q, &Vec3::new(1.0, hi - lo, 1.0)));
+            parts.put(pipe, Mat4::compose(&at((lo + hi) / 2.0, off), &lie, &Vec3::new(1.0, hi - lo, 1.0)));
             // a bracket under it, from the wall, in the tile's middle
             let b = at((lo + hi) / 2.0, (off + 0.1) / 2.0) - up * (R + 0.03);
             parts.put(bracket, Mat4::compose(&b, &Quat::from_axis_angle(&up, yaw_to(d)), &Vec3::new(0.06, 0.05, off + 0.1)));
@@ -1304,20 +1305,28 @@ fn piece_part(g: &Obj, geo: Geo, mat: &Mat, (x, y, z): (f64, f64, f64), s: (f64,
     m
 }
 
+/// A geometry of the rooms' furniture by name, one for every piece and
+/// level (as the props' parts are), so the instancing takes like parts
+/// together (a table's four legs, two rooms' stools in a chunk)
+fn room_geo(name: &'static str, make: impl FnOnce() -> Geo) -> Geo {
+    thread_local! { static G: std::cell::RefCell<std::collections::BTreeMap<&'static str, Geo>> = const { std::cell::RefCell::new(std::collections::BTreeMap::new()) }; }
+    G.with(|g| g.borrow_mut().entry(name).or_insert_with(make).clone())
+}
+
 /// The Well's resident's table: a top a little proud of its apron, four legs
 /// tapering to the floor (its top at 0.755 m, where a thing is set on it)
 fn room_table() -> Obj {
     let g = group();
     let wood = lambert!({ color: 0x5a4632 });
     let one = (1.0, 1.0, 1.0);
-    piece_part(&g, box_geo!(1.1, 0.035, 0.7), &wood, (0.0, 0.7375, 0.0), one);
+    piece_part(&g, room_geo("table_top", || box_geo!(1.1, 0.035, 0.7)), &wood, (0.0, 0.7375, 0.0), one);
     for k in [-1.0, 1.0] {
-        piece_part(&g, box_geo!(0.94, 0.08, 0.02), &wood, (0.0, 0.68, k * 0.29), one);
-        piece_part(&g, box_geo!(0.02, 0.08, 0.54), &wood, (k * 0.47, 0.68, 0.0), one);
+        piece_part(&g, room_geo("table_apronX", || box_geo!(0.94, 0.08, 0.02)), &wood, (0.0, 0.68, k * 0.29), one);
+        piece_part(&g, room_geo("table_apronZ", || box_geo!(0.02, 0.08, 0.54)), &wood, (k * 0.47, 0.68, 0.0), one);
     }
     for (lx, lz) in [(-0.49, -0.3), (0.49, -0.3), (-0.49, 0.3), (0.49, 0.3)] {
-        piece_part(&g, box_geo!(0.05, 0.36, 0.05), &wood, (lx, 0.54, lz), one);
-        piece_part(&g, box_geo!(0.036, 0.36, 0.036), &wood, (lx, 0.18, lz), one);
+        piece_part(&g, room_geo("table_legTop", || box_geo!(0.05, 0.36, 0.05)), &wood, (lx, 0.54, lz), one);
+        piece_part(&g, room_geo("table_legFoot", || box_geo!(0.036, 0.36, 0.036)), &wood, (lx, 0.18, lz), one);
     }
     g
 }
@@ -1373,7 +1382,7 @@ fn room_screen() -> Obj {
     piece_part(&g, pg("Props__crtTv_body", box_geo!(0.85, 0.62, 0.55)), &lambert!({ color: 0x8a8577 }), (0.0, 0.155, 0.0), half);
     piece_part(&g, pg("Props__crtTv_bezel", box_geo!(0.72, 0.52, 0.02)), &lambert!({ color: 0x77736a }), (0.0, 0.16, 0.138), half);
     let glass = phong!({ color: 0x161a19, specular: 0x2a2a2a, shininess: 70 });
-    piece_part(&g, box_geo!(0.3, 0.22, 0.008), &glass, (0.0, 0.16, 0.146), (1.0, 1.0, 1.0));
+    piece_part(&g, room_geo("screen_glass", || box_geo!(0.3, 0.22, 0.008)), &glass, (0.0, 0.16, 0.146), (1.0, 1.0, 1.0));
     g
 }
 
@@ -1383,9 +1392,9 @@ fn room_stool() -> Obj {
     let g = group();
     let steel = lambert!({ color: 0x5a5d58 });
     let one = (1.0, 1.0, 1.0);
-    piece_part(&g, cyl_geo!(0.17, 0.165, 0.045, 18), &lambert!({ color: 0x3e403c }), (0.0, 0.6, 0.0), one);
-    piece_part(&g, cyl_geo!(0.025, 0.025, 0.24, 8), &steel, (0.0, 0.46, 0.0), one);
-    let ring = piece_part(&g, torus_geo!(0.15, 0.01, 6, 20), &steel, (0.0, 0.2, 0.0), one);
+    piece_part(&g, room_geo("stool_seat", || cyl_geo!(0.17, 0.165, 0.045, 18)), &lambert!({ color: 0x3e403c }), (0.0, 0.6, 0.0), one);
+    piece_part(&g, room_geo("stool_post", || cyl_geo!(0.025, 0.025, 0.24, 8)), &steel, (0.0, 0.46, 0.0), one);
+    let ring = piece_part(&g, room_geo("stool_ring", || torus_geo!(0.15, 0.01, 4, 12)), &steel, (0.0, 0.2, 0.0), one);
     ring.rotation().x = PI / 2.0;
     for k in 0..3 {
         let a = k as f64 * 2.0 * PI / 3.0 + 0.3;
@@ -1394,7 +1403,7 @@ fn room_stool() -> Obj {
         let len = dir.length();
         let leg = piece_part(
             &g,
-            cyl_geo!(0.013, 0.013, 1.0, 6),
+            room_geo("stool_leg", || cyl_geo!(0.013, 0.013, 1.0, 6)),
             &steel,
             ((top.x + foot.x) / 2.0, top.y / 2.0, (top.z + foot.z) / 2.0),
             (1.0, len, 1.0),

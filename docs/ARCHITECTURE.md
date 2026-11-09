@@ -243,9 +243,10 @@ affects a level's build.
    exponential-squared and applied after the sRGB encode. A small thing
    on the floor that never moves has a contact shadow
    (`visuals::contact`): a soft dark shape laid on the floor round the
-   outline of its foot, unlit black with its alpha in its vertex colours,
-   one mesh a 10 x 10 tile chunk, made once a level from where the things
-   settled (no texture read, no random draw).
+   outline of its foot (at most 16 corners), unlit black with its alpha in
+   its vertex colours, one mesh a 10 x 10 tile chunk, made once a level
+   from where the things settled (no texture read, no random draw); past a
+   thing's draw distance the prop cull draws its chunk without it.
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
    texels a tile: the light, how open each place is, its ceiling),
    world-space architecture UVs with a photographed detail over them

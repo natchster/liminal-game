@@ -1126,7 +1126,11 @@ impl Game {
         if self.audio.safe_room_gain.is_some() {
             let (near, pan) = match self.safe_room.as_ref() {
                 Some(sr) => {
-                    let (d, pan, clear) = self.ear(sr.x, sr.z - 0.7);
+                    // (the sight line, a walk of the level's walls, only
+                    // within the 3 m it is heard in)
+                    let (x, z) = (sr.x, sr.z - 0.7);
+                    let (d, pan) = self.ear_pan(x, z);
+                    let clear = d < 3.0 && self.ear(x, z).2;
                     (clamp((3.0 - d) / 1.5, 0.0, 1.0) * if clear { 1.0 } else { 0.45 }, pan)
                 }
                 None => (0.0, 0.0),

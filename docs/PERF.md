@@ -97,6 +97,18 @@ from before `03e4b80` benches out loud.
   (three rounds), the builds held (37.5–42.5 → 37.9–41.6 ms) and the
   first frames moved within a millisecond (4242 L3 5.8 → 8.2 ms, 7 L2
   10.1 → 6.9). Content, far within budget; kept.
+- **Code review 3** (`fa45f64+` in the history): most of that rise taken
+  back. The elbows (14 × 8 segments, about 60% of it) are 8 × 4, and the
+  pipe is 8-sided and open-ended (its ends are always in a flange, an
+  elbow or a wall; the elbow's sides meet the pipe's): the Works' triangles
+  80.9k → 52.0k on 4242 L3 and 104.3k → 72.3k on 7 L3, their draw calls
+  unchanged (208, 284). The rooms' furniture shares its geometry now (a
+  table's four legs one instanced draw; the stool's foot ring 4 × 12): the
+  Well's draw calls 409 → 385 (4242 L1) and 333 → 325 (7 L1). On the floors
+  of the rooms a contact shadow's footprint has at most 16 corners, and a
+  shadow goes with its thing past its draw distance: 0.1–1% fewer
+  triangles (4242 L5 224.4k → 223.4k, 7 L6 200.4k → 198.5k), 0–2 fewer
+  draws. The builds and first frames held.
 
 ## The update's tail (milestone 14, 2026-11-09)
 

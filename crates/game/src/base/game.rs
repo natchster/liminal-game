@@ -190,7 +190,6 @@ pub struct Game {
     pub broken_elevator: Option<BrokenElevator>,
     pub light_switches: Vec<LightSwitch>,
     pub haunted_candles: Vec<CandleState>,
-    pub rate_delta_buf: Vec<f64>,
     pub last_rare_fire_by_cause: RareFire,
     /// Rare-event counts by cause, then weather
     pub rare_event_tally: BTreeMap<String, BTreeMap<String, f64>>,
@@ -430,9 +429,6 @@ pub struct Game {
     pub motion_sensor_last_click_t: f64,
     pub faulty_trip_count: f64,
     pub candle_blowout_tally: f64,
-    pub candle_relight_tally: f64,
-    pub candle_fizzle_tally: f64,
-    pub rate_drift_ticks: f64,
     pub wet_drip_timer: f64,
     pub still_wind_timer: f64,
     pub derelict_clatter_timer: f64,
@@ -580,8 +576,6 @@ pub struct Game {
     pub electric_surge_t: f64,
     pub panel_lfo_amp_current: f64,
     pub panel_lfo_freq_mul_current: f64,
-    pub blowout_milestone_shown: bool,
-    pub relight_milestone_shown: bool,
     pub archive_milestone_shown: bool,
     pub escalation_toast_fired: bool,
     // ---- entities
@@ -765,7 +759,6 @@ impl Game {
             broken_elevator: None,
             light_switches: vec![],
             haunted_candles: vec![],
-            rate_delta_buf: vec![],
             last_rare_fire_by_cause: RareFire::default(),
             rare_event_tally: ["knock", "door", "ding", "voice", "static", "shift", "pattern", "skip"]
                 .iter()
@@ -924,9 +917,6 @@ impl Game {
             motion_sensor_last_click_t: 0.0,
             faulty_trip_count: 0.0,
             candle_blowout_tally: 0.0,
-            candle_relight_tally: 0.0,
-            candle_fizzle_tally: 0.0,
-            rate_drift_ticks: 0.0,
             wet_drip_timer: 0.0,
             still_wind_timer: 0.0,
             derelict_clatter_timer: 0.0,
@@ -1074,8 +1064,6 @@ impl Game {
             electric_surge_t: 0.0,
             panel_lfo_amp_current: 0.0,
             panel_lfo_freq_mul_current: 0.0,
-            blowout_milestone_shown: false,
-            relight_milestone_shown: false,
             archive_milestone_shown: false,
             escalation_toast_fired: false,
             director: Default::default(),

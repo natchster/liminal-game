@@ -552,12 +552,36 @@ impl Default for Quality {
 }
 
 /// Distance culling of props: (object, bounding radius) list, timer and
-/// hidden count
+/// hidden count, and the contact shadows that go with their things
 #[derive(Clone, Debug, Default)]
 pub struct PropCull {
     pub list: Vec<(Obj, f64)>,
     pub t: f64,
     pub hidden: usize,
+    /// the contact shadows' chunk meshes (`visuals::contact`), laid before
+    /// the list is made
+    pub shadows: Vec<ShadowChunk>,
+    /// for each of `list`, its things' shadows: (chunk, slot)
+    pub shadows_of: Vec<Vec<(usize, usize)>>,
+}
+
+/// One chunk mesh of contact shadows: its whole index, and each shadow's
+/// run of it
+#[derive(Clone, Debug)]
+pub struct ShadowChunk {
+    pub mesh: Obj,
+    pub index: Vec<u32>,
+    pub slots: Vec<ShadowSlot>,
+}
+
+/// A shadow's run of its chunk's index (`start`, `len`), whose thing it is,
+/// and whether it is drawn
+#[derive(Clone, Debug)]
+pub struct ShadowSlot {
+    pub owner: Obj,
+    pub start: u32,
+    pub len: u32,
+    pub shown: bool,
 }
 
 /// Tracing of seeded draws: on/off, draw count and named marks

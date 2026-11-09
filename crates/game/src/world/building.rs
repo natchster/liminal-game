@@ -191,15 +191,12 @@ impl Game {
         }
         self.build_lap("placement", bt0);
         if !self.test_keep_prop_looks {
-            self.settle_prop_looks(prop_start);
+            let props = self.prop_boxes(prop_start);
+            self.settle_prop_looks(&props);
         }
         self.freeze_static();
         if !self.has_flag("noinstance") {
-            let (w, h) = (self.w as f64, self.h as f64);
-            let chunk_of = |x: f64, z: f64| {
-                ((x / CELL + w / 2.0).floor() / 10.0).floor() as i64 * 64 + ((z / CELL + h / 2.0).floor() / 10.0).floor() as i64
-            };
-            crate::world::instancing::instancify_static(&self.world, &chunk_of);
+            crate::world::instancing::instancify_static(&self.world, &|x, z| self.chunk_of(x, z));
         }
         self.build_prop_cull();
         self.build_lap("architecture", bt0);

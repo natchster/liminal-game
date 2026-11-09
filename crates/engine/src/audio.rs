@@ -118,10 +118,31 @@ struct CtxInner {
     muted: Cell<bool>,
     /// An offline context's engine, rendered on demand on this thread
     offline: RefCell<Option<Engine>>,
+    /// On the silent clock: nothing renders the graph, so what is sent to
+    /// it is dropped here, unqueued
+    silent: Cell<bool>,
 }
 impl CtxInner {
+    fn new(shared: Arc<Shared>, offline: Option<Engine>) -> CtxInner {
+        CtxInner {
+            shared,
+            next_id: Cell::new(1),
+            stream: RefCell::new(None),
+            muted: Cell::new(false),
+            offline: RefCell::new(offline),
+            silent: Cell::new(false),
+        }
+    }
     fn send(&self, c: Cmd) {
-        self.shared.cmds.lock().unwrap().push(c);
+        if !self.silent.get() {
+            self.shared.cmds.lock().unwrap().push(c);
+        }
+    }
+    /// Run on the silent clock (no device, or none may be opened): the same
+    /// time, nothing rendered, nothing heard
+    fn run_silent(&self) {
+        self.silent.set(true);
+        silent_clock(&self.shared);
     }
 }
 
@@ -235,25 +256,25 @@ impl AudioContext {
     /// Open the default output device. Falls back to a silent clock if there
     /// is none, or if the device may not be opened (`device_output`).
     pub fn new() -> AudioContext {
-        use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+        use cpal::traits::{DeviceTrait, HostTrait};
         if !device_output() {
             return AudioContext::new_silent();
         }
         let host = cpal::default_host();
         let dev = host.default_output_device();
         let cfg = dev.as_ref().and_then(|d| d.default_output_config().ok());
-        let sr = cfg.as_ref().map(|c| c.sample_rate().0 as f64).unwrap_or(48000.0);
+        AudioContext::on_output(dev.zip(cfg))
+    }
+    /// A context playing on `out` (a device and its configuration); on the
+    /// silent clock when there is none or its stream cannot be opened
+    fn on_output(out: Option<(cpal::Device, cpal::SupportedStreamConfig)>) -> AudioContext {
+        use cpal::traits::{DeviceTrait, StreamTrait};
+        let sr = out.as_ref().map(|(_, c)| c.sample_rate().0 as f64).unwrap_or(48000.0);
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
-        let inner = Rc::new(CtxInner {
-            shared: shared.clone(),
-            next_id: Cell::new(1),
-            stream: RefCell::new(None),
-            muted: Cell::new(false),
-            offline: RefCell::new(None),
-        });
-        if let (Some(dev), Some(cfg)) = (dev, cfg) {
+        let inner = Rc::new(CtxInner::new(shared.clone(), None));
+        if let Some((dev, cfg)) = out {
             let ch = cfg.channels() as usize;
-            let mut engine = Engine::new(sr, shared.clone());
+            let engine = Engine::new(sr, shared.clone());
             let mut sc: cpal::StreamConfig = cfg.clone().into();
             sc.buffer_size = cpal::BufferSize::Fixed(512);
             let build = |sc: &cpal::StreamConfig, mut engine: Engine| {
@@ -270,29 +291,25 @@ impl AudioContext {
                 }
                 Err(e) => {
                     eprintln!("audio: no output stream ({e}); running silent");
-                    engine.silent_clock();
+                    inner.run_silent();
                 }
             }
         } else {
+            // (with no clock its time stood at 0 and what was sent piled up)
             eprintln!("audio: no output device; running silent");
+            inner.run_silent();
         }
         AudioContext::with_inner(inner)
     }
     /// A context that plays nothing and keeps real time: its clock moves on
     /// a thread of its own, as with no device, and its graph is never
-    /// rendered, since nothing hears it (tests, headless runs)
+    /// rendered, since nothing hears it (tests, headless runs): what is sent
+    /// to it is dropped
     pub fn new_silent() -> AudioContext {
-        let sr = 48000.0;
-        let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
-        let mut engine = Engine::new(sr, shared.clone());
-        engine.silent_clock();
-        AudioContext::with_inner(Rc::new(CtxInner {
-            shared,
-            next_id: Cell::new(1),
-            stream: RefCell::new(None),
-            muted: Cell::new(false),
-            offline: RefCell::new(None),
-        }))
+        let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: 48000.0 });
+        let inner = CtxInner::new(shared, None);
+        inner.run_silent();
+        AudioContext::with_inner(Rc::new(inner))
     }
     /// Whether this context sounds through an output device
     pub fn plays_on_device(&self) -> bool {
@@ -304,13 +321,7 @@ impl AudioContext {
     pub fn new_offline(sample_rate: f64) -> AudioContext {
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate });
         let engine = Engine::new(sample_rate, shared.clone());
-        AudioContext::with_inner(Rc::new(CtxInner {
-            shared,
-            next_id: Cell::new(1),
-            stream: RefCell::new(None),
-            muted: Cell::new(false),
-            offline: RefCell::new(Some(engine)),
-        }))
+        AudioContext::with_inner(Rc::new(CtxInner::new(shared, Some(engine))))
     }
     fn with_inner(inner: Rc<CtxInner>) -> AudioContext {
         let dest = AudioNode(Rc::new(NodeInner { id: LISTENER_NODE, ctx: inner.clone(), params: RefCell::new(HashMap::new()) }));
@@ -1168,6 +1179,29 @@ impl NodeState {
     }
 }
 
+/// The silent clock (`CtxInner::run_silent`): with no device, the clock
+/// moves on a thread of its own so schedules still complete, as a device
+/// would ask for frames (10 ms at a time, the clock at the end of the last
+/// whole quantum begun, as `fill` leaves it). Nothing is heard and nothing
+/// reads the graph back, so nothing renders it, and what the game sends is
+/// dropped before it is queued (`CtxInner::send`). Rendering it, on the
+/// creature pack's many one-shots, cost the headless bench's update and GPU
+/// their tail (`docs/PERF.md`, "The update's tail"). The thread ends with
+/// its context.
+fn silent_clock(shared: &Arc<Shared>) {
+    let (step, q) = ((shared.sample_rate * 0.01) as u64, QUANTUM as u64);
+    let shared = Arc::downgrade(shared);
+    std::thread::spawn(move || {
+        let mut played = 0u64;
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(10));
+            let Some(shared) = shared.upgrade() else { break };
+            played += step;
+            shared.frames.store(played.div_ceil(q) * q, Ordering::Relaxed);
+        }
+    });
+}
+
 struct Engine {
     sr: f64,
     shared: Arc<Shared>,
@@ -1189,28 +1223,6 @@ impl Engine {
     }
     fn clone_fresh(&self) -> Engine {
         Engine::new(self.sr, self.shared.clone())
-    }
-    fn silent_clock(&mut self) {
-        // no device: keep the clock moving on a thread so schedules still
-        // complete, as a device would ask for frames (10 ms at a time, the
-        // clock at the end of the last whole quantum begun, as `fill` leaves
-        // it). Nothing is heard and nothing reads the graph back, so nothing
-        // is rendered: what the game sends is dropped. Rendering it, on the
-        // creature pack's many one-shots, cost the headless bench's update
-        // and GPU their tail (`docs/PERF.md`, "The update's tail")
-        let shared = self.shared.clone();
-        std::thread::spawn(move || {
-            let (step, q) = ((shared.sample_rate * 0.01) as u64, QUANTUM as u64);
-            let mut played = 0u64;
-            loop {
-                std::thread::sleep(std::time::Duration::from_millis(10));
-                // (taken under the lock, dropped after it)
-                let sent = shared.cmds.try_lock().map(|mut c| std::mem::take(&mut *c));
-                drop(sent);
-                played += step;
-                shared.frames.store(played.div_ceil(q) * q, Ordering::Relaxed);
-            }
-        });
     }
     fn fill(&mut self, out: &mut [f32], ch: usize) {
         let frames = out.len() / ch.max(1);
@@ -2002,5 +2014,44 @@ mod speaker_tests {
         assert!(!DEVICE_OUTPUT.load(Ordering::Relaxed), "DEVICE_OUTPUT must start false; only the windowed game turns it on");
         assert!(!device_output());
         assert!(!AudioContext::new().plays_on_device(), "a context opened the device with the speakers off");
+    }
+
+    /// Waits up to 2 s for `f`
+    fn within(f: impl Fn() -> bool) -> bool {
+        let t0 = std::time::Instant::now();
+        while !f() && t0.elapsed().as_secs_f64() < 2.0 {
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+        f()
+    }
+
+    /// The windowed game with no output device keeps time on the silent
+    /// clock (it had none: its time stood at 0 and what it was sent piled up)
+    #[test]
+    fn with_no_device_the_clock_still_moves() {
+        let ac = AudioContext::on_output(None);
+        assert!(!ac.plays_on_device());
+        assert!(within(|| ac.current_time() > 0.0), "the clock never moved");
+        let g = ac.create_gain();
+        g.connect(&ac.destination());
+        g.gain().set_value(0.5);
+        assert!(ac.inner.shared.cmds.lock().unwrap().is_empty(), "commands queued with nothing to render them");
+    }
+
+    /// The silent clock queues nothing, and its thread ends with its context
+    #[test]
+    fn the_silent_clock_drops_what_is_sent_and_ends_with_its_context() {
+        let ac = AudioContext::new_silent();
+        let o = ac.create_oscillator();
+        o.connect(&ac.destination());
+        o.start(0.0);
+        ac.set_muted(true);
+        assert!(ac.inner.shared.cmds.lock().unwrap().is_empty(), "commands queued with nothing to render them");
+        assert!(within(|| ac.current_time() > 0.0), "the clock never moved");
+        let shared = Arc::downgrade(&ac.inner.shared);
+        drop(o);
+        drop(ac);
+        // (the thread holds it only for a tick, then finds it gone and ends)
+        assert!(within(|| shared.upgrade().is_none()), "the clock outlived its context");
     }
 }

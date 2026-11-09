@@ -531,10 +531,6 @@ fn cmp_records(g: &Game, j: &Json, tol: f64, what: &str) {
         let jc = &cj[i];
         assert_eq!(!c.lit, jc.get("out").b(), "{what}: candle {i} extinguished");
         assert_close(fv(&c.f, "fadeT"), jc.get("fadeT").f(), tol, &format!("{what}: candle {i} fadeT"));
-        assert_close(fv(&c.f, "hintCooldown"), jc.get("hint").f(), tol, &format!("{what}: candle {i} hintCooldown"));
-        assert_eq!(c.b.get("wasNear").copied().unwrap_or(false), jc.get("near").b(), "{what}: candle {i} wasNear");
-        assert_close(fv(&c.f, "fizzleStreak"), jc.get("streak").f(), tol, &format!("{what}: candle {i} fizzleStreak"));
-        assert_close(fv(&c.f, "wickGlowT"), jc.get("wick").f(), tol, &format!("{what}: candle {i} wickGlowT"));
     }
     let pk = j.get("pickups").arr();
     let all: Vec<&Pickup> = g.almonds.iter().chain(g.battery_items.iter()).collect();
@@ -680,16 +676,7 @@ fn ser_records(g: &Game) -> Value {
             "world": v3v(&b.world), "normal": v3v(&b.normal), "next": b.next_scrape, "peered": b.peered, "li": b.light.intensity(),
         })
     });
-    let candles: Vec<Value> = g
-        .haunted_candles
-        .iter()
-        .map(|c| {
-            json!({
-                "out": !c.lit, "fadeT": fv(&c.f, "fadeT"), "hint": fv(&c.f, "hintCooldown"),
-                "near": c.b.get("wasNear").copied().unwrap_or(false), "streak": fv(&c.f, "fizzleStreak"), "wick": fv(&c.f, "wickGlowT"),
-            })
-        })
-        .collect();
+    let candles: Vec<Value> = g.haunted_candles.iter().map(|c| json!({ "out": !c.lit, "fadeT": fv(&c.f, "fadeT") })).collect();
     let pickups: Vec<Value> = g
         .almonds
         .iter()
@@ -893,7 +880,7 @@ fn run_case(case: &Json, builders: Builders) -> Option<serde_json::Map<String, V
     let kids = g.world.children();
     let added: Vec<Obj> = kids.iter().filter(|o| !build_set.contains(*o)).cloned().collect();
     let off: Vec<i64> = g.panels.iter().map(|p| p.switched_off as i64).collect();
-    let tallies = [g.candle_blowout_tally, g.candle_relight_tally, g.candle_fizzle_tally];
+    let tallies = [g.candle_blowout_tally];
     if record {
         out.insert(
             "final".into(),
@@ -943,7 +930,7 @@ fn run_case(case: &Json, builders: Builders) -> Option<serde_json::Map<String, V
         assert_close(g.shake_t, fg.get("shakeT").f(), 0.0, "shakeT");
         assert_close(g.camera_dip_t, fg.get("cameraDipT").f(), 0.0, "cameraDipT");
         let tl = fg.get("tallies");
-        assert_eq!(tallies, [tl.at(0).f(), tl.at(1).f(), tl.at(2).f()], "{what}: candle tallies");
+        assert_eq!(tallies, [tl.at(0).f()], "{what}: candle tallies");
         assert_eq!(g.timeouts.len() as i64, fg.get("timers").i(), "{what}: pending timers");
         let fl = fg.get("flash");
         assert_eq!(

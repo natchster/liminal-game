@@ -1,7 +1,9 @@
-//! The soundscape driver (`audio::ambient`) on a synthetic level with a live,
-//! muted AudioContext: every weather, minutes of simulated time in small and
-//! large steps, sanity swept 100 → 0 → 100, every `*_positions` list filled.
-//! Asserts nothing panics, that the event families fire, and that sounds
+//! The soundscape driver (`audio::ambient`) on a synthetic level with an
+//! offline AudioContext whose graph is rendered as the run goes (a quantum a
+//! step): every weather, minutes of simulated time in small and large steps,
+//! sanity swept 100 → 0 → 100, every `*_positions` list filled. Asserts
+//! nothing panics (the game nor the render of its graph), that the event
+//! families fire, and that sounds
 //! come from places: prop sounds only in earshot of their nearest prop, the
 //! level's signature sounds from fixed anchors, nothing bunched at the level
 //! start, the director's hush honoured.
@@ -143,10 +145,10 @@ fn fired(g: &Game, tag: &str) -> bool {
     g.ambient_tally.keys().any(|k| k == tag || k.starts_with(&format!("{tag}-")))
 }
 
-fn muted_ac() -> AudioContext {
-    let ac = AudioContext::new_silent();
-    ac.set_muted(true);
-    ac
+/// The graph's render is checked as it goes: finite, every sample
+fn render(ac: &AudioContext, frames: usize) {
+    let out = ac.render_offline(frames);
+    assert!(out.iter().all(|v| v.is_finite()), "the render made a NaN or an infinity");
 }
 
 /// The synthetic level with the renderer's pools, live muted audio, panels
@@ -160,7 +162,7 @@ fn live_level(seed: u32, weather: usize) -> Game {
     game::base::rng::seed_native(u64::from(seed) * 7919 + weather as u64 + shift * 1_000_003);
     let (mut g, _dist) = Game::test_level(seed, 25);
     g.init_render(&Tex::data_rgba(vec![255; 4], 1, 1));
-    g.audio_init_with(muted_ac());
+    g.audio_init_with(AudioContext::new_offline(48000.0));
     g.current_seed = seed.wrapping_mul(2654435761);
     g.apply_weather_bias(&WEATHER_BIASES[weather]);
     g.state = "playing".into();
@@ -230,6 +232,7 @@ fn run(g: &mut Game, minutes: f64, seen: &mut Seen) {
     let mut t = 0.0;
     let mut k: u64 = 0;
     let mut forced = 0;
+    let ac = g.ac.clone().unwrap();
     while t < total {
         // small steps most of the time, coarse ones in between
         let dt = match (k / 300) % 4 {
@@ -261,6 +264,10 @@ fn run(g: &mut Game, minutes: f64, seen: &mut Seen) {
         g.update_sanity_effects(dt);
         g.update_ambient(dt);
         g.update_soundscape(dt);
+        // the graph rendered as the step asks, at most a 60th of a second
+        // of it: the fine steps in real time, minutes of coarse ones over
+        // seconds of audio (its one-shots overlapping in hundreds)
+        render(&ac, (dt.min(1.0 / 60.0) * 48000.0).round() as usize);
         // the rare events only come back after 4 min … 3 h: re-arm them, a few times
         if forced < 12 && k % 100 == 99 {
             forced += 1;
@@ -385,18 +392,15 @@ fn every_weather_for_minutes() {
         }
         assert!(g.ambient_tally.len() > 80, "{wk}: only {} ambient tags logged", g.ambient_tally.len());
         assert!(g.ambient_log.len() <= 3);
-        // the audio thread survived it all. Minutes of sim squeezed into a
-        // second of real time leave thousands of overlapping one-shots, so
-        // the render can lag; give the clock a few seconds to move on.
+        // the graph rendered through it all, and renders on: its clock moves
+        // as far as it is rendered
         let ac = g.ac.as_ref().unwrap();
         let nodes = ac.create_gain().id();
         let t0 = ac.current_time();
-        let start = std::time::Instant::now();
-        while ac.current_time() <= t0 && start.elapsed().as_secs_f64() < 10.0 {
-            std::thread::sleep(std::time::Duration::from_millis(20));
-        }
-        eprintln!("{wk}: {nodes} audio nodes; clock moved after {:.3} s", start.elapsed().as_secs_f64());
-        assert!(ac.current_time() > t0, "{wk}: audio clock stopped ({nodes} nodes)");
+        render(ac, 4800);
+        eprintln!("{wk}: {nodes} audio nodes; {t0:.2} s of audio rendered");
+        assert!(t0 > 1.0, "{wk}: only {t0} s of audio rendered");
+        assert!((ac.current_time() - t0 - 0.1).abs() < 0.003, "{wk}: the clock moved {} s over 0.1 s rendered", ac.current_time() - t0);
     }
     assert!(settle_any, "no settle chord in any weather");
     assert!(halluc_any, "no hallucination in any weather");

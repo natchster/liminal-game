@@ -176,10 +176,9 @@ fn el_json(e: &Element) -> String {
     let at = e.attrs.iter().map(|(k, v)| format!("{}:{}", rec(k), rec(v))).collect::<Vec<_>>().join(",");
     format!("{{\"text\":{},\"markup\":{},\"classes\":[{}],\"style\":{{{}}},\"attrs\":{{{}}}}}", rec(&e.text), rec(&e.markup), cls, st, at)
 }
-const IDS: [&str; 53] = [
+const IDS: [&str; 52] = [
     "vignette",
     "weatherTint",
-    "safeRoomGlow",
     "aberration",
     "flash",
     "grain",
@@ -452,7 +451,7 @@ fn hud_states() {
     shoot(&mut g, "debug");
 
     // ---- the screen effects: vignette inset glow + filter, aberration,
-    // inline flash / fade backgrounds, the safe-room glow
+    // inline flash / fade backgrounds
     let mut g = game();
     playing_state(&mut g);
     g.ui.vignette.set_opacity(0.6);
@@ -465,7 +464,6 @@ fn hud_states() {
     g.ui.flash.set_opacity(0.4);
     g.ui.fade.set_style("background", "rgb(97,96,94)");
     g.ui.fade.set_opacity(0.3);
-    g.ui.safe_room_glow.add_class("on");
     g.ui.weather_tint.remove_class("wet");
     g.ui.weather_tint.add_class("haunted");
     run(&mut g, 90, true);

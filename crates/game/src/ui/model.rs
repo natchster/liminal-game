@@ -166,7 +166,6 @@ pub struct UiModel {
     // full-screen layers
     pub vignette: Element,
     pub weather_tint: Element,
-    pub safe_room_glow: Element,
     pub aberration: Element,
     pub flash: Element,
     pub grain: Element,
@@ -254,7 +253,6 @@ impl UiModel {
         Some(match id {
             "vignette" => &mut self.vignette,
             "weatherTint" => &mut self.weather_tint,
-            "safeRoomGlow" => &mut self.safe_room_glow,
             "aberration" => &mut self.aberration,
             "flash" => &mut self.flash,
             "grain" => &mut self.grain,
@@ -309,7 +307,6 @@ impl UiModel {
         let all = [
             &self.vignette,
             &self.weather_tint,
-            &self.safe_room_glow,
             &self.aberration,
             &self.flash,
             &self.grain,

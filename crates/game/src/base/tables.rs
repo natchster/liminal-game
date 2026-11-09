@@ -3,19 +3,6 @@
 //! caller keeps its own fallback (the `normal` entry, `1.0`, ...).
 #![allow(clippy::excessive_precision, clippy::approx_constant)]
 
-/// Pitches (Hz) of the two-note low-battery hint, high then low.
-pub fn battery_hint_dips(key: &str) -> Option<&'static [f64]> {
-    Some(match key {
-        "wet" => &[420.0, 398.0],
-        "electric" => &[440.0, 415.0],
-        "haunted" => &[400.0, 375.0],
-        "derelict" => &[430.0, 405.0],
-        "still" => &[430.0, 410.0],
-        "normal" => &[420.0, 392.0],
-        _ => return None,
-    })
-}
-
 /// Safe-room hum LFO rate multiplier.
 pub fn lfo_weather_mul(key: &str) -> Option<f64> {
     Some(match key {
@@ -780,32 +767,6 @@ pub fn player_light_scale_by_weather(key: &str) -> Option<PlayerLightScaleSpec> 
     })
 }
 
-/// Probability that a candle relight fizzle echoes.
-pub fn fizzle_echo_prob_by_weather(key: &str) -> Option<f64> {
-    Some(match key {
-        "wet" => 0.45,
-        "electric" => 0.2,
-        "haunted" => 0.4,
-        "derelict" => 0.35,
-        "still" => 0.25,
-        "normal" => 0.3,
-        _ => return None,
-    })
-}
-
-/// Probability that a candle relight fizzles.
-pub fn fizzle_prob_by_weather(key: &str) -> Option<f64> {
-    Some(match key {
-        "wet" => 0.2,
-        "electric" => 0.1,
-        "haunted" => 0.18,
-        "derelict" => 0.16,
-        "still" => 0.13,
-        "normal" => 0.15,
-        _ => return None,
-    })
-}
-
 /// Tail-beat blips ~2.8 s after a candle blowout: (freq, jitter, dur, wave, amp, delay ms).
 pub fn tail_beat_specs(key: &str) -> Option<&'static [(f64, f64, f64, &'static str, f64, f64)]> {
     Some(match key {
@@ -819,26 +780,9 @@ pub fn tail_beat_specs(key: &str) -> Option<&'static [(f64, f64, f64, &'static s
     })
 }
 
-/// Spark blips of a candle relight: (freq, jitter, dur, wave, amp, delay ms).
-pub fn relight_specs(key: &str) -> Option<&'static [(f64, f64, f64, &'static str, f64, f64)]> {
-    Some(match key {
-        "wet" => &[(520.0, 6.0, 0.14, "sine", 0.045, 40.0)],
-        "still" => &[(1760.0, 40.0, 0.1, "sine", 0.035, 30.0)],
-        "electric" => &[(880.0, 30.0, 0.05, "square", 0.04, 20.0), (1320.0, 40.0, 0.06, "square", 0.035, 80.0)],
-        "haunted" => &[(415.0, 6.0, 0.2, "sine", 0.035, 60.0)],
-        "derelict" => &[(220.0, 8.0, 0.16, "triangle", 0.04, 40.0)],
-        "normal" => &[],
-        _ => return None,
-    })
-}
-
 pub const VIGNETTE_PULSE_AMP_DEFAULT: f64 = 0.015;
 pub const PLAYER_LIGHT_BASE_INTENSITY: f64 = 2.4;
 pub const PLAYER_LIGHT_BASE_DISTANCE: f64 = 7.0;
-pub const RATE_DRIFT_THRESHOLD: f64 = 0.10;
-pub const RATE_DRIFT_MIN_N: f64 = 8.0;
-pub const RATE_DRIFT_DEBOUNCE: f64 = 30.0;
-pub const RATE_DELTA_WINDOW: f64 = 30.0;
 pub const WHISPER_MIN_OPACITY: f64 = 0.28;
 
 /// The ambient sound pool a level draws its signature sounds from (weight,

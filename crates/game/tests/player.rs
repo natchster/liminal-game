@@ -786,8 +786,8 @@ fn dark_regions_drain_and_safe_rooms_mend() {
     frames(&mut r, 60);
     assert!((r.g.player.sanity - (s0 + SAN_REGEN)).abs() < 0.1);
     r.g.player.flashlight_on = false;
-    // a lit region + safe room: discovered once (and nothing said, no glow
-    // on the screen), mends at 3.2x
+    // a lit region + safe room: discovered once (and nothing said), mends
+    // at 3.2x
     r.g.region_map = vec![0; n];
     let p = r.g.player.pos;
     r.g.safe_room = Some(SafeRoom { x: p.x, z: p.z, r: 2.0, ..Default::default() });
@@ -796,7 +796,6 @@ fn dark_regions_drain_and_safe_rooms_mend() {
     frame(&mut r, DT);
     assert!(r.g.safe_room.as_ref().unwrap().discovered);
     assert_eq!(r.g.msg_text, "", "the place never says what the candles do");
-    assert!(!r.g.ui.safe_room_glow.has_class("on"), "the screen at rest is the place alone");
     assert_eq!(r.g.crit_sanity_accum, 0.0);
     frames(&mut r, 59);
     assert!((r.g.player.sanity - (50.0 + SAN_REGEN * 3.2)).abs() < 0.1, "safe regen {}", r.g.player.sanity);
@@ -811,9 +810,6 @@ fn dark_regions_drain_and_safe_rooms_mend() {
         beats += usize::from(r.g.sanity_beat_t > t0);
     }
     assert_eq!(beats, 0, "the heartbeat holds off by the candles");
-    r.g.player.pos.z += 8.0;
-    frame(&mut r, DT);
-    assert!(!r.g.ui.safe_room_glow.has_class("on"));
 }
 
 // ------------------------------------------------------------ light switches

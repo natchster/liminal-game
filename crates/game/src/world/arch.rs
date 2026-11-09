@@ -705,9 +705,17 @@ impl Game {
         self.want_warm_up = true;
     }
 
+    /// The instancing chunk (10 x 10 tiles) world point (x, z) is in, as an
+    /// id: `floor(tx / 10) * 64 + floor(tz / 10)`
+    pub fn chunk_of(&self, x: f64, z: f64) -> i64 {
+        let (w, h) = (self.w as f64, self.h as f64);
+        ((x / CELL + w / 2.0).floor() / 10.0).floor() as i64 * 64 + ((z / CELL + h / 2.0).floor() / 10.0).floor() as i64
+    }
+
     // ------------------------------------------------------------ prop draw distance
     pub fn build_prop_cull(&mut self) {
         self.prop_cull.list.clear();
+        self.prop_cull.shadows_of.clear();
         self.prop_cull.t = 0.0;
         self.prop_cull_xz.clear();
         if self.has_flag("nocull") {
@@ -745,6 +753,17 @@ impl Game {
             self.prop_cull.list.push((o.clone(), sph.radius));
             self.prop_cull_xz.push((sph.center.x, sph.center.z));
         }
+        // each thing's contact shadows go with it (a thing the instancing
+        // took apart keeps its shadow, as its instances are kept)
+        let at: HashMap<Obj, usize> = self.prop_cull.list.iter().enumerate().map(|(i, (o, _))| (o.clone(), i)).collect();
+        self.prop_cull.shadows_of = vec![vec![]; self.prop_cull.list.len()];
+        for (c, ch) in self.prop_cull.shadows.iter().enumerate() {
+            for (k, slot) in ch.slots.iter().enumerate() {
+                if let Some(&i) = at.get(&slot.owner) {
+                    self.prop_cull.shadows_of[i].push((c, k));
+                }
+            }
+        }
     }
     /// Hide props past their draw distance, a few times a second
     pub fn update_prop_cull(&mut self, dt: f64) {
@@ -760,7 +779,9 @@ impl Game {
         let cap = if self.level_scp.as_deref() == Some("store") { PROP_FAR_STORE } else { self.camera.camera().far };
         let cp = self.camera.pos();
         let mut hidden = 0;
-        for (i, (o, r)) in self.prop_cull.list.iter().enumerate() {
+        let pc = &mut self.prop_cull;
+        let mut redo: Vec<usize> = vec![];
+        for (i, (o, r)) in pc.list.iter().enumerate() {
             let (x, z) = self.prop_cull_xz[i];
             let d = crate::base::numeric::hypot2(x - cp.x, z - cp.z) - r;
             let vis = d < cap.min((PROP_FAR * 0.4).max(190.0 * r));
@@ -770,8 +791,33 @@ impl Game {
             if !vis {
                 hidden += 1;
             }
+            // its contact shadows with it
+            for &(c, k) in &pc.shadows_of[i] {
+                let slot = &mut pc.shadows[c].slots[k];
+                if slot.shown != vis {
+                    slot.shown = vis;
+                    if !redo.contains(&c) {
+                        redo.push(c);
+                    }
+                }
+            }
         }
-        self.prop_cull.hidden = hidden;
+        pc.hidden = hidden;
+        // a chunk's shadows drawn: its index without the hidden things' runs
+        for c in redo {
+            let ch = &pc.shadows[c];
+            let idx: Vec<u32> = ch
+                .slots
+                .iter()
+                .filter(|s| s.shown)
+                .flat_map(|s| ch.index[s.start as usize..(s.start + s.len) as usize].iter().copied())
+                .collect();
+            // (an empty index would draw the vertices unindexed)
+            ch.mesh.set_visible(!idx.is_empty());
+            if !idx.is_empty() {
+                ch.mesh.geo().set_index(idx);
+            }
+        }
     }
 }
 

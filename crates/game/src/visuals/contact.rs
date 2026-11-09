@@ -18,7 +18,9 @@
 //! no texture, one draw a chunk in view. Only what never moves gets one
 //! (a themed placer's scenery, `static_prop`, and the core props of kinds
 //! that stay where they lie); nothing on a stream: no draw.
+use crate::base::records::{ShadowChunk, ShadowSlot};
 use crate::prelude::*;
+use crate::visuals::prop_look::PropBox;
 
 /// A small thing on the floor: at most this tall (m) and this wide
 const MAX_H: f64 = 0.6;
@@ -31,6 +33,10 @@ const MAX_LIFT: f64 = 0.03;
 const PART_LIFT: f64 = 0.04;
 /// How far the shadow's edge lies over the floor (clear of it, no flicker)
 const OVER: f64 = 0.003;
+/// At most this many corners to a footprint (a round foot's hull has a
+/// corner for every few of its vertices; each corner is four of the
+/// shadow's vertices and seven of its triangles)
+const MAX_CORNERS: usize = 16;
 /// The core props that stay where they lie (the rest move, float or burn)
 const CORE_KINDS: [&str; 10] = [
     "baby_doll",
@@ -46,14 +52,17 @@ const CORE_KINDS: [&str; 10] = [
 ];
 
 /// One shadow: the outline of the thing's foot on the floor (convex, round
-/// the way), the floor's height there, how far the shadow reaches out past
-/// it and how dark it is under the thing
+/// the way) and its middle, the floor's height there, how far the shadow
+/// reaches out past it, how dark it is under the thing, and the thing (its
+/// shadow goes where its draw distance hides it: `update_prop_cull`)
 #[derive(Clone, Debug)]
 pub struct Blob {
     hull: Vec<(f64, f64)>,
+    mid: (f64, f64),
     y: f64,
     reach: f64,
     dark: f64,
+    owner: Obj,
 }
 
 /// The convex hull of points on the floor, anticlockwise seen from above
@@ -80,34 +89,46 @@ fn hull_of(mut pts: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
     h
 }
 
+/// A convex outline cut to `n` corners: the corner that adds least to its
+/// area taken off, one at a time (it stays convex, inside the outline)
+fn fewer_corners(mut h: Vec<(f64, f64)>, n: usize) -> Vec<(f64, f64)> {
+    let area = |a: (f64, f64), b: (f64, f64), c: (f64, f64)| ((b.0 - a.0) * (c.1 - a.1) - (b.1 - a.1) * (c.0 - a.0)).abs();
+    while h.len() > n.max(3) {
+        let k = h.len();
+        let least = (0..k)
+            .min_by(|&i, &j| {
+                let ai = area(h[(i + k - 1) % k], h[i], h[(i + 1) % k]);
+                let aj = area(h[(j + k - 1) % k], h[j], h[(j + 1) % k]);
+                ai.total_cmp(&aj)
+            })
+            .unwrap();
+        h.remove(least);
+    }
+    h
+}
+
 impl Game {
-    /// The contact shadows of the props from the world's child `start` on,
-    /// once they are settled (`build_world`, before the instancing takes
-    /// the repeated ones out of the world); `add_contact_shadows` lays them.
-    pub fn contact_blobs(&self, start: usize) -> Vec<Blob> {
+    /// The contact shadows of `props` (`prop_boxes`: measured once they are
+    /// settled, in `build_world`, before the instancing takes the repeated
+    /// ones out of the world); `add_contact_shadows` lays them.
+    pub fn contact_blobs(&self, props: &[PropBox]) -> Vec<Blob> {
         if self.has_flag("nocontact") {
             return vec![];
         }
-        let keep: Vec<Obj> = self.almonds.iter().chain(self.battery_items.iter()).map(|p| p.g.clone()).collect();
         let mut out = vec![];
-        for top in self.world.children().into_iter().skip(start) {
+        for PropBox { top, bb, floor } in props {
+            let (top, floor) = (top, *floor);
             {
                 let u = top.user();
                 let core_ok = u.s.get("kind").is_some_and(|k| CORE_KINDS.contains(&k.as_str()));
-                if u.gameplay || u.floats || u.arch || !(u.static_prop || core_ok) {
+                if u.floats || u.arch || !(u.static_prop || core_ok) {
                     continue;
                 }
             }
-            if top.is_light() || keep.iter().any(|k| k.ptr_eq(&top)) {
-                continue;
-            }
-            let mut bb = Box3::empty();
-            bb.set_from_object(&top);
-            if bb.is_empty() {
+            if top.is_light() || bb.is_empty() {
                 continue;
             }
             let size = bb.get_size();
-            let floor = self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
             // (a long thing lying low, a rake or a pipe, as well)
             let wide = size.x.max(size.z);
             if size.y > MAX_H || size.y < MIN_H || wide > if size.y < 0.2 { 2.0 } else { MAX_W } || (bb.min.y - floor).abs() > MAX_LIFT {
@@ -192,7 +213,7 @@ impl Game {
                         h = h.max(parts[i].2 - floor);
                     }
                 }
-                let hull = hull_of(pts);
+                let hull = fewer_corners(hull_of(pts), MAX_CORNERS);
                 if hull.len() < 3 {
                     continue;
                 }
@@ -210,25 +231,23 @@ impl Game {
                 }
                 // darker under a taller thing, faint under a flat one
                 let dark = 0.16 + 0.46 * (h / 0.25).clamp(0.0, 1.0);
-                out.push(Blob { hull, y, reach, dark });
+                out.push(Blob { hull, mid: (cx, cz), y, reach, dark, owner: top.clone() });
             }
         }
         out
     }
 
     /// Lay the contact shadows: one mesh a chunk, added to the world after
-    /// everything placed in it (so no index of a placed thing moves)
+    /// everything placed in it (so no index of a placed thing moves). Each
+    /// shadow's run of its chunk's index is kept (`PropCull::shadows`), so
+    /// the prop cull can take it out with its thing
     pub fn add_contact_shadows(&mut self, blobs: &[Blob]) {
         if blobs.is_empty() {
             return;
         }
-        let (w, h) = (self.w as f64, self.h as f64);
-        let chunk_of = |x: f64, z: f64| {
-            ((x / CELL + w / 2.0).floor() / 10.0).floor() as i64 * 64 + ((z / CELL + h / 2.0).floor() / 10.0).floor() as i64
-        };
         let mut chunks: std::collections::BTreeMap<i64, Vec<&Blob>> = Default::default();
         for b in blobs {
-            chunks.entry(chunk_of(b.hull[0].0, b.hull[0].1)).or_default().push(b);
+            chunks.entry(self.chunk_of(b.hull[0].0, b.hull[0].1)).or_default().push(b);
         }
         // rings round the footprint: (how far out, as a share of the reach;
         // how dark), the darkest under the thing, gone at the edge
@@ -237,11 +256,13 @@ impl Game {
         mat.m().name = "contact_shadow".into();
         for (_, list) in chunks {
             let (mut pos, mut col, mut idx) = (vec![], vec![], vec![]);
+            let mut slots = vec![];
             for b in list {
                 let base = (pos.len() / 3) as u32;
+                let start = idx.len() as u32;
                 let y = (b.y + OVER) as f32;
                 let k = b.hull.len();
-                let (cx, cz) = (b.hull.iter().map(|p| p.0).sum::<f64>() / k as f64, b.hull.iter().map(|p| p.1).sum::<f64>() / k as f64);
+                let (cx, cz) = b.mid;
                 pos.extend_from_slice(&[cx as f32, y, cz as f32]);
                 col.extend_from_slice(&[0.0, 0.0, 0.0, b.dark as f32]);
                 // each corner's way out: between its two sides' outward normals
@@ -277,6 +298,7 @@ impl Game {
                         idx.extend_from_slice(&[r0 + i, r0 + i1, r1 + i1, r0 + i, r1 + i1, r1 + i]);
                     }
                 }
+                slots.push(ShadowSlot { owner: b.owner.clone(), start, len: idx.len() as u32 - start, shown: true });
             }
             let n = pos.len() / 3;
             let mut g = Geometry {
@@ -284,7 +306,7 @@ impl Game {
                 normal: [0.0f32, 1.0, 0.0].repeat(n),
                 color: col,
                 color_size: 4,
-                index: Some(idx),
+                index: Some(idx.clone()),
                 ..Default::default()
             };
             g.compute_bounding_box();
@@ -292,6 +314,7 @@ impl Game {
             let m = mesh(Geo::from_geometry(g), &mat);
             m.set_name("contact_shadows");
             self.world.add(&m);
+            self.prop_cull.shadows.push(ShadowChunk { mesh: m, index: idx, slots });
         }
     }
 }
@@ -311,6 +334,23 @@ mod tests {
         for i in 0..k {
             let (o, a, b) = (h[i], h[(i + 1) % k], h[(i + 2) % k]);
             assert!((a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0) > 0.0);
+        }
+    }
+
+    #[test]
+    fn a_round_footprint_keeps_sixteen_corners() {
+        // a circle of 100 points: 16 corners, still round, still convex
+        let pts: Vec<(f64, f64)> =
+            (0..100).map(|i| (i as f64 * 0.0628318).cos()).zip((0..100).map(|i| (i as f64 * 0.0628318).sin())).collect();
+        let h = fewer_corners(hull_of(pts), MAX_CORNERS);
+        assert_eq!(h.len(), MAX_CORNERS);
+        let k = h.len();
+        for i in 0..k {
+            let (o, a, b) = (h[i], h[(i + 1) % k], h[(i + 2) % k]);
+            assert!((a.0 - o.0) * (b.1 - o.1) - (a.1 - o.1) * (b.0 - o.0) > 0.0);
+            assert!((o.0.hypot(o.1) - 1.0).abs() < 1e-9, "a corner off the circle");
+            // no side much longer than the rest: the corners spread round it
+            assert!((a.0 - o.0).hypot(a.1 - o.1) < 0.55, "a side of {}", (a.0 - o.0).hypot(a.1 - o.1));
         }
     }
 }

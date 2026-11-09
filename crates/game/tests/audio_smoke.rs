@@ -1,14 +1,17 @@
-//! `audio_init` + every sfx + every soundscape method on a live (muted)
-//! AudioContext, then a second of the update loop's parameter pokes. The
-//! engine runs on its own thread (the device callback renders; the silent
-//! clock without a device only keeps time); a panic there aborts the process
-//! or stops the clock, so the clock must keep moving.
+//! `audio_init` + every sfx + every soundscape method, then a second of the
+//! update loop's parameter pokes, on an offline AudioContext: the game's
+//! whole graph rendered on this thread, each frame's audio as it is made
+//! (`render_offline`), so a panic in the engine's render (`Engine::fill`, a
+//! node's process) fails the test here. (The silent clock renders nothing:
+//! on it these ran the game's calls and never its graph.) The render must
+//! come out finite, and the clock move exactly as far as it was rendered.
 
 use engine::audio::AudioContext;
 use game::audio::soundscape::{ReverbPreset, FOOTSTEP_SURFACES, PHRASES, REVERB_PRESETS};
 use game::audio::sys::SFX_NAMES;
 use game::Game;
-use std::time::Duration;
+
+const SR: f64 = 48000.0;
 
 /// A test never sounds through the speakers: in a test binary the output
 /// device is never opened, not by a test's own context nor by the game's
@@ -22,15 +25,19 @@ fn a_test_never_plays_through_the_speakers() {
     assert!(!g.ac.as_ref().is_some_and(|c| c.plays_on_device()), "audio_init opened the device in a test");
 }
 
+/// A game on an offline context: nothing plays, the graph renders when
+/// asked (`render`)
 fn live_game() -> Game {
     let mut g = Game::new_bare();
-    let ac = AudioContext::new_silent();
-    ac.set_muted(true);
-    g.audio_init_with(ac);
+    g.audio_init_with(AudioContext::new_offline(SR));
     g
 }
-fn sleep(s: f64) {
-    std::thread::sleep(Duration::from_secs_f64(s));
+/// `s` seconds of the graph rendered (as a device would ask for them), all
+/// of it finite; how much of it was not silence
+fn render(ac: &AudioContext, s: f64) -> usize {
+    let out = ac.render_offline((s * SR).round() as usize);
+    assert!(out.iter().all(|v| v.is_finite()), "the render made a NaN or an infinity");
+    out.iter().filter(|v| v.abs() > 1e-6).count()
 }
 
 #[test]
@@ -131,7 +138,10 @@ fn sfx_without_audio_are_silent_noops() {
 fn every_sound_then_a_second_of_updates() {
     let mut g = live_game();
     let ac = g.ac.clone().unwrap();
+    // the graph as `audio_init` left it
+    render(&ac, 0.05);
     let t_start = ac.current_time();
+    let mut heard = 0;
     // ---- the sfx table, directly and by name
     g.sfx_step(false);
     g.sfx_step(true);
@@ -188,6 +198,7 @@ fn every_sound_then_a_second_of_updates() {
     g.blip(300.0, 0.2, "triangle", 0.1, Some(120.0), 0.05, -0.6);
     g.blip(30.0, 0.5, "sine", 0.01, None, 0.0, 2.0);
     g.noise_burst(0.3, 900.0, 1.2, 0.05, "highpass", Some(10.0), 0.1, 0.4);
+    heard += render(&ac, 0.1);
 
     // ---- every soundscape api member
     let s = g.soundscape().unwrap();
@@ -254,6 +265,7 @@ fn every_sound_then_a_second_of_updates() {
     assert_eq!(s.hum.cents(), -30.0);
     s.hum.detune(0.0, 0.1);
     let _ = s.hum.spiking();
+    heard += render(&ac, 0.1);
 
     // ---- one second of the update loop
     let a = &g.audio;
@@ -307,11 +319,14 @@ fn every_sound_then_a_second_of_updates() {
             bf.set_value_at_time(0.9, t0);
             bf.linear_ramp_to_value_at_time(0.3, t0 + 1.2);
         }
-        sleep(dt);
+        heard += render(&ac, dt);
     }
     voice.stop();
     far.stop();
-    sleep(0.2);
+    heard += render(&ac, 0.2);
+    // the clock moved as far as the graph was rendered (to its quantum),
+    // and the graph made sound
     let elapsed = ac.current_time() - t_start;
-    assert!(elapsed > 0.5, "audio clock stalled: {elapsed} s in ~1.2 s");
+    assert!((elapsed - 1.4).abs() < 0.01, "the clock moved {elapsed} s over 1.4 s rendered");
+    assert!(heard > 0, "the graph rendered silence");
 }
