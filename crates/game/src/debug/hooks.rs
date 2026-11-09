@@ -289,6 +289,16 @@ impl Game {
             let d = back.unwrap_or(0.6);
             out.push(("false", a.x + yaw.sin() * d, a.z + yaw.cos() * d, yaw, -0.42));
         }
+        // the rooms off the walks (G4): from the walk outside the doorway,
+        // looking in
+        if let Some(plan) = &self.building {
+            for (k, r) in plan.rooms.iter().enumerate().take(3) {
+                let (x, z) = r.tile;
+                let (dx, dz) = (crate::level::archgen::DIRS[r.door][0] as f64, crate::level::archgen::DIRS[r.door][1] as f64);
+                let (cx, cz) = (self.wx(x) + dx * 4.4, self.wz(z) + dz * 4.4);
+                out.push((["room0", "room1", "room2"][k], cx, cz, face(cx, cz, self.wx(x), self.wz(z)), -0.2));
+            }
+        }
         out
     }
 

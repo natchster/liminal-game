@@ -218,6 +218,9 @@ pub struct BuildingPlan {
     /// the tiles the line from the arrival to the door's light crosses
     /// (nothing is built there after)
     pub view_line: Vec<(i32, i32)>,
+    /// the places off the walks (G4): a room cut into the building beside a
+    /// walk, off the way, its doorway open toward the walk (`door`)
+    pub rooms: Vec<Cell>,
 }
 
 /// A walk between two platforms.
@@ -1082,6 +1085,11 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         }
     }
 
+    // ---- 12b. places off the walks (G4): rooms cut into the building
+    // beside a walk, off the way; chosen with no draw, so the floor is as it
+    // was but for them ----
+    let places = place_rooms(&mut grid, exit, &cells, &kept);
+
     // ---- 13. the layout: tiles, districts as zones ----
     let tiles: Vec<u8> = grid.g.iter().map(|g| u8::from(!g.walkable())).collect();
     let arch = BUILDING_ARCHETYPES.iter().find(|a| a.key == style.key()).unwrap();
@@ -1136,8 +1144,84 @@ pub fn generate_building(level: i32, rng: &mut dyn FnMut() -> f64) -> (Layout, B
         rooms,
         ground: grid.g,
     };
-    let plan = BuildingPlan { style, spawn: (1, 1), exit, exit_side, cells, nodes: nodes_out, view_line: kept };
+    let plan = BuildingPlan { style, spawn: (1, 1), exit, exit_side, cells, nodes: nodes_out, view_line: kept, rooms: places };
     (layout, plan)
+}
+
+/// Rooms a floor has off its walks, at most
+pub const ROOMS: usize = 3;
+/// How far apart two rooms are at least, tiles
+pub const ROOM_GAP: i32 = 6;
+/// What a room needs over its floor of the building round it, metres (a
+/// storey and the slab over it, as a booth's cell: `BOOTH_TOP`)
+pub const ROOM_HEADROOM: f32 = BOOTH_TOP;
+
+/// The places off the walks (`docs/MEGASTRUCTURE.md` G4): a tile of the
+/// building with one walk beside it and building on its three other sides,
+/// tall enough for a storey, becomes a room you step into from that walk.
+/// The walk is off the way to the door, not the arrival's nor the door's
+/// tile, and within a cell's reach (`CELL_REACH`: a room adds a tile of
+/// floor that must be served too); the farthest from the way first, no two
+/// within `ROOM_GAP`, none beside a cell; at most `ROOMS`. No draw.
+fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(i32, i32)]) -> Vec<Cell> {
+    let w = grid.w;
+    let ds = grid_walk(grid, &[(1, 1)]);
+    let de = grid_walk(grid, &[exit]);
+    let path = de[grid.idx(1, 1)];
+    let way: Vec<(i32, i32)> = (0..w)
+        .flat_map(|z| (0..w).map(move |x| (x, z)))
+        .filter(|&(x, z)| {
+            let i = grid.idx(x, z);
+            ds[i] >= 0 && de[i] >= 0 && ds[i] + de[i] == path
+        })
+        .collect();
+    let off_way = grid_walk(grid, &way);
+    let to_cell = grid_walk(grid, &cells.iter().map(|c| c.tile).collect::<Vec<_>>());
+    let mut found: Vec<(i32, Cell, f32)> = vec![];
+    for z in 1..w - 1 {
+        for x in 1..w - 1 {
+            let g = grid.get(x, z);
+            if g.kind != GROUND_MASS || view_line.contains(&(x, z)) {
+                continue;
+            }
+            let beside: Vec<usize> = (0..4).filter(|&d| grid.walkable(x + DIRS[d][0], z + DIRS[d][1])).collect();
+            let [d] = beside[..] else { continue };
+            let (wx, wz) = (x + DIRS[d][0], z + DIRS[d][1]);
+            let walk = grid.get(wx, wz);
+            let i = grid.idx(wx, wz);
+            if walk.kind != GROUND_FLOOR || (wx, wz) == (1, 1) || (wx, wz) == exit || cells.iter().any(|c| c.tile == (wx, wz)) {
+                continue;
+            }
+            if off_way[i] < 1 || to_cell[i] < 0 || to_cell[i] > CELL_REACH - 1 {
+                continue;
+            }
+            // building on the three other sides, a storey over the floor
+            let h = walk.h0;
+            let walled = (0..4).filter(|&k| k != d).all(|k| {
+                let n = grid.get(x + DIRS[k][0], z + DIRS[k][1]);
+                n.kind == GROUND_MASS && n.h1 >= h + ROOM_HEADROOM
+            });
+            if !walled || g.h1 < h + ROOM_HEADROOM {
+                continue;
+            }
+            found.push((off_way[i], Cell { tile: (x, z), door: d }, h));
+        }
+    }
+    // the farthest from the way first; then by place, so no draw is needed
+    found.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.tile.1.cmp(&b.1.tile.1)).then(a.1.tile.0.cmp(&b.1.tile.0)));
+    let mut rooms: Vec<Cell> = vec![];
+    for (_, c, h) in found {
+        if rooms.len() >= ROOMS {
+            break;
+        }
+        let near = |a: (i32, i32), b: (i32, i32), r: i32| (a.0 - b.0).abs().max((a.1 - b.1).abs()) < r;
+        if rooms.iter().any(|r| near(r.tile, c.tile, ROOM_GAP)) || cells.iter().any(|k| near(k.tile, c.tile, 2)) {
+            continue;
+        }
+        grid.set(c.tile.0, c.tile.1, Ground::floor(h));
+        rooms.push(c);
+    }
+    rooms
 }
 
 /// How hard a floor is to find the way down through (`docs/MEGASTRUCTURE.md`,

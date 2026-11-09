@@ -137,3 +137,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-09, on top of 458ebe3: frames: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L2_stair_halls. Reason: MILESTONES.md 1: a booth stands from the void to a storey over its walk, not to the top of the building; where one stood in view there is void now (two blind reviews: the floors without G2's tall booths preferred 8-2, the low booths over the tall 6-0)
 
 - 2026-11-09, on top of 98fd2fb: frames: 4242_L2_stair_halls. Reason: MILESTONES.md 2: the flights that cross the Stair Halls' void have a level landing halfway up (where the figure stands); the edge of one far flight moves in the top-left corner
+
+- 2026-11-09, on top of 4268009: frames: 4242_L1_spawn, 4242_L1_well, 4242_L2_stair_halls. Reason: MILESTONES.md 4 (Building G4): rooms off the walks are cut into the building; the faces round them change, so the Well's lit windows and storey numbers fall elsewhere (the windows' and numbers' dressing walks the faces), and a far room's edge in the Stair Halls

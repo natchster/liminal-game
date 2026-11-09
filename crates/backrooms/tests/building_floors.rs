@@ -153,3 +153,75 @@ fn the_way_and_what_is_off_it() {
     let seen = all.iter().filter(|a| a.nav.door_seen).count();
     assert!(seen * 100 >= all.len() * 90, "the door seen from near the arrival on {seen} of {} floors", all.len());
 }
+
+/// The places off the walks (`docs/MEGASTRUCTURE.md` G4): each room is
+/// reached from the arrival, closed on its three other sides, off the way
+/// to the door (never a room only the way passes), and holds something
+#[test]
+fn the_rooms_off_the_walks() {
+    let floors: Vec<(i32, usize, Vec<String>)> = std::thread::scope(|sc| {
+        let hs: Vec<_> = SEEDS
+            .flat_map(|seed| (1..=3).map(move |level| (seed, level)))
+            .map(|(seed, level)| std::thread::Builder::new().stack_size(64 << 20).spawn_scoped(sc, move || rooms_of(seed, level)).unwrap())
+            .collect();
+        hs.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+    });
+    let mut wrong = vec![];
+    for level in 1..=3 {
+        let mut c: Vec<usize> = floors.iter().filter(|f| f.0 == level).map(|f| f.1).collect();
+        c.sort();
+        println!("L{level}: rooms a floor, median {} (least {}, most {})", c[c.len() / 2], c[0], c[c.len() - 1]);
+        // the Stair Halls are flights between piers, and the Works' walks
+        // run between machines: few walks there are floor beside building
+        // closed on three sides (the Well's ring of building has many)
+        let least = if level == 1 { 2 } else { 1 };
+        let none = c.iter().filter(|&&n| n == 0).count();
+        println!("L{level}: {none} of {} floors without a room", c.len());
+        assert!(c[c.len() / 2] >= least, "L{level}: a floor has at least {least} rooms off its walks, mostly");
+    }
+    for f in &floors {
+        wrong.extend(f.2.iter().cloned());
+    }
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+/// A floor's rooms: how many, and what is wrong with each
+fn rooms_of(seed: u32, level: i32) -> (i32, usize, Vec<String>) {
+    use game::level::archgen::{DIRS, GROUND_MASS};
+    use game::level::building::walk_from;
+    let g = floor(seed, level);
+    let (l, p) = (g.layout.as_ref().unwrap(), g.building.as_ref().unwrap());
+    let idx = |x: i32, z: i32| (z * l.w + x) as usize;
+    let ds = walk_from(l, &[p.spawn]);
+    let de = walk_from(l, &[p.exit]);
+    let path = de[idx(p.spawn.0, p.spawn.1)];
+    let at = |x: f64, z: f64| (g.tx(x), g.tz(z));
+    let things: Vec<(i32, i32)> = g
+        .almonds
+        .iter()
+        .chain(&g.battery_items)
+        .map(|a| at(a.g.pos().x, a.g.pos().z))
+        .chain(g.lore_notes.iter().map(|n| at(n.g.pos().x, n.g.pos().z)))
+        .collect();
+    let mut wrong = vec![];
+    for r in &p.rooms {
+        let (x, z) = r.tile;
+        let tag = format!("seed {seed} L{level} room {x},{z}");
+        if ds[idx(x, z)] < 0 {
+            wrong.push(format!("{tag}: not reached from the arrival"));
+        }
+        if ds[idx(x, z)] + de[idx(x, z)] == path {
+            wrong.push(format!("{tag}: on the way"));
+        }
+        for (k, dd) in DIRS.iter().enumerate() {
+            let n = l.ground[idx(x + dd[0], z + dd[1])];
+            if k != r.door && n.kind != GROUND_MASS {
+                wrong.push(format!("{tag}: open on side {k}"));
+            }
+        }
+        if !things.contains(&(x, z)) {
+            wrong.push(format!("{tag}: holds nothing"));
+        }
+    }
+    (level, p.rooms.len(), wrong)
+}

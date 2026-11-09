@@ -28,6 +28,9 @@ use crate::world::knock::{KnockDoor, Mark};
 
 /// The salt of the stream the dressing draws from
 pub const DRESS_SALT: u64 = 0xB01D_0D2E_55ED_0001;
+/// The rooms off the walks' own stream (`dress_rooms`): dressed last, from
+/// a stream of their own, so the rest of the dressing draws as before
+pub const ROOMS_SALT: u64 = 0xB01D_0D2E_55ED_0002;
 /// How many storeys of galleries are drawn above and below a walk (the fog
 /// takes the rest)
 const STACK: i32 = 9;
@@ -119,6 +122,7 @@ impl Game {
             Style::Works => self.dress_works(plan, &mut parts, &mut r),
             Style::Well => self.dress_lift(plan, &mut parts),
         }
+        self.dress_rooms(plan, &mut parts);
         for (geo, mat, list) in parts.list {
             if !list.is_empty() {
                 self.add_instanced(&geo, &mat, &list, &|m: &Mat4| *m);
@@ -198,6 +202,121 @@ impl Game {
         g.user().gameplay = true;
         g.user().set("yaw", yaw);
         g
+    }
+
+    /// The places off the walks (G4, `level::building::place_rooms`): a
+    /// room cut into the building beside a walk, closed over and under as a
+    /// cell is, its front a wide doorway with no door; furnished as its
+    /// place furnishes (a resident's table and chair in the Well, a stone
+    /// bench in the Stair Halls' piers, an operator's desk, its dead screen
+    /// and a stool in the Works), and on it water or a battery
+    fn dress_rooms(&mut self, plan: &BuildingPlan, parts: &mut Parts) {
+        if plan.rooms.is_empty() {
+            return;
+        }
+        let mut r = SplitMix64::new(self.current_seed, ROOMS_SALT);
+        let wall_mat = self.arch_mat(&format!("{}:1", self.building_wall_kind()));
+        let unit = self.unit_box_geo.clone();
+        let wall = parts.part(&unit, &wall_mat);
+        let wood = parts.part(&unit, &lambert!({ color: 0x5a4632 }));
+        // (darker than the piers it is set in, or it is lost against them)
+        let stone = parts.part(&unit, &lambert!({ color: 0x3b3731 }));
+        let steel = parts.part(&unit, &lambert!({ color: 0x4f5550 }));
+        let screen = parts.part(&unit, &lambert!({ color: 0x1d2220 }));
+        let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
+        let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
+        let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
+        let bat_body_geo = pg("Props__battery_body", cyl_geo!(0.06, 0.06, 0.18, 10));
+        let bat_tip_geo = pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8));
+        let bat_body_mat = lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 });
+        let bat_tip_mat = lambert!({ color: 0xdad3c2 });
+        const DOORWAY: f64 = 2.0;
+        const HEAD: f64 = 2.5;
+        for (i, c) in plan.rooms.iter().enumerate() {
+            let (x, z) = c.tile;
+            let h = self.floor_y_of(x, z);
+            let top = DIRS
+                .iter()
+                .map(|dd| self.ground_or_mass(x + dd[0], z + dd[1]))
+                .filter(|g| g.kind == GROUND_MASS)
+                .map(|g| g.h1 as f64)
+                .fold(h + 3.0, f64::max);
+            // the building over and under the room
+            let (cx, cz) = (self.wx(x), self.wz(z));
+            parts.put(wall, boxm(Vec3::new(cx, (h + 3.0 + top) / 2.0, cz), 0.0, Vec3::new(CELL, top - h - 3.0, CELL)));
+            parts.put(
+                wall,
+                boxm(Vec3::new(cx, (VOID_DEPTH as f64 + h - 0.4) / 2.0, cz), 0.0, Vec3::new(CELL, h - 0.4 - VOID_DEPTH as f64, CELL)),
+            );
+            // the front: a wide doorway, the wall either side and over it
+            let d = c.door;
+            let yaw = yaw_to(d);
+            let seg = (CELL - DOORWAY) / 2.0;
+            for sx in [-1.0, 1.0] {
+                let p = self.face_point(x, z, d, sx * (DOORWAY / 2.0 + seg / 2.0), -CELL_FRONT / 2.0, (h + top) / 2.0);
+                parts.put(wall, boxm(p, yaw, Vec3::new(seg, top - h, CELL_FRONT)));
+            }
+            let p = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, (h + HEAD + top) / 2.0);
+            parts.put(wall, boxm(p, yaw, Vec3::new(DOORWAY, top - h - HEAD, CELL_FRONT)));
+            // what its place leaves in it, at the back, a little to one side
+            let side = if r.next() < 0.5 { -1.0 } else { 1.0 };
+            let back = |along: f64, out: f64, y: f64| self.face_point(x, z, d ^ 1, along, out, y);
+            let on = match plan.style {
+                Style::Well => {
+                    // a resident's table, and the chair pushed back from it
+                    let t = back(side * 0.6, -0.75, h + 0.73);
+                    parts.put(wood, boxm(t, yaw, Vec3::new(1.1, 0.05, 0.7)));
+                    for (lx, lz) in [(-0.5, -0.3), (0.5, -0.3), (-0.5, 0.3), (0.5, 0.3)] {
+                        let leg = back(side * 0.6 + lx, -0.75 + lz, h + 0.36);
+                        parts.put(wood, boxm(leg, yaw, Vec3::new(0.05, 0.72, 0.05)));
+                    }
+                    let seat = back(side * 0.6 - side * 0.2, -1.55, h + 0.45);
+                    parts.put(wood, boxm(seat, yaw + r.range(-0.4, 0.4), Vec3::new(0.45, 0.05, 0.45)));
+                    let rest = back(side * 0.6 - side * 0.2, -1.76, h + 0.75);
+                    parts.put(wood, boxm(rest, yaw, Vec3::new(0.45, 0.6, 0.05)));
+                    t + Vec3::new(0.0, 0.025, 0.0)
+                }
+                Style::Halls => {
+                    // a stone bench along the back of a niche in the pier
+                    let b = back(0.0, -0.35, h + 0.22);
+                    parts.put(stone, boxm(b, yaw, Vec3::new(2.4, 0.44, 0.6)));
+                    back(side * 0.7, -0.35, h + 0.44)
+                }
+                Style::Works => {
+                    // the operator's desk, its dead screen, a stool
+                    let t = back(side * 0.5, -0.5, h + 0.76);
+                    parts.put(steel, boxm(t - Vec3::new(0.0, 0.38, 0.0), yaw, Vec3::new(1.4, 0.76, 0.7)));
+                    let sc = back(side * 0.5 + 0.35, -0.35, h + 0.97);
+                    parts.put(screen, boxm(sc, yaw, Vec3::new(0.42, 0.36, 0.34)));
+                    let stool = back(side * 0.5 - 0.1, -1.4, h + 0.3);
+                    parts.put(steel, boxm(stool, 0.0, Vec3::new(0.36, 0.6, 0.36)));
+                    back(side * 0.5 - 0.3, -0.5, h + 0.76)
+                }
+            };
+            // and on it, water or a battery in turn
+            let water = i % 2 == 0;
+            let base = on.y + if water { 0.15 } else { 0.11 };
+            let gp = group();
+            gp.position().set(on.x, base, on.z);
+            if water {
+                gp.add(&mesh(&bottle_geo, &bottle_mat));
+                let cap = mesh(&cap_geo, &self.mats.metal);
+                cap.position().y = 0.18;
+                gp.add(&cap);
+            } else {
+                gp.add(&mesh(&bat_body_geo, &bat_body_mat));
+                let tip = mesh(&bat_tip_geo, &bat_tip_mat);
+                tip.position().y = 0.105;
+                gp.add(&tip);
+            }
+            self.world.add(&gp);
+            let p = crate::base::records::Pickup { g: gp, taken: false, base, phase: r.range(0.0, 7.0) };
+            if water {
+                self.almonds.push(p);
+            } else {
+                self.battery_items.push(p);
+            }
+        }
     }
 
     /// Every cell: the front wall with its doorway, the door swung open

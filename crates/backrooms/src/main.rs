@@ -732,7 +732,8 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.yaw = yaw;
                     g.player.pitch = pitch;
                     // her marks in the dark are seen as a player sees them there: by the lamp
-                    let lamp = name.starts_with("mark_") && g.region_light_at(g.tx(x), g.tz(z)) < 0.3;
+                    let lamp = (name.starts_with("mark_") || name.starts_with("room")) && g.region_light_at(g.tx(x), g.tz(z)) < 0.3;
+
                     g.player.flashlight_on = lamp;
                     g.player.battery = game::prelude::BAT_MAX;
                     // the props' cull runs a few times a second; run it for this view
@@ -740,6 +741,12 @@ fn level_check(o: &Options, dir: &str) {
                     g.fixed_step_dt = 1.0 / 60.0;
                     g.frame(1.0 / 60.0);
                     g.fixed_step_dt = 0.0;
+                    // (no toast of a thing picked up where the camera stands)
+                    if name.starts_with("room") {
+                        g.msg_t = 0.0;
+                        g.ui.msg.set_opacity(0.0);
+                        g.ui.msg.set_text("");
+                    }
                     g.sim_frozen = true;
                     let cb = draw(&mut g, &mut r, t, w, h);
                     cb.commit();
