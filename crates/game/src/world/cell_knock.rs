@@ -30,7 +30,7 @@
 //! before. Its sounds play from the door (`play_from`).
 use crate::prelude::*;
 use crate::session::input::Act;
-use crate::world::assembly::{Stage, KNOCK};
+use crate::world::assembly::{KNOCK, WHEEL_SHUT};
 
 /// The salt of the stream what knocks at a cell chooses from
 pub const VISIT_SALT: u64 = 0xCE11_D002_0000_0006;
@@ -136,9 +136,15 @@ impl Game {
         (patience, r.range(WHEEL_AFTER.0, WHEEL_AFTER.1), r.range(TRIES.0, TRIES.1))
     }
 
-    /// It goes: the knocking stops, or it lets go of the wheel
+    /// It goes: the knocking stops, or it lets go of the wheel (a door it
+    /// did not open has its wheel back where it rests shut)
     fn visit_goes(&mut self) {
         self.assembly.door.visit = Visit::Gone;
+        if let Some(d) = self.assembly.door.cell.and_then(|ci| self.cell_doors.get_mut(ci)) {
+            if d.target < 0.5 {
+                d.turn_to = WHEEL_SHUT;
+            }
+        }
         self.director_note("cell:gone");
     }
 
@@ -146,7 +152,7 @@ impl Game {
     /// while you are sealed in and the fog is up, its going, its pulls at the
     /// wheel once answered, and the door giving unless you hold it
     pub fn update_at_the_door(&mut self, dt: f64) {
-        let up = matches!(self.assembly.stage, Stage::Rising | Stage::Crest);
+        let up = self.assembly.fog_rising_or_crest();
         let sealed = self.assembly.sealed;
         let visit = self.assembly.door.visit;
         // you opened the door, or the fog is going down: it goes
@@ -188,8 +194,7 @@ impl Game {
     fn try_the_wheel(&mut self, dt: f64) {
         let Some(ci) = self.assembly.door.cell else { return };
         // E held, in the cell, keeps the wheel held (a press began it)
-        let in_cell = self.cell_doors.get(ci).is_some_and(|d| (self.tx(self.player.pos.x), self.tz(self.player.pos.z)) == d.tile);
-        if in_cell && self.held(Act::Interact) && self.assembly.door.grip > 0.0 {
+        if self.in_cell(ci) && self.held(Act::Interact) && self.assembly.door.grip > 0.0 {
             self.assembly.door.grip = GRIP;
         }
         let d = &mut self.assembly.door;
@@ -214,15 +219,15 @@ impl Game {
         if pull {
             d.pull_t = PULL;
         }
-        let gives = d.give >= 1.0;
+        let (gives, give) = (d.give >= 1.0, d.give);
         if first {
             self.director_note("cell:wheel");
         }
         if let Some(door) = self.cell_doors.get_mut(ci) {
             door.strain = door.strain.max(if held { 1.0 } else { 0.35 });
-            if !held {
-                door.turn_to += WHEEL_TURNS * dt / GIVE;
-            }
+            // as far from shut as it has turned toward giving (it gives
+            // where an open door's wheel rests)
+            door.turn_to = WHEEL_SHUT + WHEEL_TURNS * give;
         }
         let at = self.cell_wheel_at(ci);
         if pull && self.ac.is_some() {
@@ -255,9 +260,7 @@ impl Game {
     /// will try the wheel
     pub fn answer_the_door(&mut self, ci: usize) {
         let Some(at) = self.cell_door_at(ci) else { return };
-        let r = crate::world::knock::RAP;
-        let gaps = vec![r.0 + native_rnd() * (r.1 - r.0), r.0 + native_rnd() * (r.1 - r.0)];
-        self.knocks.rhythm = gaps.clone();
+        let gaps = self.draw_raps();
         if self.ac.is_some() {
             self.play_from(at.x, at.y, at.z, 3.0, 1.0, 0.0, move |g| g.sfx_knock(&gaps, false));
         }

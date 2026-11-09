@@ -97,6 +97,12 @@ impl Assembly {
     pub fn up(&self) -> bool {
         matches!(self.stage, Stage::Siren | Stage::Rising | Stage::Crest | Stage::Falling)
     }
+    /// Whether the fog is rising or at its crest: narrower than `up`, which
+    /// also counts the siren before it and its falling after (what knocks
+    /// at a cell comes, and stays, only while this holds)
+    pub fn fog_rising_or_crest(&self) -> bool {
+        matches!(self.stage, Stage::Rising | Stage::Crest)
+    }
 }
 
 impl Game {
@@ -312,7 +318,8 @@ pub struct CellDoor {
     /// the wheel on its spindle through the leaf (a ring each face)
     pub wheel: Obj,
     /// how far the wheel is turned, and toward where, radians (as the room
-    /// sees it: toward open is up, toward shut down)
+    /// sees it: toward open is up, toward shut down): it rests at
+    /// `WHEEL_OPEN` on an open door and at `WHEEL_SHUT` on a shut one
     pub turned: f64,
     pub turn_to: f64,
     /// how hard it is pulled against a hold (0 still, 1 held against it),
@@ -322,6 +329,10 @@ pub struct CellDoor {
 }
 /// How far a cell's door stands open, radians
 pub const OPEN: f64 = 1.75;
+/// Where a cell's wheel rests on its door open, and shut (two turns and a
+/// half from it: `cell_knock::WHEEL_TURNS`), radians
+pub const WHEEL_OPEN: f64 = 0.0;
+pub const WHEEL_SHUT: f64 = WHEEL_OPEN - crate::world::cell_knock::WHEEL_TURNS;
 
 impl Game {
     /// Where cell `ci`'s door is (for what knocks at it)
@@ -338,11 +349,16 @@ impl Game {
         })
     }
 
+    /// Whether you stand in cell `ci` (on its tile)
+    pub fn in_cell(&self, ci: usize) -> bool {
+        self.cell_doors.get(ci).is_some_and(|d| (self.tx(self.player.pos.x), self.tz(self.player.pos.z)) == d.tile)
+    }
+
     /// Turn the wheel of cell `ci` (shut it, or open it)
     pub fn turn_cell_wheel(&mut self, ci: usize, shut: bool) {
         let Some(d) = self.cell_doors.get_mut(ci) else { return };
         d.target = if shut { 0.0 } else { OPEN };
-        d.turn_to += if shut { -crate::world::cell_knock::WHEEL_TURNS } else { crate::world::cell_knock::WHEEL_TURNS };
+        d.turn_to = if shut { WHEEL_SHUT } else { WHEEL_OPEN };
         let at = d.at;
         self.assembly.sealed = if shut { Some(ci) } else { None };
         self.director_note(if shut { "assembly:sealed" } else { "assembly:opened" });

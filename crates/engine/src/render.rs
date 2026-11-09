@@ -195,6 +195,9 @@ struct ObjectU {
     bind_inv: [f32; 16],
     morph: [f32; 8],
     sprite: [f32; 4],
+    /// the thing's wear by use (`UseWear`): x handled, y chips, z its
+    /// floor's height; w 1 when each instance has its own (buffer 15)
+    use_wear: [f32; 4],
 }
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -279,6 +282,8 @@ struct GpuInst {
     version: u64,
     mats: Buf,
     cols: Option<Buf>,
+    /// each instance's wear by use (`InstanceData::use_wear`)
+    wear: Option<Buf>,
 }
 
 struct Arena {
@@ -1187,6 +1192,7 @@ impl Renderer {
             _ => return,
         };
         let morph_inf = n.morph_influences.clone();
+        let use_wear = n.use_wear;
         let sprite_center = if let Kind::Sprite { center, .. } = &n.kind { *center } else { Vec2::new(0.5, 0.5) };
         drop(n);
         if let Some(inst) = &inst {
@@ -1270,6 +1276,12 @@ impl Renderer {
             bind_inv,
             morph,
             sprite: [sprite_center.x as f32, sprite_center.y as f32, m.rotation as f32, 0.0],
+            use_wear: [
+                use_wear.handled as f32,
+                use_wear.chips as f32,
+                use_wear.floor as f32,
+                if inst.as_ref().is_some_and(|i| i.use_wear.is_some()) { 1.0 } else { 0.0 },
+            ],
         };
         // material uniforms
         let mut mu = MaterialU::default();
@@ -1394,7 +1406,7 @@ impl Renderer {
         // sprites: no geometry
         if key.v.kind == 4 {
             unsafe {
-                for i in 3..14 {
+                for i in (3..14).chain([15]) {
                     enc.setVertexBuffer_offset_atIndex(Some(&self.dummy_buf), 0, i);
                 }
                 let vc: u32 = 4;
@@ -1430,6 +1442,10 @@ impl Renderer {
                     let v: Vec<f32> = cs.iter().flat_map(|c| [c.r as f32, c.g as f32, c.b as f32]).collect();
                     new_buffer(&self.device, bytemuck_f32(&v))
                 });
+                let wear = inst.use_wear.as_ref().map(|ws| {
+                    let v: Vec<f32> = ws.iter().flat_map(|w| [w.handled as f32, w.chips as f32, w.floor as f32, 0.0]).collect();
+                    new_buffer(&self.device, bytemuck_f32(&v))
+                });
                 self.insts.insert(
                     oid,
                     GpuInst {
@@ -1437,11 +1453,12 @@ impl Renderer {
                         version: inst.version,
                         mats: new_buffer(&self.device, bytemuck_f32(&data)),
                         cols,
+                        wear,
                     },
                 );
             }
             let e = &self.insts[&oid];
-            inst_bufs = Some((e.mats.clone(), e.cols.clone()));
+            inst_bufs = Some((e.mats.clone(), e.cols.clone(), e.wear.clone()));
         }
         let g = &self.geos[&gid];
         let db = &self.dummy_buf;
@@ -1452,13 +1469,15 @@ impl Renderer {
             enc.setVertexBuffer_offset_atIndex(Some(g.uv.as_deref().unwrap_or(db)), 0, 5);
             enc.setVertexBuffer_offset_atIndex(Some(g.color.as_deref().unwrap_or(db)), 0, 6);
             match &inst_bufs {
-                Some((mb, cb)) => {
+                Some((mb, cb, wb)) => {
                     enc.setVertexBuffer_offset_atIndex(Some(mb), 0, 7);
                     enc.setVertexBuffer_offset_atIndex(Some(cb.as_deref().unwrap_or(db)), 0, 8);
+                    enc.setVertexBuffer_offset_atIndex(Some(wb.as_deref().unwrap_or(db)), 0, 15);
                 }
                 None => {
                     enc.setVertexBuffer_offset_atIndex(Some(db), 0, 7);
                     enc.setVertexBuffer_offset_atIndex(Some(db), 0, 8);
+                    enc.setVertexBuffer_offset_atIndex(Some(db), 0, 15);
                 }
             }
             enc.setVertexBuffer_offset_atIndex(Some(g.skin_idx.as_deref().unwrap_or(db)), 0, 9);

@@ -7,7 +7,9 @@
 //! every bucket with more than one member becomes one instanced mesh. Chunks
 //! keep frustum culling useful; the material "look" (type, colours, map,
 //! flags) lets two placers' identical-looking materials share one draw. No
-//! vertices are copied.
+//! vertices are copied. Each instance keeps its own wear by use (how much
+//! its prop is handled, where its floor is: `Node::use_wear`), so things
+//! on two storeys, or one on the floor and one on a shelf, still share it.
 //!
 //! Only props flagged `user.static_prop` are touched (placers that registered
 //! no animator and no interaction). Transparent, blended, depth-write-off and
@@ -142,8 +144,14 @@ pub fn instancify_static(world: &Obj, chunk_of: &dyn Fn(f64, f64) -> i64) -> Sta
             continue;
         }
         let im = instanced_mesh(&b.geo, &b.mat, b.list.len());
+        let wear = b.list[0].use_wear();
+        im.set_use_wear(wear);
+        let own = b.list.iter().any(|o| o.use_wear() != wear);
         for (i, o) in b.list.iter().enumerate() {
             im.set_matrix_at(i, &o.matrix_world());
+            if own {
+                im.set_use_wear_at(i, o.use_wear());
+            }
             if let Some(p) = o.parent() {
                 if touched_set.insert(p.clone()) {
                     touched.push(p.clone());

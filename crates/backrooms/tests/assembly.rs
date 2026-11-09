@@ -5,14 +5,15 @@
 //! and every floor tile has a cell within reach of the warning at a walk
 //! (G2: each of these half as long as the first pass's). What knocks at a
 //! sealed cell (G6, `game::world::cell_knock`): unanswered it goes; answered
-//! it tries the wheel, and the door gives unless you hold it; a door that
-//! gives, or a cell left open, lets the fog in.
+//! it tries the wheel, and the door gives unless you hold it (a visit that
+//! does not give leaves the wheel at rest shut); a door that gives, or a
+//! cell left open, lets the fog in.
 mod common;
 
 use game::base::config::{CELL, EYE, SAN_REGEN, WALK};
 use game::entities::director::Phase;
 use game::level::building::CELL_REACH;
-use game::world::assembly::{Stage, DRAIN, FIRST_FLOOR_QUIET, FIRST_QUIET, KNOCK, LAST, PAGE_WAKE, QUIET, WARNING};
+use game::world::assembly::{Stage, DRAIN, FIRST_FLOOR_QUIET, FIRST_QUIET, KNOCK, LAST, PAGE_WAKE, QUIET, WARNING, WHEEL_OPEN, WHEEL_SHUT};
 use game::world::cell_knock::{Visit, GAVE_OPEN, GIVE, PATIENCE, TRIES, WHEEL_AFTER};
 use game::Game;
 
@@ -415,6 +416,72 @@ fn held_is_safe() {
         assert!(d.held_for >= TRIES.0 - 0.2, "L{level}: held all the while it tried ({:.1} s)", d.held_for);
         assert!((g.cell_doors[ci].turned - turned).abs() < 1e-9, "L{level}: the wheel did not turn");
         g.keys.remove("KeyE");
+    }
+}
+
+/// A visit that does not give leaves the wheel shut: answered, the wheel
+/// turned part of the way from outside, and then the visit ends without
+/// the door giving (held until it lets go, or the fog going down while it
+/// tries): the wheel turns back to where it rests on a shut door, not left
+/// partly open on it for the rest of the floor (code review 2). Shut and
+/// opened again after the all-clear, it rests where an open door's does.
+#[test]
+fn a_visit_that_does_not_give_leaves_the_wheel_shut() {
+    for (level, how) in [(1, "held"), (2, "held"), (3, "held"), (1, "the fog falls"), (2, "the fog falls")] {
+        let mut g = floor(4242, level);
+        let ci = into_a_cell(&mut g);
+        g.turn_cell_wheel(ci, true);
+        // (the door shut, and the wheel at rest from your own turn)
+        step(&mut g, 3.5);
+        assert_eq!(g.cell_doors[ci].turned, WHEEL_SHUT, "L{level}: shut, the wheel rests shut");
+        fog_over(&mut g, ci, 6.0, TRIES.1 + WHEEL_AFTER.1 + 6.0);
+        answer(&mut g, ci);
+        // not held: it turns the wheel part of the way (less than GIVE s)
+        step(&mut g, WHEEL_AFTER.1 + 0.6);
+        let part = g.assembly.door.give;
+        assert!(part > 0.1 && part < 1.0, "L{level} {how}: on its way to giving ({part:.2})");
+        assert!(g.cell_doors[ci].turned > WHEEL_SHUT + 0.5, "L{level} {how}: the wheel turned from outside");
+        if how == "held" {
+            assert_eq!(prompt(&g).as_deref(), Some("[E] HOLD THE WHEEL"));
+            g.try_interact();
+            g.keys.insert("KeyE".into());
+        } else {
+            // the crest's time is up: the fog goes down
+            g.assembly.t = 0.0;
+        }
+        for _ in 0..(TRIES.1 / 0.1) as usize + 20 {
+            step(&mut g, 0.1);
+            if g.assembly.door.visit == Visit::Gone {
+                break;
+            }
+        }
+        g.keys.remove("KeyE");
+        assert_eq!(g.assembly.door.visit, Visit::Gone, "L{level} {how}: it went");
+        assert_eq!(logged(&g, "cell:gave"), 0, "L{level} {how}: the door did not give");
+        assert_eq!(g.assembly.door.give, part, "L{level} {how}: held, it turned no further");
+        // (the wheel eases back)
+        step(&mut g, 3.0);
+        let d = &g.cell_doors[ci];
+        println!(
+            "seed 4242 L{level} ({how}): turned {:.0}% of the way to giving, then it went; the wheel at {:.3} rad",
+            part * 100.0,
+            d.turned
+        );
+        assert!(d.target < 0.5, "L{level} {how}: the door still shut");
+        assert_eq!((d.turn_to, d.turned), (WHEEL_SHUT, WHEEL_SHUT), "L{level} {how}: the wheel back where it rests shut");
+        if how == "the fog falls" {
+            // through to the all-clear, then opened: it rests open
+            for _ in 0..1200 {
+                if g.assembly.stage == Stage::Quiet {
+                    break;
+                }
+                step(&mut g, 0.1);
+            }
+            assert_eq!(g.assembly.stage, Stage::Quiet, "L{level}: the all-clear");
+            g.turn_cell_wheel(ci, false);
+            step(&mut g, 3.5);
+            assert_eq!(g.cell_doors[ci].turned, WHEEL_OPEN, "L{level}: opened, the wheel rests open");
+        }
     }
 }
 

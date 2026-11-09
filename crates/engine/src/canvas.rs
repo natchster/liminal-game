@@ -656,6 +656,7 @@ impl Canvas {
         self.layers += 1;
     }
     pub fn end_layer(&mut self) {
+        debug_assert!(self.layers > 0, "end_layer without begin_layer");
         if self.layers == 0 {
             return;
         }
@@ -1102,6 +1103,7 @@ impl Canvas {
     /// The pixels as RGBA8 with straight alpha, rows top-down (what
     /// `to_image` holds)
     pub fn pixels(&self) -> Vec<u8> {
+        debug_assert_eq!(self.layers, 0, "pixels read inside a transparency layer (begin_layer without end_layer)");
         unsafe { CGContextFlush(self.ctx) };
         let mut data = self.buf.clone();
         for px in data.chunks_exact_mut(4) {

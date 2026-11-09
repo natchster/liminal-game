@@ -375,12 +375,20 @@ impl Game {
         }
     }
 
+    /// Your three raps' rhythm (the two gaps between them, `RAP`), drawn
+    /// from the per-frame stream as you knock, and kept as your rhythm
+    /// (`Knocks::rhythm`): at a resident's door and at your cell's alike
+    pub fn draw_raps(&mut self) -> Vec<f64> {
+        let gaps = vec![RAP.0 + native_rnd() * (RAP.1 - RAP.0), RAP.0 + native_rnd() * (RAP.1 - RAP.0)];
+        self.knocks.rhythm = gaps.clone();
+        gaps
+    }
+
     /// Knock at door `i` (`[E] KNOCK`): three raps in a rhythm of your own,
     /// and what answers, if anything (the module's rule)
     pub fn knock_at(&mut self, i: usize) {
         let Some(door) = self.knocks.doors.get(i).cloned() else { return };
-        let gaps = vec![RAP.0 + native_rnd() * (RAP.1 - RAP.0), RAP.0 + native_rnd() * (RAP.1 - RAP.0)];
-        self.knocks.rhythm = gaps.clone();
+        let gaps = self.draw_raps();
         let v = door.voice();
         if self.ac.is_some() {
             let g2 = gaps.clone();

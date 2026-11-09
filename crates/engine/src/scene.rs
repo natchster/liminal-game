@@ -61,11 +61,39 @@ pub struct InstanceData {
     pub count: usize,
     pub matrices: Vec<Mat4>,
     pub colors: Option<Vec<Color>>,
+    /// Each instance's own wear by use (`set_use_wear_at`), when the
+    /// instances were different things; None: all as the mesh's own
+    /// (`Node::use_wear`)
+    pub use_wear: Option<Vec<UseWear>>,
     pub version: u64,
     /// Bounding sphere over all instances (None = not computed yet)
     pub bounding_sphere: Option<Sphere>,
     /// Bounding box over all instances (None = not computed yet)
     pub bounding_box: Option<Box3>,
+}
+
+/// How a thing is worn by use, the thing's own (not its material's: a
+/// material is shared by many things, `docs/PROPS.md` P4). It scales the
+/// wear by use of a material that takes it (`Material::wear_use`): the game
+/// sets it on every mesh of a prop as it settles the prop's look; anything
+/// else keeps the default (handled as furniture, the floor at 0)
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct UseWear {
+    /// how much it is handled: its edges rubbed, its low parts knocked and
+    /// scuffed (1 furniture; 0.45 a thing hung out of reach, only dusted)
+    pub handled: f64,
+    /// how much its paint is chipped through (1 furniture; little on a
+    /// small thing on the floor, scuffed rather than chipped; 0 hung up)
+    pub chips: f64,
+    /// the height of the floor under it, world: the low bands (the floor's
+    /// grime at its foot, the mop's tide line, the scuffs) are measured
+    /// from it, so a thing on an upper storey has them too
+    pub floor: f64,
+}
+impl Default for UseWear {
+    fn default() -> Self {
+        UseWear { handled: 1.0, chips: 1.0, floor: 0.0 }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -157,6 +185,8 @@ pub struct Node {
     pub receive_shadow: bool,
     pub layers: u32,
     pub morph_influences: Vec<f64>,
+    /// how it is worn by use (a mesh's; see [`UseWear`])
+    pub use_wear: UseWear,
     pub children: Vec<Obj>,
     parent: Weak<RefCell<Node>>,
     pub user: UserData,
@@ -185,6 +215,7 @@ impl Node {
             receive_shadow: false,
             layers: 1,
             morph_influences: vec![],
+            use_wear: UseWear::default(),
             children: vec![],
             parent: Weak::new(),
             user: UserData::default(),
@@ -391,6 +422,14 @@ impl Obj {
     }
     pub fn set_visible(&self, v: bool) -> &Self {
         self.0.borrow_mut().visible = v;
+        self
+    }
+    /// How it is worn by use (see [`UseWear`])
+    pub fn use_wear(&self) -> UseWear {
+        self.0.borrow().use_wear
+    }
+    pub fn set_use_wear(&self, w: UseWear) -> &Self {
+        self.0.borrow_mut().use_wear = w;
         self
     }
     pub fn name(&self) -> String {
@@ -622,6 +661,29 @@ impl Obj {
             }
             inst.version += 1;
         }
+    }
+    /// Instance `i`'s own wear by use (the rest as the mesh's own until set)
+    pub fn set_use_wear_at(&self, i: usize, w: UseWear) {
+        let mut n = self.0.borrow_mut();
+        let own = n.use_wear;
+        if let Kind::Instanced { inst, .. } = &mut n.kind {
+            let len = inst.matrices.len();
+            let ws = inst.use_wear.get_or_insert_with(|| vec![own; len]);
+            if i < ws.len() {
+                ws[i] = w;
+            }
+            inst.version += 1;
+        }
+    }
+    /// Instance `i`'s wear by use
+    pub fn use_wear_at(&self, i: usize) -> UseWear {
+        let n = self.0.borrow();
+        if let Kind::Instanced { inst, .. } = &n.kind {
+            if let Some(w) = inst.use_wear.as_ref().and_then(|ws| ws.get(i)) {
+                return *w;
+            }
+        }
+        n.use_wear
     }
     /// Bounding sphere of an instanced mesh: the union of the geometry's
     /// sphere under every instance matrix (cached until computed again)
@@ -881,6 +943,7 @@ impl Obj {
         n.render_order = src.render_order;
         n.layers = src.layers;
         n.morph_influences = src.morph_influences.clone();
+        n.use_wear = src.use_wear;
         n.user = src.user.clone();
         let kids = src.children.clone();
         drop(src);
@@ -955,6 +1018,7 @@ pub fn instanced_mesh(g: impl Into<GeoArg>, m: impl IntoMats, count: usize) -> O
             count,
             matrices: vec![Mat4::IDENTITY; count],
             colors: None,
+            use_wear: None,
             version: 1,
             bounding_sphere: None,
             bounding_box: None,

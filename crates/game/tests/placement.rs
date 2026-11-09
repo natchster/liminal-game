@@ -266,4 +266,24 @@ fn instancing_smoke() {
     let st = instancify_static(&world, &|_, _| 0);
     assert_eq!((st.instanced, st.buckets, st.removed_groups), (3, 1, 6));
     assert_eq!(world.child_count(), 1);
+    let im = world.children()[0].clone();
+    assert_eq!(im.use_wear(), UseWear::default(), "worn alike, the instances share the mesh's own");
+    // things worn differently still share one draw, each instance its own
+    // wear by use (a thing hung up, one on a storey's floor)
+    let world = group();
+    let hung = UseWear { handled: 0.45, chips: 0.0, floor: 0.0 };
+    let upstairs = UseWear { handled: 1.0, chips: 1.0, floor: 7.2 };
+    for (i, w) in [UseWear::default(), hung, upstairs].into_iter().enumerate() {
+        let g = group();
+        g.user().static_prop = true;
+        let leg = mesh(&geo, &m1);
+        leg.set_use_wear(w);
+        g.add(&leg);
+        g.set_pos(i, 0, 0);
+        world.add(&g);
+    }
+    let st = instancify_static(&world, &|_, _| 0);
+    assert_eq!((st.instanced, st.buckets), (3, 1));
+    let im = world.children().into_iter().find(|c| c.is_instanced()).unwrap();
+    assert_eq!((im.use_wear_at(0), im.use_wear_at(1), im.use_wear_at(2)), (UseWear::default(), hung, upstairs));
 }

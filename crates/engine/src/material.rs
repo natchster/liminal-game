@@ -164,11 +164,13 @@ pub struct Material {
     /// floor, so flat paint reads as a used material (0 = none, 1 = full); a
     /// textured one also has its most vivid colours reined in
     pub wear: f64,
-    /// Lit surfaces with `wear`: wear by use, in metres (dust on what faces
-    /// up, the floor's grime at the foot up to a mop's tide line, scuffs,
-    /// edges rubbed and chipped where convex, dirt where creased); the
-    /// value is how much the thing is handled (its edges, chips and scuffs),
-    /// 0 none
+    /// Lit surfaces with `wear`: whether the surface takes wear by use (1,
+    /// or 0 none), in metres over the floor under the thing (dust on what
+    /// faces up, the floor's grime at the foot up to a mop's tide line,
+    /// scuffs, edges rubbed and chipped where convex, dirt where creased).
+    /// How much the thing is handled and chipped, and where its floor is,
+    /// are the thing's own (`Node::use_wear`), never the material's: a
+    /// material is shared by many things
     pub wear_use: f64,
     /// Free for the game: marks a material whose look it has already settled
     pub look_settled: bool,

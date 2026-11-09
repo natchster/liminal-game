@@ -61,6 +61,7 @@ struct Object {
     float4x4 bindMatrixInv;
     float4   morph[2]; // up to 8 influences
     float4   spriteCenterRot; // xy center, z rotation
+    float4   useWear; // the thing's wear by use (UseWear): x handled, y chips, z its floor's height; w 1: each instance its own (buffer 15)
 };
 struct Material {
     float4 diffuse; // rgb colour, a opacity
@@ -71,7 +72,7 @@ struct Material {
     float4 misc; // x alpha test, y point size, z bump scale, w map flip-y
     float4 arch; // ArchUV: x scale, y vscale, z wallpaper
     float4 patch[4]; // patch parameters
-    float4 surf; // x wear amount, y tone-mapped, z wear by use (how much it is handled)
+    float4 surf; // x wear amount, y tone-mapped, z takes wear by use (1; how much is the thing's: Object::useWear)
     float4 portal[4]; // PortalU: centre + half width, right + half height, normal + slab, sky + haze
 };
 struct LightList { uint count; uint pad[3]; ushort idx[96]; };
@@ -152,6 +153,7 @@ struct VOut {
     float3 smokeP;
     float  portal; // 1 beyond the window's plane (PORTAL)
     float  portalDist; // its true distance from the eye
+    float3 useWear [[flat]]; // the thing's wear by use (Object::useWear, or its instance's)
 };
 
 vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
@@ -169,7 +171,8 @@ vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
                     const device float4x4* bones [[buffer(11)]],
                     const device packed_float3* morphPos [[buffer(12)]],
                     const device packed_float3* morphNrm [[buffer(13)]],
-                    constant uint& vcount [[buffer(14)]])
+                    constant uint& vcount [[buffer(14)]],
+                    const device float4* instWear [[buffer(15)]])
 {
     VOut o;
     float3 transformed;
@@ -308,6 +311,7 @@ vertex VOut vs_main(uint vid [[vertex_id]], uint iid [[instance_id]],
     o.llPos = (float4(mvPosition.xyz - F.view[3].xyz, 0.0) * F.view).xyz;
     o.detPos = restPos;
     o.detNrm = restNrm;
+    o.useWear = (INSTANCED && O.useWear.w > 0.5) ? instWear[iid].xyz : O.useWear.xyz;
     return o;
 }
 
@@ -326,6 +330,7 @@ struct FIn {
     float3 smokeP;
     float  portal;
     float  portalDist;
+    float3 useWear [[flat]];
 };
 
 static inline float llLit(float3 p, constant Frame& F, texture2d<float> llMap, sampler llS) {
@@ -533,20 +538,26 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             float m = clamp((n - 0.5) * 3.2, -1.0, 1.0);
             float w = M.surf.x;
             diff *= 1.0 + w * 0.14 * m;
-            float y = in.llPos.y;
+            // height over the floor under the thing (its own: an upper
+            // storey's floor is not at 0)
+            float y = in.llPos.y - in.useWear.z;
             float low = (1.0 - smoothstep(0.02, 0.55, y)) * smoothstep(-0.3, 0.0, y); // not down in a pool
             float grime = w * saturate(0.3 * saturate(-m) + low * (0.45 + 0.3 * saturate(-m)));
             diff *= mix(float3(1.0), float3(0.74, 0.70, 0.62), grime);
-            // wear by use (Material::wear_use, surf.z: how much the thing is
-            // handled; 0 none), all of it in metres from what the shader has
-            // (no texture read): dust on what faces up; the floor's grime at
-            // its foot, up to a mop's tide line, and scuffs above it; its
-            // edges rubbed and chipped where it is convex, dirt where it is
-            // creased. Convexity is the change of the normal along the
-            // surface over a pixel (1/m: a 3 mm bevel 330), so it is only
-            // seen on bevels wider than a pixel or two, never as an outline
-            float u = M.surf.z;
+            // wear by use (where the material takes it, surf.z), all of it
+            // in metres from what the shader has (no texture read): dust on
+            // what faces up; the floor's grime at its foot, up to a mop's
+            // tide line, and scuffs above it; its edges rubbed and chipped
+            // where it is convex, dirt where it is creased. How much the
+            // thing is handled (u) and chipped (uc) are its own
+            // (Object::useWear, flat from the vertex: a material is shared
+            // by many things). Convexity is the change of the normal along
+            // the surface over a pixel (1/m: a 3 mm bevel 330), so it is
+            // only seen on bevels wider than a pixel or two, never as an
+            // outline
+            float u = M.surf.z * in.useWear.x;
             if (u > 0.0) {
+                float uc = M.surf.z * in.useWear.y;
                 float up = smoothstep(0.45, 0.9, wN.y);
                 float side = 1.0 - smoothstep(0.3, 0.8, abs(wN.y));
                 float dry = smoothstep(-0.3, 0.0, y); // not down in a pool
@@ -562,13 +573,15 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
                 // the edges and the lower parts knocked: along a convex edge
                 // dark paint is rubbed thin to a paler, duller ground and a
                 // pale surface is greyed by hands; flakes are chipped
-                // through (more where knocked). A thin sheet drawn from both
-                // sides (cloth, paper, a leaf) has no paint to chip or rub
+                // through (more where knocked; as much as the thing is
+                // chipped: none on a thing hung out of reach). A thin sheet
+                // drawn from both sides (cloth, paper, a leaf) has no paint
+                // to chip or rub
                 float sheet = DOUBLE_SIDE ? 0.0 : 1.0;
                 float3 qc = q * 70.0 + 9.2;
                 float chipF = 1.0 - saturate(length(fwidth(qc)) * 0.6);
                 float knock = u * saturate(0.35 * (1.0 - smoothstep(0.0, 0.6, y)) * dry + convex);
-                float chip = (1.0 - smoothstep(0.0, 0.03, 0.96 - 0.28 * knock - vnoise(qc))) * chipF * sheet;
+                float chip = (1.0 - smoothstep(0.0, 0.03, 0.96 - 0.28 * knock - vnoise(qc))) * chipF * sheet * uc;
                 float rub = u * convex * (0.35 + 0.65 * smoothstep(0.4, 0.7, n)) * sheet;
                 float3 paler = min(mix(diff, float3(lum), 0.55) * 1.4 + 0.03, float3(0.75));
                 float3 greyed = mix(diff, float3(lum), 0.5) * float3(0.66, 0.62, 0.56);

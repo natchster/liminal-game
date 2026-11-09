@@ -428,7 +428,7 @@ impl Game {
                 shake: 0.0,
             });
             let inside = self.face_point(x, z, d, 0.0, -1.1, h + EYE);
-            let in_cell = move |g: &Game| (g.tx(g.player.pos.x), g.tz(g.player.pos.z)) == (x, z);
+            let in_cell = move |g: &Game| g.in_cell(ci);
             // (not while something is at the door, and a door that gave not
             // until the fog is gone: `world::cell_knock`)
             self.interact(

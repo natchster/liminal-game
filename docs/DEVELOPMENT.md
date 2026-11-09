@@ -83,6 +83,13 @@ Levels must be a pure function of `(run_seed, level)`:
 * Inside a level build, take randomness only from `rnd()` and its helpers
   (`rand1`, `rand2`, `irand`, `choice`). Never use another RNG, the clock,
   hash-map iteration order, or anything left over from the previous level.
+* Materials are shared: by the props of a level, and some across levels
+  (`SharedMats`, made once a run). What differs from one thing to another
+  is kept on the thing, never on its material, or a level comes out as
+  whichever prop, on whichever level, touched the material first: how
+  much a prop is worn by use is its meshes' own (`Node::use_wear`), and a
+  material settled once (`look_settled`) is settled from itself alone;
+  `tests/prop_wear.rs` builds levels fresh and after the level before.
 * Code that runs per frame must draw from the native stream:
   `with_native(|| …)` or `native_rnd()`. What is made once and cached,
   whenever it is first needed, draws from a stream of its own
