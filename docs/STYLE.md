@@ -25,7 +25,10 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   chroma above 0.3 and keeps albedo in 0.02–0.8. Red paint and safety yellow
   are allowed to be strong; toy primaries are not.
 - **Wear:** untextured lit surfaces get the shader's wear; grime gathers
-  near the floor.
+  near the floor. Every prop wears by use (`PROPS.md` P4): dust on what
+  faces up, the floor's grime at its foot up to a mop's tide line, its
+  convex edges rubbed and chipped, more on what is handled (furniture) than
+  on what hangs out of reach (a frame).
 - **Photographs** (the Building's surfaces, `visuals/photo.rs`): real
   Soviet-era places, CC0 only, made seamless and taken off their slow
   light (the relief keeps its own shading), each graded to the mean colour

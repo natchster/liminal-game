@@ -69,6 +69,17 @@ while it is among the last three runs of its series).
   dots are a few pixels from further off; the first paint always
   happens), its two colours parsed once: the p99 back to the grain's
   0.8 ms.
+- **The update's tail** (`7b9117d+` in the history, flagged by
+  `MILESTONES.md` 7's full check, the third run after it): the update's
+  p99, 0.76–0.81 → 0.85–1.06 ms on 7 L2, 7 L5, 4242 L2 and L3, and the
+  creature pack's 0.86 → 1.23 ms (its GPU p99 2.27 → 3.2 ms). The p50s
+  did not move, and no frame took over 2 ms (`update_slow` is empty). It is
+  older than P4: a run on `86a857f` before P4's change, not recorded,
+  measured 4242 L3 at 1.33 ms and the pack at 1.36 / 3.24 ms. P4 adds no
+  per-frame update code; its cost is in the shader and the level build. The
+  step lies between `2a35e3b` and `7b9117d`, 195 commits with no run
+  between them (the rest of P3, the voices, the Building's G1–G7), so its
+  cause is not known yet: `MILESTONES.md` 14. Within budget; kept.
 
 ## What the first run measured (2026-10-25, Apple Silicon, macOS 27)
 

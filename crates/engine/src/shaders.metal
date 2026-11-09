@@ -71,7 +71,7 @@ struct Material {
     float4 misc; // x alpha test, y point size, z bump scale, w map flip-y
     float4 arch; // ArchUV: x scale, y vscale, z wallpaper
     float4 patch[4]; // patch parameters
-    float4 surf; // x wear amount, y tone-mapped
+    float4 surf; // x wear amount, y tone-mapped, z wear by use (how much it is handled)
     float4 portal[4]; // PortalU: centre + half width, right + half height, normal + slab, sky + haze
 };
 struct LightList { uint count; uint pad[3]; ushort idx[96]; };
@@ -518,6 +518,7 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         float3 directDiffuse = float3(0), directSpecular = float3(0);
         float3 diff = diffuseColor.rgb * detK;
         float3 wN = inverseTransformDirection(geometryNormal, F.view);
+        float3 spec = M.specular.rgb; float shin = M.specular.a;
         // wear: three octaves of value noise at the rest-pose position mottle
         // the colour (the finest fades out before it would alias); grime
         // settles in the dark blotches and on the parts near the floor.
@@ -532,11 +533,67 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             float m = clamp((n - 0.5) * 3.2, -1.0, 1.0);
             float w = M.surf.x;
             diff *= 1.0 + w * 0.14 * m;
-            float low = (1.0 - smoothstep(0.02, 0.55, in.llPos.y)) * smoothstep(-0.3, 0.0, in.llPos.y); // not down in a pool
+            float y = in.llPos.y;
+            float low = (1.0 - smoothstep(0.02, 0.55, y)) * smoothstep(-0.3, 0.0, y); // not down in a pool
             float grime = w * saturate(0.3 * saturate(-m) + low * (0.45 + 0.3 * saturate(-m)));
             diff *= mix(float3(1.0), float3(0.74, 0.70, 0.62), grime);
+            // wear by use (Material::wear_use, surf.z: how much the thing is
+            // handled; 0 none), all of it in metres from what the shader has
+            // (no texture read): dust on what faces up; the floor's grime at
+            // its foot, up to a mop's tide line, and scuffs above it; its
+            // edges rubbed and chipped where it is convex, dirt where it is
+            // creased. Convexity is the change of the normal along the
+            // surface over a pixel (1/m: a 3 mm bevel 330), so it is only
+            // seen on bevels wider than a pixel or two, never as an outline
+            float u = M.surf.z;
+            if (u > 0.0) {
+                float up = smoothstep(0.45, 0.9, wN.y);
+                float side = 1.0 - smoothstep(0.3, 0.8, abs(wN.y));
+                float dry = smoothstep(-0.3, 0.0, y); // not down in a pool
+                float3 Pv = -in.viewPos;
+                float3 Nv = normalize(in.normal) * (DOUBLE_SIDE ? faceDirection : 1.0);
+                float3 dpx = dfdx(Pv), dpy = dfdy(Pv);
+                float3 dnx = dfdx(Nv), dny = dfdy(Nv);
+                float curv = FLAT ? 0.0 : dot(dnx, dpx) / max(dot(dpx, dpx), 1e-12) + dot(dny, dpy) / max(dot(dpy, dpy), 1e-12);
+                float wide = smoothstep(0.6, 1.8, 1.4 / max(abs(curv), 1.0) / max(length(fwidth(Pv)), 1e-5));
+                float convex = smoothstep(40.0, 180.0, curv) * wide;
+                float crease = smoothstep(40.0, 180.0, -curv) * wide;
+                float lum = dot(diff, float3(0.2126, 0.7152, 0.0722));
+                // the edges and the lower parts knocked: along a convex edge
+                // dark paint is rubbed thin to a paler, duller ground and a
+                // pale surface is greyed by hands; flakes are chipped
+                // through (more where knocked). A thin sheet drawn from both
+                // sides (cloth, paper, a leaf) has no paint to chip or rub
+                float sheet = DOUBLE_SIDE ? 0.0 : 1.0;
+                float3 qc = q * 70.0 + 9.2;
+                float chipF = 1.0 - saturate(length(fwidth(qc)) * 0.6);
+                float knock = u * saturate(0.35 * (1.0 - smoothstep(0.0, 0.6, y)) * dry + convex);
+                float chip = (1.0 - smoothstep(0.0, 0.03, 0.96 - 0.28 * knock - vnoise(qc))) * chipF * sheet;
+                float rub = u * convex * (0.35 + 0.65 * smoothstep(0.4, 0.7, n)) * sheet;
+                float3 paler = min(mix(diff, float3(lum), 0.55) * 1.4 + 0.03, float3(0.75));
+                float3 greyed = mix(diff, float3(lum), 0.5) * float3(0.66, 0.62, 0.56);
+                diff = mix(diff, mix(paler, greyed, smoothstep(0.12, 0.35, lum)), saturate(0.8 * rub));
+                diff = mix(diff, paler, chip);
+                float bare = saturate(max(rub, chip));
+                // shoes and the mop: dark streaks along the sides low down,
+                // the mop water's grime up to a tide line 8-18 cm up and its
+                // splashes above it
+                float3 qs = float3(q.x * 9.0, q.y * 140.0, q.z * 9.0) + 2.7;
+                float scuffF = 1.0 - saturate(fwidth(qs.y) * 0.6);
+                float scuff = smoothstep(0.7, 0.88, vnoise(qs)) * scuffF * side * (1.0 - smoothstep(0.12, 0.45, y)) * dry * u;
+                float tide = 0.08 + 0.1 * n;
+                float foot = (1.0 - smoothstep(tide - 0.03, tide, y)) * dry * (1.0 - 0.7 * up);
+                float splash = (1.0 - smoothstep(0.0, 0.45, y)) * dry * side * smoothstep(0.35, 0.65, n);
+                float tideLine = (1.0 - smoothstep(0.0, 0.012, abs(y - tide + 0.006))) * dry * side;
+                diff *= mix(float3(1.0), float3(0.62, 0.57, 0.49), saturate(0.55 * foot + 0.25 * splash + 0.35 * tideLine + 0.45 * scuff + 0.45 * crease));
+                // dust on what faces up, patchy: greys a dark top, dulls a
+                // pale one; a thin film of it on the sides, none underneath
+                float dust = up * (0.3 + 0.7 * smoothstep(0.3, 0.7, n));
+                float film = (1.0 - up) * smoothstep(-0.5, 0.1, wN.y) * (0.6 + 0.4 * n);
+                diff = mix(diff, float3(0.30, 0.285, 0.26), 0.45 * dust + 0.09 * film);
+                spec *= (1.0 - 0.6 * dust) * (1.0 - 0.5 * bare);
+            }
         }
-        float3 spec = M.specular.rgb; float shin = M.specular.a;
         for (uint li = 0; li < (beyond ? 0u : LLst.count); li++) {
             uint k = LLst.idx[li];
             float3 Ldir, Lcol;

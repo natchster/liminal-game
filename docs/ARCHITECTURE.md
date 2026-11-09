@@ -231,7 +231,10 @@ affects a level's build.
    sample its indirect light already takes), and roll
    their highlights off with a soft shoulder; materials with `wear` (the
    props, see `visuals::prop_look`) get value-noise mottling and grime near
-   the floor. Fog is exponential-squared and applied after the sRGB encode.
+   the floor, and with `wear_use` wear by use, from what the shader already
+   has (no texture read): dust on what faces up, the floor's grime at the
+   foot, scuffs, and convex edges (the normal's change over a pixel)
+   rubbed and chipped. Fog is exponential-squared and applied after the sRGB encode.
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
    texels a tile: the light, how open each place is, its ceiling),
    world-space architecture UVs with a photographed detail over them

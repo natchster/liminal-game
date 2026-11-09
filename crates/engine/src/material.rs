@@ -164,6 +164,12 @@ pub struct Material {
     /// floor, so flat paint reads as a used material (0 = none, 1 = full); a
     /// textured one also has its most vivid colours reined in
     pub wear: f64,
+    /// Lit surfaces with `wear`: wear by use, in metres (dust on what faces
+    /// up, the floor's grime at the foot up to a mop's tide line, scuffs,
+    /// edges rubbed and chipped where convex, dirt where creased); the
+    /// value is how much the thing is handled (its edges, chips and scuffs),
+    /// 0 none
+    pub wear_use: f64,
     /// Free for the game: marks a material whose look it has already settled
     pub look_settled: bool,
     /// Drawn beyond a window (a thing outside it, seen through it): see
@@ -213,6 +219,7 @@ impl Material {
             patch: Patch::None,
             patch_uniforms: Rc::new(RefCell::new(PatchUniforms::default())),
             wear: 0.0,
+            wear_use: 0.0,
             look_settled: false,
             portal: None,
             version: 1,

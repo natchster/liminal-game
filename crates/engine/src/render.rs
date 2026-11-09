@@ -1277,7 +1277,7 @@ impl Renderer {
         let ei = m.emissive_intensity;
         mu.emissive = [(m.emissive.r * ei) as f32, (m.emissive.g * ei) as f32, (m.emissive.b * ei) as f32, 0.0];
         mu.specular = [m.specular.r as f32, m.specular.g as f32, m.specular.b as f32, m.shininess.max(1e-4) as f32];
-        mu.surf = [m.wear as f32, if m.tone_mapped { 1.0 } else { 0.0 }, 0.0, 0.0];
+        mu.surf = [m.wear as f32, if m.tone_mapped { 1.0 } else { 0.0 }, m.wear_use as f32, 0.0];
         mu.map_t0 = [1.0, 0.0, 0.0, 0.0];
         mu.map_t1 = [0.0, 1.0, 0.0, 0.0];
         let mut flip = false;

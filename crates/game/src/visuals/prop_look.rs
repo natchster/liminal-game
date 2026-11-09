@@ -6,8 +6,14 @@
 //! muted toward aged paint and plastic, albedo stays within what real
 //! surfaces reflect, the stand-in shine becomes real specular (tinted for
 //! brass and steel), plain surfaces get a faint broad sheen, and untextured
-//! ones get the shader's wear. Light sources, see-through and patched
-//! materials, pickups and gameplay markers keep their look.
+//! ones get the shader's wear. Every settled surface, textured or not, gets
+//! the shader's wear by use (`Material::wear_use`, `docs/PROPS.md` P4): dust
+//! on what faces up, the floor's grime at a thing's foot, its edges rubbed
+//! and chipped where they are convex. That is in metres, so where a thing
+//! is decides most of it (a toy on the floor sits in the floor's grime, a
+//! frame on a wall has only its top to gather dust); how much it is handled
+//! is judged from its box (`handled`). Light sources, see-through and
+//! patched materials, pickups and gameplay markers keep their look.
 //!
 //! Draws no random numbers; materials shared across levels are settled only
 //! once (`Material::look_settled`).
@@ -112,8 +118,25 @@ fn highlight(finish: Finish, c: &Color) -> (Color, f64, f64) {
     }
 }
 
-/// Settle one material; returns false when it is left alone.
-fn settle_material(m: &Mat) -> bool {
+/// How much a prop is handled, from its box (its lift off the floor under
+/// it, its height and its largest side, metres): furniture standing on the
+/// floor is knocked, leaned on and dragged (1); a small thing on the floor
+/// is scuffed rather than chipped, as moulded and stuffed things are
+/// (0.7); a thing hung up out of reach (a frame, a clock, a shelf's
+/// things) is only dusted (0.45)
+fn handled(lift: f64, height: f64, size: f64) -> f64 {
+    if lift > 0.3 {
+        0.45
+    } else if height < 0.45 && size < 0.6 {
+        0.7
+    } else {
+        1.0
+    }
+}
+
+/// Settle one material (`use_`: how much its prop is handled); returns
+/// false when it is left alone.
+fn settle_material(m: &Mat, use_: f64) -> bool {
     let mut mm = m.m();
     if mm.look_settled {
         return false;
@@ -164,6 +187,9 @@ fn settle_material(m: &Mat) -> bool {
         mm.color = settle_albedo(&mm.color);
         mm.wear = 1.0;
     }
+    // wear by use, whole on a texture too: what was painted on it is its
+    // own, the dust and the floor's grime come after
+    mm.wear_use = use_;
     if mm.kind == MatKind::Phong {
         return true; // keeps its own highlight
     }
@@ -187,12 +213,21 @@ impl Game {
             if top.user().gameplay || keep.iter().any(|k| k.ptr_eq(&top)) {
                 continue;
             }
+            let mut bb = Box3::empty();
+            bb.set_from_object(&top);
+            let use_ = if bb.is_empty() {
+                1.0
+            } else {
+                let size = bb.get_size();
+                let floor = self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
+                handled(bb.min.y - floor, size.y, size.x.max(size.y).max(size.z))
+            };
             top.traverse(&mut |o: &Obj| {
                 if !o.is_mesh() {
                     return;
                 }
                 for m in o.mats() {
-                    if settle_material(&m) {
+                    if settle_material(&m, use_) {
                         n += 1;
                     }
                 }
@@ -233,31 +268,47 @@ mod tests {
     #[test]
     fn stand_in_shine_becomes_specular_once() {
         let brass = lambert!({ color: 0xa07030, emissive: 0x1a1005 });
-        assert!(settle_material(&brass));
+        assert!(settle_material(&brass, 1.0));
         let (kind, e, spec) = (brass.r().kind, brass.emissive_v(), brass.r().specular);
         assert_eq!(kind, MatKind::Phong);
         assert_eq!(e.get_hex(), 0);
         assert!(spec.r > spec.b * 2.0, "brass highlight is warm");
         let c = brass.color_v();
-        assert!(!settle_material(&brass), "settled twice");
+        assert!(!settle_material(&brass, 1.0), "settled twice");
         assert_eq!(brass.color_v().get_hex(), c.get_hex());
         // a lamp keeps its glow
         let lamp = lambert!({ color: 0xefe2c4, emissive: 0xffc070, emissiveIntensity: 0.9 });
-        settle_material(&lamp);
+        settle_material(&lamp, 1.0);
         assert_eq!(lamp.r().kind, MatKind::Lambert);
         assert_eq!(lamp.emissive_v().get_hex(), 0xffc070);
         // indicator lights, voids and see-through materials are left alone
         for hex in [0xff2020u32, 0x40ff40, 0xfff2c8, 0x080604] {
             let led = basic_mat!({ color: hex });
-            assert!(!settle_material(&led));
+            assert!(!settle_material(&led, 1.0));
             assert_eq!((led.r().kind, led.color_v().get_hex()), (MatKind::Basic, hex));
         }
         // a painted label drawn unlit gets lit
         let label = basic_mat!({ color: 0xf0ece0 });
-        assert!(settle_material(&label));
+        assert!(settle_material(&label, 1.0));
         assert_eq!(label.r().kind, MatKind::Phong);
         let glass = lambert!({ color: 0x2a3438, emissive: 0x0a0e10, transparent: true, opacity: 0.55 });
-        assert!(!settle_material(&glass));
+        assert!(!settle_material(&glass, 1.0));
         assert_eq!(glass.emissive_v().get_hex(), 0x0a0e10);
+    }
+    #[test]
+    fn wear_by_use_follows_what_the_thing_is() {
+        // a filing cabinet, a toy on the floor, a frame on a wall
+        assert_eq!(handled(0.0, 1.3, 1.3), 1.0);
+        assert_eq!(handled(0.0, 0.14, 0.14), 0.7);
+        assert_eq!(handled(1.4, 0.3, 0.55), 0.45);
+        // a printed surface keeps its own colours and light mottle, but
+        // gathers dust and grime by use like the rest; a lamp does not
+        let tex = Tex::data_rgba(vec![128; 4 * 4 * 4], 4, 4);
+        let print = lambert!({ map: &tex });
+        assert!(settle_material(&print, 0.45));
+        assert_eq!((print.r().wear, print.r().wear_use), (0.5, 0.45));
+        let lamp = lambert!({ color: 0xefe2c4, emissive: 0xffc070 });
+        settle_material(&lamp, 1.0);
+        assert_eq!(lamp.r().wear_use, 0.0);
     }
 }
