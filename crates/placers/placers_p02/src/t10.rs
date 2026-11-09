@@ -178,7 +178,10 @@ fn om_gilt_tex(vary: u32) -> Tex {
 /// The glass: silver behind it (`Patch::Glass`, nearly all of the light
 /// back), its map where the silver has gone to the black paint behind
 fn om_glass_mat(silver: Tex) -> Mat {
-    let m = phong!({ color: 0xffffff, specular: 0x2a2a2a, shininess: 4000, transparent: true, depthWrite: false });
+    // the lamp seen in it as a lamp is in a mirror: a small hot spot the
+    // size of its lens, not a disc of glare round it (at 4000 the highlight
+    // read as bloom: M8)
+    let m = phong!({ color: 0xffffff, specular: 0x2a2a2a, shininess: MIRROR_SHINE, transparent: true, depthWrite: false });
     {
         let mut mm = m.m();
         mm.map = Some(silver);

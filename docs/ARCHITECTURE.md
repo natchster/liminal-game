@@ -56,7 +56,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `modes` | The Stairwell and the Loop: self-contained spaces with their own movement, entered from a level |
 | `player` | Movement, stamina, sanity, flashlight, items and actions |
 | `audio` | Sound effects and persistent beds (`sys`), the spatial soundscape, the ambient event driver |
-| `visuals` | Lighting (the place-based light map, pooled lights, fog; `occlusion`: the level's shape in it, for the corners), procedural textures and surfaces, the Building's photographed surfaces and the photographed details over the rooms' (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the low-sanity colour filter |
+| `visuals` | Lighting (the place-based light map, pooled lights, fog; `occlusion`: the level's shape in it, for the corners), procedural textures and surfaces, the Building's photographed surfaces and the photographed details over the rooms' (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the small things' contact shadows (`contact`), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), the three typefaces and their CoreText metrics (`faces`), the menus and their painter (`menu`, `screens`), the HUD at rest (`rest`: what shows when, and the building's sentence case), the notebook as paper (`paper`), and the painter that turns elements into composited layers (`draw`) |
 | `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/UI.md`), and the game flow: levels, saves, death, the menu |
 | `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
@@ -240,7 +240,12 @@ affects a level's build.
    object uniform, or per instance in vertex buffer 15 when instancing
    merged different things), handed flat from the vertex to the fragment:
    a material is shared by many things, and some across levels. Fog is
-   exponential-squared and applied after the sRGB encode.
+   exponential-squared and applied after the sRGB encode. A small thing
+   on the floor that never moves has a contact shadow
+   (`visuals::contact`): a soft dark shape laid on the floor round the
+   outline of its foot, unlit black with its alpha in its vertex colours,
+   one mesh a 10 x 10 tile chunk, made once a level from where the things
+   settled (no texture read, no random draw).
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
    texels a tile: the light, how open each place is, its ceiling),
    world-space architecture UVs with a photographed detail over them

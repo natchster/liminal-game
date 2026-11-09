@@ -680,7 +680,7 @@ impl Game {
             interactables: vec![],
             pp: PropPositions::default(),
             mats: SharedMats::new(),
-            dust_mat: points_mat!({ size: 0.045, transparent: true, depthWrite: false, blending: AdditiveBlending, color: 0xf1e2b6, opacity: 0.32 }),
+            dust_mat: points_mat!({ size: 0.016, transparent: true, depthWrite: false, blending: AdditiveBlending, color: 0xf1e2b6, opacity: 0.20 }),
             flashlight,
             level_weather: &WEATHER_BIASES[5],
             player: Player::default(),

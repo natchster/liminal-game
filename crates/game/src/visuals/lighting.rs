@@ -831,10 +831,13 @@ impl Game {
     pub fn update_dust(&mut self, dt: f64) {
         let fl = self.player.flashlight_on;
         let b_scale = self.beam_battery_scale(0.4);
+        // a mote is a glint of dust a few millimetres across at most, seen
+        // in the lamp's beam and faintly in the room's light; at 4.5-6.5 cm
+        // each one near a wall read as a glowing speck (`docs/PROPS.md`, M8)
         {
             let mut m = self.dust_mat.m();
-            m.opacity = if fl { 0.60 * b_scale } else { 0.32 };
-            m.size = if fl { 0.045 + 0.020 * b_scale } else { 0.045 };
+            m.opacity = if fl { 0.50 * b_scale } else { 0.20 };
+            m.size = if fl { 0.018 + 0.009 * b_scale } else { 0.016 };
         }
         let wk = self.weather_key();
         let tint_hex = dust_tint_by_weather(wk).unwrap_or(dust_tint_by_weather("normal").unwrap_or(16777215.0)) as u32;
@@ -924,7 +927,7 @@ impl Game {
                 } else {
                     let p = self.sparkles[si].t / spark_life;
                     sp.mat().m().opacity = p * 0.9;
-                    sp.scale().set_scalar(0.15 + (1.0 - p) * 0.10);
+                    sp.scale().set_scalar(0.04 + (1.0 - p) * 0.025);
                 }
             } else if fl && rnd() < dt * 1.8 * self.beam_battery_scale(0.3) {
                 let idx = to_i32(rnd() * DUST_COUNT as f64) as usize;
@@ -945,7 +948,8 @@ impl Game {
                 sp.mat().m().color.set_rgb(br, bg, bb);
                 sp.set_visible(true);
                 sp.mat().m().opacity = 0.9 * b_scale;
-                sp.scale().set_scalar(0.15 * (0.6 + 0.4 * b_scale));
+                // a glint, not a flare (15 cm, it read as a glow: M8)
+                sp.scale().set_scalar(0.04 * (0.6 + 0.4 * b_scale));
                 self.sparkles[si].t = spark_life * b_scale;
             }
         }

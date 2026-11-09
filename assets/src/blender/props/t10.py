@@ -526,18 +526,26 @@ auto('Real__ornateMirrorCrest', mirror_crest, 7000)
 
 # ===================================================== the bookshelf ===
 # A hanging wall bookshelf of solid pine, stained: 600 mm wide, 160 mm deep,
-# 300 mm between its top and its bottom board, the sides carried 45 mm below
-# with a scrolled foot; 18 mm boards housed in the sides, a 5 mm hardboard
-# back in their rebates. Its wall at z = 0, the bottom board's underside at
-# y = 0 (books stand on y = 0.018).
+# 300 mm between its top and its bottom board, the sides carried 70 mm
+# down the wall below it as its brackets, a cove sweeping from the wall out
+# under the board; 18 mm boards housed in the sides, a 5 mm hardboard back
+# in their rebates, screwed to the wall through the back. Its wall at z = 0,
+# the bottom board's underside at y = 0 (books stand on y = 0.018). (Its
+# sides first ran 45 mm below in a scrolled foot flat under the board, a
+# floor bookcase's feet in the air on a wall; cut flush, a plain box: M8.)
 BS_W, BS_D, BS_H, BS_T = 0.600, 0.160, 0.300, 0.018
 BS_FOOT = 0.045
+BS_BRACKET = (0.115, 0.070)             # the brackets' reach out under the board and down the wall
 BS_BACK = 0.005
 
 
 def bookshelf_sides():
-    out = [(0.0, -BS_FOOT), (0.072, -BS_FOOT), (0.082, -0.038), (0.090, -0.027), (0.104, -0.020),
-           (0.124, -0.016), (0.142, -0.012), (0.154, -0.006), (BS_D, 0.0), (BS_D, BS_H - 0.012),
+    # each side carried down the wall below the bottom board as its
+    # bracket: deep at the wall, a cove curving out under the board
+    foot = 0.008
+    cove = [(foot + (BS_BRACKET[0] - foot) * (1 - math.cos(t)), -BS_BRACKET[1] * (1 - math.sin(t)))
+            for t in [math.pi / 2 * i / 8 for i in range(9)]]
+    out = [(0.0, -BS_BRACKET[1])] + cove + [(BS_D - 0.012, 0.0), (BS_D - 0.004, 0.003), (BS_D, 0.012), (BS_D, BS_H - 0.012),
            (BS_D - 0.004, BS_H - 0.003), (BS_D - 0.012, BS_H), (0.0, BS_H)]
     s = Shape()
     for sx in (-1, 1):

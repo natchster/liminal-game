@@ -1531,18 +1531,29 @@ pub(super) fn place_spider_webs(g: &mut Game, _dist: &[i32]) {
             o.add(&mesh(geo, lambert!({ color: 0x9e9a90 })));
         }
     }
-    // the finest threads: two sheets painted across the tangle, one hanging
-    // under the ceiling out from the wall, one down the wall's front
+    // the finest threads: a sheet painted across the angle (the threads'
+    // hammock, `t05.py`: from the wall 20 cm under the ceiling to the
+    // ceiling 12.5 cm out, sagging into the room), and a thinner one a
+    // little under it where it sags (the old second sheet down the wall's
+    // face read as a hairball on the wall, M8)
+    let (down, out) = (0.20, 0.125);
+    let (len, tilt) = (f64::hypot(down, out), out.atan2(down));
+    // out of the angle, into the room: (y, z) = (-out, down) / len
+    let sag = |d: f64| (-out / len * d, down / len * d);
     let veil = lambert!({ map: &web_veil_tex(salt), transparent: true, depthWrite: false, side: DoubleSide });
-    let across = mesh(plane_geo!(0.32, 0.30), &veil);
-    // from the wall low to the ceiling out from it
-    across.position().set(0.0, -0.15, 0.06);
-    across.rotation().x = 0.40;
+    let across = mesh(plane_geo!(0.32, len), &veil);
+    let (sy, sz) = sag(0.010);
+    across.position().set(0.0, -down / 2.0 + sy, out / 2.0 + sz);
+    across.rotation().x = tilt;
     o.add(&across);
-    let down =
-        mesh(plane_geo!(0.30, 0.24), lambert!({ map: &web_veil_tex(salt ^ 0x51), transparent: true, depthWrite: false, side: DoubleSide }));
-    down.position().set(0.01, -0.15, 0.012);
-    o.add(&down);
+    let under = mesh(
+        plane_geo!(0.24, len * 0.7),
+        lambert!({ map: &web_veil_tex(salt ^ 0x51), transparent: true, depthWrite: false, side: DoubleSide }),
+    );
+    let (sy, sz) = sag(0.024);
+    under.position().set(0.01, -down / 2.0 + sy, out / 2.0 + sz);
+    under.rotation().x = tilt;
+    o.add(&under);
     wall_mount(g, &web, x, z, dx, dz, 0.020);
     // it hangs from the ceiling and the wall by its threads: the placement
     // pass leaves it be (it never saw the old see-through web, and would let

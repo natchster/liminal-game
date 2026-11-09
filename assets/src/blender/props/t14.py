@@ -1076,21 +1076,46 @@ def el_body():
 
 def el_ear(sx):
     """An ear: two layers of plush sewn round a D, unstuffed, floppy, hanging
-    from its root on the head's side, back and down; its hinge frame."""
-    out = [(0.0, 0.016), (-0.016, 0.023), (-0.037, 0.018), (-0.053, -0.002), (-0.051, -0.028),
-           (-0.034, -0.046), (-0.013, -0.049), (0.0, -0.030)]
-    e = prism(round_outline(out, 0.006, seg=3), 0.0036, bevel_r=0.0014, bevel_seg=2)
+    from its root on the head's side, back and down; its hinge frame. Its
+    two layers lie apart in the middle and meet at the seam round its edge
+    (a pillow, thin at the rim), it hangs from its root under its own
+    weight and its lower half droops onto the shoulder in soft folds. (The
+    first was a flat plate of even thickness bent out at its corner, read
+    as a panel standing stiff: M8.)"""
+    out = [(0.0, 0.010), (-0.016, 0.016), (-0.036, 0.012), (-0.052, -0.006), (-0.050, -0.031),
+           (-0.034, -0.050), (-0.013, -0.052), (0.0, -0.032)]
+    e = prism(round_outline(out, 0.007, seg=3), 0.0034, bevel_r=0.0015, bevel_seg=2)
+    e = subdivide(e, 2)
     # the D lies in the y-z plane, its flat side facing out (+x)
     e.rot(0, -math.pi / 2, 0)
     e = Shape([Vector((p.x, p.y, p.z)) for p in e.v], e.f)
-    # floppy: cupped toward the head, its lower edge falling away, a ripple
+    # how far a point (y, z) is inside the outline (0 at the seam)
+    poly = [(z, y) for (z, y) in out]
+
+    def inside(y, z):
+        d = 1.0
+        for (z0, y0), (z1, y1) in zip(poly, poly[1:] + poly[:1]):
+            ez, ey = z1 - z0, y1 - y0
+            t = max(0.0, min(1.0, ((z - z0) * ez + (y - y0) * ey) / (ez * ez + ey * ey)))
+            d = min(d, math.hypot(z - (z0 + ez * t), y - (y0 + ey * t)))
+        return d
+
     def flop(p):
         z, y = p.z, p.y
-        x = p.x + 5.0 * z * z + 4.0 * max(0.0, -y) ** 2 + 0.0012 * math.sin(z * 220 + y * 80)
-        return Vector((x + 0.0014, y, z))
+        k = min(1.0, inside(y, z) / 0.012)
+        # the pillow: thin at the seam, full between
+        x = p.x * (0.35 + 0.65 * k)
+        x += 0.0012 * k
+        # it hangs: the lower half drops out over the shoulder and curls
+        # back in under its weight, the back edge a little away from the head
+        low = max(0.0, -y - 0.006)
+        x += 9.0 * low * low - 70.0 * low ** 3 + 3.2 * z * z
+        # soft folds down it, more toward its free edge
+        x += (0.0016 * math.sin(z * 150.0 + 0.6) + 0.0009 * math.sin(z * 290.0 - y * 60.0)) * min(1.0, low / 0.02 + 0.2)
+        # its weight pulls the lower edge down and back a little
+        return Vector((x, y - 0.06 * low * low, z - 0.10 * low * low))
     e = e.warp(flop)
-    e = subdivide(e, 1)
-    e = decimate(e, 420)
+    e = decimate(e, 440)
     if sx < 0:
         e = e.scale(-1, 1, 1)
     return e
@@ -1135,8 +1160,8 @@ def el_tag():
 
 auto('Real__elephantBody', el_body, 1360, smooth=70)
 auto('Real__elephantPile', lambda: shell(el_body_mesh(), 0.0011, floor=0.0004), 1200, smooth=70)
-auto('Real__elephantEarL', lambda: el_ear(1), 460, smooth=60)
-auto('Real__elephantEarR', lambda: el_ear(-1), 460, smooth=60)
+auto('Real__elephantEarL', lambda: el_ear(1), 460, smooth=85)
+auto('Real__elephantEarR', lambda: el_ear(-1), 460, smooth=85)
 auto('Real__elephantEyes', el_eyes, 240, smooth=60)
 auto('Real__elephantTag', el_tag, 100, smooth=40)
 

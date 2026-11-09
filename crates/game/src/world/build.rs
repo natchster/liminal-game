@@ -487,6 +487,9 @@ impl Game {
         if !self.test_keep_prop_looks {
             self.settle_prop_looks(prop_start);
         }
+        // the small things' contact shadows, from where they now lie (laid
+        // after the instancing, which takes the repeated ones out)
+        let contact = self.contact_blobs(prop_start);
         self.build_walls();
         self.build_ceilings();
         self.lay_panels();
@@ -504,6 +507,7 @@ impl Game {
                 self.build_profile.insert(format!("instancing.{k}"), v as f64);
             }
         }
+        self.add_contact_shadows(&contact);
         self.build_prop_cull();
         self.build_lap("architecture", bt0);
         let total = crate::base::numeric::round_decimals(self.clock_ms() - bt0, 1);

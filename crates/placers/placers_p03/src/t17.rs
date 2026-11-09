@@ -622,9 +622,10 @@ pub(super) fn place_chestnuts(g: &mut Game, _dist: &[i32]) {
         placed.push((chestnut, cx, cz, husked));
     }
     let (px, pz) = jitter(g, x, z, 2.5);
-    // spread as they fell (twice the old spacing: a husk is 6 cm across)
+    // spread as they fell (twice the old spacing: a husk lying split open
+    // is 8 cm across)
     for (chestnut, cx, cz, husked) in placed {
-        let r = if husked { 0.036 } else { 0.017 };
+        let r = if husked { 0.043 } else { 0.017 };
         let (cx, cz) = clear_of((cx * 2.0, cz * 2.0), r, &down);
         down.push((cx, cz, r));
         let salt = salt_of(px + cx, pz + cz);

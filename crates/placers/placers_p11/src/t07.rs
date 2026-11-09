@@ -158,6 +158,7 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
     put(&us, "Real__umbrellaStandBody", &phong!({ map: &stand_tex(si, salt), specular: spec, shininess: shin }));
     // 2-3 furled umbrellas standing in it.
     let umb_count = 2 + (rnd() * 2.0).floor() as i32;
+    let mut crooks: Vec<(Obj, f64, f64)> = vec![];
     let fabric_colors = [0x101010, 0x201060, 0x603030, 0x204030, 0xa02040, 0x606060, 0x304060];
     let handle_colors = [0x603020, 0x8b5a2b, 0x101010, 0xa0a0a8];
     for i in 0..umb_count {
@@ -189,20 +190,39 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
         }
         // leant out from its ferrule on the bottom till its canopy meets
         // the rim, toward the old turn (less toward the wall behind); its
-        // crook turned out to the room by the old tilt
+        // crook turned once they all stand (below)
         let wallward = (-y_rot.sin()).max(0.0);
         let lean = (0.08 + tilt_angle.abs() / 0.15 * 0.05) * (1.0 - 0.45 * wallward);
         let foot = STAND_REACH - STAND_RIM * lean.tan();
-        let crook = PI / 2.0 + tilt_angle * 6.0;
         let lean_g = group();
         lean_g.position().set(foot * y_rot.cos(), STAND_FLOOR, foot * y_rot.sin());
         lean_g.rotation().y = -y_rot;
         let tip = group();
         tip.rotation().z = -lean;
-        umbrella.rotation().y = y_rot - crook;
         tip.add(&umbrella);
         lean_g.add(&tip);
         us.add(&lean_g);
+        crooks.push((umbrella, y_rot, tilt_angle));
+    }
+    // the crooks turned apart: the leftmost out to the left, the rightmost
+    // to the right, one between them to the room, each a little round
+    // toward the room and either way by its old tilt; so no crook reaches
+    // over another's, seen from the room or from the side (turned all one
+    // way by the tilt alone, two touched: M8). A crook's way is
+    // (cos a, sin a) in the stand's x and z (+z the room, -z its wall)
+    let mut by_x: Vec<usize> = (0..crooks.len()).collect();
+    by_x.sort_by(|&a, &b| crooks[a].1.cos().total_cmp(&crooks[b].1.cos()));
+    for (rank, &i) in by_x.iter().enumerate() {
+        let (umbrella, y_rot, tilt) = &crooks[i];
+        let way = if rank == 0 {
+            PI - 0.40
+        } else if rank + 1 == by_x.len() {
+            0.40
+        } else {
+            PI / 2.0
+        };
+        let crook = way + tilt * 0.8;
+        umbrella.rotation().y = y_rot - crook;
     }
     us.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
     // Position at wall-adjacent floor spot.

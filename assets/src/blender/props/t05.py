@@ -1030,31 +1030,54 @@ WEB_W, WEB_D, WEB_OUT = 0.34, 0.34, 0.13
 
 
 def web_threads(seed=901):
+    """The web hung across the angle: a loose hammock of threads from the
+    wall a hand below the ceiling up to the ceiling a hand out from the
+    wall, spread along the angle, sagging; guy lines out from its edges to
+    both, a few long lines across the angle, strands heavy with dust. (The
+    first web's threads crossed a ball every way, out on the wall's face: a
+    hairball, not a web in the angle, M8.)"""
     rng = random.Random(seed)
     parts = []
     # anchors: on the wall (z = 0) and on the ceiling (y = 0)
-    def on_wall():
-        return Vector((rng.uniform(-WEB_W / 2, WEB_W / 2), -rng.uniform(0.02, WEB_D) ** 1.0, 0.0008))
+    def on_wall(lo=0.02, hi=0.28):
+        return Vector((rng.uniform(-WEB_W / 2, WEB_W / 2), -rng.uniform(lo, hi), 0.0008))
 
-    def on_ceiling():
-        return Vector((rng.uniform(-WEB_W / 2, WEB_W / 2), -0.0008, rng.uniform(0.01, WEB_OUT)))
-    # the tangle's heart: a loose cloud in the angle's middle
-    heart = Vector((rng.uniform(-0.03, 0.03), -0.11, 0.06))
+    def on_ceiling(lo=0.01, hi=WEB_OUT):
+        return Vector((rng.uniform(-WEB_W / 2, WEB_W / 2), -0.0008, rng.uniform(lo, hi)))
+    # the hammock: the diagonal of the angle from the wall at H down to the
+    # ceiling at H out, its middle sagging away from the angle
+    H, HC = 0.20, 0.125                                   # down the wall, out on the ceiling
+    diag = Vector((0.0, H, HC)).normalized()              # up the hammock, wall to ceiling
+    away = Vector((0.0, -HC, H)).normalized()             # out of the angle, into the room
 
-    def in_tangle(k=1.0):
-        return heart + Vector((rng.uniform(-0.12, 0.12) * k, rng.uniform(-0.07, 0.06) * k, rng.uniform(-0.045, 0.05) * k))
+    def on_hammock(t=None, x=None, k=1.0):
+        t = rng.uniform(0.05, 0.95) if t is None else t
+        x = rng.uniform(-0.15, 0.15) * k if x is None else x
+        base = Vector((x, -H * (1 - t), HC * t))
+        # the middle sags out of the angle, most toward the middle of its span
+        sag = 0.028 * math.sin(math.pi * t) * (1.0 - (x / 0.17) ** 2)
+        return base + away * (sag + rng.uniform(-0.008, 0.008)) + diag * rng.uniform(-0.006, 0.006)
     lines = []
-    for _ in range(16):   # guy lines from the tangle to the wall and the ceiling
-        lines.append((in_tangle(), on_wall() if rng.random() < 0.5 else on_ceiling(), rng.uniform(0.00035, 0.0005)))
-    for _ in range(30):   # the tangle itself: threads crossing it every way
-        lines.append((in_tangle(), in_tangle(1.15), rng.uniform(0.0003, 0.00045)))
+    for _ in range(34):   # the hammock's threads, mostly along the angle, some across it
+        a = on_hammock()
+        if rng.random() < 0.7:
+            b = on_hammock(x=max(-0.16, min(0.16, a.x + rng.uniform(-0.12, 0.12))))
+        else:
+            b = on_hammock(t=max(0.05, min(0.95, (a.y + H) / H * 0.5 + rng.uniform(-0.4, 0.4))))
+        lines.append((a, b, rng.uniform(0.0003, 0.00045)))
+    for _ in range(14):   # guy lines from its edges to the wall and the ceiling
+        a = on_hammock(t=rng.choice((rng.uniform(0.0, 0.25), rng.uniform(0.75, 1.0))))
+        lines.append((a, on_wall() if a.y < -H / 2 else on_ceiling(), rng.uniform(0.00035, 0.0005)))
+    for _ in range(8):    # a few threads hanging under it, where the spider sits
+        a = on_hammock(k=0.6)
+        lines.append((a, a + away * rng.uniform(0.02, 0.05) + Vector((rng.uniform(-0.02, 0.02), -0.01, 0)), rng.uniform(0.0003, 0.0004)))
     for _ in range(6):    # long lines from wall to ceiling across the angle
-        lines.append((on_wall(), on_ceiling(), rng.uniform(0.0003, 0.00045)))
+        lines.append((on_wall(0.05, 0.24), on_ceiling(0.03, WEB_OUT), rng.uniform(0.0003, 0.00045)))
     for _ in range(5):    # strands heavy with dust, sagging
-        lines.append((in_tangle(), on_wall(), rng.uniform(0.0007, 0.0011)))
+        lines.append((on_hammock(k=0.8), on_wall(0.06, 0.30), rng.uniform(0.0007, 0.0011)))
     for a, b, r in lines:
         d = (b - a).length
-        sag = d * (rng.uniform(0.0, 0.05) if r < 0.0006 else rng.uniform(0.08, 0.15))
+        sag = d * (rng.uniform(0.02, 0.07) if r < 0.0006 else rng.uniform(0.08, 0.15))
         pts = [a.lerp(b, t) + Vector((0, -sag * 4 * t * (1 - t), 0)) for t in (0, 0.33, 0.66, 1.0)]
         parts.append(sweep(pts, [r] * 4, seg=3, cap0=False, cap1=False))
     # dust caught on the heavy strands: small clumps of fluff
@@ -1068,6 +1091,7 @@ def web_threads(seed=901):
         p.z = max(p.z, 0.0005)
         p.x = max(-WEB_W / 2, min(WEB_W / 2, p.x))
         p.y = max(p.y, -WEB_D)
+        p.z = min(p.z, WEB_OUT + 0.01)
     return s
 
 

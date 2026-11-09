@@ -290,6 +290,11 @@ fn build_world_matches_reference() {
                         let p = geo.params();
                         assert_eq!([p.width(), p.height()], [f(&gd[1]), f(&gd[2])], "{tag}: child {ci} plane");
                     }
+                    // a mesh built vertex by vertex (the contact shadows of a chunk): how many
+                    "buffer" => {
+                        let n = geo.g().position.len() / 3;
+                        assert_eq!(n as u64, gd[1].as_u64().unwrap(), "{tag}: child {ci} vertices");
+                    }
                     t => panic!("{tag}: child {ci} geometry {t}"),
                 }
             }
@@ -501,6 +506,7 @@ fn build_record(g: &Game, n: i32, seed: u32, scp: Option<&str>, marks: &[(String
                 c["geo"] = match p.type_name() {
                     "box" => json!(["box", p.width(), p.height(), p.depth()]),
                     "plane" => json!(["plane", p.width(), p.height()]),
+                    "buffer" => json!(["buffer", o.geo().g().position.len() / 3]),
                     t => json!([t]),
                 };
             }

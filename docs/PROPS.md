@@ -236,34 +236,99 @@ What the batches learned (each cost a batch time once):
 | P2 (3) | `c2270eb` | The last twenty-six of the common, from four workers (batches `r13b`, `r14b`, `r15`, `r18`): the wall hook (`r06`'s cast hook on an oak block, a knitted scarf over it), the hearth broom, the child's apron (draped by Blender's cloth), the rolled rugs (tied, sagging, fringed), the floor rug (a Hamadan, knotted, its path worn); the safety glasses, the wristwatch, the keys on their ring with a tag, the reading glasses on `r02`'s books, the curling ribbon, the twin-bell alarm clock; the tissue box, the tape roll, the playing cards, the receipt (`r08`'s paper), the paperback (open or shut), the newspapers (an invented local daily), the paper dart, the napkin; the washcloth, the nail polish, the floss, the overturned pail, the mop bucket and its wringer, the school desk, the dead geraniums. Where a real one's width would have pinned a pillar's face into a wall, a smaller real one was chosen (the scarf for a coat, a hearth broom for a corn broom, a child's apron): `settle_props` probes a wall prop's width. The reference levels now record the settled walls (`solidBoxes`, `solidsHash`); on 110 floors they are the same before P2 and after it. The asset lint reads a budget declared before `auto()`'s keywords and on names made in a loop. Blind reviews against the old: 14–0, 12–0, 16–0, 13–0. The batches' placers and what only they use live in a module a batch (`placers_p19/src/r12.rs` and the like), so no shared file passes the size cap. Re-recorded: the reference levels |
 | P3 | `2b7a82b` … `6611fb2` | **The rare**: the 112 kinds on fewer than 10 of the census's 272 floors, and the 43 placers it never saw (26 rare, found on a probe of 440 more floors; 17 instanced out of the dump), in 22 batches (`t01`–`t22`) by workers in worktrees of their own, each to the brief of "How a prop is remodelled": the pictures on the walls and the maps, plates, posters and triptych (real CC0 pictures in one atlas, `visuals::pictures`, two tarot cards public domain); the washroom's leavings and fittings; bits of the outside indoors and the garden's things; the kitchen, hall and party table; the Halloween decorations, the shrine's and the study's things; furniture (the bookshelf, the locker, the fireplace, the cuckoo clock, the secretary desk, the aquarium); taxidermy; the party's paper; plush, dolls and toys; things on walls; and the small everyday (the cigarette butts and the wet floor sign, common and kept instanced). Each kept its draws call for call (every other placer's objects, `solidsHash` and the marks the same on its floors). Blind reviews against the old (fresh reviewers, both orders): 16–0 for t01, t02, t05, t06, t07, t09, t10, t11, t12, t13, t14, t15, t16, t17, t19, t20, t21, t22; 15–0 for t08 and t18 (30 pairs); 14–0 for t03 and t04. One rule for behaviour across the batches (above): the lit fireplace keeps its fire, light and crackle; the shrine's and the lantern's candles, the aquarium's pump; the glows that were no flame went, and the motion with no cause. Found along the way: the placement pass lifts a tilted part by its box; the asset lint misreads a conditional budget; the usable test's creature guessed from a clock-seeded stream (now seeded from its floor). Re-recorded: the reference levels, one object for one each wave (the doll's head on 4242/8 now stands on the floor; 77/8 one animator fewer, the teething ring's wobble). A first session's four unfinished batches were lost with their worktrees and restored from git's stash objects and the workers' transcripts |
 | P4 | `6efc5ef`, review 2 | **Wear by use** (`crates/engine/src/shaders.metal`'s `WEAR` block, `Material::wear_use`, `scene::UseWear`, `visuals::prop_look::handled`). Every settled prop surface, textured ones too (the too-clean props were all printed or painted: the Halloween things, the triptych, the secretary's veneer), now wears by use, in metres and from what the shader already has: no texture read and no new pipeline variant. Dust lies on what faces up: a patchy grey film that greys a dark top and dulls a pale one, a thin film on the sides, none underneath. The floor's grime reaches a thing's foot up to a mop's tide line 8–18 cm up, with splashes and shoe scuffs above it. Convex edges are rubbed (dark paint to a paler, duller ground, a pale surface greyed by hands) and chipped in flakes, more where a thing is knocked low down, and creases hold dirt. Convexity is the change of the normal along the surface over a pixel, so only a bevel wider than a pixel or two shows it, never as an outline. A thin sheet drawn from both sides (cloth, paper) is never chipped. How much a thing is handled comes from its box (`handled`): furniture on the floor 1, a small thing on the floor 0.7, a thing hung out of reach 0.45; and how much it is chipped: furniture 1, a small thing on the floor 0.25 (scuffed rather than chipped), a thing hung up none (since code review 2). **Per object, from its own floor** (code review 2): how much a thing is handled and chipped, and the floor its low bands (the foot's grime, the tide line, the scuffs, the low knocks) are measured from (`floor_y_at` under its box's centre), are the thing's own, `Node::use_wear` on each of its meshes (per instance when instancing merges different things into one draw), read from the object uniform and handed flat to the fragment, never kept on the material: materials are shared between props and some across levels (`SharedMats`), so P4's value on a material was its first settled prop's, on whichever level, and a level wore differently after the level before (run 77's level 5 after level 4, its level 6 after 5, run 3's level 5 after 4: `tests/prop_wear.rs`). `Material::wear_use` now only says the surface takes the wear (1). On the Building's other storeys the low bands now reach the things on their floors (on the rooms the floor is at 0, as before). Accepted: the four glass frames (the window, hung, lost its sill's and blind's chips). Two blind reviews against the old, each with 20 images (the ten too-clean props and eight common ones close up, two at the census distance), fresh reviewers, both orders: 12–0 with 8 ties, then 10–0 with 10 ties on the final shader. The final shader dropped the chips on two-sided sheets after the first reviewer saw flaking paint on the cloth ghost. Preferred both times: the secretary (three shots), the chair, the wheelchair, the suitcases, the bin, the books and the TV cabinet. Ties: the small Halloween things on the floor (dark and 10–15 cm tall, the wear too small to see in a still frame), the bat on the ceiling, and the triptych (a print on a wall, out of the dust's way), which split by order in both reviews. Bench, recorded: first frame 4242 L4 19.1 → 20.4 ms, L5 20.6 → 21.9 ms, 7 L5 16.2 → 17.4 ms (the `WEAR` pipelines are larger). Build 7 L5 540 → 557 ms, within budget; the Building's floors, with almost no props, moved as much (run to run). Accepted: 15 goldens, the change on props only (the window's sill and blind dusted in the glass frames, the Poolrooms curb and balls, a bin, far furniture); no look anchor moved |
+| M8 | (this commit) | **The small faults** of *Open after P3*, each judged blind against its old self (four rounds, a fresh reviewer each, both orders; new preferred–old preferred–tie: 6–2–4, 3–7–2, 15–0–2, then 4–0–6 for the five reworked after the old was preferred: the trout's fins, the doll's limbs, the conker husks, the mask's ribbons, the bookshelf's brackets). As they ship: 27 preferred, 0 the old, 14 ties over 41 images. The contact shadows (`visuals::contact`) 9 of 9; the mirrors' lamp a hot spot 4 of 4; the wallpaper's torn patches 2 of 2; the dust motes a few millimetres; the web, the suitcase, the roe head, the elephant's ears, the limbs and the bookshelf 2 of 2 each; the nail polish, the umbrella crooks, the trout's fins, the conker husks, the paper clips, the mask's ribbons and the atomizer ties. The botanical frame was not reproducible (a camera inside a wall). Re-recorded: the reference levels of the web on 77/7 and the small nail polish on 4242/12 (their bounds; nothing else moved); 39 goldens (the motes, the torn patches); the world build fixture (the contact shadow meshes, after every child as it was). The limbs, the clips, the crooks and the jumpers move within their own groups, from no new draw |
 
 ## Open after P3
 
-The blind reviews found small faults on the new side too, none broken:
+The blind reviews of P3 found small faults on the new side too, none
+broken. Milestone 8 (`MILESTONES.md`) took them up: each shot first, before
+anything changed, from cameras on the floor it was found on (close views
+round the census's, `--shots-at`, `--fresh`), and judged blind against its
+old self by a fresh reviewer, both orders (four rounds, 2026-11-09,
+`tests/review/verdicts.jsonl`; a fix the reviewer preferred the old of was
+reworked and judged again; the shape and glass rounds without the contact
+shadows, so each change was judged alone):
 
-- **No small prop has a contact shadow** (two reviewers): a doll's shoes,
-  a ball or a rake on the floor can look a little lifted. A renderer
-  matter (contact shading for props), not a prop's.
-- **Glass**: a mirror's highlight blooms (the washroom mirror, the gilt
-  mirror; `Patch::Glass`); the atomizer's glass almost vanishes on a
-  bright floor.
-- **Shapes**: the nail polish brush runs outside the neck; the spider web
-  reads as a tangle, not a corner web; the opened suitcase's garment pokes
-  through its wall; two umbrella crooks touch; the roe head's muzzle reads
-  as a hole straight on; the trout's paired fins are flat cards; the
-  elephant's ears are flat panels; the doll's limbs cross in one view; the
-  conker husk's valves stand like petals; the paper clips' wire aliases;
-  the mask's strap is cable-thick; the bookcase's feet hang in the air.
+- **A contact shadow under small things** (`visuals::contact`): a soft dark
+  shape laid on the floor round the outline of a small thing's foot (the
+  convex hull of the low half of its parts that touch the floor, parts
+  that overlap merged), darkest under it and gone a few centimetres out,
+  darker under a taller thing; only on what never moves (a themed placer's
+  scenery, and the core kinds that lie where they are). Preferred 9 of 9
+  (the dolls, a ball, the duck, a dinosaur, a shoe, a sock, the cone, a
+  rake). One mesh a 10 x 10 tile chunk, no texture, no random draw; the
+  bench: first frames the same, 4–8 more draw calls, 1–2.5 k more
+  triangles on the rooms' levels.
+- **Glass**: a silvered mirror shows the lamp as a small hot spot, not a
+  disc of glare (`MIRROR_SHINE`, Blinn-Phong 4000 → 120000; the washroom
+  mirror, the framed and cracked mirrors, the gilt mirror, the smudged
+  mirror): preferred 4 of 4. The atomizer's glass gives back the dim room
+  at its edges and carries more dust: tie 2 (kept; the glass was already
+  seen, the reviewer said, both sides reading as glass).
+- **Shapes**:
+  - the nail polish (`r18`): its dried lacquer a flat run from the
+    shoulder and a smear, no ring under the cap, its brush down to the
+    bottom (a round run from the cap's rim had read as the stem bent out
+    of the neck): tie 2;
+  - the spider web (`t05`): a hammock of threads hung across the angle of
+    the wall and the ceiling, sagging, guy lines to both, its painted
+    sheet across the angle (it had been a ball on the wall's face):
+    preferred 2 of 2;
+  - the opened suitcase: its jumpers 35 mm further in and turned less, so
+    no corner reaches the front wall: preferred 2 of 2;
+  - the umbrella stand: the crooks turned apart, the leftmost to the
+    left, the rightmost to the right, one between them to the room: tie 2
+    (no crook through another on either side in the review's views);
+  - the roe head (`t11`): the bare nose only over the lip, the lip and
+    chin pale under it, the leather a dark grey-brown with a sheen:
+    preferred 2 of 2;
+  - the trout (`t11`): its paired fins fanned from their roots, pleated
+    along their rays and cupped, the brook trout's edge a thin line (the
+    first rework put the black edge across the fin: preferred the old 2 of
+    2; reworked): tie 2;
+  - the elephant (`t14`): its ears two layers of plush, thin at the seam,
+    drooping onto the shoulder in soft folds: preferred 2 of 2;
+  - the doll's limbs: kept apart along their bent lengths, a hand's
+    breadth of floor between, not only at their middles (at 40 mm a view
+    along them still read as one jointed limb: reworked): preferred 2 of
+    2;
+  - the conker husks (`t17`): their valves fallen open further, unevenly
+    (split along one seam and lain on its side, a valve stood on its edge
+    like a card: preferred the old; reworked): tie 2. Whether they still
+    read as petals is for people;
+  - the paper clips (`t22`): a 1.1 mm wire, and a clip falling on others
+    lies on them, a wire's thickness up for each (all on the floor, they
+    went through one another): tie 2;
+  - the mask (`t09`): 6 mm ribbons, thinner, a satin sheen (turned over on
+    edge they broke into pieces on screen: preferred the old; reworked):
+    tie 2;
+  - the wall bookshelf (`t10`): its sides carried down the wall as cove
+    brackets, deep at the wall and sweeping out under the board (cut flush,
+    a plain box, preferred the old scrolled feet: reworked): preferred 2 of
+    2.
+- **Placement** (older than P3):
+  - the botanical frame on 5008/9 hangs on a wall: the view that showed
+    it in open space was a camera inside the wall's tile (the wall's back
+    faces culled, so the room beyond showed round the frame's back). Not
+    reproducible from the floor; nothing changed;
+  - the "leaf decal" beside the graduation photo on 11/8 was the
+    wallpaper's torn patch (`textures::make_wallpaper`, on walls at the
+    highest grime): a hard polygon fanned from its middle and outlined
+    dark. Now the paler backing paper, its torn edge ragged and soft, a
+    pale fringe along it and a faint shadow under the lifted edge, the
+    same draws: preferred 2 of 2;
+  - the bright speck on 555/10 was a dust mote: 4.5–6.5 cm points of light
+    added over everything, a soft glowing ball near a wall. Now a few
+    millimetres (16 mm without the lamp, 18–27 mm in its beam, fainter),
+    the lamp's glints 4 cm, not 15: the old glowing specks were named by
+    the reviewer on the old side of six frames and none on the new.
+- Blender makes no metaball cell under 5 mm, so `r03`'s and `t08`'s small
+  metaball parts may be coarser than meant.
 - **Clean** (resolved by P4): the Halloween things, the triptych and the
   pale secretary now wear by use like the rest. The secretary's wear is
   seen (preferred in both reviews). On the small Halloween things on the
   floor and on the triptych, too little shows in a still frame to tell
   (ties).
-- **Placement** (older than P3): a botanical frame hangs in open space on
-  5008/9; a primitive leaf decal beside the graduation photo on 11/8; a
-  bright speck low on a wall on 555/10. Blender makes no metaball cell
-  under 5 mm, so `r03`'s and `t08`'s small metaball parts may be coarser
-  than meant.
 - **Canon** (P7): lit candles and a lit fire in empty rooms are kept, a
   censer is cold; one rule for what still burns belongs in `LORE.md`.
 

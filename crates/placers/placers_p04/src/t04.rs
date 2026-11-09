@@ -161,7 +161,8 @@ pub(super) fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
     body.add(&back);
     let glass = mesh(
         plane_geo!(SM_GLASS[0] + SM_UNDER, SM_GLASS[1] + SM_UNDER),
-        t04_glass_mat(sm_silver_tex(vary), "mirror_glass", 0.13, [0.0; 3], 0.0, 0.86, [1.0, 0.016, 0.015, 0.013], 4000.0),
+        // (the lamp in it a small hot spot, not a disc of glare: `MIRROR_SHINE`)
+        t04_glass_mat(sm_silver_tex(vary), "mirror_glass", 0.13, [0.0; 3], 0.0, 0.86, [1.0, 0.016, 0.015, 0.013], MIRROR_SHINE),
     );
     glass.position().z = SM_GLASS[2] - 0.0001;
     glass.set_render_order(2);

@@ -838,25 +838,46 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
             let cy = rand1(h);
             radial_wrap(ctx, w, h, cx, cy, 2.0, rand2(12.0, 40.0), &format!("rgba(80,50,20,{})", 0.08 + g * 0.06), "rgba(80,50,20,0)");
         }
-        // torn patches only at high grime
+        // torn patches only at high grime: where the paper came away, the
+        // paler backing paper under it, its torn edge ragged and soft, a
+        // pale fringe of the paper's core along it and the lifted edge's
+        // faint shadow (the same draws; they were a hard polygon fanned from
+        // its middle, outlined dark, read as a leaf or an arrow cut out and
+        // stuck on: M8)
         if g >= 2.0 {
             for _ in 0..times((g - 1.0) * 3.0) {
                 let cx = rand1(w);
                 let cy = rand2(60.0, h - 120.0);
                 let rr = rand2(14.0, 34.0);
-                ctx.set_fill_style("rgba(190,175,120,0.28)");
-                ctx.begin_path();
-                ctx.move_to(cx, cy);
                 let pts = irand(6, 10);
+                let mut outline = vec![];
                 for p in 0..pts {
                     let a = (p as f64 / pts as f64) * PI * 2.0 + rand2(-0.4, 0.4);
                     let r = rr * rand2(0.55, 1.2);
-                    ctx.line_to(cx + a.cos() * r, cy + a.sin() * r * 0.7);
+                    outline.push((cx + a.cos() * r, cy + a.sin() * r * 0.7));
                 }
-                ctx.close_path();
+                let torn = torn_edge(&outline, cx);
+                let trace = |ctx: &mut Canvas, dy: f64| {
+                    ctx.begin_path();
+                    ctx.move_to(torn[0].0, torn[0].1 + dy);
+                    for &(x, y) in &torn[1..] {
+                        ctx.line_to(x, y + dy);
+                    }
+                    ctx.close_path();
+                };
+                ctx.save();
+                ctx.set_shadow_blur(3.0);
+                ctx.set_shadow_color("rgba(196,182,136,0.18)");
+                ctx.set_fill_style("rgba(200,187,142,0.13)");
+                trace(ctx, 0.0);
                 ctx.fill();
-                ctx.set_stroke_style("rgba(35,25,8,0.45)");
-                ctx.set_line_width(1.0);
+                ctx.restore();
+                ctx.set_line_width(1.1);
+                ctx.set_stroke_style("rgba(40,28,10,0.09)");
+                trace(ctx, 1.3);
+                ctx.stroke();
+                ctx.set_stroke_style("rgba(226,216,184,0.16)");
+                trace(ctx, 0.0);
                 ctx.stroke();
             }
         }
@@ -893,6 +914,34 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
         ctx.set_fill_style(&tg);
         ctx.fill_rect(0, 0, w, 38);
     })
+}
+
+/// A torn edge round `outline`: each side broken into short jagged steps,
+/// out and in by up to a pixel and a half, from a hash of where the patch
+/// is (no draw)
+fn torn_edge(outline: &[(f64, f64)], key: f64) -> Vec<(f64, f64)> {
+    let hash = |k: usize, j: usize| {
+        let mut h = (key * 977.0) as u64 ^ (k as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15) ^ (j as u64).wrapping_mul(0xc2b2_ae3d_27d4_eb4f);
+        h ^= h >> 31;
+        h = h.wrapping_mul(0xbf58_476d_1ce4_e5b9);
+        h ^= h >> 29;
+        (h % 10_000) as f64 / 10_000.0
+    };
+    let n = outline.len();
+    let mut out = vec![];
+    for k in 0..n {
+        let (a, b) = (outline[k], outline[(k + 1) % n]);
+        let (ex, ey) = (b.0 - a.0, b.1 - a.1);
+        let l = ex.hypot(ey).max(1e-6);
+        let (nx, ny) = (-ey / l, ex / l);
+        let steps = ((l / 3.0).ceil() as usize).clamp(3, 16);
+        for j in 0..steps {
+            let t = j as f64 / steps as f64;
+            let o = (hash(k, j) - 0.5) * 3.0;
+            out.push((a.0 + ex * t + nx * o, a.1 + ey * t + ny * o));
+        }
+    }
+    out
 }
 
 /// Curated soft-pattern list (`[kind, weight]`); plain

@@ -82,13 +82,15 @@ pub(crate) fn place_opened_suitcases(g: &mut Game, _dist: &[i32]) {
     // by a hand going through it: trousers folded at the back, the jumper
     // at the front, a shirt on the trousers, socks in a corner; a fifth, a
     // cardigan pulled out over the rim; a sixth, another jumper on the first
+    // (the jumpers' fronts inside the case's front wall however they turn:
+    // at 85 mm in, the first poked through it, M8)
     const SLOTS: [(&str, usize, f64, f64, f64); 6] = [
         ("Real__suitcaseTrousers", 0, -0.07, -0.085, 0.0),
-        ("Real__suitcaseSweater", 1, 0.12, 0.085, 0.0),
+        ("Real__suitcaseSweater", 1, 0.12, 0.050, 0.0),
         ("Real__suitcaseShirt", 2, -0.11, -0.08, 0.050),
         ("Real__suitcaseSocks", 3, -0.205, 0.12, 0.0),
         ("Real__suitcaseSpill", 4, 0.0, 0.0, 0.0),
-        ("Real__suitcaseSweater", 4, 0.11, 0.08, 0.075),
+        ("Real__suitcaseSweater", 4, 0.11, 0.050, 0.075),
     ];
     let flip = if things[0].6 > 0.0 { -1.0 } else { 1.0 };
     for (i, &(k, sw, sd, px, pz, yaw, _)) in things.iter().enumerate() {
@@ -99,6 +101,8 @@ pub(crate) fn place_opened_suitcases(g: &mut Game, _dist: &[i32]) {
             continue;
         }
         let turn = (yaw - 0.5) * 0.16 + (sw - 0.5) * 0.04 + if i == 3 { 0.5 } else { 0.0 };
+        // a jumper is wider than the room in front of it: turned less
+        let turn = if name == "Real__suitcaseSweater" { turn * 0.4 } else { turn };
         put_at(&suitcase, name, &cloth, flip * (sx + px * 0.02), FLOOR + sy, sz + pz * 0.02 + (sd - 0.5) * 0.01, flip * turn);
     }
     scatter_on_floor(g, &suitcase, x, z, 1.8);

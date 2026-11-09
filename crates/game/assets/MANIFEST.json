@@ -58,7 +58,7 @@
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "Blender headless: props.py runs every batch module in assets/src/blender/props/ (propkit shapes, seeded noise, weighted normals); packed by cargo xtask assets props, the frozen parts kept as stored",
-      "fingerprint": "22fb1608d0a7c51c",
+      "fingerprint": "90e3fce6eafd4d54",
       "frozen_parts": [
         "Acorns__cap",
         "Backpacks__body",

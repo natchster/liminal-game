@@ -577,23 +577,44 @@ def fish_body():
     return fish_body_shell() + fish_fins_vertical()
 
 
+def _fan_fin(length, a0, a1, root, pleats, amp, cup, thick, nr=5, na=12):
+    """A paired fin as a trout's is: rays fanned from a short root (in its
+    plane, x out along the fin, y across it), the leading ray (a1) the
+    longest and stoutest, the membrane between pleated along the rays and
+    thinning to a frayed trailing edge, the whole a little cupped. (The
+    first were flat paddles, read as cards: M8.)"""
+    s = slab(1.0, 1.0, thick, nr, na)
+
+    def w(p):
+        u, v = p.x + 0.5, p.y + 0.5
+        a = a0 + (a1 - a0) * v
+        # the rays shorten from the leading one back, the edge a soft curve
+        L = length * (0.62 + 0.38 * v ** 1.6) * (1.0 + 0.04 * math.sin(v * 23.0))
+        r = 0.0015 + u * L
+        x, y = r * math.cos(a), r * math.sin(a) + (v - 0.5) * root * (1.0 - u)
+        # thin toward the edge, stout along the leading ray
+        z = p.z * (1.0 - 0.55 * u) * (1.0 + 0.3 * max(0.0, v - 0.85) / 0.15)
+        z += amp * math.sin(v * pleats * math.pi) * (0.3 + 0.7 * u)
+        z += cup * u * u
+        return Vector((x, y, z))
+    return s.warp(w)
+
+
 def fish_fins_paired():
     """The pectoral (behind the gill cover, low) and the pelvic (under the
     middle), spread out from the body toward the room."""
     out = Shape()
-    # pectoral: a paddle 34 mm long, swept back and out 35 degrees
-    pec = prism(round_outline([(0.0, 0.004), (0.010, 0.006), (0.030, 0.005), (0.036, 0.0), (0.031, -0.007),
-                               (0.012, -0.008), (0.0, -0.004)], 0.002, seg=2), 0.0012, bevel_r=0.0004, bevel_seg=1)
+    # pectoral: a fan 34 mm long, swept back and out
+    pec = _fan_fin(0.034, math.radians(-30), math.radians(14), 0.006, 9, 0.0008, 0.0022, 0.0011)
     pec = pec.rot(0, math.radians(-12), math.radians(-14))
     p = fish_point(0.235, -math.pi / 2 + 1.05)
     out = out + pec.move(p.x, p.y, p.z - 0.0035)
     # pelvic: smaller, under the dorsal's middle
-    pel = prism(round_outline([(0.0, 0.003), (0.020, 0.003), (0.025, -0.001), (0.019, -0.006), (0.0, -0.003)],
-                              0.0015, seg=2), 0.0012, bevel_r=0.0004, bevel_seg=1)
+    pel = _fan_fin(0.024, math.radians(-26), math.radians(12), 0.004, 7, 0.0006, 0.0016, 0.0010)
     pel = pel.rot(math.radians(25), math.radians(-25), math.radians(-12))
     p = fish_point(0.52, -math.pi / 2 + 0.55)
     out = out + pel.move(p.x, p.y, p.z - 0.001)
-    return bump_along_normals(weld(out, 1e-6), lambda p: 0.0002 * math.sin(p.x * 1100 + p.y * 200))
+    return out
 
 
 def fish_eye():
@@ -617,7 +638,7 @@ def fish_plaque():
 
 
 auto('Real__trophyFishBody', fish_body, 4000, smooth=50.0, kind='plane')
-auto('Real__trophyFishFins', fish_fins_paired, 340, smooth=50.0, kind='plane')
+auto('Real__trophyFishFins', fish_fins_paired, 640, smooth=50.0, kind='plane')
 auto('Real__trophyFishEye', fish_eye, 400, smooth=80.0, kind='sphere')
 auto('Real__trophyFishPlaque', fish_plaque, 1200, smooth=40.0, kind='plane')
 
@@ -801,8 +822,11 @@ def _pale(c, n):
 
 
 def _nose(c, n):
+    """The bare black nose (the rhinarium): the muzzle's front over the lip,
+    the lip under it haired (the first covered the muzzle's whole front
+    down to the chin, which straight on read as a hole: M8)"""
     h = _to_h(c)
-    return h.z > 0.142 and h.y > -0.027
+    return h.z > 0.1465 and h.y > -0.0215
 
 
 def head_hide():

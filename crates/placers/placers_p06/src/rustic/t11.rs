@@ -416,12 +416,15 @@ fn trout_fin_tex(salt: u32, kind: usize) -> Tex {
             };
             c = mix(c, [0.18, 0.14, 0.11], (0.5 - 0.5 * ray) * 0.3);
             if kind == 1 || kind == 3 {
-                // the leading edge (the fin's top, as they are spread)
+                // the leading edge (the fin's top, as they are spread): a
+                // thin white edge, the brook trout's black line behind it
+                // (as wide as the first fins' edge, on the fanned fins it
+                // came out a black block across the fin: M8)
                 let e = 1.0 - v;
                 if kind == 1 {
-                    c = mix(c, [0.08, 0.07, 0.06], sstep(0.12, 0.2, e) * (1.0 - sstep(0.3, 0.38, e)));
+                    c = mix(c, [0.08, 0.07, 0.06], sstep(0.05, 0.08, e) * (1.0 - sstep(0.12, 0.16, e)));
                 }
-                c = mix(c, [0.86, 0.84, 0.78], 1.0 - sstep(0.08, 0.16, e));
+                c = mix(c, [0.86, 0.84, 0.78], 1.0 - sstep(0.03, 0.06, e));
             }
             c = [c[0] * 0.92, c[1] * 0.88, c[2] * 0.74];
             let d = vn(seed, u * 120.0, v * 40.0);

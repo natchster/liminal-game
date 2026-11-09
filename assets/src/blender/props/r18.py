@@ -1346,22 +1346,45 @@ def polish_cap():
 
 
 def polish_brush():
-    # the brush's white stem from the cap down into the lacquer
+    # the brush's white stem from the cap down through the neck nearly to
+    # the bottom, in the lacquer
     r, y0, y1 = NP_NECK
-    stem = cyl(0.0016, 0.0019, (y1 - 0.003) - (NP_BASE + 0.010), seg=8, bevel_r=0.0003)
-    return stem.move(0, (y1 - 0.003 + NP_BASE + 0.010) / 2, 0)
+    stem = cyl(0.0016, 0.0019, (y1 - 0.003) - (NP_BASE + 0.004), seg=8, bevel_r=0.0003)
+    return stem.move(0, (y1 - 0.003 + NP_BASE + 0.004) / 2, 0)
 
 
 def polish_drip():
-    # dried lacquer: a ring of it under the cap, a drip run down the +z face
+    # dried lacquer: a smear on the shoulder and a drip run from the
+    # shoulder's edge down the +z face. Dried, it
+    # lies on the glass as a flat run a fraction of a millimetre proud,
+    # wider than it is thick, ending in a flattened bead (round, it stood
+    # off the glass like the brush's stem bent out of the neck: M8)
     r, y0, y1 = NP_NECK
-    ring = torus(NP_CAP[0] - 0.0004, 0.0009, seg=18, tseg=5).rot(x=math.pi / 2).move(0, NP_CAP[2] + 0.0002, 0)
-    z = NP_W / 2 + 0.0002
-    path = [Vector((0.0025, NP_H + 0.0016, NP_W / 2 - 0.0045)), Vector((0.003, NP_H - 0.0005, z - 0.0002)), Vector((0.0034, NP_H - 0.008, z)),
-            Vector((0.0031, NP_H - 0.016, z)), Vector((0.0036, NP_H - 0.0215, z))]
-    drip = tube(path, 0.0011, seg=6, r_end=0.0008).warp(lambda p: Vector((p.x, p.y, max(p.z, z - 0.0003) if p.y < NP_H - 0.001 else p.z)))
-    bead = sphere(0.0014, seg=8, rings=5).scale(1.0, 1.2, 0.5).move(0.0036, NP_H - 0.0222, z)
-    return ring + drip + bead
+    zf = NP_W / 2
+    path = [Vector((0.0029, NP_H + 0.0003, NP_W / 2 - 0.0030)), Vector((0.003, NP_H - 0.0008, zf - 0.0001)), Vector((0.0033, NP_H - 0.006, zf)),
+            Vector((0.0034, NP_H - 0.0105, zf))]
+    # the shoulder's surface along +z: its height at a distance out from the axis
+    sh0, sh1 = (r + 0.003, y0 - 0.0005), (NP_W / 2 - 0.004, NP_H + 0.0008)
+
+    def shoulder_y(d):
+        t = min(max((d - sh0[0]) / (sh1[0] - sh0[0]), 0.0), 1.0)
+        return sh0[1] + (sh1[1] - sh0[1]) * t
+
+    def hug(p):
+        if p.y < NP_H - 0.0008:
+            # on the face: pressed flat against it
+            return Vector((p.x, p.y, zf + max(p.z - zf, 0.0) * 0.28))
+        if p.z < sh1[0]:
+            # on the shoulder: pressed down onto its slope
+            ys = shoulder_y(p.z)
+            return Vector((p.x, ys + max(p.y - ys, 0.0) * 0.3, p.z))
+        return p
+    drip = tube(path, 0.0016, seg=6, r_end=0.0012).warp(hug)
+    bead = sphere(0.0019, seg=8, rings=5).scale(1.0, 1.2, 0.28).move(0.0034, NP_H - 0.0115, zf)
+    # a smear of it on the shoulder where the brush was wiped (no ring under
+    # the cap: with the run from it, it read as the stem bent out of the neck)
+    smear = sphere(0.0022, seg=8, rings=5).scale(1.4, 0.25, 0.9).rot(x=0.5).move(-0.0030, NP_H - 0.0003, 0.0090)
+    return drip + bead + smear
 
 
 GLASS = []

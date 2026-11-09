@@ -385,8 +385,13 @@ def conker():
 
 
 HU_R, HU_WALL = 0.0255, 0.0050              # the capsule's outer radius, its wall
-HU_OPEN = (0.62, 0.78, 0.55)               # each valve opened back (radians)
-HU_TIP = 0.30                              # the husk tipped onto a valve as it lies
+# each valve opened back (radians): split as a husk dries on the ground,
+# its valves fallen open further than they hold on the tree, unevenly,
+# cupped round the seed; tipped a little onto one (opened a third less,
+# they stood up round the seed like a flower's petals: M8; split along one
+# seam and lain on its side, a valve stood on its edge like a card)
+HU_OPEN = (0.92, 1.12, 0.80)
+HU_TIP = 0.36                              # the husk tipped onto a valve as it lies
 _HUSK = {}
 
 
@@ -461,8 +466,11 @@ def husk():
     c = Vector(((min(xs) + max(xs)) / 2, lo, (min(zs) + max(zs)) / 2))
     outs.move(-c.x, -c.y, -c.z)
     ins.move(-c.x, -c.y, -c.z)
-    # the seed in it: on the cavity's floor (the stalk's pole inside)
-    seat = (R @ Vector((0, HU_WALL, 0))) - c
+    # the seed in it: under the cavity's middle, on the inside of the valve
+    # it lies on (tipped over, the stalk's pole is no longer its floor)
+    mid = (R @ Vector((0, HU_R, 0))) - c
+    near = [p.y for p in ins.v if (p.x - mid.x) ** 2 + (p.z - mid.z) ** 2 < 0.010 ** 2 and p.y < mid.y]
+    seat = Vector((mid.x, min(near) if near else mid.y - HU_R + HU_WALL, mid.z))
     _HUSK['out'], _HUSK['in'], _HUSK['seat'] = outs, ins, seat
     return _HUSK
 

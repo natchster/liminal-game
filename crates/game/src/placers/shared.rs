@@ -7,6 +7,12 @@ use crate::placers::kit::canvas_tex_opt;
 use engine::prelude::*;
 use std::f64::consts::PI;
 
+/// A silvered mirror's highlight (`Patch::Glass`, Blinn-Phong): the lamp seen
+/// in it as a lamp is in a mirror, a small hot spot about the size of its
+/// lens, not a disc of glare round it (at 4000 it read as bloom:
+/// `docs/PROPS.md`, M8)
+pub const MIRROR_SHINE: f64 = 120000.0;
+
 /// Picks the value for weather `key` from one value per weather; any other
 /// key gets `normal`.
 pub fn by_weather<T: Copy>(key: &str, wet: T, electric: T, haunted: T, derelict: T, still: T, normal: T) -> T {

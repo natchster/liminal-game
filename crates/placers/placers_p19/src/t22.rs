@@ -36,6 +36,9 @@ pub(crate) fn place_paperclip_clusters(g: &mut Game, _dist: &[i32]) {
     // finish (the odd last one too): none is the only one of its kind, so
     // every clip is drawn instanced, as the old ones were
     let mut kind: Option<(usize, usize)> = None;
+    // each clip down so far: its middle, its turn, its half length and width,
+    // and how high it lies
+    let mut down: Vec<(f64, f64, f64, f64, f64, f64)> = vec![];
     for i in 0..n_clips {
         let yaw = rnd() * PI * 2.0;
         let px = (rnd() - 0.5) * 0.15;
@@ -63,10 +66,38 @@ pub(crate) fn place_paperclip_clusters(g: &mut Game, _dist: &[i32]) {
         }
         let (k, f) = kind.unwrap_or((0, 0));
         let clip = mesh([&gem, &pulled, &jumbo][k].clone(), &finishes[f]);
-        clip.position().set(px, 0.0, pz);
+        // a clip falling on others lies on them, a wire's thickness up for
+        // each it lies across (all on the floor, they went through one
+        // another in the heap: M8)
+        let (hl, hw) = [(0.0175, 0.0047), (0.0144, 0.0131), (0.024, 0.0063)][k];
+        let y = down
+            .iter()
+            .filter(|q| rects_overlap((px, pz, yaw, hl, hw), (q.0, q.1, q.2, q.3, q.4)))
+            .map(|q| q.5 + CLIP_WIRE)
+            .fold(0.0, f64::max);
+        down.push((px, pz, yaw, hl, hw, y));
+        clip.position().set(px, y, pz);
         clip.rotation().y = yaw;
         grp.add(&clip);
     }
     scatter(g, &grp, x, z, 2.4);
     g.world.add(&grp);
+}
+
+/// A clip's wire, across (`t22.py` CLIP_WIRE_R)
+const CLIP_WIRE: f64 = 0.0011;
+
+/// Whether two clips' outlines overlap: each its middle (x, z), its turn,
+/// its half length and half width (separating axes of two turned rects)
+fn rects_overlap(a: (f64, f64, f64, f64, f64), b: (f64, f64, f64, f64, f64)) -> bool {
+    let axes = |r: (f64, f64, f64, f64, f64)| {
+        let (s, c) = r.2.sin_cos();
+        [(c, -s), (s, c)]
+    };
+    let reach = |r: (f64, f64, f64, f64, f64), ax: (f64, f64)| {
+        let [u, v] = axes(r);
+        r.3 * (u.0 * ax.0 + u.1 * ax.1).abs() + r.4 * (v.0 * ax.0 + v.1 * ax.1).abs()
+    };
+    let (dx, dz) = (b.0 - a.0, b.1 - a.1);
+    axes(a).into_iter().chain(axes(b)).all(|ax| (dx * ax.0 + dz * ax.1).abs() <= reach(a, ax) + reach(b, ax))
 }

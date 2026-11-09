@@ -942,9 +942,9 @@ def mask_face():
 
 
 def mask_ribbons():
-    """Two satin ribbons (10 mm, a hole at each temple) from the mask's side
-    rims out across the floor, lying loose: one long and curled back, one
-    short"""
+    """Two narrow satin ribbons (6 mm, a hole at each temple) from the mask's
+    side rims out across the floor, lying loose: one long and curled back,
+    one short; thin (10 mm wide, they read as a cable: M8)"""
     lift = _mask_lift()
     out = Shape()
     for sx, path in ((1, [(0, 0), (30, -10), (70, 5), (110, 40), (135, 90), (128, 150), (100, 175)]),
@@ -953,8 +953,8 @@ def mask_ribbons():
         a = _mask_lay(Shape([Vector((sx * 72.5, 22.0, mask_height(sx * 72.5, 22.0) - 1.3))], [])).move(0, lift, 0).v[0] / MM
         pts = []
         # down off the rim to the floor
-        pts.append(((a.x, a.y, a.z), (0, 0, 1), 5.0, 0.35))
-        pts.append(((a.x + sx * 6, a.y * 0.45, a.z + 2), (0, 0, 1), 5.0, 0.35))
+        pts.append(((a.x, a.y, a.z), (0, 0, 1), 3.0, 0.2))
+        pts.append(((a.x + sx * 6, a.y * 0.45, a.z + 2), (0, 0, 1), 3.0, 0.2))
         floor = [Vector((a.x + sx * (dx + 12), 0.45, a.z + 4 + dz)) for dx, dz in path]
         for _ in range(2):           # the turns soft (Chaikin)
             q = [floor[0]]
@@ -964,10 +964,11 @@ def mask_ribbons():
         for k, p in enumerate(floor):
             nxt = floor[min(k + 1, len(floor) - 1)] - floor[max(k - 1, 0)]
             side = Vector((-nxt.z, 0, nxt.x)).normalized()
-            # a ribbon lying flat, a twist or two where it turned over
+            # a ribbon lying flat, a little twist where it turned (turned
+            # over on edge, a ribbon this thin broke into pieces on screen)
             tw = 0.25 * math.sin(k * 0.21 + sx)
             ax = side * math.cos(tw) + Vector((0, 1, 0)) * math.sin(tw)
-            pts.append(((p.x, p.y + 0.6 * abs(math.sin(tw)) * 5, p.z), tuple(ax), 5.0, 0.35))
+            pts.append(((p.x, p.y + 0.6 * abs(math.sin(tw)) * 3, p.z), tuple(ax), 3.0, 0.25))
         r = tube_frames(pts, seg=6)
         out = out + Shape([p * MM for p in r.v], r.f)
     return out

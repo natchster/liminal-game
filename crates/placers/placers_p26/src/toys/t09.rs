@@ -38,7 +38,7 @@ pub fn place_small_masks(g: &mut Game, _dist: &[i32]) {
     t09_put(&mask, "Real__maskFace", &phong!({ map: &mask_tex(salt, paint), specular: 0x2a2620, shininess: 18 }));
     // satin, faded: black or a dark red, by where it lies
     let ribbon = if salt & 1 == 0 { 0x2c2628 } else { 0x5a2a2c };
-    t09_put(&mask, "Real__maskRibbons", &phong!({ color: ribbon, specular: 0x3a3838, shininess: 30 }));
+    t09_put(&mask, "Real__maskRibbons", &phong!({ color: ribbon, specular: 0x5a5654, shininess: 22 }));
     mask.position().set(px, 0, pz);
     mask.rotation().y = turn;
     g.world.add(&mask);

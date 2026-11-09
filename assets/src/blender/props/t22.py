@@ -283,7 +283,9 @@ def swab(variant):
 # ========================================================== paper clips ===
 # The Gem's wire, in its plane: three U bends of one wire, its two ends
 # lying inside (a No. 1 is 35 mm long and 9.5 mm across; a jumbo 48 mm).
-CLIP_WIRE_R = 0.00043
+# The wire a heavy gauge's 1.1 mm (a No. 1's 0.85 mm came out under a pixel
+# at a few steps and broke into dashes: M8)
+CLIP_WIRE_R = 0.00055
 
 
 def arc_pts(c, r, a0, a1, n):

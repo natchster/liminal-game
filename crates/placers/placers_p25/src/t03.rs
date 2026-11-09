@@ -131,7 +131,10 @@ mod kit {
     }
 
     /// Clear glass as the windows' (`Patch::Glass`): the room seen in it by
-    /// Fresnel, its dirt from the map's grey
+    /// Fresnel, its dirt from the map's grey. Thick pressed glass on the
+    /// floor gives back the dim room, not the lit floor round it: its edges
+    /// and its flutes darker than what is seen through it, and a film of
+    /// dust on it (lit as the room's, it vanished on a pale floor: M8)
     pub(super) fn glass_mat(map: &Tex) -> Mat {
         let m = phong!({ color: 0xffffff, specular: 0x9a9a9a, shininess: 240, transparent: true, depthWrite: false });
         {
@@ -144,17 +147,17 @@ mod kit {
         {
             let pu = m.r().patch_uniforms.clone();
             let f = &mut pu.borrow_mut().f;
-            f[0] = 0.45;
+            f[0] = 0.16;
             f[4] = 0.5;
             f[5] = 0.6;
             f[6] = 0.3;
             f[7] = 0.0;
-            f[8] = 1.0;
-            f[9] = 0.22;
-            f[10] = 0.20;
-            f[11] = 0.17;
+            f[8] = 1.35;
+            f[9] = 0.20;
+            f[10] = 0.19;
+            f[11] = 0.16;
             f[12] = 0.0;
-            f[13] = 0.08;
+            f[13] = 0.11;
         }
         m
     }

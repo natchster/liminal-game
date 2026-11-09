@@ -34,8 +34,10 @@ pub(crate) fn place_deer_head_mounts(g: &mut Game, _dist: &[i32]) {
     put(&mount, "Real__roeHeadShield", &phong!({ map: &oak_tex(k, 160, 224), specular: 0x141210, shininess: 16 }));
     put(&mount, "Real__roeHeadHide", &lambert!({ map: &hide_tex(k) }));
     put(&mount, "Real__roeHeadPale", &lambert!({ map: &pale_tex(k), side: DoubleSide }));
-    // the nose's leather, painted and glossed by the taxidermist
-    put(&mount, "Real__roeHeadNose", &phong!({ color: 0x1c1816, specular: 0x2c2a28, shininess: 38 }));
+    // the nose's leather, painted and glossed by the taxidermist: a dark
+    // grey-brown with a sheen that shows its shape (a black without one
+    // read as a hole straight on: M8)
+    put(&mount, "Real__roeHeadNose", &phong!({ color: 0x2c2522, specular: 0x4a4642, shininess: 46 }));
     // glass eyes: they catch the light, they never make it
     put(&mount, "Real__roeHeadEyes", &phong!({ color: 0x1e140c, specular: 0x9a9a9a, shininess: 120 }));
     let antlers = group();
