@@ -343,3 +343,47 @@ fn lamps_and_rooms(seed: u32, level: i32) -> (usize, Vec<String>) {
     }
     (p.rooms.len(), wrong)
 }
+
+/// The light map's shape (the floor under each place, its walls and
+/// ceilings: `visuals::occlusion::LightShape`) is made once a level, and
+/// kept while the fog passes the lamps, each lamp it covers or uncovers
+/// rebuilding the map (code review 4: each rebuild had made the floors
+/// anew). Kept, it is the level's own, and the map packed with it is the
+/// map made from nothing, byte for byte, at every rebuild of the fog's
+/// rise and fall, on the Well and the Works. The next floor (as large)
+/// makes its own
+#[test]
+fn the_light_maps_shape_is_made_once_and_kept() {
+    use game::world::assembly::Stage;
+    for (seed, level) in [(4242, 1), (4242, 3), (7, 2)] {
+        let mut g = floor(seed, level);
+        let made = g.ll_shape.clone().expect("made with the level");
+        let bytes = |g: &Game| g.ll_map.as_ref().expect("a light map").image().borrow().data.clone();
+        let (lo, hi) = g.panels.iter().fold((f64::MAX, f64::MIN), |(a, b), p| (a.min(p.y), b.max(p.y)));
+        let steps = 160;
+        let ys = (0..=steps).chain((0..=steps).rev()).map(|k| lo - 1.0 + (hi - lo + 2.0) * k as f64 / steps as f64);
+        let mut rebuilds = 0;
+        for (i, y) in ys.enumerate() {
+            g.assembly.stage = if i <= steps { Stage::Rising } else { Stage::Falling };
+            g.assembly.y = y;
+            g.update_fog_surface();
+            if g.panels_off_sig() == g.light_map_off {
+                continue;
+            }
+            g.build_light_map();
+            rebuilds += 1;
+            let kept = bytes(&g);
+            g.ll_shape = None;
+            g.build_light_map();
+            assert_eq!(g.ll_shape.as_ref(), Some(&made), "seed {seed} L{level}: the shape made again, the fog at {y:.1} m");
+            assert!(bytes(&g) == kept, "seed {seed} L{level}: the map packed with the kept shape, the fog at {y:.1} m");
+        }
+        assert!(rebuilds >= 10, "seed {seed} L{level}: the fog passed lamps enough ({rebuilds} rebuilds)");
+        g.init_level(level % 3 + 1);
+        let next = g.ll_shape.clone().expect("made with the next level");
+        assert_ne!(next.key, made.key, "seed {seed} L{level}: the next floor's shape is not this one's");
+        g.ll_shape = None;
+        g.build_light_map();
+        assert_eq!(g.ll_shape, Some(next), "seed {seed} L{}: its own shape", level % 3 + 1);
+    }
+}

@@ -257,13 +257,10 @@ pub struct Game {
     pub amb_light: Obj,
     pub hemi_light: Obj,
     pub light_map_cpu: Vec<f64>,
-    /// the light map's G and B (`visuals::occlusion`), and what they were
-    /// made of (`shape_key`): made once a level, kept while panels switch
-    pub ll_shape: Vec<u8>,
-    pub ll_shape_key: u64,
-    /// The light map's floor base (m): the height of its alpha's code 0
-    /// (`visuals::occlusion::floor_codes`)
-    pub ll_floor_base: f64,
+    /// the light map's G, B and A, its floor base and what they were made of
+    /// (`visuals::occlusion::LightShape`): made at a level's first
+    /// `build_light_map`, kept while panels switch, dropped by `build_world`
+    pub ll_shape: Option<crate::visuals::occlusion::LightShape>,
     pub player_light: Obj,
     pub halluc_textures: Vec<Tex>,
     pub halluc_shape: Obj,
@@ -833,9 +830,7 @@ impl Game {
             amb_light: ambient_light(0xffffff, 0),
             hemi_light: hemisphere_light(0xffffff, 0xffffff, 0),
             light_map_cpu: vec![],
-            ll_shape: vec![],
-            ll_shape_key: 0,
-            ll_floor_base: 0.0,
+            ll_shape: None,
             player_light: point_light(0xffffff, 0, 0, 2),
             halluc_textures: vec![],
             halluc_shape: node(),

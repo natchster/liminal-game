@@ -7,7 +7,10 @@
 //! * G: how open the place is: the distance to the nearest wall that runs
 //!   up to its ceiling, up to `REACH` (low partitions, under the ceiling,
 //!   are left out);
-//! * B: the ceiling over the place (its tile's, up to `CEIL_MAX`);
+//! * B: the ceiling over the place (its tile's, up to `CEIL_MAX`); or, where
+//!   some places have no floor (the Building's void and masses: `gaps`),
+//!   whether this one has (255) or not (0), so the shader can read the floor
+//!   of the part of a filtered sample that has one (A over B);
 //! * A: the floor under the place (`floor_codes`: its height over the
 //!   level's lowest in `FLOOR_STEP`s, 0 where there is none, the void).
 //!
@@ -18,6 +21,17 @@
 //! finds how far up the ceiling is (rooms R3); and a wall finds the floor
 //! at its foot, which it darkens toward (the Building's storeys stand from
 //! about −18 m to +21 m, a pool's floor under the rooms').
+//!
+//! The GPU filters the map linearly, so within a texel of a walk's end the
+//! sample is part walk, part void: read alone, A there (the walk's code
+//! times the walk's share) gave a floor anywhere from the walk's down to the
+//! base, and a mass's face over the void beside the walk's end darkened in
+//! a thin streak where its height met that floor, from the walk's down to
+//! the lowest storey (code review 4). With B holding how much of the sample
+//! has a floor, A over B is the walk's own floor there, and the shader
+//! fades the floor's occlusion out with B over the void's first quarter
+//! metre. The Building has no corners from the map (`corner_occlusion`), so
+//! its B was free (its ceilings, open to the sky, all read `CEIL_MAX`).
 use crate::base::config::CELL;
 use crate::level::archgen::{Solids, BOX_ANCHOR, BOX_ANGLED, BOX_JAMB, BOX_PILLAR, BOX_WALL};
 
@@ -32,6 +46,49 @@ pub const CEIL_MAX: f64 = 10.0;
 /// A's step (m): a floor's code is its height over the level's base in
 /// these (255 codes: 63.5 m over the lowest floor)
 pub const FLOOR_STEP: f64 = 0.25;
+
+/// The light map's fixed part: G, B and A, which do not change within a
+/// level (its floors, walls and ceilings stand as built). Made once, at the
+/// level's first `build_light_map` (`Game::ll_shape`, dropped by
+/// `build_world`); a lamp switched off, a vending machine's light or her
+/// lamp only repack the light beside it (`pack`). On the Building's floors
+/// the lamps the fog passes rebuild the map (16 times a rise on 4242's
+/// Well, and again as it falls), and each rebuild had made the floors anew
+/// (code review 4)
+#[derive(Clone, Debug, PartialEq)]
+pub struct LightShape {
+    /// the height of A's code 0 (m; `floor_codes`)
+    pub base: f64,
+    /// what G, B and A are made of (`shape_key`): the level's own shape,
+    /// which nothing played changes (`tests/building_floors.rs`)
+    pub key: u64,
+    /// some places have no floor (the Building's void and masses): B holds
+    /// whether each has one, not the ceiling (`shape_channels`)
+    pub gaps: bool,
+    /// G, B and A for every fine texel (`shape_channels`)
+    pub channels: Vec<u8>,
+}
+
+impl LightShape {
+    /// The shape of a level of `w` × `h` tiles: `floor_at` as `floor_codes`
+    /// asks it
+    pub fn new(
+        w: i32,
+        h: i32,
+        tiles: &[u8],
+        tile_ceil: &[f32],
+        solids: Option<&Solids>,
+        floor_at: impl Fn(f64, f64) -> Option<f64>,
+    ) -> Self {
+        let (floors, base) = floor_codes(w, h, floor_at);
+        let key = shape_key(w, h, tiles, tile_ceil, solids, &floors);
+        LightShape { base, key, gaps: floors.contains(&0), channels: shape_channels(w, h, tile_ceil, solids, &floors) }
+    }
+    /// Whether it is the shape of a level of `w` × `h` tiles
+    pub fn fits(&self, w: i32, h: i32) -> bool {
+        self.channels.len() == w.max(0) as usize * FINE * h.max(0) as usize * FINE * 3
+    }
+}
 
 /// A for every fine texel (one byte a texel, rows of `w * FINE`) and its
 /// base (the height of code 0, a step under the lowest floor, on the
@@ -82,9 +139,12 @@ pub fn shape_key(w: i32, h: i32, tiles: &[u8], tile_ceil: &[f32], solids: Option
 
 /// G, B and A for every fine texel (three bytes a texel, rows of
 /// `w * FINE`): how open, the ceiling, and the floor (`floors`, from
-/// `floor_codes`). `solids` in tile units (x, z) and metres (y)
+/// `floor_codes`). Where some texel has no floor (code 0: the Building's
+/// void and masses), B is whether each has one (255 or 0) in place of the
+/// ceiling. `solids` in tile units (x, z) and metres (y)
 pub fn shape_channels(w: i32, h: i32, tile_ceil: &[f32], solids: Option<&Solids>, floors: &[u8]) -> Vec<u8> {
     let (wf, hf) = (w as usize * FINE, h as usize * FINE);
+    let gaps = floors.contains(&0);
     let mut out = vec![0u8; wf * hf * 3];
     let ceil_of = |tx: i32, tz: i32| -> f64 {
         if tx < 0 || tz < 0 || tx >= w || tz >= h {
@@ -133,8 +193,17 @@ pub fn shape_channels(w: i32, h: i32, tile_ceil: &[f32], solids: Option<&Solids>
             }
             let o = (j * wf + i) * 3;
             out[o] = (d / REACH * 255.0).round().clamp(0.0, 255.0) as u8;
-            out[o + 1] = (ceil_of(tx, tz) / CEIL_MAX * 255.0).round().clamp(0.0, 255.0) as u8;
-            out[o + 2] = floors.get(j * wf + i).copied().unwrap_or(0);
+            let floor = floors.get(j * wf + i).copied().unwrap_or(0);
+            out[o + 1] = if gaps {
+                if floor > 0 {
+                    255
+                } else {
+                    0
+                }
+            } else {
+                (ceil_of(tx, tz) / CEIL_MAX * 255.0).round().clamp(0.0, 255.0) as u8
+            };
+            out[o + 2] = floor;
         }
     }
     out
@@ -199,10 +268,26 @@ mod tests {
             assert!((at(FINE + k, 2) - want).abs() <= FLOOR_STEP / 2.0, "the flight at {k}: {} vs {want}", at(FINE + k, 2));
         }
         assert_eq!(codes[FINE * wf + 3], 0, "the void");
-        // packed into the light map's alpha
+        // packed into the light map's alpha; with the void beside it, B is
+        // whether a texel has a floor
         let shape = shape_channels(2, 2, &[3.0; 4], None, &codes);
         let px = pack(2, 2, &[128; 4], &shape);
         assert_eq!(px[(2 * wf + 3) * 4 + 3], codes[2 * wf + 3]);
         assert_eq!(px[(FINE * wf + 3) * 4 + 3], 0);
+        assert_eq!((px[(2 * wf + 3) * 4 + 2], px[(FINE * wf + 3) * 4 + 2]), (255, 0), "B: a floor, the void");
+        // a linear filter halfway between the flight's top texel and the
+        // void's beside it: A alone is half its code (a floor halfway down
+        // to the base), A over B its own
+        let (walk, void) = ((FINE - 1) * wf + 2 * FINE - 1, FINE * wf + 2 * FINE - 1);
+        let half = |c: usize| (px[walk * 4 + c] as f64 + px[void * 4 + c] as f64) / 2.0;
+        let decode = |code: f64| code * FLOOR_STEP + base;
+        let top = decode(px[walk * 4 + 3] as f64);
+        assert!(top > -15.5, "the flight's top: {top}");
+        assert_eq!(decode(half(3) / (half(2) / 255.0)), top, "A over B: its floor");
+        assert_eq!(decode(half(3)), (top + base) / 2.0, "A alone: halfway down to the base");
+        // where every texel has a floor (the rooms), B is the ceiling
+        let rooms = floor_codes(2, 2, |_, _| Some(0.0)).0;
+        let shape = shape_channels(2, 2, &[3.0; 4], None, &rooms);
+        assert!(shape.chunks(3).all(|t| t[1] == (3.0 / CEIL_MAX * 255.0_f64).round() as u8), "B: the ceiling");
     }
 }

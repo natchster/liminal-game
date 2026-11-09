@@ -168,11 +168,14 @@ the main thread and the GPU is not known. The pack shows it most: nine
 creatures hunt and send many one-shots, and the bench runs the game about
 five times faster than the audio clock. Nothing hears a silent context,
 and nothing reads its graph back (the engine only takes commands and
-gives back its clock). So `Engine::silent_clock` now keeps the clock
-moving as a device would ask for frames: 10 ms at a time, the clock at the
-end of the last whole quantum begun, as `fill` leaves it. It drops what
-the game sends. Tests and headless runs keep the same clock; no draw,
-reference level or golden moves.
+gives back its clock). So the silent clock now keeps the clock moving as
+a device would ask for frames: 10 ms at a time, the clock at the end of
+the last whole quantum begun, as `fill` leaves it, and what the game sends
+is dropped. Tests and headless runs keep the same clock; no draw,
+reference level or golden moves. (Made in `2b6e022` as
+`Engine::silent_clock`; since `833db43` it is the free `silent_clock`,
+started by `CtxInner::run_silent`, and what is sent is dropped before it
+is queued, in `CtxInner::send`.)
 
 **The levels.** The `2a35e3b+` rows were recorded with 6c37ebb's tree.
 Built with the speaker guard, 6c37ebb measures the same as 7b9117d today
@@ -196,10 +199,48 @@ ms on `f0b82aa`, 0.82 ms with this commit). The recorded run after this
 commit: levels 0.81–0.91 ms, the pack 0.08 / 0.89 / 2.23 ms (was
 0.086 / 1.24 / 4.34 at `6efc5ef+`).
 
-To bench an old commit against today's, take in this commit's
-`Engine::silent_clock` along with the speaker guard. Otherwise the old
-build renders on the silent clock as `03e4b80` did, and its pack measures
-slower than HEAD for that alone.
+To bench an old commit against today's, take in `2b6e022`'s silent clock
+(`git cherry-pick -n 2b6e022`: there `Engine::silent_clock`, which keeps
+time and renders nothing; today the free `silent_clock`, started by
+`CtxInner::run_silent`, with what is sent dropped in `CtxInner::send`)
+along with the speaker guard (`03e4b80`). Otherwise the old build renders
+on the silent clock as `03e4b80` did, and its pack measures slower than
+HEAD for that alone.
+
+## The light map's rebuilds (code review 4, 2026-11-10)
+
+The light map is rebuilt whenever a lamp goes out or comes back
+(`update_lights`), a vending machine's light follows its rhythm, or her
+lamp gutters out; on the Building every lamp the fog passes goes out as it
+rises and comes back as it falls (`update_fog_surface`): 32 rebuilds over
+a rise and fall on 4242 L1, 18 on L3. Each rebuild made the floor under
+every texel (64 a tile, `floor_y_at` each) and hashed the level's shape
+anew, though neither changes within a level. The floors, their base and
+the shape are made once a level now (`occlusion::LightShape`, dropped by
+`build_world`), and a rebuild repacks the light. Timed by a scratch timer
+around `build_light_map` over a fog pass (the fog from a metre under the
+lowest lamp to a metre over the highest and back, 400 steps each way) and,
+on the rooms, a panel switched 40 times; release build, the mean (median)
+of a rebuild:
+
+| Level | Rebuilds | Before | After |
+|---|---|---|---|
+| 4242 L1, the Well (28 × 28 tiles, 41 lamps) | 32 | 0.389 (0.381) ms | 0.152 (0.148) ms |
+| 4242 L3, the Works (22 lamps) | 18 | 0.370 (0.357) | 0.148 (0.148) |
+| 7 L1 | 28 | 0.367 (0.358) | 0.150 (0.146) |
+| 7 L3 | 28 | 0.375 (0.376) | 0.149 (0.146) |
+| 4242 L9, the rooms (53 × 53) | 40 | 1.219 (1.200) | 0.570 (0.552) |
+| 4242 L5, the rooms (39 × 39) | 40 | 0.669 (0.664) | 0.300 (0.293) |
+
+The bytes of every rebuild (hashed in order) were the same before and
+after on all six, measured before the same commit gave the Building's B
+the floors' gaps; `tests/building_floors.rs`,
+`the_light_maps_shape_is_made_once_and_kept`, holds it since: at each
+rebuild of a fog's rise and fall the kept shape packs what one made from
+nothing does. The bench recorded with it is within budget with no step;
+the Building's first frames 7.5–9.7 ms on L2–3 and 23.8–25.8 on L1, as
+before (no texture read was added: the floor's B is read from the sample
+the shader already takes).
 
 ## What the first run measured (2026-10-25, Apple Silicon, macOS 27)
 

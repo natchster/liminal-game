@@ -235,6 +235,9 @@ impl Game {
         self.lift_at = None;
         self.knocks = Default::default();
         self.assembly = Default::default();
+        self.audio.cell_knocks.clear();
+        // (the light map's shape is the level's own: made at its first build)
+        self.ll_shape = None;
         self.tv_data = None;
         self.phone_data = None;
         self.clock_data = None;

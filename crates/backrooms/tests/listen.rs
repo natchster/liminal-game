@@ -957,6 +957,11 @@ struct Going {
     knock_until: f64,
     gone: f64,
     open: f64,
+    /// the graph's nodes in the cell's bed before anything knocked, and
+    /// once its going is over (the fewest over a second of each), and the
+    /// knocks' gains still held then
+    nodes: (usize, usize),
+    held: usize,
 }
 
 /// Sealed in a cell of seed 4242's Well (the one of the wheel's test),
@@ -984,8 +989,14 @@ fn cell_going(how: &str) -> Going {
     let lamp = r.g.panels.iter().filter(|p| p.bright >= 0.3).map(|p| (p.wx - door.x).hypot(p.wz - door.z)).fold(f64::MAX, f64::min);
     r.g.turn_cell_wheel(ci, true);
     r.g.assembly.t = 1e6;
-    // (the wheel's own turn, then the cell's bed)
-    play(&mut r, 5.0, |_| {});
+    // (the wheel's own turn, then the cell's bed; the graph's nodes over its
+    // last second, the fewest: what stays when nothing is in flight)
+    play(&mut r, 4.0, |_| {});
+    let mut nodes_before = usize::MAX;
+    for _ in 0..60 {
+        play(&mut r, 1.0 / 60.0, |_| {});
+        nodes_before = nodes_before.min(r.ac.offline_nodes().expect("an offline context"));
+    }
     let t_fog = r.pcm.len() as f64 / 2.0 / SR;
     {
         let a = &mut r.g.assembly;
@@ -1003,6 +1014,7 @@ fn cell_going(how: &str) -> Going {
     let (mut going, mut gone, mut open, mut knock_until) = (None, None, None, t_fog);
     let mut pulls: Vec<f64> = vec![];
     let mut pull_t = 0.0;
+    let mut nodes_after = usize::MAX;
     let mut t = t_fog;
     while gone.is_none_or(|g| t < g + 1.5) && t < t_fog + 60.0 {
         play(&mut r, 1.0 / 60.0, |g| {
@@ -1040,6 +1052,9 @@ fn cell_going(how: &str) -> Going {
             }
             t += 1.0 / 60.0;
         });
+        if gone.is_some_and(|g| t > g + 0.5) {
+            nodes_after = nodes_after.min(r.ac.offline_nodes().expect("an offline context"));
+        }
     }
     r.g.keys.remove("KeyE");
     let (going, gone) = (going.expect("it went"), gone.expect("its going was over"));
@@ -1078,6 +1093,8 @@ fn cell_going(how: &str) -> Going {
         knock_until: knock_until - going,
         gone: gone - going,
         open: open - going,
+        nodes: (nodes_before, nodes_after),
+        held: r.g.audio.cell_knocks.len(),
     }
 }
 
@@ -1095,10 +1112,15 @@ fn cell_going(how: &str) -> Going {
 ///   raps (its raps still to come hushed), its hold heard slipping from the
 ///   wheel, and then its going;
 /// - the door to open shown only after the last breath heard, once its
-///   going has died away.
+///   going has died away;
+/// - once it has gone, nothing of it left in the graph: as many nodes as in
+///   the cell's bed before it knocked, no knock's gain held (each held one
+///   kept its knock's voice, rendered every quantum for the rest of the
+///   run: code review 4).
 ///
 /// With the going's sounds at gain 0 this fails, as with the knock's click
-/// and ring at gain 0, or its raps not hushed by your answer.
+/// and ring at gain 0, or its raps not hushed by your answer, or its
+/// knocks' gains kept after its going.
 #[test]
 fn what_knocks_is_heard_going() {
     use game::world::cell_knock::{GOING_AFTER, GOING_BREATHS};
@@ -1106,7 +1128,7 @@ fn what_knocks_is_heard_going() {
         let g = cell_going(how);
         let r = |v: &[f64]| v.iter().map(|x| (x * 100.0).round() / 100.0).collect::<Vec<_>>();
         println!(
-            "a cell on the Well {:.1} m from a lit lamp, {how}, {} knocks: the bed {:.1} dB ({:.1} in {}-{} Hz); its knocking {:+.1} dB in the band, raps heard come at {:?} s; after your answer {:?}; its going {:+.1} dB over the bed ({:+.1} in the band), the hold slipping at {:?} s, {} of its {GOING_BREATHS} breaths heard come at {:?} s; [E] KNOCK last shown at {:.2} s, gone at {:.2} s, the door to open at {:.2} s",
+            "a cell on the Well {:.1} m from a lit lamp, {how}, {} knocks: the bed {:.1} dB ({:.1} in {}-{} Hz); its knocking {:+.1} dB in the band, raps heard come at {:?} s; after your answer {:?}; its going {:+.1} dB over the bed ({:+.1} in the band), the hold slipping at {:?} s, {} of its {GOING_BREATHS} breaths heard come at {:?} s; [E] KNOCK last shown at {:.2} s, gone at {:.2} s, the door to open at {:.2} s; the graph {} nodes before, {} once gone ({} knocks' gains held)",
             g.lamp,
             g.knocks,
             g.bed,
@@ -1123,7 +1145,10 @@ fn what_knocks_is_heard_going() {
             r(&g.breaths),
             g.knock_until,
             g.gone,
-            g.open
+            g.open,
+            g.nodes.0,
+            g.nodes.1,
+            g.held
         );
         assert!(g.lamp <= 6.0, "{how}: the cell beside its lamp ({:.1} m)", g.lamp);
         assert!(g.breaths.len() >= 3, "{how}: its going heard, breath by breath: {:?}", g.breaths);
@@ -1140,6 +1165,8 @@ fn what_knocks_is_heard_going() {
         let last = g.breaths.last().copied().unwrap_or(f64::INFINITY);
         assert!(g.open > last, "{how}: the door to open no sooner than its last breath heard ({:.2} s, the breath at {last:.2} s)", g.open);
         assert!(g.open >= g.gone, "{how}: the door to open once it has gone ({:.2} s, gone {:.2} s)", g.open, g.gone);
+        assert_eq!(g.held, 0, "{how}: once it has gone, no knock's gain held");
+        assert!(g.nodes.1 <= g.nodes.0, "{how}: once it has gone, the graph as it was ({} nodes, {} before)", g.nodes.1, g.nodes.0);
     }
 }
 

@@ -337,6 +337,13 @@ impl AudioContext {
         e.fill(&mut out, 2);
         out
     }
+    /// How many nodes an offline context's graph holds, as of what it has
+    /// rendered (None for one playing on a device or the silent clock): a
+    /// node is freed once its handles are dropped and it can sound no more
+    /// (`Engine::collect`), so a count that only grows is a handle kept
+    pub fn offline_nodes(&self) -> Option<usize> {
+        self.inner.offline.borrow().as_ref().map(|e| e.nodes.len())
+    }
     pub fn sample_rate(&self) -> f64 {
         self.inner.shared.sample_rate
     }

@@ -464,15 +464,15 @@ impl Game {
         // the shape beside the light, at `FINE` texels a tile: how open each
         // place is and its ceiling, for the corners, and the floor under it,
         // for the floor's occlusion (`visuals::occlusion`)
-        use crate::visuals::occlusion::{floor_codes, pack, shape_channels, shape_key, FINE};
-        let (floors, base) = floor_codes(self.w, self.h, |u, v| self.light_floor_at(u, v));
-        let key = shape_key(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref(), &floors);
-        if key != self.ll_shape_key || self.ll_shape.is_empty() {
-            self.ll_shape = shape_channels(self.w, self.h, &self.tile_ceil, self.solids.as_ref(), &floors);
-            self.ll_shape_key = key;
+        // (made once a level: only the light changes as panels switch)
+        use crate::visuals::occlusion::{pack, LightShape, FINE};
+        if !self.ll_shape.as_ref().is_some_and(|s| s.fits(self.w, self.h)) {
+            let shape =
+                LightShape::new(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref(), |u, v| self.light_floor_at(u, v));
+            self.ll_shape = Some(shape);
         }
-        self.ll_floor_base = base;
-        let data = pack(self.w, self.h, &data, &self.ll_shape);
+        let Some(shape) = self.ll_shape.as_ref() else { return };
+        let data = pack(self.w, self.h, &data, &shape.channels);
         let (wf, hf) = ((w * FINE) as u32, (h * FINE) as u32);
         let reuse = self.ll_map.as_ref().map(|m| m.width() == wf && m.height() == hf).unwrap_or(false);
         if reuse {
@@ -491,6 +491,16 @@ impl Game {
             self.ll_map = Some(tex);
         }
         self.ll_grid = [1.0 / (w as f64 * CELL), 1.0 / (h as f64 * CELL), 0.5, 0.5];
+    }
+
+    /// The height of the light map's floor code 0 (m; `occlusion::floor_codes`)
+    pub fn light_floor_base(&self) -> f64 {
+        self.ll_shape.as_ref().map_or(0.0, |s| s.base)
+    }
+    /// Some places of the light map have no floor (the Building's void and
+    /// masses), and its B holds whether each has one (`occlusion::LightShape`)
+    pub fn light_floor_gaps(&self) -> bool {
+        self.ll_shape.as_ref().is_some_and(|s| s.gaps)
     }
 
     /// Which panels are switched off, as one number
@@ -543,9 +553,11 @@ impl Game {
     /// How much a corner darkens where walls meet each other, the floor and
     /// the ceiling (`visuals::occlusion`): the rooms', whose shape the light
     /// map holds; not the Building's floors, stacked over each other, nor
-    /// the Stairwell's flights or the Loop's rooms
+    /// the Stairwell's flights or the Loop's rooms; and never where the
+    /// map's B holds whether a place has a floor rather than its ceiling
+    /// (`light_floor_gaps`)
     pub fn corner_occlusion(&self) -> f64 {
-        if self.building.is_some() || self.in_stairwell || self.in_loop {
+        if self.building.is_some() || self.in_stairwell || self.in_loop || self.light_floor_gaps() {
             0.0
         } else {
             1.0

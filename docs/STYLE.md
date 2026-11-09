@@ -44,7 +44,11 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
   their indirect light, at their foot, gone by 0.45 m up: the floor under
   them, on whatever storey (the light map holds each place's floor: the
   Building's from about −18 m to +21 m, a pool's under the rooms'). Where
-  there is none (over the void, under a walk) nothing darkens.
+  there is none (over the void, under a walk) nothing darkens; beside a
+  walk's end a wall's foot is the walk's own floor, fading out over the
+  void's first quarter metre. A thing (a prop, a door, a railing) stands
+  on its own floor, the one its wear is measured from, or in a pool on
+  the pool's.
 - **The camera:** a mild grade and lens vignette, film grain rising as sanity
   falls. No bloom, no lens flares.
 

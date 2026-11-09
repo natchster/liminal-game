@@ -60,7 +60,10 @@ pub struct AudioSys {
     /// The voice lines decoded so far (`say_cry`), by persona/id
     pub voice_bufs: Vec<(String, AudioBuffer)>,
     /// The knocks at your cell this visit (`world::cell_knock`): each one's
-    /// gain, so an answer hushes the raps still to come
+    /// gain, so an answer hushes the raps still to come. Let go when it is
+    /// heard going and when a level is built: a gain held keeps its knock's
+    /// voice (its filter, gain and panner) in the graph, rendered every
+    /// quantum for the rest of the run (code review 4)
     pub cell_knocks: Vec<AudioNode>,
 }
 
@@ -621,23 +624,24 @@ impl Game {
     }
     /// A knock at a sealed door (`world::knock`; play it at the door):
     /// three raps `gaps` seconds apart, knuckles on steel; from the other
-    /// side (`behind`) duller and a little softer. Each rap is the thud of
-    /// the knuckles and the leaf's body under it, and the rap itself: the
-    /// knuckle's hard click on the steel and the leaf ringing on after it,
-    /// above the lamps' ballast (its 120 Hz series stops at 1.08 kHz),
-    /// so a knock is heard beside a lamp as well as away from one, and three
-    /// raps are heard as three (`tests/listen.rs`,
-    /// `a_knock_is_heard_beside_a_lamp`). No draws but the bursts' own.
+    /// side (`behind`) duller and a little softer. Each rap is
+    /// `audio::rap`'s (`NEAR`, `BEHIND`): the thud of the knuckles and the
+    /// leaf's body under it, and the knuckle's hard click on the steel and
+    /// the leaf ringing on after it above the lamps' ballast, so a knock is
+    /// heard beside a lamp as well as away from one, and three raps are
+    /// heard as three (`tests/listen.rs`, `a_knock_is_heard_beside_a_lamp`).
+    /// No draws but the bursts' own.
     pub fn sfx_knock(&self, gaps: &[f64], behind: bool) {
-        let (thud, rap, gain) = if behind { (260.0, 1700.0, 0.26) } else { (380.0, 2300.0, 0.32) };
+        use crate::audio::rap::{BEHIND, NEAR};
+        let (rap, gain) = if behind { (&BEHIND, 0.26) } else { (&NEAR, 0.32) };
         let mut t = 0.0;
         for k in 0..=gaps.len() {
-            self.noise_burst(0.12, thud, 1.4, gain, "lowpass", None, t, 0.0);
-            self.blip(if behind { 82.0 } else { 95.0 }, 0.14, "sine", gain * 0.6, Some(58.0), t, 0.0);
-            // the knuckle's click, and the leaf's two lowest rings above the hum
-            self.noise_burst(0.035, rap, 1.1, gain * 0.6, "bandpass", None, t, 0.0);
-            self.blip(1310.0, 0.22, "sine", gain * 0.09, None, t, 0.0);
-            self.blip(2090.0, 0.14, "sine", gain * if behind { 0.03 } else { 0.05 }, None, t, 0.0);
+            for p in rap {
+                match p.noise {
+                    Some(ty) => self.noise_burst(p.dur, p.freq, p.q, gain * p.share, ty, None, t, 0.0),
+                    None => self.blip(p.freq, p.dur, "sine", gain * p.share, p.to, t, 0.0),
+                }
+            }
             t += gaps.get(k).copied().unwrap_or(0.0);
         }
     }

@@ -18,7 +18,14 @@ tell whether it sounds right. Plan for that from the start.
    and envelopes; no samples. Describe in a comment what it imitates. A
    spoken line is the one exception: it comes from the voice pipeline
    (`voice-persona`, `voice-lines` skills; `docs/VOICES.md`), never
-   synthesized by hand and never a recording of a person.
+   synthesized by hand and never a recording of a person. A sound played
+   in more than one place keeps its parts in one table that each reads
+   (a rap on a steel door: `audio::rap`, read by `sfx_knock` and
+   `Soundscape::knock`, which drifted while each built its own). A node
+   kept to change a sound later (a gain to hush it) keeps its voice in the
+   graph, rendered every quantum, until it is let go: let it go once the
+   sound is over (`AudioContext::offline_nodes` counts the graph in a
+   listen test, `what_knocks_is_heard_going`).
 
    **Beside a lamp.** Within a few metres of a lit lamp the ballast's hum
    is the bed (`Hum`: 60 Hz, 120 Hz and its series to 1.08 kHz, at full

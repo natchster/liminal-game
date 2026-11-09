@@ -227,7 +227,10 @@ affects a level's build.
    targets, fog, the light map, patches, wear). Lambert and Phong are per
    fragment; lit surfaces lose indirect light toward the floor under them
    (the light map's A: each place's floor height, so on any storey; none
-   over the void) and, in the rooms, in corners where walls meet each
+   over the void; on the Building B says which places have a floor, and A
+   over B is the floor of the part of a filtered sample that has one; a
+   thing that takes wear by use stands on its own) and, in the rooms, in
+   corners where walls meet each
    other, the floor and the ceiling (its G and B; all three
    `visuals::occlusion`, read from the sample its indirect light already
    takes, no texture read of their own), and roll
@@ -250,8 +253,10 @@ affects a level's build.
    from where the things settled (no texture read, no random draw); past a
    thing's draw distance the prop cull draws its chunk without it.
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
-   texels a tile: the light, how open each place is, its ceiling, its
-   floor),
+   texels a tile: the light, how open each place is, its ceiling or on
+   the Building whether it has a floor, its floor; all but the light made
+   once a level, `occlusion::LightShape`, so a lamp switched off only
+   repacks the light),
    world-space architecture UVs with a photographed detail over them
    (`ArchDetail`, the rooms' surfaces: `visuals::photo::arch_detail`), skin detail, the smiler's eyes, the watcher's sheet,
    the shadows' smoke edge, the stairwell face; a window's view

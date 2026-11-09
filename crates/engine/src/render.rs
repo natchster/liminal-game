@@ -60,11 +60,17 @@ pub struct RenderGlobals {
     /// under them (0 = none, 1 = full; off where the light map does not
     /// hold the floors): the light map's alpha, the floor's height as
     /// `floor_base` + code × `floor_step` (0 where there is none, the void:
-    /// then a thing's own, `UseWear::floor`, where it takes wear by use,
-    /// and no floor under the rest)
+    /// no floor under it). A thing that takes wear by use stands on its own
+    /// (`UseWear::floor`), or where the map's floors have no gaps (the
+    /// rooms) on the map's where that is lower (a pool's)
     pub floor_occlusion: f64,
     pub floor_base: f64,
     pub floor_step: f64,
+    /// some places of the light map have no floor (the Building's void and
+    /// masses): its blue holds whether each has one, not the ceiling, and
+    /// the floor of a sample is its alpha over its blue (the part of it
+    /// that has one; corner occlusion is off)
+    pub floor_gaps: bool,
     /// how much indirect light a surface loses where walls meet (from the
     /// light map's G and B; 0 = none, 1 = full; off where the map does not
     /// hold the place's shape)
@@ -81,6 +87,7 @@ impl Default for RenderGlobals {
             floor_occlusion: 0.0,
             floor_base: 0.0,
             floor_step: 0.0,
+            floor_gaps: false,
             corner_occlusion: 0.0,
         }
     }
@@ -940,7 +947,7 @@ impl Renderer {
         fu.ll_sky = [ll.sky_d.x as f32, ll.sky_d.y as f32, ll.sky_d.z as f32, 0.0];
         fu.ll_gnd = [ll.gnd_d.x as f32, ll.gnd_d.y as f32, ll.gnd_d.z as f32, 0.0];
         fu.ll_fog_lit = [ll.fog_lit.r as f32, ll.fog_lit.g as f32, ll.fog_lit.b as f32, 0.0];
-        fu.ll_params = [if ll.on { 1.0 } else { 0.0 }, ll.scale as f32, ll.fog_ratio as f32, 0.0];
+        fu.ll_params = [if ll.on { 1.0 } else { 0.0 }, ll.scale as f32, ll.fog_ratio as f32, if globals.floor_gaps { 1.0 } else { 0.0 }];
         fu.viewport = [rw as f32, rh as f32, rh as f32 * 0.5, 0.0];
         fu.counts = [hemis.len() as u32, pts.len() as u32, spots.len() as u32, 0];
         fu.look = [globals.floor_occlusion as f32, globals.corner_occlusion as f32, globals.floor_base as f32, globals.floor_step as f32];

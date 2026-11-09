@@ -259,6 +259,9 @@ impl Game {
         let pace = r.range(BREATH.0, BREATH.1);
         // (where each noise starts in its loop: three for the wheel, two a breath)
         let from: Vec<f64> = (0..3 + GOING_BREATHS * 2).map(|_| r.next() * 0.95).collect();
+        // (its raps have rung out, or an answer took them: their gains
+        // let go, so the knocks' voices are freed, `Engine::collect`)
+        self.audio.cell_knocks.clear();
         let d = &mut self.assembly.door;
         d.visit = Visit::Going;
         d.leaving = None;

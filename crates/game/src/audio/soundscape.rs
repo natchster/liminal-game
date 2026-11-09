@@ -1226,15 +1226,14 @@ impl Soundscape {
     /// Knocking on a steel door somewhere, `count` raps, the k-th at k times
     /// 1–2 s (each drawn on its own, all scheduled at once: what knocks at a
     /// cell waits for the last of them before it goes,
-    /// `world::cell_knock::KNOCK_RINGS`). A rap is the knuckles' thud and the
-    /// leaf's body under it, and the knuckle's click on the steel and the
-    /// leaf's ring above the lamps' ballast (its 120 Hz series stops at
-    /// 1.08 kHz), so it is heard as a knock beside a lamp too, as the knock
-    /// of `world::knock` is (`MILESTONES.md` 12, 13; `tests/listen.rs`,
+    /// `world::cell_knock::KNOCK_RINGS`). A rap is `audio::rap::OUTSIDE`:
+    /// the knuckles' thud and the leaf's body under it, and the knuckle's
+    /// click on the steel and the leaf's ring above the lamps' ballast, so
+    /// it is heard as a knock beside a lamp too, as the knock of
+    /// `world::knock` is (`MILESTONES.md` 12, 13; `tests/listen.rs`,
     /// `what_knocks_is_heard_going`). The raps go through a gain of their
     /// own, returned, so those still to come can be hushed (a knock
-    /// answered). The same draws as before the click: the bursts' own and
-    /// the raps' times
+    /// answered). Its draws: each rap's time, then its bursts' own
     pub fn knock(&self, count: i32, x: f64, y: f64, z: f64, gain: f64) -> AudioNode {
         let slot = self.voice_slot(2.0);
         slot.at(x, y, z);
@@ -1243,11 +1242,12 @@ impl Soundscape {
         let t0 = self.now();
         for k in 0..count {
             let t = t0 + k as f64 * self.rand(1.0, 2.0);
-            self.burst(&hush, t, 0.12, "lowpass", 380.0, 1.4, gain, None, 0.002);
-            self.tone(&hush, t, 0.14, 95.0, gain * 0.6, "sine", Some(60.0), 0.002);
-            // the knuckle's click, and the leaf's lowest ring above the hum
-            self.burst(&hush, t, 0.035, "bandpass", 1700.0, 1.1, gain * 0.5, None, 0.002);
-            self.tone(&hush, t, 0.22, 1310.0, gain * 0.08, "sine", None, 0.002);
+            for p in &crate::audio::rap::OUTSIDE {
+                match p.noise {
+                    Some(ty) => self.burst(&hush, t, p.dur, ty, p.freq, p.q, gain * p.share, None, 0.002),
+                    None => self.tone(&hush, t, p.dur, p.freq, gain * p.share, "sine", p.to, 0.002),
+                }
+            }
         }
         hush
     }
