@@ -410,13 +410,27 @@ impl Game {
             warm.position().set(spot.pos.x + spot.normal.x * 0.8, spot.pos.y + 2.2, spot.pos.z + spot.normal.z * 0.8);
             self.world.add(&warm);
         }
-        // where things lie: the dead ends first, then the cells
+        // where things lie: the dead ends first, then the cells. A dead
+        // end's tile is drawn on its platform; one that cannot hold a thing
+        // (in the edge of the floor, the arrival, the door) gives way to the
+        // first of its platform's that can, with no draw, so a dead end
+        // always holds something (`MILESTONES.md` 3)
+        let holds = |g: &Game, t: (i32, i32)| {
+            t != plan.exit && t != plan.spawn && g.in_grid(t.0, t.1) && !g.is_wall_tile(t.0, t.1) && g.ground_at(t.0, t.1).walkable()
+        };
         let mut spots: Vec<(i32, i32)> = vec![];
         for nd in &plan.nodes {
             if nd.degree == 1 && (nd.x, nd.z) != (1, 1) {
-                spots.push((nd.x + irand(0, (PLAT - 1) as i64) as i32, nd.z + irand(0, (PLAT - 1) as i64) as i32));
+                let t = (nd.x + irand(0, (PLAT - 1) as i64) as i32, nd.z + irand(0, (PLAT - 1) as i64) as i32);
+                let t = if holds(self, t) {
+                    Some(t)
+                } else {
+                    (0..PLAT).flat_map(|dz| (0..PLAT).map(move |dx| (nd.x + dx, nd.z + dz))).find(|&t| holds(self, t))
+                };
+                spots.extend(t);
             }
         }
+        let ends = spots.len();
         let mut cells: Vec<(i32, i32)> = plan.cells.iter().map(|c| c.tile).collect();
         let mut k = cells.len();
         while k > 1 {
@@ -428,13 +442,7 @@ impl Game {
         // (a dead end's platform can run into the edge of the floor: a spot
         // there would lay a note in the wall; the draws above are kept, so
         // only such floors change)
-        spots.retain(|&t| {
-            t != plan.exit
-                && t != plan.spawn
-                && self.in_grid(t.0, t.1)
-                && !self.is_wall_tile(t.0, t.1)
-                && self.ground_at(t.0, t.1).walkable()
-        });
+        spots.retain(|&t| holds(self, t));
         let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
         let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
         let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
@@ -490,6 +498,34 @@ impl Game {
             m.rotation().y = rand1(PI * 2.0);
             self.world.add(&m);
             self.lore_notes.push(LoreNote { g: m, taken: false, id });
+        }
+        // a floor with more dead ends than things: each left holds water or
+        // a battery in turn, in the middle of its tile (no draw: the floors
+        // that had enough are as they were)
+        for (k, &(tx, tz)) in spots.iter().enumerate().take(ends).skip(used) {
+            let (px, pz) = (self.wx(tx), self.wz(tz));
+            let water = k % 2 == 0;
+            let base = self.floor_y_at(px, pz) + if water { 0.15 } else { 0.11 };
+            let gp = group();
+            gp.position().set(px, base, pz);
+            if water {
+                gp.add(&mesh(&bottle_geo, &bottle_mat));
+                let cap = mesh(&cap_geo, &self.mats.metal);
+                cap.position().y = 0.18;
+                gp.add(&cap);
+            } else {
+                gp.add(&mesh(&bat_body_geo, &bat_body_mat));
+                let tip = mesh(&bat_tip_geo, &bat_tip_mat);
+                tip.position().y = 0.105;
+                gp.add(&tip);
+            }
+            self.world.add(&gp);
+            let p = Pickup { g: gp, taken: false, base, phase: k as f64 * 0.9 };
+            if water {
+                self.almonds.push(p);
+            } else {
+                self.battery_items.push(p);
+            }
         }
     }
 }
