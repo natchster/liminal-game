@@ -57,8 +57,14 @@ pub struct RenderGlobals {
     /// (sRGB-encoded) colour, each result clamped to 0..1 as CSS does
     pub scene_filter: Vec<[f32; 12]>,
     /// how much lit surfaces lose of their indirect light toward the floor
-    /// at y = 0 (0 = none, 1 = full; off where the floors are not at 0)
+    /// under them (0 = none, 1 = full; off where the light map does not
+    /// hold the floors): the light map's alpha, the floor's height as
+    /// `floor_base` + code × `floor_step` (0 where there is none, the void:
+    /// then a thing's own, `UseWear::floor`, where it takes wear by use,
+    /// and no floor under the rest)
     pub floor_occlusion: f64,
+    pub floor_base: f64,
+    pub floor_step: f64,
     /// how much indirect light a surface loses where walls meet (from the
     /// light map's G and B; 0 = none, 1 = full; off where the map does not
     /// hold the place's shape)
@@ -73,6 +79,8 @@ impl Default for RenderGlobals {
             pixel_ratio: 1.0,
             scene_filter: vec![],
             floor_occlusion: 0.0,
+            floor_base: 0.0,
+            floor_step: 0.0,
             corner_occlusion: 0.0,
         }
     }
@@ -935,7 +943,7 @@ impl Renderer {
         fu.ll_params = [if ll.on { 1.0 } else { 0.0 }, ll.scale as f32, ll.fog_ratio as f32, 0.0];
         fu.viewport = [rw as f32, rh as f32, rh as f32 * 0.5, 0.0];
         fu.counts = [hemis.len() as u32, pts.len() as u32, spots.len() as u32, 0];
-        fu.look = [globals.floor_occlusion as f32, globals.corner_occlusion as f32, 0.0, 0.0];
+        fu.look = [globals.floor_occlusion as f32, globals.corner_occlusion as f32, globals.floor_base as f32, globals.floor_step as f32];
         if hemis.is_empty() {
             hemis.push(HemiU::default());
         }

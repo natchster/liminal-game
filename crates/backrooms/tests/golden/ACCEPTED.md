@@ -151,3 +151,9 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-09, on top of 0931fa3: frames: 4242_L2_spawn, 4242_L2_stair_halls, 4242_L3_spawn, 4242_L3_works. Reason: Milestone 11: the Stair Halls' lamp heads are iron lanterns and a flight's foot lamp no longer stands in a cell's lamp; the Works' pipes run as pipes (joints, elbows into the wall, brackets, painted steel), none over a flight, and its floodlights have a hood
 
 - 2026-11-09, on top of fa45f64: frames: 4242_L3_spawn. Reason: Code review 3: the Works' pipes and elbows eight-sided (14 before) and the pipe open-ended; only the near pipes' silhouettes move by a pixel at their edges, they still read as round pipes (looked at the frame and its error map)
+
+- 2026-11-09, on top of 833db43: frames: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L2_stair_halls, 4242_L3_spawn, 4242_L3_works. Reason: Code review 3, floor occlusion from the floor under it: the walls' feet darken toward their own storey's floor (the arrival and these walks stand over y = 0, where the old occlusion from y = 0 left them unoccluded); nothing else moved (looked at each frame and its error map: only the wall feet along the walks)
+
+- 2026-11-09, on top of 833db43: frames: 4242_L7_spawn. Reason: Code review 3, floor occlusion from the floor under it: the pool's floor (-0.55 m) is in the light map, so the beach balls' lower halves and the pool's far wall, over it, lose less of their indirect light (they were occluded as if on y = 0); the room around unchanged (frame and error map looked at)
+
+- 2026-11-09, on top of 833db43: frames: hound_death, corner_death, reader_2m, reader_death, staff_2m. Reason: Code review 3, floor occlusion: single scattered pixels on the creatures' bodies only (no area moved, the error maps black but for specks), from the recompiled fragment shader; their floors are at 0 and their light the same

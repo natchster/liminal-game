@@ -28,6 +28,10 @@ use crate::prelude::*;
 use crate::visuals::textures::{handwritten_tex, text_tex, HandOpts, TextTexOpts};
 use std::collections::HashMap;
 
+/// The floor of a pool room's pool, sunken under the room's (m): its
+/// walls are seen down to it, and the light map holds it (`light_floor_at`)
+pub const POOL_FLOOR: f64 = -0.55;
+
 /// The names hand-written on the switch placards
 const SWITCH_PLACARD_NAMES: [&str; 10] =
     ["STORAGE", "HALL A", "HALL B", "BATHROOM", "OFFICE 3", "BASEMENT", "ELEVATOR", "BREAKROOM", "STAIR C", "ARCHIVE"];
@@ -404,8 +408,8 @@ impl Game {
         let pool_depth = max_z - min_z;
         let (pcx, pcz) = ((min_x + max_x) / 2.0, (min_z + max_z) / 2.0);
         let water_y = 0.08;
-        let bottom_y: f64 = -0.55; // visually sunken pool floor
-                                   // ---- tiled pool bottom (big 4x4 aqua tiles with grout + stains) ----
+        let bottom_y = POOL_FLOOR;
+        // ---- tiled pool bottom (big 4x4 aqua tiles with grout + stains) ----
         let pool_bottom_tex = canvas_tex(512, 512, |ctx, w, h| {
             ctx.set_fill_style("#3d7a95");
             ctx.fill_rect(0, 0, w, h);

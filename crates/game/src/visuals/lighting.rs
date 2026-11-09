@@ -462,13 +462,16 @@ impl Game {
         }
         self.light_map_cpu = data.iter().map(|&b| b as f64 / 255.0).collect();
         // the shape beside the light, at `FINE` texels a tile: how open each
-        // place is and its ceiling, for the corners (`visuals::occlusion`)
-        use crate::visuals::occlusion::{pack, shape_channels, shape_key, FINE};
-        let key = shape_key(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref());
+        // place is and its ceiling, for the corners, and the floor under it,
+        // for the floor's occlusion (`visuals::occlusion`)
+        use crate::visuals::occlusion::{floor_codes, pack, shape_channels, shape_key, FINE};
+        let (floors, base) = floor_codes(self.w, self.h, |u, v| self.light_floor_at(u, v));
+        let key = shape_key(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref(), &floors);
         if key != self.ll_shape_key || self.ll_shape.is_empty() {
-            self.ll_shape = shape_channels(self.w, self.h, &self.tile_ceil, self.solids.as_ref());
+            self.ll_shape = shape_channels(self.w, self.h, &self.tile_ceil, self.solids.as_ref(), &floors);
             self.ll_shape_key = key;
         }
+        self.ll_floor_base = base;
         let data = pack(self.w, self.h, &data, &self.ll_shape);
         let (wf, hf) = ((w * FINE) as u32, (h * FINE) as u32);
         let reuse = self.ll_map.as_ref().map(|m| m.width() == wf && m.height() == hf).unwrap_or(false);
@@ -510,8 +513,25 @@ impl Game {
             * self.ll_scale
     }
 
-    /// How much lit surfaces lose of their indirect light toward the floor:
-    /// the levels stand on y = 0, the Stairwell's flights do not
+    /// The floor under a place of the light map (`u`, `v` in tile units, as
+    /// `floor_y_at` has it): the Building's floor there (a flight's where it
+    /// is along its run), none over the void or in a mass; the rooms stand
+    /// on 0, but in a pool
+    fn light_floor_at(&self, u: f64, v: f64) -> Option<f64> {
+        let (x, z) = ((u - self.w as f64 / 2.0) * CELL, (v - self.h as f64 / 2.0) * CELL);
+        if !self.ground.is_empty() {
+            let g = self.ground.get((v.floor() as i32 * self.w + u.floor() as i32) as usize)?;
+            return g.walkable().then(|| self.floor_y_at(x, z));
+        }
+        match &self.pool_bounds {
+            Some(p) if x > p.min_x && x < p.max_x && z > p.min_z && z < p.max_z => Some(crate::core_props::tail::POOL_FLOOR),
+            _ => Some(0.0),
+        }
+    }
+
+    /// How much lit surfaces lose of their indirect light toward the floor
+    /// under them (the light map's: the Building's storeys, a pool's floor);
+    /// none on the Stairwell's flights, which the light map does not hold
     pub fn floor_occlusion(&self) -> f64 {
         if self.in_stairwell {
             0.0

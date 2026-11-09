@@ -47,7 +47,7 @@ struct Frame {
     float4 llParams; // x on, y scale, z fog density factor where lit, w time
     float4 viewport; // x w, y h (pixels), z point scale (h/2), w unused
     uint4  counts; // x hemi, y point, z spot
-    float4 look; // x floor occlusion amount, y corner occlusion amount
+    float4 look; // x floor occlusion amount, y corner occlusion amount, z the light map's floor base (m), w its step (m)
 };
 struct Hemi  { float4 sky; float4 ground; float4 dir; };
 struct Point { float4 pos; float4 color; }; // pos.w distance, color.w decay
@@ -640,6 +640,11 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
         // beside a wall for a floor or a ceiling, and the ceiling over a wall
         // just above it; a plain wall's own face is that far off
         float aoCorner = 1.0;
+        // the floor under this surface, for its floor occlusion (below):
+        // the thing's own (Object::useWear), or the light map's where it
+        // holds one (A, the floor of the place its indirect light comes
+        // from: a wall's is the floor at its foot, on any storey)
+        float floorY = in.useWear.z;
         if (beyond) {
             // the view's own light: its sky over, a darker ground under
             irradiance = mix(M.portal[3].rgb * 0.3, M.portal[3].rgb, 0.5 * wN.y + 0.5);
@@ -647,6 +652,13 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             float4 llO = llAt(in.llPos + wN * 0.8, F, llMap, llS);
             float llK = llO.r * F.llParams.y;
             irradiance += (1.0 - llK) * (F.llAmbD.rgb + mix(F.llGndD.rgb, F.llSkyD.rgb, 0.5 * wN.y + 0.5));
+            // (A is 0 over the void, where no floor is near: a thing that
+            // takes wear by use keeps its own; the architecture's own is
+            // the default 0, which would darken a band round y = 0 across
+            // every face over the void, so it has none)
+            float floorCode = llO.a * 255.0;
+            if (floorCode > 0.5) floorY = floorCode * F.look.w + F.look.z;
+            else if (M.surf.z <= 0.0) floorY = -1.0e4;
             if (PATCH <= 2 && F.look.y > 0.0) {
                 float open = smoothstep(0.0, 1.0, llO.g);
                 float under = 1.0 - smoothstep(0.3, 0.8, abs(wN.y));
@@ -656,10 +668,13 @@ fragment float4 fs_main(FIn in [[stage_in]], bool front [[front_facing]], float2
             }
         }
         // floor occlusion: walls and the sides of things lose indirect light
-        // toward the floor (faces turned up keep it)
+        // toward the floor under them (faces turned up keep it); a surface
+        // under that floor (a walk's underside, a flight's soffit) stands
+        // on none
         float ao = 1.0;
         if (PATCH <= 2) {
-            ao = mix(0.55, 1.0, smoothstep(0.0, 0.45, in.llPos.y));
+            float overFloor = in.llPos.y - floorY;
+            ao = mix(0.55, 1.0, max(smoothstep(0.0, 0.45, overFloor), smoothstep(0.0, 0.25, -overFloor)));
             ao = mix(1.0, ao, F.look.x * (1.0 - smoothstep(0.3, 0.8, wN.y)));
         }
         float3 indirectDiffuse = irradiance * BRDF_Lambert(diff) * ao * aoCorner;

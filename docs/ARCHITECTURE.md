@@ -225,10 +225,12 @@ affects a level's build.
 3. **Shading:** one Metal uber-shader specialised with function constants
    (material kind, maps, vertex colours, instancing, skinning, morph
    targets, fog, the light map, patches, wear). Lambert and Phong are per
-   fragment; lit surfaces lose indirect light toward the floor and, in
-   the rooms, in corners where walls meet each other, the floor and the
-   ceiling (the light map's G and B, `visuals::occlusion`, read from the
-   sample its indirect light already takes), and roll
+   fragment; lit surfaces lose indirect light toward the floor under them
+   (the light map's A: each place's floor height, so on any storey; none
+   over the void) and, in the rooms, in corners where walls meet each
+   other, the floor and the ceiling (its G and B; all three
+   `visuals::occlusion`, read from the sample its indirect light already
+   takes, no texture read of their own), and roll
    their highlights off with a soft shoulder; materials with `wear` (the
    props, see `visuals::prop_look`) get value-noise mottling and grime near
    the floor, and with `wear_use` wear by use, from what the shader already
@@ -248,7 +250,8 @@ affects a level's build.
    from where the things settled (no texture read, no random draw); past a
    thing's draw distance the prop cull draws its chunk without it.
 4. **Patches** (`material::Patch`): the place-based light map (RGBA, 8
-   texels a tile: the light, how open each place is, its ceiling),
+   texels a tile: the light, how open each place is, its ceiling, its
+   floor),
    world-space architecture UVs with a photographed detail over them
    (`ArchDetail`, the rooms' surfaces: `visuals::photo::arch_detail`), skin detail, the smiler's eyes, the watcher's sheet,
    the shadows' smoke edge, the stairwell face; a window's view

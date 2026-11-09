@@ -40,6 +40,11 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
 - **Light** comes from places: panels, tubes, lamps. Never ambient tied to
   the camera, never a lamp cone that follows the player except the
   flashlight itself.
+- **Toward the floor** walls and the sides of things lose up to 45% of
+  their indirect light, at their foot, gone by 0.45 m up: the floor under
+  them, on whatever storey (the light map holds each place's floor: the
+  Building's from about −18 m to +21 m, a pool's under the rooms'). Where
+  there is none (over the void, under a walk) nothing darkens.
 - **The camera:** a mild grade and lens vignette, film grain rising as sanity
   falls. No bloom, no lens flares.
 

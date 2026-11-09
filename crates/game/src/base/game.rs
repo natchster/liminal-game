@@ -261,6 +261,9 @@ pub struct Game {
     /// made of (`shape_key`): made once a level, kept while panels switch
     pub ll_shape: Vec<u8>,
     pub ll_shape_key: u64,
+    /// The light map's floor base (m): the height of its alpha's code 0
+    /// (`visuals::occlusion::floor_codes`)
+    pub ll_floor_base: f64,
     pub player_light: Obj,
     pub halluc_textures: Vec<Tex>,
     pub halluc_shape: Obj,
@@ -832,6 +835,7 @@ impl Game {
             light_map_cpu: vec![],
             ll_shape: vec![],
             ll_shape_key: 0,
+            ll_floor_base: 0.0,
             player_light: point_light(0xffffff, 0, 0, 2),
             halluc_textures: vec![],
             halluc_shape: node(),

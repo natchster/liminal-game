@@ -304,6 +304,8 @@ fn globals(g: &mut Game) -> RenderGlobals {
         },
         pixel_ratio: g.quality.pr / g.scale_factor.max(1.0),
         floor_occlusion: g.floor_occlusion(),
+        floor_base: g.ll_floor_base,
+        floor_step: game::visuals::occlusion::FLOOR_STEP,
         corner_occlusion: g.corner_occlusion(),
     }
 }
