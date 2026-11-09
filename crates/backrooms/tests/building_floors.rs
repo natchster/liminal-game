@@ -290,3 +290,56 @@ fn fronts_of(seed: u32, level: i32) -> (usize, Vec<String>) {
     }
     (p.rooms.len(), wrong)
 }
+
+/// Two of the Building's small faults (`docs/MILESTONES.md` 11) kept mended:
+/// on a floor whose lamps stand on posts (the Stair Halls, the Works) no two
+/// lamp heads stand in one place (a flight's foot lamp was put a hand's
+/// breadth from the lamp over a cell's door beside it, two heads pushed into
+/// the corner of the building); and a room off a walk, a recess with a
+/// storey of building over it, has less of the place's light than the walk
+/// before its doorway (it had the same, and read lit from nowhere)
+#[test]
+fn the_lamps_stand_apart_and_the_rooms_are_darker_than_their_walks() {
+    let found: Vec<(usize, Vec<String>)> = std::thread::scope(|sc| {
+        let hs: Vec<_> = (1..=8u32)
+            .flat_map(|seed| (1..=3).map(move |level| (seed, level)))
+            .map(|(seed, level)| {
+                std::thread::Builder::new().stack_size(64 << 20).spawn_scoped(sc, move || lamps_and_rooms(seed, level)).unwrap()
+            })
+            .collect();
+        hs.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+    });
+    let rooms: usize = found.iter().map(|f| f.0).sum();
+    assert!(rooms >= 8, "rooms enough to try ({rooms})");
+    let wrong: Vec<String> = found.into_iter().flat_map(|f| f.1).collect();
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+fn lamps_and_rooms(seed: u32, level: i32) -> (usize, Vec<String>) {
+    use game::level::archgen::DIRS;
+    use game::level::building::Style;
+    let g = floor(seed, level);
+    let p = g.building.as_ref().unwrap();
+    let mut wrong = vec![];
+    if p.style != Style::Well {
+        for (i, a) in g.panels.iter().enumerate() {
+            for b in &g.panels[i + 1..] {
+                let d = ((a.wx - b.wx).powi(2) + (a.wz - b.wz).powi(2) + (a.y - b.y).powi(2)).sqrt();
+                if d < 0.6 {
+                    wrong.push(format!("seed {seed} L{level}: two lamps {d:.2} m apart at ({:.2}, {:.2}, {:.2})", a.wx, a.y, a.wz));
+                }
+            }
+        }
+    }
+    let cell = g.layout.as_ref().unwrap().cell;
+    for r in &p.rooms {
+        let (x, z) = r.tile;
+        let (dx, dz) = (DIRS[r.door][0] as f64, DIRS[r.door][1] as f64);
+        let room = g.light_map_at(g.wx(x), g.wz(z));
+        let walk = g.light_map_at(g.wx(x) + dx * cell, g.wz(z) + dz * cell);
+        if room >= walk * 0.9 {
+            wrong.push(format!("seed {seed} L{level} room {x},{z}: lit {room:.3}, its walk {walk:.3}"));
+        }
+    }
+    (p.rooms.len(), wrong)
+}

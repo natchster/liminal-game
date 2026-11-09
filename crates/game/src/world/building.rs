@@ -36,6 +36,68 @@ fn along(a: Vec3, b: Vec3, lift: f64, h: f64, t: f64) -> Mat4 {
     Mat4::compose(&c, &q, &Vec3::new(len, h, t))
 }
 
+/// A slab whose underside runs straight from `a` to `b` (tilted with them),
+/// `thick` across itself and `width` wide: the soffit of a flight, under its
+/// steps, so its underside is one sloped face and not the notched underside
+/// of the blocks the steps are (`MILESTONES.md` 11)
+pub(crate) fn soffit(a: Vec3, b: Vec3, thick: f64, width: f64) -> Mat4 {
+    let (dx, dy, dz) = (b.x - a.x, b.y - a.y, b.z - a.z);
+    let run = (dx * dx + dz * dz).sqrt().max(1e-9);
+    let len = (run * run + dy * dy).sqrt();
+    let roll = dy.atan2(run);
+    let q = {
+        let mut q = Quat::from_axis_angle(&Vec3::new(0.0, 1.0, 0.0), (-dz).atan2(dx));
+        q.multiply(&Quat::from_axis_angle(&Vec3::new(0.0, 0.0, 1.0), roll));
+        q
+    };
+    // the slab's own up, square to its underside
+    let n = Vec3::new(-roll.sin() * dx / run, roll.cos(), -roll.sin() * dz / run);
+    let c = Vec3::new((a.x + b.x) / 2.0 + n.x * thick / 2.0, (a.y + b.y) / 2.0 + n.y * thick / 2.0, (a.z + b.z) / 2.0 + n.z * thick / 2.0);
+    Mat4::compose(&c, &q, &Vec3::new(len, thick, width))
+}
+
+/// The fixture round a lamp's lit glass at `at` (boxes of the unit box into
+/// `out`), so it reads as a lamp and not a lit card (`MILESTONES.md` 11):
+/// the Stair Halls' an iron lantern (a base, a corner post at each edge of
+/// the glass and a glazing bar round its middle, a cap and its roof, and on
+/// a wall an arm out to it), the Works' a floodlight's hood and its end
+/// plates; the Well's bulkheads keep their cage (`dress_cells`). `wall` is
+/// the way back to the wall a lamp hangs on. Returns the height of the
+/// fixture's foot (where a post meets it).
+fn lamp_fixture(style: Style, at: Vec3, wall: Option<(f64, f64)>, out: &mut Vec<Mat4>) -> f64 {
+    let mut put = |x: f64, y: f64, z: f64, sx: f64, sy: f64, sz: f64| {
+        out.push(Mat4::compose(&Vec3::new(at.x + x, at.y + y, at.z + z), &Quat::IDENTITY, &Vec3::new(sx, sy, sz)));
+    };
+    match style {
+        Style::Halls => {
+            let e = 0.088;
+            put(0.0, -0.165, 0.0, 0.21, 0.035, 0.21);
+            for (x, z) in [(-e, -e), (e, -e), (-e, e), (e, e)] {
+                put(x, 0.0, z, 0.026, 0.33, 0.026);
+            }
+            for k in [-1.0, 1.0] {
+                put(0.0, 0.03, k * e, 0.2, 0.018, 0.018);
+                put(k * e, 0.03, 0.0, 0.018, 0.018, 0.2);
+            }
+            put(0.0, 0.175, 0.0, 0.25, 0.05, 0.25);
+            put(0.0, 0.225, 0.0, 0.15, 0.05, 0.15);
+            if let Some((wx, wz)) = wall {
+                // the arm from the wall (0.15 m behind the glass's middle) to the roof
+                put(wx * 0.09, 0.265, wz * 0.09, if wx != 0.0 { 0.2 } else { 0.03 }, 0.03, if wz != 0.0 { 0.2 } else { 0.03 });
+            }
+            -0.18
+        }
+        Style::Works => {
+            put(0.0, 0.085, 0.0, 0.54, 0.05, 0.34);
+            for k in [-1.0, 1.0] {
+                put(k * 0.255, 0.02, 0.0, 0.03, 0.17, 0.34);
+            }
+            -0.06
+        }
+        Style::Well => 0.0,
+    }
+}
+
 /// The railing of the place along an edge from `a` to `b` (on the floor)
 fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wall: &str) {
     let point = |t: f64| Vec3::new(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t);
@@ -194,6 +256,17 @@ impl Game {
                                 ),
                             );
                         }
+                        // the flight's soffit: its blocks' undersides step up
+                        // a tread at a time, and seen from the side that is a
+                        // row of notches against the void; a slab under them
+                        // along the line of their lowest edges makes it one
+                        // sloped face (a hair narrower than the tile, so its
+                        // sides do not lie in the steps' own)
+                        let low = |s: f64| h0 + (h1 - h0) * s - rise / n as f64 - SLAB;
+                        let a = Vec3::new(cx - fx * CELL / 2.0, low(0.0), cz - fz * CELL / 2.0);
+                        let b = Vec3::new(cx + fx * CELL / 2.0, low(1.0), cz + fz * CELL / 2.0);
+                        let thick = (rise / n as f64 + 0.03) * CELL / CELL.hypot(rise);
+                        push(format!("floor:{floor}:1"), soffit(a, b, thick, CELL - 0.02));
                     }
                     _ => {}
                 }
@@ -298,30 +371,49 @@ impl Game {
                 if foot.kind != GROUND_FLOOR {
                     continue;
                 }
-                // to one side of the way, so it lights the first steps
+                // to one side of the way, so it lights the first steps. On a
+                // post (the Stair Halls', the Works'), the other side where a
+                // cell's door is on this one, whose lamp hangs over it a
+                // hand's breadth off: two heads in one place, pushed into the
+                // corner of the building (`MILESTONES.md` 11). The Well's
+                // hang on no post, and there the cell's wall holds it
                 let (sx, sz) = (-(DIRS[d][1] as f64), DIRS[d][0] as f64);
-                let (px, pz) = (self.wx(fx) + sx * (CELL / 2.0 - 0.35), self.wz(fz) + sz * (CELL / 2.0 - 0.35));
-                spots.push((px, pz, foot.h0 as f64 + 2.6, true));
+                let y = foot.h0 as f64 + 2.6;
+                let at = |k: f64| (self.wx(fx) + k * sx * (CELL / 2.0 - 0.35), self.wz(fz) + k * sz * (CELL / 2.0 - 0.35));
+                let by_a_cell = |(px, pz): (f64, f64)| {
+                    spots[..plan.cells.len()].iter().any(|s| (s.0 - px).hypot(s.1 - pz) < 1.0 && (s.2 - y).abs() < 1.0)
+                };
+                let other = plan.style != Style::Well && by_a_cell(at(1.0)) && !by_a_cell(at(-1.0));
+                let (px, pz) = if other { at(-1.0) } else { at(1.0) };
+                spots.push((px, pz, y, true));
             }
         }
         let style = plan.style;
+        // the glass of each lamp, lit (the light map and the pooled lights
+        // know it as a panel; `update_lights` sets its colour); the Stair
+        // Halls' and the Works' in a fixture of their own (`lamp_fixture`)
         let geo = match style {
             Style::Well => box_geo!(0.22, 0.14, 0.22),
-            Style::Halls => box_geo!(0.2, 0.34, 0.2),
-            Style::Works => box_geo!(0.5, 0.16, 0.32),
+            Style::Halls => box_geo!(0.17, 0.3, 0.17),
+            Style::Works => box_geo!(0.46, 0.12, 0.28),
         };
         let pm = instanced_mesh(&geo, basic_mat!({ color: if style == Style::Halls { 0xf3d6a0 } else { 0xfff1d0 } }), spots.len());
         let white = Color::white();
         let mut posts: Vec<Mat4> = vec![];
+        let mut fixtures: Vec<Mat4> = vec![];
         for (i, &(x, z, y, post)) in spots.iter().enumerate() {
             let mut m4 = Mat4::IDENTITY;
             m4.make_translation(x, y, z);
             pm.set_matrix_at(i, &m4);
             pm.set_color_at(i, &white);
-            // a post under it, where it does not hang from a wall
+            // the wall a cell's lamp hangs on (none for the others)
+            let wall = plan.cells.get(i).map(|c| (-(DIRS[c.door][0] as f64), -(DIRS[c.door][1] as f64)));
+            let foot = y + lamp_fixture(style, Vec3::new(x, y, z), wall, &mut fixtures);
+            // a post under it, where it does not hang from a wall, up to the
+            // fixture's foot
             if post && style != Style::Well {
                 let f = self.floor_y_at(x, z);
-                posts.push(Mat4::compose(&Vec3::new(x, (f + y) / 2.0, z), &Quat::IDENTITY, &Vec3::new(0.07, (y - f).max(0.1), 0.07)));
+                posts.push(Mat4::compose(&Vec3::new(x, (f + foot) / 2.0, z), &Quat::IDENTITY, &Vec3::new(0.07, (foot - f).max(0.1), 0.07)));
             }
             let seed = rand1(100.0);
             let lfo_freq = 0.15 + rnd() * 0.25;
@@ -338,6 +430,15 @@ impl Game {
                 h_boost: 1.0,
                 ..Default::default()
             });
+        }
+        if !fixtures.is_empty() {
+            let geo = self.unit_box_geo.clone();
+            let mat = match style {
+                // wrought iron, and the Works' grey enamelled steel
+                Style::Halls => lambert!({ color: 0x2f2c28 }),
+                _ => lambert!({ color: 0x55574f }),
+            };
+            self.add_instanced(&geo, &mat, &fixtures, &|m: &Mat4| *m);
         }
         self.world.add(&pm);
         self.panel_mesh = Some(pm);

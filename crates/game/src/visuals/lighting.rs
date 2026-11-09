@@ -48,6 +48,10 @@ pub fn ground_rot() -> Color {
 }
 /// what an open tile keeps of a lit neighbour's light
 pub const LIGHT_SPILL: f64 = 0.42;
+/// how much of its place's light a room off a walk of the Building has (a
+/// recess: the spill from the walk before it lifts it to `LIGHT_SPILL` of
+/// the walk's at least)
+pub const ROOM_LIGHT: f64 = 0.7;
 /// how lit the exit door's tile is at least (its sign and lamps)
 pub const EXIT_LIGHT: f64 = 0.8;
 /// tiles a panel's light counts for, in the map
@@ -358,6 +362,19 @@ impl Game {
             for i in 0..n {
                 if all[i] > 0.0 {
                     k[i] *= on[i] / all[i];
+                }
+            }
+        }
+        // a room off a walk of the Building is a recess, a storey of building
+        // over it and on three sides: it has less of the place's light than
+        // the open walk before it (counted as open, it was lit as the walk,
+        // and its floor read brighter than the walk's: `MILESTONES.md` 11);
+        // the spill below grades it from the doorway in
+        if let Some(plan) = self.building.as_ref() {
+            for r in &plan.rooms {
+                let i = (r.tile.1 * self.w + r.tile.0) as usize;
+                if i < n {
+                    k[i] *= ROOM_LIGHT;
                 }
             }
         }

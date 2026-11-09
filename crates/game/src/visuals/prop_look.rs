@@ -222,28 +222,38 @@ impl Game {
             if top.user().gameplay || keep.iter().any(|k| k.ptr_eq(&top)) {
                 continue;
             }
-            let mut bb = Box3::empty();
-            bb.set_from_object(&top);
-            let wear = if bb.is_empty() {
-                UseWear::default()
-            } else {
-                let size = bb.get_size();
-                let floor = self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
-                let (handled, chips) = handled(bb.min.y - floor, size.y, size.x.max(size.y).max(size.z));
-                UseWear { handled, chips, floor }
-            };
-            top.traverse(&mut |o: &Obj| {
-                if !o.is_mesh() {
-                    return;
-                }
-                o.set_use_wear(wear);
-                for m in o.mats() {
-                    if settle_material(&m) {
-                        n += 1;
-                    }
-                }
-            });
+            n += self.settle_look_of(&top);
         }
+        n
+    }
+
+    /// Settle the look of one prop (`top` and everything under it, placed
+    /// in the world) and set its wear by use; returns the number of
+    /// materials changed. The furniture the Building's rooms are dressed
+    /// with is settled so, as it is made (`building_dress::dress_rooms`)
+    pub fn settle_look_of(&self, top: &Obj) -> usize {
+        let mut n = 0;
+        let mut bb = Box3::empty();
+        bb.set_from_object(top);
+        let wear = if bb.is_empty() {
+            UseWear::default()
+        } else {
+            let size = bb.get_size();
+            let floor = self.floor_y_at((bb.min.x + bb.max.x) / 2.0, (bb.min.z + bb.max.z) / 2.0);
+            let (handled, chips) = handled(bb.min.y - floor, size.y, size.x.max(size.y).max(size.z));
+            UseWear { handled, chips, floor }
+        };
+        top.traverse(&mut |o: &Obj| {
+            if !o.is_mesh() {
+                return;
+            }
+            o.set_use_wear(wear);
+            for m in o.mats() {
+                if settle_material(&m) {
+                    n += 1;
+                }
+            }
+        });
         n
     }
 }

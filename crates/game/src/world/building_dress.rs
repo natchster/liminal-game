@@ -250,7 +250,11 @@ impl Game {
     /// cell is, its front a wide doorway with no door; furnished as its
     /// place furnishes (a resident's table and chair in the Well, a stone
     /// bench in the Stair Halls' piers, an operator's desk, its dead screen
-    /// and a stool in the Works), and on it water or a battery
+    /// and a stool in the Works), and on it water or a battery. The
+    /// furniture is made as props are, of parts, and worn as they are
+    /// (`Game::settle_look_of`); the panels' joints at the Well's room's back
+    /// corners are covered, and the Stair Halls' niche is roofed with a
+    /// granite slab (`ceiling_part`; `MILESTONES.md` 11)
     fn dress_rooms(&mut self, plan: &BuildingPlan, parts: &mut Parts) {
         if plan.rooms.is_empty() {
             return;
@@ -259,11 +263,18 @@ impl Game {
         let wall_mat = self.arch_mat(&format!("{}:1", self.building_wall_kind()));
         let unit = self.unit_box_geo.clone();
         let wall = parts.part(&unit, &wall_mat);
-        let wood = parts.part(&unit, &lambert!({ color: 0x5a4632 }));
-        // (darker than the piers it is set in, or it is lost against them)
-        let stone = parts.part(&unit, &lambert!({ color: 0x3b3731 }));
-        let steel = parts.part(&unit, &lambert!({ color: 0x4f5550 }));
-        let screen = parts.part(&unit, &lambert!({ color: 0x1d2220 }));
+        let ceiling = self.ceiling_part(plan, parts, wall);
+        // (the Stair Halls' bench: the floors' dressed granite)
+        // (a paler cut of it than the floor it stands on, or in the niche's
+        // shade it is lost against the floor and the piers)
+        let slab = if plan.style == Style::Halls {
+            let m = self.arch_mat("floor:stone:0").duplicate();
+            let c = m.m().color;
+            m.m().color.set_rgb(c.r * 1.7, c.g * 1.7, c.b * 1.7);
+            Some(m)
+        } else {
+            None
+        };
         let bottle_geo = pg("Props__almond_bottle", cyl_geo!(0.09, 0.09, 0.3, 10));
         let bottle_mat = lambert!({ color: 0x9fc4d8, emissive: 0x16323e });
         let cap_geo = pg("Props__almond_cap", cyl_geo!(0.05, 0.05, 0.06, 8));
@@ -281,14 +292,9 @@ impl Game {
                 .map(|g| g.h1 as f64)
                 .fold(h + 3.0, f64::max);
             // the building over and under the room
-            let (cx, cz) = (self.wx(x), self.wz(z));
-            parts.put(wall, boxm(Vec3::new(cx, (h + 3.0 + top) / 2.0, cz), 0.0, Vec3::new(CELL, top - h - 3.0, CELL)));
-            parts.put(
-                wall,
-                boxm(Vec3::new(cx, (VOID_DEPTH as f64 + h - 0.4) / 2.0, cz), 0.0, Vec3::new(CELL, h - 0.4 - VOID_DEPTH as f64, CELL)),
-            );
-            // the front: a wide doorway, the wall either side and over it
             let d = c.door;
+            self.over_and_under(parts, wall, ceiling, (x, z), d, h, top);
+            // the front: a wide doorway, the wall either side and over it
             let yaw = yaw_to(d);
             // (`level::building::cell_front_boxes` makes it solid)
             let seg = (CELL - ROOM_DOOR) / 2.0;
@@ -298,43 +304,49 @@ impl Game {
             }
             let p = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, (h + ROOM_DOOR_H + top) / 2.0);
             parts.put(wall, boxm(p, yaw, Vec3::new(ROOM_DOOR, top - h - ROOM_DOOR_H, CELL_FRONT)));
+            let back = |along: f64, out: f64, y: f64| self.face_point(x, z, d ^ 1, along, out, y);
+            // the Well's room is cut into the panels of the block, and their
+            // joints fall at its back corners, a stained dark seam down each
+            // where its sides meet its back (seen from the walk, beside the
+            // doorway): a post of the front's poured concrete in each covers
+            // them, and the panels' windows stay
+            if plan.style == Style::Well {
+                let c = 0.22;
+                for sx in [-1.0, 1.0] {
+                    parts.put(wall, boxm(back(sx * (CELL / 2.0 - c / 2.0), -c / 2.0, h + 1.5), yaw, Vec3::new(c, 3.0, c)));
+                }
+            }
             // what its place leaves in it, at the back, a little to one side
             let side = if r.next() < 0.5 { -1.0 } else { 1.0 };
-            let back = |along: f64, out: f64, y: f64| self.face_point(x, z, d ^ 1, along, out, y);
             let on = match plan.style {
                 Style::Well => {
                     // a resident's table, and the chair pushed back from it
-                    let t = back(side * 0.6, -0.75, h + 0.73);
-                    parts.put(wood, boxm(t, yaw, Vec3::new(1.1, 0.05, 0.7)));
-                    for (lx, lz) in [(-0.5, -0.3), (0.5, -0.3), (-0.5, 0.3), (0.5, 0.3)] {
-                        let leg = back(side * 0.6 + lx, -0.75 + lz, h + 0.36);
-                        parts.put(wood, boxm(leg, yaw, Vec3::new(0.05, 0.72, 0.05)));
-                    }
-                    // (seat and back turned together about the seat's middle)
-                    let seat = back(side * 0.6 - side * 0.2, -1.55, h + 0.45);
+                    let t = back(side * 0.6, -0.75, h);
+                    self.room_piece(room_table(), Vec3::new(t.x, h, t.z), yaw);
+                    // (turned about the seat's middle)
+                    let seat = back(side * 0.6 - side * 0.2, -1.55, h);
                     let turn = r.range(-0.4, 0.4);
-                    parts.put(wood, boxm(seat, yaw + turn, Vec3::new(0.45, 0.05, 0.45)));
-                    let rest = back(side * 0.6 - side * 0.2, -1.76, h + 0.75);
-                    let (ox, oz) = (rest.x - seat.x, rest.z - seat.z);
-                    let (c, s) = (turn.cos(), turn.sin());
-                    let rest = Vec3::new(seat.x + ox * c + oz * s, rest.y, seat.z - ox * s + oz * c);
-                    parts.put(wood, boxm(rest, yaw + turn, Vec3::new(0.45, 0.6, 0.05)));
-                    t + Vec3::new(0.0, 0.025, 0.0)
+                    self.room_piece(room_chair(), Vec3::new(seat.x, h, seat.z), yaw + turn);
+                    Vec3::new(t.x, h + 0.755, t.z)
                 }
                 Style::Halls => {
-                    // a stone bench along the back of a niche in the pier
-                    let b = back(0.0, -0.35, h + 0.22);
-                    parts.put(stone, boxm(b, yaw, Vec3::new(2.4, 0.44, 0.6)));
+                    // a granite slab on two blocks along the back of a niche
+                    // in the pier, of the floors' dressed granite
+                    let k = parts.part(&unit, slab.as_ref().unwrap_or(&wall_mat));
+                    parts.put(k, boxm(back(0.0, -0.33, h + 0.395), yaw, Vec3::new(2.3, 0.09, 0.52)));
+                    for sx in [-0.85, 0.85] {
+                        parts.put(k, boxm(back(sx, -0.33, h + 0.175), yaw, Vec3::new(0.18, 0.35, 0.42)));
+                    }
                     back(side * 0.7, -0.35, h + 0.44)
                 }
                 Style::Works => {
                     // the operator's desk, its dead screen, a stool
-                    let t = back(side * 0.5, -0.5, h + 0.76);
-                    parts.put(steel, boxm(t - Vec3::new(0.0, 0.38, 0.0), yaw, Vec3::new(1.4, 0.76, 0.7)));
-                    let sc = back(side * 0.5 + 0.35, -0.35, h + 0.97);
-                    parts.put(screen, boxm(sc, yaw, Vec3::new(0.42, 0.36, 0.34)));
-                    let stool = back(side * 0.5 - 0.1, -1.4, h + 0.3);
-                    parts.put(steel, boxm(stool, 0.0, Vec3::new(0.36, 0.6, 0.36)));
+                    let t = back(side * 0.5, -0.5, h);
+                    self.room_piece(room_desk(), Vec3::new(t.x, h, t.z), yaw);
+                    let sc = back(side * 0.5 + 0.35, -0.35, h);
+                    self.room_piece(room_screen(), Vec3::new(sc.x, h + 0.76, sc.z), yaw);
+                    let stool = back(side * 0.5 - 0.1, -1.4, h);
+                    self.room_piece(room_stool(), Vec3::new(stool.x, h, stool.z), 0.0);
                     back(side * 0.5 - 0.3, -0.5, h + 0.76)
                 }
             };
@@ -364,6 +376,52 @@ impl Game {
         }
     }
 
+    /// A piece of a room's furniture (`room_table` and the rest: its origin
+    /// on the floor, +z toward the doorway) stood at `at`, turned by `yaw`,
+    /// in the world, its look settled and worn as a prop's
+    fn room_piece(&self, piece: Obj, at: Vec3, yaw: f64) {
+        piece.position().copy(&at);
+        piece.rotation().y = yaw;
+        piece.user().static_prop = true;
+        self.world.add(&piece);
+        self.settle_look_of(&piece);
+    }
+
+    /// The underside of the building over a cell or a room: the place's
+    /// wall, but in the Stair Halls its dressed granite (the floors' slabs).
+    /// The walls' rock-faced ashlar is a face's photograph, and a level face
+    /// lays it by the photograph's width both ways (8 m where it is 6 m
+    /// high), stretching its courses (`MILESTONES.md` 11)
+    fn ceiling_part(&mut self, plan: &BuildingPlan, parts: &mut Parts, wall: usize) -> usize {
+        if plan.style != Style::Halls {
+            return wall;
+        }
+        let m = self.arch_mat("floor:stone:1");
+        let unit = self.unit_box_geo.clone();
+        parts.part(&unit, &m)
+    }
+
+    /// The building over and under a cell or a room at `tile`, its doorway on
+    /// side `d`, its floor at `h` and the building round it up to `top`; a
+    /// ceiling of its own (when `ceiling` is not the wall's) as a slab under
+    /// the building over it, from the back wall to the front wall's inner face
+    #[allow(clippy::too_many_arguments)]
+    fn over_and_under(&self, parts: &mut Parts, wall: usize, ceiling: usize, (x, z): (i32, i32), d: usize, h: f64, top: f64) {
+        let (cx, cz) = (self.wx(x), self.wz(z));
+        let slab = if ceiling == wall { 0.0 } else { 0.12 };
+        let over = (top - h - 3.0 - slab).max(0.0);
+        parts.put(wall, boxm(Vec3::new(cx, h + 3.0 + slab + over / 2.0, cz), 0.0, Vec3::new(CELL, over, CELL)));
+        if slab > 0.0 {
+            let deep = CELL - CELL_FRONT;
+            let c = self.face_point(x, z, d ^ 1, 0.0, -deep / 2.0, h + 3.0 + slab / 2.0);
+            parts.put(ceiling, boxm(c, yaw_to(d), Vec3::new(CELL, slab, deep)));
+        }
+        parts.put(
+            wall,
+            boxm(Vec3::new(cx, (VOID_DEPTH as f64 + h - 0.4) / 2.0, cz), 0.0, Vec3::new(CELL, h - 0.4 - VOID_DEPTH as f64, CELL)),
+        );
+    }
+
     /// Every cell: the front wall with its doorway, the door swung open
     /// inside, its number, the lamp's cage, a bench at the back; the room
     /// closed over and under (the building it is cut into)
@@ -378,6 +436,7 @@ impl Game {
         let dark = lambert!({ color: 0x2c2f2c });
         let bench = parts.part(&unit, &dark);
         let cage = parts.part(&unit, &self.mats.metal);
+        let ceiling = self.ceiling_part(plan, parts, wall);
         for (i, c) in plan.cells.iter().enumerate() {
             let (x, z) = c.tile;
             let h = self.floor_y_of(x, z);
@@ -388,14 +447,9 @@ impl Game {
                 .map(|g| g.h1 as f64)
                 .fold(h + 3.0, f64::max);
             // the building over and under the room
-            let (cx, cz) = (self.wx(x), self.wz(z));
-            parts.put(wall, boxm(Vec3::new(cx, (h + 3.0 + top) / 2.0, cz), 0.0, Vec3::new(CELL, top - h - 3.0, CELL)));
-            parts.put(
-                wall,
-                boxm(Vec3::new(cx, (VOID_DEPTH as f64 + h - 0.4) / 2.0, cz), 0.0, Vec3::new(CELL, h - 0.4 - VOID_DEPTH as f64, CELL)),
-            );
-            // the front, either side of the doorway and over it
             let d = c.door;
+            self.over_and_under(parts, wall, ceiling, (x, z), d, h, top);
+            // the front, either side of the doorway and over it
             let yaw = yaw_to(d);
             let seg = (CELL - CELL_DOOR) / 2.0;
             for sx in [-1.0, 1.0] {
@@ -451,10 +505,14 @@ impl Game {
             let knock_at = self.face_point(x, z, d, 0.0, -0.75, h + EYE);
             self.interact(knock_at, 1.5, "[E] KNOCK", move |g| in_cell(g) && g.cell_knocking(ci), move |g| g.answer_the_door(ci));
             self.interact(inside, 1.7, "[E] HOLD THE WHEEL", move |g| in_cell(g) && g.cell_wheel_tried(ci), move |g| g.hold_the_wheel(ci));
-            // the lamp's cage over the door, outside
-            let lamp = self.face_point(x, z, d, 0.0, 0.15, h + crate::world::building::CELL_LAMP_Y);
-            for (sx, sy, sz) in [(0.26, 0.02, 0.02), (0.02, 0.2, 0.02)] {
-                parts.put(cage, boxm(lamp, yaw, Vec3::new(sx, sy, sz)));
+            // the lamp's cage over the door, outside (the Well's bulkhead's:
+            // the Stair Halls' lantern and the Works' floodlight have their
+            // own fixtures, `world::building::lamp_fixture`)
+            if plan.style == Style::Well {
+                let lamp = self.face_point(x, z, d, 0.0, 0.15, h + crate::world::building::CELL_LAMP_Y);
+                for (sx, sy, sz) in [(0.26, 0.02, 0.02), (0.02, 0.2, 0.02)] {
+                    parts.put(cage, boxm(lamp, yaw, Vec3::new(sx, sy, sz)));
+                }
             }
             // a bench along the back wall
             let back = self.face_point(x, z, d ^ 1, 0.0, -0.3, h + 0.22);
@@ -1017,13 +1075,28 @@ impl Game {
             let n = (len as f64 * 13.0) as usize;
             let (fx, fz) = (DIRS[d][0] as f64, DIRS[d][1] as f64);
             let yaw = if fx != 0.0 { PI / 2.0 } else { 0.0 };
-            for s in 0..n {
+            let (ox, oz) = (self.wx(x), self.wz(z));
+            let at = |s: usize| {
                 let t = s as f64 / n as f64;
-                let p = Vec3::new(
-                    self.wx(x) + fx * (t * len as f64 * CELL - CELL / 2.0),
+                Vec3::new(
+                    ox + fx * (t * len as f64 * CELL - CELL / 2.0),
                     y0 + flight_rise(s, n) * len as f64 * STOREY,
-                    self.wz(z) + fz * (t * len as f64 * CELL - CELL / 2.0),
-                );
+                    oz + fz * (t * len as f64 * CELL - CELL / 2.0),
+                )
+            };
+            // its soffits, under the two runs either side of the landing: a
+            // slab along the line of the steps' lowest front edges, so seen
+            // from the side the flight's underside is one sloped face and
+            // not a row of notches (`MILESTONES.md` 11)
+            let (deep, rise) = (CELL / 13.0 + 0.02, STOREY / 13.0);
+            for (i, j) in [(0, n / 2), (n / 2 + LANDING - 1, n - 1)] {
+                let (a, b) = (at(i), at(j));
+                let low = |p: Vec3| Vec3::new(p.x + fx * deep / 2.0, p.y - 0.2, p.z + fz * deep / 2.0);
+                let thick = (rise + 0.03) * (CELL / 13.0) / (CELL / 13.0).hypot(rise);
+                parts.put(step, crate::world::building::soffit(low(a), low(b), thick, 2.38));
+            }
+            for s in 0..n {
+                let p = at(s);
                 parts.put(step, boxm(p, yaw, Vec3::new(2.4, 0.4, CELL / 13.0 + 0.02)));
                 // where the figure across the void may stand
                 // (`world::far_figures`): the middle of the landing, level
@@ -1098,13 +1171,19 @@ impl Game {
             parts.put(beam, boxm(Vec3::new(tx, ceil - 5.3 - drop / 2.0, zz + 3.0), 0.0, Vec3::new(0.05, drop, 0.05)));
             parts.put(beam, boxm(Vec3::new(tx, ceil - 5.5 - drop, zz + 3.0), 0.0, Vec3::new(0.6, 0.6, 0.4)));
         }
-        // pipes along the faces of the machines by the walks
-        let pipe_geo = cyl_geo!(0.16, 0.16, 1.0, 8);
-        let pipe = parts.part(&pipe_geo, &self.mats.metal);
+        // pipes along the faces of the machines by the walks: where a tile's
+        // draw gives it pipes, two along each face of building beside it
+        // (every draw first, in the order they always were, then the runs)
+        let mut runs: Vec<((i32, i32), usize, usize, f64)> = vec![];
         for zz in 0..self.h {
             for xx in 0..self.w {
                 let g = self.dress_ground(plan, xx, zz);
                 if !g.walkable() || r.next() > 0.5 {
+                    continue;
+                }
+                // (none along a flight: level at one end's height, they ran
+                // through its steps at the other; the draw is kept)
+                if g.kind != GROUND_FLOOR {
                     continue;
                 }
                 for d in 0..4 {
@@ -1112,8 +1191,6 @@ impl Game {
                     if self.dress_ground(plan, mx, mz).kind != GROUND_MASS {
                         continue;
                     }
-                    let along = if DIRS[d][0] != 0 { Vec3::new(0.0, 0.0, 1.0) } else { Vec3::new(1.0, 0.0, 0.0) };
-                    let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
                     for (k, y) in [2.9, 3.3].iter().enumerate() {
                         let y = g.h0 as f64 + y;
                         // (none across a room's doorway, nor over a face that
@@ -1121,13 +1198,212 @@ impl Game {
                         if self.off_face(plan, mx, mz, d ^ 1, y - 0.16, y + 0.16) {
                             continue;
                         }
-                        let p = self.face_point(xx, zz, d, 0.0, -0.25 - k as f64 * 0.38, y);
-                        parts.put(pipe, Mat4::compose(&p, &q, &Vec3::new(1.0, CELL, 1.0)));
+                        runs.push(((xx, zz), d, k, y));
                     }
                 }
             }
         }
+        self.works_pipes(plan, parts, &runs);
     }
+
+    /// The Works' pipes (`dress_works`): each of `runs` (a walk's tile, the
+    /// side its face of building is on, which of the two pipes, its height)
+    /// a tile's length of pipe along that face. Where the next tile along
+    /// has the same pipe, the two meet at a flanged joint; where the face
+    /// turns toward the walk the pipe goes into that wall; elsewhere it
+    /// bends back into its own (a long elbow, a short length, a collar on
+    /// the wall), so no run stops in the air. A bracket holds each length
+    /// to its wall. Painted steel, a little shine (they were flat black,
+    /// their ends rounded caps in the air: `MILESTONES.md` 11)
+    fn works_pipes(&mut self, plan: &BuildingPlan, parts: &mut Parts, runs: &[((i32, i32), usize, usize, f64)]) {
+        const R: f64 = 0.16;
+        const BEND: f64 = 0.24;
+        let pipe_geo = cyl_geo!(R, R, 1.0, 14);
+        let elbow_geo = torus_geo!(BEND, R, 14, 8, PI / 2.0);
+        let flange_geo = cyl_geo!(R + 0.05, R + 0.05, 1.0, 14);
+        let unit = self.unit_box_geo.clone();
+        let paint = phong!({ color: 0x5f6358, specular: 0x1c1c1a, shininess: 26 });
+        let iron = lambert!({ color: 0x46483f });
+        let pipe = parts.part(&pipe_geo, &paint);
+        let elbow = parts.part(&elbow_geo, &paint);
+        let flange = parts.part(&flange_geo, &iron);
+        let bracket = parts.part(&unit, &iron);
+        let has =
+            |t: (i32, i32), d: usize, k: usize, y: f64| runs.iter().any(|r| r.0 == t && r.1 == d && r.2 == k && (r.3 - y).abs() < 0.01);
+        let up = Vec3::new(0.0, 1.0, 0.0);
+        for &((xx, zz), d, k, y) in runs {
+            // out of the wall, and along it (to the right seen from the walk)
+            let n = Vec3::new(-(DIRS[d][0] as f64), 0.0, -(DIRS[d][1] as f64));
+            let along = Vec3::new(-n.z, 0.0, n.x);
+            let off = 0.25 + k as f64 * 0.38;
+            // the point `a` along from the tile's middle, `o` out from the wall
+            let at = |a: f64, o: f64| self.face_point(xx, zz, d, 0.0, -o, y) + along * a;
+            let (mut lo, mut hi) = (-CELL / 2.0, CELL / 2.0);
+            for s in [-1.0, 1.0] {
+                let next = ((xx as f64 + along.x * s).round() as i32, (zz as f64 + along.z * s).round() as i32);
+                let edge = s * CELL / 2.0;
+                if has(next, d, k, y) {
+                    // a flanged joint, drawn once, from the tile on its left
+                    if s > 0.0 {
+                        let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
+                        parts.put(flange, Mat4::compose(&at(edge, off), &q, &Vec3::new(1.0, 0.07, 1.0)));
+                    }
+                    continue;
+                }
+                let wall = self.dress_ground(plan, next.0, next.1);
+                if wall.kind == GROUND_MASS && wall.h1 as f64 > y + R + 0.1 {
+                    // into the wall the face turns into, a collar on it
+                    let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
+                    parts.put(flange, Mat4::compose(&at(edge - s * 0.015, off), &q, &Vec3::new(1.0, 0.03, 1.0)));
+                    continue;
+                }
+                // bent back into its own wall short of the tile's end
+                let start = edge - s * (0.05 + BEND + R);
+                if s < 0.0 {
+                    lo = start;
+                } else {
+                    hi = start;
+                }
+                // the elbow: its arc from +x (the run's end, heading +y) to
+                // +y (heading -x, into the wall) about its centre
+                let sa = along * s;
+                let mut zb = n;
+                zb.cross(&sa);
+                let c = at(start, off - BEND);
+                let mut m = Mat4::IDENTITY;
+                m.make_basis(&n, &sa, &zb);
+                m.e[12] = c.x;
+                m.e[13] = c.y;
+                m.e[14] = c.z;
+                parts.put(elbow, m);
+                // the length on into the wall, and its collar
+                let len = off - BEND;
+                if len > 0.01 {
+                    let q = Quat::from_axis_angle(&Vec3::new(along.x, 0.0, along.z), PI / 2.0);
+                    parts.put(pipe, Mat4::compose(&at(start + s * BEND, len / 2.0), &q, &Vec3::new(1.0, len + 0.02, 1.0)));
+                }
+                let q = Quat::from_axis_angle(&Vec3::new(along.x, 0.0, along.z), PI / 2.0);
+                parts.put(flange, Mat4::compose(&at(start + s * BEND, 0.015), &q, &Vec3::new(1.0, 0.03, 1.0)));
+            }
+            // the length along the face, between its ends
+            let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
+            parts.put(pipe, Mat4::compose(&at((lo + hi) / 2.0, off), &q, &Vec3::new(1.0, hi - lo, 1.0)));
+            // a bracket under it, from the wall, in the tile's middle
+            let b = at((lo + hi) / 2.0, (off + 0.1) / 2.0) - up * (R + 0.03);
+            parts.put(bracket, Mat4::compose(&b, &Quat::from_axis_angle(&up, yaw_to(d)), &Vec3::new(0.06, 0.05, off + 0.1)));
+        }
+    }
+}
+
+/// A mesh of `geo` in `mat` at (x, y, z) under `g`, scaled by `s`
+fn piece_part(g: &Obj, geo: Geo, mat: &Mat, (x, y, z): (f64, f64, f64), s: (f64, f64, f64)) -> Obj {
+    let m = mesh(geo, mat);
+    m.position().set(x, y, z);
+    m.scale().set(s.0, s.1, s.2);
+    g.add(&m);
+    m
+}
+
+/// The Well's resident's table: a top a little proud of its apron, four legs
+/// tapering to the floor (its top at 0.755 m, where a thing is set on it)
+fn room_table() -> Obj {
+    let g = group();
+    let wood = lambert!({ color: 0x5a4632 });
+    let one = (1.0, 1.0, 1.0);
+    piece_part(&g, box_geo!(1.1, 0.035, 0.7), &wood, (0.0, 0.7375, 0.0), one);
+    for k in [-1.0, 1.0] {
+        piece_part(&g, box_geo!(0.94, 0.08, 0.02), &wood, (0.0, 0.68, k * 0.29), one);
+        piece_part(&g, box_geo!(0.02, 0.08, 0.54), &wood, (k * 0.47, 0.68, 0.0), one);
+    }
+    for (lx, lz) in [(-0.49, -0.3), (0.49, -0.3), (-0.49, 0.3), (0.49, 0.3)] {
+        piece_part(&g, box_geo!(0.05, 0.36, 0.05), &wood, (lx, 0.54, lz), one);
+        piece_part(&g, box_geo!(0.036, 0.36, 0.036), &wood, (lx, 0.18, lz), one);
+    }
+    g
+}
+
+/// Its chair, a plain wooden kitchen chair of the props' parts (the rooms'
+/// detailed chair without its cushion): its seat 0.45 m up, its back toward
+/// +z (pushed back from the table, it faces it)
+fn room_chair() -> Obj {
+    let g = group();
+    let wood = lambert!({ color: 0x4c3b22 });
+    let one = (1.0, 1.0, 1.0);
+    piece_part(&g, pg("Props__chair_seat", box_geo!(0.50, 0.05, 0.50)), &wood, (0.0, 0.45, 0.0), (0.9, 1.0, 0.9));
+    for (lx, lz) in [(-0.18, -0.18), (0.18, -0.18), (-0.18, 0.18), (0.18, 0.18)] {
+        piece_part(&g, pg("Props__chair_legTop", box_geo!(0.05, 0.30, 0.05)), &wood, (lx, 0.28, lz), one);
+        piece_part(&g, pg("Props__chair_legBottom", box_geo!(0.035, 0.18, 0.035)), &wood, (lx, 0.09, lz), one);
+    }
+    for k in [-1.0, 1.0] {
+        piece_part(&g, pg("Props__chair_post", box_geo!(0.045, 0.62, 0.045)), &wood, (k * 0.2, 0.76, 0.2), one);
+        piece_part(&g, pg("Props__chair_braceX", box_geo!(0.42, 0.02, 0.02)), &wood, (0.0, 0.14, k * 0.18), (0.86, 1.0, 1.0));
+        piece_part(&g, pg("Props__chair_braceZ", box_geo!(0.02, 0.02, 0.42)), &wood, (k * 0.18, 0.14, 0.0), (1.0, 1.0, 0.86));
+    }
+    for y in [0.68, 0.98] {
+        piece_part(&g, pg("Props__chair_rail", box_geo!(0.48, 0.04, 0.03)), &wood, (0.0, y, 0.2), (0.85, 1.0, 1.0));
+    }
+    for k in 0..4 {
+        piece_part(&g, pg("Props__chair_slat", box_geo!(0.025, 0.32, 0.02)), &wood, (-0.12 + k as f64 * 0.08, 0.83, 0.2), one);
+    }
+    g
+}
+
+/// The Works' operator's desk: the offices' steel desk and its laminate top
+/// (the barricades' parts), its top at 0.76 m
+fn room_desk() -> Obj {
+    let g = group();
+    let k = 0.76 / 0.754;
+    // (each fitted to its box about its middle: the desk 0-0.72 m, its top 0.718-0.754)
+    piece_part(&g, pg("Barricade__desk", box_geo!(1.52, 0.72, 0.76)), &lambert!({ color: 0x6b6f66 }), (0.0, 0.36 * k, 0.0), (1.0, k, 1.0));
+    piece_part(
+        &g,
+        pg("Barricade__deskTop", box_geo!(1.54, 0.036, 0.78)),
+        &lambert!({ color: 0x8a8273 }),
+        (0.0, 0.736 * k, 0.0),
+        (1.0, k, 1.0),
+    );
+    g
+}
+
+/// Its dead screen: a small monitor of the rooms' television's parts at half
+/// its size, its glass dark (its origin on the desk top, its face +z)
+fn room_screen() -> Obj {
+    let g = group();
+    let half = (0.5, 0.5, 0.5);
+    piece_part(&g, pg("Props__crtTv_body", box_geo!(0.85, 0.62, 0.55)), &lambert!({ color: 0x8a8577 }), (0.0, 0.155, 0.0), half);
+    piece_part(&g, pg("Props__crtTv_bezel", box_geo!(0.72, 0.52, 0.02)), &lambert!({ color: 0x77736a }), (0.0, 0.16, 0.138), half);
+    let glass = phong!({ color: 0x161a19, specular: 0x2a2a2a, shininess: 70 });
+    piece_part(&g, box_geo!(0.3, 0.22, 0.008), &glass, (0.0, 0.16, 0.146), (1.0, 1.0, 1.0));
+    g
+}
+
+/// Its stool: a round steel seat on a post, three legs splayed to the floor
+/// and a foot ring
+fn room_stool() -> Obj {
+    let g = group();
+    let steel = lambert!({ color: 0x5a5d58 });
+    let one = (1.0, 1.0, 1.0);
+    piece_part(&g, cyl_geo!(0.17, 0.165, 0.045, 18), &lambert!({ color: 0x3e403c }), (0.0, 0.6, 0.0), one);
+    piece_part(&g, cyl_geo!(0.025, 0.025, 0.24, 8), &steel, (0.0, 0.46, 0.0), one);
+    let ring = piece_part(&g, torus_geo!(0.15, 0.01, 6, 20), &steel, (0.0, 0.2, 0.0), one);
+    ring.rotation().x = PI / 2.0;
+    for k in 0..3 {
+        let a = k as f64 * 2.0 * PI / 3.0 + 0.3;
+        let (top, foot) = (Vec3::new(0.03 * a.cos(), 0.36, 0.03 * a.sin()), Vec3::new(0.21 * a.cos(), 0.0, 0.21 * a.sin()));
+        let dir = Vec3::new(top.x - foot.x, top.y - foot.y, top.z - foot.z);
+        let len = dir.length();
+        let leg = piece_part(
+            &g,
+            cyl_geo!(0.013, 0.013, 1.0, 6),
+            &steel,
+            ((top.x + foot.x) / 2.0, top.y / 2.0, (top.z + foot.z) / 2.0),
+            (1.0, len, 1.0),
+        );
+        let mut q = Quat::IDENTITY;
+        q.set_from_unit_vectors(&Vec3::new(0.0, 1.0, 0.0), &Vec3::new(dir.x / len, dir.y / len, dir.z / len));
+        leg.quaternion().copy(&q);
+    }
+    g
 }
 
 /// How many steps of a flight that crosses the void are its landing,

@@ -86,6 +86,18 @@ from before `03e4b80` benches out loud.
   machine. The same code measures the same on both sides of the window
   today, 0.06–0.09 ms over what it measured on November 3. Kept.
 
+- **The Building's small faults** (milestone 11, `0931fa3+` in the
+  history: no step flagged yet, so written down before one is): the Works'
+  triangles 32k → 81k on 4242 L3 and 49k → 104k on 7 L3, and 10–40 more
+  draw calls on every Building floor. The Works' pipes are runs now, with
+  their flanged joints, elbows back into the wall, collars and brackets,
+  and the pipe itself 14-sided (8 before); the Stair Halls' lamps are
+  lanterns and the Works' floodlights have hoods; the rooms off the walks
+  are furnished with parts. Measured against the parent's binary in turn
+  (three rounds), the builds held (37.5–42.5 → 37.9–41.6 ms) and the
+  first frames moved within a millisecond (4242 L3 5.8 → 8.2 ms, 7 L2
+  10.1 → 6.9). Content, far within budget; kept.
+
 ## The update's tail (milestone 14, 2026-11-09)
 
 The release binary's bench modes (`--bench`, `--bench-creatures`) are the
