@@ -709,6 +709,31 @@ impl Game {
         self.show_msg(&format!("{} — {}", z.title, z.lore), 2.4);
     }
 
+    /// The lamp whose ballast hums for one standing at (x, z), and how far
+    /// it is (m): the nearest lit lamp of their own storey, the floor under
+    /// it within half a storey of theirs (on the rooms every floor is at 0),
+    /// the rise between the two floors counted in how far it is (none on a
+    /// level walk); with none of theirs lit, the nearest of any so measured.
+    /// By the floor plan alone, on the Building a lamp a storey above or
+    /// below stood nearest at a sixth of the walks' tiles, and set the hum
+    /// at full strength at one in twenty (code review 4b). (x, z) is where
+    /// one stands: inside a mass the floor read is its foot's
+    /// (`tests/building_floors.rs`, `the_hum_sits_at_a_lamp_of_your_storey`)
+    pub fn hum_lamp(&self, x: f64, z: f64) -> Option<(usize, f64)> {
+        let floor = self.floor_y_at(x, z);
+        let half = crate::level::building::STOREY / 2.0;
+        self.panels
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.bright >= 0.3)
+            .map(|(i, p)| {
+                let rise = self.floor_y_at(p.wx, p.wz) - floor;
+                (rise.abs() >= half, (p.wx - x).powi(2) + (p.wz - z).powi(2) + rise * rise, i)
+            })
+            .min_by(|a, b| a.0.cmp(&b.0).then(a.1.total_cmp(&b.1)))
+            .map(|(_, d2, i)| (i, d2.sqrt()))
+    }
+
     /// Listener, reverb zone, zone captions, the ballast hum
     pub fn update_soundscape(&mut self, dt: f64) {
         let Some(ss) = self.soundscape() else { return };
@@ -721,23 +746,12 @@ impl Game {
         let zf = self.zone_at_world(self.player.pos.x, self.player.pos.z).and_then(|zi| self.zone_fields(zi));
         ss.set_zone(if dark { "silent" } else { zf.as_ref().map(|z| z.arch).unwrap_or("lobby") }, 1.2);
         self.note_zone_entry(zf);
-        // the hum sits at the nearest live fixture; re-pick a few times a second
+        // the hum sits at the nearest live fixture of your storey; re-pick a
+        // few times a second
         self.hummer_t -= dt;
         if self.hummer_t <= 0.0 {
             self.hummer_t = 0.25;
-            let mut best: Option<usize> = None;
-            let mut bd = 1e9;
-            for (i, p) in self.panels.iter().enumerate() {
-                if p.bright < 0.3 {
-                    continue;
-                }
-                let d = (p.wx - self.player.pos.x).powi(2) + (p.wz - self.player.pos.z).powi(2);
-                if d < bd {
-                    bd = d;
-                    best = Some(i);
-                }
-            }
-            self.hum_panel = best.map(|p| HumPanel { p, d: bd.sqrt() });
+            self.hum_panel = self.hum_lamp(self.player.pos.x, self.player.pos.z).map(|(p, d)| HumPanel { p, d });
         }
         let hp = match self.hum_panel {
             Some(hp) if !dark && hp.p < self.panels.len() => hp,

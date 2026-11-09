@@ -651,6 +651,13 @@ impl Knocked {
     }
 }
 
+/// How far door `d` is from the lamp whose hum is heard where you stand to
+/// knock at it (`Game::hum_lamp`: the nearest lit lamp of that storey)
+fn door_lamp(g: &Game, d: &game::world::knock::KnockDoor) -> f64 {
+    let s = d.stand();
+    g.hum_lamp(s.x, s.z).map_or(f64::MAX, |(l, _)| (g.panels[l].wx - d.foot.x).hypot(g.panels[l].wz - d.foot.z))
+}
+
 /// Knock at an answering door and then at a red one of `seed`'s Well (the
 /// doors `pick` chooses), from where you stand to knock at each; recorded as
 /// `target/listen/{name}.wav`
@@ -659,10 +666,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
     game::base::rng::seed_native(0x4B0C_0001);
     let mut r = start(seed, 1);
     let (answers, red) = pick(&r.g);
-    let lamp = |g: &Game, i: usize| {
-        let d = &g.knocks.doors[i];
-        g.panels.iter().filter(|p| p.bright >= 0.3).map(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z)).fold(f64::MAX, f64::min)
-    };
+    let lamp = |g: &Game, i: usize| door_lamp(g, &g.knocks.doors[i]);
     let lamps = (lamp(&r.g, answers), lamp(&r.g, red));
     let face = |g: &mut Game, i: usize| {
         let d = g.knocks.doors[i].clone();
@@ -803,12 +807,7 @@ fn a_knock_is_heard_beside_a_lamp() {
                         .filter(|&i| want(&g.knocks.doors[i]))
                         .map(|i| {
                             let d = &g.knocks.doors[i];
-                            let m = g
-                                .panels
-                                .iter()
-                                .filter(|p| p.bright >= 0.3)
-                                .map(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z))
-                                .fold(f64::MAX, f64::min);
+                            let m = door_lamp(g, d);
                             (m, i)
                         })
                         .min_by(|a, b| a.0.total_cmp(&b.0))
@@ -962,6 +961,9 @@ struct Going {
     /// knocks' gains still held then
     nodes: (usize, usize),
     held: usize,
+    /// held (let go): each pull against your hold, its loudest in the band
+    /// over the bed (dB) and whether it is heard come
+    strain: Vec<(f64, bool)>,
 }
 
 /// Sealed in a cell of seed 4242's Well (the one of the wheel's test),
@@ -986,7 +988,9 @@ fn cell_going(how: &str) -> Going {
     r.g.player.pos = engine::math::Vec3::new(wx, h + game::prelude::EYE, wz);
     r.g.player.yaw = (-(door.x - wx)).atan2(-(door.z - wz));
     r.g.player.pitch = 0.0;
-    let lamp = r.g.panels.iter().filter(|p| p.bright >= 0.3).map(|p| (p.wx - door.x).hypot(p.wz - door.z)).fold(f64::MAX, f64::min);
+    // (the lamp whose hum is heard in the cell: the nearest lit one of its
+    // storey, `Game::hum_lamp`; how far it is from the door)
+    let lamp = r.g.hum_lamp(wx, wz).map_or(f64::MAX, |(l, _)| (r.g.panels[l].wx - door.x).hypot(r.g.panels[l].wz - door.z));
     r.g.turn_cell_wheel(ci, true);
     r.g.assembly.t = 1e6;
     // (the wheel's own turn, then the cell's bed; the graph's nodes over its
@@ -1013,6 +1017,8 @@ fn cell_going(how: &str) -> Going {
     let (mut answered, mut held) = (None, false);
     let (mut going, mut gone, mut open, mut knock_until) = (None, None, None, t_fog);
     let mut pulls: Vec<f64> = vec![];
+    // (the pulls against your hold: E kept down since a frame before)
+    let mut held_pulls: Vec<f64> = vec![];
     let mut pull_t = 0.0;
     let mut nodes_after = usize::MAX;
     let mut t = t_fog;
@@ -1023,6 +1029,9 @@ fn cell_going(how: &str) -> Going {
             let before = t - 1.0 / 60.0;
             if g.assembly.door.visit == Visit::Trying && g.assembly.door.pull_t > pull_t {
                 pulls.push(before);
+                if held {
+                    held_pulls.push(before);
+                }
             }
             pull_t = g.assembly.door.pull_t;
             if shown(g, "[E] KNOCK") {
@@ -1077,6 +1086,12 @@ fn cell_going(how: &str) -> Going {
             .collect()
     });
     let heard = onsets(&band, going - 0.05, gone, bed_band * 4.0);
+    // each pull against your hold: its loudest in the band over the bed, and
+    // whether it is heard come
+    let strain: Vec<(f64, bool)> = held_pulls
+        .iter()
+        .map(|&p| (db(peak(&wb, p, p + 0.45) / bed_band), !onsets(&band, p - 0.05, p + 0.4, bed_band * 4.0).is_empty()))
+        .collect();
     let split = if answered.is_some() { 1.min(heard.len()) } else { 0 };
     Going {
         lamp,
@@ -1095,6 +1110,7 @@ fn cell_going(how: &str) -> Going {
         open: open - going,
         nodes: (nodes_before, nodes_after),
         held: r.g.audio.cell_knocks.len(),
+        strain,
     }
 }
 
@@ -1109,7 +1125,10 @@ fn cell_going(how: &str) -> Going {
 ///   going (not steps: something wet drawn off the door and away), three
 ///   breaths or more each heard come, the loudest 12 dB over the bed;
 /// - answered and held until it lets go: nothing heard knock after your
-///   raps (its raps still to come hushed), its hold heard slipping from the
+///   raps (its raps still to come hushed); each of its pulls against your
+///   hold heard come, 12 dB over the bed (the spokes' creak of steel under
+///   load: the rest of the strain, a 700 Hz creak and the bolts' thud, is
+///   under the hum: code review 4b); its hold heard slipping from the
 ///   wheel, and then its going;
 /// - the door to open shown only after the last breath heard, once its
 ///   going has died away;
@@ -1120,7 +1139,8 @@ fn cell_going(how: &str) -> Going {
 ///
 /// With the going's sounds at gain 0 this fails, as with the knock's click
 /// and ring at gain 0, or its raps not hushed by your answer, or its
-/// knocks' gains kept after its going.
+/// knocks' gains kept after its going, or the strain's creak at gain 0
+/// (`sys::WHEEL_STRAIN`).
 #[test]
 fn what_knocks_is_heard_going() {
     use game::world::cell_knock::{GOING_AFTER, GOING_BREATHS};
@@ -1128,7 +1148,7 @@ fn what_knocks_is_heard_going() {
         let g = cell_going(how);
         let r = |v: &[f64]| v.iter().map(|x| (x * 100.0).round() / 100.0).collect::<Vec<_>>();
         println!(
-            "a cell on the Well {:.1} m from a lit lamp, {how}, {} knocks: the bed {:.1} dB ({:.1} in {}-{} Hz); its knocking {:+.1} dB in the band, raps heard come at {:?} s; after your answer {:?}; its going {:+.1} dB over the bed ({:+.1} in the band), the hold slipping at {:?} s, {} of its {GOING_BREATHS} breaths heard come at {:?} s; [E] KNOCK last shown at {:.2} s, gone at {:.2} s, the door to open at {:.2} s; the graph {} nodes before, {} once gone ({} knocks' gains held)",
+            "a cell on the Well {:.1} m from a lit lamp, {how}, {} knocks: the bed {:.1} dB ({:.1} in {}-{} Hz); its knocking {:+.1} dB in the band, raps heard come at {:?} s; after your answer {:?}; its pulls against your hold {:?} dB in the band (heard come: {:?}); its going {:+.1} dB over the bed ({:+.1} in the band), the hold slipping at {:?} s, {} of its {GOING_BREATHS} breaths heard come at {:?} s; [E] KNOCK last shown at {:.2} s, gone at {:.2} s, the door to open at {:.2} s; the graph {} nodes before, {} once gone ({} knocks' gains held)",
             g.lamp,
             g.knocks,
             g.bed,
@@ -1138,6 +1158,8 @@ fn what_knocks_is_heard_going() {
             g.knocking_band,
             r(&g.knocking),
             r(&g.after_answer),
+            g.strain.iter().map(|s| (s.0 * 10.0).round() / 10.0).collect::<Vec<_>>(),
+            g.strain.iter().map(|s| s.1).collect::<Vec<_>>(),
             g.peak,
             g.peak_band,
             r(&g.let_go),
@@ -1155,6 +1177,12 @@ fn what_knocks_is_heard_going() {
         assert!(g.peak_band >= 12.0, "{how}: its going heard over the hum: {:+.1} dB", g.peak_band);
         if how == "let go" {
             assert!(g.after_answer.is_empty(), "{how}: answered, it knocks no more: {:?}", g.after_answer);
+            assert!(g.strain.len() >= 3, "{how}: it pulls against your hold: {:?}", g.strain);
+            assert!(
+                g.strain.iter().all(|&(peak, came)| came && peak >= 12.0),
+                "{how}: each pull against your hold heard over the hum: {:?}",
+                g.strain
+            );
             assert_eq!(g.let_go.len(), 1, "{how}: its hold heard slipping: {:?}", g.let_go);
             assert!(g.breaths[0] >= GOING_AFTER - 0.1, "{how}: its going after it let go: {:?}", g.breaths);
         } else {

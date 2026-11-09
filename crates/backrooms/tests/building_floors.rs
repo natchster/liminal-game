@@ -387,3 +387,68 @@ fn the_light_maps_shape_is_made_once_and_kept() {
         assert_eq!(g.ll_shape, Some(next), "seed {seed} L{}: its own shape", level % 3 + 1);
     }
 }
+
+/// The ballast's hum sits at the nearest lit lamp of your own storey
+/// (`Game::hum_lamp`, code review 4b): wherever you stand on a floor of the
+/// Building, the lamp it picks has its floor within half a storey of yours
+/// when one is lit there, and is the nearest of those on the plan. By the
+/// plan alone a lamp a storey above or below stood nearest at about a sixth
+/// of the walks' tiles, and within the hum's full strength (5.6 m) at one
+/// in twenty. On the rooms, every floor at 0, it is the plan's nearest
+#[test]
+fn the_hum_sits_at_a_lamp_of_your_storey() {
+    use game::level::building::STOREY;
+    let (mut tiles, mut by_plan_other) = (0, 0);
+    for seed in [4242, 77, 1999, 7] {
+        for level in [1, 2, 3, 5] {
+            let g = floor(seed, level);
+            let lit: Vec<usize> = (0..g.panels.len()).filter(|&i| g.panels[i].bright >= 0.3).collect();
+            let plan = |i: usize, x: f64, z: f64| (g.panels[i].wx - x).hypot(g.panels[i].wz - z);
+            for tz in 0..g.h {
+                for tx in 0..g.w {
+                    let i = (tz * g.w + tx) as usize;
+                    let walk = if g.ground.is_empty() { g.tiles[i] == 0 } else { g.ground[i].walkable() };
+                    if !walk {
+                        continue;
+                    }
+                    let (x, z) = (g.wx(tx), g.wz(tz));
+                    let floor = g.floor_y_at(x, z);
+                    let mine: Vec<usize> = lit
+                        .iter()
+                        .copied()
+                        .filter(|&l| (g.floor_y_at(g.panels[l].wx, g.panels[l].wz) - floor).abs() < STOREY / 2.0)
+                        .collect();
+                    let Some((at, _)) = g.hum_lamp(x, z) else {
+                        assert!(lit.is_empty(), "seed {seed} L{level} ({tx}, {tz}): no lamp hums, {} lit", lit.len());
+                        continue;
+                    };
+                    tiles += 1;
+                    let nearest = |of: &[usize]| of.iter().map(|&l| plan(l, x, z)).fold(f64::MAX, f64::min);
+                    if level <= 3 && !mine.contains(&lit.iter().copied().min_by(|&a, &b| plan(a, x, z).total_cmp(&plan(b, x, z))).unwrap())
+                    {
+                        by_plan_other += 1;
+                    }
+                    if !mine.is_empty() {
+                        assert!(
+                            mine.contains(&at),
+                            "seed {seed} L{level} ({tx}, {tz}) on {floor:.1} m: the hum at a lamp of another storey ({:.1} m)",
+                            g.panels[at].y
+                        );
+                        assert!(
+                            plan(at, x, z) <= nearest(&mine) + 1e-9,
+                            "seed {seed} L{level} ({tx}, {tz}): the nearest of its storey's lamps"
+                        );
+                    }
+                    if level > 3 {
+                        assert!(
+                            plan(at, x, z) <= nearest(&lit) + 1e-9,
+                            "seed {seed} L{level} ({tx}, {tz}): on the rooms, the plan's nearest"
+                        );
+                    }
+                }
+            }
+        }
+    }
+    println!("{tiles} tiles; by the plan alone, another storey's lamp at {by_plan_other} of the Building's");
+    assert!(by_plan_other > 0, "the plan alone had picked another storey's lamp somewhere");
+}

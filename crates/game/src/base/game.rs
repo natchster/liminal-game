@@ -1390,6 +1390,33 @@ impl Game {
     ) {
         self.noise_burst_with(|| at, attack, dur, freq, q, gain, ty, slide_to, delay, 0.0);
     }
+    /// A creak of steel under load: a sawtooth's pulses, `rate` a second
+    /// gliding to `rate_to` (the slips of stick and slip), each ringing a
+    /// band at `freq` (Q `q`) as it strikes; swelling in over 40 ms and
+    /// falling away over `dur`. Oscillators only: it draws nothing
+    #[allow(clippy::too_many_arguments)]
+    pub fn creak(&self, rate: f64, rate_to: f64, freq: f64, q: f64, gain: f64, dur: f64, delay: f64) {
+        let (Some(ac), Some(master)) = (&self.ac, &self.master) else { return };
+        let (gain, pan) = self.routed(gain, 0.0);
+        let t0 = ac.current_time() + delay;
+        let o = ac.create_oscillator();
+        o.set_type("sawtooth");
+        o.frequency().set_value_at_time(rate, t0);
+        o.frequency().exponential_ramp_to_value_at_time(rate_to, t0 + dur);
+        let f = ac.create_biquad_filter();
+        f.set_type("bandpass");
+        f.frequency().set_value(freq);
+        f.q().set_value(q);
+        let g = ac.create_gain();
+        g.gain().set_value_at_time(0.0001, t0);
+        g.gain().linear_ramp_to_value_at_time(gain, t0 + 0.04);
+        g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + dur);
+        o.connect(&f);
+        f.connect(&g);
+        self.one_shot_out(ac, master, &g, pan);
+        o.start(t0);
+        o.stop(t0 + dur + 0.05);
+    }
     /// (`at` is asked for where the burst starts, after the early return: a
     /// burst with no audio draws nothing)
     fn noise_burst_with(

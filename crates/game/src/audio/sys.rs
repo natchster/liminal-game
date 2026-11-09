@@ -67,6 +67,9 @@ pub struct AudioSys {
     pub cell_knocks: Vec<AudioNode>,
 }
 
+/// How loud the held wheel's creak of steel is (`sfx_wheel_tried`)
+pub const WHEEL_STRAIN: f64 = 0.5;
+
 /// The level of a voice line in the mix: its WAV as made (-16 LUFS, true
 /// peak under -1 dBTP), so your cry stands far over the room and never clips
 /// (`tests/listen.rs`: the formant cry it replaces hit 0 dBFS)
@@ -557,12 +560,21 @@ impl Game {
     /// A cell's wheel tried from outside (`world::cell_knock`; play it at
     /// the door), one pull: turning, the screw's squeal shorter than a turn
     /// of your own and a little lower; held against it from inside, the
-    /// steel binding (a dull creak) and the bolts knocking in their keeps
+    /// steel binding (a dull creak) and the bolts knocking in their keeps,
+    /// and over the lamp's ballast (its series stops at 1.08 kHz) the
+    /// spokes slipping and gripping in your hands as it pulls, a creak of
+    /// steel under load ringing at 1.9 and 2.9 kHz, so the strain is heard
+    /// beside the cell's lamp as well as seen (`tests/listen.rs`,
+    /// `what_knocks_is_heard_going`). Its creak is oscillators: no draw
+    /// added to the two bursts'
     pub fn sfx_wheel_tried(&self, held: bool) {
         if held {
             self.noise_burst(0.35, 700.0, 4.0, 0.12, "bandpass", Some(520.0), 0.0, 0.0);
             self.noise_burst(0.06, 420.0, 1.2, 0.16, "lowpass", None, 0.28, 0.0);
             self.blip(64.0, 0.18, "sine", 0.12, Some(48.0), 0.28, 0.0);
+            // (the slips come quicker as it pulls harder)
+            self.creak(26.0, 42.0, 1900.0, 5.0, WHEEL_STRAIN, 0.42, 0.0);
+            self.creak(26.0, 42.0, 2900.0, 7.0, WHEEL_STRAIN * 0.5, 0.42, 0.0);
         } else {
             // (the screw squeals, catches, and squeals again lower)
             self.noise_burst(0.55, 2300.0, 6.0, 0.06, "bandpass", Some(1700.0), 0.0, 0.0);

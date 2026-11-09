@@ -28,8 +28,9 @@ tell whether it sounds right. Plan for that from the start.
    listen test, `what_knocks_is_heard_going`).
 
    **Beside a lamp.** Within a few metres of a lit lamp the ballast's hum
-   is the bed (`Hum`: 60 Hz, 120 Hz and its series to 1.08 kHz, at full
-   strength within 5.6 m; the Well's bed −35 dB there against −43 dB away
+   is the bed (`Hum`: 60 Hz, 120 Hz and its series to 1.08 kHz, at the
+   nearest lit lamp of your storey, `Game::hum_lamp`, and at full
+   strength within 5.6 m of it; the Well's bed −35 dB there against −43 dB away
    from the lamps). A sound built only below 1.2 kHz (a lowpassed thud, a
    low sine) is not heard there: give what must be heard anywhere a part
    above it (a click, a ring, a heel), or, for a held note, measure it in

@@ -1118,8 +1118,9 @@ cold was settled when the floor was made.
 
 - The lamps hum at **120 Hz, twice the mains frequency**, with a full harmonic
   series and a buzzy crackle chopped at the same rate. The hum comes from the
-  nearest live fixture. It drifts, and now and then **swells until your teeth
-  ache**.
+  nearest live fixture of the floor you stand on (on the Building, of your
+  own storey: the lamps of the walks over and under you are not it). It
+  drifts, and now and then **swells until your teeth ache**.
 - Each kind of place has its own room sound: dead over wet carpet, long and
   bright in concrete halls, flutter echo in tunnels and the Stairwell, and in
   the Poolrooms a reverb that stops too soon.
