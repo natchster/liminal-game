@@ -8,8 +8,20 @@ canon it serves is [`LORE.md`](LORE.md); every change here quotes a rule in
 (Since 2026-10-27 the descent begins in the Building, three floors of vast
 concrete above the rooms, where the challenge is the way down and the
 danger far off: [`MEGASTRUCTURE.md`](MEGASTRUCTURE.md). Her trail, camps
-and pages run through them as below; her camp there is a cell, and her page
-sounds the siren.)
+and pages run through them as below; her camp there is a cell, and her
+page sounds the siren. Since the Building's second pass
+(`MEGASTRUCTURE.md` G1–G8, 2026-11-07 to 11-09) a floor there is half as
+long, a way of some 85 tiles of walk (the playthrough's bot walks it in a
+median 70–90 s), her trail 38–39 marks a floor (`tests/building_floors.rs`),
+and so is its self-assembly: her page sounds the siren within 2–4.5 s, the
+first floor's first quiet while her camp is there is 60–80 s, and on most
+floors a siren comes before the door. Off the way there is more to choose:
+every walk that goes nowhere ends on something, rooms off the walks hold
+water or a battery, and on the Well a sealed door knocked at may answer
+with a resident's word of the way, or, marked by the cleaners, bring the
+siren within seconds (`world::knock`; pillar 5: the player chooses when
+the dread starts); sealed in a cell, what knocks at it can be answered,
+and then the wheel must be held (`world::cell_knock`).)
 
 ## The analysis (2026-10-26)
 

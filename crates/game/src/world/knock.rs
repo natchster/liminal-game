@@ -367,7 +367,7 @@ impl Game {
                 let w = self.knock_way(i, plan.exit)?;
                 let s = w.storey;
                 Some(match hand {
-                    0 => format!("Down is under the lit windows. {}, {}, to storey {s}.", cap(&w.dir(0)), w.flights(0)),
+                    0 => format!("Down is under the tower's lit windows. {}, {}, to storey {s}.", cap(&w.dir(0)), w.flights(0)),
                     1 => format!("Way down at {s}, the foot of the lit tower. {}. {}.", cap(&w.dir(1)), cap(&w.flights(1))),
                     _ => format!("Down: {}, {}, to {s}. Go while it is quiet. Do not knock again.", w.dir(2), w.flights(0)),
                 })

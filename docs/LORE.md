@@ -12,7 +12,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Place | The Building: an endless megastructure of concrete with no outside, and inside its walls the Backrooms, damp, fluorescent, empty rooms; every exit leads down |
 | Pillars | Emptiness, monotony, familiar but wrong, the sound that never stops ([`PILLARS.md`](PILLARS.md)) |
 | Levels | 1–3 the Building's floors (the Well, the Stair Halls, the Works); from 4, game level *n* ≈ Backrooms Level *n* − 4, one dominant zone naming it |
-| The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors; nothing walks there; the self-assembly comes from far off; now and then a figure stands far across the void and turns away |
+| The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors, and here and there a room off a walk with what its place left in it; nothing walks there; the self-assembly comes from far off, and something knocks at the cell you shut yourself into; now and then a figure, a person in a grey coat, stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
@@ -46,7 +46,8 @@ these channels, and the `lore-keeper` reviewer checks it:
   that answered a knock (`world::knock`), read as it is picked up: a word of
   the way from that door in a resident's hand (the nearest cell by its
   plate, or the way down: which way from the door, how many flights, the
-  storey there), and at most a line of what to do; never why, never a map.
+  storey there, and at most what it is by, the cell's lit lamp or the door's
+  lit tower), and at most a line of what to do; never why, never a map.
 - **Her notebook**: one page at M.'s camp on each floor down to level 13
   (`story/notebook.rs`), which hints as a survivor would and never explains.
   The last line of the last page you took stays at the top of the screen
@@ -162,8 +163,8 @@ lit where they start, her paper (`docs/MEGASTRUCTURE.md`).
 - **The Stair Halls** (level 2). A hall of stone with no far wall: piers
   standing up out of the void, flights of stairs at every height, bridges
   between them, stone balustrades. Chains hang out of the dark, and some
-  flights cross the void from nowhere to nowhere with no rail; no walk
-  reaches one.
+  flights cross the void from nowhere to nowhere with no rail, a level
+  landing halfway up each; no walk reaches one.
 - **The Works** (level 3). Floors of dead machinery the size of houses,
   terraces stepping down past shafts, ramps and steel rails painted yellow,
   pipes along the housings, gantries under a ceiling so far up its lamps
@@ -177,8 +178,22 @@ What every floor of the Building has:
 - **A railing on every edge you can walk**, and none on what you cannot
   reach; a lamp at the foot of every flight.
 - **Cells**: rooms cut into the building, each with a hermetic door, its
-  wheel, its number, a bench, and a lamp in a cage over it. There is always
-  one nearer than the fog. Her camp is in one.
+  wheel, its number, a bench, and a lamp in a cage over it. Where no
+  building stands by a walk, the cell is cut into a block that rises out of
+  the fog beside it (now and then over part of a walk) and stops a storey
+  over the walk, the cell's roof its top. There is always one nearer than
+  the fog. Her camp is in one.
+- **Rooms off the walks**: here and there, off the way down, a doorway with
+  no door opens from a walk into a room cut into the building, closed over
+  and under as a cell is, and in it what its place left: in the Well a
+  resident's room, its door gone, a table in it and the chair pushed back
+  from it; in the Stair Halls a stone bench along the back of a niche in a
+  pier; in the Works an operator's desk, its screen dead, and a stool. On
+  it, a bottle of almond water or a battery. A few to a floor in the Well,
+  fewer elsewhere and on some floors none, and never one on the way you
+  must take.
+- **Walks that go nowhere** each end on something: almond water, a
+  battery, or one of the Building's torn notes.
 - **The door down**, at the foot of its stair tower, whose windows are lit a
   storey apart all the way up: you see its light across the void from where
   you arrive, long before you find the way to it.
@@ -213,18 +228,18 @@ heard anyone behind the tape.
 
 **Someone across the void.** *After the figures of SCP-3333; see
 Attribution.* Nothing walks the Building, but now and then, far off across
-the void, someone stands where no walk reaches: on a gallery of another
-storey, on a flight that crosses the dark, on top of a machine or on a
-gantry under the ceiling. A person in a long grey work coat, bare-headed,
-thin, a little taller than anyone, standing still with its arms at its
-sides, turned toward you. Look at it a moment and it turns its back; look
-away and it is gone, and if you watch it a long while, or come nearer, it is
-gone anyway. Long after, it stands somewhere else, always across the void,
-and never while the siren sounds or the fog is up (a figure standing when
-the siren starts turns its back and goes). It never comes near and it does
-nothing: it is not one of the things that live here, nothing sends it, and
-it does not announce itself, because it never comes. Nobody writes about
-it.
+the void, someone stands where no walk reaches: at the parapet of a gallery
+of another storey, on the landing of a flight that crosses the dark, on top
+of a machine or on a gantry under the ceiling. A person in a long grey work
+coat, bare-headed, thin, a little taller than anyone, standing still with
+its arms at its sides, turned toward you. Look at it a moment and it turns
+its back; look away and it is gone, and if you watch it a long while, or
+come nearer, it is gone anyway. Long after, it stands somewhere else,
+always across the void, and never while the siren sounds or the fog is up
+(a figure standing when the siren starts turns its back and goes). It never
+comes near and it does nothing: it is not one of the things that live here,
+nothing sends it, and it does not announce itself, because it never comes.
+Nobody writes about it.
 
 **The lift.** In the Well, a lift cage hangs in the open shaft on its
 cables, stopped between storeys, its bulb still lit. Nothing reaches it.
@@ -532,20 +547,23 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   walk, some times not), and sinks away; the all-clear is one long steady
   tone.
 - **The cells.** Shelter is a cell: a room cut into the building with a
-  hermetic door, a lamp in a cage over it, always the same shape. Inside,
-  turn the wheel and the door is shut; it does not come in, though
-  something knocks at the door while it is up. Turn the wheel again to go
-  out. There is always a cell nearer than the fog.
+  hermetic door, a lamp in a cage over it, always the same shape, whether
+  in the building's face or in a block standing up out of the fog beside
+  a walk. Inside, turn the wheel and the door is shut; it does not come in,
+  though something knocks at the door while it is up. Turn the wheel again
+  to go out. There is always a cell nearer than the fog. A room off a walk
+  is not one: it has no door, and the fog comes into it as onto the walk.
 - **What knocks at the cell** (`world::cell_knock`), heard and seen at the
   door, which is not opened from inside while it is there: left unanswered
   it knocks two to four times, stops, and does not come back that time;
   knocked back, a second or so later the wheel turns from outside, a
   squeal at each pull, and held it strains and shudders in its frame and
   after six to ten seconds is let go; let turn for two or three seconds,
-  the bolts draw back, the door swings in and the fog with it, and the
-  wheel will not shut it again until the all-clear (a door left open lets
-  the fog in the same way). The residents' notice says to answer no knock
-  and to hold the wheel if it turns; never why.
+  the bolts draw back and the door swings in, and the wheel will not shut
+  it again until the all-clear: the cell is no shelter then, and wherever
+  the fog stands over it, it is in the cell as on the walk (a door left
+  open is the same). It is never seen. The residents' notice says to
+  answer no knock and to hold the wheel if it turns; never why.
 - **In it**, your mind goes fast, and then you are gone. With your eyes
   under its surface it is all you see.
 - **It is never explained.** Who built the cells, who put up the notices

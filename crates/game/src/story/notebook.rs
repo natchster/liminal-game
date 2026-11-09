@@ -40,7 +40,7 @@ pub static FLOOR_PAGES: [Page; 8] = [
     },
     Page {
         id: "f2",
-        body: "I found his writing on a wall today: an E., and a row of tallies under it. He was counting days. There is no night here to count by, so I count sleeps and call them days.\n\nThe fog rose while I was on the stairs. I didn't know a colour could be that cold. Something knocked at my door the whole time it was up. I didn't open it.",
+        body: "I found his writing on a wall today: an E., and a row of tallies under it. He was counting days. There is no night here to count by, so I count sleeps and call them days.\n\nThe fog rose while I was on the stairs. I didn't know a colour could be that cold. Something knocked at my door while it was up. I didn't open it. After a while it stopped.",
         thread: "There is no night here to count by.",
     },
     Page {

@@ -90,17 +90,19 @@
     {
       "checks": [
         "test:backrooms/assembly",
-        "test:backrooms/listen"
+        "test:backrooms/listen",
+        "test:backrooms/pacing"
       ],
       "id": "building/assembly",
       "kind": "system",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "the self-assembly: the siren, the fog, the cells",
-      "notes": "Whether the siren reads as a warning the first time, and whether waiting in a cell is dread or a chore, are playtest questions. The siren is synthesized; no person has listened to it.",
+      "name": "the self-assembly: the siren, the fog, the cells, and what knocks at your cell",
+      "notes": "Half as long since the second pass (G2: a 21 s siren, the fog up 20-40 s, quiets of 38-55 s; a cell within 8 tiles of every floor, held by tests/assembly.rs; tests/pacing.rs the_building_paces_its_floors meets a siren on 11 of 12 floors, no death). What knocks at a sealed cell (G6) goes if left unanswered, tries the wheel if knocked back, and the door gives unless the wheel is held (tests/assembly.rs: silent, answered, held, let go, unsealed; tests/listen.rs the_wheel_is_tried_and_the_door_gives). Whether the siren reads as a warning the first time, whether waiting in a cell is dread or a chore, whether players answer, find the hold and find a door that gives fair, are playtest questions. The siren, the wheel and the door giving are synthesized; no person has listened to them.",
       "passes": {
         "test:backrooms/assembly": true,
-        "test:backrooms/listen": true
+        "test:backrooms/listen": true,
+        "test:backrooms/pacing": true
       }
     },
     {
@@ -113,19 +115,21 @@
         "shots:4242_L1_spawn",
         "shots:4242_L2_spawn",
         "shots:4242_L3_spawn",
-        "test:backrooms/assembly"
+        "test:backrooms/assembly",
+        "test:backrooms/building_floors"
       ],
       "id": "building/floors",
       "kind": "system",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "the Building's floors: heights, walks, flights, voids, cells, the door seen from the arrival",
-      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question.",
+      "name": "the Building's floors: heights, walks, flights, voids, cells (in booths over the void where no building is near), the rooms off the walks, a dead end that always holds something, the door seen from the arrival",
+      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question. Half as long since the second pass (G1: 28 tiles a side, the way a median 83-87 tiles, every band of tests/building.rs held). tests/building_floors.rs holds the way and what is off it on 72 floors (G3: every dead end holds something) and the rooms off the walks (G4: reached, closed, off the way, holding water or a battery; preferred blind 5 of 5 to the bare walls). Open (docs/MILESTONES.md 11): the rooms' furniture plain and flat-shaded, the niche's stretched ceiling, a dark strip at a room's jambs, a room lit brighter than its walk; the Works' pipes, the Stair Halls' lamp heads and a flight's edge seen edge-on.",
       "passes": {
         "shots:4242_L1_spawn": true,
         "shots:4242_L2_spawn": true,
         "shots:4242_L3_spawn": true,
         "test:backrooms/assembly": true,
+        "test:backrooms/building_floors": true,
         "test:backrooms/level_sweep": true,
         "test:backrooms/playthrough": true,
         "test:backrooms/story": true,
@@ -143,7 +147,7 @@
       ],
       "id": "building/surfaces",
       "kind": "system",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "the Building's photographed surfaces: the panel facade and its lit windows, whitewash, formwork, yard and factory concrete, rock-faced and floor granite, ribbed slabs",
       "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet.",
@@ -163,10 +167,10 @@
       ],
       "id": "building/notes",
       "kind": "system",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "the Building's torn notes (the residents' notice, a cell plate, the cleaners' log, three surveys, a coupon) and her camp in a cell",
-      "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. Reviewed by the lore-keeper (B6); whether the residents' voice reads as the Building's and not hers is a playtest question.",
+      "notes": "They lie only on levels 1-3, two a floor, and no other notes lie there. The residents' notice also says to answer no knock until it is over, to hold the wheel if it turns, and not to knock where the cleaners have marked (G5, G6); the cleaners' log and the Well's survey tell of a knock answered (G5). Reviewed by the lore-keeper (B6, B8, G5, G8); whether the residents' voice reads as the Building's and not hers is a playtest question.",
       "passes": {
         "test:backrooms/assembly": true,
         "test:backrooms/story": true,
@@ -180,10 +184,10 @@
       ],
       "id": "building/presences",
       "kind": "system",
-      "last_checked": "2026-10-29",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "what is seen across the Building's void: the figure who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
-      "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer.",
+      "name": "what is seen across the Building's void: a person in a long grey work coat who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
+      "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer. Since G7 a person (MakeHuman, CC0; tests/presences.rs the_figure_is_a_person_standing_on_its_perch), preferred blind to the old figure on 15 of 15 images; it stands on a level landing on the Stair Halls' flights and is chosen in the Well only where its parapet hides no more than its legs (docs/MILESTONES.md 2).",
       "passes": {
         "shots:4242_L3_spawn": true,
         "test:backrooms/presences": true
@@ -196,10 +200,10 @@
       ],
       "id": "building/knock",
       "kind": "system",
-      "last_checked": "2026-11-08",
+      "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "a knock at the Well's sealed doors: four ordinary doors a floor answer once (water, a battery, a resident's word of the way), a red door knocks back and calls the siren, a taped door never answers, nobody answers while it is up",
-      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs; whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
+      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs (at a door 8 m or more from a cell's lamp: nearer, the lamp's hum covers the knock, docs/MILESTONES.md 12); whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
       "passes": {
         "test:backrooms/knock": true,
         "test:backrooms/listen": true

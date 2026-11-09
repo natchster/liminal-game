@@ -25,9 +25,11 @@ that the emptiness is watching.*
     40 seeds a place (gate, `tests/building.rs`).
   - Rule: the danger there is far off: the self-assembly is heard (the
     siren) and seen coming (the fog's surface rising from far below) long
-    before it is near, and a cell is always nearer than it. *Test:* the
-    stages in order, a cell within reach of the warning (gate,
-    `tests/assembly.rs`).
+    before it is near, and a cell is always nearer than it. Sealed in, it
+    comes near only by the player's own doing: a door left open, or let
+    give to what knocks once it is answered. *Test:* the stages in order, a
+    cell within reach of the warning, `held_is_safe`, `let_go_is_the_fog`,
+    `an_unsealed_cell_lets_the_fog_in` (gate, `tests/assembly.rs`).
   - Rule: what is seen there is far off too: the figure across the void
     stands where no walk reaches, 22 m off or more, turns its back when
     looked at and is gone when you look away, and never lets you near.

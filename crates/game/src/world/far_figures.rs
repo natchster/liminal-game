@@ -105,10 +105,11 @@ pub fn far_figure_geometry() -> Option<Geo> {
 }
 
 impl Game {
-    /// A figure: a man in a long dark coat, standing still, his arms down
-    /// (`far_figure_geometry`), one piece in his own colours, lit by the
-    /// place's light like everything else: far off, a dark shape against
-    /// the faces and the haze behind it, his face and hands paler
+    /// A figure: a man in a long grey work coat, standing still, his arms
+    /// down (`far_figure_geometry`), one piece in his own colours, lit by
+    /// the place's light like everything else: far off, a muted shape a
+    /// little paler than the concrete behind it (a dark coat was lost in
+    /// the Building's dark: `docs/MEGASTRUCTURE.md` G7)
     fn make_far_figure(&self) -> Obj {
         let g = group();
         if let Some(geo) = far_figure_geometry() {
