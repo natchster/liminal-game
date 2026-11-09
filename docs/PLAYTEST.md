@@ -107,6 +107,9 @@ name the siren's meaning, the cells, the fog or the figure first):
   Too long, too short? Did you open the door? Did you knock back? (Only if
   they say yes: what happened then, what did you do when the wheel turned,
   and was what came of it fair? Since G6 an answer brings it to the wheel.)
+  How did you know when it had gone, and what did you make of the sound it
+  went with? (Since `MILESTONES.md` 13 it is heard going, and the door
+  opens only after.)
 - Did you step into any of the open rooms off the walks? What did you
   think they were, and who had been there? (Only if they say yes: did you
   wait out the siren in one? A room has no door and keeps nothing out;

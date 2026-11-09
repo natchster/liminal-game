@@ -104,6 +104,11 @@ Levels must be a pure function of `(run_seed, level)`:
   the loop, no canvas call in it. Canvas calls stay on one thread:
   CoreGraphics rasterizes a path a little differently while another
   thread rasterizes (a few pixels changed from run to run).
+* A played sound draws too: `noise_burst` starts its noise from a point of
+  the noise loop drawn from the native stream. A sound whose choices come
+  from a stream of its own (what knocks at your cell going, from its
+  visit's stream) passes that point itself (`noise_burst_from`) and builds
+  the rest from oscillators, so playing it draws nothing.
 * The native stream starts from the clock. A test whose outcome depends on
   per-frame draws (a creature's choices, the ambience's timing) seeds it
   first, `game::base::rng::seed_native(…)`, from its own seed; otherwise
@@ -304,7 +309,9 @@ Levels must be a pure function of `(run_seed, level)`:
   in the band a sound is heard in where the bed is a hum: within a few
   metres of a lit lamp the ballast's 120 Hz series fills the bed under
   1.2 kHz, and over the whole mix it outweighs what a person hears above
-  it (`a_knock_is_heard_beside_a_lamp`).
+  it (`a_knock_is_heard_beside_a_lamp`; in a cell, beside its own lamp,
+  `what_knocks_is_heard_going`, where the whole mix rose as much in the
+  same seconds with the going silent).
 * `crates/backrooms/tests/loudness.rs` measures three level renders to EBU
   R128 (the `ebur128` crate): integrated loudness within 1 LU and loudness
   range within 3 LU of `tests/recorded/loudness.json`, true peak at or

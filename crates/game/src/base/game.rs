@@ -1375,6 +1375,41 @@ impl Game {
         o.stop(t0 + dur + 0.05);
     }
     pub fn noise_burst(&self, dur: f64, freq: f64, q: f64, gain: f64, ty: &str, slide_to: Option<f64>, delay: f64, pan: f64) {
+        // from a random point of the 1 s noise loop, so no two bursts sound alike
+        self.noise_burst_with(|| crate::base::rng::native_rnd() * 0.95, 0.0, dur, freq, q, gain, ty, slide_to, delay, pan);
+    }
+    /// `noise_burst` from the point `at` (0..0.95 s) of the noise loop, chosen
+    /// by the caller from a stream of its own (no draw of the per-frame
+    /// stream), swelling in over `attack` seconds (0: at once, as a burst)
+    pub fn noise_burst_from(
+        &self,
+        at: f64,
+        attack: f64,
+        dur: f64,
+        freq: f64,
+        q: f64,
+        gain: f64,
+        ty: &str,
+        slide_to: Option<f64>,
+        delay: f64,
+    ) {
+        self.noise_burst_with(|| at, attack, dur, freq, q, gain, ty, slide_to, delay, 0.0);
+    }
+    /// (`at` is asked for where the burst starts, after the early return: a
+    /// burst with no audio draws nothing)
+    fn noise_burst_with(
+        &self,
+        at: impl FnOnce() -> f64,
+        attack: f64,
+        dur: f64,
+        freq: f64,
+        q: f64,
+        gain: f64,
+        ty: &str,
+        slide_to: Option<f64>,
+        delay: f64,
+        pan: f64,
+    ) {
         let (Some(ac), Some(master), Some(nb)) = (&self.ac, &self.master, &self.noise_buf) else { return };
         let (gain, pan) = self.routed(gain, pan);
         let t0 = ac.current_time() + delay;
@@ -1391,13 +1426,17 @@ impl Game {
             }
         }
         let g = ac.create_gain();
-        g.gain().set_value_at_time(gain, t0);
+        if attack > 0.0 {
+            g.gain().set_value_at_time(0.0001, t0);
+            g.gain().linear_ramp_to_value_at_time(gain, t0 + attack);
+        } else {
+            g.gain().set_value_at_time(gain, t0);
+        }
         g.gain().exponential_ramp_to_value_at_time(0.0001, t0 + dur);
         s.connect(&f);
         f.connect(&g);
         self.one_shot_out(ac, master, &g, pan);
-        // from a random point of the 1 s noise loop, so no two bursts sound alike
-        s.start_at(t0, crate::base::rng::native_rnd() * 0.95, None);
+        s.start_at(t0, at(), None);
         s.stop(t0 + dur + 0.05);
     }
 }

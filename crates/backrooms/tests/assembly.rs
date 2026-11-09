@@ -7,17 +7,38 @@
 //! sealed cell (G6, `game::world::cell_knock`): unanswered it goes; answered
 //! it tries the wheel, and the door gives unless you hold it (a visit that
 //! does not give leaves the wheel at rest shut); a door that gives, or a
-//! cell left open, lets the fog in.
+//! cell left open, lets the fog in. Its prompts follow what is heard and
+//! seen at the door (`MILESTONES.md` 13): the hold from the wheel's first
+//! pull, the door to open once its going, heard, is over.
 mod common;
 
 use game::base::config::{CELL, EYE, SAN_REGEN, WALK};
 use game::entities::director::Phase;
 use game::level::building::CELL_REACH;
+use game::session::input::{Act, INTERACT_BUFFER};
 use game::world::assembly::{Stage, DRAIN, FIRST_FLOOR_QUIET, FIRST_QUIET, KNOCK, LAST, PAGE_WAKE, QUIET, WARNING, WHEEL_OPEN, WHEEL_SHUT};
-use game::world::cell_knock::{Visit, GAVE_OPEN, GIVE, PATIENCE, TRIES, WHEEL_AFTER};
+use game::world::cell_knock::{
+    Visit, BREATH, GAVE_OPEN, GIVE, GOING_BREATHS, GOING_TAIL, KNOCK_RINGS, PATIENCE, PLAY, SLACK, TRIES, WHEEL_AFTER,
+};
 use game::Game;
 
 const DT: f64 = 1.0 / 60.0;
+
+/// A player's reaction to the wheel's first pull (its squeal, the wheel
+/// moving in its play, the prompt): a simple reaction to a sound or a light
+/// is 0.15–0.3 s; here the slow end of it, with a frame for the screen
+const REACTION: f64 = 0.3;
+
+/// The cell door's verbs
+const OPEN: &str = "[E] OPEN THE DOOR";
+const HOLD: &str = "[E] HOLD THE WHEEL";
+const KNOCK_BACK: &str = "[E] KNOCK";
+const DOOR_VERBS: [&str; 4] = ["[E] TURN THE WHEEL", OPEN, KNOCK_BACK, HOLD];
+
+/// The shortest a visit's going lasts, from when it is first heard: its
+/// breaths from the first to the last at the quickest pace, and the last
+/// dying away
+const GOING_LEAST: f64 = (GOING_BREATHS - 1) as f64 * BREATH.0 + GOING_TAIL;
 
 fn floor(seed: u32, level: i32) -> Game {
     game::base::rng::seed_native(0xA55E_0000 ^ u64::from(seed) ^ ((level as u64) << 32));
@@ -260,12 +281,20 @@ fn prompt(g: &Game) -> Option<String> {
     g.interact_target().map(|i| g.interactables[i].prompt.clone())
 }
 
+/// Whether the verb `text` is shown where you stand, whichever way you face
+/// (in its reach, and its condition true)
+fn shown(g: &Game, text: &str) -> bool {
+    let p = g.player.pos;
+    g.interactables.iter().any(|i| i.prompt == text && i.pos.distance_to_squared(&p) < i.r * i.r && (i.enabled)(g))
+}
+
 fn logged(g: &Game, what: &str) -> usize {
     g.director.log.iter().filter(|e| e.1 == what).count()
 }
 
 /// Sealed in, the fog over the cell, until something knocks; then you
-/// knock back at the door, as a player does (E, facing it)
+/// knock back at the door, as a player does (E, facing it). It heard you:
+/// nothing of the door's is shown until its first pull
 fn answer(g: &mut Game, ci: usize) {
     for _ in 0..600 {
         if g.assembly.door.visit == Visit::Knocking {
@@ -275,17 +304,51 @@ fn answer(g: &mut Game, ci: usize) {
     }
     assert_eq!(g.assembly.door.visit, Visit::Knocking, "something knocks at the door");
     assert_eq!(prompt(g).as_deref(), Some("[E] KNOCK"), "while it knocks, E at the door knocks back");
+    assert!(!shown(g, OPEN), "while it knocks, the door is not opened");
     g.try_interact();
     assert_eq!(g.assembly.door.visit, Visit::Trying, "answered");
     assert_eq!(g.assembly.door.cell, Some(ci));
     assert_eq!(logged(g, "cell:answered"), 1);
+    for v in DOOR_VERBS {
+        assert!(!shown(g, v), "answered, before the wheel turns: {v} shown");
+    }
+}
+
+/// From the answer to the wheel's first pull, a frame at a time (`each`
+/// before each frame, with the seconds since the answer): nothing of the
+/// door's shown, nothing held, the wheel at rest; at the first pull (the
+/// frame `cell:wheel` is logged) the hold shows, and nothing else of the
+/// door's. The seconds it took
+fn to_the_first_pull(g: &mut Game, ci: usize, mut each: impl FnMut(&mut Game, f64)) -> f64 {
+    let rest = g.cell_doors[ci].turned;
+    let mut t = 0.0;
+    while logged(g, "cell:wheel") == 0 {
+        assert!(t < WHEEL_AFTER.1 + 2.0 * DT, "the wheel tried within {:?} s of the answer ({t:.2} s)", WHEEL_AFTER);
+        for v in DOOR_VERBS {
+            assert!(!shown(g, v), "{t:.2} s after the answer, before its first pull: {v} shown");
+        }
+        let d = &g.assembly.door;
+        assert_eq!((d.grip, d.play, d.give), (0.0, 0.0, 0.0), "{t:.2} s after the answer: nothing held, nothing turned");
+        assert_eq!(g.cell_doors[ci].turned, rest, "{t:.2} s after the answer: the wheel at rest");
+        each(g, t);
+        step(g, DT);
+        t += DT;
+    }
+    for v in DOOR_VERBS {
+        assert_eq!(shown(g, v), v == HOLD, "at its first pull ({t:.2} s after the answer): {v}");
+    }
+    t
 }
 
 /// Silent is safe: sealed in, the fog over the cell, nobody answering.
 /// Something knocks a few times (`PATIENCE`), and then the knocking stops
-/// and it goes while the fog still stands; nothing opens, the mind holds,
-/// and it does not come back before the all-clear. How many times it
-/// knocks is its own choice: the same whatever the per-frame stream drew.
+/// and it goes while the fog still stands, heard going once its last knock
+/// has rung out (`KNOCK_RINGS`): its knock is to be answered until then,
+/// and the door to open shows only once its going is over (`GOING_LEAST`
+/// at the least; `MILESTONES.md` 13);
+/// nothing opens, the mind holds, and it does not come back before the
+/// all-clear. How many times it knocks is its own choice: the same
+/// whatever the per-frame stream drew.
 #[test]
 fn silent_is_safe() {
     for level in 1..=3 {
@@ -298,7 +361,7 @@ fn silent_is_safe() {
             let longest = (PATIENCE.1 + 1) as f64 * KNOCK.1 + 1.0;
             fog_over(&mut g, ci, 6.0, longest + 5.0);
             let s0 = g.player.sanity;
-            let (mut knocks, mut gone_in) = (0, None);
+            let (mut knocks, mut going_in, mut gone_in, mut last_knock) = (0, None, None, 0.0);
             let mut t = 0.0;
             // through the crest, the fall and into the quiet
             for _ in 0..(120.0 / 0.1) as usize {
@@ -311,23 +374,49 @@ fn silent_is_safe() {
                 );
                 assert!(g.player.sanity >= s0 - 1e-9, "L{level}: sealed in, silent, the mind holds: {s0} → {}", g.player.sanity);
                 assert_eq!(g.state, "playing");
-                if g.assembly.door.visit == Visit::Gone && gone_in.is_none() {
-                    gone_in = Some((t, g.assembly.stage));
+                let visit = g.assembly.door.visit;
+                if g.assembly.door.knocks > knocks && going_in.is_none() {
                     knocks = g.assembly.door.knocks;
+                    last_knock = t;
                 }
-                if gone_in.is_some() {
-                    assert_eq!(g.assembly.door.knocks, knocks, "L{level}: once it went, no more knocks");
+                if visit == Visit::Going && going_in.is_none() {
+                    going_in = Some((t, g.assembly.stage));
                 }
+                if visit == Visit::Gone && gone_in.is_none() {
+                    gone_in = Some(t);
+                }
+                if going_in.is_some() {
+                    assert_eq!(g.assembly.door.knocks, knocks, "L{level}: once it goes, no more knocks");
+                }
+                // its knock to answer until it is heard going, and the door
+                // to open only once it has gone
+                assert_eq!(shown(&g, KNOCK_BACK), visit == Visit::Knocking, "L{level}: {t:.1} s in, {visit:?}: its knock to answer");
+                assert_eq!(shown(&g, OPEN), visit == Visit::Gone, "L{level}: {t:.1} s in, {visit:?}: the door to open");
                 if g.assembly.stage == Stage::Quiet {
                     break;
                 }
             }
-            let (when, stage) = gone_in.expect("it went");
-            println!("seed 4242 L{level} (native {native}): {knocks} knocks, gone {when:.1} s in, the fog at {stage:?}");
+            let (going, stage) = going_in.expect("it went");
+            let gone = gone_in.expect("its going was over");
+            println!(
+                "seed 4242 L{level} (native {native}): {knocks} knocks, the last {last_knock:.1} s in; heard going {going:.1} s in ({:.1} s after it), the fog at {stage:?}; gone, the door to open, {:.1} s after that",
+                going - last_knock,
+                gone - going
+            );
             assert_eq!(stage, Stage::Crest, "L{level}: it went on its own, the fog still up");
+            assert!(
+                going - last_knock >= KNOCK_RINGS - 0.15,
+                "L{level}: heard going once its last knock had rung out ({:.1} s)",
+                going - last_knock
+            );
+            assert!(gone - going >= GOING_LEAST - 0.1, "L{level}: at the door until it had gone ({:.1} s)", gone - going);
             assert!((PATIENCE.0..=PATIENCE.1).contains(&knocks), "L{level}: {knocks} knocks");
             assert_eq!(g.assembly.stage, Stage::Quiet, "L{level}: the all-clear");
-            assert_eq!((logged(&g, "cell:knocks"), logged(&g, "cell:gone")), (1, 1), "L{level}: it came once and went once");
+            assert_eq!(
+                (logged(&g, "cell:knocks"), logged(&g, "cell:going"), logged(&g, "cell:gone")),
+                (1, 1, 1),
+                "L{level}: it came once and went once"
+            );
             assert_eq!(logged(&g, "cell:wheel") + logged(&g, "cell:gave"), 0, "L{level}: nobody tried the wheel");
             patience.push(knocks);
         }
@@ -335,11 +424,84 @@ fn silent_is_safe() {
     }
 }
 
+/// Its knock is to be answered until it is heard going (`MILESTONES.md`
+/// 13): knocking, it decides to go (its patience out, or the fog starting
+/// down) before it is heard going, and until its last knock has rung out
+/// (`KNOCK_RINGS`) it is at the door as it was: `[E] KNOCK` shown, the door
+/// not to be opened, and answered then, it tries the wheel. With the fog
+/// starting down while it knocks, its knock is shown until it is heard
+/// going, the door to open only once it has gone.
+#[test]
+fn its_knock_is_answerable_until_it_is_heard_going() {
+    for (level, how) in [(1, "answered"), (2, "answered"), (1, "the fog falls"), (3, "the fog falls")] {
+        let mut g = floor(4242, level);
+        let ci = into_a_cell(&mut g);
+        g.turn_cell_wheel(ci, true);
+        // (the door shut, and the wheel at rest from your own turn)
+        step(&mut g, 3.5);
+        fog_over(&mut g, ci, 6.0, 60.0);
+        let mut t = 0.0;
+        while g.assembly.door.visit != Visit::Knocking {
+            step(&mut g, DT);
+            t += DT;
+            assert!(t < 10.0, "L{level}: something knocks");
+        }
+        if how == "the fog falls" {
+            // the crest's time is up: the fog starts down
+            g.assembly.t = 0.0;
+            step(&mut g, DT);
+        } else {
+            while g.assembly.door.leaving.is_none() {
+                step(&mut g, 0.05);
+                t += 0.05;
+                assert!(t < 60.0, "L{level}: unanswered, it goes");
+            }
+        }
+        let left = g.assembly.door.leaving.expect("it decided to go");
+        assert_eq!(g.assembly.door.visit, Visit::Knocking, "L{level} {how}: not yet heard going");
+        assert!(shown(&g, KNOCK_BACK) && !shown(&g, OPEN), "L{level} {how}: its knock to answer, the door shut to you");
+        if how == "answered" {
+            println!(
+                "seed 4242 L{level}: its patience out after {} knocks, answered {left:.1} s before it would be heard going",
+                g.assembly.door.knocks
+            );
+            assert_eq!(prompt(&g).as_deref(), Some(KNOCK_BACK));
+            g.try_interact();
+            assert_eq!(g.assembly.door.visit, Visit::Trying, "L{level}: answered while it was still there");
+            to_the_first_pull(&mut g, ci, |_, _| {});
+            assert_eq!(logged(&g, "cell:going"), 0, "L{level}: it did not go");
+            continue;
+        }
+        // until it is heard going: its knock to answer, the door shut to you
+        let mut heard = 0.0;
+        while g.assembly.door.visit == Visit::Knocking {
+            assert!(shown(&g, KNOCK_BACK) && !shown(&g, OPEN), "L{level}: {heard:.2} s after the fog turned");
+            step(&mut g, DT);
+            heard += DT;
+            assert!(heard < KNOCK_RINGS + 0.1, "L{level}: heard going once its knock has rung out");
+        }
+        assert_eq!(g.assembly.door.visit, Visit::Going);
+        assert!((heard - left).abs() < 2.0 * DT, "L{level}: heard going {heard:.2} s after the fog turned, {left:.2} s due");
+        let mut gone = 0.0;
+        while g.assembly.door.visit == Visit::Going {
+            assert!(!shown(&g, KNOCK_BACK) && !shown(&g, OPEN), "L{level}: going");
+            step(&mut g, DT);
+            gone += DT;
+        }
+        println!("seed 4242 L{level}: the fog turned while it knocked; heard going {heard:.1} s after, gone {gone:.1} s after that");
+        assert_eq!(g.assembly.door.visit, Visit::Gone);
+        assert!(gone >= GOING_LEAST - 2.0 * DT, "L{level}: at the door until it had gone ({gone:.1} s)");
+        assert!(shown(&g, OPEN), "L{level}: gone, the door to open");
+    }
+}
+
 /// An answer brings the wheel turning: sealed in, the fog up, you knock
 /// back at the door while it knocks; a moment later (`WHEEL_AFTER`) the
-/// wheel turns from outside, the door strains in its frame, and the wheel
-/// is yours to hold (`[E] HOLD THE WHEEL`; the door is not opened from
-/// inside while it is at it).
+/// wheel turns from outside, its first pull taking up its play (`SLACK`),
+/// then on toward giving, the door straining in its frame; the wheel is
+/// yours to hold (`[E] HOLD THE WHEEL`) from its first pull, not before
+/// (`to_the_first_pull`), and the door is not opened from inside while it
+/// is at it.
 #[test]
 fn an_answer_brings_the_wheel_turning() {
     for level in 1..=3 {
@@ -352,27 +514,73 @@ fn an_answer_brings_the_wheel_turning() {
         fog_over(&mut g, ci, 6.0, 40.0);
         answer(&mut g, ci);
         let before = g.cell_doors[ci].turned;
-        assert_eq!(prompt(&g).as_deref(), Some("[E] HOLD THE WHEEL"), "L{level}: the wheel to hold, not the door to open");
-        // not yet: it heard you
-        step(&mut g, WHEEL_AFTER.0 - 0.1);
-        assert_eq!(logged(&g, "cell:wheel"), 0, "L{level}: a moment before it tries");
-        assert!((g.cell_doors[ci].turned - before).abs() < 1e-9);
-        step(&mut g, WHEEL_AFTER.1 - WHEEL_AFTER.0 + 0.6);
+        // not yet: it heard you; then its first pull, the hold with it
+        let first = to_the_first_pull(&mut g, ci, |_, _| {});
+        assert!(first >= WHEEL_AFTER.0 - DT, "L{level}: a moment before it tries ({first:.2} s)");
+        step(&mut g, SLACK + 0.6);
         let turned = g.cell_doors[ci].turned - before;
-        println!("seed 4242 L{level}: the wheel turned {turned:.2} rad, {:.0}% of the way to giving", g.assembly.door.give * 100.0);
+        println!(
+            "seed 4242 L{level}: the wheel first pulled {first:.2} s after the answer; {:.2} s later it had turned {turned:.2} rad, {:.0}% of the way to giving",
+            SLACK + 0.6,
+            g.assembly.door.give * 100.0
+        );
         assert_eq!(logged(&g, "cell:wheel"), 1, "L{level}: it tries the wheel");
+        assert_eq!(g.assembly.door.play, 1.0, "L{level}: its play taken up");
         assert!(turned > 0.5, "L{level}: the wheel turns from outside ({turned:.2} rad)");
         assert!(g.assembly.door.give > 0.0 && g.assembly.door.give < 1.0, "L{level}: on its way to giving");
         assert!(g.cell_doors[ci].strain > 0.0, "L{level}: the door strains in its frame");
         assert_eq!(g.assembly.sealed, Some(ci), "L{level}: not given yet");
-        assert_eq!(prompt(&g).as_deref(), Some("[E] HOLD THE WHEEL"));
+        assert_eq!(prompt(&g).as_deref(), Some(HOLD), "L{level}: the wheel to hold, not the door to open");
+        assert!(!shown(&g, OPEN));
     }
 }
 
-/// Held is safe: answered, and then the wheel held (E pressed on it and
-/// kept down, or pressed again and again): it strains and does not turn,
-/// the door stays sealed through the fog, the mind holds, and after a while
-/// (`TRIES`) it lets go and goes.
+/// The hold shows when the wheel turns (`MILESTONES.md` 13): answered,
+/// nothing of the door's is shown until its first pull, and E there holds
+/// nothing, pressed again and again (each press more than the early E's
+/// grace, `INTERACT_BUFFER`, before the pull) and kept down: at the first
+/// pull the wheel is not held, it turns in its play, and kept down E still
+/// holds nothing (a press begins a hold), so past its play it turns toward
+/// giving. Before the hold shows, nothing on the screen or in the wheel
+/// tells that it is coming.
+#[test]
+fn the_hold_shows_when_the_wheel_turns() {
+    for level in 1..=3 {
+        let mut g = floor(4242, level);
+        g.god_mode = true;
+        let ci = into_a_cell(&mut g);
+        g.turn_cell_wheel(ci, true);
+        step(&mut g, 3.5);
+        fog_over(&mut g, ci, 6.0, 40.0);
+        answer(&mut g, ci);
+        let wait = g.assembly.door.wait;
+        g.keys.insert("KeyE".into());
+        let mut presses = 0;
+        let first = to_the_first_pull(&mut g, ci, |g, t| {
+            if ((t / DT).round() as usize) % 9 == 0 && t + INTERACT_BUFFER + 2.0 * DT < wait {
+                g.on_action(Act::Interact);
+                presses += 1;
+            }
+        });
+        let d = g.assembly.door.clone();
+        println!("seed 4242 L{level}: E pressed {presses} times and kept down from the answer; the first pull {first:.2} s after it, unheld (its play {:.0}% taken up)", d.play * 100.0);
+        assert!(presses >= 4, "L{level}: E pressed in the gap ({presses})");
+        assert_eq!((d.grip, d.held_for), (0.0, 0.0), "L{level}: E before the pull holds nothing");
+        assert!(d.play > 0.0 && d.give == 0.0, "L{level}: its first pull turns the wheel in its play");
+        step(&mut g, SLACK + 0.3);
+        let d = &g.assembly.door;
+        assert_eq!(d.held_for, 0.0, "L{level}: E kept down holds nothing: a press begins a hold");
+        assert!(d.give > 0.0, "L{level}: let be past its play, it turns toward giving ({:.3})", d.give);
+        g.keys.remove("KeyE");
+    }
+}
+
+/// Held is safe: answered, and then the wheel held from its first pull (E
+/// pressed on it a player's reaction after the hold shows, `REACTION`, and
+/// kept down, or pressed again and again): within its play (`SLACK`), so
+/// it strains and never turns toward giving, the door stays sealed through
+/// the fog, the mind holds, and after a while (`TRIES`) it lets go and goes,
+/// heard going: the door to open shows only once it has gone.
 #[test]
 fn held_is_safe() {
     for (level, how) in [(1, "held"), (2, "held"), (3, "held"), (1, "pressed")] {
@@ -381,19 +589,23 @@ fn held_is_safe() {
         g.turn_cell_wheel(ci, true);
         // (the door shut, and the wheel at rest from your own turn)
         step(&mut g, 3.5);
+        let rest = g.cell_doors[ci].turned;
         fog_over(&mut g, ci, 6.0, TRIES.1 + WHEEL_AFTER.1 + 6.0);
         answer(&mut g, ci);
-        assert_eq!(prompt(&g).as_deref(), Some("[E] HOLD THE WHEEL"));
+        let first = to_the_first_pull(&mut g, ci, |_, _| {});
+        // its squeal, the wheel moving, the prompt: a player's reaction, then E
+        step(&mut g, REACTION);
+        assert_eq!(prompt(&g).as_deref(), Some(HOLD));
+        let play = g.assembly.door.play;
         g.try_interact();
         if how == "held" {
             g.keys.insert("KeyE".into());
         }
-        let turned = g.cell_doors[ci].turned;
         let s0 = g.player.sanity;
-        let mut t = 0.0;
+        let (mut t, mut going, mut gone, mut most) = (0.0, None, None, 0.0f64);
         for k in 0..(120.0 / 0.1) as usize {
             // (pressed: E again every 0.4 s while the wheel is to hold)
-            if how == "pressed" && k % 4 == 3 && prompt(&g).as_deref() == Some("[E] HOLD THE WHEEL") {
+            if how == "pressed" && k % 4 == 3 && prompt(&g).as_deref() == Some(HOLD) {
                 g.try_interact();
             }
             step(&mut g, 0.1);
@@ -402,19 +614,40 @@ fn held_is_safe() {
             assert!(g.cell_doors[ci].target < 0.5, "L{level}: held, the door stays shut");
             assert!(g.player.sanity >= s0 - 1e-9, "L{level}: held, the fog stays out: {s0} → {}", g.player.sanity);
             assert_eq!(g.state, "playing");
+            most = most.max(g.cell_doors[ci].turned - rest);
+            let visit = g.assembly.door.visit;
+            if visit == Visit::Going && going.is_none() {
+                going = Some(t);
+            }
+            if visit == Visit::Gone && gone.is_none() {
+                gone = Some(t);
+            }
+            assert_eq!(shown(&g, HOLD), visit == Visit::Trying, "L{level}: {t:.1} s, {visit:?}: the wheel to hold");
+            assert_eq!(shown(&g, OPEN), visit == Visit::Gone, "L{level}: {t:.1} s, {visit:?}: the door to open");
             if g.assembly.stage == Stage::Quiet {
                 break;
             }
         }
         let d = &g.assembly.door;
-        println!("seed 4242 L{level} ({how}): held {:.1} s, it went after {:.1} s at the wheel", d.held_for, d.t);
+        let (going, gone) = (going.expect("it let go"), gone.expect("its going was over"));
+        println!(
+            "seed 4242 L{level} ({how}): the hold shown {first:.2} s after the answer, E {REACTION} s after that (its play {:.0}% taken up); held {:.1} s, it let go after {:.1} s at the wheel, gone {:.1} s after; the wheel never {:.3} rad from rest",
+            play * 100.0,
+            d.held_for,
+            d.t,
+            gone - going,
+            most
+        );
         assert_eq!(g.assembly.stage, Stage::Quiet, "L{level}: through to the all-clear");
         assert_eq!(logged(&g, "cell:wheel"), 1, "L{level}: it tried the wheel");
         assert_eq!(logged(&g, "cell:gave"), 0, "L{level}: held, it did not give");
-        assert_eq!(logged(&g, "cell:gone"), 1, "L{level}: it let go and went");
+        assert_eq!((logged(&g, "cell:going"), logged(&g, "cell:gone")), (1, 1), "L{level}: it let go and went");
+        assert!(play < 1.0, "L{level}: a reaction of {REACTION} s is within its play");
         assert_eq!(d.give, 0.0, "L{level}: held from the first pull, it never turned toward giving");
-        assert!(d.held_for >= TRIES.0 - 0.2, "L{level}: held all the while it tried ({:.1} s)", d.held_for);
-        assert!((g.cell_doors[ci].turned - turned).abs() < 1e-9, "L{level}: the wheel did not turn");
+        assert!(d.held_for >= TRIES.0 - REACTION - 0.2, "L{level}: held all the while it tried ({:.1} s)", d.held_for);
+        assert!(most <= PLAY + 1e-9, "L{level}: the wheel never past its play ({most:.3} rad)");
+        assert!(gone - going >= GOING_LEAST - 0.1, "L{level}: at the door until it had gone ({:.1} s)", gone - going);
+        assert_eq!(g.cell_doors[ci].turned, rest, "L{level}: the wheel back at rest");
         g.keys.remove("KeyE");
     }
 }
@@ -436,27 +669,38 @@ fn a_visit_that_does_not_give_leaves_the_wheel_shut() {
         assert_eq!(g.cell_doors[ci].turned, WHEEL_SHUT, "L{level}: shut, the wheel rests shut");
         fog_over(&mut g, ci, 6.0, TRIES.1 + WHEEL_AFTER.1 + 6.0);
         answer(&mut g, ci);
-        // not held: it turns the wheel part of the way (less than GIVE s)
-        step(&mut g, WHEEL_AFTER.1 + 0.6);
+        // not held: it turns the wheel part of the way (its play, and less
+        // than GIVE s more)
+        step(&mut g, WHEEL_AFTER.1 + SLACK + 0.6);
         let part = g.assembly.door.give;
         assert!(part > 0.1 && part < 1.0, "L{level} {how}: on its way to giving ({part:.2})");
         assert!(g.cell_doors[ci].turned > WHEEL_SHUT + 0.5, "L{level} {how}: the wheel turned from outside");
         if how == "held" {
-            assert_eq!(prompt(&g).as_deref(), Some("[E] HOLD THE WHEEL"));
+            assert_eq!(prompt(&g).as_deref(), Some(HOLD));
             g.try_interact();
             g.keys.insert("KeyE".into());
         } else {
             // the crest's time is up: the fog goes down
             g.assembly.t = 0.0;
         }
-        for _ in 0..(TRIES.1 / 0.1) as usize + 20 {
+        // (it lets go and goes, heard going: the door to open only once it
+        // has gone)
+        let mut going = 0.0;
+        for _ in 0..((TRIES.1 + 8.0) / 0.1) as usize {
             step(&mut g, 0.1);
-            if g.assembly.door.visit == Visit::Gone {
+            let visit = g.assembly.door.visit;
+            if visit == Visit::Going {
+                going += 0.1;
+            }
+            assert_eq!(shown(&g, OPEN), visit == Visit::Gone, "L{level} {how}: {visit:?}: the door to open");
+            if visit == Visit::Gone {
                 break;
             }
         }
         g.keys.remove("KeyE");
         assert_eq!(g.assembly.door.visit, Visit::Gone, "L{level} {how}: it went");
+        assert!(going >= GOING_LEAST - 0.15, "L{level} {how}: heard going until it had gone ({going:.1} s)");
+        assert_eq!(logged(&g, "cell:going"), 1, "L{level} {how}: it went once");
         assert_eq!(logged(&g, "cell:gave"), 0, "L{level} {how}: the door did not give");
         assert_eq!(g.assembly.door.give, part, "L{level} {how}: held, it turned no further");
         // (the wheel eases back)
@@ -486,7 +730,8 @@ fn a_visit_that_does_not_give_leaves_the_wheel_shut() {
 }
 
 /// Let go is the fog: answered and not held, the wheel turns, and the door
-/// gives (`GIVE` seconds of turning): it swings in, the cell is no longer
+/// gives (its play, `SLACK`, and `GIVE` seconds of turning past it): it
+/// swings in, the cell is no longer
 /// sealed and will not seal again while the fog is up, and the fog's harm
 /// reaches you inside, as it does outside: your mind goes at `DRAIN`, and
 /// you are gone.
@@ -503,7 +748,7 @@ fn let_go_is_the_fog() {
         let s0 = g.player.sanity;
         let mut gave = None;
         let mut t = 0.0;
-        while t < WHEEL_AFTER.1 + GIVE + 1.0 && gave.is_none() {
+        while t < WHEEL_AFTER.1 + SLACK + GIVE + 1.0 && gave.is_none() {
             step(&mut g, DT);
             t += DT;
             if g.assembly.door.visit == Visit::Gave {
@@ -514,7 +759,7 @@ fn let_go_is_the_fog() {
         }
         let gave = gave.expect("the door gave");
         println!("seed 4242 L{level}: the door gave {gave:.2} s after the answer");
-        assert!(gave >= WHEEL_AFTER.0 + GIVE - 0.05, "L{level}: it gives after {GIVE} s of turning ({gave:.2} s)");
+        assert!(gave >= WHEEL_AFTER.0 + SLACK + GIVE - 0.05, "L{level}: it gives after its play and {GIVE} s of turning ({gave:.2} s)");
         assert_eq!(logged(&g, "cell:gave"), 1);
         assert_eq!(g.assembly.sealed, None, "L{level}: no longer sealed");
         assert!((g.cell_doors[ci].target - GAVE_OPEN).abs() < 1e-9, "L{level}: the door swings in");

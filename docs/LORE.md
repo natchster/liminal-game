@@ -550,20 +550,32 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   hermetic door, a lamp in a cage over it, always the same shape, whether
   in the building's face or in a block standing up out of the fog beside
   a walk. Inside, turn the wheel and the door is shut; it does not come in,
-  though something knocks at the door while it is up. Turn the wheel again
-  to go out. There is always a cell nearer than the fog. A room off a walk
-  is not one: it has no door, and the fog comes into it as onto the walk.
+  though something knocks at the door while it rises or stands. Turn the
+  wheel again to go out. There is always a cell nearer than the fog. A
+  room off a walk is not one: it has no door, and the fog comes into it as
+  onto the walk.
 - **What knocks at the cell** (`world::cell_knock`), heard and seen at the
-  door, which is not opened from inside while it is there: left unanswered
-  it knocks two to four times, stops, and does not come back that time;
-  knocked back, a second or so later the wheel turns from outside, a
-  squeal at each pull, and held it strains and shudders in its frame and
-  after six to ten seconds is let go; let turn for two or three seconds,
-  the bolts draw back and the door swings in, and the wheel will not shut
-  it again until the all-clear: the cell is no shelter then, and wherever
-  the fog stands over it, it is in the cell as on the walk (a door left
-  open is the same). It is never seen. The residents' notice says to
-  answer no knock and to hold the wheel if it turns; never why.
+  door, which is not opened from inside while it is there, nor until it has
+  gone. Its knocks are knuckles on the steel, slow and uneven. Left
+  unanswered it knocks two to four times and stops, and once its last knock
+  has rung out it is heard going: not steps, but something wet drawn off the
+  door and away, four breaths of it, each fainter and lower than the last;
+  until then it is still there, and can still be answered. It does not come
+  back that time. Answered with a knock, it knocks no more, and a second or
+  so later the wheel turns from outside, a squeal at each pull. Its first
+  pull moves the wheel through its play before it turns the screw, so a hand
+  on the wheel then holds it before the door has begun to open; until that
+  pull there is nothing at the door to take hold of. Held, it strains and
+  shudders in its frame, and after six to ten seconds its hold slips from
+  the wheel and it goes as it goes unanswered. Let turn for about three
+  seconds, the bolts draw back and the door swings in, and the wheel will
+  not shut it again until the all-clear: the cell is no shelter then, and
+  wherever the fog stands over it, it is in the cell as on the walk (a door
+  left open is the same); of what knocked, nothing more is heard. A wheel it
+  had begun to open and did not turns back to rest, squealing. When the fog
+  starts down while it is there, it goes the same way, heard, once any knock
+  of it has rung out. It is never seen. The residents' notice says to answer
+  no knock and to hold the wheel if it turns; never why.
 - **In it**, your mind goes fast, and then you are gone. With your eyes
   under its surface it is all you see.
 - **It is never explained.** Who built the cells, who put up the notices

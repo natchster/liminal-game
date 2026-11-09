@@ -925,6 +925,224 @@ fn the_wheel_is_tried_and_the_door_gives() {
     assert!(gives > bed * 4.0, "the door giving is heard: {:+.1} dB", db(gives / bed));
 }
 
+/// What knocks at your cell, from its first knock to its having gone: what
+/// was heard of it and when its prompts came and went, in seconds from its
+/// going (from when it is first heard going)
+struct Going {
+    /// the cell's distance to the nearest lit lamp, metres
+    lamp: f64,
+    /// its knocks
+    knocks: u32,
+    /// the cell's bed before anything knocked, dB (the whole mix; in the band)
+    bed: f64,
+    bed_band: f64,
+    /// its knocking before it went (unanswered; answered, it is answered at
+    /// its first rap): its raps heard come in the band, and its loudest
+    /// there over the bed
+    knocking: Vec<f64>,
+    knocking_band: f64,
+    /// answered: anything heard come in the band from after your raps to
+    /// its going that is not a pull at the wheel (its raps still to come
+    /// were hushed)
+    after_answer: Vec<f64>,
+    /// the wheel let go (heard come in the band), if it had it
+    let_go: Vec<f64>,
+    /// its breaths going heard come in the band
+    breaths: Vec<f64>,
+    /// the loudest of its going over the bed (the whole mix; in the band)
+    peak: f64,
+    peak_band: f64,
+    /// `[E] KNOCK` last shown, its going over (`Visit::Gone`), and the door
+    /// to open shown
+    knock_until: f64,
+    gone: f64,
+    open: f64,
+}
+
+/// Sealed in a cell of seed 4242's Well (the one of the wheel's test),
+/// standing in its middle facing the door, the fog up and its rush held
+/// off: something knocks, and `how` decides: "unanswered", or "let go"
+/// (answered at its first knock, the wheel held from its first pull until
+/// it lets go). It goes; recorded as
+/// `target/listen/cell_going_{how}_4242_L1.wav` (red marks: the fog up,
+/// your answer, its going, its gone)
+fn cell_going(how: &str) -> Going {
+    use game::world::assembly::Stage;
+    use game::world::cell_knock::Visit;
+    game::base::rng::seed_native(0xCE11_0013);
+    let mut r = start(4242, 1);
+    let camp = r.g.story.camp.as_ref().map(|c| c.tile);
+    let cells = r.g.building.as_ref().unwrap().cells.clone();
+    let ci = cells.iter().position(|c| Some(c.tile) != camp).expect("a cell");
+    let (x, z) = cells[ci].tile;
+    let (wx, wz) = (r.g.wx(x), r.g.wz(z));
+    let h = r.g.floor_y_of(x, z);
+    let door = r.g.cell_doors[ci].at;
+    r.g.player.pos = engine::math::Vec3::new(wx, h + game::prelude::EYE, wz);
+    r.g.player.yaw = (-(door.x - wx)).atan2(-(door.z - wz));
+    r.g.player.pitch = 0.0;
+    let lamp = r.g.panels.iter().filter(|p| p.bright >= 0.3).map(|p| (p.wx - door.x).hypot(p.wz - door.z)).fold(f64::MAX, f64::min);
+    r.g.turn_cell_wheel(ci, true);
+    r.g.assembly.t = 1e6;
+    // (the wheel's own turn, then the cell's bed)
+    play(&mut r, 5.0, |_| {});
+    let t_fog = r.pcm.len() as f64 / 2.0 / SR;
+    {
+        let a = &mut r.g.assembly;
+        a.stage = Stage::Crest;
+        a.y = h - 2.0;
+        a.crest = a.y;
+        a.t = 90.0;
+        a.count = 1;
+    }
+    let shown = |g: &Game, text: &str| {
+        let p = g.player.pos;
+        g.interactables.iter().any(|i| i.prompt == text && i.pos.distance_to_squared(&p) < i.r * i.r && (i.enabled)(g))
+    };
+    let (mut answered, mut held) = (None, false);
+    let (mut going, mut gone, mut open, mut knock_until) = (None, None, None, t_fog);
+    let mut pulls: Vec<f64> = vec![];
+    let mut pull_t = 0.0;
+    let mut t = t_fog;
+    while gone.is_none_or(|g| t < g + 1.5) && t < t_fog + 60.0 {
+        play(&mut r, 1.0 / 60.0, |g| {
+            g.assembly.sound_t = 1e9;
+            // (what the last frame did began as that frame began)
+            let before = t - 1.0 / 60.0;
+            if g.assembly.door.visit == Visit::Trying && g.assembly.door.pull_t > pull_t {
+                pulls.push(before);
+            }
+            pull_t = g.assembly.door.pull_t;
+            if shown(g, "[E] KNOCK") {
+                knock_until = t;
+            }
+            if how == "let go" {
+                if answered.is_none() && g.assembly.door.visit == Visit::Knocking {
+                    g.answer_the_door(ci);
+                    answered = Some(t);
+                }
+                // (held as a player holds it: a press once it shows, E kept down)
+                if answered.is_some() && !held && g.cell_wheel_tried(ci) {
+                    g.hold_the_wheel(ci);
+                    g.keys.insert("KeyE".into());
+                    held = true;
+                }
+            }
+            let visit = g.assembly.door.visit;
+            if visit == Visit::Going && going.is_none() {
+                going = Some(before);
+            }
+            if visit == Visit::Gone && gone.is_none() {
+                gone = Some(before);
+            }
+            if going.is_some() && open.is_none() && shown(g, "[E] OPEN THE DOOR") {
+                open = Some(before);
+            }
+            t += 1.0 / 60.0;
+        });
+    }
+    r.g.keys.remove("KeyE");
+    let (going, gone) = (going.expect("it went"), gone.expect("its going was over"));
+    let open = open.expect("the door to open came back");
+    let marks: Vec<f64> = [Some(t_fog), answered, Some(going), Some(gone)].into_iter().flatten().collect();
+    save(&format!("cell_going_{}_4242_L1", how.replace(' ', "_")), &r.pcm, &marks);
+    let band = band_passed(&r.pcm, KNOCK_BAND.0, KNOCK_BAND.1);
+    let (w, wb) = (windows(&r.pcm), windows(&band));
+    let k = |s: f64| ((s / 0.05) as usize).min(w.len());
+    // the cell's bed: sealed, its wheel's turn over, before anything knocked
+    let (bed, bed_band) = (median(&w[k(1.5)..k(t_fog)]), median(&wb[k(1.5)..k(t_fog)]));
+    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().cloned().fold(0.0, f64::max);
+    let from = |o: Vec<f64>| o.into_iter().map(|x| x - going).collect::<Vec<f64>>();
+    let knocked_to = going - 0.05;
+    // (after your three raps, which end within 1.1 s of the answer)
+    let after_answer = answered.map_or(vec![], |a| {
+        onsets(&band, a + 1.2, going - 0.05, bed_band * 4.0)
+            .into_iter()
+            .filter(|o| !pulls.iter().any(|p| o - p > -0.05 && o - p < 0.35))
+            .collect()
+    });
+    let heard = onsets(&band, going - 0.05, gone, bed_band * 4.0);
+    let split = if answered.is_some() { 1.min(heard.len()) } else { 0 };
+    Going {
+        lamp,
+        knocks: r.g.assembly.door.knocks,
+        bed: db(bed),
+        bed_band: db(bed_band),
+        knocking: if answered.is_none() { from(onsets(&band, t_fog - 0.05, knocked_to, bed_band * 4.0)) } else { vec![] },
+        knocking_band: if answered.is_none() { db(peak(&wb, t_fog, knocked_to) / bed_band) } else { f64::NAN },
+        after_answer: from(after_answer),
+        let_go: from(heard[..split].to_vec()),
+        breaths: from(heard[split..].to_vec()),
+        peak: db(peak(&w, going, gone) / bed),
+        peak_band: db(peak(&wb, going, gone) / bed_band),
+        knock_until: knock_until - going,
+        gone: gone - going,
+        open: open - going,
+    }
+}
+
+/// What knocks at your cell is heard, at the door beside the cell's own
+/// lamp, as its prompts show (`MILESTONES.md` 13; `world::cell_knock`).
+/// Measured where it carries over the lamp's hum, in `KNOCK_BAND`, against
+/// the cell's bed before anything knocked (heard come: 12 dB over the
+/// band's bed in 10 ms):
+/// - its knocking: a rap of every knock heard come, its loudest 12 dB over
+///   the bed (the knuckle's click and the leaf's ring of `Soundscape::knock`);
+/// - left unanswered, `[E] KNOCK` shown until it is heard going, and its
+///   going (not steps: something wet drawn off the door and away), three
+///   breaths or more each heard come, the loudest 12 dB over the bed;
+/// - answered and held until it lets go: nothing heard knock after your
+///   raps (its raps still to come hushed), its hold heard slipping from the
+///   wheel, and then its going;
+/// - the door to open shown only after the last breath heard, once its
+///   going has died away.
+///
+/// With the going's sounds at gain 0 this fails, as with the knock's click
+/// and ring at gain 0, or its raps not hushed by your answer.
+#[test]
+fn what_knocks_is_heard_going() {
+    use game::world::cell_knock::{GOING_AFTER, GOING_BREATHS};
+    for how in ["unanswered", "let go"] {
+        let g = cell_going(how);
+        let r = |v: &[f64]| v.iter().map(|x| (x * 100.0).round() / 100.0).collect::<Vec<_>>();
+        println!(
+            "a cell on the Well {:.1} m from a lit lamp, {how}, {} knocks: the bed {:.1} dB ({:.1} in {}-{} Hz); its knocking {:+.1} dB in the band, raps heard come at {:?} s; after your answer {:?}; its going {:+.1} dB over the bed ({:+.1} in the band), the hold slipping at {:?} s, {} of its {GOING_BREATHS} breaths heard come at {:?} s; [E] KNOCK last shown at {:.2} s, gone at {:.2} s, the door to open at {:.2} s",
+            g.lamp,
+            g.knocks,
+            g.bed,
+            g.bed_band,
+            KNOCK_BAND.0,
+            KNOCK_BAND.1,
+            g.knocking_band,
+            r(&g.knocking),
+            r(&g.after_answer),
+            g.peak,
+            g.peak_band,
+            r(&g.let_go),
+            g.breaths.len(),
+            r(&g.breaths),
+            g.knock_until,
+            g.gone,
+            g.open
+        );
+        assert!(g.lamp <= 6.0, "{how}: the cell beside its lamp ({:.1} m)", g.lamp);
+        assert!(g.breaths.len() >= 3, "{how}: its going heard, breath by breath: {:?}", g.breaths);
+        assert!(g.peak_band >= 12.0, "{how}: its going heard over the hum: {:+.1} dB", g.peak_band);
+        if how == "let go" {
+            assert!(g.after_answer.is_empty(), "{how}: answered, it knocks no more: {:?}", g.after_answer);
+            assert_eq!(g.let_go.len(), 1, "{how}: its hold heard slipping: {:?}", g.let_go);
+            assert!(g.breaths[0] >= GOING_AFTER - 0.1, "{how}: its going after it let go: {:?}", g.breaths);
+        } else {
+            assert!(g.knocking_band >= 12.0, "{how}: its knocking heard over the hum: {:+.1} dB", g.knocking_band);
+            assert!(g.knocking.len() as u32 >= g.knocks, "{how}: a rap of each of its {} knocks heard come: {:?}", g.knocks, g.knocking);
+            assert!(g.knock_until >= -0.05, "{how}: its knock to answer until it is heard going ({:.2} s)", g.knock_until);
+        }
+        let last = g.breaths.last().copied().unwrap_or(f64::INFINITY);
+        assert!(g.open > last, "{how}: the door to open no sooner than its last breath heard ({:.2} s, the breath at {last:.2} s)", g.open);
+        assert!(g.open >= g.gone, "{how}: the door to open once it has gone ({:.2} s, gone {:.2} s)", g.open, g.gone);
+    }
+}
+
 #[test]
 fn the_hound_is_heard() {
     // a hound 9 m ahead, held while the room's bed is measured; then it is

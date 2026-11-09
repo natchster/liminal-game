@@ -59,6 +59,9 @@ pub struct AudioSys {
     pub nosound: bool,
     /// The voice lines decoded so far (`say_cry`), by persona/id
     pub voice_bufs: Vec<(String, AudioBuffer)>,
+    /// The knocks at your cell this visit (`world::cell_knock`): each one's
+    /// gain, so an answer hushes the raps still to come
+    pub cell_knocks: Vec<AudioNode>,
 }
 
 /// The level of a voice line in the mix: its WAV as made (-16 LUFS, true
@@ -387,6 +390,7 @@ impl Game {
             nosound,
             // a new context: the buffers decoded on the old one are not its
             voice_bufs: vec![],
+            cell_knocks: vec![],
         };
         self.noise_buf = Some(noise_buf);
         self.master = Some(master);
@@ -576,6 +580,44 @@ impl Game {
         }
         self.noise_burst(1.5, 3000.0, 1.4, 0.07, "bandpass", Some(800.0), 0.4, 0.0);
         self.blip(52.0, 0.9, "sine", 0.12, Some(34.0), 0.4, 0.0);
+    }
+    /// What tried a cell's wheel letting go of it (`world::cell_knock`;
+    /// play it at the wheel): the spokes slipping from its hold, a short dry
+    /// scrape of steel, and the leaf's strain easing in its frame, a creak
+    /// falling away; a wheel it had turned (`back`) squeals back to where it
+    /// rests. No knuckle's click, thud or ring: not a knock. The scrape is
+    /// above the lamp's ballast (to 1.08 kHz), so the letting go is heard by
+    /// the cell's lamp. No draw: the noise from where `from` says (the
+    /// visit's own stream)
+    pub fn sfx_wheel_let_go(&self, back: bool, from: [f64; 3]) {
+        self.noise_burst_from(from[0], 0.01, 0.16, 2500.0, 4.0, 0.12, "bandpass", Some(1700.0), 0.0);
+        self.noise_burst_from(from[1], 0.03, 0.5, 650.0, 5.0, 0.1, "bandpass", Some(420.0), 0.05);
+        if back {
+            // (the screw turned back: lower and shorter than a pull)
+            self.noise_burst_from(from[2], 0.0, 0.45, 1900.0, 6.0, 0.04, "bandpass", Some(1300.0), 0.15);
+        }
+    }
+    /// What knocked at a cell going from its door (`world::cell_knock`;
+    /// play it at the door): not steps (nothing walks the Building), but
+    /// something wet drawn off the door and away,
+    /// `cell_knock::GOING_BREATHS` breaths of it `pace` seconds apart from
+    /// `lead` seconds on, each fainter, lower and longer than the last (the
+    /// last 9 dB under the first): a band of wet air sliding down over a low
+    /// rush, the fog's own sound (`sfx_fog`) come close. The band begins
+    /// above the lamp's ballast (to 1.08 kHz), so its going is heard by the
+    /// cell's lamp (`tests/listen.rs`, `what_knocks_is_heard_going`), and
+    /// slides under it as it goes. No draw: the noise from where `from`
+    /// says (two a breath, the visit's own stream)
+    pub fn sfx_going(&self, lead: f64, pace: f64, from: &[f64]) {
+        for k in 0..crate::world::cell_knock::GOING_BREATHS {
+            let (t, fall, kf) = (lead + k as f64 * pace, 0.72f64.powi(k as i32), k as f64);
+            let at = |i: usize| from.get(2 * k + i).copied().unwrap_or(0.0);
+            let (f0, dur) = (2400.0 - 300.0 * kf, 1.0 + 0.2 * kf);
+            // the wet air drawn off, sliding down
+            self.noise_burst_from(at(0), 0.02, dur, f0, 1.6, 0.14 * fall, "bandpass", Some(f0 * 0.55), t);
+            // the low rush under it
+            self.noise_burst_from(at(1), 0.08, dur, 420.0, 0.7, 0.12 * fall, "lowpass", Some(160.0), t);
+        }
     }
     /// A knock at a sealed door (`world::knock`; play it at the door):
     /// three raps `gaps` seconds apart, knuckles on steel; from the other

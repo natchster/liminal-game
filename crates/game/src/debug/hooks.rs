@@ -984,10 +984,11 @@ impl Game {
             return;
         }
         // sealed in the first cell with the fog over it, something answered at
-        // the door: its wheel turning (`cell`), or the door given and the fog
-        // coming in (`cell-gave`), seen from the middle of the cell, the lamp
-        // in hand (`world::cell_knock`)
-        if (name == "cell" || name == "cell-gave") && self.building.is_some() && !self.cell_doors.is_empty() {
+        // the door: the moment before its first pull, nothing of the door's
+        // to use yet (`cell-answered`), its wheel turning (`cell`), or the
+        // door given and the fog coming in (`cell-gave`), seen from the
+        // middle of the cell, the lamp in hand (`world::cell_knock`)
+        if matches!(name, "cell" | "cell-answered" | "cell-gave") && self.building.is_some() && !self.cell_doors.is_empty() {
             use crate::world::cell_knock::{AtTheDoor, Visit};
             let d = self.cell_doors[0].clone();
             let (tx, tz) = d.tile;
@@ -1004,16 +1005,22 @@ impl Game {
             self.player.flashlight_on = true;
             self.god_mode = true;
             self.turn_cell_wheel(0, true);
-            self.cell_doors[0].open = 0.0;
-            self.cell_doors[0].turned = self.cell_doors[0].turn_to;
+            // (shut at once, and drawn so: a door at rest is not redrawn)
+            let d = &mut self.cell_doors[0];
+            d.open = 0.0;
+            d.turned = d.turn_to;
+            let yaw = d.leaf.r().user.get("yaw");
+            d.leaf.rotation().y = yaw;
+            d.wheel.rotation().z = d.turned;
             let a = &mut self.assembly;
             a.stage = crate::world::assembly::Stage::Crest;
             // (over the cell's roof while it is sealed; to the knee once it gave)
-            a.y = h + if name == "cell" { 5.0 } else { 0.7 };
+            a.y = h + if name == "cell-gave" { 0.7 } else { 5.0 };
             a.crest = a.y;
             a.t = 60.0;
             a.knock_t = 60.0;
-            a.door = AtTheDoor { visit: Visit::Knocking, cell: Some(0), patience: 9, wait: 0.0, tries: 60.0, ..Default::default() };
+            let wait = if name == "cell-answered" { 60.0 } else { 0.0 };
+            a.door = AtTheDoor { visit: Visit::Knocking, cell: Some(0), patience: 9, wait, tries: 60.0, ..Default::default() };
             self.answer_the_door(0);
             if name == "cell-gave" {
                 self.assembly.door.give = 1.0;

@@ -483,8 +483,9 @@ impl Game {
             });
             let inside = self.face_point(x, z, d, 0.0, -1.1, h + EYE);
             let in_cell = move |g: &Game| g.in_cell(ci);
-            // (not while something is at the door, and a door that gave not
-            // until the fog is gone: `world::cell_knock`)
+            // (not while something is at the door, nor while it goes until
+            // it has gone, and a door that gave not until the fog is gone:
+            // `world::cell_knock`)
             self.interact(
                 inside,
                 1.7,
@@ -500,8 +501,9 @@ impl Game {
                 move |g| g.turn_cell_wheel(ci, false),
             );
             // what knocks at the door while the fog is up: knock back at the
-            // door (the knock of `world::knock`), and hold the wheel when it
-            // turns (`world::cell_knock`)
+            // door (the knock of `world::knock`), and hold the wheel once it
+            // turns: from its first pull, heard and seen, not from your
+            // answer (`world::cell_knock`)
             let knock_at = self.face_point(x, z, d, 0.0, -0.75, h + EYE);
             self.interact(knock_at, 1.5, "[E] KNOCK", move |g| in_cell(g) && g.cell_knocking(ci), move |g| g.answer_the_door(ci));
             self.interact(inside, 1.7, "[E] HOLD THE WHEEL", move |g| in_cell(g) && g.cell_wheel_tried(ci), move |g| g.hold_the_wheel(ci));
