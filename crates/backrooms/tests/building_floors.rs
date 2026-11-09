@@ -155,8 +155,9 @@ fn the_way_and_what_is_off_it() {
 }
 
 /// The places off the walks (`docs/MEGASTRUCTURE.md` G4): each room is
-/// reached from the arrival, closed on its three other sides, off the way
-/// to the door (never a room only the way passes), and holds something
+/// reached from the arrival, closed on its three other sides by building a
+/// storey high, off the way to the door (its walk is not on the way: never a
+/// room only the way passes), and holds something
 #[test]
 fn the_rooms_off_the_walks() {
     let floors: Vec<(i32, usize, Vec<String>)> = std::thread::scope(|sc| {
@@ -188,7 +189,7 @@ fn the_rooms_off_the_walks() {
 /// A floor's rooms: how many, and what is wrong with each
 fn rooms_of(seed: u32, level: i32) -> (i32, usize, Vec<String>) {
     use game::level::archgen::{DIRS, GROUND_MASS};
-    use game::level::building::walk_from;
+    use game::level::building::{walk_from, ROOM_HEADROOM};
     let g = floor(seed, level);
     let (l, p) = (g.layout.as_ref().unwrap(), g.building.as_ref().unwrap());
     let idx = |x: i32, z: i32| (z * l.w + x) as usize;
@@ -210,13 +211,20 @@ fn rooms_of(seed: u32, level: i32) -> (i32, usize, Vec<String>) {
         if ds[idx(x, z)] < 0 {
             wrong.push(format!("{tag}: not reached from the arrival"));
         }
-        if ds[idx(x, z)] + de[idx(x, z)] == path {
-            wrong.push(format!("{tag}: on the way"));
+        // (the room is a dead end, so never on the way itself: its walk is
+        // what may not be)
+        let (wx, wz) = (x + DIRS[r.door][0], z + DIRS[r.door][1]);
+        if ds[idx(wx, wz)] + de[idx(wx, wz)] == path {
+            wrong.push(format!("{tag}: its walk {wx},{wz} is on the way"));
         }
+        let floor_h = l.ground[idx(x, z)].h0;
         for (k, dd) in DIRS.iter().enumerate() {
             let n = l.ground[idx(x + dd[0], z + dd[1])];
             if k != r.door && n.kind != GROUND_MASS {
                 wrong.push(format!("{tag}: open on side {k}"));
+            }
+            if k != r.door && n.h1 < floor_h + ROOM_HEADROOM {
+                wrong.push(format!("{tag}: side {k} stops {:.1} m over its floor", n.h1 - floor_h));
             }
         }
         if !things.contains(&(x, z)) {
@@ -224,4 +232,61 @@ fn rooms_of(seed: u32, level: i32) -> (i32, usize, Vec<String>) {
         }
     }
     (level, p.rooms.len(), wrong)
+}
+
+/// A room's front stops a body (`level::building::cell_front_boxes`): it
+/// cannot walk in through the wall either side of the doorway, and walks in
+/// through the doorway (`ROOM_DOOR` wide) unhindered
+#[test]
+fn a_rooms_front_stops_a_body_beside_its_doorway() {
+    let found: Vec<(usize, Vec<String>)> = std::thread::scope(|sc| {
+        let hs: Vec<_> = (1..=8u32)
+            .flat_map(|seed| (1..=3).map(move |level| (seed, level)))
+            .map(|(seed, level)| std::thread::Builder::new().stack_size(64 << 20).spawn_scoped(sc, move || fronts_of(seed, level)).unwrap())
+            .collect();
+        hs.into_iter().map(|h| h.join().unwrap_or_else(|e| std::panic::resume_unwind(e))).collect()
+    });
+    let rooms: usize = found.iter().map(|f| f.0).sum();
+    assert!(rooms >= 8, "rooms enough to try ({rooms})");
+    let wrong: Vec<String> = found.into_iter().flat_map(|f| f.1).collect();
+    assert!(wrong.is_empty(), "{wrong:#?}");
+}
+
+/// A floor's rooms walked into from their walks, beside the doorway and
+/// through it: how many, and where a body went through a wall or was stopped
+/// in the doorway
+fn fronts_of(seed: u32, level: i32) -> (usize, Vec<String>) {
+    use game::base::config::PLAYER_R;
+    use game::level::archgen::DIRS;
+    use game::level::building::ROOM_DOOR;
+    let g = floor(seed, level);
+    let p = g.building.as_ref().unwrap();
+    let cell = g.layout.as_ref().unwrap().cell;
+    let mut wrong = vec![];
+    for r in &p.rooms {
+        let (x, z) = r.tile;
+        let (dx, dz) = (DIRS[r.door][0] as f64, DIRS[r.door][1] as f64);
+        // the front's face, and along it to the right seen from the walk
+        let (fx, fz) = (g.wx(x) + dx * cell / 2.0, g.wz(z) + dz * cell / 2.0);
+        let (rx, rz) = (-dz, dx);
+        // from just out on the walk to the middle of the room, `along` the face
+        let stopped = |along: f64| {
+            (0..=52).any(|k| {
+                let out = 0.6 - k as f64 * 0.05;
+                g.circle_hits_wall(fx + dx * out + rx * along, fz + dz * out + rz * along, PLAYER_R)
+            })
+        };
+        let tag = format!("seed {seed} L{level} room {x},{z}");
+        // the wall either side: from the doorway's edge to the tile's
+        let beside = ROOM_DOOR / 2.0 + (cell - ROOM_DOOR) / 4.0;
+        for along in [-beside, beside] {
+            if !stopped(along) {
+                wrong.push(format!("{tag}: a body walks in through the front {along:+.1} m along it"));
+            }
+        }
+        if stopped(0.0) {
+            wrong.push(format!("{tag}: a body is stopped in the doorway"));
+        }
+    }
+    (p.rooms.len(), wrong)
 }

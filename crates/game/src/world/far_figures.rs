@@ -131,7 +131,9 @@ impl Game {
         let mut out = vec![];
         for z in 0..self.h {
             for x in 0..self.w {
-                let g = self.ground_or_mass(x, z);
+                // (a room off a walk as the building it was cut from: its roof
+                // is that building's top, and the perches are as before rooms)
+                let g = self.dress_ground(plan, x, z);
                 let (cx, cz) = (self.wx(x), self.wz(z));
                 match plan.style {
                     // (the Well's are its galleries' decks, gathered where

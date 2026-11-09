@@ -220,7 +220,19 @@ pub struct BuildingPlan {
     pub view_line: Vec<(i32, i32)>,
     /// the places off the walks (G4): a room cut into the building beside a
     /// walk, off the way, its doorway open toward the walk (`door`)
-    pub rooms: Vec<Cell>,
+    pub rooms: Vec<RoomPlan>,
+}
+
+/// A place off a walk (G4, `place_rooms`): a tile of the building cut into
+/// a room, its doorway on the side `door` (a `DIRS` index) toward the walk.
+/// `was` is the building the tile was before it was cut: the dressing sees
+/// the tile as that (`world::building_dress`), so it draws as it did on the
+/// floor before rooms, and leaves out only what would land in a room.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RoomPlan {
+    pub tile: (i32, i32),
+    pub door: usize,
+    pub was: Ground,
 }
 
 /// A walk between two platforms.
@@ -1163,7 +1175,7 @@ pub const ROOM_HEADROOM: f32 = BOOTH_TOP;
 /// tile, and within a cell's reach (`CELL_REACH`: a room adds a tile of
 /// floor that must be served too); the farthest from the way first, no two
 /// within `ROOM_GAP`, none beside a cell; at most `ROOMS`. No draw.
-fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(i32, i32)]) -> Vec<Cell> {
+fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(i32, i32)]) -> Vec<RoomPlan> {
     let w = grid.w;
     let ds = grid_walk(grid, &[(1, 1)]);
     let de = grid_walk(grid, &[exit]);
@@ -1209,7 +1221,7 @@ fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(
     }
     // the farthest from the way first; then by place, so no draw is needed
     found.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.tile.1.cmp(&b.1.tile.1)).then(a.1.tile.0.cmp(&b.1.tile.0)));
-    let mut rooms: Vec<Cell> = vec![];
+    let mut rooms: Vec<RoomPlan> = vec![];
     for (_, c, h) in found {
         if rooms.len() >= ROOMS {
             break;
@@ -1218,8 +1230,9 @@ fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(
         if rooms.iter().any(|r| near(r.tile, c.tile, ROOM_GAP)) || cells.iter().any(|k| near(k.tile, c.tile, 2)) {
             continue;
         }
+        let was = grid.get(c.tile.0, c.tile.1);
         grid.set(c.tile.0, c.tile.1, Ground::floor(h));
-        rooms.push(c);
+        rooms.push(RoomPlan { tile: c.tile, door: c.door, was });
     }
     rooms
 }
@@ -1255,15 +1268,26 @@ pub struct Navigation {
 
 /// A cell's front: the wall across its open side, with the doorway in its
 /// middle (`CELL_DOOR` wide, `CELL_DOOR_H` high), from the floor to the top
-/// of the building over it. Boxes as `build_ground_solids` takes them.
+/// of the building over it.
 pub const CELL_DOOR: f64 = 1.3;
 pub const CELL_DOOR_H: f64 = 2.1;
+/// A room's front (G4, `RoomPlan`): as a cell's, but its doorway wider and
+/// higher, with no door in it
+pub const ROOM_DOOR: f64 = 2.0;
+pub const ROOM_DOOR_H: f64 = 2.5;
 /// The front wall's thickness, metres
 pub const CELL_FRONT: f64 = 0.3;
+/// The solid fronts of the cells and of the rooms off the walks: the wall
+/// either side of the doorway and over it, as high as the building the
+/// recess is cut into. Boxes as `build_ground_solids` takes them.
 pub fn cell_front_boxes(p: &BuildingPlan, ground: &[Ground], w: i32, cell: f64) -> Vec<[f32; 8]> {
     let mut out = vec![];
-    for c in &p.cells {
-        let (x, z) = c.tile;
+    let fronts = p
+        .cells
+        .iter()
+        .map(|c| (c.tile, c.door, CELL_DOOR, CELL_DOOR_H))
+        .chain(p.rooms.iter().map(|r| (r.tile, r.door, ROOM_DOOR, ROOM_DOOR_H)));
+    for ((x, z), door, width, head) in fronts {
         let g = ground[(z * w + x) as usize];
         // (as high as the building it is cut into)
         let top = DIRS
@@ -1274,8 +1298,8 @@ pub fn cell_front_boxes(p: &BuildingPlan, ground: &[Ground], w: i32, cell: f64) 
             .fold(g.h0 + 3.0, f32::max);
         let h = g.h0;
         let t = (z * w + x) as f32;
-        let (th, half) = ((CELL_FRONT / cell) as f32, (CELL_DOOR / cell / 2.0) as f32);
-        let d = DIRS[c.door];
+        let (th, half) = ((CELL_FRONT / cell) as f32, (width / cell / 2.0) as f32);
+        let d = DIRS[door];
         // the wall's band across the tile, on the door's side
         let (a0, a1) = if d[0] + d[1] > 0 { (1.0 - th, 1.0) } else { (0.0, th) };
         let mut push = |s0: f32, s1: f32, y0: f32, y1: f32| {
@@ -1288,7 +1312,7 @@ pub fn cell_front_boxes(p: &BuildingPlan, ground: &[Ground], w: i32, cell: f64) 
         };
         push(0.0, 0.5 - half, h, top);
         push(0.5 + half, 1.0, h, top);
-        push(0.5 - half, 0.5 + half, h + CELL_DOOR_H as f32, top);
+        push(0.5 - half, 0.5 + half, h + head as f32, top);
     }
     out
 }

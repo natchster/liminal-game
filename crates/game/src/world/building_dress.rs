@@ -2,8 +2,11 @@
 //! makes the concrete a place people lived in and left. All of it draws
 //! from a salted stream of its own (`DRESS_SALT`), never from the build's,
 //! so the floor's plan and every checkpoint stay where they are; none of it
-//! stands in a body's way (a cell's front is a solid of the plan's,
-//! `level::building::cell_front_boxes`).
+//! stands in a body's way (a cell's front and a room's are solids of the
+//! plan's, `level::building::cell_front_boxes`). The passes see a room off a
+//! walk as the building it was cut from (`dress_ground`), so they draw as
+//! they did before rooms, and leave out what would stand in a room's
+//! doorway or over the top of the building it hangs on (`off_face`).
 //!
 //! * Every cell: its front wall and doorway, the hermetic door swung open
 //!   inside, the wheel on it, a plate with its number, the lamp in a cage
@@ -21,7 +24,9 @@
 //! * The Works: a ceiling far up with its rows of dead fittings, gantries
 //!   under it, pipes along the walls.
 use crate::level::archgen::{build_ground_solids, segment_clear_3d, Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID};
-use crate::level::building::{BuildingPlan, Style, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, STOREY, VOID_DEPTH};
+use crate::level::building::{
+    BuildingPlan, Style, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, ROOM_DOOR, ROOM_DOOR_H, ROOM_HEADROOM, STOREY, VOID_DEPTH,
+};
 use crate::prelude::*;
 use crate::visuals::textures::{text_tex, TextTexOpts};
 use crate::world::knock::{KnockDoor, Mark};
@@ -94,6 +99,34 @@ impl Game {
             return Ground::mass(VOID_DEPTH, MASS_TOP);
         }
         self.ground[self.t_idx(x, z)]
+    }
+
+    /// The ground the dressing sees at tile (x, z): the floor as built, but a
+    /// room off a walk as the building it was cut from (`RoomPlan::was`), so
+    /// every pass draws what it drew before rooms (`off_face` then leaves out
+    /// what would land in a room)
+    pub(crate) fn dress_ground(&self, plan: &BuildingPlan, x: i32, z: i32) -> Ground {
+        match plan.rooms.iter().find(|r| r.tile == (x, z)) {
+            Some(r) => r.was,
+            None => self.ground_or_mass(x, z),
+        }
+    }
+
+    /// Whether a thing from `y0` to `y1` on side `d` of the building at tile
+    /// (x, z) (as `dress_ground` sees it) has no wall to stand on there: it is
+    /// over that building's top (a booth stops a storey over its walk:
+    /// `BOOTH_TOP`), in a room's doorway below its roof (`ROOM_HEADROOM` over
+    /// its floor), or inside a room. The pass keeps its draws for it.
+    fn off_face(&self, plan: &BuildingPlan, x: i32, z: i32, d: usize, y0: f64, y1: f64) -> bool {
+        if y1 > self.dress_ground(plan, x, z).h1 as f64 {
+            return true;
+        }
+        let (fx, fz) = (x + DIRS[d][0], z + DIRS[d][1]);
+        plan.rooms.iter().any(|r| {
+            let h = self.ground_or_mass(r.tile.0, r.tile.1).h0 as f64;
+            let front = r.tile == (x, z) && d == r.door && y0 < h + ROOM_HEADROOM as f64 && y1 > h;
+            front || (r.tile == (x, z) && d != r.door) || r.tile == (fx, fz)
+        })
     }
 
     /// The point on the face of tile (x, z) on side `d`, `out` metres out
@@ -230,8 +263,6 @@ impl Game {
         let bat_tip_geo = pg("Props__battery_tip", cyl_geo!(0.025, 0.025, 0.03, 8));
         let bat_body_mat = lambert!({ color: 0xc79b3d, emissive: 0x2a1f08 });
         let bat_tip_mat = lambert!({ color: 0xdad3c2 });
-        const DOORWAY: f64 = 2.0;
-        const HEAD: f64 = 2.5;
         for (i, c) in plan.rooms.iter().enumerate() {
             let (x, z) = c.tile;
             let h = self.floor_y_of(x, z);
@@ -251,13 +282,14 @@ impl Game {
             // the front: a wide doorway, the wall either side and over it
             let d = c.door;
             let yaw = yaw_to(d);
-            let seg = (CELL - DOORWAY) / 2.0;
+            // (`level::building::cell_front_boxes` makes it solid)
+            let seg = (CELL - ROOM_DOOR) / 2.0;
             for sx in [-1.0, 1.0] {
-                let p = self.face_point(x, z, d, sx * (DOORWAY / 2.0 + seg / 2.0), -CELL_FRONT / 2.0, (h + top) / 2.0);
+                let p = self.face_point(x, z, d, sx * (ROOM_DOOR / 2.0 + seg / 2.0), -CELL_FRONT / 2.0, (h + top) / 2.0);
                 parts.put(wall, boxm(p, yaw, Vec3::new(seg, top - h, CELL_FRONT)));
             }
-            let p = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, (h + HEAD + top) / 2.0);
-            parts.put(wall, boxm(p, yaw, Vec3::new(DOORWAY, top - h - HEAD, CELL_FRONT)));
+            let p = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, (h + ROOM_DOOR_H + top) / 2.0);
+            parts.put(wall, boxm(p, yaw, Vec3::new(ROOM_DOOR, top - h - ROOM_DOOR_H, CELL_FRONT)));
             // what its place leaves in it, at the back, a little to one side
             let side = if r.next() < 0.5 { -1.0 } else { 1.0 };
             let back = |along: f64, out: f64, y: f64| self.face_point(x, z, d ^ 1, along, out, y);
@@ -270,10 +302,15 @@ impl Game {
                         let leg = back(side * 0.6 + lx, -0.75 + lz, h + 0.36);
                         parts.put(wood, boxm(leg, yaw, Vec3::new(0.05, 0.72, 0.05)));
                     }
+                    // (seat and back turned together about the seat's middle)
                     let seat = back(side * 0.6 - side * 0.2, -1.55, h + 0.45);
-                    parts.put(wood, boxm(seat, yaw + r.range(-0.4, 0.4), Vec3::new(0.45, 0.05, 0.45)));
+                    let turn = r.range(-0.4, 0.4);
+                    parts.put(wood, boxm(seat, yaw + turn, Vec3::new(0.45, 0.05, 0.45)));
                     let rest = back(side * 0.6 - side * 0.2, -1.76, h + 0.75);
-                    parts.put(wood, boxm(rest, yaw, Vec3::new(0.45, 0.6, 0.05)));
+                    let (ox, oz) = (rest.x - seat.x, rest.z - seat.z);
+                    let (c, s) = (turn.cos(), turn.sin());
+                    let rest = Vec3::new(seat.x + ox * c + oz * s, rest.y, seat.z - ox * s + oz * c);
+                    parts.put(wood, boxm(rest, yaw + turn, Vec3::new(0.45, 0.6, 0.05)));
                     t + Vec3::new(0.0, 0.025, 0.0)
                 }
                 Style::Halls => {
@@ -460,9 +497,11 @@ impl Game {
         let taped = parts.part(&unit, &tape);
         let cells: Vec<(i32, i32)> = plan.cells.iter().map(|c| c.tile).collect();
         let exit_wall = (plan.exit.0 + DIRS[plan.exit_side][0], plan.exit.1 + DIRS[plan.exit_side][1]);
+        // (a door's height with its frame)
+        let door_h = CELL_DOOR_H + 0.12;
         for z in 0..self.h {
             for x in 0..self.w {
-                let g = self.ground_or_mass(x, z);
+                let g = self.dress_ground(plan, x, z);
                 if g.kind != GROUND_FLOOR || cells.contains(&(x, z)) || plan.view_line.contains(&(x, z)) {
                     continue;
                 }
@@ -470,27 +509,34 @@ impl Game {
                 let faces: Vec<usize> = (0..4)
                     .filter(|&d| {
                         let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
-                        self.ground_or_mass(mx, mz).kind == GROUND_MASS
+                        self.dress_ground(plan, mx, mz).kind == GROUND_MASS
                             && !cells.contains(&(mx, mz))
                             && (mx, mz) != exit_wall
                             && self.in_grid(mx, mz)
                     })
                     .collect();
                 let voids: Vec<usize> =
-                    (0..4).filter(|&d| self.ground_or_mass(x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_VOID).collect();
+                    (0..4).filter(|&d| self.dress_ground(plan, x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_VOID).collect();
                 if faces.is_empty() {
                     continue;
                 }
-                // a door on each face of the block along the walk, sealed
+                // a door on each face of the block along the walk, sealed (none
+                // in a room's doorway: its draws are kept)
                 for &d in &faces {
                     if r.next() > 0.6 {
                         continue;
                     }
                     let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
                     let yaw = yaw_to(d ^ 1);
+                    // (its mark and number drawn even where it is left out)
+                    let v = r.next();
+                    let n = 1000 + ((x * 31 + z * 17) as u32 * 7 + (r.next() * 9.0) as u32) % 8000;
+                    if self.off_face(plan, mx, mz, d ^ 1, h, h + door_h) {
+                        continue;
+                    }
                     let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, h);
                     self.hermetic_door(parts, at, yaw, 0.0, &steel);
-                    let mark = match r.next() {
+                    let mark = match v {
                         // the cleaners' mark: painted red across it
                         v if v < 0.12 => {
                             for k in [-1.0, 1.0] {
@@ -518,7 +564,6 @@ impl Game {
                         }
                         _ => Mark::Plain,
                     };
-                    let n = 1000 + ((x * 31 + z * 17) as u32 * 7 + (r.next() * 9.0) as u32) % 8000;
                     let plate = self.plate(&format!("{n}"), "#cfc9b6", "#2e332e");
                     plate.position().copy(&self.face_point(mx, mz, d ^ 1, CELL_DOOR / 2.0 + 0.4, 0.012, h + 1.65));
                     plate.rotation().y = yaw;
@@ -539,27 +584,34 @@ impl Game {
                         answered: false,
                     });
                 }
-                // the galleries above and below, with their parapets and doors
+                // the galleries above and below, with their parapets and doors:
+                // a gallery only as high as a face it hangs on (a booth stops a
+                // storey over its walk), a door only on a face that holds it
+                let reach =
+                    faces.iter().map(|&d| self.dress_ground(plan, x + DIRS[d][0], z + DIRS[d][1]).h1 as f64).fold(f64::MIN, f64::max);
                 for k in (-STACK..=STACK).filter(|&k| k != 0) {
                     let y = h + k as f64 * STOREY;
                     if y < VOID_DEPTH as f64 + 2.0 || y > MASS_TOP as f64 - 3.0 {
                         continue;
                     }
+                    let hung = y <= reach;
                     let (cx, cz) = (self.wx(x), self.wz(z));
-                    parts.put(deck, boxm(Vec3::new(cx, y - 0.15, cz), 0.0, Vec3::new(CELL, 0.3, CELL)));
-                    // where the figure across the void may stand: at the deck's
-                    // parapet, a storey under to four over (`world::far_figures`)
-                    if let (Some(&d), true) = (voids.first(), (-1..=4).contains(&k)) {
-                        let at = Vec3::new(cx + DIRS[d][0] as f64 * 1.5, y, cz + DIRS[d][1] as f64 * 1.5);
-                        self.figure_perches.push(at);
-                    }
-                    for &d in &voids {
-                        let p = self.face_point(x, z, d, 0.0, -0.09, y + 0.52);
-                        parts.put(parapet, boxm(p, yaw_to(d), Vec3::new(CELL, 1.05, 0.18)));
+                    if hung {
+                        parts.put(deck, boxm(Vec3::new(cx, y - 0.15, cz), 0.0, Vec3::new(CELL, 0.3, CELL)));
+                        // where the figure across the void may stand: at the deck's
+                        // parapet, a storey under to four over (`world::far_figures`)
+                        if let (Some(&d), true) = (voids.first(), (-1..=4).contains(&k)) {
+                            let at = Vec3::new(cx + DIRS[d][0] as f64 * 1.5, y, cz + DIRS[d][1] as f64 * 1.5);
+                            self.figure_perches.push(at);
+                        }
+                        for &d in &voids {
+                            let p = self.face_point(x, z, d, 0.0, -0.09, y + 0.52);
+                            parts.put(parapet, boxm(p, yaw_to(d), Vec3::new(CELL, 1.05, 0.18)));
+                        }
                     }
                     for &d in &faces {
                         let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
-                        if r.next() < 0.6 {
+                        if r.next() < 0.6 && hung && !self.off_face(plan, mx, mz, d ^ 1, y, y + door_h) {
                             let at = self.face_point(mx, mz, d ^ 1, 0.0, 0.04, y);
                             self.hermetic_door(parts, at, yaw_to(d ^ 1), 0.0, &steel);
                         }
@@ -582,12 +634,12 @@ impl Game {
     fn dress_lift(&mut self, plan: &BuildingPlan, parts: &mut Parts) {
         let (sx, sz) = (self.wx(plan.spawn.0), self.wz(plan.spawn.1));
         let open = |g: &Game, x: i32, z: i32| {
-            (-1..=1).all(|dz| (-1..=1).all(|dx| g.in_grid(x + dx, z + dz) && g.ground_or_mass(x + dx, z + dz).kind == GROUND_VOID))
+            (-1..=1).all(|dz| (-1..=1).all(|dx| g.in_grid(x + dx, z + dz) && g.dress_ground(plan, x + dx, z + dz).kind == GROUND_VOID))
         };
         // the eyes of the walks round the arrival
         let eyes: Vec<Vec3> = (-4..=4)
             .flat_map(|dz| (-4..=4).map(move |dx| (plan.spawn.0 + dx, plan.spawn.1 + dz)))
-            .filter(|&(x, z)| self.in_grid(x, z) && self.ground_or_mass(x, z).walkable())
+            .filter(|&(x, z)| self.in_grid(x, z) && self.dress_ground(plan, x, z).walkable())
             .map(|(x, z)| Vec3::new(self.wx(x), self.floor_y_of(x, z) + EYE, self.wz(z)))
             .collect();
         let eye_y = self.floor_y_of(plan.spawn.0, plan.spawn.1) + EYE;
@@ -687,35 +739,45 @@ impl Game {
             let z = (r.next() * self.h as f64) as i32;
             let along_x = r.next() < 0.5;
             let (dx, dz) = if along_x { (1, 0) } else { (0, 1) };
-            if self.ground_or_mass(x, z).kind != GROUND_MASS || self.ground_or_mass(x + dx, z + dz).kind != GROUND_VOID {
+            if self.dress_ground(plan, x, z).kind != GROUND_MASS || self.dress_ground(plan, x + dx, z + dz).kind != GROUND_VOID {
                 continue;
             }
             // across the void to the next face
             let mut k = 1;
             while k < 12
-                && self.ground_or_mass(x + dx * k, z + dz * k).kind == GROUND_VOID
+                && self.dress_ground(plan, x + dx * k, z + dz * k).kind == GROUND_VOID
                 && !plan.view_line.contains(&(x + dx * k, z + dz * k))
             {
                 k += 1;
             }
-            if !(3..12).contains(&k) || self.ground_or_mass(x + dx * k, z + dz * k).kind != GROUND_MASS {
+            if !(3..12).contains(&k) || self.dress_ground(plan, x + dx * k, z + dz * k).kind != GROUND_MASS {
                 continue;
             }
             let y = ((r.next() * 10.0 - 4.0).round()) * STOREY + 2.3;
+            // tied to a face at either end: where one stops under it (a
+            // booth), the line is left out and its draws kept
+            let d = if along_x { 0 } else { 2 };
+            let tied = !self.off_face(plan, x, z, d, y, y) && !self.off_face(plan, x + dx * k, z + dz * k, d ^ 1, y, y);
             let a = Vec3::new(self.wx(x) + dx as f64 * CELL / 2.0, y, self.wz(z) + dz as f64 * CELL / 2.0);
             let b = Vec3::new(self.wx(x + dx * k) - dx as f64 * CELL / 2.0, y, self.wz(z + dz * k) - dz as f64 * CELL / 2.0);
             let len = a.distance_to(&b);
             let mid = Vec3::new((a.x + b.x) / 2.0, y - 0.15, (a.z + b.z) / 2.0);
             let q = Quat::from_axis_angle(&Vec3::new(dz as f64, 0.0, -dx as f64), PI / 2.0);
-            parts.put(line, Mat4::compose(&mid, &q, &Vec3::new(1.0, len, 1.0)));
+            if tied {
+                parts.put(line, Mat4::compose(&mid, &q, &Vec3::new(1.0, len, 1.0)));
+            }
             let n = 2 + (r.next() * 5.0) as usize;
             for j in 0..n {
                 let t = (j as f64 + 0.5 + r.range(-0.3, 0.3)) / n as f64;
                 let p = Vec3::new(a.x + (b.x - a.x) * t, y - 0.6 - r.range(0.0, 0.1), a.z + (b.z - a.z) * t);
                 let yaw = if along_x { 0.0 } else { PI / 2.0 };
                 let m = cloth[(r.next() * cloth.len() as f64) as usize % cloth.len()];
-                parts.put(m, boxm(p, yaw + r.range(-0.1, 0.1), Vec3::new(1.0, 1.0, 1.0)));
+                let turn = r.range(-0.1, 0.1);
+                if tied {
+                    parts.put(m, boxm(p, yaw + turn, Vec3::new(1.0, 1.0, 1.0)));
+                }
             }
+            // (counted made either way: the draws after it stay where they were)
             made += 1;
         }
     }
@@ -737,15 +799,15 @@ impl Game {
         if plan.style == Style::Well {
             for z in 0..self.h {
                 for x in 0..self.w {
-                    if self.ground_or_mass(x, z).kind != GROUND_MASS {
+                    if self.dress_ground(plan, x, z).kind != GROUND_MASS {
                         continue;
                     }
                     for d in 0..4 {
                         let (nx, nz) = (x + DIRS[d][0], z + DIRS[d][1]);
-                        if !self.in_grid(nx, nz) || self.ground_or_mass(nx, nz).kind == GROUND_MASS {
+                        if !self.in_grid(nx, nz) || self.dress_ground(plan, nx, nz).kind == GROUND_MASS {
                             continue;
                         }
-                        let out = self.ground_or_mass(nx, nz);
+                        let out = self.dress_ground(plan, nx, nz);
                         for k in ((VOID_DEPTH as f64 / STOREY) as i32 + 2)..((MASS_TOP as f64 / STOREY) as i32 - 2) {
                             let y = k as f64 * STOREY + STOREY / 2.0;
                             // not beside a walk, at its height: those are doors
@@ -761,6 +823,11 @@ impl Game {
                                 v if v < 0.95 => lit[1][pick(v, 0.7, 0.95)],
                                 v => lit[2][pick(v, 0.95, 1.0)],
                             };
+                            // (none over the top of a booth, nor in a room's
+                            // doorway: the draws are kept)
+                            if self.off_face(plan, x, z, d, y - 0.66, y + 0.66) {
+                                continue;
+                            }
                             parts.put(m, boxm(p, yaw_to(d), Vec3::new(1.0, 1.0, 1.0)));
                         }
                     }
@@ -796,7 +863,7 @@ impl Game {
                 for dx in 0..2 {
                     for d in 0..4 {
                         let (x, z) = (nd.x + dx, nd.z + dz);
-                        if self.ground_or_mass(x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_MASS
+                        if self.dress_ground(plan, x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_MASS
                             && self.in_grid(x + DIRS[d][0], z + DIRS[d][1])
                         {
                             spot = Some((x, z, d));
@@ -807,6 +874,14 @@ impl Game {
             }
             let Some((x, z, d)) = spot else { continue };
             let n = base + nd.storey;
+            let h = self.floor_y_of(x, z);
+            let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
+            let along = r.range(-0.8, 0.8);
+            // (none in a room's doorway, nor over a face that stops under it:
+            // its draw is kept)
+            if self.off_face(plan, mx, mz, d ^ 1, h + 2.35 - 0.375, h + 2.35 + 0.375) {
+                continue;
+            }
             let tex = text_tex(
                 &format!("{n}"),
                 &TextTexOpts {
@@ -819,9 +894,7 @@ impl Game {
                 },
             );
             let m = mesh(plane_geo!(1.5, 0.75), lambert!({ map: tex, transparent: true, opacity: 0.75 }));
-            let h = self.floor_y_of(x, z);
-            let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
-            m.position().copy(&self.face_point(mx, mz, d ^ 1, r.range(-0.8, 0.8), 0.01, h + 2.35));
+            m.position().copy(&self.face_point(mx, mz, d ^ 1, along, 0.01, h + 2.35));
             m.rotation().y = yaw_to(d ^ 1);
             m.user().static_prop = true;
             self.world.add(&m);
@@ -841,13 +914,19 @@ impl Game {
         // a spread of them: every other one
         nodes.retain(|_| r.next() < 0.55);
         for nd in nodes {
+            // the first face of building beside the platform that holds it
+            // (not one that stops under it, as a booth does, nor a room's
+            // doorway: no draw, so the speakers stay the siren's)
             let mut spot = None;
             'f: for dz in 0..2 {
                 for dx in 0..2 {
                     for d in 0..4 {
                         let (x, z) = (nd.x + dx, nd.z + dz);
-                        if self.ground_or_mass(x + DIRS[d][0], z + DIRS[d][1]).kind == GROUND_MASS
-                            && self.in_grid(x + DIRS[d][0], z + DIRS[d][1])
+                        let (mx, mz) = (x + DIRS[d][0], z + DIRS[d][1]);
+                        let h = self.floor_y_of(x, z);
+                        if self.dress_ground(plan, mx, mz).kind == GROUND_MASS
+                            && self.in_grid(mx, mz)
+                            && !self.off_face(plan, mx, mz, d ^ 1, h + 3.4, h + 4.0)
                         {
                             spot = Some((x, z, d));
                             break 'f;
@@ -878,7 +957,7 @@ impl Game {
         let ring = parts.part(&ring_geo, &iron);
         let voids: Vec<(i32, i32)> = (0..self.h)
             .flat_map(|z| (0..self.w).map(move |x| (x, z)))
-            .filter(|&(x, z)| self.ground_or_mass(x, z).kind == GROUND_VOID && !plan.view_line.contains(&(x, z)))
+            .filter(|&(x, z)| self.dress_ground(plan, x, z).kind == GROUND_VOID && !plan.view_line.contains(&(x, z)))
             .collect();
         if voids.is_empty() {
             return;
@@ -905,7 +984,7 @@ impl Game {
             let d = (r.next() * 4.0) as usize % 4;
             let len = 3 + (r.next() * 4.0) as i32;
             if !(0..len).all(|k| {
-                self.ground_or_mass(x + DIRS[d][0] * k, z + DIRS[d][1] * k).kind == GROUND_VOID
+                self.dress_ground(plan, x + DIRS[d][0] * k, z + DIRS[d][1] * k).kind == GROUND_VOID
                     && !plan.view_line.contains(&(x + DIRS[d][0] * k, z + DIRS[d][1] * k))
             }) {
                 continue;
@@ -1000,24 +1079,30 @@ impl Game {
         let pipe = parts.part(&pipe_geo, &self.mats.metal);
         for zz in 0..self.h {
             for xx in 0..self.w {
-                let g = self.ground_or_mass(xx, zz);
+                let g = self.dress_ground(plan, xx, zz);
                 if !g.walkable() || r.next() > 0.5 {
                     continue;
                 }
                 for d in 0..4 {
-                    if self.ground_or_mass(xx + DIRS[d][0], zz + DIRS[d][1]).kind != GROUND_MASS {
+                    let (mx, mz) = (xx + DIRS[d][0], zz + DIRS[d][1]);
+                    if self.dress_ground(plan, mx, mz).kind != GROUND_MASS {
                         continue;
                     }
                     let along = if DIRS[d][0] != 0 { Vec3::new(0.0, 0.0, 1.0) } else { Vec3::new(1.0, 0.0, 0.0) };
                     let q = Quat::from_axis_angle(&Vec3::new(along.z, 0.0, -along.x), PI / 2.0);
                     for (k, y) in [2.9, 3.3].iter().enumerate() {
-                        let p = self.face_point(xx, zz, d, 0.0, -0.25 - k as f64 * 0.38, g.h0 as f64 + y);
+                        let y = g.h0 as f64 + y;
+                        // (none across a room's doorway, nor over a face that
+                        // stops under it)
+                        if self.off_face(plan, mx, mz, d ^ 1, y - 0.16, y + 0.16) {
+                            continue;
+                        }
+                        let p = self.face_point(xx, zz, d, 0.0, -0.25 - k as f64 * 0.38, y);
                         parts.put(pipe, Mat4::compose(&p, &q, &Vec3::new(1.0, CELL, 1.0)));
                     }
                 }
             }
         }
-        let _ = plan;
     }
 }
 
@@ -1029,7 +1114,11 @@ pub(crate) const LANDING: usize = 4;
 
 /// How far up its rise step `s` of a flight of `n` stands (0 at the foot):
 /// evenly, but for the landing from step `n / 2`, which keeps that step's
-/// height for `LANDING` steps; the steps after it go on rising from there
+/// height for `LANDING` steps; the steps after it go on rising from there,
+/// so the flight ends `LANDING - 1` steps short of its full rise (its last
+/// step at `(n - LANDING) / n`, not `(n - 1) / n`). That is only for the
+/// flights that cross the Stair Halls' void (`dress_halls`): no walk reaches
+/// either end of one, so neither end has a floor to meet
 pub(crate) fn flight_rise(s: usize, n: usize) -> f64 {
     let land = n / 2;
     let held = s.saturating_sub(land).min(LANDING - 1);

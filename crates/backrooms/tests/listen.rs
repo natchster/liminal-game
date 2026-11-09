@@ -559,8 +559,12 @@ fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
         g.player.yaw = d.normal.0.atan2(d.normal.1);
         g.player.pitch = 0.0;
     };
-    let answers = r.g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water)).expect("a door that gives water");
-    let red = r.g.knocks.doors.iter().position(|d| d.mark == Mark::Red).expect("a red door");
+    // (doors 8 m or more from a lamp: the ballast hum sits at the nearest
+    // one, at full strength within 5.6 m, and 4 m from a cell's lamp it is
+    // as loud as the knock this listens for)
+    let quiet = |d: &game::world::knock::KnockDoor| r.g.panels.iter().all(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z) >= 8.0);
+    let answers = r.g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water) && quiet(d)).expect("a door that gives water");
+    let red = r.g.knocks.doors.iter().position(|d| d.mark == Mark::Red && quiet(d)).expect("a red door");
     r.g.assembly.t = 300.0;
     // the bed at the answering door, then the knock
     face(&mut r.g, answers);
