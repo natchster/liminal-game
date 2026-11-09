@@ -48,19 +48,58 @@ fn dependencies(manifest: &str) -> Vec<String> {
         .collect()
 }
 
-/// Playtesting never sounds through the speakers: the headless modes turn the
-/// output device off before anything is made, and no test opens it
-/// (`engine::audio::device_output`; a test binary is caught there too)
+/// Playtesting never sounds through the speakers. The output device is off
+/// unless the windowed game turns it on: one call, in `main`, after every
+/// headless mode has returned and just before the window opens. A mode
+/// added later is silent without remembering to be. `cargo xtask` also
+/// silences everything it runs (`BACKROOMS_SILENT`), a test binary can't
+/// open it (`engine::audio::device_output`), and no test uses the device's
+/// context
 #[test]
 fn automated_runs_never_open_the_output_device() {
-    let main = read("crates/backrooms/src/main.rs");
-    let at = main.find("fn main()").expect("main.rs has fn main");
-    let head = &main[at..main[at..].find("o.bench.clone()").map_or(main.len(), |i| at + i)];
+    // spelt in pieces, so this file does not match itself
+    let on = concat!("set_device_output(", "true)");
+    let audio = read("crates/engine/src/audio.rs");
     assert!(
-        head.contains("engine::audio::set_device_output(false)"),
-        "main.rs: the headless modes must call engine::audio::set_device_output(false) first thing in main"
+        audio.contains(concat!("static DEVICE_OUTPUT: AtomicBool = AtomicBool::new(", "false);")),
+        "engine::audio: the output device must start off (DEVICE_OUTPUT = false); only the windowed game turns it on"
     );
-    // spelt in two pieces, so this file does not match itself
+    // the one place it is turned on
+    let mut ons = vec![];
+    for dir in ["crates", "xtask/src"] {
+        for f in rust_files(dir) {
+            let s = std::fs::read_to_string(&f).unwrap();
+            if rel(&f) != "crates/backrooms/tests/structure.rs" {
+                ons.extend(s.matches(on).map(|_| rel(&f)));
+            }
+        }
+    }
+    assert_eq!(
+        ons,
+        vec!["crates/backrooms/src/main.rs".to_string()],
+        "the speakers are turned on in exactly one place, main.rs before the window opens; found {on} in {ons:?}"
+    );
+    let main = read("crates/backrooms/src/main.rs");
+    let body = &main[main.find("fn main()").expect("main.rs has fn main")..];
+    let at_on = body.find(on).expect("main turns the speakers on for the window");
+    let at_run = body.find("run(\n        AppConfig").expect("main opens the window with run(AppConfig …)");
+    let last_return = body[..at_run].rfind("return;").expect("main's headless modes return before the window");
+    assert!(
+        last_return < at_on && at_on < at_run,
+        "main.rs: {on} must come after every headless mode has returned and just before run(AppConfig …), so no headless run can reach it"
+    );
+    for mode in ["bench(&o", "bench_creatures(&o", "metrics(&o", "level_check(&o", "screenshot(&o"] {
+        let at = body.find(mode).unwrap_or_else(|| panic!("main.rs: the headless mode {mode} …) moved; update this test"));
+        assert!(at < at_on, "main.rs: the headless mode {mode} …) runs after the speakers are turned on");
+    }
+    let xtask = read("xtask/src/main.rs");
+    let xmain = &xtask[xtask.find("fn main()").expect("xtask has fn main")..];
+    let first_task = xmain.find("match args.first()").expect("xtask dispatches its tasks");
+    assert!(
+        xtask.contains("const SILENT_ENV: &str = \"BACKROOMS_SILENT\";")
+            && xmain[..first_task].contains("std::env::set_var(SILENT_ENV, \"1\")"),
+        "xtask/src/main.rs: set BACKROOMS_SILENT before any task runs, so nothing a task starts sounds through the speakers"
+    );
     let device = concat!("AudioContext::", "new()");
     let guard = concat!("AudioContext::", "new().plays_on_device()");
     for dir in ["crates/game/tests", "crates/backrooms/tests", "crates/engine/tests"] {

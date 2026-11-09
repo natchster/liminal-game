@@ -272,14 +272,28 @@ Levels must be a pure function of `(run_seed, level)`:
   the playthrough's pace and shelters in the nearest cell at each siren:
   the log has the self-assembly's phases, when the door was reached and
   how many sirens a floor met on the way.
-* **Nothing automated sounds through the speakers.** A test makes its
-  context with `AudioContext::new_silent()` (real time, nothing heard) or
-  `new_offline()` (rendered on demand), never `AudioContext::new()`; a test
-  binary cannot open the output device even through the game's
-  `audio_init` (`engine::audio::device_output`), the headless modes
-  (`--screenshot`, `--dump-level`, `--metrics`, `--bench`) turn it off
-  first thing in `main`, and `BACKROOMS_SILENT=1` silences any other run.
-  `tests/structure.rs` and `audio_smoke.rs` hold this.
+* **Nothing automated sounds through the speakers.** The output device is
+  off unless the windowed game turns it on: `engine::audio::DEVICE_OUTPUT`
+  starts false, and `main` turns it on in one place, after every headless
+  mode has returned and just before the window opens. So a headless mode
+  added later is silent without having to remember to be. On top of that:
+  - `cargo xtask` sets `BACKROOMS_SILENT=1` for everything it runs.
+  - A test binary can't open the device, even through the game's
+    `audio_init`.
+  - A test makes its context with `AudioContext::new_silent()` (real time,
+    nothing heard) or `new_offline()` (rendered on demand), never
+    `AudioContext::new()`.
+
+  `tests/structure.rs` (`automated_runs_never_open_the_output_device`),
+  the engine's `the_speakers_start_off` and `audio_smoke.rs` hold this.
+* **A build of an older commit plays aloud.** Commits before `03e4b80`
+  (2026-11-08) have no speaker guard: they open the device in every mode,
+  `--bench` included, and ignore `BACKROOMS_SILENT`. Before building one
+  (a bisect, an A/B of an old binary), take the guard in first:
+  `git -C <worktree> cherry-pick -n 03e4b80`. Commits from then until the
+  guard was made opt-in honour `BACKROOMS_SILENT=1`, so run them under it.
+  A bisect of the bench in November 2026 played the creature pack through
+  the speakers this way.
 * `crates/backrooms/tests/listen.rs` renders the game's audio offline and
   writes each run to `target/listen/*.wav` with a loudness timeline
   (`*.png`, dB per 50 ms window, red marks at events): listen to them after

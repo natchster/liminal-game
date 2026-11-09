@@ -70,6 +70,11 @@ const USAGE: &str = "usage: cargo xtask <task>
                              Claude Code hooks; read the hook JSON on stdin";
 
 fn main() -> ExitCode {
+    // nothing a task runs (a test, a shot, a bench, a build of the game)
+    // sounds through the speakers: every child inherits this
+    // (`engine::audio::device_output`; `bundle --run` opens the app through
+    // Launch Services, which does not pass it on)
+    std::env::set_var(SILENT_ENV, "1");
     let args: Vec<String> = std::env::args().skip(1).collect();
     let rest = args.get(1..).unwrap_or(&[]);
     let result = match args.first().map(String::as_str) {
@@ -99,6 +104,10 @@ fn main() -> ExitCode {
         }
     }
 }
+
+/// Silences the game wherever it runs from a task (read by
+/// `engine::audio::device_output`)
+const SILENT_ENV: &str = "BACKROOMS_SILENT";
 
 /// The workspace root (the parent of this crate's directory).
 fn root() -> PathBuf {

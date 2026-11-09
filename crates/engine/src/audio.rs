@@ -197,21 +197,25 @@ const L_UX: u8 = 16;
 const L_UY: u8 = 17;
 const L_UZ: u8 = 18;
 
-/// Whether `AudioContext::new` may open the output device. The headless
-/// modes turn it off, so a shot, a dump or a bench never sounds through the
-/// speakers (`set_device_output`)
-static DEVICE_OUTPUT: AtomicBool = AtomicBool::new(true);
+/// Whether `AudioContext::new` may open the output device. Off until the
+/// windowed game, a person playing, turns it on (`set_device_output`, in
+/// `main` just before the window opens), so whatever else runs (a
+/// headless mode, a tool, a test, a mode added later) is silent without
+/// having to remember to be
+static DEVICE_OUTPUT: AtomicBool = AtomicBool::new(false);
 
 /// Let `AudioContext::new` open the output device, or not (then it runs on a
-/// silent clock: the same graph, the same time, nothing heard)
+/// silent clock: the same graph, the same time, nothing heard). Only the
+/// windowed game turns it on (`tests/structure.rs` holds that)
 pub fn set_device_output(on: bool) {
     DEVICE_OUTPUT.store(on, Ordering::Relaxed);
 }
 
-/// The output device may be opened: not turned off, not asked for silence
-/// (`BACKROOMS_SILENT` set, for any automated run), and not a test binary
-/// (cargo puts those in `…/deps/<name>-<16 hex digits>`): a test, a bot's
-/// playthrough or a check never plays through the speakers
+/// The output device may be opened: turned on by the windowed game, not
+/// asked for silence (`BACKROOMS_SILENT` set: `cargo xtask` sets it for
+/// everything it runs), and not a test binary (cargo puts those in
+/// `…/deps/<name>-<16 hex digits>`): a test, a bot's playthrough or a check
+/// never plays through the speakers
 pub fn device_output() -> bool {
     DEVICE_OUTPUT.load(Ordering::Relaxed) && std::env::var_os("BACKROOMS_SILENT").is_none() && !is_test_binary()
 }
@@ -1977,4 +1981,18 @@ fn set_biquad(bq: &mut Biquad, t: FilterType, f: f64, q: f64, gain_db: f64, sr: 
     bq.b2 = b2 / a0;
     bq.a1 = a1 / a0;
     bq.a2 = a2 / a0;
+}
+
+#[cfg(test)]
+mod speaker_tests {
+    use super::*;
+
+    /// The speakers start off: whatever runs without the window (a headless
+    /// mode, a tool, a test) is silent unless it was turned on
+    #[test]
+    fn the_speakers_start_off() {
+        assert!(!DEVICE_OUTPUT.load(Ordering::Relaxed), "DEVICE_OUTPUT must start false; only the windowed game turns it on");
+        assert!(!device_output());
+        assert!(!AudioContext::new().plays_on_device(), "a context opened the device with the speakers off");
+    }
 }

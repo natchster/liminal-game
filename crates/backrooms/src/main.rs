@@ -1134,10 +1134,8 @@ fn bench_creatures(o: &Options, path: &str) {
 
 fn main() {
     let o = parse_args();
-    if o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some() || o.bench_creatures.is_some() {
-        // a headless run plays its sounds to nobody: never the speakers
-        engine::audio::set_device_output(false);
-    }
+    // the speakers stay off (`engine::audio::device_output`): every headless
+    // mode below plays its sounds to nobody; only the window turns them on
     if let Some(p) = o.bench.clone() {
         bench(&o, &p);
         return;
@@ -1175,6 +1173,8 @@ fn main() {
         recorder = Some((game::debug::replay::Recorder::new(seed), p.clone()));
     }
     let g = make_game(&o);
+    // a person is playing: the one place the speakers are turned on
+    engine::audio::set_device_output(true);
     run(
         AppConfig { title: "The Backrooms".into(), width: o.width, height: o.height, fullscreen: o.fullscreen },
         App { g, started: Instant::now(), cursor: (0.0, 0.0), last_hit: String::new(), recorder, replaying, frames: 0 },
