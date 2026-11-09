@@ -983,6 +983,46 @@ impl Game {
             }
             return;
         }
+        // sealed in the first cell with the fog over it, something answered at
+        // the door: its wheel turning (`cell`), or the door given and the fog
+        // coming in (`cell-gave`), seen from the middle of the cell, the lamp
+        // in hand (`world::cell_knock`)
+        if (name == "cell" || name == "cell-gave") && self.building.is_some() && !self.cell_doors.is_empty() {
+            use crate::world::cell_knock::{AtTheDoor, Visit};
+            let d = self.cell_doors[0].clone();
+            let (tx, tz) = d.tile;
+            let (cx, cz) = (self.wx(tx), self.wz(tz));
+            let h = self.floor_y_of(tx, tz);
+            // a step behind the cell's middle, looking at the door
+            let (dx, dz) = (d.at.x - cx, d.at.z - cz);
+            let l = dx.hypot(dz).max(1e-6);
+            let (px, pz) = (cx - dx / l * 0.6, cz - dz / l * 0.6);
+            self.player.pos = Vec3::new(px, h + EYE, pz);
+            self.player.yaw = (-dx).atan2(-dz) + 0.08;
+            self.player.pitch = -0.2;
+            // (the cell is dark inside: its lamp hangs outside, over the door)
+            self.player.flashlight_on = true;
+            self.god_mode = true;
+            self.turn_cell_wheel(0, true);
+            self.cell_doors[0].open = 0.0;
+            self.cell_doors[0].turned = self.cell_doors[0].turn_to;
+            let a = &mut self.assembly;
+            a.stage = crate::world::assembly::Stage::Crest;
+            // (over the cell's roof while it is sealed; to the knee once it gave)
+            a.y = h + if name == "cell" { 5.0 } else { 0.7 };
+            a.crest = a.y;
+            a.t = 60.0;
+            a.knock_t = 60.0;
+            a.door = AtTheDoor { visit: Visit::Knocking, cell: Some(0), patience: 9, wait: 0.0, tries: 60.0, ..Default::default() };
+            self.answer_the_door(0);
+            if name == "cell-gave" {
+                self.assembly.door.give = 1.0;
+                self.assembly.door.t = 0.0;
+                self.update_at_the_door(1.0 / 60.0);
+                self.cell_doors[0].open = crate::world::cell_knock::GAVE_OPEN * 0.8;
+            }
+            return;
+        }
         // the Loop's seated figure on the lap it comes, from 2.5 m (or 1.6:
         // nearer, as it is when it has come for you)
         if name == "loop-figure" || name == "loop-figure-near" {

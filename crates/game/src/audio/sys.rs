@@ -540,6 +540,36 @@ impl Game {
             self.blip(70.0, 0.25, "sine", 0.2, Some(45.0), 0.95, 0.0);
         }
     }
+    /// A cell's wheel tried from outside (`world::cell_knock`; play it at
+    /// the door), one pull: turning, the screw's squeal shorter than a turn
+    /// of your own and a little lower; held against it from inside, the
+    /// steel binding (a dull creak) and the bolts knocking in their keeps
+    pub fn sfx_wheel_tried(&self, held: bool) {
+        if held {
+            self.noise_burst(0.35, 700.0, 4.0, 0.12, "bandpass", Some(520.0), 0.0, 0.0);
+            self.noise_burst(0.06, 420.0, 1.2, 0.16, "lowpass", None, 0.28, 0.0);
+            self.blip(64.0, 0.18, "sine", 0.12, Some(48.0), 0.28, 0.0);
+        } else {
+            // (the screw squeals, catches, and squeals again lower)
+            self.noise_burst(0.55, 2300.0, 6.0, 0.06, "bandpass", Some(1700.0), 0.0, 0.0);
+            self.noise_burst(0.45, 1900.0, 6.0, 0.045, "bandpass", Some(1500.0), 0.22, 0.0);
+            self.blip(330.0, 0.5, "sawtooth", 0.016, Some(280.0), 0.0, 0.0);
+        }
+    }
+    /// A cell's door giving (`world::cell_knock`; play it at the door): its
+    /// two bolts drawn back one after the other, then the seal let go, air
+    /// drawn in through the gap as the leaf swings, and its weight on the hinge
+    pub fn sfx_seal_gives(&self) {
+        for (k, t) in [0.0, 0.2].into_iter().enumerate() {
+            let g = 1.0 - k as f64 * 0.15;
+            // steel on steel as the bolt runs back, and its stop
+            self.noise_burst(0.05, 1400.0, 3.0, 0.22 * g, "bandpass", None, t, 0.0);
+            self.noise_burst(0.1, 600.0, 1.2, 0.24 * g, "lowpass", None, t, 0.0);
+            self.blip(88.0, 0.2, "sine", 0.16 * g, Some(52.0), t, 0.0);
+        }
+        self.noise_burst(1.5, 3000.0, 1.4, 0.07, "bandpass", Some(800.0), 0.4, 0.0);
+        self.blip(52.0, 0.9, "sine", 0.12, Some(34.0), 0.4, 0.0);
+    }
     /// A knock at a sealed door (`world::knock`; play it at the door):
     /// three raps `gaps` seconds apart, knuckles on steel; from the other
     /// side (`behind`) duller and a little softer

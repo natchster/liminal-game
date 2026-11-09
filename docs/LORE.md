@@ -536,6 +536,16 @@ now and then, and every floor of the Building knows it (`world::assembly`):
   turn the wheel and the door is shut; it does not come in, though
   something knocks at the door while it is up. Turn the wheel again to go
   out. There is always a cell nearer than the fog.
+- **What knocks at the cell** (`world::cell_knock`), heard and seen at the
+  door, which is not opened from inside while it is there: left unanswered
+  it knocks two to four times, stops, and does not come back that time;
+  knocked back, a second or so later the wheel turns from outside, a
+  squeal at each pull, and held it strains and shudders in its frame and
+  after six to ten seconds is let go; let turn for two or three seconds,
+  the bolts draw back, the door swings in and the fog with it, and the
+  wheel will not shut it again until the all-clear (a door left open lets
+  the fog in the same way). The residents' notice says to answer no knock
+  and to hold the wheel if it turns; never why.
 - **In it**, your mind goes fast, and then you are gone. With your eyes
   under its surface it is all you see.
 - **It is never explained.** Who built the cells, who put up the notices

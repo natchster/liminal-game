@@ -104,7 +104,9 @@ name the siren's meaning, the cells, the fog or the figure first):
   time, and was it close? (Since G2 the siren sounds 21 s before anything
   comes; ask this one only after they have said what they did.)
 - What was it like to wait in the little room while something knocked?
-  Too long, too short? Did you open the door?
+  Too long, too short? Did you open the door? Did you knock back? (Only if
+  they say yes: what happened then, what did you do when the wheel turned,
+  and was what came of it fair? Since G6 an answer brings it to the wheel.)
 - Did you knock at any of the doors on the first floor? (Only if they say
   yes: which, why those, what happened, and what did you make of the red
   crosses and the tape?)

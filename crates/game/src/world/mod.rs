@@ -9,7 +9,8 @@
 //! the placement checks; [`build`]: the prop themes, `themed` and
 //! `build_world`; [`purpose`]: what each zone is for; [`instancing`]:
 //! static-prop instancing; [`tables`]: the build tables; [`zones`]: zone
-//! record access; [`knock`]: a knock at the Well's sealed doors.
+//! record access; [`knock`]: a knock at the Well's sealed doors;
+//! [`cell_knock`]: what knocks at your cell while the fog is up.
 //! CONTRACT: these signatures are called from other modules; keep them.
 pub mod angled;
 pub mod arch;
@@ -17,6 +18,7 @@ pub mod assembly;
 pub mod build;
 pub mod building;
 pub mod building_dress;
+pub mod cell_knock;
 pub mod far_figures;
 pub mod instancing;
 pub mod knock;

@@ -6,6 +6,8 @@
 //! while, and sinks, and the all-clear sounds. Shelter is a cell: inside,
 //! the wheel turned, the door sealed, you hear it at the door and it does
 //! not come in. Out in it, your mind goes fast, and then you are gone.
+//! What knocks at the cell is `world::cell_knock` (G6): answered, it tries
+//! the wheel, and a door that gives, or is left open, lets the fog in.
 //!
 //! The director runs it on the Building's floors in place of the creatures
 //! (calm: the quiet; build: the siren, the fog far below; peak: the fog
@@ -37,6 +39,7 @@ pub const FIRST_FLOOR_QUIET: (f64, f64) = (60.0, 80.0);
 /// Her page taken in a quiet: the siren within this many seconds
 pub const PAGE_WAKE: (f64, f64) = (2.0, 4.5);
 /// Sealed in while it is up: something at the door every this many seconds
+/// (until it goes, or is answered: `world::cell_knock`)
 pub const KNOCK: (f64, f64) = (3.5, 7.5);
 /// Out in the fog: how fast your mind goes, per second, eyes under it or
 /// only feet; and how long you last in it at most, s
@@ -85,6 +88,8 @@ pub struct Assembly {
     pub sealed: Option<usize>,
     /// seconds to the next knock at a sealed door
     pub knock_t: f64,
+    /// what knocks at the cell this time (`world::cell_knock`)
+    pub door: crate::world::cell_knock::AtTheDoor,
 }
 
 impl Assembly {
@@ -169,6 +174,7 @@ impl Game {
                     a.wail_t = 0.0;
                     a.sound_t = 2.0;
                     a.exposure = 0.0;
+                    a.door = Default::default();
                     self.director.phase = Phase::Build;
                     self.director_note("build");
                     self.director_note("assembly:siren");
@@ -239,17 +245,9 @@ impl Game {
                 }
             }
         }
-        // in a sealed cell while it is up: something at the door
-        if let (Some(ci), true) = (self.assembly.sealed, matches!(self.assembly.stage, Stage::Rising | Stage::Crest)) {
-            self.assembly.knock_t -= dt;
-            if self.assembly.knock_t <= 0.0 {
-                self.assembly.knock_t = rand2(KNOCK.0, KNOCK.1);
-                let at = self.cell_door_at(ci);
-                if let (Some(ss), Some(at)) = (self.soundscape(), at) {
-                    ss.knock(2 + (native_rnd() * 3.0) as i32, at.x, at.y, at.z, 0.45);
-                }
-            }
-        }
+        // in a sealed cell while it is up: something at the door, and what
+        // comes of answering it (`world::cell_knock`)
+        self.update_at_the_door(dt);
         // out in it
         let (under, wading) = self.in_fog();
         if under || wading {
@@ -311,6 +309,16 @@ pub struct CellDoor {
     pub at: Vec3,
     /// the doorway, world (x0, z0, x1, z1): shut, it stops a body
     pub span: [f64; 4],
+    /// the wheel on its spindle through the leaf (a ring each face)
+    pub wheel: Obj,
+    /// how far the wheel is turned, and toward where, radians (as the room
+    /// sees it: toward open is up, toward shut down)
+    pub turned: f64,
+    pub turn_to: f64,
+    /// how hard it is pulled against a hold (0 still, 1 held against it),
+    /// and the shudder's clock
+    pub strain: f64,
+    pub shake: f64,
 }
 /// How far a cell's door stands open, radians
 pub const OPEN: f64 = 1.75;
@@ -334,6 +342,7 @@ impl Game {
     pub fn turn_cell_wheel(&mut self, ci: usize, shut: bool) {
         let Some(d) = self.cell_doors.get_mut(ci) else { return };
         d.target = if shut { 0.0 } else { OPEN };
+        d.turn_to += if shut { -crate::world::cell_knock::WHEEL_TURNS } else { crate::world::cell_knock::WHEEL_TURNS };
         let at = d.at;
         self.assembly.sealed = if shut { Some(ci) } else { None };
         self.director_note(if shut { "assembly:sealed" } else { "assembly:opened" });
@@ -342,18 +351,36 @@ impl Game {
         }
     }
 
-    /// The doors swing toward where their wheel was turned
+    /// The doors swing toward where their wheel was turned, the wheels turn
+    /// toward where they are turned, and a door pulled at shudders in its
+    /// frame (no draws: the shudder is two sines of its own clock)
     pub fn update_cell_doors(&mut self, dt: f64) {
         for d in self.cell_doors.iter_mut() {
-            if (d.open - d.target).abs() < 1e-4 {
+            let shaking = d.strain > 0.0;
+            if (d.open - d.target).abs() < 1e-4 && (d.turned - d.turn_to).abs() < 1e-4 && !shaking && d.shake == 0.0 {
                 continue;
             }
             d.open += (d.target - d.open) * (dt * 2.6).min(1.0);
             if (d.open - d.target).abs() < 0.01 {
                 d.open = d.target;
             }
+            d.turned += (d.turn_to - d.turned) * (dt * 3.0).min(1.0);
+            if (d.turned - d.turn_to).abs() < 0.01 {
+                d.turned = d.turn_to;
+            }
+            let jolt = if shaking {
+                d.shake += dt;
+                d.strain * ((d.shake * 31.0).sin() * 0.6 + (d.shake * 53.0).sin() * 0.4)
+            } else {
+                d.shake = 0.0;
+                0.0
+            };
             let yaw = d.leaf.r().user.get("yaw");
-            d.leaf.rotation().y = yaw + d.open;
+            d.leaf.rotation().y = yaw + d.open + jolt * 0.006;
+            d.wheel.rotation().z = d.turned + jolt * 0.05;
+            // (it eases off as soon as nothing pulls: `update_at_the_door`
+            // sets it again each frame it does)
+            d.strain = (d.strain - dt * 4.0).max(0.0);
         }
     }
 

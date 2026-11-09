@@ -633,6 +633,93 @@ fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
     assert!(siren.is_some_and(|s| s - t1 < 9.0), "the siren within seconds of the red door");
 }
 
+/// What knocks at your cell (`docs/MEGASTRUCTURE.md`, G6;
+/// `world::cell_knock`), heard from inside it, sealed, the fog up:
+/// its knocks; your answer; then the wheel turned from outside, a pull at a
+/// time, and the door giving (its bolts, the air through the gap), each
+/// from the door. Measured over the knocking before the answer, in the
+/// band the squeal, the bolts' steel and the air fill (1.6–4 kHz: over the
+/// knocks' thud, the heart in the dark of the cell and the lamp's hum).
+#[test]
+fn the_wheel_is_tried_and_the_door_gives() {
+    use game::world::assembly::Stage;
+    use game::world::cell_knock::{Visit, GIVE};
+    game::base::rng::seed_native(0xCE11_0006);
+    let mut r = start(4242, 1);
+    let camp = r.g.story.camp.as_ref().map(|c| c.tile);
+    let cells = r.g.building.as_ref().unwrap().cells.clone();
+    let ci = cells.iter().position(|c| Some(c.tile) != camp).expect("a cell");
+    let (x, z) = cells[ci].tile;
+    let (wx, wz) = (r.g.wx(x), r.g.wz(z));
+    let h = r.g.floor_y_of(x, z);
+    r.g.player.pos = engine::math::Vec3::new(wx, h + game::prelude::EYE, wz);
+    r.g.turn_cell_wheel(ci, true);
+    r.g.assembly.t = 1e6;
+    play(&mut r, 3.0, |_| {});
+    // the fog up, and something at the door (the fog's surface a little
+    // under the cell's floor, and its rush held off: when the door gives,
+    // what the fog does is not in what is measured)
+    {
+        let a = &mut r.g.assembly;
+        a.stage = Stage::Crest;
+        a.y = h - 2.0;
+        a.crest = a.y;
+        a.t = 60.0;
+        a.count = 1;
+    }
+    let mut knocks = 0;
+    // (the fog's own rush held off: what is measured is the door)
+    play(&mut r, 6.0, |g| {
+        g.assembly.sound_t = 1e9;
+        if g.assembly.door.visit == Visit::Knocking {
+            knocks = g.assembly.door.knocks;
+        }
+    });
+    assert!(knocks >= 1, "something knocks");
+    let t0 = r.pcm.len() as f64 / 2.0 / SR;
+    r.g.answer_the_door(ci);
+    assert_eq!(r.g.assembly.door.visit, Visit::Trying, "answered");
+    let wait = r.g.assembly.door.wait;
+    let mut gave = None;
+    let mut t = t0;
+    play(&mut r, 8.0, |g| {
+        g.assembly.sound_t = 1e9;
+        t += 1.0 / 60.0;
+        if gave.is_none() && g.assembly.door.visit == Visit::Gave {
+            gave = Some(t);
+        }
+    });
+    let gave = gave.expect("the door gave");
+    let band = windows_band(&r.pcm, 1600.0, 4000.0);
+    let at = |s: f64| ((s / 0.05) as usize).min(band.len());
+    // the knocking before the answer: its bed (the band's median, and its
+    // loudest), and the whole mix's
+    let (b0, b1) = (at(3.0), at(t0 - 0.1));
+    let bed = median(&band[b0..b1]);
+    let bed_top = band[b0..b1].iter().cloned().fold(0.0, f64::max);
+    // each pull at the wheel: the band rising 12 dB out of its bed (no knock
+    // comes while it tries)
+    let tw = &band[at(t0 + wait)..at(gave - 0.05)];
+    let pulls: Vec<f64> =
+        (0..tw.len()).filter(|&k| tw[k] > bed * 4.0 && (k == 0 || tw[k - 1] <= bed * 4.0)).map(|k| t0 + wait + k as f64 * 0.05).collect();
+    let pull_top = tw.iter().cloned().fold(0.0, f64::max);
+    let gives = band[at(gave)..at(gave + 1.0)].iter().cloned().fold(0.0, f64::max);
+    println!(
+        "a cell on the Well, sealed, the fog up: {knocks} knocks, the band's bed {:.1} dB (a knock's ring {:.1}); answered at {t0:.1} s, the wheel from {:.1} s: pulls at {:?} s, the loudest {:+.1} dB over the bed; the door gave {:.2} s after the answer, {:+.1} dB in the band",
+        db(bed),
+        db(bed_top),
+        t0 + wait,
+        pulls.iter().map(|p| ((p - t0) * 100.0).round() / 100.0).collect::<Vec<_>>(),
+        db(pull_top / bed),
+        gave - t0,
+        db(gives / bed)
+    );
+    save("cell_wheel_4242_L1", &r.pcm, &[t0, t0 + wait, gave]);
+    let want = (GIVE / 0.8).floor() as usize;
+    assert!(pulls.len() >= want, "the wheel heard turning a pull at a time: {} pulls in {GIVE} s ({pulls:?})", pulls.len());
+    assert!(gives > bed * 4.0, "the door giving is heard: {:+.1} dB", db(gives / bed));
+}
+
 #[test]
 fn the_hound_is_heard() {
     // a hound 9 m ahead, held while the room's bed is measured; then it is

@@ -9,8 +9,8 @@
 //! doorway or over the top of the building it hangs on (`off_face`).
 //!
 //! * Every cell: its front wall and doorway, the hermetic door swung open
-//!   inside, the wheel on it, a plate with its number, the lamp in a cage
-//!   over it, a bench.
+//!   inside, its wheel on either face, a plate with its number, the lamp in
+//!   a cage over it, a bench.
 //! * The Well: doors sealed from inside along every gallery, numbered, some
 //!   marked red or taped round (what answers a knock: `world::knock`); the galleries of the storeys above and below
 //!   yours, one over another up and down the face of the block, with their
@@ -209,8 +209,10 @@ impl Game {
     }
 
     /// A cell's door leaf and its wheel, as an object that turns on its
-    /// hinge (its rotation is the face's `yaw` plus how far it stands open)
-    fn door_leaf(&self, at: Vec3, yaw: f64, steel: &Mat) -> Obj {
+    /// hinge (its rotation is the face's `yaw` plus how far it stands open),
+    /// and the wheel on its spindle through the leaf, a ring and two spokes
+    /// on either face (it turns about its local z: `world::cell_knock`)
+    fn door_leaf(&self, at: Vec3, yaw: f64, steel: &Mat, worn: &Mat) -> (Obj, Obj) {
         let (c, s) = (yaw.cos(), yaw.sin());
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
         let (lw, lh) = (CELL_DOOR - 0.06, hh - 0.04);
@@ -223,18 +225,24 @@ impl Game {
         leaf.scale().set(lw, lh, 0.09);
         g.add(&leaf);
         let (ring_geo, spoke_geo) = door_wheel_geos();
-        let ring = mesh(&ring_geo, steel);
-        ring.position().set(lw / 2.0, 1.05, 0.07);
-        g.add(&ring);
-        for k in [0.0, PI / 2.0] {
-            let sp = mesh(&spoke_geo, steel);
-            sp.position().set(lw / 2.0, 1.05, 0.07);
-            sp.rotation().z = k + 0.4;
-            g.add(&sp);
+        let wheel = group();
+        wheel.position().set(lw / 2.0, 1.05, 0.0);
+        // outside, and inside (the one turned from in the cell)
+        for z in [0.07, -0.07] {
+            let ring = mesh(&ring_geo, worn);
+            ring.position().z = z;
+            wheel.add(&ring);
+            for k in [0.0, PI / 2.0] {
+                let sp = mesh(&spoke_geo, worn);
+                sp.position().z = z;
+                sp.rotation().z = k + 0.4;
+                wheel.add(&sp);
+            }
         }
+        g.add(&wheel);
         g.user().gameplay = true;
         g.user().set("yaw", yaw);
-        g
+        (g, wheel)
     }
 
     /// The places off the walks (G4, `level::building::place_rooms`): a
@@ -364,6 +372,9 @@ impl Game {
         let unit = self.unit_box_geo.clone();
         let wall = parts.part(&unit, &wall_mat);
         let steel = lambert!({ color: 0x4d5650 });
+        // (a cell's wheel is bare where hands have turned it: paler than its
+        // painted leaf, so it reads in the dark of the cell)
+        let worn = lambert!({ color: 0x80857e });
         let dark = lambert!({ color: 0x2c2f2c });
         let bench = parts.part(&unit, &dark);
         let cage = parts.part(&unit, &self.mats.metal);
@@ -397,7 +408,7 @@ impl Game {
             // shut it (the shelter from the self-assembly), and again to open
             let at = self.face_point(x, z, d, 0.0, -CELL_FRONT / 2.0, h);
             self.door_frame(parts, at, yaw, &steel);
-            let leaf = self.door_leaf(at, yaw, &steel);
+            let (leaf, wheel) = self.door_leaf(at, yaw, &steel, &worn);
             let open = crate::world::assembly::OPEN + r.range(-0.1, 0.1);
             leaf.rotation().y = yaw + open;
             self.world.add(&leaf);
@@ -410,23 +421,36 @@ impl Game {
                 target: open,
                 at,
                 span: [at.x - ax, at.z - az, at.x + ax, at.z + az],
+                wheel,
+                turned: 0.0,
+                turn_to: 0.0,
+                strain: 0.0,
+                shake: 0.0,
             });
             let inside = self.face_point(x, z, d, 0.0, -1.1, h + EYE);
             let in_cell = move |g: &Game| (g.tx(g.player.pos.x), g.tz(g.player.pos.z)) == (x, z);
+            // (not while something is at the door, and a door that gave not
+            // until the fog is gone: `world::cell_knock`)
             self.interact(
                 inside,
                 1.7,
                 "[E] TURN THE WHEEL",
-                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target > 0.5),
+                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target > 0.5) && !g.cell_door_gave(ci),
                 move |g| g.turn_cell_wheel(ci, true),
             );
             self.interact(
                 inside,
                 1.7,
                 "[E] OPEN THE DOOR",
-                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target < 0.5),
+                move |g| in_cell(g) && g.cell_doors.get(ci).is_some_and(|d| d.target < 0.5) && !g.at_the_door(ci),
                 move |g| g.turn_cell_wheel(ci, false),
             );
+            // what knocks at the door while the fog is up: knock back at the
+            // door (the knock of `world::knock`), and hold the wheel when it
+            // turns (`world::cell_knock`)
+            let knock_at = self.face_point(x, z, d, 0.0, -0.75, h + EYE);
+            self.interact(knock_at, 1.5, "[E] KNOCK", move |g| in_cell(g) && g.cell_knocking(ci), move |g| g.answer_the_door(ci));
+            self.interact(inside, 1.7, "[E] HOLD THE WHEEL", move |g| in_cell(g) && g.cell_wheel_tried(ci), move |g| g.hold_the_wheel(ci));
             // the lamp's cage over the door, outside
             let lamp = self.face_point(x, z, d, 0.0, 0.15, h + crate::world::building::CELL_LAMP_Y);
             for (sx, sy, sz) in [(0.26, 0.02, 0.02), (0.02, 0.2, 0.02)] {
