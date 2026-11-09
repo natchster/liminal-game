@@ -39,6 +39,10 @@ pub const IN_VIEW: f64 = 0.55;
 /// rise of the line to it a metre: never much below (your own parapet or
 /// rail, the dressing's and not a solid, would hide it), never overhead
 pub const SLOPE: (f64, f64) = (-0.07, 0.45);
+/// In the Well a figure stands behind its gallery's parapet (1.05 m): seen
+/// from steeply under, the parapet hides all but its head and shoulders, so
+/// it is seen there only from nearer level (from the hips up)
+pub const WELL_SLOPE: f64 = 0.25;
 /// What stands behind a figure for it to show against: a face or a floor no
 /// further behind it than this (nearer, the fog has not darkened it), or
 /// nothing for this far (the haze), metres
@@ -318,8 +322,10 @@ impl Game {
         // on top of a machine, seen from below, its own edge hides it
         let (x, z) = (self.to_u(p.x).floor() as i32, self.to_v(p.z).floor() as i32);
         let on_top = self.ground_or_mass(x, z).kind == GROUND_MASS;
+        let well = self.building.as_ref().is_some_and(|b| b.style == Style::Well);
+        let top = if well { WELL_SLOPE } else { SLOPE.1 };
         (NEAR..FAR).contains(&d)
-            && (SLOPE.0..=SLOPE.1).contains(&rise)
+            && (SLOPE.0..=top).contains(&rise)
             && (!on_top || c.y >= p.y + 0.3)
             && self.sight_from(c, p)
             && self.backed(c, p)

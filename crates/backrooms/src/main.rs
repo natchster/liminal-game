@@ -831,7 +831,7 @@ fn level_check(o: &Options, dir: &str) {
                 // from nearer along the line it is seen along (or the cameras given)
                 g.show_far_figure();
                 let mut cams: Vec<(String, [f64; 5], bool)> = g
-                    .far_figure_cameras(&[12.0, 25.0])
+                    .far_figure_cameras(&[4.0, 12.0, 25.0])
                     .into_iter()
                     .map(|(d, c)| (format!("figure_{seed}_L{l}_{d:.0}m"), c, false))
                     .collect();

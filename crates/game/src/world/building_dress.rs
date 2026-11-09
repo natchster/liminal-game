@@ -799,12 +799,14 @@ impl Game {
                 let t = s as f64 / n as f64;
                 let p = Vec3::new(
                     self.wx(x) + fx * (t * len as f64 * CELL - CELL / 2.0),
-                    y0 + t * len as f64 * STOREY,
+                    y0 + flight_rise(s, n) * len as f64 * STOREY,
                     self.wz(z) + fz * (t * len as f64 * CELL - CELL / 2.0),
                 );
                 parts.put(step, boxm(p, yaw, Vec3::new(2.4, 0.4, CELL / 13.0 + 0.02)));
-                // where the figure across the void may stand (`world::far_figures`)
-                if s == n / 2 {
+                // where the figure across the void may stand
+                // (`world::far_figures`): the middle of the landing, level
+                // under both feet whichever way it turns
+                if s == n / 2 + LANDING / 2 {
                     let at = Vec3::new(p.x, p.y + 0.2, p.z);
                     self.figure_perches.push(at);
                 }
@@ -897,5 +899,48 @@ impl Game {
             }
         }
         let _ = plan;
+    }
+}
+
+/// How many steps of a flight that crosses the void are its landing,
+/// halfway up: level, as a long flight's landing is, so the figure that
+/// stands there is level under both feet whichever way it turns (on a step
+/// it stood with a foot in the step above when it turned up the flight)
+pub(crate) const LANDING: usize = 4;
+
+/// How far up its rise step `s` of a flight of `n` stands (0 at the foot):
+/// evenly, but for the landing from step `n / 2`, which keeps that step's
+/// height for `LANDING` steps; the steps after it go on rising from there
+pub(crate) fn flight_rise(s: usize, n: usize) -> f64 {
+    let land = n / 2;
+    let held = s.saturating_sub(land).min(LANDING - 1);
+    (s - held) as f64 / n as f64
+}
+
+#[cfg(test)]
+mod flight_tests {
+    use super::*;
+
+    #[test]
+    fn a_flight_has_a_level_landing_where_the_figure_stands() {
+        for len in 3..=6 {
+            let n = len * 13;
+            let ys: Vec<f64> = (0..n).map(|s| flight_rise(s, n)).collect();
+            let land = n / 2;
+            // level over the landing, and the figure in its middle with a
+            // step's depth of level floor either side of it
+            for s in land..land + LANDING {
+                assert_eq!(ys[s], ys[land], "len {len} step {s}");
+            }
+            let at = land + LANDING / 2;
+            assert!(at > land && at + 1 < land + LANDING, "len {len}: the figure stands within the landing");
+            // rising everywhere else, never falling
+            for s in 1..n {
+                assert!(ys[s] >= ys[s - 1], "len {len} step {s}");
+                if !(land + 1..land + LANDING).contains(&s) {
+                    assert!(ys[s] > ys[s - 1], "len {len} step {s} should rise");
+                }
+            }
+        }
     }
 }

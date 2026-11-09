@@ -59,7 +59,7 @@ cargo run --release -- --fresh --screenshot out.png --level 1 --seed 4242 --play
 cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2 --screenshot x --views   # + exit, camp, trail views
 cargo run --release -- --dump-level DIR --seed 4242 --levels 4,5 --screenshot x --prop-census 1 [--census-only core_wet_floor_sign] [--census-use]   # every kind of prop, framed (as --fresh: the same shot every time); DIR/census/census.tsv keeps each camera; --census-use uses every verb first
 cargo run --release -- --dump-level DIR --seed 4242 --levels 5 --screenshot x --shots-at "name:x,y,z,yaw,pitch;…"   # those cameras again (a prop before and after)
-cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2,3 --screenshot x --far-figure   # the figure across the void from 12 m, 25 m and its own view, each also without it (_none); its cameras printed for --shots-at
+cargo run --release -- --dump-level DIR --seed 4242 --levels 1,2,3 --screenshot x --far-figure   # the figure across the void from 4 m, 12 m, 25 m and its own view, each also without it (_none); its cameras printed for --shots-at
 cargo run --release -- --screenshot out.png --level 4 --seed 4242 --play --showcase hound:3 [--death]   # a floor of the rooms: nothing walks the Building
 cargo run --release -- --fresh --screenshot out.png --frames 120                      # the title over the live Well (level 1)
 cargo run --release -- --fresh --screenshot out.png --seed 4242 --play --frames 90 --screen pause   # or leave, settings, brightness, controls, dead, ending, notebook, notebook-typed; on levels 1-3 also fog-below, fog-in, figure; on level 1 lift

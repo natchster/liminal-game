@@ -135,3 +135,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-08, on top of cc57fe5: look anchors: 4242_L3_spawn, 4242_L3_works. Reason: G2: the Works' views moved with its cells (14-15 a floor, placed for coverage) and its machine housings' heights drawn after them: the spawn view's right-hand housing now stands lower (more of the dark hall in view: deep shadow up), the zone view now looks down a walk between a housing and a cell's booth (its door lit: luminance up, deep shadow down); the place stays inside its STYLE.md band
 
 - 2026-11-09, on top of 458ebe3: frames: 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L2_stair_halls. Reason: MILESTONES.md 1: a booth stands from the void to a storey over its walk, not to the top of the building; where one stood in view there is void now (two blind reviews: the floors without G2's tall booths preferred 8-2, the low booths over the tall 6-0)
+
+- 2026-11-09, on top of 98fd2fb: frames: 4242_L2_stair_halls. Reason: MILESTONES.md 2: the flights that cross the Stair Halls' void have a level landing halfway up (where the figure stands); the edge of one far flight moves in the top-left corner
