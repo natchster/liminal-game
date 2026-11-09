@@ -1190,9 +1190,14 @@ pub fn handwritten_tex(text: &str, o: &HandOpts) -> Tex {
                 ctx.rotate(rot);
                 ctx.scale(gscale_x, gscale_y);
                 ctx.translate(-(cw_unit * scale) / 2.0, -scale / 2.0);
-                // shadow for the ink glow feel
+                // shadow for the ink glow feel: the glyph's strokes drawn as
+                // one layer, its glow cast once (a blur a stroke was most of
+                // the cost of a page of writing)
                 ctx.set_shadow_color(&o.color);
                 ctx.set_shadow_blur(2);
+                // (the glyph's box, and room for its jitter, wobble and glow)
+                let m = scale * 0.25 + o.thickness * 2.0 + 6.0;
+                ctx.begin_layer_in(-m, -m, cw_unit * scale + 2.0 * m, scale + 2.0 * m);
                 for poly in glyph.iter() {
                     // map unit coords to glyph-local pixel coords
                     let scaled: Vec<[f64; 2]> = poly.iter().map(|&[x, y]| [x * cw_unit * scale, y * scale]).collect();
@@ -1225,6 +1230,7 @@ pub fn handwritten_tex(text: &str, o: &HandOpts) -> Tex {
                     ctx.arc(ex * cw_unit * scale, ey * scale, rand2(1.5, 3.5), 0, 7);
                     ctx.fill();
                 }
+                ctx.end_layer();
                 ctx.restore();
             }
             cursor += (cw_unit + 0.15) * scale;

@@ -226,6 +226,9 @@ pub struct Canvas {
     cur: Option<(f64, f64)>,   // current point (device space)
     start: Option<(f64, f64)>, // subpath start (device space)
     pub version: u64,
+    /// transparency layers open (`begin_layer`): inside one, nothing casts
+    /// a shadow of its own; the layer casts it once
+    layers: u32,
 }
 
 impl std::fmt::Debug for Canvas {
@@ -276,6 +279,7 @@ impl Canvas {
             cur: None,
             start: None,
             version: 1,
+            layers: 0,
         }
     }
     pub fn width(&self) -> f64 {
@@ -629,9 +633,42 @@ impl Canvas {
         self.ellipse_dir(cx, cy, r, r, 0.0, a0, a1, cross > 0.0);
     }
 
+    /// Draw what follows as one transparency layer, cast its shadow (the
+    /// current one) once when it ends (`end_layer`): strokes that touch
+    /// share one shadow, and the blur is made once, not once a stroke
+    pub fn begin_layer(&mut self) {
+        self.apply_shadow();
+        unsafe { CGContextBeginTransparencyLayer(self.ctx, std::ptr::null()) };
+        self.layers += 1;
+    }
+    /// `begin_layer`, the layer only as large as the box (`x, y, w, h` in
+    /// the canvas's space as transformed now): a layer is a bitmap, and one
+    /// the size of the canvas costs more than the shadows it saves
+    pub fn begin_layer_in(&mut self, x: f64, y: f64, w: f64, h: f64) {
+        self.apply_shadow();
+        let corners = [self.dev(x, y), self.dev(x + w, y), self.dev(x, y + h), self.dev(x + w, y + h)];
+        let (x0, x1) = corners.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), c| (a.min(c.0), b.max(c.0)));
+        let (y0, y1) = corners.iter().fold((f64::INFINITY, f64::NEG_INFINITY), |(a, b), c| (a.min(c.1), b.max(c.1)));
+        let r = CGRect { origin: CGPoint { x: x0, y: y0 }, size: CGSize { width: x1 - x0, height: y1 - y0 } };
+        // (paths are made in device space, the context at its base
+        // transform, so the box is given in device space too)
+        unsafe { CGContextBeginTransparencyLayerWithRect(self.ctx, r, std::ptr::null()) };
+        self.layers += 1;
+    }
+    pub fn end_layer(&mut self) {
+        if self.layers == 0 {
+            return;
+        }
+        self.layers -= 1;
+        unsafe { CGContextEndTransparencyLayer(self.ctx) };
+        self.version += 1;
+    }
+
     fn apply_shadow(&self) {
         unsafe {
-            if self.st.shadow_color[3] > 0.0 && (self.st.shadow_blur > 0.0 || self.st.shadow_ox != 0.0 || self.st.shadow_oy != 0.0) {
+            if self.layers > 0 {
+                CGContextSetShadowWithColor(self.ctx, CGSize::default(), 0.0, std::ptr::null_mut());
+            } else if self.st.shadow_color[3] > 0.0 && (self.st.shadow_blur > 0.0 || self.st.shadow_ox != 0.0 || self.st.shadow_oy != 0.0) {
                 let c = CGColorCreate(srgb(), self.st.shadow_color.as_ptr());
                 // device space is y-up: canvas offset y flips
                 CGContextSetShadowWithColor(

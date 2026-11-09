@@ -152,6 +152,9 @@ extern "C" {
     pub fn CGContextRelease(c: CGContextRef);
     pub fn CGContextFlush(c: CGContextRef);
     pub fn CGContextSaveGState(c: CGContextRef);
+    pub fn CGContextBeginTransparencyLayer(c: CGContextRef, aux: *const std::ffi::c_void);
+    pub fn CGContextBeginTransparencyLayerWithRect(c: CGContextRef, r: CGRect, aux: *const std::ffi::c_void);
+    pub fn CGContextEndTransparencyLayer(c: CGContextRef);
     pub fn CGContextRestoreGState(c: CGContextRef);
     pub fn CGContextConcatCTM(c: CGContextRef, t: CGAffineTransform);
     pub fn CGContextGetCTM(c: CGContextRef) -> CGAffineTransform;

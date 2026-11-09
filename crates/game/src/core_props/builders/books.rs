@@ -181,10 +181,21 @@ fn book_atlas(looks: Vec<(bool, usize)>) -> Tex {
 
 /// a cloth's weave: a fine speckle lighter and darker than its ground
 fn book_weave(ctx: &mut Canvas, x0: f64, y0: f64, w: f64, h: f64, n: usize) {
+    // the light flecks and the dark, each gathered into one path and filled
+    // once (the same draws, in the same order): a fill a fleck was most of a
+    // level's build where books are many
+    let mut flecks: [Vec<(f64, f64, f64)>; 2] = [Vec::with_capacity(n / 2 + 1), Vec::with_capacity(n / 2 + 1)];
     for k in 0..n {
         let (x, y) = (x0 + rnd() * w, y0 + rnd() * h);
-        ctx.set_fill_style(if k % 2 == 0 { "rgba(255,245,225,0.10)" } else { "rgba(0,0,0,0.12)" });
-        ctx.fill_rect(x, y, 1.0 + rnd(), 1);
+        flecks[k % 2].push((x, y, 1.0 + rnd()));
+    }
+    for (style, list) in [("rgba(255,245,225,0.10)", &flecks[0]), ("rgba(0,0,0,0.12)", &flecks[1])] {
+        ctx.set_fill_style(style);
+        ctx.begin_path();
+        for &(x, y, fw) in list {
+            ctx.rect(x, y, fw, 1);
+        }
+        ctx.fill();
     }
 }
 
