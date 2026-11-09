@@ -896,7 +896,8 @@ impl Game {
         Some((idx, g))
     }
 
-    /// SAFE ROOM: one candlelit alcove far from spawn where sanity regens.
+    /// SAFE ROOM: one candlelit alcove far from spawn where sanity regens
+    /// (the candles on the bench: none where `flames_here` is false).
     fn tail_safe_room(&mut self, cx: &mut PropsCtx) {
         // the first free candidate at least 12 steps from spawn (not removed from cands)
         let mut picked = None;
@@ -912,6 +913,14 @@ impl Game {
         }
         let Some(picked) = picked else { return };
         cx.taken.push(picked);
+        if !flames_here(self) {
+            // none on the Lobby or a floor with rules of its own: its tile
+            // stays taken and its candles' three draws are kept
+            for _ in 0..3 {
+                rand2(-0.02, 0.02);
+            }
+            return;
+        }
         let (px, pz) = (self.wx(picked.x), self.wz(picked.z));
         let g = group();
         g.set_pos(px, 0, pz);

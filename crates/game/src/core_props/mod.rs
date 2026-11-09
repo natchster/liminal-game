@@ -36,6 +36,18 @@ use std::rc::Rc;
 pub use crate::core_props::builders::*;
 pub use crate::core_props::vending::build_vending;
 
+/// Whether this floor keeps the core props' own flames, the candles on the
+/// bench (`tail_safe_room`) and the haunted floors' candles: where the
+/// things a hand can use are (`usable_settled`), below the Lobby (its
+/// emptiness is the point) and never on a floor with rules of its own (the
+/// spotless Showroom, the Borrowed House whose rule is light, and the
+/// floors whose door opens on the Stairwell or the Loop); `docs/LORE.md`,
+/// *What still burns*. Where it is false, both keep their draws and the
+/// tiles they take, so nothing placed after them moves.
+pub fn flames_here(g: &Game) -> bool {
+    g.level_num > 4 && g.level_scp.is_none()
+}
+
 /// a candidate tile (x, z) and `d`, its distance from spawn
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Cand {

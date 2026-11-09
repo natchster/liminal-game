@@ -44,6 +44,7 @@ fn audio_init_builds_the_graph() {
         ("humGain", &a.hum_gain),
         ("vacuumGain", &a.vacuum_gain),
         ("safeRoomGain", &a.safe_room_gain),
+        ("safeRoomPanner", &a.safe_room_panner),
         ("safeRoomLFO", &a.safe_room_lfo),
         ("safeRoomTremCarrier", &a.safe_room_trem_carrier),
         ("staminaBreathGain", &a.stamina_breath_gain),

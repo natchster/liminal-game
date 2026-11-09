@@ -1103,29 +1103,45 @@ impl Game {
             let (sdx, sdz) = (sr.x - self.player.pos.x, sr.z - self.player.pos.z);
             in_safe_room = (sdx * sdx + sdz * sdz) < sr.r * sr.r;
             let discovered = sr.discovered;
+            // found: nothing chimes and nothing is said (what the candles do
+            // is learned there, never told: `docs/LORE.md`, *What still
+            // burns*; PILLARS.md 4, no glow, chime or line)
             if in_safe_room && !discovered {
                 self.safe_room.as_mut().unwrap().discovered = true;
-                self.show_msg("SAFE ROOM — SANITY MENDS HERE", 2.4);
-                self.sfx_chime();
             }
-            // While inside, reset the crit-sanity effect timers so hallucinations
-            // pause even before sanity has fully healed.
+            // While inside, what a nerve near its end hears holds off: the
+            // whispers' 10 s never builds up, and the heartbeat's countdown
+            // is held above zero (reset to zero, it had beaten every frame)
             if in_safe_room {
                 self.crit_sanity_accum = 0.0;
-                self.sanity_beat_t = 0.0;
+                self.sanity_beat_t = self.sanity_beat_t.max(1.0);
                 self.sanity_whisper_t = 0.0;
             }
         }
-        // Safe-room glow vignette (the CSS 0.8 s transition handles the easing)
-        self.ui.safe_room_glow.toggle_class("on", in_safe_room);
-        // Safe-room ambient hum; with the flashlight on and a low battery
-        // the target dips up to 25%.
+        // (no glow on the screen: the candles' own light is the warmth, and
+        // the screen at rest is the place alone, PILLARS.md 4)
+        // Safe-room hum, from the bench: full within 1.5 m of its candles,
+        // gone by 3 m, duller through a wall, panned to the bench's side;
+        // with the flashlight on and a low battery the target dips up to 25%.
         if self.audio.safe_room_gain.is_some() {
+            let (near, pan) = match self.safe_room.as_ref() {
+                Some(sr) => {
+                    let (d, pan, clear) = self.ear(sr.x, sr.z - 0.7);
+                    (clamp((3.0 - d) / 1.5, 0.0, 1.0) * if clear { 1.0 } else { 0.45 }, pan)
+                }
+                None => (0.0, 0.0),
+            };
             let batt_dip = if self.player.flashlight_on { self.beam_battery_scale(0.75) } else { 1.0 };
-            let target = if in_safe_room { 0.08 * batt_dip } else { 0.0 };
+            // (√2: the equal-power pan takes 3 dB off a centred mono hum)
+            let target = 0.08 * std::f64::consts::SQRT_2 * near * batt_dip;
+            let k = (dt * 2.5).min(1.0);
             let n = self.audio.safe_room_gain.as_ref().unwrap();
             let gv = n.gain().value();
-            n.gain().set_value(gv + (target - gv) * (dt * 2.5).min(1.0));
+            n.gain().set_value(gv + (target - gv) * k);
+            if let Some(p) = self.audio.safe_room_panner.as_ref() {
+                let pv = p.pan().value();
+                p.pan().set_value(pv + (pan - pv) * k);
+            }
         }
         if in_dark && !self.player.flashlight_on {
             // the dark frightens you; it does not leave you defenceless: it

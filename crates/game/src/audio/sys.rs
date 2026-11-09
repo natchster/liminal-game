@@ -26,6 +26,8 @@ pub struct AudioSys {
     pub vacuum_gain: Option<AudioNode>,
     /// Safe-room hum bus
     pub safe_room_gain: Option<AudioNode>,
+    /// Where the safe-room hum is heard from: the bench's side of you
+    pub safe_room_panner: Option<AudioNode>,
     /// Safe-room tremolo LFO (oscillator; `.frequency` is retuned per level)
     pub safe_room_lfo: Option<AudioNode>,
     /// The 330 Hz tremolo carrier (oscillator)
@@ -211,10 +213,14 @@ impl Game {
         // safe-room hum: warm low sine (~110 Hz) + subtle harmonic + tremolo LFO.
         // Enriched with sub-bass (~55 Hz) + gently detuned choir triangle
         // pair (~220±3 Hz) under the tremolo for a fuller, more oppressive body.
-        // Gain driven by `update_player` from proximity to the safe room.
+        // Gain and pan driven by `update_player` from where the bench is:
+        // the hum comes from its candles (stereo panned, as the breath is).
         let safe_room_gain = ac.create_gain();
         safe_room_gain.gain().set_value(0.0);
-        safe_room_gain.connect(&master);
+        let safe_room_panner = ac.create_stereo_panner();
+        safe_room_panner.pan().set_value(0.0);
+        safe_room_gain.connect(&safe_room_panner);
+        safe_room_panner.connect(&master);
         for f in [110.0, 220.0] {
             let o = ac.create_oscillator();
             o.set_type("sine");
@@ -364,6 +370,7 @@ impl Game {
             hum_gain: Some(hum_gain),
             vacuum_gain: Some(vacuum_gain),
             safe_room_gain: Some(safe_room_gain),
+            safe_room_panner: Some(safe_room_panner),
             safe_room_lfo: Some(safe_room_lfo),
             safe_room_trem_carrier: Some(safe_room_trem_carrier),
             stamina_breath_gain: Some(stamina_breath_gain),

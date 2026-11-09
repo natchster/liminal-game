@@ -18,7 +18,7 @@ living bible: change it when the game's truth changes, in the same commit.
 | Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -759,6 +759,8 @@ plaque that says STAIRS. Behind it:
   the run.
 - **A snack** shaken loose from a machine is eaten as you take it: stale,
   and it steadies your nerve a little.
+- **The candles on the bench** mend your nerve faster while you stand by
+  them (*What still burns*).
 
 ## What is put away
 
@@ -983,7 +985,9 @@ about them.
 ## Within reach
 
 Below the Lobby (from level 5), on every floor but one with rules of its
-own, some of what was left behind still works as it did (`PROPS.md` 3).
+own (the Showroom, the Borrowed House, and a floor whose door opens on the
+Stairwell or the Loop), some of what was left behind still works as it
+did (`PROPS.md` 3).
 Nothing says what a thing does or what it is for; what is found is said as
 a pickup is said. What each one holds was settled when the floor was made,
 not when it is used, and each is used once (a lift's button and the
@@ -1028,6 +1032,76 @@ a page torn out are quiet: they stop nothing, but a Hound already crouched
 to listen goes to look near them. A set switched off, a lift's button and
 the car behind its doors are heard by nothing but you.
 
+## What still burns
+
+Some of what was left down here was left alight, and it burns on,
+untended. **Nothing burns lower**: a candle stays the stub it is, a fire
+never wants another log, a cigarette's ash grows no longer. Much of what
+was left hot is hot yet. What was out when it was left stays out, a tea
+light burnt out in its pumpkin, her last lamp. Which is lit and which is
+cold was settled when the floor was made.
+
+- **What people left alight** stands where their things were left: so
+  mostly deep in the maze, hardly ever on the Lobby (only in a corner of
+  it that was for something), and on the Building's floors nothing but her
+  lamp (*Places*, the purposes). In a shrine, a candle on a brass
+  candlestick, three in a small candelabra, a ring of thin ones on the
+  floor, chime candles before a photograph on a board, a tea light in a
+  carved pumpkin gone soft. In a parlour, a brass lantern hanging from the
+  ceiling (some sway a little on their chains, and creak), a sconce on the
+  wall, the six candles of a small chandelier (its drops tinkling close
+  by, and some sway), a candle lantern on the floor, and a wood fire in
+  the hearth, its light on the room. In a party room, a birthday candle in
+  a cake nobody ate, or on its own on the floor. In someone's rooms, a
+  cigarette in a glass ashtray, its smoke going up straight and breaking
+  into curls. The hanging lantern, the chandelier, the candelabra and the
+  cigarette are always lit; a ring's candles mostly; a candlestick, a
+  pumpkin's tea light and a cake's candle more often than not; a hearth, a
+  sconce or a chime candle about half the time; a lantern or a birthday
+  candle on the floor less often; a shrine's loose candles seldom, and
+  over some of the cold ones a wisp of smoke stands from a wick just put
+  out, and never drifts.
+- **What was hot**: most mugs left on an office floor steam, and more
+  often than not the cups on a parlour's tray; a kettle on the floor puts
+  out vapour from its spout more often than not, an iron left on its
+  board less often; a teapot's lid lifts on its steam; the radiators of
+  the maintenance runs are hot; and some broken wall phones' burnt boards
+  smoke.
+- **What is cold**: the censer hung in a shrine has no coal in it and
+  gives no smoke; it only sways a little on its chain. A cauldron holds
+  stale water, a drip from above falling into it, or dust and two sweet
+  wrappers.
+- **The candles on the bench**: on most floors below the Lobby, but never
+  on a floor with rules of its own (*Within reach*), somewhere well away
+  from where you come in, three candles burn on a wooden bench over a
+  round red rug. Stand on the rug, or at its edge, and your nerve comes
+  back three times as fast, and the heartbeat and the whispers a nerve
+  near its end hears hold off. Nothing tells of it but the candles' light
+  and a low warm hum from the bench, heard as you come near.
+- **On a floor that moans** (a floor of the rooms here and there, the
+  Lobby and the floors with rules of their own among them: its fog
+  thicker and redder, more moaning, breathing, laughter and far screams in
+  it than elsewhere, at times a voice-like murmur or a few steps in a room
+  near, and some of your own steps sounding again just after, off to one
+  side), below the Lobby and on no floor with rules of its own, two to
+  four pillar candles stand lit on the floor, burnt low in their own
+  spilled wax, their light swelling and sinking slowly. A hand can blow
+  one out: a puff, smoke curling up and gone, and a few seconds later two
+  quiet notes a half step apart, from where it stood. Nothing but you
+  hears it. It stays out while you are on that floor (made again, after a
+  death or on Continue, the floor has it lit): nothing you carry makes a
+  flame.
+- **Her lamp** burns at her camp until her page is taken, then gutters
+  out; at the last camp it went out long ago (*M.'s descent*).
+- **No flame keeps the dark off you.** Where a room is dead, the dark
+  takes your nerve while your lamp is off, by candlelight or by hers, the
+  bench's candles too, and its heartbeat goes on; and the shadows of the
+  Borrowed House reckon your lamp, the room's own light and their nest,
+  never a candle. The place's own candles, the bench's and a moaning
+  floor's, burn a little brighter as your lamp's battery runs low while it
+  is on (and the bench's hum sinks), and a little dimmer the deeper the
+  floor.
+
 ## The sound of the place
 
 - The lamps hum at **120 Hz, twice the mains frequency**, with a full harmonic
@@ -1053,7 +1127,11 @@ the car behind its doors are heard by nothing but you.
 - What a hand does is heard from where it is done, and only near: a box's
   tape, a bin's rustle, a page torn out, a locker's door, a lift's button
   and the car going by behind it, a set's whine as it goes off or comes on,
-  and a lit set's hiss close by (*Within reach*).
+  and a lit set's hiss close by (*Within reach*); a candle blown out.
+- What burns or is hot is heard from where it is: a hearth's crackle and
+  an iron's hiss close by, the bench's hum as you come near, a radiator's
+  hiss across a room; and now and then, close by, a teapot on its trivet
+  whistles as only a kettle on the boil should (*What still burns*).
 
 ## Attribution and licensing
 

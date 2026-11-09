@@ -1,24 +1,21 @@
 //! `place_props`: the weather-driven extra props, what a floor's weather
 //! leaves: puddles on the wet floors, a fallen ceiling tile on the derelict
 //! ones, cobwebs on the still ones, a cut cable sparking on the electric ones
-//! and candles on the haunted ones (blow out / relight). Part of
+//! and candles on the haunted ones (a hand blows one out, and it stays out:
+//! `docs/LORE.md`, *What still burns*). Part of
 //! `place_props_tail` (core_props/tail.rs); the things are modelled in
 //! Blender batches `r05` (the cobwebs) and `r10` (the rest).
 //!
 //! Each haunted candle's state is `g.haunted_candles[i]`
-//! (`records::CandleState`): extinguished → `!lit`; `f[..]` holds `fadeT`,
-//! `hintCooldown`, `fizzleStreak` and `wickGlowT`; `b["wasNear"]` is the
-//! approach flag. The candle's animator and its two interactables read and
-//! write that record by index, so all three share one state.
+//! (`records::CandleState`): extinguished → `!lit`; `f["fadeT"]` is how far
+//! its flame has faded since. The candle's animator and its interactable
+//! read and write that record by index, so both share one state.
 use crate::base::numeric::hypot2;
 use crate::base::records::*;
 use crate::base::tables::*;
 use crate::core_props::seam::*;
 use crate::core_props::*;
 use crate::prelude::*;
-
-const BLOWOUT_MILESTONE_AT: f64 = 25.0;
-const RELIGHT_MILESTONE_AT: f64 = 15.0;
 
 /// Tile `c`'s centre jittered by ±1 in x and z (x drawn first), at height `y`
 pub(crate) fn jitter_pos(g: &Game, c: &Cand, y: f64) -> Vec3 {
@@ -54,14 +51,6 @@ fn cf(g: &Game, ci: usize, k: &str) -> f64 {
 fn set_cf(g: &mut Game, ci: usize, k: &str, v: f64) {
     if let Some(c) = g.haunted_candles.get_mut(ci) {
         c.f.insert(k.to_string(), v);
-    }
-}
-fn cb(g: &Game, ci: usize, k: &str) -> bool {
-    g.haunted_candles.get(ci).and_then(|c| c.b.get(k).copied()).unwrap_or(false)
-}
-fn set_cb(g: &mut Game, ci: usize, k: &str, v: bool) {
-    if let Some(c) = g.haunted_candles.get_mut(ci) {
-        c.b.insert(k.to_string(), v);
     }
 }
 
@@ -465,10 +454,21 @@ impl Game {
 
     /// HAUNTED: pillar candles burnt down on the floor (Blender batch
     /// `r10`: a 3 in pillar, its crater, the wax run down its side and spread
-    /// round its foot, the wick), lit, each with a blow-out and a relight (3%
-    /// battery) interactable.
+    /// round its foot, the wick), lit, each with a blow-out interactable. A
+    /// candle blown out stays out: nothing you carry makes a flame
+    /// (`docs/LORE.md`, *What still burns*). None where `flames_here` is
+    /// false: their draws and their tiles kept.
     fn tail_haunted_candles(&mut self, cx: &mut PropsCtx) {
         use crate::assets::props::prop_part_as_modelled;
+        if !flames_here(self) {
+            let mut i = 0;
+            while i < irand(2, 4) {
+                let Some(c) = s_take(self, cx, false) else { break };
+                jitter_pos(self, &c, 0.0);
+                i += 1;
+            }
+            return;
+        }
         // ivory paraffin, dusty; its pool of melted wax clearer and glossy
         let wax_mat = lambert!({ color: 0xcdc3aa });
         let pool_mat = phong!({ color: 0xb09c76, specular: 0x4c473c, shininess: 70 });
@@ -512,7 +512,7 @@ impl Game {
             g.rotation().y = (k * 997.0).fract() * PI * 2.0;
             g.add(&mesh(body, &wax_mat));
             g.add(&mesh(pool, &pool_mat));
-            // wick (own material so the post-relight glow doesn't bleed to other candles)
+            // the wick, a material of its own
             let wick = mesh(wick_geo.clone(), lambert!({ color: 0x1a1408, emissive: 0x000000 }));
             wick.position().y = top - 0.0004;
             g.add(&wick);
@@ -534,32 +534,21 @@ impl Game {
             g.add(&melt);
             self.world.add(&g);
             let off = i as f64 * 0.9;
-            // per-candle state shared by the animator and both interactables
+            // per-candle state shared by the animator and the interactable
             let ci = self.haunted_candles.len();
             let mut st = CandleState { lit: true, ..Default::default() };
-            for k in ["fadeT", "hintCooldown", "fizzleStreak", "wickGlowT"] {
-                st.f.insert(k.to_string(), 0.0);
-            }
-            st.b.insert("wasNear".to_string(), false);
+            st.f.insert("fadeT".to_string(), 0.0);
             self.haunted_candles.push(st);
             let gp = g.pos();
             {
-                let (glow, flame, flame_core, wick) = (glow.clone(), flame.clone(), flame_core.clone(), wick.clone());
-                self.animate(move |gm, dt, t| candle_frame(gm, ci, gp, off, &glow, &flame, &flame_core, &wick, dt, t));
+                let (glow, flame, flame_core) = (glow.clone(), flame.clone(), flame_core.clone());
+                self.animate(move |gm, dt, t| candle_frame(gm, ci, off, &glow, &flame, &flame_core, dt, t));
             }
-            // Interactable: press E near the candle to blow it out
+            // Interactable: press E near the candle to blow it out; it stays
+            // out (nothing you carry makes a flame)
             let mut use_pos = gp;
             use_pos.y = EYE;
             self.interact(use_pos, 0.9, "[E] BLOW OUT", move |gm| !c_out(gm, ci), move |gm| candle_blow_out(gm, ci, gp));
-            // Companion: relight an extinguished candle for 3% battery
-            let (glow, flame, flame_core) = (glow.clone(), flame.clone(), flame_core.clone());
-            self.interact(
-                use_pos,
-                0.9,
-                "[E] RELIGHT (3% battery)",
-                move |gm| c_out(gm, ci) && gm.player.battery >= 3.0,
-                move |gm| candle_relight(gm, ci, gp, &glow, &flame, &flame_core),
-            );
             i += 1;
         }
     }
@@ -707,11 +696,11 @@ fn spark_flare(g: &mut Game, sg: &Obj, dp: f64) {
     }
 }
 
-/// A haunted candle's animator: the 0.6 s fade + low-battery hint while out;
-/// the LFO-synced flicker, battery boost and wick glow while lit. The flame
-/// turns to the eye about its own upright (a flame stands up, whatever the
-/// angle it is seen from).
-fn candle_frame(g: &mut Game, ci: usize, gp: Vec3, off: f64, glow: &Obj, flame: &Obj, flame_core: &Obj, wick: &Obj, dt: f64, t: f64) {
+/// A haunted candle's animator: the 0.6 s fade once it is blown out (then
+/// a cold wick, for good); the LFO-synced flicker and the battery boost
+/// while lit. The flame turns to the eye about its own upright (a flame
+/// stands up, whatever the angle it is seen from).
+fn candle_frame(g: &mut Game, ci: usize, off: f64, glow: &Obj, flame: &Obj, flame_core: &Obj, dt: f64, t: f64) {
     if c_out(g, ci) {
         // fade over 0.6 s, then a cold wick
         if cf(g, ci, "fadeT") < 0.6 {
@@ -730,28 +719,9 @@ fn candle_frame(g: &mut Game, ci: usize, gp: Vec3, off: f64, glow: &Obj, flame: 
             flame.set_visible(false);
             flame_core.set_visible(false);
         }
-        // low-battery hint: once per approach, guarded by a cooldown
-        if cf(g, ci, "hintCooldown") > 0.0 {
-            let v = cf(g, ci, "hintCooldown") - dt;
-            set_cf(g, ci, "hintCooldown", v);
-        }
-        let (dxc, dzc) = (gp.x - g.player.pos.x, gp.z - g.player.pos.z);
-        let near_now = (dxc * dxc + dzc * dzc) < 0.81; // 0.9 m
-        if near_now && !cb(g, ci, "wasNear") && g.player.battery < 3.0 && cf(g, ci, "hintCooldown") <= 0.0 {
-            g.show_msg("NEED 3% BATTERY", 1.4);
-            set_cf(g, ci, "hintCooldown", 6.0);
-            if g.ac.is_some() {
-                let dips = g.weather_pick(battery_hint_dips, battery_hint_dips("normal").unwrap());
-                let (hi, lo) = (dips[0], dips[1]);
-                g.blip(hi, 0.30, "sine", 0.06, None, 0.0, 0.0);
-                g.blip(lo, 0.35, "sine", 0.05, None, 0.08, 0.0);
-            }
-        }
-        set_cb(g, ci, "wasNear", near_now);
         return;
     }
-    set_cb(g, ci, "wasNear", false); // relit — reset the approach state
-                                     // The safe-room LFO breath, weather-scaled amplitude
+    // The safe-room LFO breath, weather-scaled amplitude
     let lfo_hz = g.audio.safe_room_lfo.as_ref().map(|o| o.frequency().value()).filter(|v| *v != 0.0 && !v.is_nan()).unwrap_or(0.35);
     let flame_amp =
         flame_breath_amp_by_weather(g.weather_key()).or(flame_breath_amp_by_weather("normal")).unwrap() * g.descent_boost_mul(0.4);
@@ -770,30 +740,15 @@ fn candle_frame(g: &mut Game, ci: usize, gp: Vec3, off: f64, glow: &Obj, flame: 
     if flame_core.visible() != flame.visible() {
         flame_core.set_visible(flame.visible());
     }
-    // Wick glow decay right after a relight
-    let wg = cf(g, ci, "wickGlowT");
-    if wg > 0.0 {
-        let wg = 0f64.max(wg - dt);
-        set_cf(g, ci, "wickGlowT", wg);
-        let gk = wg / 0.35;
-        wick.mat().m().emissive.set_rgb(0.95 * gk, 0.45 * gk, 0.10 * gk);
-    } else if wick.mat().emissive_v().r != 0.0 {
-        wick.mat().m().emissive.set_rgb(0, 0, 0);
-    }
 }
 
 /// `[E] BLOW OUT`
 fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
     set_out(g, ci, true);
     g.candle_blowout_tally += 1.0;
-    // Milestone: a quiet toast on the 25th blowout of the session
-    if !g.blowout_milestone_shown && g.candle_blowout_tally >= BLOWOUT_MILESTONE_AT {
-        g.blowout_milestone_shown = true;
-        g.schedule(1200.0, |g| g.show_msg("A HUNDRED SMALL DARKNESSES", 2.2));
-    }
-    // soft breath / puff sfx
+    // soft breath / puff, from the candle
     if g.ac.is_some() {
-        g.noise_burst(0.22, 3600.0, 1.5, 0.14, "highpass", None, 0.0, 0.0);
+        g.play_from(gp.x, 0.2, gp.z, 1.5, 1.0, 0.7, |g| g.noise_burst(0.22, 3600.0, 1.5, 0.14, "highpass", None, 0.0, 0.0));
     }
     // layered smoke planes; 4 layers when wet, 2 when still, else 3
     let smoke_layers: Vec<SmokeLayer> = match g.weather_key() {
@@ -865,171 +820,17 @@ fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
             look_at_level(&smoke, &g.camera);
         });
     }
-    // Tail beat ~2.8 s in (TAIL_BEAT_SPECS by weather)
+    // Tail beat ~2.8 s in (TAIL_BEAT_SPECS by weather), where the candle is
     if g.ac.is_some() {
         let specs = tail_beat_specs(g.weather_key()).or(tail_beat_specs("normal")).unwrap();
         g.schedule(2800.0, move |g| {
-            for &(f, jit, dur, ty, amp, delay_ms) in specs {
-                let extra_sec = delay_ms / 1000.0;
-                g.blip(f + rand2(-jit, jit), dur, ty, amp, None, extra_sec, 0.0);
-            }
-        });
-    }
-}
-
-/// `[E] RELIGHT (3% battery)`: 15% (by weather) fizzles for 1%, a third try
-/// after two fizzles always works and costs 2%.
-fn candle_relight(g: &mut Game, ci: usize, gp: Vec3, glow: &Obj, flame: &Obj, flame_core: &Obj) {
-    if !c_out(g, ci) || g.player.battery < 3.0 {
-        return;
-    }
-    let force_success = cf(g, ci, "fizzleStreak") >= 2.0;
-    let fizzle_prob = fizzle_prob_by_weather(g.weather_key()).or(fizzle_prob_by_weather("normal")).unwrap();
-    if !force_success && rnd() < fizzle_prob {
-        let streak = cf(g, ci, "fizzleStreak") + 1.0;
-        set_cf(g, ci, "fizzleStreak", streak);
-        g.candle_fizzle_tally += 1.0;
-        g.player.battery = clamp(g.player.battery - 1.0, 0.0, BAT_MAX);
-        if g.ac.is_some() {
-            // the second fizzle sounds lower and longer: an escalating refusal
-            if streak >= 2.0 {
-                g.noise_burst(0.05, 3200.0, 3.0, 0.11, "highpass", None, 0.0, 0.0);
-                g.noise_burst(0.05, 2800.0, 3.0, 0.09, "highpass", None, 0.10, 0.0);
-                g.noise_burst(0.28, 600.0, 1.0, 0.08, "lowpass", None, 0.16, 0.0);
-                g.blip(80.0, 0.35, "sine", 0.06, Some(60.0), 0.05, 0.0);
-            } else {
-                g.noise_burst(0.04, 4200.0, 3.0, 0.09, "highpass", None, 0.0, 0.0);
-                g.noise_burst(0.04, 3600.0, 3.0, 0.07, "highpass", None, 0.08, 0.0);
-                g.noise_burst(0.15, 900.0, 1.2, 0.05, "lowpass", None, 0.15, 0.0);
-            }
-        }
-        // second consecutive fizzle hints that the mercy is coming
-        if streak >= 2.0 {
-            g.show_msg("THE ROOM RESISTS...", 1.6);
-        } else {
-            g.show_msg("...THE WICK REFUSED.", 1.4);
-        }
-        // a small dark wisp so the failed spark leaves a trace
-        {
-            let fizz_color = g.weather_pick(
-                |k| {
-                    Some(match k {
-                        "wet" => 0x14202au32,
-                        "electric" => 0x181428,
-                        "haunted" => 0x281414,
-                        "derelict" => 0x241a10,
-                        "still" => 0x1a1a1a,
-                        "normal" => 0x1a1a1a,
-                        _ => return None,
-                    })
-                },
-                0x1a1a1a,
-            );
-            let f_smoke = mesh(
-                plane_geo!(0.08, 0.18),
-                basic_mat!({
-                    color: fizz_color, transparent: true, opacity: 0.55,
-                    blending: NormalBlending, depthWrite: false,
-                }),
-            );
-            f_smoke.set_pos(gp.x, 0.28, gp.z);
-            g.world.add(&f_smoke);
-            let mut f_t = 0.0;
-            g.animate(move |g, dt, _| {
-                f_t += dt;
-                let p = f_t / 1.8;
-                if p >= 1.0 {
-                    g.world.remove(&f_smoke);
-                    return;
+            g.play_from(gp.x, 0.2, gp.z, 1.5, 1.0, 0.7, |g| {
+                for &(f, jit, dur, ty, amp, delay_ms) in specs {
+                    let extra_sec = delay_ms / 1000.0;
+                    g.blip(f + rand2(-jit, jit), dur, ty, amp, None, extra_sec, 0.0);
                 }
-                f_smoke.position().y = 0.28 + p * 0.18;
-                f_smoke.position().x = gp.x + (f_t * 4.5).sin() * 0.015;
-                f_smoke.scale().set(1.0 + p * 0.8, 1.0 + p * 1.0, 1.0);
-                f_smoke.mat().set_opacity(0.55 * (1.0 - p));
-                look_at_level(&f_smoke, &g.camera);
             });
-            // Sometimes a fainter, warmer echo wisp 200 ms later
-            let echo_prob = fizzle_echo_prob_by_weather(g.weather_key()).or(fizzle_echo_prob_by_weather("normal")).unwrap();
-            if rnd() < echo_prob {
-                g.schedule(200.0, move |g| {
-                    if g.state != "playing" {
-                        return;
-                    }
-                    let echo_color = g.weather_pick(
-                        |k| {
-                            Some(match k {
-                                "wet" => 0x1a2418u32,
-                                "electric" => 0x241a1a,
-                                "haunted" => 0x2a1c14,
-                                "derelict" => 0x2a1e10,
-                                "still" => 0x2a1e14,
-                                "normal" => 0x2a1e14,
-                                _ => return None,
-                            })
-                        },
-                        0x2a1e14,
-                    );
-                    let e_smoke = mesh(
-                        plane_geo!(0.06, 0.14),
-                        basic_mat!({
-                            color: echo_color, transparent: true, opacity: 0.35,
-                            blending: NormalBlending, depthWrite: false,
-                        }),
-                    );
-                    e_smoke.set_pos(gp.x + rand2(-0.03, 0.03), 0.28, gp.z);
-                    g.world.add(&e_smoke);
-                    let mut e_t = 0.0;
-                    g.animate(move |g, dt, _| {
-                        e_t += dt;
-                        let q = e_t / 1.4;
-                        if q >= 1.0 {
-                            g.world.remove(&e_smoke);
-                            return;
-                        }
-                        e_smoke.position().y = 0.28 + q * 0.14;
-                        e_smoke.scale().set(1.0 + q * 0.6, 1.0 + q * 0.9, 1.0);
-                        e_smoke.mat().set_opacity(0.35 * (1.0 - q));
-                        look_at_level(&e_smoke, &g.camera);
-                    });
-                });
-            }
-        }
-        return;
-    }
-    let was_forced_mercy = force_success;
-    set_out(g, ci, false);
-    g.candle_relight_tally += 1.0;
-    // Milestone on the 15th relight of the session
-    if !g.relight_milestone_shown && g.candle_relight_tally >= RELIGHT_MILESTONE_AT {
-        g.relight_milestone_shown = true;
-        g.schedule(1400.0, |g| g.show_msg("THE ROOM REMEMBERS YOUR HANDS", 2.2));
-    }
-    set_cf(g, ci, "fadeT", 0.0);
-    set_cf(g, ci, "fizzleStreak", 0.0); // reset on any success
-    flame.set_visible(true);
-    flame.mat().set_opacity(0.9);
-    flame_core.set_visible(true);
-    flame_core.mat().set_opacity(0.85);
-    glow.set_intensity(1.4);
-    set_cf(g, ci, "wickGlowT", 0.35); // brief post-relight wick glow
-                                      // a mercy relight refunds 1%
-    let cost = if was_forced_mercy { 2.0 } else { 3.0 };
-    g.player.battery = clamp(g.player.battery - cost, 0.0, BAT_MAX);
-    // strike + 660→880 Hz chirp (50 ms late, with the wick glow peak)
-    if g.ac.is_some() {
-        g.noise_burst(0.06, 5200.0, 3.0, 0.10, "highpass", None, 0.0, 0.0);
-        g.blip(660.0, 0.10, "sine", 0.06, Some(880.0), 0.05, 0.0);
-        if was_forced_mercy {
-            g.blip(1320.0, 0.14, "sine", 0.05, Some(1760.0), 0.11, 0.0);
-        }
-        // Per-weather relight accent
-        let spark = relight_specs(g.weather_key()).or(relight_specs("normal")).unwrap();
-        for &(f, jit, dur, ty, amp, delay_ms) in spark {
-            g.blip(f + rand2(-jit, jit), dur, ty, amp, None, delay_ms / 1000.0, 0.0);
-        }
-    }
-    if was_forced_mercy {
-        g.show_msg("THE WICK CAUGHT — AT LAST.", 1.4);
+        });
     }
 }
 
