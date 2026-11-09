@@ -1,8 +1,8 @@
 //! `audio_init` + every sfx + every soundscape method on a live (muted)
 //! AudioContext, then a second of the update loop's parameter pokes. The
-//! engine renders on its own thread (the device callback, or a silent clock
-//! without a device); a panic there aborts the process or stops the clock,
-//! so the clock must keep moving.
+//! engine runs on its own thread (the device callback renders; the silent
+//! clock without a device only keeps time); a panic there aborts the process
+//! or stops the clock, so the clock must keep moving.
 
 use engine::audio::AudioContext;
 use game::audio::soundscape::{ReverbPreset, FOOTSTEP_SURFACES, PHRASES, REVERB_PRESETS};

@@ -205,7 +205,7 @@ const L_UZ: u8 = 18;
 static DEVICE_OUTPUT: AtomicBool = AtomicBool::new(false);
 
 /// Let `AudioContext::new` open the output device, or not (then it runs on a
-/// silent clock: the same graph, the same time, nothing heard). Only the
+/// silent clock: the same time, nothing rendered, nothing heard). Only the
 /// windowed game turns it on (`tests/structure.rs` holds that)
 pub fn set_device_output(on: bool) {
     DEVICE_OUTPUT.store(on, Ordering::Relaxed);
@@ -278,9 +278,9 @@ impl AudioContext {
         }
         AudioContext::with_inner(inner)
     }
-    /// A context that plays nothing and keeps real time: its graph is
-    /// rendered on a thread of its own, as with no device, and never heard
-    /// (tests, headless runs)
+    /// A context that plays nothing and keeps real time: its clock moves on
+    /// a thread of its own, as with no device, and its graph is never
+    /// rendered, since nothing hears it (tests, headless runs)
     pub fn new_silent() -> AudioContext {
         let sr = 48000.0;
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
@@ -1191,16 +1191,24 @@ impl Engine {
         Engine::new(self.sr, self.shared.clone())
     }
     fn silent_clock(&mut self) {
-        // no device: keep the clock moving on a thread so schedules still complete
+        // no device: keep the clock moving on a thread so schedules still
+        // complete, as a device would ask for frames (10 ms at a time, the
+        // clock at the end of the last whole quantum begun, as `fill` leaves
+        // it). Nothing is heard and nothing reads the graph back, so nothing
+        // is rendered: what the game sends is dropped. Rendering it, on the
+        // creature pack's many one-shots, cost the headless bench's update
+        // and GPU their tail (`docs/PERF.md`, "The update's tail")
         let shared = self.shared.clone();
         std::thread::spawn(move || {
-            let mut e = Engine::new(shared.sample_rate, shared);
-            let mut buf = vec![0f32; 1024];
+            let (step, q) = ((shared.sample_rate * 0.01) as u64, QUANTUM as u64);
+            let mut played = 0u64;
             loop {
                 std::thread::sleep(std::time::Duration::from_millis(10));
-                let n = (e.sr * 0.01) as usize * 2;
-                buf.resize(n, 0.0);
-                e.fill(&mut buf, 2);
+                // (taken under the lock, dropped after it)
+                let sent = shared.cmds.try_lock().map(|mut c| std::mem::take(&mut *c));
+                drop(sent);
+                played += step;
+                shared.frames.store(played.div_ceil(q) * q, Ordering::Relaxed);
             }
         });
     }
