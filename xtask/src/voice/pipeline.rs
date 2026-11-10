@@ -34,7 +34,9 @@ impl Persona {
             return Err(format!("the persona and line files are not right:\n  {}", problems.join("\n  ")));
         }
         let t = read_toml(&voice_src().join(format!("personas/{id}.toml")))?;
-        let lt = read_toml(&voice_src().join(format!("lines/{id}.toml")))?;
+        // (a persona whose lines are not written yet has none)
+        let lines_file = voice_src().join(format!("lines/{id}.toml"));
+        let lt = if lines_file.is_file() { read_toml(&lines_file)? } else { toml::Table::new() };
         let lines = lt.get("line").and_then(|v| v.as_array()).into_iter().flatten().filter_map(|l| l.as_table().cloned()).collect();
         let same_as = t.get("voice").and_then(|v| v.as_table()).and_then(|v| s(v, "same_as"));
         let base = match same_as {
@@ -463,7 +465,10 @@ struct Known {
 /// `voice selftest`: the evaluation against known answers (the first
 /// persona's voice): words that are not the line's, a calm read of a
 /// terrified line and two voices that are not his must each fail the check
-/// that is theirs; three of his own good takes must pass every check
+/// that is theirs; three of his own good takes must pass every check. And
+/// his asides (`you_aside`, judged as that persona): a shouted read of a
+/// hushed line must fail its emotion (the gate is two-sided), another man
+/// muttering must fail the voice, and his own quiet takes must pass
 pub fn selftest(args: &[String]) -> Result<(), String> {
     let p = Persona::load(opt(args, "--persona").unwrap_or("you"))?;
     let dir = root().join("target/voice/selftest");
@@ -507,18 +512,71 @@ pub fn selftest(args: &[String]) -> Result<(), String> {
         ));
         known.push(Known { name, expect: None });
     }
+    // your asides (A2): his voice under the breath, judged as that persona
+    let aside = Persona::load("you_aside").ok();
+    let mut aside_judged = vec![];
+    let mut aside_known = vec![];
+    if let Some(a) = &aside {
+        let hushed = "Don't. Please, don't.";
+        // shouted: a terrified read of a line that is barely a whisper,
+        // cloned from his terror as the pipeline clones a terrified line (a
+        // cloning model takes its emotion from the clip: from his calm
+        // voice, told to scream, it read this at arousal 0.37)
+        let (terror, terror_text) = p.clone_from("terror");
+        jobs.push(json!({"model": "voxcpm2", "seed": 1, "text": hushed, "ref_audio": terror, "ref_text": terror_text, "instruct": p.emotion_words("terror"), "out": raw("aside_shouted")}));
+        aside_judged.push(own("aside_shouted", hushed, "dread", 0.5));
+        aside_known.push(Known { name: "aside_shouted", expect: Some("emotion") });
+        let muttering = "An elderly man in his seventies with a deep, slow, gravelly voice and a Scottish accent. He mutters quietly to himself, uneasy.";
+        jobs.push(json!({"model": "qwen3-tts-voicedesign", "seed": 2, "text": "Where are the walls?", "instruct": muttering, "out": raw("aside_other_man")}));
+        aside_judged.push(own("aside_other_man", "Where are the walls?", "wary", 0.4));
+        aside_known.push(Known { name: "aside_other_man", expect: Some("voice") });
+        // his own, as the pipeline makes them: VoxCPM2's (the selftest's
+        // good takes), and one from the asides' line model
+        let line_model = a.voice("line_model");
+        for (name, model, text, emotion, x) in [
+            ("aside_good_wary", "voxcpm2", "There's no bottom.", "wary", 0.4),
+            ("aside_good_dread", "voxcpm2", hushed, "dread", 0.5),
+            ("aside_good_line_model", line_model.as_str(), "Where are the walls?", "wary", 0.4),
+        ] {
+            let l: toml::Table = format!("id = '{name}'\ntext = \"{text}\"\nemotion = '{emotion}'\nintensity = {x}")
+                .parse()
+                .map_err(|e| format!("{name}: {e}"))?;
+            jobs.push(job(a, model, &l, 1, &raw(name)));
+            aside_judged.push(own(name, text, emotion, x));
+            aside_known.push(Known { name, expect: None });
+        }
+    }
     synthesize(&jobs, &dir.join("jobs.json"))?;
-    let items: Vec<Value> = judged.iter().map(|(n, ..)| json!({"src": raw(n), "dst": dir.join(format!("{n}.wav")), "lufs": p.target("loudness_lufs"), "peak": p.target("peak_dbtp")})).collect();
-    clean_all(&items, &dir.join("clean.json"))?;
-    let takes: Vec<Value> = judged
-        .iter()
-        .map(|(n, text, emotion, x)| json!({"line": n, "take": 1, "path": dir.join(format!("{n}.wav")), "text": text, "emotion": emotion, "intensity": x}))
-        .collect();
-    judge(&p, "selftest", takes, &dir)?; // the gate fails by design: the bad ones fail
+    let mut wrong = vec![];
+    let mut groups = vec![(&p, judged, known, dir.clone())];
+    if let Some(a) = &aside {
+        groups.push((a, aside_judged, aside_known, dir.join("aside")));
+    }
+    for (p, judged, known, out) in groups {
+        std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+        let items: Vec<Value> = judged.iter().map(|(n, ..)| json!({"src": raw(n), "dst": out.join(format!("{n}.wav")), "lufs": p.target("loudness_lufs"), "peak": p.target("peak_dbtp")})).collect();
+        clean_all(&items, &out.join("clean.json"))?;
+        let takes: Vec<Value> = judged
+            .iter()
+            .map(|(n, text, emotion, x)| json!({"line": n, "take": 1, "path": out.join(format!("{n}.wav")), "text": text, "emotion": emotion, "intensity": x}))
+            .collect();
+        judge(p, "selftest", takes, &out)?; // the gate fails by design: the bad ones fail
+        wrong.extend(known_answers(&out, &known)?);
+    }
+    if wrong.is_empty() {
+        println!("voice selftest: the evaluation gives every known answer");
+        Ok(())
+    } else {
+        Err(format!("voice selftest: wrong on {wrong:?}"))
+    }
+}
+
+/// The known answers against the report in `dir`: the names it got wrong
+fn known_answers(dir: &Path, known: &[Known]) -> Result<Vec<&'static str>, String> {
     let rep: Value =
         serde_json::from_str(&std::fs::read_to_string(dir.join("report.json")).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
     let mut wrong = vec![];
-    for k in &known {
+    for k in known {
         let t =
             rep["takes"].as_array().into_iter().flatten().find(|t| t["line"] == k.name).ok_or_else(|| format!("{}: not judged", k.name))?;
         let failed: Vec<&str> =
@@ -539,12 +597,7 @@ pub fn selftest(args: &[String]) -> Result<(), String> {
         }
     }
     println!("{}", dir.join("report.md").display());
-    if wrong.is_empty() {
-        println!("voice selftest: the evaluation gives every known answer");
-        Ok(())
-    } else {
-        Err(format!("voice selftest: wrong on {wrong:?}"))
-    }
+    Ok(wrong)
 }
 
 /// `voice reference --emotion E`: candidates for an emotion's reference,

@@ -355,6 +355,31 @@ and a few quick words), *dread* (hushed, almost a whisper), *shaken*
 (tired, talking himself on). Its lines are said by Chatterbox, which
 made his calm lines best in the bake-off (V5).
 
+**Its evaluation** (A2, `voice selftest`): the six emotions in
+`judge.py`, their arousal near a calm read's (0.33–0.37 on his voice),
+startled and pain higher, so the gate's two sides hold an aside under the
+breath. The known answers, judged as `you_aside`:
+
+| Take | Must | Measured |
+|---|---|---|
+| `aside_shouted`: a hushed line ("Don't. Please, don't.") cloned from his terror, told to scream | fail *emotion* | arousal 1.05 for 0.32 wanted (and pitch 351 Hz, voice 0.29) |
+| `aside_other_man`: another man (Qwen3-TTS, a description of an old Scotsman) muttering | fail *voice* | similarity 0.44 under 0.45: by a hair, as V4 found another man calm at 0.33 |
+| `aside_good_wary`, `aside_good_dread` (VoxCPM2), `aside_good_line_model` (Chatterbox): his own | pass all six | words 0.00; arousal 0.49, 0.25, 0.35; voice 0.50, 0.58, 0.54; tone +0.18, +0.13, +0.06 |
+
+What the known answers taught: **a cloning model cannot shout from a
+calm clip** (told to scream from his calm reference, VoxCPM2 read the
+hushed line at arousal 0.37: the shout had to come from his terror, as V5
+found for his cries); and **CLAP cannot screen this register as it
+screens the cry's**: on clips this short and quiet it hears every take
+nearest "a cartoon character", his own good ones included (0.09–0.22,
+above any phrase of ours), so that complaint of synthetic screams is not
+one of the asides' *never*; the mutter phrases are the ones it answers to
+(his good takes 0.09–0.16; "whispering" −0.11 to −0.20). It cannot tell a
+narrator's read from a mutter here (no phrase, nor AudioSet's
+*Narration*, parts them), and neither can anything else we run: whether
+an aside sounds like a man talking to himself or like a narrator is for an
+ear (`PLAYTEST.md`).
+
 ### The rules
 
 Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
@@ -382,7 +407,7 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
    says the same; twenty seeds differ; a save round-trip.
 4. **Hold your breath.** Nothing while something hunts you or searches
    within 25 m of you, while the creature sent in a build-up is within
-   20 m, or within 2 s of your cry; a reaction that comes then is let go.
+   20 m, or within 3 s of your cry; a reaction that comes then is let go.
    The release speaks: an *aftermath* waits for the relief after a close
    call, and is said in it (PILLARS 3: silence means something; 5: dread,
    then release). *Test:* the pacing harness: no aside inside a peak;
@@ -444,7 +469,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 | # | State |
 |---|---|
 | A0 | done: this plan (`71338c7`) |
-| A1 | done: `voice.same_as` (a persona with another's voice: its reference, its description; `voice reference` refuses to make one of its own) and a line's `subject`, a column of `lines.tsv` (`persona id use subject first last intensity emotion text`) read by `audio::voice::lines`; `you`'s ten lines rewritten by `voice write`, the same files byte for byte |
+| A1 | done (`e7093bd`): `voice.same_as` (a persona with another's voice: its reference, its description; `voice reference` refuses to make one of its own) and a line's `subject`, a column of `lines.tsv` (`persona id use subject first last intensity emotion text`) read by `audio::voice::lines`; `you`'s ten lines rewritten by `voice write`, the same files byte for byte |
+| A2 | done: `personas/you_aside.toml` (his voice, `same_as = "you"`; −20 LUFS; six emotions), the emotions in `judge.py`, five known answers in `voice selftest` (all twelve right); `Persona::load` takes a persona whose lines are not written yet |
 
 ## What only people can tell
 

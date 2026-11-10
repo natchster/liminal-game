@@ -1,0 +1,78 @@
+# What you say to yourself: you, under your breath (docs/VOICES.md, Your
+# asides).
+#
+# The same man who cries for help (personas/you.toml), in another
+# register: a few words to himself on arriving, at a sudden noise, at what
+# comes, at what the place does back. His voice, never one of its own
+# (voice.same_as: every line cloned from personas/you.wav). Never a
+# narrator, never a guide (docs/LORE.md, "How canon reaches the player").
+id = "you_aside"
+name = "You, under your breath"
+used_for = "your asides: what you say to yourself, chosen by the voice director (audio::asides)"
+
+[person]
+summary = """
+The man who cries for help, talking to himself the way frightened people
+do when they are alone: half aloud, to steady himself, to fill the quiet,
+or because something made him jump. He never explains anything and he
+never addresses anyone; he does not know what any of it is."""
+age = 36
+sex = "male"
+from = "somewhere in the American Midwest: plain speech, no strong accent"
+here = "lost, alone; down in the Building and then the rooms below it, with a lamp and some paper"
+never_said = "his name, his work, his face, how long he has been here; the names of what lives here, what it does, the way down"
+
+[voice]
+# his voice: every line is cloned from personas/you.wav (designed from
+# you.toml's description), never a voice of its own
+same_as = "you"
+# his calm lines were Chatterbox's best in the bake-off (V5: voice
+# similarity 0.59 against VoxCPM2's 0.44); asides are calm or low
+line_model = "chatterbox"
+
+[tone]
+direction = [
+    "a man alone, talking to himself under his breath, close to the microphone",
+    "low and quick, half swallowed; never projected, never performed",
+    "he is not telling anyone anything: he is steadying himself",
+]
+# Set on known answers (`voice selftest`, A2). On clips this short and
+# quiet CLAP hears every take nearest "a cartoon character" (his own good
+# ones 0.09-0.22, any phrase of ours below it), so that complaint of
+# synthetic screams (you.toml) is not one of these; the mutter phrases are
+# the ones it answers to (his good takes 0.09-0.16, nothing of "whispering":
+# -0.11 to -0.20). It cannot tell a narrator's read from a mutter here (no
+# phrase, nor AudioSet's "Narration", parts them): that is for an ear.
+like = [
+    "a man muttering to himself",
+    "a frightened man muttering under his breath",
+    "a man mumbling nervously",
+]
+never = [
+    "a narrator reading a story aloud",
+    "a radio announcer",
+    "a stage actor declaiming",
+    "a man shouting",
+    "a man screaming",
+]
+
+[emotions]
+wary = "quiet and uneasy, muttering to himself, unsure of what he is looking at"
+startled = "startled, a sharp breath then a few quick words under his breath"
+dread = "hushed with dread, barely above a whisper, afraid to be heard"
+shaken = "shaken and breathless after a close call, his voice trembling"
+pain = "winded and hurt, a grunt and then words through his teeth"
+resolve = "tired and frightened, quietly talking himself into going on"
+
+[targets]
+# a man's voice, low; a startle may lift it, never to a shriek
+f0_median_hz = [80.0, 300.0]
+# under the breath: 4 LU under the cry's -16 (and lower in the mix, ASIDE_GAIN)
+loudness_lufs = -20.0
+peak_dbtp = -1.0
+wer_max = 0.15
+# his own calm takes read 0.54-0.75 against the reference, another man 0.33
+# (you.toml); an aside is calm or low, so the calm floor holds up to
+# intensity 0.4 and falls to the loud floor at 1, as his cry's does
+similarity_min = 0.45
+similarity_min_loud = 0.25

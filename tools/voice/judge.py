@@ -31,6 +31,17 @@ EMOTION = {
     "terror": {"fear": 1.0, "surprise": 0.8, "angry": 0.7, "disgust": 0.4, "arousal": 0.78},
     "desperation": {"fear": 1.0, "sad": 1.0, "surprise": 0.4, "angry": 0.3, "arousal": 0.62},
     "exhaustion": {"sad": 1.0, "neutral": 0.6, "fear": 0.5, "arousal": 0.35},
+    # your asides (personas/you_aside.toml): said under the breath, so most
+    # sit near a calm read's arousal (0.33-0.37 measured on his voice, V4)
+    # and the gate's two sides hold them there: a shouted read of a hushed
+    # line fails (`voice selftest`, aside_shouted). Only a startle or a
+    # blow lifts it, never to a shout's 0.75-0.91.
+    "wary": {"fear": 1.0, "neutral": 0.8, "surprise": 0.5, "sad": 0.5, "arousal": 0.38},
+    "startled": {"surprise": 1.0, "fear": 1.0, "angry": 0.3, "arousal": 0.55},
+    "dread": {"fear": 1.0, "sad": 0.6, "neutral": 0.5, "arousal": 0.32},
+    "shaken": {"fear": 1.0, "sad": 0.8, "surprise": 0.4, "arousal": 0.45},
+    "pain": {"sad": 0.8, "angry": 0.6, "fear": 0.6, "disgust": 0.3, "arousal": 0.55},
+    "resolve": {"neutral": 1.0, "sad": 0.6, "fear": 0.5, "arousal": 0.36},
 }
 
 # emotion2vec+'s classes and the WavLM head's, in common names
