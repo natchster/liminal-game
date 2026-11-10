@@ -83,7 +83,11 @@ these channels, and the `lore-keeper` reviewer checks it:
   when a window's pane ticks; and the first time you come upon someone
   else's camp, never whose (what you feel, hear and see, never what it
   is, who did it, nor what to do; a word about a sound only once it has
-  sounded). A
+  sounded); on the Stairwell's stairs once its door has locked behind you;
+  when your nerve comes near its end; and when your lamp dies where the
+  place is dark. Some things have no word at all: the Watcher among its
+  sheets, the Face, which always has you, the Loop, whose door a word
+  would point at, and the store's closing, which says itself. A
   reaction, never an explanation: never a name, a number, a rule, the way
   or an instruction, and never what the floor's own line has just said.
   Your first arrival of a run is always said, on the first floor where you

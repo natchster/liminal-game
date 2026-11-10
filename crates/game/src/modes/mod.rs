@@ -249,6 +249,12 @@ impl Game {
     fn enter_stairwell_now(&mut self) {
         self.in_stairwell = true;
         self.asides_leave_floor();
+        // your asides: once its screen has gone, if you are still on its stairs
+        self.schedule(6000.0, |g| {
+            if g.in_stairwell {
+                g.aside(crate::audio::asides::Use::Arrive, "stairwell");
+            }
+        });
         self.world.set_visible(false);
         for e in &self.entities {
             if let Some(f) = &e.face {

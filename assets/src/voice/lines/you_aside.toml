@@ -576,3 +576,57 @@ use = "found"
 subject = "camp"
 levels = [1, 12]
 takes = 4
+
+# ---- going into the Stairwell, and the mind: your nerve near its end, and
+# the lamp's battery running out where it is dark. (Nothing at the Face,
+# which always has you, nor in the Loop, whose door a word would point at,
+# nor at the store's closing, which its own screen says: `lore-keeper`, A9.)
+
+# into the Stairwell: the door locked behind you, the only way down
+[[line]]
+id = "arrive_stairwell"
+text = "Down, then."
+emotion = "resolve"
+intensity = 0.45
+use = "arrive"
+subject = "stairwell"
+levels = [5, 12]
+takes = 4
+
+# your nerve near its end
+[[line]]
+id = "nerve_together"
+text = "Keep it together."
+emotion = "resolve"
+intensity = 0.45
+use = "nerve"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "nerve_lose"
+text = "Don't lose it."
+emotion = "resolve"
+intensity = 0.5
+use = "nerve"
+levels = [4, 99]
+takes = 4
+
+# the lamp's battery runs out, where the place is dark
+[[line]]
+id = "dark_lamp"
+text = "Not the lamp."
+emotion = "startled"
+intensity = 0.55
+use = "dark"
+levels = [1, 99]
+takes = 4
+
+[[line]]
+id = "dark_so"
+text = "It's so dark."
+emotion = "dread"
+intensity = 0.5
+use = "dark"
+levels = [1, 99]
+takes = 4

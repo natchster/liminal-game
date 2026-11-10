@@ -280,6 +280,13 @@ impl Game {
     /// H = shout for help. Coin flip (biased by level): either the place
     /// shows the way to the door (`show_the_way`), or nearby entities aggro
     /// on the player. Higher levels shift the odds toward the entities.
+    /// Whether you stand in a region with no light of its own (a dark zone)
+    pub fn in_dark_region(&self) -> bool {
+        let (ptx, ptz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
+        let r: i32 = if self.in_grid(ptx, ptz) { self.region_map.get(self.t_idx(ptx, ptz)).map(|v| *v as i32).unwrap_or(-1) } else { -1 };
+        r >= 0 && self.region_info.get(r as usize).map(|r| r.flags & RF_DARK != 0).unwrap_or(false)
+    }
+
     pub fn cry_for_help(&mut self) {
         if self.state != "playing" {
             return;
@@ -892,6 +899,10 @@ impl Game {
                 self.player.battery = 0.0;
                 self.player.flashlight_on = false;
                 self.show_msg("BATTERY DEAD", 1.5);
+                // your asides: the lamp gone, where it is dark
+                if self.in_dark_region() {
+                    self.aside(crate::audio::asides::Use::Dark, "");
+                }
             }
         }
         // smooth flashlight intensity (brighter so it cuts through the dark sections)
@@ -1093,10 +1104,7 @@ impl Game {
         // lore note pickup — first-time reads show the body immediately + short chime
         self.lore_note_pickups(dt);
         // dark-zone effect: no lights in region + no flashlight = sanity drain + heartbeat
-        let (ptx, ptz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
-        let p_region_idx: i32 =
-            if self.in_grid(ptx, ptz) { self.region_map.get(self.t_idx(ptx, ptz)).map(|v| *v as i32).unwrap_or(-1) } else { -1 };
-        let in_dark = p_region_idx >= 0 && self.region_info.get(p_region_idx as usize).map(|r| r.flags & RF_DARK != 0).unwrap_or(false);
+        let in_dark = self.in_dark_region();
         // safe-room bonus: standing in the candlelit alcove regenerates sanity fast
         let mut in_safe_room = false;
         if let Some(sr) = self.safe_room.as_ref() {

@@ -191,3 +191,59 @@ fn a_lifts_car_and_a_candles_notes_tell_your_asides_once_they_have_sounded() {
     assert!(lift, "no lift's car told your asides");
     assert!(candle, "no candle's notes told your asides");
 }
+
+#[test]
+fn the_lamp_dying_in_the_dark_and_the_stairwell_tell_your_asides() {
+    use game::visuals::lighting::RF_DARK;
+    // the lamp: dying where the place is dark, and not where it is lit
+    let mut dark_told = false;
+    let mut lit_seen = false;
+    'floors: for seed in [4242u32, 77, 9001] {
+        for level in 6..=12 {
+            let (mut g, ac) = start(seed, level);
+            let tile = |dark: bool| {
+                (0..g.h).flat_map(|z| (0..g.w).map(move |x| (x, z))).find(|&(x, z)| {
+                    !g.is_wall_tile(x, z)
+                        && g.region_map
+                            .get(g.t_idx(x, z))
+                            .and_then(|r| g.region_info.get(*r as usize))
+                            .is_some_and(|r| (r.flags & RF_DARK != 0) == dark)
+                })
+            };
+            let tiles = [(false, tile(false)), (true, tile(true))];
+            for (dark, at) in tiles {
+                let Some((x, z)) = at else { continue };
+                if g.asides.memory.events.contains_key("dark") {
+                    break;
+                }
+                g.player.pos.x = g.wx(x);
+                g.player.pos.z = g.wz(z);
+                g.player.flashlight_on = true;
+                g.player.battery = 0.001;
+                play(&mut g, &ac, 0.2, false);
+                assert!(!g.player.flashlight_on, "the lamp went out");
+                let told = g.asides.memory.events.contains_key("dark");
+                assert_eq!(told, dark, "{seed}/{level}: told {told} in a {} place", if dark { "dark" } else { "lit" });
+                lit_seen |= !dark;
+                dark_told |= dark && told;
+                // past the cooldown for the next floor's try
+                g.asides.clock += 120.0;
+            }
+            if dark_told && lit_seen {
+                break 'floors;
+            }
+        }
+    }
+    assert!(dark_told && lit_seen, "a lamp died in the dark ({dark_told}) and in the light ({lit_seen})");
+    // the Stairwell: once its screen has gone, if you are still on its stairs
+    let (seed, level) = (4242u32, 5);
+    let (mut g, ac) = start(seed, level);
+    assert_eq!(g.level_scp.as_deref(), Some("stairwell"), "seed 4242's level 5 opens on the Stairwell");
+    g.enter_stairwell();
+    play(&mut g, &ac, 4.0, false);
+    assert!(g.in_stairwell);
+    let k = format!("arrive:stairwell:{level}");
+    assert!(!g.asides.memory.weighed.contains(&k) && !g.asides.memory.owed.contains_key(&k), "not while its screen is up");
+    play(&mut g, &ac, 4.0, false);
+    assert!(g.asides.memory.weighed.contains(&k) || g.asides.memory.owed.contains_key(&k), "{:?}", g.asides.memory);
+}

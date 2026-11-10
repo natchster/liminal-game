@@ -64,6 +64,10 @@ pub const USE_FADE: f64 = 0.85;
 pub const CUT_FADE: f64 = 0.15;
 /// The most events one run's log keeps
 pub const LOG_CAP: usize = 2048;
+/// Your nerve is near its end under this share of it (where its heartbeat
+/// and whispers begin, `update_sanity_effects`), and back from it over the
+/// other
+pub const NERVE_LOW: (f64, f64) = (0.28, 0.4);
 
 const ROLL_SALT: u64 = 0xA51D_E5C0_7E11_0B5D;
 const TEMPER_SALT: u64 = 0x7E39_E2A1_5F0C_C0DE;
@@ -163,9 +167,21 @@ impl Use {
     /// (`voice::tests`). Each use's are added as the game comes to post it.
     pub fn subjects(self) -> &'static [&'static str] {
         match self {
-            Use::Arrive => {
-                &["well", "stair_halls", "works", "lobby", "rooms", "deep", "showroom", "house", "stairwell_floor", "loop_floor"]
-            }
+            // (and the Stairwell, entered from its floor; not the Loop, where
+            // a word would point at its door)
+            Use::Arrive => &[
+                "well",
+                "stair_halls",
+                "works",
+                "lobby",
+                "rooms",
+                "deep",
+                "showroom",
+                "house",
+                "stairwell_floor",
+                "loop_floor",
+                "stairwell",
+            ],
             Use::Startle => &["bang", "scream", "steps", "laugh", "moan"],
             // the kinds a first sight can be (never the Watcher: at a glance
             // it is one of the sheets, and a word would say which)
@@ -347,6 +363,8 @@ pub struct Asides {
     /// When each use weighed every time was last weighed (the clock): its
     /// cooldown (`Scope::Each`)
     pub weighed_at: std::collections::BTreeMap<String, f64>,
+    /// Your nerve is near its end (`NERVE_LOW`): an event as it gets there
+    pub nerve_low: bool,
     /// What happened, by the clock: `wait:`, `pass:`, `skip:`, `drop:`,
     /// `say:` (use, subject, and the line or the reason). For tests and run
     /// analysis; capped at `LOG_CAP`
@@ -368,6 +386,7 @@ impl Default for Asides {
             anchor: None,
             arrival: None,
             weighed_at: Default::default(),
+            nerve_low: false,
             log: vec![],
             lines: None,
         }
@@ -573,6 +592,18 @@ impl Game {
             "again"
         } else {
             "first"
+        }
+    }
+
+    /// Your nerve as it goes (`update_sanity_effects`): getting near its
+    /// end is an event for your asides (once a floor), back over `NERVE_LOW`'s
+    /// second mark you may get there again
+    pub fn asides_nerve(&mut self, share: f64) {
+        if !self.asides.nerve_low && share < NERVE_LOW.0 {
+            self.asides.nerve_low = true;
+            self.aside(Use::Nerve, "");
+        } else if self.asides.nerve_low && share > NERVE_LOW.1 {
+            self.asides.nerve_low = false;
         }
     }
 
@@ -1061,6 +1092,27 @@ mod tests {
         assert!(g.asides.memory.weighed.is_empty() && g.asides.memory.events.is_empty(), "{:?}", g.asides.memory);
         g.aside(Use::Startle, "bang");
         assert_eq!(g.asides.memory.events.get("startle"), Some(&1));
+    }
+
+    #[test]
+    fn your_nerve_near_its_end_is_one_event_until_it_comes_back() {
+        let mut g = bare(5);
+        g.asides_nerve(0.5);
+        assert!(g.asides.memory.events.is_empty());
+        g.asides_nerve(NERVE_LOW.0 - 0.01);
+        assert_eq!(g.asides.memory.events.get("nerve"), Some(&1));
+        // still low, or barely back: nothing more
+        g.asides_nerve(0.1);
+        g.asides_nerve(NERVE_LOW.1 - 0.01);
+        g.asides_nerve(0.2);
+        assert_eq!(g.asides.memory.events.get("nerve"), Some(&1));
+        assert!(g.asides.nerve_low);
+        // back over the second mark, and down again: a second event (weighed
+        // once a floor: answered again only if it was owed)
+        g.asides_nerve(NERVE_LOW.1 + 0.01);
+        assert!(!g.asides.nerve_low);
+        g.asides_nerve(0.2);
+        assert!(g.asides.nerve_low);
     }
 
     #[test]

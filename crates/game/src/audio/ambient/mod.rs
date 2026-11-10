@@ -1022,6 +1022,10 @@ impl Game {
     pub fn update_sanity_effects(&mut self, dt: f64) {
         let s = self.player.sanity / SAN_MAX;
         self.sanity_crossing_chimes(s);
+        // your asides: your nerve near its end
+        if self.state == "playing" {
+            self.asides_nerve(s);
+        }
         if s >= 0.28 || self.state != "playing" {
             self.crit_sanity_accum = 0.0;
             self.sanity_beat_t = 0.0;
