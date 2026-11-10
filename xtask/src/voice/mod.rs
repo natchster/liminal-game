@@ -326,10 +326,13 @@ const PERSONA: &[(&str, Kind, bool)] = &[
     ("person.here", Kind::Str, true),
     ("person.never_said", Kind::Str, true),
     ("voice", Kind::Table, true),
-    ("voice.description", Kind::Str, true),
-    ("voice.reference_text", Kind::Str, true),
-    ("voice.design_model", Kind::Str, true),
-    ("voice.design_seed", Kind::Int, true),
+    // the voice designed from a description (`DESIGN`), or another
+    // persona's voice (`voice.same_as`), never both
+    ("voice.description", Kind::Str, false),
+    ("voice.reference_text", Kind::Str, false),
+    ("voice.design_model", Kind::Str, false),
+    ("voice.design_seed", Kind::Int, false),
+    ("voice.same_as", Kind::Str, false),
     ("voice.line_model", Kind::Str, true),
     ("tone", Kind::Table, true),
     ("tone.direction", Kind::StrList, true),
@@ -363,7 +366,44 @@ const LINE: &[(&str, Kind, bool)] = &[
     ("takes", Kind::Int, true),
     // the words a model is directed with, when the emotion's are not enough
     ("direction", Kind::Str, false),
+    // what it is said about, within its use (a place, a kind of thing):
+    // the game chooses a subject's lines before the use's general ones
+    ("subject", Kind::Str, false),
 ];
+
+/// The fields that design a persona's voice from its description: a
+/// persona has them all, or none and `voice.same_as` (another persona's
+/// voice, every line cloned from that one's reference)
+pub const DESIGN: [&str; 4] = ["description", "reference_text", "design_model", "design_seed"];
+
+/// What is wrong with how a persona gets its voice: designed (all of
+/// `DESIGN`) or another's (`same_as`, a persona that designs its own:
+/// `designs(id)` says whether one does, `None` when there is no such persona)
+fn voice_problems(voice: Option<&toml::Table>, what: &str, designs: &dyn Fn(&str) -> Option<bool>) -> Vec<String> {
+    let Some(v) = voice else { return vec![] };
+    let has: Vec<&str> = DESIGN.iter().copied().filter(|k| v.contains_key(*k)).collect();
+    match s(v, "same_as") {
+        Some(other) => {
+            let mut p = vec![];
+            match designs(&other) {
+                None => p.push(format!("{what}: voice.same_as {other} is not a persona (personas/{other}.toml)")),
+                Some(false) => {
+                    p.push(format!("{what}: voice.same_as {other} speaks with another's voice itself: name the one that designs it"))
+                }
+                Some(true) => {}
+            }
+            if !has.is_empty() {
+                p.push(format!("{what}: voice.same_as {other}, so no voice.{} of its own (it is {other}'s)", has.join(", voice.")));
+            }
+            p
+        }
+        None if has.len() < DESIGN.len() => {
+            let missing: Vec<&str> = DESIGN.iter().copied().filter(|k| !has.contains(k)).collect();
+            vec![format!("{what}: no voice.{} (or voice.same_as, another persona's voice)", missing.join(", voice."))]
+        }
+        None => vec![],
+    }
+}
 
 /// Where the game plays a voice line (`use`)
 pub const USES: &[&str] = &["cry"];
@@ -474,17 +514,26 @@ pub fn check_sources() -> Vec<String> {
     let mut problems = vec![];
     let synth: Vec<String> = models().unwrap_or_default().into_iter().filter(|m| m.role == "synth").map(|m| m.id).collect();
     let mut emotions_of = std::collections::HashMap::new();
+    let mut personas = vec![];
     for (stem, path) in stems(&voice_src().join("personas")) {
+        match read_toml(&path) {
+            Ok(t) => personas.push((stem, t)),
+            Err(e) => problems.push(e),
+        }
+    }
+    // whether each persona designs its own voice (no `voice.same_as`)
+    let designs = |id: &str| {
+        personas
+            .iter()
+            .find(|(stem, _)| stem == id)
+            .map(|(_, t)| t.get("voice").and_then(|v| v.as_table()).is_none_or(|v| !v.contains_key("same_as")))
+    };
+    for (stem, t) in &personas {
+        let (stem, t) = (stem.clone(), t);
         let what = format!("personas/{stem}.toml");
-        let t = match read_toml(&path) {
-            Ok(t) => t,
-            Err(e) => {
-                problems.push(e);
-                continue;
-            }
-        };
-        check_fields(&t, PERSONA, &what, &mut problems);
-        if s(&t, "id").as_deref() != Some(stem.as_str()) {
+        check_fields(t, PERSONA, &what, &mut problems);
+        problems.extend(voice_problems(t.get("voice").and_then(|v| v.as_table()), &what, &designs));
+        if s(t, "id").as_deref() != Some(stem.as_str()) {
             problems.push(format!("{what}: id must be its file's name, {stem}"));
         }
         let voice = t.get("voice").and_then(|v| v.as_table());
@@ -562,8 +611,12 @@ pub fn check_sources() -> Vec<String> {
             let id = s(l, "id").unwrap_or_else(|| format!("#{}", i + 1));
             let what = format!("{what} line {id}");
             check_fields(l, LINE, &what, &mut problems);
-            if !id.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_') {
+            let word = |w: &str| w.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_');
+            if !word(&id) {
                 problems.push(format!("{what}: an id is lower case, digits and _"));
+            }
+            if s(l, "subject").is_some_and(|w| !word(&w)) {
+                problems.push(format!("{what}: a subject is lower case, digits and _"));
             }
             if !ids.insert(id.clone()) {
                 problems.push(format!("{what}: a second line with this id"));
@@ -639,7 +692,55 @@ mod tests {
         let mut p = vec![];
         check_fields(&t, PERSONA, "persona", &mut p);
         assert!(p.iter().any(|e| e.contains("unknown field voice.colour")), "{p:?}");
+        // (a voice half described: the rest of it, or another persona's)
+        let p = voice_problems(t.get("voice").and_then(|v| v.as_table()), "persona", &|_| None);
         assert!(p.iter().any(|e| e.contains("no voice.reference_text")), "{p:?}");
+    }
+
+    /// A persona's voice is designed from its description (all of
+    /// `DESIGN`), or is another persona's (`voice.same_as`, one that designs
+    /// its own), never both and never half (A1)
+    #[test]
+    fn a_persona_designs_its_voice_or_speaks_with_anothers() {
+        let designs = |id: &str| match id {
+            "you" => Some(true),
+            "echo" => Some(false),
+            _ => None,
+        };
+        let v = |s: &str| -> toml::Table { s.parse().unwrap() };
+        let ok = v("description = 'a'\nreference_text = 'b'\ndesign_model = 'voxcpm2'\ndesign_seed = 1");
+        assert!(voice_problems(Some(&ok), "p", &designs).is_empty());
+        let p = voice_problems(Some(&v("description = 'a'")), "p", &designs);
+        assert!(p.iter().any(|e| e.contains("no voice.reference_text, voice.design_model, voice.design_seed")), "{p:?}");
+        assert!(voice_problems(Some(&v("same_as = 'you'")), "p", &designs).is_empty());
+        let p = voice_problems(Some(&v("same_as = 'nobody'")), "p", &designs);
+        assert!(p.iter().any(|e| e.contains("same_as nobody is not a persona")), "{p:?}");
+        let p = voice_problems(Some(&v("same_as = 'echo'")), "p", &designs);
+        assert!(p.iter().any(|e| e.contains("speaks with another's voice itself")), "{p:?}");
+        let p = voice_problems(Some(&v("same_as = 'you'\ndescription = 'a'")), "p", &designs);
+        assert!(p.iter().any(|e| e.contains("no voice.description of its own")), "{p:?}");
+    }
+
+    /// A persona with another's voice is cloned from that one's reference,
+    /// reads that one's description, and keeps its own line model (A1)
+    #[test]
+    fn a_persona_with_anothers_voice_is_cloned_from_its_reference() {
+        let t: toml::Table = "id = 'aside'\n[voice]\nsame_as = 'you'\nline_model = 'chatterbox'".parse().unwrap();
+        let base: toml::Table =
+            "[voice]\ndescription = 'a man'\nreference_text = 'hello'\ndesign_model = 'qwen3-tts-voicedesign'\ndesign_seed = 4\nline_model = 'voxcpm2'"
+                .parse()
+                .unwrap();
+        let line: toml::Table =
+            "id = 'x'\nuse = 'arrive'\nsubject = 'well'\nlevels = [1, 1]\nintensity = 0.3\nemotion = 'wary'\ntext = 'So high.'"
+                .parse()
+                .unwrap();
+        let p = pipeline::Persona { id: "aside".into(), t, lines: vec![line], base: Some(base) };
+        assert_eq!(p.voice_of(), "you");
+        assert_eq!(p.reference(), voice_src().join("personas/you.wav"));
+        assert_eq!(p.clone_from("wary").0, voice_src().join("personas/you.wav"));
+        assert_eq!(p.voice("reference_text"), "hello");
+        assert_eq!(p.voice("line_model"), "chatterbox", "its own line model, not the voice's persona's");
+        assert_eq!(pipeline::index_rows(&p), vec!["aside\tx\tarrive\twell\t1\t1\t0.3\twary\tSo high."]);
     }
 
     #[test]

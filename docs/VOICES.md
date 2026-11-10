@@ -296,7 +296,14 @@ A persona is two files: `assets/src/voice/personas/<id>.toml` (who, the
 voice's description, the tone, the emotions with the words a model is
 directed with, the targets) and `assets/src/voice/lines/<id>.toml` (each
 line: its text, emotion, intensity 0–1, where the game plays it, on which
-levels, how many takes). `cargo xtask check` reads both
+levels, how many takes; and, where its use has several, its `subject`:
+what it is said about, a place or a kind of thing, whose lines the game
+chooses before the use's general ones). A persona speaks with a voice
+designed from its description (`voice.description`, `reference_text`,
+`design_model`, `design_seed`), or with another persona's
+(`voice.same_as`: every line cloned from that one's reference, so one man
+can have two registers with their own tone, emotions and loudness), never
+both. `cargo xtask check` reads both
 (`voice::tests::every_persona_and_line_file_is_complete`): a missing field,
 a field of the wrong kind, an unknown field (a misspelling), an emotion the
 persona does not have, a model that is not a synthesis model, a use the game
@@ -436,7 +443,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 
 | # | State |
 |---|---|
-| A0 | done: this plan |
+| A0 | done: this plan (`71338c7`) |
+| A1 | done: `voice.same_as` (a persona with another's voice: its reference, its description; `voice reference` refuses to make one of its own) and a line's `subject`, a column of `lines.tsv` (`persona id use subject first last intensity emotion text`) read by `audio::voice::lines`; `you`'s ten lines rewritten by `voice write`, the same files byte for byte |
 
 ## What only people can tell
 

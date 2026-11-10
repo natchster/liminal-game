@@ -15,7 +15,10 @@ hear: the evaluation screens every take, a person makes the last call.
    its `emotion` (one of the persona's) and `intensity` (0 calm … 1 a
    scream), its `use` (where the game says it: one of `voice::USES`, which
    the game must play) and `levels` (first, last), and `takes` (4).
-   `direction` overrides the emotion's words for one line.
+   `direction` overrides the emotion's words for one line. `subject`
+   (lower case, `_`) says what a line is about within its use (a place, a
+   kind of thing): the game chooses a subject's lines before the use's
+   general ones.
    `cargo test -p xtask voice` reads them.
 2. **The takes.** `cargo xtask voice build --persona <p>` (the persona's
    `line_model`; `--model M` for another; `--only id,…` for some lines):

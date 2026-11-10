@@ -15,8 +15,11 @@ use crate::base::rng::SplitMix64;
 pub struct Line {
     pub persona: String,
     pub id: String,
-    /// Where the game says it (`cry`)
+    /// Where the game says it (`cry`, or one of the asides' uses)
     pub use_: String,
+    /// What it is said about within its use (a place, a kind of thing), or
+    /// empty: said about anything of its use
+    pub subject: String,
     /// The first and last level it may be said on
     pub first: i32,
     pub last: i32,
@@ -55,15 +58,16 @@ pub fn lines() -> Vec<Line> {
         .skip(1)
         .filter_map(|r| {
             let f: Vec<&str> = r.split('\t').collect();
-            (f.len() == 8).then(|| Line {
+            (f.len() == 9).then(|| Line {
                 persona: f[0].into(),
                 id: f[1].into(),
                 use_: f[2].into(),
-                first: f[3].parse().unwrap_or(1),
-                last: f[4].parse().unwrap_or(99),
-                intensity: f[5].parse().unwrap_or(0.5),
-                emotion: f[6].into(),
-                text: f[7].into(),
+                subject: f[3].into(),
+                first: f[4].parse().unwrap_or(1),
+                last: f[5].parse().unwrap_or(99),
+                intensity: f[6].parse().unwrap_or(0.5),
+                emotion: f[7].into(),
+                text: f[8].into(),
             })
         })
         .collect()

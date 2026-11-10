@@ -19,7 +19,10 @@ A persona is who speaks: one voice, kept the same across all its lines
 3. **The persona file** `assets/src/voice/personas/<id>.toml` (copy
    `you.toml`, then set `design_seed = 1` and drop its `[references]`):
    at the top `id` (the file's name), `name` and `used_for`; `[person]` (summary, age, sex, from, here, never_said);
-   `[voice]` (a description a voice-design model can follow: age, timbre,
+   `[voice]` (for a register of a persona that already has a voice, the
+   same man said another way: `same_as = "<id>"` and its `line_model`,
+   nothing else; its lines are cloned from that one's reference, and step
+   4 is skipped. Otherwise a description a voice-design model can follow: age, timbre,
    accent, texture, how it is recorded; `reference_text`, 10–15 s of plain
    speech; `design_model`: `qwen3-tts-voicedesign` or `voxcpm2`, the two
    that design a voice; `design_seed`; `line_model`: one of the four that

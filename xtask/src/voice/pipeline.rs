@@ -23,6 +23,8 @@ pub struct Persona {
     pub id: String,
     pub t: toml::Table,
     pub lines: Vec<toml::Table>,
+    /// The persona whose voice it speaks with (`voice.same_as`), as written
+    pub base: Option<toml::Table>,
 }
 
 impl Persona {
@@ -34,13 +36,27 @@ impl Persona {
         let t = read_toml(&voice_src().join(format!("personas/{id}.toml")))?;
         let lt = read_toml(&voice_src().join(format!("lines/{id}.toml")))?;
         let lines = lt.get("line").and_then(|v| v.as_array()).into_iter().flatten().filter_map(|l| l.as_table().cloned()).collect();
-        Ok(Persona { id: id.to_string(), t, lines })
+        let same_as = t.get("voice").and_then(|v| v.as_table()).and_then(|v| s(v, "same_as"));
+        let base = match same_as {
+            Some(other) => Some(read_toml(&voice_src().join(format!("personas/{other}.toml")))?),
+            None => None,
+        };
+        Ok(Persona { id: id.to_string(), t, lines, base })
     }
     fn table(&self, k: &str) -> toml::Table {
         self.t.get(k).and_then(|v| v.as_table()).cloned().unwrap_or_default()
     }
+    /// A field of its voice: its own, else (a persona with another's voice)
+    /// that one's
     pub fn voice(&self, k: &str) -> String {
-        s(&self.table("voice"), k).unwrap_or_default()
+        s(&self.table("voice"), k)
+            .or_else(|| self.base.as_ref().and_then(|b| b.get("voice")).and_then(|v| v.as_table()).and_then(|v| s(v, k)))
+            .unwrap_or_default()
+    }
+    /// Whose voice it is: its own id, or the persona it speaks like
+    /// (`voice.same_as`)
+    pub fn voice_of(&self) -> String {
+        s(&self.table("voice"), "same_as").unwrap_or_else(|| self.id.clone())
     }
     pub fn target(&self, k: &str) -> f64 {
         super::num(self.table("targets").get(k))
@@ -48,9 +64,10 @@ impl Persona {
     pub fn emotion_words(&self, e: &str) -> String {
         s(&self.table("emotions"), e).unwrap_or_default()
     }
-    /// The reference clip every line is cloned from (kept with the sources)
+    /// The reference clip every line is cloned from (kept with the sources):
+    /// its own, or the one of the persona whose voice it is
     pub fn reference(&self) -> PathBuf {
-        voice_src().join(format!("personas/{}.wav", self.id))
+        voice_src().join(format!("personas/{}.wav", self.voice_of()))
     }
     /// An emotion's own reference, if the persona has one
     pub fn emotion_ref(&self, emotion: &str) -> Option<(PathBuf, toml::Table)> {
@@ -100,6 +117,15 @@ fn clean_all(items: &[Value], name: &Path) -> Result<Vec<Value>, String> {
 /// the `design_seed` one, cleaned, as the persona's reference
 pub fn reference(args: &[String]) -> Result<(), String> {
     let p = persona_arg(args)?;
+    if p.voice_of() != p.id && opt(args, "--emotion").is_none() {
+        return Err(format!(
+            "{} speaks with {}'s voice (voice.same_as): its reference is {}; make that one's (--persona {})",
+            p.id,
+            p.voice_of(),
+            p.reference().display(),
+            p.voice_of()
+        ));
+    }
     if let Some(e) = opt(args, "--emotion") {
         return emotion_reference(&p, e, args);
     }
@@ -293,13 +319,17 @@ pub fn write(args: &[String]) -> Result<(), String> {
             .unwrap_or_default();
         let mut sources = vec![
             format!("assets/src/voice/personas/{}.toml", p.id),
-            format!("assets/src/voice/personas/{}.wav", p.id),
+            format!("assets/src/voice/personas/{}.wav", p.voice_of()),
             format!("assets/src/voice/lines/{}.toml", p.id),
             format!("assets/src/voice/models/{model}/SOURCE.toml"),
             "tools/voice/models.toml".into(),
             "tools/voice/synth.py".into(),
             "tools/voice/evaluate.py".into(),
         ];
+        // the persona whose voice it is, described
+        if p.voice_of() != p.id {
+            sources.insert(1, format!("assets/src/voice/personas/{}.toml", p.voice_of()));
+        }
         // cloned from an emotion's own reference
         let (from, _) = p.clone_from(&s(l, "emotion").unwrap_or_default());
         if from != p.reference() {
@@ -335,10 +365,11 @@ pub fn index_rows(p: &Persona) -> Vec<String> {
             let lv: Vec<i64> =
                 l.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect()).unwrap_or_default();
             format!(
-                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 p.id,
                 s(l, "id").unwrap_or_default(),
                 s(l, "use").unwrap_or_default(),
+                s(l, "subject").unwrap_or_default(),
                 lv.first().unwrap_or(&1),
                 lv.get(1).unwrap_or(&99),
                 super::num(l.get("intensity")),
@@ -349,7 +380,7 @@ pub fn index_rows(p: &Persona) -> Vec<String> {
         .collect()
 }
 
-pub const INDEX_HEADER: &str = "persona\tid\tuse\tfirst\tlast\tintensity\temotion\ttext";
+pub const INDEX_HEADER: &str = "persona\tid\tuse\tsubject\tfirst\tlast\tintensity\temotion\ttext";
 
 pub fn index_path() -> PathBuf {
     root().join("crates/game/assets/voice/lines.tsv")
