@@ -464,6 +464,8 @@ impl Game {
             // a contact that is not the end never takes the last of your
             // nerve (a first meeting on a spent nerve had killed through it)
             self.knock_down(blow.min((self.player.sanity - KNOCKED_LEAVES).max(0.0)));
+            // your asides: thrown down and let go
+            self.aside(crate::audio::asides::Use::Knocked, "");
         }
         // that was its moment: it backs off, and the place settles
         let now = self.perf_t;

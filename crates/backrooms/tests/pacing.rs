@@ -67,6 +67,10 @@ struct Log {
     withdrawals: u32,
     deaths: u32,
     causes: Vec<String>,
+    /// Your asides said (what, and the director's phase then), and the
+    /// ones let go (what and why)
+    said: Vec<(String, Phase)>,
+    dropped: Vec<String>,
 }
 
 fn key(g: &mut Game, code: &str, down: bool) {
@@ -178,6 +182,7 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
     let mut turn_t = 0.0;
     let mut t = 0.0;
     let mut calls = 0;
+    let mut heard = 0;
     for frame in 0..(secs * 60.0) as usize {
         if g.director.close_calls != calls {
             log.survived += g.director.close_calls.saturating_sub(calls);
@@ -199,6 +204,14 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
         g.frame(1.0 / 60.0);
         g.fixed_step_dt = 0.0;
         t += 1.0 / 60.0;
+        for (_, w) in &g.asides.log[heard..] {
+            if let Some(what) = w.strip_prefix("say:") {
+                log.said.push((what.to_string(), g.director.phase));
+            } else if w.starts_with("drop:") {
+                log.dropped.push(w.clone());
+            }
+        }
+        heard = g.asides.log.len();
         let now = g.director.phase;
         if now != phase && std::env::var_os("PACING_DEBUG").is_some() {
             let st = g.director.stalker.map(|i| {
@@ -269,8 +282,29 @@ fn the_director_paces_a_level() {
             spans.join(" → ")
         );
         println!("  deaths: {:?}", log.causes);
+        println!("  asides: {:?}", log.said.iter().map(|(w, p)| format!("{w} ({})", p.name())).collect::<Vec<_>>());
+        println!("  let go: {:?}", log.dropped);
         logs.push(log);
     }
+    // your asides keep the director's rhythm (docs/VOICES.md, rule 4):
+    // nothing chosen is said in a peak (a blow's grunt is not chosen), and
+    // the relief after a close call is said in the relief
+    for (log, (seed, level)) in logs.iter().zip(runs) {
+        for (w, phase) in &log.said {
+            if !w.starts_with("knocked:") {
+                assert!(*phase != Phase::Peak, "seed {seed} L{level}: \"{w}\" said in a peak");
+            }
+            if w.starts_with("aftermath:") {
+                assert!(*phase == Phase::Relax, "seed {seed} L{level}: the relief said in {}", phase.name());
+            }
+        }
+    }
+    let said: Vec<&String> = logs.iter().flat_map(|l| l.said.iter().map(|(w, _)| w)).collect();
+    assert!(said.iter().any(|w| w.starts_with("arrive:")), "a floor's arrival is said: {said:?}");
+    assert!(
+        said.iter().any(|w| w.starts_with("sighted:") || w.starts_with("aftermath:") || w.starts_with("knocked:")),
+        "what comes is answered: {said:?}"
+    );
     for (log, (seed, level)) in logs.iter().zip(runs) {
         let fb = log.first_build.unwrap_or(f64::INFINITY);
         assert!(fb < 150.0, "seed {seed} L{level}: the first build-up comes within 2.5 minutes ({fb:.0} s)");

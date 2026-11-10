@@ -406,6 +406,7 @@ impl Game {
         if came_through {
             d.close_calls += 1;
         }
+        let relief = came_through;
         d.contacts = 0;
         d.phase = Phase::Relax;
         d.cycles += 1;
@@ -426,6 +427,11 @@ impl Game {
                     self.withdraw_entity(i);
                 }
             }
+        }
+        // your asides: the relief after a close call, said once your breath
+        // is let go
+        if relief {
+            self.aside(crate::audio::asides::Use::Aftermath, "");
         }
     }
 
@@ -721,10 +727,15 @@ impl Game {
         if self.director.sighted.contains(&kind) {
             return;
         }
-        self.director.sighted.push(kind);
+        self.director.sighted.push(kind.clone());
         self.player.sanity = clamp(self.player.sanity - 6.0 - 6.0 * clamp(1.0 - d / 20.0, 0.0, 1.0), 0.0, SAN_MAX);
         self.dread_sting(0.7);
         self.sfx_thump(0.9);
+        // your asides: the first sight of a kind in a run, from where it does
+        // not have you (never the Watcher: a word would say which sheet)
+        if kind != "watcher" {
+            self.aside(crate::audio::asides::Use::Sighted, &kind);
+        }
     }
 
     /// A dissonant hit: low clustered strings, a sub drop and a scrape of

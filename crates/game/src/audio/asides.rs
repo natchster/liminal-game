@@ -167,6 +167,9 @@ impl Use {
                 &["well", "stair_halls", "works", "lobby", "rooms", "deep", "showroom", "house", "stairwell_floor", "loop_floor"]
             }
             Use::Startle => &["bang", "scream", "steps", "laugh", "moan"],
+            // the kinds a first sight can be (never the Watcher: at a glance
+            // it is one of the sheets, and a word would say which)
+            Use::Sighted => &["hound", "smiler", "corner", "reader", "glass"],
             _ => &[],
         }
     }

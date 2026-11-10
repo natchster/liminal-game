@@ -68,7 +68,12 @@ these channels, and the `lore-keeper` reviewer checks it:
   once its card and its line have gone and within its first minute; and
   at a sudden sound heard near (a bang, a scream far off, steps, a laugh,
   a moan: in the rooms, and on the Building's floors only a bang), the
-  first of its kind in a run, now and then, never to anyone. A
+  first of its kind in a run, now and then, never to anyone; at the first
+  sight of a kind of thing that lives here, from where it does not have
+  you (what you see of it, never what it is; never at the Watcher, which
+  at a glance is one of the sheets); when a touch throws you down and
+  lets you go; and in the relief after a close call, never that it is
+  over. A
   reaction, never an explanation: never a name, a number, a rule, the way
   or an instruction, and never what the floor's own line has just said.
   Your first arrival of a run is always said, on the first floor where you

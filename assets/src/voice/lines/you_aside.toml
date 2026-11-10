@@ -296,3 +296,108 @@ use = "startle"
 subject = "moan"
 levels = [4, 99]
 takes = 4
+
+# ---- what comes: the first sight of a kind of creature in a run (the
+# subject: its kind, never said; from a distance, while it is not after
+# you; never the Watcher, which at a glance is one of the sheets, so a word
+# would tell you which), the first blow that throws you down, and the
+# relief after a close call. What he sees, never what it is or does, never
+# what to do about it, and never that it is over (a sign is not a promise).
+
+[[line]]
+id = "sighted_oh_no"
+text = "Oh no."
+emotion = "startled"
+intensity = 0.6
+use = "sighted"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "sighted_please_no"
+text = "Please, no."
+emotion = "dread"
+intensity = 0.55
+use = "sighted"
+levels = [4, 99]
+takes = 4
+
+# on all fours, the head hanging
+[[line]]
+id = "sighted_hound"
+text = "Something's crawling."
+emotion = "dread"
+intensity = 0.5
+use = "sighted"
+subject = "hound"
+levels = [4, 99]
+takes = 4
+
+# forehead to the corner, as a child is made to stand: only its back
+[[line]]
+id = "sighted_corner"
+text = "Why is it standing like that?"
+emotion = "dread"
+intensity = 0.45
+use = "sighted"
+subject = "corner"
+levels = [4, 99]
+takes = 4
+
+# bent over a page held close to its face
+[[line]]
+id = "sighted_reader"
+text = "What is it reading?"
+emotion = "dread"
+intensity = 0.45
+use = "sighted"
+subject = "reader"
+levels = [4, 99]
+takes = 4
+
+# the first blow: thrown down, and let go
+[[line]]
+id = "knocked_get_up"
+text = "Get up. Come on."
+emotion = "pain"
+intensity = 0.6
+use = "knocked"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "knocked_breathing"
+text = "Still breathing."
+emotion = "pain"
+intensity = 0.5
+use = "knocked"
+levels = [4, 99]
+takes = 4
+
+# the relief after a close call, once the breath is let go
+[[line]]
+id = "aftermath_gone"
+text = "Is it gone?"
+emotion = "shaken"
+intensity = 0.5
+use = "aftermath"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "aftermath_breathe"
+text = "I can't breathe."
+emotion = "shaken"
+intensity = 0.55
+use = "aftermath"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "aftermath_heart"
+text = "My heart is pounding."
+emotion = "shaken"
+intensity = 0.45
+use = "aftermath"
+levels = [4, 99]
+takes = 4

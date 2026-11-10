@@ -9,6 +9,9 @@ you	i_cant	cry		9	99	0.85	desperation	Help me. Please. I can't do this.
 you	im_here	cry		2	9	0.65	fear	I'm here! I'm right here!
 you	please_help_hoarse	cry		9	99	0.6	exhaustion	Please. Somebody. Help.
 you	somebody_help	cry		4	99	0.7	desperation	Somebody help me, please!
+you_aside	aftermath_breathe	aftermath		4	99	0.55	shaken	I can't breathe.
+you_aside	aftermath_gone	aftermath		4	99	0.5	shaken	Is it gone?
+you_aside	aftermath_heart	aftermath		4	99	0.45	shaken	My heart is pounding.
 you_aside	arrive_deep_how_far	arrive	deep	10	99	0.4	dread	How far down am I?
 you_aside	arrive_deep_nobody	arrive	deep	10	99	0.4	dread	Nobody's coming. Are they.
 you_aside	arrive_deep_tired	arrive	deep	10	99	0.35	resolve	I'm so tired.
@@ -29,6 +32,13 @@ you_aside	arrive_well_real	arrive	well	1	1	0.45	dread	This can't be real.
 you_aside	arrive_where_now	arrive		5	99	0.35	wary	Where now?
 you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that go?
 you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?
+you_aside	knocked_breathing	knocked		4	99	0.5	pain	Still breathing.
+you_aside	knocked_get_up	knocked		4	99	0.6	pain	Get up. Come on.
+you_aside	sighted_corner	sighted	corner	4	99	0.45	dread	Why is it standing like that?
+you_aside	sighted_hound	sighted	hound	4	99	0.5	dread	Something's crawling.
+you_aside	sighted_oh_no	sighted		4	99	0.6	startled	Oh no.
+you_aside	sighted_please_no	sighted		4	99	0.55	dread	Please, no.
+you_aside	sighted_reader	sighted	reader	4	99	0.45	dread	What is it reading?
 you_aside	startle_bang	startle	bang	1	99	0.65	startled	Jesus.
 you_aside	startle_dont_like	startle		4	99	0.45	dread	I don't like that.
 you_aside	startle_laugh	startle	laugh	4	99	0.5	dread	Was that... laughing?
