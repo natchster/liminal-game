@@ -92,12 +92,15 @@ these channels, and the `lore-keeper` reviewer checks it:
   or an instruction, and never what the floor's own line has just said.
   Your first arrival of a run is always said, on the first floor where you
   are not keeping quiet; after it, which floors and which sounds have a
-  word, and which words, differ from run to run, fewer the more you have
-  said, and none is said twice in a run, not after a death nor a
-  Continue. You keep quiet while the place does: just after your cry,
-  while something is after you or near, and while it hushes (but the
-  siren and a knock at your cell, which the hush is about, have their
-  word through it); in the Stairwell and the Loop only after your cry.
+  word, and which words, differ from run to run. Each kind of thing has
+  its word once a run at most, a floor its arrival once; none is said
+  twice in a run, not after a death nor a Continue; a word about a sound
+  only once it has sounded, and nothing while a floor's card is up. You
+  keep quiet while the place does: just after your cry, while something
+  is after you or near, or something that hears is near and not yet
+  after you, and while it hushes (but the siren and a knock at your
+  cell, which the hush is about, have their word through it); in the
+  Stairwell while the Face is out.
   Nothing on the screen, and nothing hears them. Not a narrator: you know
   nothing, and you tell no one.
 

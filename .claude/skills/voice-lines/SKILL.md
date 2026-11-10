@@ -56,7 +56,10 @@ hear: the evaluation screens every take, a person makes the last call.
      xtask's `USES`;
    - `self.aside(Use::X, "subject")` where it happens: once (an edge, not
      every frame), and after the sound it answers has finished (a word
-     over a sound hides the tell it reacts to: the knock back, A7);
+     over a sound hides the tell it reacts to: the knock back, A7), with
+     `self.aside_later(ms, …)`, never a bare `schedule` (it lets the post
+     go if the floor has changed or you are dead); every kind has its
+     word once a run (`Use::scope`);
    - its lines, reviewed by `lore-keeper` before they are made (react,
      never explain; to yourself, never to anyone, since a call is the
      cry's; never a name, a rule, the way, a meaning, nor that it is over;

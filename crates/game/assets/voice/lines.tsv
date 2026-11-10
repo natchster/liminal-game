@@ -51,7 +51,6 @@ you_aside	sighted_please_no	sighted		4	99	0.55	dread	Please, no.
 you_aside	sighted_reader	sighted	reader	4	99	0.45	dread	What is it reading?
 you_aside	siren_for	siren	first	1	3	0.5	startled	What's that siren for?
 you_aside	siren_is	siren	first	1	3	0.45	wary	That's a siren.
-you_aside	siren_not_now	siren	again	1	3	0.5	dread	Not now.
 you_aside	startle_bang	startle	bang	1	99	0.65	startled	Jesus.
 you_aside	startle_dont_like	startle		4	99	0.45	dread	I don't like that.
 you_aside	startle_laugh	startle	laugh	4	99	0.5	dread	Was that... laughing?

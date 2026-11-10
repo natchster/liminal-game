@@ -392,12 +392,12 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
    narrator). *Test:* `lore-keeper` on every line;
    `no_aside_names_what_the_canon_keeps_unsaid` (the creatures' names,
    level, exit, digits, the people's names).
-2. **Once is a reaction, twice is a habit.** An event is weighed once
-   for its *scope*: a subject (a kind of sound, of creature, of thing)
-   once a run, a floor's arrival or your nerve once a floor, and what
-   happens again and again (a blow, the relief, the lamp) every time but
-   not again within its cooldown. Its chance falls with each line already
-   said about the same subject (by half; an arrival's by 0.7) and a
+2. **Once is a reaction, twice is a habit.** Every kind of event has its
+   word at most once a run (a kind of sound, of creature, of thing; the
+   blow, the relief, your nerve, the lamp, the siren): a later event of
+   the same kind has none. Only a floor's arrival is weighed again, once a
+   floor. Its chance falls with each line already said about the same
+   subject (by half; an arrival's by 0.7), and, but for an arrival, a
    little with each line of its use (0.85), so a new place late in a run
    still has its word. A line is never said twice in a run; a use whose
    lines are spent is silent; an event with no line here is not weighed
@@ -422,9 +422,13 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 4. **Hold your breath.** The pacing director says when
    (`Game::holding_breath`): within 3 s of your cry; on a floor, while
    something hunts you, searches within 25 m (`ENGAGED_NEAR`), the
-   creature sent in a build-up is within 20 m, or the place itself is
+   creature sent in a build-up is within 20 m, something that hears and
+   is not yet after you is within 15 m (a Hound, the store's staff by
+   night: your silence is what keeps it so), or the place itself is
    hushed (`amb_hush` 0.3: something coming, a search near, a silent
-   machine, the fog up); in the Stairwell or the Loop only your cry. Each
+   machine, the fog up), the creatures read before the hush; in the
+   Stairwell while the Face is out; in the Loop only your cry. Your cry
+   cuts off an aside playing. Each
    use says what holds it (`Use::held_by`): a blow's grunt nothing; the
    siren and a knock at your cell, which the hush is about, only your
    cry. A line of yours playing when you begin to hold your breath is
@@ -435,9 +439,16 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 5. **One at a time, and room between.** Never two at once, nor over the
    cry; at least 20 s between asides (8 s after a lesser one, for a
    threat or what the place does back); a blow's grunt keeps no gap and
-   cuts in over a line of yours. A reaction is said in its moment or
-   owed: a startle 0.35–0.9 s after the sound and within 2 s; an arrival
-   within 15 s of being weighed, which is once you have walked 2 m, its
+   cuts in over a line of yours. Nothing but a blow's grunt while a
+   floor's card and line are up (its first 9 s). A word about a sound
+   waits for the sound to finish (`aside_later`: a signature's length,
+   the stalker's steps by its gait, a cell's first knock, a knock back's
+   raps, a lift's car, a candle's notes, a pane's tick), and is let go if
+   by then the floor has changed or you are dead. A reaction is said in
+   its moment or owed: a startle 0.35–0.9 s after the sound has finished
+   and within 2 s; an arrival
+   within 15 s of being weighed, which is once you have walked 2 m, the
+   gap since the last aside has passed, its
    card and line have gone (9 s: a floor is never described twice at
    once), nothing else is waiting, and inside the floor's first minute
    played; into the Stairwell 6 s after its door (once its own screen has
@@ -509,7 +520,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 | A7 | done (`9f5161d`): nine lines on the Building's floors, rewritten after a `lore-keeper` round ("Something's wrong." and "That's not right." cut: what a sound means; the knock at your cell neither a someone, which invites an answer, nor a something, which decides it; the all-clear never that it is over; no line to anyone): `siren` (first, again), `held` (knock, clear), `answered` (hatch, note), `uncanny` (knock_back, figure). 21 of 40 takes passing (tone 12, words 6, voice 2), every line with one; "What's that siren for?" was heard nearer "a radio announcer" on its first four (margins −0.01 to −0.05), given eight takes, and passes on one (+0.03): thin, for an ear. Posted by the assembly's siren and all-clear (sealed in), the cell's first knock, a door's answer, a marked door's knock back, the figure turned by your look. `tests/pacing.rs`'s crossings keep the asides: twelve floors, an arrival on each, the first siren answered and later ones, the knock answered inside the cell on three, the all-clear's word as the bot steps out (asserted: a siren answered, the knock's word only sealed in); `tests/knock.rs` and `tests/presences.rs` hold the answer, the knock back and the figure to telling the director. The full check's knock listen tests heard the word over the raps it answered (a knock back's rhythm is the tell): a knock's word now waits for its last rap to ring out (`KNOCK_HEARD`, 0.35 s), a door's answer for its thing to be out, held by `tests/knock.rs`; those listen tests measure the knock alone |
 | A8 | done (`ebd2536`): six lines of the place answering, rewritten after a `lore-keeper` round ("That's a hand." would name a hand, said before the print was there: "Is that a handprint?" once it is all there; "That wasn't me." false of the candle, or a who for its notes: "I'm not staying here."; "It still runs?" a hint the dead lift works; "Something touched me." the screen's own words; a fourth "Was that…" avoided; one camp line, never whose): `uncanny` (hole, from the second floor: holes are on the Building's too; flap; lift; candle; pane) and `found` (camp). 19 of 24 takes passing, every line with one. A word about a sound waits for it to sound (A7's lesson): the lift's after its car (2.9 s), the candle's after its notes, the pane's after its tick (0.5 s), the flap's once the print is full (four fifths of its lift). Held by tests: `tests/vending.rs` (the flap), `tests/glass.rs` (the pane), `tests/secrets.rs` (the hole), `tests/asides.rs` (her camp, once a floor and not from afar; a lift's car and a candle's notes, told only after they sounded) |
 | A9 | done (`be51bed`): five lines, after a `lore-keeper` round that left three things without a word: the Face (a creature that always has you, and "There's a face." settles what it is), the Loop (said before you have turned round, and its way out is a door), the store's closing (said after the lights were out, and its screen says it); "Is someone crying down there?" repeated the Stairwell's screen ("Down, then."); "Stay with it. Stay with it." doubled and read as "stay put"; "I can't see." false in a lit room, so the lamp's word is posted only where it is dark. `arrive` (stairwell), `nerve` (two), `dark` (two): 19 of 20 takes passing. Posted by the Stairwell's door (6 s on, if still on its stairs), `asides_nerve` (under 0.28 of your nerve, again only after 0.4), the battery dying while lit where the region is dark (`in_dark_region`, now the dark zone's own test too). Held by `your_nerve_near_its_end_is_one_event_until_it_comes_back` and `tests/asides.rs` (the lamp told in the dark and not in the light, on real floors; the Stairwell not while its screen is up, then told) |
-| A10 | done: the run analysis (`tests/pacing.rs`, `your_asides_differ_from_run_to_run`): eight runs' floors played by the cautious bot, creatures live, deaths on, 240 s each: 1–4 lines a floor (mean 2.5), every run's sequence its own (eight of eight), two runs sharing 9 % of their words on average, no line twice, nothing chosen in a peak (all asserted); the ledger (`QUALITY.md`'s Voices, `content.json`'s `sound/voice` with `backrooms/asides` and `backrooms/pacing`), the playtest's questions (`PLAYTEST.md`: whose voice, too much or too little, a word over something needed, the lines the machine cannot judge), the `voice-lines` skill (how an aside is added, with what A4–A9 taught), `CLAUDE.md`; the full check and the bundle |
+| A10 | done (`e90ff51`): the run analysis (`tests/pacing.rs`, `your_asides_differ_from_run_to_run`): eight runs' floors played by the cautious bot, creatures live, deaths on, 240 s each: 1–4 lines a floor (mean 2.5), every run's sequence its own (eight of eight), two runs sharing 9 % of their words on average, no line twice, nothing chosen in a peak (all asserted); the ledger (`QUALITY.md`'s Voices, `content.json`'s `sound/voice` with `backrooms/asides` and `backrooms/pacing`), the playtest's questions (`PLAYTEST.md`: whose voice, too much or too little, a word over something needed, the lines the machine cannot judge), the `voice-lines` skill (how an aside is added, with what A4–A9 taught), `CLAUDE.md`; the full check and the bundle |
+| review B | done: a code review and a design review of review A's fixes and A6–A10, each by a fresh reviewer. Fixed: a word posted later (`schedule`, on real time) could be said on the next floor, in the Stairwell, or weighed while dead: now `aside_later`, let go if the floor has changed or you are dead; every kind of event now has its word once a run, as the user asked (the blow, the relief, your nerve, the lamp had spoken again on later events; the second siren's line is gone, 56 lines); a word over a tell: the stalker's steps (now a kind of their own, `creature_steps`, said once they stop), a level's sounds (said once they have sounded), the cell's knock (after its first knock), and your cry now cuts an aside; the breath read the hush before the creatures, so a hunt starting in a hush went on under a line, and it now holds near a Hound not yet after you, the store's staff by night, and the Stairwell's Face; nothing but a blow's grunt while a floor's card is up, and an arrival waits for the gap, so the first floor's word is not lost to a bang; an arrival fades by its place alone; the knock test's timing check was vacuous (two clocks), now on one and shown to fail with no wait; a doc comment on the wrong function; `PLAYTEST.md` named a log that is not written. New evidence: a run down ten floors in one game (`tests/asides.rs`: an arrival on 6, 8, 6 of 10 floors for three runs, no line twice); every line of the game comes first in some run |
 
 ## What only people can tell
 

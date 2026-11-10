@@ -260,9 +260,9 @@ impl Game {
                 if passes {
                     g.schedule(4000.0, move |g| {
                         g.prop_sound(shaft, PropSound::CarPasses);
-                        // your asides: once it has gone by (2.6 s of rumble)
-                        g.schedule(2900.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "lift"));
                     });
+                    // your asides: once it has gone by (4 s on, 2.6 s of rumble)
+                    g.aside_later(6900.0, crate::audio::asides::Use::Uncanny, "lift");
                 }
             },
         );

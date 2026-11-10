@@ -91,7 +91,6 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "sighted_reader"),
     wav!("you_aside", "siren_for"),
     wav!("you_aside", "siren_is"),
-    wav!("you_aside", "siren_not_now"),
     wav!("you_aside", "startle_bang"),
     wav!("you_aside", "startle_dont_like"),
     wav!("you_aside", "startle_laugh"),

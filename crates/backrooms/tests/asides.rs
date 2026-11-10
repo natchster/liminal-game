@@ -247,3 +247,35 @@ fn the_lamp_dying_in_the_dark_and_the_stairwell_tell_your_asides() {
     play(&mut g, &ac, 4.0, false);
     assert!(g.asides.memory.weighed.contains(&k) || g.asides.memory.owed.contains_key(&k), "{:?}", g.asides.memory);
 }
+
+/// A whole run's floors in one game, the run's memory carried down (review
+/// B): from the Lobby to level 13, each floor walked into and looked round
+/// for 40 s. Many floors have their word on arriving (an arrival fades only
+/// by its place), the first always, and no line is said twice in the run.
+#[test]
+fn a_run_down_ten_floors_arrives_with_a_word_on_many_and_never_says_one_twice() {
+    for seed in [4242u32, 77, 9001] {
+        let (mut g, ac) = start(seed, 4);
+        let mut arrived = vec![];
+        for level in 4..=13 {
+            if level > 4 {
+                g.init_level(level);
+                g.state = "playing".into();
+            }
+            let before = g.asides.memory.said.len();
+            play(&mut g, &ac, 40.0, true);
+            let new: Vec<String> = g.asides.memory.said[before..].to_vec();
+            arrived.push(new.iter().any(|id| id.starts_with("arrive_")));
+            println!("seed {seed} L{level} ({}): {new:?}", g.arrival_subject());
+        }
+        let ids = &g.asides.memory.said;
+        let mut unique = ids.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(unique.len(), ids.len(), "seed {seed}: a line said twice in the run: {ids:?}");
+        assert!(arrived[0], "seed {seed}: the run's first floor here has its word");
+        let n = arrived.iter().filter(|a| **a).count();
+        println!("seed {seed}: an arrival on {n} of 10 floors");
+        assert!(n >= 4, "seed {seed}: an arrival on only {n} of 10 floors: {arrived:?}");
+    }
+}

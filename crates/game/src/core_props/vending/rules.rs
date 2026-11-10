@@ -968,7 +968,7 @@ impl Game {
                 s.lifted = Some(now);
                 // your asides: once the print is all there on its glass (it
                 // comes up over the lift, full at four fifths of it)
-                self.schedule(LIFT_T * 0.8 * 1000.0 + 100.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "flap"));
+                self.aside_later(LIFT_T * 0.8 * 1000.0 + 100.0, crate::audio::asides::Use::Uncanny, "flap");
                 self.vending_sound(i, Sfx::Lift);
             }
             _ => {}

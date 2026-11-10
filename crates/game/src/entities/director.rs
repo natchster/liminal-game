@@ -56,6 +56,10 @@ pub const HUSHED: f64 = 0.3;
 /// ... and this long after your cry, s: you listen for what answers (the
 /// place answers in 0.6-0.9 s, `Game::cry_for_help`)
 pub const AFTER_CRY: f64 = 3.0;
+/// ... and while something that hears, not yet after you, is this near, m
+/// (a Hound hears your step from about this far; the store's staff by
+/// night): your silence is what keeps it so (review B)
+pub const HEARS_NEAR: f64 = 15.0;
 pub const LOG_CAP: usize = 4096;
 
 #[derive(Clone, Debug, Default)]
@@ -365,12 +369,15 @@ impl Game {
         if self.cry_last_at.is_some_and(|c| self.perf_t - c < AFTER_CRY) {
             return Some("cried");
         }
-        if self.in_stairwell || self.in_loop {
+        // in the Stairwell, the Face out on its landing; in the Loop, nothing
+        if self.in_stairwell {
+            return self.stairwell.as_ref().is_some_and(|s| s.st.face.is_some()).then_some("faced");
+        }
+        if self.in_loop {
             return None;
         }
-        if self.amb_hush >= HUSHED {
-            return Some("hushed");
-        }
+        // (the creatures before the hush: a hunt that begins in a hush is
+        // still a hunt, and cuts a line off: review B)
         let pp = self.player.pos;
         for (i, e) in self.entities.iter().enumerate() {
             if e.kind == "gone" {
@@ -382,8 +389,14 @@ impl Game {
                 "hunt" => return Some("hunted"),
                 "search" if d < ENGAGED_NEAR => return Some("searched"),
                 _ if self.director.phase == Phase::Build && self.director.stalker == Some(i) && d < STALKER_NEAR => return Some("stalked"),
+                _ if d < HEARS_NEAR && (e.kind == "hound" || (e.kind == "staff" && self.store_state.phase == "night")) => {
+                    return Some("near")
+                }
                 _ => {}
             }
+        }
+        if self.amb_hush >= HUSHED {
+            return Some("hushed");
         }
         None
     }
@@ -664,9 +677,16 @@ impl Game {
         }
         if ds > 20.0 {
             self.director_note("cue:steps");
-            self.entity_steps(si, irand(3, 5) as i32, 0.9);
-            // steps far off: your asides may answer the first steps of a run
-            self.aside(crate::audio::asides::Use::Startle, "steps");
+            let n = irand(3, 5) as i32;
+            self.entity_steps(si, n, 0.9);
+            // steps far off: your asides may answer the first of a run, once
+            // they have stopped (a word over them would hide where they are)
+            let gait = match self.entities[si].kind.as_str() {
+                "hound" => 0.17,
+                "reader" => 0.52,
+                _ => 0.78,
+            };
+            self.aside_later((n as f64 * gait + 0.4) * 1000.0, crate::audio::asides::Use::Startle, "creature_steps");
         } else if ds > 9.0 {
             self.flicker_near(sp.x, sp.z);
             if rnd() < 0.6 {

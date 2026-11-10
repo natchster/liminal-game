@@ -1846,33 +1846,6 @@
         "tools/voice/evaluate.py"
       ]
     },
-    "voice/you_aside/siren_not_now.wav": {
-      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
-      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
-      "fingerprint": "375f9a528659998d",
-      "generative_model": "ResembleAI/chatterbox",
-      "generator": "text-to-speech models, processed by scripts",
-      "licence": "MIT",
-      "line": {
-        "emotion": "dread",
-        "id": "siren_not_now",
-        "persona": "you_aside",
-        "seed": 2,
-        "text": "Not now."
-      },
-      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only siren_not_now; voice eval; voice write (take 2, seed 2)",
-      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
-      "sources": [
-        "assets/src/voice/personas/you_aside.toml",
-        "assets/src/voice/personas/you.toml",
-        "assets/src/voice/personas/you.wav",
-        "assets/src/voice/lines/you_aside.toml",
-        "assets/src/voice/models/chatterbox/SOURCE.toml",
-        "tools/voice/models.toml",
-        "tools/voice/synth.py",
-        "tools/voice/evaluate.py"
-      ]
-    },
     "voice/you_aside/startle_bang.wav": {
       "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
       "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",

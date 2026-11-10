@@ -970,7 +970,9 @@ impl Game {
             // answer the first of its kind (`audio::asides`)
             if let Some(kind) = crate::audio::asides::startle_of(name) {
                 if hypot2(s.at.x - self.player.pos.x, s.at.z - self.player.pos.z) <= c.far {
-                    self.aside(crate::audio::asides::Use::Startle, kind);
+                    // once it has sounded
+                    let after = crate::audio::asides::startle_after(name) * 1000.0;
+                    self.aside_later(after, crate::audio::asides::Use::Startle, kind);
                 }
             }
         }

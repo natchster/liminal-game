@@ -277,9 +277,6 @@ impl Game {
         self.sfx_paper_rustle();
     }
 
-    /// H = shout for help. Coin flip (biased by level): either the place
-    /// shows the way to the door (`show_the_way`), or nearby entities aggro
-    /// on the player. Higher levels shift the odds toward the entities.
     /// Whether you stand in a region with no light of its own (a dark zone)
     pub fn in_dark_region(&self) -> bool {
         let (ptx, ptz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
@@ -287,6 +284,9 @@ impl Game {
         r >= 0 && self.region_info.get(r as usize).map(|r| r.flags & RF_DARK != 0).unwrap_or(false)
     }
 
+    /// H = shout for help. Coin flip (biased by level): either the place
+    /// shows the way to the door (`show_the_way`), or nearby entities aggro
+    /// on the player. Higher levels shift the odds toward the entities.
     pub fn cry_for_help(&mut self) {
         if self.state != "playing" {
             return;

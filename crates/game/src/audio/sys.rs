@@ -770,6 +770,8 @@ impl Game {
         self.cries_on_floor += 1;
         self.cry_last_at = Some(self.perf_t);
         self.cry_last_line = Some(line.id.clone());
+        // an aside of yours playing gives way to your cry
+        self.cut_voice_line();
         self.play_voice_line(&line, VOICE_GAIN).is_some()
     }
 

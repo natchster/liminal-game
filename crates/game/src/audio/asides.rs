@@ -117,17 +117,16 @@ pub const USES: [Use; 12] = [
     Use::Dark,
 ];
 
-/// How long an event of a use is remembered as weighed (rule 2)
+/// How long an event of a use is remembered as weighed (rule 2): every
+/// kind of event has its word at most once a run (the user's ask: never a
+/// voice on a later event of the same kind); a floor's arrival once a floor
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Scope {
-    /// once a run for each subject (a kind of sound, of creature, of thing)
+    /// once a run for each subject (a kind of sound, of creature, of thing;
+    /// the blow, the relief, your nerve, the lamp)
     Run,
-    /// once a floor for each subject (an arrival, your nerve)
+    /// once a floor for each subject (an arrival)
     Level,
-    /// every time, but not again within this many seconds (a blow, the
-    /// relief, the lamp: what happens again and again; a caller that posts
-    /// every frame weighs once)
-    Each(f64),
 }
 
 impl Use {
@@ -154,10 +153,7 @@ impl Use {
     /// How long an event of it is remembered as weighed
     pub fn scope(self) -> Scope {
         match self {
-            Use::Arrive | Use::Nerve => Scope::Level,
-            Use::Knocked => Scope::Each(20.0),
-            Use::Aftermath => Scope::Each(30.0),
-            Use::Dark => Scope::Each(60.0),
+            Use::Arrive => Scope::Level,
             _ => Scope::Run,
         }
     }
@@ -182,12 +178,15 @@ impl Use {
                 "loop_floor",
                 "stairwell",
             ],
-            Use::Startle => &["bang", "scream", "steps", "laugh", "moan"],
+            // (the steps of what is coming are a kind of their own: a word for
+            // the place's steps does not spend theirs)
+            Use::Startle => &["bang", "scream", "steps", "laugh", "moan", "creature_steps"],
             // the kinds a first sight can be (never the Watcher: at a glance
             // it is one of the sheets, and a word would say which)
             Use::Sighted => &["hound", "smiler", "corner", "reader", "glass"],
-            // the self-assembly's siren: the first of a run, and one after
-            Use::Siren => &["first", "again"],
+            // the self-assembly's siren: the first of a run (once a run, as
+            // every kind)
+            Use::Siren => &["first"],
             // sealed in a cell while it is up: a knock at the door, the all-clear
             Use::Held => &["knock", "clear"],
             // a resident's door answers your knock: a thing pushed out, a note
@@ -332,7 +331,7 @@ pub struct Pending {
     pub use_: Use,
     pub subject: String,
     /// Its once-a-run (or a-floor) key, owed until it is said
-    pub key: Option<String>,
+    pub key: String,
     /// Said from this time (the director's clock, s) ...
     pub at: f64,
     /// ... and not after this
@@ -360,9 +359,12 @@ pub struct Asides {
     /// This floor's arrival, waiting for your first steps: where it began,
     /// what it is said about, and when it began (the clock)
     pub arrival: Option<(f64, f64, String, f64)>,
-    /// When each use weighed every time was last weighed (the clock): its
-    /// cooldown (`Scope::Each`)
-    pub weighed_at: std::collections::BTreeMap<String, f64>,
+    /// Which floor (or Stairwell, or Loop) this is, counted: a reaction
+    /// posted later (`aside_later`) is let go if it is no longer
+    pub floor: u32,
+    /// When it began (the clock): nothing but a blow's grunt while its card
+    /// and line are up (`ARRIVAL_AFTER`)
+    pub floor_began: f64,
     /// Your nerve is near its end (`NERVE_LOW`): an event as it gets there
     pub nerve_low: bool,
     /// What happened, by the clock: `wait:`, `pass:`, `skip:`, `drop:`,
@@ -385,7 +387,8 @@ impl Default for Asides {
             active_at: f64::NEG_INFINITY,
             anchor: None,
             arrival: None,
-            weighed_at: Default::default(),
+            floor: 0,
+            floor_began: f64::NEG_INFINITY,
             nerve_low: false,
             log: vec![],
             lines: None,
@@ -433,13 +436,26 @@ fn deck_order(run_seed: u32, id: &str) -> u64 {
 }
 
 /// The key an event of `u` is remembered by, for its scope: once a run for
-/// a subject, once a floor for an arrival or your nerve, none for what is
-/// weighed every time (rule 2)
-pub fn key(u: Use, subject: &str, level: i32) -> Option<String> {
+/// a subject (or a use with none), once a floor for an arrival (rule 2)
+pub fn key(u: Use, subject: &str, level: i32) -> String {
     match u.scope() {
-        Scope::Run => Some(format!("{}:{subject}", u.name())),
-        Scope::Level => Some(format!("{}:{subject}:{level}", u.name())),
-        Scope::Each(_) => None,
+        Scope::Run => format!("{}:{subject}", u.name()),
+        Scope::Level => format!("{}:{subject}:{level}", u.name()),
+    }
+}
+
+/// How long a level's signature sounds, s: a startle's word waits for it
+/// (a slam's crack and rumble, a scream's fall, four paces, five blips, a
+/// moan's fall)
+pub fn startle_after(sig: &str) -> f64 {
+    match sig {
+        "doorSlam" => 0.9,
+        "thud" | "clank" => 0.5,
+        "distantScream" => 1.6,
+        "distantFootsteps" => 2.6,
+        "laugh" => 0.7,
+        "moan" => 1.8,
+        _ => 0.5,
     }
 }
 
@@ -504,24 +520,17 @@ impl Game {
             return;
         }
         let clock = self.asides.clock;
-        let key = key(u, subject, self.level_num);
-        match (&key, u.scope()) {
-            (Some(k), _) if self.asides.memory.weighed.contains(k) => return,
-            (None, Scope::Each(cool)) => {
-                if self.asides.weighed_at.get(u.name()).is_some_and(|t| clock - t < cool) {
-                    return;
-                }
-                self.asides.weighed_at.insert(u.name().to_string(), clock);
-            }
-            _ => {}
+        let k = key(u, subject, self.level_num);
+        if self.asides.memory.weighed.contains(&k) {
+            return;
         }
-        let owed = key.as_ref().and_then(|k| self.asides.memory.owed.get(k).copied());
-        let d = match (owed, &key) {
-            (Some(tries), Some(k)) => {
+        let owed = self.asides.memory.owed.get(&k).copied();
+        let d = match owed {
+            Some(tries) => {
                 // answered before and not said: answered again, a few times,
                 // without a roll (so it moves no later roll of the run)
                 if tries >= OWED_TRIES {
-                    self.asides.memory.owed.remove(k);
+                    self.asides.memory.owed.remove(&k);
                     self.asides.memory.weighed.push(k.clone());
                     self.aside_note(format!("drop:{what}:owed too long"));
                     return;
@@ -529,7 +538,7 @@ impl Game {
                 self.asides.memory.owed.insert(k.clone(), tries + 1);
                 0.5
             }
-            _ => {
+            None => {
                 let n = {
                     let e = self.asides.memory.events.entry(u.name().to_string()).or_insert(0);
                     *e += 1;
@@ -538,18 +547,20 @@ impl Game {
                 let (x, d) = roll(u, self.run_seed, n);
                 let said_of_use = self.asides.memory.said_of(u);
                 let said_about = self.asides.memory.about.get(&what).copied().unwrap_or(0);
-                // the first arrival of a run is always answered: your voice is met
-                let p = if u == Use::Arrive && said_of_use == 0 { 1.0 } else { chance(u, self.run_seed, said_about, said_of_use) };
+                // the first arrival of a run is always answered: your voice is
+                // met; an arrival fades by its place alone (a new place, late
+                // in a run, keeps its word: review B)
+                let p = match u {
+                    Use::Arrive if said_of_use == 0 => 1.0,
+                    Use::Arrive => chance(u, self.run_seed, said_about, 0),
+                    _ => chance(u, self.run_seed, said_about, said_of_use),
+                };
                 if x >= p {
-                    if let Some(k) = &key {
-                        self.asides.memory.weighed.push(k.clone());
-                    }
+                    self.asides.memory.weighed.push(k);
                     self.aside_note(format!("pass:{what}"));
                     return;
                 }
-                if let Some(k) = &key {
-                    self.asides.memory.owed.insert(k.clone(), 1);
-                }
+                self.asides.memory.owed.insert(k.clone(), 1);
                 d
             }
         };
@@ -561,7 +572,7 @@ impl Game {
         }
         let (lo, hi, win) = u.moment();
         self.asides.pending =
-            Some(Pending { use_: u, subject: subject.to_string(), key, at: clock + lo + d * (hi - lo), until: clock + win });
+            Some(Pending { use_: u, subject: subject.to_string(), key: k, at: clock + lo + d * (hi - lo), until: clock + win });
         self.aside_note(format!("wait:{what}"));
     }
 
@@ -570,6 +581,8 @@ impl Game {
     /// before is said here
     pub fn asides_arrive(&mut self, subject: &str) {
         self.asides.pending = None;
+        self.asides.floor += 1;
+        self.asides.floor_began = self.asides.clock;
         let p = &self.player;
         self.asides.anchor = Some((p.pos.x, p.pos.z, p.yaw, p.pitch));
         self.asides.arrival = Some((p.pos.x, p.pos.z, subject.to_string(), self.asides.clock));
@@ -580,19 +593,23 @@ impl Game {
     pub fn asides_leave_floor(&mut self) {
         self.asides.pending = None;
         self.asides.arrival = None;
+        self.asides.floor += 1;
+        self.asides.floor_began = self.asides.clock;
         let p = &self.player;
         self.asides.anchor = Some((p.pos.x, p.pos.z, p.yaw, p.pitch));
     }
 
-    /// Which siren this is to your asides: the first of the run until a line
-    /// for the first has been said or declined (one held back is owed to
-    /// the next), then one again
-    pub fn siren_subject(&self) -> &'static str {
-        if self.asides.memory.weighed.iter().any(|k| k == "siren:first") {
-            "again"
-        } else {
-            "first"
-        }
+    /// An event your voice may answer, posted `ms` from now: after the sound
+    /// it answers has finished (a word over a sound hides what it tells).
+    /// Let go if by then the floor has changed (the next floor, the
+    /// Stairwell, the Loop, a retry) or you are dead (review B)
+    pub fn aside_later(&mut self, ms: f64, u: Use, subject: &'static str) {
+        let floor = self.asides.floor;
+        self.schedule(ms, move |g| {
+            if g.asides.floor == floor && g.state != "dead" {
+                g.aside(u, subject);
+            }
+        });
     }
 
     /// Your nerve as it goes (`update_sanity_effects`): getting near its
@@ -636,6 +653,10 @@ impl Game {
         if self.asides.clock - self.asides.active_at > AWAY {
             return Some("away");
         }
+        // a floor's card and line are up: nothing but a blow's grunt
+        if !p.use_.cuts_in() && self.asides.clock - self.asides.floor_began < ARRIVAL_AFTER {
+            return Some("card");
+        }
         // rule 5 (a blow's grunt cuts in)
         if !p.use_.cuts_in() {
             if self.asides.voice_until > self.perf_t {
@@ -677,13 +698,19 @@ impl Game {
         if let Some((ax, az, subject, began)) = self.asides.arrival.clone() {
             if t > began + ARRIVAL_LATEST {
                 self.asides.arrival = None;
-            } else if t >= began + ARRIVAL_AFTER && hypot2(x - ax, z - az) > ARRIVAL_WALK && self.asides.pending.is_none() {
+            } else if t >= began + ARRIVAL_AFTER
+                && hypot2(x - ax, z - az) > ARRIVAL_WALK
+                && self.asides.pending.is_none()
+                && self.asides.last.is_none_or(|(at, _)| t - at >= GAP)
+            {
                 self.asides.arrival = None;
                 self.aside(Use::Arrive, &subject);
             }
         }
         // a line of yours stops when you begin to hold your breath (not the cry)
-        if self.asides.voice_until > self.perf_t && matches!(self.holding_breath(), Some("hunted" | "searched" | "stalked")) {
+        if self.asides.voice_until > self.perf_t
+            && matches!(self.holding_breath(), Some("hunted" | "searched" | "stalked" | "near" | "faced"))
+        {
             self.cut_voice_line();
         }
         let Some(p) = self.asides.pending.clone() else { return };
@@ -717,10 +744,8 @@ impl Game {
         let m = &mut self.asides.memory;
         m.said.push(line.id.clone());
         *m.about.entry(what.clone()).or_insert(0) += 1;
-        if let Some(k) = &p.key {
-            m.owed.remove(k);
-            m.weighed.push(k.clone());
-        }
+        m.owed.remove(&p.key);
+        m.weighed.push(p.key.clone());
         self.asides.last = Some((self.asides.clock, p.use_.priority()));
         if p.use_.cuts_in() {
             self.cut_voice_line();
@@ -783,6 +808,8 @@ mod tests {
         g.level_num = level;
         g.perf_t = 100.0;
         g.asides.lines = Some(deck());
+        // well past a floor's card
+        g.asides.floor_began = -100.0;
         g
     }
 
@@ -801,23 +828,25 @@ mod tests {
         g.asides.log.iter().filter(|(_, w)| w.starts_with("say:")).map(|(_, w)| w.clone()).collect()
     }
 
-    /// An event of `u` answered: each of its subjects in turn (each its
-    /// own roll), or, for one weighed every time, again past its cooldown
+    /// An event of `u` answered: each of its subjects in turn (each its own
+    /// roll); failing that, one not yet done with, owed (answered without a
+    /// roll), so a test does not hang on the run's dice
     fn answer(g: &mut Game, u: Use) -> bool {
         let subjects: Vec<&str> = if u.subjects().is_empty() { vec![""] } else { u.subjects().to_vec() };
-        for _ in 0..40 {
-            for s in &subjects {
-                g.aside(u, s);
-                if g.asides.pending.as_ref().is_some_and(|p| p.use_ == u) {
-                    return true;
-                }
+        let answered = |g: &Game| g.asides.pending.as_ref().is_some_and(|p| p.use_ == u);
+        for s in &subjects {
+            g.aside(u, s);
+            if answered(g) {
+                return true;
             }
-            match u.scope() {
-                Scope::Each(cool) => {
-                    g.asides.clock += cool;
-                    g.asides.active_at = g.asides.clock;
-                }
-                _ => return false,
+        }
+        for s in &subjects {
+            let k = key(u, s, g.level_num);
+            g.asides.memory.weighed.retain(|w| *w != k);
+            g.asides.memory.owed.insert(k, 1);
+            g.aside(u, s);
+            if answered(g) {
+                return true;
             }
         }
         false
@@ -882,9 +911,9 @@ mod tests {
             assert!(chance(u, 4242, 0, 3) > 0.6 * chance(u, 4242, 0, 0), "{u:?}");
             assert!(chance(u, 4242, 3, 3) < 0.5 * chance(u, 4242, 0, 0), "{u:?}");
         }
-        assert_eq!(key(Use::Startle, "bang", 5).as_deref(), Some("startle:bang"));
-        assert_eq!(key(Use::Arrive, "rooms", 5).as_deref(), Some("arrive:rooms:5"), "a floor's arrival once a floor");
-        assert_eq!(key(Use::Knocked, "", 5), None, "a blow: every time, past its cooldown");
+        assert_eq!(key(Use::Startle, "bang", 5), "startle:bang");
+        assert_eq!(key(Use::Arrive, "rooms", 5), "arrive:rooms:5", "a floor's arrival once a floor");
+        assert_eq!(key(Use::Knocked, "", 5), "knocked:", "a blow: once a run, as every kind");
     }
 
     #[test]
@@ -994,7 +1023,7 @@ mod tests {
         assert!(at - t0 >= lo - 1e-9 && at - t0 <= win, "said {:.2} s after", at - t0);
         // another within the gap is let go after its moment, and owed
         assert!(answer(&mut g, Use::Startle));
-        let owed = g.asides.pending.as_ref().and_then(|p| p.key.clone()).unwrap();
+        let owed = g.asides.pending.as_ref().map(|p| p.key.clone()).unwrap();
         step(&mut g, win + 0.5, true);
         assert_eq!(said(&g).len(), 1, "{:?}", g.asides.log);
         assert!(g.asides.log.last().is_some_and(|(_, w)| w.ends_with(":gap")), "{:?}", g.asides.log);
@@ -1050,20 +1079,60 @@ mod tests {
         g.amb_hush = 0.9;
         g.in_stairwell = true;
         assert_eq!(g.holding_breath(), None);
-        g.asides.pending = Some(Pending { use_: Use::Startle, subject: "bang".into(), key: None, at: 0.0, until: 1e9 });
+        g.asides.pending = Some(Pending { use_: Use::Startle, subject: "bang".into(), key: "startle:bang".into(), at: 0.0, until: 1e9 });
         g.asides_leave_floor();
         assert!(g.asides.pending.is_none() && g.asides.arrival.is_none());
     }
 
     #[test]
-    fn a_blow_posted_every_frame_is_weighed_once_a_cooldown() {
+    fn every_kind_of_event_has_its_word_at_most_once_a_run() {
+        // a blow, said: a later blow has none (the user's ask: no voice on a
+        // later event of the same kind)
         let mut g = bare(5);
         step(&mut g, 1.0, true);
-        for _ in 0..120 {
-            g.aside(Use::Knocked, "");
-            step(&mut g, 1.0 / 60.0, true);
-        }
-        assert_eq!(g.asides.memory.events.get("knocked"), Some(&1));
+        assert!(answer(&mut g, Use::Knocked));
+        step(&mut g, 3.0, true);
+        assert_eq!(said(&g).len(), 1, "{:?}", g.asides.log);
+        let (log, events) = (g.asides.log.len(), g.asides.memory.events.clone());
+        step(&mut g, GAP + 1.0, true);
+        g.aside(Use::Knocked, "");
+        step(&mut g, 3.0, true);
+        assert_eq!((g.asides.log.len(), &g.asides.memory.events), (log, &events), "{:?}", g.asides.log);
+        // every use but a floor's arrival is once a run
+        assert!(USES.iter().all(|u| (u.scope() == Scope::Level) == (*u == Use::Arrive)));
+    }
+
+    #[test]
+    fn nothing_but_a_blow_while_a_floors_card_is_up() {
+        let mut g = bare(5);
+        step(&mut g, 1.0, true);
+        g.asides.floor_began = g.asides.clock;
+        assert!(answer(&mut g, Use::Startle));
+        step(&mut g, 3.0, true);
+        assert!(said(&g).is_empty() && g.asides.log.last().is_some_and(|(_, w)| w.ends_with(":card")), "{:?}", g.asides.log);
+        assert!(answer(&mut g, Use::Knocked));
+        step(&mut g, 2.0, true);
+        assert!(said(&g).iter().any(|w| w.starts_with("say:knocked:")), "{:?}", g.asides.log);
+    }
+
+    #[test]
+    fn an_aside_posted_for_later_is_let_go_on_another_floor_or_in_death() {
+        let mut g = bare(5);
+        g.aside_later(1000.0, Use::Startle, "bang");
+        g.asides_arrive("rooms");
+        g.now_ms += 1500.0;
+        g.run_scheduled();
+        assert!(g.asides.memory.events.is_empty(), "posted on the floor before: {:?}", g.asides.memory);
+        g.aside_later(1000.0, Use::Startle, "bang");
+        g.state = "dead".into();
+        g.now_ms += 1500.0;
+        g.run_scheduled();
+        assert!(g.asides.memory.events.is_empty(), "posted while dead: {:?}", g.asides.memory);
+        g.state = "playing".into();
+        g.aside_later(1000.0, Use::Startle, "bang");
+        g.now_ms += 1500.0;
+        g.run_scheduled();
+        assert_eq!(g.asides.memory.events.get("startle"), Some(&1), "on its own floor it is posted");
     }
 
     #[test]
@@ -1075,7 +1144,7 @@ mod tests {
         let k = "startle:bang".to_string();
         assert!(g.asides.memory.weighed.contains(&k) != g.asides.memory.owed.contains_key(&k), "{:?}", g.asides.memory);
         // a lesser one waiting gives way to a better
-        g.asides.pending = Some(Pending { use_: Use::Arrive, subject: "rooms".into(), key: None, at: 0.0, until: 1e9 });
+        g.asides.pending = Some(Pending { use_: Use::Arrive, subject: "rooms".into(), key: "arrive:rooms:5".into(), at: 0.0, until: 1e9 });
         assert!(answer(&mut g, Use::Knocked));
         assert_eq!(g.asides.pending.as_ref().map(|p| p.use_), Some(Use::Knocked));
         // and a lesser one does not replace it
@@ -1113,6 +1182,30 @@ mod tests {
         assert!(!g.asides.nerve_low);
         g.asides_nerve(0.2);
         assert!(g.asides.nerve_low);
+    }
+
+    /// The run's deal reaches every line: for each use and subject the game
+    /// posts, on each level, every line it could say there comes first in
+    /// some run (none is dead behind another, none always first)
+    #[test]
+    fn every_line_of_the_game_comes_first_in_some_run() {
+        let all = super::super::voice::index();
+        for u in USES {
+            let subjects: Vec<&str> = if u.subjects().is_empty() { vec![""] } else { u.subjects().to_vec() };
+            for s in subjects {
+                for level in 1..=14 {
+                    let firsts: std::collections::BTreeSet<String> =
+                        (1..400).filter_map(|seed| choose(all, u, s, level, seed, &[])).map(|l| l.id).collect();
+                    let could: std::collections::BTreeSet<String> = all
+                        .iter()
+                        .filter(|l| l.persona == PERSONA && l.use_ == u.name() && l.first <= level && level <= l.last)
+                        .filter(|l| l.subject.is_empty() || l.subject == s)
+                        .map(|l| l.id.clone())
+                        .collect();
+                    assert_eq!(firsts, could, "{}:{s} on level {level}", u.name());
+                }
+            }
+        }
     }
 
     #[test]

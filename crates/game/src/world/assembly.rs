@@ -185,8 +185,7 @@ impl Game {
                     self.director_note("build");
                     self.director_note("assembly:siren");
                     // your asides: what is that sound
-                    let s = self.siren_subject();
-                    self.aside(crate::audio::asides::Use::Siren, s);
+                    self.aside(crate::audio::asides::Use::Siren, "first");
                 }
             }
             Stage::Siren => {

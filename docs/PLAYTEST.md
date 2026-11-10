@@ -201,7 +201,8 @@ references in `assets/src/voice/personas/` to the developer):
 Your asides (what you say to yourself under your breath; `docs/VOICES.md`,
 *Your asides*; before the session, also play the lines in
 `crates/game/assets/voice/you_aside/` to the developer, and note which
-were said in the session from the run's log, `asides.log`):
+were said in the session from the save, `asides.said` in
+`~/Library/Application Support/Backrooms/storage.txt`):
 
 - Did you notice your own voice saying things? When? Was it the man who
   cries out, under his breath, or someone else, or a narrator?

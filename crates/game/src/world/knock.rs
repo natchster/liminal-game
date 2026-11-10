@@ -454,7 +454,7 @@ impl Game {
                     self.director_note("knock:wrong");
                     // your asides: your own knock, back; once its last rap
                     // has rung out (a word over it would hide what it says)
-                    self.schedule(after * 1000.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "knock_back"));
+                    self.aside_later(after * 1000.0, crate::audio::asides::Use::Uncanny, "knock_back");
                     self.assembly_called_early(WRONG_WAKE);
                 }
                 Due::Answer(i) => self.knock_answer(i, -OUT_AFTER),
@@ -484,7 +484,7 @@ impl Game {
         // your asides: a door answered, once its thing is out (not over the
         // steps of whoever comes to it)
         let what = if gift.is_note() { "note" } else { "hatch" };
-        self.schedule(((-t).max(0.0) + KNOCK_HEARD) * 1000.0, move |g| g.aside(crate::audio::asides::Use::Answered, what));
+        self.aside_later(((-t).max(0.0) + KNOCK_HEARD) * 1000.0, crate::audio::asides::Use::Answered, what);
         let v = door.voice();
         if t < 0.0 && self.in_earshot(v) {
             self.play_from(v.x, v.y - 0.6, v.z, 2.5, 1.0, 0.3, |g| g.sfx_behind_door());

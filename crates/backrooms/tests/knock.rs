@@ -182,8 +182,13 @@ fn a_red_door_brings_the_siren_within_seconds() {
         assert_eq!(gaps, g.knocks.rhythm, "seed {seed}: your own rhythm");
         assert!((BACK_AFTER.0..=BACK_AFTER.1).contains(&t));
         let mut at = None;
+        // (the knock back's time on your asides' own clock, as their log keeps it)
+        let mut back_clock = None;
         for k in 1..=((BACK_AFTER.1 + WRONG_WAKE.1 + 1.0) / 0.1) as usize {
             step(&mut g, 0.1);
+            if back_clock.is_none() && g.director.log.iter().any(|e| e.1 == "knock:wrong") {
+                back_clock = Some(g.asides.clock);
+            }
             if g.assembly.stage == Stage::Siren {
                 at = Some(k as f64 * 0.1);
                 break;
@@ -201,12 +206,12 @@ fn a_red_door_brings_the_siren_within_seconds() {
             "seed {seed}: {:?}",
             g.asides.memory
         );
-        let offset = g.perf_t - g.asides.clock;
-        let back_at = g.director.log.iter().find(|e| e.1 == "knock:wrong").unwrap().0;
-        let told_at = g.asides.log.iter().find(|(_, w)| w.contains("uncanny:knock_back")).map(|(t, _)| t + offset).unwrap();
+        // (both on one clock, the knock back's to within the 0.1 s step it fell in)
+        let back_at = back_clock.expect("the knock back was logged");
+        let told_at = g.asides.log.iter().find(|(_, w)| w.contains("uncanny:knock_back")).map(|(t, _)| *t).unwrap();
         let raps: f64 = g.knocks.rhythm.iter().sum();
         assert!(
-            told_at >= back_at + raps + game::world::knock::KNOCK_HEARD - 0.02,
+            told_at >= back_at + raps + game::world::knock::KNOCK_HEARD - 0.12,
             "seed {seed}: told {:.2} s after the knock back began, its raps last {raps:.2} s",
             told_at - back_at
         );
