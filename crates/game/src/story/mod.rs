@@ -120,6 +120,27 @@ pub struct StoryLevel {
     pub gaps: Vec<(usize, usize)>,
     /// Trails that are not hers (`plan_false_trails`)
     pub false_trails: Vec<FalseTrail>,
+    /// You have come near her camp on this floor (your asides are told once)
+    pub camp_come: bool,
+}
+
+/// Within this of her camp (and on its storey) you have come upon it, m
+pub const CAMP_NEAR: f64 = 3.5;
+
+impl crate::base::game::Game {
+    /// You come upon her camp: within `CAMP_NEAR` of it, on its storey. Your
+    /// asides are told once a floor (`Use::Found`; once a run, they weigh it)
+    pub fn update_camp_come(&mut self) {
+        if self.story.camp_come {
+            return;
+        }
+        let Some(at) = self.story.camp.as_ref().map(|c| c.at) else { return };
+        let p = self.player.pos;
+        if crate::base::numeric::hypot2(p.x - at.x, p.z - at.z) < CAMP_NEAR && (p.y - at.y).abs() < 2.5 {
+            self.story.camp_come = true;
+            self.aside(crate::audio::asides::Use::Found, "camp");
+        }
+    }
 }
 
 /// A trail that is not hers, as planned: the walk (its first tile on hers)
@@ -463,7 +484,15 @@ impl Game {
                 }
             });
         }
-        self.story = StoryLevel { camp: Some(camp), walk: plan.walk, camp_step: plan.camp_step, trail, gaps: plan.gaps, false_trails };
+        self.story = StoryLevel {
+            camp: Some(camp),
+            walk: plan.walk,
+            camp_step: plan.camp_step,
+            trail,
+            gaps: plan.gaps,
+            false_trails,
+            camp_come: false,
+        };
         self.tape_glints();
         // placed after settling, which brings every other prop's world matrix
         // up to date; the prop cull reads them (a stale one at the origin

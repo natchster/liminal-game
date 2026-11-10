@@ -123,3 +123,71 @@ fn the_same_run_says_the_same() {
     assert_eq!(a.asides.log, b.asides.log);
     assert_eq!(a.asides.memory, b.asides.memory);
 }
+
+#[test]
+fn coming_upon_her_camp_tells_your_asides_once() {
+    // the Lobby: her camp is there to find
+    let (mut g, ac) = start(4242, 4);
+    let at = g.story.camp.as_ref().expect("her camp on the Lobby").at;
+    play(&mut g, &ac, 1.0, false);
+    assert!(!g.story.camp_come && !g.asides.memory.events.contains_key("found"), "not from where you arrive");
+    g.player.pos.x = at.x + 1.5;
+    g.player.pos.z = at.z;
+    play(&mut g, &ac, 0.5, false);
+    assert!(g.story.camp_come, "you came upon it");
+    let k = "found:camp";
+    assert!(g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k), "{:?}", g.asides.memory);
+    // away and back: once a floor
+    let events = g.asides.memory.events.get("found").copied();
+    g.player.pos.x = at.x + 20.0;
+    play(&mut g, &ac, 0.5, false);
+    g.player.pos.x = at.x + 1.5;
+    play(&mut g, &ac, 0.5, false);
+    assert_eq!(g.asides.memory.events.get("found").copied(), events);
+}
+
+/// Use interactable `i` once (as `tests/usable.rs` does)
+fn use_it(g: &mut Game, i: usize) {
+    let mut f = std::mem::replace(&mut g.interactables[i].on_use, Box::new(|_| {}));
+    f(g);
+    g.interactables[i].on_use = f;
+}
+
+#[test]
+fn a_lifts_car_and_a_candles_notes_tell_your_asides_once_they_have_sounded() {
+    let told = |g: &Game, k: &str| g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k);
+    let (mut lift, mut candle) = (false, false);
+    'floors: for seed in [4242u32, 77, 202, 7, 9001, 31337] {
+        for level in 5..=12 {
+            let (mut g, ac) = start(seed, level);
+            let verbs = |g: &Game, prompt: &str| -> Vec<usize> {
+                (0..g.interactables.len()).filter(|&i| g.interactables[i].prompt == prompt).collect()
+            };
+            for (prompt, key, found) in
+                [("[E] PRESS THE BUTTON", "uncanny:lift", &mut lift), ("[E] BLOW OUT", "uncanny:candle", &mut candle)]
+            {
+                if *found {
+                    continue;
+                }
+                for i in verbs(&g, prompt) {
+                    use_it(&mut g, i);
+                    // the sound first (a car 4 s on and 2.6 s long; the notes
+                    // 2.8 s on): nothing told before it has sounded
+                    play(&mut g, &ac, 2.0, false);
+                    assert!(!told(&g, key), "{seed}/{level}: told before it sounded");
+                    play(&mut g, &ac, 6.0, false);
+                    if told(&g, key) {
+                        *found = true;
+                        println!("{seed}/{level}: {key} told");
+                        break;
+                    }
+                }
+            }
+            if lift && candle {
+                break 'floors;
+            }
+        }
+    }
+    assert!(lift, "no lift's car told your asides");
+    assert!(candle, "no candle's notes told your asides");
+}

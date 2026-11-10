@@ -63,6 +63,7 @@ impl Game {
             self.update_player(dt);
             self.update_entities(dt, perf_t);
             self.update_director(dt);
+            self.update_camp_come();
             self.update_asides(dt);
             self.update_scp(dt);
             self.update_prop_cull(dt);

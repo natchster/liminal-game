@@ -383,6 +383,15 @@ fn something_is_inside_the_dead_ones() {
     run(&mut g, LIFT_T);
     assert!(g.vending[i].flap.rotation().x.abs() < 1e-9, "and let fall");
     assert!(print.visible() && print.mat().m().opacity > 0.99, "a hand on the inside of the glass");
+    // your asides were told, once the print was all there (weighed or owed;
+    // this harness steps the props, not the game's scheduler)
+    g.now_ms += LIFT_T * 1000.0;
+    g.run_scheduled();
+    assert!(
+        g.asides.memory.weighed.iter().any(|w| w == "uncanny:flap") || g.asides.memory.owed.contains_key("uncanny:flap"),
+        "{:?}",
+        g.asides.memory
+    );
     // once
     g.player.pos = Vec3::new(away.x, EYE, away.z);
     run(&mut g, 1.0);

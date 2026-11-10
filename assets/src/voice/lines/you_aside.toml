@@ -502,3 +502,77 @@ use = "uncanny"
 subject = "figure"
 levels = [1, 3]
 takes = 4
+
+# ---- the place answers: what it does back to a hand (the hole's touch,
+# a dead machine's flap and the hand print behind its glass, a lift's car
+# going by behind its doors, the two notes after a candle is blown out),
+# the pane ticking, and someone else's camp. What he feels, hears and sees;
+# never what it is, who did it, or what it means.
+
+# the hole in the wall, reached into with nothing on you (from the second floor:
+# there are holes on the Building's too)
+[[line]]
+id = "uncanny_hole"
+text = "I felt that."
+emotion = "startled"
+intensity = 0.6
+use = "uncanny"
+subject = "hole"
+levels = [2, 99]
+takes = 4
+
+# a dead machine's flap lifts by itself; said once the hand print it brings
+# up on the inside of its glass is all there
+[[line]]
+id = "uncanny_flap"
+text = "Is that a handprint?"
+emotion = "dread"
+intensity = 0.5
+use = "uncanny"
+subject = "flap"
+levels = [5, 99]
+takes = 4
+
+# a dead lift's button, and a car heard going by behind its doors
+[[line]]
+id = "uncanny_lift"
+text = "Where is it going?"
+emotion = "wary"
+intensity = 0.45
+use = "uncanny"
+subject = "lift"
+levels = [5, 99]
+takes = 4
+
+# a candle blown out, and two quiet notes from where it stood
+[[line]]
+id = "uncanny_candle"
+text = "I'm not staying here."
+emotion = "dread"
+intensity = 0.5
+use = "uncanny"
+subject = "candle"
+levels = [5, 99]
+takes = 4
+
+# a window's pane ticks
+[[line]]
+id = "uncanny_pane"
+text = "The window ticked."
+emotion = "startled"
+intensity = 0.5
+use = "uncanny"
+subject = "pane"
+levels = [5, 99]
+takes = 4
+
+# someone else's camp: a bedroll, a blanket, a pack, a lamp still burning
+[[line]]
+id = "found_whose"
+text = "Whose things are these?"
+emotion = "wary"
+intensity = 0.4
+use = "found"
+subject = "camp"
+levels = [1, 12]
+takes = 4

@@ -830,6 +830,9 @@ fn candle_blow_out(g: &mut Game, ci: usize, gp: Vec3) {
                     g.blip(f + rand2(-jit, jit), dur, ty, amp, None, extra_sec, 0.0);
                 }
             });
+            // your asides: once the two notes have rung out
+            let end = specs.iter().map(|s| s.5 / 1000.0 + s.2).fold(0.0, f64::max);
+            g.schedule((end + 0.3) * 1000.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "candle"));
         });
     }
 }

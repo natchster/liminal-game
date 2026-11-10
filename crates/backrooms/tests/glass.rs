@@ -153,6 +153,15 @@ fn your_look_on_its_glass_adds_up_and_at_three_seconds_it_has_seen_you() {
     assert_eq!(why_into(&g, ei, Mode::Alert), Some("it has seen you"));
     let c = g.creature(ei).unwrap();
     assert!(c.noticed_at.is_some() && !c.tells.is_empty(), "the tick is not a tell");
+    // your asides are told once the tick has rung (weighed or owed; this
+    // harness steps the creature, not the game's scheduler)
+    g.now_ms += 600.0;
+    g.run_scheduled();
+    assert!(
+        g.asides.memory.weighed.iter().any(|w| w == "uncanny:pane") || g.asides.memory.owed.contains_key("uncanny:pane"),
+        "{:?}",
+        g.asides.memory
+    );
     // beyond its reach the look does not count
     stand(&mut g, glass::LOOK_REACH + 1.0, true);
     assert!(!glass::eyes_on_glass(&g) || !g.los(g.player.pos.x, g.player.pos.z, g.entities[ei].pos().x, g.entities[ei].pos().z));

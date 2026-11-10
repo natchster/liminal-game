@@ -247,6 +247,12 @@ fn the_hole_gives_back_and_takes() {
     assert!(h.body.stam_max < max, "it took nothing from you: ceiling {}", h.body.stam_max);
     assert_eq!(h.player.bottles, 1, "it gave back the bottle");
     assert!(h.msg_text.contains("TOUCHES YOUR WRIST"), "not felt: {:?}", h.msg_text);
+    // your asides were told (weighed or owed)
+    assert!(
+        h.asides.memory.weighed.iter().any(|w| w == "uncanny:hole") || h.asides.memory.owed.contains_key("uncanny:hole"),
+        "{:?}",
+        h.asides.memory
+    );
 }
 
 /// The dish: a sweet is taken and eaten, the dish stays; the third is the

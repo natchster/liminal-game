@@ -177,8 +177,12 @@ impl Use {
             // a resident's door answers your knock: a thing pushed out, a note
             Use::Answered => &["hatch", "note"],
             // the place does something back: a marked door knocks back, the
-            // figure across the void turns its back
-            Use::Uncanny => &["knock_back", "figure"],
+            // figure across the void turns its back; the hole's touch, a dead
+            // machine's flap and the print on its glass, a lift's car going
+            // by, a candle's two notes, a window's pane ticking
+            Use::Uncanny => &["knock_back", "figure", "hole", "flap", "lift", "candle", "pane"],
+            // someone else's camp, the first time you come near one
+            Use::Found => &["camp"],
             _ => &[],
         }
     }

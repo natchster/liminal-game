@@ -281,6 +281,9 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 }
                 tell(g, ei, &b);
                 call(g, ei, "tick");
+                // your asides: once the tick has rung (a word over it would
+                // hide it)
+                g.schedule(500.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "pane"));
             }
         }
         Mode::Alert => {

@@ -446,6 +446,8 @@ impl Game {
         if have.is_empty() {
             self.took.push(Took { what: "hole_took".into(), level: self.level_num, place: place.kind.name().into() });
             self.refresh_body();
+            // your asides: something touched your wrist
+            self.aside(crate::audio::asides::Use::Uncanny, "hole");
         } else {
             match have[((r.next() * have.len() as f64) as usize).min(have.len() - 1)] {
                 Thing::Almond => self.player.bottles -= 1,

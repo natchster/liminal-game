@@ -34,6 +34,7 @@ you_aside	arrive_well_real	arrive	well	1	1	0.45	dread	This can't be real.
 you_aside	arrive_where_now	arrive		5	99	0.35	wary	Where now?
 you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that go?
 you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?
+you_aside	found_whose	found	camp	1	12	0.4	wary	Whose things are these?
 you_aside	held_clear_legs	held	clear	1	3	0.45	shaken	My legs are shaking.
 you_aside	held_knock_door	held	knock	1	3	0.55	dread	Please, not the door.
 you_aside	knocked_breathing	knocked		4	99	0.5	pain	Still breathing.
@@ -53,5 +54,10 @@ you_aside	startle_moan	startle	moan	4	99	0.45	dread	That sound...
 you_aside	startle_scream	startle	scream	4	99	0.5	dread	Was that a person?
 you_aside	startle_steps	startle	steps	4	99	0.5	dread	Did something move?
 you_aside	startle_what	startle		4	99	0.55	startled	What was that?
+you_aside	uncanny_candle	uncanny	candle	5	99	0.5	dread	I'm not staying here.
 you_aside	uncanny_figure	uncanny	figure	1	3	0.45	wary	It's just... standing there.
+you_aside	uncanny_flap	uncanny	flap	5	99	0.5	dread	Is that a handprint?
+you_aside	uncanny_hole	uncanny	hole	2	99	0.6	startled	I felt that.
 you_aside	uncanny_knock_back	uncanny	knock_back	1	3	0.55	dread	That was my knock.
+you_aside	uncanny_lift	uncanny	lift	5	99	0.45	wary	Where is it going?
+you_aside	uncanny_pane	uncanny	pane	5	99	0.5	startled	The window ticked.
