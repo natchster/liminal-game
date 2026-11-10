@@ -73,6 +73,12 @@ pub fn lines() -> Vec<Line> {
         .collect()
 }
 
+/// The game's index, read once (the voice director looks in it often)
+pub fn index() -> &'static [Line] {
+    static INDEX_LINES: std::sync::OnceLock<Vec<Line>> = std::sync::OnceLock::new();
+    INDEX_LINES.get_or_init(lines)
+}
+
 /// A line's WAV
 pub fn wav(persona: &str, id: &str) -> Option<&'static [u8]> {
     WAVS.iter().find(|(p, i, _)| *p == persona && *i == id).map(|w| w.2)

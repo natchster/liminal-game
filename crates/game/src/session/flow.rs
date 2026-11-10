@@ -34,6 +34,8 @@ pub struct SaveData {
     pub arc_done: bool,
     /// What the run remembers of the creatures (met, your habits, what they learned)
     pub creatures: crate::entities::creature::RunMemory,
+    /// What the run remembers of your asides (said, weighed, counted)
+    pub asides: crate::audio::asides::AsideMemory,
     /// What you took (`secrets::keeps`), and the places emptied (key, uses)
     pub took: Vec<crate::secrets::keeps::Took>,
     pub secrets_taken: std::collections::BTreeMap<String, u32>,
@@ -182,6 +184,9 @@ impl Game {
                 break;
             }
         }
+        // your asides: the floor's arrival waits for your first steps
+        let place = self.arrival_subject();
+        self.asides_arrive(place);
     }
 
     pub fn trace_mark(&mut self, label: &str) {
@@ -215,6 +220,7 @@ impl Game {
             "notebook": self.notebook.iter().collect::<Vec<_>>(),
             "arcDone": self.arc_done,
             "creatures": self.creature_run.to_json(),
+            "asides": self.asides.memory.to_json(),
             "took": self.took.iter().map(|t| serde_json::json!([t.what, t.level, t.place])).collect::<Vec<_>>(),
             "secrets": self.secrets_taken,
             "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
@@ -257,6 +263,7 @@ impl Game {
                 .unwrap_or_default(),
             arc_done: flag("arcDone"),
             creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
+            asides: crate::audio::asides::AsideMemory::from_json(d.get("asides")),
             took: d
                 .get("took")
                 .and_then(|v| v.as_array())
@@ -311,6 +318,7 @@ impl Game {
         self.notebook = d.notebook.iter().cloned().collect();
         self.arc_done = d.arc_done;
         self.creature_run = d.creatures.clone();
+        self.asides.memory = d.asides.clone();
         self.took = d.took.clone();
         self.secrets_taken = d.secrets_taken.clone();
         self.refresh_body();
@@ -577,6 +585,7 @@ impl Game {
         self.lore_found.clear();
         self.lore_arcs_completed.clear();
         self.creature_run = Default::default();
+        self.asides = Default::default();
         self.notebook.clear();
         self.thread.clear();
         self.secrets_taken.clear();

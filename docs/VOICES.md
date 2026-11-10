@@ -470,7 +470,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 |---|---|
 | A0 | done: this plan (`71338c7`) |
 | A1 | done (`e7093bd`): `voice.same_as` (a persona with another's voice: its reference, its description; `voice reference` refuses to make one of its own) and a line's `subject`, a column of `lines.tsv` (`persona id use subject first last intensity emotion text`) read by `audio::voice::lines`; `you`'s ten lines rewritten by `voice write`, the same files byte for byte |
-| A2 | done: `personas/you_aside.toml` (his voice, `same_as = "you"`; −20 LUFS; six emotions), the emotions in `judge.py`, five known answers in `voice selftest` (all twelve right); `Persona::load` takes a persona whose lines are not written yet |
+| A2 | done (`121c84f`): `personas/you_aside.toml` (his voice, `same_as = "you"`; −20 LUFS; six emotions), the emotions in `judge.py`, five known answers in `voice selftest` (all twelve right); `Persona::load` takes a persona whose lines are not written yet |
+| A3 | done: the voice director (`audio::asides`): `Game::aside(use, subject)` weighs an event once a run (its key) by the run's seed (temperament, roll, the run's deal of the lines), the first floor's arrival always; the reaction waits for its moment and is said then or let go (`drop:…:late`), held while you hold your breath (`holding_breath`: your cry 3 s, a hunt, a search within 25 m, the stalker within 20 m) or away (30 s neither moved nor looked round), 20 s between (8 s for an urgent one after a lesser); the floor's arrival after 2 m of walking; the memory in the save (`asides`); your cry and your asides through `play_voice_line`. Fourteen unit tests; no line of it in the game yet (A4) |
 
 ## What only people can tell
 

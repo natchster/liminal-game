@@ -638,6 +638,9 @@ pub struct Game {
     pub god_mode: bool,
     /// What this run remembers of the creatures: the kinds met, your habits
     pub creature_run: crate::entities::creature::RunMemory,
+    /// The voice director of your asides, and what the run remembers of
+    /// them (`audio::asides`)
+    pub asides: crate::audio::asides::Asides,
     /// `--showcase watcher`: its furniture placed (once)
     pub showcase_company: bool,
     pub god_deaths: f64,
@@ -1115,6 +1118,7 @@ impl Game {
             falling_t: 0.0,
             god_mode: false,
             creature_run: Default::default(),
+            asides: Default::default(),
             showcase_company: false,
             god_deaths: 0.0,
             level_start_t: 0.0,

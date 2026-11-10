@@ -766,24 +766,38 @@ impl Game {
         self.cries_on_floor += 1;
         self.cry_last_at = Some(self.perf_t);
         self.cry_last_line = Some(line.id.clone());
-        let (Some(ac), Some(master)) = (self.ac.clone(), self.master.clone()) else { return false };
+        match self.play_voice_line(&line, VOICE_GAIN) {
+            Some(secs) => {
+                // no aside over your cry (`audio::asides`)
+                self.asides.voice_until = self.asides.voice_until.max(self.perf_t + secs);
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// A line of your voice played (your cry, an aside): its WAV decoded
+    /// into a buffer once, at `gain`, into the soundscape's `world` bus
+    /// (centred: your own voice, in the reverb of the place you stand).
+    /// How long it is, s; `None` without audio or its WAV. Draws nothing.
+    pub fn play_voice_line(&mut self, line: &crate::audio::voice::Line, gain: f64) -> Option<f64> {
+        let (Some(ac), Some(master)) = (self.ac.clone(), self.master.clone()) else { return None };
         let key = format!("{}/{}", line.persona, line.id);
         let buf = match self.audio.voice_bufs.iter().find(|(k, _)| *k == key) {
             Some((_, b)) => b.clone(),
             None => {
-                let Some((rate, samples)) = crate::audio::voice::wav(&line.persona, &line.id).and_then(crate::audio::voice::decode) else {
-                    return false;
-                };
+                let (rate, samples) = crate::audio::voice::wav(&line.persona, &line.id).and_then(crate::audio::voice::decode)?;
                 let b = ac.create_buffer(1, samples.len(), rate);
                 b.channel_mut(0).copy_from_slice(&samples);
                 self.audio.voice_bufs.push((key, b.clone()));
                 b
             }
         };
+        let secs = buf.duration();
         let src = ac.create_buffer_source();
         src.set_buffer(&buf);
         let g = ac.create_gain();
-        g.gain().set_value(VOICE_GAIN);
+        g.gain().set_value(gain);
         src.connect(&g);
         // your own voice, heard in the place you stand (its reverb)
         match &self.audio.soundscape {
@@ -791,7 +805,7 @@ impl Game {
             None => g.connect(&master),
         };
         src.start(ac.current_time());
-        true
+        Some(secs)
     }
 
     /// Cry — a male voice shouting "HEEEELP" via formant synthesis (the

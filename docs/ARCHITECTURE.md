@@ -324,7 +324,17 @@ text-to-speech models from a persona's designed voice (`cargo xtask voice`,
 lines, chosen by the level and how often you have cried from a stream of
 its own, decoded into a buffer once and played into the soundscape's
 `world` bus (centred, in the place's reverb); the formant cry `sfx_cry` is
-its fallback.
+its fallback. Your asides, what you say to yourself under your breath, are
+chosen by a director of their own (`audio::asides`, `docs/VOICES.md`,
+*Your asides*): the game posts an event (`Game::aside`: a use, a subject),
+weighed once a run by the run's seed on a stream of its own; an answered
+one waits for its moment (`update_asides`, after the pacing director each
+frame), held while you hold your breath (something hunting you, searching
+near, the stalker close, your cry just gone) and let go when its moment
+passes; its line is the subject's before the use's general ones, never one
+said before in the run. What was said is kept with the run (the save's
+`asides`). Both voices play through `play_voice_line`, which draws
+nothing.
 
 ## Saves
 

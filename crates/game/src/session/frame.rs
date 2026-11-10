@@ -50,10 +50,12 @@ impl Game {
         }
         if self.state == "playing" && self.in_stairwell {
             self.update_stairwell(dt);
+            self.update_asides(dt);
             self.update_hud(dt);
             self.update_grain(dt);
         } else if self.state == "playing" && self.in_loop {
             self.update_loop(dt);
+            self.update_asides(dt);
             self.update_hud(dt);
             self.update_grain(dt);
         } else if self.state == "playing" {
@@ -61,6 +63,7 @@ impl Game {
             self.update_player(dt);
             self.update_entities(dt, perf_t);
             self.update_director(dt);
+            self.update_asides(dt);
             self.update_scp(dt);
             self.update_prop_cull(dt);
             self.update_lights(dt, perf_t);
