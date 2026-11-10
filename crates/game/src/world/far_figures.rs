@@ -389,9 +389,15 @@ impl Game {
                 };
                 // looked at, come upon, or the siren: it goes
                 if f.t >= SEEN || d < TOO_NEAR || self.assembly.stage != Stage::Quiet {
+                    // your asides: looked at until it turned its back (not
+                    // come upon, nor sent off by the siren)
+                    let looked = f.t >= SEEN && d >= TOO_NEAR;
                     f.state = FigureState::Leaving;
                     f.t = 0.0;
                     self.director_note("figure:turned");
+                    if looked {
+                        self.aside(crate::audio::asides::Use::Uncanny, "figure");
+                    }
                 }
             }
             FigureState::Leaving => {

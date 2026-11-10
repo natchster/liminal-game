@@ -162,6 +162,9 @@ fn an_ordinary_door_answers_once_and_gives_its_thing() {
         }
         assert_eq!(g.assembly.stage, Stage::Quiet, "seed {seed}: an ordinary door calls nothing");
         assert!(g.assembly.t > 100.0);
+        // your asides were told (`audio::asides`, Use::Answered): weighed or owed
+        let told = |k: &str| g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k);
+        assert!(told("answered:hatch") || told("answered:note"), "seed {seed}: {:?}", g.asides.memory);
     }
     assert!(kinds.len() >= 3, "water, a battery and a note among them: {kinds:?}");
 }
@@ -190,6 +193,23 @@ fn a_red_door_brings_the_siren_within_seconds() {
             panic!("seed {seed}: no siren within seconds of the red door ({:?}, {:.0} s)", g.assembly.stage, g.assembly.t)
         });
         assert!(g.director.log.iter().any(|e| e.1 == "knock:wrong") && g.director.log.iter().any(|e| e.1 == "wake:knock"));
+        // your asides were told of your own knock back (weighed or owed),
+        // once its last rap had rung out, never over it
+        let k = "uncanny:knock_back";
+        assert!(
+            g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k),
+            "seed {seed}: {:?}",
+            g.asides.memory
+        );
+        let offset = g.perf_t - g.asides.clock;
+        let back_at = g.director.log.iter().find(|e| e.1 == "knock:wrong").unwrap().0;
+        let told_at = g.asides.log.iter().find(|(_, w)| w.contains("uncanny:knock_back")).map(|(t, _)| t + offset).unwrap();
+        let raps: f64 = g.knocks.rhythm.iter().sum();
+        assert!(
+            told_at >= back_at + raps + game::world::knock::KNOCK_HEARD - 0.02,
+            "seed {seed}: told {:.2} s after the knock back began, its raps last {raps:.2} s",
+            told_at - back_at
+        );
         println!("seed {seed}: the siren {at:.1} s after the knock at red door {}", g.knocks.doors[red].number);
         // and then it is still: after the fog, it answers no more
         g.assembly.stage = Stage::Quiet;

@@ -52,6 +52,8 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "aftermath_breathe"),
     wav!("you_aside", "aftermath_gone"),
     wav!("you_aside", "aftermath_heart"),
+    wav!("you_aside", "answered_hatch"),
+    wav!("you_aside", "answered_note"),
     wav!("you_aside", "arrive_deep_how_far"),
     wav!("you_aside", "arrive_deep_nobody"),
     wav!("you_aside", "arrive_deep_tired"),
@@ -72,6 +74,8 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "arrive_where_now"),
     wav!("you_aside", "arrive_works_ceiling"),
     wav!("you_aside", "arrive_works_for"),
+    wav!("you_aside", "held_clear_legs"),
+    wav!("you_aside", "held_knock_door"),
     wav!("you_aside", "knocked_breathing"),
     wav!("you_aside", "knocked_get_up"),
     wav!("you_aside", "sighted_corner"),
@@ -79,6 +83,9 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "sighted_oh_no"),
     wav!("you_aside", "sighted_please_no"),
     wav!("you_aside", "sighted_reader"),
+    wav!("you_aside", "siren_for"),
+    wav!("you_aside", "siren_is"),
+    wav!("you_aside", "siren_not_now"),
     wav!("you_aside", "startle_bang"),
     wav!("you_aside", "startle_dont_like"),
     wav!("you_aside", "startle_laugh"),
@@ -86,6 +93,8 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "startle_scream"),
     wav!("you_aside", "startle_steps"),
     wav!("you_aside", "startle_what"),
+    wav!("you_aside", "uncanny_figure"),
+    wav!("you_aside", "uncanny_knock_back"),
 ];
 
 /// The lines of the index, in its order

@@ -716,6 +716,9 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
     use game::world::knock::{ANSWER_AFTER, BACK_AFTER, OUT_AFTER, RAP};
     game::base::rng::seed_native(0x4B0C_0001);
     let mut r = start(seed, 1);
+    // the knock's sound alone: your asides say nothing here (your voice is
+    // heard in its own test; `tests/knock.rs` holds an aside after the raps)
+    r.g.asides.lines = Some(vec![]);
     let (answers, red) = pick(&r.g);
     let lamp = |g: &Game, i: usize| door_lamp(g, &g.knocks.doors[i]);
     let lamps = (lamp(&r.g, answers), lamp(&r.g, red));

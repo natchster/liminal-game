@@ -336,6 +336,9 @@ struct Crossing {
     sirens: Vec<f64>,
     sealed_after: Vec<f64>,
     deaths: u32,
+    /// Your asides said on the way (what, and whether you were sealed in)
+    said: Vec<(String, bool)>,
+    said_seen: usize,
 }
 impl Crossing {
     /// the sirens that began before the door was reached
@@ -474,6 +477,12 @@ fn cross_floor(seed: u32, level: i32, secs: f64) -> Crossing {
         g.frame(1.0 / 60.0);
         g.fixed_step_dt = 0.0;
         t += 1.0 / 60.0;
+        for (_, w) in g.asides.log.iter().skip(c.said_seen) {
+            if let Some(what) = w.strip_prefix("say:") {
+                c.said.push((what.to_string(), g.assembly.sealed.is_some()));
+            }
+        }
+        c.said_seen = g.asides.log.len();
         if g.state == "dead" {
             c.deaths += 1;
             break;
@@ -507,6 +516,7 @@ fn the_building_paces_its_floors() {
                 c.deaths,
                 spans.join(" → ")
             );
+            println!("  asides: {:?}", c.said);
             runs.push((seed, level, c));
         }
     }
@@ -530,4 +540,14 @@ fn the_building_paces_its_floors() {
     }
     // at the bot's pace, most floors meet a siren before their door
     assert!(met * 4 >= runs.len() * 3, "{met} of {} floors met a siren on the way to the door", runs.len());
+    // your asides on the Building (docs/VOICES.md): the siren has its word
+    // on some floors, and a knock at your cell is answered inside it (the
+    // all-clear's word may come as you step out: it is posted sealed in)
+    let said: Vec<&(String, bool)> = runs.iter().flat_map(|r| r.2.said.iter()).collect();
+    assert!(said.iter().any(|(w, _)| w.starts_with("siren:")), "no siren answered on twelve floors: {said:?}");
+    for (w, sealed) in &said {
+        if w.starts_with("held:knock") {
+            assert!(*sealed, "\"{w}\" said outside a cell");
+        }
+    }
 }

@@ -114,6 +114,9 @@ fn the_figure_keeps_far_and_turns_its_back_when_looked_at() {
         step(&mut g, 2.5);
         let f2 = g.far_figure.clone().unwrap();
         assert_eq!(f2.state, FigureState::Leaving, "L{level}: looked at, it turns away");
+        // your asides were told: looked at until it turned (weighed or owed)
+        let k = "uncanny:figure";
+        assert!(g.asides.memory.weighed.iter().any(|w| w == k) || g.asides.memory.owed.contains_key(k), "L{level}: {:?}", g.asides.memory);
         assert!(f2.body.visible(), "L{level}: watched, it does not vanish");
         let toward = (g.player.pos.x - f.at.x).atan2(g.player.pos.z - f.at.z);
         let off = ((f2.body.rotation().y - toward).rem_euclid(std::f64::consts::TAU) - std::f64::consts::PI).abs();

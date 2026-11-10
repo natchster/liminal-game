@@ -36,6 +36,9 @@ pub const GIFT_BATTERY: f64 = 0.7;
 /// Seconds from your knock to someone at the door, and from then to the
 /// thing coming out
 pub const ANSWER_AFTER: (f64, f64) = (2.0, 3.4);
+/// How long after a knock's last sound your asides may answer it, s (a
+/// rap's ring)
+pub const KNOCK_HEARD: f64 = 0.35;
 pub const OUT_AFTER: f64 = 0.9;
 /// Seconds from your knock to the wrong door's knock back, and from its
 /// knock back to the siren
@@ -442,11 +445,16 @@ impl Game {
             }
             match d {
                 Due::KnockBack(i, gaps) => {
+                    // (how long its raps ring, for your asides below)
+                    let after = KNOCK_HEARD + gaps.iter().sum::<f64>();
                     let v = self.knocks.doors[i].voice();
                     if self.in_earshot(v) {
                         self.play_from(v.x, v.y, v.z, 3.0, 1.0, 0.0, move |g| g.sfx_knock(&gaps, true));
                     }
                     self.director_note("knock:wrong");
+                    // your asides: your own knock, back; once its last rap
+                    // has rung out (a word over it would hide what it says)
+                    self.schedule(after * 1000.0, |g| g.aside(crate::audio::asides::Use::Uncanny, "knock_back"));
                     self.assembly_called_early(WRONG_WAKE);
                 }
                 Due::Answer(i) => self.knock_answer(i, -OUT_AFTER),
@@ -473,6 +481,10 @@ impl Game {
         });
         self.knocks.given.push(Given { door: i, gift, obj, hatch, t, pickup: None, taken: false });
         self.director_note("knock:answer");
+        // your asides: a door answered, once its thing is out (not over the
+        // steps of whoever comes to it)
+        let what = if gift.is_note() { "note" } else { "hatch" };
+        self.schedule(((-t).max(0.0) + KNOCK_HEARD) * 1000.0, move |g| g.aside(crate::audio::asides::Use::Answered, what));
         let v = door.voice();
         if t < 0.0 && self.in_earshot(v) {
             self.play_from(v.x, v.y - 0.6, v.z, 2.5, 1.0, 0.3, |g| g.sfx_behind_door());

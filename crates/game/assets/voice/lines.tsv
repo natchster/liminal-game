@@ -12,6 +12,8 @@ you	somebody_help	cry		4	99	0.7	desperation	Somebody help me, please!
 you_aside	aftermath_breathe	aftermath		4	99	0.55	shaken	I can't breathe.
 you_aside	aftermath_gone	aftermath		4	99	0.5	shaken	Is it gone?
 you_aside	aftermath_heart	aftermath		4	99	0.45	shaken	My heart is pounding.
+you_aside	answered_hatch	answered	hatch	1	3	0.45	wary	Someone's in there.
+you_aside	answered_note	answered	note	1	3	0.4	wary	Somebody slid that out.
 you_aside	arrive_deep_how_far	arrive	deep	10	99	0.4	dread	How far down am I?
 you_aside	arrive_deep_nobody	arrive	deep	10	99	0.4	dread	Nobody's coming. Are they.
 you_aside	arrive_deep_tired	arrive	deep	10	99	0.35	resolve	I'm so tired.
@@ -32,6 +34,8 @@ you_aside	arrive_well_real	arrive	well	1	1	0.45	dread	This can't be real.
 you_aside	arrive_where_now	arrive		5	99	0.35	wary	Where now?
 you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that go?
 you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?
+you_aside	held_clear_legs	held	clear	1	3	0.45	shaken	My legs are shaking.
+you_aside	held_knock_door	held	knock	1	3	0.55	dread	Please, not the door.
 you_aside	knocked_breathing	knocked		4	99	0.5	pain	Still breathing.
 you_aside	knocked_get_up	knocked		4	99	0.6	pain	Get up. Come on.
 you_aside	sighted_corner	sighted	corner	4	99	0.45	dread	Why is it standing like that?
@@ -39,6 +43,9 @@ you_aside	sighted_hound	sighted	hound	4	99	0.5	dread	Something's crawling.
 you_aside	sighted_oh_no	sighted		4	99	0.6	startled	Oh no.
 you_aside	sighted_please_no	sighted		4	99	0.55	dread	Please, no.
 you_aside	sighted_reader	sighted	reader	4	99	0.45	dread	What is it reading?
+you_aside	siren_for	siren	first	1	3	0.5	startled	What's that siren for?
+you_aside	siren_is	siren	first	1	3	0.45	wary	That's a siren.
+you_aside	siren_not_now	siren	again	1	3	0.5	dread	Not now.
 you_aside	startle_bang	startle	bang	1	99	0.65	startled	Jesus.
 you_aside	startle_dont_like	startle		4	99	0.45	dread	I don't like that.
 you_aside	startle_laugh	startle	laugh	4	99	0.5	dread	Was that... laughing?
@@ -46,3 +53,5 @@ you_aside	startle_moan	startle	moan	4	99	0.45	dread	That sound...
 you_aside	startle_scream	startle	scream	4	99	0.5	dread	Was that a person?
 you_aside	startle_steps	startle	steps	4	99	0.5	dread	Did something move?
 you_aside	startle_what	startle		4	99	0.55	startled	What was that?
+you_aside	uncanny_figure	uncanny	figure	1	3	0.45	wary	It's just... standing there.
+you_aside	uncanny_knock_back	uncanny	knock_back	1	3	0.55	dread	That was my knock.

@@ -72,8 +72,12 @@ these channels, and the `lore-keeper` reviewer checks it:
   sight of a kind of thing that lives here, from where it does not have
   you (what you see of it, never what it is; never at the Watcher, which
   at a glance is one of the sheets); when a touch throws you down and
-  lets you go; and in the relief after a close call, never that it is
-  over. A
+  lets you go; in the relief after a close call, never that it is over;
+  and on the Building's floors at the siren, at a knock on the cell you
+  are sealed in and at the all-clear there, when a resident's door
+  answers your knock, when a door the cleaners marked knocks back, and
+  when the figure across the void turns its back on your look (what you
+  hear and see, never what it is nor what to do). A
   reaction, never an explanation: never a name, a number, a rule, the way
   or an instruction, and never what the floor's own line has just said.
   Your first arrival of a run is always said, on the first floor where you
@@ -81,8 +85,9 @@ these channels, and the `lore-keeper` reviewer checks it:
   word, and which words, differ from run to run, fewer the more you have
   said, and none is said twice in a run, not after a death nor a
   Continue. You keep quiet while the place does: just after your cry,
-  while something is after you or near, and while it hushes; in the
-  Stairwell and the Loop only after your cry.
+  while something is after you or near, and while it hushes (but the
+  siren and a knock at your cell, which the hush is about, have their
+  word through it); in the Stairwell and the Loop only after your cry.
   Nothing on the screen, and nothing hears them. Not a narrator: you know
   nothing, and you tell no one.
 

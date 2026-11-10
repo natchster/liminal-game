@@ -184,6 +184,9 @@ impl Game {
                     self.director.phase = Phase::Build;
                     self.director_note("build");
                     self.director_note("assembly:siren");
+                    // your asides: what is that sound
+                    let s = self.siren_subject();
+                    self.aside(crate::audio::asides::Use::Siren, s);
                 }
             }
             Stage::Siren => {
@@ -222,6 +225,10 @@ impl Game {
                     self.director.phase = Phase::Calm;
                     self.director_note("assembly:clear");
                     self.assembly_all_clear();
+                    // your asides: still sealed in at the all-clear
+                    if self.assembly.sealed.is_some() {
+                        self.aside(crate::audio::asides::Use::Held, "clear");
+                    }
                 }
             }
         }

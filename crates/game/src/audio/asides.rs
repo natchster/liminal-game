@@ -170,6 +170,15 @@ impl Use {
             // the kinds a first sight can be (never the Watcher: at a glance
             // it is one of the sheets, and a word would say which)
             Use::Sighted => &["hound", "smiler", "corner", "reader", "glass"],
+            // the self-assembly's siren: the first of a run, and one after
+            Use::Siren => &["first", "again"],
+            // sealed in a cell while it is up: a knock at the door, the all-clear
+            Use::Held => &["knock", "clear"],
+            // a resident's door answers your knock: a thing pushed out, a note
+            Use::Answered => &["hatch", "note"],
+            // the place does something back: a marked door knocks back, the
+            // figure across the void turns its back
+            Use::Uncanny => &["knock_back", "figure"],
             _ => &[],
         }
     }
@@ -550,6 +559,17 @@ impl Game {
         self.asides.arrival = None;
         let p = &self.player;
         self.asides.anchor = Some((p.pos.x, p.pos.z, p.yaw, p.pitch));
+    }
+
+    /// Which siren this is to your asides: the first of the run until a line
+    /// for the first has been said or declined (one held back is owed to
+    /// the next), then one again
+    pub fn siren_subject(&self) -> &'static str {
+        if self.asides.memory.weighed.iter().any(|k| k == "siren:first") {
+            "again"
+        } else {
+            "first"
+        }
     }
 
     /// What a floor's arrival is said about: its place

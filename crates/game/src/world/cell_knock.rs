@@ -317,6 +317,8 @@ impl Game {
                     self.assembly.door = AtTheDoor { visit: Visit::Knocking, cell: Some(ci), patience, wait, tries, ..Default::default() };
                     self.audio.cell_knocks.clear();
                     self.director_note("cell:knocks");
+                    // your asides: something at the door of the cell you are in
+                    self.aside(crate::audio::asides::Use::Held, "knock");
                 } else if self.assembly.door.knocks >= self.assembly.door.patience {
                     // nobody answered: the knocking stops
                     self.visit_goes();
