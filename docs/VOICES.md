@@ -322,6 +322,122 @@ besides, never a narrator.*
 Next after the first: the child below you in the Stairwell ("please",
 "help", "down here", the sob and the wail).
 
+## Your asides: the voice director
+
+*What you say to yourself.* The same man who cries for help, under his
+breath: a few words on arriving somewhere, at a sudden noise, at what
+comes for him, at what the place does back. Never a narrator, never a
+guide: a person alone reacting, the way people talk to themselves when
+they are frightened. Few, and different every run. The research behind
+it is [`research/inner-voice.md`](research/inner-voice.md) (SOURCES 16):
+Valve's dynamic dialog (an event matched to the most specific line, the
+memory of what was said read by the next choice, nothing as an answer)
+and bark managers in practice (priorities, dropping the stale, fatigue).
+
+### The persona
+
+`you_aside` (`personas/you_aside.toml`): **his voice** (`voice.same_as =
+"you"`: every line cloned from `personas/you.wav`, never a voice of its
+own), in another register: close and low, under the breath, at
+−20 LUFS where the cry is at −16, and played lower still
+(`ASIDE_GAIN`). Its tone is a man muttering to himself in a huge empty
+place (never a narrator, an announcer, an actor, a man shouting); its
+emotions are its own: *wary* (low, uncertain), *startled* (a sharp breath
+and a few quick words), *dread* (hushed, almost a whisper), *shaken*
+(breathless after a close call), *pain* (a grunt, then words), *resolve*
+(tired, talking himself on). Its lines are said by Chatterbox, which
+made his calm lines best in the bake-off (V5).
+
+### The rules
+
+Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
+
+1. **React, never explain.** A line is what a person alone says to
+   himself: a breath, a word, a question. Never a creature's name or what
+   it does, a rule, a place's name or number, the way, an instruction to
+   the player (PILLARS 4: rules are learned, not told; LORE: no
+   narrator). *Test:* `lore-keeper` on every line;
+   `no_aside_names_what_the_canon_keeps_unsaid` (the creatures' names,
+   level, exit, digits, the people's names).
+2. **Once is a reaction, twice is a habit.** A *subject* (a kind of
+   creature, a kind of thing, a place) is reacted to once a run; a
+   *use*'s chance halves for every line of it already said; a line is
+   never said twice in a run; a use whose lines are spent is silent
+   (PILLARS 5: the same scare never repeats soon). *Test:* the chooser's
+   unit tests; the run analysis (A10).
+3. **Different every run.** Which events get a word, which word, and how
+   much you talk at all (the run's *temperament*, 0.65–1.0 of every
+   chance) come from the run's seed on a stream of their own
+   (`SplitMix64` salted by the use and how many of its events there have
+   been), never the per-frame stream (`CLAUDE.md` invariant 1). What was
+   said is kept with the run (the save), so a retry or a Continue goes
+   on where it was and never says a line again. *Test:* the same seed
+   says the same; twenty seeds differ; a save round-trip.
+4. **Hold your breath.** Nothing while something hunts you or searches
+   within 25 m of you, while the creature sent in a build-up is within
+   20 m, or within 2 s of your cry; a reaction that comes then is let go.
+   The release speaks: an *aftermath* waits for the relief after a close
+   call, and is said in it (PILLARS 3: silence means something; 5: dread,
+   then release). *Test:* the pacing harness: no aside inside a peak;
+   the aftermath inside the relax.
+5. **One at a time, and room between.** Never two at once, nor over the
+   cry; at least 20 s between asides (8 s after a lesser one, for a
+   threat, a fall or what the place does back). A reaction is said in its
+   moment or never: a startle 0.35–0.9 s after the sound and within 2 s;
+   an arrival within 15 s of your first steps on a level. A better one
+   waiting replaces a lesser; a line for the subject is chosen before the
+   use's general ones (the most specific match). *Test:* the director's
+   unit tests.
+6. **Heard by nothing but you.** Under your breath: no creature hears
+   it, it changes nothing in play, it draws nothing from the per-frame
+   stream, and the screen shows nothing. *Test:* the pacing, arena and
+   playthrough tests, the goldens and the reference levels do not move.
+7. **Only for a person playing.** Nothing while you have neither moved
+   nor looked round for 30 s: the asides are few, and are not spent on
+   an empty chair. *Test:* the director's unit tests; the loudness
+   scenarios (standing still for 120 s) do not move.
+
+### What it reacts to
+
+| Use | When | Subjects | For example |
+|---|---|---|---|
+| `arrive` | a few seconds after your first steps on a floor | the Well, the Stair Halls, the Works, the first rooms, the rooms, deep down, each anomaly | "There's no bottom." |
+| `startle` | a sudden sound near you: a bang, a scream, steps, a voice, a knock | its family | "What was that?" |
+| `sighted` | the first sight of a kind of creature | the kind (never named) | "What is that?" |
+| `knocked` | the first touch of one throws you down | — | "Get up. Get up." |
+| `aftermath` | the relief after a close call | — | "It's gone. It's gone." |
+| `siren` | the self-assembly's siren, from far off | first, again | "What is that?" |
+| `held` | shut in a cell while it is up: a knock at the door, the all-clear | knock, clear | "Go away. Please go away." |
+| `answered` | a resident's door answers: a thing pushed out, a note | hatch, note | "...Thank you?" |
+| `uncanny` | the place does something back | the hole, a dead machine's flap, a lift going by, the candle's notes, the figure across the void, the pane's tick, the Stairwell's crying, the Loop's door | "Something touched me." |
+| `found` | the first camp of someone else's | camp | "Somebody's been sleeping here." |
+| `nerve` | your nerve near its end | — | "Keep it together." |
+| `dark` | the lamp's battery runs out | — | "No. Come on." |
+
+### Milestones
+
+| # | Milestone | Done when |
+|---|---|---|
+| A0 | This plan; the research (`research/inner-voice.md`, SOURCES 16); the queue | committed |
+| A1 | **The pipeline**: a persona with another's voice (`voice.same_as`); a line's `subject`, a column of the game's index | `cargo test -p xtask voice`; the game's index tests; `you`'s files unchanged |
+| A2 | **The persona** `you_aside`: its file, its emotions in the evaluation, a known answer for them (a shouted read of a hushed line fails *emotion*; a calm one passes) | `voice selftest` right on every answer; `cargo test -p xtask voice` |
+| A3 | **The voice director** (`audio::asides`): the chooser (rules 2, 3, 5), holding the breath (4), only for a person playing (7), the memory kept with the run; your cry and your asides played by one player | its unit tests; no golden, reference level, loudness scenario or pacing log moves |
+| A4 | **Arriving**: the `arrive` lines made, judged and in the game; the first steps on a floor | the evaluation's gate; `tests/listen.rs` hears an arrival (and fails at `ASIDE_GAIN` 0); `lore-keeper` |
+| A5 | **A sudden noise**: the `startle` lines; the place's one-shots, the creature's steps far off, a bang, a knock back, each by how near it is | the gate; the director's tests; `lore-keeper` |
+| review 1 | Code and design review of A1–A5; what it finds fixed | committed |
+| A6 | **What comes**: `sighted`, `knocked`, `aftermath` | the gate; the pacing harness (nothing in a peak, the aftermath in the relax) |
+| A7 | **The Building**: `siren`, `held`, `answered`, the figure across the void | the gate; the assembly and knock harnesses log them |
+| A8 | **The place answers**: `uncanny` (the hole, a dead machine, a lift, a candle, the pane), `found` | the gate; their harnesses log them |
+| A9 | **The anomalies and the mind**: the Stairwell, the Loop, the Showroom, the Borrowed House; `nerve`, `dark` | the gate; a harness each |
+| A10 | **Evidence and the ledger**: the run analysis (asides a level, never a line twice, runs that differ, none in a peak); `LORE.md`, `PILLARS.md`, `QUALITY.md`, `content.json`, `ARCHITECTURE.md`, the skills; the full check; the bundle | full check passes |
+| review 2 | Code and design review of A6–A10; what it finds fixed | committed |
+
+### Progress
+
+| # | State |
+|---|---|
+| A0 | done: this plan |
+
 ## What only people can tell
 
 - Does a line sound like a person in that place, or like a narrator reading?

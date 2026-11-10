@@ -485,3 +485,17 @@ whole in [`research/`](research/README.md) (`props-census.md`,
 - Say: a verb is a real hand's; its rules are fixed per thing, never dice; its effects are never said; its sound comes from it; it never sets a creature hunting.
 - Used for: the verbs (`PROPS.md` 3).
 
+
+## 16. Your asides: choosing a line, and not saying it twice
+
+Gathered on 2026-11-10 for [`VOICES.md`](VOICES.md) (*Your asides*); the
+note is kept whole in [`research/inner-voice.md`](research/inner-voice.md),
+every claim linked.
+
+**[AI-driven Dynamic Dialog through Fuzzy Pattern Matching](https://cdn.fastly.steamstatic.com/apps/valve/2012/GDC2012_Ruskin_Elan_DynamicDialog.pdf)** (Elan Ruskin, Valve, GDC 2012; slides with speaker notes).
+- Says: an event is a query of facts matched against rules; the rule with the most criteria (the most specific) wins and equally specific ones are chosen between at random; what a line says can be written back as memory the next query reads; where no rule matches, nothing plays.
+- Used for: the voice director's choice (`audio::asides`): a use and a subject, the subject's lines before the use's general ones, the run's memory of what was said read by every choice, and silence as an answer.
+
+**Bark managers in practice** *(secondary)*: PulseGeek, Bugnet, StraySpark's Godot docs, an Audiokinetic Q&A (links in the note).
+- Say: one manager decides every bark; rank by importance; a minimum gap between any two; drop what cannot be said in its moment rather than queue it; cooldowns per kind and fatigue per line, with shuffled variations.
+- Used for: the asides' gap, priorities and moment (rule 5), and a line never twice in a run (rule 2).

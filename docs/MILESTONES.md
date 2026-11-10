@@ -21,7 +21,26 @@ after the first*), not yet a milestone.
 
 ## The queue
 
-Empty: every milestone gathered here is done (below).
+Your asides (`VOICES.md`, *Your asides*), gathered on 2026-11-10: the
+same man who cries for help, saying a few words to himself on arriving,
+at a sudden noise, at what comes and at what the place does back, chosen
+by a director of their own, different every run and never twice. After
+the fifth and the tenth, a code and design review.
+
+| # | Milestone |
+|---|---|
+| A1 | The pipeline: a persona with another's voice; a line's subject |
+| A2 | The persona `you_aside` and its emotions, with a known answer |
+| A3 | The voice director: the chooser, holding the breath, the memory kept with the run |
+| A4 | Arriving |
+| A5 | A sudden noise |
+| review A | Code and design review of A1–A5 |
+| A6 | What comes: sighted, knocked, the aftermath |
+| A7 | The Building: the siren, the cell, a door answered, the figure |
+| A8 | The place answers: the hole, a dead machine, a lift, a candle, the pane, a camp |
+| A9 | The anomalies and the mind |
+| A10 | Evidence and the ledger |
+| review B | Code and design review of A6–A10 |
 
 ## Done
 

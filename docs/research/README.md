@@ -61,3 +61,11 @@ One more was gathered on 2026-11-08 for the voices
 | Note | What it covers |
 |---|---|
 | [`voice-tts.md`](voice-tts.md) | Text-to-speech models that run on a 64 GB Apple Silicon Mac, each with its code and weights licence (the gate: what it makes may be sold), size, Mac support and speed, emotion and intensity control, nonverbals, voice design and cloning; the excluded ones and why (non-commercial weights, Llama terms, an audible disclaimer); the independent evidence (and its absence for emotion); English pronunciation; the evaluation stack (speech recognition, emotion recognition, AudioSet's nonverbal labels, speaker similarity, prosody); the Python environments; the risks |
+
+One more was gathered on 2026-11-10 for your asides
+([`../VOICES.md`](../VOICES.md), *Your asides*), summed up in
+[`../SOURCES.md`](../SOURCES.md) section 16:
+
+| Note | What it covers |
+|---|---|
+| [`inner-voice.md`](inner-voice.md) | How a game chooses a character's line and keeps it from repeating (Valve's dynamic dialog, Ruskin GDC 2012, read in full: facts, rules, the most specific match, memory written back by what was said, nothing as an answer); bark managers in practice (priorities, dropping the stale, cooldowns and per-line fatigue); the little found on voicing the player in horror; what this game's canon lets a voice of yours say |
