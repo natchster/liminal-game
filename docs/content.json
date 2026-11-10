@@ -1098,17 +1098,21 @@
     {
       "checks": [
         "test:backrooms/listen",
-        "test:backrooms/structure"
+        "test:backrooms/structure",
+        "test:backrooms/asides",
+        "test:backrooms/pacing"
       ],
       "id": "sound/voice",
       "kind": "sound",
-      "last_checked": "2026-11-09",
+      "last_checked": "2026-11-10",
       "last_human_review": null,
-      "name": "voice lines: personas, their lines, the evaluation (docs/VOICES.md)",
-      "notes": "made and judged outside the check (cargo xtask voice build | eval | selftest, which need the Python environments and the models); the check holds the shipped files to the manifest and the index (structure, xtask voice tests, game audio::voice tests) and hears the cry (listen: the_cry_is_your_voice). A person has not listened yet.",
+      "name": "voice lines: personas, their lines, the evaluation, and your asides' voice director (docs/VOICES.md)",
+      "notes": "made and judged outside the check (cargo xtask voice build | eval | selftest, which need the Python environments and the models); the check holds the shipped files to the manifest and the index (structure, xtask voice tests, game audio::voice tests) and hears the cry (listen: the_cry_is_your_voice). A person has not listened yet. Your asides (you_aside, 57 lines over twelve uses): made, judged and reviewed by lore-keeper outside the check; the check holds the director's rules (game audio::asides tests), the hooks and the whole game (backrooms/asides), the pacing (backrooms/pacing: nothing chosen in a peak; eight runs differ), and hears an arrival (listen: an_arrival_is_your_voice_under_your_breath). A person has not listened to one yet.",
       "passes": {
         "test:backrooms/listen": true,
-        "test:backrooms/structure": true
+        "test:backrooms/structure": true,
+        "test:backrooms/asides": true,
+        "test:backrooms/pacing": true
       }
     },
     {

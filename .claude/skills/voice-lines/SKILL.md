@@ -40,11 +40,35 @@ hear: the evaluation screens every take, a person makes the last call.
    can be overruled: `--take id=K,…` (`--take K` sets every line). A new
    `use`: add it to `voice::USES` (xtask) and give the game the code that
    plays it, choosing from a stream of its own (never the per-frame stream;
-   `CLAUDE.md` invariant 1). The one player of voice lines so far is
-   `say_cry` (`crates/game/src/audio/sys.rs`): your own voice, centred into
-   the soundscape's `world` bus, choosing among the persona `you`'s lines
-   only (`voice::CRY_PERSONA`). A voice that is someone else's comes from a
-   place, like any sound (`play_from`, `.claude/rules/audio.md`).
+   `CLAUDE.md` invariant 1). The players of voice lines are `say_cry`
+   (`crates/game/src/audio/sys.rs`: your cry, the persona `you`'s lines,
+   `voice::CRY_PERSONA`) and the voice director of your asides
+   (`crates/game/src/audio/asides.rs`: `you_aside`'s lines), both through
+   `play_voice_line` (centred, into the soundscape's `world` bus). A voice
+   that is someone else's comes from a place, like any sound
+   (`play_from`, `.claude/rules/audio.md`).
+
+   **An aside** (what you say to yourself; `docs/VOICES.md`, *Your
+   asides*) is never played directly: the game posts an event and the
+   director decides. For a new one:
+   - a `Use` (its `scope`, `chance`, `decay`, `priority`, `moment`,
+     `held_by`) or a new subject in `Use::subjects`, and the use in
+     xtask's `USES`;
+   - `self.aside(Use::X, "subject")` where it happens: once (an edge, not
+     every frame), and after the sound it answers has finished (a word
+     over a sound hides the tell it reacts to: the knock back, A7);
+   - its lines, reviewed by `lore-keeper` before they are made (react,
+     never explain; to yourself, never to anyone, since a call is the
+     cry's; never a name, a rule, the way, a meaning, nor that it is over;
+     never what the screen or the floor's own line has just said; no
+     shape or opener the other asides already use; no trailing ellipsis,
+     which costs a word in the words check). Some things are better with
+     no word at all (the Watcher, the Face, the Loop);
+   - a test that the hook tells the director (its key weighed or owed;
+     `tests/asides.rs`, or the harness that already drives the event,
+     running the scheduler if it steps one subsystem), and the canon in
+     `LORE.md`'s *Your asides*, written from the code.
+
 5. **Gates.**
    - `cargo test -p xtask voice` (the files and the index),
      `cargo test --release -p game --lib audio::voice` (every line decodes,

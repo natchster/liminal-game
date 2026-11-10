@@ -198,6 +198,22 @@ references in `assets/src/voice/personas/` to the developer):
 - Did the screams sound like the same man as the calm calls? Did any line
   sound like a cartoon, or like a machine?
 
+Your asides (what you say to yourself under your breath; `docs/VOICES.md`,
+*Your asides*; before the session, also play the lines in
+`crates/game/assets/voice/you_aside/` to the developer, and note which
+were said in the session from the run's log, `asides.log`):
+
+- Did you notice your own voice saying things? When? Was it the man who
+  cries out, under his breath, or someone else, or a narrator?
+- Did a word ever tell you something you had not worked out yourself, or
+  something wrong? Did one come at a moment that made it worse, or
+  better? Did one ever talk over something you needed to hear?
+- Did it say too much, or too little? Did you hear the same thing twice?
+- The machine cannot tell a man muttering from a narrator reading on lines
+  this short, nor whether the startled ones (said calmer than asked) and
+  "What's that siren for?" (one take of eight passed its tone) sound
+  right: which of them did not?
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.

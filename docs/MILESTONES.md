@@ -39,7 +39,7 @@ the fifth and the tenth, a code and design review.
 | A7 | The Building: the siren, the cell, a door answered, the figure |
 | A8 | The place answers: the hole, a dead machine, a lift, a candle, the pane, a camp |
 | A9 | The anomalies and the mind |
-| A10 | Evidence and the ledger |
+| A10 | Evidence and the ledger (done: see `VOICES.md`'s progress) |
 | review B | Code and design review of A6–A10 |
 
 ## Done

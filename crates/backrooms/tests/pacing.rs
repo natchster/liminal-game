@@ -551,3 +551,58 @@ fn the_building_paces_its_floors() {
         }
     }
 }
+
+/// Your asides from run to run (`docs/VOICES.md`, *Your asides*, rule 3;
+/// asides A10): eight runs' floors played by the cautious bot, creatures
+/// live and deaths on. What you say differs from run to run, is never a line
+/// twice in a run, is a few words a floor (neither nothing nor a stream),
+/// and none of what is chosen falls in a peak.
+#[test]
+fn your_asides_differ_from_run_to_run() {
+    let seeds = [4242u32, 77, 9001, 31337, 1999, 7, 202, 555];
+    let level = 7;
+    let runs: Vec<(u32, Log)> = std::thread::scope(|s| {
+        let hs: Vec<_> = seeds.iter().map(|&seed| s.spawn(move || (seed, play_level(seed, level, 240.0)))).collect();
+        hs.into_iter().map(|h| h.join().unwrap()).collect()
+    });
+    let mut said: Vec<Vec<String>> = vec![];
+    for (seed, log) in &runs {
+        let ids: Vec<String> = log.said.iter().map(|(w, _)| w.rsplit(':').next().unwrap_or_default().to_string()).collect();
+        println!(
+            "seed {seed} L{level}: {} said: {:?}",
+            ids.len(),
+            log.said.iter().map(|(w, p)| format!("{w} ({})", p.name())).collect::<Vec<_>>()
+        );
+        let mut unique = ids.clone();
+        unique.sort();
+        unique.dedup();
+        assert_eq!(unique.len(), ids.len(), "seed {seed}: a line said twice: {ids:?}");
+        for (w, phase) in &log.said {
+            assert!(w.starts_with("knocked:") || *phase != Phase::Peak, "seed {seed}: \"{w}\" said in a peak");
+        }
+        said.push(ids);
+    }
+    let counts: Vec<usize> = said.iter().map(|s| s.len()).collect();
+    let mean = counts.iter().sum::<usize>() as f64 / counts.len() as f64;
+    // how alike two runs' words are (shared lines over all their lines)
+    let mut overlap = vec![];
+    for i in 0..said.len() {
+        for j in i + 1..said.len() {
+            let (a, b) = (&said[i], &said[j]);
+            let both = a.iter().filter(|x| b.contains(x)).count() as f64;
+            let all = (a.len() + b.len()) as f64 - both;
+            if all > 0.0 {
+                overlap.push(both / all);
+            }
+        }
+    }
+    let mean_overlap = overlap.iter().sum::<f64>() / overlap.len().max(1) as f64;
+    let mut distinct = said.clone();
+    distinct.sort();
+    distinct.dedup();
+    println!("asides a run: {counts:?} (mean {mean:.1}); {} of {} runs say a different sequence; mean overlap between two runs {mean_overlap:.2}", distinct.len(), said.len());
+    assert!((1.5..=8.0).contains(&mean), "a few words a floor, not nothing nor a stream: {counts:?}");
+    assert!(counts.iter().all(|&c| c >= 1), "a run says something: {counts:?}");
+    assert!(distinct.len() >= 7, "runs say different things: {said:?}");
+    assert!(mean_overlap < 0.35, "two runs share most of their words ({mean_overlap:.2})");
+}

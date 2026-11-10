@@ -66,6 +66,7 @@ cargo run --release -- --fresh --screenshot out.png --seed 4242 --play --frames 
 cargo test --release -p backrooms --test listen -- --nocapture    # WAVs + loudness PNGs in target/listen/
 cargo test --release -p backrooms --test pacing -- --nocapture    # director phases with a cautious bot
 cargo test --release -p backrooms --test personas -- --nocapture  # explorer, rusher, hider; the shape of the fear
+cargo test --release -p backrooms --test asides -- --nocapture    # your asides on real floors: what was weighed, said, let go, and why
 ```
 
 Re-recording reference data (only after an intended change; say why in the commit):
