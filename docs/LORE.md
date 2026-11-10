@@ -65,7 +65,10 @@ these channels, and the `lore-keeper` reviewer checks it:
   place, never a name, a number or a rule.
 - **Your asides**: your own voice under your breath (`docs/VOICES.md`,
   *Your asides*): a few words to yourself on your first steps on a floor,
-  once its card and its line have gone and within its first minute. A
+  once its card and its line have gone and within its first minute; and
+  at a sudden sound heard near (a bang, a scream far off, steps, a laugh,
+  a moan: in the rooms, and on the Building's floors only a bang), the
+  first of its kind in a run, now and then, never to anyone. A
   reaction, never an explanation: never a name, a number, a rule, the way
   or an instruction, and never what the floor's own line has just said.
   The first floor of a run always has one (one of three); after it, which

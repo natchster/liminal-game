@@ -307,6 +307,21 @@ fn deck_order(run_seed: u32, id: &str) -> u64 {
     (SplitMix64::new(run_seed, DECK_SALT ^ h).next() * (1u64 << 53) as f64) as u64
 }
 
+/// The kind of sudden sound a level's signature is, for a startle (its
+/// subject): a bang, a scream, steps, a laugh, a moan; the rest (a drip,
+/// paper, a radio, a phone's tone, a chime, a piano's one note) startle
+/// nobody
+pub fn startle_of(sig: &str) -> Option<&'static str> {
+    match sig {
+        "doorSlam" | "thud" | "clank" => Some("bang"),
+        "distantScream" => Some("scream"),
+        "distantFootsteps" => Some("steps"),
+        "laugh" => Some("laugh"),
+        "moan" => Some("moan"),
+        _ => None,
+    }
+}
+
 /// The once-a-run key of an event: a subject is weighed once a run, a
 /// floor's arrival once a floor (a retry does not arrive again); the uses
 /// with no subject (a blow, the relief, your nerve, the lamp) are weighed
@@ -348,8 +363,13 @@ impl Game {
     /// An event your voice may answer. Weighed once (a subject once a run,
     /// rule 2), by the run's seed (rule 3); answered, the reaction waits for
     /// its moment (`update_asides`), and a better one waiting is not
-    /// replaced by a lesser
+    /// replaced by a lesser. An event with no line left to say for it here
+    /// is not weighed at all (nothing plays, and nothing is spent: a sound
+    /// on a floor whose lines are elsewhere keeps its kind for later)
     pub fn aside(&mut self, u: Use, subject: &str) {
+        if choose(self.aside_lines(), u, subject, self.level_num, self.run_seed, &self.asides.memory.said).is_none() {
+            return;
+        }
         if let Some(k) = key(u, subject, self.level_num) {
             if self.asides.memory.weighed.contains(&k) {
                 return;
@@ -566,6 +586,9 @@ mod tests {
             ln("s3", "startle", "", 1, 99),
             ln("s4", "startle", "", 1, 99),
             ln("s5", "startle", "", 1, 99),
+            ln("k1", "knocked", "", 4, 99),
+            ln("si1", "sighted", "", 1, 99),
+            ln("n1", "nerve", "", 1, 99),
             ln("cry", "cry", "", 1, 99),
         ]
     }
@@ -585,7 +608,7 @@ mod tests {
         assert_eq!(c.id, "s1");
         // never another persona's, another use's or another level's
         assert!(choose(&d, Use::Arrive, "", 2, 7, &[]).is_none());
-        assert!(choose(&d, Use::Knocked, "", 5, 7, &[]).is_none());
+        assert!(choose(&d, Use::Dark, "", 5, 7, &[]).is_none());
     }
 
     #[test]
@@ -755,11 +778,22 @@ mod tests {
         assert_eq!(g.holding_breath(), Some("cried"));
         step(&mut g, AFTER_CRY - 2.5 + 0.1, true);
         assert_eq!(g.holding_breath(), None, "the breath is let go");
-        // a blow's grunt is said through it (no line for it in the deck: spent)
+        // a blow's grunt is said through it
         g.cry_last_at = Some(g.perf_t);
         assert!(answer(&mut g, Use::Knocked));
         step(&mut g, 2.0, true);
-        assert!(g.asides.log.last().is_some_and(|(_, w)| w == "skip:knocked::spent"), "{:?}", g.asides.log);
+        assert!(g.asides.log.last().is_some_and(|(_, w)| w == "say:knocked::k1"), "{:?}", g.asides.log);
+    }
+
+    #[test]
+    fn an_event_with_no_line_here_is_not_weighed() {
+        // the deck's only arrivals for level 2: none; its startles: from level 1
+        let mut g = bare(2);
+        g.aside(Use::Arrive, "rooms");
+        g.aside(Use::Knocked, "");
+        assert!(g.asides.memory.weighed.is_empty() && g.asides.memory.events.is_empty(), "{:?}", g.asides.memory);
+        g.aside(Use::Startle, "bang");
+        assert_eq!(g.asides.memory.weighed, vec!["startle:bang".to_string()]);
     }
 
     #[test]

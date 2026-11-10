@@ -69,6 +69,13 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you_aside", "arrive_where_now"),
     wav!("you_aside", "arrive_works_ceiling"),
     wav!("you_aside", "arrive_works_for"),
+    wav!("you_aside", "startle_bang"),
+    wav!("you_aside", "startle_dont_like"),
+    wav!("you_aside", "startle_laugh"),
+    wav!("you_aside", "startle_moan"),
+    wav!("you_aside", "startle_scream"),
+    wav!("you_aside", "startle_steps"),
+    wav!("you_aside", "startle_what"),
 ];
 
 /// The lines of the index, in its order

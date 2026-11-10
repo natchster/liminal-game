@@ -613,6 +613,8 @@ impl Game {
         if ds > 20.0 {
             self.director_note("cue:steps");
             self.entity_steps(si, irand(3, 5) as i32, 0.9);
+            // steps far off: your asides may answer the first steps of a run
+            self.aside(crate::audio::asides::Use::Startle, "steps");
         } else if ds > 9.0 {
             self.flicker_near(sp.x, sp.z);
             if rnd() < 0.6 {

@@ -1251,6 +1251,195 @@
         "tools/voice/synth.py",
         "tools/voice/evaluate.py"
       ]
+    },
+    "voice/you_aside/startle_bang.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "abcaf65ee22fb488",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "startled",
+        "id": "startle_bang",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Jesus."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_bang; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_dont_like.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "c51fcefc0fbcf48a",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "startle_dont_like",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "I don't like that."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_dont_like; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_laugh.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "cca7121f55586874",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "startle_laugh",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Was that... laughing?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_laugh; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_moan.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "71bb372213fd8ed9",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "startle_moan",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "That sound..."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_moan; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_scream.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "c099cfd7e4e4b6ab",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "startle_scream",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Was that a person?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_scream; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_steps.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "cde1a2bc7bf1720d",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "startle_steps",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Did something move?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_steps; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/startle_what.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "5cbf8014cd45ecd9",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "startled",
+        "id": "startle_what",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "What was that?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only startle_what; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
     }
   }
 }

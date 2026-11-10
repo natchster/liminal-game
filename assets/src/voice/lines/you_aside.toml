@@ -217,3 +217,82 @@ intensity = 0.35
 use = "arrive"
 levels = [5, 99]
 takes = 4
+
+# ---- a sudden noise: a sound of the place heard near enough, the first of
+# its kind in a run (the subject: what kind of sound). To himself, never to
+# anyone (a call is the cry's, and something answers it); never what the
+# sound is or who made it, never what it means (a sign is not a promise).
+# The rooms only, but a bang: nothing walks the Building's floors.
+
+[[line]]
+id = "startle_what"
+text = "What was that?"
+emotion = "startled"
+intensity = 0.55
+use = "startle"
+levels = [4, 99]
+takes = 4
+
+[[line]]
+id = "startle_dont_like"
+text = "I don't like that."
+emotion = "dread"
+intensity = 0.45
+use = "startle"
+levels = [4, 99]
+takes = 4
+
+# a bang: a door slammed, a thud, a clank (the Building's floors too)
+[[line]]
+id = "startle_bang"
+text = "Jesus."
+emotion = "startled"
+intensity = 0.65
+use = "startle"
+subject = "bang"
+levels = [1, 99]
+takes = 4
+
+# a scream far off
+[[line]]
+id = "startle_scream"
+text = "Was that a person?"
+emotion = "dread"
+intensity = 0.5
+use = "startle"
+subject = "scream"
+levels = [4, 99]
+takes = 4
+
+# steps somewhere: the place's, or the gait of something coming
+[[line]]
+id = "startle_steps"
+text = "Did something move?"
+emotion = "dread"
+intensity = 0.5
+use = "startle"
+subject = "steps"
+levels = [4, 99]
+takes = 4
+
+# a laugh
+[[line]]
+id = "startle_laugh"
+text = "Was that... laughing?"
+emotion = "dread"
+intensity = 0.5
+use = "startle"
+subject = "laugh"
+levels = [4, 99]
+takes = 4
+
+# a moan
+[[line]]
+id = "startle_moan"
+text = "That sound..."
+emotion = "dread"
+intensity = 0.45
+use = "startle"
+subject = "moan"
+levels = [4, 99]
+takes = 4

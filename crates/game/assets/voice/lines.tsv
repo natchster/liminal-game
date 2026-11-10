@@ -29,3 +29,10 @@ you_aside	arrive_well_real	arrive	well	1	1	0.45	dread	This can't be real.
 you_aside	arrive_where_now	arrive		5	99	0.35	wary	Where now?
 you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that go?
 you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?
+you_aside	startle_bang	startle	bang	1	99	0.65	startled	Jesus.
+you_aside	startle_dont_like	startle		4	99	0.45	dread	I don't like that.
+you_aside	startle_laugh	startle	laugh	4	99	0.5	dread	Was that... laughing?
+you_aside	startle_moan	startle	moan	4	99	0.45	dread	That sound...
+you_aside	startle_scream	startle	scream	4	99	0.5	dread	Was that a person?
+you_aside	startle_steps	startle	steps	4	99	0.5	dread	Did something move?
+you_aside	startle_what	startle		4	99	0.55	startled	What was that?

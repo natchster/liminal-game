@@ -966,6 +966,13 @@ impl Game {
                 g.sfx_by_name(name);
             });
             self.log_ambient(&format!("sig-{name}"), Some(s.at.x), Some(s.at.z), Some(pan));
+            // a sudden sound heard as near as it carries: your asides may
+            // answer the first of its kind (`audio::asides`)
+            if let Some(kind) = crate::audio::asides::startle_of(name) {
+                if hypot2(s.at.x - self.player.pos.x, s.at.z - self.player.pos.z) <= c.far {
+                    self.aside(crate::audio::asides::Use::Startle, kind);
+                }
+            }
         }
     }
 
