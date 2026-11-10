@@ -248,6 +248,7 @@ impl Game {
     /// the body of `enter_stairwell`'s 900 ms timeout
     fn enter_stairwell_now(&mut self) {
         self.in_stairwell = true;
+        self.asides_leave_floor();
         self.world.set_visible(false);
         for e in &self.entities {
             if let Some(f) = &e.face {
@@ -609,6 +610,7 @@ impl Game {
         self.scene.add(&loop_rooms.group);
         self.loop_rooms = Some(loop_rooms);
         self.in_loop = true;
+        self.asides_leave_floor();
         self.world.set_visible(false);
         for e in &self.entities {
             if let Some(f) = &e.face {

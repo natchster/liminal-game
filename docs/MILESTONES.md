@@ -34,7 +34,7 @@ the fifth and the tenth, a code and design review.
 | A3 | The voice director: the chooser, holding the breath, the memory kept with the run |
 | A4 | Arriving |
 | A5 | A sudden noise |
-| review A | Code and design review of A1–A5 |
+| review A | Code and design review of A1–A5 (done: see `VOICES.md`'s progress) |
 | A6 | What comes: sighted, knocked, the aftermath |
 | A7 | The Building: the siren, the cell, a door answered, the figure |
 | A8 | The place answers: the hole, a dead machine, a lift, a candle, the pane, a camp |

@@ -216,6 +216,17 @@ mod tests {
                 _ => false,
             };
             assert!(ok, "{}/{}: use {} is not one the game plays for {}", l.persona, l.id, l.use_, l.persona);
+            // a subject is one the game posts for its use (a line about
+            // anything else would never be said)
+            if let Some(u) = Use::from_name(&l.use_).filter(|_| !l.subject.is_empty()) {
+                assert!(
+                    u.subjects().contains(&l.subject.as_str()),
+                    "{}: subject {} is not one the game posts for {}",
+                    l.id,
+                    l.subject,
+                    l.use_
+                );
+            }
         }
     }
 

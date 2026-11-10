@@ -71,10 +71,13 @@ these channels, and the `lore-keeper` reviewer checks it:
   first of its kind in a run, now and then, never to anyone. A
   reaction, never an explanation: never a name, a number, a rule, the way
   or an instruction, and never what the floor's own line has just said.
-  The first floor of a run always has one (one of three); after it, which
-  floors have one and which words differ from run to run, fewer the more
-  you have said, and none is said twice in a run. You keep quiet while the
-  place does: while something is after you or near, and while it hushes.
+  Your first arrival of a run is always said, on the first floor where you
+  are not keeping quiet; after it, which floors and which sounds have a
+  word, and which words, differ from run to run, fewer the more you have
+  said, and none is said twice in a run, not after a death nor a
+  Continue. You keep quiet while the place does: just after your cry,
+  while something is after you or near, and while it hushes; in the
+  Stairwell and the Loop only after your cry.
   Nothing on the screen, and nothing hears them. Not a narrator: you know
   nothing, and you tell no one.
 

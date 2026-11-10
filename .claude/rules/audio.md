@@ -19,7 +19,10 @@ paths:
   (`docs/VOICES.md`), chosen from a stream of their own. **An aside is
   never played directly**: post the event (`Game::aside(Use, subject)`)
   and the voice director decides (once a run, its moment, holding your
-  breath); a new event is a `Use` and a line file's `use`.
+  breath, owed if it cannot be said); a new event is a `Use` (its scope,
+  its subjects in `Use::subjects`, what holds it in `Use::held_by`) and a
+  line file's `use`. Whether you hold your breath is the pacing
+  director's to say (`holding_breath`), not the caller's.
 - **Carry and gain** of each signature live in `sig_carry`; a new ambient
   sound needs an entry there.
 - **The hush** (`amb_hush`, driven by the director) softens and holds

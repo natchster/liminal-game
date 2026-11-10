@@ -44,6 +44,18 @@ impl Phase {
 /// The most events one level's log keeps.
 /// A stalker further off than this (straight, m) gives no sign.
 const CUE_REACH: f64 = 40.0;
+/// Something searching within this (straight, m) is still after you (a
+/// peak goes on), and you hold your breath for it
+pub const ENGAGED_NEAR: f64 = 25.0;
+/// You hold your breath while the one sent in a build-up is this near, m
+pub const STALKER_NEAR: f64 = 20.0;
+/// ... and while the place holds its own this much (`amb_hush`: something
+/// coming, a search near, a silent machine, the fog up): silence is a
+/// warning, and you keep it (PILLARS 3; `lore-keeper`, asides A4)
+pub const HUSHED: f64 = 0.3;
+/// ... and this long after your cry, s: you listen for what answers (the
+/// place answers in 0.6-0.9 s, `Game::cry_for_help`)
+pub const AFTER_CRY: f64 = 3.0;
 pub const LOG_CAP: usize = 4096;
 
 #[derive(Clone, Debug, Default)]
@@ -213,7 +225,7 @@ impl Game {
         for e in &self.entities {
             if e.state == "search" {
                 let p = e.pos();
-                if hypot2(p.x - pp.x, p.z - pp.z) < 25.0 {
+                if hypot2(p.x - pp.x, p.z - pp.z) < ENGAGED_NEAR {
                     engaged += 1;
                 }
             }
@@ -340,6 +352,40 @@ impl Game {
         let hush = hush.max(0.85 * self.vending_hush(pp.x, pp.z));
         self.director.hush += (hush - self.director.hush) * (dt * if hush > self.director.hush { 0.8 } else { 0.25 }).min(1.0);
         self.amb_hush = self.director.hush;
+    }
+
+    /// Whether you hold your breath now, and why (your asides' rule 4,
+    /// `audio::asides`): the pacing director answers, since it knows what
+    /// is coming. Just after your cry; and on a floor, while something
+    /// hunts you, searches within `ENGAGED_NEAR`, or the one it sent is
+    /// within `STALKER_NEAR` in a build-up, and while the place is hushed
+    /// (`HUSHED`). In the Stairwell or the Loop only your cry: the floor's
+    /// creatures and its hush are not there.
+    pub fn holding_breath(&self) -> Option<&'static str> {
+        if self.cry_last_at.is_some_and(|c| self.perf_t - c < AFTER_CRY) {
+            return Some("cried");
+        }
+        if self.in_stairwell || self.in_loop {
+            return None;
+        }
+        if self.amb_hush >= HUSHED {
+            return Some("hushed");
+        }
+        let pp = self.player.pos;
+        for (i, e) in self.entities.iter().enumerate() {
+            if e.kind == "gone" {
+                continue;
+            }
+            let p = e.pos();
+            let d = hypot2(p.x - pp.x, p.z - pp.z);
+            match e.state.as_str() {
+                "hunt" => return Some("hunted"),
+                "search" if d < ENGAGED_NEAR => return Some("searched"),
+                _ if self.director.phase == Phase::Build && self.director.stalker == Some(i) && d < STALKER_NEAR => return Some("stalked"),
+                _ => {}
+            }
+        }
+        None
     }
 
     fn enter_peak(&mut self) {

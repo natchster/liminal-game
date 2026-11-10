@@ -392,46 +392,71 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
    narrator). *Test:* `lore-keeper` on every line;
    `no_aside_names_what_the_canon_keeps_unsaid` (the creatures' names,
    level, exit, digits, the people's names).
-2. **Once is a reaction, twice is a habit.** A *subject* (a kind of
-   creature, a kind of thing, a place) is reacted to once a run; a
-   *use*'s chance halves for every line of it already said; a line is
-   never said twice in a run; a use whose lines are spent is silent
-   (PILLARS 5: the same scare never repeats soon). *Test:* the chooser's
-   unit tests; the run analysis (A10).
+2. **Once is a reaction, twice is a habit.** An event is weighed once
+   for its *scope*: a subject (a kind of sound, of creature, of thing)
+   once a run, a floor's arrival or your nerve once a floor, and what
+   happens again and again (a blow, the relief, the lamp) every time but
+   not again within its cooldown. Its chance falls with each line already
+   said about the same subject (by half; an arrival's by 0.7) and a
+   little with each line of its use (0.85), so a new place late in a run
+   still has its word. A line is never said twice in a run; a use whose
+   lines are spent is silent; an event with no line here is not weighed
+   at all (nothing plays, nothing is spent). An answered reaction that
+   could not be said (held, late, a better one waiting) is *owed*: the
+   next event like it is answered again, without a new roll, three times
+   at most; a key is done with only once its line is said or its roll
+   fails (review A). (PILLARS 5: the same scare never repeats soon.)
+   *Test:* the director's unit tests; `tests/asides.rs`.
 3. **Different every run.** Which events get a word, which word, and how
    much you talk at all (the run's *temperament*, 0.65–1.0 of every
-   chance) come from the run's seed on a stream of their own
-   (`SplitMix64` salted by the use and how many of its events there have
-   been), never the per-frame stream (`CLAUDE.md` invariant 1). What was
-   said is kept with the run (the save), so a retry or a Continue goes
-   on where it was and never says a line again. *Test:* the same seed
-   says the same; twenty seeds differ; a save round-trip.
-4. **Hold your breath.** Nothing while something hunts you or searches
-   within 25 m of you, while the creature sent in a build-up is within
-   20 m, or within 3 s of your cry; a reaction that comes then is let go.
-   The release speaks: an *aftermath* waits for the relief after a close
-   call, and is said in it (PILLARS 3: silence means something; 5: dread,
-   then release). *Test:* the pacing harness: no aside inside a peak;
-   the aftermath inside the relax.
+   chance) come from the run's seed on streams of their own (`SplitMix64`,
+   its salt the use and the event's count mixed through SplitMix's
+   finaliser, so runs a few bits apart share no rolls), never the
+   per-frame stream (`CLAUDE.md` invariant 1); a subject's own lines and
+   its use's general ones are dealt together by the run, so a kind is
+   answered differently from run to run. What was said is kept with the
+   run and saved as each line is said, so a retry or a Continue, even
+   after leaving without a word to the game, never says a line again.
+   *Test:* the same seed says the same; seeds differ; a save round-trip;
+   a die and retry, and a Continue, in `tests/asides.rs`.
+4. **Hold your breath.** The pacing director says when
+   (`Game::holding_breath`): within 3 s of your cry; on a floor, while
+   something hunts you, searches within 25 m (`ENGAGED_NEAR`), the
+   creature sent in a build-up is within 20 m, or the place itself is
+   hushed (`amb_hush` 0.3: something coming, a search near, a silent
+   machine, the fog up); in the Stairwell or the Loop only your cry. Each
+   use says what holds it (`Use::held_by`): a blow's grunt nothing; the
+   siren and a knock at your cell, which the hush is about, only your
+   cry. A line of yours playing when you begin to hold your breath is
+   faded out (`cut_voice_line`). The release speaks: an *aftermath*
+   waits for the relief after a close call (PILLARS 3: silence means
+   something; 5: dread, then release). *Test:* the director's unit tests;
+   the pacing harness (A6).
 5. **One at a time, and room between.** Never two at once, nor over the
    cry; at least 20 s between asides (8 s after a lesser one, for a
-   threat, a fall or what the place does back). A reaction is said in its
-   moment or never: a startle 0.35–0.9 s after the sound and within 2 s;
-   an arrival within 15 s of your first steps on a floor, and never while
-   its card and its line are up (9 s: a floor is never described twice
-   at once). A floor whose door leads to the Stairwell or the Loop takes
-   the general lines, not the rooms': its line is theirs. A better one
-   waiting replaces a lesser; a line for the subject is chosen before the
-   use's general ones (the most specific match). *Test:* the director's
-   unit tests.
+   threat or what the place does back); a blow's grunt keeps no gap and
+   cuts in over a line of yours. A reaction is said in its moment or
+   owed: a startle 0.35–0.9 s after the sound and within 2 s; an arrival
+   within 15 s of being weighed, which is once you have walked 2 m, its
+   card and line have gone (9 s: a floor is never described twice at
+   once), nothing else is waiting, and inside the floor's first minute
+   played. The first arrival of a run is always answered, on the first
+   floor where it can be said. A floor whose door leads to the Stairwell
+   or the Loop takes the general lines, not the rooms': its line is
+   theirs. A better one waiting replaces a lesser. The director's times
+   run on its own clock, time played: a pause or a menu stops it.
+   *Test:* the director's unit tests.
 6. **Heard by nothing but you.** Under your breath: no creature hears
    it, it changes nothing in play, it draws nothing from the per-frame
    stream, and the screen shows nothing. *Test:* the pacing, arena and
    playthrough tests, the goldens and the reference levels do not move.
-7. **Only for a person playing.** Nothing while you have neither moved
-   nor looked round for 30 s: the asides are few, and are not spent on
-   an empty chair. *Test:* the director's unit tests; the loudness
-   scenarios (standing still for 120 s) do not move.
+7. **Only for a person playing.** Nothing while you have neither moved,
+   looked round nor touched a key for 90 s (long enough to sit sealed in
+   a cell watching the door): the asides are few, and are not spent on
+   an empty chair. Every subject the game posts is one it knows
+   (`Use::subjects`, both ways held by a test). *Test:* the director's
+   unit tests; the loudness scenarios (standing still for 120 s, no input)
+   do not move.
 
 ### What it reacts to
 
@@ -477,7 +502,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 | A2 | done (`121c84f`): `personas/you_aside.toml` (his voice, `same_as = "you"`; −20 LUFS; six emotions), the emotions in `judge.py`, five known answers in `voice selftest` (all twelve right); `Persona::load` takes a persona whose lines are not written yet |
 | A3 | done (`f9fc0e5`): the voice director (`audio::asides`): `Game::aside(use, subject)` weighs an event once a run (its key) by the run's seed (temperament, roll, the run's deal of the lines), the first floor's arrival always; the reaction waits for its moment and is said then or let go (`drop:…:late`), held while you hold your breath (`holding_breath`: your cry 3 s, a hunt, a search within 25 m, the stalker within 20 m) or away (30 s neither moved nor looked round), 20 s between (8 s for an urgent one after a lesser); the floor's arrival after 2 m of walking; the memory in the save (`asides`); your cry and your asides through `play_voice_line`. Fourteen unit tests; no line of it in the game yet (A4) |
 | A4 | done (`a1369c1`): twenty arrival lines (`lines/you_aside.toml`: the Well, the Stair Halls, the Works, the Lobby, the rooms, deep down, the store, the house, and two general ones), rewritten after two `lore-keeper` rounds (no echo of a floor's own line, no premise stated, no advice, no subtitle repeated; no two floors in a row opening alike); Chatterbox, 62 of 80 takes passing (tone 10, words 5, emotion 3 failing), every line with a passing take; the chosen at voice 0.56–0.75, arousal 0.32–0.52, 94–119 Hz. An arrival waits for the card and the floor's line to go (9 s) and is weighed only in a floor's first minute; you keep quiet while the place is hushed (`HUSHED`, `amb_hush` 0.3); the Stairwell's and the Loop's floors take the general lines. `voice write` removes a line's file and manifest entry once the line is gone, and `tests/structure.rs` fails on a voice entry with no file. `an_arrival_is_your_voice_under_your_breath`: seed 4242's level 5 (the Stairwell's floor) says "Okay. Okay." 3.4 s after the first steps, 18.2 dB over the room, 14.9 dB over your steps, 7.4 dB under your cry, peak −5.1 dBFS; at `ASIDE_GAIN` 0 it fails (3.1 dB). `no_aside_names_what_the_canon_keeps_unsaid`; every line of the index one the game plays. The canon: `LORE.md` (*How canon reaches the player*: your asides; *Crying*), `PILLARS.md` 3 |
-| A5 | done: seven startle lines (two general, rooms only; a bang's, the Building's floors too; a scream's, steps', a laugh's, a moan's), rewritten after a `lore-keeper` round (to himself, never to anyone: a call is the cry's, and something answers it; never who made a sound or what it means; "Who's breathing?" cut, a breath is never a level's signature); 22 of 28 takes passing (words 5, voice 1), every line with one; the startled ones said calmer than asked (arousal 0.40–0.45 for 0.56–0.59, inside the gate: a clone of a calm clip, V5 again; an emotional reference for *startled* if an ear finds them flat). Posted by a level's signature heard within its carry (`startle_of`: a slam, a thud or a clank is a bang; a scream, steps, a laugh, a moan) and by the stalker's steps far off (`cue:steps`). An event with no line left for it here is not weighed (nothing plays, nothing is spent: a sound on the Building keeps its kind for the rooms). `tests/asides.rs`: three floors of the rooms, 150 s each, looking round: 4242's level 6 answers its moan 0.5 s after it ("That sound..."), 77's level 8 its steps; each kind once, the gap kept, no line twice, and the same run says the same |
+| A5 | done (`4970b52`): seven startle lines (two general, rooms only; a bang's, the Building's floors too; a scream's, steps', a laugh's, a moan's), rewritten after a `lore-keeper` round (to himself, never to anyone: a call is the cry's, and something answers it; never who made a sound or what it means; "Who's breathing?" cut, a breath is never a level's signature); 22 of 28 takes passing (words 5, voice 1), every line with one; the startled ones said calmer than asked (arousal 0.40–0.45 for 0.56–0.59, inside the gate: a clone of a calm clip, V5 again; an emotional reference for *startled* if an ear finds them flat). Posted by a level's signature heard within its carry (`startle_of`: a slam, a thud or a clank is a bang; a scream, steps, a laugh, a moan) and by the stalker's steps far off (`cue:steps`). An event with no line left for it here is not weighed (nothing plays, nothing is spent: a sound on the Building keeps its kind for the rooms). `tests/asides.rs`: three floors of the rooms, 150 s each, looking round: 4242's level 6 answers its moan 0.5 s after it ("That sound..."), 77's level 8 its steps; each kind once, the gap kept, no line twice, and the same run says the same |
+| review A | done: a code review and a design review of A1–A5 (fresh reviewers, the code and the docs only). Found and fixed: a held or dropped reaction used up its once-a-run key (the sight of a creature sent near you, a knock at your cell under the fog's hush, your nerve: the lines that matter most, silenced on purpose), now *owed*; uses with no subject rolled at every post, now a scope each (run, floor, every time past a cooldown); the breath worked out by the voice director from the creatures, now the pacing director's (`holding_breath`), and in the Stairwell and the Loop only your cry; the fog's hush held the uses that are about it; a line playing went on over a hunt, now cut off, and a blow's grunt kept the gap; decay by every line of a use starved a late new place, now by the subject's; the two general startle lines could never be said, now dealt with each kind's own; a Continue after leaving mid-floor said the same line again, now saved as each is said; the first floor's arrival could be lost to a waiting bang, and paused time ran its minute, now its own clock; neighbouring seeds shared rolls; a subject was free text, now a list held both ways; `tests/asides.rs` could not fail for saying too little, now asserts lines said, a retry and a Continue |
 
 ## What only people can tell
 

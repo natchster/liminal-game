@@ -327,14 +327,18 @@ its own, decoded into a buffer once and played into the soundscape's
 its fallback. Your asides, what you say to yourself under your breath, are
 chosen by a director of their own (`audio::asides`, `docs/VOICES.md`,
 *Your asides*): the game posts an event (`Game::aside`: a use, a subject),
-weighed once a run by the run's seed on a stream of its own; an answered
-one waits for its moment (`update_asides`, after the pacing director each
-frame), held while you hold your breath (something hunting you, searching
-near, the stalker close, your cry just gone) and let go when its moment
-passes; its line is the subject's before the use's general ones, never one
-said before in the run. What was said is kept with the run (the save's
-`asides`). Both voices play through `play_voice_line`, which draws
-nothing.
+weighed once for its scope (a run, a floor, or every time past a
+cooldown) by the run's seed on a stream of its own; an answered one waits
+for its moment (`update_asides`, after the pacing director each frame, and
+in the Stairwell and the Loop), held while you hold your breath (which the
+pacing director answers, `holding_breath`: your cry just gone, something
+hunting you or searching near, the stalker close, the place hushed), and
+owed to the next event like it if its moment passes; its line is dealt by
+the run from the subject's and the use's lines, never one said before in
+the run. Its times are a clock of its own, time played. What was said is
+kept with the run and saved as each line is said (the save's `asides`).
+Both voices play through `play_voice_line`, which draws nothing; a line of
+yours is faded out when you begin to hold your breath (`cut_voice_line`).
 
 ## Saves
 

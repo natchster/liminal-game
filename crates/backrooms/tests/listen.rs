@@ -381,7 +381,8 @@ fn an_arrival_is_your_voice_under_your_breath() {
     play(&mut r, ARRIVAL_AFTER + 0.5, hold_creatures);
     assert!(!r.g.asides.log.iter().any(|(_, w)| w.starts_with("say:")), "said before you walked: {:?}", r.g.asides.log);
     let at = r.pcm.len() / 2;
-    let t_at = r.g.perf_t;
+    // (the voice director's clock: its log's times)
+    let t_at = r.g.asides.clock;
     play(&mut r, 7.0, |g| {
         hold_creatures(g);
         g.keys.insert("KeyW".into());

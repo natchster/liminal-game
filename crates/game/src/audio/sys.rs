@@ -59,6 +59,9 @@ pub struct AudioSys {
     pub nosound: bool,
     /// The voice lines decoded so far (`say_cry`), by persona/id
     pub voice_bufs: Vec<(String, AudioBuffer)>,
+    /// The line of your voice playing now: its gain (to fade it when cut
+    /// off: `cut_voice_line`), and whether it is your cry (never cut)
+    pub voice_now: Option<(AudioNode, bool)>,
     /// The knocks at your cell this visit (`world::cell_knock`): each one's
     /// gain, so an answer hushes the raps still to come. Let go when it is
     /// heard going and when a level is built: a gain held keeps its knock's
@@ -396,6 +399,7 @@ impl Game {
             nosound,
             // a new context: the buffers decoded on the old one are not its
             voice_bufs: vec![],
+            voice_now: None,
             cell_knocks: vec![],
         };
         self.noise_buf = Some(noise_buf);
@@ -766,20 +770,14 @@ impl Game {
         self.cries_on_floor += 1;
         self.cry_last_at = Some(self.perf_t);
         self.cry_last_line = Some(line.id.clone());
-        match self.play_voice_line(&line, VOICE_GAIN) {
-            Some(secs) => {
-                // no aside over your cry (`audio::asides`)
-                self.asides.voice_until = self.asides.voice_until.max(self.perf_t + secs);
-                true
-            }
-            None => false,
-        }
+        self.play_voice_line(&line, VOICE_GAIN).is_some()
     }
 
     /// A line of your voice played (your cry, an aside): its WAV decoded
     /// into a buffer once, at `gain`, into the soundscape's `world` bus
     /// (centred: your own voice, in the reverb of the place you stand).
     /// How long it is, s; `None` without audio or its WAV. Draws nothing.
+    /// Your asides keep quiet while it sounds (`Asides::voice_until`).
     pub fn play_voice_line(&mut self, line: &crate::audio::voice::Line, gain: f64) -> Option<f64> {
         let (Some(ac), Some(master)) = (self.ac.clone(), self.master.clone()) else { return None };
         let key = format!("{}/{}", line.persona, line.id);
@@ -805,7 +803,25 @@ impl Game {
             None => g.connect(&master),
         };
         src.start(ac.current_time());
+        self.asides.voice_until = self.asides.voice_until.max(self.perf_t + secs);
+        self.audio.voice_now = Some((g, line.persona == crate::audio::voice::CRY_PERSONA));
         Some(secs)
+    }
+
+    /// The line of your voice playing now, cut off (faded in `CUT_FADE`):
+    /// you begin to hold your breath, or a blow knocks the words out of
+    /// you. Never your cry.
+    pub fn cut_voice_line(&mut self) {
+        let fade = crate::audio::asides::CUT_FADE;
+        if let Some((g, false)) = self.audio.voice_now.take() {
+            if self.asides.voice_until > self.perf_t {
+                let t = self.ac_time();
+                g.gain().cancel_scheduled_values(t);
+                g.gain().set_value_at_time(g.gain().value(), t);
+                g.gain().linear_ramp_to_value_at_time(0.0, t + fade);
+                self.asides.voice_until = self.perf_t + fade;
+            }
+        }
     }
 
     /// Cry — a male voice shouting "HEEEELP" via formant synthesis (the
