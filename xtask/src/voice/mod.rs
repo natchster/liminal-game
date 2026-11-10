@@ -406,7 +406,9 @@ fn voice_problems(voice: Option<&toml::Table>, what: &str, designs: &dyn Fn(&str
 }
 
 /// Where the game plays a voice line (`use`)
-pub const USES: &[&str] = &["cry"];
+/// (`cry`: `audio::voice::choose_cry`; the rest are your asides',
+/// `audio::asides::Use`, each added as the game comes to play it)
+pub const USES: &[&str] = &["cry", "arrive"];
 
 /// The synthesis models that say a line (`synth.py`'s); s3tokenizer is a
 /// part of Chatterbox, not one

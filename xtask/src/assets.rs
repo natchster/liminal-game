@@ -420,6 +420,16 @@ pub(crate) fn update_manifest(file: &str, bytes: &[u8], extra: Value) -> Result<
     write_json(&p, &m)
 }
 
+/// Remove `file`'s entry from the manifest (its file is gone)
+pub(crate) fn remove_from_manifest(file: &str) -> Result<(), String> {
+    let p = asset_dir().join("MANIFEST.json");
+    let mut m = read_json(&p);
+    if let Some(files) = m["files"].as_object_mut() {
+        files.remove(file);
+    }
+    write_json(&p, &m)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

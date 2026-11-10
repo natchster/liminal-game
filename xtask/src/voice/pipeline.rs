@@ -354,6 +354,17 @@ pub fn write(args: &[String]) -> Result<(), String> {
         )?;
         println!("{name}: take {take} ({} bytes)", bytes.len());
     }
+    // a line renamed or dropped: its file and its manifest entry go with it
+    let ids: Vec<String> = p.lines.iter().filter_map(|l| s(l, "id")).collect();
+    for e in std::fs::read_dir(assets.join("voice").join(&p.id)).into_iter().flatten().flatten() {
+        let file = e.file_name().to_string_lossy().into_owned();
+        let Some(id) = file.strip_suffix(".wav") else { continue };
+        if !ids.iter().any(|i| i == id) {
+            std::fs::remove_file(e.path()).map_err(|e| e.to_string())?;
+            crate::assets::remove_from_manifest(&asset_name(&p.id, id))?;
+            println!("{}: no line of {} any more, removed", asset_name(&p.id, id), p.id);
+        }
+    }
     write_index(&p)?;
     Ok(())
 }

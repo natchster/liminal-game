@@ -49,6 +49,26 @@ pub static WAVS: &[(&str, &str, &[u8])] = &[
     wav!("you", "im_here"),
     wav!("you", "please_help_hoarse"),
     wav!("you", "somebody_help"),
+    wav!("you_aside", "arrive_deep_how_far"),
+    wav!("you_aside", "arrive_deep_nobody"),
+    wav!("you_aside", "arrive_deep_tired"),
+    wav!("you_aside", "arrive_halls_should"),
+    wav!("you_aside", "arrive_halls_walls"),
+    wav!("you_aside", "arrive_house_lives"),
+    wav!("you_aside", "arrive_lobby_hum"),
+    wav!("you_aside", "arrive_lobby_warm"),
+    wav!("you_aside", "arrive_lobby_yellow"),
+    wav!("you_aside", "arrive_okay"),
+    wav!("you_aside", "arrive_rooms_again"),
+    wav!("you_aside", "arrive_rooms_hate"),
+    wav!("you_aside", "arrive_rooms_last"),
+    wav!("you_aside", "arrive_showroom_music"),
+    wav!("you_aside", "arrive_well_keeps_going"),
+    wav!("you_aside", "arrive_well_look"),
+    wav!("you_aside", "arrive_well_real"),
+    wav!("you_aside", "arrive_where_now"),
+    wav!("you_aside", "arrive_works_ceiling"),
+    wav!("you_aside", "arrive_works_for"),
 ];
 
 /// The lines of the index, in its order
@@ -174,6 +194,64 @@ mod tests {
         }
         for (p, id, _) in WAVS {
             assert!(ls.iter().any(|l| l.persona == *p && l.id == *id), "{p}/{id}: in WAVS but not in lines.tsv");
+        }
+    }
+
+    /// Every line of the index is one the game plays: your cry, or one of
+    /// your asides' uses (`audio::asides::Use`), said by its persona
+    #[test]
+    fn every_line_of_the_index_is_one_the_game_plays() {
+        use crate::audio::asides::{Use, PERSONA};
+        for l in lines() {
+            let ok = match l.persona.as_str() {
+                CRY_PERSONA => l.use_ == "cry",
+                PERSONA => Use::from_name(&l.use_).is_some(),
+                _ => false,
+            };
+            assert!(ok, "{}/{}: use {} is not one the game plays for {}", l.persona, l.id, l.use_, l.persona);
+        }
+    }
+
+    /// Rule 1 of your asides: they react and never explain. No line names
+    /// what the canon keeps unsaid: a creature, a place by its name, a
+    /// level or its number, the way out, the people of the notes, the
+    /// self-assembly (`docs/VOICES.md`, *Your asides*; `lore-keeper` reads
+    /// the rest)
+    #[test]
+    fn no_aside_names_what_the_canon_keeps_unsaid() {
+        const UNSAID: [&str; 20] = [
+            "smiler",
+            "hound",
+            "watcher",
+            "reader",
+            "the face",
+            "level",
+            "exit",
+            "lobby",
+            "the well",
+            "the works",
+            "stair hall",
+            "poolroom",
+            "showroom",
+            "borrowed",
+            "the loop",
+            "stairwell",
+            "elias",
+            "m.",
+            "self-assembly",
+            "scp",
+        ];
+        // `w` at the start of a word of `t` ("m." is not the end of "hum.";
+        // "hounds" says "hound")
+        let says = |t: &str, w: &str| t.match_indices(w).any(|(i, _)| !t[..i].chars().next_back().is_some_and(|c| c.is_alphabetic()));
+        assert!(says("ask m. why", "m.") && !says("that hum.", "m.") && says("the hounds", "hound"));
+        for l in lines().into_iter().filter(|l| l.persona == crate::audio::asides::PERSONA) {
+            let t = l.text.to_lowercase();
+            for w in UNSAID {
+                assert!(!says(&t, w), "{}: \"{}\" says {w:?}", l.id, l.text);
+            }
+            assert!(!t.chars().any(|c| c.is_ascii_digit()), "{}: \"{}\" says a number", l.id, l.text);
+            assert!(t.split_whitespace().count() <= 8, "{}: \"{}\" is a speech, not an aside", l.id, l.text);
         }
     }
 

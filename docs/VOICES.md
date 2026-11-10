@@ -311,8 +311,9 @@ does not play, all fail it.
 
 ### You: the one who cries for help
 
-*The player's own voice, heard only when you cry out (`H`). Never a word
-besides, never a narrator.*
+*The player's own voice when you cry out (`H`); besides it only his
+asides, the same man under his breath (`you_aside`, *Your asides*). Never
+a narrator.*
 
 | | |
 |---|---|
@@ -416,7 +417,10 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
    cry; at least 20 s between asides (8 s after a lesser one, for a
    threat, a fall or what the place does back). A reaction is said in its
    moment or never: a startle 0.35–0.9 s after the sound and within 2 s;
-   an arrival within 15 s of your first steps on a level. A better one
+   an arrival within 15 s of your first steps on a floor, and never while
+   its card and its line are up (9 s: a floor is never described twice
+   at once). A floor whose door leads to the Stairwell or the Loop takes
+   the general lines, not the rooms': its line is theirs. A better one
    waiting replaces a lesser; a line for the subject is chosen before the
    use's general ones (the most specific match). *Test:* the director's
    unit tests.
@@ -471,7 +475,8 @@ Each rule ends with its test; the code is `crates/game/src/audio/asides.rs`.
 | A0 | done: this plan (`71338c7`) |
 | A1 | done (`e7093bd`): `voice.same_as` (a persona with another's voice: its reference, its description; `voice reference` refuses to make one of its own) and a line's `subject`, a column of `lines.tsv` (`persona id use subject first last intensity emotion text`) read by `audio::voice::lines`; `you`'s ten lines rewritten by `voice write`, the same files byte for byte |
 | A2 | done (`121c84f`): `personas/you_aside.toml` (his voice, `same_as = "you"`; −20 LUFS; six emotions), the emotions in `judge.py`, five known answers in `voice selftest` (all twelve right); `Persona::load` takes a persona whose lines are not written yet |
-| A3 | done: the voice director (`audio::asides`): `Game::aside(use, subject)` weighs an event once a run (its key) by the run's seed (temperament, roll, the run's deal of the lines), the first floor's arrival always; the reaction waits for its moment and is said then or let go (`drop:…:late`), held while you hold your breath (`holding_breath`: your cry 3 s, a hunt, a search within 25 m, the stalker within 20 m) or away (30 s neither moved nor looked round), 20 s between (8 s for an urgent one after a lesser); the floor's arrival after 2 m of walking; the memory in the save (`asides`); your cry and your asides through `play_voice_line`. Fourteen unit tests; no line of it in the game yet (A4) |
+| A3 | done (`f9fc0e5`): the voice director (`audio::asides`): `Game::aside(use, subject)` weighs an event once a run (its key) by the run's seed (temperament, roll, the run's deal of the lines), the first floor's arrival always; the reaction waits for its moment and is said then or let go (`drop:…:late`), held while you hold your breath (`holding_breath`: your cry 3 s, a hunt, a search within 25 m, the stalker within 20 m) or away (30 s neither moved nor looked round), 20 s between (8 s for an urgent one after a lesser); the floor's arrival after 2 m of walking; the memory in the save (`asides`); your cry and your asides through `play_voice_line`. Fourteen unit tests; no line of it in the game yet (A4) |
+| A4 | done: twenty arrival lines (`lines/you_aside.toml`: the Well, the Stair Halls, the Works, the Lobby, the rooms, deep down, the store, the house, and two general ones), rewritten after two `lore-keeper` rounds (no echo of a floor's own line, no premise stated, no advice, no subtitle repeated; no two floors in a row opening alike); Chatterbox, 62 of 80 takes passing (tone 10, words 5, emotion 3 failing), every line with a passing take; the chosen at voice 0.56–0.75, arousal 0.32–0.52, 94–119 Hz. An arrival waits for the card and the floor's line to go (9 s) and is weighed only in a floor's first minute; you keep quiet while the place is hushed (`HUSHED`, `amb_hush` 0.3); the Stairwell's and the Loop's floors take the general lines. `voice write` removes a line's file and manifest entry once the line is gone, and `tests/structure.rs` fails on a voice entry with no file. `an_arrival_is_your_voice_under_your_breath`: seed 4242's level 5 (the Stairwell's floor) says "Okay. Okay." 3.4 s after the first steps, 18.2 dB over the room, 14.9 dB over your steps, 7.4 dB under your cry, peak −5.1 dBFS; at `ASIDE_GAIN` 0 it fails (3.1 dB). `no_aside_names_what_the_canon_keeps_unsaid`; every line of the index one the game plays. The canon: `LORE.md` (*How canon reaches the player*: your asides; *Crying*), `PILLARS.md` 3 |
 
 ## What only people can tell
 

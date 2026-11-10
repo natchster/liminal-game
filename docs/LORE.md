@@ -63,6 +63,17 @@ these channels, and the `lore-keeper` reviewer checks it:
   to look, or worse; never why.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
+- **Your asides**: your own voice under your breath (`docs/VOICES.md`,
+  *Your asides*): a few words to yourself on your first steps on a floor,
+  once its card and its line have gone and within its first minute. A
+  reaction, never an explanation: never a name, a number, a rule, the way
+  or an instruction, and never what the floor's own line has just said.
+  The first floor of a run always has one (one of three); after it, which
+  floors have one and which words differ from run to run, fewer the more
+  you have said, and none is said twice in a run. You keep quiet while the
+  place does: while something is after you or near, and while it hushes.
+  Nothing on the screen, and nothing hears them. Not a narrator: you know
+  nothing, and you tell no one.
 
 Not allowed: tutorials about creatures, maps that explain the place, named
 SCP numbers in the game, any narrator.
@@ -760,8 +771,9 @@ plaque that says STAIRS. Behind it:
 - **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
 - **Crying** out loud is desperate. Something answers. The voice is your
-  own, the only words you say: a man's, plain and tired, never brave
-  (`docs/VOICES.md`, *You*). On the Building's floors you call out to
+  own: a man's, plain and tired, never brave (`docs/VOICES.md`, *You*);
+  besides it, only what you say to yourself under your breath (*How canon
+  reaches the player*, your asides), which nothing hears. On the Building's floors you call out to
   anyone; in the rooms you shout for help; deep down you are worn out; and
   a cry soon after the last is a scream. Who you are is never said.
 - **Cells**, on the Building's floors: shut yourself in when the siren goes,

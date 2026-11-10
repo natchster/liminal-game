@@ -73,7 +73,8 @@ that the emptiness is watching.*
 
 - **Goal: the hum and the room are always there.**
   - Rule: every sound comes from somewhere: a prop, a fixed signature spot, a
-    fixture. *Test:* `tests/ambient.rs`, `tests/listen.rs` (gate).
+    fixture; your own voice (your cry, your asides) comes from you, in the
+    reverb of where you stand. *Test:* `tests/ambient.rs`, `tests/listen.rs` (gate).
   - Rule: the mix holds its level; nothing piles up at a level's start.
     *Test:* `tests/loudness.rs`, `tests/listen.rs` (gate).
 - **Goal: silence is a warning.**

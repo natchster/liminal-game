@@ -367,6 +367,56 @@ fn the_cry_is_your_voice() {
     assert!(db(top) <= -1.0, "your cry must not clip ({:.1} dBFS)", db(top));
 }
 
+/// Your asides (`docs/VOICES.md`, *Your asides*): the run's first floor,
+/// once its card and line have gone and you walk on, brings its arrival,
+/// your own voice under your breath. Measured where a voice is (200 Hz -
+/// 3 kHz): over the room and over your own steps, under your cry on the
+/// same floor, and never clipping. (With `ASIDE_GAIN` at 0 it fails: tried
+/// once, A4.)
+#[test]
+fn an_arrival_is_your_voice_under_your_breath() {
+    use game::audio::asides::ARRIVAL_AFTER;
+    let mut r = start(4242, 5);
+    // the card and the floor's line, standing: nothing is said
+    play(&mut r, ARRIVAL_AFTER + 0.5, hold_creatures);
+    assert!(!r.g.asides.log.iter().any(|(_, w)| w.starts_with("say:")), "said before you walked: {:?}", r.g.asides.log);
+    let at = r.pcm.len() / 2;
+    let t_at = r.g.perf_t;
+    play(&mut r, 7.0, |g| {
+        hold_creatures(g);
+        g.keys.insert("KeyW".into());
+    });
+    let (t_said, what) = r.g.asides.log.iter().find(|(_, w)| w.starts_with("say:arrive:")).cloned().expect("no arrival said");
+    let said = at + ((t_said - t_at) * SR) as usize;
+    let w = windows_band(&r.pcm, 200.0, 3000.0);
+    let (b, s) = (at / WIN, said / WIN);
+    let bed = median(&w[20..b]);
+    // your steps before you spoke, and your voice in the 1.5 s after
+    let steps = w[b..s].iter().cloned().fold(0.0, f64::max);
+    let voice = w[s..(s + 30).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let top = r.pcm[said * 2..].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
+    save("aside_arrive_4242_L5", &r.pcm, &[at as f64 / SR, said as f64 / SR]);
+    // your cry on the same floor, measured the same way
+    let mut c = start(4242, 5);
+    play(&mut c, 3.0, hold_creatures);
+    let cat = c.pcm.len() / 2;
+    assert!(c.g.say_cry());
+    play(&mut c, 3.0, hold_creatures);
+    let cw = windows_band(&c.pcm, 200.0, 3000.0);
+    let cry = db(cw[cat / WIN..].iter().cloned().fold(0.0, f64::max) / median(&cw[20..cat / WIN]));
+    println!(
+        "{what}, {:.1} s after the first steps: {:.1} dB over the room, {:.1} dB over your steps, peak {:.1} dBFS; your cry {cry:.1} dB over the room",
+        t_said - t_at,
+        db(voice / bed),
+        db(voice / steps),
+        db(top)
+    );
+    assert!(voice > bed * 4.0, "an aside should stand 12 dB over the room ({:.1} dB)", db(voice / bed));
+    assert!(voice > steps, "an aside should stand over your own steps ({:.1} dB)", db(voice / steps));
+    assert!(db(voice / bed) < cry, "an aside is under your breath: under your cry ({:.1} dB, the cry {cry:.1} dB)", db(voice / bed));
+    assert!(db(top) <= -1.0, "an aside must not clip ({:.1} dBFS)", db(top));
+}
+
 #[test]
 fn the_hush_quiets_the_ambience() {
     let mut out: Vec<(f64, Vec<f64>)> = vec![];

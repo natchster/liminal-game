@@ -40,11 +40,22 @@ const MOVED: f64 = 0.5;
 const TURNED: f64 = 0.05;
 /// How far from where a floor began you walk before its arrival is weighed, m
 pub const ARRIVAL_WALK: f64 = 2.0;
+/// ... and not before this long after it began, s: once its card (4 s) and
+/// its line (from 1.7 s, for 7 s: `scp_arrival`) have gone, so a floor is
+/// never described twice at once (`lore-keeper`, A4)
+pub const ARRIVAL_AFTER: f64 = 9.0;
+/// ... and not after this long: a floor's arrival is its first minute's
+/// (walked later, its moment has gone), s
+pub const ARRIVAL_LATEST: f64 = 60.0;
 /// No aside this soon after your cry, s: you listen for what answers (the
 /// place answers in 0.6-0.9 s, `Game::cry_for_help`)
 pub const AFTER_CRY: f64 = 3.0;
 /// You hold your breath while something searches this near, m
 pub const SEARCH_NEAR: f64 = 25.0;
+/// ... and while the place holds its own this much (`amb_hush`: something
+/// coming, a search near, a silent machine, the fog up): silence is a
+/// warning, and you keep it (PILLARS 3; `lore-keeper`, A4)
+pub const HUSHED: f64 = 0.3;
 /// ... or the one sent in a build-up is this near, m
 pub const STALKER_NEAR: f64 = 20.0;
 /// The most events one run's log keeps
@@ -240,9 +251,9 @@ pub struct Asides {
     /// When you last moved or looked round, and where and how you stood then
     pub active_at: f64,
     pub anchor: Option<(f64, f64, f64, f64)>,
-    /// This floor's arrival, waiting for your first steps: where it began
-    /// and what it is said about
-    pub arrival: Option<(f64, f64, String)>,
+    /// This floor's arrival, waiting for your first steps: where it began,
+    /// what it is said about, and the time before which it is not weighed
+    pub arrival: Option<(f64, f64, String, f64)>,
     /// What happened, by game time: `wait:`, `pass:`, `skip:`, `drop:`,
     /// `say:` (use, subject, and the line or the reason). For tests and run
     /// analysis; capped at `LOG_CAP`
@@ -375,12 +386,13 @@ impl Game {
     }
 
     /// A floor begins (or the Stairwell, or the Loop): its arrival waits
-    /// for your first steps; nothing waiting from before is said here
+    /// for your first steps, and for its card and line to have gone;
+    /// nothing waiting from before is said here
     pub fn asides_arrive(&mut self, subject: &str) {
         self.asides.pending = None;
         let p = &self.player;
         self.asides.anchor = Some((p.pos.x, p.pos.z, p.yaw, p.pitch));
-        self.asides.arrival = Some((p.pos.x, p.pos.z, subject.to_string()));
+        self.asides.arrival = Some((p.pos.x, p.pos.z, subject.to_string(), self.perf_t + ARRIVAL_AFTER));
     }
 
     /// What a floor's arrival is said about: its place
@@ -392,6 +404,12 @@ impl Game {
             (4, _) => "lobby",
             (_, Some("store")) => "showroom",
             (_, Some("house")) => "house",
+            // a floor whose door leads to the Stairwell or the Loop: its line
+            // is theirs (someone crying far below, a door clicking shut
+            // again and again), so not the rooms' lines ("Again."): the
+            // general ones
+            (_, Some("stairwell")) => "stairwell_floor",
+            (_, Some("loop")) => "loop_floor",
             (n, _) if n >= 10 => "deep",
             _ => "rooms",
         }
@@ -399,11 +417,14 @@ impl Game {
 
     /// Rule 4: why you hold your breath now, if you do: just after your
     /// cry; while something hunts you, or searches near you; while the one
-    /// sent in a build-up is near
+    /// sent in a build-up is near; while the place itself is hushed
     pub fn holding_breath(&self) -> Option<&'static str> {
         let t = self.perf_t;
         if self.cry_last_at.is_some_and(|c| t - c < AFTER_CRY) {
             return Some("cried");
+        }
+        if self.amb_hush >= HUSHED {
+            return Some("hushed");
         }
         let pp = self.player.pos;
         for (i, e) in self.entities.iter().enumerate() {
@@ -471,8 +492,10 @@ impl Game {
             }
             self.asides.active_at = t;
         }
-        if let Some((ax, az, subject)) = self.asides.arrival.clone() {
-            if hypot2(x - ax, z - az) > ARRIVAL_WALK {
+        if let Some((ax, az, subject, from)) = self.asides.arrival.clone() {
+            if t > from - ARRIVAL_AFTER + ARRIVAL_LATEST {
+                self.asides.arrival = None;
+            } else if t >= from && hypot2(x - ax, z - az) > ARRIVAL_WALK {
                 self.asides.arrival = None;
                 self.aside(Use::Arrive, &subject);
             }
@@ -646,9 +669,13 @@ mod tests {
     fn an_arrival_waits_for_your_first_steps_and_the_first_is_always_said() {
         let mut g = bare(1);
         g.asides_arrive("well");
-        step(&mut g, 5.0, true);
+        step(&mut g, ARRIVAL_AFTER + 1.0, true);
         assert!(said(&g).is_empty() && g.asides.pending.is_none(), "standing, looking round: no arrival yet {:?}", g.asides.log);
+        // walking while the card and the floor's line are up: not yet
+        g.asides_arrive("well");
         g.player.pos.x += 3.0;
+        step(&mut g, ARRIVAL_AFTER - 0.5, true);
+        assert!(g.asides.pending.is_none() && said(&g).is_empty(), "{:?}", g.asides.log);
         step(&mut g, 6.0, true);
         let s = said(&g);
         assert!(s.len() == 1 && s[0].starts_with("say:arrive:well:w"), "{:?}", g.asides.log);
@@ -656,8 +683,31 @@ mod tests {
         // a retry of the floor arrives again, and is not weighed again
         g.asides_arrive("well");
         g.player.pos.x += 3.0;
-        step(&mut g, 30.0, true);
+        step(&mut g, ARRIVAL_AFTER + 30.0, true);
         assert_eq!(said(&g).len(), 1, "{:?}", g.asides.log);
+    }
+
+    #[test]
+    fn an_arrival_walked_after_its_first_minute_is_not_weighed() {
+        let mut g = bare(1);
+        g.asides_arrive("well");
+        step(&mut g, ARRIVAL_LATEST + 1.0, true);
+        g.player.pos.x += 3.0;
+        step(&mut g, 5.0, true);
+        assert!(g.asides.memory.events.is_empty() && said(&g).is_empty(), "{:?}", g.asides.log);
+    }
+
+    #[test]
+    fn you_keep_the_place_s_silence() {
+        let mut g = bare(5);
+        step(&mut g, 1.0, true);
+        g.amb_hush = HUSHED;
+        assert_eq!(g.holding_breath(), Some("hushed"));
+        assert!(answer(&mut g, Use::Startle));
+        step(&mut g, 3.0, true);
+        assert!(said(&g).is_empty() && g.asides.log.last().is_some_and(|(_, w)| w.ends_with(":hushed")), "{:?}", g.asides.log);
+        g.amb_hush = HUSHED - 0.05;
+        assert_eq!(g.holding_breath(), None);
     }
 
     #[test]

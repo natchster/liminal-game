@@ -9,3 +9,23 @@ you	i_cant	cry		9	99	0.85	desperation	Help me. Please. I can't do this.
 you	im_here	cry		2	9	0.65	fear	I'm here! I'm right here!
 you	please_help_hoarse	cry		9	99	0.6	exhaustion	Please. Somebody. Help.
 you	somebody_help	cry		4	99	0.7	desperation	Somebody help me, please!
+you_aside	arrive_deep_how_far	arrive	deep	10	99	0.4	dread	How far down am I?
+you_aside	arrive_deep_nobody	arrive	deep	10	99	0.4	dread	Nobody's coming. Are they.
+you_aside	arrive_deep_tired	arrive	deep	10	99	0.35	resolve	I'm so tired.
+you_aside	arrive_halls_should	arrive	stair_halls	2	2	0.4	wary	None of this should be standing.
+you_aside	arrive_halls_walls	arrive	stair_halls	2	2	0.4	wary	Where are the walls?
+you_aside	arrive_house_lives	arrive	house	5	99	0.4	wary	Does someone live here?
+you_aside	arrive_lobby_hum	arrive	lobby	4	4	0.35	dread	That hum.
+you_aside	arrive_lobby_warm	arrive	lobby	4	4	0.3	wary	It's warm in here.
+you_aside	arrive_lobby_yellow	arrive	lobby	4	4	0.35	wary	Yellow. Everything's yellow.
+you_aside	arrive_okay	arrive		5	99	0.35	resolve	Okay. Okay.
+you_aside	arrive_rooms_again	arrive	rooms	5	99	0.4	dread	Again.
+you_aside	arrive_rooms_hate	arrive	rooms	5	99	0.4	dread	I hate this place.
+you_aside	arrive_rooms_last	arrive	rooms	5	99	0.45	dread	Please. Let this be the last one.
+you_aside	arrive_showroom_music	arrive	showroom	5	99	0.45	wary	Music? Down here?
+you_aside	arrive_well_keeps_going	arrive	well	1	1	0.4	wary	It just keeps going.
+you_aside	arrive_well_look	arrive	well	1	1	0.45	dread	Oh god. Look at it.
+you_aside	arrive_well_real	arrive	well	1	1	0.45	dread	This can't be real.
+you_aside	arrive_where_now	arrive		5	99	0.35	wary	Where now?
+you_aside	arrive_works_ceiling	arrive	works	3	3	0.35	wary	How far up does that go?
+you_aside	arrive_works_for	arrive	works	3	3	0.35	wary	What was all this for?

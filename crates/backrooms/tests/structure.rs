@@ -392,6 +392,15 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
                 .filter(|(n, _)| n.ends_with(".wav"))
         })
         .collect();
+    // a voice line's entry with no file: a line renamed or dropped by hand
+    // (`cargo xtask voice write` removes both)
+    for name in m["files"].as_object().into_iter().flatten().map(|(k, _)| k).filter(|k| k.starts_with("voice/")) {
+        if !voices.iter().any(|(n, _)| n == name) {
+            problems.push(format!(
+                "{name}: in MANIFEST.json but not in crates/game/assets (rewrite its persona with `cargo xtask voice write`)"
+            ));
+        }
+    }
     let files = std::fs::read_dir(root().join("crates/game/assets"))
         .unwrap()
         .flatten()

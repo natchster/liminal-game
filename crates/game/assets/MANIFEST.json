@@ -711,6 +711,546 @@
         "tools/voice/synth.py",
         "tools/voice/evaluate.py"
       ]
+    },
+    "voice/you_aside/arrive_deep_how_far.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "471bfcdc28224477",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_deep_how_far",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "How far down am I?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_deep_how_far; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_deep_nobody.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "828f909f67808bef",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_deep_nobody",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Nobody's coming. Are they."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_deep_nobody; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_deep_tired.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "af002e3c53c4ca9c",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "arrive_deep_tired",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "I'm so tired."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_deep_tired; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_halls_should.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "8b180202c9dc750d",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_halls_should",
+        "persona": "you_aside",
+        "seed": 4,
+        "text": "None of this should be standing."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_halls_should; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_halls_walls.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "1cd520c166611f08",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_halls_walls",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Where are the walls?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_halls_walls; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_house_lives.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "c1b6d7492157f633",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_house_lives",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Does someone live here?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_house_lives; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_lobby_hum.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "505ba2425e2575e6",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_lobby_hum",
+        "persona": "you_aside",
+        "seed": 4,
+        "text": "That hum."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_lobby_hum; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_lobby_warm.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "badd11b4c6d64256",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_lobby_warm",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "It's warm in here."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_lobby_warm; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_lobby_yellow.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "9fcb58384df54640",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_lobby_yellow",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "Yellow. Everything's yellow."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_lobby_yellow; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_okay.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "141d8a7a26174620",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "resolve",
+        "id": "arrive_okay",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Okay. Okay."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_okay; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_rooms_again.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "bb246c0e451198af",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_rooms_again",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Again."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_rooms_again; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_rooms_hate.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "6b772f2cabfe8ddf",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_rooms_hate",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "I hate this place."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_rooms_hate; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_rooms_last.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "346428f8efe23bc5",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_rooms_last",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "Please. Let this be the last one."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_rooms_last; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_showroom_music.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "da8732bad48b340c",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_showroom_music",
+        "persona": "you_aside",
+        "seed": 1,
+        "text": "Music? Down here?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_showroom_music; voice eval; voice write (take 1, seed 1)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_well_keeps_going.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "eed787b1fa8ab740",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_well_keeps_going",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "It just keeps going."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_well_keeps_going; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_well_look.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "c170417cc335a8fc",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_well_look",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Oh god. Look at it."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_well_look; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_well_real.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "b1b53d788f99eb66",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "dread",
+        "id": "arrive_well_real",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "This can't be real."
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_well_real; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_where_now.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "6d59baaf4c484119",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_where_now",
+        "persona": "you_aside",
+        "seed": 3,
+        "text": "Where now?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_where_now; voice eval; voice write (take 3, seed 3)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_works_ceiling.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "afb24c807752f1ff",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_works_ceiling",
+        "persona": "you_aside",
+        "seed": 2,
+        "text": "How far up does that go?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_works_ceiling; voice eval; voice write (take 2, seed 2)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
+    },
+    "voice/you_aside/arrive_works_for.wav": {
+      "authors": "written by coding agents under the developer's direction; the voice designed from a description (no real person's), said by a text-to-speech model",
+      "built_with": "mlx-community/chatterbox-fp16 at 4923fcca0908 (mlx 0.32.4, mlx-audio 0.6.4), cloned from the persona's reference (designed by Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign); trimmed, 48 kHz, set to -20 LUFS, true peak under -1 dBTP; by cargo xtask voice",
+      "fingerprint": "9b62a8ed0be9f72e",
+      "generative_model": "ResembleAI/chatterbox",
+      "generator": "text-to-speech models, processed by scripts",
+      "licence": "MIT",
+      "line": {
+        "emotion": "wary",
+        "id": "arrive_works_for",
+        "persona": "you_aside",
+        "seed": 4,
+        "text": "What was all this for?"
+      },
+      "rebuild": "cargo xtask voice build --persona you_aside --model chatterbox --only arrive_works_for; voice eval; voice write (take 4, seed 4)",
+      "reference_model": "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign",
+      "sources": [
+        "assets/src/voice/personas/you_aside.toml",
+        "assets/src/voice/personas/you.toml",
+        "assets/src/voice/personas/you.wav",
+        "assets/src/voice/lines/you_aside.toml",
+        "assets/src/voice/models/chatterbox/SOURCE.toml",
+        "tools/voice/models.toml",
+        "tools/voice/synth.py",
+        "tools/voice/evaluate.py"
+      ]
     }
   }
 }
