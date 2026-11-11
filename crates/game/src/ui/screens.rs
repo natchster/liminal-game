@@ -193,7 +193,7 @@ pub(crate) fn paint_brightness(f: &mut Frame, g: &Game) {
 /// it, in for 0.6 s, held, out over 0.8 s (4 s in all)
 pub(crate) fn paint_level_card(f: &mut Frame, g: &Game) {
     let Some((text, t0)) = &g.level_card else { return };
-    if g.state != "playing" {
+    if g.state != "playing" || g.hands_taken() {
         return;
     }
     let age = (f.now - t0) / 1000.0;

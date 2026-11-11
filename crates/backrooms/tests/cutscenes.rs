@@ -72,7 +72,7 @@ fn ahead(g: &Game) -> Anchors {
     let p = g.player.pos;
     let (s, c) = g.player.yaw.sin_cos();
     let at = [p.x - s * 2.0, g.floor_y_at(p.x, p.z), p.z - c * 2.0];
-    Anchors { thing: Some(Frame::thing(at, g.player.yaw + std::f64::consts::PI)), killer: None }
+    Anchors { thing: Some(Frame::thing(at, g.player.yaw)), killer: None }
 }
 
 fn marks(g: &Game) -> usize {
@@ -224,7 +224,10 @@ fn skip_at(c: Cutscene, at: f64) -> (Game, String) {
 fn a_skip_lands_where_play_lands() {
     // near your eyes (a cutscene that stays by them), and far from them (at the thing)
     let near = cut(json!({ "camera": [key(0.0, "start", [0.0; 3], None), key(2.0, "eyes", [0.2, -0.1, 0.2], None)] }));
-    for (c, at, how) in [(near, 0.3, "blend"), (cut(json!({})), 1.0, "dip")] {
+    let far = cut(
+        json!({ "camera": [key(0.0, "start", [0.0; 3], None), key(1.0, "thing", [0.0, 1.5, -1.0], None), key(2.0, "eyes", [0.3, 0.0, 0.5], None)] }),
+    );
+    for (c, at, how) in [(near, 0.3, "blend"), (far, 0.6, "dip")] {
         let (mut g, said) = skip_at(c, at);
         assert!(said.contains(how), "skipped at {at}: {said}");
         // the events that hold on a skip ran, once; the one that does not, not
@@ -327,4 +330,48 @@ fn a_death_ends_it_where_it_is() {
     assert_eq!(g.state, "dead");
     assert!(!g.hands_taken());
     assert!(g.cut_log.iter().any(|l| l.contains("(a death)")));
+}
+
+/// The HUD's layers this frame, by name
+fn layers(g: &mut Game) -> Vec<&'static str> {
+    let _ = g.hud_layers(1280.0, 800.0, 1.0);
+    g.hud_ui.painted.clone()
+}
+
+#[test]
+fn the_bars_come_in_the_hud_goes_and_a_key_shows_the_way_out() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    // something for the HUD to say: out of breath, a line
+    g.player.stamina = 10.0;
+    g.show_msg("A line", 30.0);
+    for _ in 0..10 {
+        step(&mut g, DT);
+    }
+    let before = layers(&mut g);
+    assert!(before.contains(&"msg") && !before.iter().any(|n| n.starts_with("cut-")), "{before:?}");
+    let a = ahead(&g);
+    assert!(g.play_cutscene_data(cut(json!({})), a));
+    for _ in 0..30 {
+        step(&mut g, DT);
+    }
+    let during = layers(&mut g);
+    assert!(during.contains(&"cut-bar-top") && during.contains(&"cut-bar-bottom"), "{during:?}");
+    // what the HUD painted is gone (the place's own: the vignette, grain, fills, stays)
+    let hud: Vec<_> = before.iter().filter(|n| !["vignette", "radial", "fill", "grain"].contains(n)).collect();
+    assert!(!hud.is_empty());
+    for n in hud {
+        assert!(!during.contains(n), "{n} is still up during a cutscene: {during:?}");
+    }
+    // no words until a key
+    assert!(!during.contains(&"cut-way-out"));
+    g.key_down("KeyW", false);
+    step(&mut g, DT);
+    assert!(layers(&mut g).contains(&"cut-way-out"));
+    g.key_up("KeyW");
+    while g.hands_taken() {
+        step(&mut g, DT);
+    }
+    let after = layers(&mut g);
+    assert!(!after.iter().any(|n| n.starts_with("cut-")), "{after:?}");
+    assert!(after.contains(&"msg"), "the HUD is back");
 }

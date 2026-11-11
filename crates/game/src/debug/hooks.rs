@@ -895,6 +895,23 @@ impl Game {
     /// brightness line chosen, Controls, or the title)
     pub fn debug_screen(&mut self, name: &str) {
         use crate::ui::menu::Screen;
+        // a cutscene with your hands (the bars, the HUD gone), and with a
+        // key pressed and the skip key held half its time (the way out)
+        if name == "cutscene" || name == "cutscene-skip" {
+            let p = self.player.pos;
+            let (s, c) = self.player.yaw.sin_cos();
+            let at = [p.x - s * 2.0, self.floor_y_at(p.x, p.z), p.z - c * 2.0];
+            let thing = crate::cutscene::play::Frame::thing(at, self.player.yaw);
+            let anchors = crate::cutscene::play::Anchors { thing: Some(thing), killer: None };
+            self.play_cutscene_data(glance(), anchors);
+            if name == "cutscene-skip" {
+                if let Some(q) = self.cut.as_mut() {
+                    q.hint = crate::cutscene::play::HINT_FOR;
+                    q.skip_held = crate::cutscene::play::SKIP_HOLD * 0.5;
+                }
+            }
+            return;
+        }
         // the one behind the glass's window: its blinds let down (at once),
         // or its lamp hung low as when it has learned (`--showcase glass:…`)
         if name == "blind-down" || name == "lamp-low" {
@@ -1114,4 +1131,20 @@ impl Game {
             _ => {}
         }
     }
+}
+
+/// A glance at a thing two metres ahead and back (`--screen cutscene`)
+fn glance() -> crate::cutscene::Cutscene {
+    let key = |t: f64, anchor: &str, pos: [f64; 3], look: Option<[f64; 3]>, sway: f64| {
+        serde_json::json!({ "t": t, "anchor": anchor, "pos": pos, "look": look, "look_at": null, "yaw": 0.0, "pitch": 0.0, "roll": 0.0,
+            "fov": null, "ease": "in_out", "cut": false, "sway": sway, "jolt": false })
+    };
+    let v = serde_json::json!({
+        "id": "glance", "about": "a glance at a thing two metres ahead", "world": "live", "then": "back", "skip": "hold",
+        "breaks_off": false, "length": 3.4, "blend_in": 0.0, "blend_out": 1.0, "repeat_from": 0.0, "stages": ["ahead"],
+        "bars": { "in": 0.0, "out": 2.9 },
+        "camera": [key(0.0, "start", [0.0; 3], None, 0.0), key(1.2, "thing", [0.0, 1.5, 1.1], Some([0.0, 1.2, 0.0]), 0.3), key(2.4, "eyes", [0.0; 3], None, 0.0)],
+        "fade": [], "sound": [], "event": [], "say": [],
+    });
+    crate::cutscene::Cutscene::from_json(&v).expect("the glance")
 }

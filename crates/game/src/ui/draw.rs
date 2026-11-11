@@ -1371,6 +1371,8 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
             f.background(&bg, op, LayerBlend::Normal);
         }
     }
+    // ---- z 7: a cutscene's veil, its bars and the way out (`ui/cinema.rs`)
+    crate::ui::cinema::paint_cutscene(&mut f, g);
     // ---- z 10: the menus and cards (`ui/screens.rs`), then Settings' brightness over everything
     crate::ui::screens::paint_menu(&mut f, g);
     crate::ui::screens::paint_brightness(&mut f, g);
@@ -1416,8 +1418,9 @@ fn paint_vignette(grad: &Radial, sh: &Shadow, cm: ColorMatrix, w: f64, h: f64) -
 
 /// #hud and its children (z-index 4 stacking context)
 fn paint_hud(f: &mut Frame, g: &Game) {
-    // the title is the place alone, and the pause list stands over it alone
-    if g.state == "menu" || g.state == "paused" {
+    // the title is the place alone, and the pause list stands over it alone;
+    // a cutscene has your hands, and the HUD is not yours to read (`ui/cinema.rs`)
+    if g.state == "menu" || g.state == "paused" || g.hands_taken() {
         return;
     }
     let d = &g.ui;

@@ -423,6 +423,7 @@ impl Cutscene {
                         && k.pitch == 0.0
                         && k.roll == 0.0
                         && k.fov.is_none()
+                        && k.sway == 0.0
                         && !k.cut => {}
                 _ => p.push(
                     "blend_in = 0 starts on the keys: the first key must be the camera as it is (t = 0, anchor = \"start\", nothing else)"

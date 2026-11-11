@@ -118,6 +118,10 @@ gone when it is not needed.
 7. **The notebook in your hands.** Opening it keeps the view and the
    mouse; it sits low on the screen as paper; her pages in her hand, the
    torn notes typed; pages turn with the wheel, the arrows or a click.
+8. **A cutscene says your hands are taken** (`docs/CUTSCENES.md`): black
+   bars slide in from the top and the bottom, the HUD goes, and a key
+   pressed shows "Hold E to skip" small in the lower bar; play itself is
+   never letterboxed.
 
 ## Milestones
 
