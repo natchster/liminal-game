@@ -649,6 +649,10 @@ impl Game {
         if self.state != "playing" {
             return Some("not playing");
         }
+        // a cutscene has the camera: said once your hands are back
+        if self.hands_taken() {
+            return Some("cutscene");
+        }
         // rule 7
         if self.asides.clock - self.asides.active_at > AWAY {
             return Some("away");

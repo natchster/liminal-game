@@ -414,13 +414,18 @@ impl Game {
         let Some(c) = self.creature(ei) else { return false };
         let tells = c.tells.iter().filter(|t| now - **t < TELL_WINDOW).count();
         let noticed = c.noticed_at.map(|t| now - t >= NOTICE_GRACE).unwrap_or(false);
-        tells >= TELLS_TO_STRIKE && noticed && now - self.level_start_t >= LEVEL_GRACE
+        // (nothing strikes while a cutscene has your hands)
+        tells >= TELLS_TO_STRIKE && noticed && now - self.level_start_t >= LEVEL_GRACE && !self.hands_taken()
     }
 
     /// Creature `ei`'s strike reached you (design 3, invariants 2 and 3): a
     /// first meeting knocks you down, a second contact in a peak or a contact
     /// on a spent nerve kills. → true when you died.
     pub fn creature_contact(&mut self, ei: usize) -> bool {
+        // a cutscene has your hands: nothing touches you (`docs/CUTSCENES.md`, rule 4)
+        if self.hands_taken() {
+            return false;
+        }
         let kind = self.entities[ei].kind.clone();
         self.director_note("contact");
         // it lands where it struck

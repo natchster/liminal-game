@@ -140,6 +140,10 @@ impl Game {
             }
             return;
         }
+        // a cutscene has your hands: Escape, Mute and the skip key
+        if self.hands_taken() && self.live_menu().is_none() {
+            return self.cutscene_key(code);
+        }
         // under the title, the pause list or Settings only Mute reaches the game
         if self.live_menu().is_some() {
             if mute {
@@ -759,24 +763,27 @@ impl Game {
     pub fn update_player(&mut self, dt: f64) {
         let wk = self.weather_key();
         use crate::session::input::Act;
+        // a cutscene has your hands: your body stays as it is (no step, no
+        // run, the crouch kept), and only its timers and camera go on
+        let still = self.hands_taken();
         let (mut mx, mut mz) = (0.0f64, 0.0f64);
-        if self.held(Act::Forward) {
+        if self.held(Act::Forward) && !still {
             mz += 1.0;
         }
-        if self.held(Act::Back) {
+        if self.held(Act::Back) && !still {
             mz -= 1.0;
         }
         // (with the notebook up the arrows turn its pages instead)
         let strafe =
             |g: &Game, a: Act| g.settings.keys(a).iter().any(|k| g.keys.contains(k) && !(g.journal_open && k.starts_with("Arrow")));
-        if strafe(self, Act::Left) {
+        if strafe(self, Act::Left) && !still {
             mx -= 1.0;
         }
-        if strafe(self, Act::Right) {
+        if strafe(self, Act::Right) && !still {
             mx += 1.0;
         }
         // a run by a press lasts until you stop
-        if mx == 0.0 && mz == 0.0 && !self.touch_input.active {
+        if mx == 0.0 && mz == 0.0 && !self.touch_input.active && !still {
             self.input.run_latched = false;
         }
         // crouch: Ctrl held, or C until C again; running stands you up
@@ -784,10 +791,12 @@ impl Game {
         if run_key && self.input.crouch_latched && !self.held(Act::Crouch) {
             self.input.crouch_latched = false;
         }
-        self.player.crouch = self.wants_crouch();
-        let sprinting = !self.player.crouch && self.wants_sprint() && self.sprint_ready();
+        if !still {
+            self.player.crouch = self.wants_crouch();
+        }
+        let sprinting = !still && !self.player.crouch && self.wants_sprint() && self.sprint_ready();
         // touch stick is analog: it replaces the keys rather than adding to them
-        if self.touch_input.active {
+        if self.touch_input.active && !still {
             mx = self.touch_input.x;
             mz = self.touch_input.z;
         }

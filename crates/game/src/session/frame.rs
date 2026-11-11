@@ -48,7 +48,21 @@ impl Game {
         if self.state == "playing" {
             self.update_input(dt);
         }
-        if self.state == "playing" && self.in_stairwell {
+        if self.state == "playing" && self.cut.as_ref().is_some_and(|p| p.c.world == crate::cutscene::World::Held) {
+            // a cutscene that holds the world: only the place's light and
+            // sound go on, and your body (still), whose camera it blends over
+            let perf_t = self.perf_t;
+            self.cutscene_pre();
+            self.update_player(dt);
+            self.cutscene_post(dt);
+            self.update_prop_cull(dt);
+            self.update_lights(dt, perf_t);
+            self.update_hud(dt);
+            self.update_dust(dt);
+            self.update_grain(dt);
+            self.update_ambient(dt);
+            self.update_soundscape(dt);
+        } else if self.state == "playing" && self.in_stairwell {
             self.update_stairwell(dt);
             self.update_asides(dt);
             self.update_hud(dt);
@@ -60,11 +74,14 @@ impl Game {
             self.update_grain(dt);
         } else if self.state == "playing" {
             let perf_t = self.perf_t;
+            self.cutscene_pre();
             self.update_player(dt);
             self.update_entities(dt, perf_t);
             self.update_director(dt);
             self.update_camp_come();
             self.update_asides(dt);
+            // a cutscene's camera over play's, its cues and its end
+            self.cutscene_post(dt);
             self.update_scp(dt);
             self.update_prop_cull(dt);
             self.update_lights(dt, perf_t);
@@ -129,11 +146,15 @@ impl Game {
     /// Key up.
     pub fn key_up(&mut self, code: &str) {
         self.keys.remove(code);
+        if self.hands_taken() {
+            self.cutscene_key_up(code);
+        }
         self.on_key_up(code);
     }
     /// Mouse motion while pointer-locked (relative dx / dy).
     pub fn mouse_move(&mut self, dx: f64, dy: f64) {
-        if !self.pointer_locked {
+        // (a cutscene has the camera: the mouse turns nothing)
+        if !self.pointer_locked || self.hands_taken() {
             return;
         }
         let k = 0.0022 * self.settings.look;

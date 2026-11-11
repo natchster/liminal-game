@@ -54,6 +54,11 @@ to = 0.5
 over = 0.3
 colour = "#100"
 
+[[fade]]
+t = 4.5
+to = 0.0
+over = 0.3
+
 [[sound]]
 t = 1.8
 name = "breath"

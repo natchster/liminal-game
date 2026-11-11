@@ -58,7 +58,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `audio` | Sound effects and persistent beds (`sys`), the spatial soundscape, the ambient event driver |
 | `visuals` | Lighting (the place-based light map, pooled lights, fog; `occlusion`: the level's shape in it, for the corners), procedural textures and surfaces, the Building's photographed surfaces and the photographed details over the rooms' (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the small things' contact shadows (`contact`), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), the three typefaces and their CoreText metrics (`faces`), the menus and their painter (`menu`, `screens`), the HUD at rest (`rest`: what shows when, and the building's sentence case), the notebook as paper (`paper`), and the painter that turns elements into composited layers (`draw`) |
-| `cutscene` | Cutscenes as data (`docs/CUTSCENES.md`): the library, compiled from `assets/src/cutscenes/*.toml` by `cargo xtask cutscene write` into one bundle (`assets/cutscenes.json`, every field written out) and parsed strictly; the rules a cutscene keeps whatever the game around it (`shape_problems`, also run by `backrooms --cutscene-check`); the camera's curves (eased keys, a centripetal Catmull-Rom spline, angles the short way round, a sway with no random draw) |
+| `cutscene` | Cutscenes as data (`docs/CUTSCENES.md`): the library, compiled from `assets/src/cutscenes/*.toml` by `cargo xtask cutscene write` into one bundle (`assets/cutscenes.json`, every field written out) and parsed strictly; the rules a cutscene keeps whatever the game around it (`shape_problems`, also run by `backrooms --cutscene-check`); the camera's curves (eased keys, a centripetal Catmull-Rom spline, angles the short way round, a sway with no random draw); the player (`play`: one at a time on a clock of its own, anchors, the blend envelope over the gameplay camera, hands taken, live and held worlds, break-off, skip) and what a cutscene may name (`cues`: sounds played from places, events, asides) |
 | `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/UI.md`), and the game flow: levels, saves, death, the menu |
 | `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
 | `debug` | Level dumps for tools and tests, and test helpers |
@@ -71,7 +71,13 @@ the pacing director, anomaly, prop culling, lights, HUD (which also runs the
 prop animators), dust, film grain, reality glitches, the flicker wave, ghost
 footsteps, guide arrows, the vacuum and the broken elevator, sanity effects,
 ambient sound and the soundscape. Inside the Stairwell or the Loop the mode's update replaces
-most of that. The app then asks for the render globals (background, fog, the
+most of that. A cutscene (`cutscene::play`, `docs/CUTSCENES.md`) wraps play's
+update: `cutscene_pre` puts back the gameplay camera of the frame before
+(the player's update eases its roll and field of view from the camera as
+it was), play draws its camera, and `cutscene_post`, after the director
+and your asides, mixes the cutscene's camera over it and runs its cues;
+one that holds the world runs only your body (still), the prop cull, the
+lights, the HUD, dust, grain and the place's sound. The app then asks for the render globals (background, fog, the
 light map, the colour filter) and the HUD layers, and renders.
 
 ### Building a level

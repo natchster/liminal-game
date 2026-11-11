@@ -2,13 +2,17 @@
 //! gives them back. A cutscene is data (`model`), written as TOML in
 //! `assets/src/cutscenes/` and compiled by `cargo xtask cutscene write`
 //! into the bundle embedded here (`assets/cutscenes.json`); its camera
-//! moves on the curves of `curve`.
+//! moves on the curves of `curve`, and `play` plays it (one at a time, your
+//! hands taken, the camera given back); `cues` holds the sounds and events
+//! it may name.
 //!
 //! Owns: the library (`library`, `get`) and the rules a cutscene must keep
 //! whatever the game around it (`Cutscene::shape_problems`). Nothing here
 //! draws from a random stream or reads a clock.
+pub mod cues;
 pub mod curve;
 pub mod model;
+pub mod play;
 
 pub use model::{Anchor, Bars, Cutscene, Event, Fade, Key, Look, Say, Skip, Sound, Then, World};
 
@@ -32,7 +36,10 @@ pub fn get(id: &str) -> Option<&'static Cutscene> {
 pub fn bundle_problems(text: &str) -> Vec<String> {
     match model::parse_bundle(text) {
         Err(e) => vec![e],
-        Ok(list) => list.iter().flat_map(|c| c.shape_problems().into_iter().map(move |p| format!("cutscene {}: {p}", c.id))).collect(),
+        Ok(list) => list
+            .iter()
+            .flat_map(|c| c.shape_problems().into_iter().chain(cues::lint(c)).map(move |p| format!("cutscene {}: {p}", c.id)))
+            .collect(),
     }
 }
 

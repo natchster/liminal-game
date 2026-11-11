@@ -60,6 +60,8 @@ struct RngState {
     stack: Vec<Stream>,
     native: Xorshift,
     trace: u64,
+    /// draws from the native stream so far (tests: what a system draws)
+    native_count: u64,
 }
 
 thread_local! {
@@ -72,6 +74,7 @@ thread_local! {
             x
         },
         trace: 0,
+        native_count: 0,
     });
 }
 
@@ -86,7 +89,10 @@ pub fn rnd() -> f64 {
                 m.next()
             }
             Some(Stream::Own(m)) => m.next(),
-            _ => r.native.next(),
+            _ => {
+                r.native_count += 1;
+                r.native.next()
+            }
         }
     })
 }
@@ -104,7 +110,11 @@ pub fn seed_native(seed: u64) {
 }
 /// The native generator, whatever stream is active.
 pub fn native_rnd() -> f64 {
-    RNG.with(|r| r.borrow_mut().native.next())
+    RNG.with(|r| {
+        let mut r = r.borrow_mut();
+        r.native_count += 1;
+        r.native.next()
+    })
 }
 
 struct Pop;
@@ -136,6 +146,11 @@ pub fn with_native<R>(f: impl FnOnce() -> R) -> R {
     RNG.with(|r| r.borrow_mut().stack.push(Stream::Native));
     let _g = Pop;
     f()
+}
+/// Number of native draws so far, whatever drew them (tests: a system that
+/// must draw nothing, `docs/CUTSCENES.md` rule 5)
+pub fn native_draws() -> u64 {
+    RNG.with(|r| r.borrow().native_count)
 }
 /// Number of seeded draws so far (for the rand trace).
 pub fn seeded_draws() -> u64 {

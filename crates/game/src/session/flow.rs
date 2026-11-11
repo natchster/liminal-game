@@ -54,6 +54,9 @@ impl Game {
     }
 
     pub fn init_level(&mut self, n: i32) {
+        // (a cutscene ends with its floor)
+        self.cutscene_end_now("a new floor");
+        self.cut_hold = None;
         self.leave_stairwell_mode();
         self.leave_loop_mode();
         self.level_num = n;
@@ -453,6 +456,8 @@ impl Game {
             self.player.sanity = self.player.sanity.max(40.0);
             return;
         }
+        // a death ends any cutscene where it is
+        self.cutscene_end_now("a death");
         self.state = "dead".into();
         self.death_count += 1.0;
         self.last_death_cause = Some(cause.to_string());
@@ -586,6 +591,7 @@ impl Game {
         self.lore_arcs_completed.clear();
         self.creature_run = Default::default();
         self.asides = Default::default();
+        self.cut_seen.clear();
         self.notebook.clear();
         self.thread.clear();
         self.secrets_taken.clear();

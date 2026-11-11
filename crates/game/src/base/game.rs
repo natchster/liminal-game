@@ -641,6 +641,16 @@ pub struct Game {
     /// The voice director of your asides, and what the run remembers of
     /// them (`audio::asides`)
     pub asides: crate::audio::asides::Asides,
+    /// the cutscene playing (`cutscene::play`): while it plays your hands are taken
+    pub cut: Option<crate::cutscene::play::Playing>,
+    /// how often each cutscene has played this run (a repeat plays its short form)
+    pub cut_seen: std::collections::BTreeMap<String, u32>,
+    /// a cutscene's veil (its fades), kept past its end where it says so
+    pub cut_veil: crate::cutscene::play::Veil,
+    /// the camera a cutscene ending on a card left (held behind the card)
+    pub cut_hold: Option<crate::cutscene::play::Pose>,
+    /// what the cutscenes did (the last 64 lines: tests, previews)
+    pub cut_log: Vec<String>,
     /// `--showcase watcher`: its furniture placed (once)
     pub showcase_company: bool,
     pub god_deaths: f64,
@@ -1119,6 +1129,11 @@ impl Game {
             god_mode: false,
             creature_run: Default::default(),
             asides: Default::default(),
+            cut: None,
+            cut_seen: Default::default(),
+            cut_veil: Default::default(),
+            cut_hold: None,
+            cut_log: vec![],
             showcase_company: false,
             god_deaths: 0.0,
             level_start_t: 0.0,

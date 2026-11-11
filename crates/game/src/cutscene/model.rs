@@ -443,6 +443,12 @@ impl Cutscene {
                 p.push(format!("its {what}s are not in order of time"));
             }
         }
+        if self.then == Then::Back {
+            let v = self.veil_at(self.length).0;
+            if v > 1e-9 {
+                p.push(format!("then = \"back\" gives your eyes back clear: its fades leave a veil of {v:.2} at the end"));
+            }
+        }
         for x in &self.fade {
             if !(0.0..=1.0).contains(&x.to) || x.over < 0.0 {
                 p.push(format!("fade at {}: to {} (0–1), over {} (≥ 0)", x.t, x.to, x.over));
