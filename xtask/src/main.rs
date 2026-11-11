@@ -16,6 +16,7 @@
 //! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
 //! cargo xtask nightly             drift sweep + long level sweep + recorded bench
 //! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/VOICES.md)
+//! cargo xtask cutscene check|write|list   the cutscene pipeline (docs/CUTSCENES.md)
 //! ```
 mod ab;
 mod assets;
@@ -24,6 +25,7 @@ mod bodies;
 mod bundle;
 mod calibrate;
 mod check;
+mod cutscene;
 mod drift;
 mod heatmap;
 mod hook;
@@ -66,6 +68,9 @@ const USAGE: &str = "usage: cargo xtask <task>
   voice doctor [--smoke] | voice fetch [--only ID,…]
                              the voice-over pipeline (docs/VOICES.md): its toolchain
                              and models
+  cutscene check | write | list
+                             the cutscene pipeline (docs/CUTSCENES.md): the sources,
+                             the compiled bundle and the game's rules
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -91,6 +96,7 @@ fn main() -> ExitCode {
         Some("drift") => drift::drift(rest),
         Some("nightly") => drift::nightly(rest),
         Some("voice") => voice::voice(rest),
+        Some("cutscene") => cutscene::cutscene(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

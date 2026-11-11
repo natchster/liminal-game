@@ -125,6 +125,8 @@ struct Options {
     /// `--fresh`: ignore the saved settings and progress, and seed the
     /// per-frame randomness: the same shot every time
     fresh: bool,
+    /// `--cutscene-check FILE`: a compiled cutscene bundle against the game's rules
+    cutscene_check: Option<String>,
 }
 fn parse_args() -> Options {
     let mut o = Options {
@@ -154,6 +156,7 @@ fn parse_args() -> Options {
         knock_demo: false,
         vending_demo: None,
         fresh: false,
+        cutscene_check: None,
         metrics: None,
         bench: None,
         bench_creatures: None,
@@ -219,6 +222,7 @@ fn parse_args() -> Options {
             "--levels" => o.levels = next(&mut i).split(',').filter_map(|x| x.parse().ok()).collect(),
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
+            "--cutscene-check" => o.cutscene_check = Some(next(&mut i)),
             "--metrics" => o.metrics = Some(next(&mut i)),
             "--bench" => o.bench = Some(next(&mut i)),
             "--bench-creatures" => o.bench_creatures = Some(next(&mut i)),
@@ -1137,6 +1141,19 @@ fn bench_creatures(o: &Options, path: &str) {
 
 fn main() {
     let o = parse_args();
+    // a cutscene bundle against the game's rules (`cargo xtask cutscene check`)
+    if let Some(p) = &o.cutscene_check {
+        let text = std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{p}: {e}"));
+        let problems = game::cutscene::bundle_problems(&text);
+        for q in &problems {
+            eprintln!("{q}");
+        }
+        if !problems.is_empty() {
+            std::process::exit(1);
+        }
+        println!("{p}: every cutscene keeps the game's rules");
+        return;
+    }
     // the speakers stay off (`engine::audio::device_output`): every headless
     // mode below plays its sounds to nobody; only the window turns them on
     if let Some(p) = o.bench.clone() {

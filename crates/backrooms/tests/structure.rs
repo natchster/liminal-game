@@ -413,7 +413,15 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
                 .map(|e| (format!("textures/{}", e.file_name().to_string_lossy()), e))
                 .filter(|(n, _)| n.ends_with(".jpg")),
         )
-        .chain(voices);
+        .chain(voices)
+        // every cutscene, compiled into one bundle (`cargo xtask cutscene write`)
+        .chain(
+            std::fs::read_dir(root().join("crates/game/assets"))
+                .unwrap()
+                .flatten()
+                .map(|e| (e.file_name().to_string_lossy().to_string(), e))
+                .filter(|(n, _)| n == "cutscenes.json"),
+        );
     for (name, e) in files {
         let entry = &m["files"][&name];
         if entry.is_null() {
@@ -422,7 +430,13 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
         }
         let fp = fnv64(&std::fs::read(e.path()).unwrap());
         if entry["fingerprint"].as_str() != Some(fp.as_str()) {
-            let how = if name.starts_with("voice/") { "cargo xtask voice write" } else { "cargo xtask assets …" };
+            let how = if name.starts_with("voice/") {
+                "cargo xtask voice write"
+            } else if name == "cutscenes.json" {
+                "cargo xtask cutscene write"
+            } else {
+                "cargo xtask assets …"
+            };
             problems.push(format!("{name}: the file changed but its manifest entry did not (fingerprint {fp}); rebuild it with `{how}`, which records it, and say what changed"));
         }
         let lic = entry["licence"].as_str().unwrap_or("");

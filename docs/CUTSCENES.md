@@ -182,7 +182,8 @@ whose findings are fixed.
 
 | # | Commit | Notes |
 |---|---|---|
-| C0 | (this commit) | the plan and the research |
+| C0 | `670a112` | the plan and the research |
+| C1 | (this commit) | `game::cutscene`: `model` (the types; a strict parse of the compiled form: an unknown, missing or ill-kinded field is an error naming the cutscene and the field; `shape_problems`, the rules of a cutscene's shape: length, blend envelope, keys forward in time, the first key the camera as it is when nothing blends in, a stage to play it in, bars in order) and `curve` (cubic eases flat at their ends, a centripetal Catmull-Rom spline that passes its keys and never loops, angles the short way round, a sway made of sines). `cargo xtask cutscene check|write|list` (`xtask/src/cutscene.rs`): the format (fields, kinds, defaults written out) is xtask's, the rules are the game's, run on the compiled bundle by `backrooms --cutscene-check`, so there is one copy of them; `write` runs them on a copy first and never writes a bundle that breaks them. One bundle (`crates/game/assets/cutscenes.json`, embedded once: no list of files in code to keep in step), its `MANIFEST.json` entry (a new generator, "written by hand, compiled by scripts") checked by `tests/structure.rs`. A sample with every field (`crates/game/tests/data/cutscene/sample.toml`) is compiled by xtask's test into the fixture the game's tests parse, so the format and the parse cannot drift. Tests: xtask 3 (defaults, every fault named, the sample), game 9 (the bundle, the sample, refusals, every broken rule named, curves). The library is empty until C5 |
 
 ## What only people can tell
 

@@ -17,6 +17,8 @@
 //! * [`modes`] — sub-modes that replace the level world: the Stairwell and the
 //!   Loop.
 //! * [`player`] — input actions, movement, item use and player-side gadgets.
+//! * [`cutscene`] — cutscenes as data: the library, its rules, the camera's
+//!   curves (`docs/CUTSCENES.md`).
 //! * [`audio`] — sound effects, persistent beds, the spatial soundscape and
 //!   ambient events.
 //! * [`visuals`] — lighting, procedural textures and surfaces, full-screen
@@ -32,6 +34,7 @@ pub mod assets;
 pub mod audio;
 pub mod base;
 pub mod core_props;
+pub mod cutscene;
 pub mod debug;
 pub mod entities;
 pub mod level;

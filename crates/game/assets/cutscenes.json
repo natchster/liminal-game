@@ -1,0 +1,4 @@
+{
+  "about": "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).",
+  "cutscenes": []
+}

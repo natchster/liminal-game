@@ -49,6 +49,7 @@ cargo xtask voice build --persona P [--model M]  # every take of P's lines (text
 cargo xtask voice eval --persona P [--model M]   # words, emotion, tone of voice, voice: report.md and the gate
 cargo xtask voice write --persona P              # the chosen takes into crates/game/assets/voice/ and MANIFEST.json
 cargo xtask voice selftest                       # the evaluation against known answers
+cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```

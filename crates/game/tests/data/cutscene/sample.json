@@ -1,0 +1,141 @@
+{
+  "about": "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).",
+  "cutscenes": [
+    {
+      "about": "Every field, once",
+      "bars": {
+        "in": 0.0,
+        "out": 5.5
+      },
+      "blend_in": 0.5,
+      "blend_out": 1.0,
+      "breaks_off": true,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": null,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in",
+          "fov": 64.0,
+          "jolt": false,
+          "look": [
+            0.2,
+            0.6,
+            -1.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.2,
+            1.5,
+            0.4
+          ],
+          "roll": 0.0,
+          "sway": 0.5,
+          "t": 1.5,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": true,
+          "ease": "out",
+          "fov": null,
+          "jolt": false,
+          "look": null,
+          "look_at": "killer",
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            -0.2,
+            0.3
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 2.5,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "linear",
+          "fov": null,
+          "jolt": true,
+          "look": null,
+          "look_at": null,
+          "pitch": -5.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 3.0,
+          "sway": 0.0,
+          "t": 3.0,
+          "yaw": 10.0
+        }
+      ],
+      "event": [
+        {
+          "name": "peered",
+          "on_skip": true,
+          "t": 2.0
+        }
+      ],
+      "fade": [
+        {
+          "colour": "#100",
+          "over": 0.3,
+          "t": 4.0,
+          "to": 0.5
+        }
+      ],
+      "id": "sample",
+      "length": 6.0,
+      "repeat_from": 1.0,
+      "say": [
+        {
+          "subject": "shaft",
+          "t": 5.9,
+          "use": "uncanny"
+        }
+      ],
+      "skip": "hold",
+      "sound": [
+        {
+          "anchor": "thing",
+          "gain": 0.8,
+          "name": "breath",
+          "pos": [
+            0.2,
+            -4.0,
+            -0.4
+          ],
+          "t": 1.8
+        }
+      ],
+      "stages": [
+        "title"
+      ],
+      "then": "back",
+      "world": "live"
+    }
+  ]
+}

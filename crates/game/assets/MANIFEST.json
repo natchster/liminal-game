@@ -1,9 +1,10 @@
 {
-  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin, textures/*.jpg and voice/<persona>/*.wav has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
+  "about": "Where every embedded asset file comes from and on what terms. tests/structure.rs (backrooms) checks that each crates/game/assets/*.bin, textures/*.jpg, voice/<persona>/*.wav and cutscenes.json has an entry, that its fingerprint (FNV-1a 64 of the file, written by cargo xtask assets) matches, that its licence and generator are allowed, and that its sources exist. A generative model (image-to-3D, AI audio) may be used only if it is in allowed_models, which records models whose licence allows commercial use everywhere the game ships; non-commercial weights (AudioGen, MMAudio) and territory-limited ones (Hunyuan3D 2.1) are not allowed.",
   "allowed_generators": [
     "procedural bpy scripts",
     "photographs, processed by scripts",
-    "text-to-speech models, processed by scripts"
+    "text-to-speech models, processed by scripts",
+    "written by hand, compiled by scripts"
   ],
   "allowed_licences": [
     "MIT",
@@ -54,6 +55,16 @@
         "assets/src/blender/skin_staff.py",
         "assets/src/blender/SKINNED.md"
       ]
+    },
+    "cutscenes.json": {
+      "authors": "written by coding agents under the developer's direction",
+      "built_with": "cargo xtask cutscene write (TOML sources, every field written out)",
+      "fingerprint": "2b41d59257df4504",
+      "generative_model": null,
+      "generator": "written by hand, compiled by scripts",
+      "licence": "MIT",
+      "rebuild": "cargo xtask cutscene write",
+      "sources": []
     },
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",

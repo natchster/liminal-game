@@ -1,0 +1,72 @@
+# The sample: every field of a cutscene once, for the tests of the format
+# (`xtask/src/cutscene.rs`, which compiles it to sample.json beside it) and
+# of the parse (`game::cutscene`, which reads sample.json). Not a cutscene
+# the game plays. `REGEN=1 cargo test -p xtask cutscene` writes sample.json.
+id = "sample"
+about = "Every field, once"
+world = "live"
+then = "back"
+skip = "hold"
+breaks_off = true
+length = 6.0
+blend_in = 0.5
+blend_out = 1.0
+repeat_from = 1.0
+stages = ["title"]
+
+[bars]
+in = 0.0
+out = 5.5
+
+[[camera]]
+t = 0.0
+anchor = "start"
+
+[[camera]]
+t = 1.5
+anchor = "thing"
+pos = [0.2, 1.5, 0.4]
+look = [0.2, 0.6, -1.0]
+ease = "in"
+fov = 64
+sway = 0.5
+
+[[camera]]
+t = 2.5
+anchor = "eyes"
+pos = [0.0, -0.2, 0.3]
+look_at = "killer"
+ease = "out"
+cut = true
+
+[[camera]]
+t = 3.0
+anchor = "eyes"
+yaw = 10
+pitch = -5
+roll = 3
+ease = "linear"
+jolt = true
+
+[[fade]]
+t = 4.0
+to = 0.5
+over = 0.3
+colour = "#100"
+
+[[sound]]
+t = 1.8
+name = "breath"
+anchor = "thing"
+pos = [0.2, -4.0, -0.4]
+gain = 0.8
+
+[[event]]
+t = 2.0
+name = "peered"
+on_skip = true
+
+[[say]]
+t = 5.9
+use = "uncanny"
+subject = "shaft"
