@@ -215,6 +215,19 @@ were said in the session from the save, `asides.said` in
   "What's that siren for?" (one take of eight passed its tone) sound
   right: which of them did not?
 
+Cutscenes (the moments the camera is borrowed; `docs/CUTSCENES.md`; start
+a New descent from the title, look into a broken lift, and die at least
+once to a creature and once to your nerve):
+
+- When the black bars came, did you know your hands were taken? Did you
+  press anything, and did you find the way out ("Hold E to skip")?
+- New descent: did it feel like one shot from the title into your hands,
+  or like a menu and then a game? Where did you think you were?
+- The broken lift: what did you see in the black? Was it frightening, or
+  a jump scare, or nothing? Would you look into another one?
+- Dying: did you feel yourself fall? Did the second death feel too short,
+  too long, or right? Did dying start to wear thin?
+
 One questionnaire item only, the miniPXI's **Enjoyment** ("I had a good
 time playing this game", 1–7). Full questionnaires (GEQ, PXI subscales) do
 not hold up well enough for a handful of players.

@@ -173,3 +173,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-11, on top of 1c92575: frames: 7 shots. Reason: C7: a death is a cutscene now (death_taken): at 0.25 s the same moment, its face in your eyes, framed by the cutscene's camera and its clock's shake instead of the death camera's, the HUD hidden; and death_fall, the Hound's kill at 0.9 s: on the floor, rolled, it standing over you (docs/CUTSCENES.md)
 
 - 2026-11-11, on top of 1c92575: look anchors: death_fall. Reason: C7: a new shot, the fall; its look is its own baseline
+
+- 2026-11-11, on top of 725c600: frames: shaft_eyes. Reason: C8: the shaft retimed (its approach 1.9 s and its hand-back 2.1 s, so a look begun with your back to the lift stays under 150 deg/s; found by the skill's trial: E has no facing cone); the same moment, at 3.7 s

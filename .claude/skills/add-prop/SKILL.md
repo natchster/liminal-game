@@ -34,5 +34,8 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
 6. **Evidence.** A zone view that shows the prop where it belongs
    (`--fresh --dump-level … --views`), and a blind review (`visual-review`)
    when it changes the look of a place.
-7. **Ledger.** The theme's `props/<theme>` entry in `docs/content.json`
+7. **A prop you look into** (a moment that takes the camera, as a broken
+   lift's shaft): `add-cutscene`, its anchor read from the prop after
+   settling.
+8. **Ledger.** The theme's `props/<theme>` entry in `docs/content.json`
    (its placer count in the name); open issues in `docs/QUALITY.md`.

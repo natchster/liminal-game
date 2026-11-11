@@ -44,6 +44,7 @@ moved into a test or a lint as soon as one can check them.
 | `.claude/rules/entities.md` | creatures, the director, sessions | one brain, fairness in `creature.rs`, per-frame draws from the native stream, the director owns pressure, the ecology, what they learn, bodies |
 | `.claude/rules/visuals.md` | the renderer, shaders, materials, textures, visuals | light from the light map, realistic albedo (not cartoonish), canvas textures on streams of their own, photographed surfaces from CC0 sources, shader compile cost, the goldens and the albedo lint |
 | `.claude/rules/audio.md` | the audio code | every sound from a place (your own voice the one exception), carry, the hush, the loudness gate, you cannot hear |
+| `.claude/rules/cutscenes.md` | the cutscene engine, its sources, the test engine, the bars | it borrows your eyes, never your place; play never eases from its pose; no random draw in the engine; cues in place, each once; hands taken means no harm; the bundle is compiled; every cutscene keeps the contract on its stages |
 
 ## Skills
 
@@ -65,6 +66,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `voice-persona` | a voice persona: the canon check, the persona file, its designed reference voice and emotional references |
 | `voice-lines` | a persona's lines: made, judged, into the game's assets and code, heard, a person's ears |
 | `voice-eval` | the voice evaluation: reading the report, a bake-off between models, thresholds changed only through known answers |
+| `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
 
 ## Reviewers
 

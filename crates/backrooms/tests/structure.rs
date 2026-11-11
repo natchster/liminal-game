@@ -234,6 +234,7 @@ fn docs_point_at_files_that_exist() {
         ".claude/rules/audio.md",
         ".claude/rules/visuals.md",
         ".claude/rules/entities.md",
+        ".claude/rules/cutscenes.md",
     ];
     // every file in the repository, by its path relative to the root
     let mut all: Vec<String> = vec![];
@@ -325,6 +326,10 @@ fn the_content_ledger_covers_the_content() {
     }
     for k in game::level::scp::SCP_KEYS {
         missing.push(format!("anomaly/{k}"));
+    }
+    // every cutscene of the bundle (`add-cutscene`, step 10)
+    for c in game::cutscene::library() {
+        missing.push(format!("cutscene/{}", c.id));
     }
     let themes: std::collections::BTreeSet<&str> = game::world::tables::PLACER_THEME.iter().map(|(_, t)| *t).collect();
     for t in themes {

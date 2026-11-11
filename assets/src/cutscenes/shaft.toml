@@ -12,24 +12,28 @@ world = "live"
 then = "back"
 skip = "hold"
 breaks_off = true
-length = 5.6
+length = 6.6
 blend_in = 0.4
-blend_out = 1.1
-stages = ["broken_elevator:4242:4", "broken_elevator:7:9", "broken_elevator:9001:7"]
+# (back to your eyes as your body faces: 180 deg when the look began behind
+# you, so slowly)
+blend_out = 2.1
+stages = ["broken_elevator:4242:4", "broken_elevator:7:9", "broken_elevator:9001:7", "broken_elevator:7:9:away"]
 finally = ["shaft_after"]
 
 [bars]
 in = 0.0
-out = 5.1
+out = 6.1
 
 # (blended in from where you stand)
 [[camera]]
 t = 0.0
 anchor = "eyes"
 
-# up to the gap, looking in
+# up to the gap, looking in (from any facing: E has no facing cone, and a
+# turn from behind you must stay under 150 deg/s: an eased turn peaks at
+# one and a half times its mean, so 180 deg wants 1.9 s)
 [[camera]]
-t = 1.3
+t = 1.9
 anchor = "thing"
 pos = [0.2, 1.47, 0.78]
 look = [0.2, 1.05, 0.0]
@@ -37,7 +41,7 @@ walk = 0.6
 
 # leaning in, the black filling your eyes, looking down into it
 [[camera]]
-t = 2.3
+t = 2.9
 anchor = "thing"
 pos = [0.2, 1.42, 0.36]
 look = [0.2, 1.15, 0.10]
@@ -45,7 +49,7 @@ sway = 0.5
 
 # held there, still breathing
 [[camera]]
-t = 3.45
+t = 4.05
 anchor = "thing"
 pos = [0.2, 1.41, 0.35]
 look = [0.2, 1.13, 0.10]
@@ -53,7 +57,7 @@ sway = 0.6
 
 # you start back
 [[camera]]
-t = 3.85
+t = 4.45
 anchor = "thing"
 pos = [0.2, 1.52, 0.95]
 look = [0.2, 1.25, 0.0]
@@ -62,37 +66,37 @@ jolt = true
 
 # a cable shifts somewhere up the shaft
 [[sound]]
-t = 1.1
+t = 1.7
 name = "scrape"
 anchor = "thing"
 pos = [0.2, 2.2, -0.4]
 
 # a breath from far down
 [[sound]]
-t = 2.4
+t = 3
 name = "breath"
 anchor = "thing"
 pos = [0.2, -4.0, -0.6]
 
 # a clank as what looked back is gone
 [[sound]]
-t = 3.45
+t = 4.05
 name = "clank"
 anchor = "thing"
 pos = [0.2, 1.0, -0.6]
 
 # two points of eyeshine, low in the black
 [[event]]
-t = 2.9
+t = 3.5
 name = "shaft_eyes"
 on_skip = false
 
 [[event]]
-t = 3.45
+t = 4.05
 name = "shaft_eyes_gone"
 on_skip = false
 
 # what it did to you: the lift peered into (its prompt gone), your nerve
 [[event]]
-t = 3.5
+t = 4.1
 name = "peered"

@@ -156,8 +156,9 @@ Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
 voices: `voice-persona` (who speaks: the persona, its reference voice),
 `voice-lines` (its lines, made, judged and into the game) and `voice-eval`
 (reading the evaluation, a bake-off, changing a threshold only through
-known answers). Each ends in its gates, evidence and a `docs/content.json`
-entry.
+known answers), and `add-cutscene` (a moment that borrows your eyes: its
+source, trigger, stage, preview, contract and goldens). Each ends in its
+gates, evidence and a `docs/content.json` entry.
 
 Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from

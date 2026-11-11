@@ -1454,6 +1454,110 @@
         "test:game/player": true,
         "test:backrooms/reference_levels": true
       }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes",
+        "test:game/player"
+      ],
+      "id": "cutscene/engine",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "the cutscene engine: storage, the player, the bars, the test engine",
+      "notes": "docs/CUTSCENES.md. The contract (debug/cutscene.rs) holds every cutscene on each of its stages. Nobody has watched one yet: whether the bars read as hands taken is a playtest question.",
+      "passes": {
+        "test:backrooms/cutscenes": true,
+        "test:game/player": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes",
+        "test:backrooms/menus",
+        "shots:way_in_mid"
+      ],
+      "id": "cutscene/way_in",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "New descent: from the title's view into your eyes",
+      "notes": "Three Wells (4242, 7, 9001). Seamless when the title shows a run nobody has played; through black over another run's floor.",
+      "passes": {
+        "test:backrooms/cutscenes": true,
+        "test:backrooms/menus": true,
+        "shots:way_in_mid": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes",
+        "test:game/player",
+        "test:game/core_props_tail",
+        "shots:shaft_eyes"
+      ],
+      "id": "cutscene/shaft",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "a broken lift's shaft: the black, a breath, what looks back",
+      "notes": "Three lifts (three facings). The lift itself stands on the Lobby with blood and remains (QUALITY.md, Canon).",
+      "passes": {
+        "test:backrooms/cutscenes": true,
+        "test:game/player": true,
+        "test:game/core_props_tail": true,
+        "shots:shaft_eyes": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes",
+        "test:backrooms/menus",
+        "shots:death_fall",
+        "shots:hound_death",
+        "shots:smiler_death"
+      ],
+      "id": "cutscene/death_taken",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "a creature's kill: its face, the fall, black",
+      "notes": "Every creature's kill; the card at 1.4 s; shorter on a repeat; the draws after it as before.",
+      "passes": {
+        "test:backrooms/cutscenes": true,
+        "test:backrooms/menus": true,
+        "shots:death_fall": true,
+        "shots:hound_death": true,
+        "shots:smiler_death": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes"
+      ],
+      "id": "cutscene/death_mind",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "your nerve gives out: your knees, the floor, black",
+      "notes": "No golden yet.",
+      "passes": {
+        "test:backrooms/cutscenes": true
+      }
+    },
+    {
+      "checks": [
+        "test:backrooms/cutscenes"
+      ],
+      "id": "cutscene/death_fog",
+      "kind": "cutscene",
+      "last_checked": "2026-11-11",
+      "last_human_review": null,
+      "name": "the fog takes you: sinking into the violet, black",
+      "notes": "No golden yet.",
+      "passes": {
+        "test:backrooms/cutscenes": true
+      }
     }
   ]
 }

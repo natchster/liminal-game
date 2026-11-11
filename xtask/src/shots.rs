@@ -62,7 +62,7 @@ const FIGURES: &[(&str, &[&str])] = &[
     ("seated_1m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure-near"]),
     // the cutscenes (docs/CUTSCENES.md), each at a time of its own clock
     ("way_in_mid", &["--cutscene", "way_in", "--stage", "title:4242", "--cut-at", "2.6"]),
-    ("shaft_eyes", &["--cutscene", "shaft", "--stage", "broken_elevator:4242:4", "--cut-at", "3.1"]),
+    ("shaft_eyes", &["--cutscene", "shaft", "--stage", "broken_elevator:4242:4", "--cut-at", "3.7"]),
     ("death_fall", &["--cutscene", "death_taken", "--stage", "death:hound", "--cut-at", "0.9"]),
 ];
 /// The one behind the glass (docs/WINDOWS.md 4), as you meet it: out of its

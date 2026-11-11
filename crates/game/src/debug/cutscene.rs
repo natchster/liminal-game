@@ -155,8 +155,9 @@ impl Game {
                 }
                 Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
             }
-            // `broken_elevator:SEED:LEVEL`: before a broken lift, facing it,
-            // where its prompt is
+            // `broken_elevator:SEED:LEVEL[:side|:away]`: before a broken lift,
+            // where its prompt is, facing it (or along its wall, or away: E has no
+            // facing cone, so a look can start from any facing)
             "broken_elevator" => {
                 let mut it = stage.split(':').skip(1).map(|x| x.parse::<i64>());
                 let (Some(Ok(seed)), Some(Ok(level))) = (it.next(), it.next()) else {
@@ -170,7 +171,12 @@ impl Game {
                 let (w, n) = (f.o, [f.yaw.sin(), f.yaw.cos()]);
                 // (your place is kept at eye height, as play keeps it)
                 self.player.pos = engine::math::Vec3::new(w[0] + n[0], self.floor_y_at(w[0], w[2]) + crate::prelude::EYE, w[2] + n[1]);
-                self.player.yaw = f.yaw;
+                self.player.yaw = f.yaw
+                    + match stage.rsplit(':').next() {
+                        Some("side") => std::f64::consts::FRAC_PI_2,
+                        Some("away") => std::f64::consts::PI,
+                        _ => 0.0,
+                    };
                 self.player.pitch = 0.0;
                 for _ in 0..30 {
                     self.stage_frame(1.0 / 60.0);

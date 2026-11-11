@@ -22,7 +22,10 @@ description: Add or change an anomaly level in The Backrooms (the Stairwell, Sho
 5. **Goldens.** If one of the `LEVELS` in `xtask/src/shots.rs` does not show
    it, add a `(seed, level)` that does (find one with `--dump-level`: the
    JSON names the `scp`). Look, then accept with a reason.
-6. **Gates.** `cargo xtask check` (full), `cargo xtask range`.
-7. **Ledger.** An `anomaly/<key>` entry in `docs/content.json` (the
+6. **A moment that takes the camera** (a look into something, a death of
+   its own) is a cutscene: `add-cutscene`. The Stairwell and the Loop have
+   their own camera and refuse one.
+7. **Gates.** `cargo xtask check` (full), `cargo xtask range`.
+8. **Ledger.** An `anomaly/<key>` entry in `docs/content.json` (the
    structure test requires one per `SCP_KEYS` entry); open issues in
    `docs/QUALITY.md`.
