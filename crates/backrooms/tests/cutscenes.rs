@@ -708,3 +708,57 @@ fn new_descent_over_another_runs_floor_goes_through_black() {
     }
     assert!(g.level_card.is_some());
 }
+
+// ------------------------------------------------------------ the shaft
+// A broken lift's shaft (C6): looked into once, through the cutscene; it
+// leaves nothing behind but what it did to you; in danger it waits.
+
+#[test]
+fn the_shaft_is_looked_into_once_and_leaves_nothing_behind() {
+    for (seed, level) in [(4242, 4), (9001, 7)] {
+        let mut g = common::new_game();
+        g.cutscene_stage(&format!("broken_elevator:{seed}:{level}")).unwrap();
+        let nerve = g.player.sanity;
+        assert!(g.interact_target().is_some(), "{seed}:{level}: its prompt, where you stand");
+        g.msg_text.clear();
+        g.try_interact();
+        assert!(g.hands_taken(), "{seed}:{level}: {:?}", g.cut_log);
+        let eyes = |g: &Game| g.broken_elevator.as_ref().is_some_and(|b| b.objs.contains_key("eyes"));
+        let (mut saw, mut lowest) = (false, nerve);
+        while g.hands_taken() {
+            step(&mut g, DT);
+            saw |= eyes(&g);
+            lowest = lowest.min(g.player.sanity);
+        }
+        assert!(saw, "{seed}:{level}: something looked back");
+        assert!(!eyes(&g), "{seed}:{level}: nothing left in the black");
+        assert!(g.broken_elevator.as_ref().unwrap().peered);
+        assert!((nerve - lowest - 12.0).abs() < 0.5, "{seed}:{level}: the look shakes your nerve ({nerve} → {lowest})");
+        // (the old look told you in capitals what you had seen)
+        for told in ["SOMETHING WAS DOWN THERE.", "IT LOOKED BACK.", "YOU SHOULD NOT HAVE LOOKED.", "THE DARK BREATHED."] {
+            assert_ne!(g.msg_text, told, "{seed}:{level}: no line tells you what you saw");
+        }
+        // it is not offered again
+        g.try_interact();
+        assert!(!g.hands_taken());
+    }
+    // a second lift in a run: the black and the breath, and nothing looks back
+    let mut g = common::new_game();
+    g.cutscene_stage("broken_elevator:9001:7").unwrap();
+    g.cut_seen.insert("shaft".into(), 1);
+    g.try_interact();
+    assert!(g.hands_taken());
+    let mut saw = false;
+    while g.hands_taken() {
+        step(&mut g, DT);
+        saw |= g.broken_elevator.as_ref().is_some_and(|b| b.objs.contains_key("eyes"));
+    }
+    assert!(!saw, "the same scare, soon again");
+    assert!(g.broken_elevator.as_ref().unwrap().peered);
+    // in danger nothing happens, and the lift waits
+    let mut g = common::new_game();
+    g.cutscene_stage("broken_elevator:4242:4").unwrap();
+    g.stage_hunt();
+    g.try_interact();
+    assert!(!g.hands_taken() && !g.broken_elevator.as_ref().unwrap().peered, "{:?}", g.cut_log);
+}

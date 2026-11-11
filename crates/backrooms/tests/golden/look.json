@@ -257,6 +257,12 @@
     "luminance": 0.478,
     "shadow": 0.011
   },
+  "shaft_eyes": {
+    "colourfulness": 2.69,
+    "contrast": 0.0474,
+    "luminance": 0.0493,
+    "shadow": 0.8681
+  },
   "smiler_2m": {
     "colourfulness": 20.91,
     "contrast": 0.0745,

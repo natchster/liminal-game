@@ -1,0 +1,98 @@
+# The shaft (docs/CUTSCENES.md, C6): a broken lift's jammed doors, the
+# black between them, a red lamp that will not settle. "Peer into the
+# shaft": you step up to the gap and lean in; the black fills your eyes;
+# a cable scrapes far up, a breath comes from far down; two points of
+# eyeshine open low in the black, and are gone with a clank; you start
+# back, and your eyes are yours again. The thing is the lift's frame: x to
+# its right, y up, z out of its face (its doors at z 0.13, the black at
+# z 0.10, the gap between the doors from x -0.075 to 0.47).
+id = "shaft"
+about = "Looking into a broken lift's shaft: the black, a breath, what looks back"
+world = "live"
+then = "back"
+skip = "hold"
+breaks_off = true
+length = 5.6
+blend_in = 0.4
+blend_out = 1.1
+stages = ["broken_elevator:4242:4", "broken_elevator:7:9", "broken_elevator:9001:7"]
+finally = ["shaft_after"]
+
+[bars]
+in = 0.0
+out = 5.1
+
+# (blended in from where you stand)
+[[camera]]
+t = 0.0
+anchor = "eyes"
+
+# up to the gap, looking in
+[[camera]]
+t = 1.3
+anchor = "thing"
+pos = [0.2, 1.47, 0.78]
+look = [0.2, 1.05, 0.0]
+walk = 0.6
+
+# leaning in, the black filling your eyes, looking down into it
+[[camera]]
+t = 2.3
+anchor = "thing"
+pos = [0.2, 1.42, 0.36]
+look = [0.2, 1.15, 0.10]
+sway = 0.5
+
+# held there, still breathing
+[[camera]]
+t = 3.45
+anchor = "thing"
+pos = [0.2, 1.41, 0.35]
+look = [0.2, 1.13, 0.10]
+sway = 0.6
+
+# you start back
+[[camera]]
+t = 3.85
+anchor = "thing"
+pos = [0.2, 1.52, 0.95]
+look = [0.2, 1.25, 0.0]
+ease = "out"
+jolt = true
+
+# a cable shifts somewhere up the shaft
+[[sound]]
+t = 1.1
+name = "scrape"
+anchor = "thing"
+pos = [0.2, 2.2, -0.4]
+
+# a breath from far down
+[[sound]]
+t = 2.4
+name = "breath"
+anchor = "thing"
+pos = [0.2, -4.0, -0.6]
+
+# a clank as what looked back is gone
+[[sound]]
+t = 3.45
+name = "clank"
+anchor = "thing"
+pos = [0.2, 1.0, -0.6]
+
+# two points of eyeshine, low in the black
+[[event]]
+t = 2.9
+name = "shaft_eyes"
+on_skip = false
+
+[[event]]
+t = 3.45
+name = "shaft_eyes_gone"
+on_skip = false
+
+# what it did to you: the lift peered into (its prompt gone), your nerve
+[[event]]
+t = 3.5
+name = "peered"

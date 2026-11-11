@@ -2,6 +2,202 @@
   "about": "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).",
   "cutscenes": [
     {
+      "about": "Looking into a broken lift's shaft: the black, a breath, what looks back",
+      "bars": {
+        "in": 0.0,
+        "out": 5.1
+      },
+      "blend_in": 0.4,
+      "blend_out": 1.1,
+      "breaks_off": true,
+      "camera": [
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            0.2,
+            1.05,
+            0.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.2,
+            1.47,
+            0.78
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 1.3,
+          "walk": 0.6,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            0.2,
+            1.15,
+            0.1
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.2,
+            1.42,
+            0.36
+          ],
+          "roll": 0.0,
+          "sway": 0.5,
+          "t": 2.3,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": [
+            0.2,
+            1.13,
+            0.1
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.2,
+            1.41,
+            0.35
+          ],
+          "roll": 0.0,
+          "sway": 0.6,
+          "t": 3.45,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "thing",
+          "cut": false,
+          "ease": "out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": [
+            0.2,
+            1.25,
+            0.0
+          ],
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.2,
+            1.52,
+            0.95
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 3.85,
+          "walk": 0.0,
+          "yaw": 0.0
+        }
+      ],
+      "event": [
+        {
+          "name": "shaft_eyes",
+          "on_skip": false,
+          "t": 2.9
+        },
+        {
+          "name": "shaft_eyes_gone",
+          "on_skip": false,
+          "t": 3.45
+        },
+        {
+          "name": "peered",
+          "on_skip": true,
+          "t": 3.5
+        }
+      ],
+      "fade": [],
+      "finally": [
+        "shaft_after"
+      ],
+      "id": "shaft",
+      "length": 5.6,
+      "repeat_from": 0.0,
+      "say": [],
+      "skip": "hold",
+      "sound": [
+        {
+          "anchor": "thing",
+          "gain": 1.0,
+          "name": "scrape",
+          "pos": [
+            0.2,
+            2.2,
+            -0.4
+          ],
+          "t": 1.1
+        },
+        {
+          "anchor": "thing",
+          "gain": 1.0,
+          "name": "breath",
+          "pos": [
+            0.2,
+            -4.0,
+            -0.6
+          ],
+          "t": 2.4
+        },
+        {
+          "anchor": "thing",
+          "gain": 1.0,
+          "name": "clank",
+          "pos": [
+            0.2,
+            1.0,
+            -0.6
+          ],
+          "t": 3.45
+        }
+      ],
+      "stages": [
+        "broken_elevator:4242:4",
+        "broken_elevator:7:9",
+        "broken_elevator:9001:7"
+      ],
+      "then": "back",
+      "world": "live"
+    },
+    {
       "about": "New descent: from the title's view of the place, drawn back into your eyes",
       "bars": {
         "in": 0.0,

@@ -163,3 +163,9 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-11, on top of 9e6440d: frames: way_in_mid. Reason: C5: the way in from the title (New descent), at 2.6 s on run 4242's Well: the camera drawn back from the title's view under the gallery into your eyes, the bars in (docs/CUTSCENES.md)
 
 - 2026-11-11, on top of 9e6440d: look anchors: way_in_mid. Reason: C5: a new shot, the way in at 2.6 s; its look (the Well under the gallery, the bars' black included) is its own baseline
+
+- 2026-11-11, on top of db665e9: frames: shaft_eyes. Reason: C6: a broken lift's shaft at 3.1 s on run 4242's level 4: leaning in, the black between the jammed doors filling the view, two points of eyeshine low in it (docs/CUTSCENES.md)
+
+- 2026-11-11, on top of db665e9: look anchors: shaft_eyes. Reason: C6: a new shot, the shaft's black and its eyeshine; its look is its own baseline
+
+- 2026-11-11, on top of db665e9: frames: shaft_eyes. Reason: C6 after its lore review: what looks back out of the shaft gives back a light (the red lamp's here, your lamp off) instead of glowing on its own

@@ -136,6 +136,28 @@ impl Game {
             self.menu.view_t = 0.0;
         }
         match stage.split(':').next().unwrap_or("") {
+            // `broken_elevator:SEED:LEVEL`: before a broken lift, facing it,
+            // where its prompt is
+            "broken_elevator" => {
+                let mut it = stage.split(':').skip(1).map(|x| x.parse::<i64>());
+                let (Some(Ok(seed)), Some(Ok(level))) = (it.next(), it.next()) else {
+                    return Err(format!("stage {stage}: broken_elevator:SEED:LEVEL"));
+                };
+                self.stage_floor(seed as u32, level as i32);
+                let Some(f) = self.shaft_frame() else {
+                    return Err(format!("stage {stage}: no broken lift on that floor"));
+                };
+                // a metre out from its doors, facing them
+                let (w, n) = (f.o, [f.yaw.sin(), f.yaw.cos()]);
+                // (your place is kept at eye height, as play keeps it)
+                self.player.pos = engine::math::Vec3::new(w[0] + n[0], self.floor_y_at(w[0], w[2]) + crate::prelude::EYE, w[2] + n[1]);
+                self.player.yaw = f.yaw;
+                self.player.pitch = 0.0;
+                for _ in 0..30 {
+                    self.stage_frame(1.0 / 60.0);
+                }
+                Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
+            }
             "title" => {
                 if self.state != "menu" {
                     return Err("the title stage needs a game booted to its title".into());
@@ -165,6 +187,13 @@ impl Game {
                 self.new_descent_with(Some(c.clone()));
                 self.hands_taken()
             }
+            // as your hand does: E on the lift
+            "broken_elevator" => {
+                self.cut_override = Some(c.clone());
+                self.try_interact();
+                self.cut_override = None;
+                self.hands_taken()
+            }
             _ => self.play_cutscene_data(c.clone(), s.anchors.clone()),
         }
     }
@@ -177,6 +206,7 @@ impl Game {
         let base = format!("{} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch);
         match s.stage.split(':').next().unwrap_or("") {
             "title" => format!("{base} run {} level {} card {}", self.run_seed, self.level_num, self.level_card.is_some()),
+            "broken_elevator" => format!("{base} peered {}", self.broken_elevator.as_ref().is_some_and(|b| b.peered)),
             _ => base,
         }
     }
@@ -441,8 +471,10 @@ pub fn contract_skip(played: &Trace, skipped: &Trace) -> Vec<String> {
 
 /// The same cutscene at frame rates whose steps all land on the times of
 /// the slowest (30, 60 and 120 a second land every 1/30 s): the same cues,
-/// the same length, and at each time they share the same camera (within
-/// `tol` metres and radians; a live killer moves with its own animation)
+/// the same length, at each time they share the same blend, and where its
+/// own camera is all there is the same camera (within `tol` metres and
+/// radians; a live killer moves with its own animation). Play's camera is
+/// play's: its smoothing goes by the frame
 pub fn contract_rates(traces: &[Trace], tol: f64) -> Vec<String> {
     let mut p = vec![];
     let cues = |tr: &Trace| -> Vec<String> {
@@ -469,6 +501,21 @@ pub fn contract_rates(traces: &[Trace], tol: f64) -> Vec<String> {
         let mut worst = (0.0f64, 0.0);
         for r in &first.rows {
             if let Some(q) = tr.rows.iter().find(|q| (q.t - r.t).abs() < 1e-6) {
+                if (r.w - q.w).abs() > 1e-9 {
+                    p.push(format!(
+                        "{} on {}: at {:.3} s its blend is {:.4} at {} fps and {:.4} at {} fps",
+                        tr.id,
+                        tr.stage,
+                        r.t,
+                        q.w,
+                        fps(tr),
+                        r.w,
+                        fps(first)
+                    ));
+                }
+                if r.w < 0.999 || q.w < 0.999 {
+                    continue;
+                }
                 let (d, turn) = Pose::apart(&r.shown, &q.shown);
                 if d.max(turn) > worst.0 {
                     worst = (d.max(turn), r.t);

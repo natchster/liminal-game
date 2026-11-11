@@ -368,7 +368,7 @@ impl Game {
         }
     }
     /// The title's view of the floor, per frame: the camera a few metres
-    /// back along the walk behind where you begin (`title_view`), turning
+    /// out along the way from where you begin (`title_view`), turning
     /// slowly one way and back, as if someone stood there looking; New
     /// descent walks from there into your eyes (`docs/CUTSCENES.md`).
     pub fn update_title_view(&mut self, dt: f64) {

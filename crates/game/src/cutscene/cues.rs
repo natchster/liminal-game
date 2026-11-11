@@ -23,6 +23,10 @@ pub const SOUNDS: &[(&str, fn(&mut Game))] = &[
 pub const EVENTS: &[(&str, &str, fn(&mut Game))] = &[
     ("mark", "nothing: a mark in the cutscene's log (tests, previews)", |_| {}),
     ("arrive", "the way in's end: the level card the new run kept for it", |g| g.way_in_arrive()),
+    ("shaft_eyes", "two points of eyeshine low in a broken lift's black", |g| g.shaft_eyes()),
+    ("shaft_eyes_gone", "the eyeshine gone", |g| g.shaft_eyes_gone()),
+    ("peered", "the broken lift looked into: its prompt gone, your nerve shaken", |g| g.shaft_peered()),
+    ("shaft_after", "nothing left in the black, the edges of your sight as your nerve has them", |g| g.shaft_after()),
 ];
 
 pub fn sound(name: &str) -> Option<fn(&mut Game)> {

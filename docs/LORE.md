@@ -15,10 +15,10 @@ living bible: change it when the game's truth changes, in the same commit.
 | The Building | Vast floors at many heights over a void: galleries, flights, bridges, cells with hermetic doors, and here and there a room off a walk with what its place left in it; nothing walks there; the self-assembly comes from far off, and something knocks at the cell you shut yourself into; now and then a figure, a person in a grey coat, stands far across the void and turns away |
 | Zone archetypes | Lobby, Pillar Field, Abandoned Office, the Maze, Utility Halls, Electrical Station, Habitable Zone, Poolrooms, blackout zones |
 | Zone purposes | What a part of a level was for: office wing, living quarters, play area, parlour, washrooms, overgrown atrium, maintenance, shrine, party room, or nothing at all |
-| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one. Redesigned (`ENTITIES.md`) |
+| Creatures | Smilers, Hounds (blind, they hunt by sound), the Watcher, the one in the corner (placed, never sent), the Reader (it must stop for paper), the one behind the glass (placed, never sent; it comes only for a long look out of a window); the Face (Stairwell only); faceless staff (Showroom); shadows (Borrowed House); the seated man (the Loop). Not a creature: the figure across the Building's void, which nothing sends and which harms no one; and what looks back out of a broken lift's black, which never comes out of it (*A broken lift*). Redesigned (`ENTITIES.md`) |
 | Anomalies | The Stairwell, the Showroom, the Borrowed House, the Loop: at most one per level, once per run |
 | Objects | Almond Water, batteries, paper, lore notes; coins (the vending machines' coin returns); and a few things put away off the way, marked now and then by a small scratched circle, whose effect stays with you and is never said (*What is put away*) |
-| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*) |
+| Things in the rooms | The vending machine: a glass-front snack machine against a wall on most floors of the rooms (none on the first, the Lobby of level 4, nor in the Showroom or the Borrowed House), still lit or long dead, with rules of its own (*The vending machine*, `VENDING.md`). Not a creature: it never comes after you and never kills. The windows: below the Lobby, where an office, a hall, a party room or someone's rooms would have had them (none in the Showroom or the Borrowed House), every one looking out on the same field in fog with a streetlamp close outside, most with a blind you can let down (*The windows*, `WINDOWS.md`). Below the Lobby, boxes, bins, books, lockers left unlocked, a dead lift's button and the lit television can be used (*Within reach*). Some of what was left alight still burns, and never burns lower (*What still burns*). On about half the floors of the rooms a lift stands broken, its doors jammed apart on black; it can be looked into (*A broken lift*) |
 | People | Elias, M., the field surveys, the Stairwell logs (lore notes; M. also by her trail and her camps); the Building's residents, gone behind their doors (a few still answer a knock, never opening: a thing pushed out, a folded note), and its cleaners, known only by their log and their marks |
 
 ## How canon reaches the player
@@ -37,6 +37,12 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **Sound**: what is somewhere else, heard before it is seen (signatures,
   steps, the hum, crying).
 - **Creature behaviour**: rules that are learnable by playing, never told.
+- **A look you take** (a cutscene, `docs/CUTSCENES.md`): the camera
+  borrowed for a moment, from your eyes, to show the place and what
+  answers there (what looks back out of a lift's black belongs to that
+  look alone); it adds no caption, no text and no narrator (an aside of
+  yours may follow, by the asides' own rules), and nothing it shows is
+  explained.
 - **Torn notes**: survivors' fragments (`ui/lore.rs`; their texts are
   `LORE_ENTRIES` in `ui/hud.rs`), which hint and never
   explain; an anomaly's notes lie only on its level, and the Building's (its
@@ -1084,6 +1090,28 @@ look near where the sound was, never told where you are. A bin's rustle and
 a page torn out are quiet: they stop nothing, but a Hound already crouched
 to listen goes to look near them. A set switched off, a lift's button and
 the car behind its doors are heard by nothing but you.
+
+**A broken lift.** On about half the floors of the rooms (the Lobby
+among them, and the floors with rules of their own too: nothing keeps it
+from them), a lift stands broken against a wall: its doors jammed apart on
+black, a red lamp over them that will not settle, DO NOT ENTER written
+across the gap in red, its call button dead, scorch round its edges, and
+from it a trail of hands along the wall to what is left of people. Cables
+scrape in it now and then, heard from some twenty metres. Stay by it a
+while and something falls far down it: a slam, two clanks, a scream going
+away below, and your nerve with it. You can look into it (`docs/CUTSCENES.md`,
+the shaft): you step up to the gap and lean in, and the black is all there
+is; a cable shifts high up, a breath comes from far below. The first lift
+you look into in a run, two small points low in the black give your light
+back (your lamp's, or the red lamp's when yours is off), and with a clank
+they are gone; after that, only the black and the breath. You start back,
+and it has cost you some of your nerve. It does not let you look while
+something hunts you or searches near, while the fog is up, or with your
+nerve near its end. Once a lift (built again after a death or a Continue,
+it can be looked into again). What looks back is not one of the things
+that live here: it never comes out, and nothing sends it. Nothing says
+what was down there, the lift is never a way, and what you heard was heard
+by nothing but you.
 
 ## What still burns
 

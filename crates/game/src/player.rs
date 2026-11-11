@@ -543,7 +543,8 @@ impl Game {
         let fired = self.broken_elevator.as_ref().unwrap().b.get("descentFired").copied().unwrap_or(false);
         if !fired {
             let linger = self.broken_elevator.as_ref().unwrap().f.get("lingerT").copied().unwrap_or(0.0);
-            if d < 4.0 && self.state == "playing" {
+            // (not while a cutscene has you: the shaft's own look)
+            if d < 4.0 && self.state == "playing" && !self.hands_taken() {
                 let linger = linger + dt;
                 self.broken_elevator.as_mut().unwrap().f.insert("lingerT".into(), linger);
                 if linger >= 15.0 {
@@ -558,9 +559,8 @@ impl Game {
                     self.schedule(620.0, |g| {
                         g.camera_dip_t = 0.35;
                     });
-                    // small sanity dip + toast
+                    // a small sanity dip (no line says what fell: LORE.md, A broken lift)
                     self.player.sanity = clamp(self.player.sanity - 6.0, 0.0, SAN_MAX);
-                    self.show_msg("SOMETHING FELL. FAR DOWN.", 2.4);
                 }
             } else {
                 // walked away — decay linger so a slow pass-through doesn't accumulate

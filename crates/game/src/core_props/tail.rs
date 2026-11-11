@@ -1218,27 +1218,8 @@ impl Game {
             1.4,
             "[E] PEER INTO THE SHAFT",
             |gm| !gm.broken_elevator.as_ref().map(|b| b.peered).unwrap_or(false),
-            |gm| {
-                let Some(be) = gm.broken_elevator.as_mut() else { return };
-                be.peered = true;
-                // brief tension chime + soft breath from below
-                gm.sfx_chime();
-                gm.schedule(500.0, |g| g.sfx_breath());
-                gm.shake_t = 0.4;
-                // a small camera lens dip synced to the breath
-                gm.schedule(500.0, |g| {
-                    g.camera_dip_t = 0.25;
-                });
-                gm.ui.aberration.set_opacity(0.85);
-                gm.schedule(900.0, |g| {
-                    let v = clamp((1.0 - g.player.sanity / SAN_MAX) * 0.7, 0.0, 1.0);
-                    g.ui.aberration.set_opacity(v);
-                });
-                let m = choice(&["SOMETHING WAS DOWN THERE.", "IT LOOKED BACK.", "YOU SHOULD NOT HAVE LOOKED.", "THE DARK BREATHED."]);
-                gm.show_msg(m, 2.4);
-                // small sanity penalty for the scare
-                gm.player.sanity = clamp(gm.player.sanity - 12.0, 0.0, SAN_MAX);
-            },
+            // the look into the black, a cutscene (`cutscene::uses`, `docs/CUTSCENES.md`)
+            |gm| gm.peer_into_shaft(),
         );
         // ---- corpse pile at the end of the handprint trail ----
         {

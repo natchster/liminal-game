@@ -386,6 +386,10 @@ impl Game {
     /// Play the cutscene `id` from the library; false when it cannot be
     /// played now (`play_cutscene_data`)
     pub fn play_cutscene(&mut self, id: &str, anchors: Anchors) -> bool {
+        // (a test's or a preview's own version of it, once)
+        if let Some(c) = self.cut_override.take_if(|c| c.id == id) {
+            return self.play_cutscene_data(c, anchors);
+        }
         match super::get(id) {
             Some(c) => self.play_cutscene_data(c.clone(), anchors),
             None => {

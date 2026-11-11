@@ -651,6 +651,8 @@ pub struct Game {
     pub cut_hold: Option<crate::cutscene::play::Pose>,
     /// what the cutscenes did (the last 64 lines: tests, previews)
     pub cut_log: Vec<String>,
+    /// a cutscene to play in place of the library's of its id, once (tests, previews)
+    pub cut_override: Option<crate::cutscene::Cutscene>,
     /// the cutscenes played so far (each its number: a cue that ends one is seen)
     pub cut_gen: u64,
     /// how the last cutscene's hands-back looked (tests: the contract)
@@ -1146,6 +1148,7 @@ impl Game {
             cut_veil: Default::default(),
             cut_hold: None,
             cut_log: vec![],
+            cut_override: None,
             cut_gen: 0,
             cut_end: None,
             title_place: None,

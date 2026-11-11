@@ -758,7 +758,8 @@ fn broken_elevator_pulse_and_linger_scare() {
     }
     frames(&mut r, 14 * 60 + 2);
     assert!(r.g.broken_elevator.as_ref().unwrap().b["descentFired"]);
-    assert_eq!(r.g.msg_text, "SOMETHING FELL. FAR DOWN.");
+    // (no line says what fell: LORE.md, A broken lift)
+    assert_ne!(r.g.msg_text, "SOMETHING FELL. FAR DOWN.");
     assert!(r.g.player.sanity < san0, "sanity dip");
     assert_eq!(r.g.camera_dip_t, 0.0);
     frames(&mut r, 40); // ~0.67 s: the dip timeout ran
