@@ -63,6 +63,24 @@ code and design review.
 | C8 | Skills and the ledger |
 | review B | Code and design review of C5–C8 |
 
+The visual playtest (`VISUAL_PLAYTEST.md`), gathered on 2026-11-11: a tour
+of the edges of the walkable floor, detectors for gaps, flicker, clipping
+and things out of place, a report, a reviewer and a skill; then the
+Building toured and what it finds fixed. After the fifth and at the end,
+a code and design review.
+
+| # | Milestone |
+|---|---|
+| VP0 | The plan and the research |
+| VP1 | The tour: edge stands and their views |
+| VP2 | Renders and detectors |
+| VP3 | The report |
+| VP4 | The skill and the reviewer |
+| review A | Code and design review of VP0–VP4 |
+| VP5 | The Building toured |
+| VP6+ | Its findings fixed |
+| review B | Code and design review of VP5 on |
+
 ## Done
 
 | # | Commit | Notes |
