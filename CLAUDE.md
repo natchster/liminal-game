@@ -50,6 +50,7 @@ cargo xtask voice eval --persona P [--model M]   # words, emotion, tone of voice
 cargo xtask voice write --persona P              # the chosen takes into crates/game/assets/voice/ and MANIFEST.json
 cargo xtask voice selftest                       # the evaluation against known answers
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
+cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
@@ -69,6 +70,8 @@ cargo test --release -p backrooms --test listen -- --nocapture    # WAVs + loudn
 cargo test --release -p backrooms --test pacing -- --nocapture    # director phases with a cautious bot
 cargo test --release -p backrooms --test personas -- --nocapture  # explorer, rusher, hider; the shape of the fear
 cargo test --release -p backrooms --test asides -- --nocapture    # your asides on real floors: what was weighed, said, let go, and why
+cargo test --release -p backrooms --test cutscenes                 # the cutscene player, and every cutscene's contract on each of its stages
+cargo run --release -- --cutscene ID [--stage S] --sheet DIR [--every 0.25]   # one cutscene's frames, sheet, timeline, contract (or --screenshot F --cut-at T)
 ```
 
 Re-recording reference data (only after an intended change; say why in the commit):

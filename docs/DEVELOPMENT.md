@@ -367,6 +367,18 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `crates/game/assets/parts.tsv` current; after a mesh change,
   `REGEN=1 cargo test --release -p game --test asset_lint` rewrites the
   table so the diff shows what changed.
+* The cutscenes (`docs/CUTSCENES.md`) are TOML sources in
+  `assets/src/cutscenes/`, compiled by `cargo xtask cutscene write` into
+  one bundle (`crates/game/assets/cutscenes.json`, every field written
+  out) after the game's rules have passed on a copy
+  (`backrooms --cutscene-check`); `cargo xtask cutscene check` fails a
+  bundle that is not what its sources compile to. Before writing, `cargo
+  xtask cutscene preview ID [--stage S]` plays the sources as they stand
+  on each of the cutscene's stages and writes its frames, a contact sheet,
+  its timeline and its contract under `target/xtask/cutscene/ID/`. The
+  contract suite (`cargo test --release -p backrooms --test cutscenes`)
+  holds every cutscene of the bundle to the contract on each stage:
+  played, skipped, paused, and at 30, 60 and 120 frames a second.
 
 ## Performance and replays
 

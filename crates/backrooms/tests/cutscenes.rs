@@ -375,3 +375,121 @@ fn the_bars_come_in_the_hud_goes_and_a_key_shows_the_way_out() {
     assert!(!after.iter().any(|n| n.starts_with("cut-")), "{after:?}");
     assert!(after.contains(&"msg"), "the HUD is back");
 }
+
+// ------------------------------------------------------------ the contract
+// Every cutscene of the library, on each of its stages, keeps the contract
+// (`game::debug::cutscene`): played, skipped early and late, paused, and at
+// 30, 60 and 120 frames a second; and the contract catches what it is for
+// (known answers: broken cutscenes and tampered runs, each named).
+
+use game::cutscene::Skip;
+use game::debug::cutscene::{contract, contract_rates, contract_skip, Trace};
+
+/// A run of `c` on a fresh `stage`
+fn trace(c: &Cutscene, stage: &str, dt: f64, skip_at: Option<f64>, pause_at: Option<f64>) -> Trace {
+    let mut g = common::new_game();
+    let s = g.cutscene_stage(stage).unwrap_or_else(|e| panic!("{e}"));
+    g.run_cutscene(c, &s, dt, skip_at, pause_at, &mut |_, _| {})
+}
+
+/// Everything the contract asks of `c` on `stage`
+fn keeps(c: &Cutscene, stage: &str) -> Vec<String> {
+    let played = trace(c, stage, DT, None, None);
+    let mut p = contract(c, &played);
+    if c.skip == Skip::Hold {
+        for frac in [0.2, 0.6] {
+            let at = c.repeat_from.max(0.0) + (c.length - c.repeat_from) * frac;
+            if at + game::cutscene::play::SKIP_HOLD > c.length - 0.1 {
+                continue;
+            }
+            let skipped = trace(c, stage, DT, Some(at), None);
+            p.extend(contract(c, &skipped));
+            p.extend(contract_skip(&played, &skipped));
+        }
+    }
+    let paused = trace(c, stage, DT, None, Some(c.length * 0.5));
+    p.extend(contract(c, &paused));
+    if paused.signature != played.signature || paused.rows.last().map(|r| r.t) != played.rows.last().map(|r| r.t) {
+        p.push(format!("{} on {stage}: a pause changed where it ends ({} vs {})", c.id, paused.signature, played.signature));
+    }
+    let rates: Vec<Trace> = [1.0 / 30.0, 1.0 / 60.0, 1.0 / 120.0].iter().map(|&dt| trace(c, stage, dt, None, None)).collect();
+    // (a live killer moves by its own animation, a step at a time)
+    let live = c
+        .camera
+        .iter()
+        .any(|k| k.anchor == game::cutscene::Anchor::Killer || k.look == game::cutscene::Look::At(game::cutscene::Anchor::Killer));
+    p.extend(contract_rates(&rates, if live { 0.05 } else { 1e-6 }));
+    p
+}
+
+#[test]
+fn every_cutscene_keeps_the_contract_on_each_of_its_stages() {
+    let mut p = vec![];
+    for c in game::cutscene::library() {
+        for s in &c.stages {
+            p.extend(keeps(c, s));
+        }
+    }
+    assert!(p.is_empty(), "{p:#?}");
+}
+
+#[test]
+fn the_contract_catches_what_it_is_for() {
+    // a good one keeps it all
+    let good = cut(json!({}));
+    let p = keeps(&good, "ahead");
+    assert!(p.is_empty(), "{p:#?}");
+    // broken cutscenes
+    let turned = |yaw: f64, roll: f64, fov: Option<f64>| {
+        let mut k = key(1.0, "eyes", [0.0; 3], None);
+        k["yaw"] = json!(yaw);
+        k["roll"] = json!(roll);
+        k["fov"] = json!(fov);
+        cut(json!({ "camera": [key(0.0, "start", [0.0; 3], None), k, key(2.0, "eyes", [0.0; 3], None)] }))
+    };
+    for (c, says) in [
+        (turned(170.0, 0.0, None), "turns at"),
+        (turned(0.0, 20.0, None), "rolls"),
+        (turned(0.0, 0.0, Some(30.0)), "field of view"),
+        (
+            cut(
+                json!({ "camera": [key(0.0, "start", [0.0; 3], None), key(0.5, "eyes", [0.0, 0.0, -4.0], None), key(2.0, "eyes", [0.0; 3], None)] }),
+            ),
+            "moves at",
+        ),
+    ] {
+        let p = contract(&c, &trace(&c, "ahead", DT, None, None));
+        assert!(p.iter().any(|x| x.contains(says)), "{says}: {p:#?}");
+    }
+    // a jolt declared lets a fast turn through
+    let mut jolted = turned(170.0, 0.0, None);
+    jolted.camera[1].jolt = true;
+    jolted.camera[2].jolt = true;
+    let p = contract(&jolted, &trace(&jolted, "ahead", DT, None, None));
+    assert!(!p.iter().any(|x| x.contains("turns at")), "{p:#?}");
+    // tampered runs
+    let tr = trace(&good, "ahead", DT, None, None);
+    let tamper = |f: &dyn Fn(&mut Trace)| {
+        let mut t = tr.clone();
+        f(&mut t);
+        t
+    };
+    for (t, says) in [
+        (tamper(&|t| t.rows[10].body.0[0] += 1.0), "your body moved"),
+        (tamper(&|t| t.rows.last_mut().unwrap().shown.pos[0] += 0.01), "not play's camera"),
+        (tamper(&|t| t.rows[5].engine_draws = 3), "the engine drew"),
+        (tamper(&|t| t.rows.last_mut().unwrap().hands = true), "never gave your hands back"),
+        (tamper(&|t| t.rows[3].hands = false), "came back before its end"),
+    ] {
+        let p = contract(&good, &t);
+        assert!(p.iter().any(|x| x.contains(says)), "{says}: {p:#?}");
+    }
+    let wrong = tamper(&|t| {
+        t.signature = "elsewhere".into();
+        t.log.push("skipped at 1.00 (blend)".into());
+    });
+    assert!(contract_skip(&tr, &wrong).iter().any(|x| x.contains("a skip leaves")));
+    assert!(contract_skip(&tr, &tr).iter().any(|x| x.contains("did not skip")));
+    let drifted = tamper(&|t| t.rows[20].shown.yaw += 0.01);
+    assert!(contract_rates(&[tr.clone(), drifted], 1e-6).iter().any(|x| x.contains("the camera at")));
+}

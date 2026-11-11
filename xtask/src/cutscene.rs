@@ -6,6 +6,10 @@
 //! cargo xtask cutscene write     compile assets/src/cutscenes/*.toml into crates/game/assets/cutscenes.json
 //!                                (every field written out) and its MANIFEST.json entry
 //! cargo xtask cutscene list      what there is: id, length, world, stages, about
+//! cargo xtask cutscene preview ID [--stage S] [--every SECONDS]
+//!                                the sources compiled (not written) and ID played on its stage
+//!                                (each stage when none is named): its frames, a contact sheet,
+//!                                its timeline and its contract in target/xtask/cutscene/ID/STAGE/
 //! ```
 //!
 //! This file knows the *format* (the fields, their kinds and their
@@ -17,7 +21,7 @@ use crate::{cargo, root, run};
 use serde_json::{json, Map, Value};
 use std::path::{Path, PathBuf};
 
-const USAGE: &str = "usage: cargo xtask cutscene check | write | list";
+const USAGE: &str = "usage: cargo xtask cutscene check | write | list | preview ID [--stage S] [--every SECONDS]";
 
 /// The bundle's own line
 const ABOUT: &str = "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).";
@@ -27,6 +31,7 @@ pub fn cutscene(args: &[String]) -> Result<(), String> {
         Some("check") => check(),
         Some("write") => write(),
         Some("list") => list(),
+        Some("preview") => preview(&args[1..]),
         _ => Err(USAGE.into()),
     }
 }
@@ -324,6 +329,51 @@ fn write() -> Result<(), String> {
     )?;
     println!("wrote crates/game/assets/cutscenes.json ({} cutscenes) and its manifest entry", sources.len());
     Ok(())
+}
+
+/// ID played on its stages from the sources as they stand (compiled to a
+/// copy, not written): frames, a contact sheet, a timeline and the
+/// contract, to look at before writing
+fn preview(args: &[String]) -> Result<(), String> {
+    let id = args.first().filter(|a| !a.starts_with("--")).ok_or(USAGE)?;
+    let text = compile_all(&src_dir()).map_err(|p| p.join("\n"))?;
+    let v: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+    let c = v["cutscenes"].as_array().into_iter().flatten().find(|c| c["id"] == id.as_str()).ok_or(format!("no source for {id}"))?.clone();
+    let tmp = root().join("target/xtask/cutscene/cutscenes.json");
+    std::fs::create_dir_all(tmp.parent().unwrap()).map_err(|e| e.to_string())?;
+    std::fs::write(&tmp, &text).map_err(|e| e.to_string())?;
+    game_rules(&tmp)?;
+    let stages: Vec<String> = match crate::opt(args, "--stage") {
+        Some(s) => vec![s.to_string()],
+        None => c["stages"].as_array().into_iter().flatten().filter_map(|s| s.as_str().map(String::from)).collect(),
+    };
+    let every = crate::opt(args, "--every").unwrap_or("0.25");
+    let mut broken = vec![];
+    for stage in &stages {
+        let dir = root().join(format!("target/xtask/cutscene/{id}/{}", stage.replace(':', "_")));
+        let _ = std::fs::remove_dir_all(&dir);
+        let out = std::process::Command::new(root().join("target/release/backrooms"))
+            .args(["--cutscene", id, "--stage", stage, "--bundle"])
+            .arg(&tmp)
+            .args(["--every", every, "--sheet"])
+            .arg(&dir)
+            .output()
+            .map_err(|e| e.to_string())?;
+        print!("{}", String::from_utf8_lossy(&out.stdout));
+        if !out.status.success() {
+            return Err(format!("{id} on {stage}: {}", String::from_utf8_lossy(&out.stderr).trim()));
+        }
+        let contract = std::fs::read_to_string(dir.join("contract.txt")).unwrap_or_default();
+        if contract.trim() != "ok" {
+            broken.push(format!("{id} on {stage}:\n{contract}"));
+        }
+        println!("  look at {}", dir.join("sheet.png").strip_prefix(root()).unwrap_or(&dir).display());
+    }
+    if broken.is_empty() {
+        Ok(())
+    } else {
+        Err(format!("the contract is broken:\n{}", broken.join("\n")))
+    }
 }
 
 fn list() -> Result<(), String> {

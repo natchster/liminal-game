@@ -441,8 +441,17 @@ impl Game {
     }
 
     /// After play's update: the clock, the skip, a break-off, the cues, the
-    /// camera, the veil; and the end
+    /// camera, the veil; and the end. What the engine drew from the native
+    /// stream is counted apart from what its cues drew (`cut_engine_draws`:
+    /// it must be 0, rule 5)
     pub fn cutscene_post(&mut self, dt: f64) {
+        let before = crate::base::rng::native_draws();
+        self.cut_cue_draws = 0;
+        self.cutscene_step(dt);
+        self.cut_engine_draws = crate::base::rng::native_draws() - before - self.cut_cue_draws;
+    }
+
+    fn cutscene_step(&mut self, dt: f64) {
         // a far skip's veil opening on your eyes
         if self.cut.is_none() {
             if self.cut_veil.opening > 0.0 {
@@ -511,7 +520,9 @@ impl Game {
             p.next[1] += 1;
             if let Some(play) = cues::sound(&s.name) {
                 let at = p.frame(self, s.anchor).at(s.pos);
+                let d = crate::base::rng::native_draws();
                 self.play_from(at[0], at[1], at[2], 2.0, s.gain, 0.6, play);
+                self.cut_cue_draws += crate::base::rng::native_draws() - d;
                 self.cut_note(format!("sound {} at {:.2}", s.name, s.t));
             }
         }
@@ -522,7 +533,9 @@ impl Game {
         while let Some(s) = p.c.say.get(p.next[3]).filter(|s| s.t <= until).cloned() {
             p.next[3] += 1;
             if let Some((u, subject)) = cues::say_subject(&s.use_, &s.subject) {
+                let d = crate::base::rng::native_draws();
                 self.aside(u, subject);
+                self.cut_cue_draws += crate::base::rng::native_draws() - d;
                 self.cut_note(format!("say {} {} at {:.2}", s.use_, s.subject, s.t));
             }
         }
@@ -530,7 +543,9 @@ impl Game {
 
     fn cut_event(&mut self, name: &str, t: f64) {
         if let Some(run) = cues::event(name) {
+            let d = crate::base::rng::native_draws();
             run(self);
+            self.cut_cue_draws += crate::base::rng::native_draws() - d;
             self.cut_note(format!("event {name} at {t:.2}"));
         }
     }

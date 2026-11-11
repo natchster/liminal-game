@@ -651,6 +651,10 @@ pub struct Game {
     pub cut_hold: Option<crate::cutscene::play::Pose>,
     /// what the cutscenes did (the last 64 lines: tests, previews)
     pub cut_log: Vec<String>,
+    /// native draws the cutscene engine made last frame (its cues' sounds and events not counted: tests)
+    pub cut_engine_draws: u64,
+    /// ... and those its cues made
+    pub cut_cue_draws: u64,
     /// `--showcase watcher`: its furniture placed (once)
     pub showcase_company: bool,
     pub god_deaths: f64,
@@ -1134,6 +1138,8 @@ impl Game {
             cut_veil: Default::default(),
             cut_hold: None,
             cut_log: vec![],
+            cut_engine_draws: 0,
+            cut_cue_draws: 0,
             showcase_company: false,
             god_deaths: 0.0,
             level_start_t: 0.0,

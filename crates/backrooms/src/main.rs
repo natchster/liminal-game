@@ -127,6 +127,16 @@ struct Options {
     fresh: bool,
     /// `--cutscene-check FILE`: a compiled cutscene bundle against the game's rules
     cutscene_check: Option<String>,
+    /// `--cutscene ID`: play a cutscene on its stage (`--stage S`, else its
+    /// first) from the library or `--bundle FILE`; with `--sheet DIR` its
+    /// frames every `--every` seconds, a contact sheet, its timeline and its
+    /// contract; with `--screenshot` and `--cut-at T` the frame at T
+    cutscene: Option<String>,
+    stage: Option<String>,
+    sheet: Option<String>,
+    bundle: Option<String>,
+    every: f64,
+    cut_at: Option<f64>,
 }
 fn parse_args() -> Options {
     let mut o = Options {
@@ -157,6 +167,12 @@ fn parse_args() -> Options {
         vending_demo: None,
         fresh: false,
         cutscene_check: None,
+        cutscene: None,
+        stage: None,
+        sheet: None,
+        bundle: None,
+        every: 0.25,
+        cut_at: None,
         metrics: None,
         bench: None,
         bench_creatures: None,
@@ -223,6 +239,12 @@ fn parse_args() -> Options {
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
             "--cutscene-check" => o.cutscene_check = Some(next(&mut i)),
+            "--cutscene" => o.cutscene = Some(next(&mut i)),
+            "--stage" => o.stage = Some(next(&mut i)),
+            "--sheet" => o.sheet = Some(next(&mut i)),
+            "--bundle" => o.bundle = Some(next(&mut i)),
+            "--every" => o.every = next(&mut i).parse().unwrap_or(0.25),
+            "--cut-at" => o.cut_at = next(&mut i).parse().ok(),
             "--metrics" => o.metrics = Some(next(&mut i)),
             "--bench" => o.bench = Some(next(&mut i)),
             "--bench-creatures" => o.bench_creatures = Some(next(&mut i)),
@@ -263,8 +285,12 @@ fn save_path() -> std::path::PathBuf {
 fn make_game(o: &Options) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = o.flags.clone();
-    let headless =
-        o.screenshot.is_some() || o.dump_level.is_some() || o.metrics.is_some() || o.bench.is_some() || o.bench_creatures.is_some();
+    let headless = o.screenshot.is_some()
+        || o.dump_level.is_some()
+        || o.metrics.is_some()
+        || o.bench.is_some()
+        || o.bench_creatures.is_some()
+        || o.cutscene.is_some();
     // a recorded or replayed session starts like a fresh install, so the two
     // start alike (their per-frame seed is set in `main`)
     let session = o.record.is_some() || o.replay.is_some();
@@ -640,6 +666,139 @@ fn screenshot(o: &Options, path: &str) {
         r.info.lights,
         r.info.programs
     );
+}
+
+/// `--cutscene ID`: the cutscene played on its stage at 60 frames a second
+/// and rendered; `--sheet DIR` writes its frames every `--every` seconds
+/// (`t01.25.png`), a contact sheet of them (`sheet.png`, four across, a
+/// quarter of the size), its timeline (`timeline.tsv`: the camera shown and
+/// play's, the blend, the bars, the veil, your hands, a row a frame) and its
+/// contract (`contract.txt`, `game::debug::cutscene::contract`);
+/// `--screenshot FILE --cut-at T` writes the frame at its time T instead
+fn cutscene_shots(o: &Options, id: &str) {
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let mut r = Renderer::new(device);
+    let mut g = make_game(o);
+    let (w, h) = ((o.width * o.scale) as usize, (o.height * o.scale) as usize);
+    g.view_width = o.width;
+    g.view_height = o.height;
+    g.scale_factor = o.scale;
+    g.quality.max_pr = o.scale.min(2.0);
+    g.quality.pr = g.quality.max_pr;
+    g.boot();
+    let list = match &o.bundle {
+        Some(b) => game::cutscene::model::parse_bundle(&std::fs::read_to_string(b).unwrap_or_else(|e| panic!("{b}: {e}")))
+            .unwrap_or_else(|e| panic!("{e}")),
+        None => game::cutscene::library().to_vec(),
+    };
+    let c = list.iter().find(|c| c.id == id).unwrap_or_else(|| panic!("no cutscene {id}")).clone();
+    let stage = o.stage.clone().unwrap_or_else(|| c.stages[0].clone());
+    let s = g.cutscene_stage(&stage).unwrap_or_else(|e| panic!("{e}"));
+    let target = r.offscreen_target(w, h);
+    let dir = o.sheet.clone();
+    if let Some(d) = &dir {
+        std::fs::create_dir_all(d).expect("the sheet's directory");
+    }
+    let mut frames: Vec<(f64, u32, u32, Vec<u8>)> = vec![];
+    let mut next = 0.0;
+    let mut shot: Option<(u32, u32, Vec<u8>)> = None;
+    let every = o.every.max(1.0 / 60.0);
+    let cut_at = o.cut_at;
+    let tr = g.run_cutscene(&c, &s, 1.0 / 60.0, None, None, &mut |g, row| {
+        let want_sheet = dir.is_some() && (row.t + 1e-9 >= next || !row.hands);
+        let want_shot = cut_at.is_some_and(|at| shot.is_none() && (row.t + 1e-9 >= at || !row.hands));
+        let cb = draw(g, &mut r, &target, w, h);
+        cb.commit();
+        cb.waitUntilCompleted();
+        if want_sheet || want_shot {
+            let (tw, th, px) = r.read_texture(&target);
+            if want_shot {
+                shot = Some((tw as u32, th as u32, px.clone()));
+            }
+            if want_sheet {
+                frames.push((row.t, tw as u32, th as u32, px));
+                next += every;
+            }
+        }
+    });
+    if let (Some(path), Some((tw, th, px))) = (&o.screenshot, &shot) {
+        engine::png::write_rgba(path, *tw, *th, px).expect("write png");
+        println!("wrote {path}: {id} on {stage} at {:.2} s", cut_at.unwrap_or(0.0));
+    }
+    let problems = game::debug::cutscene::contract(&c, &tr);
+    if let Some(d) = &dir {
+        for (t, tw, th, px) in &frames {
+            engine::png::write_rgba(&format!("{d}/t{t:05.2}.png"), *tw, *th, px).expect("write png");
+        }
+        // the contact sheet: a quarter of the size, four across
+        if let Some((_, tw, th, _)) = frames.first() {
+            let (sw, sh) = ((*tw / 4) as usize, (*th / 4) as usize);
+            let (cols, gap) = (4usize, 4usize);
+            let rows = frames.len().div_ceil(cols);
+            let (ww, hh) = (cols * sw + (cols + 1) * gap, rows * sh + (rows + 1) * gap);
+            let mut img = vec![0u8; ww * hh * 4];
+            for k in (0..img.len()).step_by(4) {
+                img[k..k + 4].copy_from_slice(&[24, 24, 24, 255]);
+            }
+            for (i, (_, tw, _, px)) in frames.iter().enumerate() {
+                let (ox, oy) = (gap + (i % cols) * (sw + gap), gap + (i / cols) * (sh + gap));
+                for y in 0..sh {
+                    for x in 0..sw {
+                        let mut acc = [0u32; 4];
+                        for dy in 0..4 {
+                            for dx in 0..4 {
+                                let s = (((y * 4 + dy) * *tw as usize) + x * 4 + dx) * 4;
+                                for ch in 0..4 {
+                                    acc[ch] += px[s + ch] as u32;
+                                }
+                            }
+                        }
+                        let d = ((oy + y) * ww + ox + x) * 4;
+                        for ch in 0..4 {
+                            img[d + ch] = (acc[ch] / 16) as u8;
+                        }
+                    }
+                }
+            }
+            engine::png::write_rgba(&format!("{d}/sheet.png"), ww as u32, hh as u32, &img).expect("write png");
+        }
+        let mut tsv = String::from("t\tx\ty\tz\tyaw\tpitch\troll\tfov\tplay_x\tplay_y\tplay_z\tplay_yaw\tw\tbars\tveil\thands\n");
+        for row in &tr.rows {
+            let (s, p) = (&row.shown, &row.play);
+            tsv += &format!(
+                "{:.4}\t{:.4}\t{:.4}\t{:.4}\t{:.4}\t{:.4}\t{:.4}\t{:.2}\t{:.4}\t{:.4}\t{:.4}\t{:.4}\t{:.3}\t{:.3}\t{:.3}\t{}\n",
+                row.t,
+                s.pos[0],
+                s.pos[1],
+                s.pos[2],
+                s.yaw,
+                s.pitch,
+                s.roll,
+                s.fov,
+                p.pos[0],
+                p.pos[1],
+                p.pos[2],
+                p.yaw,
+                row.w,
+                row.bars,
+                row.veil,
+                row.hands
+            );
+        }
+        std::fs::write(format!("{d}/timeline.tsv"), tsv).expect("write timeline");
+        let text = if problems.is_empty() { "ok\n".to_string() } else { problems.join("\n") + "\n" };
+        std::fs::write(format!("{d}/contract.txt"), text).expect("write contract");
+        std::fs::write(format!("{d}/log.txt"), tr.log.join("\n") + "\n").expect("write log");
+        println!(
+            "wrote {d}: {} frames, sheet.png, timeline.tsv ({} rows), contract {}",
+            frames.len(),
+            tr.rows.len(),
+            if problems.is_empty() { "ok" } else { "BROKEN" }
+        );
+    }
+    for p in &problems {
+        eprintln!("contract: {p}");
+    }
 }
 
 /// `--dump-level DIR`: writes a JSON description of each level — start a run
@@ -1170,6 +1329,10 @@ fn main() {
     }
     if let Some(d) = o.dump_level.clone() {
         level_check(&o, &d);
+        return;
+    }
+    if let Some(id) = o.cutscene.clone() {
+        cutscene_shots(&o, &id);
         return;
     }
     if let Some(p) = o.screenshot.clone() {
