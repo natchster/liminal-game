@@ -48,16 +48,30 @@ fn line(text: &str, font: Font, c: Rgba, max_w: Option<f64>) -> TextBlock {
     TextBlock::plain(text, c, &[], 0.0, font, if max_w.is_some() { Ws::Normal } else { Ws::NoWrap }, max_w, None)
 }
 
-/// The open list, topmost
+/// A list let go fades out over this (New descent: the title's, as the
+/// bars come in)
+pub(crate) const MENU_FADE_MS: f64 = 400.0;
+
+/// The open list, topmost; or the one just let go, fading
 pub(crate) fn paint_menu(f: &mut Frame, g: &Game) {
-    let m = &g.menu;
-    let Some(screen) = g.live_menu() else { return };
+    if let Some(screen) = g.live_menu() {
+        return paint_menu_of(f, g, &g.menu, screen, 1.0);
+    }
+    if let Some((m, at)) = &g.menu_fade {
+        let k = ((f.now - at) / MENU_FADE_MS).clamp(0.0, 1.0);
+        if let (Some(screen), true) = (m.screen, k < 1.0) {
+            paint_menu_of(f, g, m, screen, 1.0 - k);
+        }
+    }
+}
+
+fn paint_menu_of(f: &mut Frame, g: &Game, m: &crate::ui::menu::Menu, screen: Screen, fade: f64) {
     let (w, h) = (f.w, f.h);
     // over the frozen frame the place stays, darker
     if g.state == "paused" {
         f.fill(rgba(4.0, 3.0, 2.0, 0.38), LayerBlend::Normal);
     }
-    paint_shade(f, 1.0);
+    paint_shade(f, fade);
     let ink = col(INK);
     let x0 = margin(w);
     let bottom = h - (h * 0.11).max(44.0);
@@ -106,7 +120,7 @@ pub(crate) fn paint_menu(f: &mut Frame, g: &Game) {
     let stepped = valued && screen == Screen::Settings;
     let key = format!("{screen:?}|{:?}|{}|{}|{}|{sel}|{w}|{h}|{line_h}", m.items, m.heading, m.note, m.her_line);
     let top = head_y - 12.0;
-    f.layer("menu", &key, 1.0, move |dpr| {
+    f.layer("menu", &key, fade, move |dpr| {
         let mut p = Painter::new(0.0, top, w, h - top, dpr);
         p.text(&head, x0, head_y, head.width(), "left", 0.94);
         p.text(&sub, x0, sub_y, max_w, "left", 0.62);
@@ -154,7 +168,7 @@ pub(crate) fn paint_menu(f: &mut Frame, g: &Game) {
         let t = format!("Level {}  ·  seed {:08x}", g.level_num, g.run_seed);
         let tb = line(&t, Font::sans(11.0), ink, None);
         let (tw, th) = (tb.width(), tb.height());
-        f.layer("menu-where", &t, 1.0, move |dpr| {
+        f.layer("menu-where", &t, fade, move |dpr| {
             let mut p = Painter::new(w - x0 - tw - 4.0, bottom - th - 4.0, tw + 8.0, th + 8.0, dpr);
             p.text(&tb, w - x0 - tw, bottom - th, tw, "left", 0.38);
             p
@@ -165,7 +179,7 @@ pub(crate) fn paint_menu(f: &mut Frame, g: &Game) {
         let (bw, bh) = (200.0, 130.0);
         let (bx, by) = ((w * 0.66).min(w - bw - x0), (h - bh) / 2.0);
         let hint = line("Turn it until the mark is only just seen.", Font::sans(12.0), ink, Some(bw + 40.0));
-        f.layer("menu-mark", "mark", 1.0, move |dpr| {
+        f.layer("menu-mark", "mark", fade, move |dpr| {
             let mut p = Painter::new(bx, by, bw + 40.0, bh + 40.0, dpr);
             p.rect(bx, by, bw, bh, [0.0, 0.0, 0.0, 1.0]);
             // the exit sign's shape, a hair above black

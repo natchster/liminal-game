@@ -504,11 +504,15 @@ impl Game {
             self.blip(brk.c * 0.25 * dd, 2.5, "sine", 0.045, None, 0.70, 0.0);
         }
         self.shake_t = 1.0;
-        let flash = match wk.as_str() {
-            "wet" => "radial-gradient(ellipse at center, rgba(140,0,20,0.85) 0%, rgba(20,0,10,0.95) 100%)",
-            "electric" => "radial-gradient(ellipse at center, rgba(200,180,40,0.85) 0%, rgba(80,20,0,0.95) 100%)",
-            "haunted" => "radial-gradient(ellipse at center, rgba(130,20,80,0.85) 0%, rgba(20,0,30,0.95) 100%)",
-            "derelict" => "radial-gradient(ellipse at center, rgba(160,80,20,0.85) 0%, rgba(60,20,0,0.95) 100%)",
+        // (each death its own flash: a creature's red, the fog's violet, and
+        // a nerve giving out none, the dark coming in from the edges instead)
+        let flash = match (cause, wk.as_str()) {
+            ("assembly", _) => "radial-gradient(ellipse at center, rgba(70,40,95,0.75) 0%, rgba(22,13,30,0.95) 100%)",
+            ("sanity", _) => "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.9) 100%)",
+            (_, "wet") => "radial-gradient(ellipse at center, rgba(140,0,20,0.85) 0%, rgba(20,0,10,0.95) 100%)",
+            (_, "electric") => "radial-gradient(ellipse at center, rgba(200,180,40,0.85) 0%, rgba(80,20,0,0.95) 100%)",
+            (_, "haunted") => "radial-gradient(ellipse at center, rgba(130,20,80,0.85) 0%, rgba(20,0,30,0.95) 100%)",
+            (_, "derelict") => "radial-gradient(ellipse at center, rgba(160,80,20,0.85) 0%, rgba(60,20,0,0.95) 100%)",
             _ => "radial-gradient(ellipse at center, rgba(120,0,0,0.85) 0%, rgba(20,0,0,0.95) 100%)",
         };
         self.ui.flash.set_style("background", flash);
@@ -516,7 +520,14 @@ impl Game {
         self.schedule(260.0, |g| g.ui.flash.set_opacity(0.85));
         self.schedule(450.0, |g| g.ui.flash.set_opacity(0.0));
         // the thing that got you, in your face; the screen cuts to black on it
-        let killer = self.director.killer.take().filter(|&i| i < self.entities.len()).or_else(|| self.nearest_entity());
+        // (only a creature's death has one: a nerve giving out or the fog
+        // brings nothing to your face; review B)
+        let killer = if cause == "entity" {
+            self.director.killer.take().filter(|&i| i < self.entities.len()).or_else(|| self.nearest_entity())
+        } else {
+            self.director.killer = None;
+            None
+        };
         self.director.killer = killer;
         if let Some(ki) = killer {
             let f = self.player.fwd();
@@ -545,7 +556,10 @@ impl Game {
             "assembly" => "death_fog",
             _ => "death_mind",
         };
-        let anchors = crate::cutscene::play::Anchors { thing: None, killer };
+        // (a death's short form is for a repeat of its kind: a first death to
+        // a new creature plays whole)
+        let seen_as = killer.map(|k| format!("{id}:{}", self.entities[k].kind));
+        let anchors = crate::cutscene::play::Anchors { thing: None, killer, seen_as };
         if !self.play_cutscene(id, anchors) {
             // none to play (a creature's death with no creature): black on
             // the clock, then the card. Black, the hum, one line in the
@@ -608,6 +622,7 @@ impl Game {
         self.audio_init();
         self.clear_save();
         self.title_place = None;
+        self.shaft_looked_back = false;
         let hp = self.parse_flag_params();
         let hash_seed = hp.get("seed").and_then(|s| parse_int_prefix(s)).map(to_u32).unwrap_or(0);
         self.run_seed = match seed {

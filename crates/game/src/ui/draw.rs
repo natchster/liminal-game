@@ -1420,7 +1420,7 @@ fn paint_vignette(grad: &Radial, sh: &Shadow, cm: ColorMatrix, w: f64, h: f64) -
 fn paint_hud(f: &mut Frame, g: &Game) {
     // the title is the place alone, and the pause list stands over it alone;
     // a cutscene has your hands, and the HUD is not yours to read (`ui/cinema.rs`)
-    if g.state == "menu" || g.state == "paused" || g.hands_taken() {
+    if g.state == "menu" || g.state == "paused" || g.state == "dead" || g.hands_taken() {
         return;
     }
     let d = &g.ui;

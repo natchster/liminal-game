@@ -222,7 +222,9 @@ once to a creature and once to your nerve):
 - When the black bars came, did you know your hands were taken? Did you
   press anything, and did you find the way out ("Hold E to skip")?
 - New descent: did it feel like one shot from the title into your hands,
-  or like a menu and then a game? Where did you think you were?
+  or like a menu and then a game? Where did you think you were? The
+  camera draws back into your eyes: did that read as arriving, or would
+  walking forward into them have?
 - The broken lift: what did you see in the black? Was it frightening, or
   a jump scare, or nothing? Would you look into another one?
 - Dying: did you feel yourself fall? Did the second death feel too short,

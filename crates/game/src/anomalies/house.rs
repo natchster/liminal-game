@@ -413,7 +413,7 @@ impl Game {
             self.on_death("entity");
             return true;
         }
-        if d < KILL_DIST && !(self.entities[ei].n("touchCD") > 0.0) {
+        if d < KILL_DIST && !(self.entities[ei].n("touchCD") > 0.0) && !self.hands_taken() {
             self.entities[ei].set_n("touchCD", 2.5);
             self.player.sanity = clamp(self.player.sanity - 22.0, 0.0, SAN_MAX);
             self.ui.flash.set_opacity(0.5);

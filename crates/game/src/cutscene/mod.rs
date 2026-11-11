@@ -113,6 +113,7 @@ mod tests {
             ("outside its length", Box::new(|c| c.event[0].t = c.length + 1.0)),
             ("fov", Box::new(|c| c.camera[1].fov = 40.0)),
             ("only for 3 s at most", Box::new(|c| c.skip = Skip::Never)),
+            ("a jolt is at most", Box::new(|c| c.camera[3].t = 3.5)),
             ("a point to look at, not a place to stand", Box::new(|c| c.camera[1].anchor = Anchor::Killer)),
             ("bars", Box::new(|c| c.bars.out_at = c.length + 1.0)),
         ];

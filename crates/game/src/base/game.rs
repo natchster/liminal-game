@@ -653,6 +653,12 @@ pub struct Game {
     pub cut_log: Vec<String>,
     /// a death's shake this frame (yaw, pitch, roll): its camera's own draws (`death_world`)
     pub cut_shake: (f64, f64, f64),
+    /// the next cutscene plays its short form (tests: a repeat)
+    pub cut_force_repeat: bool,
+    /// a list let go and fading out (New descent: the title's), and when
+    pub menu_fade: Option<(crate::ui::menu::Menu, f64)>,
+    /// something looked back out of a broken lift's black this run
+    pub shaft_looked_back: bool,
     /// a cutscene to play in place of the library's of its id, once (tests, previews)
     pub cut_override: Option<crate::cutscene::Cutscene>,
     /// the cutscenes played so far (each its number: a cue that ends one is seen)
@@ -1151,6 +1157,9 @@ impl Game {
             cut_hold: None,
             cut_log: vec![],
             cut_shake: (0.0, 0.0, 0.0),
+            cut_force_repeat: false,
+            menu_fade: None,
+            shaft_looked_back: false,
             cut_override: None,
             cut_gen: 0,
             cut_end: None,

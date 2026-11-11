@@ -317,7 +317,8 @@
       "stages": [
         "death:hound",
         "death:smiler",
-        "death:reader"
+        "death:reader",
+        "death:hound:wall"
       ],
       "then": "card",
       "world": "live"

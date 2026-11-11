@@ -159,10 +159,11 @@ Levels must be a pure function of `(run_seed, level)`:
   `glass`'s floors and trials), each floor and trial seeding its per-frame
   stream so it plays the same on any thread.
 * `cargo test --workspace --release` runs every test directly.
-* **Golden frames.** `cargo xtask shots` renders 48 fixed frames headless
+* **Golden frames.** `cargo xtask shots` renders 56 fixed frames headless
   with `--fresh` (each creature at 2, 4 and 8 m and its death scene; the
   anomalies' figures in their own places: the staff, the shadows, the
-  seated man of the Loop; the spawn view of eight levels and one view per zone purpose or place, which together
+  seated man of the Loop; the cutscenes at a time of their clocks: the way
+  in, the shaft's black, a death's fall; the spawn view of eight levels and one view per zone purpose or place, which together
   cover every purpose, weather and anomaly) and compares them with
   `crates/backrooms/tests/golden/`. With `--fresh` a frame is the same bit
   for bit on the same machine, so identical pixels pass; otherwise ꟻLIP

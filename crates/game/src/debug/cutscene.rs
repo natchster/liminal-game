@@ -10,7 +10,7 @@
 //! and prints its contract. Placers must be registered before a stage
 //! builds a floor (the caller's: `backrooms`' registry).
 use crate::base::game::Game;
-use crate::cutscene::play::{Anchors, Frame, Pose, BREAK_BLEND, SKIP_BLEND};
+use crate::cutscene::play::{Anchors, Frame, Pose};
 use crate::cutscene::{Cutscene, Then};
 
 /// Turns faster than this (°/s) are a jolt the cutscene must declare
@@ -35,11 +35,15 @@ pub struct RunOpts {
     pub pause_at: Option<f64>,
     /// the nearest creature set hunting you at this time
     pub danger_at: Option<f64>,
+    /// its short form, as on a repeat
+    pub repeat: bool,
+    /// Settings' camera shake off and head bob 0
+    pub still: bool,
 }
 
 impl Default for RunOpts {
     fn default() -> Self {
-        RunOpts { dt: 1.0 / 60.0, skip_at: None, pause_at: None, danger_at: None }
+        RunOpts { dt: 1.0 / 60.0, skip_at: None, pause_at: None, danger_at: None, repeat: false, still: false }
     }
 }
 
@@ -63,6 +67,9 @@ pub struct Row {
     pub engine_draws: u64,
     /// the camera this close to a wall (`CAMERA_CLEARANCE`) while a cutscene's
     pub inside: bool,
+    /// a layer of the HUD painted while your hands are taken (read every
+    /// `HUD_EVERY` frames)
+    pub hud_up: bool,
 }
 
 /// A run, start to hands back (or the card up)
@@ -76,6 +83,9 @@ pub struct Trace {
     pub body_before: Option<Body>,
     /// the camera the frame before it was started
     pub before_cam: Option<Pose>,
+    /// your nerve after it (a skip must leave it as watching does, within
+    /// what time takes or gives)
+    pub nerve_after: f64,
     /// the camera the frame after the hands came back (play's own)
     pub after: Option<Pose>,
     pub state_after: String,
@@ -147,6 +157,10 @@ impl Game {
                 };
                 self.stage_floor(seed, level);
                 self.god_mode = false;
+                // `death:KIND:wall`: backed against a wall (you die fleeing)
+                if stage.ends_with(":wall") {
+                    self.stage_back_to_wall();
+                }
                 if !matches!(what, "fog" | "sanity") {
                     self.showcase_entity(what, 1.0);
                     if !self.entities.iter().any(|e| e.kind == what) {
@@ -198,7 +212,7 @@ impl Game {
                 let (s, c) = self.player.yaw.sin_cos();
                 let at = [p.x - s * 2.0, self.floor_y_at(p.x, p.z), p.z - c * 2.0];
                 let thing = Frame::thing(at, self.player.yaw);
-                Ok(Staged { stage: stage.into(), anchors: Anchors { thing: Some(thing), killer: None } })
+                Ok(Staged { stage: stage.into(), anchors: Anchors { thing: Some(thing), killer: None, seen_as: None } })
             }
             _ => Err(format!("no stage \"{stage}\" (debug::cutscene::cutscene_stage)")),
         }
@@ -206,6 +220,15 @@ impl Game {
 
     /// Start `c` on its stage as play would
     pub fn cutscene_trigger(&mut self, s: &Staged, c: &Cutscene) -> bool {
+        let started = self.cutscene_start(s, c);
+        // (the one asked for, or it did not start: a stage whose path plays
+        // another, say a death of another cause, must not record it as this)
+        let ours = self.cut.as_ref().is_some_and(|p| p.c.id == c.id) && self.cut_override.is_none();
+        self.cut_override = None;
+        started && ours
+    }
+
+    fn cutscene_start(&mut self, s: &Staged, c: &Cutscene) -> bool {
         match s.stage.split(':').next().unwrap_or("") {
             // as the title's list does (`menu:new`)
             "title" => {
@@ -225,14 +248,12 @@ impl Game {
                     }
                 };
                 self.on_death(cause);
-                self.cut_override = None;
                 self.hands_taken()
             }
             // as your hand does: E on the lift
             "broken_elevator" => {
                 self.cut_override = Some(c.clone());
                 self.try_interact();
-                self.cut_override = None;
                 self.hands_taken()
             }
             _ => self.play_cutscene_data(c.clone(), s.anchors.clone()),
@@ -261,6 +282,11 @@ impl Game {
         let log_from = self.cut_log.len();
         let mut tr = Trace { id: c.id.clone(), stage: s.stage.clone(), dt, ..Default::default() };
         tr.before_cam = Some(self.camera_pose());
+        if o.still {
+            self.settings.shake = false;
+            self.settings.bob = 0.0;
+        }
+        self.cut_force_repeat = o.repeat;
         if !self.cutscene_trigger(s, c) {
             tr.log = self.cut_log[log_from.min(self.cut_log.len())..].to_vec();
             return tr;
@@ -307,6 +333,10 @@ impl Game {
                 (None, None) => (tr.rows.last().map(|r| r.t).unwrap_or(0.0) + dt, shown, 0.0, 0.0),
             };
             let inside = self.hands_taken() && self.circle_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
+            let hud_up = self.hands_taken() && tr.rows.len() % HUD_EVERY == 0 && {
+                let _ = self.hud_layers(1280.0, 800.0, 1.0);
+                self.hud_ui.painted.iter().any(|n| !NOT_HUD.contains(n) && !n.starts_with("cut-") && !n.starts_with("menu"))
+            };
             tr.rows.push(Row {
                 t,
                 shown,
@@ -318,6 +348,7 @@ impl Game {
                 body,
                 engine_draws: self.cut_engine_draws,
                 inside,
+                hud_up,
             });
             let row = tr.rows.last().unwrap().clone();
             on_frame(self, &row);
@@ -338,10 +369,35 @@ impl Game {
             self.stage_frame(dt);
         }
         tr.card_up = self.live_menu().is_some();
+        // (read when watching it to its end would be a second over: a
+        // skipped run and a watched one at the same moment, so what the
+        // place takes or gives over time is the same in both)
+        let mut elapsed = tr.rows.len() as f64 * dt;
+        while elapsed < c.length + 1.0 {
+            self.stage_frame(dt);
+            elapsed += dt;
+        }
         tr.state_after = self.state.clone();
+        tr.nerve_after = self.player.sanity;
         tr.signature = self.cutscene_signature(s);
         tr.log = self.cut_log[log_from.min(self.cut_log.len())..].to_vec();
         tr
+    }
+
+    /// You, backed up against the nearest wall behind you (0.3 m from it),
+    /// facing out
+    fn stage_back_to_wall(&mut self) {
+        let p = self.player.pos;
+        let (s, c) = self.player.yaw.sin_cos();
+        let mut d = 0.0;
+        while d < 12.0 && !self.circle_hits_wall(p.x + s * (d + 0.1), p.z + c * (d + 0.1), 0.3) {
+            d += 0.1;
+        }
+        self.player.pos.x = p.x + s * d;
+        self.player.pos.z = p.z + c * d;
+        for _ in 0..10 {
+            self.stage_frame(1.0 / 60.0);
+        }
     }
 
     /// The nearest creature set hunting you (held where it is, it keeps its
@@ -358,6 +414,14 @@ impl Game {
         }
     }
 }
+
+/// The HUD read every this many frames of a run
+pub const HUD_EVERY: usize = 15;
+/// Layers that are the place's, not the HUD's
+const NOT_HUD: &[&str] = &["vignette", "radial", "fill", "grain"];
+/// A skip's nerve within this of watching's (what time takes or gives
+/// over the seconds a skip saves)
+pub const SKIP_NERVE: f64 = 4.0;
 
 /// A frame's move at a start or an end that reads as a jump (metres, radians)
 pub const JUMP: f64 = 0.05;
@@ -436,6 +500,9 @@ pub fn contract(c: &Cutscene, tr: &Trace) -> Vec<String> {
     if !ended_early && (last.t - c.length).abs() > tr.dt + 1e-9 {
         p.push(format!("{}: played through, it ended at {:.3} s, not its length {:.3}", at(last), last.t, c.length));
     }
+    if let Some(r) = tr.rows.iter().find(|r| r.hud_up) {
+        p.push(format!("{}: the HUD is up while your hands are taken", at(r)));
+    }
     if let Some(r) = tr.rows.iter().find(|r| r.inside) {
         p.push(format!("{}: the camera is within {CAMERA_CLEARANCE} m of a wall", at(r)));
     }
@@ -444,19 +511,15 @@ pub fn contract(c: &Cutscene, tr: &Trace) -> Vec<String> {
         p.push(format!("{}: the engine drew {} random numbers", at(r), r.engine_draws));
     }
     // 7: comfortable
-    let after_break = |t: f64| {
-        tr.log
-            .iter()
-            .filter_map(|l| l.strip_prefix("skipped at ").or_else(|| l.strip_prefix("broken off at ")))
-            .filter_map(|s| s.split(' ').next()?.parse::<f64>().ok())
-            .any(|s| t >= s - 1e-9 && t <= s + SKIP_BLEND.max(BREAK_BLEND) + 0.3)
-    };
+    // (a key marked `cut` jumps on purpose: the frame it lands in)
+    let cut_in = |a: f64, b: f64| c.camera.iter().any(|k| k.cut && k.t > a - 1e-9 && k.t <= b + 1e-9);
     for w in tr.rows.windows(2) {
         let (a, b) = (&w[0], &w[1]);
         let dt = tr.dt;
-        // (a jolt declared, the quick way back after a skip or a break-off,
-        // and a cut made under the veil, which nobody sees)
-        if in_jolt(c, b.t) || after_break(b.t) || a.veil > 0.99 || b.veil > 0.99 {
+        // (a jolt declared, a cut a key asks for, and a cut made under the
+        // veil, which nobody sees; the way back after a skip or a break-off
+        // keeps the limits: near, it blends slowly enough, far, it dips)
+        if in_jolt(c, b.t) || cut_in(a.t, b.t) || a.veil > 0.99 || b.veil > 0.99 {
             continue;
         }
         let turn = crate::cutscene::curve::wrap(b.shown.yaw - a.shown.yaw).abs().max((b.shown.pitch - a.shown.pitch).abs()) / dt;
@@ -498,6 +561,12 @@ pub fn contract_skip(played: &Trace, skipped: &Trace) -> Vec<String> {
     let mut p = vec![];
     if !skipped.log.iter().any(|l| l.starts_with("skipped")) {
         p.push(format!("{} on {}: holding the skip key did not skip it", skipped.id, skipped.stage));
+    }
+    if (played.nerve_after - skipped.nerve_after).abs() > SKIP_NERVE {
+        p.push(format!(
+            "{} on {}: a skip leaves your nerve at {:.1}, watching at {:.1}",
+            skipped.id, skipped.stage, skipped.nerve_after, played.nerve_after
+        ));
     }
     if played.signature != skipped.signature {
         p.push(format!(

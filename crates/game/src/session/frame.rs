@@ -169,8 +169,19 @@ impl Game {
     }
     /// Mouse motion while pointer-locked (relative dx / dy).
     pub fn mouse_move(&mut self, dx: f64, dy: f64) {
-        // (a cutscene has the camera: the mouse turns nothing)
-        if !self.pointer_locked || self.hands_taken() {
+        if !self.pointer_locked {
+            return;
+        }
+        // a cutscene has the camera: the mouse turns nothing, and a hand on
+        // it shows the way out (the first thing a player tries)
+        if self.hands_taken() {
+            if let Some(p) = self.cut.as_mut() {
+                p.mouse_moved += dx.abs() + dy.abs();
+                if p.mouse_moved > crate::cutscene::play::HINT_MOUSE {
+                    p.hint = crate::cutscene::play::HINT_FOR;
+                    p.mouse_moved = 0.0;
+                }
+            }
             return;
         }
         let k = 0.0022 * self.settings.look;

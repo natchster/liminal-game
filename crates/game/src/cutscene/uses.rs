@@ -1,6 +1,6 @@
 //! Where the game plays its cutscenes (`docs/CUTSCENES.md`): the way in
 //! from the title on New descent, and a broken lift's shaft. (The deaths
-//! join them.)
+//! are started by `on_death`, `session/flow.rs`, by their cause.)
 //! Each starts a cutscene of the library the way play meets it and does
 //! what must happen around it; the cutscene itself is data.
 use super::play::{Anchors, Frame, Pose};
@@ -40,8 +40,14 @@ impl Game {
     /// it shows a floor of another run, a new run is made behind black and
     /// the way in starts from its own title view.
     pub fn new_descent_with(&mut self, c: Option<Cutscene>) {
-        let flags_seed = self.parse_flag_params().contains_key("seed");
-        let same = !flags_seed && self.title_place.is_some_and(|(seed, level)| seed == self.run_seed && level == 1 && self.level_num == 1);
+        // (a launch flag's seed or level makes another place than the title's)
+        let flags = self.parse_flag_params();
+        let flagged = flags.contains_key("seed") || flags.get("level").is_some_and(|l| l.trim() != "1");
+        let same = !flagged && self.title_place.is_some_and(|(seed, level)| seed == self.run_seed && level == 1 && self.level_num == 1);
+        // the title's list and its shade fade out as the bars come in
+        if self.menu.screen.is_some() {
+            self.menu_fade = Some((self.menu.clone(), self.now_ms));
+        }
         if same {
             let title = self.camera_pose();
             let seed = self.run_seed;
@@ -100,7 +106,7 @@ impl Game {
         if self.broken_elevator.as_ref().is_some_and(|b| b.peered) {
             return;
         }
-        self.play_cutscene("shaft", Anchors { thing: Some(thing), killer: None });
+        self.play_cutscene("shaft", Anchors { thing: Some(thing), killer: None, seen_as: None });
     }
 
     /// The broken lift's frame: its foot on the floor, its front out of
@@ -121,9 +127,10 @@ impl Game {
     /// soon again: later, only the black and the breath)
     pub fn shaft_eyes(&mut self) {
         let Some(f) = self.shaft_frame() else { return };
-        if self.cut_seen.get("shaft").copied().unwrap_or(0) > 1 {
+        if self.shaft_looked_back {
             return;
         }
+        self.shaft_looked_back = true;
         self.shaft_eyes_gone();
         let colour = if self.player.flashlight_on { SHAFT_EYES_LAMP } else { SHAFT_EYES_RED };
         let eyes = group();
@@ -152,14 +159,12 @@ impl Game {
             be.peered = true;
         }
         self.player.sanity = (self.player.sanity - SHAFT_NERVE).clamp(0.0, SAN_MAX);
-        self.ui.aberration.set_opacity(0.85);
+        // (the grain's update eases it back to what your nerve has it)
+        self.aberration_opacity_cur = 0.85;
     }
 
-    /// However your hands come back: nothing left looking out of the black,
-    /// the edges of your sight as your nerve has them
+    /// However it ends: nothing left looking out of the black
     pub fn shaft_after(&mut self) {
         self.shaft_eyes_gone();
-        let v = ((1.0 - self.player.sanity / SAN_MAX) * 0.7).clamp(0.0, 1.0);
-        self.ui.aberration.set_opacity(v);
     }
 }

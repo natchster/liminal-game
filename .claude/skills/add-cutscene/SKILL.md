@@ -33,13 +33,22 @@ stages rebuild the game.
    paragraph of `docs/LORE.md` it touches, and the code's gates (where,
    how often, when it will not play). The shaft's first version glowed
    where the canon says eyeshine never does.
-3. **Its shape.** Decide its trigger (a verb on a prop, an event, a death,
+3. **What the engine cannot do yet** (`docs/CUTSCENES.md`, *Left open*):
+   there is no actor track (a figure posed over time, its brain held): the
+   shaft's eyeshine is made and removed by events; you have no body, so a
+   camera outside your eyes shows nobody where you stand; there is one
+   `thing` anchor (and `killer` only in a death); a moment tied to a
+   creature that lets you live (a sighting, a reveal) is refused while it
+   hunts or searches near (`cutscene_danger`), and the Stairwell and the
+   Loop refuse a cutscene (they write the camera themselves). If yours
+   needs one of these, build it in the engine first, with its tests.
+4. **Its shape.** Decide its trigger (a verb on a prop, an event, a death,
    the title), its world (`live`: the world runs on; `held`: only the
    place's light and sound), its end (`then = "back"`: your hands back in
    place; `"card"`: the death card), whether it is skippable, what of it
    must hold if it is skipped or broken off (those events are `on_skip`),
    and what must be cleaned up however it ends (`finally`).
-4. **Write the source**, `assets/src/cutscenes/ID.toml` (its `id` the file's
+5. **Write the source**, `assets/src/cutscenes/ID.toml` (its `id` the file's
    name; comment it as the others are). The traps, each found the hard way:
    - Anchors are frames: x right, y up, z out of the anchor's face, so -z is
      forward. A thing's frame is `Frame::thing(foot, yaw)` with its front
@@ -59,20 +68,27 @@ stages rebuild the game.
      average next to a near key. A verb has no facing cone (E takes what is
      under you or alone behind you), so a look may start, and hand back,
      with your back to it: give its first segment and its blend out time
-     for that, and give it an `:away` stage (step 6).
+     for that, and give it an `:away` stage (step 7).
    - Sounds and events by name only: a new sound or event is a line in
      `cutscene/cues.rs` and a function on `Game`. A prop's own sound kept
      in a private match is pulled out into a public `sfx_*` both share (it
      is the same sound: `add-sound`'s gates hold as before). A sound draws
      from the native stream; a skip plays none, so a death's sounds stay
      in `on_death`. A cue set at the very end runs at the end.
+   - The tracks less used: a key with `cut = true` jumps to it at its
+     time (another angle; the contract lets that one frame through, so do
+     not hide a fast move in a jolt); `[[say]]` posts one of your asides
+     (`use`, `subject` from `audio::asides`), said by their own rules once
+     your hands are back, never during; `repeat_from` is where its short
+     form starts on a repeat (a death: counted by what killed you), with a
+     blend in of at least 0.2 s from the camera as it was.
    - Something a cutscene puts in the world (the shaft's eyeshine) is made
      by an event and removed by another and by `finally`, never left.
    - Delaying an effect behind a cutscene keeps the world's per-frame draws
      going longer before it (a lit set's flicker): the native stream after
      it moves for anything that uses the verb (bots, replays): run the full
      check.
-5. **Wire the trigger.** One function in `cutscene/uses.rs` that starts it
+6. **Wire the trigger.** One function in `cutscene/uses.rs` that starts it
    (`self.play_cutscene("ID", Anchors { thing, killer })`) and returns
    whether it played; the call site (a prop's `on_use` closure in
    `core_props/`, `on_death`, the menu) keeps the old behaviour under
@@ -85,7 +101,7 @@ stages rebuild the game.
    `base/records.rs`. Then grep the tests for the prompt's text and the
    functions you changed: a test that used the verb and checked its effect
    at once now steps frames until your hands are back.
-6. **A stage** in `debug/cutscene.rs` (`cutscene_stage`, `cutscene_trigger`,
+7. **A stage** in `debug/cutscene.rs` (`cutscene_stage`, `cutscene_trigger`,
    `cutscene_signature`): set the game up as play meets it, on several
    seeds or places and facings (three lifts and one turned away, three
    Wells), start it through the real path (`cut_override` with the real
@@ -94,7 +110,7 @@ stages rebuild the game.
    a prop, read `crates/backrooms/tests/reference/` (each floor's props)
    with the prop's gates, or probe with a throwaway test. List the stages
    in the source's `stages`.
-7. **Compile and look**: `cargo xtask cutscene write` (a new or changed
+8. **Compile and look**: `cargo xtask cutscene write` (a new or changed
    source fails `check` until it is written), then `cargo xtask cutscene
    check` and `cargo xtask cutscene preview ID`, and look at every stage's
    `target/xtask/cutscene/ID/STAGE/sheet.png` (frames at
@@ -102,28 +118,30 @@ stages rebuild the game.
    moment) and read `contract.txt` and `timeline.tsv`. Never edit
    `crates/game/assets/cutscenes.json` by hand: the fast check compiles the
    sources and compares.
-8. **Tests.** The contract suite picks it up from the bundle
-   (`cargo test --release -p backrooms --test cutscenes`: played, skipped
+9. **Tests.** The contract suite picks it up from the bundle
+   (`cargo test --release -p backrooms --test cutscenes`: its short form,
+   with shake and head bob off, the HUD read, your nerve after a skip as
+   after watching; played, skipped
    early and late, paused, broken off if live, at 30, 60 and 120 frames a
    second). Add a test of what it does to the world beside the shaft's and
    the deaths' in `crates/backrooms/tests/cutscenes.rs`, and make it fail
    once on purpose (take the effect out) before you trust it.
-9. **Goldens**: a frame at a named time in `xtask/src/shots.rs` (`FIGURES`:
+10. **Goldens**: a frame at a named time in `xtask/src/shots.rs` (`FIGURES`:
    `--cutscene ID --stage S --cut-at T`); run `cargo xtask shots` (it
    renders into `target/xtask/shots/NAME.png`, with `NAME-diff.png` for a
    change), look, then `cargo xtask shots --accept NAME --reason "…"` and,
    for a new shot, `--accept-look`. A recorded fixture whose session uses
    the trigger changes with it (the shaft's `core_props_tail`): only
    through `regen-fixtures`, the diff read field by field.
-10. **Canon**: what it shows written into `docs/LORE.md` from the code
+11. **Canon**: what it shows written into `docs/LORE.md` from the code
     (where it happens, what you see and hear, what it costs, when it will
     not play), and the `lore-keeper` again on the source and that text.
-11. **Ledger and docs**: a `cutscene/ID` entry in `docs/content.json` (copy
+12. **Ledger and docs**: a `cutscene/ID` entry in `docs/content.json` (copy
     one of the five: `kind` "cutscene", its checks; `passes` as they
     stand, the drift sweep keeps them); its row in the table of the
     cutscenes in `docs/CUTSCENES.md`; questions in `docs/PLAYTEST.md`'s
     *Cutscenes* block (what only a person can tell of it). The structure
     test fails a cutscene with no ledger entry.
-12. **Gates**: `cargo xtask check --fast`; the full `cargo xtask check` when
+13. **Gates**: `cargo xtask check --fast`; the full `cargo xtask check` when
     it touches creatures, deaths, rendering, audio, or delays an effect
-    (step 4).
+    (step 5).

@@ -902,7 +902,7 @@ impl Game {
             let (s, c) = self.player.yaw.sin_cos();
             let at = [p.x - s * 2.0, self.floor_y_at(p.x, p.z), p.z - c * 2.0];
             let thing = crate::cutscene::play::Frame::thing(at, self.player.yaw);
-            let anchors = crate::cutscene::play::Anchors { thing: Some(thing), killer: None };
+            let anchors = crate::cutscene::play::Anchors { thing: Some(thing), killer: None, seen_as: None };
             self.play_cutscene_data(glance(), anchors);
             if name == "cutscene-skip" {
                 if let Some(q) = self.cut.as_mut() {

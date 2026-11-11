@@ -26,7 +26,7 @@ use std::f64::consts::PI;
 /// Seconds the skip key is held to skip
 pub const SKIP_HOLD: f64 = 0.6;
 /// A skip near your eyes blends back over this
-pub const SKIP_BLEND: f64 = 0.3;
+pub const SKIP_BLEND: f64 = 0.4;
 /// ... near: within this many metres and this turn (radians), under a
 /// veil of at most `SKIP_NEAR_VEIL`; further, it dips through black
 /// instead of sweeping the camera across the place
@@ -37,12 +37,14 @@ pub const SKIP_NEAR_VEIL: f64 = 0.5;
 pub const DIP_OUT: f64 = 0.2;
 pub const DIP_IN: f64 = 0.25;
 /// A cutscene broken off by danger blends back over this
-pub const BREAK_BLEND: f64 = 0.35;
+pub const BREAK_BLEND: f64 = 0.4;
 /// The bars come in over this, and go over that
 pub const BARS_IN: f64 = 0.4;
 pub const BARS_OUT: f64 = 0.5;
-/// The skip line shows this long after a key
+/// The skip line shows this long after a key, or after this much mouse
+/// travel (pixels)
 pub const HINT_FOR: f64 = 2.5;
+pub const HINT_MOUSE: f64 = 60.0;
 /// A repeat that starts part-way blends in over at least this
 pub const REPEAT_BLEND: f64 = 0.2;
 /// A walked segment's step (metres a step) and its bob (metres up, and
@@ -53,6 +55,25 @@ pub const WALK_SWAY: f64 = 0.006;
 /// Danger (`cutscene_danger`): a search this near, a nerve this low
 pub const DANGER_SEARCH: f64 = 25.0;
 pub const DANGER_NERVE: f64 = 20.0;
+
+/// A key placed from you is kept this far (metres) from walls
+pub const KEY_CLEARANCE: f64 = 0.15;
+
+/// `to`, or the point nearest it on the way from `from` that is clear of
+/// walls by `KEY_CLEARANCE` (its height kept)
+fn clear_of_walls(g: &Game, from: [f64; 3], to: [f64; 3]) -> [f64; 3] {
+    if !g.circle_hits_wall(to[0], to[2], KEY_CLEARANCE) {
+        return to;
+    }
+    for k in (0..12).rev() {
+        let u = k as f64 / 12.0;
+        let (x, z) = (lerp(from[0], to[0], u), lerp(from[2], to[2], u));
+        if !g.circle_hits_wall(x, z, KEY_CLEARANCE) {
+            return [x, to[1], z];
+        }
+    }
+    [from[0], to[1], from[2]]
+}
 
 /// A camera's pose: where it is, its Euler angles (YXZ: yaw 0 looks down
 /// -z, pitch up positive) and its vertical field of view in degrees
@@ -119,6 +140,9 @@ pub struct Anchors {
     pub thing: Option<Frame>,
     /// the creature that killed you (its index)
     pub killer: Option<usize>,
+    /// what it is counted as for its short form (a death by its killer's
+    /// kind: "death_taken:hound"); none: its id
+    pub seen_as: Option<String>,
 }
 
 /// The cutscene's own veil (its fades): kept on the game, so a death's
@@ -191,6 +215,8 @@ pub struct Playing {
     pub skip_held: f64,
     /// the skip line shows for this much longer
     pub hint: f64,
+    /// the mouse's travel toward showing the skip line
+    pub mouse_moved: f64,
     /// how it ended or is ending: "played", "skipped", "broken off"
     pub how: &'static str,
 }
@@ -269,7 +295,12 @@ impl Playing {
     /// key's own) and the live point it looks at, if any
     fn resolve(&self, g: &Game, k: &Key, fov_play: f64) -> (Pose, Option<[f64; 3]>) {
         let f = self.frame(g, k.anchor);
-        let pos = f.at(k.pos);
+        let mut pos = f.at(k.pos);
+        // a key placed from you (your eyes, the camera as it was) comes in
+        // toward you until it is clear of walls: you die backed into a corner
+        if matches!(k.anchor, Anchor::Eyes | Anchor::Start) {
+            pos = clear_of_walls(g, f.o, pos);
+        }
         let (yaw, pitch, target) = match k.look {
             Look::Ahead => (f.yaw, f.pitch, None),
             Look::Point(p) => {
@@ -419,7 +450,7 @@ impl Game {
             && anchors.killer.is_none_or(|i| i >= self.entities.len())
         {
             Some("it names a killer and none was given")
-        } else if c.then == Then::Back && self.cutscene_danger() {
+        } else if c.then == Then::Back && self.cutscene_danger(true) {
             Some("danger")
         } else {
             None
@@ -428,8 +459,8 @@ impl Game {
             self.cut_note(format!("refused {}: {why}", c.id));
             return false;
         }
-        let seen = self.cut_seen.entry(c.id.clone()).or_default();
-        let t0 = if *seen > 0 { c.repeat_from } else { 0.0 };
+        let seen = self.cut_seen.entry(anchors.seen_as.clone().unwrap_or(c.id.clone())).or_default();
+        let t0 = if *seen > 0 || std::mem::take(&mut self.cut_force_repeat) { c.repeat_from } else { 0.0 };
         *seen += 1;
         let start_pose = self.camera_pose();
         let start = Frame { o: start_pose.pos, yaw: start_pose.yaw, pitch: start_pose.pitch };
@@ -462,6 +493,7 @@ impl Game {
         let gen = self.cut_gen;
         self.cut_end = None;
         self.cut_hold = None;
+        self.cut_shake = (0.0, 0.0, 0.0);
         self.cut = Some(Playing {
             c,
             gen,
@@ -481,6 +513,7 @@ impl Game {
             skip_down: false,
             skip_held: 0.0,
             hint: 0.0,
+            mouse_moved: 0.0,
             how: "played",
         });
         for e in before {
@@ -565,7 +598,8 @@ impl Game {
             return;
         }
         let gameplay = self.camera_pose();
-        let danger = self.state == "playing" && self.cutscene_danger();
+        // (its own cost is not danger: a look that shakes your nerve does not break itself off)
+        let danger = self.state == "playing" && self.cutscene_danger(false);
         let skip_key = self.keys.iter().any(|k| self.is_skip_key(k));
         // the clock, the skip key held, danger
         let (gen, skip_now, broke) = {
@@ -585,14 +619,21 @@ impl Game {
             }
             let broke = !skip_now && free && p.c.breaks_off && p.c.world == World::Live && danger;
             if broke {
-                p.out = Some((p.t, BREAK_BLEND));
                 p.how = "broken off";
             }
             (p.gen, skip_now, broke)
         };
         if broke {
-            let t = self.cut.as_ref().unwrap().t;
-            self.cut_note(format!("broken off at {t:.2}"));
+            // back to your eyes as a skip goes: quickly if near, through black if far
+            let near = self.cut_near_eyes();
+            let p = self.cut.as_mut().unwrap();
+            let t = p.t;
+            if near {
+                p.out = Some((t, BREAK_BLEND));
+            } else {
+                p.dip = Some(t);
+            }
+            self.cut_note(format!("broken off at {t:.2} ({})", if near { "blend" } else { "dip" }));
             // what must hold holds, as on a skip
             if !self.cut_run_held(gen) {
                 return;
@@ -644,7 +685,7 @@ impl Game {
         };
         // a death's shake (its sizes from `death_world`, a jitter of its
         // clock), as Settings' camera shake allows
-        let (ay, ap, ar) = self.cut_shake;
+        let (ay, ap, ar) = if card { self.cut_shake } else { (0.0, 0.0, 0.0) };
         let (jy, jp, jr) = super::curve::jitter(t);
         let shown = Pose {
             yaw: shown.yaw + ay * jy * shake_k,
@@ -754,16 +795,8 @@ impl Game {
         if !self.cut_run_held(gen) {
             return false;
         }
-        let shake_k = 0.0;
-        let p = self.cut.as_ref().unwrap();
-        let (near, card) = match p.gameplay {
-            Some(g) => {
-                let own = Pose::mix(&g, &p.own(self, g.fov, shake_k, 0.0), p.weight());
-                let (d, turn) = Pose::apart(&g, &own);
-                (d < SKIP_NEAR && turn < SKIP_NEAR_TURN && p.veil().0 <= SKIP_NEAR_VEIL, p.c.then == Then::Card)
-            }
-            None => (true, p.c.then == Then::Card),
-        };
+        let near = self.cut_near_eyes();
+        let card = self.cut.as_ref().unwrap().c.then == Then::Card;
         let p = self.cut.as_mut().unwrap();
         p.how = "skipped";
         let t = p.t;
@@ -787,10 +820,26 @@ impl Game {
         true
     }
 
+    /// The camera near enough your eyes to blend back to them quickly
+    /// (within `SKIP_NEAR` and `SKIP_NEAR_TURN`, under a veil of at most
+    /// `SKIP_NEAR_VEIL`); further, a skip or a break-off dips through black
+    fn cut_near_eyes(&self) -> bool {
+        let p = self.cut.as_ref().unwrap();
+        match p.gameplay {
+            Some(g) => {
+                let own = Pose::mix(&g, &p.own(self, g.fov, 0.0, 0.0), p.weight());
+                let (d, turn) = Pose::apart(&g, &own);
+                d < SKIP_NEAR && turn < SKIP_NEAR_TURN && p.veil().0 <= SKIP_NEAR_VEIL
+            }
+            None => true,
+        }
+    }
+
     /// Danger a cutscene that gives your hands back must not play into, and
     /// breaks off at: anything hunting you, anything searching near, the
-    /// fog up on the Building, your nerve near its end
-    pub fn cutscene_danger(&self) -> bool {
+    /// fog up on the Building; and, to start one, your nerve near its end
+    /// (`nerve`: a look's own cost to it never breaks the look off)
+    pub fn cutscene_danger(&self, nerve: bool) -> bool {
         let pp = self.player.pos;
         let near = |e: &crate::base::records::Entity| {
             let p = e.pos();
@@ -802,7 +851,7 @@ impl Game {
         if self.building.is_some() && self.assembly.stage != crate::world::assembly::Stage::Quiet {
             return true;
         }
-        self.player.sanity < DANGER_NERVE
+        nerve && self.player.sanity < DANGER_NERVE
     }
 
     /// A key while your hands are taken: Escape pauses, Mute mutes, the
@@ -842,15 +891,20 @@ impl Game {
     }
 
     /// End any cutscene now, where it is (a death, a new floor): no event
-    /// after now runs (nor its `finally`), and the camera is play's again
+    /// of its track after now runs, its `finally` does (what it left in the
+    /// world is cleared however it ends), and the camera is play's again
     pub fn cutscene_end_now(&mut self, why: &str) {
         if let Some(p) = self.cut.take() {
             self.cut_note(format!("end {} ({why}) at {:.2}", p.c.id, p.t));
             if let Some(g) = p.gameplay {
                 self.set_camera_pose(&g);
             }
+            for name in &p.c.finally {
+                self.cut_event(name, p.t);
+            }
         }
         self.cut_veil = Veil::default();
+        self.cut_shake = (0.0, 0.0, 0.0);
     }
 }
 

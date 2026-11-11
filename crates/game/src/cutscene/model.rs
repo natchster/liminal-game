@@ -8,6 +8,11 @@
 use super::curve::Ease;
 use serde_json::{Map, Value};
 
+/// A jolt segment at most this long (s); a cutscene that gives your hands
+/// back at most this much of them in all
+pub const JOLT_MAX: f64 = 0.7;
+pub const JOLT_BACK: f64 = 1.0;
+
 /// Whether the world goes on while a cutscene plays
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum World {
@@ -392,6 +397,15 @@ impl Cutscene {
         }
         if self.skip == Skip::Never && len > 3.0 {
             p.push(format!("skip = \"never\" holds your hands {len} s: only for 3 s at most (a death)"));
+        }
+        // a jolt is a moment, not a licence: each at most JOLT_MAX, and one
+        // that gives your hands back at most JOLT_BACK of them in all
+        let jolts: Vec<f64> = self.camera.windows(2).filter(|w| w[1].jolt).map(|w| w[1].t - w[0].t).collect();
+        if let Some(j) = jolts.iter().find(|j| **j > JOLT_MAX + 1e-9) {
+            p.push(format!("a jolt of {j:.2} s: a jolt is at most {JOLT_MAX} s"));
+        }
+        if self.then == Then::Back && jolts.iter().sum::<f64>() > JOLT_BACK + 1e-9 {
+            p.push(format!("jolts of {:.2} s in all: one that gives your hands back has at most {JOLT_BACK} s", jolts.iter().sum::<f64>()));
         }
         if self.breaks_off && self.then == Then::Card {
             p.push("breaks_off on a cutscene that ends on the card (a death): nothing breaks off a death".into());

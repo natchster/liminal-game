@@ -72,7 +72,7 @@ fn ahead(g: &Game) -> Anchors {
     let p = g.player.pos;
     let (s, c) = g.player.yaw.sin_cos();
     let at = [p.x - s * 2.0, g.floor_y_at(p.x, p.z), p.z - c * 2.0];
-    Anchors { thing: Some(Frame::thing(at, g.player.yaw)), killer: None }
+    Anchors { thing: Some(Frame::thing(at, g.player.yaw)), killer: None, seen_as: None }
 }
 
 fn marks(g: &Game) -> usize {
@@ -289,7 +289,7 @@ fn something_hunting_you_breaks_it_off() {
         step(&mut g, DT);
         frames += 1;
     }
-    assert!(frames as f64 * DT < 0.4, "back in {frames} frames");
+    assert!(frames as f64 * DT < 0.45, "back in {frames} frames");
     assert!(g.cut_log.iter().any(|l| l.starts_with("broken off")));
     // what must hold of it held (the two marks that hold on a skip), and
     // nothing else after the break ran
@@ -392,7 +392,7 @@ use game::debug::cutscene::{contract, contract_rates, contract_skip, RunOpts, Tr
 fn trace(c: &Cutscene, stage: &str, dt: f64, skip_at: Option<f64>, pause_at: Option<f64>) -> Trace {
     let mut g = common::new_game();
     let s = g.cutscene_stage(stage).unwrap_or_else(|e| panic!("{e}"));
-    g.run_cutscene(c, &s, &RunOpts { dt, skip_at, pause_at, danger_at: None }, &mut |_, _| {})
+    g.run_cutscene(c, &s, &RunOpts { dt, skip_at, pause_at, ..Default::default() }, &mut |_, _| {})
 }
 
 /// Everything the contract asks of `c` on `stage`
@@ -421,6 +421,16 @@ fn keeps(c: &Cutscene, stage: &str) -> Vec<String> {
         if !broken.log.iter().any(|l| l.starts_with("broken off")) {
             p.push(format!("{} on {stage}: something hunting you did not break it off", c.id));
         }
+    }
+    // its short form (a repeat), and with Settings' shake off and head bob 0
+    for o in [RunOpts { repeat: true, ..Default::default() }, RunOpts { still: true, ..Default::default() }] {
+        if o.repeat && c.repeat_from == 0.0 {
+            continue;
+        }
+        let mut g = common::new_game();
+        let s = g.cutscene_stage(stage).unwrap_or_else(|e| panic!("{e}"));
+        let tr = g.run_cutscene(c, &s, &o, &mut |_, _| {});
+        p.extend(contract(c, &tr).into_iter().map(|x| format!("{x} ({})", if o.repeat { "repeat" } else { "still" })));
     }
     let paused = trace(c, stage, DT, None, Some(c.length * 0.5));
     p.extend(contract(c, &paused));
@@ -476,6 +486,16 @@ fn the_contract_catches_what_it_is_for() {
         let p = contract(&c, &trace(&c, "ahead", DT, None, None));
         assert!(p.iter().any(|x| x.contains(says)), "{says}: {p:#?}");
     }
+    // a cut a key asks for lets its jump through; the same jump unasked is named
+    let jumped = |cut_key: bool| {
+        let mut k = key(1.0, "eyes", [0.0, 0.0, 0.0], None);
+        k["yaw"] = json!(90.0);
+        k["cut"] = json!(cut_key);
+        cut(json!({ "camera": [key(0.0, "start", [0.0; 3], None), key(0.9, "eyes", [0.0; 3], None), k, key(2.0, "eyes", [0.0; 3], None)] }))
+    };
+    let (asked, unasked) = (jumped(true), jumped(false));
+    assert!(!contract(&asked, &trace(&asked, "ahead", DT, None, None)).iter().any(|x| x.contains("turns at")));
+    assert!(contract(&unasked, &trace(&unasked, "ahead", DT, None, None)).iter().any(|x| x.contains("turns at")));
     // a jolt declared lets a fast turn through
     let mut jolted = turned(170.0, 0.0, 0.0);
     jolted.camera[1].jolt = true;
@@ -748,7 +768,7 @@ fn the_shaft_is_looked_into_once_and_leaves_nothing_behind() {
     // a second lift in a run: the black and the breath, and nothing looks back
     let mut g = common::new_game();
     g.cutscene_stage("broken_elevator:9001:7").unwrap();
-    g.cut_seen.insert("shaft".into(), 1);
+    g.shaft_looked_back = true;
     g.try_interact();
     assert!(g.hands_taken());
     let mut saw = false;
@@ -855,4 +875,55 @@ fn a_death_draws_what_a_death_always_drew() {
     let (without, log0) = run(false);
     assert!(log.iter().any(|l| l == "play death_taken") && log0.iter().any(|l| l.starts_with("refused")), "{log:?} {log0:?}");
     assert_eq!(with, without, "the draws after a death moved");
+}
+
+// ------------------------------------------------------------ review B
+
+#[test]
+fn a_break_off_far_from_your_eyes_dips_through_black() {
+    let c = game::cutscene::get("shaft").unwrap().clone();
+    let mut g = common::new_game();
+    let s = g.cutscene_stage("broken_elevator:7:9:away").unwrap();
+    let tr = g.run_cutscene(&c, &s, &RunOpts { danger_at: Some(2.5), ..Default::default() }, &mut |_, _| {});
+    assert!(tr.log.iter().any(|l| l.starts_with("broken off") && l.ends_with("(dip)")), "{:?}", tr.log);
+    let p = contract(&c, &tr);
+    assert!(p.is_empty(), "{p:#?}");
+}
+
+#[test]
+fn a_death_shakes_only_its_own() {
+    // a Hound's kill, a wake, then a look into a lift: no shake carried over
+    let mut g = common::new_game();
+    g.cutscene_stage("death:hound").unwrap();
+    die(&mut g, "death:hound");
+    assert!(g.cut_shake != (0.0, 0.0, 0.0), "a death shakes");
+    g.key_down("KeyR", false);
+    assert_eq!(g.cut_shake, (0.0, 0.0, 0.0), "waking leaves nothing shaking");
+    // and a nerve or the fog brings nothing to your face
+    let mut g = common::new_game();
+    g.cutscene_stage("death:sanity").unwrap();
+    let at: Vec<_> = g.entities.iter().map(|e| e.pos()).collect();
+    g.on_death("sanity");
+    assert!(g.director.killer.is_none());
+    assert_eq!(at, g.entities.iter().map(|e| e.pos()).collect::<Vec<_>>(), "nothing posed in your face");
+}
+
+#[test]
+fn the_titles_words_fade_out_as_the_bars_come_in() {
+    let mut g = at_the_title(0x7171);
+    let layers = |g: &mut Game| {
+        let _ = g.hud_layers(1280.0, 800.0, 1.0);
+        g.hud_ui.painted.clone()
+    };
+    assert!(layers(&mut g).contains(&"menu"), "the title's words");
+    g.menu_choose("menu:new");
+    // (not gone in one frame: they fade out over 0.4 s)
+    step(&mut g, DT);
+    let soon = layers(&mut g);
+    assert!(soon.contains(&"menu") && soon.contains(&"menu-shade"), "{soon:?}");
+    for _ in 0..30 {
+        step(&mut g, DT);
+    }
+    let later = layers(&mut g);
+    assert!(!later.contains(&"menu") && !later.contains(&"menu-shade"), "{later:?}");
 }

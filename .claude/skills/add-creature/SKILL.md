@@ -65,8 +65,11 @@ The plan and the rules every creature keeps are in `docs/ENTITIES.md`
 10. **Gates.** `cargo xtask check` (full); `tests/structure.rs` requires its
     goldens, its rules and its arena. `cargo xtask bench` records the pack.
 11. **Its death.** A creature's kill plays `death_taken` (`docs/CUTSCENES.md`):
-    its head is the cutscene's `killer`; check its kill on a stage of its own
-    (`death:<kind>`, `add-cutscene` step 5) and its `<kind>_death` golden.
+    `on_death` poses it in your face (the Hound reared up: a kind of its own
+    may want its own pose there) and its head is the cutscene's `killer`.
+    Add `death:<kind>` to `assets/src/cutscenes/death_taken.toml`'s `stages`
+    (`add-cutscene` step 7), `cargo xtask cutscene write`, and check its kill
+    on it and its `<kind>_death` golden.
 12. **Ledger and review.** A `creature/<kind>` entry in `docs/content.json`;
     a blind review of its frames (`visual-review`); whether it frightens is
     for fresh players (`docs/QUALITY.md`).

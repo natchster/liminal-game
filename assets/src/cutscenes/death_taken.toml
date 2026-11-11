@@ -14,7 +14,7 @@ length = 1.4
 blend_in = 0.0
 blend_out = 0.0
 repeat_from = 0.45
-stages = ["death:hound", "death:smiler", "death:reader"]
+stages = ["death:hound", "death:smiler", "death:reader", "death:hound:wall"]
 
 [bars]
 in = 0.45
