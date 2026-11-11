@@ -21,6 +21,7 @@ a seed. This file is a map; the detail lives in the docs it points to.
 | [`docs/PROPS.md`](docs/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
 | [`docs/SECRETS.md`](docs/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
 | [`docs/VOICES.md`](docs/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them, and the plan behind them |
+| [`docs/CUTSCENES.md`](docs/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline, and the plan behind them |
 | [`docs/AGENTS.md`](docs/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
 | [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/MILESTONES.md`](docs/MILESTONES.md) | every milestone still open across the docs, in one queue, done one by one |

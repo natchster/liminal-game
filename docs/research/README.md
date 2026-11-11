@@ -69,3 +69,12 @@ One more was gathered on 2026-11-10 for your asides
 | Note | What it covers |
 |---|---|
 | [`inner-voice.md`](inner-voice.md) | How a game chooses a character's line and keeps it from repeating (Valve's dynamic dialog, Ruskin GDC 2012, read in full: facts, rules, the most specific match, memory written back by what was said, nothing as an answer); bark managers in practice (priorities, dropping the stale, cooldowns and per-line fatigue); the little found on voicing the player in horror; what this game's canon lets a voice of yours say |
+
+One more was gathered on 2026-11-11 for the cutscenes
+([`../CUTSCENES.md`](../CUTSCENES.md)), summed up in
+[`../SOURCES.md`](../SOURCES.md) section 17:
+
+| Note | What it covers |
+|---|---|
+| [`cutscenes.md`](cutscenes.md) | How sequencers store a cutscene (Unreal's tracks and *When Finished*, Unity Timeline's wrap modes and signals, Cinemachine's blend against the live camera, Valve's VCD scenes, Frictional's HPL2 primitives); first-person games that never take the camera (Half-Life 2, SOMA) and title screens that lead straight into play; telling the player their hands are taken (hidden HUD, input locks, letterbox and its complaints, hold to skip, Xbox and Game Accessibility Guidelines); motion comfort (Forsyth, Meta, XAG 117); death in first-person horror (Grip, Red Barrels, The Callisto Protocol, Alien: Isolation); testing by time, golden frames, skip as the end state; twelve design rules |
+

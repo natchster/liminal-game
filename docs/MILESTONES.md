@@ -42,6 +42,27 @@ the fifth and the tenth, a code and design review.
 | A10 | Evidence and the ledger (done: see `VOICES.md`'s progress) |
 | review B | Code and design review of A6–A10 (done: see `VOICES.md`'s progress) |
 
+Cutscenes (`CUTSCENES.md`), gathered on 2026-11-11: an engine that stores,
+plays and tests moments that borrow your eyes (in the world, from your
+eyes, your hands taken and said so, the camera given back exactly where it
+was), its pipeline and its skill; and the first three: the way in from the
+title, a broken lift's shaft, and dying. After the fifth and at the end, a
+code and design review.
+
+| # | Milestone |
+|---|---|
+| C0 | The plan and the research |
+| C1 | Storage and pipeline: the file, `cargo xtask cutscene`, the library, the curves |
+| C2 | The player: the clock, anchors, the blend over the gameplay camera, cues, hands taken, worlds, break-off, pause, skip |
+| C3 | The clue: the bars, the HUD hidden, the skip line |
+| C4 | The test engine: stages, the contract suite, previews, goldens at a time |
+| review A | Code and design review of C0–C4 |
+| C5 | The way in, from the title into your eyes |
+| C6 | The shaft |
+| C7 | Deaths: taken, the mind, the fog; shorter on a repeat |
+| C8 | Skills and the ledger |
+| review B | Code and design review of C5–C8 |
+
 ## Done
 
 | # | Commit | Notes |

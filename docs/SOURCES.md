@@ -499,3 +499,46 @@ every claim linked.
 **Bark managers in practice** *(secondary)*: PulseGeek, Bugnet, StraySpark's Godot docs, an Audiokinetic Q&A (links in the note).
 - Say: one manager decides every bark; rank by importance; a minimum gap between any two; drop what cannot be said in its moment rather than queue it; cooldowns per kind and fatigue per line, with shuffled variations.
 - Used for: the asides' gap, priorities and moment (rule 5), and a line never twice in a run (rule 2).
+
+## 17. Cutscenes: borrowing the camera and giving it back
+
+Gathered on 2026-11-11 for [`CUTSCENES.md`](CUTSCENES.md); the note is
+kept whole in [`research/cutscenes.md`](research/cutscenes.md), every
+claim linked.
+
+**Unreal Engine's Sequencer** ([overview](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-sequencer-movie-tool-overview), [when a cinematic ends](https://dev.epicgames.com/documentation/unreal-engine/what-happens-when-my-cinematic-ends-in-unreal-engine), [camera cuts](https://dev.epicgames.com/documentation/en-us/unreal-engine/cinematic-camera-cut-track-in-unreal-engine), [blending to gameplay](https://dev.epicgames.com/documentation/en-us/unreal-engine/blend-gameplay-animation-to-cinematic-animation-in-unreal-engine)).
+- Says: tracks of keyed sections, each with an end policy (*Restore State* or *Keep State*); input, look and HUD switched off while it plays; a camera cut may blend in from and out to the gameplay camera; set the control rotation and avoid an abrupt change of field of view at the hand-back.
+- Used for: a cutscene as tracks of keys with a declared end (`then`), hands taken while it plays, the blend envelope over the live gameplay camera, and never moving your facing.
+
+**Unity Timeline and Cinemachine** ([the director](https://docs.unity3d.com/cn/2018.4/Manual/class-PlayableDirector.html), [signals](https://docs.unity3d.com/Packages/com.unity.timeline@1.8/manual/wf-signals.html), [Cinemachine and Timeline](https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/concept-timeline.html), [blending](https://docs.unity3d.com/Packages/com.unity.cinemachine@3.1/manual/CinemachineBlending.html), [its source](https://raw.githubusercontent.com/Unity-Technologies/com.unity.cinemachine/main/com.unity.cinemachine/Runtime/Behaviours/CinemachineBrain.cs)).
+- Says: wrap modes say what is left at the end; signals keep a timeline from naming gameplay code; a shot eases in and out against the live camera (2 s *Ease In Out* by default; *Linear* looks mechanical); a manual update evaluates the graph at a time you give.
+- Used for: events by name, registered in code (`[[event]]`); every key eased (`in_out` by default); the camera a function of the cutscene's time.
+
+**Valve's choreographed scenes** ([VCD, srctools](https://srctools.readthedocs.io/en/latest/modules/choreo.html)) and **Frictional's HPL2** ([script functions](https://oldwiki.frictionalgames.com/hpl2/amnesia/script_functions)).
+- Say: a scene is a text file of timed events with ramp curves (Catmull-Rom among them), compiled to a binary form for the game; HPL2 has no timeline at all, only a capped-speed look-at, a head offset that slows near its end and a slow roll.
+- Used for: the source written as TOML and compiled into the bundle the game embeds (`cargo xtask cutscene write`); positions on a centripetal Catmull-Rom spline; turns capped by the contract tests.
+
+**Never taking the camera** ([how designers turn heads](https://gamedeveloper.com/design/how-designers-turn-heads), [Half-Life 2 at 20](https://www.bfi.org.uk/features/half-life-2-20-years-valve-shooter), [SOMA's pillars](https://frictionalgames.blogspot.com/2013/12/the-five-foundational-design-pillars-of.html), [loss of control](https://gamedeveloper.com/design/emotion-frustration-loss-of-control)).
+- Says: Valve and Frictional keep the camera with the player and steer the eye with the world; losing control mid-play breaks immersion "like an actor looking at the camera".
+- Used for: few, short cutscenes, each where only the camera can show it (a look into a shaft, a fall); everything else stays the place's job (`PILLARS.md`).
+
+**Title screens into play** ([the title screen](https://www.superjumpmagazine.com/the-unappreciated-beauty-of-the-title-screen/), [immersive intros](https://www.gamedeveloper.com/design/how-to-create-immersive-game-intros)).
+- Says: God of War's title leads straight into a new game; when play starts at once, leave a safe zone.
+- Used for: the way in from the title into your eyes, in the Well's first quiet.
+
+**Telling the player and letting them out** ([XAG 105](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/105), [XAG 104](https://devdocs.xbox.com/gaming/accessibility/xbox-accessibility-guidelines/104), [XAG 116](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/116), [Game Accessibility Guidelines](https://gameaccessibilityguidelines.com/full-list/), [The Evil Within's bars](https://www.kitguru.net/gaming/jon-martindale/bethesda-fixes-up-evil-within-pc-fps-black-bar-issues/), [why players skip](https://fredzed.substack.com/p/why-do-players-skip)).
+- Says: hide the HUD while the camera is taken; cinematics with sound pause (under 3 s exempt); hold to skip; letterboxing *gameplay* drew complaints and was patched out.
+- Used for: the bars only while your hands are taken, the HUD hidden, Escape pausing a cutscene, hold to skip.
+
+**Comfort** ([Forsyth on VR sickness](https://developers.meta.com/vr/blog/vr-sickness-the-rift-and-how-game-developers-can-help/), [Meta's locomotion comfort](https://developers.meta.com/horizon/design/locomotion-comfort-usability/), [XAG 117](https://learn.microsoft.com/en-us/gaming/accessibility/xbox-accessibility-guidelines/117), [GAG on VR triggers](https://gameaccessibilityguidelines.com/avoid-vr-simulation-sickness-triggers/)).
+- Says: turning the view without input, changing the field of view and sudden accelerations are uncomfortable; keep the horizon level; walking is about 1.4 m/s; shake and bob must be avoidable. No source gives a flat-screen limit in degrees a second.
+- Used for: the comfort limits the contract tests hold (eased moves, turns under 150°/s, roll only in a fall, the field of view moved at most 15°: our own numbers, as no source gives one) and Settings' shake and head bob applied to a cutscene's sway and shake.
+
+**Death in first-person horror** ([Frictional on Alien: Isolation](https://frictionalgames.blogspot.com/2014/05/alien-isolation-and-two-hardest_5.html), [Grip at GDC Europe](https://gamedeveloper.com/business/gdc-europe-i-amnesia-i-s-grip-delivers-terrifying-tales-of-immersion), [Red Barrels](https://www.vice.com/en/article/how-a-horror-game-about-death-expanded-its-audience-by-letting-them-live), [The Callisto Protocol](https://www.nme.com/news/the-callisto-protocol-now-lets-you-skip-its-gruesome-death-animations-3370695), [Alien: Isolation's saves](https://gamedeveloper.com/design/game-design-deep-dive-the-save-system-of-i-alien-isolation-i-)).
+- Says: after a death the fear is gone and a retry spoils it; change something after each death; the fifth replay of a sequence is not scary; long death animations were patched to be skippable; never keep the threat where it was on a reload.
+- Used for: deaths short (the card at 1.4 s, as before), a short form after the first of its kind in a run (`repeat_from`), and the floor built again behind the card (as before).
+
+**Testing** ([Fix your timestep](https://gafferongames.com/post/fix_your_timestep/), [Unreal's screenshot comparison](https://dev.epicgames.com/documentation/en-us/unreal-engine/screenshot-comparison-tool-in-unreal-engine), [skipping by the final keyframe](https://discussions.unity.com/t/ive-given-up-on-allowing-player-to-skip-certain-cutscenes/739274)).
+- Says: sample by time at a fixed step; compare frames with tolerances; skip by setting the end state, never by fast-forwarding the simulation.
+- Used for: the contract suite (the same camera at 30, 60 and 144 frames a second; the last frame the gameplay camera; a skip lands where play lands, its events run and its sounds not) and goldens at named times (`--cut-at`).
+
