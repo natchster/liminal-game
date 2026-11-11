@@ -100,6 +100,9 @@ pub struct Key {
     pub cut: bool,
     /// a held camera's sway (`curve::sway`), 0 for none
     pub sway: f64,
+    /// the segment into this key is walked (0 to 1): a step's bob by the
+    /// distance covered, as your own walk, faded out at both its ends
+    pub walk: f64,
     /// the segment into this key is a jolt (a start, a fall): the comfort
     /// limits do not hold for it
     pub jolt: bool,
@@ -305,6 +308,7 @@ impl Cutscene {
                 ease,
                 cut: kf.flag("cut")?,
                 sway: kf.num("sway")?,
+                walk: kf.num("walk")?,
                 jolt: kf.flag("jolt")?,
             });
             kf.done()?;
@@ -412,6 +416,9 @@ impl Cutscene {
             }
             if !(0.0..=3.0).contains(&k.sway) {
                 p.push(format!("camera key {}: sway {} (0–3)", i + 1, k.sway));
+            }
+            if !(0.0..=1.0).contains(&k.walk) {
+                p.push(format!("camera key {}: walk {} (0–1)", i + 1, k.walk));
             }
             if k.anchor == Anchor::Killer && k.pos != [0.0; 3] {
                 p.push(format!("camera key {}: the killer is a point to look at, not a place to stand", i + 1));

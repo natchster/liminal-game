@@ -104,7 +104,10 @@ gone when it is not needed.
    only for a label of one to three words.
 3. **The title is a place.** The lobby, live behind a short list at the
    lower left (Continue, New descent, Settings, Quit), keyboard and mouse.
-   No paragraph, no keys, no medals.
+   No paragraph, no keys, no medals. It stands a few metres out along the
+   way from where you begin; New descent keeps its place and draws the
+   camera back into your eyes, with no cut (`docs/CUTSCENES.md`, the way
+   in).
 4. **Pause stops the world.** The frozen frame dimmed behind the same
    list; Settings (look, invert, field of view, head bob, film grain, run
    hold/toggle, volume, brightness against a barely-visible mark, pause on

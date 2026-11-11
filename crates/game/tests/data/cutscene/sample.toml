@@ -31,6 +31,7 @@ look = [0.2, 0.6, -1.0]
 ease = "in"
 fov = -8
 sway = 0.5
+walk = 1.0
 
 [[camera]]
 t = 2.5

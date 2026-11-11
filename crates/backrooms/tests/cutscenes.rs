@@ -64,7 +64,7 @@ fn cut(over: Value) -> Cutscene {
 
 fn key(t: f64, anchor: &str, pos: [f64; 3], look: Option<[f64; 3]>) -> Value {
     json!({ "t": t, "anchor": anchor, "pos": pos, "look": look, "look_at": null, "yaw": 0.0, "pitch": 0.0, "roll": 0.0,
-            "fov": 0.0, "ease": "in_out", "cut": false, "sway": 0.0, "jolt": false })
+            "fov": 0.0, "ease": "in_out", "cut": false, "sway": 0.0, "walk": 0.0, "jolt": false })
 }
 
 /// Two metres ahead of you, facing you
@@ -618,4 +618,93 @@ fn a_death_plays_to_its_card_and_holds_the_camera() {
     }
     assert_eq!(g.camera_pose(), held, "the camera holds behind the card");
     assert_eq!(g.cut_veil.opacity, 1.0, "its black stays behind the card");
+}
+
+// ------------------------------------------------------------ the way in
+// New descent from the title (C5): one shot from the title's view into
+// your eyes, in the same place, the card after.
+
+/// A game booted to its title (a fixed boot), the title live for a second
+fn at_the_title(native: u64) -> Game {
+    game::base::rng::seed_native(native);
+    let mut g = common::new_game();
+    for _ in 0..60 {
+        g.now_ms += DT * 1000.0;
+        g.fixed_step_dt = DT;
+        g.frame(DT);
+    }
+    g
+}
+
+#[test]
+fn new_descent_draws_the_title_into_your_eyes_with_no_cut() {
+    for native in [0x7171u64, 0x5EED_5EED, 99] {
+        let mut g = at_the_title(native);
+        assert_eq!(g.state, "menu");
+        let (seed, title, view) = (g.run_seed, g.camera_pose(), g.title_view());
+        g.menu_choose("menu:new");
+        assert!(g.hands_taken(), "{native:x}: the way in plays: {:?}", g.cut_log);
+        // the same place: the title's run, facing the way the title looked
+        assert_eq!(g.run_seed, seed, "{native:x}: New descent keeps the title's place");
+        assert_eq!(g.player.yaw, view.1);
+        assert!(g.level_card.is_none(), "{native:x}: the card waits for the end");
+        let (mut last, mut worst) = (title, (0.0f64, 0.0f64));
+        let mut frames = 0;
+        while g.hands_taken() {
+            assert!(frames < 600, "{native:x}: the way in ends");
+            step(&mut g, DT);
+            let now = g.camera_pose();
+            let (d, turn) = Pose::apart(&last, &now);
+            worst = (worst.0.max(d), worst.1.max(turn));
+            last = now;
+            frames += 1;
+            if g.hands_taken() {
+                assert!(g.level_card.is_none(), "{native:x}: the card waits for the end");
+            }
+        }
+        for _ in 0..30 {
+            step(&mut g, DT);
+            let now = g.camera_pose();
+            let (d, turn) = Pose::apart(&last, &now);
+            worst = (worst.0.max(d), worst.1.max(turn));
+            last = now;
+        }
+        // no frame from the title to your hands and after jumps: under a
+        // walk's step and a slow turn a frame
+        assert!(worst.0 < 0.04 && worst.1 < 0.03, "{native:x}: a frame jumped {:.3} m, {:.3} rad", worst.0, worst.1);
+        assert!(g.level_card.is_some(), "{native:x}: the card after");
+        assert_eq!(g.state, "playing");
+        // the camera moved from the title to your eyes
+        let (d, _) = Pose::apart(&title, &g.camera_pose());
+        assert!(d > 1.0, "{native:x}: the title stood back from your eyes ({d:.2} m)");
+        // your first arrival is still to be said
+        assert!(g.asides.arrival.is_some() || g.asides.log.iter().any(|(_, l)| l.contains("arrive")), "{native:x}");
+    }
+}
+
+#[test]
+fn new_descent_over_another_runs_floor_goes_through_black() {
+    let mut g = at_the_title(0x7171);
+    g.start_new_game();
+    for _ in 0..30 {
+        step(&mut g, DT);
+    }
+    let old = g.run_seed;
+    g.pause();
+    g.leave_for_title();
+    assert_eq!(g.state, "menu");
+    assert!(g.title_place.is_none());
+    g.new_descent();
+    assert_eq!(g.ui.fade.opacity(), Some(1.0));
+    for _ in 0..60 {
+        g.now_ms += DT * 1000.0;
+        g.fixed_step_dt = DT;
+        g.frame(DT);
+    }
+    assert!(g.hands_taken(), "{:?}", g.cut_log);
+    assert_ne!(g.run_seed, old, "a new run");
+    while g.hands_taken() {
+        step(&mut g, DT);
+    }
+    assert!(g.level_card.is_some());
 }

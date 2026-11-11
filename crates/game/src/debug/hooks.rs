@@ -1137,7 +1137,7 @@ impl Game {
 fn glance() -> crate::cutscene::Cutscene {
     let key = |t: f64, anchor: &str, pos: [f64; 3], look: Option<[f64; 3]>, sway: f64| {
         serde_json::json!({ "t": t, "anchor": anchor, "pos": pos, "look": look, "look_at": null, "yaw": 0.0, "pitch": 0.0, "roll": 0.0,
-            "fov": 0.0, "ease": "in_out", "cut": false, "sway": sway, "jolt": false })
+            "fov": 0.0, "ease": "in_out", "cut": false, "sway": sway, "walk": 0.0, "jolt": false })
     };
     let v = serde_json::json!({
         "id": "glance", "about": "a glance at a thing two metres ahead", "world": "live", "then": "back", "skip": "hold",

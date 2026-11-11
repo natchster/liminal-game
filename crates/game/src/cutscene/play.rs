@@ -45,6 +45,11 @@ pub const BARS_OUT: f64 = 0.5;
 pub const HINT_FOR: f64 = 2.5;
 /// A repeat that starts part-way blends in over at least this
 pub const REPEAT_BLEND: f64 = 0.2;
+/// A walked segment's step (metres a step) and its bob (metres up, and
+/// radians of yaw, for `walk` 1), near your own walk's
+pub const STRIDE: f64 = 0.72;
+pub const WALK_BOB: f64 = 0.022;
+pub const WALK_SWAY: f64 = 0.006;
 /// Danger (`cutscene_danger`): a search this near, a nerve this low
 pub const DANGER_SEARCH: f64 = 25.0;
 pub const DANGER_NERVE: f64 = 20.0;
@@ -287,8 +292,8 @@ impl Playing {
         (pose, target)
     }
     /// Its own keys at its time (`shake_k`: Settings' camera shake, 1 or 0,
-    /// on its sway)
-    pub fn keyed(&self, g: &Game, fov_play: f64, shake_k: f64) -> Pose {
+    /// on its sway; `bob_k`: Settings' head bob, on a walk)
+    pub fn keyed(&self, g: &Game, fov_play: f64, shake_k: f64, bob_k: f64) -> Pose {
         let keys = &self.c.camera;
         let t = self.t;
         let last = keys.len() - 1;
@@ -326,6 +331,16 @@ impl Playing {
             }
         }
         let (sy, sp) = sway(t, lerp(a.sway, b.sway, e) * shake_k);
+        // a walked segment: a step's bob by the distance covered, faded out
+        // at both its ends (so nothing jumps at a key)
+        let mut pos = pos;
+        if b.walk > 0.0 {
+            let len = Pose::apart(&pa, &pb).0;
+            let phase = e * len / STRIDE * PI;
+            let fade = (PI * e).sin() * b.walk * bob_k;
+            pos[1] += phase.sin().abs() * WALK_BOB * fade;
+            yaw += phase.sin() * WALK_SWAY * fade;
+        }
         Pose {
             pos,
             yaw: yaw + sy,
@@ -336,8 +351,8 @@ impl Playing {
     }
     /// Its camera before play's comes back: its keys blended in from its
     /// start pose
-    pub fn own(&self, g: &Game, fov_play: f64, shake_k: f64) -> Pose {
-        let k = self.keyed(g, fov_play, shake_k);
+    pub fn own(&self, g: &Game, fov_play: f64, shake_k: f64, bob_k: f64) -> Pose {
+        let k = self.keyed(g, fov_play, shake_k, bob_k);
         Pose::mix(&self.start_pose, &k, self.w_in())
     }
 }
@@ -608,13 +623,14 @@ impl Game {
         }
         // the camera
         let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
+        let bob_k = self.settings.bob;
         let (shown, w, done, card, dip, bars, veil, colour, t) = {
             let p = self.cut.as_ref().unwrap();
             let done = p.t >= p.end() - 1e-9;
             let card = p.c.then == Then::Card;
             // (a card's end holds its own camera; a far skip's cut is under the veil)
             let w = if done && !card { 0.0 } else { p.weight() };
-            let shown = if w <= 0.0 { gameplay } else { Pose::mix(&gameplay, &p.own(self, gameplay.fov, shake_k), w) };
+            let shown = if w <= 0.0 { gameplay } else { Pose::mix(&gameplay, &p.own(self, gameplay.fov, shake_k, bob_k), w) };
             let (veil, colour) = p.veil();
             (shown, w, done, card, p.dip.is_some(), p.bars(), veil, colour, p.t)
         };
@@ -721,7 +737,7 @@ impl Game {
         let p = self.cut.as_ref().unwrap();
         let (near, card) = match p.gameplay {
             Some(g) => {
-                let own = Pose::mix(&g, &p.own(self, g.fov, shake_k), p.weight());
+                let own = Pose::mix(&g, &p.own(self, g.fov, shake_k, 0.0), p.weight());
                 let (d, turn) = Pose::apart(&g, &own);
                 (d < SKIP_NEAR && turn < SKIP_NEAR_TURN && p.veil().0 <= SKIP_NEAR_VEIL, p.c.then == Then::Card)
             }

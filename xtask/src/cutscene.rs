@@ -116,6 +116,7 @@ fn key() -> Vec<Field> {
         ("ease", Kind::Str, Some(json!("in_out"))),
         ("cut", Kind::Bool, Some(json!(false))),
         ("sway", Kind::Num, Some(json!(0.0))),
+        ("walk", Kind::Num, Some(json!(0.0))),
         ("jolt", Kind::Bool, Some(json!(false))),
     ]
 }

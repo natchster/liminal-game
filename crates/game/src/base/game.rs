@@ -655,6 +655,10 @@ pub struct Game {
     pub cut_gen: u64,
     /// how the last cutscene's hands-back looked (tests: the contract)
     pub cut_end: Option<crate::cutscene::play::Ended>,
+    /// the run seed and level the title shows when nobody has played it (New descent keeps it)
+    pub title_place: Option<(u32, i32)>,
+    /// the level card's line, kept for the end of the way in
+    pub way_in_card: Option<String>,
     /// native draws the cutscene engine made last frame (its cues' sounds and events not counted: tests)
     pub cut_engine_draws: u64,
     /// ... and those its cues made
@@ -1144,6 +1148,8 @@ impl Game {
             cut_log: vec![],
             cut_gen: 0,
             cut_end: None,
+            title_place: None,
+            way_in_card: None,
             cut_engine_draws: 0,
             cut_cue_draws: 0,
             showcase_company: false,

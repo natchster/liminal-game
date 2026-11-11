@@ -19,6 +19,9 @@ impl Game {
         self.init_modes(); // the Stairwell (built once at start-up)
         self.init_flow();
         self.init_level(1);
+        // the title shows level 1 of a run nobody has played: New descent
+        // keeps it (`cutscene::uses`)
+        self.title_place = Some((self.run_seed, 1));
     }
     /// the textures section (merged from the textures module)
     pub fn init_textures_hook(&mut self) {

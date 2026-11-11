@@ -20,7 +20,10 @@ pub const SOUNDS: &[(&str, fn(&mut Game))] = &[
 ];
 
 /// The events, by name, with what each does
-pub const EVENTS: &[(&str, &str, fn(&mut Game))] = &[("mark", "nothing: a mark in the cutscene's log (tests, previews)", |_| {})];
+pub const EVENTS: &[(&str, &str, fn(&mut Game))] = &[
+    ("mark", "nothing: a mark in the cutscene's log (tests, previews)", |_| {}),
+    ("arrive", "the way in's end: the level card the new run kept for it", |g| g.way_in_arrive()),
+];
 
 pub fn sound(name: &str) -> Option<fn(&mut Game)> {
     SOUNDS.iter().find(|(n, _)| *n == name).map(|(_, f)| *f)

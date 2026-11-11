@@ -1,0 +1,42 @@
+# The way in (docs/CUTSCENES.md, C5): New descent from the title. The title
+# stands a few metres out along the way the floor runs furthest from where
+# you begin, looking on down it (`Game::title_view`); the run keeps the
+# title's place, so the floor built again is the one on the screen, and it
+# begins facing the way the title looks. The bars come in, a breath, and
+# the camera draws back into your eyes; your hands come back where you
+# stand, and the level card after.
+id = "way_in"
+about = "New descent: from the title's view of the place, drawn back into your eyes"
+world = "held"
+then = "back"
+skip = "hold"
+length = 5.8
+blend_in = 0.0
+blend_out = 1.0
+stages = ["title:4242", "title:7", "title:9001"]
+# the card the run kept for the way in, once your hands are back
+finally = ["arrive"]
+
+[bars]
+in = 0.0
+out = 5.3
+
+# the title's view, as it is
+[[camera]]
+t = 0.0
+anchor = "start"
+
+# a breath: the head lowers a little, as if to look before going
+[[camera]]
+t = 1.1
+anchor = "start"
+pos = [0.0, -0.03, 0.08]
+pitch = -1.5
+sway = 0.4
+
+# drawn back, slowly (about a metre a second), the place still ahead,
+# into your eyes
+[[camera]]
+t = 4.6
+anchor = "eyes"
+sway = 0.2

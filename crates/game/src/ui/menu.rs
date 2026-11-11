@@ -48,7 +48,9 @@ pub struct Menu {
     pub sel: usize,
     /// on the title: the last line of hers you read, in her hand
     pub her_line: String,
-    /// the title view: the camera's yaw when the title opened, and the time
+    /// the title view: where it stands (`title_view`), its yaw when the
+    /// title opened, and the time
+    pub view_pos: [f64; 3],
     pub view_yaw: f64,
     pub view_t: f64,
     /// where Settings and Controls go back to (the title or the pause list)
@@ -56,6 +58,14 @@ pub struct Menu {
     /// Controls: the action waiting for its new key
     pub capture: Option<Act>,
 }
+
+/// The title stands this far out along the way from where you begin
+/// (metres), when the floor runs that far ...
+pub const TITLE_BACK: f64 = 3.5;
+/// ... and at least this
+pub const TITLE_BACK_MIN: f64 = 2.0;
+/// How far a way is measured (metres): beyond this, any way is as good
+pub const TITLE_AHEAD: f64 = 24.0;
 
 fn item(id: &'static str, label: &str, detail: &str) -> Item {
     Item { id, label: label.to_string(), detail: detail.to_string() }
@@ -296,14 +306,10 @@ impl Game {
                 if self.load_game().is_some() {
                     self.open_menu(Screen::ConfirmNew);
                 } else {
-                    self.close_menu();
-                    self.start_new_game();
+                    self.new_descent();
                 }
             }
-            "menu:new-yes" => {
-                self.close_menu();
-                self.start_new_game();
-            }
+            "menu:new-yes" => self.new_descent(),
             "menu:settings" => self.open_menu(Screen::Settings),
             "menu:controls" => self.open_menu(Screen::Controls),
             "menu:reset-keys" => {
@@ -334,6 +340,8 @@ impl Game {
         let n = self.level_num;
         self.reset_hands();
         self.init_level(n);
+        // (a floor of a run played behind the title: New descent starts another)
+        self.title_place = None;
         self.ui.fade.set_opacity(0.0);
         self.ui.flash.set_opacity(0.0);
         self.save_game();
@@ -359,24 +367,76 @@ impl Game {
             _ => false,
         }
     }
-    /// The title's view of the lobby, per frame: the camera at the spawn,
-    /// turning slowly one way and back, as if someone stood there looking.
+    /// The title's view of the floor, per frame: the camera a few metres
+    /// back along the walk behind where you begin (`title_view`), turning
+    /// slowly one way and back, as if someone stood there looking; New
+    /// descent walks from there into your eyes (`docs/CUTSCENES.md`).
     pub fn update_title_view(&mut self, dt: f64) {
         if self.menu.view_t == 0.0 {
-            self.menu.view_yaw = self.deepest_view_yaw();
+            let (pos, yaw) = self.title_view();
+            self.menu.view_pos = pos;
+            self.menu.view_yaw = yaw;
         }
         self.menu.view_t += dt;
         let t = self.menu.view_t;
         let cam = self.camera.clone();
-        cam.position().set(
-            self.player.pos.x,
-            self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (t * 0.9).sin() * 0.004,
-            self.player.pos.z,
-        );
+        let p = self.menu.view_pos;
+        cam.position().set(p[0], p[1] + (t * 0.9).sin() * 0.004, p[2]);
         cam.rotation().y = self.menu.view_yaw + (t * 0.045).sin() * 0.22;
         cam.rotation().x = -0.03 + (t * 0.031).sin() * 0.02;
         cam.rotation().z = 0.0;
     }
+    /// Where the title stands, and the way it looks: out along the way the
+    /// floor runs furthest from where you begin (level, walkable, clear of
+    /// walls and the void: on the Building a gallery, the void beside it),
+    /// a few metres out along it (up to `TITLE_BACK`), looking on down it.
+    /// Your run begins facing that way (`cutscene::uses`), and New descent
+    /// draws the camera back from here into your eyes. With less than
+    /// `TITLE_BACK_MIN` of floor any way, at your place looking down the
+    /// place. → (its eye, its yaw)
+    pub fn title_view(&self) -> ([f64; 3], f64) {
+        let p = self.player.pos;
+        let f0 = self.floor_y_at(p.x, p.z);
+        let clear = |x: f64, z: f64| {
+            let (tx, tz) = (self.tx(x), self.tz(z));
+            self.in_grid(tx, tz)
+                && !self.is_wall_tile(tx, tz)
+                && self.ground.get(self.t_idx(tx, tz)).is_none_or(|g| g.walkable())
+                && (self.floor_y_at(x, z) - f0).abs() < 0.05
+                && !self.circle_hits_wall(x, z, 0.35)
+        };
+        let mut best: Option<(f64, f64)> = None;
+        for k in 0..16 {
+            let yaw = k as f64 * PI / 8.0;
+            let (dx, dz) = (-yaw.sin(), -yaw.cos());
+            let mut ahead = 0.0;
+            while ahead < TITLE_AHEAD && clear(p.x + dx * (ahead + 0.25), p.z + dz * (ahead + 0.25)) {
+                ahead += 0.25;
+            }
+            if best.is_none_or(|b| ahead > b.1 + 1e-9) {
+                best = Some((yaw, ahead));
+            }
+        }
+        match best {
+            Some((yaw, ahead)) if ahead - 0.5 >= TITLE_BACK_MIN => {
+                let d = (ahead - 0.5).min(TITLE_BACK);
+                ([p.x - yaw.sin() * d, f0 + EYE, p.z - yaw.cos() * d], yaw)
+            }
+            _ => ([p.x, f0 + EYE, p.z], self.deepest_view_yaw()),
+        }
+    }
+
+    /// How far you can see from where you begin, looking `yaw` (up to 60 m)
+    fn sight_depth(&self, yaw: f64) -> f64 {
+        let p = self.player.pos;
+        let (dx, dz) = (-yaw.sin(), -yaw.cos());
+        let mut d = 0.0;
+        while d < 60.0 && !self.circle_hits_wall(p.x + dx * (d + 0.5), p.z + dz * (d + 0.5), 0.25) {
+            d += 0.5;
+        }
+        d
+    }
+
     /// The way the spawn sees furthest (of sixteen), so the title looks
     /// down the place rather than at a wall
     pub fn deepest_view_yaw(&self) -> f64 {
@@ -389,11 +449,7 @@ impl Game {
         let mut best = (self.player.yaw, 0.0);
         for k in 0..16 {
             let yaw = k as f64 * PI / 8.0;
-            let (dx, dz) = (-yaw.sin(), -yaw.cos());
-            let mut d = 0.0;
-            while d < 60.0 && !self.circle_hits_wall(p.x + dx * (d + 0.5), p.z + dz * (d + 0.5), 0.25) {
-                d += 0.5;
-            }
+            let d = self.sight_depth(yaw);
             if d > best.1 + 1e-9 {
                 best = (yaw, d);
             }

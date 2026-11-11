@@ -1,4 +1,95 @@
 {
   "about": "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).",
-  "cutscenes": []
+  "cutscenes": [
+    {
+      "about": "New descent: from the title's view of the place, drawn back into your eyes",
+      "bars": {
+        "in": 0.0,
+        "out": 5.3
+      },
+      "blend_in": 0.0,
+      "blend_out": 1.0,
+      "breaks_off": false,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": -1.5,
+          "pos": [
+            0.0,
+            -0.03,
+            0.08
+          ],
+          "roll": 0.0,
+          "sway": 0.4,
+          "t": 1.1,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.2,
+          "t": 4.6,
+          "walk": 0.0,
+          "yaw": 0.0
+        }
+      ],
+      "event": [],
+      "fade": [],
+      "finally": [
+        "arrive"
+      ],
+      "id": "way_in",
+      "length": 5.8,
+      "repeat_from": 0.0,
+      "say": [],
+      "skip": "hold",
+      "sound": [],
+      "stages": [
+        "title:4242",
+        "title:7",
+        "title:9001"
+      ],
+      "then": "back",
+      "world": "held"
+    }
+  ]
 }

@@ -59,12 +59,14 @@
     "cutscenes.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask cutscene write (TOML sources, every field written out)",
-      "fingerprint": "2b41d59257df4504",
+      "fingerprint": "d7438a24781c1ad8",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",
       "rebuild": "cargo xtask cutscene write",
-      "sources": []
+      "sources": [
+        "assets/src/cutscenes/way_in.toml"
+      ]
     },
     "prop_meshes.bin": {
       "authors": "written by coding agents under the developer's direction",

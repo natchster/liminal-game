@@ -13,6 +13,7 @@ pub mod cues;
 pub mod curve;
 pub mod model;
 pub mod play;
+pub mod uses;
 
 pub use model::{Anchor, Bars, Cutscene, Event, Fade, Key, Look, Say, Skip, Sound, Then, World};
 
@@ -67,6 +68,7 @@ mod tests {
         assert!(c.camera.iter().any(|k| matches!(k.look, Look::At(Anchor::Killer))));
         assert!(c.camera.iter().any(|k| k.cut) && c.camera.iter().any(|k| k.jolt) && c.camera.iter().any(|k| k.fov != 0.0));
         assert!(!c.fade.is_empty() && !c.sound.is_empty() && !c.event.is_empty() && !c.say.is_empty() && !c.finally.is_empty());
+        assert!(c.camera.iter().any(|k| k.walk > 0.0));
         assert!(c.shape_problems().is_empty(), "{:#?}", c.shape_problems());
     }
 

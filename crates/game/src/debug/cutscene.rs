@@ -121,9 +121,30 @@ impl Game {
 
     /// Set up `stage` (on a booted game whose placers are registered):
     /// `ahead` a floor of the rooms with a thing two metres ahead of you
-    /// (cutscenes under construction, and the known answers)
+    /// (cutscenes under construction, and the known answers); `title` the
+    /// title over the Well, live for a second (started by New descent);
+    /// `title:SEED` the same over run SEED's Well
     pub fn cutscene_stage(&mut self, stage: &str) -> Result<Staged, String> {
-        match stage {
+        if let Some(seed) = stage.strip_prefix("title:") {
+            let seed: u32 = seed.parse().map_err(|_| format!("stage {stage}: a run seed"))?;
+            if self.state != "menu" {
+                return Err("the title stage needs a game booted to its title".into());
+            }
+            self.run_seed = seed;
+            self.init_level(1);
+            self.title_place = Some((seed, 1));
+            self.menu.view_t = 0.0;
+        }
+        match stage.split(':').next().unwrap_or("") {
+            "title" => {
+                if self.state != "menu" {
+                    return Err("the title stage needs a game booted to its title".into());
+                }
+                for _ in 0..(SETTLE * 60.0) as usize {
+                    self.stage_frame(1.0 / 60.0);
+                }
+                Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
+            }
             "ahead" => {
                 self.stage_floor(4242, 6);
                 let p = self.player.pos;
@@ -138,16 +159,26 @@ impl Game {
 
     /// Start `c` on its stage as play would
     pub fn cutscene_trigger(&mut self, s: &Staged, c: &Cutscene) -> bool {
-        self.play_cutscene_data(c.clone(), s.anchors.clone())
+        match s.stage.split(':').next().unwrap_or("") {
+            // as the title's list does (`menu:new`)
+            "title" => {
+                self.new_descent_with(Some(c.clone()));
+                self.hands_taken()
+            }
+            _ => self.play_cutscene_data(c.clone(), s.anchors.clone()),
+        }
     }
 
     /// What the stage reads of the world after a run (a skip must leave the same)
     pub fn cutscene_signature(&self, s: &Staged) -> String {
         let p = &self.player;
         let r = |x: f64| (x * 1000.0).round() / 1000.0;
-        let _ = s;
         // (what is the same whenever it is read: not the nerve, which moves with time)
-        format!("{} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch)
+        let base = format!("{} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch);
+        match s.stage.split(':').next().unwrap_or("") {
+            "title" => format!("{base} run {} level {} card {}", self.run_seed, self.level_num, self.level_card.is_some()),
+            _ => base,
+        }
     }
 
     /// Record `c` on its stage as `o` asks (its step; the skip key held, a

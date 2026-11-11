@@ -316,5 +316,11 @@
     "contrast": 0.1866,
     "luminance": 0.3591,
     "shadow": 0.0148
+  },
+  "way_in_mid": {
+    "colourfulness": 8.44,
+    "contrast": 0.0559,
+    "luminance": 0.084,
+    "shadow": 0.665
   }
 }

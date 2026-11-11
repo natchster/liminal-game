@@ -194,7 +194,16 @@ fn leaving_for_the_title_keeps_the_notebook() {
 fn death_is_black_a_line_and_wake_up() {
     let mut g = new_game();
     press(&mut g, "Enter");
+    // New descent: the way in from the title (docs/CUTSCENES.md), the card
+    // once your hands are back
     frame(&mut g, 30);
+    assert!(g.hands_taken() && g.level_card.is_none(), "the way in, its card after");
+    for _ in 0..600 {
+        if !g.hands_taken() {
+            break;
+        }
+        frame(&mut g, 1);
+    }
     assert!(g.level_card.is_some(), "no level card on arrival");
     g.on_death("entity");
     assert_eq!(g.state, "dead");

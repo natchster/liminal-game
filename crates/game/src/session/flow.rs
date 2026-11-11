@@ -583,13 +583,26 @@ impl Game {
         out
     }
     pub fn start_new_game(&mut self) {
+        self.start_new_game_with(None, true)
+    }
+    /// A new run: on the run seed `seed` if given (New descent keeps the
+    /// title's place), else the launch flags' or a new one; the level card
+    /// now, or (`card_now` false) kept for the way in to show at its end
+    /// (`way_in_card`; the line is drawn here either way, so nothing after
+    /// it moves)
+    pub fn start_new_game_with(&mut self, seed: Option<u32>, card_now: bool) {
         self.close_menu();
         self.reset_hands();
         self.audio_init();
         self.clear_save();
+        self.title_place = None;
         let hp = self.parse_flag_params();
         let hash_seed = hp.get("seed").and_then(|s| parse_int_prefix(s)).map(to_u32).unwrap_or(0);
-        self.run_seed = if hash_seed != 0 { hash_seed } else { ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32 };
+        self.run_seed = match seed {
+            Some(s) => s,
+            None if hash_seed != 0 => hash_seed,
+            None => ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32,
+        };
         self.lore_found.clear();
         self.lore_arcs_completed.clear();
         self.creature_run = Default::default();
@@ -625,12 +638,17 @@ impl Game {
         self.state = "playing".into();
         self.hide_overlay();
         let sub = self.pick_text("levelSubtitle");
-        self.show_level_card(&sub);
+        if card_now {
+            self.show_level_card(&sub);
+        } else {
+            self.way_in_card = Some(sub);
+        }
         self.scp_arrival();
         self.want_pointer_lock = Some(true);
     }
     pub fn continue_game(&mut self) {
         self.close_menu();
+        self.title_place = None;
         self.reset_hands();
         self.audio_init();
         let Some(d) = self.load_game() else {
