@@ -136,6 +136,25 @@ impl Game {
             self.menu.view_t = 0.0;
         }
         match stage.split(':').next().unwrap_or("") {
+            // `death:KIND` (a creature of that kind in your face, run 4242's
+            // level 7), `death:sanity` (level 6), `death:fog` (the Well)
+            "death" => {
+                let what = stage.split(':').nth(1).unwrap_or("");
+                let (seed, level) = match what {
+                    "fog" => (4242, 1),
+                    "sanity" => (4242, 6),
+                    _ => (4242, 7),
+                };
+                self.stage_floor(seed, level);
+                self.god_mode = false;
+                if !matches!(what, "fog" | "sanity") {
+                    self.showcase_entity(what, 1.0);
+                    if !self.entities.iter().any(|e| e.kind == what) {
+                        return Err(format!("stage {stage}: no {what}"));
+                    }
+                }
+                Ok(Staged { stage: stage.into(), anchors: Anchors::default() })
+            }
             // `broken_elevator:SEED:LEVEL`: before a broken lift, facing it,
             // where its prompt is
             "broken_elevator" => {
@@ -185,6 +204,22 @@ impl Game {
             // as the title's list does (`menu:new`)
             "title" => {
                 self.new_descent_with(Some(c.clone()));
+                self.hands_taken()
+            }
+            // as death comes: what killed you, and on_death
+            "death" => {
+                let what = s.stage.split(':').nth(1).unwrap_or("");
+                self.cut_override = Some(c.clone());
+                let cause = match what {
+                    "fog" => "assembly",
+                    "sanity" => "sanity",
+                    kind => {
+                        self.director.killer = self.entities.iter().position(|e| e.kind == kind);
+                        "entity"
+                    }
+                };
+                self.on_death(cause);
+                self.cut_override = None;
                 self.hands_taken()
             }
             // as your hand does: E on the lift
@@ -381,7 +416,8 @@ pub fn contract(c: &Cutscene, tr: &Trace) -> Vec<String> {
     // 1: from where you were looking, and on into play's camera after
     if let (Some(b), Some(f)) = (tr.before_cam, tr.rows.first()) {
         let (d, turn) = Pose::apart(&b, &f.shown);
-        if d > JUMP || turn > JUMP_TURN {
+        // (unless it starts with a declared jolt: a death's eyes snapping to its face)
+        if (d > JUMP || turn > JUMP_TURN) && !in_jolt(c, f.t) {
             p.push(format!("{}: its first frame jumps {d:.3} m and {:.1}° from the camera before it", at(f), turn.to_degrees()));
         }
     }

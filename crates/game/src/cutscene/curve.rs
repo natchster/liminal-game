@@ -134,6 +134,14 @@ pub fn look_angles(from: [f64; 3], to: [f64; 3]) -> (f64, f64) {
     ((-dx).atan2(-dz), dy.atan2(flat))
 }
 
+/// A shake: fast, within ±1 on each of yaw, pitch and roll, a sum of sines
+/// at frequencies with no common period, so it is a function of the time
+/// alone (the same at any frame rate) and needs no random draw
+pub fn jitter(t: f64) -> (f64, f64, f64) {
+    let j = |a: f64, b: f64, c: f64, p: f64| ((t * a + p).sin() * 0.5 + (t * b + p * 1.7).sin() * 0.3 + (t * c + p * 2.3).sin() * 0.2);
+    (j(83.0, 131.0, 197.0, 0.3), j(89.0, 139.0, 211.0, 1.9), j(97.0, 149.0, 223.0, 3.1))
+}
+
 /// A held camera's sway: slow, small, never repeating within a cutscene,
 /// a sum of sines at frequencies with no common period, so it needs no
 /// random draw. → (yaw, pitch) in radians for `amount` 1 (about 0.4°).
@@ -192,6 +200,12 @@ mod tests {
         assert!((yaw - PI / 2.0).abs() < 1e-12, "left is +π/2 as the player's yaw");
         let (_, pitch) = look_angles([0.0, 0.0, 0.0], [0.0, 1.0, -1.0]);
         assert!((pitch - PI / 4.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_jitter_stays_within_one() {
+        let worst = (0..5000).map(|i| jitter(i as f64 * 0.003)).fold(0.0f64, |m, (a, b, c)| m.max(a.abs()).max(b.abs()).max(c.abs()));
+        assert!(worst <= 1.0 && worst > 0.6, "{worst}");
     }
 
     #[test]

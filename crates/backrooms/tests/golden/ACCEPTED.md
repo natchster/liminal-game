@@ -169,3 +169,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-11, on top of db665e9: look anchors: shaft_eyes. Reason: C6: a new shot, the shaft's black and its eyeshine; its look is its own baseline
 
 - 2026-11-11, on top of db665e9: frames: shaft_eyes. Reason: C6 after its lore review: what looks back out of the shaft gives back a light (the red lamp's here, your lamp off) instead of glowing on its own
+
+- 2026-11-11, on top of 1c92575: frames: 7 shots. Reason: C7: a death is a cutscene now (death_taken): at 0.25 s the same moment, its face in your eyes, framed by the cutscene's camera and its clock's shake instead of the death camera's, the HUD hidden; and death_fall, the Hound's kill at 0.9 s: on the floor, rolled, it standing over you (docs/CUTSCENES.md)
+
+- 2026-11-11, on top of 1c92575: look anchors: death_fall. Reason: C7: a new shot, the fall; its look is its own baseline

@@ -63,6 +63,7 @@ const FIGURES: &[(&str, &[&str])] = &[
     // the cutscenes (docs/CUTSCENES.md), each at a time of its own clock
     ("way_in_mid", &["--cutscene", "way_in", "--stage", "title:4242", "--cut-at", "2.6"]),
     ("shaft_eyes", &["--cutscene", "shaft", "--stage", "broken_elevator:4242:4", "--cut-at", "3.1"]),
+    ("death_fall", &["--cutscene", "death_taken", "--stage", "death:hound", "--cut-at", "0.9"]),
 ];
 /// The one behind the glass (docs/WINDOWS.md 4), as you meet it: out of its
 /// window (4242's level 7, an office's strip window), standing far out on

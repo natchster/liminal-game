@@ -415,6 +415,10 @@ impl Game {
             Some("not in play")
         } else if anchors.thing.is_none() && names_thing {
             Some("it names a thing and none was given")
+        } else if c.camera.iter().any(|k| k.anchor == Anchor::Killer || k.look == Look::At(Anchor::Killer))
+            && anchors.killer.is_none_or(|i| i >= self.entities.len())
+        {
+            Some("it names a killer and none was given")
         } else if c.then == Then::Back && self.cutscene_danger() {
             Some("danger")
         } else {
@@ -638,6 +642,16 @@ impl Game {
             let (veil, colour) = p.veil();
             (shown, w, done, card, p.dip.is_some(), p.bars(), veil, colour, p.t)
         };
+        // a death's shake (its sizes from `death_world`, a jitter of its
+        // clock), as Settings' camera shake allows
+        let (ay, ap, ar) = self.cut_shake;
+        let (jy, jp, jr) = super::curve::jitter(t);
+        let shown = Pose {
+            yaw: shown.yaw + ay * jy * shake_k,
+            pitch: shown.pitch + ap * jp * shake_k,
+            roll: shown.roll + ar * jr * shake_k,
+            ..shown
+        };
         self.set_camera_pose(&shown);
         self.cut_veil = Veil { opacity: veil, colour, opening: 0.0 };
         {
@@ -664,7 +678,10 @@ impl Game {
             self.cut_event(name, t);
         }
         if card {
+            // (the card's own draws: its line, as it always drew them)
+            let d = crate::base::rng::native_draws();
             self.open_death_card();
+            self.cut_cue_draws += crate::base::rng::native_draws() - d;
         }
     }
 

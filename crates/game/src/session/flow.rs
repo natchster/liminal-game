@@ -538,11 +538,23 @@ impl Game {
             self.entity_call(ki, "shriek");
         }
         self.ui.fade.set_style("background", "#000");
-        self.schedule(450.0, |g| g.ui.fade.set_opacity(1.0));
-        // black, the hum, one line in the world's voice, and Wake up (no
-        // title, no seconds survived). The card's three draws are kept, so
-        // nothing after a death moves (CLAUDE.md invariant 1)
-        self.schedule(1400.0, |g| g.open_death_card());
+        // the death's own cutscene, by what killed you (`docs/CUTSCENES.md`):
+        // its fall, its black, and the card at its end (1.4 s, as always)
+        let id = match cause {
+            "entity" => "death_taken",
+            "assembly" => "death_fog",
+            _ => "death_mind",
+        };
+        let anchors = crate::cutscene::play::Anchors { thing: None, killer };
+        if !self.play_cutscene(id, anchors) {
+            // none to play (a creature's death with no creature): black on
+            // the clock, then the card. Black, the hum, one line in the
+            // world's voice, and Wake up (no title, no seconds survived).
+            // The card's three draws are kept, so nothing after a death
+            // moves (CLAUDE.md invariant 1)
+            self.schedule(450.0, |g| g.ui.fade.set_opacity(1.0));
+            self.schedule(1400.0, |g| g.open_death_card());
+        }
     }
     /// The death card: black, one line in the world's voice, Wake up (a
     /// death's cutscene opens it at its end, `then = "card"`)

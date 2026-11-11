@@ -2,6 +2,327 @@
   "about": "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).",
   "cutscenes": [
     {
+      "about": "The fog takes you: sinking into the violet, black",
+      "bars": {
+        "in": 0.3,
+        "out": 1.4
+      },
+      "blend_in": 0.0,
+      "blend_out": 0.0,
+      "breaks_off": false,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": null,
+          "pitch": -6.0,
+          "pos": [
+            0.0,
+            -0.6,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.7,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": null,
+          "pitch": 18.0,
+          "pos": [
+            0.0,
+            -1.25,
+            0.2
+          ],
+          "roll": 10.0,
+          "sway": 0.0,
+          "t": 1.3,
+          "walk": 0.0,
+          "yaw": 0.0
+        }
+      ],
+      "event": [],
+      "fade": [
+        {
+          "colour": "#160d1e",
+          "over": 1.0,
+          "t": 0.3,
+          "to": 1.0
+        }
+      ],
+      "finally": [],
+      "id": "death_fog",
+      "length": 1.4,
+      "repeat_from": 0.4,
+      "say": [],
+      "skip": "never",
+      "sound": [],
+      "stages": [
+        "death:fog"
+      ],
+      "then": "card",
+      "world": "live"
+    },
+    {
+      "about": "Your nerve gives out: your knees, the floor, black",
+      "bars": {
+        "in": 0.3,
+        "out": 1.4
+      },
+      "blend_in": 0.0,
+      "blend_out": 0.0,
+      "breaks_off": false,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": null,
+          "pitch": -14.0,
+          "pos": [
+            0.0,
+            -0.45,
+            0.05
+          ],
+          "roll": 6.0,
+          "sway": 0.0,
+          "t": 0.6,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": null,
+          "pitch": -32.0,
+          "pos": [
+            0.1,
+            -1.2,
+            0.25
+          ],
+          "roll": 38.0,
+          "sway": 0.0,
+          "t": 1.25,
+          "walk": 0.0,
+          "yaw": 0.0
+        }
+      ],
+      "event": [],
+      "fade": [
+        {
+          "colour": "#000",
+          "over": 0.9,
+          "t": 0.35,
+          "to": 1.0
+        }
+      ],
+      "finally": [],
+      "id": "death_mind",
+      "length": 1.4,
+      "repeat_from": 0.4,
+      "say": [],
+      "skip": "never",
+      "sound": [],
+      "stages": [
+        "death:sanity"
+      ],
+      "then": "card",
+      "world": "live"
+    },
+    {
+      "about": "A creature's killing touch: its face, the fall, black",
+      "bars": {
+        "in": 0.45,
+        "out": 1.4
+      },
+      "blend_in": 0.0,
+      "blend_out": 0.0,
+      "breaks_off": false,
+      "camera": [
+        {
+          "anchor": "start",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": false,
+          "look": null,
+          "look_at": null,
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": "killer",
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.12,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in_out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": "killer",
+          "pitch": 0.0,
+          "pos": [
+            0.0,
+            -0.06,
+            0.16
+          ],
+          "roll": 0.0,
+          "sway": 0.0,
+          "t": 0.45,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "in",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": "killer",
+          "pitch": 0.0,
+          "pos": [
+            0.12,
+            -1.2,
+            0.45
+          ],
+          "roll": 62.0,
+          "sway": 0.0,
+          "t": 1.0,
+          "walk": 0.0,
+          "yaw": 0.0
+        },
+        {
+          "anchor": "eyes",
+          "cut": false,
+          "ease": "out",
+          "fov": 0.0,
+          "jolt": true,
+          "look": null,
+          "look_at": "killer",
+          "pitch": 0.0,
+          "pos": [
+            0.13,
+            -1.24,
+            0.47
+          ],
+          "roll": 66.0,
+          "sway": 0.0,
+          "t": 1.4,
+          "walk": 0.0,
+          "yaw": 0.0
+        }
+      ],
+      "event": [],
+      "fade": [
+        {
+          "colour": "#000",
+          "over": 0.45,
+          "t": 0.75,
+          "to": 1.0
+        }
+      ],
+      "finally": [],
+      "id": "death_taken",
+      "length": 1.4,
+      "repeat_from": 0.45,
+      "say": [],
+      "skip": "never",
+      "sound": [],
+      "stages": [
+        "death:hound",
+        "death:smiler",
+        "death:reader"
+      ],
+      "then": "card",
+      "world": "live"
+    },
+    {
       "about": "Looking into a broken lift's shaft: the black, a breath, what looks back",
       "bars": {
         "in": 0.0,

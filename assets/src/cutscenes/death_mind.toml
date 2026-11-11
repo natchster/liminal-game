@@ -1,0 +1,47 @@
+# The mind (docs/CUTSCENES.md, C7): your nerve gives out. No blow: your
+# knees go, the view sinks and tips to the floor, the dark comes in from
+# the edges; black, and the card. 1.4 s; on a repeat it starts sinking.
+id = "death_mind"
+about = "Your nerve gives out: your knees, the floor, black"
+world = "live"
+then = "card"
+skip = "never"
+breaks_off = false
+length = 1.4
+blend_in = 0.0
+blend_out = 0.0
+repeat_from = 0.4
+stages = ["death:sanity"]
+
+[bars]
+in = 0.3
+out = 1.4
+
+[[camera]]
+t = 0.0
+anchor = "start"
+
+# your knees going
+[[camera]]
+t = 0.6
+anchor = "eyes"
+pos = [0.0, -0.45, 0.05]
+pitch = -14
+roll = 6
+ease = "in"
+jolt = true
+
+# down to the floor, the view tipping over
+[[camera]]
+t = 1.25
+anchor = "eyes"
+pos = [0.1, -1.2, 0.25]
+pitch = -32
+roll = 38
+ease = "in_out"
+jolt = true
+
+[[fade]]
+t = 0.35
+to = 1.0
+over = 0.9

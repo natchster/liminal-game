@@ -119,8 +119,15 @@ impl Game {
             let y = self.floor_y_at(self.player.pos.x, self.player.pos.z) + EYE + (self.perf_t * 30.0).sin() * 0.01;
             self.camera.position().y = y;
             match (self.cut.is_some(), self.cut_hold) {
-                (true, _) => self.cutscene_post(dt),
-                (false, Some(h)) => self.set_camera_pose(&h),
+                (true, _) => {
+                    self.death_world(dt);
+                    self.cutscene_post(dt);
+                }
+                (false, Some(h)) => {
+                    // (held behind its card: the killer still moves, the draws go on)
+                    self.death_world(dt);
+                    self.set_camera_pose(&h);
+                }
                 _ => self.update_death_cam(dt),
             }
             for i in 0..self.entities.len() {

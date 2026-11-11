@@ -801,8 +801,31 @@ impl Game {
         best.map(|(i, _)| i)
     }
 
-    /// After death: the camera is held on the killer's face, shaking, while
-    /// it keeps moving (jaw, hands) until the screen cuts to black.
+    /// After death, what goes on while the camera is a death's cutscene's
+    /// or held behind its card: the killer keeps moving (jaw, hands), and
+    /// the shake draws what the death camera always drew (three a frame,
+    /// with a killer), so nothing after a death moves (CLAUDE.md invariant
+    /// 1). → the shake (yaw, pitch, roll), also kept in `cut_shake`
+    pub fn death_world(&mut self, dt: f64) -> (f64, f64, f64) {
+        self.cut_shake = (0.0, 0.0, 0.0);
+        let Some(ki) = self.director.killer.filter(|&i| i < self.entities.len()) else { return self.cut_shake };
+        crate::entities::creature::kind_animate(self, ki, dt);
+        if let Some(c) = self.creature(ki) {
+            c.body.sync();
+        }
+        self.shake_t = (self.shake_t - dt).max(0.0);
+        let shake = self.shake_t.max(0.25) * 0.05;
+        // (the death camera's three draws, kept so nothing after a death
+        // moves; the shake itself is a jitter of the cutscene's clock,
+        // `curve::jitter`, the same at any frame rate: these are its sizes)
+        let _ = (rand2(-1.0, 1.0), rand2(-1.0, 1.0), rand2(-1.0, 1.0));
+        self.cut_shake = (shake, shake, shake * 0.6);
+        self.cut_shake
+    }
+
+    /// After death, with no cutscene to play it: the camera is held on the
+    /// killer's face, shaking, while it keeps moving (jaw, hands) until the
+    /// screen cuts to black.
     pub fn update_death_cam(&mut self, dt: f64) {
         let Some(ki) = self.director.killer.filter(|&i| i < self.entities.len()) else { return };
         // (its kind's own animation: every killer is a creature of the redesign)

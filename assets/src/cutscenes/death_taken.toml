@@ -1,0 +1,67 @@
+# Taken (docs/CUTSCENES.md, C7): a creature's killing touch. It is in your
+# face (posed there by on_death); your eyes go to its face at once, you
+# start back, and fall: the floor comes up and the view rolls, still on it,
+# standing over you; black, and the card. 1.4 s, as death always took; on
+# a repeat in a run it starts at the fall. The killer is a live point (its
+# head) followed as it moves.
+id = "death_taken"
+about = "A creature's killing touch: its face, the fall, black"
+world = "live"
+then = "card"
+skip = "never"
+breaks_off = false
+length = 1.4
+blend_in = 0.0
+blend_out = 0.0
+repeat_from = 0.45
+stages = ["death:hound", "death:smiler", "death:reader"]
+
+[bars]
+in = 0.45
+out = 1.4
+
+# the camera as it was
+[[camera]]
+t = 0.0
+anchor = "start"
+
+# your eyes on its face, at once
+[[camera]]
+t = 0.12
+anchor = "eyes"
+look_at = "killer"
+ease = "out"
+jolt = true
+
+# you start back
+[[camera]]
+t = 0.45
+anchor = "eyes"
+pos = [0.0, -0.06, 0.16]
+look_at = "killer"
+jolt = true
+
+# down: the floor comes up, the view rolls, still on it
+[[camera]]
+t = 1.0
+anchor = "eyes"
+pos = [0.12, -1.2, 0.45]
+look_at = "killer"
+roll = 62
+ease = "in"
+jolt = true
+
+[[camera]]
+t = 1.4
+anchor = "eyes"
+pos = [0.13, -1.24, 0.47]
+look_at = "killer"
+roll = 66
+ease = "out"
+jolt = true
+
+# black as you land (the fall seen first)
+[[fade]]
+t = 0.75
+to = 1.0
+over = 0.45

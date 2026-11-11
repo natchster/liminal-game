@@ -149,6 +149,12 @@
     "luminance": 0.4441,
     "shadow": 0.0037
   },
+  "death_fall": {
+    "colourfulness": 14.33,
+    "contrast": 0.1141,
+    "luminance": 0.1838,
+    "shadow": 0.2386
+  },
   "glass_0m": {
     "colourfulness": 15.94,
     "contrast": 0.0961,

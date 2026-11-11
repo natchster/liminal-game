@@ -393,6 +393,9 @@ impl Cutscene {
         if self.skip == Skip::Never && len > 3.0 {
             p.push(format!("skip = \"never\" holds your hands {len} s: only for 3 s at most (a death)"));
         }
+        if self.breaks_off && self.then == Then::Card {
+            p.push("breaks_off on a cutscene that ends on the card (a death): nothing breaks off a death".into());
+        }
         if self.breaks_off && self.world == World::Held {
             p.push("breaks_off is for a live world (in a held one nothing comes)".into());
         }

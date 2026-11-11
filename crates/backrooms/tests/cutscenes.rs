@@ -330,8 +330,9 @@ fn a_death_ends_it_where_it_is() {
     }
     g.on_death("sanity");
     assert_eq!(g.state, "dead");
-    assert!(!g.hands_taken());
-    assert!(g.cut_log.iter().any(|l| l.contains("(a death)")));
+    assert!(g.cut_log.iter().any(|l| l.contains("end test (a death)")), "{:?}", g.cut_log);
+    // and the death plays its own (C7)
+    assert!(g.cut_log.iter().any(|l| l == "play death_mind"), "{:?}", g.cut_log);
 }
 
 /// The HUD's layers this frame, by name
@@ -601,13 +602,15 @@ fn nothing_told_while_your_hands_are_taken_counts() {
 fn a_death_plays_to_its_card_and_holds_the_camera() {
     let mut g = start(FLOOR.0, FLOOR.1);
     g.god_mode = false;
-    g.on_death("sanity");
+    // (in place of the death's own: a test's card cutscene, played by on_death)
     let c = cut(
-        json!({ "then": "card", "skip": "never", "breaks_off": false, "length": 1.2, "blend_out": 0.0, "bars": { "in": 0.3, "out": 1.2 },
+        json!({ "id": "death_mind", "then": "card", "skip": "never", "breaks_off": false, "length": 1.2, "blend_out": 0.0, "bars": { "in": 0.3, "out": 1.2 },
         "camera": [key(0.0, "start", [0.0; 3], None), key(1.0, "eyes", [0.0, -1.0, 0.3], None)],
         "fade": [ { "t": 0.6, "to": 1.0, "over": 0.5, "colour": "#000" } ], "event": [] }),
     );
-    assert!(g.play_cutscene_data(c, Anchors::default()));
+    g.cut_override = Some(c);
+    g.on_death("sanity");
+    assert!(g.hands_taken(), "{:?}", g.cut_log);
     while g.hands_taken() {
         step(&mut g, DT);
     }
@@ -761,4 +764,95 @@ fn the_shaft_is_looked_into_once_and_leaves_nothing_behind() {
     g.stage_hunt();
     g.try_interact();
     assert!(!g.hands_taken() && !g.broken_elevator.as_ref().unwrap().peered, "{:?}", g.cut_log);
+}
+
+// ------------------------------------------------------------ deaths
+// Deaths (C7): each cause its own, the card at 1.4 s as always, shorter on
+// a repeat in a run, and the random draws after a death as they were.
+
+/// A death on `stage` (`death:KIND`, `death:sanity`, `death:fog`); → the
+/// game, and how many seconds until the card was up
+fn die(g: &mut Game, stage: &str) -> f64 {
+    let what = stage.split(':').nth(1).unwrap();
+    let cause = match what {
+        "fog" => "assembly",
+        "sanity" => "sanity",
+        kind => {
+            g.director.killer = g.entities.iter().position(|e| e.kind == kind);
+            "entity"
+        }
+    };
+    g.on_death(cause);
+    let mut t = 0.0;
+    while g.live_menu().is_none() {
+        step(g, DT);
+        t += DT;
+        assert!(t < 3.0, "{stage}: no card");
+    }
+    t
+}
+
+#[test]
+fn each_death_plays_its_own_and_the_card_comes_as_always() {
+    for (stage, id) in [("death:hound", "death_taken"), ("death:sanity", "death_mind"), ("death:fog", "death_fog")] {
+        let mut g = common::new_game();
+        g.cutscene_stage(stage).unwrap();
+        let t = die(&mut g, stage);
+        assert!(g.cut_log.iter().any(|l| l == &format!("play {id}")), "{stage}: {:?}", g.cut_log);
+        assert!((t - 1.4).abs() <= DT + 1e-9, "{stage}: the card at {t:.3} s");
+        // held behind the card, its black kept
+        let held = g.camera_pose();
+        step(&mut g, DT);
+        assert_eq!(g.camera_pose(), held, "{stage}");
+        assert_eq!(g.cut_veil.opacity, 1.0, "{stage}");
+        // and a key wakes you, the camera play's again
+        g.key_down("KeyR", false);
+        assert_eq!(g.state, "playing", "{stage}");
+        assert!(g.cut_hold.is_none() && g.cut_veil.opacity == 0.0, "{stage}");
+    }
+}
+
+#[test]
+fn a_second_death_of_a_kind_is_shorter() {
+    let mut g = common::new_game();
+    g.cutscene_stage("death:hound").unwrap();
+    let first = die(&mut g, "death:hound");
+    g.key_down("KeyR", false);
+    g.key_up("KeyR");
+    for _ in 0..60 {
+        step(&mut g, DT);
+    }
+    g.showcase_entity("hound", 1.0);
+    let second = die(&mut g, "death:hound");
+    assert!(second < first - 0.3, "the second death {second:.2} s, the first {first:.2} s");
+    assert!(g.cut_log.iter().any(|l| l.contains("from 0.45 (a repeat)")), "{:?}", g.cut_log);
+}
+
+#[test]
+fn a_death_draws_what_a_death_always_drew() {
+    // the same death, through its cutscene and without one (a cutscene that
+    // cannot play: the clock's fade and card, as before): the same draws
+    let run = |play: bool| {
+        let mut g = common::new_game();
+        g.cutscene_stage("death:hound").unwrap();
+        if !play {
+            // (one that names a thing it is not given is refused)
+            let mut c = game::cutscene::get("death_taken").unwrap().clone();
+            c.camera[1].anchor = game::cutscene::Anchor::Thing;
+            g.cut_override = Some(c);
+        }
+        let before = game::base::rng::native_draws();
+        g.director.killer = g.entities.iter().position(|e| e.kind == "hound");
+        g.on_death("entity");
+        let mut draws = vec![];
+        for _ in 0..120 {
+            step(&mut g, DT);
+            draws.push(game::base::rng::native_draws() - before);
+        }
+        (draws, g.cut_log.clone())
+    };
+    let (with, log) = run(true);
+    let (without, log0) = run(false);
+    assert!(log.iter().any(|l| l == "play death_taken") && log0.iter().any(|l| l.starts_with("refused")), "{log:?} {log0:?}");
+    assert_eq!(with, without, "the draws after a death moved");
 }

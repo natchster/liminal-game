@@ -651,6 +651,8 @@ pub struct Game {
     pub cut_hold: Option<crate::cutscene::play::Pose>,
     /// what the cutscenes did (the last 64 lines: tests, previews)
     pub cut_log: Vec<String>,
+    /// a death's shake this frame (yaw, pitch, roll): its camera's own draws (`death_world`)
+    pub cut_shake: (f64, f64, f64),
     /// a cutscene to play in place of the library's of its id, once (tests, previews)
     pub cut_override: Option<crate::cutscene::Cutscene>,
     /// the cutscenes played so far (each its number: a cue that ends one is seen)
@@ -1148,6 +1150,7 @@ impl Game {
             cut_veil: Default::default(),
             cut_hold: None,
             cut_log: vec![],
+            cut_shake: (0.0, 0.0, 0.0),
             cut_override: None,
             cut_gen: 0,
             cut_end: None,
