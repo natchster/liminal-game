@@ -883,7 +883,7 @@ impl Game {
                 e.step_acc = 0.0;
                 self.noise_burst(0.06, 900.0, 1.2, clamp(0.35 - d * 0.018, 0.02, 0.35), "bandpass", None, 0.0, 0.0);
             }
-            if self.entities[ei].state == "hunt" && !hidden && d < KILL_DIST {
+            if self.entities[ei].state == "hunt" && !hidden && d < KILL_DIST && !self.hands_taken() {
                 self.on_death("entity");
                 return true;
             }

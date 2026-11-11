@@ -391,6 +391,10 @@ impl Game {
     /// Creature `ei` gives a tell (a pose, a sound) that carries `reach` m:
     /// it counts toward a strike if you could perceive it.
     pub fn creature_tell(&mut self, ei: usize, reach: f64) {
+        // (a cutscene has your eyes: nothing told then counts toward a strike)
+        if self.hands_taken() {
+            return;
+        }
         let p = self.perceive(ei);
         let pos = self.entities[ei].pos();
         let heard = self.path_distance(pos.x, pos.z, p.dist) < reach;

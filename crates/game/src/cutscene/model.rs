@@ -91,8 +91,9 @@ pub struct Key {
     pub pitch: f64,
     /// degrees, clockwise as seen
     pub roll: f64,
-    /// degrees (vertical, as Settings' field of view); none: play's own
-    pub fov: Option<f64>,
+    /// degrees added to play's field of view (as the player set it): 0
+    /// keeps it, -8 narrows it
+    pub fov: f64,
     /// how the segment into this key eases
     pub ease: Ease,
     /// a cut: the camera holds the last key and jumps to this one at `t`
@@ -159,6 +160,9 @@ pub struct Cutscene {
     pub blend_out: f64,
     pub repeat_from: f64,
     pub stages: Vec<String>,
+    /// events run once when your hands come back, however they do (played,
+    /// skipped, broken off): what must follow it (a level card)
+    pub finally: Vec<String>,
     pub bars: Bars,
     pub camera: Vec<Key>,
     pub fade: Vec<Fade>,
@@ -187,13 +191,6 @@ impl<'a> Fields<'a> {
     fn num(&mut self, k: &'static str) -> Result<f64, String> {
         let at = self.at.clone();
         self.get(k)?.as_f64().filter(|x| x.is_finite()).ok_or_else(|| format!("{at}: `{k}` is not a number"))
-    }
-    fn opt_num(&mut self, k: &'static str) -> Result<Option<f64>, String> {
-        let at = self.at.clone();
-        match self.get(k)? {
-            Value::Null => Ok(None),
-            v => v.as_f64().filter(|x| x.is_finite()).map(Some).ok_or_else(|| format!("{at}: `{k}` is not a number")),
-        }
     }
     fn text(&mut self, k: &'static str) -> Result<String, String> {
         let at = self.at.clone();
@@ -265,6 +262,11 @@ impl Cutscene {
             .iter()
             .map(|s| s.as_str().map(String::from).ok_or_else(|| format!("cutscene {id}: a stage is not text")))
             .collect::<Result<Vec<_>, _>>()?;
+        let finally = f
+            .list("finally")?
+            .iter()
+            .map(|s| s.as_str().map(String::from).ok_or_else(|| format!("cutscene {id}: a finally is not text")))
+            .collect::<Result<Vec<_>, _>>()?;
         let bars = {
             let mut b = Fields::of(f.get("bars")?, format!("cutscene {id}: bars"))?;
             let bars = Bars { in_at: b.num("in")?, out_at: b.num("out")? };
@@ -299,7 +301,7 @@ impl Cutscene {
                 yaw: kf.num("yaw")?,
                 pitch: kf.num("pitch")?,
                 roll: kf.num("roll")?,
-                fov: kf.opt_num("fov")?,
+                fov: kf.num("fov")?,
                 ease,
                 cut: kf.flag("cut")?,
                 sway: kf.num("sway")?,
@@ -350,6 +352,7 @@ impl Cutscene {
             blend_out,
             repeat_from,
             stages,
+            finally,
             bars,
             camera,
             fade,
@@ -383,6 +386,9 @@ impl Cutscene {
         if !(0.0..len).contains(&self.repeat_from) {
             p.push(format!("repeat_from {} is not within its length", self.repeat_from));
         }
+        if self.skip == Skip::Never && len > 3.0 {
+            p.push(format!("skip = \"never\" holds your hands {len} s: only for 3 s at most (a death)"));
+        }
         if self.breaks_off && self.world == World::Held {
             p.push("breaks_off is for a live world (in a held one nothing comes)".into());
         }
@@ -401,8 +407,8 @@ impl Cutscene {
                 p.push(format!("camera key {} at {}: keys go forward in time within the length", i + 1, k.t));
             }
             last = k.t;
-            if k.fov.is_some_and(|f| !(20.0..=110.0).contains(&f)) {
-                p.push(format!("camera key {}: fov {:?} (20–110°)", i + 1, k.fov));
+            if !(-30.0..=15.0).contains(&k.fov) {
+                p.push(format!("camera key {}: fov {} (play's moved by -30° to +15°)", i + 1, k.fov));
             }
             if !(0.0..=3.0).contains(&k.sway) {
                 p.push(format!("camera key {}: sway {} (0–3)", i + 1, k.sway));
@@ -422,7 +428,7 @@ impl Cutscene {
                         && k.yaw == 0.0
                         && k.pitch == 0.0
                         && k.roll == 0.0
-                        && k.fov.is_none()
+                        && k.fov == 0.0
                         && k.sway == 0.0
                         && !k.cut => {}
                 _ => p.push(

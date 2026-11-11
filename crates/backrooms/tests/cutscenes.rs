@@ -45,7 +45,7 @@ fn step(g: &mut Game, dt: f64) {
 fn cut(over: Value) -> Cutscene {
     let mut v = json!({
         "id": "test", "about": "a test", "world": "live", "then": "back", "skip": "hold", "breaks_off": true,
-        "length": 3.0, "blend_in": 0.0, "blend_out": 1.0, "repeat_from": 0.0, "stages": ["test"],
+        "length": 3.0, "blend_in": 0.0, "blend_out": 1.0, "repeat_from": 0.0, "stages": ["test"], "finally": [],
         "bars": { "in": 0.0, "out": 2.5 },
         "camera": [
             key(0.0, "start", [0.0, 0.0, 0.0], None),
@@ -64,7 +64,7 @@ fn cut(over: Value) -> Cutscene {
 
 fn key(t: f64, anchor: &str, pos: [f64; 3], look: Option<[f64; 3]>) -> Value {
     json!({ "t": t, "anchor": anchor, "pos": pos, "look": look, "look_at": null, "yaw": 0.0, "pitch": 0.0, "roll": 0.0,
-            "fov": null, "ease": "in_out", "cut": false, "sway": 0.0, "jolt": false })
+            "fov": 0.0, "ease": "in_out", "cut": false, "sway": 0.0, "jolt": false })
 }
 
 /// Two metres ahead of you, facing you
@@ -107,7 +107,7 @@ fn it_begins_where_you_look_and_ends_on_play_exactly() {
     // camera as it was, and must ease from its own)
     let mut k1 = key(1.0, "thing", [0.0, 1.4, 0.9], Some([0.0, 1.0, 0.0]));
     k1["roll"] = json!(8.0);
-    k1["fov"] = json!(58.0);
+    k1["fov"] = json!(-6.0);
     let c = cut(json!({ "camera": [key(0.0, "start", [0.0; 3], None), k1, key(2.0, "eyes", [0.3, 0.0, 0.5], None)] }));
     let with = run(Some(c), at, frames);
     let without = run(None, at, frames);
@@ -291,8 +291,10 @@ fn something_hunting_you_breaks_it_off() {
     }
     assert!(frames as f64 * DT < 0.4, "back in {frames} frames");
     assert!(g.cut_log.iter().any(|l| l.starts_with("broken off")));
-    // nothing after the break ran
-    assert_eq!(marks(&g), 0);
+    // what must hold of it held (the two marks that hold on a skip), and
+    // nothing else after the break ran
+    assert_eq!(marks(&g), 2, "{:?}", g.cut_log);
+    assert!(!g.cut_log.iter().any(|l| l == "event mark at 2.50"));
 }
 
 #[test]
@@ -383,13 +385,13 @@ fn the_bars_come_in_the_hud_goes_and_a_key_shows_the_way_out() {
 // (known answers: broken cutscenes and tampered runs, each named).
 
 use game::cutscene::Skip;
-use game::debug::cutscene::{contract, contract_rates, contract_skip, Trace};
+use game::debug::cutscene::{contract, contract_rates, contract_skip, RunOpts, Trace};
 
 /// A run of `c` on a fresh `stage`
 fn trace(c: &Cutscene, stage: &str, dt: f64, skip_at: Option<f64>, pause_at: Option<f64>) -> Trace {
     let mut g = common::new_game();
     let s = g.cutscene_stage(stage).unwrap_or_else(|e| panic!("{e}"));
-    g.run_cutscene(c, &s, dt, skip_at, pause_at, &mut |_, _| {})
+    g.run_cutscene(c, &s, &RunOpts { dt, skip_at, pause_at, danger_at: None }, &mut |_, _| {})
 }
 
 /// Everything the contract asks of `c` on `stage`
@@ -405,6 +407,18 @@ fn keeps(c: &Cutscene, stage: &str) -> Vec<String> {
             let skipped = trace(c, stage, DT, Some(at), None);
             p.extend(contract(c, &skipped));
             p.extend(contract_skip(&played, &skipped));
+        }
+    }
+    // something comes for you part-way: a live one breaks off, and what
+    // must hold of it holds
+    if c.breaks_off {
+        let mut g = common::new_game();
+        let s = g.cutscene_stage(stage).unwrap_or_else(|e| panic!("{e}"));
+        let at = c.repeat_from + (c.length - c.repeat_from) * 0.4;
+        let broken = g.run_cutscene(c, &s, &RunOpts { danger_at: Some(at), ..Default::default() }, &mut |_, _| {});
+        p.extend(contract(c, &broken));
+        if !broken.log.iter().any(|l| l.starts_with("broken off")) {
+            p.push(format!("{} on {stage}: something hunting you did not break it off", c.id));
         }
     }
     let paused = trace(c, stage, DT, None, Some(c.length * 0.5));
@@ -440,7 +454,7 @@ fn the_contract_catches_what_it_is_for() {
     let p = keeps(&good, "ahead");
     assert!(p.is_empty(), "{p:#?}");
     // broken cutscenes
-    let turned = |yaw: f64, roll: f64, fov: Option<f64>| {
+    let turned = |yaw: f64, roll: f64, fov: f64| {
         let mut k = key(1.0, "eyes", [0.0; 3], None);
         k["yaw"] = json!(yaw);
         k["roll"] = json!(roll);
@@ -448,9 +462,9 @@ fn the_contract_catches_what_it_is_for() {
         cut(json!({ "camera": [key(0.0, "start", [0.0; 3], None), k, key(2.0, "eyes", [0.0; 3], None)] }))
     };
     for (c, says) in [
-        (turned(170.0, 0.0, None), "turns at"),
-        (turned(0.0, 20.0, None), "rolls"),
-        (turned(0.0, 0.0, Some(30.0)), "field of view"),
+        (turned(170.0, 0.0, 0.0), "turns at"),
+        (turned(0.0, 20.0, 0.0), "rolls"),
+        (turned(0.0, 0.0, -25.0), "field of view"),
         (
             cut(
                 json!({ "camera": [key(0.0, "start", [0.0; 3], None), key(0.5, "eyes", [0.0, 0.0, -4.0], None), key(2.0, "eyes", [0.0; 3], None)] }),
@@ -462,7 +476,7 @@ fn the_contract_catches_what_it_is_for() {
         assert!(p.iter().any(|x| x.contains(says)), "{says}: {p:#?}");
     }
     // a jolt declared lets a fast turn through
-    let mut jolted = turned(170.0, 0.0, None);
+    let mut jolted = turned(170.0, 0.0, 0.0);
     jolted.camera[1].jolt = true;
     jolted.camera[2].jolt = true;
     let p = contract(&jolted, &trace(&jolted, "ahead", DT, None, None));
@@ -492,4 +506,116 @@ fn the_contract_catches_what_it_is_for() {
     assert!(contract_skip(&tr, &tr).iter().any(|x| x.contains("did not skip")));
     let drifted = tamper(&|t| t.rows[20].shown.yaw += 0.01);
     assert!(contract_rates(&[tr.clone(), drifted], 1e-6).iter().any(|x| x.contains("the camera at")));
+}
+
+// ------------------------------------------------------------ review A
+// What the code and design reviews after C4 found, each held here.
+
+#[test]
+fn a_focus_lost_mid_hold_does_not_skip() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    let a = ahead(&g);
+    assert!(g.play_cutscene_data(cut(json!({})), a));
+    g.key_down("KeyE", false);
+    for _ in 0..10 {
+        step(&mut g, DT);
+    }
+    // the window loses focus: the keys are forgotten with no key-up
+    g.blur();
+    g.pointer_locked = true;
+    for _ in 0..60 {
+        step(&mut g, DT);
+    }
+    assert!(!g.cut_log.iter().any(|l| l.starts_with("skipped")), "{:?}", g.cut_log);
+}
+
+#[test]
+fn an_early_end_in_a_fade_leaves_the_view_clear() {
+    // a near skip, and a break-off, while its veil is half down
+    let fading = || {
+        cut(json!({
+            "camera": [key(0.0, "start", [0.0; 3], None), key(2.0, "eyes", [0.2, -0.1, 0.2], None)],
+            "fade": [ { "t": 0.2, "to": 0.8, "over": 1.0, "colour": "#000" }, { "t": 2.2, "to": 0.0, "over": 0.3, "colour": "#000" } ],
+        }))
+    };
+    for danger in [false, true] {
+        let mut g = start(FLOOR.0, FLOOR.1);
+        let a = ahead(&g);
+        assert!(g.play_cutscene_data(fading(), a));
+        if danger {
+            for _ in 0..40 {
+                step(&mut g, DT);
+            }
+            g.stage_hunt();
+        } else {
+            g.key_down("KeyE", false);
+        }
+        while g.hands_taken() {
+            step(&mut g, DT);
+        }
+        g.key_up("KeyE");
+        for _ in 0..30 {
+            step(&mut g, DT);
+        }
+        assert_eq!(g.cut_veil.opacity, 0.0, "danger {danger}: {:?}", g.cut_log);
+    }
+}
+
+#[test]
+fn danger_refuses_one_that_gives_your_hands_back() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    g.stage_hunt();
+    let a = ahead(&g);
+    assert!(!g.play_cutscene_data(cut(json!({})), a));
+    assert!(g.cut_log.iter().any(|l| l.ends_with("danger")), "{:?}", g.cut_log);
+}
+
+#[test]
+fn a_blend_in_starts_from_the_camera_as_it_was() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    // the camera somewhere play does not draw it (a title, a death)
+    let mut away = g.camera_pose();
+    away.pos[1] += 1.0;
+    away.yaw += 0.8;
+    away.roll = 0.05;
+    g.set_camera_pose(&away);
+    let a = ahead(&g);
+    assert!(g.play_cutscene_data(cut(json!({ "blend_in": 0.6 })), a));
+    step(&mut g, DT);
+    let (d, turn) = Pose::apart(&away, &g.camera_pose());
+    assert!(d < 0.02 && turn < 0.02, "the first frame left the camera as it was by {d:.3} m, {turn:.3} rad");
+}
+
+#[test]
+fn nothing_told_while_your_hands_are_taken_counts() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    let ki = (0..g.entities.len()).find(|&i| g.creature(i).is_some()).unwrap();
+    let a = ahead(&g);
+    assert!(g.play_cutscene_data(cut(json!({ "breaks_off": false })), a));
+    let before = g.creature(ki).unwrap().tells.len();
+    g.creature_tell(ki, 1e6);
+    assert_eq!(g.creature(ki).unwrap().tells.len(), before);
+}
+
+#[test]
+fn a_death_plays_to_its_card_and_holds_the_camera() {
+    let mut g = start(FLOOR.0, FLOOR.1);
+    g.god_mode = false;
+    g.on_death("sanity");
+    let c = cut(
+        json!({ "then": "card", "skip": "never", "breaks_off": false, "length": 1.2, "blend_out": 0.0, "bars": { "in": 0.3, "out": 1.2 },
+        "camera": [key(0.0, "start", [0.0; 3], None), key(1.0, "eyes", [0.0, -1.0, 0.3], None)],
+        "fade": [ { "t": 0.6, "to": 1.0, "over": 0.5, "colour": "#000" } ], "event": [] }),
+    );
+    assert!(g.play_cutscene_data(c, Anchors::default()));
+    while g.hands_taken() {
+        step(&mut g, DT);
+    }
+    let held = g.camera_pose();
+    assert!(g.live_menu().is_some(), "the card is up at its end");
+    for _ in 0..30 {
+        step(&mut g, DT);
+    }
+    assert_eq!(g.camera_pose(), held, "the camera holds behind the card");
+    assert_eq!(g.cut_veil.opacity, 1.0, "its black stays behind the card");
 }

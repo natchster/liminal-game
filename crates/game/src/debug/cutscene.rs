@@ -22,6 +22,27 @@ pub const MAX_ROLL: f64 = 5.0;
 /// The field of view at most this far (°) from play's
 pub const MAX_FOV: f64 = 15.0;
 
+/// How near a wall the camera may come (metres) while it is a cutscene's
+pub const CAMERA_CLEARANCE: f64 = 0.06;
+
+/// How to run a cutscene under test
+#[derive(Clone, Copy, Debug)]
+pub struct RunOpts {
+    pub dt: f64,
+    /// the skip key held from this time of its clock
+    pub skip_at: Option<f64>,
+    /// a second's pause at this time
+    pub pause_at: Option<f64>,
+    /// the nearest creature set hunting you at this time
+    pub danger_at: Option<f64>,
+}
+
+impl Default for RunOpts {
+    fn default() -> Self {
+        RunOpts { dt: 1.0 / 60.0, skip_at: None, pause_at: None, danger_at: None }
+    }
+}
+
 /// Your body: where you stand, your facing and pitch, your crouch
 pub type Body = ([f64; 3], f64, f64, bool);
 
@@ -40,6 +61,8 @@ pub struct Row {
     pub body: Body,
     /// native draws the engine made this frame (its cues' sounds and events not counted)
     pub engine_draws: u64,
+    /// the camera this close to a wall (`CAMERA_CLEARANCE`) while a cutscene's
+    pub inside: bool,
 }
 
 /// A run, start to hands back (or the card up)
@@ -51,6 +74,8 @@ pub struct Trace {
     pub rows: Vec<Row>,
     /// your body when it began
     pub body_before: Option<Body>,
+    /// the camera the frame before it was started
+    pub before_cam: Option<Pose>,
     /// the camera the frame after the hands came back (play's own)
     pub after: Option<Pose>,
     pub state_after: String,
@@ -121,40 +146,37 @@ impl Game {
         let p = &self.player;
         let r = |x: f64| (x * 1000.0).round() / 1000.0;
         let _ = s;
-        format!("{} {} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch, r(p.sanity))
+        // (what is the same whenever it is read: not the nerve, which moves with time)
+        format!("{} {} {} {} {}", self.state, r(p.pos.x), r(p.pos.z), r(p.yaw), p.crouch)
     }
 
-    /// Record `c` on its stage at a step of `dt`, holding the skip key from
-    /// `skip_at` seconds and pausing for a second at `pause_at` if given;
-    /// `on_frame` sees each frame after it is played (a preview renders it)
-    pub fn run_cutscene(
-        &mut self,
-        c: &Cutscene,
-        s: &Staged,
-        dt: f64,
-        skip_at: Option<f64>,
-        pause_at: Option<f64>,
-        on_frame: &mut dyn FnMut(&mut Game, &Row),
-    ) -> Trace {
+    /// Record `c` on its stage as `o` asks (its step; the skip key held, a
+    /// second's pause, something set hunting you, each from a time of its
+    /// clock); `on_frame` sees each frame after it is played (a preview
+    /// renders it)
+    pub fn run_cutscene(&mut self, c: &Cutscene, s: &Staged, o: &RunOpts, on_frame: &mut dyn FnMut(&mut Game, &Row)) -> Trace {
+        let dt = o.dt;
         let log_from = self.cut_log.len();
         let mut tr = Trace { id: c.id.clone(), stage: s.stage.clone(), dt, ..Default::default() };
-        let p = &self.player;
-        tr.body_before = Some(([p.pos.x, p.pos.y, p.pos.z], p.yaw, p.pitch, p.crouch));
+        tr.before_cam = Some(self.camera_pose());
         if !self.cutscene_trigger(s, c) {
             tr.log = self.cut_log[log_from.min(self.cut_log.len())..].to_vec();
             return tr;
         }
-        let (mut skipping, mut paused) = (false, false);
+        // (as it starts: a trigger may begin a run, which places you)
+        let p = &self.player;
+        tr.body_before = Some(([p.pos.x, p.pos.y, p.pos.z], p.yaw, p.pitch, p.crouch));
+        let (mut skipping, mut paused, mut endangered) = (false, false, false);
         let limit = ((c.length + 5.0) / dt) as usize;
         for _ in 0..limit {
             let t = self.cut.as_ref().map(|p| p.t).unwrap_or(0.0);
-            if let (Some(at), false) = (skip_at, skipping) {
+            if let (Some(at), false) = (o.skip_at, skipping) {
                 if t >= at {
                     self.key_down("KeyE", false);
                     skipping = true;
                 }
             }
-            if let (Some(at), false) = (pause_at, paused) {
+            if let (Some(at), false) = (o.pause_at, paused) {
                 if t >= at {
                     self.key_down("Escape", false);
                     self.key_up("Escape");
@@ -166,16 +188,23 @@ impl Game {
                     paused = true;
                 }
             }
+            if let (Some(at), false) = (o.danger_at, endangered) {
+                if t >= at {
+                    self.stage_hunt();
+                    endangered = true;
+                }
+            }
             self.stage_frame(dt);
             let p = &self.player;
             let body = ([p.pos.x, p.pos.y, p.pos.z], p.yaw, p.pitch, p.crouch);
             let shown = self.camera_pose();
-            // (the frame it ended in: its clock went on by a step)
-            let last_t = tr.rows.last().map(|r| r.t).unwrap_or(0.0);
-            let (t, play, w, bars) = match &self.cut {
-                Some(q) => (q.t, q.gameplay.unwrap_or(shown), q.w, q.bars()),
-                None => (last_t + dt, shown, 0.0, 0.0),
+            // (the frame it ended in: what play drew, and the bars, kept)
+            let (t, play, w, bars) = match (&self.cut, self.cut_end) {
+                (Some(q), _) => (q.t, q.gameplay.unwrap_or(shown), q.w, q.bars()),
+                (None, Some(e)) => (e.t, e.play, 0.0, e.bars),
+                (None, None) => (tr.rows.last().map(|r| r.t).unwrap_or(0.0) + dt, shown, 0.0, 0.0),
             };
+            let inside = self.hands_taken() && self.circle_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
             tr.rows.push(Row {
                 t,
                 shown,
@@ -186,6 +215,7 @@ impl Game {
                 hands: self.hands_taken(),
                 body,
                 engine_draws: self.cut_engine_draws,
+                inside,
             });
             let row = tr.rows.last().unwrap().clone();
             on_frame(self, &row);
@@ -211,7 +241,25 @@ impl Game {
         tr.log = self.cut_log[log_from.min(self.cut_log.len())..].to_vec();
         tr
     }
+
+    /// The nearest creature set hunting you (held where it is, it keeps its
+    /// mode): danger, for a cutscene that must break off at it
+    pub fn stage_hunt(&mut self) {
+        let pp = self.player.pos;
+        let d = |g: &Game, i: usize| {
+            let q = g.entities[i].pos();
+            (q.x - pp.x).hypot(q.z - pp.z)
+        };
+        let near = (0..self.entities.len()).filter(|&i| self.creature(i).is_some()).min_by(|&a, &b| d(self, a).total_cmp(&d(self, b)));
+        if let Some(i) = near {
+            self.entities[i].state = "hunt".into();
+        }
+    }
 }
+
+/// A frame's move at a start or an end that reads as a jump (metres, radians)
+pub const JUMP: f64 = 0.05;
+pub const JUMP_TURN: f64 = 0.05;
 
 /// Whether time `t` of `c` lies in a segment into a key marked as a jolt
 fn in_jolt(c: &Cutscene, t: f64) -> bool {
@@ -261,6 +309,32 @@ pub fn contract(c: &Cutscene, tr: &Trace) -> Vec<String> {
                 p.push(format!("{} on {}: it ends on the card, and no card came", tr.id, tr.stage));
             }
         }
+    }
+    for name in &c.finally {
+        let n = tr.log.iter().filter(|l| l.starts_with(&format!("event {name} at "))).count();
+        let in_track = c.event.iter().filter(|e| &e.name == name).count();
+        if n < 1 || n > 1 + in_track {
+            p.push(format!("{} on {}: its finally {name} ran {n} times", tr.id, tr.stage));
+        }
+    }
+    // 1: from where you were looking, and on into play's camera after
+    if let (Some(b), Some(f)) = (tr.before_cam, tr.rows.first()) {
+        let (d, turn) = Pose::apart(&b, &f.shown);
+        if d > JUMP || turn > JUMP_TURN {
+            p.push(format!("{}: its first frame jumps {d:.3} m and {:.1}° from the camera before it", at(f), turn.to_degrees()));
+        }
+    }
+    if let (Then::Back, Some(a)) = (c.then, tr.after) {
+        let (d, turn) = Pose::apart(&last.shown, &a);
+        if d > JUMP || turn > JUMP_TURN {
+            p.push(format!("{}: the frame after it ends jumps {d:.3} m and {:.1}°", at(last), turn.to_degrees()));
+        }
+    }
+    if !ended_early && (last.t - c.length).abs() > tr.dt + 1e-9 {
+        p.push(format!("{}: played through, it ended at {:.3} s, not its length {:.3}", at(last), last.t, c.length));
+    }
+    if let Some(r) = tr.rows.iter().find(|r| r.inside) {
+        p.push(format!("{}: the camera is within {CAMERA_CLEARANCE} m of a wall", at(r)));
     }
     // 5: time, not frames; the engine draws nothing
     if let Some(r) = tr.rows.iter().find(|r| r.engine_draws > 0) {

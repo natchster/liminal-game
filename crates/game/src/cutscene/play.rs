@@ -1,18 +1,22 @@
 //! The player (`docs/CUTSCENES.md`, the design): one cutscene at a time,
 //! on a clock of its own (time played: it stops with the pause), its camera
-//! a function of that time and its anchors, mixed over the gameplay camera
-//! by its blend envelope, so it begins where you were looking and its last
-//! frame is the gameplay camera exactly.
+//! a function of that time and its anchors. It blends in from the camera as
+//! it was when it began (its start pose), and out into the gameplay camera,
+//! so it begins where you were looking and its last frame is the gameplay
+//! camera exactly.
 //!
 //! Each frame, around play's own update (`session::frame`):
 //! `cutscene_pre` puts back the gameplay camera of the frame before (the
 //! player's update eases its roll and field of view from the camera as it
 //! was, and must never ease from a cutscene's pose), play draws its camera,
 //! then `cutscene_post` reads that camera, advances the clock, runs the
-//! cues that came due (each once, even across a long frame) and writes the
-//! mix. While one plays your hands are taken (`hands_taken`): keys and the
-//! mouse do nothing to your body, nothing may strike you, your asides wait.
-//! Nothing here draws from a random stream.
+//! cues that came due (each once, even across a long frame, with the
+//! cutscene in place: one that ends it, or starts another, ends the step)
+//! and writes the mix. While one plays your hands are taken
+//! (`hands_taken`): keys and the mouse do nothing to your body, nothing
+//! may strike you, your asides wait. However your hands come back (played,
+//! skipped, broken off), its `finally` events run once. Nothing here draws
+//! from a random stream.
 use super::cues;
 use super::curve::{catmull, lerp, lerp_angle, look_angles, smooth, sway};
 use super::model::*;
@@ -23,10 +27,12 @@ use std::f64::consts::PI;
 pub const SKIP_HOLD: f64 = 0.6;
 /// A skip near your eyes blends back over this
 pub const SKIP_BLEND: f64 = 0.3;
-/// ... near: within this many metres and this turn (radians); further, it
-/// dips through black instead of sweeping the camera across the place
+/// ... near: within this many metres and this turn (radians), under a
+/// veil of at most `SKIP_NEAR_VEIL`; further, it dips through black
+/// instead of sweeping the camera across the place
 pub const SKIP_NEAR: f64 = 1.0;
 pub const SKIP_NEAR_TURN: f64 = 0.61;
+pub const SKIP_NEAR_VEIL: f64 = 0.5;
 /// The dip through black on a far skip: closing, then opening on your eyes
 pub const DIP_OUT: f64 = 0.2;
 pub const DIP_IN: f64 = 0.25;
@@ -39,6 +45,9 @@ pub const BARS_OUT: f64 = 0.5;
 pub const HINT_FOR: f64 = 2.5;
 /// A repeat that starts part-way blends in over at least this
 pub const REPEAT_BLEND: f64 = 0.2;
+/// Danger (`cutscene_danger`): a search this near, a nerve this low
+pub const DANGER_SEARCH: f64 = 25.0;
+pub const DANGER_NERVE: f64 = 20.0;
 
 /// A camera's pose: where it is, its Euler angles (YXZ: yaw 0 looks down
 /// -z, pitch up positive) and its vertical field of view in degrees
@@ -123,14 +132,39 @@ impl Default for Veil {
     }
 }
 
+/// How a cutscene's hands-back looked, kept for the frame it ended in
+/// (tests: the contract reads play's camera and the bars of that frame)
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Ended {
+    pub t: f64,
+    pub shown: Pose,
+    pub play: Pose,
+    pub bars: f64,
+    pub veil: f64,
+}
+
+/// A cue come due, run with the cutscene in place
+#[derive(Clone, Debug)]
+enum Due {
+    Sound(Sound),
+    Event(String, f64),
+    Say(Say),
+}
+
 /// The cutscene playing
 #[derive(Clone, Debug)]
 pub struct Playing {
     pub c: Cutscene,
+    /// which cutscene this is of the game's (a cue that ends it, or starts
+    /// another, is seen by its number changing)
+    pub gen: u64,
     /// its clock
     pub t: f64,
     /// where its clock started (its short form on a repeat)
     pub t0: f64,
+    /// the camera when it began, whole (its roll and field of view too):
+    /// it blends in from here
+    pub start_pose: Pose,
     pub start: Frame,
     pub eyes: Frame,
     pub thing: Option<Frame>,
@@ -139,7 +173,7 @@ pub struct Playing {
     pub gameplay: Option<Pose>,
     /// what was drawn
     pub shown: Option<Pose>,
-    /// the blend weight drawn (0 the gameplay camera, 1 the keys)
+    /// the weight of its camera over play's drawn (1 its own, 0 play's)
     pub w: f64,
     /// the next cue of each track to run: fade, sound, event, say
     next: [usize; 4],
@@ -147,6 +181,7 @@ pub struct Playing {
     pub out: Option<(f64, f64)>,
     /// skipped from far: the veil closes from here, then the end
     pub dip: Option<f64>,
+    /// the skip key is down (read from the keys held, each frame)
     pub skip_down: bool,
     pub skip_held: f64,
     /// the skip line shows for this much longer
@@ -164,24 +199,34 @@ impl Playing {
             _ => self.c.length,
         }
     }
-    /// The weight of the keys over the gameplay camera at its time
+    /// Its own keys over its start pose: 0 at its start (a blend in), 1 after
+    fn w_in(&self) -> f64 {
+        let blend_in = if self.t0 > 0.0 { self.c.blend_in.max(REPEAT_BLEND) } else { self.c.blend_in };
+        if blend_in > 0.0 {
+            smooth(self.t - self.t0, 0.0, blend_in)
+        } else {
+            1.0
+        }
+    }
+    /// Its camera over play's: 1, then 0 at its end (a blend out, a break-off,
+    /// a skip near your eyes); a far skip's cut, under the veil, at its end
     pub fn weight(&self) -> f64 {
         let c = &self.c;
-        let blend_in = if self.t0 > 0.0 { c.blend_in.max(REPEAT_BLEND) } else { c.blend_in };
-        let w_in = if blend_in > 0.0 { smooth(self.t - self.t0, 0.0, blend_in) } else { 1.0 };
-        let mut w_out = if c.then == Then::Back { 1.0 - smooth(self.t, c.length - c.blend_out, c.length) } else { 1.0 };
+        let mut w = if c.then == Then::Back { 1.0 - smooth(self.t, c.length - c.blend_out, c.length) } else { 1.0 };
         if let Some((s, l)) = self.out {
-            w_out = w_out.min(1.0 - smooth(self.t, s, s + l));
+            w = w.min(1.0 - smooth(self.t, s, s + l));
         }
         if self.dip.is_some() && self.t >= self.end() {
-            w_out = 0.0;
+            w = 0.0;
         }
-        w_in * w_out
+        w
     }
-    /// How far the bars are in (0 out, 1 in)
+    /// How far the bars are in (0 out, 1 in): in from its start (a repeat's
+    /// too), out at its time, or with a break-off or a skip
     pub fn bars(&self) -> f64 {
         let b = self.c.bars;
-        let at_in = smooth(self.t, b.in_at, b.in_at + BARS_IN);
+        let from = b.in_at.max(self.t0);
+        let at_in = smooth(self.t, from, from + BARS_IN);
         let mut out = smooth(self.t, b.out_at, b.out_at + BARS_OUT);
         if let Some((s, l)) = self.out {
             out = out.max(smooth(self.t, s, s + l.min(BARS_OUT)));
@@ -191,9 +236,17 @@ impl Playing {
         }
         at_in * (1.0 - out)
     }
-    /// The veil its fades make at its time (and a far skip's dip)
+    /// The veil its fades make at its time: after a break-off or a near
+    /// skip, what it was then, lifting as the camera comes back; a far
+    /// skip's dip closing over it
     pub fn veil(&self) -> (f64, String) {
-        let (mut v, colour) = self.c.veil_at(self.t);
+        let (mut v, colour) = match self.out {
+            Some((s, l)) => {
+                let (v, colour) = self.c.veil_at(self.t.min(s));
+                (v * (1.0 - smooth(self.t, s, s + l)), colour)
+            }
+            None => self.c.veil_at(self.t),
+        };
         if let Some(d) = self.dip {
             v = v.max(smooth(self.t, d, d + DIP_OUT));
         }
@@ -207,9 +260,9 @@ impl Playing {
             Anchor::Killer => g.cutscene_killer_frame(self.killer).unwrap_or(self.eyes),
         }
     }
-    /// A key in the world: its pose (the gameplay camera's field of view
-    /// where it names none) and the live point it looks at, if any
-    fn resolve(&self, g: &Game, k: &Key, fov_play: f64, aspect: f64) -> (Pose, Option<[f64; 3]>) {
+    /// A key in the world: its pose (its field of view play's, moved by the
+    /// key's own) and the live point it looks at, if any
+    fn resolve(&self, g: &Game, k: &Key, fov_play: f64) -> (Pose, Option<[f64; 3]>) {
         let f = self.frame(g, k.anchor);
         let pos = f.at(k.pos);
         let (yaw, pitch, target) = match k.look {
@@ -224,39 +277,43 @@ impl Playing {
                 (y, pt, Some(o))
             }
         };
-        let fov = k.fov.map(|h| crate::session::settings::vertical_fov(h, aspect)).unwrap_or(fov_play);
-        let pose = Pose { pos, yaw: yaw + k.yaw.to_radians(), pitch: pitch + k.pitch.to_radians(), roll: k.roll.to_radians(), fov };
+        // (the first key, the camera as it was: its roll and field of view too)
+        let (roll, fov) = if k.anchor == Anchor::Start && k.pos == [0.0; 3] && k.look == Look::Ahead && k.roll == 0.0 && k.fov == 0.0 {
+            (self.start_pose.roll, self.start_pose.fov)
+        } else {
+            (k.roll.to_radians(), fov_play + k.fov)
+        };
+        let pose = Pose { pos, yaw: yaw + k.yaw.to_radians(), pitch: pitch + k.pitch.to_radians(), roll, fov };
         (pose, target)
     }
-    /// Its own camera at its time, before the blend (`shake_k`: Settings'
-    /// camera shake, 1 or 0, on its sway)
-    pub fn keyed(&self, g: &Game, fov_play: f64, aspect: f64, shake_k: f64) -> Pose {
+    /// Its own keys at its time (`shake_k`: Settings' camera shake, 1 or 0,
+    /// on its sway)
+    pub fn keyed(&self, g: &Game, fov_play: f64, shake_k: f64) -> Pose {
         let keys = &self.c.camera;
         let t = self.t;
-        let n = keys.len();
-        let last = n - 1;
+        let last = keys.len() - 1;
         let i = keys.iter().rposition(|k| k.t <= t).unwrap_or(0);
         if t <= keys[0].t || i >= last {
             let k = if t <= keys[0].t { &keys[0] } else { &keys[last] };
-            let (mut p, _) = self.resolve(g, k, fov_play, aspect);
+            let (mut p, _) = self.resolve(g, k, fov_play);
             let (sy, sp) = sway(t, k.sway * shake_k);
             p.yaw += sy;
             p.pitch += sp;
             return p;
         }
         let (a, b) = (&keys[i], &keys[i + 1]);
-        let (pa, ta) = self.resolve(g, a, fov_play, aspect);
+        let (pa, ta) = self.resolve(g, a, fov_play);
         if b.cut {
             // held until the cut
             let (sy, sp) = sway(t, a.sway * shake_k);
             return Pose { yaw: pa.yaw + sy, pitch: pa.pitch + sp, ..pa };
         }
-        let (pb, tb) = self.resolve(g, b, fov_play, aspect);
+        let (pb, tb) = self.resolve(g, b, fov_play);
         let u = (t - a.t) / (b.t - a.t);
         let e = b.ease.at(u);
         // the neighbours (a cut ends a run of keys: nothing bends across it)
-        let p0 = if i > 0 && !a.cut { self.resolve(g, &keys[i - 1], fov_play, aspect).0.pos } else { pa.pos };
-        let p3 = if i + 2 <= last && !keys[i + 2].cut { self.resolve(g, &keys[i + 2], fov_play, aspect).0.pos } else { pb.pos };
+        let p0 = if i > 0 && !a.cut { self.resolve(g, &keys[i - 1], fov_play).0.pos } else { pa.pos };
+        let p3 = if i + 2 <= last && !keys[i + 2].cut { self.resolve(g, &keys[i + 2], fov_play).0.pos } else { pb.pos };
         let pos = catmull(p0, pa.pos, pb.pos, p3, e);
         let (mut yaw, mut pitch) = (lerp_angle(pa.yaw, pb.yaw, e), lerp(pa.pitch, pb.pitch, e));
         // both look at the same live point: follow it from where the camera is
@@ -276,6 +333,12 @@ impl Playing {
             roll: lerp(pa.roll, pb.roll, e),
             fov: lerp(pa.fov, pb.fov, e),
         }
+    }
+    /// Its camera before play's comes back: its keys blended in from its
+    /// start pose
+    pub fn own(&self, g: &Game, fov_play: f64, shake_k: f64) -> Pose {
+        let k = self.keyed(g, fov_play, shake_k);
+        Pose::mix(&self.start_pose, &k, self.w_in())
     }
 }
 
@@ -306,8 +369,7 @@ impl Game {
     }
 
     /// Play the cutscene `id` from the library; false when it cannot be
-    /// played now (unknown, one already playing, not in play, in the
-    /// Stairwell or the Loop, or an anchor it names not given)
+    /// played now (`play_cutscene_data`)
     pub fn play_cutscene(&mut self, id: &str, anchors: Anchors) -> bool {
         match super::get(id) {
             Some(c) => self.play_cutscene_data(c.clone(), anchors),
@@ -318,19 +380,24 @@ impl Game {
         }
     }
 
-    /// Play a cutscene given as data (tests make their own)
+    /// Play a cutscene given as data (tests make their own); false, and
+    /// nothing changed, when one is playing, outside play (a death's is
+    /// played while dead), in the Stairwell or the Loop, without a thing it
+    /// names, or (one that gives your hands back) in danger: the caller
+    /// then does what it would have done without one
     pub fn play_cutscene_data(&mut self, c: Cutscene, anchors: Anchors) -> bool {
+        let names_thing = c.camera.iter().any(|k| k.anchor == Anchor::Thing || k.look == Look::At(Anchor::Thing))
+            || c.sound.iter().any(|s| s.anchor == Anchor::Thing);
         let refuse = if self.cut.is_some() {
             Some("one is playing")
         } else if self.in_stairwell || self.in_loop {
             Some("the Stairwell and the Loop have their own camera")
-        } else if self.state != "playing" && self.state != "dead" {
+        } else if !(self.state == "playing" || self.state == "dead" && c.then == Then::Card) {
             Some("not in play")
-        } else if anchors.thing.is_none()
-            && (c.camera.iter().any(|k| k.anchor == Anchor::Thing || k.look == Look::At(Anchor::Thing))
-                || c.sound.iter().any(|s| s.anchor == Anchor::Thing))
-        {
+        } else if anchors.thing.is_none() && names_thing {
             Some("it names a thing and none was given")
+        } else if c.then == Then::Back && self.cutscene_danger() {
+            Some("danger")
         } else {
             None
         };
@@ -341,9 +408,8 @@ impl Game {
         let seen = self.cut_seen.entry(c.id.clone()).or_default();
         let t0 = if *seen > 0 { c.repeat_from } else { 0.0 };
         *seen += 1;
-        let cam = self.camera.clone();
-        let cp = cam.pos();
-        let start = Frame { o: [cp.x, cp.y, cp.z], yaw: cam.rot().y, pitch: cam.rot().x };
+        let start_pose = self.camera_pose();
+        let start = Frame { o: start_pose.pos, yaw: start_pose.yaw, pitch: start_pose.pitch };
         let pp = self.player.pos;
         let eyes =
             Frame { o: [pp.x, self.floor_y_at(pp.x, pp.z) + self.player.eye_h, pp.z], yaw: self.player.yaw, pitch: self.player.pitch };
@@ -354,18 +420,39 @@ impl Game {
             self.ui.journal.remove_class("on");
         }
         self.cut_note(format!("play {}{}", c.id, if t0 > 0.0 { format!(" from {t0:.2} (a repeat)") } else { String::new() }));
+        // a repeat starts part-way: what came before its start is not run,
+        // but what must hold of it does (as on a skip)
+        let before: Vec<Event> = c.event.iter().filter(|e| e.t < t0 && e.on_skip).cloned().collect();
+        let mut next = [0; 4];
+        for (i, ts) in [
+            c.fade.iter().map(|x| x.t).collect::<Vec<_>>(),
+            c.sound.iter().map(|x| x.t).collect(),
+            c.event.iter().map(|x| x.t).collect(),
+            c.say.iter().map(|x| x.t).collect(),
+        ]
+        .iter()
+        .enumerate()
+        {
+            next[i] = ts.iter().take_while(|&&t| t < t0).count();
+        }
+        self.cut_gen += 1;
+        let gen = self.cut_gen;
+        self.cut_end = None;
+        self.cut_hold = None;
         self.cut = Some(Playing {
             c,
+            gen,
             t: t0,
             t0,
+            start_pose,
             start,
             eyes,
             thing: anchors.thing,
             killer: anchors.killer,
             gameplay: None,
             shown: None,
-            w: 0.0,
-            next: [0; 4],
+            w: 1.0,
+            next,
             out: None,
             dip: None,
             skip_down: false,
@@ -373,21 +460,8 @@ impl Game {
             hint: 0.0,
             how: "played",
         });
-        // (cues at its first instant run with its first frame)
-        if let Some(p) = self.cut.as_mut() {
-            let t0 = p.t0;
-            for (i, list) in [
-                p.c.fade.iter().map(|x| x.t).collect::<Vec<_>>(),
-                p.c.sound.iter().map(|x| x.t).collect(),
-                p.c.event.iter().map(|x| x.t).collect(),
-                p.c.say.iter().map(|x| x.t).collect(),
-            ]
-            .iter()
-            .enumerate()
-            {
-                // a repeat starts part-way: what came before its start is not run
-                p.next[i] = list.iter().take_while(|&&t| t < t0).count();
-            }
+        for e in before {
+            self.cut_event(&e.name, e.t);
         }
         true
     }
@@ -451,8 +525,13 @@ impl Game {
         self.cut_engine_draws = crate::base::rng::native_draws() - before - self.cut_cue_draws;
     }
 
+    /// The cutscene playing is still the one numbered `gen`
+    fn cut_is(&self, gen: u64) -> bool {
+        self.cut.as_ref().is_some_and(|p| p.gen == gen)
+    }
+
     fn cutscene_step(&mut self, dt: f64) {
-        // a far skip's veil opening on your eyes
+        // a veil left to open (a far skip on your eyes, a break-off in a fade)
         if self.cut.is_none() {
             if self.cut_veil.opening > 0.0 {
                 self.cut_veil.opacity = (self.cut_veil.opacity - self.cut_veil.opening * dt).max(0.0);
@@ -462,83 +541,143 @@ impl Game {
             }
             return;
         }
-        let mut p = self.cut.take().unwrap();
         let gameplay = self.camera_pose();
-        p.gameplay = Some(gameplay);
-        p.t += dt;
-        p.hint = (p.hint - dt).max(0.0);
-        if p.skip_down && p.c.skip == Skip::Hold && p.out.is_none() && p.dip.is_none() {
-            p.skip_held += dt;
-            if p.skip_held >= SKIP_HOLD {
-                self.cut_skip(&mut p);
+        let danger = self.state == "playing" && self.cutscene_danger();
+        let skip_key = self.keys.iter().any(|k| self.is_skip_key(k));
+        // the clock, the skip key held, danger
+        let (gen, skip_now, broke) = {
+            let p = self.cut.as_mut().unwrap();
+            p.gameplay = Some(gameplay);
+            p.t += dt;
+            p.hint = (p.hint - dt).max(0.0);
+            // (the key as held now: a focus lost or Command let go forgets it)
+            p.skip_down &= skip_key;
+            let free = p.out.is_none() && p.dip.is_none();
+            let mut skip_now = false;
+            if p.skip_down && p.c.skip == Skip::Hold && free {
+                p.skip_held += dt;
+                skip_now = p.skip_held >= SKIP_HOLD;
+            } else {
+                p.skip_held = 0.0;
+            }
+            let broke = !skip_now && free && p.c.breaks_off && p.c.world == World::Live && danger;
+            if broke {
+                p.out = Some((p.t, BREAK_BLEND));
+                p.how = "broken off";
+            }
+            (p.gen, skip_now, broke)
+        };
+        if broke {
+            let t = self.cut.as_ref().unwrap().t;
+            self.cut_note(format!("broken off at {t:.2}"));
+            // what must hold holds, as on a skip
+            if !self.cut_run_held(gen) {
+                return;
             }
         }
-        // something comes: back to your eyes, now
-        if p.c.breaks_off && p.c.world == World::Live && p.out.is_none() && p.dip.is_none() && self.cutscene_danger() {
-            p.out = Some((p.t, BREAK_BLEND));
-            p.how = "broken off";
-            self.cut_note(format!("broken off at {:.2}", p.t));
-        }
-        self.cut_cues(&mut p);
-        let aspect = self.camera.camera().aspect;
-        let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
-        let end = p.end();
-        let done = p.t >= end - 1e-9;
-        p.w = if done && p.c.then == Then::Back { 0.0 } else { p.weight() };
-        let shown = if p.w <= 0.0 { gameplay } else { Pose::mix(&gameplay, &p.keyed(self, gameplay.fov, aspect, shake_k), p.w) };
-        self.set_camera_pose(&shown);
-        p.shown = Some(shown);
-        let (v, colour) = p.veil();
-        self.cut_veil = Veil { opacity: v, colour, opening: 0.0 };
-        if done {
-            if p.dip.is_some() {
-                // opened on your eyes after the hands are back
-                self.cut_veil.opacity = 1.0;
-                self.cut_veil.opening = 1.0 / DIP_IN;
-            }
-            self.cut_note(format!("end {} ({}) at {:.2}", p.c.id, p.how, p.t));
-            if p.c.then == Then::Card {
-                self.cut_hold = Some(shown);
-            }
+        if skip_now && !self.cut_skip(gen) {
             return;
         }
-        self.cut = Some(p);
+        // the cues come due, run with the cutscene in place
+        for cue in self.cut_due() {
+            match cue {
+                Due::Sound(s) => {
+                    if let Some(play) = cues::sound(&s.name) {
+                        let p = self.cut.as_ref().unwrap();
+                        let at = p.frame(self, s.anchor).at(s.pos);
+                        let d = crate::base::rng::native_draws();
+                        self.play_from(at[0], at[1], at[2], 2.0, s.gain, 0.6, play);
+                        self.cut_cue_draws += crate::base::rng::native_draws() - d;
+                        self.cut_note(format!("sound {} at {:.2}", s.name, s.t));
+                    }
+                }
+                Due::Event(name, t) => self.cut_event(&name, t),
+                Due::Say(s) => {
+                    if let Some((u, subject)) = cues::say_subject(&s.use_, &s.subject) {
+                        let d = crate::base::rng::native_draws();
+                        self.aside(u, subject);
+                        self.cut_cue_draws += crate::base::rng::native_draws() - d;
+                        self.cut_note(format!("say {} {} at {:.2}", s.use_, s.subject, s.t));
+                    }
+                }
+            }
+            // a cue that ended it (a death, a new floor) or started another
+            if !self.cut_is(gen) {
+                return;
+            }
+        }
+        // the camera
+        let shake_k = if self.settings.shake { 1.0 } else { 0.0 };
+        let (shown, w, done, card, dip, bars, veil, colour, t) = {
+            let p = self.cut.as_ref().unwrap();
+            let done = p.t >= p.end() - 1e-9;
+            let card = p.c.then == Then::Card;
+            // (a card's end holds its own camera; a far skip's cut is under the veil)
+            let w = if done && !card { 0.0 } else { p.weight() };
+            let shown = if w <= 0.0 { gameplay } else { Pose::mix(&gameplay, &p.own(self, gameplay.fov, shake_k), w) };
+            let (veil, colour) = p.veil();
+            (shown, w, done, card, p.dip.is_some(), p.bars(), veil, colour, p.t)
+        };
+        self.set_camera_pose(&shown);
+        self.cut_veil = Veil { opacity: veil, colour, opening: 0.0 };
+        {
+            let p = self.cut.as_mut().unwrap();
+            p.w = w;
+            p.shown = Some(shown);
+        }
+        if !done {
+            return;
+        }
+        // the end: your hands back (or the card)
+        let p = self.cut.take().unwrap();
+        self.cut_end = Some(Ended { t, shown, play: gameplay, bars, veil });
+        if dip || (!card && veil > 0.0) {
+            // opened on your eyes now the hands are back
+            self.cut_veil.opacity = if dip { 1.0 } else { veil };
+            self.cut_veil.opening = 1.0 / DIP_IN;
+        }
+        self.cut_note(format!("end {} ({}) at {:.2}", p.c.id, p.how, t));
+        if card {
+            self.cut_hold = Some(shown);
+        }
+        for name in &p.c.finally {
+            self.cut_event(name, t);
+        }
+        if card {
+            self.open_death_card();
+        }
     }
 
-    /// Every cue of `p` that came due, in order of time, each once
-    fn cut_cues(&mut self, p: &mut Playing) {
-        // (nothing after a break-off or a skip: only what came before it)
+    /// The cues of the cutscene playing that came due, in order of time,
+    /// each once (counted off as they are taken: nothing after a break-off
+    /// or a skip, and at its end everything up to its length: its clock,
+    /// summed a step at a time, may stop a hair short of a cue set there)
+    fn cut_due(&mut self) -> Vec<Due> {
+        let p = self.cut.as_mut().unwrap();
         let until = match (p.out, p.dip) {
             (Some((s, _)), _) | (_, Some(s)) => s.min(p.t),
+            _ if p.t >= p.c.length - 1e-9 => p.c.length,
             _ => p.t,
         };
         // (the veil is a function of time, `veil_at`: only counted here)
         while p.c.fade.get(p.next[0]).is_some_and(|f| f.t <= until) {
             p.next[0] += 1;
         }
-        while let Some(s) = p.c.sound.get(p.next[1]).filter(|s| s.t <= until).cloned() {
+        let mut due: Vec<(f64, Due)> = vec![];
+        while let Some(s) = p.c.sound.get(p.next[1]).filter(|s| s.t <= until) {
+            due.push((s.t, Due::Sound(s.clone())));
             p.next[1] += 1;
-            if let Some(play) = cues::sound(&s.name) {
-                let at = p.frame(self, s.anchor).at(s.pos);
-                let d = crate::base::rng::native_draws();
-                self.play_from(at[0], at[1], at[2], 2.0, s.gain, 0.6, play);
-                self.cut_cue_draws += crate::base::rng::native_draws() - d;
-                self.cut_note(format!("sound {} at {:.2}", s.name, s.t));
-            }
         }
-        while let Some(e) = p.c.event.get(p.next[2]).filter(|e| e.t <= until).cloned() {
+        while let Some(e) = p.c.event.get(p.next[2]).filter(|e| e.t <= until) {
+            due.push((e.t, Due::Event(e.name.clone(), e.t)));
             p.next[2] += 1;
-            self.cut_event(&e.name, e.t);
         }
-        while let Some(s) = p.c.say.get(p.next[3]).filter(|s| s.t <= until).cloned() {
+        while let Some(s) = p.c.say.get(p.next[3]).filter(|s| s.t <= until) {
+            due.push((s.t, Due::Say(s.clone())));
             p.next[3] += 1;
-            if let Some((u, subject)) = cues::say_subject(&s.use_, &s.subject) {
-                let d = crate::base::rng::native_draws();
-                self.aside(u, subject);
-                self.cut_cue_draws += crate::base::rng::native_draws() - d;
-                self.cut_note(format!("say {} {} at {:.2}", s.use_, s.subject, s.t));
-            }
         }
+        due.sort_by(|a, b| a.0.total_cmp(&b.0));
+        due.into_iter().map(|(_, d)| d).collect()
     }
 
     fn cut_event(&mut self, name: &str, t: f64) {
@@ -550,37 +689,83 @@ impl Game {
         }
     }
 
-    /// The skip: the end evaluated, never the world fast-forwarded. Every
-    /// event not yet run whose effect must not be lost runs now, in order
-    /// (its sounds and asides do not); then back to your eyes, quickly if
-    /// the camera is near them, through black if it is far
-    fn cut_skip(&mut self, p: &mut Playing) {
-        let rest: Vec<Event> = p.c.event[p.next[2]..].to_vec();
-        p.next = [p.c.fade.len(), p.c.sound.len(), p.c.event.len(), p.c.say.len()];
+    /// The events left whose effect must hold (`on_skip`), run now in
+    /// order, the rest let go: on a skip and a break-off. → false when one
+    /// of them ended the cutscene
+    fn cut_run_held(&mut self, gen: u64) -> bool {
+        let rest: Vec<Event> = {
+            let p = self.cut.as_mut().unwrap();
+            let rest = p.c.event[p.next[2]..].to_vec();
+            p.next = [p.c.fade.len(), p.c.sound.len(), p.c.event.len(), p.c.say.len()];
+            rest
+        };
         for e in rest.iter().filter(|e| e.on_skip) {
             self.cut_event(&e.name, e.t);
-        }
-        p.how = "skipped";
-        let aspect = self.camera.camera().aspect;
-        let near = match p.gameplay {
-            Some(g) => {
-                let k = p.keyed(self, g.fov, aspect, 0.0);
-                let (d, turn) = Pose::apart(&g, &Pose::mix(&g, &k, p.weight()));
-                d < SKIP_NEAR && turn < SKIP_NEAR_TURN
+            if !self.cut_is(gen) {
+                return false;
             }
-            None => true,
+        }
+        true
+    }
+
+    /// The skip: the end evaluated, never the world fast-forwarded. Every
+    /// event not yet run whose effect must hold runs now, in order (its
+    /// sounds and asides do not); then back to your eyes, quickly if the
+    /// camera is near them, through black if it is far; a cutscene that
+    /// ends on a card goes to its end. → false when an event ended it
+    fn cut_skip(&mut self, gen: u64) -> bool {
+        if !self.cut_run_held(gen) {
+            return false;
+        }
+        let shake_k = 0.0;
+        let p = self.cut.as_ref().unwrap();
+        let (near, card) = match p.gameplay {
+            Some(g) => {
+                let own = Pose::mix(&g, &p.own(self, g.fov, shake_k), p.weight());
+                let (d, turn) = Pose::apart(&g, &own);
+                (d < SKIP_NEAR && turn < SKIP_NEAR_TURN && p.veil().0 <= SKIP_NEAR_VEIL, p.c.then == Then::Card)
+            }
+            None => (true, p.c.then == Then::Card),
         };
-        if near || p.c.then == Then::Card {
+        let p = self.cut.as_mut().unwrap();
+        p.how = "skipped";
+        let t = p.t;
+        if card {
+            p.t = p.c.length;
+        } else if near {
             p.out = Some((p.t, SKIP_BLEND));
         } else {
             p.dip = Some(p.t);
         }
-        self.cut_note(format!("skipped at {:.2} ({})", p.t, if near { "blend" } else { "dip" }));
+        self.cut_note(format!(
+            "skipped at {t:.2} ({})",
+            if card {
+                "to its end"
+            } else if near {
+                "blend"
+            } else {
+                "dip"
+            }
+        ));
+        true
     }
 
-    /// Something hunting you, or searching near: a live cutscene breaks off
+    /// Danger a cutscene that gives your hands back must not play into, and
+    /// breaks off at: anything hunting you, anything searching near, the
+    /// fog up on the Building, your nerve near its end
     pub fn cutscene_danger(&self) -> bool {
-        matches!(self.holding_breath(), Some("hunted" | "searched"))
+        let pp = self.player.pos;
+        let near = |e: &crate::base::records::Entity| {
+            let p = e.pos();
+            ((p.x - pp.x).powi(2) + (p.z - pp.z).powi(2)).sqrt() < DANGER_SEARCH
+        };
+        if self.entities.iter().any(|e| e.kind != "gone" && (e.state == "hunt" || e.state == "search" && near(e))) {
+            return true;
+        }
+        if self.building.is_some() && self.assembly.stage != crate::world::assembly::Stage::Quiet {
+            return true;
+        }
+        self.player.sanity < DANGER_NERVE
     }
 
     /// A key while your hands are taken: Escape pauses, Mute mutes, the
@@ -620,10 +805,13 @@ impl Game {
     }
 
     /// End any cutscene now, where it is (a death, a new floor): no event
-    /// after now runs, and the camera is play's from the next frame
+    /// after now runs (nor its `finally`), and the camera is play's again
     pub fn cutscene_end_now(&mut self, why: &str) {
         if let Some(p) = self.cut.take() {
             self.cut_note(format!("end {} ({why}) at {:.2}", p.c.id, p.t));
+            if let Some(g) = p.gameplay {
+                self.set_camera_pose(&g);
+            }
         }
         self.cut_veil = Veil::default();
     }

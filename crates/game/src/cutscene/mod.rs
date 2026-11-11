@@ -65,8 +65,8 @@ mod tests {
         assert_eq!((c.world, c.then, c.skip), (World::Live, Then::Back, Skip::Hold));
         assert!(c.camera.iter().any(|k| matches!(k.look, Look::Point(_))));
         assert!(c.camera.iter().any(|k| matches!(k.look, Look::At(Anchor::Killer))));
-        assert!(c.camera.iter().any(|k| k.cut) && c.camera.iter().any(|k| k.jolt) && c.camera.iter().any(|k| k.fov.is_some()));
-        assert!(!c.fade.is_empty() && !c.sound.is_empty() && !c.event.is_empty() && !c.say.is_empty());
+        assert!(c.camera.iter().any(|k| k.cut) && c.camera.iter().any(|k| k.jolt) && c.camera.iter().any(|k| k.fov != 0.0));
+        assert!(!c.fade.is_empty() && !c.sound.is_empty() && !c.event.is_empty() && !c.say.is_empty() && !c.finally.is_empty());
         assert!(c.shape_problems().is_empty(), "{:#?}", c.shape_problems());
     }
 
@@ -109,7 +109,8 @@ mod tests {
                 }),
             ),
             ("outside its length", Box::new(|c| c.event[0].t = c.length + 1.0)),
-            ("fov", Box::new(|c| c.camera[1].fov = Some(170.0))),
+            ("fov", Box::new(|c| c.camera[1].fov = 40.0)),
+            ("only for 3 s at most", Box::new(|c| c.skip = Skip::Never)),
             ("a point to look at, not a place to stand", Box::new(|c| c.camera[1].anchor = Anchor::Killer)),
             ("bars", Box::new(|c| c.bars.out_at = c.length + 1.0)),
         ];

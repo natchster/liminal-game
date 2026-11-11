@@ -64,6 +64,8 @@ enum Kind {
     Bool,
     Vec3,
     StrList,
+    /// a list of words, maybe empty
+    Names,
     Table,
     Tables,
 }
@@ -85,6 +87,7 @@ fn top() -> Vec<Field> {
         ("blend_out", Kind::Num, Some(json!(1.0))),
         ("repeat_from", Kind::Num, Some(json!(0.0))),
         ("stages", Kind::StrList, None),
+        ("finally", Kind::Names, Some(json!([]))),
         ("bars", Kind::Table, Some(json!({}))),
         ("camera", Kind::Tables, None),
         ("fade", Kind::Tables, Some(json!([]))),
@@ -109,7 +112,7 @@ fn key() -> Vec<Field> {
         ("yaw", Kind::Num, Some(json!(0.0))),
         ("pitch", Kind::Num, Some(json!(0.0))),
         ("roll", Kind::Num, Some(json!(0.0))),
-        ("fov", Kind::Num, Some(Value::Null)),
+        ("fov", Kind::Num, Some(json!(0.0))),
         ("ease", Kind::Str, Some(json!("in_out"))),
         ("cut", Kind::Bool, Some(json!(false))),
         ("sway", Kind::Num, Some(json!(0.0))),
@@ -185,6 +188,10 @@ fn table(t: &toml::Table, spec: &[Field], what: &str, problems: &mut Vec<String>
                 .and_then(|a| a.iter().map(|x| x.as_str().filter(|s| !s.trim().is_empty()).map(String::from)).collect::<Option<Vec<_>>>())
                 .map(|l| json!(l)),
             // (read by the caller with their own fields)
+            Kind::Names => v
+                .as_array()
+                .and_then(|a| a.iter().map(|x| x.as_str().filter(|s| !s.trim().is_empty()).map(String::from)).collect::<Option<Vec<_>>>())
+                .map(|l| json!(l)),
             Kind::Table => v.as_table().map(|_| Value::Null),
             Kind::Tables => v.as_array().filter(|a| a.iter().all(|x| x.as_table().is_some())).map(|_| Value::Null),
         };
@@ -195,6 +202,7 @@ fn table(t: &toml::Table, spec: &[Field], what: &str, problems: &mut Vec<String>
                 Kind::Bool => "true or false",
                 Kind::Vec3 => "[x, y, z]",
                 Kind::StrList => "a list of words",
+                Kind::Names => "a list of words (maybe empty)",
                 Kind::Table => "a table",
                 Kind::Tables => "a list of tables ([[...]])",
             };
@@ -413,6 +421,18 @@ mod tests {
             std::fs::write(&fixture, &bundle).unwrap();
         }
         assert_eq!(std::fs::read_to_string(&fixture).unwrap(), bundle, "REGEN=1 cargo test -p xtask cutscene, after an intended change");
+    }
+
+    /// The bundle the game embeds is what its sources compile to: a source
+    /// edited and not written fails the fast check, not only `cutscene check`
+    #[test]
+    fn the_bundle_is_what_the_sources_compile_to() {
+        let text = compile_all(&src_dir()).unwrap_or_else(|p| panic!("{p:#?}"));
+        let on_disk = std::fs::read_to_string(bundle_path()).unwrap();
+        assert!(
+            on_disk == text,
+            "crates/game/assets/cutscenes.json is not what assets/src/cutscenes compiles to: `cargo xtask cutscene write`"
+        );
     }
 
     #[test]

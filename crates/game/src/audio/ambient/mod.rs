@@ -373,7 +373,7 @@ impl Game {
         if !(d > 1e-6) {
             return (0.0, 0.0, true);
         }
-        let (px, pz) = (self.player.pos.x, self.player.pos.z);
+        let (px, pz, _) = self.ear_at();
         let (dx, dz) = (x - px, z - pz);
         let back = (d * 0.5).min(0.6);
         let clear = self.los(px, pz, x - dx / d * back, z - dz / d * back);
@@ -382,13 +382,12 @@ impl Game {
 
     /// `ear` without the sight line: the distance and the stereo pan
     pub fn ear_pan(&self, x: f64, z: f64) -> (f64, f64) {
-        let (px, pz) = (self.player.pos.x, self.player.pos.z);
+        let (px, pz, yaw) = self.ear_at();
         let (dx, dz) = (x - px, z - pz);
         let d = (dx * dx + dz * dz).sqrt();
         if !(d > 1e-6) {
             return (0.0, 0.0);
         }
-        let yaw = self.yaw0();
         let side = dx * yaw.cos() - dz * yaw.sin();
         (d, clamp(side / d.max(0.5), -1.0, 1.0) * 0.8)
     }
@@ -734,12 +733,31 @@ impl Game {
             .map(|(_, d2, i)| (i, d2.sqrt()))
     }
 
+    /// Where you hear from: your place and facing, or, while a cutscene
+    /// has the camera, the camera's (its sounds are heard where it looks
+    /// from, `docs/CUTSCENES.md`) → (x, z, yaw)
+    pub fn ear_at(&self) -> (f64, f64, f64) {
+        if self.hands_taken() {
+            let (p, r) = (self.camera.pos(), self.camera.rot());
+            (p.x, p.z, r.y)
+        } else {
+            (self.player.pos.x, self.player.pos.z, self.yaw0())
+        }
+    }
+
     /// Listener, reverb zone, zone captions, the ballast hum
     pub fn update_soundscape(&mut self, dt: f64) {
         let Some(ss) = self.soundscape() else { return };
-        let fwd = self.player.fwd();
+        let (fx, fy, fz) = if self.hands_taken() {
+            let r = self.camera.rot();
+            let (ry, rx) = (r.y, r.x);
+            (-ry.sin() * rx.cos(), rx.sin(), -ry.cos() * rx.cos())
+        } else {
+            let fwd = self.player.fwd();
+            (fwd.x, self.player.pitch.sin(), fwd.z)
+        };
         let cp = self.camera.pos();
-        ss.set_listener(cp.x, cp.y, cp.z, fwd.x, self.player.pitch.sin(), fwd.z);
+        ss.set_listener(cp.x, cp.y, cp.z, fx, fy, fz);
         let (x, z) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
         let dark = self.region_flags_at(x, z) & RF_DARK != 0;
         // Blackout zones are silent in the lore: no hum, almost no room

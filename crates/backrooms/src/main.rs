@@ -239,7 +239,11 @@ fn parse_args() -> Options {
             "--views" => o.views = true,
             "--fresh" => o.fresh = true,
             "--cutscene-check" => o.cutscene_check = Some(next(&mut i)),
-            "--cutscene" => o.cutscene = Some(next(&mut i)),
+            // (a cutscene's frames are the same every time: as --fresh)
+            "--cutscene" => {
+                o.cutscene = Some(next(&mut i));
+                o.fresh = true;
+            }
             "--stage" => o.stage = Some(next(&mut i)),
             "--sheet" => o.sheet = Some(next(&mut i)),
             "--bundle" => o.bundle = Some(next(&mut i)),
@@ -704,7 +708,7 @@ fn cutscene_shots(o: &Options, id: &str) {
     let mut shot: Option<(u32, u32, Vec<u8>)> = None;
     let every = o.every.max(1.0 / 60.0);
     let cut_at = o.cut_at;
-    let tr = g.run_cutscene(&c, &s, 1.0 / 60.0, None, None, &mut |g, row| {
+    let tr = g.run_cutscene(&c, &s, &game::debug::cutscene::RunOpts::default(), &mut |g, row| {
         let want_sheet = dir.is_some() && (row.t + 1e-9 >= next || !row.hands);
         let want_shot = cut_at.is_some_and(|at| shot.is_none() && (row.t + 1e-9 >= at || !row.hands));
         let cb = draw(g, &mut r, &target, w, h);

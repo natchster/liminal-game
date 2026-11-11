@@ -15,7 +15,7 @@
           "anchor": "start",
           "cut": false,
           "ease": "in_out",
-          "fov": null,
+          "fov": 0.0,
           "jolt": false,
           "look": null,
           "look_at": null,
@@ -34,7 +34,7 @@
           "anchor": "thing",
           "cut": false,
           "ease": "in",
-          "fov": 64.0,
+          "fov": -8.0,
           "jolt": false,
           "look": [
             0.2,
@@ -57,7 +57,7 @@
           "anchor": "eyes",
           "cut": true,
           "ease": "out",
-          "fov": null,
+          "fov": 0.0,
           "jolt": false,
           "look": null,
           "look_at": "killer",
@@ -76,7 +76,7 @@
           "anchor": "eyes",
           "cut": false,
           "ease": "linear",
-          "fov": null,
+          "fov": 0.0,
           "jolt": true,
           "look": null,
           "look_at": null,
@@ -112,6 +112,9 @@
           "t": 4.5,
           "to": 0.0
         }
+      ],
+      "finally": [
+        "mark"
       ],
       "id": "sample",
       "length": 6.0,

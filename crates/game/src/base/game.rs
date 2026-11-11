@@ -651,6 +651,10 @@ pub struct Game {
     pub cut_hold: Option<crate::cutscene::play::Pose>,
     /// what the cutscenes did (the last 64 lines: tests, previews)
     pub cut_log: Vec<String>,
+    /// the cutscenes played so far (each its number: a cue that ends one is seen)
+    pub cut_gen: u64,
+    /// how the last cutscene's hands-back looked (tests: the contract)
+    pub cut_end: Option<crate::cutscene::play::Ended>,
     /// native draws the cutscene engine made last frame (its cues' sounds and events not counted: tests)
     pub cut_engine_draws: u64,
     /// ... and those its cues made
@@ -1138,6 +1142,8 @@ impl Game {
             cut_veil: Default::default(),
             cut_hold: None,
             cut_log: vec![],
+            cut_gen: 0,
+            cut_end: None,
             cut_engine_draws: 0,
             cut_cue_draws: 0,
             showcase_company: false,

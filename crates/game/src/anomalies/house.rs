@@ -409,7 +409,7 @@ impl Game {
                 e.set_n("touchCD", cd - dt);
             }
         }
-        if d < KILL_DIST && lit {
+        if d < KILL_DIST && lit && !self.hands_taken() {
             self.on_death("entity");
             return true;
         }

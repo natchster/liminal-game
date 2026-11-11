@@ -52,6 +52,11 @@ pub fn lint(c: &Cutscene) -> Vec<String> {
             p.push(format!("sound \"{}\": only a death has a killer to play it from", s.name));
         }
     }
+    for name in &c.finally {
+        if event(name).is_none() {
+            p.push(format!("finally \"{name}\" is not an event the game has: register it in cutscene::cues"));
+        }
+    }
     for e in &c.event {
         if event(&e.name).is_none() {
             let known: Vec<&str> = EVENTS.iter().map(|(n, _, _)| *n).collect();

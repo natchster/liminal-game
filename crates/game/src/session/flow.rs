@@ -542,17 +542,20 @@ impl Game {
         // black, the hum, one line in the world's voice, and Wake up (no
         // title, no seconds survived). The card's three draws are kept, so
         // nothing after a death moves (CLAUDE.md invariant 1)
-        self.schedule(1400.0, |g| {
-            if g.state != "dead" {
-                return;
-            }
-            g.want_pointer_lock = Some(false);
-            let _ = g.pick_text("deathTitle");
-            let line = g.pick_text("deathBodyBits");
-            let _ = g.pick_text("deathHint");
-            g.open_menu(crate::ui::menu::Screen::Dead);
-            g.menu.heading = line;
-        });
+        self.schedule(1400.0, |g| g.open_death_card());
+    }
+    /// The death card: black, one line in the world's voice, Wake up (a
+    /// death's cutscene opens it at its end, `then = "card"`)
+    pub fn open_death_card(&mut self) {
+        if self.state != "dead" || self.live_menu().is_some() {
+            return;
+        }
+        self.want_pointer_lock = Some(false);
+        let _ = self.pick_text("deathTitle");
+        let line = self.pick_text("deathBodyBits");
+        let _ = self.pick_text("deathHint");
+        self.open_menu(crate::ui::menu::Screen::Dead);
+        self.menu.heading = line;
     }
     pub fn restart(&mut self) {
         self.ui.fade.set_opacity(0.0);

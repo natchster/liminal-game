@@ -371,8 +371,9 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `assets/src/cutscenes/`, compiled by `cargo xtask cutscene write` into
   one bundle (`crates/game/assets/cutscenes.json`, every field written
   out) after the game's rules have passed on a copy
-  (`backrooms --cutscene-check`); `cargo xtask cutscene check` fails a
-  bundle that is not what its sources compile to. Before writing, `cargo
+  (`backrooms --cutscene-check`); a bundle that is not what its sources
+  compile to fails `cargo xtask cutscene check` and the fast check
+  (`the_bundle_is_what_the_sources_compile_to`). Before writing, `cargo
   xtask cutscene preview ID [--stage S]` plays the sources as they stand
   on each of the cutscene's stages and writes its frames, a contact sheet,
   its timeline and its contract under `target/xtask/cutscene/ID/`. The
