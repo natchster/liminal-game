@@ -4,3 +4,4 @@ pub mod cutscene;
 pub mod hooks;
 pub mod replay;
 pub mod testkit;
+pub mod tour;

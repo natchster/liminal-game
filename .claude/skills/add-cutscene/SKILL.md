@@ -118,7 +118,10 @@ stages rebuild the game.
    moment) and read `contract.txt` and `timeline.tsv`. Never edit
    `crates/game/assets/cutscenes.json` by hand: the fast check compiles the
    sources and compares.
-9. **Tests.** The contract suite picks it up from the bundle
+9. **Tests.** Add its line to `contract_tests!` in
+   `crates/backrooms/tests/cutscenes.rs` (a test a cutscene, so the check
+   runs them side by side; `every_cutscene_has_a_contract_test` fails
+   until you do), and the contract suite plays it on each of its stages
    (`cargo test --release -p backrooms --test cutscenes`: its short form,
    with shake and head bob off, the HUD read, your nerve after a skip as
    after watching; played, skipped

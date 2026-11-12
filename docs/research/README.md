@@ -78,3 +78,11 @@ One more was gathered on 2026-11-11 for the cutscenes
 |---|---|
 | [`cutscenes.md`](cutscenes.md) | How sequencers store a cutscene (Unreal's tracks and *When Finished*, Unity Timeline's wrap modes and signals, Cinemachine's blend against the live camera, Valve's VCD scenes, Frictional's HPL2 primitives); first-person games that never take the camera (Half-Life 2, SOMA) and title screens that lead straight into play; telling the player their hands are taken (hidden HUD, input locks, letterbox and its complaints, hold to skip, Xbox and Game Accessibility Guidelines); motion comfort (Forsyth, Meta, XAG 117); death in first-person horror (Grip, Red Barrels, The Callisto Protocol, Alien: Isolation); testing by time, golden frames, skip as the end state; twelve design rules |
 
+
+One more was gathered on 2026-11-11 for the visual playtest
+([`../VISUAL_PLAYTEST.md`](../VISUAL_PLAYTEST.md)), summed up in
+[`../SOURCES.md`](../SOURCES.md) section 18:
+
+| Note | What it covers |
+|---|---|
+| [`visual-qa.md`](visual-qa.md) | How studios automate visual QA (Frostbite's cameras per level and strict thresholds, Unreal's screenshot actors, Unity's golden images, flythroughs, bots); z-fighting (its cause, polygon offset, depth precision and reversed-Z, an image-based coplanarity detector, geometric tests); holes and leaks (the hall of mirrors, T-junctions, watertightness, the winding number, thin walls); the near plane and the camera inside geometry (cast its face, not a ray); out-of-place assets (EA SEED's texture classifier and its white-placeholder lesson, texel density, albedo validation); triage tools and what vision models can and cannot find (GlitchBench, VideoGameQA-Bench); ten rules |

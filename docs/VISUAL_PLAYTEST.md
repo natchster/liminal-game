@@ -44,6 +44,31 @@ prop stands out there.
    should be), a crack at a seam, a view into a part that should stay
    hidden (the inside of a wall, the back of a mass, an unbuilt side).
 
+## What the research says
+
+[`research/visual-qa.md`](research/visual-qa.md) (kept whole; summed up in
+[`SOURCES.md`](SOURCES.md) section 18). Studios shoot many fixed cameras
+per level with the noisy features off and compare at strict thresholds;
+nobody documents bots taking pictures for art review, so a tour placed by
+rule is ours. Z-fighting is found by counting coplanar fragments per pixel
+or by testing faces for coplanarity; a jittered render diffed is our own,
+so it is paired with the geometric test. A see-through wall is the wall
+crossing the near face of the frustum: test the face's corners, not the eye
+alone. Finding unlit or glowing things in a lit scene automatically has no
+source: read the materials. Vision models find under half the glitches in a
+frame and hallucinate clipping at near contact: the inspector is a filter,
+never the gate. What the design took:
+
+- the renders deterministic: the world frozen, the grain and the lamps'
+  flicker held between a view's renders, and the bare ones without the HUD;
+- *clip* tests the near face's four corners and the eye, not the eye alone;
+- *flicker* is two detectors: the jitter diff (pixels) and *coplanar*
+  (faces of different things in reach, parallel, within 2 mm, overlapping);
+- a thing is flagged when several views agree, not on one;
+- every finding is reproduced with `--shots-at` and looked at before it is
+  fixed; the report shows each flagged view as a strip (the look, the gaps,
+  the flicker) for a fast read.
+
 ## The design
 
 1. **A tour** (`game::debug::tour`): on each level, every walkable place
@@ -53,17 +78,23 @@ prop stands out there.
    foot; standing and crouched; corners too. Deterministic (no draw from
    any stream), sampled across the level to a budget, filtered to an area
    when asked.
-2. **Three renders a view** (`backrooms --tour`): the look as a player sees
-   it; the same with the sky and background cleared to a sentinel magenta,
-   which no surface has; and the same again with the camera moved by a
-   hair (2 mm and 0.02°).
+2. **Four renders a view** (`backrooms --tour`): the look as a player sees
+   it (the HUD's grain and vignette on, the lamp lit where it is dark); and,
+   bare (no HUD layer, so no grain to change between them), the scene
+   cleared to magenta, cleared to green, and cleared to magenta again with
+   the camera moved by a hair (2 mm and 0.02°). The colour filter runs over
+   the whole frame, the clear colour too, so the background is found where
+   the two bare renders differ, not by matching a colour: a magenta surface
+   cannot pass for a hole.
 3. **Detectors**, each a number and a picture: *gaps* (the sentinel where
    geometry should be: small or enclosed magenta, or any at all where the
    level is enclosed), *flicker* (pixels that change between the look and
-   the jittered render away from edges: z-fighting), *clip* (the camera
-   within reach of an object's bounds: inside a thing), *plain* (in view
-   and near: a flat-coloured, an unlit or a glowing material), each with
-   the object's name where there is one.
+   the jittered render away from edges: z-fighting) with *coplanar* (faces
+   of different things in reach that lie on one plane and overlap), *clip*
+   (the near face's corners or the eye inside a solid or within a thing's
+   bounds), *plain* (in view and near: a flat-coloured, an unlit or a
+   glowing material), each with the object's name where there is one, a
+   thing flagged when several views agree.
 4. **The report** (`cargo xtask playtest visual`): per level, the views,
    each detector's flagged views ranked, contact sheets per detector and of
    a sample of all views, and `findings.tsv`; under
@@ -86,16 +117,18 @@ code and design review whose findings are fixed.
 |---|---|---|
 | VP0 | This plan; the research | committed |
 | VP1 | **The tour**: edge stands and their views, corners, crouched, sampled to a budget, an area | tests: every stand is one a body can stand on, near its edge, the same twice, spread over the level, inside an area when given |
-| VP2 | **Renders and detectors**: `backrooms --tour`, three renders a view, the gaps, flicker, clip and plain detectors | known answers: a hole, a fighting pair, a camera inside a thing and a flat-coloured thing put into a level are each found; a clean view is not |
-| VP3 | **The report**: `cargo xtask playtest visual`, ranked findings, contact sheets, `findings.tsv` | a run on a floor of the rooms and one of the Building, looked at |
-| VP4 | **The skill and the reviewer**: `.claude/skills/visual-playtest`, `.claude/agents/visual-inspector.md`, `CLAUDE.md` (the commands; after a major change, the places it touched), `AGENTS.md`, `DEVELOPMENT.md` | the structure test; the skill followed by a fresh agent on one area |
-| review A | Code and design review of VP0–VP4 | committed with what it found |
-| VP5 | **The Building toured**: levels 1–3 on several runs, the inspector's review, `docs/playtests/` | the report written |
-| VP6+ | **Its findings fixed**, a milestone for each kind, each place toured again | the finding gone on a new tour; fixtures and goldens only through `regen-fixtures` |
-| review B | Code and design review of VP5 on | committed with what it found |
+| VP2 | **Renders and the pixel detectors**: `backrooms --tour`, four renders a view; *gaps* (the background where a ray from the eye meets the level's own walls, floors, masses or ceiling within reach: a hole, not the open void) and *flicker* (the jitter diff away from edges) | known answers: a hole cut into a wall and a fighting pair put into a level are each found; a clean view, and the void seen over a parapet, are not |
+| VP3 | **The geometric detectors**: *clip* (the near face's corners or the eye in a solid or a thing; the body standing inside a thing), *coplanar* (faces of different things on one plane, overlapping), *plain* (a flat-coloured, unlit or glowing material in view and near), a thing flagged when several views agree | known answers: a camera inside a thing, a coplanar pair and a flat-coloured thing are each found; a clean level's counts recorded |
+| VP4 | **The report**: `cargo xtask playtest visual`, ranked findings, a strip a flagged view (the look, the gaps, the flicker), contact sheets, `findings.tsv` | a run on a floor of the rooms and one of the Building, looked at |
+| VP5 | **The skill and the reviewer**: `.claude/skills/visual-playtest`, `.claude/agents/visual-inspector.md`, `CLAUDE.md` (the commands; after a major change, the places it touched), `AGENTS.md`, `DEVELOPMENT.md` | the structure test; the skill followed by a fresh agent on one area |
+| review A | Code and design review of VP0–VP5 | committed with what it found |
+| VP6 | **The Building toured**: levels 1–3 on several runs, the inspector's review, `docs/playtests/` | the report written |
+| VP7+ | **Its findings fixed**, a milestone for each kind, each place toured again | the finding gone on a new tour; fixtures and goldens only through `regen-fixtures` |
+| review B | Code and design review of VP6 on | committed with what it found |
 
 ## Progress
 
 | # | Commit | Notes |
 |---|---|---|
-| VP0 | (this commit) | the plan |
+| VP0 | 7c98223 | the plan; the research (`research/visual-qa.md`, `SOURCES.md` 18) folded in with VP1 |
+| VP1 | (this commit) | `game::debug::tour`: `Game::standable` (on the grid, off the wall tiles, on walked ground, the body's 0.20 m circle clear of every solid), `tour_stands` (each tile walked along both axes from its middle and 1.2 m either side, in 2 cm steps, until a body is stopped; the edge named by what is beyond: `wall`, `mass`, `void`, `step`, `grid`, or `solid` for a thing inside the tile; a corner where it is stopped again within 0.6 m sideways), `tour_views` (stands chosen farthest-first to a budget; six looks from an edge, three from a corner). Seed 4242: the Building's level 1 has 1190 stands (865 at a mass, 249 over the void, 76 at a solid), level 5 of the rooms 3104 (all walls: no prop there stops a body). Tests: `crates/backrooms/tests/visual_tour.rs` |

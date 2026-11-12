@@ -447,15 +447,53 @@ fn keeps(c: &Cutscene, stage: &str) -> Vec<String> {
     p
 }
 
-#[test]
-fn every_cutscene_keeps_the_contract_on_each_of_its_stages() {
+/// One cutscene's contract on each of its stages (with `--nocapture`, how
+/// long each stage took)
+fn keeps_its_contract(id: &str) {
+    let c = game::cutscene::library().iter().find(|c| c.id == id).unwrap_or_else(|| panic!("no cutscene {id} in the bundle"));
     let mut p = vec![];
-    for c in game::cutscene::library() {
-        for s in &c.stages {
-            p.extend(keeps(c, s));
-        }
+    for s in &c.stages {
+        let t0 = std::time::Instant::now();
+        p.extend(keeps(c, s));
+        println!("{id} on {s}: {:.1} s", t0.elapsed().as_secs_f64());
     }
     assert!(p.is_empty(), "{p:#?}");
+}
+
+/// A test a cutscene, so the check's pool runs them side by side (all of
+/// them in one test took six minutes, the longest test of the suite, and
+/// held up the fast check)
+macro_rules! contract_tests {
+    ($($name:ident => $id:literal),* $(,)?) => {
+        $(
+            #[test]
+            fn $name() {
+                keeps_its_contract($id);
+            }
+        )*
+        /// The cutscenes with a contract test
+        const CONTRACT_TESTED: &[&str] = &[$($id),*];
+    };
+}
+
+contract_tests! {
+    the_way_in_keeps_the_contract => "way_in",
+    the_shaft_keeps_the_contract => "shaft",
+    death_taken_keeps_the_contract => "death_taken",
+    death_mind_keeps_the_contract => "death_mind",
+    death_fog_keeps_the_contract => "death_fog",
+}
+
+#[test]
+fn every_cutscene_has_a_contract_test() {
+    for c in game::cutscene::library() {
+        assert!(
+            CONTRACT_TESTED.contains(&c.id.as_str()),
+            "{}: add it to `contract_tests!` in tests/cutscenes.rs (its contract on each of its stages)",
+            c.id
+        );
+    }
+    assert_eq!(CONTRACT_TESTED.len(), game::cutscene::library().len(), "a contract test for a cutscene the bundle has not");
 }
 
 #[test]

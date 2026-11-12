@@ -47,7 +47,8 @@ plays and tests moments that borrow your eyes (in the world, from your
 eyes, your hands taken and said so, the camera given back exactly where it
 was), its pipeline and its skill; and the first three: the way in from the
 title, a broken lift's shaft, and dying. After the fifth and at the end, a
-code and design review.
+code and design review. All done on 2026-11-11 (`55442fe`): see
+`CUTSCENES.md`'s progress.
 
 | # | Milestone |
 |---|---|
@@ -73,13 +74,14 @@ a code and design review.
 |---|---|
 | VP0 | The plan and the research |
 | VP1 | The tour: edge stands and their views |
-| VP2 | Renders and detectors |
-| VP3 | The report |
-| VP4 | The skill and the reviewer |
-| review A | Code and design review of VP0–VP4 |
-| VP5 | The Building toured |
-| VP6+ | Its findings fixed |
-| review B | Code and design review of VP5 on |
+| VP2 | Renders and the pixel detectors (gaps, flicker) |
+| VP3 | The geometric detectors (clip, coplanar, plain) |
+| VP4 | The report |
+| VP5 | The skill and the reviewer |
+| review A | Code and design review of VP0–VP5 |
+| VP6 | The Building toured |
+| VP7+ | Its findings fixed |
+| review B | Code and design review of VP6 on |
 
 ## Done
 

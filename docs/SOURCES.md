@@ -542,3 +542,33 @@ claim linked.
 - Says: sample by time at a fixed step; compare frames with tolerances; skip by setting the end state, never by fast-forwarding the simulation.
 - Used for: the contract suite (the same camera at 30, 60 and 144 frames a second; the last frame the gameplay camera; a skip lands where play lands, its events run and its sounds not) and goldens at named times (`--cut-at`).
 
+
+## 18. Visual QA: looking where nobody looks
+
+Gathered on 2026-11-11 for [`VISUAL_PLAYTEST.md`](VISUAL_PLAYTEST.md); the
+note is kept whole in [`research/visual-qa.md`](research/visual-qa.md),
+every claim linked.
+
+**Screenshot tests in studios** ([Frostbite](https://enginearchitecture.org/downloads/Testing_Rendering_Code_at_Frostbite-REAC.pdf), [Unreal's screenshot comparison](https://dev.epicgames.com/documentation/en-us/unreal-engine/screenshot-comparison-tool-in-unreal-engine), [Aras on testing graphics code](https://aras-p.info/blog/2011/06/17/testing-graphics-code-4-years-later/), [Unity's image comparison](https://docs.unity3d.com/Packages/com.unity.testframework.graphics@8.5/api/UnityEngine.TestTools.Graphics.ImageComparisonSettings.html)).
+- Says: many fixed cameras per level, a deterministic mode, noisy features (temporal AA, motion blur, bloom) off, strict per-pixel thresholds; a person approves the reference; every regression a person finds becomes a test.
+- Used for: the tour's cameras placed by rule on every edge rather than by hand, the renders taken with the world frozen and the bare ones without the HUD (no grain), and each finding reproduced as a `--shots-at` camera before it is fixed.
+
+**Z-fighting** ([OpenGL FAQ on polygon offset](https://opengl.org.ru/docs/faq/polygonoffset.htm), [depth precision visualized](https://developer.nvidia.com/content/depth-precision-visualized), [Vasilakis and Fudos' coplanarity detector](https://www.cs.uoi.gr/~fudos/coplanarity.pdf), [a geometric test](https://discussions.unity.com/t/how-to-check-for-z-fighting-ie-two-planes-directly-on-top-of-each-other/475692)).
+- Says: coplanar faces from different meshes fight because of round-off; offset is for decals; a near plane pulled close costs depth precision; detection is by counting coplanar fragments per pixel or by testing faces for plane proximity and facing.
+- Used for: the *flicker* detector (the jittered render diffed away from edges: our own, as no source documents it) paired with a geometric one (faces of different things in reach, parallel, within millimetres and overlapping), each finding fixed in its geometry, not by offset.
+
+**Holes and leaks** ([the hall of mirrors](https://beyondunrealwiki.github.io/pages/hall-of-mirrors.html), [Unity's undefined-pixel debug mode](https://docs.unity.com/en-us/engine/6000.0/script-reference/unityengine/rendering/loadstoreactiondebugmodesettings), [Lumen's thin walls](https://dev.epicgames.com/documentation/unreal-engine/lumen-technical-details-in-unreal-engine)).
+- Says: where nothing is drawn, what was there before shows; uncleared pixels can be highlighted; walls thinner than 10 cm and one-sided meshes seen from behind leak.
+- Used for: the *gaps* detector's sentinel background (our inference from these, checked by known answers: a hole put into a level is found, a clean view has none).
+
+**The near plane** ([accurate collision zoom for cameras](https://gamedeveloper.com/programming/accurate-collision-zoom-for-cameras), [the generalized winding number](https://users.cs.utah.edu/~ladislav/jacobson13robust/jacobson13robust.html)).
+- Says: you see through a wall when it crosses the near face of the view frustum; test that face, or its four padded corners, not one ray from the eye.
+- Used for: the *clip* detector, which tests the near face's corners (and the eye) against every solid and every thing's bounds at each view.
+
+**Out of place** ([EA SEED's texture classifier](https://arxiv.org/pdf/2406.08231), [Unreal's view modes](https://dev.epicgames.com/documentation/en-us/unreal-engine/viewport-modes-in-unreal-engine), [Unity's material validator](https://docs.unity3d.com/2020.1/Documentation/Manual/MaterialValidator.html), [art styles](https://unity.com/blog/game-art-styles-guide)).
+- Says: stretched, low-resolution, missing and placeholder textures can be classified, but a white placeholder taught a classifier to flag white things; averaging several views of an object helps; albedo belongs in a range; one highly detailed object stands out in a plain scene and the reverse. Finding unlit or glowing things in a lit scene automatically: not found.
+- Used for: the *plain* detector reading the materials themselves (no texture and no vertex colour, unlit, glowing) rather than guessing from pixels, a thing flagged only when several views agree, and the inspector's eyes for the rest.
+
+**Vision models as reviewers** ([GlitchBench](https://arxiv.org/html/2312.05291v2), [VideoGameQA-Bench](https://arxiv.org/html/2505.15952v2), [Sony 2026](https://www.alphaxiv.org/abs/2607.25921), [bug-frame retrieval](https://arxiv.org/html/2508.04895v1), [FLIP](https://research.nvidia.com/publication/flip)).
+- Says: the best models find under half the glitches in a frame and hallucinate clipping on near contact; use them as high-recall filters with a person on every flag; answers vary between runs; reviewers need a fast side-by-side view.
+- Used for: the `visual-inspector` as a filter, never the gate (every finding it names is reproduced and looked at before it is fixed), and the report's strips (the look, the gaps, the flicker side by side) for a quick read.
