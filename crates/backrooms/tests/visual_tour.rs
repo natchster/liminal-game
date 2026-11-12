@@ -3,7 +3,9 @@
 //! the tour is the same twice; it is spread over the level; it keeps to an
 //! area and a budget; it looks up, down, along and crouched. Its renders and
 //! pixel detectors (VP2, `backrooms --tour`): a hole and a fight planted are
-//! found, the clean view and the void over a parapet are not.
+//! found, the clean view and the void over a parapet are not. Its geometric
+//! detectors (VP3): a box round the eye, a flat-coloured box and the fighting
+//! pair are each named in `findings.tsv`.
 //!
 //!   cargo test --release -p backrooms --test visual_tour -- --nocapture   # stands and views per floor
 mod common;
@@ -185,4 +187,42 @@ fn the_void_over_a_parapet_is_not_a_gap() {
     for r in &open {
         assert!(r.gaps < FLAG_PX, "the void is not a hole: {r:?}");
     }
+}
+
+/// `findings.tsv` of a tour run: (kind, label, views, flagged)
+fn findings(name: &str, level: i32) -> Vec<(String, String, usize, bool)> {
+    let p = format!("{}/visual_tour/{name}/L{level}/findings.tsv", env!("CARGO_TARGET_TMPDIR"));
+    std::fs::read_to_string(&p)
+        .unwrap_or_else(|e| panic!("{p}: {e}"))
+        .lines()
+        .skip(1)
+        .map(|l| {
+            let c: Vec<&str> = l.split('\t').collect();
+            (c[0].to_string(), c[1].to_string(), c[3].parse().unwrap(), c[9] == "true")
+        })
+        .collect()
+}
+
+/// The geometric detectors' known answers (`docs/VISUAL_PLAYTEST.md` VP3):
+/// a box put round the eye of the tour's first stand is a clip (and a body
+/// inside it); a flat-coloured box beside it is plain; the two fighting
+/// squares are a coplanar pair; none of these is in the floor as built
+#[test]
+fn a_box_round_the_eye_a_flat_box_and_a_coplanar_pair_are_named() {
+    let clean = toured("things_clean", 5, &["--tour-budget", "6"]);
+    let _ = toured("things_inside", 5, &["--tour-budget", "6", "--tour-plant", "inside"]);
+    let _ = toured("things_flat", 5, &["--tour-budget", "6", "--tour-plant", "flat"]);
+    let _ = toured("things_fight", 5, &["--tour-budget", "6", "--tour-plant", "fight"]);
+    let has = |run: &str, kind: &str, label: &str| findings(run, 5).iter().any(|f| f.0 == kind && f.1.contains(label));
+    assert!(has("things_inside", "clip", "tour_plant_inside"), "{:?}", findings("things_inside", 5));
+    assert!(has("things_inside", "body", "tour_plant_inside"), "{:?}", findings("things_inside", 5));
+    assert!(has("things_flat", "plain", "tour_plant_flat"), "{:?}", findings("things_flat", 5));
+    assert!(has("things_fight", "coplanar", "tour_plant_fight_0"), "{:?}", findings("things_fight", 5));
+    // the floor as built: no clip, no body and nothing plain at the first stand
+    assert!(
+        findings("things_clean", 5).iter().all(|f| !matches!(f.0.as_str(), "clip" | "body" | "plain")),
+        "{:?}",
+        findings("things_clean", 5)
+    );
+    assert_eq!(clean.len(), 6);
 }

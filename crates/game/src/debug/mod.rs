@@ -5,4 +5,5 @@ pub mod hooks;
 pub mod replay;
 pub mod sight;
 pub mod testkit;
+pub mod things;
 pub mod tour;

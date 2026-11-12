@@ -22,6 +22,7 @@ use crate::{draw_with, make_game, Options};
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
 use game::debug::sight::{self, Eye};
+use game::debug::things::{self, Finding};
 use game::debug::tour::{TourOpts, View};
 use game::Game;
 use objc2::runtime::ProtocolObject;
@@ -71,10 +72,19 @@ pub fn tour(o: &Options, dir: &str) {
         }
         let ldir = format!("{dir}/L{l}");
         std::fs::create_dir_all(&ldir).expect("create tour dir");
-        let mut tsv = String::from("name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\n");
+        let parts = things::parts(&g);
+        let mut found: Vec<(String, Finding)> = vec![];
+        let mut tsv =
+            String::from("name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\tclip\tbody\tplain\n");
         let (mut flag_gaps, mut flag_flicker) = (0, 0);
         for v in &views {
             let (seen, look, a, gaps, flicker) = render_view(&mut g, &mut r, &t, (w, h), v);
+            let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
+            let mut here = things::clip(&g, &parts, &eye);
+            here.extend(things::plain(&parts, &eye));
+            let n = |k: &str| here.iter().filter(|f| f.kind == k).count();
+            let (clip, body, plain) = (n("clip"), n("body"), here.len() - n("clip") - n("body"));
+            found.extend(here.into_iter().map(|f| (v.name.clone(), f)));
             let (tw, th) = (w, h);
             engine::png::write_rgba(&format!("{ldir}/{}.png", v.name), tw as u32, th as u32, &look).expect("write png");
             if seen.gaps >= sight::FLAG_PX {
@@ -88,7 +98,7 @@ pub fn tour(o: &Options, dir: &str) {
                 engine::png::write_rgba(&format!("{ldir}/{}_flicker.png", v.name), tw as u32, th as u32, &p).expect("write png");
             }
             tsv.push_str(&format!(
-                "{}\t{}\t{}\t{}\t{}:{:.4},{:.4},{:.4},{:.5},{:.5}\t{}\t{}\t{}\t{}\t{}\n",
+                "{}\t{}\t{}\t{}\t{}:{:.4},{:.4},{:.4},{:.5},{:.5}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                 v.name,
                 v.look,
                 v.edge,
@@ -103,11 +113,34 @@ pub fn tour(o: &Options, dir: &str) {
                 seen.gaps,
                 seen.gap_blob,
                 seen.flicker,
-                seen.flicker_blob
+                seen.flicker_blob,
+                clip,
+                body,
+                plain
             ));
         }
         std::fs::write(format!("{ldir}/views.tsv"), tsv).expect("write views.tsv");
-        println!("level {l}: {} views, gaps in {flag_gaps}, flicker in {flag_flicker}: {ldir}/views.tsv", views.len());
+        // coplanar faces near the stands, each given the nearest view that has it in sight
+        let stands: Vec<engine::math::Vec3> = views.iter().map(|v| engine::math::Vec3::new(v.x, v.y, v.z)).collect();
+        for f in things::coplanar(&parts, &stands, things::COPLANAR_REACH) {
+            let seen_from = views
+                .iter()
+                .filter(|v| {
+                    let e = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
+                    things::in_sight(&e, f.at)
+                })
+                .min_by(|a, b| things::d2((a.x, a.y, a.z), f.at).total_cmp(&things::d2((b.x, b.y, b.z), f.at)))
+                .map(|v| v.name.clone())
+                .unwrap_or_default();
+            found.push((seen_from, f));
+        }
+        let (rows, flagged) = things::gather(&found);
+        std::fs::write(format!("{ldir}/findings.tsv"), rows).expect("write findings.tsv");
+        println!(
+            "level {l}: {} views, gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
+            views.len(),
+            flagged.iter().map(|(k, n)| format!("{k} {n}")).collect::<Vec<_>>().join(", ")
+        );
     }
 }
 
@@ -239,7 +272,8 @@ fn plant(g: &mut Game, what: &str, v: &View) {
             }
         }
         // two squares on one plane 0.15 m before the eye, facing it, one cut
-        // turned 45° in the plane: their depths differ in the last bits
+        // turned 45° in the plane: their depths differ in the last bits (two
+        // things: the coplanar detector names them)
         "fight" => {
             for (k, color) in [(0, 0xb03020u32), (1, 0x2040c0u32)] {
                 let geo = engine::geometry::plane_geometry(0.12, 0.12, 3.0, 3.0);
@@ -252,10 +286,40 @@ fn plant(g: &mut Game, what: &str, v: &View) {
                 q.set_name(&format!("tour_plant_fight_{k}"));
                 q.position().set(v.x + fx * 0.15, v.y, v.z + fz * 0.15);
                 q.rotation().y = v.yaw;
-                g.scene.add(&q);
+                q.user().placer = Some(format!("tour_plant_fight_{k}"));
+                g.world.add(&q);
             }
             println!("planted a fight before {}", v.name);
         }
-        other => panic!("--tour-plant {other}: hole or fight"),
+        // a box round the eye: the camera inside a thing
+        "inside" => {
+            let m = engine::material::Mat::lambert();
+            m.color(0x6a5a48u32);
+            let b = engine::scene::mesh(engine::geometry::box_geometry(0.5, 0.5, 0.5, 1.0, 1.0, 1.0), m);
+            b.set_name("tour_plant_inside");
+            b.position().set(v.x, v.y, v.z);
+            b.user().placer = Some("tour_plant_inside".into());
+            g.world.add(&b);
+            println!("planted a box round the eye of {}", v.name);
+        }
+        // a flat-coloured box on the floor 0.9 m along the edge to the left,
+        // its face 5 cm off the edge (in the left look): no picture, no wear
+        "flat" => {
+            let (lx, lz) = (
+                -(v.yaw + std::f64::consts::FRAC_PI_2).sin() * 0.9 - fx * 0.05,
+                -(v.yaw + std::f64::consts::FRAC_PI_2).cos() * 0.9 - fz * 0.05,
+            );
+            let m = engine::material::Mat::lambert();
+            m.color(0x3060c0u32);
+            m.m().wear = 0.0;
+            let b = engine::scene::mesh(engine::geometry::box_geometry(0.4, 0.4, 0.4, 1.0, 1.0, 1.0), m);
+            b.set_name("tour_plant_flat");
+            let y = g.floor_y_at(v.x, v.z);
+            b.position().set(v.x + lx, y + 0.2, v.z + lz);
+            b.user().placer = Some("tour_plant_flat".into());
+            g.world.add(&b);
+            println!("planted a flat box beside {}", v.name);
+        }
+        other => panic!("--tour-plant {other}: hole, fight, inside or flat"),
     }
 }
