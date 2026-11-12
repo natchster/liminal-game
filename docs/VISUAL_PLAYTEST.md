@@ -78,18 +78,20 @@ never the gate. What the design took:
    foot; standing and crouched; corners too. Deterministic (no draw from
    any stream), sampled across the level to a budget, filtered to an area
    when asked.
-2. **Four renders a view** (`backrooms --tour`): the look as a player sees
+2. **Five renders a view** (`backrooms --tour`): the look as a player sees
    it (the HUD's grain and vignette on, the lamp lit where it is dark); and,
    bare (no HUD layer, so no grain to change between them), the scene
    cleared to magenta, cleared to green, and cleared to magenta again with
-   the camera moved by a hair (2 mm and 0.02°). The colour filter runs over
-   the whole frame, the clear colour too, so the background is found where
-   the two bare renders differ, not by matching a colour: a magenta surface
-   cannot pass for a hole.
-3. **Detectors**, each a number and a picture: *gaps* (the sentinel where
-   geometry should be: small or enclosed magenta, or any at all where the
-   level is enclosed), *flicker* (pixels that change between the look and
-   the jittered render away from edges: z-fighting) with *coplanar* (faces
+   the camera turned by 0.02° (about a tenth of a pixel) one way and then
+   the other. The colour filter runs over the whole frame, the clear colour
+   too, so the background is found where the two clears differ, not by
+   matching a colour: a magenta surface cannot pass for a hole.
+3. **Detectors**, each a number and a picture: *gaps* (the background
+   where a ray from the eye meets, within 40 m, what of the level stops a
+   look: a solid other than the void's, taken 3 cm inside its faces, and
+   in the rooms a wall tile, the floor and the ceiling), *flicker* (pixels
+   both turned renders change: a hard edge crosses a sample point one way
+   only, two surfaces fighting for one depth flip either way) with *coplanar* (faces
    of different things in reach that lie on one plane and overlap), *clip*
    (the near face's corners or the eye inside a solid or within a thing's
    bounds), *plain* (in view and near: a flat-coloured, an unlit or a
@@ -117,7 +119,7 @@ code and design review whose findings are fixed.
 |---|---|---|
 | VP0 | This plan; the research | committed |
 | VP1 | **The tour**: edge stands and their views, corners, crouched, sampled to a budget, an area | tests: every stand is one a body can stand on, near its edge, the same twice, spread over the level, inside an area when given |
-| VP2 | **Renders and the pixel detectors**: `backrooms --tour`, four renders a view; *gaps* (the background where a ray from the eye meets the level's own walls, floors, masses or ceiling within reach: a hole, not the open void) and *flicker* (the jitter diff away from edges) | known answers: a hole cut into a wall and a fighting pair put into a level are each found; a clean view, and the void seen over a parapet, are not |
+| VP2 | **Renders and the pixel detectors**: `backrooms --tour`, five renders a view; *gaps* (the background where a ray from the eye meets the level's own walls, floors, masses or ceiling within reach: a hole, not the open void) and *flicker* (changed by a turn either way) | known answers: a hole cut into a wall and a fighting pair put into a level are each found; a clean view, and the void seen over a parapet, are not |
 | VP3 | **The geometric detectors**: *clip* (the near face's corners or the eye in a solid or a thing; the body standing inside a thing), *coplanar* (faces of different things on one plane, overlapping), *plain* (a flat-coloured, unlit or glowing material in view and near), a thing flagged when several views agree | known answers: a camera inside a thing, a coplanar pair and a flat-coloured thing are each found; a clean level's counts recorded |
 | VP4 | **The report**: `cargo xtask playtest visual`, ranked findings, a strip a flagged view (the look, the gaps, the flicker), contact sheets, `findings.tsv` | a run on a floor of the rooms and one of the Building, looked at |
 | VP5 | **The skill and the reviewer**: `.claude/skills/visual-playtest`, `.claude/agents/visual-inspector.md`, `CLAUDE.md` (the commands; after a major change, the places it touched), `AGENTS.md`, `DEVELOPMENT.md` | the structure test; the skill followed by a fresh agent on one area |
@@ -131,4 +133,5 @@ code and design review whose findings are fixed.
 | # | Commit | Notes |
 |---|---|---|
 | VP0 | 7c98223 | the plan; the research (`research/visual-qa.md`, `SOURCES.md` 18) folded in with VP1 |
-| VP1 | (this commit) | `game::debug::tour`: `Game::standable` (on the grid, off the wall tiles, on walked ground, the body's 0.20 m circle clear of every solid), `tour_stands` (each tile walked along both axes from its middle and 1.2 m either side, in 2 cm steps, until a body is stopped; the edge named by what is beyond: `wall`, `mass`, `void`, `step`, `grid`, or `solid` for a thing inside the tile; a corner where it is stopped again within 0.6 m sideways), `tour_views` (stands chosen farthest-first to a budget; six looks from an edge, three from a corner). Seed 4242: the Building's level 1 has 1190 stands (865 at a mass, 249 over the void, 76 at a solid), level 5 of the rooms 3104 (all walls: no prop there stops a body). Tests: `crates/backrooms/tests/visual_tour.rs` |
+| VP1 | 95b92a6 | `game::debug::tour`: `Game::standable` (on the grid, off the wall tiles, on walked ground, the body's 0.20 m circle clear of every solid), `tour_stands` (each tile walked along both axes from its middle and 1.2 m either side, in 2 cm steps, until a body is stopped; the edge named by what is beyond: `wall`, `mass`, `void`, `step`, `grid`, or `solid` for a thing inside the tile; a corner where it is stopped again within 0.6 m sideways), `tour_views` (stands chosen farthest-first to a budget; six looks from an edge, three from a corner). Seed 4242: the Building's level 1 has 1190 stands (865 at a mass, 249 over the void, 76 at a solid), level 5 of the rooms 3104 (all walls: no prop there stops a body). Tests: `crates/backrooms/tests/visual_tour.rs` |
+| VP2 | (this commit) | `backrooms --tour DIR` (`crates/backrooms/src/tour.rs`; `--tour-budget`, `--tour-area`, `--tour-plant hole\|fight`; `TOUR_DEBUG=VIEW` traces the gap rays): five renders a view, `DIR/L<n>/views.tsv` (each view's `--shots-at` camera, its background, gaps and flicker) and the looks, the flagged views' masks painted (`_gaps.png`, `_flicker.png`); `game::debug::sight` (the background from two clears, the gap rays, the flicker of two turns, blobs; `View` now carries its edge). What it took to make it true, each seen in the frames: the solids' void box stops a body and no look (asking it, every look up in the Well was a hole), a solid stands a few cm proud of what is drawn of it (a ray at the sky's rim grazed it: taken 3 cm inside), the gap rays every second pixel (a crack a pixel wide), and one turn alone flagged every hard bright edge (a lamp's outline, a door's lit gap: 47 views on the three floors; two turns, 7). Seed 4242, 120 views a floor (29 s for four): the Building's floors no gaps, flicker in 1, 6 and 0 views (small: a plaque, a ledge; to be judged on the tour of VP6); level 5 of the rooms a hairline crack along a ceiling seam seen from three views, a hole over a wall where two ceilings meet (5,482 px) and the background through a far window's edge: the first real findings. Known answers (`tests/visual_tour.rs`): the hole planted found (78,720 px, the clean view 0), the fight found looking up past it (1,669 px; 0 clean), the Works' eight views into the void with the background in them free of gaps |

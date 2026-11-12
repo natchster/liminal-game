@@ -11,6 +11,8 @@ use objc2::runtime::ProtocolObject;
 use objc2_metal::{MTLCommandBuffer, MTLCreateSystemDefaultDevice, MTLTexture};
 use std::time::Instant;
 
+mod tour;
+
 /// Every prop placer, by its registered name.
 fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
     placers_p00::register(r);
@@ -133,6 +135,14 @@ struct Options {
     /// contract; with `--screenshot` and `--cut-at T` the frame at T
     cutscene: Option<String>,
     stage: Option<String>,
+    /// `--tour DIR`: the visual playtest's renders (`tour.rs`,
+    /// `docs/VISUAL_PLAYTEST.md`) of `--levels`, `--tour-budget N` views a
+    /// level (180), inside `--tour-area x0,z0,x1,z1` (world metres) if given,
+    /// with `--tour-plant hole|fight` a known fault at its first stand
+    tour: Option<String>,
+    tour_budget: usize,
+    tour_area: Option<[f64; 4]>,
+    tour_plant: Option<String>,
     sheet: Option<String>,
     bundle: Option<String>,
     every: f64,
@@ -168,6 +178,10 @@ fn parse_args() -> Options {
         fresh: false,
         cutscene_check: None,
         cutscene: None,
+        tour: None,
+        tour_budget: 180,
+        tour_area: None,
+        tour_plant: None,
         stage: None,
         sheet: None,
         bundle: None,
@@ -245,6 +259,17 @@ fn parse_args() -> Options {
                 o.fresh = true;
             }
             "--stage" => o.stage = Some(next(&mut i)),
+            // (a tour's renders are the same every time: as --fresh)
+            "--tour" => {
+                o.tour = Some(next(&mut i));
+                o.fresh = true;
+            }
+            "--tour-budget" => o.tour_budget = next(&mut i).parse().unwrap_or(180),
+            "--tour-area" => {
+                let n: Vec<f64> = next(&mut i).split(',').filter_map(|x| x.trim().parse().ok()).collect();
+                o.tour_area = (n.len() == 4).then(|| [n[0], n[1], n[2], n[3]]);
+            }
+            "--tour-plant" => o.tour_plant = Some(next(&mut i)),
             "--sheet" => o.sheet = Some(next(&mut i)),
             "--bundle" => o.bundle = Some(next(&mut i)),
             "--every" => o.every = next(&mut i).parse().unwrap_or(0.25),
@@ -266,6 +291,7 @@ fn parse_args() -> Options {
                 println!("          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)");
                 println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
                 println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
+                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-plant hole|fight]]   the visual playtest's renders and pixel detectors (DIR/L<n>/views.tsv)");
                 std::process::exit(0);
             }
             _ => {}
@@ -294,7 +320,8 @@ fn make_game(o: &Options) -> Game {
         || o.metrics.is_some()
         || o.bench.is_some()
         || o.bench_creatures.is_some()
-        || o.cutscene.is_some();
+        || o.cutscene.is_some()
+        || o.tour.is_some();
     // a recorded or replayed session starts like a fresh install, so the two
     // start alike (their per-frame seed is set in `main`)
     let session = o.record.is_some() || o.replay.is_some();
@@ -367,13 +394,26 @@ fn draw(
     w_px: usize,
     h_px: usize,
 ) -> Retained<ProtocolObject<dyn MTLCommandBuffer>> {
+    draw_with(g, r, target, w_px, h_px, true)
+}
+
+/// Render the game's scene into `target`, with its HUD layers or bare (no
+/// grain, no vignette, no text: the visual playtest's renders)
+fn draw_with(
+    g: &mut Game,
+    r: &mut Renderer,
+    target: &ProtocolObject<dyn objc2_metal::MTLTexture>,
+    w_px: usize,
+    h_px: usize,
+    hud: bool,
+) -> Retained<ProtocolObject<dyn MTLCommandBuffer>> {
     if g.want_warm_up {
         g.want_warm_up = false;
         let gl = globals(g);
         r.warm_up(&g.scene, &gl);
     }
     let gl = globals(g);
-    let layers = g.hud_layers(g.view_width, g.view_height, g.scale_factor);
+    let layers = if hud { g.hud_layers(g.view_width, g.view_height, g.scale_factor) } else { vec![] };
     // borrow the canvases for the duration of the render
     let guards: Vec<Option<std::cell::Ref<'_, engine::canvas::Canvas>>> = layers
         .iter()
@@ -1333,6 +1373,10 @@ fn main() {
     }
     if let Some(d) = o.dump_level.clone() {
         level_check(&o, &d);
+        return;
+    }
+    if let Some(d) = o.tour.clone() {
+        tour::tour(&o, &d);
         return;
     }
     if let Some(id) = o.cutscene.clone() {

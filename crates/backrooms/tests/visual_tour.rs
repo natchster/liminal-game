@@ -1,11 +1,14 @@
-//! The visual playtest's tour (`docs/VISUAL_PLAYTEST.md` VP1): every stand
-//! is one a body can stand on, at an edge it cannot pass, facing it; the
-//! tour is the same twice; it is spread over the level; it keeps to an area
-//! and a budget; it looks up, down, along and crouched.
+//! The visual playtest (`docs/VISUAL_PLAYTEST.md`). The tour (VP1): every
+//! stand is one a body can stand on, at an edge it cannot pass, facing it;
+//! the tour is the same twice; it is spread over the level; it keeps to an
+//! area and a budget; it looks up, down, along and crouched. Its renders and
+//! pixel detectors (VP2, `backrooms --tour`): a hole and a fight planted are
+//! found, the clean view and the void over a parapet are not.
 //!
 //!   cargo test --release -p backrooms --test visual_tour -- --nocapture   # stands and views per floor
 mod common;
 
+use game::debug::sight::FLAG_PX;
 use game::debug::tour::{TourOpts, BODY};
 use game::prelude::{CROUCH_EYE, EYE};
 use game::Game;
@@ -106,4 +109,80 @@ fn an_area_keeps_the_tour_inside_it() {
     }
     // nothing at all for an area off the level
     assert!(g.tour_views(&TourOpts { budget: 60, area: Some([1e4, 1e4, 1e4 + 8.0, 1e4 + 8.0]) }).is_empty());
+}
+
+/// A view's row of `views.tsv`
+#[derive(Debug)]
+struct Row {
+    name: String,
+    look: String,
+    edge: String,
+    background: usize,
+    gaps: usize,
+    flicker: usize,
+}
+
+/// `backrooms --tour` on one floor (the real renders), its rows
+fn toured(name: &str, level: i32, extra: &[&str]) -> Vec<Row> {
+    let dir = format!("{}/visual_tour/{name}", env!("CARGO_TARGET_TMPDIR"));
+    let _ = std::fs::remove_dir_all(&dir);
+    let l = level.to_string();
+    let mut args = vec!["--tour", &dir, "--seed", "4242", "--levels", &l, "--width", "480", "--height", "300"];
+    args.extend_from_slice(extra);
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_backrooms")).args(&args).output().expect("run backrooms --tour");
+    assert!(out.status.success(), "{}\n{}", String::from_utf8_lossy(&out.stdout), String::from_utf8_lossy(&out.stderr));
+    println!("{name}: {}", String::from_utf8_lossy(&out.stdout).trim());
+    let tsv = std::fs::read_to_string(format!("{dir}/L{level}/views.tsv")).expect("views.tsv");
+    let mut lines = tsv.lines();
+    let head: Vec<&str> = lines.next().unwrap().split('\t').collect();
+    let col = |n: &str| head.iter().position(|h| *h == n).unwrap_or_else(|| panic!("no column {n}"));
+    lines
+        .map(|line| {
+            let c: Vec<&str> = line.split('\t').collect();
+            let num = |n: &str| c[col(n)].parse::<usize>().unwrap();
+            Row {
+                name: c[col("name")].into(),
+                look: c[col("look")].into(),
+                edge: c[col("edge")].into(),
+                background: num("background"),
+                gaps: num("gaps"),
+                flicker: num("flicker"),
+            }
+        })
+        .collect()
+}
+
+/// The detectors' known answers (`docs/VISUAL_PLAYTEST.md` VP2): a hole
+/// cut where the tour's first stand faces a wall is found in the view facing
+/// it, and two squares fighting for one depth before its eye are found where
+/// it sees them at a grazing angle (looking up past them: face on, their
+/// fight is thin lines that move like an edge); the same views of the floor
+/// as built are clean
+#[test]
+fn a_planted_hole_and_fight_are_found_and_the_clean_views_are_not() {
+    let clean = toured("clean", 5, &["--tour-budget", "6"]);
+    let hole = toured("hole", 5, &["--tour-budget", "6", "--tour-plant", "hole"]);
+    let fight = toured("fight", 5, &["--tour-budget", "6", "--tour-plant", "fight"]);
+    let view = |rows: &[Row], look: &str| rows.iter().find(|r| r.look == look).map(|r| (r.name.clone(), r.gaps, r.flicker)).unwrap();
+    for look in ["at", "up"] {
+        let (c, h, f) = (view(&clean, look), view(&hole, look), view(&fight, look));
+        println!("{look}: clean {c:?} hole {h:?} fight {f:?}");
+        assert!(c.1 < FLAG_PX && c.2 < FLAG_PX, "the clean view: {c:?}");
+    }
+    assert!(view(&hole, "at").1 >= FLAG_PX, "the hole is not found: {:?}", view(&hole, "at"));
+    assert!(view(&fight, "up").2 >= FLAG_PX, "the fight is not found: {:?}", view(&fight, "up"));
+}
+
+/// Looking over a parapet into the void, the background shows (nothing is
+/// drawn down there within the far plane) and it is no gap: on the Works,
+/// every view over the void with the background in it is clean of gaps
+#[test]
+fn the_void_over_a_parapet_is_not_a_gap() {
+    let rows = toured("void", 3, &["--tour-budget", "120"]);
+    let open: Vec<&Row> = rows.iter().filter(|r| r.edge == "void" && r.background > 1000).collect();
+    println!("{} views over the void with the background in them", open.len());
+    assert!(open.len() >= 3, "{rows:?}");
+    for r in &open {
+        assert!(r.gaps < FLAG_PX, "the void is not a hole: {r:?}");
+    }
 }

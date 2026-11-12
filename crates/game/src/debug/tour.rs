@@ -44,6 +44,9 @@ pub struct View {
     pub stand: usize,
     /// at, left, right, up, down, crouch
     pub look: &'static str,
+    /// its stand's edge (`Stand::edge`), and whether it is a corner
+    pub edge: &'static str,
+    pub corner: bool,
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -121,12 +124,19 @@ impl Game {
         for tz in 0..self.h {
             for tx in 0..self.w {
                 let (cx, cz) = (self.wx(tx), self.wz(tz));
+                // (a tile whose walks cannot end inside the area is not walked)
+                if area.is_some_and(|a| {
+                    let (dx, dz) = ((a[0].min(a[2]) - cx).max(cx - a[0].max(a[2])), (a[1].min(a[3]) - cz).max(cz - a[1].max(a[3])));
+                    dx > CELL || dz > CELL
+                }) {
+                    continue;
+                }
                 for d in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
                     let (dx, dz) = (d.0 as f64, d.1 as f64);
                     for lane in LANES {
                         // across the walk: (-dz, dx)
                         let (x0, z0) = (cx - dz * lane, cz + dx * lane);
-                        if !self.standable(x0, z0) || !inside(x0, z0) {
+                        if !self.standable(x0, z0) {
                             continue;
                         }
                         let floor = self.floor_y_at(x0, z0);
@@ -205,6 +215,8 @@ impl Game {
                     name: format!("L{}_{n:03}{}_{look}", self.level_num, if s.corner { "c" } else { "" }),
                     stand: k,
                     look,
+                    edge: s.edge,
+                    corner: s.corner,
                     x: s.x,
                     y: s.floor + if crouch { CROUCH_EYE } else { EYE },
                     z: s.z,

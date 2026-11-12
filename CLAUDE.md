@@ -73,6 +73,7 @@ cargo test --release -p backrooms --test personas -- --nocapture  # explorer, ru
 cargo test --release -p backrooms --test asides -- --nocapture    # your asides on real floors: what was weighed, said, let go, and why
 cargo test --release -p backrooms --test cutscenes                 # the cutscene player, and every cutscene's contract on each of its stages
 cargo run --release -- --cutscene ID [--stage S] --sheet DIR [--every 0.25]   # one cutscene's frames, sheet, timeline, contract (or --screenshot F --cut-at T)
+cargo run --release -- --tour DIR --seed 4242 --levels 1,2,3 [--tour-budget 180] [--tour-area x0,z0,x1,z1] --width 640 --height 400   # the visual playtest's renders: the edges' views, gaps and flicker (DIR/L<n>/views.tsv)
 ```
 
 Re-recording reference data (only after an intended change; say why in the commit):
