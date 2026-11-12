@@ -11,6 +11,7 @@ use objc2::runtime::ProtocolObject;
 use objc2_metal::{MTLCommandBuffer, MTLCreateSystemDefaultDevice, MTLTexture};
 use std::time::Instant;
 
+mod sheet;
 mod tour;
 
 /// Every prop placer, by its registered name.

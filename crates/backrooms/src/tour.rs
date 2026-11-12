@@ -7,7 +7,11 @@
 //! (`game::debug::sight`) read the bare four: *gaps* and *flicker*. Writes `DIR/L<n>/views.tsv` (a row a view:
 //! its camera for `--shots-at`, the background, the gaps and the flicker),
 //! each view's look as `NAME.png`, and for a view flagged its masks painted
-//! over the bare render (`NAME_gaps.png`, `NAME_flicker.png`).
+//! over the bare render (`NAME_gaps.png`, `NAME_flicker.png`); and contact
+//! sheets, each tile named: `sheet_gaps.png` and `sheet_flicker.png` (the
+//! look beside its mask, the largest first), `sheet_things.png` (the first
+//! view of each flagged thing, named with what it is) and `sheet_all_NN.png`
+//! (every view, small: for what no detector measures, a thing out of place).
 //!
 //! `TOUR_DEBUG=NAME` prints, for the view of that name, every 400th gap
 //! pixel's ray and what of the level it met (the tile, its ground, the
@@ -18,6 +22,7 @@
 //! `tests/visual_tour.rs`): `hole` hides the thing the stand faces (a hole
 //! where its wall was), `fight` stands two squares on one plane in front of
 //! its eye, each cut differently (they fight for the same depth).
+use crate::sheet::{self, Tile};
 use crate::{draw_with, make_game, Options};
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
@@ -74,6 +79,9 @@ pub fn tour(o: &Options, dir: &str) {
         std::fs::create_dir_all(&ldir).expect("create tour dir");
         let parts = things::parts(&g);
         let mut found: Vec<(String, Finding)> = vec![];
+        // each view's look at half size, and the flagged views' strips
+        let mut thumbs: Vec<(String, Vec<u8>, usize, usize)> = vec![];
+        let (mut gap_strips, mut flicker_strips): (Vec<(usize, Tile)>, Vec<(usize, Tile)>) = (vec![], vec![]);
         let mut tsv =
             String::from("name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\tclip\tbody\tplain\n");
         let (mut flag_gaps, mut flag_flicker) = (0, 0);
@@ -87,16 +95,24 @@ pub fn tour(o: &Options, dir: &str) {
             found.extend(here.into_iter().map(|f| (v.name.clone(), f)));
             let (tw, th) = (w, h);
             engine::png::write_rgba(&format!("{ldir}/{}.png", v.name), tw as u32, th as u32, &look).expect("write png");
+            let (half, hw, hh) = sheet::shrink(&look, tw, th, 2);
+            let strip = |p: &[u8], what: &str, n: usize| {
+                let (ph, _, _) = sheet::shrink(p, tw, th, 2);
+                Tile { px: sheet::side_by_side(&half, &ph, hw, hh), w: hw * 2, h: hh, label: format!("{} ({what} {n} px)", v.name) }
+            };
             if seen.gaps >= sight::FLAG_PX {
                 flag_gaps += 1;
                 let p = sight::paint(&a, &gaps, [255, 30, 30]);
                 engine::png::write_rgba(&format!("{ldir}/{}_gaps.png", v.name), tw as u32, th as u32, &p).expect("write png");
+                gap_strips.push((seen.gaps, strip(&p, "gaps", seen.gaps)));
             }
             if seen.flicker >= sight::FLAG_PX {
                 flag_flicker += 1;
                 let p = sight::paint(&a, &flicker, [30, 230, 255]);
                 engine::png::write_rgba(&format!("{ldir}/{}_flicker.png", v.name), tw as u32, th as u32, &p).expect("write png");
+                flicker_strips.push((seen.flicker, strip(&p, "flicker", seen.flicker)));
             }
+            thumbs.push((v.name.clone(), half, hw, hh));
             tsv.push_str(&format!(
                 "{}\t{}\t{}\t{}\t{}:{:.4},{:.4},{:.4},{:.5},{:.5}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                 v.name,
@@ -135,12 +151,66 @@ pub fn tour(o: &Options, dir: &str) {
             found.push((seen_from, f));
         }
         let (rows, flagged) = things::gather(&found);
-        std::fs::write(format!("{ldir}/findings.tsv"), rows).expect("write findings.tsv");
+        std::fs::write(format!("{ldir}/findings.tsv"), rows.clone()).expect("write findings.tsv");
+        write_sheets(&ldir, gap_strips, flicker_strips, &thumbs, &rows);
         println!(
             "level {l}: {} views, gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
             views.len(),
             flagged.iter().map(|(k, n)| format!("{k} {n}")).collect::<Vec<_>>().join(", ")
         );
+    }
+}
+
+/// At most this many tiles a sheet of the flagged (the largest first)
+const SHEET_MAX: usize = 24;
+/// Every view, small: this many a page
+const PAGE: usize = 48;
+
+/// The level's contact sheets (see the module's head)
+fn write_sheets(
+    ldir: &str,
+    mut gaps: Vec<(usize, Tile)>,
+    mut flicker: Vec<(usize, Tile)>,
+    thumbs: &[(String, Vec<u8>, usize, usize)],
+    findings: &str,
+) {
+    let write = |name: &str, tiles: &[Tile], cols: usize| {
+        if tiles.is_empty() {
+            return;
+        }
+        let (px, w, h) = sheet::sheet(tiles, cols);
+        engine::png::write_rgba(&format!("{ldir}/{name}"), w as u32, h as u32, &px).expect("write sheet");
+    };
+    for (name, list) in [("sheet_gaps.png", &mut gaps), ("sheet_flicker.png", &mut flicker)] {
+        list.sort_by_key(|(n, _)| std::cmp::Reverse(*n));
+        let tiles: Vec<Tile> = list.drain(..).take(SHEET_MAX).map(|(_, t)| t).collect();
+        write(name, &tiles, 2);
+    }
+    // the first view of each flagged thing, named with what it is
+    let mut tiles = vec![];
+    for row in findings.lines().skip(1) {
+        let c: Vec<&str> = row.split('\t').collect();
+        if c.len() < 10 || c[9] != "true" || c[4].is_empty() {
+            continue;
+        }
+        if let Some((_, px, w, h)) = thumbs.iter().find(|t| t.0 == c[4]) {
+            tiles.push(Tile { px: px.clone(), w: *w, h: *h, label: format!("{} {}: {} {}", c[4], c[0], c[1], c[2]) });
+        }
+        if tiles.len() == SHEET_MAX {
+            break;
+        }
+    }
+    write("sheet_things.png", &tiles, 3);
+    // every view, small
+    for (k, page) in thumbs.chunks(PAGE).enumerate() {
+        let tiles: Vec<Tile> = page
+            .iter()
+            .map(|(name, px, w, h)| {
+                let (q, qw, qh) = sheet::shrink(px, *w, *h, 2);
+                Tile { px: q, w: qw, h: qh, label: name.clone() }
+            })
+            .collect();
+        write(&format!("sheet_all_{:02}.png", k + 1), &tiles, 8);
     }
 }
 

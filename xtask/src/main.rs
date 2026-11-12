@@ -17,6 +17,7 @@
 //! cargo xtask nightly             drift sweep + long level sweep + recorded bench
 //! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/VOICES.md)
 //! cargo xtask cutscene check|write|list   the cutscene pipeline (docs/CUTSCENES.md)
+//! cargo xtask playtest visual   the visual playtest, by hand (docs/VISUAL_PLAYTEST.md)
 //! ```
 mod ab;
 mod assets;
@@ -30,6 +31,7 @@ mod drift;
 mod heatmap;
 mod hook;
 mod look;
+mod playtest;
 mod range;
 mod shots;
 mod testpool;
@@ -71,6 +73,10 @@ const USAGE: &str = "usage: cargo xtask <task>
   cutscene check | write | list
                              the cutscene pipeline (docs/CUTSCENES.md): the sources,
                              the compiled bundle and the game's rules
+  playtest visual [--seeds 4242,7] [--levels 1,2,3] [--budget 180] [--area x0,z0,x1,z1]
+                             the visual playtest (docs/VISUAL_PLAYTEST.md), by hand: the
+                             tour's renders and detectors, a report and contact sheets
+                             in target/xtask/playtest/visual/
   hook pre-edit|post-edit|stop|session
                              Claude Code hooks; read the hook JSON on stdin";
 
@@ -97,6 +103,7 @@ fn main() -> ExitCode {
         Some("nightly") => drift::nightly(rest),
         Some("voice") => voice::voice(rest),
         Some("cutscene") => cutscene::cutscene(rest),
+        Some("playtest") => playtest::playtest(rest),
         _ => {
             eprintln!("{USAGE}");
             return ExitCode::from(2);

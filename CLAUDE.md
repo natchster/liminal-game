@@ -52,6 +52,7 @@ cargo xtask voice write --persona P              # the chosen takes into crates/
 cargo xtask voice selftest                       # the evaluation against known answers
 cargo xtask cutscene check|write|list            # cutscenes: assets/src/cutscenes/*.toml → crates/game/assets/cutscenes.json, the game's rules
 cargo xtask cutscene preview ID [--stage S]     # the sources as they stand, played on each stage: frames, a contact sheet, timeline, contract (target/xtask/cutscene/ID/)
+cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--area x0,z0,x1,z1]   # by hand, never in check: the edges toured, gaps, flicker, clip, plain, coplanar; report.md, sheets (target/xtask/playtest/visual/)
 cargo run --release            # play
 cargo xtask bundle             # dist/Backrooms.app (signed)
 ```
