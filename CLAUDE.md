@@ -132,6 +132,11 @@ back with its `ERROR` lines). See `docs/DEVELOPMENT.md`.
 - A change you can see or hear ends in evidence: a headless PNG you looked
   at, a `listen` WAV/PNG, or a `pacing` log — not a description.
 - Docs that describe what you changed are updated in the same commit.
+- After a major change (level generation, the architecture, a placer or
+  core prop, materials, textures, lighting, the camera), the visual
+  playtest on every level or place it touched (`visual-playtest`: `cargo
+  xtask playtest visual --levels … [--area …]`), its findings read and
+  recorded in `docs/playtests/visual/`, and fixed or said why not.
 - If the same mistake happens twice, add a rule, lint or test so it cannot
   happen a third time (see the roadmap's "steering loop").
 
@@ -159,13 +164,17 @@ Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
 voices: `voice-persona` (who speaks: the persona, its reference voice),
 `voice-lines` (its lines, made, judged and into the game) and `voice-eval`
 (reading the evaluation, a bake-off, changing a threshold only through
-known answers), and `add-cutscene` (a moment that borrows your eyes: its
-source, trigger, stage, preview, contract and goldens). Each ends in its
-gates, evidence and a `docs/content.json` entry.
+known answers), `add-cutscene` (a moment that borrows your eyes: its
+source, trigger, stage, preview, contract and goldens), and
+`visual-playtest` (the edges of an area, a level or a set toured: gaps,
+flicker, clipping, things out of place; reproduced, recorded, fixed, toured
+again). Each ends in its gates, evidence and a `docs/content.json` entry
+(the playtest in `docs/playtests/visual/`).
 
 Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from
 `cargo xtask ab prepare`, scored with `cargo xtask ab score`), `lore-keeper`,
-`level-analyst`, `audio-analyst`, `code-reviewer`. Fear, sound quality and
+`level-analyst`, `audio-analyst`, `code-reviewer`, `visual-inspector` (a
+visual playtest's report and sheets: a filter, never the gate). Fear, sound quality and
 taste are finally decided by people: `docs/PLAYTEST.md` is the session
 script, and their verdicts calibrate the reviewers.

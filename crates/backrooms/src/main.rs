@@ -144,6 +144,10 @@ struct Options {
     tour_budget: usize,
     tour_area: Option<[f64; 4]>,
     tour_plant: Option<String>,
+    /// `--tour-at "NAME:x,y,z,yaw,pitch;…"`: with `--tour`, these cameras
+    /// instead of the tour's (a finding seen again exactly, every mask and
+    /// the bare and turned renders written)
+    tour_at: Vec<(String, [f64; 5])>,
     sheet: Option<String>,
     bundle: Option<String>,
     every: f64,
@@ -183,6 +187,7 @@ fn parse_args() -> Options {
         tour_budget: 180,
         tour_area: None,
         tour_plant: None,
+        tour_at: vec![],
         stage: None,
         sheet: None,
         bundle: None,
@@ -271,6 +276,16 @@ fn parse_args() -> Options {
                 o.tour_area = (n.len() == 4).then(|| [n[0], n[1], n[2], n[3]]);
             }
             "--tour-plant" => o.tour_plant = Some(next(&mut i)),
+            "--tour-at" => {
+                o.tour_at = next(&mut i)
+                    .split(';')
+                    .filter_map(|v| {
+                        let (name, rest) = v.split_once(':')?;
+                        let n: Vec<f64> = rest.split(',').filter_map(|x| x.trim().parse().ok()).collect();
+                        (n.len() == 5).then(|| (name.trim().to_string(), [n[0], n[1], n[2], n[3], n[4]]))
+                    })
+                    .collect()
+            }
             "--sheet" => o.sheet = Some(next(&mut i)),
             "--bundle" => o.bundle = Some(next(&mut i)),
             "--every" => o.every = next(&mut i).parse().unwrap_or(0.25),
@@ -292,7 +307,7 @@ fn parse_args() -> Options {
                 println!("          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)");
                 println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
                 println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
-                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-plant hole|fight]]   the visual playtest's renders and pixel detectors (DIR/L<n>/views.tsv)");
+                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-plant hole|fight|inside|flat] [--tour-at \"NAME:x,y,z,yaw,pitch;…\"]]   the visual playtest's renders and detectors (DIR/L<n>/views.tsv, findings.tsv, sheets)");
                 std::process::exit(0);
             }
             _ => {}
@@ -1015,6 +1030,9 @@ fn level_check(o: &Options, dir: &str) {
                     // seen as a player sees it in the dark: by the lamp
                     g.player.flashlight_on = g.region_light_at(g.tx(*x), g.tz(*z)) < 0.3;
                     g.player.battery = game::prelude::BAT_MAX;
+                    // the lamps' pooled light as it settles there (as the tour: a
+                    // finding of the tour is seen again in its own light)
+                    g.snap_pooled_lights();
                     g.prop_cull.t = 0.0;
                     g.fixed_step_dt = 1.0 / 60.0;
                     g.frame(1.0 / 60.0);

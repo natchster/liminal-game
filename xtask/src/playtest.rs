@@ -4,14 +4,18 @@
 //! detectors and its contact sheets), and writes one report of what they
 //! found, the flagged first: `target/xtask/playtest/visual/report.md` and
 //! `findings.tsv` (every finding of every floor, with its seed and level).
-//! Run by hand, never by `cargo xtask check`.
+//! The run before is kept beside it (`visual.prev/`: the tour again is
+//! compared with it; the tour is the same byte for byte when nothing
+//! changed). Run by hand, never by `cargo xtask check`.
 use crate::{cargo, flag, opt, root, run};
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 pub const USAGE: &str = "usage: cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--budget 180]
-                              [--area x0,z0,x1,z1] [--size 640x400] [--out DIR] [--no-build]";
+                              [--area x0,z0,x1,z1] [--size 640x400] [--out DIR] [--no-build]
+  (the game's own flags: --tour-budget, --tour-area, --width/--height; --out defaults to
+   target/xtask/playtest/visual/, the run before it kept as visual.prev/)";
 
 /// A view's row of `views.tsv`
 #[derive(Clone, Debug, Default)]
@@ -93,7 +97,12 @@ fn visual(args: &[String]) -> Result<(), String> {
     if !flag(args, "--no-build") {
         run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     }
-    let _ = std::fs::remove_dir_all(&out);
+    // the run before is kept beside it, to compare the tour again with
+    if out.exists() {
+        let prev = out.with_extension("prev");
+        let _ = std::fs::remove_dir_all(&prev);
+        std::fs::rename(&out, &prev).map_err(|e| format!("{} → {}: {e}", out.display(), prev.display()))?;
+    }
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
     let t0 = std::time::Instant::now();
     for seed in &seeds {
@@ -130,6 +139,16 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         seeds.join(", ")
     )
     .unwrap();
+    writeln!(
+        md,
+        "Columns: *views*, the tour's of all the floor (or area) holds (a budget under that leaves stands out); \
+         *background*, views where nothing is drawn somewhere (the sky, the void, beyond the far plane: not a fault in itself); \
+         *gaps* and *flicker*, views flagged at {FLAG_PX} px or more; *clip*, *body*, *plain* (with unlit and glow) and \
+         *coplanar*, things flagged (plain when two views agree); *alike*, coplanar faces of one material, listed only. \
+         In the pictures the gaps are red, the flicker cyan, the rest the bare render dimmed (the background there magenta). \
+         Sizes: clip and body in metres inside, plain in the share of the frame, coplanar in m² of overlap.\n"
+    )
+    .unwrap();
     writeln!(md, "| Seed | Level | Views | Background | Gaps | Flicker | Clip | Body | Plain (flagged) | Coplanar (flagged / alike) |")
         .unwrap();
     writeln!(md, "|---|---|---|---|---|---|---|---|---|---|").unwrap();
@@ -145,12 +164,16 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         for (l, ldir) in ls {
             let vs = views(&ldir.join("views.tsv"))?;
             let fs = findings(&ldir.join("findings.tsv"))?;
+            let of = std::fs::read_to_string(ldir.join("meta.tsv"))
+                .ok()
+                .and_then(|m| m.lines().find_map(|l| l.strip_prefix("of\t").map(String::from)))
+                .unwrap_or_else(|| vs.len().to_string());
             let flagged = |k: &str| fs.iter().filter(|f| f.kind == k && f.flagged).count();
             let gaps = vs.iter().filter(|v| v.gaps >= FLAG_PX).count();
             let flicker = vs.iter().filter(|v| v.flicker >= FLAG_PX).count();
             writeln!(
                 md,
-                "| {seed} | {l} | {} | {} | {gaps} | {flicker} | {} | {} | {} | {} / {} |",
+                "| {seed} | {l} | {} of {of} | {} | {gaps} | {flicker} | {} | {} | {} | {} / {} |",
                 vs.len(),
                 vs.iter().filter(|v| v.background > 0).count(),
                 flagged("clip"),
@@ -215,7 +238,14 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
                     "coplanar" => format!("{:.4} m² overlap", f.size),
                     _ => format!("{:.0}% of the frame", f.size * 100.0),
                 };
-                let seen = if f.view.is_empty() { "no view sees it".to_string() } else { format!("`--shots-at \"{}\"`", cam(&f.view)) };
+                let seen = if f.view.is_empty() {
+                    "no view sees it".to_string()
+                } else if matches!(kind, "clip" | "body") {
+                    // from inside a thing it is not drawn: a camera stepped back sees what vanished
+                    format!("`--shots-at \"{}\"`, stepped back: `--shots-at \"{}\"`", cam(&f.view), stepped_back(&cam(&f.view), 0.6))
+                } else {
+                    format!("`--shots-at \"{}\"`", cam(&f.view))
+                };
                 writeln!(md, "- {} `{}` ({size}, {} views, first `{}`): {seen}; at {}", f.label, f.mesh, f.views, f.view, f.at).unwrap();
             }
             if list.len() > 12 {
@@ -238,6 +268,17 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
 /// A view is flagged for gaps or flicker at this many pixels (as
 /// `game::debug::sight::FLAG_PX`)
 const FLAG_PX: usize = 12;
+
+/// A `--shots-at` camera `NAME:x,y,z,yaw,pitch` moved `d` metres back
+/// along its yaw (forward is (-sin yaw, -cos yaw)), named `NAME_back`
+fn stepped_back(cam: &str, d: f64) -> String {
+    let Some((name, rest)) = cam.split_once(':') else { return cam.to_string() };
+    let n: Vec<f64> = rest.split(',').filter_map(|x| x.parse().ok()).collect();
+    if n.len() != 5 {
+        return cam.to_string();
+    }
+    format!("{name}_back:{:.4},{:.4},{:.4},{:.5},{:.5}", n[0] + n[3].sin() * d, n[1], n[2] + n[3].cos() * d, n[3], n[4])
+}
 
 #[cfg(test)]
 mod tests {
@@ -264,7 +305,13 @@ mod tests {
         )
         .unwrap();
         let md = report(&out, &["7".to_string()], "2", "60", &[]).unwrap();
-        assert!(md.contains("| 7 | 2 | 3 | 2 | 2 | 1 | 1 | 0 | 0 | 0 / 0 |"), "{md}");
+        assert!(md.contains("| 7 | 2 | 3 of 3 | 2 | 2 | 1 | 1 | 0 | 0 | 0 / 0 |"), "{md}");
+        // a clip comes with a camera stepped back from it
+        assert!(
+            md.contains("stepped back: `--shots-at \"L2_001_up_back:4.0000,5,6.6000,0.00000,1.00000\"`")
+                || md.contains("L2_001_up_back:4.0000,5.0000,6.6000"),
+            "{md}"
+        );
         // the larger gap first, with its camera to reproduce it
         let (a, b) = (md.find("`L2_001_up` (up, void edge): 500 px").unwrap(), md.find("`L2_000_at` (at, wall edge): 30 px").unwrap());
         assert!(a < b);

@@ -610,6 +610,15 @@ impl Game {
         self.camera.camera().aspect = aspect;
     }
 
+    /// The pooled lights as they settle for the player's place, at the next
+    /// light update and without their second of fading (a tool that puts the
+    /// camera somewhere renders the light a player standing there sees: the
+    /// tour, the census, `--shots-at`); play never calls it
+    pub fn snap_pooled_lights(&mut self) {
+        self.release_pooled_lights();
+        self.pool_snap = true;
+    }
+
     /// Drop every panel the pooled lights hold
     pub fn release_pooled_lights(&mut self) {
         for i in 0..self.pooled.len() {
@@ -691,7 +700,7 @@ impl Game {
                 self.pooled_w[li] = 0.0;
             }
         }
-        let k_fade = (dt * 5.0).min(1.0);
+        let k_fade = if std::mem::take(&mut self.pool_snap) { 1.0 } else { (dt * 5.0).min(1.0) };
         for li in 0..self.pooled.len() {
             let Some(pi) = self.pooled_panel[li] else { continue };
             let mut want = 0.0;

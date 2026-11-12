@@ -66,6 +66,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `voice-persona` | a voice persona: the canon check, the persona file, its designed reference voice and emotional references |
 | `voice-lines` | a persona's lines: made, judged, into the game's assets and code, heard, a person's ears |
 | `voice-eval` | the voice evaluation: reading the report, a bake-off between models, thresholds changed only through known answers |
+| `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
 | `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
 
 ## Reviewers
@@ -80,6 +81,7 @@ have the last word, and their verdicts calibrate the reviewers.
 | `lore-keeper` | a diff or new text, `docs/LORE.md`, `docs/PILLARS.md` | contradictions with the canon and broken rules of how lore reaches the player, with quotes |
 | `level-analyst` | the expressive-range report, the level sweep, the zone views | what changed in level generation and why; it explains, it does not approve |
 | `audio-analyst` | the loudness gate, `listen` renders, ambient logs | the numbers; never whether a sound is good (that is for ears) |
+| `visual-inspector` | a visual playtest's folder (its report.md, the sheets, the flagged pictures), `docs/VISUAL_PLAYTEST.md`, `docs/STYLE.md` | each detector's flag confirmed, false or unsure, and what the sheets show (out of place, clip, flicker, gap) with its view, severity and confidence: a filter for people, never the gate (vision models miss half and imagine clipping at near contact) |
 | `code-reviewer` | a diff, `CLAUDE.md`, `docs/DEVELOPMENT.md` | layering, determinism and module-size gaps; no style preferences |
 
 ## How they grow with the game

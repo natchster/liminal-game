@@ -184,7 +184,18 @@ impl Game {
     /// farthest from those already chosen, from the first in the grid's
     /// order), their looks, to `budget` views
     pub fn tour_views(&self, o: &TourOpts) -> Vec<View> {
+        self.tour(o).0
+    }
+
+    /// The tour's views and how many the level (or the area) has in all:
+    /// a budget under that leaves stands out
+    pub fn tour(&self, o: &TourOpts) -> (Vec<View>, usize) {
         let stands = self.tour_stands(o.area);
+        let all: usize = stands.iter().map(|s| if s.corner { CORNER_LOOKS.len() } else { EDGE_LOOKS.len() }).sum();
+        (self.tour_from(&stands, o), all)
+    }
+
+    fn tour_from(&self, stands: &[Stand], o: &TourOpts) -> Vec<View> {
         if stands.is_empty() {
             return vec![];
         }

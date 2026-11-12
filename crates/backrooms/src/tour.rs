@@ -8,10 +8,17 @@
 //! its camera for `--shots-at`, the background, the gaps and the flicker),
 //! each view's look as `NAME.png`, and for a view flagged its masks painted
 //! over the bare render (`NAME_gaps.png`, `NAME_flicker.png`); and contact
-//! sheets, each tile named: `sheet_gaps.png` and `sheet_flicker.png` (the
-//! look beside its mask, the largest first), `sheet_things.png` (the first
-//! view of each flagged thing, named with what it is) and `sheet_all_NN.png`
-//! (every view, small: for what no detector measures, a thing out of place).
+//! sheets, each tile named, twelve a page: `sheet_gaps_NN.png` and
+//! `sheet_flicker_NN.png` (the look beside its mask, the largest first),
+//! `sheet_things_NN.png` (the first view of each flagged thing, named with
+//! what it is) and `sheet_all_NN.png` (every view, 48 a page, small: for
+//! what no detector measures, a thing out of place). `meta.tsv` says how
+//! many views the tour had of how many the level (or area) holds.
+//!
+//! `--tour-at "NAME:x,y,z,yaw,pitch;…"` renders those cameras instead (a
+//! finding seen again exactly): every mask is written however small, and
+//! `NAME_bare.png`, `NAME_plus.png`, `NAME_minus.png` (the bare render and
+//! the two turns: flip between them to see a fight).
 //!
 //! `TOUR_DEBUG=NAME` prints, for the view of that name, every 400th gap
 //! pixel's ray and what of the level it met (the tile, its ground, the
@@ -71,7 +78,30 @@ pub fn tour(o: &Options, dir: &str) {
     let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
     for &l in &levels {
         g.load_level(l);
-        let views = g.tour_views(&TourOpts { budget: o.tour_budget, area: o.tour_area });
+        // the tour's views, or the cameras given (each its own stand, its look "at")
+        let (views, all) = if o.tour_at.is_empty() {
+            g.tour(&TourOpts { budget: o.tour_budget, area: o.tour_area })
+        } else {
+            let given: Vec<View> = o
+                .tour_at
+                .iter()
+                .map(|(name, c)| View {
+                    name: name.clone(),
+                    stand: 0,
+                    look: "at",
+                    edge: "given",
+                    corner: false,
+                    x: c[0],
+                    y: c[1],
+                    z: c[2],
+                    yaw: c[3],
+                    pitch: c[4],
+                })
+                .collect();
+            let n = given.len();
+            (given, n)
+        };
+        let exact = !o.tour_at.is_empty();
         if let (Some(p), Some(first)) = (&o.tour_plant, views.first()) {
             plant(&mut g, p, first);
         }
@@ -86,7 +116,13 @@ pub fn tour(o: &Options, dir: &str) {
             String::from("name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\tclip\tbody\tplain\n");
         let (mut flag_gaps, mut flag_flicker) = (0, 0);
         for v in &views {
-            let (seen, look, a, gaps, flicker) = render_view(&mut g, &mut r, &t, (w, h), v);
+            let (seen, look, a, gaps, flicker, turned) = render_view(&mut g, &mut r, &t, (w, h), v);
+            if exact {
+                // to flip between by eye: the bare render and the two turns
+                engine::png::write_rgba(&format!("{ldir}/{}_bare.png", v.name), tw_of(w), th_of(h), &a).expect("write png");
+                engine::png::write_rgba(&format!("{ldir}/{}_plus.png", v.name), tw_of(w), th_of(h), &turned.0).expect("write png");
+                engine::png::write_rgba(&format!("{ldir}/{}_minus.png", v.name), tw_of(w), th_of(h), &turned.1).expect("write png");
+            }
             let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
             let mut here = things::clip(&g, &parts, &eye);
             here.extend(things::plain(&parts, &eye));
@@ -100,13 +136,13 @@ pub fn tour(o: &Options, dir: &str) {
                 let (ph, _, _) = sheet::shrink(p, tw, th, 2);
                 Tile { px: sheet::side_by_side(&half, &ph, hw, hh), w: hw * 2, h: hh, label: format!("{} ({what} {n} px)", v.name) }
             };
-            if seen.gaps >= sight::FLAG_PX {
+            if seen.gaps >= sight::FLAG_PX || (exact && seen.gaps > 0) {
                 flag_gaps += 1;
                 let p = sight::paint(&a, &gaps, [255, 30, 30]);
                 engine::png::write_rgba(&format!("{ldir}/{}_gaps.png", v.name), tw as u32, th as u32, &p).expect("write png");
                 gap_strips.push((seen.gaps, strip(&p, "gaps", seen.gaps)));
             }
-            if seen.flicker >= sight::FLAG_PX {
+            if seen.flicker >= sight::FLAG_PX || (exact && seen.flicker > 0) {
                 flag_flicker += 1;
                 let p = sight::paint(&a, &flicker, [30, 230, 255]);
                 engine::png::write_rgba(&format!("{ldir}/{}_flicker.png", v.name), tw as u32, th as u32, &p).expect("write png");
@@ -153,16 +189,32 @@ pub fn tour(o: &Options, dir: &str) {
         let (rows, flagged) = things::gather(&found);
         std::fs::write(format!("{ldir}/findings.tsv"), rows.clone()).expect("write findings.tsv");
         write_sheets(&ldir, gap_strips, flicker_strips, &thumbs, &rows);
+        std::fs::write(
+            format!("{ldir}/meta.tsv"),
+            format!(
+                "seed\t{}\nlevel\t{l}\nviews\t{}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\n",
+                o.seed.unwrap_or(4242),
+                views.len(),
+                o.tour_budget,
+                o.tour_area
+            ),
+        )
+        .expect("write meta.tsv");
         println!(
-            "level {l}: {} views, gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
+            "level {l}: {} of {all} views, gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
             views.len(),
-            flagged.iter().map(|(k, n)| format!("{k} {n}")).collect::<Vec<_>>().join(", ")
+            if flagged.is_empty() {
+                "none".to_string()
+            } else {
+                flagged.iter().map(|(k, n)| format!("{k} {n}")).collect::<Vec<_>>().join(", ")
+            }
         );
     }
 }
 
-/// At most this many tiles a sheet of the flagged (the largest first)
-const SHEET_MAX: usize = 24;
+/// The flagged, the largest first: this many tiles a page, at most `SHEET_PAGES` pages
+const SHEET_MAX: usize = 12;
+const SHEET_PAGES: usize = 4;
 /// Every view, small: this many a page
 const PAGE: usize = 48;
 
@@ -181,10 +233,12 @@ fn write_sheets(
         let (px, w, h) = sheet::sheet(tiles, cols);
         engine::png::write_rgba(&format!("{ldir}/{name}"), w as u32, h as u32, &px).expect("write sheet");
     };
-    for (name, list) in [("sheet_gaps.png", &mut gaps), ("sheet_flicker.png", &mut flicker)] {
+    for (name, list) in [("gaps", &mut gaps), ("flicker", &mut flicker)] {
         list.sort_by_key(|(n, _)| std::cmp::Reverse(*n));
-        let tiles: Vec<Tile> = list.drain(..).take(SHEET_MAX).map(|(_, t)| t).collect();
-        write(name, &tiles, 2);
+        let tiles: Vec<Tile> = list.drain(..).take(SHEET_MAX * SHEET_PAGES).map(|(_, t)| t).collect();
+        for (k, page) in tiles.chunks(SHEET_MAX).enumerate() {
+            write(&format!("sheet_{name}_{:02}.png", k + 1), page, 2);
+        }
     }
     // the first view of each flagged thing, named with what it is
     let mut tiles = vec![];
@@ -196,11 +250,13 @@ fn write_sheets(
         if let Some((_, px, w, h)) = thumbs.iter().find(|t| t.0 == c[4]) {
             tiles.push(Tile { px: px.clone(), w: *w, h: *h, label: format!("{} {}: {} {}", c[4], c[0], c[1], c[2]) });
         }
-        if tiles.len() == SHEET_MAX {
+        if tiles.len() == SHEET_MAX * SHEET_PAGES {
             break;
         }
     }
-    write("sheet_things.png", &tiles, 3);
+    for (k, page) in tiles.chunks(SHEET_MAX).enumerate() {
+        write(&format!("sheet_things_{:02}.png", k + 1), page, 3);
+    }
     // every view, small
     for (k, page) in thumbs.chunks(PAGE).enumerate() {
         let tiles: Vec<Tile> = page
@@ -214,8 +270,16 @@ fn write_sheets(
     }
 }
 
+fn tw_of(w: usize) -> u32 {
+    w as u32
+}
+fn th_of(h: usize) -> u32 {
+    h as u32
+}
+
 /// One view's five renders and what the detectors made of them: (what was
-/// seen, the look, the bare render, the gaps mask, the flicker mask)
+/// seen, the look, the bare render, the gaps mask, the flicker mask, the two
+/// turned renders)
 #[allow(clippy::type_complexity)]
 fn render_view(
     g: &mut Game,
@@ -223,7 +287,7 @@ fn render_view(
     t: &ProtocolObject<dyn MTLTexture>,
     (w, h): (usize, usize),
     v: &View,
-) -> (Seen, Vec<u8>, Vec<u8>, Vec<bool>, Vec<bool>) {
+) -> (Seen, Vec<u8>, Vec<u8>, Vec<bool>, Vec<bool>, (Vec<u8>, Vec<u8>)) {
     // the body where the view stands, one step of play, then the eye exactly
     g.player.pos = Vec3::new(v.x, g.floor_y_at(v.x, v.z) + game::prelude::EYE, v.z);
     g.player.yaw = v.yaw;
@@ -231,6 +295,9 @@ fn render_view(
     // seen as a player sees it in the dark: by the lamp (as the census)
     g.player.flashlight_on = g.region_light_at(g.tx(v.x), g.tz(v.z)) < 0.3;
     g.player.battery = game::prelude::BAT_MAX;
+    // the lamps' pooled light as it settles there, not a second of fading
+    // in after the camera jumped (`--shots-at` does the same)
+    g.snap_pooled_lights();
     g.prop_cull.t = 0.0;
     g.fixed_step_dt = 1.0 / 60.0;
     g.frame(1.0 / 60.0);
@@ -307,7 +374,7 @@ fn render_view(
         flicker: count(&flicker),
         flicker_blob: largest(&flicker),
     };
-    (seen, look, a, gaps, flicker)
+    (seen, look, a, gaps, flicker, (plus, minus))
 }
 
 /// A known fault at the tour's first stand (`--tour-plant`)

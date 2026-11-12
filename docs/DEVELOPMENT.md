@@ -440,6 +440,15 @@ the photographed textures from the scripts in `assets/src/textures/` (see
 * **Nightly on the reference Mac:** `cargo xtask nightly` = the drift sweep,
   a 200-case level sweep and a recorded bench run.
 * `cargo xtask check --skip STEP,…` leaves steps out.
+* **The visual playtest** (`docs/VISUAL_PLAYTEST.md`), by hand and never
+  in the check: `cargo xtask playtest visual [--seeds …] [--levels …]
+  [--area x0,z0,x1,z1]` tours the edges of the walkable floor (`backrooms
+  --tour`), finds gaps, flicker, clipping, plain things and coplanar faces,
+  and writes a report and contact sheets under
+  `target/xtask/playtest/visual/`; the `visual-playtest` skill says when
+  (after any major change, on the places it touched) and what to do with
+  it, the `visual-inspector` looks, and `docs/playtests/visual/` keeps what each
+  found.
 
 ## Profiling and debugging
 
