@@ -55,9 +55,16 @@ pub struct Part {
     /// the geometry's own box, and the world box
     pub local: Box3,
     pub bounds: Box3,
-    /// small enough to be judged by its box (no side over `THING`): a
-    /// merged mesh of the architecture is not
+    /// small enough to be judged at all (no side over `THING`): a merged
+    /// mesh of the architecture is not
     pub sized: bool,
+    /// a box or a cylinder as made (its box is its shape); anything else (a
+    /// Blender part, a frame with an opening) is judged by its faces
+    pub boxy: bool,
+    /// its faces close round a volume (every edge shared by two of them), so
+    /// a point is inside it when a ray out crosses an odd number; a plane, a
+    /// shell or a frame is not, and nothing is ever inside it
+    pub closed: bool,
     pub obj: Obj,
 }
 
@@ -81,6 +88,7 @@ const THING: f64 = 6.0;
 /// props, the architecture), an instanced mesh's instances each a part
 pub fn parts(g: &Game) -> Vec<Part> {
     let mut out = vec![];
+    let mut closed_of: std::collections::HashMap<u64, bool> = Default::default();
     g.world.update_matrix_world(true);
     let mut level = 1usize << 40;
     for (k, root) in g.world.children().iter().enumerate() {
@@ -101,18 +109,33 @@ pub fn parts(g: &Game) -> Vec<Part> {
             if local.is_empty() {
                 return;
             }
+            // a body posed by morphs (a creature): its box is not its shape
+            if !o.r().morph_influences.is_empty() || !geo.r().morph_position.is_empty() {
+                return;
+            }
+            let boxy = matches!(geo.type_name(), "box" | "cylinder") && !geo.r().is_prop_part;
+            let closed = *closed_of.entry(geo.id()).or_insert_with(|| is_closed(&geo));
+            // the static instancing's mesh says what each instance was part of
+            let labels: Vec<String> =
+                o.user().s.get("instance_labels").map(|l| l.split('|').map(String::from).collect()).unwrap_or_default();
 
             let mw = o.matrix_world();
             let n = if o.is_instanced() { o.instance_count() } else { 1 };
-            level += 1;
             for i in 0..n {
                 let world = if o.is_instanced() { Mat4::mul(&mw, &o.get_matrix_at(i)) } else { mw };
                 let mut bounds = local;
                 bounds.apply_matrix4(&world);
                 let s = bounds.get_size();
-                let (label, thing) = match &placed {
-                    Some(l) => (l.clone(), k),
-                    None => ("level".to_string(), level),
+                let (label, thing) = match (&placed, labels.get(i)) {
+                    (Some(l), _) => (l.clone(), k),
+                    (None, Some(l)) => {
+                        level += 1;
+                        (l.clone(), level)
+                    }
+                    (None, None) => {
+                        level += 1;
+                        ("level".to_string(), level)
+                    }
                 };
                 let name = describe(o, &bounds);
                 let mesh = if o.is_instanced() { format!("{name} #{i}") } else { name };
@@ -133,6 +156,8 @@ pub fn parts(g: &Game) -> Vec<Part> {
                     local,
                     bounds,
                     sized: s.x.max(s.y).max(s.z) <= THING,
+                    boxy,
+                    closed,
                     obj: o.clone(),
                 });
             }
@@ -227,23 +252,38 @@ pub fn clip(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
             continue;
         }
         let at = p.bounds.get_center();
-        if let Some(d) = face.iter().filter_map(|&c| inside(p, c)).reduce(f64::max) {
-            out.push(Finding { kind: "clip", label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: d });
+        let found =
+            |kind: &'static str, d: f64| Finding { kind, label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: d };
+        let body: Vec<Vec3> = (0..6).map(|k| Vec3::new(eye.x, floor + 0.45 + k as f64 * 0.2, eye.z)).collect();
+        let tall = p.bounds.max.y - p.bounds.min.y >= LOW && p.bounds.max.y >= floor + LOW;
+        if p.boxy {
+            if let Some(d) = face.iter().filter_map(|&c| inside(p, c)).reduce(f64::max) {
+                out.push(found("clip", d));
+            } else if let Some(d) = body.iter().filter_map(|&c| inside(p, c)).filter(|_| tall).reduce(f64::max) {
+                out.push(found("body", d));
+            }
             continue;
         }
-        if p.bounds.max.y - p.bounds.min.y < LOW || p.bounds.max.y < floor + LOW {
-            continue;
-        }
-        let body = (0..6).map(|k| Vec3::new(eye.x, floor + 0.45 + k as f64 * 0.2, eye.z));
-        if let Some(d) = body.filter_map(|c| inside(p, c)).reduce(f64::max) {
-            out.push(Finding { kind: "body", label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: d });
+        // by its faces: the near plane cuts one (a face nearer the near
+        // face's middle than its corners are), or the eye is inside a
+        // closed shape (an odd number of faces crossed on a ray out)
+        let tris = world_tris(p);
+        let mid = Vec3::new((face[1].x + face[4].x) / 2.0, (face[1].y + face[4].y) / 2.0, (face[1].z + face[4].z) / 2.0);
+        let reach = ((face[1].x - mid.x).powi(2) + (face[1].y - mid.y).powi(2) + (face[1].z - mid.z).powi(2)).sqrt();
+        let near = tris.iter().map(|t| tri_dist(mid, t)).fold(f64::MAX, f64::min);
+        if near < reach {
+            out.push(found("clip", reach - near));
+        } else if p.closed && crossings(o, &tris) % 2 == 1 {
+            out.push(found("clip", INSET));
+        } else if p.closed && tall && body.iter().any(|&c| crossings(c, &tris) % 2 == 1) {
+            out.push(found("body", INSET));
         }
     }
     out
 }
 
-/// The share of the frame a box covers, roughly (its corners projected;
-/// None when it is not in view)
+/// The share of the frame a box covers, roughly (its edges clipped at the
+/// near plane, their ends projected; None when it is not in view)
 pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
     let t = (eye.fov / 2.0).tan();
     let a = eye.w as f64 / eye.h as f64;
@@ -254,23 +294,45 @@ pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
     let up = (sy * sp, cp, cy * sp);
     let (mut x0, mut x1, mut y0, mut y1) = (f64::MAX, f64::MIN, f64::MAX, f64::MIN);
     let mut ahead = 0;
-    for k in 0..8 {
+    // each corner in the camera's frame: (right, up, depth)
+    let cam = |k: usize| {
         let p = (
             if k & 1 == 0 { b.min.x } else { b.max.x } - eye.x,
             if k & 2 == 0 { b.min.y } else { b.max.y } - eye.y,
             if k & 4 == 0 { b.min.z } else { b.max.z } - eye.z,
         );
-        let z = p.0 * fwd.0 + p.1 * fwd.1 + p.2 * fwd.2;
-        if z < NEAR {
-            continue;
-        }
+        (p.0 * right.0 + p.1 * right.1 + p.2 * right.2, p.0 * up.0 + p.1 * up.1 + p.2 * up.2, p.0 * fwd.0 + p.1 * fwd.1 + p.2 * fwd.2)
+    };
+    let mut take = |c: (f64, f64, f64)| {
         ahead += 1;
-        let x = (p.0 * right.0 + p.1 * right.1 + p.2 * right.2) / (z * t * a);
-        let y = (p.0 * up.0 + p.1 * up.1 + p.2 * up.2) / (z * t);
+        let (x, y) = (c.0 / (c.2 * t * a), c.1 / (c.2 * t));
         x0 = x0.min(x);
         x1 = x1.max(x);
         y0 = y0.min(y);
         y1 = y1.max(y);
+    };
+    // the twelve edges: corners that differ in one bit
+    for k in 0..8usize {
+        for bit in [1usize, 2, 4] {
+            let j = k | bit;
+            if j == k {
+                continue;
+            }
+            let (p, q) = (cam(k), cam(j));
+            match (p.2 >= NEAR, q.2 >= NEAR) {
+                (true, true) => {
+                    take(p);
+                    take(q);
+                }
+                (false, false) => {}
+                (pa, _) => {
+                    let (ahead_end, behind) = if pa { (p, q) } else { (q, p) };
+                    let s = (ahead_end.2 - NEAR) / (ahead_end.2 - behind.2);
+                    take(ahead_end);
+                    take((ahead_end.0 + (behind.0 - ahead_end.0) * s, ahead_end.1 + (behind.1 - ahead_end.1) * s, NEAR));
+                }
+            }
+        }
     }
     if ahead == 0 {
         return None;
@@ -352,11 +414,58 @@ fn cross(a: Vec3, b: Vec3) -> Vec3 {
     Vec3::new(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 }
 
-/// The faces of the parts within `reach` of any of `near` (world points)
+/// The stands bucketed on a grid of `reach` (metres): what is within
+/// `reach` of a point is in its cell's 3 × 3
+struct Near<'a> {
+    reach: f64,
+    cells: std::collections::HashMap<(i64, i64), Vec<&'a Vec3>>,
+}
+
+impl<'a> Near<'a> {
+    fn new(near: &'a [Vec3], reach: f64) -> Near<'a> {
+        let mut cells: std::collections::HashMap<(i64, i64), Vec<&'a Vec3>> = Default::default();
+        for q in near {
+            cells.entry(((q.x / reach).floor() as i64, (q.z / reach).floor() as i64)).or_default().push(q);
+        }
+        Near { reach, cells }
+    }
+    /// The stand nearest a triangle, among those within reach of its box
+    fn nearest(&self, t: &[Vec3; 3]) -> Option<&'a Vec3> {
+        let mut b = Box3::empty();
+        for c in t {
+            b.expand_by_point(c);
+        }
+        let (x0, x1) = ((b.min.x / self.reach).floor() as i64 - 1, (b.max.x / self.reach).floor() as i64 + 1);
+        let (z0, z1) = ((b.min.z / self.reach).floor() as i64 - 1, (b.max.z / self.reach).floor() as i64 + 1);
+        let cands: Box<dyn Iterator<Item = &&'a Vec3>> = if (x1 - x0 + 1) * (z1 - z0 + 1) > 4 * self.cells.len() as i64 {
+            Box::new(self.cells.values().flatten())
+        } else {
+            Box::new((x0..=x1).flat_map(move |x| (z0..=z1).filter_map(move |z| self.cells.get(&(x, z)))).flatten())
+        };
+        cands.map(|q| (tri_dist(**q, t), *q)).filter(|(d, _)| *d < self.reach).min_by(|a, b| a.0.total_cmp(&b.0)).map(|(_, q)| q)
+    }
+
+    /// Whether a box is within reach of a stand
+    fn by(&self, b: &Box3) -> bool {
+        let c = b.get_center();
+        let (cx, cz) = ((c.x / self.reach).floor() as i64, (c.z / self.reach).floor() as i64);
+        // a large box: every cell under it, grown by one
+        let (x0, x1) = (((b.min.x / self.reach).floor() as i64 - 1).min(cx - 1), ((b.max.x / self.reach).floor() as i64 + 1).max(cx + 1));
+        let (z0, z1) = (((b.min.z / self.reach).floor() as i64 - 1).min(cz - 1), ((b.max.z / self.reach).floor() as i64 + 1).max(cz + 1));
+        if (x1 - x0 + 1) * (z1 - z0 + 1) > 4 * self.cells.len() as i64 {
+            return self.cells.values().flatten().any(|q| dist(b, q) < self.reach);
+        }
+        (x0..=x1).any(|x| (z0..=z1).any(|z| self.cells.get(&(x, z)).is_some_and(|l| l.iter().any(|q| dist(b, q) < self.reach))))
+    }
+}
+
+/// The faces within `reach` of any of `near` (world points), each face
+/// judged by itself (a long part reaches far from a stand at one end only)
 fn faces(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Face> {
+    let grid = Near::new(near, reach);
     let mut out = vec![];
     for (pi, p) in parts.iter().enumerate() {
-        if !near.iter().any(|q| dist(&p.bounds, q) < reach) {
+        if !grid.by(&p.bounds) {
             continue;
         }
         let ms = p.obj.mats();
@@ -366,23 +475,17 @@ fn faces(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Face> {
         }) {
             continue;
         }
-        let geo = p.obj.geo();
-        let g = geo.r();
-        let pos = &g.position;
-        let vert = |i: usize| {
-            let mut v = Vec3::new(pos[i * 3] as f64, pos[i * 3 + 1] as f64, pos[i * 3 + 2] as f64);
-            v.apply_matrix4(&p.world);
-            v
-        };
-        let tri: Vec<[usize; 3]> = match &g.index {
-            Some(ix) => ix.chunks_exact(3).map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
-            None => (0..pos.len() / 9).map(|t| [t * 3, t * 3 + 1, t * 3 + 2]).collect(),
-        };
-        for [a, b, c] in tri {
-            let v = [vert(a), vert(b), vert(c)];
+        for v in world_tris(p) {
             let n = cross(sub(v[1], v[0]), sub(v[2], v[0]));
             let l = dot(n, n).sqrt();
             if l < 1e-9 {
+                continue;
+            }
+            let mut b = Box3::empty();
+            for c in &v {
+                b.expand_by_point(c);
+            }
+            if !grid.by(&b) {
                 continue;
             }
             let n = Vec3::new(n.x / l, n.y / l, n.z / l);
@@ -392,8 +495,129 @@ fn faces(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Face> {
     out
 }
 
+/// A part's triangles in the world
+fn world_tris(p: &Part) -> Vec<[Vec3; 3]> {
+    let geo = p.obj.geo();
+    let g = geo.r();
+    let pos = &g.position;
+    let vert = |i: usize| {
+        let mut v = Vec3::new(pos[i * 3] as f64, pos[i * 3 + 1] as f64, pos[i * 3 + 2] as f64);
+        v.apply_matrix4(&p.world);
+        v
+    };
+    let tri: Vec<[usize; 3]> = match &g.index {
+        Some(ix) => ix.chunks_exact(3).map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
+        None => (0..pos.len() / 9).map(|t| [t * 3, t * 3 + 1, t * 3 + 2]).collect(),
+    };
+    tri.into_iter().map(|[a, b, c]| [vert(a), vert(b), vert(c)]).collect()
+}
+
+/// Whether a geometry's faces close round a volume: every edge (its
+/// vertices welded by place, to the millimetre) shared by exactly two faces
+fn is_closed(geo: &engine::geometry::Geo) -> bool {
+    let g = geo.r();
+    let pos = &g.position;
+    let key = |i: usize| {
+        ((pos[i * 3] * 1000.0).round() as i64, (pos[i * 3 + 1] * 1000.0).round() as i64, (pos[i * 3 + 2] * 1000.0).round() as i64)
+    };
+    let tri: Vec<[usize; 3]> = match &g.index {
+        Some(ix) => ix.chunks_exact(3).map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
+        None => (0..pos.len() / 9).map(|t| [t * 3, t * 3 + 1, t * 3 + 2]).collect(),
+    };
+    if tri.is_empty() {
+        return false;
+    }
+    let mut edges: std::collections::HashMap<((i64, i64, i64), (i64, i64, i64)), u32> = Default::default();
+    for [a, b, c] in tri {
+        for (p, q) in [(a, b), (b, c), (c, a)] {
+            let (kp, kq) = (key(p), key(q));
+            if kp == kq {
+                continue;
+            }
+            *edges.entry(if kp < kq { (kp, kq) } else { (kq, kp) }).or_default() += 1;
+        }
+    }
+    edges.values().all(|&n| n == 2)
+}
+
+/// The distance from a point to a triangle (Ericson's closest point)
+fn tri_dist(p: Vec3, t: &[Vec3; 3]) -> f64 {
+    let (a, b, c) = (t[0], t[1], t[2]);
+    let (ab, ac, ap) = (sub(b, a), sub(c, a), sub(p, a));
+    let (d1, d2) = (dot(ab, ap), dot(ac, ap));
+    let len = |v: Vec3| dot(v, v).sqrt();
+    if d1 <= 0.0 && d2 <= 0.0 {
+        return len(ap);
+    }
+    let bp = sub(p, b);
+    let (d3, d4) = (dot(ab, bp), dot(ac, bp));
+    if d3 >= 0.0 && d4 <= d3 {
+        return len(bp);
+    }
+    let vc = d1 * d4 - d3 * d2;
+    if vc <= 0.0 && d1 >= 0.0 && d3 <= 0.0 {
+        let v = d1 / (d1 - d3);
+        return len(sub(p, Vec3::new(a.x + ab.x * v, a.y + ab.y * v, a.z + ab.z * v)));
+    }
+    let cp = sub(p, c);
+    let (d5, d6) = (dot(ab, cp), dot(ac, cp));
+    if d6 >= 0.0 && d5 <= d6 {
+        return len(cp);
+    }
+    let vb = d5 * d2 - d1 * d6;
+    if vb <= 0.0 && d2 >= 0.0 && d6 <= 0.0 {
+        let w = d2 / (d2 - d6);
+        return len(sub(p, Vec3::new(a.x + ac.x * w, a.y + ac.y * w, a.z + ac.z * w)));
+    }
+    let va = d3 * d6 - d5 * d4;
+    if va <= 0.0 && (d4 - d3) >= 0.0 && (d5 - d6) >= 0.0 {
+        let w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        return len(sub(p, Vec3::new(b.x + (c.x - b.x) * w, b.y + (c.y - b.y) * w, b.z + (c.z - b.z) * w)));
+    }
+    let den = 1.0 / (va + vb + vc);
+    let (v, w) = (vb * den, vc * den);
+    len(sub(p, Vec3::new(a.x + ab.x * v + ac.x * w, a.y + ab.y * v + ac.y * w, a.z + ab.z * v + ac.z * w)))
+}
+
+/// How many triangles a ray from `p` crosses (a direction off every axis,
+/// so it seldom meets an edge): odd inside a closed shape
+fn crossings(p: Vec3, tris: &[[Vec3; 3]]) -> usize {
+    let d = Vec3::new(0.8017, 0.4123, 0.4327);
+    tris.iter()
+        .filter(|t| {
+            let (e1, e2) = (sub(t[1], t[0]), sub(t[2], t[0]));
+            let h = cross(d, e2);
+            let a = dot(e1, h);
+            if a.abs() < 1e-12 {
+                return false;
+            }
+            let f = 1.0 / a;
+            let s = sub(p, t[0]);
+            let u = f * dot(s, h);
+            if !(0.0..=1.0).contains(&u) {
+                return false;
+            }
+            let q = cross(s, e1);
+            let v = f * dot(d, q);
+            if v < 0.0 || u + v > 1.0 {
+                return false;
+            }
+            f * dot(e2, q) > 1e-9
+        })
+        .count()
+}
+
 /// The area two coplanar triangles share (Sutherland–Hodgman on the plane)
-fn overlap(a: &Face, b: &Face) -> f64 {
+/// and its middle (the world point at the shared polygon's centroid); with
+/// a window (a point and a half-size, metres), only what lies within it on
+/// the plane (a facade's face runs a hundred metres from the stand that
+/// sees it)
+#[cfg(test)]
+fn overlap(a: &Face, b: &Face) -> (f64, Vec3) {
+    overlap_in(a, b, None)
+}
+
+fn overlap_in(a: &Face, b: &Face, window: Option<(Vec3, f64)>) -> (f64, Vec3) {
     // a 2D frame on a's plane
     let e = sub(a.v[1], a.v[0]);
     let el = dot(e, e).sqrt();
@@ -411,8 +635,14 @@ fn overlap(a: &Face, b: &Face) -> f64 {
     if area2(&ct) < 0.0 {
         ct.swap(1, 2);
     }
-    for k in 0..3 {
-        let (p0, p1) = (ct[k], ct[(k + 1) % 3]);
+    // the clipping edges, counter-clockwise: the triangle's, then the window's square
+    let mut edges: Vec<((f64, f64), (f64, f64))> = (0..3).map(|k| (ct[k], ct[(k + 1) % 3])).collect();
+    if let Some((c, r)) = window {
+        let (cu, cw) = to2(c);
+        let sq = [(cu - r, cw - r), (cu + r, cw - r), (cu + r, cw + r), (cu - r, cw + r)];
+        edges.extend((0..4).map(|k| (sq[k], sq[(k + 1) % 4])));
+    }
+    for (p0, p1) in edges {
         let side = |q: (f64, f64)| (p1.0 - p0.0) * (q.1 - p0.1) - (p1.1 - p0.1) * (q.0 - p0.0);
         let mut next = vec![];
         for i in 0..poly.len() {
@@ -431,48 +661,57 @@ fn overlap(a: &Face, b: &Face) -> f64 {
         }
         poly = next;
         if poly.len() < 3 {
-            return 0.0;
+            return (0.0, a.v[0]);
         }
     }
-    let mut a2 = 0.0;
+    let (mut a2, mut cx, mut cy) = (0.0, 0.0, 0.0);
     for i in 0..poly.len() {
         let (p, q) = (poly[i], poly[(i + 1) % poly.len()]);
-        a2 += p.0 * q.1 - q.0 * p.1;
+        let c = p.0 * q.1 - q.0 * p.1;
+        a2 += c;
+        cx += (p.0 + q.0) * c;
+        cy += (p.1 + q.1) * c;
     }
-    (a2 / 2.0).abs()
+    let (mx, my) = if a2.abs() > 1e-15 { (cx / (3.0 * a2), cy / (3.0 * a2)) } else { (poly[0].0, poly[0].1) };
+    let at = Vec3::new(a.v[0].x + u.x * mx + w.x * my, a.v[0].y + u.y * mx + w.y * my, a.v[0].z + u.z * mx + w.z * my);
+    ((a2 / 2.0).abs(), at)
 }
 
 /// A plane bucket's width (metres): a face goes in its bucket and, near
 /// its upper edge, the next one too, so two faces within `COPLANAR` share one
 const BUCKET: f64 = 4.0 * COPLANAR;
 
-/// Coplanar: faces within `reach` of the tour's stands that lie on one
-/// plane, face alike and overlap by `OVERLAP` or more (a face against
-/// another of the same mesh too: a doubled face fights as well); one
-/// finding a pair of things, at its largest overlap
+/// Coplanar: faces within `reach` of the tour's stands (each face by
+/// itself) that lie on one plane, face alike and overlap (a face against
+/// another of the same mesh too: a doubled face fights as well), summed a
+/// pair of parts to `OVERLAP` or more; one finding a pair of things, at the
+/// middle of the largest overlap of its largest pair of parts
 pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
     let fs = faces(parts, near, reach);
-    // buckets by the plane: its normal's dominant axis and sign, its offset
+    let grid = Near::new(near, reach);
+    // buckets by the plane: its normal's dominant axis and sign, its offset;
+    // a face whose two largest components nearly tie (about 45°) goes in
+    // both axes' buckets
     let mut buckets: std::collections::BTreeMap<(usize, bool, i64), Vec<usize>> = Default::default();
     for (i, f) in fs.iter().enumerate() {
-        let (ax, ay, az) = (f.n.x.abs(), f.n.y.abs(), f.n.z.abs());
-        let axis = if ax >= ay && ax >= az {
-            0
-        } else if ay >= az {
-            1
-        } else {
-            2
-        };
-        let sign = [f.n.x, f.n.y, f.n.z][axis] >= 0.0;
-        let k = (f.d / BUCKET).floor();
-        buckets.entry((axis, sign, k as i64)).or_default().push(i);
-        if f.d - k * BUCKET > BUCKET - COPLANAR {
-            buckets.entry((axis, sign, k as i64 + 1)).or_default().push(i);
+        let n = [f.n.x, f.n.y, f.n.z];
+        let mut order = [0usize, 1, 2];
+        order.sort_by(|&a, &b| n[b].abs().total_cmp(&n[a].abs()));
+        let axes: &[usize] = if n[order[0]].abs() - n[order[1]].abs() < 0.05 { &order[..2] } else { &order[..1] };
+        for &axis in axes {
+            let sign = n[axis] >= 0.0;
+            let k = (f.d / BUCKET).floor();
+            buckets.entry((axis, sign, k as i64)).or_default().push(i);
+            if f.d - k * BUCKET > BUCKET - COPLANAR {
+                buckets.entry((axis, sign, k as i64 + 1)).or_default().push(i);
+            }
         }
     }
     let lo = |f: &Face, a: usize| f.v.iter().map(|v| [v.x, v.y, v.z][a]).fold(f64::MAX, f64::min);
     let hi = |f: &Face, a: usize| f.v.iter().map(|v| [v.x, v.y, v.z][a]).fold(f64::MIN, f64::max);
-    let mut best: std::collections::BTreeMap<(usize, usize), (f64, Vec3, usize, usize)> = Default::default();
+    let mut seen: std::collections::HashSet<(usize, usize)> = Default::default();
+    // a pair of parts: the overlap summed, and the middle of its largest
+    let mut pairs: std::collections::BTreeMap<(usize, usize), (f64, f64, Vec3)> = Default::default();
     for (&(axis, _, _), list) in &buckets {
         // sweep along an axis of the plane
         let t = (axis + 1) % 3;
@@ -490,30 +729,47 @@ pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
                 if lo(b, u) > hi(a, u) || lo(a, u) > hi(b, u) {
                     continue;
                 }
-                if dot(a.n, b.n) < PARALLEL || (a.d - b.d).abs() > COPLANAR {
+                if dot(a.n, b.n) < PARALLEL || (a.d - b.d).abs() > COPLANAR || !seen.insert((i.min(j), i.max(j))) {
                     continue;
                 }
-                let ov = overlap(a, b);
-                if ov < OVERLAP {
+                // only what lies within reach of the stand nearest the face
+                let stand = grid.nearest(&a.v);
+                let (ov, at) = overlap_in(a, b, stand.map(|s| (*s, reach)));
+                if ov <= 1e-9 {
                     continue;
                 }
-                let (ta, tb) = (parts[a.part].thing, parts[b.part].thing);
-                let pair = (ta.min(tb), ta.max(tb));
-                let c = centroid(a, b);
-                let e = best.entry(pair).or_insert((0.0, c, a.part, b.part));
-                if ov > e.0 {
-                    *e = (ov, c, a.part, b.part);
+                let e = pairs.entry((a.part.min(b.part), a.part.max(b.part))).or_insert((0.0, 0.0, at));
+                e.0 += ov;
+                if ov > e.1 {
+                    e.1 = ov;
+                    e.2 = at;
                 }
             }
+        }
+    }
+    // one row a pair of things (the largest pair of their parts)
+    let mut best: std::collections::BTreeMap<(usize, usize), (f64, Vec3, usize, usize)> = Default::default();
+    for ((pa, pb), (sum, _, at)) in pairs {
+        if sum < OVERLAP {
+            continue;
+        }
+        let (ta, tb) = (parts[pa].thing, parts[pb].thing);
+        let e = best.entry((ta.min(tb), ta.max(tb))).or_insert((0.0, at, pa, pb));
+        if sum > e.0 {
+            *e = (sum, at, pa, pb);
         }
     }
     best.into_values()
         .map(|(ov, c, pa, pb)| {
             let (a, b) = (&parts[pa], &parts[pb]);
-            // one material on both: drawn alike where they overlap, a fight
-            // seldom seen (listed, not flagged: the flicker detector has the say)
+            // drawn alike where they overlap (one colour, one picture, one
+            // kind of material): a fight seldom seen (listed, not flagged:
+            // the flicker detector has the say)
             let alike = match (a.obj.try_mat(), b.obj.try_mat()) {
-                (Some(x), Some(y)) => x.ptr_eq(&y),
+                (Some(x), Some(y)) => {
+                    let (x, y) = (x.r(), y.r());
+                    x.kind == y.kind && x.color.get_hex() == y.color.get_hex() && x.map == y.map
+                }
                 _ => false,
             };
             Finding {
@@ -525,15 +781,6 @@ pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
             }
         })
         .collect()
-}
-
-/// Between two faces' middles
-fn centroid(a: &Face, b: &Face) -> Vec3 {
-    let m = |f: &Face| {
-        Vec3::new((f.v[0].x + f.v[1].x + f.v[2].x) / 3.0, (f.v[0].y + f.v[1].y + f.v[2].y) / 3.0, (f.v[0].z + f.v[1].z + f.v[2].z) / 3.0)
-    };
-    let (p, q) = (m(a), m(b));
-    Vec3::new((p.x + q.x) / 2.0, (p.y + q.y) / 2.0, (p.z + q.z) / 2.0)
 }
 
 /// Faces this near a stand are tried for coplanar pairs (metres)
@@ -637,12 +884,15 @@ mod tests {
         // a right triangle of legs 0.5 (area 0.125)
         let a = face([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 1.0, 0.0)], 0);
         let b = face([(0.5, 0.0, 0.0), (1.5, 0.0, 0.0), (0.5, 1.0, 0.0)], 1);
-        assert!((overlap(&a, &b) - 0.125).abs() < 1e-9, "{}", overlap(&a, &b));
+        let (area, at) = overlap(&a, &b);
+        assert!((area - 0.125).abs() < 1e-9, "{area}");
+        // its middle is the shared triangle's: (0.5 + 1/6, 1/6)
+        assert!((at.x - (0.5 + 1.0 / 6.0)).abs() < 1e-9 && (at.y - 1.0 / 6.0).abs() < 1e-9 && at.z.abs() < 1e-12, "{at:?}");
         // apart, and wound the other way round
         let c = face([(2.0, 0.0, 0.0), (3.0, 0.0, 0.0), (2.0, 1.0, 0.0)], 1);
-        assert_eq!(overlap(&a, &c), 0.0);
+        assert_eq!(overlap(&a, &c).0, 0.0);
         let d = face([(0.0, 0.0, 0.0), (0.0, 1.0, 0.0), (1.0, 0.0, 0.0)], 1);
-        assert!((overlap(&a, &d) - 0.5).abs() < 1e-9);
+        assert!((overlap(&a, &d).0 - 0.5).abs() < 1e-9);
     }
 
     #[test]
@@ -669,6 +919,40 @@ mod tests {
             Vec3::new(1.0 - fwd.0 * 3.0 + 0.5, 1.6 - fwd.1 * 3.0 + 0.5, -2.0 - fwd.2 * 3.0 + 0.5),
         );
         assert!(screen_share(&eye, &behind).is_none());
+    }
+
+    #[test]
+    fn a_point_knows_how_far_a_face_is_and_whether_it_is_inside() {
+        let t = [Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 0.0, 0.0), Vec3::new(0.0, 1.0, 0.0)];
+        assert!((tri_dist(Vec3::new(0.2, 0.2, 0.5), &t) - 0.5).abs() < 1e-12);
+        assert!((tri_dist(Vec3::new(-1.0, 0.0, 0.0), &t) - 1.0).abs() < 1e-12);
+        assert!((tri_dist(Vec3::new(1.0, 1.0, 0.0), &t) - 0.5f64.sqrt()).abs() < 1e-12);
+        // a unit cube's twelve faces: inside crosses one, outside none or two
+        let geo = engine::geometry::box_geometry(1.0, 1.0, 1.0, 1.0, 1.0, 1.0);
+        let g = geo.r();
+        let v = |i: usize| Vec3::new(g.position[i * 3] as f64, g.position[i * 3 + 1] as f64, g.position[i * 3 + 2] as f64);
+        let tris: Vec<[Vec3; 3]> =
+            g.index.as_ref().unwrap().chunks_exact(3).map(|c| [v(c[0] as usize), v(c[1] as usize), v(c[2] as usize)]).collect();
+        assert!(is_closed(&geo), "a box is closed");
+        assert!(!is_closed(&engine::geometry::plane_geometry(1.0, 1.0, 1.0, 1.0)), "a plane is not");
+        assert_eq!(crossings(Vec3::new(0.1, -0.2, 0.3), &tris) % 2, 1);
+        assert_eq!(crossings(Vec3::new(0.9, 0.0, 0.0), &tris) % 2, 0);
+        assert_eq!(crossings(Vec3::new(-0.9, 0.1, 0.0), &tris) % 2, 0);
+    }
+
+    #[test]
+    fn a_box_reaching_behind_the_eye_is_measured_to_the_near_plane() {
+        // a post 4 cm thick from 1 m behind the eye to 6 cm ahead: what is
+        // seen of it runs to the near plane, wider than its ahead corners say
+        let eye = Eye { x: 0.0, y: 0.0, z: 0.0, yaw: 0.0, pitch: 0.0, fov: 1.0, w: 640, h: 400 };
+        let post = Box3::new(Vec3::new(-0.02, -0.02, -0.06), Vec3::new(0.02, 0.02, 1.0));
+        let (t, a) = ((0.5f64).tan(), 1.6);
+        let corners_only = (0.04 / (0.06 * t * a)) * (0.04 / (0.06 * t)) / 4.0;
+        let to_near = (0.04 / (NEAR * t * a)) * (0.04 / (NEAR * t)) / 4.0;
+        let s = screen_share(&eye, &post).unwrap();
+        assert!((s - to_near).abs() < 1e-9 && s > corners_only, "{s} {to_near} {corners_only}");
+        // wholly behind: not in view
+        assert!(screen_share(&eye, &Box3::new(Vec3::new(-1.0, -1.0, 0.5), Vec3::new(1.0, 1.0, 2.0))).is_none());
     }
 
     #[test]

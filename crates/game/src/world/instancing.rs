@@ -81,6 +81,8 @@ struct Bucket {
     geo: Geo,
     mat: Mat,
     list: Vec<Obj>,
+    /// what each member was part of (`placed_label`)
+    labels: Vec<String>,
 }
 
 /// Instances the static props under `world`, the level's root group
@@ -129,12 +131,13 @@ pub fn instancify_static(world: &Obj, chunk_of: &dyn Fn(f64, f64) -> i64) -> Sta
             let bi = match by_key.get(&key) {
                 Some(&i) => i,
                 None => {
-                    buckets.push(Bucket { geo: geo.clone(), mat: m.clone(), list: vec![] });
+                    buckets.push(Bucket { geo: geo.clone(), mat: m.clone(), list: vec![], labels: vec![] });
                     by_key.insert(key, buckets.len() - 1);
                     buckets.len() - 1
                 }
             };
             buckets[bi].list.push(o.clone());
+            buckets[bi].labels.push(placed_label(o));
         });
     }
     let mut touched: Vec<Obj> = vec![];
@@ -164,6 +167,9 @@ pub fn instancify_static(world: &Obj, chunk_of: &dyn Fn(f64, f64) -> i64) -> Sta
             let mut u = im.user();
             u.static_prop = true;
             u.instanced = true;
+            // what each instance was part of (the visual playtest names it so;
+            // not a placer: the level's dump lists placed things only)
+            u.s.insert("instance_labels".into(), b.labels.join("|"));
         }
         world.add(&im);
         st.instanced += b.list.len();
@@ -183,4 +189,23 @@ pub fn instancify_static(world: &Obj, chunk_of: &dyn Fn(f64, f64) -> i64) -> Sta
         }
     }
     st
+}
+
+/// The placed thing a mesh is part of: its nearest ancestor's core kind
+/// (`core_<kind>`) or placer; `level` for the architecture
+fn placed_label(o: &Obj) -> String {
+    let mut p = o.parent();
+    while let Some(n) = p {
+        {
+            let u = n.user();
+            if let Some(k) = u.s.get("kind") {
+                return format!("core_{k}");
+            }
+            if let Some(pl) = &u.placer {
+                return pl.clone();
+            }
+        }
+        p = n.parent();
+    }
+    "level".into()
 }

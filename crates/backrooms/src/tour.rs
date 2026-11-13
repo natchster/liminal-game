@@ -458,6 +458,33 @@ fn plant(g: &mut Game, what: &str, v: &View) {
             g.world.add(&b);
             println!("planted a flat box beside {}", v.name);
         }
-        other => panic!("--tour-plant {other}: hole, fight, inside or flat"),
+        // a box 3 cm before the eye, not round it: only the near plane's
+        // face reaches into it (the clip is the near face's, not the eye's)
+        "nearface" => {
+            let m = engine::material::Mat::lambert();
+            m.color(0x6a5a48u32);
+            let b = engine::scene::mesh(engine::geometry::box_geometry(0.4, 0.4, 0.4, 1.0, 1.0, 1.0), m);
+            b.set_name("tour_plant_nearface");
+            b.position().set(v.x + fx * (0.03 + 0.2), v.y, v.z + fz * (0.03 + 0.2));
+            b.rotation().y = v.yaw;
+            b.user().placer = Some("tour_plant_nearface".into());
+            g.world.add(&b);
+            println!("planted a box 3 cm before the eye of {}", v.name);
+        }
+        // a ring round the eye, the eye in its hole: inside its box, but no
+        // face of it is near (a frame with an opening is judged by its faces)
+        "ring" => {
+            let m = engine::material::Mat::lambert();
+            m.color(0x6a5a48u32);
+            let r = engine::scene::mesh(engine::geometry::torus_geometry(0.35, 0.05, 12.0, 32.0, std::f64::consts::TAU), m);
+            r.set_name("tour_plant_ring");
+            r.position().set(v.x, v.y, v.z);
+            // lying flat round the eye: the body's column runs up its middle
+            r.rotation().x = std::f64::consts::FRAC_PI_2;
+            r.user().placer = Some("tour_plant_ring".into());
+            g.world.add(&r);
+            println!("planted a ring round the eye of {}", v.name);
+        }
+        other => panic!("--tour-plant {other}: hole, fight, inside, flat, nearface or ring"),
     }
 }

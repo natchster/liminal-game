@@ -227,6 +227,16 @@ fn a_box_round_the_eye_a_flat_box_and_a_coplanar_pair_are_named() {
     assert!(has("things_inside", "body", "tour_plant_inside"), "{:?}", findings("things_inside", 5));
     assert!(has("things_flat", "plain", "tour_plant_flat"), "{:?}", findings("things_flat", 5));
     assert!(has("things_fight", "coplanar", "tour_plant_fight_0"), "{:?}", findings("things_fight", 5));
+    // the near plane's face reaching into a box before the eye is a clip; a
+    // ring round the eye (in its box, its hole round the eye) is not
+    let _ = toured("things_nearface", 5, &["--tour-budget", "6", "--tour-plant", "nearface"]);
+    let _ = toured("things_ring", 5, &["--tour-budget", "6", "--tour-plant", "ring"]);
+    assert!(has("things_nearface", "clip", "tour_plant_nearface"), "{:?}", findings("things_nearface", 5));
+    assert!(
+        !findings("things_ring", 5).iter().any(|f| f.1.contains("tour_plant_ring") && matches!(f.0.as_str(), "clip" | "body")),
+        "{:?}",
+        findings("things_ring", 5)
+    );
     // the floor as built: no clip, no body and nothing plain at the first stand
     assert!(
         findings("things_clean", 5).iter().all(|f| !matches!(f.0.as_str(), "clip" | "body" | "plain")),
@@ -234,4 +244,40 @@ fn a_box_round_the_eye_a_flat_box_and_a_coplanar_pair_are_named() {
         findings("things_clean", 5)
     );
     assert_eq!(clean.len(), 6);
+}
+
+/// The things are named as what they were placed as, the static instancing
+/// notwithstanding (review A: its meshes were all "level"), and a coplanar
+/// finding lies within reach of a stand (a long part's far end is not)
+#[test]
+fn things_keep_their_names_and_coplanar_findings_stand_near_the_tour() {
+    let g = floor(4242, 5);
+    let parts = game::debug::things::parts(&g);
+    let instanced: Vec<_> = parts.iter().filter(|p| p.obj.is_instanced()).collect();
+    assert!(instanced.iter().any(|p| p.label != "level"), "no instanced part keeps its thing's name");
+    let rows = toured("coplanar_reach", 1, &["--tour-budget", "60"]);
+    assert!(!rows.is_empty());
+    let dir = format!("{}/visual_tour/coplanar_reach/L1", env!("CARGO_TARGET_TMPDIR"));
+    let views = std::fs::read_to_string(format!("{dir}/views.tsv")).unwrap();
+    let eyes: Vec<(f64, f64, f64)> = views
+        .lines()
+        .skip(1)
+        .map(|l| {
+            let cam = l.split('\t').nth(4).unwrap().split_once(':').unwrap().1;
+            let n: Vec<f64> = cam.split(',').map(|x| x.parse().unwrap()).collect();
+            (n[0], n[1], n[2])
+        })
+        .collect();
+    let found = std::fs::read_to_string(format!("{dir}/findings.tsv")).unwrap();
+    let mut n = 0;
+    for l in found.lines().skip(1).filter(|l| l.starts_with("coplanar")) {
+        let c: Vec<&str> = l.split('\t').collect();
+        let at: Vec<f64> = c[5..8].iter().map(|x| x.parse().unwrap()).collect();
+        let near =
+            eyes.iter().map(|e| ((e.0 - at[0]).powi(2) + (e.1 - at[1]).powi(2) + (e.2 - at[2]).powi(2)).sqrt()).fold(f64::MAX, f64::min);
+        // within reach in the plan (6 m), and a storey and a half up or down
+        assert!(near < game::debug::things::COPLANAR_REACH + 9.0, "{l}: {near:.1} m from every stand");
+        n += 1;
+    }
+    println!("{n} coplanar findings, each near the tour");
 }
