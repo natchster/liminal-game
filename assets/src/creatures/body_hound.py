@@ -1,7 +1,7 @@
 """
 The Hound: an old person on all fours, starved, rump high, the head hanging
 so low you see only the back of the skull; one leg drags. Blind: the eyelids
-have grown shut. (docs/ENTITIES.md, design 1.)
+have grown shut. (docs/design/ENTITIES.md, design 1.)
 
 MakeHuman's old, thin man (CC0), posed on hands and feet (the pose is the
 rest pose the game binds), the forearms a little too long (the one wrong

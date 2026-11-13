@@ -1,4 +1,4 @@
-//! The barricades (`docs/PROPS.md` 2): something people built across a
+//! The barricades (`docs/design/PROPS.md` 2): something people built across a
 //! real opening to close it, chosen and built once the walls are final
 //! (`barricades_settled`), on a stream of their own.
 //!

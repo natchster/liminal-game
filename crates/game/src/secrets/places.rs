@@ -1,4 +1,4 @@
-//! The hiding places (`docs/SECRETS.md` 4): where each kind fits on a
+//! The hiding places (`docs/design/SECRETS.md` 4): where each kind fits on a
 //! level, what it looks like (its tell, the same all run), its verb, and
 //! what happens when it is opened; the scratched sign near some of them.
 use super::{PlaceKind, SecretPlan, Thing};

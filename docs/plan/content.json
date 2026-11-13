@@ -1,5 +1,5 @@
 {
-  "about": "The content ledger: every content family and what must hold for it. A session picks one entry, works on it, and leaves the evidence. `checks` name gates: shots:NAME (a golden in crates/backrooms/tests/golden/), style:PURPOSE (a band in docs/STYLE.md), test:CRATE/FILE (an integration test file), lint:placer-smoke (the placer crates' smoke tests). `passes` and `last_human_review` are written by the drift sweep (cargo xtask drift) and by people; tests/structure.rs keeps the ledger in step with the code.",
+  "about": "The content ledger: every content family and what must hold for it. A session picks one entry, works on it, and leaves the evidence. `checks` name gates: shots:NAME (a golden in crates/backrooms/tests/golden/), style:PURPOSE (a band in docs/design/STYLE.md), test:CRATE/FILE (an integration test file), lint:placer-smoke (the placer crates' smoke tests). `passes` and `last_human_review` are written by the drift sweep (cargo xtask drift) and by people; tests/structure.rs keeps the ledger in step with the code.",
   "entries": [
     {
       "checks": [
@@ -98,7 +98,7 @@
       "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "the self-assembly: the siren, the fog, the cells, and what knocks at your cell",
-      "notes": "Half as long since the second pass (G2: a 21 s siren, the fog up 20-40 s, quiets of 38-55 s; a cell within 8 tiles of every floor, held by tests/assembly.rs; tests/pacing.rs the_building_paces_its_floors meets a siren on 11 of 12 floors, no death). What knocks at a sealed cell (G6) goes if left unanswered, tries the wheel if knocked back, and the door gives unless the wheel is held (tests/assembly.rs: silent, answered, held, let go, unsealed; tests/listen.rs the_wheel_is_tried_and_the_door_gives). Since docs/MILESTONES.md 13 its prompts follow what is heard and seen at the door: the hold shows from the wheel's first pull, which takes up the wheel's play first so a press a reaction after it holds the wheel unturned (the_hold_shows_when_the_wheel_turns, held_is_safe), and however it goes it is heard going (its hold slipping from the wheel, then something wet drawn off the door and away, four breaths: not steps, nothing walks the Building), the door to open coming back once it has gone (tests/listen.rs what_knocks_is_heard_going, beside the cell's own lamp, above 1.2 kHz). Whether the siren reads as a warning the first time, whether waiting in a cell is dread or a chore, whether players answer, find the hold and find a door that gives fair, are playtest questions. The siren, the wheel, the door giving and the going are synthesized; no person has listened to them. Knocking, it goes only once its last knock has rung out (its knock to be answered until then); answered, it knocks no more; and its knocking carries above the cell's lamp's hum (a knuckle's click and the leaf's ring, as the residents' knock since 12). Since code review 4b each of its pulls against your hold is heard over that hum too (the spokes slipping and gripping, a creak of steel at 1.9 and 2.9 kHz; what_knocks_is_heard_going, which fails with it at gain 0); no person has listened to it.",
+      "notes": "Half as long since the second pass (G2: a 21 s siren, the fog up 20-40 s, quiets of 38-55 s; a cell within 8 tiles of every floor, held by tests/assembly.rs; tests/pacing.rs the_building_paces_its_floors meets a siren on 11 of 12 floors, no death). What knocks at a sealed cell (G6) goes if left unanswered, tries the wheel if knocked back, and the door gives unless the wheel is held (tests/assembly.rs: silent, answered, held, let go, unsealed; tests/listen.rs the_wheel_is_tried_and_the_door_gives). Since docs/plan/MILESTONES.md 13 its prompts follow what is heard and seen at the door: the hold shows from the wheel's first pull, which takes up the wheel's play first so a press a reaction after it holds the wheel unturned (the_hold_shows_when_the_wheel_turns, held_is_safe), and however it goes it is heard going (its hold slipping from the wheel, then something wet drawn off the door and away, four breaths: not steps, nothing walks the Building), the door to open coming back once it has gone (tests/listen.rs what_knocks_is_heard_going, beside the cell's own lamp, above 1.2 kHz). Whether the siren reads as a warning the first time, whether waiting in a cell is dread or a chore, whether players answer, find the hold and find a door that gives fair, are playtest questions. The siren, the wheel, the door giving and the going are synthesized; no person has listened to them. Knocking, it goes only once its last knock has rung out (its knock to be answered until then); answered, it knocks no more; and its knocking carries above the cell's lamp's hum (a knuckle's click and the leaf's ring, as the residents' knock since 12). Since code review 4b each of its pulls against your hold is heard over that hum too (the spokes slipping and gripping, a creak of steel at 1.9 and 2.9 kHz; what_knocks_is_heard_going, which fails with it at gain 0); no person has listened to it.",
       "passes": {
         "test:backrooms/assembly": true,
         "test:backrooms/listen": true,
@@ -124,7 +124,7 @@
       "last_checked": "2026-11-13",
       "last_human_review": null,
       "name": "the Building's floors: heights, walks, flights, voids, cells (in booths over the void where no building is near), the rooms off the walks, a dead end that always holds something, the door seen from the arrival",
-      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question. Half as long since the second pass (G1: 28 tiles a side, the way a median 83-87 tiles, every band of tests/building.rs held). tests/building_floors.rs holds the way and what is off it on 72 floors (G3: every dead end holds something) and the rooms off the walks (G4: reached, closed, off the way, holding water or a battery; preferred blind 5 of 5 to the bare walls). The small faults of docs/MILESTONES.md 11 mended (the Works' pipes as runs, the Stair Halls' lanterns, no two lamps in one place, soffits under the flights, the rooms' ceiling, bench and furniture, a post over the panel joint in a Well room's back corners, a room darker than its walk), preferred blind 20 to 0 with 1 tie; tests/building_floors.rs keeps the lamps apart and the rooms darker than their walks. The visual playtest (docs/playtests/visual/2026-11-13-building-1-3.md; tests/visual_tour.rs) toured every edge a body reaches on levels 1-3 of two runs: the cell doors' frames no longer fight their piers (F1), the Works' rail posts neither fight their rails nor leave them floating (F6, review B); open, the lamp posts a body walks through (F7, docs/MILESTONES.md 15).",
+      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question. Half as long since the second pass (G1: 28 tiles a side, the way a median 83-87 tiles, every band of tests/building.rs held). tests/building_floors.rs holds the way and what is off it on 72 floors (G3: every dead end holds something) and the rooms off the walks (G4: reached, closed, off the way, holding water or a battery; preferred blind 5 of 5 to the bare walls). The small faults of docs/plan/MILESTONES.md 11 mended (the Works' pipes as runs, the Stair Halls' lanterns, no two lamps in one place, soffits under the flights, the rooms' ceiling, bench and furniture, a post over the panel joint in a Well room's back corners, a room darker than its walk), preferred blind 20 to 0 with 1 tie; tests/building_floors.rs keeps the lamps apart and the rooms darker than their walks. The visual playtest (docs/research/playtests/visual/2026-11-13-building-1-3.md; tests/visual_tour.rs) toured every edge a body reaches on levels 1-3 of two runs: the cell doors' frames no longer fight their piers (F1), the Works' rail posts neither fight their rails nor leave them floating (F6, review B); open, the lamp posts a body walks through (F7, docs/plan/MILESTONES.md 15).",
       "passes": {
         "shots:4242_L1_spawn": true,
         "shots:4242_L2_spawn": true,
@@ -151,7 +151,7 @@
       "last_checked": "2026-11-13",
       "last_human_review": null,
       "name": "the Building's photographed surfaces: the panel facade and its lit windows, whitewash, formwork, yard and factory concrete, rock-faced and floor granite, ribbed slabs",
-      "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet. The visual playtest (docs/playtests/visual/2026-11-13-building-1-3.md) left open the metalwork's flat paint among the photographs (F4, docs/MILESTONES.md 16: the props' settled look on it was not preferred blind) and the photographs magnified at inside corners (F5, 17).",
+      "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet. The visual playtest (docs/research/playtests/visual/2026-11-13-building-1-3.md) left open the metalwork's flat paint among the photographs (F4, docs/plan/MILESTONES.md 16: the props' settled look on it was not preferred blind) and the photographs magnified at inside corners (F5, 17).",
       "passes": {
         "shots:4242_L1_well": true,
         "shots:4242_L2_stair_halls": true,
@@ -188,7 +188,7 @@
       "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "what is seen across the Building's void: a person in a long grey work coat who turns away, the Well's lift cage, the door's light from the arrival, the Works' last door",
-      "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer. Since G7 a person (MakeHuman, CC0; tests/presences.rs the_figure_is_a_person_standing_on_its_perch), preferred blind to the old figure on 15 of 15 images; it stands on a level landing on the Stair Halls' flights and is chosen in the Well only where its parapet hides no more than its legs (docs/MILESTONES.md 2).",
+      "notes": "The figure is small on screen by design (22-60 m off); whether it is noticed at all, and whether noticing it is dread, are playtest questions. Its visibility is judged by rules (solids, the dressing over the walks, a backdrop), not by the renderer. Since G7 a person (MakeHuman, CC0; tests/presences.rs the_figure_is_a_person_standing_on_its_perch), preferred blind to the old figure on 15 of 15 images; it stands on a level landing on the Stair Halls' flights and is chosen in the Well only where its parapet hides no more than its legs (docs/plan/MILESTONES.md 2).",
       "passes": {
         "shots:4242_L3_spawn": true,
         "test:backrooms/presences": true
@@ -204,7 +204,7 @@
       "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "a knock at the Well's sealed doors: four ordinary doors a floor answer once (water, a battery, a resident's word of the way), a red door knocks back and calls the siren, a taped door never answers, nobody answers while it is up",
-      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs, away from the lamps and beside them (within a few metres of a cell's lamp its hum is the bed, and since docs/MILESTONES.md 12 your raps, someone at the door, the thing pushed out and the knock back carry above it); whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
+      "notes": "Its rules are held by tests/knock.rs and its sounds by tests/listen.rs, away from the lamps and beside them (within a few metres of a cell's lamp its hum is the bed, and since docs/plan/MILESTONES.md 12 your raps, someone at the door, the thing pushed out and the knock back carry above it); whether players knock at all, read the red crosses and the tape before they learn them, and whether the answer feels like a reward or a trap, are playtest questions. The answer and the knock back are synthesized; no person has listened to them.",
       "passes": {
         "test:backrooms/knock": true,
         "test:backrooms/listen": true
@@ -229,7 +229,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "Hound",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Judged blind against the old Hound (E10): preferred at 2 and 4 m and at its death, not at 8 m (pale against the wall).",
+      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E2): blind, it hunts by sound along the way it would walk; its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old man posed on all fours (assets/src/creatures/body_hound.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Judged blind against the old Hound (E10): preferred at 2 and 4 m and at its death, not at 8 m (pale against the wall).",
       "passes": {
         "shots:hound_2m": true,
         "shots:hound_4m": true,
@@ -263,7 +263,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "Smiler",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a black body suit (E10: deeper ribs, dust dried on the bones, a wider, paler grin; its skin left dull, since wet read as latex): preferred to its first body at 2 m by two reviewers, ties elsewhere, and to the old Smiler at 2, 4 and 8 m and at its death.",
+      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E3): it sees your lamp from far off and your lit body only near; lamp off and still, it loses you; running near it makes it lunge; slow in bright rooms. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 young thin man, stretched and wasted, its face sculpted to the skull and its teeth built one by one (assets/src/creatures/body_smiler.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a black body suit (E10: deeper ribs, dust dried on the bones, a wider, paler grin; its skin left dull, since wet read as latex): preferred to its first body at 2 m by two reviewers, ties elsewhere, and to the old Smiler at 2, 4 and 8 m and at its death.",
       "passes": {
         "shots:smiler_2m": true,
         "shots:smiler_4m": true,
@@ -297,7 +297,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the one in the corner",
-      "notes": "New in the redesign (docs/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "notes": "New in the redesign (docs/design/ENTITIES.md, E5): placed in a quiet corner off the way, never sent; harmless while you see its back; its face seen (or come round into your eyes as it looks round, the hum stopped first) wakes it: it screams and comes. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 old thin tall man, its eyes and mouth flipped upside down, in a nightshirt draped by Blender's cloth (assets/src/creatures/body_corner.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
       "passes": {
         "shots:corner_2m": true,
         "shots:corner_4m": true,
@@ -331,7 +331,7 @@
       "last_checked": "2026-10-30",
       "last_human_review": null,
       "name": "the one behind the glass",
-      "notes": "New with the windows (docs/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor; a blind let down (or paper over the glass) keeps it out and puts its light out; got away from twice, its lamp hangs lower. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "notes": "New with the windows (docs/design/WINDOWS.md 4): placed behind one window of about four in ten floors with windows, never sent; your eyes on its glass add up: it ticks, comes up the track only while you look, comes to the glass on its own in its lamp's light and through it, and inside is held to the lamp's light on the floor; a blind let down (or paper over the glass) keeps it out and puts its light out; got away from twice, its lamp hangs lower. Its rules one test a line on real floors (tests/glass.rs: no arena, a window needs a real wall). Its body is MakeHuman's CC0 young thin man and woman, half each, in a raincoat, its skirt draped by Blender's cloth and its hood a shell of its own (assets/src/creatures/body_glass.py). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
       "passes": {
         "shots:glass_32m": true,
         "shots:glass_8m": true,
@@ -366,7 +366,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Reader",
-      "notes": "New in the redesign (docs/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures).",
+      "notes": "New in the redesign (docs/design/ENTITIES.md, E6): a thin man bent over a sheet held before its face, whispering what it reads; it sees you over the page within 12 m, and only lit or moving, and comes faster than you walk. Its counter is paper: any sheet on the floor within 4 m of it, it must pick up and read to the end (the sheets you drop, and the piles lying about, once each); it never touches her folded sheets nor the flat ones (tests/story.rs). Placed beside paper lying about, from depth 2, and sent like the Smiler and the Hound. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is MakeHuman's CC0 thin man, its fingers half as long again, in a cardigan, trousers and shoes grown off the skin (assets/src/creatures/body_reader.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures).",
       "passes": {
         "shots:reader_2m": true,
         "shots:reader_4m": true,
@@ -400,7 +400,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "the Watcher",
-      "notes": "Rebuilt on the new brain and body (docs/ENTITIES.md, E4): it moves only unseen and only when sent; its touch knocks you down and takes your nerve, killing only a spent mind; silent, your ears ring near it. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is one dust sheet draped by Blender's cloth over MakeHuman's CC0 old man, its six poses the same sheet draped again (assets/src/creatures/body_watcher.py); it stands among furniture under the same sheets (sheeted.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a bedsheet ghost (E10: a narrow shroud over a 1.96 m man, where his eyes and open mouth are the cloth grimed dark, each pose's face on the same part of the sheet): preferred to its first body at every distance and its death by two reviewers; the old Watcher (a tall robe with a face showing through) is still preferred at 2 and 4 m and at its death.",
+      "notes": "Rebuilt on the new brain and body (docs/design/ENTITIES.md, E4): it moves only unseen and only when sent; its touch knocks you down and takes your nerve, killing only a spent mind; silent, your ears ring near it. Its counter is held to its arena (tests/creatures_arenas.rs). Its body is one dust sheet draped by Blender's cloth over MakeHuman's CC0 old man, its six poses the same sheet draped again (assets/src/creatures/body_watcher.py); it stands among furniture under the same sheets (sheeted.py). Beatable with it about (E8): the rule-follower finishes every level of tests/beatable.rs, no death breaking a fairness rule, and the whole run is played live; what it learns is held to its arena too (tests/creatures_arenas.rs). Whether it frightens is for people (docs/research/PLAYTEST.md, The creatures). Its body redone after a blind review read it as a bedsheet ghost (E10: a narrow shroud over a 1.96 m man, where his eyes and open mouth are the cloth grimed dark, each pose's face on the same part of the sheet): preferred to its first body at every distance and its death by two reviewers; the old Watcher (a tall robe with a face showing through) is still preferred at 2 and 4 m and at its death.",
       "passes": {
         "shots:watcher_2m": true,
         "shots:watcher_4m": true,
@@ -474,7 +474,7 @@
       "last_checked": "2026-11-09",
       "last_human_review": null,
       "name": "core props (71 placers)",
-      "notes": "P1-P3 (docs/PROPS.md): every cartoon kind of the core props remade as the real thing in Blender batches r01-r18 at its real size, its print painted, its draws kept call for call (the reference levels hold every placer's objects); P4: wear by use, the thing's own (tests/prop_wear.rs); M8: contact shadows under small things on the floor, a mirror's lamp a hot spot; P5 the barricades and P6 the verbs have entries of their own. P7: the place's own flames (the candles on the bench, a haunted floor's candles) only where the verbs are, below the Lobby and never on a floor with rules of its own; a candle blown out stays out; the bench says nothing, its hum comes from it and by it the low-nerve heartbeat holds off (tests/flames.rs, tests/player.rs; LORE.md What still burns). The light switch's '(bad wiring)', the vacuum's and the payphone's dice and lines, the shaft's lines and the staff ID's names still break the house style (docs/research/props-interactions.md 1.3). No person has judged a prop.",
+      "notes": "P1-P3 (docs/design/PROPS.md): every cartoon kind of the core props remade as the real thing in Blender batches r01-r18 at its real size, its print painted, its draws kept call for call (the reference levels hold every placer's objects); P4: wear by use, the thing's own (tests/prop_wear.rs); M8: contact shadows under small things on the floor, a mirror's lamp a hot spot; P5 the barricades and P6 the verbs have entries of their own. P7: the place's own flames (the candles on the bench, a haunted floor's candles) only where the verbs are, below the Lobby and never on a floor with rules of its own; a candle blown out stays out; the bench says nothing, its hum comes from it and by it the low-nerve heartbeat holds off (tests/flames.rs, tests/player.rs; LORE.md What still burns). The light switch's '(bad wiring)', the vacuum's and the payphone's dice and lines, the shaft's lines and the staff ID's names still break the house style (docs/research/props-interactions.md 1.3). No person has judged a prop.",
       "passes": {
         "lint:placer-smoke": true,
         "test:backrooms/level_sweep": true,
@@ -967,7 +967,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "stair halls",
-      "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
+      "notes": "The Building's place of that floor (docs/design/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L2_stair_halls": true,
         "style:stair halls": true,
@@ -1031,7 +1031,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "well",
-      "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
+      "notes": "The Building's place of that floor (docs/design/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L1_well": true,
         "style:well": true,
@@ -1053,7 +1053,7 @@
       "last_checked": "2026-10-29",
       "last_human_review": null,
       "name": "works",
-      "notes": "The Building's place of that floor (docs/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
+      "notes": "The Building's place of that floor (docs/design/MEGASTRUCTURE.md); its band measured when it came in (B3). No human verdict.",
       "passes": {
         "shots:4242_L3_works": true,
         "style:works": true,
@@ -1107,7 +1107,7 @@
       "kind": "sound",
       "last_checked": "2026-11-10",
       "last_human_review": null,
-      "name": "voice lines: personas, their lines, the evaluation, and your asides' voice director (docs/VOICES.md)",
+      "name": "voice lines: personas, their lines, the evaluation, and your asides' voice director (docs/design/VOICES.md)",
       "notes": "made and judged outside the check (cargo xtask voice build | eval | selftest, which need the Python environments and the models); the check holds the shipped files to the manifest and the index (structure, xtask voice tests, game audio::voice tests) and hears the cry (listen: the_cry_is_your_voice). A person has not listened yet. Your asides (you_aside, 57 lines over twelve uses): made, judged and reviewed by lore-keeper outside the check; the check holds the director's rules (game audio::asides tests), the hooks and the whole game (backrooms/asides), the pacing (backrooms/pacing: nothing chosen in a peak; eight runs differ), and hears an arrival (listen: an_arrival_is_your_voice_under_your_breath). A person has not listened to one yet.",
       "passes": {
         "test:backrooms/listen": true,
@@ -1369,7 +1369,7 @@
       "kind": "prop with rules",
       "last_checked": "2026-10-30",
       "last_human_review": null,
-      "name": "the vending machine (docs/VENDING.md: its body and its nine rules)",
+      "name": "the vending machine (docs/design/VENDING.md: its body and its nine rules)",
       "notes": "none on the Lobby, the Showroom or the Borrowed House (it_stands_where_it_belongs); its hum is held by the_vending_machine_is_heard; no person has listened",
       "passes": {
         "test:backrooms/vending": true,
@@ -1389,7 +1389,7 @@
       "kind": "prop with rules",
       "last_checked": "2026-11-01",
       "last_human_review": null,
-      "name": "the barricades (docs/PROPS.md 2: real openings closed by boards, sheets or what the place had)",
+      "name": "the barricades (docs/design/PROPS.md 2: real openings closed by boards, sheets or what the place had)",
       "notes": "each seals its opening, fits under the ceiling, stands on its own tile (each_barricade_seals_its_opening); spawn to exit, every pickup and her walk stay whole (the_floor_stays_whole_round_them); none on a floor with rules of its own, one at most on the Lobby (where_barricades_stand); the old choice's draws kept (core_props_tail); no person has walked into one",
       "passes": {
         "test:backrooms/barricades": true,
@@ -1408,7 +1408,7 @@
       "kind": "prop with rules",
       "last_checked": "2026-10-30",
       "last_human_review": null,
-      "name": "the windows (docs/WINDOWS.md: cut into real walls, the view, the lamp outside)",
+      "name": "the windows (docs/design/WINDOWS.md: cut into real walls, the view, the lamp outside)",
       "notes": "none on the Lobby, the Showroom or the Borrowed House (windows_stand_where_a_building_would_have_them); the view is one CC0 panorama for every window; no person has looked out of one",
       "passes": {
         "test:backrooms/windows": true,
@@ -1427,7 +1427,7 @@
       "kind": "prop with rules",
       "last_checked": "2026-11-03",
       "last_human_review": null,
-      "name": "the things a hand can use (docs/PROPS.md 3, LORE.md Within reach: a box, a bin, a book stack, a locker left unlocked, a dead lift, the television)",
+      "name": "the things a hand can use (docs/design/PROPS.md 3, LORE.md Within reach: a box, a bin, a book stack, a locker left unlocked, a dead lift, the television)",
       "notes": "none on the Building's floors, the Lobby or a floor with rules of its own; what each holds is fixed when the floor is built, from a stream of its own (USE_SALT), given once (what_they_give_is_fixed_and_given_once); each verb where its prop is (every_usable_prop_has_its_verb); the TV off and on (the_tv_switches_off_and_on); the tape, a locker and a set coming on stop a creature near, a bin and a page do not (a_loud_verb_stops_what_is_near_and_a_quiet_one_does_not); the sounds are synthesized, no person has listened to them or used a verb",
       "passes": {
         "test:backrooms/usable": true,
@@ -1447,7 +1447,7 @@
       "kind": "prop with rules",
       "last_checked": "2026-11-09",
       "last_human_review": null,
-      "name": "what still burns (docs/LORE.md: the candles, lanterns and fires people left, the candles on the bench, a haunted floor's candles; the cold censer)",
+      "name": "what still burns (docs/design/LORE.md: the candles, lanterns and fires people left, the candles on the bench, a haunted floor's candles; the cold censer)",
       "notes": "Canon from the code's gates and draws (P7): the themed ones only where their purpose welcomes them, lit or cold by their own draws, never burning down; the place's own (the bench, a haunted floor's candles) where the verbs are, below the Lobby and never on a floor with rules of its own (the_place_burns_nothing_on_the_lobby_or_a_floor_of_its_own); a candle blown out stays out (a_candle_blown_out_stays_out); the bench mends the nerve 3.2x, holds off the heartbeat and says nothing (dark_regions_drain_and_safe_rooms_mend). No person has stood at the bench or blown out a candle.",
       "passes": {
         "test:backrooms/flames": true,
@@ -1466,7 +1466,7 @@
       "last_checked": "2026-11-11",
       "last_human_review": null,
       "name": "the cutscene engine: storage, the player, the bars, the test engine",
-      "notes": "docs/CUTSCENES.md. The contract (debug/cutscene.rs) holds every cutscene on each of its stages. Nobody has watched one yet: whether the bars read as hands taken is a playtest question.",
+      "notes": "docs/design/CUTSCENES.md. The contract (debug/cutscene.rs) holds every cutscene on each of its stages. Nobody has watched one yet: whether the bars read as hands taken is a playtest question.",
       "passes": {
         "test:backrooms/cutscenes": true,
         "test:game/player": true

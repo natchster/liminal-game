@@ -11,7 +11,7 @@
 //! the repeats (a level over a budget gets a second look: `REPEATS` more
 //! runs, and the median of all of them). It then
 //!
-//! - holds every level to the budgets in `docs/PERF.md` (a JSON block, like
+//! - holds every level to the budgets in `docs/engineering/PERF.md` (a JSON block, like
 //!   the style bands), and
 //! - looks for a **change point** in each measure's history on this machine
 //!   (`perf/history.csv`): the split of the series that best separates an
@@ -89,14 +89,14 @@ pub fn bench(args: &[String]) -> Result<(), String> {
     let mut now = medians(&samples);
 
     // budgets
-    let doc = std::fs::read_to_string(root().join("docs/PERF.md")).map_err(|e| format!("docs/PERF.md: {e}"))?;
+    let doc = std::fs::read_to_string(root().join("docs/engineering/PERF.md")).map_err(|e| format!("docs/engineering/PERF.md: {e}"))?;
     let budgets: Value = doc
         .split("<!-- perf-budgets:begin -->")
         .nth(1)
         .and_then(|r| r.split("```json").nth(1))
         .and_then(|r| r.split("```").next())
         .and_then(|j| serde_json::from_str(j).ok())
-        .ok_or("docs/PERF.md: no perf-budgets block")?;
+        .ok_or("docs/engineering/PERF.md: no perf-budgets block")?;
     let over = |v: &[f64]| MEASURES.iter().enumerate().any(|(i, m)| budgets["levels"][m].as_f64().is_some_and(|b| v[i] > b));
     // a second look: a level over a budget is measured `REPEATS` more times
     // and judged on the median of all its runs (a p99 of 240 frames is the
@@ -119,7 +119,7 @@ pub fn bench(args: &[String]) -> Result<(), String> {
         for (i, m) in MEASURES.iter().enumerate() {
             if let Some(b) = budgets["levels"][m].as_f64() {
                 if v[i] > b {
-                    failures.push(format!("{seed} L{level}: {m} {:.2} over its budget {b} (docs/PERF.md)", v[i]));
+                    failures.push(format!("{seed} L{level}: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", v[i]));
                 }
             }
         }
@@ -247,7 +247,7 @@ fn bench_pack(
     for (i, m) in PACK_MEASURES.iter().enumerate() {
         if let Some(b) = budgets["creatures"][m].as_f64() {
             if now[i] > b {
-                failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/PERF.md)", now[i]));
+                failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", now[i]));
             }
         }
     }

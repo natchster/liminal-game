@@ -1,4 +1,4 @@
-//! Batch `r11a`'s props in this crate, made real (`docs/PROPS.md` P2): its
+//! Batch `r11a`'s props in this crate, made real (`docs/design/PROPS.md` P2): its
 //! placers and what only they use.
 use super::*;
 
@@ -560,7 +560,7 @@ fn vary_by(a: i32, b: i32, c: i32) -> u32 {
 // Chalk arrow: 5% chance per level. A way-mark someone left on a wall at
 // eye height (`assets/src/blender/props/r11a.notes.md`): an arrow drawn
 // quickly in blackboard chalk, its head a closed triangle scribbled in (never
-// her open arrow with the longer left barb, docs/SECRETS.md), a word over it
+// her open arrow with the longer left barb, docs/design/SECRETS.md), a word over it
 // in capitals in a hurried hand; the grain of the chalk caught on the wall's
 // tooth, the strokes broken where it skipped, its dust under them; white
 // chalk gone a little grey on the wall. Painted on a transparent plane the

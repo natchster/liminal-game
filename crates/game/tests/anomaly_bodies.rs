@@ -1,4 +1,4 @@
-//! The anomalies' figures on the new bodies (`docs/ENTITIES.md`, E9). The
+//! The anomalies' figures on the new bodies (`docs/design/ENTITIES.md`, E9). The
 //! Showroom's staff and the Borrowed House's shadows walk on the procedural
 //! human rig (`anomalies::rig`), not on a body's own skeleton: the staff's
 //! body, built in Blender (`assets/src/creatures/body_staff.py`), is skinned

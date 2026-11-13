@@ -1,6 +1,6 @@
 //! The story layer: M.'s trail and her camp on every floor (and her
-//! notebook, `notebook`). The design is `docs/GAMEPLAY.md`; the canon is
-//! `docs/LORE.md`, *M.'s descent*.
+//! notebook, `notebook`). The design is `docs/design/GAMEPLAY.md`; the canon is
+//! `docs/design/LORE.md`, *M.'s descent*.
 //!
 //! On each level M. came in where you did, camped somewhere off the straight
 //! way, and went on to the door, marking the way: sheets of paper folded

@@ -1,4 +1,4 @@
-//! Batch `t05`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t05`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! bits of the outside indoors (Blender batch `t05`; what each real thing
 //! is and where its size comes from: `assets/src/blender/props/t05.notes.md`).
 //! Each placer keeps its old draws call for call (the comments at each say

@@ -1,5 +1,5 @@
 """t05: bits of the outside indoors, remodelled at their real sizes
-(docs/PROPS.md P3): oak twiglets shed by the tree, a robin's nest fallen
+(docs/design/PROPS.md P3): oak twiglets shed by the tree, a robin's nest fallen
 with its eggs, dead beech and oak leaves blown in, moss cushions on a damp
 floor, a tuft of annual meadow grass, a butterfly's wing left where a mouse
 ate the rest, an empty garden snail's shell, a cellar spider's web in the

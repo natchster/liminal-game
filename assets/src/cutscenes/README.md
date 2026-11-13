@@ -1,7 +1,7 @@
 # Cutscene sources
 
 One file a cutscene, `ID.toml`, its `id` the file's name. The format, the
-anchors and the rules a cutscene keeps are in `docs/CUTSCENES.md`; the way
+anchors and the rules a cutscene keeps are in `docs/design/CUTSCENES.md`; the way
 to make one is the `add-cutscene` skill.
 
 ```sh

@@ -1,6 +1,6 @@
-"""r09: the props remodelled at their real sizes (docs/PROPS.md, P1): the
+"""r09: the props remodelled at their real sizes (docs/design/PROPS.md, P1): the
 wooden crate, the broken window sash, the umbrella, and the things put away
-(docs/SECRETS.md 5). Sources and sizes: r09.notes.md.
+(docs/design/SECRETS.md 5). Sources and sizes: r09.notes.md.
 
 No map file: the game builds each prop from these parts by name, placed as
 modelled (a scale of one, `prop_part_as_modelled`). Every part is modelled
@@ -531,7 +531,7 @@ auto('Real__umbrellaMetal', umb_metal, 800)
 
 
 # =============================================================== secrets ===
-# The things put away (`secrets/things.rs`, docs/SECRETS.md 5): each a
+# The things put away (`secrets/things.rs`, docs/design/SECRETS.md 5): each a
 # small ordinary thing, its bottom at y = 0, centred, its front toward +z;
 # but for the cap, which only ever hangs on its hook (below).
 #

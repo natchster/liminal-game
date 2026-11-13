@@ -255,7 +255,7 @@ models, through the evaluation (`cargo xtask voice build|eval --model M`):
 
 ## The research
 
-[`docs/research/voice-tts.md`](research/voice-tts.md) (2026-11-08): the
+[`../research/voice-tts.md`](../research/voice-tts.md) (2026-11-08): the
 models that run here and their licences (code and weights), how each
 controls emotion and keeps a voice, the evaluation tools, the Python
 environments and the risks (licences drift: keep the licence at the revision
@@ -337,7 +337,7 @@ breath: a few words on arriving somewhere, at a sudden noise, at what
 comes for him, at what the place does back. Never a narrator, never a
 guide: a person alone reacting, the way people talk to themselves when
 they are frightened. Few, and different every run. The research behind
-it is [`research/inner-voice.md`](research/inner-voice.md) (SOURCES 16):
+it is [`../research/inner-voice.md`](../research/inner-voice.md) (SOURCES 16):
 Valve's dynamic dialog (an event matched to the most specific line, the
 memory of what was said read by the next choice, nothing as an answer)
 and bark managers in practice (priorities, dropping the stale, fatigue).

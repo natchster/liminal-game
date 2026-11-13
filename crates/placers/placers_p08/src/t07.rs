@@ -1,4 +1,4 @@
-//! Batch `t07`'s colander and sieve, made real (`docs/PROPS.md` P3): their
+//! Batch `t07`'s colander and sieve, made real (`docs/design/PROPS.md` P3): their
 //! placers and what only they use.
 use super::*;
 use t07_kit::*;

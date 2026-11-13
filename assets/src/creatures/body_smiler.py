@@ -2,7 +2,7 @@
 The Smiler: someone very tall, starved down to tendon, gone black all over
 as if tarred. Its lips have dried back off the teeth, top and bottom, so it
 seems to grin round to its cheeks (a rictus, not a smile). It stoops under
-the ceilings; its hands hang past its knees. (docs/ENTITIES.md, design 1.)
+the ceilings; its hands hang past its knees. (docs/design/ENTITIES.md, design 1.)
 
 MakeHuman's young, thin man (CC0), every limb and the neck lengthened (the
 forearms and hands most), posed in its stoop (the rest pose the game

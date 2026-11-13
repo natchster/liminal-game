@@ -1,4 +1,4 @@
-//! Batch `t20`'s props in this crate, made real (`docs/PROPS.md` P3; the
+//! Batch `t20`'s props in this crate, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t20.py`, its notes
 //! `t20.notes.md`): the humidor with its cigars, and the hunter-case pocket
 //! watch on its chain. Each keeps the old placer's draws, call for call;

@@ -1,4 +1,4 @@
-"""Text-to-speech for the game's voices, on MLX (docs/VOICES.md).
+"""Text-to-speech for the game's voices, on MLX (docs/design/VOICES.md).
 
 Runs in tools/voice/synth (`uv run --locked --project tools/voice/synth`);
 `cargo xtask voice` calls it. Every model is loaded from the Hugging Face

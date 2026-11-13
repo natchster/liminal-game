@@ -1,4 +1,4 @@
-//! Batch `t15`'s toys in this crate, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t15`'s toys in this crate, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"; `assets/src/blender/props/t15.py`, `t15.notes.md`): the
 //! fairy wand, the toy microphone and the small tyrannosaurus. Their
 //! placers and what only they use; each keeps the old placer's draws, call

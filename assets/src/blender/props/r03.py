@@ -1,4 +1,4 @@
-"""r03: the props remodelled at their real sizes (docs/PROPS.md), P1: the
+"""r03: the props remodelled at their real sizes (docs/design/PROPS.md), P1: the
 rubber duck, the baby doll and the hole in the floor (core props).
 
 No map file: the game builds each prop from these parts by name, placed as

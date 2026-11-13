@@ -1,4 +1,4 @@
-//! The visual playtest's tour (`docs/VISUAL_PLAYTEST.md`): where a body
+//! The visual playtest's tour (`docs/engineering/VISUAL_PLAYTEST.md`): where a body
 //! can stand nearest every edge of the walkable floor, and the views from
 //! there a player would get (at the edge, along it both ways, up at its top,
 //! down at its foot, crouched). An edge is where a body walking from a

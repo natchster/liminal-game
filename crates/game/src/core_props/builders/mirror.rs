@@ -10,7 +10,7 @@ pub fn build_broken_mirror(g: &mut Game, cx: &mut PropsCtx, yaw: f64) -> Built {
     // room's light (`Patch::Glass`), its silver going black from the edges
     // and in pinholes, dust and dried splashes on it, broken where something
     // hit it (radial cracks from the blow, rings between them, now and then
-    // a shard gone), every crack inside the glass (docs/PROPS.md).
+    // a shard gone), every crack inside the glass (docs/design/PROPS.md).
     use crate::assets::props::prop_part_as_modelled;
     // the placer stands the group 0.11 m out from the wall's face (the wall
     // spot's 6 cm and its own 5)

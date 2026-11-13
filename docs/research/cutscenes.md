@@ -1,8 +1,8 @@
 # Research: cutscenes in a first-person horror game
 
 Gathered on 2026-11-11 by a research agent for the cutscene engine
-([`../CUTSCENES.md`](../CUTSCENES.md)) and kept whole, as the record of
-what was found; [`../SOURCES.md`](../SOURCES.md) section 17 sums up what
+([`../design/CUTSCENES.md`](../design/CUTSCENES.md)) and kept whole, as the record of
+what was found; [`SOURCES.md`](SOURCES.md) section 17 sums up what
 the design took from it and where it shows up. Every claim links a page
 the agent opened; *(inference)* marks its own conclusions and **Not
 found** what it searched for and could not source. Read a source before

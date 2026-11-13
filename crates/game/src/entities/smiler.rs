@@ -1,4 +1,4 @@
-//! The Smiler (`docs/ENTITIES.md`, design 1): someone very tall, starved
+//! The Smiler (`docs/design/ENTITIES.md`, design 1): someone very tall, starved
 //! down to tendon, gone black as if tarred, its lips dried back off its
 //! teeth. *Your lamp calls it; the dark hides you; do not run near it.*
 //!

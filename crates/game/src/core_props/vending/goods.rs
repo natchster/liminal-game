@@ -1,4 +1,4 @@
-//! The goods' shapes (`docs/VENDING.md`): a bag of crisps is a pillow of
+//! The goods' shapes (`docs/design/VENDING.md`): a bag of crisps is a pillow of
 //! foil sealed flat at its top and bottom, crimped; a bar is the same,
 //! slimmer, standing on its end in a narrow coil; a pastry is a flat pouch;
 //! almond water is a ribbed plastic bottle, nothing printed on it; batteries

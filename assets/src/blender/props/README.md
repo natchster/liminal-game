@@ -16,7 +16,7 @@ props finer in Blender. There are two kinds of batch:
 - **Real things** (`rNN.py`, `tNN.py`, `v01.py`, `w01.py`, `x01.py`): the
   prop remodelled as the real object at its real size, each part registered
   by the batch's own `auto(name, build, budget)` and used as modelled. Their
-  brief is `docs/PROPS.md`, "How a prop is remodelled".
+  brief is `docs/design/PROPS.md`, "How a prop is remodelled".
 
 The pilot batch `b00.py` (radiator, overturned chair) is the worked example
 of a fitted batch. Read it first.

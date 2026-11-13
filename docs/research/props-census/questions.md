@@ -9,7 +9,7 @@ code's name for it (`place_radiators` places radiators; `core_trash_can`
 is a trash can), and the file the cell was cut from.
 
 **The question.** For each cell, does the prop look like a real object,
-worn, as `docs/STYLE.md` asks — or like a toy, a cartoon or a
+worn, as `docs/design/STYLE.md` asks — or like a toy, a cartoon or a
 placeholder?
 
 For each cell, first write the evidence: what the object is, and what

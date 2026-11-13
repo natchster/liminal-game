@@ -126,7 +126,7 @@
     "licence": "CC0-1.0",
     "assets": {
       "misty_farm_road": {
-        "what": "two gravel farm tracks between ploughed fields running away into fog, trees standing in it; a foggy afternoon, 2022-11-12 (the windows' view, docs/WINDOWS.md)",
+        "what": "two gravel farm tracks between ploughed fields running away into fog, trees standing in it; a foggy afternoon, 2022-11-12 (the windows' view, docs/design/WINDOWS.md)",
         "authors": "Greg Zaal",
         "page": "https://polyhaven.com/a/misty_farm_road",
         "sha1": "3a831919c5ab3ba0716a371b193da389a3a37468"

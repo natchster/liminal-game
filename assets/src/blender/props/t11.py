@@ -1,4 +1,4 @@
-"""t11: the props remodelled at their real sizes (docs/PROPS.md, P3, the
+"""t11: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): a hunting lodge's trophies and a parlour's ornaments, years after
 anyone dusted them: the roe buck's antlers on their skull plate and oak
 shield, a trout mounted on its oval board, a roe buck's head on its shield,

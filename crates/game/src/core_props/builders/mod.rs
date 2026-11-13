@@ -249,7 +249,7 @@ pub fn build_wet_floor_sign(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
     // the common 2-sided A-frame (Blender batch `r01`): two moulded yellow
     // panels hinged at the top, splayed 0.30 m at the foot, each printed
-    // CAUTION / WET FLOOR in black, scuffed (docs/PROPS.md)
+    // CAUTION / WET FLOOR in black, scuffed (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     const PANEL_H: f64 = 0.655;
     const FACE_Z: f64 = 0.0195; // the printed face, in the panel's frame
@@ -876,7 +876,7 @@ pub fn build_suitcase(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // a moulded 1960s case (23 x 16 x 7 in), modelled in the batch `r02`:
     // the shells, their linings and aluminium trim (valance, hinges,
     // latches), the grip; the lid stood open on its hinges, held by its
-    // check straps (docs/PROPS.md)
+    // check straps (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     const HINGE_Y: f64 = 0.112;
     const HINGE_Z: f64 = -0.209;
@@ -1073,7 +1073,7 @@ pub fn build_coat_rack(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // a Thonet-style stand (74 in: a turned pole, four bent legs and their
     // ring, six coat hooks and six hat hooks) and a wool overcoat hanging by
     // the loop in its collar from the front coat hook, both modelled in the
-    // batch `r02` (docs/PROPS.md)
+    // batch `r02` (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     let rg = group();
     // dark-stained beech, its varnish worn
@@ -1128,7 +1128,7 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
     // the mound and the pieces are modelled in the batch `r02`; the pieces
     // lie on the mound, whose height is PL_H (1 - (x/RX)^2 - (z/RZ)^2)^1.3
-    // (docs/PROPS.md)
+    // (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     const RX: f64 = 0.28;
     const RZ: f64 = 0.235;

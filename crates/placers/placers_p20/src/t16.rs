@@ -1,4 +1,4 @@
-//! Batch `t16`'s prop in this crate, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t16`'s prop in this crate, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"): the deflated ball, a size 3 football or a size 3 rubber
 //! basketball gone soft on a floor (`assets/src/blender/props/t16.py`,
 //! `t16.notes.md`). Its placer and what only it uses; it keeps the old

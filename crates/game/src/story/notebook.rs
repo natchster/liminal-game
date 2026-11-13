@@ -2,13 +2,13 @@
 //! descent to level 13, in the order she wrote them. The eight floor pages
 //! (`FLOOR_PAGES`) lie on the run's ordinary floors in turn (the first four
 //! always on the Building's three floors and the Lobby, levels 1–4, where no
-//! anomaly comes: `docs/MEGASTRUCTURE.md`); an anomaly's
+//! anomaly comes: `docs/design/MEGASTRUCTURE.md`); an anomaly's
 //! page (`ANOMALY_PAGES`) lies on that anomaly's floor, wherever the run put
 //! it (the Stairwell's and the Loop's are written on the floor whose door
 //! leads in, before she went through); the last page (`LAST_PAGE`) lies at the last camp, on
 //! level 13, the first floor below every anomaly (they all come by level 12).
 //!
-//! Her pages hint, as a survivor would, and never explain (`docs/LORE.md`,
+//! Her pages hint, as a survivor would, and never explain (`docs/design/LORE.md`,
 //! *How canon reaches the player*); a thread is a line she wrote, never an
 //! instruction. E. is Elias (his loose notes are among the torn pages); M.
 //! is the M. of *M.'s Rules*. Neither is ever said, nor what they are to

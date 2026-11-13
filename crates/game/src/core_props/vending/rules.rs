@@ -1,4 +1,4 @@
-//! What the vending machine does (`docs/VENDING.md`, the rules). Each frame
+//! What the vending machine does (`docs/design/VENDING.md`, the rules). Each frame
 //! (`vending_frame`) it keeps its rhythm and goes dark when something comes
 //! (rules 1, 2), reads where you look (rule 3), runs what it is doing (the
 //! coin ringing down, a coil turning, a shove, a good falling, the flap, its

@@ -1,4 +1,4 @@
-//! Batch `t09`'s carnival mask, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t09`'s carnival mask, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"; `assets/src/blender/props/t09.py`, `t09.notes.md`): a
 //! Venetian volto of papier-mache, worn. Its placer and what only it uses;
 //! it keeps the old placer's draws, call for call.

@@ -735,7 +735,7 @@ impl Game {
 
     /// Where you hear from: your place and facing, or, while a cutscene
     /// has the camera, the camera's (its sounds are heard where it looks
-    /// from, `docs/CUTSCENES.md`) → (x, z, yaw)
+    /// from, `docs/design/CUTSCENES.md`) → (x, z, yaw)
     pub fn ear_at(&self) -> (f64, f64, f64) {
         if self.hands_taken() {
             let (p, r) = (self.camera.pos(), self.camera.rot());

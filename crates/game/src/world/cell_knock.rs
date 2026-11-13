@@ -1,4 +1,4 @@
-//! What knocks at your cell (`docs/MEGASTRUCTURE.md`, G6). Sealed in a cell
+//! What knocks at your cell (`docs/design/MEGASTRUCTURE.md`, G6). Sealed in a cell
 //! while the self-assembly's fog rises or stands at its crest, something
 //! knocks at the door every few seconds (`assembly::KNOCK`). What you do is
 //! a choice:

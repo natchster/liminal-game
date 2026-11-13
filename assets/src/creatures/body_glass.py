@@ -1,5 +1,5 @@
 """
-The one behind the glass (docs/WINDOWS.md 4): someone standing far out on
+The one behind the glass (docs/design/WINDOWS.md 4): someone standing far out on
 the track in a pale raincoat, belted, the hood up and drawn, wet; an
 ordinary height, the shoulders a little narrow; its face in the hood's
 shadow, and close, pressed to the glass, a person's face, wet and pale,
@@ -24,7 +24,7 @@ Its face cold and drowned, its eyes clouded, on bones of their own. A morph,
 
 The creature it is the body of is after SCP-2885 (Pythy, rewritten by Zyn),
 SCP-3052 (Witryso), SCP-L682 (CRAt26) and the Backrooms wiki's Entity 2
-(u/glassydude101, rewritten by DrAkimoto), CC BY-SA 3.0 (`docs/LORE.md`,
+(u/glassydude101, rewritten by DrAkimoto), CC BY-SA 3.0 (`docs/design/LORE.md`,
 Attribution); its body is MakeHuman's (CC0 1.0).
 """
 import numpy as np

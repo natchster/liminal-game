@@ -9,7 +9,7 @@
 //! real, the other a stub) the run-dependent comparisons are skipped with a note.
 //!
 //! The figures' skinned bodies are not the recording's: since E9
-//! (`docs/ENTITIES.md`) the staff's is a MakeHuman body from `bodies.bin`, a
+//! (`docs/design/ENTITIES.md`) the staff's is a MakeHuman body from `bodies.bin`, a
 //! skinned mesh for each part, bound to the same rig. The trees are compared
 //! without their skinned meshes (the rig's bones, its walk and everything
 //! else still are); the bodies have tests of their own
@@ -485,7 +485,7 @@ fn scp_on_level_with_hash_overrides() {
     // The recorded cases give the flags and seeds; their expected levels
     // were the old plan's (anomalies from level 2). The plan now keeps
     // them off the Building's floors and the Lobby (from level 5,
-    // `docs/MEGASTRUCTURE.md`), so the expectation is rebuilt from the
+    // `docs/design/MEGASTRUCTURE.md`), so the expectation is rebuilt from the
     // rules: a level the flags force has what they force ("none": nothing);
     // a forced anomaly is not also met on its planned level; every other
     // level has the plan's.

@@ -1,4 +1,4 @@
-//! Your asides in the whole game (`docs/VOICES.md`, *Your asides*;
+//! Your asides in the whole game (`docs/design/VOICES.md`, *Your asides*;
 //! `game::audio::asides`): on real floors of the rooms, with creatures
 //! held still, the voice director answers the place: sudden sounds are
 //! answered and said, each kind at most once a run, never two asides within

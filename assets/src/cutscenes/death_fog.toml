@@ -1,4 +1,4 @@
-# The fog (docs/CUTSCENES.md, C7): the self-assembly takes you. You sink
+# The fog (docs/design/CUTSCENES.md, C7): the self-assembly takes you. You sink
 # into it, lying back, the violet closing over your eyes, then black, and
 # the card. 1.4 s; on a repeat it starts sinking.
 id = "death_fog"

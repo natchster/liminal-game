@@ -2,7 +2,7 @@
 The Reader: a thin man in a brown cardigan buttoned wrong, paper stuffed in
 its pockets and down its front, ink on its fingers, the fingers too long; it
 walks bent over a sheet held close to its face, its eyes going left to
-right. It looks up when it sees you. (docs/ENTITIES.md, design 1.)
+right. It looks up when it sees you. (docs/design/ENTITIES.md, design 1.)
 
 MakeHuman's thin man (CC0), halfway between its young and its old, stooped
 over the sheet it holds in both hands before its face, its fingers half as

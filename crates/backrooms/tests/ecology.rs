@@ -1,4 +1,4 @@
-//! Who lives where (`docs/ENTITIES.md` design 5, the ecology): on real
+//! Who lives where (`docs/design/ENTITIES.md` design 5, the ecology): on real
 //! levels of several runs, the creatures a level is given by its places
 //! (`Game::ecology`: one on the Lobby, two at depth 2, three deeper; the
 //! Smiler only with dark regions, the Watcher only with furnished rooms,

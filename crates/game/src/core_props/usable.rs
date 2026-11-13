@@ -1,4 +1,4 @@
-//! Things a hand can use (`docs/PROPS.md` 3): the props on every floor that
+//! Things a hand can use (`docs/design/PROPS.md` 3): the props on every floor that
 //! answer a verb, registered once the props have settled
 //! (`usable_settled`; an interactable pins the wall faces near it while
 //! settling, so none is registered before). A box is opened, a bin looked

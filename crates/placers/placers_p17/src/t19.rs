@@ -1,4 +1,4 @@
-//! Batch `t19`'s empty picture outline, made real (`docs/PROPS.md` P3; the
+//! Batch `t19`'s empty picture outline, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t19.py`, its notes
 //! `t19.notes.md`): where a picture hung for years and was taken down, a
 //! mark, as batch `r07`'s are: the wall behind it kept cleaner and less

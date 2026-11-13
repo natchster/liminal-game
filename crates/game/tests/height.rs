@@ -1,4 +1,4 @@
-//! Height in the world (`docs/MEGASTRUCTURE.md`, design 1): floors at
+//! Height in the world (`docs/design/MEGASTRUCTURE.md`, design 1): floors at
 //! heights, a flight of stairs between them, voids you cannot enter but see
 //! across, slabs you see no further through, on a small hand-made floor of
 //! the Building (`Game::test_ground_level`).

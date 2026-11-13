@@ -1,4 +1,4 @@
-//! Batch `r13a`'s props in this crate, made real (`docs/PROPS.md` P2): its
+//! Batch `r13a`'s props in this crate, made real (`docs/design/PROPS.md` P2): its
 //! placers and what only they use.
 use super::*;
 
@@ -43,7 +43,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     // one, hung flat on four brass mirror plates. The glass gives back the
     // room's light (`Patch::Glass`), its silver going black from the edges;
     // dust on it, now and then hands' smears, now and then struck and
-    // cracked, its splinters on the floor below (docs/PROPS.md)
+    // cracked, its splinters on the floor below (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     // 30% chance smudged; 10% chance cracked (the old overlays' draws)
     let smudged = rnd() < 0.30;

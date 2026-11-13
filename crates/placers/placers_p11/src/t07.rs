@@ -1,4 +1,4 @@
-//! Batch `t07`'s boot tray and umbrella stand, made real (`docs/PROPS.md`
+//! Batch `t07`'s boot tray and umbrella stand, made real (`docs/design/PROPS.md`
 //! P3): their placers and what only they use (the boots are r14a's, the
 //! umbrellas r09's).
 use super::*;

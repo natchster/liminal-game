@@ -41,7 +41,7 @@ pub use crate::core_props::vending::build_vending;
 /// things a hand can use are (`usable_settled`), below the Lobby (its
 /// emptiness is the point) and never on a floor with rules of its own (the
 /// spotless Showroom, the Borrowed House whose rule is light, and the
-/// floors whose door opens on the Stairwell or the Loop); `docs/LORE.md`,
+/// floors whose door opens on the Stairwell or the Loop); `docs/design/LORE.md`,
 /// *What still burns*. Where it is false, both keep their draws and the
 /// tiles they take, so nothing placed after them moves.
 pub fn flames_here(g: &Game) -> bool {
@@ -564,7 +564,7 @@ impl Game {
         // no machine on the Lobby (level 4: its emptiness is the point), nor
         // in the Showroom or the Borrowed House, whose light is their own;
         // elsewhere only where an office, a hall or the Poolrooms would have
-        // put one, never in a zone left bare (docs/VENDING.md, where it stands)
+        // put one, never in a zone left bare (docs/design/VENDING.md, where it stands)
         if g.level_num != 4 && !matches!(g.level_scp.as_deref(), Some("store" | "house")) {
             kind!(
                 g,

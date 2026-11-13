@@ -1,4 +1,4 @@
-//! A knock at a sealed door (`docs/MEGASTRUCTURE.md`, G5;
+//! A knock at a sealed door (`docs/design/MEGASTRUCTURE.md`, G5;
 //! `game::world::knock`): in the quiet an ordinary door now and then
 //! answers, once, and gives its thing at its foot; a door the cleaners
 //! marked red knocks back in your own rhythm and the siren comes within

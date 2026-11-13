@@ -4,7 +4,7 @@ A first-person exploration horror game for macOS on Apple Silicon, written in
 Rust. You follow someone down an endless building that is different for
 every run: first through the Building, three floors of vast, empty concrete
 at many heights over a void, where you find the way down by stairs,
-galleries and bridges (`docs/MEGASTRUCTURE.md`); then through the yellowed
+galleries and bridges (`docs/design/MEGASTRUCTURE.md`); then through the yellowed
 office rooms inside its walls. M., who went in after E., left a trail of
 folded paper, a camp on every floor and a page of her notebook at each.
 Nothing points the way; the door is found by its light and the sound it
@@ -12,7 +12,7 @@ makes. Keep your sanity and your flashlight battery up, avoid what walks the
 halls (taking her page wakes them), don't trust every trail, and go down —
 through doors, holes in the floor, a stairwell that goes too deep, a shop
 that closes at night, a house that is not yours, and a corridor that loops —
-to her last camp on level 13, and on (`docs/GAMEPLAY.md`).
+to her last camp on level 13, and on (`docs/design/GAMEPLAY.md`).
 
 - **Rendering:** a Metal renderer with per-fragment Lambert / Phong / unlit
   shading, exponential fog, a place-based light map, floor occlusion and a
@@ -39,7 +39,7 @@ to her last camp on level 13, and on (`docs/GAMEPLAY.md`).
 ## Built with agents, and their tooling built with the game
 
 The game is developed with coding agents (Claude Code), and the tooling
-they work with is part of the project and grows with it (`docs/AGENTS.md`):
+they work with is part of the project and grows with it (`docs/engineering/AGENTS.md`):
 
 - **Custom skills** for each kind of content the game has (zones, props,
   creatures, anomalies, sounds, pacing, voices, re-recording, the weekly
@@ -175,7 +175,7 @@ cargo test --release -p backrooms --test listen -- --nocapture       # levels re
 | Path | What it is |
 |---|---|
 | `crates/engine` | Platform and rendering: math, scene graph, geometry, materials and textures, the Metal renderer and shaders, the CoreGraphics canvas, the CoreAudio node graph, the window and input loop |
-| `crates/game` | The game, platform-independent: state, level generation, the world build, props, creatures, anomalies, player, sound, HUD and game flow (see `docs/ARCHITECTURE.md`) |
+| `crates/game` | The game, platform-independent: state, level generation, the world build, props, creatures, anomalies, player, sound, HUD and game flow (see `docs/engineering/ARCHITECTURE.md`) |
 | `crates/placers/placers_p00`–`p32` | The ~650 decoration placers, split into crates that compile in parallel |
 | `crates/backrooms` | The executable: window, input routing, rendering, headless tools, and the whole-game tests |
 | `xtask` | Project automation (`cargo xtask bundle`) |

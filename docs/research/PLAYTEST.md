@@ -33,7 +33,7 @@ adding players to the same round.
    `cargo test --release -p backrooms --test listen -- --nocapture`, then
    play `target/listen/*.wav` on the same headphones. The Building's siren
    (`siren_*`) and the loudness reference have not yet been heard by a
-   person (`docs/MEGASTRUCTURE.md`, B3 and B5): write down whether the
+   person (`docs/design/MEGASTRUCTURE.md`, B3 and B5): write down whether the
    siren reads as a warning and whether anything is too loud, and only then
    re-record loudness (`cargo test --release -p backrooms --test loudness --
    --ignored rerecord`).
@@ -132,9 +132,9 @@ name the siren's meaning, the cells, the fog or the figure first):
   green rectangles on the Stair Halls' far walls, and the painted metal
   doors and rails among the photographed stone. These are the visual
   playtest's questions for a person, each with its camera:
-  `docs/playtests/visual/2026-11-13-building-1-3.md`.)
+  `docs/research/playtests/visual/2026-11-13-building-1-3.md`.)
 
-The creatures (`docs/ENTITIES.md`; ask until a round has answered them,
+The creatures (`docs/design/ENTITIES.md`; ask until a round has answered them,
 and never name a creature, its rule or its counter first):
 
 - For each thing you met more than once: what does it notice you by, and
@@ -160,7 +160,7 @@ and never name a creature, its rule or its counter first):
 - The tall shop staff, the shadows in the borrowed rooms, the man in the
   chair: one word for each.
 
-The vending machine (`docs/VENDING.md`; ask until a round has answered
+The vending machine (`docs/design/VENDING.md`; ask until a round has answered
 them. Ask the first two before any other, and never name its coin, its
 silence, its rhythm or its fall before the player has: the questions
 after the first two are for once they have, and skip any they have not
@@ -177,7 +177,7 @@ met):
 - Did you see one that was dead? Did you go close? What happened?
 - Did anything about it make you uneasy? When?
 
-Her marks, the place's answers, what is put away (`docs/SECRETS.md`; ask
+Her marks, the place's answers, what is put away (`docs/design/SECRETS.md`; ask
 until a round has answered them, and never name a mark's kind, a hiding
 place, the scratched circle or a thing's effect first; ask the effect
 questions only of a player who took something):
@@ -199,7 +199,7 @@ questions only of a player who took something):
 - The hole in the wall: did you reach in? Twice? What did you think it
   wanted?
 
-Your voice (the cry for help, `H`; `docs/VOICES.md`; before the session,
+Your voice (the cry for help, `H`; `docs/design/VOICES.md`; before the session,
 also play the ten lines in `crates/game/assets/voice/you/` and the
 references in `assets/src/voice/personas/` to the developer):
 
@@ -210,7 +210,7 @@ references in `assets/src/voice/personas/` to the developer):
 - Did the screams sound like the same man as the calm calls? Did any line
   sound like a cartoon, or like a machine?
 
-Your asides (what you say to yourself under your breath; `docs/VOICES.md`,
+Your asides (what you say to yourself under your breath; `docs/design/VOICES.md`,
 *Your asides*; before the session, also play the lines in
 `crates/game/assets/voice/you_aside/` to the developer, and note which
 were said in the session from the save, `asides.said` in
@@ -227,7 +227,7 @@ were said in the session from the save, `asides.said` in
   "What's that siren for?" (one take of eight passed its tone) sound
   right: which of them did not?
 
-Cutscenes (the moments the camera is borrowed; `docs/CUTSCENES.md`; start
+Cutscenes (the moments the camera is borrowed; `docs/design/CUTSCENES.md`; start
 a New descent from the title, look into a broken lift, and die at least
 once to a creature and once to your nerve):
 

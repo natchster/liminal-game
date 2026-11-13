@@ -50,7 +50,7 @@ pub struct Pickup {
     pub phase: f64,
 }
 
-/// A barricade across an opening (`docs/PROPS.md` 2): the tile it stands
+/// A barricade across an opening (`docs/design/PROPS.md` 2): the tile it stands
 /// in, the slab a body cannot pass and a look cannot cross (world x0, z0 –
 /// x1, z1, from the floor to `top`), and which way the way through ran
 #[derive(Clone, Copy, Debug, PartialEq)]

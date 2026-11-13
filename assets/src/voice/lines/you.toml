@@ -3,7 +3,7 @@
 # `use` is where the game plays it; `levels` the levels it may be said on
 # (1-3 the Building, 4 and down the rooms); `intensity` 0-1 within its
 # emotion. A cry is chosen among the lines for its level, a louder one when
-# you have already cried on this floor (docs/VOICES.md).
+# you have already cried on this floor (docs/design/VOICES.md).
 persona = "you"
 
 # ---- the Building: calling out across the void, half expecting nothing

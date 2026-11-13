@@ -1,4 +1,4 @@
-//! Batch `t17`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t17`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! acorns, the conkers, the pine cone, the pine needles and the fern
 //! (Blender batch `t17`; what each real thing is and where its size comes
 //! from: `assets/src/blender/props/t17.notes.md`). Each placer keeps its old

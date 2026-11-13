@@ -1,4 +1,4 @@
-"""t12: what a party room leaves, years on (docs/PROPS.md P3, "the party and
+"""t12: what a party room leaves, years on (docs/design/PROPS.md P3, "the party and
 the shrine"): cheap paper, card, foil and crepe, faded, crumpled and dusty.
 Sources and sizes: t12.notes.md.
 

@@ -1,4 +1,4 @@
-//! Batch `t06`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t06`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! garden shed's things (Blender batch `t06`; what each real thing is and
 //! where its size comes from: `assets/src/blender/props/t06.notes.md`): a
 //! bag of potting soil split at a corner, a canvas garden apron dropped on

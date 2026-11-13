@@ -93,7 +93,7 @@ impl Game {
             self.log_ambient("phone-ring", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
         // a lit vending machine near you turns a coil by itself (< 12 m;
-        // docs/VENDING.md rule 8): its motor's whine from it, the spiral turning
+        // docs/design/VENDING.md rule 8): its motor's whine from it, the spiral turning
         if let Some(h) = self.prop_due(|g| &mut g.vending_hum_timer, |g| &g.pp.vending_positions, 12.0, dt, m) {
             let _ = eg;
             self.vending_phantom(h.p);

@@ -1,6 +1,6 @@
 //! `visuals::pictures` — what the rooms' framed photographs, paintings,
 //! maps, plates and prints show, and how a print, a canvas, a printed sheet
-//! and a frame are painted (docs/PROPS.md 1, "its picture a picture").
+//! and a frame are painted (docs/design/PROPS.md 1, "its picture a picture").
 //!
 //! The pictures are real: old photographs of anonymous sitters (before
 //! 1930), paintings, maps and botanical and anatomical plates, released as

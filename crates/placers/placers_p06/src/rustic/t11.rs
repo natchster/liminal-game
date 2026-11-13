@@ -1,4 +1,4 @@
-//! Batch `t11`'s lodge trophies, made real (`docs/PROPS.md` P3; the
+//! Batch `t11`'s lodge trophies, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t11.py`, its notes
 //! `t11.notes.md`): a roe buck's antlers on their skull plate and oak
 //! shield, a trout skin-mounted on its oval board. Each keeps the old

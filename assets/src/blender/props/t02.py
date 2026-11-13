@@ -1,5 +1,5 @@
 """t02: the maps, charts, prints and posters on the walls, remodelled at
-their real sizes (docs/PROPS.md, P3): a cabin's framed map, a parlour's
+their real sizes (docs/design/PROPS.md, P3): a cabin's framed map, a parlour's
 antique map, an office's framed map, an anatomical plate hung as a school
 chart, a botanical print, a home-front poster and a devotional triptych.
 Sources and sizes: t02.notes.md. What each shows is a real map, plate or

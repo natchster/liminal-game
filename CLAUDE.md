@@ -4,31 +4,67 @@ A first-person liminal-horror game for macOS on Apple Silicon, in Rust: a
 Metal renderer, a synthesized CoreAudio soundscape, and levels generated from
 a seed. This file is a map; the detail lives in the docs it points to.
 
+The docs are sorted by kind ([`docs/README.md`](docs/README.md)). Put a new doc, or a new
+section, where its kind is, and nowhere else:
+
+- **`docs/design/`: the game.** What it is, how it looks, sounds and plays,
+  and why. No milestones, progress or dates; a design doc links its plan.
+- **`docs/research/`: what the design rests on.** Outside sources, research
+  notes, censuses, and playtests (people's sessions, the visual playtest's
+  records). Kept as found.
+- **`docs/plan/`: the work.** The milestone queue, each topic's milestones and
+  progress, the tooling roadmap, the quality scorecard and the content ledger.
+- **`docs/engineering/`: the code.** How it is built and how to work on it.
+
+`tests/structure.rs` holds this: the docs root has only the index and the four
+folders, and every `docs/…` path the repository names exists.
+
+**Design**
+
 | Read | For |
 |---|---|
-| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
-| [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
-| [`docs/LORE.md`](docs/LORE.md) | the canon: places, creatures, anomalies, and how lore may reach the player |
-| [`docs/PILLARS.md`](docs/PILLARS.md) | what the game is for; quote the rule a content change serves |
-| [`docs/GAMEPLAY.md`](docs/GAMEPLAY.md) | what a level asks of the player (her trail, her camp, the notebook) and the plan behind it |
-| [`docs/UI.md`](docs/UI.md) | the controls (one binding table, what a run needs in reach) and the screens, and the plan behind them |
-| [`docs/MEGASTRUCTURE.md`](docs/MEGASTRUCTURE.md) | the Building: the vast floors above the rooms (levels 1–3), the self-assembly, and the plan behind them |
-| [`docs/ENTITIES.md`](docs/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten, and the plan behind them ([`docs/research/`](docs/research/README.md) for the research) |
-| [`docs/STYLE.md`](docs/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
-| [`docs/ROOMS.md`](docs/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid, and the plan behind them |
-| [`docs/VENDING.md`](docs/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it), and the plan behind them |
-| [`docs/WINDOWS.md`](docs/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass, and the plan behind them |
-| [`docs/PROPS.md`](docs/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
-| [`docs/SECRETS.md`](docs/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
-| [`docs/VOICES.md`](docs/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them, and the plan behind them |
-| [`docs/CUTSCENES.md`](docs/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline, and the plan behind them |
-| [`docs/VISUAL_PLAYTEST.md`](docs/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
-| [`docs/AGENTS.md`](docs/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
-| [`docs/content.json`](docs/content.json) | the content ledger: each family and the checks it must pass |
-| [`docs/MILESTONES.md`](docs/MILESTONES.md) | every milestone still open across the docs, in one queue, done one by one |
-| [`docs/QUALITY.md`](docs/QUALITY.md) | grades, evidence and open issues per subsystem |
-| [`docs/TOOLING_ROADMAP.md`](docs/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
-| [`docs/SOURCES.md`](docs/SOURCES.md) | the research behind the game's design |
+| [`docs/design/PILLARS.md`](docs/design/PILLARS.md) | what the game is for; quote the rule a content change serves |
+| [`docs/design/LORE.md`](docs/design/LORE.md) | the canon: places, creatures, anomalies, and how lore may reach the player |
+| [`docs/design/GAMEPLAY.md`](docs/design/GAMEPLAY.md) | what a level asks of the player (her trail, her camp, the notebook) and the plan behind it |
+| [`docs/design/UI.md`](docs/design/UI.md) | the controls (one binding table, what a run needs in reach) and the screens, and the plan behind them |
+| [`docs/design/STYLE.md`](docs/design/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
+| [`docs/design/MEGASTRUCTURE.md`](docs/design/MEGASTRUCTURE.md) | the Building: the vast floors above the rooms (levels 1–3), the self-assembly, and the plan behind them |
+| [`docs/design/ROOMS.md`](docs/design/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid, and the plan behind them |
+| [`docs/design/ENTITIES.md`](docs/design/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten, and the plan behind them ([`docs/research/`](docs/research/README.md) for the research) |
+| [`docs/design/PROPS.md`](docs/design/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
+| [`docs/design/SECRETS.md`](docs/design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
+| [`docs/design/VENDING.md`](docs/design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it), and the plan behind them |
+| [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass, and the plan behind them |
+| [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them, and the plan behind them |
+| [`docs/design/CUTSCENES.md`](docs/design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline, and the plan behind them |
+
+**Engineering**
+
+| Read | For |
+|---|---|
+| [`docs/engineering/ARCHITECTURE.md`](docs/engineering/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
+| [`docs/engineering/DEVELOPMENT.md`](docs/engineering/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
+| [`docs/engineering/AGENTS.md`](docs/engineering/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
+| [`docs/engineering/PERF.md`](docs/engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
+| [`docs/engineering/VISUAL_PLAYTEST.md`](docs/engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
+
+**Plan**
+
+| Read | For |
+|---|---|
+| [`docs/plan/MILESTONES.md`](docs/plan/MILESTONES.md) | every milestone still open across the docs, in one queue, done one by one |
+| [`docs/plan/QUALITY.md`](docs/plan/QUALITY.md) | grades, evidence and open issues per subsystem |
+| [`docs/plan/content.json`](docs/plan/content.json) | the content ledger: each family and the checks it must pass |
+| [`docs/plan/TOOLING_ROADMAP.md`](docs/plan/TOOLING_ROADMAP.md) | the quality tooling being built, and why |
+
+**Research**
+
+| Read | For |
+|---|---|
+| [`docs/research/SOURCES.md`](docs/research/SOURCES.md) | the research behind the game's design |
+| [`docs/research/README.md`](docs/research/README.md) | the research notes, each answering a brief, with every source linked |
+| [`docs/research/PLAYTEST.md`](docs/research/PLAYTEST.md) | the playtest session script: what people are asked, and what they found (records in `docs/research/playtests/`) |
+
 
 ## Commands
 
@@ -42,8 +78,8 @@ cargo xtask calibrate prepare [--mild]            # known-answer pairs to measur
 cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
 cargo xtask assets textures [--write]            # rebuild the Building's photographed surfaces (CC0 photographs), compare
 cargo xtask assets creatures [--write]           # rebuild the creatures' bodies in Blender (MakeHuman CC0 bodies), compare
-cargo xtask bench                                # performance vs docs/PERF.md, perf/history.csv and perf/creatures.csv (records a run)
-cargo xtask drift                                # every gate → docs/content.json passes, docs/QUALITY.md Latest sweep
+cargo xtask bench                                # performance vs docs/engineering/PERF.md, perf/history.csv and perf/creatures.csv (records a run)
+cargo xtask drift                                # every gate → docs/plan/content.json passes, docs/plan/QUALITY.md Latest sweep
 cargo xtask voice doctor [--smoke]               # the voice toolchain: uv, tools/voice/{synth,eval}, 14 pinned models, licences
 cargo xtask voice reference --persona P [--emotion E] --candidates N [--write]   # a persona's voice (and an emotion's) from its description
 cargo xtask voice build --persona P [--model M]  # every take of P's lines (text-to-speech on MLX), cleaned
@@ -123,7 +159,7 @@ cargo test --release -p backrooms --test loudness -- --ignored rerecord   # afte
 `.claude/settings.json` runs `cargo xtask hook …`: edits outside this
 repository and to recorded fixtures are refused, edited `.rs` files are formatted, and a
 stop runs `cargo xtask check --fast` when code changed (a failure sends you
-back with its `ERROR` lines). See `docs/DEVELOPMENT.md`.
+back with its `ERROR` lines). See `docs/engineering/DEVELOPMENT.md`.
 
 ## Definition of done
 
@@ -136,7 +172,7 @@ back with its `ERROR` lines). See `docs/DEVELOPMENT.md`.
   core prop, materials, textures, lighting, the camera), the visual
   playtest on every level or place it touched (`visual-playtest`: `cargo
   xtask playtest visual --levels … [--area …]`), its findings read and
-  recorded in `docs/playtests/visual/`, and fixed or said why not.
+  recorded in `docs/research/playtests/visual/`, and fixed or said why not.
 - If the same mistake happens twice, add a rule, lint or test so it cannot
   happen a third time (see the roadmap's "steering loop").
 
@@ -154,7 +190,7 @@ End the message with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 ## Skills and reviewers
 
 The skills, reviewers, rules and hooks are this project's own, written for
-the game and changed with it (`docs/AGENTS.md`): when the game grows a
+the game and changed with it (`docs/engineering/AGENTS.md`): when the game grows a
 system, it grows a skill; when a mistake repeats, it becomes a check.
 
 Content work has a skill each (`.claude/skills/`): `add-zone`, `add-prop`,
@@ -168,13 +204,13 @@ known answers), `add-cutscene` (a moment that borrows your eyes: its
 source, trigger, stage, preview, contract and goldens), and
 `visual-playtest` (the edges of an area, a level or a set toured: gaps,
 flicker, clipping, things out of place; reproduced, recorded, fixed, toured
-again). Each ends in its gates, evidence and a `docs/content.json` entry
-(the playtest in `docs/playtests/visual/`).
+again). Each ends in its gates, evidence and a `docs/plan/content.json` entry
+(the playtest in `docs/research/playtests/visual/`).
 
 Never grade your own work. The reviewers (`.claude/agents/`) are read-only
 and see only their evidence: `art-critic` (blind A/B pairs from
 `cargo xtask ab prepare`, scored with `cargo xtask ab score`), `lore-keeper`,
 `level-analyst`, `audio-analyst`, `code-reviewer`, `visual-inspector` (a
 visual playtest's report and sheets: a filter, never the gate). Fear, sound quality and
-taste are finally decided by people: `docs/PLAYTEST.md` is the session
+taste are finally decided by people: `docs/research/PLAYTEST.md` is the session
 script, and their verdicts calibrate the reviewers.

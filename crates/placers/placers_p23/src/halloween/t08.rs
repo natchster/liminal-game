@@ -1,4 +1,4 @@
-//! Batch `t08`'s Halloween decorations, made real (`docs/PROPS.md` P3, "the
+//! Batch `t08`'s Halloween decorations, made real (`docs/design/PROPS.md` P3, "the
 //! party and the shrine"): what a party or a shrine leaves years on, as the
 //! cheap shop decorations they were (`assets/src/blender/props/t08.py`,
 //! `t08.notes.md`): the cheesecloth ghost, the resin cat, the besom, the

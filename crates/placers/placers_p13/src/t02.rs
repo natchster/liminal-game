@@ -1,4 +1,4 @@
-//! Batch `t02`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t02`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! office's framed map, the anatomy chart and the home-front poster, and
 //! what only they use. Each keeps its old placer's draws, call for call.
 //!

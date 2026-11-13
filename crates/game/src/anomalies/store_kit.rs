@@ -1,6 +1,6 @@
 //! The Showroom (`anomalies::store_kit`), one of the run's anomaly levels (`level::scp` 'store').
 //! Inspired by SCP-3008 "A Perfectly Normal, Regular Old IKEA" by Mortos
-//! (CC BY-SA 3.0, https://scp-wiki.wikidot.com/scp-3008); see docs/LORE.md.
+//! (CC BY-SA 3.0, https://scp-wiki.wikidot.com/scp-3008); see docs/design/LORE.md.
 //! No brand, no names: a flat-pack furniture store that never closes.
 //!
 //! This module is the part that does not need the game: the opening hours and

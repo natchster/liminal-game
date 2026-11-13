@@ -8,7 +8,7 @@ pub fn build_book_stack(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // each book modelled in the batch `r02` at its real size (cloth
     // hardbacks of three sizes, their boards over the page block, their
     // spines rounded; a trade paperback), its covers, spine and pages
-    // painted in one atlas for the stack (docs/PROPS.md)
+    // painted in one atlas for the stack (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     const CLOTHS: [usize; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
     // (boards, spine, pages, thickness, board width): hardbacks A, B, C, the paperback

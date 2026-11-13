@@ -1,4 +1,4 @@
-//! Batch `t20`'s orrery, made real (`docs/PROPS.md` P3; the Blender batch
+//! Batch `t20`'s orrery, made real (`docs/design/PROPS.md` P3; the Blender batch
 //! `assets/src/blender/props/t20.py`, its notes `t20.notes.md`): a London
 //! planetary orrery of about 1820, left on the floor. It keeps the old
 //! placer's draws, call for call. The old one's planets went round by

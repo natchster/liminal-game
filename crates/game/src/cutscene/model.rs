@@ -377,7 +377,7 @@ impl Cutscene {
     }
 
     /// What is wrong with its shape (times, envelope, keys), whatever the
-    /// game around it: the rules a source must keep (`docs/CUTSCENES.md`,
+    /// game around it: the rules a source must keep (`docs/design/CUTSCENES.md`,
     /// the design). `cargo xtask cutscene check` holds a source to the same
     /// list before it is compiled.
     pub fn shape_problems(&self) -> Vec<String> {

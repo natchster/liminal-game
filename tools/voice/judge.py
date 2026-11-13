@@ -1,4 +1,4 @@
-"""The evaluation of a take beyond its words (docs/VOICES.md, The evaluation):
+"""The evaluation of a take beyond its words (docs/design/VOICES.md, The evaluation):
 its emotion, its tone of voice, its voice. Used by evaluate.py.
 
 Every measure is a screen for a person's ear, not a verdict: no recogniser
@@ -396,6 +396,6 @@ def markdown(rep):
     rows += [
         "",
         "★ chosen (the best score among the takes that pass). ✗ marks the check that failed: the emotion's is arousal and valence, never the score, which only ranks.",
-        "The machine screens; a person makes the last choice by ear (docs/PLAYTEST.md).",
+        "The machine screens; a person makes the last choice by ear (docs/research/PLAYTEST.md).",
     ]
     return "\n".join(rows) + "\n"

@@ -1,4 +1,4 @@
-"""r02: the props remodelled at their real sizes (docs/PROPS.md), the
+"""r02: the props remodelled at their real sizes (docs/design/PROPS.md), the
 everyday ones of the core props: the book stack, the suitcase, the coat
 stand and the pile of debris. Their sources: `r02.notes.md`.
 

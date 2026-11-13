@@ -1,4 +1,4 @@
-//! `cargo xtask playtest visual` (`docs/VISUAL_PLAYTEST.md`): the visual
+//! `cargo xtask playtest visual` (`docs/engineering/VISUAL_PLAYTEST.md`): the visual
 //! playtest of an area, a level or a set of levels on one or more runs. It
 //! builds the game, runs `backrooms --tour` for each seed (its renders, its
 //! detectors and its contact sheets), and writes one report of what they
@@ -133,7 +133,7 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
     writeln!(
         md,
         "`cargo xtask playtest visual {}`: seeds {}, levels {levels}, {budget} views a floor at most. What to do with it: \
-         `.claude/skills/visual-playtest/SKILL.md`; what each detector means: `docs/VISUAL_PLAYTEST.md`. Detectors find; \
+         `.claude/skills/visual-playtest/SKILL.md`; what each detector means: `docs/engineering/VISUAL_PLAYTEST.md`. Detectors find; \
          a person (or the `visual-inspector`) judges: reproduce a finding with `--shots-at` before fixing it.\n",
         args.join(" "),
         seeds.join(", ")

@@ -1,4 +1,4 @@
-//! A window as it is built (`docs/WINDOWS.md` 1): the Blender parts of batch
+//! A window as it is built (`docs/design/WINDOWS.md` 1): the Blender parts of batch
 //! `w01` placed as modelled, at their real sizes
 //! (`docs/research/windows-real.md`), the glass, the blinds and the wear
 //! made here. What does not move is merged by material.

@@ -1,4 +1,4 @@
-"""r01: the props remodelled at their real sizes (docs/PROPS.md), first the
+"""r01: the props remodelled at their real sizes (docs/design/PROPS.md), first the
 everyday ones of the core props.
 
 No map file: the game builds each prop from these parts by name, placed as

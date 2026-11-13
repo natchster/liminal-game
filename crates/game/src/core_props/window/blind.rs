@@ -1,4 +1,4 @@
-//! A window's blind as a verb (`docs/WINDOWS.md` 4, W3). `[E] LOWER THE
+//! A window's blind as a verb (`docs/design/WINDOWS.md` 4, W3). `[E] LOWER THE
 //! BLIND` lets it all the way down over a second, its slats rattling down
 //! and shut: what hears, near, comes to look. The glass it hangs over is
 //! then covered: no look counts through it, no light comes in by it, and

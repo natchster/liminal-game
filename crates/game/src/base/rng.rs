@@ -148,7 +148,7 @@ pub fn with_native<R>(f: impl FnOnce() -> R) -> R {
     f()
 }
 /// Number of native draws so far, whatever drew them (tests: a system that
-/// must draw nothing, `docs/CUTSCENES.md` rule 5)
+/// must draw nothing, `docs/design/CUTSCENES.md` rule 5)
 pub fn native_draws() -> u64 {
     RNG.with(|r| r.borrow().native_count)
 }

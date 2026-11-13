@@ -1,5 +1,5 @@
 """r12: the things screwed to a wall that a building's services leave there
-(docs/PROPS.md, P2), remodelled at their real sizes: the office wall phone,
+(docs/design/PROPS.md, P2), remodelled at their real sizes: the office wall phone,
 the payphone, the emergency phone, the lift's button panel, the fire alarm
 pull station's lamp, the fire extinguisher cabinet and its extinguisher, and
 the breaker panel. Sizes and sources: r12.notes.md.

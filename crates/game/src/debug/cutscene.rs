@@ -1,4 +1,4 @@
-//! Cutscenes under test (`docs/CUTSCENES.md`, the test engine). A *stage*
+//! Cutscenes under test (`docs/design/CUTSCENES.md`, the test engine). A *stage*
 //! sets a game up the way a cutscene meets it in play and starts it the
 //! way play does (`cutscene_stage`, `Staged::trigger`); a *run* records it
 //! frame by frame (`run_cutscene`: what was shown, what play drew, the
@@ -432,7 +432,7 @@ fn in_jolt(c: &Cutscene, t: f64) -> bool {
     c.camera.windows(2).any(|w| w[1].jolt && t > w[0].t && t <= w[1].t + 1e-9)
 }
 
-/// What a run broke of the contract (`docs/CUTSCENES.md`, the design)
+/// What a run broke of the contract (`docs/design/CUTSCENES.md`, the design)
 pub fn contract(c: &Cutscene, tr: &Trace) -> Vec<String> {
     let mut p = vec![];
     let at = |r: &Row| format!("{} on {} at {:.2} s", tr.id, tr.stage, r.t);

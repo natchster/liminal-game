@@ -7,7 +7,7 @@
 //! surfaces reflect, the stand-in shine becomes real specular (tinted for
 //! brass and steel), plain surfaces get a faint broad sheen, and untextured
 //! ones get the shader's wear. Every settled surface, textured or not, takes
-//! the shader's wear by use (`Material::wear_use`, `docs/PROPS.md` P4): dust
+//! the shader's wear by use (`Material::wear_use`, `docs/design/PROPS.md` P4): dust
 //! on what faces up, the floor's grime at a thing's foot, its edges rubbed
 //! and chipped where they are convex. That is in metres over the floor
 //! under the thing, so where a thing is decides most of it (a toy on the

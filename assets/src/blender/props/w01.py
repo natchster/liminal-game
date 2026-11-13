@@ -1,4 +1,4 @@
-"""w01: the windows of the rooms (docs/WINDOWS.md), at their real sizes
+"""w01: the windows of the rooms (docs/design/WINDOWS.md), at their real sizes
 (docs/research/windows-real.md), and the streetlamp outside them.
 
 No map file: the game builds each window from these parts by name

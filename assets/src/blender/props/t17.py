@@ -1,5 +1,5 @@
 """t17: bits of a garden and a wood indoors, remodelled at their real
-sizes (docs/PROPS.md P3): acorns of the pedunculate oak, with and without
+sizes (docs/design/PROPS.md P3): acorns of the pedunculate oak, with and without
 their cups; horse chestnuts (conkers) and their split husks; an opened
 Scots pine cone and the pine's shed needles in their pairs; a fallen frond
 of common polypody; a small botanical plate framed under glass; a pair of

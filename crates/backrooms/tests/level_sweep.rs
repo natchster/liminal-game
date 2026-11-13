@@ -71,7 +71,7 @@ const EXIT_REACH: f64 = 2.5;
 const PICKUP_REACH: f64 = 1.5;
 /// Found by this sweep (2026-10-25): barricades once kept only spawn → exit
 /// solvable, so one could lock a pickup away (about 1 level in 20). Since
-/// `barricades_settled` (`docs/PROPS.md` 2) keeps every pickup in reach, a
+/// `barricades_settled` (`docs/design/PROPS.md` 2) keeps every pickup in reach, a
 /// pickup lost behind one fails like any other.
 const PICKUPS_BEHIND_BARRICADES: bool = false;
 

@@ -10,7 +10,7 @@ use std::f64::consts::PI;
 /// A silvered mirror's highlight (`Patch::Glass`, Blinn-Phong): the lamp seen
 /// in it as a lamp is in a mirror, a small hot spot about the size of its
 /// lens, not a disc of glare round it (at 4000 it read as bloom:
-/// `docs/PROPS.md`, M8)
+/// `docs/design/PROPS.md`, M8)
 pub const MIRROR_SHINE: f64 = 120000.0;
 
 /// Picks the value for weather `key` from one value per weather; any other

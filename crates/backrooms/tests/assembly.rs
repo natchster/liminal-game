@@ -1,4 +1,4 @@
-//! The self-assembly on the Building's floors (`docs/MEGASTRUCTURE.md`,
+//! The self-assembly on the Building's floors (`docs/design/MEGASTRUCTURE.md`,
 //! B5; `game::world::assembly`): the siren before the fog, the fog rising
 //! out of the void and sinking again in the director's phases, a sealed
 //! cell keeps it out, out in it you are gone, her page sounds the siren,

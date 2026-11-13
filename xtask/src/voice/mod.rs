@@ -1,4 +1,4 @@
-//! `cargo xtask voice …`: the voice-over pipeline (`docs/VOICES.md`).
+//! `cargo xtask voice …`: the voice-over pipeline (`docs/design/VOICES.md`).
 //!
 //! The models run in Python environments of their own (`tools/voice/synth`
 //! for synthesis on MLX, `tools/voice/eval` for the checks), each locked with

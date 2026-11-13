@@ -327,7 +327,7 @@ fn the_notice_is_loud() {
     assert!(peak > calm * 4.0, "the notice should stand 12 dB over the quiet before it");
 }
 
-/// Your cry is your own voice (`docs/VOICES.md`): a line said in the
+/// Your cry is your own voice (`docs/design/VOICES.md`): a line said in the
 /// place you stand, standing far over the room, and never clipping (the
 /// formant cry it replaced hit 0 dBFS; it is measured beside it)
 #[test]
@@ -367,7 +367,7 @@ fn the_cry_is_your_voice() {
     assert!(db(top) <= -1.0, "your cry must not clip ({:.1} dBFS)", db(top));
 }
 
-/// Your asides (`docs/VOICES.md`, *Your asides*): the run's first floor,
+/// Your asides (`docs/design/VOICES.md`, *Your asides*): the run's first floor,
 /// once its card and line have gone and you walk on, brings its arrival,
 /// your own voice under your breath. Measured where a voice is (200 Hz -
 /// 3 kHz): over the room and over your own steps, under your cry on the
@@ -545,7 +545,7 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
 /// The self-assembly's siren, on the Building's first floor, from where you
 /// arrive: it stands well out of the bed (it is how you know to go to a
 /// cell), from the loudspeakers on the walls, not from you
-/// (`docs/MEGASTRUCTURE.md`, B5).
+/// (`docs/design/MEGASTRUCTURE.md`, B5).
 #[test]
 fn the_siren_is_heard() {
     game::base::rng::seed_native(0x5135_0001);
@@ -799,7 +799,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
     }
 }
 
-/// A knock at the Well's sealed doors (`docs/MEGASTRUCTURE.md`, G5;
+/// A knock at the Well's sealed doors (`docs/design/MEGASTRUCTURE.md`, G5;
 /// `world::knock`), from where you stand to knock: your three raps; at an
 /// ordinary door that answers, someone at it and the thing pushed out
 /// (heard over the bed seconds after); at a red door, three raps back in
@@ -891,7 +891,7 @@ fn a_knock_is_heard_beside_a_lamp() {
     }
 }
 
-/// What knocks at your cell (`docs/MEGASTRUCTURE.md`, G6;
+/// What knocks at your cell (`docs/design/MEGASTRUCTURE.md`, G6;
 /// `world::cell_knock`), heard from inside it, sealed, the fog up:
 /// its knocks; your answer; then the wheel turned from outside, a pull at a
 /// time, and the door giving (its bolts, the air through the gap), each
@@ -1427,7 +1427,7 @@ fn the_reader_whispers() {
     assert_eq!(r.g.creature(ei).map(|c| c.brain.mode), Some(game::entities::brain::Mode::Idle), "it stopped reading");
 }
 
-/// The vending machine is heard (`docs/VENDING.md`, V4): standing 1.5 m
+/// The vending machine is heard (`docs/design/VENDING.md`, V4): standing 1.5 m
 /// before a lit one, its hum (its ballast's 120 Hz series, its buzz and its
 /// fan) rises over the room, and stops when it goes dark and when a coin
 /// buys its silence; its coin ringing down into the cup and a shove's bang

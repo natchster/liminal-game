@@ -2,7 +2,7 @@
 //! leaves: puddles on the wet floors, a fallen ceiling tile on the derelict
 //! ones, cobwebs on the still ones, a cut cable sparking on the electric ones
 //! and candles on the haunted ones (a hand blows one out, and it stays out:
-//! `docs/LORE.md`, *What still burns*). Part of
+//! `docs/design/LORE.md`, *What still burns*). Part of
 //! `place_props_tail` (core_props/tail.rs); the things are modelled in
 //! Blender batches `r05` (the cobwebs) and `r10` (the rest).
 //!
@@ -456,7 +456,7 @@ impl Game {
     /// `r10`: a 3 in pillar, its crater, the wax run down its side and spread
     /// round its foot, the wick), lit, each with a blow-out interactable. A
     /// candle blown out stays out: nothing you carry makes a flame
-    /// (`docs/LORE.md`, *What still burns*). None where `flames_here` is
+    /// (`docs/design/LORE.md`, *What still burns*). None where `flames_here` is
     /// false: their draws and their tiles kept.
     fn tail_haunted_candles(&mut self, cx: &mut PropsCtx) {
         use crate::assets::props::prop_part_as_modelled;

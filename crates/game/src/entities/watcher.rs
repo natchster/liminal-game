@@ -1,4 +1,4 @@
-//! The Watcher (`docs/ENTITIES.md`, design 1): someone standing under an old
+//! The Watcher (`docs/design/ENTITIES.md`, design 1): someone standing under an old
 //! dust sheet, where furniture under sheets stands; at a glance it is
 //! furniture. *Keep it in sight.*
 //!

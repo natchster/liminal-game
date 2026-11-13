@@ -1,4 +1,4 @@
-//! Batch `r12`'s props in this crate, made real (`docs/PROPS.md` P2): its
+//! Batch `r12`'s props in this crate, made real (`docs/design/PROPS.md` P2): its
 //! placers and what only they use.
 use super::*;
 

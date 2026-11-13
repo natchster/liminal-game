@@ -1,5 +1,5 @@
 //! Batch `t11`'s floor vase and its peacock feathers, made real
-//! (`docs/PROPS.md` P3; the Blender batch `assets/src/blender/props/t11.py`,
+//! (`docs/design/PROPS.md` P3; the Blender batch `assets/src/blender/props/t11.py`,
 //! its notes `t11.notes.md`): its placer and what only it uses. It keeps
 //! the old placer's draws, call for call.
 use crate::open_tiles;

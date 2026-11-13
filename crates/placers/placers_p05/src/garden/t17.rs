@@ -1,4 +1,4 @@
-//! Batch `t17`'s garden things in this crate, made real (`docs/PROPS.md`
+//! Batch `t17`'s garden things in this crate, made real (`docs/design/PROPS.md`
 //! P3; `assets/src/blender/props/t17.py`, `t17.notes.md`): the gardening
 //! gloves (a pair of cotton jersey gloves with knitted wrists, dropped one
 //! across the other, draped by Blender's cloth) and the garden rake (a bow

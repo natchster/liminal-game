@@ -5,7 +5,7 @@ use super::*;
 /// A hole broken through the floor (Blender batch `r03`): the covering
 /// torn back, the concrete slab broken through to its steel deck, the deck
 /// torn and bent down, the mesh's wires cut, a steel joist in the dark under
-/// one side, rubble and dust at the rim, and dark below (docs/PROPS.md).
+/// one side, rubble and dust at the rim, and dark below (docs/design/PROPS.md).
 ///
 /// The floor cannot be cut, so the hole is drawn through it: what is under
 /// the floor goes first, deepest first, without depth (a ray from above the

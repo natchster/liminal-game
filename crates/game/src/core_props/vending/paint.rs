@@ -1,4 +1,4 @@
-//! What is printed on the vending machine (`docs/VENDING.md`): one atlas of
+//! What is printed on the vending machine (`docs/design/VENDING.md`): one atlas of
 //! wrappers for everything it sells, the price strips on its trays, the
 //! stickers on its door, the grime on its glass, and the words on its
 //! display.

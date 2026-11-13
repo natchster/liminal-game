@@ -1,6 +1,6 @@
 # Research: your own voice, said under your breath
 
-Gathered on 2026-11-10 for the asides ([`../VOICES.md`](../VOICES.md),
+Gathered on 2026-11-10 for the asides ([`../design/VOICES.md`](../design/VOICES.md),
 *Your asides*): first-person reactions spoken by the player's own voice
 on arriving, at a sudden noise, at what comes and at what the place does
 back. Two questions: how a game decides when a character speaks and what

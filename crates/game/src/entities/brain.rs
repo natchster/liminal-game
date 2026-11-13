@@ -1,7 +1,7 @@
 //! The creatures' brain: what every creature of the rooms shares.
 //!
 //! A creature is always in one **mode** (`Mode`), and it changes mode only by
-//! a rule written in its kind's table (`docs/ENTITIES.md`), each change
+//! a rule written in its kind's table (`docs/design/ENTITIES.md`), each change
 //! logged with its reason (`Brain::log`), so what a creature did can always
 //! be read back and tested.
 //!

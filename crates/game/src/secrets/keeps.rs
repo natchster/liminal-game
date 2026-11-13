@@ -1,4 +1,4 @@
-//! What stays with you (`docs/SECRETS.md` 5): the run keeps a list of what
+//! What stays with you (`docs/design/SECRETS.md` 5): the run keeps a list of what
 //! you took (`Took`), and what it does to you is a pure function of that
 //! list (`body_of`): small steps on numbers the game already has, each
 //! system at most two steps either way, never what the creatures' fairness

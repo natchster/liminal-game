@@ -1,4 +1,4 @@
-//! Batch `t18`'s hanging censer, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t18`'s hanging censer, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"): a brass thurible of the church kind hung from a swag
 //! hook in the ceiling by a length of lamp chain, cold
 //! (`assets/src/blender/props/t18.py`, `t18.notes.md`). Its placer keeps the

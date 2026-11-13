@@ -200,14 +200,14 @@ fn stop(_input: &Value) -> Result<(), String> {
 fn session() -> Result<(), String> {
     let log = git(&["log", "--oneline", "-5"]);
     let dirty = git(&["status", "--porcelain"]).lines().count();
-    let roadmap = std::fs::read_to_string(root().join("docs/TOOLING_ROADMAP.md")).unwrap_or_default();
+    let roadmap = std::fs::read_to_string(root().join("docs/plan/TOOLING_ROADMAP.md")).unwrap_or_default();
     let progress: String = roadmap
         .split("\n## ")
         .find(|s| s.starts_with("Progress"))
         .map(|s| s.lines().skip(1).collect::<Vec<_>>().join("\n"))
         .unwrap_or_default();
     let ctx = format!(
-        "Where the work stands (re-injected after compaction):\nRecent commits:\n{log}Uncommitted files: {dirty}\nTooling roadmap progress (docs/TOOLING_ROADMAP.md):{progress}\nCLAUDE.md has the commands and invariants."
+        "Where the work stands (re-injected after compaction):\nRecent commits:\n{log}Uncommitted files: {dirty}\nTooling roadmap progress (docs/plan/TOOLING_ROADMAP.md):{progress}\nCLAUDE.md has the commands and invariants."
     );
     println!("{}", json!({ "hookSpecificOutput": { "hookEventName": "SessionStart", "additionalContext": ctx } }));
     Ok(())

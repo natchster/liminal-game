@@ -1,4 +1,4 @@
-//! The visual playtest's geometric detectors (`docs/VISUAL_PLAYTEST.md`
+//! The visual playtest's geometric detectors (`docs/engineering/VISUAL_PLAYTEST.md`
 //! VP3): what the scene itself says about a view, no pixel read. *Clip*:
 //! the eye or a corner of the near plane's face inside a thing (in the
 //! thing's own frame, against its own box; not a merged mesh of the

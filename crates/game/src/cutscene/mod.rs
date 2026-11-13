@@ -1,4 +1,4 @@
-//! Cutscenes (`docs/CUTSCENES.md`): a moment that borrows your eyes and
+//! Cutscenes (`docs/design/CUTSCENES.md`): a moment that borrows your eyes and
 //! gives them back. A cutscene is data (`model`), written as TOML in
 //! `assets/src/cutscenes/` and compiled by `cargo xtask cutscene write`
 //! into the bundle embedded here (`assets/cutscenes.json`); its camera

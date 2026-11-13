@@ -1,4 +1,4 @@
-//! Batch `t04`'s prop in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t04`'s prop in this crate, made real (`docs/design/PROPS.md` P3): the
 //! hair dryer dropped on the floor; its placer and what only it uses
 //! (`assets/src/blender/props/t04.py`, `t04.notes.md`).
 use super::*;

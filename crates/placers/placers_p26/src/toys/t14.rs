@@ -1,4 +1,4 @@
-//! Batch `t14`'s plush teddy and small doll, made real (`docs/PROPS.md` P3;
+//! Batch `t14`'s plush teddy and small doll, made real (`docs/design/PROPS.md` P3;
 //! the Blender batch `assets/src/blender/props/t14.py`, its notes
 //! `t14.notes.md`): their placers and what only they use. Each keeps the
 //! old placer's draws, call for call.

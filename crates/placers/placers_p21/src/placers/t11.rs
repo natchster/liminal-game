@@ -1,4 +1,4 @@
-//! Batch `t11`'s roe buck's head, made real (`docs/PROPS.md` P3; the
+//! Batch `t11`'s roe buck's head, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t11.py`, its notes
 //! `t11.notes.md`): its placer and what only it uses. It keeps the old
 //! placer's draws, call for call, and hangs where the old one hung.

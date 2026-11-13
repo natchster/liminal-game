@@ -87,7 +87,7 @@ fn prepare(mild: bool) -> Result<(), String> {
         "--after",
         after.to_str().unwrap(),
         "--question",
-        "Which side looks more like the game should look (docs/STYLE.md): a real, worn building or creature in weak light, with nothing broken? If neither is better, answer tie.",
+        "Which side looks more like the game should look (docs/design/STYLE.md): a real, worn building or creature in weak light, with nothing broken? If neither is better, answer tie.",
     ]
     .iter()
     .map(|s| s.to_string())

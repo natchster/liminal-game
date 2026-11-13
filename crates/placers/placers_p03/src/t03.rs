@@ -1,4 +1,4 @@
-//! Batch `t03`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t03`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! powder compact, the perfume flacon and the nail polish dropped on the
 //! floor; their placers and what only they use
 //! (`assets/src/blender/props/t03.py`, `t03.notes.md`).

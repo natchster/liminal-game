@@ -286,7 +286,7 @@ fn the_director_paces_a_level() {
         println!("  let go: {:?}", log.dropped);
         logs.push(log);
     }
-    // your asides keep the director's rhythm (docs/VOICES.md, rule 4):
+    // your asides keep the director's rhythm (docs/design/VOICES.md, rule 4):
     // nothing chosen is said in a peak (a blow's grunt is not chosen), and
     // the relief after a close call is said in the relief
     for (log, (seed, level)) in logs.iter().zip(runs) {
@@ -540,7 +540,7 @@ fn the_building_paces_its_floors() {
     }
     // at the bot's pace, most floors meet a siren before their door
     assert!(met * 4 >= runs.len() * 3, "{met} of {} floors met a siren on the way to the door", runs.len());
-    // your asides on the Building (docs/VOICES.md): the siren has its word
+    // your asides on the Building (docs/design/VOICES.md): the siren has its word
     // on some floors, and a knock at your cell is answered inside it (the
     // all-clear's word may come as you step out: it is posted sealed in)
     let said: Vec<&(String, bool)> = runs.iter().flat_map(|r| r.2.said.iter()).collect();
@@ -552,7 +552,7 @@ fn the_building_paces_its_floors() {
     }
 }
 
-/// Your asides from run to run (`docs/VOICES.md`, *Your asides*, rule 3;
+/// Your asides from run to run (`docs/design/VOICES.md`, *Your asides*, rule 3;
 /// asides A10): eight runs' floors played by the cautious bot, creatures
 /// live and deaths on. What you say differs from run to run, is never a line
 /// twice in a run, is a few words a floor (neither nothing nor a stream),

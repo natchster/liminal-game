@@ -1,4 +1,4 @@
-//! Batch `t15`'s spinning top, made real (`docs/PROPS.md` P3, "toys stay
+//! Batch `t15`'s spinning top, made real (`docs/design/PROPS.md` P3, "toys stay
 //! toys"; `assets/src/blender/props/t15.py`, `t15.notes.md`). Its placer and
 //! what only it uses; it keeps the old placer's draws, call for call.
 use crate::{pick_color, pick_open_tile, scatter_xz};

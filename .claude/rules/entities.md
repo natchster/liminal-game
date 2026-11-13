@@ -9,7 +9,7 @@ paths:
 
 # Creature and pacing rules
 
-- **The plan is `docs/ENTITIES.md`**: six creatures, six rules (one sense
+- **The plan is `docs/design/ENTITIES.md`**: six creatures, six rules (one sense
   and one counter each), one brain, fairness as invariants. Every kind
   `add_entity` makes is on the brain (`creature::on_new_brain`); `ai.rs`
   keeps only the shared steering and the update loop (the anomalies' staff

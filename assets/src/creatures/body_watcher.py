@@ -4,7 +4,7 @@ stooping a little, the cloth close about him to the floor and darker at the
 hem, a face pressed into it (the brow, the nose; the eyes and the open mouth
 grimed dark in the cloth). At a glance it
 is furniture under a sheet. Each time you look back it stands differently.
-(docs/ENTITIES.md, design 1.)
+(docs/design/ENTITIES.md, design 1.)
 
 Under the sheet is MakeHuman's old thin man (CC0, a tall one: 1.96 m), never
 shown. The sheet is one cloth grid draped over him by Blender's cloth solver

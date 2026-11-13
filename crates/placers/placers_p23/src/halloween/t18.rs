@@ -1,4 +1,4 @@
-//! Batch `t18`'s crystal ball, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t18`'s crystal ball, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"): a clear glass ball as they are sold for scrying, on its
 //! turned wooden stand (`assets/src/blender/props/t18.py`, `t18.notes.md`).
 //! It catches the light; it never makes any. Its placer keeps the old one's

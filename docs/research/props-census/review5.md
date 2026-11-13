@@ -1,7 +1,7 @@
 # Prop census, round 5: review
 
 The question for each cell: does the prop look like a real, worn object, as
-`docs/STYLE.md` asks, or like a toy, a cartoon or a placeholder? I cropped
+`docs/design/STYLE.md` asks, or like a toy, a cartoon or a placeholder? I cropped
 every cell and zoomed into the small props before grading them.
 
 How I applied the grades: `real` only where the prop could pass for a

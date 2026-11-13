@@ -1,4 +1,4 @@
-//! Secrets (`docs/SECRETS.md` 4–5): where things are put away, and what
+//! Secrets (`docs/design/SECRETS.md` 4–5): where things are put away, and what
 //! taking them does.
 //!
 //!   cargo test --release -p backrooms --test secrets -- --nocapture
@@ -300,7 +300,7 @@ fn took(ids: &[&str]) -> Vec<game::secrets::keeps::Took> {
 }
 
 /// Each thing moves what it says it does, by its step, and nothing else
-/// (`docs/SECRETS.md` 5): read from the run's list alone.
+/// (`docs/design/SECRETS.md` 5): read from the run's list alone.
 #[test]
 fn each_thing_does_what_it_says() {
     use game::secrets::keeps::{body_of, Body, SIZE_EYE};

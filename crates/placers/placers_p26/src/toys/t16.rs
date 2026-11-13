@@ -1,4 +1,4 @@
-//! Batch `t16`'s prop in this module, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t16`'s prop in this module, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"): the kite, a printed paper diamond kite on pine spars, torn,
 //! its tail and line lying slack (`assets/src/blender/props/t16.py`,
 //! `t16.notes.md`). Its placer and what only it uses; it keeps the old

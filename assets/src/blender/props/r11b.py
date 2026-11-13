@@ -1,4 +1,4 @@
-"""r11b: marks and wear on the rooms' walls (docs/PROPS.md, P2), after r07:
+"""r11b: marks and wear on the rooms' walls (docs/design/PROPS.md, P2), after r07:
 peeled paint, peeling wallpaper, rust streaks, mould and a leaking pipe.
 The marks themselves are painted in the game (soft, uneven textures on
 transparent planes laid on the wall: `r11b.notes.md`); what is modelled here

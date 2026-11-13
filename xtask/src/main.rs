@@ -15,9 +15,9 @@
 //! cargo xtask heatmap REC.json…    where players went, from recorded sessions
 //! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
 //! cargo xtask nightly             drift sweep + long level sweep + recorded bench
-//! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/VOICES.md)
-//! cargo xtask cutscene check|write|list   the cutscene pipeline (docs/CUTSCENES.md)
-//! cargo xtask playtest visual   the visual playtest, by hand (docs/VISUAL_PLAYTEST.md)
+//! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/design/VOICES.md)
+//! cargo xtask cutscene check|write|list   the cutscene pipeline (docs/design/CUTSCENES.md)
+//! cargo xtask playtest visual   the visual playtest, by hand (docs/engineering/VISUAL_PLAYTEST.md)
 //! ```
 mod ab;
 mod assets;
@@ -61,20 +61,20 @@ const USAGE: &str = "usage: cargo xtask <task>
   assets textures [--write] | assets fingerprint
                              rebuild the prop meshes, the creatures' bodies (Blender)
                              or the photographed textures, and compare with crates/game/assets
-  bench [--no-record]        frame, build and first-frame times against docs/PERF.md
+  bench [--no-record]        frame, build and first-frame times against docs/engineering/PERF.md
                              and perf/history.csv (change points)
   heatmap REC.json …         heatmaps of recorded sessions (backrooms --record)
-  drift [--skip-check]       run the gates, write passes into docs/content.json and
-                             the Latest sweep into docs/QUALITY.md
+  drift [--skip-check]       run the gates, write passes into docs/plan/content.json and
+                             the Latest sweep into docs/plan/QUALITY.md
   nightly                    drift sweep, a 200-case level sweep, a recorded bench
   voice doctor [--smoke] | voice fetch [--only ID,…]
-                             the voice-over pipeline (docs/VOICES.md): its toolchain
+                             the voice-over pipeline (docs/design/VOICES.md): its toolchain
                              and models
   cutscene check | write | list
-                             the cutscene pipeline (docs/CUTSCENES.md): the sources,
+                             the cutscene pipeline (docs/design/CUTSCENES.md): the sources,
                              the compiled bundle and the game's rules
   playtest visual [--seeds 4242,7] [--levels 1,2,3] [--budget 180] [--area x0,z0,x1,z1]
-                             the visual playtest (docs/VISUAL_PLAYTEST.md), by hand: the
+                             the visual playtest (docs/engineering/VISUAL_PLAYTEST.md), by hand: the
                              tour's renders and detectors, a report and contact sheets
                              in target/xtask/playtest/visual/
   hook pre-edit|post-edit|stop|session

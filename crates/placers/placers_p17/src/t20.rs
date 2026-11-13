@@ -1,4 +1,4 @@
-//! Batch `t20`'s chess table, made real (`docs/PROPS.md` P3; the Blender
+//! Batch `t20`'s chess table, made real (`docs/design/PROPS.md` P3; the Blender
 //! batch `assets/src/blender/props/t20.py`, its notes `t20.notes.md`): a
 //! Victorian tripod table with a game of Staunton chessmen left on its
 //! folding board, a brandy snifter (batch `t10`'s glass) and a cigar gone

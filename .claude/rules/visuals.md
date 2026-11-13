@@ -26,7 +26,7 @@ paths:
   `sources.json` (the manifest allows MIT, CC0, CC BY 4.0 only), graded to
   the surface it replaces. The rooms keep their painted surfaces, with a
   photographed detail laid over them in world space (`photo::arch_detail`,
-  `detail_for`; `docs/ROOMS.md`): a new one is a grey map from a CC0
+  `detail_for`; `docs/design/ROOMS.md`): a new one is a grey map from a CC0
   photograph (`build.py` `detail`), at the material's real size, quilted if
   a feature of it would repeat on a grid, kept only where a blind review
   prefers it.

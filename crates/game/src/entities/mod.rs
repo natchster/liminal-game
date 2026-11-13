@@ -1,4 +1,4 @@
-//! The entities: the creatures of `docs/ENTITIES.md` and what they share.
+//! The entities: the creatures of `docs/design/ENTITIES.md` and what they share.
 //!
 //! The Hound, the Smiler, the Watcher, the one in the corner and the Reader
 //! run one brain (`brain.rs`, `creature.rs`: one `Mode` at a time, percepts,
@@ -315,7 +315,7 @@ impl Game {
     }
 
     /// The creatures a level of the rooms is given, by its places
-    /// (`docs/ENTITIES.md` design 5, the ecology): dark regions call the
+    /// (`docs/design/ENTITIES.md` design 5, the ecology): dark regions call the
     /// Smiler, furnished rooms the Watcher, paper lying about the Reader
     /// (office wings the more), and the Hound goes anywhere; one on the
     /// Lobby (a Hound, or a Smiler where it has a dark region), two at depth

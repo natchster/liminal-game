@@ -717,7 +717,7 @@ fn builders_match_reference() {
 
 // ---------------------------------------------------------------- re-recording
 // The fixtures above are recordings of this game. When a core prop is meant
-// to change (as the vending machine did, docs/VENDING.md V1), they are
+// to change (as the vending machine did, docs/design/VENDING.md V1), they are
 // re-recorded from the current code with every case's inputs kept (its seed,
 // level, tiles, distances), through the same steps the tests take:
 //   cargo test --release -p game --test core_props_head -- --ignored rerecord

@@ -1,4 +1,4 @@
-//! Batch `t22`'s feather boa, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t22`'s feather boa, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"; the Blender batch `assets/src/blender/props/t22.py`,
 //! its notes `t22.notes.md`): a child's short chandelle boa dropped on the
 //! floor. It keeps the old placer's draws, call for call, and lies along

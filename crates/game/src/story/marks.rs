@@ -1,4 +1,4 @@
-//! Her marks (`docs/SECRETS.md` 1): what M. left to find her way by. She
+//! Her marks (`docs/design/SECRETS.md` 1): what M. left to find her way by. She
 //! spared her paper as she went down (she wrote on it) and marked the way
 //! with what she had: a folded sheet, three bits stacked with a third the way she went,
 //! her arrow in pencil on a wall, two strokes before a turn, a torn corner,

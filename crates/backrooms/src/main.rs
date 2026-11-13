@@ -137,7 +137,7 @@ struct Options {
     cutscene: Option<String>,
     stage: Option<String>,
     /// `--tour DIR`: the visual playtest's renders (`tour.rs`,
-    /// `docs/VISUAL_PLAYTEST.md`) of `--levels`, `--tour-budget N` views a
+    /// `docs/engineering/VISUAL_PLAYTEST.md`) of `--levels`, `--tour-budget N` views a
     /// level (180), inside `--tour-area x0,z0,x1,z1` (world metres) if given,
     /// with `--tour-plant hole|fight` a known fault at its first stand
     tour: Option<String>,

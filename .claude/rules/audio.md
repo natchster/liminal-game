@@ -16,7 +16,7 @@ paths:
   the soundscape's `world` bus through `play_voice_line`, so it is heard
   in the reverb of the place you stand. Every other voice line comes from a
   place like any sound. Voice lines are made by the voice pipeline
-  (`docs/VOICES.md`), chosen from a stream of their own. **An aside is
+  (`docs/design/VOICES.md`), chosen from a stream of their own. **An aside is
   never played directly**: post the event (`Game::aside(Use, subject)`)
   and the voice director decides (once a run, its moment, holding your
   breath, owed if it cannot be said); a new event is a `Use` (its scope,

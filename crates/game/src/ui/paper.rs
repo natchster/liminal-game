@@ -1,4 +1,4 @@
-//! The notebook as paper in your hands (`docs/UI.md`, design 7): a page low
+//! The notebook as paper in your hands (`docs/design/UI.md`, design 7): a page low
 //! on the screen, so the way ahead stays in view and the mouse still turns
 //! you. Her pages are on ruled paper in her hand; the torn notes are typed
 //! on a greyer photocopy with a torn top; the index, the medals and the

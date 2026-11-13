@@ -1,4 +1,4 @@
-//! Batch `t03`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t03`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! washroom's glass shelf with the bottles left on it, and the shower cap
 //! dropped on the floor; their placers and what only they use
 //! (`assets/src/blender/props/t03.py`, `t03.notes.md`).

@@ -1,4 +1,4 @@
-//! Batch `t20`'s floor globe, made real (`docs/PROPS.md` P3; the Blender
+//! Batch `t20`'s floor globe, made real (`docs/design/PROPS.md` P3; the Blender
 //! batch `assets/src/blender/props/t20.py`, its notes `t20.notes.md`): a
 //! 12 in terrestrial globe on a floor stand. Its gores are a real map: the
 //! Blaeus' hand-coloured world map of 1635-1649 on Mercator's projection

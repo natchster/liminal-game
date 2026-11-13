@@ -626,7 +626,7 @@ fn scp_plans() {
     // The plans were recorded with the roster of their day (anomalies from
     // level 2 or 3): the planner is checked against them with that roster.
     // The run's roster now starts every anomaly on level 5, below the
-    // Building's floors and the Lobby (`docs/MEGASTRUCTURE.md`); its plans
+    // Building's floors and the Lobby (`docs/design/MEGASTRUCTURE.md`); its plans
     // are checked by the rules.
     let old = recorded_roster();
     c.eq("SCP_ROSTER keys", SCP_ROSTER.iter().map(|e| e.key).collect::<Vec<_>>(), old.iter().map(|e| e.key).collect::<Vec<_>>());

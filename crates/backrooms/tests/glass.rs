@@ -1,4 +1,4 @@
-//! The one behind the glass (`docs/WINDOWS.md` 4), on real floors (its
+//! The one behind the glass (`docs/design/WINDOWS.md` 4), on real floors (its
 //! window is a real one, cut into a real wall, with its lamp's light on the
 //! floor): one test a line of its design, read back from its brain's log.
 mod common;

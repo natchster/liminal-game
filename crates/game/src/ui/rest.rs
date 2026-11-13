@@ -1,4 +1,4 @@
-//! The HUD at rest (`docs/UI.md`, design 5): nothing on the screen but the
+//! The HUD at rest (`docs/design/UI.md`, design 5): nothing on the screen but the
 //! place until something changes. A meter shows while it is not full (and
 //! a moment after), the pockets when their counts change, her thread when
 //! it is new, and all of it while the glance key (X) is held; what would

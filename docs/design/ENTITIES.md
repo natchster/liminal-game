@@ -5,8 +5,8 @@ beaten, and the plan that rebuilds them from scratch, body, behaviour and
 sound, to the quality of the rest of the game. The canon it changes is
 [`LORE.md`](LORE.md) (*Things that live here*); the pillars it serves are
 [`PILLARS.md`](PILLARS.md) 4 and 5 above all; the research behind it is in
-[`research/`](research/README.md) (five notes, every claim linked) and
-summed up in [`SOURCES.md`](SOURCES.md) section 11.
+[`research/`](../research/README.md) (five notes, every claim linked) and
+summed up in [`SOURCES.md`](../research/SOURCES.md) section 11.
 
 ## The analysis (2026-10-28)
 
@@ -51,7 +51,7 @@ game beatable, the updated style, lore and quality"):
 
 ## What the research says
 
-Five notes, in [`research/`](research/README.md). What they changed:
+Five notes, in [`research/`](../research/README.md). What they changed:
 
 - **Every creature is one rule, learned by playing, with a tell before it
   bites** (SCP's rule-monsters; Containment Breach's code: lenient checks,
@@ -444,7 +444,7 @@ Checked in code (`entities::brain`, the strike gate) and by the tests:
    peak, or on the first when your nerve is below 25.
 4. **You can always get away.** A sustained chase is at most 0.95 of your
    sprint (6.1 m/s; of your sprint as it is, when what you took has made
-   you smaller and slower: `chase_cap`, `docs/SECRETS.md` 5); a burst (the
+   you smaller and slower: `chase_cap`, `docs/design/SECRETS.md` 5); a burst (the
    Smiler's lunge, the Hound's spring) is at most 7 m/s over at most 4 m.
 5. **Grace.** No death in a level's first 30 s, and none within 2 s of a
    creature's first notice of you.
@@ -452,7 +452,7 @@ Checked in code (`entities::brain`, the strike gate) and by the tests:
    m of the arrival, her camp or the door; none relocates where you could
    see it.
 
-What you took (`docs/SECRETS.md` 5, `LORE.md` *Things that change you*)
+What you took (`docs/design/SECRETS.md` 5, `LORE.md` *Things that change you*)
 moves a few of the numbers below a step for the rest of the run (how far
 your steps carry, how far a Smiler sees your lamp, how long a Hound takes
 to smell you standing still, how fast your look out of a window adds up,
@@ -561,7 +561,7 @@ rooms like any.
   sockets that overhang). The Loop's seated man is never posed: his body
   (`body_seated.py`) sits on the Loop's own chair, drawn with it as one
   instanced piece. Nor is the Building's figure across the void (not a
-  creature; `docs/MEGASTRUCTURE.md` G7): its body (`body_far_figure.py`, a
+  creature; `docs/design/MEGASTRUCTURE.md` G7): its body (`body_far_figure.py`, a
   man in a long grey work coat standing still) is drawn as one piece and
   turned whole (`world::far_figures`). Only what a blind review preferred ships (`cargo xtask
   ab`, both orders, a fresh reviewer a round): the seated man won every
@@ -685,7 +685,7 @@ As built (E8):
 
 `cargo xtask bench` times the **creature pack** (two of every kind that
 roams, hunting you at once, level 4) beside the levels, held to the
-`creatures` budgets in [`PERF.md`](PERF.md) and to its own history
+`creatures` budgets in [`PERF.md`](../engineering/PERF.md) and to its own history
 (`perf/creatures.csv`). The first row is the old creatures (5 placed:
 update 0.07 ms p50, GPU 2.2 ms p50, 263k triangles). Every milestone
 records a run.

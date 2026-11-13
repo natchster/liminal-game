@@ -351,7 +351,7 @@ openSMILE is not recommended: its licence is research/non-commercial, and this w
 
 ## Addendum: the bake-off (2026-11-09)
 
-Run in this repository after the note above was written (`docs/VOICES.md`,
+Run in this repository after the note above was written (`docs/design/VOICES.md`,
 *The bake-off*): the first persona's ten lines, four takes each, from
 VoxCPM2, Qwen3-TTS, Chatterbox and Ming-3.0 on MLX (mlx-audio 0.6.4),
 judged by the evaluation stack of section 5. Chatterbox passed all ten

@@ -1,4 +1,4 @@
-//! Batch `t10`'s prop in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t10`'s prop in this crate, made real (`docs/design/PROPS.md` P3): the
 //! small giltwood wall mirror; its placer and what only it uses
 //! (`assets/src/blender/props/t10.py`, `t10.notes.md`).
 use super::*;

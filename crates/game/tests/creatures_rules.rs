@@ -1,4 +1,4 @@
-//! The rules of the creatures of the redesign (`docs/ENTITIES.md`), one test
+//! The rules of the creatures of the redesign (`docs/design/ENTITIES.md`), one test
 //! a line of their design, in small arenas (`arena/mod.rs`). What a
 //! creature did is read back from its brain's log of mode changes.
 mod arena;

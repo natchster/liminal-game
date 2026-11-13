@@ -1,4 +1,4 @@
-//! Batch `t17`'s botanical, made real (`docs/PROPS.md` P3, "its picture a
+//! Batch `t17`'s botanical, made real (`docs/design/PROPS.md` P3, "its picture a
 //! picture"; `assets/src/blender/props/t17.py`, `t17.notes.md`): a small
 //! hand-coloured botanical plate (CC0, `visuals::pictures`: Redouté's Rosa
 //! gallica, Ehret's Pulmonaria and Magnolia, van Spaendonck's poppy) in a

@@ -16,7 +16,7 @@ judged by distributions, not by a single run.
    differ) and write down, per run: time to the first build, calm and relief
    lengths, peaks, close calls survived, withdrawals, deaths.
 2. **Name the goal** in those numbers and quote the pillar it serves
-   (`docs/PILLARS.md` 5, *Dread, then release*), e.g. "fewer deaths per peak
+   (`docs/design/PILLARS.md` 5, *Dread, then release*), e.g. "fewer deaths per peak
    for a careful player, same number of peaks".
 3. **Change one thing** (a threshold, a rate, a radius), with a comment
    saying why.

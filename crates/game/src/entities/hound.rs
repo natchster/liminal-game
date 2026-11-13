@@ -1,4 +1,4 @@
-//! The Hound (`docs/ENTITIES.md`, design 1): an old person on all fours,
+//! The Hound (`docs/design/ENTITIES.md`, design 1): an old person on all fours,
 //! starved, blind, that hunts by sound. *Move when it moves; freeze when it
 //! listens.*
 //!

@@ -1,11 +1,21 @@
-# Research: the creatures
+# Research: what the design rests on
+
+The outside sources and what the design took from them
+([`SOURCES.md`](SOURCES.md)); the research notes below, each answering a
+brief; the props' census ([`props-census.md`](props-census.md)); and what
+people and the tools found playing it: the playtest session script
+([`PLAYTEST.md`](PLAYTEST.md)) and its records
+([`playtests/`](playtests/TEMPLATE.md), the visual playtest's in
+[`playtests/visual/`](playtests/visual/README.md)).
+
+## The creatures
 
 Five research notes gathered on 2026-10-28 for the creatures' redesign
-([`../ENTITIES.md`](../ENTITIES.md)), each answering [the brief](brief.md).
+([`../design/ENTITIES.md`](../design/ENTITIES.md)), each answering [the brief](brief.md).
 Every claim links its source; each note says what it could not verify and
 gives the licence of every design it describes. They were written by
 research agents and are kept whole, as the record of what was found;
-[`../SOURCES.md`](../SOURCES.md) section 11 sums up what the design took
+[`SOURCES.md`](SOURCES.md) section 11 sums up what the design took
 from them and where it shows up. Read a source before relying on one of its
 details.
 
@@ -18,8 +28,8 @@ details.
 | [`modelling.md`](modelling.md) | CC0 base meshes (MakeHuman, Blender's Human Base Meshes) and textures, with their licence lines; emaciation, cloth, hair, eyeshine, wet skin and readability by script; public-domain reference; a pipeline, budgets and risks |
 
 Two more notes were gathered on 2026-10-29 for the vending machine
-([`../VENDING.md`](../VENDING.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 12:
+([`../design/VENDING.md`](../design/VENDING.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 12:
 
 | Note | What it covers |
 |---|---|
@@ -27,8 +37,8 @@ Two more notes were gathered on 2026-10-29 for the vending machine
 | [`vending-horror.md`](vending-horror.md) | Uncanny vending machines: SCP-261, 294, 8733 and others; the Backrooms wikis' machines and the Backrooms games'; Japanese legends, creepypasta, Ohashi's *Roadside Lights*, the CPSC's tipping deaths; machines in games (BioShock, Half-Life, Lethal Company's counter, Control, Fallout, RE4, Yume Nikki); why a mundane machine turns uncanny, what players will try, design lessons; eight concepts and three picks |
 
 Two more were gathered on 2026-10-30 for the windows
-([`../WINDOWS.md`](../WINDOWS.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 13:
+([`../design/WINDOWS.md`](../design/WINDOWS.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 13:
 
 | Note | What it covers |
 |---|---|
@@ -36,8 +46,8 @@ Two more were gathered on 2026-10-30 for the windows
 | [`window-horror.md`](window-horror.md) | Windows that look back: fifteen SCP articles (SCP-965, 1148, 2885, 508, 3052, L682 and others, with the Japanese and Chinese branches'), the Backrooms' Windows (Entity 2) and Level 188, Kunekune and Yamanoke, creepypasta, Soviet children's horror and Russian window taboos; public-domain literature (*Wuthering Heights*, *Dracula*, M. R. James, *Viy*, Poe, Wells, Lovecraft) and folk custom; games and films; why window horror works; how it must differ from the canon's gaze rules; seven concepts and three picks |
 
 Two more were gathered on 2026-10-30 for the marks and the secrets
-([`../SECRETS.md`](../SECRETS.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 14:
+([`../design/SECRETS.md`](../design/SECRETS.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 14:
 
 | Note | What it covers |
 |---|---|
@@ -45,8 +55,8 @@ Two more were gathered on 2026-10-30 for the marks and the secrets
 | [`secret-items.md`](secret-items.md) | Alice's DRINK ME, EAT ME and the mushroom, read for design; the other world's food (Persephone, Izanami, Thomas the Rhymer, *Goblin Market*, the Lotus-eaters, fairy ointment, the Samosbor's ration); SCP objects that change the one who takes them (330, the first 1162, 427, 268, 714, 207, 178, 1916, 832, 362); the Backrooms wikis' objects (Almond Water's kinds, Cashew Water, Liquid Pain, Royal Rations, Liquid Silence, Moth Jelly); creepypasta and charms (the Midnight Game's salt, omamori and the ladanka, the red envelope, found coins); games with hidden-effect consumables (Isaac, NetHack, Darkest Dungeon, Pathologic, STALKER, Brogue; Harris's rules); how small an effect can be felt; fourteen candidates |
 
 Three more were gathered on 2026-10-31 for the props
-([`../PROPS.md`](../PROPS.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 15:
+([`../design/PROPS.md`](../design/PROPS.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 15:
 
 | Note | What it covers |
 |---|---|
@@ -56,23 +66,23 @@ Three more were gathered on 2026-10-31 for the props
 
 
 One more was gathered on 2026-11-08 for the voices
-([`../VOICES.md`](../VOICES.md)):
+([`../design/VOICES.md`](../design/VOICES.md)):
 
 | Note | What it covers |
 |---|---|
 | [`voice-tts.md`](voice-tts.md) | Text-to-speech models that run on a 64 GB Apple Silicon Mac, each with its code and weights licence (the gate: what it makes may be sold), size, Mac support and speed, emotion and intensity control, nonverbals, voice design and cloning; the excluded ones and why (non-commercial weights, Llama terms, an audible disclaimer); the independent evidence (and its absence for emotion); English pronunciation; the evaluation stack (speech recognition, emotion recognition, AudioSet's nonverbal labels, speaker similarity, prosody); the Python environments; the risks |
 
 One more was gathered on 2026-11-10 for your asides
-([`../VOICES.md`](../VOICES.md), *Your asides*), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 16:
+([`../design/VOICES.md`](../design/VOICES.md), *Your asides*), summed up in
+[`SOURCES.md`](SOURCES.md) section 16:
 
 | Note | What it covers |
 |---|---|
 | [`inner-voice.md`](inner-voice.md) | How a game chooses a character's line and keeps it from repeating (Valve's dynamic dialog, Ruskin GDC 2012, read in full: facts, rules, the most specific match, memory written back by what was said, nothing as an answer); bark managers in practice (priorities, dropping the stale, cooldowns and per-line fatigue); the little found on voicing the player in horror; what this game's canon lets a voice of yours say |
 
 One more was gathered on 2026-11-11 for the cutscenes
-([`../CUTSCENES.md`](../CUTSCENES.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 17:
+([`../design/CUTSCENES.md`](../design/CUTSCENES.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 17:
 
 | Note | What it covers |
 |---|---|
@@ -80,8 +90,8 @@ One more was gathered on 2026-11-11 for the cutscenes
 
 
 One more was gathered on 2026-11-11 for the visual playtest
-([`../VISUAL_PLAYTEST.md`](../VISUAL_PLAYTEST.md)), summed up in
-[`../SOURCES.md`](../SOURCES.md) section 18:
+([`../engineering/VISUAL_PLAYTEST.md`](../engineering/VISUAL_PLAYTEST.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 18:
 
 | Note | What it covers |
 |---|---|

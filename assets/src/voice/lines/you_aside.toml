@@ -1,4 +1,4 @@
-# What you say to yourself (personas/you_aside.toml; docs/VOICES.md,
+# What you say to yourself (personas/you_aside.toml; docs/design/VOICES.md,
 # Your asides).
 #
 # `use` is the event the voice director answers (audio::asides::Use);

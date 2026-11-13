@@ -1,4 +1,4 @@
-//! Batch `t22`'s wet floor sign (`docs/PROPS.md` P3): the core props' sign
+//! Batch `t22`'s wet floor sign (`docs/design/PROPS.md` P3): the core props' sign
 //! (batch `r01`, `core_props::build_wet_floor_sign`), placed by this
 //! placer as the core places it: the common 2-sided A-frame, its two
 //! moulded panels hinged at the top and splayed 0.30 m at the foot, each

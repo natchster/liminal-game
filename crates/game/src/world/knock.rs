@@ -1,4 +1,4 @@
-//! A knock at a sealed door (`docs/MEGASTRUCTURE.md`, G5). Along the
+//! A knock at a sealed door (`docs/design/MEGASTRUCTURE.md`, G5). Along the
 //! Well's galleries the residents' doors are sealed from inside, numbered,
 //! some marked red by the cleaners, some taped round (`building_dress`);
 //! `[E] KNOCK` raps on one. In the quiet, now and then

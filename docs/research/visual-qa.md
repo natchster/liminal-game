@@ -1,8 +1,8 @@
 # Research: automated visual QA for a first-person game
 
 Gathered on 2026-11-11 by a research agent for the visual playtest
-([`../VISUAL_PLAYTEST.md`](../VISUAL_PLAYTEST.md)) and kept whole, as the
-record of what was found; [`../SOURCES.md`](../SOURCES.md) section 18 sums
+([`../engineering/VISUAL_PLAYTEST.md`](../engineering/VISUAL_PLAYTEST.md)) and kept whole, as the
+record of what was found; [`SOURCES.md`](SOURCES.md) section 18 sums
 up what the design took from it and where it shows up. Every link is a page
 the agent opened; "not found" marks what it searched for and could not
 source, and the pages that refused it (Valve's "Leak" wiki, the Springer

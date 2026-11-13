@@ -1,5 +1,5 @@
 """r10: what a floor's weather leaves (`core_props/weather_fx.rs`,
-docs/PROPS.md P2), remodelled at their real sizes. Sources and sizes:
+docs/design/PROPS.md P2), remodelled at their real sizes. Sources and sizes:
 r10.notes.md. (The wet floors' puddles are painted, not modelled.)
 
 No map file: the game builds each prop from these parts by name, placed as

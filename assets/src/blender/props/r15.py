@@ -1,5 +1,5 @@
 """r15: paper and small things dropped on the office floors, remodelled at
-their real sizes (docs/PROPS.md): a flat box of facial tissues, a part-used
+their real sizes (docs/design/PROPS.md): a flat box of facial tissues, a part-used
 roll of PVC insulating tape, a pack of playing cards, an open paperback, a
 stack of folded newspapers, a paper dart, a party napkin. (The crumpled
 receipt is r08's balled paper, placed smaller; the closed paperback is

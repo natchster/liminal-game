@@ -1,4 +1,4 @@
-//! The vending machine's rules (`docs/VENDING.md`, the design): one test a
+//! The vending machine's rules (`docs/design/VENDING.md`, the design): one test a
 //! rule, each played on a machine of a real level, and what holds them all
 //! (it is the same machine on every build, its uses draw nothing from the
 //! build's stream, it is solid).

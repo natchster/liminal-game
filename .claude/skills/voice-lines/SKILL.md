@@ -48,7 +48,7 @@ hear: the evaluation screens every take, a person makes the last call.
    that is someone else's comes from a place, like any sound
    (`play_from`, `.claude/rules/audio.md`).
 
-   **An aside** (what you say to yourself; `docs/VOICES.md`, *Your
+   **An aside** (what you say to yourself; `docs/design/VOICES.md`, *Your
    asides*) is never played directly: the game posts an event and the
    director decides. For a new one:
    - a `Use` (its `scope`, `chance`, `decay`, `priority`, `moment`,
@@ -84,8 +84,8 @@ hear: the evaluation screens every take, a person makes the last call.
    - `cargo xtask check` (audio is touched): no golden, reference level or
      loudness scenario moves.
 6. **Ears.** The chosen WAVs and `target/listen/` renders to the developer
-   (`docs/PLAYTEST.md`); record what they said in the commit. What they
+   (`docs/research/PLAYTEST.md`); record what they said in the commit. What they
    reject goes back to step 3 and, if it is a pattern, into `voice selftest`
    as a known answer.
-7. **Ledger.** The `sound/voice` entry in `docs/content.json`, open issues
-   in `docs/QUALITY.md`, the persona's *Lines* row in `docs/VOICES.md`.
+7. **Ledger.** The `sound/voice` entry in `docs/plan/content.json`, open issues
+   in `docs/plan/QUALITY.md`, the persona's *Lines* row in `docs/design/VOICES.md`.

@@ -12,10 +12,10 @@ place was for: `PURPOSE_LABEL`, `THEME_ALLOW`, `THEME_COMPAT`,
 `world/purpose.rs`). Work in this order; do not dress a space before its
 layout passes.
 
-1. **Canon and style first.** Find the place in `docs/LORE.md` (Places) or
-   add it there; write its row in `docs/STYLE.md` (archetype table, or the
+1. **Canon and style first.** Find the place in `docs/design/LORE.md` (Places) or
+   add it there; write its row in `docs/design/STYLE.md` (archetype table, or the
    purpose table: what is left, wayfinding, threat). Quote the pillar rule it
-   serves (`docs/PILLARS.md`).
+   serves (`docs/design/PILLARS.md`).
 2. **Layout.** Implement the archetype's carving or the purpose's tables.
    Keep determinism: draws only from `rnd()` and its helpers, in a stable
    order (`.claude/rules/world.md`).
@@ -42,9 +42,9 @@ layout passes.
      any new goldens only after reading the report and looking at the frames.
    - Add the purpose's golden view if it has none (it gets one when it
      first appears in `LEVELS` of `xtask/src/shots.rs`).
-7. **Ledger.** Add or update the entry in `docs/content.json` (for a purpose:
+7. **Ledger.** Add or update the entry in `docs/plan/content.json` (for a purpose:
    `purpose/<label>` with its shots, style, sweep and lint checks);
    `cargo test --release -p backrooms --test structure` keeps it honest.
-   Note open issues in `docs/QUALITY.md`.
+   Note open issues in `docs/plan/QUALITY.md`.
 8. **Review.** Ask `level-analyst` to explain the range report, and run the
    `visual-review` skill on before/after zone views.

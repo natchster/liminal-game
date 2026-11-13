@@ -1,4 +1,4 @@
-//! Batch `t13`'s paper cup, made real (`docs/PROPS.md` P3, "the party and
+//! Batch `t13`'s paper cup, made real (`docs/design/PROPS.md` P3, "the party and
 //! the shrine"): a 9 oz printed paper cup left from a party, years on
 //! (`assets/src/blender/props/t13.py`; what the real one is and where its
 //! size comes from: `t13.notes.md`). It keeps the old placer's draws, call

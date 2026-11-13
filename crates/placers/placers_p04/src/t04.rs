@@ -1,4 +1,4 @@
-//! Batch `t04`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t04`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! soap-smudged washroom mirror and the frosted window; their placers and
 //! what only they use (`assets/src/blender/props/t04.py`, `t04.notes.md`).
 use super::*;

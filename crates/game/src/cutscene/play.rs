@@ -1,4 +1,4 @@
-//! The player (`docs/CUTSCENES.md`, the design): one cutscene at a time,
+//! The player (`docs/design/CUTSCENES.md`, the design): one cutscene at a time,
 //! on a clock of its own (time played: it stops with the pause), its camera
 //! a function of that time and its anchors. It blends in from the camera as
 //! it was when it began (its start pose), and out into the gameplay camera,

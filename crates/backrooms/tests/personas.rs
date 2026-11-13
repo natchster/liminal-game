@@ -10,7 +10,7 @@
 //! Every run is held to the same oracles: never outside the world, never
 //! stuck for long, the rusher reaches the exit, and no death in a level's
 //! first seconds. Then the director's log of every run is analysed for the
-//! shape of the fear (`docs/PILLARS.md` 5): how long a peak lasts, how long
+//! shape of the fear (`docs/design/PILLARS.md` 5): how long a peak lasts, how long
 //! the relief after it, whether the stalker's signs repeat, whether a sign
 //! always leads to the same outcome, and how many stings a level plays.
 //!
@@ -476,7 +476,7 @@ const MIN_RELIEF_S: f64 = 8.0;
 /// The same sign of the stalker this many times in a row is monotony. The
 /// director picks a sign by distance alone, so a stalker that stays far off
 /// gives distant steps every time: up to 7 in a row in these runs (an open
-/// design issue in docs/QUALITY.md); this holds it from getting worse.
+/// design issue in docs/plan/QUALITY.md); this holds it from getting worse.
 const MAX_CUE_STREAK: usize = 8;
 /// Stings per level run (150 s): more and they stop meaning anything.
 const MAX_STINGS: usize = 6;

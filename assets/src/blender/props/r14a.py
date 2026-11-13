@@ -1,5 +1,5 @@
 """r14a: things worn and dropped, remodelled at their real sizes
-(docs/PROPS.md): a glove lying limp, a shoe and a boot (one last, one
+(docs/design/PROPS.md): a glove lying limp, a shoe and a boot (one last, one
 construction), and a shoe box. Sources and sizes: r14a.notes.md.
 
 No map file: the game builds each prop from these parts by name, placed as

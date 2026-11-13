@@ -1,6 +1,6 @@
 # Interactive props: what exists, the rules, and what to add
 
-Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "make more props interactive in some way without breaking the lore": every interaction the game has, the rules any new one must keep (each with its source line), which common props have none, and fifteen proposals ranked. Measured on 54 floors (`--dump-level`, levels 4–12 of six seeds) and 27 census floors; the dumps were working files and are not kept; the code is cited by file and line as it was at `9df0d3b`.
+Research for [`../design/PROPS.md`](../design/PROPS.md) (2026-10-31), on the request "make more props interactive in some way without breaking the lore": every interaction the game has, the rules any new one must keep (each with its source line), which common props have none, and fifteen proposals ranked. Measured on 54 floors (`--dump-level`, levels 4–12 of six seeds) and 27 census floors; the dumps were working files and are not kept; the code is cited by file and line as it was at `9df0d3b`.
 
 ## 0. Summary
 
@@ -57,7 +57,7 @@ binding is `Act::Interact` = `KeyE`, `Mouse0` (`crates/game/src/session/input.rs
 | 7 | Working elevator | `[E] CALL THE ELEVATOR` | Next level at once (`next_level_via_elevator`, `session/flow.rs:370+`) | `core_props/tail.rs:1327-1346` (interact 1343) | the first of 1–2, so every level (27/27) |
 | 8 | Haunted candles | `[E] BLOW OUT` / `[E] RELIGHT (3% battery)` | Out / relit for 3% of the lamp's battery (15% fizzle) | `core_props/weather_fx.rs:325-405` (391, 394) | "haunted" weather only, 2–4 candles |
 | 9 | R1 wall button | `[E] TOGGLE SWITCH` | Red/green button; lights one far ceiling panel; a non-positional blip | `crates/placers/placers_p00/src/lib.rs:18-141` (interact 125) | **every level** (`PLACER_ALWAYS`, `world/tables.rs:1417`) |
-| 10 | Vending machine | `[E] COIN RETURN` / `[E] INSERT COIN` / `[E] ROCK IT` / `[E] REACH IN` | Rules 3–9 of `docs/VENDING.md` (coin, silence, shove, fall, dead ones) | `core_props/vending/rules.rs:140-185`, `vending_use` 185+ | 18/27 levels (none on L4, Showroom or Borrowed House) |
+| 10 | Vending machine | `[E] COIN RETURN` / `[E] INSERT COIN` / `[E] ROCK IT` / `[E] REACH IN` | Rules 3–9 of `docs/design/VENDING.md` (coin, silence, shove, fall, dead ones) | `core_props/vending/rules.rs:140-185`, `vending_use` 185+ | 18/27 levels (none on L4, Showroom or Borrowed House) |
 | 11 | Window blind | `[E] LOWER THE BLIND` / `[E] RAISE THE BLIND` | Covers or uncovers the glass (the one behind the glass); its rattle is heard 10 m along the way | `core_props/window/blind.rs:21-28`, `blind_use` 49-60 | windows below the Lobby where a home allows |
 | 12 | Secret hiding places | `[E] LIFT THE TILE` / `[E] PRISE THE GRILLE` / `[E] REACH BEHIND` / `[E] REACH IN` | Opens the place: what any floor holds, nothing, a thing, or the hole's exchange | `secrets/dress.rs:276-301`, `open_secret` 306-350 | 2–4/floor (0–1 on the Lobby); 38/54 levels |
 | 13 | Things put away | `[E] EAT THEM` / `TAKE A SWEET` / `PUT IT ON` / `TAKE IT` / `EAT IT` / `DRINK IT` / `PICK IT UP` | Takes the thing; a lasting, unsaid effect (`secrets/keeps.rs`) | `secrets/dress.rs:298-300`, verbs 538-549, `take_secret` 352+ | 1–2 a floor on the first descent |
@@ -79,7 +79,7 @@ binding is `Act::Interact` = `KeyE`, `Mouse0` (`crates/game/src/session/input.rs
 | Faulty light switch | Come within 2 m: flickers, then flips | `player.rs:1428+` | 30% of switches |
 | Payphone | Within 9 m: rings | `ui/hud.rs:1553-1566` | 1/level |
 | Mannequin | Unseen within ~14 m: turns to you and steps 0.9 m closer | `core_props/mod.rs:1110-1176` | 1/level, 27/27 |
-| Dead vending machine | Stand 2 m before its glass 1.5 s: the flap lifts, a hand print (rule 9) | `docs/VENDING.md:106` | half the dead ones |
+| Dead vending machine | Stand 2 m before its glass 1.5 s: the flap lifts, a hand print (rule 9) | `docs/design/VENDING.md:106` | half the dead ones |
 | Showroom bed / wardrobe | Crouch under or in: hidden from the staff | `anomalies/mod.rs:21, 698` | Showroom only |
 
 ### 1.3 Existing interactions that break the house style (fixing these is part of "without breaking the lore")
@@ -180,7 +180,7 @@ Each line has its source. A new interaction should pass every box.
   `SECRETS.md:186-194`). No verb on ordinary tiles, vents or Building radiators.
 
 **Code invariants**
-- [ ] **Determinism** (`CLAUDE.md:73-83`; `docs/DEVELOPMENT.md:76-103`; `.claude/rules/world.md`): build-time
+- [ ] **Determinism** (`CLAUDE.md:73-83`; `docs/engineering/DEVELOPMENT.md:76-103`; `.claude/rules/world.md`): build-time
   choices come from `rnd()` (and a new draw shifts every later placer, which means re-recording), or better,
   from a salted stream of its own (`with_own_stream` / `SplitMix64`; vending: "one draw from the build's stream
   and the rest from a stream of its own", `VENDING.md:152`; window wear "from a stream of its own (salted by
@@ -205,7 +205,7 @@ Each line has its source. A new interaction should pass every box.
 - [ ] **Gates and evidence** (`CLAUDE.md:105-112`): each rule held by a test that fails when broken (vending's
   and windows' pattern); `listen` / `loudness`; placer smoke tests exercise every interactable
   (`DEVELOPMENT.md:116-117`, `debug/testkit.rs:122-131`); goldens and reference levels re-recorded only for an
-  intended change; a `docs/content.json` entry (kind "prop with rules", as `props/vending`, `props/windows`).
+  intended change; a `docs/plan/content.json` entry (kind "prop with rules", as `props/vending`, `props/windows`).
 
 ---
 

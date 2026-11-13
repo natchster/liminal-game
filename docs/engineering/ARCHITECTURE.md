@@ -50,18 +50,18 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `world` | Grid and collision queries, the partitions that lean (`angled`), zone purposes (`purpose`), regions, and the world build (`build`): floors, panels, core props, the themed placer passes, settling, placement, walls and ceilings, freezing static objects, instancing, culling; the Building's floors as built (`building`: slabs, flights, parapets, masses, lamps, the door, pickups) and dressed (`building_dress`: cells and their hermetic doors, sealed doors, the galleries above and below, windows, the door's lit tower, storey numbers, loudspeakers, the Well's lift cage, each place's own); a knock at the Well's sealed doors (`knock`: who answers and what is pushed out, the wrong door's knock back and the siren it calls, planned after the build on a stream of its own); the self-assembly (`assembly`) and the figure across the void (`far_figures`: its body, one piece of `bodies.bin`'s "far_figure", its perches, where it can be seen from, and its standing, turning and going, on a stream of its own) |
 | `assets` | The embedded prop and creature meshes (`assets/*.bin`), fitted to each placer's size; the creatures' bodies (`assets::bodies`: skeletons and the meshes bound to them, `bodies.bin`) |
 | `placers` | The kit placers build with (`canvas_tex`, `pg`, joints, shared materials and tables) |
-| `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras; the vending machine (`core_props/vending/`: its body from the Blender parts merged by material, its goods and what is printed on it, its rules; `docs/VENDING.md`); the windows (`core_props/window/`: chosen in the build, finished on the final walls with their openings cut out of the drawn walls, built from the Blender parts, and what they look out on, its lamp and the light it throws in; `docs/WINDOWS.md`) |
-| `entities` | The creatures: rigs, skinning, animation, AI, voices, and the pacing director (`director`); a body built from `bodies.bin` and posed by aiming bones (`body`); the brain every creature of the redesign shares (`brain`: modes, percepts, awareness, memory, orders; `docs/ENTITIES.md`) |
+| `core_props` | The props every level needs: the exit, pickups, notes, switches, the pool, the vacuum, the safe room, elevators, holes, barricades, weather extras; the vending machine (`core_props/vending/`: its body from the Blender parts merged by material, its goods and what is printed on it, its rules; `docs/design/VENDING.md`); the windows (`core_props/window/`: chosen in the build, finished on the final walls with their openings cut out of the drawn walls, built from the Blender parts, and what they look out on, its lamp and the light it throws in; `docs/design/WINDOWS.md`) |
+| `entities` | The creatures: rigs, skinning, animation, AI, voices, and the pacing director (`director`); a body built from `bodies.bin` and posed by aiming bones (`body`); the brain every creature of the redesign shares (`brain`: modes, percepts, awareness, memory, orders; `docs/design/ENTITIES.md`) |
 | `anomalies` | The Showroom (a store that closes at night), the Borrowed House, the human rig they share |
 | `modes` | The Stairwell and the Loop: self-contained spaces with their own movement, entered from a level |
 | `player` | Movement, stamina, sanity, flashlight, items and actions |
 | `audio` | Sound effects and persistent beds (`sys`), the spatial soundscape, the ambient event driver |
 | `visuals` | Lighting (the place-based light map, pooled lights, fog; `occlusion`: the level's shape in it, for the corners), procedural textures and surfaces, the Building's photographed surfaces and the photographed details over the rooms' (`photo`: JPEGs decoded by `Canvas::from_jpeg`), the props' material pass (`prop_look`: muted colours, real highlights instead of glowing "shine", wear), the small things' contact shadows (`contact`), the low-sanity colour filter |
 | `ui` | The HUD and menus: an element model with CSS-like styles and classes (`model`), the HUD logic (`hud`), the journal's lore (`lore`), the three typefaces and their CoreText metrics (`faces`), the menus and their painter (`menu`, `screens`), the HUD at rest (`rest`: what shows when, and the building's sentence case), the notebook as paper (`paper`), and the painter that turns elements into composited layers (`draw`) |
-| `cutscene` | Cutscenes as data (`docs/CUTSCENES.md`): the library, compiled from `assets/src/cutscenes/*.toml` by `cargo xtask cutscene write` into one bundle (`assets/cutscenes.json`, every field written out) and parsed strictly; the rules a cutscene keeps whatever the game around it (`shape_problems`, also run by `backrooms --cutscene-check`); the camera's curves (eased keys, a centripetal Catmull-Rom spline, angles the short way round, a sway with no random draw); the player (`play`: one at a time on a clock of its own, anchors, the blend envelope over the gameplay camera, hands taken, live and held worlds, break-off, skip) and what a cutscene may name (`cues`: sounds played from places, events, asides) |
-| `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/UI.md`), and the game flow: levels, saves, death, the menu |
+| `cutscene` | Cutscenes as data (`docs/design/CUTSCENES.md`): the library, compiled from `assets/src/cutscenes/*.toml` by `cargo xtask cutscene write` into one bundle (`assets/cutscenes.json`, every field written out) and parsed strictly; the rules a cutscene keeps whatever the game around it (`shape_problems`, also run by `backrooms --cutscene-check`); the camera's curves (eased keys, a centripetal Catmull-Rom spline, angles the short way round, a sway with no random draw); the player (`play`: one at a time on a clock of its own, anchors, the blend envelope over the gameplay camera, hands taken, live and held worlds, break-off, skip) and what a cutscene may name (`cues`: sounds played from places, events, asides) |
+| `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/design/UI.md`), and the game flow: levels, saves, death, the menu |
 | `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
-| `debug` | Level dumps for tools and tests, test helpers, the cutscene test engine, and the visual playtest (`tour`, `sight`, `things`: `docs/VISUAL_PLAYTEST.md`) |
+| `debug` | Level dumps for tools and tests, test helpers, the cutscene test engine, and the visual playtest (`tour`, `sight`, `things`: `docs/engineering/VISUAL_PLAYTEST.md`) |
 
 ### One frame
 
@@ -71,7 +71,7 @@ the pacing director, anomaly, prop culling, lights, HUD (which also runs the
 prop animators), dust, film grain, reality glitches, the flicker wave, ghost
 footsteps, guide arrows, the vacuum and the broken elevator, sanity effects,
 ambient sound and the soundscape. Inside the Stairwell or the Loop the mode's update replaces
-most of that. A cutscene (`cutscene::play`, `docs/CUTSCENES.md`) wraps play's
+most of that. A cutscene (`cutscene::play`, `docs/design/CUTSCENES.md`) wraps play's
 update: `cutscene_pre` puts back the gameplay camera of the frame before
 (the player's update eases its roll and field of view from the camera as
 it was), play draws its camera, and `cutscene_post`, after the director
@@ -127,7 +127,7 @@ placer pass when tracing is on; the reference-level test compares these.
 
 ## Creatures and pacing
 
-The creatures (`docs/ENTITIES.md`: the Hound, the Smiler, the Watcher, the
+The creatures (`docs/design/ENTITIES.md`: the Hound, the Smiler, the Watcher, the
 one in the corner and the Reader) run one brain (`entities::creature`,
 `entities::brain`; `entities::ai` keeps only the shared steering, the
 update loop and the screen's pressure, and the anomalies' staff and
@@ -324,7 +324,7 @@ reality glitch and the flicker wave wait. The engine renders the graph in
 command queue.
 
 The one kind of sound that is not synthesized is a spoken line
-(`audio::voice`, `docs/VOICES.md`): WAVs made outside the game by
+(`audio::voice`, `docs/design/VOICES.md`): WAVs made outside the game by
 text-to-speech models from a persona's designed voice (`cargo xtask voice`,
 `tools/voice/`), embedded with an index of what each line is for
 (`assets/voice/lines.tsv`). Your cry for help (`say_cry`) is one of your
@@ -332,7 +332,7 @@ lines, chosen by the level and how often you have cried from a stream of
 its own, decoded into a buffer once and played into the soundscape's
 `world` bus (centred, in the place's reverb); the formant cry `sfx_cry` is
 its fallback. Your asides, what you say to yourself under your breath, are
-chosen by a director of their own (`audio::asides`, `docs/VOICES.md`,
+chosen by a director of their own (`audio::asides`, `docs/design/VOICES.md`,
 *Your asides*): the game posts an event (`Game::aside`: a use, a subject),
 weighed once for its scope (a run, a floor, or every time past a
 cooldown) by the run's seed on a stream of its own; an answered one waits

@@ -1,4 +1,4 @@
-//! Batch `t22`'s cotton swabs, made real (`docs/PROPS.md` P3; the Blender
+//! Batch `t22`'s cotton swabs, made real (`docs/design/PROPS.md` P3; the Blender
 //! batch `assets/src/blender/props/t22.py`, its notes `t22.notes.md`):
 //! 3 in paper-stick swabs spilled from their box. It keeps the old placer's
 //! draws, call for call.

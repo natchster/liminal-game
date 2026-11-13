@@ -1,5 +1,5 @@
 //! The way down a floor of the Building, and what is off it
-//! (`docs/MEGASTRUCTURE.md` G3, `docs/MILESTONES.md` 3): every floor, built
+//! (`docs/design/MEGASTRUCTURE.md` G3, `docs/plan/MILESTONES.md` 3): every floor, built
 //! with its dressing, keeps what makes a way worth finding (choices, loops,
 //! flights, the door seen, somewhere for the figure to stand) and what makes
 //! leaving it worth it (a dead end holds something: water, a battery, a
@@ -154,7 +154,7 @@ fn the_way_and_what_is_off_it() {
     assert!(seen * 100 >= all.len() * 90, "the door seen from near the arrival on {seen} of {} floors", all.len());
 }
 
-/// The places off the walks (`docs/MEGASTRUCTURE.md` G4): each room is
+/// The places off the walks (`docs/design/MEGASTRUCTURE.md` G4): each room is
 /// reached from the arrival, closed on its three other sides by building a
 /// storey high, off the way to the door (its walk is not on the way: never a
 /// room only the way passes), and holds something
@@ -291,7 +291,7 @@ fn fronts_of(seed: u32, level: i32) -> (usize, Vec<String>) {
     (p.rooms.len(), wrong)
 }
 
-/// Two of the Building's small faults (`docs/MILESTONES.md` 11) kept mended:
+/// Two of the Building's small faults (`docs/plan/MILESTONES.md` 11) kept mended:
 /// on a floor whose lamps stand on posts (the Stair Halls, the Works) no two
 /// lamp heads stand in one place (a flight's foot lamp was put a hand's
 /// breadth from the lamp over a cell's door beside it, two heads pushed into

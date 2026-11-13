@@ -6,7 +6,7 @@ megastructure you have to find your way down through, with a threat you
 see coming from far off, before the descent closes in on the rooms. The
 canon it changes is [`LORE.md`](LORE.md); the pillars it serves are in
 [`PILLARS.md`](PILLARS.md); the research behind it is in
-[`SOURCES.md`](SOURCES.md) section 10.
+[`SOURCES.md`](../research/SOURCES.md) section 10.
 
 ## The analysis (2026-10-27)
 
@@ -39,7 +39,7 @@ Measured against the brief:
 
 ## What the research says
 
-Section 10 of [`SOURCES.md`](SOURCES.md) has the sources; in short:
+Section 10 of [`SOURCES.md`](../research/SOURCES.md) has the sources; in short:
 
 - **Samosbor** (самосбор, "self-assembly") is an anonymous Russian
   imageboard myth, begun on 2ch's /b/ in spring 2018 as a six-line

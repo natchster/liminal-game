@@ -1,4 +1,4 @@
-//! Arenas (`docs/ENTITIES.md`, design 7): does each creature's counter
+//! Arenas (`docs/design/ENTITIES.md`, design 7): does each creature's counter
 //! work, and does it matter? A room with pillars, a creature roaming it, and
 //! the director sending it after you as on a level, and
 //! you touring the room (its corners and its middle), stopping now and then
@@ -524,7 +524,7 @@ fn report(kind: &str) -> (Sweep, Sweep) {
     (with, without)
 }
 
-/// The bands every creature's arena is held to (`docs/ENTITIES.md`, design 7).
+/// The bands every creature's arena is held to (`docs/design/ENTITIES.md`, design 7).
 fn hold_to_bands(kind: &str, with: &Sweep, without: &Sweep) {
     assert!(with.untouched >= 0.95, "{kind}: with its counter only {:.0}% went untouched", with.untouched * 100.0);
     assert!(with.across >= 0.90, "{kind}: with its counter only {:.0}% got round", with.across * 100.0);

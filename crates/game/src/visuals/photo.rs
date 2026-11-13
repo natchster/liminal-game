@@ -160,7 +160,7 @@ pub fn lit_window_tex(cell: usize) -> Tex {
     t
 }
 
-/// What the windows of the rooms look out on (`docs/WINDOWS.md`): a farm
+/// What the windows of the rooms look out on (`docs/design/WINDOWS.md`): a farm
 /// track running away into fog, half the turn round it (`Patch::WindowView`)
 static WINDOW_VIEW: &[u8] = texture!("view.jpg");
 /// The dirt on the windows' glass: how much, grey (`Patch::Glass`)

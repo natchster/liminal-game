@@ -1,4 +1,4 @@
-//! Batch `t15`'s dog toys, made real (`docs/PROPS.md` P3, "toys stay toys";
+//! Batch `t15`'s dog toys, made real (`docs/design/PROPS.md` P3, "toys stay toys";
 //! `assets/src/blender/props/t15.py`, `t15.notes.md`). Their placer and what
 //! only it uses; it keeps the old placer's draws, call for call.
 use crate::open_tiles;

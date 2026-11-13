@@ -26,7 +26,7 @@ pub fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
     // moulding, 22 x 28 cm; its border, the alphabet, the numerals, a house
     // between two trees, a motto, the maker's initials and the year; the
     // colours faded, the linen yellowed and foxed; hung a little askew
-    // (the old tilt's draw) (docs/PROPS.md)
+    // (the old tilt's draw) (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     let stitch = group();
     let mount_y = 1.55;

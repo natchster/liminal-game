@@ -1,4 +1,4 @@
-"""r07: the marks on the rooms' surfaces (docs/PROPS.md), and what falls from
+"""r07: the marks on the rooms' surfaces (docs/design/PROPS.md), and what falls from
 them. The stains, water streaks, cracks, cobwebs and puddles are painted in
 the game (soft, irregular textures on transparent planes: `r07.notes.md`);
 the only solid things are the bits a cracked ceiling drops on the floor

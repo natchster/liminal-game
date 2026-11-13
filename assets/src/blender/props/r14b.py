@@ -1,5 +1,5 @@
 """r14b: small things a person dropped or left, remodelled at their real
-sizes (docs/PROPS.md, P2): a pair of clear safety glasses, a wristwatch, a
+sizes (docs/design/PROPS.md, P2): a pair of clear safety glasses, a wristwatch, a
 bunch of keys on a split ring with a tag, reading glasses (on the book stack
 of batch r02), curled gift ribbon, a twin-bell wind-up alarm clock. Sources
 and sizes: r14b.notes.md.

@@ -1,4 +1,4 @@
-//! The creatures of the redesign (`docs/ENTITIES.md`) at run time: what every
+//! The creatures of the redesign (`docs/design/ENTITIES.md`) at run time: what every
 //! kind on the new brain shares.
 //!
 //! A creature is an `Entity` (its kind, position, heading, and the `state`
@@ -10,7 +10,7 @@
 //! eyes), lets its kind decide (`hound::think`, ...), moves it, animates it
 //! and voices it.
 //!
-//! **Fairness** (`docs/ENTITIES.md` design 3) lives here, so no kind can
+//! **Fairness** (`docs/design/ENTITIES.md` design 3) lives here, so no kind can
 //! skip it: a strike lands only after two tells you could perceive in the
 //! last 20 s, not in a level's first 30 s and not within 2 s of its first
 //! notice of you (`strike_allowed`); the first strike of a kind in a run
@@ -129,7 +129,7 @@ pub const CHASE_CAP: f64 = 0.95 * SPRINT;
 pub const KNOCKED_LEAVES: f64 = 5.0;
 /// A nerve under this is spent: a contact on it, after the first meeting,
 /// kills (every kind's touch, the Watcher's too: it kills only a mind
-/// already gone, `docs/LORE.md`).
+/// already gone, `docs/design/LORE.md`).
 pub const SPENT: f64 = 25.0;
 /// A burst (a lunge, a spring): at most this fast, over at most `BURST_LEN`.
 pub const BURST_CAP: f64 = 7.0;
@@ -185,7 +185,7 @@ impl Creature {
 
 /// What a run remembers of the creatures (`Game::creature_run`, saved with
 /// the run): the kinds you have met (their first strike does not kill) and
-/// your habits, and what each kind has learned from them (`docs/ENTITIES.md`
+/// your habits, and what each kind has learned from them (`docs/design/ENTITIES.md`
 /// design 4).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct RunMemory {
@@ -426,7 +426,7 @@ impl Game {
     /// first meeting knocks you down, a second contact in a peak or a contact
     /// on a spent nerve kills. → true when you died.
     pub fn creature_contact(&mut self, ei: usize) -> bool {
-        // a cutscene has your hands: nothing touches you (`docs/CUTSCENES.md`, rule 4)
+        // a cutscene has your hands: nothing touches you (`docs/design/CUTSCENES.md`, rule 4)
         if self.hands_taken() {
             return false;
         }

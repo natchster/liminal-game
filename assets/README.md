@@ -36,7 +36,7 @@ and noise vectors come from scalar Perlin samples (`propkit.noise3`;
 process), so two builds are identical and a rebuild matches the committed
 file exactly.
 
-**Creatures** (reproducible here; the redesign of `docs/ENTITIES.md`):
+**Creatures** (reproducible here; the redesign of `docs/design/ENTITIES.md`):
 
 ```sh
 cargo xtask assets creatures                  # build every body in Blender headless, compare body by body

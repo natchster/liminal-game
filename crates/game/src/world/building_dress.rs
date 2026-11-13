@@ -1,4 +1,4 @@
-//! The Building's floors dressed (`docs/MEGASTRUCTURE.md`, design 3): what
+//! The Building's floors dressed (`docs/design/MEGASTRUCTURE.md`, design 3): what
 //! makes the concrete a place people lived in and left. All of it draws
 //! from a salted stream of its own (`DRESS_SALT`), never from the build's,
 //! so the floor's plan and every checkpoint stay where they are; none of it
@@ -204,7 +204,7 @@ impl Game {
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
         // the frame lines the opening a few millimetres proud of its
         // reveal and its lintel (on them, its faces fought the wall's at
-        // every cell door: docs/playtests/visual/2026-11-13-building-1-3.md, F1)
+        // every cell door: docs/research/playtests/visual/2026-11-13-building-1-3.md, F1)
         for sx in [-1.0, 1.0] {
             parts.put(frame, boxm(to_w(sx * (hw + 0.06 - FRAME_PROUD), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
         }

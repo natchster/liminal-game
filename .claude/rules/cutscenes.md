@@ -8,7 +8,7 @@ paths:
 
 # Cutscene rules
 
-The design is `docs/CUTSCENES.md`; adding one is the `add-cutscene` skill.
+The design is `docs/design/CUTSCENES.md`; adding one is the `add-cutscene` skill.
 
 - **It borrows your eyes, never your place.** Nothing in a cutscene moves
   your body (position, facing, pitch, crouch); the camera is the engine's

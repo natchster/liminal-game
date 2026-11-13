@@ -301,7 +301,7 @@ impl Game {
             return;
         }
         self.cry_cooldown = 22.0;
-        // your voice (a line of the persona, docs/VOICES.md); the formant cry
+        // your voice (a line of the persona, docs/design/VOICES.md); the formant cry
         // if none can be said
         if !self.say_cry() {
             self.sfx_cry();
@@ -1124,7 +1124,7 @@ impl Game {
             in_safe_room = (sdx * sdx + sdz * sdz) < sr.r * sr.r;
             let discovered = sr.discovered;
             // found: nothing chimes and nothing is said (what the candles do
-            // is learned there, never told: `docs/LORE.md`, *What still
+            // is learned there, never told: `docs/design/LORE.md`, *What still
             // burns*; PILLARS.md 4, no glow, chime or line)
             if in_safe_room && !discovered {
                 self.safe_room.as_mut().unwrap().discovered = true;

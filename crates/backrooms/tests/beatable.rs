@@ -1,4 +1,4 @@
-//! Beatable (`docs/ENTITIES.md` design 7). A **rule-follower**, a bot that
+//! Beatable (`docs/design/ENTITIES.md` design 7). A **rule-follower**, a bot that
 //! knows every creature's counter and plays it from what a player perceives
 //! (as the arenas do), plays levels 4–13 of several runs as a player follows
 //! her story (to her camp, her page taken, which wakes the place; then to

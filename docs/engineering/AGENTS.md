@@ -6,11 +6,11 @@ and nothing else: hooks that hold the game's invariants, rules that load
 when an agent touches a subsystem, a skill for each kind of content the game
 has, and read-only reviewers that judge one kind of evidence each. They are
 not stock tools: each was added when the game grew a system that needed it
-(the voice skills came with the voices, `docs/VOICES.md`), each names the
+(the voice skills came with the voices, `docs/design/VOICES.md`), each names the
 game's own commands, files and gates, and each is changed when the game
 changes. When the same mistake happens twice, it becomes a rule, a lint, a
 test or a step in a skill, so it cannot happen a third time (the *steering
-loop*, `docs/TOOLING_ROADMAP.md`). `CLAUDE.md` is the map an agent reads
+loop*, `docs/plan/TOOLING_ROADMAP.md`). `CLAUDE.md` is the map an agent reads
 first; this file is the inventory.
 
 All of it is committed. Nothing under `.claude/` holds a secret, a token, an
@@ -50,7 +50,7 @@ moved into a test or a lint as soon as one can check them.
 
 `.claude/skills/<name>/SKILL.md`: a playbook for each kind of content, from
 the brief against the canon to the gates, the evidence and the ledger entry
-(`docs/content.json`).
+(`docs/plan/content.json`).
 
 | Skill | For |
 |---|---|
@@ -66,7 +66,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `voice-persona` | a voice persona: the canon check, the persona file, its designed reference voice and emotional references |
 | `voice-lines` | a persona's lines: made, judged, into the game's assets and code, heard, a person's ears |
 | `voice-eval` | the voice evaluation: reading the report, a bake-off between models, thresholds changed only through known answers |
-| `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
+| `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/research/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
 | `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
 
 ## Reviewers
@@ -77,12 +77,12 @@ have the last word, and their verdicts calibrate the reviewers.
 
 | Reviewer | Sees | Says |
 |---|---|---|
-| `art-critic` | blind A/B pairs of frames (`cargo xtask ab prepare`), `docs/STYLE.md` | A, B or tie a pair, with its evidence; flags anything broken. Its memory (`.claude/agent-memory/art-critic/MEMORY.md`) keeps people's verdicts and its calibration on known answers (`cargo xtask calibrate`), so its taste is corrected |
-| `lore-keeper` | a diff or new text, `docs/LORE.md`, `docs/PILLARS.md` | contradictions with the canon and broken rules of how lore reaches the player, with quotes |
+| `art-critic` | blind A/B pairs of frames (`cargo xtask ab prepare`), `docs/design/STYLE.md` | A, B or tie a pair, with its evidence; flags anything broken. Its memory (`.claude/agent-memory/art-critic/MEMORY.md`) keeps people's verdicts and its calibration on known answers (`cargo xtask calibrate`), so its taste is corrected |
+| `lore-keeper` | a diff or new text, `docs/design/LORE.md`, `docs/design/PILLARS.md` | contradictions with the canon and broken rules of how lore reaches the player, with quotes |
 | `level-analyst` | the expressive-range report, the level sweep, the zone views | what changed in level generation and why; it explains, it does not approve |
 | `audio-analyst` | the loudness gate, `listen` renders, ambient logs | the numbers; never whether a sound is good (that is for ears) |
-| `visual-inspector` | a visual playtest's folder (its report.md, the sheets, the flagged pictures), `docs/VISUAL_PLAYTEST.md`, `docs/STYLE.md` | each detector's flag confirmed, false or unsure, and what the sheets show (out of place, clip, flicker, gap) with its view, severity and confidence: a filter for people, never the gate (vision models miss half and imagine clipping at near contact) |
-| `code-reviewer` | a diff, `CLAUDE.md`, `docs/DEVELOPMENT.md` | layering, determinism and module-size gaps; no style preferences |
+| `visual-inspector` | a visual playtest's folder (its report.md, the sheets, the flagged pictures), `docs/engineering/VISUAL_PLAYTEST.md`, `docs/design/STYLE.md` | each detector's flag confirmed, false or unsure, and what the sheets show (out of place, clip, flicker, gap) with its view, severity and confidence: a filter for people, never the gate (vision models miss half and imagine clipping at near contact) |
+| `code-reviewer` | a diff, `CLAUDE.md`, `docs/engineering/DEVELOPMENT.md` | layering, determinism and module-size gaps; no style preferences |
 
 ## How they grow with the game
 
@@ -97,10 +97,10 @@ have the last word, and their verdicts calibrate the reviewers.
   answers).
 - **A reviewer is calibrated before it is trusted**: on damaged goldens with
   known answers (`cargo xtask calibrate`), then on people's verdicts
-  (`docs/PLAYTEST.md`); its accuracy is logged
+  (`docs/research/PLAYTEST.md`); its accuracy is logged
   (`crates/backrooms/tests/review/calibration.jsonl`).
 - **Adding one**: a skill is `.claude/skills/<name>/SKILL.md` with a `name`
   and a `description` that says when to use it, numbered steps that end in
   gates, evidence and the ledger; a reviewer is `.claude/agents/<name>.md`
   with read-only tools and the one kind of evidence it may see; list it
-  here, in `CLAUDE.md` and in `docs/DEVELOPMENT.md`.
+  here, in `CLAUDE.md` and in `docs/engineering/DEVELOPMENT.md`.

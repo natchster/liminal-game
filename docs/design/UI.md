@@ -4,7 +4,7 @@ How the player moves, uses things and reads the screen, why, and the plan
 that took it from "a column of spaced capitals and fourteen keys" to
 controls you can use on the run and screens that belong to the place. The
 pillars it serves are in [`PILLARS.md`](PILLARS.md); the research behind it
-is in [`SOURCES.md`](SOURCES.md) section 9.
+is in [`SOURCES.md`](../research/SOURCES.md) section 9.
 
 ## The analysis (2026-10-26)
 
@@ -59,7 +59,7 @@ capitals.
 
 ## What the research says
 
-Section 9 of [`SOURCES.md`](SOURCES.md) has the sources; in short:
+Section 9 of [`SOURCES.md`](../research/SOURCES.md) has the sources; in short:
 
 - **Layouts converge.** Shift run, Ctrl crouch, F light, E or left click to
   use, Tab for the inventory or notebook, R for batteries ("reload") in
@@ -106,7 +106,7 @@ gone when it is not needed.
    lower left (Continue, New descent, Settings, Quit), keyboard and mouse.
    No paragraph, no keys, no medals. It stands a few metres out along the
    way from where you begin; New descent keeps its place and draws the
-   camera back into your eyes, with no cut (`docs/CUTSCENES.md`, the way
+   camera back into your eyes, with no cut (`docs/design/CUTSCENES.md`, the way
    in).
 4. **Pause stops the world.** The frozen frame dimmed behind the same
    list; Settings (look, invert, field of view, head bob, film grain, run
@@ -121,7 +121,7 @@ gone when it is not needed.
 7. **The notebook in your hands.** Opening it keeps the view and the
    mouse; it sits low on the screen as paper; her pages in her hand, the
    torn notes typed; pages turn with the wheel, the arrows or a click.
-8. **A cutscene says your hands are taken** (`docs/CUTSCENES.md`): black
+8. **A cutscene says your hands are taken** (`docs/design/CUTSCENES.md`): black
    bars slide in from the top and the bottom, the HUD goes, and a key
    pressed shows "Hold E to skip" small in the lower bar; play itself is
    never letterboxed.

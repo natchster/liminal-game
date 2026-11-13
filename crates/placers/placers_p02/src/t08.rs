@@ -1,4 +1,4 @@
-//! Batch `t08`'s crow, made real (`docs/PROPS.md` P3, "the party and the
+//! Batch `t08`'s crow, made real (`docs/design/PROPS.md` P3, "the party and the
 //! shrine"): a moulded plastic crow, the 6 in (16 cm) shop kind
 //! (`assets/src/blender/props/t08.py`, `t08.notes.md`); its placer and what
 //! only it uses. It keeps the old placer's draws, call for call.

@@ -18,7 +18,14 @@
   invariants, definition of done); `.claude/rules/*.md` hold rules that load
   only when files under their `paths:` are touched. Keep both short, and move
   a rule into a test or lint when it can be checked mechanically.
-* **Skills and reviewers** (the inventory: `docs/AGENTS.md`; all written
+* **Docs by kind.** `docs/` holds an index and four folders: `design/` (the
+  game), `research/` (what it rests on, playtests included), `plan/` (the
+  work: milestones, progress, the scorecard and the ledger) and
+  `engineering/` (the code). A new doc or section goes where its kind is;
+  `tests/structure.rs` keeps the root to the index and the folders, and
+  every `docs/…` path named in the repository pointing at a file that
+  exists (`docs/README.md`).
+* **Skills and reviewers** (the inventory: `docs/engineering/AGENTS.md`; all written
   for this game and changed with it). `.claude/skills/<name>/SKILL.md` are
   the content playbooks (zones, props, creatures, anomalies, sounds, pacing,
   voices, blind visual review, re-recording, the drift sweep); a new one is
@@ -42,10 +49,10 @@
   `cargo xtask calibrate score ANSWERS.json --reviewer NAME` reports
   accuracy and Cohen's kappa by kind and appends them to
   `crates/backrooms/tests/review/calibration.jsonl`. Once people's verdicts
-  exist (`docs/PLAYTEST.md`), they are the truth a reviewer is held to.
-* **Playtests.** `docs/PLAYTEST.md` is the script for sessions with fresh
+  exist (`docs/research/PLAYTEST.md`), they are the truth a reviewer is held to.
+* **Playtests.** `docs/research/PLAYTEST.md` is the script for sessions with fresh
   players (brief, silent observation, debrief, tension trace, one Enjoyment
-  item, A/B by ranking); each session is a file in `docs/playtests/` from
+  item, A/B by ranking); each session is a file in `docs/research/playtests/` from
   `TEMPLATE.md`, and its findings go into the verdict log, the critic's
   memory, `QUALITY.md` and the ledger.
 * **Hooks.** `.claude/settings.json` wires Claude Code's hooks to
@@ -195,16 +202,16 @@ Levels must be a pure function of `(run_seed, level)`:
   generation, read the report and the plots, then
   `cargo xtask range --accept --reason "…"` (logged in
   `tests/recorded/ACCEPTED.md`). Part of the full check.
-* **The art bible as a gate.** `docs/STYLE.md` ends with a JSON block of
+* **The art bible as a gate.** `docs/design/STYLE.md` ends with a JSON block of
   look bands: a colourfulness ceiling for every frame, a luminance ceiling
   for level views, and a band per zone purpose. `cargo xtask shots` holds the
   goldens to it, so a purpose whose view drifts out of its band fails even
   when its frame and look anchor are re-accepted.
-* **The content ledger.** `docs/content.json` lists every content family
+* **The content ledger.** `docs/plan/content.json` lists every content family
   (creatures, anomalies, zone purposes, prop themes, sound) with the checks
   it must pass; `tests/structure.rs` fails when the code has content the
   ledger lacks, or the ledger names a check that does not exist. Grades and
-  open issues per subsystem live in `docs/QUALITY.md`.
+  open issues per subsystem live in `docs/plan/QUALITY.md`.
 * **Material lint.** `crates/backrooms/tests/materials.rs` builds six levels
   and checks every lit, opaque, non-glowing material's effective albedo
   (colour × mean of its map, linear): brightest channel 0.008–0.87,
@@ -218,7 +225,7 @@ Levels must be a pure function of `(run_seed, level)`:
   steering, the staff's limb solver, its tables) is pruned to what is read
   by `REGEN=1 cargo test --release -p game --test entities`. The creatures
   of the redesign are held by their rules (`tests/creatures_rules.rs`, one
-  test a line of `docs/ENTITIES.md`), their arenas
+  test a line of `docs/design/ENTITIES.md`), their arenas
   (`tests/creatures_arenas.rs`) and where they live (`tests/ecology.rs`);
   the anomalies' bodies by `tests/anomaly_bodies.rs` (`REGEN=1` rewrites
   `assets/src/creatures/rigs.json` after a rig changes).
@@ -245,7 +252,7 @@ Levels must be a pure function of `(run_seed, level)`:
   to, every open tile is reachable by a player-sized body (a flood fill over
   a 0.25 m grid with `circle_hits_wall`) unless a barricade closes it off (by
   design: a barricade keeps spawn → exit solvable and every pickup in reach,
-  and may close off anything else; `docs/PROPS.md` 2), every pickup can be
+  and may close off anything else; `docs/design/PROPS.md` 2), every pickup can be
   reached, and a level built after another is the same as one built alone.
   Failing cases are saved in `tests/level_sweep.proptest-regressions`
   (commit it). The ignored helpers `census` (pocket statistics over fixed
@@ -356,7 +363,7 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   Blender scripts (`assets/src/blender/creatures.py`, `skinned.py`,
   `skin_*.py`) build over rest-pose rig dumps that nothing here writes, so
   no command rebuilds the file. It goes when the last part still used moves
-  to a new body (`docs/ENTITIES.md`).
+  to a new body (`docs/design/ENTITIES.md`).
 * `crates/game/assets/MANIFEST.json` records each file's sources, generator,
   licence and fingerprint; `tests/structure.rs` fails on a file whose
   fingerprint changed without its entry, a licence or generator not on the
@@ -368,7 +375,7 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `crates/game/assets/parts.tsv` current; after a mesh change,
   `REGEN=1 cargo test --release -p game --test asset_lint` rewrites the
   table so the diff shows what changed.
-* The cutscenes (`docs/CUTSCENES.md`) are TOML sources in
+* The cutscenes (`docs/design/CUTSCENES.md`) are TOML sources in
   `assets/src/cutscenes/`, compiled by `cargo xtask cutscene write` into
   one bundle (`crates/game/assets/cutscenes.json`, every field written
   out) after the game's rules have passed on a copy
@@ -387,7 +394,7 @@ the photographed textures from the scripts in `assets/src/textures/` (see
 * `cargo xtask bench` times twelve levels headless (build, load plus first
   frame, CPU update and Metal GPU time per frame along a fixed path, draw
   calls, triangles; medians of three repeats) against the budgets in
-  `docs/PERF.md`, and looks for lasting steps in `perf/history.csv` (a
+  `docs/engineering/PERF.md`, and looks for lasting steps in `perf/history.csv` (a
   change-point search with a permutation test, once eight runs are on
   record). Record a run after any change to rendering, level building or
   per-frame code, and commit the history with it; the full check runs
@@ -420,7 +427,7 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   events) on this machine only; `backrooms --replay FILE` plays it back
   exactly and takes tension marks (↑ / ↓) into `<FILE>.trace.json`;
   `cargo xtask heatmap FILE…` draws where players went. See
-  `docs/PLAYTEST.md`. `tests/replay.rs` proves a recording survives its file
+  `docs/research/PLAYTEST.md`. `tests/replay.rs` proves a recording survives its file
   and replays to the same states.
 
 ## Continuous checks
@@ -432,22 +439,22 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   the Mac that recorded them). It runs once the repository has a GitHub
   remote.
 * **Drift sweep:** `cargo xtask drift [--skip-check]` runs the full check (or
-  reads its last logs), writes each `docs/content.json` entry's `passes`
+  reads its last logs), writes each `docs/plan/content.json` entry's `passes`
   and `last_checked`, and rewrites the *Latest sweep* section of
-  `docs/QUALITY.md` (steps, tests, frames, range, performance, the largest
+  `docs/plan/QUALITY.md` (steps, tests, frames, range, performance, the largest
   files, failing content, and the count of regressions people caught that
   no gate did); the `drift-sweep` skill is the weekly routine around it.
 * **Nightly on the reference Mac:** `cargo xtask nightly` = the drift sweep,
   a 200-case level sweep and a recorded bench run.
 * `cargo xtask check --skip STEP,…` leaves steps out.
-* **The visual playtest** (`docs/VISUAL_PLAYTEST.md`), by hand and never
+* **The visual playtest** (`docs/engineering/VISUAL_PLAYTEST.md`), by hand and never
   in the check: `cargo xtask playtest visual [--seeds …] [--levels …]
   [--area x0,z0,x1,z1]` tours the edges of the walkable floor (`backrooms
   --tour`), finds gaps, flicker, clipping, plain things and coplanar faces,
   and writes a report and contact sheets under
   `target/xtask/playtest/visual/`; the `visual-playtest` skill says when
   (after any major change, on the places it touched) and what to do with
-  it, the `visual-inspector` looks, and `docs/playtests/visual/` keeps what each
+  it, the `visual-inspector` looks, and `docs/research/playtests/visual/` keeps what each
   found.
 
 ## Profiling and debugging

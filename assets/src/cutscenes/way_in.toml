@@ -1,4 +1,4 @@
-# The way in (docs/CUTSCENES.md, C5): New descent from the title. The title
+# The way in (docs/design/CUTSCENES.md, C5): New descent from the title. The title
 # stands a few metres out along the way the floor runs furthest from where
 # you begin, looking on down it (`Game::title_view`); the run keeps the
 # title's place, so the floor built again is the one on the screen, and it

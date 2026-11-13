@@ -1,4 +1,4 @@
-//! The clue that a cutscene has your hands (`docs/CUTSCENES.md`, design
+//! The clue that a cutscene has your hands (`docs/design/CUTSCENES.md`, design
 //! 2): black bars that slide in from the top and the bottom of the view,
 //! the cutscene's own veil, and, once a key is pressed, the way out in the
 //! lower bar ("Hold E to skip", the key as bound), its hold drawn as a

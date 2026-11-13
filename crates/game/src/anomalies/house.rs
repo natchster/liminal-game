@@ -1,6 +1,6 @@
 //! The Borrowed House (a level whose SCP is `house`)
 //! (inspired by SCP-1983 "Doorway to Nowhere" by DrEverettMann, CC BY-SA 3.0
-//! — docs/LORE.md). Shadows that are fast and deadly while you are lit and
+//! — docs/design/LORE.md). Shadows that are fast and deadly while you are lit and
 //! slow smoke in the dark; a nest of lamps near the middle that keeps the
 //! front door from latching until every lamp is out.
 //!

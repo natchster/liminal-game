@@ -1,5 +1,5 @@
 """r04: three of the everyday core props remodelled at their real sizes
-(docs/PROPS.md, P1): the torn note's sheet, the shop mannequin and the
+(docs/design/PROPS.md, P1): the torn note's sheet, the shop mannequin and the
 wall clock. Sources and measurements: `r04.notes.md`.
 
 No map file: the game builds each prop from these parts by name, placed as

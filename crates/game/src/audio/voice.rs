@@ -1,4 +1,4 @@
-//! Voice lines (`docs/VOICES.md`): spoken lines made by text-to-speech
+//! Voice lines (`docs/design/VOICES.md`): spoken lines made by text-to-speech
 //! models from a persona's voice (`cargo xtask voice`), embedded as 16-bit
 //! WAVs (`assets/voice/<persona>/<line>.wav`) with an index of what each is
 //! for (`assets/voice/lines.tsv`, written by `cargo xtask voice write`).
@@ -262,7 +262,7 @@ mod tests {
     /// Rule 1 of your asides: they react and never explain. No line names
     /// what the canon keeps unsaid: a creature, a place by its name, a
     /// level or its number, the way out, the people of the notes, the
-    /// self-assembly (`docs/VOICES.md`, *Your asides*; `lore-keeper` reads
+    /// self-assembly (`docs/design/VOICES.md`, *Your asides*; `lore-keeper` reads
     /// the rest)
     #[test]
     fn no_aside_names_what_the_canon_keeps_unsaid() {

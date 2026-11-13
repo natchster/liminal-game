@@ -1,4 +1,4 @@
-//! The Reader (`docs/ENTITIES.md`, design 1): a thin man in a brown cardigan
+//! The Reader (`docs/design/ENTITIES.md`, design 1): a thin man in a brown cardigan
 //! buttoned wrong, paper stuffed in its pockets and down its front, ink on
 //! its fingers, the fingers too long; it walks bent over a sheet held close
 //! to its face, reading under its breath. *Give it paper.*

@@ -1,4 +1,4 @@
-//! The HUD's typefaces: three voices, each with a reason (`docs/UI.md`).
+//! The HUD's typefaces: three voices, each with a reason (`docs/design/UI.md`).
 //!
 //! * [`Face::Sans`]: the building's voice, Helvetica Neue (menus, prompts,
 //!   cards). Institutional type makes the uncanny routine.

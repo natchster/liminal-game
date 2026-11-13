@@ -4,7 +4,7 @@ room, forehead to the angle of the walls, as a child is made to stand; in a
 long flannel nightshirt, barefoot, its arms straight at its sides. You see
 its back. Its face is a person's face with the eyes and the mouth turned
 upside down (the Thatcher illusion), and you see it only once, as it turns.
-(docs/ENTITIES.md, design 1.)
+(docs/design/ENTITIES.md, design 1.)
 
 MakeHuman's old, thin, tall man (CC0), standing straight, its head a little
 bowed (the forehead to the corner); each eye with its brow, and the mouth,
@@ -13,7 +13,7 @@ tube of cloth gathered at the neck and let fall over him by Blender's cloth
 (`cloth.py`) over his shoulders and his arms to the shins.
 
 The creature it is the body of takes its rule from SCP-096 by Dr Dan, CC
-BY-SA 3.0 (`docs/LORE.md`, Attribution); its body is MakeHuman's (CC0 1.0).
+BY-SA 3.0 (`docs/design/LORE.md`, Attribution); its body is MakeHuman's (CC0 1.0).
 """
 import numpy as np
 

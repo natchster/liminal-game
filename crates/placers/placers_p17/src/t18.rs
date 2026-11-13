@@ -1,4 +1,4 @@
-//! Batch `t18`'s memorial shrine, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t18`'s memorial shrine, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"): what a person brought and arranged on the floor, a
 //! board, a book, a photograph in its frame, chime candles burnt down,
 //! dried rosebuds, a cross or a star, a black ribbon

@@ -1,4 +1,4 @@
-//! `backrooms --tour DIR` (`docs/VISUAL_PLAYTEST.md`): the visual
+//! `backrooms --tour DIR` (`docs/engineering/VISUAL_PLAYTEST.md`): the visual
 //! playtest's renders. On each level, every view of the tour
 //! (`game::debug::tour`) is rendered five times: the look a player gets
 //! (the HUD on, the lamp lit where it is dark), and bare (no HUD layer)

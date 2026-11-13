@@ -1,4 +1,4 @@
-//! Batch `t21`'s prop in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t21`'s prop in this crate, made real (`docs/design/PROPS.md` P3): the
 //! drop-front desk (`assets/src/blender/props/t21.py`, `t21.notes.md`). Its
 //! placer and what only it uses; it keeps the old placer's draws, call for
 //! call.

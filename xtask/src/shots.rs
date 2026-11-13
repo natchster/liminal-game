@@ -15,7 +15,7 @@
 //! anything above `TINY` fails with an error map next to the frame in
 //! `target/xtask/shots/`. A missing golden fails too.
 //!
-//! Every frame is also held to the art bible: `docs/STYLE.md` ends with a
+//! Every frame is also held to the art bible: `docs/design/STYLE.md` ends with a
 //! JSON block of ceilings for all frames and a colourfulness / luminance band
 //! for each zone purpose, which the purpose's zone view must stay inside.
 //!
@@ -48,7 +48,7 @@ pub const HEIGHT: u32 = 300;
 /// level 4; 4242's Showroom is on level 10, 7's Borrowed House on level 5.)
 const LEVELS: &[(u32, i32)] = &[(4242, 1), (4242, 2), (4242, 3), (4242, 7), (7, 5), (4242, 4), (7, 6), (4242, 10)];
 const CREATURES: &[&str] = &["smiler", "hound", "watcher", "corner", "reader"];
-/// The anomalies' figures (`docs/ENTITIES.md` E9), each in its own place:
+/// The anomalies' figures (`docs/design/ENTITIES.md` E9), each in its own place:
 /// the Showroom's staff (4242's level 10; at 8 m a wall stands in the way),
 /// the Borrowed House's shadows (7's level 5), and the Loop's seated man on
 /// the lap it comes, from 2.5 m and 1.6 m (`--screen loop-figure`).
@@ -60,12 +60,12 @@ const FIGURES: &[(&str, &[&str])] = &[
     ("shadow_8m", &["--seed", "7", "--level", "5", "--play", "--frames", "90", "--showcase", "shadow:8"]),
     ("seated_2m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure"]),
     ("seated_1m", &["--seed", "4242", "--level", "5", "--play", "--frames", "120", "--screen", "loop-figure-near"]),
-    // the cutscenes (docs/CUTSCENES.md), each at a time of its own clock
+    // the cutscenes (docs/design/CUTSCENES.md), each at a time of its own clock
     ("way_in_mid", &["--cutscene", "way_in", "--stage", "title:4242", "--cut-at", "2.6"]),
     ("shaft_eyes", &["--cutscene", "shaft", "--stage", "broken_elevator:4242:4", "--cut-at", "3.7"]),
     ("death_fall", &["--cutscene", "death_taken", "--stage", "death:hound", "--cut-at", "0.9"]),
 ];
-/// The one behind the glass (docs/WINDOWS.md 4), as you meet it: out of its
+/// The one behind the glass (docs/design/WINDOWS.md 4), as you meet it: out of its
 /// window (4242's level 7, an office's strip window), standing far out on
 /// the track, closer, its face to the pane, come through into its light
 /// (`--showcase glass:OUT`, OUT m beyond the glass, below 0 inside), and
@@ -195,7 +195,7 @@ pub fn shots(args: &[String]) -> Result<(), String> {
             look_verdict
         } else {
             failures += usize::from(binding);
-            let style = format!("FAIL  outside docs/STYLE.md: {}", off.join(", "));
+            let style = format!("FAIL  outside docs/design/STYLE.md: {}", off.join(", "));
             if look_verdict.starts_with("ok") {
                 style
             } else {
@@ -256,19 +256,19 @@ pub fn shots(args: &[String]) -> Result<(), String> {
     Ok(())
 }
 
-/// The bands at the end of `docs/STYLE.md`.
+/// The bands at the end of `docs/design/STYLE.md`.
 fn style_bands() -> Result<Value, String> {
-    let text = std::fs::read_to_string(root().join("docs/STYLE.md")).map_err(|e| format!("docs/STYLE.md: {e}"))?;
+    let text = std::fs::read_to_string(root().join("docs/design/STYLE.md")).map_err(|e| format!("docs/design/STYLE.md: {e}"))?;
     let (Some(a), Some(b)) = (text.find("<!-- style-bands:begin -->"), text.find("<!-- style-bands:end -->")) else {
-        return Err("docs/STYLE.md has no style-bands block".into());
+        return Err("docs/design/STYLE.md has no style-bands block".into());
     };
     let block = &text[a..b];
     let json = block
         .split("```json")
         .nth(1)
         .and_then(|r| r.split("```").next())
-        .ok_or("docs/STYLE.md: the style-bands block needs a ```json fence")?;
-    serde_json::from_str(json).map_err(|e| format!("docs/STYLE.md style bands: {e}"))
+        .ok_or("docs/design/STYLE.md: the style-bands block needs a ```json fence")?;
+    serde_json::from_str(json).map_err(|e| format!("docs/design/STYLE.md style bands: {e}"))
 }
 
 /// What a frame breaks of the art bible: the ceiling for all frames, the one

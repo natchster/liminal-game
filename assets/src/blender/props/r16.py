@@ -1,5 +1,5 @@
 """r16: the kitchen and the hearth left behind, remodelled at their real
-sizes (docs/PROPS.md, P2): a wine glass with the last of its wine dried in
+sizes (docs/design/PROPS.md, P2): a wine glass with the last of its wine dried in
 it, an enamel stovetop kettle, a cast-iron skillet hung on a nail, a bloomer
 gone stale and mouldy on its board, a beer bottle broken on the floor, a
 portable sewing machine, a little stack of split firewood. Sources and sizes:

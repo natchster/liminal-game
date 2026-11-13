@@ -10,8 +10,8 @@ drift toward tunnel vision; start from the ledger and the scorecard, not from
 memory).
 
 1. **Run it.** `cargo xtask drift` runs the full check, writes each content
-   entry's `passes` into `docs/content.json` and rewrites the *Latest sweep*
-   section of `docs/QUALITY.md`; the full report is
+   entry's `passes` into `docs/plan/content.json` and rewrites the *Latest sweep*
+   section of `docs/plan/QUALITY.md`; the full report is
    `target/xtask/drift/report.md`. On the reference Mac, `cargo xtask nightly`
    also runs a 200-case level sweep and records a bench run in
    `perf/history.csv`.
@@ -25,10 +25,10 @@ memory).
    - the largest files (split one before it reaches the cap);
    - the ledger entries whose `last_human_review` is old or missing.
 3. **Docs against code.** `tests/structure.rs` checks that named paths
-   exist; also read `docs/ARCHITECTURE.md` and `CLAUDE.md` against what the
+   exist; also read `docs/engineering/ARCHITECTURE.md` and `CLAUDE.md` against what the
    week's commits changed, and fix what is no longer true.
 4. **Open issues.** Every failure or worrying trend goes into the *Open*
-   column of `docs/QUALITY.md`, with its evidence. Do not change a grade
+   column of `docs/plan/QUALITY.md`, with its evidence. Do not change a grade
    without an entry under *History* saying why; grades rise only with
    people's confirmation (playtests, listening, look reviews).
 5. **The steering loop.** For each regression a person reported that no

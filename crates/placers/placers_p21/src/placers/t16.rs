@@ -1,4 +1,4 @@
-//! Batch `t16`'s mark in this crate, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t16`'s mark in this crate, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"; `t16.notes.md`): the crayon graffiti, a small child's drawing
 //! in wax crayon on a wall, the wall's tooth showing through its strokes.
 //! Its placer and what only it uses; it keeps the old placer's draws, call

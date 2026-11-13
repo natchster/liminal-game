@@ -37,7 +37,7 @@ these channels, and the `lore-keeper` reviewer checks it:
 - **Sound**: what is somewhere else, heard before it is seen (signatures,
   steps, the hum, crying).
 - **Creature behaviour**: rules that are learnable by playing, never told.
-- **A look you take** (a cutscene, `docs/CUTSCENES.md`): the camera
+- **A look you take** (a cutscene, `docs/design/CUTSCENES.md`): the camera
   borrowed for a moment, from your eyes, to show the place and what
   answers there (what looks back out of a lift's black belongs to that
   look alone); it adds no caption, no text and no narrator (an aside of
@@ -69,7 +69,7 @@ these channels, and the `lore-keeper` reviewer checks it:
   to look, or worse; never why.
 - **Arrival lines**: one quiet line under a level title, giving the *kind* of
   place, never a name, a number or a rule.
-- **Your asides**: your own voice under your breath (`docs/VOICES.md`,
+- **Your asides**: your own voice under your breath (`docs/design/VOICES.md`,
   *Your asides*): a few words to yourself on your first steps on a floor,
   once its card and its line have gone and within its first minute; and
   at a sudden sound heard near (a bang, a scream far off, steps, a laugh,
@@ -145,14 +145,14 @@ The pillars of the place, in order of importance:
 
 ## The descent
 
-The descent begins in **the Building** (levels 1–3, `docs/MEGASTRUCTURE.md`):
+The descent begins in **the Building** (levels 1–3, `docs/design/MEGASTRUCTURE.md`):
 vast floors of concrete you find your way down through, at many heights,
 over a void. Below them are the rooms: game level *n* from 4 on is roughly
 "Backrooms Level *n* − 4", and what rots with depth counts from the Lobby
 (`level::building::rooms_depth`). Each rooms level mixes zones (see
 *Places*), but one kind dominates and names the level. (The names are kept
 in capitals here and in the code; the screen sets them in sentence case,
-under "Level *n*" on the level card: `docs/UI.md`.)
+under "Level *n*" on the level card: `docs/design/UI.md`.)
 
 | Game level | Dominant zone | Name on arrival |
 |---|---|---|
@@ -198,7 +198,7 @@ with no outside and no sky. Its floors are not rooms but landscapes of
 building: walks at many heights, joined by flights of stairs and bridges,
 over a void that drops away into fog. Nothing walks there. You find the
 way down by the place itself: the door's light far below, the flights
-lit where they start, her paper (`docs/MEGASTRUCTURE.md`).
+lit where they start, her paper (`docs/design/MEGASTRUCTURE.md`).
 
 - **The Well** (level 1). The courtyard of an endless panel block: galleries
   round a light well with no top and no bottom, the galleries of every
@@ -375,7 +375,7 @@ Someone came this way before you, and you can follow her down.
   the last than a sheet does), and they get sparser as you go down (every
   three tiles of walk at first, every five deep down); from level 4 a
   stretch after her camp has lost its marks (two from level 7), and you
-  have to find where she went (`docs/SECRETS.md` 1).
+  have to find where she went (`docs/design/SECRETS.md` 1).
 - **Trails that are not hers.** From the floor of her page that says *not
   all the paper down here is mine* (the sixth of her floor pages), a trail
   of whole, flat sheets leaves hers and goes into a dead end; two from the
@@ -575,7 +575,7 @@ sent. You choose when it starts, by when you go to her camp. On the first
 floor of the rooms (the Lobby, level 4) the first quiet is long (two
 minutes and more), so there is time to find her before anything comes.
 Nothing that hunts lives on the Building's floors above (levels 1–3): what
-comes there comes from far off (`docs/MEGASTRUCTURE.md`).
+comes there comes from far off (`docs/design/MEGASTRUCTURE.md`).
 
 ## The self-assembly
 
@@ -806,7 +806,7 @@ plaque that says STAIRS. Behind it:
 - **Her pages** are at her camps, one a floor; the notebook keeps them first,
   in the order she wrote them.
 - **Crying** out loud is desperate. Something answers. The voice is your
-  own: a man's, plain and tired, never brave (`docs/VOICES.md`, *You*);
+  own: a man's, plain and tired, never brave (`docs/design/VOICES.md`, *You*);
   besides it, only what you say to yourself under your breath (*How canon
   reaches the player*, your asides), which nothing hears. On the Building's floors you call out to
   anyone; in the rooms you shout for help; deep down you are worn out; and
@@ -826,7 +826,7 @@ plaque that says STAIRS. Behind it:
 On every floor a few places off the way (two or three on the Building's,
 two to four below; on the Lobby nothing but what grows there, its
 emptiness is the point; none in the Showroom or the Borrowed House, nor in
-the Stairwell or the Loop themselves) hold something somebody put there (`docs/SECRETS.md` 4–5). They are never on
+the Stairwell or the Loop themselves) hold something somebody put there (`docs/design/SECRETS.md` 4–5). They are never on
 her way, nor where the flat sheets go, nor in the one in the corner's
 corner; they are found by looking where a real building hides things,
 and each has the same tell all run:
@@ -1099,7 +1099,7 @@ across the gap in red, its call button dead, scorch round its edges, and
 from it a trail of hands along the wall to what is left of people. Cables
 scrape in it now and then, heard from some twenty metres. Stay by it a
 while and something falls far down it: a slam, two clanks, a scream going
-away below, and your nerve with it. You can look into it (`docs/CUTSCENES.md`,
+away below, and your nerve with it. You can look into it (`docs/design/CUTSCENES.md`,
 the shaft): you step up to the gap and lean in, and the black is all there
 is; a cable shifts high up, a breath comes from far below. The first lift
 you look into in a run, two small points low in the black give your light
@@ -1256,7 +1256,7 @@ cold was settled when the floor was made.
   "Don't look!" and a line it cannot cross. The raincoat, the track and
   its light are this game's own. `crates/game/src/entities/glass.rs` and
   `assets/src/creatures/body_glass.py` keep this attribution.
-- **What is put away** (`docs/SECRETS.md`) takes its rules from: the dish
+- **What is put away** (`docs/design/SECRETS.md`) takes its rules from: the dish
   of sweets, two free and the third costing, from **SCP-330** "Take Only
   Two" by **Dr Kondraki** (<https://scp-wiki.wikidot.com/scp-330>) and the
   Creepypasta Wiki's "Please Take Just One" by **Umbrello**
@@ -1324,7 +1324,7 @@ cold was settled when the floor was made.
   all **CC BY-SA 3.0**: `crates/game/src/level/building.rs`,
   `crates/game/src/world/building.rs`, `crates/game/src/world/building_dress.rs`,
   `crates/game/src/world/assembly.rs`, `crates/game/src/world/far_figures.rs`,
-  `assets/src/creatures/body_far_figure.py`, `docs/MEGASTRUCTURE.md` and the
+  `assets/src/creatures/body_far_figure.py`, `docs/design/MEGASTRUCTURE.md` and the
   Building's notes are CC BY-SA 3.0 and keep this attribution. Piranesi's
   *Carceri* (1750) is in the public domain.
 - The anomalies were chosen from a research survey (not in this repository)

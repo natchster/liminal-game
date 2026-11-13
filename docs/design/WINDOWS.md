@@ -6,10 +6,10 @@ windows cut into real walls, onto an outside the rooms do not have, and
 with a thing behind the glass whose rule is learned by playing. The canon
 it extends is [`LORE.md`](LORE.md) (torn note 27, *Windows*); the pillars it
 serves are [`PILLARS.md`](PILLARS.md) 2, 4 and 5 above all; the research
-behind it is in [`research/windows-real.md`](research/windows-real.md) (real
+behind it is in [`../research/windows-real.md`](../research/windows-real.md) (real
 windows, glass, how games show a view) and
-[`research/window-horror.md`](research/window-horror.md) (windows that look
-back), summed up in [`SOURCES.md`](SOURCES.md) section 13.
+[`../research/window-horror.md`](../research/window-horror.md) (windows that look
+back), summed up in [`SOURCES.md`](../research/SOURCES.md) section 13.
 
 ## The brief (2026-10-30)
 
@@ -55,7 +55,7 @@ build (not committed):
 
 - **The view.** An equirectangular photograph (a CC0 Poly Haven panorama)
   traced per pixel onto a ground disc and a dome round a point behind the
-  glass (a ground-projected sky, `docs/SOURCES.md` 13, done in the fragment shader:
+  glass (a ground-projected sky, `docs/research/SOURCES.md` 13, done in the fragment shader:
   `Patch::WindowView`). The near ground moves with your head, the far land
   stays where it is: seen from the left you see further to the right, as
   through a real window. One texture read, in its own variant only.
@@ -78,7 +78,7 @@ build (not committed):
 
 ## What the research says
 
-Two notes, in [`research/`](research/README.md). What they changed:
+Two notes, in [`research/`](../research/README.md). What they changed:
 
 - **Real windows, by the place.** A wood double-hung sash (two sashes
   sliding past each other, the upper one outboard, a meeting rail at

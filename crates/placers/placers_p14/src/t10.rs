@@ -1,4 +1,4 @@
-//! Batch `t10`'s props in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t10`'s props in this crate, made real (`docs/design/PROPS.md` P3): the
 //! carved cuckoo clock and the fireplace; their placers and what only they
 //! use (`assets/src/blender/props/t10.py`, `t10.notes.md`).
 use super::*;

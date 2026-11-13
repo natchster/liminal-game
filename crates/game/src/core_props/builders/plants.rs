@@ -134,7 +134,7 @@ pub fn build_floor_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // planter on its saucer, left for years: the canes' shoots grown leggy,
     // the old leaves yellowing and hanging, a skirt of dead ones under each
     // crown, brown dry tips, the soil shrunk from the pot, leaves dropped
-    // round it (docs/PROPS.md). The parts as modelled, the pot centred.
+    // round it (docs/design/PROPS.md). The parts as modelled, the pot centred.
     use crate::assets::props::prop_part_as_modelled;
     let fp = group();
     // the plant turns about its pot (the old first leaf's spin)

@@ -1,6 +1,6 @@
 # Barricades: how they work, how much they fill, real ones, and a proposal
 
-Research for [`../PROPS.md`](../PROPS.md) (2026-10-31), on the request "May barricades more filling the space": how the barricades are chosen, built and collide, how much of the opening they fill (measured on seeds 4242, 77 and 202, levels 1–9, with `--dump-level` and `--views-at`), what real barricades in abandoned buildings are made of and how big their parts are, what the canon says, and a proposal. The renders and the measuring script were working files and are not kept; the code is cited by file and line as it was at `9df0d3b`.
+Research for [`../design/PROPS.md`](../design/PROPS.md) (2026-10-31), on the request "May barricades more filling the space": how the barricades are chosen, built and collide, how much of the opening they fill (measured on seeds 4242, 77 and 202, levels 1–9, with `--dump-level` and `--views-at`), what real barricades in abandoned buildings are made of and how big their parts are, what the canon says, and a proposal. The renders and the measuring script were working files and are not kept; the code is cited by file and line as it was at `9df0d3b`.
 
 ## 0. The short version
 
@@ -117,11 +117,11 @@ Four separate top-level groups at the tile centre:
 
 ### Rules and tests around barricades
 
-- **`docs/DEVELOPMENT.md:204-218`:**
+- **`docs/engineering/DEVELOPMENT.md:204-218`:**
   - Barricades keep only spawn → exit solvable.
   - About 6 levels in 20 have rooms behind them.
   - Open issue: a barricade can lock a pickup away (about 1 level in 20).
-  - The same is in `docs/QUALITY.md:36` and `docs/TOOLING_ROADMAP.md:22`.
+  - The same is in `docs/plan/QUALITY.md:36` and `docs/plan/TOOLING_ROADMAP.md:22`.
 - **`crates/backrooms/tests/level_sweep.rs`:**
   - Flood fill on a 0.25 m grid with `circle_hits_wall` (`:9-20`, `:107-157`).
   - `PICKUPS_BEHIND_BARRICADES = true` (`:72-77`).
@@ -133,7 +133,7 @@ Four separate top-level groups at the tile centre:
   - The test also replays the recorded builder log: name, arguments, draw index and draws used (`:1-15`).
 - **`crates/game/tests/world_queries.rs:96,105,261,267`** loads the fixture barricades into the world queries.
 - **`crates/game/tests/core_props_head.rs:75`** treats a barricade as blocked.
-- **`docs/GAMEPLAY.md:107` (G1):** the build must not move barricades after a note is read.
+- **`docs/design/GAMEPLAY.md:107` (G1):** the build must not move barricades after a note is read.
 
 ---
 
@@ -307,7 +307,7 @@ The sources I read directly are marked (read). The rest are from search-result s
 ## 4. Canon
 
 **What the docs say about barricades.**
-- Nothing about what they are or who made them. `docs/LORE.md`, `docs/PILLARS.md`, `docs/STYLE.md` and the canon parts of `docs/GAMEPLAY.md` never mention barricades or blocked ways.
+- Nothing about what they are or who made them. `docs/design/LORE.md`, `docs/design/PILLARS.md`, `docs/design/STYLE.md` and the canon parts of `docs/design/GAMEPLAY.md` never mention barricades or blocked ways.
 - They appear only in engineering notes:
   - `GAMEPLAY.md:107` (G1, determinism)
   - `DEVELOPMENT.md:204-218`, `QUALITY.md:36`, `TOOLING_ROADMAP.md:22`, `ARCHITECTURE.md:53`
@@ -429,7 +429,7 @@ Built at real sizes, fitted to the measured opening. Each fills the opening to w
    - Classify a pocket as behind a barricade when removing the barricade tiles from the tile grid is what disconnects it.
    - Add a per-barricade **seal check**: a local flood fill from one side of the slab must not reach the other side. Today's code would fail it on 28 of 53 sites.
    - Keep the exit-reached and pickup checks, and set `PICKUPS_BEHIND_BARRICADES = false` once the choice checks pickups.
-   - Update `docs/DEVELOPMENT.md:204-218` and `docs/QUALITY.md:36`.
+   - Update `docs/engineering/DEVELOPMENT.md:204-218` and `docs/plan/QUALITY.md:36`.
 
 8. **Draws and determinism** (CLAUDE.md invariant 1; `.claude/rules/world.md`).
    - **Today's level-stream draws in `tail_barricades`:**
@@ -458,7 +458,7 @@ Built at real sizes, fitted to the measured opening. Each fills the opening to w
    - New materials must pass `tests/materials.rs` (albedo 0.008–0.87, saturation ≤ 0.985; `STYLE.md:17-26`).
 
 10. **Ledger, tools and docs.**
-    - Add a `docs/content.json` entry `props/barricades` (kind "prop with rules", like `props/vending` and `props/windows`), with checks such as `test:backrooms/level_sweep`, `test:backrooms/materials` and a new `test:backrooms/barricades` (seals, fits, never over the ceiling, never on her walk).
+    - Add a `docs/plan/content.json` entry `props/barricades` (kind "prop with rules", like `props/vending` and `props/windows`), with checks such as `test:backrooms/level_sweep`, `test:backrooms/materials` and a new `test:backrooms/barricades` (seals, fits, never over the ceiling, never on her walk).
     - For evidence, `--prop-census N` frames every kind, labelled `core_barricades` (`debug/hooks.rs:68-82`; the kind tag from `kind!`), along with `--views-at`.
 
 ### 5.4 The Blender parts needed

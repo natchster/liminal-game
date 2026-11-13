@@ -25,7 +25,7 @@ pub fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
     // foot long nailed to two battens, a name burned into them with a
     // poker, gone grey and dry; hung by a jute cord from two screw eyes over
     // a nail, a little askew (the old tilt's draw).
-    // Nothing on it says anything about the place (docs/PROPS.md)
+    // Nothing on it says anything about the place (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     let sign = group();
     let mount_y = 1.75;

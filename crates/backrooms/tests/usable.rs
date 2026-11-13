@@ -1,4 +1,4 @@
-//! Things a hand can use (`docs/PROPS.md` 3): each verb is where its prop
+//! Things a hand can use (`docs/design/PROPS.md` 3): each verb is where its prop
 //! is, does what a hand does, once, and gives what the floor fixed for it.
 //!
 //!   cargo test --release -p backrooms --test usable -- --nocapture

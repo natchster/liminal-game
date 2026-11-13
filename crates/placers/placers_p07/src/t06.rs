@@ -1,4 +1,4 @@
-//! Batch `t06`'s prop in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t06`'s prop in this crate, made real (`docs/design/PROPS.md` P3): the
 //! bundle of herbs hung to dry (Blender batch `t06`; what the real one is
 //! and where its size comes from: `assets/src/blender/props/t06.notes.md`).
 //! It keeps its old draws call for call (the comments at each say what a

@@ -4,9 +4,9 @@ How the rooms' props are made to look like real, worn things; how a
 barricade closes the opening it stands in; and which props can be used.
 The canon is [`LORE.md`](LORE.md), the art bible [`STYLE.md`](STYLE.md),
 the rules [`PILLARS.md`](PILLARS.md). The research behind it:
-[`research/props-census.md`](research/props-census.md) (every kind of prop,
-looked at and graded), [`research/barricades.md`](research/barricades.md)
-and [`research/props-interactions.md`](research/props-interactions.md).
+[`../research/props-census.md`](../research/props-census.md) (every kind of prop,
+looked at and graded), [`../research/barricades.md`](../research/barricades.md)
+and [`../research/props-interactions.md`](../research/props-interactions.md).
 
 ## The brief (2026-10-31)
 
@@ -18,7 +18,7 @@ and [`research/props-interactions.md`](research/props-interactions.md).
 ## The analysis
 
 **A third of the props read as toys.** The census
-([`research/props-census.md`](research/props-census.md)) framed every kind
+([`../research/props-census.md`](../research/props-census.md)) framed every kind
 of placed prop on 272 floors of the rooms (`--prop-census`) and had seven
 fresh reviewers grade each against `STYLE.md`: of 652 kinds, 213 are
 `cartoon`, 412 `plain`, 21 `real`, 6 could not be seen. Thirty-five of
@@ -44,7 +44,7 @@ made the other way: the whole thing modelled at its real size from a real
 one, in the materials it is made of, with what is printed on it painted.
 
 **The barricades do not close anything**
-([`research/barricades.md`](research/barricades.md)). A barricade is an
+([`../research/barricades.md`](../research/barricades.md)). A barricade is an
 oversized filing cabinet, a book stack, two to four boxes and a traffic
 cone (1.25 m wide in the median) on a tile whose two opposite sides are
 open; the whole 4 m tile is an invisible wall. Of 53 measured, 28 stand
@@ -54,7 +54,7 @@ on clear floor it cannot enter. The same tile can be chosen twice; a
 creature sees, hears and paths through one.
 
 **Almost nothing can be used**
-([`research/props-interactions.md`](research/props-interactions.md)). A
+([`../research/props-interactions.md`](../research/props-interactions.md)). A
 floor has about 26 verbs, all on the core props and the systems (drawers,
 switches, the payphone, the lifts, the exit, her page, the machines, the
 blinds, the secrets); one themed placer of 649 has one (a red and green
@@ -112,7 +112,7 @@ pinwheel and a spinning top on their points, text running off a poster.
 
 ### 2. Barricades that close the way
 
-Following [`research/barricades.md`](research/barricades.md) 5:
+Following [`../research/barricades.md`](../research/barricades.md) 5:
 
 - **Only in an opening:** a doorway in a partition or a corridor between
   solid walls, measured on the solids (its width wall face to wall face,
@@ -135,7 +135,7 @@ Following [`research/barricades.md`](research/barricades.md) 5:
 
 ### 3. Things a hand can use
 
-Following [`research/props-interactions.md`](research/props-interactions.md)
+Following [`../research/props-interactions.md`](../research/props-interactions.md)
 4, on the props that are on every floor, each a real thing a hand does,
 in the game's voice, with no narrator, no dice and no effect said:
 

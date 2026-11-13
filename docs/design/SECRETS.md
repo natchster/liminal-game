@@ -8,12 +8,12 @@ The canon it extends is [`LORE.md`](LORE.md) (*M.'s descent*, *Survival*);
 the design it changes is [`GAMEPLAY.md`](GAMEPLAY.md) (her trail, the door
 found by the place); the pillars it serves are [`PILLARS.md`](PILLARS.md) 1,
 2 and 4 above all. The research behind it is
-[`research/wayfinding-and-secrets.md`](research/wayfinding-and-secrets.md)
+[`../research/wayfinding-and-secrets.md`](../research/wayfinding-and-secrets.md)
 (real route marks, guides in games, secrets in level design, real hiding
 places and dead-drop signals) and
-[`research/secret-items.md`](research/secret-items.md) (Alice, the other
+[`../research/secret-items.md`](../research/secret-items.md) (Alice, the other
 world's food, SCP, the Backrooms' objects, creepypasta and charms, games
-with hidden effects), summed up in [`SOURCES.md`](SOURCES.md) section 14.
+with hidden effects), summed up in [`SOURCES.md`](../research/SOURCES.md) section 14.
 
 ## The brief (2026-10-30)
 
@@ -59,7 +59,7 @@ What guides the player now, read from the code (`story/`, `player.rs`,
 
 ## What the research says
 
-Two notes, in [`research/`](research/README.md). What they changed:
+Two notes, in [`research/`](../research/README.md). What they changed:
 
 - **Real route marks are spaced by sight and carry little direction.** The
   Appalachian Trail's blazes are rectangles, one in view at a time, a

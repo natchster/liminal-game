@@ -1,5 +1,5 @@
 # The models the voice pipeline uses, each pinned to a revision
-# (docs/VOICES.md, docs/research/voice-tts.md).
+# (docs/design/VOICES.md, docs/research/voice-tts.md).
 #
 #   role = "synth"  makes what the game ships: its code AND weights must allow
 #                   selling what it makes (Apache-2.0 or MIT); its licence and

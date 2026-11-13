@@ -1,4 +1,4 @@
-//! Batch `t19`'s wheel, made real (`docs/PROPS.md` P3; the Blender batch
+//! Batch `t19`'s wheel, made real (`docs/design/PROPS.md` P3; the Blender batch
 //! `assets/src/blender/props/t19.py`, its notes `t19.notes.md`): a small
 //! wooden wheel of the wheelwright's kind, 30 cm over its iron tyre (the
 //! old wheel's size: the wall's probes): an elm hub banded with iron, ten

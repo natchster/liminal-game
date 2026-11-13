@@ -1,7 +1,7 @@
-# The one who cries for help: you (docs/VOICES.md, Personas).
+# The one who cries for help: you (docs/design/VOICES.md, Personas).
 #
 # The player's own voice, heard only when you cry out (H): never a word
-# besides, never a narrator (docs/LORE.md, "How canon reaches the player").
+# besides, never a narrator (docs/design/LORE.md, "How canon reaches the player").
 id = "you"
 name = "You"
 used_for = "the cry for help (the H key): in place of the formant cry, sfx_cry"
@@ -33,7 +33,7 @@ design_model = "qwen3-tts-voicedesign"
 # (HNR 11.4 dB) and the widest in pitch (10 semitones); seed 2 reads slowly
 # (15 s), and a clone keeps its pace. A person confirms by ear (PLAYTEST.md).
 design_seed = 4
-# chosen by the bake-off (V5, docs/VOICES.md): every line has a take that
+# chosen by the bake-off (V5, docs/design/VOICES.md): every line has a take that
 # passes on Chatterbox (26-40 of 40 takes); VoxCPM2 8 of 10 lines, Ming-3.0
 # 6, Qwen3-TTS 2 (its voice designed again each line drifts)
 line_model = "chatterbox"

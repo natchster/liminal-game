@@ -1,4 +1,4 @@
-//! Batch `t22`'s twisty puzzle, made real (`docs/PROPS.md` P3, "toys stay
+//! Batch `t22`'s twisty puzzle, made real (`docs/design/PROPS.md` P3, "toys stay
 //! toys"; the Blender batch `assets/src/blender/props/t22.py`, its notes
 //! `t22.notes.md`): a 57 mm 3x3x3 puzzle cube of no brand, its 26 cubies
 //! of black plastic, its stickers faded, two peeling and one gone. It keeps

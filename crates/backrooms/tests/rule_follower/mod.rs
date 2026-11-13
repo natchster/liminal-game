@@ -1,4 +1,4 @@
-//! The rule-follower (`docs/ENTITIES.md` design 7): what a player who knows
+//! The rule-follower (`docs/design/ENTITIES.md` design 7): what a player who knows
 //! every creature's counter does about the creatures it can perceive, and
 //! how it moves (the keys, as a player presses them). Shared by
 //! `tests/beatable.rs` (level by level) and `tests/playthrough.rs` (the whole

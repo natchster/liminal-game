@@ -891,7 +891,7 @@ impl Game {
         let b_scale = self.beam_battery_scale(0.4);
         // a mote is a glint of dust a few millimetres across at most, seen
         // in the lamp's beam and faintly in the room's light; at 4.5-6.5 cm
-        // each one near a wall read as a glowing speck (`docs/PROPS.md`, M8)
+        // each one near a wall read as a glowing speck (`docs/design/PROPS.md`, M8)
         {
             let mut m = self.dust_mat.m();
             m.opacity = if fl { 0.50 * b_scale } else { 0.20 };

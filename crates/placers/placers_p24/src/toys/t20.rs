@@ -1,4 +1,4 @@
-//! Batch `t20`'s music box, made real (`docs/PROPS.md` P3; the Blender
+//! Batch `t20`'s music box, made real (`docs/design/PROPS.md` P3; the Blender
 //! batch `assets/src/blender/props/t20.py`, its notes `t20.notes.md`): a
 //! Swiss child's hand-crank music box of about 1900, its lid open on the
 //! works. It keeps the old placer's draws, call for call.

@@ -1,4 +1,4 @@
-//! Batch `t13`'s party food, made real (`docs/PROPS.md` P3, "the party and
+//! Batch `t13`'s party food, made real (`docs/design/PROPS.md` P3, "the party and
 //! the shrine"): a pressed glass cake stand and the cake nobody ate on it,
 //! and cornbread muffins in their paper cases, years on
 //! (`assets/src/blender/props/t13.py`; what the real ones are and where

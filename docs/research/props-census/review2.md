@@ -2,7 +2,7 @@
 
 Seventeen sheets, 101 props (sheet098 has five; its sixth cell is empty and black). For each cell:
 what the object is and what makes it read as real or not, then the grade. Judged against
-`docs/STYLE.md`: real, worn objects; muted colour; no toy primaries.
+`docs/design/STYLE.md`: real, worn objects; muted colour; no toy primaries.
 
 **Totals:** real 5, plain 65, cartoon 31, unseen 0.
 

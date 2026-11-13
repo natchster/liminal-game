@@ -1,4 +1,4 @@
-//! Arenas for the creatures of the redesign (`docs/ENTITIES.md`): a small
+//! Arenas for the creatures of the redesign (`docs/design/ENTITIES.md`): a small
 //! grid level with no solids but its walls (`GridNav`, installed as the
 //! world queries), one creature, and a player the test moves by hand (its
 //! gait sets what the creatures hear, as `update_player` would). Game time

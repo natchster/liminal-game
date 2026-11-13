@@ -1,4 +1,4 @@
-//! The windows of the rooms (`docs/WINDOWS.md`): where they stand, the
+//! The windows of the rooms (`docs/design/WINDOWS.md`): where they stand, the
 //! openings cut for them, the light they throw in, what they look out on,
 //! and that they are the same on every build.
 mod common;

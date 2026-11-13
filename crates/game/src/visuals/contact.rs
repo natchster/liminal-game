@@ -1,4 +1,4 @@
-//! The contact shadow under a small thing on the floor (`docs/PROPS.md`,
+//! The contact shadow under a small thing on the floor (`docs/design/PROPS.md`,
 //! M8).
 //!
 //! Where a thing meets the floor, the floor under and round it sees less of

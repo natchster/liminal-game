@@ -6,7 +6,7 @@ description: Add or change a cutscene in The Backrooms (a moment that borrows yo
 # Add or change a cutscene
 
 The design, the file format and what each rule is for are in
-`docs/CUTSCENES.md`; read its design first, and its table of the
+`docs/design/CUTSCENES.md`; read its design first, and its table of the
 cutscenes. The engine is `crates/game/src/cutscene/` (`play.rs` the player,
 `cues.rs` what a cutscene may name, `uses.rs` where the game plays them),
 the test engine `crates/game/src/debug/cutscene.rs`. The way in
@@ -20,20 +20,20 @@ stages rebuild the game.
    Take it only for what play cannot show (a look into something, a fall),
    briefly (a look under 7 s; `skip = "never"` only for 3 s at most, a
    death), and never to explain: a cutscene is the canon's *A look you
-   take* (`docs/LORE.md`): no caption, no text, no narrator. If play can
+   take* (`docs/design/LORE.md`): no caption, no text, no narrator. If play can
    already show it (a set switched off, a door opening), it is not one,
    even when asked: say so and stop. A trigger the player can repeat (a
    verb on a prop) plays once per thing, floor or run, then does what play
    did; say which in the source's header and test it (the shaft: once a
    lift; what looks back only once a run).
-2. **The brief.** Quote the pillar it serves (`docs/PILLARS.md`) in the
-   source's header comment and in its row of `docs/CUTSCENES.md`. Brief
+2. **The brief.** Quote the pillar it serves (`docs/design/PILLARS.md`) in the
+   source's header comment and in its row of `docs/design/CUTSCENES.md`. Brief
    the `lore-keeper` before you build it (by brief: a general-purpose agent
    given `.claude/agents/lore-keeper.md`): the idea in three lines, the
-   paragraph of `docs/LORE.md` it touches, and the code's gates (where,
+   paragraph of `docs/design/LORE.md` it touches, and the code's gates (where,
    how often, when it will not play). The shaft's first version glowed
    where the canon says eyeshine never does.
-3. **What the engine cannot do yet** (`docs/CUTSCENES.md`, *Left open*):
+3. **What the engine cannot do yet** (`docs/design/CUTSCENES.md`, *Left open*):
    there is no actor track (a figure posed over time, its brain held): the
    shaft's eyeshine is made and removed by events; you have no body, so a
    camera outside your eyes shows nobody where you stand; there is one
@@ -136,13 +136,13 @@ stages rebuild the game.
    for a new shot, `--accept-look`. A recorded fixture whose session uses
    the trigger changes with it (the shaft's `core_props_tail`): only
    through `regen-fixtures`, the diff read field by field.
-11. **Canon**: what it shows written into `docs/LORE.md` from the code
+11. **Canon**: what it shows written into `docs/design/LORE.md` from the code
     (where it happens, what you see and hear, what it costs, when it will
     not play), and the `lore-keeper` again on the source and that text.
-12. **Ledger and docs**: a `cutscene/ID` entry in `docs/content.json` (copy
+12. **Ledger and docs**: a `cutscene/ID` entry in `docs/plan/content.json` (copy
     one of the five: `kind` "cutscene", its checks; `passes` as they
     stand, the drift sweep keeps them); its row in the table of the
-    cutscenes in `docs/CUTSCENES.md`; questions in `docs/PLAYTEST.md`'s
+    cutscenes in `docs/design/CUTSCENES.md`; questions in `docs/research/PLAYTEST.md`'s
     *Cutscenes* block (what only a person can tell of it). The structure
     test fails a cutscene with no ledger entry.
 13. **Gates**: `cargo xtask check --fast`; the full `cargo xtask check` when

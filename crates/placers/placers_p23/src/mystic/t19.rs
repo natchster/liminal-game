@@ -1,4 +1,4 @@
-//! Batch `t19`'s reliquary and crucifix, made real (`docs/PROPS.md` P3;
+//! Batch `t19`'s reliquary and crucifix, made real (`docs/design/PROPS.md` P3;
 //! the Blender batch `assets/src/blender/props/t19.py`, its notes
 //! `t19.notes.md`): a small gilt-brass reliquary casket, glazed, its relic
 //! on a velvet cushion inside; a plain household crucifix of worn wood

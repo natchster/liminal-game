@@ -7,14 +7,14 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
 
 1. **Where it belongs.** Pick its theme (`PLACER_THEME` in
    `crates/game/src/world/tables.rs`) from the purposes that would have left
-   it behind (`docs/STYLE.md`, Purposes). Quote the pillar rule it serves;
+   it behind (`docs/design/STYLE.md`, Purposes). Quote the pillar rule it serves;
    the Lobby and `empty` zones stay sparse.
 2. **Real reference.** Look up what the object is made of and its real
-   albedo (physicallybased.info, or the values in `docs/STYLE.md`). Author
+   albedo (physicallybased.info, or the values in `docs/design/STYLE.md`). Author
    colours as the real material, not as a toy: the look settle
    (`visuals/prop_look.rs`) mutes chroma above 0.3 and keeps albedo in
    0.02–0.8, but start realistic.
-3. **Build it.** Follow `docs/DEVELOPMENT.md`, *Adding a placer*: a
+3. **Build it.** Follow `docs/engineering/DEVELOPMENT.md`, *Adding a placer*: a
    `place_things(g, dist)` in a placer crate, registered in its
    `register()`, added to `THEMED_ORDER` and `PLACER_THEME`. Finer parts come
    from the Blender meshes (`pg("Name__part", …)`, `assets/props.rs`);
@@ -40,5 +40,5 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
 7. **A prop you look into** (a moment that takes the camera, as a broken
    lift's shaft): `add-cutscene`, its anchor read from the prop after
    settling.
-8. **Ledger.** The theme's `props/<theme>` entry in `docs/content.json`
-   (its placer count in the name); open issues in `docs/QUALITY.md`.
+8. **Ledger.** The theme's `props/<theme>` entry in `docs/plan/content.json`
+   (its placer count in the name); open issues in `docs/plan/QUALITY.md`.

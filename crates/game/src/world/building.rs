@@ -1,4 +1,4 @@
-//! The Building's floors as built (`docs/MEGASTRUCTURE.md`): where
+//! The Building's floors as built (`docs/design/MEGASTRUCTURE.md`): where
 //! `level::building` planned the floors, flights, voids and masses, this
 //! lays them in the world. Slabs under the floors, flights of steps,
 //! a parapet on every edge you can walk (and none on what you cannot

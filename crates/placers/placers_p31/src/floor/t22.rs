@@ -1,4 +1,4 @@
-//! Batch `t22`'s cigarette butts, made real (`docs/PROPS.md` P3; the
+//! Batch `t22`'s cigarette butts, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t22.py`, its notes
 //! `t22.notes.md`): king-size filter cigarettes smoked down and dropped,
 //! stubbed out on the floor, and the ash knocked off beside some. It keeps

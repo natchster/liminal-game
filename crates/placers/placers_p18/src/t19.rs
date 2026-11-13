@@ -1,5 +1,5 @@
 //! Batch `t19`'s carved armorial shield and roe skull, made real
-//! (`docs/PROPS.md` P3; the Blender batch `assets/src/blender/props/t19.py`,
+//! (`docs/design/PROPS.md` P3; the Blender batch `assets/src/blender/props/t19.py`,
 //! its notes `t19.notes.md`): a carved oak shield of arms of no real family,
 //! its field painted and its ordinary carved proud and painted, the bead
 //! round it gilt; a roe's skull boiled and bleached on a carved oak shield

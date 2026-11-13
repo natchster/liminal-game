@@ -1,4 +1,4 @@
-//! building — the Building's floors (levels 1–3; `docs/MEGASTRUCTURE.md`).
+//! building — the Building's floors (levels 1–3; `docs/design/MEGASTRUCTURE.md`).
 //!
 //! Pure module, like `archgen`: no scene, no engine objects, randomness only
 //! from the injected `rng`, a fixed draw order. A floor of the Building is a
@@ -145,7 +145,7 @@ pub static BUILDING_ARCHETYPES: [Archetype; 3] = [
 
 /// Platforms per side of a floor (a 28-tile floor, 112 m: the way from the
 /// arrival to the door a median 85 tiles of walk; 7 a side was 40 tiles and
-/// 165, `docs/MEGASTRUCTURE.md` G1)
+/// 165, `docs/design/MEGASTRUCTURE.md` G1)
 const PLATFORMS: i32 = 5;
 /// How often the tree grows on from an older platform than the newest (a
 /// branch): at 0 a depth-first walk, which on a small lattice winds through
@@ -1168,7 +1168,7 @@ pub const ROOM_GAP: i32 = 6;
 /// storey and the slab over it, as a booth's cell: `BOOTH_TOP`)
 pub const ROOM_HEADROOM: f32 = BOOTH_TOP;
 
-/// The places off the walks (`docs/MEGASTRUCTURE.md` G4): a tile of the
+/// The places off the walks (`docs/design/MEGASTRUCTURE.md` G4): a tile of the
 /// building with one walk beside it and building on its three other sides,
 /// tall enough for a storey, becomes a room you step into from that walk.
 /// The walk is off the way to the door, not the arrival's nor the door's
@@ -1237,7 +1237,7 @@ fn place_rooms(grid: &mut Grid, exit: (i32, i32), cells: &[Cell], view_line: &[(
     rooms
 }
 
-/// How hard a floor is to find the way down through (`docs/MEGASTRUCTURE.md`,
+/// How hard a floor is to find the way down through (`docs/design/MEGASTRUCTURE.md`,
 /// B2): measured on the tiles, as the player walks them.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Navigation {

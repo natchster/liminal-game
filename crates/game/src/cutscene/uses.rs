@@ -1,4 +1,4 @@
-//! Where the game plays its cutscenes (`docs/CUTSCENES.md`): the way in
+//! Where the game plays its cutscenes (`docs/design/CUTSCENES.md`): the way in
 //! from the title on New descent, and a broken lift's shaft. (The deaths
 //! are started by `on_death`, `session/flow.rs`, by their cause.)
 //! Each starts a cutscene of the library the way play meets it and does

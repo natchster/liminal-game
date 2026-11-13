@@ -1,5 +1,5 @@
 """t10: the rare big things of the parlour and the office (Props P3,
-docs/PROPS.md): a hanging bookshelf, a steel locker, a stack of 45s, a
+docs/design/PROPS.md): a hanging bookshelf, a steel locker, a stack of 45s, a
 fireplace, a carved cuckoo clock, a giltwood wall mirror and a brandy
 snifter on its coaster. Sources and sizes: t10.notes.md.
 

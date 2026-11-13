@@ -1,4 +1,4 @@
-//! Batch `t02`'s prop in this crate, made real (`docs/PROPS.md` P3): the
+//! Batch `t02`'s prop in this crate, made real (`docs/design/PROPS.md` P3): the
 //! devotional triptych: a reproduction of a Flemish triptych of about 1510,
 //! as religious shops sell them, at about half the original's size (CC0,
 //! `visuals::pictures`: Jan Provoost's Virgin and Child with St John and

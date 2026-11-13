@@ -1,4 +1,4 @@
-//! Batch `t09`'s shrine things, made real (`docs/PROPS.md` P3, "the party
+//! Batch `t09`'s shrine things, made real (`docs/design/PROPS.md` P3, "the party
 //! and the shrine"): what a person brought and set out, never a working
 //! occult device (`assets/src/blender/props/t09.py`, `t09.notes.md`): the
 //! cast glass skull, the carved owl, the brass candlestick and its candle

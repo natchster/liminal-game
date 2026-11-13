@@ -1,6 +1,6 @@
-"""t09: the props remodelled at their real sizes (docs/PROPS.md, P3, the
-rare): a shrine's things, what a person brought and set out (docs/LORE.md;
-docs/PROPS.md 1, "the party and the shrine"): the resin skulls stacked, the
+"""t09: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+rare): a shrine's things, what a person brought and set out (docs/design/LORE.md;
+docs/design/PROPS.md 1, "the party and the shrine"): the resin skulls stacked, the
 glass skull, the brass candlestick and its candle burnt down, the carved
 owl and the carnival mask. Sources and sizes: t09.notes.md.
 

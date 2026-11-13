@@ -6,9 +6,9 @@ could photograph in a dead office corridor, and as a thing with rules of its
 own that matter to play. The canon it extends is [`LORE.md`](LORE.md)
 (its torn note, *The Vending Machine*); the pillars it serves are
 [`PILLARS.md`](PILLARS.md) 2, 3 and 4 above all; the research behind it is
-in [`research/vending-machines.md`](research/vending-machines.md) (the real
-machines) and [`research/vending-horror.md`](research/vending-horror.md)
-(the uncanny ones), summed up in [`SOURCES.md`](SOURCES.md) section 12.
+in [`../research/vending-machines.md`](../research/vending-machines.md) (the real
+machines) and [`../research/vending-horror.md`](../research/vending-horror.md)
+(the uncanny ones), summed up in [`SOURCES.md`](../research/SOURCES.md) section 12.
 
 ## The brief (2026-10-29)
 
@@ -44,7 +44,7 @@ What the machines were, read from the code and from frames
 
 ## What the research says
 
-Two notes, in [`research/`](research/README.md). What they changed:
+Two notes, in [`research/`](../research/README.md). What they changed:
 
 - **A real machine, at its real size.** The glass-front spiral snack
   machine of the 1990s–2000s office corridor (Automatic Products'

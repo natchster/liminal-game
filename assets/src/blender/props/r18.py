@@ -1,5 +1,5 @@
 """r18: the washroom and the janitor's things, the classroom and the plant
-nobody watered (Props P2, docs/PROPS.md).
+nobody watered (Props P2, docs/design/PROPS.md).
 
 No map file: the game builds each prop from these parts by name, placed as
 modelled (a scale of one, `prop_part_as_modelled`). Each part is modelled at

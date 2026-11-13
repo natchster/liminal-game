@@ -1,4 +1,4 @@
-"""t19: the props remodelled at their real sizes (docs/PROPS.md, P3, the
+"""t19: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): things on a parlour's or a chapel's wall, and one box: a gilt-brass
 reliquary casket, a roe's skull on its shield, a household crucifix, a
 carved and painted armorial shield of no real family, a cut-paper

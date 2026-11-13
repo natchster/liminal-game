@@ -5,7 +5,7 @@ use crate::base::state::WEATHER_BIASES;
 use crate::base::tables::*;
 use crate::prelude::*;
 
-/// (v2: the descent begins in the Building, `docs/MEGASTRUCTURE.md`; a v1
+/// (v2: the descent begins in the Building, `docs/design/MEGASTRUCTURE.md`; a v1
 /// save's levels and anomaly plan no longer exist)
 pub const SAVE_KEY: &str = "opencarole.backrooms.save.v2";
 
@@ -549,7 +549,7 @@ impl Game {
             self.entity_call(ki, "shriek");
         }
         self.ui.fade.set_style("background", "#000");
-        // the death's own cutscene, by what killed you (`docs/CUTSCENES.md`):
+        // the death's own cutscene, by what killed you (`docs/design/CUTSCENES.md`):
         // its fall, its black, and the card at its end (1.4 s, as always)
         let id = match cause {
             "entity" => "death_taken",
@@ -778,7 +778,7 @@ impl Game {
     /// Deterministic per (run seed, level)
     pub fn pick_level_weather(&mut self) {
         // the Building's floors have none of the rooms' weathers: their air
-        // is the Building's own (`docs/MEGASTRUCTURE.md`)
+        // is the Building's own (`docs/design/MEGASTRUCTURE.md`)
         let idx = if crate::level::building::Style::of_level(self.level_num).is_some() {
             WEATHER_BIASES.iter().position(|w| w.key == "normal").unwrap_or(0)
         } else {

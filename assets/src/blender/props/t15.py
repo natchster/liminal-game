@@ -1,4 +1,4 @@
-"""t15: toys left on the floor, remodelled at their real sizes (docs/PROPS.md,
+"""t15: toys left on the floor, remodelled at their real sizes (docs/design/PROPS.md,
 P3, the rare): the action figure, the two toy dinosaurs (a stegosaurus and a
 brontosaurus), the small tyrannosaurus, the spinning top, the fairy wand,
 the baby rattle, the teething ring, a dog's squeaky bone and rubber ball,

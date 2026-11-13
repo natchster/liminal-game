@@ -1,4 +1,4 @@
-//! Batch `r13a`'s props in this crate, made real (`docs/PROPS.md` P2): its
+//! Batch `r13a`'s props in this crate, made real (`docs/design/PROPS.md` P2): its
 //! placers and what only they use.
 use super::*;
 
@@ -17,7 +17,7 @@ pub(crate) fn place_cracked_mirrors(g: &mut Game, _dist: &[i32]) {
     // `r13a`), hung from one nail by the sawtooth hanger on its back, so it
     // hangs a little askew: silvered glass that gives back the room's light
     // (`Patch::Glass`), its silver going black from the edges, struck once
-    // and cracked from the blow, dust on it (docs/PROPS.md)
+    // and cracked from the blow, dust on it (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     let mirror = group();
     mount_on_wall(g, &mirror, &c, 0.014, 1.65, 0.6);
@@ -615,7 +615,7 @@ pub(crate) fn place_wall_chalkboards(g: &mut Game, _dist: &[i32]) {
     // The common 30 x 40 cm wall chalkboard (Blender batch `r13a`): a
     // painted board in a varnished pine frame 22 mm wide, flat on the wall;
     // on it a note in someone's chalk capitals over the ghost of the one
-    // wiped before it, the eraser's swipes, dust (docs/PROPS.md)
+    // wiped before it, the eraser's swipes, dust (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     let board = group();
     mount_on_wall(g, &board, &c, 0.010, 1.60, 0.6);

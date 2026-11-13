@@ -59,7 +59,7 @@
     "cutscenes.json": {
       "authors": "written by coding agents under the developer's direction",
       "built_with": "cargo xtask cutscene write (TOML sources, every field written out)",
-      "fingerprint": "3908cfe1611845ee",
+      "fingerprint": "9f401e477799c1c7",
       "generative_model": null,
       "generator": "written by hand, compiled by scripts",
       "licence": "MIT",

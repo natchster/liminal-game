@@ -1,9 +1,9 @@
 # Visual playtests
 
-What the visual playtest (`docs/VISUAL_PLAYTEST.md`; the `visual-playtest`
+What the visual playtest (`docs/engineering/VISUAL_PLAYTEST.md`; the `visual-playtest`
 skill) found, one file a playtest: `YYYY-MM-DD-<scope>.md`, the scope a
 few words (`building-1-3`, `stair-halls-area`, `rooms-pool`). The play
-sessions with people are a folder up (`docs/playtests/`, from their
+sessions with people are a folder up (`docs/research/playtests/`, from their
 `TEMPLATE.md`); these are the machine's tours and what was made of them.
 
 A record holds, in this order:

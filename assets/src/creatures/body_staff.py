@@ -1,5 +1,5 @@
 """
-The Showroom's staff (docs/LORE.md, *The Showroom*): too tall, and no faces.
+The Showroom's staff (docs/design/LORE.md, *The Showroom*): too tall, and no faces.
 By day they browse the floor with you and stop to look at you; by night
 they hunt.
 
@@ -22,7 +22,7 @@ for a face, an open collar, fuller hands, a badge with a photograph and
 a buckle, was preferred by two reviewers at 2 m and 4 m.)
 
 Inspired by SCP-3008 "A Perfectly Normal, Regular Old IKEA" by Mortos
-(CC BY-SA 3.0); see docs/LORE.md, Attribution.
+(CC BY-SA 3.0); see docs/design/LORE.md, Attribution.
 """
 import os
 import numpy as np

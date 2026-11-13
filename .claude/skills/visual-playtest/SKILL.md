@@ -6,7 +6,7 @@ description: Run the visual playtest of The Backrooms on an area, a level or a s
 # The visual playtest
 
 The design, what each detector means and what it misses are in
-`docs/VISUAL_PLAYTEST.md`; read its *What it looks for* and *The design*
+`docs/engineering/VISUAL_PLAYTEST.md`; read its *What it looks for* and *The design*
 first. The code:
 
 | Part | File |
@@ -138,7 +138,7 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
    in the rooms inside a wall tile's slab) sees what no player sees: two
    of the first Building record's findings were seen from a body 15 cm too
    thin, and withdrawn.
-8. **Record** in `docs/playtests/visual/YYYY-MM-DD-<scope>.md`, laid out as
+8. **Record** in `docs/research/playtests/visual/YYYY-MM-DD-<scope>.md`, laid out as
    that folder's README says. Then add a line to the README's table. The
    human play sessions are a folder up; do not mix them.
 9. **Fix, a kind at a time** (one milestone or commit each):
@@ -187,7 +187,7 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
     - After a change to the solids the stands move, so views' names no
       longer line up: compare by place and kind.
     - Put the before and after counts in the record.
-11. **What it cannot see** (`docs/VISUAL_PLAYTEST.md`). Say in the record
+11. **What it cannot see** (`docs/engineering/VISUAL_PLAYTEST.md`). Say in the record
     what you did not check:
     - gaps further than 40 m, and background beyond the far plane; a hole
       in anything thinner than about 17 cm far off (the gap rays take the
@@ -205,5 +205,5 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
     - The full check when the fix touches level generation, rendering or
       creatures.
     - The tour again (step 10).
-    - The ledger (`docs/content.json`, the touched family's entry), and
-      `docs/QUALITY.md` when a fix closes an open issue.
+    - The ledger (`docs/plan/content.json`, the touched family's entry), and
+      `docs/plan/QUALITY.md` when a fix closes an open issue.

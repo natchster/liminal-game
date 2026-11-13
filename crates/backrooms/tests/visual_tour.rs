@@ -1,4 +1,4 @@
-//! The visual playtest (`docs/VISUAL_PLAYTEST.md`). The tour (VP1): every
+//! The visual playtest (`docs/engineering/VISUAL_PLAYTEST.md`). The tour (VP1): every
 //! stand is one a body can stand on, at an edge it cannot pass, facing it;
 //! the tour is the same twice; it is spread over the level; it keeps to an
 //! area and a budget; it looks up, down, along and crouched. Its renders and
@@ -163,7 +163,7 @@ fn toured(name: &str, level: i32, extra: &[&str]) -> Vec<Row> {
         .collect()
 }
 
-/// The detectors' known answers (`docs/VISUAL_PLAYTEST.md` VP2): a hole
+/// The detectors' known answers (`docs/engineering/VISUAL_PLAYTEST.md` VP2): a hole
 /// cut where the tour's first stand faces a wall is found in the view facing
 /// it, and two squares fighting for one depth before its eye are found where
 /// it sees them at a grazing angle (looking up past them: face on, their
@@ -212,7 +212,7 @@ fn findings(name: &str, level: i32) -> Vec<(String, String, usize, bool)> {
         .collect()
 }
 
-/// The geometric detectors' known answers (`docs/VISUAL_PLAYTEST.md` VP3):
+/// The geometric detectors' known answers (`docs/engineering/VISUAL_PLAYTEST.md` VP3):
 /// a box put round the eye of the tour's first stand is a clip (and a body
 /// inside it); a flat-coloured box beside it is plain; the two fighting
 /// squares are a coplanar pair; none of these is in the floor as built
@@ -363,7 +363,7 @@ fn the_space_under_a_flight_is_no_gap() {
 }
 
 /// A far silhouette's edge is no gap, a crack and a hole still are (the
-/// Building's tour, `docs/playtests/visual/2026-11-13-building-1-3.md`:
+/// Building's tour, `docs/research/playtests/visual/2026-11-13-building-1-3.md`:
 /// every gap flagged was the edge pixel of a mass 30-40 m off, its ray
 /// grazing the mass by half a pixel; the gap rays' rim now grows with
 /// their length): the record's edges on the Works and the Stair Halls are

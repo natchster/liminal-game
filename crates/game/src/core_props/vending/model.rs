@@ -1,4 +1,4 @@
-//! The vending machine's body (`docs/VENDING.md`): a glass-front spiral
+//! The vending machine's body (`docs/design/VENDING.md`): a glass-front spiral
 //! snack machine at its real size. The cabinet, door, trays, coils and
 //! hardware are the Blender parts of batch `v01`, placed as modelled; the
 //! goods, their labels and the glass are made here. Everything that does not

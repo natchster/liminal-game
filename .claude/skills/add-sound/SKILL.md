@@ -8,7 +8,7 @@ description: Add or change a sound in The Backrooms (an ambient event, a signatu
 You cannot hear. The gates catch levels and repetition; only a person can
 tell whether it sounds right. Plan for that from the start.
 
-1. **Where it comes from.** Every sound has a place (`docs/LORE.md`, *The
+1. **Where it comes from.** Every sound has a place (`docs/design/LORE.md`, *The
    sound of the place*; `.claude/rules/audio.md`): a prop within earshot, a
    signature's fixed spot, a bed anchor (`BED_ANCHORS`, `bed_at`), a
    fixture, a creature. Play it with `play_from(x, y, z, ref_dist, gain,
@@ -17,7 +17,7 @@ tell whether it sounds right. Plan for that from the start.
    `crates/engine/src/audio.rs`): build it from oscillators, noise, filters
    and envelopes; no samples. Describe in a comment what it imitates. A
    spoken line is the one exception: it comes from the voice pipeline
-   (`voice-persona`, `voice-lines` skills; `docs/VOICES.md`), never
+   (`voice-persona`, `voice-lines` skills; `docs/design/VOICES.md`), never
    synthesized by hand and never a recording of a person. A sound played
    in more than one place keeps its parts in one table that each reads
    (a rap on a steel door: `audio::rap`, read by `sfx_knock` and
@@ -58,4 +58,4 @@ tell whether it sounds right. Plan for that from the start.
    `target/listen/` to listen to; then ask the developer to listen, and
    record what they said in the commit.
 6. **Ledger.** The `sound/ambient` or `sound/mix` entry in
-   `docs/content.json`; open issues in `docs/QUALITY.md`.
+   `docs/plan/content.json`; open issues in `docs/plan/QUALITY.md`.

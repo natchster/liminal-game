@@ -1,5 +1,5 @@
 """
-The seated man of the Loop (docs/LORE.md, *The Loop*): from the fifth lap,
+The seated man of the Loop (docs/design/LORE.md, *The Loop*): from the fifth lap,
 someone sits in the third room, a man in a shirt and tie with nothing where
 his face should be. He never moves while you can see him; look away and
 look back, and he is nearer, chair and all.
@@ -13,7 +13,7 @@ the sides. He is never posed in the game: the Loop draws him as one piece
 with his chair (`body_geometry`), so his skeleton is only his own.
 
 Its rule (it moves only unseen) is SCP-173's, by Moto42 (CC BY-SA 3.0); the
-Loop is SCP-970's, by Freudian (CC BY-SA 3.0); see docs/LORE.md, Attribution.
+Loop is SCP-970's, by Freudian (CC BY-SA 3.0); see docs/design/LORE.md, Attribution.
 """
 import numpy as np
 

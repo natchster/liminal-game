@@ -1,5 +1,5 @@
-"""t16: the props remodelled at their real sizes (docs/PROPS.md, P3, the
-rare): a play area's toys, years on a floor (docs/PROPS.md 1, "toys stay
+"""t16: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+rare): a play area's toys, years on a floor (docs/design/PROPS.md 1, "toys stay
 toys"): a cotton skipping rope with beech handles, a PVC licorice rope
 with moulded handles, a deflated size 3 football and a deflated size 3
 basketball, a steel toddler tricycle on its side, a plastic cruiser

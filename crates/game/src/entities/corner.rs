@@ -1,4 +1,4 @@
-//! The one in the corner (`docs/ENTITIES.md`, design 1): someone tall
+//! The one in the corner (`docs/design/ENTITIES.md`, design 1): someone tall
 //! standing in the far corner of a quiet room, forehead to the angle of the
 //! walls, in a long nightshirt, barefoot. *Do not look at its face.*
 //!
@@ -24,7 +24,7 @@
 //!
 //! Its rule (seeing its face is what wakes it) is after SCP-096 "The Shy
 //! Guy" by Dr Dan, CC BY-SA 3.0: this file is CC BY-SA 3.0 and keeps this
-//! attribution (`docs/LORE.md`, Attribution). The turned back is a motif of
+//! attribution (`docs/design/LORE.md`, Attribution). The turned back is a motif of
 //! the Rake; its face is the Thatcher illusion (Peter Thompson, 1980).
 use crate::base::numeric::hypot2;
 use crate::entities::body::{two_bone, BodyRig};

@@ -1,4 +1,4 @@
-//! The menus (`ui/menu.rs`, `docs/UI.md` design 3): the title is the lobby,
+//! The menus (`ui/menu.rs`, `docs/design/UI.md` design 3): the title is the lobby,
 //! live, with a short list worked by keys or by the mouse; a new descent
 //! over a save asks first; Quit quits.
 mod common;
@@ -194,7 +194,7 @@ fn leaving_for_the_title_keeps_the_notebook() {
 fn death_is_black_a_line_and_wake_up() {
     let mut g = new_game();
     press(&mut g, "Enter");
-    // New descent: the way in from the title (docs/CUTSCENES.md), the card
+    // New descent: the way in from the title (docs/design/CUTSCENES.md), the card
     // once your hands are back
     frame(&mut g, 30);
     assert!(g.hands_taken() && g.level_card.is_none(), "the way in, its card after");

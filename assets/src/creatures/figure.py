@@ -1,5 +1,5 @@
 """
-The anomalies' figures (docs/ENTITIES.md, E9): people's bodies (MakeHuman's,
+The anomalies' figures (docs/design/ENTITIES.md, E9): people's bodies (MakeHuman's,
 CC0) fitted to the procedural human rig the game walks the Showroom's staff
 and the Borrowed House's shadows on (`crates/game/src/anomalies/rig.rs`),
 and faces smoothed away.

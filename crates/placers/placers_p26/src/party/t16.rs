@@ -1,4 +1,4 @@
-//! Batch `t16`'s prop in this module, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t16`'s prop in this module, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"): the skipping rope, a PVC licorice rope with moulded
 //! handles, dropped in a springy loop (`assets/src/blender/props/t16.py`,
 //! `t16.notes.md`). Its placer and what only it uses; it keeps the old

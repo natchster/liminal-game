@@ -1,4 +1,4 @@
-//! Batch `t22`'s maracas, made real (`docs/PROPS.md` P3, "toys stay toys";
+//! Batch `t22`'s maracas, made real (`docs/design/PROPS.md` P3, "toys stay toys";
 //! the Blender batch `assets/src/blender/props/t22.py`, its notes
 //! `t22.notes.md`): a child's pair of turned beech maracas, their heads
 //! painted, faded and chipped. It keeps the old placer's draws, call for

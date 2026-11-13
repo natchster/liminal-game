@@ -1,7 +1,7 @@
 # The prop census (2026-10-31)
 
 Which props still look like toys, cartoons or placeholders, found by
-looking at every one of them, for [`../PROPS.md`](../PROPS.md).
+looking at every one of them, for [`../design/PROPS.md`](../design/PROPS.md).
 
 ## How
 

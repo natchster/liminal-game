@@ -1,6 +1,6 @@
 """
-The figure across the Building's void (docs/MEGASTRUCTURE.md, design 7 and
-G7; docs/LORE.md, *Someone across the void*): someone who lives in the
+The figure across the Building's void (docs/design/MEGASTRUCTURE.md, design 7 and
+G7; docs/design/LORE.md, *Someone across the void*): someone who lives in the
 Building, standing still at a parapet far off, arms down, turned toward you.
 It is seen at 22-60 m in weak light and haze, so its silhouette carries it:
 a person's proportions, the shoulders, a long coat's hem, a bare head.
@@ -24,7 +24,7 @@ and turns him whole, so his skeleton is only his own and every part rides
 on his hips.
 
 The figures on the far ridge are SCP-3333's, by Jekeled (CC BY-SA 3.0); see
-docs/LORE.md, Attribution.
+docs/design/LORE.md, Attribution.
 """
 import numpy as np
 
@@ -306,7 +306,7 @@ def build(kit):
     # everything else, a dark coat was lost against its dark faces (the
     # figure's lightness against what is behind it, CIELAB L*, from 40 m to
     # 12 m: a coat of #3a3733 differed by 2-6, the old unlit grey toy by
-    # 19-32; see docs/MEGASTRUCTURE.md, G7)
+    # 19-32; see docs/design/MEGASTRUCTURE.md, G7)
     COAT, COAT_ALT = '#979a9c', '#898c8e'
     Cc = kit.to_game_np(kit.verts_np(coat))
     Cn = kit.to_game_np(kit.vnormals(coat))

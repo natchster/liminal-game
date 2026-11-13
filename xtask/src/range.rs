@@ -23,7 +23,7 @@
 //!
 //! `--look` also renders every zone view of `LOOK_SEEDS` and reports each
 //! zone purpose's look (colourfulness, luminance) against its band in
-//! `docs/STYLE.md`, failing a purpose with enough views of which fewer than
+//! `docs/design/STYLE.md`, failing a purpose with enough views of which fewer than
 //! `BAND_HIT` lie inside: the band no longer describes the purpose.
 //!
 //! ```text
@@ -62,7 +62,7 @@ const PLOTS: &[(&str, &str)] = &[("loops", "dead_ends"), ("depth_mean", "sight_m
 const ARCHIVE: (&str, &str, usize) = ("depth_mean", "light_density", 6);
 const LOOK_SEEDS: &[u32] = &[4242, 7, 1999, 77];
 /// A purpose needs this many views before its band is judged (fewer, and
-/// `docs/STYLE.md` gives it the band of all views)…
+/// `docs/design/STYLE.md` gives it the band of all views)…
 const BAND_MIN_VIEWS: usize = 12;
 /// … and this share of them inside the band.
 const BAND_HIT: f64 = 0.7;
@@ -337,7 +337,7 @@ fn archive(rows: &[Value], base: &[Value], path: &std::path::Path) -> Result<(us
 }
 
 /// Every zone view of `LOOK_SEEDS`, grouped by zone purpose and held to the
-/// purpose's band in `docs/STYLE.md`.
+/// purpose's band in `docs/design/STYLE.md`.
 fn look_by_purpose(out: &std::path::Path) -> Result<(String, Vec<String>), String> {
     let bin = root().join("target/release/backrooms");
     let dir = out.join("views");
@@ -358,7 +358,7 @@ fn look_by_purpose(out: &std::path::Path) -> Result<(String, Vec<String>), Strin
             return Err("rendering the zone views failed".into());
         }
     }
-    let style = std::fs::read_to_string(root().join("docs/STYLE.md")).unwrap_or_default();
+    let style = std::fs::read_to_string(root().join("docs/design/STYLE.md")).unwrap_or_default();
     let bands: Value =
         style.split("```json").nth(1).and_then(|r| r.split("```").next()).and_then(|j| serde_json::from_str(j).ok()).unwrap_or(Value::Null);
     let mut by: std::collections::BTreeMap<String, Vec<(f64, f64)>> = Default::default();
@@ -410,7 +410,7 @@ fn look_by_purpose(out: &std::path::Path) -> Result<(String, Vec<String>), Strin
             share * 100.0
         ));
         if band.is_null() {
-            bad.push(format!("zone purpose \"{label}\" has no band in docs/STYLE.md"));
+            bad.push(format!("zone purpose \"{label}\" has no band in docs/design/STYLE.md"));
         } else if v.len() >= BAND_MIN_VIEWS && share < BAND_HIT {
             bad.push(format!("only {:.0}% of {} \"{label}\" views lie inside its STYLE band", share * 100.0, v.len()));
         }

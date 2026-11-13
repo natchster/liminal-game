@@ -1193,7 +1193,7 @@ impl NodeState {
 /// reads the graph back, so nothing renders it, and what the game sends is
 /// dropped before it is queued (`CtxInner::send`). Rendering it, on the
 /// creature pack's many one-shots, cost the headless bench's update and GPU
-/// their tail (`docs/PERF.md`, "The update's tail"). The thread ends with
+/// their tail (`docs/engineering/PERF.md`, "The update's tail"). The thread ends with
 /// its context.
 fn silent_clock(shared: &Arc<Shared>) {
     let (step, q) = ((shared.sample_rate * 0.01) as u64, QUANTUM as u64);

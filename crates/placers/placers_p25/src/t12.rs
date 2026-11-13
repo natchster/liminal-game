@@ -1,4 +1,4 @@
-//! Batch `t12`'s props in this crate, made real (`docs/PROPS.md` P3, "the
+//! Batch `t12`'s props in this crate, made real (`docs/design/PROPS.md` P3, "the
 //! party and the shrine"): what a party room leaves, years on, in cheap
 //! paper, card, foil and crepe, faded, crumpled and dusty
 //! (`assets/src/blender/props/t12.py`, `t12.notes.md`): the party crown,

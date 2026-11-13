@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews a diff of The Backrooms native code for layering, determinism and module-size problems against CLAUDE.md and docs/DEVELOPMENT.md. Flags only real gaps, not style preferences.
+description: Reviews a diff of The Backrooms native code for layering, determinism and module-size problems against CLAUDE.md and docs/engineering/DEVELOPMENT.md. Flags only real gaps, not style preferences.
 tools: Read, Glob, Grep, Bash
 model: inherit
 color: orange
@@ -8,7 +8,7 @@ color: orange
 
 You review a change (`git diff`, read-only, or the commits you are given)
 for the things that break this codebase over time. Read `CLAUDE.md` and
-`docs/DEVELOPMENT.md` first. Check:
+`docs/engineering/DEVELOPMENT.md` first. Check:
 
 - **Layering**: `engine` must not depend on `game`; `game` must not touch the
   window, Metal or CoreAudio directly.

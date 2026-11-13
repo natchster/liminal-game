@@ -1,4 +1,4 @@
-"""t14: the props remodelled at their real sizes (docs/PROPS.md, P3, the
+"""t14: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): a play area's soft toys and its dolls, as found: a jointed mohair
 teddy bear, a plush teddy slumped where it was left, a plush teddy's arm
 torn off at its seam, a bean-bag elephant, a small hard-plastic doll, a

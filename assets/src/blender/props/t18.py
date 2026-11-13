@@ -1,6 +1,6 @@
-"""t18: the props remodelled at their real sizes (docs/PROPS.md, P3, the
+"""t18: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): what a person brought and set out, or left behind, where the place
-keeps its shrines and its parties (docs/LORE.md; docs/PROPS.md 1, "the
+keeps its shrines and its parties (docs/design/LORE.md; docs/design/PROPS.md 1, "the
 party and the shrine"): a brass thurible hung from a ceiling hook, a
 printed talking board and its wooden planchette, a fan of tarot cards, a
 glass ball on its turned stand, a floor shrine (a board, a book, a framed

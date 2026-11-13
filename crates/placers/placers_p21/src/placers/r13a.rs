@@ -1,4 +1,4 @@
-//! Batch `r13a`'s props in this crate, made real (`docs/PROPS.md` P2): its
+//! Batch `r13a`'s props in this crate, made real (`docs/design/PROPS.md` P2): its
 //! placers and what only they use.
 use super::*;
 
@@ -18,7 +18,7 @@ pub(crate) fn place_biohazard_signs(g: &mut Game, _dist: &[i32]) {
     // BIOHAZARD, screwed to the wall at its corners; its yellow faded, its
     // print scuffed to the white plastic, rust run from its screws, one in
     // three with a screw gone and that corner sprung off the wall
-    // (docs/PROPS.md)
+    // (docs/design/PROPS.md)
     use game::assets::props::prop_part_as_modelled;
     let sign = group();
     mount_on_wall(g, &sign, &c, 0.005, 1.70, 0.6);

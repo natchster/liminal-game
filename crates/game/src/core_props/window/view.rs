@@ -1,4 +1,4 @@
-//! What a window looks out on (`docs/WINDOWS.md` 2): a farm track running
+//! What a window looks out on (`docs/design/WINDOWS.md` 2): a farm track running
 //! away from the glass into fog (`visuals::photo::window_view_tex`), laid on
 //! a ground disc and a dome round a point just outside the glass
 //! (`Patch::WindowView`), the same from every window; a streetlamp close

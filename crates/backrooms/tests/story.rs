@@ -781,7 +781,7 @@ fn the_last_camp_ends_her_story() {
 }
 
 /// The Reader reads the paper you drop and the paper lying about, and never
-/// touches her folded sheets nor the flat ones (`docs/ENTITIES.md`, E6):
+/// touches her folded sheets nor the flat ones (`docs/design/ENTITIES.md`, E6):
 /// stood beside each of them on a floor that has both, it does not stop to
 /// read, and every sheet ends as it does on the same floor without it.
 #[test]

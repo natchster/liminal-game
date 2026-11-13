@@ -1,4 +1,4 @@
-//! What is put away (`docs/SECRETS.md` 5): each a small, ordinary thing,
+//! What is put away (`docs/design/SECRETS.md` 5): each a small, ordinary thing,
 //! made as it is, its bottom at y = 0, centred, its front toward +z. Its
 //! look says nothing of what it does; only what a real one carries is
 //! printed on it (a card by a dish, a sachet's word).

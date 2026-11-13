@@ -1,5 +1,5 @@
 //! Structural tests: the architecture and conventions that `CLAUDE.md` and
-//! `docs/DEVELOPMENT.md` state, checked mechanically, each failure saying how
+//! `docs/engineering/DEVELOPMENT.md` state, checked mechanically, each failure saying how
 //! to fix it. Cheap (no level is built); part of the fast check.
 use std::path::{Path, PathBuf};
 
@@ -152,7 +152,7 @@ fn level_builds_take_no_clock_or_foreign_randomness() {
     }
     assert!(
         hits.is_empty(),
-        "level-build code must be a pure function of (run seed, level): draw from rnd() / with_native() instead of {hits:#?}\n(see docs/DEVELOPMENT.md, Determinism rules)"
+        "level-build code must be a pure function of (run seed, level): draw from rnd() / with_native() instead of {hits:#?}\n(see docs/engineering/DEVELOPMENT.md, Determinism rules)"
     );
 }
 
@@ -219,7 +219,7 @@ fn source_files_stay_a_readable_size() {
     }
     assert!(
         big.is_empty(),
-        "split these into modules — one subsystem per folder, a mod.rs saying what it owns (docs/DEVELOPMENT.md, Modules): {big:#?}"
+        "split these into modules — one subsystem per folder, a mod.rs saying what it owns (docs/engineering/DEVELOPMENT.md, Modules): {big:#?}"
     );
 }
 
@@ -228,8 +228,8 @@ fn docs_point_at_files_that_exist() {
     let docs = [
         "CLAUDE.md",
         "README.md",
-        "docs/ARCHITECTURE.md",
-        "docs/DEVELOPMENT.md",
+        "docs/engineering/ARCHITECTURE.md",
+        "docs/engineering/DEVELOPMENT.md",
         ".claude/rules/world.md",
         ".claude/rules/audio.md",
         ".claude/rules/visuals.md",
@@ -293,6 +293,104 @@ fn docs_point_at_files_that_exist() {
     assert!(missing.is_empty(), "docs name files that do not exist — fix the path or the doc: {missing:#?}");
 }
 
+/// Every text file of the repository, by its path relative to the root, with
+/// its contents: no build output, third-party environments or caches, and
+/// not the logs of past runs (the reviewers' verdicts and the goldens' and
+/// recordings' acceptances keep the words of their day).
+fn text_files() -> Vec<(String, String)> {
+    const LOGS: [&str; 3] = ["crates/backrooms/tests/golden", "crates/backrooms/tests/recorded", "crates/backrooms/tests/review"];
+    const EXT: [&str; 10] = ["md", "rs", "toml", "json", "jsonl", "py", "sh", "txt", "tsv", "metal"];
+    let mut out = vec![];
+    let mut stack = vec![root()];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(&d).into_iter().flatten().flatten() {
+            let p = e.path();
+            let name = p.file_name().unwrap().to_string_lossy().to_string();
+            if p.is_dir() {
+                let skip = ["target", "dist", "__pycache__", "node_modules"].contains(&name.as_str())
+                    || name.starts_with('.') && name != ".claude"
+                    || LOGS.contains(&rel(&p).as_str());
+                if !skip {
+                    stack.push(p);
+                }
+            } else if p.extension().is_some_and(|x| EXT.contains(&x.to_string_lossy().as_ref())) {
+                if let Ok(text) = std::fs::read_to_string(&p) {
+                    out.push((rel(&p), text));
+                }
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+/// The docs are sorted by kind (`docs/README.md`, the rule in `CLAUDE.md`):
+/// the root holds the index and the four folders, nothing else.
+#[test]
+fn docs_are_sorted_by_kind() {
+    let mut entries: Vec<String> = std::fs::read_dir(root().join("docs"))
+        .unwrap()
+        .flatten()
+        .map(|e| e.file_name().to_string_lossy().to_string())
+        .filter(|n| !n.starts_with('.'))
+        .collect();
+    entries.sort();
+    assert_eq!(
+        entries,
+        ["README.md", "design", "engineering", "plan", "research"],
+        "docs/ holds only its index and the four kinds: put a doc in design/ (the game), research/ (what it rests on), \
+         plan/ (the work) or engineering/ (the code), and list it in docs/README.md and CLAUDE.md"
+    );
+}
+
+/// Every `docs/…` path named anywhere in the repository (code, docs, skills,
+/// tools) exists, and every relative link in a Markdown file resolves: a doc
+/// moved or renamed cannot leave a pointer behind.
+#[test]
+fn every_docs_path_named_exists() {
+    // a test's own scratch tree, not the repository's docs
+    const NOT_OURS: [&str; 1] = ["docs/keep.md"];
+    let path_char = |c: char| c.is_ascii_alphanumeric() || "_./-".contains(c);
+    let (mut dangling, mut broken) = (vec![], vec![]);
+    for (file, text) in text_files() {
+        for (at, _) in text.match_indices("docs/") {
+            let before = text[..at].chars().next_back();
+            if before.is_some_and(|c| c.is_ascii_alphanumeric() || c == '_' || c == '/') {
+                continue;
+            }
+            let rest = &text[at..];
+            let len = rest.find(|c: char| !path_char(c)).unwrap_or(rest.len());
+            let path = rest[..len].trim_end_matches(['.', '-', '/']);
+            let placeholder = rest[len..].starts_with(['<', '{', '*']) || path.contains("YYYY");
+            if !placeholder && !NOT_OURS.contains(&path) && !root().join(path).exists() {
+                dangling.push(format!("{file}: {path}"));
+            }
+        }
+        if !file.ends_with(".md") {
+            continue;
+        }
+        let dir = Path::new(&file).parent().unwrap_or(Path::new(""));
+        for (at, _) in text.match_indices("](") {
+            let rest = &text[at + 2..];
+            let Some(end) = rest.find(')') else { continue };
+            let target = &rest[..end];
+            let path = target.split('#').next().unwrap_or("");
+            let external = path.contains(':') || path.starts_with('/') || path.contains(char::is_whitespace);
+            if path.is_empty() || external {
+                continue;
+            }
+            if !root().join(dir).join(path).exists() {
+                broken.push(format!("{file}: ({target})"));
+            }
+        }
+    }
+    assert!(
+        dangling.is_empty() && broken.is_empty(),
+        "these name docs that do not exist — fix the path (docs/README.md says where each kind is): {dangling:#?}\n\
+         these Markdown links lead nowhere — fix the link: {broken:#?}"
+    );
+}
+
 #[test]
 fn the_fast_check_skips_only_tests_that_exist() {
     let check = read("xtask/src/check.rs");
@@ -314,8 +412,8 @@ fn the_fast_check_skips_only_tests_that_exist() {
 
 #[test]
 fn the_content_ledger_covers_the_content() {
-    let ledger: serde_json::Value = serde_json::from_str(&read("docs/content.json")).expect("docs/content.json is JSON");
-    let entries = ledger["entries"].as_array().expect("docs/content.json: entries");
+    let ledger: serde_json::Value = serde_json::from_str(&read("docs/plan/content.json")).expect("docs/plan/content.json is JSON");
+    let entries = ledger["entries"].as_array().expect("docs/plan/content.json: entries");
     let ids: std::collections::BTreeSet<&str> = entries.iter().filter_map(|e| e["id"].as_str()).collect();
     let mut missing = vec![];
     // what the code has
@@ -335,15 +433,15 @@ fn the_content_ledger_covers_the_content() {
     for t in themes {
         missing.push(format!("props/{t}"));
     }
-    let style = read("docs/STYLE.md");
-    let block = style.split("```json").nth(1).and_then(|r| r.split("```").next()).expect("docs/STYLE.md: style bands");
+    let style = read("docs/design/STYLE.md");
+    let block = style.split("```json").nth(1).and_then(|r| r.split("```").next()).expect("docs/design/STYLE.md: style bands");
     let bands: serde_json::Value = serde_json::from_str(block).unwrap();
     for p in bands["purposes"].as_object().unwrap().keys() {
         missing.push(format!("purpose/{}", p.replace(' ', "_")));
     }
     missing.retain(|id| !ids.contains(id.as_str()));
     missing.dedup();
-    assert!(missing.is_empty(), "docs/content.json has no entry for {missing:?} — add one with the checks it must pass");
+    assert!(missing.is_empty(), "docs/plan/content.json has no entry for {missing:?} — add one with the checks it must pass");
     // what the ledger names exists
     let mut dangling = vec![];
     for e in entries {
@@ -360,7 +458,7 @@ fn the_content_ledger_covers_the_content() {
             }
         }
     }
-    assert!(dangling.is_empty(), "docs/content.json names checks that do not exist: {dangling:?} — fix the name or add the check");
+    assert!(dangling.is_empty(), "docs/plan/content.json names checks that do not exist: {dangling:?} — fix the name or add the check");
 }
 
 /// FNV-1a 64, as `cargo xtask assets` writes it into the manifest.
@@ -490,7 +588,7 @@ const EARLIER_VERSION: &[&str] = &[
 /// Deliberate mentions, each with its reason: (file, the form it uses, why).
 const EARLIER_VERSION_EXCEPTIONS: &[(&str, &str, &str)] = &[
     (
-        "docs/SOURCES.md",
+        "docs/research/SOURCES.md",
         concat!("three", ".js"),
         "cites the source of the windows' ground-projected sky: the GroundedSkybox of that library, research, not this game's past",
     ),

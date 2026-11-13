@@ -1,4 +1,4 @@
-//! Cutscenes (`docs/CUTSCENES.md`) on real floors. The player: a cutscene
+//! Cutscenes (`docs/design/CUTSCENES.md`) on real floors. The player: a cutscene
 //! begins where you were looking and its last frame is the gameplay camera
 //! exactly; play never eases from its pose (a twin run without it draws the
 //! same camera, frame for frame, and the same random numbers); your body

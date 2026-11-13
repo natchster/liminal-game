@@ -5,7 +5,7 @@ description: Add or change an anomaly level in The Backrooms (the Stairwell, Sho
 
 # Add or change an anomaly
 
-1. **Canon.** Write it into `docs/LORE.md` (*Anomalies*, its own section,
+1. **Canon.** Write it into `docs/design/LORE.md` (*Anomalies*, its own section,
    *Attribution and licensing* when it is inspired by an SCP article: CC
    BY-SA 3.0, author and link). Ask `lore-keeper` to check it. It reaches
    the player only through the allowed channels: one arrival line giving the
@@ -29,6 +29,6 @@ description: Add or change an anomaly level in The Backrooms (the Stairwell, Sho
    visual playtest of its level (`visual-playtest`; one that writes the
    camera itself, the Stairwell and the Loop, is toured by its stands
    only).
-8. **Ledger.** An `anomaly/<key>` entry in `docs/content.json` (the
+8. **Ledger.** An `anomaly/<key>` entry in `docs/plan/content.json` (the
    structure test requires one per `SCP_KEYS` entry); open issues in
-   `docs/QUALITY.md`.
+   `docs/plan/QUALITY.md`.

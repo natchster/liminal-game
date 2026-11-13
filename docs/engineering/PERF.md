@@ -37,7 +37,7 @@ rendering, level building or per-frame code, and commit the history with it.
 A step the bench finds is looked at and explained here (it is flagged
 while it is among the last three runs of its series). To find a step by
 bisecting, build each older commit with the speaker guard taken in
-(`docs/DEVELOPMENT.md`, "A build of an older commit plays aloud"): a build
+(`docs/engineering/DEVELOPMENT.md`, "A build of an older commit plays aloud"): a build
 from before `03e4b80` benches out loud.
 
 - **E7** (`8274df8+` in the history, flagged by E8's full check): level 4's

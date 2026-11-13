@@ -8,7 +8,7 @@ the primitive's own frame and at its canonical size, and the game fits it to
 the primitive's bounding box when it is built (`pg("Name__role", primitive)`,
 `assets::props::prop_part`), so the placer keeps its layout, colours and
 randomness. A batch of real things (through its `auto()`) models at the
-thing's real size instead (docs/PROPS.md, "How a prop is remodelled").
+thing's real size instead (docs/design/PROPS.md, "How a prop is remodelled").
 
 Conventions (read these before writing a part):
 

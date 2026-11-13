@@ -10,17 +10,17 @@ were gathered in October 2026 in two rounds of research:
   Rust game, for the workspace restructuring.
 * **UI and controls** (section 9, a third round): layouts, reach,
   accessibility, HUDs and menus in first-person horror, for
-  [`UI.md`](UI.md).
+  [`UI.md`](../design/UI.md).
 * **Megastructure** (section 10, a fourth round): the Samosbor myth,
   megastructure SCPs and Backrooms levels, wayfinding and distant threats,
-  for [`MEGASTRUCTURE.md`](MEGASTRUCTURE.md).
+  for [`MEGASTRUCTURE.md`](../design/MEGASTRUCTURE.md).
 * **Creatures** (section 11, a fifth round): rule-monsters, folklore and
   how entities are pictured, creature AI and the psychology of fear, CC0
-  bodies, for [`ENTITIES.md`](ENTITIES.md); the notes in full are in
-  [`research/`](research/README.md).
+  bodies, for [`ENTITIES.md`](../design/ENTITIES.md); the notes in full are in
+  [`research/`](README.md).
 * **The vending machine** (section 12, a sixth round): real machines from
   their manuals, and uncanny ones from SCP, the Backrooms, folklore and
-  games, for [`VENDING.md`](VENDING.md).
+  games, for [`VENDING.md`](../design/VENDING.md).
 
 A note on weight: the strongest sources here are developer-facing write-ups
 (Game Developer, the Valve wiki, a peer-reviewed paper). Several others are
@@ -198,7 +198,7 @@ How the sound principles show up together (`crates/game/src/audio/ambient/`):
 ## 8. Rust game development and project structure
 
 Used for the earlier restructuring of the workspace (see
-`docs/DEVELOPMENT.md` for the conventions that came out of it).
+`docs/engineering/DEVELOPMENT.md` for the conventions that came out of it).
 
 **[Large Rust Workspaces](https://matklad.github.io/2021/08/22/large-rust-workspaces.html)** (matklad).
 - Says: use a virtual manifest at the root, put every crate in a flat `crates/` folder and name each folder after its crate. The same author's cargo-xtask convention adds an `xtask` crate for automation instead of shell scripts.
@@ -233,7 +233,7 @@ Used for the earlier restructuring of the workspace (see
 
 ## 9. UI and controls
 
-Gathered on 2026-10-26 by a research pass for [`UI.md`](UI.md). Most
+Gathered on 2026-10-26 by a research pass for [`UI.md`](../design/UI.md). Most
 keybinding pages are fan guides; they are listed for the layouts, which
 agree with each other, and marked *(secondary)*.
 
@@ -288,11 +288,11 @@ agree with each other, and marked *(secondary)*.
 ## 10. Megastructure: the Building above the rooms
 
 Gathered on 2026-10-27 by three research passes for
-[`MEGASTRUCTURE.md`](MEGASTRUCTURE.md). The Samosbor fan wikis refused the
+[`MEGASTRUCTURE.md`](../design/MEGASTRUCTURE.md). The Samosbor fan wikis refused the
 fetcher; claims from them come from search excerpts and are marked
 *(summary only)*. Wiki texts (SCP, Backrooms, Fandom) are CC BY-SA 3.0: the
 game takes ideas from them, writes its own words, and credits each in
-[`LORE.md`](LORE.md), *Attribution*.
+[`LORE.md`](../design/LORE.md), *Attribution*.
 
 ### Samosbor
 
@@ -368,11 +368,11 @@ SHA-1 in `assets/src/textures/sources.json`.
 ## 11. Creatures: rule-monsters, folklore, creature AI and fear
 
 Gathered on 2026-10-28 by five research passes for
-[`ENTITIES.md`](ENTITIES.md); the notes are kept whole in
-[`research/`](research/README.md), every claim linked and every design's
+[`ENTITIES.md`](../design/ENTITIES.md); the notes are kept whole in
+[`research/`](README.md), every claim linked and every design's
 licence stated. What the design took, and where it shows up:
 
-**The rule, and the tell before it** ([`research/scp.md`](research/scp.md)).
+**The rule, and the tell before it** ([`scp.md`](scp.md)).
 - Read: SCP-173 (Moto42), 096 (Dr Dan), 106 (Dr Gears), 939 (Adam Smascher,
   EchoFourDelta), 513 (beefwit), 1499 (Trasknari), 2316 (djkaktus), all CC
   BY-SA 3.0; *SCP – Containment Breach*'s source (Regalis and contributors,
@@ -387,7 +387,7 @@ licence stated. What the design took, and where it shows up:
   check; the one in the corner (after 096: its face is the trigger, a
   turning before the scream, a cap on how long it knows where you are).
 
-**One sense, one counter, one brain** ([`research/creature-ai-and-fear.md`](research/creature-ai-and-fear.md)).
+**One sense, one counter, one brain** ([`creature-ai-and-fear.md`](creature-ai-and-fear.md)).
 - Read: [Thompson on Alien: Isolation](https://www.gamedeveloper.com/design/the-perfect-organism-the-ai-of-alien-isolation), [Booth's Left 4 Dead slides](https://steamcdn-a.akamaihd.net/apps/valve/2009/ai_systems_of_l4d_mike_booth.pdf), [Botta, Infected AI in The Last of Us](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter33_Infected_AI_in_The_Last_of_Us.pdf), [Walsh on Splinter Cell Blacklist's perception](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter28_Modeling_Perception_and_Awareness_in_Tom_Clancy's_Splinter_Cell_Blacklist.pdf), [Welsh on search](http://www.gameaipro.com/GameAIPro2/GameAIPro2_Chapter27_Looking_for_Trouble_Making_NPCs_Search_Realistically.pdf), Lethal Company's and Phasmophobia's wikis, Grip on SOMA's monsters.
 - Say: one brain, kinds as data and skills; hearing as logical sounds along the way, blocked by walls; sight that builds up; an agitated tell before discovery; a creature that "knows" for 2–3 s after losing you, then searches and forgets visibly; light as a repellent fails (Naughty Dog cut it), light as a sense works; behaviours that unlock from habits, never deaths, and are seen when they unlock; no death without a warning, a grace period, a relief, pursuers slower than you, the first catch postponed.
 - Used for: the brain (design 2), the fairness invariants (design 3), the habit ledger (design 4), the arenas and hard fails (design 7).
@@ -397,17 +397,17 @@ licence stated. What the design took, and where it shows up:
 - Say: enjoyment peaks at moderate fear with small swings; uncertainty stresses more than the threat; repetition habituates and a pause or a new stimulus restores; a face that does not startle reads as cold.
 - Used for: builds that sometimes end in nothing, one unlock a level, faces that do not flinch (designs 4, 5, 6).
 
-**How they are pictured** ([`research/folklore-and-imaging.md`](research/folklore-and-imaging.md)).
+**How they are pictured** ([`folklore-and-imaging.md`](folklore-and-imaging.md)).
 - Read: Henderson's interviews ([Daily Dead](https://dailydead.com/qa-trevor-henderson-discusses-the-found-footage-style-of-his-fascinating-horror-artwork/), [Reactor](https://reactormag.com/artist-trevor-henderson-siren-head-interview/)), [MacDorman et al. 2009](https://scholarworks.indianapolis.iu.edu/items/e8fb6458-ddad-4067-b877-1207d720ba0c), [McAndrew and Koehnke 2016](https://scottbarrykaufman.com/wp-content/uploads/2016/04/McAndrew-Koehnke-2016.pdf), Carroll's *The Philosophy of Horror*, [Long 2023 on analog horror](https://info.umkc.edu/sosland_journal/wp-content/uploads/2023/08/Long_AnalysisOfAnalogHorror.pdf), [Mirvoda 2018 on Soviet creepypasta](https://press.psu.ru/index.php/philology/article/download/1633/1204/3523); the upyr, Likho, the poludnitsa, the domovoi (public domain).
 - Say: slightly-off proportions on realistic surfaces disturb more; creepiness is uncertainty; a hidden or almost-right face; eyeshine in a human head is the fusion of person and animal; stillness, or wrong mechanics; a sound first. Fully lit grins and "shadowed face plus realistic eyes" have turned comic; Soviet detail used as costume is a parody genre.
 - Used for: each creature's look (design 1), eyeshine as a reflection (design 6), the Smiler's rictus seen only in the beam, the Reader's compulsion (after the upyr's seed and the slit-mouthed woman's candy), the one in the corner's face (the Thatcher illusion: one error in an upright face).
 
-**The Backrooms and the Samosbor** ([`research/backrooms-and-samosbor.md`](research/backrooms-and-samosbor.md)).
+**The Backrooms and the Samosbor** ([`backrooms-and-samosbor.md`](backrooms-and-samosbor.md)).
 - Read: the Backrooms Wikidot's Entities 3 (Smilers), 5 (Clumps), 8 (Hounds) and their authors, all CC BY-SA 3.0; the SAMOSBOR wikis (CC BY-SA); the founding 2ch thread (no author).
 - Say: Wikidot's Smilers are drawn to light and provoked by panic; Clumps reach from where they lie; the samosbor is heard, never seen; voices beg at the door and must not be answered; what it leaves is fused and assembled, and its monsters are told apart by behaviour.
 - Used for: the Smiler and the Hound (rules adapted, design 1), the Watcher and the one in the corner as a pair with opposite gaze rules (as Inside the Backrooms pairs its Hound and Smiler), and keeping "nothing walks the Building" (none of the samosbor's beings is brought into the game: its lesson is to tell creatures apart by behaviour).
 
-**Bodies** ([`research/modelling.md`](research/modelling.md)).
+**Bodies** ([`modelling.md`](modelling.md)).
 - Read: [MakeHuman's licence](https://github.com/makehumancommunity/makehuman/blob/master/LICENSE.md) (section C: the base mesh, targets, proxies, skins, poses CC0 1.0), [Blender's Human Base Meshes](https://www.blender.org/download/demo-files/) (CC0), Poly Haven and ambientCG (CC0).
 - Say: a real human body and its starved targets are free to use; relief is lost under a lamp held at the eye, so anatomy must be in the outline, the cavities and the glints; cloth drapes headless; eyeshine is retroreflection, strongest when the light is at the eye.
 - Used for: the bodies (design 6: `assets/src/creatures/`, the hm08 body fetched and checked by SHA-1).
@@ -415,16 +415,16 @@ licence stated. What the design took, and where it shows up:
 ## 12. The vending machine: real machines and uncanny ones
 
 Gathered on 2026-10-29 by two research passes for
-[`VENDING.md`](VENDING.md); the notes are kept whole in
-[`research/`](research/README.md) (`vending-machines.md`,
+[`VENDING.md`](../design/VENDING.md); the notes are kept whole in
+[`research/`](README.md) (`vending-machines.md`,
 `vending-horror.md`), every claim linked.
 
-**The real machine** ([`research/vending-machines.md`](research/vending-machines.md)).
+**The real machine** ([`vending-machines.md`](vending-machines.md)).
 - Read: the factory manuals hosted by Vendors Exchange: [AP 113](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-113-Snackshop-Parts-Manual.pdf), [AP 123](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-123-Snackshop-Parts-Manual.pdf), [AP 133](https://www.vesolutions.co/manuals/AP_(Automatic_Products)manuals/Snack/AP-133-Parts-Operation-Service-Manual.pdf), the [Crane National 167/168 setup guide](https://www.vesolutions.co/manuals/Crane_National/167%20168%20Series/National-167-168-Setup-Guide.pdf) and [programming guide](https://www.vesolutions.co/manuals/Crane_National/167%20168%20Series/National-167-168-Programming-Guide.pdf), the [Dixie-Narco Series 90 guide](https://www.vesolutions.co/manuals/Dixie-Narco/Series%2090/DN-Series-90-Installation-Setup-Guide.pdf); [the CPSC's 1995 labelling campaign](https://www.cpsc.gov/Newsroom/News-Releases/1996/CPSC-Soda-Vending-Machine-Industry-Labeling-Campaign-Warns-Of-Deaths-And-Injuries); photographs on Wikimedia Commons (each licence on its page).
 - Say: 72 × 38⅞ × 35 in; a 1133 × 683 mm tempered window and a ~25 cm selection column; five or six trays of five (bags) or ten (bars) spirals, each with its motor; one cool-white F18T8 tube across the top inside the door (the bottom shelves in gloom); a red LED reading "Have a nice day", "Use correct change", "Make another selection"; a 3 × 7 keypad of 15 mm keys (A–H, J, 1–9, *, 0, #); the lock-side front leg set lower, so a real machine leans; 1–4 in off the wall; rust and scuffs at kick height, sticker stacks, taped signs; a product sticks when one corner is behind the wire; 37 deaths and 113 injuries from rocking (1978–95).
 - Used for: the body (V1: its size, window, column, trays and keypad), its light (one tube, the bottom shelves in gloom, the glow on the floor), its words, its lean, and its warning label (rule 7).
 
-**The uncanny machine** ([`research/vending-horror.md`](research/vending-horror.md)).
+**The uncanny machine** ([`vending-horror.md`](vending-horror.md)).
 - Read: SCP-261 (Dr Gears), SCP-294 (Arcibi), SCP-8733 (mothmanUXO), SCP-6593 (PlaguePJP), all CC BY-SA 3.0; Backrooms Levels 4, 6.1, 58, 187, 317 and Entity 36 (Wikidot), Levels 334, 986, 479 (Fandom), all CC BY-SA, with their authors in the note; Eiji Ohashi's *Roadside Lights* ([Hyperallergic](https://hyperallergic.com/409582/the-eerie-allure-of-japanese-vending-machines/)); Lethal Company's counter ([wiki](https://lethal-company.fandom.com/wiki/The_Company_Monster)); Control's altered vending machine; BioShock's Circus of Values; Japanese legends (motifs only).
 - Say: the lone lit machine is the image (the only living light, which leads you and draws what else is there); price everything in what the game has, noise above all, and warn before you punish; rules, not dice, fixed per machine; no talking, no jump scares, no gore, and a prop never becomes a creature; the real warning label reads like the canon note.
 - Used for: the rules (`VENDING.md`, the design): "insert coin, get nothing" as a silence (the note's *Change and Nothing*), the lit one's rhythm (*The Lit One*), rocking it loose and its fall (*Rock It*); nothing is taken from any one story.
@@ -432,16 +432,16 @@ Gathered on 2026-10-29 by two research passes for
 ## 13. The windows: real windows, and windows that look back
 
 Gathered on 2026-10-30 by two research passes for
-[`WINDOWS.md`](WINDOWS.md); the notes are kept whole in
-[`research/`](research/README.md) (`windows-real.md`, `window-horror.md`),
+[`WINDOWS.md`](../design/WINDOWS.md); the notes are kept whole in
+[`research/`](README.md) (`windows-real.md`, `window-horror.md`),
 every claim linked.
 
-**The real window** ([`research/windows-real.md`](research/windows-real.md)).
+**The real window** ([`windows-real.md`](windows-real.md)).
 - Read: the US National Park Service's preservation briefs on [wood](https://www.nps.gov/orgs/1739/upload/preservation-brief-09-wood-windows.pdf) and [steel](https://www.nps.gov/orgs/1739/upload/preservation-brief-13-steel-windows.pdf) windows and its technical notes on [replacement sash](https://www.nps.gov/orgs/1739/upload/tech-note-windows-21-replacement-wood-sash.pdf) and [aluminium windows](https://www.nps.gov/orgs/1739/upload/tech-note-windows-22-historic-aluminum-windows.pdf); Marvin's and Andersen's manuals, Kawneer's framing; a contract mini blind's cut sheet; ASHRAE's history of post-war offices; the Fresnel equations, Toet and Alferdinck on dirty glass; van Dongen's interior mapping, Lagarde's parallax-corrected cubemaps, three.js's GroundedSkybox; Poly Haven's and ambientCG's CC0 licences and panoramas; photographs on Wikimedia Commons (each licence on its page).
 - Say: a double-hung sash's upper sash is outboard, a meeting rail at mid-height, muntins 19 mm, a frame 116 mm deep; office strip windows are fixed lights between 50 × 114 mm mullions over a convector; glass reflects 4% a face square on and all of it at a graze, and at night a lit room's window is a mirror; windows age where water stands; mini blinds hang crooked; a view without parallax, a box with no reveal and clean glass look fake; a ground-projected panorama is exact for flat ground from any eye.
 - Used for: the two kinds of window, their sizes and wear, the blinds, the glass, the view and how it is drawn (`WINDOWS.md` 1–2).
 
-**The window that looks back** ([`research/window-horror.md`](research/window-horror.md)).
+**The window that looks back** ([`window-horror.md`](window-horror.md)).
 - Read: SCP-965 (ChazzK), SCP-1148 (Timmantha), SCP-675, SCP-419, SCP-2885 (Pythy, rewrite Zyn), SCP-508 (Hamsterhuey), SCP-7640, SCP-987-ARC, SCP-L682 (CRAt26), SCP-3052 (Witryso), SCP-2316 (djkaktus), SCP-397-JP, SCP-955-JP, SCP-CN-1779, SCP-CN-446, all CC BY-SA 3.0; the Backrooms' [Entity 2, "The Windows"](https://backrooms-wiki.wikidot.com/entity-2) (concept u/glassydude101, rewrite DrAkimoto) and Level 188 (1000dumplings, rewrite Kai4C), CC BY-SA 3.0; Kunekune and Yamanoke (2ch, motifs only); *Wuthering Heights*, *Dracula*, M. R. James, Gogol's *Viy*, Poe's "The Raven", Wells's "The Crystal Egg", Lovecraft's "The Music of Erich Zann" (public domain); Irish, Ukrainian and East Slavic customs; Slender, Look Outside and others (mechanics only).
 - Say: the look that takes time and sharpens; a reach short and exact; covering as the counter, and a counter that must not be inverted (SCP-397-JP); a figure that faces you from every angle; through the glass without breaking it; what came in known by its shadow on the floor; a line on the floor it cannot cross; the outside that should not exist.
 - Used for: the one behind the glass (`WINDOWS.md` 4): the look that adds up, its coming only while seen, its reach the lamp's light, the blind; nothing is taken from any one story.
@@ -450,37 +450,37 @@ every claim linked.
 ## 14. Marks and secrets: route marks, hiding places, and things that change you
 
 Gathered on 2026-10-30 by two research passes for
-[`SECRETS.md`](SECRETS.md); the notes are kept whole in
-[`research/`](research/README.md) (`wayfinding-and-secrets.md`,
+[`SECRETS.md`](../design/SECRETS.md); the notes are kept whole in
+[`research/`](README.md) (`wayfinding-and-secrets.md`,
 `secret-items.md`), every claim linked.
 
-**Marks and hiding places** ([`research/wayfinding-and-secrets.md`](research/wayfinding-and-secrets.md)).
+**Marks and hiding places** ([`wayfinding-and-secrets.md`](wayfinding-and-secrets.md)).
 - Read: the Appalachian Trail Conservancy's *Marking the Trail*; the Scouts' tracking signs; cave and cave-diving markers (the BLM's cave worksheet, line arrows and cookies); FEMA's urban search and rescue marks; the Berliner Mieterverein on the shelter arrows; Grimm's *Hansel and Gretel* (public domain); the Level Design Book on wayfinding; Valve's *Left 4 Dead* graffiti, *Half-Life 2*'s lambda, *Rayman Legends*' secrets, *Link's Awakening*, *Outer Wilds*' signalscope; El-Nasr and Rao on attention in 3D scenes; the dead drops of Ames, Hanssen and Penkovsky; where people hide money (games and real reports; mechanics and facts only).
 - Say: one mark in view at a time, by sight; few marks carry direction, and a turn is marked by an offset; an owner's quirk makes a mark someone's; marks wear and vanish; too many marks spoil a trail; notice before you find, a tell kept the same; a dead drop's signal is apart from it, says "loaded", and crossed says "taken".
 - Used for: her marks and their mix (`SECRETS.md` 1), the flat sheets' even stamp, the hiding places and their tells, the chalk sign (`SECRETS.md` 4).
 
-**Things that change you** ([`research/secret-items.md`](research/secret-items.md)).
+**Things that change you** ([`secret-items.md`](secret-items.md)).
 - Read: Carroll's *Alice's Adventures in Wonderland*, the *Hymn to Demeter*, the *Kojiki*, Child 37, Hartland, Rossetti's *Goblin Market*, the *Odyssey*, Grimm (public domain); SCP-330 (Dr Kondraki), the first SCP-1162 (author unknown, via the Japanese archive), SCP-427 (Dr Ouros), SCP-268 (Pair Of Ducks), SCP-714 (Arcalane), SCP-207 (Aeish), SCP-178 (91stCataclysm), SCP-1916 (Smapti), SCP-832 (Inglonias), SCP-362 (PaulSharke), CC BY-SA 3.0; the Backrooms' Almond Water (Natedagreat563, Poliacci; 1000dumplings), Cashew Water (yoyoflux, Positive123; Taangeerine), Liquid Pain (ReyDay), Royal Rations (Sariastuff, zakkun_), Liquid Silence (Atom_Rutherford), Moth Jelly (KingofGarbage), CC BY-SA; the Samosbor wiki's food concentrate (ProfessorSacred, CC BY-SA); the Creepypasta Wiki's Midnight Game and *Please Take Just One* (Umbrello), CC BY-SA; omamori, the ladanka, morijio, the red envelope, found coins (folk); games' hidden-effect items (mechanics only); John Harris's rules of roguelike design.
 - Say: an invitation with no explanation; the effect felt, then learned; two-sided changes in small steps; one taste binds a little, and can take away what calls you; two free and the third costs; a hole that gives back and takes; a charm that works sewn shut; a bad thing shown by a tell; nothing unknown may kill; caps on how far it all goes.
 - Used for: what is put away and what stays with you (`SECRETS.md` 5); no SCP number or object name appears in the game.
 
 ## 15. The props: real things, barricades, things a hand can use
 
-Gathered on 2026-10-31 for [`PROPS.md`](PROPS.md); the notes are kept
-whole in [`research/`](research/README.md) (`props-census.md`,
+Gathered on 2026-10-31 for [`PROPS.md`](../design/PROPS.md); the notes are kept
+whole in [`research/`](README.md) (`props-census.md`,
 `barricades.md`, `props-interactions.md`), every claim linked.
 
-**The census** ([`research/props-census.md`](research/props-census.md)).
+**The census** ([`props-census.md`](props-census.md)).
 - Read: the game itself, every kind of prop on 272 floors, graded by seven reviewers against `STYLE.md`; on what makes a model read as real: bevels and the highlight a real edge catches (Radiator's *Bevels in video games*; Polycount threads), wear where handling puts it, albedo ranges of real materials (Lagarde's chart; the Corona albedo list).
 - Say: a third of the kinds read as toys; the toy is in the composition of primitives and the flat colour, not in the parts; the props that read as real were modelled whole from a real one, their print painted.
 - Used for: what is remodelled and in what order (`PROPS.md` 1, the milestones).
 
-**Barricades** ([`research/barricades.md`](research/barricades.md)).
+**Barricades** ([`barricades.md`](barricades.md)).
 - Read: the U.S. Fire Administration's *Board-up procedures*; the CITB's guide to temporary hoardings; lockdown guidance (UConn, the University of Houston); makers' sheets for plywood, dimensional lumber, steel desks, vertical files, stacking and task chairs, GMA pallets, boltless shelving, hollow-core doors and twin mattresses.
 - Say: a board-up is a sheet over the opening, braced across and bolted through; a furniture barricade is the heaviest flat things against the opening, upended and wedged; nothing real is a pile in the middle of a room.
 - Used for: where barricades go and what they are made of (`PROPS.md` 2).
 
-**Things a hand can use** ([`research/props-interactions.md`](research/props-interactions.md)).
+**Things a hand can use** ([`props-interactions.md`](props-interactions.md)).
 - Read: the game's own canon and rules (`LORE.md`, `PILLARS.md`, `UI.md`, `VENDING.md`, `WINDOWS.md`, `SECRETS.md`); the Backrooms wiki's Level 1 and Level 2 (CC BY-SA), where they fit the canon.
 - Say: a verb is a real hand's; its rules are fixed per thing, never dice; its effects are never said; its sound comes from it; it never sets a creature hunting.
 - Used for: the verbs (`PROPS.md` 3).
@@ -488,8 +488,8 @@ whole in [`research/`](research/README.md) (`props-census.md`,
 
 ## 16. Your asides: choosing a line, and not saying it twice
 
-Gathered on 2026-11-10 for [`VOICES.md`](VOICES.md) (*Your asides*); the
-note is kept whole in [`research/inner-voice.md`](research/inner-voice.md),
+Gathered on 2026-11-10 for [`VOICES.md`](../design/VOICES.md) (*Your asides*); the
+note is kept whole in [`inner-voice.md`](inner-voice.md),
 every claim linked.
 
 **[AI-driven Dynamic Dialog through Fuzzy Pattern Matching](https://cdn.fastly.steamstatic.com/apps/valve/2012/GDC2012_Ruskin_Elan_DynamicDialog.pdf)** (Elan Ruskin, Valve, GDC 2012; slides with speaker notes).
@@ -502,8 +502,8 @@ every claim linked.
 
 ## 17. Cutscenes: borrowing the camera and giving it back
 
-Gathered on 2026-11-11 for [`CUTSCENES.md`](CUTSCENES.md); the note is
-kept whole in [`research/cutscenes.md`](research/cutscenes.md), every
+Gathered on 2026-11-11 for [`CUTSCENES.md`](../design/CUTSCENES.md); the note is
+kept whole in [`cutscenes.md`](cutscenes.md), every
 claim linked.
 
 **Unreal Engine's Sequencer** ([overview](https://dev.epicgames.com/documentation/en-us/unreal-engine/unreal-engine-sequencer-movie-tool-overview), [when a cinematic ends](https://dev.epicgames.com/documentation/unreal-engine/what-happens-when-my-cinematic-ends-in-unreal-engine), [camera cuts](https://dev.epicgames.com/documentation/en-us/unreal-engine/cinematic-camera-cut-track-in-unreal-engine), [blending to gameplay](https://dev.epicgames.com/documentation/en-us/unreal-engine/blend-gameplay-animation-to-cinematic-animation-in-unreal-engine)).
@@ -545,8 +545,8 @@ claim linked.
 
 ## 18. Visual QA: looking where nobody looks
 
-Gathered on 2026-11-11 for [`VISUAL_PLAYTEST.md`](VISUAL_PLAYTEST.md); the
-note is kept whole in [`research/visual-qa.md`](research/visual-qa.md),
+Gathered on 2026-11-11 for [`VISUAL_PLAYTEST.md`](../engineering/VISUAL_PLAYTEST.md); the
+note is kept whole in [`visual-qa.md`](visual-qa.md),
 every claim linked.
 
 **Screenshot tests in studios** ([Frostbite](https://enginearchitecture.org/downloads/Testing_Rendering_Code_at_Frostbite-REAC.pdf), [Unreal's screenshot comparison](https://dev.epicgames.com/documentation/en-us/unreal-engine/screenshot-comparison-tool-in-unreal-engine), [Aras on testing graphics code](https://aras-p.info/blog/2011/06/17/testing-graphics-code-4-years-later/), [Unity's image comparison](https://docs.unity3d.com/Packages/com.unity.testframework.graphics@8.5/api/UnityEngine.TestTools.Graphics.ImageComparisonSettings.html)).

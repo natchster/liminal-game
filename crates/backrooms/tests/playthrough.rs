@@ -647,7 +647,7 @@ fn playthrough_from_new_game() {
     }
 }
 
-/// The whole run, live (`docs/ENTITIES.md` design 7): from New Game past
+/// The whole run, live (`docs/design/ENTITIES.md` design 7): from New Game past
 /// level 13, the creatures walking the rooms and deaths suffered, the bot
 /// playing the rule-follower's counters; the run ends (the game is beatable
 /// as shipped, not only in god mode), with few deaths on the way.

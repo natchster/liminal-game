@@ -1,5 +1,5 @@
-"""t13: the props remodelled at their real sizes (docs/PROPS.md, P3, the
-rare): a party table's leavings, years on (docs/PROPS.md 1, "the party and
+"""t13: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+rare): a party table's leavings, years on (docs/design/PROPS.md 1, "the party and
 the shrine"): the printed paper cups, the paper dessert plates, the pressed
 glass cake stand and the cake nobody ate on it, the cornbread muffins in
 their paper cases. Sources and sizes: t13.notes.md.

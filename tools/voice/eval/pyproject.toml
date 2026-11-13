@@ -1,7 +1,7 @@
 [project]
 name = "backrooms-voice-eval"
 version = "0.1.0"
-description = "Checks a voice take's words, emotion, tone of voice and voice (docs/VOICES.md)"
+description = "Checks a voice take's words, emotion, tone of voice and voice (docs/design/VOICES.md)"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "mlx-whisper",

@@ -1,4 +1,4 @@
-//! Secrets (`docs/SECRETS.md` 4–5): on each floor a few places where
+//! Secrets (`docs/design/SECRETS.md` 4–5): on each floor a few places where
 //! something is put away off the way, each with a tell you can see before
 //! you look, the same all run (`places`), and what is in them: mostly
 //! ordinary things or nothing, now and then a thing that stays with you
@@ -10,7 +10,7 @@
 //! run's, from its seed alone (`run_things`). What was taken (a retry, a
 //! Continue) is fitted afterwards (`fit_secrets`), as her page is.
 //!
-//! Attribution (CC BY-SA 3.0 / CC BY-SA; the full list in `docs/LORE.md`,
+//! Attribution (CC BY-SA 3.0 / CC BY-SA; the full list in `docs/design/LORE.md`,
 //! *Attribution and licensing*): SCP-330 by Dr Kondraki and "Please Take
 //! Just One" by Umbrello (the dish), the first SCP-1162 (author unknown;
 //! the hole), SCP-268 by Pair Of Ducks (the cap), SCP-1916 by Smapti,

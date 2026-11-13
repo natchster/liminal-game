@@ -11,9 +11,9 @@ standing as close as a body can to every edge of the walkable floor (a
 wall, a parapet over the void, a step), looking at it, along it, up, down
 and crouched. Machines have measured some faults already. Your job is to
 look at the pictures, say what is wrong in them, and say what the machines
-got wrong. Read only the folder you were given, `docs/VISUAL_PLAYTEST.md`
-(what each detector means and what it misses), `docs/STYLE.md` (what the
-game should look like) and `docs/PILLARS.md`.
+got wrong. Read only the folder you were given, `docs/engineering/VISUAL_PLAYTEST.md`
+(what each detector means and what it misses), `docs/design/STYLE.md` (what the
+game should look like) and `docs/design/PILLARS.md`.
 
 The three kinds of fault:
 
@@ -49,7 +49,7 @@ How to work:
    wrong. Name what the detectors cannot measure: out of place, stretched
    or smeared textures, light that does not match, and anything broken.
    Where a look may be meant (a haze, a darkness), say which line of
-   `docs/STYLE.md` or `docs/PILLARS.md` it goes against and mark it a
+   `docs/design/STYLE.md` or `docs/design/PILLARS.md` it goes against and mark it a
    question for a person rather than a fault.
 4. For each fault, write one line:
    `KIND | view NAME | what you see, where in the frame | how bad: 3 breaks the illusion at a glance, 2 noticed when looking, 1 only when hunting, 0 not a fault (a false flag) | confidence: high, medium or low`.

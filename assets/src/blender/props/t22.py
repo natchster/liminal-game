@@ -1,4 +1,4 @@
-"""t22: small everyday things remodelled at their real sizes (docs/PROPS.md,
+"""t22: small everyday things remodelled at their real sizes (docs/design/PROPS.md,
 P3): cigarette butts stubbed out on the floor and their ash, cotton swabs
 spilled from their box, a scatter of paper clips, candy corn, a lightweight
 chandelle feather boa dropped on the floor, a child's pair of wooden

@@ -1,4 +1,4 @@
-//! Batch `t16`'s prop in this crate, made real (`docs/PROPS.md` P3, "toys
+//! Batch `t16`'s prop in this crate, made real (`docs/design/PROPS.md` P3, "toys
 //! stay toys"): the jump rope, a braided cotton skipping rope with turned
 //! beech handles, dropped in loose loops (`assets/src/blender/props/t16.py`,
 //! `t16.notes.md`). Its placer and what only it uses; it keeps the old

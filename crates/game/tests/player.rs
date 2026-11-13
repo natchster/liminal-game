@@ -1040,7 +1040,7 @@ fn took(ids: &[&str]) -> Vec<game::secrets::keeps::Took> {
     ids.iter().map(|w| game::secrets::keeps::Took { what: w.to_string(), level: 5, place: "corner".into() }).collect()
 }
 
-/// What you took changes you where it says (`docs/SECRETS.md` 5): a pale
+/// What you took changes you where it says (`docs/design/SECRETS.md` 5): a pale
 /// mushroom, smaller (the eye lower, eased in over a few seconds, the walk
 /// slower); the ration, a higher stamina ceiling; the medicine, nerve
 /// faster and stamina slower; the bag, the dark slower and leaving more;

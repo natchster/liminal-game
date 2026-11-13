@@ -55,7 +55,7 @@ saturated, nothing is lit from the player. A place is lit by its own fixtures
 ## Type (the screen's three voices)
 
 What the screen says is set in one of three voices, each with a reason
-(`crates/game/src/ui/faces.rs`, `docs/UI.md`):
+(`crates/game/src/ui/faces.rs`, `docs/design/UI.md`):
 
 - **The building:** Helvetica Neue, in mixed case, small, left-aligned.
   Menus, prompts, cards. Institutional type makes the uncanny routine.
@@ -136,9 +136,9 @@ its region's light far more than on its purpose** (an office wing runs from
 except the showroom (always lit) and storage halls (mostly dark). Change the
 bands only when the look of a purpose is meant to change, re-measure, and say
 why in the commit. (The luminance floors were re-measured on 2026-10-27, by
-the same rule rounded outward, when the HUD went to rest (`docs/UI.md` U5):
+the same rule rounded outward, when the HUD went to rest (`docs/design/UI.md` U5):
 its always-on bars and capitals had lifted every view's mean by about 0.01.)
-The Building's three places (`docs/MEGASTRUCTURE.md`) were measured by the
+The Building's three places (`docs/design/MEGASTRUCTURE.md`) were measured by the
 same rule when they came in (16 views each, B3; again when their lamps,
 railings and own air came in, B4): far darker than the rooms
 (their light is lamps and windows over a void, not fixtures on every other

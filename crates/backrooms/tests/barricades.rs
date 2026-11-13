@@ -1,4 +1,4 @@
-//! Barricades (`docs/PROPS.md` 2): each closes a real opening, as people
+//! Barricades (`docs/design/PROPS.md` 2): each closes a real opening, as people
 //! would, and the floor stays whole round it.
 //!
 //!   cargo test --release -p backrooms --test barricades -- --nocapture

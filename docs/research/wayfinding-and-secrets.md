@@ -138,7 +138,7 @@ From these, a mark reads as a person's when it has:
    - "show players a goal or destination before they can get there" ([Smith](https://www.gamedeveloper.com/design/postmortem-ion-storm-s-i-deus-ex-i-));
    - "just enough hints to show that something's there" ([Rayman](https://www.gamedeveloper.com/design/secrets-design-in-rayman-legends)).
 2. **Teach the tell early and keep it.** Breaking the taught rules is a fault ([Rayman](https://www.gamedeveloper.com/design/secrets-design-in-rayman-legends)).
-3. **Keep secrets off the critical path, but not off the map.** Nudge players toward optional areas ([eev.ee](https://eev.ee/blog/2015/12/30/you-should-make-a-doom-level-part-2/)). Dead ends should pay ([MEGASTRUCTURE.md](../MEGASTRUCTURE.md)).
+3. **Keep secrets off the critical path, but not off the map.** Nudge players toward optional areas ([eev.ee](https://eev.ee/blog/2015/12/30/you-should-make-a-doom-level-part-2/)). Dead ends should pay ([MEGASTRUCTURE.md](../design/MEGASTRUCTURE.md)).
 4. **Contrast required, optional and secret space** ([Romero via eev.ee](https://eev.ee/blog/2015/12/30/you-should-make-a-doom-level-part-2/)).
 5. **Reward in proportion to effort.** *Quake*'s secrets hold shells, armour, health or Quad Damage ([Quake Wiki](https://quakewiki.org/wiki/E1M1)). No page I opened states the rule outright **[unverified]**.
 6. **If players start pressing every wall, adjust.** Either the tell is too weak or the reward too strong **[est]**.

@@ -1,4 +1,4 @@
-//! The windows of the rooms (`docs/WINDOWS.md`): real windows cut into real
+//! The windows of the rooms (`docs/design/WINDOWS.md`): real windows cut into real
 //! walls, onto an outside the rooms do not have.
 //!
 //! A row of windows is chosen in the level's build (`place_windows`, a few
@@ -41,7 +41,7 @@ pub const HUM_REACH: f64 = 7.0;
 /// (`Material::portal`'s slab): behind the outermost glass and bars, m
 pub const SLAB: f64 = 0.018;
 
-/// The two kinds of window (`docs/WINDOWS.md` 1)
+/// The two kinds of window (`docs/design/WINDOWS.md` 1)
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kind {
     /// fixed lights between aluminium mullions over convectors (offices)

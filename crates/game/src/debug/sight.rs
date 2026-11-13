@@ -1,4 +1,4 @@
-//! The visual playtest's pixel detectors (`docs/VISUAL_PLAYTEST.md` VP2):
+//! The visual playtest's pixel detectors (`docs/engineering/VISUAL_PLAYTEST.md` VP2):
 //! what a view's bare renders say. Two renders cleared to different colours
 //! differ only where the background shows (the colour filter runs over the
 //! whole frame, so the background is found by the difference, never by its

@@ -1,5 +1,5 @@
 //! Batch `t07`'s wall coat rack and upright vacuum cleaner, made real
-//! (`docs/PROPS.md` P3): their placers and what only they use.
+//! (`docs/design/PROPS.md` P3): their placers and what only they use.
 use super::*;
 use t07_kit::*;
 

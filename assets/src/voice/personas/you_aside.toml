@@ -1,11 +1,11 @@
-# What you say to yourself: you, under your breath (docs/VOICES.md, Your
+# What you say to yourself: you, under your breath (docs/design/VOICES.md, Your
 # asides).
 #
 # The same man who cries for help (personas/you.toml), in another
 # register: a few words to himself on arriving, at a sudden noise, at what
 # comes, at what the place does back. His voice, never one of its own
 # (voice.same_as: every line cloned from personas/you.wav). Never a
-# narrator, never a guide (docs/LORE.md, "How canon reaches the player").
+# narrator, never a guide (docs/design/LORE.md, "How canon reaches the player").
 id = "you_aside"
 name = "You, under your breath"
 used_for = "your asides: what you say to yourself, chosen by the voice director (audio::asides)"

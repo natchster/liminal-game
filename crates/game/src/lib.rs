@@ -18,7 +18,7 @@
 //!   Loop.
 //! * [`player`] — input actions, movement, item use and player-side gadgets.
 //! * [`cutscene`] — cutscenes as data: the library, its rules, the camera's
-//!   curves (`docs/CUTSCENES.md`).
+//!   curves (`docs/design/CUTSCENES.md`).
 //! * [`audio`] — sound effects, persistent beds, the spatial soundscape and
 //!   ambient events.
 //! * [`visuals`] — lighting, procedural textures and surfaces, full-screen

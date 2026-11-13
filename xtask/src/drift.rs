@@ -8,9 +8,9 @@
 //! Runs the full `cargo xtask check` (or, with `--skip-check`, reads the logs
 //! of the last one in `target/xtask/check/`), then:
 //!
-//! - writes each content entry's pass state into `docs/content.json`
+//! - writes each content entry's pass state into `docs/plan/content.json`
 //!   (`passes`, `last_checked`) from the test, shot and range results;
-//! - rewrites the *Latest sweep* section of `docs/QUALITY.md` (between the
+//! - rewrites the *Latest sweep* section of `docs/plan/QUALITY.md` (between the
 //!   `drift:begin` / `drift:end` markers): every step, the shots, the range,
 //!   the performance, the files nearing the size cap, the content that is
 //!   failing, and how many regressions people caught that no gate did (the
@@ -87,7 +87,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
     // ---- the ledger
     let date =
         Command::new("date").arg("+%Y-%m-%d").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
-    let ledger_path = root().join("docs/content.json");
+    let ledger_path = root().join("docs/plan/content.json");
     let mut ledger = read_json(&ledger_path);
     let mut failing = vec![];
     if let Some(entries) = ledger["entries"].as_array_mut() {
@@ -138,7 +138,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
         sizes.iter().take(5).map(|(n, f)| format!("`{f}` {n} ({:.0}% of the cap)", *n as f64 / MAX_LINES as f64 * 100.0)).collect();
 
     // ---- the steering loop: regressions people caught that no gate did
-    let quality_path = root().join("docs/QUALITY.md");
+    let quality_path = root().join("docs/plan/QUALITY.md");
     let quality = std::fs::read_to_string(&quality_path).map_err(|e| e.to_string())?;
     let caught = quality
         .split("## Caught by people")
@@ -190,7 +190,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
     let report = format!("# Drift sweep {date}\n\n{sweep}\n## Check output\n\n```\n{check_summary}\n```\n\n## Range\n\n```\n{range}\n```\n\n## Performance\n\n```\n{bench}\n```\n");
     std::fs::write(out.join("report.md"), &report).map_err(|e| e.to_string())?;
     print!("{sweep}");
-    println!("\nwrote docs/content.json (passes), docs/QUALITY.md (Latest sweep) and target/xtask/drift/report.md");
+    println!("\nwrote docs/plan/content.json (passes), docs/plan/QUALITY.md (Latest sweep) and target/xtask/drift/report.md");
     Ok(())
 }
 
@@ -215,7 +215,7 @@ pub fn nightly(_args: &[String]) -> Result<(), String> {
         failed.push("bench (recorded in perf/history.csv)".into());
     }
     if failed.is_empty() {
-        println!("nightly: all passed; commit docs/content.json, docs/QUALITY.md and perf/history.csv");
+        println!("nightly: all passed; commit docs/plan/content.json, docs/plan/QUALITY.md and perf/history.csv");
         Ok(())
     } else {
         Err(failed.join("; "))

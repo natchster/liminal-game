@@ -176,7 +176,7 @@ pub static LORE_ENTRIES: [LoreEntry; 59] = [
     LoreEntry { id: 49, title: "Count the Doors", body: "Count the doors going in. Then count them back out. I stopped counting and now I don't know which way is out.", scp: Some("loop") },
     LoreEntry { id: 50, title: "The Plant", body: "I left a marker by the plant. Next time round the plant was on the other side of the room. The marker wasn't.", scp: Some("loop") },
     LoreEntry { id: 51, title: "The First Room", body: "There was a door in the first room. There was. I keep going round to check and the rooms keep getting worse.", scp: Some("loop") },
-    // the Building's (`docs/MEGASTRUCTURE.md`): they lie only on its floors
+    // the Building's (`docs/design/MEGASTRUCTURE.md`): they lie only on its floors
     LoreEntry { id: 52, title: "Notice to Residents", body: "IN THE EVENT OF A SELF-ASSEMBLY: go into the nearest cell. Turn the wheel until it stops. Do not open the door until the long tone. Do not open the door to anyone, and answer no knock until it is over. If the wheel turns, hold it. Do not knock where the cleaners have marked. The Building cares for you.", scp: Some("building") },
     LoreEntry { id: 53, title: "Cell Plate", body: "CELL 412-C. FOUR PERSONS. KEEP THE WHEEL CLEAN. KEEP THE BENCH CLEAR.", scp: Some("building") },
     LoreEntry { id: 54, title: "Cleaning Log", body: "Storey 1430 cleaned. 1431 to 1434 poured, the stairs with them. Two doors did not answer: marked. One of us knocked at one after, by mistake. It knocked back the way he had knocked. The siren before we were at the stairs. Not entered.", scp: Some("building") },

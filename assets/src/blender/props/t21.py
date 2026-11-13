@@ -1,4 +1,4 @@
-"""t21: four larger rare things made real (Props P3, docs/PROPS.md): a brass
+"""t21: four larger rare things made real (Props P3, docs/design/PROPS.md): a brass
 candle lantern hanging on its chain, a small drop-front desk, a ten-gallon
 aquarium on its stand left for years, and a leaded stained glass panel in a
 frame on a wall. Sources and sizes: t21.notes.md.

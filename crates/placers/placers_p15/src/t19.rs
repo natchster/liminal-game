@@ -1,4 +1,4 @@
-//! Batch `t19`'s silhouette, made real (`docs/PROPS.md` P3; the Blender
+//! Batch `t19`'s silhouette, made real (`docs/design/PROPS.md` P3; the Blender
 //! batch `assets/src/blender/props/t19.py`, its notes `t19.notes.md`): a
 //! bust in profile cut from black paper and laid on cream card, under glass
 //! in a small oval frame of turned pearwood (ebonised, stained or gilt, the

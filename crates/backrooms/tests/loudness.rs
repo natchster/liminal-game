@@ -62,7 +62,7 @@ fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
 const SR: u32 = 48000;
 /// The scenarios: run seed, level, seconds (creatures held still).
 // (rooms levels at the depths the scenarios were made for: the Building's
-// floors came above them, `docs/MEGASTRUCTURE.md`)
+// floors came above them, `docs/design/MEGASTRUCTURE.md`)
 const SCENARIOS: &[(u32, i32, f64)] = &[(4242, 6, 120.0), (77, 8, 120.0), (9001, 11, 120.0)];
 /// Integrated loudness may move this far from the recording.
 const DRIFT_LU: f64 = 1.0;

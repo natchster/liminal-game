@@ -1,4 +1,4 @@
-//! The figures across the void (`docs/MEGASTRUCTURE.md`, design 7; after the
+//! The figures across the void (`docs/design/MEGASTRUCTURE.md`, design 7; after the
 //! figures on the far ridge of SCP-3333 "Tower" by Jekeled, CC BY-SA 3.0):
 //! now and then, off across the void on a floor of the Building, someone
 //! stands where no walk reaches (on a gallery of another storey in the Well,
@@ -109,7 +109,7 @@ impl Game {
     /// down (`far_figure_geometry`), one piece in his own colours, lit by
     /// the place's light like everything else: far off, a muted shape a
     /// little paler than the concrete behind it (a dark coat was lost in
-    /// the Building's dark: `docs/MEGASTRUCTURE.md` G7)
+    /// the Building's dark: `docs/design/MEGASTRUCTURE.md` G7)
     fn make_far_figure(&self) -> Obj {
         let g = group();
         if let Some(geo) = far_figure_geometry() {

@@ -1,5 +1,5 @@
 """r13b: things hung on a wall and rugs, remodelled at their real sizes
-(docs/PROPS.md, P2): the wall coat hook (on its oak block), the corn broom
+(docs/design/PROPS.md, P2): the wall coat hook (on its oak block), the corn broom
 hung by its handle's hole, the bib apron hung by its neck strap, the area
 rug rolled up and tied, and the scatter rug on the floor. Sources and sizes:
 r13b.notes.md.

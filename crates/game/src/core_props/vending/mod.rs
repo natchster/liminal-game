@@ -1,4 +1,4 @@
-//! The vending machine (`docs/VENDING.md`): a glass-front spiral snack
+//! The vending machine (`docs/design/VENDING.md`): a glass-front spiral snack
 //! machine against a wall, one on most floors of the rooms, still on or
 //! long dead. Its body is `model` (Blender parts of batch `v01`, merged by
 //! material), its goods `goods`, what is printed on it `paint`, and what

@@ -1,4 +1,4 @@
-//! Batch `t20`'s fireside bellows, made real (`docs/PROPS.md` P3; the
+//! Batch `t20`'s fireside bellows, made real (`docs/design/PROPS.md` P3; the
 //! Blender batch `assets/src/blender/props/t20.py`, its notes
 //! `t20.notes.md`): an English oak and leather bellows of about 1880, 45 cm
 //! overall, lying on its back on the floor. It keeps the old placer's

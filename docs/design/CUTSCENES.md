@@ -5,8 +5,8 @@ that stores, plays and tests a cutscene, the clue that your hands are
 taken, the pipeline that makes one, and the first three uses (the way in
 from the title, looking into a broken lift's shaft, and dying). The
 pillars it serves are in [`PILLARS.md`](PILLARS.md); the research behind
-it is in [`research/cutscenes.md`](research/cutscenes.md), summed up in
-[`SOURCES.md`](SOURCES.md) section 17.
+it is in [`../research/cutscenes.md`](../research/cutscenes.md), summed up in
+[`SOURCES.md`](../research/SOURCES.md) section 17.
 
 ## The analysis (2026-11-11)
 
@@ -28,7 +28,7 @@ for where the camera ends, or reused.
 
 ## What the research says
 
-Section 17 of [`SOURCES.md`](SOURCES.md) has the sources; in short:
+Section 17 of [`SOURCES.md`](../research/SOURCES.md) has the sources; in short:
 
 - **Store tracks of keys, and say what is left at the end.** Unreal's
   Sequencer and Unity's Timeline keep keyed curves and events, and each

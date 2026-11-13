@@ -1,4 +1,4 @@
-//! Your asides (`docs/VOICES.md`, *Your asides*): what you say to yourself,
+//! Your asides (`docs/design/VOICES.md`, *Your asides*): what you say to yourself,
 //! under your breath, on arriving, at a sudden noise, at what comes and at
 //! what the place does back. A director of their own decides, after the
 //! pacing director's pattern and Valve's dynamic dialog

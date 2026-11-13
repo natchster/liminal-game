@@ -1,4 +1,4 @@
-"""t20: a study's rare things (Props P3, docs/PROPS.md): a fireside bellows,
+"""t20: a study's rare things (Props P3, docs/design/PROPS.md): a fireside bellows,
 a floor globe on its stand, an orrery, a chess table with its board and
 pieces, a Chinese abacus, a humidor and its cigars, a hunter-case pocket
 watch on its chain and a child's hand-crank music box. Sources and sizes:

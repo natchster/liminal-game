@@ -1,5 +1,5 @@
 //! The menus: a short list of plain words at the lower left, over the
-//! place (`docs/UI.md`, designs 3 and 4). The title is a live view of the
+//! place (`docs/design/UI.md`, designs 3 and 4). The title is a live view of the
 //! lobby with Continue, New descent, Settings and Quit; the pause list sits
 //! over the frozen frame. A list is worked with the arrows / W S and Enter
 //! / E / Space (and ← → on a setting), or hovered and clicked; Escape goes
@@ -370,7 +370,7 @@ impl Game {
     /// The title's view of the floor, per frame: the camera a few metres
     /// out along the way from where you begin (`title_view`), turning
     /// slowly one way and back, as if someone stood there looking; New
-    /// descent walks from there into your eyes (`docs/CUTSCENES.md`).
+    /// descent walks from there into your eyes (`docs/design/CUTSCENES.md`).
     pub fn update_title_view(&mut self, dt: f64) {
         if self.menu.view_t == 0.0 {
             let (pos, yaw) = self.title_view();

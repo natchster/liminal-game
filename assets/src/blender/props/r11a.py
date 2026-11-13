@@ -1,5 +1,5 @@
 """r11a: the marks of the common floors and the dust that gathers on them
-(docs/PROPS.md, P2). Sources and sizes: r11a.notes.md.
+(docs/design/PROPS.md, P2). Sources and sizes: r11a.notes.md.
 
 The marks (a puddle under a drip, claw marks gouged into a wall, a chalk
 arrow, a hand's grime on a wall) are painted in the game, soft and uneven,

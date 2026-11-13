@@ -1,5 +1,5 @@
 //! Batch `t14`'s doll's head and its arms and legs, made real
-//! (`docs/PROPS.md` P3; the Blender batch `assets/src/blender/props/t14.py`,
+//! (`docs/design/PROPS.md` P3; the Blender batch `assets/src/blender/props/t14.py`,
 //! its notes `t14.notes.md`): a vinyl baby doll's (batch `r03`'s) head and
 //! limbs come off at their joints, found on the floor. Their placers and
 //! what only they use; each keeps the old placer's draws, call for call.

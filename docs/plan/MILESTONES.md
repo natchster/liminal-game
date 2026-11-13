@@ -85,7 +85,7 @@ a code and design review. All done on 2026-11-13: see
 | review B | Code and design review of VP6 on |
 
 What the Building's visual playtest left open
-(`docs/playtests/visual/2026-11-13-building-1-3.md`), gathered on
+(`docs/research/playtests/visual/2026-11-13-building-1-3.md`), gathered on
 2026-11-13 by its review B. Each ends in the tour again on the floors it
 touched (`visual-playtest`) and, for a change of look, a blind review.
 
@@ -94,6 +94,27 @@ touched (`visual-playtest`) and, for a change of look, a blind review.
 | 15 | **F7, the lamp posts stop a body.** The Stair Halls' and the Works' posts (`building_lamps`, a 7 cm box under each lamp that hangs from no wall) stand 35 cm off the edge a body walks along, and a body walks through them (the record's camera `s4242 L2_1031_at`). A real post stops you: its box goes into the solids where the post is stood (`set_solids_now`), the lamp and its light where they are (no light map, golden or draw moves). Gates: the reference levels re-recorded for the solids alone, the level sweep, the pacing bot over the Building's floors, the tour again on levels 2 and 3 (the clips at the posts gone, the stands now stopped by them) |
 | 16 | **F4, the Building's metalwork a picture of its own.** The cell door (leaf, frame, wheel, hood, plaque), the Works' rails, posts, pipes and flanges, the lamp posts and the exit door are flat paint among photographed concrete and granite. The props' settled look laid on them was not preferred (VP10: after 0, before 2, tie 5). A painted-steel picture from a CC0 photograph through `build.py` (worn at edges and foot), mapped as the Building's photographs are; kept only if a blind review prefers it (`visual-review`, the record's cameras) |
 | 17 | **F5, the photographs at inside corners.** A facade photograph (one repeat in 16 m) seen from 35 cm beside a finer one is magnified to blotches, and its marks repeat corner after corner. The Building's kinds have no close-range detail (`photo::detail_for`); give them one, first trying the rooms' concrete detail mapped onto them, else a CC0 photograph through `build.py detail`; kept only if a blind review at reachable corners prefers it (the record's three corner cameras) |
+
+The repository's structure (GitHub issues
+[#3](https://github.com/natchster/liminal-game/issues/3), the docs, and
+[#2](https://github.com/natchster/liminal-game/issues/2), the assets),
+gathered on 2026-11-13. Nothing a player sees or hears changes: each step
+is held to the same output (the placers' fingerprints, the reference
+levels, the goldens, the props' Blender build part for part). After the
+fifth and at the end, a code and design review.
+
+| # | Milestone |
+|---|---|
+| O1 | **The docs sorted by kind**: `design/`, `research/`, `plan/`, `engineering/`, an index, the rule in `CLAUDE.md`, held by `tests/structure.rs` (the root holds the index and the four folders; every `docs/…` path named exists; every link resolves) |
+| O2 | **The plans out of the design docs**: each design doc's milestones, progress and what it left open into `plan/<topic>.md`, the design doc naming its plan (closes #3) |
+| O3 | **One placer registry**: the 33-line list copied into the game and 17 tests becomes `placers::register_all`; a fingerprint of every placer's output, recorded |
+| O4 | **One placer kit**: the helpers copied from crate to crate (noise, painting, placing; 659 copies of 145 names, 250 different) kept once |
+| O5 | **The placers by theme**: a crate per theme (`crates/placers/<theme>/`), a module per placer |
+| review A | Code and design review of O1–O5 |
+| O6 | **The props' Blender sources by theme**: `assets/src/props/<theme>/`, a file per prop, its notes beside it |
+| O7 | **The placers' lints back on**: the blanket `allow(clippy::all, unused_…)` gone, no draw moved |
+| O8 | **The props in Blender**: a `.blend` per theme to open and look at; the asset docs (closes #2) |
+| review B | Code and design review of O6–O8 |
 
 ## Done
 

@@ -1,4 +1,4 @@
-//! The Building's floors (`level::building`, `docs/MEGASTRUCTURE.md` B2):
+//! The Building's floors (`level::building`, `docs/design/MEGASTRUCTURE.md` B2):
 //! deterministic, every walk reachable, heights that change only along a
 //! flight or across a mass or a void, the door the far low point, and the
 //! navigation measures in their bands over many seeds. Map dumps of a dozen

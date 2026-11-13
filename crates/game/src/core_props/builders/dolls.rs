@@ -4,7 +4,7 @@ use super::*;
 
 /// The classic bath duck (Blender batch `r03`): blow-moulded vinyl, 9 cm
 /// from tail to bill, its yellow faded and grimed, the bill's paint chipped
-/// back to the vinyl, the painted eyes yellowed (docs/PROPS.md)
+/// back to the vinyl, the painted eyes yellowed (docs/design/PROPS.md)
 pub fn build_rubber_duck(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
     use crate::assets::props::prop_part_as_modelled;
@@ -89,7 +89,7 @@ fn duck_bill_tex() -> Tex {
 /// and an open mouth for its bottle; chubby bent vinyl arms and legs; a cloth
 /// body in a faded cotton romper with a Peter Pan collar. The vinyl yellowed
 /// and grimed, the paint rubbed, a child's ballpoint on its brow
-/// (docs/PROPS.md)
+/// (docs/design/PROPS.md)
 pub fn build_baby_doll(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
     use crate::assets::props::prop_part_as_modelled;

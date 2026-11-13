@@ -1,4 +1,4 @@
-//! `cargo xtask cutscene`: the cutscene pipeline (`docs/CUTSCENES.md`).
+//! `cargo xtask cutscene`: the cutscene pipeline (`docs/design/CUTSCENES.md`).
 //!
 //! ```text
 //! cargo xtask cutscene check     the sources against the format, the bundle against the sources,
@@ -24,7 +24,7 @@ use std::path::{Path, PathBuf};
 const USAGE: &str = "usage: cargo xtask cutscene check | write | list | preview ID [--stage S] [--every SECONDS]";
 
 /// The bundle's own line
-const ABOUT: &str = "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/CUTSCENES.md).";
+const ABOUT: &str = "Every cutscene, compiled by `cargo xtask cutscene write` from assets/src/cutscenes/*.toml (every field written out). Do not edit: change the source and write it again (docs/design/CUTSCENES.md).";
 
 pub fn cutscene(args: &[String]) -> Result<(), String> {
     match args.first().map(String::as_str) {

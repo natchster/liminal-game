@@ -1,4 +1,4 @@
-//! Batch `t07`'s opened suitcase, made real (`docs/PROPS.md` P3): its
+//! Batch `t07`'s opened suitcase, made real (`docs/design/PROPS.md` P3): its
 //! placer and what only it uses (the suitcase and the clothes are r02's).
 use super::*;
 use t07_kit::{fill, mix, salt};

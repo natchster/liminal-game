@@ -1,5 +1,5 @@
 """t03: the washroom shelf and the dressing table's leavings (Props P3,
-docs/PROPS.md): a glass shelf on its clamps with the bottles left on it, a
+docs/design/PROPS.md): a glass shelf on its clamps with the bottles left on it, a
 shower cap dropped on the floor, a powder compact, two kinds of perfume
 bottle and a makeup sponge. (The nail polish is batch r18's.) Sources and
 sizes: t03.notes.md.

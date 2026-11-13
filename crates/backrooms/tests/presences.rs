@@ -1,4 +1,4 @@
-//! What is seen across the Building's void (`docs/MEGASTRUCTURE.md`, B7;
+//! What is seen across the Building's void (`docs/design/MEGASTRUCTURE.md`, B7;
 //! `game::world::far_figures`): a figure far off where no walk reaches, who
 //! turns its back when looked at and is gone when you look away, and never
 //! lets you near; the door's light seen from the arrival; the Well's lift

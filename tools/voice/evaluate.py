@@ -1,4 +1,4 @@
-"""Checks a voice take (docs/VOICES.md, The evaluation).
+"""Checks a voice take (docs/design/VOICES.md, The evaluation).
 
 Runs in tools/voice/eval (`uv run --locked --project tools/voice/eval`);
 `cargo xtask voice` calls it. Every model is loaded from the Hugging Face

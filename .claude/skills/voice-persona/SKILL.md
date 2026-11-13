@@ -6,11 +6,11 @@ description: Make or change a voice persona in The Backrooms (who speaks, the vo
 # Make or change a voice persona
 
 A persona is who speaks: one voice, kept the same across all its lines
-(`docs/VOICES.md`). You cannot hear; the machine screens, a person decides.
+(`docs/design/VOICES.md`). You cannot hear; the machine screens, a person decides.
 
-1. **Brief against the canon.** Read `docs/LORE.md` (*How canon reaches
+1. **Brief against the canon.** Read `docs/design/LORE.md` (*How canon reaches
    the player*: no narrator, ever; a voice is heard from a place or is your
-   own) and `docs/PILLARS.md`. Say who the persona is, where the game plays
+   own) and `docs/design/PILLARS.md`. Say who the persona is, where the game plays
    them, and what the game never says about them. **Never a real person**:
    no names, no "sounds like", no recordings of anyone.
 2. **The toolchain.** `cargo xtask voice doctor` passes (if not:
@@ -56,9 +56,9 @@ A persona is who speaks: one voice, kept the same across all its lines
    `assets/src/voice/personas/<id>.<emotion>.wav`, and that emotion's lines
    are cloned from it. The first persona's terror is made so (Chatterbox's
    screams went from arousal 0.4 to 0.9).
-6. **The profile** in `docs/VOICES.md` (*Personas*: who, from, never said,
+6. **The profile** in `docs/design/VOICES.md` (*Personas*: who, from, never said,
    voice, tone, emotions, lines, targets, reference), and in
-   `docs/LORE.md` where the persona touches the canon (one line in the
+   `docs/design/LORE.md` where the persona touches the canon (one line in the
    section the game plays them in, through a channel the canon allows).
 7. **Gates and evidence.**
    - `cargo test -p xtask voice` (the files), `cargo xtask voice doctor`.

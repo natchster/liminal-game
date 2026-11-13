@@ -1,4 +1,4 @@
-//! The one behind the glass (`docs/WINDOWS.md` 4): someone in a pale
+//! The one behind the glass (`docs/design/WINDOWS.md` 4): someone in a pale
 //! raincoat, the hood up, standing far out on the track one window of a
 //! floor looks out on. *Do not stare out of a window too long.*
 //!
@@ -37,7 +37,7 @@
 //! SCP-3052 (Witryso), SCP-L682 (CRAt26) and the Backrooms wiki's Entity 2
 //! "The Windows" (u/glassydude101, rewritten by DrAkimoto), all CC BY-SA
 //! 3.0: this file and what it draws on them are CC BY-SA 3.0 and keep this
-//! attribution (`docs/LORE.md`, Attribution). Kunekune (a motif); Gogol's
+//! attribution (`docs/design/LORE.md`, Attribution). Kunekune (a motif); Gogol's
 //! *Viy* and Brontë's *Wuthering Heights* (public domain).
 use crate::base::numeric::hypot2;
 use crate::core_props::window::view::GROUND;

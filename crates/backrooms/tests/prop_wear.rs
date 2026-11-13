@@ -1,5 +1,5 @@
 //! Wear by use is the thing's own (`game::visuals::prop_look`,
-//! `docs/PROPS.md` P4; code review 2): how much a prop is handled and
+//! `docs/design/PROPS.md` P4; code review 2): how much a prop is handled and
 //! chipped, and the floor its low bands are measured from, are set on its
 //! meshes (`Node::use_wear`), never kept on a material, since materials are
 //! shared between props and some across levels (`SharedMats`: the exit

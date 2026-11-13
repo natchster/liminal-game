@@ -1,4 +1,4 @@
-//! Batch `t07`'s smoking ashtray, made real (`docs/PROPS.md` P3): its
+//! Batch `t07`'s smoking ashtray, made real (`docs/design/PROPS.md` P3): its
 //! placer and what only it uses.
 use game::prelude::*;
 use t07_kit::*;

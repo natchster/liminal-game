@@ -1,4 +1,4 @@
-//! The self-assembly (`docs/MEGASTRUCTURE.md`, design 4): what comes on
+//! The self-assembly (`docs/design/MEGASTRUCTURE.md`, design 4): what comes on
 //! the Building's floors, from far off. Nothing walks there; instead, now
 //! and then, a siren from the loudspeakers on the walls, and out of the
 //! void below a violet fog rises, its surface seen from above, the lamps
@@ -21,7 +21,7 @@ use crate::prelude::*;
 
 // (G2: every time here is half the first pass's, as a floor of the
 // Building is half as long to cross: the event and its rhythm twice as
-// quick, so a floor crossed at a walk meets its siren; `docs/MEGASTRUCTURE.md`)
+// quick, so a floor crossed at a walk meets its siren; `docs/design/MEGASTRUCTURE.md`)
 /// How long the siren sounds before the fog reaches the lowest walk, s (a
 /// cell is always within a walk of 0.43 of it: `level::building::CELL_REACH`)
 pub const WARNING: f64 = 21.0;

@@ -5,14 +5,14 @@ description: Add or change a creature in The Backrooms: brief against canon and 
 
 # Add or change a creature
 
-The plan and the rules every creature keeps are in `docs/ENTITIES.md`
+The plan and the rules every creature keeps are in `docs/design/ENTITIES.md`
 (design 1–9) and `.claude/rules/entities.md`; read both first.
 
-1. **Brief.** Write the creature into `docs/LORE.md` (*Things that live
-   here*) and its design into `docs/ENTITIES.md` (design 1): one sense it
+1. **Brief.** Write the creature into `docs/design/LORE.md` (*Things that live
+   here*) and its design into `docs/design/ENTITIES.md` (design 1): one sense it
    finds you by, one counter it is beaten by, its role, the place it lives,
    its sound, what it learns. Ask `lore-keeper` to check the brief. Quote the
-   pillar rules it serves (`docs/PILLARS.md` 4 and 5).
+   pillar rules it serves (`docs/design/PILLARS.md` 4 and 5).
 2. **Body.** `assets/src/creatures/body_<kind>.py` (a person from
    MakeHuman's CC0 base: `hm08.py`, `human.py`, `anatomy.py`; cloth:
    `cloth.py`), posed so the pose is the rest pose; paint by the bone each
@@ -21,7 +21,7 @@ The plan and the rules every creature keeps are in `docs/ENTITIES.md`
    body, 25k a creature. `cargo xtask assets creatures --write` builds
    `bodies.bin` (every body: the others must come out `same`); look at the
    previews in `target/xtask/assets/creatures/`. Eyes catch your lamp as
-   eyeshine, they do not glow (`docs/STYLE.md`).
+   eyeshine, they do not glow (`docs/design/STYLE.md`).
 3. **Brain.** `crates/game/src/entities/<kind>.rs`: its `DATA`
    (`KindData`), `think` (one `Mode` at a time, each change logged with its
    reason), `animate`, `voice`, `call`; register it in
@@ -64,12 +64,12 @@ The plan and the rules every creature keeps are in `docs/ENTITIES.md`
    check with the `add-sound` skill's gates.
 10. **Gates.** `cargo xtask check` (full); `tests/structure.rs` requires its
     goldens, its rules and its arena. `cargo xtask bench` records the pack.
-11. **Its death.** A creature's kill plays `death_taken` (`docs/CUTSCENES.md`):
+11. **Its death.** A creature's kill plays `death_taken` (`docs/design/CUTSCENES.md`):
     `on_death` poses it in your face (the Hound reared up: a kind of its own
     may want its own pose there) and its head is the cutscene's `killer`.
     Add `death:<kind>` to `assets/src/cutscenes/death_taken.toml`'s `stages`
     (`add-cutscene` step 7), `cargo xtask cutscene write`, and check its kill
     on it and its `<kind>_death` golden.
-12. **Ledger and review.** A `creature/<kind>` entry in `docs/content.json`;
+12. **Ledger and review.** A `creature/<kind>` entry in `docs/plan/content.json`;
     a blind review of its frames (`visual-review`); whether it frightens is
-    for fresh players (`docs/QUALITY.md`).
+    for fresh players (`docs/plan/QUALITY.md`).

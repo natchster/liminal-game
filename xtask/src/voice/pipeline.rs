@@ -1,4 +1,4 @@
-//! The pipeline (`docs/VOICES.md`, V3): a persona's reference voice, its
+//! The pipeline (`docs/design/VOICES.md`, V3): a persona's reference voice, its
 //! lines' takes, and the chosen takes into the game's assets.
 //!
 //! ```text
@@ -655,7 +655,7 @@ fn emotion_reference(p: &Persona, e: &str, args: &[String]) -> Result<(), String
 }
 
 /// `voice bakeoff`: the evaluation's reports for a persona side by side,
-/// one row a model that has one (`docs/VOICES.md`, *The bake-off*)
+/// one row a model that has one (`docs/design/VOICES.md`, *The bake-off*)
 pub fn bakeoff(args: &[String]) -> Result<(), String> {
     let p = persona_arg(args)?;
     println!("| Model | Lines with a passing take | Takes passing | Mean voice similarity | Checks failed |");

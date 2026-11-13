@@ -1,4 +1,4 @@
-"""r06: five everyday wall props remodelled at their real sizes (docs/PROPS.md,
+"""r06: five everyday wall props remodelled at their real sizes (docs/design/PROPS.md,
 P1): the hole kicked through a wall, the rusted pipe run, the weathered
 posters, the fire alarm pull station and the coat hook rail. Sizes and
 sources: r06.notes.md.

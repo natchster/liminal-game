@@ -1,4 +1,4 @@
-//! Batch `t18`'s occult things of this crate, made real (`docs/PROPS.md`
+//! Batch `t18`'s occult things of this crate, made real (`docs/design/PROPS.md`
 //! P3, "the party and the shrine"): what a person brought and left, never a
 //! glowing or working device (`assets/src/blender/props/t18.py`,
 //! `t18.notes.md`): a fan of tarot cards (the Rider deck's faces, its

@@ -73,7 +73,7 @@ pub struct InstanceData {
 }
 
 /// How a thing is worn by use, the thing's own (not its material's: a
-/// material is shared by many things, `docs/PROPS.md` P4). It scales the
+/// material is shared by many things, `docs/design/PROPS.md` P4). It scales the
 /// wear by use of a material that takes it (`Material::wear_use`): the game
 /// sets it on every mesh of a prop as it settles the prop's look; anything
 /// else keeps the default (handled as furniture, the floor at 0)

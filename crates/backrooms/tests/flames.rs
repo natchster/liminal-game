@@ -1,4 +1,4 @@
-//! What still burns (`docs/LORE.md`): the place's own flames, the three
+//! What still burns (`docs/design/LORE.md`): the place's own flames, the three
 //! candles on the bench (the safe room) and the candles a haunted floor
 //! leaves, are never on the Lobby nor on a floor with rules of its own (the
 //! Showroom, the Borrowed House, the floors whose door opens on the

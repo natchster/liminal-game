@@ -1,4 +1,4 @@
-# Taken (docs/CUTSCENES.md, C7): a creature's killing touch. It is in your
+# Taken (docs/design/CUTSCENES.md, C7): a creature's killing touch. It is in your
 # face (posed there by on_death); your eyes go to its face at once, you
 # start back, and fall: the floor comes up and the view rolls, still on it,
 # standing over you; black, and the card. 1.4 s, as death always took; on
