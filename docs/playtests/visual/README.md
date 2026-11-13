@@ -30,4 +30,4 @@ A record holds, in this order:
 
 | Date | Scope | Findings | Fixed |
 |---|---|---|---|
-| 2026-11-13 | [the Building, levels 1–3, seeds 4242 and 7](2026-11-13-building-1-3.md) | F1 door frames fight the piers; F2, F3's clip (withdrawn: the tour's body); F3, F4 the metalwork and the exit door flat; F5 the photographs at corners; F6 the rail posts; F7 the lamp posts walked through | F1, F6 (and the gaps detector); F4 tried, not preferred; F4, F5, F7 open |
+| 2026-11-13 | [the Building, levels 1–3, seeds 4242 and 7](2026-11-13-building-1-3.md) | F1 door frames fight the piers; F2, F3's clip (withdrawn: the tour's body); F3, F4 the metalwork and the exit door flat; F5 the photographs at corners; F6 the rail posts; F7 the lamp posts walked through; F8 a flight's steps through its parapet | F1, F6, F8 (and the gaps detector); F4 tried, not preferred; F7, F4, F5 queued (`MILESTONES.md` 15–17) |

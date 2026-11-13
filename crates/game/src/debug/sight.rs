@@ -40,10 +40,14 @@ const RAY_STEP: f64 = 0.05;
 /// would graze that; a hole or a crack sends its rays far deeper. Further
 /// off the rim grows by `SPREAD` pixels' span: a far silhouette's edge
 /// pixel is part background, and its ray, through the pixel's middle,
-/// grazes the mass by up to half a pixel (6 cm at 35 m: the Building's
-/// tour flagged every far edge so)
+/// grazes the mass by up to half a pixel (5 cm at 35 m: the Building's
+/// tour flagged every far edge so, 253 px at 0, none from 0.25). No more:
+/// at 2 the rim was 25 cm at 25 m, deeper than a floor slab's middle, and a
+/// hole in a far slab could never flag (review B,
+/// `a_gap_ray_still_meets_a_far_slab`). At 0.5 (64°, 400 rows) the rim is
+/// 9 cm at the reach: a hole in anything thicker than 17 cm is seen to it
 const RIM: f64 = 0.03;
-pub const SPREAD: f64 = 2.0;
+pub const SPREAD: f64 = 0.5;
 
 /// A connected patch of a mask
 #[derive(Clone, Debug, PartialEq)]

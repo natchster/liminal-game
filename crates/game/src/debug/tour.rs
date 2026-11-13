@@ -85,13 +85,17 @@ const EDGE_LOOKS: [(&str, f64, f64, bool); 6] = [
 const CORNER_LOOKS: [(&str, f64, f64, bool); 3] = [("at", 0.0, 0.0, false), ("up", 0.0, 45.0, false), ("down", 0.0, -50.0, false)];
 
 impl Game {
-    /// Whether a body can stand at (x, z): on the grid, off the wall tiles,
-    /// on ground that is walked (not the void, not a mass), and with its
-    /// circle clear of every solid as play moves it
+    /// Whether a body can stand at (x, z): on the grid, on ground that is
+    /// walked (not the void, not a mass), and with its circle clear of the
+    /// walls as play moves it: the solids where the level has them, else the
+    /// wall tiles. (A wall tile is no wall where there are solids: the
+    /// rooms' wall is a slab down its middle, and a body walks into the tile
+    /// to the slab's face. Refusing the tile stopped every stand of the
+    /// rooms 1.3 m short of its wall: `the_players_own_step_stops_at_the_tours_stands`)
     pub fn standable(&self, x: f64, z: f64) -> bool {
         let (tx, tz) = (self.tx(x), self.tz(z));
         self.in_grid(tx, tz)
-            && !self.is_wall_tile(tx, tz)
+            && (self.solids.is_some() || !self.is_wall_tile(tx, tz))
             && self.ground.get(self.t_idx(tx, tz)).is_none_or(|g| g.walkable())
             && !self.circle_hits_wall(x, z, BODY)
     }

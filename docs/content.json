@@ -116,14 +116,15 @@
         "shots:4242_L2_spawn",
         "shots:4242_L3_spawn",
         "test:backrooms/assembly",
-        "test:backrooms/building_floors"
+        "test:backrooms/building_floors",
+        "test:backrooms/visual_tour"
       ],
       "id": "building/floors",
       "kind": "system",
-      "last_checked": "2026-11-09",
+      "last_checked": "2026-11-13",
       "last_human_review": null,
       "name": "the Building's floors: heights, walks, flights, voids, cells (in booths over the void where no building is near), the rooms off the walks, a dead end that always holds something, the door seen from the arrival",
-      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question. Half as long since the second pass (G1: 28 tiles a side, the way a median 83-87 tiles, every band of tests/building.rs held). tests/building_floors.rs holds the way and what is off it on 72 floors (G3: every dead end holds something) and the rooms off the walks (G4: reached, closed, off the way, holding water or a battery; preferred blind 5 of 5 to the bare walls). The small faults of docs/MILESTONES.md 11 mended (the Works' pipes as runs, the Stair Halls' lanterns, no two lamps in one place, soffits under the flights, the rooms' ceiling, bench and furniture, a post over the panel joint in a Well room's back corners, a room darker than its walk), preferred blind 20 to 0 with 1 tie; tests/building_floors.rs keeps the lamps apart and the rooms darker than their walks.",
+      "notes": "Navigation measured, not judged: whether finding the way down is a puzzle or a chore is a playtest question. Half as long since the second pass (G1: 28 tiles a side, the way a median 83-87 tiles, every band of tests/building.rs held). tests/building_floors.rs holds the way and what is off it on 72 floors (G3: every dead end holds something) and the rooms off the walks (G4: reached, closed, off the way, holding water or a battery; preferred blind 5 of 5 to the bare walls). The small faults of docs/MILESTONES.md 11 mended (the Works' pipes as runs, the Stair Halls' lanterns, no two lamps in one place, soffits under the flights, the rooms' ceiling, bench and furniture, a post over the panel joint in a Well room's back corners, a room darker than its walk), preferred blind 20 to 0 with 1 tie; tests/building_floors.rs keeps the lamps apart and the rooms darker than their walks. The visual playtest (docs/playtests/visual/2026-11-13-building-1-3.md; tests/visual_tour.rs) toured every edge a body reaches on levels 1-3 of two runs: the cell doors' frames no longer fight their piers (F1), the Works' rail posts neither fight their rails nor leave them floating (F6, review B); open, the lamp posts a body walks through (F7, docs/MILESTONES.md 15).",
       "passes": {
         "shots:4242_L1_spawn": true,
         "shots:4242_L2_spawn": true,
@@ -147,10 +148,10 @@
       ],
       "id": "building/surfaces",
       "kind": "system",
-      "last_checked": "2026-11-09",
+      "last_checked": "2026-11-13",
       "last_human_review": null,
       "name": "the Building's photographed surfaces: the panel facade and its lit windows, whitewash, formwork, yard and factory concrete, rock-faced and floor granite, ribbed slabs",
-      "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet.",
+      "notes": "CC0 photographs of Soviet-era places (assets/src/textures/sources.json), built by cargo xtask assets textures; judged blind against the canvas surfaces with cargo xtask ab (tests/review/verdicts.jsonl). No person has looked yet. The visual playtest (docs/playtests/visual/2026-11-13-building-1-3.md) left open the metalwork's flat paint among the photographs (F4, docs/MILESTONES.md 16: the props' settled look on it was not preferred blind) and the photographs magnified at inside corners (F5, 17).",
       "passes": {
         "shots:4242_L1_well": true,
         "shots:4242_L2_stair_halls": true,

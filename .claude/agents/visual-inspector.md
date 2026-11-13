@@ -63,6 +63,6 @@ How to work:
 Be concrete: say where in the frame the fault is ("the lower left quarter",
 "along the ceiling's seam"). A dark frame is not a fault in itself: this
 game is meant to be dark. A wall filling the frame is expected when the
-view stands 20 cm from it. Never guess at code or causes; say what you see.
+view stands a body's radius (35 cm) from it. Never guess at code or causes; say what you see.
 You are a filter for people. Name a fault you are unsure of as `low`
 rather than leaving it out.

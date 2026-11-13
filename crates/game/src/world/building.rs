@@ -125,16 +125,17 @@ fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wal
             push("mat:yellow".into(), along(a, b, 1.0, 0.05, 0.05));
             push("mat:steel".into(), along(a, b, 0.5, 0.04, 0.04));
             push("mat:yellow".into(), along(a, b, 0.0, 0.12, 0.015));
-            // the posts up to the top rail's underside and a little thinner
-            // than it, so no face of one lies on the other's (they were the
-            // rail's width on its line and 2 cm through its top: F6)
+            // the posts from just under the floor into the top rail (which
+            // runs from 1.0 to 1.05: `along`'s lift is its underside) to its
+            // centreline, a little thinner than it: their tops hidden inside
+            // it at every slope (0.0225 sin θ < 0.025), their faces on no
+            // other's (they were the rail's width on its line and their tops
+            // poked out of a sloped rail: F6; stopped under it, the rail
+            // floated: review B)
             let k = n(1.35);
             for i in 0..=k {
                 let p = point(i as f64 / k as f64);
-                push(
-                    "mat:steel".into(),
-                    Mat4::compose(&Vec3::new(p.x, p.y + 0.4875, p.z), &Quat::IDENTITY, &Vec3::new(0.045, 0.975, 0.045)),
-                );
+                push("mat:steel".into(), Mat4::compose(&Vec3::new(p.x, p.y + 0.51, p.z), &Quat::IDENTITY, &Vec3::new(0.045, 1.03, 0.045)));
             }
         }
     }
@@ -242,6 +243,24 @@ impl Game {
                         let n = (rise / STEP_RISE).round().max(1.0) as usize;
                         let d = g.dir as usize;
                         let (fx, fz) = (DIRS[d][0] as f64, DIRS[d][1] as f64);
+                        // across the run, the steps stop a hair short of a
+                        // side over the void: a railing stands there, its
+                        // outer face on the tile's edge (the Well's sloped
+                        // parapet), and the steps' ends on that face fought
+                        // it, seen across the void (F8); inside it they are
+                        // hidden. Less than the soffit's hair, so its sides
+                        // still lie in no step's
+                        let (ax, az) = (-fz, fx);
+                        let short = |k: i32| {
+                            if self.ground_at(x + ax as i32 * k, z + az as i32 * k).kind == GROUND_VOID {
+                                STEP_SHORT
+                            } else {
+                                0.0
+                            }
+                        };
+                        let (sp, sn) = (short(1), short(-1));
+                        let across = CELL - sp - sn;
+                        let shift = (sn - sp) / 2.0;
                         for k in 0..n {
                             // along the run, from the tile's back edge (s = 0) to its front (s = 1)
                             let (s0, s1) = (k as f64 / n as f64, (k + 1) as f64 / n as f64);
@@ -249,11 +268,11 @@ impl Game {
                             let bottom = top - rise / n as f64 - SLAB;
                             let sm = (s0 + s1) / 2.0 - 0.5;
                             let len = CELL / n as f64;
-                            let (sx, sz) = if fx != 0.0 { (len, CELL) } else { (CELL, len) };
+                            let (sx, sz) = if fx != 0.0 { (len, across) } else { (across, len) };
                             push(
                                 format!("floor:{floor}:1"),
                                 Mat4::compose(
-                                    &Vec3::new(cx + fx * sm * CELL, (top + bottom) / 2.0, cz + fz * sm * CELL),
+                                    &Vec3::new(cx + fx * sm * CELL + ax * shift, (top + bottom) / 2.0, cz + fz * sm * CELL + az * shift),
                                     &Quat::IDENTITY,
                                     &Vec3::new(sx, top - bottom, sz),
                                 ),
@@ -633,3 +652,7 @@ impl Game {
         }
     }
 }
+
+/// How far a flight's steps stop short of a side over the void (metres):
+/// inside the railing there, whose outer face is on the tile's edge (F8)
+const STEP_SHORT: f64 = 0.005;

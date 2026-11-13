@@ -20,7 +20,11 @@ sees one order only, mostly measures its own bias.
    It writes each image twice, once in each order, under shuffled names in
    `target/xtask/ab/pairs/`, with `target/xtask/ab/pairs/questions.md`; the key stays in
    `target/xtask/ab/.key.json`. Ask one question per review (realism, dread,
-   how frightening a creature is, what is broken).
+   how frightening a creature is, what is broken). It prints how much of
+   each image changed (pixels moved by more than the film grain) and warns
+   when an image hardly differs: such a pair can only tie, so choose
+   cameras where the change shows, or report its ties as "not seen", not
+   as "no preference".
 3. **Ask a fresh reviewer**: copy `target/xtask/ab/pairs/` to a neutral
    folder outside the repository (the key, and the folder names you rendered
    into, are readable from inside it), then give the `art-critic` subagent

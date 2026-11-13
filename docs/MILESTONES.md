@@ -68,7 +68,8 @@ The visual playtest (`VISUAL_PLAYTEST.md`), gathered on 2026-11-11: a tour
 of the edges of the walkable floor, detectors for gaps, flicker, clipping
 and things out of place, a report, a reviewer and a skill; then the
 Building toured and what it finds fixed. After the fifth and at the end,
-a code and design review.
+a code and design review. All done on 2026-11-13: see
+`VISUAL_PLAYTEST.md`'s progress; what it left open is 15–17 below.
 
 | # | Milestone |
 |---|---|
@@ -82,6 +83,17 @@ a code and design review.
 | VP6 | The Building toured |
 | VP7+ | Its findings fixed |
 | review B | Code and design review of VP6 on |
+
+What the Building's visual playtest left open
+(`docs/playtests/visual/2026-11-13-building-1-3.md`), gathered on
+2026-11-13 by its review B. Each ends in the tour again on the floors it
+touched (`visual-playtest`) and, for a change of look, a blind review.
+
+| # | Milestone |
+|---|---|
+| 15 | **F7, the lamp posts stop a body.** The Stair Halls' and the Works' posts (`building_lamps`, a 7 cm box under each lamp that hangs from no wall) stand 35 cm off the edge a body walks along, and a body walks through them (the record's camera `s4242 L2_1031_at`). A real post stops you: its box goes into the solids where the post is stood (`set_solids_now`), the lamp and its light where they are (no light map, golden or draw moves). Gates: the reference levels re-recorded for the solids alone, the level sweep, the pacing bot over the Building's floors, the tour again on levels 2 and 3 (the clips at the posts gone, the stands now stopped by them) |
+| 16 | **F4, the Building's metalwork a picture of its own.** The cell door (leaf, frame, wheel, hood, plaque), the Works' rails, posts, pipes and flanges, the lamp posts and the exit door are flat paint among photographed concrete and granite. The props' settled look laid on them was not preferred (VP10: after 0, before 2, tie 5). A painted-steel picture from a CC0 photograph through `build.py` (worn at edges and foot), mapped as the Building's photographs are; kept only if a blind review prefers it (`visual-review`, the record's cameras) |
+| 17 | **F5, the photographs at inside corners.** A facade photograph (one repeat in 16 m) seen from 35 cm beside a finer one is magnified to blotches, and its marks repeat corner after corner. The Building's kinds have no close-range detail (`photo::detail_for`); give them one, first trying the rooms' concrete detail mapped onto them, else a CC0 photograph through `build.py detail`; kept only if a blind review at reachable corners prefers it (the record's three corner cameras) |
 
 ## Done
 

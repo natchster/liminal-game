@@ -121,6 +121,18 @@ name the siren's meaning, the cells, the fog or the figure first):
   do, what did you do?)
 - When you came through the small warm door into the yellow rooms, what
   changed?
+- What was below the walks when you looked over? What did you think was
+  down there? (The void is drawn as an even grey, lighter than the stone,
+  where `STYLE.md` asks for real darkness: is it read as depth, fog, or a
+  backdrop?)
+- Was there anything up there that did not look real, or did not look as
+  if it belonged? (Only if they say yes: what, and where. Listen for the
+  walls under the door lamps washed nearly white, the lamp itself a white
+  block, the Lobby's yellow wallpaper round the Works' last door, the pale
+  green rectangles on the Stair Halls' far walls, and the painted metal
+  doors and rails among the photographed stone. These are the visual
+  playtest's questions for a person, each with its camera:
+  `docs/playtests/visual/2026-11-13-building-1-3.md`.)
 
 The creatures (`docs/ENTITIES.md`; ask until a round has answered them,
 and never name a creature, its rule or its counter first):

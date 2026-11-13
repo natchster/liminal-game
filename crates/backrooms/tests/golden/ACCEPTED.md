@@ -179,3 +179,7 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-13, on top of 5bd9206: frames: way_in_mid, 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L3_works. Reason: The cell door's frame stands 5 mm proud of its reveal and lintel (VP8): its jamb no longer fights the pier (the stone's photograph striping through it, the Works' frame); the other four move by the frame's 5 mm
 
 - 2026-11-13, on top of e35cb35: frames: 4242_L3_spawn, 4242_L3_works. Reason: The Works' railing posts 4.5 cm wide and stopped under the top rail (VP10, F6): they shared the rail's faces and stood 2 cm through its top; the frames differ at the posts only
+
+- 2026-11-13, on top of f12046b: frames: 4242_L3_spawn, 4242_L3_works. Reason: review B: the Works' rail posts run into the top rail (1.00-1.05 m: along's lift is its underside) to its centreline; VP10 stopped them at 0.975 m and every handrail floated 2.5 cm over its posts
+
+- 2026-11-13, on top of f12046b: frames: 4242_L2_stair_halls. Reason: review B, F8: a flight's steps stop 5 mm short of a side over the void, inside its railing (their ends lay on the Well parapet's outer face and fought it); the frame differs where a flight meets the balustrade's plinth only

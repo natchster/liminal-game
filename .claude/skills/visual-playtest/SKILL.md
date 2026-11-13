@@ -130,6 +130,14 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
    so the light matches. The film grain and the panels' flicker differ per
    run, so do not compare bytes. A finding you cannot see when reproduced
    is not acted on: record it as not reproduced.
+
+   Reproduce from a stand a player can reach. The tour's cameras are: its
+   body is `PLAYER_R` (`tour::BODY`), and
+   `the_players_own_step_stops_at_the_tours_stands` walks the player's own
+   step to them. A camera you place by hand nearer a thing than that (or
+   in the rooms inside a wall tile's slab) sees what no player sees: two
+   of the first Building record's findings were seen from a body 15 cm too
+   thin, and withdrawn.
 8. **Record** in `docs/playtests/visual/YYYY-MM-DD-<scope>.md`, laid out as
    that folder's README says. Then add a line to the README's table. The
    human play sessions are a folder up; do not mix them.
@@ -181,7 +189,10 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
     - Put the before and after counts in the record.
 11. **What it cannot see** (`docs/VISUAL_PLAYTEST.md`). Say in the record
     what you did not check:
-    - gaps further than 40 m, and background beyond the far plane;
+    - gaps further than 40 m, and background beyond the far plane; a hole
+      in anything thinner than about 17 cm far off (the gap rays take the
+      level 3 cm inside its faces, and half a pixel's span more with
+      distance: 9 cm at 40 m, `sight::SPREAD`);
     - a fight seen face-on as thin lines (it is found at a grazing angle),
       and any fight thinner than a patch (the flicker is counted only in
       regions 5 px thick, so a thin far rail losing a sample is not);

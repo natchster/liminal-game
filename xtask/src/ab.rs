@@ -55,6 +55,27 @@ fn prepare(args: &[String]) -> Result<(), String> {
     if names.is_empty() {
         return Err("no PNG with the same name in both folders".into());
     }
+    // how much each pair differs, for you and not the reviewer: a pair that
+    // hardly differs can only tie, and reads as a verdict it is not (the
+    // Building's metalwork worn, VP10: five ties of seven where the wear did
+    // not show in its light)
+    let mut near = vec![];
+    for n in &names {
+        let (share, mean) = difference(&before.join(n), &after.join(n))?;
+        let flag = if share < NEAR_IDENTICAL { "  near-identical: it can only tie" } else { "" };
+        println!("{:<32} {:>6.2}% of pixels changed, mean {:.4}{flag}", n.trim_end_matches(".png"), share * 100.0, mean);
+        if share < NEAR_IDENTICAL {
+            near.push(n.trim_end_matches(".png").to_string());
+        }
+    }
+    if !near.is_empty() {
+        println!(
+            "warning: {} of {} images hardly differ ({}): choose cameras where the change shows, or say so with the verdict",
+            near.len(),
+            names.len(),
+            near.join(", ")
+        );
+    }
     let out = dir();
     let _ = std::fs::remove_dir_all(&out);
     std::fs::create_dir_all(out.join("pairs")).map_err(|e| e.to_string())?;
@@ -132,6 +153,31 @@ fn score(args: &[String]) -> Result<(), String> {
     }
     println!("after preferred {after}, before preferred {before}, tie {tie} — logged to crates/backrooms/tests/review/verdicts.jsonl");
     Ok(())
+}
+
+/// A pixel is changed when a channel moved by more than this (0-255): above
+/// the film grain, which differs between runs of `--shots-at`
+const CHANGED: u32 = 12;
+/// Under this share of changed pixels a pair is near-identical
+const NEAR_IDENTICAL: f64 = 0.005;
+
+/// How much two frames differ: the share of pixels changed (`CHANGED`) and
+/// the mean change of the most changed channel (0-1). Frames of different
+/// sizes differ wholly.
+fn difference(a: &Path, b: &Path) -> Result<(f64, f64), String> {
+    let (aw, ah, ap) = read_png(a)?;
+    let (bw, bh, bp) = read_png(b)?;
+    if (aw, ah) != (bw, bh) {
+        return Ok((1.0, 1.0));
+    }
+    let n = (aw * ah) as usize;
+    let (mut changed, mut sum) = (0usize, 0.0f64);
+    for i in 0..n {
+        let d = (0..3).map(|c| (ap[i * 4 + c] as i32 - bp[i * 4 + c] as i32).unsigned_abs()).max().unwrap_or(0);
+        changed += usize::from(d > CHANGED);
+        sum += d as f64 / 255.0;
+    }
+    Ok((changed as f64 / n.max(1) as f64, sum / n.max(1) as f64))
 }
 
 /// Two frames side by side with a 12 px gap and an A / B mark over each.

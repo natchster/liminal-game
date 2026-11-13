@@ -749,10 +749,17 @@ pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
                 if dot(a.n, b.n) < PARALLEL || (a.d - b.d).abs() > COPLANAR || !seen.insert((i.min(j), i.max(j))) {
                     continue;
                 }
-                // only what lies within reach of the stand nearest the face
-                // (its box may reach a stand where the face itself does not:
-                // a facade's long sliver; then it is out of reach)
-                let Some(stand) = grid.nearest(&a.v) else { continue };
+                // only what lies within reach of the stand nearest the
+                // smaller face, on which the overlap lies (the larger, a
+                // facade's long sliver, may be nearest a stand far from
+                // where the two meet: review B; a face whose box reaches a
+                // stand where the face itself does not is out of reach)
+                let area = |f: &Face| {
+                    let c = cross(sub(f.v[1], f.v[0]), sub(f.v[2], f.v[0]));
+                    dot(c, c)
+                };
+                let small = if area(a) <= area(b) { a } else { b };
+                let Some(stand) = grid.nearest(&small.v) else { continue };
                 let (ov, at) = overlap_in(a, b, Some((*stand, reach)));
                 if ov <= 1e-9 {
                     continue;

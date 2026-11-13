@@ -414,7 +414,8 @@ fn render_view(
             }
             let (px, py) = ((i % w) as f64, (i / w) as f64);
             let d = eye.ray(px, py);
-            let t = g.ray_meets_level((v.x, v.y, v.z), d, sight::GAP_REACH).unwrap_or(-1.0);
+            // the ray the detector traced, its rim grown with the pixel's span
+            let t = g.ray_meets_level_by((v.x, v.y, v.z), d, sight::GAP_REACH, eye.fov / h as f64).unwrap_or(-1.0);
             let (hx, hy, hz) = (v.x + d.0 * t, v.y + d.1 * t, v.z + d.2 * t);
             let (tx, tz) = (g.tx(hx), g.tz(hz));
             let gr = g.ground.get(g.t_idx(tx, tz)).copied();
@@ -511,8 +512,10 @@ fn plant(g: &mut Game, what: &str, v: &View) {
             g.world.add(&b);
             println!("planted a box round the eye of {}", v.name);
         }
-        // a flat-coloured box on the floor 0.9 m along the edge to the left,
-        // its face 5 cm off the edge (in the left look): no picture, no wear
+        // a flat-coloured box 0.4 m a side on the floor, 0.9 m to the left
+        // along the edge and its middle 5 cm back from the stand, so its far
+        // face is 20 cm short of the edge (a body's radius ahead of the
+        // stand), in the left look: no picture, no wear
         "flat" => {
             let (lx, lz) = (
                 -(v.yaw + std::f64::consts::FRAC_PI_2).sin() * 0.9 - fx * 0.05,

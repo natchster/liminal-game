@@ -384,3 +384,106 @@ fn a_far_edge_is_no_gap_and_a_crack_still_is() {
         assert!(r.gaps >= FLAG_PX * 10, "the rooms' {} is no longer found: {r:?}", if r.look == "at" { "gap" } else { "crack" });
     }
 }
+
+/// The gaps detector's rim far off (review B): a gap ray 25 m out over the
+/// void, through a pixel the size the tests render (300 rows), into the
+/// middle of a walk's floor slab (0.4 m thick: 0.2 m inside each face) still
+/// meets the level, so a hole in a far slab is found. The rim grows by
+/// `SPREAD` pixels' span with the ray's length; at 2 it was 0.25 m there,
+/// deeper than the slab's middle, and no ray through a far slab could flag
+#[test]
+fn a_gap_ray_still_meets_a_far_slab() {
+    use game::level::archgen::{GROUND_FLOOR, GROUND_VOID, SLAB};
+    const OUT: f64 = 25.0;
+    for level in [2, 3] {
+        let g = floor(4242, level);
+        let pixel = g.camera.camera().fov.to_radians() / 300.0;
+        let tile = |x: i32, z: i32| (x >= 0 && z >= 0 && x < g.w && z < g.h).then(|| g.ground[(z * g.w + x) as usize]);
+        let reach = (OUT / game::prelude::CELL).ceil() as i32 + 1;
+        let mut tried = 0;
+        for z in 0..g.h {
+            for x in 0..g.w {
+                let Some(t) = tile(x, z).filter(|t| t.kind == GROUND_FLOOR) else { continue };
+                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    if !(1..=reach).all(|k| tile(x + dx * k, z + dz * k).is_some_and(|n| n.kind == GROUND_VOID)) {
+                        continue;
+                    }
+                    let edge = (g.wx(x) + dx as f64 * game::prelude::CELL / 2.0, g.wz(z) + dz as f64 * game::prelude::CELL / 2.0);
+                    let eye = (edge.0 + dx as f64 * OUT, t.h0 as f64 - SLAB / 2.0, edge.1 + dz as f64 * OUT);
+                    let d = (-dx as f64, 0.0, -dz as f64);
+                    // the slab is what the ray meets first, at the walk's edge
+                    let Some(clean) = g.ray_meets_level(eye, d, 40.0) else { continue };
+                    if (clean - OUT).abs() > 0.1 {
+                        continue;
+                    }
+                    let far = g.ray_meets_level_by(eye, d, 40.0, pixel);
+                    assert!(
+                        far.is_some_and(|t| t < OUT + 1.0),
+                        "L{level}: a gap ray into the slab at ({}, {}) 25 m off meets {far:?}",
+                        edge.0,
+                        edge.1
+                    );
+                    tried += 1;
+                }
+            }
+        }
+        println!("L{level}: {tried} far slabs met");
+        assert!(tried > 0, "L{level}: no walk's edge with 25 m of void before it");
+    }
+}
+
+/// The tour's stands are where play stops a body (review B). The tour tests
+/// its own `standable` at its own `BODY`, so a body of the wrong size (it
+/// was the robot vacuum's 0.20 m) toured 15 cm past every edge a player
+/// reaches and only a reader of its renders noticed. Here the player's own
+/// step (`update_player`: `collide_move` with `PLAYER_R`), walking from a
+/// metre back toward the edge each sampled stand faces, stops at the stand:
+/// no further (the tour's body too thin) and no shorter (too fat), within
+/// the tour's step and one of the player's
+#[test]
+fn the_players_own_step_stops_at_the_tours_stands() {
+    const DT: f64 = 1.0 / 500.0;
+    for (seed, level) in [(4242, 1), (4242, 2), (4242, 3), (4242, 5)] {
+        let mut g = floor(seed, level);
+        let stands: Vec<_> = g.tour_stands(None).into_iter().filter(|s| !s.corner).collect();
+        let every = (stands.len() / 40).max(1);
+        let (mut walked, mut worst) = (0, 0.0f64);
+        for s in stands.iter().step_by(every) {
+            let d = (-s.yaw.sin(), -s.yaw.cos());
+            // a metre of floor behind it, walked by the tour's body too
+            if !(0..=50).all(|k| g.standable(s.x - d.0 * k as f64 * 0.02, s.z - d.1 * k as f64 * 0.02)) {
+                continue;
+            }
+            let (x, z) = (s.x - d.0, s.z - d.1);
+            g.player.pos = game::prelude::Vec3::new(x, g.floor_y_at(x, z) + EYE, z);
+            g.player.yaw = s.yaw;
+            g.player.crouch = false;
+            g.key_down("KeyW", false);
+            let mut stride = 0.0f64;
+            let mut still = 0;
+            for _ in 0..5000 {
+                let before = g.player.pos;
+                g.update_player(DT);
+                let moved = (g.player.pos.x - before.x).hypot(g.player.pos.z - before.z);
+                stride = stride.max(moved);
+                still = if moved < 1e-9 { still + 1 } else { 0 };
+                if still > 20 {
+                    break;
+                }
+            }
+            g.key_up("KeyW");
+            let (px, pz) = (g.player.pos.x, g.player.pos.z);
+            let along = (px - s.x) * d.0 + (pz - s.z) * d.1;
+            let across = (px - s.x) * -d.1 + (pz - s.z) * d.0;
+            assert!(stride > 0.0, "L{level}: the player did not move toward {s:?}");
+            assert!(
+                (-0.001..=0.02 + stride + 0.001).contains(&along) && across.abs() < 0.01,
+                "L{level}: play stopped a body {along:.3} m past (across {across:.3}) the tour's stand {s:?} (its step {stride:.4})"
+            );
+            worst = worst.max(along);
+            walked += 1;
+        }
+        println!("L{level}: {walked} stands walked to, the furthest {worst:.3} m past");
+        assert!(walked >= 10, "L{level}: only {walked} stands with a metre of floor behind them");
+    }
+}
