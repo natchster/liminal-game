@@ -62,7 +62,8 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
 4. **Read the report.** Its head says what each column, colour and size
    means. Read the table first, then each floor, flagged first:
    - *gaps*: the background where a ray meets the level within 40 m.
-   - *flicker*: pixels changed by a 0.02° turn either way.
+   - *flicker*: pixels changed by a 0.02° turn either way, by more than
+     30% of their brightness, in a patch (not a line).
    - *clip*: the eye or its near face inside a thing.
    - *body*: you can stand inside the thing.
    - *plain*, *unlit*, *glow*: within 5 m and in view, flagged when two
@@ -178,9 +179,9 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
 11. **What it cannot see** (`docs/VISUAL_PLAYTEST.md`). Say in the record
     what you did not check:
     - gaps further than 40 m, and background beyond the far plane;
-    - a fight seen face-on as thin lines (it is found at a grazing angle);
-    - sub-pixel bright details at a distance (a lantern's glazing bars),
-      which can still read as flicker;
+    - a fight seen face-on as thin lines (it is found at a grazing angle),
+      and any fight thinner than a patch (the flicker is counted only in
+      regions 5 px thick, so a thin far rail losing a sample is not);
     - coplanar faces of one material (listed, not flagged);
     - things inside the architecture's merged meshes (judged by faces, not
       boxes);

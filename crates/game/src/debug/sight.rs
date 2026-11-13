@@ -21,8 +21,14 @@ pub const BACKGROUND_DIFF: u8 = 40;
 pub const FLAG_PX: usize = 12;
 /// The jittered render's turn, in yaw and in pitch (radians: 0.02°)
 pub const JITTER: f64 = 0.02 * std::f64::consts::PI / 180.0;
-/// A pixel changed between the render and the jittered one by more than this
-pub const FLICKER_DIFF: u8 = 48;
+/// A pixel flickers when both turns change it by more than this share of
+/// its brightness (the brightest channel of the three renders), and never
+/// by less than `FLICKER_FLOOR` (0-255): the eye sees a change against what
+/// is there, so a fight between two dark surfaces (this game's light: a
+/// median pixel of 24 to 42) counts as much as one between two bright ones,
+/// and a bright edge's sample crossing (a quarter of its contrast) less
+pub const FLICKER_REL: f64 = 0.3;
+pub const FLICKER_FLOOR: u8 = 8;
 /// How far a ray from the eye is followed for the level's own surfaces
 /// (metres): the far plane is 90, the fog closes far nearer
 pub const GAP_REACH: f64 = 40.0;
@@ -121,7 +127,49 @@ pub fn grow_mask(m: &[bool], w: usize, h: usize, r: usize) -> Vec<bool> {
 /// the background (and a pixel round it: its rim is the geometry's edge)
 pub fn flicker_mask(a: &[u8], plus: &[u8], minus: &[u8], background: &[bool], w: usize, h: usize) -> Vec<bool> {
     let bg = grow_mask(background, w, h, 1);
-    (0..w * h).map(|i| !bg[i] && diff(a, plus, i) > FLICKER_DIFF && diff(a, minus, i) > FLICKER_DIFF).collect()
+    let bright = |px: &[u8], i: usize| px[i * 4].max(px[i * 4 + 1]).max(px[i * 4 + 2]);
+    (0..w * h)
+        .map(|i| {
+            let limit = (FLICKER_REL * bright(a, i).max(bright(plus, i)).max(bright(minus, i)) as f64).max(FLICKER_FLOOR as f64);
+            !bg[i] && diff(a, plus, i) as f64 > limit && diff(a, minus, i) as f64 > limit
+        })
+        .collect()
+}
+
+/// A region of flicker counts when, grown by a pixel (a speckle merges), it
+/// is this thick on average (its pixels over its longest side): a fight
+/// flips a patch; a thin far rail or a lamp post's edge losing a sample
+/// either way makes a line, and a line one or two pixels wide grown is three
+/// or four
+pub const FIGHT_THICK: f64 = 5.0;
+
+/// The flicker that is a fight: (its pixels, the largest region's) of the
+/// mask's pixels lying in a region at least `FIGHT_THICK` thick, and the
+/// mask of them
+pub fn fights(m: &[bool], w: usize, h: usize) -> (usize, usize, Vec<bool>) {
+    let grown = grow_mask(m, w, h, 1);
+    let mut keep = vec![false; w * h];
+    let (mut total, mut largest) = (0, 0);
+    for b in blobs(&grown, w, h) {
+        let long = (b.x1 - b.x0 + 1).max(b.y1 - b.y0 + 1) as f64;
+        if (b.n as f64) / long < FIGHT_THICK {
+            continue;
+        }
+        // the mask's own pixels under this region (its box, the grown region)
+        let mut n = 0;
+        for y in b.y0..=b.y1 {
+            for x in b.x0..=b.x1 {
+                let i = y * w + x;
+                if m[i] && grown[i] && !keep[i] {
+                    keep[i] = true;
+                    n += 1;
+                }
+            }
+        }
+        total += n;
+        largest = largest.max(n);
+    }
+    (total, largest, keep)
 }
 
 /// The 4-connected patches of a mask, largest first (ties by place)
@@ -340,6 +388,27 @@ mod tests {
         assert!(bl.iter().all(|b| b.x0 >= 30 && b.x1 < 36), "{bl:?}");
         // the same render twice flickers nowhere
         assert!(!flicker_mask(&a, &a, &a, &bg, w, h).iter().any(|&b| b));
+        // in the dark: two dim surfaces fighting (levels 30 and 14) flicker;
+        // a dim edge crossing a sample one way does not
+        let dim = frame(w, h, |x, y| if (x + y) % 2 == 0 { [30, 27, 24] } else { [14, 12, 11] });
+        let flipped = frame(w, h, |x, y| if (x + y) % 2 == 1 { [30, 27, 24] } else { [14, 12, 11] });
+        assert_eq!(flicker_mask(&dim, &flipped, &flipped, &vec![false; w * h], w, h).iter().filter(|&&b| b).count(), w * h);
+        let dark_edge = frame(w, h, |x, _| if x < 20 { [6, 6, 6] } else { [40, 36, 32] });
+        let moved = frame(w, h, |x, _| {
+            if x < 20 {
+                [6, 6, 6]
+            } else if x == 20 {
+                [14, 13, 12]
+            } else {
+                [40, 36, 32]
+            }
+        });
+        assert!(!flicker_mask(&dark_edge, &moved, &dark_edge, &vec![false; w * h], w, h).iter().any(|&b| b));
+        // a patch that flips is a fight; a line that flips (a far rail) is not
+        let patch_m: Vec<bool> = (0..w * h).map(|i| (10..18).contains(&(i % w)) && (8..16).contains(&(i / w))).collect();
+        let line_m: Vec<bool> = (0..w * h).map(|i| i % w == 30 && (2..30).contains(&(i / w))).collect();
+        assert_eq!(fights(&patch_m, w, h).0, 64);
+        assert_eq!(fights(&line_m, w, h).0, 0);
         // an edge that crosses a sample one way only is no flicker: with one
         // jitter alone it would be
         assert!(flicker_mask(&a, &plus, &plus, &bg, w, h).iter().filter(|&&b| b).count() > 36);

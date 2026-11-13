@@ -365,7 +365,9 @@ fn render_view(
             );
         }
     }
-    let flicker = sight::flicker_mask(&a, &plus, &minus, &bg, w, h);
+    // what flickers in a patch thick enough to be a fight (a thin far rail's
+    // line is not counted)
+    let (_, _, flicker) = sight::fights(&sight::flicker_mask(&a, &plus, &minus, &bg, w, h), w, h);
     let count = |m: &[bool]| m.iter().filter(|&&b| b).count();
     let largest = |m: &[bool]| sight::blobs(m, w, h).first().map(|b| b.n).unwrap_or(0);
     let seen = Seen {
@@ -485,6 +487,26 @@ fn plant(g: &mut Game, what: &str, v: &View) {
             g.world.add(&r);
             println!("planted a ring round the eye of {}", v.name);
         }
-        other => panic!("--tour-plant {other}: hole, fight, inside, flat, nearface or ring"),
+        // two dim squares, lit as the place lights them, fighting on one plane
+        // before the eye (one cut turned 45°): the fight this game's light
+        // makes, a few levels apart, not red against blue
+        "darkfight" => {
+            for (k, color) in [(0, 0x6a5a48u32), (1, 0x2a2420u32)] {
+                let geo = engine::geometry::plane_geometry(0.12, 0.12, 3.0, 3.0);
+                if k == 1 {
+                    geo.rotate_z(std::f64::consts::FRAC_PI_4);
+                }
+                let m = engine::material::Mat::lambert();
+                m.color(color);
+                let q = engine::scene::mesh(geo, m);
+                q.set_name(&format!("tour_plant_darkfight_{k}"));
+                q.position().set(v.x + fx * 0.15, v.y, v.z + fz * 0.15);
+                q.rotation().y = v.yaw;
+                q.user().placer = Some(format!("tour_plant_darkfight_{k}"));
+                g.world.add(&q);
+            }
+            println!("planted a dark fight before {}", v.name);
+        }
+        other => panic!("--tour-plant {other}: hole, fight, darkfight, inside, flat, nearface or ring"),
     }
 }

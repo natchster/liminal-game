@@ -281,3 +281,28 @@ fn things_keep_their_names_and_coplanar_findings_stand_near_the_tour() {
     }
     println!("{n} coplanar findings, each near the tour");
 }
+
+/// The pixel detectors' known answers on the Building (review A: their only
+/// Building test was the void's, so its gap path could find nothing and
+/// pass): a hole cut in the Well where the first stand faces a mass is
+/// found, and two dim squares fighting there, lit as the Well lights them,
+/// flicker (a fight a few levels apart, under an absolute threshold of 48
+/// it was never found)
+#[test]
+fn a_hole_and_a_dark_fight_in_the_well_are_found() {
+    let clean = toured("well_clean", 1, &["--tour-budget", "6"]);
+    let hole = toured("well_hole", 1, &["--tour-budget", "6", "--tour-plant", "hole"]);
+    let fight = toured("well_darkfight", 1, &["--tour-budget", "6", "--tour-plant", "darkfight"]);
+    let at = |rows: &[Row], look: &str| rows.iter().find(|r| r.look == look).map(|r| (r.name.clone(), r.gaps, r.flicker)).unwrap();
+    println!(
+        "clean {:?} {:?}\nhole {:?}\nfight {:?} {:?}",
+        at(&clean, "at"),
+        at(&clean, "up"),
+        at(&hole, "at"),
+        at(&fight, "at"),
+        at(&fight, "up")
+    );
+    assert!(at(&clean, "at").1 < FLAG_PX && at(&clean, "at").2 < FLAG_PX && at(&clean, "up").2 < FLAG_PX, "{clean:?}");
+    assert!(at(&hole, "at").1 >= FLAG_PX, "the Building's hole is not found: {hole:?}");
+    assert!(at(&fight, "up").2 >= FLAG_PX || at(&fight, "at").2 >= FLAG_PX, "the dark fight is not found: {fight:?}");
+}
