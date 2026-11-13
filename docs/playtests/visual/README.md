@@ -30,3 +30,4 @@ A record holds, in this order:
 
 | Date | Scope | Findings | Fixed |
 |---|---|---|---|
+| 2026-11-13 | [the Building, levels 1–3, seeds 4242 and 7](2026-11-13-building-1-3.md) | F1 door frames fight the piers; F2 the crouched eye in the parapets; F3 the exit door walked into, flat; F4 the metalwork flat; F5 the photographs at corners; F6 post tops | (in progress) |
