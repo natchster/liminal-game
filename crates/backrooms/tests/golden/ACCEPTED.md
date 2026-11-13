@@ -183,3 +183,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-13, on top of f12046b: frames: 4242_L3_spawn, 4242_L3_works. Reason: review B: the Works' rail posts run into the top rail (1.00-1.05 m: along's lift is its underside) to its centreline; VP10 stopped them at 0.975 m and every handrail floated 2.5 cm over its posts
 
 - 2026-11-13, on top of f12046b: frames: 4242_L2_stair_halls. Reason: review B, F8: a flight's steps stop 5 mm short of a side over the void, inside its railing (their ends lay on the Well parapet's outer face and fought it); the frame differs where a flight meets the balustrade's plinth only
+
+- 2026-11-13, on top of 031cded: frames: staff_2m, staff_4m, 4242_L10_spawn. Reason: Structure O3b: a placer's painted textures are named by the placer, not by where its code is, so the placers can move by theme; each was painted once more from a stream of the new name. The one change over its threshold is the same drip stain down the spawn room's left wall (shorter and fainter, the same painter), seen in all three; 37 frames changed under their thresholds; the set's look within its bands

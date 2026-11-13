@@ -6,9 +6,34 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 
 thread_local! {
-    /// How many textures each painter (its closure's type) has made since
-    /// the level began.
-    static MADE: RefCell<HashMap<&'static str, u32>> = RefCell::new(HashMap::new());
+    /// How many textures each painter has made since the level began.
+    static MADE: RefCell<HashMap<String, u32>> = RefCell::new(HashMap::new());
+    /// The placer whose things are being made (its registered name), if one is
+    static PLACER: RefCell<Option<String>> = const { RefCell::new(None) };
+    /// The placer crates' painters that painted outside any placer
+    static UNNAMED: RefCell<Vec<&'static str>> = const { RefCell::new(Vec::new()) };
+}
+
+/// The painters of the placer crates that painted outside a placer's run
+/// (a thing painting later, when it is used or animated) since the thread
+/// began: they are named by their place in the code, so moving that code
+/// would paint them otherwise. The placers' fingerprints hold this empty.
+pub fn unnamed_placer_paintings() -> Vec<&'static str> {
+    UNNAMED.with(|u| u.borrow().clone())
+}
+
+/// Runs `f` as placer `name`'s: what it paints is that placer's, named by
+/// it (`painter_seed`). A level's build runs each placer in it
+/// (`Game::run_placer_as`).
+pub fn painting_for<R>(name: &str, f: impl FnOnce() -> R) -> R {
+    struct Restore(Option<String>);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            PLACER.with(|p| *p.borrow_mut() = self.0.take());
+        }
+    }
+    let _restore = Restore(PLACER.with(|p| p.borrow_mut().replace(name.to_string())));
+    f()
 }
 
 /// A level begins: each painter's count starts again, so what is painted
@@ -17,16 +42,28 @@ pub fn restart_texture_streams() {
     MADE.with(|m| m.borrow_mut().clear());
 }
 
-/// The painter `F`'s own stream for its next texture: from its name (the
-/// closure's place in the code), the size, and how many it has made since
-/// the level began. Painted on the native stream, a texture had come out as
-/// whatever was drawn before it, and shifted every frame after it, so a
-/// level's frames depended on what the thread had made before (E10).
+/// The painter's own stream for its next texture: from its name, the size,
+/// and how many it has made since the level began. Painted on the native
+/// stream, a texture had come out as whatever was drawn before it, and
+/// shifted every frame after it, so a level's frames depended on what the
+/// thread had made before (E10).
+///
+/// A placer's textures are named by the placer (`painting_for`), not by
+/// where its code is, so its code can move (another module, crate or
+/// theme) or share a helper with another placer and paint the same; the
+/// rest (the core props, the architecture) by the closure `F`'s place in
+/// the code.
 fn painter_seed<F>(w: f64, h: f64) -> u32 {
-    let name = std::any::type_name::<F>();
+    let name = PLACER.with(|p| p.borrow().as_ref().map(|n| format!("placer {n}"))).unwrap_or_else(|| {
+        let t = std::any::type_name::<F>();
+        if t.starts_with("placers_") {
+            UNNAMED.with(|u| u.borrow_mut().push(t));
+        }
+        t.to_string()
+    });
     let n = MADE.with(|m| {
         let mut m = m.borrow_mut();
-        let c = m.entry(name).or_insert(0);
+        let c = m.entry(name.clone()).or_insert(0);
         *c += 1;
         *c - 1
     });

@@ -103,8 +103,10 @@ Levels must be a pure function of `(run_seed, level)`:
   (`with_own_stream`), never the native one: drawn there the first time
   only, it shifts every frame after it, so a level's frames hang on what
   the thread made before. `canvas_tex` does this for every texture (its
-  painter's stream, from where the painter is in the code, its size and how
-  many it has made since the level began); `tests/story.rs`
+  painter's stream, from the painter's name, its size and how many it has
+  made since the level began; a placer's painters are named by the placer,
+  `painting_for`, so its code can move or share a helper and paint the
+  same, and anything else by where it is in the code); `tests/story.rs`
   `a_levels_frames_are_the_same_whatever_came_before` holds it. A painter
   that works pixel by pixel may fill its rows on every core (`par_rows`)
   when each pixel is a pure function of where it is: its draws made before

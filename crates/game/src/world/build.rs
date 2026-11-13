@@ -93,8 +93,7 @@ impl Game {
     /// Runs placer `f`, registered as `name`, as a level's build runs it
     /// (the placers' fingerprints run each one through here too)
     pub fn run_placer_as(&mut self, name: &str, f: PlacerFn, dist: &[i32]) {
-        let _ = name;
-        f(self, dist)
+        crate::placers::kit::painting_for(name, || f(self, dist))
     }
     /// Runs one placer by name, with the zones whose purpose does not
     /// welcome its theme hidden from it

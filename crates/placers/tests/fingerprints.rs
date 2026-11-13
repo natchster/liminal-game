@@ -5,7 +5,9 @@
 //! their textures), its interactables, and the level's solids and tiles; then
 //! again once its animators have run and what it made usable has been used.
 //! No id is hashed (ids count what was made before), so a print is the
-//! placer's alone.
+//! placer's alone. A placer's textures are named by the placer
+//! (`kit::painting_for`), not by where its code is, and none is painted
+//! outside its run: the test holds both.
 //!
 //! The prints are recorded in `tests/fixtures/fingerprints.tsv`. Moving a
 //! placer's code (another module, crate or theme), sharing a helper, or
@@ -279,6 +281,14 @@ fn prints() -> String {
 fn every_placer_makes_what_it_made() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/fingerprints.tsv");
     let got = prints();
+    // a placer's textures are named by the placer, so its code can move;
+    // one painted later, outside its run, would be named by its code's place
+    let unnamed = game::placers::kit::unnamed_placer_paintings();
+    assert!(
+        unnamed.is_empty(),
+        "these placer painters painted outside their placer's run, named by where their code is (moving it would repaint them): \
+         paint while the placer runs, or run them in `painting_for`: {unnamed:#?}"
+    );
     if std::env::var("REGEN").is_ok() {
         std::fs::create_dir_all(path.parent().unwrap()).unwrap();
         std::fs::write(&path, &got).unwrap();
