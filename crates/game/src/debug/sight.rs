@@ -37,8 +37,13 @@ const RAY_STEP: f64 = 0.05;
 /// The level's own surfaces are taken this much inside their solids
 /// (metres): a solid may stand a few centimetres proud of what is drawn of
 /// it (a slab, a parapet), and a ray at a background pixel beside its edge
-/// would graze that; a hole or a crack sends its rays far deeper
+/// would graze that; a hole or a crack sends its rays far deeper. Further
+/// off the rim grows by `SPREAD` pixels' span: a far silhouette's edge
+/// pixel is part background, and its ray, through the pixel's middle,
+/// grazes the mass by up to half a pixel (6 cm at 35 m: the Building's
+/// tour flagged every far edge so)
 const RIM: f64 = 0.03;
+pub const SPREAD: f64 = 2.0;
 
 /// A connected patch of a mask
 #[derive(Clone, Debug, PartialEq)]
@@ -221,6 +226,12 @@ impl Game {
     /// (a wall, a solid, a mass, a floor, a ceiling), within `reach`; None
     /// where it meets none (over the void, out of the grid, up into the open)
     pub fn ray_meets_level(&self, o: (f64, f64, f64), d: (f64, f64, f64), reach: f64) -> Option<f64> {
+        self.ray_meets_level_by(o, d, reach, 0.0)
+    }
+
+    /// `ray_meets_level` for a ray through a pixel `pixel` radians wide: the
+    /// surfaces taken `RIM` plus `SPREAD` pixels' span at its length inside
+    pub fn ray_meets_level_by(&self, o: (f64, f64, f64), d: (f64, f64, f64), reach: f64, pixel: f64) -> Option<f64> {
         let mut t = RAY_STEP;
         while t < reach {
             let (x, y, z) = (o.0 + d.0 * t, o.1 + d.1 * t, o.2 + d.2 * t);
@@ -228,7 +239,7 @@ impl Game {
             if !self.in_grid(tx, tz) {
                 return None;
             }
-            if self.surface_at(tx, tz, x, y, z) {
+            if self.surface_at(tx, tz, x, y, z, RIM + SPREAD * pixel * t) {
                 return Some(t);
             }
             t += RAY_STEP;
@@ -240,24 +251,24 @@ impl Game {
     /// stops a look (a mass, a wall, a floor's slab, a partition; not the
     /// void's, which stops a body only); in the rooms also a wall tile, the
     /// floor and the ceiling
-    fn surface_at(&self, tx: i32, tz: i32, x: f64, y: f64, z: f64) -> bool {
+    fn surface_at(&self, tx: i32, tz: i32, x: f64, y: f64, z: f64, rim: f64) -> bool {
         if let Some(s) = &self.solids {
             // a flight's slab is drawn along its slope (its solid is flat at
             // the flight's foot: under its head a look passes)
             let slope = self.ground.get(self.t_idx(tx, tz)).is_some_and(|g| g.kind == GROUND_STAIR).then(|| self.floor_y_at(x, z));
-            if stops_a_look(s, self.to_u(x), self.to_v(z), y, slope) {
+            if stops_a_look(s, self.to_u(x), self.to_v(z), y, slope, rim) {
                 return true;
             }
         }
-        self.ground.is_empty() && (self.is_wall_tile(tx, tz) || y < -RIM || y > self.ceil_at_world(x, z) + RIM)
+        self.ground.is_empty() && (self.is_wall_tile(tx, tz) || y < -rim || y > self.ceil_at_world(x, z) + rim)
     }
 }
 
 /// Whether a solid that stops a look holds the point (tile units, metres
 /// up), `RIM` inside its faces; on a flight (`slope`: its floor there) a
 /// floor's slab is the `SLAB` under that floor
-fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64, slope: Option<f64>) -> bool {
-    let r = RIM / s.cell;
+fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64, slope: Option<f64>, rim: f64) -> bool {
+    let r = rim / s.cell;
     let (x, z) = (u.floor(), v.floor());
     if x < 0.0 || z < 0.0 || x >= s.w as f64 || z >= s.h as f64 {
         return false;
@@ -273,8 +284,8 @@ fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64, slope: Option<f64>) -> bool 
             && u < o[2] as f64 - r
             && v > o[1] as f64 + r
             && v < o[3] as f64 - r
-            && y > y0 + RIM
-            && y < y1 - RIM
+            && y > y0 + rim
+            && y < y1 - rim
     })
 }
 
@@ -288,7 +299,9 @@ pub fn gap_mask(g: &Game, eye: &Eye, background: &[bool], step: usize) -> Vec<bo
     while y < h {
         let mut x = step / 2;
         while x < w {
-            if background[y * w + x] && g.ray_meets_level((eye.x, eye.y, eye.z), eye.ray(x as f64, y as f64), GAP_REACH).is_some() {
+            if background[y * w + x]
+                && g.ray_meets_level_by((eye.x, eye.y, eye.z), eye.ray(x as f64, y as f64), GAP_REACH, eye.fov / h as f64).is_some()
+            {
                 for yy in y.saturating_sub(step / 2)..(y + step - step / 2).min(h) {
                     for xx in x.saturating_sub(step / 2)..(x + step - step / 2).min(w) {
                         m[yy * w + xx] = background[yy * w + xx];
