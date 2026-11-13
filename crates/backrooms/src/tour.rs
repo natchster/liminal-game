@@ -455,7 +455,8 @@ fn plant(g: &mut Game, what: &str, v: &View) {
         // the smallest thing whose bounds hold a point just behind the face
         // the stand looks at, hidden: a hole where it was
         "hole" => {
-            let p = Vec3::new(v.x + fx * 0.35, v.y, v.z + fz * 0.35);
+            // (15 cm behind the face a body stands 35 cm from)
+            let p = Vec3::new(v.x + fx * 0.5, v.y, v.z + fz * 0.5);
             let mut best: Option<(f64, engine::scene::Obj)> = None;
             g.scene.traverse_visible(&mut |o| {
                 if !o.is_mesh() {

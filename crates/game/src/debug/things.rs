@@ -750,8 +750,10 @@ pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
                     continue;
                 }
                 // only what lies within reach of the stand nearest the face
-                let stand = grid.nearest(&a.v);
-                let (ov, at) = overlap_in(a, b, stand.map(|s| (*s, reach)));
+                // (its box may reach a stand where the face itself does not:
+                // a facade's long sliver; then it is out of reach)
+                let Some(stand) = grid.nearest(&a.v) else { continue };
+                let (ov, at) = overlap_in(a, b, Some((*stand, reach)));
                 if ov <= 1e-9 {
                     continue;
                 }

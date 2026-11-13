@@ -11,8 +11,11 @@ use crate::base::game::Game;
 use crate::level::archgen::{GROUND_MASS, GROUND_STAIR, GROUND_VOID};
 use crate::prelude::*;
 
-/// The body's circle as play moves it (`update_player`)
-pub const BODY: f64 = 0.20;
+/// The body's circle as play moves it (`update_player`'s `collide_move`,
+/// `PLAYER_R`; the 0.20 m circles in `player.rs` are the robot vacuum's: a
+/// tour first built on them stood 15 cm nearer every edge than a body can,
+/// and found the crouched eye in parapets no player reaches)
+pub const BODY: f64 = PLAYER_R;
 /// The walk's step when finding an edge (metres)
 const STEP: f64 = 0.02;
 /// Lines a tile is walked from, across the walk (metres from its middle)
