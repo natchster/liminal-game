@@ -1051,67 +1051,70 @@ impl Game {
             cp.z + fwd.z * pitch_cos * 5.0 + fwd.x * tx,
         );
 
-        // almond water pickup
-        for i in 0..self.almonds.len() {
-            if self.almonds[i].taken {
-                continue;
+        // (a tool's eye takes nothing and falls into nothing: `tool_eye`)
+        if !self.tool_eye {
+            // almond water pickup
+            for i in 0..self.almonds.len() {
+                if self.almonds[i].taken {
+                    continue;
+                }
+                let ap = self.almonds[i].g.pos();
+                let (adx, adz) = (ap.x - self.player.pos.x, ap.z - self.player.pos.z);
+                if adx * adx + adz * adz < 0.95 {
+                    self.almonds[i].taken = true;
+                    self.almonds[i].g.set_visible(false);
+                    self.player.bottles += 1;
+                    self.sfx_pickup();
+                    let t = self.pick_text("almondPickup");
+                    self.show_msg(&t, 1.6);
+                    self.hint_first_use("bottle");
+                }
             }
-            let ap = self.almonds[i].g.pos();
-            let (adx, adz) = (ap.x - self.player.pos.x, ap.z - self.player.pos.z);
-            if adx * adx + adz * adz < 0.95 {
-                self.almonds[i].taken = true;
-                self.almonds[i].g.set_visible(false);
-                self.player.bottles += 1;
-                self.sfx_pickup();
-                let t = self.pick_text("almondPickup");
-                self.show_msg(&t, 1.6);
-                self.hint_first_use("bottle");
+            // battery pickup
+            for i in 0..self.battery_items.len() {
+                if self.battery_items[i].taken {
+                    continue;
+                }
+                let bp = self.battery_items[i].g.pos();
+                let (bdx, bdz) = (bp.x - self.player.pos.x, bp.z - self.player.pos.z);
+                if bdx * bdx + bdz * bdz < 0.95 {
+                    self.battery_items[i].taken = true;
+                    self.battery_items[i].g.set_visible(false);
+                    self.player.batteries += 1;
+                    self.sfx_pickup();
+                    let t = self.pick_text("batteryPickup");
+                    self.show_msg(&t, 1.6);
+                    self.hint_first_use("battery");
+                }
             }
+            // floor hole check — step onto one and you fall a level
+            for i in 0..self.floor_holes.len() {
+                let hole = self.floor_holes[i];
+                let (hx, hz) = (hole.x - self.player.pos.x, hole.z - self.player.pos.z);
+                if hx * hx + hz * hz < hole.r * hole.r {
+                    self.begin_fall_down();
+                    return;
+                }
+            }
+            // paper pickup
+            for i in 0..self.papers.len() {
+                if self.papers[i].taken {
+                    continue;
+                }
+                let pp = self.papers[i].g.pos();
+                let (pdx, pdz) = (pp.x - self.player.pos.x, pp.z - self.player.pos.z);
+                if pdx * pdx + pdz * pdz < 0.95 {
+                    self.papers[i].taken = true;
+                    self.papers[i].g.set_visible(false);
+                    let gained = irand(3, 8);
+                    self.player.papers += gained as i32;
+                    self.sfx_pickup();
+                    self.show_msg(&format!("PAPER STACK — {} SHEETS", gained), 1.6);
+                }
+            }
+            // lore note pickup — first-time reads show the body immediately + short chime
+            self.lore_note_pickups(dt);
         }
-        // battery pickup
-        for i in 0..self.battery_items.len() {
-            if self.battery_items[i].taken {
-                continue;
-            }
-            let bp = self.battery_items[i].g.pos();
-            let (bdx, bdz) = (bp.x - self.player.pos.x, bp.z - self.player.pos.z);
-            if bdx * bdx + bdz * bdz < 0.95 {
-                self.battery_items[i].taken = true;
-                self.battery_items[i].g.set_visible(false);
-                self.player.batteries += 1;
-                self.sfx_pickup();
-                let t = self.pick_text("batteryPickup");
-                self.show_msg(&t, 1.6);
-                self.hint_first_use("battery");
-            }
-        }
-        // floor hole check — step onto one and you fall a level
-        for i in 0..self.floor_holes.len() {
-            let hole = self.floor_holes[i];
-            let (hx, hz) = (hole.x - self.player.pos.x, hole.z - self.player.pos.z);
-            if hx * hx + hz * hz < hole.r * hole.r {
-                self.begin_fall_down();
-                return;
-            }
-        }
-        // paper pickup
-        for i in 0..self.papers.len() {
-            if self.papers[i].taken {
-                continue;
-            }
-            let pp = self.papers[i].g.pos();
-            let (pdx, pdz) = (pp.x - self.player.pos.x, pp.z - self.player.pos.z);
-            if pdx * pdx + pdz * pdz < 0.95 {
-                self.papers[i].taken = true;
-                self.papers[i].g.set_visible(false);
-                let gained = irand(3, 8);
-                self.player.papers += gained as i32;
-                self.sfx_pickup();
-                self.show_msg(&format!("PAPER STACK — {} SHEETS", gained), 1.6);
-            }
-        }
-        // lore note pickup — first-time reads show the body immediately + short chime
-        self.lore_note_pickups(dt);
         // dark-zone effect: no lights in region + no flashlight = sanity drain + heartbeat
         let in_dark = self.in_dark_region();
         // safe-room bonus: standing in the candlelit alcove regenerates sanity fast

@@ -12,7 +12,7 @@
 //! No edge mask is used: a fight's speckle is itself all edges. Pure:
 //! buffers in, masks and blobs out; the renders are `backrooms --tour`'s.
 use crate::base::game::Game;
-use crate::level::archgen::{Solids, BOX_VOID};
+use crate::level::archgen::{Solids, BOX_FLOOR, BOX_VOID, GROUND_STAIR, SLAB};
 
 /// A pixel shows the background where the two clear colours differ by more
 /// than this in some channel (0–255)
@@ -242,7 +242,10 @@ impl Game {
     /// floor and the ceiling
     fn surface_at(&self, tx: i32, tz: i32, x: f64, y: f64, z: f64) -> bool {
         if let Some(s) = &self.solids {
-            if stops_a_look(s, self.to_u(x), self.to_v(z), y) {
+            // a flight's slab is drawn along its slope (its solid is flat at
+            // the flight's foot: under its head a look passes)
+            let slope = self.ground.get(self.t_idx(tx, tz)).is_some_and(|g| g.kind == GROUND_STAIR).then(|| self.floor_y_at(x, z));
+            if stops_a_look(s, self.to_u(x), self.to_v(z), y, slope) {
                 return true;
             }
         }
@@ -251,8 +254,9 @@ impl Game {
 }
 
 /// Whether a solid that stops a look holds the point (tile units, metres
-/// up), `RIM` inside its faces
-fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64) -> bool {
+/// up), `RIM` inside its faces; on a flight (`slope`: its floor there) a
+/// floor's slab is the `SLAB` under that floor
+fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64, slope: Option<f64>) -> bool {
     let r = RIM / s.cell;
     let (x, z) = (u.floor(), v.floor());
     if x < 0.0 || z < 0.0 || x >= s.w as f64 || z >= s.h as f64 {
@@ -260,13 +264,17 @@ fn stops_a_look(s: &Solids, u: f64, v: f64, y: f64) -> bool {
     }
     s.tile_items((z as i32 * s.w + x as i32) as usize).iter().any(|&b| {
         let o = s.box_at(b as usize);
+        let (y0, y1) = match slope {
+            Some(f) if o[7] as i32 == BOX_FLOOR => (f - SLAB, f),
+            _ => (o[4] as f64, o[5] as f64),
+        };
         o[7] as i32 != BOX_VOID
             && u > o[0] as f64 + r
             && u < o[2] as f64 - r
             && v > o[1] as f64 + r
             && v < o[3] as f64 - r
-            && y > o[4] as f64 + RIM
-            && y < o[5] as f64 - RIM
+            && y > y0 + RIM
+            && y < y1 - RIM
     })
 }
 

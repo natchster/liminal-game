@@ -8,7 +8,7 @@
 //! chosen spread over the level (each the farthest from those chosen) to a
 //! budget, inside an area when one is given. Pure: no random draw, no clock.
 use crate::base::game::Game;
-use crate::level::archgen::{GROUND_MASS, GROUND_VOID};
+use crate::level::archgen::{GROUND_MASS, GROUND_STAIR, GROUND_VOID};
 use crate::prelude::*;
 
 /// The body's circle as play moves it (`update_player`)
@@ -139,7 +139,6 @@ impl Game {
                         if !self.standable(x0, z0) {
                             continue;
                         }
-                        let floor = self.floor_y_at(x0, z0);
                         let limit = CELL / 2.0 + 0.6;
                         let mut s = 0.0;
                         while s < limit && self.standable(x0 + dx * (s + STEP), z0 + dz * (s + STEP)) {
@@ -149,9 +148,12 @@ impl Game {
                             continue; // open floor that way
                         }
                         let (x, z) = (x0 + dx * s, z0 + dz * s);
-                        if (self.floor_y_at(x, z) - floor).abs() > 0.3 || !inside(x, z) {
+                        if !inside(x, z) {
                             continue;
                         }
+                        // the floor where it stands (on a flight, not the
+                        // flight's foot: the stairs are toured too)
+                        let floor = self.floor_y_at(x, z);
                         let yaw = (-dx).atan2(-dz);
                         if out.iter().any(|o| !o.corner && (o.yaw - yaw).abs() < 1e-9 && (o.x - x).hypot(o.z - z) < SAME_STAND) {
                             continue;
@@ -169,7 +171,15 @@ impl Game {
                             if r < CORNER_REACH && inside(qx, qz) {
                                 let cy = (-(dx + sx)).atan2(-(dz + sz));
                                 if !out.iter().any(|o| o.corner && (o.x - qx).hypot(o.z - qz) < SAME_STAND) {
-                                    out.push(Stand { x: qx, z: qz, floor, yaw: cy, edge, corner: true, tile: (tx, tz) });
+                                    out.push(Stand {
+                                        x: qx,
+                                        z: qz,
+                                        floor: self.floor_y_at(qx, qz),
+                                        yaw: cy,
+                                        edge,
+                                        corner: true,
+                                        tile: (tx, tz),
+                                    });
                                 }
                             }
                         }
@@ -180,50 +190,45 @@ impl Game {
         out
     }
 
-    /// The tour's views on this level: stands spread over it (each the
-    /// farthest from those already chosen, from the first in the grid's
-    /// order), their looks, to `budget` views
+    /// One step of what a tool's eye needs (the tour, the census, `--shots-at`):
+    /// your body to where the eye stands (the camera, the lamp), the props'
+    /// cull, the place's light, the HUD and its grain. No creature, no
+    /// director, no fog rising, nothing taken or fallen into (`tool_eye`),
+    /// your nerve kept whole: every view of a level sees it as built,
+    /// however many views come before (a tour of every stand is two minutes
+    /// of play; with a step of play each, the Stair Halls' 5,000th view was
+    /// dead)
+    pub fn tool_step(&mut self, dt: f64) {
+        let was = self.tool_eye;
+        self.tool_eye = true;
+        self.update_player(dt);
+        self.player.sanity = SAN_MAX;
+        self.update_prop_cull(dt);
+        let t = self.perf_t;
+        self.update_lights(dt, t);
+        self.update_hud(dt);
+        self.update_grain(dt);
+        self.tool_eye = was;
+    }
+
+    /// The tour's views the eyes look at (`Tour::eyes`), to `budget`
     pub fn tour_views(&self, o: &TourOpts) -> Vec<View> {
-        self.tour(o).0
+        let t = self.tour(o);
+        t.views.into_iter().filter(|v| t.eyes.contains(&v.stand)).collect()
     }
 
-    /// The tour's views and how many the level (or the area) has in all:
-    /// a budget under that leaves stands out
-    pub fn tour(&self, o: &TourOpts) -> (Vec<View>, usize) {
+    /// The tour of the level (or the area): every stand's looks, each named
+    /// by its stand's place in the grid's order (`L<level>_<stand>_<look>`,
+    /// a corner's stand with a `c`: a name is the same view however much is
+    /// looked at), and the stands the eyes look at, to `budget` views
+    pub fn tour(&self, o: &TourOpts) -> Tour {
         let stands = self.tour_stands(o.area);
-        let all: usize = stands.iter().map(|s| if s.corner { CORNER_LOOKS.len() } else { EDGE_LOOKS.len() }).sum();
-        (self.tour_from(&stands, o), all)
-    }
-
-    fn tour_from(&self, stands: &[Stand], o: &TourOpts) -> Vec<View> {
-        if stands.is_empty() {
-            return vec![];
-        }
-        let per = |s: &Stand| if s.corner { CORNER_LOOKS.len() } else { EDGE_LOOKS.len() };
-        if per(&stands[0]) > o.budget {
-            return vec![];
-        }
-        let mut chosen: Vec<usize> = vec![0];
-        let mut nearest: Vec<f64> = stands.iter().map(|s| (s.x - stands[0].x).hypot(s.z - stands[0].z)).collect();
-        let mut views = per(&stands[0]);
-        while views < o.budget && chosen.len() < stands.len() {
-            let (k, d) = nearest.iter().enumerate().fold((0, -1.0), |b, (i, &d)| if d > b.1 + 1e-9 { (i, d) } else { b });
-            if d <= 0.0 || views + per(&stands[k]) > o.budget {
-                break;
-            }
-            chosen.push(k);
-            views += per(&stands[k]);
-            for (i, s) in stands.iter().enumerate() {
-                nearest[i] = nearest[i].min((s.x - stands[k].x).hypot(s.z - stands[k].z));
-            }
-        }
-        let mut out = vec![];
-        for (n, &k) in chosen.iter().enumerate() {
-            let s = &stands[k];
+        let mut views = vec![];
+        for (k, s) in stands.iter().enumerate() {
             let looks: &[(&str, f64, f64, bool)] = if s.corner { &CORNER_LOOKS } else { &EDGE_LOOKS };
             for &(look, turn, pitch, crouch) in looks {
-                out.push(View {
-                    name: format!("L{}_{n:03}{}_{look}", self.level_num, if s.corner { "c" } else { "" }),
+                views.push(View {
+                    name: format!("L{}_{k:04}{}_{look}", self.level_num, if s.corner { "c" } else { "" }),
                     stand: k,
                     look,
                     edge: s.edge,
@@ -236,6 +241,57 @@ impl Game {
                 });
             }
         }
-        out
+        let eyes = self.tour_eyes(&stands, o.budget);
+        Tour { views, eyes }
     }
+
+    /// The stands the eyes look at, to `budget` views: the stands grouped
+    /// by what they stand at (the edge's kind, a corner or not, on a flight
+    /// or not), and each group in turn gives its stand farthest from all
+    /// chosen (the first in the grid's order to begin; the distance is in
+    /// three dimensions, so the storeys are spread too), so every kind of
+    /// place is seen before any is seen twice
+    fn tour_eyes(&self, stands: &[Stand], budget: usize) -> std::collections::BTreeSet<usize> {
+        let per = |s: &Stand| if s.corner { CORNER_LOOKS.len() } else { EDGE_LOOKS.len() };
+        let stair = |s: &Stand| self.ground.get(self.t_idx(self.tx(s.x), self.tz(s.z))).is_some_and(|g| g.kind == GROUND_STAIR);
+        let mut groups: std::collections::BTreeMap<(&str, bool, bool), Vec<usize>> = Default::default();
+        for (k, s) in stands.iter().enumerate() {
+            groups.entry((s.edge, s.corner, stair(s))).or_default().push(k);
+        }
+        let mut chosen = std::collections::BTreeSet::new();
+        let mut nearest = vec![f64::INFINITY; stands.len()];
+        let mut views = 0;
+        loop {
+            let mut added = false;
+            for list in groups.values() {
+                let pick = list.iter().filter(|k| !chosen.contains(*k)).max_by(|a, b| nearest[**a].total_cmp(&nearest[**b]).then(b.cmp(a)));
+                let Some(&k) = pick else { continue };
+                if views + per(&stands[k]) > budget {
+                    continue;
+                }
+                chosen.insert(k);
+                views += per(&stands[k]);
+                added = true;
+                let c = &stands[k];
+                for (i, s) in stands.iter().enumerate() {
+                    let d = ((s.x - c.x).powi(2) + (s.z - c.z).powi(2) + (s.floor - c.floor).powi(2)).sqrt();
+                    nearest[i] = nearest[i].min(d);
+                }
+            }
+            if !added {
+                break;
+            }
+        }
+        chosen
+    }
+}
+
+/// A level's tour (`Game::tour`)
+#[derive(Clone, Debug)]
+pub struct Tour {
+    /// every stand's looks
+    pub views: Vec<View>,
+    /// the stands the eyes look at (their views rendered to be seen: the
+    /// sheets; every view is rendered for the detectors with `--tour-all`)
+    pub eyes: std::collections::BTreeSet<usize>,
 }

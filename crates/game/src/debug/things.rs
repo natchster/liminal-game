@@ -79,6 +79,9 @@ pub struct Finding {
     pub at: (f64, f64, f64),
     /// how much: metres inside, the share of the frame, the overlap in m²
     pub size: f64,
+    /// what it is in the world (min x, y, z, max x, y, z): the thing's box,
+    /// or a cube round the overlap (the sheets outline it)
+    pub bounds: [f64; 6],
 }
 
 /// A part is judged by its box when no side of it is longer (metres)
@@ -252,8 +255,15 @@ pub fn clip(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
             continue;
         }
         let at = p.bounds.get_center();
-        let found =
-            |kind: &'static str, d: f64| Finding { kind, label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: d };
+        let bounds = [p.bounds.min.x, p.bounds.min.y, p.bounds.min.z, p.bounds.max.x, p.bounds.max.y, p.bounds.max.z];
+        let found = |kind: &'static str, d: f64| Finding {
+            kind,
+            label: p.label.clone(),
+            mesh: p.mesh.clone(),
+            at: (at.x, at.y, at.z),
+            size: d,
+            bounds,
+        };
         let body: Vec<Vec3> = (0..6).map(|k| Vec3::new(eye.x, floor + 0.45 + k as f64 * 0.2, eye.z)).collect();
         let tall = p.bounds.max.y - p.bounds.min.y >= LOW && p.bounds.max.y >= floor + LOW;
         if p.boxy {
@@ -285,6 +295,12 @@ pub fn clip(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
 /// The share of the frame a box covers, roughly (its edges clipped at the
 /// near plane, their ends projected; None when it is not in view)
 pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
+    screen_rect(eye, b).map(|(x0, y0, x1, y1)| (x1 - x0) * (y1 - y0) / 4.0)
+}
+
+/// Where a box is in the frame: (left, bottom, right, top) from -1 to 1,
+/// clipped to the frame (None when it is not in view)
+pub fn screen_rect(eye: &Eye, b: &Box3) -> Option<(f64, f64, f64, f64)> {
     let t = (eye.fov / 2.0).tan();
     let a = eye.w as f64 / eye.h as f64;
     let (sp, cp) = eye.pitch.sin_cos();
@@ -338,7 +354,7 @@ pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
         return None;
     }
     let (cx0, cx1, cy0, cy1) = (x0.max(-1.0), x1.min(1.0), y0.max(-1.0), y1.min(1.0));
-    (cx1 > cx0 && cy1 > cy0).then(|| (cx1 - cx0) * (cy1 - cy0) / 4.0)
+    (cx1 > cx0 && cy1 > cy0).then_some((cx0, cy0, cx1, cy1))
 }
 
 /// The place's light under which an unlit or glowing thing stands out (the
@@ -388,7 +404,8 @@ pub fn plain(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
             } else {
                 continue;
             };
-            out.push(Finding { kind, label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: share });
+            let bounds = [p.bounds.min.x, p.bounds.min.y, p.bounds.min.z, p.bounds.max.x, p.bounds.max.y, p.bounds.max.z];
+            out.push(Finding { kind, label: p.label.clone(), mesh: p.mesh.clone(), at: (at.x, at.y, at.z), size: share, bounds });
             break;
         }
     }
@@ -778,6 +795,7 @@ pub fn coplanar(parts: &[Part], near: &[Vec3], reach: f64) -> Vec<Finding> {
                 mesh: format!("{} + {}", a.mesh, b.mesh),
                 at: (c.x, c.y, c.z),
                 size: ov,
+                bounds: [c.x - 0.3, c.y - 0.3, c.z - 0.3, c.x + 0.3, c.y + 0.3, c.z + 0.3],
             }
         })
         .collect()
@@ -957,7 +975,14 @@ mod tests {
 
     #[test]
     fn a_plain_thing_is_flagged_when_two_views_agree() {
-        let f = |kind: &'static str, label: &str| Finding { kind, label: label.into(), mesh: "m".into(), at: (1.0, 0.5, 2.0), size: 0.1 };
+        let f = |kind: &'static str, label: &str| Finding {
+            kind,
+            label: label.into(),
+            mesh: "m".into(),
+            at: (1.0, 0.5, 2.0),
+            size: 0.1,
+            bounds: [0.0; 6],
+        };
         let once = [("v1".to_string(), f("plain", "a")), ("v1".to_string(), f("clip", "b")), ("v2".to_string(), f("coplanar_alike", "c"))];
         let (_, flagged) = gather(&once);
         assert_eq!(flagged, vec![("clip", 1)], "one view is not enough for a plain thing; a clip is a clip");

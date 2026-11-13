@@ -34,14 +34,17 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
      `--views`.
 
    An area picks where the tour stands, not what it sees: a thing outside
-   it seen from a stand inside is reported. The budget (`--budget`, 180 by
-   default) is the most views a floor. The report's *views* column says
-   "60 of 84" when it left stands out. For an area, give a budget at least
-   its views (run once and read that column).
+   it seen from a stand inside is reported. Every stand is rendered for
+   the detectors (about 3 minutes a floor of the Building, 19 ms a view).
+   The budget (`--budget`, 180 by default) is the views the eyes get: their
+   looks written and the sheets, a sample stratified by the kind of place
+   (the edge, a corner, a flight), so every kind is seen before any twice.
+   The report's *views* column says how many were detected, for the eyes,
+   of all. `--quick` renders the eyes' sample only (seconds a floor): for a
+   first look, never for the record.
 
-   The first run builds the release game (minutes); after that a floor of
-   120 views takes about 7 s, and a set of three floors on three seeds
-   about a minute.
+   The first run builds the release game (minutes). A set of three floors
+   on two seeds takes about twenty minutes.
 3. **Run.** `cargo xtask playtest visual --seeds S,… --levels L,…
    [--area …] [--budget N] [--size 640x400] [--out DIR]`. It writes, under
    `target/xtask/playtest/visual/`:

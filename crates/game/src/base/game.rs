@@ -682,6 +682,10 @@ pub struct Game {
     /// once, without their fade (`snap_pooled_lights`: a camera put
     /// somewhere by a tool, the tour and the census, not walked there)
     pub pool_snap: bool,
+    /// A tool put the eye where it is (the tour, the census): play does
+    /// not act on it there (nothing is picked up, no floor hole is fallen
+    /// into); play never sets it
+    pub tool_eye: bool,
     pub glitch_t: f64,
     pub ghost_step_t: f64,
     // ---- main loop
@@ -1176,6 +1180,7 @@ impl Game {
             level_start_t: 0.0,
             pool_t: 0.0,
             pool_snap: false,
+            tool_eye: false,
             glitch_t: 0.0,
             ghost_step_t: 0.0,
             fps_frames: 0.0,

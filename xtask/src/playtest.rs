@@ -13,7 +13,9 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 pub const USAGE: &str = "usage: cargo xtask playtest visual [--seeds 4242,7] [--levels 1,2,3] [--budget 180]
-                              [--area x0,z0,x1,z1] [--size 640x400] [--out DIR] [--no-build]
+                              [--area x0,z0,x1,z1] [--size 640x400] [--out DIR] [--no-build] [--quick]
+  (every stand is rendered for the detectors, about 6 minutes a floor; the budget is
+   the views the eyes get, a sample stratified by the kind of place; --quick: those only)
   (the game's own flags: --tour-budget, --tour-area, --width/--height; --out defaults to
    target/xtask/playtest/visual/, the run before it kept as visual.prev/)";
 
@@ -103,6 +105,10 @@ fn visual(args: &[String]) -> Result<(), String> {
         let dir = out.join(format!("s{seed}"));
         let mut c = std::process::Command::new(root().join("target/release/backrooms"));
         c.args(["--tour"]).arg(&dir).args(["--seed", seed, "--levels", levels, "--tour-budget", budget, "--width", w, "--height", h]);
+        // every stand for the detectors (minutes a floor) unless --quick: the eyes' sample only
+        if !flag(args, "--quick") {
+            c.arg("--tour-all");
+        }
         if let Some(a) = opt(args, "--area") {
             c.args(["--tour-area", a]);
         }
@@ -162,13 +168,14 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
             let meta = std::fs::read_to_string(ldir.join("meta.tsv")).unwrap_or_default();
             let said = |k: &str| meta.lines().find_map(|l| l.strip_prefix(&format!("{k}\t")).map(String::from));
             let of = said("of").unwrap_or_else(|| vs.len().to_string());
+            let eyes = said("eyes").unwrap_or_else(|| vs.len().to_string());
             let flag_px: usize = said("flag_px").and_then(|v| v.parse().ok()).unwrap_or(FLAG_PX);
             let flagged = |k: &str| fs.iter().filter(|f| f.kind == k && f.flagged).count();
             let gaps = vs.iter().filter(|v| v.gaps >= flag_px).count();
             let flicker = vs.iter().filter(|v| v.flicker >= flag_px).count();
             writeln!(
                 md,
-                "| {seed} | {l} | {} of {of} | {} | {gaps} | {flicker} | {} | {} | {} | {} / {} |",
+                "| {seed} | {l} | {} of {of} ({eyes} for the eyes) | {} | {gaps} | {flicker} | {} | {} | {} | {} / {} |",
                 vs.len(),
                 vs.iter().filter(|v| v.background > 0).count(),
                 flagged("clip"),
@@ -222,7 +229,30 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
             writeln!(md).unwrap();
         }
         // the things, flagged, by kind
-        for kind in ["clip", "body", "plain", "unlit", "glow", "coplanar"] {
+        // a flat or self-lit material: one row a material (its colour, a
+        // picture or not, the kind), how many things wear it, where they are
+        for kind in ["plain", "unlit", "glow"] {
+            let mut by: BTreeMap<String, Vec<&Finding>> = BTreeMap::new();
+            for f in fs.iter().filter(|f| f.kind == kind && f.flagged) {
+                by.entry(material(&f.mesh)).or_default().push(f);
+            }
+            if by.is_empty() {
+                continue;
+            }
+            let mut rows: Vec<(String, Vec<&Finding>)> = by.into_iter().collect();
+            rows.sort_by_key(|(_, l)| std::cmp::Reverse(l.len()));
+            writeln!(md, "### {kind}: {} things of {} materials\n", rows.iter().map(|r| r.1.len()).sum::<usize>(), rows.len()).unwrap();
+            for (mat, list) in rows.iter().take(12) {
+                let cams: Vec<String> =
+                    list.iter().filter(|f| !f.view.is_empty()).take(3).map(|f| format!("`--shots-at \"{}\"`", cam(&f.view))).collect();
+                writeln!(md, "- `{mat}`: {} things (e.g. {} `{}`); {}", list.len(), list[0].label, list[0].mesh, cams.join(", ")).unwrap();
+            }
+            if rows.len() > 12 {
+                writeln!(md, "- … and {} more materials in `findings.tsv`", rows.len() - 12).unwrap();
+            }
+            writeln!(md).unwrap();
+        }
+        for kind in ["clip", "body", "coplanar"] {
             let list: Vec<&Finding> = fs.iter().filter(|f| f.kind == kind && f.flagged).collect();
             if list.is_empty() {
                 continue;
@@ -302,6 +332,19 @@ fn make_out(out: &Path) -> Result<PathBuf, String> {
     Ok(out)
 }
 
+/// A material as a finding's mesh names it: its colour and whether it has a
+/// picture (`#47504a`, `#ffffff map`); the whole name when it gives none
+fn material(mesh: &str) -> String {
+    match mesh.find('#') {
+        Some(i) if mesh[i + 1..].chars().take(6).all(|c| c.is_ascii_hexdigit()) => {
+            let rest = &mesh[i..];
+            let end = rest.find(" #").filter(|&e| e > 0).unwrap_or(rest.len());
+            rest[..end].trim().to_string()
+        }
+        _ => mesh.to_string(),
+    }
+}
+
 /// A `--shots-at` camera `NAME:x,y,z,yaw,pitch` moved `d` metres back
 /// along its yaw (forward is (-sin yaw, -cos yaw)), named `NAME_back`
 fn stepped_back(cam: &str, d: f64) -> String {
@@ -338,7 +381,7 @@ mod tests {
         )
         .unwrap();
         let md = report(&out, &["7".to_string()], "2", "60", &[]).unwrap();
-        assert!(md.contains("| 7 | 2 | 3 of 3 | 2 | 2 | 1 | 1 | 0 | 0 | 0 / 0 |"), "{md}");
+        assert!(md.contains("| 7 | 2 | 3 of 3 (3 for the eyes) | 2 | 2 | 1 | 1 | 0 | 0 | 0 / 0 |"), "{md}");
         // a clip comes with a camera stepped back from it
         assert!(
             md.contains("stepped back: `--shots-at \"L2_001_up_back:4.0000,5,6.6000,0.00000,1.00000\"`")
@@ -351,6 +394,10 @@ mod tests {
         assert!(md.contains("--shots-at \"L2_001_up:4,5,6,0,1\""), "{md}");
         assert!(md.contains("0.06 m inside"), "{md}");
         assert!(md.contains("Listed and not flagged"), "{md}");
+        // a material named by its colour and picture, an instance's number dropped
+        assert_eq!(material("box 0.09x2.06x1.24 #47504a #327"), "#47504a");
+        assert_eq!(material("box 4.00x0.13x0.26 #ffffff map #14"), "#ffffff map");
+        assert_eq!(material("sheet"), "sheet");
         let all = std::fs::read_to_string(out.join("findings.tsv")).unwrap();
         assert_eq!(all.lines().count(), 3, "{all}");
         assert!(all.contains("7\t2\tplain\tcore_locker"));

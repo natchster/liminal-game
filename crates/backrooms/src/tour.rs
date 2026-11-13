@@ -78,10 +78,10 @@ pub fn tour(o: &Options, dir: &str) {
     let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
     for &l in &levels {
         g.load_level(l);
-        // the tour's views, or the cameras given (each its own stand, its look "at")
-        let (views, all) = if o.tour_at.is_empty() {
-            g.tour(&TourOpts { budget: o.tour_budget, area: o.tour_area })
-        } else {
+        // the tour's views (every stand's with `--tour-all`, else the eyes'),
+        // or the cameras given (each its own stand, its look "at")
+        let exact = !o.tour_at.is_empty();
+        let (views, eyes, all) = if exact {
             let given: Vec<View> = o
                 .tour_at
                 .iter()
@@ -99,58 +99,75 @@ pub fn tour(o: &Options, dir: &str) {
                 })
                 .collect();
             let n = given.len();
-            (given, n)
+            (given, std::collections::BTreeSet::from([0]), n)
+        } else {
+            let tour = g.tour(&TourOpts { budget: o.tour_budget, area: o.tour_area });
+            let all = tour.views.len();
+            let views: Vec<View> =
+                if o.tour_all { tour.views } else { tour.views.into_iter().filter(|v| tour.eyes.contains(&v.stand)).collect() };
+            (views, tour.eyes, all)
         };
-        let exact = !o.tour_at.is_empty();
-        if let (Some(p), Some(first)) = (&o.tour_plant, views.first()) {
+        let is_eye = |v: &View| eyes.contains(&v.stand);
+        if let (Some(p), Some(first)) = (&o.tour_plant, views.iter().find(|v| is_eye(v))) {
             plant(&mut g, p, first);
         }
         let ldir = format!("{dir}/L{l}");
         std::fs::create_dir_all(&ldir).expect("create tour dir");
         let parts = things::parts(&g);
         let mut found: Vec<(String, Finding)> = vec![];
-        // each view's look at half size, and the flagged views' strips
-        let mut thumbs: Vec<(String, Vec<u8>, usize, usize)> = vec![];
+        // the looks at half size (the eyes' and the flagged), and the flagged views' strips
+        let mut thumbs: Vec<(String, Vec<u8>, usize, usize, bool)> = vec![];
         let (mut gap_strips, mut flicker_strips): (Vec<(usize, Tile)>, Vec<(usize, Tile)>) = (vec![], vec![]);
-        let mut tsv =
-            String::from("name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\tclip\tbody\tplain\n");
-        let (mut flag_gaps, mut flag_flicker) = (0, 0);
-        for v in &views {
-            let (seen, look, a, gaps, flicker, turned) = render_view(&mut g, &mut r, &t, (w, h), v);
+        let mut tsv = String::from(
+            "name\tlook\tedge\tcorner\tshots_at\tbackground\tgaps\tgap_blob\tflicker\tflicker_blob\tclip\tbody\tplain\teyes\n",
+        );
+        let (mut flag_gaps, mut flag_flicker, mut looked) = (0, 0, 0);
+        g.tool_eye = true;
+        let t0 = std::time::Instant::now();
+        for (n, v) in views.iter().enumerate() {
+            if n > 0 && n % 1000 == 0 {
+                eprintln!("level {l}: {n} of {} views ({:.0} s)", views.len(), t0.elapsed().as_secs_f64());
+            }
+            // what the scene says first (no render): a thing flagged wants the look too
+            let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
+            let mut here = things::clip(&g, &parts, &eye);
+            here.extend(things::plain(&g, &parts, &eye));
+            let n_of = |k: &str| here.iter().filter(|f| f.kind == k).count();
+            let (clip, body, plain) = (n_of("clip"), n_of("body"), here.len() - n_of("clip") - n_of("body"));
+            let want = exact || is_eye(v) || clip + body > 0;
+            let (seen, look, a, gaps, flicker, turned) = render_view(&mut g, &mut r, &t, (w, h), v, want);
+            found.extend(here.into_iter().map(|f| (v.name.clone(), f)));
             if exact {
                 // to flip between by eye: the bare render and the two turns
                 engine::png::write_rgba(&format!("{ldir}/{}_bare.png", v.name), tw_of(w), th_of(h), &a).expect("write png");
                 engine::png::write_rgba(&format!("{ldir}/{}_plus.png", v.name), tw_of(w), th_of(h), &turned.0).expect("write png");
                 engine::png::write_rgba(&format!("{ldir}/{}_minus.png", v.name), tw_of(w), th_of(h), &turned.1).expect("write png");
             }
-            let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
-            let mut here = things::clip(&g, &parts, &eye);
-            here.extend(things::plain(&g, &parts, &eye));
-            let n = |k: &str| here.iter().filter(|f| f.kind == k).count();
-            let (clip, body, plain) = (n("clip"), n("body"), here.len() - n("clip") - n("body"));
-            found.extend(here.into_iter().map(|f| (v.name.clone(), f)));
             let (tw, th) = (w, h);
-            engine::png::write_rgba(&format!("{ldir}/{}.png", v.name), tw as u32, th as u32, &look).expect("write png");
-            let (half, hw, hh) = sheet::shrink(&look, tw, th, 2);
-            let strip = |p: &[u8], what: &str, n: usize| {
-                let (ph, _, _) = sheet::shrink(p, tw, th, 2);
-                Tile { px: sheet::side_by_side(&half, &ph, hw, hh), w: hw * 2, h: hh, label: format!("{} ({what} {n} px)", v.name) }
-            };
-            if seen.gaps >= sight::FLAG_PX || (exact && seen.gaps > 0) {
-                flag_gaps += 1;
-                let p = sight::paint(&a, &gaps, [255, 30, 30]);
-                engine::png::write_rgba(&format!("{ldir}/{}_gaps.png", v.name), tw as u32, th as u32, &p).expect("write png");
-                gap_strips.push((seen.gaps, strip(&p, "gaps", seen.gaps)));
+            if let Some(look) = &look {
+                looked += 1;
+                engine::png::write_rgba(&format!("{ldir}/{}.png", v.name), tw as u32, th as u32, look).expect("write png");
+                let (half, hw, hh) = sheet::shrink(look, tw, th, 2);
+                let strip = |p: &[u8], what: &str, n: usize| {
+                    let (ph, _, _) = sheet::shrink(p, tw, th, 2);
+                    Tile { px: sheet::side_by_side(&half, &ph, hw, hh), w: hw * 2, h: hh, label: format!("{} ({what} {n} px)", v.name) }
+                };
+                if seen.gaps >= sight::FLAG_PX || (exact && seen.gaps > 0) {
+                    flag_gaps += 1;
+                    let p = sight::paint(&a, &gaps, [255, 30, 30]);
+                    engine::png::write_rgba(&format!("{ldir}/{}_gaps.png", v.name), tw as u32, th as u32, &p).expect("write png");
+                    gap_strips.push((seen.gaps, strip(&p, "gaps", seen.gaps)));
+                }
+                if seen.flicker >= sight::FLAG_PX || (exact && seen.flicker > 0) {
+                    flag_flicker += 1;
+                    let p = sight::paint(&a, &flicker, [30, 230, 255]);
+                    engine::png::write_rgba(&format!("{ldir}/{}_flicker.png", v.name), tw as u32, th as u32, &p).expect("write png");
+                    flicker_strips.push((seen.flicker, strip(&p, "flicker", seen.flicker)));
+                }
+                thumbs.push((v.name.clone(), half, hw, hh, is_eye(v)));
             }
-            if seen.flicker >= sight::FLAG_PX || (exact && seen.flicker > 0) {
-                flag_flicker += 1;
-                let p = sight::paint(&a, &flicker, [30, 230, 255]);
-                engine::png::write_rgba(&format!("{ldir}/{}_flicker.png", v.name), tw as u32, th as u32, &p).expect("write png");
-                flicker_strips.push((seen.flicker, strip(&p, "flicker", seen.flicker)));
-            }
-            thumbs.push((v.name.clone(), half, hw, hh));
             tsv.push_str(&format!(
-                "{}\t{}\t{}\t{}\t{}:{:.4},{:.4},{:.4},{:.5},{:.5}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                "{}\t{}\t{}\t{}\t{}:{:.4},{:.4},{:.4},{:.5},{:.5}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
                 v.name,
                 v.look,
                 v.edge,
@@ -168,9 +185,11 @@ pub fn tour(o: &Options, dir: &str) {
                 seen.flicker_blob,
                 clip,
                 body,
-                plain
+                plain,
+                is_eye(v)
             ));
         }
+        g.tool_eye = false;
         std::fs::write(format!("{ldir}/views.tsv"), tsv).expect("write views.tsv");
         // coplanar faces near the stands, each given the nearest view that has it in sight
         let stands: Vec<engine::math::Vec3> = views.iter().map(|v| engine::math::Vec3::new(v.x, v.y, v.z)).collect();
@@ -188,13 +207,14 @@ pub fn tour(o: &Options, dir: &str) {
         }
         let (rows, flagged) = things::gather(&found);
         std::fs::write(format!("{ldir}/findings.tsv"), rows.clone()).expect("write findings.tsv");
-        write_sheets(&ldir, gap_strips, flicker_strips, &thumbs, &rows);
+        write_sheets(&ldir, gap_strips, flicker_strips, &thumbs, &rows, &found, &views, &g);
         std::fs::write(
             format!("{ldir}/meta.tsv"),
             format!(
-                "seed\t{}\nlevel\t{l}\nviews\t{}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\nflag_px\t{}\n",
+                "seed\t{}\nlevel\t{l}\nviews\t{}\neyes\t{}\nlooked\t{looked}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\nflag_px\t{}\n",
                 o.seed.unwrap_or(4242),
                 views.len(),
+                views.iter().filter(|v| is_eye(v)).count(),
                 o.tour_budget,
                 o.tour_area,
                 sight::FLAG_PX
@@ -202,8 +222,9 @@ pub fn tour(o: &Options, dir: &str) {
         )
         .expect("write meta.tsv");
         println!(
-            "level {l}: {} of {all} views, gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
+            "level {l}: {} of {all} views detected ({} for the eyes), gaps in {flag_gaps}, flicker in {flag_flicker}; things: {}: {ldir}/views.tsv, findings.tsv",
             views.len(),
+            views.iter().filter(|v| is_eye(v)).count(),
             if flagged.is_empty() {
                 "none".to_string()
             } else {
@@ -220,12 +241,16 @@ const SHEET_PAGES: usize = 4;
 const PAGE: usize = 48;
 
 /// The level's contact sheets (see the module's head)
+#[allow(clippy::too_many_arguments)]
 fn write_sheets(
     ldir: &str,
     mut gaps: Vec<(usize, Tile)>,
     mut flicker: Vec<(usize, Tile)>,
-    thumbs: &[(String, Vec<u8>, usize, usize)],
+    thumbs: &[(String, Vec<u8>, usize, usize, bool)],
     findings: &str,
+    found: &[(String, Finding)],
+    views: &[View],
+    g: &Game,
 ) {
     let write = |name: &str, tiles: &[Tile], cols: usize| {
         if tiles.is_empty() {
@@ -248,8 +273,19 @@ fn write_sheets(
         if c.len() < 10 || c[9] != "true" || c[4].is_empty() {
             continue;
         }
-        if let Some((_, px, w, h)) = thumbs.iter().find(|t| t.0 == c[4]) {
-            tiles.push(Tile { px: px.clone(), w: *w, h: *h, label: format!("{} {}: {} {}", c[4], c[0], c[1], c[2]) });
+        if let Some((_, px, w, h, _)) = thumbs.iter().find(|t| t.0 == c[4]) {
+            let mut px = px.clone();
+            // the thing outlined where its first view sees it
+            let f = found.iter().find(|(v, f)| v == c[4] && f.kind == c[0] && f.label == c[1] && f.mesh == c[2]).map(|(_, f)| f);
+            if let (Some(f), Some(v)) = (f, views.iter().find(|v| v.name == c[4])) {
+                let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w: *w, h: *h };
+                let b = f.bounds;
+                let bx = engine::math::Box3::new(Vec3::new(b[0], b[1], b[2]), Vec3::new(b[3], b[4], b[5]));
+                if let Some(rect) = things::screen_rect(&eye, &bx) {
+                    outline(&mut px, *w, *h, rect);
+                }
+            }
+            tiles.push(Tile { px, w: *w, h: *h, label: format!("{} {}: {} {}", c[4], c[0], c[1], c[2]) });
         }
         if tiles.len() == SHEET_MAX * SHEET_PAGES {
             break;
@@ -258,16 +294,40 @@ fn write_sheets(
     for (k, page) in tiles.chunks(SHEET_MAX).enumerate() {
         write(&format!("sheet_things_{:02}.png", k + 1), page, 3);
     }
-    // every view, small
-    for (k, page) in thumbs.chunks(PAGE).enumerate() {
+    // every view the eyes look at, small
+    let eyes: Vec<_> = thumbs.iter().filter(|t| t.4).collect();
+    for (k, page) in eyes.chunks(PAGE).enumerate() {
         let tiles: Vec<Tile> = page
             .iter()
-            .map(|(name, px, w, h)| {
+            .map(|(name, px, w, h, _)| {
                 let (q, qw, qh) = sheet::shrink(px, *w, *h, 2);
                 Tile { px: q, w: qw, h: qh, label: name.clone() }
             })
             .collect();
         write(&format!("sheet_all_{:02}.png", k + 1), &tiles, 8);
+    }
+}
+
+/// A yellow frame drawn round a rect of the frame ((left, bottom, right,
+/// top) from -1 to 1) on a picture w × h
+fn outline(px: &mut [u8], w: usize, h: usize, (x0, y0, x1, y1): (f64, f64, f64, f64)) {
+    let to = |x: f64, y: f64| ((((x + 1.0) / 2.0) * w as f64) as isize, (((1.0 - y) / 2.0) * h as f64) as isize);
+    let (a, b) = (to(x0, y1), to(x1, y0));
+    let mut put = |x: isize, y: isize| {
+        if x >= 0 && y >= 0 && (x as usize) < w && (y as usize) < h {
+            let o = (y as usize * w + x as usize) * 4;
+            px[o..o + 3].copy_from_slice(&[255, 214, 40]);
+        }
+    };
+    for k in 0..2 {
+        for x in a.0..=b.0 {
+            put(x, a.1 + k);
+            put(x, b.1 - k);
+        }
+        for y in a.1..=b.1 {
+            put(a.0 + k, y);
+            put(b.0 - k, y);
+        }
     }
 }
 
@@ -278,9 +338,10 @@ fn th_of(h: usize) -> u32 {
     h as u32
 }
 
-/// One view's five renders and what the detectors made of them: (what was
-/// seen, the look, the bare render, the gaps mask, the flicker mask, the two
-/// turned renders)
+/// One view's renders and what the detectors made of them: (what was seen,
+/// the look if rendered, the bare render, the gaps mask, the flicker mask,
+/// the two turned renders). The four bare renders always; the look (the
+/// HUD on) when `want_look` or the pixel detectors flag the view
 #[allow(clippy::type_complexity)]
 fn render_view(
     g: &mut Game,
@@ -288,7 +349,8 @@ fn render_view(
     t: &ProtocolObject<dyn MTLTexture>,
     (w, h): (usize, usize),
     v: &View,
-) -> (Seen, Vec<u8>, Vec<u8>, Vec<bool>, Vec<bool>, (Vec<u8>, Vec<u8>)) {
+    want_look: bool,
+) -> (Seen, Option<Vec<u8>>, Vec<u8>, Vec<bool>, Vec<bool>, (Vec<u8>, Vec<u8>)) {
     // the body where the view stands, one step of play, then the eye exactly
     g.player.pos = Vec3::new(v.x, g.floor_y_at(v.x, v.z) + game::prelude::EYE, v.z);
     g.player.yaw = v.yaw;
@@ -300,9 +362,13 @@ fn render_view(
     // in after the camera jumped (`--shots-at` does the same)
     g.snap_pooled_lights();
     g.prop_cull.t = 0.0;
-    g.fixed_step_dt = 1.0 / 60.0;
-    g.frame(1.0 / 60.0);
-    g.fixed_step_dt = 0.0;
+    // a tool's step, not play's: the level as built for every view
+    g.tool_step(1.0 / 60.0);
+    // a tool's eye is not play: nothing taken, nothing fallen into, nobody dead
+    if g.state != "playing" {
+        eprintln!("backrooms --tour: {} left play (state {:?}): a tour must not change the level it looks at", v.name, g.state);
+        std::process::exit(1);
+    }
     let aim = |g: &mut Game, dy: f64, dp: f64| {
         g.camera.position().set(v.x, v.y, v.z);
         g.camera.rotation().x = v.pitch + dp;
@@ -321,7 +387,6 @@ fn render_view(
         cb.waitUntilCompleted();
         r.read_texture(t)
     };
-    let (_, _, look) = shot(g, true);
     let keep = g.background;
     g.background = engine::math::Color::hex(MAGENTA);
     let (_, _, a) = shot(g, false);
@@ -334,8 +399,6 @@ fn render_view(
     let (_, _, minus) = shot(g, false);
     aim(g, 0.0, 0.0);
     g.background = keep;
-    g.sim_frozen = false;
-    g.player.flashlight_on = false;
     let bg = sight::background_mask(&a, &b);
     let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
     let gaps = sight::gap_mask(g, &eye, &bg, GAP_STEP);
@@ -377,6 +440,11 @@ fn render_view(
         flicker: count(&flicker),
         flicker_blob: largest(&flicker),
     };
+    // the look a player gets (the HUD on), for the eyes or a flagged view
+    let flagged = seen.gaps >= sight::FLAG_PX || seen.flicker >= sight::FLAG_PX;
+    let look = (want_look || flagged).then(|| shot(g, true).2);
+    g.sim_frozen = false;
+    g.player.flashlight_on = false;
     (seen, look, a, gaps, flicker, (plus, minus))
 }
 

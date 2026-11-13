@@ -9,7 +9,8 @@ sessions with people are a folder up (`docs/playtests/`, from their
 A record holds, in this order:
 
 1. **The run**: the command (seeds, levels, area, budget), the commit, and
-   the table from the report.
+   the table from the report, its coverage with it (views detected, for the
+   eyes, of all; `--quick` is not a record).
 2. **The findings**, one row each: an id (F1, F2, …); the kind (gap,
    flicker, clip, body, plain, coplanar, or out of place for what the eye
    found); the thing (as the report names it); the view and its camera

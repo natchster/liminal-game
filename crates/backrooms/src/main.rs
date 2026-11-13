@@ -142,6 +142,9 @@ struct Options {
     /// with `--tour-plant hole|fight` a known fault at its first stand
     tour: Option<String>,
     tour_budget: usize,
+    /// `--tour-all`: every stand's views rendered for the detectors (the
+    /// eyes still get the budget's sample: the looks and the sheets)
+    tour_all: bool,
     tour_area: Option<[f64; 4]>,
     tour_plant: Option<String>,
     /// `--tour-at "NAME:x,y,z,yaw,pitch;…"`: with `--tour`, these cameras
@@ -185,6 +188,7 @@ fn parse_args() -> Options {
         cutscene: None,
         tour: None,
         tour_budget: 180,
+        tour_all: false,
         tour_area: None,
         tour_plant: None,
         tour_at: vec![],
@@ -278,6 +282,7 @@ fn parse_args() -> Options {
                 o.tour_area = Some(if n.len() == 4 { [n[0], n[1], n[2], n[3]] } else { bad("--tour-area x0,z0,x1,z1") });
             }
             "--tour-plant" => o.tour_plant = Some(next(&mut i)),
+            "--tour-all" => o.tour_all = true,
             "--tour-at" => {
                 const WANTS: &str = "--tour-at \"NAME:x,y,z,yaw,pitch;…\"";
                 o.tour_at = next(&mut i)
@@ -314,7 +319,7 @@ fn parse_args() -> Options {
                 println!("          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)");
                 println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
                 println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
-                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-plant hole|fight|inside|flat] [--tour-at \"NAME:x,y,z,yaw,pitch;…\"]]   the visual playtest's renders and detectors (DIR/L<n>/views.tsv, findings.tsv, sheets)");
+                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-all] [--tour-plant hole|fight|darkfight|inside|flat|nearface|ring] [--tour-at \"NAME:x,y,z,yaw,pitch;…\"]]   the visual playtest's renders and detectors (DIR/L<n>/views.tsv, findings.tsv, sheets)");
                 std::process::exit(0);
             }
             _ => {}
@@ -1044,12 +1049,12 @@ fn level_check(o: &Options, dir: &str) {
                     g.player.flashlight_on = g.region_light_at(g.tx(*x), g.tz(*z)) < 0.3;
                     g.player.battery = game::prelude::BAT_MAX;
                     // the lamps' pooled light as it settles there (as the tour: a
-                    // finding of the tour is seen again in its own light)
+                    // finding of the tour is seen again in its own light); a
+                    // tool's eye takes nothing and falls into nothing
                     g.snap_pooled_lights();
                     g.prop_cull.t = 0.0;
-                    g.fixed_step_dt = 1.0 / 60.0;
-                    g.frame(1.0 / 60.0);
-                    g.fixed_step_dt = 0.0;
+                    // a tool's step, as the tour's (the same light, nothing taken)
+                    g.tool_step(1.0 / 60.0);
                     // the eye where the census put it (lowered for a small thing)
                     g.camera.position().set(*x, *y, *z);
                     g.camera.rotation().x = *pitch;

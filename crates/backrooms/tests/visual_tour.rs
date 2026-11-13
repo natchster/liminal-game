@@ -306,3 +306,58 @@ fn a_hole_and_a_dark_fight_in_the_well_are_found() {
     assert!(at(&hole, "at").1 >= FLAG_PX, "the Building's hole is not found: {hole:?}");
     assert!(at(&fight, "up").2 >= FLAG_PX || at(&fight, "at").2 >= FLAG_PX, "the dark fight is not found: {fight:?}");
 }
+
+/// The stairs are toured (review A: a walk whose floor changed on the way
+/// was left out, so the Stair Halls' flights had no stand), each stand's
+/// eye over its own floor; and a tool's eye takes nothing (review A: a
+/// view's step of play picked up what lay within a metre, gone for every
+/// later view)
+#[test]
+fn the_stairs_are_toured_and_a_tools_eye_takes_nothing() {
+    let g = floor(4242, 2);
+    let stands = g.tour_stands(None);
+    let on_flight = stands
+        .iter()
+        .filter(|s| g.ground.get(g.t_idx(g.tx(s.x), g.tz(s.z))).is_some_and(|gr| gr.kind == game::level::archgen::GROUND_STAIR))
+        .count();
+    println!("{on_flight} of {} stands of the Stair Halls on a flight", stands.len());
+    assert!(on_flight > 0, "no stand on a flight");
+    // a pickup under a tool's eye stays; under a player it is taken
+    let mut found = None;
+    for level in [5, 6, 7, 8] {
+        let g = floor(4242, level);
+        if let Some(i) = (0..g.almonds.len()).find(|&i| !g.almonds[i].taken) {
+            found = Some((g, i));
+            break;
+        }
+    }
+    let (mut g, i) = found.expect("almond water on one of 4242's levels 5-8");
+    let p = g.almonds[i].g.pos();
+    g.player.pos = engine::math::Vec3::new(p.x, g.floor_y_at(p.x, p.z) + EYE, p.z);
+    g.tool_eye = true;
+    g.update_player(1.0 / 60.0);
+    assert!(!g.almonds[i].taken, "a tool's eye took the almond water");
+    g.tool_eye = false;
+    g.update_player(1.0 / 60.0);
+    assert!(g.almonds[i].taken, "the test is blind: play did not take it either");
+}
+
+/// Under a flight's head a look passes: a flight's solid is a flat slab at
+/// its foot, drawn along its slope, and the gap rays follow the slope (the
+/// first tour of the Stair Halls' every stand flagged 112 views of the open
+/// space under flights as holes; these three among them)
+#[test]
+fn the_space_under_a_flight_is_no_gap() {
+    let rows = toured(
+        "under_flights",
+        2,
+        &[
+            "--tour-at",
+            "L2_0516_up:20.2000,-12.7800,-15.2000,1.57080,0.69813;L2_0227_crouch:-48.2200,15.4500,-39.2000,-1.57080,-0.17453;L2_0297_at:-44.2200,7.6200,-27.2000,-1.57080,0.00000",
+        ],
+    );
+    assert_eq!(rows.len(), 3);
+    for r in &rows {
+        assert!(r.background > 1000 && r.gaps < FLAG_PX, "{r:?}");
+    }
+}
