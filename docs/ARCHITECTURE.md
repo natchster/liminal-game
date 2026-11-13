@@ -61,7 +61,7 @@ engine  ←  game  ←  placers_p00 … placers_p32
 | `cutscene` | Cutscenes as data (`docs/CUTSCENES.md`): the library, compiled from `assets/src/cutscenes/*.toml` by `cargo xtask cutscene write` into one bundle (`assets/cutscenes.json`, every field written out) and parsed strictly; the rules a cutscene keeps whatever the game around it (`shape_problems`, also run by `backrooms --cutscene-check`); the camera's curves (eased keys, a centripetal Catmull-Rom spline, angles the short way round, a sway with no random draw); the player (`play`: one at a time on a clock of its own, anchors, the blend envelope over the gameplay camera, hands taken, live and held worlds, break-off, skip) and what a cutscene may name (`cues`: sounds played from places, events, asides) |
 | `session` | Start-up (`boot`), the per-frame update, input handling (`input`: the one binding table, held keys firing once, the crouch latch, the spent-run lockout, the early-E buffer; `settings`: what the player set, kept apart from the save, and the keys as rebound; `docs/UI.md`), and the game flow: levels, saves, death, the menu |
 | `story` | M.'s descent: where her camp is on each floor, the walk she took and the trails that are not hers (`plan_story`, pure), her camp and her sheets (`dress`), her notebook (`notebook`), and the end of her story on level 13 (`ending`) |
-| `debug` | Level dumps for tools and tests, and test helpers |
+| `debug` | Level dumps for tools and tests, test helpers, the cutscene test engine, and the visual playtest (`tour`, `sight`, `things`: `docs/VISUAL_PLAYTEST.md`) |
 
 ### One frame
 

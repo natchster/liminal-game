@@ -97,13 +97,7 @@ fn visual(args: &[String]) -> Result<(), String> {
     if !flag(args, "--no-build") {
         run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     }
-    // the run before is kept beside it, to compare the tour again with
-    if out.exists() {
-        let prev = out.with_extension("prev");
-        let _ = std::fs::remove_dir_all(&prev);
-        std::fs::rename(&out, &prev).map_err(|e| format!("{} → {}: {e}", out.display(), prev.display()))?;
-    }
-    std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+    let out = make_out(&out)?;
     let t0 = std::time::Instant::now();
     for seed in &seeds {
         let dir = out.join(format!("s{seed}"));
@@ -144,7 +138,8 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         "Columns: *views*, the tour's of all the floor (or area) holds (a budget under that leaves stands out); \
          *background*, views where nothing is drawn somewhere (the sky, the void, beyond the far plane: not a fault in itself); \
          *gaps* and *flicker*, views flagged at {FLAG_PX} px or more; *clip*, *body*, *plain* (with unlit and glow) and \
-         *coplanar*, things flagged (plain when two views agree); *alike*, coplanar faces of one material, listed only. \
+         *coplanar*, things flagged (plain, unlit and glow when two stands agree, unlit and glow only where the place is dark); \
+         *alike*, coplanar faces of one material, listed only. \
          In the pictures the gaps are red, the flicker cyan, the rest the bare render dimmed (the background there magenta). \
          Sizes: clip and body in metres inside, plain in the share of the frame, coplanar in m² of overlap.\n"
     )
@@ -164,13 +159,13 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         for (l, ldir) in ls {
             let vs = views(&ldir.join("views.tsv"))?;
             let fs = findings(&ldir.join("findings.tsv"))?;
-            let of = std::fs::read_to_string(ldir.join("meta.tsv"))
-                .ok()
-                .and_then(|m| m.lines().find_map(|l| l.strip_prefix("of\t").map(String::from)))
-                .unwrap_or_else(|| vs.len().to_string());
+            let meta = std::fs::read_to_string(ldir.join("meta.tsv")).unwrap_or_default();
+            let said = |k: &str| meta.lines().find_map(|l| l.strip_prefix(&format!("{k}\t")).map(String::from));
+            let of = said("of").unwrap_or_else(|| vs.len().to_string());
+            let flag_px: usize = said("flag_px").and_then(|v| v.parse().ok()).unwrap_or(FLAG_PX);
             let flagged = |k: &str| fs.iter().filter(|f| f.kind == k && f.flagged).count();
-            let gaps = vs.iter().filter(|v| v.gaps >= FLAG_PX).count();
-            let flicker = vs.iter().filter(|v| v.flicker >= FLAG_PX).count();
+            let gaps = vs.iter().filter(|v| v.gaps >= flag_px).count();
+            let flicker = vs.iter().filter(|v| v.flicker >= flag_px).count();
             writeln!(
                 md,
                 "| {seed} | {l} | {} of {of} | {} | {gaps} | {flicker} | {} | {} | {} | {} / {} |",
@@ -191,12 +186,13 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
                 )
                 .unwrap();
             }
-            floors.push((seed.clone(), l, ldir, vs, fs));
+            floors.push((seed.clone(), l, ldir, vs, fs, flag_px));
         }
     }
     std::fs::write(out.join("findings.tsv"), all).map_err(|e| e.to_string())?;
     let rel = |p: &Path| p.strip_prefix(out).map(|r| r.display().to_string()).unwrap_or_else(|_| p.display().to_string());
-    for (seed, l, ldir, vs, fs) in &floors {
+    for (seed, l, ldir, vs, fs, flag_px) in &floors {
+        let flag_px = *flag_px;
         writeln!(md, "\n## Seed {seed}, level {l}\n").unwrap();
         let cam = |name: &str| vs.iter().find(|v| v.name == name).map(|v| v.shots_at.clone()).unwrap_or_default();
         let mut sheets: Vec<String> = std::fs::read_dir(ldir)
@@ -211,7 +207,7 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         }
         // the pixel detectors, the largest first
         for (what, key) in [("Gaps", 0), ("Flicker", 1)] {
-            let mut list: Vec<&View> = vs.iter().filter(|v| if key == 0 { v.gaps >= FLAG_PX } else { v.flicker >= FLAG_PX }).collect();
+            let mut list: Vec<&View> = vs.iter().filter(|v| if key == 0 { v.gaps >= flag_px } else { v.flicker >= flag_px }).collect();
             list.sort_by_key(|v| std::cmp::Reverse(if key == 0 { v.gaps } else { v.flicker }));
             writeln!(md, "### {what}: {} views\n", list.len()).unwrap();
             for v in list.iter().take(12) {
@@ -257,7 +253,7 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         if listed > 0 {
             writeln!(
                 md,
-                "Listed and not flagged (a plain thing one view saw, coplanar faces of one material): {listed}, in `findings.tsv`."
+                "Listed and not flagged (a plain thing one stand saw; a thing lit by itself where the place is lit, `selflit`: a lamp, a panel, a lit window, as meant; coplanar faces of one material): {listed}, in `findings.tsv`."
             )
             .unwrap();
         }
@@ -265,9 +261,46 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
     Ok(md)
 }
 
-/// A view is flagged for gaps or flicker at this many pixels (as
-/// `game::debug::sight::FLAG_PX`)
+/// A view is flagged for gaps or flicker at this many pixels when the tour
+/// did not say (its `meta.tsv` gives `game::debug::sight::FLAG_PX`)
 const FLAG_PX: usize = 12;
+
+/// What marks a folder this task made: only such a folder is ever moved
+/// aside or removed
+const MARK: &str = ".visual-playtest";
+
+/// The output folder, made: a new or empty folder, or one this task made
+/// before (moved aside as `NAME.prev`, the one before that removed); any
+/// other existing folder is refused, so `--out .` or a docs folder is never
+/// touched
+fn make_out(out: &Path) -> Result<PathBuf, String> {
+    let ours = |p: &Path| p.join(MARK).is_file();
+    let empty = |p: &Path| std::fs::read_dir(p).map(|mut d| d.next().is_none()).unwrap_or(false);
+    let out = if out.exists() {
+        std::fs::canonicalize(out).map_err(|e| e.to_string())?
+    } else {
+        std::path::absolute(out).map_err(|e| e.to_string())?
+    };
+    let name = out.file_name().ok_or_else(|| format!("--out {}: not a folder's name", out.display()))?.to_string_lossy().into_owned();
+    if out.exists() {
+        if ours(&out) {
+            let prev = out.with_file_name(format!("{name}.prev"));
+            if prev.exists() {
+                if !ours(&prev) {
+                    return Err(format!("{} is not a playtest's folder (no {MARK}): leave it or remove it by hand", prev.display()));
+                }
+                std::fs::remove_dir_all(&prev).map_err(|e| e.to_string())?;
+            }
+            std::fs::rename(&out, &prev).map_err(|e| format!("{} → {}: {e}", out.display(), prev.display()))?;
+        } else if !empty(&out) {
+            return Err(format!("--out {}: not empty and not a playtest's folder (no {MARK}): give a new or empty folder", out.display()));
+        }
+    }
+    std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
+    std::fs::write(out.join(MARK), "made by cargo xtask playtest visual; moved aside or removed by the next run\n")
+        .map_err(|e| e.to_string())?;
+    Ok(out)
+}
 
 /// A `--shots-at` camera `NAME:x,y,z,yaw,pitch` moved `d` metres back
 /// along its yaw (forward is (-sin yaw, -cos yaw)), named `NAME_back`
@@ -322,5 +355,31 @@ mod tests {
         assert_eq!(all.lines().count(), 3, "{all}");
         assert!(all.contains("7\t2\tplain\tcore_locker"));
         let _ = std::fs::remove_dir_all(&out);
+    }
+
+    #[test]
+    fn only_a_folder_it_made_is_ever_moved_or_removed() {
+        let base = std::env::temp_dir().join(format!("xtask_out_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("docs")).unwrap();
+        std::fs::write(base.join("docs/keep.md"), "kept").unwrap();
+        // a folder with something in it that it did not make is refused, and left as it was
+        assert!(make_out(&base.join("docs")).is_err());
+        assert_eq!(std::fs::read_to_string(base.join("docs/keep.md")).unwrap(), "kept");
+        assert!(make_out(Path::new(".")).is_err(), "the working folder is not a playtest's");
+        // a new folder is made and marked; made again, the first is moved aside
+        let out = base.join("visual");
+        let made = make_out(&out).unwrap();
+        std::fs::write(made.join("report.md"), "first").unwrap();
+        let again = make_out(&out).unwrap();
+        assert!(!again.join("report.md").exists());
+        assert_eq!(std::fs::read_to_string(base.join("visual.prev/report.md")).unwrap(), "first");
+        // a `.prev` it did not make is never removed
+        std::fs::remove_dir_all(base.join("visual.prev")).unwrap();
+        std::fs::create_dir_all(base.join("visual.prev")).unwrap();
+        std::fs::write(base.join("visual.prev/mine.txt"), "x").unwrap();
+        assert!(make_out(&out).is_err());
+        assert!(base.join("visual.prev/mine.txt").exists());
+        let _ = std::fs::remove_dir_all(&base);
     }
 }

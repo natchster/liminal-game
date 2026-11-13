@@ -125,7 +125,7 @@ pub fn tour(o: &Options, dir: &str) {
             }
             let eye = Eye { x: v.x, y: v.y, z: v.z, yaw: v.yaw, pitch: v.pitch, fov: g.camera.camera().fov.to_radians(), w, h };
             let mut here = things::clip(&g, &parts, &eye);
-            here.extend(things::plain(&parts, &eye));
+            here.extend(things::plain(&g, &parts, &eye));
             let n = |k: &str| here.iter().filter(|f| f.kind == k).count();
             let (clip, body, plain) = (n("clip"), n("body"), here.len() - n("clip") - n("body"));
             found.extend(here.into_iter().map(|f| (v.name.clone(), f)));
@@ -192,11 +192,12 @@ pub fn tour(o: &Options, dir: &str) {
         std::fs::write(
             format!("{ldir}/meta.tsv"),
             format!(
-                "seed\t{}\nlevel\t{l}\nviews\t{}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\n",
+                "seed\t{}\nlevel\t{l}\nviews\t{}\nof\t{all}\nbudget\t{}\narea\t{:?}\nsize\t{w}x{h}\nflag_px\t{}\n",
                 o.seed.unwrap_or(4242),
                 views.len(),
                 o.tour_budget,
-                o.tour_area
+                o.tour_area,
+                sight::FLAG_PX
             ),
         )
         .expect("write meta.tsv");

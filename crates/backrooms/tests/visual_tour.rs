@@ -111,6 +111,15 @@ fn an_area_keeps_the_tour_inside_it() {
     }
     // nothing at all for an area off the level
     assert!(g.tour_views(&TourOpts { budget: 60, area: Some([1e4, 1e4, 1e4 + 8.0, 1e4 + 8.0]) }).is_empty());
+    // a corner beside an area's edge stays out of it (review A: a corner
+    // stood 5 cm outside this one, on level 5)
+    let g5 = floor(4242, 5);
+    let edge = [67.78, 69.78, 73.73, 77.78];
+    let stands = g5.tour_stands(Some(edge));
+    assert!(!stands.is_empty());
+    for s in &stands {
+        assert!(s.x >= edge[0] && s.x <= edge[2] && s.z >= edge[1] && s.z <= edge[3], "{s:?} outside {edge:?}");
+    }
 }
 
 /// A view's row of `views.tsv`

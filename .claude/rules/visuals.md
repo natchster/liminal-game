@@ -39,4 +39,6 @@ paths:
   look is meant to change.
 - **Evidence:** zone views (`--dump-level … --screenshot x --views`) and
   creature showcases before and after; a blind review for any change of
-  look (both orders, a fresh reviewer, ties on disagreement).
+  look (both orders, a fresh reviewer, ties on disagreement); after a
+  change to materials, textures or lighting, the visual playtest of the
+  places it touched (`visual-playtest`).

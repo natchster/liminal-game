@@ -270,19 +270,26 @@ fn parse_args() -> Options {
                 o.tour = Some(next(&mut i));
                 o.fresh = true;
             }
-            "--tour-budget" => o.tour_budget = next(&mut i).parse().unwrap_or(180),
+            // (a value the tour cannot read stops it: a typo must not tour a whole level instead)
+            "--tour-budget" => o.tour_budget = next(&mut i).parse().unwrap_or_else(|_| bad("--tour-budget N")),
             "--tour-area" => {
-                let n: Vec<f64> = next(&mut i).split(',').filter_map(|x| x.trim().parse().ok()).collect();
-                o.tour_area = (n.len() == 4).then(|| [n[0], n[1], n[2], n[3]]);
+                let n: Vec<f64> =
+                    next(&mut i).split(',').map(|x| x.trim().parse().unwrap_or_else(|_| bad("--tour-area x0,z0,x1,z1"))).collect();
+                o.tour_area = Some(if n.len() == 4 { [n[0], n[1], n[2], n[3]] } else { bad("--tour-area x0,z0,x1,z1") });
             }
             "--tour-plant" => o.tour_plant = Some(next(&mut i)),
             "--tour-at" => {
+                const WANTS: &str = "--tour-at \"NAME:x,y,z,yaw,pitch;…\"";
                 o.tour_at = next(&mut i)
                     .split(';')
-                    .filter_map(|v| {
-                        let (name, rest) = v.split_once(':')?;
-                        let n: Vec<f64> = rest.split(',').filter_map(|x| x.trim().parse().ok()).collect();
-                        (n.len() == 5).then(|| (name.trim().to_string(), [n[0], n[1], n[2], n[3], n[4]]))
+                    .filter(|v| !v.trim().is_empty())
+                    .map(|v| {
+                        let (name, rest) = v.split_once(':').unwrap_or_else(|| bad(WANTS));
+                        let n: Vec<f64> = rest.split(',').map(|x| x.trim().parse().unwrap_or_else(|_| bad(WANTS))).collect();
+                        if n.len() != 5 {
+                            bad::<()>(WANTS);
+                        }
+                        (name.trim().to_string(), [n[0], n[1], n[2], n[3], n[4]])
                     })
                     .collect()
             }
@@ -321,6 +328,12 @@ fn parse_args() -> Options {
         o.fresh = true;
     }
     o
+}
+
+/// An option the game cannot read: say what it wants, and stop
+fn bad<T>(wants: &str) -> T {
+    eprintln!("backrooms: {wants}");
+    std::process::exit(2)
 }
 
 fn save_path() -> std::path::PathBuf {

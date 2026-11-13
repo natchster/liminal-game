@@ -165,8 +165,8 @@ impl Game {
                             while r < CORNER_REACH && self.standable(x + sx * (r + STEP), z + sz * (r + STEP)) {
                                 r += STEP;
                             }
-                            if r < CORNER_REACH {
-                                let (qx, qz) = (x + sx * r, z + sz * r);
+                            let (qx, qz) = (x + sx * r, z + sz * r);
+                            if r < CORNER_REACH && inside(qx, qz) {
                                 let cy = (-(dx + sx)).atan2(-(dz + sz));
                                 if !out.iter().any(|o| o.corner && (o.x - qx).hypot(o.z - qz) < SAME_STAND) {
                                     out.push(Stand { x: qx, z: qz, floor, yaw: cy, edge, corner: true, tile: (tx, tz) });

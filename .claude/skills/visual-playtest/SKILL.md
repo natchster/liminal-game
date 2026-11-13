@@ -52,7 +52,9 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
      sheets.
 
    The run before is moved to `target/xtask/playtest/visual.prev/`, not deleted. To keep a run
-   for longer, give `--out`.
+   for longer, or when more than one runs (several seeds apart, an
+   inspector still reading), give each its own `--out` (a new or empty
+   folder; the task refuses any other).
 
    One floor by hand, the same thing with the game's own flags:
    `cargo run --release -- --tour DIR --seed S --levels L --tour-budget N
@@ -64,7 +66,8 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
    - *clip*: the eye or its near face inside a thing.
    - *body*: you can stand inside the thing.
    - *plain*, *unlit*, *glow*: within 5 m and in view, flagged when two
-     views agree.
+     stands agree; unlit and glow only where the place is dark (lit by
+     itself where it is lit, it is `selflit`, listed only).
    - *coplanar*: faces of two things on one plane, overlapping.
 
    A view is flagged at 12 px of gaps or flicker; views.tsv keeps the
@@ -89,9 +92,12 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
    - Give it the repository's root (its docs are named from there) and the
      playtest's folder, `target/xtask/playtest/visual/`. Never tell it
      what you changed or hope it finds.
-   - Expect about 20 minutes and 120k tokens for 60 views. Run it in the
-     background, and wait for it before step 10, since the tour again
-     moves the folder it reads.
+   - Expect about 20 minutes and 120k tokens for 60 views. For a set, run
+     one inspector a floor, in parallel, each given its floor's folder
+     (`s<seed>/L<level>/`) and the report; keep to the eye budget (the
+     views a floor you give them: `--budget`). Run them in the background,
+     and wait for them before step 10, since the tour again moves the
+     folder they read.
    - It is a filter, never the gate: vision models miss half of what is
      there and imagine clipping at near contact
      (`docs/research/visual-qa.md`).
@@ -140,7 +146,14 @@ It is never part of `cargo xtask check`. While a check runs, edit only docs.
      where a body must pass.
    - **Plain, unlit, glow**: fix the material's look. Give it a picture,
      wear and a plausible albedo (`.claude/rules/visuals.md`, `add-prop`).
-     Glowing is right only for a lamp, a lit window or a screen.
+     Glowing is right only for a lamp, a lit window or a screen (where the
+     place is lit, such a thing is `selflit`, listed only). The flag is
+     easy to clear without changing the look (any wear clears it), so a
+     plain fix is accepted only by a blind look before and after
+     (`visual-review`), never because the flag went.
+   - **Coplanar** is fixed only where a fight is seen (`--tour-at` its
+     camera, flip the bare and turned renders): faces of one material that
+     overlap usually draw alike, and moving them churns the fixtures.
    - **A detector's false flag**, repeated: tune the detector in
      `sight.rs` or `things.rs` against a known answer in
      `crates/backrooms/tests/visual_tour.rs`. Add the false case as a

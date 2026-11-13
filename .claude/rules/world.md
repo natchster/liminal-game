@@ -42,4 +42,5 @@ paths:
   the purposes against their `STYLE.md` bands). Accept a new range baseline
   only after reading `target/xtask/range/report.md`.
 - **Evidence:** `--dump-level DIR --seed S --levels … --screenshot x --views`
-  before and after, and look at the zone views.
+  before and after, and look at the zone views; after a major change, the
+  visual playtest of the levels it touched (`visual-playtest`).

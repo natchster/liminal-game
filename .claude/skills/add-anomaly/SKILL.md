@@ -25,7 +25,10 @@ description: Add or change an anomaly level in The Backrooms (the Stairwell, Sho
 6. **A moment that takes the camera** (a look into something, a death of
    its own) is a cutscene: `add-cutscene`. The Stairwell and the Loop have
    their own camera and refuse one.
-7. **Gates.** `cargo xtask check` (full), `cargo xtask range`.
+7. **Gates.** `cargo xtask check` (full), `cargo xtask range`, and the
+   visual playtest of its level (`visual-playtest`; one that writes the
+   camera itself, the Stairwell and the Loop, is toured by its stands
+   only).
 8. **Ledger.** An `anomaly/<key>` entry in `docs/content.json` (the
    structure test requires one per `SCP_KEYS` entry); open issues in
    `docs/QUALITY.md`.

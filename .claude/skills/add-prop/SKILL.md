@@ -29,6 +29,9 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
      a reason a person would accept.
    - `cargo xtask shots`; look at changed frames and their error maps
      before accepting.
+   - The visual playtest where the prop stands (`visual-playtest`: an area
+     round a few of them, `--area`): is it plain among photographs, does a
+     body walk into it at an edge, does it fight a wall it stands against.
    - `cargo xtask range` (prop density and themes per zone move by design;
      say so when accepting).
 6. **Evidence.** A zone view that shows the prop where it belongs

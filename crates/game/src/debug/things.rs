@@ -1,13 +1,14 @@
 //! The visual playtest's geometric detectors (`docs/VISUAL_PLAYTEST.md`
 //! VP3): what the scene itself says about a view, no pixel read. *Clip*:
 //! the eye or a corner of the near plane's face inside a thing (in the
-//! thing's own frame, against its own box), or inside what stops a look;
-//! and the body standing inside a thing (a table walked into: most things
-//! do not stop a body). *Plain*: a thing in view and near whose material
-//! has no picture, no vertex colour and no wear (a flat colour on
-//! photographed or painted surfaces), is unlit, or glows. *Coplanar*: faces
-//! of two different things on one plane, facing alike and overlapping (two
-//! surfaces that will fight for one depth). A thing is named by its placer
+//! thing's own frame, against its own box; not a merged mesh of the
+//! architecture, and not the solids); and the body standing inside a thing
+//! (a table walked into: most things do not stop a body). *Plain*: a thing
+//! in view and near whose material has no picture, no vertex colour and no
+//! wear (a flat colour on photographed or painted surfaces), or is unlit or
+//! glows where the place is dark. *Coplanar*: two faces (of one thing or
+//! two) on one plane, facing alike and overlapping (two surfaces that will
+//! fight for one depth). A thing is named by its placer
 //! (a core prop by its kind) and its mesh. Pure: the scene in, findings out.
 use crate::base::game::Game;
 use crate::debug::sight::Eye;
@@ -278,11 +279,17 @@ pub fn screen_share(eye: &Eye, b: &Box3) -> Option<f64> {
     (cx1 > cx0 && cy1 > cy0).then(|| (cx1 - cx0) * (cy1 - cy0) / 4.0)
 }
 
+/// The place's light under which an unlit or glowing thing stands out (the
+/// light map, 0 dark to 1 lit): where it is lit, a thing lit by itself is a
+/// lamp, a panel, a lit window, a screen, as meant (`selflit`, listed only)
+pub const DARK: f64 = 0.25;
+
 /// Plain at a view: in view and within `PLAIN_REACH`, a lit material with
-/// no picture, no vertex colour and no wear (`plain`), an unlit one
-/// (`unlit`), or one that glows (`glow`); its size is the share of the
-/// frame the thing's box covers
-pub fn plain(parts: &[Part], eye: &Eye) -> Vec<Finding> {
+/// no picture, no vertex colour and no wear (`plain`), an unlit one in the
+/// dark (`unlit`), or one that glows in the dark (`glow`); unlit or glowing
+/// where the place is lit is `selflit`; its size is the share of the frame
+/// the thing's box covers
+pub fn plain(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
     let o = Vec3::new(eye.x, eye.y, eye.z);
     let mut out = vec![];
     for p in parts {
@@ -301,10 +308,19 @@ pub fn plain(parts: &[Part], eye: &Eye) -> Vec<Finding> {
             }
             let lit = matches!(m.kind, MatKind::Lambert | MatKind::Phong | MatKind::Standard);
             let glow = m.emissive.r.max(m.emissive.g).max(m.emissive.b) * m.emissive_intensity;
+            let dark = g.light_map_at(at.x, at.z) < DARK;
             let kind = if glow > 0.25 || m.emissive_map.is_some() {
-                "glow"
+                if dark {
+                    "glow"
+                } else {
+                    "selflit"
+                }
             } else if m.kind == MatKind::Basic && !m.transparent {
-                "unlit"
+                if dark {
+                    "unlit"
+                } else {
+                    "selflit"
+                }
             } else if lit && m.map.is_none() && !m.vertex_colors && m.wear <= 0.0 {
                 "plain"
             } else {
@@ -522,8 +538,9 @@ fn centroid(a: &Face, b: &Face) -> Vec3 {
 
 /// Faces this near a stand are tried for coplanar pairs (metres)
 pub const COPLANAR_REACH: f64 = 6.0;
-/// A thing plain, unlit or glowing is flagged when this many views find it
-/// (one view can catch a thing at its worst; several agree it is so)
+/// A thing plain, unlit or glowing is flagged when this many stands see it
+/// (one stand can catch a thing at its worst; several agree it is so; a
+/// stand's looks share its eye, so they count once)
 pub const PLAIN_VIEWS: usize = 2;
 
 /// The squared distance between two points
@@ -540,42 +557,64 @@ pub fn in_sight(eye: &Eye, p: (f64, f64, f64)) -> bool {
     screen_share(eye, &b).is_some()
 }
 
+/// The stand a view belongs to (its name less its look: `L1_003_left` →
+/// `L1_003`; a camera given by name is its own)
+pub fn stand_of(view: &str) -> &str {
+    match view.rsplit_once('_') {
+        Some((s, look)) if ["at", "left", "right", "up", "down", "crouch"].contains(&look) => s,
+        _ => view,
+    }
+}
+
 /// The findings of a level, gathered: a row a thing and kind (how many
-/// views found it, the first, where, the largest size), and how many are
-/// flagged of each kind: clip, body and coplanar at once, plain, unlit and
-/// glow when `PLAIN_VIEWS` views agree; `coplanar_alike` listed only
+/// views and stands found it, the first view, where, the largest size), and
+/// how many are flagged of each kind: clip, body and coplanar at once;
+/// plain, unlit and glow when `PLAIN_VIEWS` stands agree; `coplanar_alike`
+/// and `selflit` listed only
 pub fn gather(found: &[(String, Finding)]) -> (String, Vec<(&'static str, usize)>) {
-    let mut by: std::collections::BTreeMap<(&'static str, String, String, i64, i64, i64), (usize, String, (f64, f64, f64), f64)> =
-        Default::default();
+    type Seen = (usize, String, (f64, f64, f64), f64, std::collections::BTreeSet<String>);
+    let mut by: std::collections::BTreeMap<(&'static str, String, String, i64, i64, i64), Seen> = Default::default();
     for (view, f) in found {
         let q = |v: f64| (v * 10.0).round() as i64;
-        let e =
-            by.entry((f.kind, f.label.clone(), f.mesh.clone(), q(f.at.0), q(f.at.1), q(f.at.2))).or_insert((0, view.clone(), f.at, 0.0));
+        let e = by.entry((f.kind, f.label.clone(), f.mesh.clone(), q(f.at.0), q(f.at.1), q(f.at.2))).or_insert((
+            0,
+            view.clone(),
+            f.at,
+            0.0,
+            Default::default(),
+        ));
         e.0 += 1;
         e.3 = e.3.max(f.size);
+        e.4.insert(stand_of(view).to_string());
     }
-    let mut rows = String::from("kind\tlabel\tmesh\tviews\tview\tx\ty\tz\tsize\tflagged\n");
+    let mut rows = String::from("kind\tlabel\tmesh\tviews\tview\tx\ty\tz\tsize\tflagged\tstands\n");
     let mut flagged: std::collections::BTreeMap<&'static str, usize> = Default::default();
     let mut list: Vec<_> = by.into_iter().collect();
     // the flagged first, then by kind, the most seen and the largest
-    let is_flagged = |k: &str, n: usize| match k {
-        "plain" | "unlit" | "glow" => n >= PLAIN_VIEWS,
-        "coplanar_alike" => false,
+    let is_flagged = |k: &str, stands: usize| match k {
+        "plain" | "unlit" | "glow" => stands >= PLAIN_VIEWS,
+        "coplanar_alike" | "selflit" => false,
         _ => true,
     };
     list.sort_by(|a, b| {
-        is_flagged(b.0 .0, b.1 .0)
-            .cmp(&is_flagged(a.0 .0, a.1 .0))
+        is_flagged(b.0 .0, b.1 .4.len())
+            .cmp(&is_flagged(a.0 .0, a.1 .4.len()))
             .then(a.0 .0.cmp(b.0 .0))
             .then(b.1 .0.cmp(&a.1 .0))
             .then(b.1 .3.total_cmp(&a.1 .3))
     });
-    for ((kind, label, mesh, ..), (n, view, at, size)) in list {
-        let f = is_flagged(kind, n);
+    for ((kind, label, mesh, ..), (n, view, at, size, stands)) in list {
+        let f = is_flagged(kind, stands.len());
         if f {
             *flagged.entry(kind).or_default() += 1;
         }
-        rows.push_str(&format!("{kind}\t{label}\t{mesh}\t{n}\t{view}\t{:.3}\t{:.3}\t{:.3}\t{size:.4}\t{f}\n", at.0, at.1, at.2));
+        rows.push_str(&format!(
+            "{kind}\t{label}\t{mesh}\t{n}\t{view}\t{:.3}\t{:.3}\t{:.3}\t{size:.4}\t{f}\t{}\n",
+            at.0,
+            at.1,
+            at.2,
+            stands.len()
+        ));
     }
     (rows, flagged.into_iter().collect())
 }
@@ -638,9 +677,15 @@ mod tests {
         let once = [("v1".to_string(), f("plain", "a")), ("v1".to_string(), f("clip", "b")), ("v2".to_string(), f("coplanar_alike", "c"))];
         let (_, flagged) = gather(&once);
         assert_eq!(flagged, vec![("clip", 1)], "one view is not enough for a plain thing; a clip is a clip");
-        let twice = [("v1".to_string(), f("plain", "a")), ("v2".to_string(), f("plain", "a"))];
+        // two looks of one stand are one stand; two stands agree
+        let one_stand = [("L1_003_at".to_string(), f("plain", "a")), ("L1_003_down".to_string(), f("plain", "a"))];
+        assert!(gather(&one_stand).1.is_empty());
+        let twice = [("L1_003_at".to_string(), f("plain", "a")), ("L1_007_left".to_string(), f("plain", "a"))];
         let (rows, flagged) = gather(&twice);
         assert_eq!(flagged, vec![("plain", 1)]);
-        assert!(rows.lines().nth(1).unwrap().starts_with("plain\ta\tm\t2\tv1\t"), "{rows}");
+        assert!(rows.lines().nth(1).unwrap().starts_with("plain\ta\tm\t2\tL1_003_at\t"), "{rows}");
+        assert!(rows.lines().nth(1).unwrap().ends_with("\ttrue\t2"), "{rows}");
+        assert_eq!(stand_of("L1_001c_crouch"), "L1_001c");
+        assert_eq!(stand_of("elev"), "elev");
     }
 }

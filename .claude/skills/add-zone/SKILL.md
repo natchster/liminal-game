@@ -34,6 +34,8 @@ layout passes.
    percentiles (see the note above the bands).
 6. **Gates and records.**
    - `cargo xtask check` (full).
+   - The visual playtest of the levels the zone appears on (`visual-playtest`,
+     three seeds): gaps, flicker and clipping at its edges.
    - Re-record what the change meant to change, with the reason in the
      commit: the `regen-fixtures` skill.
    - Accept the range baseline (`cargo xtask range --accept --reason …`) and
