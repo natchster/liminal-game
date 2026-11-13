@@ -25,40 +25,9 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_log_baskets", place_log_baskets));
 }
 
-/// Every open interior tile, row-major.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
-/// Open tiles next to a wall, with the first wall direction found
-/// (later directions are not checked).
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
-/// `atan2(-dx, -dz)`
-fn face_wall(dx: i32, dz: i32) -> f64 {
-    (-(dx as f64)).atan2(-(dz as f64))
-}
+use placers_kit::place::face_wall;
+use placers_kit::place::open_tiles;
+use placers_kit::place::wall_tiles;
 
 fn place_moon_globes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.975 {
@@ -464,12 +433,7 @@ use t10::{place_fireplaces, place_ornate_cuckoo_clocks};
 mod t21;
 use t21::place_aquariums;
 
-/// `o.rotation.set(x, y, z, order)`
-fn set_rotation_ordered(o: &Obj, x: f64, y: f64, z: f64, order: EulerOrder) {
-    let mut r = o.rotation();
-    r.set(x, y, z);
-    r.order = order;
-}
+use placers_kit::geometry::set_rot_order as set_rotation_ordered;
 
 fn place_vintage_ads(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {

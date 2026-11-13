@@ -980,9 +980,7 @@ mod r15_tissue {
     const GROUND: [(f64, f64, f64); 4] = [(214.0, 202.0, 178.0), (146.0, 170.0, 182.0), (170.0, 148.0, 172.0), (156.0, 154.0, 150.0)];
     const INK: [(f64, f64, f64); 4] = [(132.0, 146.0, 120.0), (226.0, 230.0, 228.0), (228.0, 222.0, 226.0), (112.0, 112.0, 116.0)];
 
-    fn rgba(c: (f64, f64, f64), a: f64) -> String {
-        format!("rgba({:.0},{:.0},{:.0},{a:.3})", c.0, c.1, c.2)
-    }
+    use placers_kit::paint::rgba;
 
     /// A soft round spot: `r` px, `k` times as tall as wide, turned `turn`
     /// (the context squashed, so the fade is never cut by an edge)

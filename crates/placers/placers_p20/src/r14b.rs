@@ -53,17 +53,7 @@ pub(super) fn place_keychain_keys(g: &mut Game, _dist: &[i32]) {
 mod r14b_kit {
     use game::prelude::*;
 
-    /// A seed from values already fixed (a position): no draws
-    pub fn seed_of(v: &[f64]) -> u32 {
-        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
-        for a in v {
-            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
-                x ^= u64::from(b);
-                x = x.wrapping_mul(0x0100_0000_01b3);
-            }
-        }
-        ((x ^ (x >> 32)) as u32) | 1
-    }
+    pub use placers_kit::place::seed_of;
 
     /// Brass (or nickel over it) as years in a pocket and on a floor leave
     /// it: dull, darker in blotches, rubbed bright in patches, green or rust

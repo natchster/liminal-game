@@ -23,37 +23,9 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_travel_posters", place_travel_posters));
 }
 
-// ------------------------------------------------------------------ helpers
-/// Every open interior tile (`tiles[t_idx(x, z)] == 0`), row by row.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
-/// Open tiles with their first wall neighbour (`[[1,0],[-1,0],[0,1],[0,-1]]` order).
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::wall_tiles;
 
 /// `obj.rotation.y = `atan2`(-dx, -dz); obj.position.set(wx(x) + dx * (CELL * 0.5 - inset), 0, wz(z) + dz * ...)`
 fn mount_on_wall(g: &Game, o: &Obj, x: i32, z: i32, dx: i32, dz: i32, inset: f64) {

@@ -16,6 +16,7 @@ publish = false
 engine = { path = "crates/engine" }
 game = { path = "crates/game" }
 placers = { path = "crates/placers" }
+placers_kit = { path = "crates/placers/placers_kit" }
 placers_p00 = { path = "crates/placers/placers_p00" }
 placers_p01 = { path = "crates/placers/placers_p01" }
 placers_p02 = { path = "crates/placers/placers_p02" }

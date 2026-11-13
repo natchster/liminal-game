@@ -68,18 +68,7 @@ pub(crate) fn wall_candidates(g: &Game) -> Vec<Cand> {
     candidates
 }
 
-/// Open interior tiles in row-major order (`tiles[t_idx(x, z)] == 0`).
-pub(crate) fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+pub(crate) use placers_kit::place::open_tiles;
 
 /// In-place Fisher-Yates: for i from n-1 down to 1, swap with j = floor(rnd() * (i+1)).
 pub(crate) fn shuffle<T>(v: &mut [T]) {
@@ -92,10 +81,7 @@ pub(crate) fn shuffle<T>(v: &mut [T]) {
     }
 }
 
-/// A uniformly random element (one `rnd()` draw), for a slice of Copy values.
-pub(crate) fn pick<T: Copy>(a: &[T]) -> T {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+pub(crate) use placers_kit::place::pick;
 
 /// Trash bag colour per weather (else the normal entry)
 pub(crate) fn trash_bag_color_by_weather(key: &str) -> u32 {

@@ -26,53 +26,13 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_pill_bottles", place_pill_bottles));
 }
 
-// ------------------------------------------------------------------ helpers
-/// The `open_tiles` scan every floor placer starts with (`tiles[t_idx(x, z)] == 0`).
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
-/// The `wall_tiles` scan of the wall placers: open tiles with the first
-/// neighbouring wall (`== 1`) in `[(1,0), (-1,0), (0,1), (0,-1)]` order.
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::wall_tiles;
 
-/// A uniformly random element (one `rnd()` draw).
-fn pick<T: Copy>(a: &[T]) -> T {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+use placers_kit::place::pick;
 
-/// Oriented cylinder segment between two points (`mid`, `set_from_unit_vectors`).
-fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
-    let mut mid = *prev;
-    mid.add(next).multiply_scalar(0.5);
-    seg.position().copy(&mid);
-    let mut v = *next;
-    v.sub(prev).normalize();
-    seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
-}
+use placers_kit::geometry::orient_seg;
 
 // Half-eaten sandwich on plate (floor): 6% chance per level.
 fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
@@ -1336,36 +1296,11 @@ fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
 mod r14b_kit {
     use game::prelude::*;
 
-    /// A seed from values already fixed (a position): no draws
-    pub fn seed_of(v: &[f64]) -> u32 {
-        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
-        for a in v {
-            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
-                x ^= u64::from(b);
-                x = x.wrapping_mul(0x0100_0000_01b3);
-            }
-        }
-        ((x ^ (x >> 32)) as u32) | 1
-    }
+    pub use placers_kit::place::seed_of;
 
-    fn h01(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
+    use placers_kit::noise::hash as h01;
 
-    /// Smooth value noise in [0, 1]
-    fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (h01(seed, i, j), h01(seed, i + 1, j));
-        let (c, d) = (h01(seed, i, j + 1), h01(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
+    use placers_kit::noise::vn as vnoise;
 
     fn rgb(c: (f64, f64, f64), a: f64) -> String {
         format!("rgba({},{},{},{a})", c.0 as u8, c.1 as u8, c.2 as u8)

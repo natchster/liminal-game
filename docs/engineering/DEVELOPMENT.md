@@ -141,7 +141,9 @@ Levels must be a pure function of `(run_seed, level)`:
 
 1. Write `pub fn place_things(g: &mut Game, dist: &[i32])` in a placer crate
    (`use game::prelude::*;` brings the scene, geometry, material, kit and
-   random helpers). Pick candidate tiles from `g.tiles` / `dist`, build the
+   random helpers). The placers' own helpers (noise, canvas fills, picks
+   of open and wall tiles, parts put on a group) are in `placers_kit`
+   (`noise`, `paint`, `place`, `geometry`): use them, never a copy. Pick candidate tiles from `g.tiles` / `dist`, build the
    meshes, add them to `g.world`, and register animators (`g.animate`) or
    interactables (`g.interact`) if it moves or can be used.
 2. Register it in the crate's `register()` under its name

@@ -59,16 +59,7 @@ pub fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sign);
 }
 
-/// Something of where a thing was put, to vary what its painters paint
-/// (a painter's own stream starts the same on every floor)
-fn rs_vary(x: f64, z: f64, k: f64) -> u32 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for v in [x, z, k] {
-        h ^= v.to_bits();
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    (h ^ (h >> 29) ^ (h >> 47)) as u32
-}
+use placers_kit::place::vary as rs_vary;
 
 /// What is burned into it: a family's name, a cabin's, a welcome
 const RS_WORDS: [(&str, &str); 6] = [

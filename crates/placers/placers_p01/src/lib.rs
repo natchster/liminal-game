@@ -35,26 +35,8 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_small_pocket_watches", place_small_pocket_watches));
 }
 
-// ------------------------------------------------------------------ helpers
-/// Every open interior tile, row by row (the `open_tiles` loop every placer repeats).
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
-/// In-place Fisher-Yates exactly loops do it.
-fn shuffle<T>(v: &mut [T]) {
-    for i in (1..v.len()).rev() {
-        let j = (rnd() * (i + 1) as f64).floor() as usize;
-        v.swap(i, j);
-    }
-}
+use placers_kit::place::open_tiles;
+use placers_kit::place::shuffle;
 /// A uniformly random element (one `rnd()` draw).
 fn pick<T: Copy>(v: &[T]) -> T {
     v[(rnd() * v.len() as f64).floor() as usize]

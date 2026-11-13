@@ -63,16 +63,7 @@ const SP_MOULD: f64 = 0.025;
 const SP_PITCH: f64 = 0.0254 / 14.0;
 const SP_CELLS: [usize; 2] = [96, 129];
 
-/// Something of where a thing was put, to vary what its painters paint
-/// (a painter's own stream starts the same on every floor)
-fn sp_vary(x: f64, z: f64, k: f64) -> u32 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for v in [x, z, k] {
-        h ^= v.to_bits();
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    (h ^ (h >> 29) ^ (h >> 47)) as u32
-}
+use placers_kit::place::vary as sp_vary;
 
 /// A sampler's alphabet: 5 x 7 cells a letter, each row's bits left to right
 fn sp_letter(c: char) -> [u8; 7] {
@@ -235,25 +226,9 @@ fn sp_chart(pick: u32) -> Vec<u8> {
     c
 }
 
-/// A hash of (seed, i, j) in [0, 1)
-fn sp_hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash as sp_hash;
 
-/// Smooth value noise in [0, 1]
-fn sp_noise(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (sp_hash(seed, i, j), sp_hash(seed, i + 1, j));
-    let (c, d) = (sp_hash(seed, i, j + 1), sp_hash(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vn as sp_noise;
 
 /// The stitched linen, 6 px a stitch: the linen's weave (two threads a
 /// stitch each way, the holes between them), each stitch a cross of two

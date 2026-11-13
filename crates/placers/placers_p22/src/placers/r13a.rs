@@ -63,16 +63,7 @@ const CM_MOULD: f64 = 0.024;
 
 const CM_UNDER: f64 = 0.010;
 
-/// Something of where a thing was put, to vary what its painters paint
-/// (a painter's own stream starts the same on every floor)
-fn cm_vary(x: f64, z: f64, k: f64) -> u32 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for v in [x, z, k] {
-        h ^= v.to_bits();
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    (h ^ (h >> 29) ^ (h >> 47)) as u32
-}
+use placers_kit::place::vary as cm_vary;
 
 /// A mirror's breakage, in metres on its glass (x right and y up from its
 /// middle): each crack's points and weight (1 a fine one), where it was
@@ -654,31 +645,11 @@ const CB_NOTES: [&[&str]; 6] = [
     &["DELIVERY THURS", "CHAIRS x12", "TABLES x4"],
 ];
 
-/// A hash of (seed, i, j) in [0, 1)
-fn cb_hash01(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash as cb_hash01;
 
-/// Smooth value noise in [0, 1]
-fn cb_vnoise(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (cb_hash01(seed, i, j), cb_hash01(seed, i + 1, j));
-    let (c, d) = (cb_hash01(seed, i, j + 1), cb_hash01(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vn as cb_vnoise;
 
-/// Smoothstep from `e0` to `e1` (either way round)
-fn cb_sstep(e0: f64, e1: f64, x: f64) -> f64 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
+use placers_kit::noise::sstep as cb_sstep;
 
 /// An arc of an ellipse (centre, radii, from a0 to a1 radians, y up)
 fn cb_arc(cx: f64, cy: f64, rx: f64, ry: f64, a0: f64, a1: f64) -> Vec<(f64, f64)> {

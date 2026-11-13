@@ -1510,11 +1510,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "placers_kit"
+version = "1.0.0"
+dependencies = [
+ "engine",
+ "game",
+]
+
+[[package]]
 name = "placers_p00"
 version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1523,6 +1532,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1531,6 +1541,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1539,6 +1550,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1547,6 +1559,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1555,6 +1568,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1563,6 +1577,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1571,6 +1586,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1579,6 +1595,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1587,6 +1604,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1595,6 +1613,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1603,6 +1622,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1611,6 +1631,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1619,6 +1640,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1627,6 +1649,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1635,6 +1658,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1643,6 +1667,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1651,6 +1676,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1659,6 +1685,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1667,6 +1694,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1675,6 +1703,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1683,6 +1712,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1691,6 +1721,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1699,6 +1730,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1707,6 +1739,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1715,6 +1748,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1723,6 +1757,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1731,6 +1766,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1739,6 +1775,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1747,6 +1784,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1755,6 +1793,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]
@@ -1763,6 +1802,7 @@ version = "1.0.0"
 dependencies = [
  "engine",
  "game",
+ "placers_kit",
 ]
 
 [[package]]

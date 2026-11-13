@@ -40,19 +40,7 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
 
 // ------------------------------------------------------------------ shared local helpers
 
-/// The `open_tiles` scan every placer here repeats: open tiles of the interior,
-/// z-major then x (no random draws).
-pub(crate) fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+pub(crate) use placers_kit::place::open_tiles;
 
 /// A uniformly random tile (one `rnd()` draw).
 pub(crate) fn pick_tile(t: &[(i32, i32)]) -> (i32, i32) {
@@ -88,20 +76,9 @@ pub(crate) fn wall_cands(g: &Game) -> Vec<WallCand> {
     v
 }
 
-/// A uniformly random element (one `rnd()` draw), for colour tables.
-pub(crate) fn pick_u32(a: &[u32]) -> u32 {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+pub(crate) use placers_kit::place::pick_hex as pick_u32;
 
-/// One-triangle geometry: f32 positions `v`, index `[0, 1, 2]`, vertex normals
-/// computed.
-pub(crate) fn tri_geo(v: [f64; 9]) -> Geo {
-    let geo = Geo::new();
-    geo.set_position(v.iter().map(|&a| a as f32).collect());
-    geo.set_index(vec![0, 1, 2]);
-    geo.compute_vertex_normals();
-    geo
-}
+pub(crate) use placers_kit::geometry::tri_geo;
 
 #[cfg(test)]
 mod tests {

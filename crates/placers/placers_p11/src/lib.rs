@@ -22,37 +22,9 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_grandfather_clocks", place_grandfather_clocks));
 }
 
-// ------------------------------------------------------------------ helpers
-/// Every open interior tile (`tiles[t_idx(x, z)] == 0`), row by row.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
-/// Open tiles with their first wall neighbour (`[[1,0],[-1,0],[0,1],[0,-1]]` order).
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::wall_tiles;
 
 // Packed suitcase w/ hanging tag (floor): 4% chance per level.
 fn place_packed_suitcases(g: &mut Game, _dist: &[i32]) {
@@ -1253,36 +1225,11 @@ mod tests {
 mod r14b_kit {
     use game::prelude::*;
 
-    /// A seed from values already fixed (a position): no draws
-    pub fn seed_of(v: &[f64]) -> u32 {
-        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
-        for a in v {
-            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
-                x ^= u64::from(b);
-                x = x.wrapping_mul(0x0100_0000_01b3);
-            }
-        }
-        ((x ^ (x >> 32)) as u32) | 1
-    }
+    pub use placers_kit::place::seed_of;
 
-    fn h01(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
+    use placers_kit::noise::hash as h01;
 
-    /// Smooth value noise in [0, 1]
-    fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (h01(seed, i, j), h01(seed, i + 1, j));
-        let (c, d) = (h01(seed, i, j + 1), h01(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
+    use placers_kit::noise::vn as vnoise;
 
     /// The dials (sRGB): aged cream, black, white gone grey, navy; and the
     /// ink printed on each

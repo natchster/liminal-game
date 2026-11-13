@@ -54,58 +54,13 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_tweezers", place_tweezers));
 }
 
-// ------------------------------------------------------------------ helpers
-/// The repeated `open_tiles` scan plus one random pick.
-/// No draw when the list is empty (the placer returns first).
-fn pick_open(g: &Game) -> Option<(i32, i32)> {
-    let mut open: Vec<(i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                open.push((x, z));
-            }
-        }
-    }
-    if open.is_empty() {
-        return None;
-    }
-    Some(open[(rnd() * open.len() as f64).floor() as usize])
-}
+use placers_kit::place::pick_open;
 
-/// The repeated `wall_tiles` scan (first wall neighbour in [[1,0],[-1,0],[0,1],[0,-1]] order)
-/// + one draw to pick a tile.
-fn pick_wall(g: &Game) -> Option<(i32, i32, i32, i32)> {
-    let mut wall: Vec<(i32, i32, i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        wall.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    if wall.is_empty() {
-        return None;
-    }
-    Some(wall[(rnd() * wall.len() as f64).floor() as usize])
-}
+use placers_kit::place::pick_wall;
 
-/// `wx(x) + (`rnd()` - 0.5) * s, 0, wz(z) + (`rnd()` - 0.5) * s` (x draw first).
-fn jitter(g: &Game, x: i32, z: i32, s: f64) -> (f64, f64) {
-    let px = g.wx(x) + (rnd() - 0.5) * s;
-    let pz = g.wz(z) + (rnd() - 0.5) * s;
-    (px, pz)
-}
+use placers_kit::place::jitter;
 
-/// `rotation.y = `atan2`(-dx, -dz)` + position on the wall face `CELL * 0.5 - inset` out.
-fn wall_mount(g: &Game, o: &Obj, x: i32, z: i32, dx: i32, dz: i32, inset: f64) {
-    o.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
-    o.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - inset), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - inset));
-}
+use placers_kit::place::wall_mount;
 
 /// A custom geometry: positions + index, vertex normals computed.
 fn tri_geo(verts: Vec<f32>, idx: Vec<u32>) -> Geo {
@@ -1034,9 +989,7 @@ mod r15_plane {
         "",
     ];
 
-    fn rgba(c: (f64, f64, f64), a: f64) -> String {
-        format!("rgba({:.0},{:.0},{:.0},{a:.3})", c.0, c.1, c.2)
-    }
+    use placers_kit::paint::rgba;
 
     fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: (f64, f64, f64), a: f64) {
         ctx.save();
@@ -1117,72 +1070,18 @@ mod r15_plane {
 mod r18_floss {
     use super::*;
 
-    /// Its own stream starts the same on every floor: a placed thing's salt
-    /// moves where it starts, so the strokes differ from floor to floor
-    fn skip(salt: u32) {
-        for _ in 0..(salt % 61) {
-            let _ = rnd();
-        }
-    }
+    use placers_kit::place::skip;
 
     /// Body and lid (sRGB hex): white and teal, blue and white, white and
     /// lavender, white and pink, each gone a little yellow
     pub(super) const COLOURS: [(u32, u32); 4] = [(0xd6d3c8, 0x4e7f78), (0x4f7394, 0xd6d3c8), (0xd6d3c8, 0x7f7aa0), (0xd8d2c8, 0xa98690)];
 
-    // ---- painting kit (per-pixel, pure: safe for `par_rows`) ----
-    fn hash(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
-    fn vn(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
-        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
-    fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-        for k in 0..oct {
-            s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
-            n += amp;
-            amp *= 0.5;
-            f *= 2.03;
-        }
-        s / n
-    }
-    fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-        t * t * (3.0 - 2.0 * t)
-    }
-    fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-        let t = t.clamp(0.0, 1.0);
-        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-    }
-    /// The two nearest distances to a jittered lattice (cells of 1)
-    fn worley(seed: u32, x: f64, y: f64) -> (f64, f64) {
-        let (mut d1, mut d2) = (9.0f64, 9.0f64);
-        for dj in -1..=1 {
-            for di in -1..=1 {
-                let (ii, jj) = (x.floor() as i32 + di, y.floor() as i32 + dj);
-                let fx = ii as f64 + hash(seed, ii, jj);
-                let fy = jj as f64 + hash(seed ^ 77, ii, jj);
-                let d = (fx - x).hypot(fy - y);
-                if d < d1 {
-                    d2 = d1;
-                    d1 = d;
-                } else if d < d2 {
-                    d2 = d;
-                }
-            }
-        }
-        (d1, d2)
-    }
+    use placers_kit::noise::fbm;
+    use placers_kit::noise::hash;
+    use placers_kit::noise::mix;
+    use placers_kit::noise::sstep;
+    use placers_kit::noise::vn;
+    use placers_kit::noise::worley;
     /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right,
     /// v up, both 0..1, as the texture is laid) gives straight sRGB and alpha
     fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
@@ -1198,9 +1097,7 @@ mod r18_floss {
         });
         ctx.put_image_data(&img, 0, 0);
     }
-    fn rgb(c: [f64; 3]) -> [f64; 4] {
-        [c[0], c[1], c[2], 1.0]
-    }
+    use placers_kit::paint::opaque as rgb;
     fn css(c: [f64; 3], a: f64) -> String {
         format!("rgba({},{},{},{:.3})", (c[0] * 255.0) as u8, (c[1] * 255.0) as u8, (c[2] * 255.0) as u8, a)
     }

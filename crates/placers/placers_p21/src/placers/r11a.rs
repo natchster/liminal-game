@@ -239,11 +239,7 @@ fn drip_ring_mat() -> Mat {
     lambert!({ map: &tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 })
 }
 
-/// The smooth minimum of two distances, blended over `k`
-fn smin(a: f64, b: f64, k: f64) -> f64 {
-    let h = (0.5 + 0.5 * (b - a) / k).clamp(0.0, 1.0);
-    b + (a - b) * h - k * h * (1.0 - h)
-}
+use placers_kit::noise::smin;
 
 /// A pixel's straight sRGB colour and alpha, built up by laying marks over it
 #[derive(Clone, Copy)]
@@ -294,10 +290,7 @@ pub(super) fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: 
     tex
 }
 
-/// The decal material of a mark painted in `tex`, lit as the surface under it
-fn mark_mat(tex: &Tex) -> Mat {
-    lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
-}
+use placers_kit::paint::mark_mat;
 
 /// What the wall facing tile (x, z) is: 0 paper or paint on plasterboard, 1
 /// concrete or brick, 2 glazed tile

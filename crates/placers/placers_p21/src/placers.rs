@@ -25,10 +25,7 @@ pub(crate) use t14::place_teddy_paws;
 mod t16;
 pub(crate) use t16::place_crayon_graffiti;
 
-/// A uniformly random element (one `rnd()` draw). for colour tables.
-fn pick_hex(a: &[u32]) -> u32 {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+use placers_kit::place::pick_hex;
 
 // Hospital cross: 4% chance per level. Red + cross box wall-mounted.
 pub(crate) fn place_hospital_crosses(g: &mut Game, _dist: &[i32]) {
@@ -175,50 +172,15 @@ pub(crate) fn place_wedding_rings(g: &mut Game, _dist: &[i32]) {
 // (the helpers the painted marks of this crate share: noise, laying colour,
 // a mark's texture and material; none of them draws)
 
-/// A hash of (seed, i, j) in [0, 1)
-fn hash01(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash as hash01;
 
-/// Smooth value noise in [0, 1]
-fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (hash01(seed, i, j), hash01(seed, i + 1, j));
-    let (c, d) = (hash01(seed, i, j + 1), hash01(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vn as vnoise;
 
-/// Fractal value noise of `oct` octaves, in [0, 1]
-fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-    for k in 0..oct {
-        s += amp * vnoise(seed.wrapping_add(k * 7919), x * f, y * f);
-        n += amp;
-        amp *= 0.5;
-        f *= 2.03;
-    }
-    s / n
-}
+use placers_kit::noise::fbm;
 
-/// Smoothstep from `e0` to `e1` (either way round)
-fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
+use placers_kit::noise::sstep;
 
-/// How a dried water mark shades at signed distance `d` (m, < 0 inside) from
-/// one of its rims: sharp on its outside (over `aa`), what the water left
-/// there fading inward over `ew`
-fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
-}
+use placers_kit::noise::tide;
 
 // Porcelain cup + saucer: 7% chance per level.
 pub(crate) fn place_porcelain_cup_saucers(g: &mut Game, _dist: &[i32]) {

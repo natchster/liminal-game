@@ -50,18 +50,7 @@ pub(crate) struct WallCand {
     pub dz: i32,
 }
 
-/// Every interior tile with `tiles[..] == 0`, row-major.
-pub(crate) fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+pub(crate) use placers_kit::place::open_tiles;
 
 /// `candidates`: open tiles next to a wall (or the grid edge), one entry per wall side.
 pub(crate) fn wall_candidates(g: &Game) -> Vec<WallCand> {
@@ -97,12 +86,7 @@ pub(crate) fn mount_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_
     }
 }
 
-/// Scatter on tile (x, z): position `(wx(x) + (rand - 0.5) * spread, 0,
-/// wz(z) + (rand - 0.5) * spread)`, then yaw `rand * 2π` (3 draws).
-pub(crate) fn scatter_on_floor(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
-    o.position().set(g.wx(x) + (rnd() - 0.5) * spread, 0, g.wz(z) + (rnd() - 0.5) * spread);
-    o.rotation().y = rnd() * PI * 2.0;
-}
+pub(crate) use placers_kit::place::scatter_on_floor;
 
 /// A custom geometry from f32 positions + an index, normals computed.
 pub(crate) fn buffer_geo(verts: &[f64], index: Vec<u32>) -> Geo {
@@ -113,15 +97,7 @@ pub(crate) fn buffer_geo(verts: &[f64], index: Vec<u32>) -> Geo {
     geo
 }
 
-/// The four bars of a picture frame, each `(bar_w, bar_h, bx, by)`.
-pub(crate) fn frame_bars(w: f64, h: f64, fw: f64) -> [(f64, f64, f64, f64); 4] {
-    [
-        (w + fw * 2.0, fw, 0.0, h / 2.0 + fw / 2.0),
-        (w + fw * 2.0, fw, 0.0, -h / 2.0 - fw / 2.0),
-        (fw, h, -w / 2.0 - fw / 2.0, 0.0),
-        (fw, h, w / 2.0 + fw / 2.0, 0.0),
-    ]
-}
+pub(crate) use placers_kit::geometry::frame_bars;
 
 /// Convert to a clamped byte (round half to even, clamp to 0..255, NaN → 0).
 pub(crate) fn u8_clamped(v: f64) -> u8 {

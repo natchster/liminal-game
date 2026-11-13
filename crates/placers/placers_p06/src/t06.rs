@@ -64,43 +64,13 @@ fn world(size: f64) -> impl Fn(f64, f64, f64, [f64; 3]) -> (f64, f64) {
     }
 }
 
-/// A salt from where a thing stands (no draw): a painter's own stream
-/// starts the same on every floor, so what it paints mixes this in
-fn salt_of(x: f64, z: f64) -> u32 {
-    let (a, b) = ((x * 1000.0).round() as i64 as u64, (z * 1000.0).round() as i64 as u64);
-    let mut h = a.wrapping_mul(0x9E37_79B9_7F4A_7C15) ^ b.wrapping_mul(0xC2B2_AE3D_27D4_EB4F);
-    h ^= h >> 29;
-    (h ^ (h >> 32)) as u32
-}
+use placers_kit::place::salt_of;
 
-fn hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash;
 
-fn vn(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
-    let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vn;
 
-fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-    for k in 0..oct {
-        s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
-        n += amp;
-        amp *= 0.5;
-        f *= 2.03;
-    }
-    s / n
-}
+use placers_kit::noise::fbm;
 
 /// fbm that repeats every `p` (whole numbers) in x and y
 fn fbm_tile(seed: u32, x: f64, y: f64, p: f64, oct: u32) -> f64 {
@@ -113,39 +83,17 @@ fn fbm_tile(seed: u32, x: f64, y: f64, p: f64, oct: u32) -> f64 {
     (a * (1.0 - fu) + b * fu) * (1.0 - fv) + (c * (1.0 - fu) + d * fu) * fv
 }
 
-fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
+use placers_kit::noise::sstep;
 
-fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-    let t = t.clamp(0.0, 1.0);
-    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-}
+use placers_kit::noise::mix;
 
 fn css(c: [f64; 3], a: f64) -> String {
     format!("rgba({:.0},{:.0},{:.0},{:.3})", c[0] * 255.0, c[1] * 255.0, c[2] * 255.0, a.clamp(0.0, 1.0))
 }
 
-fn hex(c: u32) -> [f64; 3] {
-    [f64::from((c >> 16) & 255) / 255.0, f64::from((c >> 8) & 255) / 255.0, f64::from(c & 255) / 255.0]
-}
+use placers_kit::paint::rgb as hex;
 
-/// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v
-/// up, both 0..1, as the texture is laid) gives straight sRGB and alpha
-fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
-    let iw = w as usize;
-    let mut img = ctx.create_image_data(w, h);
-    par_rows(&mut img.data, iw * 4, |j, out| {
-        for i in 0..iw {
-            let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
-            for k in 0..4 {
-                out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
-            }
-        }
-    });
-    ctx.put_image_data(&img, 0, 0);
-}
+use placers_kit::paint::fill;
 
 /// What is painted already, changed pixel by pixel on every core: `f(u, v,
 /// rgb)` (as [`fill`]) gives the new colour
@@ -932,10 +880,7 @@ const LEAVES: [(&str, f64, f64, bool); 5] = [
 /// brown, oak dark (wet once)
 const LEAF_RGB: [[f64; 3]; 5] = [[0.56, 0.37, 0.21], [0.48, 0.34, 0.22], [0.63, 0.49, 0.33], [0.54, 0.42, 0.28], [0.42, 0.32, 0.22]];
 
-/// The bounds (frame) part `name` was modelled in
-fn frame(name: &str) -> ([f64; 3], [f64; 3]) {
-    prop_part_info(name).map(|m| (m.fmin, m.fmax)).unwrap_or(([-0.05; 3], [0.05; 3]))
-}
+use placers_kit::geometry::frame;
 
 /// The half width of leaf `k`'s blade at a fraction `a` of its length, on
 /// side `side` (±1): beech ovate with a wavy margin, oak lobed, each a little

@@ -92,18 +92,7 @@ fn wall_candidates(g: &Game) -> Vec<WallC> {
     v
 }
 
-/// The open-tile scan, row-major.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
 /// The wall-face point: `wx(c.x) + c.dx * (CELL * 0.5 - inset)`, same for z.
 fn wall_xz(g: &Game, c: WallC, inset: f64) -> (f64, f64) {

@@ -113,22 +113,8 @@ fn t03_sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
     })
 }
 
-fn t03_hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
-fn t03_vn(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (t03_hash(seed, i, j), t03_hash(seed, i + 1, j));
-    let (c, d) = (t03_hash(seed, i, j + 1), t03_hash(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::hash as t03_hash;
+use placers_kit::noise::vn as t03_vn;
 /// Value noise whose lattice wraps every `period` cells in x (round the
 /// sponge: its pores meet themselves across the seam, round, not streaked)
 fn t03_vn_wrap(seed: u32, x: f64, y: f64, period: i32) -> f64 {
@@ -141,16 +127,7 @@ fn t03_vn_wrap(seed: u32, x: f64, y: f64, period: i32) -> f64 {
     let (c, d) = (t03_hash(seed, i0, j + 1), t03_hash(seed, i1, j + 1));
     a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
 }
-fn t03_fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-    for k in 0..oct {
-        s += amp * t03_vn(seed.wrapping_add(k * 7919), x * f, y * f);
-        n += amp;
-        amp *= 0.5;
-        f *= 2.03;
-    }
-    s / n
-}
+use placers_kit::noise::fbm as t03_fbm;
 fn t03_sstep(e0: f64, e1: f64, x: f64) -> f64 {
     let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
     t * t * (3.0 - 2.0 * t)

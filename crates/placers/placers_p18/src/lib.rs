@@ -54,18 +54,7 @@ fn wall_candidates(g: &Game) -> Vec<WallCand> {
     v
 }
 
-/// Every open tile of the interior, row by row.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
 /// The shared wall-mount tail: face the room, sit `inset` off the wall face,
 /// slide along the wall by `(`rnd()` - 0.5) * jitter`.
@@ -90,12 +79,7 @@ fn place_along(o: &Obj, a: &Vec3, d: &Vec3, s: f64) {
     p.add_scaled_vector(d, s);
 }
 
-/// `o.rotation.set(x, y, z, order)`
-fn set_rot_order(o: &Obj, x: f64, y: f64, z: f64, order: EulerOrder) {
-    let mut r = o.rotation();
-    r.set(x, y, z);
-    r.order = order;
-}
+use placers_kit::geometry::set_rot_order;
 
 // Whole broken porcelain doll on floor (floor): 3% chance per level.
 fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {

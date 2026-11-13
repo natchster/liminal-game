@@ -4,31 +4,11 @@
 use super::*;
 use game::assets::props::prop_part_as_modelled;
 
-/// The Blender part `name`, as modelled, in `grp` with `mat`
-fn t10_put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
-    let m = mesh(prop_part_as_modelled(name)?, mat);
-    grp.add(&m);
-    Some(m)
-}
+use placers_kit::geometry::put as t10_put;
 
-/// Something of where a thing was put, to vary what its painters paint
-/// (a painter's own stream starts the same on every floor)
-fn t10_vary(x: f64, z: f64, k: f64) -> u32 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for v in [x, z, k] {
-        h ^= v.to_bits();
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    (h ^ (h >> 29) ^ (h >> 47)) as u32
-}
+use placers_kit::place::vary as t10_vary;
 
-fn t10_hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash as t10_hash;
 
 /// The single (t10.py): a sleeve's thickness, one sheet of it, the disc's
 /// radius, the sleeve's half width

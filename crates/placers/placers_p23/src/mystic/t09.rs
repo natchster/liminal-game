@@ -397,60 +397,13 @@ fn bone_tex(salt: u32) -> Tex {
 mod t09_kit {
     use game::prelude::*;
 
-    pub(super) fn hash(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
-    pub(super) fn vn(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
-        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
-    pub(super) fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-        for k in 0..oct {
-            s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
-            n += amp;
-            amp *= 0.5;
-            f *= 2.03;
-        }
-        s / n
-    }
-    pub(super) fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-        t * t * (3.0 - 2.0 * t)
-    }
-    pub(super) fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-        let t = t.clamp(0.0, 1.0);
-        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-    }
-    /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v
-    /// up, both 0..1, as the texture is laid) gives straight sRGB and alpha
-    pub(super) fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
-        let iw = w as usize;
-        let mut img = ctx.create_image_data(w, h);
-        par_rows(&mut img.data, iw * 4, |j, out| {
-            for i in 0..iw {
-                let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
-                for k in 0..4 {
-                    out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
-                }
-            }
-        });
-        ctx.put_image_data(&img, 0, 0);
-    }
-    /// A salt from where a thing is (no draw): its painters' strokes differ
-    /// from floor to floor
-    pub(super) fn salt(x: f64, z: f64, k: u32) -> u32 {
-        ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ k.wrapping_mul(0x9e37_79b9)
-    }
+    pub(super) use placers_kit::noise::fbm;
+    pub(super) use placers_kit::noise::hash;
+    pub(super) use placers_kit::noise::mix;
+    pub(super) use placers_kit::noise::sstep;
+    pub(super) use placers_kit::noise::vn;
+    pub(super) use placers_kit::paint::fill;
+    pub(super) use placers_kit::place::salt;
     /// The part `name` of a Blender batch as modelled, added to `grp` in `mat`
     pub(super) fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
         let geo = game::assets::props::prop_part_as_modelled(name)?;

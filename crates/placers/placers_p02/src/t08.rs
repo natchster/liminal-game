@@ -69,22 +69,8 @@ fn crow_plastic_tex(salt: u32) -> Tex {
     })
 }
 
-fn crow_hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
-fn crow_vn(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (crow_hash(seed, i, j), crow_hash(seed, i + 1, j));
-    let (c, d) = (crow_hash(seed, i, j + 1), crow_hash(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::hash as crow_hash;
+use placers_kit::noise::vn as crow_vn;
 fn crow_fbm(seed: u32, x: f64, y: f64) -> f64 {
     let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
     for k in 0..4 {

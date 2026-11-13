@@ -23,24 +23,9 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_victorian_hall_stands", place_victorian_hall_stands));
 }
 
-/// A uniformly random element (one `rnd()` draw). index
-#[inline]
-fn ri(len: usize) -> usize {
-    (rnd() * len as f64).floor() as usize
-}
+use placers_kit::place::ri;
 
-/// Every open (tile 0) interior tile, row-major loops.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
 /// Open tiles next to a wall (or the grid edge), one entry per facing wall:
 /// `(x, z, dx, dz)` for each side where `!in_grid(nx, nz) || tiles[..] == 1`.

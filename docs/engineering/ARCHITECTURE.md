@@ -37,6 +37,13 @@ engine  ←  game  ←  placers_p00 … placers_p32  ←  placers
 * **`placers_pNN`** hold the ~650 decoration placers (`place_*` functions
   that add props to a level). They are plain functions over `&mut Game`,
   registered by name, and split across crates so they compile in parallel.
+* **`placers_kit`** holds the helpers they share, each once: noise (a
+  lattice hash, value noise, fractal sums, smooth steps), painting a
+  canvas (per-pixel fills, soft blots, colours, decals), placing (open and
+  wall tiles, picks, shuffles, salts from a place) and building (geometry
+  from triangles, the Blender parts and their frames). They had been
+  copied from crate to crate, up to a hundred times under ten names; a
+  placer crate uses them by name (a copy's old name kept as an alias).
 * **`placers`** (`crates/placers/` itself) registers them all
   (`register_all`): the one list the executable and every test that
   builds a level use. Its `tests/fingerprints.rs` hashes what each placer

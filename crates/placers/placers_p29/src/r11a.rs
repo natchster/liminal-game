@@ -293,12 +293,7 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
     (d, press)
 }
 
-/// The smooth minimum of two distances, blended over `k` (a finger runs
-/// into the palm)
-fn smin_hand(a: f64, b: f64, k: f64) -> f64 {
-    let h = (0.5 + 0.5 * (b - a) / k).clamp(0.0, 1.0);
-    b + (a - b) * h - k * h * (1.0 - h)
-}
+use placers_kit::noise::smin as smin_hand;
 
 /// A hand's print in grime on a plane 0.15 × 0.22 m: pressed unevenly
 /// (heavier on one side, sometimes only the fingers or only the heel of the

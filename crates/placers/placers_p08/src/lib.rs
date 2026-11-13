@@ -33,47 +33,13 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
 
 // ------------------------------------------------------------------ helpers
 
-/// The `open_tiles` scan every floor placer repeats: open interior tiles, row-major.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
-/// The `wall_tiles` scan: open interior tiles with the first adjacent wall
-/// (`tiles[..] == 1`) in `[(1,0), (-1,0), (0,1), (0,-1)]` order.
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::wall_tiles;
 
-/// A uniformly random element (one `rnd()` draw).
-fn pick<T: Copy>(a: &[T]) -> T {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+use placers_kit::place::pick;
 
-/// `atan2(-dx, -dz)` (keeps -0.0 for a zero component, on purpose)
-fn face_wall(dx: i32, dz: i32) -> f64 {
-    (-(dx as f64)).atan2(-(dz as f64))
-}
+use placers_kit::place::face_wall;
 
 /// Wall-mount position `wx(x) + dx * (CELL * 0.5 - inset)`, `wz(z) + dz * (...)`.
 fn wall_pos(g: &Game, x: i32, z: i32, dx: i32, dz: i32, inset: f64) -> (f64, f64) {

@@ -81,13 +81,7 @@ pub(super) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
 mod r18_pail {
     use super::*;
 
-    /// Its own stream starts the same on every floor: a placed thing's salt
-    /// moves where it starts, so the strokes differ from floor to floor
-    fn skip(salt: u32) {
-        for _ in 0..(salt % 61) {
-            let _ = rnd();
-        }
-    }
+    use placers_kit::place::skip;
 
     /// Lying on its side: its turn about x and lift, so the flange and the
     /// foot touch the floor (printed by `r18.py`)
@@ -103,10 +97,7 @@ mod r18_pail {
         fbm(seed, u * fu, y * fy, oct) * (1.0 - u) + fbm(seed, (u - 1.0) * fu, y * fy, oct) * u
     }
 
-    fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-        let t = t.clamp(0.0, 1.0);
-        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-    }
+    use placers_kit::noise::mix;
 
     fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 3] + Sync) {
         let (iw, ih) = (w as usize, h as usize);

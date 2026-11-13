@@ -42,18 +42,7 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_small_paper_cups", music::place_small_paper_cups));
 }
 
-/// The `open_tiles` scan every placer starts with: open tiles, row-major.
-pub(crate) fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+pub(crate) use placers_kit::place::open_tiles;
 
 /// A uniformly random element (one `rnd()` draw).
 #[inline]
@@ -61,21 +50,9 @@ pub(crate) fn pick<T: Copy>(a: &[T]) -> T {
     a[(rnd() * a.len() as f64).floor() as usize]
 }
 
-/// A custom geometry: f32 positions + `set_index(idx)` + `compute_vertex_normals()`
-pub(crate) fn buf_geo(verts: &[f64], idx: &[u32]) -> Geo {
-    let geo = Geo::new();
-    geo.set_position(verts.iter().map(|&v| v as f32).collect());
-    geo.set_index(idx.to_vec());
-    geo.compute_vertex_normals();
-    geo
-}
+pub(crate) use placers_kit::geometry::buf_geo;
 
-/// `o.rotation.set(x, y, z, order)`
-pub(crate) fn set_rot_order(o: &Obj, x: f64, y: f64, z: f64, order: EulerOrder) {
-    let mut r = o.rotation();
-    r.set(x, y, z);
-    r.order = order;
-}
+pub(crate) use placers_kit::geometry::set_rot_order;
 
 #[cfg(test)]
 mod tests {

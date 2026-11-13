@@ -308,16 +308,7 @@ pub(super) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// Something of where a thing was put, to vary what its painters paint
-/// (a painter's own stream starts the same on every floor)
-fn wm_vary(x: f64, z: f64, k: f64) -> u32 {
-    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
-    for v in [x, z, k] {
-        h ^= v.to_bits();
-        h = h.wrapping_mul(0x0100_0000_01b3);
-    }
-    (h ^ (h >> 29) ^ (h >> 47)) as u32
-}
+use placers_kit::place::vary as wm_vary;
 
 /// A mirror's breakage, in metres on its glass (x right and y up from its
 /// middle): each crack's points and weight (1 a fine one), where it was

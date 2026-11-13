@@ -67,18 +67,7 @@ fn wall_candidates(g: &Game) -> Vec<WallCand> {
     c
 }
 
-/// Every open interior tile (`tiles[t_idx(x, z)] == 0`), z-major.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
 /// In-place Fisher-Yates exactly loops write it.
 fn shuffle<T>(v: &mut [T]) {
@@ -92,24 +81,9 @@ fn shuffle<T>(v: &mut [T]) {
     }
 }
 
-/// A deep clone whose Euler angles are re-derived from each node's quaternion
-/// (a yaw past π/2 comes back as (±π, π - θ, ±π)), so later
-/// `clone.rotation().y = v` writes act on those angles (kept on purpose).
-/// `Obj::duplicate` keeps the Euler as it was, hence this wrapper.
-fn clone_obj(o: &Obj) -> Obj {
-    let c = o.duplicate();
-    c.traverse(&mut |n| {
-        let q = n.quat();
-        *n.quaternion() = q;
-    });
-    c
-}
+use placers_kit::geometry::clone_obj;
 
-/// `floor(`rnd()` * len)`
-#[inline]
-fn pick(len: usize) -> usize {
-    (rnd() * len as f64).floor() as usize
-}
+use placers_kit::place::ri as pick;
 
 /// The shared wall-mount branch (rotation from the wall side, one random
 /// draw for the offset along the wall).
@@ -1237,56 +1211,17 @@ fn srgb3(h: u32) -> [f64; 3] {
     [((h >> 16) & 255) as f64 / 255.0, ((h >> 8) & 255) as f64 / 255.0, (h & 255) as f64 / 255.0]
 }
 
-/// A hash of (seed, i, j) in [0, 1)
-fn hash01(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash as hash01;
 
-/// Smooth value noise in [0, 1]
-fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (hash01(seed, i, j), hash01(seed, i + 1, j));
-    let (c, d) = (hash01(seed, i, j + 1), hash01(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vn as vnoise;
 
-/// Fractal value noise of `oct` octaves, in [0, 1]
-fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-    let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-    for k in 0..oct {
-        s += amp * vnoise(seed.wrapping_add(k * 7919), x * f, y * f);
-        n += amp;
-        amp *= 0.5;
-        f *= 2.03;
-    }
-    s / n
-}
+use placers_kit::noise::fbm;
 
-/// Smoothstep from `e0` to `e1` (either way round)
-fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
+use placers_kit::noise::sstep;
 
-/// The smooth minimum of two distances, blended over `k`
-fn smin(a: f64, b: f64, k: f64) -> f64 {
-    let h = (0.5 + 0.5 * (b - a) / k).clamp(0.0, 1.0);
-    b + (a - b) * h - k * h * (1.0 - h)
-}
+use placers_kit::noise::smin;
 
-/// How a dried water mark shades at signed distance `d` (m, < 0 inside) from
-/// one of its rims: the rim sharp on its outside (over `aa`, about a texel),
-/// what the water left there fading inward over `ew`
-fn tide(d: f64, aa: f64, ew: f64) -> f64 {
-    (0.5 - d / aa).clamp(0.0, 1.0) * (d.min(0.0) / ew).exp()
-}
+use placers_kit::noise::tide;
 
 /// The white salts water leaves on concrete and brick (sRGB)
 const SALT: [f64; 3] = [0.78, 0.77, 0.72];
@@ -1351,10 +1286,7 @@ fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], p
     tex
 }
 
-/// The decal material of a mark painted in `tex`, lit as the surface under it
-fn mark_mat(tex: &Tex) -> Mat {
-    lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
-}
+use placers_kit::paint::mark_mat;
 
 /// One run of a water streak, in its plane's metres (x across, y down from
 /// the ceiling's edge): where it starts, how it leans, where it ends, its

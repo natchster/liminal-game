@@ -8,10 +8,7 @@ use crate::{open_tiles, pick};
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-/// The index of `c` in `cs` (the old colour a draw picked)
-fn index_of(cs: &[u32], c: u32) -> usize {
-    cs.iter().position(|&x| x == c).unwrap_or(0)
-}
+use placers_kit::place::index_of;
 
 /// Plastic action figure: 4% chance per level. A jointed 3 3/4 in
 /// (95 mm) soldier of the 1980s kind, no maker's: its O-ring body moulded
@@ -173,114 +170,25 @@ fn put(grp: &Obj, name: &str, mat: &Mat) {
     }
 }
 
-/// Part `name` with its texture laid on at its real scale (`size` m a
-/// repeat), from the side each vertex faces most: a worn surface the same
-/// grain on every part of the thing
-fn put_world(grp: &Obj, name: &str, mat: &Mat, size: f64) {
-    let Some(geo) = prop_part_as_modelled(name) else { return };
-    let geo = geo.duplicate();
-    {
-        let mut gg = geo.g();
-        let n = gg.position.len() / 3;
-        let mut uv = Vec::with_capacity(n * 2);
-        for i in 0..n {
-            let (x, y, z) = (f64::from(gg.position[i * 3]), f64::from(gg.position[i * 3 + 1]), f64::from(gg.position[i * 3 + 2]));
-            let (ax, ay, az) = (gg.normal[i * 3].abs(), gg.normal[i * 3 + 1].abs(), gg.normal[i * 3 + 2].abs());
-            let (u, v) = if ay >= ax && ay >= az {
-                (x, z)
-            } else if ax >= az {
-                (z, y)
-            } else {
-                (x, y)
-            };
-            uv.push((u / size) as f32);
-            uv.push((v / size) as f32);
-        }
-        gg.uv = uv;
-        gg.touch();
-    }
-    grp.add(&mesh(geo, mat.clone()));
-}
+use placers_kit::geometry::put_world;
 
-/// A salt from where the thing lies (no draw): its wear differs from floor
-/// to floor
-fn salt_at(x: f64, z: f64) -> u32 {
-    ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ 0x7f4a_7c15
-}
+use placers_kit::place::salt_at;
 
-fn rgb(c: u32) -> [f64; 3] {
-    [f64::from((c >> 16) & 255) / 255.0, f64::from((c >> 8) & 255) / 255.0, f64::from(c & 255) / 255.0]
-}
+use placers_kit::paint::rgb;
 
-fn ss(e0: f64, e1: f64, x: f64) -> f64 {
-    let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-    t * t * (3.0 - 2.0 * t)
-}
+use placers_kit::noise::sstep as ss;
 
-fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-    let t = t.clamp(0.0, 1.0);
-    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-}
+use placers_kit::noise::mix;
 
-fn mul(a: [f64; 3], k: f64) -> [f64; 3] {
-    [a[0] * k, a[1] * k, a[2] * k]
-}
+use placers_kit::paint::mul;
 
-fn hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash;
 
-/// Value noise over a lattice repeating every (px, py) cells
-fn vnp(seed: u32, x: f64, y: f64, px: i32, py: i32) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (i0, i1, j0, j1) = (i.rem_euclid(px), (i + 1).rem_euclid(px), j.rem_euclid(py), (j + 1).rem_euclid(py));
-    let (a, b) = (hash(seed, i0, j0), hash(seed, i1, j0));
-    let (c, d) = (hash(seed, i0, j1), hash(seed, i1, j1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-}
+use placers_kit::noise::vnp;
 
-/// Fractal noise over the tile (u, v in 0..1), `p` cells across at first
-fn fbmp(seed: u32, u: f64, v: f64, p: i32, oct: u32) -> f64 {
-    let (mut s, mut amp, mut n) = (0.0, 0.5, 0.0);
-    for k in 0..oct {
-        let q = p << k;
-        s += amp * vnp(seed.wrapping_add(k * 7919), u * f64::from(q), v * f64::from(q), q, q);
-        n += amp;
-        amp *= 0.5;
-    }
-    s / n
-}
+use placers_kit::noise::fbmp;
 
-/// The distance between the nearest and next nearest of the tile's cell
-/// points (`n` cells across, repeating): small along the cells' edges
-fn cell_edge(seed: u32, u: f64, v: f64, n: i32) -> f64 {
-    let (x, y) = (u * f64::from(n), v * f64::from(n));
-    let (i, j) = (x.floor() as i32, y.floor() as i32);
-    let (mut d1, mut d2) = (9.0f64, 9.0f64);
-    for dj in -1..=1 {
-        for di in -1..=1 {
-            let (ci, cj) = (i + di, j + dj);
-            let (wi, wj) = (ci.rem_euclid(n), cj.rem_euclid(n));
-            let fx = f64::from(ci) + 0.15 + 0.7 * hash(seed, wi, wj);
-            let fy = f64::from(cj) + 0.15 + 0.7 * hash(seed ^ 0x5bd1, wi, wj);
-            let d = ((x - fx).powi(2) + (y - fy).powi(2)).sqrt();
-            if d < d1 {
-                d2 = d1;
-                d1 = d;
-            } else if d < d2 {
-                d2 = d;
-            }
-        }
-    }
-    d2 - d1
-}
+use placers_kit::noise::cell_edge;
 
 /// How a moulded or painted thing has worn on a floor for years
 #[derive(Clone, Copy)]
@@ -332,23 +240,7 @@ fn wear_at(seed: u32, u: f64, v: f64, w: &Wear) -> [f64; 3] {
     c
 }
 
-/// A repeating `px` x `px` tile painted pixel by pixel by `f(u, v)`
-fn paint_tile<F: Fn(f64, f64) -> [f64; 3] + Sync>(px: u32, f: F) -> Tex {
-    canvas_tex_opt(px, px, true, move |ctx, w, h| {
-        let w_ = w as usize;
-        let mut img = ctx.create_image_data(w, h);
-        par_rows(&mut img.data, w_ * 4, |j, out| {
-            for i in 0..w_ {
-                let c = f((i as f64 + 0.5) / w, (j as f64 + 0.5) / h);
-                for k in 0..3 {
-                    out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
-                }
-                out[i * 4 + 3] = 255;
-            }
-        });
-        ctx.put_image_data(&img, 0, 0);
-    })
-}
+use placers_kit::paint::paint_tile;
 
 /// A worn surface's tile
 fn wear_tex(seed: u32, px: u32, w: Wear) -> Tex {

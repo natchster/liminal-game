@@ -52,58 +52,13 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_teddy_bears", place_teddy_bears));
 }
 
-// ------------------------------------------------------------------ helpers
-/// The repeated `open_tiles` scan plus one random pick.
-/// No draw when the list is empty (the placer returns first).
-fn pick_open(g: &Game) -> Option<(i32, i32)> {
-    let mut open: Vec<(i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                open.push((x, z));
-            }
-        }
-    }
-    if open.is_empty() {
-        return None;
-    }
-    Some(open[(rnd() * open.len() as f64).floor() as usize])
-}
+use placers_kit::place::pick_open;
 
-/// The repeated `wall_tiles` scan (first wall neighbour in [[1,0],[-1,0],[0,1],[0,-1]] order)
-/// + one draw to pick a tile.
-fn pick_wall(g: &Game) -> Option<(i32, i32, i32, i32)> {
-    let mut wall: Vec<(i32, i32, i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        wall.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    if wall.is_empty() {
-        return None;
-    }
-    Some(wall[(rnd() * wall.len() as f64).floor() as usize])
-}
+use placers_kit::place::pick_wall;
 
-/// `wx(x) + (`rnd()` - 0.5) * s, ..., wz(z) + (`rnd()` - 0.5) * s` (x draw first).
-fn jitter(g: &Game, x: i32, z: i32, s: f64) -> (f64, f64) {
-    let px = g.wx(x) + (rnd() - 0.5) * s;
-    let pz = g.wz(z) + (rnd() - 0.5) * s;
-    (px, pz)
-}
+use placers_kit::place::jitter;
 
-/// `rotation.y = `atan2`(-dx, -dz)` + position on the wall face `CELL * 0.5 - inset` out.
-fn wall_mount(g: &Game, o: &Obj, x: i32, z: i32, dx: i32, dz: i32, inset: f64) {
-    o.rotation().y = (-(dx as f64)).atan2(-(dz as f64));
-    o.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - inset), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - inset));
-}
+use placers_kit::place::wall_mount;
 
 /// A custom geometry: positions + index, vertex normals computed.
 fn tri_geo(verts: Vec<f32>, idx: Vec<u32>) -> Geo {

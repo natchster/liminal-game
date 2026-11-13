@@ -16,10 +16,7 @@ pub(crate) use t16::place_overturned_tricycles;
 mod t18;
 pub(crate) use t18::place_hanging_censers;
 
-/// A uniformly random element (one `rnd()` draw). for colour tables.
-fn pick_hex(a: &[u32]) -> u32 {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+use placers_kit::place::pick_hex;
 
 // Old CRT TV: 4% chance per level. Boxy TV with static screen + antennae.
 pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {

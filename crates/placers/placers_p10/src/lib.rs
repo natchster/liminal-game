@@ -26,54 +26,13 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_brooms_and_dustpans", place_brooms_and_dustpans));
 }
 
-// ------------------------------------------------------------------ helpers
-/// The `open_tiles` scan every floor placer starts with (`tiles[t_idx(x, z)] == 0`).
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::open_tiles;
 
-/// The `wall_tiles` scan of the wall placers: open tiles with the first
-/// neighbouring wall (`== 1`) in `[(1,0), (-1,0), (0,1), (0,-1)]` order.
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
+use placers_kit::place::wall_tiles;
 
-/// A uniformly random element (one `rnd()` draw).
-fn pick<T: Copy>(a: &[T]) -> T {
-    a[(rnd() * a.len() as f64).floor() as usize]
-}
+use placers_kit::place::pick;
 
-/// Oriented cylinder segment between two points
-/// (positioned at the midpoint, rotated so its +Y axis points from `prev` to `next`).
-fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
-    let mut mid = *prev;
-    mid.add(next).multiply_scalar(0.5);
-    seg.position().copy(&mid);
-    let mut v = *next;
-    v.sub(prev).normalize();
-    seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
-}
+use placers_kit::geometry::orient_seg;
 
 // Dropped car keys w/ keyring + tag (floor): 7% chance per level.
 fn place_car_keys(g: &mut Game, _dist: &[i32]) {

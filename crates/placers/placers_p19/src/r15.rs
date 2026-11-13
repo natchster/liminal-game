@@ -132,9 +132,7 @@ mod r15_kit {
         ((p.x * 977.0).floor() as i64 ^ ((p.z * 1181.0).floor() as i64).rotate_left(13)) as u32
     }
 
-    fn rgba(c: (f64, f64, f64), a: f64) -> String {
-        format!("rgba({:.0},{:.0},{:.0},{a:.3})", c.0, c.1, c.2)
-    }
+    use placers_kit::paint::rgba;
 
     /// An sRGB colour as a hex, darkened by `k`
     pub fn hex(c: (f64, f64, f64), k: f64) -> u32 {

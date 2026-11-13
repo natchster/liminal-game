@@ -28,40 +28,9 @@ pub fn register(r: &mut Vec<(&'static str, PlacerFn)>) {
     r.push(("place_framed_maps", place_framed_maps));
 }
 
-/// Every open interior tile, row-major.
-fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                v.push((x, z));
-            }
-        }
-    }
-    v
-}
-/// Open tiles next to a wall, with the first wall direction found
-/// (later directions are not checked).
-fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
-    let mut v = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
-                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
-                        v.push((x, z, dx, dz));
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    v
-}
-/// `atan2(-dx, -dz)`
-fn face_wall(dx: i32, dz: i32) -> f64 {
-    (-(dx as f64)).atan2(-(dz as f64))
-}
+use placers_kit::place::face_wall;
+use placers_kit::place::open_tiles;
+use placers_kit::place::wall_tiles;
 
 // the record stack: batch `t10`'s (`t10.rs`)
 mod t10;
@@ -671,13 +640,7 @@ mod tests {
 mod r18_desk {
     use super::*;
 
-    /// Its own stream starts the same on every floor: a placed thing's salt
-    /// moves where it starts, so the strokes differ from floor to floor
-    fn skip(salt: u32) {
-        for _ in 0..(salt % 61) {
-            let _ = rnd();
-        }
-    }
+    use placers_kit::place::skip;
 
     /// The desk top's surface
     pub(super) const TOP_Y: f64 = 0.745;
@@ -693,60 +656,12 @@ mod r18_desk {
         0.0035 + BK_T * (1.0 - (-ax / 0.022).exp()) - 0.0018 * (ax / BK_W).powi(3) + 0.0012
     }
 
-    // ---- painting kit (per-pixel, pure: safe for `par_rows`) ----
-    fn hash(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
-    fn vn(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
-        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
-    fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-        for k in 0..oct {
-            s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
-            n += amp;
-            amp *= 0.5;
-            f *= 2.03;
-        }
-        s / n
-    }
-    fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
-        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-        t * t * (3.0 - 2.0 * t)
-    }
-    fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
-        let t = t.clamp(0.0, 1.0);
-        [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
-    }
-    /// The two nearest distances to a jittered lattice (cells of 1)
-    fn worley(seed: u32, x: f64, y: f64) -> (f64, f64) {
-        let (mut d1, mut d2) = (9.0f64, 9.0f64);
-        for dj in -1..=1 {
-            for di in -1..=1 {
-                let (ii, jj) = (x.floor() as i32 + di, y.floor() as i32 + dj);
-                let fx = ii as f64 + hash(seed, ii, jj);
-                let fy = jj as f64 + hash(seed ^ 77, ii, jj);
-                let d = (fx - x).hypot(fy - y);
-                if d < d1 {
-                    d2 = d1;
-                    d1 = d;
-                } else if d < d2 {
-                    d2 = d;
-                }
-            }
-        }
-        (d1, d2)
-    }
+    use placers_kit::noise::fbm;
+    use placers_kit::noise::hash;
+    use placers_kit::noise::mix;
+    use placers_kit::noise::sstep;
+    use placers_kit::noise::vn;
+    use placers_kit::noise::worley;
     /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right,
     /// v up, both 0..1, as the texture is laid) gives straight sRGB and alpha
     fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
@@ -762,9 +677,7 @@ mod r18_desk {
         });
         ctx.put_image_data(&img, 0, 0);
     }
-    fn rgb(c: [f64; 3]) -> [f64; 4] {
-        [c[0], c[1], c[2], 1.0]
-    }
+    use placers_kit::paint::opaque as rgb;
     fn css(c: [f64; 3], a: f64) -> String {
         format!("rgba({},{},{},{:.3})", (c[0] * 255.0) as u8, (c[1] * 255.0) as u8, (c[2] * 255.0) as u8, a)
     }

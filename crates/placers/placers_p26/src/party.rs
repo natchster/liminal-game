@@ -421,17 +421,7 @@ pub fn place_childrens_books(g: &mut Game, _dist: &[i32]) {
 mod r14b_kit {
     use game::prelude::*;
 
-    /// A seed from values already fixed (a position): no draws
-    pub fn seed_of(v: &[f64]) -> u32 {
-        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
-        for a in v {
-            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
-                x ^= u64::from(b);
-                x = x.wrapping_mul(0x0100_0000_01b3);
-            }
-        }
-        ((x ^ (x >> 32)) as u32) | 1
-    }
+    pub use placers_kit::place::seed_of;
 
     /// Fading over the ribbon's colour (multiplied): bleached paler in
     /// patches where the light lay, grimy where it was trodden
@@ -479,9 +469,7 @@ mod r15_napkin {
         (186.0, 208.0, 180.0),
     ];
 
-    fn rgba(c: (f64, f64, f64), a: f64) -> String {
-        format!("rgba({:.0},{:.0},{:.0},{a:.3})", c.0, c.1, c.2)
-    }
+    use placers_kit::paint::rgba;
 
     fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: (f64, f64, f64), a: f64) {
         ctx.save();

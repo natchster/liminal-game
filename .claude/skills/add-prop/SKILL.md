@@ -19,6 +19,9 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
    `register()`, added to `THEMED_ORDER` and `PLACER_THEME`. Finer parts come
    from the Blender meshes (`pg("Name__part", …)`, `assets/props.rs`);
    adding a new part means rebuilding `prop_meshes.bin` from its script.
+   Noise, canvas fills, tile picks and parts put on a group are in
+   `placers_kit` (`noise`, `paint`, `place`, `geometry`): use them; a copy
+   pasted from another placer is what that crate was made to end.
 4. **Determinism.** A new placer adds random draws: every later placer
    shifts. Re-record the reference levels and fixtures (`regen-fixtures`)
    and say so in the commit.

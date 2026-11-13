@@ -74,139 +74,27 @@ mod r11b_kit {
         }
     }
 
-    /// A seed from values already fixed (a position, a side): no draws
-    pub fn seed_of(v: &[f64]) -> u32 {
-        let mut x: u64 = 0xcbf2_9ce4_8422_2325;
-        for a in v {
-            for b in ((a * 1.0e4).round() as i64).to_le_bytes() {
-                x ^= u64::from(b);
-                x = x.wrapping_mul(0x0100_0000_01b3);
-            }
-        }
-        ((x ^ (x >> 32)) as u32) | 1
-    }
+    pub use placers_kit::place::seed_of;
 
-    /// A hash of (seed, i, j) in [0, 1)
-    pub fn h01(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
+    pub use placers_kit::noise::hash as h01;
 
-    /// Smooth value noise in [0, 1]
-    pub fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
-        let (xf, yf) = (x.floor(), y.floor());
-        let (i, j) = (xf as i32, yf as i32);
-        let (u, v) = (x - xf, y - yf);
-        let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (h01(seed, i, j), h01(seed, i + 1, j));
-        let (c, d) = (h01(seed, i, j + 1), h01(seed, i + 1, j + 1));
-        a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
-    }
+    pub use placers_kit::noise::vn as vnoise;
 
-    /// Fractal value noise of `oct` octaves, in [0, 1]
-    pub fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
-        let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
-        for k in 0..oct {
-            s += amp * vnoise(seed.wrapping_add(k * 7919), x * f, y * f);
-            n += amp;
-            amp *= 0.5;
-            f *= 2.03;
-        }
-        s / n
-    }
+    pub use placers_kit::noise::fbm;
 
-    /// 0 below `e0`, 1 above `e1`, smooth between
-    pub fn smooth(e0: f64, e1: f64, x: f64) -> f64 {
-        let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
-        t * t * (3.0 - 2.0 * t)
-    }
+    pub use placers_kit::noise::sstep as smooth;
 
     pub fn mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
         [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
     }
 
-    /// `c` at alpha `a` over straight colour and alpha `dst`
-    pub fn lay(dst: &mut [f64; 4], c: [f64; 3], a: f64) {
-        let a = a.clamp(0.0, 1.0);
-        if a <= 0.0 {
-            return;
-        }
-        let out = a + dst[3] * (1.0 - a);
-        if out > 1e-6 {
-            for k in 0..3 {
-                dst[k] = (c[k] * a + dst[k] * dst[3] * (1.0 - a)) / out;
-            }
-        }
-        dst[3] = out;
-    }
+    pub use placers_kit::paint::lay;
 
-    /// Specks: a dot in each `cell` (m) with likelihood `like`, its radius
-    /// `r0` + up to `r1`, anti-aliased over `aa`: (coverage, the dot's hash)
-    #[allow(clippy::too_many_arguments)]
-    pub fn specks(seed: u32, x: f64, y: f64, cell: f64, like: f64, r0: f64, r1: f64, aa: f64) -> (f64, f64) {
-        let (gi, gj) = ((x / cell).floor() as i32, (y / cell).floor() as i32);
-        let (mut best, mut hk) = (0.0f64, 0.0);
-        for k in 0..9 {
-            let (ci, cj) = (gi + k % 3 - 1, gj + k / 3 - 1);
-            let h = h01(seed, ci, cj);
-            if h >= like {
-                continue;
-            }
-            let (px, py) = ((f64::from(ci) + h01(seed ^ 0x77, ci, cj)) * cell, (f64::from(cj) + h01(seed ^ 0x78, ci, cj)) * cell);
-            let r = r0 + r1 * h01(seed ^ 0x79, ci, cj);
-            let cov = (0.5 - ((x - px).hypot(y - py) - r) / aa).clamp(0.0, 1.0);
-            if cov > best {
-                best = cov;
-                hk = h01(seed ^ 0x7a, ci, cj);
-            }
-        }
-        (best, hk)
-    }
+    pub use placers_kit::noise::specks;
 
-    /// A transparent mark `tw` x `th` px across a plane `pw` x `ph` m: each
-    /// pixel `px(x, y, aa)` (m from the plane's top left, y down; `aa` a
-    /// pixel's size) in straight sRGB and alpha. Where it is clear its colour
-    /// is `bleed`, so a mark's edge does not filter toward black.
-    pub fn decal_tex(tw: usize, th: usize, pw: f64, ph: f64, bleed: [f64; 3], px: impl Fn(f64, f64, f64) -> [f64; 4] + Sync) -> Tex {
-        let tex = canvas_tex_opt(tw as f64, th as f64, false, move |ctx, cw, ch| {
-            let (sx, sy) = (pw / cw, ph / ch);
-            let aa = sx.max(sy) * 1.1;
-            let mut img = ctx.create_image_data(cw, ch);
-            par_rows(&mut img.data, tw * 4, |j, out| {
-                let y = (j as f64 + 0.5) * sy;
-                for i in 0..tw {
-                    let x = (i as f64 + 0.5) * sx;
-                    let p = px(x, y, aa);
-                    for (c, v) in p.iter().enumerate() {
-                        out[i * 4 + c] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
-                    }
-                }
-            });
-            ctx.put_image_data(&img, 0, 0);
-        });
-        // what is clear (it came back black through the canvas) takes the
-        // bleed colour, and what is nearly clear goes toward it
-        {
-            let img = tex.image();
-            let mut im = img.borrow_mut();
-            for p in im.data.chunks_exact_mut(4) {
-                let t = smooth(0.0, 0.06, f64::from(p[3]) / 255.0);
-                for (c, b) in p.iter_mut().zip(bleed) {
-                    *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * t).round().clamp(0.0, 255.0) as u8;
-                }
-            }
-            im.version += 1;
-        }
-        tex
-    }
+    pub use placers_kit::paint::decal_tex;
 
-    /// The decal material: lit, see-through, drawn over the wall
-    pub fn decal_mat(tex: &Tex) -> Mat {
-        lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })
-    }
+    pub use placers_kit::paint::mark_mat as decal_mat;
 
     /// The rust that ran from a fixing at `from` (m from the plane's top left)
     /// down a plane `pw` x `ph`, about `len` long, as wide as the fixing

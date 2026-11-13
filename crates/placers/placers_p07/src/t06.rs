@@ -46,13 +46,7 @@ fn put_world(grp: &Obj, name: &str, mat: &Mat, size: f64) -> Option<Obj> {
     Some(m)
 }
 
-fn hash(seed: u32, i: i32, j: i32) -> f64 {
-    let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-    h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-    h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-    h ^= h >> 16;
-    f64::from(h) / 4_294_967_296.0
-}
+use placers_kit::noise::hash;
 
 /// Value noise that repeats every `p` cells
 fn vn(seed: u32, x: f64, y: f64, p: i32) -> f64 {
