@@ -16,39 +16,7 @@ serde_json = { workspace = true }
 game = { workspace = true }
 objc2 = { workspace = true }
 objc2-metal = { workspace = true }
-placers_p00 = { workspace = true }
-placers_p01 = { workspace = true }
-placers_p02 = { workspace = true }
-placers_p03 = { workspace = true }
-placers_p04 = { workspace = true }
-placers_p05 = { workspace = true }
-placers_p06 = { workspace = true }
-placers_p07 = { workspace = true }
-placers_p08 = { workspace = true }
-placers_p09 = { workspace = true }
-placers_p10 = { workspace = true }
-placers_p11 = { workspace = true }
-placers_p12 = { workspace = true }
-placers_p13 = { workspace = true }
-placers_p14 = { workspace = true }
-placers_p15 = { workspace = true }
-placers_p16 = { workspace = true }
-placers_p17 = { workspace = true }
-placers_p18 = { workspace = true }
-placers_p19 = { workspace = true }
-placers_p20 = { workspace = true }
-placers_p21 = { workspace = true }
-placers_p22 = { workspace = true }
-placers_p23 = { workspace = true }
-placers_p24 = { workspace = true }
-placers_p25 = { workspace = true }
-placers_p26 = { workspace = true }
-placers_p27 = { workspace = true }
-placers_p28 = { workspace = true }
-placers_p29 = { workspace = true }
-placers_p30 = { workspace = true }
-placers_p31 = { workspace = true }
-placers_p32 = { workspace = true }
+placers = { workspace = true }
 
 [lints]
 workspace = true

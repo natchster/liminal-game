@@ -148,6 +148,10 @@ Levels must be a pure function of `(run_seed, level)`:
    point where it should run, and its theme to `PLACER_THEME`.
 4. `cargo test -p placers_pNN` runs the crate's smoke tests (12 seeds × 24
    repetitions, every animator and interactable exercised).
+5. `REGEN=1 cargo test --release -p placers --test fingerprints` records
+   what it makes (four runs on the smoke levels); the test fails if any
+   other placer's lines changed. The crate's `register()` is already in
+   `placers::register_all`; a new placer crate is added there.
 
 ## Tests and reference data
 

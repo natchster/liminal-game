@@ -14,43 +14,6 @@ use std::time::Instant;
 mod sheet;
 mod tour;
 
-/// Every prop placer, by its registered name.
-fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
-    placers_p00::register(r);
-    placers_p01::register(r);
-    placers_p02::register(r);
-    placers_p03::register(r);
-    placers_p04::register(r);
-    placers_p05::register(r);
-    placers_p06::register(r);
-    placers_p07::register(r);
-    placers_p08::register(r);
-    placers_p09::register(r);
-    placers_p10::register(r);
-    placers_p11::register(r);
-    placers_p12::register(r);
-    placers_p13::register(r);
-    placers_p14::register(r);
-    placers_p15::register(r);
-    placers_p16::register(r);
-    placers_p17::register(r);
-    placers_p18::register(r);
-    placers_p19::register(r);
-    placers_p20::register(r);
-    placers_p21::register(r);
-    placers_p22::register(r);
-    placers_p23::register(r);
-    placers_p24::register(r);
-    placers_p25::register(r);
-    placers_p26::register(r);
-    placers_p27::register(r);
-    placers_p28::register(r);
-    placers_p29::register(r);
-    placers_p30::register(r);
-    placers_p31::register(r);
-    placers_p32::register(r);
-}
-
 struct Options {
     scale: f64,
     fullscreen: bool,
@@ -376,7 +339,7 @@ fn make_game(o: &Options) -> Game {
         // how someone set the field of view or the brightness
         g.storage.remove(game::session::settings::SETTINGS_KEY);
     }
-    register_placers(&mut g.placers);
+    placers::register_all(&mut g.placers);
     g
 }
 

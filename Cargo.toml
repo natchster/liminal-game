@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/engine", "crates/game", "crates/backrooms", "crates/placers/*", "xtask"]
+members = ["crates/engine", "crates/game", "crates/backrooms", "crates/placers", "crates/placers/placers_*", "xtask"]
 # `cargo run` / `cargo build` without -p: the game
 default-members = ["crates/backrooms"]
 
@@ -15,6 +15,7 @@ publish = false
 # ---- workspace crates
 engine = { path = "crates/engine" }
 game = { path = "crates/game" }
+placers = { path = "crates/placers" }
 placers_p00 = { path = "crates/placers/placers_p00" }
 placers_p01 = { path = "crates/placers/placers_p01" }
 placers_p02 = { path = "crates/placers/placers_p02" }

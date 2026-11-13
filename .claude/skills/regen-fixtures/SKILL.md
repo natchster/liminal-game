@@ -18,6 +18,8 @@ change that was **meant** to change what the data records.
    - creatures: `REGEN=1 cargo test --release -p game --test entities`;
    - level generation: `cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord`;
    - reference levels: `cargo test --release -p backrooms --test reference_levels -- --ignored rerecord`;
+   - what each placer makes (its fingerprints): `REGEN=1 cargo test --release -p placers --test fingerprints`
+     (a new placer adds its lines; code moved between the placer crates must change none);
    - core props: `cargo test --release -p game --test core_props_head -- --ignored rerecord`,
      and their second half: `cargo test --release -p game --test core_props_tail -- --ignored rerecord`;
    - frames: look at `target/xtask/shots/<name>.png` and `<name>-diff.png`

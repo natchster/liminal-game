@@ -83,12 +83,18 @@ impl Game {
             log_missing(name);
             return true;
         };
-        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(self, dist)));
+        let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| self.run_placer_as(name, f, dist)));
         if r.is_err() {
             eprintln!("[world] placer {name} panicked; the level goes on without it");
             return false;
         }
         true
+    }
+    /// Runs placer `f`, registered as `name`, as a level's build runs it
+    /// (the placers' fingerprints run each one through here too)
+    pub fn run_placer_as(&mut self, name: &str, f: PlacerFn, dist: &[i32]) {
+        let _ = name;
+        f(self, dist)
     }
     /// Runs one placer by name, with the zones whose purpose does not
     /// welcome its theme hidden from it

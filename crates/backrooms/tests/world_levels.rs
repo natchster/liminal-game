@@ -7,46 +7,10 @@
 use game::base::rng::{seed_for_level, seeded_draws, with_seed};
 use game::Game;
 
-fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
-    placers_p00::register(r);
-    placers_p01::register(r);
-    placers_p02::register(r);
-    placers_p03::register(r);
-    placers_p04::register(r);
-    placers_p05::register(r);
-    placers_p06::register(r);
-    placers_p07::register(r);
-    placers_p08::register(r);
-    placers_p09::register(r);
-    placers_p10::register(r);
-    placers_p11::register(r);
-    placers_p12::register(r);
-    placers_p13::register(r);
-    placers_p14::register(r);
-    placers_p15::register(r);
-    placers_p16::register(r);
-    placers_p17::register(r);
-    placers_p18::register(r);
-    placers_p19::register(r);
-    placers_p20::register(r);
-    placers_p21::register(r);
-    placers_p22::register(r);
-    placers_p23::register(r);
-    placers_p24::register(r);
-    placers_p25::register(r);
-    placers_p26::register(r);
-    placers_p27::register(r);
-    placers_p28::register(r);
-    placers_p29::register(r);
-    placers_p30::register(r);
-    placers_p31::register(r);
-    placers_p32::register(r);
-}
-
 #[test]
 fn every_themed_placer_is_registered() {
     let mut r = vec![];
-    register_placers(&mut r);
+    placers::register_all(&mut r);
     let names: std::collections::HashSet<&str> = r.iter().map(|(n, _)| *n).collect();
     let missing: Vec<&str> = game::world::tables::THEMED_ORDER.iter().copied().filter(|n| !names.contains(n)).collect();
     assert!(missing.is_empty(), "themed placers missing from the registry: {missing:?}");
@@ -59,7 +23,7 @@ fn levels_build_with_all_placers() {
     for run_seed in [0x1234_5678u32, 0x0BAD_F00D, 2026] {
         // one game per run, levels in order (as a playthrough builds them)
         let mut g = Game::new_bare();
-        register_placers(&mut g.placers);
+        placers::register_all(&mut g.placers);
         g.init_world();
         g.run_seed = run_seed;
         g.rand_trace.on = true;

@@ -29,6 +29,7 @@ const RECORDED: &[&str] = &[
     "crates/backrooms/tests/reference/",
     "crates/backrooms/tests/recorded/",
     "crates/backrooms/tests/golden/",
+    "crates/placers/tests/fixtures/",
 ];
 
 /// Changes to these make the stop hook run the check (docs alone do not).
@@ -226,6 +227,7 @@ mod tests {
         }
         assert!(edit_refusal(Path::new("/p/work/game/crates/game/tests/fixtures/entities.json"), root).unwrap().contains("re-recording"));
         assert!(edit_refusal(Path::new("/p/work/game/crates/backrooms/tests/reference/rs_1_L1.json"), root).is_some());
+        assert!(edit_refusal(Path::new("/p/work/game/crates/placers/tests/fixtures/fingerprints.tsv"), root).is_some());
         assert_eq!(edit_refusal(Path::new("/p/work/game/crates/game/src/lib.rs"), root), None);
         assert_eq!(edit_refusal(Path::new("/p/work/game/./docs/x/../DEVELOPMENT.md"), root), None);
     }

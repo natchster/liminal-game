@@ -12,42 +12,6 @@ use engine::material::MatKind;
 use game::Game;
 use std::collections::BTreeMap;
 
-fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
-    placers_p00::register(r);
-    placers_p01::register(r);
-    placers_p02::register(r);
-    placers_p03::register(r);
-    placers_p04::register(r);
-    placers_p05::register(r);
-    placers_p06::register(r);
-    placers_p07::register(r);
-    placers_p08::register(r);
-    placers_p09::register(r);
-    placers_p10::register(r);
-    placers_p11::register(r);
-    placers_p12::register(r);
-    placers_p13::register(r);
-    placers_p14::register(r);
-    placers_p15::register(r);
-    placers_p16::register(r);
-    placers_p17::register(r);
-    placers_p18::register(r);
-    placers_p19::register(r);
-    placers_p20::register(r);
-    placers_p21::register(r);
-    placers_p22::register(r);
-    placers_p23::register(r);
-    placers_p24::register(r);
-    placers_p25::register(r);
-    placers_p26::register(r);
-    placers_p27::register(r);
-    placers_p28::register(r);
-    placers_p29::register(r);
-    placers_p30::register(r);
-    placers_p31::register(r);
-    placers_p32::register(r);
-}
-
 /// Linear albedo bounds for the brightest channel of a non-metal. The upper
 /// bound is OpenMoonray's 0.87. Its recommended floor is 0.032, but black
 /// plastics and rubber measure about 0.02 (Unreal lists charcoal at 0.02) and
@@ -145,7 +109,7 @@ fn level_materials(seed: u32, level: i32) -> Vec<Seen> {
     // canvas textures draw from the native stream: fix it, so the means repeat
     game::base::rng::seed_native((u64::from(seed) << 8) | level as u64);
     let mut g = Game::new_bare();
-    register_placers(&mut g.placers);
+    placers::register_all(&mut g.placers);
     g.launch_flags = format!("seed={seed}&level={level}&nosound");
     g.boot();
     g.start_new_game();

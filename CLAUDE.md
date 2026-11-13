@@ -124,6 +124,7 @@ cargo xtask range --accept --reason "…"                  # after reading targe
 REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
+REGEN=1 cargo test --release -p placers --test fingerprints   # what each placer makes
 cargo test --release -p game --test core_props_head -- --ignored rerecord   # the core props
 cargo test --release -p game --test core_props_tail -- --ignored rerecord   # their second half
 cargo test --release -p backrooms --test loudness -- --ignored rerecord   # after listening

@@ -3,9 +3,9 @@
 ## Crates
 
 ```
-engine  ←  game  ←  placers_p00 … placers_p32
-   ↖        ↖            ↙
-        backrooms (the executable)            xtask (automation)
+engine  ←  game  ←  placers_p00 … placers_p32  ←  placers
+   ↖        ↖                                      ↙
+        backrooms (the executable)                     xtask (automation)
 ```
 
 * **`engine`** knows nothing about the game. It provides:
@@ -37,7 +37,14 @@ engine  ←  game  ←  placers_p00 … placers_p32
 * **`placers_pNN`** hold the ~650 decoration placers (`place_*` functions
   that add props to a level). They are plain functions over `&mut Game`,
   registered by name, and split across crates so they compile in parallel.
-* **`backrooms`** is the executable: it registers the placers, runs the
+* **`placers`** (`crates/placers/` itself) registers them all
+  (`register_all`): the one list the executable and every test that
+  builds a level use. Its `tests/fingerprints.rs` hashes what each placer
+  makes (nodes, geometry, materials, texture pixels, interactables, before
+  and after use) on the smoke levels, four runs each, against
+  `tests/fixtures/fingerprints.tsv`: code moved between the placer crates
+  is held to making the same things.
+* **`backrooms`** is the executable: it registers the placers (`placers::register_all`), runs the
   window loop, turns the game's state into render calls, and has the
   headless modes (`--screenshot`, `--dump-level`) and the whole-game tests.
 

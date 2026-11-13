@@ -7,49 +7,13 @@ use game::debug::replay::{replay_frame, FrameInput, Recorder, Recording, StateHa
 use game::Game;
 use serde_json::json;
 
-fn register_placers(r: &mut Vec<(&'static str, game::base::state::PlacerFn)>) {
-    placers_p00::register(r);
-    placers_p01::register(r);
-    placers_p02::register(r);
-    placers_p03::register(r);
-    placers_p04::register(r);
-    placers_p05::register(r);
-    placers_p06::register(r);
-    placers_p07::register(r);
-    placers_p08::register(r);
-    placers_p09::register(r);
-    placers_p10::register(r);
-    placers_p11::register(r);
-    placers_p12::register(r);
-    placers_p13::register(r);
-    placers_p14::register(r);
-    placers_p15::register(r);
-    placers_p16::register(r);
-    placers_p17::register(r);
-    placers_p18::register(r);
-    placers_p19::register(r);
-    placers_p20::register(r);
-    placers_p21::register(r);
-    placers_p22::register(r);
-    placers_p23::register(r);
-    placers_p24::register(r);
-    placers_p25::register(r);
-    placers_p26::register(r);
-    placers_p27::register(r);
-    placers_p28::register(r);
-    placers_p29::register(r);
-    placers_p30::register(r);
-    placers_p31::register(r);
-    placers_p32::register(r);
-}
-
 /// (run seed, level, seconds)
 const SCENARIOS: &[(u32, i32, f64)] = &[(4242, 2, 40.0), (7, 5, 40.0)];
 
 fn new_game(seed: u32, level: i32) -> Game {
     game::base::rng::seed_native(0x5EED_0000 ^ u64::from(seed) ^ ((level as u64) << 40));
     let mut g = Game::new_bare();
-    register_placers(&mut g.placers);
+    placers::register_all(&mut g.placers);
     g.launch_flags = format!("seed={seed}&level={level}&nosound");
     g.boot();
     g.start_new_game();
@@ -171,7 +135,7 @@ fn a_recording_survives_its_file_and_replays() {
             .spawn(move || {
                 game::base::rng::seed_native(native);
                 let mut g = Game::new_bare();
-                register_placers(&mut g.placers);
+                placers::register_all(&mut g.placers);
                 g.launch_flags = format!("seed={seed}&level={level}&nosound");
                 g.boot();
                 g.start_new_game();
@@ -208,7 +172,7 @@ fn a_recording_survives_its_file_and_replays() {
         .spawn(move || {
             game::base::rng::seed_native(rec.native_seed);
             let mut g = Game::new_bare();
-            register_placers(&mut g.placers);
+            placers::register_all(&mut g.placers);
             g.launch_flags = format!("seed={seed}&level={level}&nosound");
             g.boot();
             g.start_new_game();
