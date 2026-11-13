@@ -202,10 +202,13 @@ impl Game {
         // local (x along the face to the right seen from outside, z out) → world
         let to_w = |lx: f64, ly: f64, lz: f64| Vec3::new(at.x + lx * c + lz * s, at.y + ly, at.z - lx * s + lz * c);
         let (hw, hh) = (CELL_DOOR / 2.0, CELL_DOOR_H);
+        // the frame lines the opening a few millimetres proud of its
+        // reveal and its lintel (on them, its faces fought the wall's at
+        // every cell door: docs/playtests/visual/2026-11-13-building-1-3.md, F1)
         for sx in [-1.0, 1.0] {
-            parts.put(frame, boxm(to_w(sx * (hw + 0.06), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
+            parts.put(frame, boxm(to_w(sx * (hw + 0.06 - FRAME_PROUD), hh / 2.0, 0.02), yaw, Vec3::new(0.12, hh, 0.32)));
         }
-        parts.put(frame, boxm(to_w(0.0, hh + 0.06, 0.02), yaw, Vec3::new(CELL_DOOR + 0.24, 0.12, 0.32)));
+        parts.put(frame, boxm(to_w(0.0, hh + 0.06 - FRAME_PROUD, 0.02), yaw, Vec3::new(CELL_DOOR + 0.24, 0.12, 0.32)));
     }
 
     /// A cell's door leaf and its wheel, as an object that turns on its
@@ -1435,6 +1438,11 @@ pub(crate) fn flight_rise(s: usize, n: usize) -> f64 {
     let held = s.saturating_sub(land).min(LANDING - 1);
     (s - held) as f64 / n as f64
 }
+
+/// How far a cell door's frame stands into its opening, proud of the
+/// reveal and the lintel it lines (metres): far enough that the two never
+/// share a depth, too little to see
+const FRAME_PROUD: f64 = 0.005;
 
 #[cfg(test)]
 mod flight_tests {

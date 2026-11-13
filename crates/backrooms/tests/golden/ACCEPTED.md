@@ -175,3 +175,5 @@ Every change to a golden frame or a look anchor, newest last. Written by
 - 2026-11-11, on top of 1c92575: look anchors: death_fall. Reason: C7: a new shot, the fall; its look is its own baseline
 
 - 2026-11-11, on top of 725c600: frames: shaft_eyes. Reason: C8: the shaft retimed (its approach 1.9 s and its hand-back 2.1 s, so a look begun with your back to the lift stays under 150 deg/s; found by the skill's trial: E has no facing cone); the same moment, at 3.7 s
+
+- 2026-11-13, on top of 5bd9206: frames: way_in_mid, 4242_L1_spawn, 4242_L1_well, 4242_L2_spawn, 4242_L3_works. Reason: The cell door's frame stands 5 mm proud of its reveal and lintel (VP8): its jamb no longer fights the pier (the stone's photograph striping through it, the Works' frame); the other four move by the frame's 5 mm
