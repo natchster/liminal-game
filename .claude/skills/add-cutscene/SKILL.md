@@ -33,7 +33,7 @@ stages rebuild the game.
    paragraph of `docs/design/LORE.md` it touches, and the code's gates (where,
    how often, when it will not play). The shaft's first version glowed
    where the canon says eyeshine never does.
-3. **What the engine cannot do yet** (`docs/design/CUTSCENES.md`, *Left open*):
+3. **What the engine cannot do yet** (`docs/plan/CUTSCENES.md`, *Left open*):
    there is no actor track (a figure posed over time, its brain held): the
    shaft's eyeshine is made and removed by events; you have no body, so a
    camera outside your eyes shows nobody where you stand; there is one

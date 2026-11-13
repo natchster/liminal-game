@@ -8,7 +8,8 @@ The docs are sorted by kind ([`docs/README.md`](docs/README.md)). Put a new doc,
 section, where its kind is, and nowhere else:
 
 - **`docs/design/`: the game.** What it is, how it looks, sounds and plays,
-  and why. No milestones, progress or dates; a design doc links its plan.
+  and why. No milestones or progress: those are its plan, `docs/plan/<TOPIC>.md`
+  under the same name, which its *The work* section links.
 - **`docs/research/`: what the design rests on.** Outside sources, research
   notes, censuses, and playtests (people's sessions, the visual playtest's
   records). Kept as found.
@@ -25,18 +26,18 @@ folders, and every `docs/…` path the repository names exists.
 |---|---|
 | [`docs/design/PILLARS.md`](docs/design/PILLARS.md) | what the game is for; quote the rule a content change serves |
 | [`docs/design/LORE.md`](docs/design/LORE.md) | the canon: places, creatures, anomalies, and how lore may reach the player |
-| [`docs/design/GAMEPLAY.md`](docs/design/GAMEPLAY.md) | what a level asks of the player (her trail, her camp, the notebook) and the plan behind it |
-| [`docs/design/UI.md`](docs/design/UI.md) | the controls (one binding table, what a run needs in reach) and the screens, and the plan behind them |
+| [`docs/design/GAMEPLAY.md`](docs/design/GAMEPLAY.md) | what a level asks of the player (her trail, her camp, the notebook) |
+| [`docs/design/UI.md`](docs/design/UI.md) | the controls (one binding table, what a run needs in reach) and the screens |
 | [`docs/design/STYLE.md`](docs/design/STYLE.md) | the art bible; its bands are checked by `cargo xtask shots` |
-| [`docs/design/MEGASTRUCTURE.md`](docs/design/MEGASTRUCTURE.md) | the Building: the vast floors above the rooms (levels 1–3), the self-assembly, and the plan behind them |
-| [`docs/design/ROOMS.md`](docs/design/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid, and the plan behind them |
-| [`docs/design/ENTITIES.md`](docs/design/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten, and the plan behind them ([`docs/research/`](docs/research/README.md) for the research) |
-| [`docs/design/PROPS.md`](docs/design/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use, and the plan behind them |
-| [`docs/design/SECRETS.md`](docs/design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you), and the plan behind them |
-| [`docs/design/VENDING.md`](docs/design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it), and the plan behind them |
-| [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass, and the plan behind them |
-| [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them, and the plan behind them |
-| [`docs/design/CUTSCENES.md`](docs/design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline, and the plan behind them |
+| [`docs/design/MEGASTRUCTURE.md`](docs/design/MEGASTRUCTURE.md) | the Building: the vast floors above the rooms (levels 1–3), the self-assembly |
+| [`docs/design/ROOMS.md`](docs/design/ROOMS.md) | the rooms up close: the field of view, corners, the photographed details, the ceiling's grid |
+| [`docs/design/ENTITIES.md`](docs/design/ENTITIES.md) | the creatures: five rules, one brain, fairness, bodies, how each is beaten ([`docs/research/`](docs/research/README.md) for the research) |
+| [`docs/design/PROPS.md`](docs/design/PROPS.md) | the props made real (the census of every kind, how one is remodelled), barricades that close the way, the props a hand can use |
+| [`docs/design/SECRETS.md`](docs/design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you) |
+| [`docs/design/VENDING.md`](docs/design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it) |
+| [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
+| [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them |
+| [`docs/design/CUTSCENES.md`](docs/design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
 
 **Engineering**
 
@@ -53,6 +54,7 @@ folders, and every `docs/…` path the repository names exists.
 | Read | For |
 |---|---|
 | [`docs/plan/MILESTONES.md`](docs/plan/MILESTONES.md) | every milestone still open across the docs, in one queue, done one by one |
+| `docs/plan/<TOPIC>.md` | each design topic's work: its brief and analysis, milestones and progress, what it left open (`ENTITIES.md`, `MEGASTRUCTURE.md`, `PROPS.md`, `VOICES.md`, …, `VISUAL_PLAYTEST.md`) |
 | [`docs/plan/QUALITY.md`](docs/plan/QUALITY.md) | grades, evidence and open issues per subsystem |
 | [`docs/plan/content.json`](docs/plan/content.json) | the content ledger: each family and the checks it must pass |
 | [`docs/plan/TOOLING_ROADMAP.md`](docs/plan/TOOLING_ROADMAP.md) | the quality tooling being built, and why |

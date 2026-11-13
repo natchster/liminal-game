@@ -341,6 +341,25 @@ fn docs_are_sorted_by_kind() {
         "docs/ holds only its index and the four kinds: put a doc in design/ (the game), research/ (what it rests on), \
          plan/ (the work) or engineering/ (the code), and list it in docs/README.md and CLAUDE.md"
     );
+    // a design doc says what the game is; its milestones and progress are
+    // its plan, under the same name in plan/
+    let mut planned_in_design = vec![];
+    for dir in ["docs/design", "docs/engineering"] {
+        for e in std::fs::read_dir(root().join(dir)).unwrap().flatten() {
+            let text = std::fs::read_to_string(e.path()).unwrap_or_default();
+            for line in text.lines() {
+                let heading = line.trim_start_matches('#').trim();
+                if line.starts_with('#') && ["Milestones", "Progress", "Left open"].contains(&heading) {
+                    planned_in_design.push(format!("{}: {line}", rel(&e.path())));
+                }
+            }
+        }
+    }
+    assert!(
+        planned_in_design.is_empty(),
+        "milestones and progress belong in the topic's plan (docs/plan/<TOPIC>.md, linked from the doc's *The work*): \
+         {planned_in_design:#?}"
+    );
 }
 
 /// Every `docs/…` path named anywhere in the repository (code, docs, skills,

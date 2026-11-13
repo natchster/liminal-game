@@ -1,0 +1,185 @@
+# The work on the props
+
+The plan behind [`../design/PROPS.md`](../design/PROPS.md), which says what it is and why: the brief, the analysis, milestones, progress, open after p3. What is still open is queued in [`MILESTONES.md`](MILESTONES.md).
+
+## The brief (2026-10-31)
+
+> Find all remaining cartoonish-looking non-interactive props in backrooms
+> levels and remodel them in more suitable and realistic way. May
+> barricades more filling the space, make more props interactive in some
+> way without breaking the lore
+
+## The analysis
+
+**A third of the props read as toys.** The census
+([`../research/props-census.md`](../research/props-census.md)) framed every kind
+of placed prop on 272 floors of the rooms (`--prop-census`) and had seven
+fresh reviewers grade each against `STYLE.md`: of 652 kinds, 213 are
+`cartoon`, 412 `plain`, 21 `real`, 6 could not be seen. Thirty-five of
+the cartoon kinds are on 40 or more of the 272 floors (the torn notes'
+sheets, the mannequin, the wet floor sign, the mirrors, the wall clock,
+the book stacks, the coat rack, the stains on every wall and ceiling, the
+scrap paper, the chalk, the holes in the walls, the rusted pipes, the fire
+alarms, the trash cans, the crushed cans, the crates), 66 on 10–39, 112
+on fewer. What makes them toys is a short list: bodies of primitives (an
+egg with a sphere for a head and dots for eyes); an icon where a picture
+or print should be (a clock without numerals, a portrait that is a
+restroom sign, black bars for text); toy primaries; cloth as a slab;
+decals as hard-edged polygons; light from what is not a light (a glowing
+cauldron, lamps for a cat's eyes); wrong proportions and parts that do not
+join. And nothing is worn: even the props graded `real` are clean.
+
+A placer composes its prop of primitives (`box_geo!`, `cyl_geo!`), each
+swapped for a Blender part fitted to the primitive's box (`pg`), in one
+flat colour: the parts are finer than the boxes, but the composition and
+the flat colour are still the toy. The props that read as real (the
+vending machine, the windows, the cardboard boxes, the suitcase) were
+made the other way: the whole thing modelled at its real size from a real
+one, in the materials it is made of, with what is printed on it painted.
+
+**The barricades do not close anything**
+([`../research/barricades.md`](../research/barricades.md)). A barricade is an
+oversized filing cabinet, a book stack, two to four boxes and a traffic
+cone (1.25 m wide in the median) on a tile whose two opposite sides are
+open; the whole 4 m tile is an invisible wall. Of 53 measured, 28 stand
+in open floor where a body walks round them; in a corridor one fills 32%
+of the width and 20% of the face, and a body stops 1.5–2 m short of it,
+on clear floor it cannot enter. The same tile can be chosen twice; a
+creature sees, hears and paths through one.
+
+**Almost nothing can be used**
+([`../research/props-interactions.md`](../research/props-interactions.md)). A
+floor has about 26 verbs, all on the core props and the systems (drawers,
+switches, the payphone, the lifts, the exit, her page, the machines, the
+blinds, the secrets); one themed placer of 649 has one (a red and green
+game button). The props on every floor (boxes, chairs, books, trash cans,
+cabinets, lockers, a TV) do nothing.
+
+## Milestones
+
+| # | What | Evidence |
+|---|---|---|
+| P0 | The census (`--prop-census`, `--census-only`, `--shots-at`; the core props tagged by kind), the research (three notes), this design | the census, graded by seven reviewers |
+| P1 | **The everyday**: the 35 `cartoon` kinds on 40 or more of 272 floors, and what the census found broken | a blind review of each against its old self (census cameras, both orders); reference levels; materials and asset lints; the full check |
+| P2 | **The common**: the 66 on 10–39 floors | the same |
+| P3 | **The rare**: the 112 on fewer, and the 43 placers never placed, judged from their code | the same |
+| P4 | **Wear**: the shader's wear strong enough to read, by use (edges, what faces up, the floor) | a blind review; goldens; bench |
+| P5 | **Barricades** that close the way | a test of every barricade (it seals, fits, stays under the ceiling, cuts off no pickup, is never on her walk); the level sweep; a blind review; reference levels |
+| P6 | **Things a hand can use** | a test a rule; listen; the placers' smoke tests; `lore-keeper` |
+| P7 | **The canon and the reviews**: `LORE.md`, `QUALITY.md`, the ledger; `lore-keeper` rounds; the full check | the canon from the code's gates; `lore-keeper` rounds, their findings fixed; `tests/flames.rs`; the full check |
+
+## Progress
+
+| # | Commit | Notes |
+|---|---|---|
+| P0 | `f754918` | The census: `Game::census_shots` frames each kind of placed prop (a core prop's kind tagged by `Game::tag_kind` as `place_props` runs, `kind!`), `--prop-census N`, `--census-only`, and `--shots-at` for the same camera again; 272 floors, 652 kinds, seven reviewers (`research/props-census/`). The research: `research/props-census.md`, `research/barricades.md`, `research/props-interactions.md` |
+| P1 (1) | `024cdba` | The wet floor sign, the model for the rest: the common A-frame at its real size (batch `r01`), its print painted, its wet a soft patch; its draws kept (the reference levels moved by its two signs alone) |
+| P1 (2) | `98fb138` | Twelve more, made by three workers in worktrees of their own (batches `r02`, `r04`, `r06`) to the brief of "How a prop is remodelled": the book stack (cloth hardbacks and a paperback, each stack its own painted atlas), the suitcase (a 1960s hard shell, open, its lining, straps and the clothes packed in it), the coat stand (a bentwood rack, a wool overcoat hanging from its collar loop), the pile (a mound of grit with brick, concrete, drywall and a ceiling tile's corner, its dust); the torn note (a typed sheet of bond folded and torn, its corner turned down when read; the Building's notes too), the mannequin (a fibreglass egg-head figure on its plate and calf rod, its join lines, chipped), the wall clock (a 34 cm school clock, its printed dial); the hole in the wall (torn drywall into its stud bay, a mask drawn before the wall, chips below), the rusted pipes (painted steel pipe with its fittings, strut clamps and a gate valve, rust weeping), the posters (six flyers and notices in real type, taped, curled, torn, faded), the fire alarm (a pull station, FIRE and PULL DOWN raised, its conduit), the coat hooks (an oak rail with cast double hooks). Each kept its draws (every other placer's objects the same on their evidence floors). A blind review against the old (24 shots from the census cameras, both orders) preferred the new 24 to 0. Integration: a part name two batches shared, the asset lint reading the budgets `auto()` declares, a hole's inside marked as the wall's own (the leaning-wall test), soft blobs squashed whole (a hard-rimmed dust patch, and the wet floor sign's patch); `core_props_tail` compares the notes' place and turn, not their make, and remodelled builders' draws, not their tops. Re-recorded: the core props' fixtures, the reference levels (the remodelled props and the five wall placers' objects alone) and three goldens |
+| P5 | `e791bb6` | **Barricades that close the way** (`core_props/barricade.rs`, batch `x01`: plywood, a 2x4, a 1x6, bolt heads and nuts, a steel desk and its top, a stacking chair's frame and shell, a pallet, boltless shelving and a deck, a twin mattress, a moulded door, a dresser). The old choice runs for its draws alone (its pile built and never added), so nothing placed after it moves; its tiles stand in while the themed props are placed; then `barricades_settled`, once the walls are final and before her trail, chooses as many on a stream of its own (`BARRICADE_SALT`) among the real openings (a tile walled across the way and open along it, measured on the solids at a knee, a hand and a head: 0.9–4.1 m face to face; its top the lintel or the ceiling), never near the spawn, in a pool hall, on a floor with rules of its own, beside another or cutting off the door or a pickup, one at most on the Lobby, and builds each by its zone's purpose: an office's desk on end, filing cabinets, chairs upside down and boxes; a store room's shelving, pallets on edge and boxes; a home's mattresses leaning, a door propped across and a dresser; else boards nailed across a doorway onto two uprights, or sheets of plywood (each its own veneer, nailed round) braced and bolted. A slab across the opening stops a body and a look (`circle_hits_wall`, `los`), and closes its tile to the creatures' ways and hearing (`bfs_open`) and the way to the door. `tests/barricades.rs` (91 barricades on 54 floors: each seals, fits under its ceiling, one a tile; the door, every pickup and her walk stay whole; where they stand); the level sweep counts what lies behind one by design, and fails a pickup locked away (the open issue closed). A blind review against the old piles preferred them 12 to 0. Her wall marks keep off a face something stands against (a machine, a barricade, a cell's door: `mark_wall`), found when her trail, going round the barricades, taped one behind a machine. Re-recorded: the reference levels (the old piles gone, the new barricades, her trail and camp and the secrets round them; every themed placer's objects the same) and eight goldens (a board-up ends the service tunnel's corridor; the Poolrooms' pile gone; a mark of hers moved) |
+| P1 (3) | `6c37ebb` | Twenty-two more from five workers (batches `r03`, `r05`, `r07`, `r08`, `r09`): the baby doll (a 1970s bent-limb baby on its back in a faded romper, one sleep eye shut, one stuck half open), the rubber duck (a blow-moulded bath duck, its yellow faded, its bill's paint chipped), the hole in the floor (drawn through the floor: the dark under it, a steel joist, the torn deck, the slab's broken face; broken concrete round the rim); the wall mirror (a stainless channel-frame washroom mirror, its silver gone black from the edges, cracked from a blow), the still floors' cobwebs (dusty tangles found in a corner or along a wall's top; the weather extras' other floors are still to do), the office plant (a neglected Dracaena in a dusty planter); the marks (wall and ceiling stains, water streaks, ceiling cracks with the bits that fell, cobwebs, puddles: painted soft, never a hard ellipse); the scrap paper, the chalk marks, the bin, the sock, the bottle caps, the crushed cans; the wooden crate (slatted pine gone grey, stencilled, wood wool), the broken window (a lower sash taken out and leaning, its glass), the umbrella (a furled stick umbrella on its ferrule), and the things put away (a flat cap, a hongbao, a linen pouch, a holed coin). Each kept its draws. Two blind reviews against the old (census cameras, both orders): 30 to 0 for `r03`, `r07`, `r08`; 17 to 0 with 2 ties (shots where the thing was out of frame) for `r05`, `r09`. `core_props_tail` checks a still floor's web hangs at the ceiling within a tile of the old decal's spot. Census and `--shots-at` shots now run as `--fresh`: without it a floor's tint, flicker and dust came from the clock, and a reviewer saw 11/12's walls change colour between the two sides. Re-recorded: the core props' fixtures, the reference levels (the remodelled kinds one for one; a still web is one object, not five; the crate on 4242/8 no longer dropped by the placement pass for its old pellets) and seven goldens (the marks, far props) |
+| P6 | `6c37ebb` | **Things a hand can use** (`core_props/usable.rs`): once the props have settled, `usable_settled` gives the top box of a stack, a bin, a book stack, a shut locker whose padlock hangs open (its shackle lifted, the tell), a dead lift and the floor's television their verbs (OPEN THE BOX, LOOK INSIDE, TEAR OUT PAGES, OPEN THE LOCKER, PRESS THE BUTTON, SWITCH IT OFF / ON), from level 5 and never on a floor with rules of its own. What each holds is fixed on a stream of its own (`USE_SALT`): paper from boxes (one in four), bins (three in ten) and books (always, once; from level 9 the damp leaves a page or two); in an opened locker its sides, a jacket on its hook (the coat stand's overcoat on the coat rail's hook) and a jumper folded on its floor, and one in seven an almond water in the jacket's pocket; a car going by behind one dead lift in three; the lit set's hiss goes with its light. A hand reaches 1.2 m. Each sound comes from its prop, only within earshot (`prop_sound`), and creatures hear it as they hear the machines (`prop_noise`): the tape, a locker's door and a set coming on are loud enough to stop one near (above `SUSPECT` after a silent frame's drain), a bin and a page reach only one already listening. The ajar lockers (the builder's) have the same sides and jacket in place of their box coat. `tests/usable.rs`: every verb on its prop, what it gives fixed and given once, the TV off and on, a loud verb stopping a roaming Hound 2 m off and a quiet one not (it fails at the first draft's loudness); `--census-use` uses every verb before the census frames them. Canon: `LORE.md` *Within reach*, after a `lore-keeper` round (it found the first draft's sounds too quiet to stop anything, a torn page left on the floor that the Reader would not stop for, the wrong set named, and her paper running out against books on every floor) |
+| P1 (4), P2 (1) | `c2270eb` | The last everyday kind, and seventeen of the common, from four workers (batches `r10`, `r11a`, `r12`, `r17`): the weather extras of the wet floors (the puddles of `r07`, lit; none on a pool's water), the derelict floors (a fallen 610 mm mineral-fibre tile broken in four, a bent cross tee of its grid, its crumbs and dust), the electric floors (a cut length of sheathed cable, stripped to its cores, its spark a small blue-white arc) and the haunted floors (a pillar candle burnt down, its flame a flame, its wax pool); the water puddles, dust bunnies (felted lint, fibres cut out in an alpha test), handprints (grime where a hand's pads touched), claw marks (paper torn to its plies, gypsum gouged) and chalk arrows (a stranger's way-mark; half the old ones had faced the wall and never shown); the office wall phone, the payphone, the emergency phone, the lift's button panel (ADA 407.4), the fire alarm pull (`r06`'s station, flush), the extinguisher cabinet and its extinguisher, the breaker panel; the rubber ball, the die-cast car, the paper pinwheel (lying down; it had stood on its point), the jigsaw piece, the magnetic letters. A painter's own stream started the same on every floor, so the first claw mark of every floor was the same: such painters mix where the thing is into the seed they use. Each kept its draws. Blind reviews against the old (fresh reviewers, both orders): 13–0, 15–0, 9–0, 11–0. `core_props_tail` compares a weather extra's kind, place and turn (a candle turns by where it stands). Re-recorded: the reference levels (these placers' own objects; the weather extras rest on the floor where the placement pass had lifted them) |
+| P2 (2) | `c2270eb` | Twenty-three more of the common, from four workers (batches `r11b`, `r13a`, `r14a`, `r16`): the peeled paint (a film cracked and flaking to an older coat or the plaster, curled flakes modelled), the peeling wallpaper (a drop come away at its seam, its pasted back), the rust streaks (from a rusted anchor or a shelf's last bracket), the mould (colonies in soft clusters, the damp's tide line), the pipe leak (`r06`'s pipe, a weeping elbow's crust and drop); the framed wall mirror (wood or gilt, `r05`'s glass, a washroom's wall-hung basin under it), the cracked mirror, the chalkboard (an office's mundane notes in chalk, the last wiped), the hanging plank sign, the biohazard sign (ISO 7010 W009, the trefoil to its construction), the cross-stitch sampler (14 count on linen); the work boot, the derbies, the shoe box, the dropped and the work glove (one glove modelled); the wine glass (the windows' glass), the enamel kettle, the cast-iron skillet on its nail, the stale loaf on its board, the broken bottle, the portable sewing machine (an invented maker), the split firewood. The chalkboard no longer says THEY WATCH in a typewriter's capitals (lore is noticed, never told). Each kept its draws. Blind reviews against the old: 15–0, 16–0, 15–0, 15–0. Found along the way: `r06`'s rusted pipes turned their into-the-wall elbows out of the wall (fixed), and the wall placers take a pool's curb for a wall (open). Re-recorded: the reference levels (these placers' own objects) |
+| P2 (3) | `c2270eb` | The last twenty-six of the common, from four workers (batches `r13b`, `r14b`, `r15`, `r18`): the wall hook (`r06`'s cast hook on an oak block, a knitted scarf over it), the hearth broom, the child's apron (draped by Blender's cloth), the rolled rugs (tied, sagging, fringed), the floor rug (a Hamadan, knotted, its path worn); the safety glasses, the wristwatch, the keys on their ring with a tag, the reading glasses on `r02`'s books, the curling ribbon, the twin-bell alarm clock; the tissue box, the tape roll, the playing cards, the receipt (`r08`'s paper), the paperback (open or shut), the newspapers (an invented local daily), the paper dart, the napkin; the washcloth, the nail polish, the floss, the overturned pail, the mop bucket and its wringer, the school desk, the dead geraniums. Where a real one's width would have pinned a pillar's face into a wall, a smaller real one was chosen (the scarf for a coat, a hearth broom for a corn broom, a child's apron): `settle_props` probes a wall prop's width. The reference levels now record the settled walls (`solidBoxes`, `solidsHash`); on 110 floors they are the same before P2 and after it. The asset lint reads a budget declared before `auto()`'s keywords and on names made in a loop. Blind reviews against the old: 14–0, 12–0, 16–0, 13–0. The batches' placers and what only they use live in a module a batch (`placers_p19/src/r12.rs` and the like), so no shared file passes the size cap. Re-recorded: the reference levels |
+| P3 | `2b7a82b` … `6611fb2` | **The rare**: the 112 kinds on fewer than 10 of the census's 272 floors, and the 43 placers it never saw (26 rare, found on a probe of 440 more floors; 17 instanced out of the dump), in 22 batches (`t01`–`t22`) by workers in worktrees of their own, each to the brief of "How a prop is remodelled": the pictures on the walls and the maps, plates, posters and triptych (real CC0 pictures in one atlas, `visuals::pictures`, two tarot cards public domain); the washroom's leavings and fittings; bits of the outside indoors and the garden's things; the kitchen, hall and party table; the Halloween decorations, the shrine's and the study's things; furniture (the bookshelf, the locker, the fireplace, the cuckoo clock, the secretary desk, the aquarium); taxidermy; the party's paper; plush, dolls and toys; things on walls; and the small everyday (the cigarette butts and the wet floor sign, common and kept instanced). Each kept its draws call for call (every other placer's objects, `solidsHash` and the marks the same on its floors). Blind reviews against the old (fresh reviewers, both orders): 16–0 for t01, t02, t05, t06, t07, t09, t10, t11, t12, t13, t14, t15, t16, t17, t19, t20, t21, t22; 15–0 for t08 and t18 (30 pairs); 14–0 for t03 and t04. One rule for behaviour across the batches (above): the lit fireplace keeps its fire, light and crackle; the shrine's and the lantern's candles, the aquarium's pump; the glows that were no flame went, and the motion with no cause. Found along the way: the placement pass lifts a tilted part by its box; the asset lint misreads a conditional budget; the usable test's creature guessed from a clock-seeded stream (now seeded from its floor). Re-recorded: the reference levels, one object for one each wave (the doll's head on 4242/8 now stands on the floor; 77/8 one animator fewer, the teething ring's wobble). A first session's four unfinished batches were lost with their worktrees and restored from git's stash objects and the workers' transcripts |
+| P4 | `6efc5ef`, review 2 | **Wear by use** (`crates/engine/src/shaders.metal`'s `WEAR` block, `Material::wear_use`, `scene::UseWear`, `visuals::prop_look::handled`). Every settled prop surface, textured ones too (the too-clean props were all printed or painted: the Halloween things, the triptych, the secretary's veneer), now wears by use, in metres and from what the shader already has: no texture read and no new pipeline variant. Dust lies on what faces up: a patchy grey film that greys a dark top and dulls a pale one, a thin film on the sides, none underneath. The floor's grime reaches a thing's foot up to a mop's tide line 8–18 cm up, with splashes and shoe scuffs above it. Convex edges are rubbed (dark paint to a paler, duller ground, a pale surface greyed by hands) and chipped in flakes, more where a thing is knocked low down, and creases hold dirt. Convexity is the change of the normal along the surface over a pixel, so only a bevel wider than a pixel or two shows it, never as an outline. A thin sheet drawn from both sides (cloth, paper) is never chipped. How much a thing is handled comes from its box (`handled`): furniture on the floor 1, a small thing on the floor 0.7, a thing hung out of reach 0.45; and how much it is chipped: furniture 1, a small thing on the floor 0.25 (scuffed rather than chipped), a thing hung up none (since code review 2). **Per object, from its own floor** (code review 2): how much a thing is handled and chipped, and the floor its low bands (the foot's grime, the tide line, the scuffs, the low knocks) are measured from (`floor_y_at` under its box's centre), are the thing's own, `Node::use_wear` on each of its meshes (per instance when instancing merges different things into one draw), read from the object uniform and handed flat to the fragment, never kept on the material: materials are shared between props and some across levels (`SharedMats`), so P4's value on a material was its first settled prop's, on whichever level, and a level wore differently after the level before (run 77's level 5 after level 4, its level 6 after 5, run 3's level 5 after 4: `tests/prop_wear.rs`). `Material::wear_use` now only says the surface takes the wear (1). On the Building's other storeys the low bands now reach the things on their floors (on the rooms the floor is at 0, as before). Accepted: the four glass frames (the window, hung, lost its sill's and blind's chips). Two blind reviews against the old, each with 20 images (the ten too-clean props and eight common ones close up, two at the census distance), fresh reviewers, both orders: 12–0 with 8 ties, then 10–0 with 10 ties on the final shader. The final shader dropped the chips on two-sided sheets after the first reviewer saw flaking paint on the cloth ghost. Preferred both times: the secretary (three shots), the chair, the wheelchair, the suitcases, the bin, the books and the TV cabinet. Ties: the small Halloween things on the floor (dark and 10–15 cm tall, the wear too small to see in a still frame), the bat on the ceiling, and the triptych (a print on a wall, out of the dust's way), which split by order in both reviews. Bench, recorded: first frame 4242 L4 19.1 → 20.4 ms, L5 20.6 → 21.9 ms, 7 L5 16.2 → 17.4 ms (the `WEAR` pipelines are larger). Build 7 L5 540 → 557 ms, within budget; the Building's floors, with almost no props, moved as much (run to run). Accepted: 15 goldens, the change on props only (the window's sill and blind dusted in the glass frames, the Poolrooms curb and balls, a bin, far furniture); no look anchor moved |
+| M8 | `cf04e42` | **The small faults** of *Open after P3*, each judged blind against its old self (four rounds, a fresh reviewer each, both orders; new preferred–old preferred–tie: 6–2–4, 3–7–2, 15–0–2, then 4–0–6 for the five reworked after the old was preferred: the trout's fins, the doll's limbs, the conker husks, the mask's ribbons, the bookshelf's brackets). As they ship: 27 preferred, 0 the old, 14 ties over 41 images. The contact shadows (`visuals::contact`) 9 of 9; the mirrors' lamp a hot spot 4 of 4; the wallpaper's torn patches 2 of 2; the dust motes a few millimetres; the web, the suitcase, the roe head, the elephant's ears, the limbs and the bookshelf 2 of 2 each; the nail polish, the umbrella crooks, the trout's fins, the conker husks, the paper clips, the mask's ribbons and the atomizer ties. The botanical frame was not reproducible (a camera inside a wall). Re-recorded: the reference levels of the web on 77/7 and the small nail polish on 4242/12 (their bounds; nothing else moved); 39 goldens (the motes, the torn patches); the world build fixture (the contact shadow meshes, after every child as it was). The limbs, the clips, the crooks and the jumpers move within their own groups, from no new draw |
+| P7 | (this commit) | **The canon and the reviews**. `LORE.md`'s *What still burns*, written from the placers' and the core props' own gates and draws (`world/tables.rs`'s themes and purposes, each placer's lit or hot draw, `core_props`, `story/dress.rs`, `player.rs`, `anomalies/house.rs`): what was left alight burns on, untended, and never burns lower; much of what was left hot is hot yet; what was out when it was left stays out, the censer cold among them; which is lit was settled when the floor was made, said for each kind as often as its draw. Where the code was against what the canon should be, the code changed: the place's own flames (the candles on the bench, `tail_safe_room`; a haunted floor's candles, `tail_haunted_candles`) now stand only where the verbs do (`core_props::flames_here`, the gate of `usable_settled`): below the Lobby and never on a floor with rules of its own (they had burnt on the Lobby, in the spotless Showroom and in the Borrowed House, whose rule is light), keeping their draws and tiles; a candle blown out stays out (the relight from the lamp's battery and its narrator's lines are gone, its sounds come from the candle); the bench says nothing (no toast, no chime, no screen glow), its hum comes from it (panned, fading by 3 m), and by it the low-nerve heartbeat holds off (its countdown, reset to zero there, had beaten every frame). `tests/flames.rs` (each fails on the old behaviour), `tests/player.rs`. Three `lore-keeper` rounds, every contradiction fixed; kept, with reasons, in the commit. `QUALITY.md`, the ledger (`props/flames`, each family's notes and checks). Re-recorded: the reference levels of the ten floors that lose a bench or candles or the relight verb, nothing else on them moved; the core props' tail fixture (the cases on such floors) |
+
+## Open after P3
+
+The blind reviews of P3 found small faults on the new side too, none
+broken. Milestone 8 (`MILESTONES.md`) took them up: each shot first, before
+anything changed, from cameras on the floor it was found on (close views
+round the census's, `--shots-at`, `--fresh`), and judged blind against its
+old self by a fresh reviewer, both orders (four rounds, 2026-11-09,
+`tests/review/verdicts.jsonl`; a fix the reviewer preferred the old of was
+reworked and judged again; the shape and glass rounds without the contact
+shadows, so each change was judged alone):
+
+- **A contact shadow under small things** (`visuals::contact`): a soft dark
+  shape laid on the floor round the outline of a small thing's foot (the
+  convex hull of the low half of its parts that touch the floor, parts
+  that overlap merged), darkest under it and gone a few centimetres out,
+  darker under a taller thing; only on what never moves (a themed placer's
+  scenery, and the core kinds that lie where they are). Preferred 9 of 9
+  (the dolls, a ball, the duck, a dinosaur, a shoe, a sock, the cone, a
+  rake). One mesh a 10 x 10 tile chunk, no texture, no random draw; the
+  bench: first frames the same, 4–8 more draw calls, 1–2.5 k more
+  triangles on the rooms' levels.
+- **Glass**: a silvered mirror shows the lamp as a small hot spot, not a
+  disc of glare (`MIRROR_SHINE`, Blinn-Phong 4000 → 120000; the washroom
+  mirror, the framed and cracked mirrors, the gilt mirror, the smudged
+  mirror): preferred 4 of 4. The atomizer's glass gives back the dim room
+  at its edges and carries more dust: tie 2 (kept; the glass was already
+  seen, the reviewer said, both sides reading as glass).
+- **Shapes**:
+  - the nail polish (`r18`): its dried lacquer a flat run from the
+    shoulder and a smear, no ring under the cap, its brush down to the
+    bottom (a round run from the cap's rim had read as the stem bent out
+    of the neck): tie 2;
+  - the spider web (`t05`): a hammock of threads hung across the angle of
+    the wall and the ceiling, sagging, guy lines to both, its painted
+    sheet across the angle (it had been a ball on the wall's face):
+    preferred 2 of 2;
+  - the opened suitcase: its jumpers 35 mm further in and turned less, so
+    no corner reaches the front wall: preferred 2 of 2;
+  - the umbrella stand: the crooks turned apart, the leftmost to the
+    left, the rightmost to the right, one between them to the room: tie 2
+    (no crook through another on either side in the review's views);
+  - the roe head (`t11`): the bare nose only over the lip, the lip and
+    chin pale under it, the leather a dark grey-brown with a sheen:
+    preferred 2 of 2;
+  - the trout (`t11`): its paired fins fanned from their roots, pleated
+    along their rays and cupped, the brook trout's edge a thin line (the
+    first rework put the black edge across the fin: preferred the old 2 of
+    2; reworked): tie 2;
+  - the elephant (`t14`): its ears two layers of plush, thin at the seam,
+    drooping onto the shoulder in soft folds: preferred 2 of 2;
+  - the doll's limbs: kept apart along their bent lengths, a hand's
+    breadth of floor between, not only at their middles (at 40 mm a view
+    along them still read as one jointed limb: reworked): preferred 2 of
+    2;
+  - the conker husks (`t17`): their valves fallen open further, unevenly
+    (split along one seam and lain on its side, a valve stood on its edge
+    like a card: preferred the old; reworked): tie 2. Whether they still
+    read as petals is for people;
+  - the paper clips (`t22`): a 1.1 mm wire, and a clip falling on others
+    lies on them, a wire's thickness up for each (all on the floor, they
+    went through one another): tie 2;
+  - the mask (`t09`): 6 mm ribbons, thinner, a satin sheen (turned over on
+    edge they broke into pieces on screen: preferred the old; reworked):
+    tie 2;
+  - the wall bookshelf (`t10`): its sides carried down the wall as cove
+    brackets, deep at the wall and sweeping out under the board (cut flush,
+    a plain box, preferred the old scrolled feet: reworked): preferred 2 of
+    2.
+- **Placement** (older than P3):
+  - the botanical frame on 5008/9 hangs on a wall: the view that showed
+    it in open space was a camera inside the wall's tile (the wall's back
+    faces culled, so the room beyond showed round the frame's back). Not
+    reproducible from the floor; nothing changed;
+  - the "leaf decal" beside the graduation photo on 11/8 was the
+    wallpaper's torn patch (`textures::make_wallpaper`, on walls at the
+    highest grime): a hard polygon fanned from its middle and outlined
+    dark. Now the paler backing paper, its torn edge ragged and soft, a
+    pale fringe along it and a faint shadow under the lifted edge, the
+    same draws: preferred 2 of 2;
+  - the bright speck on 555/10 was a dust mote: 4.5–6.5 cm points of light
+    added over everything, a soft glowing ball near a wall. Now a few
+    millimetres (16 mm without the lamp, 18–27 mm in its beam, fainter),
+    the lamp's glints 4 cm, not 15: the old glowing specks were named by
+    the reviewer on the old side of six frames and none on the new.
+- Blender makes no metaball cell under 5 mm, so `r03`'s and `t08`'s small
+  metaball parts may be coarser than meant.
+- **Clean** (resolved by P4): the Halloween things, the triptych and the
+  pale secretary now wear by use like the rest. The secretary's wear is
+  seen (preferred in both reviews). On the small Halloween things on the
+  floor and on the triptych, too little shows in a still frame to tell
+  (ties).
+- **Canon** (resolved by P7): lit candles and a lit fire in empty rooms
+  are kept, a censer is cold; the rule is `LORE.md`'s *What still burns*,
+  written from the placers' own draws: what was left alight burns on and
+  never burns lower, what was left out stays out, and the place's own
+  flames (the candles on the bench, a haunted floor's) keep off the Lobby
+  and every floor with rules of its own, as the things a hand can use do.
