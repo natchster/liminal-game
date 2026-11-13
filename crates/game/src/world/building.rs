@@ -125,10 +125,16 @@ fn rail(push: &mut impl FnMut(String, Mat4), style: Style, a: Vec3, b: Vec3, wal
             push("mat:yellow".into(), along(a, b, 1.0, 0.05, 0.05));
             push("mat:steel".into(), along(a, b, 0.5, 0.04, 0.04));
             push("mat:yellow".into(), along(a, b, 0.0, 0.12, 0.015));
+            // the posts up to the top rail's underside and a little thinner
+            // than it, so no face of one lies on the other's (they were the
+            // rail's width on its line and 2 cm through its top: F6)
             let k = n(1.35);
             for i in 0..=k {
                 let p = point(i as f64 / k as f64);
-                push("mat:steel".into(), Mat4::compose(&Vec3::new(p.x, p.y + 0.52, p.z), &Quat::IDENTITY, &Vec3::new(0.05, 1.05, 0.05)));
+                push(
+                    "mat:steel".into(),
+                    Mat4::compose(&Vec3::new(p.x, p.y + 0.4875, p.z), &Quat::IDENTITY, &Vec3::new(0.045, 0.975, 0.045)),
+                );
             }
         }
     }
