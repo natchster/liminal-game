@@ -269,21 +269,21 @@ impl AudioContext {
     /// silent clock when there is none or its stream cannot be opened
     fn on_output(out: Option<(cpal::Device, cpal::SupportedStreamConfig)>) -> AudioContext {
         use cpal::traits::{DeviceTrait, StreamTrait};
-        let sr = out.as_ref().map(|(_, c)| c.sample_rate().0 as f64).unwrap_or(48000.0);
+        let sr = out.as_ref().map(|(_, c)| f64::from(c.sample_rate())).unwrap_or(48000.0);
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
         let inner = Rc::new(CtxInner::new(shared.clone(), None));
         if let Some((dev, cfg)) = out {
             let ch = cfg.channels() as usize;
             let engine = Engine::new(sr, shared.clone());
-            let mut sc: cpal::StreamConfig = cfg.clone().into();
+            // at the device's own rate (on macOS, `default_output_config` is
+            // its current stream format, so opening it changes no other app's)
+            let mut sc = cfg.config();
             sc.buffer_size = cpal::BufferSize::Fixed(512);
-            let build = |sc: &cpal::StreamConfig, mut engine: Engine| {
+            let build = |sc: cpal::StreamConfig, mut engine: Engine| {
                 dev.build_output_stream(sc, move |data: &mut [f32], _| engine.fill(data, ch), |e| eprintln!("audio: {e}"), None)
             };
-            let stream = build(&sc, engine.clone_fresh()).or_else(|_| {
-                let sc2: cpal::StreamConfig = cfg.clone().into();
-                build(&sc2, engine.clone_fresh())
-            });
+            // (a buffer size the device refuses: its own instead)
+            let stream = build(sc, engine.clone_fresh()).or_else(|_| build(cfg.config(), engine.clone_fresh()));
             match stream {
                 Ok(s) => {
                     let _ = s.play();

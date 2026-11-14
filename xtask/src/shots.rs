@@ -458,10 +458,10 @@ fn flip(w: u32, h: u32, golden: &[u8], actual: &[u8], diff_png: &Path) -> Result
 
 pub fn read_png(p: &Path) -> Result<(u32, u32, Vec<u8>), String> {
     let f = std::fs::File::open(p).map_err(|e| format!("{}: {e}", p.display()))?;
-    let mut dec = png::Decoder::new(f);
+    let mut dec = png::Decoder::new(std::io::BufReader::new(f));
     dec.set_transformations(png::Transformations::EXPAND);
     let mut r = dec.read_info().map_err(|e| format!("{}: {e}", p.display()))?;
-    let mut buf = vec![0; r.output_buffer_size()];
+    let mut buf = vec![0; r.output_buffer_size().ok_or_else(|| format!("{}: image too large", p.display()))?];
     let info = r.next_frame(&mut buf).map_err(|e| format!("{}: {e}", p.display()))?;
     buf.truncate(info.buffer_size());
     let px = match info.color_type {

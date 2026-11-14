@@ -36,18 +36,17 @@ objc2-app-kit = "0.3"
 objc2-core-foundation = "0.3"
 winit = "0.30"
 raw-window-handle = "0.6"
-cpal = "0.15"
-miniz_oxide = "0.8"
+cpal = "0.18"
+miniz_oxide = "0.9"
 rustfft = "6"
 serde_json = { version = "1", features = ["float_roundtrip"] }
 # ---- tooling (xtask, tests)
 nv-flip = "0.1"
-png = "0.17"
+png = "0.18"
 ebur128 = "0.1"
-base64 = "0.22"
+base64 = "0.23"
 toml = { version = "1", default-features = false, features = ["parse", "std", "serde"] }
-# 1.8+ needs a newer rustc than the workspace MSRV
-proptest = { version = "~1.7", default-features = false, features = ["std"] }
+proptest = { version = "1.12", default-features = false, features = ["std"] }
 
 [workspace.lints.rust]
 unsafe_op_in_unsafe_fn = "warn"

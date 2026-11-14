@@ -40,6 +40,21 @@ bisecting, build each older commit with the speaker guard taken in
 (`docs/engineering/DEVELOPMENT.md`, "A build of an older commit plays aloud"): a build
 from before `03e4b80` benches out loud.
 
+- **T1–T2, Rust 1.100 and edition 2024** (`295928f+` and `6be102a+` in the
+  history, flagged by T2's full check and T3's): seed 4242's levels 2 and 3
+  update p99 0.80 → 1.3–1.9 ms, and once 7 L6's GPU p99 2.0 → 3.7, the
+  medians unchanged (0.02–0.03 ms). Not the toolchain. Measured apart, the
+  pre-T1 code built by 1.85.1 (A) and by 1.100.0 (B), and T2 (C), benched
+  in turn three times each so the machine's state fell on all three alike:
+  1.100 is the faster at p99 on 11 of the 12 levels (median of three, e.g.
+  4242 L3 1.04 → 0.82 ms, 7 L2 1.10 → 0.84) and builds levels 1–4% sooner;
+  C's medians are B's; the creature pack's ranges overlap (A 0.95–1.17, B
+  0.85–1.24, C 1.01–1.47). What rose is the tail on a busy machine: the run
+  recorded after T1 was taken straight after a full check (load average
+  45), and that day a virtual machine and a copy of the game left playing
+  for days shared the CPU and GPU; single runs gave 0.82–1.93 ms. Record a
+  run on a quiet machine, never straight after the full check; kept.
+
 - **E7** (`8274df8+` in the history, flagged by E8's full check): level 4's
   build, the first floor of the rooms a run builds, 135 → 148 ms in both
   runs. The creatures' first-use setup (their shared materials and
