@@ -9,7 +9,7 @@ use placers_kit::place::pick_open;
 use placers_kit::place::salt_of;
 
 // Pine needle cluster: 7% chance per level. Needles a Scots pine shed
-// (Blender batch `t17`): pairs still in their papery sheaths and single
+// (Blender family `a_garden_and_a_wood_indoors`): pairs still in their papery sheaths and single
 // needles broken from them, rust brown, grey-brown or dark with damp, on a
 // drift of their own broken bits and dust.
 pub(crate) fn place_pine_needles(g: &mut Game, _dist: &[i32]) {

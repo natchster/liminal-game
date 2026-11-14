@@ -1,4 +1,4 @@
-//! `place_small_skateboards`: Small skateboard: 8% chance per level. A plastic cruiser board (Blender batch `t16`): a 22 x 6 in moulded polypropylene deck, its top textured for grip and its tail kicked, on 3 in cast aluminium trucks and 59 mm urethane wheels; one in seven lies upside down, resting on its tail and nose (built so: the game turns it only about y). The plastic faded and scuffed white at its edges, the wheels yellowed, grime.
+//! `place_small_skateboards`: Small skateboard: 8% chance per level. A plastic cruiser board (Blender family `a_play_areas_toys`): a 22 x 6 in moulded polypropylene deck, its top textured for grip and its tail kicked, on 3 in cast aluminium trucks and 59 mm urethane wheels; one in seven lies upside down, resting on its tail and nose (built so: the game turns it only about y). The plastic faded and scuffed white at its edges, the wheels yellowed, grime.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -10,7 +10,7 @@ use placers_kit::place::salt_of;
 use placers_kit::place::scatter_pos;
 
 /// Small skateboard: 8% chance per level. A plastic cruiser board
-/// (Blender batch `t16`): a 22 x 6 in moulded polypropylene deck, its top
+/// (Blender family `a_play_areas_toys`): a 22 x 6 in moulded polypropylene deck, its top
 /// textured for grip and its tail kicked, on 3 in cast aluminium trucks
 /// and 59 mm urethane wheels; one in seven lies upside down, resting on its
 /// tail and nose (built so: the game turns it only about y). The plastic
@@ -73,7 +73,7 @@ fn wheel_tex(salt: u32) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

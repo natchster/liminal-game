@@ -11,7 +11,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter_xz_turned;
 
 // Single worn boot: 8% chance per level. A 6 in lace-up work boot left on
-// the floor, standing or fallen on its side (Blender batch r14a: the shaft
+// the floor, standing or fallen on its side (Blender family `things_worn_and_dropped`: the shaft
 // and padded collar, the quarters lapped over the vamp, the lug sole, the
 // lace undone from its hooks).
 pub(crate) fn place_single_boots(g: &mut Game, _dist: &[i32]) {
@@ -42,7 +42,7 @@ pub(crate) fn place_single_boots(g: &mut Game, _dist: &[i32]) {
     g.world.add(&boot);
 }
 
-/// The shoe or boot of batch r14a, `kind` "shoe" or "boot": `var` "R", "L",
+/// The shoe or boot of family `things_worn_and_dropped`, `kind` "shoe" or "boot": `var` "R", "L",
 /// "Side" (the right one fallen on its outer side, as it lies) or "" (the
 /// boot standing). Colours sRGB: the leather, the lining, the sole's
 /// rubber or leather, the laces, the eyelets' and hooks' metal.

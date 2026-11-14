@@ -10,7 +10,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::skip;
 
 pub(crate) fn place_school_desks(g: &mut Game, _dist: &[i32]) {
-    // A combination chair desk (batch `r18`): a laminate top on particleboard
+    // A combination chair desk (family `washroom_janitor_classroom_and_plant`): a laminate top on particleboard
     // in its edge moulding, carved and written on, a corner knocked off; the
     // seat and back of moulded plywood worn to the wood; a chromed steel
     // frame on two runners gone to rust at its feet; the book rack under the

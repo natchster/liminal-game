@@ -1,4 +1,4 @@
-"""v01: the vending machine (docs/design/VENDING.md), a glass-front spiral snack
+"""vending_machine (was v01): the vending machine (docs/design/VENDING.md), a glass-front spiral snack
 machine of the 1990s-2000s office corridor, at its real size: 1.83 m tall,
 0.99 m wide, 0.89 m deep (72 x 39 x 35 in, the AP Snackshop / National 167
 class; docs/research/vending-machines.md).

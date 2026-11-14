@@ -21,7 +21,7 @@ macro_rules! cached_tex {
 }
 
 // Moss patch: 5% chance per level. Moss grown on a floor kept damp
-// (Blender batch `t05`): a felted mat painted on the floor, cushions of
+// (Blender family `bits_of_the_outside_indoors`): a felted mat painted on the floor, cushions of
 // packed shoots rising out of it, here and there their setae and nodding
 // capsules.
 pub(crate) fn place_moss_patches(g: &mut Game, _dist: &[i32]) {

@@ -7,7 +7,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 // Makeup sponge: 9% chance per level. A teardrop blending sponge of
-// polyurethane foam (Blender batch `t03`), dropped and lying on its side as
+// polyurethane foam (Blender family `washroom_shelf_and_dressing_table`), dropped and lying on its side as
 // it rests, its old colour faded and greyed, its pores dark with dust; the
 // old 55% used: foundation dried into its point and down one side (the old
 // smudge colour its shade), a tide at its edge.

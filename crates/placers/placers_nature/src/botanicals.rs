@@ -10,7 +10,7 @@ use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
 // Framed botanical illustration: 3% chance per level. A botanical
-// plate framed small (Blender batch `t17`): the print foxed and browned
+// plate framed small (Blender family `a_garden_and_a_wood_indoors`): the print foxed and browned
 // under its glass, the mat's bevel gone brown, the moulding's stain rubbed
 // on its edges; askew on its wire.
 pub(crate) fn place_botanicals(g: &mut Game, _dist: &[i32]) {

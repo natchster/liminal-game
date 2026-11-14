@@ -4,7 +4,7 @@ use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
 
 // Biohazard sign: 4% chance per level. An ISO 7010 biological hazard
-// sign screwed to a wall (batch r13a).
+// sign screwed to a wall (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_biohazard_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -14,7 +14,7 @@ pub(crate) fn place_biohazard_signs(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    // An A4 rigid PVC safety sign (Blender batch `r13a`): the ISO 7010 W009
+    // An A4 rigid PVC safety sign (Blender family `six_things_hung_on_a_wall`): the ISO 7010 W009
     // warning triangle, its trefoil drawn to Baldwin's construction, over
     // BIOHAZARD, screwed to the wall at its corners; its yellow faded, its
     // print scuffed to the white plastic, rust run from its screws, one in

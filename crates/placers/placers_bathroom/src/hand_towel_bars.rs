@@ -12,7 +12,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
 // Wall towel bar: 6% chance per level. A 12 in towel bar of the hardware
-// store's kind (Blender batch `t04`): a 3/4 in chromed tube on two posts and
+// store's kind (Blender family `washroom_fittings`): a 3/4 in chromed tube on two posts and
 // their rosettes, the plating dulled; over it a cotton terry hand towel
 // folded in half along its length, hung and left (draped by Blender's
 // cloth), gone grey and stiff, its dobby border across each end, mildew

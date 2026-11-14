@@ -12,7 +12,7 @@ use placers_kit::place::pick;
 
 // Shoe pair (floor): 6% chance per level. A pair of men's derby shoes
 // kicked off and left: the left one standing, the right one fallen on its
-// side (Blender batch r14a: welted, the quarters lapped over the vamp,
+// side (Blender family `things_worn_and_dropped`: welted, the quarters lapped over the vamp,
 // creased where the foot bent it, a leather sole on a stacked heel).
 pub(crate) fn place_shoe_pairs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
@@ -59,7 +59,7 @@ pub(crate) fn place_shoe_pairs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-/// The shoe or boot of batch r14a, `kind` "shoe" or "boot": `var` "R", "L",
+/// The shoe or boot of family `things_worn_and_dropped`, `kind` "shoe" or "boot": `var` "R", "L",
 /// "Side" (the right one fallen on its outer side, as it lies) or "" (the
 /// boot standing). Colours sRGB: the leather, the lining, the sole's
 /// rubber or leather, the laces, the eyelets' and hooks' metal.

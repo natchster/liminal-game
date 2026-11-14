@@ -1,4 +1,4 @@
-"""Batch b15: the "toys" theme. Toy instruments (recorder, triangle,
+"""Family `instruments_nursery_toys_and_leftovers`: the "toys" theme. Toy instruments (recorder, triangle,
 xylophone, baton, metronome, castanets), nursery toys (spinning top, hula
 hoop, plane, skateboard, boat, jacks, letters, piggy bank, dino, phone,
 robot, microphone, piano, wand, sword) and the sadder nursery leftovers

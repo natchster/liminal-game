@@ -4,7 +4,7 @@ use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
-// A wine glass left on the floor (Blender batch `r16`): a stemmed 8 oz
+// A wine glass left on the floor (Blender family `kitchen_and_hearth_left_behind`): a stemmed 8 oz
 // glass of the Libbey Citation class (171 mm tall), the wine in it long gone
 // down to a dark crust in the bottom of the bowl, dried rings where it stood,
 // a lipstick print on the rim now and then; or knocked over, lying on its

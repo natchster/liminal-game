@@ -1,8 +1,8 @@
-//! The washroom mirror (batch `r05`): a stainless channel frame, its
+//! The washroom mirror (family `washroom_mirror_cobwebs_and_office_plant`): a stainless channel frame, its
 //! silvered glass, the silver gone from the edges, cracked from a blow.
 use super::*;
 
-/// A broken washroom mirror on the wall (Blender batch `r05`; `yaw` is unused)
+/// A broken washroom mirror on the wall (Blender family `washroom_mirror_cobwebs_and_office_plant`; `yaw` is unused)
 pub fn build_broken_mirror(g: &mut Game, cx: &mut PropsCtx, yaw: f64) -> Built {
     let _ = (g, cx, yaw);
     // A 24 x 36 in stainless channel-frame mirror (the Bobrick B-165 class)

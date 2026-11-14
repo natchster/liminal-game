@@ -4,7 +4,7 @@ use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
-// A portable sewing machine on the floor (Blender batch `r16`): a
+// A portable sewing machine on the floor (Blender family `kitchen_and_hearth_left_behind`): a
 // black-japanned machine of the Singer 221 class (378 x 184 x 248 mm), its
 // gold decals and its maker's name (HALDANE, no real maker) rubbed thin, its
 // bright parts tarnished, a spool of thread still on its pin; its handwheel

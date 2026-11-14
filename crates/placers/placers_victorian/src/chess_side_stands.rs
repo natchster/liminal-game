@@ -10,7 +10,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::vary;
 
 // Chess set mid-game on small side stand (floor): 3% chance per level.
-// A tripod table of about 1870 (Blender batch `t20`): a moulded round top
+// A tripod table of about 1870 (Blender family `a_studys_things`): a moulded round top
 // on its bearers, a turned column, three cabriole legs on pad feet; a
 // folding board of 35 mm squares on it, and a game of Staunton chessmen
 // (boxwood and ebony, a 64 mm king) left on it, the taken ones lying beside
@@ -95,7 +95,7 @@ pub(crate) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
         put(&p, "Real__chessPawn", if white { &boxwood } else { &ebony });
         cs.add(&p);
     }
-    // a brandy snifter beside the board (batch `t10`'s), a little brandy left
+    // a brandy snifter beside the board (family `parlour_and_office_big_things`'s), a little brandy left
     if snifter {
         let glass = group();
         glass.position().set(-0.150 - 0.047, CH_TOP_Y, 0.050);

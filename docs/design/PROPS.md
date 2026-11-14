@@ -19,10 +19,10 @@ How this was planned and done (the brief, the analysis, milestones, progress, op
 Each `cartoon` kind is made again as the real thing it stands for:
 
 - **From a real one.** Its real size and construction from a maker's
-  sheet or a measured photograph (cited in the batch's notes); its
+  sheet or a measured photograph (cited in its family's notes); its
   materials (painted steel, moulded polypropylene, chipboard, kraft card,
   cotton, glazed ceramic) at their real albedo and finish.
-- **Modelled whole** in a Blender batch of its own (`assets/src/blender/props/r*.py`),
+- **Modelled whole** in a Blender family of its theme (`assets/src/blender/props/<theme>/<family>.py`),
   at its real size, one part a material, with what a real one has: its
   bevels and seams, its screws and hinges, its feet, its moulding marks.
   The game places the parts as modelled (`prop_part_as_modelled`, a scale
@@ -112,11 +112,12 @@ none on the Lobby, in the Showroom or the Borrowed House; written into
    where it goes. Read the reviewer's evidence for it
    (`research/props-census/review*.md`).
 2. Find the real one: a maker's sheet, a catalogue or a measured photo.
-   Note its size, construction and materials in the batch's notes.
-3. Model it in the batch, at its real size, in its own frame (x across its
+   Note its size, construction and materials in its family's notes
+   (`docs/research/props-remodelling/<family>.md`).
+3. Model it in its family, at its real size, in its own frame (x across its
    front, y up from the floor, z out of its front), one part a material;
    register each with `auto(name, build, budget)`; keep to the budget.
-   `cargo xtask assets props --batch rNN` builds and checks it (seconds);
+   `cargo xtask assets props --batch <family>` builds and checks it (seconds);
    `--write` writes `prop_meshes.bin`.
 4. Rewrite its build: the parts as modelled, its materials real, its
    print painted, its random draws kept call for call. A size the placer

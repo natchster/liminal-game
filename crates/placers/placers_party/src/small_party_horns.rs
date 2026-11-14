@@ -1,4 +1,4 @@
-//! `place_small_party_horns`: Small party horn: 8% chance per level. A 9 in party horn (Blender batch `t12`): a cone of card covered in printed foil, a white plastic mouthpiece with its reed, a foil fringe round the bell; lying where it was dropped, one in three trodden flat at its bell; the foil dulled, scuffed through to the card, dusty, grimy where it lies.
+//! `place_small_party_horns`: Small party horn: 8% chance per level. A 9 in party horn (Blender family `what_a_party_room_leaves`): a cone of card covered in printed foil, a white plastic mouthpiece with its reed, a foil fringe round the bell; lying where it was dropped, one in three trodden flat at its bell; the foil dulled, scuffed through to the card, dusty, grimy where it lies.
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Small party horn: 8% chance per level. A 9 in party horn (Blender
-/// batch `t12`): a cone of card covered in printed foil, a white plastic
+/// family `what_a_party_room_leaves`): a cone of card covered in printed foil, a white plastic
 /// mouthpiece with its reed, a foil fringe round the bell; lying where it
 /// was dropped, one in three trodden flat at its bell; the foil dulled,
 /// scuffed through to the card, dusty, grimy where it lies.

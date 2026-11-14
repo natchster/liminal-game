@@ -9,7 +9,7 @@ use placers_kit::place::WallCand;
 use placers_kit::wall_plates::part;
 
 // Cracked wall segments: a hole kicked or punched through the wall
-// (Blender batch `r06`): the face paper torn back, the gypsum broken through
+// (Blender family `wall_hole_pipe_run_posters_and_hooks`): the face paper torn back, the gypsum broken through
 // its 12.7 mm, chunks hanging in on their paper, the stud bay behind it (a
 // steel stud, the back of the far board), cracks out from it, the crumbs on
 // the floor below. The wall is not cut: the hole's mask is drawn first and

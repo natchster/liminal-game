@@ -1,4 +1,4 @@
-//! `place_hanging_streamers`: Hanging streamers: 8% chance per level. Lengths of crepe paper streamer (1.75 in, Blender batch `t12`) hanging from the ceiling, each from the bit of masking tape that held it when it was a swag across the room: twisted as it was hung, the crepe stretched and sagged, the ends torn; faded, water-marked, dusty. Some still stir in the draught.
+//! `place_hanging_streamers`: Hanging streamers: 8% chance per level. Lengths of crepe paper streamer (1.75 in, Blender family `what_a_party_room_leaves`) hanging from the ceiling, each from the bit of masking tape that held it when it was a swag across the room: twisted as it was hung, the crepe stretched and sagged, the ends torn; faded, water-marked, dusty. Some still stir in the draught.
 use crate::shared::put_with;
 use game::prelude::*;
 use placers_kit::geometry::put;
@@ -11,7 +11,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Hanging streamers: 8% chance per level. Lengths of crepe paper
-/// streamer (1.75 in, Blender batch `t12`) hanging from the ceiling, each
+/// streamer (1.75 in, Blender family `what_a_party_room_leaves`) hanging from the ceiling, each
 /// from the bit of masking tape that held it when it was a swag across the
 /// room: twisted as it was hung, the crepe stretched and sagged, the ends
 /// torn; faded, water-marked, dusty. Some still stir in the draught.

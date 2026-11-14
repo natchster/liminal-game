@@ -1,4 +1,4 @@
-"""r10: what a floor's weather leaves (`core_props/weather_fx.rs`,
+"""what_a_floors_weather_leaves (was r10): what a floor's weather leaves (`core_props/weather_fx.rs`,
 docs/design/PROPS.md P2), remodelled at their real sizes. Sources and sizes:
 docs/research/props-remodelling/what_a_floors_weather_leaves.md. (The wet floors' puddles are painted, not modelled.)
 

@@ -1,4 +1,4 @@
-//! `place_paper_garlands`: Paper garland: 7% chance per level. A tissue paper tassel garland (Blender batch `t12`): tassels of fringed tissue, each twisted into a loop on a jute twine swagged between two pieces of tape on the ceiling; the tissue faded and limp, the strands hanging in clumps, some torn short, a tassel or two gone from the twine.
+//! `place_paper_garlands`: Paper garland: 7% chance per level. A tissue paper tassel garland (Blender family `what_a_party_room_leaves`): tassels of fringed tissue, each twisted into a loop on a jute twine swagged between two pieces of tape on the ceiling; the tissue faded and limp, the strands hanging in clumps, some torn short, a tassel or two gone from the twine.
 use crate::shared::TISSUE;
 use game::prelude::*;
 use placers_kit::geometry::put;
@@ -8,7 +8,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Paper garland: 7% chance per level. A tissue paper tassel garland
-/// (Blender batch `t12`): tassels of fringed tissue, each twisted into a
+/// (Blender family `what_a_party_room_leaves`): tassels of fringed tissue, each twisted into a
 /// loop on a jute twine swagged between two pieces of tape on the ceiling;
 /// the tissue faded and limp, the strands hanging in clumps, some torn
 /// short, a tassel or two gone from the twine.

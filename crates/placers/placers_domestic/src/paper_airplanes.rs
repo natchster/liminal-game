@@ -5,7 +5,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 // Paper airplane: 5% chance per level. A dart folded from a sheet of
-// A4 (Blender batch r15: 297 mm long, its wings 61 mm each), flown into
+// A4 (Blender family `paper_and_small_things_on_office_floors`: 297 mm long, its wings 61 mm each), flown into
 // something nose first and left where it fell, its wings gone soft, on its
 // keel and a wing tip; a typed page or a sheet of coloured paper, dusty.
 // The old draws are kept call for call.

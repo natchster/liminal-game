@@ -247,7 +247,7 @@ pub fn build_cardboard_stack(g: &mut Game, cx: &mut PropsCtx) -> Built {
 /// A-frame with printed warning face
 pub fn build_wet_floor_sign(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
-    // the common 2-sided A-frame (Blender batch `r01`): two moulded yellow
+    // the common 2-sided A-frame (Blender family `first_everyday_core_props`): two moulded yellow
     // panels hinged at the top, splayed 0.30 m at the foot, each printed
     // CAUTION / WET FLOOR in black, scuffed (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
@@ -538,7 +538,7 @@ pub(crate) fn locker_sides(g: &Game, x: f64) -> Vec<Obj> {
 
 /// What is left in a staff locker (unit `i`, its middle at `x`): a wool
 /// jacket hung by its collar loop from a hook on the unit's left side (the
-/// coat stand's overcoat of batch `r02` at 0.8 on the coat rail's hook of
+/// coat stand's overcoat of family `book_stack_suitcase_coat_stand_and_pile` at 0.8 on the coat rail's hook of
 /// `r06`, its width along the locker's depth, as a coat hangs in a 0.42 m
 /// locker), and with `jumper` a jumper folded on its floor (the suitcase's)
 pub(crate) fn locker_things(x: f64, i: i32, jumper: bool) -> Vec<Obj> {
@@ -873,7 +873,7 @@ pub fn build_wheelchair(g: &mut Game, cx: &mut PropsCtx) -> Built {
 /// behind, clothes folded in it and a cardigan pulled half out
 pub fn build_suitcase(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = cx;
-    // a moulded 1960s case (23 x 16 x 7 in), modelled in the batch `r02`:
+    // a moulded 1960s case (23 x 16 x 7 in), modelled in the family `book_stack_suitcase_coat_stand_and_pile`:
     // the shells, their linings and aluminium trim (valance, hinges,
     // latches), the grip; the lid stood open on its hinges, held by its
     // check straps (docs/design/PROPS.md)
@@ -1073,7 +1073,7 @@ pub fn build_coat_rack(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // a Thonet-style stand (74 in: a turned pole, four bent legs and their
     // ring, six coat hooks and six hat hooks) and a wool overcoat hanging by
     // the loop in its collar from the front coat hook, both modelled in the
-    // batch `r02` (docs/design/PROPS.md)
+    // family `book_stack_suitcase_coat_stand_and_pile` (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;
     let rg = group();
     // dark-stained beech, its varnish worn
@@ -1126,7 +1126,7 @@ pub fn build_fluorescent_tube(g: &mut Game, cx: &mut PropsCtx) -> Built {
 /// was built of
 pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
-    // the mound and the pieces are modelled in the batch `r02`; the pieces
+    // the mound and the pieces are modelled in the family `book_stack_suitcase_coat_stand_and_pile`; the pieces
     // lie on the mound, whose height is PL_H (1 - (x/RX)^2 - (z/RZ)^2)^1.3
     // (docs/design/PROPS.md)
     use crate::assets::props::prop_part_as_modelled;

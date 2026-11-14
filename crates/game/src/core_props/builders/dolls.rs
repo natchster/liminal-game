@@ -1,8 +1,8 @@
-//! The toys left on the floor, as the real ones (batch `r03`): the bath
+//! The toys left on the floor, as the real ones (family `rubber_duck_baby_doll_and_hole`): the bath
 //! duck and the bent-limb baby doll, their vinyl, paint and cloth painted.
 use super::*;
 
-/// The classic bath duck (Blender batch `r03`): blow-moulded vinyl, 9 cm
+/// The classic bath duck (Blender family `rubber_duck_baby_doll_and_hole`): blow-moulded vinyl, 9 cm
 /// from tail to bill, its yellow faded and grimed, the bill's paint chipped
 /// back to the vinyl, the painted eyes yellowed (docs/design/PROPS.md)
 pub fn build_rubber_duck(g: &mut Game, cx: &mut PropsCtx) -> Built {
@@ -84,7 +84,7 @@ fn duck_bill_tex() -> Tex {
 }
 
 /// A bent-limb play baby doll of the 1970s–80s, lying on its back (Blender
-/// batch `r03`): 38 cm, a soft-vinyl head as wide as its shoulders with
+/// family `rubber_duck_baby_doll_and_hole`): 38 cm, a soft-vinyl head as wide as its shoulders with
 /// moulded, painted hair, sleep eyes (shut as it lies, one stuck half open)
 /// and an open mouth for its bottle; chubby bent vinyl arms and legs; a cloth
 /// body in a faded cotton romper with a Peter Pan collar. The vinyl yellowed

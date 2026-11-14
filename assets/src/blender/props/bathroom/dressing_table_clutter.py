@@ -1,4 +1,4 @@
-"""Batch b13: bathroom and dressing-table clutter.
+"""Family `dressing_table_clutter`: bathroom and dressing-table clutter.
 
 Compacts, perfumes, nail polish, hairbrushes, pill bottles, spray bottles,
 wall fixtures (dispensers, towel bars, mirrors, faucets, shelves), and the

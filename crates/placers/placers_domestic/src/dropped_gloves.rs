@@ -12,7 +12,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 // Single dropped glove (floor): 8% chance per level. One glove dropped
-// and left, lying limp (Blender batch r14a, the glove of
+// and left, lying limp (Blender family `things_worn_and_dropped`, the glove of
 // `place_single_gloves` too): a lined leather dress glove, its three points
 // stitched on the back, or a knitted one; 40% with a stripe knitted round
 // the wrist.
@@ -99,7 +99,7 @@ struct Glove {
     points: bool,
 }
 
-/// The glove of batch r14a: a right one lying back up, as modelled.
+/// The glove of family `things_worn_and_dropped`: a right one lying back up, as modelled.
 fn glove(s: &Glove, vary: u32) -> Obj {
     let grp = group();
     let back = lambert!({ color: 0xffffff, map: &glove_back_tex(s.back.0, s.back.1, s.points, vary) });

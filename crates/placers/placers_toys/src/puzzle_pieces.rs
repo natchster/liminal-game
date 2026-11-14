@@ -4,7 +4,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 // Puzzle piece: 9% chance per level. A piece of a children's jigsaw
-// (Blender batch r17): 2 mm greyboard faced with printed paper, die cut
+// (Blender family `toys_on_the_floor`): 2 mm greyboard faced with printed paper, die cut
 // with round knobs, 5 cm across; a border piece, or (the old second tab) an
 // inner one with two. Its face a fragment of the picture, faded, rubbed
 // back to the grey board at its corners and edges, dirty.

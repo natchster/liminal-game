@@ -12,7 +12,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
 // Wall bookshelf: 3% chance per level. A hanging wall bookshelf of
-// stained pine (Blender batch `t10`: 600 x 160 mm, 300 mm between its
+// stained pine (Blender family `parlour_and_office_big_things`: 600 x 160 mm, 300 mm between its
 // boards, its sides scrolled at the foot, a hardboard back), r02's cloth
 // hardbacks standing in it, their spines faded by the years they faced the
 // room, titles in tarnished gilt, the last one leaning on its neighbour.

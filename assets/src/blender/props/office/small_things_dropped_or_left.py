@@ -1,7 +1,7 @@
-"""r14b: small things a person dropped or left, remodelled at their real
+"""small_things_dropped_or_left (was r14b): small things a person dropped or left, remodelled at their real
 sizes (docs/design/PROPS.md, P2): a pair of clear safety glasses, a wristwatch, a
 bunch of keys on a split ring with a tag, reading glasses (on the book stack
-of batch r02), curled gift ribbon, a twin-bell wind-up alarm clock. Sources
+of family `book_stack_suitcase_coat_stand_and_pile`), curled gift ribbon, a twin-bell wind-up alarm clock. Sources
 and sizes: docs/research/props-remodelling/small_things_dropped_or_left.md.
 
 No map file: the game builds each prop from these parts by name, placed as

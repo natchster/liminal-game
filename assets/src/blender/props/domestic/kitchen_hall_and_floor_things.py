@@ -1,4 +1,4 @@
-"""t07: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+"""kitchen_hall_and_floor_things (was t07): the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): the smoking ashtray, the hanging colander, the herb sieve, the wall
 coat rack, the upright vacuum cleaner, the boot tray and the umbrella stand.
 (The opened suitcase is r02's suitcase, the coats r06's, the scarf r13b's,

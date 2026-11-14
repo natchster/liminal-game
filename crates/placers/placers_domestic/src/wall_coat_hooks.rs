@@ -7,7 +7,7 @@ use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
 // Wall coat hook: 15% chance per level, 1-2 hooks at 1.7-1.9 m
-// (Blender batch `r13b`, the hook of `r06`): a cast iron double coat-and-hat
+// (Blender family `coat_hook_broom_apron_and_rugs`, the hook of `r06`): a cast iron double coat-and-hat
 // hook screwed to an oak block on the wall; now and then 2-3 more along the
 // same wall (a cloakroom's row), now and then a knitted scarf left thrown
 // over the first's arm. (A coat is wider than the cloth that hung there,
@@ -88,7 +88,7 @@ pub(crate) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The oak block's thickness (batch `r13b`, `Real__hookBlock`)
+/// The oak block's thickness (family `coat_hook_broom_apron_and_rugs`, `Real__hookBlock`)
 const HOOK_BLOCK_D: f64 = 0.019;
 
 /// A cast iron double hook (`r06`) screwed to its oak block, the block's

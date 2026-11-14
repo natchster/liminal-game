@@ -6,9 +6,9 @@ use placers_kit::place::pick;
 use placers_kit::place::seed_of;
 
 // Reading glasses and books (floor): 5% chance per level. A cloth
-// hardback and a paperback on it (the book stack's books, batch r02), a slip
+// hardback and a paperback on it (the book stack's books, family `book_stack_suitcase_coat_stand_and_pile`), a slip
 // of paper kept in the hardback for a place, and a pair of plastic reading
-// glasses (batch r14b, 50-20-135) folded and put down on the books or beside
+// glasses (family `small_things_dropped_or_left`, 50-20-135) folded and put down on the books or beside
 // them; the lenses smeared and dusty.
 pub(crate) fn place_reading_glasses_and_books(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;

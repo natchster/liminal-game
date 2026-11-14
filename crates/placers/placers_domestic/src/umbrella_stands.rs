@@ -10,7 +10,7 @@ use placers_kit::place::salt;
 use placers_kit::place::wall_tiles;
 
 // Umbrella stand w/ 2-3 umbrellas (floor near wall): 3% chance per
-// level. A rolled steel umbrella stand (batch `t07`: 200 mm across, 490 mm
+// level. A rolled steel umbrella stand (family `kitchen_hall_and_floor_things`: 200 mm across, 490 mm
 // tall, its seam down the back), painted, chipped at its rim, rusting at its
 // foot; two or three furled stick umbrellas in it (r09's), stood on their
 // ferrules and leant out against its rim, their crooks turned to the room.
@@ -108,7 +108,7 @@ pub(crate) fn place_umbrella_stands(g: &mut Game, _dist: &[i32]) {
     g.world.add(&us);
 }
 
-/// The umbrella stand's inside (batch `t07`): its bottom's top, the canopy's
+/// The umbrella stand's inside (family `kitchen_hall_and_floor_things`): its bottom's top, the canopy's
 /// clearance under its rim (the bead's inside radius less a furled canopy's
 /// 29 mm), its rim's height over that bottom
 const STAND_FLOOR: f64 = 0.0125;

@@ -257,7 +257,7 @@ impl Game {
     /// continues a story already begun is written in that story's ink
     /// (`ink_of` its colour), which only a near look tells.
     pub(crate) fn build_lore_note_mesh(&mut self, boosted: bool, arc_color: Option<u32>) -> Obj {
-        // a sheet of typewriter bond (Blender batch `r04`): US letter, folded
+        // a sheet of typewriter bond (Blender family `torn_note_mannequin_and_wall_clock`): US letter, folded
         // in three and once more, its lower third torn away, its top right
         // corner curled up (or, read, folded down over it: `turn_down_note`),
         // typed in Courier; the sheet's frame: x across the page from its

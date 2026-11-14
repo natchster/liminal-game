@@ -17,7 +17,7 @@ macro_rules! cached_tex {
 }
 
 // Lift button panel: 4% chance per level. A car operating panel's
-// faceplate (Blender batch `r12`): brushed stainless, twelve floor buttons in
+// faceplate (Blender family `what_services_screw_to_walls`): brushed stainless, twelve floor buttons in
 // their bezels with the raised numeral and braille beside each, door open and
 // close, the alarm, the fire service key switch; the lit buttons' rings glow.
 pub(crate) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {

@@ -12,7 +12,7 @@ use placers_kit::place::salt;
 
 // Vacuum cleaner unattended (floor): 3% chance per level.
 // Track positions for optional motor whine audio. An upright of the
-// Hoover Convertible kind (batch `t07`: 45 x 13 x 12 in), stood with its
+// Hoover Convertible kind (family `kitchen_hall_and_floor_things`: 45 x 13 x 12 in), stood with its
 // handle locked up: the hood on its wheels, its headlight dark, the vinyl
 // bumper; the chromed handle; the cloth bag hung from its hook, sagging
 // full; the cord wound on its two hooks, its end let down to trail across
@@ -81,7 +81,7 @@ pub(crate) fn place_vacuum_cleaners(g: &mut Game, _dist: &[i32]) {
     g.pp.vacuum_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The vacuum's cord where it hangs free of its lower hook (batch `t07`:
+/// The vacuum's cord where it hangs free of its lower hook (family `kitchen_hall_and_floor_things`:
 /// `CORD_FREE`, off the hook's cradle)
 const VAC_CORD_FREE: (f64, f64, f64) = (-0.010, 0.330, -0.176_609);
 

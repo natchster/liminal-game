@@ -15,7 +15,7 @@ use placers_kit::place::wall_pos;
 use placers_kit::place::wall_tiles;
 
 // Hanging herb sieve: 4% chance per level. A 7 in fine-mesh strainer
-// (batch `t07`: a tinned band round a woven mesh bowl, a looped wire handle
+// (family `kitchen_hall_and_floor_things`: a tinned band round a woven mesh bowl, a looped wire handle
 // and a pan hook) hung by its handle's loop on a nail, its rim to the wall.
 pub(crate) fn place_herb_sieves(g: &mut Game, _dist: &[i32]) {
     g.pp.herb_sieve_positions.clear(); // reset per level

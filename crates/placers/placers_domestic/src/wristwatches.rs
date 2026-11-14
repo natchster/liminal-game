@@ -5,7 +5,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::seed_of;
 
 // Watch on wristband (floor): 7% chance per level. A 38 mm quartz
-// wristwatch (Blender batch r14b; the Timex Weekender class) lying on its
+// wristwatch (Blender family `small_things_dropped_or_left`; the Timex Weekender class) lying on its
 // back, unbuckled, its two-piece strap lying out from the lugs, its tip
 // curled: the case plated, worn through at the edges; a domed acrylic
 // crystal, scratched; a printed dial, its hands where they stopped.

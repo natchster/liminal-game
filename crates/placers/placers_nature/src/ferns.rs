@@ -29,7 +29,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Fern frond: 6% chance per level. A frond of common polypody broken
-// off and dropped (Blender batch `t17`): its blade cut nearly to the rachis
+// off and dropped (Blender family `a_garden_and_a_wood_indoors`): its blade cut nearly to the rachis
 // into narrow blunt segments, lying on its face or its back (the sori in
 // rows), green browning from its tips, withered or dead.
 pub(crate) fn place_ferns(g: &mut Game, _dist: &[i32]) {

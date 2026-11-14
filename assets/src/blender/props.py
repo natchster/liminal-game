@@ -63,7 +63,15 @@ files.sort(key=lambda p: os.path.relpath(p, batch_dir))
 names = [os.path.basename(p)[:-3] for p in files]
 dup = sorted({n for n in names if names.count(n) > 1})
 if dup:
-    raise SystemExit(f'two families of one name: {dup} (a family is named by its file)')
+    print(f'[props] error: two families of one name: {dup} (a family is named by its file)')
+    raise SystemExit(f'two families of one name: {dup}')
+themes = {os.path.basename(os.path.dirname(p)) for p in files}
+unknown = sorted(only_batches - set(names) - themes)
+if unknown:
+    msg = (f'--batch {",".join(unknown)}: no family or theme of that name (props/<theme>/<family>.py; '
+           f'an old batch name, b07 or t13, is in the "Was" column of props/README.md)')
+    print(f'[props] error: {msg}')
+    raise SystemExit(msg)
 THEME_OF = {}
 for path in files:
     b = os.path.basename(path)[:-3]

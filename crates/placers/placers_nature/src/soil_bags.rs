@@ -28,7 +28,7 @@ pub(crate) fn place_soil_bags(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick(&open);
     // An 8 dry quart bag of potting soil lying on its back where it was put
     // down, slumped, faded and dusty, split at a corner where soil has run
-    // out onto the floor (Blender batch `t06`)
+    // out onto the floor (Blender family `garden_things`)
     let bag = group();
     // where it lies (the old draws) and how it is turned (the old draw)
     bag.position().set(g.wx(x) + (rnd() - 0.5) * 2.0, 0, g.wz(z) + (rnd() - 0.5) * 2.0);

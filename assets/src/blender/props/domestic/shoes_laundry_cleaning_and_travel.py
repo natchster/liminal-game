@@ -1,4 +1,4 @@
-"""Batch b11: the "domestic" theme. Shoes, gloves, laundry, ironing, cleaning,
+"""Family `shoes_laundry_cleaning_and_travel`: the "domestic" theme. Shoes, gloves, laundry, ironing, cleaning,
 travel things, small personal items and the bigger household objects.
 Decals, transparent and sub-millimetre ink primitives are left alone (see
 docs/research/props-remodelling/shoes_laundry_cleaning_and_travel.md). Every other solid primitive gets a modelled part here.

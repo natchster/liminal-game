@@ -1,4 +1,4 @@
-"""r15: paper and small things dropped on the office floors, remodelled at
+"""paper_and_small_things_on_office_floors (was r15): paper and small things dropped on the office floors, remodelled at
 their real sizes (docs/design/PROPS.md): a flat box of facial tissues, a part-used
 roll of PVC insulating tape, a pack of playing cards, an open paperback, a
 stack of folded newspapers, a paper dart, a party napkin. (The crumpled

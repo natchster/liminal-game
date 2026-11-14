@@ -1,4 +1,4 @@
-"""Batch b03: place_props — the gameplay core placement.
+"""Family `core_placement`: place_props — the gameplay core placement.
 
 Exit door + EXIT sign, Almond Water, batteries, chairs, CRT TVs, wall clock,
 balloon, payphone, mannequin, filing cabinets, cardboard, wet-floor sign,

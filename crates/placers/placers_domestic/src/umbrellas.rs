@@ -4,7 +4,7 @@ use placers_kit::place::pick;
 use placers_kit::place::wall_candidates;
 
 // Leaning umbrella: 15% chance per level, 1 closed umbrella against a
-// wall: a classic stick umbrella (Blender batch `r09`), 0.89 m, furled and
+// wall: a classic stick umbrella (Blender family `crate_sash_umbrella_and_things_put_away`), 0.89 m, furled and
 // strapped, stood on its ferrule with its crook against the wall.
 pub(crate) fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {

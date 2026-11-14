@@ -7,7 +7,7 @@ use placers_kit::place::salt;
 use placers_kit::place::scatter;
 
 // A doll's arms and legs: 4% chance per level. Two or three of a vinyl
-// baby doll's limbs (batch r03's doll: an arm bent at the elbow, its hand's
+// baby doll's limbs (family `rubber_duck_baby_doll_and_hole`'s doll: an arm bent at the elbow, its hand's
 // fingers moulded together; a leg bent at the knee, its foot with toes),
 // come off its cloth body: each limb's top a groove the cloth was tied in
 // and a lip round its open end, the hollow dark inside. Lying where they

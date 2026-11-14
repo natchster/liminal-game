@@ -4,7 +4,7 @@ use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 
-// A kettle left on the floor (Blender batch `r16`): a 2 l enamel
+// A kettle left on the floor (Blender family `kitchen_and_hearth_left_behind`): a 2 l enamel
 // stovetop kettle, its bail handle up, its enamel chipped to the black steel
 // and rusting at the chips, dented, limescale run white down from its lid
 // and spout where it boiled over, scorched brown at its foot; or the same

@@ -1,11 +1,11 @@
-//! `place_rubber_balls`: Small rubber ball: 10% chance per level. A 4 in hollow rubber ball of two moulded halves, each its own colour, joined at a seam (Blender batch r17); years on the floor have let the air out of it, so it sags flat where it rests, and faded, scuffed and grimed it.
+//! `place_rubber_balls`: Small rubber ball: 10% chance per level. A 4 in hollow rubber ball of two moulded halves, each its own colour, joined at a seam (Blender family `toys_on_the_floor`); years on the floor have let the air out of it, so it sags flat where it rests, and faded, scuffed and grimed it.
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Small rubber ball: 10% chance per level. A 4 in hollow rubber ball
 /// of two moulded halves, each its own colour, joined at a seam (Blender
-/// batch r17); years on the floor have let the air out of it, so it sags
+/// family `toys_on_the_floor`); years on the floor have let the air out of it, so it sags
 /// flat where it rests, and faded, scuffed and grimed it.
 pub(crate) fn place_rubber_balls(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;

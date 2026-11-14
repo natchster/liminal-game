@@ -15,7 +15,7 @@ use placers_kit::place::ri;
 use placers_kit::place::vary;
 
 // Open pocket watch on chain (floor): 4% chance per level. A 16-size
-// hunter-case pocket watch of about 1900 (Blender batch `t20`): gold-filled,
+// hunter-case pocket watch of about 1900 (Blender family `a_studys_things`): gold-filled,
 // coin silver, rose gold or gunmetal (the old case's draw), its front cover
 // open on its hinge, a white enamel dial with Roman numerals and a seconds
 // subdial, blued spade hands stopped at a time (the old hands' draws); its

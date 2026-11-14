@@ -1,4 +1,4 @@
-//! `place_small_xylophones`: Small xylophone: 6% chance per level. A child's eight note "xylophone" (Blender batch `t16`): a metallophone of 3 mm aluminium bars enamelled in eight colours, C to C (100 to 68 mm), each pinned through its two nodes over a felt strip on a splayed pine frame (265 x 75 mm), its note's letter printed at its foot; a wooden mallet lying in front. The enamel faded, chipped at the corners and worn to the metal where the mallet struck, the pine grey with handling, dust.
+//! `place_small_xylophones`: Small xylophone: 6% chance per level. A child's eight note "xylophone" (Blender family `a_play_areas_toys`): a metallophone of 3 mm aluminium bars enamelled in eight colours, C to C (100 to 68 mm), each pinned through its two nodes over a felt strip on a splayed pine frame (265 x 75 mm), its note's letter printed at its foot; a wooden mallet lying in front. The enamel faded, chipped at the corners and worn to the metal where the mallet struck, the pine grey with handling, dust.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -9,7 +9,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Small xylophone: 6% chance per level. A child's eight note
-/// "xylophone" (Blender batch `t16`): a metallophone of 3 mm aluminium bars
+/// "xylophone" (Blender family `a_play_areas_toys`): a metallophone of 3 mm aluminium bars
 /// enamelled in eight colours, C to C (100 to 68 mm), each pinned through
 /// its two nodes over a felt strip on a splayed pine frame (265 x 75 mm),
 /// its note's letter printed at its foot; a wooden mallet lying in front.
@@ -151,7 +151,7 @@ fn pine_tex(salt: u32) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

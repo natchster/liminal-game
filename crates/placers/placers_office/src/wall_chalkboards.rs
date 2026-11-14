@@ -9,7 +9,7 @@ use placers_kit::place::vary as cm_vary;
 use placers_kit::place::wall_candidates;
 
 // Wall chalkboard: 4% chance per level. A 30 x 40 cm wall board in a
-// pine frame, a note left on it in chalk (batch r13a).
+// pine frame, a note left on it in chalk (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_wall_chalkboards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -19,7 +19,7 @@ pub(crate) fn place_wall_chalkboards(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
-    // The common 30 x 40 cm wall chalkboard (Blender batch `r13a`): a
+    // The common 30 x 40 cm wall chalkboard (Blender family `six_things_hung_on_a_wall`): a
     // painted board in a varnished pine frame 22 mm wide, flat on the wall;
     // on it a note in someone's chalk capitals over the ghost of the one
     // wiped before it, the eraser's swipes, dust (docs/design/PROPS.md)

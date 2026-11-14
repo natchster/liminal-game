@@ -1,7 +1,7 @@
 //! Plates on a wall (lift panels, alarm pulls, pay phones, fuse boxes): parts, worn blots and scratches.
 use game::prelude::*;
 
-/// A Blender part of batch `r12` as modelled (a scale of one), or a box
+/// A Blender part of family `what_services_screw_to_walls` as modelled (a scale of one), or a box
 /// standing in for it when the props are switched off.
 pub fn part(name: &str, w: f64, h: f64, d: f64) -> Geo {
     game::assets::props::prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(w, h, d))

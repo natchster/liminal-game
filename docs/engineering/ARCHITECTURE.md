@@ -51,7 +51,8 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   from triangles, the Blender parts and their frames). They had been
   copied from crate to crate, up to a hundred times under ten names; a
   placer calls each by its kit name (an alias is left only in the few
-  modules where a local of that name would hide it). It also
+  modules where a local of that name would hide it). Some painters are
+  still copied between themes (merging them would repaint: queued). It also
   holds what placers of more than one theme share: the wall candidates and
   how a thing is mounted or scattered (`place`), and the families of
   things placed by several themes, each a module (`baking`, `garden`,

@@ -1,4 +1,4 @@
-//! `place_birthday_hats`: Birthday party hat: 8% chance per level. A printed card party hat (Blender batch `t12`): a cone of board 175 mm tall over a 115 mm rim, rolled from a printed sector and glued along its flap, a pompom of foil fringe in its point, its round elastic knotted through two holes; the print faded, the card dented and creased, the point bent, dust on it and grime at the rim. Three in ten lie on their side.
+//! `place_birthday_hats`: Birthday party hat: 8% chance per level. A printed card party hat (Blender family `what_a_party_room_leaves`): a cone of board 175 mm tall over a 115 mm rim, rolled from a printed sector and glued along its flap, a pompom of foil fringe in its point, its round elastic knotted through two holes; the print faded, the card dented and creased, the point bent, dust on it and grime at the rim. Three in ten lie on their side.
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Birthday party hat: 8% chance per level. A printed card party hat
-/// (Blender batch `t12`): a cone of board 175 mm tall over a 115 mm rim,
+/// (Blender family `what_a_party_room_leaves`): a cone of board 175 mm tall over a 115 mm rim,
 /// rolled from a printed sector and glued along its flap, a pompom of foil
 /// fringe in its point, its round elastic knotted through two holes; the
 /// print faded, the card dented and creased, the point bent, dust on it

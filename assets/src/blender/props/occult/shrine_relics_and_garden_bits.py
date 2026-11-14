@@ -1,4 +1,4 @@
-"""Batch b23: the "occult" and "nature" themes.
+"""Family `shrine_relics_and_garden_bits`: the "occult" and "nature" themes.
 
 Carved wall crucifixes, iron stained-glass frames, a relic chest, a hanging
 thurible, a gilt triptych, a memorial shrine, a dress form, mounted skulls,

@@ -29,7 +29,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Acorn/nut cluster: 6% chance per level. Acorns of the pedunculate
-// oak (Blender batch `t17`): fallen bare from their cups or still in them,
+// oak (Blender family `a_garden_and_a_wood_indoors`): fallen bare from their cups or still in them,
 // now and then an empty cup; ripe brown and glossy, old and dark, or dried
 // pale; one in three of the bare holed by a weevil.
 pub(crate) fn place_acorns(g: &mut Game, _dist: &[i32]) {

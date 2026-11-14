@@ -1,4 +1,4 @@
-"""r08: litter of the everyday remodelled at its real sizes (docs/design/PROPS.md):
+"""everyday_litter (was r08): litter of the everyday remodelled at its real sizes (docs/design/PROPS.md):
 office paper balled up and thrown away, a round steel wastebasket knocked
 over with its liner and a tied bag beside it, a lost sock, crown caps and a
 soda can crushed underfoot. (The chalk marks of the same batch are painted,

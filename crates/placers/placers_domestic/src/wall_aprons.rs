@@ -5,7 +5,7 @@ use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
-// Hanging wall apron: 5% chance per level (Blender batch `r13b`): a
+// Hanging wall apron: 5% chance per level (Blender family `coat_hook_broom_apron_and_rugs`): a
 // cotton bib apron, 72 x 86 cm, hung by its neck strap on a cast iron hook
 // (`r06`'s): the bib's top fallen into a cowl between the strap's ends, the
 // waist's corners dropped, the skirt against the wall in folds, its patch

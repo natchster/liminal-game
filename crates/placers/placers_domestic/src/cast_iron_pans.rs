@@ -7,7 +7,7 @@ use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
-// A cast-iron skillet hung on the wall (Blender batch `r16`): a 10 1/4
+// A cast-iron skillet hung on the wall (Blender family `kitchen_and_hearth_left_behind`): a 10 1/4
 // in skillet of the Lodge L8SK3 class, hung by the hole in its handle from
 // a nail, its bottom against the wall and its cooking face to the room; its
 // seasoning gone dull and flaking at the rim, rusted where it was put away

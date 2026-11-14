@@ -178,7 +178,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
             }
             g.world.add(&mark);
         } else {
-            // a sheet balled up and dropped (batch r08's), its old size picking
+            // a sheet balled up and dropped (family `everyday_litter`'s), its old size picking
             // a tight ball or a loose wad
             let sz = 0.06 + rnd() * 0.05;
             let u = (sz - 0.06) / 0.05;

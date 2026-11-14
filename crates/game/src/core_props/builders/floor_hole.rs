@@ -1,8 +1,8 @@
-//! The hole in the floor (batch `r03`), drawn through the floor: the dark
+//! The hole in the floor (family `rubber_duck_baby_doll_and_hole`), drawn through the floor: the dark
 //! under it, a steel joist, the torn deck, the slab's broken face.
 use super::*;
 
-/// A hole broken through the floor (Blender batch `r03`): the covering
+/// A hole broken through the floor (Blender family `rubber_duck_baby_doll_and_hole`): the covering
 /// torn back, the concrete slab broken through to its steel deck, the deck
 /// torn and bent down, the mesh's wires cut, a steel joist in the dark under
 /// one side, rubble and dust at the rim, and dark below (docs/design/PROPS.md).

@@ -1,10 +1,10 @@
-"""r11b: marks and wear on the rooms' walls (docs/design/PROPS.md, P2), after r07:
+"""wall_marks_and_wear (was r11b): marks and wear on the rooms' walls (docs/design/PROPS.md, P2), after r07:
 peeled paint, peeling wallpaper, rust streaks, mould and a leaking pipe.
 The marks themselves are painted in the game (soft, uneven textures on
 transparent planes laid on the wall: `docs/research/props-remodelling/wall_marks_and_wear.md`); what is modelled here
 is what stands off the wall: the curled flakes of paint, the wallpaper come
 away at its seam, the rusted fixing a streak runs from, and the leak's
-crust and drop (the pipe itself is batch r06's: its elbows, coupling and
+crust and drop (the pipe itself is family `wall_hole_pipe_run_posters_and_hooks`'s: its elbows, coupling and
 collars). Sources and sizes: docs/research/props-remodelling/wall_marks_and_wear.md.
 
 No map file: the game builds each prop from these parts by name, placed as

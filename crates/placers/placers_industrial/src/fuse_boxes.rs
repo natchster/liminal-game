@@ -17,7 +17,7 @@ macro_rules! cached_tex {
 }
 
 // Wall fuse box: 4% chance per level. A 6-space breaker panel on the
-// surface (Blender batch `r12`): the grey enclosure, its front cover and dead
+// surface (Blender family `what_services_screw_to_walls`): the grey enclosure, its front cover and dead
 // front, the door hanging open, six single-pole breakers on or off, the
 // circuits written on the card inside the door.
 pub(crate) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {

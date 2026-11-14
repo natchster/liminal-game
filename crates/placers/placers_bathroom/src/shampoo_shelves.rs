@@ -14,7 +14,7 @@ use placers_kit::place::wall_tiles_first;
 
 // Shampoo bottle shelf: 5% chance per level, 2-3 bottles. A bathroom
 // shelf of 8 mm toughened glass, 500 x 120 mm, in two chromed clamp brackets
-// (Blender batch `t03`), the bottles left standing on it: oval HDPE bottles
+// (Blender family `washroom_shelf_and_dressing_table`), the bottles left standing on it: oval HDPE bottles
 // of shampoo, conditioner and shower gel with their print, Boston rounds of
 // herbal and egg shampoo with paper labels (no maker's name: invented ones),
 // dried runs down them from their caps; the glass dusty, limed where it was

@@ -19,7 +19,7 @@ pub(crate) fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
-    // Houseplant fertilizer spikes out of one pack (Blender batch `t06`):
+    // Houseplant fertilizer spikes out of one pack (Blender family `garden_things`):
     // the first spike's colour draw chooses the pack's (the white houseplant
     // spikes, a pale grey-green, a pinkish grey, a cream); each later
     // spike's colour draw now chooses whether it lies whole, snapped in two

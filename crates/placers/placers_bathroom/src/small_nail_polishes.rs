@@ -6,7 +6,7 @@ use placers_kit::place::pick;
 /// Small nail polish bottle: 10% chance per level. Small
 /// square glass bottle with brush cap. Dressing-table family.
 pub(crate) fn place_small_nail_polishes(g: &mut Game, _dist: &[i32]) {
-    // A small bottle of nail polish (batch `r18`): heavy-bottomed square glass,
+    // A small bottle of nail polish (family `washroom_janitor_classroom_and_plant`): heavy-bottomed square glass,
     // a black screw cap with its brush in the lacquer, the lacquer dried down
     // in it (pooled along its side when it fell over wet), a drip run down
     // the glass and dried, a crust round the neck; no maker's name

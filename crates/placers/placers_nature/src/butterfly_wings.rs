@@ -26,7 +26,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Butterfly wing: 5% chance per level. A single wing left on the floor
-// (Blender batch `t05`): a peacock's or a small tortoiseshell's, hibernating
+// (Blender family `bits_of_the_outside_indoors`): a peacock's or a small tortoiseshell's, hibernating
 // indoors and eaten by a mouse over the winter but for its wings; its scales
 // rubbed to the membrane at the edges, its root torn.
 pub(crate) fn place_butterfly_wings(g: &mut Game, _dist: &[i32]) {

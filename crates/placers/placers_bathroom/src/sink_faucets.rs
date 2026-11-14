@@ -10,7 +10,7 @@ use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_candidates;
 
 // Wall sink faucet: 6% chance per level. A wall-mounted two-valve faucet
-// on 4 in centres (Blender batch `t04`, the Chicago Faucets 445 class):
+// on 4 in centres (Blender family `washroom_fittings`, the Chicago Faucets 445 class):
 // chromed brass gone dull, limed and tarnished, four-arm handles with their
 // red and blue buttons, an L-type swing spout left swung aside. Its basin is
 // gone: taken off the wall, it left its steel hanger, the waste's wall bend

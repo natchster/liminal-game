@@ -5,7 +5,7 @@ use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small playing card stack: 8% chance per level. A pack of
-// poker-size playing cards dropped (Blender batch r15, 63.5 x 88.9 mm, 0.3
+// poker-size playing cards dropped (Blender family `paper_and_small_things_on_office_floors`, 63.5 x 88.9 mm, 0.3
 // mm a card): three in ten spread in a fan, face down but the one under
 // them; else the deck put down unsquared, its top few cards slid, the top
 // one turned up half the time. Backs and faces printed, the type a serif;

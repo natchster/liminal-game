@@ -1,4 +1,4 @@
-"""Batch b21: Victorian house objects.
+"""Family `hall_stand_bell_rack_and_curios`: Victorian house objects.
 
 Hall stand (turned post, hooks, hats, umbrellas, scarf), servants' bell
 rack, cast-iron door stops (dog, boot, owl), framed correspondence and

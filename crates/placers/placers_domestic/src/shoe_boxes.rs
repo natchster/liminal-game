@@ -5,7 +5,7 @@ use placers_kit::place::pick_open;
 
 // Shoe box: 5% chance per level. A two-piece chipboard box a pair of
 // men's shoes came in, its lid on or (35%) off and lying beside it, tissue
-// paper left crumpled in it (Blender batch r14a: the doubled walls, a
+// paper left crumpled in it (Blender family `things_worn_and_dropped`: the doubled walls, a
 // corner of the lid trodden in, its end label, the lid's print).
 pub(crate) fn place_shoe_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
@@ -55,7 +55,7 @@ pub(crate) fn place_shoe_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bx);
 }
 
-/// The part `name` of batch r14a, as modelled, added to `grp` in `mat`.
+/// The part `name` of family `things_worn_and_dropped`, as modelled, added to `grp` in `mat`.
 fn box_add(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = game::assets::props::prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

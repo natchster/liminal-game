@@ -10,7 +10,7 @@ use placers_kit::place::scatter_xz_turned;
 use placers_kit::place::vary as t04_vary;
 
 // Spray bottle: 8% chance per level. A 16 oz HDPE cylinder round of
-// cleaner with a 28/400 trigger sprayer (Blender batch `t04`): the natural
+// cleaner with a 28/400 trigger sprayer (Blender family `washroom_fittings`): the natural
 // plastic gone yellow, the liquid left in it seen through it (the old four:
 // a green all-purpose cleaner, a blue glass cleaner, a yellow degreaser, a
 // red bathroom cleaner), its printed label (an invented janitorial supplier)

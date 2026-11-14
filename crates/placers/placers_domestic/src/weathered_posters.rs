@@ -5,7 +5,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::wall_plates::part as real_part;
 
 // Weathered posters: 0-2 per level on random walls at eye level
-// (1.2-1.9 m) (Blender batch `r06`): what offices and halls put up (a safety
+// (1.2-1.9 m) (Blender family `wall_hole_pipe_run_posters_and_hooks`): what offices and halls put up (a safety
 // poster, a dance's bill, a bake sale, a recycling notice, flyers with their
 // tear-off tabs), printed as real ones are, sun-faded and foxed, taped at
 // the corners, one corner curled off the wall and one torn away under its

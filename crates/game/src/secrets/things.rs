@@ -301,7 +301,7 @@ fn medicine_bottle() -> Obj {
 
 /// A tweed flat cap, worn, hung on its coat hook by the inside of its
 /// crown: its opening to the wall, the crown out, the peak hanging at its
-/// foot (Blender batch `r09`: modelled as it hangs, in the frame the hook's
+/// foot (Blender family `crate_sash_umbrella_and_things_put_away`: modelled as it hangs, in the frame the hook's
 /// pose turns, `dress.rs`). Brown herringbone with flecks of colour in it,
 /// rubbed and faded at the roll
 fn tweed_cap() -> Obj {
@@ -353,7 +353,7 @@ fn tweed_cap() -> Obj {
 }
 
 /// A foreign coin of brass, 22 mm, a hole through it, worn smooth, lying
-/// on the loop of string through its hole, knotted (Blender batch `r09`)
+/// on the loop of string through its hole, knotted (Blender family `crate_sash_umbrella_and_things_put_away`)
 fn holed_coin() -> Obj {
     let g = group();
     let parts: [(&str, Mat); 2] = [
@@ -389,7 +389,7 @@ fn yellow_water() -> Obj {
 /// A red envelope, a hongbao (9 by 17 cm), lying on a floor: its gold
 /// print (a border and the character for luck) rubbed, the red faded and
 /// dusty, creased; a lock of dark hair caught at its flap, out over its end
-/// onto the floor (Blender batch `r09`)
+/// onto the floor (Blender family `crate_sash_umbrella_and_things_put_away`)
 fn red_envelope() -> Obj {
     let tex = canvas_tex_opt(256, 128, false, |ctx, w, h| {
         // the paper, red gone dull, faded in streaks where light fell on it

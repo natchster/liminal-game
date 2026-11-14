@@ -1,4 +1,4 @@
-"""r09: the props remodelled at their real sizes (docs/design/PROPS.md, P1): the
+"""crate_sash_umbrella_and_things_put_away (was r09): the props remodelled at their real sizes (docs/design/PROPS.md, P1): the
 wooden crate, the broken window sash, the umbrella, and the things put away
 (docs/design/SECRETS.md 5). Sources and sizes: docs/research/props-remodelling/crate_sash_umbrella_and_things_put_away.md.
 

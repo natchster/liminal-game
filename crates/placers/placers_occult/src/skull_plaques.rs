@@ -14,7 +14,7 @@ use placers_kit::place::wall_candidates;
 // skull, boiled and bleached (the European mount: the whole skull bar the
 // jaw, its palate to the board, its nose down, its frontal to the room)
 // on a carved oak shield or an oval board (the old plaque's shape draw); a
-// buck's with its pedicles and the antlers they carried (batch `t11`'s),
+// buck's with its pedicles and the antlers they carried (family `lodge_trophies_and_parlour_ornaments`'s),
 // or a doe's (the old fox and raven); a small brass plate under it. The
 // bone ivory (the old bone colour's pick), yellowed toward the occiput and
 // the antlers' sap, grimed in its sutures and pits, dust on all of it.
@@ -70,12 +70,12 @@ pub(crate) fn place_skull_plaques(g: &mut Game, _dist: &[i32]) {
 
 /// The burrs' bases on the skull plaque (`victorian/things_on_a_wall_and_one_box.py` `SP_O`), and the antlers'
 /// turn about x there: the skull's (its frontal to the room, 90 degrees)
-/// less the antlers' lean off the frontal (52 degrees), as batch `t11`'s
+/// less the antlers' lean off the frontal (52 degrees), as family `lodge_trophies_and_parlour_ornaments`'s
 const SKULL_ANTLERS: [f64; 3] = [0.0, 0.072, 0.0883];
 
 const SKULL_ANTLER_TURN: f64 = 0.663_225;
 
-/// Oak under an old stain and varnish (batch `t11`'s): the grain's lines,
+/// Oak under an old stain and varnish (family `lodge_trophies_and_parlour_ornaments`'s): the grain's lines,
 /// the rays' pale flecks across them, the stain uneven, paler where hands
 /// rubbed the edges, the varnish crazed, dust in the pores
 fn oak_tex(salt: u32, base: [f64; 3]) -> Tex {
@@ -137,7 +137,7 @@ fn skull_bone_tex(salt: u32, base: [f64; 3], buck: bool) -> Tex {
     })
 }
 
-/// A roe's antler (v up the beam; batch `t11`'s): the burr and the pearls
+/// A roe's antler (v up the beam; family `lodge_trophies_and_parlour_ornaments`'s): the burr and the pearls
 /// dark with old sap, their crowns rubbed paler, the gutters darker
 fn antler_tex(salt: u32) -> Tex {
     canvas_tex_opt(64, 128, false, move |ctx, w, h| {

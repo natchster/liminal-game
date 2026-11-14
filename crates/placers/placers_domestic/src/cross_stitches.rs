@@ -1,5 +1,6 @@
 //! `place_cross_stitches`
 use game::prelude::*;
+use placers_kit::mirror_frame::blob;
 use placers_kit::noise::hash;
 use placers_kit::noise::vn;
 use placers_kit::place::face_wall;
@@ -8,7 +9,7 @@ use placers_kit::place::vary as sp_vary;
 use placers_kit::place::wall_tiles;
 
 // Framed cross-stitch: 4% chance per level. An alphabet sampler on
-// linen, framed (batch r13a).
+// linen, framed (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -18,7 +19,7 @@ pub(crate) fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z, dx, dz) = pick(&walls);
-    // An alphabet sampler (Blender batch `r13a`): cotton cross stitches on
+    // An alphabet sampler (Blender family `six_things_hung_on_a_wall`): cotton cross stitches on
     // linen, 14 to the inch, stretched and framed in a 30 mm oak scoop
     // moulding, 22 x 28 cm; its border, the alphabet, the numerals, a house
     // between two trees, a motto, the maker's initials and the year; the
@@ -310,23 +311,6 @@ fn sampler_tex(vary: u32) -> Tex {
     })
 }
 
-/// A soft blob, squashed whole (`k`) and turned, so its fade is never cut
-fn sp_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(turn);
-    ctx.scale(1.0, k);
-    let g = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
-    for (at, c) in stops {
-        g.add_color_stop(*at, c);
-    }
-    ctx.set_fill_style(&g);
-    ctx.begin_path();
-    ctx.arc(0, 0, r, 0, 7);
-    ctx.fill();
-    ctx.restore();
-}
-
 /// A moulded frame's wood as its front is mapped (the frame's bounds, `w` x
 /// `h` m, its rails `mould` m wide, `ppm` px a metre): each rail's grain
 /// along it, mitred at the corners, the joints opened a hair; stained `base`
@@ -456,7 +440,7 @@ fn sp_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm: f64) 
                 };
                 if rnd() < 0.5 {
                     let stops = [(0.0, "rgba(214,182,140,0.45)".to_string()), (1.0, "rgba(214,182,140,0)".into())];
-                    sp_blob(ctx, x, y, 0.8 + rnd() * 2.2, 0.5 + 0.5 * rnd(), rnd() * 3.0, &stops);
+                    blob(ctx, x, y, 0.8 + rnd() * 2.2, 0.5 + 0.5 * rnd(), rnd() * 3.0, &stops);
                 } else {
                     let a = rnd() * 6.3;
                     let l = 3.0 + rnd() * 12.0;
@@ -476,7 +460,7 @@ fn sp_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm: f64) 
             ctx.fill_rect(m * 0.4, 0, cw - m * 0.8, m);
             for x in [m * 0.6, cw - m * 0.6] {
                 let stops = [(0.0, "rgba(28,20,14,0.22)".to_string()), (1.0, "rgba(28,20,14,0)".into())];
-                sp_blob(ctx, x, ch * (0.55 + 0.2 * rnd()), m * 1.4, 0.6, PI / 2.0, &stops);
+                blob(ctx, x, ch * (0.55 + 0.2 * rnd()), m * 1.4, 0.6, PI / 2.0, &stops);
             }
         })
     })

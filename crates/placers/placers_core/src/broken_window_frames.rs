@@ -4,7 +4,7 @@ use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Broken window frame: 15% chance per level. The lower sash of an old
-// timber double-hung window (Blender batch `r09`), taken out and left
+// timber double-hung window (Blender family `crate_sash_umbrella_and_things_put_away`), taken out and left
 // leaning on a wall, two over two lights: its white paint gone cream and
 // peeling to the grey wood, the putty cracked, a few shards of its glass
 // still in the putty, the stub of its cord; the rest of the glass on the

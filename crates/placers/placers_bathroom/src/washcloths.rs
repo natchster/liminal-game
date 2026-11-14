@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 
 // Dropped washcloth: 8% chance per level.
 pub(crate) fn place_washcloths(g: &mut Game, _dist: &[i32]) {
-    // A cotton terry washcloth (batch `r18`), dropped: folded over on itself,
+    // A cotton terry washcloth (family `washroom_janitor_classroom_and_plant`), dropped: folded over on itself,
     // its corner curled up off it, lying limp; the pile, the flat-woven band
     // and the hem; gone grey with dirt, spotted with mildew, a stain dried
     // in it (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)

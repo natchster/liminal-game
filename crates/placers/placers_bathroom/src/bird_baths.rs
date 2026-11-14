@@ -25,7 +25,7 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = pick(&open);
-    // A small cast concrete pedestal bird bath (Blender batch `t06`), long
+    // A small cast concrete pedestal bird bath (Blender family `garden_things`), long
     // dry: lichen and black algae on it, its basin crusted, tide lines where
     // the water stood and fell, a last puddle of dark still water, dead
     // leaves blown in (`t05`'s beech and oak) in it and at its foot
@@ -180,7 +180,7 @@ fn bowl_tex(salt: u32) -> Tex {
 }
 
 // ============================================================ dead leaves
-/// Batch `t05`'s dead leaves (`nature/bits_of_the_outside_indoors.py` LEAVES; `placers_nature`'s `leaf_litter.rs`
+/// Family `bits_of_the_outside_indoors`'s dead leaves (`nature/bits_of_the_outside_indoors.py` LEAVES; `placers_nature`'s `leaf_litter.rs`
 /// paints them so, and its painter is copied here): the part, the blade's
 /// length, its envelope's half width, oak or beech
 const LEAVES: [(&str, f64, f64, bool); 5] = [

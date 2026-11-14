@@ -4,7 +4,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::shuffle;
 
 // Discarded scrap papers: 1-3 sheets of office paper per level, balled up
-// and thrown away or smoothed out again and dropped (Blender batch r08: a
+// and thrown away or smoothed out again and dropped (Blender family `everyday_litter`: a
 // sheet of A4 balled tight, one crumpled loosely, one flattened out; printed).
 pub(crate) fn place_scrap_papers(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;

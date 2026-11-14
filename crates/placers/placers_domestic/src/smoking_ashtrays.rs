@@ -7,7 +7,7 @@ use placers_kit::paint::fill;
 use placers_kit::place::salt;
 
 // Smoking ashtray: 5% chance per level. A round pressed-glass ashtray
-// on the floor (batch `t07`: the Libbey 5156 kind, 108 mm, four rests), ash
+// on the floor (family `kitchen_hall_and_floor_things`: the Libbey 5156 kind, 108 mm, four rests), ash
 // and three butts in it, and a cigarette left burning in a rest, its ash
 // grown long, a thread of smoke going up from it.
 pub(crate) fn place_smoking_ashtrays(g: &mut Game, _dist: &[i32]) {
@@ -92,7 +92,7 @@ pub(crate) fn place_smoking_ashtrays(g: &mut Game, _dist: &[i32]) {
     g.world.add(&a);
 }
 
-/// The burning cigarette in its rest (as batch `t07` models it: the rest
+/// The burning cigarette in its rest (as family `kitchen_hall_and_floor_things` models it: the rest
 /// at 45 degrees, the cigarette tipped 10.6 degrees down to the ash)
 const CIG_AZ: f64 = PI / 4.0;
 

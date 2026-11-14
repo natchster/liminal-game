@@ -5,7 +5,7 @@ use placers_kit::place::scatter;
 use placers_kit::place::seed_of;
 
 // Keychain w/ keys: 8% chance per level. A bunch of 3-5 keys on a
-// 25 mm split ring, dropped (Blender batch r14b): house keys of the KW1 and
+// 25 mm split ring, dropped (Blender family `small_things_dropped_or_left`): house keys of the KW1 and
 // SC1 kinds, a padlock key, a small cabinet key, each cut brass, some
 // nickel-plated, lying fanned over one another, their bows bunched on the
 // ring; a metal-rimmed paper tag on it, written on once.

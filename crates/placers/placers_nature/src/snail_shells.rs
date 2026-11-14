@@ -30,7 +30,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Snail shell: 5% chance per level. An empty snail's shell (Blender
-// batch `t05`): a garden snail's, 4.5 whorls, its bands following them, its
+// family `bits_of_the_outside_indoors`): a garden snail's, 4.5 whorls, its bands following them, its
 // white lip turned back, or a grove snail's; lying on its aperture or on its
 // side.
 pub(crate) fn place_snail_shells(g: &mut Game, _dist: &[i32]) {

@@ -13,7 +13,7 @@ use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_tiles;
 
 // Fireplace: 2.5% chance per level. A Victorian bedroom fireplace
-// against the wall (Blender batch `t10`): a painted pine mantelpiece on its
+// against the wall (Blender family `parlour_and_office_big_things`): a painted pine mantelpiece on its
 // plinths, its corbels, frieze and shelf, the paint gone yellow and chipped
 // through its coats to the wood; a cast-iron arched register insert, its
 // black-lead gone dull and rusting, its canopy, basket and fret; the

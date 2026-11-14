@@ -1,11 +1,11 @@
-//! `place_tissue_boxes`: Tissue box: 12% chance per level. A flat box of facial tissues (Blender batch r15, the 160-sheet carton at its real size, 225 x 121 x 88 mm): its printed board, the oval torn out along its perforation, a top corner trodden down, the last tissue drawn up gone limp over the top, all of it dusty. The old draws are kept call for call.
+//! `place_tissue_boxes`: Tissue box: 12% chance per level. A flat box of facial tissues (Blender family `paper_and_small_things_on_office_floors`, the 160-sheet carton at its real size, 225 x 121 x 88 mm): its printed board, the oval torn out along its perforation, a top corner trodden down, the last tissue drawn up gone limp over the top, all of it dusty. The old draws are kept call for call.
 use game::prelude::*;
 use placers_kit::paint::rgba;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Tissue box: 12% chance per level. A flat box of facial tissues
-/// (Blender batch r15, the 160-sheet carton at its real size, 225 x 121 x
+/// (Blender family `paper_and_small_things_on_office_floors`, the 160-sheet carton at its real size, 225 x 121 x
 /// 88 mm): its printed board, the oval torn out along its perforation, a
 /// top corner trodden down, the last tissue drawn up gone limp over the
 /// top, all of it dusty. The old draws are kept call for call.

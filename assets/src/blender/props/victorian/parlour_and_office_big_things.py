@@ -1,4 +1,4 @@
-"""t10: the rare big things of the parlour and the office (Props P3,
+"""parlour_and_office_big_things (was t10): the rare big things of the parlour and the office (Props P3,
 docs/design/PROPS.md): a hanging bookshelf, a steel locker, a stack of 45s, a
 fireplace, a carved cuckoo clock, a giltwood wall mirror and a brandy
 snifter on its coaster. Sources and sizes: docs/research/props-remodelling/parlour_and_office_big_things.md.

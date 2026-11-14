@@ -6,10 +6,11 @@
 //! again once its animators have run and what it made usable has been used.
 //! No id is hashed (ids count what was made before), so a print is the
 //! placer's alone: its sound anchors, its materials' shader uniforms and how
-//! many draws it took from the level's stream are in it too. Each placer's
-//! first placement is printed again on a fresh thread, which must give the
-//! same (a level comes out the same whatever was built before it), and no
-//! placement may draw from the per-frame stream.
+//! many draws it took from the level's stream are in it too. Each placement
+//! starts as a level does (`kit::level_begins`) and is printed again on a
+//! fresh thread, which must give the same (a level comes out the same
+//! whatever was built before it), and no placement may draw from the
+//! per-frame stream.
 //!
 //! The prints are recorded in `tests/fixtures/fingerprints.tsv`. Moving a
 //! placer's code (another module, crate or theme), sharing a helper, or
@@ -268,8 +269,18 @@ fn print(g: &mut Game, from: (usize, usize, usize)) -> u64 {
         h.str(&i.prompt);
     }
     h.u64((g.animators.len() - from.2) as u64);
-    // where its sounds come from (the places it adds a hum, a tick, a whirr)
+    // where its sounds come from (the places it adds a hum, a tick, a whirr),
+    // and the gameplay it sets up (the switch and the far lamp it lights)
     h.str(&format!("{:?}", g.pp));
+    if let Some(r) = &g.gameplay_r1_state {
+        for v in [r.switch_x, r.switch_z, r.target_x, r.target_z] {
+            h.f64(v);
+        }
+        h.str(&format!("{:?}{:?}{}", r.switch_tile, r.target_tile, r.on));
+        // its button's two looks (the nodes are hashed with the world)
+        material(&mut h, &r.btn_on, &mut seen);
+        material(&mut h, &r.btn_off, &mut seen);
+    }
     h.bytes(&g.tiles);
     h.str(&format!("{:?}", g.solids));
     h.0
@@ -284,7 +295,7 @@ const PRINTS: usize = 4;
 /// must be none: a level is built from its own stream alone.
 fn run_once(name: &'static str, f: PlacerFn, k: u32) -> (Option<(u64, u64)>, u64) {
     let (mut g, dist) = Game::test_level(k * 7919 + 13, 21 + (k as i32 % 3) * 8);
-    game::placers::kit::restart_texture_streams();
+    game::placers::kit::level_begins();
     // what runs after the build (animators, a thing used) draws from the
     // native stream, which starts from the clock unless seeded
     game::base::rng::seed_native(u64::from(k));
@@ -320,7 +331,7 @@ struct Prints {
     text: String,
     /// placers whose placement drew from the native stream
     native: Vec<&'static str>,
-    /// placers whose first print differs when run on a fresh thread: what they
+    /// placements whose print differs when run on a fresh thread: what they
     /// make depends on what the thread made before (a cache, a counter)
     history: Vec<String>,
 }
@@ -339,12 +350,13 @@ fn prints() -> Prints {
             }
             let Some((a, b)) = got else { continue };
             let _ = writeln!(out.text, "{name}\t{k}\t{a:016x}\t{b:016x}");
-            if found == 0 {
-                // the same run on a thread that has made nothing yet
-                let fresh = std::thread::spawn(move || run_once(name, f, k).0).join().unwrap();
-                if fresh != Some((a, b)) {
-                    out.history.push(format!("{name} (level {k})"));
-                }
+            // the same run on a thread that has made nothing yet
+            let (fresh, fresh_native) = std::thread::spawn(move || run_once(name, f, k)).join().unwrap();
+            if fresh != Some((a, b)) {
+                out.history.push(format!("{name} (level {k})"));
+            }
+            if fresh_native > 0 && !out.native.contains(&name) {
+                out.native.push(name);
             }
             found += 1;
             if found == PRINTS {

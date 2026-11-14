@@ -1,5 +1,5 @@
 //! The plants: the potted plants of a planted zone and its office
-//! Dracaena (batch `r05`), its leaves, planter and soil painted.
+//! Dracaena (family `washroom_mirror_cobwebs_and_office_plant`), its leaves, planter and soil painted.
 use super::*;
 
 /// A curved leaf (a flat shape geometry
@@ -127,7 +127,7 @@ pub fn build_potted_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(pp, 0.7)
 }
 
-/// Large floor plant: a neglected office dracaena (Blender batch `r05`)
+/// Large floor plant: a neglected office dracaena (Blender family `washroom_mirror_cobwebs_and_office_plant`)
 pub fn build_floor_plant(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
     // A Dracaena fragrans on three staggered canes in a 16 in moulded plastic

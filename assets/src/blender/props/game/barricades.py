@@ -1,4 +1,4 @@
-"""x01: the barricades (docs/design/PROPS.md 2; docs/research/barricades.md), the
+"""barricades (was x01): the barricades (docs/design/PROPS.md 2; docs/research/barricades.md), the
 pieces they are built of at their real sizes.
 
 No map file: the game builds each barricade from these parts by name

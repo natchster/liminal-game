@@ -1,4 +1,4 @@
-"""r12: the things screwed to a wall that a building's services leave there
+"""what_services_screw_to_walls (was r12): the things screwed to a wall that a building's services leave there
 (docs/design/PROPS.md, P2), remodelled at their real sizes: the office wall phone,
 the payphone, the emergency phone, the lift's button panel, the fire alarm
 pull station's lamp, the fire extinguisher cabinet and its extinguisher, and
@@ -79,7 +79,7 @@ fuseBoxDoor          the door, in its own frame: its hinge along y at the origin
 fuseBoxScrews        the cover's four screws
 
 fireAlarmPullLed     an addressable pull station's LED in its bezel, its back
-                     at z = 0 (the station's parts are batch r06's)
+                     at z = 0 (the station's parts are family `wall_hole_pipe_run_posters_and_hooks`'s)
 """
 from propkit import *
 import propkit

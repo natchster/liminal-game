@@ -1,11 +1,11 @@
-//! `place_small_ribbons`: Curled gift ribbon: 10% chance per level. Curling ribbon cut from round a present (Blender batch r14b: 3/16 in polypropylene, crimped and glossy): the knot with four tails rolled in ringlets, or a single cut length curled at its ends; faded, trodden flat in places.
+//! `place_small_ribbons`: Curled gift ribbon: 10% chance per level. Curling ribbon cut from round a present (Blender family `small_things_dropped_or_left`: 3/16 in polypropylene, crimped and glossy): the knot with four tails rolled in ringlets, or a single cut length curled at its ends; faded, trodden flat in places.
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::seed_of;
 
 /// Curled gift ribbon: 10% chance per level. Curling ribbon cut from
-/// round a present (Blender batch r14b: 3/16 in polypropylene, crimped and
+/// round a present (Blender family `small_things_dropped_or_left`: 3/16 in polypropylene, crimped and
 /// glossy): the knot with four tails rolled in ringlets, or a single cut
 /// length curled at its ends; faded, trodden flat in places.
 pub(crate) fn place_small_ribbons(g: &mut Game, _dist: &[i32]) {

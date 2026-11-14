@@ -1,11 +1,11 @@
-//! The stack of books (batch `r02`): cloth hardbacks and a paperback,
+//! The stack of books (family `book_stack_suitcase_coat_stand_and_pile`): cloth hardbacks and a paperback,
 //! each stack its own painted atlas of covers, spines and page edges.
 use super::*;
 
 /// A stack of old books, hardbacks and paperbacks, laid askew
 pub fn build_book_stack(g: &mut Game, cx: &mut PropsCtx) -> Built {
     let _ = (g, cx);
-    // each book modelled in the batch `r02` at its real size (cloth
+    // each book modelled in the family `book_stack_suitcase_coat_stand_and_pile` at its real size (cloth
     // hardbacks of three sizes, their boards over the page block, their
     // spines rounded; a trade paperback), its covers, spine and pages
     // painted in one atlas for the stack (docs/design/PROPS.md)

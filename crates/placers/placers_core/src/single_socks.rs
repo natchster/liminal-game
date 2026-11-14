@@ -5,7 +5,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Single sock: 10% chance per level: a crew sock lost and lying limp on
-// the floor, grey with dirt (Blender batch r08: the knit body, its heel and
+// the floor, grey with dirt (Blender family `everyday_litter`: the knit body, its heel and
 // toe, the two bands knitted round a sports sock's cuff).
 pub(crate) fn place_single_socks(g: &mut Game, _dist: &[i32]) {
     use game::assets::props::prop_part_as_modelled;

@@ -11,7 +11,7 @@ use placers_kit::place::ri;
 use placers_kit::place::vary as t10_vary;
 
 // Brandy snifter + coaster (floor): 4% chance per level. A 5.5 oz
-// brandy snifter (Blender batch `t10`, the Libbey Embassy class) with a
+// brandy snifter (Blender family `parlour_and_office_big_things`, the Libbey Embassy class) with a
 // pour of brandy still in it, trembling, on a coaster (turned wood, cork,
 // stitched leather or dark wood) ringed by years of wet glasses; ash
 // flicked on its edge, now and then a small whisky glass beside it, dried.

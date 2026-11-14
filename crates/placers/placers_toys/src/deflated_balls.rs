@@ -1,4 +1,4 @@
-//! `place_deflated_balls`: Deflated ball: 7% chance per level. A ball gone soft (Blender batch `t16`): half the time a size 3 football (19 cm; 32 machine-stitched PVC panels, the black pentagons and white hexagons puffed between their seams), else a size 3 rubber basketball (17.8 cm; pebbled, its eight panels parted by black channels). It sags on the floor, its bottom spread flat, its top caved in to a dish with creases from the fold. The white yellowed, the orange gone brown, scuffed, grimed (more for one that lay longer: the old patch count).
+//! `place_deflated_balls`: Deflated ball: 7% chance per level. A ball gone soft (Blender family `a_play_areas_toys`): half the time a size 3 football (19 cm; 32 machine-stitched PVC panels, the black pentagons and white hexagons puffed between their seams), else a size 3 rubber basketball (17.8 cm; pebbled, its eight panels parted by black channels). It sags on the floor, its bottom spread flat, its top caved in to a dish with creases from the fold. The white yellowed, the orange gone brown, scuffed, grimed (more for one that lay longer: the old patch count).
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -77,7 +77,7 @@ fn pebble_tex(salt: u32, grime: f64) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

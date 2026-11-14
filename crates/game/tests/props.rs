@@ -87,7 +87,7 @@ fn props_match_reference() {
     assert_eq!(st.tris.to_string(), rec["tris"]);
 
     // every recorded part, fitted to its own frame (after the cases, cache
-    // kept), as they were recorded; parts made since (batch v01 on) are
+    // kept), as they were recorded; parts made since (family `vending_machine` on) are
     // held by `asset_lint` and its parts table
     let n = r.u32() as usize;
     assert!(n <= prop_part_names().len(), "PROP_PART_NAMES length");

@@ -1,4 +1,4 @@
-"""t14: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+"""soft_toys_and_dolls (was t14): the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): a play area's soft toys and its dolls, as found: a jointed mohair
 teddy bear, a plush teddy slumped where it was left, a plush teddy's arm
 torn off at its seam, a bean-bag elephant, a small hard-plastic doll, a
@@ -10,7 +10,7 @@ modelled (a scale of one, `prop_part_as_modelled`). Every part is modelled
 in its prop's own frame (x across its front, y up from the floor, z out of
 its front) unless its section says otherwise.
 
-The doll's head, its sleep eyes and their lids are batch r03's (the baby
+The doll's head, its sleep eyes and their lids are family `rubber_duck_baby_doll_and_hole`'s (the baby
 doll): its sculpt is read from game/rubber_duck_baby_doll_and_hole.py (the code before its parts), never
 built twice; the small doll is a smaller doll of the same mould.
 """
@@ -1173,7 +1173,7 @@ auto('Real__elephantTag', el_tag, 100, smooth=40)
 # neck, shoulders and hips; sleep eyes with painted lashes under them; a
 # synthetic wig glued on, cut in a bob with a fringe; a cotton dress with
 # puffed sleeves and a gathered skirt, white socks, oilcloth shoes. Its
-# head is batch r03's baby's sculpt (the same mould, a smaller size; its
+# head is family `rubber_duck_baby_doll_and_hole`'s baby's sculpt (the same mould, a smaller size; its
 # mouth closed), its body a toddler's. Found as it was dropped: on its
 # back (A), or on its front with its head turned onto its cheek (B).
 #

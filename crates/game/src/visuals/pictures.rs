@@ -55,7 +55,7 @@ pub const CELLS: [(&str, [u32; 4]); 39] = [
     ("land_road", [0, 1120, 400, 320]),
     ("still_peaches", [400, 1120, 400, 320]),
     ("still_dark", [800, 1120, 400, 320]),
-    // the maps, plates, prints and the triptych (batch t02)
+    // the maps, plates, prints and the triptych (family `maps_charts_prints_and_posters`)
     ("map_world", [0, 1440, 480, 400]),
     ("map_dvina", [480, 1440, 480, 400]),
     ("map_sky", [960, 1440, 480, 400]),
@@ -73,7 +73,7 @@ pub const CELLS: [(&str, [u32; 4]); 39] = [
     ("map_paris", [0, 2640, 398, 300]),
     ("map_trier", [398, 2640, 398, 300]),
     ("map_antwerp", [796, 2640, 456, 296]),
-    // two cards of the Rider tarot (1910, public domain; batch t18)
+    // two cards of the Rider tarot (1910, public domain; family `shrine_and_seance_things`)
     ("tarot_death", [1200, 1120, 186, 320]),
     ("tarot_moon", [1386, 1120, 186, 320]),
 ];

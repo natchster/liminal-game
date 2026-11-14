@@ -6,7 +6,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Crumpled receipt: 10% chance per level. A till receipt (80 mm
-// thermal paper) balled in a hand and dropped: batch r08's balled sheet
+// thermal paper) balled in a hand and dropped: family `everyday_litter`'s balled sheet
 // (`place_scrap_papers`), the size a strip of receipt makes of it, its
 // thermal print gone brown and faded. The old draws are kept call for call.
 pub(crate) fn place_crumpled_receipts(g: &mut Game, _dist: &[i32]) {

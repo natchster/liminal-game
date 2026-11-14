@@ -1,4 +1,4 @@
-"""t05: bits of the outside indoors, remodelled at their real sizes
+"""bits_of_the_outside_indoors (was t05): bits of the outside indoors, remodelled at their real sizes
 (docs/design/PROPS.md P3): oak twiglets shed by the tree, a robin's nest fallen
 with its eggs, dead beech and oak leaves blown in, moss cushions on a damp
 floor, a tuft of annual meadow grass, a butterfly's wing left where a mouse

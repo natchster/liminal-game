@@ -1,6 +1,7 @@
 //! `place_crayon_graffiti`: Crayon drawing on a wall: 5% chance per level. A small child's drawing in wax crayon (a stick of 8 mm: strokes 5-8 mm wide, broader where its side filled a shape), low on the wall where the child could reach: the ground scribbled green, a sun in a corner, the family holding hands, a house or a tree, flowers; never words, never a sign. The wax caught on the wall's tooth (its pits show through), streaked along each stroke, dusty; sometimes half scrubbed off. Each drawing its own, by where it is.
 use game::prelude::*;
 use placers_kit::noise::hash;
+use placers_kit::noise::vn;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
 
@@ -523,14 +524,4 @@ fn crayon_tex(salt: u32) -> Tex {
         });
         ctx.put_image_data(&img, 0, 0);
     })
-}
-
-fn vn(seed: u32, x: f64, y: f64) -> f64 {
-    let (xf, yf) = (x.floor(), y.floor());
-    let (i, j) = (xf as i32, yf as i32);
-    let (u, v) = (x - xf, y - yf);
-    let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
-    let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
-    a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
 }

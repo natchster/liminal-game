@@ -1,4 +1,4 @@
-"""Batch b02 - "core" theme: wall fixtures, ceiling fixtures and litter.
+"""Family `wall_and_ceiling_fixtures` - "core" theme: wall fixtures, ceiling fixtures and litter.
 
 place_emergency_strobes      strobe mounting base (the red dome is transparent)
 place_emergency_phones       red phone housing, handset grip, ear/mouth cups

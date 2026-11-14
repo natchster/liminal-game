@@ -11,7 +11,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 // Perfume bottle: 5% chance per level. A 30 ml rectangular flacon
-// (Blender batch `t03`): heavy-bottomed glass, the scent left in it gone
+// (Blender family `washroom_shelf_and_dressing_table`): heavy-bottomed glass, the scent left in it gone
 // darker and down to a fifth, a half or three quarters (a dried ring where it
 // stood higher), its dip tube; a crimped spray pump and the square overcap on
 // it, or off and lying by it; or (the old 40% bulb) a refill fitted with an

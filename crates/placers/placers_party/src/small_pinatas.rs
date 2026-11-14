@@ -1,4 +1,4 @@
-//! `place_small_pinatas`: Small piñata: 5% chance per level. A small star piñata (Blender batch `t12`): a papier-mâché ball and seven card cones under rows of fringed tissue, tissue streamers at the tips, hung by its cotton cord from a cup hook in the ceiling; split open on one side where it was hit (empty, its torn edge of newsprint, the dark inside), a cone crushed; the tissue faded, the fringe lifted and torn. It turns, barely, on its cord.
+//! `place_small_pinatas`: Small piñata: 5% chance per level. A small star piñata (Blender family `what_a_party_room_leaves`): a papier-mâché ball and seven card cones under rows of fringed tissue, tissue streamers at the tips, hung by its cotton cord from a cup hook in the ceiling; split open on one side where it was hit (empty, its torn edge of newsprint, the dark inside), a cone crushed; the tissue faded, the fringe lifted and torn. It turns, barely, on its cord.
 use crate::shared::TISSUE;
 use game::prelude::*;
 use placers_kit::geometry::put;
@@ -6,7 +6,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Small piñata: 5% chance per level. A small star piñata (Blender
-/// batch `t12`): a papier-mâché ball and seven card cones under rows of
+/// family `what_a_party_room_leaves`): a papier-mâché ball and seven card cones under rows of
 /// fringed tissue, tissue streamers at the tips, hung by its cotton cord
 /// from a cup hook in the ceiling; split open on one side where it was hit
 /// (empty, its torn edge of newsprint, the dark inside), a cone crushed;

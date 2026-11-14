@@ -63,7 +63,7 @@ pub(crate) fn place_small_pumpkins(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pumpkin);
 }
 
-/// The tea light in the pumpkin (batch `t08`): its wick's tip
+/// The tea light in the pumpkin (family `halloween_things`): its wick's tip
 const PK_WICK: (f64, f64, f64) = (0.0032, 0.0095 + 0.0105, 0.004);
 
 /// A carved pumpkin's skin gone soft (laid round it: u round, v from its

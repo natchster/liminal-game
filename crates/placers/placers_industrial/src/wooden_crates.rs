@@ -4,7 +4,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 
 // Wooden crate: 15% chance per level. A nailed slatted crate of rough
-// sawn pine gone grey (Blender batch `r09`): its boards with gaps between
+// sawn pine gone grey (Blender family `crate_sash_umbrella_and_things_put_away`): its boards with gaps between
 // them nailed to corner posts, a slatted lid, wood wool packed inside;
 // stencilled on its long sides. Now and then a board stove in, splinters and
 // wood wool on the floor by it; a smaller crate stacked on it.

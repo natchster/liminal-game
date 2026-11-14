@@ -22,11 +22,16 @@ paths:
   the per-frame one. So moving a painter's code repaints its textures, and
   so does handing a fn over in place of its closure (`|c, w, h| paint(c,
   w, h)` → `paint`, as clippy's `redundant_closure` would): the placers'
-  fingerprints say which; keep the closure, or re-record with the reason. Never key a
-  stream by anything shared between painters (a placer's name): a cached
-  texture paints once a thread, and the others would count after it, so a
-  level's pixels would hang on what was built before (the fingerprints run
-  each placer on a fresh thread too, and fail on that). Never draw on a canvas from two threads at once (CoreGraphics
+  fingerprints say which; keep the closure, or re-record with the reason.
+  The name is coarse: the closures written in one fn share it and its
+  count, and so do placers painting through one shared helper (fixed by
+  the build's order, so a level repeats, but one placer's paints move
+  another's pixels); and `type_name` is not promised to stay the same from
+  one compiler to the next (queued: explicit painter keys). Never key a
+  stream by something a cache hides (a placer's name, as O3b did): a cached
+  texture paints once a thread, and a level's pixels would hang on what was
+  built before (the fingerprints start each placement as a level does,
+  `kit::level_begins`, and run it on a fresh thread too, and fail on that). Never draw on a canvas from two threads at once (CoreGraphics
   rasterizes differently then); a pure per-pixel loop may use `par_rows`. The Building's surfaces
   are photographs (`visuals/photo.rs`, built by `assets/src/textures/`) and
   draw nothing; a new one comes from a CC0 photograph listed in

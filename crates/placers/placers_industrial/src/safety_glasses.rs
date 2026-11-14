@@ -6,7 +6,7 @@ use placers_kit::place::scatter;
 use placers_kit::place::seed_of;
 
 // Safety glasses: 8% chance per level. A pair of clear wraparound
-// safety spectacles (Blender batch r14b: 125 mm across, one polycarbonate
+// safety spectacles (Blender family `small_things_dropped_or_left`: 125 mm across, one polycarbonate
 // lens with its side shields and nose notch, nylon temples 132 mm), put down
 // open on the lens's foot and the temples' tips, or folded and lying on
 // their back; the lens scratched and hazed, a thumb's smear on it.

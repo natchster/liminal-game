@@ -23,7 +23,7 @@ pub(crate) fn place_garden_gnomes(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick(&open);
     // A 12 in garden gnome of painted cast concrete standing on his rock
-    // (Blender batch `t06`), the paint faded, chipped to the grey at every
+    // (Blender family `garden_things`), the paint faded, chipped to the grey at every
     // edge, grimy at his foot. The old draw of his coat's colour chooses it:
     // a faded blue, a green, a brick red, a brown
     let body_colors: [u32; 4] = [0x2060a0, 0x408040, 0xa04040, 0x604020];

@@ -5,7 +5,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 // Nail polish bottle: 8% chance per level. A 13.5 ml bottle of nail
-// polish (batch `r18`'s parts): heavy-bottomed square glass, a white screw cap
+// polish (family `washroom_janitor_classroom_and_plant`'s parts): heavy-bottomed square glass, a white screw cap
 // with its brush, the lacquer dried down in it (pooled along its side when it
 // fell over wet), a dried drip down the glass; no maker's name. The old
 // colour draw picks the lacquer, dried dark.

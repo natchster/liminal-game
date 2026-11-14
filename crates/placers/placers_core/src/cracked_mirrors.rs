@@ -7,7 +7,7 @@ use placers_kit::place::vary as cm_vary;
 use placers_kit::place::wall_candidates;
 
 // Cracked wall mirror: 4% chance per level. A small mirror in a wooden
-// frame, struck and cracked (batch r13a).
+// frame, struck and cracked (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_cracked_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;

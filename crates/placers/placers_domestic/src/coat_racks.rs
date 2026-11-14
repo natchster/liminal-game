@@ -12,7 +12,7 @@ use placers_kit::place::wall_tiles;
 
 // Wall coat rack w/ 2-3 hanging coats: 3% chance per level. A 24 in
 // board of stained hardwood screwed to the wall, five cast brass hooks on
-// it (batch `t07`), two or three wool overcoats hung by their loops (r06's,
+// it (family `kitchen_hall_and_floor_things`), two or three wool overcoats hung by their loops (r06's,
 // one over the next where the hooks are close), now and then a knitted
 // scarf thrown over a hook (r13b's).
 pub(crate) fn place_coat_racks(g: &mut Game, _dist: &[i32]) {

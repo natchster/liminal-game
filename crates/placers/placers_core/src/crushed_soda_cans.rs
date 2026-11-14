@@ -4,7 +4,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter_y;
 
 // Crushed soda can: 10% chance per level: a 355 ml aluminium can
-// crushed underfoot (Blender batch r08): stamped flat on its end, its printed
+// crushed underfoot (Blender family `everyday_litter`): stamped flat on its end, its printed
 // wall folded into rings and the lid with its tab slid off centre, or stepped
 // on lying down, pressed flat between its ends; its label a plain one of no
 // real brand, faded, scratched and cracked along its folds to the metal.

@@ -6,7 +6,7 @@ use placers_kit::place::ri;
 use placers_kit::place::seed_of;
 
 // Twin-bell alarm clock: 12% chance per level. A wind-up twin-bell
-// alarm clock (Blender batch r14b: a 104 mm drum of painted steel on two
+// alarm clock (Blender family `small_things_dropped_or_left`: a 104 mm drum of painted steel on two
 // splayed feet, two bells and their hammer, a carrying handle, the wind keys
 // at its back), its printed dial yellowed behind a domed glass, its hands
 // stopped where it ran down; the paint chipped to rust.

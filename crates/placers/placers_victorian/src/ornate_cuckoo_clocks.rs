@@ -12,7 +12,7 @@ use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_tiles;
 
 // Ornate cuckoo clock: 3% chance per level. A carved Black Forest
-// cuckoo clock of the traditional kind (Blender batch `t10`): oak leaves
+// cuckoo clock of the traditional kind (Blender family `parlour_and_office_big_things`): oak leaves
 // and acorns carved round its dial, a bird with its wings spread on its
 // top, the cuckoo's door shut; a dark wooden dial with bone numerals and
 // hands, stopped; a carved leaf on its pendulum, its two cast pine-cone

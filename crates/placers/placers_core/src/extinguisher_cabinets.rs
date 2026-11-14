@@ -17,7 +17,7 @@ macro_rules! cached_tex {
 }
 
 // Wall extinguisher cabinet: 4% chance per level. A surface-mounted
-// steel cabinet for a 5 lb extinguisher (Blender batch `r12`): white enamel
+// steel cabinet for a 5 lb extinguisher (Blender family `what_services_screw_to_walls`): white enamel
 // gone yellow and chipped, a full pane in its door frame, FIRE EXTINGUISHER
 // down the glass; in it the extinguisher stands on its foot, its hose in its
 // band, the pin sealed, its tag hanging.

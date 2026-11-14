@@ -6,7 +6,7 @@ use placers_kit::baking::noise;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
-// A stack of firewood (Blender batch `r16`): 3-5 splits of stove wood,
+// A stack of firewood (Blender family `kitchen_and_hearth_left_behind`): 3-5 splits of stove wood,
 // 300 mm long (a quarter of a big round, half a small one, a slab off a big
 // one, a branch round), a bottom row and one or two laid in its grooves as
 // the old stack was; their bark (oak, ash, elm or birch: the old bark

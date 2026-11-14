@@ -5,7 +5,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::wall_plates::part;
 
 // Coat hook rows: 20% chance per level, 1 rail of 3-5 hooks (Blender
-// batch `r06`): an oak rail screwed to the wall, cast iron double coat-and-
+// family `wall_hole_pipe_run_posters_and_hooks`): an oak rail screwed to the wall, cast iron double coat-and-
 // hat hooks along it, now and then an overcoat still hanging from one.
 pub(crate) fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {

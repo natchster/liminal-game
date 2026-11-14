@@ -1,4 +1,4 @@
-"""b19: the "victorian" theme. Brass mechanisms, turned wood, wire cages,
+"""brass_mechanisms_and_showpieces (was b19): the "victorian" theme. Brass mechanisms, turned wood, wire cages,
 upholstery and glass showpieces.
 
 place_tripod_telescopes, place_orrery_models, place_birdcages, place_aquariums,

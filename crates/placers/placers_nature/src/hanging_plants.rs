@@ -22,7 +22,7 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     let (x, z, dx, dz) = pick(&walls);
     // A golden pothos left for years in a moulded plastic hanging pot on a
     // three-wire hanger, from a wrought iron bracket screwed to the wall
-    // (Blender batch `t06`): gone leggy, bare vines half a metre long, a
+    // (Blender family `garden_things`): gone leggy, bare vines half a metre long, a
     // leaf every few nodes, some yellow, some dried brown. The old pot
     // colour's draw chooses the pot's plastic; the old leaf colour's, how
     // the plant has fared (a dull green, a dark green, the golden pothos's

@@ -1,4 +1,4 @@
-"""r05: the props remodelled at their real sizes (docs/design/PROPS.md): a
+"""washroom_mirror_cobwebs_and_office_plant (was r05): the props remodelled at their real sizes (docs/design/PROPS.md): a
 washroom mirror, the cobwebs of a still floor, a neglected office plant.
 Sources and sizes: docs/research/props-remodelling/washroom_mirror_cobwebs_and_office_plant.md.
 

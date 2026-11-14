@@ -1178,7 +1178,7 @@ impl Game {
     }
 }
 
-/// The mannequin's body (Blender batch `r04`): a fibreglass male display
+/// The mannequin's body (Blender family `torn_note_mannequin_and_wall_clock`): a fibreglass male display
 /// mannequin with an egg head, 1.89 m on its plate, its arms, hands, torso
 /// and head off at their join lines, the paint knocked off its edges, on a
 /// black steel base plate with a chrome calf rod; placed as modelled, its
@@ -1215,7 +1215,7 @@ fn mannequin_body(mg: &Obj) {
     }
 }
 
-/// The wall clock's body (Blender batch `r04`): the 12-inch school and
+/// The wall clock's body (Blender family `torn_note_mannequin_and_wall_clock`): the 12-inch school and
 /// office clock, 34 cm across and 5 cm deep, a black steel case, a domed
 /// glass gone dull, a printed metal dial; its hands stopped at twenty-five
 /// past seven but for the second hand, which sweeps on. Built into `cg`

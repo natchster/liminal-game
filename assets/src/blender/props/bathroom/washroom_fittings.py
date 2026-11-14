@@ -1,4 +1,4 @@
-"""t04: the washroom's fittings and what was left in it, and two things on
+"""washroom_fittings (was t04): the washroom's fittings and what was left in it, and two things on
 its walls (Props P3, docs/design/PROPS.md): a soap-smudged washroom mirror, a
 frosted window, a wall faucet whose basin is gone, a towel bar with its
 towel, a trigger spray bottle, a hair dryer dropped on the floor and a fire

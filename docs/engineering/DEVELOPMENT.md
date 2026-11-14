@@ -105,10 +105,12 @@ Levels must be a pure function of `(run_seed, level)`:
   only, it shifts every frame after it, so a level's frames hang on what
   the thread made before. `canvas_tex` does this for every texture (its
   painter's stream, from where the painter is in the code, its size and how
-  many it has made since the level began; moving a painter repaints it, and
-  a stream keyed by anything painters share would let a cached texture,
-  painted once a thread, move the others' counts: the placers'
-  fingerprints run each placer on a fresh thread too); `tests/story.rs`
+  many it has made since the level began; moving or renaming a painter
+  repaints it, and a key a cache hides (a placer's name) would let a
+  cached texture, painted once a thread, move the others' counts. What a
+  level must not take from the levels before is reset in one place,
+  `kit::level_begins`, and the placers' fingerprints start each placement
+  with it and run it on a fresh thread too); `tests/story.rs`
   `a_levels_frames_are_the_same_whatever_came_before` holds it. A painter
   that works pixel by pixel may fill its rows on every core (`par_rows`)
   when each pixel is a pure function of where it is: its draws made before
@@ -146,7 +148,9 @@ Levels must be a pure function of `(run_seed, level)`:
    one it will have in `PLACER_THEME` (`use game::prelude::*;` brings the scene, geometry, material, kit and
    random helpers). The placers' own helpers (noise, canvas fills, picks
    of open and wall tiles, parts put on a group) are in `placers_kit`
-   (`noise`, `paint`, `place`, `geometry`): use them, never a copy. Pick candidate tiles from `g.tiles` / `dist`, build the
+   (`noise`, `paint`, `place`, `geometry`): use them, never a copy. (Some
+   painters are still copied between themes, where keeping one copy would
+   repaint the others' textures: queued in `docs/plan/MILESTONES.md`.) Pick candidate tiles from `g.tiles` / `dist`, build the
    meshes, add them to `g.world`, and register animators (`g.animate`) or
    interactables (`g.interact`) if it moves or can be used.
 2. Declare the module and register it in the theme crate's `lib.rs`

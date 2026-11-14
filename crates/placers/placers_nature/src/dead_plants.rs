@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 
 // Dead potted plants: 0-1 per level (25% chance).
 pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
-    // Zonal geraniums in a 31 cm terracotta pot (batch `r18`), not watered for
+    // Zonal geraniums in a 31 cm terracotta pot (family `washroom_janitor_classroom_and_plant`), not watered for
     // years: the stems woody and grey, knuckled at their nodes, a leaf or two
     // dried on them, the rest fallen; the soil shrunk from the wall and
     // cracked; salts bloomed white through the clay (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md). One in

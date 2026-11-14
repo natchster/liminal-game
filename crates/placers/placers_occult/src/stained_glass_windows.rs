@@ -12,7 +12,7 @@ use placers_kit::place::salt;
 use placers_kit::place::wall_candidates;
 
 // Stained glass window: 4% chance per level. A Victorian leaded panel
-// of the terraced-house kind (Blender batch `t21`), taken out of a door or
+// of the terraced-house kind (Blender family `four_larger_things`), taken out of a door or
 // a landing window and hung on the wall in a dark-stained pine frame: a
 // border of coloured strips with a jewel square at each corner, a field of
 // pale rolled glass with a lozenge round a smaller one; the lead gone dull

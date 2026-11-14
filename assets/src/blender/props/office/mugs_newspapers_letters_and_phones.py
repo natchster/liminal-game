@@ -1,4 +1,4 @@
-"""Batch b06 — office props.
+"""Family `mugs_newspapers_letters_and_phones` — office props.
 
 place_coffee_mugs        tapered stoneware mug (foot ring, hollow, rim bead, D-section handle)
 place_newspapers        folded newspaper sheet + two crumpled lifted folds

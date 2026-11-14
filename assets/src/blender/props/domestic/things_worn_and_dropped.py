@@ -1,4 +1,4 @@
-"""r14a: things worn and dropped, remodelled at their real sizes
+"""things_worn_and_dropped (was r14a): things worn and dropped, remodelled at their real sizes
 (docs/design/PROPS.md): a glove lying limp, a shoe and a boot (one last, one
 construction), and a shoe box. Sources and sizes: docs/research/props-remodelling/things_worn_and_dropped.md.
 
@@ -1518,7 +1518,7 @@ def sole_slab(loop, ybot, ytop, step, notch=False):
 def sweep(path, section, up=(0, 1, 0), scale=None, caps=True, smooth=0):
     """Sweep a closed 2D section [(a, b)] along a polyline: a along the
     side, b along `up` (carried along the path by parallel transport).
-    (After batch r02's.)"""
+    (After family `book_stack_suitcase_coat_stand_and_pile`'s.)"""
     pts = [Vector(p) for p in path]
     for _ in range(smooth):
         q = [pts[0]]

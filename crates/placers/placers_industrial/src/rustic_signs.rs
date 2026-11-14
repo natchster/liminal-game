@@ -6,7 +6,7 @@ use placers_kit::place::vary as rs_vary;
 use placers_kit::place::wall_tiles;
 
 // Rustic wooden wall sign: 4% chance per level. Three pine boards
-// nailed to two battens, its name burned in, hung by a cord (batch r13a).
+// nailed to two battens, its name burned in, hung by a cord (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
@@ -16,7 +16,7 @@ pub(crate) fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z, dx, dz) = pick(&walls);
-    // A hand-made cabin sign (Blender batch `r13a`): three pine boards a
+    // A hand-made cabin sign (Blender family `six_things_hung_on_a_wall`): three pine boards a
     // foot long nailed to two battens, a name burned into them with a
     // poker, gone grey and dry; hung by a jute cord from two screw eyes over
     // a nail, a little askew (the old tilt's draw).

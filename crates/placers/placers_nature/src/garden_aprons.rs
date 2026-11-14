@@ -23,7 +23,7 @@ pub(crate) fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick(&open);
     // A gardener's waist apron of cotton duck, dropped on the floor in a
-    // heap, one end folded back over it, its ties loose (Blender batch `t06`,
+    // heap, one end folded back over it, its ties loose (Blender family `garden_things`,
     // draped by Blender's cloth). The old colour's draw chooses its canvas:
     // olive drab, a brown duck, khaki, the natural, a faded denim blue
     let apron_colors: [u32; 5] = [0x408040, 0x604040, 0x808030, 0xa07040, 0x506080];

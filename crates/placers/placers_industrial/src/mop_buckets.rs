@@ -13,7 +13,7 @@ use placers_kit::place::skip;
 
 // Mop bucket: 6% chance per level. Plastic bucket with a mop in it.
 pub(crate) fn place_mop_buckets(g: &mut Game, _dist: &[i32]) {
-    // A 26 qt commercial mop bucket (batch `r18`): a moulded polyethylene tub
+    // A 26 qt commercial mop bucket (family `washroom_janitor_classroom_and_plant`): a moulded polyethylene tub
     // on four castors, a side-press wringer hooked over its end, a cotton wet
     // mop left standing in it, its handle leaning on the wringer; the water
     // gone grey with a scum on it, or dried to a crust and a ring

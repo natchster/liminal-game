@@ -1,4 +1,4 @@
-"""t01: the pictures on the walls, remodelled at their real sizes
+"""pictures_on_the_walls (was t01): the pictures on the walls, remodelled at their real sizes
 (docs/design/PROPS.md, P3): the framed photographs (a snapshot kept at a desk, a
 baby's photograph, a graduation portrait, a Victorian family group), the
 old portraits in oil, the portrait miniatures, the small landscapes and the

@@ -1,4 +1,4 @@
-//! `place_small_dolls`: Small doll: 8% chance per level. An 8 in (20 cm) toddler doll of the 1950s-60s, the small walker kind: hard plastic jointed at the neck, shoulders and hips, sleep eyes, a synthetic wig cut in a bob with a fringe, a cotton dress with puffed sleeves (gingham, sprigged or plain), white socks and oilcloth one-strap shoes; its head batch r03's baby's sculpt, smaller, its mouth closed. Found as it was dropped: on its back, its eyes shut (40%), or on its front with its head turned onto its cheek. Its plastic yellowed and scuffed, the wig matted and dusty, the dress faded and grimed.
+//! `place_small_dolls`: Small doll: 8% chance per level. An 8 in (20 cm) toddler doll of the 1950s-60s, the small walker kind: hard plastic jointed at the neck, shoulders and hips, sleep eyes, a synthetic wig cut in a bob with a fringe, a cotton dress with puffed sleeves (gingham, sprigged or plain), white socks and oilcloth one-strap shoes; its head family `rubber_duck_baby_doll_and_hole`'s baby's sculpt, smaller, its mouth closed. Found as it was dropped: on its back, its eyes shut (40%), or on its front with its head turned onto its cheek. Its plastic yellowed and scuffed, the wig matted and dusty, the dress faded and grimed.
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
@@ -16,7 +16,7 @@ use placers_kit::place::salt;
 /// 1950s-60s, the small walker kind: hard plastic jointed at the neck,
 /// shoulders and hips, sleep eyes, a synthetic wig cut in a bob with a
 /// fringe, a cotton dress with puffed sleeves (gingham, sprigged or plain),
-/// white socks and oilcloth one-strap shoes; its head batch r03's baby's
+/// white socks and oilcloth one-strap shoes; its head family `rubber_duck_baby_doll_and_hole`'s baby's
 /// sculpt, smaller, its mouth closed. Found as it was dropped: on its back,
 /// its eyes shut (40%), or on its front with its head turned onto its
 /// cheek. Its plastic yellowed and scuffed, the wig matted and dusty, the

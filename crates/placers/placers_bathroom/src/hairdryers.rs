@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 use placers_kit::place::vary as t04_vary;
 
 // Hairdryer w/ cord + running hum audio (floor): 5% chance per level.
-// An 1875 W pistol-grip hair dryer of the common kind (Blender batch `t04`),
+// An 1875 W pistol-grip hair dryer of the common kind (Blender family `washroom_fittings`),
 // lying on its side where it fell: its barrel and nozzle, the intake's
 // grille furred with lint, the handle with its two slide switches and its
 // hang loop, the strain relief, and its 5 ft cord lying slack across the

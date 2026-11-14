@@ -4,7 +4,7 @@ use placers_kit::place::pick;
 use placers_kit::place::wall_candidates;
 
 // Wall phone: 15% chance per level, 1 unit. The office wall set of the
-// 2554 class (Blender batch `r12`): a moulded housing on its wall plate, the
+// 2554 class (Blender family `what_services_screw_to_walls`): a moulded housing on its wall plate, the
 // handset hung down its front on the chrome hanger, its coiled cord looping
 // under it to the jack; off the hook the handset hangs on its drawn-out cord;
 // broken, the housing cracked, the cord cut short, and the burnt board's smoke.
@@ -153,12 +153,12 @@ fn smoke_wisp_by_weather(key: &str) -> u32 {
     by_weather(key, 0x505860, 0x707068, 0x704040, 0x604838, 0x606058, 0x606058)
 }
 
-/// The housing's width and depth (Blender batch `r12`, `wallPhoneHousing`).
+/// The housing's width and depth (Blender family `what_services_screw_to_walls`, `wallPhoneHousing`).
 const WP_W: f64 = 0.123;
 
 const WP_D: f64 = 0.058;
 
-/// A Blender part of batch `r12` as modelled (a scale of one), or a box
+/// A Blender part of family `what_services_screw_to_walls` as modelled (a scale of one), or a box
 /// standing in for it when the props are switched off.
 fn wp_part(name: &str, w: f64, h: f64, d: f64) -> Geo {
     game::assets::props::prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(w, h, d))

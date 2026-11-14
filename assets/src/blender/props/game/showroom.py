@@ -1,4 +1,4 @@
-"""Batch s01 - the Showroom (store level), plus two small sets for the lead.
+"""Family `showroom` - the Showroom (store level), plus two small sets for the lead.
 
 Every primitive is wrapped in pg('Store__...' / 'Staff__...') in the game
 (`anomalies::store_kit`, the store's placer and `make_staff`).

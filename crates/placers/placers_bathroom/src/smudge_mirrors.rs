@@ -2,6 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::glass::glass_mat;
+use placers_kit::mirror_frame::blob;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
@@ -11,7 +12,7 @@ use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_mount;
 
 // Soap-smudged wall mirror: 4% chance per level. A 16 x 20 in
-// stainless channel-frame washroom mirror (Blender batch `t04`, the Bradley
+// stainless channel-frame washroom mirror (Blender family `washroom_fittings`, the Bradley
 // 781 class) on its hanger: silvered glass that gives back the room's light
 // (`Patch::Glass`), the silver just starting to go at its foot; on its face
 // the last cleaning's smears, wiped in arcs with a soapy cloth and left to
@@ -52,23 +53,6 @@ pub(crate) fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
     film.set_render_order(3);
     body.add(&film);
     g.world.add(&mirror);
-}
-
-/// A soft blob, squashed whole (`k`) and turned, so its fade is never cut
-fn blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(turn);
-    ctx.scale(1.0, k);
-    let g = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
-    for (at, c) in stops {
-        g.add_color_stop(*at, c);
-    }
-    ctx.set_fill_style(&g);
-    ctx.begin_path();
-    ctx.arc(0, 0, r, 0, 7);
-    ctx.fill();
-    ctx.restore();
 }
 
 /// The mirror's glass as seen inside its frame (w, h), its face's distance

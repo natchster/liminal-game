@@ -10,7 +10,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
 
 // Boot tray w/ 1-2 pairs of boots (floor): 4% chance per level. A 32 x
-// 16 in moulded rubber boot tray, ribbed (batch `t07`), a pair or two of
+// 16 in moulded rubber boot tray, ribbed (family `kitchen_hall_and_floor_things`), a pair or two of
 // lace-up work boots on it (r14a's), the second pair's one fallen over;
 // dried grit and the salt's tide lines on it, and six times in ten the
 // dirty water they dripped still standing between its ribs.
@@ -82,7 +82,7 @@ pub(crate) fn place_boot_trays(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bt);
 }
 
-/// The boot tray as batch `t07` models it: its floor's top and its ribs'
+/// The boot tray as family `kitchen_hall_and_floor_things` models it: its floor's top and its ribs'
 const TRAY_RIB_TOP: f64 = 0.0055 + 0.0040;
 
 /// The tray's rubber (laid on it from above: u along it, v across): moulded
@@ -131,7 +131,7 @@ fn tray_water_tex(salt: u32) -> Tex {
     })
 }
 
-// ---- the boots of batch r14a (the work boot, standing or fallen over) ----
+// ---- the boots of family `things_worn_and_dropped` (the work boot, standing or fallen over) ----
 /// The part `name` of a Blender batch, as modelled, added to `grp` in `mat`.
 fn boot_add(grp: &Obj, name: &str, mat: &Mat, mirror: bool) {
     if let Some(geo) = game::assets::props::prop_part_as_modelled(name) {
@@ -281,7 +281,7 @@ fn boot_paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     }
 }
 
-/// The shoe or boot of batch r14a, `kind` "shoe" or "boot": `var` "R", "L",
+/// The shoe or boot of family `things_worn_and_dropped`, `kind` "shoe" or "boot": `var` "R", "L",
 /// "Side" (the right one fallen on its outer side, as it lies) or "" (the
 /// boot standing). Colours sRGB: the leather, the lining, the sole's
 /// rubber or leather, the laces, the eyelets' and hooks' metal.

@@ -13,7 +13,7 @@ use placers_kit::place::pick_hex;
 use placers_kit::place::salt;
 
 // A doll's head: 3% chance per level. A vinyl baby doll's head
-// (batch r03's: 10 cm across, moulded hair, sleep eyes with lashes, the
+// (family `rubber_duck_baby_doll_and_hole`'s: 10 cm across, moulded hair, sleep eyes with lashes, the
 // mouth open for its bottle) come off at its neck: the vinyl rolled in at
 // the rim, the hollow dark inside. Lying on the back of its head as the
 // doll lay, its lids down (the left stuck half open), or standing on its

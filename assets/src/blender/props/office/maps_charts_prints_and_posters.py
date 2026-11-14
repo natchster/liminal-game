@@ -1,4 +1,4 @@
-"""t02: the maps, charts, prints and posters on the walls, remodelled at
+"""maps_charts_prints_and_posters (was t02): the maps, charts, prints and posters on the walls, remodelled at
 their real sizes (docs/design/PROPS.md, P3): a cabin's framed map, a parlour's
 antique map, an office's framed map, an anatomical plate hung as a school
 chart, a botanical print, a home-front poster and a devotional triptych.

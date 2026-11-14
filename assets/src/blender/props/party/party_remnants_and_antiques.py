@@ -1,4 +1,4 @@
-"""Batch b17: party remnants and Victorian household objects.
+"""Family `party_remnants_and_antiques`: party remnants and Victorian household objects.
 
 Party hats, gift boxes, horns, plates, candles, pinatas, balloons, strings,
 instruments, costume bits, party food (pie, cake, muffins, donuts,

@@ -12,7 +12,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Single glove: 8% chance per level. One work glove lying limp on the
-// floor, back up (Blender batch r14a, the glove of `place_dropped_gloves`
+// floor, back up (Blender family `things_worn_and_dropped`, the glove of `place_dropped_gloves`
 // too): a leather palm glove (canvas back, leather tips, knuckle strap and
 // thumb, a knitted wrist), an all-leather one, or a cotton jersey one.
 pub(crate) fn place_single_gloves(g: &mut Game, _dist: &[i32]) {

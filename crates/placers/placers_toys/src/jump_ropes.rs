@@ -1,4 +1,4 @@
-//! `place_jump_ropes`: Jump rope: 5% chance per level. A child's skipping rope (Blender batch `t16`): 2.3 m of 8 mm braided cotton between two turned beech handles (120 x 25 mm), wound round a hand once and dropped: three slack loops come apart and cross each other, the handles out of the coil side by side. The dye faded and grimed, the lacquer of the handles worn to grey wood where they were held.
+//! `place_jump_ropes`: Jump rope: 5% chance per level. A child's skipping rope (Blender family `a_play_areas_toys`): 2.3 m of 8 mm braided cotton between two turned beech handles (120 x 25 mm), wound round a hand once and dropped: three slack loops come apart and cross each other, the handles out of the coil side by side. The dye faded and grimed, the lacquer of the handles worn to grey wood where they were held.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -9,7 +9,7 @@ use placers_kit::place::pick_open;
 use placers_kit::place::salt_of;
 
 /// Jump rope: 5% chance per level. A child's skipping rope (Blender
-/// batch `t16`): 2.3 m of 8 mm braided cotton between two turned beech
+/// family `a_play_areas_toys`): 2.3 m of 8 mm braided cotton between two turned beech
 /// handles (120 x 25 mm), wound round a hand once and dropped: three slack
 /// loops come apart and cross each other, the handles out of the coil side
 /// by side. The dye faded and grimed, the lacquer of the handles worn to
@@ -60,7 +60,7 @@ fn beech_tex(salt: u32) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

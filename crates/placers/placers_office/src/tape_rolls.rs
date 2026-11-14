@@ -7,7 +7,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Tape roll: 10% chance per level. A roll of PVC insulating tape,
-// half used (Blender batch r15: 19 mm wide on a 1.5 in paperboard core,
+// half used (Blender family `paper_and_small_things_on_office_floors`: 19 mm wide on a 1.5 in paperboard core,
 // 60 mm across), lying on its face, its loose end peeled up and curled;
 // lint and grit stuck to its edges. The old draws are kept call for call.
 pub(crate) fn place_tape_rolls(g: &mut Game, _dist: &[i32]) {

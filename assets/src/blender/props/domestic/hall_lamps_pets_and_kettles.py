@@ -1,4 +1,4 @@
-"""Batch b12: domestic and bathroom props (hat racks, lamps, hall tables,
+"""Family `hall_lamps_pets_and_kettles`: domestic and bathroom props (hat racks, lamps, hall tables,
 paintings, pet bowls, leashes, backpacks, kettles, suitcases, sewing
 machines, bowls, ashtrays, hooks, brooms, the R1 wall switch, hand dryers,
 towel dispensers, hand mirrors, lipsticks).

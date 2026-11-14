@@ -15,7 +15,7 @@ use placers_kit::place::scatter_pos;
 use placers_kit::place::vary;
 
 // Small children's music box: 6% chance per level. A Swiss child's
-// hand-crank music box (Blender batch `t20`): a little box of beech,
+// hand-crank music box (Blender family `a_studys_things`): a little box of beech,
 // stained walnut, mahogany or dark oak, or painted red or yellow ochre (the
 // old colour's draw); its lid open, a chromolithograph pasted inside it;
 // under a glass the works on their brass bedplate, the pinned cylinder,

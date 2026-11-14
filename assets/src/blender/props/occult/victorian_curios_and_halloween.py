@@ -1,4 +1,4 @@
-"""Batch b22: Victorian curios and occult / Halloween props.
+"""Family `victorian_curios_and_halloween`: Victorian curios and occult / Halloween props.
 
 Victorian: pocket compass, brass telescope, desk globe, phonograph, hanging
 brass lantern, telegraph key, balance scales, abacus, trophy, handbell.

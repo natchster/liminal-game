@@ -1,4 +1,4 @@
-"""r13a: the props remodelled at their real sizes (docs/design/PROPS.md), P2: six
+"""six_things_hung_on_a_wall (was r13a): the props remodelled at their real sizes (docs/design/PROPS.md), P2: six
 things that hang on a wall. Sources and sizes: docs/research/props-remodelling/six_things_hung_on_a_wall.md.
 
 No map file: the game builds each prop from these parts by name, placed as

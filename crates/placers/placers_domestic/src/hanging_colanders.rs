@@ -72,7 +72,7 @@ pub(crate) fn place_hanging_colanders(g: &mut Game, _dist: &[i32]) {
     g.pp.colander_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The colander's bowl as batch `t07` models it (radius, height), from the
+/// The colander's bowl as family `kitchen_hall_and_floor_things` models it (radius, height), from the
 /// middle of its bottom to under its rim (`COL_PROF`)
 const COL_PROF: [(f64, f64); 10] = [
     (0.000, 0.000),

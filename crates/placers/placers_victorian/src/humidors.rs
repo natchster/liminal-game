@@ -15,7 +15,7 @@ use placers_kit::place::ri;
 use placers_kit::place::vary;
 
 // Humidor cigar box w/ scattered cigars (floor): 3% chance per level.
-// A Victorian humidor (Blender batch `t20`): a veneered case on its plinth
+// A Victorian humidor (Blender family `a_studys_things`): a veneered case on its plinth
 // (mahogany, burr walnut, rosewood or ebonised: the old colour's draw),
 // lined with Spanish cedar or zinc (the old lining's draw), the lid open
 // on its brass hinges, a brass escutcheon and name plate; Coronas lying in

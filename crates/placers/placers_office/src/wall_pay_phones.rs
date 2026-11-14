@@ -17,7 +17,7 @@ macro_rules! cached_tex {
 }
 
 // Wall pay phone: 4% chance per level. A single-slot payphone of the Western
-// kind (Blender batch `r12`): the stainless upper housing with its instruction
+// kind (Blender family `what_services_screw_to_walls`): the stainless upper housing with its instruction
 // card, coin entry, keypad and coin return, the black vault under it, the
 // handset hung on the switchhook at its side on its armoured cord.
 pub(crate) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {

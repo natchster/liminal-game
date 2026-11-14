@@ -1,10 +1,10 @@
-//! `place_toy_cars`: Small toy car: 10% chance per level. A 1:64 die-cast saloon of the 1970s (Blender batch r17), 76 mm long: its zinc body in chipped enamel, clear glazing gone grey, silver-painted bumpers, grille and lamps, thin plastic wheels on steel axles, a black baseplate. A quarter lie on their side.
+//! `place_toy_cars`: Small toy car: 10% chance per level. A 1:64 die-cast saloon of the 1970s (Blender family `toys_on_the_floor`), 76 mm long: its zinc body in chipped enamel, clear glazing gone grey, silver-painted bumpers, grille and lamps, thin plastic wheels on steel axles, a black baseplate. A quarter lie on their side.
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Small toy car: 10% chance per level. A 1:64 die-cast saloon of the
-/// 1970s (Blender batch r17), 76 mm long: its zinc body in chipped enamel,
+/// 1970s (Blender family `toys_on_the_floor`), 76 mm long: its zinc body in chipped enamel,
 /// clear glazing gone grey, silver-painted bumpers, grille and lamps, thin
 /// plastic wheels on steel axles, a black baseplate. A quarter lie on
 /// their side.

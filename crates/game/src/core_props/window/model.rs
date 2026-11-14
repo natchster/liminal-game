@@ -67,7 +67,7 @@ enum Slot {
     Dirt,
 }
 
-/// Blender part `name` (batch `w01`) as modelled; a small box when the part
+/// Blender part `name` (family `windows`) as modelled; a small box when the part
 /// is missing (a build without the batch)
 fn part(name: &str) -> Geo {
     prop_part_as_modelled(name).unwrap_or_else(|| box_geometry(0.02, 0.02, 0.02, 1.0, 1.0, 1.0))

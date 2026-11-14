@@ -12,7 +12,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
 // Metal locker: 4% chance per level. A single-tier steel locker, 12 x
-// 12 x 60 in on its 6 in legs (Blender batch `t10`), its welded frame, its
+// 12 x 60 in on its 6 in legs (Blender family `parlour_and_office_big_things`), its welded frame, its
 // door with six louvres top and bottom, its hinges and its recessed latch
 // with a padlock staple, a riveted aluminium number plate; its paint
 // scratched to the grey primer and the steel, rust coming through at its

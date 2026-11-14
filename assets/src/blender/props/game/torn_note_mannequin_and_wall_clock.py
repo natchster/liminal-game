@@ -1,4 +1,4 @@
-"""r04: three of the everyday core props remodelled at their real sizes
+"""torn_note_mannequin_and_wall_clock (was r04): three of the everyday core props remodelled at their real sizes
 (docs/design/PROPS.md, P1): the torn note's sheet, the shop mannequin and the
 wall clock. Sources and measurements: `docs/research/props-remodelling/torn_note_mannequin_and_wall_clock.md`.
 

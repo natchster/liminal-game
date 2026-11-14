@@ -1,5 +1,6 @@
 //! `place_wall_mirrors`
 use game::prelude::*;
+use placers_kit::mirror_frame::blob;
 use placers_kit::noise::fbm;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
@@ -7,7 +8,7 @@ use placers_kit::place::pick;
 use placers_kit::place::vary as wm_vary;
 use placers_kit::place::wall_candidates;
 
-// Wall mirror: 20% chance per level, 1 framed mirror on a wall (batch r13a).
+// Wall mirror: 20% chance per level, 1 framed mirror on a wall (family `six_things_hung_on_a_wall`).
 pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     g.pp.bathroom_bundle_positions.clear(); // reset per level
     if rnd() < 0.80 {
@@ -19,7 +20,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     }
     let c = pick(&cands);
     let key = g.weather_key();
-    // A domestic wall mirror, 42 x 60 cm (Blender batch `r13a`): 4 mm
+    // A domestic wall mirror, 42 x 60 cm (Blender family `six_things_hung_on_a_wall`): 4 mm
     // silvered glass in a moulded frame, a stained hardwood one or a gilt
     // one, hung flat on four brass mirror plates. The glass gives back the
     // room's light (`Patch::Glass`), its silver going black from the edges;
@@ -122,7 +123,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         let clocks = clock_textures();
         let clock_tex = clocks[(rnd() * clocks.len() as f64).floor() as usize].clone();
         let clock_mat = lambert!({ map: clock_tex, transparent: true, side: DoubleSide });
-        // the school clock's black steel case and domed glass (batch r04)
+        // the school clock's black steel case and domed glass (family `torn_note_mannequin_and_wall_clock`)
         // round its printed dial, a little smaller (32 cm), its back on the wall
         let adj_clock = group();
         {
@@ -162,7 +163,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         let bundle_cx = (mp.x + cp.x) * 0.5;
         let bundle_cz = (mp.z + cp.z) * 0.5;
         g.pp.bathroom_bundle_positions.push(v3(bundle_cx, 1.0, bundle_cz));
-        // The basin under the mirror (batch r13a: a wall-hung vitreous china
+        // The basin under the mirror (family `six_things_hung_on_a_wall`: a wall-hung vitreous china
         // basin, its rim 0.895 m up, where the soap and the toothbrush lie;
         // its chrome waste and bottle trap). The first draw (the old dark bar
         // of a "sink outline", 60%) now says whether its taps are still on
@@ -390,23 +391,6 @@ impl WmBreak {
     }
 }
 
-/// A soft blob, squashed whole (`k`) and turned, so its fade is never cut
-fn wm_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(turn);
-    ctx.scale(1.0, k);
-    let g = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
-    for (at, c) in stops {
-        g.add_color_stop(*at, c);
-    }
-    ctx.set_fill_style(&g);
-    ctx.begin_path();
-    ctx.arc(0, 0, r, 0, 7);
-    ctx.fill();
-    ctx.restore();
-}
-
 /// The glass: silver behind it (`Patch::Glass`, nearly all of the light
 /// back), its map where the silver has gone to the black paint behind
 fn wm_glass_mat(silver: Tex) -> Mat {
@@ -466,7 +450,7 @@ fn wm_silver_tex(b: &WmBreak, vary: u32) -> Tex {
                     (0.5, format!("rgba(255,255,255,{:.3})", a * 0.75)),
                     (1.0, "rgba(255,255,255,0)".into()),
                 ];
-                wm_blob(ctx, x, y, r, 0.55 + 0.45 * rnd(), rnd() * 3.0, &stops);
+                blob(ctx, x, y, r, 0.55 + 0.45 * rnd(), rnd() * 3.0, &stops);
             };
             // the black edge along each side (how deep at most in px, the side's length)
             let sides: [(f64, f64); 4] = [(13.0, w), (6.0, h), (6.0, h), (4.0, w)]; // foot, left, right, top
@@ -611,7 +595,7 @@ fn wm_film_tex(b: &WmBreak, smudged: bool, gilt: bool, vary: u32) -> Tex {
                             (1.0, "rgba(198,192,180,0)".into()),
                         ];
                         let (fx, fy) = (x0 + tilt * f as f64 * 11.0 + (rnd() - 0.5) * 3.0, y0 + f as f64 * 11.0);
-                        wm_blob(ctx, fx, fy, 5.0 + rnd() * 2.0, 0.65, 1.4 + tilt, &stops);
+                        blob(ctx, fx, fy, 5.0 + rnd() * 2.0, 0.65, 1.4 + tilt, &stops);
                     }
                 }
                 let (px0, py0) = (w * (0.3 + 0.4 * rnd()), h * (0.45 + 0.25 * rnd()));
@@ -620,7 +604,7 @@ fn wm_film_tex(b: &WmBreak, smudged: bool, gilt: bool, vary: u32) -> Tex {
                     (0.6, "rgba(198,192,180,0.07)".into()),
                     (1.0, "rgba(198,192,180,0)".into()),
                 ];
-                wm_blob(ctx, px0, py0, 26.0 + 8.0 * rnd(), 0.8, rnd() * 3.0, &stops);
+                blob(ctx, px0, py0, 26.0 + 8.0 * rnd(), 0.8, rnd() * 3.0, &stops);
             }
             // the cracks: dark where the silver broke, bright where the edge catches the light
             ctx.set_line_join("round");
@@ -825,7 +809,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
                 };
                 if rnd() < 0.5 {
                     let stops = [(0.0, "rgba(214,182,140,0.45)".to_string()), (1.0, "rgba(214,182,140,0)".into())];
-                    wm_blob(ctx, x, y, 0.8 + rnd() * 2.2, 0.5 + 0.5 * rnd(), rnd() * 3.0, &stops);
+                    blob(ctx, x, y, 0.8 + rnd() * 2.2, 0.5 + 0.5 * rnd(), rnd() * 3.0, &stops);
                 } else {
                     let a = rnd() * 6.3;
                     let l = 3.0 + rnd() * 12.0;
@@ -845,7 +829,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
             ctx.fill_rect(m * 0.4, 0, cw - m * 0.8, m);
             for x in [m * 0.6, cw - m * 0.6] {
                 let stops = [(0.0, "rgba(28,20,14,0.22)".to_string()), (1.0, "rgba(28,20,14,0)".into())];
-                wm_blob(ctx, x, ch * (0.55 + 0.2 * rnd()), m * 1.4, 0.6, PI / 2.0, &stops);
+                blob(ctx, x, ch * (0.55 + 0.2 * rnd()), m * 1.4, 0.6, PI / 2.0, &stops);
             }
         })
     })
@@ -933,7 +917,7 @@ fn wm_basin_tex(vary: u32, bowl: bool) -> Tex {
             for _ in 0..14 {
                 let (x, y, r) = (rnd() * w, rnd() * h, 20.0 + rnd() * 60.0);
                 let stops = [(0.0, format!("rgba(120,112,96,{:.3})", 0.05 + 0.08 * rnd())), (1.0, "rgba(120,112,96,0)".into())];
-                wm_blob(ctx, x, y, r, 0.6 + 0.4 * rnd(), rnd() * 3.0, &stops);
+                blob(ctx, x, y, r, 0.6 + 0.4 * rnd(), rnd() * 3.0, &stops);
             }
             // crazing: a fine network in the glaze
             ctx.set_line_width(0.5);
@@ -964,7 +948,7 @@ fn wm_basin_tex(vary: u32, bowl: bool) -> Tex {
             for _ in 0..6 {
                 let (x, y) = (pxp + (rnd() - 0.5) * w * 0.25, pyp + (rnd() - 0.5) * h * 0.3);
                 let stops = [(0.0, format!("rgba(122,82,46,{:.3})", 0.1 + 0.08 * rnd())), (1.0, "rgba(122,82,46,0)".into())];
-                wm_blob(ctx, x, y, w * (0.1 + 0.12 * rnd()), 0.7 + 0.3 * rnd(), rnd() * 3.0, &stops);
+                blob(ctx, x, y, w * (0.1 + 0.12 * rnd()), 0.7 + 0.3 * rnd(), rnd() * 3.0, &stops);
             }
             ctx.set_line_cap("round");
             for sx in [-1.0, 1.0] {
@@ -981,7 +965,7 @@ fn wm_basin_tex(vary: u32, bowl: bool) -> Tex {
             }
             let stops =
                 [(0.0, "rgba(176,164,138,0.0)".to_string()), (0.5, "rgba(176,164,138,0.45)".into()), (1.0, "rgba(176,164,138,0)".into())];
-            wm_blob(ctx, pxp, pyp, 18.0, 1.0, 0.0, &stops);
+            blob(ctx, pxp, pyp, 18.0, 1.0, 0.0, &stops);
         })
     })
 }
@@ -1002,7 +986,7 @@ fn wm_stain_tex(vary: u32) -> Tex {
                     (0.75, format!("rgba(26,28,30,{:.3})", a * 0.8)),
                     (1.0, "rgba(26,28,30,0)".into()),
                 ];
-                wm_blob(ctx, x, y, r, 0.6 + 0.4 * rnd(), rnd() * 3.0, &stops);
+                blob(ctx, x, y, r, 0.6 + 0.4 * rnd(), rnd() * 3.0, &stops);
             }
             ctx.set_stroke_style("rgba(22,22,22,0.12)");
             ctx.set_line_width(1.6);

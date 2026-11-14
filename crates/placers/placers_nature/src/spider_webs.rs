@@ -12,7 +12,7 @@ use placers_kit::place::salt_of;
 use placers_kit::place::wall_mount;
 
 // Spider web: 5% chance per level. A cellar spider's web in the angle of
-// the wall and the ceiling (Blender batch `t05`): a loose tangle of fine
+// the wall and the ceiling (Blender family `bits_of_the_outside_indoors`): a loose tangle of fine
 // threads grey with dust, guy lines to the wall and the ceiling, strands
 // heavy with dust; the spider dead in it, hanging, prey wrapped and hung.
 // It keeps the old web's place and its width along the wall.

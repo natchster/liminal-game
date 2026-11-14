@@ -27,7 +27,7 @@ pub(crate) fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z, dx, dz) = pick(&walls);
     // A seed catalogue's cover of 1937 (9 x 6 in) framed in a stained pine
-    // moulding with a cream mat and glass (Blender batch `t06`), its paper
+    // moulding with a cream mat and glass (Blender family `garden_things`), its paper
     // gone yellow and foxed, the glass dusty
     let catalog = group();
     let mount_y = 1.65;

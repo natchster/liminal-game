@@ -1,4 +1,4 @@
-"""t12: what a party room leaves, years on (docs/design/PROPS.md P3, "the party and
+"""what_a_party_room_leaves (was t12): what a party room leaves, years on (docs/design/PROPS.md P3, "the party and
 the shrine"): cheap paper, card, foil and crepe, faded, crumpled and dusty.
 Sources and sizes: docs/research/props-remodelling/what_a_party_room_leaves.md.
 
@@ -789,7 +789,7 @@ auto('Real__paperCrownOpen', lambda: paper_crown('open'), 1600, smooth=50.0)
 def cloth_drape(name, pts, faces, pins, colliders=(), frames=140, mass=0.01, tension=15.0, shear=5.0,
                 bending=0.03, air=4.0, quality=6, self_col=False, self_dist=0.0015, col_dist=0.0015,
                 friction=5.0, gravity=-9.81):
-    """Blender's cloth solver, headless (as batch r13b's apron): the sheet
+    """Blender's cloth solver, headless (as family `coat_hook_broom_apron_and_rugs`'s apron): the sheet
     `pts`/`faces` let fall under gravity (-y) from where it is, `pins` held,
     against `colliders` (Shapes). Returns the settled points."""
     t0 = time.time()

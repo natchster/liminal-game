@@ -7,7 +7,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Paperback book: 8% chance per level. A trade paperback dropped on
-// the floor (Blender batches r02 and r15, 216 x 140 mm): six in ten lie
+// the floor (Blender family `book_stack_suitcase_coat_stand_and_pile` and r15, 216 x 140 mm): six in ten lie
 // open face up, their pages printed in a serif and gone brown and dusty
 // where they lay open; the rest shut, its printed cover worn. The old draws
 // are kept call for call.

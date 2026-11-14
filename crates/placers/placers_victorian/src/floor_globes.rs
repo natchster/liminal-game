@@ -13,7 +13,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::vary;
 
 // The floor globe: 3% chance per level. A 12 in terrestrial globe on its
-// floor stand (Blender batch `t20`): a library stand of three turned legs
+// floor stand (Blender family `a_studys_things`): a library stand of three turned legs
 // joined by stretchers to a hub, the wooden horizon ring papered with its
 // calendar and zodiac, or a turned pedestal on a cross of four feet; the
 // brass meridian, the axis pins, the hour circle at the north pole. The

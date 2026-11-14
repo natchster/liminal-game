@@ -5,7 +5,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Bottle caps: 10% chance per level: 8-14 crown caps prised off bottles
-// and dropped in one place (Blender batch r08: 29 mm across, their 21 flutes
+// and dropped in one place (Blender family `everyday_litter`: 29 mm across, their 21 flutes
 // crimped, their printed tops faded and scratched to the tin, some bent by
 // the opener, some lying on their backs showing the liner).
 pub(crate) fn place_bottle_caps(g: &mut Game, _dist: &[i32]) {

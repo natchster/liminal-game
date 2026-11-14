@@ -9,7 +9,7 @@ use placers_kit::place::WallCand;
 use placers_kit::wall_plates::part;
 
 // Rusted pipes: 0-2 runs of 2 in steel pipe per level along walls,
-// low (0.15-0.35 m) (Blender batch `r06`): malleable iron fittings, strut
+// low (0.15-0.35 m) (Blender family `wall_hole_pipe_run_posters_and_hooks`): malleable iron fittings, strut
 // clamps, now and then a gate valve, the old paint flaking off them and rust
 // weeping from the joints down the wall.
 pub(crate) fn place_rusted_pipes(g: &mut Game, _dist: &[i32]) {

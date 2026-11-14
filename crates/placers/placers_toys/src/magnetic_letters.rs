@@ -5,7 +5,7 @@ use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Magnetic letters: 10% chance per level. 4-8 plastic fridge letters
-// spilled on the floor (Blender batch r17): moulded capitals 38 mm tall,
+// spilled on the floor (Blender family `toys_on_the_floor`): moulded capitals 38 mm tall,
 // a round magnet set in each one's back, in the faded colours of an
 // alphabet set; random letters, no word. Some landed on their backs.
 pub(crate) fn place_magnetic_letters(g: &mut Game, _dist: &[i32]) {

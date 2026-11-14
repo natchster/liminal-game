@@ -12,7 +12,7 @@ use placers_kit::place::pick;
 use placers_kit::place::vary;
 
 // Hearth bellows: 4% chance per level. An English fireside bellows
-// (Blender batch `t20`): two oak boards, the top one carved with a roundel,
+// (Blender family `a_studys_things`): two oak boards, the top one carved with a roundel,
 // joined by a gusset of leather nailed round their edges with brass nails,
 // a turned brass nozzle in the nose block. The oak gone dark, rubbed pale
 // at the handles; the leather dried and cracked, its pleats dusty; the

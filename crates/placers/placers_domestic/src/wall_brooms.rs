@@ -5,7 +5,7 @@ use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
-// Wall broom (hanging): 4% chance per level (Blender batch `r13b`): a
+// Wall broom (hanging): 4% chance per level (Blender family `coat_hook_broom_apron_and_rugs`): a
 // hand-made round hearth broom, 0.71 m, hung on a nail by a jute loop through
 // the hole in its handle's top, its head's back against the wall: broomcorn
 // bound round a hardwood stick with twine, its ends splayed, worn short on

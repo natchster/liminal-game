@@ -1,4 +1,4 @@
-//! `place_overturned_tricycles`: Overturned tricycle: 4% chance per level. A toddler's steel tricycle (Blender batch `t16`; 66 x 56 x 54 cm standing: a 10 in front wheel with pedals on its crank axle, 7 in rears, spoked, solid rubber tyres; a bent tube frame, a rear step, a moulded saddle, a plated handlebar and vinyl grips) lying on its side as it came to rest, its steering swung. Built lying (the game turns it only about y). Its enamel faded, chipped to the primer and the steel, rust in the chips and running from them; the plating dull and pitted; the rubber grey.
+//! `place_overturned_tricycles`: Overturned tricycle: 4% chance per level. A toddler's steel tricycle (Blender family `a_play_areas_toys`; 66 x 56 x 54 cm standing: a 10 in front wheel with pedals on its crank axle, 7 in rears, spoked, solid rubber tyres; a bent tube frame, a rear step, a moulded saddle, a plated handlebar and vinyl grips) lying on its side as it came to rest, its steering swung. Built lying (the game turns it only about y). Its enamel faded, chipped to the primer and the steel, rust in the chips and running from them; the plating dull and pitted; the rubber grey.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -9,7 +9,7 @@ use placers_kit::place::pick_hex;
 use placers_kit::place::salt_of;
 
 /// Overturned tricycle: 4% chance per level. A toddler's steel
-/// tricycle (Blender batch `t16`; 66 x 56 x 54 cm standing: a 10 in front
+/// tricycle (Blender family `a_play_areas_toys`; 66 x 56 x 54 cm standing: a 10 in front
 /// wheel with pedals on its crank axle, 7 in rears, spoked, solid rubber
 /// tyres; a bent tube frame, a rear step, a moulded saddle, a plated
 /// handlebar and vinyl grips) lying on its side as it came to rest, its
@@ -84,7 +84,7 @@ fn plating_tex(salt: u32) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

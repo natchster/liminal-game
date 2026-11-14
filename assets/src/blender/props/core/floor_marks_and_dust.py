@@ -1,4 +1,4 @@
-"""r11a: the marks of the common floors and the dust that gathers on them
+"""floor_marks_and_dust (was r11a): the marks of the common floors and the dust that gathers on them
 (docs/design/PROPS.md, P2). Sources and sizes: docs/research/props-remodelling/floor_marks_and_dust.md.
 
 The marks (a puddle under a drip, claw marks gouged into a wall, a chalk

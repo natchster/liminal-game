@@ -1,7 +1,7 @@
-"""t03: the washroom shelf and the dressing table's leavings (Props P3,
+"""washroom_shelf_and_dressing_table (was t03): the washroom shelf and the dressing table's leavings (Props P3,
 docs/design/PROPS.md): a glass shelf on its clamps with the bottles left on it, a
 shower cap dropped on the floor, a powder compact, two kinds of perfume
-bottle and a makeup sponge. (The nail polish is batch r18's.) Sources and
+bottle and a makeup sponge. (The nail polish is family `washroom_janitor_classroom_and_plant`'s.) Sources and
 sizes: docs/research/props-remodelling/washroom_shelf_and_dressing_table.md.
 
 No map file: the game builds each prop from these parts by name, placed as

@@ -1,4 +1,4 @@
-"""r13b: things hung on a wall and rugs, remodelled at their real sizes
+"""coat_hook_broom_apron_and_rugs (was r13b): things hung on a wall and rugs, remodelled at their real sizes
 (docs/design/PROPS.md, P2): the wall coat hook (on its oak block), the corn broom
 hung by its handle's hole, the bib apron hung by its neck strap, the area
 rug rolled up and tied, and the scatter rug on the floor. Sources and sizes:
@@ -9,7 +9,7 @@ modelled (a scale of one, `prop_part_as_modelled`). Each part is in its
 own frame: x across its front, y up, z out of its front; a wall thing's
 wall is the plane z = 0, a floor thing's floor the plane y = 0. The cast
 iron hook (`Real__coatHook`) and the overcoat on it (`Real__coatHung`,
-`Real__hookCoatButtons`) are batch r06's; the screws `Real__hookScrew`.
+`Real__hookCoatButtons`) are family `wall_hole_pipe_run_posters_and_hooks`'s; the screws `Real__hookScrew`.
 
 hookBlock        an oak block (70 x 130 x 19 mm) the single hook is screwed
                  to, its front edges rounded over, two countersunk screws

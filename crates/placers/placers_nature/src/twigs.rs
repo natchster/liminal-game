@@ -7,7 +7,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 // Small twigs: 7% chance per level. Oak twiglets the tree shed (Blender
-// batch `t05`): grey-brown bark with its lenticels, the buds at the nodes
+// family `bits_of_the_outside_indoors`): grey-brown bark with its lenticels, the buds at the nodes
 // and the tip's cluster, a side shoot, a snapped end's pale wood; one lying
 // across another rests on it.
 pub(crate) fn place_twigs(g: &mut Game, _dist: &[i32]) {

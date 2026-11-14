@@ -1,4 +1,4 @@
-"""t13: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+"""a_party_tables_leavings (was t13): the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): a party table's leavings, years on (docs/design/PROPS.md 1, "the party and
 the shrine"): the printed paper cups, the paper dessert plates, the pressed
 glass cake stand and the cake nobody ate on it, the cornbread muffins in
@@ -550,5 +550,5 @@ auto('Real__cornMuffinB', muffin_b, 1300, smooth=60.0, kind='cyl')
 
 # what the game needs to know of them (copied into the placers' constants)
 _root = tier_pose(Shape([(CANDLE_AT[0] + 0.0008, candle_top_y() + CANDLE_UP + 0.0004, CANDLE_AT[1])], [])).v[0]
-print(f'[props] t13: cup curl outer r {CUP_C[0] + CUP_RC:.5f} at y {CUP_C[1]:.5f}; base r {CUP_RB:.5f}')
-print(f'[props] t13: the flame root ({_root.x:.4f}, {_root.y:.4f}, {_root.z:.4f}); the plate top {STAND_TOP:.4f}')
+print(f'[props] a_party_tables_leavings: cup curl outer r {CUP_C[0] + CUP_RC:.5f} at y {CUP_C[1]:.5f}; base r {CUP_RB:.5f}')
+print(f'[props] a_party_tables_leavings: the flame root ({_root.x:.4f}, {_root.y:.4f}, {_root.z:.4f}); the plate top {STAND_TOP:.4f}')

@@ -17,7 +17,7 @@ pub(crate) fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z, dx, dz) = pick(&wt);
     // Herbs hung head down from a brass cup hook to dry and left there for
-    // years (Blender batch `t06`): five to eight stems tied at their cut ends
+    // years (Blender family `garden_things`): five to eight stems tied at their cut ends
     // with cotton string, fanned, dry and dusty. The old colour's draw
     // chooses the herb: garden sage, rosemary, lavender, an older rosemary,
     // a sage gone yellow

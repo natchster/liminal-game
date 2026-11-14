@@ -13,7 +13,7 @@ use placers_kit::paint::fill;
 use placers_kit::paint::mul;
 use placers_kit::paint::paint_tile;
 
-/// Part `name` of batch `t15` as modelled, added to `grp` in `mat`
+/// Part `name` of family `toys_left_on_the_floor` as modelled, added to `grp` in `mat`
 pub(crate) fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

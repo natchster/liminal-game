@@ -1,4 +1,4 @@
-"""Batch b01 — the "core" theme: things found everywhere (vents, sockets, signs,
+"""Family `vents_sockets_signs_and_litter` — the "core" theme: things found everywhere (vents, sockets, signs,
 fixtures, litter). Decals, transparent and vertex-edited primitives are left
 alone (see docs/research/props-remodelling/vents_sockets_signs_and_litter.md); every solid one gets a modelled part here.
 """

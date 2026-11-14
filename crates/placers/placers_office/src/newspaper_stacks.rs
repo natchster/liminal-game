@@ -5,7 +5,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 
 // Newspaper stack: 8% chance per level. Three to six dailies kept and
-// stacked (Blender batch r15: a Berliner paper folded once, 315 x 235 mm),
+// stacked (Blender family `paper_and_small_things_on_office_floors`: a Berliner paper folded once, 315 x 235 mm),
 // each a little askew, every other one turned round; the top one's front
 // page printed (a local paper's masthead, a mundane lead, a photograph in
 // halftone, columns of type), its corner curling, all of it yellowed and

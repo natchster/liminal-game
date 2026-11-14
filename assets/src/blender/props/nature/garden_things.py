@@ -1,4 +1,4 @@
-"""t06: the garden things, remodelled at their real sizes (docs/design/PROPS.md,
+"""garden_things (was t06): the garden things, remodelled at their real sizes (docs/design/PROPS.md,
 P3): a pothos in a plastic hanging pot on a wall bracket, a canvas garden
 apron dropped on the floor, a garden gnome, a seed catalogue framed, a bag
 of potting soil, houseplant fertilizer spikes, a bundle of herbs hung to

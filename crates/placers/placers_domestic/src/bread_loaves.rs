@@ -6,7 +6,7 @@ use placers_kit::baking::noise;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
-// A loaf left on its board (Blender batch `r16`): a small white bloomer
+// A loaf left on its board (Blender family `kitchen_and_hearth_left_behind`): a small white bloomer
 // on a beech bread board, its end cut off long ago; stale, shrunk and
 // cracked, its crust gone dull, mould grown over it in blue-green and white
 // colonies, thickest on the cut face; the board scored by knives, greyed,

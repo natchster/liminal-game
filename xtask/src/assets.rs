@@ -289,6 +289,9 @@ fn props(args: &[String]) -> Result<(), String> {
             built.insert(pname.clone(), pack_part(pname, d)?);
         }
     }
+    if built.is_empty() {
+        return Err("no part was built: nothing to compare (props.py names what it could not find above)".into());
+    }
     let path = asset_dir().join("prop_meshes.bin");
     let committed = read_props(&std::fs::read(&path).map_err(|e| e.to_string())?)?;
     let by_name: BTreeMap<&str, &PropPart> = committed.iter().map(|p| (p.name.as_str(), p)).collect();

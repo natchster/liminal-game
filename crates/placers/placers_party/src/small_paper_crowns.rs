@@ -1,4 +1,4 @@
-//! `place_small_paper_crowns`: Small paper crown: 8% chance per level. A party crown die-cut from foil card or printed card (Blender batch `t12`): 89 mm tall, eight points over a 30 mm band, a printed jewel in each point; fastened round by its tab and trodden (pressed oval, creased, three points bent over), or come unfastened and sprung open in a curl. The foil dulled, scuffed through to the card, cracked white where it bent; dust, grime at its foot.
+//! `place_small_paper_crowns`: Small paper crown: 8% chance per level. A party crown die-cut from foil card or printed card (Blender family `what_a_party_room_leaves`): 89 mm tall, eight points over a 30 mm band, a printed jewel in each point; fastened round by its tab and trodden (pressed oval, creased, three points bent over), or come unfastened and sprung open in a curl. The foil dulled, scuffed through to the card, cracked white where it bent; dust, grime at its foot.
 use crate::shared::put_with;
 use game::prelude::*;
 use placers_kit::noise::fbm;
@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Small paper crown: 8% chance per level. A party crown die-cut from
-/// foil card or printed card (Blender batch `t12`): 89 mm tall, eight points
+/// foil card or printed card (Blender family `what_a_party_room_leaves`): 89 mm tall, eight points
 /// over a 30 mm band, a printed jewel in each point; fastened round by its
 /// tab and trodden (pressed oval, creased, three points bent over), or come
 /// unfastened and sprung open in a curl. The foil dulled, scuffed through

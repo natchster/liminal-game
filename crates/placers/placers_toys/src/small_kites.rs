@@ -1,4 +1,4 @@
-//! `place_small_kites`: Small kite: 8% chance per level. A child's paper diamond kite (Blender batch `t16`): printed paper (600 x 500 mm) folded over a perimeter string on a 5 mm pine spine and cross spar, a tail of three tissue bows tied on a string, a two legged bridle and a length of its line; dropped face up on its spars, the paper sagging between them, crumpled, torn open at its lower left, the bowstring snapped. The print faded and water-stained, a shoe's tread on it, dust.
+//! `place_small_kites`: Small kite: 8% chance per level. A child's paper diamond kite (Blender family `a_play_areas_toys`): printed paper (600 x 500 mm) folded over a perimeter string on a 5 mm pine spine and cross spar, a tail of three tissue bows tied on a string, a two legged bridle and a length of its line; dropped face up on its spars, the paper sagging between them, crumpled, torn open at its lower left, the bowstring snapped. The print faded and water-stained, a shoe's tread on it, dust.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::hash;
@@ -10,7 +10,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Small kite: 8% chance per level. A child's paper diamond kite
-/// (Blender batch `t16`): printed paper (600 x 500 mm) folded over a
+/// (Blender family `a_play_areas_toys`): printed paper (600 x 500 mm) folded over a
 /// perimeter string on a 5 mm pine spine and cross spar, a tail of three
 /// tissue bows tied on a string, a two legged bridle and a length of its
 /// line; dropped face up on its spars, the paper sagging between them,
@@ -155,7 +155,7 @@ fn hex(c: [f64; 3]) -> u32 {
     (b(c[0]) << 16) | (b(c[1]) << 8) | b(c[2])
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

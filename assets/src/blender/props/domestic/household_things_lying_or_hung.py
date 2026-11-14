@@ -1,4 +1,4 @@
-"""Batch b09 - "domestic" theme: household things lying around or hung up.
+"""Family `household_things_lying_or_hung` - "domestic" theme: household things lying around or hung up.
 
 place_coin_scatters / place_coin_clusters   coin (rim, relief field), shared
 place_hospital_crosses   rounded sign plate and cross bars (unlit)

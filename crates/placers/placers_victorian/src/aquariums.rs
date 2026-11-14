@@ -9,7 +9,7 @@ use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
 
-// An aquarium left for years (Blender batch `t21`): a standard 10 gallon
+// An aquarium left for years (Blender family `four_larger_things`): a standard 10 gallon
 // tank on a low particleboard cabinet stand, its laminate peeled and its
 // foot swollen where water ran down it. Nothing lives in it. Either long
 // dry (60% of the old ones had fish and kept their water: a little green

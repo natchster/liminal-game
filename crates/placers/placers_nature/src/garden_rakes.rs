@@ -11,7 +11,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 // Garden rake: 4% chance per level. A bow rake dropped on the floor
-// (Blender batch `t17`): 14 tempered steel tines on a head carried by two
+// (Blender family `a_garden_and_a_wood_indoors`): 14 tempered steel tines on a head carried by two
 // bows, a steel ferrule, a 54 in ash handle; its enamel chipped to rust, the
 // handle grey, dark where it was held. It lies on its tines and its handle's
 // end, as a dropped one does.

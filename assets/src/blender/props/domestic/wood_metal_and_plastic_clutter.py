@@ -1,4 +1,4 @@
-"""Batch b08: industrial and domestic clutter.
+"""Family `wood_metal_and_plastic_clutter`: industrial and domestic clutter.
 
 Wood, rusted/painted metal and plastic are told apart by shape: planks with
 gaps and chamfers, rolled rims and ribs on moulded plastic, crimped beads

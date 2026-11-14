@@ -1,4 +1,4 @@
-"""b24: the "nature" theme. Forest-floor litter (dandelions, moss, ferns,
+"""forest_floor_and_potting_shed (was b24): the "nature" theme. Forest-floor litter (dandelions, moss, ferns,
 snail shells, pine needles, bird nests, chestnuts), potting-shed plants and
 tools (hanging planters, seedlings, trowels, watering cans, gloves, shears,
 hoes, rakes, hoses, shovels, soil bags, kneeling pads, twine, bird feeders,

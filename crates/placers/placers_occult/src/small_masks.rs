@@ -122,7 +122,7 @@ fn salt_of_place(x: f64, z: f64) -> u32 {
     ((x * 7919.0).abs() as u32) ^ ((z * 104_729.0).abs() as u32).rotate_left(13) ^ 0x9e37_79b9
 }
 
-/// The part `name` of batch `t09` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_shrines_things` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = game::assets::props::prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

@@ -4,6 +4,7 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
+use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -106,20 +107,4 @@ fn beech_tex() -> Tex {
         })
         .clone()
     })
-}
-
-/// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v up,
-/// both 0..1, as the texture is laid) gives straight sRGB and alpha
-fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 4] + Sync) {
-    let iw = w as usize;
-    let mut img = ctx.create_image_data(w, h);
-    par_rows(&mut img.data, iw * 4, |j, out| {
-        for i in 0..iw {
-            let c = f((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
-            for k in 0..4 {
-                out[i * 4 + k] = (c[k].clamp(0.0, 1.0) * 255.0).round() as u8;
-            }
-        }
-    });
-    ctx.put_image_data(&img, 0, 0);
 }

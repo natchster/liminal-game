@@ -18,7 +18,7 @@ use placers_kit::wet_floor::Px;
 // Overturned bucket: 15% chance per level. Bucket tipped on
 // its side — "someone kicked or knocked over a bucket".
 pub(crate) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
-    // A 10 l moulded polypropylene pail (batch `r18`), kicked over: on its
+    // A 10 l moulded polypropylene pail (family `washroom_janitor_classroom_and_plant`), kicked over: on its
     // side, resting on its rim and its foot, or upside down on its rim; its
     // wire bail fallen to the floor; scuffed, grimed at its foot, the litre
     // marks inside it and the muck dried in its bottom (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)

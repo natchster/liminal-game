@@ -7,7 +7,7 @@ use placers_kit::place::vary as t10_vary;
 
 // Record stack: 4% chance per level. A few 45s left on the floor, as
 // they were dropped: 7 in singles in their paper company sleeves (Blender
-// batch `t10`), stacked askew, the labels showing through the sleeves'
+// family `parlour_and_office_big_things`), stacked askew, the labels showing through the sleeves'
 // holes; often one out of its sleeve, lying across the stack. The sleeves
 // printed in the labels' inks, ring-worn, creased, stained; the vinyl's
 // grooves, its dust and its scratches.

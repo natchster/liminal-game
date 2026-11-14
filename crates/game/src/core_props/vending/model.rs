@@ -1,6 +1,6 @@
 //! The vending machine's body (`docs/design/VENDING.md`): a glass-front spiral
 //! snack machine at its real size. The cabinet, door, trays, coils and
-//! hardware are the Blender parts of batch `v01`, placed as modelled; the
+//! hardware are the Blender parts of family `vending_machine`, placed as modelled; the
 //! goods, their labels and the glass are made here. Everything that does not
 //! move is merged by material into one mesh each, so a machine is about
 //! twenty draws however many coils and goods it holds; a coil that turns
@@ -97,7 +97,7 @@ pub struct Piece {
     pub item: Option<usize>,
 }
 
-/// Blender part `name` (batch `v01`) as modelled; a small box when the part
+/// Blender part `name` (family `vending_machine`) as modelled; a small box when the part
 /// is missing (a build without the batch).
 pub fn part(name: &str) -> Geo {
     prop_part_as_modelled(name).unwrap_or_else(|| box_geometry(0.02, 0.02, 0.02, 1.0, 1.0, 1.0))

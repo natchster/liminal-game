@@ -1,4 +1,4 @@
-"""r18: the washroom and the janitor's things, the classroom and the plant
+"""washroom_janitor_classroom_and_plant (was r18): the washroom and the janitor's things, the classroom and the plant
 nobody watered (Props P2, docs/design/PROPS.md).
 
 No map file: the game builds each prop from these parts by name, placed as

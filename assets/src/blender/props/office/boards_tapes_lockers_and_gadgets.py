@@ -1,4 +1,4 @@
-"""Batch b05: office props (boards, tapes, papers, lockers, phones, keys, gadgets).
+"""Family `boards_tapes_lockers_and_gadgets`: office props (boards, tapes, papers, lockers, phones, keys, gadgets).
 
 Conventions from README.md: every part is modelled in its primitive's frame
 at the canonical size written in the placer. Helpers local to this batch sit

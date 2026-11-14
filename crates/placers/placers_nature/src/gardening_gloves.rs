@@ -13,7 +13,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 // Gardening gloves (pair): 7% chance per level. A pair of cotton jersey
-// gardening gloves with knitted wrists (Blender batch `t17`, draped by its
+// gardening gloves with knitted wrists (Blender family `a_garden_and_a_wood_indoors`, draped by its
 // cloth): the right lying back up, the left dropped across it palm up, its
 // PVC grip dots half worn away; soil dried into both.
 pub(crate) fn place_gardening_gloves(g: &mut Game, _dist: &[i32]) {

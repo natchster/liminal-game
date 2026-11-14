@@ -1,4 +1,4 @@
-"""Batch b16 - "toys" and "party": bright, chunky, rounded plastic, rubber,
+"""Family `chunky_plastic_rubber_and_plush` - "toys" and "party": bright, chunky, rounded plastic, rubber,
 plush and paper things lying on the floor.
 
 place_childrens_tea_sets  teapot (belly, gallery rim, lid), spout, handle, cup, saucer

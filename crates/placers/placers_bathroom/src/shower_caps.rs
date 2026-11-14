@@ -10,7 +10,7 @@ use placers_kit::place::pick;
 use placers_kit::place::skip;
 
 // Shower cap: 6% chance per level. A reusable PEVA shower cap (Blender
-// batch `t03`) dropped on the floor opening down: the crown fallen in on
+// family `washroom_shelf_and_dressing_table`) dropped on the floor opening down: the crown fallen in on
 // itself in creases, spilled over its gathered elastic in two lobes, the
 // frill flopped out round it; printed (small flowers, dots) or plain, or a
 // hotel's clear disposable one, its old colour; yellowed, dust in it, mildew

@@ -11,7 +11,7 @@ use placers_kit::place::salt;
 
 // Hanging brass lantern: 4% chance per level, hanging from the
 // ceiling. A small brass candle lantern of the Victorian hall kind (Blender
-// batch `t21`): a square tray on a turned drop, four panes between corner
+// family `four_larger_things`): a square tray on a turned drop, four panes between corner
 // posts (the front one a door on two hinges), a pyramid roof up to a
 // vented chimney, its ring on a jack chain from a cup on the ceiling. The
 // brass gone brown and dull, the panes sooted from inside where the flame

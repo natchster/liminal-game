@@ -11,7 +11,7 @@ use placers_kit::place::ri;
 use placers_kit::place::salt;
 
 // Vertical secretary desk with drop-front writing surface (floor): 2%.
-// A petite drop-front desk of the 1920s (Blender batch `t21`): four square
+// A petite drop-front desk of the 1920s (Blender family `four_larger_things`): four square
 // tapered legs, two drawers with Hepplewhite bail pulls, the fall front
 // lying open on its brass stays over the fitted interior (four small
 // drawers, six pigeonholes under arched valances), a moulded top and a low

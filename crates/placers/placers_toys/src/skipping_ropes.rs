@@ -1,4 +1,4 @@
-//! `place_skipping_ropes`: Skipping rope: 8% chance per level. A PVC "licorice" skipping rope (Blender batch `t16`): 2.4 m of 4.8 mm solid PVC through two moulded polypropylene handles (114 mm), dropped with its handles together: the rope springs out in one loop that crossed itself. The PVC faded and dulled, grey with dust; the handles scuffed.
+//! `place_skipping_ropes`: Skipping rope: 8% chance per level. A PVC "licorice" skipping rope (Blender family `a_play_areas_toys`): 2.4 m of 4.8 mm solid PVC through two moulded polypropylene handles (114 mm), dropped with its handles together: the rope springs out in one loop that crossed itself. The PVC faded and dulled, grey with dust; the handles scuffed.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::noise::mix;
@@ -9,7 +9,7 @@ use placers_kit::place::pick;
 use placers_kit::place::salt_of;
 
 /// Skipping rope: 8% chance per level. A PVC "licorice" skipping rope
-/// (Blender batch `t16`): 2.4 m of 4.8 mm solid PVC through two moulded
+/// (Blender family `a_play_areas_toys`): 2.4 m of 4.8 mm solid PVC through two moulded
 /// polypropylene handles (114 mm), dropped with its handles together: the
 /// rope springs out in one loop that crossed itself. The PVC faded and
 /// dulled, grey with dust; the handles scuffed.
@@ -53,7 +53,7 @@ fn dust_tex(salt: u32) -> Tex {
     })
 }
 
-/// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
+/// The part `name` of family `a_play_areas_toys` as modelled, added to `grp` in `mat`
 fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));

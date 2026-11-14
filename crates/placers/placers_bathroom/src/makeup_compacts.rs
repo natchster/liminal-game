@@ -12,7 +12,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 // Makeup compact: 8% chance per level. A pressed powder compact for a
-// 59 mm pan (Blender batch `t03`): a moulded case, its lid on a three-knuckle
+// 59 mm pan (Blender family `washroom_shelf_and_dressing_table`): a moulded case, its lid on a three-knuckle
 // hinge, the catch at the front; shut, or (the old 40%) open, its mirror gone
 // black at the edges and spotted, the powder in its aluminium pan worn into a
 // hollow by the puff and cracked where it was dropped. The old colours: a

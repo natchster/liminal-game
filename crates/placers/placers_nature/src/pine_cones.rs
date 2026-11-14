@@ -26,7 +26,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Pine cone: 6% chance per level. A Scots pine's cone, open (Blender
-// batch `t17`): its woody scales spread from the axis, their rhombic ends
+// family `a_garden_and_a_wood_indoors`): its woody scales spread from the axis, their rhombic ends
 // keeled with the small umbo; weathered grey-brown, the scales' hidden faces
 // darker.
 pub(crate) fn place_pine_cones(g: &mut Game, _dist: &[i32]) {

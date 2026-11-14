@@ -1,4 +1,4 @@
-"""Batch b18: the "victorian" theme, the showpieces of the Maze's hoard.
+"""Family `chandeliers_trophies_and_clocks`: the "victorian" theme, the showpieces of the Maze's hoard.
 
 Crystal chandeliers, mounted deer heads and antlers, family and pet
 portraits, barometers, a mounted fish, cuckoo and grandfather clocks,

@@ -29,7 +29,7 @@ macro_rules! cached_kind_tex {
 }
 
 // Leaf litter: 8% chance per level. A drift of dead leaves blown in
-// (Blender batch `t05`): beech and oak, brown and crisp, curled or folded,
+// (Blender family `bits_of_the_outside_indoors`): beech and oak, brown and crisp, curled or folded,
 // holed and torn, some lying on others; they stir a little in a draught.
 pub(crate) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {

@@ -22,7 +22,7 @@ macro_rules! cached_tex {
 }
 
 // Bird nest: 4% chance per level. A robin's nest fallen to the floor
-// (Blender batch `t05`): a cup of dry grass and twigs over mud, lined with
+// (Blender family `bits_of_the_outside_indoors`): a cup of dry grass and twigs over mud, lined with
 // fine grass, loose stems trailing from it; now and then an egg or two left
 // in it, one broken.
 pub(crate) fn place_bird_nests(g: &mut Game, _dist: &[i32]) {

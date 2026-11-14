@@ -1,10 +1,10 @@
-//! `place_small_pinwheels`: Small pinwheel: 10% chance per level. A paper party pinwheel (Blender batch r17): a 10 cm square of printed paper cut and curled into four vanes, pinned through a bead into a 28 cm birch dowel, dropped and lying face up on the floor (never standing on its stick's point): the dowel on the floor, the wheel over its end, the curls standing up, the paper faded, water-marked and grimed. Three in ten stir on the pin in a draught.
+//! `place_small_pinwheels`: Small pinwheel: 10% chance per level. A paper party pinwheel (Blender family `toys_on_the_floor`): a 10 cm square of printed paper cut and curled into four vanes, pinned through a bead into a 28 cm birch dowel, dropped and lying face up on the floor (never standing on its stick's point): the dowel on the floor, the wheel over its end, the curls standing up, the paper faded, water-marked and grimed. Three in ten stir on the pin in a draught.
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Small pinwheel: 10% chance per level. A paper party pinwheel
-/// (Blender batch r17): a 10 cm square of printed paper cut and curled into
+/// (Blender family `toys_on_the_floor`): a 10 cm square of printed paper cut and curled into
 /// four vanes, pinned through a bead into a 28 cm birch dowel, dropped and
 /// lying face up on the floor (never standing on its stick's point): the
 /// dowel on the floor, the wheel over its end, the curls standing up, the

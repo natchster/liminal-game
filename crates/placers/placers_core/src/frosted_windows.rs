@@ -12,7 +12,7 @@ use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_mount;
 
 // Frosted-glass window: 3% chance per level. A small side-hung casement
-// of four lights in the wall (Blender batch `t04`): painted softwood, its
+// of four lights in the wall (Blender family `washroom_fittings`): painted softwood, its
 // architrave, window board and apron, the sash with its glazing bars and
 // beads, a cockspur fastener; the glass acid-etched (frosted) so nothing
 // shows through it but the light behind (`Patch::Glass`, milky). The paint

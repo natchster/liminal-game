@@ -89,7 +89,7 @@ fn wall_yaw(c: &WallCand) -> f64 {
     }
 }
 
-/// The rolled rugs of batch `r13b` (8 x 10, 6 x 9, 5 x 8 ft): the roll's
+/// The rolled rugs of family `coat_hook_broom_apron_and_rugs` (8 x 10, 6 x 9, 5 x 8 ft): the roll's
 /// length, its outer radius, the rug's thickness, and the whole rug's
 /// length (rolled up across its width)
 const ROLLS: [(f64, f64, f64, f64); 3] = [(2.44, 0.120, 0.0125, 3.05), (1.83, 0.090, 0.0105, 2.74), (1.52, 0.070, 0.0085, 2.44)];

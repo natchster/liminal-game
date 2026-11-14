@@ -17,6 +17,15 @@ pub fn restart_texture_streams() {
     MADE.with(|m| m.borrow_mut().clear());
 }
 
+/// A level begins: what its build must not take from the levels the thread
+/// built before (the painters' counts, the parts fitted to their bounds).
+/// The game's `load_level` and the placers' fingerprints both call it, so a
+/// placer is printed as a level builds it.
+pub fn level_begins() {
+    restart_texture_streams();
+    crate::assets::props::clear_prop_cache();
+}
+
 /// The painter `F`'s own stream for its next texture: from its name (the
 /// closure's place in the code), the size, and how many it has made since
 /// the level began. Painted on the native stream, a texture had come out as

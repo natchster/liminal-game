@@ -17,7 +17,7 @@ macro_rules! cached_tex {
 }
 
 // Fire alarm pull: 4% chance per level. A single-action pull station
-// flush on its box in the wall (batch `r06`'s, the fire alarms'): FIRE raised
+// flush on its box in the wall (family `wall_hole_pipe_run_posters_and_hooks`'s, the fire alarms'): FIRE raised
 // over the lever's well, PULL DOWN on the lever, the glass rod across it, and
 // an addressable station's LED blinking as the panel polls it.
 pub(crate) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
@@ -30,9 +30,9 @@ pub(crate) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let c = choice(&candidates);
-    // the pull station of batch `r06` (the fire alarms'), here flush on a box
+    // the pull station of family `wall_hole_pipe_run_posters_and_hooks` (the fire alarms'), here flush on a box
     // in the wall: its cover's back (z 0.035 in its parts' frame) on the wall,
-    // and the LED of an addressable station (batch `r12`)
+    // and the LED of an addressable station (family `what_services_screw_to_walls`)
     let alarm = group();
     let o = group();
     o.position().z = -0.008 - 0.035;
@@ -81,7 +81,7 @@ fn pull_part(name: &str, w: f64, h: f64, d: f64) -> Geo {
 
 /// The pull station's cover: red enamel over die-cast, rubbed to the metal at
 /// its edges and round the lever's well where hands go, grimy, a few chips
-/// (as batch `r06`'s fire alarms; laid on its front by the part's box
+/// (as family `wall_hole_pipe_run_posters_and_hooks`'s fire alarms; laid on its front by the part's box
 /// projection: the whole texture is the face).
 fn pull_paint_tex() -> Tex {
     cached_tex!(128, 170, |ctx, w, h| {

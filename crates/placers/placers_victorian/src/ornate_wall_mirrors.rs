@@ -13,7 +13,7 @@ use placers_kit::place::pick;
 use placers_kit::place::WallCand;
 
 // Ornate wall mirror: 5% chance per level. A small Italian giltwood
-// mirror in the rococo revival (Blender batch `t10`): a moulded frame of
+// mirror in the rococo revival (Blender family `parlour_and_office_big_things`): a moulded frame of
 // gesso over carved wood, water gilt, a pierced rocaille crest of shell,
 // C-scrolls and acanthus, leaves breaking out at its corners and a little
 // shell for an apron; the gold dulled brown and rubbed through to its red

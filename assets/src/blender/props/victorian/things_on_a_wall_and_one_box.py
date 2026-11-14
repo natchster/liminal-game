@@ -1,4 +1,4 @@
-"""t19: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+"""things_on_a_wall_and_one_box (was t19): the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): things on a parlour's or a chapel's wall, and one box: a gilt-brass
 reliquary casket, a roe's skull on its shield, a household crucifix, a
 carved and painted armorial shield of no real family, a cut-paper
@@ -581,7 +581,7 @@ auto('Real__crucifixTitle', crucifix_title, 120, smooth=50.0)
 # to the board, its nose down, its frontal to the room. A roe's skull: 190
 # mm long (condylobasal), 83.5 mm across the zygomatic arches, 52 mm
 # between the orbits, the nasals 54 mm (an adult buck, skullsite.co.uk);
-# a buck's carries its pedicles and antlers (batch t11's), a doe's none.
+# a buck's carries its pedicles and antlers (family `lodge_trophies_and_parlour_ornaments`'s), a doe's none.
 # Frame: the board's middle on the wall at z = SP_BACK (the old plaque's
 # centre, the game hangs it 1.70 m up).
 SP_BACK = -0.006

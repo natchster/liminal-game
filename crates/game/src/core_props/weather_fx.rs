@@ -4,7 +4,7 @@
 //! and candles on the haunted ones (a hand blows one out, and it stays out:
 //! `docs/design/LORE.md`, *What still burns*). Part of
 //! `place_props_tail` (core_props/tail.rs); the things are modelled in
-//! Blender batches `r05` (the cobwebs) and `r10` (the rest).
+//! Blender family `washroom_mirror_cobwebs_and_office_plant` (the cobwebs) and `r10` (the rest).
 //!
 //! Each haunted candle's state is `g.haunted_candles[i]`
 //! (`records::CandleState`): extinguished → `!lit`; `f["fadeT"]` is how far
@@ -96,7 +96,7 @@ impl Game {
         }
     }
 
-    /// WET: water standing on the floor, or soaked into it, as batch `r07`
+    /// WET: water standing on the floor, or soaked into it, as family `marks_on_the_rooms_surfaces`
     /// paints a puddle (`place_floor_puddles`, `docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): on carpet a
     /// dark patch soaked in, its edge soft and ragged, a darker rim where the
     /// dirt wicked out to it; on a hard floor a dark film, its edge sharp and
@@ -133,10 +133,10 @@ impl Game {
     }
 
     /// DERELICT: a tile of the suspended ceiling fallen and broken on the
-    /// floor (Blender batch `r10`): three of the four pieces a 610 mm
+    /// floor (Blender family `what_a_floors_weather_leaves`): three of the four pieces a 610 mm
     /// mineral-fibre tile broke into, slid apart where they landed (one
     /// sometimes face down), a bent length of the grid's cross tee in the
-    /// gap the fourth left, crumbs of the tile (batch `r07`'s bits) along the
+    /// gap the fourth left, crumbs of the tile (family `marks_on_the_rooms_surfaces`'s bits) along the
     /// breaks, and the white dust it threw out round it
     fn tail_derelict_debris(&mut self, cx: &mut PropsCtx) {
         use crate::assets::props::prop_part_as_modelled;
@@ -147,7 +147,7 @@ impl Game {
         // the tee's galvanized steel, and the white cap over its face
         let steel_mat = phong!({ color: 0x9a9c96, specular: 0x3c3c38, shininess: 26 });
         let cap_mat = lambert!({ color: 0xc6c1b2 });
-        // batch r07's crumbs of mineral fibre
+        // family `marks_on_the_rooms_surfaces`'s crumbs of mineral fibre
         let bit_mat = lambert!({ color: 0xb0a998 });
         // the four pieces, each mapped where it was in the tile, and its middle there
         let pieces: Vec<Option<(Geo, Geo, f64, f64)>> = ["A", "B", "C", "D"]
@@ -257,7 +257,7 @@ impl Game {
 
     /// STILL: dusty cobwebs left where the walls meet the ceiling: in a
     /// room's corner where two walls do, or along a wall's top where there
-    /// is no corner (Blender batch `r05`)
+    /// is no corner (Blender family `washroom_mirror_cobwebs_and_office_plant`)
     fn tail_still_cobwebs(&mut self, cx: &mut PropsCtx) {
         use crate::assets::props::prop_part_as_modelled;
         // the sheets: silk gone grey with dust, torn, sagging; the threads
@@ -342,7 +342,7 @@ impl Game {
     }
 
     /// ELECTRIC: a cut length of building cable lying slack on the floor
-    /// (Blender batch `r10`: NM-B 12/2 with ground, its jacket yellow or
+    /// (Blender family `what_a_floors_weather_leaves`: NM-B 12/2 with ground, its jacket yellow or
     /// white), its end bent up and stripped to its conductors; now and then
     /// an arc jumps between their bared ends, a brief blue-white flash, and,
     /// rarely, flares.
@@ -1064,8 +1064,8 @@ fn soft_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops:
 // ------------------------------------------------ what the weather leaves (r10)
 //
 // The derelict floors' fallen tile, the electric floors' cable, the haunted
-// floors' candles (Blender batch `r10`, `docs/research/props-remodelling/what_a_floors_weather_leaves.md`)
-// and the wet floors' puddles (painted as batch `r07` paints them).
+// floors' candles (Blender family `what_a_floors_weather_leaves`, `docs/research/props-remodelling/what_a_floors_weather_leaves.md`)
+// and the wet floors' puddles (painted as family `marks_on_the_rooms_surfaces` paints them).
 
 /// A mineral-fibre lay-in tile's side and thickness (24 in, 5/8 in: `game/what_a_floors_weather_leaves.py`)
 const TILE_SIDE: f64 = 0.610;
@@ -1378,7 +1378,7 @@ fn floor_kind(g: &Game, x: i32, z: i32) -> u8 {
     }
 }
 
-// The puddle's painter and what it is painted with, as batch `r07` wrote
+// The puddle's painter and what it is painted with, as family `marks_on_the_rooms_surfaces` wrote
 // them for `place_floor_puddles` (`placers_core`; a placer crate's, which the
 // game crate cannot use)
 

@@ -1,4 +1,4 @@
-"""t08: the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
+"""halloween_things (was t08): the props remodelled at their real sizes (docs/design/PROPS.md, P3, the
 rare): the Halloween decorations of a party room or a shrine, as cheap shop
 decorations are, years after the party: the plastic crow, the hanging bat,
 the resin cat, the besom, the plastic cauldron, the cheesecloth ghost, the

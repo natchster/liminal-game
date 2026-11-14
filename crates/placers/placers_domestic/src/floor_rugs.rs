@@ -8,7 +8,7 @@ use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 
-// Floor rug (Blender batch `r13b`): a Hamadan scatter rug, 2'5" x 4'
+// Floor rug (Blender family `coat_hook_broom_apron_and_rugs`): a Hamadan scatter rug, 2'5" x 4'
 // (0.74 x 1.22 m and its fringe), wool pile on cotton, about 6 mm thick:
 // its pattern woven and faded, the pile worn down in a path across it, a
 // ripple where it has crept, its corners curling and its fringe matted;
@@ -124,7 +124,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The rug of batch `r13b`: its body's length and width (m, its fringe and
+/// The rug of family `coat_hook_broom_apron_and_rugs`: its body's length and width (m, its fringe and
 /// flat-woven ends beyond), its pile's height
 const RUG_L: f64 = 1.22;
 
@@ -337,7 +337,7 @@ fn rug_knot(a: f64, b: f64, len: f64, wid: f64, c: &RugColours, medallion: bool,
 }
 
 /// How worn the pile is at (x, z) m on the rug (its middle the origin):
-/// the path walked across it (the same as its shape's in batch `r13b`)
+/// the path walked across it (the same as its shape's in family `coat_hook_broom_apron_and_rugs`)
 fn rug_worn(x: f64, z: f64) -> f64 {
     let d = (x * 0.42 + z * 0.91) - 0.05;
     (-(d / 0.16) * (d / 0.16)).exp() * (0.6 + 0.4 * (x * 4.0 + 1.0).sin())

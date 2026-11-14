@@ -9,7 +9,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
 // Emergency strobe: 3% chance per level. A fire alarm's wall strobe of
-// the compact kind (Blender batch `t04`, the Edwards Genesis G1RF-VM): a red
+// the compact kind (Blender family `washroom_fittings`, the Edwards Genesis G1RF-VM): a red
 // moulded housing faded and dusty, FIRE in white under a clear prismatic
 // lens, the xenon tube and its reflector behind it. Now and then it fires:
 // a white flash that lights the room (the old light, its timing and its

@@ -1,4 +1,4 @@
-"""t17: bits of a garden and a wood indoors, remodelled at their real
+"""a_garden_and_a_wood_indoors (was t17): bits of a garden and a wood indoors, remodelled at their real
 sizes (docs/design/PROPS.md P3): acorns of the pedunculate oak, with and without
 their cups; horse chestnuts (conkers) and their split husks; an opened
 Scots pine cone and the pine's shed needles in their pairs; a fallen frond

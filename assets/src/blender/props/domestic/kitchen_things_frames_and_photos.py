@@ -1,4 +1,4 @@
-"""Batch b10 - "domestic" theme: kitchen things, bread, shakers, sewing,
+"""Family `kitchen_things_frames_and_photos` - "domestic" theme: kitchen things, bread, shakers, sewing,
 framed pictures, photos, a diary, a wallet.
 
 place_spoon_rests          ceramic rest (rim wall, base plate), wooden spoon (handle, bowl)

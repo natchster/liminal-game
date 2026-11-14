@@ -1,4 +1,4 @@
-"""r17: toys left on the floor, remodelled at their real sizes (docs/design/PROPS.md),
+"""toys_on_the_floor (was r17): toys left on the floor, remodelled at their real sizes (docs/design/PROPS.md),
 P2: the rubber ball, the toy car, the pinwheel, the jigsaw piece and the
 magnetic letters. Sources and sizes: docs/research/props-remodelling/toys_on_the_floor.md.
 

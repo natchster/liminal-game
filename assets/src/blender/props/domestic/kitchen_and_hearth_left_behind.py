@@ -1,4 +1,4 @@
-"""r16: the kitchen and the hearth left behind, remodelled at their real
+"""kitchen_and_hearth_left_behind (was r16): the kitchen and the hearth left behind, remodelled at their real
 sizes (docs/design/PROPS.md, P2): a wine glass with the last of its wine dried in
 it, an enamel stovetop kettle, a cast-iron skillet hung on a nail, a bloomer
 gone stale and mouldy on its board, a beer bottle broken on the floor, a

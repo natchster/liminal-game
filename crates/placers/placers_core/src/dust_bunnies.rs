@@ -14,7 +14,7 @@ use placers_kit::wet_floor::floor_kind;
 // sheds (textile lint, hair, skin, grit) felts itself into clumps held by
 // static and their own fibres (`docs/research/props-remodelling/floor_marks_and_dust.md`):
 // five to ten of them, from a small wisp to a sprawl of fluff 6 cm long
-// (batch r11a), grey with a fleck of a jumper's colour here and there, on a
+// (family `floor_marks_and_dust`), grey with a fleck of a jumper's colour here and there, on a
 // thin film of the dust they gather from and the loose fibres and hairs
 // round them.
 pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {

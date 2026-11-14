@@ -1,11 +1,11 @@
-//! `place_small_paper_napkins`: Small paper napkin: 12% chance per level. A two-ply luncheon napkin left from a party (Blender batch r15: 33 cm, folded in four): with three of the old crumples dropped half open, with four scrunched into a wad; its embossed border and printed spots, a smear of cake, dust. The old draws are kept call for call.
+//! `place_small_paper_napkins`: Small paper napkin: 12% chance per level. A two-ply luncheon napkin left from a party (Blender family `paper_and_small_things_on_office_floors`: 33 cm, folded in four): with three of the old crumples dropped half open, with four scrunched into a wad; its embossed border and printed spots, a smear of cake, dust. The old draws are kept call for call.
 use game::prelude::*;
 use placers_kit::paint::rgba;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
 /// Small paper napkin: 12% chance per level. A two-ply luncheon
-/// napkin left from a party (Blender batch r15: 33 cm, folded in four): with
+/// napkin left from a party (Blender family `paper_and_small_things_on_office_floors`: 33 cm, folded in four): with
 /// three of the old crumples dropped half open, with four scrunched into a
 /// wad; its embossed border and printed spots, a smear of cake, dust. The
 /// old draws are kept call for call.

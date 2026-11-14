@@ -12,7 +12,7 @@ use placers_kit::place::pick_open;
 use placers_kit::place::salt_of;
 
 // Grass clump: 6% chance per level. A tuft of annual meadow grass grown
-// up out of a drift of silt on a damp floor (Blender batch `t05`): tillers of
+// up out of a drift of silt on a damp floor (Blender family `bits_of_the_outside_indoors`): tillers of
 // folded, boat-tipped blades, pale and lank from the dark, a flowering stem
 // or two, the dead blades round its foot; it stirs in a draught.
 pub(crate) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
