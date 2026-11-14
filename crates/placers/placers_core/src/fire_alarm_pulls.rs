@@ -1,15 +1,15 @@
 //! `place_fire_alarm_pulls`
 use game::prelude::*;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::place::mount_slid;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as pay_blob;
-use placers_kit::wall_plates::part as pay_part;
-use placers_kit::wall_plates::scratches as pay_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, false, $paint)).clone())
@@ -68,7 +68,7 @@ pub(crate) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
         led_mat.m().color.set_hex(if k < 0.035 { 0xd8402c } else { 0x3a0e0a });
     });
     let (wall_x, wall_z) = wall_xz(g, c, 0.008);
-    mount(&alarm, c, wall_x, wall_z, 1.50, 0.6);
+    mount_slid(&alarm, c, wall_x, wall_z, 1.50, 0.6);
     g.world.add(&alarm);
     // Track for beep audio.
     let p = alarm.pos();
@@ -76,7 +76,7 @@ pub(crate) fn place_fire_alarm_pulls(g: &mut Game, _dist: &[i32]) {
 }
 
 fn pull_part(name: &str, w: f64, h: f64, d: f64) -> Geo {
-    pay_part(name, w, h, d)
+    part(name, w, h, d)
 }
 
 /// The pull station's cover: red enamel over die-cast, rubbed to the metal at
@@ -84,7 +84,7 @@ fn pull_part(name: &str, w: f64, h: f64, d: f64) -> Geo {
 /// (as batch `r06`'s fire alarms; laid on its front by the part's box
 /// projection: the whole texture is the face).
 fn pull_paint_tex() -> Tex {
-    r12_tex!(128, 170, |ctx, w, h| {
+    cached_tex!(128, 170, |ctx, w, h| {
         ctx.set_fill_style("#8a1c14");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..400 {
@@ -100,7 +100,7 @@ fn pull_paint_tex() -> Tex {
             ctx.ellipse(x, y, 2.0 + rnd() * 4.0, 1.5 + rnd() * 3.0, rnd() * 3.0, 0, 7);
             ctx.fill();
         }
-        pay_blob(ctx, w * 0.5, h * 0.55, w * 0.6, 1.0, (30, 20, 16, 0.30));
+        blob(ctx, w * 0.5, h * 0.55, w * 0.6, 1.0, (30, 20, 16, 0.30));
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(160,150,130,0.22)");
         gd.add_color_stop(0.08, "rgba(160,150,130,0)");
@@ -108,6 +108,6 @@ fn pull_paint_tex() -> Tex {
         gd.add_color_stop(1, "rgba(40,30,24,0.25)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        pay_scratches(ctx, w, h, 14, (170, 140, 130), 0.2, 16.0);
+        scratches(ctx, w, h, 14, (170, 140, 130), 0.2, 16.0);
     })
 }

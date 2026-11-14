@@ -1,7 +1,7 @@
 //! `place_old_crtt_vs`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Old CRT TV: 4% chance per level. Boxy TV with static screen + antennae.
 pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {
@@ -56,7 +56,7 @@ pub(crate) fn place_old_crt_tvs(g: &mut Game, _dist: &[i32]) {
         let p = t * 12.0 + flicker_phase;
         glow.set_intensity(0.20 + p.sin() * 0.06 + (p * 3.3).sin() * 0.04);
     });
-    scatter_on_floor(g, &tv, x, z, 1.6);
+    scatter(g, &tv, x, z, 1.6);
     g.world.add(&tv);
     // Track for static hiss audio.
     let p = tv.pos();

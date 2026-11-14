@@ -1,6 +1,6 @@
 //! `place_hair_dryers`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -47,7 +47,7 @@ pub(crate) fn place_hair_dryers(g: &mut Game, _dist: &[i32]) {
     cord.scale().x = 0.65;
     dryer.add(&cord);
     // Align + push against wall.
-    dryer.rotation().y = face_wall_yaw(c.dx, c.dz);
+    dryer.rotation().y = face_wall(c.dx, c.dz);
     dryer.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.020), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.020));
     g.world.add(&dryer);
 }

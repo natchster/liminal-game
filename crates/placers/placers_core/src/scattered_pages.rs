@@ -1,7 +1,7 @@
 //! `place_scattered_pages`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Scattered pages: 8% chance per level. 5-10 loose sheets with writing.
 pub(crate) fn place_scattered_pages(g: &mut Game, _dist: &[i32]) {
@@ -27,7 +27,7 @@ pub(crate) fn place_scattered_pages(g: &mut Game, _dist: &[i32]) {
         }
         grp.add(&page);
     }
-    scatter_on_floor(g, &grp, x, z, 2.0);
+    scatter(g, &grp, x, z, 2.0);
     g.world.add(&grp);
 }
 

@@ -5,8 +5,8 @@ use placers_kit::on_wall::wall_face;
 use placers_kit::on_wall::wall_turn;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
-use placers_kit::place::WallCand as Cand;
-use placers_kit::wall_plates::part as real_part;
+use placers_kit::place::WallCand;
+use placers_kit::wall_plates::part;
 
 // Rusted pipes: 0-2 runs of 2 in steel pipe per level along walls,
 // low (0.15-0.35 m) (Blender batch `r06`): malleable iron fittings, strut
@@ -67,7 +67,7 @@ fn pipe_fitting(name: &str, mat: &Mat, at: Vec3, outer_y: f64, inner: (f64, f64)
     let o = group();
     o.position().copy(&at);
     o.rotation().y = outer_y;
-    let m = mesh(real_part(name, 0.1, 0.1, 0.08), mat);
+    let m = mesh(part(name, 0.1, 0.1, 0.08), mat);
     m.rotation().x = inner.0;
     m.rotation().z = inner.1;
     o.add(&m);
@@ -76,7 +76,7 @@ fn pipe_fitting(name: &str, mat: &Mat, at: Vec3, outer_y: f64, inner: (f64, f64)
 
 /// Whether the wall behind candidate `c` runs on past its tile to the run's
 /// left (-x) and right (+x), as the run's group is turned.
-fn wall_runs_on(g: &Game, c: &Cand) -> [bool; 2] {
+fn wall_runs_on(g: &Game, c: &WallCand) -> [bool; 2] {
     let (rot, _) = wall_turn(c);
     let (ux, uz) = (rot.cos().round() as i32, (-rot.sin()).round() as i32);
     let (nx, nz) = (c.x + c.dx, c.z + c.dz);
@@ -120,7 +120,7 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
                 // side once the outer turn is applied), a nipple, its collar
                 run.add(&pipe_fitting("Real__pipeElbow", &fit_mat, v3(x, 0, 0), oy, (sx * PI / 2.0, 0.0)));
                 run.add(&pipe_length(&pipe_mat, v3(x, 0, -EA + IN), v3(x, 0, WALL)));
-                let col = mesh(real_part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
+                let col = mesh(part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
                 col.position().set(x, 0, WALL);
                 run.add(&col);
             }
@@ -128,7 +128,7 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
                 // down through the floor, its collar on the floor
                 run.add(&pipe_fitting("Real__pipeElbow", &fit_mat, v3(x, 0, 0), oy, (PI, 0.0)));
                 run.add(&pipe_length(&pipe_mat, v3(x, -EA + IN, 0), v3(x, -h, 0)));
-                let col = mesh(real_part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
+                let col = mesh(part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
                 col.rotation().x = -PI / 2.0;
                 col.position().set(x, -h, 0);
                 run.add(&col);
@@ -139,10 +139,10 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
                 run.add(&pipe_length(&pipe_mat, v3(x, EA - IN, 0), v3(x, rise - EA + IN, 0)));
                 run.add(&pipe_fitting("Real__pipeElbow", &fit_mat, v3(x, rise, 0), PI / 2.0, (0.0, -PI / 2.0)));
                 run.add(&pipe_length(&pipe_mat, v3(x, rise, -EA + IN), v3(x, rise, WALL)));
-                let col = mesh(real_part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
+                let col = mesh(part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
                 col.position().set(x, rise, WALL);
                 run.add(&col);
-                let cl = mesh(real_part("Real__pipeClamp", 0.04, 0.16, 0.12), &galv);
+                let cl = mesh(part("Real__pipeClamp", 0.04, 0.16, 0.12), &galv);
                 cl.rotation().z = PI / 2.0;
                 cl.position().set(x, rise * 0.55, 0);
                 run.add(&cl);
@@ -151,7 +151,7 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
     }
     // two strut clamps on the run
     for (side, sx) in [-1.0f64, 1.0].iter().enumerate() {
-        let cl = mesh(real_part("Real__pipeClamp", 0.04, 0.16, 0.12), &galv);
+        let cl = mesh(part("Real__pipeClamp", 0.04, 0.16, 0.12), &galv);
         cl.position().x = sx * if held[side] { xe - 0.45 } else { 0.3 };
         run.add(&cl);
     }
@@ -164,7 +164,7 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
         let xt = xc + 0.55;
         run.add(&pipe_fitting("Real__pipeTee", &fit_mat, v3(xt, 0, 0), 0.0, (-PI / 2.0, 0.0)));
         run.add(&pipe_length(&pipe_mat, v3(xt, 0, -EA + IN), v3(xt, 0, WALL)));
-        let col = mesh(real_part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
+        let col = mesh(part("Real__pipeCollar", 0.115, 0.115, 0.012), &plate);
         col.position().set(xt, 0, WALL);
         run.add(&col);
         joints.push(xt);
@@ -173,7 +173,7 @@ fn build_pipe_run(len: f64, h: f64, valve: bool, held: [bool; 2]) -> Obj {
     if valve {
         let bronze = lambert!({ color: 0x5e4c32 });
         run.add(&pipe_fitting("Real__pipeValve", &bronze, v3(xv, 0, 0), 0.0, (0.0, 0.0)));
-        let wheel = mesh(real_part("Real__pipeWheel", 0.115, 0.03, 0.115), lambert!({ color: 0x5a2219 }));
+        let wheel = mesh(part("Real__pipeWheel", 0.115, 0.03, 0.115), lambert!({ color: 0x5a2219 }));
         wheel.position().set(xv, 0.150, 0);
         wheel.rotation().y = k2 * 1.5;
         run.add(&wheel);

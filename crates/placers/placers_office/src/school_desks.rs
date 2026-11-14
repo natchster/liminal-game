@@ -5,7 +5,7 @@ use placers_kit::noise::hash;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::paint::opaque as rgb;
+use placers_kit::paint::opaque;
 use placers_kit::place::open_tiles;
 use placers_kit::place::skip;
 
@@ -159,7 +159,7 @@ fn top_tex(salt: u32) -> Tex {
             c = mix(c, [0.7, 0.6, 0.47], wear * (0.6 + 0.4 * fbm(seed ^ 3, x * 40.0, y * 40.0, 2)));
             // dust and grime
             c = mix(c, [0.48, 0.45, 0.4], 0.12 + 0.12 * fbm(seed ^ 4, x * 10.0, y * 10.0, 3));
-            rgb(c)
+            opaque(c)
         });
         ctx.translate(w, h);
         ctx.rotate(PI);
@@ -252,7 +252,7 @@ fn chrome_tex(salt: u32) -> Tex {
             let pit = (fbm(seed ^ 1, u * 90.0, v * 90.0, 3) - 0.6 + 0.3 * low).max(0.0) * 4.0;
             c = mix(c, [0.33, 0.2, 0.12], pit.min(1.0));
             c = mix(c, [0.24, 0.21, 0.17], low * 0.5);
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -274,7 +274,7 @@ fn ply_tex(back: bool, salt: u32) -> Tex {
             c = mix(c, [0.66, 0.53, 0.38], worn * 0.55);
             let edge = sstep(0.4, 0.5, (u - 0.5).abs().max((v - 0.5).abs()));
             c = mix(c, [0.22, 0.16, 0.1], edge * 0.5);
-            rgb(c)
+            opaque(c)
         });
         for _ in 0..60 {
             let (x, y) = (rnd() * w, rnd() * h);
@@ -311,7 +311,7 @@ fn pages_tex(salt: u32) -> Tex {
             let tide = 0.12 + 0.05 * fbm(seed ^ 2, x * 9.0, 0.5, 2);
             c = mix(c, [0.7, 0.62, 0.48], sstep(tide + 0.01, tide - 0.03, y) * 0.35);
             c = mix(c, [0.52, 0.44, 0.32], (-((y - tide) / 0.006).powi(2)).exp() * 0.45);
-            rgb(c)
+            opaque(c)
         });
         ctx.translate(w, h);
         ctx.rotate(PI);
@@ -421,7 +421,7 @@ fn pencil_tex(salt: u32) -> Tex {
             let mut c = [0.78, 0.6, 0.18];
             c = mix(c, [0.6, 0.48, 0.3], (fbm(seed, u * 30.0, v * 6.0, 2) - 0.55).max(0.0) * 2.0);
             c = mix(c, [0.62, 0.5, 0.36], sstep(0.1, 0.0, u) * (0.5 + 0.5 * vn(seed ^ 1, u * 80.0, v * 10.0)));
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -436,7 +436,7 @@ fn apple_tex(kind: usize, salt: u32) -> Tex {
             let mut c = mix([0.2, 0.13, 0.08], [0.3, 0.2, 0.12], fbm(seed, u * 10.0, v * 10.0, 3));
             c = mix(c, old, (fbm(seed ^ 1, u * 4.0, v * 4.0, 2) - 0.5).max(0.0) * 1.6);
             c = mix(c, [0.62, 0.6, 0.55], (vn(seed ^ 2, u * 40.0, v * 40.0) - 0.82).max(0.0) * 3.0);
-            rgb(c)
+            opaque(c)
         });
     })
 }

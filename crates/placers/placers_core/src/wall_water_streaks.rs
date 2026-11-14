@@ -4,11 +4,11 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::smin;
 use placers_kit::noise::sstep;
 use placers_kit::noise::tide;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_mat;
 use placers_kit::paint::mark_tex;
-use placers_kit::paint::paint_px_indexed as paint_px;
-use placers_kit::place::mount_slid_ref as wall_mount;
+use placers_kit::paint::paint_px_indexed;
+use placers_kit::place::mount_slid_ref;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 use placers_kit::wet_floor::floor_kind;
@@ -48,7 +48,7 @@ pub(crate) fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
         let streak = streak_mesh(streak_w.max(STREAK_W), streak_h + 2.0 * up, streak_h + up, surface, true);
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
-        wall_mount(&streak, &c, wall_x, wall_z, streak_top - streak_h / 2.0, 1.4);
+        mount_slid_ref(&streak, &c, wall_x, wall_z, streak_top - streak_h / 2.0, 1.4);
         g.world.add(&streak);
         // 25% chance: where it dripped and stood, a dried ring on the
         // floor below (its old radius 9-16 cm, 1.3 × 0.85 of it)
@@ -132,7 +132,7 @@ struct Run {
 impl Run {
     /// Its middle at depth `y`: straight down, wavering a little as it goes
     fn centre(&self, y: f64) -> f64 {
-        let wander = (fbm(self.s, y * 3.0, 0.5, 3) - 0.5) * 0.016 + (vnoise(self.s ^ 0x5bd1, y * 40.0, 0.5) - 0.5) * 0.0025;
+        let wander = (fbm(self.s, y * 3.0, 0.5, 3) - 0.5) * 0.016 + (vn(self.s ^ 0x5bd1, y * 40.0, 0.5) - 0.5) * 0.0025;
         self.xs + self.lean * (y - self.y0) + wander * ((y - self.y0) / 0.1).clamp(0.0, 1.0)
     }
     /// Its half width at depth `y`: narrow where it starts, wider below as
@@ -201,9 +201,9 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
                 runs.iter().map(|(r, _)| (r.centre(y), r.half(y))).collect()
             })
             .collect();
-        paint_px(ctx, cw, ch, |i, j| {
+        paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx, (j as f64 + 0.5) * sy);
-            let wob = (vnoise(seed, x * 260.0, y * 90.0) - 0.5) * 0.0014 + (vnoise(seed ^ 0x77, x * 60.0, y * 14.0) - 0.5) * 0.004;
+            let wob = (vn(seed, x * 260.0, y * 90.0) - 0.5) * 0.0014 + (vn(seed ^ 0x77, x * 60.0, y * 14.0) - 0.5) * 0.004;
             // the wetted patch it came from, under the ceiling
             let src = (((x - x0) / src_rx).hypot(y / src_ry) - 1.0) * src_ry + wob;
             let (mut fill_a, mut line_a, mut near) = (0.0f64, 0.0f64, f64::MAX);
@@ -214,15 +214,15 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
                 }
                 let inside = (0.5 - d / aa).clamp(0.0, 1.0);
                 // streaked down the way it ran, thinner in places
-                let streaks = 0.5 + 0.5 * vnoise(seed ^ 0xabc, x * 380.0, y * 7.0);
-                let f = inside * k_fill * strength * fade * streaks * (0.7 + 0.3 * vnoise(seed ^ 0x3c3c, x * 40.0, y * 12.0));
+                let streaks = 0.5 + 0.5 * vn(seed ^ 0xabc, x * 380.0, y * 7.0);
+                let f = inside * k_fill * strength * fade * streaks * (0.7 + 0.3 * vn(seed ^ 0x3c3c, x * 40.0, y * 12.0));
                 let t0 = tide(d, aa, 0.003);
-                let t1 = tide(d + 0.0028 + (vnoise(seed ^ 0x1f, x * 150.0, y * 40.0) - 0.5) * 0.002, aa, 0.0018) * 0.4;
+                let t1 = tide(d + 0.0028 + (vn(seed ^ 0x1f, x * 150.0, y * 40.0) - 0.5) * 0.002, aa, 0.0018) * 0.4;
                 let l = (1.0 - (1.0 - t0) * (1.0 - t1))
                     * k_line
                     * strength
                     * (0.6 + 0.4 * fade)
-                    * (0.4 + 0.6 * vnoise(seed ^ 0x6e, x * 30.0, y * 5.0));
+                    * (0.4 + 0.6 * vn(seed ^ 0x6e, x * 30.0, y * 5.0));
                 fill_a = 1.0 - (1.0 - fill_a) * (1.0 - f);
                 line_a = 1.0 - (1.0 - line_a) * (1.0 - l);
             };
@@ -244,7 +244,7 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
             }
             let mut px = Px::CLEAR;
             // the faint wetting round them all, soft-edged
-            let halo = sstep(0.018, 0.0, near + (vnoise(seed ^ 0x4a, x * 40.0, y * 8.0) - 0.5) * 0.012);
+            let halo = sstep(0.018, 0.0, near + (vn(seed ^ 0x4a, x * 40.0, y * 8.0) - 0.5) * 0.012);
             px.lay(fill, halo * k_fill * 0.22);
             px.lay(fill, fill_a);
             px.lay(line, line_a);
@@ -289,7 +289,7 @@ fn foot_ring_mat(r: f64, floor: u8) -> Mat {
                 (o, s, seed.wrapping_add(k as u32 * 977 + 1))
             })
             .collect();
-        paint_px(ctx, cw, ch, |i, j| {
+        paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
             let rho = u.hypot(v);
@@ -297,12 +297,12 @@ fn foot_ring_mat(r: f64, floor: u8) -> Mat {
                 return [line[0], line[1], line[2], 0.0];
             }
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
-            let fine = (vnoise(seed ^ 0x51, x * 160.0, y * 160.0) - 0.5) * 0.0018;
+            let fine = (vn(seed ^ 0x51, x * 160.0, y * 160.0) - 0.5) * 0.0018;
             let (mut d0, mut lines) = (0.0, 0.0);
             for (k, &(o, s, rs)) in rings.iter().enumerate() {
                 let lobe = 1.0
                     + 0.3 * (fbm(rs, cu * 1.3 + 7.0, cv * 1.3 + 7.0, 3) - 0.5)
-                    + 0.07 * (vnoise(rs ^ 0x33, cu * 5.0 + 3.0, cv * 5.0 + 3.0) - 0.5);
+                    + 0.07 * (vn(rs ^ 0x33, cu * 5.0 + 3.0, cv * 5.0 + 3.0) - 0.5);
                 let d = (rho - (1.0 - o) * lobe) * r0 + fine;
                 if k == 0 {
                     d0 = d;
@@ -312,10 +312,10 @@ fn foot_ring_mat(r: f64, floor: u8) -> Mat {
             let mut px = Px::CLEAR;
             let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
             let pale = 0.55 + 0.45 * sstep(0.0, 0.8, rho);
-            px.lay(fill, inside * k_fill * pale * (0.7 + 0.3 * vnoise(seed ^ 0x3c, x * 40.0, y * 40.0)));
+            px.lay(fill, inside * k_fill * pale * (0.7 + 0.3 * vn(seed ^ 0x3c, x * 40.0, y * 40.0)));
             px.lay(line, lines * k_line);
             if floor == 1 {
-                px.lay(SALT, (lines * (vnoise(seed ^ 0x99, x * 300.0, y * 300.0) - 0.45).max(0.0) * 1.5).min(0.5));
+                px.lay(SALT, (lines * (vn(seed ^ 0x99, x * 300.0, y * 300.0) - 0.45).max(0.0) * 1.5).min(0.5));
             }
             px.rgba()
         });

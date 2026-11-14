@@ -1,6 +1,6 @@
 //! `place_horseshoes`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -40,7 +40,7 @@ pub(crate) fn place_horseshoes(g: &mut Game, _dist: &[i32]) {
     hanger.rotation().x = PI / 2.0;
     hanger.position().set(0, mount_y + 0.043, -0.004);
     shoe.add(&hanger);
-    shoe.rotation().y = face_yaw(dx, dz);
+    shoe.rotation().y = face_wall(dx, dz);
     shoe.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
     g.world.add(&shoe);
 }

@@ -1,7 +1,7 @@
 //! `place_vinyl_records`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Vinyl record: 12% chance per level. Round black disc with
 // color label at center.
@@ -13,10 +13,10 @@ pub(crate) fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let disc_mat = lambert!({ color: 0x0a0806 });
     let label_colors = [0xa02020, 0x2040a0, 0xa08020, 0x208020, 0x8020a0];
-    let label_mat = lambert!({ color: label_colors[pick(label_colors.len())] });
+    let label_mat = lambert!({ color: label_colors[ri(label_colors.len())] });
     let record = group();
     // Main disc: 12-inch LP ≈ 0.15 m radius.
     let disc = mesh(pg("VinylRecords__disc", cyl_geo!(0.15, 0.15, 0.003, 20)), &disc_mat);
@@ -46,7 +46,7 @@ pub(crate) fn place_vinyl_records(g: &mut Game, _dist: &[i32]) {
     // 25% chance: album sleeve (square card) 0.15-0.30 m from record.
     if rnd() < 0.25 {
         let sleeve_colors = [0x2a2020, 0x1a2028, 0x282018, 0x1a1a2a];
-        let sleeve_mat = lambert!({ color: sleeve_colors[pick(sleeve_colors.len())] });
+        let sleeve_mat = lambert!({ color: sleeve_colors[ri(sleeve_colors.len())] });
         let sleeve = mesh(pg("VinylRecords__sleeve", box_geo!(0.32, 0.005, 0.32)), &sleeve_mat);
         let s_ang = rnd() * PI * 2.0;
         let s_rad = 0.15 + rnd() * 0.15;

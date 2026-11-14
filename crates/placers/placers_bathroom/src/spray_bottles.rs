@@ -1,13 +1,13 @@
 //! `place_spray_bottles`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t04_put;
-use placers_kit::noise::fbm as t04_fbm;
-use placers_kit::noise::hash as t04_hash;
-use placers_kit::noise::sstep as t04_ss;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
 use placers_kit::paint::fill as t04_fill;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_xz_turned as scatter_xz;
+use placers_kit::place::scatter_xz_turned;
 use placers_kit::place::vary as t04_vary;
 
 // Spray bottle: 8% chance per level. A 16 oz HDPE cylinder round of
@@ -37,12 +37,12 @@ pub(crate) fn place_spray_bottles(g: &mut Game, _dist: &[i32]) {
         bottle.rotation().z = PI / 2.0;
         bottle.position().y = SB_R;
     }
-    scatter_xz(g, &bottle, x, z, 2.0);
+    scatter_xz_turned(g, &bottle, x, z, 2.0);
     let p = bottle.pos();
     let vary = t04_vary(p.x, p.z, kind as f64);
-    t04_put(&bottle, "Real__sprayBottleBody", &lambert!({ map: &sb_body_tex(vary, kind, tipped) }));
-    t04_put(&bottle, "Real__sprayBottleHead", &lambert!({ map: &sb_head_tex(vary) }));
-    t04_put(&bottle, "Real__sprayBottleNozzle", &lambert!({ color: 0x2a2928 }));
+    put(&bottle, "Real__sprayBottleBody", &lambert!({ map: &sb_body_tex(vary, kind, tipped) }));
+    put(&bottle, "Real__sprayBottleHead", &lambert!({ map: &sb_head_tex(vary) }));
+    put(&bottle, "Real__sprayBottleNozzle", &lambert!({ color: 0x2a2928 }));
     g.world.add(&bottle);
 }
 
@@ -63,8 +63,8 @@ fn sb_head_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = vary ^ 0x5eed;
         t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed, u * 6.0, v * 6.0, 3);
-            let grime = t04_ss(0.5, 0.8, n) * 0.25;
+            let n = fbm(seed, u * 6.0, v * 6.0, 3);
+            let grime = sstep(0.5, 0.8, n) * 0.25;
             let c = [0.80 - grime, 0.78 - grime, 0.71 - grime * 1.1];
             [c[0], c[1], c[2], 1.0]
         });
@@ -81,19 +81,19 @@ fn sb_body_tex(vary: u32, kind: usize, tipped: bool) -> Tex {
         let seed = vary ^ 0x5b07;
         let (name, liq, band) = SB_KINDS[kind.min(3)];
         // how much is left: a quarter to two thirds
-        let fill = 0.25 + 0.42 * t04_hash(seed, 1, 1);
+        let fill = 0.25 + 0.42 * hash(seed, 1, 1);
         // standing: its level up the body; lying: how far round it reaches
         let level = 0.02 + fill * 0.74;
         let reach = (1.0 - 2.0 * fill).clamp(-0.99, 0.99).acos() / (PI * 2.0);
         t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed ^ 0x3, u * 9.0, v * 9.0, 3);
+            let n = fbm(seed ^ 0x3, u * 9.0, v * 9.0, 3);
             let plastic = [0.80 + 0.03 * n, 0.78 + 0.03 * n, 0.70 + 0.02 * n];
             let wet = if tipped {
                 // the lower side lies at u 0.75 (the bottle's -x down)
                 let d = ((u - 0.75 + 0.5).rem_euclid(1.0) - 0.5).abs();
-                1.0 - t04_ss(reach - 0.006, reach + 0.006, d)
+                1.0 - sstep(reach - 0.006, reach + 0.006, d)
             } else {
-                1.0 - t04_ss(level - 0.004, level + 0.004, v)
+                1.0 - sstep(level - 0.004, level + 0.004, v)
             };
             let mut c = plastic;
             for k in 0..3 {
@@ -109,8 +109,8 @@ fn sb_body_tex(vary: u32, kind: usize, tipped: bool) -> Tex {
             }
             // grime where it was held (round its middle, the back most) and
             // dirt round its foot
-            let held = (-((v - 0.45) / 0.18).powi(2)).exp() * t04_ss(0.45, 0.8, t04_fbm(seed ^ 0x7, u * 14.0, v * 10.0, 3)) * 0.22;
-            let foot = (1.0 - t04_ss(0.0, 0.08, v)) * 0.35;
+            let held = (-((v - 0.45) / 0.18).powi(2)).exp() * sstep(0.45, 0.8, fbm(seed ^ 0x7, u * 14.0, v * 10.0, 3)) * 0.22;
+            let foot = (1.0 - sstep(0.0, 0.08, v)) * 0.35;
             for k in &mut c {
                 *k *= 1.0 - held - foot * (0.6 + 0.4 * n);
             }

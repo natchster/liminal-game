@@ -5,7 +5,7 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::matted;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::rgb;
@@ -78,23 +78,23 @@ fn plush_tex(salt: u32, b: [f64; 3]) -> Tex {
         let seed = salt ^ 0x9b1;
         fill(ctx, w, h, |u, v| {
             let streak = fbm(seed, u * 140.0, v * 70.0, 3);
-            let mut c = mix(b, [b[0] * 0.66, b[1] * 0.64, b[2] * 0.62], ss(0.42, 0.72, streak) * 0.45);
+            let mut c = mix(b, [b[0] * 0.66, b[1] * 0.64, b[2] * 0.62], sstep(0.42, 0.72, streak) * 0.45);
             let tip = vn(seed ^ 2, u * 220.0, v * 180.0);
-            c = mix(c, [b[0] * 1.18 + 0.03, b[1] * 1.16 + 0.03, b[2] * 1.14 + 0.03], ss(0.7, 0.95, tip) * 0.4);
+            c = mix(c, [b[0] * 1.18 + 0.03, b[1] * 1.16 + 0.03, b[2] * 1.14 + 0.03], sstep(0.7, 0.95, tip) * 0.4);
             // matted: flattened pile, darker and smoother in patches
             let mat = matted(seed, u, v);
             c = mix(c, [b[0] * 0.78, b[1] * 0.76, b[2] * 0.74], mat * 0.6);
             let fade = fbm(seed ^ 3, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.60, 0.57, 0.52], ss(0.5, 0.8, fade) * 0.25);
+            c = mix(c, [0.60, 0.57, 0.52], sstep(0.5, 0.8, fade) * 0.25);
             let grime = fbm(seed ^ 6, u * 4.0, v * 4.0, 3);
-            c = mix(c, [0.32, 0.28, 0.24], ss(0.6, 0.85, grime) * 0.35);
+            c = mix(c, [0.32, 0.28, 0.24], sstep(0.6, 0.85, grime) * 0.35);
             // an old stain, dried at its edge
             let (du, dv) = (u - 0.3 - 0.4 * hash(seed, 1, 1), v - 0.3 - 0.3 * hash(seed, 2, 2));
             let d = (du * du + dv * dv).sqrt() / 0.07;
             c = mix(
                 c,
                 [c[0] * 0.8, c[1] * 0.74, c[2] * 0.66],
-                (ss(1.0, 0.85, d) * 0.4 + ss(0.75, 0.95, d) * ss(1.05, 0.95, d) * 0.4).min(0.6),
+                (sstep(1.0, 0.85, d) * 0.4 + sstep(0.75, 0.95, d) * sstep(1.05, 0.95, d) * 0.4).min(0.6),
             );
             [c[0], c[1], c[2], 1.0]
         });
@@ -123,9 +123,9 @@ fn velour_tex(salt: u32, b: [f64; 3]) -> Tex {
         let seed = salt ^ 0x7e1;
         fill(ctx, w, h, |u, v| {
             let nap = fbm(seed, u * 9.0, v * 9.0, 3);
-            let mut c = mix(b, [b[0] * 0.82, b[1] * 0.8, b[2] * 0.78], ss(0.4, 0.7, nap) * 0.6);
+            let mut c = mix(b, [b[0] * 0.82, b[1] * 0.8, b[2] * 0.78], sstep(0.4, 0.7, nap) * 0.6);
             let grime = fbm(seed ^ 1, u * 5.0, v * 5.0, 3);
-            c = mix(c, [0.38, 0.33, 0.28], ss(0.5, 0.8, grime) * 0.45);
+            c = mix(c, [0.38, 0.33, 0.28], sstep(0.5, 0.8, grime) * 0.45);
             let speck = vn(seed ^ 2, u * 70.0, v * 70.0);
             if speck > 0.88 {
                 c = mix(c, [0.30, 0.26, 0.22], (speck - 0.88) * 4.0);

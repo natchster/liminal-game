@@ -5,7 +5,7 @@ use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
@@ -108,13 +108,17 @@ fn hair_tex(salt: u32, col: u32) -> Tex {
         let seed = salt ^ 0x4a1;
         fill(ctx, w, h, |u, v| {
             let streak = fbm(seed, u * 60.0, v * 6.0, 3);
-            let mut c = mix(p, [p[0] * 0.6, p[1] * 0.6, p[2] * 0.6], ss(0.45, 0.75, streak) * 0.6);
-            c = mix(c, [p[0] * 1.2 + 0.05, p[1] * 1.2 + 0.04, p[2] * 1.15 + 0.03], ss(0.6, 0.8, fbm(seed ^ 2, u * 30.0, v * 4.0, 2)) * 0.3);
+            let mut c = mix(p, [p[0] * 0.6, p[1] * 0.6, p[2] * 0.6], sstep(0.45, 0.75, streak) * 0.6);
+            c = mix(
+                c,
+                [p[0] * 1.2 + 0.05, p[1] * 1.2 + 0.04, p[2] * 1.15 + 0.03],
+                sstep(0.6, 0.8, fbm(seed ^ 2, u * 30.0, v * 4.0, 2)) * 0.3,
+            );
             // rubbed through to the vinyl
             let rub = fbm(seed ^ 3, u * 16.0, v * 16.0, 3);
-            c = mix(c, [0.72, 0.58, 0.48], ss(0.70, 0.78, rub) * 0.55);
+            c = mix(c, [0.72, 0.58, 0.48], sstep(0.70, 0.78, rub) * 0.55);
             // dust in the grooves
-            c = mix(c, [0.48, 0.45, 0.40], ss(0.55, 0.75, fbm(seed ^ 9, u * 4.0, v * 4.0, 2)) * 0.25);
+            c = mix(c, [0.48, 0.45, 0.40], sstep(0.55, 0.75, fbm(seed ^ 9, u * 4.0, v * 4.0, 2)) * 0.25);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -145,9 +149,9 @@ fn face_tex(salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let b = [0.84, 0.69, 0.60];
             let n = fbm(seed, u * 5.0, v * 5.0, 4);
-            let mut c = mix(b, [b[0] * 0.84, b[1] * 0.78, b[2] * 0.70], ss(0.45, 0.8, n) * 0.45);
+            let mut c = mix(b, [b[0] * 0.84, b[1] * 0.78, b[2] * 0.70], sstep(0.45, 0.8, n) * 0.45);
             let grime = fbm(seed ^ 5, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.40, 0.33, 0.27], ss(0.6, 0.85, grime) * 0.25);
+            c = mix(c, [0.40, 0.33, 0.27], sstep(0.6, 0.85, grime) * 0.25);
             let speck = vn(seed ^ 7, u * 80.0, v * 90.0);
             if speck > 0.88 {
                 c = mix(c, [0.36, 0.30, 0.24], (speck - 0.88) * 4.0);

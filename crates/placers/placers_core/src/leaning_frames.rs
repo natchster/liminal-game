@@ -1,6 +1,6 @@
 //! `place_leaning_frames`
 use game::prelude::*;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Empty picture frame leaning against wall: 15% chance per
@@ -13,7 +13,7 @@ pub(crate) fn place_leaning_frames(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let frame_mat = lambert!({ color: 0x4a3018 });
     let back_mat = lambert!({ color: 0x1a1210 });
     let frame = group();

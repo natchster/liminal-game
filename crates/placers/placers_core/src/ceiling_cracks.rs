@@ -1,6 +1,6 @@
 //! `place_ceiling_cracks`
 use game::prelude::*;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_mat;
 use placers_kit::paint::mark_tex;
 use placers_kit::place::open_tiles;
@@ -317,7 +317,7 @@ fn slab_crack_mat(pw: f64, ph: f64, path: &[(f64, f64)], slab: bool) -> Mat {
         }
         let seed = (rnd() * 4.0e9) as u32;
         let wmax = (0.003 + 0.0015 * rnd()) / s;
-        let width = |t: f64| wmax * (PI * t).sin().powf(0.6) * (0.7 + 0.6 * vnoise(seed, t * 9.0, 0.5));
+        let width = |t: f64| wmax * (PI * t).sin().powf(0.6) * (0.7 + 0.6 * vn(seed, t * 9.0, 0.5));
         let mut branches = vec![];
         for _ in 0..2 + (rnd() * 3.0) as usize {
             let t = 0.1 + 0.8 * rnd();

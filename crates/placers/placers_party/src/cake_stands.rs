@@ -3,7 +3,7 @@ use crate::shared::put;
 use crate::shared::put_split;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::baking::mould as loaf_mould;
+use placers_kit::baking::mould;
 use placers_kit::noise::fbm;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
@@ -263,7 +263,7 @@ fn cake_tex(flavour: usize, salt: u32) -> Tex {
                 c = mix(c, [0.62, 0.58, 0.52], sstep(0.55, 0.8, fbm(seed ^ 5, cu * 3.0, cv * 3.0, 2)) * 0.5);
             }
             // the mould
-            let (s, wr, st) = loaf_mould(&cols, px, py, seed ^ 7);
+            let (s, wr, st) = mould(&cols, px, py, seed ^ 7);
             c = mix(c, [0.56, 0.50, 0.36], st * 0.35);
             c = mix(c, [0.80, 0.80, 0.76], wr * 0.6);
             let sp = vn(seed ^ 9, px / 1.5, py / 1.5);

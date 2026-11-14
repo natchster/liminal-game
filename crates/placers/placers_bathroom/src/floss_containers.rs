@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::vn;
-use placers_kit::paint::opaque as rgb;
+use placers_kit::paint::opaque;
 use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 use placers_kit::place::skip;
@@ -77,7 +77,7 @@ fn scuff_tex(salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 6.0, v * 6.0, 3);
             let g = 0.82 + 0.12 * n - (vn(seed ^ 1, u * 50.0, v * 50.0) - 0.75).max(0.0) * 1.2;
-            rgb([g, g * 0.98, g * 0.95])
+            opaque([g, g * 0.98, g * 0.95])
         });
     })
 }

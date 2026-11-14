@@ -9,7 +9,7 @@ use placers_kit::paint::css;
 use placers_kit::paint::fill;
 use placers_kit::paint::soft;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 use placers_kit::place::salt;
 
@@ -36,7 +36,7 @@ pub(crate) fn place_small_cauldrons(g: &mut Game, _dist: &[i32]) {
     // the old brew's draws: its colour, its flicker's phase (now the
     // water's own variety)
     let wet = if is_glowing {
-        let brew = pick_u32(&brew_colors);
+        let brew = pick_hex(&brew_colors);
         let ripple = rnd();
         Some((brew_colors.iter().position(|&c| c == brew).unwrap_or(0), ripple))
     } else {

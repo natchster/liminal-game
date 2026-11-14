@@ -6,12 +6,12 @@ use game::visuals::pictures::Age;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 use placers_kit::place::vary;
 
@@ -27,7 +27,7 @@ pub(crate) fn place_small_music_boxes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     // the old draws, call for call: its finish, where it stands, its turn
     let box_colors = [0xa06030, 0x8a5030, 0x603820, 0xd82060, 0xd8b040];
     let finish = pick_color(&box_colors);
@@ -89,8 +89,8 @@ fn mb_finish_tex(vary: u32, c: u32) -> Tex {
                 wood(seed, u, v, base, 10.0, 40.0)
             };
             // worn to the beech at the edges and the corners
-            let e = 1.0 - ss(0.02, 0.10, u.min(1.0 - u).min(v).min(1.0 - v));
-            let wear = e * ss(0.5, 0.7, fbm(seed ^ 3, u * 20.0, v * 20.0, 3));
+            let e = 1.0 - sstep(0.02, 0.10, u.min(1.0 - u).min(v).min(1.0 - v));
+            let wear = e * sstep(0.5, 0.7, fbm(seed ^ 3, u * 20.0, v * 20.0, 3));
             o = mix(o, [0.58, 0.45, 0.30], wear * if painted { 0.8 } else { 0.4 });
             let dust = 0.08 + 0.12 * fbm(seed ^ 5, u * 6.0, v * 6.0, 3);
             opaque(mix(o, [0.43, 0.40, 0.35], dust))

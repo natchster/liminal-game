@@ -6,8 +6,8 @@ use placers_kit::geometry::put;
 use placers_kit::noise::crack;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -173,14 +173,14 @@ fn pw_metal_tex(vary: u32, base: [f64; 3], kind: usize) -> Tex {
         fill(ctx, w, h, |u, v| {
             let k = tarnish(seed, u, v, 6.0);
             let mut o = base.map(|c| c * k);
-            let scratch = ss(0.94, 0.985, vn(seed ^ 3, u * 4.0 + v * 70.0, v * 4.0 - u * 50.0));
-            o = mix(o, base.map(|c| (c * 1.5).min(0.8)), scratch * 0.5);
-            let worn = ss(0.68, 0.82, fbm(seed ^ 5, u * 9.0, v * 9.0, 3));
+            let scratch = sstep(0.94, 0.985, vn(seed ^ 3, u * 4.0 + v * 70.0, v * 4.0 - u * 50.0));
+            o = mix_unclamped(o, base.map(|c| (c * 1.5).min(0.8)), scratch * 0.5);
+            let worn = sstep(0.68, 0.82, fbm(seed ^ 5, u * 9.0, v * 9.0, 3));
             o = match kind {
-                0 => mix(o, [0.42, 0.33, 0.20], worn * 0.6),
+                0 => mix_unclamped(o, [0.42, 0.33, 0.20], worn * 0.6),
                 1 => o.map(|c| c * (1.0 - 0.5 * worn)),
-                2 => mix(o, [0.40, 0.30, 0.20], worn * 0.5),
-                _ => mix(o, [0.30, 0.30, 0.30], worn * 0.6),
+                2 => mix_unclamped(o, [0.40, 0.30, 0.20], worn * 0.5),
+                _ => mix_unclamped(o, [0.30, 0.30, 0.30], worn * 0.6),
             };
             opaque(o)
         });
@@ -197,8 +197,8 @@ fn pw_dial_tex(vary: u32) -> Tex {
             let n = fbm(seed, u * 5.0, v * 5.0, 3);
             let mut o = [0.86, 0.83, 0.74].map(|c| c * (0.94 + 0.06 * n));
             let d = crack(seed ^ 3, u * 9.0, v * 9.0);
-            let line = 1.0 - ss(0.0, 0.012, d);
-            let reach = ss(0.55, 0.7, fbm(seed ^ 5, u * 3.0, v * 3.0, 2));
+            let line = 1.0 - sstep(0.0, 0.012, d);
+            let reach = sstep(0.55, 0.7, fbm(seed ^ 5, u * 3.0, v * 3.0, 2));
             o = o.map(|c| c * (1.0 - 0.45 * line * reach));
             opaque(o)
         });
@@ -293,5 +293,5 @@ fn pw_inscription_tex(vary: u32) -> Tex {
 
 /// Tarnished metal's mottle (a multiplier near 1)
 fn tarnish(seed: u32, u: f64, v: f64, scale: f64) -> f64 {
-    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * ss(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
+    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * sstep(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
 }

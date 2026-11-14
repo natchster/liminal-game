@@ -1,7 +1,7 @@
 //! `place_clock_radios`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Small clock radio: 12% chance per level. Block with tuning
 // dial + LED digital display. Classic bedside device.
@@ -13,7 +13,7 @@ pub(crate) fn place_clock_radios(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let case_mat = lambert!({ color: 0x2a2418 });
     let dial_mat = lambert!({ color: 0xd8d0c0 });
     let led_mat = basic_mat!({ color: 0xe02818 });

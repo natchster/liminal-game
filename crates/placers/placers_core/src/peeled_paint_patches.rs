@@ -1,13 +1,13 @@
 //! `place_peeled_paint_patches`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as h01;
-use placers_kit::noise::sstep as smooth;
-use placers_kit::noise::vn as vnoise;
-use placers_kit::noise::Rng32 as Rng;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::noise::Rng32;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
-use placers_kit::paint::mark_mat as decal_mat;
+use placers_kit::paint::mark_mat;
 use placers_kit::place::mount;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
@@ -38,7 +38,7 @@ pub(crate) fn place_peeled_paint_patches(g: &mut Game, _dist: &[i32]) {
     mount(&patch, c, wall_x, wall_z, 1.4, Some(0.5));
     // what it is, from where it is (no draws)
     let p = patch.pos();
-    let mut r = Rng(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]));
+    let mut r = Rng32(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]));
     let key = wall_key_at(g, c.x, c.z);
     let painted = key.starts_with("wp:") || key.starts_with("drywall") || key.starts_with("paint");
     let flakes = Flakes::new(r.u(), painted, pw, ph);
@@ -50,7 +50,7 @@ pub(crate) fn place_peeled_paint_patches(g: &mut Game, _dist: &[i32]) {
     // a few flakes curled off the wall, at the edges of the holes
     let curls = flakes.curls(&mut r);
     let tex = peeled_paint_tex(&flakes, coat, base, &curls);
-    let decal = mesh(plane_geo!(pw, ph), &decal_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
     decal.position().z = -0.007;
     patch.add(&decal);
     // the flakes: the top coat's face (the wall's own surface, or the
@@ -97,7 +97,7 @@ impl Flakes {
     const SUB: f64 = 0.014;
 
     pub fn new(seed: u32, painted: bool, pw: f64, ph: f64) -> Self {
-        let mut r = Rng(seed | 1);
+        let mut r = Rng32(seed | 1);
         let mid = ((r.f() - 0.5) * 0.06, (r.f() - 0.5) * 0.08);
         let reach = (0.18 + 0.03 * r.f(), 0.23 + 0.04 * r.f());
         Flakes { seed: r.u(), painted, pw, ph, mid, reach }
@@ -107,16 +107,16 @@ impl Flakes {
     pub fn env(&self, x: f64, y: f64) -> f64 {
         let (dx, dy) = ((x - self.mid.0) / self.reach.0, (y - self.mid.1) / self.reach.1);
         let q = dx.hypot(dy) * (1.0 + 0.5 * (fbm(self.seed ^ 0x61, x * 7.0, y * 7.0, 3) - 0.5));
-        smooth(1.0, 0.25, q) * smooth(0.0, 0.03, (self.pw / 2.0 - x.abs()).min(self.ph / 2.0 - y.abs()))
+        sstep(1.0, 0.25, q) * sstep(0.0, 0.03, (self.pw / 2.0 - x.abs()).min(self.ph / 2.0 - y.abs()))
     }
 
     /// Whether a cell (its point at `c`, its hash `h`) has lost its paint
     pub fn cell_gone(&self, c: (f64, f64), h: f64) -> bool {
         let e = self.env(c.0, c.1);
         if self.painted {
-            h < 0.9 * smooth(0.06, 0.5, e)
+            h < 0.9 * sstep(0.06, 0.5, e)
         } else {
-            h >= 0.97 * smooth(0.0, 0.2, e)
+            h >= 0.97 * sstep(0.0, 0.2, e)
         }
     }
 
@@ -139,7 +139,7 @@ impl Flakes {
         let mut best = (f64::INFINITY, 0usize);
         for (k, pt) in pts.iter_mut().enumerate() {
             let (i, j) = (gi + k as i32 % 3 - 1, gj + k as i32 / 3 - 1);
-            let c = ((f64::from(i) + 0.15 + 0.7 * h01(s, i, j)) * cell, (f64::from(j) + 0.15 + 0.7 * h01(s ^ 0x5, i, j)) * cell);
+            let c = ((f64::from(i) + 0.15 + 0.7 * hash(s, i, j)) * cell, (f64::from(j) + 0.15 + 0.7 * hash(s ^ 0x5, i, j)) * cell);
             let d = (q.0 - c.0).hypot(q.1 - c.1);
             *pt = (c, (i, j));
             if d < best.0 {
@@ -170,23 +170,21 @@ impl Flakes {
     pub fn at(&self, x: f64, y: f64) -> Here {
         // the cracks waver
         let q = (
-            x + 0.004 * (fbm(self.seed ^ 0x71, x * 55.0, y * 55.0, 2) - 0.5)
-                + 0.0012 * (vnoise(self.seed ^ 0x72, x * 260.0, y * 260.0) - 0.5),
-            y + 0.004 * (fbm(self.seed ^ 0x73, x * 55.0, y * 55.0, 2) - 0.5)
-                + 0.0012 * (vnoise(self.seed ^ 0x74, x * 260.0, y * 260.0) - 0.5),
+            x + 0.004 * (fbm(self.seed ^ 0x71, x * 55.0, y * 55.0, 2) - 0.5) + 0.0012 * (vn(self.seed ^ 0x72, x * 260.0, y * 260.0) - 0.5),
+            y + 0.004 * (fbm(self.seed ^ 0x73, x * 55.0, y * 55.0, 2) - 0.5) + 0.0012 * (vn(self.seed ^ 0x74, x * 260.0, y * 260.0) - 0.5),
         );
         let s = self.seed;
-        let st = |c: (f64, f64), i: i32, j: i32| self.cell_gone(c, h01(s ^ 0x11, i, j));
+        let st = |c: (f64, f64), i: i32, j: i32| self.cell_gone(c, hash(s ^ 0x11, i, j));
         let (gone, d, n0, crack, ija, ijb) = self.voronoi(0x1, Self::CELL, q, &st);
         // n0 points from this cell to the other: make it from what is there to what is gone
         let n = if gone { (-n0.0, -n0.1) } else { n0 };
         // the cell still there beside the edge (this one, or the one across it) is lifted at it
         let kept = if gone { ijb } else { ija };
-        let lifted = h01(s ^ 0x13, kept.0, kept.1) < 0.45;
+        let lifted = hash(s ^ 0x13, kept.0, kept.1) < 0.45;
         let env = self.env(x, y);
         // the older coat, gone in its own smaller flakes where the damp was worst
         let (deep, dd, dn) = if gone && self.painted {
-            let sd = |c: (f64, f64), i: i32, j: i32| h01(s ^ 0x21, i, j) < 0.4 * smooth(0.5, 1.0, self.env(c.0, c.1)) + 0.04;
+            let sd = |c: (f64, f64), i: i32, j: i32| hash(s ^ 0x21, i, j) < 0.4 * sstep(0.5, 1.0, self.env(c.0, c.1)) + 0.04;
             let (dp, dd, dn0, _, _, _) = self.voronoi(0x2, Self::SUB, q, &sd);
             (dp, dd, if dp { (-dn0.0, -dn0.1) } else { dn0 })
         } else {
@@ -197,7 +195,7 @@ impl Flakes {
 
     /// Where flakes have curled off: 3-5 points on the edge of a hole, each
     /// (x, y, its turn on the wall, which flake, its size)
-    pub fn curls(&self, r: &mut Rng) -> Vec<(f64, f64, f64, usize, f64)> {
+    pub fn curls(&self, r: &mut Rng32) -> Vec<(f64, f64, f64, usize, f64)> {
         let mut found: Vec<(f64, f64, (f64, f64))> = vec![];
         let (nx, ny) = (36, 46);
         for j in 0..ny {
@@ -293,14 +291,14 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
                 px = [c[0], c[1], c[2], (0.5 + h.d / aa).clamp(0.0, 1.0)];
                 // the older coat's own broken edge, and its shadow
                 if !h.deep && h.dd < 0.0015 {
-                    lay(&mut px, LIT, 0.4 * h.dn.1.max(0.0) * smooth(0.0007, 0.0, h.dd));
+                    lay(&mut px, LIT, 0.4 * h.dn.1.max(0.0) * sstep(0.0007, 0.0, h.dd));
                 } else if h.deep && h.dd < 0.002 {
-                    lay(&mut px, SHADE, 0.35 * (-h.dn.1).max(0.0) * smooth(0.0012, 0.0, h.dd));
+                    lay(&mut px, SHADE, 0.35 * (-h.dn.1).max(0.0) * sstep(0.0012, 0.0, h.dd));
                 }
                 // dust and grime settled in it
                 lay(&mut px, [0.3, 0.27, 0.22], 0.18 * fbm(s ^ 0x85, x * 30.0, y * 30.0, 3));
                 // salts the damp brought out, worst in the middle
-                lay(&mut px, SALT, 0.35 * smooth(0.5, 0.9, h.env) * smooth(0.55, 0.8, fbm(s ^ 0x82, x * 40.0, y * 40.0, 3)));
+                lay(&mut px, SALT, 0.35 * sstep(0.5, 0.9, h.env) * sstep(0.55, 0.8, fbm(s ^ 0x82, x * 40.0, y * 40.0, 3)));
             } else {
                 let m = 0.93 + 0.1 * grain;
                 px = [coat[0] * m, coat[1] * m, coat[2] * m, (0.5 + h.d / aa).clamp(0.0, 1.0)];
@@ -313,14 +311,14 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
             // where the edge is above it (and wider under a lifted edge)
             let below = (-h.n.1).max(0.0);
             let w = if h.lifted { 0.0035 } else { 0.0012 };
-            lay(&mut px, SHADE, (0.55 * below + 0.12) * (-h.d / w).exp() * smooth(-aa, 0.0, h.d));
+            lay(&mut px, SHADE, (0.55 * below + 0.12) * (-h.d / w).exp() * sstep(-aa, 0.0, h.d));
         } else {
             // the film's broken edge catching the light where it faces up
             let up = h.n.1.max(0.0);
-            lay(&mut px, LIT, (0.5 * up + 0.15) * smooth(0.0009, 0.0002, h.d));
+            lay(&mut px, LIT, (0.5 * up + 0.15) * sstep(0.0009, 0.0002, h.d));
             // a lifted edge: tipped toward the light or away from it
             if h.lifted {
-                let k = smooth(0.004, 0.0, h.d);
+                let k = sstep(0.004, 0.0, h.d);
                 if h.n.1 > 0.0 {
                     lay(&mut px, LIT, 0.3 * h.n.1 * k);
                 } else {
@@ -328,7 +326,7 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
                 }
             }
             // the cracks the film broke along before it let go
-            let ck = smooth(0.1, 0.45, h.env) * smooth(0.25, 0.6, vnoise(s ^ 0x84, x * 90.0, y * 90.0));
+            let ck = sstep(0.1, 0.45, h.env) * sstep(0.25, 0.6, vn(s ^ 0x84, x * 90.0, y * 90.0));
             lay(&mut px, SHADE, 0.45 * ck * (0.5 - (h.crack - 0.00025) / aa).clamp(0.0, 1.0));
         }
         // the curled flakes' shadows

@@ -1,12 +1,12 @@
 //! `place_wall_handprints`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as hash01;
-use placers_kit::noise::smin as smin_hand;
+use placers_kit::noise::hash;
+use placers_kit::noise::smin;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Wall handprints: very rare (5% chance per level). The grime a hand
 // left on a wall (`docs/research/props-remodelling/floor_marks_and_dust.md`): someone leaned
@@ -21,7 +21,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
     } // 5% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }
@@ -268,7 +268,7 @@ fn grime_by_weather(key: &str) -> [f64; 3] {
 /// put), to vary what the painters draw: a painter's own stream starts the
 /// same on every floor
 fn hand_vary(a: i32, b: i32) -> u32 {
-    (hash01(0x2981_6c35, a, b) * 4.0e9) as u32
+    (hash(0x2981_6c35, a, b) * 4.0e9) as u32
 }
 
 /// The decal material of a mark painted in `tex`, lit as the wall under it
@@ -321,7 +321,7 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
         let a = lean * (0.6 + 0.8 * spread) + (k as f64 - 1.5) * 0.02 * spread;
         let tip = (bx + a.sin() * len, by + a.cos() * len);
         let (fd, t) = cap((bx, by), tip, r);
-        d = smin_hand(d, fd, 0.004);
+        d = smin(d, fd, 0.004);
         if fd < 0.0 {
             // the pad at the tip pressed hardest, the joints' creases lighter
             let joint = |at: f64| 0.55 + 0.45 * sstep(0.0015, 0.005, ((t - at) * len).abs());
@@ -331,7 +331,7 @@ fn hand_press(x: f64, y: f64, right: bool, spread: f64) -> (f64, f64) {
     }
     // the thumb: short and broad, its root in the ball of the thumb
     let (td, t) = cap((-0.027, -0.066), (-0.06 - 0.008 * spread, -0.03 + 0.004 * spread), 0.0122);
-    d = smin_hand(d, td, 0.008);
+    d = smin(d, td, 0.008);
     if td < 0.0 {
         press = press.max(
             (0.5 + 0.4 * sstep(0.5, 0.85, t)) * (0.6 + 0.4 * sstep(0.0015, 0.005, ((t - 0.55) * 0.05).abs())) * sstep(0.0, -0.002, td),
@@ -385,7 +385,7 @@ fn hand_print_tex(right: bool, grime: [f64; 3], vary: u32) -> Tex {
                 // dirt comes off in specks and patches, not evenly
                 let mottle = (0.4 + 0.6 * sstep(0.28, 0.68, fbm(seed ^ 0x9, x * 60.0, y * 60.0, 3)))
                     * (0.65 + 0.35 * fbm(seed, x * 260.0, y * 260.0, 3));
-                let speck = hash01(seed ^ 0x77, (x / 0.0011) as i32, (y / 0.0011) as i32);
+                let speck = hash(seed ^ 0x77, (x / 0.0011) as i32, (y / 0.0011) as i32);
                 let a = (a * load * mottle).min(1.0);
                 let a = a * (0.55 + 0.45 * sstep(speck - 0.4, speck + 0.2, a * 1.3));
                 let px = [grime[0], grime[1], grime[2], (a * 0.85).min(0.75)];
@@ -436,12 +436,12 @@ fn hand_drag_tex(right: bool, grime: [f64; 3], vary: u32) -> Tex {
                     let wd = tw * (0.6 + 0.4 * fade);
                     let across = sstep(wd, wd * 0.3, (y - yc).abs());
                     // broken where the finger lifted and the grime gave out
-                    let broken = sstep(0.05 + 0.5 * (1.0 - fade), 0.45, vnoise(ts ^ 0x9, run * 30.0, (y - yc) * 300.0));
+                    let broken = sstep(0.05 + 0.5 * (1.0 - fade), 0.45, vn(ts ^ 0x9, run * 30.0, (y - yc) * 300.0));
                     // streaked along by the skin's ridges and grit
-                    let streak = 0.6 + 0.4 * vnoise(ts ^ 0x5, x * 25.0, y * 1200.0);
+                    let streak = 0.6 + 0.4 * vn(ts ^ 0x5, x * 25.0, y * 1200.0);
                     a = a.max(across * fade.powf(0.5) * press * broken * streak);
                 }
-                let speck = hash01(seed ^ 0x77, (x / 0.0011) as i32, (y / 0.0011) as i32);
+                let speck = hash(seed ^ 0x77, (x / 0.0011) as i32, (y / 0.0011) as i32);
                 let a = a * (0.55 + 0.45 * sstep(speck - 0.4, speck + 0.2, a * 1.3));
                 // nothing at the plane's edges
                 let a = a * sstep(0.0, 0.01, (0.3 - x.abs()).min(0.15 - y.abs()));
@@ -646,17 +646,17 @@ fn hand_chalk_raster(lines: &[Vec<(f64, f64)>], w: f64, h: f64, width: f64, seed
                 let l2 = (ex * ex + ey * ey).max(1e-9);
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
                 let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
-                let rr = r * (0.85 + 0.3 * vnoise(ls ^ 0x5a, x * 0.35, y * 0.35));
+                let rr = r * (0.85 + 0.3 * vn(ls ^ 0x5a, x * 0.35, y * 0.35));
                 let cover = sstep(rr + 0.8, rr - 0.8, d);
                 if cover <= 0.0 {
                     continue;
                 }
-                let skip = sstep(0.2, 0.5, vnoise(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
+                let skip = sstep(0.2, 0.5, vn(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
                 let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).powi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
-            let grain = hash01(seed ^ 0x1d, (x / 1.3) as i32, (y / 1.3) as i32);
-            let patch = vnoise(seed ^ 0x2e, x * 0.12, y * 0.12);
+            let grain = hash(seed ^ 0x1d, (x / 1.3) as i32, (y / 1.3) as i32);
+            let patch = vn(seed ^ 0x2e, x * 0.12, y * 0.12);
             let tooth = 0.7 * grain + 0.3 * patch;
             // chalk on a wall holds only on the tooth's peaks
             let a = sstep(tooth - 0.06, tooth + 0.05, keep * 0.82);
@@ -672,7 +672,7 @@ fn hand_chalk_raster(lines: &[Vec<(f64, f64)>], w: f64, h: f64, width: f64, seed
             let k = j * n + i;
             let held = f64::from(bytes[k * 4 + 1]) / 255.0;
             acc = acc * 0.93 + held * 0.1;
-            let speck = hash01(seed ^ 0x3f, i as i32, j as i32);
+            let speck = hash(seed ^ 0x3f, i as i32, j as i32);
             let dust = acc * (0.12 + 0.5 * (speck > 0.93) as u8 as f64);
             out[k] = 1.0 - (1.0 - out[k]) * (1.0 - dust.min(0.5));
         }

@@ -2,7 +2,7 @@
 use crate::shared::tri_geo;
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small piggy bank: 6% chance per level. Pink piggy bank
@@ -11,7 +11,7 @@ pub(crate) fn place_small_piggy_banks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let piggy_colors = [0xf0a0a0, 0xf0c0d0, 0xd0e0f0, 0xf0d8c8];
     let piggy_mat = lambert!({ color: pick_color(&piggy_colors) });
     let slot_mat = lambert!({ color: 0x181008 });

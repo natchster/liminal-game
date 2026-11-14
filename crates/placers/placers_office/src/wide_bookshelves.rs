@@ -1,6 +1,6 @@
 //! `place_wide_bookshelves`
 use game::prelude::*;
-use placers_kit::place::wall_mount as mount_on_wall;
+use placers_kit::place::wall_mount;
 use placers_kit::place::wall_tiles;
 
 // Wall-mounted bookshelf w/ books (wall): 2.5% chance per level.
@@ -123,6 +123,6 @@ pub(crate) fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
             bs.add(&trophy_cup);
         }
     }
-    mount_on_wall(g, &bs, x, z, dx, dz, 0.015);
+    wall_mount(g, &bs, x, z, dx, dz, 0.015);
     g.world.add(&bs);
 }

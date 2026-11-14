@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Rusted nails: 10% chance per level. 6-12 rusted nails scattered on floor.
 pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
@@ -41,6 +41,6 @@ pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
         nail.rotation().y = rnd() * PI * 2.0;
         grp.add(&nail);
     }
-    scatter_on_floor(g, &grp, x, z, 2.4);
+    scatter(g, &grp, x, z, 2.4);
     g.world.add(&grp);
 }

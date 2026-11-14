@@ -7,7 +7,7 @@ use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
 use placers_kit::place::salt;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Opened suitcase: 5% chance per level. An old hard-shell suitcase
 // left open on the floor (r02's: a 1960s moulded case, 23 x 16 x 7 in, its
@@ -104,7 +104,7 @@ pub(crate) fn place_opened_suitcases(g: &mut Game, _dist: &[i32]) {
         let turn = if name == "Real__suitcaseSweater" { turn * 0.4 } else { turn };
         put_at(&suitcase, name, &cloth, flip * (sx + px * 0.02), FLOOR + sy, sz + pz * 0.02 + (sd - 0.5) * 0.01, flip * turn);
     }
-    scatter_on_floor(g, &suitcase, x, z, 1.8);
+    scatter(g, &suitcase, x, z, 1.8);
     g.world.add(&suitcase);
 }
 

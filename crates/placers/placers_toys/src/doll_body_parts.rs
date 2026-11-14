@@ -4,7 +4,7 @@ use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // A doll's arms and legs: 4% chance per level. Two or three of a vinyl
 // baby doll's limbs (batch r03's doll: an arm bent at the elbow, its hand's
@@ -75,7 +75,7 @@ pub(crate) fn place_doll_body_parts(g: &mut Game, _dist: &[i32]) {
         part.rotation().y = yaw + tilt;
         grp.add(&part);
     }
-    scatter_on_floor(g, &grp, x, z, 1.8);
+    scatter(g, &grp, x, z, 1.8);
     g.world.add(&grp);
 }
 

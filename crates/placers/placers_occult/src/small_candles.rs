@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Small candle: 12% chance per level. Small wax cylinder with
 // tiny wick + optional dark melt drip on side.
@@ -14,9 +14,9 @@ pub(crate) fn place_small_candles(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let wax_colors = [0xe8d8b0, 0xd8c898, 0xc8b8a0, 0xa08890];
-    let wax_mat = lambert!({ color: wax_colors[pick(wax_colors.len())] });
+    let wax_mat = lambert!({ color: wax_colors[ri(wax_colors.len())] });
     let wick_mat = lambert!({ color: 0x0a0806 });
     let candle = group();
     // Body: wax cylinder (`body.geometry.parameters.height` == body_h).

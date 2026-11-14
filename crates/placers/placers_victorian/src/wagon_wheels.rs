@@ -5,7 +5,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::salt;
 use placers_kit::place::wall_tiles;
@@ -38,7 +38,7 @@ pub(crate) fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
     put(&w, "Real__wagonWheelTyre", &phong!({ map: &rust_tex(k, true), specular: 0x1a1816, shininess: 12 }));
     put(&w, "Real__wagonWheelIron", &phong!({ map: &rust_tex(k ^ 0x55, false), specular: 0x1a1816, shininess: 12 }));
     wheel.add(&w);
-    wheel.rotation().y = face_yaw(dx, dz);
+    wheel.rotation().y = face_wall(dx, dz);
     wheel.position().set(wx, 0, wz);
     g.world.add(&wheel);
 }

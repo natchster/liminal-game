@@ -50,7 +50,8 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
   wall tiles, picks, shuffles, salts from a place) and building (geometry
   from triangles, the Blender parts and their frames). They had been
   copied from crate to crate, up to a hundred times under ten names; a
-  placer uses them by name (a copy's old name kept as an alias). It also
+  placer calls each by its kit name (an alias is left only in the few
+  modules where a local of that name would hide it). It also
   holds what placers of more than one theme share: the wall candidates and
   how a thing is mounted or scattered (`place`), and the families of
   things placed by several themes, each a module (`baking`, `garden`,

@@ -4,11 +4,11 @@ use crate::shared::vary_by;
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_mat;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
-use placers_kit::wet_floor::floor_kind as puddle_floor_kind;
+use placers_kit::place::scatter;
+use placers_kit::wet_floor::floor_kind;
 
 // Dust bunnies: 10% chance per level. Where no air moves, what a floor
 // sheds (textile lint, hair, skin, grit) felts itself into clumps held by
@@ -27,7 +27,7 @@ pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {
         return;
     }
     let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
-    let hard = puddle_floor_kind(g, x, z) != 0;
+    let hard = floor_kind(g, x, z) != 0;
     let grp = group();
     let fluff = dust_fluff_tex();
     let fringe = dust_fringe_tex();
@@ -72,7 +72,7 @@ pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {
     );
     film.position().y = 0.0015;
     grp.add(&film);
-    scatter_on_floor(g, &grp, x, z, 2.4);
+    scatter(g, &grp, x, z, 2.4);
     g.world.add(&grp);
 }
 
@@ -175,7 +175,7 @@ fn dust_film_tex(spots: Vec<(f64, f64, f64)>, hard: bool, vary: u32) -> Tex {
                 let cloud = fbm(seed, x * 18.0, y * 18.0, 4);
                 let edge = sstep(0.0, 0.08, side / 2.0 - x.abs().max(y.abs()));
                 let a = (near.min(1.0) * 0.8 + 0.25 * cloud) * sstep(0.25, 0.75, cloud + 0.3 * near.min(1.0)) * film_k * edge;
-                let v = 0.48 + 0.06 * vnoise(seed ^ 0x9, x * 300.0, y * 300.0);
+                let v = 0.48 + 0.06 * vn(seed ^ 0x9, x * 300.0, y * 300.0);
                 let c = [v, v * 0.99, v * 0.97, a];
                 for (k, q) in c.iter().enumerate() {
                     out[i * 4 + k] = (q.clamp(0.0, 1.0) * 255.0).round() as u8;

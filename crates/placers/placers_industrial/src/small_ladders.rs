@@ -1,6 +1,6 @@
 //! `place_small_ladders`
 use game::prelude::*;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Small wooden ladder: 12% chance per level. 2 vertical rails
@@ -13,7 +13,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let wood_mat = lambert!({ color: 0x6a4020 });
     let ladder = group();
     let r_h = 1.6; // total ladder height
@@ -49,7 +49,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     // 25% chance: small paint bucket at ladder base.
     if rnd() < 0.25 {
         let bucket_colors = [0x8a8880, 0x707070, 0xa08040];
-        let paint_bucket_mat = lambert!({ color: bucket_colors[pick(bucket_colors.len())] });
+        let paint_bucket_mat = lambert!({ color: bucket_colors[ri(bucket_colors.len())] });
         let paint_handle_mat = lambert!({ color: 0x2a2018 });
         let paint_bucket = group();
         // Body: shallow tapered cylinder.
@@ -77,7 +77,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
         if rnd() < 0.25 {
             let paint_colors = [0xe0e0e0, 0x505050, 0x8a4028, 0xe0d0a0]; // white, gray, rust, tan
             let spill_mat =
-                basic_mat!({ color: paint_colors[pick(paint_colors.len())], transparent: true, opacity: 0.75, depthWrite: false });
+                basic_mat!({ color: paint_colors[ri(paint_colors.len())], transparent: true, opacity: 0.75, depthWrite: false });
             let spill = mesh(circle_geo!(0.08 + rnd() * 0.06, 12), &spill_mat);
             spill.rotation().x = -PI / 2.0;
             spill.rotation().z = rnd() * PI * 2.0;

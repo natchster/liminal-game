@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Forgotten wristwatch: 6% chance per level. Watch face + leather band on floor.
 pub(crate) fn place_forgotten_wristwatches(g: &mut Game, _dist: &[i32]) {
@@ -40,6 +40,6 @@ pub(crate) fn place_forgotten_wristwatches(g: &mut Game, _dist: &[i32]) {
     band_r.rotation().y = PI;
     band_r.position().set(0.030, 0.005, 0.020);
     watch.add(&band_r);
-    scatter_on_floor(g, &watch, x, z, 2.4);
+    scatter(g, &watch, x, z, 2.4);
     g.world.add(&watch);
 }

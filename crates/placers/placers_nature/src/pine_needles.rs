@@ -3,7 +3,7 @@ use game::assets::props::prop_part_as_modelled;
 use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::paint::mark_mat;
 use placers_kit::place::jitter;
@@ -126,7 +126,7 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
             let len = if i % 3 == 0 { r.range(0.036, 0.055) } else { r.range(0.005, 0.025) } * ppm * (1.0 - 0.4 * d / (0.45 * w));
             let t = r.range(0.0, 2.0 * PI);
             let tone = r.next();
-            let c = mix([0.36, 0.25, 0.15], [0.27, 0.22, 0.17], tone);
+            let c = mix_unclamped([0.36, 0.25, 0.15], [0.27, 0.22, 0.17], tone);
             let fade = 1.0 - sstep(0.25, 0.45, d / w);
             ctx.set_stroke_style(&css(c, 0.8 * fade));
             ctx.set_line_width(if i % 3 == 0 { 2.0 } else { 1.4 });

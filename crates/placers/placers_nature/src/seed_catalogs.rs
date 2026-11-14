@@ -13,8 +13,8 @@ use placers_kit::garden::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
-use placers_kit::paint::rgb as hex;
-use placers_kit::place::face_yaw;
+use placers_kit::paint::rgb;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -39,7 +39,7 @@ pub(crate) fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
     catalog.add(&body);
     // askew on its nail (the old draw)
     catalog.rotation().z = (rnd() - 0.5) * 0.05;
-    catalog.rotation().y = face_yaw(dx, dz);
+    catalog.rotation().y = face_wall(dx, dz);
     catalog.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = catalog.pos();
     let vary = pictures::vary_of(p.x, p.z, 0.47);
@@ -87,11 +87,11 @@ const SC_MAT: (f64, f64) = (0.195, 0.275);
 fn seed_cover_tex(vary: u32) -> Tex {
     canvas_tex_opt(456, 687, false, move |ctx, w, h| {
         let seed = vary ^ 0x5eed;
-        let paper = hex(0xab9a72);
+        let paper = rgb(0xab9a72);
         ctx.set_fill_style(&css(paper, 1.0));
         ctx.fill_rect(0, 0, w, h);
-        let ink = hex(0x1e281a);
-        let red = hex(0x96281e);
+        let ink = rgb(0x1e281a);
+        let red = rgb(0x96281e);
         // the border: a double rule and corner squares
         ctx.set_stroke_style(&css(ink, 1.0));
         ctx.set_line_width(3);
@@ -111,7 +111,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
         ctx.set_font("italic 20px Times New Roman");
         ctx.fill_text_max("Vegetable \u{b7} Flower \u{b7} Field Seeds", w / 2.0, 176, w - 110.0);
         // the year in a banner
-        ctx.set_fill_style(&css(hex(0x3f6a3a), 1.0));
+        ctx.set_fill_style(&css(rgb(0x3f6a3a), 1.0));
         ctx.fill_rect(w / 2.0 - 60.0, 188, 120, 34);
         ctx.set_fill_style(&css(paper, 1.0));
         ctx.set_font("bold 28px Times New Roman");
@@ -130,8 +130,8 @@ fn seed_cover_tex(vary: u32) -> Tex {
             let rr = 70.0 - (k % 3) as f64 * 8.0;
             let (lx, ly) = (cx + a.cos() * rr * 0.5, cy + a.sin() * rr * 0.4);
             let gr = ctx.create_radial_gradient(lx - 10.0, ly - 12.0, 4, lx, ly, 52);
-            gr.add_color_stop(0, &css(hex(0x94b06a), 1.0));
-            gr.add_color_stop(1, &css(hex(0x34582a), 1.0));
+            gr.add_color_stop(0, &css(rgb(0x94b06a), 1.0));
+            gr.add_color_stop(1, &css(rgb(0x34582a), 1.0));
             ctx.set_fill_style(&gr);
             ctx.begin_path();
             ctx.ellipse(lx, ly, 46, 34, a, 0, 7);
@@ -139,8 +139,8 @@ fn seed_cover_tex(vary: u32) -> Tex {
             outline(ctx);
         }
         let gr = ctx.create_radial_gradient(cx - 12.0, cy - 16.0, 4, cx, cy, 48);
-        gr.add_color_stop(0, &css(hex(0xc2d090), 1.0));
-        gr.add_color_stop(1, &css(hex(0x6a8a4a), 1.0));
+        gr.add_color_stop(0, &css(rgb(0xc2d090), 1.0));
+        gr.add_color_stop(1, &css(rgb(0x6a8a4a), 1.0));
         ctx.set_fill_style(&gr);
         ctx.begin_path();
         ctx.arc(cx, cy, 44, 0, 7);
@@ -168,8 +168,8 @@ fn seed_cover_tex(vary: u32) -> Tex {
             let l = nx.hypot(ny);
             let (nx, ny) = (nx / l * 13.0, ny / l * 13.0);
             let gr = ctx.create_linear_gradient(x0 + nx, y0 + ny, x0 - nx, y0 - ny);
-            gr.add_color_stop(0, &css(hex(0xd8842e), 1.0));
-            gr.add_color_stop(1, &css(hex(0x94461a), 1.0));
+            gr.add_color_stop(0, &css(rgb(0xd8842e), 1.0));
+            gr.add_color_stop(1, &css(rgb(0x94461a), 1.0));
             ctx.set_fill_style(&gr);
             ctx.begin_path();
             ctx.move_to(x0 + nx, y0 + ny);
@@ -189,7 +189,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
                 ctx.line_to(mx + nx * 0.2 * s, my + ny * 0.2 * s);
                 ctx.stroke();
             }
-            ctx.set_stroke_style(&css(hex(0x4a7a34), 1.0));
+            ctx.set_stroke_style(&css(rgb(0x4a7a34), 1.0));
             ctx.set_line_width(1.6);
             for j in 0..7 {
                 let a = PI + 0.9 + j as f64 * 0.12 + r.range(-0.05, 0.05);
@@ -204,9 +204,9 @@ fn seed_cover_tex(vary: u32) -> Tex {
             [(130.0, 330.0, 40.0), (190.0, 352.0, 34.0), (112.0, 400.0, 36.0), (174.0, 418.0, 30.0)].into_iter().enumerate()
         {
             let gr = ctx.create_radial_gradient(tx - tr * 0.35, ty - tr * 0.4, tr * 0.1, tx, ty, tr);
-            gr.add_color_stop(0, &css(hex(0xd8806a), 1.0));
-            gr.add_color_stop(0.35, &css(hex(0xb8341f), 1.0));
-            gr.add_color_stop(1, &css(hex(0x641410), 1.0));
+            gr.add_color_stop(0, &css(rgb(0xd8806a), 1.0));
+            gr.add_color_stop(0.35, &css(rgb(0xb8341f), 1.0));
+            gr.add_color_stop(1, &css(rgb(0x641410), 1.0));
             ctx.set_fill_style(&gr);
             ctx.begin_path();
             ctx.ellipse(tx, ty, tr, tr * 0.86, 0.1 * k as f64, 0, 7);
@@ -215,14 +215,14 @@ fn seed_cover_tex(vary: u32) -> Tex {
             // the calyx
             for j in 0..5 {
                 let a = j as f64 / 5.0 * PI * 2.0;
-                blob(ctx, tx + a.cos() * 7.0, ty - tr * 0.8 + a.sin() * 3.0, 7.0, 0.35, a, hex(0x3f6a2e), 1.0);
+                blob(ctx, tx + a.cos() * 7.0, ty - tr * 0.8 + a.sin() * 3.0, 7.0, 0.35, a, rgb(0x3f6a2e), 1.0);
             }
             blob(ctx, tx - tr * 0.4, ty - tr * 0.45, tr * 0.25, 0.6, -0.5, [1.0, 0.95, 0.9], 0.6);
         }
         // pea pods
         for k in 0..3 {
             let (x0, y0) = (250.0 + k as f64 * 20.0, 520.0 - k as f64 * 14.0);
-            ctx.set_fill_style(&css(mix(hex(0x6a9a46), hex(0x9cc06a), k as f64 / 3.0), 1.0));
+            ctx.set_fill_style(&css(mix(rgb(0x6a9a46), rgb(0x9cc06a), k as f64 / 3.0), 1.0));
             ctx.begin_path();
             ctx.move_to(x0, y0);
             ctx.quadratic_curve_to(x0 + 50.0, y0 - 26.0, x0 + 110.0, y0 - 8.0);
@@ -231,7 +231,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
             outline(ctx);
             for j in 0..5 {
                 let t = 0.2 + j as f64 * 0.14;
-                blob(ctx, x0 + 110.0 * t, y0 - 12.0 * (1.0 - (2.0 * t - 1.0).powi(2)) - 2.0, 6.0, 1.0, 0.0, hex(0xc2dc8c), 0.5);
+                blob(ctx, x0 + 110.0 * t, y0 - 12.0 * (1.0 - (2.0 * t - 1.0).powi(2)) - 2.0, 6.0, 1.0, 0.0, rgb(0xc2dc8c), 0.5);
             }
         }
         // the house's name at the foot

@@ -6,7 +6,7 @@ use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::bleed;
@@ -15,7 +15,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 /// One of `N` textures of a kind, made the first time it is asked for
-macro_rules! t05_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -155,7 +155,7 @@ fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
 /// mottled and darker at the dried margin, fungal spots, the midrib and the
 /// veins paler; the petiole
 fn leaf_tex(k: usize) -> Tex {
-    t05_kind_tex!(5, k, |k: usize| {
+    cached_kind_tex!(5, k, |k: usize| {
         let (name, l, _, oak) = LEAVES[k];
         let (lo, hi) = frame(name);
         let (ex, ez) = (hi[0] - lo[0], hi[2] - lo[2]);
@@ -170,7 +170,7 @@ fn leaf_tex(k: usize) -> Tex {
                 let a = x / l;
                 if x < 0.0004 {
                     // the petiole (its whole column: however its sides are mapped)
-                    let c = mix([0.34, 0.24, 0.15], [0.26, 0.18, 0.12], vn(seed, px * 0.3, py * 0.3));
+                    let c = mix_unclamped([0.34, 0.24, 0.15], [0.26, 0.18, 0.12], vn(seed, px * 0.3, py * 0.3));
                     return [c[0], c[1], c[2], 1.0];
                 }
                 let side = if z > 0.0 { 1.0 } else { -1.0 };
@@ -183,12 +183,12 @@ fn leaf_tex(k: usize) -> Tex {
                 let skel = sstep(0.70, 0.77, hole_n) * (1.0 - hole);
                 // colour: mottled, darker and greyer toward the dried margin
                 let m = fbm(seed ^ 0x11, x * 120.0, z * 120.0, 4);
-                let mut c = mix(base, mix(base, [0.30, 0.22, 0.15], 0.6), sstep(0.45, 0.8, m));
+                let mut c = mix_unclamped(base, mix_unclamped(base, [0.30, 0.22, 0.15], 0.6), sstep(0.45, 0.8, m));
                 let margin = 1.0 - sstep(0.0, 0.004, hw - z.abs());
-                c = mix(c, [0.30, 0.23, 0.17], 0.5 * margin);
+                c = mix_unclamped(c, [0.30, 0.23, 0.17], 0.5 * margin);
                 // fungal spots, dark with a paler ring
                 let sp = fbm(seed ^ 0x77, x * 300.0, z * 300.0, 2);
-                c = mix(c, [0.24, 0.18, 0.13], 0.55 * sstep(0.76, 0.79, sp));
+                c = mix_unclamped(c, [0.24, 0.18, 0.13], 0.55 * sstep(0.76, 0.79, sp));
                 // veins: the midrib, and the laterals running out to the margin
                 let mid_w = 0.0007 - 0.0005 * a;
                 let midrib = 1.0 - sstep(mid_w * 0.5, mid_w, z.abs());
@@ -199,8 +199,8 @@ fn leaf_tex(k: usize) -> Tex {
                     (1.0 - sstep(0.00018, 0.00042, dq)) * sstep(0.0, 0.02, q / pairs) * (1.0 - sstep(0.85, 1.0, z.abs() / hw.max(1e-6)));
                 let net = (1.0 - sstep(0.0, 0.08, (vn(seed ^ 0x9, x * 900.0, z * 900.0) - 0.5).abs())) * 0.25;
                 let vein = midrib.max(lateral * 0.8).max(net * 0.4);
-                c = mix(c, mix(c, [0.78, 0.66, 0.50], 0.45), vein);
-                c = mix(c, [0.62, 0.55, 0.45], 0.5 * skel);
+                c = mix_unclamped(c, mix_unclamped(c, [0.78, 0.66, 0.50], 0.45), vein);
+                c = mix_unclamped(c, [0.62, 0.55, 0.45], 0.5 * skel);
                 [c[0], c[1], c[2], inside * (1.0 - hole)]
             });
         });

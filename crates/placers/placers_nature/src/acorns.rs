@@ -6,16 +6,16 @@ use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
-use placers_kit::paint::mul as scale3;
+use placers_kit::paint::mul;
 use placers_kit::paint::paint_px;
 use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t17_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -183,7 +183,7 @@ fn acorn_cup_geo() -> Option<Geo> {
 /// rough within a dark ring, the tip's felt grey, blotches of decay, dust
 #[allow(clippy::excessive_precision)]
 fn nut_tex(k: usize, holed: bool) -> Tex {
-    t17_kind_tex!(6, k * 2 + holed as usize, |kk: usize| {
+    cached_kind_tex!(6, k * 2 + holed as usize, |kk: usize| {
         let (k, holed) = (kk / 2, kk % 2 == 1);
         let base = [[0.50, 0.32, 0.16], [0.33, 0.21, 0.12], [0.50, 0.40, 0.28]][k];
         let seed = 0xac0 + kk as u32 * 13;
@@ -193,29 +193,33 @@ fn nut_tex(k: usize, holed: bool) -> Tex {
                 let mut c = base;
                 // fine stripes along it (lines of one angle), a little wavy
                 let st = fbm(seed, u * 6.0, v * 34.0 + 2.0 * fbm(seed ^ 3, u * 3.0, v * 3.0, 2), 3);
-                c = scale3(c, 0.80 + 0.40 * st);
+                c = mul(c, 0.80 + 0.40 * st);
                 // its shoulder toward the tip a shade darker, the tip's felt
                 // greyer and paler round the style
-                c = mix(c, scale3(c, 0.8), sstep(0.70, 0.85, u));
-                c = mix(c, [0.55, 0.50, 0.42], 0.75 * sstep(0.90, 0.97, u));
-                c = mix(c, scale3(c, 0.55), 0.6 * (1.0 - ((u - 0.88) / 0.02).abs()).max(0.0));
+                c = mix_unclamped(c, mul(c, 0.8), sstep(0.70, 0.85, u));
+                c = mix_unclamped(c, [0.55, 0.50, 0.42], 0.75 * sstep(0.90, 0.97, u));
+                c = mix_unclamped(c, mul(c, 0.55), 0.6 * (1.0 - ((u - 0.88) / 0.02).abs()).max(0.0));
                 // the scar where it sat in the cup: pale, rough, a dark ring
                 let scar = 1.0 - sstep(NUT_U_SCAR - 0.02, NUT_U_SCAR + 0.01, u);
                 let rough = fbm(seed ^ 9, u * 40.0, v * 40.0, 3);
-                c = mix(c, mix([0.62, 0.55, 0.42], [0.48, 0.41, 0.30], rough), scar);
+                c = mix_unclamped(c, mix_unclamped([0.62, 0.55, 0.42], [0.48, 0.41, 0.30], rough), scar);
                 let ring = (1.0 - ((u - NUT_U_SCAR - 0.012) / 0.012).abs()).max(0.0);
-                c = mix(c, scale3(base, 0.45), 0.7 * ring);
+                c = mix_unclamped(c, mul(base, 0.45), 0.7 * ring);
                 // the part that was in the cup: paler, never browned in the sun
-                c = mix(c, mix(c, [0.62, 0.55, 0.38], 0.35), sstep(NUT_U_SCAR + 0.25, NUT_U_SCAR + 0.05, u) * (1.0 - scar));
+                c = mix_unclamped(
+                    c,
+                    mix_unclamped(c, [0.62, 0.55, 0.38], 0.35),
+                    sstep(NUT_U_SCAR + 0.25, NUT_U_SCAR + 0.05, u) * (1.0 - scar),
+                );
                 // decay: dark blotches, a dull bloom of dust on the top
                 let rot = sstep(0.68, 0.78, fbm(seed ^ 0x51, u * 9.0, v * 5.0, 4));
-                c = mix(c, scale3(base, 0.5), 0.6 * rot);
-                c = mix(c, [0.56, 0.52, 0.46], 0.18 * (1.0 - sstep(0.0, 0.5, v)));
+                c = mix_unclamped(c, mul(base, 0.5), 0.6 * rot);
+                c = mix_unclamped(c, [0.56, 0.52, 0.46], 0.18 * (1.0 - sstep(0.0, 0.5, v)));
                 if holed {
                     // the weevil larva's exit hole: round, 2 mm, on the top
                     let d = ((u - 0.52) / 0.033).hypot(v / 0.042);
-                    c = mix(c, [0.36, 0.26, 0.17], 0.8 * (1.0 - sstep(1.0, 1.5, d)));
-                    c = mix(c, [0.05, 0.035, 0.03], 1.0 - sstep(0.75, 0.95, d));
+                    c = mix_unclamped(c, [0.36, 0.26, 0.17], 0.8 * (1.0 - sstep(1.0, 1.5, d)));
+                    c = mix_unclamped(c, [0.05, 0.035, 0.03], 1.0 - sstep(0.75, 0.95, d));
                 }
                 [c[0], c[1], c[2], 1.0]
             });
@@ -237,7 +241,7 @@ fn nut_mat(k: usize, holed: bool) -> Mat {
 /// the model's (13 round, 6 rows); the rim's lip; the inside pale and
 /// silky, a ring where the nut's base sat; the stalk's stub woody
 fn cup_tex() -> Tex {
-    t17_kind_tex!(1, 0usize, |_k: usize| {
+    cached_kind_tex!(1, 0usize, |_k: usize| {
         let seed = 0xc0b;
         canvas_tex_opt(256, 128, true, move |ctx, w, h| {
             paint_px(ctx, w, h, |px, py| {
@@ -245,9 +249,9 @@ fn cup_tex() -> Tex {
                 let felt = fbm(seed, u * 60.0, v * 60.0, 3);
                 if v >= 0.5 {
                     let hh = (v - 0.5) * 2.0;
-                    let mut c = mix([0.66, 0.58, 0.44], [0.58, 0.50, 0.37], felt);
-                    c = mix(c, [0.40, 0.31, 0.21], 0.5 * (1.0 - ((hh - 0.28) / 0.06).abs()).max(0.0));
-                    c = mix(c, [0.46, 0.40, 0.31], 0.5 * sstep(0.9, 1.0, hh));
+                    let mut c = mix_unclamped([0.66, 0.58, 0.44], [0.58, 0.50, 0.37], felt);
+                    c = mix_unclamped(c, [0.40, 0.31, 0.21], 0.5 * (1.0 - ((hh - 0.28) / 0.06).abs()).max(0.0));
+                    c = mix_unclamped(c, [0.46, 0.40, 0.31], 0.5 * sstep(0.9, 1.0, hh));
                     return [c[0], c[1], c[2], 1.0];
                 }
                 let hh = v * 2.0;
@@ -261,15 +265,15 @@ fn cup_tex() -> Tex {
                 let fu = (u * 13.0 + 0.5 * (row as i32 % 2) as f64 + 0.25 * jit * fv).fract();
                 let fv = (fv + 0.2 * (hash(seed ^ 0x5d, col as i32, row as i32) - 0.5) * (1.0 - fv)).clamp(0.0, 1.0);
                 let tone = 0.9 + 0.2 * hash(seed ^ 0x5e, col as i32, row as i32);
-                let mut c = scale3(mix([0.50, 0.44, 0.34], [0.42, 0.36, 0.27], felt), tone);
+                let mut c = mul(mix_unclamped([0.50, 0.44, 0.34], [0.42, 0.36, 0.27], felt), tone);
                 // each scale paler and felted toward its tip, its lower edge
                 // shadowed by the one over it
-                c = mix(c, [0.60, 0.55, 0.45], 0.45 * fv.powf(1.5));
+                c = mix_unclamped(c, [0.60, 0.55, 0.45], 0.45 * fv.powf(1.5));
                 let edge = (1.0 - sstep(0.0, 0.12, fu.min(1.0 - fu))) * 0.8 + (1.0 - sstep(0.0, 0.22, fv));
-                c = mix(c, [0.22, 0.17, 0.13], 0.75 * edge.min(1.0));
+                c = mix_unclamped(c, [0.22, 0.17, 0.13], 0.75 * edge.min(1.0));
                 // the lip of the rim, the stub at the foot
-                c = mix(c, [0.52, 0.46, 0.37], sstep(0.92, 0.98, hh));
-                c = mix(c, [0.30, 0.22, 0.14], 1.0 - sstep(0.05, 0.12, hh));
+                c = mix_unclamped(c, [0.52, 0.46, 0.37], sstep(0.92, 0.98, hh));
+                c = mix_unclamped(c, [0.30, 0.22, 0.14], 1.0 - sstep(0.05, 0.12, hh));
                 [c[0], c[1], c[2], 1.0]
             });
         })

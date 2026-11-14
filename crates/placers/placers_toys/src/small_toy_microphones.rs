@@ -8,12 +8,12 @@ use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::paint::paint_tile;
 use placers_kit::paint::rgb;
 use placers_kit::place::index_of;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::salt_at;
 use placers_kit::place::scatter_pos;
 
@@ -26,7 +26,7 @@ pub(crate) fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     // the old handle colours, as moulded plastic faded
     let handle_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030, 0xa020a0, 0x181008];
     let k = index_of(&handle_colors, pick_color(&handle_colors));
@@ -46,7 +46,7 @@ pub(crate) fn place_small_toy_microphones(g: &mut Game, _dist: &[i32]) {
         let jx = (hash(salt ^ 55, ci.rem_euclid(10), cj.rem_euclid(10)) - 0.5) * 0.3;
         let jy = (hash(salt ^ 57, ci.rem_euclid(10), cj.rem_euclid(10)) - 0.5) * 0.3;
         let (fx, fy) = (gx.fract() - 0.5 - jx, gy.fract() - 0.5 - jy);
-        let hole = 1.0 - ss(0.24, 0.32, (fx * fx + fy * fy).sqrt());
+        let hole = 1.0 - sstep(0.24, 0.32, (fx * fx + fy * fy).sqrt());
         mix(c, [0.05, 0.05, 0.05], hole * 0.92)
     });
     put_world(&mic, "Real__toyMicGrille", &phong!({ map: &grille_tex, specular: 0x4a4a4a, shininess: 40 }), 0.02);

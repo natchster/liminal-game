@@ -1,7 +1,7 @@
 //! `place_small_trophies`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Small trophy: 10% chance per level. Gold cup + base on floor.
 pub(crate) fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
@@ -12,7 +12,7 @@ pub(crate) fn place_small_trophies(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let gold_mat = lambert!({ color: 0xc8a028 });
     let base_mat = lambert!({ color: 0x3a2018 });
     let plaque_mat = lambert!({ color: 0xc8a028 });

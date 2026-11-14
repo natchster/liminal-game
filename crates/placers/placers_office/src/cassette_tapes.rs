@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Cassette tape: 8% chance per level. Rectangle w/ 2 spool holes + label.
 pub(crate) fn place_cassette_tapes(g: &mut Game, _dist: &[i32]) {
@@ -37,7 +37,7 @@ pub(crate) fn place_cassette_tapes(g: &mut Game, _dist: &[i32]) {
         hole.position().set(s * 0.024, 0.011, 0.014);
         cass.add(&hole);
     }
-    scatter_on_floor(g, &cass, x, z, 2.4);
+    scatter(g, &cass, x, z, 2.4);
     g.world.add(&cass);
     // Track for hiss audio.
     let p = cass.pos();

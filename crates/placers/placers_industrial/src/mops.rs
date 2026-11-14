@@ -1,14 +1,14 @@
 //! `place_mops`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Mops: 30% chance per level, 1 mop leaning against a wall.
 pub(crate) fn place_mops(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.70 {
         return;
     } // 30% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

@@ -2,9 +2,9 @@
 use crate::shared::mark_tex;
 use crate::shared::vary_by;
 use game::prelude::*;
-use placers_kit::noise::hash as hash01;
+use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::wall_candidates;
 
 // Chalk arrow: 5% chance per level. A way-mark someone left on a wall at
@@ -309,18 +309,18 @@ fn chalk_raster(lines: &[ChalkLine], w: f64, h: f64, width: f64, seed: u32) -> V
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
                 let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
                 // the stick's edge is uneven; it skips along the stroke
-                let rr = r * (0.85 + 0.3 * vnoise(ls ^ 0x5a, x * 0.35, y * 0.35));
+                let rr = r * (0.85 + 0.3 * vn(ls ^ 0x5a, x * 0.35, y * 0.35));
                 let cover = sstep(rr + 0.8, rr - 0.8, d);
                 if cover <= 0.0 {
                     continue;
                 }
-                let skip = sstep(0.2, 0.5, vnoise(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
+                let skip = sstep(0.2, 0.5, vn(ls ^ 0x77, (a.0 + ex * t) * 0.11, (a.1 + ey * t) * 0.11));
                 let press = (pa + (pb - pa) * t) * (0.3 + 0.7 * skip) * (1.0 - 0.45 * (d / rr).powi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
             // the wall's tooth: grains ~1.3 px, and coarser patches of it
-            let grain = hash01(seed ^ 0x1d, (x / 1.3) as i32, (y / 1.3) as i32);
-            let patch = vnoise(seed ^ 0x2e, x * 0.12, y * 0.12);
+            let grain = hash(seed ^ 0x1d, (x / 1.3) as i32, (y / 1.3) as i32);
+            let patch = vn(seed ^ 0x2e, x * 0.12, y * 0.12);
             let tooth = 0.7 * grain + 0.3 * patch;
             // chalk on a wall holds only on the tooth's peaks
             let a = sstep(tooth - 0.06, tooth + 0.05, keep * 0.82);
@@ -339,7 +339,7 @@ fn chalk_raster(lines: &[ChalkLine], w: f64, h: f64, width: f64, seed: u32) -> V
             let k = j * n + i;
             let held = f64::from(bytes[k * 4 + 1]) / 255.0;
             acc = acc * 0.93 + held * 0.1;
-            let speck = hash01(seed ^ 0x3f, i as i32, j as i32);
+            let speck = hash(seed ^ 0x3f, i as i32, j as i32);
             let dust = acc * (0.12 + 0.5 * (speck > 0.93) as u8 as f64);
             out[k] = 1.0 - (1.0 - out[k]) * (1.0 - dust.min(0.5));
         }

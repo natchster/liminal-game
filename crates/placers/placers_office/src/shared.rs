@@ -56,7 +56,7 @@ pub(crate) fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, 
 
 /// Fills the canvas pixel by pixel on every core: `f(u, v)` (u right, v up,
 /// both 0..1, as the texture is laid) gives straight sRGB, 0..1
-pub(crate) fn t10_fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 3] + Sync) {
+pub(crate) fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 3] + Sync) {
     let iw = w as usize;
     let mut img = ctx.create_image_data(w, h);
     par_rows(&mut img.data, iw * 4, |j, out| {

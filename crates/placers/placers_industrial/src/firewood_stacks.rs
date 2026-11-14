@@ -1,8 +1,8 @@
 //! `place_firewood_stacks`
 use game::prelude::*;
-use placers_kit::baking::fbm as r16_fbm;
-use placers_kit::baking::mix as r16_mix;
-use placers_kit::baking::noise as r16_noise;
+use placers_kit::baking::fbm;
+use placers_kit::baking::mix;
+use placers_kit::baking::noise;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -139,25 +139,25 @@ fn wood_bark_tex(species: usize, salt: u32) -> Tex {
                 if species == 3 {
                     // birch: white, dark lenticels across the grain (short
                     // lines along v... the logs run along u), black cracks
-                    let len = r16_noise(seed, x / 2.0, y / 14.0);
-                    let crack = (r16_fbm(seed ^ 1, x / 40.0, y / 6.0) - 0.62).max(0.0) * 4.0;
-                    let dirt = r16_fbm(seed ^ 2, x / 60.0, y / 60.0);
-                    r16_mix(&mut c, fissure, ((len - 0.8).max(0.0) * 6.0).min(0.9) + crack);
-                    r16_mix(&mut c, [150.0, 140.0, 120.0], (dirt - 0.4).max(0.0));
+                    let len = noise(seed, x / 2.0, y / 14.0);
+                    let crack = (fbm(seed ^ 1, x / 40.0, y / 6.0) - 0.62).max(0.0) * 4.0;
+                    let dirt = fbm(seed ^ 2, x / 60.0, y / 60.0);
+                    mix(&mut c, fissure, ((len - 0.8).max(0.0) * 6.0).min(0.9) + crack);
+                    mix(&mut c, [150.0, 140.0, 120.0], (dirt - 0.4).max(0.0));
                 } else {
                     // ridges along u, fissures between, net-like for ash
                     let stretch = if species == 1 { 9.0 } else { 18.0 };
-                    let f = r16_fbm(seed, x / stretch / 4.0, y / 4.5);
+                    let f = fbm(seed, x / stretch / 4.0, y / 4.5);
                     let fis = (1.0 - ((f - 0.5).abs() * 4.0).min(1.0)).powf(2.0);
-                    let tone = r16_noise(seed ^ 3, x / 3.0, y / 3.0);
-                    r16_mix(&mut c, fissure, fis * 0.9);
+                    let tone = noise(seed ^ 3, x / 3.0, y / 3.0);
+                    mix(&mut c, fissure, fis * 0.9);
                     for k in 0..3 {
                         c[k] *= 0.85 + 0.3 * tone;
                     }
                 }
                 // lichen, grey-green, in patches; dirt where it lay
-                let lichen = (r16_fbm(seed ^ 4, x / 30.0, y / 30.0) - 0.68).max(0.0) * 3.5;
-                r16_mix(&mut c, [130.0, 136.0, 110.0], lichen * 0.6);
+                let lichen = (fbm(seed ^ 4, x / 30.0, y / 30.0) - 0.68).max(0.0) * 3.5;
+                mix(&mut c, [130.0, 136.0, 110.0], lichen * 0.6);
                 out[i * 4..i * 4 + 4].copy_from_slice(&[
                     c[0].clamp(0.0, 255.0) as u8,
                     c[1].clamp(0.0, 255.0) as u8,
@@ -183,17 +183,17 @@ fn wood_split_tex(species: usize, salt: u32) -> Tex {
             let y = j as f64;
             for i in 0..n {
                 let x = i as f64;
-                let fib = r16_noise(seed, x / 40.0, y / 1.3) * 0.5 + r16_noise(seed ^ 1, x / 12.0, y / 0.7) * 0.5;
-                let weather = 0.55 + 0.4 * r16_fbm(seed ^ 2, x / 50.0, y / 20.0);
+                let fib = noise(seed, x / 40.0, y / 1.3) * 0.5 + noise(seed ^ 1, x / 12.0, y / 0.7) * 0.5;
+                let weather = 0.55 + 0.4 * fbm(seed ^ 2, x / 50.0, y / 20.0);
                 let mut c = fresh;
-                r16_mix(&mut c, grey, weather);
+                mix(&mut c, grey, weather);
                 for k in 0..3 {
                     c[k] *= 0.78 + 0.36 * fib;
                 }
-                let tear = (r16_noise(seed ^ 3, x / 25.0, y / 2.0) - 0.78).max(0.0) * 4.0;
-                r16_mix(&mut c, [60.0, 50.0, 42.0], tear * 0.7);
-                let rot = (r16_fbm(seed ^ 4, x / 70.0, y / 10.0) - 0.7).max(0.0) * 3.0;
-                r16_mix(&mut c, [74.0, 60.0, 50.0], rot * 0.6);
+                let tear = (noise(seed ^ 3, x / 25.0, y / 2.0) - 0.78).max(0.0) * 4.0;
+                mix(&mut c, [60.0, 50.0, 42.0], tear * 0.7);
+                let rot = (fbm(seed ^ 4, x / 70.0, y / 10.0) - 0.7).max(0.0) * 3.0;
+                mix(&mut c, [74.0, 60.0, 50.0], rot * 0.6);
                 out[i * 4..i * 4 + 4].copy_from_slice(&[
                     c[0].clamp(0.0, 255.0) as u8,
                     c[1].clamp(0.0, 255.0) as u8,
@@ -240,32 +240,32 @@ fn wood_end_tex(species: usize, salt: u32, piths: &'static [(f64, f64, f64, f64)
                 // the log's radius in metres (the ends are about 0.35 m across)
                 let rad = ru * 0.35;
                 let ang = dv.atan2(du);
-                let wob = 0.025 * (r16_noise(seed ^ k as u32, ang * 2.5 + 10.0, d * 2.0) - 0.5);
+                let wob = 0.025 * (noise(seed ^ k as u32, ang * 2.5 + 10.0, d * 2.0) - 0.5);
                 let rings = ((d + wob) * rad / 0.0032).fract();
                 let late = (1.0 - ((rings - 0.82) / 0.12).abs()).max(0.0);
                 let mut c = fresh;
                 let heart = if species == 0 || species == 2 { (1.0 - d / 0.7).clamp(0.0, 1.0) } else { 0.0 };
                 let dark = [c[0] * 0.74, c[1] * 0.66, c[2] * 0.6];
-                r16_mix(&mut c, dark, heart.sqrt() * 0.8);
+                mix(&mut c, dark, heart.sqrt() * 0.8);
                 for q in 0..3 {
                     c[q] *= 1.0 - 0.28 * late;
                 }
                 // weathered grey, more toward the rim; the pith a dark speck
-                r16_mix(&mut c, grey, 0.35 + 0.25 * d.min(1.0));
+                mix(&mut c, grey, 0.35 + 0.25 * d.min(1.0));
                 if d * rad < 0.0025 {
-                    r16_mix(&mut c, [70.0, 56.0, 44.0], 0.7);
+                    mix(&mut c, [70.0, 56.0, 44.0], 0.7);
                 }
                 // the bark round it, a band its own thickness
                 let band = 1.0 - 0.006 / rad.max(0.01);
                 if d > band {
-                    r16_mix(&mut c, [ridge[0] * 0.9, ridge[1] * 0.88, ridge[2] * 0.86], ((d - band) / 0.03).min(1.0) * 0.85);
+                    mix(&mut c, [ridge[0] * 0.9, ridge[1] * 0.88, ridge[2] * 0.86], ((d - band) / 0.03).min(1.0) * 0.85);
                 }
                 // checks out from the pith
                 for &(a, l) in &checks[k] {
                     let da = ((ang - a + PI).rem_euclid(PI * 2.0) - PI).abs();
                     let wid = 0.0012 / rad.max(0.01) * (1.0 - d / l).max(0.0);
                     if d < l && da * d.max(0.02) < wid {
-                        r16_mix(&mut c, [40.0, 32.0, 26.0], 0.85);
+                        mix(&mut c, [40.0, 32.0, 26.0], 0.85);
                     }
                 }
                 // the chainsaw's arcs, faint

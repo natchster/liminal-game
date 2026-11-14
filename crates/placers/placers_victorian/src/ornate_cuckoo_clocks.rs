@@ -1,13 +1,13 @@
 //! `place_ornate_cuckoo_clocks`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::fbm as t10_fbm;
-use placers_kit::noise::mix_unclamped as t10_mix;
-use placers_kit::noise::sstep as t10_ss;
-use placers_kit::noise::vn as t10_vn;
-use placers_kit::paint::fill as t10_fill;
-use placers_kit::paint::opaque as t10_opaque;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
+use placers_kit::paint::opaque;
 use placers_kit::place::face_wall;
 use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_tiles;
@@ -39,27 +39,27 @@ pub(crate) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().set(0, CK_DIAL_Y, -0.015);
     cc.add(&body);
-    t10_put(&body, "Real__cuckooCase", &lambert!({ map: &ck_wood_tex(vary, 0.0) }));
-    t10_put(&body, "Real__cuckooCarving", &lambert!({ map: &ck_wood_tex(vary ^ 0x2b, 0.35) }));
-    t10_put(&body, "Real__cuckooDial", &lambert!({ map: &ck_dial_tex(vary) }));
+    put(&body, "Real__cuckooCase", &lambert!({ map: &ck_wood_tex(vary, 0.0) }));
+    put(&body, "Real__cuckooCarving", &lambert!({ map: &ck_wood_tex(vary ^ 0x2b, 0.35) }));
+    put(&body, "Real__cuckooDial", &lambert!({ map: &ck_dial_tex(vary) }));
     // the hands, stopped where the old ones were (the old draws)
     let hour_ang = rnd() * PI * 2.0 - PI / 2.0;
     let min_ang = rnd() * PI * 2.0 - PI / 2.0;
     let bone = lambert!({ color: 0xc8b996 });
     for (name, ang, dz) in [("Real__cuckooHour", hour_ang, 0.0004), ("Real__cuckooMinute", min_ang, 0.0022)] {
-        if let Some(h) = t10_put(&body, name, &bone) {
+        if let Some(h) = put(&body, name, &bone) {
             h.position().set(0, 0, CK_DIAL_FACE + dz);
             h.rotation().z = ang - PI / 2.0;
         }
     }
     let brass = phong!({ color: 0x6e5a32, specular: 0x5a4a2a, shininess: 40 });
-    t10_put(&body, "Real__cuckooChains", &brass);
-    t10_put(&body, "Real__cuckooWeights", &phong!({ map: &ck_iron_tex(vary), specular: 0x1e1e1e, shininess: 20 }));
+    put(&body, "Real__cuckooChains", &brass);
+    put(&body, "Real__cuckooWeights", &phong!({ map: &ck_iron_tex(vary), specular: 0x1e1e1e, shininess: 20 }));
     // the pendulum hangs from its hook under the case
     let pendulum_group = group();
     pendulum_group.position().set(CK_PEND.0, CK_PEND.1, CK_PEND.2);
-    t10_put(&pendulum_group, "Real__cuckooPendRod", &brass);
-    t10_put(&pendulum_group, "Real__cuckooPendBob", &lambert!({ map: &ck_wood_tex(vary ^ 0x55, 0.35) }));
+    put(&pendulum_group, "Real__cuckooPendRod", &brass);
+    put(&pendulum_group, "Real__cuckooPendBob", &lambert!({ map: &ck_wood_tex(vary ^ 0x55, 0.35) }));
     body.add(&pendulum_group);
     // 50% chance: pendulum swing animator (tracked for cuckoo-call audio).
     let is_swinging = rnd() < 0.5;
@@ -91,16 +91,16 @@ const CK_PEND: (f64, f64, f64) = (0.0, -0.020 - 0.100, 0.030);
 fn ck_wood_tex(vary: u32, rub: f64) -> Tex {
     canvas_tex_opt(256, 256, false, move |ctx, w, h| {
         let seed = vary ^ 0xc0c;
-        t10_fill(ctx, w, h, |u, v| {
-            let g = t10_fbm(seed, u * 4.0, v * 30.0, 3);
-            let fine = t10_vn(seed ^ 3, u * 90.0, v * 400.0);
+        fill(ctx, w, h, |u, v| {
+            let g = fbm(seed, u * 4.0, v * 30.0, 3);
+            let fine = vn(seed ^ 3, u * 90.0, v * 400.0);
             let mut o = [0.17, 0.095, 0.05].map(|c| c * (0.8 + 0.35 * g + 0.1 * fine));
             // the knife's facets and the stain rubbed off them
-            let facet = t10_fbm(seed ^ 5, u * 40.0, v * 40.0, 2);
-            o = t10_mix(o, [0.42, 0.29, 0.17], rub * t10_ss(0.55, 0.75, facet));
+            let facet = fbm(seed ^ 5, u * 40.0, v * 40.0, 2);
+            o = mix_unclamped(o, [0.42, 0.29, 0.17], rub * sstep(0.55, 0.75, facet));
             // dust in the hollows, a grey bloom over all of it
-            let dust = 0.04 + 0.12 * t10_ss(0.4, 0.75, t10_fbm(seed ^ 7, u * 14.0, v * 14.0, 3));
-            t10_opaque(t10_mix(o, [0.40, 0.37, 0.33], dust))
+            let dust = 0.04 + 0.12 * sstep(0.4, 0.75, fbm(seed ^ 7, u * 14.0, v * 14.0, 3));
+            opaque(mix_unclamped(o, [0.40, 0.37, 0.33], dust))
         });
     })
 }
@@ -110,8 +110,8 @@ fn ck_wood_tex(vary: u32, rub: f64) -> Tex {
 fn ck_dial_tex(vary: u32) -> Tex {
     canvas_tex_opt(256, 256, false, move |ctx, w, h| {
         let seed = vary ^ 0xd1a1;
-        t10_fill(ctx, w, h, |u, v| {
-            let g = t10_fbm(seed, u * 3.0, v * 24.0, 3);
+        fill(ctx, w, h, |u, v| {
+            let g = fbm(seed, u * 3.0, v * 24.0, 3);
             let (x, y) = (u - 0.5, v - 0.5);
             let rr = (x * x + y * y).sqrt();
             let mut o = [0.17, 0.10, 0.06].map(|c| c * (0.8 + 0.4 * g));
@@ -119,7 +119,7 @@ fn ck_dial_tex(vary: u32) -> Tex {
             if (rr - 0.43).abs() < 0.006 || (rr - 0.25).abs() < 0.004 {
                 o = o.map(|c| c * 0.6);
             }
-            t10_opaque(t10_mix(o, [0.42, 0.40, 0.35], 0.12))
+            opaque(mix_unclamped(o, [0.42, 0.40, 0.35], 0.12))
         });
         let (cx, cy) = (w / 2.0, h / 2.0);
         const NUM: [&str; 12] = ["XII", "I", "II", "III", "IIII", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
@@ -162,10 +162,10 @@ fn ck_dial_tex(vary: u32) -> Tex {
 fn ck_iron_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x1e0;
-        t10_fill(ctx, w, h, |u, v| {
-            let n = t10_fbm(seed, u * 8.0, v * 16.0, 3);
-            let rust = t10_ss(0.55, 0.75, t10_fbm(seed ^ 3, u * 12.0, v * 24.0, 3));
-            t10_opaque(t10_mix([0.08 + 0.04 * n, 0.075 + 0.035 * n, 0.07 + 0.03 * n], [0.30, 0.17, 0.09], rust * 0.8))
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 8.0, v * 16.0, 3);
+            let rust = sstep(0.55, 0.75, fbm(seed ^ 3, u * 12.0, v * 24.0, 3));
+            opaque(mix_unclamped([0.08 + 0.04 * n, 0.075 + 0.035 * n, 0.07 + 0.03 * n], [0.30, 0.17, 0.09], rust * 0.8))
         });
     })
 }

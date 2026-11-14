@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Ceramic mug: 12% chance per level. Straight-walled cylinder
 // mug + curved handle.
@@ -14,9 +14,9 @@ pub(crate) fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let mug_colors = [0xf0f0e8, 0x304868, 0x684030, 0x505050, 0xd0a850];
-    let mug_mat = lambert!({ color: mug_colors[pick(mug_colors.len())] });
+    let mug_mat = lambert!({ color: mug_colors[ri(mug_colors.len())] });
     let inside_mat = lambert!({ color: 0x0a0806 });
     let mug = group();
     // 25% chance: sit mug on a matching saucer plate.
@@ -36,7 +36,7 @@ pub(crate) fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     let has_liquid = rnd() < 0.40;
     if has_liquid {
         let liquid_colors = [0x2a1810, 0x4a3018, 0x1a0a08, 0x8a6030]; // coffee/tea/dark/light-tea
-        let liquid_mat = lambert!({ color: liquid_colors[pick(liquid_colors.len())] });
+        let liquid_mat = lambert!({ color: liquid_colors[ri(liquid_colors.len())] });
         let liquid = mesh(circle_geo!(0.032, 10), &liquid_mat);
         liquid.rotation().x = -PI / 2.0;
         liquid.position().y = body_y + 0.035; // slightly below rim
@@ -58,7 +58,7 @@ pub(crate) fn place_ceramic_mugs(g: &mut Game, _dist: &[i32]) {
     // 25% chance: small tea/coffee stain on floor nearby.
     if rnd() < 0.25 {
         let stain_colors = [0x2a1810, 0x4a3018, 0x1a0a08, 0x5a3818];
-        let stain_mat = basic_mat!({ color: stain_colors[pick(stain_colors.len())], transparent: true, opacity: 0.55, depthWrite: false });
+        let stain_mat = basic_mat!({ color: stain_colors[ri(stain_colors.len())], transparent: true, opacity: 0.55, depthWrite: false });
         let tea_stain = mesh(circle_geo!(0.04 + rnd() * 0.03, 10), &stain_mat);
         tea_stain.rotation().x = -PI / 2.0;
         tea_stain.rotation().z = rnd() * PI * 2.0;

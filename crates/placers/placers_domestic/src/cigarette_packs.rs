@@ -1,7 +1,7 @@
 //! `place_cigarette_packs`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_xz_turned as scatter_xz;
+use placers_kit::place::scatter_xz_turned;
 
 // Cigarette pack: 10% chance per level. Small flip-top
 // box in red/blue/green colors.
@@ -39,6 +39,6 @@ pub(crate) fn place_cigarette_packs(g: &mut Game, _dist: &[i32]) {
         pack.rotation().z = PI / 2.0;
         pack.position().y = 0.025;
     }
-    scatter_xz(g, &pack, x, z, 2.4);
+    scatter_xz_turned(g, &pack, x, z, 2.4);
     g.world.add(&pack);
 }

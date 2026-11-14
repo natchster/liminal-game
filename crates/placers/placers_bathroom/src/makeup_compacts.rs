@@ -2,7 +2,7 @@
 use crate::shared::salt;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t03_put;
+use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::line;
@@ -34,18 +34,18 @@ pub(crate) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
         [(0x9a5c6e, 0x3a3a3a, 60), (0x1e1d1f, 0x4a4a4a, 80), (0x6a5228, 0xa08850, 45), (0xd4ccbc, 0x3a3a3a, 50), (0x2f6664, 0x3a3a3a, 60)]
             [kind];
     let case = phong!({ map: &case_tex(kind, salt), color: c, specular: spec, shininess: shine });
-    t03_put(&compact, "Real__makeupCompactBase", &case);
+    put(&compact, "Real__makeupCompactBase", &case);
     // the lid turns open about the hinge's pin (y, z of `HINGE`, bathroom/washroom_shelf_and_dressing_table.py)
     let pivot = group();
-    pivot.position().set(0, T03_HINGE.0, T03_HINGE.1);
+    pivot.position().set(0, HINGE.0, HINGE.1);
     let lid = group();
-    lid.position().set(0, -T03_HINGE.0, -T03_HINGE.1);
+    lid.position().set(0, -HINGE.0, -HINGE.1);
     pivot.add(&lid);
     compact.add(&pivot);
-    t03_put(&lid, "Real__makeupCompactLid", &case);
+    put(&lid, "Real__makeupCompactLid", &case);
     if kind != 2 {
         // the plastic ones' gilt trim round the lid, rubbed to the base metal
-        t03_put(
+        put(
             &lid,
             "Real__makeupCompactTrim",
             &phong!({ map: &case_tex(2, salt ^ 0x55), color: 0x6a5228, specular: 0xa08850, shininess: 45 }),
@@ -54,11 +54,11 @@ pub(crate) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
     if is_open {
         // as far as the hinge lets it
         pivot.rotation().x = -1.83;
-        if let Some(m) = t03_put(&lid, "Real__makeupCompactMirror", &mirror_mat(&mirror_tex(salt))) {
+        if let Some(m) = put(&lid, "Real__makeupCompactMirror", &mirror_mat(&mirror_tex(salt))) {
             m.set_render_order(2);
         }
-        t03_put(&compact, "Real__makeupCompactPan", &phong!({ color: 0x5a5c5e, specular: 0x8a8a8a, shininess: 50 }));
-        t03_put(&compact, "Real__makeupCompactPowder", &lambert!({ map: &powder_tex(salt) }));
+        put(&compact, "Real__makeupCompactPan", &phong!({ color: 0x5a5c5e, specular: 0x8a8a8a, shininess: 50 }));
+        put(&compact, "Real__makeupCompactPowder", &lambert!({ map: &powder_tex(salt) }));
     }
     compact.position().set(px, 0, pz);
     compact.rotation().y = rnd() * PI * 2.0;
@@ -66,7 +66,7 @@ pub(crate) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The compact's hinge pin: its height and how far back (bathroom/washroom_shelf_and_dressing_table.py prints it)
-const T03_HINGE: (f64, f64) = (0.009, -0.0398);
+const HINGE: (f64, f64) = (0.009, -0.0398);
 
 /// Scratches as straight short strokes from a seeded scatter: the
 /// darkness (or lightness) of the nearest at (u, v)

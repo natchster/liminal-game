@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Floor drain grate: 15% chance per level, 1 drain. Round
 // dark plate with cross-bar detail.
@@ -15,7 +15,7 @@ pub(crate) fn place_floor_drain_grates(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let grate_mat = lambert!({ color: 0x2a2620 });
     let bar_mat = lambert!({ color: 0x1a1610 });
     let drain = group();

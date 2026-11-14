@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Ancient book stack: 8% chance per level. 3-4 leather-bound tomes stacked.
 pub(crate) fn place_ancient_book_stacks(g: &mut Game, _dist: &[i32]) {
@@ -49,6 +49,6 @@ pub(crate) fn place_ancient_book_stacks(g: &mut Game, _dist: &[i32]) {
         stack.add(&book);
         y += bh; // each book rests on the one below
     }
-    scatter_on_floor(g, &stack, x, z, 2.4);
+    scatter(g, &stack, x, z, 2.4);
     g.world.add(&stack);
 }

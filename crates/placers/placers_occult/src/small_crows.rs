@@ -1,7 +1,7 @@
 //! `place_small_crows`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::noise::vn as crow_vn;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -57,7 +57,7 @@ fn crow_plastic_tex(salt: u32) -> Tex {
                 if rub > 0.62 {
                     c += (rub - 0.62) * 0.35;
                 }
-                let dust = crow_vn(salt ^ 5, u * 170.0, v * 170.0);
+                let dust = vn(salt ^ 5, u * 170.0, v * 170.0);
                 if dust > 0.8 {
                     c += (dust - 0.8) * 1.1;
                 }
@@ -72,7 +72,7 @@ fn crow_plastic_tex(salt: u32) -> Tex {
 fn crow_fbm(seed: u32, x: f64, y: f64) -> f64 {
     let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
     for k in 0..4 {
-        s += amp * crow_vn(seed.wrapping_add(k * 7919), x * f, y * f);
+        s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
         n += amp;
         amp *= 0.5;
         f *= 2.03;

@@ -1,5 +1,6 @@
 //! `place_wine_glasses`
 use game::prelude::*;
+use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -116,22 +117,14 @@ const WINE_DREGS: [u32; 4] = [0x2a0c12, 0x1e0a0e, 0x4a1a1e, 0x6a4a1c];
 /// Its dried film and rings (r, g, b) and how strong
 const WINE_FILM: [(u8, u8, u8, f64); 4] = [(92, 26, 38, 0.55), (70, 20, 30, 0.6), (140, 64, 70, 0.4), (150, 118, 52, 0.32)];
 
-/// A hash of an integer lattice point
-fn wine_hash(seed: u32, x: i32, y: i32) -> f64 {
-    let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
-    h = (h ^ (h >> 13)).wrapping_mul(0xcb1a_b31f);
-    h ^= h >> 16;
-    h as f64 / 4_294_967_296.0
-}
-
 /// Smooth value noise in [0, 1]
 fn wine_noise(seed: u32, x: f64, y: f64) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
     let (fx, fy) = (x - xf, y - yf);
     let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
     let (xi, yi) = (xf as i32, yf as i32);
-    let (a, b) = (wine_hash(seed, xi, yi), wine_hash(seed, xi + 1, yi));
-    let (c, d) = (wine_hash(seed, xi, yi + 1), wine_hash(seed, xi + 1, yi + 1));
+    let (a, b) = (baking::hash(seed, xi, yi), baking::hash(seed, xi + 1, yi));
+    let (c, d) = (baking::hash(seed, xi, yi + 1), baking::hash(seed, xi + 1, yi + 1));
     a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy
 }
 

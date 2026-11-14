@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Single child shoe: 6% chance per level. One small child's shoe on floor.
 pub(crate) fn place_single_child_shoes(g: &mut Game, _dist: &[i32]) {
@@ -41,7 +41,7 @@ pub(crate) fn place_single_child_shoes(g: &mut Game, _dist: &[i32]) {
             shoe.add(&lace);
         }
     }
-    scatter_on_floor(g, &shoe, x, z, 2.4);
+    scatter(g, &shoe, x, z, 2.4);
     // 25% tipped on its side ('YXZ': roll about the shoe's own axis, then yaw).
     if rnd() < 0.25 {
         shoe.set_rotation_order(EulerOrder::YXZ);

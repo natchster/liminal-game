@@ -3,7 +3,7 @@ use game::prelude::*;
 use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Hanging censer: 4% chance per level. A brass thurible (a bowl 108 mm
 // across on its foot, a pierced domed lid, three chains to a chain head)
@@ -26,7 +26,7 @@ pub(crate) fn place_hanging_censers(g: &mut Game, _dist: &[i32]) {
     let sway_phase = rnd() * PI * 2.0;
     let sway_period = 10.0 + rnd() * 6.0;
     let censer = group();
-    scatter_on_floor(g, &censer, x, z, 1.8);
+    scatter(g, &censer, x, z, 1.8);
     let p = censer.pos();
     let salt = salt(p.x, p.z, 0xc35);
     let brass = phong!({ map: &tarnish_tex(salt), color: 0x8a6a34, specular: 0x6a5430, shininess: 30 });

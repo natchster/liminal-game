@@ -2,7 +2,6 @@
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
-// ---------------------------------------------------------------- the kit
 /// Adds the Blender part `name` as modelled to `grp` (nothing when there is
 /// no such part)
 pub fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {

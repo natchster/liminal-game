@@ -1,7 +1,7 @@
 //! `place_fallen_ceiling_tiles`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Fallen ceiling tile: 15% chance per level. Small flat
 // rectangle on floor representing a dropped acoustic-ceiling tile.
@@ -13,7 +13,7 @@ pub(crate) fn place_fallen_ceiling_tiles(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let tile_mat = lambert!({ color: 0xd8d0c0 });
     let tile = mesh(pg("FallenCeilingTiles__tile", box_geo!(0.60, 0.02, 0.60)), &tile_mat);
     tile.position().set(g.wx(x) + (rnd() - 0.5) * 1.6, 0.01, g.wz(z) + (rnd() - 0.5) * 1.6);

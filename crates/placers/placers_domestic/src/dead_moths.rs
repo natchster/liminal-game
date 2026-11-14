@@ -2,7 +2,7 @@
 use crate::shared::buffer_geo;
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Dead moth: 5% chance per level. Small dead moth on floor.
 pub(crate) fn place_dead_moths(g: &mut Game, _dist: &[i32]) {
@@ -37,6 +37,6 @@ pub(crate) fn place_dead_moths(g: &mut Game, _dist: &[i32]) {
         ant.rotation().y = s * 0.3;
         moth.add(&ant);
     }
-    scatter_on_floor(g, &moth, x, z, 2.4);
+    scatter(g, &moth, x, z, 2.4);
     g.world.add(&moth);
 }

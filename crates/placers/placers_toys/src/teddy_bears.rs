@@ -3,7 +3,7 @@ use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::jitter;
@@ -86,13 +86,13 @@ fn mohair_tex(salt: u32, base: u32, head: bool) -> Tex {
             // the pile: fine streaks along its lie, clumps where it matted
             let streak = fbm(seed, u * 110.0, v * 55.0, 3);
             let clump = fbm(seed ^ 1, u * 26.0, v * 22.0, 3);
-            let mut c = mix(b, [b[0] * 0.62, b[1] * 0.60, b[2] * 0.58], ss(0.40, 0.72, streak) * 0.4);
-            c = mix(c, [b[0] * 0.66, b[1] * 0.64, b[2] * 0.6], ss(0.55, 0.75, clump) * 0.4);
+            let mut c = mix(b, [b[0] * 0.62, b[1] * 0.60, b[2] * 0.58], sstep(0.40, 0.72, streak) * 0.4);
+            c = mix(c, [b[0] * 0.66, b[1] * 0.64, b[2] * 0.6], sstep(0.55, 0.75, clump) * 0.4);
             let tip = vn(seed ^ 2, u * 190.0, v * 150.0);
-            c = mix(c, [b[0] * 1.2 + 0.04, b[1] * 1.17 + 0.04, b[2] * 1.14 + 0.03], ss(0.68, 0.95, tip) * 0.45);
+            c = mix(c, [b[0] * 1.2 + 0.04, b[1] * 1.17 + 0.04, b[2] * 1.14 + 0.03], sstep(0.68, 0.95, tip) * 0.45);
             // faded unevenly
             let fade = fbm(seed ^ 3, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.62, 0.58, 0.52], ss(0.5, 0.8, fade) * 0.25);
+            c = mix(c, [0.62, 0.58, 0.52], sstep(0.5, 0.8, fade) * 0.25);
             // rubbed to the backing: its weave shows
             let wear = worn(seed, u, v, head);
             let weave = 0.5 + 0.5 * ((u * 300.0).sin() * (v * 300.0).sin());
@@ -100,7 +100,7 @@ fn mohair_tex(salt: u32, base: u32, head: bool) -> Tex {
             c = mix(c, mix(bare, b, 0.35), wear * 0.85);
             // dust and dirt
             let dust = fbm(seed ^ 6, u * 5.0, v * 5.0, 3);
-            c = mix(c, [0.46, 0.43, 0.39], ss(0.55, 0.85, dust) * 0.3);
+            c = mix(c, [0.46, 0.43, 0.39], sstep(0.55, 0.85, dust) * 0.3);
             let speck = vn(seed ^ 7, u * 120.0, v * 120.0);
             if speck > 0.9 {
                 c = mix(c, [0.25, 0.22, 0.19], (speck - 0.9) * 5.0);
@@ -114,10 +114,10 @@ fn mohair_tex(salt: u32, base: u32, head: bool) -> Tex {
 /// the head its clipped muzzle and the brow over it, rubbed by hands. The
 /// pile and its tips' layer read it at the same place
 fn worn(seed: u32, u: f64, v: f64, head: bool) -> f64 {
-    let mut wear = ss(0.66, 0.74, fbm(seed ^ 4, u * 7.0, v * 7.0, 4));
+    let mut wear = sstep(0.66, 0.74, fbm(seed ^ 4, u * 7.0, v * 7.0, 4));
     if head {
         let (du, dv) = ((u - 0.5) / 0.16, (v - 0.32) / 0.2);
-        wear = wear.max((1.0 - (du * du + dv * dv)).max(0.0) * 0.8 * ss(0.3, 0.6, fbm(seed ^ 5, u * 12.0, v * 12.0, 3)));
+        wear = wear.max((1.0 - (du * du + dv * dv)).max(0.0) * 0.8 * sstep(0.3, 0.6, fbm(seed ^ 5, u * 12.0, v * 12.0, 3)));
     }
     wear
 }
@@ -149,15 +149,15 @@ fn felt_tex(salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let b = [0.62, 0.55, 0.45];
             let n = fbm(seed, u * 12.0, v * 12.0, 3);
-            let mut c = mix(b, [0.46, 0.40, 0.33], ss(0.4, 0.8, n) * 0.6);
+            let mut c = mix(b, [0.46, 0.40, 0.33], sstep(0.4, 0.8, n) * 0.6);
             let pill = vn(seed ^ 1, u * 40.0, v * 40.0);
-            c = mix(c, [0.70, 0.64, 0.55], ss(0.75, 0.9, pill) * 0.4);
+            c = mix(c, [0.70, 0.64, 0.55], sstep(0.75, 0.9, pill) * 0.4);
             for &(hx, hy, r) in &holes {
                 let d = ((u - hx).powi(2) + (v - hy).powi(2)).sqrt();
                 if d < r {
                     // the wood wool: pale straw shavings in the dark
                     let straw = fbm(seed ^ 9, u * 60.0, v * 25.0, 2);
-                    c = mix([0.18, 0.14, 0.10], [0.56, 0.46, 0.30], ss(0.45, 0.7, straw));
+                    c = mix([0.18, 0.14, 0.10], [0.56, 0.46, 0.30], sstep(0.45, 0.7, straw));
                 }
             }
             [c[0], c[1], c[2], 1.0]

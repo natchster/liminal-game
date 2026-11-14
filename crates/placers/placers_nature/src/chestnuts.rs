@@ -7,9 +7,9 @@ use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
-use placers_kit::paint::mul as scale3;
+use placers_kit::paint::mul;
 use placers_kit::paint::paint_px;
 use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
@@ -17,7 +17,7 @@ use placers_kit::place::salt_of;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t17_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -123,7 +123,7 @@ fn conker_geo(name: &'static str) -> Option<Geo> {
 /// matt and finely pitted inside a dark edge; `k` its age (0 fresh, 1 dried
 /// dull, 2 old, dark and wrinkled)
 fn conker_tex(k: usize) -> Tex {
-    t17_kind_tex!(3, k, |k: usize| {
+    cached_kind_tex!(3, k, |k: usize| {
         let base = [[0.40, 0.18, 0.08], [0.34, 0.17, 0.09], [0.25, 0.13, 0.08]][k];
         let seed = 0xc04 + k as u32 * 7;
         canvas_tex_opt(256, 128, true, move |ctx, w, h| {
@@ -137,23 +137,27 @@ fn conker_tex(k: usize) -> Tex {
                 // the grain: wavy bands round the scar
                 let wob = fbm(seed, d[0] * 3.0 + 7.0, d[2] * 3.0 + d[1] * 2.0, 3);
                 let band = ((ang * 26.0 + wob * 9.0).sin() * 0.5 + 0.5).powf(3.0);
-                let mut c = mix(base, scale3(base, 1.45), 0.45 * band);
-                c = mix(c, scale3(base, 0.75), sstep(1.8, 2.8, ang) * 0.5);
+                let mut c = mix_unclamped(base, mul(base, 1.45), 0.45 * band);
+                c = mix_unclamped(c, mul(base, 0.75), sstep(1.8, 2.8, ang) * 0.5);
                 if k == 2 {
                     // dried: fine wrinkles darker
                     let wr = fbm(seed ^ 5, d[0] * 14.0 + 3.0, d[2] * 14.0 + d[1] * 9.0, 3);
-                    c = mix(c, scale3(c, 0.6), sstep(0.55, 0.62, wr) * (1.0 - sstep(0.62, 0.70, wr)));
+                    c = mix_unclamped(c, mul(c, 0.6), sstep(0.55, 0.62, wr) * (1.0 - sstep(0.62, 0.70, wr)));
                 }
                 // the scar
                 let edge = 0.72f64.acos();
                 let inside = 1.0 - sstep(edge - 0.03, edge, ang);
                 let pit = fbm(seed ^ 0x77, d[0] * 30.0 + 1.0, d[2] * 30.0 + d[1] * 20.0, 3);
-                let scar = mix([0.68, 0.60, 0.46], [0.55, 0.47, 0.35], pit);
-                let scar = mix(scar, [0.42, 0.33, 0.24], 0.4 * sstep(0.62, 0.72, fbm(seed ^ 0x13, d[0] * 6.0, d[2] * 6.0 + d[1] * 4.0, 3)));
-                c = mix(c, scar, inside);
-                c = mix(c, scale3(base, 0.45), 0.7 * (1.0 - ((ang - edge) / 0.035).abs()).max(0.0));
+                let scar = mix_unclamped([0.68, 0.60, 0.46], [0.55, 0.47, 0.35], pit);
+                let scar = mix_unclamped(
+                    scar,
+                    [0.42, 0.33, 0.24],
+                    0.4 * sstep(0.62, 0.72, fbm(seed ^ 0x13, d[0] * 6.0, d[2] * 6.0 + d[1] * 4.0, 3)),
+                );
+                c = mix_unclamped(c, scar, inside);
+                c = mix_unclamped(c, mul(base, 0.45), 0.7 * (1.0 - ((ang - edge) / 0.035).abs()).max(0.0));
                 // dust on what faces up
-                c = mix(c, [0.52, 0.48, 0.43], 0.12 * sstep(0.3, 1.0, d[1]));
+                c = mix_unclamped(c, [0.52, 0.48, 0.43], 0.12 * sstep(0.3, 1.0, d[1]));
                 [c[0], c[1], c[2], 1.0]
             });
         })
@@ -163,16 +167,16 @@ fn conker_tex(k: usize) -> Tex {
 /// The husk's outside (box-mapped): dried brown leather with olive left in
 /// patches, warty, darker toward the prickles' feet
 fn husk_out_tex() -> Tex {
-    t17_kind_tex!(1, 0usize, |_k: usize| {
+    cached_kind_tex!(1, 0usize, |_k: usize| {
         canvas_tex_opt(256, 256, true, move |ctx, w, h| {
             paint_px(ctx, w, h, |px, py| {
                 let (u, v) = (px / w, py / h);
                 let n = fbm(0x4a5, u * 9.0, v * 9.0, 4);
-                let mut c = mix([0.38, 0.29, 0.18], [0.29, 0.22, 0.14], n);
-                c = mix(c, [0.38, 0.35, 0.21], 0.55 * sstep(0.6, 0.75, fbm(0x4a6, u * 4.0, v * 4.0, 3)));
+                let mut c = mix_unclamped([0.38, 0.29, 0.18], [0.29, 0.22, 0.14], n);
+                c = mix_unclamped(c, [0.38, 0.35, 0.21], 0.55 * sstep(0.6, 0.75, fbm(0x4a6, u * 4.0, v * 4.0, 3)));
                 let wart = fbm(0x4a7, u * 70.0, v * 70.0, 2);
-                c = mix(c, scale3(c, 0.6), sstep(0.68, 0.76, wart));
-                c = mix(c, [0.52, 0.46, 0.36], 0.25 * sstep(0.72, 0.8, fbm(0x4a8, u * 30.0, v * 30.0, 2)));
+                c = mix_unclamped(c, mul(c, 0.6), sstep(0.68, 0.76, wart));
+                c = mix_unclamped(c, [0.52, 0.46, 0.36], 0.25 * sstep(0.72, 0.8, fbm(0x4a8, u * 30.0, v * 30.0, 2)));
                 [c[0], c[1], c[2], 1.0]
             });
         })
@@ -182,15 +186,15 @@ fn husk_out_tex() -> Tex {
 /// The husk's inside: once white and soft, dried a pale tan, browned in
 /// patches, fibrous
 fn husk_in_tex() -> Tex {
-    t17_kind_tex!(1, 0usize, |_k: usize| {
+    cached_kind_tex!(1, 0usize, |_k: usize| {
         canvas_tex_opt(256, 256, true, move |ctx, w, h| {
             paint_px(ctx, w, h, |px, py| {
                 let (u, v) = (px / w, py / h);
                 let n = fbm(0x1a5, u * 8.0, v * 8.0, 4);
-                let mut c = mix([0.60, 0.50, 0.36], [0.48, 0.38, 0.26], n);
-                c = mix(c, [0.42, 0.30, 0.18], 0.6 * sstep(0.58, 0.72, fbm(0x1a6, u * 5.0, v * 5.0, 3)));
+                let mut c = mix_unclamped([0.60, 0.50, 0.36], [0.48, 0.38, 0.26], n);
+                c = mix_unclamped(c, [0.42, 0.30, 0.18], 0.6 * sstep(0.58, 0.72, fbm(0x1a6, u * 5.0, v * 5.0, 3)));
                 let fib = fbm(0x1a7, u * 90.0, v * 12.0, 2);
-                c = scale3(c, 0.9 + 0.15 * fib);
+                c = mul(c, 0.9 + 0.15 * fib);
                 [c[0], c[1], c[2], 1.0]
             });
         })

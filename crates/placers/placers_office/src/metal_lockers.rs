@@ -1,13 +1,13 @@
 //! `place_metal_lockers`
-use crate::shared::t10_fill;
+use crate::shared::fill;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::fbm as t10_fbm;
-use placers_kit::noise::mix_unclamped as t10_mix;
-use placers_kit::noise::sstep as t10_ss;
-use placers_kit::noise::vn as t10_vn;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::place::mount_slid;
 use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
@@ -34,7 +34,7 @@ pub(crate) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
     let locker = group();
     // origin = the door face; the body backs onto the wall
     let (wall_x, wall_z) = wall_xz(g, c, 0.300);
-    mount(&locker, c, wall_x, wall_z, 0.0, 0.4);
+    mount_slid(&locker, c, wall_x, wall_z, 0.0, 0.4);
     let p = locker.pos();
     let vary = t10_vary(p.x, p.z, 0.3);
     // the parts are modelled with their back at z = 0: on the wall
@@ -43,9 +43,9 @@ pub(crate) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
     locker.add(&body);
     let case = phong!({ map: &lk_paint_tex(vary, paint, false), specular: 0x161616, shininess: 18 });
     let door = phong!({ map: &lk_paint_tex(vary ^ 0x3d, paint, true), specular: 0x161616, shininess: 18 });
-    t10_put(&body, "Real__lockerCase", &case);
-    t10_put(&body, "Real__lockerDoor", &door);
-    t10_put(&body, "Real__lockerLatch", &phong!({ color: 0x77797a, specular: 0x5a5a5a, shininess: 50 }));
+    put(&body, "Real__lockerCase", &case);
+    put(&body, "Real__lockerDoor", &door);
+    put(&body, "Real__lockerLatch", &phong!({ color: 0x77797a, specular: 0x5a5a5a, shininess: 50 }));
     // the dark of its inside, seen through the louvres
     let dark = lambert!({ color: 0x0b0a09 });
     for y in [LK_DOOR_Y0 + LK_DOOR_H - 0.085 + 0.029, LK_DOOR_Y0 + 0.040 + 0.029] {
@@ -53,7 +53,7 @@ pub(crate) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
         m.position().set(0, y, LK_DOOR_Z - 0.006);
         body.add(&m);
     }
-    if let Some(plate) = t10_put(&body, "Real__lockerPlate", &lambert!({ map: &lk_plate_tex(100 + vary % 300) })) {
+    if let Some(plate) = put(&body, "Real__lockerPlate", &lambert!({ map: &lk_plate_tex(100 + vary % 300) })) {
         plate.position().set(0, LK_DOOR_Y0 + LK_DOOR_H - 0.135, LK_DOOR_Z);
     }
     g.world.add(&locker);
@@ -95,31 +95,30 @@ fn lk_paint_tex(vary: u32, paint: [f64; 3], door: bool) -> Tex {
         let seed = (r.next() * 4.0e9) as u32;
         // the latch's place on the door's face (u, v)
         let latch = (0.5 + (LK_DOOR_W / 2.0 - 0.034) / LK_DOOR_W, 0.62);
-        t10_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             // in metres on the face, roughly
             let (x, y) = (u * 0.30, v * if door { 1.45 } else { 1.68 });
-            let m = t10_fbm(seed, x * 8.0, y * 8.0, 4);
+            let m = fbm(seed, x * 8.0, y * 8.0, 4);
             let mut o = paint.map(|c| c * (0.9 + 0.16 * m));
             // faded and dulled
-            o = t10_mix(o, [0.55, 0.53, 0.50], 0.12 + 0.08 * t10_fbm(seed ^ 3, x * 3.0, y * 2.0, 2));
+            o = mix_unclamped(o, [0.55, 0.53, 0.50], 0.12 + 0.08 * fbm(seed ^ 3, x * 3.0, y * 2.0, 2));
             // the foot and the edges: rust come through the paint, bleeding down
             let edge = (u.min(1.0 - u) * 0.30).min(if door { v.min(1.0 - v) * 1.45 } else { 1.0 });
             let foot = if door { v * 1.45 } else { (v * 1.68 - 0.15).max(0.0) };
-            let rn = t10_fbm(seed ^ 7, x * 30.0, y * 30.0, 4);
-            let rust = (1.0 - t10_ss(0.0, 0.10, foot)) * t10_ss(0.42, 0.62, rn) + (1.0 - t10_ss(0.0, 0.012, edge)) * t10_ss(0.5, 0.65, rn);
-            let spots = t10_ss(0.80, 0.86, t10_fbm(seed ^ 11, x * 22.0, y * 22.0, 3));
+            let rn = fbm(seed ^ 7, x * 30.0, y * 30.0, 4);
+            let rust = (1.0 - sstep(0.0, 0.10, foot)) * sstep(0.42, 0.62, rn) + (1.0 - sstep(0.0, 0.012, edge)) * sstep(0.5, 0.65, rn);
+            let spots = sstep(0.80, 0.86, fbm(seed ^ 11, x * 22.0, y * 22.0, 3));
             let rust = (rust + spots * 0.8).min(1.0);
-            o = t10_mix(o, [0.36, 0.20, 0.10], 0.85 * rust);
+            o = mix_unclamped(o, [0.36, 0.20, 0.10], 0.85 * rust);
             // streaks below the rust spots
-            let streak = t10_ss(0.72, 0.85, t10_fbm(seed ^ 11, x * 22.0, y * 22.0 + 0.6, 3))
-                * t10_ss(0.5, 0.9, t10_vn(seed ^ 19, x * 90.0, y * 2.0));
-            o = t10_mix(o, [0.40, 0.27, 0.16], 0.35 * streak);
+            let streak = sstep(0.72, 0.85, fbm(seed ^ 11, x * 22.0, y * 22.0 + 0.6, 3)) * sstep(0.5, 0.9, vn(seed ^ 19, x * 90.0, y * 2.0));
+            o = mix_unclamped(o, [0.40, 0.27, 0.16], 0.35 * streak);
             // grime: kicked at its foot, handled round its latch
-            o = o.map(|c| c * (1.0 - 0.25 * (1.0 - t10_ss(0.0, 0.25, foot))));
+            o = o.map(|c| c * (1.0 - 0.25 * (1.0 - sstep(0.0, 0.25, foot))));
             if door {
                 let (du, dv) = ((u - latch.0) * 0.30, (v - latch.1) * 1.45);
-                let hand = 1.0 - t10_ss(0.02, 0.12, (du * du + dv * dv * 0.5).sqrt());
-                o = t10_mix(o, [0.16, 0.14, 0.12], 0.45 * hand * (0.6 + 0.4 * m));
+                let hand = 1.0 - sstep(0.02, 0.12, (du * du + dv * dv * 0.5).sqrt());
+                o = mix_unclamped(o, [0.16, 0.14, 0.12], 0.45 * hand * (0.6 + 0.4 * m));
             }
             o
         });

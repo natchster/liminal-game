@@ -1,6 +1,6 @@
 //! `place_cracked_mirrors`
 use game::prelude::*;
-use placers_kit::mirror_frame::blob as cm_blob;
+use placers_kit::mirror_frame::blob;
 use placers_kit::mirror_frame::moulding_grain_tex;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::vary as cm_vary;
@@ -205,7 +205,7 @@ fn cm_silver_tex(b: &CmBreak, vary: u32) -> Tex {
                     (0.5, format!("rgba(255,255,255,{:.3})", a * 0.75)),
                     (1.0, "rgba(255,255,255,0)".into()),
                 ];
-                cm_blob(ctx, x, y, r, 0.55 + 0.45 * rnd(), rnd() * 3.0, &stops);
+                blob(ctx, x, y, r, 0.55 + 0.45 * rnd(), rnd() * 3.0, &stops);
             };
             // the black edge along each side (how deep at most in px, the side's length)
             let sides: [(f64, f64); 4] = [(13.0, w), (6.0, h), (6.0, h), (4.0, w)]; // foot, left, right, top
@@ -345,7 +345,7 @@ fn cm_film_tex(b: &CmBreak, vary: u32) -> Tex {
                         (0.7, "rgba(196,190,178,0.08)".into()),
                         (1.0, "rgba(196,190,178,0)".into()),
                     ];
-                    cm_blob(ctx, x0 + (rnd() - 0.5) * 4.0, y0 + f as f64 * 9.0 + rnd() * 3.0, 4.0 + rnd() * 2.0, 0.7, 1.3, &stops);
+                    blob(ctx, x0 + (rnd() - 0.5) * 4.0, y0 + f as f64 * 9.0 + rnd() * 3.0, 4.0 + rnd() * 2.0, 0.7, 1.3, &stops);
                 }
             }
             // the cracks: dark where the silver broke, bright where the edge catches the light

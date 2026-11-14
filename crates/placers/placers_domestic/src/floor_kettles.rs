@@ -1,5 +1,6 @@
 //! `place_floor_kettles`
 use game::prelude::*;
+use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 
@@ -122,13 +123,6 @@ const KETTLE_TRIVET_T: f64 = 0.010;
 /// The kettle body part's height (its bounds' top: the lid, domestic/kitchen_and_hearth_left_behind.py)
 const KETTLE_H: f64 = 0.1367;
 
-fn kettle_hash(seed: u32, x: i32, y: i32) -> f64 {
-    let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
-    h = (h ^ (h >> 13)).wrapping_mul(0xcb1a_b31f);
-    h ^= h >> 16;
-    h as f64 / 4_294_967_296.0
-}
-
 /// Smooth value noise in [0, 1], wrapping every `wrap` cells in x
 fn kettle_noise(seed: u32, x: f64, y: f64, wrap: i32) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
@@ -136,8 +130,8 @@ fn kettle_noise(seed: u32, x: f64, y: f64, wrap: i32) -> f64 {
     let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
     let (xi, yi) = (xf as i32, yf as i32);
     let w = |v: i32| if wrap > 0 { v.rem_euclid(wrap) } else { v };
-    let (a, b) = (kettle_hash(seed, w(xi), yi), kettle_hash(seed, w(xi + 1), yi));
-    let (c, d) = (kettle_hash(seed, w(xi), yi + 1), kettle_hash(seed, w(xi + 1), yi + 1));
+    let (a, b) = (baking::hash(seed, w(xi), yi), baking::hash(seed, w(xi + 1), yi));
+    let (c, d) = (baking::hash(seed, w(xi), yi + 1), baking::hash(seed, w(xi + 1), yi + 1));
     a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy
 }
 

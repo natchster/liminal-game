@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Porcelain cup + saucer: 7% chance per level.
 pub(crate) fn place_porcelain_cup_saucers(g: &mut Game, _dist: &[i32]) {
@@ -57,7 +57,7 @@ pub(crate) fn place_porcelain_cup_saucers(g: &mut Game, _dist: &[i32]) {
         band.position().y = 0.010;
         set.add(&band);
     }
-    scatter_on_floor(g, &set, x, z, 2.4);
+    scatter(g, &set, x, z, 2.4);
     g.world.add(&set);
     // Track for clink audio.
     let p = set.pos();

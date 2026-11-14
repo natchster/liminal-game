@@ -1,6 +1,6 @@
 //! `place_broken_window_frames`
 use game::prelude::*;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Broken window frame: 15% chance per level. The lower sash of an old
@@ -18,7 +18,7 @@ pub(crate) fn place_broken_window_frames(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let shard_mat_col = shard_color_by_weather(g.weather_key());
     let glass = sash_glass_mat(shard_mat_col);
     let sash = group();

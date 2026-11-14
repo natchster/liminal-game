@@ -1,7 +1,7 @@
 //! `place_wall_phones`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Wall phone: 15% chance per level, 1 unit. The office wall set of the
 // 2554 class (Blender batch `r12`): a moulded housing on its wall plate, the
@@ -15,7 +15,7 @@ pub(crate) fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
     if chance < 0.85 {
         return;
     } // 15% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

@@ -1,6 +1,6 @@
 //! `place_small_chess_pieces`
 use game::prelude::*;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_xz;
 
 // Small chess piece: 8% chance per level. Random pawn /
@@ -9,7 +9,7 @@ pub(crate) fn place_small_chess_pieces(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let is_white = rnd() < 0.5;
     let piece_mat = lambert!({ color: if is_white { 0xe8ded0 } else { 0x201a10 } });
     let piece = group();

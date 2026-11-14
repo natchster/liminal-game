@@ -1,14 +1,14 @@
 //! `place_single_boots`
-use crate::shared::r14a_add;
-use crate::shared::r14a_css;
-use crate::shared::r14a_leather_tex;
-use crate::shared::r14a_mix;
-use crate::shared::r14a_rgb;
-use crate::shared::r14a_soft;
-use crate::shared::r14a_wander;
+use crate::shared::add;
+use crate::shared::css;
+use crate::shared::leather_tex;
+use crate::shared::mix;
+use crate::shared::rgb;
+use crate::shared::soft;
+use crate::shared::wander;
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_xz_turned as scatter_xz;
+use placers_kit::place::scatter_xz_turned;
 
 // Single worn boot: 8% chance per level. A 6 in lace-up work boot left on
 // the floor, standing or fallen on its side (Blender batch r14a: the shaft
@@ -35,10 +35,10 @@ pub(crate) fn place_single_boots(g: &mut Game, _dist: &[i32]) {
     // 25% fallen over: as it lies on its outer side (modelled so)
     let tipped = rnd() < 0.25;
     let boot = group();
-    scatter_xz(g, &boot, x, z, 2.4);
+    scatter_xz_turned(g, &boot, x, z, 2.4);
     let p = boot.pos();
     let vary = ((p.x * 7919.0).abs() as u32) ^ ((p.z * 104_729.0).abs() as u32).rotate_left(11);
-    boot.add(&r14a_footwear("boot", if tipped { "Side" } else { "" }, cols, vary));
+    boot.add(&footwear("boot", if tipped { "Side" } else { "" }, cols, vary));
     g.world.add(&boot);
 }
 
@@ -46,48 +46,45 @@ pub(crate) fn place_single_boots(g: &mut Game, _dist: &[i32]) {
 /// "Side" (the right one fallen on its outer side, as it lies) or "" (the
 /// boot standing). Colours sRGB: the leather, the lining, the sole's
 /// rubber or leather, the laces, the eyelets' and hooks' metal.
-fn r14a_footwear(kind: &str, var: &str, cols: (u32, u32, u32, u32, u32), vary: u32) -> Obj {
+fn footwear(kind: &str, var: &str, cols: (u32, u32, u32, u32, u32), vary: u32) -> Obj {
     let (leather, lining, sole, lace, metal) = cols;
     let grp = group();
     let name = |p: &str| format!("Real__{kind}{p}{var}");
     let boot = kind == "boot";
-    let upper = lambert!({ color: 0xffffff, map: &r14a_leather_tex(leather, 256, vary) });
-    r14a_add(&grp, &name("Upper"), &upper);
-    r14a_add(&grp, &name("Lining"), &lambert!({ color: lining }));
-    let edge = lambert!({ color: 0xffffff, map: &r14a_sole_tex(sole, false, vary ^ 0x91) });
-    r14a_add(&grp, &name("Sole"), &edge);
+    let upper = lambert!({ color: 0xffffff, map: &leather_tex(leather, 256, vary) });
+    add(&grp, &name("Upper"), &upper);
+    add(&grp, &name("Lining"), &lambert!({ color: lining }));
+    let edge = lambert!({ color: 0xffffff, map: &sole_tex(sole, false, vary ^ 0x91) });
+    add(&grp, &name("Sole"), &edge);
     let heel =
-        if boot || var == "Side" { edge.clone() } else { lambert!({ color: 0xffffff, map: &r14a_sole_tex(0x3e2c22, true, vary ^ 0x93) }) };
-    r14a_add(&grp, &name("Heel"), &heel);
+        if boot || var == "Side" { edge.clone() } else { lambert!({ color: 0xffffff, map: &sole_tex(0x3e2c22, true, vary ^ 0x93) }) };
+    add(&grp, &name("Heel"), &heel);
     // the tread shows only on one that has fallen over
-    let tread = if var == "Side" {
-        lambert!({ color: 0xffffff, map: &r14a_tread_tex(boot, sole, vary ^ 0x97) })
-    } else {
-        lambert!({ color: sole })
-    };
-    r14a_add(&grp, &name("Tread"), &tread);
-    r14a_add(&grp, &name("Laces"), &lambert!({ color: lace }));
+    let tread =
+        if var == "Side" { lambert!({ color: 0xffffff, map: &tread_tex(boot, sole, vary ^ 0x97) }) } else { lambert!({ color: sole }) };
+    add(&grp, &name("Tread"), &tread);
+    add(&grp, &name("Laces"), &lambert!({ color: lace }));
     let met = phong!({ color: metal, specular: 0x4a4a46, shininess: 40 });
-    r14a_add(&grp, &name(if boot { "Hooks" } else { "Eyelets" }), &met);
+    add(&grp, &name(if boot { "Hooks" } else { "Eyelets" }), &met);
     grp
 }
 
 /// A sole's edge and welt (or `stack`, a heel of leather lifts on a rubber
 /// top piece, its layers across): inked and burnished, scuffed pale, dirt.
-fn r14a_sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
+fn sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
     canvas_tex(128, 128, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
-            let c = r14a_rgb(base);
-            ctx.set_fill_style(&r14a_css(c, 1.0));
+            let c = rgb(base);
+            ctx.set_fill_style(&css(c, 1.0));
             ctx.fill_rect(0, 0, w, h);
             if stack {
                 // the lifts (each 4-5 mm of the heel's 22), the top piece below
                 let mut y = 0.0;
                 while y < h * 0.76 {
-                    ctx.set_fill_style(&r14a_css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
+                    ctx.set_fill_style(&css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
                     ctx.fill_rect(0, y, w, 1.0);
-                    ctx.set_fill_style(&r14a_css(r14a_mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
+                    ctx.set_fill_style(&css(mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
                     ctx.fill_rect(0, y + 1.0, w, 1.0);
                     y += h * 0.19;
                 }
@@ -95,15 +92,15 @@ fn r14a_sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
                 ctx.fill_rect(0, h * 0.77, w, h * 0.23);
             }
             for _ in 0..40 {
-                ctx.set_fill_style(&r14a_css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
+                ctx.set_fill_style(&css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
                 ctx.fill_rect(rnd() * w, rnd() * h, 4.0 + rnd() * 18.0, 1.0);
             }
             for _ in 0..22 {
-                let crust = r14a_mix(c, (150.0, 140.0, 126.0), 0.5);
-                r14a_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 6.0, 0.4, (rnd() - 0.5) * 0.5, crust, 0.35);
+                let crust = mix(c, (150.0, 140.0, 126.0), 0.5);
+                soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 6.0, 0.4, (rnd() - 0.5) * 0.5, crust, 0.35);
             }
             for _ in 0..10 {
-                r14a_soft(ctx, (rnd() * w, rnd() * h), 8.0 + rnd() * 20.0, 0.5, 0.0, (110.0, 102.0, 90.0), 0.12);
+                soft(ctx, (rnd() * w, rnd() * h), 8.0 + rnd() * 20.0, 0.5, 0.0, (110.0, 102.0, 90.0), 0.12);
             }
         })
     })
@@ -115,7 +112,7 @@ fn r14a_sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
 /// paler in the waist where it never touched, the heel's rubber top piece
 /// worn at its back; a boot's lugs, worn grey on their faces, grit in the
 /// grooves.
-fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
+fn tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
     canvas_tex(256, 128, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
@@ -124,13 +121,13 @@ fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
             let br = if boot { 0.771 } else { 0.781 };
             if !boot {
                 let leather = (122.0, 96.0, 70.0);
-                ctx.set_fill_style(&r14a_css(leather, 1.0));
+                ctx.set_fill_style(&css(leather, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // worn: the ball dark and smooth, the toe frayed paler
-                r14a_soft(ctx, (w * 0.34, h * 0.5), w * 0.22, 0.6, 0.0, (64.0, 54.0, 44.0), 0.6);
-                r14a_soft(ctx, (w * 0.04, h * 0.5), w * 0.07, 1.4, 0.0, (150.0, 132.0, 108.0), 0.5);
+                soft(ctx, (w * 0.34, h * 0.5), w * 0.22, 0.6, 0.0, (64.0, 54.0, 44.0), 0.6);
+                soft(ctx, (w * 0.04, h * 0.5), w * 0.07, 1.4, 0.0, (150.0, 132.0, 108.0), 0.5);
                 // the waist, never on the floor: paler, the size stamped
-                r14a_soft(ctx, (w * 0.66, h * 0.5), w * 0.12, 0.6, 0.0, (160.0, 132.0, 100.0), 0.45);
+                soft(ctx, (w * 0.66, h * 0.5), w * 0.12, 0.6, 0.0, (160.0, 132.0, 100.0), 0.45);
                 ctx.save();
                 ctx.translate(w * 0.66, h * 0.5);
                 ctx.rotate(-PI / 2.0);
@@ -143,23 +140,23 @@ fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                 ctx.fill_text("LEATHER", 0, 7);
                 ctx.restore();
                 for _ in 0..140 {
-                    r14a_wander(ctx, (rnd() * w * br, rnd() * h), 3.0 + rnd() * 9.0, (rnd() - 0.5) * 6.3, (70.0, 58.0, 46.0), 0.25, 0.6);
+                    wander(ctx, (rnd() * w * br, rnd() * h), 3.0 + rnd() * 9.0, (rnd() - 0.5) * 6.3, (70.0, 58.0, 46.0), 0.25, 0.6);
                 }
                 // the heel's top piece, black rubber, worn at the back
                 ctx.set_fill_style("rgb(44,41,38)");
                 ctx.fill_rect(w * br, 0, w * (1.0 - br), h);
-                r14a_soft(ctx, (w * 1.0, h * 0.35), w * 0.06, 1.8, 0.0, (96.0, 88.0, 78.0), 0.6);
+                soft(ctx, (w * 1.0, h * 0.35), w * 0.06, 1.8, 0.0, (96.0, 88.0, 78.0), 0.6);
                 for k in 0..5 {
                     ctx.set_fill_style("rgba(120,112,100,0.7)");
                     ctx.fill_rect(w * (br + 0.03 + 0.035 * (k as f64 % 2.0)), h * (0.2 + 0.15 * k as f64), 2.0, 2.0);
                 }
             } else {
-                let c = r14a_rgb(base);
+                let c = rgb(base);
                 let groove = (c.0 * 0.55, c.1 * 0.55, c.2 * 0.55);
-                ctx.set_fill_style(&r14a_css(groove, 1.0));
+                ctx.set_fill_style(&css(groove, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // lugs in rows across the sole, chevroned; few in the waist
-                let face = r14a_mix(c, (120.0, 114.0, 106.0), 0.35);
+                let face = mix(c, (120.0, 114.0, 106.0), 0.35);
                 let mut x = 6.0;
                 let mut row = 0;
                 while x < w - 4.0 {
@@ -174,7 +171,7 @@ fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                         ctx.save();
                         ctx.translate(x, y);
                         ctx.rotate(if k * 2 < n { 0.5 } else { -0.5 });
-                        ctx.set_fill_style(&r14a_css(face, 1.0));
+                        ctx.set_fill_style(&css(face, 1.0));
                         ctx.fill_rect(-4.0, -9.0, 8.0, 18.0);
                         ctx.restore();
                     }
@@ -182,10 +179,10 @@ fn r14a_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                     row += 1;
                 }
                 // the faces worn grey, grit in the grooves
-                r14a_soft(ctx, (w * 0.34, h * 0.5), w * 0.2, 0.6, 0.0, (130.0, 124.0, 114.0), 0.25);
-                r14a_soft(ctx, (w * 0.92, h * 0.5), w * 0.1, 0.8, 0.0, (130.0, 124.0, 114.0), 0.25);
+                soft(ctx, (w * 0.34, h * 0.5), w * 0.2, 0.6, 0.0, (130.0, 124.0, 114.0), 0.25);
+                soft(ctx, (w * 0.92, h * 0.5), w * 0.1, 0.8, 0.0, (130.0, 124.0, 114.0), 0.25);
                 for _ in 0..260 {
-                    ctx.set_fill_style(&r14a_css((150.0, 140.0, 124.0), 0.35));
+                    ctx.set_fill_style(&css((150.0, 140.0, 124.0), 0.35));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0);
                 }
             }

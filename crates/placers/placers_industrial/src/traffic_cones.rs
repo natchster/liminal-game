@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Traffic cone: 15% chance per level, 1 cone. Orange truncated
 // cone + white reflective band.
@@ -14,7 +14,7 @@ pub(crate) fn place_traffic_cones(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // Per-weather cone body color.
     let cone_color = traffic_cone_by_weather(g.weather_key());
     let orange_mat = lambert!({ color: cone_color });

@@ -2,7 +2,7 @@
 use crate::shared::salt;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t03_put;
+use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::line;
 use placers_kit::noise::sstep;
@@ -35,19 +35,19 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
     let (lvl_name, lvl_y) =
         [("Real__perfumeFlaconScentLow", 0.0199), ("Real__perfumeFlaconScentMid", 0.0340), ("Real__perfumeFlaconScentHigh", 0.0480)][level];
     // the thick bottom: the solid the floor holds up
-    t03_put(
+    put(
         &perfume,
         "Real__perfumeFlaconGlassBase",
         &phong!({ color: 0x4e5a52, specular: 0xb0b0b0, shininess: 110, transparent: true, opacity: 0.6 }),
     );
-    if let Some(m) = t03_put(
+    if let Some(m) = put(
         &perfume,
         lvl_name,
-        &phong!({ color: T03_SCENT[kind], specular: 0x707070, shininess: 90, transparent: true, opacity: 0.66, depthWrite: false }),
+        &phong!({ color: SCENT[kind], specular: 0x707070, shininess: 90, transparent: true, opacity: 0.66, depthWrite: false }),
     ) {
         m.set_render_order(2);
     }
-    if let Some(m) = t03_put(
+    if let Some(m) = put(
         &perfume,
         "Real__perfumeFlaconDipTube",
         &phong!({ color: 0xc8ccc8, specular: 0x505050, shininess: 60, transparent: true, opacity: 0.5, depthWrite: false }),
@@ -56,7 +56,7 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
     }
     // the glass: its ring where the scent stood higher, dust, fingers
     let tide = (lvl_y + 0.006 + 0.010 * f64::from((salt >> 11) % 8) / 8.0 - 0.008) / 0.070;
-    if let Some(m) = t03_put(&perfume, "Real__perfumeFlaconGlass", &glass_mat(&flacon_glass_tex(salt, tide))) {
+    if let Some(m) = put(&perfume, "Real__perfumeFlaconGlass", &glass_mat(&flacon_glass_tex(salt, tide))) {
         m.set_render_order(3);
     }
     let metal = |k: u32| match k % 3 {
@@ -68,17 +68,17 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
         // an atomizer's head on the flacon's neck (6 mm higher than the
         // pressed glass's it was modelled on)
         let gilt = phong!({ map: &tarnish_tex(salt), color: 0x5e4822, specular: 0xa88c50, shininess: 45 });
-        if let Some(m) = t03_put(&perfume, "Real__perfumeAtomizerCollar", &gilt) {
+        if let Some(m) = put(&perfume, "Real__perfumeAtomizerCollar", &gilt) {
             m.position().y = 0.006;
         }
-        let silk = T03_SILK[(salt >> 3) as usize % 4];
+        let silk = SILK[(salt >> 3) as usize % 4];
         let net = lambert!({ map: &net_tex(), color: silk });
-        t03_put(&perfume, "Real__perfumeAtomizerBulb", &net);
-        t03_put(&perfume, "Real__perfumeAtomizerHoseFlacon", &lambert!({ color: silk }));
-        t03_put(&perfume, "Real__perfumeAtomizerTassel", &lambert!({ color: silk }));
+        put(&perfume, "Real__perfumeAtomizerBulb", &net);
+        put(&perfume, "Real__perfumeAtomizerHoseFlacon", &lambert!({ color: silk }));
+        put(&perfume, "Real__perfumeAtomizerTassel", &lambert!({ color: silk }));
     } else {
         let pump = metal(salt >> 5);
-        t03_put(&perfume, "Real__perfumeFlaconPump", &pump);
+        put(&perfume, "Real__perfumeFlaconPump", &pump);
         let cap_mat = metal(salt >> 5);
         if salt % 3 == 0 {
             // the cap off, lying on its side by it
@@ -91,7 +91,7 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
                 perfume.add(&mesh(geo, &cap_mat));
             }
         } else {
-            t03_put(&perfume, "Real__perfumeFlaconCap", &cap_mat);
+            put(&perfume, "Real__perfumeFlaconCap", &cap_mat);
         }
     }
     perfume.position().set(px, 0, pz);
@@ -100,10 +100,10 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The scent left in it, darkened (sRGB): amber, rose, pale blue, gold, coral
-const T03_SCENT: [u32; 5] = [0xb07a2a, 0xa85a6c, 0x6a8cac, 0xb89a2a, 0xb25a4c];
+const SCENT: [u32; 5] = [0xb07a2a, 0xa85a6c, 0x6a8cac, 0xb89a2a, 0xb25a4c];
 
 /// The bulb's silk net: crimson, faded rose, black, old gold
-const T03_SILK: [u32; 4] = [0x6a1a26, 0x8a5a60, 0x262426, 0x7a6430];
+const SILK: [u32; 4] = [0x6a1a26, 0x8a5a60, 0x262426, 0x7a6430];
 
 /// Clear glass as the windows' (`Patch::Glass`): the room seen in it by
 /// Fresnel, its dirt from the map's grey

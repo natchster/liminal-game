@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Wedding ring: 6% chance per level. Small gold torus on floor.
 pub(crate) fn place_wedding_rings(g: &mut Game, _dist: &[i32]) {
@@ -29,6 +29,6 @@ pub(crate) fn place_wedding_rings(g: &mut Game, _dist: &[i32]) {
         gem.position().y = 0.006;
         ring.add(&gem);
     }
-    scatter_on_floor(g, &ring, x, z, 2.4);
+    scatter(g, &ring, x, z, 2.4);
     g.world.add(&ring);
 }

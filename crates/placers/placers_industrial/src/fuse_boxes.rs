@@ -3,13 +3,13 @@ use game::prelude::*;
 use placers_kit::place::mount;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as r12_blob;
-use placers_kit::wall_plates::part as r12_part;
-use placers_kit::wall_plates::scratches as r12_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -35,11 +35,11 @@ pub(crate) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {
     o.position().z = -0.03;
     fuse_box.add(&o);
     let paint = lambert!({ map: &fb_enamel_tex(), color: 0x8e908b });
-    o.add(&mesh(r12_part("Real__fuseBoxTub", 0.215, 0.32, 0.083), &paint));
-    o.add(&mesh(r12_part("Real__fuseBoxCover", 0.229, 0.334, 0.012), &paint));
-    o.add(&mesh(r12_part("Real__fuseBoxScrews", 0.22, 0.32, 0.002), phong!({ color: 0x77766f, specular: 0x333333, shininess: 30 })));
+    o.add(&mesh(part("Real__fuseBoxTub", 0.215, 0.32, 0.083), &paint));
+    o.add(&mesh(part("Real__fuseBoxCover", 0.229, 0.334, 0.012), &paint));
+    o.add(&mesh(part("Real__fuseBoxScrews", 0.22, 0.32, 0.002), phong!({ color: 0x77766f, specular: 0x333333, shininess: 30 })));
     let bakelite = lambert!({ color: 0x232220 });
-    o.add(&mesh(r12_part("Real__fuseBoxBreakers", 0.13, 0.08, 0.02), &bakelite));
+    o.add(&mesh(part("Real__fuseBoxBreakers", 0.13, 0.08, 0.02), &bakelite));
     let print = mesh(
         plane_geo!(FB_DOOR.0, FB_DOOR.1),
         lambert!({ map: &fb_print_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
@@ -51,7 +51,7 @@ pub(crate) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {
     hinge.position().set(FB_DOOR_C.0 - FB_DOOR.0 / 2.0, FB_DOOR_C.1, FB_D + 0.0035);
     hinge.rotation().y = -1.85;
     o.add(&hinge);
-    hinge.add(&mesh(r12_part("Real__fuseBoxDoor", 0.15, 0.2, 0.006), &paint));
+    hinge.add(&mesh(part("Real__fuseBoxDoor", 0.15, 0.2, 0.006), &paint));
     let card = mesh(plane_geo!(0.112, 0.150), lambert!({ map: &fb_directory_tex(), side: DoubleSide }));
     card.rotation().y = PI;
     card.position().set(FB_DOOR.0 * 0.5, 0.0, -0.0014);
@@ -59,7 +59,7 @@ pub(crate) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {
     // six breakers, 1-3-5 down the left and 2-4-6 down the right, each on or off
     for i in 0..6 {
         let (col, row) = (i % 2, i / 2);
-        let sw = mesh(r12_part("Real__fuseBoxHandle", 0.011, 0.018, 0.013), &bakelite);
+        let sw = mesh(part("Real__fuseBoxHandle", 0.011, 0.018, 0.013), &bakelite);
         sw.position().set(FB_COL[col], FB_ROW[row], FB_D + 0.001);
         // Random tilt for on/off.
         sw.rotation().y = if rnd() < 0.5 { 0.3 } else { -0.3 };
@@ -85,7 +85,7 @@ const FB_ROW: [f64; 3] = [0.000, -0.026, -0.052];
 /// Grey baked enamel (ANSI 61) on steel: rust blooming from the screws and
 /// the knockouts, grime where the door is pulled and below it, dust on top.
 fn fb_enamel_tex() -> Tex {
-    r12_tex!(160, 232, false, |ctx, w, h| {
+    cached_tex!(160, 232, false, |ctx, w, h| {
         ctx.set_fill_style("#efefea");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..600 {
@@ -93,11 +93,11 @@ fn fb_enamel_tex() -> Tex {
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         for &(x, y) in &[(0.05, 0.04), (0.95, 0.04), (0.05, 0.96), (0.95, 0.96)] {
-            r12_blob(ctx, x * w, y * h, 9.0, 1.0, (120, 60, 25, 0.55));
+            blob(ctx, x * w, y * h, 9.0, 1.0, (120, 60, 25, 0.55));
             ctx.set_fill_style("rgba(120,60,25,0.25)");
             ctx.fill_rect(x * w - 1.0, y * h, 2.0, 10.0 + rnd() * 20.0);
         }
-        r12_blob(ctx, w * 0.8, h * 0.6, 30.0, 1.4, (50, 46, 40, 0.3));
+        blob(ctx, w * 0.8, h * 0.6, 30.0, 1.4, (50, 46, 40, 0.3));
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(140,130,110,0.35)");
         gd.add_color_stop(0.08, "rgba(140,130,110,0)");
@@ -105,7 +105,7 @@ fn fb_enamel_tex() -> Tex {
         gd.add_color_stop(1, "rgba(40,36,30,0.28)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 26, (60, 58, 52), 0.12, 18.0);
+        scratches(ctx, w, h, 26, (60, 58, 52), 0.12, 18.0);
         for _ in 0..10 {
             ctx.set_fill_style("rgba(110,70,40,0.7)");
             ctx.begin_path();
@@ -118,7 +118,7 @@ fn fb_enamel_tex() -> Tex {
 /// What is printed on the dead front (the canvas spans the door's opening,
 /// 0.150 x 0.198 m): the circuit numbers by the breakers, the rating label.
 fn fb_print_tex() -> Tex {
-    r12_tex!(300, 396, false, |ctx, w, h| {
+    cached_tex!(300, 396, false, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         let to = |x: f64, y: f64| ((x + 0.075) * 2000.0, (0.099 - (y + 0.032)) * 2000.0);
         ctx.set_text_align("center");
@@ -156,7 +156,7 @@ fn fb_print_tex() -> Tex {
 /// The circuit directory on the inside of the door: the printed card, what
 /// each circuit fed written in, one crossed out, the card foxed.
 fn fb_directory_tex() -> Tex {
-    r12_tex!(224, 300, false, |ctx, w, h| {
+    cached_tex!(224, 300, false, |ctx, w, h| {
         ctx.set_fill_style("#ddd6c2");
         ctx.fill_rect(0, 0, w, h);
         ctx.set_fill_style("#26241f");
@@ -192,7 +192,7 @@ fn fb_directory_tex() -> Tex {
         ctx.set_fill_style("rgba(30,32,80,0.8)");
         ctx.fill_text("FRIDGE", 120, 44.0 + 2.0 * 40.0 + 18.0);
         for _ in 0..30 {
-            r12_blob(ctx, rnd() * w, rnd() * h, 3.0 + rnd() * 8.0, 1.0, (140, 100, 50, 0.08 + rnd() * 0.12));
+            blob(ctx, rnd() * w, rnd() * h, 3.0 + rnd() * 8.0, 1.0, (140, 100, 50, 0.08 + rnd() * 0.12));
         }
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(160,130,70,0.15)");

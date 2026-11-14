@@ -4,11 +4,11 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::smin;
 use placers_kit::noise::sstep;
 use placers_kit::noise::tide;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_tex;
-use placers_kit::paint::paint_px_indexed as paint_px;
+use placers_kit::paint::paint_px_indexed;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
 
@@ -27,7 +27,7 @@ pub(crate) fn place_floor_puddles(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // the old puddle's draws: its radius (16-30 cm) and how much longer
     // than wide it was (1-1.3)
     let puddle_r = 0.16 + rnd() * 0.14;
@@ -80,33 +80,33 @@ fn puddle_mat(rx: f64, rz: f64, floor: u8) -> (Mat, f64) {
         } else {
             vec![]
         };
-        paint_px(ctx, cw, ch, |i, j| {
+        paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
             let rho = u.hypot(v);
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
             let lobe = 1.0
                 + 0.5 * (fbm(seed, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
-                + 0.16 * (vnoise(seed ^ 0x9, cu * 4.0 + 2.0, cv * 4.0 + 2.0) - 0.5)
-                + 0.07 * (vnoise(seed ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
+                + 0.16 * (vn(seed ^ 0x9, cu * 4.0 + 2.0, cv * 4.0 + 2.0) - 0.5)
+                + 0.07 * (vn(seed ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
             let mut d = (rho - 0.88 * lobe) * r0;
             for &(qx, qz, qr) in &sats {
                 d = smin(d, (x - qx).hypot(y - qz) - qr, 0.012);
             }
             let mut px = Px::CLEAR;
             if hard {
-                d += (vnoise(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.004;
+                d += (vn(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.004;
                 // the damp margin outside it, the film, and the dark line of
                 // its edge
                 if d > 0.0 {
-                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).exp() * (0.6 + 0.4 * vnoise(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                    px.lay([0.11, 0.105, 0.1], 0.2 * (-d / 0.015).exp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
                 }
-                px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.4 + 0.08 * vnoise(seed ^ 0x3c, x * 25.0, y * 25.0)));
+                px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.4 + 0.08 * vn(seed ^ 0x3c, x * 25.0, y * 25.0)));
                 px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
             } else {
                 // soaked in: the edge ragged and soft, a darker rim at it
                 let dd = d + (fbm(seed ^ 0x77, x * 14.0, y * 14.0, 3) - 0.5) * 0.035;
-                px.lay(wet, sstep(0.012, -0.025, dd) * (0.55 + 0.15 * vnoise(seed ^ 0x3c, x * 30.0, y * 30.0)));
+                px.lay(wet, sstep(0.012, -0.025, dd) * (0.55 + 0.15 * vn(seed ^ 0x3c, x * 30.0, y * 30.0)));
                 px.lay([0.09, 0.07, 0.05], 0.22 * (-(dd + 0.004).abs() / 0.008).exp());
             }
             px.rgba()

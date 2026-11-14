@@ -1,12 +1,12 @@
 //! `place_brandy_snifters`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::fbm as t10_fbm;
-use placers_kit::noise::hash as t10_hash;
-use placers_kit::noise::sstep as t10_ss;
-use placers_kit::noise::vn as t10_vn;
-use placers_kit::paint::fill as t10_fill;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 use placers_kit::place::vary as t10_vary;
@@ -58,7 +58,7 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
         2 => ("Real__snifterCoasterLeather", sn_coaster_tex(vary, 2)),
         _ => ("Real__snifterCoasterWood", sn_coaster_tex(vary, 3)),
     };
-    t10_put(&bs, part, &lambert!({ map: &tex }));
+    put(&bs, part, &lambert!({ map: &tex }));
     let top = SN_COASTER_TOP[kind];
     // the glass and the brandy in it
     let glass = group();
@@ -68,7 +68,7 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
     let pour = ((liquid_fill - 0.35) / 0.05).floor().clamp(0.0, 2.0) as usize;
     let level = SN_LEVELS[pour];
     let brandy = phong!({ color: brandy_color, specular: 0x3a3226, shininess: 80, transparent: true, opacity: 0.82, depthWrite: false });
-    if let Some(b) = t10_put(&glass, ["Real__snifterBrandyLow", "Real__snifterBrandyMid", "Real__snifterBrandyHigh"][pour], &brandy) {
+    if let Some(b) = put(&glass, ["Real__snifterBrandyLow", "Real__snifterBrandyMid", "Real__snifterBrandyHigh"][pour], &brandy) {
         b.set_render_order(1);
     }
     let surf_mat = phong!({ color: brandy_color, specular: 0x6a5a44, shininess: 120, transparent: true, opacity: 0.88, depthWrite: false });
@@ -77,11 +77,11 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
     surface.position().y = level;
     surface.set_render_order(1);
     glass.add(&surface);
-    if let Some(m) = t10_put(&glass, "Real__snifterBowl", &gmat) {
+    if let Some(m) = put(&glass, "Real__snifterBowl", &gmat) {
         m.set_render_order(2);
     }
     // the foot and the stem: thick glass, its edges catching the light
-    if let Some(m) = t10_put(&glass, "Real__snifterFoot", &sn_glass_mat(&sn_dust_tex(), 0.9, 0.7)) {
+    if let Some(m) = put(&glass, "Real__snifterFoot", &sn_glass_mat(&sn_dust_tex(), 0.9, 0.7)) {
         m.set_render_order(2);
     }
     // Liquid ripple animator.
@@ -101,7 +101,7 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
             lambert!({ map: &sn_ash_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
         );
         a.rotation().x = -PI / 2.0;
-        a.rotation().z = t10_hash(vary, 1, 1) * PI * 2.0;
+        a.rotation().z = hash(vary, 1, 1) * PI * 2.0;
         a.position().set(0.036, top + 0.0003, 0.020);
         bs.add(&a);
     }
@@ -110,13 +110,13 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
         let rg = group();
         rg.position().set(rx, 0, rz);
         if dregs {
-            t10_put(
+            put(
                 &rg,
                 "Real__snifterRocksDregs",
                 &phong!({ color: brandy_color, specular: 0x4a3a2a, shininess: 60, transparent: true, opacity: 0.9 }),
             );
         }
-        if let Some(m) = t10_put(&rg, "Real__snifterRocks", &sn_glass_mat(&sn_dust_tex(), 0.65, 0.45)) {
+        if let Some(m) = put(&rg, "Real__snifterRocks", &sn_glass_mat(&sn_dust_tex(), 0.65, 0.45)) {
             m.set_render_order(2);
         }
         bs.add(&rg);
@@ -183,10 +183,10 @@ fn sn_dust_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let d = t10_fbm(81, u * 7.0, v * 7.0, 3) * 0.6 + t10_fbm(82, u * 29.0, v * 29.0, 2) * 0.4;
+                fill(ctx, w, h, |u, v| {
+                    let d = fbm(81, u * 7.0, v * 7.0, 3) * 0.6 + fbm(82, u * 29.0, v * 29.0, 2) * 0.4;
                     // fingers' smears round the bowl's belly
-                    let smear = t10_ss(0.62, 0.8, t10_fbm(83, u * 9.0, v * 3.0, 3)) * (1.0 - t10_ss(0.15, 0.4, (v - 0.45).abs()));
+                    let smear = sstep(0.62, 0.8, fbm(83, u * 9.0, v * 3.0, 3)) * (1.0 - sstep(0.15, 0.4, (v - 0.45).abs()));
                     // the dust heavier toward the top (it settles on what faces up)
                     let k = 0.15 + 0.4 * d + 0.5 * smear + 0.15 * v;
                     [k, k, k, 1.0]
@@ -206,42 +206,42 @@ fn sn_coaster_tex(vary: u32, kind: usize) -> Tex {
         let seed = (r.next() * 4.0e9) as u32;
         let rings: Vec<(f64, f64, f64, bool)> =
             (0..3).map(|_| (r.range(0.35, 0.65), r.range(0.35, 0.65), r.range(0.17, 0.21), r.next() < 0.5)).collect();
-        t10_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             let (x, y) = (u - 0.5, v - 0.5);
             let rr = (x * x + y * y).sqrt();
             let mut o = match kind {
                 0 | 3 => {
                     // end grain turned flat: rings round the middle, the figure
-                    let ring = ((rr * 160.0 + t10_fbm(seed, u * 6.0, v * 6.0, 3) * 6.0).sin() * 0.5 + 0.5).powf(2.0);
+                    let ring = ((rr * 160.0 + fbm(seed, u * 6.0, v * 6.0, 3) * 6.0).sin() * 0.5 + 0.5).powf(2.0);
                     let base = if kind == 0 { [0.40, 0.25, 0.14] } else { [0.18, 0.11, 0.07] };
-                    base.map(|c| c * (0.88 + 0.15 * t10_fbm(seed ^ 3, u * 40.0, v * 3.0, 2) - 0.18 * ring))
+                    base.map(|c| c * (0.88 + 0.15 * fbm(seed ^ 3, u * 40.0, v * 3.0, 2) - 0.18 * ring))
                 }
                 1 => {
                     // pressed cork: granules light and dark
-                    let g = t10_vn(seed, u * 70.0, v * 70.0);
-                    let g2 = t10_vn(seed ^ 5, u * 160.0, v * 160.0);
+                    let g = vn(seed, u * 70.0, v * 70.0);
+                    let g2 = vn(seed ^ 5, u * 160.0, v * 160.0);
                     [0.50, 0.37, 0.24].map(|c| c * (0.75 + 0.35 * g + 0.15 * g2))
                 }
                 _ => {
                     // leather: its pebbled grain, darkened along its stitched edge
-                    let g = t10_vn(seed, u * 90.0, v * 90.0);
+                    let g = vn(seed, u * 90.0, v * 90.0);
                     let edge = (0.5 - x.abs()).min(0.5 - y.abs());
                     let mut o = [0.24, 0.15, 0.10].map(|c| c * (0.85 + 0.25 * g));
                     let stitch = (edge - 0.055).abs() < 0.008 && ((u + v) * 60.0).fract() < 0.55;
                     if stitch {
                         o = [0.50, 0.44, 0.34];
                     }
-                    o.map(|c| c * (0.75 + 0.25 * t10_ss(0.0, 0.05, edge)))
+                    o.map(|c| c * (0.75 + 0.25 * sstep(0.0, 0.05, edge)))
                 }
             };
             // the rings left by wet glasses: a white bloom on wood, dark on the rest
             for &(cx, cy, cr, white) in &rings {
                 let d = (((u - cx).powi(2) + (v - cy).powi(2)).sqrt() - cr).abs();
-                let k = (1.0 - t10_ss(0.0, 0.012, d)) * 0.6;
+                let k = (1.0 - sstep(0.0, 0.012, d)) * 0.6;
                 o = if white && kind != 1 { o.map(|c| c + (0.6 - c) * k * 0.6) } else { o.map(|c| c * (1.0 - 0.4 * k)) };
             }
             // worn, dusty
-            let dust = 0.12 + 0.1 * t10_fbm(seed ^ 9, u * 8.0, v * 8.0, 3);
+            let dust = 0.12 + 0.1 * fbm(seed ^ 9, u * 8.0, v * 8.0, 3);
             [o[0] + (0.5 - o[0]) * dust, o[1] + (0.47 - o[1]) * dust, o[2] + (0.42 - o[2]) * dust, 1.0]
         });
     })
@@ -253,12 +253,12 @@ fn sn_ash_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(64, 64, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
+                fill(ctx, w, h, |u, v| {
                     let (x, y) = ((u - 0.5) * 2.0, (v - 0.5) * 2.0);
                     let d = (x * x * 1.6 + y * y).sqrt();
-                    let n = t10_fbm(91, u * 9.0, v * 9.0, 3);
-                    let a = (1.0 - t10_ss(0.3, 0.95, d + 0.4 * (n - 0.5))) * (0.5 + 0.5 * n);
-                    let k = 0.35 + 0.3 * t10_vn(92, u * 40.0, v * 40.0);
+                    let n = fbm(91, u * 9.0, v * 9.0, 3);
+                    let a = (1.0 - sstep(0.3, 0.95, d + 0.4 * (n - 0.5))) * (0.5 + 0.5 * n);
+                    let k = 0.35 + 0.3 * vn(92, u * 40.0, v * 40.0);
                     [k, k * 0.97, k * 0.93, a * 0.9]
                 });
             })

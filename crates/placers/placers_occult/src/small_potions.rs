@@ -1,7 +1,7 @@
 //! `place_small_potions`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 
 // Small potion bottle: 8% chance per level. Glass vial
@@ -17,7 +17,7 @@ pub(crate) fn place_small_potions(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick_tile(&open);
     let glass_mat = basic_mat!({ color: 0xc0e0d0, transparent: true, opacity: 0.35 });
     let potion_colors: [u32; 5] = [0x30d040, 0xa020d0, 0xd82040, 0x2050d8, 0xd8b040];
-    let potion_color = pick_u32(&potion_colors);
+    let potion_color = pick_hex(&potion_colors);
     let potion_mat = basic_mat!({ color: potion_color, transparent: true, opacity: 0.85 });
     let cork_mat = lambert!({ color: 0xa87050 });
     let potion = group();

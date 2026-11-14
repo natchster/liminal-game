@@ -1,7 +1,7 @@
 //! `place_small_poker_chips`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small poker chip stack: 8% chance per level. Stack of
@@ -10,7 +10,7 @@ pub(crate) fn place_small_poker_chips(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let chip_colors = [0xd82040, 0x2050d8, 0x30a030, 0x181008, 0xf0ece0];
     let stack = group();
     let n_chips = 4 + (rnd() * 6.0).floor() as i32;

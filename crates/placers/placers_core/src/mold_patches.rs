@@ -1,13 +1,13 @@
 //! `place_mold_patches`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as h01;
+use placers_kit::noise::hash;
 use placers_kit::noise::specks;
-use placers_kit::noise::sstep as smooth;
+use placers_kit::noise::sstep;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
-use placers_kit::paint::mark_mat as decal_mat;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::paint::mark_mat;
+use placers_kit::place::mount_slid;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
@@ -36,7 +36,7 @@ pub(crate) fn place_mold_patches(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.008);
     // its height (the old draw)
     let center_y = 1.2 + rnd() * 0.6;
-    mount(&decal, c, wall_x, wall_z, center_y, 0.5);
+    mount_slid(&decal, c, wall_x, wall_z, center_y, 0.5);
     // what it looks like: from where it is (no draws)
     let p = decal.pos();
     let damp = matches!(g.weather_key(), "wet" | "derelict" | "haunted");
@@ -125,7 +125,7 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
         let warp = fbm(s, x * 22.0, y * 22.0, 2) - 0.5;
         let (mut dn, mut dh) = (0.0f64, 0.0f64);
         for (k, &(mx, my, mr, ma, sq)) in cols.iter().enumerate() {
-            let q = (x - mx).hypot((y - my) * sq) / mr * (1.0 + 0.7 * warp + 0.25 * (h01(s, k as i32, 7) - 0.5));
+            let q = (x - mx).hypot((y - my) * sq) / mr * (1.0 + 0.7 * warp + 0.25 * (hash(s, k as i32, 7) - 0.5));
             if q < 3.5 {
                 dn = 1.0 - (1.0 - dn) * (1.0 - ma * (-q * q * 0.9).exp());
             }
@@ -134,19 +134,19 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
         let mut px = [CORE[0], CORE[1], CORE[2], 0.0];
         // the damp's stain under it, and the line where it stopped
         let dh = dh * (0.8 + 0.4 * fbm(s ^ 0x55, x * 9.0, y * 9.0, 2));
-        lay(&mut px, STAIN, 0.15 * smooth(0.05, 0.35, dh));
+        lay(&mut px, STAIN, 0.15 * sstep(0.05, 0.35, dh));
         lay(&mut px, TIDE, 0.16 * (-((dh - 0.1) / 0.02).powi(2)).exp());
         // the velvety haze among the specks, and the sooty film at the oldest middles
         let mottle = fbm(s ^ 0x77, x * 70.0, y * 70.0, 3);
-        lay(&mut px, mix(EDGE, CORE, 0.55), 0.36 * smooth(0.2, 0.9, dn) * (0.35 + 0.65 * mottle));
-        lay(&mut px, CORE, 0.45 * smooth(0.72, 1.0, dn) * smooth(0.35, 0.75, mottle));
+        lay(&mut px, mix(EDGE, CORE, 0.55), 0.36 * sstep(0.2, 0.9, dn) * (0.35 + 0.65 * mottle));
+        lay(&mut px, CORE, 0.45 * sstep(0.72, 1.0, dn) * sstep(0.35, 0.75, mottle));
         // the specks: a dot in a cell as likely as the colony is dense there
         let layers: [(f64, f64, f64, f64, u32); 4] = [
             // cell, likelihood, radius, more radius, salt
-            (0.0015, 0.9 * smooth(0.03, 0.45, dn), 0.0002, 0.00025, 0x1001),
-            (0.003, 0.7 * smooth(0.12, 0.6, dn), 0.0004, 0.0005, 0x1002),
-            (0.006, 0.5 * smooth(0.3, 0.8, dn) * (0.5 + mottle), 0.0008, 0.001, 0x1003),
-            (0.008, 0.35 * smooth(0.004, 0.03, dn) * (1.0 - smooth(0.1, 0.3, dn)), 0.0003, 0.0004, 0x1004),
+            (0.0015, 0.9 * sstep(0.03, 0.45, dn), 0.0002, 0.00025, 0x1001),
+            (0.003, 0.7 * sstep(0.12, 0.6, dn), 0.0004, 0.0005, 0x1002),
+            (0.006, 0.5 * sstep(0.3, 0.8, dn) * (0.5 + mottle), 0.0008, 0.001, 0x1003),
+            (0.008, 0.35 * sstep(0.004, 0.03, dn) * (1.0 - sstep(0.1, 0.3, dn)), 0.0003, 0.0004, 0x1004),
         ];
         for &(cell, like, r0, r1, salt) in &layers {
             if like <= 0.001 {
@@ -159,11 +159,11 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
             }
         }
         // pale fuzz here and there where it is growing
-        let (fz, _) = specks(s ^ 0x1005, x, y, 0.008, 0.10 * smooth(0.2, 0.5, dn) * (1.0 - smooth(0.7, 0.9, dn)), 0.0012, 0.0004, 0.0012);
+        let (fz, _) = specks(s ^ 0x1005, x, y, 0.008, 0.10 * sstep(0.2, 0.5, dn) * (1.0 - sstep(0.7, 0.9, dn)), 0.0012, 0.0004, 0.0012);
         lay(&mut px, FUZZ, fz * 0.3);
         // nothing at the plane's edges
-        px[3] *= smooth(0.0, 0.025, x.min(pw - x).min(y).min(ph - y));
+        px[3] *= sstep(0.0, 0.025, x.min(pw - x).min(y).min(ph - y));
         px
     });
-    decal_mat(&tex)
+    mark_mat(&tex)
 }

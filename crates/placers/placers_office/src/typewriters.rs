@@ -1,7 +1,7 @@
 //! `place_typewriters`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Vintage typewriter: 10% chance per level. Box + slanted key
 // area + paper roller + platen. Very institutional/office vintage.
@@ -13,7 +13,7 @@ pub(crate) fn place_typewriters(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let body_mat = lambert!({ color: 0x282020 });
     let key_mat = lambert!({ color: 0x4a3a30 });
     let paper_mat = lambert!({ color: 0xe8dcc0 });

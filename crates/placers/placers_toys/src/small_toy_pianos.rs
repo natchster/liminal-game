@@ -1,7 +1,7 @@
 //! `place_small_toy_pianos`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 
 // Small toy piano: 6% chance per level. Rectangular piano
@@ -17,7 +17,7 @@ pub(crate) fn place_small_toy_pianos(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick_tile(&open);
     let body_colors: [u32; 5] = [0xd82040, 0x2050d8, 0xd8b040, 0x8a5030, 0x181008];
-    let body_mat = lambert!({ color: pick_u32(&body_colors) });
+    let body_mat = lambert!({ color: pick_hex(&body_colors) });
     let white_key = lambert!({ color: 0xf0ece0 });
     let black_key = lambert!({ color: 0x181008 });
     let piano = group();

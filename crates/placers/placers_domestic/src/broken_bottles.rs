@@ -1,8 +1,9 @@
 //! `place_broken_bottles`
 use game::prelude::*;
+use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // A broken bottle (Blender batch `r16`): a 12 oz longneck dropped and
 // burst on the floor, green, amber or clear glass (the old colours): its
@@ -81,7 +82,7 @@ pub(crate) fn place_broken_bottles(g: &mut Game, _dist: &[i32]) {
             s[5],
         );
     }
-    scatter_on_floor(g, &grp, x, z, 2.0);
+    scatter(g, &grp, x, z, 2.0);
     g.world.add(&grp);
 }
 
@@ -125,20 +126,13 @@ fn bottle_glass_mat(kind: usize, map: &Tex) -> Mat {
     m
 }
 
-fn bottle_hash(seed: u32, x: i32, y: i32) -> f64 {
-    let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
-    h = (h ^ (h >> 13)).wrapping_mul(0xcb1a_b31f);
-    h ^= h >> 16;
-    h as f64 / 4_294_967_296.0
-}
-
 fn bottle_noise(seed: u32, x: f64, y: f64) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
     let (fx, fy) = (x - xf, y - yf);
     let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
     let (xi, yi) = (xf as i32, yf as i32);
-    let (a, b) = (bottle_hash(seed, xi, yi), bottle_hash(seed, xi + 1, yi));
-    let (c, d) = (bottle_hash(seed, xi, yi + 1), bottle_hash(seed, xi + 1, yi + 1));
+    let (a, b) = (baking::hash(seed, xi, yi), baking::hash(seed, xi + 1, yi));
+    let (c, d) = (baking::hash(seed, xi, yi + 1), baking::hash(seed, xi + 1, yi + 1));
     a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy
 }
 

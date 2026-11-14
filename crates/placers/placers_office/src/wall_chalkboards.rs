@@ -1,9 +1,9 @@
 //! `place_wall_chalkboards`
 use game::prelude::*;
 use placers_kit::mirror_frame::moulding_grain_tex;
-use placers_kit::noise::hash as cb_hash01;
-use placers_kit::noise::sstep as cb_sstep;
-use placers_kit::noise::vn as cb_vnoise;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::vary as cm_vary;
 use placers_kit::place::wall_candidates;
@@ -374,19 +374,19 @@ fn cb_chalk(lines: &[Vec<(f64, f64)>], n: usize, m: usize, width: f64, seed: u32
                 let l2 = (ex * ex + ey * ey).max(1e-9);
                 let t = (((x - a.0) * ex + (y - a.1) * ey) / l2).clamp(0.0, 1.0);
                 let d = (x - a.0 - ex * t).hypot(y - a.1 - ey * t);
-                let rr = r * (0.82 + 0.3 * cb_vnoise(ls ^ 0x5a, x * 0.3, y * 0.3));
-                let cover = cb_sstep(rr + 0.7, rr - 0.7, d);
+                let rr = r * (0.82 + 0.3 * vn(ls ^ 0x5a, x * 0.3, y * 0.3));
+                let cover = sstep(rr + 0.7, rr - 0.7, d);
                 if cover <= 0.0 {
                     continue;
                 }
-                let skip = cb_sstep(0.18, 0.45, cb_vnoise(ls ^ 0x77, (a.0 + ex * t) * 0.09, (a.1 + ey * t) * 0.09));
+                let skip = sstep(0.18, 0.45, vn(ls ^ 0x77, (a.0 + ex * t) * 0.09, (a.1 + ey * t) * 0.09));
                 let press = (pa + (pb - pa) * t) * (0.45 + 0.55 * skip) * (1.0 - 0.35 * (d / rr).powi(2));
                 keep = 1.0 - (1.0 - keep) * (1.0 - cover * press);
             }
             // chalk holds on the board's grain, finer than on a wall
-            let grain = cb_hash01(seed ^ 0x1d, i as i32, j as i32);
-            let tooth = 0.75 * grain + 0.25 * cb_vnoise(seed ^ 0x2e, x * 0.2, y * 0.2);
-            let a = cb_sstep(tooth - 0.18, tooth + 0.12, keep * 0.9) * keep.min(1.0).powf(0.5) * 0.92;
+            let grain = hash(seed ^ 0x1d, i as i32, j as i32);
+            let tooth = 0.75 * grain + 0.25 * vn(seed ^ 0x2e, x * 0.2, y * 0.2);
+            let a = sstep(tooth - 0.18, tooth + 0.12, keep * 0.9) * keep.min(1.0).powf(0.5) * 0.92;
             out[i * 4] = (a.clamp(0.0, 1.0) * 255.0).round() as u8;
         }
     });
@@ -424,24 +424,24 @@ fn chalkboard_face_tex(w: f64, h: f64, vary: u32) -> Tex {
                 let x = i as f64 + 0.5;
                 let k = j * n + i;
                 // the paint: a dark green-black, mottled, glossier where wiped most
-                let mot = cb_vnoise(seed ^ 0x61, x * 0.02, y * 0.02) * 0.6 + cb_vnoise(seed ^ 0x62, x * 0.09, y * 0.09) * 0.4;
+                let mot = vn(seed ^ 0x61, x * 0.02, y * 0.02) * 0.6 + vn(seed ^ 0x62, x * 0.09, y * 0.09) * 0.4;
                 let base = [34.0 + 9.0 * mot, 41.0 + 9.0 * mot, 37.0 + 8.0 * mot];
                 // what the eraser left: dust along its swipes, smearing the ghost sideways
-                let mut haze = 0.05 + 0.05 * cb_vnoise(seed ^ 0x63, x * 0.015, y * 0.03);
+                let mut haze = 0.05 + 0.05 * vn(seed ^ 0x63, x * 0.015, y * 0.03);
                 let mut wiped = 0.0f64;
                 for &(sy, amp, tilt, str_, wd) in &swipes {
                     let cy = sy + tilt * (x - cw / 2.0) + amp * ((x / cw) * 3.1).sin();
                     let d = (y - cy) / wd;
                     let band = (-d * d).exp() * str_;
-                    let streak = 0.6 + 0.4 * cb_vnoise(seed ^ 0x64, x * 0.01, y * 0.6);
+                    let streak = 0.6 + 0.4 * vn(seed ^ 0x64, x * 0.01, y * 0.6);
                     haze += band * 0.07 * streak;
                     wiped += band * 0.9;
                 }
                 // dust settled low on the board
-                haze += 0.08 * cb_sstep(0.7, 1.0, y / ch) * (0.6 + 0.4 * cb_vnoise(seed ^ 0x65, x * 0.05, y * 0.2));
-                let smear = ghost_c[j * n + ((i as f64 + 6.0 * cb_vnoise(seed ^ 0x66, x * 0.02, y * 0.05)) as usize).min(n - 1)] as f64;
+                haze += 0.08 * sstep(0.7, 1.0, y / ch) * (0.6 + 0.4 * vn(seed ^ 0x65, x * 0.05, y * 0.2));
+                let smear = ghost_c[j * n + ((i as f64 + 6.0 * vn(seed ^ 0x66, x * 0.02, y * 0.05)) as usize).min(n - 1)] as f64;
                 // most of it gone under the swipes: what is left, in patches
-                let left = cb_sstep(0.3, 0.65, cb_vnoise(seed ^ 0x67, x * 0.025, y * 0.06)) * (1.0 - 0.75 * wiped.min(1.0));
+                let left = sstep(0.3, 0.65, vn(seed ^ 0x67, x * 0.025, y * 0.06)) * (1.0 - 0.75 * wiped.min(1.0));
                 let g = 0.24 * smear * left;
                 let t = text[k] as f64 * 0.95;
                 let a = (1.0 - (1.0 - haze.min(0.4)) * (1.0 - g) * (1.0 - t)).clamp(0.0, 1.0);

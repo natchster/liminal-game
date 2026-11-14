@@ -1,7 +1,7 @@
 //! `place_ceiling_cables`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Ceiling hanging cable: 15% chance per level, 1 unit.
 // Vertical thin cylinder dangling from ceiling + small plug head at bottom.
@@ -14,7 +14,7 @@ pub(crate) fn place_ceiling_cables(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let cable_mat = lambert!({ color: 0x181410 });
     let plug_mat = lambert!({ color: 0x080604 });
     let cable = group();

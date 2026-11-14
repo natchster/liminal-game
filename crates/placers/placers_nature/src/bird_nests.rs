@@ -8,7 +8,7 @@ use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::paint::paint_px;
 use placers_kit::place::jitter;
@@ -16,7 +16,7 @@ use placers_kit::place::pick_open;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t05_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -96,10 +96,10 @@ const NEST_FLOOR: f64 = 0.026;
 /// faces take it by the box's three ways): straw and grey-brown stems every
 /// way but mostly round it, mud showing between them, a few dark rootlets
 fn nest_grass_tex() -> Tex {
-    t05_tex!(512, 512, false, |ctx, w, h| {
+    cached_tex!(512, 512, false, |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let m = fbm(0x7e57, x / 30.0, y / 30.0, 4);
-            let c = mix([0.34, 0.28, 0.20], [0.24, 0.20, 0.15], sstep(0.4, 0.7, m));
+            let c = mix_unclamped([0.34, 0.28, 0.20], [0.24, 0.20, 0.15], sstep(0.4, 0.7, m));
             [c[0], c[1], c[2], 1.0]
         });
         ctx.set_line_cap("round");
@@ -110,9 +110,9 @@ fn nest_grass_tex() -> Tex {
             let bend = (rnd() - 0.5) * 0.5;
             let tone = rnd();
             let c = if tone < 0.55 {
-                mix([0.62, 0.55, 0.40], [0.52, 0.45, 0.32], rnd())
+                mix_unclamped([0.62, 0.55, 0.40], [0.52, 0.45, 0.32], rnd())
             } else if tone < 0.85 {
-                mix([0.44, 0.38, 0.29], [0.36, 0.31, 0.24], rnd())
+                mix_unclamped([0.44, 0.38, 0.29], [0.36, 0.31, 0.24], rnd())
             } else {
                 [0.22, 0.17, 0.12]
             };
@@ -134,7 +134,7 @@ fn nest_grass_tex() -> Tex {
 /// The lining: fine dry grass laid round and round the cup (concentric seen
 /// from above, where its floor takes it; round it on its walls)
 fn nest_lining_tex() -> Tex {
-    t05_tex!(256, 256, false, |ctx, w, h| {
+    cached_tex!(256, 256, false, |ctx, w, h| {
         ctx.set_fill_style(css([0.46, 0.40, 0.31], 1.0));
         ctx.fill_rect(0, 0, w, h);
         ctx.set_line_cap("round");
@@ -142,7 +142,7 @@ fn nest_lining_tex() -> Tex {
             let r = rnd().sqrt() * w * 0.5;
             let a0 = rnd() * PI * 2.0;
             let span = 0.4 + rnd() * 1.2;
-            let c = mix([0.66, 0.58, 0.44], [0.40, 0.34, 0.26], rnd());
+            let c = mix_unclamped([0.66, 0.58, 0.44], [0.40, 0.34, 0.26], rnd());
             ctx.set_stroke_style(css(c, 0.5 + 0.45 * rnd()));
             ctx.set_line_width(0.6 + rnd() * 1.2);
             ctx.begin_path();
@@ -160,10 +160,10 @@ fn nest_lining_tex() -> Tex {
 
 /// A robin's egg gone dull: its blue faded, dirt and a stain on it
 fn nest_egg_tex() -> Tex {
-    t05_tex!(64, 64, false, |ctx, w, h| {
+    cached_tex!(64, 64, false, |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let m = fbm(0xe66, x / 9.0, y / 9.0, 3);
-            let c = mix([0.62, 0.72, 0.68], [0.55, 0.60, 0.55], sstep(0.4, 0.8, m));
+            let c = mix_unclamped([0.62, 0.72, 0.68], [0.55, 0.60, 0.55], sstep(0.4, 0.8, m));
             [c[0], c[1], c[2], 1.0]
         });
         for _ in 0..24 {

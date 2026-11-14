@@ -1,8 +1,8 @@
 //! `place_record_stacks`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::hash as t10_hash;
+use placers_kit::geometry::put;
+use placers_kit::noise::hash;
 use placers_kit::place::open_tiles;
 use placers_kit::place::vary as t10_vary;
 
@@ -58,15 +58,15 @@ pub(crate) fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
     for (i, _) in singles.iter().enumerate() {
         // each laid a little askew on the one under it
         let one = group();
-        let (h1, h2, h3) = (t10_hash(vary, i as i32, 1), t10_hash(vary, i as i32, 2), t10_hash(vary, i as i32, 3));
+        let (h1, h2, h3) = (hash(vary, i as i32, 1), hash(vary, i as i32, 2), hash(vary, i as i32, 3));
         one.position().set((h1 - 0.5) * 0.016, i as f64 * RS_SLEEVE_T, (h2 - 0.5) * 0.016);
         one.rotation().y = (h3 - 0.5) * 0.24;
-        t10_put(&one, "Real__recordSleeve", &lambert!({ map: &cell(&sleeves, 3.0, 2.0, i, 256.0) }));
+        put(&one, "Real__recordSleeve", &lambert!({ map: &cell(&sleeves, 3.0, 2.0, i, 256.0) }));
         let disc = group();
         disc.position().y = RS_SHEET;
-        disc.rotation().y = t10_hash(vary, i as i32, 4) * PI * 2.0;
-        t10_put(&disc, "Real__recordVinylLow", &vinyl);
-        t10_put(&disc, "Real__recordLabel", &lambert!({ map: &cell(&labels, 4.0, 2.0, i, 128.0) }));
+        disc.rotation().y = hash(vary, i as i32, 4) * PI * 2.0;
+        put(&disc, "Real__recordVinylLow", &vinyl);
+        put(&disc, "Real__recordLabel", &lambert!({ map: &cell(&labels, 4.0, 2.0, i, 128.0) }));
         one.add(&disc);
         rs.add(&one);
     }
@@ -77,12 +77,12 @@ pub(crate) fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
         let d = 0.095;
         let tilt = (top / (d + RS_VINYL_R - RS_HALF)).atan();
         let side = group();
-        side.rotation().y = t10_hash(vary, 9, 9) * PI * 2.0;
+        side.rotation().y = hash(vary, 9, 9) * PI * 2.0;
         let disc = group();
         disc.position().set(d, top, 0);
         disc.rotation().z = -tilt;
-        t10_put(&disc, "Real__recordVinyl", &vinyl);
-        t10_put(&disc, "Real__recordLabel", &lambert!({ map: &cell(&labels, 4.0, 2.0, n, 128.0) }));
+        put(&disc, "Real__recordVinyl", &vinyl);
+        put(&disc, "Real__recordLabel", &lambert!({ map: &cell(&labels, 4.0, 2.0, n, 128.0) }));
         side.add(&disc);
         rs.add(&side);
     }
@@ -402,12 +402,12 @@ fn rs_vinyl_tex() -> Tex {
                             v = 0.09;
                         }
                         // dust and scratches
-                        let hsh = t10_hash(0x51ad, i as i32, j as i32);
+                        let hsh = hash(0x51ad, i as i32, j as i32);
                         if hsh > 0.992 {
                             v = 0.45;
                         }
-                        let s = ((x * 3.1 + y * 1.3) * 160.0).sin().abs() < 0.008
-                            && t10_hash(0x51ae, (x * 20.0) as i32, (y * 20.0) as i32) > 0.6;
+                        let s =
+                            ((x * 3.1 + y * 1.3) * 160.0).sin().abs() < 0.008 && hash(0x51ae, (x * 20.0) as i32, (y * 20.0) as i32) > 0.6;
                         if s {
                             v += 0.12;
                         }

@@ -1,14 +1,14 @@
 //! `place_window_signs`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Window sign: 8% chance per level, 1 OPEN/CLOSED placard on a wall.
 pub(crate) fn place_window_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

@@ -1,7 +1,7 @@
 //! `place_small_handbells`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Small handbell: 10% chance per level. Brass dome + wooden
 // handle + tiny inner clapper.
@@ -14,7 +14,7 @@ pub(crate) fn place_small_handbells(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let brass_mat = lambert!({ color: 0xa8802a });
     let handle_mat = lambert!({ color: 0x4a2818 });
     let clapper_mat = lambert!({ color: 0x2a2418 });

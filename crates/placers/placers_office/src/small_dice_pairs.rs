@@ -1,6 +1,6 @@
 //! `place_small_dice_pairs`
 use game::prelude::*;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small dice pair: 10% chance per level. 2 white cubes
@@ -9,7 +9,7 @@ pub(crate) fn place_small_dice_pairs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
     } // 10% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let dice_mat = lambert!({ color: 0xf0ece0 });
     let pip_mat = lambert!({ color: 0x181008 });
     let pair = group();

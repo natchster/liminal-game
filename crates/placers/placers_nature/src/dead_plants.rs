@@ -5,7 +5,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::noise::worley;
-use placers_kit::paint::opaque as rgb;
+use placers_kit::paint::opaque;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -174,7 +174,7 @@ fn pot_tex(salt: u32) -> Tex {
             // pits in the clay
             let pit = (vn(seed ^ 4, u * 700.0, y * 1200.0) - 0.8).max(0.0) * 3.0;
             c = mix(c, [0.32, 0.22, 0.17], pit);
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -200,7 +200,7 @@ fn soil_tex(salt: u32) -> Tex {
             // the gap at its edge, dark (the edge of the map)
             let rho = ((u - 0.5).hypot(v - 0.5) * 2.0).min(1.0);
             c = mix(c, [0.08, 0.06, 0.05], sstep(0.9, 1.0, rho));
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -224,7 +224,7 @@ fn leaf_tex(alive: bool, salt: u32) -> Tex {
                 c = mix(c, [0.27, 0.2, 0.13], (n - 0.55).max(0.0) * 2.5);
                 mix(c, [0.3, 0.23, 0.15], vein.min(1.0) * 0.6)
             };
-            rgb(c)
+            opaque(c)
         });
     })
 }

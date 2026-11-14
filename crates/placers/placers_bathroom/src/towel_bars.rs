@@ -1,6 +1,6 @@
 //! `place_towel_bars`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -38,7 +38,7 @@ pub(crate) fn place_towel_bars(g: &mut Game, _dist: &[i32]) {
     let towel_back = mesh(plane_geo!(0.40, 0.32), &towel_mat);
     towel_back.position().set(0, bar_y - 0.16, 0.045);
     towel.add(&towel_back);
-    towel.rotation().y = face_wall_yaw(c.dx, c.dz);
+    towel.rotation().y = face_wall(c.dx, c.dz);
     // Origin on the wall face, so the bracket rosettes (local z 0) sit on the wall.
     towel.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5));
     g.world.add(&towel);

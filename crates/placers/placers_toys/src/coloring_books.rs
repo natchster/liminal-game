@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Open coloring book: 6% chance per level. Cover + open spread + crayon.
 pub(crate) fn place_coloring_books(g: &mut Game, _dist: &[i32]) {
@@ -34,7 +34,7 @@ pub(crate) fn place_coloring_books(g: &mut Game, _dist: &[i32]) {
     crayon.position().set(0.08, 0.004, -0.05);
     crayon.rotation().y = 0.5;
     book.add(&crayon);
-    scatter_on_floor(g, &book, x, z, 2.0);
+    scatter(g, &book, x, z, 2.0);
     g.world.add(&book);
 }
 

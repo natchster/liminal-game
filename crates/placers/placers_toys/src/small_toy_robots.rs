@@ -1,7 +1,7 @@
 //! `place_small_toy_robots`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small toy robot: 6% chance per level. Blocky humanoid
@@ -10,7 +10,7 @@ pub(crate) fn place_small_toy_robots(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let body_colors = [0xc8c8c8, 0x606870, 0xd82040, 0x2050d8, 0xd8b040];
     let body_mat = lambert!({ color: pick_color(&body_colors) });
     let detail_mat = lambert!({ color: 0x181008 });

@@ -8,7 +8,7 @@ use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::paint_px;
@@ -16,7 +16,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 /// One of `N` textures of a kind, made the first time it is asked for
-macro_rules! t05_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -142,7 +142,7 @@ const SHELLS: [([f64; 3], [f64; 3], f64, f64, u32, u32); 4] = [
 /// apex): the ground mottled, the spiral bands following the whorls (painted
 /// along the sweep), growth lines across them, the apex worn pale
 fn shell_tex(k: usize) -> Tex {
-    t05_kind_tex!(4, k, |k: usize| {
+    cached_kind_tex!(4, k, |k: usize| {
         let (lo, hi) = frame("Real__snailShell");
         let (ground, band, strength, flames, _, _) = SHELLS[k];
         let cepaea = k == 2;
@@ -158,7 +158,7 @@ fn shell_tex(k: usize) -> Tex {
             paint_px(ctx, w, h, |x, y| {
                 let m = fbm(0x5e11 + k as u32, x / 18.0, y / 10.0, 4);
                 let streak = vn(0x5e12 + k as u32, x / 3.0, y / 40.0);
-                let c = mix(ground, mix(ground, [0.30, 0.25, 0.18], 0.35), sstep(0.4, 0.75, m) * 0.7 + 0.15 * streak);
+                let c = mix_unclamped(ground, mix_unclamped(ground, [0.30, 0.25, 0.18], 0.35), sstep(0.4, 0.75, m) * 0.7 + 0.15 * streak);
                 [c[0], c[1], c[2], 1.0]
             });
             // a quad of the surface between turns t0..t1 and angles p0..p1

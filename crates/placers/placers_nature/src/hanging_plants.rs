@@ -5,8 +5,8 @@ use placers_kit::noise::fbm as fbm1;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::paint::rgb as hex;
-use placers_kit::place::face_yaw;
+use placers_kit::paint::rgb;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -46,7 +46,7 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().z = -0.080;
     plant.add(&body);
-    plant.rotation().y = face_yaw(dx, dz);
+    plant.rotation().y = face_wall(dx, dz);
     plant.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.080), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.080));
     let salt = {
         let p = plant.pos();
@@ -57,7 +57,7 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     put(&body, "Real__hangPlantBracket", &phong!({ color: 0x2a2724, specular: 0x1c1a18, shininess: 14 }));
     put(&body, "Real__hangPlantScrews", &lambert!({ color: 0x5c5248 }));
     put(&body, "Real__hangPlantHanger", &phong!({ color: 0x86847e, specular: 0x3a3a38, shininess: 30 }));
-    put(&body, "Real__hangPlantPot", &phong!({ map: &pot_tex(hex(pot_c), salt), specular: 0x161616, shininess: 20 }));
+    put(&body, "Real__hangPlantPot", &phong!({ map: &pot_tex(rgb(pot_c), salt), specular: 0x161616, shininess: 20 }));
     if let Some(geo) = prop_part_as_modelled("Real__hangPlantSoil") {
         let geo = geo.duplicate();
         {
@@ -75,9 +75,9 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
         body.add(&mesh(geo, &lambert!({ map: &soil_tex(salt) })));
     }
     let stem = lambert!({ color: 0x5a6438 });
-    let leaf = phong!({ map: &leaf_tex(hex(green), gold, 0.3, salt), specular: 0x161a12, shininess: 14, side: DoubleSide });
-    let yellow = lambert!({ map: &leaf_tex(mix(hex(0x9a9246), hex(0xa89a50), yellow_more), 0.2, 0.6, salt ^ 9), side: DoubleSide });
-    let dead = lambert!({ map: &leaf_tex(hex(0x7a6444), 0.0, 0.8, salt ^ 17), side: DoubleSide });
+    let leaf = phong!({ map: &leaf_tex(rgb(green), gold, 0.3, salt), specular: 0x161a12, shininess: 14, side: DoubleSide });
+    let yellow = lambert!({ map: &leaf_tex(mix(rgb(0x9a9246), rgb(0xa89a50), yellow_more), 0.2, 0.6, salt ^ 9), side: DoubleSide });
+    let dead = lambert!({ map: &leaf_tex(rgb(0x7a6444), 0.0, 0.8, salt ^ 17), side: DoubleSide });
     put(&body, "Real__hangPlantCrownStem", &stem);
     put_world(&body, "Real__hangPlantCrownGreen", &leaf, 0.12);
     put_world(&body, "Real__hangPlantCrownYellow", &yellow, 0.12);

@@ -1,7 +1,7 @@
 //! `place_no_smoking_signs`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall no-smoking sign: 15% chance per level. Small round sign
@@ -14,13 +14,13 @@ pub(crate) fn place_no_smoking_signs(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let sign_mat = lambert!({ map: no_smoking_texture(), transparent: true, side: DoubleSide });
     let sign = mesh(circle_geo!(0.09, 20), &sign_mat);
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
     let sign_height = 1.65 + rnd() * 0.20;
-    wall_mount(&sign, &c, wall_x, wall_z, sign_height, 1.0);
+    mount_slid_ref(&sign, &c, wall_x, wall_z, sign_height, 1.0);
     sign.rotation().z = (rnd() - 0.5) * 0.05;
     g.world.add(&sign);
 }

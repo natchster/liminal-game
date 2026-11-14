@@ -3,13 +3,13 @@ use game::prelude::*;
 use placers_kit::place::mount;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as r12_blob;
-use placers_kit::wall_plates::part as r12_part;
-use placers_kit::wall_plates::scratches as r12_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -36,7 +36,7 @@ pub(crate) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
     o.position().z = -0.008;
     panel.add(&o);
     let brushed = phong!({ map: &lift_plate_tex(), color: 0xb0b0ac, specular: 0x3c3c3a, shininess: 26 });
-    o.add(&mesh(r12_part("Real__elevatorPanelPlate", 0.165, 0.36, 0.003), &brushed));
+    o.add(&mesh(part("Real__elevatorPanelPlate", 0.165, 0.36, 0.003), &brushed));
     let print = mesh(
         plane_geo!(0.165, 0.36),
         lambert!({ map: &lift_print_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
@@ -44,18 +44,18 @@ pub(crate) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
     print.position().z = EP_T + 0.0002;
     o.add(&print);
     let polished = phong!({ color: 0x8e8e8a, specular: 0x66666a, shininess: 70 });
-    o.add(&mesh(r12_part("Real__elevatorPanelBezels", 0.15, 0.32, 0.003), &polished));
-    o.add(&mesh(r12_part("Real__elevatorPanelScrews", 0.15, 0.34, 0.002), &polished));
-    o.add(&mesh(r12_part("Real__elevatorPanelKey", 0.016, 0.016, 0.004), phong!({ color: 0x9a8a62, specular: 0x4a4436, shininess: 50 })));
-    o.add(&mesh(r12_part("Real__elevatorPanelRings", 0.13, 0.2, 0.001), lambert!({ color: 0x2e2d2b })));
-    o.add(&mesh(r12_part("Real__elevatorPanelButtons", 0.13, 0.2, 0.003), phong!({ color: 0xa4a4a0, specular: 0x404040, shininess: 40 })));
+    o.add(&mesh(part("Real__elevatorPanelBezels", 0.15, 0.32, 0.003), &polished));
+    o.add(&mesh(part("Real__elevatorPanelScrews", 0.15, 0.34, 0.002), &polished));
+    o.add(&mesh(part("Real__elevatorPanelKey", 0.016, 0.016, 0.004), phong!({ color: 0x9a8a62, specular: 0x4a4436, shininess: 50 })));
+    o.add(&mesh(part("Real__elevatorPanelRings", 0.13, 0.2, 0.001), lambert!({ color: 0x2e2d2b })));
+    o.add(&mesh(part("Real__elevatorPanelButtons", 0.13, 0.2, 0.003), phong!({ color: 0xa4a4a0, specular: 0x404040, shininess: 40 })));
     let numerals = mesh(
         plane_geo!(0.130, 0.210),
         lambert!({ map: &lift_numerals_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
     );
     numerals.position().set(0.009, -0.0125, EP_T + 0.0029);
     o.add(&numerals);
-    o.add(&mesh(r12_part("Real__elevatorPanelAlarm", 0.027, 0.027, 0.004), lambert!({ color: 0x8c2318 })));
+    o.add(&mesh(part("Real__elevatorPanelAlarm", 0.027, 0.027, 0.004), lambert!({ color: 0x8c2318 })));
     let bell = mesh(
         plane_geo!(0.016, 0.016),
         lambert!({ map: &lift_bell_tex(), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }),
@@ -67,7 +67,7 @@ pub(crate) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
     for by in 0..4 {
         for bx in 0..3 {
             if rnd() < 0.20 {
-                let halo = mesh(r12_part("Real__elevatorPanelHalo", 0.022, 0.022, 0.001), &halo_mat);
+                let halo = mesh(part("Real__elevatorPanelHalo", 0.022, 0.022, 0.001), &halo_mat);
                 halo.position().set(EP_COL[bx], EP_ROW[by], EP_T + 0.0001);
                 o.add(&halo);
             }
@@ -94,7 +94,7 @@ const EP_ALARM: (f64, f64) = (0.003, -0.150);
 /// Brushed stainless: the grain across, fingers' smudges round the buttons,
 /// the edges grimy (the whole canvas is the plate's face, 0.165 x 0.36 m).
 fn lift_plate_tex() -> Tex {
-    r12_tex!(200, 436, false, |ctx, w, h| {
+    cached_tex!(200, 436, false, |ctx, w, h| {
         ctx.set_fill_style("#e6e6e2");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..900 {
@@ -115,10 +115,10 @@ fn lift_plate_tex() -> Tex {
             (0.003, -0.150, 0.1),
         ] {
             let (x, y) = to(bx, by);
-            r12_blob(ctx, x, y, 18.0, 1.2, (70, 62, 52, a));
+            blob(ctx, x, y, 18.0, 1.2, (70, 62, 52, a));
         }
         for _ in 0..14 {
-            r12_blob(ctx, rnd() * w, h * (0.25 + rnd() * 0.6), 4.0 + rnd() * 6.0, 1.4, (80, 70, 60, 0.10 + rnd() * 0.08));
+            blob(ctx, rnd() * w, h * (0.25 + rnd() * 0.6), 4.0 + rnd() * 6.0, 1.4, (80, 70, 60, 0.10 + rnd() * 0.08));
         }
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(120,110,95,0.25)");
@@ -127,7 +127,7 @@ fn lift_plate_tex() -> Tex {
         gd.add_color_stop(1, "rgba(50,44,36,0.25)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 30, (60, 58, 54), 0.12, 18.0);
+        scratches(ctx, w, h, 30, (60, 58, 54), 0.12, 18.0);
     })
 }
 
@@ -177,7 +177,7 @@ fn braille_cell(ctx: &mut Canvas, x: f64, y: f64, p: f64, dots: &[u8]) {
 /// the star at the main floor, FIRE OPERATION round the key switch, OPEN and
 /// CLOSE, ALARM, the capacity engraved at the foot.
 fn lift_print_tex() -> Tex {
-    r12_tex!(330, 720, false, |ctx, w, h| {
+    cached_tex!(330, 720, false, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         let to = |x: f64, y: f64| ((x / 0.165 + 0.5) * w, (0.5 - y / 0.36) * h);
         let names = [["9", "10", "11"], ["6", "7", "8"], ["3", "4", "5"], ["B", "1", "2"]];
@@ -247,7 +247,7 @@ fn lift_print_tex() -> Tex {
 /// buttons' field (0.130 x 0.210 m, its middle at x 0.009, y -0.0125), and
 /// the door buttons' arrows; rubbed paler where pressed most.
 fn lift_numerals_tex() -> Tex {
-    r12_tex!(260, 420, false, |ctx, w, h| {
+    cached_tex!(260, 420, false, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         let to = |x: f64, y: f64| ((x - 0.009 + 0.065) * 2000.0, (0.105 - (y + 0.0125)) * 2000.0);
         let names = [["9", "10", "11"], ["6", "7", "8"], ["3", "4", "5"], ["B", "1", "2"]];
@@ -284,7 +284,7 @@ fn lift_numerals_tex() -> Tex {
 
 /// The alarm button's bell, white on its red.
 fn lift_bell_tex() -> Tex {
-    r12_tex!(64, 64, false, |ctx, w, h| {
+    cached_tex!(64, 64, false, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         ctx.set_fill_style("rgba(236,230,220,0.92)");
         ctx.begin_path();

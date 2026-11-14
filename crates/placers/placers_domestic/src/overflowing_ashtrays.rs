@@ -1,7 +1,7 @@
 //! `place_overflowing_ashtrays`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Overflowing ashtray: 6% chance per level. Ashtray + scattered butts.
 pub(crate) fn place_overflowing_ashtrays(g: &mut Game, _dist: &[i32]) {
@@ -51,6 +51,6 @@ pub(crate) fn place_overflowing_ashtrays(g: &mut Game, _dist: &[i32]) {
         grp.add(&paper);
         grp.add(&filter);
     }
-    scatter_on_floor(g, &grp, x, z, 2.0);
+    scatter(g, &grp, x, z, 2.0);
     g.world.add(&grp);
 }

@@ -1,6 +1,6 @@
 //! `place_pet_portraits`
 use game::prelude::*;
-use placers_kit::place::wall_mount as mount_on_wall;
+use placers_kit::place::wall_mount;
 use placers_kit::place::wall_tiles;
 
 pub(crate) fn place_pet_portraits(g: &mut Game, _dist: &[i32]) {
@@ -24,7 +24,7 @@ pub(crate) fn place_pet_portraits(g: &mut Game, _dist: &[i32]) {
     let portrait = mesh(plane_geo!(frame_w - 0.020, frame_h - 0.020), &portrait_mat);
     portrait.position().set(0, mount_y, 0.019);
     pp.add(&portrait);
-    mount_on_wall(g, &pp, x, z, dx, dz, 0.015);
+    wall_mount(g, &pp, x, z, dx, dz, 0.015);
     pp.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&pp);
 }

@@ -1,7 +1,7 @@
 //! `place_wooden_crates`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Wooden crate: 15% chance per level. A nailed slatted crate of rough
 // sawn pine gone grey (Blender batch `r09`): its boards with gaps between
@@ -16,10 +16,10 @@ pub(crate) fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // the pine as it weathered: grey, grey-brown, a dull honey, darkened by damp
     let tones = [0x8c8476, 0x7e7262, 0x9a8566, 0x6e665a];
-    let tone = tones[pick(tones.len())];
+    let tone = tones[ri(tones.len())];
     let cs = 0.35 + rnd() * 0.10; // 35-45 cm: the 0.40 m crate, a little smaller or larger
     let s = cs / CRATE_W;
     // (what is painted on it differs from crate to crate by its size: no draw of its own)

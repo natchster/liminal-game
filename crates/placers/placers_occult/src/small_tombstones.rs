@@ -1,7 +1,7 @@
 //! `place_small_tombstones`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 
 // Small tombstone: 6% chance per level. Gray stone slab
@@ -16,7 +16,7 @@ pub(crate) fn place_small_tombstones(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick_tile(&open);
     let stone_colors: [u32; 4] = [0x808080, 0x707070, 0x606060, 0x585858];
-    let stone_mat = lambert!({ color: pick_u32(&stone_colors) });
+    let stone_mat = lambert!({ color: pick_hex(&stone_colors) });
     let engrave_mat = lambert!({ color: 0x2a2418 });
     let stone = group();
     // Slab body (rectangular).

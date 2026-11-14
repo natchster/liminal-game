@@ -1,8 +1,8 @@
 //! `place_bread_loaves`
 use game::prelude::*;
-use placers_kit::baking::fbm as loaf_fbm;
-use placers_kit::baking::mould as loaf_mould;
-use placers_kit::baking::noise as loaf_noise;
+use placers_kit::baking::fbm;
+use placers_kit::baking::mould;
+use placers_kit::baking::noise;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -87,7 +87,7 @@ fn loaf_crust_tex(salt: u32) -> Tex {
             for i in 0..n {
                 let fu = (i as f64 + 0.5) / w;
                 let xx = LOAF_CRUST_X.0 + fu * (LOAF_CRUST_X.1 - LOAF_CRUST_X.0);
-                let f = loaf_fbm(seed, xx * 60.0, zz * 60.0);
+                let f = fbm(seed, xx * 60.0, zz * 60.0);
                 // the bake: golden brown, darker across the middle of the top
                 let mid = 1.0 - (zz.abs() / 0.055).min(1.0);
                 let mut c =
@@ -105,13 +105,13 @@ fn loaf_crust_tex(salt: u32) -> Tex {
                 // stale: dull, greyed
                 loaf_mix(&mut c, [128.0, 118.0, 100.0], 0.25);
                 // cracks in the dried crust
-                let cr = (1.0 - ((loaf_noise(seed ^ 4, xx * 140.0, zz * 140.0) - 0.5).abs() * 30.0).min(1.0)) * (f > 0.5) as i32 as f64;
+                let cr = (1.0 - ((noise(seed ^ 4, xx * 140.0, zz * 140.0) - 0.5).abs() * 30.0).min(1.0)) * (f > 0.5) as i32 as f64;
                 loaf_mix(&mut c, [70.0, 52.0, 34.0], cr * 0.7);
                 // the mould
-                let (s, wr, st) = loaf_mould(&cols, i as f64, j as f64, seed ^ 7);
+                let (s, wr, st) = mould(&cols, i as f64, j as f64, seed ^ 7);
                 loaf_mix(&mut c, [140.0, 128.0, 92.0], st * 0.3);
                 loaf_mix(&mut c, [204.0, 204.0, 194.0], wr * 0.7);
-                let sp = loaf_noise(seed ^ 9, i as f64 / 1.5, j as f64 / 1.5);
+                let sp = noise(seed ^ 9, i as f64 / 1.5, j as f64 / 1.5);
                 loaf_mix(&mut c, [92.0 + 24.0 * sp, 106.0 + 18.0 * sp, 90.0 + 12.0 * sp], s * 0.9);
                 out[i * 4..i * 4 + 4].copy_from_slice(&[
                     c[0].clamp(0.0, 255.0) as u8,
@@ -152,8 +152,8 @@ fn loaf_crumb_tex(salt: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64, j as f64);
-                let holes = loaf_noise(seed, x / 2.2, y / 2.6);
-                let big = loaf_noise(seed ^ 1, x / 6.0, y / 7.0);
+                let holes = noise(seed, x / 2.2, y / 2.6);
+                let big = noise(seed ^ 1, x / 6.0, y / 7.0);
                 let mut c = [186.0, 172.0, 140.0];
                 let k = 0.92 + 0.12 * holes - 0.35 * (0.3 - holes).max(0.0) - 0.4 * (0.22 - big).max(0.0);
                 for q in 0..3 {
@@ -163,10 +163,10 @@ fn loaf_crumb_tex(salt: u32) -> Tex {
                 let (dx, dy) = ((x / w - 0.5) * 2.0, (y / h - 0.55) * 2.1);
                 let rim = (dx * dx + dy * dy).sqrt();
                 loaf_mix(&mut c, [150.0, 136.0, 108.0], (rim - 0.6).max(0.0) * 1.5);
-                let (s, wr, st) = loaf_mould(&cols, x, y, seed ^ 7);
+                let (s, wr, st) = mould(&cols, x, y, seed ^ 7);
                 loaf_mix(&mut c, [160.0, 144.0, 96.0], st * 0.4);
                 loaf_mix(&mut c, [210.0, 210.0, 200.0], wr * 0.75);
-                let sp = loaf_noise(seed ^ 9, x / 1.4, y / 1.4);
+                let sp = noise(seed ^ 9, x / 1.4, y / 1.4);
                 loaf_mix(&mut c, [88.0 + 26.0 * sp, 104.0 + 20.0 * sp, 88.0 + 14.0 * sp], s * 0.9);
                 out[i * 4..i * 4 + 4].copy_from_slice(&[
                     c[0].clamp(0.0, 255.0) as u8,
@@ -201,12 +201,12 @@ fn loaf_board_tex(salt: u32) -> Tex {
             let y = j as f64;
             for i in 0..n {
                 let x = i as f64;
-                let grain = loaf_noise(seed, x / 60.0, y / 1.6) * 0.6 + loaf_noise(seed ^ 1, x / 14.0, y / 0.8) * 0.4;
-                let fleck = (loaf_noise(seed ^ 2, x / 1.5, y / 3.0) - 0.8).max(0.0) * 3.0;
+                let grain = noise(seed, x / 60.0, y / 1.6) * 0.6 + noise(seed ^ 1, x / 14.0, y / 0.8) * 0.4;
+                let fleck = (noise(seed ^ 2, x / 1.5, y / 3.0) - 0.8).max(0.0) * 3.0;
                 let mut c = [152.0 + 22.0 * (grain - 0.5), 124.0 + 18.0 * (grain - 0.5), 92.0 + 14.0 * (grain - 0.5)];
                 loaf_mix(&mut c, [120.0, 92.0, 64.0], fleck);
                 // greyed with years and dust
-                let dust = loaf_fbm(seed ^ 3, x / 50.0, y / 50.0);
+                let dust = fbm(seed ^ 3, x / 50.0, y / 50.0);
                 loaf_mix(&mut c, [126.0, 118.0, 106.0], 0.35 + 0.3 * dust);
                 // darker where the loaf has lain on it (its middle at x_0)
                 let (lu, lv) =

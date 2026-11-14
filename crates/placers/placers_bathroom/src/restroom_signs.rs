@@ -1,14 +1,14 @@
 //! `place_restroom_signs`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Restroom signs: 20% chance per level, 1 wall-mounted pictogram.
 pub(crate) fn place_restroom_signs(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
     } // 20% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

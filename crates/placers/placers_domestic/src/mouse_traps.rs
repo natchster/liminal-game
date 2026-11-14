@@ -1,7 +1,7 @@
 //! `place_mouse_traps`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Wooden mouse trap: 7% chance per level. Wood base + spring bar + cheese.
 pub(crate) fn place_mouse_traps(g: &mut Game, _dist: &[i32]) {
@@ -39,6 +39,6 @@ pub(crate) fn place_mouse_traps(g: &mut Game, _dist: &[i32]) {
     let cheese = mesh(pg("MouseTraps__cheese", box_geo!(0.006, 0.005, 0.005)), &cheese_mat);
     cheese.position().set(0.020, 0.009, 0);
     trap.add(&cheese);
-    scatter_on_floor(g, &trap, x, z, 2.4);
+    scatter(g, &trap, x, z, 2.4);
     g.world.add(&trap);
 }

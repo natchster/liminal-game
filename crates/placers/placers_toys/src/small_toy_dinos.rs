@@ -9,7 +9,7 @@ use placers_kit::noise::mix;
 use placers_kit::paint::rgb;
 use placers_kit::place::index_of;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::salt_at;
 use placers_kit::place::scatter_pos;
 
@@ -21,7 +21,7 @@ pub(crate) fn place_small_toy_dinos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     // the old colours, as PVC faded
     let dino_colors = [0x408040, 0x306030, 0x504020, 0x805040, 0x2050d8];
     let k = index_of(&dino_colors, pick_color(&dino_colors));

@@ -3,13 +3,13 @@ use game::prelude::*;
 use placers_kit::place::mount;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as r12_blob;
-use placers_kit::wall_plates::part as r12_part;
-use placers_kit::wall_plates::scratches as r12_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -35,15 +35,15 @@ pub(crate) fn place_emergency_phones(g: &mut Game, _dist: &[i32]) {
     o.position().z = -0.09;
     phone.add(&o);
     let red = lambert!({ map: &em_plastic_tex(), color: 0x9a2a1e });
-    o.add(&mesh(r12_part("Real__wallPhoneHousing", 0.123, 0.232, 0.058), &red));
-    o.add(&mesh(r12_part("Real__emergencyPhonePlate", 0.056, 0.088, 0.004), lambert!({ map: &em_plate_tex() })));
-    o.add(&mesh(r12_part("Real__wallPhoneHook", 0.032, 0.03, 0.02), phong!({ color: 0x575752, specular: 0x3a3a3a, shininess: 22 })));
-    let handset = mesh(r12_part("Real__wallPhoneHandset", 0.06, 0.21, 0.04), lambert!({ map: &em_handset_tex(), color: 0x9a2a1e }));
+    o.add(&mesh(part("Real__wallPhoneHousing", 0.123, 0.232, 0.058), &red));
+    o.add(&mesh(part("Real__emergencyPhonePlate", 0.056, 0.088, 0.004), lambert!({ map: &em_plate_tex() })));
+    o.add(&mesh(part("Real__wallPhoneHook", 0.032, 0.03, 0.02), phong!({ color: 0x575752, specular: 0x3a3a3a, shininess: 22 })));
+    let handset = mesh(part("Real__wallPhoneHandset", 0.06, 0.21, 0.04), lambert!({ map: &em_handset_tex(), color: 0x9a2a1e }));
     handset.position().set(-0.026, 0.001, 0.058 - 0.004);
     o.add(&handset);
-    o.add(&mesh(r12_part("Real__wallPhoneCordOn", 0.07, 0.2, 0.05), lambert!({ map: &em_handset_tex(), color: 0x9a2a1e })));
+    o.add(&mesh(part("Real__wallPhoneCordOn", 0.07, 0.2, 0.05), lambert!({ map: &em_handset_tex(), color: 0x9a2a1e })));
     // the sign screwed to the wall over it
-    let sign = mesh(r12_part("Real__emergencyPhoneSign", 0.2, 0.06, 0.003), lambert!({ map: &em_sign_tex() }));
+    let sign = mesh(part("Real__emergencyPhoneSign", 0.2, 0.06, 0.003), lambert!({ map: &em_sign_tex() }));
     sign.position().y = 0.200;
     o.add(&sign);
     // box (local z −0.09…0) back on the wall, not half buried in it
@@ -55,7 +55,7 @@ pub(crate) fn place_emergency_phones(g: &mut Game, _dist: &[i32]) {
 /// Red ABS gone dull: the housing's wear (the colour is the material's), hands
 /// round the handset's seats, dust on top, grime at the foot.
 fn em_plastic_tex() -> Tex {
-    r12_tex!(128, 240, false, |ctx, w, h| {
+    cached_tex!(128, 240, false, |ctx, w, h| {
         ctx.set_fill_style("#f2eeea");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..500 {
@@ -63,7 +63,7 @@ fn em_plastic_tex() -> Tex {
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         for &(x, y, r, a) in &[(0.29, 0.16, 0.30, 0.26), (0.30, 0.83, 0.26, 0.2), (0.6, 0.45, 0.3, 0.1)] {
-            r12_blob(ctx, x * w, y * h, r * w, 1.3, (50, 36, 30, a));
+            blob(ctx, x * w, y * h, r * w, 1.3, (50, 36, 30, a));
         }
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(150,140,125,0.35)");
@@ -72,13 +72,13 @@ fn em_plastic_tex() -> Tex {
         gd.add_color_stop(1, "rgba(40,30,26,0.3)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 24, (200, 170, 160), 0.15, 14.0);
+        scratches(ctx, w, h, 24, (200, 170, 160), 0.15, 14.0);
     })
 }
 
 /// The handset's and its cord's wear: grime at the grip.
 fn em_handset_tex() -> Tex {
-    r12_tex!(64, 160, false, |ctx, w, h| {
+    cached_tex!(64, 160, false, |ctx, w, h| {
         ctx.set_fill_style("#f0ece8");
         ctx.fill_rect(0, 0, w, h);
         let gr = ctx.create_linear_gradient(0, 0, 0, h);
@@ -87,14 +87,14 @@ fn em_handset_tex() -> Tex {
         gr.add_color_stop(1, "rgba(50,36,30,0.14)");
         ctx.set_fill_style(gr);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 10, (200, 170, 160), 0.15, 8.0);
+        scratches(ctx, w, h, 10, (200, 170, 160), 0.15, 8.0);
     })
 }
 
 /// The ring-down set's plate (the whole canvas is its face): a printed card,
 /// EMERGENCY over what to do, yellowed, a thumb's grime at its foot.
 fn em_plate_tex() -> Tex {
-    r12_tex!(112, 176, false, |ctx, w, h| {
+    cached_tex!(112, 176, false, |ctx, w, h| {
         ctx.set_fill_style("#e4ddcc");
         ctx.fill_rect(0, 0, w, h);
         ctx.set_fill_style("#8e2016");
@@ -118,14 +118,14 @@ fn em_plate_tex() -> Tex {
         gy.add_color_stop(1, "rgba(80,60,40,0.28)");
         ctx.set_fill_style(gy);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 10, (60, 50, 40), 0.12, 10.0);
+        scratches(ctx, w, h, 10, (60, 50, 40), 0.12, 10.0);
     })
 }
 
 /// The engraved sign: red laminate cut through to its white core, the
 /// letters' edges dirty, its face scratched and dusty.
 fn em_sign_tex() -> Tex {
-    r12_tex!(400, 120, false, |ctx, w, h| {
+    cached_tex!(400, 120, false, |ctx, w, h| {
         ctx.set_fill_style("#8a2218");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..600 {
@@ -145,6 +145,6 @@ fn em_sign_tex() -> Tex {
         gd.add_color_stop(1, "rgba(30,20,16,0.15)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        r12_scratches(ctx, w, h, 30, (230, 200, 190), 0.12, 30.0);
+        scratches(ctx, w, h, 30, (230, 200, 190), 0.12, 30.0);
     })
 }

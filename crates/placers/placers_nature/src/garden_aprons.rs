@@ -13,7 +13,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::paint::rgb as hex;
+use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::salt_of;
@@ -46,7 +46,7 @@ pub(crate) fn place_garden_aprons(g: &mut Game, _dist: &[i32]) {
     apron.rotation().y = rnd() * PI * 2.0;
     let p = apron.pos();
     let salt = salt_of(p.x, p.z);
-    let cloth = lambert!({ map: &apron_tex(hex(canvas), salt), side: DoubleSide });
+    let cloth = lambert!({ map: &apron_tex(rgb(canvas), salt), side: DoubleSide });
     let lay = || top(-0.17, 0.17, -0.17, 0.17);
     put_uv(&apron, "Real__apronGardenCloth", &cloth, lay());
     put_uv(&apron, "Real__apronGardenPocket", &cloth, lay());

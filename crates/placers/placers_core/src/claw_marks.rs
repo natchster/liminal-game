@@ -3,9 +3,9 @@ use crate::shared::mark_tex;
 use crate::shared::vary_by;
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as hash01;
+use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_mat;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
@@ -110,8 +110,8 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                         let o = off * (1.0 + fan * t) + bend * len * (t * t - t) + (fbm(gs, t * 6.0, 0.5, 2) - 0.5) * 0.004;
                         g.pts.push((top.0 + dx * a + nx * o, top.1 + dy * a + ny * o));
                         // dug in at once, lifting slowly; chattering, skipping
-                        let mut e = sstep(0.0, 0.04, t) * (1.0 - t).powf(0.6) * (0.8 + 0.2 * vnoise(gs ^ 0x5, t * 40.0, 0.5));
-                        if vnoise(gs ^ 0x6, t * 9.0, 0.5) > 0.82 {
+                        let mut e = sstep(0.0, 0.04, t) * (1.0 - t).powf(0.6) * (0.8 + 0.2 * vn(gs ^ 0x5, t * 40.0, 0.5));
+                        if vn(gs ^ 0x6, t * 9.0, 0.5) > 0.82 {
                             e *= 0.3;
                         }
                         let e = e * press[f];
@@ -193,7 +193,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                     let (d, hw, dp, side, tx, ty, along) = best;
                     // gypsum dust fallen below, streaked by the wall's grain
                     if dust_v > 0.0 {
-                        let streak = 0.4 + 0.6 * vnoise(seed ^ 0x2d, x * 900.0, y * 50.0);
+                        let streak = 0.4 + 0.6 * vn(seed ^ 0x2d, x * 900.0, y * 50.0);
                         px.lay(dust, dust_v * streak * 0.4);
                     }
                     if hw > 2e-4 {
@@ -204,14 +204,14 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                         let nl = ty * lx - tx * ly;
                         // the torn surface round it: paint and paper lifted and
                         // split back from the tear, pale where its core shows
-                        let fringe = hw * 0.55 + 0.0015 * (0.5 + vnoise(seed ^ 0x19, along * 120.0, side));
+                        let fringe = hw * 0.55 + 0.0015 * (0.5 + vn(seed ^ 0x19, along * 120.0, side));
                         if e > 0.0 && e < fringe && surface != 2 {
-                            let k = sstep(fringe, fringe * 0.5, e) * (0.55 + 0.45 * vnoise(seed ^ 0x1a, x * 1500.0, y * 1500.0));
+                            let k = sstep(fringe, fringe * 0.5, e) * (0.55 + 0.45 * vn(seed ^ 0x1a, x * 1500.0, y * 1500.0));
                             px.lay(edge, k * 0.85 * dp.sqrt().min(1.0));
                         }
                         if surface == 2 && e > 0.0 && e < 0.0015 {
                             // flakes of glaze chipped out along it
-                            let chip = (hash01(seed ^ 0x33, (x / 0.0012) as i32, (y / 0.0012) as i32) > 0.55) as u8 as f64;
+                            let chip = (hash(seed ^ 0x33, (x / 0.0012) as i32, (y / 0.0012) as i32) > 0.55) as u8 as f64;
                             px.lay(edge, chip * 0.7 * dp);
                         }
                         // the lifted lip's shadow, on the side away from the light
@@ -227,7 +227,7 @@ fn claw_marks_mat(pw: f64, ph: f64, surface: u8, vary: u32) -> Mat {
                             // the lip's shadow reaches only a little way in
                             let shade = if lit < 0.0 { 1.0 + 0.55 * lit * sstep(0.45, 0.9, u) } else { 1.0 + 0.15 * lit };
                             let deepest = 1.0 - 0.18 * dp * (1.0 - u * u);
-                            let scored = 0.9 + 0.18 * vnoise(seed ^ 0x44, (d * side) * 2500.0, along * 30.0);
+                            let scored = 0.9 + 0.18 * vn(seed ^ 0x44, (d * side) * 2500.0, along * 30.0);
                             let grime = 0.9 + 0.1 * fbm(seed ^ 0x45, x * 300.0, y * 300.0, 2);
                             let k = (shade * deepest * scored * grime).clamp(0.35, 1.15);
                             // the brown plies of the face paper at the tear's edge

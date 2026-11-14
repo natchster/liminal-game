@@ -1,6 +1,6 @@
 //! `place_elevator_buttons`
 use game::prelude::*;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::place::mount_slid;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
@@ -46,6 +46,6 @@ pub(crate) fn place_elevator_buttons(g: &mut Game, _dist: &[i32]) {
     led.position().set(0.020, 0, 0.004);
     panel.add(&led);
     let (wall_x, wall_z) = wall_xz(g, c, 0.005);
-    mount(&panel, c, wall_x, wall_z, 1.30, 0.6);
+    mount_slid(&panel, c, wall_x, wall_z, 1.30, 0.6);
     g.world.add(&panel);
 }

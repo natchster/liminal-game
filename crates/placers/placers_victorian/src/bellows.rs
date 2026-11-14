@@ -4,7 +4,7 @@ use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::crack;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -51,13 +51,13 @@ fn bw_oak_tex(vary: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, u, v, [0.32, 0.21, 0.12], 12.0, 26.0);
             // the rays: short pale flecks across the grain
-            let ray = ss(0.78, 0.9, vn(seed ^ 7, u * 60.0, v * 9.0)) * 0.6;
+            let ray = sstep(0.78, 0.9, vn(seed ^ 7, u * 60.0, v * 9.0)) * 0.6;
             o = mix(o, [0.36, 0.25, 0.14], ray * 0.5);
             // rubbed at the handles by hands, the wax worn through
-            let rub = ss(0.70, 0.85, u) * (0.5 + 0.5 * fbm(seed ^ 3, u * 20.0, v * 8.0, 2));
+            let rub = sstep(0.70, 0.85, u) * (0.5 + 0.5 * fbm(seed ^ 3, u * 20.0, v * 8.0, 2));
             o = mix(o, [0.40, 0.29, 0.17], rub * 0.45);
             // soot from the grate near the nose, dust over all of it
-            o = o.map(|c| c * (1.0 - 0.35 * (1.0 - ss(0.0, 0.18, u))));
+            o = o.map(|c| c * (1.0 - 0.35 * (1.0 - sstep(0.0, 0.18, u))));
             let dust = 0.06 + 0.12 * fbm(seed ^ 5, u * 9.0, v * 5.0, 3);
             opaque(mix(o, [0.42, 0.39, 0.34], dust))
         });
@@ -74,11 +74,11 @@ fn bw_leather_tex(vary: u32) -> Tex {
             let mut o = [0.19, 0.115, 0.07].map(|c| c * (0.75 + 0.5 * g));
             // crazed: the cracks dark, the islands' lips gone pale
             let d = crack(seed ^ 3, u * 70.0, v * 34.0);
-            let dry = ss(0.45, 0.75, fbm(seed ^ 11, u * 4.0, v * 3.0, 3));
-            o = mix(o, [0.36, 0.30, 0.25], dry * ss(0.10, 0.02, d) * 0.6);
-            o = o.map(|c| c * (1.0 - 0.55 * (1.0 - ss(0.0, 0.035, d)) * (0.4 + 0.6 * dry)));
+            let dry = sstep(0.45, 0.75, fbm(seed ^ 11, u * 4.0, v * 3.0, 3));
+            o = mix(o, [0.36, 0.30, 0.25], dry * sstep(0.10, 0.02, d) * 0.6);
+            o = o.map(|c| c * (1.0 - 0.55 * (1.0 - sstep(0.0, 0.035, d)) * (0.4 + 0.6 * dry)));
             // scuffs where it was pumped
-            let scuff = ss(0.82, 0.92, vn(seed ^ 5, u * 30.0, v * 4.0));
+            let scuff = sstep(0.82, 0.92, vn(seed ^ 5, u * 30.0, v * 4.0));
             o = mix(o, [0.33, 0.24, 0.17], scuff * 0.5);
             let dust = 0.10 + 0.14 * fbm(seed ^ 9, u * 6.0, v * 6.0, 3);
             opaque(mix(o, [0.44, 0.41, 0.36], dust))
@@ -94,7 +94,7 @@ fn bw_brass_tex(vary: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let k = tarnish(seed, u, v, 6.0);
             let mut o = [0.40, 0.31, 0.16].map(|c| c * k);
-            let verd = ss(0.68, 0.82, fbm(seed ^ 4, u * 9.0, v * 9.0, 3));
+            let verd = sstep(0.68, 0.82, fbm(seed ^ 4, u * 9.0, v * 9.0, 3));
             o = mix(o, [0.27, 0.32, 0.22], verd * 0.5);
             opaque(o)
         });
@@ -117,5 +117,5 @@ fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [
 
 /// Tarnished metal's mottle (a multiplier near 1)
 fn tarnish(seed: u32, u: f64, v: f64, scale: f64) -> f64 {
-    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * ss(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
+    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * sstep(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
 }

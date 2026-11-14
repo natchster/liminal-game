@@ -11,7 +11,7 @@ use placers_kit::garden::put_uv;
 use placers_kit::noise::mix;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::paint::rgb as hex;
+use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -46,7 +46,7 @@ pub(crate) fn place_fertilizer_spikes(g: &mut Game, _dist: &[i32]) {
                     0xc02020 => 0xa89086,
                     _ => 0xc8bea6,
                 };
-                lambert!({ map: &spike_tex(hex(tone)) })
+                lambert!({ map: &spike_tex(rgb(tone)) })
             })
             .clone();
         let whole = i == 0 || kind < 2;

@@ -1,6 +1,6 @@
 //! `place_kitchen_calendars`
 use game::prelude::*;
-use placers_kit::place::wall_mount as mount_on_wall;
+use placers_kit::place::wall_mount;
 use placers_kit::place::wall_tiles;
 
 pub(crate) fn place_kitchen_calendars(g: &mut Game, _dist: &[i32]) {
@@ -33,7 +33,7 @@ pub(crate) fn place_kitchen_calendars(g: &mut Game, _dist: &[i32]) {
     wire.rotation().x = PI / 2.0;
     wire.position().set(0, mount_y + cal_h * 0.5 - 0.005, 0.011);
     kc.add(&wire);
-    mount_on_wall(g, &kc, x, z, dx, dz, 0.015);
+    wall_mount(g, &kc, x, z, dx, dz, 0.015);
     kc.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&kc);
     let p = kc.pos();

@@ -1,7 +1,7 @@
 //! `place_wall_watches`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Small wall watch: 12% chance per level. Tiny 8-cm circle
@@ -14,13 +14,13 @@ pub(crate) fn place_wall_watches(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let watch_mat = lambert!({ map: wall_watch_texture(), transparent: true, side: DoubleSide });
     let watch = mesh(circle_geo!(0.04, 16), &watch_mat);
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
     let watch_height = 1.6 + rnd() * 0.30;
-    wall_mount(&watch, &c, wall_x, wall_z, watch_height, 1.0);
+    mount_slid_ref(&watch, &c, wall_x, wall_z, watch_height, 1.0);
     g.world.add(&watch);
     // 10% chance: cracked-glass overlay atop watch face.
     if rnd() < 0.10 {

@@ -1,6 +1,6 @@
 //! `place_crayon_graffiti`: Crayon drawing on a wall: 5% chance per level. A small child's drawing in wax crayon (a stick of 8 mm: strokes 5-8 mm wide, broader where its side filled a shape), low on the wall where the child could reach: the ground scribbled green, a sun in a corner, the family holding hands, a house or a tree, flowers; never words, never a sign. The wax caught on the wall's tooth (its pits show through), streaked along each stroke, dusty; sometimes half scrubbed off. Each drawing its own, by where it is.
 use game::prelude::*;
-use placers_kit::noise::hash as t16_hash;
+use placers_kit::noise::hash;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
 
@@ -206,7 +206,7 @@ impl Wax {
                 }
                 // the streaks: fixed across the stroke, running along it
                 let across = ((dx * nx + dy * ny) * 1.3 + 40.0).floor() as i32;
-                let streak = 0.72 + 0.28 * t16_hash(id.wrapping_mul(0x2545_F491), across, 0);
+                let streak = 0.72 + 0.28 * hash(id.wrapping_mul(0x2545_F491), across, 0);
                 let v = (pr * cov * streak) as f32;
                 let i = y * TEX_W + x;
                 if v > self.ink[i] * 0.6 && v > 0.12 {
@@ -504,17 +504,17 @@ fn crayon_tex(salt: u32) -> Tex {
                 let k = j * TEX_W + i;
                 let (x, y) = (i as f64, j as f64);
                 // the wall's tooth: what the wax catches on (high: a pit it skips)
-                let tooth = 0.62 * t16_vn(0x7a11, x / 1.4, y / 1.4) + 0.38 * t16_vn(0x7a13, x / 5.0, y / 5.0);
+                let tooth = 0.62 * vn(0x7a11, x / 1.4, y / 1.4) + 0.38 * vn(0x7a13, x / 5.0, y / 5.0);
                 let mut a = f64::from(ink[k]);
                 if let Some((sx, sy, sr)) = scrub {
                     let d = ((x - sx) / sr).hypot((y - sy) / (sr * 0.5));
-                    let rub = (1.0 - d).clamp(0.0, 1.0) * (0.55 + 0.35 * t16_vn(seed ^ 0x31, x / 30.0, y / 3.0));
+                    let rub = (1.0 - d).clamp(0.0, 1.0) * (0.55 + 0.35 * vn(seed ^ 0x31, x / 30.0, y / 3.0));
                     a *= 1.0 - rub;
                 }
                 let alpha = ((a - tooth * 0.55 - 0.05) / 0.22).clamp(0.0, 1.0) * 0.94;
                 let c = CRAYONS[col[k] as usize];
                 // dust over the wax
-                let dust = 0.10 + 0.08 * t16_vn(seed ^ 0x55, x / 12.0, y / 12.0);
+                let dust = 0.10 + 0.08 * vn(seed ^ 0x55, x / 12.0, y / 12.0);
                 for q in 0..3 {
                     out[i * 4 + q] = (c[q] * (1.0 - dust) + 168.0 * dust).round().clamp(0.0, 255.0) as u8;
                 }
@@ -525,12 +525,12 @@ fn crayon_tex(salt: u32) -> Tex {
     })
 }
 
-fn t16_vn(seed: u32, x: f64, y: f64) -> f64 {
+fn vn(seed: u32, x: f64, y: f64) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
     let (i, j) = (xf as i32, yf as i32);
     let (u, v) = (x - xf, y - yf);
     let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-    let (a, b) = (t16_hash(seed, i, j), t16_hash(seed, i + 1, j));
-    let (c, d) = (t16_hash(seed, i, j + 1), t16_hash(seed, i + 1, j + 1));
+    let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+    let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
     a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
 }

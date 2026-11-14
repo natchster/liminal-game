@@ -1,7 +1,7 @@
 //! `place_small_witch_hats`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 
 // Small witch hat: 8% chance per level. Cone with brim on
@@ -16,7 +16,7 @@ pub(crate) fn place_small_witch_hats(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick_tile(&open);
     let hat_colors: [u32; 3] = [0x101010, 0x201820, 0x8a2040];
-    let hat_mat = lambert!({ color: pick_u32(&hat_colors) });
+    let hat_mat = lambert!({ color: pick_hex(&hat_colors) });
     let band_mat = lambert!({ color: 0xd8b040 });
     let buckle_mat = lambert!({ color: 0xd8b040 });
     let hat = group();

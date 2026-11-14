@@ -7,7 +7,7 @@ use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 use placers_kit::place::salt;
 
@@ -28,7 +28,7 @@ pub(crate) fn place_small_owls(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick_tile(&open);
     // the old body colour: the stain
     let stains: [u32; 3] = [0x3a2818, 0x201410, 0x5a4030];
-    let stain = pick_u32(&stains);
+    let stain = pick_hex(&stains);
     let px = g.wx(x) + (rnd() - 0.5) * 2.4;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
     let turn = rnd() * PI * 2.0;

@@ -1,8 +1,8 @@
 //! `place_makeup_sponges`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::noise::fbm as t03_fbm;
-use placers_kit::noise::hash as t03_hash;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -45,10 +45,10 @@ pub(crate) fn place_makeup_sponges(g: &mut Game, _dist: &[i32]) {
         // geometry, so its box is its own and it sits on the floor
         let geo = geo.duplicate();
         geo.rotate_y(roll);
-        geo.rotate_z(T03_SPONGE_LAY);
+        geo.rotate_z(SPONGE_LAY);
         let bb = geo.compute_bounding_box();
         geo.translate(-(bb.min.x + bb.max.x) / 2.0, -bb.min.y, -(bb.min.z + bb.max.z) / 2.0);
-        sp.add(&mesh(geo, lambert!({ map: &t03_sponge_tex(kind, shade, salt) })));
+        sp.add(&mesh(geo, lambert!({ map: &sponge_tex(kind, shade, salt) })));
     }
     sp.position().set(px, 0, pz);
     sp.rotation().y = yaw;
@@ -57,14 +57,14 @@ pub(crate) fn place_makeup_sponges(g: &mut Game, _dist: &[i32]) {
 
 /// The turn about z that lays the standing sponge on its side at rest (its
 /// volume's centre lowest), printed by bathroom/washroom_shelf_and_dressing_table.py (`t03 sponge: lay …`)
-const T03_SPONGE_LAY: f64 = -1.87623;
+const SPONGE_LAY: f64 = -1.87623;
 
 /// The foam (u round it, v from its base to its point, as a cylinder's part
 /// lays it): its colour faded and greyed, pores dark with dust, dirtier on
 /// the side it lies on; foundation (`shade`) dried into its point and down
 /// the side that faces up when it lies unrolled (u = 0.75), darkest at its
 /// tide
-fn t03_sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
+fn sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
         let seed = salt ^ 0x5b09;
         let base = [[0.78, 0.52, 0.55], [0.55, 0.67, 0.76], [0.80, 0.63, 0.71], [0.66, 0.72, 0.50], [0.84, 0.66, 0.52], [0.71, 0.62, 0.78]]
@@ -77,9 +77,9 @@ fn t03_sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
                 let (u, v) = ((i as f64 + 0.5) / w, 1.0 - (j as f64 + 0.5) / h);
                 // the wrap: noise that meets itself across u = 0 / 1
                 let (cu, su) = ((u * std::f64::consts::TAU).cos(), (u * std::f64::consts::TAU).sin());
-                let n = t03_fbm(seed, cu * 2.0 + 5.0, su * 2.0 + v * 3.0, 3);
+                let n = fbm(seed, cu * 2.0 + 5.0, su * 2.0 + v * 3.0, 3);
                 // pores: dark pits, dust settled in them
-                let pore = t03_sstep(0.70, 0.86, t03_vn_wrap(seed ^ 2, u * 96.0, v * 44.0, 96));
+                let pore = sstep(0.70, 0.86, vn_wrap(seed ^ 2, u * 96.0, v * 44.0, 96));
                 // the side it lies on (u = 0.25), and the grey of dust
                 let under = 0.5 + 0.5 * ((u - 0.25) * std::f64::consts::TAU).cos();
                 let grey = 0.10 + 0.10 * n + 0.14 * under;
@@ -94,10 +94,10 @@ fn t03_sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
                         let d = (u - 0.75).abs();
                         d.min(1.0 - d)
                     };
-                    let edge = 0.56 + 0.12 * (t03_fbm(seed ^ 5, cu * 3.0, su * 3.0 + v * 2.0, 2) - 0.5) * 2.0;
+                    let edge = 0.56 + 0.12 * (fbm(seed ^ 5, cu * 3.0, su * 3.0 + v * 2.0, 2) - 0.5) * 2.0;
                     // how far into the stain: up the point, and more on the up side
                     let s = v + (0.18 - du) * 0.8;
-                    let a = (t03_sstep(edge, edge + 0.12, s) + 0.8 * t03_sstep(0.86, 0.97, v)).min(1.0);
+                    let a = (sstep(edge, edge + 0.12, s) + 0.8 * sstep(0.86, 0.97, v)).min(1.0);
                     let tide = (-((s - edge - 0.05) / 0.025).powi(2)).exp() * a;
                     let soak = a * (0.55 + 0.35 * n);
                     for k in 0..3 {
@@ -117,18 +117,18 @@ fn t03_sponge_tex(kind: usize, shade: Option<usize>, salt: u32) -> Tex {
 
 /// Value noise whose lattice wraps every `period` cells in x (round the
 /// sponge: its pores meet themselves across the seam, round, not streaked)
-fn t03_vn_wrap(seed: u32, x: f64, y: f64, period: i32) -> f64 {
+fn vn_wrap(seed: u32, x: f64, y: f64, period: i32) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
     let (i, j) = (xf as i32, yf as i32);
     let (u, v) = (x - xf, y - yf);
     let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
     let (i0, i1) = (i.rem_euclid(period), (i + 1).rem_euclid(period));
-    let (a, b) = (t03_hash(seed, i0, j), t03_hash(seed, i1, j));
-    let (c, d) = (t03_hash(seed, i0, j + 1), t03_hash(seed, i1, j + 1));
+    let (a, b) = (hash(seed, i0, j), hash(seed, i1, j));
+    let (c, d) = (hash(seed, i0, j + 1), hash(seed, i1, j + 1));
     a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
 }
 
-fn t03_sstep(e0: f64, e1: f64, x: f64) -> f64 {
+fn sstep(e0: f64, e1: f64, x: f64) -> f64 {
     let t = ((x - e0) / (e1 - e0)).clamp(0.0, 1.0);
     t * t * (3.0 - 2.0 * t)
 }

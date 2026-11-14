@@ -1,5 +1,6 @@
 //! `place_ceiling_stains`
 use game::prelude::*;
+use placers_kit::noise::hash;
 use placers_kit::place::open_tiles;
 use placers_kit::place::shuffle;
 
@@ -13,22 +14,14 @@ use placers_kit::place::shuffle;
 // transparent planes just under the ceiling (the helpers are inside, so the
 // rest of this file is untouched).
 pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
-    /// A hash of (seed, i, j) in [0, 1)
-    fn hash01(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
     /// Smooth value noise in [0, 1]
     fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
         let (xf, yf) = (x.floor(), y.floor());
         let (i, j) = (xf as i32, yf as i32);
         let (u, v) = (x - xf, y - yf);
         let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (hash01(seed, i, j), hash01(seed, i + 1, j));
-        let (c, d) = (hash01(seed, i, j + 1), hash01(seed, i + 1, j + 1));
+        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
         a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
     }
     /// Fractal value noise of `oct` octaves, in [0, 1]
@@ -215,7 +208,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
         let ox = (rnd() - 0.5) * 1.8;
         let oz = (rnd() - 0.5) * 1.8;
         let (lx, lz) = (g.wx(x) + ox, g.wz(z) + oz);
-        let seed = (hash01(0x5eed, (lx * 1000.0) as i32, (lz * 1000.0) as i32) * 4.0e9) as u32;
+        let seed = (hash(0x5eed, (lx * 1000.0) as i32, (lz * 1000.0) as i32) * 4.0e9) as u32;
         let kind = if g.region_flags_at(x, z) & game::visuals::lighting::RF_MOSS != 0 {
             0
         } else {
@@ -251,7 +244,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                     // the nearest point of this tile to the leak, and how far
                     let (nx, nz) = (leak.0.clamp(ccx - c / 2.0, ccx + c / 2.0), leak.1.clamp(ccz - c / 2.0, ccz + c / 2.0));
                     let dn = (nx - leak.0).hypot(nz - leak.1);
-                    let h = hash01(seed, cell.0, cell.1);
+                    let h = hash(seed, cell.0, cell.1);
                     // (not into the next 4 m tile: its ceiling may be another height)
                     if (ccx - tx).abs() > CELL / 2.0 || (ccz - tz).abs() > CELL / 2.0 - c / 2.0 {
                         continue;
@@ -259,7 +252,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                     let spot = if (di, dj) == (0, 0) {
                         Spot { x: leak.0, z: leak.1, r: 0.2 + 0.2 * (radius - 0.5) / 0.7, rims: 3 + (h * 3.0) as usize, k: strength }
                     } else if dn < spread && h < 0.75 && !fitting(cell) {
-                        let r = ((spread - dn) * (0.6 + 0.4 * hash01(seed ^ 0x77, cell.0, cell.1))).min(0.36);
+                        let r = ((spread - dn) * (0.6 + 0.4 * hash(seed ^ 0x77, cell.0, cell.1))).min(0.36);
                         if r < 0.07 {
                             continue;
                         }

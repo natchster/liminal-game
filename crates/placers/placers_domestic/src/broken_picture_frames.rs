@@ -4,7 +4,7 @@ use placers_kit::geometry::frame_bars;
 use placers_kit::geometry::tri_geo;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Broken picture frame: 6% chance per level. Frame face-down + glass shards.
 pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
@@ -48,6 +48,6 @@ pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
         shard.rotation().y = rnd() * PI * 2.0;
         grp.add(&shard);
     }
-    scatter_on_floor(g, &grp, x, z, 1.8);
+    scatter(g, &grp, x, z, 1.8);
     g.world.add(&grp);
 }

@@ -1,14 +1,14 @@
 //! `place_pinned_photos`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Pinned photos: 12% chance per level, 1 polaroid pinned to a wall.
 pub(crate) fn place_pinned_photos(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
         return;
     } // 12% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

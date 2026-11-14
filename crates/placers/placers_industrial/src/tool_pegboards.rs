@@ -1,6 +1,6 @@
 //! `place_tool_pegboards`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -53,7 +53,7 @@ pub(crate) fn place_tool_pegboards(g: &mut Game, _dist: &[i32]) {
     let pliers_head = mesh(pg("ToolPegboards__pliersHead", box_geo!(0.020, 0.030, 0.010)), &tool_mat);
     pliers_head.position().set(0.20, mount_y + 0.115, 0.008);
     peg.add(&pliers_head);
-    peg.rotation().y = face_yaw(dx, dz);
+    peg.rotation().y = face_wall(dx, dz);
     peg.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.008), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.008));
     g.world.add(&peg);
 }

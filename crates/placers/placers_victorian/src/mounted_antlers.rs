@@ -6,7 +6,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::salt;
 use placers_kit::place::wall_tiles;
@@ -40,7 +40,7 @@ pub(crate) fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
     put(&antlers, "Real__roeAntlerTips", &phong!({ color: 0xcfc3a8, specular: 0x262420, shininess: 30 }));
     trophy.add(&antlers);
     mount.add(&trophy);
-    mount.rotation().y = face_yaw(dx, dz);
+    mount.rotation().y = face_wall(dx, dz);
     mount.position().set(wx, 0, wz);
     g.world.add(&mount);
 }

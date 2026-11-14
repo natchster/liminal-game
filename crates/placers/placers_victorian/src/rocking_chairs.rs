@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Rocking chair: 4% chance per level. Empty rocking chair, slow rock animator.
 pub(crate) fn place_rocking_chairs(g: &mut Game, _dist: &[i32]) {
@@ -67,7 +67,7 @@ pub(crate) fn place_rocking_chairs(g: &mut Game, _dist: &[i32]) {
             chair.rotation().x = (t * (PI * 2.0 / rock_period) + rock_phase).sin() * 0.04;
         });
     }
-    scatter_on_floor(g, &chair, x, z, 1.8);
+    scatter(g, &chair, x, z, 1.8);
     // Yaw first, so the animator's rotation.x rocks the chair along its own rockers.
     chair.set_rotation_order(EulerOrder::YXZ);
     g.world.add(&chair);

@@ -1,12 +1,12 @@
 //! `place_wall_pipe_leaks`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as smooth;
-use placers_kit::noise::vn as vnoise;
-use placers_kit::noise::Rng32 as Rng;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::noise::Rng32;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
-use placers_kit::paint::mark_mat as decal_mat;
+use placers_kit::paint::mark_mat;
 use placers_kit::place::mount;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
@@ -32,7 +32,7 @@ pub(crate) fn place_wall_pipe_leaks(g: &mut Game, _dist: &[i32]) {
     let (wall_x, wall_z) = wall_xz(g, c, 0.026);
     mount(&leak, c, wall_x, wall_z, 1.90, Some(0.3));
     let p = leak.pos();
-    let mut r = Rng(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]));
+    let mut r = Rng32(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]));
     // the frame: the wall's face at z = WALL; the run's axis 85 mm off it, as
     // high as keeps the collars' tops where the old pipe's top was; its
     // elbows' collars at the old pipe's ends
@@ -87,7 +87,7 @@ pub(crate) fn place_wall_pipe_leaks(g: &mut Game, _dist: &[i32]) {
     // the old stain's foot was
     let (top, bot) = (ya + 0.03, -0.26);
     let (w, hgt) = (0.10, top - bot);
-    let run = mesh(plane_geo!(w, hgt), &decal_mat(&pipe_leak_tex(r.u(), w, hgt, top - (ya - 0.0575))));
+    let run = mesh(plane_geo!(w, hgt), &mark_mat(&pipe_leak_tex(r.u(), w, hgt, top - (ya - 0.0575))));
     run.position().set(lx, (top + bot) / 2.0, WALL + 0.001);
     leak.add(&run);
     g.world.add(&leak);
@@ -157,8 +157,8 @@ fn pipe_paint_tex(paint: usize, fitting: bool) -> Tex {
             let under = (-((x - 0.1425) / 0.03).powi(2)).exp();
             let top = (-((x - 0.0475) / 0.03).powi(2)).exp();
             let fl = fbm(seed, x * 70.0, y * 70.0, 4);
-            let bare = smooth(rusty, rusty + 0.03, fl + 0.12 * under);
-            let bloom = smooth(rusty - 0.12, rusty, fl + 0.12 * under) * (1.0 - bare);
+            let bare = sstep(rusty, rusty + 0.03, fl + 0.12 * under);
+            let bloom = sstep(rusty - 0.12, rusty, fl + 0.12 * under) * (1.0 - bare);
             let rust = mix([0.24, 0.14, 0.08], [0.38, 0.21, 0.1], fbm(seed ^ 0x3, x * 300.0, y * 300.0, 2));
             let mut c = mix(pc, rust, bare);
             c = mix(c, [0.36, 0.22, 0.12], 0.4 * bloom);
@@ -179,7 +179,7 @@ fn pipe_paint_tex(paint: usize, fitting: bool) -> Tex {
 /// the collar, rust at its edges, narrowing, then where it spread and
 /// dried, a stain with its tide lines.
 fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
-    let mut r = Rng(seed | 1);
+    let mut r = Rng32(seed | 1);
     let s = r.u();
     const WET: [f64; 3] = [0.22, 0.16, 0.09];
     const STAIN: [f64; 3] = [0.5, 0.37, 0.2];
@@ -214,7 +214,7 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
                 l = l + (tongue - l) * hh + kk * hh * (1.0 - hh);
             }
         }
-        let wav = (fbm(s ^ (0x40 + k as u32), x * 40.0, 0.5, 3) - 0.5) * 0.03 + (vnoise(s ^ 0x41, x * 160.0, k as f64 * 3.0) - 0.5) * 0.004;
+        let wav = (fbm(s ^ (0x40 + k as u32), x * 40.0, 0.5, 3) - 0.5) * 0.03 + (vn(s ^ 0x41, x * 160.0, k as f64 * 3.0) - 0.5) * 0.004;
         (l + wav * (l / 0.03).min(1.0)).max(0.0)
     };
     let cols: Vec<Vec<(f64, f64)>> = (0..rims.len())
@@ -233,14 +233,14 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
         let i = ((x / sx) as usize).min(tw - 1);
         // the damp round the hole behind the collar, seen past its rim
         let hole = (x - pw / 2.0).hypot(y - (from - 0.0575)) / 0.06;
-        lay(&mut px, WET, 0.22 * smooth(1.25, 0.92, hole) * smooth(0.01, 0.03, y) * (0.6 + 0.4 * fbm(s ^ 0x1, x * 80.0, y * 80.0, 2)));
+        lay(&mut px, WET, 0.22 * sstep(1.25, 0.92, hole) * sstep(0.01, 0.03, y) * (0.6 + 0.4 * fbm(s ^ 0x1, x * 80.0, y * 80.0, 2)));
         let dy = y - from;
         // the wetted patch hanging from the collar's foot, and its rims:
         // sharp outside, what the water carried left along them
-        let fine = (vnoise(s ^ 0x51, x * 260.0, y * 260.0) - 0.5) * 0.0015;
+        let fine = (vn(s ^ 0x51, x * 260.0, y * 260.0) - 0.5) * 0.0015;
         let (l, slope) = cols[0][i];
         let top = (-dy - 0.006).max(0.0);
-        let d0 = (dy - l) / slope + fine + top * 4.0 * smooth(0.012, 0.02, (x - mid).abs());
+        let d0 = (dy - l) / slope + fine + top * 4.0 * sstep(0.012, 0.02, (x - mid).abs());
         let inside = (0.5 - d0 / aa).clamp(0.0, 1.0);
         let pale = 0.55 + 0.45 * (d0 / 0.012).exp();
         lay(&mut px, STAIN, inside * 0.45 * pale * (0.65 + 0.35 * fbm(s ^ 0x52, x * 50.0, y * 50.0, 2)));
@@ -258,9 +258,9 @@ fn pipe_leak_tex(seed: u32, pw: f64, ph: f64, from: f64) -> Tex {
         let xr = mid + (fbm(s ^ 0x7, 0.5, y * 11.0, 3) - 0.5) * 0.012 * tt;
         let dr = ((x - xr).abs() - rw).max(dy - l * 0.9).max(-dy - 0.004);
         lay(&mut px, WET, (0.5 - dr / aa).clamp(0.0, 1.0) * (0.4 - 0.2 * tt));
-        lay(&mut px, RUST, 0.4 * smooth(-0.002, 0.0, dr) * smooth(0.0012, 0.0, dr));
+        lay(&mut px, RUST, 0.4 * sstep(-0.002, 0.0, dr) * sstep(0.0012, 0.0, dr));
         // nothing at the plane's edges
-        px[3] *= smooth(0.0, 0.006, x.min(pw - x).min(y).min(ph - y));
+        px[3] *= sstep(0.0, 0.006, x.min(pw - x).min(y).min(ph - y));
         px
     })
 }

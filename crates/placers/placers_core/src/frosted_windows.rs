@@ -1,13 +1,13 @@
 //! `place_frosted_windows`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t04_put;
-use placers_kit::glass::glass_mat as t04_glass_mat;
-use placers_kit::noise::fbm as t04_fbm;
-use placers_kit::noise::hash as t04_hash;
-use placers_kit::noise::sstep as t04_ss;
-use placers_kit::noise::vn as t04_vn;
-use placers_kit::paint::fill as t04_fill;
+use placers_kit::geometry::put;
+use placers_kit::glass::glass_mat;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
 use placers_kit::place::pick_wall;
 use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_mount;
@@ -36,13 +36,13 @@ pub(crate) fn place_frosted_windows(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().set(0, mount_y, -0.006);
     window_.add(&body);
-    t04_put(&body, "Real__frostedWindowFrame", &lambert!({ map: &fw_paint_tex(vary) }));
-    t04_put(&body, "Real__frostedWindowIron", &phong!({ color: 0x1e1d1b, specular: 0x262524, shininess: 18 }));
+    put(&body, "Real__frostedWindowFrame", &lambert!({ map: &fw_paint_tex(vary) }));
+    put(&body, "Real__frostedWindowIron", &phong!({ color: 0x1e1d1b, specular: 0x262524, shininess: 18 }));
     // behind the glass: the lamp's warm light, or a dark room
     let back = if lit { [0.30, 0.21, 0.11] } else { [0.012, 0.012, 0.013] };
     for (k, pane) in FW_PANES.iter().enumerate() {
         let (w, h) = (pane[1] - pane[0] + FW_UNDER, pane[3] - pane[2] + FW_UNDER);
-        let m = t04_glass_mat(fw_dirt_tex(vary, k), "frosted_glass", 2.4, back, 0.9, 0.04, [0.8, 0.16, 0.15, 0.13], 30.0);
+        let m = glass_mat(fw_dirt_tex(vary, k), "frosted_glass", 2.4, back, 0.9, 0.04, [0.8, 0.16, 0.15, 0.13], 30.0);
         if lit {
             // the lamp behind: brighter toward the middle of the window
             let pu = m.r().patch_uniforms.clone();
@@ -81,36 +81,36 @@ const FW_UNDER: f64 = 0.004;
 fn fw_paint_tex(vary: u32) -> Tex {
     canvas_tex_opt(256, 216, false, move |ctx, w, h| {
         let seed = vary ^ 0xf0a1;
-        t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed, u * 20.0, v * 17.0, 4);
-            let fine = t04_fbm(seed ^ 0x21, u * 90.0, v * 76.0, 2);
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 20.0, v * 17.0, 4);
+            let fine = fbm(seed ^ 0x21, u * 90.0, v * 76.0, 2);
             let base = [0.74 + 0.04 * n, 0.71 + 0.04 * n, 0.62 + 0.03 * n];
             // chips: where the paint let go (most on the board and the foot
             // of the frame, where hands and things knocked it), to the grey
             // wood or the old cream undercoat
-            let low = 1.0 - t04_ss(0.05, 0.45, v);
-            let chip = t04_ss(0.79, 0.82, t04_fbm(seed ^ 0x77, u * 34.0, v * 29.0, 3) + 0.08 * fine + 0.07 * low);
+            let low = 1.0 - sstep(0.05, 0.45, v);
+            let chip = sstep(0.79, 0.82, fbm(seed ^ 0x77, u * 34.0, v * 29.0, 3) + 0.08 * fine + 0.07 * low);
             let wood = [0.40 + 0.05 * fine, 0.36 + 0.04 * fine, 0.30 + 0.03 * fine];
             let undercoat = [0.62, 0.58, 0.48];
-            let under = if t04_fbm(seed ^ 0x13, u * 9.0, v * 9.0, 2) > 0.45 { wood } else { undercoat };
+            let under = if fbm(seed ^ 0x13, u * 9.0, v * 9.0, 2) > 0.45 { wood } else { undercoat };
             let mut c = [0.0; 3];
             for k in 0..3 {
                 c[k] = base[k] + (under[k] - base[k]) * chip;
             }
             // grime toward the foot (the board) and the corners
-            let low = 1.0 - t04_ss(0.0, 0.3, v);
+            let low = 1.0 - sstep(0.0, 0.3, v);
             // the old gloss crazed in a fine net of cracks
-            let craze = (1.0 - (t04_vn(seed ^ 0x2b, u * 160.0, v * 135.0) - 0.5).abs() * 14.0).max(0.0) * 0.12;
+            let craze = (1.0 - (vn(seed ^ 0x2b, u * 160.0, v * 135.0) - 0.5).abs() * 14.0).max(0.0) * 0.12;
             for k in 0..3 {
                 c[k] *= 1.0 - craze;
             }
-            let corner = (1.0 - t04_ss(0.0, 0.12, u.min(1.0 - u))) * 0.5;
+            let corner = (1.0 - sstep(0.0, 0.12, u.min(1.0 - u))) * 0.5;
             let dirt = (low * 0.35 + corner * 0.3) * (0.6 + 0.6 * n);
             for k in 0..3 {
                 c[k] *= 1.0 - dirt * 0.45;
             }
             // flecks of dirt and fly specks
-            if t04_hash(seed ^ 0x5, (u * 256.0) as i32, (v * 216.0) as i32) < 0.003 {
+            if hash(seed ^ 0x5, (u * 256.0) as i32, (v * 216.0) as i32) < 0.003 {
                 for k in &mut c {
                     *k *= 0.7;
                 }
@@ -125,16 +125,16 @@ fn fw_paint_tex(vary: u32) -> Tex {
 fn fw_dirt_tex(vary: u32, k: usize) -> Tex {
     canvas_tex_opt(96, 72, false, move |ctx, w, h| {
         let seed = vary ^ (0x91 + k as u32 * 0x3d);
-        let web = t04_hash(seed, 7, k as i32) < 0.3;
-        let wc = (t04_hash(seed, 1, 2) < 0.5, t04_hash(seed, 2, 1) < 0.5);
-        t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed, u * 8.0, v * 6.0, 3);
-            let foot = (1.0 - t04_ss(0.0, 0.25, v)) * 0.5;
+        let web = hash(seed, 7, k as i32) < 0.3;
+        let wc = (hash(seed, 1, 2) < 0.5, hash(seed, 2, 1) < 0.5);
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 8.0, v * 6.0, 3);
+            let foot = (1.0 - sstep(0.0, 0.25, v)) * 0.5;
             let du = u.min(1.0 - u);
             let dv = v.min(1.0 - v);
-            let corner = (1.0 - t04_ss(0.0, 0.18, (du * du + dv * dv).sqrt())) * 0.5;
+            let corner = (1.0 - sstep(0.0, 0.18, (du * du + dv * dv).sqrt())) * 0.5;
             let mut d = (0.12 + 0.18 * n + foot + corner).min(1.0);
-            if t04_hash(seed ^ 0x44, (u * 96.0) as i32, (v * 72.0) as i32) < 0.006 {
+            if hash(seed ^ 0x44, (u * 96.0) as i32, (v * 72.0) as i32) < 0.006 {
                 d = (d + 0.35).min(1.0);
             }
             if web {

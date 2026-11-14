@@ -1,6 +1,6 @@
 //! `place_wooden_brooms`
 use game::prelude::*;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wooden broom: 12% chance per level. Thin wooden pole +
@@ -13,7 +13,7 @@ pub(crate) fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let pole_mat = lambert!({ color: 0x6a4820 });
     let bristle_mat = lambert!({ color: 0x3a2818 });
     let broom = group();

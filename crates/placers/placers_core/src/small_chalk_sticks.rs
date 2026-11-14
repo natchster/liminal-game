@@ -1,7 +1,7 @@
 //! `place_small_chalk_sticks`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small chalk sticks: 12% chance per level. 2-4 colored
@@ -10,7 +10,7 @@ pub(crate) fn place_small_chalk_sticks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.88 {
         return;
     } // 12% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let chalk_colors = [0xf0ece0, 0xd0d0d0, 0xd08080, 0x80d080, 0x8080d0, 0xd0d080, 0xd080d0];
     let grp = group();
     let n_sticks = 2 + (rnd() * 3.0).floor() as i32;

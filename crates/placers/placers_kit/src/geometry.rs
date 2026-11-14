@@ -49,7 +49,6 @@ pub fn orient_seg(seg: &Obj, prev: &Vec3, next: &Vec3) {
     seg.quaternion().set_from_unit_vectors(&v3(0, 1, 0), &v);
 }
 
-// ---------------------------------------------------------------- the kit
 /// The Blender part `name` as modelled (its own frame, a scale of one)
 pub fn part(name: &str) -> Option<Geo> {
     prop_part_as_modelled(name)

@@ -23,20 +23,20 @@ pub(crate) fn place_shoe_boxes(g: &mut Game, _dist: &[i32]) {
     let (px, pz) = jitter(g, x, z, 2.0);
     let vary = ((px * 7919.0).abs() as u32) ^ ((pz * 104_729.0).abs() as u32).rotate_left(5);
     let bx = group();
-    let card = lambert!({ color: 0xffffff, map: &r14a_card_tex(board, vary) });
-    r14a_box_add(&bx, "Real__shoeBoxBase", &card);
-    let label = lambert!({ color: 0xffffff, map: &r14a_box_label_tex(k, vary ^ 0x3c) });
-    r14a_box_add(&bx, "Real__shoeBoxLabel", &label);
+    let card = lambert!({ color: 0xffffff, map: &card_tex(board, vary) });
+    box_add(&bx, "Real__shoeBoxBase", &card);
+    let label = lambert!({ color: 0xffffff, map: &box_label_tex(k, vary ^ 0x3c) });
+    box_add(&bx, "Real__shoeBoxLabel", &label);
     let lid = group();
-    r14a_box_add(&lid, "Real__shoeBoxLid", &card);
-    let print = lambert!({ color: 0xffffff, map: &r14a_box_print_tex(board, ink, vary ^ 0x71) });
-    r14a_box_add(&lid, "Real__shoeBoxLidPrint", &print);
+    box_add(&lid, "Real__shoeBoxLid", &card);
+    let print = lambert!({ color: 0xffffff, map: &box_print_tex(board, ink, vary ^ 0x71) });
+    box_add(&lid, "Real__shoeBoxLidPrint", &print);
     // which way the lid lies, how askew it sits: from where the box is (no
     // new draw)
     let f = (px * 13.17 + pz * 7.31).abs().fract();
     if lid_off {
         // the tissue paper it held, crumpled in it
-        r14a_box_add(&bx, "Real__shoeBoxTissue", &lambert!({ color: 0xd2cec4 }));
+        box_add(&bx, "Real__shoeBoxTissue", &lambert!({ color: 0xd2cec4 }));
         lid.position().set(0.40, 0, 0.10); // clear of the box
         lid.rotation().y = 0.4;
         if f < 0.5 {
@@ -56,26 +56,26 @@ pub(crate) fn place_shoe_boxes(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The part `name` of batch r14a, as modelled, added to `grp` in `mat`.
-fn r14a_box_add(grp: &Obj, name: &str, mat: &Mat) {
+fn box_add(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = game::assets::props::prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));
     }
 }
 
-fn r14a_box_css(c: u32, a: f64) -> String {
+fn box_css(c: u32, a: f64) -> String {
     format!("rgba({},{},{},{:.3})", (c >> 16) & 255, (c >> 8) & 255, c & 255, a)
 }
 
 /// A soft spot at `at`, `r` px, `k` times as tall as wide, turned `turn`
 /// (the context squashed, so no edge cuts its fade).
-fn r14a_box_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: u32, a: f64) {
+fn box_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: u32, a: f64) {
     ctx.save();
     ctx.translate(at.0, at.1);
     ctx.rotate(turn);
     ctx.scale(1, k);
     let gr = ctx.create_radial_gradient(0, 0, 0, 0, 0, r);
-    gr.add_color_stop(0, &r14a_box_css(c, a));
-    gr.add_color_stop(1, &r14a_box_css(c, 0.0));
+    gr.add_color_stop(0, &box_css(c, a));
+    gr.add_color_stop(1, &box_css(c, 0.0));
     ctx.set_fill_style(&gr);
     ctx.begin_path();
     ctx.arc(0, 0, r, 0, 7);
@@ -86,7 +86,7 @@ fn r14a_box_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c:
 /// Chipboard in its colour `board` (sRGB): its fibres and flecks, unevenly
 /// faded, rubbed pale and scuffed, a dried tide line of damp from the floor
 /// (low on its sides), dust.
-fn r14a_card_tex(board: u32, vary: u32) -> Tex {
+fn card_tex(board: u32, vary: u32) -> Tex {
     canvas_tex(256, 256, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
@@ -94,16 +94,16 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
             let sh = |k: f64| {
                 (((r as f64 * k).min(255.0) as u32) << 16) | (((g as f64 * k).min(255.0) as u32) << 8) | ((b as f64 * k).min(255.0) as u32)
             };
-            ctx.set_fill_style(&r14a_box_css(board, 1.0));
+            ctx.set_fill_style(&box_css(board, 1.0));
             ctx.fill_rect(0, 0, w, h);
             for _ in 0..30 {
                 let (c, a) = if rnd() < 0.5 { (sh(0.8), 0.12 + rnd() * 0.12) } else { (sh(1.15), 0.10 + rnd() * 0.10) };
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 12.0 + rnd() * 40.0, 0.5 + rnd() * 0.5, rnd() * 3.0, c, a);
+                box_soft(ctx, (rnd() * w, rnd() * h), 12.0 + rnd() * 40.0, 0.5 + rnd() * 0.5, rnd() * 3.0, c, a);
             }
             // the board's fibres and flecks
             for _ in 0..1400 {
                 let c = if rnd() < 0.6 { sh(0.7) } else { sh(1.2) };
-                ctx.set_fill_style(&r14a_box_css(c, 0.25 + rnd() * 0.3));
+                ctx.set_fill_style(&box_css(c, 0.25 + rnd() * 0.3));
                 let a = rnd() * PI;
                 let l = 1.0 + rnd() * 4.0;
                 ctx.save();
@@ -114,9 +114,9 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
             }
             // the damp's tide line, low on the sides, and the stain under it
             let y0 = h * (0.80 + rnd() * 0.06);
-            ctx.set_fill_style(&r14a_box_css(sh(0.82), 0.35));
+            ctx.set_fill_style(&box_css(sh(0.82), 0.35));
             ctx.fill_rect(0, y0, w, h - y0);
-            ctx.set_stroke_style(&r14a_box_css(sh(0.62), 0.55));
+            ctx.set_stroke_style(&box_css(sh(0.62), 0.55));
             ctx.set_line_width(1.6);
             ctx.begin_path();
             ctx.move_to(0, y0);
@@ -128,7 +128,7 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
             ctx.stroke();
             // rubbed pale, scuffed, a few scratches
             for _ in 0..24 {
-                r14a_box_soft(
+                box_soft(
                     ctx,
                     (rnd() * w, rnd() * h),
                     3.0 + rnd() * 10.0,
@@ -139,7 +139,7 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
                 );
             }
             for _ in 0..14 {
-                ctx.set_stroke_style(&r14a_box_css(sh(1.3), 0.4));
+                ctx.set_stroke_style(&box_css(sh(1.3), 0.4));
                 ctx.set_line_width(0.7);
                 ctx.begin_path();
                 let (sx, sy) = (rnd() * w, rnd() * h);
@@ -148,7 +148,7 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
                 ctx.stroke();
             }
             for _ in 0..10 {
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 20.0 + rnd() * 40.0, 0.6, rnd() * 3.0, 0x948c80, 0.10 + rnd() * 0.08);
+                box_soft(ctx, (rnd() * w, rnd() * h), 20.0 + rnd() * 40.0, 0.6, rnd() * 3.0, 0x948c80, 0.10 + rnd() * 0.08);
             }
             // every face's edges (the canvas' own): the board rubbed through
             // pale at the folds and corners, grimed along the foot
@@ -163,14 +163,14 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
                         2 => (0.0, t * h, d, 6.0),
                         _ => (w - d, t * h, d, 6.0),
                     };
-                    ctx.set_fill_style(&r14a_box_css(sh(1.3), a));
+                    ctx.set_fill_style(&box_css(sh(1.3), a));
                     ctx.fill_rect(x, y, rw, rh);
                     t += 6.0 / w;
                 }
             }
-            r14a_box_soft(ctx, (w * 0.5, h), w * 0.7, 0.05, 0.0, 0x3a342c, 0.45);
+            box_soft(ctx, (w * 0.5, h), w * 0.7, 0.05, 0.0, 0x3a342c, 0.45);
             for (cx, cy) in [(0.0, 0.0), (w, 0.0), (0.0, h), (w, h)] {
-                r14a_box_soft(ctx, (cx, cy), 10.0 + rnd() * 8.0, 1.0, 0.0, sh(1.35), 0.5);
+                box_soft(ctx, (cx, cy), 10.0 + rnd() * 8.0, 1.0, 0.0, sh(1.35), 0.5);
             }
         })
     })
@@ -179,7 +179,7 @@ fn r14a_card_tex(board: u32, vary: u32) -> Tex {
 /// The end label (90 x 50 mm): what was in the box, as a shoe shop's label
 /// gives it (no real maker): the style, its colour, the size, a barcode;
 /// the paper yellowed and rubbed, a corner lifting dirty.
-fn r14a_box_label_tex(k: usize, vary: u32) -> Tex {
+fn box_label_tex(k: usize, vary: u32) -> Tex {
     let (style, colour, size) =
         [("4417", "BROWN", "9"), ("2380", "TAN", "10"), ("6512", "BLACK", "8"), ("1093", "OXBLOOD", "9"), ("3304", "NAVY", "11")][k];
     canvas_tex(256, 144, move |ctx, w, h| {
@@ -228,12 +228,12 @@ fn r14a_box_label_tex(k: usize, vary: u32) -> Tex {
             ctx.fill_text(&digits, 14, 140);
             // yellowed and rubbed, the ink worn off in places, a dirty corner
             for _ in 0..16 {
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 10.0 + rnd() * 30.0, 0.6, rnd() * 3.0, 0xb8a47a, 0.10 + rnd() * 0.14);
+                box_soft(ctx, (rnd() * w, rnd() * h), 10.0 + rnd() * 30.0, 0.6, rnd() * 3.0, 0xb8a47a, 0.10 + rnd() * 0.14);
             }
             for _ in 0..30 {
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 5.0, 0.4, rnd() * 3.0, 0xd6ceb6, 0.5);
+                box_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 5.0, 0.4, rnd() * 3.0, 0xd6ceb6, 0.5);
             }
-            r14a_box_soft(ctx, (w, h), 40.0, 1.0, 0.0, 0x5a5044, 0.45);
+            box_soft(ctx, (w, h), 40.0, 1.0, 0.0, 0x5a5044, 0.45);
         })
     })
 }
@@ -241,19 +241,19 @@ fn r14a_box_label_tex(k: usize, vary: u32) -> Tex {
 /// The lid's print (220 x 130 mm, read from the box's long front): a
 /// shoe shop's plain one-colour print (no real maker), a ruled border, rubbed
 /// off where the lid was handled.
-fn r14a_box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
+fn box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
     canvas_tex(256, 152, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
             // the board shows through: the print is the only thing on it
-            ctx.set_fill_style(&r14a_box_css(board, 1.0));
+            ctx.set_fill_style(&box_css(board, 1.0));
             ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style(&r14a_box_css(ink, 0.85));
+            ctx.set_stroke_style(&box_css(ink, 0.85));
             ctx.set_line_width(2.5);
             ctx.stroke_rect(8, 8, w - 16.0, h - 16.0);
             ctx.set_line_width(0.8);
             ctx.stroke_rect(13, 13, w - 26.0, h - 26.0);
-            ctx.set_fill_style(&r14a_box_css(ink, 0.88));
+            ctx.set_fill_style(&box_css(ink, 0.88));
             ctx.set_text_align("center");
             ctx.set_text_baseline("middle");
             ctx.set_font("italic 30px Georgia");
@@ -262,14 +262,14 @@ fn r14a_box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
             ctx.fill_text("GOODYEAR WELTED  \u{b7}  LEATHER LINED", w * 0.5, h * 0.66);
             // the ink rubbed off and the board's own grain over it
             for _ in 0..60 {
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 9.0, 0.4 + rnd() * 0.4, rnd() * 3.0, board, 0.5 + rnd() * 0.4);
+                box_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 9.0, 0.4 + rnd() * 0.4, rnd() * 3.0, board, 0.5 + rnd() * 0.4);
             }
             for _ in 0..500 {
-                ctx.set_fill_style(&r14a_box_css(board, 0.5));
+                ctx.set_fill_style(&box_css(board, 0.5));
                 ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 0.8);
             }
             for _ in 0..8 {
-                r14a_box_soft(ctx, (rnd() * w, rnd() * h), 20.0 + rnd() * 40.0, 0.6, rnd() * 3.0, 0x948c80, 0.10);
+                box_soft(ctx, (rnd() * w, rnd() * h), 20.0 + rnd() * 40.0, 0.6, rnd() * 3.0, 0x948c80, 0.10);
             }
         })
     })

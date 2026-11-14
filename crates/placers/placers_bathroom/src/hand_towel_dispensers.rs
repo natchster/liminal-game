@@ -1,6 +1,6 @@
 //! `place_hand_towel_dispensers`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -34,7 +34,7 @@ pub(crate) fn place_hand_towel_dispensers(g: &mut Game, _dist: &[i32]) {
     let arrow = mesh(pg("HandTowelDispensers__arrow", box_geo!(0.06, 0.010, 0.005)), lambert!({ color: 0x202020 }));
     arrow.position().set(0, mount_y + 0.10, 0.0725);
     disp.add(&arrow);
-    disp.rotation().y = face_wall_yaw(c.dx, c.dz);
+    disp.rotation().y = face_wall(c.dx, c.dz);
     disp.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.070), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.070));
     g.world.add(&disp);
 }

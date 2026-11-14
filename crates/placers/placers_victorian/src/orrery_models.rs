@@ -3,7 +3,7 @@ use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -76,7 +76,7 @@ fn or_wood_tex(vary: u32) -> Tex {
         let seed = vary ^ 0x0a1;
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, u, v, [0.32, 0.15, 0.08], 10.0, 30.0);
-            let bloom = ss(0.5, 0.8, fbm(seed ^ 3, u * 6.0, v * 6.0, 3));
+            let bloom = sstep(0.5, 0.8, fbm(seed ^ 3, u * 6.0, v * 6.0, 3));
             o = mix(o, [0.40, 0.33, 0.28], bloom * 0.25);
             let dust = 0.08 + 0.12 * fbm(seed ^ 5, u * 8.0, v * 8.0, 3);
             opaque(mix(o, [0.43, 0.40, 0.35], dust))
@@ -90,7 +90,7 @@ fn or_brass_tex(vary: u32) -> Tex {
         let seed = vary ^ 0xb7;
         fill(ctx, w, h, |u, v| {
             let k = tarnish(seed, u, v, 5.0);
-            let rub = ss(0.7, 0.85, fbm(seed ^ 2, u * 8.0, v * 8.0, 2));
+            let rub = sstep(0.7, 0.85, fbm(seed ^ 2, u * 8.0, v * 8.0, 2));
             opaque(mix([0.40, 0.31, 0.16].map(|c| c * k), [0.55, 0.44, 0.24], rub * 0.4))
         });
     })
@@ -109,9 +109,9 @@ fn or_planet_tex(vary: u32, i: usize) -> Tex {
                 0 => mix(ivory, [0.52, 0.50, 0.46], 0.6 + 0.3 * n),
                 1 => mix(ivory, [0.80, 0.70, 0.50], 0.5),
                 2 => {
-                    let land = ss(0.52, 0.56, fbm(seed ^ 4, u * 5.0, v * 3.0, 4));
+                    let land = sstep(0.52, 0.56, fbm(seed ^ 4, u * 5.0, v * 3.0, 4));
                     let sea = [0.36, 0.44, 0.46];
-                    let ice = ss(0.12, 0.05, v.min(1.0 - v));
+                    let ice = sstep(0.12, 0.05, v.min(1.0 - v));
                     mix(mix(sea, [0.56, 0.50, 0.33], land), ivory, ice * 0.8)
                 }
                 3 => mix([0.52, 0.30, 0.20], [0.45, 0.25, 0.16], n),
@@ -229,9 +229,9 @@ fn or_dial_tex(vary: u32) -> Tex {
                 let mut o = [0, 1, 2].map(|c| f64::from(src.data[k + c]) / 255.0);
                 let am = 0.82 + 0.16 * fbm(seed, u * 7.0, v * 7.0, 3);
                 o = [o[0] * 0.92 * am, o[1] * 0.80 * am, o[2] * 0.60 * am];
-                let fox = ss(0.80, 0.9, fbm(seed ^ 3, u * 40.0, v * 40.0, 2));
+                let fox = sstep(0.80, 0.9, fbm(seed ^ 3, u * 40.0, v * 40.0, 2));
                 o = o.map(|c| c * (1.0 - 0.3 * fox));
-                let dust = 0.10 + 0.12 * fbm(seed ^ 5, u * 6.0, v * 6.0, 3) + 0.12 * ss(0.85, 0.98, r);
+                let dust = 0.10 + 0.12 * fbm(seed ^ 5, u * 6.0, v * 6.0, 3) + 0.12 * sstep(0.85, 0.98, r);
                 o = mix(o, [0.45, 0.42, 0.37], dust);
                 for c in 0..3 {
                     out[i * 4 + c] = (o[c].clamp(0.0, 1.0) * 255.0).round() as u8;
@@ -259,5 +259,5 @@ fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [
 
 /// Tarnished metal's mottle (a multiplier near 1)
 fn tarnish(seed: u32, u: f64, v: f64, scale: f64) -> f64 {
-    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * ss(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
+    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * sstep(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
 }

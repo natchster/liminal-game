@@ -1,8 +1,8 @@
 //! `place_digital_wall_clocks`
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Digital wall clock: 15% chance per level. Small black
@@ -17,14 +17,14 @@ pub(crate) fn place_digital_wall_clocks(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     // Use a basic (unlit) material so the LED display stays lit regardless of scene light.
     let dc_mat = basic_mat!({ map: digital_clock_texture(), side: DoubleSide });
     let dc = mesh(plane_geo!(0.20, 0.10), &dc_mat);
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
     let dc_height = 1.9 + rnd() * 0.30;
-    wall_mount(&dc, &c, wall_x, wall_z, dc_height, 1.0);
+    mount_slid_ref(&dc, &c, wall_x, wall_z, dc_height, 1.0);
     dc.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&dc);
     // Track digital clock position for periodic mains-hum audio.

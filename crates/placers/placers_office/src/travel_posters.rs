@@ -1,6 +1,6 @@
 //! `place_travel_posters`
 use game::prelude::*;
-use placers_kit::place::wall_mount as mount_on_wall;
+use placers_kit::place::wall_mount;
 use placers_kit::place::wall_tiles;
 
 pub(crate) fn place_travel_posters(g: &mut Game, _dist: &[i32]) {
@@ -24,7 +24,7 @@ pub(crate) fn place_travel_posters(g: &mut Game, _dist: &[i32]) {
     let poster = mesh(plane_geo!(frame_w - 0.014, frame_h - 0.014), &poster_mat);
     poster.position().set(0, mount_y, 0.017);
     tp.add(&poster);
-    mount_on_wall(g, &tp, x, z, dx, dz, 0.015);
+    wall_mount(g, &tp, x, z, dx, dz, 0.015);
     tp.rotation().z = (rnd() - 0.5) * 0.03;
     g.world.add(&tp);
 }

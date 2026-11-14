@@ -8,9 +8,9 @@ use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::hang_on_wall;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::salt;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Wall crucifix: 5% chance per level. A household wall crucifix of
 // the common kind: a cross of two boards half-lapped, 28 x 16 cm, its face's
@@ -23,13 +23,13 @@ pub(crate) fn place_wall_crucifixes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.95 {
         return;
     } // 5% chance
-    let candidates = wall_cands(g);
+    let candidates = wall_candidates(g);
     if candidates.is_empty() {
         return;
     }
     let c = candidates[(rnd() * candidates.len() as f64).floor() as usize];
     let cross_colors: [u32; 3] = [0x603820, 0x8a5030, 0x2a1810];
-    let stain = pick_u32(&cross_colors);
+    let stain = pick_hex(&cross_colors);
     let cross = group();
     // Wall placement.
     hang_on_wall(g, &cross, &c, 0.014, 1.70);

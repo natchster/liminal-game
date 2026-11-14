@@ -1,6 +1,6 @@
 //! `place_thermometers`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -30,7 +30,7 @@ pub(crate) fn place_thermometers(g: &mut Game, _dist: &[i32]) {
     let bulb = mesh(pg("Thermometers__bulb", sphere_geo!(0.010, 8, 6)), &bulb_mat);
     bulb.position().set(0, mount_y - 0.15, 0.007);
     therm.add(&bulb);
-    therm.rotation().y = face_yaw(dx, dz);
+    therm.rotation().y = face_wall(dx, dz);
     therm.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.006), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.006));
     g.world.add(&therm);
 }

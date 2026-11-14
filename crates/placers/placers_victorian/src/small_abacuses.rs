@@ -4,7 +4,7 @@ use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -50,7 +50,7 @@ fn ab_wood_tex(vary: u32) -> Tex {
         let seed = vary ^ 0xab;
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, u, v, [0.13, 0.07, 0.045], 14.0, 40.0);
-            let rub = ss(0.6, 0.8, fbm(seed ^ 3, u * 12.0, v * 6.0, 3));
+            let rub = sstep(0.6, 0.8, fbm(seed ^ 3, u * 12.0, v * 6.0, 3));
             o = mix(o, [0.26, 0.13, 0.08], rub * 0.4);
             let dust = 0.06 + 0.14 * fbm(seed ^ 5, u * 9.0, v * 9.0, 3);
             opaque(mix(o, [0.42, 0.39, 0.34], dust))

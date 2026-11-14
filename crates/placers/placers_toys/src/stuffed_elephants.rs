@@ -3,7 +3,7 @@ use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::matted;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::rgb;
@@ -98,15 +98,15 @@ fn plush_tex(salt: u32, b: [f64; 3]) -> Tex {
         let seed = salt ^ 0xe1e;
         fill(ctx, w, h, |u, v| {
             let streak = fbm(seed, u * 150.0, v * 80.0, 3);
-            let mut c = mix(b, [b[0] * 0.74, b[1] * 0.72, b[2] * 0.70], ss(0.42, 0.72, streak) * 0.45);
+            let mut c = mix(b, [b[0] * 0.74, b[1] * 0.72, b[2] * 0.70], sstep(0.42, 0.72, streak) * 0.45);
             let tip = vn(seed ^ 2, u * 240.0, v * 200.0);
-            c = mix(c, [b[0] * 1.12 + 0.03, b[1] * 1.1 + 0.03, b[2] * 1.08 + 0.03], ss(0.7, 0.95, tip) * 0.35);
+            c = mix(c, [b[0] * 1.12 + 0.03, b[1] * 1.1 + 0.03, b[2] * 1.08 + 0.03], sstep(0.7, 0.95, tip) * 0.35);
             c = mix(c, [b[0] * 0.84, b[1] * 0.82, b[2] * 0.80], matted(seed, u, v) * 0.6);
             let fade = fbm(seed ^ 3, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.66, 0.64, 0.60], ss(0.5, 0.8, fade) * 0.3);
+            c = mix(c, [0.66, 0.64, 0.60], sstep(0.5, 0.8, fade) * 0.3);
             // grime: from below, where it lay, and in blotches
             let grime = fbm(seed ^ 6, u * 4.0, v * 4.0, 3) + (0.35 - v).max(0.0) * 0.6;
-            c = mix(c, [0.34, 0.31, 0.28], ss(0.55, 0.85, grime) * 0.45);
+            c = mix(c, [0.34, 0.31, 0.28], sstep(0.55, 0.85, grime) * 0.45);
             [c[0], c[1], c[2], 1.0]
         });
     })

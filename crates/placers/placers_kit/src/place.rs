@@ -6,12 +6,6 @@ pub fn face_wall(dx: i32, dz: i32) -> f64 {
     (-(dx as f64)).atan2(-(dz as f64))
 }
 
-/// `atan2(-dx, -dz)` with signed zeros (`-0.0` for `dx == 0`, kept on purpose).
-#[inline]
-pub fn face_yaw(dx: i32, dz: i32) -> f64 {
-    (-(dx as f64)).atan2(-(dz as f64))
-}
-
 /// The index of `c` in `cs` (the old colour a draw picked)
 pub fn index_of(cs: &[u32], c: u32) -> usize {
     cs.iter().position(|&x| x == c).unwrap_or(0)
@@ -24,7 +18,6 @@ pub fn jitter(g: &Game, x: i32, z: i32, s: f64) -> (f64, f64) {
     (px, pz)
 }
 
-// ------------------------------------------------------------------ helpers
 /// Every open interior tile, row by row (the `open_tiles` loop every placer repeats).
 pub fn open_tiles(g: &Game) -> Vec<(i32, i32)> {
     let mut v = vec![];
@@ -43,12 +36,11 @@ pub fn pick<T: Copy>(a: &[T]) -> T {
     a[(rnd() * a.len() as f64).floor() as usize]
 }
 
-/// A uniformly random element (one `rnd()` draw). for colour tables.
+/// A uniformly random colour from a table of them (one `rnd()` draw)
 pub fn pick_hex(a: &[u32]) -> u32 {
     a[(rnd() * a.len() as f64).floor() as usize]
 }
 
-// ------------------------------------------------------------------ helpers
 /// The repeated `open_tiles` scan plus one random pick.
 /// No draw when the list is empty (the placer returns first).
 pub fn pick_open(g: &Game) -> Option<(i32, i32)> {
@@ -115,13 +107,6 @@ pub fn salt_of(x: f64, z: f64) -> u32 {
     (h ^ (h >> 32)) as u32
 }
 
-/// Scatter on tile (x, z): position `(wx(x) + (rand - 0.5) * spread, 0,
-/// wz(z) + (rand - 0.5) * spread)`, then yaw `rand * 2π` (3 draws).
-pub fn scatter_on_floor(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
-    o.position().set(g.wx(x) + (rnd() - 0.5) * spread, 0, g.wz(z) + (rnd() - 0.5) * spread);
-    o.rotation().y = rnd() * PI * 2.0;
-}
-
 /// A seed from values already fixed (a position): no draws
 pub fn seed_of(v: &[f64]) -> u32 {
     let mut x: u64 = 0xcbf2_9ce4_8422_2325;
@@ -142,7 +127,9 @@ pub fn shuffle<T>(v: &mut [T]) {
     }
 }
 
-/// Its own stream starts the same on every floor: the salt moves where
+/// Draws `salt % 61` times from the level's stream and drops them: a
+/// thing's own stream would start the same on every floor; the salt (from
+/// where it is) moves where it starts
 pub fn skip(salt: u32) {
     for _ in 0..(salt % 61) {
         let _ = rnd();
@@ -218,7 +205,6 @@ pub fn wall_pos(g: &Game, x: i32, z: i32, dx: i32, dz: i32, inset: f64) -> (f64,
     (g.wx(x) + dx as f64 * (CELL * 0.5 - inset), g.wz(z) + dz as f64 * (CELL * 0.5 - inset))
 }
 
-// ------------------------------------------------------------------ helpers
 /// `{ x, z, dx, dz }`: an open tile with a wall (or the grid edge) on side (dx, dz).
 #[derive(Clone, Copy, Debug)]
 pub struct WallCand {
@@ -342,23 +328,6 @@ pub fn hang_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64) 
         o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
         o.position().set(wall_x + (rnd() - 0.5) * 0.6, center_y, wall_z);
     }
-}
-
-/// The open-tile scan plus one random pick that every placer here starts with.
-/// `None` when there are no open tiles (no draw happens then).
-pub fn pick_open_tile(g: &Game) -> Option<(i32, i32)> {
-    let mut open_tiles: Vec<(i32, i32)> = vec![];
-    for z in 1..g.h - 1 {
-        for x in 1..g.w - 1 {
-            if g.tiles[g.t_idx(x, z)] == 0 {
-                open_tiles.push((x, z));
-            }
-        }
-    }
-    if open_tiles.is_empty() {
-        return None;
-    }
-    Some(open_tiles[(rnd() * open_tiles.len() as f64).floor() as usize])
 }
 
 /// Position `o` at `(wx(x) + (rnd() - 0.5) * s, 0, wz(z) + (rnd() - 0.5) * s)`, x drawn first.

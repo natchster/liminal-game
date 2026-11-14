@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Spilled pill bottle: 8% chance per level. Tipped bottle + scattered capsules.
 pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
@@ -38,6 +38,6 @@ pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
         pill.position().set((rnd() - 0.5) * 0.20, 0.003, (rnd() - 0.5) * 0.18);
         grp.add(&pill);
     }
-    scatter_on_floor(g, &grp, x, z, 2.0);
+    scatter(g, &grp, x, z, 2.0);
     g.world.add(&grp);
 }

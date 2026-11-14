@@ -6,14 +6,14 @@ use game::visuals::pictures::Age;
 use game::visuals::pictures::Finish;
 use game::visuals::pictures::Outline;
 use placers_kit::place::hang_on_wall;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Ancient portrait: 4% chance per level. An old portrait in oil.
 pub(crate) fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
     } // 4% chance
-    let candidates = wall_cands(g);
+    let candidates = wall_candidates(g);
     if candidates.is_empty() {
         return;
     }

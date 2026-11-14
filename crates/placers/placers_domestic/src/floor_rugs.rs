@@ -1,12 +1,12 @@
 //! `place_floor_rugs`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as hash01;
+use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
-use placers_kit::paint::srgb3;
+use placers_kit::noise::vn;
+use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Floor rug (Blender batch `r13b`): a Hamadan scatter rug, 2'5" x 4'
 // (0.74 x 1.22 m and its fringe), wool pile on cotton, about 6 mm thick:
@@ -22,9 +22,9 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // Per-weather rug tint: a wash over the wool, not a dye
-    let tint = srgb3(rug_tint_by_weather(g.weather_key()));
+    let tint = rgb(rug_tint_by_weather(g.weather_key()));
     let rug_w = 0.9 + rnd() * 0.4;
     let rug_d = 0.6 + rnd() * 0.3;
     // its size the old one's area, the rug's own proportions (a little
@@ -44,7 +44,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     };
     let seed = (((px * 1000.0).round() as i64) as u32).wrapping_mul(0x9e37_79b9)
         ^ (((pz * 1000.0).round() as i64) as u32).wrapping_mul(0x85eb_ca6b);
-    let colours = (hash01(seed, 3, 7) * 4.0) as usize;
+    let colours = (hash(seed, 3, 7) * 4.0) as usize;
     let wash = tint.map(|t| ((1.0 - (1.0 - t) * 0.5) * 255.0).round() as u32);
     let colour = wash[0] << 16 | wash[1] << 8 | wash[2];
     let (face_tex, back_tex) = rug_textures(seed, colours);
@@ -85,9 +85,9 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     // corner narrative (inline reproduction).
     if rnd() < 0.25 {
         let base_colors = [0x2a2418, 0x1a1a1e, 0x3a2818];
-        let base_color = base_colors[pick(base_colors.len())];
+        let base_color = base_colors[ri(base_colors.len())];
         let shade_colors = [0xa89880, 0x807060, 0x504840];
-        let shade_color = shade_colors[pick(shade_colors.len())];
+        let shade_color = shade_colors[ri(shade_colors.len())];
         let base_mat = lambert!({ color: base_color });
         let shade_mat = lambert!({ color: shade_color });
         let lamp = group();
@@ -328,8 +328,8 @@ fn rug_knot(a: f64, b: f64, len: f64, wid: f64, c: &RugColours, medallion: bool,
         f
     };
     // the dye lots, in bands across it, and each knot a little its own
-    let lot = 1.0 + 0.14 * (vnoise(seed ^ 0xab5, qa * 2.2, 0.5) - 0.5);
-    let own = 0.93 + 0.14 * hash01(seed ^ 0x51ed, ia as i32, ib as i32);
+    let lot = 1.0 + 0.14 * (vn(seed ^ 0xab5, qa * 2.2, 0.5) - 0.5);
+    let own = 0.93 + 0.14 * hash(seed ^ 0x51ed, ia as i32, ib as i32);
     for v in col.iter_mut() {
         *v *= lot * own;
     }
@@ -353,15 +353,15 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
     let (fx0, fz0) = (RUG_L / 2.0 + RUG_KILIM, RUG_W / 2.0);
     // the stains: where, how big
     let stains: Vec<(f64, f64, f64)> = (0..3)
-        .map(|k| ((hash01(seed, k, 1) - 0.5) * RUG_L * 0.8, (hash01(seed, k, 2) - 0.5) * RUG_W * 0.7, 0.03 + 0.06 * hash01(seed, k, 3)))
+        .map(|k| ((hash(seed, k, 1) - 0.5) * RUG_L * 0.8, (hash(seed, k, 2) - 0.5) * RUG_W * 0.7, 0.03 + 0.06 * hash(seed, k, 3)))
         .collect();
     let moths: Vec<(f64, f64, f64)> = (0..4)
         .map(|k| {
-            let side = if hash01(seed, k, 5) < 0.5 { -1.0 } else { 1.0 };
+            let side = if hash(seed, k, 5) < 0.5 { -1.0 } else { 1.0 };
             (
-                (hash01(seed, k, 6) - 0.5) * RUG_L * 0.9,
-                side * (RUG_W / 2.0 - 0.03 - 0.08 * hash01(seed, k, 7)),
-                0.008 + 0.014 * hash01(seed, k, 8),
+                (hash(seed, k, 6) - 0.5) * RUG_L * 0.9,
+                side * (RUG_W / 2.0 - 0.03 - 0.08 * hash(seed, k, 7)),
+                0.008 + 0.014 * hash(seed, k, 8),
             )
         })
         .collect();
@@ -379,12 +379,12 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
                     // the flat-woven band: ivory with two red stripes
                     let e = if a < 0.0 { -a } else { a - RUG_L };
                     let s = if (0.006..0.009).contains(&e) || (0.013..0.015).contains(&e) { c.field } else { [0.70, 0.65, 0.55] };
-                    s.map(|v| v * (0.9 + 0.1 * hash01(seed ^ 0x77, i as i32, j as i32)))
+                    s.map(|v| v * (0.9 + 0.1 * hash(seed ^ 0x77, i as i32, j as i32)))
                 } else {
                     rug_knot(a, b, RUG_L, RUG_W, &c, true, seed)
                 };
                 // the pile's tufts
-                let tuft = 0.90 + 0.12 * hash01(seed ^ 0x3c, i as i32, j as i32);
+                let tuft = 0.90 + 0.12 * hash(seed ^ 0x3c, i as i32, j as i32);
                 // faded: the colour gone from it toward a warm grey, unevenly
                 let lum = 0.30 * px[0] + 0.59 * px[1] + 0.11 * px[2];
                 let fade = 0.40 + 0.16 * fbm(seed ^ 0x99, x * 2.0, z * 2.0, 2);

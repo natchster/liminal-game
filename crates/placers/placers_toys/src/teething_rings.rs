@@ -6,7 +6,7 @@ use placers_kit::noise::cell_edge;
 use placers_kit::noise::fbmp;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vnp;
 use placers_kit::paint::mul;
 use placers_kit::paint::paint_tile;
@@ -45,8 +45,8 @@ pub(crate) fn place_teething_rings(g: &mut Game, _dist: &[i32]) {
         let mut c = wear_at(salt ^ 81, u, v, &w);
         // the water inside gone cloudy, and black mould in clusters of specks
         let cloud = fbmp(salt ^ 83, u, v, 2, 3);
-        c = mix(c, [0.7, 0.7, 0.66], ss(0.5, 0.8, cloud) * 0.25);
-        let cluster = ss(0.6, 0.75, fbmp(salt ^ 85, u, v, 3, 3));
+        c = mix(c, [0.7, 0.7, 0.66], sstep(0.5, 0.8, cloud) * 0.25);
+        let cluster = sstep(0.6, 0.75, fbmp(salt ^ 85, u, v, 3, 3));
         let s = hash(salt ^ 87, (u * 128.0) as i32, (v * 128.0) as i32);
         if s > 0.93 - 0.2 * cluster && cluster > 0.0 {
             c = mix(c, [0.08, 0.08, 0.07], 0.85 * cluster);
@@ -82,24 +82,24 @@ fn wear_at(seed: u32, u: f64, v: f64, w: &Wear) -> [f64; 3] {
     let mut c = mul(w.base, 1.0 + w.mottle * (m - 0.5) * 2.4);
     if w.scales > 0 {
         let e = cell_edge(seed ^ 0x51ab, u, v, w.scales);
-        c = mul(c, 1.0 - 0.2 * (1.0 - ss(0.0, 0.14, e)));
+        c = mul(c, 1.0 - 0.2 * (1.0 - sstep(0.0, 0.14, e)));
     }
     if w.rub > 0.0 {
         // rubbed through in small patches: `rub` is about the share of the
         // surface (this fractal noise sits near 0.49, its spread about 0.15)
         let r = fbmp(seed ^ 0x2b3c, u, v, 12, 3);
         let t = 0.8 - 0.9 * w.rub;
-        c = mix(c, w.alt, ss(t, t + 0.025, r));
+        c = mix(c, w.alt, sstep(t, t + 0.025, r));
     }
     // grime settled in soft patches
     let gm = fbmp(seed ^ 0x77e1, u, v, 3, 4);
-    c = mix(c, [0.15, 0.13, 0.10], w.grime * 0.7 * ss(0.5, 0.8, gm));
+    c = mix(c, [0.15, 0.13, 0.10], w.grime * 0.7 * sstep(0.5, 0.8, gm));
     if w.scuff > 0.0 {
         // fine scratches in patches: thin lines along a stretched noise
-        let patch = ss(0.5, 0.7, fbmp(seed ^ 0x9137, u, v, 3, 2));
+        let patch = sstep(0.5, 0.7, fbmp(seed ^ 0x9137, u, v, 3, 2));
         let l1 = (vnp(seed ^ 0x4421, u * 40.0, v * 5.0, 40, 5) - 0.5).abs();
         let l2 = (vnp(seed ^ 0x1d77, u * 6.0, v * 34.0, 6, 34) - 0.5).abs();
-        let line = (1.0 - ss(0.0, 0.025, l1)).max(1.0 - ss(0.0, 0.025, l2));
+        let line = (1.0 - sstep(0.0, 0.025, l1)).max(1.0 - sstep(0.0, 0.025, l2));
         c = mix(c, mix(w.base, [0.86, 0.84, 0.8], 0.45), w.scuff * patch * line * 0.8);
     }
     // dust in the grain, and grit

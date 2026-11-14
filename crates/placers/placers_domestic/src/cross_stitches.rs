@@ -1,8 +1,8 @@
 //! `place_cross_stitches`
 use game::prelude::*;
-use placers_kit::noise::hash as sp_hash;
-use placers_kit::noise::vn as sp_noise;
-use placers_kit::place::face_yaw;
+use placers_kit::noise::hash;
+use placers_kit::noise::vn;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::vary as sp_vary;
 use placers_kit::place::wall_tiles;
@@ -28,7 +28,7 @@ pub(crate) fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
     let stitch = group();
     let mount_y = 1.55;
     let tilt = (rnd() - 0.5) * 0.06;
-    stitch.rotation().y = face_yaw(dx, dz);
+    stitch.rotation().y = face_wall(dx, dz);
     stitch.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = stitch.pos();
     let vary = sp_vary(p.x, p.z, tilt);
@@ -237,7 +237,7 @@ fn sampler_tex(vary: u32) -> Tex {
     canvas_tex_opt(n as f64, m as f64, false, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         let chart = sp_chart(vary >> 5);
-        let fade = 0.25 + 0.25 * sp_hash(seed, 1, 2);
+        let fade = 0.25 + 0.25 * hash(seed, 1, 2);
         let pal: [[f64; 3]; 7] = [
             [0.0; 3],
             [150.0, 56.0, 46.0],
@@ -256,7 +256,7 @@ fn sampler_tex(vary: u32) -> Tex {
                 let (u, v) = ((px as f64 + 0.5) / S as f64, (py as f64 + 0.5) / S as f64);
                 // the linen: threads 3 px apart each way, the holes between them
                 let (tx, ty) = (i % 3, j % 3);
-                let slub = 0.92 + 0.12 * sp_hash(seed ^ 0x31, (i / 3) as i32, 0) * 0.5 + 0.06 * sp_hash(seed ^ 0x32, 0, (j / 3) as i32);
+                let slub = 0.92 + 0.12 * hash(seed ^ 0x31, (i / 3) as i32, 0) * 0.5 + 0.06 * hash(seed ^ 0x32, 0, (j / 3) as i32);
                 let weave = if tx == 0 && ty == 0 {
                     0.7
                 } else if tx == 0 || ty == 0 {
@@ -268,8 +268,8 @@ fn sampler_tex(vary: u32) -> Tex {
                 let k = chart[cy * SP_CELLS[0] + cx] as usize;
                 if k > 0 {
                     // a stitch: the bottom strand "\", the top one "/" over it
-                    let jit = (sp_hash(seed ^ 0x41, cx as i32, cy as i32) - 0.5) * 0.08;
-                    let hw = 0.19 + 0.04 * sp_hash(seed ^ 0x42, cx as i32, cy as i32);
+                    let jit = (hash(seed ^ 0x41, cx as i32, cy as i32) - 0.5) * 0.08;
+                    let hw = 0.19 + 0.04 * hash(seed ^ 0x42, cx as i32, cy as i32);
                     let d_top = (u + v - 1.0 + jit).abs() / 2f64.sqrt();
                     let d_bot = (u - v - jit).abs() / 2f64.sqrt();
                     let shade = if d_top < hw {
@@ -292,10 +292,9 @@ fn sampler_tex(vary: u32) -> Tex {
                 }
                 // yellowed and foxed; darker in the margin under the lip
                 let (x, y) = (i as f64, j as f64);
-                let fox =
-                    (sp_noise(seed ^ 0x51, x * 0.05, y * 0.05) * 0.6 + sp_noise(seed ^ 0x52, x * 0.2, y * 0.2) * 0.4 - 0.64).max(0.0) * 6.0;
-                let spot = if sp_hash(seed ^ 0x53, (x / 7.0) as i32, (y / 7.0) as i32) > 0.985 { 0.5 } else { 0.0 };
-                let foxing = (fox + spot * sp_noise(seed ^ 0x54, x * 0.3, y * 0.3)).min(0.6);
+                let fox = (vn(seed ^ 0x51, x * 0.05, y * 0.05) * 0.6 + vn(seed ^ 0x52, x * 0.2, y * 0.2) * 0.4 - 0.64).max(0.0) * 6.0;
+                let spot = if hash(seed ^ 0x53, (x / 7.0) as i32, (y / 7.0) as i32) > 0.985 { 0.5 } else { 0.0 };
+                let foxing = (fox + spot * vn(seed ^ 0x54, x * 0.3, y * 0.3)).min(0.6);
                 let edge = (i.min(n - 1 - i).min(j).min(m - 1 - j)) as f64;
                 let rim = 1.0 - 0.22 * (1.0 - (edge / 14.0).min(1.0));
                 let yel = [0.98, 0.95, 0.86];

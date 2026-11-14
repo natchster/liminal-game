@@ -1,15 +1,15 @@
 //! `place_wall_pay_phones`
 use game::prelude::*;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::place::mount_slid;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as pay_blob;
-use placers_kit::wall_plates::part as pay_part;
-use placers_kit::wall_plates::scratches as pay_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, false, $paint)).clone())
@@ -36,11 +36,11 @@ pub(crate) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {
     o.position().z = -0.05;
     phone.add(&o);
     let steel = phong!({ map: &pay_steel_tex(), color: 0xa6a6a0, specular: 0x383836, shininess: 22 });
-    o.add(&mesh(pay_part("Real__wallPayPhoneUpper", 0.2, 0.3, 0.135), &steel));
-    o.add(&mesh(pay_part("Real__wallPayPhoneVault", 0.196, 0.23, 0.124), lambert!({ map: &pay_vault_tex(), color: 0x2e2e2b })));
+    o.add(&mesh(part("Real__wallPayPhoneUpper", 0.2, 0.3, 0.135), &steel));
+    o.add(&mesh(part("Real__wallPayPhoneVault", 0.196, 0.23, 0.124), lambert!({ map: &pay_vault_tex(), color: 0x2e2e2b })));
     let chrome = phong!({ color: 0x8c8c88, specular: 0x5a5a58, shininess: 60 });
-    o.add(&mesh(pay_part("Real__wallPayPhoneKeys", 0.07, 0.095, 0.009), &chrome));
-    o.add(&mesh(pay_part("Real__wallPayPhoneTrim", 0.26, 0.3, 0.14), &chrome));
+    o.add(&mesh(part("Real__wallPayPhoneKeys", 0.07, 0.095, 0.009), &chrome));
+    o.add(&mesh(part("Real__wallPayPhoneTrim", 0.26, 0.3, 0.14), &chrome));
     let decal = |tex: &Tex| lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     let legends = mesh(plane_geo!(0.075, 0.100), decal(&pay_keys_tex()));
     legends.position().set(0.0, 0.357, PP_D + 0.0058);
@@ -52,13 +52,13 @@ pub(crate) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {
     window.position().set(PP_CARD.0, PP_CARD.1, PP_D - 0.0006);
     o.add(&window);
     let handset =
-        mesh(pay_part("Real__wallPayPhoneHandset", 0.065, 0.23, 0.045), phong!({ color: 0x1e1d1c, specular: 0x262626, shininess: 18 }));
+        mesh(part("Real__wallPayPhoneHandset", 0.065, 0.23, 0.045), phong!({ color: 0x1e1d1c, specular: 0x262626, shininess: 18 }));
     handset.position().set(-0.1025, 0.358, 0.070);
     handset.rotation().y = -PI / 2.0;
     o.add(&handset);
-    o.add(&mesh(pay_part("Real__wallPayPhoneCord", 0.03, 0.16, 0.02), phong!({ color: 0x7a7a75, specular: 0x404040, shininess: 40 })));
+    o.add(&mesh(part("Real__wallPayPhoneCord", 0.03, 0.16, 0.02), phong!({ color: 0x7a7a75, specular: 0x404040, shininess: 40 })));
     let (wall_x, wall_z) = wall_xz(g, c, 0.050);
-    mount(&phone, c, wall_x, wall_z, 0.7, 0.4);
+    mount_slid(&phone, c, wall_x, wall_z, 0.7, 0.4);
     g.world.add(&phone);
     // Track for ring audio.
     let p = phone.pos();
@@ -74,7 +74,7 @@ const PP_CARD: (f64, f64, f64, f64) = (-0.026, 0.474, 0.112, 0.074);
 /// the grain down it, keyed scratches, the ghosts of stickers peeled off,
 /// grime round the keys and the coin return, COIN RETURN stamped over it.
 fn pay_steel_tex() -> Tex {
-    r12_tex!(204, 294, |ctx, w, h| {
+    cached_tex!(204, 294, |ctx, w, h| {
         ctx.set_fill_style("#e8e8e4");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..800 {
@@ -93,11 +93,11 @@ fn pay_steel_tex() -> Tex {
         }
         // grime where hands go
         let (kx, ky) = to(0.0, 0.357);
-        pay_blob(ctx, kx, ky, 50.0, 1.3, (60, 54, 46, 0.30));
+        blob(ctx, kx, ky, 50.0, 1.3, (60, 54, 46, 0.30));
         let (rx, ry) = to(0.060, 0.266);
-        pay_blob(ctx, rx, ry, 26.0, 1.0, (50, 44, 36, 0.35));
+        blob(ctx, rx, ry, 26.0, 1.0, (50, 44, 36, 0.35));
         let (cx, cy) = to(0.064, 0.480);
-        pay_blob(ctx, cx, cy, 20.0, 1.0, (50, 44, 36, 0.25));
+        blob(ctx, cx, cy, 20.0, 1.0, (50, 44, 36, 0.25));
         // stamped labels
         ctx.set_fill_style("rgba(40,40,38,0.75)");
         ctx.set_text_align("center");
@@ -122,7 +122,7 @@ fn pay_steel_tex() -> Tex {
             }
             ctx.stroke();
         }
-        pay_scratches(ctx, w, h, 40, (60, 58, 54), 0.12, 16.0);
+        scratches(ctx, w, h, 40, (60, 58, 54), 0.12, 16.0);
         let gd = ctx.create_linear_gradient(0, 0, 0, h);
         gd.add_color_stop(0, "rgba(130,120,100,0.3)");
         gd.add_color_stop(0.06, "rgba(130,120,100,0)");
@@ -136,7 +136,7 @@ fn pay_steel_tex() -> Tex {
 /// The vault's black enamel: chipped to grey primer and the steel at its
 /// edges and round the lock, rust weeping from the chips, kicked at the foot.
 fn pay_vault_tex() -> Tex {
-    r12_tex!(160, 190, |ctx, w, h| {
+    cached_tex!(160, 190, |ctx, w, h| {
         ctx.set_fill_style("#f0f0ec");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..400 {
@@ -165,7 +165,7 @@ fn pay_vault_tex() -> Tex {
         gd.add_color_stop(1, "rgba(255,255,255,0.35)");
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
-        pay_scratches(ctx, w, h, 40, (255, 255, 255), 0.25, 18.0);
+        scratches(ctx, w, h, 40, (255, 255, 255), 0.25, 18.0);
     })
 }
 
@@ -173,7 +173,7 @@ fn pay_vault_tex() -> Tex {
 /// emergency and the operator, this phone's number (555-01xx, kept for
 /// fiction), sun-faded and foxed.
 fn pay_card_tex() -> Tex {
-    r12_tex!(336, 222, |ctx, w, h| {
+    cached_tex!(336, 222, |ctx, w, h| {
         ctx.set_fill_style("#e3dfd2");
         ctx.fill_rect(0, 0, w, h);
         ctx.set_fill_style("#2c4a6a");
@@ -208,16 +208,16 @@ fn pay_card_tex() -> Tex {
         ctx.set_fill_style(gy);
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..24 {
-            pay_blob(ctx, rnd() * w, rnd() * h, 3.0 + rnd() * 7.0, 1.0, (130, 90, 40, 0.08 + rnd() * 0.12));
+            blob(ctx, rnd() * w, rnd() * h, 3.0 + rnd() * 7.0, 1.0, (130, 90, 40, 0.08 + rnd() * 0.12));
         }
-        pay_blob(ctx, w, h, 80.0, 1.0, (120, 90, 50, 0.28));
+        blob(ctx, w, h, 80.0, 1.0, (120, 90, 50, 0.28));
     })
 }
 
 /// What is printed on the keys, black in their chrome: the numeral and its
 /// letters (the canvas spans the keypad, 0.075 x 0.100 m, 3 px a mm).
 fn pay_keys_tex() -> Tex {
-    r12_tex!(225, 300, |ctx, w, h| {
+    cached_tex!(225, 300, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         let keys = [
             ("1", ""),
@@ -252,11 +252,11 @@ fn pay_keys_tex() -> Tex {
 
 /// The card's clear window: scratched and clouded, a crack from a corner.
 fn pay_window_tex() -> Tex {
-    r12_tex!(168, 111, |ctx, w, h| {
+    cached_tex!(168, 111, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         ctx.set_fill_style("rgba(200,195,180,0.18)");
         ctx.fill_rect(0, 0, w, h);
-        pay_scratches(ctx, w, h, 50, (235, 235, 230), 0.18, 26.0);
+        scratches(ctx, w, h, 50, (235, 235, 230), 0.18, 26.0);
         ctx.set_stroke_style("rgba(240,240,235,0.6)");
         ctx.set_line_width(0.8);
         ctx.begin_path();
@@ -266,7 +266,7 @@ fn pay_window_tex() -> Tex {
         ctx.line_to(w * 0.6, h * 0.41);
         ctx.stroke();
         for &(x, y) in &[(0.0, 0.0), (w, h), (0.0, h)] {
-            pay_blob(ctx, x, y, 30.0, 1.0, (150, 140, 120, 0.3));
+            blob(ctx, x, y, 30.0, 1.0, (150, 140, 120, 0.3));
         }
     })
 }

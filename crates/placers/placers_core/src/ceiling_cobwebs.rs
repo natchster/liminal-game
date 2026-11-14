@@ -2,11 +2,11 @@
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_tex;
-use placers_kit::paint::paint_px_indexed as paint_px;
-use placers_kit::paint::srgb3;
-use placers_kit::place::mount_slid_ref as wall_mount;
+use placers_kit::paint::paint_px_indexed;
+use placers_kit::paint::rgb;
+use placers_kit::place::mount_slid_ref;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
@@ -25,7 +25,7 @@ pub(crate) fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
     let mut candidates = wall_candidates(g);
     shuffle(&mut candidates);
     // Per-weather cobweb tint (pale greys), greyed by the dust in it
-    let dusty = srgb3(cobweb_color_by_weather(g.weather_key())).map(|c| c * 0.92);
+    let dusty = rgb(cobweb_color_by_weather(g.weather_key())).map(|c| c * 0.92);
     let mut i = 0;
     while i < count && i < candidates.len() {
         let c = candidates[i];
@@ -38,7 +38,7 @@ pub(crate) fn place_ceiling_cobwebs(g: &mut Game, _dist: &[i32]) {
         // Position at ceiling corner along the wall face.
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.02);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.02);
-        wall_mount(&web, &c, wall_x, wall_z, WALL_H - 0.02, 1.5);
+        mount_slid_ref(&web, &c, wall_x, wall_z, WALL_H - 0.02, 1.5);
         let strand_count = 3 + (rnd() * 2.0).floor() as i32;
         let anchors: Vec<f64> = (0..strand_count).map(|_| 0.1 + rnd() * 0.85).collect();
         // 20% chance: very slow sway in the air that moves through
@@ -169,7 +169,7 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
         // tangle, thin out to the ends, wispy along the way it was spun
         let veil = shade(0.97);
         let (wa, wb) = (rnd() * PI, rnd() * PI);
-        paint_px(ctx, cw, ch, |i, j| {
+        paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) / cw, (j as f64 + 0.5) / ch);
             let q = ((x * cw - bx) / brx).hypot((y * ch - by) / bry);
             let dens = (-q * q * 0.8).exp();
@@ -179,7 +179,7 @@ fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[
             // wisps: noise stretched along two ways it was spun
             let (u1, u2) = (x * wa.cos() + y * wa.sin(), -x * wa.sin() + y * wa.cos());
             let (v1, v2) = (x * wb.cos() + y * wb.sin(), -x * wb.sin() + y * wb.cos());
-            let wisp = 0.5 * vnoise(seed ^ 0x5e, u1 * 3.0, u2 * 50.0) + 0.5 * vnoise(seed ^ 0x6f, v1 * 3.0, v2 * 50.0);
+            let wisp = 0.5 * vn(seed ^ 0x5e, u1 * 3.0, u2 * 50.0) + 0.5 * vn(seed ^ 0x6f, v1 * 3.0, v2 * 50.0);
             [veil[0], veil[1], veil[2], ((0.06 + 0.62 * dens) * ends * (0.35 + 1.1 * wisp * wisp)).min(0.72)]
         });
         ctx.set_line_cap("round");

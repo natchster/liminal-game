@@ -4,7 +4,7 @@ use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::rgb;
@@ -105,11 +105,11 @@ fn hard_plastic_tex(salt: u32, b: [f64; 3]) -> Tex {
         fill(ctx, w, h, |u, v| {
             let mut c = mix(b, [b[0] * 0.95, b[1] * 0.9, b[2] * 0.78], 0.5);
             let n = fbm(seed, u * 5.0, v * 5.0, 4);
-            c = mix(c, [c[0] * 0.85, c[1] * 0.8, c[2] * 0.74], ss(0.45, 0.8, n) * 0.4);
+            c = mix(c, [c[0] * 0.85, c[1] * 0.8, c[2] * 0.74], sstep(0.45, 0.8, n) * 0.4);
             let grime = fbm(seed ^ 5, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.38, 0.32, 0.26], ss(0.58, 0.85, grime) * 0.35);
+            c = mix(c, [0.38, 0.32, 0.26], sstep(0.58, 0.85, grime) * 0.35);
             let scuff = vn(seed ^ 6, u * 30.0, v * 9.0);
-            c = mix(c, [0.86, 0.80, 0.72], ss(0.82, 0.95, scuff) * 0.3);
+            c = mix(c, [0.86, 0.80, 0.72], sstep(0.82, 0.95, scuff) * 0.3);
             let speck = vn(seed ^ 7, u * 70.0, v * 70.0);
             if speck > 0.88 {
                 c = mix(c, [0.34, 0.28, 0.22], (speck - 0.88) * 4.0);
@@ -147,7 +147,7 @@ fn dress_tex(salt: u32, b: [f64; 3]) -> Tex {
                     let (fu, fv) = ((u * 18.0).fract() - 0.5, (v * 18.0).fract() - 0.5);
                     let o = hash(seed, cu as i32, cv as i32) * 0.3;
                     let d = ((fu - o + 0.15).powi(2) + (fv + o - 0.15).powi(2)).sqrt();
-                    c = mix(b, [0.84, 0.80, 0.74], ss(0.16, 0.10, d) * 0.85);
+                    c = mix(b, [0.84, 0.80, 0.74], sstep(0.16, 0.10, d) * 0.85);
                 }
                 _ => {}
             }
@@ -155,12 +155,12 @@ fn dress_tex(salt: u32, b: [f64; 3]) -> Tex {
             let weave = 0.5 + 0.5 * ((u * 900.0).sin() * (v * 900.0).sin());
             c = mix(c, [c[0] * 0.92, c[1] * 0.92, c[2] * 0.92], weave * 0.3);
             let fade = fbm(seed, u * 4.0, v * 4.0, 3);
-            c = mix(c, [0.70, 0.68, 0.64], ss(0.45, 0.8, fade) * 0.35);
+            c = mix(c, [0.70, 0.68, 0.64], sstep(0.45, 0.8, fade) * 0.35);
             let grime = fbm(seed ^ 3, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.36, 0.32, 0.27], ss(0.55, 0.85, grime) * 0.4);
+            c = mix(c, [0.36, 0.32, 0.27], sstep(0.55, 0.85, grime) * 0.4);
             let (du, dv) = (u - 0.3 - 0.4 * hash(seed, 1, 1), v - 0.3 - 0.4 * hash(seed, 2, 2));
             let d = (du * du + dv * dv).sqrt() / 0.08;
-            c = mix(c, [c[0] * 0.78, c[1] * 0.72, c[2] * 0.62], ss(1.0, 0.8, d) * 0.45);
+            c = mix(c, [c[0] * 0.78, c[1] * 0.72, c[2] * 0.62], sstep(1.0, 0.8, d) * 0.45);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -173,7 +173,7 @@ fn sock_tex(salt: u32) -> Tex {
         fill(ctx, w, h, |u, v| {
             let rib = 0.5 + 0.5 * (u * 120.0).sin();
             let mut c = mix([0.80, 0.79, 0.76], [0.70, 0.69, 0.66], rib * 0.4);
-            c = mix(c, [0.45, 0.42, 0.38], (ss(0.5, 0.85, fbm(seed, u * 4.0, v * 4.0, 3)) + (0.3 - v).max(0.0)) * 0.5);
+            c = mix(c, [0.45, 0.42, 0.38], (sstep(0.5, 0.85, fbm(seed, u * 4.0, v * 4.0, 3)) + (0.3 - v).max(0.0)) * 0.5);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -186,12 +186,12 @@ fn wig_tex(salt: u32, b: [f64; 3]) -> Tex {
         let seed = salt ^ 0x816;
         fill(ctx, w, h, |u, v| {
             let strand = fbm(seed, u * 110.0, v * 10.0, 3);
-            let mut c = mix(b, [b[0] * 0.6, b[1] * 0.58, b[2] * 0.56], ss(0.4, 0.75, strand) * 0.6);
+            let mut c = mix(b, [b[0] * 0.6, b[1] * 0.58, b[2] * 0.56], sstep(0.4, 0.75, strand) * 0.6);
             let sheen = fbm(seed ^ 1, u * 40.0, v * 6.0, 2);
-            c = mix(c, [b[0] * 1.2 + 0.05, b[1] * 1.18 + 0.05, b[2] * 1.15 + 0.04], ss(0.62, 0.8, sheen) * 0.35);
+            c = mix(c, [b[0] * 1.2 + 0.05, b[1] * 1.18 + 0.05, b[2] * 1.15 + 0.04], sstep(0.62, 0.8, sheen) * 0.35);
             let mat = fbm(seed ^ 2, u * 6.0, v * 6.0, 3);
-            c = mix(c, [b[0] * 0.75, b[1] * 0.72, b[2] * 0.7], ss(0.55, 0.75, mat) * 0.4);
-            c = mix(c, [0.50, 0.47, 0.42], ss(0.6, 0.85, fbm(seed ^ 3, u * 3.0, v * 3.0, 3)) * 0.3);
+            c = mix(c, [b[0] * 0.75, b[1] * 0.72, b[2] * 0.7], sstep(0.55, 0.75, mat) * 0.4);
+            c = mix(c, [0.50, 0.47, 0.42], sstep(0.6, 0.85, fbm(seed ^ 3, u * 3.0, v * 3.0, 3)) * 0.3);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -214,9 +214,9 @@ fn small_face_tex(salt: u32, b: [f64; 3]) -> Tex {
         fill(ctx, w, h, |u, v| {
             let mut c = mix(b, [b[0] * 0.95, b[1] * 0.9, b[2] * 0.78], 0.5);
             let n = fbm(seed, u * 5.0, v * 5.0, 4);
-            c = mix(c, [c[0] * 0.86, c[1] * 0.82, c[2] * 0.76], ss(0.45, 0.8, n) * 0.35);
+            c = mix(c, [c[0] * 0.86, c[1] * 0.82, c[2] * 0.76], sstep(0.45, 0.8, n) * 0.35);
             let grime = fbm(seed ^ 5, u * 3.0, v * 3.0, 3);
-            c = mix(c, [0.40, 0.33, 0.27], ss(0.6, 0.85, grime) * 0.28);
+            c = mix(c, [0.40, 0.33, 0.27], sstep(0.6, 0.85, grime) * 0.28);
             [c[0], c[1], c[2], 1.0]
         });
         let blot = |ctx: &mut Canvas, x: f64, y: f64, r: f64, c0: &str, c1: &str| {

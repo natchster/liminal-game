@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Dead flowers in vase: 6% chance per level. Vase + dried stems + petals.
 pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
@@ -60,6 +60,6 @@ pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
         fallen.rotation().z = rnd() * PI * 2.0;
         vase.add(&fallen);
     }
-    scatter_on_floor(g, &vase, x, z, 2.4);
+    scatter(g, &vase, x, z, 2.4);
     g.world.add(&vase);
 }

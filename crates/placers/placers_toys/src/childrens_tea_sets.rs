@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Children's tea set: 5% chance per level. 3-4 mini cups + teapot.
 pub(crate) fn place_childrens_tea_sets(g: &mut Game, _dist: &[i32]) {
@@ -53,6 +53,6 @@ pub(crate) fn place_childrens_tea_sets(g: &mut Game, _dist: &[i32]) {
             grp.add(&tea);
         }
     }
-    scatter_on_floor(g, &grp, x, z, 2.0);
+    scatter(g, &grp, x, z, 2.0);
     g.world.add(&grp);
 }

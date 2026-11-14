@@ -5,7 +5,7 @@ use placers_kit::noise::hash;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::paint::opaque as rgb;
+use placers_kit::paint::opaque;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -99,7 +99,7 @@ fn tex(kind: usize, band: bool, bb: [f64; 4], salt: u32) -> Tex {
             let d = ((x - 0.03 - sx) / 0.055).hypot((z + 0.05 - sz) / 0.04) + 0.8 * (fbm(seed ^ 8, x * 14.0, z * 14.0, 4) - 0.5);
             c = mix(c, [0.5, 0.4, 0.28], sstep(1.0, 0.6, d) * 0.28 * (0.6 + 0.4 * fbm(seed ^ 10, x * 60.0, z * 60.0, 2)));
             c = mix(c, [0.4, 0.3, 0.2], (-((d - 0.92) / 0.08).powi(2)).exp() * 0.22);
-            rgb(c)
+            opaque(c)
         });
     })
 }

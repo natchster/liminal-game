@@ -1,5 +1,5 @@
 //! `place_bottle_caps`
-use crate::shared::r08_soft;
+use crate::shared::soft;
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
@@ -206,7 +206,7 @@ fn cap_top_mat(k: usize) -> Mat {
         ctx.set_global_alpha(1.0);
         for _ in 0..26 {
             let at = (rnd() * w, rnd() * h);
-            r08_soft(ctx, at, 8.0 + rnd() * 16.0, 0.5 + rnd() * 0.4, rnd() * 3.0, (r as u8, g as u8, b as u8, 0.25 + rnd() * 0.45));
+            soft(ctx, at, 8.0 + rnd() * 16.0, 0.5 + rnd() * 0.4, rnd() * 3.0, (r as u8, g as u8, b as u8, 0.25 + rnd() * 0.45));
         }
         // scratched to the tin
         ctx.set_line_width(0.9);

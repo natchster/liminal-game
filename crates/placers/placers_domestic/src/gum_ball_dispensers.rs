@@ -1,6 +1,6 @@
 //! `place_gum_ball_dispensers`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -50,7 +50,7 @@ pub(crate) fn place_gum_ball_dispensers(g: &mut Game, _dist: &[i32]) {
     knob.rotation().x = PI / 2.0;
     knob.position().set(0, mount_y - 0.04, 0.078);
     dispenser.add(&knob);
-    dispenser.rotation().y = face_yaw(dx, dz);
+    dispenser.rotation().y = face_wall(dx, dz);
     dispenser.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.060), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.060));
     g.world.add(&dispenser);
     let p = dispenser.pos();

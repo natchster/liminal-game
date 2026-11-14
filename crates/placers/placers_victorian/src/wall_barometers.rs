@@ -1,7 +1,7 @@
 //! `place_wall_barometers`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall barometer: 10% chance per level. Tall dark-wood case
@@ -14,7 +14,7 @@ pub(crate) fn place_wall_barometers(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let case_mat = lambert!({ color: 0x4a2818 });
     let dial_face_mat = lambert!({ color: 0xd8d0c0 });
     let weight_mat = lambert!({ color: 0xa08040 });
@@ -51,6 +51,6 @@ pub(crate) fn place_wall_barometers(g: &mut Game, _dist: &[i32]) {
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.025);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.025);
     let bar_height = 1.5 + rnd() * 0.15;
-    wall_mount(&barometer, &c, wall_x, wall_z, bar_height, 0.8);
+    mount_slid_ref(&barometer, &c, wall_x, wall_z, bar_height, 0.8);
     g.world.add(&barometer);
 }

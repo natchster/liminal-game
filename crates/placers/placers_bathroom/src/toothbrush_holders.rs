@@ -1,6 +1,6 @@
 //! `place_toothbrush_holders`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -66,7 +66,7 @@ pub(crate) fn place_toothbrush_holders(g: &mut Game, _dist: &[i32]) {
         head.rotation().copy(&hr);
         holder.add(&head);
     }
-    holder.rotation().y = face_wall_yaw(c.dx, c.dz);
+    holder.rotation().y = face_wall(c.dx, c.dz);
     holder.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.050), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.050));
     g.world.add(&holder);
 }

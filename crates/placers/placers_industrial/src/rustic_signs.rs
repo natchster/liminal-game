@@ -1,6 +1,6 @@
 //! `place_rustic_signs`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::vary as rs_vary;
 use placers_kit::place::wall_tiles;
@@ -25,7 +25,7 @@ pub(crate) fn place_rustic_signs(g: &mut Game, _dist: &[i32]) {
     let sign = group();
     let mount_y = 1.75;
     let tilt = (rnd() - 0.5) * 0.06;
-    sign.rotation().y = face_yaw(dx, dz);
+    sign.rotation().y = face_wall(dx, dz);
     sign.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = sign.pos();
     let vary = rs_vary(p.x, p.z, tilt);

@@ -1,6 +1,6 @@
 //! `place_wristwatches`
 use game::prelude::*;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::seed_of;
 
@@ -212,9 +212,9 @@ fn strap_mat(band: usize, z0: f64, z1: f64, seed: u32) -> Mat {
                 let (x, y) = (i as f64, j as f64);
                 let k = if webbing {
                     let rib = (x * 1.9).sin() * 0.5 + 0.5;
-                    0.86 + 0.12 * rib + 0.06 * (vnoise(s, x * 0.3, y * 0.05) - 0.5)
+                    0.86 + 0.12 * rib + 0.06 * (vn(s, x * 0.3, y * 0.05) - 0.5)
                 } else {
-                    let grain = vnoise(s, x * 0.9, y * 0.9) * 0.5 + vnoise(s ^ 5, x * 0.25, y * 0.25) * 0.5;
+                    let grain = vn(s, x * 0.9, y * 0.9) * 0.5 + vn(s ^ 5, x * 0.25, y * 0.25) * 0.5;
                     0.84 + 0.22 * grain
                 };
                 let px = |v: f64| (v * k).clamp(0.0, 255.0) as u8;
@@ -292,7 +292,7 @@ fn crystal_dirt_tex(seed: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let d = vnoise(s, x * 5.0, y * 5.0) * 0.6 + vnoise(s ^ 3, x * 19.0, y * 19.0) * 0.4;
+                let d = vn(s, x * 5.0, y * 5.0) * 0.6 + vn(s ^ 3, x * 19.0, y * 19.0) * 0.4;
                 let v = ((0.16 + 0.30 * d) * 255.0) as u8;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);
             }

@@ -6,7 +6,7 @@ use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 use placers_kit::place::salt;
 
@@ -26,7 +26,7 @@ pub(crate) fn place_small_crystal_balls(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick_tile(&open);
     let ball_colors: [u32; 4] = [0xc0e0f0, 0xe0d0f0, 0xd8e8d8, 0xf0e0d0];
-    let tint = pick_u32(&ball_colors);
+    let tint = pick_hex(&ball_colors);
     // the old inner light's shimmer phase (no light: glass does not shine)
     let _ = rnd();
     let px = g.wx(x) + (rnd() - 0.5) * 2.4;

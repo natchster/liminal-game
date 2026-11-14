@@ -8,13 +8,13 @@ use placers_kit::geometry::put_world;
 use placers_kit::noise::fbmp;
 use placers_kit::noise::hash;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::paint::mul;
 use placers_kit::paint::paint_tile;
 use placers_kit::paint::rgb;
 use placers_kit::place::index_of;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::salt_at;
 use placers_kit::place::scatter_pos;
 
@@ -27,7 +27,7 @@ pub(crate) fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     // the old star colours: the glitter's (gold, a pinkish silver, rose, blue)
     let star_colors = [0xd8b040, 0xf0d0d0, 0xd050a0, 0x2080d8];
     let ks = index_of(&star_colors, pick_color(&star_colors));
@@ -74,7 +74,7 @@ pub(crate) fn place_small_princess_wands(g: &mut Game, _dist: &[i32]) {
         let mut c = wear_at(salt ^ 35, u, v, &w);
         // the foil stripe wound round it, rubbed off in places
         let st = ((u * 3.0 + v * 3.0).fract() - 0.5).abs();
-        let foil = (1.0 - ss(0.12, 0.15, st)) * ss(0.3, 0.45, fbmp(salt ^ 37, u, v, 4, 3));
+        let foil = (1.0 - sstep(0.12, 0.15, st)) * sstep(0.3, 0.45, fbmp(salt ^ 37, u, v, 4, 3));
         c = mix(c, mix(glitter, [0.8, 0.78, 0.74], 0.3), foil);
         c
     });

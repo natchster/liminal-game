@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Baby crib fragment: 3% chance per level. Wooden crib section with bars.
 pub(crate) fn place_baby_crib_fragments(g: &mut Game, _dist: &[i32]) {
@@ -43,6 +43,6 @@ pub(crate) fn place_baby_crib_fragments(g: &mut Game, _dist: &[i32]) {
         knob.position().set(s * 0.22, 0.51, 0);
         crib.add(&knob);
     }
-    scatter_on_floor(g, &crib, x, z, 1.6);
+    scatter(g, &crib, x, z, 1.6);
     g.world.add(&crib);
 }

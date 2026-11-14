@@ -2,10 +2,10 @@
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::sstep;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::pick;
 use placers_kit::place::vary as wm_vary;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Wall mirror: 20% chance per level, 1 framed mirror on a wall (batch r13a).
 pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
@@ -13,7 +13,7 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
     } // 20% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }
@@ -895,7 +895,7 @@ fn wm_gilt_tex(vary: u32) -> Tex {
                 let bole = [118.0, 62.0, 40.0];
                 // chipped to the gesso along the outer edge, a knock here and there
                 let chip = sstep(0.0035, 0.0015, d) * sstep(0.62, 0.72, fbm(seed ^ 0x13, u * 0.12, v * 0.12, 2))
-                    + sstep(0.86, 0.9, vnoise(seed ^ 0x14, u * 0.06, v * 0.06)) * crest;
+                    + sstep(0.86, 0.9, vn(seed ^ 0x14, u * 0.06, v * 0.06)) * crest;
                 let gesso = [204.0, 194.0, 168.0];
                 // grime in the quirks and over it all in patches; dust on the top rail
                 let grime = (recess * 0.75 + 0.25 * sstep(0.5, 0.8, fbm(seed ^ 0x15, u * 0.02, v * 0.02, 2))).min(0.9);

@@ -1,7 +1,7 @@
 //! `place_dead_potted_plants`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Dead potted plant: 15% chance per level. Small pot with
 // 2-3 dark bent stems.
@@ -13,10 +13,10 @@ pub(crate) fn place_dead_potted_plants(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // Per-weather pot color pool.
     let pot_pool = dead_plant_pot_pool(g.weather_key());
-    let pot_mat = lambert!({ color: pot_pool[pick(pot_pool.len())] });
+    let pot_mat = lambert!({ color: pot_pool[ri(pot_pool.len())] });
     let stem_mat = lambert!({ color: 0x2a1810 });
     let soil_mat = lambert!({ color: 0x1a0e08 });
     let plant = group();

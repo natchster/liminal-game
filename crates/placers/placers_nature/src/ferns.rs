@@ -5,17 +5,17 @@ use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::paint::bleed;
-use placers_kit::paint::mul as scale3;
+use placers_kit::paint::mul;
 use placers_kit::paint::paint_px;
 use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t17_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -150,7 +150,7 @@ fn fern_at(x: f64, z: f64) -> (f64, Option<(f64, f64, usize)>) {
 /// cut out, the midveins and their forked side veins paler, the margins
 /// browned and the tips dried, a few holes
 fn fern_tex(state: usize, back: bool) -> Tex {
-    t17_kind_tex!(6, state * 2 + back as usize, |kk: usize| {
+    cached_kind_tex!(6, state * 2 + back as usize, |kk: usize| {
         let (state, back) = (kk / 2, kk % 2 == 1);
         let (lo, hi) = frame("Real__fernFrond");
         let (ex, ez) = (hi[0] - lo[0], hi[2] - lo[2]);
@@ -169,7 +169,7 @@ fn fern_tex(state: usize, back: bool) -> Tex {
                 let (inside, seg) = fern_at(x, z);
                 let edge = (inside / px_m + 0.5).clamp(0.0, 1.0);
                 let n = fbm(seed, x * 300.0, z * 300.0, 3);
-                let mut c = mix(green, scale3(green, 0.8), n);
+                let mut c = mix_unclamped(green, mul(green, 0.8), n);
                 // drying from the tips and the margins inward
                 let (a, across) = seg.map(|(a, c, _)| (a, c)).unwrap_or((0.0, 0.0));
                 let dry = match state {
@@ -178,15 +178,15 @@ fn fern_tex(state: usize, back: bool) -> Tex {
                     _ => 0.9,
                 };
                 let blot = fbm(seed ^ 0x33, x * 120.0, z * 120.0, 3);
-                c = mix(c, brown, (dry + 0.3 * (blot - 0.5)).clamp(0.0, 1.0));
-                c = mix(c, scale3(brown, 0.7), 0.6 * sstep(0.55, 0.95, across.abs()) * (0.4 + 0.6 * dry));
+                c = mix_unclamped(c, brown, (dry + 0.3 * (blot - 0.5)).clamp(0.0, 1.0));
+                c = mix_unclamped(c, mul(brown, 0.7), 0.6 * sstep(0.55, 0.95, across.abs()) * (0.4 + 0.6 * dry));
                 // the midvein, the side veins forking out to the margin
                 if let Some((a, cr, k)) = seg {
                     let mid = 1.0 - sstep(0.06, 0.14, cr.abs());
                     let q = (a * 18.0 - cr.abs() * 1.4 + k as f64 * 0.37).fract();
                     let side = (1.0 - sstep(0.04, 0.12, (q - 0.5).abs())) * sstep(0.12, 0.25, cr.abs()) * (1.0 - sstep(0.7, 0.9, cr.abs()));
                     let pale = if back { [0.62, 0.62, 0.48] } else { [0.52, 0.54, 0.36] };
-                    c = mix(c, mix(c, pale, 0.6), mid.max(side * 0.35));
+                    c = mix_unclamped(c, mix_unclamped(c, pale, 0.6), mid.max(side * 0.35));
                     if back {
                         // the sori: round, naked, orange-brown gone dark,
                         // halfway between the midvein and the margin
@@ -197,12 +197,12 @@ fn fern_tex(state: usize, back: bool) -> Tex {
                             let (_, l, hw) = fern_seg(k, if z >= 0.0 { 1.0 } else { -1.0 });
                             let d = (da * l).hypot(dc * hw) / 0.0009;
                             let sori = [[0.60, 0.36, 0.12], [0.45, 0.28, 0.12], [0.30, 0.20, 0.12]][state];
-                            c = mix(c, sori, 1.0 - sstep(0.7, 1.0, d));
+                            c = mix_unclamped(c, sori, 1.0 - sstep(0.7, 1.0, d));
                         }
                     }
                 } else {
                     // the rachis's wing
-                    c = mix(c, scale3(c, 1.1), 0.3);
+                    c = mix_unclamped(c, mul(c, 1.1), 0.3);
                 }
                 // holes eaten through
                 let hole = sstep(0.79, 0.81, fbm(seed ^ 0x40, x * 260.0, z * 260.0, 3));

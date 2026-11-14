@@ -1,6 +1,6 @@
 //! `place_cast_iron_kettles`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -43,7 +43,7 @@ pub(crate) fn place_cast_iron_kettles(g: &mut Game, _dist: &[i32]) {
     // ends on the body's shoulders (surface y ≈ +0.020 at 5.5 cm out), arch clears the knob
     handle.position().set(0, mount_y + 0.018, 0.055);
     kettle.add(&handle);
-    kettle.rotation().y = face_yaw(dx, dz);
+    kettle.rotation().y = face_wall(dx, dz);
     kettle.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.060), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.060));
     g.world.add(&kettle);
 }

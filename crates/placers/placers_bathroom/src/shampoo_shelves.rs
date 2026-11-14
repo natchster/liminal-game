@@ -7,7 +7,7 @@ use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::skip;
 use placers_kit::place::wall_tiles_first;
@@ -34,7 +34,7 @@ pub(crate) fn place_shampoo_shelves(g: &mut Game, _dist: &[i32]) {
     let salt = salt(px, pz);
     // the shelf: modelled with the wall at z = 0 and the glass's top at y = 0
     let shelf = group();
-    shelf.position().set(0, T03_SHELF_TOP, -0.060);
+    shelf.position().set(0, SHELF_TOP, -0.060);
     shelf_group.add(&shelf);
     let put = |grp: &Obj, name: &str, mat: &Mat| -> Option<Obj> {
         let m = mesh(prop_part_as_modelled(name)?, mat);
@@ -47,17 +47,17 @@ pub(crate) fn place_shampoo_shelves(g: &mut Game, _dist: &[i32]) {
     let bottle_count = 2 + (rnd() * 2.0).floor() as i32;
     let mut kinds = vec![];
     for b in 0..bottle_count {
-        let b_color = pick(&T03_BOTTLE_COLORS);
-        let kind = T03_BOTTLE_COLORS.iter().position(|&k| k == b_color).unwrap_or(0);
+        let b_color = pick(&BOTTLE_COLORS);
+        let kind = BOTTLE_COLORS.iter().position(|&k| k == b_color).unwrap_or(0);
         let b_h = 0.14 + rnd() * 0.06;
         // the old height draw sizes the bottle a little (uniformly, 0.92-1.08)
         // and turns it on the shelf as it was put down
         let f = (b_h - 0.14) / 0.06;
-        let bottle = t03_bottle(kind, salt.wrapping_add(b as u32 * 0x9e37_79b9));
+        let bottle = shampoo_bottle(kind, salt.wrapping_add(b as u32 * 0x9e37_79b9));
         bottle.scale().set_scalar(0.92 + 0.16 * f);
         bottle.rotation().y = (f - 0.5) * 0.5;
         let bx = -0.15 + b as f64 * 0.15;
-        bottle.position().set(bx, T03_SHELF_TOP, 0);
+        bottle.position().set(bx, SHELF_TOP, 0);
         shelf_group.add(&bottle);
         kinds.push(kind);
     }
@@ -65,22 +65,22 @@ pub(crate) fn place_shampoo_shelves(g: &mut Game, _dist: &[i32]) {
     if let Some(glass) = put(&shelf, "Real__shampooShelfGlass", &glass_mat(&shelf_glass_tex(salt, kinds))) {
         glass.set_render_order(2);
     }
-    shelf_group.rotation().y = face_wall_yaw(c.dx, c.dz);
+    shelf_group.rotation().y = face_wall(c.dx, c.dz);
     shelf_group.position().set(px, 0, pz);
     g.world.add(&shelf_group);
 }
 
 /// The glass's top, as the old plank's (1.20 m, 2 cm thick)
-const T03_SHELF_TOP: f64 = 1.21;
+const SHELF_TOP: f64 = 1.21;
 
-/// The old colour pool: which bottle each colour is (`t03_bottle`)
-const T03_BOTTLE_COLORS: [u32; 5] = [0x40a0c0, 0xe08080, 0x80c060, 0xf0d040, 0xd050a0];
+/// The old colour pool: which bottle each colour is (`shampoo_bottle`)
+const BOTTLE_COLORS: [u32; 5] = [0x40a0c0, 0xe08080, 0x80c060, 0xf0d040, 0xd050a0];
 
 /// One bottle of `kind` standing at its foot's centre: the old colours were a
 /// pale blue anti-dandruff shampoo, a rose conditioner (oval HDPE), a green
 /// herbal shampoo, an amber egg shampoo (Boston round PET), a plum shower gel
 /// (oval)
-fn t03_bottle(kind: usize, salt: u32) -> Obj {
+fn shampoo_bottle(kind: usize, salt: u32) -> Obj {
     let grp = group();
     let round = kind == 2 || kind == 3;
     let (body_col, cap_col, spec, shine) = [

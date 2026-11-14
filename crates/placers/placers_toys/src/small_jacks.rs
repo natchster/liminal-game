@@ -1,7 +1,7 @@
 //! `place_small_jacks`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small metal jacks: 8% chance per level. 4-8 six-point
@@ -10,7 +10,7 @@ pub(crate) fn place_small_jacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let jack_colors = [0xc8c8c8, 0xd8b040, 0xa02040, 0x2050d8];
     let ball_mat = lambert!({ color: 0xd82040 });
     let grp = group();

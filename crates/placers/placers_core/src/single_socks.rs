@@ -1,5 +1,5 @@
 //! `place_single_socks`
-use crate::shared::r08_soft;
+use crate::shared::soft;
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
@@ -66,13 +66,13 @@ fn sock_knit_tex() -> Tex {
         // greyed all over, in washes
         for _ in 0..40 {
             let at = (rnd() * w, rnd() * h);
-            r08_soft(ctx, at, 18.0 + rnd() * 40.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (110, 102, 90, 0.08 + rnd() * 0.12));
+            soft(ctx, at, 18.0 + rnd() * 40.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (110, 102, 90, 0.08 + rnd() * 0.12));
         }
         // walked in: the toe and the heel
         for (u, v, n) in [(0.95, 0.83, 40), (0.30, 0.70, 30)] {
             for _ in 0..n {
                 let at = (u * w + (rnd() - 0.5) * 70.0, v * h + (rnd() - 0.5) * 60.0);
-                r08_soft(ctx, at, 8.0 + rnd() * 16.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (74, 64, 50, 0.10 + rnd() * 0.16));
+                soft(ctx, at, 8.0 + rnd() * 16.0, 0.6 + rnd() * 0.4, rnd() * 3.0, (74, 64, 50, 0.10 + rnd() * 0.16));
             }
         }
         // a few bits of the floor caught in it

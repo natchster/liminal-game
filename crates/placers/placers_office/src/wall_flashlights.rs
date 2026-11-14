@@ -1,7 +1,7 @@
 //! `place_wall_flashlights`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall emergency flashlight: 12% chance per level. Small dark
@@ -14,7 +14,7 @@ pub(crate) fn place_wall_flashlights(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let bracket_mat = lambert!({ color: 0x2a2418 });
     let flash_mat = lambert!({ color: 0x181820 });
     let lens_glass = lambert!({ color: 0xe8e8c0 });
@@ -41,6 +41,6 @@ pub(crate) fn place_wall_flashlights(g: &mut Game, _dist: &[i32]) {
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.005);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.005);
     let fl_height = 1.6 + rnd() * 0.15;
-    wall_mount(&fl, &c, wall_x, wall_z, fl_height, 1.0);
+    mount_slid_ref(&fl, &c, wall_x, wall_z, fl_height, 1.0);
     g.world.add(&fl);
 }

@@ -1,7 +1,7 @@
 //! `place_floor_newspapers`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Folded newspaper on floor: 20% chance per level, 1 paper.
 pub(crate) fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
@@ -12,7 +12,7 @@ pub(crate) fn place_floor_newspapers(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // Per-weather aged tint.
     let paper_tint = newspaper_tint_by_weather(g.weather_key());
     let paper_mat = lambert!({ map: newspaper_texture_2(), color: paper_tint, side: DoubleSide });

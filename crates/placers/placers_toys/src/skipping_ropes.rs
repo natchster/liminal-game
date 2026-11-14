@@ -1,12 +1,12 @@
 //! `place_skipping_ropes`: Skipping rope: 8% chance per level. A PVC "licorice" skipping rope (Blender batch `t16`): 2.4 m of 4.8 mm solid PVC through two moulded polypropylene handles (114 mm), dropped with its handles together: the rope springs out in one loop that crossed itself. The PVC faded and dulled, grey with dust; the handles scuffed.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::noise::mix as t16_mix;
-use placers_kit::noise::sstep as t16_ss;
-use placers_kit::noise::vn as t16_vn;
+use placers_kit::noise::mix;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
-use placers_kit::place::salt_of as t16_salt;
+use placers_kit::place::salt_of;
 
 /// Skipping rope: 8% chance per level. A PVC "licorice" skipping rope
 /// (Blender batch `t16`): 2.4 m of 4.8 mm solid PVC through two moulded
@@ -31,10 +31,10 @@ pub(crate) fn place_skipping_ropes(g: &mut Game, _dist: &[i32]) {
     let rope = group();
     let px = g.wx(x) + (rnd() - 0.5) * 2.2;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.2;
-    let salt = t16_salt(px, pz);
+    let salt = salt_of(px, pz);
     let dust = dust_tex(salt);
-    t16_put(&rope, "Real__licoriceRopeCord", &phong!({ color: pvc, map: &dust, specular: 0x262626, shininess: 34 }));
-    t16_put(&rope, "Real__licoriceRopeHandles", &phong!({ color: handles, map: &dust, specular: 0x1c1c1c, shininess: 22 }));
+    put(&rope, "Real__licoriceRopeCord", &phong!({ color: pvc, map: &dust, specular: 0x262626, shininess: 34 }));
+    put(&rope, "Real__licoriceRopeHandles", &phong!({ color: handles, map: &dust, specular: 0x1c1c1c, shininess: 22 }));
     rope.position().set(px, 0, pz);
     rope.rotation().y = rnd() * PI * 2.0;
     g.world.add(&rope);
@@ -43,18 +43,18 @@ pub(crate) fn place_skipping_ropes(g: &mut Game, _dist: &[i32]) {
 /// Dust and grime over the plastic, laid on from above (a multiplier of
 /// the plastic's colour): grey film in patches, darker where it lay in dirt
 fn dust_tex(salt: u32) -> Tex {
-    t16_paint(128, 128, move |u, v| {
-        let film = t16_ss(0.4, 0.75, t16_fbm(salt, u * 6.0, v * 6.0, 3));
-        let dirt = t16_ss(0.6, 0.85, t16_fbm(salt ^ 0x5d, u * 11.0, v * 11.0, 2));
-        let speck = t16_vn(salt ^ 0x33, u * 120.0, v * 120.0);
-        let c = t16_mix([0.92, 0.91, 0.90], [1.0, 0.99, 0.97], film);
-        let c = t16_mix(c, [0.70, 0.68, 0.65], 0.6 * dirt);
-        t16_mix(c, [0.80, 0.79, 0.77], 0.3 * t16_ss(0.7, 0.95, speck))
+    paint(128, 128, move |u, v| {
+        let film = sstep(0.4, 0.75, fbm(salt, u * 6.0, v * 6.0, 3));
+        let dirt = sstep(0.6, 0.85, fbm(salt ^ 0x5d, u * 11.0, v * 11.0, 2));
+        let speck = vn(salt ^ 0x33, u * 120.0, v * 120.0);
+        let c = mix([0.92, 0.91, 0.90], [1.0, 0.99, 0.97], film);
+        let c = mix(c, [0.70, 0.68, 0.65], 0.6 * dirt);
+        mix(c, [0.80, 0.79, 0.77], 0.3 * sstep(0.7, 0.95, speck))
     })
 }
 
 /// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
-fn t16_put(grp: &Obj, name: &str, mat: &Mat) {
+fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));
     }
@@ -62,7 +62,7 @@ fn t16_put(grp: &Obj, name: &str, mat: &Mat) {
 
 /// A texture painted pixel by pixel (sRGB) from `f(u, v)` (v down the
 /// image), on every core: no canvas call and no draw inside
-fn t16_paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send + 'static) -> Tex {
+fn paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send + 'static) -> Tex {
     canvas_tex_opt(w as f64, h as f64, false, move |ctx, cw, ch| {
         let mut img = ctx.create_image_data(cw, ch);
         par_rows(&mut img.data, w * 4, |j, out| {
@@ -78,10 +78,10 @@ fn t16_paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send 
     })
 }
 
-fn t16_fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
     let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
     for k in 0..oct {
-        s += amp * t16_vn(seed.wrapping_add(k * 7919), x * f, y * f);
+        s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
         n += amp;
         amp *= 0.5;
         f *= 2.03;

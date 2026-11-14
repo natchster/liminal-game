@@ -12,7 +12,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::paint::rgb as hex;
+use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::salt_of;
@@ -50,7 +50,7 @@ pub(crate) fn place_garden_gnomes(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.rotation().y = PI;
     gnome.add(&body);
-    let paint = |c: u32, chips: f64, k: u32| lambert!({ map: &painted_tex(hex(c), chips, salt ^ k) });
+    let paint = |c: u32, chips: f64, k: u32| lambert!({ map: &painted_tex(rgb(c), chips, salt ^ k) });
     put(&body, "Real__gnomeBase", &paint(0x6c6e5c, 1.2, 1));
     put(&body, "Real__gnomeBoots", &paint(0x2e2822, 1.0, 2));
     put(&body, "Real__gnomeTrousers", &paint(trousers, 0.6, 3));

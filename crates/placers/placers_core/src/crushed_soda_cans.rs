@@ -42,7 +42,7 @@ pub(crate) fn place_crushed_soda_cans(g: &mut Game, _dist: &[i32]) {
 /// A soft round spot at `at`: `r` px, `k` times as tall as it is wide, turned
 /// `turn`, its colour fading out from the middle (the context squashed, so
 /// the fade is never cut by an edge).
-fn r08_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
+fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
     let (cr, cg, cb, a) = rgba;
     ctx.save();
     ctx.translate(at.0, at.1);
@@ -145,7 +145,7 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..40 {
             let at = (rnd() * w, rnd() * h);
-            r08_soft(ctx, at, 14.0 + rnd() * 40.0, 0.5 + rnd() * 0.3, rnd() * 3.0, (110, 100, 84, 0.08 + rnd() * 0.16));
+            soft(ctx, at, 14.0 + rnd() * 40.0, 0.5 + rnd() * 0.3, rnd() * 3.0, (110, 100, 84, 0.08 + rnd() * 0.16));
         }
         ctx.reset_transform();
         let (w, h) = (cw, ch);

@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Loose vinyl record: 8% chance per level. Black disc w/ coloured label.
 pub(crate) fn place_vinyl_record_discs(g: &mut Game, _dist: &[i32]) {
@@ -32,6 +32,6 @@ pub(crate) fn place_vinyl_record_discs(g: &mut Game, _dist: &[i32]) {
     hole.rotation().x = -PI / 2.0;
     hole.position().y = 0.0028;
     disc.add(&hole);
-    scatter_on_floor(g, &disc, x, z, 2.4);
+    scatter(g, &disc, x, z, 2.4);
     g.world.add(&disc);
 }

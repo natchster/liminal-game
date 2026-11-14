@@ -1,6 +1,6 @@
 //! `place_cuckoo_clocks`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -62,7 +62,7 @@ pub(crate) fn place_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
         cone.position().set(side * 0.070, mount_y - 0.231, 0.020); // eye (top) on the chain's end (−0.22)
         cuckoo.add(&cone);
     }
-    cuckoo.rotation().y = face_yaw(dx, dz);
+    cuckoo.rotation().y = face_wall(dx, dz);
     cuckoo.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.030), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.030));
     g.world.add(&cuckoo);
     let p = cuckoo.pos();

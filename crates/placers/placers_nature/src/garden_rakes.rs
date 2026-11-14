@@ -5,9 +5,9 @@ use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
-use placers_kit::paint::mul as scale3;
+use placers_kit::paint::mul;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::salt_of;
@@ -52,17 +52,17 @@ fn handle_tex(salt: u32) -> Tex {
             let (u, v) = (px / w, py / h);
             let grain = fbm(salt, u * 9.0, v * 14.0, 4);
             let streak = ((v * 40.0 + grain * 6.0 + (u * 3.0).sin() * 0.6).sin() * 0.5 + 0.5).powf(4.0);
-            let mut c = mix([0.62, 0.53, 0.40], [0.52, 0.48, 0.43], 0.55 + 0.3 * fbm(salt ^ 1, u * 4.0, v * 2.0, 3));
-            c = scale3(c, 0.9 + 0.12 * grain);
-            c = mix(c, [0.40, 0.31, 0.21], 0.35 * streak);
+            let mut c = mix_unclamped([0.62, 0.53, 0.40], [0.52, 0.48, 0.43], 0.55 + 0.3 * fbm(salt ^ 1, u * 4.0, v * 2.0, 3));
+            c = mul(c, 0.9 + 0.12 * grain);
+            c = mix_unclamped(c, [0.40, 0.31, 0.21], 0.35 * streak);
             // the hands' places: the lead hand's and the end's
             let grip = sstep(0.40, 0.46, u) * (1.0 - sstep(0.60, 0.66, u)) + sstep(0.84, 0.90, u) * (1.0 - sstep(0.985, 1.0, u));
-            c = mix(c, [0.36, 0.30, 0.24], 0.45 * grip);
+            c = mix_unclamped(c, [0.36, 0.30, 0.24], 0.45 * grip);
             // grime and rust stain into the wood at the ferrule
-            c = mix(c, [0.30, 0.22, 0.15], 0.6 * (1.0 - sstep(0.06, 0.12, u)));
+            c = mix_unclamped(c, [0.30, 0.22, 0.15], 0.6 * (1.0 - sstep(0.06, 0.12, u)));
             // knocks and scuffs
             let knock = sstep(0.8, 0.85, fbm(salt ^ 9, u * 60.0, v * 3.0, 2));
-            mix(c, [0.68, 0.62, 0.52], 0.4 * knock)
+            mix_unclamped(c, [0.68, 0.62, 0.52], 0.4 * knock)
         });
     })
 }
@@ -74,15 +74,15 @@ fn steel_tex(paint: [f64; 3], salt: u32) -> Tex {
         paint_px(ctx, w, h, |px, py| {
             let (u, v) = (px / w, py / h);
             let rust_n = fbm(salt ^ 0x77, u * 30.0, v * 30.0, 4);
-            let mut rust = mix([0.36, 0.20, 0.11], [0.22, 0.13, 0.08], rust_n);
-            rust = mix(rust, [0.44, 0.28, 0.14], 0.4 * sstep(0.6, 0.75, fbm(salt ^ 0x78, u * 90.0, v * 90.0, 2)));
+            let mut rust = mix_unclamped([0.36, 0.20, 0.11], [0.22, 0.13, 0.08], rust_n);
+            rust = mix_unclamped(rust, [0.44, 0.28, 0.14], 0.4 * sstep(0.6, 0.75, fbm(salt ^ 0x78, u * 90.0, v * 90.0, 2)));
             let chips = fbm(salt ^ 0x79, u * 22.0, v * 22.0, 4);
             let paint_left = 1.0 - sstep(0.44, 0.56, chips);
-            let mut c = mix(rust, scale3(paint, 0.9 + 0.2 * fbm(salt ^ 0x7a, u * 8.0, v * 8.0, 2)), paint_left);
+            let mut c = mix_unclamped(rust, mul(paint, 0.9 + 0.2 * fbm(salt ^ 0x7a, u * 8.0, v * 8.0, 2)), paint_left);
             // rust blooming through what paint is left
-            c = mix(c, rust, 0.35 * sstep(0.55, 0.7, fbm(salt ^ 0x7b, u * 50.0, v * 50.0, 3)) * paint_left);
+            c = mix_unclamped(c, rust, 0.35 * sstep(0.55, 0.7, fbm(salt ^ 0x7b, u * 50.0, v * 50.0, 3)) * paint_left);
             // dust
-            mix(c, [0.48, 0.45, 0.40], 0.10)
+            mix_unclamped(c, [0.48, 0.45, 0.40], 0.10)
         });
     })
 }

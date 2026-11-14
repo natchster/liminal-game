@@ -5,7 +5,7 @@ use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::paint_px;
@@ -15,7 +15,7 @@ use placers_kit::place::salt_of;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t05_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -97,13 +97,13 @@ const MOSS_RGB: [[f64; 3]; 4] = [[0.44, 0.54, 0.24], [0.50, 0.52, 0.28], [0.34, 
 /// A cushion's shoots seen close: tiny leaves packed into a fur, the tips
 /// paler (silvery where they are dry), darker in the gaps between
 fn moss_shoots_tex() -> Tex {
-    t05_tex!(128, 128, false, |ctx, w, h| {
+    cached_tex!(128, 128, false, |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let fine = vn(0x3055, x / 1.6, y / 1.6);
             let mid = fbm(0x3056, x / 7.0, y / 7.0, 3);
             let k = 0.55 + 0.6 * fine * fine + 0.3 * (mid - 0.5);
             let tip = sstep(0.75, 0.95, fine);
-            let c = mix([0.62 * k, 0.66 * k, 0.48 * k], [0.86, 0.86, 0.76], 0.35 * tip);
+            let c = mix_unclamped([0.62 * k, 0.66 * k, 0.48 * k], [0.86, 0.86, 0.76], 0.35 * tip);
             [c[0], c[1], c[2], 1.0]
         });
     })
@@ -128,15 +128,15 @@ fn moss_mat_tex(base: [f64; 3], salt: u32) -> Tex {
             let tips = sstep(0.62, 0.8, vn(salt ^ 0xa, x / 0.8, y / 0.8));
             // colonies, with bare floor between some of them
             let patch = fbm(salt ^ 0x3, u * 5.0, v * 5.0, 4);
-            let mut c = mix(base, [0.46, 0.42, 0.28], sstep(0.4, 0.95, r) * 0.6 + 0.3 * sstep(0.55, 0.75, patch));
-            c = mix([c[0] * 0.45, c[1] * 0.45, c[2] * 0.45], c, 0.3 + 0.7 * shoots);
-            c = mix(c, [0.78, 0.80, 0.62], 0.35 * tips);
+            let mut c = mix_unclamped(base, [0.46, 0.42, 0.28], sstep(0.4, 0.95, r) * 0.6 + 0.3 * sstep(0.55, 0.75, patch));
+            c = mix_unclamped([c[0] * 0.45, c[1] * 0.45, c[2] * 0.45], c, 0.3 + 0.7 * shoots);
+            c = mix_unclamped(c, [0.78, 0.80, 0.62], 0.35 * tips);
             // the silt the damp brought, dried in a ring round it
             let silt = sstep(edge - 0.1, edge + 0.1, r) * (1.0 - sstep(edge + 0.1, edge + 0.32, r));
             let a_moss = cover * (0.7 + 0.3 * shoots) * sstep(0.32, 0.4, patch + 0.25 * (1.0 - r));
             let a_silt = 0.2 * silt;
             let al = a_moss + a_silt * (1.0 - a_moss);
-            let col = if al > 0.0 { mix([0.36, 0.32, 0.25], c, a_moss / al) } else { c };
+            let col = if al > 0.0 { mix_unclamped([0.36, 0.32, 0.25], c, a_moss / al) } else { c };
             [col[0], col[1], col[2], al]
         });
     })

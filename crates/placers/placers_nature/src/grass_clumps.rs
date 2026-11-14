@@ -5,7 +5,7 @@ use game::assets::props::prop_part_as_modelled;
 use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::paint_px;
@@ -99,7 +99,7 @@ fn silt_tex(salt: u32) -> Tex {
             let (u, v) = (x / w - 0.5, y / h - 0.5);
             let r = u.hypot(v) * 2.0 + 0.3 * (fbm(salt, u * 7.0 + 3.0, v * 7.0 + 3.0, 3) - 0.5);
             let grit = vn(salt ^ 0x6, x / 1.5, y / 1.5);
-            let c = mix([0.22, 0.19, 0.15], [0.36, 0.32, 0.26], sstep(0.1, 0.8, r) * 0.7 + 0.3 * grit);
+            let c = mix_unclamped([0.22, 0.19, 0.15], [0.36, 0.32, 0.26], sstep(0.1, 0.8, r) * 0.7 + 0.3 * grit);
             [c[0], c[1], c[2], (1.0 - sstep(0.55, 0.95, r)) * (0.75 + 0.25 * grit)]
         });
     })

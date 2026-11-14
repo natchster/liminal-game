@@ -1,7 +1,7 @@
 //! `place_small_toy_planes`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small toy plane: 8% chance per level. Toy airplane with
@@ -10,7 +10,7 @@ pub(crate) fn place_small_toy_planes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let body_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030, 0x606870, 0xf0ece0];
     let body_mat = lambert!({ color: pick_color(&body_colors) });
     let prop_mat = lambert!({ color: 0x201a10 });

@@ -1,6 +1,6 @@
 //! `place_small_dominoes`
 use game::prelude::*;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small dominoes: 10% chance per level. 2-4 dominoes with
@@ -9,7 +9,7 @@ pub(crate) fn place_small_dominoes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
     } // 10% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let bone_mat = lambert!({ color: 0xf0ece0 });
     let pip_mat = lambert!({ color: 0x181008 });
     let divider_mat = lambert!({ color: 0x8a7060 });

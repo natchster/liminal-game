@@ -1,5 +1,6 @@
 //! `place_wall_stains`
 use game::prelude::*;
+use placers_kit::noise::hash;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
@@ -17,22 +18,14 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
     /// The narrowest a stain is: just under the width (8 cm) past which
     /// `settle_props` probes a wall's face at its sides as well as its middle
     const STAIN_W: f64 = 0.0799;
-    /// A hash of (seed, i, j) in [0, 1)
-    fn hash01(seed: u32, i: i32, j: i32) -> f64 {
-        let mut h = seed ^ (i as u32).wrapping_mul(0x27d4_eb2d) ^ (j as u32).wrapping_mul(0x1656_67b1);
-        h = (h ^ (h >> 15)).wrapping_mul(0x85eb_ca6b);
-        h = (h ^ (h >> 13)).wrapping_mul(0xc2b2_ae35);
-        h ^= h >> 16;
-        f64::from(h) / 4_294_967_296.0
-    }
     /// Smooth value noise in [0, 1]
     fn vnoise(seed: u32, x: f64, y: f64) -> f64 {
         let (xf, yf) = (x.floor(), y.floor());
         let (i, j) = (xf as i32, yf as i32);
         let (u, v) = (x - xf, y - yf);
         let (u, v) = (u * u * (3.0 - 2.0 * u), v * v * (3.0 - 2.0 * v));
-        let (a, b) = (hash01(seed, i, j), hash01(seed, i + 1, j));
-        let (c, d) = (hash01(seed, i, j + 1), hash01(seed, i + 1, j + 1));
+        let (a, b) = (hash(seed, i, j), hash(seed, i + 1, j));
+        let (c, d) = (hash(seed, i, j + 1), hash(seed, i + 1, j + 1));
         a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v
     }
     /// Fractal value noise of `oct` octaves, in [0, 1]
@@ -211,13 +204,13 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
                             let mut dot = 0.0f64;
                             for k in 0..9 {
                                 let (ci, cj) = (gi + k % 3 - 1, gj + k / 3 - 1);
-                                let h = hash01(seed ^ 0x1234, ci, cj);
+                                let h = hash(seed ^ 0x1234, ci, cj);
                                 if h < dens * 0.35 {
                                     let (dx, dy) = (
-                                        (ci as f64 + hash01(seed ^ 0x77, ci, cj)) * 0.004 - x,
-                                        (cj as f64 + hash01(seed ^ 0x78, ci, cj)) * 0.004 - y,
+                                        (ci as f64 + hash(seed ^ 0x77, ci, cj)) * 0.004 - x,
+                                        (cj as f64 + hash(seed ^ 0x78, ci, cj)) * 0.004 - y,
                                     );
-                                    let r = 0.0009 + 0.0012 * hash01(seed ^ 0x79, ci, cj) * dens;
+                                    let r = 0.0009 + 0.0012 * hash(seed ^ 0x79, ci, cj) * dens;
                                     dot = dot.max((1.0 - (dx.hypot(dy) - r) / aa).clamp(0.0, 1.0));
                                 }
                             }

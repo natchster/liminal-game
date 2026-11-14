@@ -1,8 +1,8 @@
 //! `place_wall_gauges`
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall analog gauge: 15% chance per level. Small circular
@@ -15,13 +15,13 @@ pub(crate) fn place_wall_gauges(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let g_mat = lambert!({ map: gauge_texture(), transparent: true, side: DoubleSide });
     let gauge = mesh(circle_geo!(0.10, 20), &g_mat);
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
     let gauge_height = 1.5 + rnd() * 0.30;
-    wall_mount(&gauge, &c, wall_x, wall_z, gauge_height, 1.0);
+    mount_slid_ref(&gauge, &c, wall_x, wall_z, gauge_height, 1.0);
     g.world.add(&gauge);
     // 30% chance: 1-2 sibling gauges 0.24-0.30 m apart in row.
     if rnd() < 0.30 {

@@ -1,6 +1,6 @@
 //! `place_soap_dispensers`
 use game::prelude::*;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::place::mount_slid;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
@@ -38,6 +38,6 @@ pub(crate) fn place_soap_dispensers(g: &mut Game, _dist: &[i32]) {
     // Origin 8 cm off the wall: the 8 cm deep body (local z -0.08..0) backs onto
     // the wall face (at 4 cm its back half was inside the wall).
     let (wall_x, wall_z) = wall_xz(g, c, 0.080);
-    mount(&dispenser, c, wall_x, wall_z, 1.30, 0.4);
+    mount_slid(&dispenser, c, wall_x, wall_z, 1.30, 0.4);
     g.world.add(&dispenser);
 }

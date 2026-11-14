@@ -8,7 +8,7 @@ use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 use placers_kit::place::salt;
 
@@ -31,8 +31,8 @@ pub(crate) fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
     let (x, z) = pick_tile(&open);
     let gem_colors: [u32; 4] = [0xd82040, 0x2080d8, 0x30c060, 0xa020d0];
     // the four corner gems' picks, then the medallion's: the stones' pastes
-    let corners: Vec<u32> = (0..4).map(|_| pick_u32(&gem_colors)).collect();
-    let middle = pick_u32(&gem_colors);
+    let corners: Vec<u32> = (0..4).map(|_| pick_hex(&gem_colors)).collect();
+    let middle = pick_hex(&gem_colors);
     // the old glow's pulse phase (no light: paste does not shine)
     let _ = rnd();
     let px = g.wx(x) + (rnd() - 0.5) * 2.4;

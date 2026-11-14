@@ -1,8 +1,8 @@
 //! `place_alarm_clocks`
 use game::prelude::*;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::seed_of;
 
 // Twin-bell alarm clock: 12% chance per level. A wind-up twin-bell
@@ -20,7 +20,7 @@ pub(crate) fn place_alarm_clocks(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let clock = group();
     clock.position().set(g.wx(x) + (rnd() - 0.5) * 2.4, 0, g.wz(z) + (rnd() - 0.5) * 2.4);
     clock.rotation().y = rnd() * PI * 2.0;
@@ -165,7 +165,7 @@ fn enamel_tex(seed: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let m = vnoise(seed, x * 8.0, y * 8.0) * 0.6 + vnoise(seed ^ 0x6d, x * 30.0, y * 30.0) * 0.4;
+                let m = vn(seed, x * 8.0, y * 8.0) * 0.6 + vn(seed ^ 0x6d, x * 30.0, y * 30.0) * 0.4;
                 let v = (205.0 + 50.0 * m).min(255.0) as u8;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, (f64::from(v) * 0.97) as u8, 255]);
             }
@@ -235,7 +235,7 @@ fn glass_dirt_tex(seed: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let d = vnoise(seed, x * 6.0, y * 6.0) * 0.6 + vnoise(seed ^ 0x19, x * 24.0, y * 24.0) * 0.4;
+                let d = vn(seed, x * 6.0, y * 6.0) * 0.6 + vn(seed ^ 0x19, x * 24.0, y * 24.0) * 0.4;
                 let top = (1.0 - y) * 0.25;
                 let v = ((0.2 + 0.35 * d + top) * 255.0).min(255.0) as u8;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);

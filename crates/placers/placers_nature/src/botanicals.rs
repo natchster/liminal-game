@@ -5,7 +5,7 @@ use game::visuals::pictures::Age;
 use game::visuals::pictures::Finish;
 use game::visuals::pictures::Outline;
 use game::visuals::pictures::Window;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -27,7 +27,7 @@ pub(crate) fn place_botanicals(g: &mut Game, _dist: &[i32]) {
     // askew on its hook (the old tilt's draw: the old frame turned about the
     // floor under it, the new swings about its hook)
     let tilt = (rnd() - 0.5) * 0.05;
-    bot.rotation().y = face_yaw(dx, dz);
+    bot.rotation().y = face_wall(dx, dz);
     bot.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = bot.pos();
     let vary = pictures::vary_of(p.x, p.z, tilt);

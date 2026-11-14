@@ -6,10 +6,10 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::smin;
 use placers_kit::noise::sstep;
 use placers_kit::noise::tide;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
-use placers_kit::wet_floor::floor_kind as puddle_floor_kind;
+use placers_kit::place::scatter;
+use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
 
 // Water puddle: 8% chance per level. Where a drip from the ceiling
@@ -36,7 +36,7 @@ pub(crate) fn place_water_puddles(g: &mut Game, _dist: &[i32]) {
     // the old disc's radius: the plane is as wide as the disc was, the water
     // inside it
     let p_radius = 0.10 + rnd() * 0.10;
-    let floor = puddle_floor_kind(g, x, z);
+    let floor = floor_kind(g, x, z);
     let hard = floor != 0;
     let vary = vary_by(x, z, (p_radius * 1.0e4) as i32);
     let mut layers = vec![water_puddle_mat(p_radius, hard, false, vary)];
@@ -85,7 +85,7 @@ pub(crate) fn place_water_puddles(g: &mut Game, _dist: &[i32]) {
             ripple.mat().set_opacity(life.min(1.0).powf(1.5));
         });
     }
-    scatter_on_floor(g, &puddle, x, z, 2.4);
+    scatter(g, &puddle, x, z, 2.4);
     g.world.add(&puddle);
     // Track for drip audio.
     let p = puddle.pos();
@@ -147,8 +147,8 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
             let (cu, cv) = if rho > 1e-6 { (x / rr / rho, y / rr / rho) } else { (1.0, 0.0) };
             let lobe = 1.0
                 + 0.42 * (fbm(sd, cu * 1.2 + 4.0, cv * 1.2 + 4.0, 3) - 0.5)
-                + 0.14 * (vnoise(sd ^ 0x9, cu * 4.0 + 2.0, cv * 4.0 + 2.0) - 0.5)
-                + fine * (vnoise(sd ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
+                + 0.14 * (vn(sd ^ 0x9, cu * 4.0 + 2.0, cv * 4.0 + 2.0) - 0.5)
+                + fine * (vn(sd ^ 0xa, cu * 10.0 + 1.0, cv * 10.0 + 1.0) - 0.5);
             (rho - lobe) * rr
         };
         let mut img = ctx.create_image_data(cw, ch);
@@ -163,28 +163,28 @@ fn water_puddle_mat(r: f64, hard: bool, standing: bool, vary: u32) -> Mat {
                     d = smin(d, (x - qx).hypot(y - qz) - qr, 0.01);
                 }
                 if hard {
-                    d += (vnoise(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.003;
+                    d += (vn(seed ^ 0x4d, x * 90.0, y * 90.0) - 0.5) * 0.003;
                     // where it reached before: a dried rim of what it carried
                     for &(rr, sd, k) in &rims {
-                        let dr = outline(x, y, rr, sd) + (vnoise(sd, x * 70.0, y * 70.0) - 0.5) * 0.004;
+                        let dr = outline(x, y, rr, sd) + (vn(sd, x * 70.0, y * 70.0) - 0.5) * 0.004;
                         px.lay([0.2, 0.17, 0.13], tide(dr, aa, 0.004) * k * (0.5 + 0.5 * fbm(sd ^ 0x3, x * 20.0, y * 20.0, 2)));
                     }
                     // the damp margin, the film, the dark line of its edge
                     if d > 0.0 {
-                        px.lay([0.11, 0.105, 0.1], 0.22 * (-d / 0.012).exp() * (0.6 + 0.4 * vnoise(seed ^ 0x5e, x * 50.0, y * 50.0)));
+                        px.lay([0.11, 0.105, 0.1], 0.22 * (-d / 0.012).exp() * (0.6 + 0.4 * vn(seed ^ 0x5e, x * 50.0, y * 50.0)));
                     }
-                    px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.36 + 0.08 * vnoise(seed ^ 0x3c, x * 25.0, y * 25.0)));
+                    px.lay(wet, (0.5 - d / aa).clamp(0.0, 1.0) * (0.36 + 0.08 * vn(seed ^ 0x3c, x * 25.0, y * 25.0)));
                     px.lay([0.035, 0.035, 0.04], tide(d, aa, 0.0015) * 0.35);
                 } else if standing {
                     // water on the pile: its edge soft over a few fibres
-                    let dd = d + (vnoise(seed ^ 0x71, x * 160.0, y * 160.0) - 0.5) * 0.004;
-                    px.lay(wet, sstep(0.004, -0.008, dd) * (0.26 + 0.08 * vnoise(seed ^ 0x3c, x * 40.0, y * 40.0)));
+                    let dd = d + (vn(seed ^ 0x71, x * 160.0, y * 160.0) - 0.5) * 0.004;
+                    px.lay(wet, sstep(0.004, -0.008, dd) * (0.26 + 0.08 * vn(seed ^ 0x3c, x * 40.0, y * 40.0)));
                 } else {
                     // soaked in: the edge ragged and soft, a darker rim at it
                     let dd = d
                         + (fbm(seed ^ 0x77, x * 12.0, y * 12.0, 2) - 0.5) * 0.016
                         + (fbm(seed ^ 0x78, x * 45.0, y * 45.0, 2) - 0.5) * 0.01;
-                    px.lay(wet, sstep(0.012, -0.024, dd) * (0.55 + 0.15 * vnoise(seed ^ 0x3c, x * 30.0, y * 30.0)));
+                    px.lay(wet, sstep(0.012, -0.024, dd) * (0.55 + 0.15 * vn(seed ^ 0x3c, x * 30.0, y * 30.0)));
                     px.lay([0.09, 0.07, 0.05], 0.24 * (-(dd + 0.004).abs() / 0.007).exp());
                 }
                 // never a square's edge

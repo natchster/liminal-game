@@ -1,11 +1,11 @@
 //! `place_peeling_wallpapers`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as smooth;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
-use placers_kit::paint::mark_mat as decal_mat;
+use placers_kit::paint::mark_mat;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
@@ -42,7 +42,7 @@ pub(crate) fn place_peeling_wallpapers(g: &mut Game, _dist: &[i32]) {
     let seam = -side * (0.005 + 0.025 * r.f());
     let foot = -0.03 + 0.05 * r.f();
     let tex = peeling_wallpaper_tex(r.u(), pw, ph, side, seam, foot, papered);
-    let decal = mesh(plane_geo!(pw, ph), &decal_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
     decal.position().z = -0.004;
     wallpaper.add(&decal);
     // the corner come away: its printed face (the wall's own paper, or the
@@ -116,8 +116,8 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
         let u = (x - seam) * side; // across the drop from the seam
                                    // the bare patch: from the seam to the torn far side, from the foot
                                    // to the torn top; how far inside it (m, < 0 outside)
-        let far = cw + 0.006 * (fbm(s ^ 0x21, y * 60.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vnoise(s ^ 0x22, y * 700.0, 0.5) - 0.5);
-        let top = foot + cl + 0.01 * (fbm(s ^ 0x23, x * 45.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vnoise(s ^ 0x24, x * 700.0, 0.5) - 0.5);
+        let far = cw + 0.006 * (fbm(s ^ 0x21, y * 60.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vn(s ^ 0x22, y * 700.0, 0.5) - 0.5);
+        let top = foot + cl + 0.01 * (fbm(s ^ 0x23, x * 45.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vn(s ^ 0x24, x * 700.0, 0.5) - 0.5);
         let inside = u.min(far - u).min(y - foot).min(top - y);
         // the scrap round it (another wall): its torn outline
         let scrap = if papered {
@@ -137,18 +137,18 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
             let (gi, gj) = (((x - stripe_at) / 0.04 - 0.5).floor(), (y / 0.05).floor());
             let (sx0, sy0) = ((gi + 0.5 + 0.5) * 0.04 + stripe_at, (gj + 0.5) * 0.05 + if (gi as i32) % 2 == 0 { 0.0 } else { 0.025 });
             let sprig = (0.5 - (((x - sx0) * 1.4).hypot(y - sy0 - 0.0) - 0.0035) / aa).clamp(0.0, 1.0);
-            let fox = smooth(0.62, 0.8, fbm(s ^ 0x41, x * 40.0, y * 40.0, 3));
+            let fox = sstep(0.62, 0.8, fbm(s ^ 0x41, x * 40.0, y * 40.0, 3));
             let mut c = mix(OLD_PAPER, STRIPE, st * 0.55 + sprig * 0.4);
-            c = mix(c, [0.55, 0.42, 0.27], fox * 0.35 + 0.1 * smooth(0.0, 0.2, -y));
+            c = mix(c, [0.55, 0.42, 0.27], fox * 0.35 + 0.1 * sstep(0.0, 0.2, -y));
             px = [c[0], c[1], c[2], (0.5 + scrap / aa).clamp(0.0, 1.0)];
             // its torn edge: the white core of the paper
-            let fr = 0.0012 + 0.0012 * vnoise(s ^ 0x42, x * 300.0, y * 300.0);
+            let fr = 0.0012 + 0.0012 * vn(s ^ 0x42, x * 300.0, y * 300.0);
             let a = px[3];
-            lay(&mut px, CORE, smooth(fr, 0.0, scrap) * 0.85 * a);
+            lay(&mut px, CORE, sstep(fr, 0.0, scrap) * 0.85 * a);
         }
         // the paste left on the scrap's wall round it
         if !papered && scrap > -0.012 && scrap < 0.0 {
-            lay(&mut px, PASTE, 0.25 * smooth(-0.012, 0.0, scrap) * fbm(s ^ 0x43, x * 50.0, y * 12.0, 2));
+            lay(&mut px, PASTE, 0.25 * sstep(-0.012, 0.0, scrap) * fbm(s ^ 0x43, x * 50.0, y * 12.0, 2));
         }
         if inside > -0.004 {
             let fill = (0.5 + inside / aa).clamp(0.0, 1.0);
@@ -160,11 +160,11 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
             }
             // the paste, in the brush's strokes, and stains where it soaked
             let stroke = fbm(s ^ 0x52, x * 70.0 + y * 8.0, y * 9.0, 3);
-            lay(&mut px, PASTE, fill * (0.15 + 0.4 * smooth(0.45, 0.75, stroke)));
+            lay(&mut px, PASTE, fill * (0.15 + 0.4 * sstep(0.45, 0.75, stroke)));
             // scraps of the paper's backing torn off and left stuck, mostly at the edges
-            let edge = smooth(0.03, 0.0, inside);
+            let edge = sstep(0.03, 0.0, inside);
             let back = fbm(s ^ 0x53, x * 24.0, y * 24.0, 4) + 0.2 * edge;
-            let bk = smooth(0.6, 0.62, back);
+            let bk = sstep(0.6, 0.62, back);
             lay(&mut px, BACKING, fill * bk * 0.92);
             // and the white of its torn edge
             lay(&mut px, CORE, fill * 0.6 * (bk * (1.0 - bk) * 4.0).min(1.0));
@@ -173,30 +173,30 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
             lay(
                 &mut px,
                 [0.42, 0.42, 0.44],
-                fill * 0.35 * (0.5 - (pl - 0.0003) / aa).clamp(0.0, 1.0) * smooth(0.3, 0.6, vnoise(s ^ 0x54, 0.5, y * 40.0)),
+                fill * 0.35 * (0.5 - (pl - 0.0003) / aa).clamp(0.0, 1.0) * sstep(0.3, 0.6, vn(s ^ 0x54, 0.5, y * 40.0)),
             );
             // the shadow the lifted corner throws in, under its turn
-            let sh = smooth(0.08, 0.0, y - foot) * smooth(0.0, 0.015, u) * smooth(0.0, 0.015, far - u);
+            let sh = sstep(0.08, 0.0, y - foot) * sstep(0.0, 0.015, u) * sstep(0.0, 0.015, far - u);
             lay(&mut px, SHADE, fill * 0.3 * sh);
         }
         // the paper's torn edge round the patch: the white core, a hair proud
         if inside < 0.0 && inside > -0.004 && u > -0.001 {
-            let fr = 0.0011 + 0.0016 * vnoise(s ^ 0x55, x * 260.0, y * 260.0);
-            let k = smooth(fr, 0.0, -inside);
+            let fr = 0.0011 + 0.0016 * vn(s ^ 0x55, x * 260.0, y * 260.0);
+            let k = sstep(fr, 0.0, -inside);
             // not along the seam (the next drop's cut edge) nor the foot (the turn)
-            let torn = smooth(0.002, 0.006, u) * smooth(0.0, 0.004, y - foot);
+            let torn = sstep(0.002, 0.006, u) * sstep(0.0, 0.004, y - foot);
             lay(&mut px, CORE, k * torn * 0.85);
         }
         // the seam: the next drop's cut edge, lifted a hair: a lit lip and its shadow
         let ds = (x - seam) * side;
-        let near = smooth(0.0, 0.07, ph / 2.0 - y.abs()) * if papered { 1.0 } else { smooth(-0.003, 0.003, scrap) };
+        let near = sstep(0.0, 0.07, ph / 2.0 - y.abs()) * if papered { 1.0 } else { sstep(-0.003, 0.003, scrap) };
         lay(&mut px, SHADE, 0.35 * near * (0.5 - (ds - 0.0008).abs() / 0.0008).clamp(0.0, 1.0));
         lay(&mut px, CORE, 0.25 * near * (0.5 - (ds + 0.0006).abs() / 0.0006).clamp(0.0, 1.0));
         // under the lifted corner's hanging end, the wall in its shade
-        let hang = smooth(0.0, 0.02, u) * smooth(0.0, 0.02, cw - u) * (-((y - (foot - 0.05)) / 0.05).powi(2)).exp();
+        let hang = sstep(0.0, 0.02, u) * sstep(0.0, 0.02, cw - u) * (-((y - (foot - 0.05)) / 0.05).powi(2)).exp();
         lay(&mut px, SHADE, 0.22 * hang);
         // nothing at the plane's edges
-        px[3] *= smooth(0.0, 0.01, (pw / 2.0 - x.abs()).min(ph / 2.0 - y.abs()));
+        px[3] *= sstep(0.0, 0.01, (pw / 2.0 - x.abs()).min(ph / 2.0 - y.abs()));
         px
     });
     tex
@@ -210,8 +210,8 @@ fn paper_back_tex() -> Tex {
         c.get_or_init(|| {
             decal_tex(128, 128, 0.12, 0.12, [0.8, 0.77, 0.68], |x, y, _| {
                 let stroke = fbm(0x9a9e, x * 60.0 + y * 6.0, y * 10.0, 3);
-                let mut c = mix([0.75, 0.71, 0.61], [0.64, 0.54, 0.37], 0.6 * smooth(0.4, 0.8, stroke));
-                c = mix(c, [0.6, 0.6, 0.58], 0.25 * smooth(0.55, 0.8, fbm(0x9a9f, x * 140.0, y * 140.0, 2)));
+                let mut c = mix([0.75, 0.71, 0.61], [0.64, 0.54, 0.37], 0.6 * sstep(0.4, 0.8, stroke));
+                c = mix(c, [0.6, 0.6, 0.58], 0.25 * sstep(0.55, 0.8, fbm(0x9a9f, x * 140.0, y * 140.0, 2)));
                 [c[0], c[1], c[2], 1.0]
             })
         })

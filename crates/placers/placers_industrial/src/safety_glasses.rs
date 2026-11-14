@@ -1,6 +1,6 @@
 //! `place_safety_glasses`
 use game::prelude::*;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
 use placers_kit::place::seed_of;
@@ -89,8 +89,8 @@ fn lens_dirt_tex(seed: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let d = vnoise(s, x * 6.0, y * 3.0) * 0.55 + vnoise(s ^ 9, x * 25.0, y * 12.0) * 0.45;
-                let smear = (vnoise(s ^ 77, x * 2.5, y * 4.0) - 0.62).max(0.0) * 1.6;
+                let d = vn(s, x * 6.0, y * 3.0) * 0.55 + vn(s ^ 9, x * 25.0, y * 12.0) * 0.45;
+                let smear = (vn(s ^ 77, x * 2.5, y * 4.0) - 0.62).max(0.0) * 1.6;
                 let v = ((0.20 + 0.34 * d + smear) * 255.0).min(255.0) as u8;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);
             }

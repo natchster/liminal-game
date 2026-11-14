@@ -1,7 +1,7 @@
 //! `place_wall_thermostats`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall thermostat: 20% chance per level, 1 unit. Small rectangular
@@ -15,7 +15,7 @@ pub(crate) fn place_wall_thermostats(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let body_mat = lambert!({ color: 0xd8d0c0 });
     let dial_mat = lambert!({ color: 0x2a2418 });
     let readout_mat = basic_mat!({ color: 0x304028 });
@@ -35,7 +35,7 @@ pub(crate) fn place_wall_thermostats(g: &mut Game, _dist: &[i32]) {
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.011);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.011);
     let thermo_height = 1.4 + rnd() * 0.15;
-    wall_mount(&thermo, &c, wall_x, wall_z, thermo_height, 1.0);
+    mount_slid_ref(&thermo, &c, wall_x, wall_z, thermo_height, 1.0);
     g.world.add(&thermo);
     // Track thermostat position for click audio events.
     let tp = thermo.pos();

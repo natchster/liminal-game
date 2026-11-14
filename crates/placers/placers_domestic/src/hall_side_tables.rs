@@ -1,6 +1,6 @@
 //! `place_hall_side_tables`
 use game::prelude::*;
-use placers_kit::place::wall_mount as mount_on_wall;
+use placers_kit::place::wall_mount;
 use placers_kit::place::wall_tiles;
 
 // Hall side table w/ key tray + mail stack (floor near wall): 3% chance per level.
@@ -103,6 +103,6 @@ pub(crate) fn place_hall_side_tables(g: &mut Game, _dist: &[i32]) {
         hst.add(&vase);
     }
     // Position at wall — table backs against wall.
-    mount_on_wall(g, &hst, x, z, dx, dz, 0.150);
+    wall_mount(g, &hst, x, z, dx, dz, 0.150);
     g.world.add(&hst);
 }

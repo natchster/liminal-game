@@ -1,14 +1,14 @@
 //! `place_fireplaces`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::fbm as t10_fbm;
-use placers_kit::noise::hash as t10_hash;
-use placers_kit::noise::mix_unclamped as t10_mix;
-use placers_kit::noise::sstep as t10_ss;
-use placers_kit::noise::vn as t10_vn;
-use placers_kit::paint::fill as t10_fill;
-use placers_kit::paint::opaque as t10_opaque;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
+use placers_kit::paint::opaque;
 use placers_kit::place::face_wall;
 use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_tiles;
@@ -63,13 +63,13 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().z = -0.005;
     fp.add(&body);
-    t10_put(&body, "Real__fireplaceMantel", &lambert!({ map: &fp_paint_tex(vary) }));
+    put(&body, "Real__fireplaceMantel", &lambert!({ map: &fp_paint_tex(vary) }));
     let iron = phong!({ map: &fp_iron_tex(vary, 0.25), specular: 0x262626, shininess: 22 });
-    t10_put(&body, "Real__fireplaceInsert", &iron);
-    t10_put(&body, "Real__fireplaceGrate", &phong!({ map: &fp_iron_tex(vary ^ 0x9, 0.55), specular: 0x1a1a1a, shininess: 16 }));
-    t10_put(&body, "Real__fireplaceFirebox", &lambert!({ map: &fp_soot_tex(vary) }));
-    t10_put(&body, "Real__fireplaceHearth", &lambert!({ map: &fp_slate_tex(vary) }));
-    t10_put(&body, "Real__fireplaceAsh", &lambert!({ map: &fp_ash_tex(), color: 0x9c988f }));
+    put(&body, "Real__fireplaceInsert", &iron);
+    put(&body, "Real__fireplaceGrate", &phong!({ map: &fp_iron_tex(vary ^ 0x9, 0.55), specular: 0x1a1a1a, shininess: 16 }));
+    put(&body, "Real__fireplaceFirebox", &lambert!({ map: &fp_soot_tex(vary) }));
+    put(&body, "Real__fireplaceHearth", &lambert!({ map: &fp_slate_tex(vary) }));
+    put(&body, "Real__fireplaceAsh", &lambert!({ map: &fp_ash_tex(), color: 0x9c988f }));
     // the charred ends, lying across the basket on the ash; burning from
     // below when the fire is lit
     // (lit, the fire's own light falls on them close: their char darker)
@@ -81,18 +81,18 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
         let (sz, layer) = SLOTS[i];
         let log = group();
         log.position().set(jx * 3.0, FP_BASKET_Y + 0.018 + r + layer * 0.050, FP_LOG_Z + sz);
-        log.rotation().y = (t10_hash(vary, i as i32, 1) - 0.5) * 0.35;
-        log.rotation().x = (t10_hash(vary, i as i32, 2) - 0.5) * 0.6;
-        t10_put(&log, name, &char_mat);
+        log.rotation().y = (hash(vary, i as i32, 1) - 0.5) * 0.35;
+        log.rotation().x = (hash(vary, i as i32, 2) - 0.5) * 0.6;
+        put(&log, name, &char_mat);
         if is_lit {
-            if let Some(m) = t10_put(&log, &format!("{name}Glow"), &glow_mat) {
+            if let Some(m) = put(&log, &format!("{name}Glow"), &glow_mat) {
                 m.set_render_order(2);
             }
         }
         body.add(&log);
     }
     if is_lit {
-        t10_put(&body, "Real__fireplaceEmbers", &basic_mat!({ map: &fp_ember_tex() }));
+        put(&body, "Real__fireplaceEmbers", &basic_mat!({ map: &fp_ember_tex() }));
         // the flames: each one's colour says how tall it burns, its place
         // where it rises among the logs; each scales from its root
         let flame_mat = basic_mat!({ map: &fp_flame_tex(), transparent: true, depthWrite: false, blending: AdditiveBlending });
@@ -100,11 +100,11 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
         for (i, &(tall, fx, fz)) in flames.iter().enumerate() {
             let root = group();
             root.position().set((i as f64 - 2.0) * 0.058 + fx * 1.5, FP_BASKET_Y + 0.065, FP_LOG_Z + 0.012 + fz * 2.0);
-            root.rotation().y = (t10_hash(vary, i as i32, 9) - 0.5) * 1.2;
+            root.rotation().y = (hash(vary, i as i32, 9) - 0.5) * 1.2;
             // its tongue, and a smaller one licking up beside it
             const TONGUES: [&str; 3] = ["Real__fireplaceFlameA", "Real__fireplaceFlameB", "Real__fireplaceFlameC"];
             for (k, (dx, turn)) in [(0.0, 0.0), (0.017, PI)].into_iter().enumerate() {
-                if let Some(m) = t10_put(&root, TONGUES[(tall + k).min(2)], &flame_mat) {
+                if let Some(m) = put(&root, TONGUES[(tall + k).min(2)], &flame_mat) {
                     m.position().x = dx;
                     m.rotation().y = turn;
                     m.set_render_order(3);
@@ -166,19 +166,19 @@ const FP_LOGS: [(&str, f64); 4] =
 fn fp_paint_tex(vary: u32) -> Tex {
     canvas_tex_opt(256, 296, false, move |ctx, w, h| {
         let seed = vary ^ 0xfa1;
-        t10_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             let (x, y) = (u * 0.96, v * 1.10);
-            let m = t10_fbm(seed, x * 6.0, y * 6.0, 4);
+            let m = fbm(seed, x * 6.0, y * 6.0, 4);
             let mut o = [0.66, 0.61, 0.50].map(|c| c * (0.9 + 0.14 * m));
             // crazing: a fine net of dark lines
-            let cr = t10_vn(seed ^ 3, x * 180.0, y * 180.0);
+            let cr = vn(seed ^ 3, x * 180.0, y * 180.0);
             if (cr - 0.5).abs() < 0.03 {
                 o = o.map(|c| c * 0.82);
             }
             // chips: through the cream to the green, deeper to the pine
-            let ch = t10_fbm(seed ^ 5, x * 70.0, y * 70.0, 3)
-                + 0.10 * (1.0 - t10_ss(0.0, 0.25, y))
-                + 0.06 * (1.0 - t10_ss(0.0, 0.05, (u - 0.5).abs().min(0.5 - (u - 0.5).abs())));
+            let ch = fbm(seed ^ 5, x * 70.0, y * 70.0, 3)
+                + 0.10 * (1.0 - sstep(0.0, 0.25, y))
+                + 0.06 * (1.0 - sstep(0.0, 0.05, (u - 0.5).abs().min(0.5 - (u - 0.5).abs())));
             if ch > 0.71 {
                 o = [0.36, 0.38, 0.32];
             }
@@ -186,12 +186,12 @@ fn fp_paint_tex(vary: u32) -> Tex {
                 o = [0.48, 0.34, 0.21].map(|c| c * (0.85 + 0.2 * m));
             }
             // grime: kicked at its foot, handled at the shelf's edge
-            o = o.map(|c| c * (1.0 - 0.35 * (1.0 - t10_ss(0.0, 0.2, y))));
+            o = o.map(|c| c * (1.0 - 0.35 * (1.0 - sstep(0.0, 0.2, y))));
             // the soot that crept out over the opening's head onto the frieze
             let sx = (u - 0.5).abs() * 0.96;
-            let soot = (1.0 - t10_ss(0.18, 0.36, sx)) * t10_ss(0.80, 0.90, y) * (1.0 - t10_ss(1.02, 1.08, y));
-            o = t10_mix(o, [0.10, 0.09, 0.08], soot * (0.55 + 0.3 * m));
-            t10_opaque(t10_mix(o, [0.47, 0.45, 0.40], 0.10))
+            let soot = (1.0 - sstep(0.18, 0.36, sx)) * sstep(0.80, 0.90, y) * (1.0 - sstep(1.02, 1.08, y));
+            o = mix_unclamped(o, [0.10, 0.09, 0.08], soot * (0.55 + 0.3 * m));
+            opaque(mix_unclamped(o, [0.47, 0.45, 0.40], 0.10))
         });
     })
 }
@@ -201,13 +201,13 @@ fn fp_paint_tex(vary: u32) -> Tex {
 fn fp_iron_tex(vary: u32, rust: f64) -> Tex {
     canvas_tex_opt(256, 320, false, move |ctx, w, h| {
         let seed = vary ^ 0x1a0;
-        t10_fill(ctx, w, h, |u, v| {
-            let n = t10_fbm(seed, u * 10.0, v * 12.0, 4);
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 10.0, v * 12.0, 4);
             let mut o = [0.075 + 0.05 * n, 0.072 + 0.046 * n, 0.068 + 0.042 * n];
-            let r = t10_fbm(seed ^ 3, u * 16.0, v * 20.0, 4) + rust * 0.35 * (1.0 - t10_ss(0.0, 0.35, v)) + rust * 0.2;
-            o = t10_mix(o, [0.27, 0.15, 0.08], 0.75 * t10_ss(0.70, 0.86, r));
-            let dust = 0.10 + 0.12 * t10_fbm(seed ^ 7, u * 5.0, v * 5.0, 2);
-            t10_opaque(t10_mix(o, [0.40, 0.38, 0.34], dust))
+            let r = fbm(seed ^ 3, u * 16.0, v * 20.0, 4) + rust * 0.35 * (1.0 - sstep(0.0, 0.35, v)) + rust * 0.2;
+            o = mix_unclamped(o, [0.27, 0.15, 0.08], 0.75 * sstep(0.70, 0.86, r));
+            let dust = 0.10 + 0.12 * fbm(seed ^ 7, u * 5.0, v * 5.0, 2);
+            opaque(mix_unclamped(o, [0.40, 0.38, 0.34], dust))
         });
     })
 }
@@ -216,17 +216,17 @@ fn fp_iron_tex(vary: u32, rust: f64) -> Tex {
 fn fp_soot_tex(vary: u32) -> Tex {
     canvas_tex_opt(128, 256, false, move |ctx, w, h| {
         let seed = vary ^ 0x5007;
-        t10_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             let (x, y) = (u * 0.44, v * 0.76);
             let row = (y / 0.065).floor();
             let bx = (x + if row as i32 % 2 == 0 { 0.0 } else { 0.11 }) / 0.22;
             let joint = (y / 0.065).fract() < 0.08 || bx.fract() < 0.04;
-            let brick = [0.36, 0.24, 0.17].map(|c| c * (0.8 + 0.3 * t10_hash(seed, bx.floor() as i32, row as i32)));
+            let brick = [0.36, 0.24, 0.17].map(|c| c * (0.8 + 0.3 * hash(seed, bx.floor() as i32, row as i32)));
             let mut o = if joint { [0.20, 0.18, 0.16] } else { brick };
             // the soot: thick everywhere, thickest up the back where the smoke went
-            let s = 0.82 + 0.15 * t10_ss(0.1, 0.8, v) * (1.0 - (u - 0.5).abs()) + 0.08 * t10_fbm(seed ^ 3, u * 9.0, v * 9.0, 3);
-            o = t10_mix(o, [0.025, 0.022, 0.02], s.min(0.97));
-            t10_opaque(o)
+            let s = 0.82 + 0.15 * sstep(0.1, 0.8, v) * (1.0 - (u - 0.5).abs()) + 0.08 * fbm(seed ^ 3, u * 9.0, v * 9.0, 3);
+            o = mix_unclamped(o, [0.025, 0.022, 0.02], s.min(0.97));
+            opaque(o)
         });
     })
 }
@@ -236,18 +236,18 @@ fn fp_soot_tex(vary: u32) -> Tex {
 fn fp_slate_tex(vary: u32) -> Tex {
     canvas_tex_opt(256, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x51a7;
-        let crack_y = 0.3 + 0.4 * t10_hash(seed, 1, 1);
-        t10_fill(ctx, w, h, |u, v| {
-            let n = t10_fbm(seed, u * 12.0, v * 4.0, 4);
+        let crack_y = 0.3 + 0.4 * hash(seed, 1, 1);
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 12.0, v * 4.0, 4);
             let mut o = [0.16, 0.17, 0.18].map(|c| c * (0.85 + 0.3 * n));
             // ash trodden in, heaviest by the fire
-            let ash = t10_ss(0.45, 0.75, t10_fbm(seed ^ 3, u * 7.0, v * 7.0, 3)) * (0.4 + 0.6 * v);
-            o = t10_mix(o, [0.48, 0.46, 0.43], 0.5 * ash);
-            let cy = crack_y + 0.04 * (t10_fbm(seed ^ 5, u * 6.0, 0.0, 3) - 0.5);
+            let ash = sstep(0.45, 0.75, fbm(seed ^ 3, u * 7.0, v * 7.0, 3)) * (0.4 + 0.6 * v);
+            o = mix_unclamped(o, [0.48, 0.46, 0.43], 0.5 * ash);
+            let cy = crack_y + 0.04 * (fbm(seed ^ 5, u * 6.0, 0.0, 3) - 0.5);
             if (v - cy).abs() < 0.006 && u > 0.2 && u < 0.85 {
                 o = o.map(|c| c * 0.35);
             }
-            t10_opaque(o)
+            opaque(o)
         });
     })
 }
@@ -258,9 +258,9 @@ fn fp_ash_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let n = t10_fbm(0xa5, u * 12.0, v * 12.0, 4);
-                    let fleck = if t10_hash(0xa6, (u * 128.0) as i32, (v * 128.0) as i32) > 0.93 { 0.3 } else { 1.0 };
+                fill(ctx, w, h, |u, v| {
+                    let n = fbm(0xa5, u * 12.0, v * 12.0, 4);
+                    let fleck = if hash(0xa6, (u * 128.0) as i32, (v * 128.0) as i32) > 0.93 { 0.3 } else { 1.0 };
                     let k = (0.38 + 0.16 * n) * fleck;
                     [k, k * 0.98, k * 0.94, 1.0]
                 });
@@ -276,16 +276,16 @@ fn fp_char_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let (gx, gy) = (u * 10.0 + 0.3 * t10_vn(0xc1, u * 8.0, v * 8.0), v * 6.0);
+                fill(ctx, w, h, |u, v| {
+                    let (gx, gy) = (u * 10.0 + 0.3 * vn(0xc1, u * 8.0, v * 8.0), v * 6.0);
                     let edge = (gx.fract() - 0.5).abs().max((gy.fract() - 0.5).abs());
-                    let mut k = 0.035 + 0.03 * t10_vn(0xc2, u * 40.0, v * 40.0);
+                    let mut k = 0.035 + 0.03 * vn(0xc2, u * 40.0, v * 40.0);
                     if edge > 0.44 {
                         k = 0.01;
                     } else if edge > 0.38 {
                         k = 0.30;
                     }
-                    let ash = t10_ss(0.6, 0.8, t10_fbm(0xc3, u * 6.0, v * 6.0, 3));
+                    let ash = sstep(0.6, 0.8, fbm(0xc3, u * 6.0, v * 6.0, 3));
                     let k = k + (0.40 - k) * ash * 0.45;
                     [k, k * 0.96, k * 0.92, 1.0]
                 });
@@ -300,10 +300,10 @@ fn fp_char_tex() -> Tex {
 fn fp_ghost_tex(vary: u32) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x6057;
-        t10_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             let x = (u - 0.5) * 2.0;
-            let n = t10_fbm(seed, u * 5.0, v * 3.0, 4);
-            let a = (1.0 - t10_ss(0.0, 0.95, v + 0.25 * (n - 0.5))) * (1.0 - t10_ss(0.35, 1.0, x.abs() + 0.2 * v)) * (0.55 + 0.45 * n);
+            let n = fbm(seed, u * 5.0, v * 3.0, 4);
+            let a = (1.0 - sstep(0.0, 0.95, v + 0.25 * (n - 0.5))) * (1.0 - sstep(0.35, 1.0, x.abs() + 0.2 * v)) * (0.55 + 0.45 * n);
             [0.06, 0.055, 0.05, (a * 0.55).min(0.6)]
         });
     })
@@ -316,11 +316,11 @@ fn fp_glow_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let (gx, gy) = (u * 10.0 + 0.3 * t10_vn(0xc1, u * 8.0, v * 8.0), v * 6.0);
+                fill(ctx, w, h, |u, v| {
+                    let (gx, gy) = (u * 10.0 + 0.3 * vn(0xc1, u * 8.0, v * 8.0), v * 6.0);
                     let edge = (gx.fract() - 0.5).abs().max((gy.fract() - 0.5).abs());
-                    let hot = t10_ss(0.36, 0.46, edge) * (0.55 + 0.45 * t10_fbm(0xc4, u * 5.0, v * 5.0, 3));
-                    let k = t10_ss(0.3, 0.9, hot);
+                    let hot = sstep(0.36, 0.46, edge) * (0.55 + 0.45 * fbm(0xc4, u * 5.0, v * 5.0, 3));
+                    let k = sstep(0.3, 0.9, hot);
                     [1.0, 0.42 + 0.3 * k, 0.10 + 0.1 * k, hot]
                 });
             })
@@ -335,12 +335,12 @@ fn fp_ember_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let n = t10_fbm(0xe1, u * 14.0, v * 14.0, 4);
-                    let crust = t10_ss(0.55, 0.7, t10_fbm(0xe2, u * 22.0, v * 22.0, 3));
+                fill(ctx, w, h, |u, v| {
+                    let n = fbm(0xe1, u * 14.0, v * 14.0, 4);
+                    let crust = sstep(0.55, 0.7, fbm(0xe2, u * 22.0, v * 22.0, 3));
                     let hot = [0.95, 0.38 + 0.25 * n, 0.08];
-                    let o = t10_mix(hot, [0.12, 0.09, 0.08], crust * 0.85);
-                    t10_opaque(o)
+                    let o = mix_unclamped(hot, [0.12, 0.09, 0.08], crust * 0.85);
+                    opaque(o)
                 });
             })
         })
@@ -356,13 +356,13 @@ fn fp_flame_tex() -> Tex {
     T.with(|c| {
         c.get_or_init(|| {
             canvas_tex_opt(32, 128, false, |ctx, w, h| {
-                t10_fill(ctx, w, h, |u, v| {
-                    let root = 1.0 - t10_ss(0.0, 0.18, v);
-                    let tip = t10_ss(0.30, 0.95, v);
-                    let c = t10_mix([1.0, 0.86, 0.52], [0.95, 0.40, 0.10], tip);
-                    let c = t10_mix(c, [0.85, 0.36, 0.08], root * 0.7);
-                    let edge = 1.0 - t10_ss(0.22, 0.5, (u - 0.5).abs());
-                    let a = (0.9 - 0.4 * root) * (1.0 - t10_ss(0.55, 1.0, v)) * (0.35 + 0.65 * edge);
+                fill(ctx, w, h, |u, v| {
+                    let root = 1.0 - sstep(0.0, 0.18, v);
+                    let tip = sstep(0.30, 0.95, v);
+                    let c = mix_unclamped([1.0, 0.86, 0.52], [0.95, 0.40, 0.10], tip);
+                    let c = mix_unclamped(c, [0.85, 0.36, 0.08], root * 0.7);
+                    let edge = 1.0 - sstep(0.22, 0.5, (u - 0.5).abs());
+                    let a = (0.9 - 0.4 * root) * (1.0 - sstep(0.55, 1.0, v)) * (0.35 + 0.65 * edge);
                     [c[0], c[1], c[2], a]
                 });
             })

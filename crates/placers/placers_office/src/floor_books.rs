@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Small book on floor: 15% chance per level. Hardcover book
 // with visible colored cover.
@@ -14,10 +14,10 @@ pub(crate) fn place_floor_books(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // Per-weather cover color pool.
     let cover_pool = book_cover_pool(g.weather_key());
-    let cover_mat = lambert!({ color: cover_pool[pick(cover_pool.len())] });
+    let cover_mat = lambert!({ color: cover_pool[ri(cover_pool.len())] });
     let pages_mat = lambert!({ color: 0xd8ccb0 });
     let book = group();
     // Cover (top face): 12×18 cm cover.
@@ -43,7 +43,7 @@ pub(crate) fn place_floor_books(g: &mut Game, _dist: &[i32]) {
         for s in 1..=stack_count {
             let sib_book = clone_obj(&book);
             // Give each stacked book its own cover color for variety.
-            let sib_color = cover_pool[pick(cover_pool.len())];
+            let sib_color = cover_pool[ri(cover_pool.len())];
             let sib_cover_mat = lambert!({ color: sib_color });
             // Swap cover-color meshes (index 0 top cover, 2 back cover).
             let kids = sib_book.children();

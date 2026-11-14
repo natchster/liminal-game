@@ -1,7 +1,7 @@
 //! `place_magnetic_letters`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Magnetic letters: 10% chance per level. 4-8 plastic fridge letters
@@ -13,7 +13,7 @@ pub(crate) fn place_magnetic_letters(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.90 {
         return;
     } // 10% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let letter_colors = [0xd82040, 0x2050d8, 0xd8b040, 0x30a030, 0xa020a0, 0xe07020];
     // the old colours as an alphabet set's polypropylene, faded
     let plastic: [u32; 6] = [0x983634, 0x35568a, 0xc29a3c, 0x3f7a43, 0x725089, 0xb96a30];

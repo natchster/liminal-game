@@ -1,12 +1,12 @@
 //! `place_hopscotch_chalks`
 use game::prelude::*;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 
 pub(crate) fn place_hopscotch_chalks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
     } // 4% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let decal_mat = basic_mat!({ map: hopscotch_texture(), transparent: true, opacity: 0.75, depthWrite: false });
     let decal = mesh(plane_geo!(1.2, 2.4), &decal_mat);
     decal.rotation().x = -PI / 2.0;

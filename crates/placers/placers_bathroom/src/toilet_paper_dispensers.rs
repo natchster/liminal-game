@@ -1,6 +1,6 @@
 //! `place_toilet_paper_dispensers`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -38,7 +38,7 @@ pub(crate) fn place_toilet_paper_dispensers(g: &mut Game, _dist: &[i32]) {
     lip.rotation().y = PI / 2.0;
     lip.position().set(0.050, mount_y - 0.10, 0.062);
     tp.add(&lip);
-    tp.rotation().y = face_wall_yaw(c.dx, c.dz);
+    tp.rotation().y = face_wall(c.dx, c.dz);
     tp.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.060), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.060));
     g.world.add(&tp);
 }

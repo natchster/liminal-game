@@ -1,11 +1,11 @@
 //! `place_rust_stain_streaks`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as smooth;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
-use placers_kit::paint::mark_mat as decal_mat;
+use placers_kit::paint::mark_mat;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
@@ -39,7 +39,7 @@ pub(crate) fn place_rust_stain_streaks(g: &mut Game, _dist: &[i32]) {
     let len = 0.30 + 0.18 * r.f();
     // the plane: the old decal's, on the wall's face (its back 5 mm behind the old one)
     let tex = rust_streak_tex(r.u(), pw, ph, (pw / 2.0 + fx, ph / 2.0 - from), len, if bracket { 0.013 } else { 0.009 });
-    let decal = mesh(plane_geo!(pw, ph), &decal_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
     decal.position().z = -0.004;
     grp.add(&decal);
     let name = if bracket { "Real__rustStreakBracket" } else { "Real__rustStreakAnchor" };
@@ -103,16 +103,16 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
         let mut px = [RUST[0], RUST[1], RUST[2], 0.0];
         let dy = y - sy;
         let t = (dy / len).clamp(0.0, 1.0);
-        let shade = |t: f64| mix(mix(DARK, RUST, smooth(0.0, 0.3, t)), PALE, smooth(0.45, 1.0, t));
+        let shade = |t: f64| mix(mix(DARK, RUST, sstep(0.0, 0.3, t)), PALE, sstep(0.45, 1.0, t));
         // the wash: as wide as the runs spread, fading down, streaked along
         if dy > -0.004 {
             let xc = sx + (fbm(s, 0.5, y * 7.0, 2) - 0.5) * 0.02 * t;
             let hw = w0 * 1.5 + 0.042 * t.sqrt() + 0.008 * (fbm(s ^ 0x3, 1.5, y * 11.0, 2) - 0.5);
-            let streak = 0.5 + 0.5 * vnoise(s ^ 0x9, x * 650.0, y * 7.0);
+            let streak = 0.5 + 0.5 * vn(s ^ 0x9, x * 650.0, y * 7.0);
             let a = (0.6 * (1.0 - t).powf(0.7) + 0.25 * (-dy / 0.03).exp())
                 * (-((x - xc) / hw).powi(2) * 1.1).exp()
                 * streak
-                * smooth(-0.004, 0.006, dy);
+                * sstep(-0.004, 0.006, dy);
             lay(&mut px, shade(t), a);
         }
         // the runs, each darker along its edges where it dried, ending in a drop
@@ -131,7 +131,7 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
                 continue;
             }
             let inside = (0.5 - d / aa).clamp(0.0, 1.0);
-            let rim = 0.65 + 0.35 * smooth(-wk * 0.9, 0.0, d);
+            let rim = 0.65 + 0.35 * sstep(-wk * 0.9, 0.0, d);
             lay(&mut px, shade(tk * reach / len), inside * st * rim * (1.0 - 0.55 * tk));
         }
         // dark round the fixing, where the rust began, and the ring it dried to
@@ -139,9 +139,9 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
         let rr = (x - sx).hypot((y - sy) * if dy < 0.0 { 1.6 } else { 0.7 }) * (0.75 + 0.5 * n);
         let ring = w0 + 0.01;
         lay(&mut px, DARK, 0.7 * (-(rr / ring).powi(2) * 1.8).exp() * (0.7 + 0.6 * n));
-        lay(&mut px, mix(DARK, RUST, 0.4), 0.22 * (-((rr - ring) / 0.004).powi(2)).exp() * smooth(0.35, 0.65, n));
+        lay(&mut px, mix(DARK, RUST, 0.4), 0.22 * (-((rr - ring) / 0.004).powi(2)).exp() * sstep(0.35, 0.65, n));
         // nothing at the plane's edges
-        px[3] *= smooth(0.0, 0.015, x.min(pw - x).min(y).min(ph - y));
+        px[3] *= sstep(0.0, 0.015, x.min(pw - x).min(y).min(ph - y));
         px
     });
     tex
@@ -154,9 +154,9 @@ fn rust_steel_tex() -> Tex {
         c.get_or_init(|| {
             decal_tex(64, 64, 0.03, 0.03, [0.3, 0.16, 0.08], |x, y, _| {
                 let n = fbm(0x5157, x * 260.0, y * 260.0, 3);
-                let mut c = mix([0.2, 0.11, 0.06], [0.48, 0.25, 0.1], smooth(0.4, 0.75, n));
-                let pit = vnoise(0x7a11, x * 1400.0, y * 1400.0);
-                c = mix(c, [0.1, 0.06, 0.04], smooth(0.75, 0.95, pit) * 0.7);
+                let mut c = mix([0.2, 0.11, 0.06], [0.48, 0.25, 0.1], sstep(0.4, 0.75, n));
+                let pit = vn(0x7a11, x * 1400.0, y * 1400.0);
+                c = mix(c, [0.1, 0.06, 0.04], sstep(0.75, 0.95, pit) * 0.7);
                 [c[0], c[1], c[2], 1.0]
             })
         })

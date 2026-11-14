@@ -1,7 +1,7 @@
 //! `place_shattered_eyeglasses`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Shattered eyeglasses: 6% chance per level. Frame + lenses + broken temple.
 pub(crate) fn place_shattered_eyeglasses(g: &mut Game, _dist: &[i32]) {
@@ -45,6 +45,6 @@ pub(crate) fn place_shattered_eyeglasses(g: &mut Game, _dist: &[i32]) {
     broken.rotation().z = PI / 3.0;
     broken.position().set(-temple_side * 0.10, 0.002, 0.04);
     glasses.add(&broken);
-    scatter_on_floor(g, &glasses, x, z, 2.4);
+    scatter(g, &glasses, x, z, 2.4);
     g.world.add(&glasses);
 }

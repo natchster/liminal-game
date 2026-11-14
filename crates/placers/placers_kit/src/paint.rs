@@ -167,11 +167,6 @@ pub fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: [f64
     ctx.restore();
 }
 
-/// An sRGB `0xRRGGBB` as three 0..1 values
-pub fn srgb3(h: u32) -> [f64; 3] {
-    [((h >> 16) & 255) as f64 / 255.0, ((h >> 8) & 255) as f64 / 255.0, (h & 255) as f64 / 255.0]
-}
-
 /// Paints the canvas pixel by pixel: `f(i, j)` gives pixel (i, j)'s straight
 /// sRGB and alpha (0..1)
 pub fn paint_px_indexed(ctx: &mut Canvas, w: f64, h: f64, mut f: impl FnMut(usize, usize) -> [f64; 4]) {

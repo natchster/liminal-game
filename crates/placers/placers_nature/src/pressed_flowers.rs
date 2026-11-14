@@ -1,6 +1,6 @@
 //! `place_pressed_flowers`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -33,7 +33,7 @@ pub(crate) fn place_pressed_flowers(g: &mut Game, _dist: &[i32]) {
     glass.position().set(0, mount_y, 0.0058);
     flower.add(&glass);
     flower.rotation().z = (rnd() - 0.5) * 0.04;
-    flower.rotation().y = face_yaw(dx, dz);
+    flower.rotation().y = face_wall(dx, dz);
     flower.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&flower);
 }

@@ -1,6 +1,6 @@
 //! `place_watercolors`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -31,7 +31,7 @@ pub(crate) fn place_watercolors(g: &mut Game, _dist: &[i32]) {
     art.position().set(0, mount_y, 0.014);
     painting.add(&art);
     painting.rotation().z = (rnd() - 0.5) * 0.05; // slight tilt
-    painting.rotation().y = face_yaw(dx, dz);
+    painting.rotation().y = face_wall(dx, dz);
     painting.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&painting);
 }

@@ -1,12 +1,12 @@
 //! `place_hand_towel_bars`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t04_put;
-use placers_kit::noise::fbm as t04_fbm;
-use placers_kit::noise::hash as t04_hash;
-use placers_kit::noise::sstep as t04_ss;
-use placers_kit::noise::vn as t04_vn;
-use placers_kit::paint::fill as t04_fill;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
 use placers_kit::place::mount;
 use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_candidates;
@@ -40,8 +40,8 @@ pub(crate) fn place_hand_towel_bars(g: &mut Game, _dist: &[i32]) {
     let o = group();
     o.position().z = -0.010;
     bar.add(&o);
-    t04_put(&o, "Real__towelBarMetal", &phong!({ map: &tb_chrome_tex(vary), color: 0x8c8e90, specular: 0x6a6c6e, shininess: 64 }));
-    t04_put(&o, "Real__towelBarTowel", &lambert!({ map: &tb_terry_tex(vary, kind) }));
+    put(&o, "Real__towelBarMetal", &phong!({ map: &tb_chrome_tex(vary), color: 0x8c8e90, specular: 0x6a6c6e, shininess: 64 }));
+    put(&o, "Real__towelBarTowel", &lambert!({ map: &tb_terry_tex(vary, kind) }));
     g.world.add(&bar);
 }
 
@@ -50,10 +50,10 @@ pub(crate) fn place_hand_towel_bars(g: &mut Game, _dist: &[i32]) {
 fn tb_chrome_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = vary ^ 0x7b1;
-        t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed, u * 5.0, v * 5.0, 3);
-            let tarnish = t04_ss(0.55, 0.78, t04_fbm(seed ^ 0x9, u * 3.0, v * 3.0, 3)) * 0.3;
-            let pit = if t04_hash(seed ^ 0x2, (u * 64.0) as i32, (v * 64.0) as i32) < 0.015 { 0.4 } else { 0.0 };
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 5.0, v * 5.0, 3);
+            let tarnish = sstep(0.55, 0.78, fbm(seed ^ 0x9, u * 3.0, v * 3.0, 3)) * 0.3;
+            let pit = if hash(seed ^ 0x2, (u * 64.0) as i32, (v * 64.0) as i32) < 0.015 { 0.4 } else { 0.0 };
             let g0 = 0.84 + 0.1 * n - tarnish - pit;
             [g0, g0 * 0.99, g0 * 0.96, 1.0]
         });
@@ -72,17 +72,17 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
     canvas_tex_opt(224, 336, false, move |ctx, w, h| {
         let seed = vary ^ 0x7e11;
         let base = [[0.79, 0.76, 0.68], [0.74, 0.60, 0.60], [0.60, 0.65, 0.70], [0.62, 0.67, 0.59]][kind.min(3)];
-        t04_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             // in metres from the towel's ends (its lowest point at v 0)
             let y = v * TW_SPAN;
             let x = u * 0.224;
             // the pile: loops and the pits between them
-            let loops = t04_vn(seed, x * 900.0, y * 820.0);
-            let pits = t04_vn(seed ^ 0x51, x * 1600.0 + 0.5, y * 1500.0);
-            let mut shade = 0.86 + 0.16 * loops - 0.12 * t04_ss(0.62, 0.9, pits);
+            let loops = vn(seed, x * 900.0, y * 820.0);
+            let pits = vn(seed ^ 0x51, x * 1600.0 + 0.5, y * 1500.0);
+            let mut shade = 0.86 + 0.16 * loops - 0.12 * sstep(0.62, 0.9, pits);
             // the dobby border: a flat weave band, ribbed across
             let bd = (y - 0.055).abs();
-            let border = 1.0 - t04_ss(0.016, 0.018, bd);
+            let border = 1.0 - sstep(0.016, 0.018, bd);
             if border > 0.0 {
                 // flat, its weft ribbed across, a corded line at each edge
                 let rib = 0.5 + 0.5 * (y * 2.0 * PI * 420.0).sin();
@@ -93,12 +93,12 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
             // the hem: the end turned under and stitched
             if y < 0.020 {
                 let rib = 0.5 + 0.5 * (y * 2.0 * PI * 380.0).sin();
-                shade = 0.88 + 0.06 * rib - 0.12 * (1.0 - t04_ss(0.0, 0.004, y)) - 0.10 * (-((y - 0.012) / 0.0008).powi(2)).exp();
+                shade = 0.88 + 0.06 * rib - 0.12 * (1.0 - sstep(0.0, 0.004, y)) - 0.10 * (-((y - 0.012) / 0.0008).powi(2)).exp();
             }
             // the years: grey through, dingier and darker low down where
             // hands were dried on it, blotched
-            let n = t04_fbm(seed ^ 0x23, x * 14.0, y * 14.0, 4);
-            let low = 1.0 - t04_ss(0.0, 0.22, y);
+            let n = fbm(seed ^ 0x23, x * 14.0, y * 14.0, 4);
+            let low = 1.0 - sstep(0.0, 0.22, y);
             let dirt = 0.10 + 0.14 * n + 0.18 * low * (0.5 + n);
             let grey = [0.50, 0.48, 0.44];
             let mut c = [0.0; 3];
@@ -107,14 +107,14 @@ fn tb_terry_tex(vary: u32, kind: usize) -> Tex {
                 c[k] = b * shade * (1.0 - dirt);
             }
             // a tide line where it dried after a wetting
-            let tide = t04_fbm(seed ^ 0x61, x * 9.0, y * 9.0, 3);
-            let ring = (-((tide - 0.62) / 0.012).powi(2)).exp() * (1.0 - t04_ss(0.1, 0.25, y)) * 0.25;
+            let tide = fbm(seed ^ 0x61, x * 9.0, y * 9.0, 3);
+            let ring = (-((tide - 0.62) / 0.012).powi(2)).exp() * (1.0 - sstep(0.1, 0.25, y)) * 0.25;
             for (k, t) in c.iter_mut().zip([0.45, 0.38, 0.28]) {
                 *k = *k * (1.0 - ring) + t * ring * 0.8;
             }
             // mildew: grey-black specks in clusters, where it stayed damp
-            let cl = t04_ss(0.58, 0.72, t04_fbm(seed ^ 0x3a, x * 20.0, y * 20.0, 3)) * (0.3 + low);
-            if t04_hash(seed ^ 0x3b, (u * 224.0) as i32, (v * 336.0) as i32) < 0.10 * cl {
+            let cl = sstep(0.58, 0.72, fbm(seed ^ 0x3a, x * 20.0, y * 20.0, 3)) * (0.3 + low);
+            if hash(seed ^ 0x3b, (u * 224.0) as i32, (v * 336.0) as i32) < 0.10 * cl {
                 for (k, m) in c.iter_mut().zip([0.16, 0.17, 0.15]) {
                     *k = *k * 0.35 + m * 0.65;
                 }

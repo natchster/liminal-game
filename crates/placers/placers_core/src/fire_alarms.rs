@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::pick;
 use placers_kit::place::wall_candidates;
-use placers_kit::wall_plates::part as real_part;
+use placers_kit::wall_plates::part;
 
 // Fire alarm pull-station: 25% chance per level, 1 unit (Blender batch
 // `r06`): a die-cast single-action station on its red surface back box, FIRE
@@ -50,7 +50,7 @@ pub(crate) fn place_fire_alarms(g: &mut Game, _dist: &[i32]) {
             let ang = rnd() * PI * 2.0;
             let rad = 0.05 + rnd() * 0.25;
             // a piece of the 5 mm rod, lying in front of the wall
-            let shard = mesh(real_part("Real__rodShard", 0.02, 0.005, 0.005), &glass);
+            let shard = mesh(part("Real__rodShard", 0.02, 0.005, 0.005), &glass);
             let k = ((shard_w + shard_h) / 0.045).clamp(0.85, 1.15);
             shard.scale().set(k, k, k);
             shard.rotation().set(tip * 0.2, turn, 0);
@@ -79,7 +79,7 @@ fn build_pull_station(pulled: bool, at_y: f64, ceil: f64) -> Obj {
     let zinc = phong!({ color: 0x7c7d79, specular: 0x262626, shininess: 22 });
     let glass = lambert!({ color: 0xc8d6d0, transparent: true, opacity: 0.5 });
     let add = |name: &str, mat: &Mat, x: f64, y: f64, z: f64| {
-        let m = mesh(real_part(name, 0.1, 0.14, 0.03), mat);
+        let m = mesh(part(name, 0.1, 0.14, 0.03), mat);
         m.position().set(x, y, z);
         o.add(&m);
         m
@@ -94,12 +94,12 @@ fn build_pull_station(pulled: bool, at_y: f64, ceil: f64) -> Obj {
     pivot.position().set(0, 0.004 + 0.020 - 0.004, 0.035 + 0.030);
     pivot.rotation().x = if pulled { -0.75 } else { 0.0 };
     o.add(&pivot);
-    let lever = mesh(real_part("Real__pullHandle", 0.07, 0.03, 0.016), &red);
+    let lever = mesh(part("Real__pullHandle", 0.07, 0.03, 0.016), &red);
     pivot.add(&lever);
-    let text = mesh(real_part("Real__pullHandleText", 0.06, 0.008, 0.001), &white);
+    let text = mesh(part("Real__pullHandleText", 0.06, 0.008, 0.001), &white);
     pivot.add(&text);
     // the glass rod across it in its lugs (snapped when it was pulled)
-    let rod = mesh(real_part(if pulled { "Real__pullRodBroken" } else { "Real__pullRod" }, 0.09, 0.005, 0.005), &glass);
+    let rod = mesh(part(if pulled { "Real__pullRodBroken" } else { "Real__pullRod" }, 0.09, 0.005, 0.005), &glass);
     rod.position().set(0, 0.002, 0.035 + 0.030 + 0.0045);
     o.add(&rod);
     // the conduit: a connector in the box's knockout, EMT up the wall on its

@@ -17,7 +17,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::paint::rgb as hex;
+use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::salt_of;
@@ -71,11 +71,11 @@ const BAG_Z: f64 = 0.215;
 fn soil_print_tex(salt: u32) -> Tex {
     canvas_tex_opt(320, 452, false, move |ctx, w, h| {
         let seed = salt ^ 0x5011;
-        let film = hex(0x27402a);
+        let film = rgb(0x27402a);
         ctx.set_fill_style(&css(film, 1.0));
         ctx.fill_rect(0, 0, w, h);
         // the seals: crimped, a band of the print's green
-        ctx.set_fill_style(&css(hex(0x1f3322), 1.0));
+        ctx.set_fill_style(&css(rgb(0x1f3322), 1.0));
         ctx.fill_rect(0, 0, w, 24);
         ctx.fill_rect(0, h - 24.0, w, 24);
         ctx.set_stroke_style("rgba(255,255,255,0.07)");
@@ -89,9 +89,9 @@ fn soil_print_tex(salt: u32) -> Tex {
             }
         }
         // the brand on a cream band
-        ctx.set_fill_style(&css(hex(0xe6dec6), 1.0));
+        ctx.set_fill_style(&css(rgb(0xe6dec6), 1.0));
         ctx.fill_rect(0, 42, w, 50);
-        ctx.set_fill_style(&css(hex(0x2a472c), 1.0));
+        ctx.set_fill_style(&css(rgb(0x2a472c), 1.0));
         ctx.set_text_align("center");
         ctx.set_text_baseline("alphabetic");
         ctx.set_font("bold 36px Rockwell");
@@ -99,22 +99,22 @@ fn soil_print_tex(salt: u32) -> Tex {
         // a sprig each side of it
         for sx in [-1.0, 1.0] {
             let cx = w / 2.0 + sx * 136.0;
-            ctx.set_stroke_style(&css(hex(0x2a472c), 1.0));
+            ctx.set_stroke_style(&css(rgb(0x2a472c), 1.0));
             ctx.set_line_width(2);
             ctx.begin_path();
             ctx.move_to(cx, 84);
             ctx.line_to(cx, 52);
             ctx.stroke();
             for k in 0..3 {
-                blob(ctx, cx + sx * 5.0, 58.0 + k as f64 * 8.0, 6.0, 0.45, sx * 0.6, hex(0x2a472c), 1.0);
-                blob(ctx, cx - sx * 5.0, 62.0 + k as f64 * 8.0, 6.0, 0.45, -sx * 0.6, hex(0x2a472c), 1.0);
+                blob(ctx, cx + sx * 5.0, 58.0 + k as f64 * 8.0, 6.0, 0.45, sx * 0.6, rgb(0x2a472c), 1.0);
+                blob(ctx, cx - sx * 5.0, 62.0 + k as f64 * 8.0, 6.0, 0.45, -sx * 0.6, rgb(0x2a472c), 1.0);
             }
         }
-        ctx.set_fill_style(&css(hex(0xf0e9d4), 1.0));
+        ctx.set_fill_style(&css(rgb(0xf0e9d4), 1.0));
         ctx.set_font("bold 62px Futura");
         ctx.fill_text_max("POTTING", w / 2.0, 156, w - 22.0);
         ctx.fill_text_max("SOIL", w / 2.0, 214, w - 22.0);
-        ctx.set_fill_style(&css(hex(0xc8bf62), 1.0));
+        ctx.set_fill_style(&css(rgb(0xc8bf62), 1.0));
         ctx.set_font("bold 15px Futura");
         ctx.fill_text_max("ALL PURPOSE  \u{b7}  INDOOR & OUTDOOR PLANTS", w / 2.0, 238, w - 34.0);
         // the photograph: pot plants in flower on a bench, in a greenhouse
@@ -124,25 +124,25 @@ fn soil_print_tex(salt: u32) -> Tex {
         ctx.rect(px, py, pw, ph);
         ctx.clip();
         let gr = ctx.create_linear_gradient(0, py, 0, py + ph);
-        gr.add_color_stop(0, &css(hex(0xb7c49a), 1.0));
-        gr.add_color_stop(0.6, &css(hex(0x5d7a4a), 1.0));
-        gr.add_color_stop(1, &css(hex(0x6a5444), 1.0));
+        gr.add_color_stop(0, &css(rgb(0xb7c49a), 1.0));
+        gr.add_color_stop(0.6, &css(rgb(0x5d7a4a), 1.0));
+        gr.add_color_stop(1, &css(rgb(0x6a5444), 1.0));
         ctx.set_fill_style(&gr);
         ctx.fill_rect(px, py, pw, ph);
         let mut r = SplitMix64::new(7, 0x50f0);
         // the greenhouse behind, out of focus
         for _ in 0..40 {
             let (x, y) = (px + r.next() * pw, py + r.next() * ph * 0.6);
-            blob(ctx, x, y, r.range(8.0, 22.0), 1.0, 0.0, mix(hex(0x6f8c56), hex(0xd7dcb4), r.next()), 0.35);
+            blob(ctx, x, y, r.range(8.0, 22.0), 1.0, 0.0, mix(rgb(0x6f8c56), rgb(0xd7dcb4), r.next()), 0.35);
         }
         // three pots on the bench, their plants and flowers
         for (k, cx) in [px + 52.0, px + 128.0, px + 202.0].into_iter().enumerate() {
             let base = py + ph - 8.0;
             let (tw, bw, pot_h) = (34.0, 24.0, 30.0);
             let pg = ctx.create_linear_gradient(cx - tw, 0, cx + tw, 0);
-            pg.add_color_stop(0, &css(hex(0x7a3e24), 1.0));
-            pg.add_color_stop(0.4, &css(hex(0xc0704a), 1.0));
-            pg.add_color_stop(1, &css(hex(0x6a3420), 1.0));
+            pg.add_color_stop(0, &css(rgb(0x7a3e24), 1.0));
+            pg.add_color_stop(0.4, &css(rgb(0xc0704a), 1.0));
+            pg.add_color_stop(1, &css(rgb(0x6a3420), 1.0));
             ctx.set_fill_style(&pg);
             ctx.begin_path();
             ctx.move_to(cx - tw, base - pot_h);
@@ -163,12 +163,12 @@ fn soil_print_tex(salt: u32) -> Tex {
                     r.range(6.0, 11.0),
                     0.6,
                     a,
-                    mix(hex(0x2c4a22), hex(0x6f9a46), r.next()),
+                    mix(rgb(0x2c4a22), rgb(0x6f9a46), r.next()),
                     0.85,
                 );
             }
             // the flowers: geranium heads, petunias
-            let fl = [hex(0xc0283a), hex(0xd8a0c0), hex(0xe8e0d0)][k];
+            let fl = [rgb(0xc0283a), rgb(0xd8a0c0), rgb(0xe8e0d0)][k];
             for _ in 0..9 {
                 let a = r.range(-2.7, -0.4);
                 let d = r.range(14.0, 38.0);
@@ -193,7 +193,7 @@ fn soil_print_tex(salt: u32) -> Tex {
         ctx.set_line_width(2);
         ctx.stroke_rect(px, py, pw, ph);
         // the starburst
-        ctx.set_fill_style(&css(hex(0xd9b640), 1.0));
+        ctx.set_fill_style(&css(rgb(0xd9b640), 1.0));
         ctx.begin_path();
         let (sx, sy) = (w - 58.0, 262.0);
         for k in 0..32 {
@@ -207,12 +207,12 @@ fn soil_print_tex(salt: u32) -> Tex {
         }
         ctx.close_path();
         ctx.fill();
-        ctx.set_fill_style(&css(hex(0x2a472c), 1.0));
+        ctx.set_fill_style(&css(rgb(0x2a472c), 1.0));
         ctx.set_font("bold 12px Futura");
         ctx.fill_text_max("ENRICHED", sx, sy - 2.0, 56);
         ctx.set_font("10px Futura");
         ctx.fill_text_max("WITH PEAT", sx, sy + 11.0, 56);
-        ctx.set_fill_style(&css(hex(0xf0e9d4), 1.0));
+        ctx.set_fill_style(&css(rgb(0xf0e9d4), 1.0));
         ctx.set_font("bold 22px Futura");
         ctx.fill_text_max("8 DRY QT (8.8 L)", w / 2.0, 412, w - 50.0);
         // worn: scuffs and creases where the film folded and was dragged
@@ -256,7 +256,7 @@ fn soil_print_tex(salt: u32) -> Tex {
                 s.range(4.0, 14.0),
                 s.range(0.4, 1.0),
                 s.range(0.0, 3.0),
-                hex(0x2a1f17),
+                rgb(0x2a1f17),
                 s.range(0.3, 0.8),
             );
         }
@@ -321,7 +321,7 @@ fn soil_scatter_tex(salt: u32) -> Tex {
                 r.range(8.0, 26.0) * (1.0 - 0.6 * d),
                 r.range(0.5, 1.0),
                 r.range(0.0, 3.0),
-                hex(0x1e1914),
+                rgb(0x1e1914),
                 r.range(0.15, 0.4) * (1.0 - d),
             );
         }
@@ -331,7 +331,7 @@ fn soil_scatter_tex(salt: u32) -> Tex {
             let d = r.next().powf(0.6);
             let (x, y) = (w * 0.3 + a.cos() * d * w * 0.65, h * 0.25 + a.sin() * d * h * 0.75);
             // a grain of perlite now and then, dulled with the dust
-            let c = if r.next() < 0.05 { [0.62, 0.6, 0.56] } else { mix(hex(0x161210), hex(0x3a2e24), r.next()) };
+            let c = if r.next() < 0.05 { [0.62, 0.6, 0.56] } else { mix(rgb(0x161210), rgb(0x3a2e24), r.next()) };
             ctx.set_fill_style(&css(c, r.range(0.6, 0.95)));
             ctx.begin_path();
             ctx.arc(x, y, r.range(0.6, 2.2), 0, 7);

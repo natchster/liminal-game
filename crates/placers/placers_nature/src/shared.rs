@@ -9,14 +9,14 @@ use game::visuals::pictures::Window;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
 use placers_kit::paint::mark_mat;
 use placers_kit::paint::paint_px;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
-macro_rules! t05_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -83,22 +83,22 @@ pub(crate) fn floor_mark(tex: &Tex, w: f64, d: f64, x: f64, z: f64, turn: f64) -
 /// it, pale lenticels (short dashes), a bloom of grey-green algae here and
 /// there; one texture for every twig, laid along each one's length
 pub(crate) fn bark_tex() -> Tex {
-    t05_tex!(256, 64, false, |ctx, w, h| {
+    cached_tex!(256, 64, false, |ctx, w, h| {
         paint_px(ctx, w, h, |x, y| {
             let (u, v) = (x / w, y / h);
             let streak = fbm(0x0b1, u * 40.0, v * 3.0, 3);
-            let mut c = mix([0.50, 0.44, 0.37], [0.36, 0.31, 0.26], streak);
+            let mut c = mix_unclamped([0.50, 0.44, 0.37], [0.36, 0.31, 0.26], streak);
             // lenticels: short pale dashes across the twig
             let (cx, cy) = ((u * 70.0).floor(), (v * 9.0).floor());
             let hh = hash(0x1e7, cx as i32, cy as i32);
             if hh > 0.72 {
                 let (fx, fy) = (u * 70.0 - cx - 0.5, v * 9.0 - cy - 0.5);
                 let d = (fx / 0.18).hypot(fy / 0.42);
-                c = mix(c, [0.66, 0.60, 0.50], 0.8 * (1.0 - sstep(0.6, 1.0, d)));
+                c = mix_unclamped(c, [0.66, 0.60, 0.50], 0.8 * (1.0 - sstep(0.6, 1.0, d)));
             }
             // algae and lichen, grey-green, dry
             let alg = sstep(0.62, 0.75, fbm(0x2a9, u * 9.0, v * 2.0, 4));
-            c = mix(c, [0.46, 0.48, 0.40], 0.5 * alg);
+            c = mix_unclamped(c, [0.46, 0.48, 0.40], 0.5 * alg);
             [c[0], c[1], c[2], 1.0]
         });
     })

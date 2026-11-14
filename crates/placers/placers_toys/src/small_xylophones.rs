@@ -1,12 +1,12 @@
 //! `place_small_xylophones`: Small xylophone: 6% chance per level. A child's eight note "xylophone" (Blender batch `t16`): a metallophone of 3 mm aluminium bars enamelled in eight colours, C to C (100 to 68 mm), each pinned through its two nodes over a felt strip on a splayed pine frame (265 x 75 mm), its note's letter printed at its foot; a wooden mallet lying in front. The enamel faded, chipped at the corners and worn to the metal where the mallet struck, the pine grey with handling, dust.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::noise::mix as t16_mix;
-use placers_kit::noise::sstep as t16_ss;
-use placers_kit::noise::vn as t16_vn;
+use placers_kit::noise::mix;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
-use placers_kit::place::salt_of as t16_salt;
+use placers_kit::place::salt_of;
 
 /// Small xylophone: 6% chance per level. A child's eight note
 /// "xylophone" (Blender batch `t16`): a metallophone of 3 mm aluminium bars
@@ -27,9 +27,9 @@ pub(crate) fn place_small_xylophones(g: &mut Game, _dist: &[i32]) {
     let xylo = group();
     let px = g.wx(x) + (rnd() - 0.5) * 2.0;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.0;
-    let salt = t16_salt(px, pz);
-    t16_put(&xylo, "Real__xyloFrame", &lambert!({ map: &pine_tex(salt) }));
-    t16_put(&xylo, "Real__xyloFelt", &lambert!({ color: 0x4a2a28 }));
+    let salt = salt_of(px, pz);
+    put(&xylo, "Real__xyloFrame", &lambert!({ map: &pine_tex(salt) }));
+    put(&xylo, "Real__xyloFelt", &lambert!({ color: 0x4a2a28 }));
     if let Some(geo) = prop_part_as_modelled("Real__xyloBars") {
         // the enamel laid on from above, every face (the bars' sides take
         // their own bar's colour)
@@ -46,9 +46,9 @@ pub(crate) fn place_small_xylophones(g: &mut Game, _dist: &[i32]) {
         }
         xylo.add(&mesh(geo, phong!({ map: &enamel_tex(salt), specular: 0x2a2a2a, shininess: 30 })));
     }
-    t16_put(&xylo, "Real__xyloPins", &phong!({ color: 0x6a6a68, specular: 0x303030, shininess: 30 }));
-    t16_put(&xylo, "Real__xyloMallet", &lambert!({ color: 0x96785a }));
-    t16_put(&xylo, "Real__xyloMalletHead", &phong!({ color: 0x3a2e26, specular: 0x1e1e1e, shininess: 20 }));
+    put(&xylo, "Real__xyloPins", &phong!({ color: 0x6a6a68, specular: 0x303030, shininess: 30 }));
+    put(&xylo, "Real__xyloMallet", &lambert!({ color: 0x96785a }));
+    put(&xylo, "Real__xyloMalletHead", &phong!({ color: 0x3a2e26, specular: 0x1e1e1e, shininess: 20 }));
     xylo.position().set(px, 0, pz);
     xylo.rotation().y = rnd() * PI * 2.0;
     g.world.add(&xylo);
@@ -105,22 +105,22 @@ fn enamel_tex(salt: u32) -> Tex {
                 let (dx, dz) = ((x - bar_x(k)).abs(), z.abs());
                 // how far in from the bar's edge (m)
                 let edge = (BAR_W / 2.0 - dx).min(bar_len(k) / 2.0 - dz);
-                let metal = t16_mix([0.66, 0.67, 0.68], [0.52, 0.53, 0.54], t16_fbm(salt ^ 0x15, u * 30.0, v * 15.0, 2));
-                let mut c = t16_mix(COLS[k], [0.70, 0.68, 0.64], 0.15 * t16_ss(0.45, 0.8, t16_fbm(salt, u * 8.0, v * 4.0, 3)));
-                let chip_n = t16_fbm(salt ^ 0x25, u * 60.0, v * 30.0, 3);
-                let corner = t16_ss(0.006, 0.0, (BAR_W / 2.0 - dx).max(0.0).hypot((bar_len(k) / 2.0 - dz).max(0.0)) - 0.002);
-                let chip = t16_ss(0.0035, 0.0005, edge).max(corner) * t16_ss(0.45, 0.6, chip_n);
+                let metal = mix([0.66, 0.67, 0.68], [0.52, 0.53, 0.54], fbm(salt ^ 0x15, u * 30.0, v * 15.0, 2));
+                let mut c = mix(COLS[k], [0.70, 0.68, 0.64], 0.15 * sstep(0.45, 0.8, fbm(salt, u * 8.0, v * 4.0, 3)));
+                let chip_n = fbm(salt ^ 0x25, u * 60.0, v * 30.0, 3);
+                let corner = sstep(0.006, 0.0, (BAR_W / 2.0 - dx).max(0.0).hypot((bar_len(k) / 2.0 - dz).max(0.0)) - 0.002);
+                let chip = sstep(0.0035, 0.0005, edge).max(corner) * sstep(0.45, 0.6, chip_n);
                 // where the mallet struck: the middle of the bar, a little to the player
                 let (sx, sz) = ((x - bar_x(k)) / 0.008, (z - 0.004) / 0.011);
-                let strike = (-(sx * sx + sz * sz)).exp() * t16_ss(0.3, 0.6, t16_fbm(salt ^ 0x35, u * 90.0, v * 45.0, 2));
-                c = t16_mix(c, metal, chip.max(strike * 0.85));
-                let scratch = (t16_fbm(salt ^ 0x45, u * 4.0, v * 70.0, 2) - 0.5).abs();
-                c = t16_mix(c, [0.78, 0.77, 0.74], 0.25 * (1.0 - t16_ss(0.0, 0.006, scratch)));
+                let strike = (-(sx * sx + sz * sz)).exp() * sstep(0.3, 0.6, fbm(salt ^ 0x35, u * 90.0, v * 45.0, 2));
+                c = mix(c, metal, chip.max(strike * 0.85));
+                let scratch = (fbm(salt ^ 0x45, u * 4.0, v * 70.0, 2) - 0.5).abs();
+                c = mix(c, [0.78, 0.77, 0.74], 0.25 * (1.0 - sstep(0.0, 0.006, scratch)));
                 // grime round the pins and dust
                 let pin = (x - bar_x(k)).hypot(dz - bar_len(k) * (0.5 - 0.224));
-                c = t16_mix(c, [0.22, 0.20, 0.18], 0.5 * t16_ss(0.006, 0.0025, pin));
-                let dust = t16_ss(0.5, 0.85, t16_fbm(salt ^ 0x55, u * 12.0, v * 6.0, 3));
-                c = t16_mix(c, [0.55, 0.53, 0.50], 0.2 * dust);
+                c = mix(c, [0.22, 0.20, 0.18], 0.5 * sstep(0.006, 0.0025, pin));
+                let dust = sstep(0.5, 0.85, fbm(salt ^ 0x55, u * 12.0, v * 6.0, 3));
+                c = mix(c, [0.55, 0.53, 0.50], 0.2 * dust);
                 for q in 0..3 {
                     out[i * 4 + q] = (c[q].clamp(0.0, 1.0) * 255.0).round() as u8;
                 }
@@ -143,16 +143,16 @@ fn enamel_tex(salt: u32) -> Tex {
 /// The pine of the frame laid on its bounds: its grain along the rails,
 /// greyed and darkened with handling, dust
 fn pine_tex(salt: u32) -> Tex {
-    t16_paint(256, 64, move |u, v| {
-        let grain = t16_fbm(salt ^ 0x65, u * 3.0, v * 40.0, 3);
-        let mut c = t16_mix([0.66, 0.53, 0.36], [0.55, 0.42, 0.28], grain);
-        c = t16_mix(c, [0.52, 0.48, 0.42], 0.35 * t16_ss(0.4, 0.8, t16_fbm(salt ^ 0x75, u * 6.0, v * 3.0, 3)));
-        t16_mix(c, [0.30, 0.26, 0.22], 0.3 * t16_ss(0.6, 0.9, t16_fbm(salt ^ 0x85, u * 14.0, v * 8.0, 2)))
+    paint(256, 64, move |u, v| {
+        let grain = fbm(salt ^ 0x65, u * 3.0, v * 40.0, 3);
+        let mut c = mix([0.66, 0.53, 0.36], [0.55, 0.42, 0.28], grain);
+        c = mix(c, [0.52, 0.48, 0.42], 0.35 * sstep(0.4, 0.8, fbm(salt ^ 0x75, u * 6.0, v * 3.0, 3)));
+        mix(c, [0.30, 0.26, 0.22], 0.3 * sstep(0.6, 0.9, fbm(salt ^ 0x85, u * 14.0, v * 8.0, 2)))
     })
 }
 
 /// The part `name` of batch `t16` as modelled, added to `grp` in `mat`
-fn t16_put(grp: &Obj, name: &str, mat: &Mat) {
+fn put(grp: &Obj, name: &str, mat: &Mat) {
     if let Some(geo) = prop_part_as_modelled(name) {
         grp.add(&mesh(geo, mat.clone()));
     }
@@ -160,7 +160,7 @@ fn t16_put(grp: &Obj, name: &str, mat: &Mat) {
 
 /// A texture painted pixel by pixel (sRGB) from `f(u, v)` (v down the
 /// image), on every core: no canvas call and no draw inside
-fn t16_paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send + 'static) -> Tex {
+fn paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send + 'static) -> Tex {
     canvas_tex_opt(w as f64, h as f64, false, move |ctx, cw, ch| {
         let mut img = ctx.create_image_data(cw, ch);
         par_rows(&mut img.data, w * 4, |j, out| {
@@ -176,10 +176,10 @@ fn t16_paint(w: usize, h: usize, f: impl Fn(f64, f64) -> [f64; 3] + Sync + Send 
     })
 }
 
-fn t16_fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
+fn fbm(seed: u32, x: f64, y: f64, oct: u32) -> f64 {
     let (mut s, mut amp, mut f, mut n) = (0.0, 0.5, 1.0, 0.0);
     for k in 0..oct {
-        s += amp * t16_vn(seed.wrapping_add(k * 7919), x * f, y * f);
+        s += amp * vn(seed.wrapping_add(k * 7919), x * f, y * f);
         n += amp;
         amp *= 0.5;
         f *= 2.03;

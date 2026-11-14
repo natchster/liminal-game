@@ -1,8 +1,8 @@
 //! `place_wall_coat_hooks`
 use game::prelude::*;
 use placers_kit::geometry::clone_obj;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
@@ -29,7 +29,7 @@ pub(crate) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.004);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.004);
         let hook_height = 1.7 + rnd() * 0.20;
-        wall_mount(&hook, &c, wall_x, wall_z, hook_height, 1.4);
+        mount_slid_ref(&hook, &c, wall_x, wall_z, hook_height, 1.4);
         g.world.add(&hook);
         // 20% chance: 2-3 additional sibling hooks in a row along
         // the same wall (cloakroom cluster).
@@ -53,7 +53,7 @@ pub(crate) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
         // colour, size and hang)
         if rnd() < 0.25 {
             let cloth_colors = [0x282018, 0x1a2028, 0x2a1010, 0x3a2820];
-            let old = cloth_colors[pick(cloth_colors.len())];
+            let old = cloth_colors[ri(cloth_colors.len())];
             let length = 0.22 + rnd() * 0.10;
             let sway = (rnd() - 0.5) * 0.15;
             let wool = match old {

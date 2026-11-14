@@ -6,7 +6,7 @@ use game::visuals::pictures::Age;
 use placers_kit::geometry::put;
 use placers_kit::noise::crack;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -126,7 +126,7 @@ fn gl_wood_tex(vary: u32, stain: [f64; 3]) -> Tex {
         let seed = vary ^ 0x6e0;
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, v, u, stain, 6.0, 40.0);
-            let rub = ss(0.62, 0.8, fbm(seed ^ 3, u * 7.0, v * 22.0, 3));
+            let rub = sstep(0.62, 0.8, fbm(seed ^ 3, u * 7.0, v * 22.0, 3));
             o = mix(o, stain.map(|c| (c * 1.6 + 0.06).min(0.6)), rub * 0.35);
             let dust = 0.07 + 0.12 * fbm(seed ^ 5, u * 6.0, v * 12.0, 3);
             opaque(mix(o, [0.42, 0.39, 0.34], dust))
@@ -160,7 +160,7 @@ fn gl_meridian_tex(vary: u32) -> Tex {
                 o = o.map(|c| c * 0.35);
             }
             // rubbed bright at the top where it is held
-            o = mix(o, [0.58, 0.47, 0.26], ss(0.55, 0.95, v) * 0.25 * fbm(seed ^ 1, u * 9.0, v * 9.0, 2));
+            o = mix(o, [0.58, 0.47, 0.26], sstep(0.55, 0.95, v) * 0.25 * fbm(seed ^ 1, u * 9.0, v * 9.0, 2));
             opaque(o)
         });
     })
@@ -264,10 +264,10 @@ fn gl_horizon_tex(vary: u32) -> Tex {
                 o = [o[0] * 0.92 * am, o[1] * 0.80 * am, o[2] * 0.58 * am];
                 // rubbed through to the pale paper where hands leant on it
                 let da = ((a - lean + PI).rem_euclid(PI * 2.0) - PI).abs();
-                let rub = ss(0.7, 0.2, da) * ss(0.55, 0.75, fbm(seed ^ 3, u * 30.0, v * 30.0, 3));
+                let rub = sstep(0.7, 0.2, da) * sstep(0.55, 0.75, fbm(seed ^ 3, u * 30.0, v * 30.0, 3));
                 o = mix(o, [0.70, 0.64, 0.50], rub * 0.6);
                 // foxing and grime
-                let fox = ss(0.80, 0.9, fbm(seed ^ 7, u * 40.0, v * 40.0, 2));
+                let fox = sstep(0.80, 0.9, fbm(seed ^ 7, u * 40.0, v * 40.0, 2));
                 o = o.map(|c| c * (1.0 - 0.3 * fox));
                 let dust = 0.10 + 0.14 * fbm(seed ^ 9, u * 5.0, v * 5.0, 3);
                 o = mix(o, [0.45, 0.42, 0.37], dust);
@@ -342,7 +342,7 @@ fn gl_map_tex(vary: u32) -> Tex {
             let grat = |lon_deg: f64, lat_deg: f64, every_lon: f64, every_lat: f64| -> f64 {
                 let a = ((lon_deg / every_lon) - (lon_deg / every_lon).round()).abs() * every_lon * lat.cos().max(0.05);
                 let b = ((lat_deg / every_lat) - (lat_deg / every_lat).round()).abs() * every_lat;
-                1.0 - ss(0.0, 0.45, a.min(b))
+                1.0 - sstep(0.0, 0.45, a.min(b))
             };
             let (lon_d, lat_d) = (lon.to_degrees(), lat.to_degrees());
             let mut o = if my < BL_TOP + 1.0 || my > BL_FOOT - 1.0 {
@@ -363,7 +363,7 @@ fn gl_map_tex(vary: u32) -> Tex {
             for &(ix, iy, ir) in &BL_INSETS {
                 let d = ((mx - ix).powi(2) + (my - iy).powi(2)).sqrt();
                 if d < ir + 2.0 {
-                    let k = ss(ir + 2.0, ir - 1.0, d);
+                    let k = sstep(ir + 2.0, ir - 1.0, d);
                     let mut c = mix(sea, [0.0; 3], 0.04 * fbm(seed ^ 1, u * 60.0, v * 40.0, 2));
                     c = mix(c, ink, grat(lon_d, lat_d, 10.0, 10.0) * 0.35);
                     o = mix(o, c, k);
@@ -380,25 +380,25 @@ fn gl_map_tex(vary: u32) -> Tex {
             let g = ((lon_d + 0.6 * (lat * 3.0).sin()) / 30.0).fract();
             let gd = g.min(1.0 - g) * 30.0 * lat.cos();
             if lat_d.abs() < 72.0 {
-                o = o.map(|c| c * (1.0 - 0.18 * (1.0 - ss(0.0, 0.25, gd))));
+                o = o.map(|c| c * (1.0 - 0.18 * (1.0 - sstep(0.0, 0.25, gd))));
             }
             // varnish gone amber, deeper in its runs
             let am = 0.78 + 0.18 * fbm(seed ^ 2, u * 6.0, v * 9.0, 3);
             o = [o[0] * 0.93 * am, o[1] * 0.80 * am, o[2] * 0.55 * am];
             // crazed: the varnish's fine cracks
             let d = crack(seed ^ 4, u * 140.0, v * 70.0);
-            o = o.map(|c| c * (1.0 - 0.18 * (1.0 - ss(0.0, 0.05, d))));
+            o = o.map(|c| c * (1.0 - 0.18 * (1.0 - sstep(0.0, 0.05, d))));
             // rubbed round its middle by the hands that turned it: the
             // varnish and the print worn to the pale paper, grime round it
-            let band = 1.0 - ss(0.0, 0.45, lat.abs());
-            let rub = band * ss(0.62, 0.8, fbm(seed ^ 6, u * 24.0, v * 14.0, 3));
+            let band = 1.0 - sstep(0.0, 0.45, lat.abs());
+            let rub = band * sstep(0.62, 0.8, fbm(seed ^ 6, u * 24.0, v * 14.0, 3));
             o = mix(o, [0.72, 0.66, 0.52], rub * 0.45);
             o = o.map(|c| c * (1.0 - 0.15 * band * fbm(seed ^ 8, u * 10.0, v * 10.0, 2)));
             // foxing
-            let fox = ss(0.82, 0.92, fbm(seed ^ 10, u * 50.0, v * 25.0, 2));
+            let fox = sstep(0.82, 0.92, fbm(seed ^ 10, u * 50.0, v * 25.0, 2));
             o = [o[0] * (1.0 - 0.2 * fox), o[1] * (1.0 - 0.3 * fox), o[2] * (1.0 - 0.4 * fox)];
             // dust settled on its top
-            let dust = ss(0.6, 0.97, v) * (0.10 + 0.20 * fbm(seed ^ 12, u * 12.0, v * 8.0, 3)) + 0.03;
+            let dust = sstep(0.6, 0.97, v) * (0.10 + 0.20 * fbm(seed ^ 12, u * 12.0, v * 8.0, 3)) + 0.03;
             opaque(mix(o, [0.45, 0.42, 0.37], dust))
         });
     })
@@ -420,5 +420,5 @@ fn wood(seed: u32, u: f64, v: f64, base: [f64; 3], along: f64, across: f64) -> [
 
 /// Tarnished metal's mottle (a multiplier near 1)
 fn tarnish(seed: u32, u: f64, v: f64, scale: f64) -> f64 {
-    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * ss(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
+    0.8 + 0.3 * fbm(seed, u * scale, v * scale, 3) - 0.18 * sstep(0.6, 0.8, fbm(seed ^ 9, u * scale * 0.6, v * scale * 0.6, 3))
 }

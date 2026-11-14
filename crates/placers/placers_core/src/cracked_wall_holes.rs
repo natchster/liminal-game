@@ -5,8 +5,8 @@ use placers_kit::on_wall::wall_face;
 use placers_kit::on_wall::wall_turn;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
-use placers_kit::place::WallCand as Cand;
-use placers_kit::wall_plates::part as real_part;
+use placers_kit::place::WallCand;
+use placers_kit::wall_plates::part;
 
 // Cracked wall segments: a hole kicked or punched through the wall
 // (Blender batch `r06`): the face paper torn back, the gypsum broken through
@@ -40,7 +40,7 @@ pub(crate) fn place_cracked_wall_holes(g: &mut Game, _dist: &[i32]) {
 }
 
 /// What the wall behind candidate `c` is made of: its arch material's key.
-fn wall_key_of(g: &Game, c: &Cand) -> String {
+fn wall_key_of(g: &Game, c: &WallCand) -> String {
     let (nx, nz) = (c.x + c.dx, c.z + c.dz);
     if !g.in_grid(nx, nz) || g.layout.is_none() {
         return "wp:0".into();
@@ -50,7 +50,7 @@ fn wall_key_of(g: &Game, c: &Cand) -> String {
 
 /// The hole: its group's origin on the wall's face at the hole's centre,
 /// +z out of the wall, y up (the floor at -h_height).
-fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, jit: f64) -> Obj {
+fn build_wall_hole(g: &mut Game, c: &WallCand, w: f64, hole_h: f64, h_height: f64, jit: f64) -> Obj {
     // the board (1/2 in) and the bay of a 3-5/8 in stud behind it
     const BOARD: f64 = 0.0127;
     const BAY: f64 = 0.092;
@@ -83,7 +83,7 @@ fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, j
         0x77736b
     };
     let gypsum = lambert!({ color: edge });
-    let gy = mesh(real_part(&format!("Real__hole{k}Gypsum"), 0.2, 0.15, 0.013), &gypsum);
+    let gy = mesh(part(&format!("Real__hole{k}Gypsum"), 0.2, 0.15, 0.013), &gypsum);
     inside(&gy);
     hg.add(&gy);
     if !masonry {
@@ -91,7 +91,7 @@ fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, j
         // shade of the hole
         let paper_mat = g.arch_mat(&key).duplicate();
         paper_mat.set_color(0x6a6a6a);
-        let pa = mesh(real_part(&format!("Real__hole{k}Paper"), 0.2, 0.15, 0.01), &paper_mat);
+        let pa = mesh(part(&format!("Real__hole{k}Paper"), 0.2, 0.15, 0.01), &paper_mat);
         inside(&pa);
         hg.add(&pa);
         // the stud bay: a steel stud where the hole happens to be by one
@@ -102,7 +102,7 @@ fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, j
             if x.abs() > 0.38 {
                 continue;
             }
-            let st = mesh(real_part("Real__holeStud", 0.04, 0.5, 0.092), &stud_mat);
+            let st = mesh(part("Real__holeStud", 0.04, 0.5, 0.092), &stud_mat);
             st.position().x = x;
             inside(&st);
             hg.add(&st);
@@ -117,7 +117,7 @@ fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, j
     inside(&back);
     hg.add(&back);
     // the mask: the torn outline, writing depth only
-    let mask = mesh(real_part(&format!("Real__hole{k}Mask"), 0.2, 0.15, 0.001), basic_mat!({ colorWrite: false }));
+    let mask = mesh(part(&format!("Real__hole{k}Mask"), 0.2, 0.15, 0.001), basic_mat!({ colorWrite: false }));
     mask.set_render_order(-2);
     hg.add(&mask);
     // the cracks out from it, the dent, the scuffs: on the wall, behind the mask
@@ -135,7 +135,7 @@ fn build_wall_hole(g: &mut Game, c: &Cand, w: f64, hole_h: f64, h_height: f64, j
     decal.position().z = 0.0008;
     hg.add(&decal);
     // what fell out of it, on the floor at the wall's foot
-    let chips = mesh(real_part("Real__holeChips", 0.25, 0.02, 0.12), &gypsum);
+    let chips = mesh(part("Real__holeChips", 0.25, 0.02, 0.12), &gypsum);
     chips.position().set(0, -h_height, 0.01);
     root.add(&chips);
     let dust = mesh(

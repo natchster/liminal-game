@@ -6,8 +6,8 @@ use placers_kit::geometry::put;
 use placers_kit::noise::crack;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
-use placers_kit::noise::mix_unclamped as mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -198,7 +198,7 @@ fn hu_veneer_tex(vary: u32, kind: usize) -> Tex {
                 }
                 1 => {
                     let burl = fbm(seed, u * 14.0, v * 14.0, 4);
-                    let eye = ss(0.72, 0.8, vn(seed ^ 3, u * 30.0, v * 30.0));
+                    let eye = sstep(0.72, 0.8, vn(seed ^ 3, u * 30.0, v * 30.0));
                     [0.40, 0.26, 0.14].map(|c| c * (0.7 + 0.6 * burl) * (1.0 - 0.5 * eye))
                 }
                 2 => wood(seed, u, v, [0.17, 0.08, 0.05], 8.0, 60.0),
@@ -208,11 +208,12 @@ fn hu_veneer_tex(vary: u32, kind: usize) -> Tex {
                 }
             };
             let d = crack(seed ^ 5, u * 90.0, v * 90.0);
-            o = o.map(|c| c * (1.0 - 0.2 * (1.0 - ss(0.0, 0.04, d))));
-            let rub = ss(0.65, 0.85, fbm(seed ^ 7, u * 10.0, v * 10.0, 3)) * (1.0 - ss(0.05, 0.15, u.min(1.0 - u).min(v).min(1.0 - v)));
-            o = mix(o, [0.30, 0.22, 0.15], rub * 0.4);
+            o = o.map(|c| c * (1.0 - 0.2 * (1.0 - sstep(0.0, 0.04, d))));
+            let rub =
+                sstep(0.65, 0.85, fbm(seed ^ 7, u * 10.0, v * 10.0, 3)) * (1.0 - sstep(0.05, 0.15, u.min(1.0 - u).min(v).min(1.0 - v)));
+            o = mix_unclamped(o, [0.30, 0.22, 0.15], rub * 0.4);
             let dust = 0.08 + 0.12 * fbm(seed ^ 9, u * 7.0, v * 7.0, 3);
-            opaque(mix(o, [0.43, 0.40, 0.35], dust))
+            opaque(mix_unclamped(o, [0.43, 0.40, 0.35], dust))
         });
     })
 }
@@ -225,7 +226,7 @@ fn hu_cedar_tex(vary: u32, dark: bool) -> Tex {
         let base = if dark { [0.34, 0.20, 0.12] } else { [0.56, 0.36, 0.24] };
         fill(ctx, w, h, |u, v| {
             let o = wood(seed, u, v, base, 10.0, 50.0);
-            let stain = ss(0.6, 0.8, fbm(seed ^ 3, u * 5.0, v * 9.0, 3));
+            let stain = sstep(0.6, 0.8, fbm(seed ^ 3, u * 5.0, v * 9.0, 3));
             opaque(o.map(|c| c * (1.0 - 0.18 * stain)))
         });
     })
@@ -237,8 +238,8 @@ fn hu_zinc_tex(vary: u32) -> Tex {
         let seed = vary ^ 0x21c;
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 6.0, v * 6.0, 3);
-            let bloom = ss(0.62, 0.8, fbm(seed ^ 3, u * 10.0, v * 10.0, 3));
-            opaque(mix([0.38, 0.39, 0.40].map(|c| c * (0.8 + 0.3 * n)), [0.62, 0.62, 0.60], bloom * 0.4))
+            let bloom = sstep(0.62, 0.8, fbm(seed ^ 3, u * 10.0, v * 10.0, 3));
+            opaque(mix_unclamped([0.38, 0.39, 0.40].map(|c| c * (0.8 + 0.3 * n)), [0.62, 0.62, 0.60], bloom * 0.4))
         });
     })
 }
@@ -254,11 +255,11 @@ fn hu_leaf_tex(kind: usize, dry: f64) -> Tex {
         let seed = 0x1ea + kind as u32 * 17 + dry_k;
         let d = 0.15 * dry_k as f64;
         fill(ctx, w, h, |u, v| {
-            let vein = ss(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * (0.25 + d);
+            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * (0.25 + d);
             let n = fbm(seed ^ 3, u * 8.0, v * 24.0, 3);
             let mut o = tone.map(|c| c * (0.8 + 0.35 * n) * (1.0 - vein));
-            o = o.map(|c| c * (1.0 - 0.25 * ss(0.92, 0.99, v)));
-            opaque(mix(o, [0.46, 0.40, 0.32], 0.06 + d * 0.5))
+            o = o.map(|c| c * (1.0 - 0.25 * sstep(0.92, 0.99, v)));
+            opaque(mix_unclamped(o, [0.46, 0.40, 0.32], 0.06 + d * 0.5))
         });
     })
 }
@@ -302,9 +303,9 @@ fn hu_band_tex(kind: usize) -> Tex {
             for i in 0..n {
                 let k = (j * n + i) * 4;
                 let (u, v) = (i as f64 / w, j as f64 / h);
-                let e = 1.0 - ss(0.0, 0.15, v.min(1.0 - v));
+                let e = 1.0 - sstep(0.0, 0.15, v.min(1.0 - v));
                 let mut o = [0, 1, 2].map(|c| f64::from(src.data[k + c]) / 255.0);
-                o = mix(o, [0.55, 0.48, 0.38], 0.25 + 0.1 * fbm(kind as u32, u * 10.0, v * 3.0, 2));
+                o = mix_unclamped(o, [0.55, 0.48, 0.38], 0.25 + 0.1 * fbm(kind as u32, u * 10.0, v * 3.0, 2));
                 o = o.map(|c| c * (1.0 - 0.3 * e));
                 for c in 0..3 {
                     out[i * 4 + c] = (o[c].clamp(0.0, 1.0) * 255.0).round() as u8;
@@ -321,7 +322,7 @@ fn hu_filler_tex() -> Tex {
     canvas_tex_opt(32, 32, false, move |ctx, w, h| {
         fill(ctx, w, h, |u, v| {
             let n = fbm(0xf11, u * 9.0, v * 9.0, 3);
-            let fold = ss(0.4, 0.6, vn(0xf12, u * 14.0, v * 14.0));
+            let fold = sstep(0.4, 0.6, vn(0xf12, u * 14.0, v * 14.0));
             opaque([0.30, 0.19, 0.11].map(|c| c * (0.7 + 0.5 * n) * (0.8 + 0.3 * fold)))
         });
     })
@@ -333,8 +334,8 @@ fn hu_steel_tex(vary: u32) -> Tex {
         let seed = vary ^ 0x57e;
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 7.0, v * 7.0, 3);
-            let rust = ss(0.66, 0.8, fbm(seed ^ 3, u * 9.0, v * 9.0, 3));
-            opaque(mix([0.30, 0.30, 0.31].map(|c| c * (0.8 + 0.3 * n)), [0.32, 0.18, 0.10], rust * 0.6))
+            let rust = sstep(0.66, 0.8, fbm(seed ^ 3, u * 9.0, v * 9.0, 3));
+            opaque(mix_unclamped([0.30, 0.30, 0.31].map(|c| c * (0.8 + 0.3 * n)), [0.32, 0.18, 0.10], rust * 0.6))
         });
     })
 }

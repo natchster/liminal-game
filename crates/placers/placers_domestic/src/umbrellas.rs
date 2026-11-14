@@ -1,7 +1,7 @@
 //! `place_umbrellas`
 use game::prelude::*;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Leaning umbrella: 15% chance per level, 1 closed umbrella against a
 // wall: a classic stick umbrella (Blender batch `r09`), 0.89 m, furled and
@@ -10,7 +10,7 @@ pub(crate) fn place_umbrellas(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
     } // 15% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }

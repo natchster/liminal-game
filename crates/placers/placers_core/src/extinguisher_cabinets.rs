@@ -3,13 +3,13 @@ use game::prelude::*;
 use placers_kit::place::mount;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
-use placers_kit::wall_plates::blob as r12_blob;
-use placers_kit::wall_plates::part as r12_part;
-use placers_kit::wall_plates::scratches as r12_scratches;
+use placers_kit::wall_plates::blob;
+use placers_kit::wall_plates::part;
+use placers_kit::wall_plates::scratches;
 
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made).
-macro_rules! r12_tex {
+macro_rules! cached_tex {
     ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
@@ -36,20 +36,20 @@ pub(crate) fn place_extinguisher_cabinets(g: &mut Game, _dist: &[i32]) {
     o.position().z = -0.04;
     cab.add(&o);
     let enamel = lambert!({ map: &ec_enamel_tex(), color: 0xd4cfc2 });
-    o.add(&mesh(r12_part("Real__extCabinetTub", 0.205, 0.456, 0.134), &enamel));
-    o.add(&mesh(r12_part("Real__extCabinetDoor", 0.205, 0.456, 0.022), &enamel));
-    o.add(&mesh(r12_part("Real__extCabinetHardware", 0.21, 0.45, 0.04), phong!({ color: 0x75746f, specular: 0x3a3a38, shininess: 36 })));
+    o.add(&mesh(part("Real__extCabinetTub", 0.205, 0.456, 0.134), &enamel));
+    o.add(&mesh(part("Real__extCabinetDoor", 0.205, 0.456, 0.022), &enamel));
+    o.add(&mesh(part("Real__extCabinetHardware", 0.21, 0.45, 0.04), phong!({ color: 0x75746f, specular: 0x3a3a38, shininess: 36 })));
     // the extinguisher, standing on the tub's floor, turned so its label
     // and gauge face out past the door's edge
     let ex = group();
     ex.position().set(-0.014, -EC_H / 2.0 + 0.0014, 0.073);
     ex.rotation().y = PI - 0.4;
     o.add(&ex);
-    ex.add(&mesh(r12_part("Real__extCabinetExBody", 0.108, 0.24, 0.108), lambert!({ map: &ex_label_tex(), color: 0xffffff })));
-    ex.add(&mesh(r12_part("Real__extCabinetExEnds", 0.108, 0.3, 0.108), lambert!({ color: 0x7e1c14 })));
-    ex.add(&mesh(r12_part("Real__extCabinetExValve", 0.14, 0.07, 0.05), phong!({ color: 0x8a8984, specular: 0x505050, shininess: 44 })));
-    ex.add(&mesh(r12_part("Real__extCabinetExSeal", 0.02, 0.02, 0.015), lambert!({ color: 0xb49a2e })));
-    ex.add(&mesh(r12_part("Real__extCabinetExHose", 0.04, 0.2, 0.03), lambert!({ color: 0x1f1e1c })));
+    ex.add(&mesh(part("Real__extCabinetExBody", 0.108, 0.24, 0.108), lambert!({ map: &ex_label_tex(), color: 0xffffff })));
+    ex.add(&mesh(part("Real__extCabinetExEnds", 0.108, 0.3, 0.108), lambert!({ color: 0x7e1c14 })));
+    ex.add(&mesh(part("Real__extCabinetExValve", 0.14, 0.07, 0.05), phong!({ color: 0x8a8984, specular: 0x505050, shininess: 44 })));
+    ex.add(&mesh(part("Real__extCabinetExSeal", 0.02, 0.02, 0.015), lambert!({ color: 0xb49a2e })));
+    ex.add(&mesh(part("Real__extCabinetExHose", 0.04, 0.2, 0.03), lambert!({ color: 0x1f1e1c })));
     let gauge = mesh(circle_geo!(0.0098, 20), lambert!({ map: &ex_gauge_tex() }));
     gauge.rotation().y = PI;
     gauge.position().set(0, EX_BODY + 0.034, -0.0252);
@@ -60,7 +60,7 @@ pub(crate) fn place_extinguisher_cabinets(g: &mut Game, _dist: &[i32]) {
     ex.add(&tag);
     // the pane, clear, and what is on it: the lettering, dust and old tape
     o.add(&mesh(
-        r12_part("Real__extCabinetGlass", 0.169, 0.42, 0.003),
+        part("Real__extCabinetGlass", 0.169, 0.42, 0.003),
         lambert!({ color: 0xcdd9d4, transparent: true, opacity: 0.16, depthWrite: false }),
     ));
     let print = mesh(
@@ -85,7 +85,7 @@ const EX_BODY: f64 = 0.300;
 /// corners and the door's edge, rust in the chips at the foot, grime where
 /// the door is pulled, dust on top (the canvas is the cabinet's face).
 fn ec_enamel_tex() -> Tex {
-    r12_tex!(128, 284, false, |ctx, w, h| {
+    cached_tex!(128, 284, false, |ctx, w, h| {
         ctx.set_fill_style("#f3efe4");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..500 {
@@ -99,7 +99,7 @@ fn ec_enamel_tex() -> Tex {
         ctx.set_fill_style(gy);
         ctx.fill_rect(0, 0, w, h);
         // the pull's grime (right edge, middle)
-        r12_blob(ctx, w * 0.92, h * 0.5, w * 0.22, 2.0, (60, 50, 40, 0.3));
+        blob(ctx, w * 0.92, h * 0.5, w * 0.22, 2.0, (60, 50, 40, 0.3));
         // chips: grey metal, rust in the low ones
         for k in 0..22 {
             let edge = k % 4;
@@ -121,7 +121,7 @@ fn ec_enamel_tex() -> Tex {
                 ctx.fill_rect(x - 1.0, y, 2.0, 6.0 + rnd() * 14.0);
             }
         }
-        r12_scratches(ctx, w, h, 20, (90, 80, 70), 0.12, 16.0);
+        scratches(ctx, w, h, 20, (90, 80, 70), 0.12, 16.0);
     })
 }
 
@@ -129,7 +129,7 @@ fn ec_enamel_tex() -> Tex {
 /// EXTINGUISHER in red vinyl down the glass, reading up, a letter or two
 /// peeled; dust thick at the top and the corners, a hand's smear, old tape.
 fn ec_glass_tex() -> Tex {
-    r12_tex!(236, 588, false, |ctx, w, h| {
+    cached_tex!(236, 588, false, |ctx, w, h| {
         ctx.clear_rect(0, 0, w, h);
         // the letters, turned to read up the pane
         ctx.save();
@@ -158,13 +158,13 @@ fn ec_glass_tex() -> Tex {
         ctx.set_fill_style(gd);
         ctx.fill_rect(0, 0, w, h);
         for &(x, y) in &[(0.0, 0.0), (w, 0.0), (0.0, h), (w, h)] {
-            r12_blob(ctx, x, y, 60.0, 1.0, (160, 150, 130, 0.35));
+            blob(ctx, x, y, 60.0, 1.0, (160, 150, 130, 0.35));
         }
         // a hand's smear at the pull side, and a strip of old tape's glue
-        r12_blob(ctx, w * 0.85, h * 0.5, 40.0, 1.6, (90, 80, 70, 0.18));
+        blob(ctx, w * 0.85, h * 0.5, 40.0, 1.6, (90, 80, 70, 0.18));
         ctx.set_fill_style("rgba(190,170,120,0.35)");
         ctx.fill_rect(w * 0.08, h * 0.06, 48, 14);
-        r12_scratches(ctx, w, h, 16, (220, 220, 215), 0.15, 30.0);
+        scratches(ctx, w, h, 16, (220, 220, 215), 0.15, 30.0);
     })
 }
 
@@ -172,7 +172,7 @@ fn ec_glass_tex() -> Tex {
 /// its front at the middle; v up its 0.238 m): red enamel, the label at the
 /// front, scuffed where it stood among things, chipped low.
 fn ex_label_tex() -> Tex {
-    r12_tex!(512, 360, false, |ctx, w, h| {
+    cached_tex!(512, 360, false, |ctx, w, h| {
         ctx.set_fill_style("#8a2016");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..800 {
@@ -241,7 +241,7 @@ fn ex_label_tex() -> Tex {
         ctx.set_line_width(1.5);
         ctx.stroke_rect(lx + 0.5, ly + 0.5, lw - 1.0, lh - 1.0);
         // scuffs, chips low down, dust settled on what faces up
-        r12_scratches(ctx, w, h, 40, (200, 190, 180), 0.12, 20.0);
+        scratches(ctx, w, h, 40, (200, 190, 180), 0.12, 20.0);
         for _ in 0..14 {
             ctx.set_fill_style("rgba(70,66,62,0.8)");
             ctx.begin_path();
@@ -261,7 +261,7 @@ fn ex_label_tex() -> Tex {
 /// The gauge's dial: the green band of a charged cylinder between red, the
 /// needle fallen into RECHARGE, its glass dusty.
 fn ex_gauge_tex() -> Tex {
-    r12_tex!(64, 64, false, |ctx, w, h| {
+    cached_tex!(64, 64, false, |ctx, w, h| {
         let (cx, cy) = (w / 2.0, h / 2.0);
         ctx.set_fill_style("#d8d4c8");
         ctx.fill_rect(0, 0, w, h);
@@ -283,14 +283,14 @@ fn ex_gauge_tex() -> Tex {
         ctx.move_to(cx, cy);
         ctx.line_to(cx + a.cos() * 22.0, cy + a.sin() * 22.0);
         ctx.stroke();
-        r12_blob(ctx, cx, cy, 34.0, 1.0, (160, 150, 130, 0.35));
+        blob(ctx, cx, cy, 34.0, 1.0, (160, 150, 130, 0.35));
     })
 }
 
 /// The inspection tag on the neck: a yellow card, its year's months
 /// punched out until they stopped, initials in pen.
 fn ex_tag_tex() -> Tex {
-    r12_tex!(84, 156, false, |ctx, w, h| {
+    cached_tex!(84, 156, false, |ctx, w, h| {
         ctx.set_fill_style("#c9b25a");
         ctx.fill_rect(0, 0, w, h);
         ctx.set_fill_style("#2a241a");

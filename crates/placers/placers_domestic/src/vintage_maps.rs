@@ -4,7 +4,7 @@ use game::visuals::pictures;
 use game::visuals::pictures::Age;
 use game::visuals::pictures::Finish;
 use game::visuals::pictures::Outline;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -22,7 +22,7 @@ pub(crate) fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
     let mount_y = 1.65;
     // askew on its hook (the old tilt's draw)
     let tilt = (rnd() - 0.5) * 0.05;
-    map.rotation().y = face_yaw(dx, dz);
+    map.rotation().y = face_wall(dx, dz);
     map.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.013), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.013));
     let p = map.pos();
     let vary = pictures::vary_of(p.x, p.z, tilt);

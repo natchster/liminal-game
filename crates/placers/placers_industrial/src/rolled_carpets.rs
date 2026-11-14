@@ -1,11 +1,11 @@
 //! `place_rolled_carpets`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as hash01;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::hash;
+use placers_kit::noise::vn;
 use placers_kit::place::pick;
-use placers_kit::place::wall_candidates as wall_cands;
-use placers_kit::place::WallCand as Cand;
+use placers_kit::place::wall_candidates;
+use placers_kit::place::WallCand;
 
 // Rolled carpet: 15% chance per level, 1 against a wall (Blender batch
 // `r13b`): an 8 x 10 ft rug rolled pile out and tied twice with jute twine,
@@ -17,7 +17,7 @@ pub(crate) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;
     } // 15% chance
-    let cands = wall_cands(g);
+    let cands = wall_candidates(g);
     if cands.is_empty() {
         return;
     }
@@ -75,7 +75,7 @@ pub(crate) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
 }
 
 /// `c.dx > 0 ? -PI/2 : PI/2` / `c.dz > 0 ? PI : 0`
-fn wall_yaw(c: &Cand) -> f64 {
+fn wall_yaw(c: &WallCand) -> f64 {
     if c.dx.abs() == 1 {
         if c.dx > 0 {
             -PI / 2.0
@@ -374,8 +374,8 @@ fn roll_knot(a: f64, b: f64, len: f64, wid: f64, c: &RollColours, medallion: boo
         f
     };
     // the dye lots, in bands across it, and each knot a little its own
-    let lot = 1.0 + 0.14 * (vnoise(seed ^ 0xab5, qa * 2.2, 0.5) - 0.5);
-    let own = 0.93 + 0.14 * hash01(seed ^ 0x51ed, ia as i32, ib as i32);
+    let lot = 1.0 + 0.14 * (vn(seed ^ 0xab5, qa * 2.2, 0.5) - 0.5);
+    let own = 0.93 + 0.14 * hash(seed ^ 0x51ed, ia as i32, ib as i32);
     for v in col.iter_mut() {
         *v *= lot * own;
     }
@@ -404,11 +404,11 @@ fn roll_pile_tex(k: usize, colours: usize, vary: u32) -> Tex {
                 let phi = ROLL_EDGE + psi;
                 let mut px = if a < 0.02 {
                     let s = if (0.006..0.009).contains(&a) || (0.013..0.015).contains(&a) { c.field } else { [0.70, 0.65, 0.55] };
-                    s.map(|v| v * (0.9 + 0.1 * hash01(seed ^ 0x77, i as i32, j as i32)))
+                    s.map(|v| v * (0.9 + 0.1 * hash(seed ^ 0x77, i as i32, j as i32)))
                 } else {
                     roll_knot(a - 0.02, b, rug_len, len, &c, false, seed)
                 };
-                let tuft = 0.90 + 0.12 * hash01(seed ^ 0x3c, i as i32, j as i32);
+                let tuft = 0.90 + 0.12 * hash(seed ^ 0x3c, i as i32, j as i32);
                 let lum = 0.30 * px[0] + 0.59 * px[1] + 0.11 * px[2];
                 let fade = 0.40 + 0.16 * fbm(seed ^ 0x99, a * 2.0, b * 2.0, 2);
                 let warm = [lum * 1.05 + 0.05, lum + 0.04, lum * 0.86 + 0.03];

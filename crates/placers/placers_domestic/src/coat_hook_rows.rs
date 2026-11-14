@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::pick;
 use placers_kit::place::wall_candidates;
-use placers_kit::wall_plates::part as real_part;
+use placers_kit::wall_plates::part;
 
 // Coat hook rows: 20% chance per level, 1 rail of 3-5 hooks (Blender
 // batch `r06`): an oak rail screwed to the wall, cast iron double coat-and-
@@ -19,12 +19,12 @@ pub(crate) fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
     let row = group();
     // the rail on the wall (its back 25 mm behind the row's origin)
     let oak = lambert!({ map: &rail_wood_tex() });
-    let rail = mesh(real_part("Real__hookRail", 0.70, 0.095, 0.019), &oak);
+    let rail = mesh(part("Real__hookRail", 0.70, 0.095, 0.019), &oak);
     rail.position().z = -0.025;
     row.add(&rail);
     let steel = phong!({ color: 0x5e5c57, specular: 0x2a2a2a, shininess: 30 });
     for sx in [-0.335, 0.335] {
-        let sc = mesh(real_part("Real__hookScrew", 0.01, 0.01, 0.002), &steel);
+        let sc = mesh(part("Real__hookScrew", 0.01, 0.01, 0.002), &steel);
         sc.position().set(sx, 0, -0.025 + 0.019);
         row.add(&sc);
     }
@@ -36,7 +36,7 @@ pub(crate) fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
     let iron = phong!({ color: 0x1c1b1a, specular: 0x1a1a1a, shininess: 22 });
     for h in 0..hook_count {
         let x_off = -0.30 + (h as f64 / (hook_count - 1) as f64) * 0.60;
-        let hook = mesh(real_part("Real__coatHook", 0.026, 0.13, 0.1), &iron);
+        let hook = mesh(part("Real__coatHook", 0.026, 0.13, 0.1), &iron);
         hook.position().set(x_off, 0.0, -0.025 + 0.019);
         row.add(&hook);
         if h == coat_idx {
@@ -48,12 +48,12 @@ pub(crate) fn place_coat_hook_rows(g: &mut Game, _dist: &[i32]) {
                 0x2a1a1a => 0x66403c, // oxblood
                 _ => 0x5a5e4a,        // loden
             };
-            let coat = mesh(real_part("Real__coatHung", 0.5, 1.0, 0.2), lambert!({ map: &wool_tex(), color: wool, side: DoubleSide }));
+            let coat = mesh(part("Real__coatHung", 0.5, 1.0, 0.2), lambert!({ map: &wool_tex(), color: wool, side: DoubleSide }));
             // hung by its loop on the coat hook's cradle
             coat.position().set(x_off, -0.047, -0.006 + 0.058);
             row.add(&coat);
             let buttons =
-                mesh(real_part("Real__hookCoatButtons", 0.03, 0.4, 0.01), phong!({ color: 0x2a2018, specular: 0x202020, shininess: 40 }));
+                mesh(part("Real__hookCoatButtons", 0.03, 0.4, 0.01), phong!({ color: 0x2a2018, specular: 0x202020, shininess: 40 }));
             buttons.position().copy(&coat.pos());
             row.add(&buttons);
         }

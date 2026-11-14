@@ -1,12 +1,12 @@
 //! `place_hairdryers`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t04_put;
-use placers_kit::noise::fbm as t04_fbm;
-use placers_kit::noise::hash as t04_hash;
-use placers_kit::noise::sstep as t04_ss;
-use placers_kit::noise::vn as t04_vn;
-use placers_kit::paint::fill as t04_fill;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::noise::vn;
+use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::vary as t04_vary;
@@ -43,15 +43,15 @@ pub(crate) fn place_hairdryers(g: &mut Game, _dist: &[i32]) {
     let shells =
         [[0.78, 0.66, 0.68], [0.40, 0.12, 0.16], [0.17, 0.28, 0.42], [0.33, 0.33, 0.32], [0.065, 0.064, 0.062], [0.76, 0.68, 0.53]];
     let plastic = phong!({ map: &hd_plastic_tex(vary, shells[kind]), specular: 0x1c1c1c, shininess: 26 });
-    t04_put(&hd, "Real__hairdryerBody", &plastic);
-    t04_put(&hd, "Real__hairdryerGrille", &lambert!({ map: &hd_lint_tex(vary) }));
+    put(&hd, "Real__hairdryerBody", &plastic);
+    put(&hd, "Real__hairdryerGrille", &lambert!({ map: &hd_lint_tex(vary) }));
     let pale = kind == 0 || kind == 5;
-    t04_put(&hd, "Real__hairdryerSwitches", &lambert!({ color: if pale { 0x8a8680 } else { 0xb4b0a6 } }));
+    put(&hd, "Real__hairdryerSwitches", &lambert!({ color: if pale { 0x8a8680 } else { 0xb4b0a6 } }));
     let flex = lambert!({ color: if pale { 0xb8b4aa } else { 0x232322 } });
-    t04_put(&hd, "Real__hairdryerStrain", &flex);
+    put(&hd, "Real__hairdryerStrain", &flex);
     // the cord: from the strain relief, across the floor in slack bends to the plug
     let pts = hd_cord_path(end_x, end_z);
-    hd.add(&mesh(t04_cord_geo(&pts, HD_CORD_R, 0.82, 8), &flex));
+    hd.add(&mesh(cord_geo(&pts, HD_CORD_R, 0.82, 8), &flex));
     let n = pts.len();
     let (a, b) = (pts[n - 2], pts[n - 1]);
     let (tx, tz) = (b[0] - a[0], b[2] - a[2]);
@@ -60,8 +60,8 @@ pub(crate) fn place_hairdryers(g: &mut Game, _dist: &[i32]) {
     let plug = group();
     plug.position().set(b[0] + tx * 0.010, 0, b[2] + tz * 0.010);
     plug.rotation().y = (-tz).atan2(tx);
-    t04_put(&plug, "Real__hairdryerPlug", &lambert!({ color: if pale { 0xb0aca2 } else { 0x1e1e1d } }));
-    t04_put(&plug, "Real__hairdryerProngs", &phong!({ color: 0x7a7462, specular: 0x5a564a, shininess: 50 }));
+    put(&plug, "Real__hairdryerPlug", &lambert!({ color: if pale { 0xb0aca2 } else { 0x1e1e1d } }));
+    put(&plug, "Real__hairdryerProngs", &phong!({ color: 0x7a7462, specular: 0x5a564a, shininess: 50 }));
     hd.add(&plug);
     g.world.add(&hd);
     // Track dryer position for hum audio.
@@ -71,7 +71,7 @@ pub(crate) fn place_hairdryers(g: &mut Game, _dist: &[i32]) {
 
 /// A round flex along `pts` (its cross-section `r` across, `r * flat`
 /// high): a tube with its frames carried along the path, its ends capped
-fn t04_cord_geo(pts: &[[f64; 3]], r: f64, flat: f64, seg: usize) -> Geo {
+fn cord_geo(pts: &[[f64; 3]], r: f64, flat: f64, seg: usize) -> Geo {
     let n = pts.len();
     let sub = |a: [f64; 3], b: [f64; 3]| [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
     let norm = |a: [f64; 3]| {
@@ -159,7 +159,7 @@ fn hd_cord_path(end_x: f64, end_z: f64) -> Vec<[f64; 3]> {
     for k in 0..=m {
         let t = k as f64 / m as f64;
         // bends (a wave and a half) that fade in from the strain relief
-        let env = t04_ss(0.0, 0.25, t);
+        let env = sstep(0.0, 0.25, t);
         let side = amp * (t * PI * 3.0).sin() * env;
         // the heading turns from the strain relief's to the line's
         let h = [dh[0] + (base[0] - dh[0]) * env, dh[1] + (base[1] - dh[1]) * env];
@@ -176,10 +176,10 @@ fn hd_cord_path(end_x: f64, end_z: f64) -> Vec<[f64; 3]> {
 fn hd_plastic_tex(vary: u32, base: [f64; 3]) -> Tex {
     canvas_tex_opt(128, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x4d71;
-        t04_fill(ctx, w, h, |u, v| {
-            let n = t04_fbm(seed, u * 8.0, v * 8.0, 3);
-            let scuff = t04_ss(0.62, 0.8, t04_fbm(seed ^ 0x3, u * 14.0, v * 5.0, 3)) * 0.18;
-            let scratch = if t04_hash(seed ^ 0x8, (u * 128.0) as i32, (v * 32.0) as i32) < 0.02 { 0.2 } else { 0.0 };
+        fill(ctx, w, h, |u, v| {
+            let n = fbm(seed, u * 8.0, v * 8.0, 3);
+            let scuff = sstep(0.62, 0.8, fbm(seed ^ 0x3, u * 14.0, v * 5.0, 3)) * 0.18;
+            let scratch = if hash(seed ^ 0x8, (u * 128.0) as i32, (v * 32.0) as i32) < 0.02 { 0.2 } else { 0.0 };
             let dust = 0.08 + 0.10 * n;
             let d = [0.55, 0.53, 0.49];
             let mut c = [0.0; 3];
@@ -196,9 +196,9 @@ fn hd_plastic_tex(vary: u32, base: [f64; 3]) -> Tex {
 fn hd_lint_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 64, false, move |ctx, w, h| {
         let seed = vary ^ 0x1147;
-        t04_fill(ctx, w, h, |u, v| {
-            let lint = t04_ss(0.45, 0.7, t04_fbm(seed, u * 6.0, v * 6.0, 4));
-            let fib = t04_vn(seed ^ 0x5, u * 64.0, v * 16.0);
+        fill(ctx, w, h, |u, v| {
+            let lint = sstep(0.45, 0.7, fbm(seed, u * 6.0, v * 6.0, 4));
+            let fib = vn(seed ^ 0x5, u * 64.0, v * 16.0);
             let g0 = 0.09 + (0.42 + 0.12 * fib - 0.09) * lint * 0.8;
             [g0, g0 * 0.98, g0 * 0.95, 1.0]
         });

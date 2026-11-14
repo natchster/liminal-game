@@ -1,12 +1,12 @@
 //! `place_kids_drawings`
 use game::prelude::*;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 
 pub(crate) fn place_kids_drawings(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let draw_mat = basic_mat!({ map: kids_drawing_texture(), transparent: true, opacity: 0.75, depthWrite: false });
     let decal = mesh(plane_geo!(1.0, 1.0), &draw_mat);
     decal.rotation().x = -PI / 2.0;

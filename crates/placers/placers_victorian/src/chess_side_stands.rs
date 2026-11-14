@@ -3,7 +3,7 @@ use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
@@ -186,7 +186,7 @@ fn ch_wood_tex(vary: u32, stain: [f64; 3]) -> Tex {
         let seed = vary ^ 0xc4e;
         fill(ctx, w, h, |u, v| {
             let mut o = wood(seed, v, u, stain, 6.0, 40.0);
-            let rub = ss(0.62, 0.8, fbm(seed ^ 3, u * 7.0, v * 22.0, 3));
+            let rub = sstep(0.62, 0.8, fbm(seed ^ 3, u * 7.0, v * 22.0, 3));
             o = mix(o, stain.map(|c| (c * 1.6 + 0.06).min(0.6)), rub * 0.3);
             let dust = 0.08 + 0.12 * fbm(seed ^ 5, u * 6.0, v * 12.0, 3);
             opaque(mix(o, [0.42, 0.39, 0.34], dust))
@@ -206,9 +206,9 @@ fn ch_top_tex(vary: u32, stain: [f64; 3]) -> Tex {
             let mut o = wood(seed, u, v, stain, 10.0, 34.0);
             for &(cx, cy, cr) in &rings {
                 let d = (((u - cx).powi(2) + (v - cy).powi(2)).sqrt() - cr).abs();
-                o = mix(o, [0.50, 0.45, 0.38], (1.0 - ss(0.0, 0.006, d)) * 0.18);
+                o = mix(o, [0.50, 0.45, 0.38], (1.0 - sstep(0.0, 0.006, d)) * 0.18);
             }
-            let scratch = ss(0.93, 0.97, vn(seed ^ 3, u * 3.0 + v * 40.0, v * 3.0 - u * 2.0));
+            let scratch = sstep(0.93, 0.97, vn(seed ^ 3, u * 3.0 + v * 40.0, v * 3.0 - u * 2.0));
             o = mix(o, [0.45, 0.33, 0.22], scratch * 0.5);
             let dust = 0.14 + 0.16 * fbm(seed ^ 5, u * 6.0, v * 6.0, 3);
             opaque(mix(o, [0.45, 0.42, 0.37], dust))
@@ -246,7 +246,7 @@ fn ch_board_tex(vary: u32) -> Tex {
                 o = [0.70, 0.62, 0.45];
             }
             // worn where the players' hands and sleeves went: the near and far edges
-            let wear = ss(0.10, 0.15, z.abs()) * ss(0.6, 0.85, fbm(seed ^ 9, u * 30.0, v * 6.0, 3));
+            let wear = sstep(0.10, 0.15, z.abs()) * sstep(0.6, 0.85, fbm(seed ^ 9, u * 30.0, v * 6.0, 3));
             o = mix(o, [0.46, 0.40, 0.32], wear * 0.45);
             let dust = 0.08 + 0.12 * fbm(seed ^ 11, u * 7.0, v * 7.0, 3);
             opaque(mix(o, [0.45, 0.42, 0.37], dust))
@@ -261,10 +261,10 @@ fn ch_leaf_tex(vary: u32) -> Tex {
     canvas_tex_opt(64, 128, false, move |ctx, w, h| {
         let seed = vary ^ 0x1ea;
         fill(ctx, w, h, |u, v| {
-            let vein = ss(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * 0.25;
+            let vein = sstep(0.9, 0.98, (u * 9.0 + v * 22.0 + fbm(seed, u * 4.0, v * 8.0, 2) * 2.0).sin() * 0.5 + 0.5) * 0.25;
             let n = fbm(seed ^ 3, u * 8.0, v * 24.0, 3);
             let mut o = [0.30, 0.19, 0.11].map(|c| c * (0.8 + 0.35 * n) * (1.0 - vein));
-            o = o.map(|c| c * (1.0 - 0.3 * ss(0.85, 0.98, v)));
+            o = o.map(|c| c * (1.0 - 0.3 * sstep(0.85, 0.98, v)));
             opaque(mix(o, [0.40, 0.36, 0.30], 0.12))
         });
     })
@@ -307,7 +307,7 @@ fn ch_dust_tex() -> Tex {
             canvas_tex_opt(128, 128, false, |ctx, w, h| {
                 fill(ctx, w, h, |u, v| {
                     let d = fbm(181, u * 7.0, v * 7.0, 3) * 0.6 + fbm(182, u * 29.0, v * 29.0, 2) * 0.4;
-                    let smear = ss(0.62, 0.8, fbm(183, u * 9.0, v * 3.0, 3)) * (1.0 - ss(0.15, 0.4, (v - 0.45).abs()));
+                    let smear = sstep(0.62, 0.8, fbm(183, u * 9.0, v * 3.0, 3)) * (1.0 - sstep(0.15, 0.4, (v - 0.45).abs()));
                     let k = 0.2 + 0.4 * d + 0.5 * smear + 0.2 * v;
                     [k, k, k, 1.0]
                 });

@@ -1,5 +1,4 @@
 //! `place_pentagram_chalks`
-use crate::shared::Rng32;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;
@@ -7,6 +6,7 @@ use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
+use placers_kit::noise::Rng32;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;

@@ -1,7 +1,7 @@
 //! `place_small_pool_balls`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_xz;
 
 // Small pool ball: 8% chance per level. Colored sphere
@@ -10,7 +10,7 @@ pub(crate) fn place_small_pool_balls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let ball_colors = [0xf0e050, 0x2050d8, 0xd82040, 0xa020a0, 0xe07020, 0x30a030, 0x8a2020, 0x201a10, 0xf0ece0];
     let ball_color = pick_color(&ball_colors);
     let ball_mat = lambert!({ color: ball_color });

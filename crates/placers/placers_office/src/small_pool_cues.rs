@@ -1,7 +1,7 @@
 //! `place_small_pool_cues`
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small pool cue: 6% chance per level. Long tapered wooden
@@ -10,7 +10,7 @@ pub(crate) fn place_small_pool_cues(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let shaft_colors = [0xc8a870, 0x8a6540, 0x603820, 0x201a10];
     let shaft_mat = lambert!({ color: pick_color(&shaft_colors) });
     let tip_mat = lambert!({ color: 0x2050c0 });

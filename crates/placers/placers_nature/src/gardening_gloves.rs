@@ -6,9 +6,9 @@ use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
-use placers_kit::noise::mix_unclamped as mix;
+use placers_kit::noise::mix_unclamped;
 use placers_kit::noise::sstep;
-use placers_kit::paint::mul as scale3;
+use placers_kit::paint::mul;
 use placers_kit::paint::rgb;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
@@ -72,9 +72,9 @@ fn glove_tex(base: [f64; 3], w: f64, d: f64, dots: bool, tips_low: bool, salt: u
             // the knit: fine wales along it, a fleck of fibre
             let wale = 0.5 + 0.5 * (x * 2.0 * PI / 0.0011).sin();
             let fib = fbm(salt, x * 900.0, z * 300.0, 2);
-            let mut c = scale3(base, 0.9 + 0.06 * wale + 0.12 * (fib - 0.5));
+            let mut c = mul(base, 0.9 + 0.06 * wale + 0.12 * (fib - 0.5));
             // faded unevenly
-            c = mix(c, [0.55, 0.53, 0.48], 0.18 * fbm(salt ^ 7, x * 30.0, z * 30.0, 3));
+            c = mix_unclamped(c, [0.55, 0.53, 0.48], 0.18 * fbm(salt ^ 7, x * 30.0, z * 30.0, 3));
             if dots {
                 // PVC dots, 2.4 mm, staggered rows 5.5 mm apart, worn away
                 // in patches where it gripped
@@ -85,16 +85,16 @@ fn glove_tex(base: [f64; 3], w: f64, d: f64, dots: bool, tips_low: bool, salt: u
                 let r = dx.hypot(dz);
                 let worn = sstep(0.40, 0.62, fbm(salt ^ 0x33, x * 40.0, z * 40.0, 3));
                 let dot = (1.0 - sstep(0.0010, 0.0013, r)) * (1.0 - 0.92 * worn);
-                c = mix(c, [0.10, 0.10, 0.09], dot * 0.9);
+                c = mix_unclamped(c, [0.10, 0.10, 0.09], dot * 0.9);
             }
             // soil: dried into it in patches, ground into the fingers' end
             let tips = if tips_low { 1.0 - v } else { v };
             let soil_n = fbm(salt ^ 0x51, x * 45.0, z * 45.0, 4);
             let soil =
                 sstep(0.55, 0.7, soil_n + 0.25 * sstep(0.55, 0.95, tips)) * (0.55 + 0.25 * fbm(salt ^ 0x52, x * 200.0, z * 200.0, 2));
-            c = mix(c, [0.27, 0.21, 0.15], soil);
+            c = mix_unclamped(c, [0.27, 0.21, 0.15], soil);
             // grime overall, darker toward its edge where it rubbed
-            c = mix(c, scale3(c, 0.78), 0.4 * sstep(0.62, 0.8, fbm(salt ^ 0x61, u * 6.0, v * 6.0, 3)));
+            c = mix_unclamped(c, mul(c, 0.78), 0.4 * sstep(0.62, 0.8, fbm(salt ^ 0x61, u * 6.0, v * 6.0, 3)));
             c
         });
     })
@@ -110,10 +110,10 @@ fn cuff_tex(base: [f64; 3], w: f64, d: f64, salt: u32) -> Tex {
             let (x, z) = (px / ppm, py / ppm);
             // 1x1 rib, 2.4 mm a rib, both ways (the cuff lies every way)
             let rib = (0.5 + 0.5 * (x * 2.0 * PI / 0.0024).sin()).max(0.5 + 0.5 * (z * 2.0 * PI / 0.0024).sin() * 0.0);
-            let mut c = scale3(base, 0.8 + 0.25 * rib);
-            c = mix(c, [0.52, 0.50, 0.46], 0.15 * fbm(salt ^ 3, x * 40.0, z * 40.0, 3));
+            let mut c = mul(base, 0.8 + 0.25 * rib);
+            c = mix_unclamped(c, [0.52, 0.50, 0.46], 0.15 * fbm(salt ^ 3, x * 40.0, z * 40.0, 3));
             let soil = sstep(0.62, 0.75, fbm(salt ^ 0x71, x * 50.0, z * 50.0, 4)) * 0.6;
-            mix(c, [0.28, 0.22, 0.16], soil)
+            mix_unclamped(c, [0.28, 0.22, 0.16], soil)
         });
     })
 }

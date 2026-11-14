@@ -1,6 +1,6 @@
 //! `place_coat_hooks_pair`
 use game::prelude::*;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -40,7 +40,7 @@ pub(crate) fn place_coat_hooks_pair(g: &mut Game, _dist: &[i32]) {
         curve.position().set(hook_x, mount_y, 0.062);
         pair.add(&curve);
     }
-    pair.rotation().y = face_yaw(dx, dz);
+    pair.rotation().y = face_wall(dx, dz);
     pair.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.010), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.010));
     g.world.add(&pair);
 }

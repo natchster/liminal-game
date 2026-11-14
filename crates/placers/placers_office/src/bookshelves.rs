@@ -1,13 +1,13 @@
 //! `place_bookshelves`
-use crate::shared::t10_fill;
+use crate::shared::fill;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t10_put;
-use placers_kit::noise::fbm as t10_fbm;
-use placers_kit::noise::hash as t10_hash;
-use placers_kit::noise::mix_unclamped as t10_mix;
-use placers_kit::noise::sstep as t10_ss;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::geometry::put;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::mix_unclamped;
+use placers_kit::noise::sstep;
+use placers_kit::place::mount_slid;
 use placers_kit::place::vary as t10_vary;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
@@ -49,7 +49,7 @@ pub(crate) fn place_bookshelves(g: &mut Game, _dist: &[i32]) {
         books.push(BsBook { kind, cloth, scale: 0.94 + 0.10 * uh, lean });
     }
     let (wall_x, wall_z) = wall_xz(g, c, 0.080);
-    mount(&shelf, c, wall_x, wall_z, 1.4, 0.4);
+    mount_slid(&shelf, c, wall_x, wall_z, 1.4, 0.4);
     let p = shelf.pos();
     let vary = t10_vary(p.x, p.z, n_books as f64);
     // the parts are modelled with the wall at z = 0 and the bottom board's
@@ -58,9 +58,9 @@ pub(crate) fn place_bookshelves(g: &mut Game, _dist: &[i32]) {
     body.position().set(0, -0.0475, -0.080);
     shelf.add(&body);
     let stain = [0.42, 0.29, 0.19];
-    t10_put(&body, "Real__bookshelfSides", &lambert!({ map: &bs_wood_tex(vary, stain, true) }));
-    t10_put(&body, "Real__bookshelfBoards", &lambert!({ map: &bs_wood_tex(vary ^ 0x51, stain, false) }));
-    t10_put(&body, "Real__bookshelfBack", &lambert!({ color: 0x3b2c20 }));
+    put(&body, "Real__bookshelfSides", &lambert!({ map: &bs_wood_tex(vary, stain, true) }));
+    put(&body, "Real__bookshelfBoards", &lambert!({ map: &bs_wood_tex(vary ^ 0x51, stain, false) }));
+    put(&body, "Real__bookshelfBack", &lambert!({ color: 0x3b2c20 }));
     bs_books(&body, &books, vary);
     g.world.add(&shelf);
 }
@@ -140,7 +140,7 @@ fn bs_books(body: &Obj, books: &[BsBook], vary: u32) {
             continue;
         }
         placed.push((i, x, t));
-        x += t + 0.0006 + 0.0024 * t10_hash(vary, i as i32, 3);
+        x += t + 0.0006 + 0.0024 * hash(vary, i as i32, 3);
     }
     let atlas = bs_spine_atlas(books.iter().map(|b| (b.kind, b.cloth)).collect(), vary);
     let pages = lambert!({ color: 0xb5ab94 });
@@ -152,7 +152,7 @@ fn bs_books(body: &Obj, books: &[BsBook], vary: u32) {
         // stood on its tail, its front board to the right, its spine out:
         // a pivot at its foot's left corner, the book turned about it
         let pivot = group();
-        pivot.position().set(left, BS_T, 0.008 - fore * b.scale + 0.010 * t10_hash(vary, i as i32, 5));
+        pivot.position().set(left, BS_T, 0.008 - fore * b.scale + 0.010 * hash(vary, i as i32, 5));
         let mut lean = 0.0;
         if let (true, Some(l), true) = (k == last, b.lean, k > 0) {
             // its top on the neighbour's shoulder (the neighbour's right face)
@@ -170,14 +170,14 @@ fn bs_books(body: &Obj, books: &[BsBook], vary: u32) {
         book.scale().set(b.scale, b.scale, b.scale);
         pivot.add(&book);
         let c = BS_CLOTH[b.cloth];
-        let shade = 0.88 + 0.2 * t10_hash(vary, i as i32, 7);
+        let shade = 0.88 + 0.2 * hash(vary, i as i32, 7);
         let col = ((c[0] * shade).min(255.0) as u32) << 16 | ((c[1] * shade).min(255.0) as u32) << 8 | (c[2] * shade).min(255.0) as u32;
         let cell = atlas.duplicate();
         cell.set_offset(((i % 2) as f64 * 256.0 + 1.0) / 512.0, 1.0 - ((i / 2) as f64 * 32.0 + 31.0) / 512.0);
         cell.set_repeat(254.0 / 512.0, 30.0 / 512.0);
-        t10_put(&book, boards, &lambert!({ color: col }));
-        t10_put(&book, spine, &lambert!({ map: &cell }));
-        t10_put(&book, block, &pages);
+        put(&book, boards, &lambert!({ color: col }));
+        put(&book, spine, &lambert!({ map: &cell }));
+        put(&book, block, &pages);
         body.add(&pivot);
     }
 }
@@ -189,31 +189,31 @@ fn bs_wood_tex(vary: u32, stain: [f64; 3], up: bool) -> Tex {
     let (w, h) = if up { (128.0, 256.0) } else { (512.0, 128.0) };
     canvas_tex_opt(w, h, false, move |ctx, w, h| {
         let seed = vary ^ 0x7a1;
-        let knots: Vec<(f64, f64)> = (0..3).map(|k| (t10_hash(seed, k, 1), t10_hash(seed, k, 2))).collect();
-        t10_fill(ctx, w, h, |u, v| {
+        let knots: Vec<(f64, f64)> = (0..3).map(|k| (hash(seed, k, 1), hash(seed, k, 2))).collect();
+        fill(ctx, w, h, |u, v| {
             // along and across the grain
             let (a, b) = if up { (v * 2.0, u * 3.0) } else { (u * 6.0, v * 1.5) };
-            let mut warp = t10_fbm(seed, a * 2.0, b * 4.0, 3) * 0.6;
+            let mut warp = fbm(seed, a * 2.0, b * 4.0, 3) * 0.6;
             for &(ku, kv) in &knots {
                 let (da, db) = if up { ((v - kv) * 2.0, (u - ku) * 3.0) } else { ((u - ku) * 6.0, (v - kv) * 1.5) };
                 let d = (da * da * 4.0 + db * db * 40.0).sqrt();
                 warp += 0.25 / (d * 8.0 + 0.3);
             }
             let ring = ((b * 38.0 + warp * 9.0).sin() * 0.5 + 0.5).powf(3.0);
-            let fleck = t10_fbm(seed ^ 9, a * 40.0, b * 300.0, 2);
+            let fleck = fbm(seed ^ 9, a * 40.0, b * 300.0, 2);
             let k = 0.86 + 0.18 * fleck - 0.22 * ring;
             let mut o = stain.map(|c| c * k);
             // the knots: dark, resinous
             for &(ku, kv) in &knots {
                 let (da, db) = if up { ((v - kv) * 2.0, (u - ku) * 3.0) } else { ((u - ku) * 6.0, (v - kv) * 1.5) };
                 let d = (da * da + db * db * 9.0).sqrt();
-                o = t10_mix(o, [0.16, 0.09, 0.05], 0.8 * (1.0 - t10_ss(0.006, 0.02, d)));
+                o = mix_unclamped(o, [0.16, 0.09, 0.05], 0.8 * (1.0 - sstep(0.006, 0.02, d)));
             }
             // worn, dusty
-            let wear = t10_ss(0.55, 0.8, t10_fbm(seed ^ 13, a * 6.0, b * 10.0, 3));
-            o = t10_mix(o, [0.55, 0.42, 0.30], 0.35 * wear);
-            let dust = 0.10 + 0.14 * t10_fbm(seed ^ 17, a * 9.0, b * 12.0, 3);
-            t10_mix(o, [0.52, 0.49, 0.44], dust)
+            let wear = sstep(0.55, 0.8, fbm(seed ^ 13, a * 6.0, b * 10.0, 3));
+            o = mix_unclamped(o, [0.55, 0.42, 0.30], 0.35 * wear);
+            let dust = 0.10 + 0.14 * fbm(seed ^ 17, a * 9.0, b * 12.0, 3);
+            mix_unclamped(o, [0.52, 0.49, 0.44], dust)
         });
     })
 }

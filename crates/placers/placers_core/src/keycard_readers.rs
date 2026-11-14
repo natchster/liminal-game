@@ -1,7 +1,7 @@
 //! `place_keycard_readers`
 use game::prelude::*;
 use placers_kit::place::shuffle;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Keycard reader: 25% chance per level, 1-2 units.
 pub(crate) fn place_keycard_readers(g: &mut Game, _dist: &[i32]) {
@@ -10,7 +10,7 @@ pub(crate) fn place_keycard_readers(g: &mut Game, _dist: &[i32]) {
         return;
     } // 25% chance
     let count = 1 + (rnd() * 2.0).floor() as usize;
-    let mut cands = wall_cands(g);
+    let mut cands = wall_candidates(g);
     shuffle(&mut cands);
     let body_mat = lambert!({ color: 0x2a2828 });
     let slot_mat = lambert!({ color: 0x8a8880 });

@@ -1,7 +1,7 @@
 //! `place_small_card_stacks`
 use game::prelude::*;
 use placers_kit::paint::rgba;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small playing card stack: 8% chance per level. A pack of
@@ -15,7 +15,7 @@ pub(crate) fn place_small_card_stacks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let cards = group();
     let is_fanned = rnd() < 0.30;
     let n_visible = 5 + (rnd() * 4.0).floor() as i32;

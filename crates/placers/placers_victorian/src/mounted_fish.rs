@@ -7,7 +7,7 @@ use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::place::face_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::salt;
 use placers_kit::place::wall_tiles;
@@ -41,7 +41,7 @@ pub(crate) fn place_mounted_fish(g: &mut Game, _dist: &[i32]) {
     // a glass eye: it catches the light, it never makes any
     put(&fish, "Real__trophyFishEye", &phong!({ map: &fish_eye_tex(), specular: 0x8a8a8a, shininess: 110 }));
     mount.add(&fish);
-    mount.rotation().y = face_yaw(dx, dz);
+    mount.rotation().y = face_wall(dx, dz);
     mount.position().set(wx, 0, wz);
     g.world.add(&mount);
 }

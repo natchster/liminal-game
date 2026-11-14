@@ -7,9 +7,9 @@ use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::hang_on_wall;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::salt;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Stained glass window: 4% chance per level. A Victorian leaded panel
 // of the terraced-house kind (Blender batch `t21`), taken out of a door or
@@ -24,7 +24,7 @@ pub(crate) fn place_stained_glass_windows(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.96 {
         return;
     } // 4% chance
-    let candidates = wall_cands(g);
+    let candidates = wall_candidates(g);
     if candidates.is_empty() {
         return;
     }
@@ -35,7 +35,7 @@ pub(crate) fn place_stained_glass_windows(g: &mut Game, _dist: &[i32]) {
     // the old light's colour (no light: old glass on a wall gives none):
     // which colour leads the panel
     let lit_colors: [u32; 3] = [0xf0d020, 0xd8b040, 0xa02040];
-    let picked = pick_u32(&lit_colors);
+    let picked = pick_hex(&lit_colors);
     let lead = lit_colors.iter().position(|&k| k == picked).unwrap_or(0);
     let p = window.pos();
     let salt = salt(p.x, p.z, 0x5617);

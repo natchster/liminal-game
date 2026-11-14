@@ -1,12 +1,12 @@
 //! `place_smudge_mirrors`
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::geometry::put as t04_put;
-use placers_kit::glass::glass_mat as t04_glass_mat;
-use placers_kit::noise::fbm as t04_fbm;
-use placers_kit::noise::hash as t04_hash;
-use placers_kit::noise::sstep as t04_ss;
-use placers_kit::paint::fill as t04_fill;
+use placers_kit::geometry::put;
+use placers_kit::glass::glass_mat;
+use placers_kit::noise::fbm;
+use placers_kit::noise::hash;
+use placers_kit::noise::sstep;
+use placers_kit::paint::fill;
 use placers_kit::place::pick_wall;
 use placers_kit::place::vary as t04_vary;
 use placers_kit::place::wall_mount;
@@ -32,7 +32,7 @@ pub(crate) fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().set(0, mount_y, -0.005);
     mirror.add(&body);
-    t04_put(&body, "Real__smudgeMirrorFrame", &phong!({ color: 0x55585a, specular: 0x8a8d90, shininess: 48 }));
+    put(&body, "Real__smudgeMirrorFrame", &phong!({ color: 0x55585a, specular: 0x8a8d90, shininess: 48 }));
     // the black paint on the glass's back, seen where the silver has gone
     let back = mesh(plane_geo!(SM_GLASS[0] + 0.01, SM_GLASS[1] + 0.01), lambert!({ color: 0x141312 }));
     back.position().z = SM_GLASS[2] - 0.0062;
@@ -40,7 +40,7 @@ pub(crate) fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
     let glass = mesh(
         plane_geo!(SM_GLASS[0] + SM_UNDER, SM_GLASS[1] + SM_UNDER),
         // (the lamp in it a small hot spot, not a disc of glare: `MIRROR_SHINE`)
-        t04_glass_mat(sm_silver_tex(vary), "mirror_glass", 0.13, [0.0; 3], 0.0, 0.86, [1.0, 0.016, 0.015, 0.013], MIRROR_SHINE),
+        glass_mat(sm_silver_tex(vary), "mirror_glass", 0.13, [0.0; 3], 0.0, 0.86, [1.0, 0.016, 0.015, 0.013], MIRROR_SHINE),
     );
     glass.position().z = SM_GLASS[2] - 0.0001;
     glass.set_render_order(2);
@@ -56,7 +56,7 @@ pub(crate) fn place_smudge_mirrors(g: &mut Game, _dist: &[i32]) {
 }
 
 /// A soft blob, squashed whole (`k`) and turned, so its fade is never cut
-fn t04_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
+fn blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: &[(f64, String)]) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(turn);
@@ -86,17 +86,17 @@ fn sm_silver_tex(vary: u32) -> Tex {
     canvas_tex_opt(192, 240, false, move |ctx, w, h| {
         let seed = vary ^ 0x5117;
         let (gw, gh) = (SM_GLASS[0] + SM_UNDER, SM_GLASS[1] + SM_UNDER);
-        t04_fill(ctx, w, h, |u, v| {
+        fill(ctx, w, h, |u, v| {
             let (x, y) = ((u - 0.5) * gw, (v - 0.5) * gh);
             // distance in from the nearest edge, the foot's counted double
             let dx = gw / 2.0 - x.abs();
             let dfoot = y + gh / 2.0;
-            let wave = t04_fbm(seed, x * 18.0, y * 18.0, 3);
-            let deep = 0.004 + 0.010 * t04_ss(0.45, 0.75, t04_fbm(seed ^ 0x33, x * 6.0, 0.5, 3));
-            let foot = 1.0 - t04_ss(deep * 0.5, deep * (1.2 + wave), dfoot);
-            let corner = 1.0 - t04_ss(0.0, 0.03, (dx * dx + dfoot * dfoot).sqrt() - 0.012);
-            let side = (1.0 - t04_ss(0.0015, 0.004 + 0.004 * wave, dx)) * (1.0 - t04_ss(0.05, 0.2, dfoot));
-            let spot = if t04_hash(seed ^ 9, (u * 96.0) as i32, (v * 120.0) as i32) < 0.006 * (1.0 - t04_ss(0.0, 0.12, dfoot)) + 0.0006 {
+            let wave = fbm(seed, x * 18.0, y * 18.0, 3);
+            let deep = 0.004 + 0.010 * sstep(0.45, 0.75, fbm(seed ^ 0x33, x * 6.0, 0.5, 3));
+            let foot = 1.0 - sstep(deep * 0.5, deep * (1.2 + wave), dfoot);
+            let corner = 1.0 - sstep(0.0, 0.03, (dx * dx + dfoot * dfoot).sqrt() - 0.012);
+            let side = (1.0 - sstep(0.0015, 0.004 + 0.004 * wave, dx)) * (1.0 - sstep(0.05, 0.2, dfoot));
+            let spot = if hash(seed ^ 9, (u * 96.0) as i32, (v * 120.0) as i32) < 0.006 * (1.0 - sstep(0.0, 0.12, dfoot)) + 0.0006 {
                 0.8
             } else {
                 0.0
@@ -192,7 +192,7 @@ fn sm_film_tex(vary: u32) -> Tex {
                 ctx.line_to(px, y0 + len * k as f64 / 8.0);
             }
             ctx.stroke();
-            t04_blob(ctx, px, y0 + len, 2.2, 1.3, 0.0, &[(0.0, "rgba(212,209,200,0.28)".into()), (1.0, "rgba(212,209,200,0)".into())]);
+            blob(ctx, px, y0 + len, 2.2, 1.3, 0.0, &[(0.0, "rgba(212,209,200,0.28)".into()), (1.0, "rgba(212,209,200,0)".into())]);
         }
         // the basin's splashes, dried, thickest low down
         for _ in 0..180 {
@@ -231,7 +231,7 @@ fn sm_film_tex(vary: u32) -> Tex {
             let turn = r.range(-0.5, 0.5);
             for _ in 0..3 {
                 let (dx, dy) = (r.range(-8.0, 8.0), r.range(-18.0, 18.0));
-                t04_blob(
+                blob(
                     ctx,
                     x + dx,
                     y + dy,
@@ -250,7 +250,7 @@ fn sm_film_tex(vary: u32) -> Tex {
         ctx.fill_rect(0, 0, w, h * 0.22);
         for _ in 0..10 {
             let (x, y, rr) = (r.next() * w, r.next() * h, w * r.range(0.08, 0.25));
-            t04_blob(
+            blob(
                 ctx,
                 x,
                 y,

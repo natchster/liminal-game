@@ -1,7 +1,7 @@
 //! `place_handrails`
 use game::prelude::*;
 use placers_kit::place::shuffle;
-use placers_kit::place::wall_candidates as wall_cands;
+use placers_kit::place::wall_candidates;
 
 // Handrail: 0-2 wall-mounted horizontal metal bars per level.
 pub(crate) fn place_handrails(g: &mut Game, _dist: &[i32]) {
@@ -9,7 +9,7 @@ pub(crate) fn place_handrails(g: &mut Game, _dist: &[i32]) {
         return;
     } // 40% chance
     let count = 1 + (rnd() * 2.0).floor() as usize;
-    let mut cands = wall_cands(g);
+    let mut cands = wall_candidates(g);
     shuffle(&mut cands);
     let rail_mat = lambert!({ color: 0x8a8880 });
     let bracket_mat = lambert!({ color: 0x5a5850 });

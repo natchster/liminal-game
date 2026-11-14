@@ -1,7 +1,7 @@
 //! `place_ashtrays`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Ashtray: 12% chance per level. Small shallow disc with
 // 2-3 tiny cigarette butt cylinders on top.
@@ -13,7 +13,7 @@ pub(crate) fn place_ashtrays(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let dish_mat = lambert!({ color: 0x484038 });
     let butt_mat = lambert!({ color: 0xd8ccb8 });
     let filter_mat = lambert!({ color: 0xa08050 });

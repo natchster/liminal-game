@@ -1,12 +1,12 @@
 //! What several core placers share.
 use game::prelude::*;
-use placers_kit::noise::hash as hash01;
+use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 
 /// A soft round spot at `at`: `r` px, `k` times as tall as it is wide, turned
 /// `turn`, its colour fading out from the middle (the context squashed, so
 /// the fade is never cut by an edge).
-pub(crate) fn r08_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
+pub(crate) fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, rgba: (u8, u8, u8, f64)) {
     let (cr, cg, cb, a) = rgba;
     ctx.save();
     ctx.translate(at.0, at.1);
@@ -50,5 +50,5 @@ pub(crate) fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: 
 /// put), to vary what its painter draws: a painter's own stream starts the
 /// same on every floor
 pub(crate) fn vary_by(a: i32, b: i32, c: i32) -> u32 {
-    (hash01(0x7a3c_51d9 ^ c as u32, a, b) * 4.0e9) as u32
+    (hash(0x7a3c_51d9 ^ c as u32, a, b) * 4.0e9) as u32
 }

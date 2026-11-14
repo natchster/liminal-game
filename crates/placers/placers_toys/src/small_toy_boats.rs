@@ -2,7 +2,7 @@
 use crate::shared::tri_geo;
 use game::prelude::*;
 use placers_kit::place::pick_color;
-use placers_kit::place::pick_open_tile;
+use placers_kit::place::pick_open;
 use placers_kit::place::scatter_pos;
 
 // Small toy boat: 8% chance per level. Small wooden boat
@@ -11,7 +11,7 @@ pub(crate) fn place_small_toy_boats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.92 {
         return;
     } // 8% chance
-    let Some((x, z)) = pick_open_tile(g) else { return };
+    let Some((x, z)) = pick_open(g) else { return };
     let hull_colors = [0x8a5030, 0x603820, 0x2050d8, 0xd82040, 0xf0ece0];
     let hull_mat = lambert!({ color: pick_color(&hull_colors) });
     let mast_mat = lambert!({ color: 0x2a2418 });

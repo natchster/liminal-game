@@ -1,7 +1,7 @@
 //! `place_crystal_chandeliers`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Crystal chandelier: 3% chance per level. 6 arms + dangles + inner light.
 pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
@@ -84,7 +84,7 @@ pub(crate) fn place_crystal_chandeliers(g: &mut Game, _dist: &[i32]) {
         let p = t * 5.0 + flicker_phase;
         glow.set_intensity(0.9 + p.sin() * 0.06 + (p * 1.7).sin() * 0.04);
     });
-    scatter_on_floor(g, &chandelier, x, z, 1.5);
+    scatter(g, &chandelier, x, z, 1.5);
     // Track for chime audio.
     let p = chandelier.pos();
     g.pp.chandelier_positions.push(v3(p.x, center_y, p.z));

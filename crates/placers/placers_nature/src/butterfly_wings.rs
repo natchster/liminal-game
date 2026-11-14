@@ -12,7 +12,7 @@ use placers_kit::place::jitter;
 use placers_kit::place::pick_open;
 
 /// One of `N` textures of a kind, made the first time it is asked for
-macro_rules! t05_kind_tex {
+macro_rules! cached_kind_tex {
     ($n:expr, $k:expr, $make:expr) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
@@ -133,7 +133,7 @@ const HIND: [(f64, f64); 15] = [
 /// peacock's forewing, a peacock's hindwing, a small tortoiseshell's
 /// hindwing (all their upper sides), a peacock's forewing from beneath
 fn wing_tex(k: usize) -> Tex {
-    t05_kind_tex!(5, k, |k: usize| {
+    cached_kind_tex!(5, k, |k: usize| {
         let hind = k == 2 || k == 3;
         let (name, size, outline): (&str, (f64, f64), &[(f64, f64)]) =
             if hind { ("Real__wingHind", (24.5, 21.5), &HIND) } else { ("Real__wingFore", (30.5, 19.0), &FORE) };

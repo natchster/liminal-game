@@ -1,7 +1,7 @@
 //! `place_small_toy_swords`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::pick_hex as pick_u32;
+use placers_kit::place::pick_hex;
 use placers_kit::place::pick_tile;
 
 // Small toy sword: 8% chance per level. Kid's foam/plastic
@@ -16,9 +16,9 @@ pub(crate) fn place_small_toy_swords(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick_tile(&open);
     let blade_colors: [u32; 3] = [0xc0c8d0, 0xd8b040, 0xa8b0b8];
-    let blade_mat = lambert!({ color: pick_u32(&blade_colors) });
+    let blade_mat = lambert!({ color: pick_hex(&blade_colors) });
     let grip_colors: [u32; 4] = [0xd82040, 0x2050d8, 0x8a5030, 0x30a030];
-    let grip_mat = lambert!({ color: pick_u32(&grip_colors) });
+    let grip_mat = lambert!({ color: pick_hex(&grip_colors) });
     let gold_mat = lambert!({ color: 0xd8b040 });
     let sword = group();
     // Blade: long thin flattened box.

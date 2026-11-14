@@ -1,7 +1,7 @@
 //! `place_rotary_phones`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 
 // Rotary desk phone: 12% chance per level. Vintage-style
 // phone on floor: base box + rotary disc + handset with coiled cord.
@@ -14,9 +14,9 @@ pub(crate) fn place_rotary_phones(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     let body_colors = [0x201818, 0x282a20, 0x1a1a20];
-    let body_mat = lambert!({ color: body_colors[pick(body_colors.len())] });
+    let body_mat = lambert!({ color: body_colors[ri(body_colors.len())] });
     let dial_mat = lambert!({ color: 0xa8a8a0 });
     let cord_mat = lambert!({ color: 0x080604 });
     let phone = group();

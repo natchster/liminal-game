@@ -1,7 +1,7 @@
 //! `place_wall_calendars`
 use game::prelude::*;
-use placers_kit::place::mount_slid_ref as wall_mount;
-use placers_kit::place::ri as pick;
+use placers_kit::place::mount_slid_ref;
+use placers_kit::place::ri;
 use placers_kit::place::wall_candidates;
 
 // Wall calendar: 20% chance per level, 1 unit. Small
@@ -14,13 +14,13 @@ pub(crate) fn place_wall_calendars(g: &mut Game, _dist: &[i32]) {
     if candidates.is_empty() {
         return;
     }
-    let c = candidates[pick(candidates.len())];
+    let c = candidates[ri(candidates.len())];
     let cal_mat = lambert!({ map: calendar_texture_2(), transparent: true, side: DoubleSide });
     let cal = mesh(plane_geo!(0.24, 0.32), &cal_mat);
     let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.005);
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.005);
     let cal_height = 1.6 + rnd() * 0.20;
-    wall_mount(&cal, &c, wall_x, wall_z, cal_height, 1.0);
+    mount_slid_ref(&cal, &c, wall_x, wall_z, cal_height, 1.0);
     // Slight crooked hang.
     cal.rotation().z = (rnd() - 0.5) * 0.08;
     g.world.add(&cal);

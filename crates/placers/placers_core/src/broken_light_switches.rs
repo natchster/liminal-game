@@ -1,6 +1,6 @@
 //! `place_broken_light_switches`
 use game::prelude::*;
-use placers_kit::place::mount_slid as mount;
+use placers_kit::place::mount_slid;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
@@ -38,6 +38,6 @@ pub(crate) fn place_broken_light_switches(g: &mut Game, _dist: &[i32]) {
         sw.add(&wire);
     }
     let (wall_x, wall_z) = wall_xz(g, c, 0.003);
-    mount(&sw, c, wall_x, wall_z, 1.30, 0.6);
+    mount_slid(&sw, c, wall_x, wall_z, 1.30, 0.6);
     g.world.add(&sw);
 }

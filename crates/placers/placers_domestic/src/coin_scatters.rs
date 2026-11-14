@@ -2,7 +2,7 @@
 use game::prelude::*;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 
 // Coin scatter: 10% chance per level. 5-12 loose coins on floor.
 pub(crate) fn place_coin_scatters(g: &mut Game, _dist: &[i32]) {
@@ -29,6 +29,6 @@ pub(crate) fn place_coin_scatters(g: &mut Game, _dist: &[i32]) {
         }
         grp.add(&coin);
     }
-    scatter_on_floor(g, &grp, x, z, 2.4);
+    scatter(g, &grp, x, z, 2.4);
     g.world.add(&grp);
 }

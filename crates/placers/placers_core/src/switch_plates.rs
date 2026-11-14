@@ -1,6 +1,6 @@
 //! `place_switch_plates`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -36,7 +36,7 @@ pub(crate) fn place_switch_plates(g: &mut Game, _dist: &[i32]) {
         screw.position().set(0, mount_y + if i == 0 { 0.048 } else { -0.048 }, 0.0028);
         sw.add(&screw);
     }
-    sw.rotation().y = face_wall_yaw(c.dx, c.dz);
+    sw.rotation().y = face_wall(c.dx, c.dz);
     sw.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.005), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.005));
     g.world.add(&sw);
 }

@@ -1,16 +1,16 @@
 //! `place_overturned_buckets`
 use game::prelude::*;
 use placers_kit::noise::fbm;
-use placers_kit::noise::hash as hash01;
+use placers_kit::noise::hash;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::tide;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::paint::mark_mat;
 use placers_kit::paint::mark_tex;
-use placers_kit::paint::paint_px_indexed as paint_px;
+use placers_kit::paint::paint_px_indexed;
 use placers_kit::place::open_tiles;
-use placers_kit::place::ri as pick;
+use placers_kit::place::ri;
 use placers_kit::place::skip;
 use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
@@ -30,9 +30,9 @@ pub(crate) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
     if open.is_empty() {
         return;
     }
-    let (x, z) = open[pick(open.len())];
+    let (x, z) = open[ri(open.len())];
     // the old colour draw: yellow, red or grey polypropylene
-    let kind = pick(3).min(2);
+    let kind = ri(3).min(2);
     let bucket_yaw = rnd() * PI * 2.0;
     let px = g.wx(x) + (rnd() - 0.5) * 2.2;
     let pz = g.wz(z) + (rnd() - 0.5) * 2.2;
@@ -167,7 +167,7 @@ fn body_tex(col: [f64; 3], salt: u32) -> Tex {
             // dried runs down from the rim: pale, uneven, fading out
             let run = (wrap_fbm(seed ^ 7, u, 0.0, 140.0, 1.0, 2) - 0.62).max(0.0) * 4.0;
             let reach = 0.05 + 0.12 * wrap_fbm(seed ^ 9, u, 0.0, 40.0, 1.0, 1);
-            let runs = run * sstep(HEIGHT - reach, HEIGHT - 0.01, y) * (0.7 + 0.3 * vnoise(seed ^ 11, u * 300.0, y * 40.0));
+            let runs = run * sstep(HEIGHT - reach, HEIGHT - 0.01, y) * (0.7 + 0.3 * vn(seed ^ 11, u * 300.0, y * 40.0));
             c = mix(c, [0.74, 0.72, 0.66], runs * 0.5);
             c
         });
@@ -180,7 +180,7 @@ fn body_tex(col: [f64; 3], salt: u32) -> Tex {
 fn inside_tex(col: [f64; 3], salt: u32) -> Tex {
     canvas_tex_opt(512, 128, false, move |ctx, w, h| {
         let seed = salt ^ 0x1de;
-        let tide_y = 0.07 + 0.08 * hash01(seed, 1, 2);
+        let tide_y = 0.07 + 0.08 * hash(seed, 1, 2);
         fill(ctx, w, h, |u, v| {
             let y = v * HEIGHT;
             let mut c = [col[0] * 0.82, col[1] * 0.8, col[2] * 0.78];
@@ -212,8 +212,8 @@ fn floor_tex(col: [f64; 3], salt: u32) -> Tex {
             for dj in -1..=1 {
                 for di in -1..=1 {
                     let (ii, jj) = (cx.floor() as i32 + di, cy.floor() as i32 + dj);
-                    let fx = ii as f64 + hash01(seed, ii, jj);
-                    let fy = jj as f64 + hash01(seed ^ 77, ii, jj);
+                    let fx = ii as f64 + hash(seed, ii, jj);
+                    let fy = jj as f64 + hash(seed ^ 77, ii, jj);
                     let d = (fx - cx).hypot(fy - cy);
                     if d < d1 {
                         d2 = d1;
@@ -252,14 +252,14 @@ fn spill_mat(rx: f64, rz: f64, hard: bool, salt: u32) -> Mat {
         let (sx, sy) = (pw / cw, ph / ch);
         let aa = sx.max(sy) * 1.2;
         let r0 = rx.min(rz);
-        paint_px(ctx, cw, ch, |i, j| {
+        paint_px_indexed(ctx, cw, ch, |i, j| {
             let (x, y) = ((i as f64 + 0.5) * sx - pw / 2.0, (j as f64 + 0.5) * sy - ph / 2.0);
             let (u, v) = (x / rx, y / rz);
             let rho = u.hypot(v);
             let (cu, cv) = (u / rho.max(1e-6), v / rho.max(1e-6));
             let lobe = 1.0
                 + 0.5 * (fbm(seed, cu * 1.3 + 4.0, cv * 1.3 + 4.0, 3) - 0.5)
-                + 0.14 * (vnoise(seed ^ 9, cu * 5.0 + 2.0, cv * 5.0 + 2.0) - 0.5);
+                + 0.14 * (vn(seed ^ 9, cu * 5.0 + 2.0, cv * 5.0 + 2.0) - 0.5);
             let d = (rho - 0.85 * lobe) * r0;
             let mut px = Px::CLEAR;
             if hard {

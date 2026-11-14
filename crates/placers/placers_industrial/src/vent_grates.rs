@@ -1,6 +1,6 @@
 //! `place_vent_grates`
 use game::prelude::*;
-use placers_kit::place::face_wall as face_wall_yaw;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles_first;
 
@@ -33,7 +33,7 @@ pub(crate) fn place_vent_grates(g: &mut Game, _dist: &[i32]) {
         louver.rotation().x = -0.4; // Angled downward.
         vent.add(&louver);
     }
-    vent.rotation().y = face_wall_yaw(c.dx, c.dz);
+    vent.rotation().y = face_wall(c.dx, c.dz);
     vent.position().set(g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.006), 0, g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.006));
     g.world.add(&vent);
 }

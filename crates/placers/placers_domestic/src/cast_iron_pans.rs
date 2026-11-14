@@ -1,9 +1,9 @@
 //! `place_cast_iron_pans`
 use game::prelude::*;
-use placers_kit::baking::fbm as r16_fbm;
-use placers_kit::baking::mix as r16_mix;
-use placers_kit::baking::noise as r16_noise;
-use placers_kit::place::face_yaw;
+use placers_kit::baking::fbm;
+use placers_kit::baking::mix;
+use placers_kit::baking::noise;
+use placers_kit::place::face_wall;
 use placers_kit::place::pick;
 use placers_kit::place::wall_tiles;
 
@@ -40,7 +40,7 @@ pub(crate) fn place_cast_iron_pans(g: &mut Game, _dist: &[i32]) {
         nail.position().set(0, lift, -0.015);
         pan.add(&nail);
     }
-    pan.rotation().y = face_yaw(dx, dz);
+    pan.rotation().y = face_wall(dx, dz);
     pan.position().set(g.wx(x) + dx as f64 * (CELL * 0.5 - 0.015), 0, g.wz(z) + dz as f64 * (CELL * 0.5 - 0.015));
     g.world.add(&pan);
 }
@@ -79,44 +79,44 @@ fn pan_iron_tex(salt: u32) -> Tex {
             for i in 0..n {
                 let px = x0 + (i as f64 + 0.5) / w * (x1 - x0);
                 let rr = (px * px + py * py).sqrt();
-                let f = r16_fbm(seed, px * 40.0, py * 40.0);
-                let grain = r16_noise(seed ^ 3, px * 900.0, py * 900.0);
+                let f = fbm(seed, px * 40.0, py * 40.0);
+                let grain = noise(seed ^ 3, px * 900.0, py * 900.0);
                 // the seasoning: near-black, a little brown, its cast grain
                 let mut c = [27.0 + 7.0 * f + 5.0 * grain, 25.0 + 6.0 * f + 4.0 * grain, 24.0 + 5.0 * f + 3.0 * grain];
                 // dulled grey-brown where a spatula and steel wool went
                 let inside = rr < PAN_FLOOR_R + 0.008;
                 if inside {
-                    let scour = (r16_fbm(seed ^ 5, px * 25.0, py * 25.0) - 0.5).max(0.0) * 1.2;
-                    r16_mix(&mut c, [52.0, 48.0, 44.0], scour * 0.35);
+                    let scour = (fbm(seed ^ 5, px * 25.0, py * 25.0) - 0.5).max(0.0) * 1.2;
+                    mix(&mut c, [52.0, 48.0, 44.0], scour * 0.35);
                 }
                 // flaking at the rim: the seasoning lifted to grey iron
                 let rim = (1.0 - ((rr - PAN_RIM_R) / 0.010).abs()).max(0.0);
-                let flake = ((r16_noise(seed ^ 7, px * 160.0, py * 160.0) - 0.55) * 3.0).max(0.0) * rim;
-                r16_mix(&mut c, [62.0, 56.0, 50.0], flake * 0.7);
+                let flake = ((noise(seed ^ 7, px * 160.0, py * 160.0) - 0.55) * 3.0).max(0.0) * rim;
+                mix(&mut c, [62.0, 56.0, 50.0], flake * 0.7);
                 // rust where the water stood when it lay flat: a ragged pool,
                 // uneven inside (orange powder, dark crust), blooms round it
                 let (pxc, pyc, pr) = pool;
                 let dpool = (((px - pxc) / 1.2).powi(2) + (py - pyc).powi(2)).sqrt() / pr;
-                let ragged = dpool + 0.55 * (r16_fbm(seed ^ 9, px * 22.0, py * 22.0) - 0.5);
-                let in_pool = ((1.0 - ragged) * 4.0).clamp(0.0, 1.0) * (0.55 + 0.45 * r16_fbm(seed ^ 17, px * 70.0, py * 70.0));
-                let bloom = ((r16_fbm(seed ^ 11, px * 34.0, py * 34.0) - 0.6).max(0.0) * 4.0).min(1.0);
-                let spots = ((r16_noise(seed ^ 19, px * 260.0, py * 260.0) - 0.8).max(0.0) * 5.0).min(1.0);
+                let ragged = dpool + 0.55 * (fbm(seed ^ 9, px * 22.0, py * 22.0) - 0.5);
+                let in_pool = ((1.0 - ragged) * 4.0).clamp(0.0, 1.0) * (0.55 + 0.45 * fbm(seed ^ 17, px * 70.0, py * 70.0));
+                let bloom = ((fbm(seed ^ 11, px * 34.0, py * 34.0) - 0.6).max(0.0) * 4.0).min(1.0);
+                let spots = ((noise(seed ^ 19, px * 260.0, py * 260.0) - 0.8).max(0.0) * 5.0).min(1.0);
                 let wet = if inside { 1.0 } else { 0.25 };
                 // rust at the pour lips, where water ran out
                 let lip = ((px.abs() - 0.118) / 0.012).clamp(0.0, 1.0) * (1.0 - (py.abs() / 0.02).min(1.0));
                 let rust = ((in_pool + bloom * 0.8 + spots * 0.6) * wet + lip * 0.4 + rim * flake * 0.5).min(1.0);
                 // rust's own colour: orange-brown powder, dark where it crusted
-                let rk = r16_noise(seed ^ 15, px * 300.0, py * 300.0);
-                let crust = r16_noise(seed ^ 21, px * 90.0, py * 90.0);
+                let rk = noise(seed ^ 15, px * 300.0, py * 300.0);
+                let crust = noise(seed ^ 21, px * 90.0, py * 90.0);
                 let rc = [96.0 + 44.0 * rk - 30.0 * crust, 46.0 + 20.0 * rk - 14.0 * crust, 24.0 + 10.0 * rk - 6.0 * crust];
-                r16_mix(&mut c, rc, rust * (0.8 + 0.2 * grain));
+                mix(&mut c, rc, rust * (0.8 + 0.2 * grain));
                 // the handle, polished dark by hands, the hole rusted
                 if py > 0.14 {
                     let dh = ((py - PAN_HOLE_Y).powi(2) + px * px).sqrt();
                     let hole = (1.0 - (dh - 0.008) / 0.005).clamp(0.0, 1.0);
                     let polish = ((0.23 - py) / 0.06).clamp(0.0, 1.0) * 0.3;
-                    r16_mix(&mut c, [19.0, 18.0, 18.0], polish);
-                    r16_mix(&mut c, [104.0, 52.0, 26.0], hole * 0.7);
+                    mix(&mut c, [19.0, 18.0, 18.0], polish);
+                    mix(&mut c, [104.0, 52.0, 26.0], hole * 0.7);
                 }
                 out[i * 4..i * 4 + 4].copy_from_slice(&[c[0] as u8, c[1] as u8, c[2] as u8, 255]);
             }

@@ -1,6 +1,6 @@
 //! `place_reading_glasses_and_books`
 use game::prelude::*;
-use placers_kit::noise::vn as vnoise;
+use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 use placers_kit::place::seed_of;
@@ -368,7 +368,7 @@ fn frame_mat(k: usize, seed: u32) -> Mat {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let m = vnoise(seed, x * 9.0, y * 5.0) * 0.6 + vnoise(seed ^ 0x33, x * 23.0, y * 14.0) * 0.4;
+                let m = vn(seed, x * 9.0, y * 5.0) * 0.6 + vn(seed ^ 0x33, x * 23.0, y * 14.0) * 0.4;
                 let spot = ((m - 0.45) * 3.0).clamp(0.0, 1.0);
                 let (a, b) = if honey { ((150.0, 104.0, 46.0), (52.0, 30.0, 14.0)) } else { ((92.0, 54.0, 24.0), (26.0, 16.0, 10.0)) };
                 let px = |u: f64, v: f64| (u + (v - u) * spot) as u8;
@@ -388,8 +388,8 @@ fn lens_dirt_tex(seed: u32) -> Tex {
         par_rows(&mut img.data, n * 4, |j, out| {
             for i in 0..n {
                 let (x, y) = (i as f64 / w, j as f64 / h);
-                let d = vnoise(seed, x * 7.0, y * 4.0) * 0.6 + vnoise(seed ^ 7, x * 26.0, y * 13.0) * 0.4;
-                let smear = (vnoise(seed ^ 0x55, x * 3.0, y * 2.0) - 0.58).max(0.0) * 1.8;
+                let d = vn(seed, x * 7.0, y * 4.0) * 0.6 + vn(seed ^ 7, x * 26.0, y * 13.0) * 0.4;
+                let smear = (vn(seed ^ 0x55, x * 3.0, y * 2.0) - 0.58).max(0.0) * 1.8;
                 let v = ((0.18 + 0.36 * d + smear) * 255.0).min(255.0) as u8;
                 out[i * 4..i * 4 + 4].copy_from_slice(&[v, v, v, 255]);
             }

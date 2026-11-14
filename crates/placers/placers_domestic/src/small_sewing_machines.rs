@@ -1,5 +1,6 @@
 //! `place_small_sewing_machines`
 use game::prelude::*;
+use placers_kit::baking;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;
 
@@ -83,20 +84,13 @@ const SEW_TOP: f64 = 0.038;
 
 const SEW_ARM_FRONT: f64 = -0.002;
 
-fn sew_hash(seed: u32, x: i32, y: i32) -> f64 {
-    let mut h = seed ^ (x as u32).wrapping_mul(0x8da6_b343) ^ (y as u32).wrapping_mul(0xd816_3841);
-    h = (h ^ (h >> 13)).wrapping_mul(0xcb1a_b31f);
-    h ^= h >> 16;
-    h as f64 / 4_294_967_296.0
-}
-
 fn sew_noise(seed: u32, x: f64, y: f64) -> f64 {
     let (xf, yf) = (x.floor(), y.floor());
     let (fx, fy) = (x - xf, y - yf);
     let (sx, sy) = (fx * fx * (3.0 - 2.0 * fx), fy * fy * (3.0 - 2.0 * fy));
     let (xi, yi) = (xf as i32, yf as i32);
-    let (a, b) = (sew_hash(seed, xi, yi), sew_hash(seed, xi + 1, yi));
-    let (c, d) = (sew_hash(seed, xi, yi + 1), sew_hash(seed, xi + 1, yi + 1));
+    let (a, b) = (baking::hash(seed, xi, yi), baking::hash(seed, xi + 1, yi));
+    let (c, d) = (baking::hash(seed, xi, yi + 1), baking::hash(seed, xi + 1, yi + 1));
     a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy
 }
 

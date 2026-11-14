@@ -7,7 +7,7 @@ use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::fbmp;
 use placers_kit::noise::mix;
-use placers_kit::noise::sstep as ss;
+use placers_kit::noise::sstep;
 use placers_kit::paint::paint_tile;
 use placers_kit::paint::rgb;
 use placers_kit::place::index_of;
@@ -44,7 +44,7 @@ pub(crate) fn place_baby_rattles(g: &mut Game, _dist: &[i32]) {
         // the printed stars, rubbed half away (two to a tile, 9 mm across)
         for k in 0..2 {
             let (cx, cy) = (0.25 + 0.5 * f64::from(k), 0.3 + 0.4 * f64::from(k));
-            let ink = star(u - cx, v - cy, 0.075, 0.4 * f64::from(k)) * ss(0.3, 0.42, fbmp(salt ^ 13, u, v, 6, 3));
+            let ink = star(u - cx, v - cy, 0.075, 0.4 * f64::from(k)) * sstep(0.3, 0.42, fbmp(salt ^ 13, u, v, 6, 3));
             c = mix(c, [0.93, 0.91, 0.86], ink * 0.85);
         }
         c
@@ -78,5 +78,5 @@ fn star(x: f64, y: f64, r: f64, turn: f64) -> f64 {
     let (px, py) = (d * phi.cos(), d * phi.sin());
     let (ex, ey) = (p1x - p0x, p1y - p0y);
     let side = (ex * (py - p0y) - ey * (px - p0x)) / (ex * ex + ey * ey).sqrt();
-    ss(-0.004, 0.004, side)
+    sstep(-0.004, 0.004, side)
 }

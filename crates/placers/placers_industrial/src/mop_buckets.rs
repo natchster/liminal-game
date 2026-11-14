@@ -5,10 +5,10 @@ use placers_kit::noise::hash;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::paint::opaque as rgb;
+use placers_kit::paint::opaque;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick_hex;
-use placers_kit::place::scatter_on_floor;
+use placers_kit::place::scatter;
 use placers_kit::place::skip;
 
 // Mop bucket: 6% chance per level. Plastic bucket with a mop in it.
@@ -60,7 +60,7 @@ pub(crate) fn place_mop_buckets(g: &mut Game, _dist: &[i32]) {
             &phong!({ map: &water_tex(salt), specular: 0x3c3c3a, shininess: 70, transparent: true, opacity: 0.9, depthWrite: false }),
         );
     }
-    scatter_on_floor(g, &bucket, x, z, 1.6);
+    scatter(g, &bucket, x, z, 1.6);
     g.world.add(&bucket);
 }
 
@@ -104,7 +104,7 @@ fn tub_tex(col: [f64; 3], salt: u32) -> Tex {
             let reach = 0.25 + 0.5 * fbm(seed ^ 4, u * 20.0, 0.5, 1);
             let runs = run * sstep(1.0 - reach, 0.95, v) * (0.6 + 0.4 * vn(seed ^ 5, u * 300.0, v * 20.0));
             c = mix(c, [0.25, 0.24, 0.2], runs * 0.6);
-            rgb(c)
+            opaque(c)
         });
         for k in 0..120 {
             let (x, y) = (rnd() * w, h * (0.25 + 0.75 * rnd()));
@@ -142,7 +142,7 @@ fn inside_tex(col: [f64; 3], water: bool, salt: u32) -> Tex {
             c = mix(c, [0.22, 0.2, 0.16], below * (0.55 + 0.25 * fbm(seed ^ 4, u * 40.0, v * 40.0, 2)));
             c = mix(c, [0.14, 0.12, 0.09], (-(d / 0.006).powi(2)).exp() * 0.7);
             c = mix(c, [0.5, 0.48, 0.42], (-((d - 0.012) / 0.008).powi(2)).exp() * 0.3);
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -157,7 +157,7 @@ fn floor_tex(col: [f64; 3], salt: u32) -> Tex {
             c = mix(c, [0.33, 0.3, 0.25], sstep(0.45, 0.6, n));
             let grit = (vn(seed ^ 1, u * 300.0, v * 300.0) - 0.8).max(0.0) * 4.0;
             c = mix(c, [0.12, 0.1, 0.08], grit);
-            rgb(c)
+            opaque(c)
         });
     })
 }
@@ -173,7 +173,7 @@ fn water_tex(salt: u32) -> Tex {
             let mut c = mix([0.16, 0.15, 0.13], [0.22, 0.21, 0.18], n);
             let scum = sstep(0.5, 0.68, fbm(seed ^ 1, u * 10.0, v * 10.0, 4));
             c = mix(c, [0.42, 0.4, 0.36], scum * 0.55);
-            rgb(c)
+            opaque(c)
         });
         ctx.set_line_width(0.7);
         for _ in 0..14 {
@@ -205,7 +205,7 @@ fn strings_tex(water: bool, salt: u32) -> Tex {
             c = mix(c, [0.36, 0.33, 0.27], streak * 0.35);
             let low = sstep(0.6, 0.0, v);
             c = mix(c, if water { [0.22, 0.2, 0.16] } else { [0.34, 0.31, 0.26] }, low * 0.75);
-            rgb(c)
+            opaque(c)
         });
     })
 }

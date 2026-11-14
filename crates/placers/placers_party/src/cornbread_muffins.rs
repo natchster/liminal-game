@@ -3,7 +3,7 @@ use crate::shared::put;
 use crate::shared::put_split;
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use placers_kit::baking::mould as loaf_mould;
+use placers_kit::baking::mould;
 use placers_kit::noise::fbm;
 use placers_kit::noise::mix;
 use placers_kit::noise::sstep;
@@ -180,7 +180,7 @@ fn muffin_tex(salt: u32, k: usize) -> Tex {
                 c = mix(c, [0.72, 0.60, 0.38], sstep(0.62, 0.5, y) * 0.5);
                 c = mix(c, [0.60, 0.57, 0.51], 0.08);
             }
-            let (s, wr, st) = loaf_mould(&cols, px, py, seed ^ 7);
+            let (s, wr, st) = mould(&cols, px, py, seed ^ 7);
             c = mix(c, [0.56, 0.50, 0.32], st * 0.3);
             c = mix(c, [0.82, 0.82, 0.78], wr * 0.6);
             let sp = vn(seed ^ 9, px / 1.2, py / 1.2);
