@@ -169,3 +169,5 @@ Verified against [docs.github.com](https://docs.github.com) and live calls on
   cannot approve their own pull request, so a sole owner's code-owner
   review is met only by bypass. A pull request is reviewed against the
   base branch's `CODEOWNERS`.
+
+<!-- trust-gate smoke test: this branch is thrown away -->
