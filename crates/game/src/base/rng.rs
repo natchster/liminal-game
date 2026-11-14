@@ -152,6 +152,22 @@ pub fn with_native<R>(f: impl FnOnce() -> R) -> R {
 pub fn native_draws() -> u64 {
     RNG.with(|r| r.borrow().native_count)
 }
+/// The per-frame stream as it stands, and its draws so far: what a level's
+/// anchor keeps of it (`session::anchor`).
+pub fn native_state() -> ([u64; 2], u64) {
+    RNG.with(|r| {
+        let r = r.borrow();
+        (r.native.s, r.native_count)
+    })
+}
+/// The per-frame stream put back where an anchor found it.
+pub fn set_native_state(s: [u64; 2], draws: u64) {
+    RNG.with(|r| {
+        let mut r = r.borrow_mut();
+        r.native.s = s;
+        r.native_count = draws;
+    });
+}
 /// Number of seeded draws so far (for the rand trace).
 pub fn seeded_draws() -> u64 {
     RNG.with(|r| r.borrow().trace)

@@ -521,6 +521,10 @@ pub struct HouseLamp {
 #[derive(Clone, Debug, Default)]
 pub struct StairAudio {
     pub next_phrase: f64,
+    /// game time (`perf_t`) the child's phrase ends, 0.1 s after: she says
+    /// no new one before it (on the game's clock, not the sound's, which
+    /// runs on its own in a replay)
+    pub voice_until: f64,
     pub next_knock: f64,
     pub heart_t: f64,
     pub step_acc: f64,

@@ -171,6 +171,21 @@ Levels must be a pure function of `(run_seed, level)`:
   `f64`, summed exactly, and what a recording keeps, so a replay reads the
   same step and clock as the frame it repeats. The headless tools step a
   fixed 1/60 s (`fixed_step_dt`) and set `now_ms` themselves.
+* **A floor's start is an anchor.** Play enters a floor in one place,
+  `Game::enter_level` (the door, the lift, a fall, the Stairwell's door,
+  the end of her story), always from a scheduled step at a frame's start,
+  and takes an anchor (`session::anchor`): what the floor and the frames
+  after it read that a fresh game would not have (the save, the
+  per-frame stream, the clocks, the settings and view, the keys held and
+  the input's latches, what crosses floors unsaved, the soundscape's preset
+  and hum, the dust and the pooled effects). Nothing scheduled on the floor
+  before carries onto it. `tests/anchors.rs` holds it: a fresh game started
+  from the anchor (with another stream), fed play's frames, stands in
+  play's state after every one, for a door, the lift and a fall. A new
+  field that crosses floors (a timer, a memory, a pool, a smoothing) goes
+  into the anchor or is reset in `init_level`, or that test fails; and a
+  cache made lazily draws from a stream of its own (a zone's reverb is
+  seeded by its preset's name), never the per-frame one.
 * **No hash order in the game's state.** A `HashMap`'s order changes from
   one run to the next; the workspace lint `iter_over_hash_type` makes a
   loop over one say why its order cannot matter (`#[expect(…, reason)]`),

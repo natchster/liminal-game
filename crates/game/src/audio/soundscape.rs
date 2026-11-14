@@ -28,6 +28,20 @@ use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 
+/// The stream a zone reverb's noise is drawn from (`Soundscape::make_ir`):
+/// its own, seeded by the preset's name.
+pub fn ir_stream(key: &str) -> crate::base::rng::SplitMix64 {
+    let name = key.bytes().fold(0x811c_9dc5u32, |h, b| (h ^ u32::from(b)).wrapping_mul(0x0100_0193));
+    crate::base::rng::SplitMix64::new(name, IR_SALT)
+}
+
+/// The salt of a zone reverb's own noise (`Soundscape::make_ir`). A fixed
+/// reverb is one draw of its noise, and the knock at the Well's red door
+/// reads its three raps back on seven of eight such draws tried (`tests/listen.rs`,
+/// `a_knock_is_answered_and_a_wrong_door_knocks_back`): this is the first of
+/// them, and the whole listening suite and the loudness gate pass on it.
+const IR_SALT: u64 = 20_264;
+
 /// The soundscape's random source (`SoundscapeOpts::rng`, else `rnd()`).
 pub type Rng = Rc<dyn Fn() -> f64>;
 
@@ -716,6 +730,7 @@ pub struct ChildVoice {
     fric_bp: AudioNode,
     fric_g: AudioNode,
     formants: [AudioNode; 3],
+    /// the sound's clock when the last phrase ends, 0.1 s after
     busy_until: Cell<f64>,
 }
 impl ChildVoice {
@@ -850,7 +865,10 @@ impl ChildVoice {
         self.busy_until.set(t + 0.1);
         t - t0
     }
-    /// Whether a phrase is still playing (plus 0.1 s)
+    /// Whether a phrase is still playing on the sound's clock (plus 0.1 s).
+    /// What the game decides must not hang on it: the sound's clock runs on
+    /// its own (a device, or a silent replay); the Stairwell keeps the child's
+    /// end on the game's (`StairAudio::voice_until`).
     pub fn busy(&self) -> bool {
         self.ac.current_time() < self.busy_until.get()
     }
@@ -1021,11 +1039,32 @@ impl Soundscape {
     pub fn rng(&self) -> Rng {
         self.rng.clone()
     }
+    /// What of the soundscape crosses a floor and steers what it draws: the
+    /// zone preset in force and the hum's timers (`session::anchor`).
+    pub fn carried(&self) -> (Option<String>, [f64; 4]) {
+        let h = &self.hum;
+        (self.current_preset.borrow().clone(), [h.drift_t.get(), h.spike_t.get(), h.next_spike.get(), h.cents.get()])
+    }
+    /// Put back what `carried` read.
+    pub fn set_carried(&self, preset: Option<String>, hum: [f64; 4]) {
+        *self.current_preset.borrow_mut() = preset;
+        let h = &self.hum;
+        h.drift_t.set(hum[0]);
+        h.spike_t.set(hum[1]);
+        h.next_spike.set(hum[2]);
+        h.cents.set(hum[3]);
+    }
 
     // ------------------------------------------------------------ reverb ---
-    /// A stereo impulse response for a zone
-    pub fn make_ir(&self, p: &ReverbPreset) -> AudioBuffer {
-        let data = make_ir_data(p, self.sr, &*self.rng);
+    /// A stereo impulse response for the zone preset `key`. Its noise comes
+    /// from a stream of its own, seeded by the preset's name: built lazily
+    /// (the first time a process enters such a zone) and cached, it must
+    /// draw nothing from the per-frame stream, or a floor's frames would hang
+    /// on which zones the process had heard before and on the device's
+    /// sample rate (`docs/plan/REPLAYS.md`, R2b).
+    pub fn make_ir(&self, key: &str, p: &ReverbPreset) -> AudioBuffer {
+        let own = RefCell::new(ir_stream(key));
+        let data = make_ir_data(p, self.sr, &|| own.borrow_mut().next());
         let buf = self.ac.create_buffer(2, data[0].len(), self.sr);
         for (ch, d) in data.into_iter().enumerate() {
             *buf.channel_mut(ch) = d;
@@ -1053,7 +1092,7 @@ impl Soundscape {
         *self.current_preset.borrow_mut() = Some(key.to_string());
         let p = self.preset_for(key).unwrap();
         if !self.ir_cache.borrow().contains_key(key) {
-            let ir = self.make_ir(&p);
+            let ir = self.make_ir(key, &p);
             self.ir_cache.borrow_mut().insert(key.to_string(), ir);
         }
         let t = self.now();

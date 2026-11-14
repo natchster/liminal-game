@@ -272,6 +272,12 @@ impl Game {
         h.s(&self.state);
         h.f(self.ambient_log.len() as f64);
         h.f(self.animators.len() as f64);
+        // how much chance was drawn, and the clocks: most divergences show
+        // in the first, a step or a time read wrongly in the others
+        h.f(crate::base::rng::native_draws() as f64);
+        for v in [self.perf_t, self.now_ms] {
+            h.f(v);
+        }
         let world = h.0;
         StateHash { player, entities, director, world }
     }

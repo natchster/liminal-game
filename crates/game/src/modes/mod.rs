@@ -331,21 +331,27 @@ impl Game {
         self.ui.fade.set_style("background", "#000");
         self.ui.fade.set_opacity(1.0);
         self.schedule(1100.0, |g| {
-            g.leave_stairwell_mode();
             let n = g.level_num + 1;
-            tr("init_level", &[n as f64]);
-            g.init_level(n);
-            tr("save_game", &[]);
-            g.save_game();
-            g.state = "playing".into();
-            let title = g.level_title();
-            // (the recordings trace the message; the screen shows the level card)
-            if tracing() {
-                tr(&format!("msg:LEVEL {} — {}", g.level_num, title), &[3.0]);
-            }
-            g.show_level_card(&title);
-            g.ui.fade.set_opacity(0.0);
+            g.enter_level(n, crate::session::anchor::How::Stairwell);
         });
+    }
+
+    /// The Stairwell's door entered: out of the Stairwell and onto floor `n`
+    /// (`session::anchor`, `How::Stairwell`).
+    pub(crate) fn enter_from_stairwell(&mut self, n: i32) {
+        self.leave_stairwell_mode();
+        tr("init_level", &[n as f64]);
+        self.init_level(n);
+        tr("save_game", &[]);
+        self.save_game();
+        self.state = "playing".into();
+        let title = self.level_title();
+        // (the recordings trace the message; the screen shows the level card)
+        if tracing() {
+            tr(&format!("msg:LEVEL {} — {}", self.level_num, title), &[3.0]);
+        }
+        self.show_level_card(&title);
+        self.ui.fade.set_opacity(0.0);
     }
 
     /// The movement keys as the two sub-modes read them: (crouch, mx, mz, sprint key).
@@ -470,12 +476,13 @@ impl Game {
                 slot_at(slot, gp.x + vp.x, gp.y + vp.y, gp.z + vp.z);
             }
             self.stair_audio.next_phrase -= dt;
-            let idle = self.stair_voice.as_ref().is_some_and(|v| !v.busy());
+            let idle = self.stair_voice.is_some() && self.perf_t >= self.stair_audio.voice_until;
             if self.stair_audio.next_phrase <= 0.0 && idle {
                 let r = rnd();
                 let phrase = stair_phrase(face_out, r);
                 let now = self.ac_time();
                 let dur = voice_say(self.stair_voice.as_ref().unwrap(), now, phrase, now + 0.05, rand2(0.95, 1.06), 1.0);
+                self.stair_audio.voice_until = self.perf_t + dur + 0.1;
                 self.stair_audio.next_phrase = dur + rand2(1.2, 4.5);
             }
             if let Some(v) = &self.stair_voice {

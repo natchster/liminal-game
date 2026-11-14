@@ -106,6 +106,10 @@ pub struct Game {
     /// The game's clock in its own ticks (`CLOCK_TICKS_PER_SECOND`), of which
     /// `now_ms` is the exact image
     pub clock_ticks: u64,
+    /// The interval of the frame being run, in clock ticks (`advance_clock`)
+    pub last_ticks: u32,
+    /// The anchor of the floor play last entered (`session::anchor`)
+    pub entered: Option<crate::session::anchor::Anchor>,
     /// Launch flags (debug switches: '#nosound', '#scp=...', ...)
     pub launch_flags: String,
     /// Persistent key/value store (settings and progress), saved to `storage_path`
@@ -774,6 +778,8 @@ impl Game {
             next_timeout_id: 1,
             now_ms: 0.0,
             clock_ticks: 0,
+            last_ticks: 0,
+            entered: None,
             launch_flags: String::new(),
             storage: BTreeMap::new(),
             storage_path: None,
@@ -1333,6 +1339,7 @@ impl Game {
     /// (`docs/plan/REPLAYS.md`, R2).
     pub fn advance_clock(&mut self, ticks: u32) -> f64 {
         self.clock_ticks += u64::from(ticks);
+        self.last_ticks = ticks;
         self.now_ms = ticks_to_ms(self.clock_ticks);
         f64::from(ticks) / f64::from(CLOCK_TICKS_PER_SECOND)
     }

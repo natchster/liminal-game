@@ -62,8 +62,14 @@ from before `03e4b80` benches out loud.
   benched in turn three times each: the levels' builds 2503 → 2662 ms in
   all (+6.3%: the rooms' floors 4–6 +5–9%, 20–33 ms; the Building's within
   noise), every update p50 +0.01 ms (0.03 → 0.04 on the Building, 0.06 →
-  0.07 on the rooms), p99 unchanged (0.73–0.80). All within budget; seed 7's
-  level 5, the slowest build, has 33 ms left of its 600 (64 before). The
+  0.07 on the rooms), p99 unchanged (0.73–0.80), and the first frame, which
+  sets every node's world matrix, 1–3 ms dearer (the Building's floors,
+  4242 L2 6.8 → 9.6, 7 L2 8.6 → 10.6; L1 25.4 → 27.8; flagged first by R2b's
+  check, at 14 ms under its load: 10.1 on a quiet machine). All within
+  budget; seed 7's level 5, the slowest build, has 33 ms left of its 600
+  (64 before). R2b (the anchors) costs nothing measurable: R2a and R2b
+  benched in turn three times each, builds, first frames and updates the
+  same within 0.4 ms. The
   kit's noise has no trigonometry, so the cost is spread over the placers'
   own geometry and painters and the engine's: if a floor nears its budget,
   look there (`sample` on `--bench`). Kept: a level now builds the same on

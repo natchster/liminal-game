@@ -83,14 +83,6 @@ impl Game {
             m.gain().cancel_scheduled_values(self.ac_time());
         }
         self.apply_master_gain();
-        self.schedule(400.0, |g| {
-            g.init_level(g.level_num + 1);
-            g.save_game();
-            g.state = "playing".into();
-            let title = g.level_title();
-            g.show_level_card(&title);
-            g.ui.fade.set_opacity(0.0);
-            g.want_pointer_lock = Some(true);
-        });
+        self.schedule(400.0, |g| g.enter_level(g.level_num + 1, crate::session::anchor::How::Ending));
     }
 }

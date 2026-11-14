@@ -4,6 +4,7 @@
 use crate::base::state::WEATHER_BIASES;
 use crate::base::tables::*;
 use crate::prelude::*;
+use crate::session::anchor::How;
 
 /// (v2: the descent begins in the Building, `docs/design/MEGASTRUCTURE.md`; a v1
 /// save's levels and anomaly plan no longer exist)
@@ -41,6 +42,63 @@ pub struct SaveData {
     pub secrets_taken: std::collections::BTreeMap<String, u32>,
 }
 
+impl SaveData {
+    /// A save read back from its JSON (`Game::save_json`): None if it names no level.
+    pub fn from_json(d: &serde_json::Value) -> Option<SaveData> {
+        let level_num = d.get("levelNum")?.as_f64()?;
+        if level_num < 1.0 {
+            return None;
+        }
+        let num = |k: &str| d.get(k).and_then(|v| v.as_f64());
+        let flag = |k: &str| d.get(k).is_some_and(|v| v.as_bool().unwrap_or(!v.is_null() && v.as_f64().is_some_and(|x| x != 0.0)));
+        // integer fields: truncated and wrapped to 32 bits (`to_i32`)
+        let int = |k: &str| num(k).map_or(0, to_i32) as f64;
+        Some(SaveData {
+            level_num: level_num as i32,
+            run_seed: num("runSeed").map_or(0, to_u32),
+            sanity: num("sanity"),
+            battery: num("battery"),
+            bottles: int("bottles"),
+            batteries: int("batteries"),
+            papers: int("papers"),
+            coins: int("coins"),
+            lore: d.get("lore").and_then(|v| v.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_f64()).collect()),
+            archivist: flag("archivist"),
+            survivor: flag("survivor"),
+            storyteller: flag("storyteller"),
+            completionist: flag("completionist"),
+            ironwill: flag("ironwill"),
+            deaths: int("deaths"),
+            arcs: d
+                .get("arcs")
+                .and_then(|v| v.as_array())
+                .map_or_default(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect()),
+            arc_done: flag("arcDone"),
+            creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
+            asides: crate::audio::asides::AsideMemory::from_json(d.get("asides")),
+            took: d.get("took").and_then(|v| v.as_array()).map_or_default(|a| {
+                a.iter()
+                    .filter_map(|t| {
+                        let t = t.as_array()?;
+                        Some(crate::secrets::keeps::Took {
+                            what: t.first()?.as_str()?.to_string(),
+                            level: t.get(1)?.as_f64()? as i32,
+                            place: t.get(2)?.as_str()?.to_string(),
+                        })
+                    })
+                    .collect()
+            }),
+            secrets_taken: d
+                .get("secrets")
+                .and_then(|v| v.as_object())
+                .map_or_default(|o| o.iter().filter_map(|(k, v)| Some((k.clone(), v.as_f64()? as u32))).collect()),
+            notebook: d.get("notebook").and_then(|v| v.as_array()).map_or_default(|a| {
+                a.iter().filter_map(|x| x.as_str().filter(|s| crate::story::notebook::page(s).is_some()).map(|s| s.to_string())).collect()
+            }),
+        })
+    }
+}
+
 impl Game {
     /// start-up work: the menu's flavour text and buttons
     pub fn init_flow(&mut self) {
@@ -68,6 +126,11 @@ impl Game {
         self.house_reset();
         self.level_start_t = self.perf_t;
         self.cries_on_floor = 0;
+        // the hum's lamp is an index into a floor's panels: the last floor's
+        // would name some lamp of this one (it hummed there until the next
+        // pick); pick this floor's at the first update instead
+        self.hum_panel = None;
+        self.hummer_t = 0.0;
         if self.run_seed == 0 {
             self.run_seed = ((native_rnd() * 4294967295.0).floor() as u64 + 1) as u32;
         }
@@ -200,7 +263,8 @@ impl Game {
     }
 
     // ------------------------------------------------------------ save / continue
-    pub fn save_game(&mut self) {
+    /// The run's progress as the save keeps it (and a level's anchor)
+    pub fn save_json(&self) -> serde_json::Value {
         let lore: Vec<serde_json::Value> = self.lore_found.iter().map(|&i| serde_json::json!(i)).collect();
         let arcs: Vec<serde_json::Value> = self.lore_arcs_completed.iter().map(|a| serde_json::json!(a)).collect();
         let data = serde_json::json!({
@@ -226,64 +290,18 @@ impl Game {
             "asides": self.asides.memory.to_json(),
             "took": self.took.iter().map(|t| serde_json::json!([t.what, t.level, t.place])).collect::<Vec<_>>(),
             "secrets": self.secrets_taken,
-            "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0.0, |d| d.as_millis() as f64),
         });
+        data
+    }
+    pub fn save_game(&mut self) {
+        let mut data = self.save_json();
+        data["savedAt"] =
+            serde_json::json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0.0, |d| d.as_millis() as f64));
         self.storage_set(SAVE_KEY, &data.to_string());
     }
     pub fn load_game(&self) -> Option<SaveData> {
         let raw = self.storage_get(SAVE_KEY)?;
-        let d: serde_json::Value = serde_json::from_str(&raw).ok()?;
-        let level_num = d.get("levelNum")?.as_f64()?;
-        if level_num < 1.0 {
-            return None;
-        }
-        let num = |k: &str| d.get(k).and_then(|v| v.as_f64());
-        let flag = |k: &str| d.get(k).is_some_and(|v| v.as_bool().unwrap_or(!v.is_null() && v.as_f64().is_some_and(|x| x != 0.0)));
-        // integer fields: truncated and wrapped to 32 bits (`to_i32`)
-        let int = |k: &str| num(k).map_or(0, to_i32) as f64;
-        Some(SaveData {
-            level_num: level_num as i32,
-            run_seed: num("runSeed").map_or(0, to_u32),
-            sanity: num("sanity"),
-            battery: num("battery"),
-            bottles: int("bottles"),
-            batteries: int("batteries"),
-            papers: int("papers"),
-            coins: int("coins"),
-            lore: d.get("lore").and_then(|v| v.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_f64()).collect()),
-            archivist: flag("archivist"),
-            survivor: flag("survivor"),
-            storyteller: flag("storyteller"),
-            completionist: flag("completionist"),
-            ironwill: flag("ironwill"),
-            deaths: int("deaths"),
-            arcs: d
-                .get("arcs")
-                .and_then(|v| v.as_array())
-                .map_or_default(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect()),
-            arc_done: flag("arcDone"),
-            creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
-            asides: crate::audio::asides::AsideMemory::from_json(d.get("asides")),
-            took: d.get("took").and_then(|v| v.as_array()).map_or_default(|a| {
-                a.iter()
-                    .filter_map(|t| {
-                        let t = t.as_array()?;
-                        Some(crate::secrets::keeps::Took {
-                            what: t.first()?.as_str()?.to_string(),
-                            level: t.get(1)?.as_f64()? as i32,
-                            place: t.get(2)?.as_str()?.to_string(),
-                        })
-                    })
-                    .collect()
-            }),
-            secrets_taken: d
-                .get("secrets")
-                .and_then(|v| v.as_object())
-                .map_or_default(|o| o.iter().filter_map(|(k, v)| Some((k.clone(), v.as_f64()? as u32))).collect()),
-            notebook: d.get("notebook").and_then(|v| v.as_array()).map_or_default(|a| {
-                a.iter().filter_map(|x| x.as_str().filter(|s| crate::story::notebook::page(s).is_some()).map(|s| s.to_string())).collect()
-            }),
-        })
+        SaveData::from_json(&serde_json::from_str(&raw).ok()?)
     }
     pub fn clear_save(&mut self) {
         self.storage_remove(SAVE_KEY);
@@ -355,15 +373,7 @@ impl Game {
         let c = self.next_weather_fade_color("#f5edd2");
         self.ui.fade.set_style("background", &c);
         self.ui.fade.set_opacity(1.0);
-        self.schedule(650.0, |g| {
-            g.init_level(g.level_num + 1);
-            g.save_game();
-            g.state = "playing".into();
-            let title = g.level_title();
-            g.show_level_card(&title);
-            g.scp_arrival();
-            g.ui.fade.set_opacity(0.0);
-        });
+        self.schedule(650.0, |g| g.enter_level(g.level_num + 1, How::Door));
     }
     pub fn next_level_via_elevator(&mut self) {
         if self.state != "playing" {
@@ -387,14 +397,7 @@ impl Game {
         let c = self.next_weather_fade_color("#0a0808");
         self.ui.fade.set_style("background", &c);
         self.ui.fade.set_opacity(1.0);
-        self.schedule(1500.0, |g| {
-            g.init_level(g.level_num + 1);
-            g.save_game();
-            g.state = "playing".into();
-            let sub = g.pick_text("levelSubtitle");
-            g.show_level_card(&sub);
-            g.ui.fade.set_opacity(0.0);
-        });
+        self.schedule(1500.0, |g| g.enter_level(g.level_num + 1, How::Lift));
     }
     /// A fast fall through a hole, then the next level
     pub fn begin_fall_down(&mut self) {
@@ -417,12 +420,7 @@ impl Game {
             g.camera.rotation().z += 0.02;
             g.ui.fade.set_opacity(1f64.min(t * 1.4));
             if t >= 1.0 {
-                g.init_level(g.level_num + 1);
-                g.save_game();
-                g.camera.rotation().z = 0.0;
-                g.state = "playing".into();
-                g.show_level_card("You fell");
-                g.schedule(400.0, |g| g.ui.fade.set_opacity(0.0));
+                g.enter_level(g.level_num + 1, How::Fall);
             } else {
                 g.schedule(30.0, move |g| tick(g, start));
             }

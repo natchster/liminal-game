@@ -84,6 +84,12 @@ fn make_ir_matches_reference() {
 }
 
 /// The whole api on a real context: draws per call and the IRs it caches.
+/// The zone reverbs draw their noise from streams of their own since R2b
+/// (`ir_stream`, so a lazily built one draws nothing from the frame's): each
+/// cached IR is the reference's algorithm on its own stream (its length the
+/// reference's); the stream is then moved on by what the reverbs drew in the
+/// reference, so every call after sees the reference's numbers and draws as
+/// it drew.
 #[test]
 fn soundscape_draws_match_reference() {
     let ac = AudioContext::new_silent();
@@ -106,8 +112,18 @@ fn soundscape_draws_match_reference() {
         }
         assert_eq!(s.zone().as_deref(), Some(ir.name));
         let b = s.ir_for(ir.name).unwrap();
-        let data = vec![b.channel(0).clone(), b.channel(1).clone()];
-        check_ir(ir.name, &data, ir);
+        let own = std::cell::RefCell::new(ir_stream(ir.name));
+        let want = make_ir_data(&preset(ir.name), r.sr, &|| own.borrow_mut().next());
+        assert_eq!(b.channel(0).len(), ir.len, "{} is as long as the reference's", ir.name);
+        for (c, w) in want.iter().enumerate() {
+            assert!(b.channel(c).iter().zip(w).all(|(a, b)| a.to_bits() == b.to_bits()), "{} ch{c}: not its own stream's", ir.name);
+        }
+    }
+    assert_eq!(l.draws.get(), r.construct_draws, "the zone reverbs draw nothing from the soundscape's stream");
+    let ir_draws = r.steps.iter().find(|s| s.0 == "zones").unwrap().1 - r.construct_draws;
+    let rng = s.rng();
+    for _ in 0..ir_draws {
+        rng();
     }
     let mut steps = r.steps.iter();
     let mut mark = |label: &str| {

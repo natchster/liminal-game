@@ -3,6 +3,9 @@
 //! differs and in which part (player, creatures, director, world), the frame
 //! where a nondeterminism entered — instead of a fixture failing three
 //! changes later. Recordings are written to `target/replays/` to inspect.
+mod common;
+
+use common::bot_inputs;
 use game::Game;
 use game::debug::replay::{FrameInput, Recorder, Recording, StateHash, replay_frame};
 use serde_json::json;
@@ -21,50 +24,6 @@ fn new_game(seed: u32, level: i32) -> Game {
     g.hide_overlay();
     g.pointer_locked = true;
     g
-}
-
-/// A restless player: mostly walking, turning, now and then running,
-/// crouching or switching the flashlight (a fixed pseudo-random script).
-fn bot_inputs(frames: usize, seed: u32) -> Vec<FrameInput> {
-    let mut s = u64::from(seed) | 1;
-    let mut next = move || {
-        s ^= s << 13;
-        s ^= s >> 7;
-        s ^= s << 17;
-        (s % 1000) as f64 / 1000.0
-    };
-    let mut out = vec![FrameInput::default(); frames];
-    let mut held: Vec<&str> = vec![];
-    for (k, f) in out.iter_mut().enumerate() {
-        if k % 30 == 0 {
-            for h in held.drain(..) {
-                f.up(h);
-            }
-            let r = next();
-            let keys: &[&str] = if r < 0.55 {
-                &["KeyW"]
-            } else if r < 0.7 {
-                &["KeyW", "ShiftLeft"]
-            } else if r < 0.8 {
-                &["KeyA"]
-            } else if r < 0.88 {
-                &["KeyS"]
-            } else {
-                &["KeyW", "ControlLeft"]
-            };
-            for key in keys {
-                f.down(key);
-                held.push(key);
-            }
-            if next() < 0.15 {
-                f.down("KeyF");
-                f.up("KeyF");
-            }
-        }
-        let (dx, dy) = ((next() - 0.5) * 18.0, (next() - 0.5) * 2.0);
-        f.look(dx, dy);
-    }
-    out
 }
 
 /// One run in a thread of its own: the game's caches and the per-frame random
