@@ -1,7 +1,7 @@
 //! `cargo xtask assets`: rebuild and check the embedded meshes.
 //!
 //! ```text
-//! cargo xtask assets props [--batch FAMILY|THEME,…] [--write [--rebuild-frozen]]
+//! cargo xtask assets props [--batch FAMILY|THEME,…] [--blend] [--write [--rebuild-frozen]]
 //! cargo xtask assets creatures [--only …] [--write]
 //! cargo xtask assets textures [--write]
 //! cargo xtask assets fingerprint
@@ -60,7 +60,7 @@ pub fn assets(args: &[String]) -> Result<(), String> {
             Ok(())
         }
         _ => {
-            Err("usage: cargo xtask assets props [--batch …] [--write] | creatures [--only …] [--write] | textures [--write] | fingerprint"
+            Err("usage: cargo xtask assets props [--batch …] [--blend] [--write] | creatures [--only …] [--write] | textures [--write] | fingerprint"
                 .into())
         }
     }
@@ -256,6 +256,12 @@ fn props(args: &[String]) -> Result<(), String> {
         .arg(&out);
     if let Some(b) = batches {
         cmd.args(["--batch", b]);
+    }
+    // a .blend per theme to open in Blender (an asset library: a catalogue
+    // per theme and family, every part an asset)
+    let blend = flag(args, "--blend");
+    if blend {
+        cmd.arg("--blend").arg(out.join("blend"));
     }
     let o = cmd.output().map_err(|e| format!("running Blender ({}): {e}; set $BLENDER", blender()))?;
     let log = String::from_utf8_lossy(&o.stdout);

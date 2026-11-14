@@ -78,7 +78,7 @@ cargo xtask shots              # golden frames + look statistics (part of the ch
 cargo xtask range --look       # the generator's expressive range vs its baseline (full check)
 cargo xtask ab prepare --before DIR --after DIR   # blind pairs (both orders); then `ab score`
 cargo xtask calibrate prepare [--mild]            # known-answer pairs to measure a reviewer
-cargo xtask assets props [--write]               # rebuild the prop meshes in Blender, compare part by part
+cargo xtask assets props [--write] [--blend]     # rebuild the prop meshes in Blender, compare part by part; --blend: a .blend per theme (an asset library)
 cargo xtask assets textures [--write]            # rebuild the Building's photographed surfaces (CC0 photographs), compare
 cargo xtask assets creatures [--write]           # rebuild the creatures' bodies in Blender (MakeHuman CC0 bodies), compare
 cargo xtask bench                                # performance vs docs/engineering/PERF.md, perf/history.csv and perf/creatures.csv (records a run)

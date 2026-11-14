@@ -1,7 +1,7 @@
 """
 Builds the Backrooms prop parts in Blender.
 
-    cargo xtask assets props [--batch domestic,showroom]   # runs this, packs and compares
+    cargo xtask assets props [--batch domestic,showroom] [--blend]   # runs this, packs and compares
     /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
         --python assets/src/blender/props.py -- [--batch FAMILY|THEME,...] [--parts NAME,...] [--out DIR]
 
@@ -14,7 +14,7 @@ packs every part into crates/game/assets/prop_meshes.bin, which the game
 decodes in `assets::props`. A report of triangle counts and frame checks is
 printed and saved next to the batch output.
 """
-import bpy, sys, os, json, math, base64, struct, importlib.util, time, traceback, random, zlib
+import bpy, sys, os, json, math, base64, struct, importlib.util, time, traceback, random, zlib, collections
 from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -32,6 +32,8 @@ OUT_DIR = opt('--out') or os.path.join(ROOT, '.cache', 'props')
 os.makedirs(OUT_DIR, exist_ok=True)
 only_batches = set(filter(None, (opt('--batch') or '').split(',')))
 only_parts = set(filter(None, (opt('--parts') or '').split(',')))
+# `--blend DIR`: also a .blend per theme to look at in Blender (write_blends)
+BLEND_DIR = opt('--blend')
 
 # ------------------------------------------------------------- registry ---
 REG = {}          # batch -> [(name, spec)]
@@ -62,9 +64,11 @@ names = [os.path.basename(p)[:-3] for p in files]
 dup = sorted({n for n in names if names.count(n) > 1})
 if dup:
     raise SystemExit(f'two families of one name: {dup} (a family is named by its file)')
+THEME_OF = {}
 for path in files:
     b = os.path.basename(path)[:-3]
     theme = os.path.basename(os.path.dirname(path))
+    THEME_OF[b] = theme if theme != 'props' else 'selftest'
     if only_batches and b not in only_batches and theme not in only_batches:
         continue
     _current[0] = b
@@ -115,7 +119,70 @@ def check_frame(name, frame, lo, hi):
 
 # --------------------------------------------------------------- build ---
 t_all = time.time()
+# ------------------------------------------------------------- the props in Blender ---
+def write_blends(out_dir, parts):
+    """A .blend per theme, to open and look at in Blender: a collection per
+    family, each part an object named as the game names it, laid out in a
+    row per family; every part marked as an asset (tags: its theme, its
+    family, its prop), its catalog the theme and the family, so the folder
+    is an asset library (Preferences > File Paths > Asset Libraries).
+    Built from the finished meshes after every part is packed, in
+    collections no scene holds: nothing here touches what the game gets."""
+    import uuid
+    os.makedirs(out_dir, exist_ok=True)
+    cats = {}
+
+    def catalog(path):
+        if path not in cats:
+            cats[path] = str(uuid.uuid5(uuid.NAMESPACE_URL, 'backrooms-props/' + path))
+        return cats[path]
+
+    for theme, items in sorted(parts.items()):
+        root = bpy.data.collections.new(theme)
+        by_family = collections.OrderedDict()
+        for fam, name, pos, nrm, tris in items:
+            by_family.setdefault(fam, []).append((name, pos, nrm, tris))
+        row_y = 0.0
+        for fam, ps in by_family.items():
+            col = bpy.data.collections.new(fam)
+            root.children.link(col)
+            cid = catalog(f'{theme}/{fam}')
+            x, depth = 0.0, 0.0
+            for name, pos, nrm, tris in ps:
+                # the game's +Y up is Blender's +Z up
+                verts = [(p[0], -p[2], p[1]) for p in pos]
+                me = bpy.data.meshes.new(name)
+                me.from_pydata(verts, [], [tuple(t) for t in tris])
+                me.update()
+                try:
+                    me.normals_split_custom_set_from_vertices([(n[0], -n[2], n[1]) for n in nrm])
+                except (AttributeError, RuntimeError):
+                    pass
+                ob = bpy.data.objects.new(name, me)
+                xs = [v[0] for v in verts] or [0.0]
+                ys = [v[1] for v in verts] or [0.0]
+                w, d = max(xs) - min(xs), max(ys) - min(ys)
+                ob.location = (x - min(xs), row_y - min(ys), 0.0)
+                x += w + 0.15
+                depth = max(depth, d)
+                col.objects.link(ob)
+                ob.asset_mark()
+                ob.asset_data.catalog_id = cid
+                prop = name.split('__')[0]
+                for tag in (theme, fam, prop):
+                    ob.asset_data.tags.new(tag, skip_if_exists=True)
+            row_y += depth + 0.6
+        path = os.path.join(out_dir, theme + '.blend')
+        bpy.data.libraries.write(path, {root}, fake_user=True)
+        print(f'[props] {path}: {len(by_family)} families, {len(items)} parts')
+    with open(os.path.join(out_dir, 'blender_assets.cats.txt'), 'w') as fh:
+        fh.write('# The props by theme and family (written by props.py --blend)\nVERSION 1\n\n')
+        for path, cid in sorted(cats.items()):
+            fh.write(f'{cid}:{path}:{path.replace("/", "-")}\n')
+
+
 grand = {'parts': 0, 'tris': 0, 'errors': 0, 'warnings': 0}
+blend_parts = collections.defaultdict(list)   # theme -> [(family, part, pos, nrm, tris)]
 for b, entries in REG.items():
     out, report = {}, []
     t0 = time.time()
@@ -154,6 +221,8 @@ for b, entries in REG.items():
                 rec['warn'] = f"{d['t']} triangles, budget {budget}"
             if 'error' not in rec:
                 out[name] = d
+                if BLEND_DIR and THEME_OF.get(b) != 'selftest':
+                    blend_parts[THEME_OF[b]].append((b, name, pos, nrm, tris))
         except Exception as e:
             rec['error'] = f'{type(e).__name__}: {e}'
             rec['trace'] = traceback.format_exc(limit=3)
@@ -185,3 +254,5 @@ for b, entries in REG.items():
         print(f"  warn  {r['name']}: {r['warn']}")
 print(f"[props] total: {grand['parts']} parts, {grand['tris']} tris, {grand['errors']} errors, "
       f"{grand['warnings']} warnings, {time.time() - t_all:.1f}s")
+if BLEND_DIR:
+    write_blends(BLEND_DIR, blend_parts)

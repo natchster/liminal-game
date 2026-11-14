@@ -25,6 +25,7 @@ make textures of CC0 photographs, no images. No generative model is used (see
 ```sh
 cargo xtask assets props                 # build every family in Blender headless, compare part by part
 cargo xtask assets props --batch toys,showroom   # a theme's families, or one family (compare only)
+cargo xtask assets props --blend         # also a .blend per theme to open in Blender
 cargo xtask assets props --write         # a full build replaces prop_meshes.bin (unchanged parts keep their bytes)
 REGEN=1 cargo test --release -p game --test asset_lint   # then refresh the parts table, and review its diff
 ```
@@ -35,6 +36,19 @@ and noise vectors come from scalar Perlin samples (`propkit.noise3`;
 `mathutils.noise.noise_vector` gives different values in every Blender
 process), so two builds are identical and a rebuild matches the committed
 file exactly.
+
+**The props in Blender.** `--blend` also writes
+`target/xtask/assets/props/blend/<theme>.blend`, one per theme (and
+`game.blend`): a collection per family, each part an object named as the
+game names it (`AbandonedLaptops__base`), laid out a row per family, in
+Blender's frame (the game's +Y up is Blender's +Z). Every part is an
+asset, catalogued by theme and family and tagged with its prop, and the
+folder holds the catalogue file (`blender_assets.cats.txt`): add the folder
+as an asset library (Preferences > File Paths > Asset Libraries) to browse
+every prop in Blender's Asset Browser. They are made from the finished
+meshes after everything is packed, so they change nothing the game gets
+(the compare stays the same); they are a view of the props, not their
+source.
 
 **Creatures** (reproducible here; the redesign of `docs/design/ENTITIES.md`):
 
