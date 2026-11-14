@@ -424,3 +424,68 @@ fn a_replay_is_watched_by_the_clock_and_moved_either_way() {
         .join()
         .unwrap();
 }
+
+/// The wanderer (`--record-bot`'s bot) walks a floor as a player might,
+/// not into a wall: on two floors of a run, a minute of its play covers
+/// ground and stands still little; and since it chooses its inputs from
+/// what it sees, its recording replays frame for frame like a person's.
+#[test]
+fn the_wanderer_walks_and_its_walk_replays() {
+    for level in [2, 5] {
+        std::thread::Builder::new()
+            .stack_size(256 << 20)
+            .spawn(move || {
+                let flags = format!("seed=7&level={level}");
+                let native = 0x0B07 ^ level as u64;
+                game::base::rng::seed_native(native);
+                let mut g = app_game(&flags);
+                g.boot_in_view(Some([1280.0, 800.0, 1.0]));
+                let mut log = Recorder::session(native, &flags, Default::default(), &g);
+                log.start_recording();
+                let mut bot = game::debug::bot::Wanderer::new(7 ^ ((level as u64) << 32));
+                let ticks = game::base::game::clock_ticks(1.0 / 60.0);
+                let (mut states, mut began, mut places) = (vec![], None::<usize>, vec![]);
+                for k in 0..6000 {
+                    let i = match k {
+                        0 => FrameInput { events: vec![game::replay::InputEvent::Click("menu:new".into())] },
+                        1 => FrameInput { events: vec![game::replay::InputEvent::Lock(true)] },
+                        _ if began.is_none() && (g.state != "playing" || g.hands_taken()) => FrameInput::default(),
+                        _ => {
+                            let b = *began.get_or_insert(k);
+                            if k - b == 3600 {
+                                break;
+                            }
+                            if (k - b).is_multiple_of(60) {
+                                places.push((g.player.pos.x, g.player.pos.z));
+                            }
+                            bot.next(&g)
+                        }
+                    };
+                    for e in &i.events {
+                        log.push(e.clone());
+                    }
+                    g.apply_input(&i);
+                    let dt = g.advance_clock(ticks);
+                    g.frame(dt);
+                    log.end_frame(&mut g, ticks);
+                    states.push(g.state_hash());
+                }
+                let tiles: std::collections::BTreeSet<(i64, i64)> =
+                    places.iter().map(|(x, z)| ((x / 4.0).floor() as i64, (z / 4.0).floor() as i64)).collect();
+                let still = places.windows(2).filter(|w| engine::dmath::DMath::dhypot(w[1].0 - w[0].0, w[1].1 - w[0].1) < 0.5).count();
+                println!("floor {level}: {} tiles of 4 m in a minute, {still} s standing", tiles.len());
+                assert!(tiles.len() >= 15, "floor {level}: the wanderer covered {} tiles of 4 m in a minute", tiles.len());
+                assert!(still <= 12, "floor {level}: the wanderer stood {still} s of a minute");
+                let (mut r, mut p) = Player::start(log.snapshot(json!({})), 0, app_game).unwrap();
+                let mut k = 0;
+                while p.step(&mut r) {
+                    assert!(r.state_hash() == states[k], "floor {level}: frame {k} replays differently");
+                    k += 1;
+                }
+                assert_eq!(k, states.len());
+            })
+            .unwrap()
+            .join()
+            .unwrap();
+    }
+}

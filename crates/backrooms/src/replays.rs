@@ -291,23 +291,38 @@ pub fn verify(path: &str, make: fn(&str) -> Game) -> Result<(), String> {
     if failed == 0 { Ok(()) } else { Err(format!("{failed} of {} segments did not repeat", f.segments.len())) }
 }
 
-/// `--bench-replay OUT.json` (`cargo xtask bench`): what recording and
-/// replaying cost. A session as the app records one (a fresh process at the
-/// title, New descent, the way in, then `frames` frames of the restless bot
-/// at an even 60 a second), the log's work timed after every frame and its
-/// memory weighed at the end; then the session replayed headless from its
-/// start, timed, and checked.
-pub fn bench(out: &str, seed: u32, frames: usize, make: fn(&str) -> Game) -> Result<(), String> {
+/// A session a bot played, as the app records one: its log, the frames it
+/// ran, and (for the bench) the time the play and the log took.
+pub struct BotRun {
+    pub log: game::replay::Recorder,
+    pub frames: usize,
+    pub play_s: f64,
+    pub log_s: f64,
+}
+
+/// A fresh process's session played by a bot (`game::debug::bot`): booted
+/// at the title in a 1280×800 window from nothing stored, New descent
+/// chosen and the pointer taken, the way in played, then the bot's frames
+/// (`next` gives the input of its `k`th from where play stands, None when
+/// it is done) at an even 60 a second, its log kept (from the start if
+/// `whole`, as `--record` keeps one).
+pub fn bot_session(
+    flags: &str,
+    native: u64,
+    whole: bool,
+    make: fn(&str) -> Game,
+    mut next: impl FnMut(&Game, usize) -> Option<game::replay::FrameInput>,
+) -> Result<BotRun, String> {
     use game::replay::{FrameInput, InputEvent, Recorder};
     use std::time::Instant;
-    let flags = format!("seed={seed}&nosound");
-    let native = 0x0BE4_C4ED;
     game::base::rng::seed_native(native);
-    let mut g = make(&flags);
+    let mut g = make(flags);
     let storage = g.storage.clone();
     g.boot_in_view(Some([1280.0, 800.0, 1.0]));
-    let mut log = Recorder::session(native, &flags, storage, &g);
-    let bot = game::debug::bot::restless(frames, seed);
+    let mut log = Recorder::session(native, flags, storage, &g);
+    if whole {
+        log.start_recording();
+    }
     let ticks = game::base::game::clock_ticks(1.0 / 60.0);
     let (mut k, mut played, mut play_s, mut log_s) = (0usize, None::<usize>, 0.0, 0.0);
     loop {
@@ -318,11 +333,11 @@ pub fn bench(out: &str, seed: u32, frames: usize, make: fn(&str) -> Game) -> Res
             _ if played.is_none() && (g.state != "playing" || g.hands_taken()) => {}
             _ => {
                 let b = *played.get_or_insert(k);
-                let Some(next) = bot.get(k - b) else { break };
-                i = next.clone();
+                let Some(n) = next(&g, k - b) else { break };
+                i = n;
             }
         }
-        if k > frames + 5000 {
+        if played.is_none() && k > 5000 {
             return Err("the way in never gave the bot its hands".into());
         }
         let t = Instant::now();
@@ -338,6 +353,48 @@ pub fn bench(out: &str, seed: u32, frames: usize, make: fn(&str) -> Game) -> Res
         log_s += t1.elapsed().as_secs_f64();
         k += 1;
     }
+    Ok(BotRun { log, frames: k, play_s, log_s })
+}
+
+/// `--record-bot DIR --seed S --levels 1,2,… [--bot-seconds N]`: for each
+/// floor of run `seed` a session recorded whole, the floor in its launch
+/// flags (a fresh process at the title, New descent, the way in to that
+/// floor), the wanderer (`game::debug::bot::Wanderer`) playing `seconds`
+/// after the way in (it does not look for doors: a floor a file), written
+/// to `DIR/bot_<seed>_L<floor>.ocreplay`.
+pub fn record_bot(dir: &str, seed: u32, levels: &[i32], seconds: f64, make: fn(&str) -> Game) -> Result<(), String> {
+    for &l in levels {
+        let flags = format!("seed={seed}&level={l}");
+        let native = 0x0B07_0000 ^ u64::from(seed) ^ ((l as u64) << 40);
+        let frames = (seconds * 60.0) as usize;
+        let mut bot = game::debug::bot::Wanderer::new(u64::from(seed) ^ ((l as u64) << 32));
+        let run = bot_session(&flags, native, true, make, |g, k| (k < frames).then(|| bot.next(g)))?;
+        let path = Path::new(dir).join(format!("bot_{seed}_L{l}.ocreplay"));
+        let f = run.log.snapshot(header(&flags, l));
+        write(&path, &f)?;
+        println!(
+            "{}: floor {l} of run {seed}, {} frames ({:.0} s), {} KB",
+            path.display(),
+            run.frames,
+            run.frames as f64 / 60.0,
+            f.encode().len() / 1024
+        );
+    }
+    Ok(())
+}
+
+/// `--bench-replay OUT.json` (`cargo xtask bench`): what recording and
+/// replaying cost. A session as the app records one (a fresh process at the
+/// title, New descent, the way in, then `frames` frames of the restless bot
+/// at an even 60 a second), the log's work timed after every frame and its
+/// memory weighed at the end; then the session replayed headless from its
+/// start, timed, and checked.
+pub fn bench(out: &str, seed: u32, frames: usize, make: fn(&str) -> Game) -> Result<(), String> {
+    use std::time::Instant;
+    let flags = format!("seed={seed}&nosound");
+    // (the restless bot: a fixed script, the same work on every run)
+    let bot = game::debug::bot::restless(frames, seed);
+    let BotRun { log, frames: k, play_s, log_s, .. } = bot_session(&flags, 0x0BE4_C4ED, false, make, |_, k| bot.get(k).cloned())?;
     let minutes = k as f64 / 3600.0;
     let log_kb_min = log.heap_bytes() as f64 / 1024.0 / minutes;
     let file = log.snapshot(header(&flags, 1));

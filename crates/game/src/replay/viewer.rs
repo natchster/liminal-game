@@ -176,6 +176,19 @@ impl Viewer {
         Ok(())
     }
 
+    /// To `at` seconds from the in-point, wholly (headless: a seek in one
+    /// go), back or on.
+    pub fn seek_to(&mut self, g: &mut Game, at: f64, make: impl FnOnce(&str) -> Game) -> Result<(), String> {
+        let by = at - self.bar().at;
+        self.jump(g, by, make)?;
+        while self.seeking.is_some() {
+            if !self.frame(g, 0.0, Duration::MAX) {
+                break;
+            }
+        }
+        Ok(())
+    }
+
     pub fn faster(&mut self) {
         self.speed = SPEEDS.into_iter().find(|&s| s > self.speed).unwrap_or(self.speed);
     }

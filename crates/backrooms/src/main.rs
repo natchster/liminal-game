@@ -89,6 +89,13 @@ struct Options {
     /// `--bench-replay FILE`: with `--seed` and `--bench-frames`, what
     /// recording and replaying a session cost (`cargo xtask bench`)
     bench_replay: Option<String>,
+    /// `--record-bot DIR`: with `--seed`, `--levels` and `--bot-seconds`, a
+    /// floor a file, each a session the restless bot played
+    record_bot: Option<String>,
+    bot_seconds: f64,
+    /// `--replay-frames FILE`: with `--sheet DIR` and `--every S`, a
+    /// recording's frames rendered headless, and their contact sheet
+    replay_frames: Option<String>,
     /// `--bench FILE`: with `--seed` and `--levels`, time each level's build,
     /// its first frame and `bench_frames` frames along a fixed camera path
     bench: Option<String>,
@@ -180,6 +187,9 @@ fn parse_args() -> Options {
         replay_verify: None,
         dump_replay: None,
         bench_replay: None,
+        record_bot: None,
+        bot_seconds: 60.0,
+        replay_frames: None,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -287,6 +297,9 @@ fn parse_args() -> Options {
             "--replay-verify" => o.replay_verify = Some(next(&mut i)),
             "--dump-replay" => o.dump_replay = Some(next(&mut i)),
             "--bench-replay" => o.bench_replay = Some(next(&mut i)),
+            "--record-bot" => o.record_bot = Some(next(&mut i)),
+            "--bot-seconds" => o.bot_seconds = next(&mut i).parse().unwrap_or(60.0),
+            "--replay-frames" => o.replay_frames = Some(next(&mut i)),
             "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
             "--help" | "-h" => {
                 println!(
@@ -307,6 +320,12 @@ fn parse_args() -> Options {
                 );
                 println!("          [--dump-replay FILE]   a recording as JSON on stdout");
                 println!("          [--bench-replay FILE --seed S --bench-frames N]   what recording and replaying a bot's session cost");
+                println!(
+                    "          [--record-bot DIR --seed S --levels 1,2 [--bot-seconds 60]]   a recording a floor, each a session the restless bot plays"
+                );
+                println!(
+                    "          [--replay-frames FILE --sheet DIR [--every 5]]   a recording's frames rendered headless every S seconds, and their sheet"
+                );
                 println!(
                     "          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)"
                 );
@@ -940,6 +959,53 @@ fn screenshot(o: &Options, path: &str) {
         r.info.lights,
         r.info.programs
     );
+}
+
+/// `--replay-frames FILE --sheet DIR [--every S]`: a recording replayed
+/// headless (to its in-point unseen, then on) and rendered at its in-point
+/// and every `S` seconds after (5 by default), at its own view
+/// (`t0012.5.png`), with a contact sheet of them (`sheet.png`, four across,
+/// a quarter of the size): what a reviewer reads of a session without
+/// watching it. Says whether the replay kept to its recording.
+fn replay_frames(o: &Options, file: &str) {
+    let dir = o.sheet.clone().unwrap_or_else(|| "target/replay-frames".into());
+    std::fs::create_dir_all(&dir).expect("the frames' folder");
+    let every = if o.every > 0.25 { o.every } else { 5.0 };
+    let f = replays::read(file).unwrap_or_else(|e| {
+        eprintln!("{e}");
+        std::process::exit(1);
+    });
+    let (mut g, mut v) = game::replay::viewer::Viewer::open(f, replay_game).unwrap_or_else(|e| {
+        eprintln!("{file}: {e}");
+        std::process::exit(1);
+    });
+    let device = MTLCreateSystemDefaultDevice().expect("Metal device");
+    let mut r = Renderer::new(device);
+    let (w, h) = ((g.view_width * g.scale_factor) as usize, (g.view_height * g.scale_factor) as usize);
+    let target = r.offscreen_target(w, h);
+    let total = v.bar().total;
+    let mut tiles = vec![];
+    let mut at = 0.0;
+    while at <= total {
+        v.seek_to(&mut g, at, replay_game).unwrap_or_else(|e| panic!("{file}: {e}"));
+        let cb = draw(&mut g, &mut r, &target, w, h);
+        cb.commit();
+        cb.waitUntilCompleted();
+        let (tw, th, px) = r.read_texture(&target);
+        let name = format!("t{at:06.1}.png");
+        engine::png::write_rgba(&format!("{dir}/{name}"), tw as u32, th as u32, &px).expect("write png");
+        let (sp, sw, sh) = sheet::shrink(&px, tw, th, 4);
+        tiles.push(sheet::Tile { px: sp, w: sw, h: sh, label: game::replay::viewer::clock(at) });
+        at += every;
+    }
+    let (px, sw, sh) = sheet::sheet(&tiles, 4);
+    engine::png::write_rgba(&format!("{dir}/sheet.png"), sw as u32, sh as u32, &px).expect("write sheet");
+    match &v.player.diverged {
+        None => println!("{} frames of {file} in {dir}/ (every {every} s of {:.0}); the replay kept to its recording", tiles.len(), total),
+        Some(d) => {
+            println!("{} frames of {file} in {dir}/; the replay LEFT its recording at frame {} in {:?}", tiles.len(), d.frame, d.parts)
+        }
+    }
 }
 
 /// `--cutscene ID`: the cutscene played on its stage at 60 frames a second
@@ -1628,6 +1694,18 @@ fn main() {
             eprintln!("{e}");
             std::process::exit(1);
         }
+        return;
+    }
+    if let Some(dir) = &o.record_bot {
+        let levels = if o.levels.is_empty() { vec![o.level.unwrap_or(1)] } else { o.levels.clone() };
+        if let Err(e) = replays::record_bot(dir, o.seed.unwrap_or(4242), &levels, o.bot_seconds, replay_game) {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+        return;
+    }
+    if let Some(p) = o.replay_frames.clone() {
+        replay_frames(&o, &p);
         return;
     }
     if let Some(p) = &o.bench_replay {

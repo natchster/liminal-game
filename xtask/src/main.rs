@@ -12,7 +12,7 @@
 //! cargo xtask calibrate prepare|score   a reviewer's agreement with known answers
 //! cargo xtask assets props|creatures|textures|fingerprint   rebuild and check the embedded assets
 //! cargo xtask bench [--no-record]   performance against budgets and its history
-//! cargo xtask heatmap REC.json…    where players went, from recorded sessions
+//! cargo xtask heatmap REC.ocreplay…   where players went, from recorded sessions
 //! cargo xtask drift [--skip-check]   the drift sweep: gates → ledger and QUALITY.md
 //! cargo xtask nightly             drift sweep + long level sweep + recorded bench
 //! cargo xtask voice doctor|fetch  the voice-over pipeline (docs/design/VOICES.md)
@@ -64,7 +64,7 @@ const USAGE: &str = "usage: cargo xtask <task>
                              or the photographed textures, and compare with crates/game/assets
   bench [--no-record]        frame, build and first-frame times against docs/engineering/PERF.md
                              and perf/history.csv (change points)
-  heatmap REC.json …         heatmaps of recorded sessions (backrooms --record)
+  heatmap REC.ocreplay …     heatmaps of recorded sessions (F9, --record, --record-bot) into target/xtask/heatmap/
   drift [--skip-check]       run the gates, write passes into docs/plan/content.json and
                              the Latest sweep into docs/plan/QUALITY.md
   nightly                    drift sweep, a 200-case level sweep, a recorded bench

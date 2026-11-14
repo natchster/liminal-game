@@ -16,9 +16,11 @@ adding players to the same round.
 ## Before the session
 
 1. Build the version under test: `cargo xtask bundle` (→ `dist/Backrooms.app`),
-   and start it with `dist/backrooms --record playtests/<date>-<alias>.ocreplay`
+   and start it with `dist/backrooms --record target/playtests/<date>-<alias>.ocreplay`
    (with the player's consent): the session's inputs, a telemetry row a
-   second and the director's events, written on this machine only. A
+   second and the director's events, written on this machine only (under
+   `target/`, out of git: the session file names it, with the commit and
+   the executable's hash from its header, `record-gameplay` step 5). A
    recorded session starts fresh (no saved progress), like a new install.
    For an A/B round, build both versions and label them neutrally
    (`build-1`, `build-2`); the player never learns which is new.
@@ -26,7 +28,7 @@ adding players to the same round.
    approach feel announced?", "is the Lobby too empty or not empty enough?")
    and what you will record. Write both into the session file before the
    player arrives.
-3. Copy `playtests/TEMPLATE.md` to `playtests/YYYY-MM-DD-<player>.md`
+3. Copy `docs/research/playtests/TEMPLATE.md` to `docs/research/playtests/YYYY-MM-DD-<player>.md`
    (a first name or an alias; no other personal data).
 4. Headphones, a quiet room, the lights low. Sound is half the game.
 5. **Listen first, once per build that changed sound** (no player needed):
@@ -55,7 +57,7 @@ adding players to the same round.
 3. **Debrief** with the questions below. Ask, don't lead; write down their
    words.
 4. **Tension trace** (RankTrace): play the session back with
-   `dist/backrooms --replay playtests/<file>.ocreplay` and have the player
+   `dist/backrooms --replay target/playtests/<file>.ocreplay` and have the player
    press **↑** when tension rises and **↓** when it falls, as it plays (Escape
    stops). The marks go to `<file>.ocreplay.trace.json`. Only the *direction*
    of change matters; it predicted skin-conductance responses better than
@@ -256,7 +258,7 @@ does not flip with the order.
 
 ## After the session
 
-0. **Maps:** `cargo xtask heatmap playtests/*.ocreplay` draws, per level,
+0. **Maps:** `cargo xtask heatmap target/playtests/*.ocreplay` draws, per level,
    where the players spent their time (yellow) and where the chases were
    (red), with the deaths and peaks per level; a round's sessions add up.
 
@@ -273,6 +275,6 @@ does not flip with the order.
      gate could have caught them, a new test, lint or band (the steering
      loop);
    - the ledger entries the session covered get `last_human_review`.
-3. After the round: a short summary in `playtests/` (what most players did,
+3. After the round: a short summary in `docs/research/playtests/` (what most players did,
    said and felt; what changes), and the grade changes it justifies in
    `QUALITY.md` (*History*).

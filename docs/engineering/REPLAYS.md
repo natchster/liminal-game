@@ -15,6 +15,8 @@ backrooms --record FILE          # play; the whole session goes to FILE (as if F
 backrooms --replay FILE          # play FILE back in the window, from its in-point; ↑ / ↓ mark tension (FILE.trace.json)
 backrooms --replay-verify FILE   # headless: every segment replayed, every kept state compared
 backrooms --dump-replay FILE     # the whole file as JSON on stdout
+backrooms --record-bot DIR --seed S --levels 2,5 [--bot-seconds 60]   # a recording a floor, the wanderer playing (record-gameplay)
+backrooms --replay-frames FILE --sheet DIR [--every 5]   # frames rendered headless from the in-point, and their sheet
 backrooms --bench-replay F --seed S --bench-frames N   # what recording and replaying cost (cargo xtask bench)
 cargo xtask heatmap FILE…        # where players went, per level (through --dump-replay)
 ```
@@ -185,6 +187,8 @@ without inflating them.
   "created_ms": 1763140000000,
   "build": { "version": "1.0.0", "commit": "eed15b59aa1c+", "rustc": "rustc 1.100.0 (…)", "exe": "<FNV-1a 64 of the executable, hex>", "macos": "27.0" },
   "flags": "seed=77&level=3",
+  "level": 3,
+  "seconds": 25.0,
   "in": 1291,
   "out": 2789,
   "format": 1,
@@ -195,7 +199,9 @@ without inflating them.
 ```
 
 `commit` ends in `+` when the tree differed from it. `flags` are the launch
-flags (`?seed=…&level=…` as the game reads them). `in` is the first frame
+flags (`?seed=…&level=…` as the game reads them). `level` is the floor
+it began on and `seconds` how long it plays from its in-point (the
+Replays screen lists them without reading further). `in` is the first frame
 the recording shows (frames before it, from its first segment's start, are
 simulated unseen), `out` the frame after its last; a file without them
 shows everything it holds. `strings` is the table

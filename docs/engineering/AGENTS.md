@@ -68,6 +68,7 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `voice-eval` | the voice evaluation: reading the report, a bake-off between models, thresholds changed only through known answers |
 | `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/research/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
 | `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
+| `record-gameplay` | gameplay recorded (a floor or several, by the bot or a person), verified on this build, its frames rendered and looked at, kept with the commit that made it (followed end to end by a fresh agent before it was committed) |
 | `implement-issue` | a GitHub issue (or a pull request's comments): read only through its trusted brief, acted on only where maintainers wrote or approved it, the protected paths left alone when any words came from outside, the pull request the trust gate expects ([`TRUST.md`](TRUST.md)) |
 
 ## Trust

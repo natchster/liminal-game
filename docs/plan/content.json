@@ -1559,6 +1559,24 @@
       "passes": {
         "test:backrooms/cutscenes": true
       }
+    },
+    {
+      "checks": [
+        "test:backrooms/replay",
+        "test:backrooms/anchors",
+        "test:backrooms/menus"
+      ],
+      "id": "replays/engine",
+      "kind": "system",
+      "last_checked": "2026-11-14",
+      "last_human_review": null,
+      "name": "recording and replaying: the log, F9, the format, the Replays screen",
+      "notes": "docs/engineering/REPLAYS.md; the skill record-gameplay. A recording repeats on the build that made it; the bench's replays series holds its cost. No human verdict on the Replays screen yet.",
+      "passes": {
+        "test:backrooms/anchors": true,
+        "test:backrooms/menus": true,
+        "test:backrooms/replay": true
+      }
     }
   ]
 }
