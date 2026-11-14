@@ -410,6 +410,58 @@ fn every_docs_path_named_exists() {
     );
 }
 
+/// The placers live by theme (GitHub issue #2): `place_<name>`, of theme T
+/// in `world::tables::PLACER_THEME` (unlisted: domestic, as the game reads
+/// it), is registered by `crates/placers/placers_<T>/` from its own module
+/// `src/<name>.rs` (a leading digit spelled: `8_track_tapes` in
+/// `eight_track_tapes.rs`). What several placers share is in a theme's
+/// `shared` module or `placers_kit`, never another placer's module.
+#[test]
+fn placers_live_by_theme_a_module_each() {
+    let tables = read("crates/game/src/world/tables.rs");
+    let at = tables.find("PLACER_THEME:").expect("PLACER_THEME in world/tables.rs");
+    let table = &tables[at..at + tables[at..].find("];").unwrap()];
+    let theme: std::collections::HashMap<&str, &str> = table
+        .split("(\"")
+        .skip(1)
+        .filter_map(|e| {
+            let (name, rest) = e.split_once("\", \"")?;
+            Some((name, rest.split('"').next()?))
+        })
+        .collect();
+    let module_of = |name: &str| {
+        let s = name.strip_prefix("place_").unwrap_or(name);
+        match s.strip_prefix('8') {
+            Some(rest) => format!("eight{rest}"),
+            None => s.to_string(),
+        }
+    };
+    let (mut wrong, mut placers) = (vec![], 0);
+    for e in std::fs::read_dir(root().join("crates/placers")).unwrap().flatten() {
+        let dir = e.file_name().to_string_lossy().to_string();
+        let Some(t) = dir.strip_prefix("placers_").filter(|t| *t != "kit") else { continue };
+        let lib = read(&format!("crates/placers/{dir}/src/lib.rs"));
+        for line in lib.lines().map(str::trim).filter(|l| l.starts_with("r.push((\"")) {
+            let name = &line["r.push((\"".len()..line.find("\", ").unwrap()];
+            let module = line[line.find("\", ").unwrap() + 3..].split("::").next().unwrap();
+            placers += 1;
+            let want = theme.get(name).copied().unwrap_or("domestic");
+            if want != t {
+                wrong.push(format!("{name} is {want}'s, registered by placers_{t}"));
+            }
+            if module != module_of(name) || !root().join(format!("crates/placers/{dir}/src/{module}.rs")).exists() {
+                wrong.push(format!("{name} comes from module {module} of placers_{t}, not its own {}.rs", module_of(name)));
+            }
+        }
+    }
+    assert!(placers > 600, "only {placers} placers registered by the theme crates");
+    assert!(
+        wrong.is_empty(),
+        "a placer lives in its theme's crate, in a module of its own named as it is registered \
+         (crates/placers/placers_<theme>/src/<name>.rs; docs/engineering/DEVELOPMENT.md, Adding a placer): {wrong:#?}"
+    );
+}
+
 #[test]
 fn the_fast_check_skips_only_tests_that_exist() {
     let check = read("xtask/src/check.rs");

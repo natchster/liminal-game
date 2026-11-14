@@ -15,7 +15,8 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
    (`visuals/prop_look.rs`) mutes chroma above 0.3 and keeps albedo in
    0.02–0.8, but start realistic.
 3. **Build it.** Follow `docs/engineering/DEVELOPMENT.md`, *Adding a placer*: a
-   `place_things(g, dist)` in a placer crate, registered in its
+   `place_things(g, dist)` in its own module of its theme's crate
+   (`crates/placers/placers_<theme>/src/things.rs`), registered in its
    `register()`, added to `THEMED_ORDER` and `PLACER_THEME`. Finer parts come
    from the Blender meshes (`pg("Name__part", …)`, `assets/props.rs`);
    adding a new part means rebuilding `prop_meshes.bin` from its script.
@@ -26,7 +27,7 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
    shifts. Re-record the reference levels and fixtures (`regen-fixtures`)
    and say so in the commit.
 5. **Gates.**
-   - `cargo test -p placers_pNN` (smoke: 12 seeds × 24 runs).
+   - `cargo test -p placers_<theme>` (smoke: 12 seeds × 24 runs).
    - `cargo test --release -p placers --test fingerprints`: a new placer's
      prints recorded with `REGEN=1`; no other placer's may change.
    - `cargo test --release -p backrooms --test materials -- --nocapture`

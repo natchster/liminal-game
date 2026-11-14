@@ -193,3 +193,203 @@ pub fn wall_tiles(g: &Game) -> Vec<(i32, i32, i32, i32)> {
     }
     v
 }
+
+/// Open tiles with their FIRST adjacent wall tile (`tiles[..] == 1`; later sides are skipped):
+/// the `wall_tiles` loop of the bathroom placers.
+pub fn wall_tiles_first(g: &Game) -> Vec<WallCand> {
+    let mut v = vec![];
+    for z in 1..g.h - 1 {
+        for x in 1..g.w - 1 {
+            if g.tiles[g.t_idx(x, z)] == 0 {
+                for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                    if g.tiles[g.t_idx(x + dx, z + dz)] == 1 {
+                        v.push(WallCand { x, z, dx, dz });
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    v
+}
+
+/// Wall-mount position `wx(x) + dx * (CELL * 0.5 - inset)`, `wz(z) + dz * (...)`.
+pub fn wall_pos(g: &Game, x: i32, z: i32, dx: i32, dz: i32, inset: f64) -> (f64, f64) {
+    (g.wx(x) + dx as f64 * (CELL * 0.5 - inset), g.wz(z) + dz as f64 * (CELL * 0.5 - inset))
+}
+
+// ------------------------------------------------------------------ helpers
+/// `{ x, z, dx, dz }`: an open tile with a wall (or the grid edge) on side (dx, dz).
+#[derive(Clone, Copy, Debug)]
+pub struct WallCand {
+    pub x: i32,
+    pub z: i32,
+    pub dx: i32,
+    pub dz: i32,
+}
+
+/// The candidate scan every wall placer repeats.
+pub fn wall_candidates(g: &Game) -> Vec<WallCand> {
+    let mut v = vec![];
+    for z in 1..g.h - 1 {
+        for x in 1..g.w - 1 {
+            if g.tiles[g.t_idx(x, z)] != 0 {
+                continue;
+            }
+            for (dx, dz) in [(1, 0), (-1, 0), (0, 1), (0, -1)] {
+                let (nx, nz) = (x + dx, z + dz);
+                if !g.in_grid(nx, nz) || g.tiles[g.t_idx(nx, nz)] == 1 {
+                    v.push(WallCand { x, z, dx, dz });
+                }
+            }
+        }
+    }
+    v
+}
+
+/// The shared wall-mount tail: face the room, sit `inset` off the wall face,
+/// slide along the wall by `(`rnd()` - 0.5) * jitter`.
+pub fn mount_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64, jitter: f64) {
+    let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - inset);
+    let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - inset);
+    if c.dx.abs() == 1 {
+        o.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        let dz = (rnd() - 0.5) * jitter;
+        o.position().set(wall_x, center_y, wall_z + dz);
+    } else {
+        o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        let dx = (rnd() - 0.5) * jitter;
+        o.position().set(wall_x + dx, center_y, wall_z);
+    }
+}
+
+/// The wall-face point: `wx(c.x) + c.dx * (CELL * 0.5 - inset)`, same for z.
+pub fn wall_xz(g: &Game, c: WallCand, inset: f64) -> (f64, f64) {
+    (g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - inset), g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - inset))
+}
+
+/// The wall-mount tail: face the room, then position, with an optional
+/// `(`rnd()` - 0.5) * jitter` slide along the wall.
+pub fn mount(o: &Obj, c: WallCand, wall_x: f64, wall_z: f64, center_y: f64, jitter: Option<f64>) {
+    if c.dx.abs() == 1 {
+        o.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        let zz = match jitter {
+            Some(j) => wall_z + (rnd() - 0.5) * j,
+            None => wall_z,
+        };
+        o.position().set(wall_x, center_y, zz);
+    } else {
+        o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        let xx = match jitter {
+            Some(j) => wall_x + (rnd() - 0.5) * j,
+            None => wall_x,
+        };
+        o.position().set(xx, center_y, wall_z);
+    }
+}
+
+/// `o.position.set(wx(x) + (r - 0.5) * s, 0, wz(z) + (r - 0.5) * s); o.rotation.y = r * 2π`
+pub fn scatter(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
+    let px = g.wx(x) + (rnd() - 0.5) * spread;
+    let pz = g.wz(z) + (rnd() - 0.5) * spread;
+    o.position().set(px, 0, pz);
+    o.rotation().y = rnd() * PI * 2.0;
+}
+
+/// The wall-mount tail: face the room, then position with a
+/// `(`rnd()` - 0.5) * jitter` slide along the wall.
+pub fn mount_slid(o: &Obj, c: WallCand, wall_x: f64, wall_z: f64, center_y: f64, jitter: f64) {
+    if c.dx.abs() == 1 {
+        o.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        let zz = wall_z + (rnd() - 0.5) * jitter;
+        o.position().set(wall_x, center_y, zz);
+    } else {
+        o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        let xx = wall_x + (rnd() - 0.5) * jitter;
+        o.position().set(xx, center_y, wall_z);
+    }
+}
+
+/// `o.position.set(wx(x) + (r - 0.5) * s, y, wz(z) + (r - 0.5) * s); o.rotation.y = r * 2π`
+pub fn scatter_y(g: &Game, o: &Obj, x: i32, z: i32, spread: f64, y: f64) {
+    let px = g.wx(x) + (rnd() - 0.5) * spread;
+    let pz = g.wz(z) + (rnd() - 0.5) * spread;
+    o.position().set(px, y, pz);
+    o.rotation().y = rnd() * PI * 2.0;
+}
+
+/// `o.position.x = wx(x) + ...; o.position.z = wz(z) + ...; o.rotation.y = ...` (y kept)
+pub fn scatter_xz_turned(g: &Game, o: &Obj, x: i32, z: i32, spread: f64) {
+    o.position().x = g.wx(x) + (rnd() - 0.5) * spread;
+    o.position().z = g.wz(z) + (rnd() - 0.5) * spread;
+    o.rotation().y = rnd() * PI * 2.0;
+}
+
+/// A uniformly random tile (one `rnd()` draw).
+pub fn pick_tile(t: &[(i32, i32)]) -> (i32, i32) {
+    t[(rnd() * t.len() as f64).floor() as usize]
+}
+
+/// The wall-hung panel placement shared by the window / portrait / crucifix:
+/// returns nothing, sets rotation.y and position (one draw for the slide).
+pub fn hang_on_wall(g: &Game, o: &Obj, c: &WallCand, inset: f64, center_y: f64) {
+    let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - inset);
+    let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - inset);
+    if c.dx.abs() == 1 {
+        o.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        o.position().set(wall_x, center_y, wall_z + (rnd() - 0.5) * 0.6);
+    } else {
+        o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        o.position().set(wall_x + (rnd() - 0.5) * 0.6, center_y, wall_z);
+    }
+}
+
+/// The open-tile scan plus one random pick that every placer here starts with.
+/// `None` when there are no open tiles (no draw happens then).
+pub fn pick_open_tile(g: &Game) -> Option<(i32, i32)> {
+    let mut open_tiles: Vec<(i32, i32)> = vec![];
+    for z in 1..g.h - 1 {
+        for x in 1..g.w - 1 {
+            if g.tiles[g.t_idx(x, z)] == 0 {
+                open_tiles.push((x, z));
+            }
+        }
+    }
+    if open_tiles.is_empty() {
+        return None;
+    }
+    Some(open_tiles[(rnd() * open_tiles.len() as f64).floor() as usize])
+}
+
+/// Position `o` at `(wx(x) + (rnd() - 0.5) * s, 0, wz(z) + (rnd() - 0.5) * s)`, x drawn first.
+pub fn scatter_pos(g: &Game, o: &Obj, x: i32, z: i32, s: f64) {
+    let px = g.wx(x) + (rnd() - 0.5) * s;
+    let pz = g.wz(z) + (rnd() - 0.5) * s;
+    o.position().set(px, 0, pz);
+}
+
+/// Set only x and z: `wx(x) + (rnd() - 0.5) * s`, then `wz(z) + (rnd() - 0.5) * s`.
+pub fn scatter_xz(g: &Game, o: &Obj, x: i32, z: i32, s: f64) {
+    let px = g.wx(x) + (rnd() - 0.5) * s;
+    o.position().x = px;
+    let pz = g.wz(z) + (rnd() - 0.5) * s;
+    o.position().z = pz;
+}
+
+/// A uniformly random colour (one `rnd()` draw).
+#[inline]
+pub fn pick_color(c: &[u32]) -> u32 {
+    c[(rnd() * c.len() as f64).floor() as usize]
+}
+
+/// The shared wall-mount branch (rotation from the wall side, one random
+/// draw for the offset along the wall).
+pub fn mount_slid_ref(o: &Obj, c: &WallCand, wall_x: f64, wall_z: f64, y: f64, spread: f64) {
+    if c.dx.abs() == 1 {
+        o.rotation().y = if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 };
+        o.position().set(wall_x, y, wall_z + (rnd() - 0.5) * spread);
+    } else {
+        o.rotation().y = if c.dz > 0 { PI } else { 0.0 };
+        o.position().set(wall_x + (rnd() - 0.5) * spread, y, wall_z);
+    }
+}

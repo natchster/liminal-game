@@ -3,7 +3,8 @@
 ## Workspace conventions
 
 * **Layout.** A virtual workspace: every crate lives under `crates/`, named
-  after its directory (the placer crates are grouped in `crates/placers/`),
+  after its directory (the placer crates are grouped in `crates/placers/`,
+  one per theme, with their kit and `placers` itself, which registers them),
   and project automation is the `xtask` crate. `cargo run` builds and runs
   the game (`default-members`); use `--workspace` for everything.
 * **Shared settings** are declared once in the root `Cargo.toml`:
@@ -139,23 +140,26 @@ Levels must be a pure function of `(run_seed, level)`:
 
 ## Adding a placer
 
-1. Write `pub fn place_things(g: &mut Game, dist: &[i32])` in a placer crate
-   (`use game::prelude::*;` brings the scene, geometry, material, kit and
+1. Write `pub(crate) fn place_things(g: &mut Game, dist: &[i32])` in a module
+   of its own, `crates/placers/placers_<theme>/src/things.rs`, its theme the
+   one it will have in `PLACER_THEME` (`use game::prelude::*;` brings the scene, geometry, material, kit and
    random helpers). The placers' own helpers (noise, canvas fills, picks
    of open and wall tiles, parts put on a group) are in `placers_kit`
    (`noise`, `paint`, `place`, `geometry`): use them, never a copy. Pick candidate tiles from `g.tiles` / `dist`, build the
    meshes, add them to `g.world`, and register animators (`g.animate`) or
    interactables (`g.interact`) if it moves or can be used.
-2. Register it in the crate's `register()` under its name
-   (`"place_things"`).
+2. Declare the module and register it in the theme crate's `lib.rs`
+   (`mod things;`, `r.push(("place_things", things::place_things))`). A
+   helper it shares with others of its theme goes in `shared.rs`; with
+   another theme's, in `placers_kit`.
 3. Add the name to `THEMED_ORDER` in `crates/game/src/world/tables.rs` at the
    point where it should run, and its theme to `PLACER_THEME`.
-4. `cargo test -p placers_pNN` runs the crate's smoke tests (12 seeds × 24
+4. `cargo test -p placers_<theme>` runs the crate's smoke tests (12 seeds × 24
    repetitions, every animator and interactable exercised).
 5. `REGEN=1 cargo test --release -p placers --test fingerprints` records
    what it makes (four runs on the smoke levels); the test fails if any
-   other placer's lines changed. The crate's `register()` is already in
-   `placers::register_all`; a new placer crate is added there.
+   other placer's lines changed. Each theme crate's `register()` is in
+   `placers::register_all`.
 
 ## Tests and reference data
 

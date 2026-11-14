@@ -3,7 +3,7 @@
 ## Crates
 
 ```
-engine  ←  game  ←  placers_p00 … placers_p32  ←  placers
+engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
    ↖        ↖                                      ↙
         backrooms (the executable)                     xtask (automation)
 ```
@@ -34,16 +34,27 @@ engine  ←  game  ←  placers_p00 … placers_p32  ←  placers
     CAMetalLayer, raw mouse input and pointer capture; `png`: PNG encoding.
 * **`game`** is the game itself, with no platform code: it runs headless,
   which is how every test drives it.
-* **`placers_pNN`** hold the ~650 decoration placers (`place_*` functions
-  that add props to a level). They are plain functions over `&mut Game`,
-  registered by name, and split across crates so they compile in parallel.
+* **`placers_<theme>`** hold the ~650 decoration placers (`place_*`
+  functions that add props to a level), a crate per theme of
+  `world::tables::PLACER_THEME` (bathroom, core, domestic, industrial,
+  nature, occult, office, party, toys, victorian) and a module per placer,
+  named as it is registered (`place_ashtrays` in
+  `placers_domestic/src/ashtrays.rs`), with the helpers only it uses; a
+  theme's `shared` module holds what several of its placers use. They are
+  plain functions over `&mut Game`, registered by name; ten crates compile
+  in parallel. `tests/structure.rs` holds the layout
+  (`placers_live_by_theme_a_module_each`).
 * **`placers_kit`** holds the helpers they share, each once: noise (a
   lattice hash, value noise, fractal sums, smooth steps), painting a
   canvas (per-pixel fills, soft blots, colours, decals), placing (open and
   wall tiles, picks, shuffles, salts from a place) and building (geometry
   from triangles, the Blender parts and their frames). They had been
   copied from crate to crate, up to a hundred times under ten names; a
-  placer crate uses them by name (a copy's old name kept as an alias).
+  placer uses them by name (a copy's old name kept as an alias). It also
+  holds what placers of more than one theme share: the wall candidates and
+  how a thing is mounted or scattered (`place`), and the families of
+  things placed by several themes, each a module (`baking`, `garden`,
+  `glass`, `wall_plates`, `wet_floor`, `mirror_frame`, `on_wall`).
 * **`placers`** (`crates/placers/` itself) registers them all
   (`register_all`): the one list the executable and every test that
   builds a level use. Its `tests/fingerprints.rs` hashes what each placer

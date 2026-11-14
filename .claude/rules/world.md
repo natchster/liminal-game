@@ -27,7 +27,8 @@ paths:
 - **Zones have one purpose each** (`world/purpose.rs`); themed placers only
   see floor whose purpose welcomes their theme (`THEME_COMPAT`,
   `PURPOSE_EMPTY`). A new placer goes into `THEMED_ORDER` and
-  `PLACER_THEME` in `world/tables.rs`.
+  `PLACER_THEME` in `world/tables.rs`, and lives in its theme's crate, a
+  module of its own (`crates/placers/placers_<theme>/src/<name>.rs`).
 - **Walls are not all on the grid.** A partition may lean (`world::angled`):
   in `g.solids` it is a staircase of `BOX_ANGLED` steps inside the drawn
   wall, and `g.angled` holds the wall as drawn. Ask the solids for a wall's

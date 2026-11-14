@@ -166,3 +166,44 @@ pub fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: [f64
     ctx.fill();
     ctx.restore();
 }
+
+/// An sRGB `0xRRGGBB` as three 0..1 values
+pub fn srgb3(h: u32) -> [f64; 3] {
+    [((h >> 16) & 255) as f64 / 255.0, ((h >> 8) & 255) as f64 / 255.0, (h & 255) as f64 / 255.0]
+}
+
+/// Paints the canvas pixel by pixel: `f(i, j)` gives pixel (i, j)'s straight
+/// sRGB and alpha (0..1)
+pub fn paint_px_indexed(ctx: &mut Canvas, w: f64, h: f64, mut f: impl FnMut(usize, usize) -> [f64; 4]) {
+    let (iw, ih) = (w as usize, h as usize);
+    let mut img = ctx.create_image_data(w, h);
+    for j in 0..ih {
+        for i in 0..iw {
+            let c = f(i, j);
+            let k = (j * iw + i) * 4;
+            for (n, v) in c.iter().enumerate() {
+                img.data[k + n] = (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+            }
+        }
+    }
+    ctx.put_image_data(&img, 0, 0);
+}
+
+/// A transparent mark `w × h` px painted by `paint` (on its own stream);
+/// where it is clear its colour is `bleed` (sRGB), so its smaller mips keep
+/// the mark's colour at its soft edges instead of darkening them
+pub fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], paint: F) -> Tex {
+    let tex = canvas_tex_opt(w, h, false, paint);
+    {
+        let img = tex.image();
+        let mut im = img.borrow_mut();
+        for px in im.data.chunks_exact_mut(4) {
+            let k = sstep(0.0, 0.3, f64::from(px[3]) / 255.0);
+            for (c, b) in px.iter_mut().zip(bleed) {
+                *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;
+            }
+        }
+        im.version += 1;
+    }
+    tex
+}

@@ -190,8 +190,8 @@ mod tests {
 
     #[test]
     fn a_package_is_named_from_its_id() {
-        let d = std::path::Path::new("/x/crates/placers/placers_p06");
+        let d = std::path::Path::new("/x/crates/placers/placers_office");
         assert_eq!(package_name("path+file:///x/crates/game#0.1.0", std::path::Path::new("/x/crates/game")), "game");
-        assert_eq!(package_name("path+file:///x/crates/placers/placers_p06#placers_p06@1.0.0", d), "placers_p06");
+        assert_eq!(package_name("path+file:///x/crates/placers/placers_office#placers_office@1.0.0", d), "placers_office");
     }
 }

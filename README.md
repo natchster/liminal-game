@@ -167,8 +167,9 @@ cargo test --release -p backrooms --test listen -- --nocapture       # levels re
   core props, creatures and their AI, the anomalies, the Stairwell and the
   Loop, the player, ambient sound, the HUD and textures, each against
   recorded reference data.
-- **Placer smoke tests:** every placer crate builds its props across 12 seeds
-  × 24 repetitions (`cargo test -p placers_p05`).
+- **Placer smoke tests:** every theme's placer crate builds its props across
+  12 seeds × 24 repetitions (`cargo test -p placers_office`); what each
+  placer makes is fingerprinted (`cargo test -p placers --test fingerprints`).
 
 ## Project layout
 
@@ -176,7 +177,9 @@ cargo test --release -p backrooms --test listen -- --nocapture       # levels re
 |---|---|
 | `crates/engine` | Platform and rendering: math, scene graph, geometry, materials and textures, the Metal renderer and shaders, the CoreGraphics canvas, the CoreAudio node graph, the window and input loop |
 | `crates/game` | The game, platform-independent: state, level generation, the world build, props, creatures, anomalies, player, sound, HUD and game flow (see `docs/engineering/ARCHITECTURE.md`) |
-| `crates/placers/placers_p00`–`p32` | The ~650 decoration placers, split into crates that compile in parallel |
+| `crates/placers/placers_<theme>` | The ~650 decoration placers, a crate per theme and a module per placer (`placers_domestic/src/ashtrays.rs`) |
+| `crates/placers/placers_kit` | The helpers the placers share: noise, painting, placing, building, and the families placed by several themes |
+| `crates/placers` | `placers::register_all`: every placer, in one list; and the fingerprints of what each makes |
 | `crates/backrooms` | The executable: window, input routing, rendering, headless tools, and the whole-game tests |
 | `xtask` | Project automation (`cargo xtask bundle`) |
 | `packaging` | `Info.plist` and the app icon |

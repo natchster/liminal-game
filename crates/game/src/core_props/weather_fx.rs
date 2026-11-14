@@ -1366,7 +1366,7 @@ fn flame_tex(core: bool) -> Tex {
 }
 
 /// What the floor of tile (x, z) is: 0 carpet (or carpet tiles), 1 concrete,
-/// 2 glazed tile (as `placers_p28` reads it)
+/// 2 glazed tile (as `placers_kit::wet_floor::floor_kind` reads it)
 fn floor_kind(g: &Game, x: i32, z: i32) -> u8 {
     if g.region_flags_at(x, z) & crate::visuals::lighting::RF_MOSS != 0 {
         return 0;
@@ -1379,7 +1379,7 @@ fn floor_kind(g: &Game, x: i32, z: i32) -> u8 {
 }
 
 // The puddle's painter and what it is painted with, as batch `r07` wrote
-// them for `place_floor_puddles` (`placers_p28`; a placer crate's, which the
+// them for `place_floor_puddles` (`placers_core`; a placer crate's, which the
 // game crate cannot use)
 
 /// A hash of (seed, i, j) in [0, 1)

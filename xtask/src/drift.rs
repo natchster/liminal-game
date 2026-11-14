@@ -49,7 +49,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
         let l = l.trim();
         if let Some(rest) = l.strip_prefix("Running ") {
             current = rest.split_whitespace().next().map(String::from);
-            if rest.contains("deps/placers_p") {
+            if rest.contains("deps/placers_") {
                 current = Some("placers".into());
             }
         } else if let Some(r) = l.strip_prefix("test result: ") {

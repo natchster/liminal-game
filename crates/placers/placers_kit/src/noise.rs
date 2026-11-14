@@ -179,3 +179,25 @@ pub fn worley(seed: u32, x: f64, y: f64) -> (f64, f64) {
     }
     (d1, d2)
 }
+
+pub fn mix_unclamped(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
+    [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
+}
+
+/// A small generator for a mark's own layout, seeded from where it is
+pub struct Rng32(pub u32);
+
+impl Rng32 {
+    pub fn u(&mut self) -> u32 {
+        let mut x = self.0;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        self.0 = x;
+        x
+    }
+    /// in [0, 1)
+    pub fn f(&mut self) -> f64 {
+        f64::from(self.u()) / 4_294_967_296.0
+    }
+}
