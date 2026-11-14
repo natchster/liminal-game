@@ -1,9 +1,5 @@
 //! Minimal CoreGraphics / CoreText / CoreFoundation FFI.
-#![expect(
-    non_upper_case_globals,
-    clippy::missing_safety_doc,
-    reason = "Core Graphics' C declarations, named and kept as Apple's headers have them"
-)]
+#![expect(non_upper_case_globals, reason = "Core Graphics' C constants, named as Apple's headers have them")]
 
 use std::ffi::c_void;
 
@@ -247,8 +243,11 @@ pub fn cfstr(s: &str) -> CFTypeRef {
     unsafe { CFStringCreateWithBytes(std::ptr::null(), s.as_ptr(), s.len() as isize, kCFStringEncodingUTF8, false) }
 }
 
-/// A CFString's text (UTF-8), or "" if it does not fit 512 bytes. `s` must
-/// be a CFString or null.
+/// A CFString's text (UTF-8), or "" if it does not fit 512 bytes.
+///
+/// # Safety
+///
+/// `s` must be a CFString or null.
 pub unsafe fn cfstring_to_string(s: CFTypeRef) -> String {
     let mut buf = [0u8; 512];
     if s.is_null() || !unsafe { CFStringGetCString(s, buf.as_mut_ptr(), buf.len() as isize, kCFStringEncodingUTF8) } {

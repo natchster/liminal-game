@@ -179,7 +179,8 @@ fn post_edit(input: &Value) -> Result<(), String> {
     if path.extension().is_none_or(|e| e != "rs") || !path.starts_with(root()) || !path.exists() {
         return Ok(());
     }
-    let out = Command::new("rustfmt").args(["--edition", "2021"]).arg(&path).output().map_err(|e| format!("rustfmt: {e}"))?;
+    // the edition and style from `rustfmt.toml`, as `cargo fmt` reads them
+    let out = Command::new("rustfmt").arg(&path).output().map_err(|e| format!("rustfmt: {e}"))?;
     if !out.status.success() {
         // exit 2: shown to Claude, does not undo the edit
         eprintln!("rustfmt could not format {}:\n{}", path.display(), String::from_utf8_lossy(&out.stderr));
