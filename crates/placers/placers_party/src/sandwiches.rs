@@ -69,7 +69,7 @@ pub(crate) fn place_sandwiches(g: &mut Game, _dist: &[i32]) {
     s.add(&bite_inner);
     // Bread crumbs — 6-10 scattered around plate.
     let crumb_count = 6 + (rnd() * 5.0).floor() as i32;
-    for i in 0..crumb_count {
+    for _i in 0..crumb_count {
         let c_size = 0.003 + rnd() * 0.004;
         let crumb = mesh(pg("Sandwiches__crumb", box_geo!(c_size, c_size, c_size)), &bread_mat);
         let ang = rnd() * PI * 2.0;

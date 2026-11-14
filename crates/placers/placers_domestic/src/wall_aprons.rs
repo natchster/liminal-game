@@ -78,7 +78,7 @@ fn apron_tex(stripe: bool, vary: u32, b: [f64; 4]) -> Tex {
             ctx.set_line_width(1);
             let mut d = -h;
             while d < w {
-                ctx.set_stroke_style(&format!("rgba(0,0,0,{})", 0.03 + rnd() * 0.04));
+                ctx.set_stroke_style(format!("rgba(0,0,0,{})", 0.03 + rnd() * 0.04));
                 ctx.begin_path();
                 ctx.move_to(d, 0);
                 ctx.line_to(d + h * 0.5, h);
@@ -150,7 +150,7 @@ fn apron_tex(stripe: bool, vary: u32, b: [f64; 4]) -> Tex {
             ctx.fill_rect(0, 0, w, yt);
             for _ in 0..400 {
                 let v = if rnd() < 0.5 { "255,255,255" } else { "0,0,0" };
-                ctx.set_fill_style(&format!("rgba({v},{})", 0.03 + rnd() * 0.06));
+                ctx.set_fill_style(format!("rgba({v},{})", 0.03 + rnd() * 0.06));
                 ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
             }
         });

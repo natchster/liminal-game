@@ -2,7 +2,6 @@
 use crate::shared::wear_at;
 use crate::shared::wear_tex;
 use crate::shared::Wear;
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::fbmp;

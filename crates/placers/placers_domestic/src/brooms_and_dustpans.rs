@@ -97,7 +97,7 @@ pub(crate) fn place_brooms_and_dustpans(g: &mut Game, _dist: &[i32]) {
         dust.position().set(-0.010 + (rnd() - 0.5) * 0.020, 0.011, 0);
         pan.add(&dust);
         // A couple tiny dust chunks nearby.
-        for i in 0..3 {
+        for _i in 0..3 {
             let chunk = mesh(pg("BroomsAndDustpans__crumb", sphere_geo!(0.004, 4, 3)), &dust_mat);
             chunk.position().set(-0.02 + rnd() * 0.06, 0.008, -0.02 + rnd() * 0.04);
             pan.add(&chunk);

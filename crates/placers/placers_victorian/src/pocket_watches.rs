@@ -1,5 +1,4 @@
 //! `place_pocket_watches`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use game::visuals::pictures;
 use placers_kit::geometry::put;

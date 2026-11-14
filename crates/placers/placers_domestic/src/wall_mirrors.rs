@@ -62,7 +62,8 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
         if let Some(geo) = prop_part_as_modelled("Real__wallMirrorPlates") {
             body.add(&mesh(geo, phong!({ color: 0x5e4c2c, specular: 0x4a3c24, shininess: 36 })));
         }
-        let brk = if mirror_cracked { WmBreak::struck(WM_GLASS[0], WM_GLASS[1], u64::from(vary) << 9 | 0x3b) } else { WmBreak::default() };
+        let brk =
+            if mirror_cracked { WmBreak::struck(WM_GLASS[0], WM_GLASS[1], (u64::from(vary) << 9) | 0x3b) } else { WmBreak::default() };
         // the black paint on the glass's back, seen where the silver has gone
         let back = mesh(plane_geo!(WM_GLASS[0] + 0.01, WM_GLASS[1] + 0.01), lambert!({ color: 0x141312 }));
         back.position().z = 0.0050;

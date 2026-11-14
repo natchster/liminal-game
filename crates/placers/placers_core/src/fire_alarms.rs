@@ -141,7 +141,7 @@ fn alarm_paint_tex() -> Tex {
                 ctx.fill_rect(0, 0, w, h);
                 // the enamel's mottle
                 for _ in 0..400 {
-                    ctx.set_fill_style(&format!("rgba({},0,0,{})", if rnd() < 0.5 { 40 } else { 200 }, 0.03 + rnd() * 0.05));
+                    ctx.set_fill_style(format!("rgba({},0,0,{})", if rnd() < 0.5 { 40 } else { 200 }, 0.03 + rnd() * 0.05));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 3.0);
                 }
                 // rubbed thin at the edges, chipped to grey metal at the corners
@@ -172,7 +172,7 @@ fn alarm_paint_tex() -> Tex {
                 ctx.set_line_width(0.8);
                 for _ in 0..14 {
                     let (x, y, a, l) = (rnd() * w, rnd() * h, rnd() * 6.3, 6.0 + rnd() * 20.0);
-                    ctx.set_stroke_style(&format!("rgba(170,140,130,{})", 0.2 + rnd() * 0.3));
+                    ctx.set_stroke_style(format!("rgba(170,140,130,{})", 0.2 + rnd() * 0.3));
                     ctx.begin_path();
                     ctx.move_to(x, y);
                     ctx.line_to(x + a.cos() * l, y + a.sin() * l);

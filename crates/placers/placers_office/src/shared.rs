@@ -1,11 +1,5 @@
 //! What several office placers share.
-use game::assets::props::prop_part_as_modelled;
-use game::base::rng::SplitMix64;
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Age;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
 use placers_kit::paint::rgba;
 
 /// A custom geometry: positions + index, vertex normals computed.

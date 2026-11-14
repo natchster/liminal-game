@@ -1,12 +1,6 @@
 //! `place_fertilizer_spikes`
 use crate::shared::fbm_tile;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
-use game::visuals::pictures::Window;
 use placers_kit::garden::put_uv;
 use placers_kit::noise::mix;
 use placers_kit::noise::vn;

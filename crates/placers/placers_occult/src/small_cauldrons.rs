@@ -124,7 +124,7 @@ fn pot_tex(salt: u32) -> Tex {
             let (x, y) = (rnd() * w, h * (0.15 + 0.7 * rnd()));
             let a = (rnd() - 0.5) * 1.2;
             let l = 4.0 + rnd() * 18.0;
-            ctx.set_stroke_style(&css([0.36, 0.35, 0.34], 0.25 + 0.35 * rnd()));
+            ctx.set_stroke_style(css([0.36, 0.35, 0.34], 0.25 + 0.35 * rnd()));
             ctx.set_line_width(0.6 + rnd() * 1.2);
             ctx.begin_path();
             ctx.move_to(x, y);

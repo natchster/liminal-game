@@ -292,7 +292,7 @@ fn kettle_steel_tex(salt: u32) -> Tex {
             let (x, y) = (r.next() * w, r.next() * h);
             let a = r.range(-0.4, 0.4);
             let l = r.range(4.0, 22.0);
-            ctx.set_stroke_style(&format!("rgba({},{},{},0.35)", if r.next() < 0.5 { 70 } else { 170 }, 168, 166));
+            ctx.set_stroke_style(format!("rgba({},{},{},0.35)", if r.next() < 0.5 { 70 } else { 170 }, 168, 166));
             ctx.begin_path();
             ctx.move_to(x, y);
             ctx.line_to(x + a.cos() * l, y + a.sin() * l);

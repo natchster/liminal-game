@@ -13,7 +13,6 @@ use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
-use std::collections::HashSet;
 
 // Small memorial shrine (floor): 2.5% chance per level. A floor shrine
 // someone made: a planed pine board laid on the floor, a small black

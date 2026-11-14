@@ -42,7 +42,7 @@ pub(crate) fn place_peeling_wallpapers(g: &mut Game, _dist: &[i32]) {
     let seam = -side * (0.005 + 0.025 * r.f());
     let foot = -0.03 + 0.05 * r.f();
     let tex = peeling_wallpaper_tex(r.u(), pw, ph, side, seam, foot, papered);
-    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), mark_mat(&tex));
     decal.position().z = -0.004;
     wallpaper.add(&decal);
     // the corner come away: its printed face (the wall's own paper, or the
@@ -109,7 +109,8 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
     // the scrap's torn outline: its half width and half height, ragged
     let (sw, sh) = (0.1 + 0.02 * r.f(), 0.17 + 0.03 * r.f());
     let stripe_at = r.f() * 0.04;
-    let tex = decal_tex(288, 480, pw, ph, if papered { PLASTER } else { OLD_PAPER }, move |cx, cy, aa| {
+
+    decal_tex(288, 480, pw, ph, if papered { PLASTER } else { OLD_PAPER }, move |cx, cy, aa| {
         // the group's frame: x right, y up, from the middle
         let (x, y) = (cx - pw / 2.0, ph / 2.0 - cy);
         let mut px = [PLASTER[0], PLASTER[1], PLASTER[2], 0.0];
@@ -198,8 +199,7 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
         // nothing at the plane's edges
         px[3] *= sstep(0.0, 0.01, (pw / 2.0 - x.abs()).min(ph / 2.0 - y.abs()));
         px
-    });
-    tex
+    })
 }
 
 /// The back of a wallpaper: off-white paper, the paste dried on it in

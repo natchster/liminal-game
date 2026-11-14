@@ -1,5 +1,4 @@
 //! `place_small_spinning_tops`: Small spinning top: 5% chance per level. A turned beech twirl top (51 mm across), painted on the lathe in three colours with thin black lines between, the stem and tip bare and lacquered; it has stopped and fallen over, lying on its shoulder and its tip (never standing on its point). The paint chipped to the wood at its rim, faded, grimed.
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::cell_edge;

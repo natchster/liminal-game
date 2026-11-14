@@ -29,7 +29,7 @@ pub(crate) fn place_single_socks(g: &mut Game, _dist: &[i32]) {
     };
     let knit = sock_knit_tex();
     let sock = group();
-    let mut part = |name: &str, color: u32| {
+    let part = |name: &str, color: u32| {
         if let Some(geo) = prop_part_as_modelled(name) {
             sock.add(&mesh(geo, lambert!({ map: &knit, color: color })));
         }

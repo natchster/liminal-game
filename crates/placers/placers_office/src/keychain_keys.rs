@@ -119,7 +119,7 @@ fn tag_tex(seed: u32) -> Tex {
         // faded and rubbed where a thumb held it
         for _ in 0..30 {
             let (x, y) = (r.range(0.0, w), r.range(0.0, h));
-            ctx.set_fill_style(&format!("rgba(206,196,170,{:.2})", r.range(0.1, 0.3)));
+            ctx.set_fill_style(format!("rgba(206,196,170,{:.2})", r.range(0.1, 0.3)));
             ctx.begin_path();
             ctx.ellipse(x, y, r.range(2.0, 8.0), r.range(1.0, 4.0), r.range(0.0, 3.0), 0, 7);
             ctx.fill();

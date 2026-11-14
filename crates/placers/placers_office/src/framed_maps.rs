@@ -1,6 +1,5 @@
 //! `place_framed_maps`
 use crate::shared::on_nail;
-use game::base::rng::SplitMix64;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;

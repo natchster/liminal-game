@@ -94,7 +94,7 @@ fn card_tex(board: u32, vary: u32) -> Tex {
             let sh = |k: f64| {
                 (((r as f64 * k).min(255.0) as u32) << 16) | (((g as f64 * k).min(255.0) as u32) << 8) | ((b as f64 * k).min(255.0) as u32)
             };
-            ctx.set_fill_style(&box_css(board, 1.0));
+            ctx.set_fill_style(box_css(board, 1.0));
             ctx.fill_rect(0, 0, w, h);
             for _ in 0..30 {
                 let (c, a) = if rnd() < 0.5 { (sh(0.8), 0.12 + rnd() * 0.12) } else { (sh(1.15), 0.10 + rnd() * 0.10) };
@@ -103,7 +103,7 @@ fn card_tex(board: u32, vary: u32) -> Tex {
             // the board's fibres and flecks
             for _ in 0..1400 {
                 let c = if rnd() < 0.6 { sh(0.7) } else { sh(1.2) };
-                ctx.set_fill_style(&box_css(c, 0.25 + rnd() * 0.3));
+                ctx.set_fill_style(box_css(c, 0.25 + rnd() * 0.3));
                 let a = rnd() * PI;
                 let l = 1.0 + rnd() * 4.0;
                 ctx.save();
@@ -114,9 +114,9 @@ fn card_tex(board: u32, vary: u32) -> Tex {
             }
             // the damp's tide line, low on the sides, and the stain under it
             let y0 = h * (0.80 + rnd() * 0.06);
-            ctx.set_fill_style(&box_css(sh(0.82), 0.35));
+            ctx.set_fill_style(box_css(sh(0.82), 0.35));
             ctx.fill_rect(0, y0, w, h - y0);
-            ctx.set_stroke_style(&box_css(sh(0.62), 0.55));
+            ctx.set_stroke_style(box_css(sh(0.62), 0.55));
             ctx.set_line_width(1.6);
             ctx.begin_path();
             ctx.move_to(0, y0);
@@ -139,7 +139,7 @@ fn card_tex(board: u32, vary: u32) -> Tex {
                 );
             }
             for _ in 0..14 {
-                ctx.set_stroke_style(&box_css(sh(1.3), 0.4));
+                ctx.set_stroke_style(box_css(sh(1.3), 0.4));
                 ctx.set_line_width(0.7);
                 ctx.begin_path();
                 let (sx, sy) = (rnd() * w, rnd() * h);
@@ -163,7 +163,7 @@ fn card_tex(board: u32, vary: u32) -> Tex {
                         2 => (0.0, t * h, d, 6.0),
                         _ => (w - d, t * h, d, 6.0),
                     };
-                    ctx.set_fill_style(&box_css(sh(1.3), a));
+                    ctx.set_fill_style(box_css(sh(1.3), a));
                     ctx.fill_rect(x, y, rw, rh);
                     t += 6.0 / w;
                 }
@@ -246,14 +246,14 @@ fn box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
             // the board shows through: the print is the only thing on it
-            ctx.set_fill_style(&box_css(board, 1.0));
+            ctx.set_fill_style(box_css(board, 1.0));
             ctx.fill_rect(0, 0, w, h);
-            ctx.set_stroke_style(&box_css(ink, 0.85));
+            ctx.set_stroke_style(box_css(ink, 0.85));
             ctx.set_line_width(2.5);
             ctx.stroke_rect(8, 8, w - 16.0, h - 16.0);
             ctx.set_line_width(0.8);
             ctx.stroke_rect(13, 13, w - 26.0, h - 26.0);
-            ctx.set_fill_style(&box_css(ink, 0.88));
+            ctx.set_fill_style(box_css(ink, 0.88));
             ctx.set_text_align("center");
             ctx.set_text_baseline("middle");
             ctx.set_font("italic 30px Georgia");
@@ -265,7 +265,7 @@ fn box_print_tex(board: u32, ink: u32, vary: u32) -> Tex {
                 box_soft(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 9.0, 0.4 + rnd() * 0.4, rnd() * 3.0, board, 0.5 + rnd() * 0.4);
             }
             for _ in 0..500 {
-                ctx.set_fill_style(&box_css(board, 0.5));
+                ctx.set_fill_style(box_css(board, 0.5));
                 ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 0.8);
             }
             for _ in 0..8 {

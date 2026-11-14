@@ -112,7 +112,7 @@ fn sp_letter(c: char) -> [u8; 7] {
 fn sp_chart(pick: u32) -> Vec<u8> {
     let (w, h) = (SP_CELLS[0], SP_CELLS[1]);
     let mut c = vec![0u8; w * h];
-    let mut set = |x: usize, y: usize, k: u8, c: &mut Vec<u8>| {
+    let set = |x: usize, y: usize, k: u8, c: &mut Vec<u8>| {
         if x < w && y < h {
             c[y * w + x] = k;
         }
@@ -137,7 +137,7 @@ fn sp_chart(pick: u32) -> Vec<u8> {
             let rows = sp_letter(ch);
             for (r, bits) in rows.iter().enumerate() {
                 for b in 0..5 {
-                    if bits >> (4 - b) & 1 == 1 {
+                    if (bits >> (4 - b)) & 1 == 1 {
                         set(x0 + i * 6 + b, y + r, k, c);
                     }
                 }

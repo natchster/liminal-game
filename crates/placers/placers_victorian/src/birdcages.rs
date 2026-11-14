@@ -113,7 +113,7 @@ pub(crate) fn place_birdcages(g: &mut Game, _dist: &[i32]) {
             bc.add(&water);
         } else {
             // Seed pile — small dark scatter.
-            for i in 0..5 {
+            for _i in 0..5 {
                 let seed = mesh(pg("Birdcages__seed", sphere_geo!(0.002, 4, 3)), lambert!({ color: 0x604020 }));
                 seed.position().set(dx2 + (rnd() - 0.5) * 0.020, cage_y + 0.012, dz2 + (rnd() - 0.5) * 0.020);
                 bc.add(&seed);

@@ -87,7 +87,7 @@ pub(crate) fn place_wall_pipe_leaks(g: &mut Game, _dist: &[i32]) {
     // the old stain's foot was
     let (top, bot) = (ya + 0.03, -0.26);
     let (w, hgt) = (0.10, top - bot);
-    let run = mesh(plane_geo!(w, hgt), &mark_mat(&pipe_leak_tex(r.u(), w, hgt, top - (ya - 0.0575))));
+    let run = mesh(plane_geo!(w, hgt), mark_mat(&pipe_leak_tex(r.u(), w, hgt, top - (ya - 0.0575))));
     run.position().set(lx, (top + bot) / 2.0, WALL + 0.001);
     leak.add(&run);
     g.world.add(&leak);

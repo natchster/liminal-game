@@ -3,13 +3,7 @@ use crate::shared::blob;
 use crate::shared::css;
 use crate::shared::fbm_tile;
 use crate::shared::over;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
-use game::visuals::pictures::Window;
 use placers_kit::garden::put_uv;
 use placers_kit::garden::top;
 use placers_kit::noise::fbm;
@@ -72,10 +66,10 @@ fn soil_print_tex(salt: u32) -> Tex {
     canvas_tex_opt(320, 452, false, move |ctx, w, h| {
         let seed = salt ^ 0x5011;
         let film = rgb(0x27402a);
-        ctx.set_fill_style(&css(film, 1.0));
+        ctx.set_fill_style(css(film, 1.0));
         ctx.fill_rect(0, 0, w, h);
         // the seals: crimped, a band of the print's green
-        ctx.set_fill_style(&css(rgb(0x1f3322), 1.0));
+        ctx.set_fill_style(css(rgb(0x1f3322), 1.0));
         ctx.fill_rect(0, 0, w, 24);
         ctx.fill_rect(0, h - 24.0, w, 24);
         ctx.set_stroke_style("rgba(255,255,255,0.07)");
@@ -89,9 +83,9 @@ fn soil_print_tex(salt: u32) -> Tex {
             }
         }
         // the brand on a cream band
-        ctx.set_fill_style(&css(rgb(0xe6dec6), 1.0));
+        ctx.set_fill_style(css(rgb(0xe6dec6), 1.0));
         ctx.fill_rect(0, 42, w, 50);
-        ctx.set_fill_style(&css(rgb(0x2a472c), 1.0));
+        ctx.set_fill_style(css(rgb(0x2a472c), 1.0));
         ctx.set_text_align("center");
         ctx.set_text_baseline("alphabetic");
         ctx.set_font("bold 36px Rockwell");
@@ -99,7 +93,7 @@ fn soil_print_tex(salt: u32) -> Tex {
         // a sprig each side of it
         for sx in [-1.0, 1.0] {
             let cx = w / 2.0 + sx * 136.0;
-            ctx.set_stroke_style(&css(rgb(0x2a472c), 1.0));
+            ctx.set_stroke_style(css(rgb(0x2a472c), 1.0));
             ctx.set_line_width(2);
             ctx.begin_path();
             ctx.move_to(cx, 84);
@@ -110,11 +104,11 @@ fn soil_print_tex(salt: u32) -> Tex {
                 blob(ctx, cx - sx * 5.0, 62.0 + k as f64 * 8.0, 6.0, 0.45, -sx * 0.6, rgb(0x2a472c), 1.0);
             }
         }
-        ctx.set_fill_style(&css(rgb(0xf0e9d4), 1.0));
+        ctx.set_fill_style(css(rgb(0xf0e9d4), 1.0));
         ctx.set_font("bold 62px Futura");
         ctx.fill_text_max("POTTING", w / 2.0, 156, w - 22.0);
         ctx.fill_text_max("SOIL", w / 2.0, 214, w - 22.0);
-        ctx.set_fill_style(&css(rgb(0xc8bf62), 1.0));
+        ctx.set_fill_style(css(rgb(0xc8bf62), 1.0));
         ctx.set_font("bold 15px Futura");
         ctx.fill_text_max("ALL PURPOSE  \u{b7}  INDOOR & OUTDOOR PLANTS", w / 2.0, 238, w - 34.0);
         // the photograph: pot plants in flower on a bench, in a greenhouse
@@ -193,7 +187,7 @@ fn soil_print_tex(salt: u32) -> Tex {
         ctx.set_line_width(2);
         ctx.stroke_rect(px, py, pw, ph);
         // the starburst
-        ctx.set_fill_style(&css(rgb(0xd9b640), 1.0));
+        ctx.set_fill_style(css(rgb(0xd9b640), 1.0));
         ctx.begin_path();
         let (sx, sy) = (w - 58.0, 262.0);
         for k in 0..32 {
@@ -207,12 +201,12 @@ fn soil_print_tex(salt: u32) -> Tex {
         }
         ctx.close_path();
         ctx.fill();
-        ctx.set_fill_style(&css(rgb(0x2a472c), 1.0));
+        ctx.set_fill_style(css(rgb(0x2a472c), 1.0));
         ctx.set_font("bold 12px Futura");
         ctx.fill_text_max("ENRICHED", sx, sy - 2.0, 56);
         ctx.set_font("10px Futura");
         ctx.fill_text_max("WITH PEAT", sx, sy + 11.0, 56);
-        ctx.set_fill_style(&css(rgb(0xf0e9d4), 1.0));
+        ctx.set_fill_style(css(rgb(0xf0e9d4), 1.0));
         ctx.set_font("bold 22px Futura");
         ctx.fill_text_max("8 DRY QT (8.8 L)", w / 2.0, 412, w - 50.0);
         // worn: scuffs and creases where the film folded and was dragged
@@ -222,7 +216,7 @@ fn soil_print_tex(salt: u32) -> Tex {
             let (x, y) = (s.next() * w, s.next() * h);
             let a = s.range(-0.6, 0.6) + if s.next() < 0.5 { 0.0 } else { PI / 2.0 };
             let l = s.range(6.0, 40.0);
-            ctx.set_stroke_style(&format!("rgba(220,215,200,{:.2})", s.range(0.05, 0.22)));
+            ctx.set_stroke_style(format!("rgba(220,215,200,{:.2})", s.range(0.05, 0.22)));
             ctx.set_line_width(s.range(0.6, 1.8));
             ctx.begin_path();
             ctx.move_to(x, y);
@@ -332,7 +326,7 @@ fn soil_scatter_tex(salt: u32) -> Tex {
             let (x, y) = (w * 0.3 + a.cos() * d * w * 0.65, h * 0.25 + a.sin() * d * h * 0.75);
             // a grain of perlite now and then, dulled with the dust
             let c = if r.next() < 0.05 { [0.62, 0.6, 0.56] } else { mix(rgb(0x161210), rgb(0x3a2e24), r.next()) };
-            ctx.set_fill_style(&css(c, r.range(0.6, 0.95)));
+            ctx.set_fill_style(css(c, r.range(0.6, 0.95)));
             ctx.begin_path();
             ctx.arc(x, y, r.range(0.6, 2.2), 0, 7);
             ctx.fill();

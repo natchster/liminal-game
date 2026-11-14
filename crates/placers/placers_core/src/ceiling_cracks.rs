@@ -47,7 +47,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
             // one along, off a fitting); edge to edge at the old heading
             let (cx, cz) = ceiling_cell(g, cp.x, cp.z);
             let side = CELL / 6.0;
-            let plane = mesh(plane_geo!(side, side), &tile_crack_mat(yaw, &turns, path[1].0.hypot(path[1].1)));
+            let plane = mesh(plane_geo!(side, side), tile_crack_mat(yaw, &turns, path[1].0.hypot(path[1].1)));
             plane.rotation().x = PI / 2.0;
             plane.position().set(cx - cp.x, 0, cz - cp.z);
             crack_group.add(&plane);
@@ -58,7 +58,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
             let (pw, ph) = (x1 - x0 + 0.3, z1 - z0 + 0.3);
             let (mx, mz) = ((x0 + x1) / 2.0, (z0 + z1) / 2.0);
             let local: Vec<(f64, f64)> = path.iter().map(|p| (p.0 - mx, p.1 - mz)).collect();
-            let plane = mesh(plane_geo!(pw, ph), &slab_crack_mat(pw, ph, &local, ceiling == 1));
+            let plane = mesh(plane_geo!(pw, ph), slab_crack_mat(pw, ph, &local, ceiling == 1));
             plane.rotation().x = PI / 2.0;
             plane.position().set(mx, 0, mz);
             crack_group.add(&plane);

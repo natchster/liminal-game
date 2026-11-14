@@ -51,7 +51,7 @@ pub(crate) fn place_knitting_baskets(g: &mut Game, _dist: &[i32]) {
         });
     }
     // Wound-thread cross-lines on the yarn ball (2 thin torus rings).
-    for i in 0..2 {
+    for _i in 0..2 {
         let wind = mesh(pg("KnittingBaskets__wind", torus_geo!(0.055, 0.002, 4, 12)), &yarn_mat);
         wind.position().copy(&yarn.pos());
         wind.rotation().x = (rnd() - 0.5) * PI;

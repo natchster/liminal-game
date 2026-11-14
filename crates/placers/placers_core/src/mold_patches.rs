@@ -40,7 +40,7 @@ pub(crate) fn place_mold_patches(g: &mut Game, _dist: &[i32]) {
     // what it looks like: from where it is (no draws)
     let p = decal.pos();
     let damp = matches!(g.weather_key(), "wet" | "derelict" | "haunted");
-    decal.set_mat(&mould_mat(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]), pw, ph, damp));
+    decal.set_mat(mould_mat(seed_of(&[p.x, p.y, p.z, c.dx as f64, c.dz as f64]), pw, ph, damp));
     g.world.add(&decal);
 }
 
@@ -82,17 +82,16 @@ fn mould_mat(seed: u32, pw: f64, ph: f64, damp: bool) -> Mat {
         let (mx, my) = (m.min(pw / 2.0), (m / sq.min(1.0)).min(ph / 2.0));
         (x.clamp(mx, pw - mx), y.clamp(my, ph - my))
     };
-    let mut ring =
-        |r: &mut Rng, cols: &mut Vec<(f64, f64, f64, f64, f64)>, n: usize, d0: f64, d1: f64, r0: f64, r1: f64, a0: f64, a1: f64| {
-            for _ in 0..n {
-                let ang = r.f() * std::f64::consts::TAU;
-                let d = (d0 + (d1 - d0) * r.f()) * spread;
-                let rad = r0 + (r1 - r0) * r.f();
-                let sq = 0.7 + 0.5 * r.f();
-                let (x, y) = keep(cx + ang.cos() * d * 1.1, cy + ang.sin() * d * 0.9, rad, sq);
-                cols.push((x, y, rad, a0 + (a1 - a0) * r.f(), sq));
-            }
-        };
+    let ring = |r: &mut Rng, cols: &mut Vec<(f64, f64, f64, f64, f64)>, n: usize, d0: f64, d1: f64, r0: f64, r1: f64, a0: f64, a1: f64| {
+        for _ in 0..n {
+            let ang = r.f() * std::f64::consts::TAU;
+            let d = (d0 + (d1 - d0) * r.f()) * spread;
+            let rad = r0 + (r1 - r0) * r.f();
+            let sq = 0.7 + 0.5 * r.f();
+            let (x, y) = keep(cx + ang.cos() * d * 1.1, cy + ang.sin() * d * 0.9, rad, sq);
+            cols.push((x, y, rad, a0 + (a1 - a0) * r.f(), sq));
+        }
+    };
     let n = 2 + (r.f() * 2.0) as usize;
     ring(&mut r, &mut cols, n, 0.03, 0.15, 0.06, 0.1, 0.85, 1.0);
     let n = 5 + (r.f() * 5.0) as usize;

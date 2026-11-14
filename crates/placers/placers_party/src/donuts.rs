@@ -53,7 +53,7 @@ pub(crate) fn place_donuts(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.55 {
         let sprinkle_colors: [u32; 6] = [0xff4040, 0x40a0ff, 0xffe040, 0x40e080, 0xff80c0, 0xffffff];
         let count = 6 + (rnd() * 5.0).floor() as i32;
-        for i in 0..count {
+        for _i in 0..count {
             let s_mat = lambert!({ color: pick(&sprinkle_colors) });
             let s = mesh(pg("Donuts__sprinkle", box_geo!(0.008, 0.002, 0.002)), &s_mat);
             let ang = rnd() * PI * 2.0;

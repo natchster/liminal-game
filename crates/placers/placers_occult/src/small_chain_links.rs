@@ -1,7 +1,5 @@
 //! `place_small_chain_links`
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Age;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
 use placers_kit::noise::mix;

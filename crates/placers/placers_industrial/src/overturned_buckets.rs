@@ -107,7 +107,7 @@ fn wrap_fbm(seed: u32, u: f64, y: f64, fu: f64, fy: f64, oct: u32) -> f64 {
 }
 
 fn fill(ctx: &mut Canvas, w: f64, h: f64, f: impl Fn(f64, f64) -> [f64; 3] + Sync) {
-    let (iw, ih) = (w as usize, h as usize);
+    let (iw, _ih) = (w as usize, h as usize);
     let mut img = ctx.create_image_data(w, h);
     par_rows(&mut img.data, iw * 4, |j, out| {
         for i in 0..iw {

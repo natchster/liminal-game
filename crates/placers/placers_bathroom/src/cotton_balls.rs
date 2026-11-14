@@ -16,7 +16,7 @@ pub(crate) fn place_cotton_balls(g: &mut Game, _dist: &[i32]) {
     let puff_mat = lambert!({ color: 0xf8f8f0 });
     let cluster = group();
     let count = 3 + (rnd() * 4.0).floor() as i32;
-    for i in 0..count {
+    for _i in 0..count {
         let r = 0.010 + rnd() * 0.006;
         let puff = mesh(pg("CottonBalls__puff", sphere_geo!(r, 8, 6)), &puff_mat);
         puff.position().set((rnd() - 0.5) * 0.09, r * 0.9, (rnd() - 0.5) * 0.09);

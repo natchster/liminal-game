@@ -27,7 +27,7 @@ pub(crate) fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     napkin.rotation().y = (rnd() - 0.5) * 0.4;
     bitten_donut.add(&napkin);
     // Multiple folded corners — 2 wrinkles for "used" look.
-    for i in 0..2 {
+    for _i in 0..2 {
         let fold = mesh(pg("BittenDonuts__wrinkle", box_geo!(0.05, 0.005, 0.05)), &napkin_mat);
         fold.position().set((rnd() - 0.5) * 0.15, 0.005, (rnd() - 0.5) * 0.15);
         // Lies flat on the napkin; the modelled ridge is the wrinkle, and the
@@ -63,7 +63,7 @@ pub(crate) fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     bitten_donut.add(&bite_inner);
     // Scattered crumbs — 5-8 tiny boxes on napkin.
     let crumb_count = 5 + (rnd() * 4.0).floor() as i32;
-    for i in 0..crumb_count {
+    for _i in 0..crumb_count {
         let crumb_size = 0.004 + rnd() * 0.005;
         let crumb = mesh(pg("BittenDonuts__crumb", box_geo!(crumb_size, crumb_size, crumb_size)), &dough_mat);
         crumb.position().set((rnd() - 0.5) * 0.15, 0.004 + rnd() * 0.002, (rnd() - 0.5) * 0.15);
@@ -73,7 +73,7 @@ pub(crate) fn place_bitten_donuts(g: &mut Game, _dist: &[i32]) {
     // Maybe 1-2 sprinkle crumbs too.
     if rnd() < 0.5 {
         let sprinkle_colors: [u32; 6] = [0xff4040, 0x40a0ff, 0xffe040, 0x40e080, 0xff80c0, 0xffffff];
-        for i in 0..3 {
+        for _i in 0..3 {
             let s_mat = lambert!({ color: pick(&sprinkle_colors) });
             let s = mesh(pg("Donuts__sprinkle", box_geo!(0.008, 0.002, 0.002)), &s_mat);
             s.position().set((rnd() - 0.5) * 0.15, 0.004, (rnd() - 0.5) * 0.15);

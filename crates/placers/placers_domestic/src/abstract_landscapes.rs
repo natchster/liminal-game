@@ -1,7 +1,6 @@
 //! `place_abstract_landscapes`
 use crate::shared::add_parts;
 use crate::shared::hang;
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;

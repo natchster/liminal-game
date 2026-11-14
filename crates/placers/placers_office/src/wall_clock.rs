@@ -58,7 +58,7 @@ pub(crate) fn place_wall_clock(g: &mut Game, _dist: &[i32]) {
             depthWrite: false, side: DoubleSide,
         });
         let sh_count = 2 + (rnd() * 3.0).floor() as i32;
-        for sh in 0..sh_count {
+        for _sh in 0..sh_count {
             let sw = 0.012 + rnd() * 0.020;
             let shh = 0.016 + rnd() * 0.022;
             let shard = mesh(plane_geo!(sw, shh), &shard_mat);

@@ -20,7 +20,9 @@ pub(crate) fn place_hopscotch_chalks(g: &mut Game, _dist: &[i32]) {
 // Hopscotch chalk decal: 4% chance per level. Canvas
 // texture with numbered chalk squares on floor. Games family.
 game::lazy_static_tex!(hopscotch_texture, {
-    let t = canvas_tex_opt(256, 512, false, |ctx, w, h| {
+    // TODO: this texture is meant to premultiply alpha on upload; it is
+    // currently uploaded straight-alpha.
+    canvas_tex_opt(256, 512, false, |ctx, w, h| {
         ctx.set_fill_style("rgba(0,0,0,0)");
         ctx.clear_rect(0, 0, w, h);
         let chalk_color = "#d0d0d0";
@@ -47,17 +49,14 @@ game::lazy_static_tex!(hopscotch_texture, {
                 let rx = cx + (i as f64 - (count - 1) as f64 / 2.0) * (cell_w + 4.0) - cell_w / 2.0;
                 // Rough chalk box.
                 ctx.begin_path();
-                ctx.set_stroke_style(&format!("rgba(220,220,220,{})", 0.5 + rnd() * 0.4));
+                ctx.set_stroke_style(format!("rgba(220,220,220,{})", 0.5 + rnd() * 0.4));
                 ctx.rect(rx, ry, cell_w, cell_w);
                 ctx.stroke();
                 // Number.
-                ctx.set_fill_style(&format!("rgba(220,220,220,{})", 0.5 + rnd() * 0.4));
+                ctx.set_fill_style(format!("rgba(220,220,220,{})", 0.5 + rnd() * 0.4));
                 ctx.fill_text(&num.to_string(), rx + cell_w / 2.0, ry + cell_w / 2.0);
                 num += 1;
             }
         }
-    });
-    // TODO: this texture is meant to premultiply alpha on upload; it is
-    // currently uploaded straight-alpha.
-    t
+    })
 });

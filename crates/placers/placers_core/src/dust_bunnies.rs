@@ -33,7 +33,7 @@ pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {
     let fringe = dust_fringe_tex();
     let n_bunnies = 5 + (rnd() * 6.0).floor() as i32;
     let mut spots = vec![];
-    for i in 0..n_bunnies {
+    for _i in 0..n_bunnies {
         // the old ball's draws: its colour (which bunny), its radius (how big,
         // within 13%), its three scales (its turn, its grey, and one kept) and
         // where it lay
@@ -45,7 +45,7 @@ pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {
         let (bx, bz) = ((rnd() - 0.5) * 0.40, (rnd() - 0.5) * 0.40);
         let v = 0.84 + 0.16 * grey;
         let byte = |f: f64| ((f * 255.0).round() as u32).min(255);
-        let tint = byte(v) << 16 | byte(v) << 8 | byte(v * 0.99);
+        let tint = (byte(v) << 16) | (byte(v) << 8) | byte(v * 0.99);
         let bunny = group();
         let tag = ["A", "B", "C"][kind];
         if let Some(geo) = prop_part_as_modelled(&format!("Real__dustBunny{tag}")) {
@@ -68,7 +68,7 @@ pub(crate) fn place_dust_bunnies(g: &mut Game, _dist: &[i32]) {
             geo.rotate_x(-PI / 2.0);
             geo
         },
-        &mark_mat(&dust_film_tex(spots, hard, vary_by(x, z, 0x510))),
+        mark_mat(&dust_film_tex(spots, hard, vary_by(x, z, 0x510))),
     );
     film.position().y = 0.0015;
     grp.add(&film);

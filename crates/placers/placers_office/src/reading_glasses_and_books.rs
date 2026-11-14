@@ -334,7 +334,7 @@ fn pages_tex(seed: u32) -> Tex {
         ctx.fill_rect(0, 0, w, h);
         let mut y = 0.0;
         while y < h {
-            ctx.set_fill_style(&format!("rgba(90,70,40,{:.2})", r.range(0.05, 0.17)));
+            ctx.set_fill_style(format!("rgba(90,70,40,{:.2})", r.range(0.05, 0.17)));
             ctx.fill_rect(0, y, w, r.range(0.6, 1.2));
             y += r.range(1.0, 2.5);
         }

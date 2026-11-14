@@ -89,7 +89,7 @@ fn ec_enamel_tex() -> Tex {
         ctx.set_fill_style("#f3efe4");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..500 {
-            ctx.set_fill_style(&format!("rgba(120,105,80,{})", 0.02 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(120,105,80,{})", 0.02 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         let gy = ctx.create_linear_gradient(0, 0, 0, h);
@@ -144,7 +144,7 @@ fn ec_glass_tex() -> Tex {
         // a peeled letter's ghost: some vinyl gone, its glue left
         ctx.set_global_composite_operation("destination-out");
         for _ in 0..30 {
-            ctx.set_fill_style(&format!("rgba(0,0,0,{})", 0.4 + rnd() * 0.6));
+            ctx.set_fill_style(format!("rgba(0,0,0,{})", 0.4 + rnd() * 0.6));
             ctx.begin_path();
             ctx.ellipse(w * (0.35 + rnd() * 0.3), h * (0.1 + rnd() * 0.8), 1.0 + rnd() * 4.0, 1.0 + rnd() * 3.0, rnd() * 3.0, 0, 7);
             ctx.fill();
@@ -176,7 +176,7 @@ fn ex_label_tex() -> Tex {
         ctx.set_fill_style("#8a2016");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..800 {
-            ctx.set_fill_style(&format!("rgba({},20,12,{})", if rnd() < 0.5 { 40 } else { 180 }, 0.04 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba({},20,12,{})", if rnd() < 0.5 { 40 } else { 180 }, 0.04 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 2.0);
         }
         // the label: 0.10 m round, 0.15 m tall, its middle at u = 0.5

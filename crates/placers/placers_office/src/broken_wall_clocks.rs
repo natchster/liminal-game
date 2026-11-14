@@ -47,7 +47,7 @@ game::lazy_static_tex!(
         ctx.stroke();
         // Age grime.
         for _ in 0..15 {
-            ctx.set_fill_style(&format!("rgba(100,80,40,{})", 0.05 + rnd() * 0.15));
+            ctx.set_fill_style(format!("rgba(100,80,40,{})", 0.05 + rnd() * 0.15));
             ctx.begin_path();
             ctx.arc(20.0 + rnd() * (w - 40.0), 20.0 + rnd() * (h - 40.0), 4.0 + rnd() * 8.0, 0, PI * 2.0);
             ctx.fill();

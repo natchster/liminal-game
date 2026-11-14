@@ -171,7 +171,7 @@ fn colander_tex(kind: usize, salt: u32, holes: Option<(Vec3, Vec3)>, wear: &[f64
             let rr = r * w * 1.2;
             if kind == 2 {
                 soft(ctx, at, rr * 1.8, 0.7, cu * 6.0, [0.36, 0.22, 0.12], 0.6);
-                ctx.set_fill_style(&css([0.07, 0.06, 0.06], 1.0));
+                ctx.set_fill_style(css([0.07, 0.06, 0.06], 1.0));
                 ctx.begin_path();
                 ctx.ellipse(at.0, at.1, rr, rr * 0.7, cv * 3.0, 0, 7);
                 ctx.fill();

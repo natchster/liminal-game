@@ -1,7 +1,5 @@
 //! `place_twigs`
 use crate::shared::bark_tex;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;
@@ -144,5 +142,5 @@ fn cross2(a0: (f64, f64), a1: (f64, f64), b0: (f64, f64), b1: (f64, f64)) -> Opt
     }
     let t = ((b0.0 - a0.0) * sz - (b0.1 - a0.1) * sx) / den;
     let u = ((b0.0 - a0.0) * rz - (b0.1 - a0.1) * rx) / den;
-    ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then(|| (a0.0 + rx * t, a0.1 + rz * t))
+    ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then_some((a0.0 + rx * t, a0.1 + rz * t))
 }

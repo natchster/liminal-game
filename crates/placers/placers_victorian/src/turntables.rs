@@ -99,7 +99,7 @@ pub(crate) fn place_turntables(g: &mut Game, _dist: &[i32]) {
         // Rotate vinyl + label + grooves together — collect refs.
         let mut spin_targets: Vec<Obj> = vec![vinyl.clone(), center_label.clone()];
         for child in tt.children() {
-            let is_torus = child.try_geo().map_or(false, |gg| gg.params().type_name() == "torus");
+            let is_torus = child.try_geo().is_some_and(|gg| gg.params().type_name() == "torus");
             if is_torus && (child.pos().x + 0.05).abs() < 0.001 {
                 spin_targets.push(child);
             }

@@ -88,7 +88,7 @@ fn pull_paint_tex() -> Tex {
         ctx.set_fill_style("#8a1c14");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..400 {
-            ctx.set_fill_style(&format!("rgba({},0,0,{})", if rnd() < 0.5 { 40 } else { 200 }, 0.03 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba({},0,0,{})", if rnd() < 0.5 { 40 } else { 200 }, 0.03 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 3.0);
         }
         ctx.set_stroke_style("rgba(150,120,110,0.35)");

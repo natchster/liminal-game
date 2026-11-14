@@ -1,5 +1,4 @@
 //! `place_frosted_windows`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::glass::glass_mat;

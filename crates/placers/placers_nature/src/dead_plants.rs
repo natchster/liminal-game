@@ -90,17 +90,15 @@ pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     if is_alive {
         g.pp.living_plant_positions.push(v3(pp.x, 0.4, pp.z));
         // the old glow's draws, kept: a plant gives no light
-        if rnd() < 0.05 {
-            if rnd() < 0.30 {
-                let _ = rnd(); // keeps the old draw (its pulse's phase)
-            }
+        if rnd() < 0.05 && rnd() < 0.30 {
+            let _ = rnd(); // keeps the old draw (its pulse's phase)
         }
     }
     // 40% chance: dry leaves fallen round the pot (dead plants only),
     // each its old draws: its size, its tilt, its turn, where it lies
     if !is_alive && rnd() < 0.40 {
         let debris_count = 3 + (rnd() * 3.0).floor() as i32;
-        for d in 0..debris_count {
+        for _d in 0..debris_count {
             let (sw, _sh) = (rnd(), rnd());
             let _tilt = rnd(); // keeps the old draw (it lies as it curled)
             let turn = rnd() * PI * 2.0;

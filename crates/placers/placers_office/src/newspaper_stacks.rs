@@ -329,7 +329,8 @@ fn front_tex(salt: u32) -> Tex {
         ctx.set_fill_style(ink);
         ctx.set_font("bold 28px Times New Roman");
         let mut y = 190.0;
-        for line in [second] {
+        {
+            let line = second;
             ctx.fill_text_max(line, 700, y, 290);
             y += 32.0;
         }

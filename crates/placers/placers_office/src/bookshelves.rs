@@ -1,6 +1,5 @@
 //! `place_bookshelves`
 use crate::shared::fill;
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
@@ -171,7 +170,7 @@ fn bs_books(body: &Obj, books: &[BsBook], vary: u32) {
         pivot.add(&book);
         let c = BS_CLOTH[b.cloth];
         let shade = 0.88 + 0.2 * hash(vary, i as i32, 7);
-        let col = ((c[0] * shade).min(255.0) as u32) << 16 | ((c[1] * shade).min(255.0) as u32) << 8 | (c[2] * shade).min(255.0) as u32;
+        let col = (((c[0] * shade).min(255.0) as u32) << 16) | (((c[1] * shade).min(255.0) as u32) << 8) | (c[2] * shade).min(255.0) as u32;
         let cell = atlas.duplicate();
         cell.set_offset(((i % 2) as f64 * 256.0 + 1.0) / 512.0, 1.0 - ((i / 2) as f64 * 32.0 + 31.0) / 512.0);
         cell.set_repeat(254.0 / 512.0, 30.0 / 512.0);
@@ -237,7 +236,7 @@ fn bs_spine_atlas(looks: Vec<(usize, usize)>, vary: u32) -> Tex {
             ctx.begin_path();
             ctx.rect(x0, y0, 256, 32);
             ctx.clip();
-            ctx.set_fill_style(&format!("rgb({},{},{})", base[0] as u8, base[1] as u8, base[2] as u8));
+            ctx.set_fill_style(format!("rgb({},{},{})", base[0] as u8, base[1] as u8, base[2] as u8));
             ctx.fill_rect(x0, y0, 256, 32);
             // the weave
             for k in 0..700 {

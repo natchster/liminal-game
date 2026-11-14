@@ -3,8 +3,6 @@ use crate::shared::bark_tex;
 use crate::shared::blob;
 use crate::shared::css;
 use crate::shared::thin_lit;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;

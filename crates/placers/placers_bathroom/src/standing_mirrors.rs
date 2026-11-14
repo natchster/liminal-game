@@ -66,7 +66,7 @@ pub(crate) fn place_standing_mirrors(g: &mut Game, _dist: &[i32]) {
         let smudge_mat = basic_mat!({ color: pick(&smudge_colors), transparent: true, opacity: 0.55 });
         // 3-6 elliptical smudge blobs scattered on mirror face.
         let blob_count = 3 + (rnd() * 4.0).floor() as i32;
-        for i in 0..blob_count {
+        for _i in 0..blob_count {
             let rr = 0.010 + rnd() * 0.010;
             let blob = mesh(circle_geo!(rr, 6), &smudge_mat);
             let ang = rnd() * PI * 2.0;

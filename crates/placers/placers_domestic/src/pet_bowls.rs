@@ -37,7 +37,7 @@ pub(crate) fn place_pet_bowls(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.7 {
         let kibble_mat = lambert!({ color: 0x8b5020 });
         let kibble_count = 12 + (rnd() * 8.0).floor() as i32;
-        for i in 0..kibble_count {
+        for _i in 0..kibble_count {
             let k_r = 0.008 + rnd() * 0.004;
             let kibble = mesh(pg("PetBowls__kibble", sphere_geo!(k_r, 5, 4)), &kibble_mat);
             let ang = rnd() * PI * 2.0;

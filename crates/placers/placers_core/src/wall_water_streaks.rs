@@ -57,7 +57,7 @@ pub(crate) fn place_wall_water_streaks(g: &mut Game, _dist: &[i32]) {
             // old one's, the ring painted inside it)
             let r = 0.09 + rnd() * 0.07;
             let floor = floor_kind(g, c.x, c.z);
-            let fs = mesh(circle_geo!(r, 12), &foot_ring_mat(r, floor));
+            let fs = mesh(circle_geo!(r, 12), foot_ring_mat(r, floor));
             fs.rotation().x = -PI / 2.0;
             fs.rotation().z = rnd() * PI * 2.0;
             fs.scale().set(1.3, 0.85, 1);
@@ -260,7 +260,7 @@ fn streak_mesh(w: f64, ph: f64, foot: f64, surface: u8, main: bool) -> Obj {
             [px.c[0], px.c[1], px.c[2], px.a * side]
         });
     });
-    mesh(plane_geo!(pw, ph), &mark_mat(&tex))
+    mesh(plane_geo!(pw, ph), mark_mat(&tex))
 }
 
 /// The dried ring where water dripped and stood on a floor of `floor`

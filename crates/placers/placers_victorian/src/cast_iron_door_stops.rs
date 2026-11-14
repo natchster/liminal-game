@@ -1,7 +1,6 @@
 //! `place_cast_iron_door_stops`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use std::collections::HashSet;
 
 // Cast iron door-stop (floor): 4% chance per level. dog / boot / owl.
 pub(crate) fn place_cast_iron_door_stops(g: &mut Game, _dist: &[i32]) {

@@ -76,15 +76,15 @@ fn sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
             let c = rgb(base);
-            ctx.set_fill_style(&css(c, 1.0));
+            ctx.set_fill_style(css(c, 1.0));
             ctx.fill_rect(0, 0, w, h);
             if stack {
                 // the lifts (each 4-5 mm of the heel's 22), the top piece below
                 let mut y = 0.0;
                 while y < h * 0.76 {
-                    ctx.set_fill_style(&css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
+                    ctx.set_fill_style(css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
                     ctx.fill_rect(0, y, w, 1.0);
-                    ctx.set_fill_style(&css(mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
+                    ctx.set_fill_style(css(mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
                     ctx.fill_rect(0, y + 1.0, w, 1.0);
                     y += h * 0.19;
                 }
@@ -92,7 +92,7 @@ fn sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
                 ctx.fill_rect(0, h * 0.77, w, h * 0.23);
             }
             for _ in 0..40 {
-                ctx.set_fill_style(&css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
+                ctx.set_fill_style(css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
                 ctx.fill_rect(rnd() * w, rnd() * h, 4.0 + rnd() * 18.0, 1.0);
             }
             for _ in 0..22 {
@@ -121,7 +121,7 @@ fn tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
             let br = if boot { 0.771 } else { 0.781 };
             if !boot {
                 let leather = (122.0, 96.0, 70.0);
-                ctx.set_fill_style(&css(leather, 1.0));
+                ctx.set_fill_style(css(leather, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // worn: the ball dark and smooth, the toe frayed paler
                 soft(ctx, (w * 0.34, h * 0.5), w * 0.22, 0.6, 0.0, (64.0, 54.0, 44.0), 0.6);
@@ -153,7 +153,7 @@ fn tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
             } else {
                 let c = rgb(base);
                 let groove = (c.0 * 0.55, c.1 * 0.55, c.2 * 0.55);
-                ctx.set_fill_style(&css(groove, 1.0));
+                ctx.set_fill_style(css(groove, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // lugs in rows across the sole, chevroned; few in the waist
                 let face = mix(c, (120.0, 114.0, 106.0), 0.35);
@@ -171,7 +171,7 @@ fn tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                         ctx.save();
                         ctx.translate(x, y);
                         ctx.rotate(if k * 2 < n { 0.5 } else { -0.5 });
-                        ctx.set_fill_style(&css(face, 1.0));
+                        ctx.set_fill_style(css(face, 1.0));
                         ctx.fill_rect(-4.0, -9.0, 8.0, 18.0);
                         ctx.restore();
                     }
@@ -182,7 +182,7 @@ fn tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                 soft(ctx, (w * 0.34, h * 0.5), w * 0.2, 0.6, 0.0, (130.0, 124.0, 114.0), 0.25);
                 soft(ctx, (w * 0.92, h * 0.5), w * 0.1, 0.8, 0.0, (130.0, 124.0, 114.0), 0.25);
                 for _ in 0..260 {
-                    ctx.set_fill_style(&css((150.0, 140.0, 124.0), 0.35));
+                    ctx.set_fill_style(css((150.0, 140.0, 124.0), 0.35));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0);
                 }
             }

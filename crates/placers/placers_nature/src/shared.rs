@@ -1,11 +1,5 @@
 //! What several nature placers share.
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
-use game::visuals::pictures::Window;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;

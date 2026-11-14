@@ -60,12 +60,12 @@ fn broom_handle_tex(wood: u32, vary: u32) -> Tex {
     canvas_tex(32, 128, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
-            ctx.set_fill_style(&format!("#{wood:06x}"));
+            ctx.set_fill_style(format!("#{wood:06x}"));
             ctx.fill_rect(0, 0, w, h);
             // the grain, up the stick
             for _ in 0..24 {
                 let x = rnd() * w;
-                ctx.set_stroke_style(&format!("rgba(40,26,14,{})", 0.10 + rnd() * 0.2));
+                ctx.set_stroke_style(format!("rgba(40,26,14,{})", 0.10 + rnd() * 0.2));
                 ctx.set_line_width(0.5 + rnd());
                 ctx.begin_path();
                 ctx.move_to(x, 0);
@@ -119,7 +119,7 @@ fn broom_corn_tex(vary: u32) -> Tex {
                     (112.0, 84.0, 56.0)
                 };
                 let s = 0.8 + 0.3 * rnd();
-                ctx.set_stroke_style(&format!("rgba({},{},{},{})", (r * s) as i32, (gg * s) as i32, (b * s) as i32, 0.5 + 0.5 * rnd()));
+                ctx.set_stroke_style(format!("rgba({},{},{},{})", (r * s) as i32, (gg * s) as i32, (b * s) as i32, 0.5 + 0.5 * rnd()));
                 ctx.set_line_width(0.6 + rnd() * 1.1);
                 ctx.begin_path();
                 ctx.move_to(x, y0);
@@ -128,7 +128,7 @@ fn broom_corn_tex(vary: u32) -> Tex {
             }
             // the gaps between straws
             for _ in 0..90 {
-                ctx.set_stroke_style(&format!("rgba(40,30,18,{})", 0.15 + rnd() * 0.25));
+                ctx.set_stroke_style(format!("rgba(40,30,18,{})", 0.15 + rnd() * 0.25));
                 ctx.set_line_width(0.5);
                 let x = rnd() * w;
                 ctx.begin_path();
@@ -145,7 +145,7 @@ fn broom_corn_tex(vary: u32) -> Tex {
             ctx.fill_rect(0, h * 0.62, w, h * 0.38);
             // dust caught in it
             for _ in 0..60 {
-                ctx.set_fill_style(&format!("rgba(170,160,140,{})", 0.10 + rnd() * 0.15));
+                ctx.set_fill_style(format!("rgba(170,160,140,{})", 0.10 + rnd() * 0.15));
                 ctx.fill_rect(rnd() * w, rnd() * h, 2.0 + rnd() * 6.0, 1.0 + rnd() * 3.0);
             }
         });

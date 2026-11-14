@@ -46,7 +46,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
         ^ (((pz * 1000.0).round() as i64) as u32).wrapping_mul(0x85eb_ca6b);
     let colours = (hash(seed, 3, 7) * 4.0) as usize;
     let wash = tint.map(|t| ((1.0 - (1.0 - t) * 0.5) * 255.0).round() as u32);
-    let colour = wash[0] << 16 | wash[1] << 8 | wash[2];
+    let colour = (wash[0] << 16) | (wash[1] << 8) | wash[2];
     let (face_tex, back_tex) = rug_textures(seed, colours);
     let face_mat = lambert!({ map: &face_tex, color: colour });
     let back_mat = lambert!({ map: &back_tex, color: colour });
@@ -375,7 +375,7 @@ fn rug_textures(seed: u32, colours: usize) -> (Tex, Tex) {
                 let x = -fx0 + (i as f64 + 0.5) / n as f64 * 2.0 * fx0;
                 let a = x + RUG_L / 2.0;
                 let b = z + RUG_W / 2.0;
-                let mut px = if a < 0.0 || a > RUG_L {
+                let mut px = if !(0.0..=RUG_L).contains(&a) {
                     // the flat-woven band: ivory with two red stripes
                     let e = if a < 0.0 { -a } else { a - RUG_L };
                     let s = if (0.006..0.009).contains(&e) || (0.013..0.015).contains(&e) { c.field } else { [0.70, 0.65, 0.55] };

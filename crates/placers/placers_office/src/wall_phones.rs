@@ -73,7 +73,7 @@ pub(crate) fn place_wall_phones(g: &mut Game, _dist: &[i32]) {
             // Per-weather smoke color.
             let smoke_color = smoke_wisp_by_weather(g.weather_key());
             // lit by the room (lambert), so paler than its tint: smoke scatters the light
-            let pale = |c: u32, k: u32| (((c >> k) & 0xff) + 0xd8) / 2 << k;
+            let pale = |c: u32, k: u32| ((((c >> k) & 0xff) + 0xd8) / 2) << k;
             let smoke_color = pale(smoke_color, 16) | pale(smoke_color, 8) | pale(smoke_color, 0);
             let smoke_mat = lambert!({ map: &wp_smoke_tex(), color: smoke_color, transparent: true, opacity: 0.6, depthWrite: false, side: DoubleSide });
             // two soft sheets crossed at 45 degrees to the wall, so neither is
@@ -174,7 +174,7 @@ fn paint_wp_plastic(ctx: &mut Canvas, w: f64, h: f64) {
     // the moulding's faint mottle
     for _ in 0..500 {
         let a = 0.025 + rnd() * 0.04;
-        ctx.set_fill_style(&format!("rgba({},{},{},{a})", 90 + (rnd() * 60.0) as i32, 82, 70));
+        ctx.set_fill_style(format!("rgba({},{},{},{a})", 90 + (rnd() * 60.0) as i32, 82, 70));
         ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
     }
     // yellowed: the light and the smoke of the room, strongest at the top
@@ -211,14 +211,14 @@ fn paint_wp_plastic(ctx: &mut Canvas, w: f64, h: f64) {
     for _ in 0..26 {
         let (x, y, a, l) = (rnd() * w, rnd() * h, rnd() * 6.3, 3.0 + rnd() * 16.0);
         ctx.set_line_width(0.5 + rnd() * 0.8);
-        ctx.set_stroke_style(&format!("rgba(70,60,50,{})", 0.10 + rnd() * 0.22));
+        ctx.set_stroke_style(format!("rgba(70,60,50,{})", 0.10 + rnd() * 0.22));
         ctx.begin_path();
         ctx.move_to(x, y);
         ctx.line_to(x + a.cos() * l, y + a.sin() * l);
         ctx.stroke();
     }
     for _ in 0..8 {
-        ctx.set_fill_style(&format!("rgba(40,34,28,{})", 0.12 + rnd() * 0.15));
+        ctx.set_fill_style(format!("rgba(40,34,28,{})", 0.12 + rnd() * 0.15));
         ctx.begin_path();
         ctx.ellipse(rnd() * w, rnd() * h, 1.5 + rnd() * 4.0, 0.8 + rnd() * 1.5, rnd() * 3.0, 0, 7);
         ctx.fill();
@@ -226,6 +226,9 @@ fn paint_wp_plastic(ctx: &mut Canvas, w: f64, h: f64) {
 }
 
 /// The housing's wear (shared by every set: its colour is the material's).
+// the closure is the painter, and its type names the texture's stream
+// (`kit::painter_seed`): handing the fn over instead would paint it anew
+#[allow(clippy::redundant_closure)]
 fn wp_plastic_tex() -> Tex {
     thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
     T.with(|c| c.get_or_init(|| canvas_tex_opt(128, 240, false, |ctx, w, h| paint_wp_plastic(ctx, w, h))).clone())
@@ -285,7 +288,7 @@ fn wp_handset_tex() -> Tex {
                 ctx.set_fill_style("#f2eee6");
                 ctx.fill_rect(0, 0, w, h);
                 for _ in 0..240 {
-                    ctx.set_fill_style(&format!("rgba(80,70,60,{})", 0.03 + rnd() * 0.05));
+                    ctx.set_fill_style(format!("rgba(80,70,60,{})", 0.03 + rnd() * 0.05));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
                 }
                 let gr = ctx.create_linear_gradient(0, 0, 0, h);
@@ -298,7 +301,7 @@ fn wp_handset_tex() -> Tex {
                 for _ in 0..12 {
                     let (x, y, a, l) = (rnd() * w, rnd() * h, rnd() * 6.3, 3.0 + rnd() * 10.0);
                     ctx.set_line_width(0.6);
-                    ctx.set_stroke_style(&format!("rgba(60,50,40,{})", 0.15 + rnd() * 0.2));
+                    ctx.set_stroke_style(format!("rgba(60,50,40,{})", 0.15 + rnd() * 0.2));
                     ctx.begin_path();
                     ctx.move_to(x, y);
                     ctx.line_to(x + a.cos() * l, y + a.sin() * l);
@@ -341,7 +344,7 @@ fn wp_keys_tex() -> Tex {
                     let cx = (0.0105 + col * 0.0175) * 2000.0;
                     let cy = (0.007 + row * 0.020) * 2000.0;
                     let worn = rnd();
-                    ctx.set_fill_style(&format!("rgba(238,236,228,{})", 0.95 - worn * 0.45));
+                    ctx.set_fill_style(format!("rgba(238,236,228,{})", 0.95 - worn * 0.45));
                     if !letters.is_empty() {
                         ctx.set_font("bold 5px Helvetica");
                         ctx.fill_text(letters, cx, cy - 2.0);

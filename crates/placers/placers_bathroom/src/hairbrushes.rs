@@ -56,7 +56,7 @@ pub(crate) fn place_hairbrushes(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.6 {
         // Use an oriented-segment-chain pattern to draw curly hair.
         let strand_count = 3 + (rnd() * 3.0).floor() as i32;
-        for s in 0..strand_count {
+        for _s in 0..strand_count {
             // Start point near random spot on pad top.
             let ang_start = rnd() * PI * 2.0;
             let r_start = rnd() * 0.035;

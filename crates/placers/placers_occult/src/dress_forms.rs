@@ -1,7 +1,6 @@
 //! `place_dress_forms`
 use game::prelude::*;
 use placers_kit::place::open_tiles;
-use std::collections::HashSet;
 
 // Dress form / tailor's mannequin on tripod stand (floor): 2.5% chance.
 pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
@@ -100,7 +99,7 @@ pub(crate) fn place_dress_forms(g: &mut Game, _dist: &[i32]) {
         df.add(&cushion);
         // 4-6 tiny pin heads.
         let pin_count = 4 + (rnd() * 3.0).floor() as i32;
-        for i in 0..pin_count {
+        for _i in 0..pin_count {
             let pin_angle = rnd() * PI;
             let pin_shaft = mesh(cyl_geo!(0.0006, 0.0006, 0.015, 3), lambert!({ color: 0xa0a0a8 }));
             let pin_angle_z = pin_angle - PI / 2.0;

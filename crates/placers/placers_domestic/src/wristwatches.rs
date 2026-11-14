@@ -174,7 +174,7 @@ fn dial_tex(k: usize, seed: u32) -> Tex {
         for _ in 0..n {
             let a = rr.range(0.0, PI * 2.0);
             let d = r * rr.range(0.2, 0.98).sqrt();
-            ctx.set_fill_style(&format!("rgba(110,78,40,{:.2})", rr.range(0.15, 0.5)));
+            ctx.set_fill_style(format!("rgba(110,78,40,{:.2})", rr.range(0.15, 0.5)));
             ctx.begin_path();
             ctx.arc(cx + a.cos() * d, cy + a.sin() * d, rr.range(0.6, 2.2), 0, 7);
             ctx.fill();
@@ -246,7 +246,7 @@ fn strap_mat(band: usize, z0: f64, z1: f64, seed: u32) -> Mat {
         // scuffs, pale, and the finish rubbed off in patches
         for _ in 0..40 {
             let (x, y) = (r.range(0.0, w), r.range(0.0, h));
-            ctx.set_fill_style(&format!("rgba(200,184,160,{:.2})", r.range(0.05, 0.18)));
+            ctx.set_fill_style(format!("rgba(200,184,160,{:.2})", r.range(0.05, 0.18)));
             ctx.begin_path();
             ctx.ellipse(x, y, r.range(1.0, 5.0), r.range(0.6, 2.0), r.range(0.0, 3.0), 0, 7);
             ctx.fill();
@@ -276,7 +276,7 @@ fn plating_tex(k: usize, seed: u32) -> Tex {
         }
         for _ in 0..30 {
             let (x, y) = (r.range(0.0, w), r.range(0.0, h));
-            ctx.set_fill_style(&format!("rgba(40,34,26,{:.2})", r.range(0.2, 0.5)));
+            ctx.set_fill_style(format!("rgba(40,34,26,{:.2})", r.range(0.2, 0.5)));
             ctx.fill_rect(x, y, r.range(1.0, 3.0), r.range(1.0, 2.0));
         }
     })
@@ -304,7 +304,7 @@ fn crystal_dirt_tex(seed: u32) -> Tex {
             let (x0, y0) = (r.range(0.0, w), r.range(0.0, h));
             let a = r.range(0.0, PI);
             let l = r.range(4.0, 26.0);
-            ctx.set_stroke_style(&format!("rgba(240,240,240,{:.2})", r.range(0.3, 0.75)));
+            ctx.set_stroke_style(format!("rgba(240,240,240,{:.2})", r.range(0.3, 0.75)));
             ctx.set_line_width(r.range(0.5, 1.0));
             ctx.begin_path();
             ctx.move_to(x0, y0);

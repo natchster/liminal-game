@@ -4,7 +4,7 @@ use game::prelude::*;
 
 pub(crate) fn place_gameplay_r1_trigger(g: &mut Game, dist: &[i32]) {
     g.gameplay_r1_state = None;
-    let mut gr = _gameplay_r1_prng(g);
+    let mut gr = gameplay_r1_prng(g);
     // Find wall-adjacent open tiles in medium-distance zone.
     let mut max_d = 0;
     for z in 1..g.h - 1 {
@@ -126,6 +126,6 @@ pub(crate) fn place_gameplay_r1_trigger(g: &mut Game, dist: &[i32]) {
     );
 }
 
-fn _gameplay_r1_prng(g: &Game) -> Mulberry32 {
-    Mulberry32::new((g.current_seed ^ 0xA1D3F001) as u32)
+fn gameplay_r1_prng(g: &Game) -> Mulberry32 {
+    Mulberry32::new(g.current_seed ^ 0xA1D3F001)
 }

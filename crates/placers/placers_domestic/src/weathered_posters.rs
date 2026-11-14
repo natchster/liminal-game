@@ -155,7 +155,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
         match design {
             0 => {
                 // a safety poster: LIFT SAFELY, the figure squatting to the box, three rules
-                ctx.set_fill_style(&format!("rgba(34,92,52,{fade})"));
+                ctx.set_fill_style(format!("rgba(34,92,52,{fade})"));
                 ctx.fill_rect(0, 0, w, 120.0 * s);
                 ctx.set_fill_style("rgba(240,236,224,0.95)");
                 ctx.set_text_align("center");
@@ -164,8 +164,8 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                 ctx.set_font(&format!("bold {}px Helvetica", 58.0 * s));
                 ctx.fill_text_max("LIFT SAFELY", w / 2.0, 102.0 * s, w - 40.0 * s);
                 // the figure: squatting, back straight, the box held close
-                ctx.set_stroke_style(&ink(fade));
-                ctx.set_fill_style(&ink(fade));
+                ctx.set_stroke_style(ink(fade));
+                ctx.set_fill_style(ink(fade));
                 ctx.set_line_cap("round");
                 ctx.set_line_join("round");
                 ctx.set_line_width(16.0 * s);
@@ -197,7 +197,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                 ctx.line_to(w - 40.0 * s, fy + 82.0 * s);
                 ctx.stroke();
                 // the tick by it
-                ctx.set_stroke_style(&format!("rgba(34,92,52,{fade})"));
+                ctx.set_stroke_style(format!("rgba(34,92,52,{fade})"));
                 ctx.set_line_width(14.0 * s);
                 ctx.begin_path();
                 ctx.move_to(w * 0.80, fy - 70.0 * s);
@@ -205,7 +205,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                 ctx.line_to(w * 0.92, fy - 110.0 * s);
                 ctx.stroke();
                 ctx.set_text_align("left");
-                ctx.set_fill_style(&ink(fade + 0.1));
+                ctx.set_fill_style(ink(fade + 0.1));
                 let rules = [
                     ("1", "Bend your knees, not your back."),
                     ("2", "Keep the load close to your body."),
@@ -226,18 +226,18 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
             }
             1 => {
                 // a dance's bill: two inks, a slab serif
-                ctx.set_fill_style(&format!("rgba(150,40,30,{fade})"));
+                ctx.set_fill_style(format!("rgba(150,40,30,{fade})"));
                 ctx.fill_rect(24.0 * s, 24.0 * s, w - 48.0 * s, h - 48.0 * s);
                 ctx.set_fill_style(if faded { "#d9cfb2" } else { "#e2dcc7" });
                 ctx.fill_rect(36.0 * s, 36.0 * s, w - 72.0 * s, h - 72.0 * s);
                 ctx.set_text_align("center");
-                ctx.set_fill_style(&ink(fade + 0.1));
+                ctx.set_fill_style(ink(fade + 0.1));
                 ctx.set_font(&format!("bold {}px Rockwell", 40.0 * s));
                 ctx.fill_text_max("SATURDAY NIGHT", w / 2.0, 120.0 * s, w - 100.0 * s);
-                ctx.set_fill_style(&format!("rgba(150,40,30,{fade})"));
+                ctx.set_fill_style(format!("rgba(150,40,30,{fade})"));
                 ctx.set_font(&format!("bold {}px Rockwell", 128.0 * s));
                 ctx.fill_text_max("DANCE", w / 2.0, 250.0 * s, w - 90.0 * s);
-                ctx.set_fill_style(&ink(fade + 0.1));
+                ctx.set_fill_style(ink(fade + 0.1));
                 ctx.fill_rect(80.0 * s, 290.0 * s, w - 160.0 * s, 4.0 * s);
                 ctx.set_font(&format!("bold {}px Rockwell", 44.0 * s));
                 ctx.fill_text_max("LIVE MUSIC", w / 2.0, 360.0 * s, w - 100.0 * s);
@@ -247,14 +247,14 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                 ctx.set_font(&format!("{}px Rockwell", 28.0 * s));
                 ctx.fill_text_max("Admission $5 at the door", w / 2.0, 510.0 * s, w - 100.0 * s);
                 ctx.fill_text_max("Refreshments", w / 2.0, 550.0 * s, w - 100.0 * s);
-                ctx.set_fill_style(&format!("rgba(150,40,30,{fade})"));
+                ctx.set_fill_style(format!("rgba(150,40,30,{fade})"));
                 ctx.set_font(&format!("bold {}px Rockwell", 30.0 * s));
                 ctx.fill_text_max("EVERYONE WELCOME", w / 2.0, 640.0 * s, w - 100.0 * s);
             }
             2 => {
                 // a bake sale, from an office printer
                 ctx.set_text_align("center");
-                ctx.set_fill_style(&ink(fade + 0.1));
+                ctx.set_fill_style(ink(fade + 0.1));
                 ctx.set_font(&format!("bold {}px Futura", 92.0 * s));
                 ctx.fill_text_max("BAKE SALE", w / 2.0, 120.0 * s, w - 50.0 * s);
                 ctx.set_font(&format!("bold {}px Futura", 64.0 * s));
@@ -272,14 +272,14 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
             }
             3 => {
                 // a recycling notice
-                ctx.set_fill_style(&format!("rgba(30,60,110,{fade})"));
+                ctx.set_fill_style(format!("rgba(30,60,110,{fade})"));
                 ctx.fill_rect(0, 0, w, 150.0 * s);
                 ctx.set_text_align("center");
                 ctx.set_fill_style("rgba(240,236,224,0.95)");
                 ctx.set_font(&format!("bold {}px Helvetica", 96.0 * s));
                 ctx.fill_text_max("PAPER ONLY", w / 2.0, 110.0 * s, w - 40.0 * s);
                 ctx.set_text_align("left");
-                ctx.set_fill_style(&ink(fade + 0.1));
+                ctx.set_fill_style(ink(fade + 0.1));
                 ctx.set_font(&format!("bold {}px Helvetica", 40.0 * s));
                 ctx.fill_text("YES", 40.0 * s, 230.0 * s);
                 ctx.set_font(&format!("{}px Helvetica", 30.0 * s));
@@ -312,7 +312,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                     )
                 };
                 ctx.set_text_align("center");
-                ctx.set_fill_style(&ink(fade + 0.15));
+                ctx.set_fill_style(ink(fade + 0.15));
                 ctx.set_font(&format!("bold {}px Helvetica", 70.0 * s));
                 ctx.fill_text_max(title, w / 2.0, 110.0 * s, w - 40.0 * s);
                 ctx.set_font(&format!("{}px Helvetica", 40.0 * s));
@@ -325,7 +325,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
                 let ty = h - 150.0 * s;
                 let n = 8;
                 let tw = w / n as f64;
-                ctx.set_stroke_style(&ink(0.5));
+                ctx.set_stroke_style(ink(0.5));
                 ctx.set_line_width(1.0 * s);
                 ctx.set_line_dash(&[6.0 * s, 4.0 * s]);
                 ctx.begin_path();
@@ -380,7 +380,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
         for _ in 0..(40.0 * w / 504.0) as i32 {
             let (x, y) = (rnd() * w, rnd() * h);
             let r = 1.0 + rnd() * 4.0 * s;
-            ctx.set_fill_style(&format!("rgba(120,80,40,{})", 0.10 + rnd() * 0.25));
+            ctx.set_fill_style(format!("rgba(120,80,40,{})", 0.10 + rnd() * 0.25));
             ctx.begin_path();
             ctx.ellipse(x, y, r, r * (0.7 + rnd() * 0.3), 0, 0, 7);
             ctx.fill();

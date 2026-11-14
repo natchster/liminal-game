@@ -82,7 +82,7 @@ fn rail_wood_tex() -> Tex {
                 for _ in 0..70 {
                     let y = rnd() * h;
                     let a = 0.08 + rnd() * 0.18;
-                    ctx.set_stroke_style(&format!("rgba(40,26,14,{a})"));
+                    ctx.set_stroke_style(format!("rgba(40,26,14,{a})"));
                     ctx.set_line_width(0.6 + rnd() * 1.6);
                     ctx.begin_path();
                     ctx.move_to(0, y);
@@ -97,7 +97,7 @@ fn rail_wood_tex() -> Tex {
                 }
                 // the rays: short pale flecks across the grain
                 for _ in 0..60 {
-                    ctx.set_fill_style(&format!("rgba(170,130,90,{})", 0.08 + rnd() * 0.12));
+                    ctx.set_fill_style(format!("rgba(170,130,90,{})", 0.08 + rnd() * 0.12));
                     ctx.fill_rect(rnd() * w, rnd() * h, 3.0 + rnd() * 8.0, 1.0);
                 }
                 // hands' grime along the middle
@@ -125,7 +125,7 @@ fn wool_tex() -> Tex {
                 ctx.set_line_width(1);
                 let mut d = -h;
                 while d < w {
-                    ctx.set_stroke_style(&format!("rgba(0,0,0,{})", 0.06 + rnd() * 0.06));
+                    ctx.set_stroke_style(format!("rgba(0,0,0,{})", 0.06 + rnd() * 0.06));
                     ctx.begin_path();
                     ctx.move_to(d, 0);
                     ctx.line_to(d + h, h);
@@ -134,7 +134,7 @@ fn wool_tex() -> Tex {
                 }
                 for _ in 0..500 {
                     let v = if rnd() < 0.5 { "255,255,255" } else { "0,0,0" };
-                    ctx.set_fill_style(&format!("rgba({v},{})", 0.05 + rnd() * 0.1));
+                    ctx.set_fill_style(format!("rgba({v},{})", 0.05 + rnd() * 0.1));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
                 }
                 for _ in 0..30 {

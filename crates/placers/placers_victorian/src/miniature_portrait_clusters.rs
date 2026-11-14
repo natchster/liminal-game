@@ -9,7 +9,6 @@ use game::visuals::pictures::Finish;
 use game::visuals::pictures::Outline;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
-use std::collections::HashSet;
 
 // Cluster of 3-4 small oval portrait miniatures (wall): 3% chance per level.
 pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {

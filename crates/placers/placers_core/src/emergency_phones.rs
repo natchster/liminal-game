@@ -59,7 +59,7 @@ fn em_plastic_tex() -> Tex {
         ctx.set_fill_style("#f2eeea");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..500 {
-            ctx.set_fill_style(&format!("rgba(70,60,56,{})", 0.02 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(70,60,56,{})", 0.02 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         for &(x, y, r, a) in &[(0.29, 0.16, 0.30, 0.26), (0.30, 0.83, 0.26, 0.2), (0.6, 0.45, 0.3, 0.1)] {
@@ -129,7 +129,7 @@ fn em_sign_tex() -> Tex {
         ctx.set_fill_style("#8a2218");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..600 {
-            ctx.set_fill_style(&format!("rgba(40,10,6,{})", 0.03 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(40,10,6,{})", 0.03 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 1.0 + rnd() * 2.0);
         }
         ctx.set_fill_style("#e9e4d8");

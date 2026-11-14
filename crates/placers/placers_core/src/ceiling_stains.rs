@@ -228,7 +228,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
             let (tx, tz) = (g.wx(x), g.wz(z));
             let cell_of = |px: f64, pz: f64| (((px - tx) / c).floor() as i32, ((pz - tz - c / 2.0) / c).floor() as i32);
             let centre = |(ci, cj): (i32, i32)| (tx + (ci as f64 + 0.5) * c, tz + (cj as f64 + 1.0) * c);
-            let (mut ci, mut cj) = cell_of(lx, lz);
+            let (ci, mut cj) = cell_of(lx, lz);
             let fitting = |(ci, cj): (i32, i32)| (ci == -1 || ci == 0) && cj == -1;
             if fitting((ci, cj)) {
                 cj += if lz > tz { 1 } else { -1 };
@@ -265,7 +265,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
                     };
                     let plane = mesh(
                         plane_geo!(c, c),
-                        &stain_mat(c, 192, (ccx, ccz), vec![spot], (ax, turn), 0, (leak.0, leak.1, spread * 0.5), seed),
+                        stain_mat(c, 192, (ccx, ccz), vec![spot], (ax, turn), 0, (leak.0, leak.1, spread * 0.5), seed),
                     );
                     plane.rotation().x = PI / 2.0;
                     plane.position().set(ccx - mx, 0, ccz - mz);
@@ -279,7 +279,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
             let side = r * 2.7;
             let plane = mesh(
                 plane_geo!(side, side),
-                &stain_mat(
+                stain_mat(
                     side,
                     448,
                     (lx, lz),

@@ -17,7 +17,7 @@ pub(crate) fn place_broken_pens(g: &mut Game, _dist: &[i32]) {
     let pen_colors = [0x2050c0, 0xa02040, 0x30a030, 0x181410, 0xd8b040];
     let grp = group();
     let n_pens = 4 + (rnd() * 5.0).floor() as i32;
-    for i in 0..n_pens {
+    for _i in 0..n_pens {
         let pen_mat = lambert!({ color: choice(&pen_colors) });
         let is_broken = rnd() < 0.4;
         if is_broken {

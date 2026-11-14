@@ -20,7 +20,7 @@ pub(crate) fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
     board.add(&base);
     // Wood frame — 4 thin bars around edges.
     let frame_mat = lambert!({ color: 0x3a2818 });
-    let frame_thick = 0.03;
+    let _frame_thick = 0.03;
     for (ox, oy, sx, sy) in [
         (0.0, 0.31, 1.04, 0.03),
         (0.0, -0.31, 1.04, 0.03), // top + bottom
@@ -34,7 +34,7 @@ pub(crate) fn place_bulletin_boards(g: &mut Game, _dist: &[i32]) {
     // Mini notes: 3-6 small rectangles pinned across the board.
     let note_count = 3 + (rnd() * 4.0).floor() as i32;
     let note_colors = [0xf0e8c8, 0xe0d0a0, 0xd8c0a4, 0xf8f0e0, 0xc8c8b0];
-    for n in 0..note_count {
+    for _n in 0..note_count {
         let nw = 0.13 + rnd() * 0.08;
         let nh = 0.10 + rnd() * 0.06;
         let note_mat = lambert!({ color: pick(&note_colors) });

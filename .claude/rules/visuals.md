@@ -19,8 +19,10 @@ paths:
 - **Canvas textures draw from a stream of their own** (`canvas_tex`:
   `with_own_stream`, seeded by the painter's place in the code, its size and
   how many it has made since the level began); never the level's stream nor
-  the per-frame one. So moving a painter's code repaints its textures (the
-  placers' fingerprints say which; re-record with the reason). Never key a
+  the per-frame one. So moving a painter's code repaints its textures, and
+  so does handing a fn over in place of its closure (`|c, w, h| paint(c,
+  w, h)` → `paint`, as clippy's `redundant_closure` would): the placers'
+  fingerprints say which; keep the closure, or re-record with the reason. Never key a
   stream by anything shared between painters (a placer's name): a cached
   texture paints once a thread, and the others would count after it, so a
   level's pixels would hang on what was built before (the fingerprints run

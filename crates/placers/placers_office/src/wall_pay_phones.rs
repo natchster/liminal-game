@@ -78,7 +78,7 @@ fn pay_steel_tex() -> Tex {
         ctx.set_fill_style("#e8e8e4");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..800 {
-            ctx.set_fill_style(&format!("rgba({},{},{},{})", if rnd() < 0.5 { 255 } else { 80 }, 250, 245, 0.05 + rnd() * 0.08));
+            ctx.set_fill_style(format!("rgba({},{},{},{})", if rnd() < 0.5 { 255 } else { 80 }, 250, 245, 0.05 + rnd() * 0.08));
             ctx.fill_rect(rnd() * w, rnd() * h, 0.6, 5.0 + rnd() * 30.0);
         }
         // metres on the face to the canvas
@@ -112,7 +112,7 @@ fn pay_steel_tex() -> Tex {
         for _ in 0..7 {
             let (mut x, mut y) = (rnd() * w, rnd() * h);
             ctx.set_line_width(0.8);
-            ctx.set_stroke_style(&format!("rgba(70,68,64,{})", 0.25 + rnd() * 0.25));
+            ctx.set_stroke_style(format!("rgba(70,68,64,{})", 0.25 + rnd() * 0.25));
             ctx.begin_path();
             ctx.move_to(x, y);
             for _ in 0..6 {
@@ -140,7 +140,7 @@ fn pay_vault_tex() -> Tex {
         ctx.set_fill_style("#f0f0ec");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..400 {
-            ctx.set_fill_style(&format!("rgba(60,60,58,{})", 0.03 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(60,60,58,{})", 0.03 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         // chips: pale primer and bare steel, at the edges and the lock
@@ -239,7 +239,7 @@ fn pay_keys_tex() -> Tex {
             let (col, row) = ((i % 3) as f64, (i / 3) as f64);
             let cx = (0.0375 - 0.026 + col * 0.026) * 3000.0;
             let cy = (0.050 - (0.396 - 0.357) + row * 0.026) * 3000.0;
-            ctx.set_fill_style(&format!("rgba(26,25,24,{})", 0.92 - rnd() * 0.4));
+            ctx.set_fill_style(format!("rgba(26,25,24,{})", 0.92 - rnd() * 0.4));
             if !letters.is_empty() {
                 ctx.set_font("bold 8px Helvetica");
                 ctx.fill_text(letters, cx, cy - 6.0);

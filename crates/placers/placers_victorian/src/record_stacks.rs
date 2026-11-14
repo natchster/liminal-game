@@ -1,5 +1,4 @@
 //! `place_record_stacks`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::hash;
@@ -191,7 +190,7 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
             ctx.begin_path();
             ctx.rect(x0, y0, 256, 256);
             ctx.clip();
-            ctx.set_fill_style(&rgb(paper, 1.0));
+            ctx.set_fill_style(rgb(paper, 1.0));
             ctx.fill_rect(x0, y0, 256, 256);
             // the paper's grain and foxing
             for _ in 0..500 {
@@ -201,7 +200,7 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
             match (r.next() * 3.0) as usize {
                 0 => {
                     // rays from the hole, every other one printed
-                    ctx.set_fill_style(&rgb(ink, 0.85));
+                    ctx.set_fill_style(rgb(ink, 0.85));
                     for k in 0..24 {
                         let a0 = k as f64 * PI / 12.0;
                         ctx.begin_path();
@@ -210,9 +209,9 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
                         ctx.close_path();
                         ctx.fill();
                     }
-                    ctx.set_fill_style(&rgb(paper, 1.0));
+                    ctx.set_fill_style(rgb(paper, 1.0));
                     ctx.fill_rect(x0 + 16.0, y0 + 200.0, 224, 34);
-                    ctx.set_fill_style(&rgb(ink, 0.95));
+                    ctx.set_fill_style(rgb(ink, 0.95));
                     ctx.set_font("bold 22px Helvetica");
                     ctx.set_text_align("center");
                     ctx.set_text_baseline("middle");
@@ -223,7 +222,7 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
                     ctx.save();
                     ctx.translate(cx, cy);
                     ctx.rotate(-0.5);
-                    ctx.set_fill_style(&rgb(ink, 0.8));
+                    ctx.set_fill_style(rgb(ink, 0.8));
                     ctx.set_font("bold 17px Helvetica");
                     ctx.set_text_align("center");
                     ctx.set_text_baseline("middle");
@@ -237,15 +236,15 @@ fn rs_sleeve_atlas(singles: &[RsSingle], vary: u32) -> Tex {
                 }
                 _ => {
                     // a band across its head, the slogan at its foot
-                    ctx.set_fill_style(&rgb(ink, 0.9));
+                    ctx.set_fill_style(rgb(ink, 0.9));
                     ctx.fill_rect(x0, y0 + 12.0, 256, 44);
                     ctx.fill_rect(x0, y0 + 222.0, 256, 3);
-                    ctx.set_fill_style(&rgb(paper, 0.95));
+                    ctx.set_fill_style(rgb(paper, 0.95));
                     ctx.set_font("bold 26px Times New Roman");
                     ctx.set_text_align("center");
                     ctx.set_text_baseline("middle");
                     ctx.fill_text_max(name, cx, y0 + 35.0, 230);
-                    ctx.set_fill_style(&rgb(ink, 0.9));
+                    ctx.set_fill_style(rgb(ink, 0.9));
                     ctx.set_font("bold 12px Helvetica");
                     ctx.fill_text_max("HIGH FIDELITY  ·  45 R.P.M.", cx, y0 + 238.0, 230);
                     ctx.set_font("10px Helvetica");
@@ -344,16 +343,16 @@ fn rs_label_atlas(singles: &[RsSingle], bare: bool, vary: u32) -> Tex {
         for (i, &(ground, print)) in looks.iter().enumerate() {
             let (cx, cy) = ((i % 4) as f64 * 128.0 + 64.0, (i / 4) as f64 * 128.0 + 64.0);
             let (gc, pc) = (RS_LABEL_GROUND[ground], RS_LABEL_PRINT[print]);
-            ctx.set_fill_style(&rgb(gc, 1.0));
+            ctx.set_fill_style(rgb(gc, 1.0));
             ctx.begin_path();
             ctx.arc(cx, cy, 64, 0, 7);
             ctx.fill();
-            ctx.set_stroke_style(&rgb(pc, 0.8));
+            ctx.set_stroke_style(rgb(pc, 0.8));
             ctx.set_line_width(1.2);
             ctx.begin_path();
             ctx.arc(cx, cy, 58, 0, 7);
             ctx.stroke();
-            ctx.set_fill_style(&rgb(pc, 0.95));
+            ctx.set_fill_style(rgb(pc, 0.95));
             ctx.set_text_align("center");
             ctx.set_text_baseline("middle");
             ctx.set_font("bold 13px Times New Roman");

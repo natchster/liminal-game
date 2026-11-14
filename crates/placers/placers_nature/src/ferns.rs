@@ -1,6 +1,4 @@
 //! `place_ferns`
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;

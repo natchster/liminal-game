@@ -19,7 +19,7 @@ pub(crate) fn place_ottomans(g: &mut Game, _dist: &[i32]) {
     let ot = group();
     // Bimodal: round tufted ottoman vs square upholstered footstool.
     let is_round = rnd() < 0.5;
-    let ott_h = 0.32;
+    let _ott_h = 0.32;
     if is_round {
         let ot_r = 0.24;
         let cushion = mesh(pg("Ottomans__drum", cyl_geo!(ot_r, ot_r - 0.010, 0.18, 12)), &uphol_mat);

@@ -30,7 +30,7 @@ pub(crate) fn place_post_it_stacks(g: &mut Game, _dist: &[i32]) {
         grp.add(&note);
     }
     // 1-2 loose notes scattered nearby w/ scribbles.
-    for i in 0..2 {
+    for _i in 0..2 {
         let note_mat = lambert!({ color: choice(&note_colors) });
         let note = mesh(pg("PostItStacks__loose", box_geo!(0.06, 0.001, 0.06)), &note_mat);
         let px = 0.08 + (rnd() - 0.5) * 0.10;

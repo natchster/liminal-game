@@ -218,7 +218,7 @@ fn pipe_tex(paint: usize, fitting: bool) -> Tex {
                         ctx.fill_rect(0, 0, w, h);
                         // brush marks and grime in the paint
                         for _ in 0..140 {
-                            ctx.set_fill_style(&format!("rgba(30,26,20,{})", 0.04 + rnd() * 0.08));
+                            ctx.set_fill_style(format!("rgba(30,26,20,{})", 0.04 + rnd() * 0.08));
                             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 3.0, 6.0 + rnd() * 30.0);
                         }
                         // the flakes: paint lifted off, the steel rusted beneath
@@ -303,11 +303,11 @@ fn rust_weep_tex() -> Tex {
                         let y = t * len;
                         x += (rnd() - 0.5) * 1.6;
                         let wd = 1.5 + t * (4.0 + k as f64 * 0.6);
-                        ctx.set_fill_style(&format!("rgba(104,52,22,{})", a * (1.0 - t * 0.7)));
+                        ctx.set_fill_style(format!("rgba(104,52,22,{})", a * (1.0 - t * 0.7)));
                         ctx.fill_rect(x - wd / 2.0, y, wd, len / steps as f64 + 1.0);
                     }
                     // the tide line where it stopped
-                    ctx.set_fill_style(&format!("rgba(70,34,14,{})", a * 0.9));
+                    ctx.set_fill_style(format!("rgba(70,34,14,{})", a * 0.9));
                     ctx.begin_path();
                     ctx.ellipse(x, len, 3.0 + rnd() * 3.0, 2.0, 0, 0, 7);
                     ctx.fill();

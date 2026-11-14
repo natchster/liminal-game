@@ -117,7 +117,7 @@ fn closest_between(p: &[(f64, f64); 4], q: &[(f64, f64); 4]) -> ((f64, f64), (f6
         }
         let t = ((c.0 - a.0) * (d.1 - c.1) - (c.1 - a.1) * (d.0 - c.0)) / den;
         let u = ((c.0 - a.0) * (b.1 - a.1) - (c.1 - a.1) * (b.0 - a.0)) / den;
-        ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then(|| (a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t))
+        ((0.0..=1.0).contains(&t) && (0.0..=1.0).contains(&u)).then_some((a.0 + (b.0 - a.0) * t, a.1 + (b.1 - a.1) * t))
     };
     let mut best = (p[0], q[0]);
     for i in 0..3 {

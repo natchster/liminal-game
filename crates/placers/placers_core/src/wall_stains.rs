@@ -271,7 +271,7 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
         // there, across the width when it is 8 cm or more: so it finds what
         // it found): from just under the ceiling to as far below the old foot
         let (pw, up) = (w.max(STAIN_W), 0.145);
-        let stain = mesh(plane_geo!(pw, h + 2.0 * up), &stain_mat(pw, h + 2.0 * up, 0.08 + h * 0.15, h + up, heavy, surface, damp));
+        let stain = mesh(plane_geo!(pw, h + 2.0 * up), stain_mat(pw, h + 2.0 * up, 0.08 + h * 0.15, h + up, heavy, surface, damp));
         // on the wall's face, just proud of it
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.006);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.006);

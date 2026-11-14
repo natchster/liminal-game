@@ -1,5 +1,4 @@
 //! `place_chess_side_stands`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
@@ -9,7 +8,6 @@ use placers_kit::paint::fill;
 use placers_kit::paint::opaque;
 use placers_kit::place::open_tiles;
 use placers_kit::place::vary;
-use std::collections::HashSet;
 
 // Chess set mid-game on small side stand (floor): 3% chance per level.
 // A tripod table of about 1870 (Blender batch `t20`): a moulded round top
@@ -40,7 +38,7 @@ pub(crate) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
     let mut used: Vec<(i32, i32)> = vec![];
     let mut pieces: Vec<(i32, i32, bool, &str, f64)> = vec![];
     for _ in 0..piece_count {
-        let (mut ci, mut cj) = (0i32, 0i32);
+        let (mut ci, mut cj): (i32, i32);
         let mut attempts = 0;
         loop {
             ci = (rnd() * 8.0).floor() as i32;

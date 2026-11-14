@@ -2,7 +2,6 @@
 use game::prelude::*;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
-use std::collections::HashSet;
 
 pub(crate) fn place_correspondence_cards(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.97 {

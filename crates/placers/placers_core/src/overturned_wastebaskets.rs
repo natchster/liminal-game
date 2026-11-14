@@ -31,7 +31,7 @@ pub(crate) fn place_overturned_wastebaskets(g: &mut Game, _dist: &[i32]) {
     grp.add(&bin_bottom);
     // Trash pieces (crumpled paper + can).
     let n_trash = 4 + (rnd() * 4.0).floor() as i32;
-    for i in 0..n_trash {
+    for _i in 0..n_trash {
         let is_paper = rnd() < 0.7;
         let piece;
         if is_paper {

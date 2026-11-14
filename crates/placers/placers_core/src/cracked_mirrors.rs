@@ -38,7 +38,7 @@ pub(crate) fn place_cracked_mirrors(g: &mut Game, _dist: &[i32]) {
         let tex = moulding_grain_tex(CM_GLASS[0] + 2.0 * CM_MOULD, CM_GLASS[1] + 2.0 * CM_MOULD, CM_MOULD, [0x4a, 0x2e, 0x1c], vary, 900.0);
         body.add(&mesh(geo, lambert!({ map: &tex })));
     }
-    let brk = CmBreak::struck(CM_GLASS[0], CM_GLASS[1], u64::from(vary) << 7 | 0x2d);
+    let brk = CmBreak::struck(CM_GLASS[0], CM_GLASS[1], (u64::from(vary) << 7) | 0x2d);
     // the black paint on the glass's back, seen where the silver has gone
     let back = mesh(plane_geo!(CM_GLASS[0] + 0.01, CM_GLASS[1] + 0.01), lambert!({ color: 0x141312 }));
     back.position().z = 0.0040;

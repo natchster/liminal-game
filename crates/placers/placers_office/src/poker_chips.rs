@@ -20,7 +20,6 @@ pub(crate) fn place_poker_chips(g: &mut Game, _dist: &[i32]) {
     let cluster = group();
     let count = 4 + (rnd() * 5.0).floor() as i32;
     let stack_count = 1 + (rnd() * 3.0).floor() as i32;
-    let mut idx = 0;
     for s in 0..stack_count {
         let stack_size = count / stack_count + if s == 0 { count % stack_count } else { 0 };
         let sx = (rnd() - 0.5) * 0.10;
@@ -37,7 +36,6 @@ pub(crate) fn place_poker_chips(g: &mut Game, _dist: &[i32]) {
             ring.rotation().x = PI / 2.0;
             ring.position().set(sx, 0.002 + c as f64 * 0.0035, sz);
             cluster.add(&ring);
-            idx += 1;
         }
     }
     let (px, pz) = jitter(g, x, z, 2.4);

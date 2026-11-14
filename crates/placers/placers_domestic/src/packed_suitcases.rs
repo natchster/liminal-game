@@ -117,7 +117,7 @@ pub(crate) fn place_packed_suitcases(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.6 {
         let sticker_colors = [0xa02040, 0x2060a0, 0xd0a040, 0x408060];
         let sticker_count = 2 + (rnd() * 2.0).floor() as i32;
-        for i in 0..sticker_count {
+        for _i in 0..sticker_count {
             let sticker_mat = lambert!({ color: choice(&sticker_colors) });
             let sw = 0.030 + rnd() * 0.020;
             let sh = 0.020 + rnd() * 0.014;

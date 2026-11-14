@@ -13,7 +13,7 @@ pub(crate) fn place_easel_chalkboards(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = open[(rnd() * open.len() as f64).floor() as usize];
     let wood_mat = lambert!({ color: 0x8b5a2b });
-    let board_back_mat = lambert!({ color: 0x1a3020 });
+    let _board_back_mat = lambert!({ color: 0x1a3020 });
     let chalk_face_mat = lambert!({ map: chalk_content_texture() });
     let ec = group();
     // Easel — 3 legs meeting at top (A-frame style w/ back support).
@@ -103,7 +103,7 @@ fn pick<'a>(a: &[&'a str]) -> &'a str {
 /// short-array path (count-and-make-run, then binary insertion sort) with one
 /// draw per comparison. The exact comparison sequence fixes how many draws are
 /// consumed, so it is kept on purpose.
-fn shuffle_by_random_comparator<T: Clone>(v: &mut Vec<T>) {
+fn shuffle_by_random_comparator<T: Clone>(v: &mut [T]) {
     let n = v.len();
     if n < 2 {
         return;

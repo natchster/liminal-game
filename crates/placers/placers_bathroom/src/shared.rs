@@ -1,5 +1,4 @@
 //! What several bathroom placers share.
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 
 /// A placed thing's own number, from where it stands (no draw): its

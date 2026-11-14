@@ -40,7 +40,7 @@ pub(crate) fn place_broken_picture_frames(g: &mut Game, _dist: &[i32]) {
     grp.add(&frame);
     // 5-8 scattered glass shards around frame.
     let n_shards = 5 + (rnd() * 4.0).floor() as i32;
-    for i in 0..n_shards {
+    for _i in 0..n_shards {
         let s1 = 0.020 + rnd() * 0.020;
         let shard_geo = tri_geo([0.0, 0.0, 0.0, s1, 0.0, s1 * (rnd() - 0.5) * 0.5, s1 * 0.5, 0.0, s1 * (0.5 + rnd() * 0.5)]);
         let shard = mesh(shard_geo, &glass_mat);

@@ -122,7 +122,7 @@ fn hook_block_tex() -> Tex {
                 ctx.fill_rect(0, 0, w, h);
                 for _ in 0..26 {
                     let x = rnd() * w;
-                    ctx.set_stroke_style(&format!("rgba(42,28,16,{})", 0.10 + rnd() * 0.2));
+                    ctx.set_stroke_style(format!("rgba(42,28,16,{})", 0.10 + rnd() * 0.2));
                     ctx.set_line_width(0.5 + rnd() * 1.2);
                     ctx.begin_path();
                     ctx.move_to(x, 0);
@@ -136,7 +136,7 @@ fn hook_block_tex() -> Tex {
                     ctx.stroke();
                 }
                 for _ in 0..30 {
-                    ctx.set_fill_style(&format!("rgba(168,128,88,{})", 0.08 + rnd() * 0.12));
+                    ctx.set_fill_style(format!("rgba(168,128,88,{})", 0.08 + rnd() * 0.12));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 2.0 + rnd() * 5.0);
                 }
                 // hands' grime round the middle, where coats were taken off
@@ -178,7 +178,7 @@ fn scarf_tex(old: u32, y: [f64; 2]) -> Tex {
         // pills and fuzz
         for _ in 0..700 {
             let v = if rnd() < 0.5 { "255,255,255" } else { "0,0,0" };
-            ctx.set_fill_style(&format!("rgba({v},{})", 0.05 + rnd() * 0.12));
+            ctx.set_fill_style(format!("rgba({v},{})", 0.05 + rnd() * 0.12));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 1.5, 1.0 + rnd() * 1.5);
         }
         // a moth hole or two

@@ -1,10 +1,7 @@
 //! `place_anatomy_charts`
-use game::base::rng::SplitMix64;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
 use placers_kit::place::face_wall;
 use placers_kit::place::wall_tiles;
 

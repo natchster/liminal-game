@@ -32,7 +32,7 @@ pub(crate) fn place_shattered_vases(g: &mut Game, _dist: &[i32]) {
     }
     // 6-8 scattered shard triangles on floor.
     let n_shards = 6 + (rnd() * 3.0).floor() as i32;
-    for i in 0..n_shards {
+    for _i in 0..n_shards {
         let s = 0.020 + rnd() * 0.020;
         let shard_geo = buffer_geo(&[0.0, 0.0, 0.0, s, 0.0, s * 0.5 * (rnd() - 0.5), s * 0.5, 0.0, s * (0.5 + rnd() * 0.5)], vec![0, 1, 2]);
         let shard = mesh(shard_geo, &pot_mat);

@@ -1,6 +1,4 @@
 //! `place_pine_needles`
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::mix_unclamped;
@@ -128,7 +126,7 @@ fn needle_drift_tex(salt: u32, size: f64) -> Tex {
             let tone = r.next();
             let c = mix_unclamped([0.36, 0.25, 0.15], [0.27, 0.22, 0.17], tone);
             let fade = 1.0 - sstep(0.25, 0.45, d / w);
-            ctx.set_stroke_style(&css(c, 0.8 * fade));
+            ctx.set_stroke_style(css(c, 0.8 * fade));
             ctx.set_line_width(if i % 3 == 0 { 2.0 } else { 1.4 });
             ctx.begin_path();
             ctx.move_to(x, y);

@@ -50,7 +50,7 @@ game::lazy_static_tex!(
         }
         // Grunge speckle.
         for _ in 0..20 {
-            ctx.set_fill_style(&format!("rgba(0,0,0,{})", 0.06 + rnd() * 0.1));
+            ctx.set_fill_style(format!("rgba(0,0,0,{})", 0.06 + rnd() * 0.1));
             let (x, y) = (rnd() * w, rnd() * h);
             ctx.fill_rect(x, y, 1, 1);
         }

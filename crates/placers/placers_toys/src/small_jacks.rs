@@ -15,7 +15,7 @@ pub(crate) fn place_small_jacks(g: &mut Game, _dist: &[i32]) {
     let ball_mat = lambert!({ color: 0xd82040 });
     let grp = group();
     let n_jacks = 4 + (rnd() * 5.0).floor() as i32;
-    for i in 0..n_jacks {
+    for _i in 0..n_jacks {
         let jack_mat = lambert!({ color: pick_color(&jack_colors) });
         let jack = group();
         // 3 perpendicular pins with round tips (6 tips total = jack).

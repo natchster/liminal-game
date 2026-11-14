@@ -39,7 +39,7 @@ game::lazy_static_tex!(
         ctx.fill_rect(0, 0, w, h);
         // Slight age grime.
         for _ in 0..40 {
-            ctx.set_fill_style(&format!("rgba(120,100,60,{})", 0.02 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(120,100,60,{})", 0.02 + rnd() * 0.05));
             let cx = rnd() * w;
             let cy = rnd() * h;
             let rx = 8.0 + rnd() * 24.0;

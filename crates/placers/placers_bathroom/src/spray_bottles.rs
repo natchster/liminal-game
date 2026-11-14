@@ -1,5 +1,4 @@
 //! `place_spray_bottles`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;

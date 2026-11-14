@@ -228,7 +228,7 @@ fn loaf_board_tex(salt: u32) -> Tex {
             let (x, y) = (r.next() * w, r.next() * h);
             let a = PI / 2.0 + r.range(-0.6, 0.6) + if r.next() < 0.25 { PI / 2.0 } else { 0.0 };
             let l = r.range(10.0, 60.0);
-            ctx.set_stroke_style(&format!("rgba(70,54,40,{:.2})", r.range(0.15, 0.45)));
+            ctx.set_stroke_style(format!("rgba(70,54,40,{:.2})", r.range(0.15, 0.45)));
             ctx.set_line_width(r.range(0.5, 1.1));
             ctx.begin_path();
             ctx.move_to(x, y);

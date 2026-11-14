@@ -15,7 +15,7 @@ pub(crate) fn place_small_dominoes(g: &mut Game, _dist: &[i32]) {
     let divider_mat = lambert!({ color: 0x8a7060 });
     let grp = group();
     let n_dominoes = 2 + (rnd() * 3.0).floor() as i32;
-    for i in 0..n_dominoes {
+    for _i in 0..n_dominoes {
         let dom = group();
         // Body: rectangle 4×2 cm.
         let body = mesh(pg("SmallDominoes__tile", box_geo!(0.040, 0.006, 0.020)), &bone_mat);

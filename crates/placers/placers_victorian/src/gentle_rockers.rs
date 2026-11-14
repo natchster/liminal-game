@@ -41,7 +41,7 @@ pub(crate) fn place_gentle_rockers(g: &mut Game, _dist: &[i32]) {
     back.position().set(0, 0.30 + back_h / 2.0, -seat_d * 0.45);
     chair.add(&back);
     // 5 vertical back slats for classic rocker look.
-    let slat_w = 0.010;
+    let _slat_w = 0.010;
     for i in 0..5 {
         let sx = -seat_w * 0.35 + i as f64 * (seat_w * 0.7 / 4.0);
         let slat = mesh(pg("GentleRockers__slat", cyl_geo!(0.006, 0.006, back_h - 0.020, 5)), &wood_mat);

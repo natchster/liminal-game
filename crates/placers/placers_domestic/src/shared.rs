@@ -1,10 +1,6 @@
 //! What several domestic placers share.
 use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Age;
-use game::visuals::pictures::Finish;
-use game::visuals::pictures::Outline;
 
 /// A hash of a tile and a salt: what a thing placed there is, with no draw
 pub(crate) fn kitchen_hash(x: i32, z: i32, salt: u32) -> u32 {
@@ -91,7 +87,7 @@ pub(crate) fn soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, 
 
 /// A short wandering line from `at`, `len` px long at angle `ang`.
 pub(crate) fn wander(ctx: &mut Canvas, at: (f64, f64), len: f64, ang: f64, c: (f64, f64, f64), a: f64, lw: f64) {
-    ctx.set_stroke_style(&css(c, a));
+    ctx.set_stroke_style(css(c, a));
     ctx.set_line_width(lw);
     ctx.begin_path();
     ctx.move_to(at.0, at.1);
@@ -119,7 +115,7 @@ pub(crate) fn leather_tex(base: u32, size: u32, vary: u32) -> Tex {
 pub(crate) fn paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     let c = rgb(base);
     let s = w / 256.0;
-    ctx.set_fill_style(&css(c, 1.0));
+    ctx.set_fill_style(css(c, 1.0));
     ctx.fill_rect(0, 0, w, h);
     let dark = (c.0 * 0.62, c.1 * 0.58, c.2 * 0.55);
     let pale = mix(c, (196.0, 184.0, 166.0), 0.42);
@@ -131,7 +127,7 @@ pub(crate) fn paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     // the grain: pores and a fine pebble
     for _ in 0..(2600.0 * s * s) as i32 {
         let col = if rnd() < 0.7 { dark } else { pale };
-        ctx.set_fill_style(&css(col, 0.12 + rnd() * 0.16));
+        ctx.set_fill_style(css(col, 0.12 + rnd() * 0.16));
         ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0);
     }
     // creases, each with its pale lip
@@ -169,7 +165,7 @@ pub(crate) fn paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     }
     for _ in 0..3 {
         let (x, y, r) = (rnd() * w, rnd() * h, (10.0 + rnd() * 26.0) * s);
-        ctx.set_stroke_style(&css(pale, 0.22));
+        ctx.set_stroke_style(css(pale, 0.22));
         ctx.set_line_width(1.2 * s);
         ctx.begin_path();
         ctx.arc(x, y, r, rnd() * 3.0, 3.0 + rnd() * 3.0);

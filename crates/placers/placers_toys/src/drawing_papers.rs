@@ -53,7 +53,7 @@ game::lazy_static_tex!(
         }
         // Slight grunge.
         for _ in 0..15 {
-            ctx.set_fill_style(&format!("rgba(0,0,0,{})", 0.05 + rnd() * 0.08));
+            ctx.set_fill_style(format!("rgba(0,0,0,{})", 0.05 + rnd() * 0.08));
             ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
         }
     })

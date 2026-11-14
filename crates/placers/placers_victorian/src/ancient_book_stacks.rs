@@ -20,7 +20,7 @@ pub(crate) fn place_ancient_book_stacks(g: &mut Game, _dist: &[i32]) {
     let stack = group();
     let n_books = 3 + (rnd() * 2.0).floor() as i32;
     let mut y = 0.0;
-    for i in 0..n_books {
+    for _i in 0..n_books {
         let leather_mat = lambert!({ color: pick_hex(&leather_colors) });
         let book = group();
         let bw = 0.09 + rnd() * 0.04;

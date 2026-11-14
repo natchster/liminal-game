@@ -72,7 +72,7 @@ game::lazy_static_tex!(
         // Flower head — 6 pressed-flat petals.
         let petal_colors = ["#c04060", "#d060c0", "#f0c020", "#c08040", "#c060c0"];
         let petal_color = petal_colors[(rnd() * petal_colors.len() as f64).floor() as usize];
-        ctx.set_fill_style(&format!("{}d0", petal_color)); // alpha for pressed look
+        ctx.set_fill_style(format!("{}d0", petal_color)); // alpha for pressed look
         for p in 0..6 {
             let a = (p as f64 / 6.0) * PI * 2.0;
             ctx.begin_path();

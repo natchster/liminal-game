@@ -27,7 +27,7 @@ pub(crate) fn place_tripod_telescopes(g: &mut Game, _dist: &[i32]) {
         leg.rotation().z = ang.cos() * 0.245;
         leg.rotation().x = -ang.sin() * 0.245;
         leg.scale().y = 1.02;
-        leg.position().set(ang.cos() * 0.118 * (tripod_h / 2.0 / (tripod_h / 2.0)), tripod_h / 2.0, ang.sin() * 0.118);
+        leg.position().set(ang.cos() * 0.118, tripod_h / 2.0, ang.sin() * 0.118);
         tt.add(&leg);
     }
     // Rubber foot caps at bottom of each leg.

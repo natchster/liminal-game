@@ -1,5 +1,4 @@
 //! `place_small_music_boxes`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;

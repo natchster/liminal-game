@@ -195,7 +195,7 @@ fn boot_soft(ctx: &mut Canvas, at: (f64, f64), r: f64, k: f64, turn: f64, c: (f6
 
 /// A short wandering line from `at`, `len` px long at angle `ang`.
 fn boot_wander(ctx: &mut Canvas, at: (f64, f64), len: f64, ang: f64, c: (f64, f64, f64), a: f64, lw: f64) {
-    ctx.set_stroke_style(&boot_css(c, a));
+    ctx.set_stroke_style(boot_css(c, a));
     ctx.set_line_width(lw);
     ctx.begin_path();
     ctx.move_to(at.0, at.1);
@@ -223,7 +223,7 @@ fn boot_leather_tex(base: u32, size: u32, vary: u32) -> Tex {
 fn boot_paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     let c = boot_rgb(base);
     let s = w / 256.0;
-    ctx.set_fill_style(&boot_css(c, 1.0));
+    ctx.set_fill_style(boot_css(c, 1.0));
     ctx.fill_rect(0, 0, w, h);
     let dark = (c.0 * 0.62, c.1 * 0.58, c.2 * 0.55);
     let pale = boot_mix(c, (196.0, 184.0, 166.0), 0.42);
@@ -235,7 +235,7 @@ fn boot_paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     // the grain: pores and a fine pebble
     for _ in 0..(2600.0 * s * s) as i32 {
         let col = if rnd() < 0.7 { dark } else { pale };
-        ctx.set_fill_style(&boot_css(col, 0.12 + rnd() * 0.16));
+        ctx.set_fill_style(boot_css(col, 0.12 + rnd() * 0.16));
         ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0);
     }
     // creases, each with its pale lip
@@ -273,7 +273,7 @@ fn boot_paint_leather(ctx: &mut Canvas, w: f64, h: f64, base: u32) {
     }
     for _ in 0..3 {
         let (x, y, r) = (rnd() * w, rnd() * h, (10.0 + rnd() * 26.0) * s);
-        ctx.set_stroke_style(&boot_css(pale, 0.22));
+        ctx.set_stroke_style(boot_css(pale, 0.22));
         ctx.set_line_width(1.2 * s);
         ctx.begin_path();
         ctx.arc(x, y, r, rnd() * 3.0, 3.0 + rnd() * 3.0);
@@ -318,15 +318,15 @@ fn boot_sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
             let c = boot_rgb(base);
-            ctx.set_fill_style(&boot_css(c, 1.0));
+            ctx.set_fill_style(boot_css(c, 1.0));
             ctx.fill_rect(0, 0, w, h);
             if stack {
                 // the lifts (each 4-5 mm of the heel's 22), the top piece below
                 let mut y = 0.0;
                 while y < h * 0.76 {
-                    ctx.set_fill_style(&boot_css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
+                    ctx.set_fill_style(boot_css((c.0 * 0.55, c.1 * 0.5, c.2 * 0.48), 0.7));
                     ctx.fill_rect(0, y, w, 1.0);
-                    ctx.set_fill_style(&boot_css(boot_mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
+                    ctx.set_fill_style(boot_css(boot_mix(c, (150.0, 120.0, 96.0), 0.3), 0.3));
                     ctx.fill_rect(0, y + 1.0, w, 1.0);
                     y += h * 0.19;
                 }
@@ -334,7 +334,7 @@ fn boot_sole_tex(base: u32, stack: bool, vary: u32) -> Tex {
                 ctx.fill_rect(0, h * 0.77, w, h * 0.23);
             }
             for _ in 0..40 {
-                ctx.set_fill_style(&boot_css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
+                ctx.set_fill_style(boot_css((c.0 * 0.7, c.1 * 0.68, c.2 * 0.66), 0.2));
                 ctx.fill_rect(rnd() * w, rnd() * h, 4.0 + rnd() * 18.0, 1.0);
             }
             for _ in 0..22 {
@@ -363,7 +363,7 @@ fn boot_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
             let br = if boot { 0.771 } else { 0.781 };
             if !boot {
                 let leather = (122.0, 96.0, 70.0);
-                ctx.set_fill_style(&boot_css(leather, 1.0));
+                ctx.set_fill_style(boot_css(leather, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // worn: the ball dark and smooth, the toe frayed paler
                 boot_soft(ctx, (w * 0.34, h * 0.5), w * 0.22, 0.6, 0.0, (64.0, 54.0, 44.0), 0.6);
@@ -395,7 +395,7 @@ fn boot_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
             } else {
                 let c = boot_rgb(base);
                 let groove = (c.0 * 0.55, c.1 * 0.55, c.2 * 0.55);
-                ctx.set_fill_style(&boot_css(groove, 1.0));
+                ctx.set_fill_style(boot_css(groove, 1.0));
                 ctx.fill_rect(0, 0, w, h);
                 // lugs in rows across the sole, chevroned; few in the waist
                 let face = boot_mix(c, (120.0, 114.0, 106.0), 0.35);
@@ -413,7 +413,7 @@ fn boot_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                         ctx.save();
                         ctx.translate(x, y);
                         ctx.rotate(if k * 2 < n { 0.5 } else { -0.5 });
-                        ctx.set_fill_style(&boot_css(face, 1.0));
+                        ctx.set_fill_style(boot_css(face, 1.0));
                         ctx.fill_rect(-4.0, -9.0, 8.0, 18.0);
                         ctx.restore();
                     }
@@ -424,7 +424,7 @@ fn boot_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
                 boot_soft(ctx, (w * 0.34, h * 0.5), w * 0.2, 0.6, 0.0, (130.0, 124.0, 114.0), 0.25);
                 boot_soft(ctx, (w * 0.92, h * 0.5), w * 0.1, 0.8, 0.0, (130.0, 124.0, 114.0), 0.25);
                 for _ in 0..260 {
-                    ctx.set_fill_style(&boot_css((150.0, 140.0, 124.0), 0.35));
+                    ctx.set_fill_style(boot_css((150.0, 140.0, 124.0), 0.35));
                     ctx.fill_rect(rnd() * w, rnd() * h, 1.0, 1.0);
                 }
             }

@@ -61,7 +61,7 @@ fn faded_tex(seed: u32) -> Tex {
             ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
         }
         for _ in 0..40 {
-            ctx.set_fill_style(&format!("rgba(40,34,28,{:.2})", r.range(0.2, 0.6)));
+            ctx.set_fill_style(format!("rgba(40,34,28,{:.2})", r.range(0.2, 0.6)));
             ctx.fill_rect(r.range(0.0, w), r.range(0.0, h), r.range(0.6, 1.6), r.range(0.6, 1.6));
         }
     })

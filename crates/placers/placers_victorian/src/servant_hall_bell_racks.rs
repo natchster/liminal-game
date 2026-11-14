@@ -2,7 +2,6 @@
 use game::prelude::*;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::wall_candidates;
-use std::collections::HashSet;
 
 // Servant's-hall bell rack (wall): 2.5% chance per level.
 pub(crate) fn place_servant_hall_bell_racks(g: &mut Game, _dist: &[i32]) {

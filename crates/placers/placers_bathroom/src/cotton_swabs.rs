@@ -97,7 +97,7 @@ fn swab_tex() -> Tex {
             let row = ((v * rows).floor() as usize).min(SWABS.len() - 1);
             let ring = ((v * rows - row as f64 - 0.08) / 0.84).clamp(0.0, 1.0);
             let x = u * SWAB_L;
-            let tuft = x < TUFT_L || x > SWAB_L - TUFT_L;
+            let tuft = !(TUFT_L..=SWAB_L - TUFT_L).contains(&x);
             let (xm, rm) = (x * 1000.0, ring * 17.0);
             let n = fbm(5 + row as u32, xm * 0.8, rm * 0.8, 3);
             let mut c = if tuft {

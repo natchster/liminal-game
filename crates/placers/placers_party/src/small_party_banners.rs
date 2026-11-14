@@ -17,7 +17,7 @@ pub(crate) fn place_small_party_banners(g: &mut Game, _dist: &[i32]) {
     }
     let (x, z) = pick(&open);
     let ban_colors = [0xd82060, 0x2050d8, 0xd8b820, 0x30a030, 0xa020a0];
-    let ban_mat = lambert!({ color: pick(&ban_colors), side: DoubleSide });
+    let _ban_mat = lambert!({ color: pick(&ban_colors), side: DoubleSide });
     let string_mat = lambert!({ color: 0xf0e8d8 });
     let banner = group();
     let span_len = 1.6 + rnd() * 0.8;

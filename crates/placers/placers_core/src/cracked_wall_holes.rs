@@ -161,7 +161,7 @@ fn hole_back_tex(masonry: bool) -> Tex {
                 // the paper's fibre and the dust run down it
                 for _ in 0..900 {
                     let (x, y) = (rnd() * w, rnd() * h);
-                    ctx.set_fill_style(&format!(
+                    ctx.set_fill_style(format!(
                         "rgba({},{},{},{})",
                         60 + (rnd() * 60.0) as i32,
                         55 + (rnd() * 50.0) as i32,
@@ -200,7 +200,7 @@ fn hole_back_tex(masonry: bool) -> Tex {
                     let (x, y) = (rnd() * w, rnd() * h);
                     let r = 1.0 + rnd() * 4.0;
                     let v = (60.0 + rnd() * 90.0) as i32;
-                    ctx.set_fill_style(&format!("rgba({},{},{},{})", v, v - 4, v - 10, 0.5 + rnd() * 0.4));
+                    ctx.set_fill_style(format!("rgba({},{},{},{})", v, v - 4, v - 10, 0.5 + rnd() * 0.4));
                     ctx.begin_path();
                     ctx.ellipse(x, y, r, r * (0.6 + rnd() * 0.4), rnd() * 3.0, 0, 7);
                     ctx.fill();
@@ -341,7 +341,7 @@ fn hole_dust_tex() -> Tex {
                 }
                 for _ in 0..160 {
                     let (x, y) = (w * (0.15 + 0.7 * rnd()), h * rnd() * rnd() * 0.9);
-                    ctx.set_fill_style(&format!("rgba(236,230,216,{})", 0.4 + rnd() * 0.5));
+                    ctx.set_fill_style(format!("rgba(236,230,216,{})", 0.4 + rnd() * 0.5));
                     ctx.fill_rect(x, y, 1.0 + rnd() * 1.5, 1.0 + rnd() * 1.5);
                 }
             })

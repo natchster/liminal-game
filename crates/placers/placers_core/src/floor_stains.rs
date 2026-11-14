@@ -1,5 +1,4 @@
 //! `place_floor_stains`
-use game::base::state::GameplayR1State;
 use game::prelude::*;
 
 pub(crate) fn place_floor_stains(g: &mut Game, _dist: &[i32]) {

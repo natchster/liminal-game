@@ -129,7 +129,7 @@ fn dial_tex(seed: u32) -> Tex {
         ctx.set_line_width(0.8);
         for _ in 0..70 {
             let (mut x, mut y) = (rr.range(0.0, w), rr.range(0.0, h));
-            ctx.set_stroke_style(&format!("rgba(90,70,40,{:.2})", rr.range(0.15, 0.35)));
+            ctx.set_stroke_style(format!("rgba(90,70,40,{:.2})", rr.range(0.15, 0.35)));
             ctx.begin_path();
             ctx.move_to(x, y);
             for _ in 0..4 {
@@ -148,7 +148,7 @@ fn dial_tex(seed: u32) -> Tex {
         ctx.set_fill_style(gr);
         ctx.fill_rect(0, ty - 30.0, w, h - ty + 30.0);
         for _ in 0..90 {
-            ctx.set_fill_style(&format!("rgba(50,38,25,{:.2})", rr.range(0.3, 0.8)));
+            ctx.set_fill_style(format!("rgba(50,38,25,{:.2})", rr.range(0.3, 0.8)));
             ctx.begin_path();
             ctx.arc(rr.range(0.0, w), rr.range(0.0, h), rr.range(0.8, 2.6), 0, 7);
             ctx.fill();
@@ -221,7 +221,7 @@ fn pitted_tex(seed: u32) -> Tex {
             ctx.fill_rect(x - rr, y - rr, rr * 2.0, rr * 2.0);
         }
         for _ in 0..60 {
-            ctx.set_fill_style(&format!("rgba(96,56,30,{:.2})", r.range(0.3, 0.8)));
+            ctx.set_fill_style(format!("rgba(96,56,30,{:.2})", r.range(0.3, 0.8)));
             ctx.fill_rect(r.range(0.0, w), r.range(0.0, h), r.range(0.6, 1.5), r.range(0.6, 1.5));
         }
     })

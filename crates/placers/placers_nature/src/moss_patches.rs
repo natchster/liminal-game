@@ -1,7 +1,5 @@
 //! `place_moss_patches`
 use crate::shared::floor_mark;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::part;
 use placers_kit::noise::fbm;
@@ -59,8 +57,8 @@ pub(crate) fn place_moss_patches(g: &mut Game, _dist: &[i32]) {
         let mat = tints[kc]
             .get_or_insert_with(|| {
                 // the shoots' texture is about (0.52, 0.55, 0.40): the tint brings it to the colour
-                let t = ((tint[0] / 0.52 * 255.0).min(255.0) as u32) << 16
-                    | ((tint[1] / 0.55 * 255.0).min(255.0) as u32) << 8
+                let t = (((tint[0] / 0.52 * 255.0).min(255.0) as u32) << 16)
+                    | (((tint[1] / 0.55 * 255.0).min(255.0) as u32) << 8)
                     | (tint[2] / 0.40 * 255.0).min(255.0) as u32;
                 lambert!({ map: &shoots, color: t })
             })

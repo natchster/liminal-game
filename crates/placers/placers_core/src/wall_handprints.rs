@@ -55,7 +55,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
         g.world.add(&drag);
         // 20% chance a full handprint at the drag's start edge.
         if rnd() < 0.20 {
-            let start_hand = mesh(plane_geo!(0.15, 0.22), &hand_mat(hand_print_tex(right, grime, vary ^ 0x5a)));
+            let start_hand = mesh(plane_geo!(0.15, 0.22), hand_mat(hand_print_tex(right, grime, vary ^ 0x5a)));
             let dr = drag.rot();
             start_hand.rotation().y = dr.y;
             start_hand.rotation().z = dr.z;
@@ -70,7 +70,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
     // 20% chance downward-facing print (someone leaned) vs default upward.
     let is_downward = rnd() < 0.20;
     let make_hand = |tilt_z: f64, right: bool, k: u32| -> Obj {
-        let h = mesh(plane_geo!(0.15, 0.22), &hand_mat(hand_print_tex(right, grime, vary ^ k)));
+        let h = mesh(plane_geo!(0.15, 0.22), hand_mat(hand_print_tex(right, grime, vary ^ k)));
         // Downward: turned a half turn, so the fingers point down.
         if is_downward {
             h.rotation().z = PI + tilt_z;
@@ -184,7 +184,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
             let u = (sz - 0.06) / 0.05;
             let name = if u < 0.5 { "Real__paperBall" } else { "Real__paperWad" };
             let geo = game::assets::props::prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(sz, 0.04, sz));
-            let scrap = mesh(geo, &scrap_ball_mat());
+            let scrap = mesh(geo, scrap_ball_mat());
             scrap.scale().set_scalar(0.9 + 0.2 * (u * 2.0).fract());
             scrap.position().set(pos_x + (rnd() - 0.5) * 0.3, 0.0, pos_z + (rnd() - 0.5) * 0.3);
             // Nudge slightly away from wall to avoid clipping.

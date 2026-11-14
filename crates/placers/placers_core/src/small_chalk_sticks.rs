@@ -14,7 +14,7 @@ pub(crate) fn place_small_chalk_sticks(g: &mut Game, _dist: &[i32]) {
     let chalk_colors = [0xf0ece0, 0xd0d0d0, 0xd08080, 0x80d080, 0x8080d0, 0xd0d080, 0xd080d0];
     let grp = group();
     let n_sticks = 2 + (rnd() * 3.0).floor() as i32;
-    for i in 0..n_sticks {
+    for _i in 0..n_sticks {
         let chalk_mat = lambert!({ color: pick_color(&chalk_colors) });
         let chalk = mesh(pg("SmallChalkSticks__stick", cyl_geo!(0.006, 0.006, 0.055, 6)), &chalk_mat);
         chalk.rotation().z = PI / 2.0;

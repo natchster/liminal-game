@@ -3,7 +3,6 @@
 //! A module each, named as the placer is registered (`place_<name>` in
 //! `<name>.rs`), with the helpers only it uses; `shared` holds what
 //! several of them use; what placers of other themes use too is in `placers_kit`.
-#![allow(unused_variables, unused_mut, unused_assignments, unused_imports, dead_code, clippy::all)]
 use game::base::state::PlacerFn;
 
 mod bottle_caps;

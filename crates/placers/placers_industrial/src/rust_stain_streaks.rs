@@ -39,7 +39,7 @@ pub(crate) fn place_rust_stain_streaks(g: &mut Game, _dist: &[i32]) {
     let len = 0.30 + 0.18 * r.f();
     // the plane: the old decal's, on the wall's face (its back 5 mm behind the old one)
     let tex = rust_streak_tex(r.u(), pw, ph, (pw / 2.0 + fx, ph / 2.0 - from), len, if bracket { 0.013 } else { 0.009 });
-    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), mark_mat(&tex));
     decal.position().z = -0.004;
     grp.add(&decal);
     let name = if bracket { "Real__rustStreakBracket" } else { "Real__rustStreakAnchor" };
@@ -99,7 +99,8 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
             (o, reach, 0.0014 + 0.003 * r.f(), 0.5 + 0.4 * r.f(), r.u())
         })
         .collect();
-    let tex = decal_tex(192, 480, pw, ph, RUST, move |x, y, aa| {
+
+    decal_tex(192, 480, pw, ph, RUST, move |x, y, aa| {
         let mut px = [RUST[0], RUST[1], RUST[2], 0.0];
         let dy = y - sy;
         let t = (dy / len).clamp(0.0, 1.0);
@@ -143,8 +144,7 @@ fn rust_streak_tex(seed: u32, pw: f64, ph: f64, from: (f64, f64), len: f64, w0: 
         // nothing at the plane's edges
         px[3] *= sstep(0.0, 0.015, x.min(pw - x).min(y).min(ph - y));
         px
-    });
-    tex
+    })
 }
 
 /// Rusted steel: dark scale and orange bloom, pitted (one, shared).

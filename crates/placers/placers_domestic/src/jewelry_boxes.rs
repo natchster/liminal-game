@@ -60,7 +60,7 @@ pub(crate) fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     jb.add(&clasp);
     // 2-3 rings (small tori).
     let ring_count = 2 + (rnd() * 2.0).floor() as i32;
-    for i in 0..ring_count {
+    for _i in 0..ring_count {
         let is_gold = rnd() < 0.5;
         let ring_mat2 = if is_gold { &gold_mat } else { &silver_mat };
         let ring = mesh(pg("JewelryBoxes__ring", torus_geo!(0.010, 0.002, 3, 10)), ring_mat2);
@@ -119,7 +119,7 @@ pub(crate) fn place_jewelry_boxes(g: &mut Game, _dist: &[i32]) {
     jb.add(&pendant);
     // 60% chance: pair of earrings scattered nearby.
     if rnd() < 0.6 {
-        for i in 0..2 {
+        for _i in 0..2 {
             let earring_mat = &necklace_mat;
             let earring = mesh(pg("JewelryBoxes__earring", torus_geo!(0.005, 0.0008, 3, 6)), earring_mat);
             let ear_tilt = (rnd() - 0.5) * 0.4;

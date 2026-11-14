@@ -53,7 +53,7 @@ pub(crate) fn place_dead_flower_vases(g: &mut Game, _dist: &[i32]) {
         vase.add(&petal);
     }
     // 3 fallen petals on floor.
-    for i in 0..3 {
+    for _i in 0..3 {
         let fallen = mesh(circle_geo!(0.006, 5), &petal_mat);
         fallen.rotation().x = -PI / 2.0;
         fallen.position().set((rnd() - 0.5) * 0.10, 0.002, (rnd() - 0.5) * 0.10);

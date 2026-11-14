@@ -6,7 +6,6 @@ use placers_kit::paint::fill;
 use placers_kit::place::mount_on_wall;
 use placers_kit::place::salt;
 use placers_kit::place::wall_candidates;
-use std::collections::HashSet;
 
 // Empty painting outline (wall): 3% chance per level. Absence-as-prop.
 pub(crate) fn place_empty_painting_outlines(g: &mut Game, _dist: &[i32]) {
@@ -40,7 +39,7 @@ pub(crate) fn place_empty_painting_outlines(g: &mut Game, _dist: &[i32]) {
     let p = ep.pos();
     let k = salt(p.x, p.z, 37);
     let decal = |tex: &Tex| lambert!({ map: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    let ghost = mesh(plane_geo!(pw, ph), &decal(&ghost_tex(k, pw, ph)));
+    let ghost = mesh(plane_geo!(pw, ph), decal(&ghost_tex(k, pw, ph)));
     ghost.position().set(0, 0, -0.0015);
     ep.add(&ghost);
     // the two picture hooks at the old hooks' places, their pins in the wall
@@ -57,7 +56,7 @@ pub(crate) fn place_empty_painting_outlines(g: &mut Game, _dist: &[i32]) {
         ep.add(&hook);
     }
     if let Some((sx, sy, rot)) = scrape {
-        let s = mesh(plane_geo!(0.015, 0.06), &decal(&scrape_tex(k)));
+        let s = mesh(plane_geo!(0.015, 0.06), decal(&scrape_tex(k)));
         s.position().set(sx, sy, -0.0015);
         s.rotation().z = rot;
         ep.add(&s);

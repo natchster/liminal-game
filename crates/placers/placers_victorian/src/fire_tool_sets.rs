@@ -135,7 +135,7 @@ pub(crate) fn place_fire_tool_sets(g: &mut Game, _dist: &[i32]) {
         ash.rotation().z = rnd() * PI * 2.0;
         fts.add(&ash);
         // Tiny lumps in the ash.
-        for j in 0..3 {
+        for _j in 0..3 {
             let lump = mesh(pg("FireToolSets__lump", sphere_geo!(0.004, 5, 4)), lambert!({ color: 0x1a1a1a }));
             let lx = base_r + 0.030 + (rnd() - 0.5) * 0.030;
             let lz = (rnd() - 0.5) * 0.030;

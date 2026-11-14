@@ -146,7 +146,7 @@ fn paint_cloth(ctx: &mut Canvas, w: f64, h: f64, cloth: Cloth, base: u32) {
         return;
     }
     let c = rgb(base);
-    ctx.set_fill_style(&css(c, 1.0));
+    ctx.set_fill_style(css(c, 1.0));
     ctx.fill_rect(0, 0, w, h);
     let dark = (c.0 * 0.66, c.1 * 0.64, c.2 * 0.62);
     let pale = mix(c, (200.0, 196.0, 186.0), 0.35);
@@ -154,18 +154,18 @@ fn paint_cloth(ctx: &mut Canvas, w: f64, h: f64, cloth: Cloth, base: u32) {
         Cloth::Canvas => {
             // the plain weave: warp and weft every 2 px, each thread uneven
             for i in (0..w as i32).step_by(2) {
-                ctx.set_fill_style(&css(dark, 0.10 + rnd() * 0.10));
+                ctx.set_fill_style(css(dark, 0.10 + rnd() * 0.10));
                 ctx.fill_rect(i as f64, 0, 1, h);
             }
             for j in (0..h as i32).step_by(2) {
-                ctx.set_fill_style(&css(pale, 0.08 + rnd() * 0.10));
+                ctx.set_fill_style(css(pale, 0.08 + rnd() * 0.10));
                 ctx.fill_rect(0, j as f64, w, 1);
             }
         }
         _ => {
             // knitted: columns of V stitches (a jersey's finer)
             let step = if cloth == Cloth::Knit { 4.0 } else { 3.0 };
-            ctx.set_stroke_style(&css(dark, 0.22));
+            ctx.set_stroke_style(css(dark, 0.22));
             ctx.set_line_width(0.8);
             let mut y = 0.0;
             while y < h {
@@ -186,7 +186,7 @@ fn paint_cloth(ctx: &mut Canvas, w: f64, h: f64, cloth: Cloth, base: u32) {
                 wander(ctx, (rnd() * w, rnd() * h), 2.0 + rnd() * 4.0, rnd() * 6.3, pale, 0.25, 0.5);
             }
             for _ in 0..90 {
-                ctx.set_fill_style(&css(pale, 0.4));
+                ctx.set_fill_style(css(pale, 0.4));
                 ctx.fill_rect(rnd() * w, rnd() * h, 1.5, 1.5);
             }
         }
@@ -221,7 +221,7 @@ fn glove_back_tex(cloth: Cloth, base: u32, points: bool, vary: u32) -> Tex {
                         let a = px(x - nx * hw, z - nz * hw);
                         let m = px(x + dx * 0.002, z + dz * 0.002);
                         let b = px(x + nx * hw, z + nz * hw);
-                        ctx.set_stroke_style(&css(crease, if dt == 0.0 { 0.45 } else { 0.22 }));
+                        ctx.set_stroke_style(css(crease, if dt == 0.0 { 0.45 } else { 0.22 }));
                         ctx.set_line_width(1.1);
                         ctx.begin_path();
                         ctx.move_to(a.0, a.1);
@@ -247,7 +247,7 @@ fn glove_back_tex(cloth: Cloth, base: u32, points: bool, vary: u32) -> Tex {
                 // toward the wrist, a little converging
                 for (xa, xb) in [(0.022, 0.016), (-0.0005, -0.0005), (-0.023, -0.017)] {
                     let (a, b) = (px(xa, 0.088), px(xb, 0.036));
-                    ctx.set_stroke_style(&css(crease, 0.6));
+                    ctx.set_stroke_style(css(crease, 0.6));
                     ctx.set_line_width(0.9);
                     ctx.set_line_dash(&[2.0, 1.6]);
                     for off in [-1.4, 1.4] {
@@ -277,7 +277,7 @@ fn glove_cuff_tex(cloth: Cloth, base: u32, stripe: Option<u32>, vary: u32) -> Te
             if cloth == Cloth::Leather {
                 paint_leather(ctx, w, h, base);
                 // the hem's stitching by the mouth
-                ctx.set_stroke_style(&css((c.0 * 0.45, c.1 * 0.4, c.2 * 0.38), 0.6));
+                ctx.set_stroke_style(css((c.0 * 0.45, c.1 * 0.4, c.2 * 0.38), 0.6));
                 ctx.set_line_width(0.8);
                 ctx.set_line_dash(&[2.0, 1.5]);
                 ctx.begin_path();
@@ -287,13 +287,13 @@ fn glove_cuff_tex(cloth: Cloth, base: u32, stripe: Option<u32>, vary: u32) -> Te
                 ctx.set_line_dash(&[]);
                 return;
             }
-            ctx.set_fill_style(&css(c, 1.0));
+            ctx.set_fill_style(css(c, 1.0));
             ctx.fill_rect(0, 0, w, h);
             // the stripes, across it (the cuff runs z -0.066 at its mouth to 0)
             if let Some(sc) = stripe {
                 let s = rgb(sc);
                 for (a, b) in [(0.18, 0.26), (0.36, 0.44)] {
-                    ctx.set_fill_style(&css(s, 1.0));
+                    ctx.set_fill_style(css(s, 1.0));
                     ctx.fill_rect(0, h * a, w, h * (b - a));
                 }
             }

@@ -7,7 +7,6 @@ use placers_kit::noise::vn;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::salt;
-use std::collections::HashSet;
 
 // Tall ceramic floor vase with 3-5 peacock feathers (floor): 3% chance.
 // A late Victorian earthenware floor vase (45 cm, scaled by the old height

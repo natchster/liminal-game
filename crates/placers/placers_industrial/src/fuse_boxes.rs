@@ -89,7 +89,7 @@ fn fb_enamel_tex() -> Tex {
         ctx.set_fill_style("#efefea");
         ctx.fill_rect(0, 0, w, h);
         for _ in 0..600 {
-            ctx.set_fill_style(&format!("rgba(80,80,76,{})", 0.02 + rnd() * 0.05));
+            ctx.set_fill_style(format!("rgba(80,80,76,{})", 0.02 + rnd() * 0.05));
             ctx.fill_rect(rnd() * w, rnd() * h, 1.0 + rnd() * 2.0, 1.0 + rnd() * 2.0);
         }
         for &(x, y) in &[(0.05, 0.04), (0.95, 0.04), (0.05, 0.96), (0.95, 0.96)] {

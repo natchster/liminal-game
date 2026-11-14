@@ -46,7 +46,7 @@ pub(crate) fn place_moon_globes(g: &mut Game, _dist: &[i32]) {
     // Dark "maria" patches — 4-6 larger dark ellipses.
     let maria_colors = [0x404050, 0x504040, 0x505050];
     let maria_count = 4 + (rnd() * 3.0).floor() as i32;
-    for i in 0..maria_count {
+    for _i in 0..maria_count {
         let maria_mat = lambert!({ color: choice(&maria_colors) });
         let u = rnd() * PI * 2.0;
         let v = rnd() * (PI * 0.75) + PI * 0.125;
@@ -65,7 +65,7 @@ pub(crate) fn place_moon_globes(g: &mut Game, _dist: &[i32]) {
     // Impact craters — 12-18 small dark circles.
     let crater_mat = lambert!({ color: 0x707078 });
     let crater_count = 12 + (rnd() * 7.0).floor() as i32;
-    for i in 0..crater_count {
+    for _i in 0..crater_count {
         let u = rnd() * PI * 2.0;
         let v = rnd() * PI + 0.05;
         let rr = globe_r * 1.003;

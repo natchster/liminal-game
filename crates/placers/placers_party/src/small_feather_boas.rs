@@ -125,5 +125,5 @@ fn fluff(name: &str) -> Option<Geo> {
 /// A colour's hex from straight sRGB 0..1
 fn hex(c: [f64; 3]) -> u32 {
     let b = |v: f64| (v.clamp(0.0, 1.0) * 255.0).round() as u32;
-    b(c[0]) << 16 | b(c[1]) << 8 | b(c[2])
+    (b(c[0]) << 16) | (b(c[1]) << 8) | b(c[2])
 }

@@ -17,7 +17,7 @@ pub(crate) fn place_rusted_nails(g: &mut Game, _dist: &[i32]) {
     let rust_colors = [0x6a3820, 0x504028, 0x8a4030];
     let grp = group();
     let n_nails = 6 + (rnd() * 7.0).floor() as i32;
-    for i in 0..n_nails {
+    for _i in 0..n_nails {
         let nail_mat = lambert!({ color: pick_hex(&rust_colors) });
         let nail = group();
         // Shaft.

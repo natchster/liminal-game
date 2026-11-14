@@ -1,8 +1,6 @@
 //! `place_chestnuts`
 use crate::shared::clear_of;
 use crate::shared::uv_part;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::geometry::frame;
 use placers_kit::geometry::part;

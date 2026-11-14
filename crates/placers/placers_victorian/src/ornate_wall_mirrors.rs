@@ -1,5 +1,4 @@
 //! `place_ornate_wall_mirrors`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Finish;

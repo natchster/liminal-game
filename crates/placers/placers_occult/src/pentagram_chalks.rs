@@ -1,7 +1,5 @@
 //! `place_pentagram_chalks`
 use game::prelude::*;
-use game::visuals::pictures;
-use game::visuals::pictures::Age;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::sstep;

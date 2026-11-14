@@ -233,7 +233,7 @@ fn wine_glass_film_tex(wine: usize, tide: f64, lipstick: bool, salt: u32) -> Tex
             ctx.rotate(r.range(-0.6, 0.6));
             ctx.scale(1.0, 1.35);
             for k in 0..7 {
-                ctx.set_stroke_style(&format!("rgba(196,198,190,{:.3})", 0.16 + 0.06 * (k % 2) as f64));
+                ctx.set_stroke_style(format!("rgba(196,198,190,{:.3})", 0.16 + 0.06 * (k % 2) as f64));
                 ctx.set_line_width(1.0);
                 ctx.begin_path();
                 ctx.ellipse(0, 0, 3.0 + k as f64 * 1.6, 2.4 + k as f64 * 1.3, 0, 0, PI * 2.0);
@@ -316,7 +316,7 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
             let a = r.range(0.0, PI * 2.0);
             let (x, y) = (w * 0.5 + a.cos() * w * r.range(0.3, 0.45), h * 0.5 + a.sin() * h * r.range(0.3, 0.45));
             let rr = r.range(1.2, 3.0);
-            ctx.set_fill_style(&format!("rgba({fr},{fg},{fb},{:.2})", fa));
+            ctx.set_fill_style(format!("rgba({fr},{fg},{fb},{:.2})", fa));
             ctx.begin_path();
             ctx.arc(x, y, rr, 0, PI * 2.0);
             ctx.fill();

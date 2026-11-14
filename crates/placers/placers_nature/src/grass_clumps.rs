@@ -1,8 +1,6 @@
 //! `place_grass_clumps`
 use crate::shared::floor_mark;
 use crate::shared::thin_lit;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::mix_unclamped;

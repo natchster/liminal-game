@@ -26,7 +26,7 @@ pub(crate) fn place_bottle_caps(g: &mut Game, _dist: &[i32]) {
     let grp = group();
     let mut down: Vec<(f64, f64)> = vec![];
     let n_caps = 8 + (rnd() * 7.0).floor() as i32;
-    for i in 0..n_caps {
+    for _i in 0..n_caps {
         let col = choice(&cap_colors);
         let k = cap_colors.iter().position(|&c| c == col).unwrap_or(0);
         let px = (rnd() - 0.5) * 0.25;

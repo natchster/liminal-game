@@ -103,7 +103,7 @@ fn lens_dirt_tex(seed: u32) -> Tex {
             let (x0, y0) = (r.range(0.0, w), r.range(0.0, h));
             let a = r.range(-0.4, 0.4) + if r.next() < 0.3 { 1.3 } else { 0.0 };
             let l = r.range(6.0, 40.0);
-            ctx.set_stroke_style(&format!("rgba(235,235,235,{:.2})", r.range(0.25, 0.6)));
+            ctx.set_stroke_style(format!("rgba(235,235,235,{:.2})", r.range(0.25, 0.6)));
             ctx.set_line_width(r.range(0.5, 1.1));
             ctx.begin_path();
             ctx.move_to(x0, y0);
@@ -132,7 +132,7 @@ fn lens_dirt_tex(seed: u32) -> Tex {
         ctx.set_line_width(1.0);
         for k in 0..9 {
             let rr = 3.0 + k as f64 * 2.2;
-            ctx.set_stroke_style(&format!("rgba(210,210,205,{:.2})", 0.30 - k as f64 * 0.025));
+            ctx.set_stroke_style(format!("rgba(210,210,205,{:.2})", 0.30 - k as f64 * 0.025));
             ctx.begin_path();
             ctx.ellipse(tx, ty, rr * 1.25, rr, 0.5, 0, 6.3);
             ctx.stroke();

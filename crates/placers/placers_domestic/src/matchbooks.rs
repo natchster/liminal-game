@@ -25,7 +25,7 @@ pub(crate) fn place_matchbooks(g: &mut Game, _dist: &[i32]) {
     grp.add(&booklet);
     // 5 scattered matches.
     let n_matches = 4 + (rnd() * 3.0).floor() as i32;
-    for i in 0..n_matches {
+    for _i in 0..n_matches {
         let m = group();
         let stick = mesh(pg("Matchbooks__stick", cyl_geo!(0.0008, 0.0008, 0.024, 4)), &match_stick_mat);
         stick.rotation().z = PI / 2.0;

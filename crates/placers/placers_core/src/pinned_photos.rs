@@ -124,7 +124,7 @@ fn photo_textures() -> Vec<Tex> {
                         ctx.fill_rect(0, 0, w, h);
                         // Grunge speckle.
                         for _ in 0..30 {
-                            ctx.set_fill_style(&format!("rgba(0,0,0,{})", 0.05 + rnd() * 0.05));
+                            ctx.set_fill_style(format!("rgba(0,0,0,{})", 0.05 + rnd() * 0.05));
                             ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
                         }
                         ctx.set_fill_style("#2a1a12");
@@ -170,7 +170,7 @@ fn photo_textures() -> Vec<Tex> {
                                 for r in 0..5 {
                                     let rad = 8.0 + r as f64 * 8.0;
                                     let alpha = 0.65 - r as f64 * 0.11;
-                                    ctx.set_stroke_style(&format!("rgba(220,200,160,{})", alpha));
+                                    ctx.set_stroke_style(format!("rgba(220,200,160,{})", alpha));
                                     ctx.set_line_width(1.6);
                                     ctx.begin_path();
                                     ctx.arc(cx, cy, rad, 0, PI * 2.0);
@@ -195,7 +195,7 @@ fn photo_textures() -> Vec<Tex> {
                                 ctx.ellipse(w / 2.0, 66, 16, 26, 0, 0, PI * 2.0);
                                 ctx.fill();
                                 for _ in 0..40 {
-                                    ctx.set_fill_style(&format!("rgba(0,0,0,{})", 0.10 + rnd() * 0.15));
+                                    ctx.set_fill_style(format!("rgba(0,0,0,{})", 0.10 + rnd() * 0.15));
                                     ctx.fill_rect(rnd() * w, rnd() * h, 1, 1);
                                 }
                                 ctx.set_fill_style("rgba(30,20,15,0.55)");
@@ -210,7 +210,7 @@ fn photo_textures() -> Vec<Tex> {
                                     let sx = rnd() * w;
                                     let sy = rnd() * h;
                                     let gray = 40.0 + rnd() * 200.0;
-                                    ctx.set_fill_style(&format!("rgba({},{},{},{})", gray, gray, gray, 0.4 + rnd() * 0.5));
+                                    ctx.set_fill_style(format!("rgba({},{},{},{})", gray, gray, gray, 0.4 + rnd() * 0.5));
                                     ctx.fill_rect(sx, sy, 1, 1);
                                 }
                                 ctx.set_fill_style("rgba(0,0,0,0.35)");
@@ -254,7 +254,7 @@ fn photo_textures() -> Vec<Tex> {
                                     let gx = rnd() * w;
                                     let gy = rnd() * h;
                                     let gv = 40.0 + rnd() * 120.0;
-                                    ctx.set_fill_style(&format!("rgba({},{},{},{})", gv, gv, gv * 0.9, 0.10 + rnd() * 0.30));
+                                    ctx.set_fill_style(format!("rgba({},{},{},{})", gv, gv, gv * 0.9, 0.10 + rnd() * 0.30));
                                     ctx.fill_rect(gx, gy, 1, 1);
                                 }
                                 let band_y = 20.0 + rnd() * 50.0;

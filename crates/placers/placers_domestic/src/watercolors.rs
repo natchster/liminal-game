@@ -47,7 +47,7 @@ game::lazy_static_tex!(
         // 5 large soft blobs of pastel color.
         let pastels = ["#a0c0e8", "#e0b0c0", "#c0d8a8", "#e8d090", "#c0a0d0"];
         for i in 0..8 {
-            ctx.set_fill_style(&format!("{}a0", pastels[i % pastels.len()])); // alpha ~62%.
+            ctx.set_fill_style(format!("{}a0", pastels[i % pastels.len()])); // alpha ~62%.
             ctx.begin_path();
             let cx = rnd() * w;
             let cy = rnd() * h;

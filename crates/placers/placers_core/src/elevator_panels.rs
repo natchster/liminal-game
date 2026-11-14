@@ -100,7 +100,7 @@ fn lift_plate_tex() -> Tex {
         for _ in 0..900 {
             let y = rnd() * h;
             let x = rnd() * w;
-            ctx.set_fill_style(&format!("rgba({},{},{},{})", if rnd() < 0.5 { 255 } else { 90 }, 255, 250, 0.05 + rnd() * 0.08));
+            ctx.set_fill_style(format!("rgba({},{},{},{})", if rnd() < 0.5 { 255 } else { 90 }, 255, 250, 0.05 + rnd() * 0.08));
             ctx.fill_rect(x, y, 6.0 + rnd() * 40.0, 0.6);
         }
         // smudges where hands go: over the buttons, heaviest on the lower floors
@@ -258,7 +258,7 @@ fn lift_numerals_tex() -> Tex {
         for (r, row) in names.iter().enumerate() {
             for (c, name) in row.iter().enumerate() {
                 let (x, y) = to(cols[c], rows[r]);
-                ctx.set_fill_style(&format!("rgba(24,22,20,{})", 0.9 - rnd() * 0.3));
+                ctx.set_fill_style(format!("rgba(24,22,20,{})", 0.9 - rnd() * 0.3));
                 ctx.set_font(if name.len() > 1 { "bold 17px Helvetica" } else { "bold 21px Helvetica" });
                 ctx.fill_text(name, x, y + 1.0);
             }

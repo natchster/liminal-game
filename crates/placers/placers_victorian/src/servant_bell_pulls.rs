@@ -85,10 +85,10 @@ pub(crate) fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
         bp.add(&strand);
     }
     // Subtle sway animator on the cord + tassel + strands + braids.
-    let sway_group = group(); // unused
+    let _sway_group = group(); // unused
     let sway_freq = 0.28 + rnd() * 0.20;
     let sway_phase = rnd() * PI * 2.0;
-    let sway_center_y = cord_bot_y - 0.020;
+    let _sway_center_y = cord_bot_y - 0.020;
     let mut swayers: Vec<Obj> = vec![cord.clone(), bulb.clone(), bulb_band.clone()];
     // Also all 8 strands (last 8 added to bp).
     let kids = bp.children();

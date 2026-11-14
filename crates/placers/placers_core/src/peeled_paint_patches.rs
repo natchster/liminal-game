@@ -50,7 +50,7 @@ pub(crate) fn place_peeled_paint_patches(g: &mut Game, _dist: &[i32]) {
     // a few flakes curled off the wall, at the edges of the holes
     let curls = flakes.curls(&mut r);
     let tex = peeled_paint_tex(&flakes, coat, base, &curls);
-    let decal = mesh(plane_geo!(pw, ph), &mark_mat(&tex));
+    let decal = mesh(plane_geo!(pw, ph), mark_mat(&tex));
     decal.position().z = -0.007;
     patch.add(&decal);
     // the flakes: the top coat's face (the wall's own surface, or the
@@ -273,7 +273,8 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
         })
         .collect();
     let (pw, ph, painted, s) = (f.pw, f.ph, f.painted, f.seed);
-    let tex = decal_tex(400, 520, pw, ph, coat, move |cx, cy, aa| {
+
+    decal_tex(400, 520, pw, ph, coat, move |cx, cy, aa| {
         let (x, y) = (cx - pw / 2.0, ph / 2.0 - cy);
         let h = f.at(x, y);
         let mut px = [coat[0], coat[1], coat[2], 0.0];
@@ -337,6 +338,5 @@ fn peeled_paint_tex(f: &Flakes, coat: [f64; 3], base: [f64; 3], curls: &[(f64, f
             }
         }
         px
-    });
-    tex
+    })
 }

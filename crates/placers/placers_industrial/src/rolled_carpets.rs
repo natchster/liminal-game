@@ -157,7 +157,7 @@ fn rolled_rug(k: usize, colours: usize, vary: u32, rest: Option<RollRest>, origi
     let pal = roll_colours(colours);
     let line = pal.line.map(|v| ((v * 1.25 + 0.03).min(1.0) * 255.0).round() as u32);
     let pile = lambert!({ map: &roll_pile_tex(k, colours, vary) });
-    let ends = lambert!({ color: line[0] << 16 | line[1] << 8 | line[2] });
+    let ends = lambert!({ color: (line[0] << 16) | (line[1] << 8) | line[2] });
     let back = lambert!({ color: 0x8c826e });
     let fringe = lambert!({ color: 0x968a72, side: DoubleSide });
     let twine = lambert!({ color: 0x6a583e });

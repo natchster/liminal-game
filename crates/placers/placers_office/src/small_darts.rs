@@ -17,7 +17,7 @@ pub(crate) fn place_small_darts(g: &mut Game, _dist: &[i32]) {
     let shaft_mat = lambert!({ color: 0xf0ece0 });
     let grp = group();
     let n_darts = 2 + (rnd() * 2.0).floor() as i32;
-    for i in 0..n_darts {
+    for _i in 0..n_darts {
         let dart = group();
         let fin_mat = lambert!({ color: pick_color(&fin_colors), side: DoubleSide });
         // Point: sharp cone.

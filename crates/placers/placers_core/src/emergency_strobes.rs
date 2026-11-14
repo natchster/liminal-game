@@ -1,5 +1,4 @@
 //! `place_emergency_strobes`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;
@@ -90,7 +89,7 @@ const ST_FIRE: [f64; 3] = [0.0, -0.031, 0.0213];
 /// moulded plastic faded paler toward its top, dust settled on it, a scuff
 fn st_housing_tex() -> Tex {
     canvas_tex_opt(48, 80, false, move |ctx, w, h| {
-        let seed = 0x5707_e11u32;
+        let seed = 0x0570_7e11_u32;
         fill(ctx, w, h, |u, v| {
             let n = fbm(seed, u * 4.0, v * 6.0, 3);
             let fade = sstep(0.3, 1.0, v) * 0.10;

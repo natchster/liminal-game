@@ -66,7 +66,7 @@ pub(crate) fn place_pill_bottles(g: &mut Game, _dist: &[i32]) {
     }
     // Scattered pills — 5-12 tiny elongated pill-shaped meshes.
     let pill_count = 5 + (rnd() * 8.0).floor() as i32;
-    for i in 0..pill_count {
+    for _i in 0..pill_count {
         // 50/50 pill type — capsule (2 colors) or tablet (short cylinder).
         let is_capsule = rnd() < 0.5;
         let pill = group();

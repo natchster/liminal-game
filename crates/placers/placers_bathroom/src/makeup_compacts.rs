@@ -1,6 +1,5 @@
 //! `place_makeup_compacts`
 use crate::shared::salt;
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use placers_kit::geometry::put;
 use placers_kit::noise::fbm;

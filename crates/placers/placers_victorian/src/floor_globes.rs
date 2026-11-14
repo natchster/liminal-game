@@ -1,5 +1,4 @@
 //! `place_floor_globes`
-use game::assets::props::prop_part_as_modelled;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Age;
@@ -345,7 +344,7 @@ fn gl_map_tex(vary: u32) -> Tex {
                 1.0 - sstep(0.0, 0.45, a.min(b))
             };
             let (lon_d, lat_d) = (lon.to_degrees(), lat.to_degrees());
-            let mut o = if my < BL_TOP + 1.0 || my > BL_FOOT - 1.0 {
+            let mut o = if !(BL_TOP + 1.0..=BL_FOOT - 1.0).contains(&my) {
                 // a polar cap: the paper, its meridians every 30 degrees,
                 // circles every 10, the pole's little ring
                 let mut c = sea;

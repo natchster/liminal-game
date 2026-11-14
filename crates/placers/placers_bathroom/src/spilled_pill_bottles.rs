@@ -30,7 +30,7 @@ pub(crate) fn place_spilled_pill_bottles(g: &mut Game, _dist: &[i32]) {
     grp.add(&cap);
     // 8-14 scattered pills (capsules).
     let n_pills = 8 + (rnd() * 7.0).floor() as i32;
-    for i in 0..n_pills {
+    for _i in 0..n_pills {
         let pill_mat = lambert!({ color: pick_hex(&pill_colors) });
         let pill = mesh(pg("SpilledPillBottles__pill", cyl_geo!(0.003, 0.003, 0.008, 5)), &pill_mat);
         pill.rotation().z = PI / 2.0;

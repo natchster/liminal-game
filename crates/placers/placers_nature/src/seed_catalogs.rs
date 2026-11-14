@@ -2,8 +2,6 @@
 use crate::shared::blob;
 use crate::shared::css;
 use crate::shared::over;
-use game::assets::props::prop_part_as_modelled;
-use game::assets::props::prop_part_info;
 use game::prelude::*;
 use game::visuals::pictures;
 use game::visuals::pictures::Finish;
@@ -88,32 +86,32 @@ fn seed_cover_tex(vary: u32) -> Tex {
     canvas_tex_opt(456, 687, false, move |ctx, w, h| {
         let seed = vary ^ 0x5eed;
         let paper = rgb(0xab9a72);
-        ctx.set_fill_style(&css(paper, 1.0));
+        ctx.set_fill_style(css(paper, 1.0));
         ctx.fill_rect(0, 0, w, h);
         let ink = rgb(0x1e281a);
         let red = rgb(0x96281e);
         // the border: a double rule and corner squares
-        ctx.set_stroke_style(&css(ink, 1.0));
+        ctx.set_stroke_style(css(ink, 1.0));
         ctx.set_line_width(3);
         ctx.stroke_rect(30, 30, w - 60.0, h - 60.0);
         ctx.set_line_width(1);
         ctx.stroke_rect(37, 37, w - 74.0, h - 74.0);
         // the house and the title
-        ctx.set_fill_style(&css(ink, 1.0));
+        ctx.set_fill_style(css(ink, 1.0));
         ctx.set_text_align("center");
         ctx.set_text_baseline("alphabetic");
         ctx.set_font("bold 22px Copperplate");
         ctx.fill_text_max("WARBECK'S", w / 2.0, 92, w - 120.0);
-        ctx.set_fill_style(&css(red, 1.0));
+        ctx.set_fill_style(css(red, 1.0));
         ctx.set_font("bold 54px Times New Roman");
         ctx.fill_text_max("Garden Book", w / 2.0, 146, w - 100.0);
-        ctx.set_fill_style(&css(ink, 1.0));
+        ctx.set_fill_style(css(ink, 1.0));
         ctx.set_font("italic 20px Times New Roman");
         ctx.fill_text_max("Vegetable \u{b7} Flower \u{b7} Field Seeds", w / 2.0, 176, w - 110.0);
         // the year in a banner
-        ctx.set_fill_style(&css(rgb(0x3f6a3a), 1.0));
+        ctx.set_fill_style(css(rgb(0x3f6a3a), 1.0));
         ctx.fill_rect(w / 2.0 - 60.0, 188, 120, 34);
-        ctx.set_fill_style(&css(paper, 1.0));
+        ctx.set_fill_style(css(paper, 1.0));
         ctx.set_font("bold 28px Times New Roman");
         ctx.fill_text_max("1937", w / 2.0, 215, 110);
         // the picture: a still life of the garden's yield
@@ -189,7 +187,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
                 ctx.line_to(mx + nx * 0.2 * s, my + ny * 0.2 * s);
                 ctx.stroke();
             }
-            ctx.set_stroke_style(&css(rgb(0x4a7a34), 1.0));
+            ctx.set_stroke_style(css(rgb(0x4a7a34), 1.0));
             ctx.set_line_width(1.6);
             for j in 0..7 {
                 let a = PI + 0.9 + j as f64 * 0.12 + r.range(-0.05, 0.05);
@@ -222,7 +220,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
         // pea pods
         for k in 0..3 {
             let (x0, y0) = (250.0 + k as f64 * 20.0, 520.0 - k as f64 * 14.0);
-            ctx.set_fill_style(&css(mix(rgb(0x6a9a46), rgb(0x9cc06a), k as f64 / 3.0), 1.0));
+            ctx.set_fill_style(css(mix(rgb(0x6a9a46), rgb(0x9cc06a), k as f64 / 3.0), 1.0));
             ctx.begin_path();
             ctx.move_to(x0, y0);
             ctx.quadratic_curve_to(x0 + 50.0, y0 - 26.0, x0 + 110.0, y0 - 8.0);
@@ -235,7 +233,7 @@ fn seed_cover_tex(vary: u32) -> Tex {
             }
         }
         // the house's name at the foot
-        ctx.set_fill_style(&css(ink, 1.0));
+        ctx.set_fill_style(css(ink, 1.0));
         ctx.set_font("bold 17px Copperplate");
         ctx.fill_text_max("WARBECK SEED CO.", w / 2.0, 598, w - 120.0);
         ctx.set_font("italic 15px Times New Roman");

@@ -119,8 +119,8 @@ pub(crate) fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
     let kinds = ["pawn", "pawn", "pawn", "pawn", "rook", "knight", "bishop", "queen", "king"];
     let mut positions: std::collections::HashSet<(i32, i32)> = std::collections::HashSet::new();
     let piece_count = 10 + (rnd() * 5.0).floor() as i32;
-    for i in 0..piece_count {
-        let (mut r, mut c) = (0, 0);
+    for _i in 0..piece_count {
+        let (mut r, mut c);
         let mut attempts = 0;
         loop {
             // Bias to middle rows (rows 2-5).

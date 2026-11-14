@@ -145,7 +145,7 @@ pub(crate) fn place_broken_whole_dolls(g: &mut Game, _dist: &[i32]) {
     }
     // 3-4 visible cracks on head/body.
     let crack_count = 3 + (rnd() * 2.0).floor() as i32;
-    for i in 0..crack_count {
+    for _i in 0..crack_count {
         let crack = mesh(box_geo!(0.030 + rnd() * 0.020, 0.001, 0.001), &crack_mat);
         // Random position on head or body.
         let on_head = rnd() < 0.6;

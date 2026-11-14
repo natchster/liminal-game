@@ -17,7 +17,7 @@ pub(crate) fn place_coin_scatters(g: &mut Game, _dist: &[i32]) {
     let coin_colors = [0xd8b040, 0xa08050, 0xc0c0c0, 0xe0a060];
     let grp = group();
     let n_coins = 5 + (rnd() * 8.0).floor() as i32;
-    for i in 0..n_coins {
+    for _i in 0..n_coins {
         let coin_mat = lambert!({ color: pick_hex(&coin_colors) });
         let coin = mesh(pg("CoinScatters__coin", cyl_geo!(0.008, 0.008, 0.001, 10)), &coin_mat);
         coin.position().set((rnd() - 0.5) * 0.30, 0.001, (rnd() - 0.5) * 0.30);
