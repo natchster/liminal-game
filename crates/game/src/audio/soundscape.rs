@@ -325,6 +325,11 @@ fn note_impl(
 /// `make_ir(p)` as plain data: two channels of `len` samples, computed in f64
 /// and stored as f32, drawing from `rng` (bit-reproducible for a given `rng`
 /// sequence).
+/// The rate the noise a game makes at its start is made at (the engine
+/// plays a buffer at any device rate): what it draws from the per-frame
+/// stream is the same on every output, so a session replays on any Mac.
+pub const NOISE_RATE: f64 = 48_000.0;
+
 pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec<f32>> {
     let rand = |a: f64, b: f64| a + rng() * (b - a);
     let trunc = if p.truncate != 0.0 { p.truncate } else { 1.15 };
@@ -959,8 +964,10 @@ impl Soundscape {
         let hrtf = opts.hrtf != Some(false);
         let sr = ac.sample_rate();
 
-        // shared white noise (2 s so loops don't read as a pattern)
-        let noise = ac.create_buffer(1, (sr * 2.0) as usize, sr);
+        // shared white noise (2 s so loops don't read as a pattern), made at
+        // `NOISE_RATE` whatever the device's rate (the engine resamples it):
+        // its draws from the per-frame stream must not hang on the speakers
+        let noise = ac.create_buffer(1, (NOISE_RATE * 2.0) as usize, NOISE_RATE);
         {
             let mut d = noise.channel_mut(0);
             for v in d.iter_mut() {

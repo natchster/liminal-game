@@ -307,7 +307,6 @@ fn parse_args() -> Options {
                 );
                 println!("          [--dump-replay FILE]   a recording as JSON on stdout");
                 println!("          [--bench-replay FILE --seed S --bench-frames N]   what recording and replaying a bot's session cost");
-                println!("          [--dump-replay FILE]   a recording as JSON");
                 println!(
                     "          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)"
                 );
@@ -356,9 +355,10 @@ fn make_game(o: &Options) -> Game {
         || o.bench_creatures.is_some()
         || o.cutscene.is_some()
         || o.tour.is_some();
-    // a recorded or replayed session starts like a fresh install, so the two
-    // start alike (their per-frame seed is set in `main`)
-    let session = o.record.is_some() || o.replay.is_some();
+    // a `--record` session starts like a fresh install (a playtest's: no
+    // save read or written, nobody's settings); its per-frame seed is set in
+    // `main` (a replay makes its game from the recording)
+    let session = o.record.is_some();
     if headless && o.fresh {
         // per-frame randomness from a fixed seed: the same shot every time
         game::base::rng::seed_native(0x5EED_5EED);
@@ -511,6 +511,8 @@ struct App {
     recording: Option<(std::path::PathBuf, serde_json::Value)>,
     /// writes recordings off the frame
     writer: replays::Writer,
+    /// when the recording being made was last copied to its file
+    copied: std::time::Instant,
     /// `--replay`: the player, the trace file, its marks
     replaying: Option<Replaying>,
     /// the look and the wheel rounded where they enter, with their carry
@@ -531,8 +533,9 @@ impl App {
     /// written before it), and a replay's tension marks.
     fn save(&mut self) {
         self.writer.finish();
-        if let (Some(log), Some((path, header))) = (&self.log, &self.recording)
-            && let Err(e) = replays::write(path, &log.snapshot(header.clone()))
+        // (once: the recording is let go of when written)
+        if let (Some(log), Some((path, header))) = (&self.log, self.recording.take())
+            && let Err(e) = replays::write(&path, &log.snapshot(header))
         {
             eprintln!("recording not saved: {e}");
         }
@@ -551,16 +554,16 @@ impl App {
         let g = &mut self.g;
         if let Some((path, header)) = self.recording.take() {
             if let Some(f) = log.take_recording(header) {
-                self.writer.send(path.clone(), f);
+                // (the mark says how it went once the writer says: `frame`)
+                self.writer.send(path, f, true);
             }
-            let name = path.file_stem().map_or_default(|s| s.to_string_lossy().to_string());
-            println!("recording saved to {}", path.display());
-            g.rec_mark = game::base::game::RecMark { since_ms: None, saved: Some((g.now_ms, name)) };
+            g.rec_mark = game::base::game::RecMark::default();
         } else {
             let path = replays::new_path(&save_path(), g.level_num);
             println!("recording to {}", path.display());
             log.start_recording();
             self.recording = Some((path, replays::header(&g.launch_flags)));
+            self.copied = std::time::Instant::now();
             g.rec_mark = game::base::game::RecMark { since_ms: Some(g.now_ms), saved: None };
         }
     }
@@ -598,11 +601,27 @@ impl AppHandler for App {
         self.frames += 1;
         if self.g.want_quit {
             self.save();
-        } else if self.frames.is_multiple_of(3600)
+        } else if self.copied.elapsed().as_secs() >= 60
             && let (Some(log), Some((path, header))) = (&self.log, &self.recording)
         {
             // a minute's insurance against a crash, written off the frame
-            self.writer.send(path.clone(), log.snapshot(header.clone()));
+            self.writer.send(path.clone(), log.snapshot(header.clone()), false);
+            self.copied = std::time::Instant::now();
+        }
+        // a recording written: the mark says so, or that it was not
+        for (path, r) in self.writer.written() {
+            let name = path.file_stem().map_or_default(|s| s.to_string_lossy().to_string());
+            let said = match r {
+                Ok(()) => {
+                    println!("recording saved to {}", path.display());
+                    format!("Saved {name}")
+                }
+                Err(e) => {
+                    eprintln!("recording not saved: {e}");
+                    "Not saved: the disk refused it".to_string()
+                }
+            };
+            self.g.rec_mark.saved = Some((self.g.now_ms, said));
         }
         if let Some(rp) = self.replaying.as_mut() {
             // the recorded interval and input; the window's are ignored
@@ -1529,24 +1548,33 @@ fn main() {
         }
         let (from, to) = (file.in_point(), file.out_point());
         println!("replaying {p}: {} frames; Up / Down arrows mark tension rising / falling, Escape stops", to - from);
-        let (mut g, mut player) = game::replay::Player::start(file, 0, replay_game).unwrap_or_else(|e| panic!("{p}: {e}"));
+        let (mut g, mut player) = game::replay::Player::start(file, 0, replay_game).unwrap_or_else(|e| {
+            eprintln!("{p}: {e}");
+            std::process::exit(1);
+        });
         // to its in-point by simulating, unheard (the device's own mute:
-        // the game's is play's and stays as play had it)
+        // the game's is play's and stays as play had it), the one-shots it
+        // made cut as it goes (minutes of them would sound at once)
         if player.frame < from {
-            let mute = |g: &Game, on: bool| {
+            let quiet = |g: &Game, on: bool| {
                 if let Some(ac) = &g.ac {
+                    ac.cut_one_shots();
                     ac.set_muted(on || g.muted);
                 }
             };
-            mute(&g, true);
+            quiet(&g, true);
             let t = std::time::Instant::now();
-            let reached = player.seek(&mut g, from, |share| {
+            let reached = player.seek(&mut g, from, |g, share| {
+                quiet(g, true);
                 print!("\rseeking to frame {from}: {:.0}%", share * 100.0);
                 let _ = std::io::Write::flush(&mut std::io::stdout());
             });
             println!("\rseeking to frame {from}: done in {:.1} s", t.elapsed().as_secs_f64());
-            assert!(reached, "{p}: its in-point is past its end");
-            mute(&g, false);
+            if !reached {
+                eprintln!("{p}: the recording ends before its in-point");
+                std::process::exit(1);
+            }
+            quiet(&g, false);
         }
         made = Some(g);
         replaying = Some(Replaying { player, trace: format!("{p}.trace.json"), marks: vec![], told: false });
@@ -1557,6 +1585,8 @@ fn main() {
             println!("recording this session to {p} (on this machine only)");
         }
         session = Some((seed, o.record.clone()));
+        // what a recording will keep of this build, worked out off the frame
+        replays::warm();
     }
     let g = made.unwrap_or_else(|| make_game(&o));
     run(
@@ -1569,6 +1599,7 @@ fn main() {
             session,
             recording: None,
             writer: replays::Writer::new(),
+            copied: std::time::Instant::now(),
             replaying,
             quant: game::replay::Quantizer::default(),
             frames: 0,

@@ -26,7 +26,8 @@ pub struct Timeout {
 pub struct RecMark {
     /// the game's clock (ms) when the recording being made began
     pub since_ms: Option<f64>,
-    /// a recording just saved: when (ms), and its name
+    /// a recording just written: when (ms), and what to say ("Saved …", or
+    /// that it was not)
     pub saved: Option<(f64, String)>,
 }
 

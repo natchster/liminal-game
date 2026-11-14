@@ -1,3 +1,11 @@
 [alias]
 # project automation, written in Rust (see xtask/src/main.rs)
 xtask = "run --quiet --package xtask --"
+
+[env]
+# CORE-MATH's C sources (`engine::dmath`, through core-math-sys) are built
+# with `-march=$TARGET_CPU`, or the build machine's own CPU when it is
+# unset: a bundle made on a newer Mac could then hold instructions an M1
+# lacks. ARMv8.4-A is what every Apple Silicon Mac has (its results are
+# correctly rounded whatever the instructions: nothing moves).
+TARGET_CPU = "armv8.4-a"

@@ -52,17 +52,10 @@ fn play_here(seed: u32, level: i32, inputs: &[FrameInput]) -> Vec<StateHash> {
 
 #[test]
 fn a_replay_reproduces_the_run() {
-    let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../target/replays");
-    std::fs::create_dir_all(&dir).unwrap();
     for &(seed, level, secs) in SCENARIOS {
         let inputs = bot_inputs((secs * 60.0) as usize, seed);
         let recorded = play(seed, level, &inputs);
         let replayed = play(seed, level, &inputs);
-        let rec = json!({ "seed": seed, "level": level, "inputs": inputs.iter().map(|i| i.to_json()).collect::<Vec<_>>() });
-        std::fs::write(dir.join(format!("bot_{seed}_L{level}.json")), rec.to_string()).unwrap();
-        // the recording round-trips through its file format
-        let back: Vec<FrameInput> = rec["inputs"].as_array().unwrap().iter().map(FrameInput::from_json).collect();
-        assert_eq!(back, inputs, "the replay file format loses input");
         if let Some(k) = (0..recorded.len()).find(|&k| recorded[k] != replayed[k]) {
             panic!(
                 "seed {seed} L{level}: the replay diverges at frame {k} ({:.2} s) in {:?}; something per-frame is not deterministic (clock, unseeded randomness, HashMap order)",
@@ -310,4 +303,67 @@ fn a_recording_begun_mid_floor_replays_from_its_in_point() {
     assert_eq!(p.log.segments.len(), 1, "between recordings, the log keeps the current floor alone");
     let minutes = (p.states.len() - p.log.segments[0].first_frame as usize) as f64 / 3600.0;
     println!("the log: {} KB for the floor's {minutes:.2} min", p.log.heap_bytes() / 1024);
+}
+
+/// A short session from the title (New descent, the way in, the bot),
+/// played on `rate`'s speakers (the silent clock's 48 kHz when none) and
+/// replayed in the same thread, every frame's state compared.
+fn plays_and_replays_here(rate: Option<f64>) {
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(move || {
+            let flags = "seed=4242";
+            let native = 0xFEED;
+            game::base::rng::seed_native(native);
+            let mut g = app_game(flags);
+            g.boot_on(Some([1280.0, 800.0, 1.0]), rate.map(engine::audio::AudioContext::new_offline));
+            let mut log = Recorder::session(native, flags, Default::default(), &g);
+            let ticks = game::base::game::clock_ticks(1.0 / 60.0);
+            let bot = bot_inputs(600, 4242);
+            let mut states = vec![];
+            for k in 0..900 {
+                let mut i = FrameInput::default();
+                match k {
+                    0 => i.events.push(game::replay::InputEvent::Click("menu:new".into())),
+                    1 => i.events.push(game::replay::InputEvent::Lock(true)),
+                    _ if k >= 300 => i = bot[k - 300].clone(),
+                    _ => {}
+                }
+                for e in &i.events {
+                    log.push(e.clone());
+                }
+                g.apply_input(&i);
+                let dt = g.advance_clock(ticks);
+                g.frame(dt);
+                log.end_frame(&mut g, ticks);
+                states.push(g.state_hash());
+            }
+            let (mut r, mut p) = Player::start(log.snapshot(json!({})), 0, app_game).unwrap();
+            let mut k = 0;
+            while p.step(&mut r) {
+                assert!(r.state_hash() == states[k], "frame {k} replays differently, in {:?}", states[k].diff(&r.state_hash()));
+                k += 1;
+            }
+            assert_eq!(k, states.len());
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// A replay in the thread that played (as the Replays screen plays one in
+/// the running game): nothing the thread kept from play (the per-frame
+/// stream's draw count, its caches) reaches the replay.
+#[test]
+fn a_replay_in_the_thread_that_played_repeats_it() {
+    plays_and_replays_here(None);
+}
+
+/// A session played on speakers at another rate (44.1 kHz, as a headset or
+/// a USB DAC may be) replays on the silent clock every replay and test runs
+/// on (48 kHz): what a session draws as it starts does not hang on the
+/// device.
+#[test]
+fn a_session_replays_whatever_the_speakers_rate() {
+    plays_and_replays_here(Some(44_100.0));
 }

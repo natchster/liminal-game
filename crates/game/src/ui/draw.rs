@@ -1386,7 +1386,7 @@ fn paint_rec(f: &mut Frame, g: &Game) {
         let secs = ((g.now_ms - s) / 1000.0).max(0.0) as u64;
         format!("● REC {}:{:02}", secs / 60, secs % 60)
     });
-    let saved = m.saved.as_ref().filter(|(at, _)| (0.0..4000.0).contains(&(g.now_ms - at))).map(|(_, name)| format!("Saved {name}"));
+    let saved = m.saved.as_ref().filter(|(at, _)| (0.0..4000.0).contains(&(g.now_ms - at))).map(|(_, said)| said.clone());
     let op = f.tr("rec", if running.is_some() || saved.is_some() { 1.0 } else { 0.0 }, 0.3, Ease::Ease);
     let Some(text) = running.or(saved) else { return };
     let dark = parse_shadows("0 0 4px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.6)");

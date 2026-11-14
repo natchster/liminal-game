@@ -78,6 +78,10 @@ impl Anchor {
     }
 }
 
+/// The deepest floor a file may name: the descent has no bottom, but a
+/// number past this is a damaged or made-up file.
+pub const DEEPEST: i32 = 9_999;
+
 type F64Field = (&'static str, fn(&mut Game) -> &mut f64);
 type BoolField = (&'static str, fn(&mut Game) -> &mut bool);
 
@@ -120,6 +124,10 @@ const F64S: &[F64Field] = &[
     ("aberration_opacity_cur", |g| &mut g.aberration_opacity_cur),
     ("hum_pulse_phase", |g| &mut g.hum_pulse_phase),
     ("halluc_visible_t", |g| &mut g.halluc_visible_t),
+    // the mouse moved in the frame the floor was entered in, which the rest
+    // of that frame reads (your asides' idea of whether you are away)
+    ("mouse_dx", |g| &mut g.mouse_dx),
+    ("mouse_dy", |g| &mut g.mouse_dy),
 ];
 
 /// The flags that cross a floor and the anchor keeps (by name).
@@ -231,6 +239,7 @@ impl Game {
             "clock_ticks": self.clock_ticks,
             "settings": self.settings.to_json(),
             "view": [bits(self.view_width), bits(self.view_height), bits(self.scale_factor)],
+            "fov": bits(self.camera.camera().fov),
             "f64": f64s,
             "bool": bools,
             "rare": rare,
@@ -280,7 +289,13 @@ impl Game {
         self.clock_ticks = v["clock_ticks"].as_u64().ok_or("an anchor without its clock")?;
         self.settings = crate::session::settings::Settings::from_json(&v["settings"]);
         if let Some([w, h, s]) = v["view"].as_array().map(|a| a.iter().filter_map(unbits).collect::<Vec<_>>()).as_deref() {
-            (self.view_width, self.view_height, self.scale_factor) = (*w, *h, *s);
+            // (the camera's aspect with it, and the pixels a point takes)
+            self.set_view(*w, *h, *s);
+            self.quality.pr = self.quality.max_pr;
+        }
+        // the lens as play had it (it eases toward its aim and stops near it)
+        if let Some(fov) = unbits(&v["fov"]) {
+            self.camera.camera().fov = fov;
         }
         for (k, f) in F64S {
             *f(self) = unbits(&v["f64"][*k]).ok_or_else(|| format!("an anchor without {k}"))?;

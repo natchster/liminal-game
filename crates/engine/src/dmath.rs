@@ -31,6 +31,9 @@ pub trait DMath: Sized + Copy {
     fn dsinh(self) -> Self;
     fn dcosh(self) -> Self;
     fn dtanh(self) -> Self;
+    fn dasinh(self) -> Self;
+    fn dacosh(self) -> Self;
+    fn datanh(self) -> Self;
     fn dexp(self) -> Self;
     fn dexp2(self) -> Self;
     fn dexp_m1(self) -> Self;
@@ -52,7 +55,7 @@ pub trait DMath: Sized + Copy {
 
 macro_rules! dmath_impl {
     ($t:ty, $sin:path, $cos:path, $sincos:path, $tan:path, $asin:path, $acos:path, $atan:path, $atan2:path,
-     $sinh:path, $cosh:path, $tanh:path, $exp:path, $exp2:path, $expm1:path, $ln:path, $ln1p:path, $log2:path,
+     $sinh:path, $cosh:path, $tanh:path, $asinh:path, $acosh:path, $atanh:path, $exp:path, $exp2:path, $expm1:path, $ln:path, $ln1p:path, $log2:path,
      $log10:path, $pow:path, $cbrt:path) => {
         impl DMath for $t {
             #[inline]
@@ -98,6 +101,18 @@ macro_rules! dmath_impl {
             #[inline]
             fn dtanh(self) -> Self {
                 $tanh(self)
+            }
+            #[inline]
+            fn dasinh(self) -> Self {
+                $asinh(self)
+            }
+            #[inline]
+            fn dacosh(self) -> Self {
+                $acosh(self)
+            }
+            #[inline]
+            fn datanh(self) -> Self {
+                $atanh(self)
             }
             #[inline]
             fn dexp(self) -> Self {
@@ -176,6 +191,9 @@ dmath_impl!(
     core_math::sinh,
     core_math::cosh,
     core_math::tanh,
+    core_math::asinh,
+    core_math::acosh,
+    core_math::atanh,
     core_math::exp,
     core_math::exp2,
     core_math::expm1,
@@ -199,6 +217,9 @@ dmath_impl!(
     core_math::sinhf,
     core_math::coshf,
     core_math::tanhf,
+    core_math::asinhf,
+    core_math::acoshf,
+    core_math::atanhf,
     core_math::expf,
     core_math::exp2f,
     core_math::expm1f,

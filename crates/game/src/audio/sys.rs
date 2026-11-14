@@ -146,8 +146,10 @@ impl Game {
         master.gain().set_value(if self.muted { 0.0 } else { 0.9 * self.settings.volume });
         master.connect(&ac.destination());
 
-        let sr = ac.sample_rate();
-        let noise_buf = ac.create_buffer(1, sr as usize, sr);
+        // (at a fixed rate, not the device's: its draws are the per-frame
+        // stream's, which must not hang on the speakers)
+        let rate = crate::audio::soundscape::NOISE_RATE;
+        let noise_buf = ac.create_buffer(1, rate as usize, rate);
         {
             let mut nd = noise_buf.channel_mut(0);
             for v in nd.iter_mut() {

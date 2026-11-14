@@ -19,8 +19,10 @@ fn main() {
     println!("cargo:rustc-env=BACKROOMS_COMMIT={commit}");
     let rustc = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".into());
     println!("cargo:rustc-env=BACKROOMS_RUSTC={}", out(Command::new(rustc).arg("--version")));
-    // a new commit, or a change in this crate, builds it again
+    // a new commit, a change staged or made in any crate, builds it again
+    // (so the `+` says the truth)
     println!("cargo:rerun-if-changed=../../.git/HEAD");
     println!("cargo:rerun-if-changed=../../.git/refs/heads");
-    println!("cargo:rerun-if-changed=src");
+    println!("cargo:rerun-if-changed=../../.git/index");
+    println!("cargo:rerun-if-changed=..");
 }

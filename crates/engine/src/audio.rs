@@ -102,6 +102,8 @@ enum Cmd {
     Normalize(u32, bool),
     PannerCfg(u32, PanningModel, DistanceModel, f64, f64, f64),
     Compressor(u32, [f64; 5]),
+    /// every one-shot sounding or to sound ends now (`cut_one_shots`)
+    CutOneShots,
 }
 
 /// Listener params live on node 0 (the destination) as params 10..=18.
@@ -412,6 +414,13 @@ impl AudioContext {
     }
     pub fn muted(&self) -> bool {
         self.inner.muted.get()
+    }
+    /// Ends every one-shot started so far, sounding or yet to sound (a
+    /// buffer played once, or any source given a stop); what holds (a loop,
+    /// a tone with no stop) goes on. After a replay's seek has simulated
+    /// minutes in seconds, what it made would otherwise all sound at once.
+    pub fn cut_one_shots(&self) {
+        self.inner.send(Cmd::CutOneShots);
     }
     /// The native context always runs.
     pub fn resume(&self) {}
@@ -1344,6 +1353,17 @@ impl Engine {
                         n.stop = Some(t);
                     }
                 }
+                Cmd::CutOneShots =>
+                {
+                    #[expect(clippy::iter_over_hash_type, reason = "each node is ended on its own: the order cannot matter")]
+                    for n in self.nodes.values_mut() {
+                        let source = matches!(n.kind, Kind::Oscillator | Kind::BufferSource | Kind::ConstantSource);
+                        let once = n.stop.is_some() || n.duration.is_some() || (matches!(n.kind, Kind::BufferSource) && !n.looping);
+                        if source && n.start.is_some() && once {
+                            n.ended = true;
+                        }
+                    }
+                }
                 Cmd::OscType(id, t) => {
                     if let Some(n) = self.nodes.get_mut(&id) {
                         n.osc = t;
@@ -2049,6 +2069,34 @@ mod speaker_tests {
         g.connect(&ac.destination());
         g.gain().set_value(0.5);
         assert!(ac.inner.shared.cmds.lock().unwrap().is_empty(), "commands queued with nothing to render them");
+    }
+
+    /// A one-shot is cut, sounding or yet to sound; a tone with no stop goes on
+    #[test]
+    fn cutting_one_shots_leaves_what_holds() {
+        let rms = |stop: Option<f64>, buffer: bool| {
+            let ac = AudioContext::new_offline(48_000.0);
+            let s = if buffer {
+                let b = ac.create_buffer(1, 48_000, 48_000.0);
+                b.channel_mut(0).iter_mut().for_each(|v| *v = 0.5);
+                let s = ac.create_buffer_source();
+                s.set_buffer(&b);
+                s
+            } else {
+                ac.create_oscillator()
+            };
+            s.connect(&ac.destination());
+            s.start(0.0);
+            if let Some(t) = stop {
+                s.stop(t);
+            }
+            ac.cut_one_shots();
+            let out = ac.render_offline(4800);
+            (out.iter().map(|x| x * x).sum::<f32>() / out.len() as f32).sqrt()
+        };
+        assert!(rms(None, false) > 0.1, "a tone with no stop goes on");
+        assert!(rms(Some(10.0), false) < 1e-6, "a tone with a stop is cut");
+        assert!(rms(None, true) < 1e-6, "a buffer played once is cut");
     }
 
     /// The silent clock queues nothing, and its thread ends with its context

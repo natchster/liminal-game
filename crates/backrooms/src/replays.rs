@@ -5,7 +5,7 @@ use game::Game;
 use game::replay::{Player, ReplayFile, Start};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread::JoinHandle;
 
 /// The executable's own bytes, hashed (FNV-1a 64): the build exactly.
@@ -23,16 +23,30 @@ fn macos() -> String {
         .unwrap_or_default()
 }
 
+static BUILD: std::sync::OnceLock<Value> = std::sync::OnceLock::new();
+
 /// What a recording keeps of the build that made it: a replay repeats only
-/// on the same build, so a player is told when it was another.
+/// on the same build, so a player is told when it was another. Worked out
+/// once (it hashes the executable and asks the system its version: about
+/// 60 ms), off the frame thread when `warm` was called at the start.
 pub fn build() -> Value {
-    json!({
-        "version": env!("CARGO_PKG_VERSION"),
-        "commit": env!("BACKROOMS_COMMIT"),
-        "rustc": env!("BACKROOMS_RUSTC"),
-        "exe": exe_id(),
-        "macos": macos(),
-    })
+    BUILD
+        .get_or_init(|| {
+            json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "commit": env!("BACKROOMS_COMMIT"),
+                "rustc": env!("BACKROOMS_RUSTC"),
+                "exe": exe_id(),
+                "macos": macos(),
+            })
+        })
+        .clone()
+}
+
+/// Starts working out `build` on a thread of its own, so a recording begun
+/// later (F9) does not wait for it on the frame.
+pub fn warm() {
+    std::thread::spawn(|| drop(build()));
 }
 
 /// A new recording's header: the build, when, the launch flags.
@@ -92,28 +106,40 @@ pub fn write(path: &Path, f: &ReplayFile) -> Result<(), String> {
 }
 
 /// Writes recordings off the frame, one after another, in the order given
-/// (encoding a long one takes longer than a frame has).
+/// (encoding a long one takes longer than a frame has), and says how each
+/// one it was asked about went.
 pub struct Writer {
-    tx: Option<Sender<(PathBuf, ReplayFile)>>,
+    tx: Option<Sender<(PathBuf, ReplayFile, bool)>>,
     thread: Option<JoinHandle<()>>,
+    done: Receiver<(PathBuf, Result<(), String>)>,
 }
 
 impl Writer {
     pub fn new() -> Writer {
-        let (tx, rx) = channel::<(PathBuf, ReplayFile)>();
+        let (tx, rx) = channel::<(PathBuf, ReplayFile, bool)>();
+        let (told, done) = channel();
         let thread = std::thread::spawn(move || {
-            for (p, f) in rx {
-                if let Err(e) = write(&p, &f) {
+            for (p, f, tell) in rx {
+                let r = write(&p, &f);
+                if let Err(e) = &r {
                     eprintln!("recording not saved: {e}");
+                }
+                if tell {
+                    let _ = told.send((p, r));
                 }
             }
         });
-        Writer { tx: Some(tx), thread: Some(thread) }
+        Writer { tx: Some(tx), thread: Some(thread), done }
     }
-    pub fn send(&self, path: PathBuf, f: ReplayFile) {
+    /// `f` to `path`; with `tell`, how it went comes back (`written`).
+    pub fn send(&self, path: PathBuf, f: ReplayFile, tell: bool) {
         if let Some(tx) = &self.tx {
-            let _ = tx.send((path, f));
+            let _ = tx.send((path, f, tell));
         }
+    }
+    /// The writes asked about that have finished since the last call.
+    pub fn written(&self) -> Vec<(PathBuf, Result<(), String>)> {
+        self.done.try_iter().collect()
     }
     /// Everything sent is written: the thread ends (when the app quits).
     pub fn finish(&mut self) {

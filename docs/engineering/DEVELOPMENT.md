@@ -199,7 +199,13 @@ Levels must be a pure function of `(run_seed, level)`:
   whatever LLVM makes of it; `dpowi` is products in a fixed order and
   `dhypot` is `√(x² + y²)`, both exact by IEEE 754. `clippy.toml` forbids
   the std methods; only the sound's synthesis (`engine::audio`) and xtask
-  keep them, each saying why.
+  keep them, each saying why. CORE-MATH is C, built for ARMv8.4-A
+  (`TARGET_CPU` in `.cargo/config.toml`), what every Apple Silicon Mac
+  runs: unset, it is built for the building Mac's CPU, and a bundle made
+  on a newer one could hold instructions an M1 lacks. A loop of them per
+  sample or per vertex costs: a correctly rounded `sin` takes about 18 ns
+  (the system's 7); a decay is a running product, not an `exp` a sample
+  (`make_ir_data`).
 
 ## Adding a placer
 

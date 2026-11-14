@@ -27,11 +27,18 @@ and the seed kept.
 
 Play keeps a **log** (`Recorder`, in the app) from the moment it starts:
 each frame and its input, the state every 60 frames, the telemetry. Until
-a recording begins it holds only the current floor's segment, from the
-start a replay of it would stand at: the session's start for the first
-floor (the per-frame seed, the launch flags, and what storage held before
-the boot read it, the save and the settings), a floor's anchor for every
-floor after. So a recording can begin at any moment of play.
+a recording begins it holds only the current segment, from the start a
+replay of it would stand at: the session's start (the per-frame seed, the
+launch flags, and what storage held before the boot read it, the save and
+the settings) until the first floor is entered through its door, the
+lift, a fall, the Stairwell or her story's end; that floor's anchor after.
+So a recording can begin at any moment of play. A death and waking, New
+descent and Continue do not start a segment (they are not anchors yet:
+`SAVES.md`'s V1 will make them so), so after one the log, and what a
+replay's seek simulates again, reaches back to the last door or the
+session's start, at about 250 KB a minute of play. The frames are kept in
+blocks of a minute: a full block is shared by every copy, so a recording
+taken from the log, and its copy a minute, cost the open block alone.
 
 **F9** (`Record`, rebindable on the Controls page) or the pause list's
 **Record** begins one with the next frame, its **in-point**; the same key
@@ -39,13 +46,16 @@ or **Stop recording** ends it after the frame it is pressed in, its
 **out-point**. While one is made the log keeps every segment from the one
 its in-point is in, and a small red **● REC 1:23** stands at the top right
 over every screen; when it ends, the file's name stands there for four
-seconds. The key works on every screen and card (as Mute does). The file
-holds the segment its in-point is in and every one after; its header names
-the in- and out-points. It goes to `~/Library/Application
+seconds once its file is written (or that it was not). The key works on
+every screen and card (as Mute does). The file holds the segment its
+in-point is in and every one after; its header names the in- and
+out-points. It goes to `~/Library/Application
 Support/Backrooms/replays/<UTC date and time>_L<floor>.ocreplay`, written
 off the frame (a thread, beside it first and then in its place, so a
-reader never sees half of one), with a copy every minute while it is made
-(a crash loses at most a minute) and the whole of it on quitting.
+reader never sees half of one), with a copy every minute of the clock
+while it is made (a crash loses at most a minute) and the whole of it, once,
+on quitting. What a recording keeps of the build (the executable's hash
+among it) is worked out once, on a thread, as the game starts.
 
 The game's answer to the key is the same whether a recording begins or
 ends (it asks the app: `Game::want_record`), so a replay of a session in
@@ -55,7 +65,10 @@ play.
 
 A replay starts at the file's first segment and reaches its in-point by
 **simulating**, unseen and unheard (the audio device's own mute, not the
-game's: that is play's state), then plays to the out-point. `--replay`
+game's: that is play's state), the one-shots it makes cut as it goes
+(`AudioContext::cut_one_shots`: a minute of footsteps would otherwise
+sound at once; nothing in play listens for a sound's end), then plays to
+the out-point. `--replay`
 says how far the seek has come on the terminal; a seek simulates about 85
 times faster than play (`PERF.md`, *Recording and replaying*). `--replay-verify` prints one line a segment and fails if any
 leaves the recording; a file made by another build is said first (it may
@@ -86,12 +99,22 @@ built game, and writes the sample `target/replays/recorded_77_L3.ocreplay`.
 - **The view** (the window's size and scale) is part of the start and its
   changes are inputs (`View`): the camera's aspect, and so what it sees,
   hang on it.
+- **Not the speakers.** What a game draws from the per-frame stream as it
+  starts (its noise) is made at a fixed 48 kHz (`NOISE_RATE`), whatever
+  the output device's rate; the engine plays it at the device's. A session
+  played on a 44.1 kHz headset replays on the silent 48 kHz clock that
+  `--replay-verify` and every test run on (`tests/replay.rs`).
+- **Not the thread.** The per-frame stream's draw count is the stream's
+  since its seed, so a replay in the thread that played (as a replay
+  chosen in the game will be) counts alike; `tests/replay.rs` replays in
+  the playing thread, and `--bench-replay` does.
 - **A floor's start is an anchor** (`session::anchor`): the state play
   had just before it entered a floor (the save, the per-frame stream, the
   clocks, the settings, the view, the keys held, what crosses floors
   unsaved, the sound's preset and hum, the dust and pooled effects, the
-  film grain's refresh). A fresh game handed the anchor enters the floor
-  exactly as play did (`tests/anchors.rs`).
+  film grain's refresh, the mouse's move in that frame, the camera's lens;
+  the view is applied, its aspect with it). A fresh game handed the anchor
+  enters the floor exactly as play did (`tests/anchors.rs`).
 
 What does not repeat: a replay made by another build (other code, other
 compiler) may leave the recording at once. Every recording keeps its
@@ -122,9 +145,12 @@ chunk is caught before it is inflated. Chunks come in this order:
 | `TELE` | JSON: telemetry | once |
 | `END_` | empty | last: a file without it was cut short |
 
-A reader skips a chunk whose tag it does not know (a newer writer's), and
-refuses a file whose version is newer than its own, whose CRC does not
-match, or that has no `END_`. The `ANCR` chunks are the index: each names
+A reader steps over a chunk whose tag it does not know (a newer writer's)
+without inflating it, and refuses a file whose version is newer than its
+own, whose CRC does not match, that has no `END_`, or that would hand a
+game what it cannot stand at: a chunk inflating past 256 MB, segments not
+one after another, a floor numbered outside 1–9,999, a view of no size,
+an in-point outside its frames (`ReplayFile::check`). The `ANCR` chunks are the index: each names
 its segment's first frame, and chunks can be stepped over by their length
 without inflating them.
 

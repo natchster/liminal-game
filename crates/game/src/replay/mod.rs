@@ -8,7 +8,7 @@
 pub mod file;
 
 use crate::prelude::*;
-pub use file::{HASH_EVERY, Quantizer, ReplayFile, Segment, Start};
+pub use file::{Frames, HASH_EVERY, Quantizer, ReplayFile, Segment, Start};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
@@ -47,6 +47,7 @@ impl FrameInput {
     pub fn look(&mut self, dx: f64, dy: f64) {
         self.events.push(InputEvent::Look(dx, dy));
     }
+    /// As JSON (`--dump-replay`).
     pub fn to_json(&self) -> Value {
         Value::Array(
             self.events
@@ -64,29 +65,6 @@ impl FrameInput {
                 })
                 .collect(),
         )
-    }
-    pub fn from_json(v: &Value) -> FrameInput {
-        let events = v
-            .as_array()
-            .into_iter()
-            .flatten()
-            .filter_map(|e| {
-                let s = |i: usize| e[i].as_str().unwrap_or("").to_string();
-                Some(match e[0].as_str()? {
-                    "d" => InputEvent::Down(s(1)),
-                    "u" => InputEvent::Up(s(1)),
-                    "l" => InputEvent::Look(e[1].as_f64()?, e[2].as_f64()?),
-                    "c" => InputEvent::Click(s(1)),
-                    "k" => InputEvent::Lock(e[1].as_bool()?),
-                    "b" => InputEvent::Blur,
-                    "w" => InputEvent::Wheel(e[1].as_f64()?),
-                    "h" => InputEvent::Hover(s(1)),
-                    "v" => InputEvent::View(e[1].as_f64()?, e[2].as_f64()?, e[3].as_f64()?),
-                    _ => return None,
-                })
-            })
-            .collect();
-        FrameInput { events }
     }
 }
 
@@ -134,7 +112,7 @@ impl Recorder {
     }
     fn starting(start: Start) -> Recorder {
         Recorder {
-            segments: vec![Segment { start, first_frame: 0, frames: vec![], hashes: vec![] }],
+            segments: vec![Segment { start, first_frame: 0, frames: Frames::default(), hashes: vec![] }],
             pending: FrameInput::default(),
             frame: 0,
             rows: vec![],
@@ -147,10 +125,6 @@ impl Recorder {
     /// An input event as it reaches the game, in order.
     pub fn push(&mut self, e: InputEvent) {
         self.pending.events.push(e);
-    }
-    /// How many frames have ended: the index of the next.
-    pub fn frames(&self) -> u64 {
-        self.frame
     }
     /// The frame and the state after it, every `HASH_EVERY` frames; a new
     /// segment if it entered a floor (the segments before it let go, unless
@@ -166,7 +140,7 @@ impl Recorder {
         }
         self.frame += 1;
         if let Some(a) = g.entered.take() {
-            self.segments.push(Segment { start: Start::Floor(a), first_frame: self.frame, frames: vec![], hashes: vec![] });
+            self.segments.push(Segment { start: Start::Floor(a), first_frame: self.frame, frames: Frames::default(), hashes: vec![] });
             self.let_go(self.from.unwrap_or(self.frame));
         }
         if g.perf_t >= self.next_row {
@@ -201,10 +175,6 @@ impl Recorder {
     pub fn start_recording(&mut self) {
         self.from = Some(self.frame);
     }
-    /// The in-point of the recording being made, if one is.
-    pub fn recording_from(&self) -> Option<u64> {
-        self.from
-    }
     /// The recording made so far, under `header` (the build, when): the
     /// segments from the one its in-point is in, its in-point and its
     /// out-point (the frames end there) in the header, the telemetry from
@@ -237,19 +207,11 @@ impl Recorder {
     /// events (and the names in them), the kept states and the telemetry.
     pub fn heap_bytes(&self) -> usize {
         use std::mem::size_of;
-        let event = |e: &InputEvent| match e {
-            InputEvent::Down(s) | InputEvent::Up(s) | InputEvent::Click(s) | InputEvent::Hover(s) => s.capacity(),
-            _ => 0,
-        };
         let frames: usize = self
             .segments
             .iter()
             .map(|s| {
-                s.frames.capacity() * size_of::<(u32, FrameInput)>()
-                    + s.frames
-                        .iter()
-                        .map(|(_, i)| i.events.capacity() * size_of::<InputEvent>() + i.events.iter().map(event).sum::<usize>())
-                        .sum::<usize>()
+                s.frames.heap_bytes()
                     + s.hashes.capacity() * size_of::<(u64, StateHash)>()
                     + match &s.start {
                         Start::Floor(a) => a.state.to_string().len(),
@@ -350,16 +312,16 @@ impl Player {
     }
 
     /// Simulates up to `to` (the next frame to run is then `to`), calling
-    /// `progress` with the share done now and then; false if the recording
-    /// ends first.
-    pub fn seek(&mut self, g: &mut Game, to: u64, mut progress: impl FnMut(f64)) -> bool {
+    /// `progress` with the game and the share done now and then; false if
+    /// the recording ends first.
+    pub fn seek(&mut self, g: &mut Game, to: u64, mut progress: impl FnMut(&mut Game, f64)) -> bool {
         let (from, n) = (self.frame, to.saturating_sub(self.frame).max(1));
         while self.frame < to || self.entry.is_some() {
             if !self.step(g) {
                 return false;
             }
             if (self.frame - from).is_multiple_of(600) {
-                progress((self.frame - from) as f64 / n as f64);
+                progress(g, (self.frame - from) as f64 / n as f64);
             }
         }
         true
@@ -450,29 +412,41 @@ impl Game {
 
     /// Boots a fresh game as the window boots one: its view first (when one
     /// is given), then the boot and the title's sound. A recorded session
-    /// starts so, and its replay too (`Player::start`'s `make`).
+    /// starts so, and its replay too (`Player::start`).
     pub fn boot_in_view(&mut self, view: Option<[f64; 3]>) {
-        if let Some([w, h, scale]) = view {
-            self.view_width = w;
-            self.view_height = h;
-            self.scale_factor = scale;
-            self.quality.max_pr = scale.min(2.0);
+        self.boot_on(view, None);
+    }
+
+    /// `boot_in_view` with the sound on `ac` (a test's: at another rate, as
+    /// a player's speakers may be) instead of the context the game opens.
+    pub fn boot_on(&mut self, view: Option<[f64; 3]>, ac: Option<engine::audio::AudioContext>) {
+        if let Some(v) = view {
+            self.keep_view(v);
             self.quality.pr = self.quality.max_pr;
         }
         self.now_ms = 0.0;
         self.boot();
-        self.audio_init();
+        match ac {
+            Some(ac) => self.audio_init_with(ac),
+            None => self.audio_init(),
+        }
     }
 
     /// The window's view: its size in points and its scale factor (the
     /// camera's aspect, and so how far it sees, hang on it).
     pub fn set_view(&mut self, w: f64, h: f64, scale: f64) {
+        self.keep_view([w, h, scale]);
+        self.quality.pr = self.quality.pr.min(self.quality.max_pr);
+        self.resize();
+    }
+
+    /// A view as the game keeps it: its size, its scale and the most pixels
+    /// a point may take.
+    fn keep_view(&mut self, [w, h, scale]: [f64; 3]) {
         self.view_width = w;
         self.view_height = h;
         self.scale_factor = scale;
         self.quality.max_pr = scale.min(2.0);
-        self.quality.pr = self.quality.pr.min(self.quality.max_pr);
-        self.resize();
     }
 
     /// Hash of what a replay must reproduce exactly.

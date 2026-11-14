@@ -21,6 +21,7 @@ use super::{FrameInput, InputEvent, StateHash};
 use crate::session::anchor::Anchor;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
+use std::sync::Arc;
 
 pub const MAGIC: &[u8; 8] = b"OCREPLAY";
 pub const VERSION: u16 = 1;
@@ -28,6 +29,9 @@ pub const VERSION: u16 = 1;
 pub const HASH_EVERY: u64 = 60;
 /// The grid a look or a wheel is rounded to where it enters: a 256th of a point.
 pub const INPUT_GRID: f64 = 256.0;
+/// The most a chunk may inflate to (a day of play's frames is about 30 MB):
+/// a damaged or made-up file cannot ask for more memory than this.
+const CHUNK_LIMIT: usize = 256 << 20;
 
 /// How a segment starts.
 #[derive(Clone, Debug, PartialEq)]
@@ -40,6 +44,71 @@ pub enum Start {
     Floor(Anchor),
 }
 
+/// How many frames a block of a segment holds (a minute at 60 a second).
+const BLOCK: usize = 3600;
+
+/// A segment's frames (each its interval in clock ticks and its input), in
+/// blocks: a full block never changes and is shared by every copy (a
+/// recording taken from the log, its copy a minute while it is made), so a
+/// copy costs the open block alone, never a long floor's whole length.
+#[derive(Clone, Debug, Default)]
+pub struct Frames {
+    full: Vec<Arc<[(u32, FrameInput)]>>,
+    open: Vec<(u32, FrameInput)>,
+}
+
+impl Frames {
+    pub fn push(&mut self, f: (u32, FrameInput)) {
+        self.open.push(f);
+        if self.open.len() == BLOCK {
+            self.full.push(std::mem::take(&mut self.open).into());
+        }
+    }
+    pub fn len(&self) -> usize {
+        self.full.len() * BLOCK + self.open.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+    pub fn get(&self, i: usize) -> Option<&(u32, FrameInput)> {
+        match self.full.get(i / BLOCK) {
+            Some(b) => b.get(i % BLOCK),
+            None => self.open.get(i - self.full.len() * BLOCK),
+        }
+    }
+    pub fn iter(&self) -> impl Iterator<Item = &(u32, FrameInput)> {
+        self.full.iter().flat_map(|b| b.iter()).chain(&self.open)
+    }
+    /// About the memory its frames hold (a shared block counted by each
+    /// holder): the frames and their events, and the names in them.
+    pub fn heap_bytes(&self) -> usize {
+        use std::mem::size_of;
+        let names = |e: &InputEvent| match e {
+            InputEvent::Down(s) | InputEvent::Up(s) | InputEvent::Click(s) | InputEvent::Hover(s) => s.capacity(),
+            _ => 0,
+        };
+        let events: usize =
+            self.iter().map(|(_, i)| i.events.capacity() * size_of::<InputEvent>() + i.events.iter().map(names).sum::<usize>()).sum();
+        (self.full.len() * BLOCK + self.open.capacity()) * size_of::<(u32, FrameInput)>() + events
+    }
+}
+
+impl PartialEq for Frames {
+    fn eq(&self, other: &Frames) -> bool {
+        self.len() == other.len() && self.iter().eq(other.iter())
+    }
+}
+
+impl From<Vec<(u32, FrameInput)>> for Frames {
+    fn from(v: Vec<(u32, FrameInput)>) -> Frames {
+        let mut f = Frames::default();
+        for x in v {
+            f.push(x);
+        }
+        f
+    }
+}
+
 /// A run of frames from one start.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Segment {
@@ -47,7 +116,7 @@ pub struct Segment {
     /// the index of its first frame in the whole recording
     pub first_frame: u64,
     /// each frame's interval in clock ticks and its input
-    pub frames: Vec<(u32, FrameInput)>,
+    pub frames: Frames,
     /// (frame index, the state after that frame)
     pub hashes: Vec<(u64, StateHash)>,
 }
@@ -289,7 +358,36 @@ impl ReplayFile {
     pub fn in_point(&self) -> u64 {
         self.header["in"].as_u64().unwrap_or_else(|| self.segments.first().map_or(0, |s| s.first_frame))
     }
-    /// The frame after the last it holds (`out` in its header).
+    /// What a game would be handed is sound: segments one after another, a
+    /// floor that exists, a view of some size, an in-point the frames reach.
+    fn check(&self) -> Result<(), String> {
+        let first = self.segments.first().ok_or("a replay with no start")?;
+        let mut next = first.first_frame;
+        for s in &self.segments {
+            if s.first_frame != next {
+                return Err(format!("a segment begins at frame {}, not {next}", s.first_frame));
+            }
+            next = s.first_frame + s.frames.len() as u64;
+            let view = match &s.start {
+                Start::Session { view, .. } => Some(*view),
+                Start::Floor(a) => {
+                    if !(1..=crate::session::anchor::DEEPEST).contains(&a.level) {
+                        return Err(format!("a floor ({}) the game does not have", a.level));
+                    }
+                    None
+                }
+            };
+            if view.is_some_and(|v| !v.iter().all(|x| x.is_finite() && *x > 0.0)) {
+                return Err("a view of no size".into());
+            }
+        }
+        if !(first.first_frame..=next).contains(&self.in_point()) {
+            return Err(format!("an in-point ({}) outside its frames ({}..{next})", self.in_point(), first.first_frame));
+        }
+        Ok(())
+    }
+
+    /// The frame after the last it holds (`out` in its header says the same).
     pub fn out_point(&self) -> u64 {
         self.segments.last().map_or(0, |s| s.first_frame + s.frames.len() as u64)
     }
@@ -301,7 +399,7 @@ impl ReplayFile {
             let mut f = vec![];
             varint(&mut f, s.frames.len() as u64);
             let mut prev = 0u32;
-            for (ticks, input) in &s.frames {
+            for (ticks, input) in s.frames.iter() {
                 varint(&mut f, zigzag(i64::from(*ticks) - i64::from(prev)));
                 prev = *ticks;
                 varint(&mut f, input.events.len() as u64);
@@ -356,11 +454,15 @@ impl ReplayFile {
             let len = r.u32()? as usize;
             let crc = r.u32()?;
             let z = r.bytes(len)?;
+            // a newer chunk this game does not know: stepped over, not inflated
+            if !matches!(&tag, b"HEAD" | b"ANCR" | b"FRMS" | b"HASH" | b"TELE" | b"END_") {
+                continue;
+            }
             if crc32(z) != crc {
                 return Err(format!("the chunk {} is damaged", String::from_utf8_lossy(&tag)));
             }
-            let body =
-                miniz_oxide::inflate::decompress_to_vec(z).map_err(|e| format!("the chunk {}: {e:?}", String::from_utf8_lossy(&tag)))?;
+            let body = miniz_oxide::inflate::decompress_to_vec_with_limit(z, CHUNK_LIMIT)
+                .map_err(|e| format!("the chunk {}: {e:?}", String::from_utf8_lossy(&tag)))?;
             let json = || serde_json::from_slice::<Value>(&body).map_err(|e| format!("{}: {e}", String::from_utf8_lossy(&tag)));
             match &tag {
                 b"HEAD" => {
@@ -372,7 +474,7 @@ impl ReplayFile {
                     segments.push(Segment {
                         start: Start::from_json(&a["start"])?,
                         first_frame: a["first_frame"].as_u64().ok_or("a segment without its first frame")?,
-                        frames: vec![],
+                        frames: Frames::default(),
                         hashes: vec![],
                     });
                 }
@@ -382,7 +484,7 @@ impl ReplayFile {
                     let n = b.varint()?;
                     let mut prev = 0i64;
                     for _ in 0..n {
-                        prev += unzigzag(b.varint()?);
+                        prev = prev.checked_add(unzigzag(b.varint()?)).ok_or("a frame's interval out of range")?;
                         let ticks = u32::try_from(prev).map_err(|_| "a frame's interval out of range")?;
                         let k = b.varint()?;
                         let events = (0..k).map(|_| get_event(&mut b, &strings)).collect::<Result<Vec<_>, _>>()?;
@@ -400,7 +502,6 @@ impl ReplayFile {
                 }
                 b"TELE" => telemetry = json()?,
                 b"END_" => ended = true,
-                // a newer chunk this game does not know: skipped
                 _ => {}
             }
         }
@@ -410,7 +511,9 @@ impl ReplayFile {
         if header.is_null() {
             return Err("a replay without its header".into());
         }
-        Ok(ReplayFile { header, segments, telemetry })
+        let f = ReplayFile { header, segments, telemetry };
+        f.check()?;
+        Ok(f)
     }
 
     /// The whole file as JSON (`--dump-replay`).
@@ -442,13 +545,15 @@ impl Quantizer {
         let (x, y) = (dx * INPUT_GRID + self.look.0, dy * INPUT_GRID + self.look.1);
         let (qx, qy) = (x.round(), y.round());
         self.look = (x - qx, y - qy);
-        (qx / INPUT_GRID, qy / INPUT_GRID)
+        // (+ 0.0: a small move left rounds to −0, which the file keeps as
+        // grid step 0, +0; play must read what a replay will)
+        (qx / INPUT_GRID + 0.0, qy / INPUT_GRID + 0.0)
     }
     pub fn wheel(&mut self, d: f64) -> f64 {
         let x = d * INPUT_GRID + self.wheel;
         let q = x.round();
         self.wheel = x - q;
-        q / INPUT_GRID
+        q / INPUT_GRID + 0.0
     }
 }
 
@@ -503,7 +608,7 @@ mod tests {
                 view: [1280.0, 800.0, 2.0],
             },
             first_frame: 0,
-            frames: vec![(1092, i.clone()), (1093, FrameInput::default()), (0, i)],
+            frames: vec![(1092, i.clone()), (1093, FrameInput::default()), (0, i)].into(),
             hashes: vec![(59, StateHash { player: 1, entities: 2, director: 3, world: u64::MAX })],
         };
         let f = ReplayFile { header: json!({ "title": "test" }), segments: vec![seg], telemetry: json!({ "rows": [] }) };
@@ -517,5 +622,43 @@ mod tests {
         bad[mid] ^= 0x55;
         assert!(ReplayFile::decode(&bad).is_err());
         assert!(ReplayFile::decode(&bytes[..bytes.len() - 13]).is_err());
+    }
+
+    /// What a damaged or made-up file asks for is refused, not followed: an
+    /// in-point past its frames, a view of no size, segments out of order; a
+    /// chunk this game does not know is stepped over unread.
+    #[test]
+    fn a_file_is_checked_before_a_game_is_handed_it() {
+        let session = |view: [f64; 3]| Start::Session {
+            native_seed: 1,
+            flags: String::new(),
+            storage: Default::default(),
+            settings: json!({}),
+            view,
+        };
+        let seg = |first: u64, n: usize, view| Segment {
+            start: session(view),
+            first_frame: first,
+            frames: vec![(1092, FrameInput::default()); n].into(),
+            hashes: vec![],
+        };
+        let file = |header: Value, segments| ReplayFile { header, segments, telemetry: json!({}) };
+        let ok = file(json!({ "in": 2 }), vec![seg(0, 3, [1280.0, 800.0, 2.0])]);
+        assert!(ReplayFile::decode(&ok.encode()).is_ok());
+        let past = file(json!({ "in": 9 }), vec![seg(0, 3, [1280.0, 800.0, 2.0])]);
+        assert!(ReplayFile::decode(&past.encode()).unwrap_err().contains("in-point"));
+        let flat = file(json!({}), vec![seg(0, 3, [1280.0, 0.0, 2.0])]);
+        assert!(ReplayFile::decode(&flat.encode()).unwrap_err().contains("no size"));
+        let gap = file(json!({}), vec![seg(0, 3, [1280.0, 800.0, 2.0]), seg(7, 3, [1280.0, 800.0, 2.0])]);
+        assert!(ReplayFile::decode(&gap.encode()).unwrap_err().contains("begins at frame 7"));
+        // a newer chunk, its body nothing this game could inflate
+        let mut bytes = ok.encode();
+        let end = bytes.windows(4).rposition(|w| w == b"END_").unwrap();
+        let mut extra = b"ZZZZ".to_vec();
+        extra.extend_from_slice(&4u32.to_le_bytes());
+        extra.extend_from_slice(&0u32.to_le_bytes());
+        extra.extend_from_slice(&[0xff; 4]);
+        bytes.splice(end..end, extra);
+        assert_eq!(ReplayFile::decode(&bytes).unwrap().segments, ok.segments);
     }
 }
