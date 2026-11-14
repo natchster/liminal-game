@@ -589,3 +589,28 @@ is kept whole in [`agent-trust.md`](agent-trust.md), every claim linked.
 **GitHub's mechanics** ([`pull_request_target` from the default branch](https://github.blog/changelog/2025-11-07-actions-pull_request_target-and-environment-branch-protections-changes/), [blocked by default from 2026-12-02](https://github.blog/changelog/2026-11-02-pull_request_target-blocked-by-default-december-2), [rules](https://docs.github.com/en/rest/repos/rules), [roles](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization)).
 - Says: a `pull_request_target` job runs the default branch's workflow on the pull request's head and can write statuses; an `issue_comment` run cannot attach a check to the pull request but can post a commit status that a ruleset requires; public repositories block `pull_request_target` unless an Actions policy allows it; anyone with write access can edit others' comments.
 - Used for: the gate's two triggers and its commit status, the Actions policy scoped to the gate's workflow, approvals not counted when someone other than a maintainer edited them.
+
+## 20. Replays: the same game twice
+
+Gathered on 2026-11-14 for [`REPLAYS.md`](../plan/REPLAYS.md); the note
+is kept whole in [`replays.md`](replays.md), every claim linked.
+
+**Inputs over a deterministic simulation** (Doom's demos and Chocolate Doom's source, Factorio, StarCraft II, Supreme Commander, Halo, Trackmania, osu!; see the note's section 1).
+- Says: a replay of inputs is tiny and repeats only on the build that made it; a state stream starts anywhere but is large and breaks with patches too; keyframes with inputs give seeking.
+- Used for: replays as inputs from an anchor, bound to their build; no whole-game snapshots (decision 1).
+
+**A save as a replay's start** (Photon Quantum, Factorio, StarCraft II's take-control; section 2).
+- Says: a snapshot and a replay can share one format; a replay can be stopped and played on from any point.
+- Used for: one container for saves and replays, and a save from any frame of a replay (decision 4, S2).
+
+**Determinism** (Gaffer on Games, Bruce Dawson, Rust's documentation of `powi` and of float precision, the `libm` crate, CORE-MATH, Box2D's and Photon Quantum's deterministic modes; section 3).
+- Says: record the step if it varies; seed one stream; never iterate a randomly ordered map into state; platform math functions differ between systems and versions, while + − × ÷ √ do not; rustc never contracts.
+- Used for: time in integer ticks for play and replay alike, our own math module, hash iteration out of the simulation (R1, R2).
+
+**File size** (Doom's ticcmds, osu!'s replays, varints and deflate; section 4).
+- Says: quantize what enters the simulation and record exactly that; delta, varint and deflate bring inputs to a few tens of kilobytes a minute.
+- Used for: the mouse rounded with Doom's carry, the chunked `OCREPLAY` layout (R3).
+
+**Checking and showing a replay** (Factorio's and SupCom's checksums, Fortnite's and Overwatch's replay browsers, MotoGP's seeking; sections 5 and 6).
+- Says: store state checksums and stop at the first mismatch; a replay list with a build badge; pause, speed, skip and a timeline; show a frozen frame with progress while seeking.
+- Used for: hashes every 60 frames, the Replays screen and its controls (R3–R5).

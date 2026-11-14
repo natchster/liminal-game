@@ -105,3 +105,11 @@ One more was gathered on 2026-11-14 for the agents' trust
 | Note | What it covers |
 |---|---|
 | [`agent-trust.md`](agent-trust.md) | Whether any issue-implementing skill or integration acts only on maintainers' words and on others' once approved: Claude Code skills and plugins, claude-code-action (what it reads, who triggers, its edit freeze and sanitizer, agent mode), the GitHub MCP server's lockdown mode, gh-aw's integrity filter, endorsements that go stale on edit and protected files, Copilot, OpenCode, Gemini CLI, OpenHands; GitHub's mechanics a gate needs (`pull_request_target` and its default block from 2026-12-02, commit statuses as required checks, roles, edit times, rulesets) |
+
+One more was gathered on 2026-11-14 for the replays and saves
+([`../plan/REPLAYS.md`](../plan/REPLAYS.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 20:
+
+| Note | What it covers |
+|---|---|
+| [`replays.md`](replays.md) | How games record and replay: input demos over a deterministic simulation (Doom, Quake's network demos, StarCraft, Age of Empires, Supreme Commander, Factorio, Halo, Trackmania, osu!, Celeste's TAS files) against state streams (Quake III, Unreal, Rocket League, Overwatch) and keyframes with inputs (MotoGP, Photon Quantum); starting anywhere (simulating from a checkpoint, snapshots, a save as a replay's start); determinism (the time step, random streams, iteration order, threads, and floating point across builds and systems: libm, FMA, fast-math, `powi`, the `libm` and CORE-MATH libraries); file size (inputs quantized where they enter, varints, deflate; sizes a minute); desync checks and binding a replay to its build; recording, browsing and playback in the menus; what this game does today, read from its code; twelve recommendations and a file layout |
