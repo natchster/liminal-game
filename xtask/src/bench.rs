@@ -26,7 +26,10 @@
 //! Then the **creature pack** (`backrooms --bench-creatures`: on level 4,
 //! two of every kind that roams the rooms, all hunting you) is timed the
 //! same way, held to the `creatures` budgets and to its own history,
-//! `perf/creatures.csv` (one row a run).
+//! `perf/creatures.csv` (one row a run), and **recording and replaying**
+//! (`backrooms --bench-replay`: a minute of the restless bot from the title,
+//! recorded and replayed headless) to the `replays` budgets and
+//! `perf/replays.csv`.
 use crate::shots::{machine, read_json};
 use crate::{cargo, flag, root, run};
 use serde_json::Value;
@@ -185,6 +188,7 @@ pub fn bench(args: &[String]) -> Result<(), String> {
         println!("recorded in perf/history.csv");
     }
     bench_pack(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
+    bench_replays(args, &bin, &tmp, &budgets, &here, &commit, &mut failures)?;
     if failures.is_empty() {
         println!("within budget, no slowdown in the history");
         Ok(())
@@ -230,67 +234,148 @@ fn bench_pack(
             samples[i].push(r[*m].as_f64().unwrap_or(0.0));
         }
     }
-    let now: Vec<f64> = samples
+    let series =
+        Series { name: "creature pack", budgets: "creatures", csv: "perf/creatures.csv", key: ("creatures", creatures.to_string()) };
+    series.hold(args, PACK_MEASURES, &medians_of(&samples), budgets, here, commit, failures)
+}
+
+/// Measures of recording and replaying (higher is worse): a replayed
+/// frame's time, the log's work a frame, the log's memory and the file's
+/// size a minute of play.
+const REPLAY_MEASURES: &[&str] = &["replay_frame_us", "record_frame_us", "log_kb_min", "file_kb_min"];
+/// The bot's frames a replay bench plays (a minute, after the way in).
+const REPLAY_FRAMES: &str = "3600";
+
+/// Recording and replaying (`backrooms --bench-replay`): `REPEATS` runs,
+/// medians, the `replays` budgets, and a change point in
+/// `perf/replays.csv`.
+fn bench_replays(
+    args: &[String],
+    bin: &std::path::Path,
+    tmp: &std::path::Path,
+    budgets: &Value,
+    here: &str,
+    commit: &str,
+    failures: &mut Vec<String>,
+) -> Result<(), String> {
+    let mut samples: Vec<Vec<f64>> = vec![vec![]; REPLAY_MEASURES.len()];
+    for rep in 0..REPEATS {
+        let f = tmp.join(format!("replay_{rep}.json"));
+        let o = Command::new(bin)
+            .arg("--bench-replay")
+            .arg(&f)
+            .args(["--seed", "4242", "--bench-frames", REPLAY_FRAMES])
+            .output()
+            .map_err(|e| e.to_string())?;
+        if !o.status.success() {
+            return Err(format!("the replay bench failed: {}", String::from_utf8_lossy(&o.stderr).trim()));
+        }
+        let r = read_json(&f);
+        for (i, m) in REPLAY_MEASURES.iter().enumerate() {
+            samples[i].push(r[*m].as_f64().unwrap_or(0.0));
+        }
+    }
+    let series = Series { name: "replays", budgets: "replays", csv: "perf/replays.csv", key: ("frames", REPLAY_FRAMES.to_string()) };
+    series.hold(args, REPLAY_MEASURES, &medians_of(&samples), budgets, here, commit, failures)
+}
+
+/// Each measure's median over its runs.
+fn medians_of(samples: &[Vec<f64>]) -> Vec<f64> {
+    samples
         .iter()
         .map(|v| {
             let mut s = v.clone();
             s.sort_by(|a, b| a.total_cmp(b));
             s[s.len() / 2]
         })
-        .collect();
-    println!("{:<10} {}", "pack", PACK_MEASURES.join("  "));
-    println!("{:<10} {}", format!("{creatures} live"), now.iter().map(|x| format!("{x:.2}")).collect::<Vec<_>>().join("  "));
-    for (i, m) in PACK_MEASURES.iter().enumerate() {
-        if let Some(b) = budgets["creatures"][m].as_f64()
-            && now[i] > b
-        {
-            failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", now[i]));
-        }
-    }
-    let path = root().join("perf/creatures.csv");
-    let text = std::fs::read_to_string(&path).unwrap_or_default();
-    let mut series: Vec<Vec<(String, f64)>> = vec![vec![]; PACK_MEASURES.len()];
-    for line in text.lines().skip(1) {
-        let c: Vec<&str> = line.split(',').collect();
-        // (a pack of another size is another measurement: its own series)
-        if c.len() < 4 + PACK_MEASURES.len() || c[2] != here || c[3].parse::<i64>().ok() != Some(creatures) {
-            continue;
-        }
-        for i in 0..PACK_MEASURES.len() {
-            if let Ok(v) = c[4 + i].parse::<f64>() {
-                series[i].push((c[1].to_string(), v));
+        .collect()
+}
+
+/// One series of measures with its own history (a CSV of `date, commit,
+/// machine, <key>, measures…`, a row a run) and its own budgets.
+struct Series {
+    name: &'static str,
+    /// the section of the budgets in `PERF.md`
+    budgets: &'static str,
+    csv: &'static str,
+    /// a column that tells one measurement from another (another value is
+    /// another series)
+    key: (&'static str, String),
+}
+
+impl Series {
+    /// `now` printed, held to the budgets and to a change point in the
+    /// history on this machine, and (without `--no-record`) appended to it.
+    #[expect(clippy::too_many_arguments, reason = "the bench's shared state, passed as the levels' bench passes it")]
+    fn hold(
+        &self,
+        args: &[String],
+        measures: &[&str],
+        now: &[f64],
+        budgets: &Value,
+        here: &str,
+        commit: &str,
+        failures: &mut Vec<String>,
+    ) -> Result<(), String> {
+        println!("{:<10} {}", self.name, measures.join("  "));
+        println!(
+            "{:<10} {}",
+            format!("{} {}", self.key.1, self.key.0),
+            now.iter().map(|x| format!("{x:.2}")).collect::<Vec<_>>().join("  ")
+        );
+        for (i, m) in measures.iter().enumerate() {
+            if let Some(b) = budgets[self.budgets][m].as_f64()
+                && now[i] > b
+            {
+                failures.push(format!("{}: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", self.name, now[i]));
             }
         }
-    }
-    for (i, m) in PACK_MEASURES.iter().enumerate() {
-        let mut s = series[i].clone();
-        s.push((commit.to_string(), now[i]));
-        if s.len() < MIN_HISTORY {
-            continue;
+        let path = root().join(self.csv);
+        let text = std::fs::read_to_string(&path).unwrap_or_default();
+        let mut series: Vec<Vec<(String, f64)>> = vec![vec![]; measures.len()];
+        for line in text.lines().skip(1) {
+            let c: Vec<&str> = line.split(',').collect();
+            if c.len() < 4 + measures.len() || c[2] != here || c[3] != self.key.1 {
+                continue;
+            }
+            for i in 0..measures.len() {
+                if let Ok(v) = c[4 + i].parse::<f64>() {
+                    series[i].push((c[1].to_string(), v));
+                }
+            }
         }
-        let xs: Vec<f64> = s.iter().map(|x| x.1).collect();
-        if let Some((at, before, after, p)) = change_point(&xs)
-            && after > before * SLOWER
-            && p < P_CHANGE
-            && at + 3 >= xs.len()
-        {
-            failures.push(format!(
-                "creature pack: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/creatures.csv",
-                s[at].0
+        for (i, m) in measures.iter().enumerate() {
+            let mut s = series[i].clone();
+            s.push((commit.to_string(), now[i]));
+            if s.len() < MIN_HISTORY {
+                continue;
+            }
+            let xs: Vec<f64> = s.iter().map(|x| x.1).collect();
+            if let Some((at, before, after, p)) = change_point(&xs)
+                && after > before * SLOWER
+                && p < P_CHANGE
+                && at + 3 >= xs.len()
+            {
+                failures.push(format!(
+                    "{}: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see {}",
+                    self.name, s[at].0, self.csv
+                ));
+            }
+        }
+        if !flag(args, "--no-record") {
+            let mut out = if text.is_empty() { format!("date,commit,machine,{},{}\n", self.key.0, measures.join(",")) } else { text };
+            let date =
+                Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+            out.push_str(&format!(
+                "{date},{commit},{here},{},{}\n",
+                self.key.1,
+                now.iter().map(|x| format!("{x:.3}")).collect::<Vec<_>>().join(",")
             ));
+            std::fs::write(&path, out).map_err(|e| e.to_string())?;
+            println!("recorded in {}", self.csv);
         }
+        Ok(())
     }
-    if !flag(args, "--no-record") {
-        let mut out = if text.is_empty() { format!("date,commit,machine,creatures,{}\n", PACK_MEASURES.join(",")) } else { text };
-        let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
-        out.push_str(&format!(
-            "{date},{commit},{here},{creatures},{}\n",
-            now.iter().map(|x| format!("{x:.3}")).collect::<Vec<_>>().join(",")
-        ));
-        std::fs::write(&path, out).map_err(|e| e.to_string())?;
-        println!("recorded in perf/creatures.csv");
-    }
-    Ok(())
 }
 
 /// The best single split of `x` (each side at least 3 long): its index, the

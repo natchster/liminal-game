@@ -863,6 +863,9 @@ impl Game {
         if acts.contains(&Act::Mute) {
             return self.on_action(Act::Mute);
         }
+        if acts.contains(&Act::Record) {
+            return self.on_action(Act::Record);
+        }
         let skip = self.is_skip_key(code);
         if let Some(p) = self.cut.as_mut() {
             p.hint = HINT_FOR;

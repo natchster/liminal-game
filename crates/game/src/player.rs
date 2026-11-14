@@ -124,7 +124,12 @@ impl Game {
         // mashing a key through the moment that leads to them)
         let card_up = !self.ui.overlay.has_class("hidden") || self.live_menu().is_some();
         let go_on = matches!(code, "KeyE" | "Enter" | "Space" | "KeyR" | "Mouse0");
-        let mute = self.acts_of(code).contains(&crate::session::input::Act::Mute);
+        let acts = self.acts_of(code);
+        let mute = acts.contains(&crate::session::input::Act::Mute);
+        // Record, like Mute, works on every screen and card
+        if acts.contains(&crate::session::input::Act::Record) {
+            return self.on_action(crate::session::input::Act::Record);
+        }
         if self.state == "dead" {
             if go_on && card_up {
                 self.restart();

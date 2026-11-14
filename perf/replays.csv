@@ -1,0 +1,2 @@
+date,commit,machine,frames,replay_frame_us,record_frame_us,log_kb_min,file_kb_min
+2026-11-14,5946106+,Mac16;11 macOS 27.0,3600,190.465,0.102,252.989,15.947

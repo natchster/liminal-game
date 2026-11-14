@@ -105,7 +105,11 @@ pub fn seed_native(seed: u64) {
         for _ in 0..8 {
             x.next();
         }
-        r.borrow_mut().native = x;
+        let mut r = r.borrow_mut();
+        r.native = x;
+        // (the draws counted are the stream's since its seed, whatever the
+        // thread ran before: a replay in the thread that played counts alike)
+        r.native_count = 0;
     });
 }
 /// The native generator, whatever stream is active.

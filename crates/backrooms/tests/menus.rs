@@ -125,7 +125,7 @@ fn the_pause_stops_the_world_and_leads_to_settings_and_back() {
     press(&mut g, "Escape");
     assert_eq!(g.state, "paused");
     assert_eq!(g.live_menu(), Some(Screen::Pause));
-    assert_eq!(labels(&g), ["Resume", "Settings", "Controls", "Leave for the title"]);
+    assert_eq!(labels(&g), ["Resume", "Settings", "Controls", "Record", "Leave for the title"]);
     let (t, pos) = (g.director.t, g.player.pos);
     let ents: Vec<_> = g.entities.iter().map(|e| e.pos()).collect();
     g.key_down("KeyW", false); // (in a list, W moves the choice up)
@@ -230,4 +230,36 @@ fn death_is_black_a_line_and_wake_up() {
     press(&mut g, "Enter");
     assert_eq!((g.state.as_str(), g.live_menu()), ("menu", Some(Screen::Title)));
     assert_eq!(g.menu.items[0].label, "Continue");
+}
+
+/// Record (F9, or the pause list's line) asks the app to start or end a
+/// recording, the same ask either way, from play, the pause list and the
+/// death card; the line says what the app is doing.
+#[test]
+fn record_asks_the_app_from_anywhere() {
+    let mut g = new_game();
+    press(&mut g, "Enter"); // New descent
+    frame(&mut g, 30);
+    press(&mut g, "F9");
+    assert!(std::mem::take(&mut g.want_record), "F9 in play");
+    press(&mut g, "Escape");
+    press(&mut g, "F9");
+    assert!(std::mem::take(&mut g.want_record), "F9 under the pause list");
+    assert_eq!(g.state, "paused", "and the list stays");
+    // the line: chosen, back into play
+    let k = g.menu.items.iter().position(|i| i.id == "menu:record").expect("the pause list has Record");
+    g.menu.sel = k;
+    press(&mut g, "Enter");
+    assert!(std::mem::take(&mut g.want_record), "the pause list's Record");
+    assert_eq!(g.state, "playing");
+    // while the app records, the line offers to stop
+    g.rec_mark.since_ms = Some(g.now_ms);
+    press(&mut g, "Escape");
+    assert!(labels(&g).contains(&"Stop recording".to_string()), "{:?}", labels(&g));
+    press(&mut g, "Escape");
+    g.on_death("test");
+    frame(&mut g, 240);
+    press(&mut g, "F9");
+    assert!(std::mem::take(&mut g.want_record), "F9 on the death card");
+    assert_eq!(g.state, "dead", "and it does not wake you");
 }

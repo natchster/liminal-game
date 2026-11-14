@@ -1079,6 +1079,15 @@ impl Game {
             self.open_menu(Screen::Title);
             return;
         }
+        // a recording 1:23 in: play with the REC mark, and the pause list it
+        // gives Stop recording
+        if name == "recording" || name == "recording-paused" {
+            self.rec_mark.since_ms = Some(self.now_ms - 83_000.0);
+            if name == "recording-paused" {
+                self.pause();
+            }
+            return;
+        }
         // the death card and her last card, as they stand over black
         if name == "dead" || name == "ending" {
             self.ui.fade.set_style("background", if name == "dead" { "#000" } else { "#050403" });

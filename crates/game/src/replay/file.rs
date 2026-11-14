@@ -20,6 +20,7 @@
 use super::{FrameInput, InputEvent, StateHash};
 use crate::session::anchor::Anchor;
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 
 pub const MAGIC: &[u8; 8] = b"OCREPLAY";
 pub const VERSION: u16 = 1;
@@ -32,8 +33,9 @@ pub const INPUT_GRID: f64 = 256.0;
 #[derive(Clone, Debug, PartialEq)]
 pub enum Start {
     /// A fresh process, as the game starts: its per-frame stream's seed,
-    /// its launch flags, its settings and its view.
-    Session { native_seed: u64, flags: String, settings: Value, view: [f64; 3] },
+    /// its launch flags, what its storage held when it booted (the save and
+    /// the settings; empty for a fresh install), its settings and its view.
+    Session { native_seed: u64, flags: String, storage: BTreeMap<String, String>, settings: Value, view: [f64; 3] },
     /// A floor's anchor (`session::anchor`).
     Floor(Anchor),
 }
@@ -240,10 +242,11 @@ fn get_event(r: &mut Reader, strings: &[String]) -> Result<InputEvent, String> {
 impl Start {
     pub fn to_json(&self) -> Value {
         match self {
-            Start::Session { native_seed, flags, settings, view } => json!({
+            Start::Session { native_seed, flags, storage, settings, view } => json!({
                 "kind": "session",
                 "native_seed": native_seed,
                 "flags": flags,
+                "storage": storage,
                 "settings": settings,
                 "view": view.map(f64::to_bits),
             }),
@@ -257,6 +260,12 @@ impl Start {
                 Ok(Start::Session {
                     native_seed: v["native_seed"].as_u64().ok_or("a session start without its seed")?,
                     flags: v["flags"].as_str().unwrap_or_default().to_string(),
+                    storage: v["storage"]
+                        .as_object()
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|(k, v)| Some((k.clone(), v.as_str()?.to_string())))
+                        .collect(),
                     settings: v["settings"].clone(),
                     view: <[f64; 3]>::try_from(view).map_err(|_| "a session start without its view")?,
                 })
@@ -270,9 +279,19 @@ impl Start {
 // ------------------------------------------------------------- the file
 
 impl ReplayFile {
-    /// Every frame of the recording, in order, with its index.
+    /// How many frames the recording holds (from its first segment's start).
     pub fn frame_count(&self) -> u64 {
         self.segments.iter().map(|s| s.frames.len() as u64).sum()
+    }
+    /// The first frame a recording shows (`in` in its header): what comes
+    /// before it in its first segment is there to be simulated, unseen. A
+    /// whole log shows everything.
+    pub fn in_point(&self) -> u64 {
+        self.header["in"].as_u64().unwrap_or_else(|| self.segments.first().map_or(0, |s| s.first_frame))
+    }
+    /// The frame after the last it holds (`out` in its header).
+    pub fn out_point(&self) -> u64 {
+        self.segments.last().map_or(0, |s| s.first_frame + s.frames.len() as u64)
     }
 
     pub fn encode(&self) -> Vec<u8> {
@@ -476,7 +495,13 @@ mod tests {
         i.events.push(InputEvent::View(1280.0, 800.0, 2.0));
         i.up("KeyW");
         let seg = Segment {
-            start: Start::Session { native_seed: 42, flags: "seed=7".into(), settings: json!({"look": 1.0}), view: [1280.0, 800.0, 2.0] },
+            start: Start::Session {
+                native_seed: 42,
+                flags: "seed=7".into(),
+                storage: [("settings".to_string(), "{}".to_string())].into(),
+                settings: json!({"look": 1.0}),
+                view: [1280.0, 800.0, 2.0],
+            },
             first_frame: 0,
             frames: vec![(1092, i.clone()), (1093, FrameInput::default()), (0, i)],
             hashes: vec![(59, StateHash { player: 1, entities: 2, director: 3, world: u64::MAX })],

@@ -91,6 +91,7 @@ pub fn bind_id(a: Act) -> &'static str {
         Act::Glance => "bind:glance",
         Act::Pause => "bind:pause",
         Act::Mute => "bind:mute",
+        Act::Record => "bind:record",
         Act::Debug => "bind:debug",
     }
 }
@@ -124,6 +125,8 @@ impl Game {
                 item("menu:resume", "Resume", ""),
                 item("menu:settings", "Settings", ""),
                 item("menu:controls", "Controls", ""),
+                // (its words follow the app's recording; play never reads them)
+                item("menu:record", if self.rec_mark.since_ms.is_some() { "Stop recording" } else { "Record" }, ""),
                 item("menu:leave", "Leave for the title", ""),
             ],
             Screen::ConfirmLeave => vec![item("menu:leave-yes", "Leave", ""), item("menu:back", "Back", "")],
@@ -319,6 +322,11 @@ impl Game {
             }
             "menu:back" => self.menu_back(),
             "menu:resume" => self.resume(),
+            // back into play, the app starting or ending the recording
+            "menu:record" => {
+                self.want_record = true;
+                self.resume();
+            }
             "menu:wake" => self.restart(),
             "menu:go-on" => self.end_ending(),
             "menu:leave" => self.open_menu(Screen::ConfirmLeave),

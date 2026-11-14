@@ -78,6 +78,13 @@ gone when it is not needed.
    bars slide in from the top and the bottom, the HUD goes, and a key
    pressed shows "Hold E to skip" small in the lower bar; play itself is
    never letterboxed.
+9. **A recording is yours to start and end.** F9 (on the Controls page,
+   off the run's hand: it is not a thing a run needs) or the pause list's
+   Record begins one from that moment, on any screen; a small red
+   "● REC 1:23" stands at the top right while it runs (the HUD's one mark
+   that is not the place's: it says something is kept), and Stop recording
+   or F9 again ends it, its name shown a moment where the mark was. Nothing
+   in play changes while it records (`docs/engineering/REPLAYS.md`).
 
 ## What only people can tell
 

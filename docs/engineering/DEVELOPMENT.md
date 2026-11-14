@@ -499,9 +499,11 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   60 s, a relief at least 8 s, the same sign at most 8 times in a row,
   signs followed by a chase between 5% and 95% of the time, at most 6
   stings a level. The report is `target/personas/report.md`.
-* `backrooms --record FILE` records a session (`OCREPLAY`: each frame's
-  interval in clock ticks and its input, the state every 60 frames, each
-  floor's anchor, a telemetry row a second, the director's events);
+* `backrooms --record FILE` records a whole session (`OCREPLAY`: each
+  frame's interval in clock ticks and its input, the state every 60
+  frames, each floor's anchor, a telemetry row a second, the director's
+  events); in any session F9 (or the pause list's Record) records any
+  stretch into `~/Library/Application Support/Backrooms/replays/`;
   `backrooms --replay FILE` plays it back exactly and takes tension marks
   (↑ / ↓) into `<FILE>.trace.json`; `--replay-verify FILE` replays every
   segment headless and compares every kept state; `--dump-replay FILE`

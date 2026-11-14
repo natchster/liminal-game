@@ -334,14 +334,19 @@ pub fn make_ir_data(p: &ReverbPreset, sr: f64, rng: &dyn Fn() -> f64) -> Vec<Vec
         let mut d = vec![0f32; len];
         let pre = (p.pre * sr).floor() as usize;
         let mut lp = 0.0f64;
+        // the decay, e^(−6.9 t / t60), as a running product: one exponential
+        // a channel, not one a sample (hundreds of thousands, each correctly
+        // rounded, as a zone is first entered). A product drifts by about
+        // 1e-11 over the longest tail, far under what an f32 sample keeps.
+        let (step, mut env) = ((-6.9 / (sr * p.t60)).dexp(), 1.0f64);
         for i in pre..len {
             let t = (i - pre) as f64 / sr;
-            let env = (-6.9 * t / p.t60).dexp();
             // high frequencies die faster: a one-pole lowpass whose smoothing
             // grows with time (damp sets how fast the room gets dull)
             let a = (0.97f64).min(0.05 + p.damp * 0.85 * (1f64).min(t / (p.t60 * 0.5)));
             lp = lp * a + (rng() * 2.0 - 1.0) * (1.0 - a);
             d[i] = (lp * env * (1.0 + a * 2.2)) as f32;
+            env *= step;
         }
         // early reflections: a few discrete taps (walls close by)
         for k in 0..p.er {

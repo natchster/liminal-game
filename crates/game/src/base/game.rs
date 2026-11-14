@@ -21,6 +21,15 @@ pub struct Timeout {
     pub f: Option<Box<dyn FnOnce(&mut Game)>>,
 }
 
+/// The REC mark (`ui::draw`): set by the app, read only by the drawing.
+#[derive(Clone, Debug, Default)]
+pub struct RecMark {
+    /// the game's clock (ms) when the recording being made began
+    pub since_ms: Option<f64>,
+    /// a recording just saved: when (ms), and its name
+    pub saved: Option<(f64, String)>,
+}
+
 pub struct Game {
     // ------------------------------------------------------------ level grid
     /// Tile grid dimensions (odd)
@@ -92,6 +101,12 @@ pub struct Game {
     pub want_pointer_lock: Option<bool>,
     pub want_fullscreen: Option<bool>,
     pub want_quit: bool,
+    /// the Record key or the pause list's Record was chosen: the app starts
+    /// or ends a recording (the game's answer is the same either way, so a
+    /// replay of the press runs alike)
+    pub want_record: bool,
+    /// what the REC mark shows: drawn only, never read by play
+    pub rec_mark: RecMark,
     /// Set by `warm_up_gpu` to have the renderer compile the level's shader programs
     pub want_warm_up: bool,
     /// View size in logical pixels, and the backing scale factor
@@ -770,6 +785,8 @@ impl Game {
             want_pointer_lock: None,
             want_fullscreen: None,
             want_quit: false,
+            want_record: false,
+            rec_mark: RecMark::default(),
             want_warm_up: false,
             view_width: 1280.0,
             view_height: 800.0,

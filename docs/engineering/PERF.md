@@ -74,6 +74,22 @@ from before `03e4b80` benches out loud.
   own geometry and painters and the engine's: if a floor nears its budget,
   look there (`sample` on `--bench`). Kept: a level now builds the same on
   every Mac.
+  Flagged again by R4's full check, at its third run (update p50 on 7 L4–L6
+  and 4242 L5 +0.01–0.02 ms, as above, and **7 L5's update p99 0.84 → 1.44
+  ms**, which the A/B above had not shown). Review A and R4 benched in turn
+  five times each on that floor: p99 0.80 → 1.58 ms every time, frames 48
+  and 68 (the bench's first frame in two new zones) 2.1 and 3.8 ms where
+  review A had none over 2. A count of `dmath`'s calls per frame found
+  them: about 5,000 in a frame, 192,000 and 344,000 in those two, all in
+  `make_ir_data`, which built a zone's reverb when it was first entered
+  with an exponential a sample. The decay is now a running product (one
+  exponential a channel; it drifts by 1e-11 over the longest tail, under
+  what an f32 keeps; the soundscape's reference, the 17 listen tests and
+  the loudness held): p99 0.79–0.87, no frame over 2 ms. The update p50
+  stays +0.02 ms (0.08 → 0.10 on 7 L5: a frame's 5,000 calls). 7 L5's
+  build measured 615–621 ms against 580 for review A on the loaded
+  machine (570 in R4's full check): its 600 ms budget holds only on a
+  quiet machine, and it is the first floor to look at if a build grows.
 
 - **E7** (`8274df8+` in the history, flagged by E8's full check): level 4's
   build, the first floor of the rooms a run builds, 135 → 148 ms in both
@@ -162,12 +178,32 @@ held to the `creatures` budgets below and to its own history,
 (2026-10-28, before the redesign of `ENTITIES.md`): 5 creatures placed,
 update 0.07 / 0.89 ms (p50 / p99), GPU 2.2 / 3.6 ms, 263k triangles.
 
+## Recording and replaying
+
+Last, `cargo xtask bench` times **recording and replaying**
+(`backrooms --bench-replay`, `docs/engineering/REPLAYS.md`): a fresh
+process at the title, New descent, the way in, then a minute (3,600
+frames at 60 a second) of the restless bot on run 4242, its log kept as
+play keeps it; then the session replayed headless from its start and
+checked. It measures a replayed frame (what a seek costs: a minute of play
+is simulated again in 60 × 60 × that), the log's work after each frame,
+the log's memory a minute of play (its frames, events, kept states and
+telemetry: what the game holds between recordings is one floor of it),
+and the file a minute. It is held to the `replays` budgets below and to
+`perf/replays.csv`. The first runs (R4, 2026-11-14): a replayed frame
+0.19–0.20 ms (about 85 times real time: ten minutes are reached in about
+7 s), the log 0.1 µs a frame, 253 KB a minute in memory, 16 KB a minute
+in the file.
+
 ## Budgets
 
 About twice the worst level today, and the GPU well inside a 60 fps frame
 (16.7 ms) at four times the pixels (Retina). The Showroom sets the triangle
 budget; a maze level that grows toward it shows first as a step in the
-history. Raise a budget only with a reason in the commit.
+history. A replayed frame within 0.5 ms keeps a seek over ten minutes of
+play under 20 s; the log within 0.5 MB a minute keeps a long floor's in
+tens of megabytes; the file within 25 KB a minute is the format's own
+target (`docs/engineering/REPLAYS.md`). Raise a budget only with a reason in the commit.
 
 <!-- perf-budgets:begin -->
 ```json
@@ -186,6 +222,12 @@ history. Raise a budget only with a reason in the commit.
     "gpu_p50_ms": 6,
     "gpu_p99_ms": 8,
     "tris_max": 2500000
+  },
+  "replays": {
+    "replay_frame_us": 500,
+    "record_frame_us": 20,
+    "log_kb_min": 512,
+    "file_kb_min": 25
   }
 }
 ```

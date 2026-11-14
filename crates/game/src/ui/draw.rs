@@ -1369,10 +1369,30 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
     // ---- z 10: the menus and cards (`ui/screens.rs`), then Settings' brightness over everything
     crate::ui::screens::paint_menu(&mut f, g);
     crate::ui::screens::paint_brightness(&mut f, g);
+    // ---- z 11: the REC mark, over every screen while a recording is made
+    paint_rec(&mut f, g);
     let out = std::mem::take(&mut f.out);
     drop(f);
     g.hud_ui = ui;
     out
+}
+
+/// The REC mark (top right): a recording being made and how long it has
+/// run, then for a few seconds the name it was saved under. Drawn from
+/// `Game::rec_mark`, which the app sets and play never reads.
+fn paint_rec(f: &mut Frame, g: &Game) {
+    let m = &g.rec_mark;
+    let running = m.since_ms.map(|s| {
+        let secs = ((g.now_ms - s) / 1000.0).max(0.0) as u64;
+        format!("● REC {}:{:02}", secs / 60, secs % 60)
+    });
+    let saved = m.saved.as_ref().filter(|(at, _)| (0.0..4000.0).contains(&(g.now_ms - at))).map(|(_, name)| format!("Saved {name}"));
+    let op = f.tr("rec", if running.is_some() || saved.is_some() { 1.0 } else { 0.0 }, 0.3, Ease::Ease);
+    let Some(text) = running.or(saved) else { return };
+    let dark = parse_shadows("0 0 4px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.6)");
+    let tb = TextBlock::plain(&text, col("#e0483c"), &dark, 0.0, Font::sans(12.0).bold(), Ws::NoWrap, None, None);
+    let w = f.w;
+    text_layer(f, "rec", tb, w - 24.0 - 240.0, 40.0, 240.0, "right", op * 0.9);
 }
 
 /// #vignette with an inline inset box-shadow: gradient + shadow, filtered,

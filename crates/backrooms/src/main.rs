@@ -35,7 +35,7 @@ struct Options {
     showcase_walk: bool,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
-    /// `--screen pause|leave|settings|brightness|controls|title|dead|ending|notebook|notebook-typed`:
+    /// `--screen pause|leave|settings|brightness|controls|recording|recording-paused|title|dead|ending|notebook|notebook-typed`:
     /// with `--play`, that list or card goes up 45 frames before the shot (`Game::debug_screen`)
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
@@ -74,9 +74,9 @@ struct Options {
     /// `--vending-demo hang|bin`: with `--views-at`, every lit vending
     /// machine is first played to that state (`Game::vending_demo`)
     vending_demo: Option<String>,
-    /// `--record FILE`: play normally and record the session (`OCREPLAY`:
-    /// its frames, kept states, telemetry, the director's events) to FILE;
-    /// opt-in, local only
+    /// `--record FILE`: play normally and record the whole session
+    /// (`OCREPLAY`: its frames, kept states, telemetry, the director's
+    /// events) to FILE, as if F9 were pressed at once; local only
     record: Option<String>,
     /// `--replay FILE`: play a recording back; ArrowUp / ArrowDown mark
     /// tension rising / falling (saved to FILE.trace.json), Escape stops
@@ -86,6 +86,9 @@ struct Options {
     replay_verify: Option<String>,
     /// `--dump-replay FILE`: a recording as JSON, on stdout
     dump_replay: Option<String>,
+    /// `--bench-replay FILE`: with `--seed` and `--bench-frames`, what
+    /// recording and replaying a session cost (`cargo xtask bench`)
+    bench_replay: Option<String>,
     /// `--bench FILE`: with `--seed` and `--levels`, time each level's build,
     /// its first frame and `bench_frames` frames along a fixed camera path
     bench: Option<String>,
@@ -176,6 +179,7 @@ fn parse_args() -> Options {
         replay: None,
         replay_verify: None,
         dump_replay: None,
+        bench_replay: None,
     };
     let a: Vec<String> = std::env::args().collect();
     let mut i = 1;
@@ -282,6 +286,7 @@ fn parse_args() -> Options {
             "--replay" => o.replay = Some(next(&mut i)),
             "--replay-verify" => o.replay_verify = Some(next(&mut i)),
             "--dump-replay" => o.dump_replay = Some(next(&mut i)),
+            "--bench-replay" => o.bench_replay = Some(next(&mut i)),
             "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
             "--help" | "-h" => {
                 println!(
@@ -292,7 +297,7 @@ fn parse_args() -> Options {
                 );
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
                 println!(
-                    "          [--record FILE]   play and record the session (inputs, telemetry, events) to FILE, on this machine only"
+                    "          [--record FILE]   play and record the whole session (inputs, telemetry, events) to FILE, on this machine only (F9 records any stretch into the replays folder)"
                 );
                 println!(
                     "          [--replay FILE]   play a recorded session back; Up / Down arrows mark tension rising / falling (FILE.trace.json)"
@@ -300,6 +305,8 @@ fn parse_args() -> Options {
                 println!(
                     "          [--replay-verify FILE]   play a recording headless from its start and each floor's anchor, every kept state compared"
                 );
+                println!("          [--dump-replay FILE]   a recording as JSON on stdout");
+                println!("          [--bench-replay FILE --seed S --bench-frames N]   what recording and replaying a bot's session cost");
                 println!("          [--dump-replay FILE]   a recording as JSON");
                 println!(
                     "          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)"
@@ -373,15 +380,13 @@ fn make_game(o: &Options) -> Game {
     g
 }
 
-/// The game a replay plays in (`game::replay::Player`): a fresh install, as
-/// a recorded session starts (nothing read, nothing written), booted with
-/// the recording's view when it starts from a fresh process.
-fn replay_game(flags: &str, view: Option<[f64; 3]>) -> Game {
+/// The game a replay plays in (`game::replay::Player`, which boots it): a
+/// fresh process's, with nothing read and nothing written.
+fn replay_game(flags: &str) -> Game {
     let mut g = Game::new_bare();
     g.launch_flags = flags.to_string();
     g.storage_path = None;
     placers::register_all(&mut g.placers);
-    g.boot_in_view(view);
     g
 }
 
@@ -496,10 +501,16 @@ struct App {
     g: Game,
     cursor: (f64, f64),
     last_hit: String,
-    /// `--record`: the session so far, where it is saved, its header
-    recorder: Option<(game::replay::Recorder, String, serde_json::Value)>,
-    /// `--record`, before the window: the per-frame seed and the file
-    to_record: Option<(u64, String)>,
+    /// the log of play (`game::replay::Recorder`), kept while playing (not
+    /// in a replay); recordings are made from it
+    log: Option<game::replay::Recorder>,
+    /// before the window: the per-frame seed the log starts from, and with
+    /// `--record` the file the whole session goes to
+    session: Option<(u64, Option<String>)>,
+    /// the recording being made: its file and header
+    recording: Option<(std::path::PathBuf, serde_json::Value)>,
+    /// writes recordings off the frame
+    writer: replays::Writer,
     /// `--replay`: the player, the trace file, its marks
     replaying: Option<Replaying>,
     /// the look and the wheel rounded where they enter, with their carry
@@ -516,13 +527,41 @@ struct Replaying {
 }
 
 impl App {
-    fn save(&self) {
-        if let Some((r, path, header)) = &self.recorder {
-            let _ = std::fs::write(path, r.snapshot(header.clone()).encode());
+    /// Before quitting: the recording being made, written now (and any
+    /// written before it), and a replay's tension marks.
+    fn save(&mut self) {
+        self.writer.finish();
+        if let (Some(log), Some((path, header))) = (&self.log, &self.recording)
+            && let Err(e) = replays::write(path, &log.snapshot(header.clone()))
+        {
+            eprintln!("recording not saved: {e}");
         }
         if let Some(rp) = &self.replaying {
             let frames = rp.player.file.frame_count();
             let _ = std::fs::write(&rp.trace, serde_json::json!({ "recording_frames": frames, "marks": rp.marks }).to_string());
+        }
+    }
+}
+
+impl App {
+    /// F9 or the pause list's Record: a recording begins with the next
+    /// frame, or the one being made ends here and is written.
+    fn toggle_recording(&mut self) {
+        let Some(log) = self.log.as_mut() else { return };
+        let g = &mut self.g;
+        if let Some((path, header)) = self.recording.take() {
+            if let Some(f) = log.take_recording(header) {
+                self.writer.send(path.clone(), f);
+            }
+            let name = path.file_stem().map_or_default(|s| s.to_string_lossy().to_string());
+            println!("recording saved to {}", path.display());
+            g.rec_mark = game::base::game::RecMark { since_ms: None, saved: Some((g.now_ms, name)) };
+        } else {
+            let path = replays::new_path(&save_path(), g.level_num);
+            println!("recording to {}", path.display());
+            log.start_recording();
+            self.recording = Some((path, replays::header(&g.launch_flags)));
+            g.rec_mark = game::base::game::RecMark { since_ms: Some(g.now_ms), saved: None };
         }
     }
 }
@@ -539,21 +578,36 @@ impl AppHandler for App {
         if self.replaying.is_some() {
             return;
         }
+        // what storage held before the boot read it: a replay of this
+        // session's first floor starts from it
+        let storage = self.g.storage.clone();
         // the title has the lobby's sound (a window needs no click to start audio)
         self.g.boot_in_view(Some([ctx.width, ctx.height, ctx.scale_factor]));
-        if let Some((seed, path)) = self.to_record.take() {
+        if let Some((seed, record)) = self.session.take() {
             let flags = self.g.launch_flags.clone();
-            let r = game::replay::Recorder::session(seed, &flags, &self.g);
-            self.recorder = Some((r, path, replays::header(&flags)));
+            let mut log = game::replay::Recorder::session(seed, &flags, storage, &self.g);
+            if let Some(p) = record {
+                log.start_recording();
+                self.recording = Some((p.into(), replays::header(&flags)));
+                self.g.rec_mark.since_ms = Some(self.g.now_ms);
+            }
+            self.log = Some(log);
         }
     }
     fn frame(&mut self, ctx: &mut AppCtx, dt: f64) -> Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>> {
         self.frames += 1;
-        if self.frames.is_multiple_of(300) || self.g.want_quit {
+        if self.g.want_quit {
             self.save();
+        } else if self.frames.is_multiple_of(3600)
+            && let (Some(log), Some((path, header))) = (&self.log, &self.recording)
+        {
+            // a minute's insurance against a crash, written off the frame
+            self.writer.send(path.clone(), log.snapshot(header.clone()));
         }
         if let Some(rp) = self.replaying.as_mut() {
             // the recorded interval and input; the window's are ignored
+            // (a recorded press of the Record key records nothing here)
+            self.g.want_record = false;
             if !rp.player.step(&mut self.g) {
                 println!("replay finished: {} tension marks in {}", rp.marks.len(), rp.trace);
                 self.save();
@@ -577,7 +631,7 @@ impl AppHandler for App {
             || (g.scale_factor - ctx.scale_factor).abs() > 0.01
         {
             let e = game::replay::InputEvent::View(ctx.width, ctx.height, ctx.scale_factor);
-            if let Some((r, _, _)) = self.recorder.as_mut() {
+            if let Some(r) = self.log.as_mut() {
                 r.push(e.clone());
             }
             g.apply_event(&e);
@@ -587,9 +641,13 @@ impl AppHandler for App {
         let ticks = game::base::game::clock_ticks(dt);
         let dt = g.advance_clock(ticks);
         g.frame(dt);
-        if let Some((r, _, _)) = self.recorder.as_mut() {
+        if let Some(r) = self.log.as_mut() {
             r.end_frame(g, ticks);
         }
+        if std::mem::take(&mut g.want_record) {
+            self.toggle_recording();
+        }
+        let g = &mut self.g;
         if let Some(l) = g.want_pointer_lock.take() {
             ctx.set_pointer_lock(l);
         }
@@ -631,6 +689,7 @@ impl AppHandler for App {
         if let Input::KeyDown(code, _) = &ev {
             let meta = g.key("MetaLeft") || g.key("MetaRight");
             if code == "KeyQ" && meta {
+                self.save();
                 ctx.quit();
                 return;
             }
@@ -681,7 +740,7 @@ impl AppHandler for App {
             _ => {}
         }
         for (e, feed) in events {
-            if let Some((r, _, _)) = self.recorder.as_mut() {
+            if let Some(r) = self.log.as_mut() {
                 r.push(e.clone());
             }
             if feed {
@@ -1446,29 +1505,58 @@ fn main() {
         }
         return;
     }
+    if let Some(p) = &o.bench_replay {
+        if let Err(e) = replays::bench(p, o.seed.unwrap_or(4242), o.bench_frames, replay_game) {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+        return;
+    }
     // a person is playing (or watching a replay): the one place the
     // speakers are turned on
     engine::audio::set_device_output(true);
-    // a recorded session seeds the per-frame randomness (and keeps the seed);
-    // a replay seeds it as its recording says, before its game is made
-    let (mut to_record, mut replaying, mut made, mut size) = (None, None, None, (o.width, o.height));
+    // play seeds the per-frame randomness from the clock and keeps the seed
+    // (the log of play starts from it); a replay seeds it as its recording
+    // says, before its game is made
+    let (mut session, mut replaying, mut made, mut size) = (None, None, None, (o.width, o.height));
     if let Some(p) = &o.replay {
         let file = replays::read(p).unwrap_or_else(|e| panic!("{e}"));
-        if let Some(game::replay::Start::Session { view, .. }) = file.segments.first().map(|s| &s.start) {
-            size = (view[0], view[1]);
+        if let Some(v) = replays::view_of(&file) {
+            size = (v[0], v[1]);
         }
         if let Some(told) = replays::other_build(&file) {
             println!("{told}");
         }
-        println!("replaying {p}: {} frames; Up / Down arrows mark tension rising / falling, Escape stops", file.frame_count());
-        let (g, player) = game::replay::Player::start(file, 0, replay_game).unwrap_or_else(|e| panic!("{p}: {e}"));
+        let (from, to) = (file.in_point(), file.out_point());
+        println!("replaying {p}: {} frames; Up / Down arrows mark tension rising / falling, Escape stops", to - from);
+        let (mut g, mut player) = game::replay::Player::start(file, 0, replay_game).unwrap_or_else(|e| panic!("{p}: {e}"));
+        // to its in-point by simulating, unheard (the device's own mute:
+        // the game's is play's and stays as play had it)
+        if player.frame < from {
+            let mute = |g: &Game, on: bool| {
+                if let Some(ac) = &g.ac {
+                    ac.set_muted(on || g.muted);
+                }
+            };
+            mute(&g, true);
+            let t = std::time::Instant::now();
+            let reached = player.seek(&mut g, from, |share| {
+                print!("\rseeking to frame {from}: {:.0}%", share * 100.0);
+                let _ = std::io::Write::flush(&mut std::io::stdout());
+            });
+            println!("\rseeking to frame {from}: done in {:.1} s", t.elapsed().as_secs_f64());
+            assert!(reached, "{p}: its in-point is past its end");
+            mute(&g, false);
+        }
         made = Some(g);
         replaying = Some(Replaying { player, trace: format!("{p}.trace.json"), marks: vec![], told: false });
-    } else if let Some(p) = &o.record {
+    } else {
         let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
         game::base::rng::seed_native(seed);
-        println!("recording this session to {p} (on this machine only)");
-        to_record = Some((seed, p.clone()));
+        if let Some(p) = &o.record {
+            println!("recording this session to {p} (on this machine only)");
+        }
+        session = Some((seed, o.record.clone()));
     }
     let g = made.unwrap_or_else(|| make_game(&o));
     run(
@@ -1477,8 +1565,10 @@ fn main() {
             g,
             cursor: (0.0, 0.0),
             last_hit: String::new(),
-            recorder: None,
-            to_record,
+            log: None,
+            session,
+            recording: None,
+            writer: replays::Writer::new(),
             replaying,
             quant: game::replay::Quantizer::default(),
             frames: 0,

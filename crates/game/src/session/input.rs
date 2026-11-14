@@ -32,6 +32,8 @@ pub enum Act {
     Glance,
     Pause,
     Mute,
+    /// pressed: start or end a recording (`docs/engineering/REPLAYS.md`)
+    Record,
     Debug,
 }
 
@@ -51,7 +53,7 @@ const fn b(act: Act, keys: &'static [&'static str], label: &'static str, on_the_
 }
 
 /// The default layout.
-pub static BINDINGS: [Binding; 18] = [
+pub static BINDINGS: [Binding; 19] = [
     b(Act::Forward, &["KeyW", "ArrowUp"], "Walk forward", true),
     b(Act::Back, &["KeyS", "ArrowDown"], "Walk back", true),
     b(Act::Left, &["KeyA", "ArrowLeft"], "Step left", true),
@@ -69,6 +71,7 @@ pub static BINDINGS: [Binding; 18] = [
     b(Act::Glance, &["KeyX"], "Look at what you carry (hold)", true),
     b(Act::Pause, &["Escape", "KeyP"], "Pause", false),
     b(Act::Mute, &["KeyM"], "Mute", false),
+    b(Act::Record, &["F9"], "Record (start, stop)", false),
     b(Act::Debug, &["F3"], "Debug panel", false),
 ];
 
@@ -234,6 +237,8 @@ impl Game {
             Act::Journal => self.toggle_journal(),
             Act::Pause => self.toggle_pause(),
             Act::Debug => self.toggle_debug(),
+            // the app starts or ends it; nothing in the game hangs on which
+            Act::Record => self.want_record = true,
             Act::CrouchToggle => {
                 if self.state == "playing" {
                     self.input.crouch_latched = !self.input.crouch_latched;
