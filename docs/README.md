@@ -46,6 +46,7 @@ a study's, never a design's (`tests/structure.rs` fails on one).
 | [`engineering/PERF.md`](engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`engineering/VISUAL_PLAYTEST.md`](engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
 | [`engineering/REPLAYS.md`](engineering/REPLAYS.md) | replays: what makes a session repeat, the `OCREPLAY` format, recording, replaying and verifying |
+| [`engineering/SAVES.md`](engineering/SAVES.md) | saves: what the game keeps of a run, the formats and where they are |
 | [`engineering/TRUST.md`](engineering/TRUST.md) | the maintainer trust: agents act on maintainers' words and on others' only once approved (`/trust`), the protected paths only the owner changes, the trust gate on pull requests, the agent on GitHub, the repository's settings |
 
 **Plan**

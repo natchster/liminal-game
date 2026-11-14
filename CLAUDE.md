@@ -50,6 +50,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/engineering/PERF.md`](docs/engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`docs/engineering/VISUAL_PLAYTEST.md`](docs/engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
 | [`docs/engineering/REPLAYS.md`](docs/engineering/REPLAYS.md) | replays: what makes a session repeat (ticks, the rounded mouse, the game's math, floors' anchors), the `OCREPLAY` format, recording any stretch (F9), the Replays screen, `--record`, `--replay`, `--replay-verify`, `--dump-replay`, `--record-bot`, `--replay-frames` |
+| [`docs/engineering/SAVES.md`](docs/engineering/SAVES.md) | saves: what the game keeps of a run between sessions, the formats (V0, the storage file) and where they are |
 | [`docs/engineering/TRUST.md`](docs/engineering/TRUST.md) | the maintainer trust: whose words from GitHub you act on (maintainers', and others' once a maintainer approves them), the protected paths only the owner changes, the trust gate |
 
 **Plan**
