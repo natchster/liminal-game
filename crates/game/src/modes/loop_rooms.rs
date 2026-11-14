@@ -1439,14 +1439,10 @@ impl LoopMode {
                 return true;
             }
         }
-        if lk.figure
+        lk.figure
             && imod(o, ROOMS) == LOOP::FIGURE_ROOM
             && !(self.fig.active && self.fig.lap == l)
             && circle(x, z, r, FURN.figure.x, zc + FURN.figure.v, FIG_R)
-        {
-            return true;
-        }
-        false
     }
     /// the furniture and the figure (`thing_hit`)
     fn thing_hit(&self, x: f64, z: f64, r: f64) -> bool {

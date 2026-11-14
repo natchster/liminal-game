@@ -557,7 +557,7 @@ fn the_hold_shows_when_the_wheel_turns() {
         g.keys.insert("KeyE".into());
         let mut presses = 0;
         let first = to_the_first_pull(&mut g, ci, |g, t| {
-            if ((t / DT).round() as usize) % 9 == 0 && t + INTERACT_BUFFER + 2.0 * DT < wait {
+            if ((t / DT).round() as usize).is_multiple_of(9) && t + INTERACT_BUFFER + 2.0 * DT < wait {
                 g.on_action(Act::Interact);
                 presses += 1;
             }

@@ -84,7 +84,7 @@ impl Packer {
         let pos = floats(&m["pos"]);
         let n = pos.len() / 3;
         let idx = floats(&m["idx"]);
-        if pos.len() % 3 != 0 || idx.len() % 3 != 0 {
+        if !pos.len().is_multiple_of(3) || !idx.len().is_multiple_of(3) {
             return Err(format!("mesh {name}: positions or indices not in threes"));
         }
         if let Some(bad) = idx.iter().find(|&&i| i < 0.0 || i as usize >= n) {

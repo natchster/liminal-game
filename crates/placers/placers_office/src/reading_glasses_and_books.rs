@@ -91,7 +91,7 @@ pub(crate) fn place_reading_glasses_and_books(g: &mut Game, _dist: &[i32]) {
         lens.set_render_order(2);
         glasses.add(&lens);
     }
-    if (seed >> 14) % 2 == 0 {
+    if (seed >> 14).is_multiple_of(2) {
         glasses.position().set(0.0, 0.0236, 0.034);
         glasses.rotation().y = glasses_turn * 0.5 + PI;
         pb.add(&glasses);

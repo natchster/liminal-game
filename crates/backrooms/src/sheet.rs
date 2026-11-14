@@ -56,7 +56,7 @@ pub fn sheet(tiles: &[Tile], cols: usize) -> (Vec<u8>, usize, usize) {
     let rows = tiles.len().div_ceil(cols);
     let (w, h) = (cols * tw + (cols + 1) * GAP, rows * (th + BAND) + (rows + 1) * GAP);
     let mut img = vec![0u8; w * h * 4];
-    for p in img.chunks_exact_mut(4) {
+    for p in img.as_chunks_mut::<4>().0 {
         p.copy_from_slice(&[20, 20, 22, 255]);
     }
     for (i, t) in tiles.iter().enumerate() {

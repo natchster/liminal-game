@@ -71,10 +71,10 @@ fn scramble(d: &[f64]) -> [[[usize; 3]; 3]; 6] {
             }
         }
     }
-    for t in d.chunks_exact(2) {
+    for t in d.as_chunks::<2>().0 {
         let f = ((t[0] * 6.0) as usize).min(5);
         let q = 1 + ((t[1] * 3.0) as usize).min(2);
-        let (axis, layer) = (f / 2, if f % 2 == 0 { 1 } else { -1 });
+        let (axis, layer) = (f / 2, if f.is_multiple_of(2) { 1 } else { -1 });
         let (i, j) = others(axis);
         for _ in 0..q {
             for e in fl.iter_mut() {

@@ -165,7 +165,7 @@ fn sp_chart(pick: u32) -> Vec<u8> {
         }
     }
     for r in 0..10 {
-        for x in (12 - r - 2).max(0)..=(12 + r + 2) {
+        for x in (12 - r - 2)..=(12 + r + 2) {
             set(hx + x, hy + r + 1, 1, &mut c);
         }
     }

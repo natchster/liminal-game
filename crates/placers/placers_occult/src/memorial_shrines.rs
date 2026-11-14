@@ -55,7 +55,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
     let body = group();
     body.position().y = FRAME_H / 2.0;
     lean.add(&body);
-    let frame_mat = if vary % 3 == 0 {
+    let frame_mat = if vary.is_multiple_of(3) {
         phong!({ map: &pictures::moulding_tex(FRAME_OUTER, &WOOD_FACE, Outline::Rect, Finish::Ebony, 1500.0, vary), specular: 0x161412, shininess: 30 })
     } else {
         lambert!({ map: &pictures::moulding_tex(FRAME_OUTER, &WOOD_FACE, Outline::Rect, Finish::Wood([0x5c, 0x3e, 0x28]), 1500.0, vary) })
@@ -76,7 +76,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
     }
     let photo = PHOTOS[((vary >> 3) % PHOTOS.len() as u32) as usize];
     let mut age = Age::photo(vary);
-    age.border = if (vary >> 6) % 2 == 0 { 0.004 } else { 0.0 };
+    age.border = if (vary >> 6).is_multiple_of(2) { 0.004 } else { 0.0 };
     let print = mesh(plane_geo!(PRINT.0, PRINT.1), lambert!({ map: &pictures::print_tex(photo, PRINT, 2400.0, age, vary) }));
     print.position().z = ZL - 0.0023;
     body.add(&print);

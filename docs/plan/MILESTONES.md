@@ -127,6 +127,44 @@ Blender-specific way"), queued on 2026-11-14:
 | 20 | **One meaning for "kit"**: `game::placers::kit` (`canvas_tex`, `pg`, `lazy_static_tex!`, whose doc still says the native stream) and `game::placers::shared` beside the `placers_kit` crate and each theme's `shared.rs`; and the `cached_tex!` / `cached_kind_tex!` macros copied into 16 modules moved into the kit (free: a painter is named by the fn that writes the closure, not the macro) |
 | 21 | **The copies left between themes** (about 30 groups of the same function in several modules: toys' `paint` ×7, victorian `wood` ×7, `soft` ×6, `flame_tex` ×4, `wall_mirrors`' 140-line copy of `moulding_grain_tex`, `WmBreak` = `CmBreak`) kept once, each painter's placers re-recorded by name; and a check that links each placer to its Blender family (today part names and the props README's hand-kept *Also* and *Was*) |
 
+The toolchain made current, queued on 2026-11-14 before the replays: the
+compiler pinned, the edition and the dependencies moved, the code written
+as the current language writes it. Nothing a player sees or hears changes
+(each step held to the goldens, the placers' fingerprints, the reference
+levels and the bench, or what moved explained).
+
+| # | Milestone |
+|---|---|
+| T1 | **Rust 1.100**, pinned (`rust-toolchain.toml`, `rust-version`, CI); the compiler's and clippy's new findings fixed |
+| T2 | **Edition 2024**: resolver 3, rustfmt's 2024 style, the drop-order changes read one by one |
+| T3 | **The dependencies**: the compatible updates; cpal 0.18, png 0.18, miniz_oxide 0.9, base64 0.23; proptest no longer held back |
+| T4 | **The current language**: let chains, `is_none_or`, `#[expect]`, std in place of hand-made helpers; no draw moved |
+
+Replays and saves (GitHub issues
+[#4](https://github.com/natchster/liminal-game/issues/4) and
+[#5](https://github.com/natchster/liminal-game/issues/5), `REPLAYS.md`),
+queued on 2026-11-14: record and replay from any point of play to any
+point, files small, the simulation made to repeat exactly (its math, its
+clock, its hidden state), a control, a menu screen and a skill; the save
+format documented and made the replay's own start. After T1–R0, after
+R1–R5 and at the end, a code review.
+
+| # | Milestone |
+|---|---|
+| R0 | The plan and the research |
+| review A | Code review of T1–R0 |
+| R1 | The math is ours: `dmath`, `powi` as products, clippy's ban |
+| R2 | No hidden state: time in ticks, hash iteration, thread-locals, drawing, a level's start an anchor |
+| R3 | The format: `OCREPLAY`, quantized input, settings, the build; the command-line tools |
+| R4 | Recording any stretch: the in-memory log, start and stop, the REC mark, seeking |
+| R5 | The Replays screen: the list, playback and its controls |
+| review B | Code review of R1–R5 |
+| R6 | The skill `record-gameplay` |
+| S1 | The save format documented (V0) |
+| S2 | Save V1 = the container: a new file, V0 removed, named saves, a save from any frame of a replay |
+| S3 | The tools from saves |
+| review C | Code review of R6–S3 |
+
 ## Done
 
 | # | Commit | Notes |

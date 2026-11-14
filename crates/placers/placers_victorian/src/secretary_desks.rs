@@ -163,7 +163,7 @@ fn wood_tex(salt: u32, wood: usize, across: bool) -> Tex {
 fn leather_tex(salt: u32, wood: usize) -> Tex {
     canvas_tex_opt(192, 104, false, move |ctx, w, h| {
         let seed = salt ^ 0x1ea7;
-        let skin = if wood % 2 == 0 { [0.15, 0.21, 0.15] } else { [0.30, 0.11, 0.09] };
+        let skin = if wood.is_multiple_of(2) { [0.15, 0.21, 0.15] } else { [0.30, 0.11, 0.09] };
         fill(ctx, w, h, |u, v| {
             let (x, y) = (u * 0.436, v * 0.232);
             let grain = vn(seed, x * 900.0, y * 900.0) * 0.5 + fbm(seed ^ 3, x * 40.0, y * 40.0, 3) * 0.5;

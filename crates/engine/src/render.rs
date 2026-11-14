@@ -800,7 +800,7 @@ impl Renderer {
     ) -> Retained<ProtocolObject<dyn MTLCommandBuffer>> {
         let t_start = std::time::Instant::now();
         self.frame_no += 1;
-        if self.frame_no % 120 == 0 {
+        if self.frame_no.is_multiple_of(120) {
             self.sweep();
         }
         // frame arena: wait for its last use
@@ -1562,7 +1562,7 @@ impl Renderer {
                 0,
             );
         }
-        for px in out.chunks_exact_mut(4) {
+        for px in out.as_chunks_mut::<4>().0 {
             px.swap(0, 2);
             px[3] = 255;
         }

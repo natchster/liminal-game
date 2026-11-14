@@ -80,7 +80,7 @@ pub(crate) fn place_perfume_bottles(g: &mut Game, _dist: &[i32]) {
         let pump = metal(salt >> 5);
         put(&perfume, "Real__perfumeFlaconPump", &pump);
         let cap_mat = metal(salt >> 5);
-        if salt % 3 == 0 {
+        if salt.is_multiple_of(3) {
             // the cap off, lying on its side by it
             if let Some(geo) = prop_part_as_modelled("Real__perfumeFlaconCap") {
                 let geo = geo.duplicate();

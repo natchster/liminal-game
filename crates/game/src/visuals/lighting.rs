@@ -815,9 +815,8 @@ impl Game {
 
     /// The far plane reaches the farthest tile still visible through its own haze
     pub fn sync_far_to_fog(&mut self) {
-        let want;
         let (w, h) = (self.w as usize, self.h as usize);
-        if self.ll_on > 0.5 && !self.light_map_cpu.is_empty() && self.light_map_cpu.len() == w * h {
+        let want = if self.ll_on > 0.5 && !self.light_map_cpu.is_empty() && self.light_map_cpu.len() == w * h {
             let cp = self.camera.pos();
             let (cx, cz, r) = (cp.x, cp.z, CELL * 0.71);
             let (ratio, scale) = (self.ll_fog_ratio, self.ll_scale);
@@ -843,10 +842,10 @@ impl Game {
                     }
                 }
             }
-            want = clamp(wv, 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX });
+            clamp(wv, 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX })
         } else {
-            want = clamp(2.2 / self.fog_density.max(1e-4), 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX });
-        }
+            clamp(2.2 / self.fog_density.max(1e-4), 28.0, if self.building.is_some() { BLD_FAR_MAX } else { FAR_MAX })
+        };
         let far = self.camera.camera().far;
         if (far - want).abs() > 1.5 {
             self.camera.camera().far = want;

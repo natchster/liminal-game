@@ -1159,9 +1159,10 @@ impl Game {
             // (√2: the equal-power pan takes 3 dB off a centred mono hum)
             let target = 0.08 * std::f64::consts::SQRT_2 * near * batt_dip;
             let k = (dt * 2.5).min(1.0);
-            let n = self.audio.safe_room_gain.as_ref().unwrap();
-            let gv = n.gain().value();
-            n.gain().set_value(gv + (target - gv) * k);
+            if let Some(n) = self.audio.safe_room_gain.as_ref() {
+                let gv = n.gain().value();
+                n.gain().set_value(gv + (target - gv) * k);
+            }
             if let Some(p) = self.audio.safe_room_panner.as_ref() {
                 let pv = p.pan().value();
                 p.pan().set_value(pv + (pan - pv) * k);

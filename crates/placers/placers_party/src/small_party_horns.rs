@@ -34,7 +34,7 @@ pub(crate) fn place_small_party_horns(g: &mut Game, _dist: &[i32]) {
     horn.position().set(px, 0, pz);
     horn.rotation().y = rnd() * PI * 2.0;
     let salt = salt_of(px, pz);
-    let trod = usize::from(salt % 3 == 0);
+    let trod = usize::from(salt.is_multiple_of(3));
     // the foil: dark in its diffuse, its colour in the highlight
     let spec = [0x8a5a6a, 0x5a6a8e, 0x8e7a46, 0x5a7a5a, 0x7a5a84][design];
     let foil = phong!({ map: &horn_print_tex(design, trod == 1, salt), specular: spec, shininess: 34 });

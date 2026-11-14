@@ -12,6 +12,15 @@
   `[workspace.dependencies]` (every external and internal dependency, used
   as `foo = { workspace = true }`), and `[workspace.lints]` (each crate opts
   in with `[lints] workspace = true`).
+* **The toolchain** is pinned to one release in `rust-toolchain.toml`
+  (rustup fetches it; `rust-version` and CI name the same), because the
+  game is held to its build: replays repeat only on the build that made
+  them, and a canvas texture's stream is named by its painter's type name,
+  which another compiler may spell differently. Moving it is a change of
+  its own: the new release in the three places, the compiler's and
+  clippy's new findings fixed, then the full check (goldens, the placers'
+  fingerprints, reference levels, range, bench), with whatever it moved
+  explained in the commit.
 * **Automation in Rust.** `cargo xtask bundle` builds and signs the app and
   `cargo xtask check` runs the quality gate; add new tasks as modules of
   `xtask/src/` rather than shell scripts. The one exception is the trust

@@ -1106,7 +1106,7 @@ impl Canvas {
         debug_assert_eq!(self.layers, 0, "pixels read inside a transparency layer (begin_layer without end_layer)");
         unsafe { CGContextFlush(self.ctx) };
         let mut data = self.buf.clone();
-        for px in data.chunks_exact_mut(4) {
+        for px in data.as_chunks_mut::<4>().0 {
             let a = px[3] as u32;
             if a == 0 || a == 255 {
                 continue;

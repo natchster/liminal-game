@@ -1103,8 +1103,13 @@ fn planar_uv(geo: &Geo, metres: f64, off: f64) -> Geo {
     let g = geo.duplicate();
     {
         let mut gg = g.g();
-        gg.uv =
-            gg.position.chunks_exact(3).flat_map(|p| [(p[0] as f64 / metres + off) as f32, (p[2] as f64 / metres + off) as f32]).collect();
+        gg.uv = gg
+            .position
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .flat_map(|p| [(p[0] as f64 / metres + off) as f32, (p[2] as f64 / metres + off) as f32])
+            .collect();
         gg.touch();
     }
     g
@@ -1120,7 +1125,7 @@ fn wax_lit(geo: &Geo) -> Geo {
     {
         let mut gg = g.g();
         let Geometry { position, normal, .. } = &mut *gg;
-        for (p, n) in position.chunks_exact(3).zip(normal.chunks_exact_mut(3)) {
+        for (p, n) in position.as_chunks::<3>().0.iter().zip(normal.as_chunks_mut::<3>().0.iter_mut()) {
             let r = (p[0] * p[0] + p[2] * p[2]).sqrt();
             let (x, y, z) = if p[1] < 0.0035 && r > 0.0385 { (p[0] / r * 0.5, 0.87, p[2] / r * 0.5) } else { (n[0], n[1] + 0.45, n[2]) };
             let l = (x * x + y * y + z * z).sqrt().max(1e-6);
@@ -1498,7 +1503,7 @@ fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3], p
     {
         let img = tex.image();
         let mut im = img.borrow_mut();
-        for px in im.data.chunks_exact_mut(4) {
+        for px in im.data.as_chunks_mut::<4>().0 {
             let k = sstep(0.0, 0.3, f64::from(px[3]) / 255.0);
             for (c, b) in px.iter_mut().zip(bleed) {
                 *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;

@@ -38,7 +38,7 @@ pub(crate) fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
     nail.rotation().z = tilt;
     let p = portrait.pos();
     let vary = pictures::vary_of(p.x, p.z, tilt);
-    let finish = if (vary >> 7) % 3 == 0 { Finish::Wood([0x3c, 0x29, 0x1c]) } else { Finish::Ebony };
+    let finish = if (vary >> 7).is_multiple_of(3) { Finish::Wood([0x3c, 0x29, 0x1c]) } else { Finish::Ebony };
     let parts: [(&str, Mat); 4] = [
         (
             "Real__oldPortraitFrame",

@@ -44,7 +44,7 @@ pub(crate) fn place_candy_corn_scatters(g: &mut Game, _dist: &[i32]) {
                 1 => 2,
                 _ => 0,
             };
-            kind = Some((k, (s >> 5) % 4 == 0));
+            kind = Some((k, (s >> 5).is_multiple_of(4)));
         }
         let (k, stale) = kind.unwrap_or((0, false));
         let candy = mesh(kit.corns[k].clone(), &kit.mats[usize::from(stale)]);

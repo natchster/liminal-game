@@ -215,7 +215,7 @@ fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
     } - 0.0006;
     hw *= 1.0 - 0.07 * sstep(0.55, 0.8, fbm(seed, a * 18.0, side * 3.0, 3));
     let ta = 0.35 + 0.3 * hash(seed, 1, 0);
-    if side > 0.0 && k % 2 == 0 {
+    if side > 0.0 && k.is_multiple_of(2) {
         let d = ((a - ta) / 0.025).abs();
         hw *= 1.0 - 0.7 * (1.0 - d).max(0.0);
     }
@@ -281,7 +281,7 @@ fn leaf_tex(k: usize) -> Tex {
     {
         let img = tex.image();
         let mut im = img.borrow_mut();
-        for px in im.data.chunks_exact_mut(4) {
+        for px in im.data.as_chunks_mut::<4>().0 {
             let a = sstep(0.0, 0.5, f64::from(px[3]) / 255.0);
             for (c, b) in px.iter_mut().zip(base) {
                 *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * a).round().clamp(0.0, 255.0) as u8;

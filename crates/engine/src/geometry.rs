@@ -229,7 +229,7 @@ impl Geometry {
     fn position_box_with_morphs(&self) -> Box3 {
         let bbox = |a: &[f32]| {
             let mut b = Box3::empty();
-            for p in a.chunks_exact(3) {
+            for p in a.as_chunks::<3>().0 {
                 b.expand_by_point(&Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64));
             }
             b
@@ -255,11 +255,11 @@ impl Geometry {
     pub fn compute_bounding_sphere(&mut self) -> Sphere {
         let center = if self.position.is_empty() { Vec3::ZERO } else { self.position_box_with_morphs().get_center() };
         let mut max_r2: f64 = 0.0;
-        for p in self.position.chunks_exact(3) {
+        for p in self.position.as_chunks::<3>().0 {
             max_r2 = max_r2.max(center.distance_to_squared(&Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)));
         }
         for m in &self.morph_position {
-            for (j, q) in m.chunks_exact(3).enumerate() {
+            for (j, q) in m.as_chunks::<3>().0.iter().enumerate() {
                 let mut v = Vec3::new(q[0] as f64, q[1] as f64, q[2] as f64);
                 if self.morph_relative && j * 3 + 2 < self.position.len() {
                     v.add(&Vec3::new(self.position[j * 3] as f64, self.position[j * 3 + 1] as f64, self.position[j * 3 + 2] as f64));
@@ -272,7 +272,7 @@ impl Geometry {
         s
     }
     pub fn apply_matrix4(&mut self, m: &Mat4) {
-        for p in self.position.chunks_exact_mut(3) {
+        for p in self.position.as_chunks_mut::<3>().0 {
             let mut v = Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64);
             v.apply_matrix4(m);
             p[0] = v.x as f32;
@@ -282,7 +282,7 @@ impl Geometry {
         if !self.normal.is_empty() {
             let mut nm = Mat3::default();
             nm.get_normal_matrix(m);
-            for n in self.normal.chunks_exact_mut(3) {
+            for n in self.normal.as_chunks_mut::<3>().0 {
                 let mut v = Vec3::new(n[0] as f64, n[1] as f64, n[2] as f64);
                 v.apply_matrix3(&nm).normalize();
                 n[0] = v.x as f32;
@@ -324,7 +324,7 @@ impl Geometry {
             }
         };
         if let Some(idx) = &self.index {
-            for t in idx.chunks_exact(3) {
+            for t in idx.as_chunks::<3>().0 {
                 face(t[0] as usize, t[1] as usize, t[2] as usize, &mut nrm, true);
             }
         } else {
@@ -332,7 +332,7 @@ impl Geometry {
                 face(i, i + 1, i + 2, &mut nrm, false);
             }
         }
-        for v in nrm.chunks_exact_mut(3) {
+        for v in nrm.as_chunks_mut::<3>().0 {
             let mut x = Vec3::new(v[0] as f64, v[1] as f64, v[2] as f64);
             x.normalize();
             v[0] = x.x as f32;
@@ -343,7 +343,7 @@ impl Geometry {
         self.version += 1;
     }
     pub fn normalize_normals(&mut self) {
-        for v in self.normal.chunks_exact_mut(3) {
+        for v in self.normal.as_chunks_mut::<3>().0 {
             let mut x = Vec3::new(v[0] as f64, v[1] as f64, v[2] as f64);
             x.normalize();
             v[0] = x.x as f32;
@@ -1029,7 +1029,7 @@ fn polyhedron(vertices: &[f64], indices: &[u32], radius: f64, detail: u32, param
     let mut uvb: Vec<f64> = vec![];
     let vtx = |i: u32| Vec3::new(vertices[i as usize * 3], vertices[i as usize * 3 + 1], vertices[i as usize * 3 + 2]);
     // subdivide
-    for t in indices.chunks_exact(3) {
+    for t in indices.as_chunks::<3>().0 {
         let (a, b, c) = (vtx(t[0]), vtx(t[1]), vtx(t[2]));
         let cols = detail + 1;
         let mut v: Vec<Vec<Vec3>> = vec![];
@@ -1068,7 +1068,7 @@ fn polyhedron(vertices: &[f64], indices: &[u32], radius: f64, detail: u32, param
         }
     }
     // apply radius
-    for p in buf.chunks_exact_mut(3) {
+    for p in buf.as_chunks_mut::<3>().0 {
         let mut v = Vec3::new(p[0], p[1], p[2]);
         v.normalize().multiply_scalar(radius);
         p[0] = v.x;
@@ -1077,7 +1077,7 @@ fn polyhedron(vertices: &[f64], indices: &[u32], radius: f64, detail: u32, param
     }
     let azimuth = |v: &Vec3| v.z.atan2(-v.x);
     let inclination = |v: &Vec3| (-v.y).atan2((v.x * v.x + v.z * v.z).sqrt());
-    for p in buf.chunks_exact(3) {
+    for p in buf.as_chunks::<3>().0 {
         let v = Vec3::new(p[0], p[1], p[2]);
         let u = azimuth(&v) / 2.0 / PI + 0.5;
         let w = inclination(&v) / PI + 0.5;
@@ -1446,7 +1446,7 @@ fn triangulate_shape(contour: &[Vec2], holes: &[Vec<Vec2>]) -> Vec<[u32; 3]> {
         }
     }
     let tris = crate::earcut::earcut(&verts, &hole_idx, 2);
-    tris.chunks_exact(3).map(|t| [t[0] as u32, t[1] as u32, t[2] as u32]).collect()
+    tris.as_chunks::<3>().0.iter().map(|t| [t[0] as u32, t[1] as u32, t[2] as u32]).collect()
 }
 
 // ===================================================================== constructor macros (trailing arguments optional)

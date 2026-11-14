@@ -192,7 +192,7 @@ fn the_figure_is_a_person_standing_on_its_perch() {
     let (mut lo, mut hi, mut reach) = (f64::MAX, f64::MIN, 0.0f64);
     let (mut toe, mut heel) = (f64::MIN, f64::MAX);
     let tris = geo.r().index.as_ref().map_or(0, |i| i.len() / 3);
-    for v in geo.r().position.chunks_exact(3) {
+    for v in geo.r().position.as_chunks::<3>().0 {
         let (x, y, z) = (v[0] as f64, v[1] as f64, v[2] as f64);
         lo = lo.min(y);
         hi = hi.max(y);

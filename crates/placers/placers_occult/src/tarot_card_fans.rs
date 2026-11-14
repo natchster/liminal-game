@@ -29,7 +29,7 @@ pub(crate) fn place_tarot_card_fans(g: &mut Game, _dist: &[i32]) {
     let pz = g.wz(z) + (rnd() - 0.5) * 2.4;
     let turn = rnd() * PI * 2.0;
     let vary = pictures::vary_of(px, pz, turn);
-    let face = if vary % 2 == 0 { "tarot_death" } else { "tarot_moon" };
+    let face = if vary.is_multiple_of(2) { "tarot_death" } else { "tarot_moon" };
     let mut age = Age::engraving(vary);
     age.fade = 0.06;
     age.spots = (vary % 7) as usize;

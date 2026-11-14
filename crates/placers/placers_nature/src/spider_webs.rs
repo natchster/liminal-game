@@ -33,12 +33,12 @@ pub(crate) fn place_spider_webs(g: &mut Game, _dist: &[i32]) {
     }
     let salt = salt_of(g.wx(x) + dx as f64, g.wz(z) + dz as f64);
     // the spider and its prey, where it hung them (not in every web: by where it is)
-    if salt % 4 != 0 {
+    if !salt.is_multiple_of(4) {
         if let Some(geo) = part("Real__spiderBody") {
             o.add(&mesh(geo, lambert!({ color: 0x8a7e6c })));
         }
     }
-    if salt % 3 != 0 {
+    if !salt.is_multiple_of(3) {
         if let Some(geo) = part("Real__spiderWrap") {
             o.add(&mesh(geo, lambert!({ color: 0x9e9a90 })));
         }

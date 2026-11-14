@@ -49,13 +49,13 @@ pub(crate) fn thin_lit(name: &str) -> Option<Geo> {
     let g = part(name)?.duplicate();
     {
         let mut gg = g.g();
-        for n in gg.normal.chunks_exact_mut(3) {
+        for n in gg.normal.as_chunks_mut::<3>().0 {
             let (x, y, z) = (n[0] * 0.35, n[1].abs() * 0.35 + 0.75, n[2] * 0.35);
             let l = (x * x + y * y + z * z).sqrt().max(1e-6);
             n.copy_from_slice(&[x / l, y / l, z / l]);
         }
         if let Some(idx) = gg.index.as_mut() {
-            let back: Vec<u32> = idx.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect();
+            let back: Vec<u32> = idx.as_chunks::<3>().0.iter().flat_map(|t| [t[0], t[2], t[1]]).collect();
             idx.extend(back);
         }
         gg.version += 1;
@@ -124,7 +124,7 @@ pub(crate) fn uv_part(name: &str, wrap_u: bool, f: impl Fn([f64; 3], [f64; 3]) -
         let mut idx: Vec<u32> = gg.index.clone().unwrap_or_else(|| (0..n as u32).collect());
         if wrap_u {
             let mut dup: Vec<(u32, u32)> = vec![];
-            for t in idx.chunks_exact_mut(3) {
+            for t in idx.as_chunks_mut::<3>().0 {
                 let us = [uv[t[0] as usize * 2], uv[t[1] as usize * 2], uv[t[2] as usize * 2]];
                 let (lo, hi) = (us.iter().cloned().fold(9.0f32, f32::min), us.iter().cloned().fold(-9.0f32, f32::max));
                 if hi - lo <= 0.5 {

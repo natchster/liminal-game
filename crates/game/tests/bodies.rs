@@ -25,13 +25,13 @@ fn every_body_decodes_soundly() {
             assert_eq!(idx.len(), m.t * 3);
             assert!(idx.iter().all(|&i| (i as usize) < n), "{name}/{}: an index past the end", m.name);
             // normals are unit
-            for v in g.normal.chunks_exact(3) {
+            for v in g.normal.as_chunks::<3>().0 {
                 let l = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
                 assert!((0.9..1.1).contains(&l), "{name}/{}: a normal of length {l}", m.name);
             }
             if m.bone.is_none() {
                 assert_eq!(g.skin_weight.len(), n * 4, "{name}/{}: four weights a vertex", m.name);
-                for w in g.skin_weight.chunks_exact(4) {
+                for w in g.skin_weight.as_chunks::<4>().0 {
                     let s: f32 = w.iter().sum();
                     assert!((s - 1.0).abs() < 0.01, "{name}/{}: weights sum to {s}", m.name);
                 }

@@ -206,7 +206,7 @@ fn every_window_looks_out_on_the_same_place_later_the_deeper_it_is() {
             seen.push((g.depth(), f[7]));
         }
     });
-    seen.sort_by(|a, b| a.0.cmp(&b.0));
+    seen.sort_by_key(|a| a.0);
     for p in seen.windows(2) {
         assert!(p[1].1 <= p[0].1 + 1e-6, "deeper is later: {p:?}");
     }

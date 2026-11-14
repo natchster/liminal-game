@@ -193,7 +193,7 @@ fn the_figures_hold_together_as_they_walk() {
             }
             g.update_matrix_world(true);
             for (pi, (rest, posed, idx, hand)) in skinned_parts(&skins).iter().enumerate() {
-                for tri in idx.chunks_exact(3) {
+                for tri in idx.as_chunks::<3>().0 {
                     for (a, b) in [(tri[0], tri[1]), (tri[1], tri[2]), (tri[2], tri[0])] {
                         let (a, b) = (a as usize, b as usize);
                         // (not slivers: a hem's edge levelled leaves edges of a

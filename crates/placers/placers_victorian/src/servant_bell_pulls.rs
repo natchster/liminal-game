@@ -106,7 +106,7 @@ pub(crate) fn place_servant_bell_pulls(g: &mut Game, _dist: &[i32]) {
         for i in 0..swayers.len() {
             let s = &swayers[i];
             let y_delta = s.pos().y - cord_top_y; // negative
-            s.position().x = sway_base_x[i] + sway_angle.sin() * y_delta * -1.0;
+            s.position().x = sway_base_x[i] + -(sway_angle.sin() * y_delta);
         }
         // The cord pivots at its top instead of sliding sideways off the spring.
         cord.rotation().z = sway_angle;

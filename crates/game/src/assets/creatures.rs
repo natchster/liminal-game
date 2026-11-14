@@ -354,7 +354,7 @@ pub fn bounding_sphere_with_morphs(g: &Geometry) -> Sphere {
     }
     let bbox = |a: &[f32]| {
         let mut b = Box3::empty();
-        for p in a.chunks_exact(3) {
+        for p in a.as_chunks::<3>().0 {
             b.expand_by_point(&Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64));
         }
         b
@@ -376,11 +376,11 @@ pub fn bounding_sphere_with_morphs(g: &Geometry) -> Sphere {
     }
     let center = b.get_center();
     let mut max_r2: f64 = 0.0;
-    for p in g.position.chunks_exact(3) {
+    for p in g.position.as_chunks::<3>().0 {
         max_r2 = max_r2.max(center.distance_to_squared(&Vec3::new(p[0] as f64, p[1] as f64, p[2] as f64)));
     }
     for m in &g.morph_position {
-        for (j, q) in m.chunks_exact(3).enumerate() {
+        for (j, q) in m.as_chunks::<3>().0.iter().enumerate() {
             let mut v = Vec3::new(q[0] as f64, q[1] as f64, q[2] as f64);
             if g.morph_relative {
                 v.add(&Vec3::new(g.position[j * 3] as f64, g.position[j * 3 + 1] as f64, g.position[j * 3 + 2] as f64));

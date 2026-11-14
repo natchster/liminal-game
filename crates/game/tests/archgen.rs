@@ -93,10 +93,10 @@ fn b64(s: &str) -> Vec<u8> {
     out
 }
 fn f32s(v: &Value) -> Vec<f32> {
-    b64(st(v)).chunks_exact(4).map(|c| f32::from_le_bytes(c.try_into().unwrap())).collect()
+    b64(st(v)).as_chunks::<4>().0.iter().map(|c| f32::from_le_bytes(*c)).collect()
 }
 fn i32s(v: &Value) -> Vec<i32> {
-    b64(st(v)).chunks_exact(4).map(|c| i32::from_le_bytes(c.try_into().unwrap())).collect()
+    b64(st(v)).as_chunks::<4>().0.iter().map(|c| i32::from_le_bytes(*c)).collect()
 }
 fn same(a: f64, b: f64) -> bool {
     a.to_bits() == b.to_bits() || (a.is_nan() && b.is_nan())

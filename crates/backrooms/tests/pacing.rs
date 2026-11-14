@@ -106,7 +106,7 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
         key(g, "KeyC", true);
     } else if frame % 600 < 50 {
         // now and then, a look behind
-        if frame % 600 == 0 {
+        if frame.is_multiple_of(600) {
             g.player.yaw += std::f64::consts::PI;
         } else if frame % 600 == 49 {
             g.player.yaw -= std::f64::consts::PI;
@@ -116,7 +116,7 @@ fn steer(g: &mut Game, turn_t: &mut f64, frame: usize) {
         *turn_t -= 1.0 / 60.0;
         if *turn_t <= 0.0 || !free(g, g.player.yaw, 1.2) {
             for k in 1..8 {
-                let yaw = g.player.yaw + k as f64 * 0.9 * if frame % 2 == 0 { 1.0 } else { -1.0 };
+                let yaw = g.player.yaw + k as f64 * 0.9 * if frame.is_multiple_of(2) { 1.0 } else { -1.0 };
                 if free(g, yaw, 2.0) {
                     g.player.yaw = yaw;
                     break;

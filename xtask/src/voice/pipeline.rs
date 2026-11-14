@@ -678,7 +678,7 @@ pub fn bakeoff(args: &[String]) -> Result<(), String> {
                 }
             }
         }
-        fails.sort_by(|a, b| b.1.cmp(&a.1));
+        fails.sort_by_key(|f| std::cmp::Reverse(f.1));
         let fails: Vec<String> = fails.iter().map(|(c, n)| format!("{c} {n}")).collect();
         println!("| {m} | {}/{} | {passing}/{} | {sim:.2} | {} |", lines.0, lines.1, takes.len(), fails.join(", "));
     }

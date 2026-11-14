@@ -67,7 +67,7 @@ pub(crate) fn place_framed_photos(g: &mut Game, _dist: &[i32]) {
     // the print under the glass: which snapshot, how it has aged
     let name = PHOTOS[(vary % PHOTOS.len() as u32) as usize];
     let mut age = Age::photo(vary);
-    age.border = if (vary >> 5) % 3 == 0 { 0.0035 } else { 0.0 };
+    age.border = if (vary >> 5).is_multiple_of(3) { 0.0035 } else { 0.0 };
     let print = mesh(plane_geo!(PRINT.0, PRINT.1), lambert!({ map: &pictures::print_tex(name, PRINT, 2400.0, age, vary) }));
     print.position().z = ZL - 0.0023;
     body.add(&print);

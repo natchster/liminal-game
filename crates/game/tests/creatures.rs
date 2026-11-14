@@ -108,7 +108,7 @@ fn decodes_every_part() {
             assert_eq!(gg.skin_index.len(), m.n * 4);
             assert!(!gg.bone_names.is_empty());
             assert!(gg.skin_index.iter().all(|&j| (j as usize) < gg.bone_names.len()), "{}: bone slot out of range", name);
-            for w in gg.skin_weight.chunks_exact(4) {
+            for w in gg.skin_weight.as_chunks::<4>().0 {
                 assert!((w.iter().sum::<f32>() - 1.0).abs() < 0.02, "{}: weights sum to 255", name);
             }
         }

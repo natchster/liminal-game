@@ -50,7 +50,7 @@ pub(crate) fn place_wall_crucifixes(g: &mut Game, _dist: &[i32]) {
     };
     put(&body, "Real__crucifixCross", &phong!({ map: &cross_tex(k, wood), specular: 0x161412, shininess: 14 }));
     // the corpus: gilt spelter, or one that was always grey
-    let corpus = if k % 3 == 0 {
+    let corpus = if k.is_multiple_of(3) {
         phong!({ map: &spelter_tex(k, false), specular: 0x4a4a46, shininess: 30 })
     } else {
         phong!({ map: &spelter_tex(k, true), specular: 0x5a4a30, shininess: 30 })

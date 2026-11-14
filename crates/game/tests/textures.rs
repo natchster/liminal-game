@@ -153,7 +153,7 @@ fn textures_and_surfaces() {
             let b = img.borrow();
             (b.version, b.data.clone())
         };
-        assert!(d0.chunks_exact(4).all(|p| p[0] == p[1] && p[1] == p[2] && p[3] == 255));
+        assert!(d0.as_chunks::<4>().0.iter().all(|p| p[0] == p[1] && p[1] == p[2] && p[3] == 255));
         tx.update_static();
         let b = img.borrow();
         assert!(b.version > v0);
@@ -377,7 +377,7 @@ fn mean_rgba(t: &Tex) -> [f64; 4] {
     let img = t.image();
     let b = img.borrow();
     let (mut r, mut g, mut bl, mut a, mut n) = (0.0, 0.0, 0.0, 0.0, 0.0);
-    for p in b.data.chunks_exact(4) {
+    for p in b.data.as_chunks::<4>().0 {
         let w = p[3] as f64;
         r += p[0] as f64 * w;
         g += p[1] as f64 * w;

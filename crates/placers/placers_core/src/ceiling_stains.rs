@@ -177,7 +177,7 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
         {
             let img = tex.image();
             let mut im = img.borrow_mut();
-            for p in im.data.chunks_exact_mut(4) {
+            for p in im.data.as_chunks_mut::<4>().0 {
                 let t = (f64::from(p[3]) / 255.0 / 0.3).min(1.0);
                 for (c, b) in p.iter_mut().zip(line) {
                     *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * t * t * (3.0 - 2.0 * t)).round().clamp(0.0, 255.0) as u8;

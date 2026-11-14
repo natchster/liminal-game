@@ -239,7 +239,7 @@ fn silhouette_tex(vary: u32) -> Tex {
             1 => &LADY,
             _ => &CHILD,
         };
-        let flip = if vary % 2 == 0 { 1.0 } else { -1.0 };
+        let flip = if vary.is_multiple_of(2) { 1.0 } else { -1.0 };
         let at = |p: (f64, f64)| (w / 2.0 + flip * (p.0 + 5.0) * mm, h / 2.0 + (p.1 - 4.0) * mm);
         // a closed Catmull-Rom curve through the cutter's points
         let n = pts.len();

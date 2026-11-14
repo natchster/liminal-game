@@ -113,7 +113,7 @@ fn fluff(name: &str) -> Option<Geo> {
         // each barb twice, wound both ways, sharing those normals (a
         // two-sided material would light its back with them reversed)
         if let Some(idx) = gg.index.as_mut() {
-            let back: Vec<u32> = idx.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect();
+            let back: Vec<u32> = idx.as_chunks::<3>().0.iter().flat_map(|t| [t[0], t[2], t[1]]).collect();
             idx.extend(back);
         }
         gg.touch();

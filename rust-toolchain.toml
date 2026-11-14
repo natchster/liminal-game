@@ -1,0 +1,10 @@
+# The compiler this game is built with, here and on CI (rustup installs it on
+# the first cargo command). Pinned to a release, not a channel: replays and
+# the recorded reference data hold the game to one build, and a canvas
+# texture's stream is named by its painter's type name, which a compiler may
+# spell differently (docs/plan/MILESTONES.md, 19). Move it on purpose, with
+# the full check (docs/engineering/DEVELOPMENT.md, *The toolchain*).
+[toolchain]
+channel = "1.100.0"
+components = ["rustfmt", "clippy"]
+profile = "minimal"

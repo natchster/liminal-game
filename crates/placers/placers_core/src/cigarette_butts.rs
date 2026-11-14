@@ -34,7 +34,7 @@ pub(crate) fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
         let pz = if corner_bias { (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.9 + rnd() * 0.5) } else { (rnd() - 0.5) * 2.0 };
         let n_butts = 2 + (rnd() * 5.0).floor() as i32; // 2-6 per pile
                                                         // the smoker's brand: cork tipping, or one in four white (no draw)
-        let brand = usize::from(salt(g.wx(x) + px, g.wz(z) + pz, 251) % 4 == 0);
+        let brand = usize::from(salt(g.wx(x) + px, g.wz(z) + pz, 251).is_multiple_of(4));
         // Two by two, a butt and the next are the same kind (the odd last
         // one too): no butt is the only one of its kind on its chunk, so
         // every butt is drawn instanced, as the old ones were
@@ -58,7 +58,7 @@ pub(crate) fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
                     _ => 3,
                 };
                 // the ash knocked off them (not under a shoe): one pair in three
-                kind = Some((k, k != 3 && salt(wx, wz, 0x251) % 3 == 0));
+                kind = Some((k, k != 3 && salt(wx, wz, 0x251).is_multiple_of(3)));
                 1.0
             } else {
                 0.96 + 0.08 * which

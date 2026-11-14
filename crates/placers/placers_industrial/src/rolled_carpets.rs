@@ -189,14 +189,14 @@ fn rolled_rug(k: usize, colours: usize, vary: u32, rest: Option<RollRest>, origi
         let out = geo.duplicate();
         {
             let mut gm = out.g();
-            for v in gm.position.chunks_exact_mut(3) {
+            for v in gm.position.as_chunks_mut::<3>().0 {
                 let p = place(v[0] as f64, v[1] as f64, v[2] as f64);
                 v[0] = (p[0] - origin.0) as f32;
                 v[1] = p[1] as f32;
                 v[2] = (p[2] - origin.1) as f32;
             }
             // laid down, the normals turn with it (a sagging one's again below)
-            for n in gm.normal.chunks_exact_mut(3) {
+            for n in gm.normal.as_chunks_mut::<3>().0 {
                 let (nx, ny, nz) = (n[1] as f64, -n[0] as f64, n[2] as f64);
                 n[0] = (nx * tc + nz * ts) as f32;
                 n[1] = ny as f32;

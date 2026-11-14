@@ -523,7 +523,7 @@ fn world_tris(p: &Part) -> Vec<[Vec3; 3]> {
         v
     };
     let tri: Vec<[usize; 3]> = match &g.index {
-        Some(ix) => ix.chunks_exact(3).map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
+        Some(ix) => ix.as_chunks::<3>().0.iter().map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
         None => (0..pos.len() / 9).map(|t| [t * 3, t * 3 + 1, t * 3 + 2]).collect(),
     };
     tri.into_iter().map(|[a, b, c]| [vert(a), vert(b), vert(c)]).collect()
@@ -538,7 +538,7 @@ fn is_closed(geo: &engine::geometry::Geo) -> bool {
         ((pos[i * 3] * 1000.0).round() as i64, (pos[i * 3 + 1] * 1000.0).round() as i64, (pos[i * 3 + 2] * 1000.0).round() as i64)
     };
     let tri: Vec<[usize; 3]> = match &g.index {
-        Some(ix) => ix.chunks_exact(3).map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
+        Some(ix) => ix.as_chunks::<3>().0.iter().map(|c| [c[0] as usize, c[1] as usize, c[2] as usize]).collect(),
         None => (0..pos.len() / 9).map(|t| [t * 3, t * 3 + 1, t * 3 + 2]).collect(),
     };
     if tri.is_empty() {
@@ -959,7 +959,7 @@ mod tests {
         let g = geo.r();
         let v = |i: usize| Vec3::new(g.position[i * 3] as f64, g.position[i * 3 + 1] as f64, g.position[i * 3 + 2] as f64);
         let tris: Vec<[Vec3; 3]> =
-            g.index.as_ref().unwrap().chunks_exact(3).map(|c| [v(c[0] as usize), v(c[1] as usize), v(c[2] as usize)]).collect();
+            g.index.as_ref().unwrap().as_chunks::<3>().0.iter().map(|c| [v(c[0] as usize), v(c[1] as usize), v(c[2] as usize)]).collect();
         assert!(is_closed(&geo), "a box is closed");
         assert!(!is_closed(&engine::geometry::plane_geometry(1.0, 1.0, 1.0, 1.0)), "a plane is not");
         assert_eq!(crossings(Vec3::new(0.1, -0.2, 0.3), &tris) % 2, 1);

@@ -97,7 +97,7 @@ pub fn fmt_fixed(v: f64, d: usize) -> String {
     let m = 10f64.powi(d as i32);
     let y = v * m * 2.0;
     if y.fract() == 0.0 && y < 9.0e15 && (y as u64) % 2 == 1 && v.mul_add(m * 2.0, -y) == 0.0 {
-        let n = (y as u64 + 1) / 2;
+        let n = (y as u64).div_ceil(2);
         if d == 0 {
             return format!("{}", n);
         }
@@ -265,6 +265,6 @@ pub fn pad_start(s: &str, n: usize, c: char) -> String {
     if l >= n {
         s.to_string()
     } else {
-        std::iter::repeat(c).take(n - l).collect::<String>() + s
+        std::iter::repeat_n(c, n - l).collect::<String>() + s
     }
 }

@@ -277,7 +277,7 @@ fn dump_canvases(g: &mut Game, prefix: &str) {
         let HudLayer::Canvas { canvas, .. } = l else { continue };
         let c = canvas.borrow();
         let mut px = c.premultiplied().to_vec();
-        for p in px.chunks_exact_mut(4) {
+        for p in px.as_chunks_mut::<4>().0 {
             let a = p[3] as u32;
             if a > 0 && a < 255 {
                 for k in 0..3 {
@@ -374,7 +374,7 @@ fn hud_states() {
     assert!(g.ui.body.has_class("crit-sanity"));
     let img = shoot(&mut g, "hud");
     dump_canvases(&mut g, "hud-canvas");
-    assert!(img.chunks_exact(4).any(|p| p[0] > 200), "HUD text drawn");
+    assert!(img.as_chunks::<4>().0.iter().any(|p| p[0] > 200), "HUD text drawn");
     assert_eq!(g.hud_hit_test(640.0, 400.0), "");
 
     // ---- at rest: full meters, nothing new, the light off: the place alone

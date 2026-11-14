@@ -212,7 +212,7 @@ fn shell_tex(k: usize) -> Tex {
             let mut i = 0u32;
             while t < tt {
                 let a = 0.06 + 0.14 * hash(0x9a0 + k as u32, i as i32, 0);
-                let c = if i % 3 == 0 { [0.86, 0.80, 0.68] } else { [0.30, 0.24, 0.17] };
+                let c = if i.is_multiple_of(3) { [0.86, 0.80, 0.68] } else { [0.30, 0.24, 0.17] };
                 for j in 0..14 {
                     let (p0, p1) = (-PI + PI * 2.0 * j as f64 / 14.0, -PI + PI * 2.0 * (j + 1) as f64 / 14.0);
                     quad(ctx, t, t + 0.012, p0, p1, c, a);

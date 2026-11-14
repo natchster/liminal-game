@@ -28,7 +28,7 @@ pub(crate) fn place_safety_glasses(g: &mut Game, _dist: &[i32]) {
     // now and then, the temples' nylon
     let seed = seed_of(&[p.x, p.z]);
     let folded = seed % 5 < 2;
-    let grey = (seed >> 4) % 4 == 0;
+    let grey = (seed >> 4).is_multiple_of(4);
     let nylon = [0x1b1b1d, 0x26303c, 0x3a3d40][((seed >> 7) % 3) as usize];
     let (lens_n, frame_n) = if folded {
         ("Real__safetyGlassesFoldedLens", "Real__safetyGlassesFoldedFrame")

@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+license.workspace = true
 description = "Every prop placer: the one list the game and its tests register, and the fingerprints of what each makes"
 
 [dependencies]

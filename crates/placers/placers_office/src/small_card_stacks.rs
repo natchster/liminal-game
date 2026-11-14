@@ -46,7 +46,7 @@ pub(crate) fn place_small_card_stacks(g: &mut Game, _dist: &[i32]) {
     };
     if is_fanned {
         // spread in a fan on the floor, the one under them face up
-        let face = lambert!({ map: &face_tex(salt % 2 == 0, salt) });
+        let face = lambert!({ map: &face_tex(salt.is_multiple_of(2), salt) });
         for i in 0..n_visible {
             let rot = -PI / 6.0 + (i as f64 / (n_visible - 1) as f64) * (PI / 3.0);
             let dx = i as f64 * 0.0115;

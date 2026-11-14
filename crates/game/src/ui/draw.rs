@@ -834,7 +834,7 @@ impl Painter {
             let n = gw * gh;
             let mut acc = vec![[0f32; 4]; n];
             if !shadows.is_empty() {
-                let mask: Vec<f32> = glyph_px.chunks_exact(4).map(|p| p[3] as f32 / 255.0).collect();
+                let mask: Vec<f32> = glyph_px.as_chunks::<4>().0.iter().map(|p| p[3] as f32 / 255.0).collect();
                 for sh in shadows.iter().rev() {
                     if sh.color[3] <= 0.0 {
                         continue;
@@ -959,7 +959,7 @@ fn blur_mask(src: &[f32], w: usize, h: usize, sigma: f64) -> Vec<f32> {
     if sigma < 3.0 || w < 4 || h < 4 {
         return gaussian_blur(src, w, h, sigma);
     }
-    let (hw, hh) = ((w + 1) / 2, (h + 1) / 2);
+    let (hw, hh) = (w.div_ceil(2), h.div_ceil(2));
     let mut small = vec![0f32; hw * hh];
     for y in 0..hh {
         for x in 0..hw {

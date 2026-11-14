@@ -35,7 +35,7 @@ pub(crate) fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: 
     {
         let img = tex.image();
         let mut im = img.borrow_mut();
-        for px in im.data.chunks_exact_mut(4) {
+        for px in im.data.as_chunks_mut::<4>().0 {
             let k = sstep(0.0, 0.3, f64::from(px[3]) / 255.0);
             for (c, b) in px.iter_mut().zip(bleed) {
                 *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;

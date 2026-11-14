@@ -29,7 +29,7 @@ pub(crate) fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
     let body = pictures::hang(&map, mount_y, 0.013, APEX, SIZE.1, 0.009, tilt);
     let pic = ["map_paris", "map_trier"][(vary % 2) as usize];
     // a pine stain: walnut-dark, or an old orange shellac gone brown
-    let stain = if (vary >> 3) % 2 == 0 { [0x4e, 0x36, 0x22] } else { [0x6a, 0x46, 0x26] };
+    let stain = if (vary >> 3).is_multiple_of(2) { [0x4e, 0x36, 0x22] } else { [0x6a, 0x46, 0x26] };
     let dirt = 0.3 + 0.3 * (vary % 71) as f32 / 71.0;
     pictures::add_parts(
         &body,

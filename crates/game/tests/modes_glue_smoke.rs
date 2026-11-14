@@ -21,7 +21,7 @@ fn frame(g: &mut Game, dt: f64) {
     g.frame(dt);
 }
 fn wander(g: &mut Game, r: &mut Mulberry32, f: usize) {
-    if f % 30 == 0 {
+    if f.is_multiple_of(30) {
         for k in KEYS {
             g.keys.remove(k);
         }
@@ -33,7 +33,7 @@ fn wander(g: &mut Game, r: &mut Mulberry32, f: usize) {
         g.player.yaw += (r.next() - 0.5) * 2.0;
         g.player.pitch = (r.next() - 0.5) * 1.2;
     }
-    if f % 97 == 0 {
+    if f.is_multiple_of(97) {
         g.player.flashlight_on = !g.player.flashlight_on;
     }
 }

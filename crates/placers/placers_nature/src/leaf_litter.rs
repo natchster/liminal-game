@@ -141,7 +141,7 @@ fn leaf_half(k: usize, a: f64, side: f64) -> f64 {
     hw *= 1.0 - 0.07 * sstep(0.55, 0.8, fbm(seed, a * 18.0, side * 3.0, 3));
     // a tear in from the margin on one side
     let ta = 0.35 + 0.3 * hash(seed, 1, 0);
-    if side > 0.0 && k % 2 == 0 {
+    if side > 0.0 && k.is_multiple_of(2) {
         let d = ((a - ta) / 0.025).abs();
         hw *= 1.0 - 0.7 * (1.0 - d).max(0.0);
     }

@@ -83,7 +83,7 @@ impl Eye {
         let cy = (1.0 - 2.0 * (py + 0.5) / self.h as f64) * t;
         // camera space (x right, y up, -z forward), pitched about x, then yawed about y
         let (sp, cp) = self.pitch.sin_cos();
-        let (y1, z1) = (cy * cp - (-1.0) * sp, cy * sp + (-1.0) * cp);
+        let (y1, z1) = (cy * cp - -sp, cy * sp + -cp);
         let (sy, cyw) = self.yaw.sin_cos();
         let (x2, z2) = (cx * cyw + z1 * sy, -cx * sy + z1 * cyw);
         let l = (x2 * x2 + y1 * y1 + z2 * z2).sqrt();
@@ -368,7 +368,7 @@ mod tests {
         let (w, h) = (48, 32);
         // a hard edge at x = 20 a tenth of a pixel over (its column a tenth
         // nearer the other side), and a fighting patch: a speckle that flips
-        let speckle = |x: usize, y: usize, k: usize| (x + y + k) % 2 == 0;
+        let speckle = |x: usize, y: usize, k: usize| (x + y + k).is_multiple_of(2);
         let patch = |x: usize, y: usize| (30..36).contains(&x) && (10..16).contains(&y);
         let a = frame(w, h, |x, y| {
             if patch(x, y) {

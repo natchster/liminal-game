@@ -1855,7 +1855,7 @@ fn core_text_layer(w: f64, h: f64, text: &str, face: &str, font_css: &str, color
         CGColorSpaceRelease(cs);
     }
     // premultiplied → straight alpha, then into a canvas
-    for px in buf.chunks_exact_mut(4) {
+    for px in buf.as_chunks_mut::<4>().0 {
         let a = px[3] as u32;
         if a == 0 || a == 255 {
             continue;

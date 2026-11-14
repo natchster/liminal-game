@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 publish.workspace = true
+license.workspace = true
 description = "The Backrooms engine for macOS: scene graph, geometry, Metal renderer, CoreGraphics 2D canvas, CoreAudio sound graph, windowing"
 
 [dependencies]

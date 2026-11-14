@@ -59,7 +59,7 @@ step; a new system gets its skill when it is built.
 ## Requirements
 
 - A Mac with Apple Silicon (arm64), macOS 12 or newer.
-- Rust 1.85 or newer (`curl https://sh.rustup.rs -sSf | sh`).
+- Rust 1.100.0, pinned by `rust-toolchain.toml` (install rustup, `curl https://sh.rustup.rs -sSf | sh`; it fetches the pinned compiler on the first build).
 - The Xcode Command Line Tools (`xcode-select --install`) for the linker and
   `codesign`.
 

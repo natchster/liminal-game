@@ -138,7 +138,7 @@ pub fn look_angles(from: [f64; 3], to: [f64; 3]) -> (f64, f64) {
 /// at frequencies with no common period, so it is a function of the time
 /// alone (the same at any frame rate) and needs no random draw
 pub fn jitter(t: f64) -> (f64, f64, f64) {
-    let j = |a: f64, b: f64, c: f64, p: f64| ((t * a + p).sin() * 0.5 + (t * b + p * 1.7).sin() * 0.3 + (t * c + p * 2.3).sin() * 0.2);
+    let j = |a: f64, b: f64, c: f64, p: f64| (t * a + p).sin() * 0.5 + (t * b + p * 1.7).sin() * 0.3 + (t * c + p * 2.3).sin() * 0.2;
     (j(83.0, 131.0, 197.0, 0.3), j(89.0, 139.0, 211.0, 1.9), j(97.0, 149.0, 223.0, 3.1))
 }
 

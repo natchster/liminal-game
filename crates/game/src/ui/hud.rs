@@ -1480,23 +1480,20 @@ impl Game {
                 pg.gain().set_value(cur + ((if on { clamp(0.14 - d * 0.012, 0.0, 0.14) } else { 0.0 }) - cur) * (dt * 10.0).min(1.0));
             }
         }
-        if self.clock_data.is_some() {
-            let pos = self.player.pos;
-            let mut tick: Option<f64> = None;
-            {
-                let cd = self.clock_data.as_mut().unwrap();
-                cd.sec_pivot.rotation().z -= dt * (PI * 2.0 / 60.0);
-                let d = cd.world.distance_to_squared(&pos).sqrt();
-                cd.acc += dt;
-                if d < 4.0 && cd.acc > 0.55 {
-                    cd.acc = 0.0;
-                    cd.tock = !cd.tock;
-                    tick = Some(clamp(1.0 - d / 4.0, 0.0, 1.0) * if cd.tock { 1.0 } else { 0.7 });
-                }
+        let pos = self.player.pos;
+        let mut tick: Option<f64> = None;
+        if let Some(cd) = self.clock_data.as_mut() {
+            cd.sec_pivot.rotation().z -= dt * (PI * 2.0 / 60.0);
+            let d = cd.world.distance_to_squared(&pos).sqrt();
+            cd.acc += dt;
+            if d < 4.0 && cd.acc > 0.55 {
+                cd.acc = 0.0;
+                cd.tock = !cd.tock;
+                tick = Some(clamp(1.0 - d / 4.0, 0.0, 1.0) * if cd.tock { 1.0 } else { 0.7 });
             }
-            if let Some(v) = tick {
-                self.sfx_tick(v);
-            }
+        }
+        if let Some(v) = tick {
+            self.sfx_tick(v);
         }
     }
     /// Run every prop animator with (dt, t). The list in effect at the start is

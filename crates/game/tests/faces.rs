@@ -93,5 +93,5 @@ fn the_voices_side_by_side() {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../target");
     std::fs::create_dir_all(&dir).unwrap();
     engine::png::write_rgba(dir.join("faces.png").to_str().unwrap(), (w * dpr) as u32, (h * dpr) as u32, &img.data).unwrap();
-    assert!(img.data.chunks_exact(4).any(|px| px[0] > 200 && px[3] > 200), "nothing drawn");
+    assert!(img.data.as_chunks::<4>().0.iter().any(|px| px[0] > 200 && px[3] > 200), "nothing drawn");
 }

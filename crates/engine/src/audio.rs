@@ -1455,7 +1455,7 @@ impl Engine {
     }
     fn render_quantum(&mut self) {
         self.apply_cmds();
-        if self.frame % (QUANTUM as u64 * 8) == 0 {
+        if self.frame.is_multiple_of(QUANTUM as u64 * 8) {
             self.collect();
         }
         if self.order_dirty {

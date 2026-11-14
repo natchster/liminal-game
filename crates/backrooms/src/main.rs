@@ -501,7 +501,7 @@ impl AppHandler for App {
     }
     fn frame(&mut self, ctx: &mut AppCtx, dt: f64) -> Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>> {
         self.frames += 1;
-        if self.frames % 300 == 0 || self.g.want_quit {
+        if self.frames.is_multiple_of(300) || self.g.want_quit {
             self.save();
         }
         if let Some(rp) = self.replaying.as_mut() {

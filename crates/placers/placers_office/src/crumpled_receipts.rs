@@ -24,7 +24,7 @@ pub(crate) fn place_crumpled_receipts(g: &mut Game, _dist: &[i32]) {
     let salt = salt(&receipt);
     // a strip of 80 x 200 mm is a quarter of A4: its ball a little over half
     // as big (a crumpled ball's size goes as its area to the 0.4)
-    let (name, k) = if salt % 3 == 0 { ("Real__paperWad", 0.55) } else { ("Real__paperBall", 0.57) };
+    let (name, k) = if salt.is_multiple_of(3) { ("Real__paperWad", 0.55) } else { ("Real__paperBall", 0.57) };
     let geo = prop_part_as_modelled(name).unwrap_or_else(|| box_geo!(0.040, 0.025, 0.040));
     let ball = mesh(geo, &lambert!({ map: &receipt_tex(salt) }));
     ball.scale().set(k, k, k);

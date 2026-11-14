@@ -333,7 +333,7 @@ impl Game {
                 (None, None) => (tr.rows.last().map(|r| r.t).unwrap_or(0.0) + dt, shown, 0.0, 0.0),
             };
             let inside = self.hands_taken() && self.circle_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
-            let hud_up = self.hands_taken() && tr.rows.len() % HUD_EVERY == 0 && {
+            let hud_up = self.hands_taken() && tr.rows.len().is_multiple_of(HUD_EVERY) && {
                 let _ = self.hud_layers(1280.0, 800.0, 1.0);
                 self.hud_ui.painted.iter().any(|n| !NOT_HUD.contains(n) && !n.starts_with("cut-") && !n.starts_with("menu"))
             };

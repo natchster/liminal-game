@@ -7,7 +7,7 @@ use game::prelude::*;
 pub fn bleed(tex: &Tex, rgb: [f64; 3]) {
     let img = tex.image();
     let mut im = img.borrow_mut();
-    for px in im.data.chunks_exact_mut(4) {
+    for px in im.data.as_chunks_mut::<4>().0 {
         let k = sstep(0.0, 0.5, f64::from(px[3]) / 255.0);
         for (c, b) in px.iter_mut().zip(rgb) {
             *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;
@@ -48,7 +48,7 @@ pub fn decal_tex(tw: usize, th: usize, pw: f64, ph: f64, bleed: [f64; 3], px: im
     {
         let img = tex.image();
         let mut im = img.borrow_mut();
-        for p in im.data.chunks_exact_mut(4) {
+        for p in im.data.as_chunks_mut::<4>().0 {
             let t = sstep(0.0, 0.06, f64::from(p[3]) / 255.0);
             for (c, b) in p.iter_mut().zip(bleed) {
                 *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * t).round().clamp(0.0, 255.0) as u8;
@@ -192,7 +192,7 @@ pub fn mark_tex<F: FnOnce(&mut Canvas, f64, f64)>(w: f64, h: f64, bleed: [f64; 3
     {
         let img = tex.image();
         let mut im = img.borrow_mut();
-        for px in im.data.chunks_exact_mut(4) {
+        for px in im.data.as_chunks_mut::<4>().0 {
             let k = sstep(0.0, 0.3, f64::from(px[3]) / 255.0);
             for (c, b) in px.iter_mut().zip(bleed) {
                 *c = (b * 255.0 + (f64::from(*c) - b * 255.0) * k).round().clamp(0.0, 255.0) as u8;

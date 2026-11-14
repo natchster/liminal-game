@@ -25,7 +25,7 @@ pub(crate) fn place_biohazard_signs(g: &mut Game, _dist: &[i32]) {
     mount_on_wall(g, &sign, &c, 0.005, 1.70, 0.6);
     let p = sign.pos();
     let vary = bh_vary(p.x, p.z);
-    let lifted = vary % 3 == 0;
+    let lifted = vary.is_multiple_of(3);
     // the parts are modelled with the wall's face at z = 0: 5 mm behind the spot
     let body = group();
     body.position().z = -0.005;

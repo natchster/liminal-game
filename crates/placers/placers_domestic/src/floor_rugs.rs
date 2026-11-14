@@ -154,7 +154,7 @@ fn rug_turned_corner(geo: &Geo, reach: f64, lift: f64, corner: usize) -> Geo {
     {
         let mut gm = out.g();
         let pos = &mut gm.position;
-        for v in pos.chunks_exact_mut(3) {
+        for v in pos.as_chunks_mut::<3>().0 {
             let (x, y, z) = (v[0] as f64, v[1] as f64, v[2] as f64);
             let t = x * ux + z * uz - fold;
             if t <= 0.0 {

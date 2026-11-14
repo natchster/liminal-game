@@ -196,7 +196,7 @@ fn unpack(b: Buf) -> Vec<u8> {
 }
 
 fn i16s(b: &[u8]) -> impl Iterator<Item = f64> + '_ {
-    b.chunks_exact(2).map(|c| i16::from_le_bytes([c[0], c[1]]) as f64)
+    b.as_chunks::<2>().0.iter().map(|c| i16::from_le_bytes([c[0], c[1]]) as f64)
 }
 
 fn dequant(q: impl Iterator<Item = f64>, min: [f64; 3], max: [f64; 3]) -> Vec<f32> {
@@ -231,7 +231,7 @@ pub fn decode_mesh(body: &BodyDef, m: &MeshDef) -> Geometry {
         g.color_size = 3;
     }
     g.uv = match m.uv {
-        Some(u) => unpack(u).chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]]) as f32 / 65535.0).collect(),
+        Some(u) => unpack(u).as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes([c[0], c[1]]) as f32 / 65535.0).collect(),
         None => vec![0.0; m.n * 2],
     };
     if let (Some(j), Some(w)) = (m.jnt, m.wgt) {
@@ -241,9 +241,9 @@ pub fn decode_mesh(body: &BodyDef, m: &MeshDef) -> Geometry {
     }
     let ib = unpack(m.idx);
     g.index = Some(if m.n > 65535 {
-        ib.chunks_exact(4).map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect()
+        ib.as_chunks::<4>().0.iter().map(|c| u32::from_le_bytes([c[0], c[1], c[2], c[3]])).collect()
     } else {
-        ib.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]]) as u32).collect()
+        ib.as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes([c[0], c[1]]) as u32).collect()
     });
     for k in &m.morphs {
         g.morph_position.push(dequant(i16s(&unpack(k.pos)), k.min, k.max));

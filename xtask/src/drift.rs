@@ -133,7 +133,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
             }
         }
     }
-    sizes.sort_by(|a, b| b.0.cmp(&a.0));
+    sizes.sort_by_key(|s| std::cmp::Reverse(s.0));
     let big: Vec<String> =
         sizes.iter().take(5).map(|(n, f)| format!("`{f}` {n} ({:.0}% of the cap)", *n as f64 / MAX_LINES as f64 * 100.0)).collect();
 
