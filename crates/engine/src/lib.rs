@@ -8,7 +8,6 @@
 //! * a 2D canvas API on CoreGraphics / CoreText for textures and the HUD,
 //! * an audio node graph rendered on CoreAudio (or offline, for recording),
 //! * winit windowing, input and the frame loop.
-#![allow(clippy::too_many_arguments, clippy::type_complexity)]
 
 pub mod app;
 pub mod audio;

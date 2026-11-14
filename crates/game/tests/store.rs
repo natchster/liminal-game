@@ -14,14 +14,14 @@ fn phase_rows(rows: &Json, h: &StoreHours, what: &str) {
     for r in rows.arr() {
         let t = r.at(0).f();
         let p = store_phase(t, h);
-        let w = format!("{} store_phase({})", what, t);
-        assert_eq!(p.phase.as_str(), r.at(1).s(), "{}: phase", w);
-        assert_close(p.left, r.at(2).f(), TOL, &format!("{}: left", w));
-        assert_close(p.into, r.at(3).f(), TOL, &format!("{}: into", w));
-        assert_eq!(p.cycle as i64, r.at(4).i(), "{}: cycle", w);
-        assert_close(p.len, r.at(5).f(), TOL, &format!("{}: len", w));
+        let w = format!("{what} store_phase({t})");
+        assert_eq!(p.phase.as_str(), r.at(1).s(), "{w}: phase");
+        assert_close(p.left, r.at(2).f(), TOL, &format!("{w}: left"));
+        assert_close(p.into, r.at(3).f(), TOL, &format!("{w}: into"));
+        assert_eq!(p.cycle as i64, r.at(4).i(), "{w}: cycle");
+        assert_close(p.len, r.at(5).f(), TOL, &format!("{w}: len"));
         let clock = store_clock(&p);
-        assert_eq!(clock.as_deref(), if r.at(6).is_null() { None } else { Some(r.at(6).s()) }, "{}: store_clock", w);
+        assert_eq!(clock.as_deref(), if r.at(6).is_null() { None } else { Some(r.at(6).s()) }, "{w}: store_clock");
     }
 }
 
@@ -44,7 +44,7 @@ fn store_names_sets_and_tables() {
     let mut m = game::base::rng::Mulberry32::new(2024);
     let mut rng = move || m.next();
     for (i, n) in fx.get("names").arr().iter().enumerate() {
-        assert_eq!(product_name(&mut rng), n.s(), "product_name #{}", i);
+        assert_eq!(product_name(&mut rng), n.s(), "product_name #{i}");
     }
     let mut m = game::base::rng::Mulberry32::new(7);
     let mut rng = move || m.next();
@@ -53,9 +53,9 @@ fn store_names_sets_and_tables() {
         assert_eq!(theme, ROOM_SET_NAMES[i % 7]);
         let got = room_set(theme, &mut rng).unwrap();
         let want = s.at(1).arr();
-        assert_eq!(got.len(), want.len(), "{} #{}: pieces", theme, i);
+        assert_eq!(got.len(), want.len(), "{theme} #{i}: pieces");
         for (p, j) in got.iter().zip(want.iter()) {
-            assert_eq!(p.name, j.at(0).s(), "{}: name", theme);
+            assert_eq!(p.name, j.at(0).s(), "{theme}: name");
             assert_vec_close(
                 &[p.x, p.z, p.yaw, p.y_off],
                 &[j.at(1).f(), j.at(2).f(), j.at(3).f(), j.at(4).f()],
@@ -90,7 +90,7 @@ fn geo_params(g: &Geo) -> Vec<Json> {
             n(theta_length),
         ],
         GeoParams::Plane { width, height, .. } => vec![Json::Str("plane".into()), n(width), n(height)],
-        other => vec![Json::Str(format!("{:?}", other))],
+        other => vec![Json::Str(format!("{other:?}"))],
     }
 }
 
@@ -147,48 +147,48 @@ fn store_kit_matches_reference() {
                 };
                 product_name(&mut f)
             };
-            assert_eq!(pname, row.at(1).s(), "price tag name #{}", row_i);
+            assert_eq!(pname, row.at(1).s(), "price tag name #{row_i}");
             kit.price_tag(&TagText { name: pname, what: "Bookcase".into(), price: row.at(2).s().to_string() })
         } else {
             let opt = |v: &Json| if v.is_null() { None } else { Some(v.f()) };
             kit.build(name, opt(row.at(1)), opt(row.at(2))).unwrap()
         };
-        let w = format!("{} #{}", name, row_i);
+        let w = format!("{name} #{row_i}");
         let d = row.at(3);
         let hide = hide_spot(&g);
         if d.get("hide").is_null() {
-            assert!(hide.is_none(), "{}: no hide spot", w);
+            assert!(hide.is_none(), "{w}: no hide spot");
         } else {
             let h = d.get("hide").arr();
-            let hs = hide.unwrap_or_else(|| panic!("{}: hide spot missing", w));
-            assert_eq!((hs.eye, hs.r, hs.kind.as_str()), (h[0].f(), h[1].f(), h[2].s()), "{}: hide", w);
-            assert_eq!(hs.front, if h[3].is_null() { None } else { Some(h[3].f()) }, "{}: hide front", w);
+            let hs = hide.unwrap_or_else(|| panic!("{w}: hide spot missing"));
+            assert_eq!((hs.eye, hs.r, hs.kind.as_str()), (h[0].f(), h[1].f(), h[2].s()), "{w}: hide");
+            assert_eq!(hs.front, if h[3].is_null() { None } else { Some(h[3].f()) }, "{w}: hide front");
         }
         let kids = g.children();
         let jc = d.get("c").arr();
-        assert_eq!(kids.len(), jc.len(), "{}: parts", w);
+        assert_eq!(kids.len(), jc.len(), "{w}: parts");
         for (k, (o, j)) in kids.iter().zip(jc.iter()).enumerate() {
             let geo = o.geo();
             let pg = pg_names.borrow().get(&geo.id()).cloned();
-            assert_eq!(pg.as_deref(), if j.at(0).is_null() { None } else { Some(j.at(0).s()) }, "{} part {}: PG name", w, k);
+            assert_eq!(pg.as_deref(), if j.at(0).is_null() { None } else { Some(j.at(0).s()) }, "{w} part {k}: PG name");
             let gp = geo_params(&geo);
             let jg = j.at(1).arr();
-            assert_eq!(gp.len(), jg.len(), "{} part {}: geometry {:?}", w, k, gp);
+            assert_eq!(gp.len(), jg.len(), "{w} part {k}: geometry {gp:?}");
             for (a, b) in gp.iter().zip(jg.iter()) {
                 match (a, b) {
-                    (Json::Num(x), Json::Num(y)) => assert_close(*x, *y, TOL, &format!("{} part {} geometry", w, k)),
-                    (a, b) => assert_eq!(a, b, "{} part {} geometry", w, k),
+                    (Json::Num(x), Json::Num(y)) => assert_close(*x, *y, TOL, &format!("{w} part {k} geometry")),
+                    (a, b) => assert_eq!(a, b, "{w} part {k} geometry"),
                 }
             }
             let mid = o.mat().id();
             let mv = mat_hex.borrow().get(&mid).map(|&h| h as i64).or_else(|| tag_ids.borrow().get(&mid).map(|&t| -1 - t));
-            assert_eq!(mv, Some(j.at(2).i()), "{} part {}: material", w, k);
+            assert_eq!(mv, Some(j.at(2).i()), "{w} part {k}: material");
             let (p, r) = (o.pos(), o.rot());
             assert_vec_close(
                 &[p.x, p.y, p.z, r.x, r.y, r.z],
                 &[j.at(3).f(), j.at(4).f(), j.at(5).f(), j.at(6).f(), j.at(7).f(), j.at(8).f()],
                 TOL,
-                &format!("{} part {}: transform", w, k),
+                &format!("{w} part {k}: transform"),
             );
         }
     }

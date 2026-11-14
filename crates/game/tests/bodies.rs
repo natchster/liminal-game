@@ -15,7 +15,7 @@ fn every_body_decodes_soundly() {
     for name in names {
         let b = body(name).unwrap();
         for (i, bone) in b.bones.iter().enumerate() {
-            assert!(bone.parent.map(|p| p < i).unwrap_or(true), "{name}: bone {} before its parent", bone.name);
+            assert!(bone.parent.is_none_or(|p| p < i), "{name}: bone {} before its parent", bone.name);
         }
         for m in &b.meshes {
             let g = decode_mesh(b, m);

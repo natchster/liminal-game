@@ -109,8 +109,8 @@ impl Game {
     /// A floor of the Building has begun: the quiet before the first.
     pub fn reset_assembly(&mut self) {
         let walks: Vec<f64> = self.ground.iter().filter(|g| g.walkable()).map(|g| g.h0.min(g.h1) as f64).collect();
-        let low = walks.iter().cloned().fold(f64::INFINITY, f64::min);
-        let high = walks.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
+        let low = walks.iter().copied().fold(f64::INFINITY, f64::min);
+        let high = walks.iter().copied().fold(f64::NEG_INFINITY, f64::max);
         let first = if self.level_num == 1 && self.story.camp.is_some() { FIRST_FLOOR_QUIET } else { FIRST_QUIET };
         // the director's first quiet (its one draw, 45–80 s on these floors),
         // spread over this one: another draw at a floor's start would move

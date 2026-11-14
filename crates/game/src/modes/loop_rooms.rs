@@ -44,7 +44,6 @@ use std::collections::BTreeSet;
 use std::f64::consts::PI;
 
 // ------------------------------------------------------------- constants ---
-#[allow(non_camel_case_types)]
 pub struct LOOP;
 impl LOOP {
     pub const ROOMS: i32 = 5;
@@ -764,7 +763,7 @@ pub struct LoopMode {
     slot_r: [i8; NS],
     slot_bright: [f32; NS],
     slot_dist: [f32; NS],
-    #[allow(dead_code)]
+    #[expect(dead_code, reason = "the rooms' closures draw through clones; this one keeps the stream alive with the Loop")]
     rng: SharedRng,
 }
 
@@ -1236,7 +1235,7 @@ impl LoopMode {
         let mut meshes: Vec<(&'static str, Obj)> = vec![];
         let mut inst = |geo: &Geo, material: &Mat, cap: usize, name: &'static str| -> Obj {
             let m = instanced_mesh(geo, material, cap);
-            m.set_name(&format!("loop:{}", name));
+            m.set_name(&format!("loop:{name}"));
             m.set_frustum_culled(false);
             let white = Color::white();
             for i in 0..cap {

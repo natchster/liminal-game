@@ -103,7 +103,6 @@ pub fn smin(a: f64, b: f64, k: f64) -> f64 {
 
 /// Specks: a dot in each `cell` (m) with likelihood `like`, its radius
 /// `r0` + up to `r1`, anti-aliased over `aa`: (coverage, the dot's hash)
-#[allow(clippy::too_many_arguments)]
 pub fn specks(seed: u32, x: f64, y: f64, cell: f64, like: f64, r0: f64, r1: f64, aa: f64) -> (f64, f64) {
     let (gi, gj) = ((x / cell).floor() as i32, (y / cell).floor() as i32);
     let (mut best, mut hk) = (0.0f64, 0.0);

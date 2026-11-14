@@ -104,7 +104,7 @@ fn who_lives_where() {
                 let i = g.t_idx(x, z);
                 assert!(!g.is_wall_tile(x, z), "seed {seed} L{level}: in a wall");
                 let near = piles.iter().map(|&(px, pz)| (px - x).abs().max((pz - z).abs())).min();
-                assert!(near.map(|d| (1..=6).contains(&d)).unwrap_or(false), "seed {seed} L{level}: not beside paper ({near:?} tiles)");
+                assert!(near.is_some_and(|d| (1..=6).contains(&d)), "seed {seed} L{level}: not beside paper ({near:?} tiles)");
                 let from_start = g.bfs(g.tx(g.spawn_pos.x), g.tz(g.spawn_pos.z));
                 assert!(from_start[i] >= 18, "seed {seed} L{level}: {} tiles from the arrival", from_start[i]);
                 if let Some(c) = g.story.camp.as_ref() {

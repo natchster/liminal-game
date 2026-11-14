@@ -315,7 +315,7 @@ fn throw_light(g: &Game, i: usize, k: usize, night: f64) -> (Vec<[(f64, f64); 4]
     let geo = Geo::new();
     let n = pos.len() / 3;
     // the brightest part of it at 1
-    let top = col.iter().cloned().fold(1e-6f32, f32::max);
+    let top = col.iter().copied().fold(1e-6f32, f32::max);
     let col: Vec<f32> = col.iter().map(|c| c / top).collect();
     geo.set_position(pos).set_normal((0..n).flat_map(|_| [0.0f32, 1.0, 0.0]).collect()).set_uv(uv).set_index(idx);
     geo.set_color(col, 3);

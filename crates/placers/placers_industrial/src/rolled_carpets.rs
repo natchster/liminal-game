@@ -158,7 +158,7 @@ fn rolled_rug(k: usize, colours: usize, vary: u32, rest: Option<RollRest>, origi
     let fringe = lambert!({ color: 0x968a72, side: DoubleSide });
     let twine = lambert!({ color: 0x6a583e });
     let wall_z = -0.15;
-    let (tc, ts) = rest.map(|q| (q.tilt.cos(), q.tilt.sin())).unwrap_or((1.0, 0.0));
+    let (tc, ts) = rest.map_or((1.0, 0.0), |q| (q.tilt.cos(), q.tilt.sin()));
     // a point of the roll as modelled (standing: its axis +y, its floor
     // side +x at x = 0, the room +z) to the wall's frame, and where its
     // axis lies there

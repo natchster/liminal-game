@@ -230,7 +230,7 @@ fn its_lamp_is_heard_through_the_glass_only_near_it() {
         g.windows_frame(1.0 / 60.0);
     }
     if g.ac.is_some() {
-        assert!(g.windows[i].hum.as_ref().map(|h| h.level() > 0.5).unwrap_or(false), "not heard at 1.5 m");
+        assert!(g.windows[i].hum.as_ref().is_some_and(|h| h.level() > 0.5), "not heard at 1.5 m");
     }
     let _ = model::DH_W;
 }

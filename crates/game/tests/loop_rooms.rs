@@ -47,7 +47,7 @@ fn capacity(o: &Obj) -> usize {
 fn instances(o: &Obj) -> (Vec<Mat4>, Vec<Color>) {
     match &o.r().kind {
         Kind::Instanced { inst, .. } => {
-            (inst.matrices[..inst.count].to_vec(), inst.colors.as_ref().map(|c| c[..inst.count].to_vec()).unwrap_or_default())
+            (inst.matrices[..inst.count].to_vec(), inst.colors.as_ref().map_or_default(|c| c[..inst.count].to_vec()))
         }
         _ => (vec![], vec![]),
     }
@@ -60,7 +60,7 @@ fn loop_constants_and_pure_functions() {
     let l = c.get("LOOP");
     assert_eq!(LOOP::ROOMS as f64, l.get("ROOMS").f());
     for (k, v) in [("W", LOOP::W), ("L", LOOP::L), ("H", LOOP::H), ("T", LOOP::T), ("DOOR_W", LOOP::DOOR_W), ("DOOR_H", LOOP::DOOR_H)] {
-        assert_eq!(v, l.get(k).f(), "LOOP.{}", k);
+        assert_eq!(v, l.get(k).f(), "LOOP.{k}");
     }
     for (k, v) in [
         ("VIEW", LOOP::VIEW),
@@ -72,7 +72,7 @@ fn loop_constants_and_pure_functions() {
         ("FIGURE_LAP", LOOP::FIGURE_LAP),
         ("BARE_LAP", LOOP::BARE_LAP),
     ] {
-        assert_eq!(v as f64, l.get(k).f(), "LOOP.{}", k);
+        assert_eq!(v as f64, l.get(k).f(), "LOOP.{k}");
     }
     assert_eq!(LOOP_PITCH, c.get("LOOP_PITCH").f());
     assert_eq!(LOOP_STRIP, c.get("LOOP_STRIP").f());
@@ -137,7 +137,7 @@ fn loop_constants_and_pure_functions() {
             Some(PickupKind::Almond) => 1,
             Some(PickupKind::Battery) => 2,
         };
-        assert_eq!(got, k, "pickup_at({}, {})", lap, room);
+        assert_eq!(got, k, "pickup_at({lap}, {room})");
     }
     for row in fx.get("loopReverb").arr() {
         let r = row.fs();
@@ -169,7 +169,7 @@ fn loop_build_matches_reference() {
         let name = j.get("name").s();
         assert_eq!(o.name(), name);
         if !j.get("cap").is_null() {
-            assert_eq!(capacity(o) as i64, j.get("cap").i(), "{}: capacity", name);
+            assert_eq!(capacity(o) as i64, j.get("cap").i(), "{name}: capacity");
             assert!(!o.r().frustum_culled);
         }
         // (the seated figure's body is E9's, `bodies.bin` "seated", not the
@@ -224,40 +224,35 @@ fn loop_windows_match_reference() {
         }
         let w = s.get("label").s();
         let st = s.get("st");
-        assert_eq!(lp.st.lap as i64, st.get("lap").i(), "{}: lap", w);
+        assert_eq!(lp.st.lap as i64, st.get("lap").i(), "{w}: lap");
         assert_vec_close(
             &[lp.st.x, lp.st.z, lp.st.yaw],
             &[st.get("x").f(), st.get("z").f(), st.get("yaw").f()],
             TOL,
-            &format!("{}: x z yaw", w),
+            &format!("{w}: x z yaw"),
         );
-        assert_eq!(lp.st.entry_door, st.get("entryDoor").b(), "{}: entry_door", w);
-        assert_eq!(lp.st.started, st.get("started").b(), "{}: started", w);
-        assert_eq!(lp.lap() as i64, s.get("lap").i(), "{}: reported lap", w);
-        assert_eq!(lp.room() as i64, s.get("room").i(), "{}: room", w);
+        assert_eq!(lp.st.entry_door, st.get("entryDoor").b(), "{w}: entry_door");
+        assert_eq!(lp.st.started, st.get("started").b(), "{w}: started");
+        assert_eq!(lp.lap() as i64, s.get("lap").i(), "{w}: reported lap");
+        assert_eq!(lp.room() as i64, s.get("room").i(), "{w}: room");
         let want: Vec<(String, i64)> = s.get("counts").arr().iter().map(|c| (c.at(0).s().to_string(), c.at(1).i())).collect();
-        assert_eq!(counts_json(&lp.counts()), want, "{}: counts", w);
-        assert_eq!(lp.draw_calls() as i64, s.get("drawCalls").i(), "{}: draw_calls", w);
+        assert_eq!(counts_json(&lp.counts()), want, "{w}: counts");
+        assert_eq!(lp.draw_calls() as i64, s.get("drawCalls").i(), "{w}: draw_calls");
         for (j, (name, m)) in s.get("inst").arr().iter().zip(lp.meshes.iter()) {
-            assert_eq!(format!("loop:{}", name), j.get("name").s());
+            assert_eq!(format!("loop:{name}"), j.get("name").s());
             let (ms, cs) = instances(m);
-            assert_eq!(ms.len() as i64, j.get("count").i(), "{}: {} count", w, name);
+            assert_eq!(ms.len() as i64, j.get("count").i(), "{w}: {name} count");
             for i in 0..ms.len() {
                 let got: Vec<f64> = ms[i].e.iter().map(|&v| f32r(v)).collect();
-                assert_vec_close(&got, &j.get("m").at(i).fs(), 1e-7, &format!("{}: {} matrix {}", w, name, i));
+                assert_vec_close(&got, &j.get("m").at(i).fs(), 1e-7, &format!("{w}: {name} matrix {i}"));
                 let c = cs[i];
-                assert_vec_close(
-                    &[f32r(c.r), f32r(c.g), f32r(c.b)],
-                    &j.get("c").at(i).fs(),
-                    1e-7,
-                    &format!("{}: {} colour {}", w, name, i),
-                );
+                assert_vec_close(&[f32r(c.r), f32r(c.g), f32r(c.b)], &j.get("c").at(i).fs(), 1e-7, &format!("{w}: {name} colour {i}"));
             }
         }
         let g = s.get("ghost").fs();
         let gd = &lp.ghost_door;
         let (p, r) = (gd.pos(), gd.rot());
-        assert_vec_close(&[gd.visible() as i32 as f64, p.x, p.y, p.z, r.x, r.y, r.z], &g, TOL, &format!("{}: ghost door", w));
+        assert_vec_close(&[gd.visible() as i32 as f64, p.x, p.y, p.z, r.x, r.y, r.z], &g, TOL, &format!("{w}: ghost door"));
     }
 }
 
@@ -283,12 +278,12 @@ fn loop_collision_and_sight_probes() {
                 } else {
                     0
                 };
-                assert_eq!(got, blocked[k].i(), "lap {}: blocked({}, {})", lap, x, z);
+                assert_eq!(got, blocked[k].i(), "lap {lap}: blocked({x}, {z})");
                 k += 1;
             }
         }
         for o in -12..=12 {
-            assert_eq!(lp.look_lap_of(o) as i64, look[kl].i(), "lap {}: look_lap_of({})", lap, o);
+            assert_eq!(lp.look_lap_of(o) as i64, look[kl].i(), "lap {lap}: look_lap_of({o})");
             kl += 1;
         }
     }
@@ -346,19 +341,19 @@ fn loop_scripted_walk_matches_reference() {
         }
         let u = step.get("u").fs();
         let out = lp.update(u[0], &LoopInput { fwd: u[1], strafe: u[2], speed: u[3], yaw: u[4] });
-        let wh = format!("frame {}", frame);
+        let wh = format!("frame {frame}");
         let o = rec.get("o").fs();
-        assert_close(out.x, o[0], TOL, &format!("{} x", wh));
-        assert_close(out.z, o[1], TOL, &format!("{} z", wh));
-        assert_eq!(out.lap as f64, o[2], "{} lap", wh);
-        assert_eq!(out.room as f64, o[3], "{} room", wh);
-        assert_eq!(out.near_exit, o[4] != 0.0, "{} near_exit", wh);
-        assert_close(out.touch, o[5], TOL, &format!("{} touch", wh));
+        assert_close(out.x, o[0], TOL, &format!("{wh} x"));
+        assert_close(out.z, o[1], TOL, &format!("{wh} z"));
+        assert_eq!(out.lap as f64, o[2], "{wh} lap");
+        assert_eq!(out.room as f64, o[3], "{wh} room");
+        assert_eq!(out.near_exit, o[4] != 0.0, "{wh} near_exit");
+        assert_close(out.touch, o[5], TOL, &format!("{wh} touch"));
         max_touch = max_touch.max(out.touch);
-        assert_eq!(out.light_count as f64, o[6], "{} light_count", wh);
-        assert_eq!(lp.st.lap as f64, o[7], "{} internal lap", wh);
-        assert_eq!(lp.st.seams as f64, o[8], "{} seams", wh);
-        assert_eq!(lp.st.entry_door, o[9] != 0.0, "{} entry_door", wh);
+        assert_eq!(out.light_count as f64, o[6], "{wh} light_count");
+        assert_eq!(lp.st.lap as f64, o[7], "{wh} internal lap");
+        assert_eq!(lp.st.seams as f64, o[8], "{wh} seams");
+        assert_eq!(lp.st.entry_door, o[9] != 0.0, "{wh} entry_door");
         let want_ev = if rec.has("e") { rec.get("e").arr().to_vec() } else { vec![] };
         assert_eq!(out.events.len(), want_ev.len(), "{} events {:?}", wh, out.events);
         for (e, j) in out.events.iter().zip(want_ev.iter()) {
@@ -393,11 +388,11 @@ fn loop_scripted_walk_matches_reference() {
                 e.glow,
                 e.lam,
             ];
-            assert_vec_close(&got, &rec.get("env").fs(), TOL, &format!("{} env", wh));
+            assert_vec_close(&got, &rec.get("env").fs(), TOL, &format!("{wh} env"));
             assert_eq!(lp.env(), e);
             for (k, l) in rec.get("l").arr().iter().enumerate() {
                 let q = &out.lights[k];
-                assert_vec_close(&[q.x, q.y, q.z, q.i, q.r, q.g, q.b], &l.fs(), TOL, &format!("{} light {}", wh, k));
+                assert_vec_close(&[q.x, q.y, q.z, q.i, q.r, q.g, q.b], &l.fs(), TOL, &format!("{wh} light {k}"));
             }
             let f = &lp.fig;
             let got = [
@@ -412,17 +407,17 @@ fn loop_scripted_walk_matches_reference() {
                 f.inst as f64,
                 f.sightings as f64,
             ];
-            assert_vec_close(&got, &rec.get("fig").fs(), TOL, &format!("{} figure", wh));
+            assert_vec_close(&got, &rec.get("fig").fs(), TOL, &format!("{wh} figure"));
             let st = rec.get("st").fs();
-            assert_vec_close(&[lp.st.time, lp.st.entry_t, lp.st.entry_unseen], &st[..3], TOL, &format!("{} state", wh));
+            assert_vec_close(&[lp.st.time, lp.st.entry_t, lp.st.entry_unseen], &st[..3], TOL, &format!("{wh} state"));
             let taken: Vec<f64> = lp.st.taken.iter().map(|&v| v as f64).collect();
-            assert_eq!(taken, st[3..].to_vec(), "{} taken", wh);
+            assert_eq!(taken, st[3..].to_vec(), "{wh} taken");
         }
         if rec.has("c") {
             let want: Vec<i64> = rec.get("c").arr().iter().map(|v| v.i()).collect();
             let got: Vec<i64> = lp.counts().iter().map(|c| c.1 as i64).collect();
-            assert_eq!(got, want, "{} counts", wh);
-            assert_eq!(lp.draw_calls() as i64, rec.get("dc").i(), "{} draw_calls", wh);
+            assert_eq!(got, want, "{wh} counts");
+            assert_eq!(lp.draw_calls() as i64, rec.get("dc").i(), "{wh} draw_calls");
         }
         frame += 1;
     }
@@ -430,7 +425,7 @@ fn loop_scripted_walk_matches_reference() {
     assert_eq!(frame as i64, w.get("frames").i());
     assert_eq!(n.get() as i64, w.get("draws").i(), "rng draws");
     for t in ["seam", "pickup", "entryGone", "figureSeen", "figureNearer"] {
-        assert!(types.contains(t), "the walk never produced {}", t);
+        assert!(types.contains(t), "the walk never produced {t}");
     }
     assert!(max_touch > 0.0, "the walk never touched the figure");
 }

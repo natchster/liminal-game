@@ -85,8 +85,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
     let bench_fails: Vec<&str> = bench.lines().filter(|l| l.starts_with("FAIL")).collect();
 
     // ---- the ledger
-    let date =
-        Command::new("date").arg("+%Y-%m-%d").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     let ledger_path = root().join("docs/plan/content.json");
     let mut ledger = read_json(&ledger_path);
     let mut failing = vec![];
@@ -128,7 +127,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
                     stack.push(p);
                 }
             } else if p.extension().is_some_and(|x| x == "rs") {
-                let n = std::fs::read_to_string(&p).map(|s| s.lines().count()).unwrap_or(0);
+                let n = std::fs::read_to_string(&p).map_or(0, |s| s.lines().count());
                 sizes.push((n, p.strip_prefix(root()).unwrap_or(&p).display().to_string()));
             }
         }
@@ -144,8 +143,7 @@ pub fn drift(args: &[String]) -> Result<(), String> {
         .split("## Caught by people")
         .nth(1)
         .map(|s| s.split("\n## ").next().unwrap_or(""))
-        .map(|s| s.lines().filter(|l| l.starts_with("| 20")).count())
-        .unwrap_or(0);
+        .map_or(0, |s| s.lines().filter(|l| l.starts_with("| 20")).count());
 
     // ---- the summary
     let step_lines: Vec<&str> = check_summary.lines().filter(|l| l.starts_with("ok ") || l.starts_with("FAIL")).collect();

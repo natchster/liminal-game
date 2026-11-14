@@ -104,7 +104,7 @@ fn set(g: &mut Game, ei: usize, to: Mode, why: &'static str) {
 
 /// Where its face looks (its body's way, its head turned by `head_yaw`).
 fn face_dir(g: &Game, ei: usize) -> (f64, f64) {
-    let yaw = g.entities[ei].yaw + g.creature(ei).map(|c| c.get("head_yaw")).unwrap_or(0.0);
+    let yaw = g.entities[ei].yaw + g.creature(ei).map_or(0.0, |c| c.get("head_yaw"));
     (yaw.sin(), yaw.cos())
 }
 
@@ -196,7 +196,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         }
         Mode::Alert => {
             g.entity_drive(ei, dt, 0.0);
-            let looked_round = g.creature(ei).unwrap().brain.log.last().map(|l| l.3 == "it turns to look behind it").unwrap_or(false);
+            let looked_round = g.creature(ei).unwrap().brain.log.last().is_some_and(|l| l.3 == "it turns to look behind it");
             if !looked_round && !sees_its_face(g, ei) {
                 // you looked away in time: it turns back to its corner
                 set(g, ei, Mode::Hold, "you looked away");
@@ -359,7 +359,7 @@ fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix6
                 // quieter the further from the way (its open neighbours few)
                 let open = [(1, 0), (-1, 0), (0, 1), (0, -1)].iter().filter(|(dx, dz)| !g.is_wall_tile(x + dx, z + dz)).count();
                 let score = (from_start[i] as f64).min(40.0) * 0.1 - open as f64 + ((x * 7 + z * 13) % 5) as f64 * 0.01;
-                if best.map(|b| score > b.0).unwrap_or(true) {
+                if best.is_none_or(|b| score > b.0) {
                     best = Some((score, x, z, cx, cz));
                 }
             }

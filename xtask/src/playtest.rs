@@ -95,7 +95,7 @@ fn visual(args: &[String]) -> Result<(), String> {
     let levels = opt(args, "--levels").unwrap_or("1,2,3");
     let budget = opt(args, "--budget").unwrap_or("180");
     let (w, h) = opt(args, "--size").and_then(|s| s.split_once('x')).unwrap_or(("640", "400"));
-    let out = opt(args, "--out").map(PathBuf::from).unwrap_or_else(|| root().join("target/xtask/playtest/visual"));
+    let out = opt(args, "--out").map_or_else(|| root().join("target/xtask/playtest/visual"), PathBuf::from);
     if !flag(args, "--no-build") {
         run(cargo().args(["build", "--release", "-p", "backrooms"]))?;
     }
@@ -197,16 +197,14 @@ fn report(out: &Path, seeds: &[String], levels: &str, budget: &str, args: &[Stri
         }
     }
     std::fs::write(out.join("findings.tsv"), all).map_err(|e| e.to_string())?;
-    let rel = |p: &Path| p.strip_prefix(out).map(|r| r.display().to_string()).unwrap_or_else(|_| p.display().to_string());
+    let rel = |p: &Path| p.strip_prefix(out).map_or_else(|_| p.display().to_string(), |r| r.display().to_string());
     for (seed, l, ldir, vs, fs, flag_px) in &floors {
         let flag_px = *flag_px;
         writeln!(md, "\n## Seed {seed}, level {l}\n").unwrap();
-        let cam = |name: &str| vs.iter().find(|v| v.name == name).map(|v| v.shots_at.clone()).unwrap_or_default();
-        let mut sheets: Vec<String> = std::fs::read_dir(ldir)
-            .map(|d| {
-                d.filter_map(|e| e.ok()).map(|e| e.file_name().to_string_lossy().into_owned()).filter(|n| n.starts_with("sheet_")).collect()
-            })
-            .unwrap_or_default();
+        let cam = |name: &str| vs.iter().find(|v| v.name == name).map_or_default(|v| v.shots_at.clone());
+        let mut sheets: Vec<String> = std::fs::read_dir(ldir).map_or_default(|d| {
+            d.filter_map(|e| e.ok()).map(|e| e.file_name().to_string_lossy().into_owned()).filter(|n| n.starts_with("sheet_")).collect()
+        });
         sheets.sort();
         if !sheets.is_empty() {
             writeln!(md, "Sheets: {}\n", sheets.iter().map(|s| format!("`{}`", rel(&ldir.join(s)))).collect::<Vec<_>>().join(", "))
@@ -305,7 +303,7 @@ const MARK: &str = ".visual-playtest";
 /// touched
 fn make_out(out: &Path) -> Result<PathBuf, String> {
     let ours = |p: &Path| p.join(MARK).is_file();
-    let empty = |p: &Path| std::fs::read_dir(p).map(|mut d| d.next().is_none()).unwrap_or(false);
+    let empty = |p: &Path| std::fs::read_dir(p).is_ok_and(|mut d| d.next().is_none());
     let out = if out.exists() {
         std::fs::canonicalize(out).map_err(|e| e.to_string())?
     } else {

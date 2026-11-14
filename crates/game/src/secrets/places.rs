@@ -24,7 +24,7 @@ impl Game {
     fn place_of(&self, t: (i32, i32)) -> (&'static str, &'static str) {
         let z = self.zone_at_tile(t.0, t.1);
         let arch = z.and_then(|z| self.layout.as_ref().map(|l| l.zones[z].arch)).unwrap_or("");
-        let label = z.and_then(|z| self.zone_purposes.get(z)).map(|p| p.label).unwrap_or("");
+        let label = z.and_then(|z| self.zone_purposes.get(z)).map_or("", |p| p.label);
         (arch, label)
     }
 

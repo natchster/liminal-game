@@ -197,17 +197,17 @@ impl RigParts {
         for l in &self.legs {
             let n = side_name(l.side);
             for (k, o) in [("thigh", &l.hip), ("shin", &l.knee), ("foot", &l.ankle), ("toe", &l.toe)] {
-                m.insert(format!("{}.{}", k, n), o.clone());
+                m.insert(format!("{k}.{n}"), o.clone());
             }
         }
         for a in &self.arms {
             let n = side_name(a.side);
             for (k, o) in [("clavicle", &a.clav), ("upperarm", &a.shoulder), ("forearm", &a.elbow), ("hand", &a.wrist)] {
-                m.insert(format!("{}.{}", k, n), o.clone());
+                m.insert(format!("{k}.{n}"), o.clone());
             }
             for (k, chain) in a.fingers.iter().enumerate() {
                 for (j, b) in chain.iter().enumerate() {
-                    m.insert(format!("finger{}{}.{}", k, j, n), b.clone());
+                    m.insert(format!("finger{k}{j}.{n}"), b.clone());
                 }
             }
         }

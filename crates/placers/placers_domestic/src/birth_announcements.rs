@@ -78,7 +78,7 @@ game::lazy_static_tex!(
         let lbs = 6 + (rnd() * 3.0).floor() as i64;
         let oz = (rnd() * 16.0).floor() as i64;
         let inches = 18 + (rnd() * 5.0).floor() as i64;
-        ctx.fill_text(&format!("{} lbs {} oz \u{00b7} {} inches", lbs, oz, inches), w / 2.0, 114);
+        ctx.fill_text(&format!("{lbs} lbs {oz} oz \u{00b7} {inches} inches"), w / 2.0, 114);
         // 2 baby footprints (side by side) — small oval + 5 tiny toe dots each.
         let print_color = if is_pink { "#c0304a" } else { "#204080" };
         ctx.set_fill_style(print_color);

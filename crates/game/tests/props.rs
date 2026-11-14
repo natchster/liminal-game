@@ -20,7 +20,7 @@ fn primitive(ty: &str, p: &[f64]) -> Geo {
         "plane" => plane_geometry(p[0], p[1], p[2], p[3]),
         "octahedron" => octahedron_geometry(p[0], p[1]),
         "ring" => ring_geometry(p[0], p[1], p[2], p[3], p[4], p[5]),
-        _ => panic!("unknown primitive {}", ty),
+        _ => panic!("unknown primitive {ty}"),
     }
 }
 
@@ -66,15 +66,15 @@ fn props_match_reference() {
             set_props_enabled(true);
         }
         let cached = prop_stats().cached > before.cached;
-        let same = results.iter().position(|x| x.ptr_eq(&g)).map(|i| i as i64).unwrap_or(-1);
+        let same = results.iter().position(|x| x.ptr_eq(&g)).map_or(-1, |i| i as i64);
         results.push(g.clone());
-        assert_eq!(g.ptr_eq(&fb), c.res_i("fallback") == 1, "{}: fallback", what);
-        assert_eq!(cached, c.res_i("cached") == 1, "{}: cached", what);
-        assert_eq!(same, c.res_i("same"), "{}: shared geometry", what);
-        assert_eq!(g.type_name(), c.result["gtype"], "{}: type", what);
-        assert_eq!(g.r().is_prop_part, c.res_i("part") == 1, "{}: prop_part flag", what);
+        assert_eq!(g.ptr_eq(&fb), c.res_i("fallback") == 1, "{what}: fallback");
+        assert_eq!(cached, c.res_i("cached") == 1, "{what}: cached");
+        assert_eq!(same, c.res_i("same"), "{what}: shared geometry");
+        assert_eq!(g.type_name(), c.result["gtype"], "{what}: type");
+        assert_eq!(g.r().is_prop_part, c.res_i("part") == 1, "{what}: prop_part flag");
         if c.res_i("keepsParams") == 1 && !g.ptr_eq(&fb) {
-            assert_eq!(g.params(), fb.params(), "{}: parameters", what);
+            assert_eq!(g.params(), fb.params(), "{what}: parameters");
         }
         check_geo(&what, c, &g);
     }
@@ -98,20 +98,20 @@ fn props_match_reference() {
         let sums = [r.f64(), r.f64(), r.f64(), r.f64()];
         let _ = i;
         let m = prop_part_info(&name).unwrap_or_else(|| panic!("{name}: a recorded part is gone"));
-        assert_eq!((m.frame.as_str(), m.n, m.t), (frame.as_str(), pn, pt), "{}: metadata", name);
+        assert_eq!((m.frame.as_str(), m.n, m.t), (frame.as_str(), pn, pt), "{name}: metadata");
         let fb = Geo::new();
         fb.set_position([m.fmin, m.fmax].iter().flat_map(|a| a.iter().map(|&x| x as f32)).collect());
         let g = prop_part(&name, fb, false);
         let gg = g.r();
-        assert_eq!(gg.vertex_count(), nv, "{}: vertices after the seam split", name);
-        assert_eq!(gg.index.as_ref().unwrap().len(), ni, "{}: indices", name);
+        assert_eq!(gg.vertex_count(), nv, "{name}: vertices after the seam split");
+        assert_eq!(gg.index.as_ref().unwrap().len(), ni, "{name}: indices");
         let sum = |a: &[f32]| a.iter().fold(0.0f64, |t, &x| t + x as f64);
         let isum = gg.index.as_ref().unwrap().iter().fold(0.0f64, |t, &x| t + x as f64);
         let tol = 1e-5 * nv as f64 + 1e-6;
         assert!((sum(&gg.position) - sums[0]).abs() <= tol, "{}: position sum {} vs {}", name, sum(&gg.position), sums[0]);
         assert!((sum(&gg.normal) - sums[1]).abs() <= tol, "{}: normal sum {} vs {}", name, sum(&gg.normal), sums[1]);
         assert!((sum(&gg.uv) - sums[2]).abs() <= tol, "{}: uv sum {} vs {}", name, sum(&gg.uv), sums[2]);
-        assert_eq!(isum, sums[3], "{}: index sum", name);
+        assert_eq!(isum, sums[3], "{name}: index sum");
     }
     assert!(r.done());
 }
@@ -121,7 +121,7 @@ fn fmt_fixed_matches_reference() {
     for line in fixture_text("fmt_fixed.txt").lines() {
         let (v, want) = line.split_once(' ').unwrap();
         let x: f64 = if v == "-0" { -0.0 } else { v.parse().unwrap() };
-        assert_eq!(fmt_fixed(x, 4), want, "fmt_fixed({}, 4)", v);
+        assert_eq!(fmt_fixed(x, 4), want, "fmt_fixed({v}, 4)");
     }
 }
 
@@ -135,16 +135,16 @@ fn decodes_every_part() {
     for &name in names {
         let m = prop_part_info(name).unwrap();
         let d = decode(m);
-        assert_eq!(d.pos.len(), m.n * 3, "{}", name);
-        assert_eq!(d.nrm.len(), m.n * 3, "{}", name);
-        assert_eq!(d.idx.len(), m.t * 3, "{}", name);
-        assert!(d.idx.iter().all(|&i| (i as usize) < m.n), "{}: index out of range", name);
+        assert_eq!(d.pos.len(), m.n * 3, "{name}");
+        assert_eq!(d.nrm.len(), m.n * 3, "{name}");
+        assert_eq!(d.idx.len(), m.t * 3, "{name}");
+        assert!(d.idx.iter().all(|&i| (i as usize) < m.n), "{name}: index out of range");
         assert!(d.pos.iter().all(|x| x.is_finite()), "{}", name);
         // decoded positions stay inside the quantization box
         for i in 0..m.n {
             for k in 0..3 {
                 let v = d.pos[i * 3 + k] as f64;
-                assert!(v >= m.min[k] - 1e-5 && v <= m.max[k] + 1e-5, "{}: position outside its bounds", name);
+                assert!(v >= m.min[k] - 1e-5 && v <= m.max[k] + 1e-5, "{name}: position outside its bounds");
             }
         }
         tris += m.t;

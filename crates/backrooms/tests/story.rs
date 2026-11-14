@@ -309,7 +309,7 @@ fn check_trail(g: &Game) -> Result<String, String> {
             let i = s.trail.iter().position(|m| m.kind == kind).unwrap();
             let paired = s.trail.iter().any(|m| m.kind == MarkKind::Sheet && m.step == s.trail[i].step);
             if !paired {
-                return Err(format!("{what}: the first {:?} (first used here) has no sheet beside it", kind));
+                return Err(format!("{what}: the first {kind:?} (first used here) has no sheet beside it"));
             }
         }
     }

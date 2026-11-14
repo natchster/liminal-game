@@ -168,7 +168,7 @@ impl Window {
     /// Whether light `k` is covered: its blind down and shut, or papered over
     pub fn covered(&self, k: usize) -> bool {
         let l = &self.lights[k];
-        l.papered || l.blind.map(|b| b.down > 0.9 && b.open < 0.2).unwrap_or(false)
+        l.papered || l.blind.is_some_and(|b| b.down > 0.9 && b.open < 0.2)
     }
 }
 
@@ -192,7 +192,7 @@ pub fn place_windows(g: &mut Game, cx: &mut PropsCtx) {
     for _ in 0..3 {
         let Some(c) = super::seam::s_take(g, cx, true) else { break };
         let Some(spot) = super::seam::s_wall_adj_spot(g, c.x, c.z) else { continue };
-        let home = zones.as_ref().zip(g.layout.as_ref()).map(|(z, l)| z[l.zone_of[g.t_idx(c.x, c.z)] as usize]).unwrap_or(false);
+        let home = zones.as_ref().zip(g.layout.as_ref()).is_some_and(|(z, l)| z[l.zone_of[g.t_idx(c.x, c.z)] as usize]);
         if !here || !home {
             continue;
         }
@@ -201,14 +201,9 @@ pub fn place_windows(g: &mut Game, cx: &mut PropsCtx) {
         let n = 1 + ((r.next() * 3.0) as usize).min(2);
         let seed = (r.next() * u32::MAX as f64) as u32;
         let (dx, dz) = (-spot.normal.x.round() as i32, -spot.normal.z.round() as i32);
-        let office = g
-            .layout
-            .as_ref()
-            .zip(g.zone_ref(c.x, c.z))
-            .map(|(l, zn)| {
-                zn.arch == "office" || g.zone_purposes.get(l.zone_of[g.t_idx(c.x, c.z)] as usize).is_some_and(|p| p.has_any(&["office"]))
-            })
-            .unwrap_or(false);
+        let office = g.layout.as_ref().zip(g.zone_ref(c.x, c.z)).is_some_and(|(l, zn)| {
+            zn.arch == "office" || g.zone_purposes.get(l.zone_of[g.t_idx(c.x, c.z)] as usize).is_some_and(|p| p.has_any(&["office"]))
+        });
         let kind = if office { Kind::Strip } else { Kind::DoubleHung };
         g.window_plans.push(Plan { x: c.x, z: c.z, dx, dz, n, kind, seed });
     }

@@ -7,7 +7,7 @@
 //! and commands flow to the render thread, which processes 128-frame quanta with
 //! scheduled parameter automation. A node is released once its last handle is
 //! dropped and it can no longer make sound.
-#![allow(clippy::new_without_default)]
+#![expect(clippy::new_without_default, reason = "a context opens the output device: a Default would hide that")]
 
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -113,7 +113,6 @@ struct Shared {
 struct CtxInner {
     shared: Arc<Shared>,
     next_id: Cell<u32>,
-    #[allow(dead_code)]
     stream: RefCell<Option<cpal::Stream>>,
     muted: Cell<bool>,
     /// An offline context's engine, rendered on demand on this thread
@@ -269,7 +268,7 @@ impl AudioContext {
     /// silent clock when there is none or its stream cannot be opened
     fn on_output(out: Option<(cpal::Device, cpal::SupportedStreamConfig)>) -> AudioContext {
         use cpal::traits::{DeviceTrait, StreamTrait};
-        let sr = out.as_ref().map(|(_, c)| f64::from(c.sample_rate())).unwrap_or(48000.0);
+        let sr = out.as_ref().map_or(48000.0, |(_, c)| f64::from(c.sample_rate()));
         let shared = Arc::new(Shared { cmds: Mutex::new(vec![]), frames: AtomicU64::new(0), sample_rate: sr });
         let inner = Rc::new(CtxInner::new(shared.clone(), None));
         if let Some((dev, cfg)) = out {
@@ -480,7 +479,7 @@ impl AudioNode {
     pub fn detune(&self) -> AudioParam {
         self.param(P_DETUNE, 0.0)
     }
-    #[allow(non_snake_case)]
+    #[expect(non_snake_case, reason = "Web Audio's name for a filter's Q")]
     pub fn Q(&self) -> AudioParam {
         self.param(P_Q, 1.0)
     }

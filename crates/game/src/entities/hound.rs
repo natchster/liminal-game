@@ -259,7 +259,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 wt.map(|(x, z)| (g.wx(x), g.wz(z)))
             } else {
                 let c = g.creature(ei).unwrap();
-                let reached = c.brain.goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.0).unwrap_or(true);
+                let reached = c.brain.goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.0);
                 if reached || c.brain.goal_t <= 0.0 {
                     let gl = wander_goal(g, ei);
                     let c = g.creature_mut(ei).unwrap();
@@ -303,7 +303,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 return;
             }
             let goal = heard.map(|(x, z, _)| (x, z));
-            let at = goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
+            let at = goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5);
             if at {
                 // sniffing about where it heard you
                 g.entity_drive(ei, dt, 0.0);
@@ -368,7 +368,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                     }
                 } else {
                     let goal = heard.map(|(x, z, _)| (x, z));
-                    let fresh = heard.map(|(_, _, t)| now - t < 0.3).unwrap_or(false);
+                    let fresh = heard.is_some_and(|(_, _, t)| now - t < 0.3);
                     if let Some(at) = ahead.filter(|_| fresh && p.dist > SPRING_FROM) {
                         // learned: for where you are heading, to meet you from ahead
                         g.creature_go(ei, Some(at), false, CHARGE, dt);

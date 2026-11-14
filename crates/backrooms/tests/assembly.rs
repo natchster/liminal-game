@@ -323,7 +323,7 @@ fn to_the_first_pull(g: &mut Game, ci: usize, mut each: impl FnMut(&mut Game, f6
     let rest = g.cell_doors[ci].turned;
     let mut t = 0.0;
     while logged(g, "cell:wheel") == 0 {
-        assert!(t < WHEEL_AFTER.1 + 2.0 * DT, "the wheel tried within {:?} s of the answer ({t:.2} s)", WHEEL_AFTER);
+        assert!(t < WHEEL_AFTER.1 + 2.0 * DT, "the wheel tried within {WHEEL_AFTER:?} s of the answer ({t:.2} s)");
         for v in DOOR_VERBS {
             assert!(!shown(g, v), "{t:.2} s after the answer, before its first pull: {v} shown");
         }

@@ -169,7 +169,7 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
     g.state = "playing".into();
     g.hide_overlay();
     g.god_mode = false;
-    let trace = std::env::var("BEATABLE_TRACE").map(|v| v == format!("{seed}:{level}")).unwrap_or(false) && bot == Bot::RuleFollower;
+    let trace = std::env::var("BEATABLE_TRACE").is_ok_and(|v| v == format!("{seed}:{level}")) && bot == Bot::RuleFollower;
     // (BEATABLE_FROM=s: from then on, more of the trace)
     let from = std::env::var("BEATABLE_FROM").ok().and_then(|v| v.parse::<f64>().ok()).unwrap_or(f64::MAX);
     let grid = Grid::new(&g);
@@ -403,14 +403,14 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
             if dead {
                 let cause = g.last_death_cause.clone().unwrap_or_default();
                 let killer = g.director.killer.filter(|&k| k < g.entities.len());
-                let kind = killer.map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+                let kind = killer.map_or_default(|k| g.entities[k].kind.clone());
                 out.died = Some((t, format!("{cause}{}{kind}", if kind.is_empty() { "" } else { ": " })));
                 if t < 30.0 {
                     out.fails.push(format!("a death {t:.0} s into the level"));
                 }
                 if cause == "entity" {
                     if let Some(k) = killer {
-                        let tells = g.creature(k).map(|c| c.tells.iter().filter(|x| g.perf_t - **x < 20.0).count()).unwrap_or(0);
+                        let tells = g.creature(k).map_or(0, |c| c.tells.iter().filter(|x| g.perf_t - **x < 20.0).count());
                         if tells < 2 {
                             out.fails.push(format!("{kind} killed with {tells} tells"));
                         }

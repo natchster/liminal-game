@@ -167,7 +167,7 @@ pub fn parse_radial(s: &str, w: f64, h: f64) -> Option<Radial> {
                     "center" => 0.5,
                     "left" | "top" => 0.0,
                     "right" | "bottom" => 1.0,
-                    _ => v.trim_end_matches('%').parse::<f64>().map(|p| p / 100.0).unwrap_or(0.5),
+                    _ => v.trim_end_matches('%').parse::<f64>().map_or(0.5, |p| p / 100.0),
                 }
             };
             if !t.is_empty() {
@@ -355,7 +355,7 @@ fn inline_transition(el: &Element, prop: &str) -> Option<(f64, Ease)> {
     let t = el.style("transition")?;
     for part in split_top(t, ',') {
         let tk = tokens(&part);
-        if tk.first().map(|p| p == prop || p == "all") != Some(true) {
+        if tk.first().is_none_or(|p| !(p == prop || p == "all")) {
             continue;
         }
         let dur = tk
@@ -427,7 +427,7 @@ pub fn parse_inline_markup(markup: &str, base: &Run) -> Vec<Run> {
     let b = markup.as_bytes();
     while i < b.len() {
         if b[i] == b'<' {
-            let end = markup[i..].find('>').map(|e| i + e).unwrap_or(b.len() - 1);
+            let end = markup[i..].find('>').map_or(b.len() - 1, |e| i + e);
             let tag = &markup[i + 1..end];
             flush(&mut text, &mut out, stack.last().unwrap());
             let tl = tag.trim().to_ascii_lowercase();
@@ -519,7 +519,7 @@ fn layout_runs(runs: &[Run], font: Font, ws: Ws, max_w: Option<f64>) -> Vec<Line
     let keep_nl = ws == Ws::Pre || ws == Ws::PreLine;
     for (ri, r) in runs.iter().enumerate() {
         if r.ls == -1e9 {
-            while chars.last().map(|c| c.0 == ' ').unwrap_or(false) {
+            while chars.last().is_some_and(|c| c.0 == ' ') {
                 chars.pop();
             }
             chars.push(('\n', ri));
@@ -529,28 +529,28 @@ fn layout_runs(runs: &[Run], font: Font, ws: Ws, max_w: Option<f64>) -> Vec<Line
             let ch = if ch == '\t' { ' ' } else { ch };
             if ch == '\n' || ch == '\r' {
                 if keep_nl {
-                    while collapse && chars.last().map(|c| c.0 == ' ').unwrap_or(false) {
+                    while collapse && chars.last().is_some_and(|c| c.0 == ' ') {
                         chars.pop();
                     }
                     chars.push(('\n', ri));
                     continue;
                 }
                 if collapse {
-                    if chars.last().map(|c| c.0 == ' ' || c.0 == '\n').unwrap_or(true) {
+                    if chars.last().is_none_or(|c| c.0 == ' ' || c.0 == '\n') {
                         continue;
                     }
                     chars.push((' ', ri));
                     continue;
                 }
             }
-            if ch == ' ' && collapse && chars.last().map(|c| c.0 == ' ' || c.0 == '\n').unwrap_or(true) {
+            if ch == ' ' && collapse && chars.last().is_none_or(|c| c.0 == ' ' || c.0 == '\n') {
                 continue;
             }
             chars.push((ch, ri));
         }
     }
     if collapse {
-        while chars.last().map(|c| c.0 == ' ').unwrap_or(false) {
+        while chars.last().is_some_and(|c| c.0 == ' ') {
             chars.pop();
         }
     }
@@ -587,10 +587,10 @@ fn layout_runs(runs: &[Run], font: Font, ws: Ws, max_w: Option<f64>) -> Vec<Line
             if c == '—' {
                 break;
             }
-            if c == '-' && j >= 2 && chars[j - 2].0.is_alphanumeric() && chars.get(j).map(|n| n.0.is_alphabetic()).unwrap_or(false) {
+            if c == '-' && j >= 2 && chars[j - 2].0.is_alphanumeric() && chars.get(j).is_some_and(|n| n.0.is_alphabetic()) {
                 break;
             }
-            if chars.get(j).map(|n| n.0 == '—').unwrap_or(false) {
+            if chars.get(j).is_some_and(|n| n.0 == '—') {
                 break;
             }
         }
@@ -1137,7 +1137,7 @@ impl Frame<'_> {
     ) -> (Rc<RefCell<Canvas>>, u64, u64, [f32; 4]) {
         let k = hash_of(&format!("{}|{}|{}|{}", key, self.w, self.h, self.dpr));
         let (w, h, dpr) = (self.w, self.h, self.dpr);
-        if self.ui.boxes.get(name).map(|b| b.key != k).unwrap_or(true) {
+        if self.ui.boxes.get(name).is_none_or(|b| b.key != k) {
             let p = paint(dpr);
             let rect = p.screen_rect(w, h);
             let (id, ver) = match self.ui.boxes.get(name) {
@@ -1190,7 +1190,7 @@ impl Frame<'_> {
         if opacity <= 0.0005 || r.stops.iter().all(|s| s.1[3] <= 0.0) {
             return;
         }
-        let stops = r.stops.iter().take(4).map(|(t, c)| (*t as f32, f32x4(cm.map(|m| m.apply(*c)).unwrap_or(*c)))).collect();
+        let stops = r.stops.iter().take(4).map(|(t, c)| (*t as f32, f32x4(cm.map_or(*c, |m| m.apply(*c))))).collect();
         self.ui.painted.push("radial");
         self.out.push(HudLayer::Radial {
             center: [r.center[0] as f32, r.center[1] as f32],
@@ -1226,7 +1226,7 @@ fn opacity_of(el: &Element, css: f64) -> f64 {
 }
 /// a percentage width (`'57.3%'`) as 0..1
 fn pct_of(el: &Element) -> f64 {
-    el.style("width").and_then(|w| w.strip_suffix('%')).and_then(|v| v.trim().parse::<f64>().ok()).map(|v| v / 100.0).unwrap_or(1.0)
+    el.style("width").and_then(|w| w.strip_suffix('%')).and_then(|v| v.trim().parse::<f64>().ok()).map_or(1.0, |v| v / 100.0)
 }
 fn lerp_c(a: Rgba, b: Rgba, t: f64) -> Rgba {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + (b[3] - a[3]) * t]
@@ -1287,11 +1287,11 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
         let op = f.tr("vignette.opacity", opacity_of(el, 0.0), 0.25, Ease::Ease);
         let grad = parse_radial("radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.95) 100%)", w, h).unwrap();
         let cm = el.style("filter").map(ColorMatrix::parse);
-        let inset = el.style("box-shadow").map(parse_shadows).unwrap_or_default().into_iter().find(|s| s.inset);
+        let inset = el.style("box-shadow").map_or_default(parse_shadows).into_iter().find(|s| s.inset);
         if op > 0.0005 {
             match inset {
                 Some(sh) => {
-                    let key = format!("{:?}{:?}", sh, cm);
+                    let key = format!("{sh:?}{cm:?}");
                     let (canvas, id, ver, rect) =
                         f.boxed("vignette", &key, |_| paint_vignette(&grad, &sh, cm.unwrap_or(ColorMatrix::ID), w, h));
                     f.push_canvas("vignette", canvas, id, ver, rect, op, LayerBlend::Normal, true);
@@ -1533,12 +1533,7 @@ fn paint_hud(f: &mut Frame, g: &Game) {
             p
         });
         if target {
-            let key = g
-                .settings
-                .keys(crate::session::input::Act::Interact)
-                .first()
-                .map(|k| crate::session::input::key_label(k))
-                .unwrap_or_default();
+            let key = g.settings.keys(crate::session::input::Act::Interact).first().map_or_default(|k| crate::session::input::key_label(k));
             let (k, words) = crate::ui::rest::prompt_parts(&d.prompt.text, &key);
             let kt = plain(&k, Font::sans(13.0).bold(), ink);
             let tt = plain(&words, Font::sans(14.0), ink);
@@ -1557,7 +1552,7 @@ fn paint_hud(f: &mut Frame, g: &Game) {
     {
         let el = &d.msg;
         let color = el.style("color").and_then(css_color).unwrap_or(ink);
-        let sh = el.style("text-shadow").map(parse_shadows).unwrap_or_else(|| dark.clone());
+        let sh = el.style("text-shadow").map_or_else(|| dark.clone(), parse_shadows);
         let op = f.tr("msg.opacity", opacity_of(el, 0.0), 0.4, Ease::Ease);
         let t = crate::ui::rest::calm(&el.text);
         let tb = TextBlock::plain(&t, color, &sh, 0.0, Font::sans(16.0), Ws::NoWrap, None, None);

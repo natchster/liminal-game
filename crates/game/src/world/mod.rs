@@ -470,7 +470,7 @@ impl Game {
         }
         let x = self.tx(px).clamp(0, (self.w - 1).max(0));
         let z = self.tz(pz).clamp(0, (self.h - 1).max(0));
-        self.tile_ceil.get(self.t_idx(x, z)).map(|&c| c as f64).unwrap_or(WALL_H)
+        self.tile_ceil.get(self.t_idx(x, z)).map_or(WALL_H, |&c| c as f64)
     }
     /// Nearest open tile
     pub fn nav_tile_at(&self, px: f64, pz: f64) -> (i32, i32) {
@@ -792,7 +792,7 @@ impl Game {
                 if areas[rooms[a].zone] != areas[rooms[b].zone] {
                     continue;
                 }
-                if self.rooms_wall_share(&rooms[a], &rooms[b]).map(|s| s < 0.5).unwrap_or(false) {
+                if self.rooms_wall_share(&rooms[a], &rooms[b]).is_some_and(|s| s < 0.5) {
                     let (ra, rb) = (root(&mut group, a), root(&mut group, b));
                     group[ra.max(rb)] = ra.min(rb);
                 }

@@ -82,7 +82,7 @@ fn prepare(args: &[String]) -> Result<(), String> {
     // both orders of every image, shuffled by a seed from the clock (the
     // reviewer must not be able to guess the order from the names)
     let mut jobs: Vec<(String, bool)> = names.iter().flat_map(|n| [(n.clone(), true), (n.clone(), false)]).collect();
-    let mut s = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(1) | 1;
+    let mut s = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64) | 1;
     for i in (1..jobs.len()).rev() {
         s ^= s << 13;
         s ^= s >> 7;
@@ -132,8 +132,7 @@ fn score(args: &[String]) -> Result<(), String> {
     let date = std::process::Command::new("date")
         .arg("+%Y-%m-%d")
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_default();
+        .map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     let (mut after, mut before, mut tie) = (0, 0, 0);
     for (image, v) in &by_image {
         let combined = if v.iter().all(|x| *x == "after") {

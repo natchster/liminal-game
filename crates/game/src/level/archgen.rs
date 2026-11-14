@@ -2353,7 +2353,7 @@ pub fn layout_stats_view(l: &LayoutView, s: Option<&Solids>) -> LayoutStats {
         open_share: open as f64 / n as f64,
         zones: l.zones.len(),
         arch,
-        boxes: s.map(|s| s.count).unwrap_or(0),
+        boxes: s.map_or(0, |s| s.count),
         thin_boxes: thin,
         pillars: kinds[BOX_PILLAR as usize],
         jambs: kinds[BOX_JAMB as usize],

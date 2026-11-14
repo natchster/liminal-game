@@ -65,7 +65,7 @@ impl Game {
         for k in c0..self.world.child_count() {
             let c = self.world.child(k).unwrap();
             let mut u = c.user();
-            if u.placer.as_deref().map(|s| s.is_empty()).unwrap_or(true) {
+            if u.placer.as_deref().is_none_or(|s| s.is_empty()) {
                 u.placer = Some(name.to_string());
             }
         }
@@ -348,7 +348,7 @@ impl Game {
                 } // dark zones stay dark
                 // an intact room has tubes over every other tile; a rotting one thins out
                 let dense = self.region_info[rid].lit.unwrap_or(0.0) >= 0.75;
-                let le = self.zone_ref(x, z).map(|zn| zn.light_every).unwrap_or(0);
+                let le = self.zone_ref(x, z).map_or(0, |zn| zn.light_every);
                 let k = (if le != 0 { le } else { 2 }) * if dense { 1 } else { 2 };
                 // the fittings are laid out per room (per zone where it has no
                 // rooms) and centred in it: they line up with the room, not

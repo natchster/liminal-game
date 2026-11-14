@@ -38,7 +38,7 @@ pub(crate) fn look_at_level(o: &Obj, cam: &Obj) {
 
 // ---- candle state accessors (g.haunted_candles[ci])
 fn c_out(g: &Game, ci: usize) -> bool {
-    g.haunted_candles.get(ci).map(|c| !c.lit).unwrap_or(false)
+    g.haunted_candles.get(ci).is_some_and(|c| !c.lit)
 }
 fn set_out(g: &mut Game, ci: usize, out: bool) {
     if let Some(c) = g.haunted_candles.get_mut(ci) {

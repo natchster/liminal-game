@@ -220,7 +220,7 @@ fn source_files_stay_a_readable_size() {
         for f in rust_files(d) {
             let n = std::fs::read_to_string(&f).unwrap().lines().count();
             let r = rel(&f);
-            let cap = OVERSIZE.iter().find(|(p, _)| *p == r).map(|(_, c)| *c).unwrap_or(MAX_LINES);
+            let cap = OVERSIZE.iter().find(|(p, _)| *p == r).map_or(MAX_LINES, |(_, c)| *c);
             if n > cap {
                 big.push(format!("{r}: {n} lines (cap {cap})"));
             }

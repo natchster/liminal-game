@@ -468,7 +468,7 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
         let mut tries = 0;
         while bot.live && g.state == "dead" && tries < 5 {
             let cause = g.last_death_cause.clone().unwrap_or_default();
-            let killer = g.director.killer.filter(|&k| k < g.entities.len()).map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+            let killer = g.director.killer.filter(|&k| k < g.entities.len()).map_or_default(|k| g.entities[k].kind.clone());
             bot.deaths.push(format!("L{l}: {cause} {killer}"));
             let (p, c) = tally(&g);
             peaks += p;
@@ -583,10 +583,8 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
 
 #[test]
 fn playthrough_from_new_game() {
-    let seeds: Vec<u32> = std::env::var("PLAYTHROUGH_SEEDS")
-        .ok()
-        .map(|s| s.split(',').filter_map(|x| x.parse().ok()).collect())
-        .unwrap_or_else(|| vec![101, 202]);
+    let seeds: Vec<u32> =
+        std::env::var("PLAYTHROUGH_SEEDS").ok().map_or_else(|| vec![101, 202], |s| s.split(',').filter_map(|x| x.parse().ok()).collect());
     let levels: i32 = std::env::var("PLAYTHROUGH_LEVELS").ok().and_then(|s| s.parse().ok()).unwrap_or(13);
     for seed in seeds {
         let (met, _) = play(seed, levels, false);
@@ -611,8 +609,7 @@ fn playthrough_from_new_game() {
 fn the_whole_run_live() {
     let seeds: Vec<u32> = std::env::var("PLAYTHROUGH_SEEDS")
         .ok()
-        .map(|s| s.split(',').filter_map(|x| x.parse().ok()).collect())
-        .unwrap_or_else(|| vec![101, 202, 303]);
+        .map_or_else(|| vec![101, 202, 303], |s| s.split(',').filter_map(|x| x.parse().ok()).collect());
     for seed in seeds {
         // the frames' randomness from the run's seed, not the clock: a run
         // that fails can be played again as it was (it had run out of time

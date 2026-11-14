@@ -575,7 +575,7 @@ pub const GRAIN_W: u32 = 480;
 pub const GRAIN_H: u32 = 300;
 
 fn hex6(c: u32) -> String {
-    format!("#{:06x}", c)
+    format!("#{c:06x}")
 }
 /// `s` padded with spaces to `n` characters
 fn pad_end(s: &str, n: usize) -> String {
@@ -592,7 +592,7 @@ fn ns(v: f64) -> String {
     fmt_num(v)
 }
 fn sum_vals(m: Option<&std::collections::BTreeMap<String, f64>>) -> f64 {
-    m.map(|m| m.values().sum()).unwrap_or(0.0)
+    m.map_or(0.0, |m| m.values().sum())
 }
 
 /// a journal entry id: a lore id, or the sentinels -1 (epilogue), -2 (index),
@@ -709,7 +709,7 @@ impl Game {
                 let state = if found == arc.ids.len() { "whole".to_string() } else { format!("{} of {}", found, arc.ids.len()) };
                 let hex = hex6(arc.color);
                 let name = crate::ui::rest::calm(arc.name);
-                format!("  <span style=\"color:{h}\">■</span>  {}  —  {}", name, state, h = hex)
+                format!("  <span style=\"color:{hex}\">■</span>  {name}  —  {state}")
             })
             .collect::<Vec<_>>()
             .join("\n");
@@ -741,7 +741,7 @@ impl Game {
             c if c <= -100 => {
                 let n = (-100 - c) as i32;
                 let book = crate::story::notebook::notebook(self.run_seed);
-                let k = book.iter().position(|(m, _)| *m == n).map(|k| k + 1).unwrap_or(0);
+                let k = book.iter().position(|(m, _)| *m == n).map_or(0, |k| k + 1);
                 let title = format!("HER NOTEBOOK  ·  {k}/{}", book.len());
                 match crate::story::notebook::page_for_level(self.run_seed, n).filter(|p| self.notebook.contains(p.id)) {
                     Some(p) => (title, p.body.to_string()),
@@ -763,7 +763,7 @@ impl Game {
                 }
             }
         }
-        self.ui.journal_entry_title.set_text(&format!("{}{}", title, arc_suffix));
+        self.ui.journal_entry_title.set_text(&format!("{title}{arc_suffix}"));
         // Cover + medals pages use markup (colour spans); lore + epilogue use plain text.
         self.ui.journal_entry_body.remove_class("cover-fade");
         if cur == -2 || cur == -3 {
@@ -869,15 +869,12 @@ impl Game {
         let wk = self.weather_key();
         let (px, pz) = (self.player.pos.x, self.player.pos.z);
         let (tile_x, tile_z) = (self.tx(px), self.tz(pz));
-        let rid: i64 = if self.in_grid(tile_x, tile_z) {
-            self.region_map.get(self.t_idx(tile_x, tile_z)).map(|&r| r as i64).unwrap_or(-1)
-        } else {
-            -1
-        };
+        let rid: i64 =
+            if self.in_grid(tile_x, tile_z) { self.region_map.get(self.t_idx(tile_x, tile_z)).map_or(-1, |&r| r as i64) } else { -1 };
         let info = if rid >= 0 { self.region_info.get(rid as usize).cloned() } else { None };
         let yaw = ((self.player.yaw * 180.0 / PI) % 360.0 + 360.0) % 360.0;
         let pitch = self.player.pitch * 180.0 / PI;
-        let in_pool = self.pool_bounds.map(|b| px > b.min_x && px < b.max_x && pz > b.min_z && pz < b.max_z).unwrap_or(false);
+        let in_pool = self.pool_bounds.is_some_and(|b| px > b.min_x && px < b.max_x && pz > b.min_z && pz < b.max_z);
         let mut flag_list: Vec<&str> = vec![];
         if let Some(i) = &info {
             if i.flags & crate::visuals::lighting::RF_DARK != 0 {
@@ -935,8 +932,8 @@ impl Game {
             fx(self.sanity_whisper_t, 1)
         );
         // ─ audio keys ─
-        let lfo = self.audio.safe_room_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
-        let carrier = self.audio.safe_room_trem_carrier.as_ref().map(|n| fx(n.frequency().value(), 1)).unwrap_or_else(|| "-".into());
+        let lfo = self.audio.safe_room_lfo.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 3));
+        let carrier = self.audio.safe_room_trem_carrier.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 1));
         let det = tables::carrier_weather_detune(wk).unwrap_or(0.0);
         let _ = write!(
             s,
@@ -951,9 +948,9 @@ impl Game {
             s,
             "─ region {} ─\nwall  {}   ceil {}   floor {}\nflags [{}]\n",
             rid,
-            info.as_ref().map(|i| i.wall.to_string()).unwrap_or_else(dash),
-            info.as_ref().map(|i| i.ceil.to_string()).unwrap_or_else(dash),
-            info.as_ref().map(|i| i.floor.to_string()).unwrap_or_else(dash),
+            info.as_ref().map_or_else(dash, |i| i.wall.to_string()),
+            info.as_ref().map_or_else(dash, |i| i.ceil.to_string()),
+            info.as_ref().map_or_else(dash, |i| i.floor.to_string()),
             flag_list.join(", ")
         );
         // ─ entities ─
@@ -1045,7 +1042,7 @@ impl Game {
             ns(ct.derelict),
             ns(ct.normal)
         );
-        let rain_gain = self.audio.rain_hiss_gain.as_ref().map(|n| fx(n.gain().value(), 3)).unwrap_or_else(|| "-".into());
+        let rain_gain = self.audio.rain_hiss_gain.as_ref().map_or_else(|| "-".into(), |n| fx(n.gain().value(), 3));
         let _ = write!(
             s,
             "─ rain hiss ─\n  rainScore={}  gain={}  windows={}\n",
@@ -1066,13 +1063,13 @@ impl Game {
                         let rp = r.obj.pos();
                         let (dx, dz) = (rp.x - self.player.pos.x, rp.z - self.player.pos.z);
                         let d = (dx * dx + dz * dz).sqrt();
-                        let op = r.obj.mats().first().map(|m| m.opacity_v()).unwrap_or(0.0);
+                        let op = r.obj.mats().first().map_or(0.0, |m| m.opacity_v());
                         format!("  #{} t={}s  d={}m  op={}", i, fx(r.t, 2), fx(d, 1), fx(op, 2))
                     })
                     .collect::<Vec<_>>()
                     .join("\n")
             };
-            let _ = write!(s, "─ ripples ─\n{}\n", body);
+            let _ = write!(s, "─ ripples ─\n{body}\n");
         }
         // ─ rare-tier timers ─
         {
@@ -1123,7 +1120,7 @@ impl Game {
             );
         }
         {
-            let src = self.audio.safe_room_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
+            let src = self.audio.safe_room_lfo.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 3));
             let flame = tables::flame_breath_amp_by_weather(wk).or(tables::flame_breath_amp_by_weather("normal")).unwrap();
             let slope = tables::level_depth_slope_by_weather(wk).or(tables::level_depth_slope_by_weather("normal")).unwrap();
             let _ = write!(
@@ -1209,13 +1206,13 @@ impl Game {
         {
             let br = tables::stamina_breath_by_weather(wk).or(tables::stamina_breath_by_weather("normal")).unwrap();
             let a = &self.audio;
-            let g = a.stamina_breath_gain.as_ref().map(|n| fx(n.gain().value(), 4)).unwrap_or_else(|| "-".into());
-            let f = a.stamina_breath_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
-            let lp = a.stamina_breath_lp.as_ref().map(|n| fx(n.frequency().value(), 0)).unwrap_or_else(|| "-".into());
-            let q = a.stamina_breath_lp.as_ref().map(|n| fx(n.q().value(), 2)).unwrap_or_else(|| "-".into());
-            let sg = a.stamina_breath_sub_gain.as_ref().map(|n| fx(n.gain().value(), 4)).unwrap_or_else(|| "-".into());
-            let sf = a.stamina_breath_sub_osc.as_ref().map(|n| fx(n.frequency().value(), 0)).unwrap_or_else(|| "-".into());
-            let pn = a.stamina_breath_panner.as_ref().map(|n| fx(n.pan().value(), 2)).unwrap_or_else(|| "-".into());
+            let g = a.stamina_breath_gain.as_ref().map_or_else(|| "-".into(), |n| fx(n.gain().value(), 4));
+            let f = a.stamina_breath_lfo.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 3));
+            let lp = a.stamina_breath_lp.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 0));
+            let q = a.stamina_breath_lp.as_ref().map_or_else(|| "-".into(), |n| fx(n.q().value(), 2));
+            let sg = a.stamina_breath_sub_gain.as_ref().map_or_else(|| "-".into(), |n| fx(n.gain().value(), 4));
+            let sf = a.stamina_breath_sub_osc.as_ref().map_or_else(|| "-".into(), |n| fx(n.frequency().value(), 0));
+            let pn = a.stamina_breath_panner.as_ref().map_or_else(|| "-".into(), |n| fx(n.pan().value(), 2));
             let _ = write!(
                 s,
                 "─ stamina breath ─\n  gain={}  freq={}Hz  lp={}Hz  q={}  sub={}@{}Hz  pan={}\n  peaks[{}]  g={}  rBase={}  rGain={}  sub={}@{}  pan={}@{}\n",
@@ -1324,7 +1321,7 @@ impl Game {
                 })
                 .collect::<Vec<_>>()
                 .join("\n");
-            let _ = writeln!(s, "{}", rows);
+            let _ = writeln!(s, "{rows}");
         }
         // ─ death ─
         {
@@ -1378,7 +1375,7 @@ impl Game {
                     self.ambient_tally.iter().map(|(k, per)| format!("{}={}", k, ns(per.values().sum()))).collect::<Vec<_>>().join("  ")
                 )
             };
-            let _ = write!(s, "─ ambient tally (session totals) ─\n{}\n", body);
+            let _ = write!(s, "─ ambient tally (session totals) ─\n{body}\n");
         }
         // ─ ambient log ─ (ASCII compass rose; markers fade over ~30 s)
         {
@@ -1386,7 +1383,7 @@ impl Game {
             let mut cells: Vec<char> = vec!['.', '.', '.', '.', 'o', '.', '.', '.', '.'];
             let now = self.clock_ms() / 1000.0;
             let mut positional: Vec<&crate::base::records::AmbientLogEntry> =
-                self.ambient_log.iter().filter(|e| e.bearing.as_deref().map(|b| !b.is_empty()).unwrap_or(false)).collect();
+                self.ambient_log.iter().filter(|e| e.bearing.as_deref().is_some_and(|b| !b.is_empty())).collect();
             positional.reverse();
             let strength = |m: char| match m {
                 '.' => 0,
@@ -1420,9 +1417,8 @@ impl Game {
                 }
             }
             let last = positional.first();
-            let dist_str = last.map(|l| format!(" {}m", fx(l.dist.unwrap_or(f64::NAN), 1))).unwrap_or_default();
-            let last_s =
-                last.map(|l| format!("{} {}{}", l.tag, l.bearing.clone().unwrap_or_default(), dist_str)).unwrap_or_else(|| "-".into());
+            let dist_str = last.map_or_default(|l| format!(" {}m", fx(l.dist.unwrap_or(f64::NAN), 1)));
+            let last_s = last.map_or_else(|| "-".into(), |l| format!("{} {}{}", l.tag, l.bearing.clone().unwrap_or_default(), dist_str));
             let _ = write!(
                 s,
                 "─ ambient log ─\n  compass  {}{}{}   last: {}\n           {}{}{}\n           {}{}{}\n",
@@ -1448,7 +1444,7 @@ impl Game {
                     .collect::<Vec<_>>()
                     .join("\n")
             };
-            let _ = writeln!(s, "{}", log);
+            let _ = writeln!(s, "{log}");
         }
         // ─ candles ─
         {
@@ -1522,7 +1518,7 @@ impl Game {
                         i,
                         pad_start(&id.to_string(), 2, '0'),
                         status,
-                        pad_end(arc.map(|k| LORE_ARCS[k].name).unwrap_or("-"), 11),
+                        pad_end(arc.map_or("-", |k| LORE_ARCS[k].name), 11),
                         wcd,
                         fx(wf.duration, 1),
                         fx(wf.opacity, 2),
@@ -1702,9 +1698,9 @@ impl Game {
             glow: glow.as_ref().map(|g| g.hex.clone()),
             opacity: tables::WHISPER_MIN_OPACITY.max(0.25 + 0.10 * w), // 0.30 at w=0.5, 0.35 at w=1.0
             text: None,
-            glow_alpha: glow.as_ref().map(|g| g.alpha).unwrap_or(0.0),
-            glow_blur: glow.as_ref().map(|g| g.blur).unwrap_or(0.0),
-            glow_rgb: glow.as_ref().map(|g| [g.r, g.g, g.b]).unwrap_or([0; 3]),
+            glow_alpha: glow.as_ref().map_or(0.0, |g| g.alpha),
+            glow_blur: glow.as_ref().map_or(0.0, |g| g.blur),
+            glow_rgb: glow.as_ref().map_or([0; 3], |g| [g.r, g.g, g.b]),
             glow_shadow: glow.as_ref().map(|g| format!("0 0 {}px rgba({}, {}, {}, {})", fx(g.blur, 1), g.r, g.g, g.b, fx(g.alpha, 2))),
         };
         if let Some(id) = id
@@ -1717,10 +1713,7 @@ impl Game {
     /// Is any earlier id of an arc containing `id` found?
     pub fn lore_note_boosted(&self, id: usize) -> bool {
         for arc in LORE_ARCS.iter() {
-            let idx = match arc.ids.iter().position(|&i| i == id) {
-                Some(i) => i,
-                None => continue,
-            };
+            let Some(idx) = arc.ids.iter().position(|&i| i == id) else { continue };
             if idx == 0 {
                 continue;
             } // the first — no boost
@@ -1942,7 +1935,7 @@ impl Game {
             }
         }
         // the interactable you face (`interact_target`)
-        let prompt = self.interact_target().map(|i| self.interactables[i].prompt.clone()).unwrap_or_default();
+        let prompt = self.interact_target().map_or_default(|i| self.interactables[i].prompt.clone());
         self.ui.prompt.set_text(&prompt);
         // prop animation + proximity devices
         let t = self.perf_t;
@@ -1962,7 +1955,7 @@ impl Game {
                 self.draw_static();
             }
         }
-        if self.phone_data.as_ref().map(|ph| !ph.answered).unwrap_or(false) {
+        if self.phone_data.as_ref().is_some_and(|ph| !ph.answered) {
             let pos = self.player.pos;
             let ph = self.phone_data.as_mut().unwrap();
             let d = ph.world.distance_to_squared(&pos).sqrt();

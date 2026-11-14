@@ -275,12 +275,12 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         g.fixed_step_dt = 1.0 / 60.0;
         g.frame(1.0 / 60.0);
         g.fixed_step_dt = 0.0;
-        if std::env::var("PERSONA_TRACE").map(|v| v == format!("{persona:?}:{seed}")).unwrap_or(false)
+        if std::env::var("PERSONA_TRACE").is_ok_and(|v| v == format!("{persona:?}:{seed}"))
             && (t * 60.0).round() as i64 % 30 == 0
             && let Some(si) = g.director.stalker
         {
             let p = g.perceive(si);
-            let m = g.creature(si).map(|c| c.brain.mode.name()).unwrap_or("old");
+            let m = g.creature(si).map_or("old", |c| c.brain.mode.name());
             println!(
                 "  t {t:5.0} {} {m:8} d {:5.1} path {:5.1} line {} view {} you_lit {:.2} lamp {} phase {:?} push {} nerve {:.0}",
                 g.entities[si].kind,
@@ -312,7 +312,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         if g.state != "playing" {
             if g.state == "dead" || g.state == "gameover" || g.director.log.iter().any(|e| e.1 == "death") {
                 run.died_at = Some(t);
-                let killer = g.director.killer.map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+                let killer = g.director.killer.map_or_default(|k| g.entities[k].kind.clone());
                 run.died_of =
                     format!("{}{}{killer}", g.last_death_cause.clone().unwrap_or_default(), if killer.is_empty() { "" } else { ": " });
             } else if run.reached_exit.is_none() {
@@ -471,7 +471,7 @@ fn personas_play_and_the_fear_has_a_shape() {
             r.stuck_for,
             s.peaks,
             s.longest_peak,
-            s.shortest_relief.map(|x| format!("{x:.0} s")).unwrap_or("—".into()),
+            s.shortest_relief.map_or("—".into(), |x| format!("{x:.0} s")),
             s.cues,
             s.cue_streak,
             s.cues_then_peak,

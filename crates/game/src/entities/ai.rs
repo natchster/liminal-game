@@ -68,7 +68,7 @@ impl Game {
             return true;
         }
         let (cx, cz) = self.e_nav_tile_at(pos.x, pos.z);
-        if fld(field, self.t_idx(cx, cz)).map(|v| v <= 0).unwrap_or(false) {
+        if fld(field, self.t_idx(cx, cz)).is_some_and(|v| v <= 0) {
             let Some(d) = direct else { return false };
             let e = &mut self.entities[ei];
             e.set_n("aimX", d.x);
@@ -81,7 +81,7 @@ impl Game {
         let (mut x, mut z) = (cx, cz);
         let mut d = fld(field, self.t_idx(cx, cz));
         let mut n = 0usize;
-        while n < 5 && d.map(|v| v > 0).unwrap_or(false) {
+        while n < 5 && d.is_some_and(|v| v > 0) {
             let (mut bx, mut bz, mut bd) = (-1, -1, d.unwrap());
             for (dx, dz) in STEER8 {
                 let (nx, nz) = (x + dx, z + dz);
@@ -114,7 +114,7 @@ impl Game {
             return false;
         }
         // the path reaches your tile: the last point is you, not the tile's centre
-        let to_target = d.map(|v| v <= 0).unwrap_or(false) && direct.is_some();
+        let to_target = d.is_some_and(|v| v <= 0) && direct.is_some();
         if to_target {
             let dd = direct.unwrap();
             pts[(n - 1) * 2] = dd.x as f32;

@@ -341,7 +341,7 @@ fn build_world_matches_reference() {
         let wc = b["cull"].as_array().unwrap();
         assert_eq!(g.prop_cull.list.len(), wc.len(), "{tag}: cull list");
         for (k, ((o, r), w)) in g.prop_cull.list.iter().zip(wc).enumerate() {
-            let idx = kids.iter().position(|c| c.ptr_eq(o)).map(|i| i as i64).unwrap_or(-1);
+            let idx = kids.iter().position(|c| c.ptr_eq(o)).map_or(-1, |i| i as i64);
             assert_eq!(idx, w[0].as_i64().unwrap(), "{tag}: cull {k} object");
             let (x, z) = g.prop_cull_xz[k];
             for (a, e) in [x, z, *r].iter().zip(&w.as_array().unwrap()[1..]) {
@@ -546,7 +546,7 @@ fn build_record(g: &Game, n: i32, seed: u32, scp: Option<&str>, marks: &[(String
         .iter()
         .enumerate()
         .map(|(k, (o, r))| {
-            let idx = kids.iter().position(|c| c.ptr_eq(o)).map(|i| i as i64).unwrap_or(-1);
+            let idx = kids.iter().position(|c| c.ptr_eq(o)).map_or(-1, |i| i as i64);
             let (x, z) = g.prop_cull_xz[k];
             json!([idx, x, z, r])
         })
@@ -573,7 +573,7 @@ fn build_record(g: &Game, n: i32, seed: u32, scp: Option<&str>, marks: &[(String
     let stats = |m: &std::collections::BTreeMap<String, f64>| -> Value {
         json!(m.iter().map(|(k, v)| (k.clone(), jf(*v))).collect::<serde_json::Map<_, _>>())
     };
-    let prof = |k: &str| g.build_profile.get(k).copied().map(jf).unwrap_or(Value::Null);
+    let prof = |k: &str| g.build_profile.get(k).copied().map_or(Value::Null, jf);
     json!({
         "n": n, "seed": seed, "scp": scp, "draws": draws,
         "marks": marks.iter().map(|(l, k)| json!([l, k])).collect::<Vec<_>>(),

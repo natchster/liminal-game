@@ -493,7 +493,7 @@ pub fn write_json(p: &Path, v: &Value) -> Result<(), String> {
 /// The Mac model and macOS version: goldens are exact only on the same pair.
 pub fn machine() -> String {
     let out = |cmd: &str, args: &[&str]| {
-        Command::new(cmd).args(args).output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default()
+        Command::new(cmd).args(args).output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
     };
     format!("{} macOS {}", out("sysctl", &["-n", "hw.model"]), out("sw_vers", &["-productVersion"]))
 }
@@ -503,14 +503,12 @@ fn log_acceptance(frames: &[String], looks: &[String], reason: &str) -> Result<(
     let mut s = std::fs::read_to_string(&p).unwrap_or_else(|_| {
         "# Accepted goldens\n\nEvery change to a golden frame or a look anchor, newest last. Written by\n`cargo xtask shots --accept / --accept-look`; the reason is the author's.\n".into()
     });
-    let date =
-        Command::new("date").arg("+%Y-%m-%d").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     let head = Command::new("git")
         .current_dir(root())
         .args(["rev-parse", "--short", "HEAD"])
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_default();
+        .map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     let list = |v: &[String]| if v.len() > 6 { format!("{} shots", v.len()) } else { v.join(", ") };
     s.push_str(&format!("\n- {date}, on top of {head}: "));
     if !frames.is_empty() {

@@ -67,7 +67,6 @@ pub(crate) fn place_ceiling_stains(g: &mut Game, _dist: &[i32]) {
     /// 2 plaster): each an ellipse `ax` (its axes, the long one 1) turned by
     /// `turn`, its rims lobed and wavy. On a tile only its face inside the
     /// bars' flanges `hs` is stained, the bars rusted near `leak`.
-    #[allow(clippy::too_many_arguments)]
     fn stain_mat(
         side: f64,
         px: usize,

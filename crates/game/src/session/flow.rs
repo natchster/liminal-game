@@ -160,7 +160,7 @@ impl Game {
         // staggered ambient cadences and the level's signature sounds (native
         // draws: the seeded build is over)
         self.arm_level_ambient();
-        self.ui.level.set_text(&format!("LEVEL {}", n));
+        self.ui.level.set_text(&format!("LEVEL {n}"));
         // level entry chime, 1.2 s later
         self.schedule(1200.0, |g| {
             if g.state != "playing" || g.ac.is_none() {
@@ -226,7 +226,7 @@ impl Game {
             "asides": self.asides.memory.to_json(),
             "took": self.took.iter().map(|t| serde_json::json!([t.what, t.level, t.place])).collect::<Vec<_>>(),
             "secrets": self.secrets_taken,
-            "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0),
+            "savedAt": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0.0, |d| d.as_millis() as f64),
         });
         self.storage_set(SAVE_KEY, &data.to_string());
     }
@@ -238,21 +238,19 @@ impl Game {
             return None;
         }
         let num = |k: &str| d.get(k).and_then(|v| v.as_f64());
-        let flag = |k: &str| {
-            d.get(k).map(|v| v.as_bool().unwrap_or(!v.is_null() && v.as_f64().map(|x| x != 0.0).unwrap_or(false))).unwrap_or(false)
-        };
+        let flag = |k: &str| d.get(k).is_some_and(|v| v.as_bool().unwrap_or(!v.is_null() && v.as_f64().is_some_and(|x| x != 0.0)));
         // integer fields: truncated and wrapped to 32 bits (`to_i32`)
-        let int = |k: &str| num(k).map(to_i32).unwrap_or(0) as f64;
+        let int = |k: &str| num(k).map_or(0, to_i32) as f64;
         Some(SaveData {
             level_num: level_num as i32,
-            run_seed: num("runSeed").map(to_u32).unwrap_or(0),
+            run_seed: num("runSeed").map_or(0, to_u32),
             sanity: num("sanity"),
             battery: num("battery"),
             bottles: int("bottles"),
             batteries: int("batteries"),
             papers: int("papers"),
             coins: int("coins"),
-            lore: d.get("lore").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).collect()).unwrap_or_default(),
+            lore: d.get("lore").and_then(|v| v.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_f64()).collect()),
             archivist: flag("archivist"),
             survivor: flag("survivor"),
             storyteller: flag("storyteller"),
@@ -262,41 +260,29 @@ impl Game {
             arcs: d
                 .get("arcs")
                 .and_then(|v| v.as_array())
-                .map(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect())
-                .unwrap_or_default(),
+                .map_or_default(|a| a.iter().filter_map(|x| x.as_str().map(|s| s.to_string())).collect()),
             arc_done: flag("arcDone"),
             creatures: crate::entities::creature::RunMemory::from_json(d.get("creatures")),
             asides: crate::audio::asides::AsideMemory::from_json(d.get("asides")),
-            took: d
-                .get("took")
-                .and_then(|v| v.as_array())
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|t| {
-                            let t = t.as_array()?;
-                            Some(crate::secrets::keeps::Took {
-                                what: t.first()?.as_str()?.to_string(),
-                                level: t.get(1)?.as_f64()? as i32,
-                                place: t.get(2)?.as_str()?.to_string(),
-                            })
+            took: d.get("took").and_then(|v| v.as_array()).map_or_default(|a| {
+                a.iter()
+                    .filter_map(|t| {
+                        let t = t.as_array()?;
+                        Some(crate::secrets::keeps::Took {
+                            what: t.first()?.as_str()?.to_string(),
+                            level: t.get(1)?.as_f64()? as i32,
+                            place: t.get(2)?.as_str()?.to_string(),
                         })
-                        .collect()
-                })
-                .unwrap_or_default(),
+                    })
+                    .collect()
+            }),
             secrets_taken: d
                 .get("secrets")
                 .and_then(|v| v.as_object())
-                .map(|o| o.iter().filter_map(|(k, v)| Some((k.clone(), v.as_f64()? as u32))).collect())
-                .unwrap_or_default(),
-            notebook: d
-                .get("notebook")
-                .and_then(|v| v.as_array())
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|x| x.as_str().filter(|s| crate::story::notebook::page(s).is_some()).map(|s| s.to_string()))
-                        .collect()
-                })
-                .unwrap_or_default(),
+                .map_or_default(|o| o.iter().filter_map(|(k, v)| Some((k.clone(), v.as_f64()? as u32))).collect()),
+            notebook: d.get("notebook").and_then(|v| v.as_array()).map_or_default(|a| {
+                a.iter().filter_map(|x| x.as_str().filter(|s| crate::story::notebook::page(s).is_some()).map(|s| s.to_string())).collect()
+            }),
         })
     }
     pub fn clear_save(&mut self) {
@@ -330,8 +316,7 @@ impl Game {
             .into_iter()
             .rev()
             .find(|(_, p)| self.notebook.contains(p.id))
-            .map(|(_, p)| p.thread.to_string())
-            .unwrap_or_default();
+            .map_or_default(|(_, p)| p.thread.to_string());
         self.refresh_lore_medal();
         self.refresh_survivor_medal();
         self.refresh_storyteller_medal();
@@ -349,7 +334,7 @@ impl Game {
         let rr = 255.min(((hex >> 16) & 0xff) + lift);
         let gg = 255.min(((hex >> 8) & 0xff) + lift);
         let bb = 255.min((hex & 0xff) + lift);
-        format!("rgb({},{},{})", rr, gg, bb)
+        format!("rgb({rr},{gg},{bb})")
     }
 
     pub fn next_level(&mut self) {
@@ -624,7 +609,7 @@ impl Game {
         self.title_place = None;
         self.shaft_looked_back = false;
         let hp = self.parse_flag_params();
-        let hash_seed = hp.get("seed").and_then(|s| parse_int_prefix(s)).map(to_u32).unwrap_or(0);
+        let hash_seed = hp.get("seed").and_then(|s| parse_int_prefix(s)).map_or(0, to_u32);
         self.run_seed = match seed {
             Some(s) => s,
             None if hash_seed != 0 => hash_seed,
@@ -660,7 +645,7 @@ impl Game {
         self.player.coins = 0;
         self.hinted_bottle = false;
         self.hinted_battery = false;
-        let start_level = hp.get("level").and_then(|s| parse_int_prefix(s)).map(|v| 1.max(to_i32(v))).unwrap_or(1);
+        let start_level = hp.get("level").and_then(|s| parse_int_prefix(s)).map_or(1, |v| 1.max(to_i32(v)));
         self.init_level(start_level);
         self.state = "playing".into();
         self.hide_overlay();

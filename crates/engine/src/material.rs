@@ -1,6 +1,10 @@
 //! Materials (basic, Lambert and Phong surfaces, points, sprites, lines) and
 //! the game's custom shader patches, as data the Metal renderer interprets.
-#![allow(non_snake_case, non_upper_case_globals)]
+#![expect(
+    non_snake_case,
+    non_upper_case_globals,
+    reason = "a material's setters (`emissiveIntensity`, `alphaMap`, `depthWrite`) and its sides and blendings (`DoubleSide`, `AdditiveBlending`) keep the names every placer's materials are written with"
+)]
 
 use crate::math::*;
 use crate::texture::*;

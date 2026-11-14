@@ -271,7 +271,7 @@ fn tank_glass_tex(salt: u32, level: Option<f64>) -> Tex {
         let v_of = |y: f64| (y - AQ_GLASS_Y.0) / AQ_GLASS_Y.1;
         let floor_v = v_of(AQ_FLOOR + AQ_GRAVEL.0 + AQ_GRAVEL.1);
         let full = v_of(0.885);
-        let last = level.map(v_of).unwrap_or(floor_v);
+        let last = level.map_or(floor_v, v_of);
         // the levels it stood at: from full down to where it is now
         let lines: Vec<f64> = (0..5)
             .map(|k| {

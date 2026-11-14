@@ -673,7 +673,7 @@ impl Game {
     /// What the floor under a point is made of, for footsteps.
     pub fn floor_surface_at(&self, px: f64, pz: f64) -> &'static str {
         let z = self.zone_at_world(px, pz).and_then(|zi| self.zone_fields(zi));
-        let kind = z.as_ref().map(|z| z.floor_mat).unwrap_or("carpet");
+        let kind = z.as_ref().map_or("carpet", |z| z.floor_mat);
         if kind == "carpet" {
             let info = self.region_at(self.tx(px), self.tz(pz));
             let wet = (info.grime >= 2 || (info.flags & RF_MOSS) != 0) || self.weather_key() == "wet";
@@ -758,7 +758,7 @@ impl Game {
         let dark = self.region_flags_at(x, z) & RF_DARK != 0;
         // Blackout zones are silent in the lore: no hum, almost no room
         let zf = self.zone_at_world(self.player.pos.x, self.player.pos.z).and_then(|zi| self.zone_fields(zi));
-        ss.set_zone(if dark { "silent" } else { zf.as_ref().map(|z| z.arch).unwrap_or("lobby") }, 1.2);
+        ss.set_zone(if dark { "silent" } else { zf.as_ref().map_or("lobby", |z| z.arch) }, 1.2);
         self.note_zone_entry(zf);
         // the hum sits at the nearest live fixture of your storey; re-pick a
         // few times a second

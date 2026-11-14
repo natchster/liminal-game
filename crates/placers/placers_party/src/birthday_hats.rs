@@ -244,7 +244,7 @@ fn cone_uv(gg: &mut Geometry, beta: f64, lift: f64, ymax: f64, print_v: f64) {
     let mut dup: Vec<Option<u32>> = vec![None; n];
     for t in idx.chunks_mut(3) {
         let us = [uv[t[0] as usize * 2], uv[t[1] as usize * 2], uv[t[2] as usize * 2]];
-        let (lo, hi) = (us.iter().cloned().fold(f32::MAX, f32::min), us.iter().cloned().fold(f32::MIN, f32::max));
+        let (lo, hi) = (us.iter().copied().fold(f32::MAX, f32::min), us.iter().copied().fold(f32::MIN, f32::max));
         if hi - lo <= 0.5 {
             continue;
         }

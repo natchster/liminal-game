@@ -184,7 +184,7 @@ pub const PHRASES: [(&str, &[(&str, f64, f64)]); 5] = [
     ),
 ];
 fn phrase(name: &str) -> &'static [(&'static str, f64, f64)] {
-    PHRASES.iter().find(|(k, _)| *k == name).map(|(_, s)| *s).unwrap_or(PHRASES[0].1)
+    PHRASES.iter().find(|(k, _)| *k == name).map_or(PHRASES[0].1, |(_, s)| *s)
 }
 
 // ================================================================ helpers
@@ -278,7 +278,6 @@ fn tone_impl(ac: &AudioContext, dest: &AudioNode, t0: f64, dur: f64, freq: f64, 
 /// oscillator held at `gain` from its attack to its release, optionally
 /// gliding to `f1`: a sung or hummed note (`tone` falls away over its whole
 /// length, a pluck: as a hum, it was heard only at each note's start)
-#[allow(clippy::too_many_arguments)]
 fn note_impl(
     ac: &AudioContext,
     dest: &AudioNode,
@@ -1124,7 +1123,6 @@ impl Soundscape {
         tone_impl(&self.ac, dest, t0, dur, freq, gain, ty, f1, attack);
     }
     /// A held note (`note_impl`): up over `attack`, held, down over `release`
-    #[allow(clippy::too_many_arguments)]
     pub fn note(&self, dest: &AudioNode, t0: f64, dur: f64, freq: f64, gain: f64, ty: &str, f1: Option<f64>, attack: f64, release: f64) {
         note_impl(&self.ac, dest, t0, dur, freq, gain, ty, f1, attack, release);
     }

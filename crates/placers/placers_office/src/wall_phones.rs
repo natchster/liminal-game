@@ -228,7 +228,10 @@ fn paint_wp_plastic(ctx: &mut Canvas, w: f64, h: f64) {
 /// The housing's wear (shared by every set: its colour is the material's).
 // the closure is the painter, and its type names the texture's stream
 // (`kit::painter_seed`): handing the fn over instead would paint it anew
-#[allow(clippy::redundant_closure)]
+#[expect(
+    clippy::redundant_closure,
+    reason = "the closure names the painter's stream (`kit::painter_seed`): passing the fn would paint it anew"
+)]
 fn wp_plastic_tex() -> Tex {
     thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
     T.with(|c| c.get_or_init(|| canvas_tex_opt(128, 240, false, |ctx, w, h| paint_wp_plastic(ctx, w, h))).clone())

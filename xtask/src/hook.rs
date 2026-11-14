@@ -189,7 +189,7 @@ fn post_edit(input: &Value) -> Result<(), String> {
 }
 
 fn git(args: &[&str]) -> String {
-    Command::new("git").current_dir(root()).args(args).output().map(|o| String::from_utf8_lossy(&o.stdout).into_owned()).unwrap_or_default()
+    Command::new("git").current_dir(root()).args(args).output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).into_owned())
 }
 
 /// A fingerprint of the uncommitted state of the code, or None when no code
@@ -249,11 +249,8 @@ fn session() -> Result<(), String> {
     let log = git(&["log", "--oneline", "-5"]);
     let dirty = git(&["status", "--porcelain"]).lines().count();
     let roadmap = std::fs::read_to_string(root().join("docs/plan/TOOLING_ROADMAP.md")).unwrap_or_default();
-    let progress: String = roadmap
-        .split("\n## ")
-        .find(|s| s.starts_with("Progress"))
-        .map(|s| s.lines().skip(1).collect::<Vec<_>>().join("\n"))
-        .unwrap_or_default();
+    let progress: String =
+        roadmap.split("\n## ").find(|s| s.starts_with("Progress")).map_or_default(|s| s.lines().skip(1).collect::<Vec<_>>().join("\n"));
     let ctx = format!(
         "Where the work stands (re-injected after compaction):\nRecent commits:\n{log}Uncommitted files: {dirty}\nTooling roadmap progress (docs/plan/TOOLING_ROADMAP.md):{progress}\nCLAUDE.md has the commands and invariants."
     );

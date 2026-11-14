@@ -387,7 +387,7 @@ fn census() {
             r.lost_pickups,
             ps.iter().map(|p| (p.tiles.len(), p.cause, p.sealed_by.first().copied())).collect::<Vec<_>>()
         );
-        let zones = g.layout.as_ref().map(|l| l.zones.clone()).unwrap_or_default();
+        let zones = g.layout.as_ref().map_or_default(|l| l.zones.clone());
         for p in &ps {
             for &(x, z) in p.sealed_by.iter().take(3) {
                 let zi = g.zone_at_tile(x, z);

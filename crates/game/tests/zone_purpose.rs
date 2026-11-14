@@ -46,7 +46,7 @@ thread_local! { static SEEN: RefCell<Vec<String>> = const { RefCell::new(vec![])
 /// purpose welcomes the theme of the placer it stands in for (the last
 /// trace mark)
 fn probe(g: &mut Game, _dist: &[i32]) {
-    let name = g.rand_trace.marks.last().map(|(l, _)| l.clone()).unwrap_or_default();
+    let name = g.rand_trace.marks.last().map_or_default(|(l, _)| l.clone());
     SEEN.with(|s| s.borrow_mut().push(name.clone()));
     if PLACER_ALWAYS.contains(&name.as_str()) {
         return;
@@ -107,7 +107,7 @@ fn check_purposes(tag: &str, g: &Game, l: &Layout) {
         }
         if let Some(t) = p.secondary {
             let first = p.primary.expect("a second theme comes with a first");
-            let compat = THEME_COMPAT.iter().find(|(k, _)| *k == first).map(|(_, l)| l.iter().any(|(c, _)| *c == t)).unwrap_or(false);
+            let compat = THEME_COMPAT.iter().find(|(k, _)| *k == first).is_some_and(|(_, l)| l.iter().any(|(c, _)| *c == t));
             assert!(compat, "{tag}: zone {zi}: {t} does not go with {first}");
         }
         if z.arch == "store" {

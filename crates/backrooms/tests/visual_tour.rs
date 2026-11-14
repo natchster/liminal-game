@@ -71,7 +71,7 @@ fn the_tour_is_the_same_twice_and_spread_over_the_level() {
         let all = g.tour_stands(None);
         let span = |f: &dyn Fn(f64, f64) -> f64, xs: &mut dyn Iterator<Item = (f64, f64)>| {
             let v: Vec<f64> = xs.map(|(x, z)| f(x, z)).collect();
-            v.iter().cloned().fold(f64::MIN, f64::max) - v.iter().cloned().fold(f64::MAX, f64::min)
+            v.iter().copied().fold(f64::MIN, f64::max) - v.iter().copied().fold(f64::MAX, f64::min)
         };
         for (axis, f) in [("x", &(|x: f64, _z: f64| x) as &dyn Fn(f64, f64) -> f64), ("z", &|_x: f64, z: f64| z)] {
             let whole = span(f, &mut all.iter().map(|s| (s.x, s.z)));

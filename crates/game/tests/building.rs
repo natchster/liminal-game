@@ -163,7 +163,7 @@ fn census() {
 #[ignore]
 fn show_floor() {
     let seed: u32 = std::env::var("SEED").unwrap().parse().unwrap();
-    let level: i32 = std::env::var("LEVEL").map(|v| v.parse().unwrap()).unwrap_or(1);
+    let level: i32 = std::env::var("LEVEL").map_or(1, |v| v.parse().unwrap());
     let (l, p) = build(seed, level);
     println!("{}", ascii(&l, &p));
 }

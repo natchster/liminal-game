@@ -123,7 +123,7 @@ fn score(args: &[String]) -> Result<(), String> {
     let mut by_kind: std::collections::BTreeMap<String, (usize, usize)> = Default::default();
     for (img, t) in truth.as_object().into_iter().flatten() {
         let tv = t["truth"].as_str().unwrap_or("tie");
-        let rv = verdict.get(img).map(String::as_str).unwrap_or("tie");
+        let rv = verdict.get(img).map_or("tie", String::as_str);
         pairs.push((tv, rv));
         let e = by_kind.entry(t["kind"].as_str().unwrap_or("?").to_string()).or_default();
         e.0 += 1;
@@ -141,7 +141,7 @@ fn score(args: &[String]) -> Result<(), String> {
         println!("  {k:<8} {ok}/{t}");
     }
     let row = json!({
-        "date": std::process::Command::new("date").arg("+%Y-%m-%d").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default(),
+        "date": std::process::Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()),
         "reviewer": reviewer, "n": pairs.len(), "accuracy": (po * 1000.0).round() / 1000.0, "kappa": (kappa * 1000.0).round() / 1000.0,
         "by_kind": by_kind.iter().map(|(k, (t, ok))| (k.clone(), json!([ok, t]))).collect::<serde_json::Map<String, Value>>(),
     });

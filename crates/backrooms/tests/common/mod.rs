@@ -1,6 +1,6 @@
 //! Shared by the newer backrooms tests: the placer registry (as `main.rs`
 //! registers it) and a game booted to its title.
-#![allow(dead_code)]
+#![allow(dead_code, reason = "helpers shared by several test binaries; each uses a part")]
 use game::Game;
 
 /// Every prop placer (`placers::register_all`).

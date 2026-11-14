@@ -73,7 +73,7 @@ impl Game {
     /// What would help right now, with its key ("G", "Drink almond water")
     pub fn pocket_hint(&self) -> Option<(String, &'static str)> {
         let p = &self.player;
-        let key = |a: Act| self.settings.keys(a).first().map(|k| key_label(k)).unwrap_or_default();
+        let key = |a: Act| self.settings.keys(a).first().map_or_default(|k| key_label(k));
         if p.bottles > 0 && p.stamina < 30.0 {
             return Some((key(Act::Drink), "Drink almond water"));
         }

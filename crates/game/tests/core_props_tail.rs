@@ -290,7 +290,7 @@ fn geo_params(p: &GeoParams) -> Vec<(String, f64)> {
             vec![("radius", radius), ("tube", tube), ("radialSegments", radial as f64), ("tubularSegments", tubular as f64), ("arc", arc)]
         }
         GeoParams::Buffer => vec![],
-        ref o => panic!("unexpected geometry {:?}", o),
+        ref o => panic!("unexpected geometry {o:?}"),
     };
     v.sort_by(|a, b| a.0.cmp(b.0));
     v.into_iter().map(|(k, x)| (k.to_string(), x)).collect()
@@ -300,14 +300,14 @@ fn cmp_geo(geo: &Geo, j: &Json, path: &str) {
     assert_eq!(geo.type_name(), j.get("type").s(), "{path}: geometry type");
     let params = geo_params(&geo.params());
     let jp = j.get("params").arr();
-    assert_eq!(params.len(), jp.len(), "{path}: geometry params {:?}", params);
+    assert_eq!(params.len(), jp.len(), "{path}: geometry params {params:?}");
     for (k, (name, v)) in params.iter().enumerate() {
         assert_eq!(name, jp[k].at(0).s(), "{path}: param name");
         assert_close(*v, jp[k].at(1).f(), TOL, &format!("{path}: param {name}"));
     }
     let r = geo.r();
     assert_eq!(r.position.len() / 3, j.get("n").i() as usize, "{path}: vertex count");
-    assert_eq!(r.index.as_ref().map(|i| i.len()).unwrap_or(0), j.get("idx").i() as usize, "{path}: index count");
+    assert_eq!(r.index.as_ref().map_or(0, |i| i.len()), j.get("idx").i() as usize, "{path}: index count");
     let (mut s, mut sa) = (0.0f64, 0.0f64);
     for (i, &v) in r.position.iter().enumerate() {
         s += v as f64;
@@ -479,7 +479,7 @@ fn cmp_records(g: &Game, j: &Json, tol: f64, what: &str) {
                 "{what}: pool tiles"
             );
         }
-        (a, _) => panic!("{what}: pool_bounds got {:?}", a),
+        (a, _) => panic!("{what}: pool_bounds got {a:?}"),
     }
     assert_eq!(g.pool_plan.is_some(), j.get("poolPlanLeft").b(), "{what}: pool_plan consumed");
     let vj = j.get("vacuum");
@@ -567,7 +567,7 @@ fn ser_geo(geo: &Geo) -> Value {
     let params: Vec<Value> = geo_params(&geo.params()).into_iter().map(|(k, v)| json!([k, v])).collect();
     json!({
         "type": geo.type_name(), "params": params, "n": r.position.len() / 3,
-        "idx": r.index.as_ref().map(|i| i.len()).unwrap_or(0), "s": s, "sa": sa,
+        "idx": r.index.as_ref().map_or(0, |i| i.len()), "s": s, "sa": sa,
     })
 }
 /// The inverse of `cmp_mat`
@@ -869,7 +869,7 @@ fn run_case(case: &Json, builders: Builders) -> Option<serde_json::Map<String, V
         let sim_j = case.get("sim");
         assert_eq!(sim_draws, sim_j.get("draws").i() as u64, "{name}: run-time draws");
         let jm = sim_j.get("msgs").arr();
-        assert_eq!(msgs.len(), jm.len(), "{name}: messages {:?}", msgs);
+        assert_eq!(msgs.len(), jm.len(), "{name}: messages {msgs:?}");
         for (i, m) in msgs.iter().enumerate() {
             let e = &jm[i];
             assert_eq!((m.0, m.1, m.2.as_str()), (e.at(0).i(), e.at(1).s(), e.at(2).s()), "{name}: message {i}");

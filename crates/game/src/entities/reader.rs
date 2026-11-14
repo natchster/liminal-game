@@ -225,7 +225,7 @@ fn roam_goal(g: &mut Game, ei: usize) -> Option<(f64, f64)> {
         if !(6.0..20.0).contains(&d) {
             continue;
         }
-        let office = g.zone_purpose_at(gx, gz).map(|p| p.label == "office wing").unwrap_or(false);
+        let office = g.zone_purpose_at(gx, gz).is_some_and(|p| p.label == "office wing");
         let score = -hypot2(wx - home.0, wz - home.1) * 0.15 + if office { 3.0 } else { 0.0 };
         if score > best_score {
             best_score = score;
@@ -359,7 +359,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             // way on toward you (it finds you by sight)
             let lurk = stalk && {
                 let wt = g.entities[ei].w_target.map(|(x, z)| (g.wx(x), g.wz(z)));
-                wt.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.5).unwrap_or(true)
+                wt.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.5)
             };
             if lurk {
                 if p.dist > STALK_NEAR {
@@ -379,7 +379,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 None
             } else {
                 let c = g.creature(ei).unwrap();
-                let reached = c.brain.goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
+                let reached = c.brain.goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5);
                 if reached || c.brain.goal_t <= 0.0 {
                     let gl = roam_goal(g, ei);
                     let mut r = own_stream(g, ei);
@@ -435,7 +435,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 return;
             }
             let goal = g.creature(ei).unwrap().brain.goal.or(last_seen);
-            let at = goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
+            let at = goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5);
             if at {
                 g.entity_drive(ei, dt, 0.0);
                 let yaw = g.entities[ei].yaw;
@@ -514,7 +514,7 @@ fn read(g: &mut Game, ei: usize, dt: f64) {
         // gone (a pile you took) or out of its reach: nothing to read
         let there = match what {
             Paper::Dropped => g.paper_markers.iter().any(|m| hypot2(m.world_x - x, m.world_z - z) < 0.5),
-            Paper::Pile(i) => g.papers.get(i).map(|p| !p.taken).unwrap_or(false),
+            Paper::Pile(i) => g.papers.get(i).is_some_and(|p| !p.taken),
         };
         if !there || mode_t > 8.0 {
             set(g, ei, Mode::Roam, "the sheet was gone");
@@ -635,11 +635,11 @@ pub fn place(g: &mut Game) -> Option<usize> {
                 {
                     continue;
                 }
-                let office = g.zone_purpose_at(x, z).map(|p| p.label == "office wing").unwrap_or(false);
+                let office = g.zone_purpose_at(x, z).is_some_and(|p| p.label == "office wing");
                 let score = if office { 3.0 } else { 0.0 } - (dx.abs() + dz.abs()) as f64 * 0.2
                     + (from_start[i] as f64).min(40.0) * 0.02
                     + ((x * 7 + z * 13) % 5) as f64 * 0.01;
-                if best.map(|b| score > b.0).unwrap_or(true) {
+                if best.is_none_or(|b| score > b.0) {
                     best = Some((score, x, z));
                 }
             }

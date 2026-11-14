@@ -124,7 +124,7 @@ fn level_materials(seed: u32, level: i32) -> Vec<Seen> {
                 let albedo = [m.color.r * t[0], m.color.g * t[1], m.color.b * t[2]];
                 let mesh = if m.name.is_empty() { name_path(o) } else { m.name.clone() };
                 let mesh = if mesh == "(unnamed)" {
-                    let tris = o.try_geo().map(|gm| gm.0.borrow().index_count() / 3).unwrap_or(0);
+                    let tris = o.try_geo().map_or(0, |gm| gm.0.borrow().index_count() / 3);
                     // its size, so a prop can be found by it
                     let size = o.try_geo().map(|gm| {
                         let b = gm.bounding_box();

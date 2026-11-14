@@ -179,7 +179,6 @@ fn acorn_cup_geo() -> Option<Geo> {
 /// top): `k` its colour (0 ripe brown, 1 old and dark, 2 dried pale), `holed`
 /// a weevil's exit hole in it. Fine stripes along it, the scar pale and
 /// rough within a dark ring, the tip's felt grey, blotches of decay, dust
-#[allow(clippy::excessive_precision)]
 fn nut_tex(k: usize, holed: bool) -> Tex {
     cached_kind_tex!(6, k * 2 + holed as usize, |kk: usize| {
         let (k, holed) = (kk / 2, kk % 2 == 1);

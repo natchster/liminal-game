@@ -511,7 +511,7 @@ impl Game {
                     continue;
                 }
                 let d = hypot2(wx - p.x, wz - p.z);
-                if best.map(|b| d < b.0).unwrap_or(true) {
+                if best.is_none_or(|b| d < b.0) {
                     best = Some((d, x, z));
                 }
             }
@@ -546,7 +546,7 @@ impl Game {
             let p = e.pos();
             let dd = hypot2(p.x - pp.x, p.z - pp.z);
             let score = dd + if e.kind == "watcher" { 60.0 } else { 0.0 };
-            if pick.map(|(_, _, b)| score < b).unwrap_or(true) {
+            if pick.is_none_or(|(_, _, b)| score < b) {
                 pick = Some((i, dd, score));
             }
         }
@@ -603,7 +603,7 @@ impl Game {
         self.director.stuck_t -= dt;
         if self.director.stuck_t <= 0.0 {
             self.director.stuck_t = 6.0;
-            let moved = self.director.stuck_at.map(|(x, z)| hypot2(sp.x - x, sp.z - z)).unwrap_or(1e9);
+            let moved = self.director.stuck_at.map_or(1e9, |(x, z)| hypot2(sp.x - x, sp.z - z));
             if moved < 0.5 && ds > 8.0 && !self.e_los(sp.x, sp.z, pp.x, pp.z) {
                 self.unstick_entity(si);
             }
@@ -794,7 +794,7 @@ impl Game {
             }
             let p = e.pos();
             let d = hypot2(p.x - pp.x, p.z - pp.z);
-            if best.map(|(_, b)| d < b).unwrap_or(true) {
+            if best.is_none_or(|(_, b)| d < b) {
                 best = Some((i, d));
             }
         }

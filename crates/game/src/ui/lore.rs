@@ -14,7 +14,7 @@ impl Game {
     }
     /// Title of lore entry `id` (empty when out of range)
     pub fn lore_entry_title(&self, id: usize) -> String {
-        LORE_ENTRIES.get(id).map(|e| e.title.to_string()).unwrap_or_default()
+        LORE_ENTRIES.get(id).map_or_default(|e| e.title.to_string())
     }
     /// `LORE_ARCS` as (name, entry ids), in order
     pub fn lore_arc_list(&self) -> Vec<(String, Vec<usize>)> {

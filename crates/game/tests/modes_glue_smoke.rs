@@ -43,16 +43,16 @@ fn non_entity_kids(g: &Game) -> usize {
     g.scene.children().iter().filter(|o| !ent.contains(&o.id())).count()
 }
 fn assert_out(g: &Game, scene_kids: usize, what: &str) {
-    assert!(!g.in_stairwell && !g.in_loop, "{}: still in a mode", what);
-    assert!(g.loop_rooms.is_none() && g.loop_paper.is_empty(), "{}: the Loop was not disposed", what);
-    assert!(g.stair_voice.is_none(), "{}: the child's voice still runs", what);
+    assert!(!g.in_stairwell && !g.in_loop, "{what}: still in a mode");
+    assert!(g.loop_rooms.is_none() && g.loop_paper.is_empty(), "{what}: the Loop was not disposed");
+    assert!(g.stair_voice.is_none(), "{what}: the child's voice still runs");
     let s = g.stairwell.as_ref().unwrap();
-    assert!(!s.group.visible() && !s.face.visible(), "{}: the Stairwell still shows", what);
-    assert!(g.world.visible(), "{}: the level is hidden", what);
-    assert!(!g.ui.body.has_class("in-stairwell") && !g.ui.body.has_class("in-loop"), "{}: body classes", what);
-    assert_eq!(g.ui.prompt.text, "", "{}: prompt", what);
-    assert_eq!(non_entity_kids(g), scene_kids, "{}: objects left in the scene", what);
-    assert_eq!(g.flashlight.light().distance, 28.0, "{}: flashlight reach", what);
+    assert!(!s.group.visible() && !s.face.visible(), "{what}: the Stairwell still shows");
+    assert!(g.world.visible(), "{what}: the level is hidden");
+    assert!(!g.ui.body.has_class("in-stairwell") && !g.ui.body.has_class("in-loop"), "{what}: body classes");
+    assert_eq!(g.ui.prompt.text, "", "{what}: prompt");
+    assert_eq!(non_entity_kids(g), scene_kids, "{what}: objects left in the scene");
+    assert_eq!(g.flashlight.light().distance, 28.0, "{what}: flashlight reach");
 }
 
 fn cycle(g: &mut Game, sound: bool, seed: u32) {
@@ -66,7 +66,7 @@ fn cycle(g: &mut Game, sound: bool, seed: u32) {
     // the Stairwell was built at boot: hidden, in the scene
     let s = g.stairwell.as_ref().expect("init_modes builds the Stairwell");
     assert!(!s.group.visible());
-    assert!(s.group.parent().map(|p| p == g.scene).unwrap_or(false));
+    assert!(s.group.parent().is_some_and(|p| p == g.scene));
     let kids = non_entity_kids(g);
     let mut exits = [0usize; 6];
     for round in 0..12 {
@@ -84,7 +84,7 @@ fn cycle(g: &mut Game, sound: bool, seed: u32) {
         for _ in 0..60 {
             frame(g, 1.0 / 60.0);
         }
-        assert!(if loop_mode { g.in_loop && g.loop_rooms.is_some() } else { g.in_stairwell }, "round {}: not inside", round);
+        assert!(if loop_mode { g.in_loop && g.loop_rooms.is_some() } else { g.in_stairwell }, "round {round}: not inside");
         assert_eq!(g.state, "playing");
         assert!(!g.world.visible());
         if loop_mode {
@@ -137,7 +137,7 @@ fn cycle(g: &mut Game, sound: bool, seed: u32) {
                 g.leave_stairwell_mode();
                 g.leave_loop_mode();
             }
-            (0, _) | (3, _) => {
+            (0 | 3, _) => {
                 // walk to the way out and take it
                 if loop_mode {
                     let lr = g.loop_rooms.as_mut().unwrap();
@@ -195,9 +195,9 @@ fn cycle(g: &mut Game, sound: bool, seed: u32) {
                 exits[5] += 1;
             }
         }
-        assert_out(g, kids, &format!("round {} (way {})", round, way));
+        assert_out(g, kids, &format!("round {round} (way {way})"));
     }
-    assert!(exits[0] > 0 && exits[1] > 0, "exits {:?}", exits);
+    assert!(exits[0] > 0 && exits[1] > 0, "exits {exits:?}");
     // nothing happens from outside the modes
     g.state = "playing".into();
     g.exit_stairwell();

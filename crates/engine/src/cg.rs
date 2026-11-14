@@ -1,5 +1,9 @@
 //! Minimal CoreGraphics / CoreText / CoreFoundation FFI.
-#![allow(non_upper_case_globals, non_snake_case, dead_code, clippy::missing_safety_doc)]
+#![expect(
+    non_upper_case_globals,
+    clippy::missing_safety_doc,
+    reason = "Core Graphics' C declarations, named and kept as Apple's headers have them"
+)]
 
 use std::ffi::c_void;
 

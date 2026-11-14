@@ -322,7 +322,7 @@ pub fn ideal_bounds(geo: &Geo) -> [f64; 6] {
     }
 }
 fn hi_res(p: &GeoParams, make: impl FnOnce() -> Geo) -> [f64; 6] {
-    let key = format!("{:?}", p);
+    let key = format!("{p:?}");
     if let Some(b) = IDEAL.with(|c| c.borrow().get(&key).copied()) {
         return b;
     }

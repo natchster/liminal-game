@@ -662,7 +662,7 @@ impl Game {
                 // a geared DC motor turning the spiral once: its whine,
                 // its gears' teeth, and the spiral ticking past its stop
                 if let (Some(ss), Some(dest)) = (g.soundscape(), g.sfx_route.as_ref().and_then(|r| r.dest.clone())) {
-                    let t = g.ac.as_ref().map(|a| a.current_time()).unwrap_or(0.0);
+                    let t = g.ac.as_ref().map_or(0.0, |a| a.current_time());
                     ss.note(&dest, t + 0.6, VEND_T, 92.0, 0.035, "sawtooth", Some(86.0), 0.08, 0.15);
                     ss.note(&dest, t + 0.6, VEND_T, 184.0, 0.018, "square", Some(172.0), 0.08, 0.15);
                     ss.note(&dest, t + 0.6, VEND_T, 1380.0, 0.004, "sine", Some(1290.0), 0.1, 0.2);
@@ -748,7 +748,7 @@ impl Game {
         let p = m.pos();
         let stalker = self.director.stalker;
         let comes = self.entities.iter().enumerate().any(|(ei, e)| {
-            let after = self.creature(ei).map(|c| c.brain.mode.after_you()).unwrap_or(false) || stalker == Some(ei);
+            let after = self.creature(ei).is_some_and(|c| c.brain.mode.after_you()) || stalker == Some(ei);
             after && hypot2(e.pos().x - p.x, e.pos().z - p.z) < DARK_REACH
         });
         if comes {

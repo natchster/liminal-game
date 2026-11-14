@@ -146,7 +146,7 @@ fn put(g: &mut Game, ei: usize, key: &'static str, v: f64) {
 }
 
 fn get(g: &Game, ei: usize, key: &'static str) -> f64 {
-    g.creature(ei).map(|c| c.get(key)).unwrap_or(0.0)
+    g.creature(ei).map_or(0.0, |c| c.get(key))
 }
 
 /// Its binding, if `ei` is the one behind the glass of this level
@@ -509,7 +509,7 @@ fn entry(g: &Game, b: &Bind) -> Vec3 {
             let (mx, mz) = cell_mid(q);
             let l = w.local(&Vec3::new(mx, 0.0, mz));
             let d = (l.z - w.depth - 0.5).abs() + (l.x - b.x).abs() * 0.5;
-            if best.map(|bb| d < bb.0).unwrap_or(true) {
+            if best.is_none_or(|bb| d < bb.0) {
                 best = Some((d, mx, mz));
             }
         }
@@ -529,7 +529,7 @@ fn hunt_inside(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
         return;
     }
     // the place lies quiet after a close call: it backs off, as they all do
-    let order = g.creature(ei).map(|c| c.brain.order).unwrap_or_default();
+    let order = g.creature(ei).map_or_default(|c| c.brain.order);
     if g.director.phase == crate::entities::director::Phase::Relax || matches!(order, Order::Away(t) if t > 0.0) {
         set(g, ei, Mode::Withdraw, "the place lies quiet");
         return;
@@ -636,7 +636,7 @@ fn glass_frame(g: &mut Game, ei: usize, b: &Bind, dt: f64) {
     };
     // the bow: a little under its face as it presses; deep round it as it
     // comes through, the film closing behind it
-    let going_back = g.creature(ei).map(|c| c.brain.mode == Mode::Withdraw).unwrap_or(false);
+    let going_back = g.creature(ei).is_some_and(|c| c.brain.mode == Mode::Withdraw);
     let (depth, radius) = if pressing {
         (0.012 + 0.006 * (t * 1.7).sin(), 0.16)
     } else if pass > 0.0 && pass < 1.0 {
@@ -761,7 +761,7 @@ fn place_with(g: &mut Game, force: bool) -> Option<usize> {
                 continue;
             }
             let score = ds.min(40) as f64 + (wi * 7 + lights[0] * 3) as f64 * 0.001;
-            if best.as_ref().map(|b| score > b.0).unwrap_or(true) {
+            if best.as_ref().is_none_or(|b| score > b.0) {
                 best = Some((score, Bind { ei: 0, win: wi, lights, row: (0..w.lights.len()).collect(), x, panes: vec![] }));
             }
         }
@@ -882,7 +882,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         let w = &g.windows[b.win];
         let pos = g.entities[ei].pos();
         let l = w.local(&pos);
-        let gz = b.lights.first().map(|&k| w.lights[k].glass_z).unwrap_or(0.0) - 0.02;
+        let gz = b.lights.first().map_or(0.0, |&k| w.lights[k].glass_z) - 0.02;
         // (at its chin, either side: its arms up from the elbow, the upper
         // arms hanging; lifted out from the shoulder, linear skinning had
         // swung the coat's shoulders up into two fins beside its hood)
@@ -932,7 +932,7 @@ pub fn animate(g: &mut Game, ei: usize, dt: f64) {
         let base = rig.head(iu);
         let rest = v(rig.def.bones[ih].head);
         // on the glass either side of its face; out toward you; on the sill
-        let glass = hands.map(|h| h[k]).unwrap_or(v3(sx * 0.19, 1.45, 0.4));
+        let glass = hands.map_or(v3(sx * 0.19, 1.45, 0.4), |h| h[k]);
         let toward = v3(sx * 0.16, 1.25, 0.62);
         let sill = v3(sx * 0.24, base.y - 0.25, 0.45);
         let mix = |a: Vec3, b: Vec3, k: f64| v3(a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, a.z + (b.z - a.z) * k);

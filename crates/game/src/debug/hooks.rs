@@ -74,7 +74,7 @@ impl Game {
         for (k, o) in self.world.children().iter().enumerate() {
             let u = o.user();
             let Some(placer) = u.placer.clone() else { continue };
-            let label = u.s.get("kind").map(|k| format!("core_{k}")).unwrap_or(placer);
+            let label = u.s.get("kind").map_or(placer, |k| format!("core_{k}"));
             drop(u);
             by.entry(label).or_default().push((k, o.clone()));
         }
@@ -89,8 +89,7 @@ impl Game {
                     .iter()
                     .map(|(k, o)| (*k, o.pos()))
                     .min_by(|a, c| (a.1.x - cx).hypot(a.1.z - cz).total_cmp(&(c.1.x - cx).hypot(c.1.z - cz)))
-                    .map(|a| a.0)
-                    .unwrap_or(0);
+                    .map_or(0, |a| a.0);
                 for side in [1.0, -1.0] {
                     let (x, z) = if b.along_x { (cx + side * 3.2, cz) } else { (cx, cz + side * 3.2) };
                     if self.circle_hits_wall(x, z, 0.2)
@@ -521,7 +520,7 @@ impl Game {
                         }
                         // long views, from near the middle of the zone
                         let score = run as f64 - 0.15 * ((x as f64 - cx).abs() + (z as f64 - cz).abs());
-                        if best.map(|b| score > b.0).unwrap_or(true) {
+                        if best.is_none_or(|b| score > b.0) {
                             best = Some((score, x, z, dx, dz));
                         }
                     }
@@ -606,7 +605,7 @@ impl Game {
         let depth_mean = reached.iter().map(|&d| d as f64).sum::<f64>() / reached.len().max(1) as f64;
         let depth_max = reached.iter().copied().max().unwrap_or(0);
         let depth_exit =
-            self.exit_data.as_ref().map(|e| from_spawn.get(idx(self.tx(e.pos.x), self.tz(e.pos.z))).copied().unwrap_or(-1)).unwrap_or(-1);
+            self.exit_data.as_ref().map_or(-1, |e| from_spawn.get(idx(self.tx(e.pos.x), self.tz(e.pos.z))).copied().unwrap_or(-1));
         let step = (tiles.len() / 24).max(1);
         let integration = {
             let ints: Vec<f64> = tiles
@@ -620,12 +619,10 @@ impl Game {
                 .collect();
             ints.iter().sum::<f64>() / ints.len().max(1) as f64
         };
-        let rooms = self.layout.as_ref().map(|l| l.rooms.len()).unwrap_or(0);
-        let room_area = self
-            .layout
-            .as_ref()
-            .map(|l| l.rooms.iter().map(|r| ((r.x1 - r.x0 + 1) * (r.z1 - r.z0 + 1)) as f64).sum::<f64>() / l.rooms.len().max(1) as f64)
-            .unwrap_or(0.0);
+        let rooms = self.layout.as_ref().map_or(0, |l| l.rooms.len());
+        let room_area = self.layout.as_ref().map_or(0.0, |l| {
+            l.rooms.iter().map(|r| ((r.x1 - r.x0 + 1) * (r.z1 - r.z0 + 1)) as f64).sum::<f64>() / l.rooms.len().max(1) as f64
+        });
         let sight: Vec<i32> = tiles
             .iter()
             .map(|&(x, z)| {
@@ -672,7 +669,7 @@ impl Game {
         let themes_per_zone = zone_themes.values().map(|t| t.len() as f64).sum::<f64>() / zone_themes.len().max(1) as f64;
         let region = |x: i32, z: i32| self.region_map.get(idx(x, z)).and_then(|&r| self.region_info.get(r as usize));
         let dark = tiles.iter().filter(|&&(x, z)| region(x, z).is_some_and(|r| r.flags & crate::visuals::lighting::RF_DARK != 0)).count();
-        let grime = tiles.iter().map(|&(x, z)| region(x, z).map(|r| r.grime as f64).unwrap_or(0.0)).sum::<f64>() / v;
+        let grime = tiles.iter().map(|&(x, z)| region(x, z).map_or(0.0, |r| r.grime as f64)).sum::<f64>() / v;
         let r4 = |x: f64| (x * 10000.0).round() / 10000.0;
         json!({
             "seed": self.run_seed, "level": self.level_num, "scp": self.level_scp, "weather": self.level_weather.key,
@@ -739,8 +736,8 @@ impl Game {
             // the settled walls a body meets (`settle_props` pins a face where a
             // wall prop's probe misses, and a pillar's end becomes a wall): how
             // many boxes, and a hash of every coordinate
-            "solidBoxes": self.solids.as_ref().map(|s| s.count).unwrap_or(0),
-            "solidsHash": self.solids.as_ref().map(|s| {
+            "solidBoxes": self.solids.as_ref().map_or(0, |s| s.count),
+            "solidsHash": self.solids.as_ref().map_or_default(|s| {
                 let mut x: u64 = 0xcbf2_9ce4_8422_2325;
                 for v in &s.boxes[..s.count * 8] {
                     for b in v.to_bits().to_le_bytes() {
@@ -749,7 +746,7 @@ impl Game {
                     }
                 }
                 format!("{x:016x}")
-            }).unwrap_or_default(),
+            }),
         });
         let entities: Vec<Value> = self
             .entities

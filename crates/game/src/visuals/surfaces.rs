@@ -144,7 +144,7 @@ pub fn damp(rng: Rng, ctx: &mut Canvas, w: f64, h: f64, n: f64, alpha: f64) {
         let top = r2(rng, h * 0.45, h * 0.9);
         let wd = r2(rng, 4.0, 16.0);
         let g = ctx.create_linear_gradient(0, h, 0, h - top);
-        g.add_color_stop(0, &format!("rgba(40,30,12,{})", alpha));
+        g.add_color_stop(0, &format!("rgba(40,30,12,{alpha})"));
         g.add_color_stop(1, "rgba(40,30,12,0)");
         ctx.set_fill_style(&g);
         for dx in [-w, 0.0, w] {
@@ -541,7 +541,7 @@ pub fn make_surfaces(rng: Rng) -> Surfaces {
 impl Surfaces {
     /// The cached texture for `key:g`, built on first use.
     fn get(&self, key: &str, g: i32, build: impl FnOnce(Rng, i32) -> Tex) -> Tex {
-        let k = format!("{}:{}", key, g);
+        let k = format!("{key}:{g}");
         if let Some(t) = self.cache.borrow().get(&k) {
             return t.clone();
         }
@@ -589,7 +589,7 @@ impl Surfaces {
     /// The photographed surface `kind`, decoded once whatever the grime (no
     /// random draw; the grime is the material's tint, `photo_tint`)
     fn photo(&self, kind: &str, _g: i32) -> Option<Tex> {
-        let k = format!("photo:{}", kind);
+        let k = format!("photo:{kind}");
         if let Some(t) = self.cache.borrow().get(&k) {
             return Some(t.clone());
         }

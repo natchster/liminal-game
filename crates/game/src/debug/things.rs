@@ -119,8 +119,7 @@ pub fn parts(g: &Game) -> Vec<Part> {
             let boxy = matches!(geo.type_name(), "box" | "cylinder") && !geo.r().is_prop_part;
             let closed = *closed_of.entry(geo.id()).or_insert_with(|| is_closed(&geo));
             // the static instancing's mesh says what each instance was part of
-            let labels: Vec<String> =
-                o.user().s.get("instance_labels").map(|l| l.split('|').map(String::from).collect()).unwrap_or_default();
+            let labels: Vec<String> = o.user().s.get("instance_labels").map_or_default(|l| l.split('|').map(String::from).collect());
 
             let mw = o.matrix_world();
             let n = if o.is_instanced() { o.instance_count() } else { 1 };
@@ -186,7 +185,7 @@ fn describe(o: &Obj, world: &Box3) -> String {
         }
     }
     let s = world.get_size();
-    let kind = o.try_geo().map(|g| g.type_name()).unwrap_or("?");
+    let kind = o.try_geo().map_or("?", |g| g.type_name());
     let mat = o.try_mat().map(|m| {
         let m = m.r();
         format!(" #{:06x}{}", m.color.get_hex(), if m.map.is_some() { " map" } else { "" })
@@ -216,7 +215,7 @@ fn inside(p: &Part, w: Vec3) -> Option<f64> {
         (l.z - b.min.z) * sz,
         (b.max.z - l.z) * sz,
     ];
-    let depth = d.iter().cloned().fold(f64::MAX, f64::min);
+    let depth = d.iter().copied().fold(f64::MAX, f64::min);
     (depth > INSET).then_some(depth)
 }
 

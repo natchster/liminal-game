@@ -84,12 +84,12 @@ fn level_queries_match_reference() {
         }
         for r in lv["los"].as_array().unwrap() {
             let r = r.as_array().unwrap();
-            assert_eq!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])), r[4].as_bool().unwrap(), "{tag}: los {:?}", r);
+            assert_eq!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])), r[4].as_bool().unwrap(), "{tag}: los {r:?}");
         }
         let circ = |g: &Game, key: &str| {
             for r in lv[key].as_array().unwrap() {
                 let r = r.as_array().unwrap();
-                assert_eq!(g.circle_hits_wall(f(&r[0]), f(&r[1]), f(&r[2])), r[3].as_bool().unwrap(), "{tag}: {key} {:?}", r);
+                assert_eq!(g.circle_hits_wall(f(&r[0]), f(&r[1]), f(&r[2])), r[3].as_bool().unwrap(), "{tag}: {key} {r:?}");
             }
         };
         circ(&g, "circle");
@@ -99,14 +99,14 @@ fn level_queries_match_reference() {
         circ(&g, "circleNoSolids");
         for r in lv["losNoSolids"].as_array().unwrap() {
             let r = r.as_array().unwrap();
-            assert_eq!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])), r[4].as_bool().unwrap(), "{tag}: los (no solids) {:?}", r);
+            assert_eq!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])), r[4].as_bool().unwrap(), "{tag}: los (no solids) {r:?}");
         }
         g.solids = sol;
         g.barricade_tiles.clear();
         for r in lv["alt"].as_array().unwrap() {
             let r = r.as_array().unwrap();
             let blk: Vec<usize> = r[4].as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as usize).collect();
-            assert_eq!(g.alt_path_exists(i(&r[0]), i(&r[1]), i(&r[2]), i(&r[3]), &blk), r[5].as_bool().unwrap(), "{tag}: alt {:?}", r);
+            assert_eq!(g.alt_path_exists(i(&r[0]), i(&r[1]), i(&r[2]), i(&r[3]), &blk), r[5].as_bool().unwrap(), "{tag}: alt {r:?}");
         }
         for r in lv["collide"].as_array().unwrap() {
             let r = r.as_array().unwrap();
@@ -116,21 +116,16 @@ fn level_queries_match_reference() {
         }
         for r in lv["zone"].as_array().unwrap() {
             let r = r.as_array().unwrap();
-            assert_eq!(g.zone_at_tile(i(&r[0]), i(&r[1])).map(|z| z as i64).unwrap_or(-1), r[2].as_i64().unwrap(), "{tag}: zone {:?}", r);
+            assert_eq!(g.zone_at_tile(i(&r[0]), i(&r[1])).map_or(-1, |z| z as i64), r[2].as_i64().unwrap(), "{tag}: zone {r:?}");
         }
         for r in lv["zoneW"].as_array().unwrap() {
             let r = r.as_array().unwrap();
-            assert_eq!(
-                g.zone_at_world(f(&r[0]), f(&r[1])).map(|z| z as i64).unwrap_or(-1),
-                r[2].as_i64().unwrap(),
-                "{tag}: zone_at_world {:?}",
-                r
-            );
-            assert_eq!(g.ceil_at_world(f(&r[0]), f(&r[1])), f(&r[3]), "{tag}: ceil {:?}", r);
+            assert_eq!(g.zone_at_world(f(&r[0]), f(&r[1])).map_or(-1, |z| z as i64), r[2].as_i64().unwrap(), "{tag}: zone_at_world {r:?}");
+            assert_eq!(g.ceil_at_world(f(&r[0]), f(&r[1])), f(&r[3]), "{tag}: ceil {r:?}");
         }
         for r in lv["nav"].as_array().unwrap() {
             let r = r.as_array().unwrap();
-            assert_eq!(g.nav_tile_at(f(&r[0]), f(&r[1])), (i(&r[2]), i(&r[3])), "{tag}: nav {:?}", r);
+            assert_eq!(g.nav_tile_at(f(&r[0]), f(&r[1])), (i(&r[2]), i(&r[3])), "{tag}: nav {r:?}");
         }
         // regions
         let d1 = seeded_draws();
@@ -157,8 +152,7 @@ fn level_queries_match_reference() {
             assert_eq!(
                 (ri.wall as i64, ri.flags as i64, g.region_flags_at(i(&r[0]), i(&r[1])) as i64),
                 (r[2].as_i64().unwrap(), r[3].as_i64().unwrap(), r[4].as_i64().unwrap()),
-                "{tag}: region_at {:?}",
-                r
+                "{tag}: region_at {r:?}"
             );
         }
         // `wall_adj_spot`
@@ -173,12 +167,12 @@ fn level_queries_match_reference() {
                 (Some(s), Some(w)) => {
                     let got = [s.pos.x, s.pos.y, s.pos.z, s.normal.x, s.normal.y, s.normal.z, s.yaw];
                     for k in 0..7 {
-                        assert_eq!(got[k], f(&w[k]), "{tag}: spot {:?} [{k}]", r);
+                        assert_eq!(got[k], f(&w[k]), "{tag}: spot {r:?} [{k}]");
                     }
                     assert_eq!(s.normal.x.is_sign_negative() && s.normal.x == 0.0, w[7].as_i64() == Some(1), "{tag}: spot -0 x");
                     assert_eq!(s.normal.z.is_sign_negative() && s.normal.z == 0.0, w[8].as_i64() == Some(1), "{tag}: spot -0 z");
                 }
-                _ => panic!("{tag}: spot {:?} presence", r),
+                _ => panic!("{tag}: spot {r:?} presence"),
             }
         }
         let got = with_seed(seed + 99, || {
@@ -193,7 +187,7 @@ fn level_queries_match_reference() {
                 .collect::<Vec<_>>()
         });
         for (a, r) in got.iter().zip(lv["angles"].as_array().unwrap()) {
-            assert_eq!(*a, f(&r[1]), "{tag}: angle {:?}", r);
+            assert_eq!(*a, f(&r[1]), "{tag}: angle {r:?}");
         }
         for r in lv["pans"].as_array().unwrap() {
             let r = r.as_array().unwrap();
@@ -201,7 +195,7 @@ fn level_queries_match_reference() {
             g.player.yaw = f(&r[2]);
             // (sin / cos of the yaw: the platform libm and the recording's may differ in the last bit)
             let p = g.pan_for_world_pos(f(&r[3]), f(&r[4]));
-            assert!((p - f(&r[5])).abs() < 1e-13, "{tag}: pan {:?} got {p}", r);
+            assert!((p - f(&r[5])).abs() < 1e-13, "{tag}: pan {r:?} got {p}");
         }
     }
 }
@@ -290,7 +284,7 @@ fn rerecord_level_queries() {
         let zone: Vec<Value> = rows(lv, "zone")
             .into_iter()
             .map(|mut r| {
-                r[2] = json!(g.zone_at_tile(i(&r[0]), i(&r[1])).map(|z| z as i64).unwrap_or(-1));
+                r[2] = json!(g.zone_at_tile(i(&r[0]), i(&r[1])).map_or(-1, |z| z as i64));
                 json!(r)
             })
             .collect();
@@ -298,7 +292,7 @@ fn rerecord_level_queries() {
         let zone_w: Vec<Value> = rows(lv, "zoneW")
             .into_iter()
             .map(|mut r| {
-                r[2] = json!(g.zone_at_world(f(&r[0]), f(&r[1])).map(|z| z as i64).unwrap_or(-1));
+                r[2] = json!(g.zone_at_world(f(&r[0]), f(&r[1])).map_or(-1, |z| z as i64));
                 r[3] = num(g.ceil_at_world(f(&r[0]), f(&r[1])));
                 json!(r)
             })
@@ -395,7 +389,7 @@ fn decay_and_themes_match_reference() {
         if n.is_none() {
             g.level_num = 6 + game::level::building::BUILDING_FLOORS;
         }
-        assert_eq!(g.level_decay(n), f(&r[1]), "decay {:?}", r);
+        assert_eq!(g.level_decay(n), f(&r[1]), "decay {r:?}");
     }
     for r in fx["themes"].as_array().unwrap() {
         assert_eq!(g.placer_theme(r[0].as_str().unwrap()), r[1].as_str().unwrap(), "theme of {}", r[0]);

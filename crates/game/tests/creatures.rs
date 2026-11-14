@@ -17,9 +17,9 @@ fn creatures_match_reference() {
             "geometry" => {
                 let g = creature_geometry(&c.name).expect("part");
                 let gg = g.r();
-                assert_eq!(gg.vertex_count().to_string(), c.result["n"], "{}", what);
-                assert_eq!((gg.index.as_ref().unwrap().len() / 3).to_string(), c.result["t"], "{}", what);
-                assert_eq!(gg.bone_names.join(","), c.result["bones"], "{}: bones", what);
+                assert_eq!(gg.vertex_count().to_string(), c.result["n"], "{what}");
+                assert_eq!((gg.index.as_ref().unwrap().len() / 3).to_string(), c.result["t"], "{what}");
+                assert_eq!(gg.bone_names.join(","), c.result["bones"], "{what}: bones");
                 c.rec("position").check(&what, &f32s(&gg.position), TOL);
                 c.rec("normal").check(&what, &f32s(&gg.normal), TOL);
                 c.rec("uv").check(&what, &f32s(&gg.uv), TOL);
@@ -47,12 +47,12 @@ fn creatures_match_reference() {
                 let s = b.bounding_sphere.unwrap();
                 c.rec("sphere").check(&what, &[s.center.x, s.center.y, s.center.z, s.radius], TOL);
                 for i in 0..w.morphs {
-                    c.rec(&format!("mp{}", i)).check(&what, &f32s(&b.morph_position[i]), TOL);
-                    c.rec(&format!("mn{}", i)).check(&what, &f32s(&b.morph_normal[i]), TOL);
-                    c.rec(&format!("mc{}", i)).check(&what, &f32s(&w.morph_color[i]), TOL);
+                    c.rec(&format!("mp{i}")).check(&what, &f32s(&b.morph_position[i]), TOL);
+                    c.rec(&format!("mn{i}")).check(&what, &f32s(&b.morph_normal[i]), TOL);
+                    c.rec(&format!("mc{i}")).check(&what, &f32s(&w.morph_color[i]), TOL);
                 }
             }
-            k => panic!("unknown case kind {}", k),
+            k => panic!("unknown case kind {k}"),
         }
     }
     // every part: counts and sums
@@ -64,11 +64,11 @@ fn creatures_match_reference() {
         let (vn, tn) = (r.u32() as usize, r.u32() as usize);
         let sums: Vec<f64> = (0..7).map(|_| r.f64()).collect();
         let m = creature_part_info(&name).unwrap();
-        assert_eq!((m.n, m.t), (vn, tn), "{}: metadata", name);
+        assert_eq!((m.n, m.t), (vn, tn), "{name}: metadata");
         let g = creature_geometry(&name).unwrap();
         let gg = g.r();
-        assert_eq!(gg.vertex_count(), vn, "{}", name);
-        assert_eq!(gg.index.as_ref().unwrap().len(), tn * 3, "{}", name);
+        assert_eq!(gg.vertex_count(), vn, "{name}");
+        assert_eq!(gg.index.as_ref().unwrap().len(), tn * 3, "{name}");
         let sum = |a: &[f32]| a.iter().fold(0.0f64, |t, &x| t + x as f64);
         let tol = 1e-5 * vn as f64 + 1e-6;
         for (k, (label, a)) in [
@@ -85,7 +85,7 @@ fn creatures_match_reference() {
             assert!((sum(a) - sums[k]).abs() <= tol, "{}: {} sum {} vs recorded {}", name, label, sum(a), sums[k]);
         }
         let isum = gg.index.as_ref().unwrap().iter().fold(0.0f64, |t, &x| t + x as f64);
-        assert_eq!(isum, sums[6], "{}: index sum", name);
+        assert_eq!(isum, sums[6], "{name}: index sum");
     }
     assert!(r.done());
 }
@@ -98,18 +98,18 @@ fn decodes_every_part() {
         let m = creature_part_info(name).unwrap();
         let g = Geo_of(name);
         let gg = g.r();
-        assert_eq!(gg.vertex_count(), m.n, "{}", name);
-        assert_eq!(gg.index.as_ref().unwrap().len(), m.t * 3, "{}", name);
-        assert!(gg.index.as_ref().unwrap().iter().all(|&i| (i as usize) < m.n), "{}: index out of range", name);
+        assert_eq!(gg.vertex_count(), m.n, "{name}");
+        assert_eq!(gg.index.as_ref().unwrap().len(), m.t * 3, "{name}");
+        assert!(gg.index.as_ref().unwrap().iter().all(|&i| (i as usize) < m.n), "{name}: index out of range");
         assert_eq!(gg.normal.len(), m.n * 3);
         assert_eq!(gg.uv.len(), m.n * 2);
-        assert_eq!(gg.color.is_empty(), !m.has_color, "{}", name);
+        assert_eq!(gg.color.is_empty(), !m.has_color, "{name}");
         if m.skinned {
             assert_eq!(gg.skin_index.len(), m.n * 4);
             assert!(!gg.bone_names.is_empty());
-            assert!(gg.skin_index.iter().all(|&j| (j as usize) < gg.bone_names.len()), "{}: bone slot out of range", name);
+            assert!(gg.skin_index.iter().all(|&j| (j as usize) < gg.bone_names.len()), "{name}: bone slot out of range");
             for w in gg.skin_weight.as_chunks::<4>().0 {
-                assert!((w.iter().sum::<f32>() - 1.0).abs() < 0.02, "{}: weights sum to 255", name);
+                assert!((w.iter().sum::<f32>() - 1.0).abs() < 0.02, "{name}: weights sum to 255");
             }
         }
         assert!(gg.position.iter().all(|x| x.is_finite()));
@@ -117,7 +117,7 @@ fn decodes_every_part() {
     assert!(creature_geometry("noSuchPart").is_none());
 }
 
-#[allow(non_snake_case)]
+#[expect(non_snake_case, reason = "named for the engine's `Geo` it returns")]
 fn Geo_of(name: &str) -> engine::geometry::Geo {
     creature_geometry(name).unwrap()
 }

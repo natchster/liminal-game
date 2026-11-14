@@ -273,7 +273,7 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
     let home = home_for(g, cx, opts.home.as_ref());
     let mut row: Option<Row> = None;
     for _i in 0..count {
-        let in_row = row.as_ref().map(|r| r.left > 0).unwrap_or(false);
+        let in_row = row.as_ref().is_some_and(|r| r.left > 0);
         let c = if in_row { row.as_ref().map(|r| r.c) } else { take_home(g, cx, home.as_deref(), opts.wall) };
         let Some(c) = c else { return };
         let built = builder(g, cx);

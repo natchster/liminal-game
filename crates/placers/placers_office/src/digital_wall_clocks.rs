@@ -102,7 +102,7 @@ game::lazy_static_tex!(
         let mins = ["00", "34", "11", "33", "66"];
         let hh = hours[(rnd() * hours.len() as f64).floor() as usize];
         let mm = mins[(rnd() * mins.len() as f64).floor() as usize];
-        let t = format!("{}:{}", hh, mm);
+        let t = format!("{hh}:{mm}");
         ctx.fill_text(&t, w / 2.0, h / 2.0);
     })
 );

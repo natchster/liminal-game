@@ -296,18 +296,15 @@ impl AsideMemory {
     pub fn from_json(v: Option<&serde_json::Value>) -> AsideMemory {
         let Some(v) = v else { return AsideMemory::default() };
         let strs = |k: &str| -> Vec<String> {
-            v.get(k).and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default()
+            v.get(k).and_then(|a| a.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect())
         };
         let counts = |k: &str, known: &dyn Fn(&str) -> bool| -> std::collections::BTreeMap<String, u32> {
-            v.get(k)
-                .and_then(|h| h.as_object())
-                .map(|h| {
-                    h.iter()
-                        .filter(|(k, _)| known(k))
-                        .filter_map(|(k, n)| n.as_u64().map(|n| (k.clone(), n.min(u32::MAX as u64) as u32)))
-                        .collect()
-                })
-                .unwrap_or_default()
+            v.get(k).and_then(|h| h.as_object()).map_or_default(|h| {
+                h.iter()
+                    .filter(|(k, _)| known(k))
+                    .filter_map(|(k, n)| n.as_u64().map(|n| (k.clone(), n.min(u32::MAX as u64) as u32)))
+                    .collect()
+            })
         };
         let of_a_use = |k: &str| k.split(':').next().and_then(Use::from_name).is_some();
         AsideMemory {
@@ -895,7 +892,7 @@ mod tests {
         assert!(distinct.len() >= 3, "runs begin with different lines: {distinct:?}");
         let temper: Vec<f64> = (1..40).map(temperament).collect();
         assert!(temper.iter().all(|t| (0.65..1.0).contains(t)));
-        let spread = temper.iter().cloned().fold(0.0, f64::max) - temper.iter().cloned().fold(1.0, f64::min);
+        let spread = temper.iter().copied().fold(0.0, f64::max) - temper.iter().copied().fold(1.0, f64::min);
         assert!(spread > 0.2, "some runs talk more than others: {spread:.2}");
         assert_eq!(roll(Use::Startle, 9, 3), roll(Use::Startle, 9, 3));
         assert_ne!(roll(Use::Startle, 9, 3), roll(Use::Startle, 9, 4));

@@ -201,8 +201,7 @@ pub fn tour(o: &Options, dir: &str) {
                     things::in_sight(&e, f.at)
                 })
                 .min_by(|a, b| things::d2((a.x, a.y, a.z), f.at).total_cmp(&things::d2((b.x, b.y, b.z), f.at)))
-                .map(|v| v.name.clone())
-                .unwrap_or_default();
+                .map_or_default(|v| v.name.clone());
             found.push((seen_from, f));
         }
         let (rows, flagged) = things::gather(&found);
@@ -241,7 +240,6 @@ const SHEET_PAGES: usize = 4;
 const PAGE: usize = 48;
 
 /// The level's contact sheets (see the module's head)
-#[allow(clippy::too_many_arguments)]
 fn write_sheets(
     ldir: &str,
     mut gaps: Vec<(usize, Tile)>,
@@ -342,7 +340,6 @@ fn th_of(h: usize) -> u32 {
 /// the look if rendered, the bare render, the gaps mask, the flicker mask,
 /// the two turned renders). The four bare renders always; the look (the
 /// HUD on) when `want_look` or the pixel detectors flag the view
-#[allow(clippy::type_complexity)]
 fn render_view(
     g: &mut Game,
     r: &mut Renderer,
@@ -419,7 +416,7 @@ fn render_view(
             let (hx, hy, hz) = (v.x + d.0 * t, v.y + d.1 * t, v.z + d.2 * t);
             let (tx, tz) = (g.tx(hx), g.tz(hz));
             let gr = g.ground.get(g.t_idx(tx, tz)).copied();
-            let sid = g.solids.as_ref().map(|s| game::level::archgen::point_in_solid(s, g.to_u(hx), g.to_v(hz), hy)).unwrap_or(-9);
+            let sid = g.solids.as_ref().map_or(-9, |s| game::level::archgen::point_in_solid(s, g.to_u(hx), g.to_v(hz), hy));
             eprintln!(
                 "px {px},{py} dir {:.3},{:.3},{:.3} t {t:.2} hit {hx:.2},{hy:.2},{hz:.2} tile {tx},{tz} ground {gr:?} solid {sid} wall {}",
                 d.0,
@@ -433,7 +430,7 @@ fn render_view(
     // line is not counted)
     let (_, _, flicker) = sight::fights(&sight::flicker_mask(&a, &plus, &minus, &bg, w, h), w, h);
     let count = |m: &[bool]| m.iter().filter(|&&b| b).count();
-    let largest = |m: &[bool]| sight::blobs(m, w, h).first().map(|b| b.n).unwrap_or(0);
+    let largest = |m: &[bool]| sight::blobs(m, w, h).first().map_or(0, |b| b.n);
     let seen = Seen {
         background: count(&bg),
         gaps: count(&gaps),

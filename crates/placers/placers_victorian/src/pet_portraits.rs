@@ -52,8 +52,8 @@ game::lazy_static_tex!(
             // Dog body — larger elongated ellipse w/ head above.
             let body_colors = ["#805030", "#4a3020", "#c0a070", "#e0c890", "#302015"];
             let body_color = choice(&body_colors);
-            let c_aa = format!("{}aa", body_color);
-            let c_00 = format!("{}00", body_color);
+            let c_aa = format!("{body_color}aa");
+            let c_00 = format!("{body_color}00");
             // Body ellipse.
             let body_grad = ctx.create_radial_gradient(cx, cy + 20.0, 8, cx, cy + 20.0, 55);
             body_grad.add_color_stop(0, body_color);
@@ -99,8 +99,8 @@ game::lazy_static_tex!(
             // Cat body — smaller, more compact ellipse.
             let cat_colors = ["#404040", "#a08050", "#f0e0d0", "#8b5a20", "#606060"];
             let cat_color = choice(&cat_colors);
-            let c_aa = format!("{}aa", cat_color);
-            let c_00 = format!("{}00", cat_color);
+            let c_aa = format!("{cat_color}aa");
+            let c_00 = format!("{cat_color}00");
             // Body — squat oval.
             let body_grad = ctx.create_radial_gradient(cx, cy + 25.0, 8, cx, cy + 25.0, 45);
             body_grad.add_color_stop(0, cat_color);
@@ -203,6 +203,6 @@ game::lazy_static_tex!(
         let y1 = 1970 + (rnd() * 20.0).floor() as i64;
         let y2 = y1 + 8 + (rnd() * 8.0).floor() as i64;
         ctx.set_font("italic 11px cursive");
-        ctx.fill_text(&format!("{} - {}", y1, y2), w / 2.0, h - 6.0);
+        ctx.fill_text(&format!("{y1} - {y2}"), w / 2.0, h - 6.0);
     })
 );

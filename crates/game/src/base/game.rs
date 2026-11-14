@@ -1383,7 +1383,7 @@ impl Game {
     // ------------------------------------------------------------ audio helpers
     /// Current audio-clock time (0 without audio)
     pub fn ac_time(&self) -> f64 {
-        self.ac.as_ref().map(|a| a.current_time()).unwrap_or(0.0)
+        self.ac.as_ref().map_or(0.0, |a| a.current_time())
     }
     /// A one-shot's level and pan after `sfx_route` (its gain, and its pan
     /// for a voice without one of its own)
@@ -1452,7 +1452,6 @@ impl Game {
     /// gliding to `rate_to` (the slips of stick and slip), each ringing a
     /// band at `freq` (Q `q`) as it strikes; swelling in over 40 ms and
     /// falling away over `dur`. Oscillators only: it draws nothing
-    #[allow(clippy::too_many_arguments)]
     pub fn creak(&self, rate: f64, rate_to: f64, freq: f64, q: f64, gain: f64, dur: f64, delay: f64) {
         let (Some(ac), Some(master)) = (&self.ac, &self.master) else { return };
         let (gain, pan) = self.routed(gain, 0.0);

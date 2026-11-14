@@ -395,7 +395,7 @@ impl Cutscene {
                 break;
             }
             // what the veil was when this fade began
-            let until = self.fade.get(i + 1).map(|n| n.t.min(t)).unwrap_or(t);
+            let until = self.fade.get(i + 1).map_or(t, |n| n.t.min(t));
             let k = if f.over > 0.0 { smooth(until, f.t, f.t + f.over) } else { 1.0 };
             v = lerp(v, f.to, k);
             colour = f.colour.clone();

@@ -939,7 +939,7 @@ impl Canvas {
             CGContextSetTextPosition(self.ctx, 0.0, 0.0);
             let col = |s: &Style| match s {
                 Style::Color(c) => *c,
-                Style::Gradient(g) => g.0.borrow().stops.first().map(|s| s.1).unwrap_or([0.0, 0.0, 0.0, 1.0]),
+                Style::Gradient(g) => g.0.borrow().stops.first().map_or([0.0, 0.0, 0.0, 1.0], |s| s.1),
             };
             if stroke {
                 let c = col(&self.st.stroke);

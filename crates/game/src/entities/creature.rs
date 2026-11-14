@@ -213,7 +213,7 @@ impl RunMemory {
     pub fn from_json(v: Option<&serde_json::Value>) -> RunMemory {
         let Some(v) = v else { return RunMemory::default() };
         let strs = |k: &str| -> Vec<String> {
-            v.get(k).and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default()
+            v.get(k).and_then(|a| a.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect())
         };
         let known = |k: &String| LEARNS.iter().any(|(kind, _, _)| kind == k);
         RunMemory {
@@ -221,8 +221,7 @@ impl RunMemory {
             habits: v
                 .get("habits")
                 .and_then(|h| h.as_object())
-                .map(|h| h.iter().filter_map(|(k, n)| n.as_u64().map(|n| (k.clone(), n.min(u32::MAX as u64) as u32))).collect())
-                .unwrap_or_default(),
+                .map_or_default(|h| h.iter().filter_map(|(k, n)| n.as_u64().map(|n| (k.clone(), n.min(u32::MAX as u64) as u32))).collect()),
             learned: strs("learned").into_iter().filter(known).collect(),
             learned_on: v.get("learnedOn").and_then(|x| x.as_i64()).map(|x| x as i32),
             shown: strs("shown").into_iter().filter(known).collect(),
@@ -270,7 +269,7 @@ impl Game {
         if let Some(s) = body.skins.first() {
             parts.insert("skin".into(), s.clone());
         }
-        let head_y = body.ix("head").map(|i| body.head(i).y).unwrap_or(1.0);
+        let head_y = body.ix("head").map_or(1.0, |i| body.head(i).y);
         let c = Creature {
             brain: Brain::new(Mode::Roam),
             body: std::rc::Rc::new(body),
@@ -417,7 +416,7 @@ impl Game {
         let now = self.perf_t;
         let Some(c) = self.creature(ei) else { return false };
         let tells = c.tells.iter().filter(|t| now - **t < TELL_WINDOW).count();
-        let noticed = c.noticed_at.map(|t| now - t >= NOTICE_GRACE).unwrap_or(false);
+        let noticed = c.noticed_at.is_some_and(|t| now - t >= NOTICE_GRACE);
         // (nothing strikes while a cutscene has your hands)
         tells >= TELLS_TO_STRIKE && noticed && now - self.level_start_t >= LEVEL_GRACE && !self.hands_taken()
     }
@@ -437,7 +436,7 @@ impl Game {
         e.vx = 0.0;
         e.vz = 0.0;
         let first = !self.creature_run.met.contains(&kind);
-        let touch = self.creature(ei).map(|c| c.data.touch_nerve).unwrap_or(0.0);
+        let touch = self.creature(ei).map_or(0.0, |c| c.data.touch_nerve);
         let lethal = if touch > 0.0 {
             // a touch that takes your nerve kills only a mind already gone
             // (spent before it touches), and never at a first meeting
@@ -545,7 +544,7 @@ impl Game {
     /// A burst at you (a lunge, a spring): fast, but short (design 3, invariant 4).
     pub fn creature_burst(&mut self, ei: usize, speed: f64, dt: f64) {
         let speed = speed.min(BURST_CAP);
-        let used = self.creature(ei).map(|c| c.burst_m).unwrap_or(BURST_LEN);
+        let used = self.creature(ei).map_or(BURST_LEN, |c| c.burst_m);
         let sp = if used < BURST_LEN { speed } else { self.chase_cap().min(speed) };
         let before = self.entities[ei].pos();
         let pf = self.player_field.clone();
@@ -591,7 +590,7 @@ impl Game {
             }
         }
         kind_think(self, ei, dt);
-        let mode = self.creature(ei).map(|c| c.brain.mode).unwrap_or_default();
+        let mode = self.creature(ei).map_or_default(|c| c.brain.mode);
         // (the one in the corner holding in its corner is nothing to the
         // director: as a search, it had kept the tension and the heartbeat
         // up and every peak open on its level, wherever you were)

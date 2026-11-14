@@ -1,6 +1,5 @@
 //! The scene graph: nodes with a transform (position, rotation/quaternion, scale)
 //! and a kind: groups, meshes, lights, sprites, points, bones, cameras.
-#![allow(clippy::new_ret_no_self)]
 
 use crate::geometry::*;
 use crate::material::*;
@@ -612,7 +611,7 @@ impl Obj {
         RefMut::map(self.0.borrow_mut(), |n| n.light_mut().expect("not a light"))
     }
     pub fn intensity(&self) -> f64 {
-        self.0.borrow().light().map(|l| l.intensity).unwrap_or(0.0)
+        self.0.borrow().light().map_or(0.0, |l| l.intensity)
     }
     pub fn set_intensity(&self, v: impl Num) -> &Self {
         if let Some(l) = self.0.borrow_mut().light_mut() {
@@ -621,7 +620,7 @@ impl Obj {
         self
     }
     pub fn light_color(&self) -> Color {
-        self.0.borrow().light().map(|l| l.color).unwrap_or_default()
+        self.0.borrow().light().map_or_default(|l| l.color)
     }
     /// The spot / directional light's target node.
     pub fn target(&self) -> Option<Obj> {

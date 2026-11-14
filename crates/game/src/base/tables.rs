@@ -1,7 +1,6 @@
 //! Per-weather tuning tables. Each `foo_by_weather(key)` returns the value
 //! for a weather key, or `None` where the table has no entry for it, so every
 //! caller keeps its own fallback (the `normal` entry, `1.0`, ...).
-#![allow(clippy::excessive_precision, clippy::approx_constant)]
 
 /// Safe-room hum LFO rate multiplier.
 pub fn lfo_weather_mul(key: &str) -> Option<f64> {

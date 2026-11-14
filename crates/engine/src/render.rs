@@ -3,7 +3,6 @@
 //! Lambert / Phong with point, spot, hemisphere, ambient and directional lights
 //! and exponential-squared fog), then composites the HUD and the CSS-style
 //! overlay layers.
-#![allow(clippy::too_many_arguments)]
 
 use crate::geometry::Geometry;
 use crate::material::*;
@@ -360,7 +359,7 @@ impl Renderer {
     pub fn new(device: Retained<Dev>) -> Renderer {
         let queue = device.newCommandQueue().expect("command queue");
         let opts = MTLCompileOptions::new();
-        #[allow(deprecated)] // `setMathMode` needs macOS 15; the app runs on macOS 12+
+        #[expect(deprecated, reason = "`setMathMode` needs macOS 15; the app runs on macOS 12+")]
         opts.setFastMathEnabled(false);
         let lib = device
             .newLibraryWithSource_options_error(&ns(SHADER_SRC), Some(&opts))
@@ -477,7 +476,7 @@ impl Renderer {
             morphs: gg.morph_position.len(),
             index: gg.index.as_ref().filter(|i| !i.is_empty()).map(|i| new_buffer(d, bytemuck_u32(i))),
             vcount,
-            icount: gg.index.as_ref().map(|i| i.len()).unwrap_or(vcount),
+            icount: gg.index.as_ref().map_or(vcount, |i| i.len()),
         };
         drop(gg);
         self.geos.insert(id, e);
@@ -889,7 +888,7 @@ impl Renderer {
                 Kind::SpotLight(l) => {
                     let mut vp = wp;
                     vp.apply_matrix4(&view);
-                    let tw = l.target.as_ref().map(|t| t.r().matrix_world.get_position()).unwrap_or(Vec3::ZERO);
+                    let tw = l.target.as_ref().map_or(Vec3::ZERO, |t| t.r().matrix_world.get_position());
                     let mut dir = wp;
                     dir.sub(&tw);
                     dir.transform_direction(&view);
@@ -1216,7 +1215,7 @@ impl Renderer {
             &it.mat,
             it.geo.as_ref(),
             inst.is_some(),
-            inst.as_ref().map(|i| i.colors.is_some()).unwrap_or(false),
+            inst.as_ref().is_some_and(|i| i.colors.is_some()),
             skinned.is_some(),
             !morph_inf.is_empty(),
             kind_v,
@@ -1233,7 +1232,7 @@ impl Renderer {
         let ds = self.depth_state(m.depth_test, m.depth_write);
         enc.setDepthStencilState(Some(&ds));
         enc.setCullMode(match (key.v.kind, m.side) {
-            (3, _) | (5, _) => MTLCullMode::None,
+            (3 | 5, _) => MTLCullMode::None,
             (_, Side::Front) => MTLCullMode::Back,
             (_, Side::Back) => MTLCullMode::Front,
             (_, Side::Double) => MTLCullMode::None,
@@ -1440,7 +1439,7 @@ impl Renderer {
         let mut inst_bufs = None;
         if let Some(inst) = &inst {
             let oid = it.obj.id();
-            let fresh = self.insts.get(&oid).map(|e| e.version != inst.version).unwrap_or(true);
+            let fresh = self.insts.get(&oid).is_none_or(|e| e.version != inst.version);
             if fresh {
                 let mut data: Vec<f32> = Vec::with_capacity(inst.matrices.len() * 16);
                 for mm in &inst.matrices {
@@ -1521,7 +1520,7 @@ impl Renderer {
         if count == 0 {
             return;
         }
-        let instances = inst.as_ref().map(|i| i.count.min(i.matrices.len())).unwrap_or(1);
+        let instances = inst.as_ref().map_or(1, |i| i.count.min(i.matrices.len()));
         unsafe {
             match &g.index {
                 Some(ib) => enc.drawIndexedPrimitives_indexCount_indexType_indexBuffer_indexBufferOffset_instanceCount(

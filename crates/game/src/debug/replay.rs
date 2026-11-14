@@ -264,7 +264,7 @@ impl Game {
         for v in [d.menace, d.tension, d.t] {
             h.f(v);
         }
-        h.f(d.stalker.map(|s| s as f64).unwrap_or(-1.0));
+        h.f(d.stalker.map_or(-1.0, |s| s as f64));
         let director = h.0;
         let mut h = Fnv::new();
         h.f(self.level_num as f64);

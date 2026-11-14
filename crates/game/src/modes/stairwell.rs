@@ -80,7 +80,6 @@ impl Default for StairDeps {
 }
 
 // ------------------------------------------------------------- constants ---
-#[allow(non_camel_case_types)]
 pub struct STAIR;
 impl STAIR {
     pub const STEPS: i32 = 13;
@@ -340,7 +339,7 @@ impl Stairwell {
             for _ in 0..2600 {
                 let c = if rng.next() < 0.5 { "0,0,0" } else { "255,255,255" };
                 let a = rng.range(0.02, 0.08);
-                ctx.set_fill_style(format!("rgba({},{})", c, a));
+                ctx.set_fill_style(format!("rgba({c},{a})"));
                 let (x, y, ww, hh) = (rng.next() * w, rng.next() * h, rng.range(1.0, 3.0), rng.range(1.0, 3.0));
                 ctx.fill_rect(x, y, ww, hh);
             }

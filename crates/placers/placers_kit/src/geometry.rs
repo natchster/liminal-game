@@ -26,7 +26,7 @@ pub fn clone_obj(o: &Obj) -> Obj {
 
 /// The bounds (frame) part `name` was modelled in
 pub fn frame(name: &str) -> ([f64; 3], [f64; 3]) {
-    prop_part_info(name).map(|m| (m.fmin, m.fmax)).unwrap_or(([-0.05; 3], [0.05; 3]))
+    prop_part_info(name).map_or(([-0.05; 3], [0.05; 3]), |m| (m.fmin, m.fmax))
 }
 
 /// The four bars of a picture frame, each `(bar_w, bar_h, bx, by)`.

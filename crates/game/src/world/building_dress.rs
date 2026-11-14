@@ -408,7 +408,6 @@ impl Game {
     /// side `d`, its floor at `h` and the building round it up to `top`; a
     /// ceiling of its own (when `ceiling` is not the wall's) as a slab under
     /// the building over it, from the back wall to the front wall's inner face
-    #[allow(clippy::too_many_arguments)]
     fn over_and_under(&self, parts: &mut Parts, wall: usize, ceiling: usize, (x, z): (i32, i32), d: usize, h: f64, top: f64) {
         let (cx, cz) = (self.wx(x), self.wz(z));
         let slab = if ceiling == wall { 0.0 } else { 0.12 };

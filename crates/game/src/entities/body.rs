@@ -201,7 +201,7 @@ impl BodyRig {
             return;
         }
         d.multiply_scalar(1.0 / l);
-        let parent = self.def.bones[i].parent.map(|p| self.body_rot(p)).unwrap_or(Quat::IDENTITY);
+        let parent = self.def.bones[i].parent.map_or(Quat::IDENTITY, |p| self.body_rot(p));
         let world = qmul(&from_to(&self.rest_dir[i], &d), &axis_angle(&self.rest_dir[i], twist));
         self.bones[i].set_quat(&qmul(&qinv(&parent), &world));
     }

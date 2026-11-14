@@ -126,7 +126,7 @@ pub(crate) fn uv_part(name: &str, wrap_u: bool, f: impl Fn([f64; 3], [f64; 3]) -
             let mut dup: Vec<(u32, u32)> = vec![];
             for t in idx.as_chunks_mut::<3>().0 {
                 let us = [uv[t[0] as usize * 2], uv[t[1] as usize * 2], uv[t[2] as usize * 2]];
-                let (lo, hi) = (us.iter().cloned().fold(9.0f32, f32::min), us.iter().cloned().fold(-9.0f32, f32::max));
+                let (lo, hi) = (us.iter().copied().fold(9.0f32, f32::min), us.iter().copied().fold(-9.0f32, f32::max));
                 if hi - lo <= 0.5 {
                     continue;
                 }

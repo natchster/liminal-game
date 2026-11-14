@@ -46,7 +46,7 @@ impl Element {
             }
             return;
         }
-        if self.style.get(&k).map(|x| x == v) != Some(true) {
+        if self.style.get(&k).is_none_or(|x| x != v) {
             self.style.insert(k, v.to_string());
             self.version += 1;
         }
@@ -99,7 +99,7 @@ impl Element {
         self.classes.contains(c)
     }
     pub fn set_attr(&mut self, k: &str, v: &str) {
-        if self.attrs.get(k).map(|x| x == v) != Some(true) {
+        if self.attrs.get(k).is_none_or(|x| x != v) {
             self.attrs.insert(k.to_string(), v.to_string());
             self.version += 1;
         }

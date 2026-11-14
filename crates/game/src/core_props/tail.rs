@@ -284,8 +284,7 @@ impl Game {
             b
         });
         // where the page lies in its texture (the part's bounds give its UVs)
-        let bounds =
-            prop_part_info("Real__noteSheet").map(|m| (m.fmin[0], m.fmax[0], m.fmin[2], m.fmax[2])).unwrap_or((0.0, NOTE_W, 0.0, 0.18));
+        let bounds = prop_part_info("Real__noteSheet").map_or((0.0, NOTE_W, 0.0, 0.18), |m| (m.fmin[0], m.fmax[0], m.fmin[2], m.fmax[2]));
         let sheet = mesh(sheet_geo.clone(), lambert!({ map: &note_paper_tex(bounds) }));
         sheet.rotation().y = th;
         sheet.set_pos(sx, 0, sz);
@@ -343,7 +342,7 @@ impl Game {
     /// the wall: `docs/design/SECRETS.md` 3).
     fn tail_lore_notes(&mut self, cx: &mut PropsCtx) {
         let n = s_lore_count(self);
-        let has_scp = |g: &Game, i: usize| s_lore_scp(g, i).map(|s| !s.is_empty()).unwrap_or(false);
+        let has_scp = |g: &Game, i: usize| s_lore_scp(g, i).is_some_and(|s| !s.is_empty());
         // prefer ids the player hasn't found; anomaly notes never join the pool
         let mut unread = vec![];
         for i in 0..n {
@@ -851,7 +850,7 @@ impl Game {
             g.pos(),
             1.2,
             "[E] TAP THE VACUUM",
-            move |gm| gm.vacuum_bot.as_ref().map(|v| fv(v, "chaseT") <= 0.0 && v.follow_t <= 0.0 && fv(v, "stunT") <= 0.0).unwrap_or(false),
+            move |gm| gm.vacuum_bot.as_ref().is_some_and(|v| fv(v, "chaseT") <= 0.0 && v.follow_t <= 0.0 && fv(v, "stunT") <= 0.0),
             |gm| {
                 if gm.vacuum_bot.is_none() {
                     return;
@@ -935,7 +934,7 @@ impl Game {
             // frayed edge + fabric weave
             for _ in 0..400 {
                 let (r, gg, b, a) = (irand(90, 140), irand(20, 40), irand(20, 40), rand2(0.15, 0.5));
-                ctx.set_fill_style(format!("rgba({},{},{},{})", r, gg, b, a));
+                ctx.set_fill_style(format!("rgba({r},{gg},{b},{a})"));
                 ctx.fill_rect(rand1(w), rand1(h), rand2(1.0, 2.0), rand2(1.0, 2.0));
             }
             // gold border
@@ -1217,7 +1216,7 @@ impl Game {
             use_pos,
             1.4,
             "[E] PEER INTO THE SHAFT",
-            |gm| !gm.broken_elevator.as_ref().map(|b| b.peered).unwrap_or(false),
+            |gm| !gm.broken_elevator.as_ref().is_some_and(|b| b.peered),
             // the look into the black, a cutscene (`cutscene::uses`, `docs/design/CUTSCENES.md`)
             |gm| gm.peer_into_shaft(),
         );

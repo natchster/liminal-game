@@ -169,7 +169,7 @@ fn fern_tex(state: usize, back: bool) -> Tex {
                 let n = fbm(seed, x * 300.0, z * 300.0, 3);
                 let mut c = mix_unclamped(green, mul(green, 0.8), n);
                 // drying from the tips and the margins inward
-                let (a, across) = seg.map(|(a, c, _)| (a, c)).unwrap_or((0.0, 0.0));
+                let (a, across) = seg.map_or((0.0, 0.0), |(a, c, _)| (a, c));
                 let dry = match state {
                     0 => sstep(0.72, 0.98, a) * 0.8,
                     1 => 0.35 + 0.5 * sstep(0.5, 0.95, a),

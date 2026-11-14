@@ -12,6 +12,16 @@
   `[workspace.dependencies]` (every external and internal dependency, used
   as `foo = { workspace = true }`), and `[workspace.lints]` (each crate opts
   in with `[lints] workspace = true`).
+* **Lints.** A lint silenced in the code says why:
+  `#[expect(lint, reason = "…")]`, which warns once the lint no longer
+  fires, so a stale silence is found; `#[allow(lint, reason = "…")]` only
+  where the lint holds in some builds and not others (the test helpers
+  several test binaries share). What the whole workspace allows is in
+  `[workspace.lints]`, with its reason, and is never repeated in the code.
+  The workspace also holds the code to the current language's forms:
+  names inline in format strings, `let … else`, `copied` for `Copy`
+  values, nested or-patterns (and, by clippy's defaults, let chains,
+  `is_some_and` / `is_none_or`, `is_multiple_of`, `as_chunks`).
 * **The toolchain** is pinned to one release in `rust-toolchain.toml`
   (rustup fetches it; `rust-version` and CI name the same), because the
   game is held to its build: replays repeat only on the build that made

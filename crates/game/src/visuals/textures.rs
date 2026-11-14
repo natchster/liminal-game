@@ -780,7 +780,7 @@ pub fn make_wallpaper(palette: &WallPalette, pattern_kind: &str, grime_lvl: i64)
     let [mr, mg, mb] = palette.motif_tint;
     // motif is *very* subtle — old faded pattern rather than fresh paint
     let motif_alpha = 0.028 + g * 0.010;
-    let motif = format!("rgba({},{},{},{})", mr, mg, mb, motif_alpha);
+    let motif = format!("rgba({mr},{mg},{mb},{motif_alpha})");
     let motif2 =
         format!("rgba({},{},{},{})", (mr as f64 * 0.75).floor(), (mg as f64 * 0.75).floor(), (mb as f64 * 0.75).floor(), motif_alpha * 1.4);
     let palette = *palette;
@@ -975,7 +975,7 @@ pub fn pick_soft_pattern() -> &'static str {
 /// Same base with a moss overlay on top.
 pub fn make_moss_wallpaper(palette: &WallPalette) -> Tex {
     let [mr, mg, mb] = palette.motif_tint;
-    let motif = format!("rgba({},{},{},0.03)", mr, mg, mb);
+    let motif = format!("rgba({mr},{mg},{mb},0.03)");
     let palette = *palette;
     canvas_tex(512, 512, move |ctx, w, h| {
         // very dirty base underneath so it reads as long-abandoned

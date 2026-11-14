@@ -263,8 +263,8 @@ fn cmp_tree(o: &Obj, j: &Value, mats: &Value, ids: &mut Ids, w: &str) {
         }
     }
     if let Kind::Skinned { skeleton, .. } = &o.r().kind {
-        let names: Vec<String> = skeleton.as_ref().map(|s| s.bones.iter().map(|b| b.name()).collect()).unwrap_or_default();
-        let jn: Vec<String> = j["bones"].as_array().map(|a| a.iter().map(|v| s(v).to_string()).collect()).unwrap_or_default();
+        let names: Vec<String> = skeleton.as_ref().map_or_default(|s| s.bones.iter().map(|b| b.name()).collect());
+        let jn: Vec<String> = j["bones"].as_array().map_or_default(|a| a.iter().map(|v| s(v).to_string()).collect());
         assert_eq!(names, jn, "{w}: skeleton");
     }
     if o.is_point_light() {
@@ -278,7 +278,7 @@ fn cmp_tree(o: &Obj, j: &Value, mats: &Value, ids: &mut Ids, w: &str) {
     // (a skinned mesh is a body, held by its own tests: see the top)
     let kids: Vec<Obj> = o.children().into_iter().filter(|c| !matches!(c.r().kind, Kind::Skinned { .. })).collect();
     let jc: Vec<Value> =
-        j.get("c").and_then(|c| c.as_array()).map(|a| a.iter().filter(|v| v.get("bones").is_none()).cloned().collect()).unwrap_or_default();
+        j.get("c").and_then(|c| c.as_array()).map_or_default(|a| a.iter().filter(|v| v.get("bones").is_none()).cloned().collect());
     assert_eq!(kids.len(), jc.len(), "{w}: children");
     for (i, (c, jc)) in kids.iter().zip(&jc).enumerate() {
         cmp_tree(c, jc, mats, ids, &format!("{w}/{i}"));
@@ -378,9 +378,9 @@ fn cmp_entity_rec(g: &Game, e: &Entity, j: &Value, w: &str) {
         assert_eq!(e.num.contains_key(k), jn.contains_key(k), "{w}: has {k}");
     }
     ac(e.g.scl().x, &j["scale"], TOL, &format!("{w}: scale"));
-    assert_eq!(e.g.parent().map(|p| p == g.world).unwrap_or(false), j["inWorld"].as_bool().unwrap(), "{w}: in world");
+    assert_eq!(e.g.parent().is_some_and(|p| p == g.world), j["inWorld"].as_bool().unwrap(), "{w}: in world");
     assert_eq!(
-        e.face.as_ref().and_then(|f| f.parent()).map(|p| p == g.scene).unwrap_or(false),
+        e.face.as_ref().and_then(|f| f.parent()).is_some_and(|p| p == g.scene),
         j["faceInScene"].as_bool().unwrap(),
         "{w}: face in scene"
     );

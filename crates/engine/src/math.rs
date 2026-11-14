@@ -1,6 +1,5 @@
 //! Vectors, Euler angles, quaternions, 3x3 / 4x4 matrices (column-major),
 //! linear-sRGB colours, boxes and spheres, all in f64 numbers.
-#![allow(non_snake_case, clippy::too_many_arguments)]
 
 /// Anything numeric a call site may pass (integer literals default to i32).
 pub trait Num: Copy {

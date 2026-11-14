@@ -163,7 +163,6 @@ impl Wax {
     }
 
     /// The wax along the line `p`, dab by dab
-    #[allow(clippy::too_many_arguments)]
     fn lay(&mut self, hand: &mut Hand, p: &[(f64, f64)], width: f64, press: f64, col: u8, id: u32) {
         let len: f64 = p.windows(2).map(|w| (w[1].0 - w[0].0).hypot(w[1].1 - w[0].1)).sum();
         let wob = hand.range(0.0, 6.0);
@@ -190,7 +189,6 @@ impl Wax {
     }
 
     /// One dab of the stroke at (cx, cy), radius r, across (nx, ny)
-    #[allow(clippy::too_many_arguments)]
     fn dab(&mut self, cx: f64, cy: f64, r: f64, pr: f64, nx: f64, ny: f64, id: u32, col: u8) {
         let (x0, x1) = ((cx - r - 1.0).floor().max(0.0) as usize, ((cx + r + 1.0).ceil() as usize).min(TEX_W - 1));
         let (y0, y1) = ((cy - r - 1.0).floor().max(0.0) as usize, ((cy + r + 1.0).ceil() as usize).min(TEX_H - 1));
@@ -220,7 +218,6 @@ impl Wax {
 
     /// A shape filled the way a child fills it: the crayon on its side,
     /// back and forth across it at a slant, inside `inside`
-    #[allow(clippy::too_many_arguments)]
     fn hatch(
         &mut self,
         hand: &mut Hand,

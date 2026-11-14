@@ -96,13 +96,13 @@ struct Ss(Rc<Soundscape>);
 impl Ss {
     fn set_zone(&self, name: &str, fade: f64) {
         if tracing() {
-            tr(&format!("ss.set_zone:{}", name), &[fade]);
+            tr(&format!("ss.set_zone:{name}"), &[fade]);
         }
         self.0.set_zone(name, fade);
     }
     fn define_zone(&self, name: &str, p: ReverbPreset) {
         if tracing() {
-            tr(&format!("ss.define_zone:{}", name), &[p.t60, p.damp, p.wet, p.pre, p.er as f64]);
+            tr(&format!("ss.define_zone:{name}"), &[p.t60, p.damp, p.wet, p.pre, p.er as f64]);
         }
         self.0.define_zone(name, p);
     }
@@ -132,7 +132,7 @@ impl Ss {
     }
     fn footstep(&self, surface: &str, weight: f64) {
         if tracing() {
-            tr(&format!("ss.footstep:{}", surface), &[weight]);
+            tr(&format!("ss.footstep:{surface}"), &[weight]);
         }
         self.0.footstep(surface, weight, None);
     }
@@ -151,14 +151,14 @@ impl Ss {
     /// (recorded with t0 relative to `now`)
     fn burst(&self, now: f64, dest: &AudioNode, t0: f64, dur: f64, ty: &str, f0: f64, q: f64, gain: f64) {
         if tracing() {
-            tr(&format!("ss.burst:{}", ty), &[t0 - now, dur, f0, q, gain]);
+            tr(&format!("ss.burst:{ty}"), &[t0 - now, dur, f0, q, gain]);
         }
         self.0.burst(dest, t0, dur, ty, f0, q, gain, None, 0.002);
     }
     /// (recorded with t0 relative to `now`)
     fn tone(&self, now: f64, dest: &AudioNode, t0: f64, dur: f64, freq: f64, gain: f64, ty: &str, f1: Option<f64>) {
         if tracing() {
-            tr(&format!("ss.tone:{}", ty), &[t0 - now, dur, freq, gain, f1.unwrap_or(f64::NAN)]);
+            tr(&format!("ss.tone:{ty}"), &[t0 - now, dur, freq, gain, f1.unwrap_or(f64::NAN)]);
         }
         self.0.tone(dest, t0, dur, freq, gain, ty, f1, 0.003);
     }
@@ -171,7 +171,7 @@ fn voice_set_level(v: &ChildVoice, level: f64, tc: f64) {
 fn voice_say(v: &ChildVoice, now: f64, name: &str, t0: f64, pitch: f64, loud: f64) -> f64 {
     let dur = v.say(name, Some(t0), pitch, loud);
     if tracing() {
-        tr(&format!("voice.say:{}", name), &[t0 - now, pitch, loud, dur]);
+        tr(&format!("voice.say:{name}"), &[t0 - now, pitch, loud, dur]);
     }
     dur
 }
@@ -229,7 +229,7 @@ impl Game {
     /// `show_msg(text, dur)` as the glue calls it (recorded)
     fn modes_msg(&mut self, text: &str, dur: f64) {
         if tracing() {
-            tr(&format!("msg:{}", text), &[dur]);
+            tr(&format!("msg:{text}"), &[dur]);
         }
         self.show_msg(text, dur);
     }
@@ -470,7 +470,7 @@ impl Game {
                 slot_at(slot, gp.x + vp.x, gp.y + vp.y, gp.z + vp.z);
             }
             self.stair_audio.next_phrase -= dt;
-            let idle = self.stair_voice.as_ref().map(|v| !v.busy()).unwrap_or(false);
+            let idle = self.stair_voice.as_ref().is_some_and(|v| !v.busy());
             if self.stair_audio.next_phrase <= 0.0 && idle {
                 let r = rnd();
                 let phrase = stair_phrase(face_out, r);

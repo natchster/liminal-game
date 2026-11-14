@@ -172,7 +172,7 @@ pub struct Knocks {
 /// A small number in words, as a hand writes it
 fn count_word(n: usize) -> String {
     const W: [&str; 11] = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
-    W.get(n).map(|s| s.to_string()).unwrap_or_else(|| n.to_string())
+    W.get(n).map_or_else(|| n.to_string(), |s| s.to_string())
 }
 
 /// The way from a door to somewhere, as a note gives it
@@ -221,7 +221,7 @@ impl Way {
 /// `s` with its first letter a capital (a sentence's start)
 fn cap(s: &str) -> String {
     let mut c = s.chars();
-    c.next().map(|f| f.to_uppercase().chain(c).collect()).unwrap_or_default()
+    c.next().map_or_default(|f| f.to_uppercase().chain(c).collect())
 }
 
 /// Ease out over 0..1
@@ -330,7 +330,7 @@ impl Game {
             while k < path.len() && stair(path[k]) {
                 k += 1;
             }
-            let to = path.get(k).map(|p| self.floor_y_of(p.0, p.1)).unwrap_or(from);
+            let to = path.get(k).map_or(from, |p| self.floor_y_of(p.0, p.1));
             if to < from - 0.5 {
                 down += 1;
             } else if to > from + 0.5 {

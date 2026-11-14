@@ -214,9 +214,9 @@ impl Game {
     /// The slabs, flights, parapets and masses, and the fog's floor.
     fn building_architecture(&mut self) {
         let (w, h) = (self.w, self.h);
-        let style = self.building.as_ref().map(|p| p.style).unwrap_or(Style::Well);
+        let style = self.building.as_ref().map_or(Style::Well, |p| p.style);
         let zone_mats = |g: &Game, x: i32, z: i32| -> (&'static str, &'static str) {
-            g.zone_ref(x, z).map(|zn| (zn.wall_mat, zn.floor_mat)).unwrap_or(("poured", "deck"))
+            g.zone_ref(x, z).map_or(("poured", "deck"), |zn| (zn.wall_mat, zn.floor_mat))
         };
         let mut slabs: Vec<(String, Vec<Mat4>)> = vec![];
         let mut push = |key: String, m: Mat4| match slabs.iter_mut().find(|(k, _)| *k == key) {

@@ -342,7 +342,6 @@ pub fn sheet_tex(size: (f64, f64), ppm: f64, age: Age, vary: u32, draw: impl FnO
 /// `src` (u, v of the sheet, 0..1 v down, or its px i, j), faded, yellowed
 /// from its edges, silvered, cracked, foxed, stained and grimed by `age`,
 /// computed on every core; then a crease and scratches drawn
-#[allow(clippy::too_many_arguments)]
 fn age_sheet(
     ctx: &mut Canvas,
     w: f64,

@@ -1,7 +1,6 @@
 //! Indexed triangle geometry (positions, normals, uvs, colours, skin weights,
 //! morph targets, groups) and the primitive generators: box, plane, circle,
 //! cylinder, cone, sphere, torus, ring, lathe, capsule, polyhedra and shapes.
-#![allow(clippy::too_many_arguments)]
 
 use crate::math::*;
 use std::cell::{Ref, RefCell, RefMut};

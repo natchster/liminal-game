@@ -179,8 +179,8 @@ fn a_level_opens_quietly() {
         play(&mut r, 90.0, hold_creatures);
         let w = windows(&r.pcm);
         let bed = median(&w[40..]);
-        let first = w[..20].iter().cloned().fold(0.0, f64::max);
-        let later = w[40..].iter().cloned().fold(0.0, f64::max);
+        let first = w[..20].iter().copied().fold(0.0, f64::max);
+        let later = w[40..].iter().copied().fold(0.0, f64::max);
         println!(
             "seed {seed} L{level}: bed {:.1} dB, loudest in the first second {:.1} dB, loudest after {:.1} dB, events {:.4}/s",
             db(bed),
@@ -230,7 +230,7 @@ fn signatures_are_heard() {
         let bed = median(&w[40..]);
         for (at, tag, dist, clear) in &times {
             let a = (at / 0.05) as usize;
-            let peak = w[a.min(w.len() - 1)..(a + 40).min(w.len())].iter().cloned().fold(0.0, f64::max);
+            let peak = w[a.min(w.len() - 1)..(a + 40).min(w.len())].iter().copied().fold(0.0, f64::max);
             let how = if *clear { "in the open" } else { "through walls" };
             println!("seed {seed} L{level}: {tag} at {at:.1}s, {dist:.0} m off, {how}: +{:.1} dB over the bed", db(peak / bed));
             heard.push((peak / bed, *clear));
@@ -278,14 +278,14 @@ fn the_notice_is_loud() {
         g.player.flashlight_on = true;
     });
     let log: Vec<String> =
-        r.g.creature(ei).map(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect()).unwrap_or_default();
+        r.g.creature(ei).map_or_default(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect());
     println!("smiler log: {log:?}");
-    let noticed = r.g.creature(ei).map(|c| c.brain.log.iter().any(|x| x.2 == game::entities::brain::Mode::Hunt)).unwrap_or(false);
+    let noticed = r.g.creature(ei).is_some_and(|c| c.brain.log.iter().any(|x| x.2 == game::entities::brain::Mode::Hunt));
     assert!(noticed, "it noticed your lamp: {log:?}");
     let w = windows(&r.pcm);
     let b = before / WIN;
     let calm = median(&w[40..b]);
-    let peak = w[b..(b + 50).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let peak = w[b..(b + 50).min(w.len())].iter().copied().fold(0.0, f64::max);
     println!("notice: before {:.1} dB, peak after {:.1} dB (+{:.1} dB)", db(calm), db(peak), db(peak / calm));
     save("notice_4242_L3", &r.pcm, &[before as f64 / SR]);
     assert!(peak > calm * 4.0, "the notice should stand 12 dB over the quiet before it");
@@ -307,7 +307,7 @@ fn the_cry_is_your_voice() {
         let w = windows_band(&r.pcm, 200.0, 3000.0);
         let b = at / WIN;
         let bed = median(&w[20..b]);
-        let peak = w[b..].iter().cloned().fold(0.0, f64::max);
+        let peak = w[b..].iter().copied().fold(0.0, f64::max);
         let line = r.g.cry_last_line.clone();
         let top = r.pcm[at * 2..].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
         (bed, peak, r.pcm, at as f64 / SR, line, top)
@@ -357,8 +357,8 @@ fn an_arrival_is_your_voice_under_your_breath() {
     let (b, s) = (at / WIN, said / WIN);
     let bed = median(&w[20..b]);
     // your steps before you spoke, and your voice in the 1.5 s after
-    let steps = w[b..s].iter().cloned().fold(0.0, f64::max);
-    let voice = w[s..(s + 30).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let steps = w[b..s].iter().copied().fold(0.0, f64::max);
+    let voice = w[s..(s + 30).min(w.len())].iter().copied().fold(0.0, f64::max);
     let top = r.pcm[said * 2..].iter().fold(0f32, |m, v| m.max(v.abs())) as f64;
     save("aside_arrive_4242_L5", &r.pcm, &[at as f64 / SR, said as f64 / SR]);
     // your cry on the same floor, measured the same way
@@ -368,7 +368,7 @@ fn an_arrival_is_your_voice_under_your_breath() {
     assert!(c.g.say_cry());
     play(&mut c, 3.0, hold_creatures);
     let cw = windows_band(&c.pcm, 200.0, 3000.0);
-    let cry = db(cw[cat / WIN..].iter().cloned().fold(0.0, f64::max) / median(&cw[20..cat / WIN]));
+    let cry = db(cw[cat / WIN..].iter().copied().fold(0.0, f64::max) / median(&cw[20..cat / WIN]));
     println!(
         "{what}, {:.1} s after the first steps: {:.1} dB over the room, {:.1} dB over your steps, peak {:.1} dBFS; your cry {cry:.1} dB over the room",
         t_said - t_at,
@@ -396,7 +396,7 @@ fn the_hush_quiets_the_ambience() {
         let w = windows(&r.pcm);
         let w = w[60..].to_vec();
         let bed = median(&w);
-        println!("hush {hushed}: bed {:.1} dB, loudest {:.1} dB", db(bed), db(w.iter().cloned().fold(0.0, f64::max)));
+        println!("hush {hushed}: bed {:.1} dB, loudest {:.1} dB", db(bed), db(w.iter().copied().fold(0.0, f64::max)));
         save(&format!("hush_{}_77_L5", if hushed { "on" } else { "off" }), &r.pcm, &[]);
         out.push((bed, w));
     }
@@ -439,10 +439,10 @@ fn the_door_is_heard() {
                 .iter()
                 .map(|at| {
                     let a = (at / 0.05) as usize;
-                    w[a.min(w.len() - 1)..(a + 50).min(w.len())].iter().cloned().fold(0.0, f64::max) / bed
+                    w[a.min(w.len() - 1)..(a + 50).min(w.len())].iter().copied().fold(0.0, f64::max) / bed
                 })
                 .collect();
-            let best = rise.iter().cloned().fold(0.0, f64::max);
+            let best = rise.iter().copied().fold(0.0, f64::max);
             println!(
                 "seed {seed} L{level}: {steps} tiles from the door ({metres:.0} m straight): {} calls (at {}), the door alone peaks {:+.1} dB against the bed ({:.1} dBFS)",
                 times.len(),
@@ -529,7 +529,7 @@ fn the_siren_is_heard() {
     let w = windows(&r.pcm);
     let bed = median(&w[20..110]);
     let a = (sirens[0] / 0.05) as usize;
-    let peak = w[a..(a + 140).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let peak = w[a..(a + 140).min(w.len())].iter().copied().fold(0.0, f64::max);
     println!("the Well: bed {:.1} dB, the siren peaks {:+.1} dB over it", db(bed), db(peak / bed));
     save("siren_4242_L1", &r.pcm, &sirens);
     assert!(peak / bed >= 4.0, "the siren rises 12 dB over the bed: {:+.1} dB", db(peak / bed));
@@ -551,7 +551,7 @@ fn onsets(pcm: &[f32], from: f64, to: f64, floor: f64) -> Vec<f64> {
         .collect();
     let mut out: Vec<f64> = vec![];
     for k in 5..rms.len() {
-        let before = rms[k - 5..k - 1].iter().cloned().fold(0.0, f64::max);
+        let before = rms[k - 5..k - 1].iter().copied().fold(0.0, f64::max);
         let t = from + k as f64 * 0.01;
         if rms[k] > floor && rms[k] > 2.5 * before && out.last().is_none_or(|l| t - l > 0.08) {
             out.push(t);
@@ -731,7 +731,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
     let k = |s: f64| ((s / 0.05) as usize).min(w.len());
     // each door's bed: the median of its last three seconds before the knock
     let bed = |w: &[f64], at: f64| median(&w[k(at - 3.0)..k(at)]);
-    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().cloned().fold(0.0, f64::max);
+    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().copied().fold(0.0, f64::max);
     let (b0, b1, bb0, bb1) = (bed(&w, t0), bed(&w, t1), bed(&wb, t0), bed(&wb, t1));
     let from = |o: Vec<f64>, at: f64| o.into_iter().map(|x| x - at).collect::<Vec<f64>>();
     // (the steps come `OUT_AFTER` before the thing; the catch at 0.75 s)
@@ -918,14 +918,14 @@ fn the_wheel_is_tried_and_the_door_gives() {
     // loudest), and the whole mix's
     let (b0, b1) = (at(3.0), at(t0 - 0.1));
     let bed = median(&band[b0..b1]);
-    let bed_top = band[b0..b1].iter().cloned().fold(0.0, f64::max);
+    let bed_top = band[b0..b1].iter().copied().fold(0.0, f64::max);
     // each pull at the wheel: the band rising 12 dB out of its bed (no knock
     // comes while it tries)
     let tw = &band[at(t0 + wait)..at(gave - 0.05)];
     let pulls: Vec<f64> =
         (0..tw.len()).filter(|&k| tw[k] > bed * 4.0 && (k == 0 || tw[k - 1] <= bed * 4.0)).map(|k| t0 + wait + k as f64 * 0.05).collect();
-    let pull_top = tw.iter().cloned().fold(0.0, f64::max);
-    let gives = band[at(gave)..at(gave + 1.0)].iter().cloned().fold(0.0, f64::max);
+    let pull_top = tw.iter().copied().fold(0.0, f64::max);
+    let gives = band[at(gave)..at(gave + 1.0)].iter().copied().fold(0.0, f64::max);
     println!(
         "a cell on the Well, sealed, the fog up: {knocks} knocks, the band's bed {:.1} dB (a knock's ring {:.1}); answered at {t0:.1} s, the wheel from {:.1} s: pulls at {:?} s, the loudest {:+.1} dB over the bed; the door gave {:.2} s after the answer, {:+.1} dB in the band",
         db(bed),
@@ -1093,7 +1093,7 @@ fn cell_going(how: &str) -> Going {
     let k = |s: f64| ((s / 0.05) as usize).min(w.len());
     // the cell's bed: sealed, its wheel's turn over, before anything knocked
     let (bed, bed_band) = (median(&w[k(1.5)..k(t_fog)]), median(&wb[k(1.5)..k(t_fog)]));
-    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().cloned().fold(0.0, f64::max);
+    let peak = |w: &[f64], a: f64, b: f64| w[k(a)..k(b)].iter().copied().fold(0.0, f64::max);
     let from = |o: Vec<f64>| o.into_iter().map(|x| x - going).collect::<Vec<f64>>();
     let knocked_to = going - 0.05;
     // (after your three raps, which end within 1.1 s of the answer)
@@ -1243,12 +1243,12 @@ fn the_hound_is_heard() {
         }
     });
     let log: Vec<String> =
-        r.g.creature(ei).map(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect()).unwrap_or_default();
-    println!("hound log: {log:?}; d {:.1}", r.g.creature(ei).map(|c| c.brain.last.dist).unwrap_or(-1.0));
+        r.g.creature(ei).map_or_default(|c| c.brain.log.iter().map(|x| format!("{:.1} {} ({})", x.0, x.2.name(), x.3)).collect());
+    println!("hound log: {log:?}; d {:.1}", r.g.creature(ei).map_or(-1.0, |c| c.brain.last.dist));
     let w = windows(&r.pcm);
     let b = before / WIN;
     let calm = median(&w[40..b]);
-    let peak = w[b..(b + 40).min(w.len())].iter().cloned().fold(0.0, f64::max);
+    let peak = w[b..(b + 40).min(w.len())].iter().copied().fold(0.0, f64::max);
     let after = event_energy(&w[(b + 30).min(w.len())..], calm);
     println!("hound: bed {:.1} dB, bay {:.1} dB (+{:.1} dB), its run {after:.3} over the bed", db(calm), db(peak), db(peak / calm));
     save("hound_4242_L6", &r.pcm, &[before as f64 / SR]);
@@ -1292,7 +1292,7 @@ fn the_one_behind_the_glass_is_heard_as_glass() {
         };
         let w = windows_band(&r.pcm, lo, hi);
         let bed = median(&w[20..quiet]);
-        let peak = w[from / WIN..(to / WIN).min(w.len())].iter().cloned().fold(0.0, f64::max);
+        let peak = w[from / WIN..(to / WIN).min(w.len())].iter().copied().fold(0.0, f64::max);
         let up = db(peak / bed);
         println!("glass: {what} {up:+.1} dB over the room at {lo:.0}-{hi:.0} Hz");
         ups.push((what, up));
@@ -1448,14 +1448,14 @@ fn the_vending_machine_is_heard() {
     r.g.vending_use(i, Verb::CoinReturn);
     play(&mut r, 3.0, stand);
     let ring = windows_band(&r.pcm[at..], 2500.0, 7000.0);
-    let (peak, bed) = (ring.iter().cloned().fold(0.0, f64::max), median(&ring));
+    let (peak, bed) = (ring.iter().copied().fold(0.0, f64::max), median(&ring));
     println!("  the coin's ring peaks {:+.1} dB over its band's bed", db(peak / bed));
     assert!(peak / bed >= 3.0, "the coin is heard ringing down: {:+.1} dB", db(peak / bed));
     let at = r.pcm.len();
     r.g.vending_use(i, Verb::Rock);
     play(&mut r, 1.5, stand);
     let bang = windows(&r.pcm[at..]);
-    let (peak, bed) = (bang.iter().cloned().fold(0.0, f64::max), median(&windows(&lit_part)));
+    let (peak, bed) = (bang.iter().copied().fold(0.0, f64::max), median(&windows(&lit_part)));
     println!("  a shove's bang peaks {:+.1} dB over the room", db(peak / bed));
     assert!(peak / bed >= 3.0, "the bang stands out: {:+.1} dB", db(peak / bed));
     save(&format!("vending_{seed}_L{level}"), &r.pcm, &[]);

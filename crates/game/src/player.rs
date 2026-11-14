@@ -168,9 +168,8 @@ impl Game {
     /// explain themselves, shown just after the pickup line.
     pub fn hint_first_use(&mut self, kind: &str) {
         // (with the key as Settings bind it)
-        let key = |g: &Game, a: crate::session::input::Act| {
-            g.settings.keys(a).first().map(|k| crate::session::input::key_label(k)).unwrap_or_default()
-        };
+        let key =
+            |g: &Game, a: crate::session::input::Act| g.settings.keys(a).first().map_or_default(|k| crate::session::input::key_label(k));
         if kind == "bottle" && !self.hinted_bottle {
             self.hinted_bottle = true;
             self.schedule(1700.0, move |g| {
@@ -284,8 +283,8 @@ impl Game {
     /// Whether you stand in a region with no light of its own (a dark zone)
     pub fn in_dark_region(&self) -> bool {
         let (ptx, ptz) = (self.tx(self.player.pos.x), self.tz(self.player.pos.z));
-        let r: i32 = if self.in_grid(ptx, ptz) { self.region_map.get(self.t_idx(ptx, ptz)).map(|v| *v as i32).unwrap_or(-1) } else { -1 };
-        r >= 0 && self.region_info.get(r as usize).map(|r| r.flags & RF_DARK != 0).unwrap_or(false)
+        let r: i32 = if self.in_grid(ptx, ptz) { self.region_map.get(self.t_idx(ptx, ptz)).map_or(-1, |v| *v as i32) } else { -1 };
+        r >= 0 && self.region_info.get(r as usize).is_some_and(|r| r.flags & RF_DARK != 0)
     }
 
     /// H = shout for help. Coin flip (biased by level): either the place
@@ -1109,7 +1108,7 @@ impl Game {
                     let gained = irand(3, 8);
                     self.player.papers += gained as i32;
                     self.sfx_pickup();
-                    self.show_msg(&format!("PAPER STACK — {} SHEETS", gained), 1.6);
+                    self.show_msg(&format!("PAPER STACK — {gained} SHEETS"), 1.6);
                 }
             }
             // lore note pickup — first-time reads show the body immediately + short chime
@@ -1432,7 +1431,7 @@ impl Game {
                 self.sfx_pickup();
                 self.sfx_chime();
                 let title = self.lore_entry_title(id);
-                self.show_msg(&format!("NOTE FOUND — {} (J to read)", title), 2.2);
+                self.show_msg(&format!("NOTE FOUND — {title} (J to read)"), 2.2);
                 // Arc completion: if this pickup finished an arc, a special toast + chord.
                 for (name, ids) in self.lore_arc_list() {
                     if self.lore_arcs_completed.contains(&name) {
@@ -1441,7 +1440,7 @@ impl Game {
                     if ids.iter().all(|aid| self.lore_found.contains(aid)) {
                         self.lore_arcs_completed.insert(name.clone());
                         self.schedule(2400.0, move |g| {
-                            g.show_msg(&format!("STORY UNCOVERED — {}", name), 3.0);
+                            g.show_msg(&format!("STORY UNCOVERED — {name}"), 3.0);
                             if g.ac.is_some() {
                                 // three-note rising chord distinct from the standard chime
                                 g.blip(660.0, 0.9, "sine", 0.10, None, 0.0, 0.0);
@@ -1518,7 +1517,7 @@ impl Game {
                     }
                 }
             }
-            let arm_t = self.light_switches.get(i).map(|sw| sf(sw, "armT")).unwrap_or(0.0);
+            let arm_t = self.light_switches.get(i).map_or(0.0, |sw| sf(sw, "armT"));
             if arm_t > 0.0 {
                 let a = arm_t - dt;
                 if let Some(sw) = self.light_switches.get_mut(i) {

@@ -308,7 +308,7 @@ fn archive(rows: &[Value], base: &[Value], path: &std::path::Path) -> Result<(us
     let span = |m: &str| {
         let src = if base.is_empty() { rows } else { base };
         let v: Vec<f64> = src.iter().filter_map(|r| r[m].as_f64()).collect();
-        (v.iter().cloned().fold(f64::MAX, f64::min), v.iter().cloned().fold(f64::MIN, f64::max))
+        (v.iter().copied().fold(f64::MAX, f64::min), v.iter().copied().fold(f64::MIN, f64::max))
     };
     let ((x0, x1), (y0, y1)) = (span(xa), span(ya));
     let bin = |v: f64, lo: f64, hi: f64| {
@@ -421,14 +421,12 @@ fn log(reason: &str) -> Result<(), String> {
     let p = root().join("crates/backrooms/tests/recorded/ACCEPTED.md");
     let mut s = std::fs::read_to_string(&p)
         .unwrap_or_else(|_| "# Accepted recordings\n\nEvery new baseline in this folder, newest last, with the author's reason.\n".into());
-    let date =
-        Command::new("date").arg("+%Y-%m-%d").output().map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string()).unwrap_or_default();
+    let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     let head = Command::new("git")
         .current_dir(root())
         .args(["rev-parse", "--short", "HEAD"])
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_default();
+        .map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
     s.push_str(&format!("\n- {date}, on top of {head}: range.json. Reason: {}\n", reason.trim()));
     std::fs::write(&p, s).map_err(|e| e.to_string())
 }

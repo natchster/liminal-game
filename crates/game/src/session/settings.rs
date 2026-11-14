@@ -105,7 +105,7 @@ impl Settings {
     /// From the store, each value clamped; anything missing keeps its default
     pub fn from_json(v: &Value) -> Settings {
         let d = Settings::default();
-        let f = |k: &str, lo: f64, hi: f64, dv: f64| v.get(k).and_then(|x| x.as_f64()).map(|x| x.clamp(lo, hi)).unwrap_or(dv);
+        let f = |k: &str, lo: f64, hi: f64, dv: f64| v.get(k).and_then(|x| x.as_f64()).map_or(dv, |x| x.clamp(lo, hi));
         let b = |k: &str, dv: bool| v.get(k).and_then(|x| x.as_bool()).unwrap_or(dv);
         let mut binds = d.binds.clone();
         if let Some(m) = v.get("binds").and_then(|m| m.as_object()) {
@@ -250,11 +250,8 @@ impl Settings {
 impl Game {
     /// Read the settings from the store (defaults if there are none)
     pub fn load_settings(&mut self) {
-        self.settings = self
-            .storage_get(SETTINGS_KEY)
-            .and_then(|s| serde_json::from_str::<Value>(&s).ok())
-            .map(|v| Settings::from_json(&v))
-            .unwrap_or_default();
+        self.settings =
+            self.storage_get(SETTINGS_KEY).and_then(|s| serde_json::from_str::<Value>(&s).ok()).map_or_default(|v| Settings::from_json(&v));
         self.apply_master_gain();
     }
     /// Keep the settings in the store, and apply what is applied at once

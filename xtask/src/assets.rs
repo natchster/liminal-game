@@ -108,7 +108,7 @@ struct PropPart {
 const FRAMES: [&str; 5] = ["box", "cyl", "sphere", "torus", "plane"];
 
 fn frame_code(f: &str) -> u8 {
-    FRAMES.iter().position(|x| *x == f).map(|i| i as u8).unwrap_or(5)
+    FRAMES.iter().position(|x| *x == f).map_or(5, |i| i as u8)
 }
 
 struct Rd<'a> {
@@ -328,7 +328,7 @@ fn props(args: &[String]) -> Result<(), String> {
         }
     }
     if !gone.is_empty() {
-        println!("  no longer built: {}", gone.iter().take(20).cloned().collect::<Vec<_>>().join(", "));
+        println!("  no longer built: {}", gone.iter().take(20).copied().collect::<Vec<_>>().join(", "));
     }
     if write {
         // keep the stored bytes of unchanged parts: the diff is only what changed
@@ -369,8 +369,7 @@ pub(crate) fn blender_version() -> String {
     Command::new(blender())
         .arg("--version")
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).lines().next().unwrap_or("").trim().to_string())
-        .unwrap_or_default()
+        .map_or_default(|o| String::from_utf8_lossy(&o.stdout).lines().next().unwrap_or("").trim().to_string())
 }
 
 /// The photographed textures, as the manifest names them (`textures/<name>.jpg`)

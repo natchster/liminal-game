@@ -127,7 +127,7 @@ pub fn seen(g: &Game, ei: usize) -> bool {
     }
     let lamp = g.player.flashlight_on && toward > 0.9 && d < 18.0;
     // (learned: the panels over it have failed, its place is dark a while)
-    let dark = g.creature(ei).map(|c| c.get("dark_until") > g.perf_t).unwrap_or(false);
+    let dark = g.creature(ei).is_some_and(|c| c.get("dark_until") > g.perf_t);
     lamp || d < CLOSE || (!dark && g.e_region_light_at(g.tx(pos.x), g.tz(pos.z)) > LIT)
 }
 

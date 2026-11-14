@@ -79,7 +79,6 @@ struct Line {
 
 /// The posters: (paper, field, its margin (share of the width), the lines,
 /// the leading after each, the printer's line)
-#[allow(clippy::type_complexity)]
 fn poster(k: u32) -> (&'static str, &'static str, f64, Vec<(Line, f64)>, &'static str) {
     let l = |text, face, width, size, ink| Line { text, face, width, size, ink };
     match k % 3 {

@@ -150,7 +150,7 @@ pub fn shape_channels(w: i32, h: i32, tile_ceil: &[f32], solids: Option<&Solids>
         if tx < 0 || tz < 0 || tx >= w || tz >= h {
             return 0.0;
         }
-        tile_ceil.get((tz * w + tx) as usize).map(|c| *c as f64).unwrap_or(0.0)
+        tile_ceil.get((tz * w + tx) as usize).map_or(0.0, |c| *c as f64)
     };
     // the walls that run up to their ceiling: they shut a corner in
     let tall: Vec<bool> = match solids {

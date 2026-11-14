@@ -297,8 +297,8 @@ fn run(g: &mut Game, minutes: f64, seen: &mut Seen) {
         seen.knock_tint |= g.knock_tint_t > 0.0;
         seen.chime_flash |= g.chime_flash_t > 0.0;
         seen.hum_panel |= g.hum_panel.is_some();
-        seen.rain_hiss |= g.audio.rain_hiss_gain.as_ref().map(|n| n.gain().value() > 1e-4).unwrap_or(false);
-        seen.lfo_bent |= g.audio.safe_room_lfo.as_ref().map(|n| (n.frequency().value() - 0.35).abs() > 1e-6).unwrap_or(false);
+        seen.rain_hiss |= g.audio.rain_hiss_gain.as_ref().is_some_and(|n| n.gain().value() > 1e-4);
+        seen.lfo_bent |= g.audio.safe_room_lfo.as_ref().is_some_and(|n| (n.frequency().value() - 0.35).abs() > 1e-6);
         // the sanity chime flash is counted down by `update_entities`' vignette
         // envelope, which does not run here; count it down so later crossings are visible
         if g.chime_flash_t > 0.0 {

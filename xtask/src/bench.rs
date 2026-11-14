@@ -148,10 +148,8 @@ pub fn bench(args: &[String]) -> Result<(), String> {
         .current_dir(root())
         .args(["rev-parse", "--short", "HEAD"])
         .output()
-        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-        .unwrap_or_default();
-    let dirty =
-        Command::new("git").current_dir(root()).args(["status", "--porcelain"]).output().map(|o| !o.stdout.is_empty()).unwrap_or(false);
+        .map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
+    let dirty = Command::new("git").current_dir(root()).args(["status", "--porcelain"]).output().is_ok_and(|o| !o.stdout.is_empty());
     let commit = if dirty { format!("{commit}+") } else { commit };
     for ((seed, level), v) in &now {
         for (i, m) in MEASURES.iter().enumerate() {
@@ -175,11 +173,7 @@ pub fn bench(args: &[String]) -> Result<(), String> {
     }
     if !flag(args, "--no-record") {
         let mut out = if text.is_empty() { format!("{header}\n") } else { text };
-        let date = Command::new("date")
-            .arg("+%Y-%m-%d")
-            .output()
-            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-            .unwrap_or_default();
+        let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
         for ((seed, level), v) in &now {
             out.push_str(&format!(
                 "{date},{commit},{here},{seed},{level},{}\n",
@@ -288,11 +282,7 @@ fn bench_pack(
     }
     if !flag(args, "--no-record") {
         let mut out = if text.is_empty() { format!("date,commit,machine,creatures,{}\n", PACK_MEASURES.join(",")) } else { text };
-        let date = Command::new("date")
-            .arg("+%Y-%m-%d")
-            .output()
-            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
-            .unwrap_or_default();
+        let date = Command::new("date").arg("+%Y-%m-%d").output().map_or_default(|o| String::from_utf8_lossy(&o.stdout).trim().to_string());
         out.push_str(&format!(
             "{date},{commit},{here},{creatures},{}\n",
             now.iter().map(|x| format!("{x:.3}")).collect::<Vec<_>>().join(",")

@@ -890,9 +890,9 @@ fn level_check(o: &Options, dir: &str) {
         g.rand_trace(false);
         let base = format!("{dir}/rs_{seed}_L{l}");
         std::fs::write(format!("{base}.json"), dump.to_string()).expect("write dump");
-        let marks = dump["marks"].as_array().map(|a| a.len()).unwrap_or(0);
+        let marks = dump["marks"].as_array().map_or(0, |a| a.len());
         let draws = dump["marks"].as_array().and_then(|a| a.last()).and_then(|m| m[1].as_u64()).unwrap_or(0);
-        let objs = dump["objects"].as_array().map(|a| a.len()).unwrap_or(0);
+        let objs = dump["objects"].as_array().map_or(0, |a| a.len());
         print!("level {l}: {marks} marks, {draws} draws, {objs} objects, scp={}, weather={}", dump["scp"], dump["weather"]);
         if let Some(t) = &target {
             g.load_level(l);
@@ -1408,7 +1408,7 @@ fn main() {
         println!("replaying {p}: {} frames; Up / Down arrows mark tension rising / falling, Escape stops", rec.frames.len());
         replaying = Some(Replaying { rec, next: 0, trace: format!("{p}.trace.json"), marks: vec![] });
     } else if let Some(p) = &o.record {
-        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(1);
+        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
         game::base::rng::seed_native(seed);
         println!("recording this session to {p} (on this machine only)");
         recorder = Some((game::debug::replay::Recorder::new(seed), p.clone()));

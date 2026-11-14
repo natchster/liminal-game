@@ -119,7 +119,7 @@ fn entities_smoke() {
         with_seed(seed + 9, || g.spawn_entities(2, &dist));
         assert_eq!(g.entities.len(), g.ecology().iter().filter(|k| **k != "reader").count());
         assert_eq!(
-            g.scene.children().iter().filter(|c| g.entities.iter().any(|e| e.face.as_ref().map(|f| f.ptr_eq(c)).unwrap_or(false))).count(),
+            g.scene.children().iter().filter(|c| g.entities.iter().any(|e| e.face.as_ref().is_some_and(|f| f.ptr_eq(c)))).count(),
             g.entities.iter().filter(|e| e.face.is_some()).count(),
             "every billboard face (the old creatures have one) is in the scene"
         );

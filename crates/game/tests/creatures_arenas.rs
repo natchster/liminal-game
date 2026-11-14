@@ -350,7 +350,7 @@ fn trial(kind: &str, setup: Setup, seed: u64) -> Outcome {
         step_facing(&mut g, DT, toward, gait, face);
         g.update_director(DT);
         t += DT;
-        let debug = std::env::var("ARENA_DEBUG").map(|v| v == format!("{kind}:{counter}:{seed}")).unwrap_or(false);
+        let debug = std::env::var("ARENA_DEBUG").is_ok_and(|v| v == format!("{kind}:{counter}:{seed}"));
         if debug && (t / 2.0).floor() != ((t - DT) / 2.0).floor() {
             let c = g.creature(ei).unwrap();
             println!(
@@ -600,7 +600,7 @@ fn what_each_learns_leaves_its_counter_working() {
 #[ignore]
 fn debug_trials() {
     let kind = std::env::var("ARENA_KIND").unwrap_or("smiler".into());
-    let counter = std::env::var("ARENA_COUNTER").map(|v| v != "false").unwrap_or(true);
+    let counter = std::env::var("ARENA_COUNTER").map_or(true, |v| v != "false");
     let learned = std::env::var("ARENA_LEARNED").is_ok();
     let setup = Setup { counter, learned, heard_first: std::env::var("ARENA_HEARD").is_ok() || (learned && kind == "hound") };
     for s in 0..SEEDS {

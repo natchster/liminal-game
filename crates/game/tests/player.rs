@@ -130,19 +130,19 @@ fn finite(v: Vec3) -> bool {
 fn assert_sane(r: &Rig) {
     let g = &r.g;
     let p = &g.player;
-    assert!(finite(p.pos) && p.yaw.is_finite() && p.pitch.is_finite(), "player pose not finite: {:?}", p);
+    assert!(finite(p.pos) && p.yaw.is_finite() && p.pitch.is_finite(), "player pose not finite: {p:?}");
     assert!((0.0..=STAM_MAX).contains(&p.stamina), "stamina {}", p.stamina);
     assert!((0.0..=SAN_MAX).contains(&p.sanity), "sanity {}", p.sanity);
     assert!((0.0..=BAT_MAX).contains(&p.battery), "battery {}", p.battery);
     assert!(p.eye_h > 0.2 && p.eye_h < 2.0, "eye {}", p.eye_h);
     assert!(p.pitch.abs() <= 1.45 + 1e-9);
     let cp = g.camera.pos();
-    assert!(finite(cp), "camera {:?}", cp);
+    assert!(finite(cp), "camera {cp:?}");
     let fov = g.camera.camera().fov;
     // (the setting's range, less crouching's 6° and more running's 7°, and
     // the reality shift's nudge of up to 4°)
     use game::session::settings::{FOV_MAX, FOV_MIN};
-    assert!((FOV_MIN - 10.0..=FOV_MAX + 11.0).contains(&fov), "fov {}", fov);
+    assert!((FOV_MIN - 10.0..=FOV_MAX + 11.0).contains(&fov), "fov {fov}");
     // never inside a wall
     let (tx, tz) = (g.tx(p.pos.x), g.tz(p.pos.z));
     assert!(!g.is_wall_tile(tx, tz), "player in wall tile ({tx},{tz})");
@@ -498,7 +498,7 @@ fn cry_for_help_cooldown_and_outcomes() {
                     assert_eq!(r.g.entities[0].state, "wander", "the watcher keeps its own way");
                     // every creature on the new brain is sure where you cried out
                     for i in 1..r.g.entities.len() {
-                        let aw = r.g.creature(i).map(|c| c.brain.mem.awareness).unwrap_or(0.0);
+                        let aw = r.g.creature(i).map_or(0.0, |c| c.brain.mem.awareness);
                         assert!(aw >= 0.98, "{} {i} did not hear the cry ({aw:.2})", r.g.entities[i].kind);
                     }
                 }
@@ -714,7 +714,7 @@ fn vacuum_bot_modes() {
     let d1 = d(&r.g);
     assert!((d0 - d1 - 1.7 * 0.5).abs() < 0.05, "chase approach {d0} -> {d1}");
     let c = r.g.vacuum_bot.as_ref().unwrap().objs["homeBtn"].mat().color_v();
-    assert!(c.r > 0.7 && (c.b - 0.10).abs() < 1e-9, "chase LED {:?}", c);
+    assert!(c.r > 0.7 && (c.b - 0.10).abs() < 1e-9, "chase LED {c:?}");
     frames(&mut r, 40);
     let v = r.g.vacuum_bot.as_ref().unwrap();
     assert!(v.f["chaseT"] <= 0.0);

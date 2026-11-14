@@ -121,7 +121,6 @@ impl Flakes {
     /// the nearest edge to a cell in the other state (`state`): (its state,
     /// the distance to that edge, the edge's normal toward the other cell,
     /// the distance to any edge, this cell, the other cell)
-    #[allow(clippy::type_complexity)]
     pub fn voronoi(
         &self,
         salt: u32,

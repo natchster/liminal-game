@@ -144,7 +144,6 @@ fn web_geo(len: f64, down: f64, out: f64, gap: f64, low: f64) -> Geo {
 /// (some at `anchors`, 0..1 along it); the dust beaded along them and matted
 /// in clumps; and `insect` (turn, drop, along: 0..1) caught in it. `tw`: its
 /// texture's width (px).
-#[allow(clippy::too_many_arguments)]
 fn web_sheet(len: f64, down: f64, out: f64, low: f64, col: [f64; 3], anchors: &[f64], insect: Option<(f64, f64, f64)>, tw: f64) -> Obj {
     let geo = web_geo(len, down, out, 0.02, low);
     let th = (tw * down.hypot(out) * 1.2 / len).round().clamp(64.0, 256.0);

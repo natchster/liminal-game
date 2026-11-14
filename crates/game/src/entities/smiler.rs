@@ -239,7 +239,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
             // hunts by sight: from a place you cannot see, it cannot see you)
             let lurk = stalk && {
                 let wt = g.entities[ei].w_target.map(|(x, z)| (g.wx(x), g.wz(z)));
-                wt.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.5).unwrap_or(true)
+                wt.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.5)
             };
             if lurk {
                 if p.dist > STALK_NEAR {
@@ -253,7 +253,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 g.entities[ei].w_target.map(|(x, z)| (g.wx(x), g.wz(z)))
             } else {
                 let c = g.creature(ei).unwrap();
-                let reached = c.brain.goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.0).unwrap_or(true);
+                let reached = c.brain.goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 2.0);
                 if mode == Mode::Idle {
                     // it stands in its dark a while, then drifts to another
                     if mode_t > 12.0 {
@@ -315,7 +315,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 return;
             }
             let goal = g.creature(ei).unwrap().brain.goal.or(seen.map(|(x, z, _)| (x, z)));
-            let at = goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
+            let at = goal.is_none_or(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5);
             let told = matches!(order, Order::Seek(..));
             if at {
                 // there it waits in the dark, listening, looking round

@@ -285,7 +285,7 @@ impl<H: AppHandler> ApplicationHandler for Runner<H> {
                 self.apply_requests(el);
             }
             WindowEvent::CursorMoved { position, .. } => {
-                let scale = self.window.as_ref().map(|w| w.scale_factor()).unwrap_or(1.0);
+                let scale = self.window.as_ref().map_or(1.0, |w| w.scale_factor());
                 self.send(Input::CursorPos(position.x / scale, position.y / scale));
             }
             WindowEvent::MouseWheel { delta, .. } => {
@@ -414,7 +414,7 @@ pub fn key_code_name(c: KeyCode) -> String {
         End => "End",
         PageUp => "PageUp",
         PageDown => "PageDown",
-        _ => return format!("{:?}", c),
+        _ => return format!("{c:?}"),
     };
     s.to_string()
 }

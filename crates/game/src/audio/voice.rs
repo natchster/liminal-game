@@ -196,7 +196,7 @@ pub fn choose_cry(level: i32, run_seed: u32, nth: u32, on_floor: u32, since_last
     if since_last.is_some_and(|s| s < CRY_AGAIN) {
         return here.last().cloned();
     }
-    let top = here.last().map(|l| l.intensity).unwrap_or(1.0);
+    let top = here.last().map_or(1.0, |l| l.intensity);
     let mut pool: Vec<Line> = here.iter().filter(|l| l.intensity < top && last != Some(l.id.as_str())).cloned().collect();
     if on_floor >= 1 && pool.len() > 1 {
         // from the second cry on a floor, the louder half

@@ -69,7 +69,7 @@ pub(crate) fn paint_notebook(f: &mut Frame, g: &Game) {
     let n = ids.len().max(1);
     let count =
         TextBlock::plain(&format!("{} / {}", g.journal_cursor as usize + 1, n), pencil, &[], 0.0, Font::sans(11.0), Ws::NoWrap, None, None);
-    let close = g.settings.keys(Act::Journal).first().map(|k| key_label(k)).unwrap_or_default();
+    let close = g.settings.keys(Act::Journal).first().map_or_default(|k| key_label(k));
     let sp = "\u{a0}\u{a0}";
     let hint = TextBlock::plain(
         &format!("←{sp}→{sp}turn{sp}{sp}{sp}{close}{sp}close"),

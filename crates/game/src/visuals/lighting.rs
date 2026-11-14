@@ -229,7 +229,7 @@ impl Game {
                     let y = rand1(h);
                     let len = rand2(15.0, 55.0);
                     let alpha = rand2(0.10, 0.30);
-                    ctx.set_fill_style(format!("rgba(210,220,235,{})", alpha));
+                    ctx.set_fill_style(format!("rgba(210,220,235,{alpha})"));
                     ctx.fill_rect(x, y, 1, len);
                     if rnd() < 0.4 {
                         ctx.begin_path();
@@ -474,7 +474,7 @@ impl Game {
         let Some(shape) = self.ll_shape.as_ref() else { return };
         let data = pack(self.w, self.h, &data, &shape.channels);
         let (wf, hf) = ((w * FINE) as u32, (h * FINE) as u32);
-        let reuse = self.ll_map.as_ref().map(|m| m.width() == wf && m.height() == hf).unwrap_or(false);
+        let reuse = self.ll_map.as_ref().is_some_and(|m| m.width() == wf && m.height() == hf);
         if reuse {
             let m = self.ll_map.clone().unwrap();
             let img = m.image();

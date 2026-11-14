@@ -67,37 +67,37 @@ fn assert_tree(o: &Obj, rec: &Json, path: &str) {
     } else {
         "group"
     };
-    assert_eq!(kind, rec.get("k").s(), "{}: kind", path);
-    assert_eq!(o.visible(), rec.get("v").b(), "{}: visible", path);
+    assert_eq!(kind, rec.get("k").s(), "{path}: kind");
+    assert_eq!(o.visible(), rec.get("v").b(), "{path}: visible");
     let p = o.pos();
-    assert_vec_close(&[p.x, p.y, p.z], &rec.get("p").fs(), TOL, &format!("{}: position", path));
+    assert_vec_close(&[p.x, p.y, p.z], &rec.get("p").fs(), TOL, &format!("{path}: position"));
     let r = o.rot();
-    assert_vec_close(&[r.x, r.y, r.z], &rec.get("r").fs(), TOL, &format!("{}: rotation", path));
+    assert_vec_close(&[r.x, r.y, r.z], &rec.get("r").fs(), TOL, &format!("{path}: rotation"));
     if o.is_mesh() {
         let g = o.geo();
         let jg = rec.get("g");
-        assert_eq!(geo_kind(&g), jg.at(0).s(), "{}: geometry type", path);
+        assert_eq!(geo_kind(&g), jg.at(0).s(), "{path}: geometry type");
         let want: Vec<f64> = jg.arr()[1..].iter().map(|v| v.f()).collect();
-        assert_vec_close(&geo_params(&g), &want, TOL, &format!("{}: geometry params", path));
-        assert_eq!(g.vertex_count() as i64, rec.get("vc").i(), "{}: vertex count", path);
+        assert_vec_close(&geo_params(&g), &want, TOL, &format!("{path}: geometry params"));
+        assert_eq!(g.vertex_count() as i64, rec.get("vc").i(), "{path}: vertex count");
         let ic = g.r().index.as_ref().map(|i| i.len() as i64);
-        assert_eq!(ic, if rec.get("ic").is_null() { None } else { Some(rec.get("ic").i()) }, "{}: index count", path);
-        assert_mat(&o.mat(), rec.get("m"), &format!("{}: material", path));
+        assert_eq!(ic, if rec.get("ic").is_null() { None } else { Some(rec.get("ic").i()) }, "{path}: index count");
+        assert_mat(&o.mat(), rec.get("m"), &format!("{path}: material"));
     }
     if o.is_instanced() {
-        assert_eq!(o.instance_count() as i64, rec.get("count").i(), "{}: instance count", path);
+        assert_eq!(o.instance_count() as i64, rec.get("count").i(), "{path}: instance count");
         let ms = instance_matrices(o);
         for (i, m) in ms.iter().enumerate() {
             let want = rec.get("mats").at(i).fs();
             let got: Vec<f64> = m.e.iter().map(|&v| f32r(v)).collect();
-            assert_vec_close(&got, &want, 1e-7, &format!("{}: instance {}", path, i));
+            assert_vec_close(&got, &want, 1e-7, &format!("{path}: instance {i}"));
         }
     }
     let kids = o.children();
     let jk = if rec.has("c") { rec.get("c").arr().to_vec() } else { vec![] };
-    assert_eq!(kids.len(), jk.len(), "{}: child count", path);
+    assert_eq!(kids.len(), jk.len(), "{path}: child count");
     for (i, (k, j)) in kids.iter().zip(jk.iter()).enumerate() {
-        assert_tree(k, j, &format!("{}/{}", path, i));
+        assert_tree(k, j, &format!("{path}/{i}"));
     }
 }
 
@@ -169,8 +169,8 @@ fn stairwell_locate_and_seg_y() {
         for &seg in &segs {
             for &x in &xs {
                 for &z in &zs {
-                    let got = s.locate(seg as i32, x, z, r).map(|v| v as i64).unwrap_or(-99);
-                    assert_eq!(got, loc[k].i(), "locate(seg {}, x {}, z {}, r {})", seg, x, z, r);
+                    let got = s.locate(seg as i32, x, z, r).map_or(-99, |v| v as i64);
+                    assert_eq!(got, loc[k].i(), "locate(seg {seg}, x {x}, z {z}, r {r})");
                     k += 1;
                     if got != -99 {
                         checked += 1;
@@ -184,7 +184,7 @@ fn stairwell_locate_and_seg_y() {
     let mut k = 0;
     for &seg in &segs {
         for &z in &zs {
-            assert_close(s.seg_y(seg as i32, 0.0, z), sy[k].f(), TOL, &format!("seg_y({}, {})", seg, z));
+            assert_close(s.seg_y(seg as i32, 0.0, z), sy[k].f(), TOL, &format!("seg_y({seg}, {z})"));
             k += 1;
         }
     }
@@ -199,45 +199,45 @@ fn stairwell_enter_matches_reference() {
         let flights = engine::math::to_i32(e.get("flights").f());
         s.enter(flights);
         let w = format!("enter({})", e.get("flights").f());
-        assert_eq!(n.get() as i64, e.get("draws").i(), "{}: rng draws", w);
-        assert_eq!(s.flights() as i64, e.get("flightsOut").i(), "{}: flights", w);
+        assert_eq!(n.get() as i64, e.get("draws").i(), "{w}: rng draws");
+        assert_eq!(s.flights() as i64, e.get("flightsOut").i(), "{w}: flights");
         let enc: Vec<i64> = e.get("encounterAt").arr().iter().map(|v| v.i()).collect();
-        assert_eq!(s.st.encounter_at.iter().map(|&v| v as i64).collect::<Vec<_>>(), enc, "{}: encounter_at", w);
+        assert_eq!(s.st.encounter_at.iter().map(|&v| v as i64).collect::<Vec<_>>(), enc, "{w}: encounter_at");
         for (i, l) in e.get("leds").arr().iter().enumerate() {
             let m = &s.leds[i];
-            assert_eq!(m.visible(), l.get("v").b(), "{}: led {} visible", w, i);
+            assert_eq!(m.visible(), l.get("v").b(), "{w}: led {i} visible");
             let p = m.pos();
-            assert_vec_close(&[p.x, p.y, p.z], &l.get("p").fs(), TOL, &format!("{}: led {} position", w, i));
-            assert_eq!(mat_type(&m.mat()) == "basic", l.get("on").b(), "{}: led {} material", w, i);
-            assert_eq!(s.led_blink[i], l.get("blink").b(), "{}: led {} blink", w, i);
+            assert_vec_close(&[p.x, p.y, p.z], &l.get("p").fs(), TOL, &format!("{w}: led {i} position"));
+            assert_eq!(mat_type(&m.mat()) == "basic", l.get("on").b(), "{w}: led {i} material");
+            assert_eq!(s.led_blink[i], l.get("blink").b(), "{w}: led {i} blink");
         }
         for (i, (o, j)) in [&s.puddle, &s.gouge, &s.hole, &s.hole_light].iter().zip(e.get("misc").arr()).enumerate() {
-            assert_eq!(o.visible(), j.get("v").b(), "{}: marker {} visible", w, i);
+            assert_eq!(o.visible(), j.get("v").b(), "{w}: marker {i} visible");
             let p = o.pos();
             let r = o.rot();
-            assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{}: marker {} position", w, i));
-            assert_vec_close(&[r.x, r.y, r.z], &j.get("r").fs(), TOL, &format!("{}: marker {} rotation", w, i));
+            assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{w}: marker {i} position"));
+            assert_vec_close(&[r.x, r.y, r.z], &j.get("r").fs(), TOL, &format!("{w}: marker {i} rotation"));
         }
         for (i, (o, j)) in [&s.exit_door, &s.exit_glow, &s.exit_handle, &s.floor].iter().zip(e.get("bottom").arr()).enumerate() {
             let p = o.pos();
             let r = o.rot();
-            assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{}: bottom {} position", w, i));
-            assert_vec_close(&[r.x, r.y, r.z], &j.get("r").fs(), TOL, &format!("{}: bottom {} rotation", w, i));
+            assert_vec_close(&[p.x, p.y, p.z], &j.get("p").fs(), TOL, &format!("{w}: bottom {i} position"));
+            assert_vec_close(&[r.x, r.y, r.z], &j.get("r").fs(), TOL, &format!("{w}: bottom {i} rotation"));
         }
         for (i, j) in e.get("chunks").arr().iter().enumerate() {
             let c = &s.chunks[i];
-            assert_eq!(c.group.visible(), j.get("v").b(), "{}: chunk {} visible", w, i);
+            assert_eq!(c.group.visible(), j.get("v").b(), "{w}: chunk {i} visible");
             if c.group.visible() {
-                assert_close(c.group.pos().y, j.get("y").f(), TOL, &format!("{}: chunk {} y", w, i));
-                assert_eq!(c.right.visible(), j.get("right").b(), "{}: chunk {} right", w, i);
-                assert_eq!(c.near.visible(), j.get("near").b(), "{}: chunk {} near", w, i);
+                assert_close(c.group.pos().y, j.get("y").f(), TOL, &format!("{w}: chunk {i} y"));
+                assert_eq!(c.right.visible(), j.get("right").b(), "{w}: chunk {i} right");
+                assert_eq!(c.near.visible(), j.get("near").b(), "{w}: chunk {i} near");
             }
         }
-        assert_eq!(s.top.visible(), e.get("top").b(), "{}: top", w);
-        assert_eq!(s.landing() as i64, e.get("landing").i(), "{}: landing", w);
-        assert_close(s.depth_m(), e.get("depth").f(), TOL, &format!("{}: depth", w));
+        assert_eq!(s.top.visible(), e.get("top").b(), "{w}: top");
+        assert_eq!(s.landing() as i64, e.get("landing").i(), "{w}: landing");
+        assert_close(s.depth_m(), e.get("depth").f(), TOL, &format!("{w}: depth"));
         let v = s.voice_pos();
-        assert_vec_close(&[v.x, v.y, v.z], &e.get("voice").fs(), TOL, &format!("{}: voice_pos", w));
+        assert_vec_close(&[v.x, v.y, v.z], &e.get("voice").fs(), TOL, &format!("{w}: voice_pos"));
         assert!(s.group.visible());
     }
 }
@@ -256,15 +256,15 @@ fn stairwell_chunks_follow_the_player() {
         s.update(0.0, &cam);
         for (i, c) in j.get("chunks").arr().iter().enumerate() {
             let ch = &s.chunks[i];
-            assert_eq!(ch.group.visible(), c.at(0).b(), "seg {}: chunk {} visible", seg, i);
+            assert_eq!(ch.group.visible(), c.at(0).b(), "seg {seg}: chunk {i} visible");
             if ch.group.visible() {
-                assert_close(ch.group.pos().y, c.at(1).f(), TOL, &format!("seg {}: chunk {} y", seg, i));
-                assert_eq!(ch.right.visible(), c.at(2).b(), "seg {}: chunk {} right", seg, i);
-                assert_eq!(ch.near.visible(), c.at(3).b(), "seg {}: chunk {} near", seg, i);
+                assert_close(ch.group.pos().y, c.at(1).f(), TOL, &format!("seg {seg}: chunk {i} y"));
+                assert_eq!(ch.right.visible(), c.at(2).b(), "seg {seg}: chunk {i} right");
+                assert_eq!(ch.near.visible(), c.at(3).b(), "seg {seg}: chunk {i} near");
             }
         }
-        assert_eq!(s.top.visible(), j.get("top").b(), "seg {}: top", seg);
-        assert_eq!(s.landing() as i64, j.get("landing").i(), "seg {}: landing", seg);
+        assert_eq!(s.top.visible(), j.get("top").b(), "seg {seg}: top");
+        assert_eq!(s.landing() as i64, j.get("landing").i(), "seg {seg}: landing");
     }
 }
 
@@ -297,62 +297,57 @@ fn stairwell_scripted_descent_matches_reference() {
         };
         let out = s.update(i[0], &inp);
         let o = rec.get("o").fs();
-        let wh = format!("frame {}", f);
-        assert_close(out.x, o[0], TOL, &format!("{} x", wh));
-        assert_close(out.y, o[1], TOL, &format!("{} y", wh));
-        assert_close(out.z, o[2], TOL, &format!("{} z", wh));
-        assert_eq!(out.seg as f64, o[3], "{} seg", wh);
-        assert_eq!(out.near_exit, o[4] != 0.0, "{} near_exit", wh);
-        assert_eq!(s.st.deepest_seg as f64, o[5], "{} deepest_seg", wh);
-        assert_close(s.st.step_phase, o[6], TOL, &format!("{} step_phase", wh));
-        assert_close(s.st.time, o[7], TOL, &format!("{} time", wh));
+        let wh = format!("frame {f}");
+        assert_close(out.x, o[0], TOL, &format!("{wh} x"));
+        assert_close(out.y, o[1], TOL, &format!("{wh} y"));
+        assert_close(out.z, o[2], TOL, &format!("{wh} z"));
+        assert_eq!(out.seg as f64, o[3], "{wh} seg");
+        assert_eq!(out.near_exit, o[4] != 0.0, "{wh} near_exit");
+        assert_eq!(s.st.deepest_seg as f64, o[5], "{wh} deepest_seg");
+        assert_close(s.st.step_phase, o[6], TOL, &format!("{wh} step_phase"));
+        assert_close(s.st.time, o[7], TOL, &format!("{wh} time"));
         let want_ev = if rec.has("e") { rec.get("e").arr().to_vec() } else { vec![] };
         assert_eq!(out.events.len(), want_ev.len(), "{} event count ({:?})", wh, out.events);
         for (e, j) in out.events.iter().zip(want_ev.iter()) {
             let (t, d, nn, reason) = event_row(e);
             seen_types.insert(t.clone());
-            assert_eq!(t, j.at(0).s(), "{} event type", wh);
-            assert_close(d, j.at(1).f(), TOL, &format!("{} {} dist", wh, t));
-            assert_close(nn, j.at(2).f(), 0.0, &format!("{} {} n", wh, t));
-            assert_eq!(reason, if j.at(3).is_null() { "" } else { j.at(3).s() }, "{} {} reason", wh, t);
+            assert_eq!(t, j.at(0).s(), "{wh} event type");
+            assert_close(d, j.at(1).f(), TOL, &format!("{wh} {t} dist"));
+            assert_close(nn, j.at(2).f(), 0.0, &format!("{wh} {t} n"));
+            assert_eq!(reason, if j.at(3).is_null() { "" } else { j.at(3).s() }, "{wh} {t} reason");
         }
         if rec.has("f") {
             let jf = rec.get("f").arr();
             let kind = s.st.face.as_ref().map(|f| f.kind.as_str());
-            assert_eq!(kind, if jf[0].is_null() { None } else { Some(jf[0].s()) }, "{} face kind", wh);
-            assert_eq!(s.face.visible(), jf[1].b(), "{} face visible", wh);
+            assert_eq!(kind, if jf[0].is_null() { None } else { Some(jf[0].s()) }, "{wh} face kind");
+            assert_eq!(s.face.visible(), jf[1].b(), "{wh} face visible");
             let p = s.face.pos();
             let q = s.face.quat();
-            assert_vec_close(&[p.x, p.y, p.z], &[jf[2].f(), jf[3].f(), jf[4].f()], TOL, &format!("{} face position", wh));
-            assert_vec_close(
-                &[q.x, q.y, q.z, q.w],
-                &[jf[5].f(), jf[6].f(), jf[7].f(), jf[8].f()],
-                1e-8,
-                &format!("{} face quaternion", wh),
-            );
-            let (stare, jerks) = s.st.face.as_ref().map(|f| (f.stare, f.jerks as f64)).unwrap_or((0.0, 0.0));
-            assert_close(stare, jf[9].f(), TOL, &format!("{} stare", wh));
-            assert_eq!(jerks, jf[10].f(), "{} jerks", wh);
+            assert_vec_close(&[p.x, p.y, p.z], &[jf[2].f(), jf[3].f(), jf[4].f()], TOL, &format!("{wh} face position"));
+            assert_vec_close(&[q.x, q.y, q.z, q.w], &[jf[5].f(), jf[6].f(), jf[7].f(), jf[8].f()], 1e-8, &format!("{wh} face quaternion"));
+            let (stare, jerks) = s.st.face.as_ref().map_or((0.0, 0.0), |f| (f.stare, f.jerks as f64));
+            assert_close(stare, jf[9].f(), TOL, &format!("{wh} stare"));
+            assert_eq!(jerks, jf[10].f(), "{wh} jerks");
         } else {
-            assert!(s.st.face.is_none() && !s.face.visible(), "{}: no face expected", wh);
+            assert!(s.st.face.is_none() && !s.face.visible(), "{wh}: no face expected");
         }
         if rec.has("c") {
             let c = rec.get("c").arr();
             for k in 0..4 {
                 let ch = &s.chunks[k].group;
                 if c[k].is_null() {
-                    assert!(!ch.visible(), "{} chunk {} hidden", wh, k);
+                    assert!(!ch.visible(), "{wh} chunk {k} hidden");
                 } else {
-                    assert!(ch.visible(), "{} chunk {} shown", wh, k);
-                    assert_close(ch.pos().y, c[k].f(), TOL, &format!("{} chunk {} y", wh, k));
+                    assert!(ch.visible(), "{wh} chunk {k} shown");
+                    assert_close(ch.pos().y, c[k].f(), TOL, &format!("{wh} chunk {k} y"));
                 }
             }
-            assert_eq!(s.top.visible(), c[4].b(), "{} top", wh);
+            assert_eq!(s.top.visible(), c[4].b(), "{wh} top");
         }
     }
     assert_eq!(n.get() as i64, w.get("draws").i(), "rng draws over the walk");
     for t in ["faceAppear", "faceSeen", "faceJerk", "faceGone", "faceBehindArmed", "faceBehind"] {
-        assert!(seen_types.contains(t), "the walk never produced {}", t);
+        assert!(seen_types.contains(t), "the walk never produced {t}");
     }
 }
 

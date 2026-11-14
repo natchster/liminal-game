@@ -54,8 +54,7 @@ fn paint_way_out(f: &mut Frame, g: &Game, p: &Playing, bar_top: f64, bar: f64) {
     if p.c.skip != Skip::Hold || (p.hint <= 0.0 && p.skip_held <= 0.0) {
         return;
     }
-    let key =
-        g.settings.keys(crate::session::input::Act::Interact).first().map(|k| crate::session::input::key_label(k)).unwrap_or_default();
+    let key = g.settings.keys(crate::session::input::Act::Interact).first().map_or_default(|k| crate::session::input::key_label(k));
     let words = format!("Hold {key} to skip");
     let held = (p.skip_held / SKIP_HOLD).clamp(0.0, 1.0);
     // in quickly, out over its last half second; brighter while held

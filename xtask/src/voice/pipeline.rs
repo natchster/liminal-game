@@ -229,12 +229,12 @@ pub fn job(p: &Persona, model: &str, line: &toml::Table, take: i64, out: &Path) 
 }
 
 fn line_ids(p: &Persona, args: &[String]) -> Vec<toml::Table> {
-    let only: Vec<&str> = opt(args, "--only").map(|o| o.split(',').collect()).unwrap_or_default();
+    let only: Vec<&str> = opt(args, "--only").map_or_default(|o| o.split(',').collect());
     p.lines.iter().filter(|l| only.is_empty() || s(l, "id").is_some_and(|id| only.contains(&id.as_str()))).cloned().collect()
 }
 
 pub fn model_arg(p: &Persona, args: &[String]) -> Result<String, String> {
-    let m = opt(args, "--model").map(String::from).unwrap_or_else(|| p.voice("line_model"));
+    let m = opt(args, "--model").map_or_else(|| p.voice("line_model"), String::from);
     if !super::SPEAKERS.contains(&m.as_str()) {
         return Err(format!("{m} cannot say a line: one of {:?}", super::SPEAKERS));
     }
@@ -376,7 +376,7 @@ pub fn index_rows(p: &Persona) -> Vec<String> {
         .iter()
         .map(|l| {
             let lv: Vec<i64> =
-                l.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect()).unwrap_or_default();
+                l.get("levels").and_then(|v| v.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_integer()).collect());
             format!(
                 "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
                 p.id,
@@ -660,7 +660,7 @@ pub fn bakeoff(args: &[String]) -> Result<(), String> {
         let Ok(text) = std::fs::read_to_string(p.work().join(m).join("report.json")) else { continue };
         let rep: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
         let takes = rep["takes"].as_array().cloned().unwrap_or_default();
-        let lines = rep["lines"].as_object().map(|o| (o.values().filter(|v| !v["chosen"].is_null()).count(), o.len())).unwrap_or((0, 0));
+        let lines = rep["lines"].as_object().map_or((0, 0), |o| (o.values().filter(|v| !v["chosen"].is_null()).count(), o.len()));
         let passing = takes.iter().filter(|t| t["passes"] == json!(true)).count();
         let sim = takes.iter().filter_map(|t| t["similarity"].as_f64()).sum::<f64>() / takes.len().max(1) as f64;
         let mut fails: Vec<(String, usize)> = vec![];

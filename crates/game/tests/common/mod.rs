@@ -1,5 +1,5 @@
 //! Readers for the recorded reference data (binary fixtures in `tests/fixtures/`).
-#![allow(dead_code)]
+#![allow(dead_code, reason = "helpers shared by several test binaries; each uses a part")]
 use std::collections::HashMap;
 
 pub fn fixture(name: &str) -> Vec<u8> {

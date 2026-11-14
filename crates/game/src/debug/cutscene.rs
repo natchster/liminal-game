@@ -297,7 +297,7 @@ impl Game {
         let (mut skipping, mut paused, mut endangered) = (false, false, false);
         let limit = ((c.length + 5.0) / dt) as usize;
         for _ in 0..limit {
-            let t = self.cut.as_ref().map(|p| p.t).unwrap_or(0.0);
+            let t = self.cut.as_ref().map_or(0.0, |p| p.t);
             if let (Some(at), false) = (o.skip_at, skipping)
                 && t >= at
             {
@@ -330,7 +330,7 @@ impl Game {
             let (t, play, w, bars) = match (&self.cut, self.cut_end) {
                 (Some(q), _) => (q.t, q.gameplay.unwrap_or(shown), q.w, q.bars()),
                 (None, Some(e)) => (e.t, e.play, 0.0, e.bars),
-                (None, None) => (tr.rows.last().map(|r| r.t).unwrap_or(0.0) + dt, shown, 0.0, 0.0),
+                (None, None) => (tr.rows.last().map_or(0.0, |r| r.t) + dt, shown, 0.0, 0.0),
             };
             let inside = self.hands_taken() && self.circle_hits_wall(shown.pos[0], shown.pos[2], CAMERA_CLEARANCE);
             let hud_up = self.hands_taken() && tr.rows.len().is_multiple_of(HUD_EVERY) && {
@@ -605,7 +605,7 @@ pub fn contract_rates(traces: &[Trace], tol: f64) -> Vec<String> {
                 cues(first)
             ));
         }
-        let (a, b) = (first.rows.last().map(|r| r.t).unwrap_or(0.0), tr.rows.last().map(|r| r.t).unwrap_or(0.0));
+        let (a, b) = (first.rows.last().map_or(0.0, |r| r.t), tr.rows.last().map_or(0.0, |r| r.t));
         if (a - b).abs() > first.dt.max(tr.dt) + 1e-9 {
             p.push(format!("{} on {}: it ends at {b:.3} s at {} fps and {a:.3} s at {} fps", tr.id, tr.stage, fps(tr), fps(first)));
         }

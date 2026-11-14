@@ -88,7 +88,7 @@ impl Machine {
         let c = self.places[k].clone();
         let s = Stock { design: self.stock[k].design, count: self.full[k] };
         self.body.pieces.retain(|p| !(p.coil == Some(k) && p.item.is_some()));
-        let mut next = self.body.pieces.iter().filter_map(|p| p.item).max().map(|x| x + 1).unwrap_or(0).max(10_000 * (k + 1));
+        let mut next = self.body.pieces.iter().filter_map(|p| p.item).max().map_or(0, |x| x + 1).max(10_000 * (k + 1));
         let mut add = vec![];
         let ids =
             crate::base::rng::with_own_stream(seed ^ (k as u32).wrapping_mul(0x85EB_CA6B), || goods_pieces(k, &c, &s, &mut next, &mut add));

@@ -65,7 +65,6 @@ pub(crate) fn place_wall_stains(g: &mut Game, _dist: &[i32]) {
     /// `reach` m down, a run on from it to `foot` m down, `heavy` how much it
     /// left (0.7-1.2), on `surface` (0 paper or paint, 1 masonry, 2 glazed
     /// tile), mouldy where it stayed `damp`
-    #[allow(clippy::too_many_arguments)]
     fn stain_mat(pw: f64, ph: f64, reach: f64, foot: f64, heavy: f64, surface: u8, damp: bool) -> Mat {
         // (sRGB) its tide lines, the wash inside them, and how strong each is
         let (line, fill, k_line, k_fill) = match surface {

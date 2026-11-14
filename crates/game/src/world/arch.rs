@@ -315,7 +315,7 @@ impl Game {
                         || z == 0
                         || x == self.w - 1
                         || z == self.h - 1
-                        || solids.as_ref().map(|s| self.tile_fully_solid(s, t)).unwrap_or(false))
+                        || solids.as_ref().is_some_and(|s| self.tile_fully_solid(s, t)))
                 {
                     continue;
                 }
@@ -354,7 +354,7 @@ impl Game {
         for z in 0..self.h {
             for x in 0..self.w {
                 let t = self.t_idx(x, z);
-                if self.tiles[t] == 1 && solids.as_ref().map(|s| self.tile_fully_solid(s, t)).unwrap_or(false) {
+                if self.tiles[t] == 1 && solids.as_ref().is_some_and(|s| self.tile_fully_solid(s, t)) {
                     continue;
                 }
                 let key = self.ceil_mat_key(t);
@@ -720,7 +720,7 @@ impl Game {
         for o in self.world.children() {
             {
                 let u = &o.r().user;
-                if !(u.placer.as_deref().map(|s| !s.is_empty()).unwrap_or(false) || u.instanced) {
+                if !(u.placer.as_deref().is_some_and(|s| !s.is_empty()) || u.instanced) {
                     continue;
                 }
             }

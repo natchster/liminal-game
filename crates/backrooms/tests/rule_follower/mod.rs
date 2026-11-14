@@ -3,7 +3,7 @@
 //! how it moves (the keys, as a player presses them). Shared by
 //! `tests/beatable.rs` (level by level) and `tests/playthrough.rs` (the whole
 //! run, live).
-#![allow(dead_code)]
+#![allow(dead_code, reason = "helpers shared by several test binaries; each uses a part")]
 use game::Game;
 use game::entities::brain::Mode;
 

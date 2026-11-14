@@ -61,7 +61,7 @@ struct Step {
 pub fn check(args: &[String]) -> Result<(), String> {
     let fast = flag(args, "--fast");
     let only: Option<Vec<&str>> = opt(args, "--only").map(|s| s.split(',').collect());
-    let skip: Vec<&str> = opt(args, "--skip").map(|s| s.split(',').collect()).unwrap_or_default();
+    let skip: Vec<&str> = opt(args, "--skip").map_or_default(|s| s.split(',').collect());
     let logs = root().join("target/xtask/check");
     std::fs::create_dir_all(&logs).map_err(|e| format!("{}: {e}", logs.display()))?;
 
@@ -220,8 +220,7 @@ fn unittest_errors(text: &str) -> Vec<String> {
             .take_while(|n| !n.starts_with("=====") && !n.starts_with("FAIL: ") && !n.starts_with("ERROR: "))
             .filter(|n| !n.starts_with(' ') && (n.contains("Error") || n.contains("Exception")))
             .last()
-            .map(|n| n.chars().take(240).collect::<String>())
-            .unwrap_or_default();
+            .map_or_default(|n| n.chars().take(240).collect::<String>());
         out.push(format!("{test}: {why}"));
     }
     out
@@ -238,7 +237,7 @@ fn test_errors(text: &str) -> Vec<String> {
             && let Some((name, tail)) = rest.split_once("' panicked at ")
         {
             let at = tail.trim_end_matches(':');
-            let why = lines.get(i + 1).map(|s| s.trim()).unwrap_or("");
+            let why = lines.get(i + 1).map_or("", |s| s.trim());
             let why: String = why.chars().take(240).collect();
             out.push(format!("{name} panicked at {at}: {why}"));
         }

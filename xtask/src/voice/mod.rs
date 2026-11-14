@@ -98,8 +98,7 @@ pub fn models() -> Result<Vec<Model>, String> {
                 include: m
                     .get("include")
                     .and_then(|v| v.as_array())
-                    .map(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect())
-                    .unwrap_or_default(),
+                    .map_or_default(|a| a.iter().filter_map(|v| v.as_str().map(String::from)).collect()),
                 upstream: s(m, "upstream"),
                 licence: need("licence")?,
             })
@@ -562,7 +561,7 @@ pub fn check_sources() -> Vec<String> {
             problems
                 .push(format!("{what}: targets.wer_max, similarity_min and similarity_min_loud (at most similarity_min) are fractions"));
         }
-        let emotions: Vec<String> = t.get("emotions").and_then(|v| v.as_table()).map(|e| e.keys().cloned().collect()).unwrap_or_default();
+        let emotions: Vec<String> = t.get("emotions").and_then(|v| v.as_table()).map_or_default(|e| e.keys().cloned().collect());
         for (e, r) in t.get("references").and_then(|v| v.as_table()).into_iter().flatten() {
             let what = format!("{what}: references.{e}");
             if !emotions.contains(e) {
@@ -634,7 +633,7 @@ pub fn check_sources() -> Vec<String> {
                 problems.push(format!("{what}: use {u} is not one the game plays ({USES:?})"));
             }
             let lv: Vec<i64> =
-                l.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect()).unwrap_or_default();
+                l.get("levels").and_then(|v| v.as_array()).map_or_default(|a| a.iter().filter_map(|x| x.as_integer()).collect());
             if lv.len() == 2 && !(1 <= lv[0] && lv[0] <= lv[1]) {
                 problems.push(format!("{what}: levels is a first and a last level, from 1"));
             }

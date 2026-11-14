@@ -156,7 +156,7 @@ fn binaries(json: &str) -> Vec<Binary> {
         }
         let Some(exe) = v["executable"].as_str() else { continue };
         let manifest = PathBuf::from(v["manifest_path"].as_str().unwrap_or_default());
-        let dir = manifest.parent().map(PathBuf::from).unwrap_or_else(root);
+        let dir = manifest.parent().map_or_else(root, PathBuf::from);
         out.push(Binary {
             pkg: package_name(v["package_id"].as_str().unwrap_or_default(), &dir),
             target: v["target"]["name"].as_str().unwrap_or_default().to_string(),
@@ -173,7 +173,7 @@ fn binaries(json: &str) -> Vec<Binary> {
 fn package_name(id: &str, dir: &std::path::Path) -> String {
     match id.rsplit_once('#') {
         Some((_, tail)) if tail.contains('@') => tail.split('@').next().unwrap_or_default().to_string(),
-        _ => dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
+        _ => dir.file_name().map_or_default(|n| n.to_string_lossy().into_owned()),
     }
 }
 

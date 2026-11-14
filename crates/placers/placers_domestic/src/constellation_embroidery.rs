@@ -125,6 +125,6 @@ game::lazy_static_tex!(
         let years = [1978, 1985, 1962, 1993, 1971];
         let who = pick(&["E.M.", "A.R.", "S.C.", "M.L."]);
         let year = years[(rnd() * years.len() as f64).floor() as usize];
-        ctx.fill_text(&format!("Stitched by {}, {}", who, year), w / 2.0, h - 12.0);
+        ctx.fill_text(&format!("Stitched by {who}, {year}"), w / 2.0, h - 12.0);
     })
 );

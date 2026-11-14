@@ -170,7 +170,7 @@ fn photo_textures() -> Vec<Tex> {
                                 for r in 0..5 {
                                     let rad = 8.0 + r as f64 * 8.0;
                                     let alpha = 0.65 - r as f64 * 0.11;
-                                    ctx.set_stroke_style(format!("rgba(220,200,160,{})", alpha));
+                                    ctx.set_stroke_style(format!("rgba(220,200,160,{alpha})"));
                                     ctx.set_line_width(1.6);
                                     ctx.begin_path();
                                     ctx.arc(cx, cy, rad, 0, PI * 2.0);

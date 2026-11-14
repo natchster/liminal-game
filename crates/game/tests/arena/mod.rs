@@ -3,7 +3,7 @@
 //! world queries), one creature, and a player the test moves by hand (its
 //! gait sets what the creatures hear, as `update_player` would). Game time
 //! (`perf_t`) advances with each step, as `frame` would.
-#![allow(dead_code)]
+#![allow(dead_code, reason = "helpers shared by several test binaries; each uses a part")]
 use game::base::numeric::hypot2;
 use game::entities::*;
 use game::prelude::*;
@@ -212,10 +212,10 @@ pub fn look_at(g: &mut Game, x: f64, z: f64) {
 
 /// The mode of creature `ei`.
 pub fn mode(g: &Game, ei: usize) -> game::entities::brain::Mode {
-    g.creature(ei).map(|c| c.brain.mode).unwrap_or_default()
+    g.creature(ei).map_or_default(|c| c.brain.mode)
 }
 
 /// The modes creature `ei` has been through, in order (from its log).
 pub fn modes(g: &Game, ei: usize) -> Vec<game::entities::brain::Mode> {
-    g.creature(ei).map(|c| c.brain.log.iter().map(|x| x.2).collect()).unwrap_or_default()
+    g.creature(ei).map_or_default(|c| c.brain.log.iter().map(|x| x.2).collect())
 }

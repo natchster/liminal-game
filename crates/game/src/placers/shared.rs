@@ -142,7 +142,7 @@ crate::lazy_static_tex!(
         ctx.set_text_align("right");
         let year = pick(&["1987", "1974", "1962", "1993", "1958"]);
         let price = pick(&["25¢", "10¢", "15¢", "50¢"]);
-        ctx.fill_text(&format!("{}   {}", year, price), w - 10.0, 44);
+        ctx.fill_text(&format!("{year}   {price}"), w - 10.0, 44);
         ctx.set_text_align("center");
         ctx.set_font("bold 18px serif");
         let headline = pick(&[
@@ -229,7 +229,7 @@ pub fn window_sign_textures() -> Vec<Tex> {
                             ctx.set_line_width(2);
                             ctx.stroke_rect(3, 3, w - 6.0, h - 6.0);
                             ctx.set_fill_style(fg);
-                            ctx.set_font(&format!("bold {}px monospace", fs));
+                            ctx.set_font(&format!("bold {fs}px monospace"));
                             ctx.set_text_align("center");
                             ctx.set_text_baseline("middle");
                             let lines: Vec<&str> = text.split('\n').collect();
@@ -275,7 +275,7 @@ pub fn clock_textures() -> Vec<Tex> {
                             ctx.fill_rect(0, 0, w, h);
                             let grd = ctx.create_radial_gradient(w / 2.0, h / 2.0, w * 0.3, w / 2.0, h / 2.0, w * 0.55);
                             grd.add_color_stop(0, "rgba(0,0,0,0)");
-                            grd.add_color_stop(1, &format!("rgba({},{},{},0.35)", tr, tg, tb));
+                            grd.add_color_stop(1, &format!("rgba({tr},{tg},{tb},0.35)"));
                             ctx.set_fill_style(&grd);
                             ctx.fill_rect(0, 0, w, h);
                             ctx.set_stroke_style("#302820");

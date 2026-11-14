@@ -77,7 +77,7 @@ pub fn canvas_tex_opt<F: FnOnce(&mut Canvas, f64, f64)>(w: impl Num, h: impl Num
 /// it): the same bytes as one row after the other, sooner
 pub fn par_rows(data: &mut [u8], row_len: usize, row: impl Fn(usize, &mut [u8]) + Sync) {
     let rows = data.len() / row_len.max(1);
-    let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(1, rows.max(1));
+    let n = std::thread::available_parallelism().map_or(4, |n| n.get()).clamp(1, rows.max(1));
     let per = rows.div_ceil(n).max(1);
     std::thread::scope(|s| {
         for (c, chunk) in data.chunks_mut(per * row_len).enumerate() {

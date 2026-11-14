@@ -1,4 +1,7 @@
-#![allow(non_upper_case_globals)]
+#![expect(
+    non_upper_case_globals,
+    reason = "the wraps, filters and colour spaces read as names (`RepeatWrapping`, `LinearFilter`) where every placer sets up its textures"
+)]
 //! Textures: shared pixel images (canvas-drawn or raw data) plus per-texture
 //! sampling state (wrap, filters, mipmaps, uv offset / repeat / rotation, y-flip).
 

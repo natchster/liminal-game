@@ -59,7 +59,7 @@ pub fn look_key(m: &Mat) -> String {
         col(has_color, &m.color),
         col(has_emissive, &m.emissive),
         if has_emissive { fmt_num(m.emissive_intensity) } else { "1".to_string() },
-        m.map.as_ref().map(|t| format!("t{}", t.id())).unwrap_or_else(|| "-".into()),
+        m.map.as_ref().map_or_else(|| "-".into(), |t| format!("t{}", t.id())),
         side.to_string(),
         (if m.flat_shading { "1" } else { "0" }).to_string(),
         (if m.vertex_colors { "1" } else { "0" }).to_string(),

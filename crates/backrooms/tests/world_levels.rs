@@ -51,8 +51,7 @@ fn levels_build_with_all_placers() {
                     meshes += 1;
                 }
             });
-            let placed =
-                g.world.children().iter().filter(|c| c.r().user.placer.as_deref().map(|p| p != "place_props").unwrap_or(false)).count();
+            let placed = g.world.children().iter().filter(|c| c.r().user.placer.as_deref().is_some_and(|p| p != "place_props")).count();
             eprintln!(
                 "run {run_seed:#010x} level {n:2} scp {:9} weather {:8} {}x{}: {draws:6} draws, {:3} marks, themes {:3} ran / {:3} skipped, {kids:4} children ({meshes:5} meshes, {placed:4} themed), {:3} panels, {:3} anim, {:2} inter, settle {:?}, {ms:.0} ms",
                 g.level_scp.as_deref().unwrap_or("-"),
@@ -72,7 +71,7 @@ fn levels_build_with_all_placers() {
             assert_eq!((g.theme_stats_ran + g.theme_stats_skipped) as usize, game::world::tables::THEMED_ORDER.len());
             assert!(g.theme_stats_ran > 0, "some placers ran");
             assert!(kids > 50 && meshes > 50, "a world was built");
-            assert!(g.solids.as_ref().map(|s| s.count).unwrap_or(0) > 100, "solids");
+            assert!(g.solids.as_ref().map_or(0, |s| s.count) > 100, "solids");
             assert!(g.tiles.iter().all(|&t| t <= 1), "no masked tile left behind");
             assert!(g.world.parent().is_some(), "world is in the scene");
             let marks: Vec<String> = g.rand_trace.marks.iter().map(|(l, k)| format!("[\"{}\",{}]", l, k - d0)).collect();
@@ -82,7 +81,7 @@ fn levels_build_with_all_placers() {
             first = false;
             out.push_str(&format!(
                 "{{\"runSeed\":{run_seed},\"level\":{n},\"scp\":{},\"seed\":{seed},\"draws\":{draws},\"marks\":[{}]}}",
-                g.level_scp.as_ref().map(|s| format!("\"{s}\"")).unwrap_or("null".into()),
+                g.level_scp.as_ref().map_or("null".into(), |s| format!("\"{s}\"")),
                 marks.join(",")
             ));
             // the next level frees what this one made

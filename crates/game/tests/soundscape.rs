@@ -3,7 +3,6 @@
 //! (`make_ir`).
 
 mod data {
-    #![allow(dead_code)]
     include!("data/soundscape_ref_data.rs");
 }
 use data::*;

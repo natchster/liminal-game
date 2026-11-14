@@ -71,6 +71,16 @@ comparison_chain = "allow"
 field_reassign_with_default = "allow"
 should_implement_trait = "allow"
 type_complexity = "allow"
+# a lint silenced in the code says why (`#[expect(lint, reason = "…")]`, or
+# `allow` where it holds in some builds only, as in shared test helpers)
+allow_attributes_without_reason = "warn"
+# `let … else` for a binding that returns early on the other case
+manual_let_else = "warn"
+# the current language's own forms: names inline in a format string,
+# `copied` for Copy values, or-patterns nested
+uninlined_format_args = "warn"
+cloned_instead_of_copied = "warn"
+unnested_or_patterns = "warn"
 
 [profile.dev]
 opt-level = 1

@@ -367,14 +367,8 @@ fn archgen_layouts_solids_queries() {
             let zi = int(&e["zone"]) as usize;
             let want: Vec<[i64; 4]> =
                 arr(&e["cells"]).iter().map(|q| [int(&q["x0"]), int(&q["x1"]), int(&q["z0"]), int(&q["z1"])]).collect();
-            let got: Vec<[i64; 4]> = layout
-                .zones
-                .get(zi)
-                .map(store_cells)
-                .unwrap_or_default()
-                .iter()
-                .map(|q| [q.x0, q.x1, q.z0, q.z1].map(|v| v as i64))
-                .collect();
+            let got: Vec<[i64; 4]> =
+                layout.zones.get(zi).map_or_default(store_cells).iter().map(|q| [q.x0, q.x1, q.z0, q.z1].map(|v| v as i64)).collect();
             c.eq(&format!("{tag}.store_cells(zone {zi})"), got, want);
         }
 
@@ -546,7 +540,7 @@ fn rerecord_archgen_cases() {
             .iter()
             .map(|e| {
                 let zi = int(&e["zone"]) as usize;
-                let cells = layout.zones.get(zi).map(store_cells).unwrap_or_default();
+                let cells = layout.zones.get(zi).map_or_default(store_cells);
                 serde_json::json!({ "zone": zi, "cells": cells.iter().map(|q| serde_json::json!({ "x0": q.x0, "x1": q.x1, "z0": q.z0, "z1": q.z1 })).collect::<Vec<_>>() })
             })
             .collect();

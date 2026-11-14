@@ -168,7 +168,7 @@ game::lazy_static_tex!(
         ctx.fill_text(&flight, 138, 64);
         let seat_row = (rnd() * 30.0).floor() as i64 + 1;
         let seat_letter = ["A", "B", "C", "D", "E", "F"][(rnd() * 6.0).floor() as usize];
-        ctx.fill_text(&format!("{}{}", seat_row, seat_letter), 172, 64);
+        ctx.fill_text(&format!("{seat_row}{seat_letter}"), 172, 64);
         // Date + time.
         ctx.set_font("7px sans-serif");
         ctx.fill_text("DATE", 38, 78);
@@ -178,10 +178,10 @@ game::lazy_static_tex!(
         ctx.fill_text("14 MAR", 38, 90);
         let dep_h = (rnd() * 12.0).floor() as i64 + 6;
         let dep_m = ((rnd() * 6.0).floor() as i64) * 10;
-        ctx.fill_text(&format!("{}:{}0", dep_h, dep_m), 90, 90);
+        ctx.fill_text(&format!("{dep_h}:{dep_m}0"), 90, 90);
         let gate_l = ["A", "B", "C", "D"][(rnd() * 4.0).floor() as usize];
         let gate_n = (rnd() * 30.0).floor() as i64 + 1;
-        ctx.fill_text(&format!("{}{}", gate_l, gate_n), 148, 90);
+        ctx.fill_text(&format!("{gate_l}{gate_n}"), 148, 90);
         // Barcode strip on the right — thin dark lines.
         ctx.set_fill_style("#101010");
         for i in 0..40 {

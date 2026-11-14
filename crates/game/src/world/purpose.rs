@@ -42,7 +42,7 @@ impl ZonePurpose {
 }
 
 fn empty_chance(arch: &str) -> f64 {
-    PURPOSE_EMPTY.iter().find(|(a, _)| *a == arch).map(|&(_, v)| v).unwrap_or(0.0)
+    PURPOSE_EMPTY.iter().find(|(a, _)| *a == arch).map_or(0.0, |&(_, v)| v)
 }
 fn label_of(arch: &str, primary: Option<&str>) -> &'static str {
     match (arch, primary) {
@@ -56,7 +56,7 @@ fn label_of(arch: &str, primary: Option<&str>) -> &'static str {
         ("works", _) => "works",
         _ => {
             let k = primary.unwrap_or("");
-            PURPOSE_LABEL.iter().find(|(t, _)| *t == k).map(|&(_, l)| l).unwrap_or("empty")
+            PURPOSE_LABEL.iter().find(|(t, _)| *t == k).map_or("empty", |&(_, l)| l)
         }
     }
 }
@@ -81,11 +81,8 @@ fn pick(list: &[(&'static str, f64)]) -> Option<&'static str> {
 /// first level).
 fn pick_purpose(arch: &'static str, area: usize, bare: bool) -> ZonePurpose {
     let empty = rnd() < empty_chance(arch) || bare;
-    let themes: Vec<(&'static str, f64)> = THEME_ALLOW
-        .iter()
-        .find(|(a, _)| *a == arch)
-        .map(|(_, l)| l.iter().copied().filter(|&(t, _)| t != "core").collect())
-        .unwrap_or_default();
+    let themes: Vec<(&'static str, f64)> =
+        THEME_ALLOW.iter().find(|(a, _)| *a == arch).map_or_default(|(_, l)| l.iter().copied().filter(|&(t, _)| t != "core").collect());
     let primary = if empty { None } else { pick(&themes) };
     let secondary = match primary {
         Some(p) if rnd() < SECONDARY_CHANCE => {
@@ -93,8 +90,7 @@ fn pick_purpose(arch: &'static str, area: usize, bare: bool) -> ZonePurpose {
             let compat: Vec<(&'static str, f64)> = THEME_COMPAT
                 .iter()
                 .find(|(t, _)| *t == p)
-                .map(|(_, l)| l.iter().map(|&(t, w)| (t, w * if theme_allow(arch, t) > 0.0 { 1.0 } else { 0.3 })).collect())
-                .unwrap_or_default();
+                .map_or_default(|(_, l)| l.iter().map(|&(t, w)| (t, w * if theme_allow(arch, t) > 0.0 { 1.0 } else { 0.3 })).collect());
             pick(&compat)
         }
         _ => None,

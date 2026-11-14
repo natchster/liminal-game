@@ -154,7 +154,7 @@ fn play_level(seed: u32, level: i32, secs: f64) -> Log {
         }
         if g.state == "dead" {
             log.deaths += 1;
-            let killer = g.director.killer.map(|k| g.entities[k].kind.clone()).unwrap_or_default();
+            let killer = g.director.killer.map_or_default(|k| g.entities[k].kind.clone());
             log.causes.push(format!("{}:{}@{:.0}s san{:.0}", g.last_death_cause.clone().unwrap_or_default(), killer, t, g.player.sanity));
             log.spans.push((phase, t - since));
             g.restart();

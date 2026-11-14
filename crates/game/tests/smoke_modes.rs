@@ -57,7 +57,7 @@ fn stairwell_smoke() {
         s.st.z = lp.z;
         s.st.y = s.seg_y(seg, 0.0, lp.z);
         let out = s.update(1.0 / 60.0, &StairInput::with_camera(0.0, 0.0, 0.0, 0.0, 0.0, &camera));
-        assert!(out.near_exit, "the door at the bottom ({} flights)", flights);
+        assert!(out.near_exit, "the door at the bottom ({flights} flights)");
         let _ = events;
     }
     // `camera_world_direction` looks down −Z for a camera
@@ -83,7 +83,7 @@ fn loop_smoke() {
     let mut seams = 0;
     let check = |lp: &LoopMode| {
         for (name, m) in &lp.meshes {
-            assert!(m.instance_count() <= capacity(m), "{} over capacity", name);
+            assert!(m.instance_count() <= capacity(m), "{name} over capacity");
         }
     };
     for f in 0..20000 {

@@ -56,7 +56,7 @@ fn placement_matches_reference() {
                 want.push((v[0] == 1.0, [v[1], v[2], v[3]]));
             }
             "S" => want_stats = nums(&t[1..]),
-            _ => panic!("bad line {}", line),
+            _ => panic!("bad line {line}"),
         }
     }
     let wq = |bb: &[f64; 6]| -> Vec<[f64; 6]> {
@@ -69,10 +69,10 @@ fn placement_matches_reference() {
     let got = [st.props, st.lifted, st.dropped, st.stacked, st.unburied, st.nudged, st.removed, st.resettled, st.skipped].map(|x| x as f64);
     assert_eq!(got.to_vec(), want_stats, "stats (props lifted dropped stacked unburied nudged removed resettled skipped)");
     for (i, (o, (removed, p))) in objs.iter().zip(&want).enumerate() {
-        assert_eq!(o.parent().is_none(), *removed, "object {} removed", i);
+        assert_eq!(o.parent().is_none(), *removed, "object {i} removed");
         let q = o.pos();
         for (k, (a, b)) in [q.x, q.y, q.z].iter().zip(p).enumerate() {
-            assert!((a - b).abs() <= 1e-9, "object {} axis {}: got {} vs recorded {}", i, k, a, b);
+            assert!((a - b).abs() <= 1e-9, "object {i} axis {k}: got {a} vs recorded {b}");
         }
     }
 }
@@ -128,7 +128,7 @@ fn instancing_matches_reference() {
                 kinds.push(if t[0] == "I" { "I" } else { "G" });
                 want_children.push(nums(&t[1..]));
             }
-            _ => panic!("bad line {}", line),
+            _ => panic!("bad line {line}"),
         }
     }
     let chunk_of = |x: f64, z: f64| (x / 4.0).floor() as i64 * 64 + (z / 4.0).floor() as i64;
@@ -138,12 +138,12 @@ fn instancing_matches_reference() {
     assert_eq!(kids.len(), want_children.len(), "world children");
     for (i, c) in kids.iter().enumerate() {
         if kinds[i] == "I" {
-            assert!(c.is_instanced(), "child {} instanced", i);
+            assert!(c.is_instanced(), "child {i} instanced");
             let w = &want_children[i];
             assert_eq!(c.instance_count() as f64, w[0]);
             let gi = geos.iter().position(|g| g.ptr_eq(&c.geo())).unwrap() as f64;
             let mi = mats.iter().position(|m| m.ptr_eq(&c.mat())).unwrap() as f64;
-            assert_eq!((gi, mi), (w[1], w[2]), "child {}: geometry / material", i);
+            assert_eq!((gi, mi), (w[1], w[2]), "child {i}: geometry / material");
             let (mut sx, mut sy, mut sz) = (0.0, 0.0, 0.0);
             for k in 0..c.instance_count() {
                 let m = c.get_matrix_at(k);
@@ -153,14 +153,14 @@ fn instancing_matches_reference() {
             }
             // instance matrices are stored as f32
             for (a, b) in [sx, sy, sz].iter().zip(&w[3..6]) {
-                assert!((a - b).abs() < 1e-5, "child {}: instance translations {} vs {}", i, a, b);
+                assert!((a - b).abs() < 1e-5, "child {i}: instance translations {a} vs {b}");
             }
             assert!(c.r().user.static_prop && c.r().user.instanced && !c.r().matrix_auto_update);
         } else {
-            assert!(!c.is_instanced(), "child {} is a group", i);
+            assert!(!c.is_instanced(), "child {i} is a group");
             let (mut n, mut g) = (0.0, 0.0);
             c.traverse(&mut |o: &Obj| if o.is_mesh() { n += 1.0 } else { g += 1.0 });
-            assert_eq!(vec![n, g], want_children[i], "child {}: meshes / groups left", i);
+            assert_eq!(vec![n, g], want_children[i], "child {i}: meshes / groups left");
         }
     }
 }
@@ -214,7 +214,7 @@ fn placement_smoke() {
     assert!((b.pos().x - 0.2).abs() > 0.1 || (b.pos().z - 3.0).abs() > 0.1, "nudged: {:?}", b.pos());
     assert!((a.pos().x).abs() < 1e-9 && (a.pos().z - 3.0).abs() < 1e-9, "the bigger one stays");
     assert_eq!(floater.pos().y, 1.0);
-    assert!(st.lifted >= 1 && st.dropped >= 1 && st.resettled >= 1 && st.unburied >= 1 && st.nudged >= 1, "{:?}", st);
+    assert!(st.lifted >= 1 && st.dropped >= 1 && st.resettled >= 1 && st.unburied >= 1 && st.nudged >= 1, "{st:?}");
     // the wall grid gives the same boxes a brute-force filter does
     let mut wg = WallGrid::new(21, 21, 2.0);
     wg.add_tile_box(10.0, 3.0, 10.1, 17.0, 0.0, 3.0);

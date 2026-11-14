@@ -27,7 +27,6 @@
 //! * [`session`] — start-up, the per-frame update, input and the game flow.
 //! * [`story`] — M.'s trail, her camps and her notebook: the descent's story.
 //! * [`debug`] — inspection hooks (level dumps) and test helpers.
-#![allow(clippy::too_many_arguments, clippy::type_complexity, clippy::needless_range_loop, non_snake_case)]
 
 pub mod anomalies;
 pub mod assets;

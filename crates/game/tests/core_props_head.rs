@@ -16,14 +16,14 @@ use serde_json::Value;
 
 fn load() -> Vec<Value> {
     let p = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/core_props_head.json");
-    let s = std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{}: {} (missing fixture)", p, e));
+    let s = std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{p}: {e} (missing fixture)"));
     match serde_json::from_str::<Value>(&s).unwrap() {
         Value::Array(a) => a,
         _ => panic!("fixture: not an array"),
     }
 }
 fn f(v: &Value) -> f64 {
-    v.as_f64().unwrap_or_else(|| panic!("not a number: {}", v))
+    v.as_f64().unwrap_or_else(|| panic!("not a number: {v}"))
 }
 fn fs(v: &Value) -> Vec<f64> {
     v.as_array().unwrap().iter().map(f).collect()
@@ -42,7 +42,7 @@ fn ck(a: f64, b: &Value, tol: f64, what: &str) {
 #[track_caller]
 fn ckv(a: &[f64], b: &Value, tol: f64, what: &str) {
     let b = fs(b);
-    assert_eq!(a.len(), b.len(), "{}: length", what);
+    assert_eq!(a.len(), b.len(), "{what}: length");
     for i in 0..a.len() {
         assert!(close(a[i], b[i], tol), "{}[{}]: got {} vs recorded {} ({:?} vs {:?})", what, i, a[i], b[i], a, b);
     }
@@ -205,72 +205,72 @@ fn obj_kind(o: &Obj) -> &'static str {
 #[track_caller]
 fn cmp_tex(g: &Game, t: Option<Tex>, rec: &Value, what: &str) {
     if rec.is_null() {
-        assert!(t.is_none(), "{}: unexpected map", what);
+        assert!(t.is_none(), "{what}: unexpected map");
         return;
     }
-    let t = t.unwrap_or_else(|| panic!("{}: map missing", what));
+    let t = t.unwrap_or_else(|| panic!("{what}: map missing"));
     let (ws, wt, rp) = {
         let r = t.r();
         (r.wrap_s == Wrap::Repeat, r.wrap_t == Wrap::Repeat, [r.repeat.x, r.repeat.y])
     };
     match rec["tag"].as_str().unwrap() {
-        "static" => assert!(t.0.as_ptr() == g.tex.static_tex.0.as_ptr(), "{}: not static_tex", what),
+        "static" => assert!(t.0.as_ptr() == g.tex.static_tex.0.as_ptr(), "{what}: not static_tex"),
         "rain" => {
-            assert!(t.0.as_ptr() != g.rain_streak_tex.0.as_ptr(), "{}: rain_streak_tex itself, not a clone", what);
-            assert_eq!((t.width(), t.height()), (g.rain_streak_tex.width(), g.rain_streak_tex.height()), "{}: rain clone size", what);
+            assert!(t.0.as_ptr() != g.rain_streak_tex.0.as_ptr(), "{what}: rain_streak_tex itself, not a clone");
+            assert_eq!((t.width(), t.height()), (g.rain_streak_tex.width(), g.rain_streak_tex.height()), "{what}: rain clone size");
         }
         _ => {
-            assert_eq!(t.width() as f64, f(&rec["w"]), "{}: tex width", what);
-            assert_eq!(t.height() as f64, f(&rec["h"]), "{}: tex height", what);
+            assert_eq!(t.width() as f64, f(&rec["w"]), "{what}: tex width");
+            assert_eq!(t.height() as f64, f(&rec["h"]), "{what}: tex height");
         }
     }
-    assert_eq!(ws, rec["ws"].as_bool().unwrap(), "{}: wrap_s", what);
-    assert_eq!(wt, rec["wt"].as_bool().unwrap(), "{}: wrap_t", what);
-    ckv(&rp, &rec["rp"], 0.0, &format!("{}: repeat", what));
+    assert_eq!(ws, rec["ws"].as_bool().unwrap(), "{what}: wrap_s");
+    assert_eq!(wt, rec["wt"].as_bool().unwrap(), "{what}: wrap_t");
+    ckv(&rp, &rec["rp"], 0.0, &format!("{what}: repeat"));
 }
 #[track_caller]
 fn cmp_tree(g: &Game, o: &Obj, rec: &Value, path: &str, ids: &mut Ids) {
-    assert_eq!(obj_kind(o), rec["k"].as_str().unwrap(), "{}: kind", path);
-    ckv(&v3a(&o.pos()), &rec["p"], 1e-12, &format!("{} position", path));
+    assert_eq!(obj_kind(o), rec["k"].as_str().unwrap(), "{path}: kind");
+    ckv(&v3a(&o.pos()), &rec["p"], 1e-12, &format!("{path} position"));
     let q = o.quat();
-    ckv(&[q.x, q.y, q.z, q.w], &rec["q"], 1e-12, &format!("{} quaternion", path));
+    ckv(&[q.x, q.y, q.z, q.w], &rec["q"], 1e-12, &format!("{path} quaternion"));
     let s = o.scl();
     if rec.get("s").is_some() {
-        ckv(&v3a(&s), &rec["s"], 1e-12, &format!("{} scale", path));
+        ckv(&v3a(&s), &rec["s"], 1e-12, &format!("{path} scale"));
     } else {
-        assert_eq!(v3a(&s), [1.0, 1.0, 1.0], "{} scale", path);
+        assert_eq!(v3a(&s), [1.0, 1.0, 1.0], "{path} scale");
     }
-    assert_eq!(o.visible(), rec.get("v").and_then(|v| v.as_bool()).unwrap_or(true), "{}: visible", path);
+    assert_eq!(o.visible(), rec.get("v").and_then(|v| v.as_bool()).unwrap_or(true), "{path}: visible");
     let order = format!("{:?}", o.rot().order);
-    assert_eq!(order, rec.get("ro").and_then(|v| v.as_str()).unwrap_or("XYZ"), "{}: rotation order", path);
-    assert_eq!(o.r().user.gameplay, rec.get("gp").is_some(), "{}: user.gameplay", path);
-    assert_eq!(o.r().user.floats, rec.get("fl").is_some(), "{}: user.floats", path);
+    assert_eq!(order, rec.get("ro").and_then(|v| v.as_str()).unwrap_or("XYZ"), "{path}: rotation order");
+    assert_eq!(o.r().user.gameplay, rec.get("gp").is_some(), "{path}: user.gameplay");
+    assert_eq!(o.r().user.floats, rec.get("fl").is_some(), "{path}: user.floats");
     if let Some(jg) = rec.get("g") {
         let geo = o.geo();
-        assert_eq!(ids.geo(&geo) as f64, f(&jg["gi"]), "{}: geometry sharing", path);
-        assert_eq!(geo.r().is_prop_part, jg["part"].as_bool().unwrap(), "{}: prop part", path);
+        assert_eq!(ids.geo(&geo) as f64, f(&jg["gi"]), "{path}: geometry sharing");
+        assert_eq!(geo.r().is_prop_part, jg["part"].as_bool().unwrap(), "{path}: prop part");
         let jt = jg["t"].as_array().unwrap();
-        assert_eq!(geo_kind(&geo), jt[0].as_str().unwrap(), "{}: geometry type", path);
+        assert_eq!(geo_kind(&geo), jt[0].as_str().unwrap(), "{path}: geometry type");
         let jp: Vec<f64> = jt[1..].iter().map(f).collect();
         let rp = geo_params(&geo);
-        assert_eq!(rp.len(), jp.len(), "{}: params", path);
+        assert_eq!(rp.len(), jp.len(), "{path}: params");
         for i in 0..rp.len() {
-            assert!(close(rp[i], jp[i], 1e-12), "{}: param {} got {:?} recorded {:?}", path, i, rp, jp);
+            assert!(close(rp[i], jp[i], 1e-12), "{path}: param {i} got {rp:?} recorded {jp:?}");
         }
-        assert_eq!(geo.vertex_count() as f64, f(&jg["vc"]), "{}: vertex count", path);
-        let ic = geo.r().index.as_ref().map(|i| i.len() as f64).unwrap_or(-1.0);
-        assert_eq!(ic, f(&jg["ic"]), "{}: index count", path);
+        assert_eq!(geo.vertex_count() as f64, f(&jg["vc"]), "{path}: vertex count");
+        let ic = geo.r().index.as_ref().map_or(-1.0, |i| i.len() as f64);
+        assert_eq!(ic, f(&jg["ic"]), "{path}: index count");
         let ps = attr_sum(&geo.r().position);
-        ckv(&ps, &jg["pos"], 1e-9, &format!("{} position sums", path));
+        ckv(&ps, &jg["pos"], 1e-9, &format!("{path} position sums"));
         let nr = geo.r().normal.clone();
         if jg["nor"].is_null() {
-            assert!(nr.is_empty(), "{}: unexpected normals", path);
+            assert!(nr.is_empty(), "{path}: unexpected normals");
         } else {
-            ckv(&attr_sum(&nr), &jg["nor"], 1e-9, &format!("{} normal sums", path));
+            ckv(&attr_sum(&nr), &jg["nor"], 1e-9, &format!("{path} normal sums"));
         }
         let jm = &rec["m"];
         let m = o.mat();
-        assert_eq!(ids.mat(&m) as f64, f(&jm["mi"]), "{}: material sharing", path);
+        assert_eq!(ids.mat(&m) as f64, f(&jm["mi"]), "{path}: material sharing");
         let r = m.r();
         let ty = match r.kind {
             MatKind::Basic => "basic",
@@ -278,20 +278,20 @@ fn cmp_tree(g: &Game, o: &Obj, rec: &Value, path: &str, ids: &mut Ids) {
             MatKind::LineBasic => "line",
             _ => "other",
         };
-        assert_eq!(ty, jm["t"].as_str().unwrap(), "{}: material type", path);
-        assert_eq!(r.color.get_hex() as f64, f(&jm["c"]), "{}: color", path);
+        assert_eq!(ty, jm["t"].as_str().unwrap(), "{path}: material type");
+        assert_eq!(r.color.get_hex() as f64, f(&jm["c"]), "{path}: color");
         if ty == "lambert" {
-            assert_eq!(r.emissive.get_hex() as f64, f(&jm["e"]), "{}: emissive", path);
+            assert_eq!(r.emissive.get_hex() as f64, f(&jm["e"]), "{path}: emissive");
         }
-        ck(r.opacity, &jm["o"], 1e-12, &format!("{}: opacity", path));
-        assert_eq!(r.transparent, jm["tr"].as_bool().unwrap(), "{}: transparent", path);
+        ck(r.opacity, &jm["o"], 1e-12, &format!("{path}: opacity"));
+        assert_eq!(r.transparent, jm["tr"].as_bool().unwrap(), "{path}: transparent");
         let side = match r.side {
             Side::Front => 0.0,
             Side::Back => 1.0,
             Side::Double => 2.0,
         };
-        assert_eq!(side, f(&jm["sd"]), "{}: side", path);
-        assert_eq!(r.depth_write, jm["dw"].as_bool().unwrap(), "{}: depth_write", path);
+        assert_eq!(side, f(&jm["sd"]), "{path}: side");
+        assert_eq!(r.depth_write, jm["dw"].as_bool().unwrap(), "{path}: depth_write");
         let bl = match r.blending {
             Blending::None => 0.0,
             Blending::Normal => 1.0,
@@ -299,28 +299,28 @@ fn cmp_tree(g: &Game, o: &Obj, rec: &Value, path: &str, ids: &mut Ids) {
             Blending::Subtractive => 3.0,
             Blending::Multiply => 4.0,
         };
-        assert_eq!(bl, f(&jm["bl"]), "{}: blending", path);
+        assert_eq!(bl, f(&jm["bl"]), "{path}: blending");
         let map = r.map.clone();
         drop(r);
-        cmp_tex(g, map, &jm["map"], &format!("{} map", path));
+        cmp_tex(g, map, &jm["map"], &format!("{path} map"));
     } else {
-        assert!(o.try_geo().is_none() || o.is_light(), "{}: we have geometry, recorded none", path);
+        assert!(o.try_geo().is_none() || o.is_light(), "{path}: we have geometry, recorded none");
     }
     if let Some(jl) = rec.get("l") {
         let (c, i, d, dc) = {
             let l = o.light();
             (l.color.get_hex(), l.intensity, l.distance, l.decay)
         };
-        assert_eq!(c as f64, f(&jl["c"]), "{}: light color", path);
-        ck(i, &jl["i"], 1e-12, &format!("{}: light intensity", path));
-        ck(d, &jl["d"], 1e-12, &format!("{}: light distance", path));
-        ck(dc, &jl["dc"], 1e-12, &format!("{}: light decay", path));
+        assert_eq!(c as f64, f(&jl["c"]), "{path}: light color");
+        ck(i, &jl["i"], 1e-12, &format!("{path}: light intensity"));
+        ck(d, &jl["d"], 1e-12, &format!("{path}: light distance"));
+        ck(dc, &jl["dc"], 1e-12, &format!("{path}: light decay"));
     }
     let kids = o.children();
     let jk = rec.get("c").and_then(|c| c.as_array()).map(|a| a.as_slice()).unwrap_or(&[]);
-    assert_eq!(kids.len(), jk.len(), "{}: child count", path);
+    assert_eq!(kids.len(), jk.len(), "{path}: child count");
     for (i, (k, j)) in kids.iter().zip(jk.iter()).enumerate() {
-        cmp_tree(g, k, j, &format!("{}/{}", path, i), ids);
+        cmp_tree(g, k, j, &format!("{path}/{i}"), ids);
     }
 }
 fn cand_arr(c: &Cand) -> [f64; 3] {
@@ -329,12 +329,12 @@ fn cand_arr(c: &Cand) -> [f64; 3] {
 #[track_caller]
 fn cmp_pickups(a: &[Pickup], rec: &Value, what: &str) {
     let ja = rec.as_array().unwrap();
-    assert_eq!(a.len(), ja.len(), "{}: count", what);
+    assert_eq!(a.len(), ja.len(), "{what}: count");
     for (i, (p, j)) in a.iter().zip(ja.iter()).enumerate() {
-        ckv(&v3a(&p.g.pos()), &j["p"], 1e-12, &format!("{}[{}] pos", what, i));
-        ck(p.base, &j["base"], 1e-12, &format!("{}[{}] base", what, i));
-        ck(p.phase, &j["phase"], 1e-12, &format!("{}[{}] phase", what, i));
-        assert_eq!(p.taken, j["taken"].as_bool().unwrap(), "{}[{}] taken", what, i);
+        ckv(&v3a(&p.g.pos()), &j["p"], 1e-12, &format!("{what}[{i}] pos"));
+        ck(p.base, &j["base"], 1e-12, &format!("{what}[{i}] base"));
+        ck(p.phase, &j["phase"], 1e-12, &format!("{what}[{i}] phase"));
+        assert_eq!(p.taken, j["taken"].as_bool().unwrap(), "{what}[{i}] taken");
     }
 }
 
@@ -343,105 +343,105 @@ fn cmp_pickups(a: &[Pickup], rec: &Value, what: &str) {
 fn place_props_head_matches_reference() {
     for c in load() {
         let seed = c["case"]["seed"].as_u64().unwrap() as u32;
-        let tag = format!("case {}", seed);
+        let tag = format!("case {seed}");
         let (mut g, dist) = setup(&c);
         let (draws, cx) = with_seed(seed, || {
             let d0 = seeded_draws();
             let cx = g.place_props_head(&dist);
             (seeded_draws() - d0, cx)
         });
-        assert_eq!(draws as f64, f(&c["draws"]), "{}: seeded draws at the hand-off", tag);
+        assert_eq!(draws as f64, f(&c["draws"]), "{tag}: seeded draws at the hand-off");
         // the shared locals
         let h = &c["handoff"];
         let jc = h["cands"].as_array().unwrap();
-        assert_eq!(cx.cands.len(), jc.len(), "{}: cands", tag);
+        assert_eq!(cx.cands.len(), jc.len(), "{tag}: cands");
         for (a, b) in cx.cands.iter().zip(jc) {
-            ckv(&cand_arr(a), b, 0.0, &format!("{}: cand", tag));
+            ckv(&cand_arr(a), b, 0.0, &format!("{tag}: cand"));
         }
         let jt = h["taken"].as_array().unwrap();
-        assert_eq!(cx.taken.len(), jt.len(), "{}: taken", tag);
+        assert_eq!(cx.taken.len(), jt.len(), "{tag}: taken");
         for (a, b) in cx.taken.iter().zip(jt) {
-            ckv(&cand_arr(a), b, 0.0, &format!("{}: taken", tag));
+            ckv(&cand_arr(a), b, 0.0, &format!("{tag}: taken"));
         }
-        ckv(&cand_arr(&cx.exit_tile.unwrap()), &h["exitTile"], 0.0, &format!("{}: exitTile", tag));
+        ckv(&cand_arr(&cx.exit_tile.unwrap()), &h["exitTile"], 0.0, &format!("{tag}: exitTile"));
         // the world
-        cmp_tree(&g, &g.world, &c["tree"], &format!("{} world", tag), &mut Ids::default());
-        assert_eq!(g.world.child_count() as f64, f(&c["worldChildren"]), "{}: world children", tag);
+        cmp_tree(&g, &g.world, &c["tree"], &format!("{tag} world"), &mut Ids::default());
+        assert_eq!(g.world.child_count() as f64, f(&c["worldChildren"]), "{tag}: world children");
         // interactables, animators
         let ji = c["interactables"].as_array().unwrap();
-        assert_eq!(g.interactables.len(), ji.len(), "{}: interactables", tag);
+        assert_eq!(g.interactables.len(), ji.len(), "{tag}: interactables");
         for (i, (it, j)) in g.interactables.iter().zip(ji).enumerate() {
-            ckv(&v3a(&it.pos), &j["p"], 1e-12, &format!("{}: interactable {} pos", tag, i));
-            ck(it.r, &j["r"], 0.0, &format!("{}: interactable {} r", tag, i));
-            assert_eq!(it.prompt, j["prompt"].as_str().unwrap(), "{}: interactable {} prompt", tag, i);
-            assert_eq!((it.enabled)(&g), j["en"].as_bool().unwrap(), "{}: interactable {} enabled", tag, i);
+            ckv(&v3a(&it.pos), &j["p"], 1e-12, &format!("{tag}: interactable {i} pos"));
+            ck(it.r, &j["r"], 0.0, &format!("{tag}: interactable {i} r"));
+            assert_eq!(it.prompt, j["prompt"].as_str().unwrap(), "{tag}: interactable {i} prompt");
+            assert_eq!((it.enabled)(&g), j["en"].as_bool().unwrap(), "{tag}: interactable {i} enabled");
         }
-        assert_eq!(g.animators.len() as f64, f(&c["animators"]), "{}: animators", tag);
+        assert_eq!(g.animators.len() as f64, f(&c["animators"]), "{tag}: animators");
         // records
         match (&g.exit_data, c["exitData"].is_null()) {
             (Some(e), false) => {
-                ckv(&v3a(&e.pos), &c["exitData"]["pos"], 1e-12, &format!("{}: exitData.pos", tag));
-                ckv(&v3a(&e.normal), &c["exitData"]["normal"], 0.0, &format!("{}: exitData.normal", tag));
+                ckv(&v3a(&e.pos), &c["exitData"]["pos"], 1e-12, &format!("{tag}: exitData.pos"));
+                ckv(&v3a(&e.normal), &c["exitData"]["normal"], 0.0, &format!("{tag}: exitData.normal"));
             }
             (None, true) => {}
-            _ => panic!("{}: exit_data presence", tag),
+            _ => panic!("{tag}: exit_data presence"),
         }
         match (&g.tv_data, c["tvData"].is_null()) {
             (Some(t), false) => {
                 let j = &c["tvData"];
-                ckv(&v3a(&t.world), &j["world"], 1e-12, &format!("{}: tvData.world", tag));
-                ckv(&v3a(&t.normal), &j["normal"], 0.0, &format!("{}: tvData.normal", tag));
-                ck(t.acc, &j["acc"], 0.0, &format!("{}: tvData.acc", tag));
-                ck(t.light.intensity(), &j["light"], 0.0, &format!("{}: tvData.light", tag));
-                assert!(t.light.parent().is_some(), "{}: the TV light hangs on the set", tag);
+                ckv(&v3a(&t.world), &j["world"], 1e-12, &format!("{tag}: tvData.world"));
+                ckv(&v3a(&t.normal), &j["normal"], 0.0, &format!("{tag}: tvData.normal"));
+                ck(t.acc, &j["acc"], 0.0, &format!("{tag}: tvData.acc"));
+                ck(t.light.intensity(), &j["light"], 0.0, &format!("{tag}: tvData.light"));
+                assert!(t.light.parent().is_some(), "{tag}: the TV light hangs on the set");
             }
             (None, true) => {}
-            _ => panic!("{}: tv_data presence", tag),
+            _ => panic!("{tag}: tv_data presence"),
         }
         match (&g.clock_data, c["clockData"].is_null()) {
             (Some(k), false) => {
                 let j = &c["clockData"];
-                ckv(&v3a(&k.world), &j["world"], 1e-12, &format!("{}: clockData.world", tag));
-                ckv(&v3a(&k.normal), &j["normal"], 0.0, &format!("{}: clockData.normal", tag));
+                ckv(&v3a(&k.world), &j["world"], 1e-12, &format!("{tag}: clockData.world"));
+                ckv(&v3a(&k.normal), &j["normal"], 0.0, &format!("{tag}: clockData.normal"));
                 assert_eq!(k.tock, j["tock"].as_bool().unwrap());
-                assert!(k.sec_pivot.parent().is_some(), "{}: second hand pivot on the clock", tag);
+                assert!(k.sec_pivot.parent().is_some(), "{tag}: second hand pivot on the clock");
             }
             (None, true) => {}
-            _ => panic!("{}: clock_data presence", tag),
+            _ => panic!("{tag}: clock_data presence"),
         }
         match (&g.phone_data, c["phoneData"].is_null()) {
             (Some(p), false) => {
                 let j = &c["phoneData"];
-                ckv(&v3a(&p.world), &j["world"], 1e-12, &format!("{}: phoneData.world", tag));
-                ckv(&v3a(&p.normal), &j["normal"], 0.0, &format!("{}: phoneData.normal", tag));
+                ckv(&v3a(&p.world), &j["world"], 1e-12, &format!("{tag}: phoneData.world"));
+                ckv(&v3a(&p.normal), &j["normal"], 0.0, &format!("{tag}: phoneData.normal"));
                 assert_eq!((p.ringing, p.answered), (j["ringing"].as_bool().unwrap(), j["answered"].as_bool().unwrap()));
-                ck(p.ring_t, &j["ringT"], 0.0, &format!("{}: ringT", tag));
-                ckv(&v3a(&p.handset.as_ref().unwrap().pos()), &j["handset"], 1e-12, &format!("{}: handset", tag));
+                ck(p.ring_t, &j["ringT"], 0.0, &format!("{tag}: ringT"));
+                ckv(&v3a(&p.handset.as_ref().unwrap().pos()), &j["handset"], 1e-12, &format!("{tag}: handset"));
             }
             (None, true) => {}
-            _ => panic!("{}: phone_data presence", tag),
+            _ => panic!("{tag}: phone_data presence"),
         }
         match (&g.man_data, c["manData"].is_null()) {
             (Some(m), false) => {
-                ckv(&v3a(&m.g.pos()), &c["manData"]["p"], 1e-12, &format!("{}: manData pos", tag));
-                ck(m.f["timer"], &c["manData"]["timer"], 0.0, &format!("{}: manData timer", tag));
+                ckv(&v3a(&m.g.pos()), &c["manData"]["p"], 1e-12, &format!("{tag}: manData pos"));
+                ck(m.f["timer"], &c["manData"]["timer"], 0.0, &format!("{tag}: manData timer"));
             }
             (None, true) => {}
-            _ => panic!("{}: man_data presence", tag),
+            _ => panic!("{tag}: man_data presence"),
         }
-        cmp_pickups(&g.almonds, &c["almonds"], &format!("{}: almonds", tag));
-        cmp_pickups(&g.battery_items, &c["batteryItems"], &format!("{}: batteryItems", tag));
+        cmp_pickups(&g.almonds, &c["almonds"], &format!("{tag}: almonds"));
+        cmp_pickups(&g.battery_items, &c["batteryItems"], &format!("{tag}: batteryItems"));
         let jd = c["drawerProps"].as_array().unwrap();
-        assert_eq!(g.drawer_props.len(), jd.len(), "{}: drawer_props", tag);
+        assert_eq!(g.drawer_props.len(), jd.len(), "{tag}: drawer_props");
         let kids = g.world.children();
         for (dp, j) in g.drawer_props.iter().zip(jd) {
-            let idx = kids.iter().position(|k| k.ptr_eq(&dp.cabinet)).map(|i| i as f64).unwrap_or(-1.0);
-            assert_eq!(idx, f(&j["cab"]), "{}: drawer cabinet", tag);
+            let idx = kids.iter().position(|k| k.ptr_eq(&dp.cabinet)).map_or(-1.0, |i| i as f64);
+            assert_eq!(idx, f(&j["cab"]), "{tag}: drawer cabinet");
             let ct: Vec<String> = dp.drawers.iter().map(|d| d.borrow().content_type.clone()).collect();
             let jct: Vec<String> = j["drawers"].as_array().unwrap().iter().map(|v| v.as_str().unwrap().to_string()).collect();
-            assert_eq!(ct, jct, "{}: drawer contents", tag);
+            assert_eq!(ct, jct, "{tag}: drawer contents");
         }
-        assert_eq!(g.rain_windows.len() as f64, f(&c["rainWindows"]), "{}: rain_windows", tag);
+        assert_eq!(g.rain_windows.len() as f64, f(&c["rainWindows"]), "{tag}: rain_windows");
     }
     set_props_hooks(PropsHooks::NONE);
 }
@@ -451,7 +451,7 @@ fn place_props_head_matches_reference() {
 fn place_props_head_runtime_matches_reference() {
     for c in load() {
         let seed = c["case"]["seed"].as_u64().unwrap() as u32;
-        let tag = format!("case {}", seed);
+        let tag = format!("case {seed}");
         let (mut g, dist) = setup(&c);
         with_seed(seed, || {
             g.place_props_head(&dist);
@@ -485,37 +485,37 @@ fn place_props_head_runtime_matches_reference() {
                 if k % 30 == 29 {
                     let j = &rec_sim[si];
                     si += 1;
-                    let w = format!("{} frame {}", tag, k);
-                    assert_eq!((seeded_draws() - d0) as f64, f(&j["draws"]), "{}: draws", w);
+                    let w = format!("{tag} frame {k}");
+                    assert_eq!((seeded_draws() - d0) as f64, f(&j["draws"]), "{w}: draws");
                     if let Some(m) = &g.man_data {
-                        ckv(&v3a(&m.g.pos()), &j["man"]["p"], 1e-9, &format!("{} mannequin pos", w));
-                        ck(m.g.rot().y, &j["man"]["ry"], 1e-9, &format!("{} mannequin yaw", w));
-                        ck(m.f["timer"], &j["man"]["timer"], 1e-9, &format!("{} mannequin timer", w));
+                        ckv(&v3a(&m.g.pos()), &j["man"]["p"], 1e-9, &format!("{w} mannequin pos"));
+                        ck(m.g.rot().y, &j["man"]["ry"], 1e-9, &format!("{w} mannequin yaw"));
+                        ck(m.f["timer"], &j["man"]["timer"], 1e-9, &format!("{w} mannequin timer"));
                     } else {
-                        assert!(j["man"].is_null(), "{}: mannequin presence", w);
+                        assert!(j["man"].is_null(), "{w}: mannequin presence");
                     }
                     if let Some(p) = &g.phone_data {
-                        ckv(&v3a(&p.handset.as_ref().unwrap().pos()), &j["handset"], 1e-9, &format!("{} handset", w));
+                        ckv(&v3a(&p.handset.as_ref().unwrap().pos()), &j["handset"], 1e-9, &format!("{w} handset"));
                     }
                     let floats: Vec<[f64; 3]> =
                         g.world.children().iter().filter(|o| o.r().user.floats).map(|o| v3a(&o.child(0).unwrap().pos())).collect();
                     let jf = j["floats"].as_array().unwrap();
-                    assert_eq!(floats.len(), jf.len(), "{}: floats", w);
+                    assert_eq!(floats.len(), jf.len(), "{w}: floats");
                     for (a, b) in floats.iter().zip(jf) {
-                        ckv(a, b, 1e-9, &format!("{} balloon", w));
+                        ckv(a, b, 1e-9, &format!("{w} balloon"));
                     }
                 }
             }
-            assert_eq!(si, rec_sim.len(), "{}: sim samples", tag);
-            assert_eq!((seeded_draws() - d0) as f64, f(&c["simDraws"]), "{}: sim draws", tag);
+            assert_eq!(si, rec_sim.len(), "{tag}: sim samples");
+            assert_eq!((seeded_draws() - d0) as f64, f(&c["simDraws"]), "{tag}: sim draws");
             // every enabled interactable, in order
             g.perf_t = 50.0;
             let ju = c["uses"].as_array().unwrap();
-            assert_eq!(g.interactables.len(), ju.len(), "{}: uses", tag);
+            assert_eq!(g.interactables.len(), ju.len(), "{tag}: uses");
             for i in 0..g.interactables.len() {
                 let en = (g.interactables[i].enabled)(&g);
                 let j = &ju[i];
-                assert_eq!(en, !j.is_null(), "{}: interactable {} enabled before use", tag, i);
+                assert_eq!(en, !j.is_null(), "{tag}: interactable {i} enabled before use");
                 if !en {
                     continue;
                 }
@@ -524,67 +524,67 @@ fn place_props_head_runtime_matches_reference() {
                 fu(&mut g);
                 g.interactables[i].on_use = fu;
                 let w = format!("{} use {} ({})", tag, i, g.interactables[i].prompt);
-                assert_eq!((seeded_draws() - d0) as f64, f(&j["draws"]), "{}: draws", w);
-                assert_eq!(g.msg_text, j["msg"].as_str().unwrap(), "{}: message", w);
-                ck(g.player.sanity, &j["sanity"], 0.0, &format!("{}: sanity", w));
-                assert_eq!(g.ui.flash.style("opacity").unwrap_or(""), j["flash"].as_str().unwrap(), "{}: flash", w);
+                assert_eq!((seeded_draws() - d0) as f64, f(&j["draws"]), "{w}: draws");
+                assert_eq!(g.msg_text, j["msg"].as_str().unwrap(), "{w}: message");
+                ck(g.player.sanity, &j["sanity"], 0.0, &format!("{w}: sanity"));
+                assert_eq!(g.ui.flash.style("opacity").unwrap_or(""), j["flash"].as_str().unwrap(), "{w}: flash");
             }
             let ja = &c["after"];
-            assert_eq!((seeded_draws() - d0) as f64, f(&ja["draws"]), "{}: draws after the uses", tag);
+            assert_eq!((seeded_draws() - d0) as f64, f(&ja["draws"]), "{tag}: draws after the uses");
         });
         let ja = &c["after"];
-        cmp_pickups(&g.almonds, &ja["almonds"], &format!("{}: almonds after", tag));
-        cmp_pickups(&g.battery_items, &ja["batteryItems"], &format!("{}: batteryItems after", tag));
+        cmp_pickups(&g.almonds, &ja["almonds"], &format!("{tag}: almonds after"));
+        cmp_pickups(&g.battery_items, &ja["batteryItems"], &format!("{tag}: batteryItems after"));
         let jp = ja["papers"].as_array().unwrap();
-        assert_eq!(g.papers.len(), jp.len(), "{}: papers", tag);
+        assert_eq!(g.papers.len(), jp.len(), "{tag}: papers");
         for (p, j) in g.papers.iter().zip(jp) {
-            ckv(&v3a(&p.g.pos()), &j["p"], 1e-12, &format!("{}: paper pos", tag));
+            ckv(&v3a(&p.g.pos()), &j["p"], 1e-12, &format!("{tag}: paper pos"));
             assert_eq!(p.taken, j["taken"].as_bool().unwrap());
-            assert_eq!(p.g.child_count() as f64, f(&j["n"]), "{}: paper sheets", tag);
+            assert_eq!(p.g.child_count() as f64, f(&j["n"]), "{tag}: paper sheets");
         }
         let jd = ja["drawers"].as_array().unwrap();
         for (dp, j) in g.drawer_props.iter().zip(jd) {
             for (d, jj) in dp.drawers.iter().zip(j.as_array().unwrap()) {
                 let d = d.borrow();
-                assert_eq!(d.opened, jj[0].as_bool().unwrap(), "{}: drawer opened", tag);
-                ckv(&v3a(&d.mesh.pos()), &jj[1], 1e-12, &format!("{}: drawer slide", tag));
+                assert_eq!(d.opened, jj[0].as_bool().unwrap(), "{tag}: drawer opened");
+                ckv(&v3a(&d.mesh.pos()), &jj[1], 1e-12, &format!("{tag}: drawer slide"));
             }
         }
-        assert_eq!(g.world.child_count() as f64, f(&ja["worldChildren"]), "{}: world children after", tag);
+        assert_eq!(g.world.child_count() as f64, f(&ja["worldChildren"]), "{tag}: world children after");
         let je = ja["entities"].as_array().unwrap();
         for (e, j) in g.entities.iter().zip(je) {
-            assert_eq!(e.state, j[0].as_str().unwrap(), "{}: entity state", tag);
-            ck(e.lose_t, &j[1], 0.0, &format!("{}: entity loseT", tag));
+            assert_eq!(e.state, j[0].as_str().unwrap(), "{tag}: entity state");
+            ck(e.lose_t, &j[1], 0.0, &format!("{tag}: entity loseT"));
         }
         match (&g.phone_data, ja["phone"].is_null()) {
             (Some(p), false) => {
                 let j = &ja["phone"];
-                assert_eq!((p.answered, p.ringing), (j["answered"].as_bool().unwrap(), j["ringing"].as_bool().unwrap()), "{}: phone", tag);
+                assert_eq!((p.answered, p.ringing), (j["answered"].as_bool().unwrap(), j["ringing"].as_bool().unwrap()), "{tag}: phone");
                 match (p.f.get("hintUntil"), j["hintUntil"].as_f64()) {
-                    (Some(a), Some(b)) => assert_eq!(*a, b, "{}: hint_until", tag),
+                    (Some(a), Some(b)) => assert_eq!(*a, b, "{tag}: hint_until"),
                     (None, None) => {}
-                    (a, b) => panic!("{}: hint_until got {:?} recorded {:?}", tag, a, b),
+                    (a, b) => panic!("{tag}: hint_until got {a:?} recorded {b:?}"),
                 }
             }
             (None, true) => {}
-            _ => panic!("{}: phone presence", tag),
+            _ => panic!("{tag}: phone presence"),
         }
         let jt: Vec<f64> = fs(&ja["timeouts"]);
         let rt: Vec<f64> = g.timeouts.iter().map(|t| t.at_ms - g.now_ms).collect();
-        assert_eq!(rt, jt, "{}: timeouts", tag);
+        assert_eq!(rt, jt, "{tag}: timeouts");
         let jen = ja["enabled"].as_array().unwrap();
         for (i, (it, j)) in g.interactables.iter().zip(jen).enumerate() {
-            assert_eq!((it.enabled)(&g), j.as_bool().unwrap(), "{}: enabled after, {}", tag, i);
+            assert_eq!((it.enabled)(&g), j.as_bool().unwrap(), "{tag}: enabled after, {i}");
         }
         let added = g.world.children()[world0..].to_vec();
         let jadd = ja["added"].as_array().unwrap();
-        assert_eq!(added.len(), jadd.len(), "{}: added objects", tag);
+        assert_eq!(added.len(), jadd.len(), "{tag}: added objects");
         for (i, (o, j)) in added.iter().zip(jadd).enumerate() {
-            cmp_tree(&g, o, j, &format!("{} added {}", tag, i), &mut Ids::default());
+            cmp_tree(&g, o, j, &format!("{tag} added {i}"), &mut Ids::default());
         }
         g.now_ms += 1000.0;
         g.run_scheduled();
-        assert_eq!(g.ui.flash.style("opacity").unwrap_or(""), ja["flashAfterTimeouts"].as_str().unwrap(), "{}: flash after timeouts", tag);
+        assert_eq!(g.ui.flash.style("opacity").unwrap_or(""), ja["flashAfterTimeouts"].as_str().unwrap(), "{tag}: flash after timeouts");
     }
     set_props_hooks(PropsHooks::NONE);
 }
@@ -609,7 +609,7 @@ fn place_props_smoke() {
         };
         game::assets::props::clear_prop_cache();
         with_seed(seed.wrapping_mul(2654435761), || g.place_props(&dist));
-        assert!(g.exit_data.is_some(), "seed {}: no exit", seed);
+        assert!(g.exit_data.is_some(), "seed {seed}: no exit");
         assert_eq!(g.drawer_props.iter().map(|d| d.drawers.len()).sum::<usize>() % 3, 0);
         if let Some(p) = g.phone_data.as_mut() {
             p.ringing = true;
@@ -643,7 +643,7 @@ fn place_props_smoke() {
 #[test]
 fn builders_match_reference() {
     let p = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/core_props_builders.json");
-    let s = std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{}: {} (missing fixture)", p, e));
+    let s = std::fs::read_to_string(p).unwrap_or_else(|e| panic!("{p}: {e} (missing fixture)"));
     let cases: Vec<Value> = serde_json::from_str(&s).unwrap();
     let mut g = Game::new_bare();
     let mut n = 0;
@@ -651,7 +651,7 @@ fn builders_match_reference() {
         let name = c["name"].as_str().unwrap();
         let args = c["args"].as_array().unwrap();
         let seed = c["seed"].as_u64().unwrap() as u32;
-        let tag = format!("{}({:?}) seed {}", name, args, seed);
+        let tag = format!("{name}({args:?}) seed {seed}");
         game::assets::props::clear_prop_cache();
         let rw = g.rain_windows.len();
         let mut cx = PropsCtx::default();
@@ -682,32 +682,32 @@ fn builders_match_reference() {
                 "build_paper_pile" => build_paper_pile(&mut g, &mut cx),
                 "build_floor_hole" => build_floor_hole(&mut g, &mut cx),
                 "make_leaf_shape" => Built::new(make_leaf_shape(f(&args[0]), f(&args[1]), f(&args[2]) as u32, f(&args[3])), 0.0),
-                o => panic!("unknown builder {}", o),
+                o => panic!("unknown builder {o}"),
             };
             (seeded_draws() - d0, b)
         });
-        assert_eq!(draws as f64, f(&c["draws"]), "{}: draws", tag);
-        ck(built.top, &c["top"], 0.0, &format!("{}: top", tag));
+        assert_eq!(draws as f64, f(&c["draws"]), "{tag}: draws");
+        ck(built.top, &c["top"], 0.0, &format!("{tag}: top"));
         cmp_tree(&g, &built.g, &c["tree"], &tag, &mut Ids::default());
         if c["drawers"].is_null() {
-            assert!(built.drawers.is_empty(), "{}: unexpected drawers", tag);
+            assert!(built.drawers.is_empty(), "{tag}: unexpected drawers");
         } else {
             let jd = c["drawers"].as_array().unwrap();
-            assert_eq!(built.drawers.len(), jd.len(), "{}: drawers", tag);
+            assert_eq!(built.drawers.len(), jd.len(), "{tag}: drawers");
             let kids = built.g.children();
             for (d, j) in built.drawers.iter().zip(jd) {
                 let d = d.borrow();
-                assert_eq!(d.content_type, j[0].as_str().unwrap(), "{}: drawer content", tag);
+                assert_eq!(d.content_type, j[0].as_str().unwrap(), "{tag}: drawer content");
                 assert!(!d.opened && !d.content_taken);
-                let idx = kids.iter().position(|k| k.ptr_eq(&d.mesh)).map(|i| i as f64).unwrap_or(-1.0);
-                assert_eq!(idx, f(&j[2]), "{}: drawer group index", tag);
+                let idx = kids.iter().position(|k| k.ptr_eq(&d.mesh)).map_or(-1.0, |i| i as f64);
+                assert_eq!(idx, f(&j[2]), "{tag}: drawer group index");
             }
         }
-        assert_eq!((g.rain_windows.len() - rw) as f64, f(&c["rain"]), "{}: rain_windows", tag);
+        assert_eq!((g.rain_windows.len() - rw) as f64, f(&c["rain"]), "{tag}: rain_windows");
         if c["rain"].as_i64().unwrap() > 0 {
             let last = g.rain_windows.last().unwrap();
-            let idx = built.g.children().iter().position(|k| k.ptr_eq(last)).map(|i| i as f64).unwrap_or(-1.0);
-            assert_eq!(idx, f(&c["rainIdx"]), "{}: rain overlay", tag);
+            let idx = built.g.children().iter().position(|k| k.ptr_eq(last)).map_or(-1.0, |i| i as f64);
+            assert_eq!(idx, f(&c["rainIdx"]), "{tag}: rain overlay");
         }
         n += 1;
     }
@@ -768,7 +768,7 @@ fn ser_tree(g: &Game, o: &Obj, ids: &mut Ids) -> Value {
         let geo = o.geo();
         let mut t = vec![Value::from(geo_kind(&geo))];
         t.extend(geo_params(&geo).into_iter().map(Value::from));
-        let ic = geo.r().index.as_ref().map(|i| i.len() as f64).unwrap_or(-1.0);
+        let ic = geo.r().index.as_ref().map_or(-1.0, |i| i.len() as f64);
         let nr = geo.r().normal.clone();
         m.insert(
             "g".into(),
@@ -842,25 +842,22 @@ fn record_head(c: &mut Value) {
         .map(|it| serde_json::json!({"p": v3a(&it.pos), "r": it.r, "prompt": it.prompt, "en": (it.enabled)(&g)}))
         .collect();
     c["animators"] = g.animators.len().into();
-    c["exitData"] = g.exit_data.as_ref().map(|e| serde_json::json!({"pos": v3a(&e.pos), "normal": v3a(&e.normal)})).unwrap_or(Value::Null);
-    c["tvData"] = g
-        .tv_data
-        .as_ref()
-        .map(|t| serde_json::json!({"world": v3a(&t.world), "normal": v3a(&t.normal), "acc": t.acc, "light": t.light.intensity()}))
-        .unwrap_or(Value::Null);
+    c["exitData"] = g.exit_data.as_ref().map_or(Value::Null, |e| serde_json::json!({"pos": v3a(&e.pos), "normal": v3a(&e.normal)}));
+    c["tvData"] = g.tv_data.as_ref().map_or(
+        Value::Null,
+        |t| serde_json::json!({"world": v3a(&t.world), "normal": v3a(&t.normal), "acc": t.acc, "light": t.light.intensity()}),
+    );
     c["clockData"] = g
         .clock_data
         .as_ref()
-        .map(|k| serde_json::json!({"world": v3a(&k.world), "normal": v3a(&k.normal), "tock": k.tock, "acc": k.acc}))
-        .unwrap_or(Value::Null);
+        .map_or(Value::Null, |k| serde_json::json!({"world": v3a(&k.world), "normal": v3a(&k.normal), "tock": k.tock, "acc": k.acc}));
     c["phoneData"] = g
         .phone_data
         .as_ref()
-        .map(|p| {
+        .map_or(Value::Null, |p| {
             serde_json::json!({"world": v3a(&p.world), "normal": v3a(&p.normal), "ringing": p.ringing, "answered": p.answered, "ringT": p.ring_t, "handset": v3a(&p.handset.as_ref().unwrap().pos())})
-        })
-        .unwrap_or(Value::Null);
-    c["manData"] = g.man_data.as_ref().map(|m| serde_json::json!({"p": v3a(&m.g.pos()), "timer": m.f["timer"]})).unwrap_or(Value::Null);
+        });
+    c["manData"] = g.man_data.as_ref().map_or(Value::Null, |m| serde_json::json!({"p": v3a(&m.g.pos()), "timer": m.f["timer"]}));
     c["almonds"] = ser_pickups(&g.almonds);
     c["batteryItems"] = ser_pickups(&g.battery_items);
     let kids = g.world.children();
@@ -868,7 +865,7 @@ fn record_head(c: &mut Value) {
         .drawer_props
         .iter()
         .map(|dp| {
-            let cab = kids.iter().position(|k| k.ptr_eq(&dp.cabinet)).map(|i| i as f64).unwrap_or(-1.0);
+            let cab = kids.iter().position(|k| k.ptr_eq(&dp.cabinet)).map_or(-1.0, |i| i as f64);
             serde_json::json!({"cab": cab, "drawers": dp.drawers.iter().map(|d| d.borrow().content_type.clone()).collect::<Vec<_>>()})
         })
         .collect();
@@ -914,8 +911,7 @@ fn record_runtime(c: &mut Value) {
                 j["man"] = g
                     .man_data
                     .as_ref()
-                    .map(|m| serde_json::json!({"p": v3a(&m.g.pos()), "ry": m.g.rot().y, "timer": m.f["timer"]}))
-                    .unwrap_or(Value::Null);
+                    .map_or(Value::Null, |m| serde_json::json!({"p": v3a(&m.g.pos()), "ry": m.g.rot().y, "timer": m.f["timer"]}));
                 if let Some(p) = &g.phone_data {
                     j["handset"] = serde_json::json!(v3a(&p.handset.as_ref().unwrap().pos()));
                 }
@@ -963,10 +959,10 @@ fn record_runtime(c: &mut Value) {
     after.insert("entities".into(), g.entities.iter().map(|e| serde_json::json!([e.state, e.lose_t])).collect());
     after.insert(
         "phone".into(),
-        g.phone_data
-            .as_ref()
-            .map(|p| serde_json::json!({"answered": p.answered, "ringing": p.ringing, "hintUntil": p.f.get("hintUntil").copied()}))
-            .unwrap_or(Value::Null),
+        g.phone_data.as_ref().map_or(
+            Value::Null,
+            |p| serde_json::json!({"answered": p.answered, "ringing": p.ringing, "hintUntil": p.f.get("hintUntil").copied()}),
+        ),
     );
     after.insert("timeouts".into(), g.timeouts.iter().map(|t| t.at_ms - g.now_ms).collect());
     after.insert("enabled".into(), g.interactables.iter().map(|it| Value::from((it.enabled)(&g))).collect());
@@ -1014,7 +1010,7 @@ fn record_builder(g: &mut Game, c: &mut Value) {
             "build_paper_pile" => build_paper_pile(g, &mut cx),
             "build_floor_hole" => build_floor_hole(g, &mut cx),
             "make_leaf_shape" => Built::new(make_leaf_shape(f(&args[0]), f(&args[1]), f(&args[2]) as u32, f(&args[3])), 0.0),
-            o => panic!("unknown builder {}", o),
+            o => panic!("unknown builder {o}"),
         };
         (seeded_draws() - d0, b)
     });
@@ -1030,7 +1026,7 @@ fn record_builder(g: &mut Game, c: &mut Value) {
             .iter()
             .map(|d| {
                 let d = d.borrow();
-                let idx = kids.iter().position(|k| k.ptr_eq(&d.mesh)).map(|i| i as f64).unwrap_or(-1.0);
+                let idx = kids.iter().position(|k| k.ptr_eq(&d.mesh)).map_or(-1.0, |i| i as f64);
                 serde_json::json!([d.content_type, -1, idx])
             })
             .collect()
@@ -1039,7 +1035,7 @@ fn record_builder(g: &mut Game, c: &mut Value) {
     c["rain"] = rain.into();
     c["rainIdx"] = if rain > 0 {
         let last = g.rain_windows.last().unwrap();
-        kids.iter().position(|k| k.ptr_eq(last)).map(|i| i as f64).unwrap_or(-1.0).into()
+        kids.iter().position(|k| k.ptr_eq(last)).map_or(-1.0, |i| i as f64).into()
     } else {
         (-1.0).into()
     };

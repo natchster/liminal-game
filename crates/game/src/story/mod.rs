@@ -282,7 +282,7 @@ impl Game {
         // her camp: well away from both ends, off the straight way but not
         // far off it, against a wall (in a corner or a dead end if she could)
         // (on the Building's floors she camped in a cell: the shelter there)
-        let cells: Vec<(i32, i32)> = self.building.as_ref().map(|b| b.cells.iter().map(|c| c.tile).collect()).unwrap_or_default();
+        let cells: Vec<(i32, i32)> = self.building.as_ref().map_or_default(|b| b.cells.iter().map(|c| c.tile).collect());
         let pick = |min_detour: i32| -> Vec<((i32, i32), usize)> {
             let mut c = vec![];
             for z in 0..self.h {
@@ -358,7 +358,7 @@ impl Game {
                 let room = after.len() - lose - 2;
                 let at = after[(r.next() * room as f64) as usize % room.max(1)];
                 // the mark the stretch starts from: a mark, or her camp
-                let prev = marks.iter().rev().find(|m| m.step < marks[at].step).map(|m| m.step).unwrap_or(camp_step);
+                let prev = marks.iter().rev().find(|m| m.step < marks[at].step).map_or(camp_step, |m| m.step);
                 let before = if camp_step < marks[at].step { prev.max(camp_step) } else { prev };
                 let gone: Vec<usize> = (at..at + lose).collect();
                 let resume = marks[at + lose].step;
@@ -382,7 +382,7 @@ impl Game {
     /// floor of `f7` on.
     pub fn false_trails_due(&self) -> usize {
         let book = notebook::notebook(self.run_seed);
-        let from = |id: &str| book.iter().find(|(_, p)| p.id == id).map(|(n, _)| *n).unwrap_or(i32::MAX);
+        let from = |id: &str| book.iter().find(|(_, p)| p.id == id).map_or(i32::MAX, |(n, _)| *n);
         if self.level_num >= from("f7") {
             2
         } else if self.level_num >= from("f6") {
@@ -565,12 +565,7 @@ impl Game {
             self.play_at(p.x, 0.3, p.z, 3.0, 1.0, |g| g.noise_burst(0.5, 320.0, 0.8, 0.12, "lowpass", Some(140.0), 0.25, 0.0));
         }
         // (the notebook's key as Settings bind it)
-        let key = self
-            .settings
-            .keys(crate::session::input::Act::Journal)
-            .first()
-            .map(|k| crate::session::input::key_label(k))
-            .unwrap_or_default();
+        let key = self.settings.keys(crate::session::input::Act::Journal).first().map_or_default(|k| crate::session::input::key_label(k));
         self.show_msg(&format!("Her page. {key} to read it."), 2.6);
         self.journal_newest = Some(crate::ui::hud::notebook_journal_id(self.level_num));
         self.director_note("story:page");

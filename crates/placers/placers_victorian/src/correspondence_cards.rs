@@ -77,7 +77,7 @@ game::lazy_static_tex!(
             ctx.set_text_align("left");
             let dates = ["14 MAR 1912", "03 SEP 1908", "22 NOV 1897", "17 JUL 1919"];
             let date = dates[(rnd() * dates.len() as f64).floor() as usize];
-            ctx.fill_text(&format!("DATE: {}", date), 12, 54);
+            ctx.fill_text(&format!("DATE: {date}"), 12, 54);
             ctx.fill_text(&format!("TO: {}", name1.to_uppercase()), 12, 68);
             // Body — 4 short lines of all-caps telegram text (with STOP).
             ctx.set_font("bold 10px monospace");
@@ -164,7 +164,7 @@ game::lazy_static_tex!(
             // Host signature.
             ctx.set_font("italic 11px serif");
             ctx.set_fill_style("#20180c");
-            ctx.fill_text(&format!("— {}", name2), w / 2.0, 184);
+            ctx.fill_text(&format!("— {name2}"), w / 2.0, 184);
             // Red wax seal at bottom.
             ctx.set_fill_style("#8a1010");
             ctx.begin_path();

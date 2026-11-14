@@ -28,7 +28,7 @@ fn f3(v: &Value) -> [f64; 3] {
 }
 
 fn floats(v: &Value) -> Vec<f64> {
-    v.as_array().map(|a| a.iter().map(|x| x.as_f64().unwrap_or(0.0)).collect()).unwrap_or_default()
+    v.as_array().map_or_default(|a| a.iter().map(|x| x.as_f64().unwrap_or(0.0)).collect())
 }
 
 /// The packed buffers and the header entry of one body.
@@ -195,7 +195,7 @@ fn committed(path: &Path) -> BTreeMap<String, Value> {
 
 /// A body's shape, for the comparison: bone names and per mesh its counts.
 fn summary(b: &Value) -> String {
-    let bones = b["bones"].as_array().map(|a| a.len()).unwrap_or(0);
+    let bones = b["bones"].as_array().map_or(0, |a| a.len());
     let meshes: Vec<String> = b["meshes"]
         .as_array()
         .into_iter()
@@ -256,7 +256,7 @@ pub fn creatures(args: &[String], blender: &str, asset_dir: &Path) -> Result<(),
     for n in before.keys().filter(|n| !built.contains_key(*n)) {
         println!("{}  {n}: not built", if only.is_some() { "skipped" } else { "gone   " });
     }
-    println!("{} bytes ({} committed); previews in {}", file.len(), std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0), out.display());
+    println!("{} bytes ({} committed); previews in {}", file.len(), std::fs::metadata(&path).map_or(0, |m| m.len()), out.display());
     if write {
         std::fs::write(&path, &file).map_err(|e| e.to_string())?;
         crate::assets::update_manifest(

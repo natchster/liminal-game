@@ -179,7 +179,7 @@ fn setup(sc: &Json) -> (Game, Rc<Cell<u64>>) {
             "battery" => g.player.battery = v.f(),
             "stamina" => g.player.stamina = v.f(),
             "flashlightOn" => g.player.flashlight_on = v.b(),
-            o => panic!("player0.{}", o),
+            o => panic!("player0.{o}"),
         }
     }
     g.state = "playing".into();
@@ -295,16 +295,16 @@ fn num(g: &Game, c: &Ctx, k: &str) -> f64 {
         "sw.depth" => sw.depth_m(),
         "sw.faceCount" => sw.st.face_count as f64,
         "lp.present" => b(lr.is_some()),
-        "lp.lap" => lr.map(|l| l.lap() as f64).unwrap_or(-99.0),
-        "lp.room" => lr.map(|l| l.room() as f64).unwrap_or(-99.0),
-        "lp.x" => lr.map(|l| l.state().x).unwrap_or(0.0),
-        "lp.z" => lr.map(|l| l.state().z).unwrap_or(0.0),
-        "lp.seams" => lr.map(|l| l.state().seams as f64).unwrap_or(-1.0),
-        "lp.inScene" => b(lr.map(|l| l.group.parent().map(|p| p.id() == g.scene.id()).unwrap_or(false)).unwrap_or(false)),
+        "lp.lap" => lr.map_or(-99.0, |l| l.lap() as f64),
+        "lp.room" => lr.map_or(-99.0, |l| l.room() as f64),
+        "lp.x" => lr.map_or(0.0, |l| l.state().x),
+        "lp.z" => lr.map_or(0.0, |l| l.state().z),
+        "lp.seams" => lr.map_or(-1.0, |l| l.state().seams as f64),
+        "lp.inScene" => b(lr.is_some_and(|l| l.group.parent().is_some_and(|p| p.id() == g.scene.id()))),
         "poolT" => g.pool_t,
         "glueDraws" => (seeded_draws() - c.base_draws) as f64,
         "moduleDraws" => c.module_draws.get() as f64,
-        _ => panic!("unknown field {}", k),
+        _ => panic!("unknown field {k}"),
     }
 }
 fn strs(g: &Game, k: &str) -> String {
@@ -316,8 +316,8 @@ fn strs(g: &Game, k: &str) -> String {
         "fadeBg" => g.ui.fade.style("background").unwrap_or("").to_string(),
         "flashOp" => g.ui.flash.style("opacity").unwrap_or("").to_string(),
         "body" => g.ui.body.classes.iter().cloned().collect::<Vec<_>>().join(" "),
-        "faceKind" => g.stairwell.as_ref().unwrap().st.face.as_ref().map(|f| f.kind.as_str().to_string()).unwrap_or_default(),
-        _ => panic!("unknown string field {}", k),
+        "faceKind" => g.stairwell.as_ref().unwrap().st.face.as_ref().map_or_default(|f| f.kind.as_str().to_string()),
+        _ => panic!("unknown string field {k}"),
     }
 }
 
@@ -336,7 +336,7 @@ fn do_action(g: &mut Game, a: &Json) {
                 "heartT" => g.stair_audio.heart_t = v.f(),
                 "shakeT" => g.shake_t = v.f(),
                 "state" => g.state = v.s().to_string(),
-                o => panic!("set {}", o),
+                o => panic!("set {o}"),
             }
         }
         "stairPlace" => {
@@ -368,7 +368,7 @@ fn do_action(g: &mut Game, a: &Json) {
         "enterLoop" => g.enter_loop(),
         "exitLoop" => g.exit_loop(),
         "leaveLoopMode" => g.leave_loop_mode(),
-        o => panic!("action {}", o),
+        o => panic!("action {o}"),
     }
 }
 
@@ -386,23 +386,23 @@ fn compare_calls(what: &str, rec: &[(String, Vec<f64>)], rust: &[TraceEntry], ct
     for (i, ((jn, ja), (rn, ra))) in rec.iter().zip(rust.iter()).enumerate() {
         let after_pick = i > 0 && rec[i - 1].0.starts_with("pick_text:");
         if jn.starts_with("msg:") && after_pick && pick_stub {
-            assert_eq!(rn, "msg:", "{}: message from pick_text (stub)", what);
+            assert_eq!(rn, "msg:", "{what}: message from pick_text (stub)");
         } else if let (Some(j), true) = (jn.strip_prefix("msg:LEVEL "), rn.starts_with("msg:LEVEL ")) {
             // `LEVEL n — <level_title()>`: the title is anomalies.rs's
             let jp = j.split(" — ").next().unwrap();
             let rp = rn["msg:LEVEL ".len()..].split(" — ").next().unwrap();
-            assert_eq!(jp, rp, "{}: level message", what);
-            assert!(rn.contains(" — "), "{}: level message {}", what, rn);
+            assert_eq!(jp, rp, "{what}: level message");
+            assert!(rn.contains(" — "), "{what}: level message {rn}");
         } else {
-            assert_eq!(jn, rn, "{}: call {}", what, i);
+            assert_eq!(jn, rn, "{what}: call {i}");
         }
         let say = jn.starts_with("voice.say:");
-        assert_eq!(ja.len(), ra.len(), "{}: {} argument count", what, jn);
+        assert_eq!(ja.len(), ra.len(), "{what}: {jn} argument count");
         for (k, (a, b)) in ja.iter().zip(ra.iter()).enumerate() {
             if say && k == 3 {
                 continue;
             } // the phrase's length: the recorded voice was a stub
-            assert_close(*b, *a, TOL, &format!("{}: {} arg {}", what, jn, k));
+            assert_close(*b, *a, TOL, &format!("{what}: {jn} arg {k}"));
         }
         if say {
             ctx.rec_say = ja[3];
@@ -414,7 +414,7 @@ fn compare_calls(what: &str, rec: &[(String, Vec<f64>)], rust: &[TraceEntry], ct
 fn run_scenario(name: &str) {
     let fx = fixture();
     assert_eq!(fx.get("boring").s(), BORING_SRC, "the recorded list of per-frame sound calls changed");
-    let sc = fx.get("scenarios").arr().iter().find(|s| s.get("name").s() == name).unwrap_or_else(|| panic!("no scenario {}", name));
+    let sc = fx.get("scenarios").arr().iter().find(|s| s.get("name").s() == name).unwrap_or_else(|| panic!("no scenario {name}"));
     let pick_stub = pick_text_draws() == 0;
     let (mut g, module_draws) = setup(sc);
     let num_names: Vec<String> = sc.get("numNames").arr().iter().map(|v| v.s().to_string()).collect();
@@ -470,7 +470,7 @@ fn run_scenario(name: &str) {
                     }
                 }
             }
-            let what = format!("{} frame {}", name, f);
+            let what = format!("{name} frame {f}");
             let snap = if next_snap < snaps.len() && snaps[next_snap].get("f").i() as usize == f {
                 next_snap += 1;
                 Some(&snaps[next_snap - 1])
@@ -479,7 +479,7 @@ fn run_scenario(name: &str) {
             };
             let Some(snap) = snap else {
                 let loud: Vec<_> = calls.iter().filter(|(n, _)| !boring(n)).map(|(n, _)| n.clone()).collect();
-                assert!(loud.is_empty(), "{}: calls the recording does not have: {:?}", what, loud);
+                assert!(loud.is_empty(), "{what}: calls the recording does not have: {loud:?}");
                 continue;
             };
             let rec_calls: Vec<(String, Vec<f64>)> = snap.get("t").arr().iter().map(|e| (e.at(0).s().to_string(), e.at(1).fs())).collect();
@@ -511,7 +511,7 @@ fn run_scenario(name: &str) {
                     want -= ctx.rec_say;
                     got -= ctx.rust_say;
                 }
-                assert_close(got, want, TOL, &format!("{}: {}", what, k));
+                assert_close(got, want, TOL, &format!("{what}: {k}"));
             }
             let rec_s = snap.get("s").arr();
             for (i, k) in str_names.iter().enumerate() {
@@ -523,15 +523,15 @@ fn run_scenario(name: &str) {
                 if !keep {
                     continue;
                 }
-                assert_eq!(strs(&g, k), rec_s[i].s(), "{}: {}", what, k);
+                assert_eq!(strs(&g, k), rec_s[i].s(), "{what}: {k}");
             }
             compared += 1;
         }
         let _ = trace_take();
     });
     set_modes_rng(None);
-    assert_eq!(next_snap, snaps.len(), "{}: snapshots left over", name);
-    assert!(compared > 20, "{}: only {} snapshots compared", name, compared);
+    assert_eq!(next_snap, snaps.len(), "{name}: snapshots left over");
+    assert!(compared > 20, "{name}: only {compared} snapshots compared");
     eprintln!(
         "{}: {} frames, {} snapshots compared (pick_text {})",
         name,

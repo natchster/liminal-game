@@ -110,7 +110,7 @@ game::lazy_static_tex!(
         // Date line.
         ctx.set_font("10px serif");
         let yr = 1965 + (rnd() * 30.0).floor() as i64;
-        ctx.fill_text(&format!("Awarded this day, {}", yr), w / 2.0, 184);
+        ctx.fill_text(&format!("Awarded this day, {yr}"), w / 2.0, 184);
         // Simulated signature lines — 2 short lines w/ wavy scripts + labels.
         ctx.set_stroke_style("rgba(30,20,10,0.85)");
         ctx.set_line_width(1.2);

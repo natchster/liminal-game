@@ -99,13 +99,13 @@ pub fn fmt_fixed(v: f64, d: usize) -> String {
     if y.fract() == 0.0 && y < 9.0e15 && (y as u64) % 2 == 1 && v.mul_add(m * 2.0, -y) == 0.0 {
         let n = (y as u64).div_ceil(2);
         if d == 0 {
-            return format!("{}", n);
+            return format!("{n}");
         }
         let p = 10u64.pow(d as u32);
         return format!("{}.{:0w$}", n / p, n % p, w = d);
     }
     // otherwise Rust's formatting is the correctly rounded exact decimal
-    format!("{:.*}", d, v)
+    format!("{v:.d$}")
 }
 
 /// Shortest round-trip formatting of a number: integral values below 1e21
@@ -121,7 +121,7 @@ pub fn fmt_num(v: f64) -> String {
     if v == v.trunc() && v.abs() < 1e21 {
         return format!("{}", v as i64);
     }
-    let s = format!("{}", v);
+    let s = format!("{v}");
     s
 }
 
@@ -155,7 +155,7 @@ pub fn round_decimals(x: f64, d: usize) -> f64 {
     let a = x.abs();
     // with this many digits the formatting is the exact expansion (no rounding)
     let p = exact_frac_digits(a).max(d + 1);
-    let s = format!("{:.*}", p, a);
+    let s = format!("{a:.p$}");
     let (ip, fp) = s.split_once('.').expect("fixed point");
     let mut digits: Vec<u8> = ip.bytes().chain(fp.bytes().take(d)).collect();
     if fp.as_bytes()[d] >= b'5' {

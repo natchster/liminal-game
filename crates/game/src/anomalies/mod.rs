@@ -44,7 +44,7 @@ pub fn scp_forced(flags: &str) -> Vec<(f64, String)> {
     for part in percent_decode(h).split(',') {
         let mut it = part.split('@');
         let k = it.next().unwrap_or("");
-        let n = it.next().map(parse_number).unwrap_or(f64::NAN);
+        let n = it.next().map_or(f64::NAN, parse_number);
         if !k.is_empty() && n > 0.0 {
             if let Some(e) = m.iter_mut().find(|e| e.0 == n) {
                 e.1 = k.to_string();
@@ -286,7 +286,7 @@ impl Game {
             "living"
         };
         let ex = self.exit_data.as_ref().map(|e| (self.tx(e.pos.x), self.tz(e.pos.z)));
-        let zones: Vec<crate::level::archgen::Zone> = self.layout.as_ref().map(|l| l.zones.clone()).unwrap_or_default();
+        let zones: Vec<crate::level::archgen::Zone> = self.layout.as_ref().map_or_default(|l| l.zones.clone());
         for zn in &zones {
             if zn.arch != "store" {
                 continue;

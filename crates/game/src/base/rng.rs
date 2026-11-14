@@ -68,7 +68,7 @@ thread_local! {
     static RNG: RefCell<RngState> = RefCell::new(RngState {
         stack: vec![],
         native: {
-            let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos() as u64).unwrap_or(0x1234_5678);
+            let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0x1234_5678, |d| d.as_nanos() as u64);
             let mut x = Xorshift { s: [t ^ 0x9E37_79B9_7F4A_7C15, t.rotate_left(29) ^ 0xD1B5_4A32_D192_ED03] };
             for _ in 0..8 { x.next(); }
             x

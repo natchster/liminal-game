@@ -316,7 +316,7 @@ fn wine_stain_tex(wine: usize, salt: u32) -> Tex {
             let a = r.range(0.0, PI * 2.0);
             let (x, y) = (w * 0.5 + a.cos() * w * r.range(0.3, 0.45), h * 0.5 + a.sin() * h * r.range(0.3, 0.45));
             let rr = r.range(1.2, 3.0);
-            ctx.set_fill_style(format!("rgba({fr},{fg},{fb},{:.2})", fa));
+            ctx.set_fill_style(format!("rgba({fr},{fg},{fb},{fa:.2})"));
             ctx.begin_path();
             ctx.arc(x, y, rr, 0, PI * 2.0);
             ctx.fill();
