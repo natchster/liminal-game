@@ -142,7 +142,7 @@ pub fn smoke_placers(list: &[(&'static str, crate::base::state::PlacerFn)]) {
             // many runs per seed so rare branches (e.g. an early return unless `rnd()` >= 0.95) execute
             for rep in 0..24 {
                 for (name, f) in list {
-                    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| f(&mut g, &dist)));
+                    let r = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| g.run_placer_as(name, *f, &dist)));
                     if r.is_err() {
                         panic!("placer {name} panicked (seed {seed}, run {rep})");
                     }

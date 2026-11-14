@@ -36,7 +36,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/design/SECRETS.md`](docs/design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you) |
 | [`docs/design/VENDING.md`](docs/design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it) |
 | [`docs/design/WINDOWS.md`](docs/design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
-| [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them |
+| [`docs/design/VOICES.md`](docs/design/VOICES.md) | the voices: who speaks (personas), what is said and when (your asides and the director that chooses them), and how the pipeline's models are chosen: licensed for sale, run here |
 | [`docs/design/CUTSCENES.md`](docs/design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
 
 **Engineering**
@@ -46,6 +46,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/engineering/ARCHITECTURE.md`](docs/engineering/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
 | [`docs/engineering/DEVELOPMENT.md`](docs/engineering/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
 | [`docs/engineering/AGENTS.md`](docs/engineering/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
+| [`docs/engineering/VOICES.md`](docs/engineering/VOICES.md) | the voice pipeline: the toolchain, how lines are made, the evaluation of words, tone and emotion, the files the game embeds |
 | [`docs/engineering/PERF.md`](docs/engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`docs/engineering/VISUAL_PLAYTEST.md`](docs/engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
 
@@ -124,7 +125,7 @@ cargo xtask range --accept --reason "…"                  # after reading targe
 REGEN=1 cargo test --release -p game --test entities
 cargo test --release -p game --test archgen --test world_queries --test world_build -- --ignored rerecord
 cargo test --release -p backrooms --test reference_levels -- --ignored rerecord
-REGEN=1 cargo test --release -p placers --test fingerprints   # what each placer makes
+REGEN=place_x,… cargo test --release -p placers --test fingerprints   # what each placer makes (only those named)
 cargo test --release -p game --test core_props_head -- --ignored rerecord   # the core props
 cargo test --release -p game --test core_props_tail -- --ignored rerecord   # their second half
 cargo test --release -p backrooms --test loudness -- --ignored rerecord   # after listening

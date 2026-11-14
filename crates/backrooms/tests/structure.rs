@@ -347,9 +347,19 @@ fn docs_are_sorted_by_kind() {
     for dir in ["docs/design", "docs/engineering"] {
         for e in std::fs::read_dir(root().join(dir)).unwrap().flatten() {
             let text = std::fs::read_to_string(e.path()).unwrap_or_default();
-            for line in text.lines() {
+            for line in text.lines().filter(|l| l.starts_with('#')) {
                 let heading = line.trim_start_matches('#').trim();
-                if line.starts_with('#') && ["Milestones", "Progress", "Left open"].contains(&heading) {
+                // a date in a heading is the work's (`(2026-11-09)`): a design
+                // or a way of working has none
+                let dated = heading
+                    .as_bytes()
+                    .windows(10)
+                    .any(|w| w.iter().enumerate().all(|(i, c)| if i == 4 || i == 7 { *c == b'-' } else { c.is_ascii_digit() }));
+                let planned = ["Milestones", "Progress", "Left open"].contains(&heading)
+                    || ["The brief", "The analysis", "Open after", "The second pass", "What is left"]
+                        .iter()
+                        .any(|p| heading.starts_with(p));
+                if dated || planned {
                     planned_in_design.push(format!("{}: {line}", rel(&e.path())));
                 }
             }
@@ -357,8 +367,8 @@ fn docs_are_sorted_by_kind() {
     }
     assert!(
         planned_in_design.is_empty(),
-        "milestones and progress belong in the topic's plan (docs/plan/<TOPIC>.md, linked from the doc's *The work*): \
-         {planned_in_design:#?}"
+        "milestones, progress, briefs, analyses and dated sections belong in the topic's plan (docs/plan/<TOPIC>.md, \
+         linked from the doc's *The work*), dated studies in research/: {planned_in_design:#?}"
     );
 }
 
@@ -418,43 +428,42 @@ fn every_docs_path_named_exists() {
 /// `shared` module or `placers_kit`, never another placer's module.
 #[test]
 fn placers_live_by_theme_a_module_each() {
-    let tables = read("crates/game/src/world/tables.rs");
-    let at = tables.find("PLACER_THEME:").expect("PLACER_THEME in world/tables.rs");
-    let table = &tables[at..at + tables[at..].find("];").unwrap()];
-    let theme: std::collections::HashMap<&str, &str> = table
-        .split("(\"")
-        .skip(1)
-        .filter_map(|e| {
-            let (name, rest) = e.split_once("\", \"")?;
-            Some((name, rest.split('"').next()?))
-        })
-        .collect();
+    // its theme as the game reads it (`placer_theme_of`: unlisted, domestic)
+    let theme_of = |name: &str| game::world::build::placer_theme_of(name);
     let module_of = |name: &str| {
         let s = name.strip_prefix("place_").unwrap_or(name);
-        match s.strip_prefix('8') {
-            Some(rest) => format!("eight{rest}"),
+        let digits = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+        match s.chars().next().and_then(|c| c.to_digit(10)) {
+            Some(d) => format!("{}{}", digits[d as usize], &s[1..]),
             None => s.to_string(),
         }
     };
-    let (mut wrong, mut placers) = (vec![], 0);
+    let mut registry: Vec<(&'static str, game::base::state::PlacerFn)> = vec![];
+    placers::register_all(&mut registry);
+    let (mut wrong, mut seen) = (vec![], std::collections::BTreeSet::new());
     for e in std::fs::read_dir(root().join("crates/placers")).unwrap().flatten() {
         let dir = e.file_name().to_string_lossy().to_string();
         let Some(t) = dir.strip_prefix("placers_").filter(|t| *t != "kit") else { continue };
-        let lib = read(&format!("crates/placers/{dir}/src/lib.rs"));
-        for line in lib.lines().map(str::trim).filter(|l| l.starts_with("r.push((\"")) {
-            let name = &line["r.push((\"".len()..line.find("\", ").unwrap()];
-            let module = line[line.find("\", ").unwrap() + 3..].split("::").next().unwrap();
-            placers += 1;
-            let want = theme.get(name).copied().unwrap_or("domestic");
-            if want != t {
-                wrong.push(format!("{name} is {want}'s, registered by placers_{t}"));
+        let lib: String = read(&format!("crates/placers/{dir}/src/lib.rs")).split_whitespace().collect();
+        // each `r.push(("place_x", module::place_y));`, however rustfmt wraps it
+        for reg in lib.split("r.push((\"").skip(1) {
+            let Some((name, rest)) = reg.split_once("\",") else { continue };
+            let path = rest.split("))").next().unwrap_or("");
+            let (module, func) = path.split_once("::").unwrap_or((path, ""));
+            seen.insert(name.to_string());
+            if theme_of(name) != t {
+                wrong.push(format!("{name} is {}'s, registered by placers_{t}", theme_of(name)));
             }
-            if module != module_of(name) || !root().join(format!("crates/placers/{dir}/src/{module}.rs")).exists() {
-                wrong.push(format!("{name} comes from module {module} of placers_{t}, not its own {}.rs", module_of(name)));
+            if module != module_of(name)
+                || !func.starts_with("place_")
+                || !root().join(format!("crates/placers/{dir}/src/{module}.rs")).exists()
+            {
+                wrong.push(format!("{name} is registered as {path} in placers_{t}, not from its own {}.rs", module_of(name)));
             }
         }
     }
-    assert!(placers > 600, "only {placers} placers registered by the theme crates");
+    let registered: std::collections::BTreeSet<String> = registry.iter().map(|(n, _)| n.to_string()).collect();
+    assert_eq!(seen, registered, "the registrations read from the theme crates' lib.rs are not placers::register_all's");
     assert!(
         wrong.is_empty(),
         "a placer lives in its theme's crate, in a module of its own named as it is registered \

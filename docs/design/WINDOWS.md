@@ -15,34 +15,6 @@ back), summed up in [`SOURCES.md`](../research/SOURCES.md) section 13.
 
 How this was planned and done (the brief, the analysis, milestones, progress): [`../plan/WINDOWS.md`](../plan/WINDOWS.md).
 
-## Three prototypes (2026-10-30)
-
-Before the design, the parts most likely to fail were tried on a throwaway
-build (not committed):
-
-- **The view.** An equirectangular photograph (a CC0 Poly Haven panorama)
-  traced per pixel onto a ground disc and a dome round a point behind the
-  glass (a ground-projected sky, `docs/research/SOURCES.md` 13, done in the fragment shader:
-  `Patch::WindowView`). The near ground moves with your head, the far land
-  stays where it is: seen from the left you see further to the right, as
-  through a real window. One texture read, in its own variant only.
-- **The opening.** The walls are drawn from the solids after the props
-  (`build_walls`); a window can cut its opening out of what is drawn (the
-  solids, what you walk into, stay whole: the glass is solid) and leave a
-  sliver at the wall's back (the far room sees an unbroken wall). The
-  reveal takes the wall's own surface and world-space detail.
-- **A thing beyond the glass.** A body standing 12 m out in the field,
-  drawn as itself: what lies beyond the window's plane is slid along each
-  eye ray onto a thin slab just in front of the view (nearer things a hair
-  nearer, so it hides itself rightly), clipped to the opening, lit by the
-  view's sky and hazed by its true distance (`Material::portal`). It stands
-  where it is on the screen and is hidden by whatever is in front of the
-  glass; what has come through into the room is drawn as anything is.
-- Found: `settle_props` rebuilds the solids (faces near interactable things
-  are pinned to the tile's edge) and moves what hangs on walls, so a window
-  must be finished after settling, from the final solids, and must not
-  register its verb before then (it would pin its own wall).
-
 ## What the research says
 
 Two notes, in [`research/`](../research/README.md). What they changed:

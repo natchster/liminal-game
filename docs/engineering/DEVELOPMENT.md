@@ -104,10 +104,11 @@ Levels must be a pure function of `(run_seed, level)`:
   (`with_own_stream`), never the native one: drawn there the first time
   only, it shifts every frame after it, so a level's frames hang on what
   the thread made before. `canvas_tex` does this for every texture (its
-  painter's stream, from the painter's name, its size and how many it has
-  made since the level began; a placer's painters are named by the placer,
-  `painting_for`, so its code can move or share a helper and paint the
-  same, and anything else by where it is in the code); `tests/story.rs`
+  painter's stream, from where the painter is in the code, its size and how
+  many it has made since the level began; moving a painter repaints it, and
+  a stream keyed by anything painters share would let a cached texture,
+  painted once a thread, move the others' counts: the placers'
+  fingerprints run each placer on a fresh thread too); `tests/story.rs`
   `a_levels_frames_are_the_same_whatever_came_before` holds it. A painter
   that works pixel by pixel may fill its rows on every core (`par_rows`)
   when each pixel is a pure function of where it is: its draws made before
@@ -156,9 +157,9 @@ Levels must be a pure function of `(run_seed, level)`:
    point where it should run, and its theme to `PLACER_THEME`.
 4. `cargo test -p placers_<theme>` runs the crate's smoke tests (12 seeds × 24
    repetitions, every animator and interactable exercised).
-5. `REGEN=1 cargo test --release -p placers --test fingerprints` records
-   what it makes (four runs on the smoke levels); the test fails if any
-   other placer's lines changed. Each theme crate's `register()` is in
+5. `REGEN=place_things cargo test --release -p placers --test fingerprints`
+   records what it makes (four runs on the smoke levels); it refuses to
+   record if any placer it does not name changed (`REGEN=1` records any). Each theme crate's `register()` is in
    `placers::register_all`.
 
 ## Tests and reference data

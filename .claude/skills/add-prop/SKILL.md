@@ -32,7 +32,8 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
 5. **Gates.**
    - `cargo test -p placers_<theme>` (smoke: 12 seeds × 24 runs).
    - `cargo test --release -p placers --test fingerprints`: a new placer's
-     prints recorded with `REGEN=1`; no other placer's may change.
+     prints recorded with `REGEN=place_things` (it refuses if another
+     placer's changed).
    - `cargo test --release -p backrooms --test materials -- --nocapture`
      (albedo, saturation, clear maps); never add an `EXEMPT` entry without
      a reason a person would accept.

@@ -58,10 +58,13 @@ engine  ←  game  ←  placers_kit  ←  placers_<theme> (10)  ←  placers
 * **`placers`** (`crates/placers/` itself) registers them all
   (`register_all`): the one list the executable and every test that
   builds a level use. Its `tests/fingerprints.rs` hashes what each placer
-  makes (nodes, geometry, materials, texture pixels, interactables, before
-  and after use) on the smoke levels, four runs each, against
-  `tests/fixtures/fingerprints.tsv`: code moved between the placer crates
-  is held to making the same things.
+  makes (nodes, geometry, materials with their shader patches and
+  uniforms, texture pixels, interactables, sound anchors, the draws it took
+  from the level's stream; before and after use) on the smoke levels, four
+  runs each, against `tests/fixtures/fingerprints.tsv`, compared placer by
+  placer; it also runs each placer's first placement on a fresh thread
+  (it must make the same: nothing hangs on what was built before) and
+  fails on a per-frame draw during a build.
 * **`backrooms`** is the executable: it registers the placers (`placers::register_all`), runs the
   window loop, turns the game's state into render calls, and has the
   headless modes (`--screenshot`, `--dump-level`) and the whole-game tests.

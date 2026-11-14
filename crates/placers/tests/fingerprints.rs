@@ -5,9 +5,11 @@
 //! their textures), its interactables, and the level's solids and tiles; then
 //! again once its animators have run and what it made usable has been used.
 //! No id is hashed (ids count what was made before), so a print is the
-//! placer's alone. A placer's textures are named by the placer
-//! (`kit::painting_for`), not by where its code is, and none is painted
-//! outside its run: the test holds both.
+//! placer's alone: its sound anchors, its materials' shader uniforms and how
+//! many draws it took from the level's stream are in it too. Each placer's
+//! first placement is printed again on a fresh thread, which must give the
+//! same (a level comes out the same whatever was built before it), and no
+//! placement may draw from the per-frame stream.
 //!
 //! The prints are recorded in `tests/fixtures/fingerprints.tsv`. Moving a
 //! placer's code (another module, crate or theme), sharing a helper, or
@@ -16,6 +18,7 @@
 //!
 //!   cargo test --release -p placers --test fingerprints
 //!   REGEN=1 cargo test --release -p placers --test fingerprints
+use engine::material::Patch;
 use engine::prelude::*;
 use engine::scene::Kind;
 use game::base::state::PlacerFn;
@@ -78,9 +81,46 @@ fn texture(h: &mut Fnv, t: &Option<Tex>, seen: &mut HashMap<usize, u64>) {
     }
 }
 
+/// A material's shader patch, its textures by their pixels (a texture's id
+/// counts what was made before it, so it is never hashed)
+fn patch(h: &mut Fnv, p: &Patch, seen: &mut HashMap<usize, u64>) {
+    match p {
+        Patch::ArchUV { scale_x, scale_y, wallpaper, detail, plane_shift } => {
+            h.str("arch");
+            for v in [*scale_x, *scale_y, *plane_shift] {
+                h.f64(v);
+            }
+            h.u64(u64::from(*wallpaper));
+            if let Some(d) = detail {
+                texture(h, &Some(d.map.clone()), seen);
+                for v in [d.metres, d.tint, d.relief] {
+                    h.f64(v);
+                }
+            }
+        }
+        Patch::SkinDetail { map, scale, strength, shine, rest_space } => {
+            h.str("skin");
+            texture(h, &Some(map.clone()), seen);
+            for v in [*scale, *strength, *shine] {
+                h.f64(v);
+            }
+            h.u64(u64::from(*rest_space));
+        }
+        Patch::WatcherSheet { map, scale, strength } => {
+            h.str("sheet");
+            texture(h, &Some(map.clone()), seen);
+            h.f64(*scale);
+            h.f64(*strength);
+        }
+        // the rest hold no texture: their Debug has no id
+        other => h.str(&format!("{other:?}")),
+    }
+}
+
 fn material(h: &mut Fnv, m: &Mat, seen: &mut HashMap<usize, u64>) {
     let m = m.m();
-    h.str(&format!("{:?}|{}|{:?}|{:?}|{:?}", m.kind, m.name, m.side, m.blending, m.patch));
+    h.str(&format!("{:?}|{}|{:?}|{:?}", m.kind, m.name, m.side, m.blending));
+    patch(h, &m.patch, seen);
     for c in [&m.color, &m.emissive, &m.specular] {
         h.f64(c.r);
         h.f64(c.g);
@@ -121,6 +161,9 @@ fn material(h: &mut Fnv, m: &Mat, seen: &mut HashMap<usize, u64>) {
     }
     for t in [&m.map, &m.alpha_map, &m.bump_map, &m.emissive_map] {
         texture(h, t, seen);
+    }
+    for v in m.patch_uniforms.borrow().f {
+        h.bytes(&v.to_bits().to_le_bytes());
     }
 }
 
@@ -225,6 +268,8 @@ fn print(g: &mut Game, from: (usize, usize, usize)) -> u64 {
         h.str(&i.prompt);
     }
     h.u64((g.animators.len() - from.2) as u64);
+    // where its sounds come from (the places it adds a hum, a tick, a whirr)
+    h.str(&format!("{:?}", g.pp));
     h.bytes(&g.tiles);
     h.str(&format!("{:?}", g.solids));
     h.0
@@ -233,75 +278,160 @@ fn print(g: &mut Game, from: (usize, usize, usize)) -> u64 {
 const TRIES: u32 = 256;
 const PRINTS: usize = 4;
 
-fn prints() -> String {
+/// One run of `name` on the smoke level `k`, as a level's build runs it:
+/// its prints once placed and once used, or `None` if it placed nothing.
+/// Also returns how many per-frame (native) draws the placement took, which
+/// must be none: a level is built from its own stream alone.
+fn run_once(name: &'static str, f: PlacerFn, k: u32) -> (Option<(u64, u64)>, u64) {
+    let (mut g, dist) = Game::test_level(k * 7919 + 13, 21 + (k as i32 % 3) * 8);
+    game::placers::kit::restart_texture_streams();
+    // what runs after the build (animators, a thing used) draws from the
+    // native stream, which starts from the clock unless seeded
+    game::base::rng::seed_native(u64::from(k));
+    let from = (g.world.child_count(), g.interactables.len(), g.animators.len());
+    let tiles = g.tiles.clone();
+    let native = game::base::rng::native_draws();
+    let drawn = game::base::rng::with_seed(k.wrapping_mul(2654435761), || {
+        let before = game::base::rng::seeded_draws();
+        g.run_placer_as(name, f, &dist);
+        game::base::rng::seeded_draws() - before
+    });
+    let native = game::base::rng::native_draws() - native;
+    let placed = g.world.child_count() > from.0 || g.interactables.len() > from.1 || g.animators.len() > from.2 || g.tiles != tiles;
+    if !placed {
+        return (None, native);
+    }
+    // how many draws it took from the level's stream: one more or fewer
+    // shifts every placer after it on a real level
+    let a = print(&mut g, from) ^ drawn.wrapping_mul(0x9e37_79b9_7f4a_7c15);
+    for s in 0..30 {
+        g.perf_t = s as f64 * 0.37;
+        g.run_animators(1.0 / 60.0, g.perf_t);
+    }
+    g.player.flashlight_on = true;
+    g.use_all_interactables();
+    for s in 0..10 {
+        g.run_animators(0.25, 20.0 + s as f64);
+    }
+    (Some((a, print(&mut g, from))), native)
+}
+
+struct Prints {
+    text: String,
+    /// placers whose placement drew from the native stream
+    native: Vec<&'static str>,
+    /// placers whose first print differs when run on a fresh thread: what they
+    /// make depends on what the thread made before (a cache, a counter)
+    history: Vec<String>,
+}
+
+fn prints() -> Prints {
     let mut list: Vec<(&'static str, PlacerFn)> = vec![];
     placers::register_all(&mut list);
     list.sort_by_key(|(n, _)| *n);
-    let mut out = String::from("# placer\tlevel\tplaced\tused\n");
+    let mut out = Prints { text: String::from("# placer\tlevel\tplaced\tused\n"), native: vec![], history: vec![] };
     for (name, f) in list {
         let mut found = 0;
         for k in 0..TRIES {
-            let (mut g, dist) = Game::test_level(k * 7919 + 13, 21 + (k as i32 % 3) * 8);
-            game::placers::kit::restart_texture_streams();
-            // what runs after the build (animators, a thing used) draws from the
-            // native stream, which starts from the clock unless seeded
-            game::base::rng::seed_native(u64::from(k));
-            let from = (g.world.child_count(), g.interactables.len(), g.animators.len());
-            let tiles = g.tiles.clone();
-            game::base::rng::with_seed(k.wrapping_mul(2654435761), || g.run_placer_as(name, f, &dist));
-            let placed = g.world.child_count() > from.0 || g.interactables.len() > from.1 || g.animators.len() > from.2 || g.tiles != tiles;
-            if !placed {
-                continue;
+            let (got, native) = run_once(name, f, k);
+            if native > 0 && !out.native.contains(&name) {
+                out.native.push(name);
             }
-            let a = print(&mut g, from);
-            for s in 0..30 {
-                g.perf_t = s as f64 * 0.37;
-                g.run_animators(1.0 / 60.0, g.perf_t);
+            let Some((a, b)) = got else { continue };
+            let _ = writeln!(out.text, "{name}\t{k}\t{a:016x}\t{b:016x}");
+            if found == 0 {
+                // the same run on a thread that has made nothing yet
+                let fresh = std::thread::spawn(move || run_once(name, f, k).0).join().unwrap();
+                if fresh != Some((a, b)) {
+                    out.history.push(format!("{name} (level {k})"));
+                }
             }
-            g.player.flashlight_on = true;
-            g.use_all_interactables();
-            for s in 0..10 {
-                g.run_animators(0.25, 20.0 + s as f64);
-            }
-            let b = print(&mut g, from);
-            let _ = writeln!(out, "{name}\t{k}\t{a:016x}\t{b:016x}");
             found += 1;
             if found == PRINTS {
                 break;
             }
         }
         if found == 0 {
-            let _ = writeln!(out, "{name}\t-\tplaced nothing in {TRIES} levels\t-");
+            let _ = writeln!(out.text, "{name}\t-\tplaced nothing in {TRIES} levels\t-");
         }
     }
     out
+}
+
+/// The prints by placer: (placer, level) -> the rest of its line
+fn by_placer(text: &str) -> std::collections::BTreeMap<(String, String), String> {
+    text.lines()
+        .filter(|l| !l.starts_with('#'))
+        .filter_map(|l| {
+            let mut c = l.splitn(3, '\t');
+            Some(((c.next()?.to_string(), c.next()?.to_string()), c.next()?.to_string()))
+        })
+        .collect()
+}
+
+/// The placers whose prints changed, appeared or went between two recordings
+fn changed_placers(got: &str, want: &str) -> (Vec<String>, Vec<String>, Vec<String>) {
+    let (g, w) = (by_placer(got), by_placer(want));
+    let names = |m: &std::collections::BTreeMap<(String, String), String>| {
+        m.keys().map(|(n, _)| n.clone()).collect::<std::collections::BTreeSet<_>>()
+    };
+    let (gn, wn) = (names(&g), names(&w));
+    let changed = gn
+        .intersection(&wn)
+        .filter(|n| {
+            let mine = |m: &std::collections::BTreeMap<(String, String), String>| {
+                m.iter().filter(|((p, _), _)| p == *n).map(|(k, v)| (k.1.clone(), v.clone())).collect::<Vec<_>>()
+            };
+            mine(&g) != mine(&w)
+        })
+        .cloned()
+        .collect();
+    (changed, gn.difference(&wn).cloned().collect(), wn.difference(&gn).cloned().collect())
 }
 
 #[test]
 fn every_placer_makes_what_it_made() {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/fingerprints.tsv");
     let got = prints();
-    // a placer's textures are named by the placer, so its code can move;
-    // one painted later, outside its run, would be named by its code's place
-    let unnamed = game::placers::kit::unnamed_placer_paintings();
     assert!(
-        unnamed.is_empty(),
-        "these placer painters painted outside their placer's run, named by where their code is (moving it would repaint them): \
-         paint while the placer runs, or run them in `painting_for`: {unnamed:#?}"
+        got.native.is_empty(),
+        "these placers drew from the per-frame (native) stream while a level was built: a level is built from its own stream \
+         alone (`rnd()`), or it is not the same twice: {:#?}",
+        got.native
     );
-    if std::env::var("REGEN").is_ok() {
-        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
-        std::fs::write(&path, &got).unwrap();
-    }
+    assert!(
+        got.history.is_empty(),
+        "these placers make something else on a thread that has made other things first (a cache filled, a counter moved): \
+         a level must come out the same whatever was built before it: {:#?}",
+        got.history
+    );
     let want = std::fs::read_to_string(&path).unwrap_or_default();
-    let differ: Vec<String> = got.lines().zip(want.lines()).filter(|(a, b)| a != b).map(|(a, b)| format!("now  {a}\n  was  {b}")).collect();
+    let (changed, added, gone) = changed_placers(&got.text, &want);
+    let summary = format!("changed {changed:?}\nadded {added:?}\ngone {gone:?}");
+    if let Ok(allowed) = std::env::var("REGEN") {
+        // REGEN=1 records whatever changed (say why in the commit);
+        // REGEN=place_a,place_b refuses a change to any placer not named
+        let named: Vec<&str> = allowed.split(',').map(str::trim).collect();
+        if allowed != "1" {
+            let stray: Vec<&String> = changed.iter().chain(&added).chain(&gone).filter(|n| !named.contains(&n.as_str())).collect();
+            assert!(stray.is_empty(), "REGEN={allowed}, but these placers changed too, and are not recorded: {stray:?}");
+        }
+        println!("recording tests/fixtures/fingerprints.tsv:\n{summary}");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, &got.text).unwrap();
+        return;
+    }
     assert!(
-        differ.is_empty() && got.lines().count() == want.lines().count(),
-        "{} prints differ from tests/fixtures/fingerprints.tsv ({} lines now, {} recorded): a placer makes something else. \
-         If that is meant, REGEN=1 and say why in the commit:\n  {}",
-        differ.len(),
-        got.lines().count(),
-        want.lines().count(),
-        differ.iter().take(20).cloned().collect::<Vec<_>>().join("\n  ")
+        changed.is_empty() && added.is_empty() && gone.is_empty(),
+        "a placer makes something else than tests/fixtures/fingerprints.tsv records:\n{summary}\n\
+         If that is meant: REGEN=<those placers, comma-separated> (REGEN=1 for any), and say why in the commit"
     );
+}
+
+#[test]
+fn the_comparison_names_the_placers_that_changed() {
+    let want = "# h\nplace_a\t0\t1\t1\nplace_a\t3\t2\t2\nplace_c\t1\t5\t5\n";
+    let got = "# h\nplace_a\t0\t1\t1\nplace_a\t3\t2\t9\nplace_b\t0\t7\t7\nplace_c\t1\t5\t5\n";
+    let (changed, added, gone) = changed_placers(got, want);
+    assert_eq!((changed, added, gone), (vec!["place_a".to_string()], vec!["place_b".to_string()], vec![]));
 }

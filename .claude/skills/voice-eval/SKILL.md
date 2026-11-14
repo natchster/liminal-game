@@ -5,7 +5,7 @@ description: Evaluate voice takes in The Backrooms (words, emotion, tone of voic
 
 # Evaluate voice takes
 
-The evaluation (`tools/voice/judge.py`, `docs/design/VOICES.md` *The evaluation*)
+The evaluation (`tools/voice/judge.py`, `docs/engineering/VOICES.md` *The evaluation*)
 is a screen for a person's ear, not a verdict. Know what each check can and
 cannot tell before trusting it.
 
@@ -49,7 +49,7 @@ cannot tell before trusting it.
    `cargo xtask voice bakeoff --persona <p>` prints the table: lines with a
    passing take, takes passing, mean voice similarity, failures by check.
    The hardest lines decide; record the table and the choice
-   (`docs/design/VOICES.md`, *The bake-off*).
+   (`docs/research/voice-bake-off.md`).
 5. **Changing the evaluation** (a threshold, a check, a model): first make
    the known answer that shows the need (a take that must fail the check,
    or one that must pass) and add it to `pipeline::selftest`

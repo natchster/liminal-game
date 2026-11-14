@@ -11,7 +11,10 @@ rule is in `CLAUDE.md`, and `crates/backrooms/tests/structure.rs` holds it):
 | [`engineering/`](engineering/ARCHITECTURE.md) | the code: how it is built, its conventions and tools, its performance | game design |
 
 A design doc names its plan, and a plan names the design it serves; a
-research note is kept as found and summed up in [`research/SOURCES.md`](research/SOURCES.md).
+design doc may sum up the research it rests on and list its sources, but
+the research itself is in `research/`, kept as found and summed up in
+[`research/SOURCES.md`](research/SOURCES.md). A dated heading is the work's or
+a study's, never a design's (`tests/structure.rs` fails on one).
 
 **Design**
 
@@ -29,7 +32,7 @@ research note is kept as found and summed up in [`research/SOURCES.md`](research
 | [`design/SECRETS.md`](design/SECRETS.md) | her marks (one hand, many kinds), the place's quiet answers, the hiding places and what is put away in them (what stays with you) |
 | [`design/VENDING.md`](design/VENDING.md) | the vending machine: a real one, its rules (the coin, the silence, rocking it) |
 | [`design/WINDOWS.md`](design/WINDOWS.md) | the windows: cut into real walls, the outside they show, the one behind the glass |
-| [`design/VOICES.md`](design/VOICES.md) | the voices: personas, the text-to-speech pipeline (models licensed for sale, run here), the evaluation of words, tone and emotion, your asides and the director that chooses them |
+| [`design/VOICES.md`](design/VOICES.md) | the voices: who speaks (personas), what is said and when (your asides and the director that chooses them), and how the pipeline's models are chosen: licensed for sale, run here |
 | [`design/CUTSCENES.md`](design/CUTSCENES.md) | cutscenes: the moments that borrow your eyes and give them back (the way in from the title, a broken lift's shaft, dying), the bars that say your hands are taken, the engine that stores, plays and tests them, its pipeline |
 
 **Engineering**
@@ -39,6 +42,7 @@ research note is kept as found and summed up in [`research/SOURCES.md`](research
 | [`engineering/ARCHITECTURE.md`](engineering/ARCHITECTURE.md) | crates, modules, one frame, level build, creatures and pacing, rendering, audio |
 | [`engineering/DEVELOPMENT.md`](engineering/DEVELOPMENT.md) | conventions, determinism rules, adding a placer, tests and fixtures, headless tools |
 | [`engineering/AGENTS.md`](engineering/AGENTS.md) | this tooling itself: the hooks, rules, skills and reviewers under `.claude/`, written for this game and grown with it |
+| [`engineering/VOICES.md`](engineering/VOICES.md) | the voice pipeline: the toolchain, how lines are made, the evaluation of words, tone and emotion, the files the game embeds |
 | [`engineering/PERF.md`](engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`engineering/VISUAL_PLAYTEST.md`](engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
 
