@@ -14,7 +14,10 @@
   in with `[lints] workspace = true`).
 * **Automation in Rust.** `cargo xtask bundle` builds and signs the app and
   `cargo xtask check` runs the quality gate; add new tasks as modules of
-  `xtask/src/` rather than shell scripts.
+  `xtask/src/` rather than shell scripts. The one exception is the trust
+  tool (`.github/trust/trust.py`, Python's standard library): it decides a
+  required check on GitHub's runners with nothing built (`docs/engineering/TRUST.md`),
+  and its tests are the check's `trust` step.
 * **Agent guidance.** `CLAUDE.md` is the short map for coding agents (commands,
   invariants, definition of done); `.claude/rules/*.md` hold rules that load
   only when files under their `paths:` are touched. Keep both short, and move
@@ -29,7 +32,8 @@
 * **Skills and reviewers** (the inventory: `docs/engineering/AGENTS.md`; all written
   for this game and changed with it). `.claude/skills/<name>/SKILL.md` are
   the content playbooks (zones, props, creatures, anomalies, sounds, pacing,
-  voices, blind visual review, re-recording, the drift sweep); a new one is
+  voices, blind visual review, re-recording, the drift sweep, GitHub issues
+  under the maintainer trust); a new one is
   followed end to end by a fresh agent before it is committed;
   `.claude/agents/*.md` are read-only
   reviewers (`art-critic` with a checked-in memory of people's verdicts in
@@ -61,7 +65,9 @@
   calls the built binary directly so edits never wait on cargo's build lock):
   * before an edit: anything outside this repository, and the recorded
     fixtures, reference levels and goldens, are refused — the fixtures change
-    only through REGEN / rerecord / accept;
+    only through REGEN / rerecord / accept — and so are the protected paths
+    while the session works from others' words (`target/trust/task.json`,
+    `docs/engineering/TRUST.md`);
   * after an edit: rustfmt on the edited `.rs` file;
   * on stop: `cargo xtask check --fast` when code differs from the last
     passing check; a failure blocks the stop with its `ERROR` lines, at most

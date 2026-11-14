@@ -572,3 +572,20 @@ every claim linked.
 **Vision models as reviewers** ([GlitchBench](https://arxiv.org/html/2312.05291v2), [VideoGameQA-Bench](https://arxiv.org/html/2505.15952v2), [Sony 2026](https://www.alphaxiv.org/abs/2607.25921), [bug-frame retrieval](https://arxiv.org/html/2508.04895v1), [FLIP](https://research.nvidia.com/publication/flip)).
 - Says: the best models find under half the glitches in a frame and hallucinate clipping on near contact; use them as high-recall filters with a person on every flag; answers vary between runs; reviewers need a fast side-by-side view.
 - Used for: the `visual-inspector` as a filter, never the gate (every finding it names is reproduced and looked at before it is fixed), and the report's strips (the look, the gaps, the flicker side by side) for a quick read.
+
+## 19. The agents' trust: whose words an agent acts on
+
+Gathered on 2026-11-14 for [`TRUST.md`](../engineering/TRUST.md); the note
+is kept whole in [`agent-trust.md`](agent-trust.md), every claim linked.
+
+**Issue-implementing agents** ([claude-code-action](https://github.com/anthropics/claude-code-action/blob/main/docs/security.md), [Copilot cloud agent](https://docs.github.com/en/copilot/concepts/agents/cloud-agent/risks-and-mitigations), [gh-aw integrity](https://github.github.com/gh-aw/reference/integrity/), [GitHub MCP server](https://github.com/github/github-mcp-server)).
+- Says: they trust write access at most; claude-code-action always reads the issue's body, whoever wrote it, and freezes the thread at trigger time; gh-aw filters each item by author association, and its endorsement reactions go stale when the item is edited; nobody ties a maintainer's approval in a comment to the version approved, or refuses agent-configuration changes because of who wrote the issue.
+- Used for: our own tool and skill; an approval that covers words only as last edited before it (gh-aw's stale endorsement, applied to `/trust`); the CI agent fed only trusted threads, with unapproved authors excluded and `gh` denied.
+
+**Protected files** ([gh-aw safe outputs](https://github.github.com/gh-aw/reference/safe-outputs-pull-requests/)).
+- Says: an agent's pull request touching `.github/`, `CLAUDE.md`, `.claude/` or dot folders can be held for review or blocked.
+- Used for: the protected paths, extended to every pull request (a person's too), refused outright from non-maintainers and held for `/trust-protected <sha>` when a maintainer implements others' words.
+
+**GitHub's mechanics** ([`pull_request_target` from the default branch](https://github.blog/changelog/2025-11-07-actions-pull_request_target-and-environment-branch-protections-changes/), [blocked by default from 2026-12-02](https://github.blog/changelog/2026-11-02-pull_request_target-blocked-by-default-december-2), [rules](https://docs.github.com/en/rest/repos/rules), [roles](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization)).
+- Says: a `pull_request_target` job runs the default branch's workflow on the pull request's head and can write statuses; an `issue_comment` run cannot attach a check to the pull request but can post a commit status that a ruleset requires; public repositories block `pull_request_target` unless an Actions policy allows it; anyone with write access can edit others' comments.
+- Used for: the gate's two triggers and its commit status, the Actions policy scoped to the gate's workflow, approvals not counted when someone other than a maintainer edited them.

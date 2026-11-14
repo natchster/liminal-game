@@ -1,3 +1,17 @@
+# @claude on issues and pull requests, behind the maintainer trust
+# (docs/engineering/TRUST.md). The `trust` job decides first, with the trust
+# tool as it is on the default branch:
+#   - only a maintainer (admin or maintain) starts the agent; anyone else's
+#     mention is ignored;
+#   - the action always reads the opening post, so it must be a maintainer's
+#     or approved by one with `/trust` after its last edit; otherwise the
+#     maintainer is told why and nothing runs;
+#   - authors of comments and reviews no maintainer approved are excluded
+#     from what the action reads (exclude_comments_by_actor);
+#   - the agent never runs `gh` or fetches the web (it could read withheld
+#     words that way), and when any words came from outside the maintainers,
+#     its edit tools are denied the protected paths (the trust gate refuses a
+#     pull request with such changes anyway).
 name: Claude Code
 
 on:
@@ -10,13 +24,43 @@ on:
   pull_request_review:
     types: [submitted]
 
+permissions: {}
+
 jobs:
-  claude:
+  trust:
     if: |
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
       (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
       (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write # tell a maintainer why the agent did not start
+      pull-requests: write
+    outputs:
+      allowed: ${{ steps.trust.outputs.allowed }}
+      exclude: ${{ steps.trust.outputs.exclude }}
+      claude_args: ${{ steps.trust.outputs.claude_args }}
+    steps:
+      - name: The trust tool, from the default branch only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/trust
+          persist-credentials: false
+      - name: May the agent start, and on what
+        id: trust
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          ACTOR: ${{ github.actor }}
+        run: python3 .github/trust/trust.py ci "$NUMBER" --actor "$ACTOR" --notify
+
+  claude:
+    needs: trust
+    if: needs.trust.outputs.allowed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -40,11 +84,9 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
-
-          # Optional: Add claude_args to customize behavior and configuration
+          # the trust job's decision: unapproved authors' comments and reviews
+          # are not read, and the tools that could read them raw are denied
+          exclude_comments_by_actor: ${{ needs.trust.outputs.exclude }}
+          claude_args: ${{ needs.trust.outputs.claude_args }}
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-          # claude_args: '--allowed-tools Bash(gh pr *)'
-

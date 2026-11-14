@@ -5,7 +5,8 @@
 //! `ERROR <step> …` line per problem found, so a failure can be found with
 //! `grep ERROR` and nothing else floods the terminal (or an agent's context).
 //!
-//! The steps: `fmt`, `clippy`, `test`, `shots` (the golden frames and look
+//! The steps: `fmt`, `trust` (the trust tool's known answers,
+//! `.github/trust/test_trust.py`), `clippy`, `test`, `shots` (the golden frames and look
 //! statistics, `cargo xtask shots`) and, in the full check, `range` (the
 //! generator's expressive range, `cargo xtask range --look`) and `bench`
 //! (budgets and the performance history, `cargo xtask bench --no-record`).
@@ -68,6 +69,11 @@ pub fn check(args: &[String]) -> Result<(), String> {
     let mut fmt = cargo();
     fmt.args(["fmt", "--all", "--", "--check"]);
     steps.push(Step { name: "fmt", cmd: fmt, errors: fmt_errors });
+    // the trust tool's known answers: Python, so that the gate on GitHub runs
+    // it with nothing built (docs/engineering/TRUST.md)
+    let mut trust = Command::new("python3");
+    trust.args(["-m", "unittest", "discover", "-s", ".github/trust"]).current_dir(root());
+    steps.push(Step { name: "trust", cmd: trust, errors: unittest_errors });
     let mut clippy = cargo();
     clippy.args(["clippy", "--workspace", "--all-targets", "--release", "--", "-D", "warnings"]);
     steps.push(Step { name: "clippy", cmd: clippy, errors: rustc_errors });
@@ -202,6 +208,25 @@ fn rustc_errors(text: &str) -> Vec<String> {
     out
 }
 
+/// Python unittest failures: `FAIL: test (module.Class.test)` with the
+/// exception that ended it.
+fn unittest_errors(text: &str) -> Vec<String> {
+    let lines: Vec<&str> = text.lines().collect();
+    let mut out = vec![];
+    for (i, l) in lines.iter().enumerate() {
+        let Some(test) = l.strip_prefix("FAIL: ").or_else(|| l.strip_prefix("ERROR: ")) else { continue };
+        let why = lines[i + 1..]
+            .iter()
+            .take_while(|n| !n.starts_with("=====") && !n.starts_with("FAIL: ") && !n.starts_with("ERROR: "))
+            .filter(|n| !n.starts_with(' ') && (n.contains("Error") || n.contains("Exception")))
+            .last()
+            .map(|n| n.chars().take(240).collect::<String>())
+            .unwrap_or_default();
+        out.push(format!("{test}: {why}"));
+    }
+    out
+}
+
 /// Test failures: the failing test, where it panicked and why; compile
 /// errors in test code come through `rustc_errors`.
 fn test_errors(text: &str) -> Vec<String> {
@@ -241,6 +266,12 @@ mod tests {
                 "rerun with: cargo test --release -p game --test x"
             ]
         );
+    }
+
+    #[test]
+    fn unittest_failures_become_one_line_each() {
+        let log = "..F.\n======================================================================\nFAIL: test_globs (test_trust.Paths.test_globs)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"x.py\", line 3, in test_globs\n    self.assertTrue(m(\"a\", \"b\"))\nAssertionError: False is not true\n\n----------------------------------------------------------------------\nRan 4 tests in 0.001s\n\nFAILED (failures=1)\n";
+        assert_eq!(unittest_errors(log), vec!["test_globs (test_trust.Paths.test_globs): AssertionError: False is not true"]);
     }
 
     #[test]

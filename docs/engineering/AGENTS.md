@@ -27,7 +27,7 @@ when it is current, so an edit never waits on cargo's build lock).
 
 | Event | What it does |
 |---|---|
-| before an edit | refuses an edit outside this repository (`CLAUDE.md`, invariant 4) and a hand edit of recorded reference data (fixtures, reference levels, goldens): those change only through REGEN, rerecord or `--accept` |
+| before an edit | refuses an edit outside this repository (`CLAUDE.md`, invariant 4) and a hand edit of recorded reference data (fixtures, reference levels, goldens): those change only through REGEN, rerecord or `--accept`; and, while the session works from GitHub words that are not all maintainers' (the trust tool's task marker), an edit of the protected paths ([`TRUST.md`](TRUST.md)) |
 | after an edit | rustfmt on the edited `.rs` file; a file it cannot parse is reported back |
 | on stop | `cargo xtask check --fast` when the code changed since the last passing check; a failure sends the agent back with its `ERROR` lines (at most three times in a row) |
 | after compaction | recent commits, uncommitted files and the roadmap's progress re-injected |
@@ -68,6 +68,19 @@ the brief against the canon to the gates, the evidence and the ledger entry
 | `voice-eval` | the voice evaluation: reading the report, a bake-off between models, thresholds changed only through known answers |
 | `visual-playtest` | the visual playtest of an area, a level or a set: when (by hand, and after any major change on the places it touched), the run, the report and sheets, the inspector, reproducing with `--shots-at`, the record in `docs/research/playtests/visual/`, the fix a kind at a time, the tour again, what it cannot see (followed end to end by a fresh agent before it was committed) |
 | `add-cutscene` | a cutscene: whether it should be one, its source, its trigger and stage, the preview, the contract suite, goldens, the canon (followed end to end by a fresh agent before it was committed) |
+| `implement-issue` | a GitHub issue (or a pull request's comments): read only through its trusted brief, acted on only where maintainers wrote or approved it, the protected paths left alone when any words came from outside, the pull request the trust gate expects ([`TRUST.md`](TRUST.md)) |
+
+## Trust
+
+The repository is public, and the agents implement its issues: whose words
+they act on is settled before they read anything ([`TRUST.md`](TRUST.md)).
+The owner's and maintainers' words are trusted; anyone else's only once a
+maintainer approves them with `/trust`, and only as they stood then. The
+*protected paths* (this tooling: `.claude/`, the workflows and the trust
+tool under `.github/`, `CLAUDE.md`, the hook) change only by maintainers:
+the trust gate refuses anyone else's pull request touching them, and holds
+a maintainer's, when it implements others' words, until a maintainer
+approves its exact commit (`/trust-protected <sha>`).
 
 ## Reviewers
 

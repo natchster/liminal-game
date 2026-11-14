@@ -1,0 +1,11 @@
+# The protected paths (.github/trust/policy.json) belong to the owner: with
+# the ruleset's code-owner review (.github/trust/ruleset.json), nobody else's
+# change to them merges without the owner's review. The trust gate refuses
+# them outright when they come from a non-maintainer (docs/engineering/TRUST.md).
+/.claude/           @natchster
+/.github/           @natchster
+/.cargo/            @natchster
+CLAUDE.md           @natchster
+/AGENTS.md          @natchster
+/.mcp.json          @natchster
+/xtask/src/hook.rs  @natchster

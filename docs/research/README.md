@@ -97,3 +97,11 @@ One more was gathered on 2026-11-11 for the visual playtest
 | Note | What it covers |
 |---|---|
 | [`visual-qa.md`](visual-qa.md) | How studios automate visual QA (Frostbite's cameras per level and strict thresholds, Unreal's screenshot actors, Unity's golden images, flythroughs, bots); z-fighting (its cause, polygon offset, depth precision and reversed-Z, an image-based coplanarity detector, geometric tests); holes and leaks (the hall of mirrors, T-junctions, watertightness, the winding number, thin walls); the near plane and the camera inside geometry (cast its face, not a ray); out-of-place assets (EA SEED's texture classifier and its white-placeholder lesson, texel density, albedo validation); triage tools and what vision models can and cannot find (GlitchBench, VideoGameQA-Bench); ten rules |
+
+One more was gathered on 2026-11-14 for the agents' trust
+([`../engineering/TRUST.md`](../engineering/TRUST.md)), summed up in
+[`SOURCES.md`](SOURCES.md) section 19:
+
+| Note | What it covers |
+|---|---|
+| [`agent-trust.md`](agent-trust.md) | Whether any issue-implementing skill or integration acts only on maintainers' words and on others' once approved: Claude Code skills and plugins, claude-code-action (what it reads, who triggers, its edit freeze and sanitizer, agent mode), the GitHub MCP server's lockdown mode, gh-aw's integrity filter, endorsements that go stale on edit and protected files, Copilot, OpenCode, Gemini CLI, OpenHands; GitHub's mechanics a gate needs (`pull_request_target` and its default block from 2026-12-02, commit statuses as required checks, roles, edit times, rulesets) |

@@ -1,0 +1,8 @@
+{
+  "name": "trust gate: pull_request_target and issue_comment",
+  "enforcement": "active",
+  "conditions": { "workflow_path": { "include": [".github/workflows/trust-gate.yml"], "exclude": [] } },
+  "rules": [
+    { "type": "restrict_action_events", "parameters": { "allowed_events": ["pull_request_target", "issue_comment"] } }
+  ]
+}

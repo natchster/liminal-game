@@ -4,7 +4,9 @@
 //!
 //! - `pre-edit` (PreToolUse on file edits): denies edits to anything outside
 //!   this repository, and hand edits to recorded fixtures and goldens — those
-//!   change only through the REGEN / rerecord / accept commands.
+//!   change only through the REGEN / rerecord / accept commands — and, while
+//!   the session works from words that are not all maintainers' (the task
+//!   marker of `.github/trust/trust.py`), edits to the protected paths.
 //! - `post-edit` (PostToolUse on file edits): runs rustfmt on an edited `.rs`
 //!   file; a file rustfmt cannot parse is reported back (it does not block).
 //! - `stop` (Stop): runs `xtask check --fast` when code changed since the
@@ -111,7 +113,52 @@ fn edit_refusal(path: &Path, root: &Path) -> Option<String> {
              (REGEN=1 / `-- --ignored rerecord` / `xtask shots --accept`; see CLAUDE.md), then review the diff."
         ));
     }
-    None
+    untrusted_task_refusal(&rel, &root)
+}
+
+/// What `.github/trust/trust.py issue N --mark` writes when a session works
+/// from words that are not all maintainers' (docs/engineering/TRUST.md): the
+/// issue, why, and the protected paths, which it then may not edit.
+const TRUST_TASK: &str = "target/trust/task.json";
+
+/// Why `rel` must not be edited while the task marker stands: it is a
+/// protected path. Only the owner clears the marker; the trust gate holds
+/// the same line on GitHub, this only stops the edit where it starts.
+fn untrusted_task_refusal(rel: &str, root: &Path) -> Option<String> {
+    let task: Value = serde_json::from_str(&std::fs::read_to_string(root.join(TRUST_TASK)).ok()?).ok()?;
+    let folded = rel.to_lowercase();
+    let glob = task["protected"]
+        .as_array()?
+        .iter()
+        .filter_map(Value::as_str)
+        .find(|g| glob_match(g.to_lowercase().as_bytes(), folded.as_bytes()))?;
+    let issues = task["issues"].as_array()?;
+    let numbers: Vec<String> = issues.iter().map(|i| format!("#{}", i["number"])).collect();
+    let why: Vec<&str> = issues.iter().flat_map(|i| i["why"].as_array().into_iter().flatten().filter_map(Value::as_str)).collect();
+    let numbers = numbers.join(", ");
+    Some(format!(
+        "{rel} is a protected path ({glob} in .github/trust/policy.json), and this session works on {numbers}, whose \
+         words are not all maintainers' ({}). Protected paths change only by the owner, or after a maintainer's \
+         `/trust-protected <sha>` on the pull request: stop and tell the user. If this session is not working on \
+         {numbers}, the owner clears the marker ({TRUST_TASK}) with `python3 .github/trust/trust.py clear`.",
+        why.join("; ")
+    ))
+}
+
+/// `glob` matches `path` the way `.github/trust/trust.py` matches them:
+/// `**/` any folders or none, `**` anything, `*` anything but `/`, `?` one
+/// character but `/`.
+fn glob_match(glob: &[u8], path: &[u8]) -> bool {
+    match glob {
+        [] => path.is_empty(),
+        [b'*', b'*', b'/', rest @ ..] => {
+            glob_match(rest, path) || path.iter().enumerate().any(|(i, c)| *c == b'/' && glob_match(rest, &path[i + 1..]))
+        }
+        [b'*', b'*', rest @ ..] => (0..=path.len()).any(|i| glob_match(rest, &path[i..])),
+        [b'*', rest @ ..] => (0..=path.len()).take_while(|&i| i == 0 || path[i - 1] != b'/').any(|i| glob_match(rest, &path[i..])),
+        [b'?', rest @ ..] => matches!(path, [c, ..] if *c != b'/') && glob_match(rest, &path[1..]),
+        [g, rest @ ..] => path.first() == Some(g) && glob_match(rest, &path[1..]),
+    }
 }
 
 fn pre_edit(input: &Value) -> Result<(), String> {
@@ -240,5 +287,39 @@ mod tests {
         let beside = root.parent().unwrap().join("beside-the-repository.txt");
         assert!(edit_refusal(&beside, &root).is_some(), "{} is outside", beside.display());
         assert!(edit_refusal(&root.join("../beside-the-repository.txt"), &root).is_some());
+    }
+
+    #[test]
+    fn globs_match_as_the_trust_tool_matches_them() {
+        let m = |g: &str, p: &str| glob_match(g.as_bytes(), p.as_bytes());
+        assert!(m("**/claude.md", "claude.md") && m("**/claude.md", "crates/game/claude.md"));
+        assert!(!m("**/claude.md", "crates/gameclaude.md"));
+        assert!(m(".claude/**", ".claude/skills/x/SKILL.md") && !m(".claude/**", ".claudex/a"));
+        assert!(m("a/*.rs", "a/x.rs") && !m("a/*.rs", "a/b/x.rs"));
+        assert!(m("a?c", "abc") && !m("a?c", "a/c") && !m("a?c", "ac"));
+        assert!(m("xtask/src/hook.rs", "xtask/src/hook.rs") && !m("xtask/src/hook.rs", "xtask/src/check.rs"));
+    }
+
+    #[test]
+    fn protected_paths_are_refused_while_an_untrusted_task_stands() {
+        let root = std::env::temp_dir().join(format!("xtask-hook-trust-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        std::fs::create_dir_all(root.join("target/trust")).unwrap();
+        let root = resolve(&root);
+        // no marker: nothing refused
+        assert_eq!(edit_refusal(&root.join(".claude/settings.json"), &root), None);
+        let task = json!({ "issues": [{ "number": 12, "why": ["#12 was opened by @someone"] }], "protected": [".claude/**", "**/CLAUDE.md", "xtask/src/hook.rs"] });
+        std::fs::write(root.join(TRUST_TASK), task.to_string()).unwrap();
+        for p in [".claude/settings.json", ".Claude/skills/x/SKILL.md", "CLAUDE.md", "crates/game/CLAUDE.md", "xtask/src/hook.rs"] {
+            let why = edit_refusal(&root.join(p), &root).unwrap_or_default();
+            assert!(why.contains("protected path") && why.contains("#12"), "{p}: {why}");
+        }
+        for p in ["crates/game/src/lib.rs", "docs/engineering/TRUST.md", "xtask/src/check.rs"] {
+            assert_eq!(edit_refusal(&root.join(p), &root), None, "{p}");
+        }
+        // an unreadable marker refuses nothing (the gate on GitHub still holds)
+        std::fs::write(root.join(TRUST_TASK), "not json").unwrap();
+        assert_eq!(edit_refusal(&root.join(".claude/settings.json"), &root), None);
+        let _ = std::fs::remove_dir_all(&root);
     }
 }

@@ -1,0 +1,61 @@
+# The trust gate (docs/engineering/TRUST.md). Every pull request gets a
+# `trust-gate` commit status:
+#   - no protected path changed (.github/trust/policy.json): success;
+#   - protected paths changed by someone who is not the owner or a maintainer:
+#     failure, and nothing a maintainer says changes that;
+#   - changed by a maintainer (or a bot) while implementing words from outside
+#     the maintainers (an issue someone else opened, others' comments, others'
+#     commits): failure until a maintainer comments `/trust-protected <sha>`
+#     for exactly the head commit.
+# The repository's ruleset makes `trust-gate` (from GitHub Actions) required
+# on the default branch (.github/trust/ruleset.json).
+#
+# Safe by construction: pull_request_target and issue_comment always run this
+# file and the trust tool as they are on the default branch; the pull
+# request's code is never checked out, built or run, and its title and body
+# reach no shell. Public repositories block pull_request_target by default
+# from 2026-12-02: the repository's Actions policy allows it for this file
+# only (.github/trust/actions-policy.json).
+name: trust-gate
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions: {}
+
+jobs:
+  gate:
+    # every pull request event; on a pull request's conversation, only a comment
+    # that grants or withdraws trust (a deleted one withdraws it), by someone
+    # who could be a maintainer (the tool itself checks the role)
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (github.event.issue.pull_request &&
+       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
+       (contains(github.event.comment.body, '/trust-protected') || contains(github.event.comment.body, '/revoke')))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: trust-gate-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      statuses: write # the trust-gate status on the head commit
+      pull-requests: write # the gate's one sticky comment
+      issues: read
+    steps:
+      - name: The trust tool, from the default branch only
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/trust
+          persist-credentials: false
+      - name: Judge the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 .github/trust/trust.py pr "$PR" --publish --run-url "$RUN_URL"

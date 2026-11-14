@@ -1,0 +1,17 @@
+{
+  "about": "Who is trusted and what only they may change. Read by .github/trust/trust.py (the issue briefs and the trust gate) and, through the task marker, by the pre-edit hook. This file is itself protected: only the owner and maintainers change it. See docs/engineering/TRUST.md.",
+  "trusted_roles": ["admin", "maintain"],
+  "trusted_users": [],
+  "protected_paths": [
+    ".claude/**",
+    ".github/**",
+    "CLAUDE.md",
+    "**/CLAUDE.md",
+    "AGENTS.md",
+    ".mcp.json",
+    ".cargo/**",
+    "xtask/src/hook.rs"
+  ],
+  "provenance_includes_comments": true,
+  "status_context": "trust-gate"
+}
