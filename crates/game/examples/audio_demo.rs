@@ -10,9 +10,9 @@
 //! against the wall clock at the end (a lagging clock means the render
 //! thread could not keep up).
 
+use game::Game;
 use game::audio::soundscape::PHRASES;
 use game::audio::sys::SFX_NAMES;
-use game::Game;
 use std::time::{Duration, Instant};
 
 type Item = (String, Box<dyn Fn(&mut Game)>);

@@ -1,7 +1,7 @@
 //! `update_ambient`, part 2: the per-weather ambient beds, the cross-weather
 //! rare events and the reality-shift pitch bend. See
 //! `audio::ambient` (mod.rs) for the overview.
-use crate::audio::ambient::{amb_due, AmbMix};
+use crate::audio::ambient::{AmbMix, amb_due};
 use crate::base::tables::*;
 use crate::prelude::*;
 
@@ -60,7 +60,7 @@ impl Game {
             // (never twice within 8 s at an even nerve: the mix's rule against
             // a sound coming straight back, `tests/loudness.rs`)
             self.wet_drip_timer = (8.0 + rnd() * 10.0) * etm; // sanity-boosted
-                                                              // 30% chance of a visible ripple at the drip's spawn
+            // 30% chance of a visible ripple at the drip's spawn
             if rnd() < 0.30 {
                 self.ripple_at(dsx, dsz, 0.55, 1.0, 1.5);
             }

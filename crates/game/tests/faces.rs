@@ -2,7 +2,7 @@
 //! (CoreText substitutes a missing face silently), a laid-out line is as
 //! wide as CoreText draws it, and `crates/target/faces.png` shows them.
 use game::ui::draw::{Painter, TextBlock, Ws};
-use game::ui::faces::{line_width, resolved_name, Face, Font};
+use game::ui::faces::{Face, Font, line_width, resolved_name};
 
 fn all() -> Vec<Font> {
     let mut v = vec![];

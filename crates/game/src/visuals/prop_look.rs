@@ -93,11 +93,7 @@ fn finish_of_shine(c: &Color) -> Finish {
     let (hi, lo) = (s[0].max(s[1]).max(s[2]), s[0].min(s[1]).min(s[2]));
     let chroma = hi - lo;
     if chroma < 0.12 {
-        if hi > 0.45 {
-            Finish::Steel
-        } else {
-            Finish::Gloss
-        }
+        if hi > 0.45 { Finish::Steel } else { Finish::Gloss }
     } else if s[0] >= s[1] && s[1] >= s[2] && chroma >= 0.2 && (0.35..0.85).contains(&hi) {
         // warm metal: red ≥ green ≥ blue, not a pale cream
         Finish::Brass
@@ -180,11 +176,7 @@ fn settle_material(m: &Mat) -> bool {
             return true;
         }
         mm.emissive = Color::default();
-        if shine > 0.0 {
-            finish_of_shine(&mm.color)
-        } else {
-            Finish::Plain
-        }
+        if shine > 0.0 { finish_of_shine(&mm.color) } else { Finish::Plain }
     };
     // textured surfaces keep their own colours (the shader only reins in the
     // most vivid ones) and get lighter wear

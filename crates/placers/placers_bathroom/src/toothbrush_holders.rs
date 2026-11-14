@@ -36,25 +36,9 @@ pub(crate) fn place_toothbrush_holders(g: &mut Game, _dist: &[i32]) {
         let brush_mat = lambert!({ color: b_color });
         let handle = mesh(pg("ToothbrushHolders__handle", box_geo!(0.008, 0.11, 0.008)), &brush_mat);
         handle.position().set(
-            if brush_count == 2 {
-                if b == 0 {
-                    -0.014
-                } else {
-                    0.014
-                }
-            } else {
-                0.0
-            },
+            if brush_count == 2 { if b == 0 { -0.014 } else { 0.014 } } else { 0.0 },
             shelf_y + 0.14,
-            if brush_count == 2 {
-                if b == 0 {
-                    -0.008
-                } else {
-                    0.008
-                }
-            } else {
-                0.0
-            },
+            if brush_count == 2 { if b == 0 { -0.008 } else { 0.008 } } else { 0.0 },
         );
         handle.rotation().z = (rnd() - 0.5) * 0.2; // slight tilt
         holder.add(&handle);

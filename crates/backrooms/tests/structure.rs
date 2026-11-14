@@ -121,7 +121,10 @@ fn layers_depend_downward_only() {
     let game = dependencies("crates/game/Cargo.toml");
     let platform = ["winit", "cpal", "objc2-metal", "objc2-app-kit", "objc2-quartz-core", "raw-window-handle"];
     let bad: Vec<&String> = game.iter().filter(|d| platform.contains(&d.as_str())).collect();
-    assert!(bad.is_empty(), "crates/game depends on {bad:?}: the game never touches the window, Metal or CoreAudio — go through engine (that keeps it testable headless)");
+    assert!(
+        bad.is_empty(),
+        "crates/game depends on {bad:?}: the game never touches the window, Metal or CoreAudio — go through engine (that keeps it testable headless)"
+    );
 }
 
 #[test]
@@ -160,7 +163,10 @@ fn level_builds_take_no_clock_or_foreign_randomness() {
 fn every_themed_placer_has_a_theme() {
     let themes: std::collections::BTreeSet<&str> = game::world::tables::PLACER_THEME.iter().map(|(n, _)| *n).collect();
     let missing: Vec<&str> = game::world::tables::THEMED_ORDER.iter().copied().filter(|n| !themes.contains(n)).collect();
-    assert!(missing.is_empty(), "placers in THEMED_ORDER without an entry in PLACER_THEME (crates/game/src/world/tables.rs): {missing:?} — add one, or the zone purposes cannot place them");
+    assert!(
+        missing.is_empty(),
+        "placers in THEMED_ORDER without an entry in PLACER_THEME (crates/game/src/world/tables.rs): {missing:?} — add one, or the zone purposes cannot place them"
+    );
 }
 
 #[test]
@@ -186,7 +192,10 @@ fn every_creature_has_goldens_and_behaviour_tests() {
         } else {
             (read("crates/game/tests/creatures_rules.rs"), read("crates/game/tests/creatures_arenas.rs"))
         };
-        assert!(shots.contains(&format!("\"{k}\"")), "creature {k} has no golden shots: add it to CREATURES in xtask/src/shots.rs, then `cargo xtask shots --accept {k}_2m,{k}_4m,{k}_8m,{k}_death --reason …`");
+        assert!(
+            shots.contains(&format!("\"{k}\"")),
+            "creature {k} has no golden shots: add it to CREATURES in xtask/src/shots.rs, then `cargo xtask shots --accept {k}_2m,{k}_4m,{k}_8m,{k}_death --reason …`"
+        );
         assert!(
             rules.contains(&format!("\"{k}\"")),
             "creature {k} is never named in crates/game/tests/creatures_rules.rs: one test a line of its design"
@@ -313,10 +322,10 @@ fn text_files() -> Vec<(String, String)> {
                 if !skip {
                     stack.push(p);
                 }
-            } else if p.extension().is_some_and(|x| EXT.contains(&x.to_string_lossy().as_ref())) {
-                if let Ok(text) = std::fs::read_to_string(&p) {
-                    out.push((rel(&p), text));
-                }
+            } else if p.extension().is_some_and(|x| EXT.contains(&x.to_string_lossy().as_ref()))
+                && let Ok(text) = std::fs::read_to_string(&p)
+            {
+                out.push((rel(&p), text));
             }
         }
     }
@@ -667,16 +676,16 @@ fn every_embedded_asset_has_a_current_licensed_manifest_entry() {
         if !licences.iter().any(|l| l == lic) {
             problems.push(format!("{name}: licence \"{lic}\" is not in allowed_licences"));
         }
-        let gen = entry["generator"].as_str().unwrap_or("");
-        if !generators.iter().any(|g| g == gen) {
+        let r#gen = entry["generator"].as_str().unwrap_or("");
+        if !generators.iter().any(|g| g == r#gen) {
             problems.push(format!("{name}: generator \"{gen}\" is not in allowed_generators"));
         }
         // the model that made it, and (a voice line) the one that designed the voice it is cloned from
         for key in ["generative_model", "reference_model"] {
-            if let Some(model) = entry[key].as_str() {
-                if !models.iter().any(|x| x == model) {
-                    problems.push(format!("{name}: {key} \"{model}\" is not in allowed_models (check its licence: non-commercial and territory-limited weights are not allowed)"));
-                }
+            if let Some(model) = entry[key].as_str()
+                && !models.iter().any(|x| x == model)
+            {
+                problems.push(format!("{name}: {key} \"{model}\" is not in allowed_models (check its licence: non-commercial and territory-limited weights are not allowed)"));
             }
         }
         if name.starts_with("voice/") && entry["generative_model"].as_str().is_none() {

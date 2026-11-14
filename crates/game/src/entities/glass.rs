@@ -44,7 +44,7 @@ use crate::core_props::window::view::GROUND;
 use crate::entities::body::two_bone;
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{with_skin_detail, EntVoice};
+use crate::entities::{EntVoice, with_skin_detail};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -230,11 +230,11 @@ fn near_glass(g: &Game, b: &Bind) -> bool {
 fn tell(g: &mut Game, ei: usize, b: &Bind) {
     let perceived = near_glass(g, b) || eyes_on_glass(g) || get(g, ei, "inside") > 0.0;
     let now = g.perf_t;
-    if let Some(c) = g.creature_mut(ei) {
-        if perceived {
-            c.tells.retain(|t| now - t < TELL_WINDOW);
-            c.tells.push(now);
-        }
+    if let Some(c) = g.creature_mut(ei)
+        && perceived
+    {
+        c.tells.retain(|t| now - t < TELL_WINDOW);
+        c.tells.push(now);
     }
 }
 

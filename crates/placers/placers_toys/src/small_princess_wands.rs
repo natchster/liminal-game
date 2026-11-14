@@ -1,7 +1,7 @@
 //! `place_small_princess_wands`: Small princess wand: 6% chance per level. A party-shop fairy wand: a faceted plastic star (56 mm) glittered, on a white plastic rod 18 cm long wound with a foil stripe, three satin ribbons tied under the star; lying on the floor, the ribbons trailing back beside the rod. The glitter rubbed off in patches, the satin dirty, the white yellowed.
+use crate::shared::Wear;
 use crate::shared::wear_at;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::fbmp;

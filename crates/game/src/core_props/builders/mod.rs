@@ -4,7 +4,7 @@
 use crate::base::records::Drawer;
 use crate::core_props::{Built, PropsCtx};
 use crate::prelude::*;
-use crate::visuals::textures::{handwritten_tex, text_tex, HandOpts, TextTexOpts};
+use crate::visuals::textures::{HandOpts, TextTexOpts, handwritten_tex, text_tex};
 use std::collections::HashMap;
 
 mod books;
@@ -568,13 +568,11 @@ pub(crate) fn locker_things(x: f64, i: i32, jumper: bool) -> Vec<Obj> {
     }
     hanger.add(&coat);
     out.push(hanger);
-    if jumper {
-        if let Some(geo) = prop_part_as_modelled("Real__suitcaseSweater") {
-            let j = mesh(geo, lambert!({ color: KNIT[k] }));
-            j.position().set(x + 0.01, 0.002, 0.02);
-            j.rotation().y = PI / 2.0 + 0.08;
-            out.push(j);
-        }
+    if jumper && let Some(geo) = prop_part_as_modelled("Real__suitcaseSweater") {
+        let j = mesh(geo, lambert!({ color: KNIT[k] }));
+        j.position().set(x + 0.01, 0.002, 0.02);
+        j.rotation().y = PI / 2.0 + 0.08;
+        out.push(j);
     }
     out
 }
@@ -1135,11 +1133,7 @@ pub fn build_pile(g: &mut Game, cx: &mut PropsCtx) -> Built {
     const PL_H: f64 = 0.14;
     let heap_h = |x: f64, z: f64| {
         let q = 1.0 - (x / RX).powi(2) - (z / RZ).powi(2);
-        if q > 0.0 {
-            PL_H * q.powf(1.3)
-        } else {
-            0.0
-        }
+        if q > 0.0 { PL_H * q.powf(1.3) } else { 0.0 }
     };
     let pg_ = group();
     let dust = lambert!({ color: 0x858078 });

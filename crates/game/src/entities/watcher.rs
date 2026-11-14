@@ -24,7 +24,7 @@
 use crate::base::numeric::hypot2;
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{wrap_pi, EntVoice};
+use crate::entities::{EntVoice, wrap_pi};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -304,17 +304,18 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 return;
             }
             // nearer when you look back (it has been out of sight a while)
-            if unseen_t > NEARER_AFTER && d > NEVER_WITHIN + 2.0 {
-                if let Some((x, z)) = nearer_place(g, ei) {
-                    let moved = hypot2(x - pos.x, z - pos.z);
-                    g.entities[ei].g.set_pos(x, 0.0, z);
-                    let c = g.creature_mut(ei).unwrap();
-                    c.ease.insert("unseen", 0.0);
-                    let m = c.get("moved_unseen") + moved;
-                    c.ease.insert("moved_unseen", m);
-                    face_you(g, ei);
-                    return;
-                }
+            if unseen_t > NEARER_AFTER
+                && d > NEVER_WITHIN + 2.0
+                && let Some((x, z)) = nearer_place(g, ei)
+            {
+                let moved = hypot2(x - pos.x, z - pos.z);
+                g.entities[ei].g.set_pos(x, 0.0, z);
+                let c = g.creature_mut(ei).unwrap();
+                c.ease.insert("unseen", 0.0);
+                let m = c.get("moved_unseen") + moved;
+                c.ease.insert("moved_unseen", m);
+                face_you(g, ei);
+                return;
             }
             let before = g.entities[ei].pos();
             if d > DATA.reach * 0.8 {

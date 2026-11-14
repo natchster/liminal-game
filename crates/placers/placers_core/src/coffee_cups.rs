@@ -51,7 +51,7 @@ pub(crate) fn place_coffee_cups(g: &mut Game, _dist: &[i32]) {
             let cup_ry = cup.rot().y;
             spill.rotation().x = -PI / 2.0;
             spill.rotation().z = cup_ry; // aligned with cup direction
-                                         // Position stretched in cup's forward direction.
+            // Position stretched in cup's forward direction.
             let fx = cup_ry.sin();
             let fz = cup_ry.cos();
             let cp = cup.pos();

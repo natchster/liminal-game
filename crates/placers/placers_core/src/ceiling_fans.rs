@@ -19,7 +19,7 @@ pub(crate) fn place_ceiling_fans(g: &mut Game, _dist: &[i32]) {
     let blade_base_color = pick(&blade_colors);
     let fan = group();
     let fan_y = WALL_H - 0.08; // whole fan 2 cm up so the downrod meets the ceiling
-                               // Stem to ceiling.
+    // Stem to ceiling.
     let stem = mesh(pg("CeilingFans__downrod", cyl_geo!(0.010, 0.010, 0.08, 6)), &motor_mat);
     stem.position().y = WALL_H - 0.04;
     fan.add(&stem);

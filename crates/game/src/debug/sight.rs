@@ -12,7 +12,7 @@
 //! No edge mask is used: a fight's speckle is itself all edges. Pure:
 //! buffers in, masks and blobs out; the renders are `backrooms --tour`'s.
 use crate::base::game::Game;
-use crate::level::archgen::{Solids, BOX_FLOOR, BOX_VOID, GROUND_STAIR, SLAB};
+use crate::level::archgen::{BOX_FLOOR, BOX_VOID, GROUND_STAIR, SLAB, Solids};
 
 /// A pixel shows the background where the two clear colours differ by more
 /// than this in some channel (0–255)
@@ -372,11 +372,7 @@ mod tests {
         let patch = |x: usize, y: usize| (30..36).contains(&x) && (10..16).contains(&y);
         let a = frame(w, h, |x, y| {
             if patch(x, y) {
-                if speckle(x, y, 0) {
-                    [200, 180, 150]
-                } else {
-                    [90, 60, 40]
-                }
+                if speckle(x, y, 0) { [200, 180, 150] } else { [90, 60, 40] }
             } else if x < 20 {
                 [10, 10, 10]
             } else {
@@ -388,11 +384,7 @@ mod tests {
         let turned = |edge_x: usize| {
             frame(w, h, move |x, y| {
                 if patch(x, y) {
-                    if speckle(x, y, 1) {
-                        [200, 180, 150]
-                    } else {
-                        [90, 60, 40]
-                    }
+                    if speckle(x, y, 1) { [200, 180, 150] } else { [90, 60, 40] }
                 } else if x == edge_x && edge_x < 20 {
                     [70, 67, 65]
                 } else if x == edge_x {

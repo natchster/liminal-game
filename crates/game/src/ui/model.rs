@@ -83,11 +83,7 @@ impl Element {
     }
     /// Add class `c` when `on`, remove it otherwise
     pub fn toggle_class(&mut self, c: &str, on: bool) {
-        if on {
-            self.add_class(c)
-        } else {
-            self.remove_class(c)
-        }
+        if on { self.add_class(c) } else { self.remove_class(c) }
     }
     /// Flip class `c`; returns the new state
     pub fn flip_class(&mut self, c: &str) -> bool {

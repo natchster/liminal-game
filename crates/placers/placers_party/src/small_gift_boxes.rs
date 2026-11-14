@@ -19,7 +19,7 @@ pub(crate) fn place_small_gift_boxes(g: &mut Game, _dist: &[i32]) {
     let ribbon_mat = lambert!({ color: pick(&ribbon_colors) });
     let gift = group();
     let bs = 0.10 + rnd() * 0.04; // 10-14 cm cube
-                                  // Body: cube.
+    // Body: cube.
     let body = mesh(pg("SmallGiftBoxes__body", box_geo!(bs, bs, bs)), &box_mat);
     body.position().y = bs / 2.0;
     gift.add(&body);

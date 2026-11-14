@@ -4,14 +4,10 @@
 //! props and placed objects as JSON (`backrooms --dump-level`,
 //! tests/reference_levels.rs).
 use crate::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 fn r6(x: f64) -> f64 {
-    if x.is_finite() {
-        crate::base::numeric::round_decimals(x, 6)
-    } else {
-        x
-    }
+    if x.is_finite() { crate::base::numeric::round_decimals(x, 6) } else { x }
 }
 fn v3(v: &Vec3) -> Value {
     json!([r6(v.x), r6(v.y), r6(v.z)])
@@ -433,7 +429,7 @@ impl Game {
     /// `inside` (a dead one's flap held up from inside, the hand coming up).
     /// Time runs for the machines alone.
     pub fn vending_demo(&mut self, what: &str) {
-        use crate::core_props::vending::rules::{Verb, LIFT_T, SHOVE_T, VEND_T};
+        use crate::core_props::vending::rules::{LIFT_T, SHOVE_T, VEND_T, Verb};
         let run = |g: &mut Game, i: usize, secs: f64| {
             for _ in 0..(secs * 60.0) as usize {
                 g.perf_t += 1.0 / 60.0;
@@ -619,11 +615,7 @@ impl Game {
                 .map(|&(x, z)| {
                     let d: Vec<i32> = bfs(x, z).into_iter().filter(|d| *d > 0).collect();
                     let m = d.iter().map(|&d| d as f64).sum::<f64>() / d.len().max(1) as f64;
-                    if m > 0.0 {
-                        1.0 / m
-                    } else {
-                        0.0
-                    }
+                    if m > 0.0 { 1.0 / m } else { 0.0 }
                 })
                 .collect();
             ints.iter().sum::<f64>() / ints.len().max(1) as f64
@@ -904,11 +896,11 @@ impl Game {
             let thing = crate::cutscene::play::Frame::thing(at, self.player.yaw);
             let anchors = crate::cutscene::play::Anchors { thing: Some(thing), killer: None, seen_as: None };
             self.play_cutscene_data(glance(), anchors);
-            if name == "cutscene-skip" {
-                if let Some(q) = self.cut.as_mut() {
-                    q.hint = crate::cutscene::play::HINT_FOR;
-                    q.skip_held = crate::cutscene::play::SKIP_HOLD * 0.5;
-                }
+            if name == "cutscene-skip"
+                && let Some(q) = self.cut.as_mut()
+            {
+                q.hint = crate::cutscene::play::HINT_FOR;
+                q.skip_held = crate::cutscene::play::SKIP_HOLD * 0.5;
             }
             return;
         }

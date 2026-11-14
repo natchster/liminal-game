@@ -5,7 +5,7 @@
 //! nothing comes through it (`Window::covered`). `[E] RAISE THE BLIND` draws
 //! it up again. Nothing here draws from a level's stream; its rattle is
 //! made only where it is heard (by you, using it).
-use super::{model, view, Blind};
+use super::{Blind, model, view};
 use crate::prelude::*;
 
 /// A blind is let down or drawn up in this long, s

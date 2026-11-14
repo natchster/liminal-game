@@ -4,8 +4,8 @@
 //! navigation measures in their bands over many seeds. Map dumps of a dozen
 //! seeds go to `target/building/` (text) to look at.
 use game::base::rng::{seed_for_level, with_seed};
-use game::level::archgen::{ground_breaks, mulberry32, GROUND_MASS};
-use game::level::building::{ascii, generate_building, navigation, walk_from, Navigation, Style, CELL_REACH};
+use game::level::archgen::{GROUND_MASS, ground_breaks, mulberry32};
+use game::level::building::{CELL_REACH, Navigation, Style, ascii, generate_building, navigation, walk_from};
 
 fn build(run_seed: u32, level: i32) -> (game::level::archgen::Layout, game::level::building::BuildingPlan) {
     let seed = seed_for_level(run_seed, level);
@@ -141,7 +141,18 @@ fn census() {
             let m = navigation(&l, &p);
             println!(
                 "L{level} seed {seed:>3}: detour {:.2} path {:>3} flights {:>2} climb {:>4.0} descent {:>4.0} range {:>4.0} decisions {:>2} dead {:>2} seen {} reach {:>2} cells {:>2} walk {}",
-                m.detour, m.path, m.flights, m.climb, m.descent, m.high - m.low, m.decisions, m.dead_ends, m.door_seen as u8, m.cell_reach, m.cells, m.walkable
+                m.detour,
+                m.path,
+                m.flights,
+                m.climb,
+                m.descent,
+                m.high - m.low,
+                m.decisions,
+                m.dead_ends,
+                m.door_seen as u8,
+                m.cell_reach,
+                m.cells,
+                m.walkable
             );
         }
     }

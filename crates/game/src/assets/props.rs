@@ -227,13 +227,7 @@ pub fn decode(m: &'static PropPartInfo) -> Rc<Decoded> {
     let raw = inflate_raw(m.z, m.r);
     let n = m.n;
     let tt = m.t * 3;
-    let rd16 = |o: usize| -> u16 {
-        if o + 1 < raw.len() {
-            u16::from_le_bytes([raw[o], raw[o + 1]])
-        } else {
-            0
-        }
-    };
+    let rd16 = |o: usize| -> u16 { if o + 1 < raw.len() { u16::from_le_bytes([raw[o], raw[o + 1]]) } else { 0 } };
     let rd8 = |o: usize| -> u8 { raw.get(o).copied().unwrap_or(0) };
     let mut pos = vec![0f32; n * 3];
     let mut nrm = vec![0f32; n * 3];
@@ -264,11 +258,7 @@ pub fn decode(m: &'static PropPartInfo) -> Rc<Decoded> {
 /// `x`, or `d` when `x` is 0 or NaN.
 #[inline]
 pub(crate) fn or_num(x: f64, d: f64) -> f64 {
-    if x == 0.0 || x.is_nan() {
-        d
-    } else {
-        x
-    }
+    if x == 0.0 || x.is_nan() { d } else { x }
 }
 
 // ------------------------------------------------------------------ ideal bounds

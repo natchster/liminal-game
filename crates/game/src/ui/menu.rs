@@ -5,8 +5,8 @@
 //! / E / Space (and ← → on a setting), or hovered and clicked; Escape goes
 //! back. `ui/screens.rs` paints it.
 use crate::prelude::*;
-use crate::session::input::{key_label, Act, BINDINGS};
-use crate::session::settings::{Row, ROWS};
+use crate::session::input::{Act, BINDINGS, key_label};
+use crate::session::settings::{ROWS, Row};
 
 /// Which list is up.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -153,10 +153,10 @@ impl Game {
     pub fn open_menu(&mut self, s: Screen) {
         let saved = self.load_game();
         // Settings and Controls go back to where they were opened from
-        if matches!(s, Screen::Settings | Screen::Controls) {
-            if let Some(from) = self.menu.screen.filter(|f| !matches!(f, Screen::Settings | Screen::Controls)) {
-                self.menu.back = Some(from);
-            }
+        if matches!(s, Screen::Settings | Screen::Controls)
+            && let Some(from) = self.menu.screen.filter(|f| !matches!(f, Screen::Settings | Screen::Controls))
+        {
+            self.menu.back = Some(from);
         }
         self.menu.capture = None;
         self.menu.items = self.menu_items(s);

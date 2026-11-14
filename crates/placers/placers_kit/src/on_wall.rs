@@ -5,11 +5,7 @@ use game::prelude::*;
 /// The turn that faces a wall prop's +z out of candidate `c`'s wall, and
 /// the direction along the wall its jitter moves it.
 pub fn wall_turn(c: &Cand) -> (f64, (f64, f64)) {
-    if c.dx.abs() == 1 {
-        (if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 }, (0.0, 1.0))
-    } else {
-        (if c.dz > 0 { PI } else { 0.0 }, (1.0, 0.0))
-    }
+    if c.dx.abs() == 1 { (if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 }, (0.0, 1.0)) } else { (if c.dz > 0 { PI } else { 0.0 }, (1.0, 0.0)) }
 }
 
 /// Where candidate `c`'s wall face is (x, z), on the line through its tile's centre.

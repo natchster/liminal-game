@@ -14,7 +14,7 @@ use placers_kit::place::salt_of;
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
 macro_rules! cached_tex {
-    ($w:expr, $h:expr, $repeat:expr, $paint:expr) => {{
+    ($w:expr_2021, $h:expr_2021, $repeat:expr_2021, $paint:expr_2021) => {{
         thread_local! { static T: std::cell::OnceCell<Tex> = const { std::cell::OnceCell::new() }; }
         T.with(|c| c.get_or_init(|| canvas_tex_opt($w, $h, $repeat, $paint)).clone())
     }};

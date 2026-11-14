@@ -85,7 +85,9 @@ fn main() -> ExitCode {
     // sounds through the speakers: every child inherits this
     // (`engine::audio::device_output`; `bundle --run` opens the app through
     // Launch Services, which does not pass it on)
-    std::env::set_var(SILENT_ENV, "1");
+    // SAFETY: the first thing `main` does, before any thread is started, so
+    // nothing can be reading the environment while it changes.
+    unsafe { std::env::set_var(SILENT_ENV, "1") };
     let args: Vec<String> = std::env::args().skip(1).collect();
     let rest = args.get(1..).unwrap_or(&[]);
     let result = match args.first().map(String::as_str) {
@@ -136,11 +138,7 @@ fn cargo() -> Command {
 
 fn run(cmd: &mut Command) -> Result<(), String> {
     let status = cmd.status().map_err(|e| format!("{cmd:?}: {e}"))?;
-    if status.success() {
-        Ok(())
-    } else {
-        Err(format!("{cmd:?} failed with {status}"))
-    }
+    if status.success() { Ok(()) } else { Err(format!("{cmd:?} failed with {status}")) }
 }
 
 /// The value after `--name`, if given.

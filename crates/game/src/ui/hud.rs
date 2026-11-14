@@ -49,63 +49,124 @@ pub static EPILOGUE_MEDAL_LINES: [(&str, fn(&Game) -> bool, &str); 5] = [
 
 /// Pick a fresh line each time so the world feels less repetitive
 pub static TEXT_POOLS: [(&str, &[&str]); 11] = [
-    ("levelSubtitle", &[
-        "THE HUM GROWS LOUDER", "DEEPER STILL", "THE WALLS ARE THINNER HERE",
-        "SOMETHING WATCHES", "THE LIGHTS ARE DIMMER", "YOU ARE NOT ALONE",
-        "THE GEOMETRY IS WRONG", "THE AIR TASTES OF COPPER",
-        "YOU DO NOT REMEMBER ENTERING", "IT SMELLS OF WET CARPET",
-        "THE HALLWAYS REPEAT", "YOU HEAR YOUR OWN FOOTSTEPS BEHIND YOU",
-    ]),
-    ("deathTitle", &[
-        "IT FOUND YOU", "THE HUM STOPPED", "YOU BLINKED", "YOU LOOKED TOO LONG",
-        "IT WAS ALREADY INSIDE", "THE FACE APPROACHED", "YOU FELT COLD BREATH",
-        "THE LIGHTS WENT OUT", "YOU HEARD THE WHISPER TOO LATE", "IT LEARNED YOUR NAME",
-    ]),
-    ("deathBodyBits", &[
-        "The hum never stops.", "The wallpaper watches.", "The lights do not blink for you.",
-        "Someone else will find your bottle.", "The place goes on without you.",
-        "The exit door was there. It was.", "The carpet keeps the shape of you for a while.",
-        "Somewhere a light comes back on.", "Nobody heard you.",
-        "Your paper is still on the floor.",
-    ]),
-    ("deathHint", &[
-        "PRESS R TO WAKE UP", "PRESS R TO TRY AGAIN", "PRESS R TO RETURN",
-        "PRESS R — IT WILL NOT MATTER", "PRESS R", "PRESS R IF YOU MUST",
-    ]),
-    ("pauseSub", &[
-        "The fluorescent lights hum indifferently.",
-        "The carpet smells of rain that never fell.",
-        "Somewhere, a phone starts ringing. Then stops.",
-        "A tube flickers somewhere, and holds.",
-        "Your breath is the loudest thing in the room.",
-        "A door closes, three hallways over.",
-    ]),
-    ("almondPickup", &[
-        "ALMOND WATER — BOTTLED, UNOPENED", "ALMOND WATER — IT SLOSHES WHEN YOU WALK",
-        "ALMOND WATER — SEALED, STILL COLD", "ALMOND WATER — SOMEONE LEFT IT FOR YOU",
-        "ALMOND WATER — YOU POCKET IT FOR LATER",
-    ]),
-    ("batteryPickup", &[
-        "BATTERY — WARM IN YOUR HAND", "BATTERY — STILL HALF FULL",
-        "BATTERY — SOMEONE MEANT TO COME BACK FOR IT", "BATTERY — YOU POCKET THE CELL",
-    ]),
-    ("snackEat", &[
-        "YOU EAT IT — STALE", "YOU EAT IT — TOO FAST",
-        "YOU EAT IT — CRUMBS DOWN YOUR FRONT", "YOU EAT IT — IT HELPS, A LITTLE",
-    ]),
-    ("almondDrink", &[
-        "YOU DRINK — IT TASTES OF PENNIES", "YOU DRINK — YOUR LEGS REMEMBER",
-        "YOU DRINK — THE ACHE BACKS OFF", "YOU DRINK — TOO SWEET, AND WELCOME",
-    ]),
-    ("batterySwap", &[
-        "CELL SWAPPED — THE BEAM STEADIES", "CELL SWAPPED — LIGHT AGAIN",
-        "CELL SWAPPED — THE FILAMENT CATCHES", "CELL SWAPPED — WARMTH IN THE HOUSING",
-    ]),
-    ("overlaySubs", &[
-        "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.",
-        "You do not remember opening the door. You do not remember it being here yesterday. The wallpaper has always been this color.",
-        "The lights hum in a language you almost recognize. Somewhere in these rooms, there is a way down. Somewhere in these rooms, something is walking.",
-    ]),
+    (
+        "levelSubtitle",
+        &[
+            "THE HUM GROWS LOUDER",
+            "DEEPER STILL",
+            "THE WALLS ARE THINNER HERE",
+            "SOMETHING WATCHES",
+            "THE LIGHTS ARE DIMMER",
+            "YOU ARE NOT ALONE",
+            "THE GEOMETRY IS WRONG",
+            "THE AIR TASTES OF COPPER",
+            "YOU DO NOT REMEMBER ENTERING",
+            "IT SMELLS OF WET CARPET",
+            "THE HALLWAYS REPEAT",
+            "YOU HEAR YOUR OWN FOOTSTEPS BEHIND YOU",
+        ],
+    ),
+    (
+        "deathTitle",
+        &[
+            "IT FOUND YOU",
+            "THE HUM STOPPED",
+            "YOU BLINKED",
+            "YOU LOOKED TOO LONG",
+            "IT WAS ALREADY INSIDE",
+            "THE FACE APPROACHED",
+            "YOU FELT COLD BREATH",
+            "THE LIGHTS WENT OUT",
+            "YOU HEARD THE WHISPER TOO LATE",
+            "IT LEARNED YOUR NAME",
+        ],
+    ),
+    (
+        "deathBodyBits",
+        &[
+            "The hum never stops.",
+            "The wallpaper watches.",
+            "The lights do not blink for you.",
+            "Someone else will find your bottle.",
+            "The place goes on without you.",
+            "The exit door was there. It was.",
+            "The carpet keeps the shape of you for a while.",
+            "Somewhere a light comes back on.",
+            "Nobody heard you.",
+            "Your paper is still on the floor.",
+        ],
+    ),
+    (
+        "deathHint",
+        &[
+            "PRESS R TO WAKE UP",
+            "PRESS R TO TRY AGAIN",
+            "PRESS R TO RETURN",
+            "PRESS R — IT WILL NOT MATTER",
+            "PRESS R",
+            "PRESS R IF YOU MUST",
+        ],
+    ),
+    (
+        "pauseSub",
+        &[
+            "The fluorescent lights hum indifferently.",
+            "The carpet smells of rain that never fell.",
+            "Somewhere, a phone starts ringing. Then stops.",
+            "A tube flickers somewhere, and holds.",
+            "Your breath is the loudest thing in the room.",
+            "A door closes, three hallways over.",
+        ],
+    ),
+    (
+        "almondPickup",
+        &[
+            "ALMOND WATER — BOTTLED, UNOPENED",
+            "ALMOND WATER — IT SLOSHES WHEN YOU WALK",
+            "ALMOND WATER — SEALED, STILL COLD",
+            "ALMOND WATER — SOMEONE LEFT IT FOR YOU",
+            "ALMOND WATER — YOU POCKET IT FOR LATER",
+        ],
+    ),
+    (
+        "batteryPickup",
+        &[
+            "BATTERY — WARM IN YOUR HAND",
+            "BATTERY — STILL HALF FULL",
+            "BATTERY — SOMEONE MEANT TO COME BACK FOR IT",
+            "BATTERY — YOU POCKET THE CELL",
+        ],
+    ),
+    (
+        "snackEat",
+        &["YOU EAT IT — STALE", "YOU EAT IT — TOO FAST", "YOU EAT IT — CRUMBS DOWN YOUR FRONT", "YOU EAT IT — IT HELPS, A LITTLE"],
+    ),
+    (
+        "almondDrink",
+        &[
+            "YOU DRINK — IT TASTES OF PENNIES",
+            "YOU DRINK — YOUR LEGS REMEMBER",
+            "YOU DRINK — THE ACHE BACKS OFF",
+            "YOU DRINK — TOO SWEET, AND WELCOME",
+        ],
+    ),
+    (
+        "batterySwap",
+        &[
+            "CELL SWAPPED — THE BEAM STEADIES",
+            "CELL SWAPPED — LIGHT AGAIN",
+            "CELL SWAPPED — THE FILAMENT CATCHES",
+            "CELL SWAPPED — WARMTH IN THE HOUSING",
+        ],
+    ),
+    (
+        "overlaySubs",
+        &[
+            "You noclipped out of reality. Mono-yellow wallpaper, the hum of fluorescent lights, endless empty rooms. Find the exit door before it finds you.",
+            "You do not remember opening the door. You do not remember it being here yesterday. The wallpaper has always been this color.",
+            "The lights hum in a language you almost recognize. Somewhere in these rooms, there is a way down. Somewhere in these rooms, something is walking.",
+        ],
+    ),
 ];
 /// The `TEXT_POOLS` lines for `key`
 pub fn text_pool(key: &str) -> Option<&'static [&'static str]> {
@@ -124,66 +185,361 @@ pub struct LoreEntry {
 }
 
 pub static LORE_ENTRIES: [LoreEntry; 59] = [
-    LoreEntry { id: 0, title: "Day 1", body: "I noclipped through the wall of the storage room. Concrete, and a drop, and no sky. My phone shows the wrong date. Every door I knock on stays shut.", scp: None },
-    LoreEntry { id: 1, title: "Almond Water", body: "The bottles just... appear. Don't ask where. Drink them. They keep the ache away.", scp: None },
-    LoreEntry { id: 2, title: "The Hum", body: "The lights hum at a hundred and twenty hertz, twice the mains. Or they're supposed to. Sometimes it swells until your teeth ache. Sometimes it stops. Never look up when it stops.", scp: None },
-    LoreEntry { id: 3, title: "M.'s Rule 1", body: "If you turn a corner and see something waiting, close your eyes. Count to ten. It should be gone. Should be.", scp: None },
-    LoreEntry { id: 4, title: "M.'s Rule 2", body: "Never answer the phone. I don't care if it's your mother's voice. She's not on level three.", scp: None },
-    LoreEntry { id: 5, title: "M.'s Rule 3", body: "The clocks lie. All of them. Trust the hum instead — it means you're still alive.", scp: None },
-    LoreEntry { id: 6, title: "Torn Ledger", body: "...paid in almond water, twelve cases... signed by the man in the yellow coat... he was here yesterday...", scp: None },
-    LoreEntry { id: 7, title: "Elias, Day 47", body: "Made it to level three today. The machines down here are cold, all of them, and none of them runs. I keep hearing children laughing.", scp: None },
-    LoreEntry { id: 8, title: "Elias, Day 219", body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.", scp: None },
-    LoreEntry { id: 9, title: "The Smilers", body: "The tall ones never looked at me. They looked at my lamp. Two points of light in the beam, and a row of teeth under them. I put it out and I didn't breathe, and I couldn't tell you how long it stood there in the dark with me.", scp: None },
-    LoreEntry { id: 10, title: "The Hounds", body: "The four-legged ones are blind. I heard its nails on the carpet, then nothing, and in the nothing I was the only sound there was. One came close enough that I could have touched its hair, and then it went on. The one that bayed, I outran. For a while.", scp: None },
-    LoreEntry { id: 11, title: "The Watcher", body: "You cannot outrun what refuses to move. Just don't look away too long. Especially not when it's near.", scp: None },
-    LoreEntry { id: 12, title: "Corporate Memo", body: "All personnel are reminded that the loading dock is not a restroom. Signed, Management. — date illegible.", scp: None },
-    LoreEntry { id: 13, title: "Layer Notes", body: "There are floors here that were never built. The elevators know. Sometimes they take you to them.", scp: None },
-    LoreEntry { id: 14, title: "Fluorescent Prayer", body: "Blessed be the hum. Blessed be the light. Blessed be the sixty cycles that keep the dark away.", scp: None },
-    LoreEntry { id: 15, title: "The Vending Machine", body: "Insert coin, get nothing. Insert nothing, get coin. Do not attempt the reverse. It costs more than you have.", scp: None },
-    LoreEntry { id: 16, title: "Paper Trail", body: "I've been dropping paper for weeks. Sometimes I find my own trail. Sometimes I find someone else's, going the opposite way.", scp: None },
-    LoreEntry { id: 17, title: "The Mannequin", body: "It was three rooms away. I turned. Now it is here. I did not walk. Neither did it.", scp: None },
-    LoreEntry { id: 18, title: "Warning to New Arrivals", body: "If you see the door marked EXIT and there is no green light above it — it is a lie. Walk past. Walk fast.", scp: None },
-    LoreEntry { id: 19, title: "Grocery List", body: "eggs, milk, batteries, batteries, batteries, more batteries — the light means safe means alive.", scp: None },
-    LoreEntry { id: 20, title: "The Pool Room", body: "There should not be a pool here. There is a pool here. My reflection is not there. I am afraid to swim.", scp: None },
-    LoreEntry { id: 21, title: "The Robot", body: "It cleans the carpet. It never stops. I have seen it three levels down, cleaning the same square. Do not step in its way — it does not stop.", scp: None },
-    LoreEntry { id: 22, title: "Handwritten Map", body: "This map is wrong. The map is always wrong. Only the door is correct. Only ever the door.", scp: None },
-    LoreEntry { id: 23, title: "Faces in the Mirror", body: "Do not look into any mirror longer than four seconds. Mine smiled first, once. I have not smiled since.", scp: None },
-    LoreEntry { id: 24, title: "Elias, Final Note", body: "I have been on level three for a very long time now. I do not remember what I look like. Please, if you find this, remember me.", scp: None },
-    LoreEntry { id: 25, title: "The Guides", body: "If you cry out loud enough, something answers. Sometimes it shows you the way. Sometimes it just comes.", scp: None },
-    LoreEntry { id: 26, title: "Battery Prayer", body: "The battery is the covenant. The flashlight is the promise. The dark is the deep. Amen.", scp: None },
-    LoreEntry { id: 27, title: "Windows", body: "The windows here do not open. What they show does not exist. Do not stare too long or it will begin to stare back.", scp: None },
-    LoreEntry { id: 28, title: "The Hole", body: "There is a hole in the floor. It leads down. I did not put it there. I did not step into it. Someone did.", scp: None },
-    LoreEntry { id: 29, title: "Signed: A Friend", body: "You are not the first. You will not be the last. But you might be the one who finds the door. Keep looking. Please.", scp: None },
-    LoreEntry { id: 30, title: "Survey: The Lobby", body: "Rooms, only rooms. Thin walls standing in the middle of nothing, half of them with gaps where a door should be. Wet carpet. The tubes over every other tile. There is nothing here. That is the thing that is here.", scp: None },
-    LoreEntry { id: 31, title: "Survey: The Habitable Zone", body: "Concrete, seven metres up, lamps hanging on rods. Pillars in rows. Puddles with no source. When the lights go, walk — do not run — to the narrow halls. They rarely go in there.", scp: None },
-    LoreEntry { id: 32, title: "Survey: Utility Halls", body: "Shoulder-wide corridors in raw concrete, the walls bulging in at you. Low ceiling. The hum is worse down here and the echo answers a beat late. Keep moving. Don't touch the pipes.", scp: None },
-    LoreEntry { id: 33, title: "Survey: Electrical Station", body: "Old brick, older wiring. Something crackles behind every wall. Someone has written RUN in chalk and I have been trying to decide whether it was advice.", scp: None },
-    LoreEntry { id: 34, title: "Survey: Abandoned Office", body: "Low ceilings, carpet tiles, a door in every wall and a room behind every door. Cubicle walls to your chest. You can see over them. So can anything else.", scp: None },
-    LoreEntry { id: 35, title: "Blackout Zones", body: "Where the lights are dead there is no hum. No echo either. Your own breathing is the loudest thing in the world. Don't stay. Whatever lives in the silence likes it that way.", scp: None },
-    LoreEntry { id: 36, title: "The Steel Door", body: "Some doors say STAIRS and look like a janitor's closet. Behind them: concrete steps going down, thirteen to a flight, a half-round landing, turn, thirteen more. The door does not open again from that side.", scp: Some("stairwell") },
-    LoreEntry { id: 37, title: "Stairwell, Landing 9", body: "Brought the big lamp. Doesn't matter. It shows nine steps and then the dark swallows the rest. I can see about a flight and a half. Somebody is crying down there.", scp: Some("stairwell") },
-    LoreEntry { id: 38, title: "Stairwell, Landing 30", body: "The crying never gets closer. I have gone down thirty landings and it is exactly as far away as it was at the top. It says please. It says down here. It is not getting closer. I am not getting closer.", scp: Some("stairwell") },
-    LoreEntry { id: 39, title: "Stairwell, Landing 51", body: "There was a face on the landing below me. No mouth. No nostrils. Nothing in the eyes. It did not come up the steps. It was just nearer every time I looked. I did not walk towards it. Don't walk towards it.", scp: Some("stairwell") },
-    LoreEntry { id: 40, title: "Blue Lights", body: "We left blue markers every ten landings on the way down. Most of them are dead now. If you find one still blinking, you are further than we got.", scp: Some("stairwell") },
-    LoreEntry { id: 41, title: "Do Not Turn Back", body: "It never chases. That is the rule and the rule is a lie. The moment you turn to climb back up, it is behind you. Close enough to touch. Keep going down. The door is at the bottom.", scp: Some("stairwell") },
-    LoreEntry { id: 42, title: "Receipt, Back Side", body: "Bought nothing. Walked for three days. The arrows on the floor only ever point one way, and only while it is bright.", scp: Some("store") },
-    LoreEntry { id: 43, title: "Staff Only", body: "They have no faces and they let you browse. They always let you browse. Until the chime.", scp: Some("store") },
-    LoreEntry { id: 44, title: "Display Bed", body: "When it went dark I got under one of the display beds and held my breath. Something in a yellow shirt stood beside it for a long, long time.", scp: Some("store") },
-    LoreEntry { id: 45, title: "Wrong House", body: "The kitchen was from one house and the stairs were from another. Somebody took these rooms. Somebody is still taking them.", scp: Some("house") },
-    LoreEntry { id: 46, title: "Keep It Dark", body: "Stay out of the light. I know how that sounds. In the dark they are only smoke.", scp: Some("house") },
-    LoreEntry { id: 47, title: "Where the Lamps Go", body: "Every lamp in this place ends up in the same room in the middle. I think it keeps them. I think it needs them.", scp: Some("house") },
-    LoreEntry { id: 48, title: "The Front Door", body: "Whatever you do, close the front door behind you. It will not close while the middle room is lit.", scp: Some("house") },
-    LoreEntry { id: 49, title: "Count the Doors", body: "Count the doors going in. Then count them back out. I stopped counting and now I don't know which way is out.", scp: Some("loop") },
-    LoreEntry { id: 50, title: "The Plant", body: "I left a marker by the plant. Next time round the plant was on the other side of the room. The marker wasn't.", scp: Some("loop") },
-    LoreEntry { id: 51, title: "The First Room", body: "There was a door in the first room. There was. I keep going round to check and the rooms keep getting worse.", scp: Some("loop") },
+    LoreEntry {
+        id: 0,
+        title: "Day 1",
+        body: "I noclipped through the wall of the storage room. Concrete, and a drop, and no sky. My phone shows the wrong date. Every door I knock on stays shut.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 1,
+        title: "Almond Water",
+        body: "The bottles just... appear. Don't ask where. Drink them. They keep the ache away.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 2,
+        title: "The Hum",
+        body: "The lights hum at a hundred and twenty hertz, twice the mains. Or they're supposed to. Sometimes it swells until your teeth ache. Sometimes it stops. Never look up when it stops.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 3,
+        title: "M.'s Rule 1",
+        body: "If you turn a corner and see something waiting, close your eyes. Count to ten. It should be gone. Should be.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 4,
+        title: "M.'s Rule 2",
+        body: "Never answer the phone. I don't care if it's your mother's voice. She's not on level three.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 5,
+        title: "M.'s Rule 3",
+        body: "The clocks lie. All of them. Trust the hum instead — it means you're still alive.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 6,
+        title: "Torn Ledger",
+        body: "...paid in almond water, twelve cases... signed by the man in the yellow coat... he was here yesterday...",
+        scp: None,
+    },
+    LoreEntry {
+        id: 7,
+        title: "Elias, Day 47",
+        body: "Made it to level three today. The machines down here are cold, all of them, and none of them runs. I keep hearing children laughing.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 8,
+        title: "Elias, Day 219",
+        body: "There is a pool on this floor. Do not drink from it. The balls in it move on their own.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 9,
+        title: "The Smilers",
+        body: "The tall ones never looked at me. They looked at my lamp. Two points of light in the beam, and a row of teeth under them. I put it out and I didn't breathe, and I couldn't tell you how long it stood there in the dark with me.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 10,
+        title: "The Hounds",
+        body: "The four-legged ones are blind. I heard its nails on the carpet, then nothing, and in the nothing I was the only sound there was. One came close enough that I could have touched its hair, and then it went on. The one that bayed, I outran. For a while.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 11,
+        title: "The Watcher",
+        body: "You cannot outrun what refuses to move. Just don't look away too long. Especially not when it's near.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 12,
+        title: "Corporate Memo",
+        body: "All personnel are reminded that the loading dock is not a restroom. Signed, Management. — date illegible.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 13,
+        title: "Layer Notes",
+        body: "There are floors here that were never built. The elevators know. Sometimes they take you to them.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 14,
+        title: "Fluorescent Prayer",
+        body: "Blessed be the hum. Blessed be the light. Blessed be the sixty cycles that keep the dark away.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 15,
+        title: "The Vending Machine",
+        body: "Insert coin, get nothing. Insert nothing, get coin. Do not attempt the reverse. It costs more than you have.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 16,
+        title: "Paper Trail",
+        body: "I've been dropping paper for weeks. Sometimes I find my own trail. Sometimes I find someone else's, going the opposite way.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 17,
+        title: "The Mannequin",
+        body: "It was three rooms away. I turned. Now it is here. I did not walk. Neither did it.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 18,
+        title: "Warning to New Arrivals",
+        body: "If you see the door marked EXIT and there is no green light above it — it is a lie. Walk past. Walk fast.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 19,
+        title: "Grocery List",
+        body: "eggs, milk, batteries, batteries, batteries, more batteries — the light means safe means alive.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 20,
+        title: "The Pool Room",
+        body: "There should not be a pool here. There is a pool here. My reflection is not there. I am afraid to swim.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 21,
+        title: "The Robot",
+        body: "It cleans the carpet. It never stops. I have seen it three levels down, cleaning the same square. Do not step in its way — it does not stop.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 22,
+        title: "Handwritten Map",
+        body: "This map is wrong. The map is always wrong. Only the door is correct. Only ever the door.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 23,
+        title: "Faces in the Mirror",
+        body: "Do not look into any mirror longer than four seconds. Mine smiled first, once. I have not smiled since.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 24,
+        title: "Elias, Final Note",
+        body: "I have been on level three for a very long time now. I do not remember what I look like. Please, if you find this, remember me.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 25,
+        title: "The Guides",
+        body: "If you cry out loud enough, something answers. Sometimes it shows you the way. Sometimes it just comes.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 26,
+        title: "Battery Prayer",
+        body: "The battery is the covenant. The flashlight is the promise. The dark is the deep. Amen.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 27,
+        title: "Windows",
+        body: "The windows here do not open. What they show does not exist. Do not stare too long or it will begin to stare back.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 28,
+        title: "The Hole",
+        body: "There is a hole in the floor. It leads down. I did not put it there. I did not step into it. Someone did.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 29,
+        title: "Signed: A Friend",
+        body: "You are not the first. You will not be the last. But you might be the one who finds the door. Keep looking. Please.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 30,
+        title: "Survey: The Lobby",
+        body: "Rooms, only rooms. Thin walls standing in the middle of nothing, half of them with gaps where a door should be. Wet carpet. The tubes over every other tile. There is nothing here. That is the thing that is here.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 31,
+        title: "Survey: The Habitable Zone",
+        body: "Concrete, seven metres up, lamps hanging on rods. Pillars in rows. Puddles with no source. When the lights go, walk — do not run — to the narrow halls. They rarely go in there.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 32,
+        title: "Survey: Utility Halls",
+        body: "Shoulder-wide corridors in raw concrete, the walls bulging in at you. Low ceiling. The hum is worse down here and the echo answers a beat late. Keep moving. Don't touch the pipes.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 33,
+        title: "Survey: Electrical Station",
+        body: "Old brick, older wiring. Something crackles behind every wall. Someone has written RUN in chalk and I have been trying to decide whether it was advice.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 34,
+        title: "Survey: Abandoned Office",
+        body: "Low ceilings, carpet tiles, a door in every wall and a room behind every door. Cubicle walls to your chest. You can see over them. So can anything else.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 35,
+        title: "Blackout Zones",
+        body: "Where the lights are dead there is no hum. No echo either. Your own breathing is the loudest thing in the world. Don't stay. Whatever lives in the silence likes it that way.",
+        scp: None,
+    },
+    LoreEntry {
+        id: 36,
+        title: "The Steel Door",
+        body: "Some doors say STAIRS and look like a janitor's closet. Behind them: concrete steps going down, thirteen to a flight, a half-round landing, turn, thirteen more. The door does not open again from that side.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 37,
+        title: "Stairwell, Landing 9",
+        body: "Brought the big lamp. Doesn't matter. It shows nine steps and then the dark swallows the rest. I can see about a flight and a half. Somebody is crying down there.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 38,
+        title: "Stairwell, Landing 30",
+        body: "The crying never gets closer. I have gone down thirty landings and it is exactly as far away as it was at the top. It says please. It says down here. It is not getting closer. I am not getting closer.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 39,
+        title: "Stairwell, Landing 51",
+        body: "There was a face on the landing below me. No mouth. No nostrils. Nothing in the eyes. It did not come up the steps. It was just nearer every time I looked. I did not walk towards it. Don't walk towards it.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 40,
+        title: "Blue Lights",
+        body: "We left blue markers every ten landings on the way down. Most of them are dead now. If you find one still blinking, you are further than we got.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 41,
+        title: "Do Not Turn Back",
+        body: "It never chases. That is the rule and the rule is a lie. The moment you turn to climb back up, it is behind you. Close enough to touch. Keep going down. The door is at the bottom.",
+        scp: Some("stairwell"),
+    },
+    LoreEntry {
+        id: 42,
+        title: "Receipt, Back Side",
+        body: "Bought nothing. Walked for three days. The arrows on the floor only ever point one way, and only while it is bright.",
+        scp: Some("store"),
+    },
+    LoreEntry {
+        id: 43,
+        title: "Staff Only",
+        body: "They have no faces and they let you browse. They always let you browse. Until the chime.",
+        scp: Some("store"),
+    },
+    LoreEntry {
+        id: 44,
+        title: "Display Bed",
+        body: "When it went dark I got under one of the display beds and held my breath. Something in a yellow shirt stood beside it for a long, long time.",
+        scp: Some("store"),
+    },
+    LoreEntry {
+        id: 45,
+        title: "Wrong House",
+        body: "The kitchen was from one house and the stairs were from another. Somebody took these rooms. Somebody is still taking them.",
+        scp: Some("house"),
+    },
+    LoreEntry {
+        id: 46,
+        title: "Keep It Dark",
+        body: "Stay out of the light. I know how that sounds. In the dark they are only smoke.",
+        scp: Some("house"),
+    },
+    LoreEntry {
+        id: 47,
+        title: "Where the Lamps Go",
+        body: "Every lamp in this place ends up in the same room in the middle. I think it keeps them. I think it needs them.",
+        scp: Some("house"),
+    },
+    LoreEntry {
+        id: 48,
+        title: "The Front Door",
+        body: "Whatever you do, close the front door behind you. It will not close while the middle room is lit.",
+        scp: Some("house"),
+    },
+    LoreEntry {
+        id: 49,
+        title: "Count the Doors",
+        body: "Count the doors going in. Then count them back out. I stopped counting and now I don't know which way is out.",
+        scp: Some("loop"),
+    },
+    LoreEntry {
+        id: 50,
+        title: "The Plant",
+        body: "I left a marker by the plant. Next time round the plant was on the other side of the room. The marker wasn't.",
+        scp: Some("loop"),
+    },
+    LoreEntry {
+        id: 51,
+        title: "The First Room",
+        body: "There was a door in the first room. There was. I keep going round to check and the rooms keep getting worse.",
+        scp: Some("loop"),
+    },
     // the Building's (`docs/design/MEGASTRUCTURE.md`): they lie only on its floors
-    LoreEntry { id: 52, title: "Notice to Residents", body: "IN THE EVENT OF A SELF-ASSEMBLY: go into the nearest cell. Turn the wheel until it stops. Do not open the door until the long tone. Do not open the door to anyone, and answer no knock until it is over. If the wheel turns, hold it. Do not knock where the cleaners have marked. The Building cares for you.", scp: Some("building") },
-    LoreEntry { id: 53, title: "Cell Plate", body: "CELL 412-C. FOUR PERSONS. KEEP THE WHEEL CLEAN. KEEP THE BENCH CLEAR.", scp: Some("building") },
-    LoreEntry { id: 54, title: "Cleaning Log", body: "Storey 1430 cleaned. 1431 to 1434 poured, the stairs with them. Two doors did not answer: marked. One of us knocked at one after, by mistake. It knocked back the way he had knocked. The siren before we were at the stairs. Not entered.", scp: Some("building") },
-    LoreEntry { id: 55, title: "Survey: The Well", body: "Galleries round a well, a storey over a storey, up and down out of sight. A few windows lit. The doors are shut from inside, all of them, on every storey. I knocked at a few. Once somebody came to the door and did not open it, and after there was something on the step. Where the tape was, I never heard anyone.", scp: Some("building") },
-    LoreEntry { id: 56, title: "Survey: The Stair Halls", body: "All stone here. Some of the flights go somewhere. Some cross the dark from one nothing to another and have no rail. I would not try one.", scp: Some("building") },
-    LoreEntry { id: 57, title: "Survey: The Works", body: "Machines the size of houses, cold. A ceiling so far up that the lamps on it look like stars, most of them out. The way down is not a stair here.", scp: Some("building") },
-    LoreEntry { id: 58, title: "Ration Coupon", body: "ONE PORTION. CONCENTRATE, GREY. SHIFT 4, CYCLE 211. NOT VALID ONCE THE SIREN HAS SOUNDED.", scp: Some("building") },
+    LoreEntry {
+        id: 52,
+        title: "Notice to Residents",
+        body: "IN THE EVENT OF A SELF-ASSEMBLY: go into the nearest cell. Turn the wheel until it stops. Do not open the door until the long tone. Do not open the door to anyone, and answer no knock until it is over. If the wheel turns, hold it. Do not knock where the cleaners have marked. The Building cares for you.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 53,
+        title: "Cell Plate",
+        body: "CELL 412-C. FOUR PERSONS. KEEP THE WHEEL CLEAN. KEEP THE BENCH CLEAR.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 54,
+        title: "Cleaning Log",
+        body: "Storey 1430 cleaned. 1431 to 1434 poured, the stairs with them. Two doors did not answer: marked. One of us knocked at one after, by mistake. It knocked back the way he had knocked. The siren before we were at the stairs. Not entered.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 55,
+        title: "Survey: The Well",
+        body: "Galleries round a well, a storey over a storey, up and down out of sight. A few windows lit. The doors are shut from inside, all of them, on every storey. I knocked at a few. Once somebody came to the door and did not open it, and after there was something on the step. Where the tape was, I never heard anyone.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 56,
+        title: "Survey: The Stair Halls",
+        body: "All stone here. Some of the flights go somewhere. Some cross the dark from one nothing to another and have no rail. I would not try one.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 57,
+        title: "Survey: The Works",
+        body: "Machines the size of houses, cold. A ceiling so far up that the lamps on it look like stars, most of them out. The way down is not a stair here.",
+        scp: Some("building"),
+    },
+    LoreEntry {
+        id: 58,
+        title: "Ration Coupon",
+        body: "ONE PORTION. CONCENTRATE, GREY. SHIFT 4, CYCLE 211. NOT VALID ONCE THE SIREN HAS SOUNDED.",
+        scp: Some("building"),
+    },
 ];
 
 /// `SCP_OMENS`: what the player notices on arriving at an anomaly's level
@@ -224,18 +580,10 @@ fn hex6(c: u32) -> String {
 /// `s` padded with spaces to `n` characters
 fn pad_end(s: &str, n: usize) -> String {
     let l = s.chars().count();
-    if l >= n {
-        s.to_string()
-    } else {
-        format!("{}{}", s, " ".repeat(n - l))
-    }
+    if l >= n { s.to_string() } else { format!("{}{}", s, " ".repeat(n - l)) }
 }
 fn yn(b: bool) -> &'static str {
-    if b {
-        "y"
-    } else {
-        "n"
-    }
+    if b { "y" } else { "n" }
 }
 fn fx(v: f64, d: usize) -> String {
     fmt_fixed(v, d)
@@ -555,11 +903,29 @@ impl Game {
             fx(self.fps, 1),
             ns(self.death_count)
         );
-        let _ = write!(s, "─ player ─\npos       {}, {}, {}\ntile      {}, {}\nyaw/pitch {}°, {}°\nsanity    {} / {}\nbattery   {} / {}\nstamina   {} / {}\nflash     {}\ncrouch    {}\nin-pool   {}\nbottles   {}   batteries {}   papers {}\n",
-            fx(px, 2), fx(p.eye_h, 2), fx(pz, 2), tile_x, tile_z, fx(yaw, 1), fx(pitch, 1),
-            fx(p.sanity, 0), ns(SAN_MAX), fx(p.battery, 0), ns(BAT_MAX), fx(p.stamina, 0), ns(STAM_MAX),
-            if p.flashlight_on { "ON" } else { "off" }, if p.crouch { "yes" } else { "no" }, if in_pool { "yes" } else { "no" },
-            p.bottles, p.batteries, p.papers);
+        let _ = write!(
+            s,
+            "─ player ─\npos       {}, {}, {}\ntile      {}, {}\nyaw/pitch {}°, {}°\nsanity    {} / {}\nbattery   {} / {}\nstamina   {} / {}\nflash     {}\ncrouch    {}\nin-pool   {}\nbottles   {}   batteries {}   papers {}\n",
+            fx(px, 2),
+            fx(p.eye_h, 2),
+            fx(pz, 2),
+            tile_x,
+            tile_z,
+            fx(yaw, 1),
+            fx(pitch, 1),
+            fx(p.sanity, 0),
+            ns(SAN_MAX),
+            fx(p.battery, 0),
+            ns(BAT_MAX),
+            fx(p.stamina, 0),
+            ns(STAM_MAX),
+            if p.flashlight_on { "ON" } else { "off" },
+            if p.crouch { "yes" } else { "no" },
+            if in_pool { "yes" } else { "no" },
+            p.bottles,
+            p.batteries,
+            p.papers
+        );
         let _ = write!(
             s,
             "─ crit-sanity ─\ncritAccum {}s   whisperChance {}\nbeat      {}s   whisperT {}s\n",
@@ -647,13 +1013,38 @@ impl Game {
             let pd_radius = tables::panel_dim_radius_by_weather(wk).or(tables::panel_dim_radius_by_weather("normal")).unwrap();
             let pd_live = self.beam_battery_scale(pd_floor);
             let pd_falloff = tables::panel_dim_falloff_by_weather(wk).or(tables::panel_dim_falloff_by_weather("normal")).unwrap();
-            let _ = write!(s, "─ battery cue (dying beam) ─\n  bScale={}  lightMul={}  distMul={}  warm={}  candleBoost={}\n  panelDim  floor={}  depth={}  radius={}m  falloff={}  live={}\n",
-                fx(bs, 2), fx(li, 2), fx(di, 2), warm, cboost, ns(pd_floor), fx(1.0 - pd_floor, 3), ns(pd_radius), ns(pd_falloff), fx(pd_live, 3));
+            let _ = write!(
+                s,
+                "─ battery cue (dying beam) ─\n  bScale={}  lightMul={}  distMul={}  warm={}  candleBoost={}\n  panelDim  floor={}  depth={}  radius={}m  falloff={}  live={}\n",
+                fx(bs, 2),
+                fx(li, 2),
+                fx(di, 2),
+                warm,
+                cboost,
+                ns(pd_floor),
+                fx(1.0 - pd_floor, 3),
+                ns(pd_radius),
+                ns(pd_falloff),
+                fx(pd_live, 3)
+            );
         }
         let (ft, ct) = (self.footstep_fx_tally, self.crouch_fx_tally);
-        let _ = write!(s, "─ footstep fx tally ─\n  walk    wet={} still={} electric={} haunted={} derelict={} normal={}\n  crouch  wet={} still={} electric={} haunted={} derelict={} normal={}\n",
-            ns(ft.wet), ns(ft.still), ns(ft.electric), ns(ft.haunted), ns(ft.derelict), ns(ft.normal),
-            ns(ct.wet), ns(ct.still), ns(ct.electric), ns(ct.haunted), ns(ct.derelict), ns(ct.normal));
+        let _ = write!(
+            s,
+            "─ footstep fx tally ─\n  walk    wet={} still={} electric={} haunted={} derelict={} normal={}\n  crouch  wet={} still={} electric={} haunted={} derelict={} normal={}\n",
+            ns(ft.wet),
+            ns(ft.still),
+            ns(ft.electric),
+            ns(ft.haunted),
+            ns(ft.derelict),
+            ns(ft.normal),
+            ns(ct.wet),
+            ns(ct.still),
+            ns(ct.electric),
+            ns(ct.haunted),
+            ns(ct.derelict),
+            ns(ct.normal)
+        );
         let rain_gain = self.audio.rain_hiss_gain.as_ref().map(|n| fx(n.gain().value(), 3)).unwrap_or_else(|| "-".into());
         let _ = write!(
             s,
@@ -715,17 +1106,39 @@ impl Game {
             let dust_d = 0.75 + 0.25 * ld;
             let panel_amp_boost = 1.0 + (1.0 - ld) * 0.4;
             let int_desc = 0.65 + 0.35 * ld;
-            let _ = write!(s, "─ descent (deep-level effects) ─\n  level={}  vignette=+{}\n  atmos  fogMul={}  fog×={}  bg×={}  dust×{}\n  light  light×{}  int×{}  range×{}  panel×{}  amp×{}\n",
-                self.level_num, fx(dread, 3), fx(fog_mul, 3), fx(cd, 3), fx(cd, 3), fx(dust_d, 3),
-                fx(light_depth, 3), fx(int_desc, 3), fx(dist_descent, 3), fx(ld, 3), fx(panel_amp_boost, 3));
+            let _ = write!(
+                s,
+                "─ descent (deep-level effects) ─\n  level={}  vignette=+{}\n  atmos  fogMul={}  fog×={}  bg×={}  dust×{}\n  light  light×{}  int×{}  range×{}  panel×{}  amp×{}\n",
+                self.level_num,
+                fx(dread, 3),
+                fx(fog_mul, 3),
+                fx(cd, 3),
+                fx(cd, 3),
+                fx(dust_d, 3),
+                fx(light_depth, 3),
+                fx(int_desc, 3),
+                fx(dist_descent, 3),
+                fx(ld, 3),
+                fx(panel_amp_boost, 3)
+            );
         }
         {
             let src = self.audio.safe_room_lfo.as_ref().map(|n| fx(n.frequency().value(), 3)).unwrap_or_else(|| "-".into());
             let flame = tables::flame_breath_amp_by_weather(wk).or(tables::flame_breath_amp_by_weather("normal")).unwrap();
             let slope = tables::level_depth_slope_by_weather(wk).or(tables::level_depth_slope_by_weather("normal")).unwrap();
-            let _ = write!(s, "─ room breath (LFO drives all) ─\n  src={}Hz  vignette={}  panel={}  flame={}  levelDepth={}  chimeDepth={}  slope={}  descentDread={}  fogMul={}\n",
-                src, fx(self.hum_pulse_amp_current, 3), fx(self.panel_lfo_amp_current, 3), fx(flame, 3), fx(self.level_depth_mul(), 3),
-                fx(self.chime_depth_mul(), 3), fx(slope, 3), fx((1.0 - self.level_depth_mul()) * 0.8, 3), fx(1.0 + (1.0 - self.chime_depth_mul()) * 1.05, 3));
+            let _ = write!(
+                s,
+                "─ room breath (LFO drives all) ─\n  src={}Hz  vignette={}  panel={}  flame={}  levelDepth={}  chimeDepth={}  slope={}  descentDread={}  fogMul={}\n",
+                src,
+                fx(self.hum_pulse_amp_current, 3),
+                fx(self.panel_lfo_amp_current, 3),
+                fx(flame, 3),
+                fx(self.level_depth_mul(), 3),
+                fx(self.chime_depth_mul(), 3),
+                fx(slope, 3),
+                fx((1.0 - self.level_depth_mul()) * 0.8, 3),
+                fx(1.0 + (1.0 - self.chime_depth_mul()) * 1.05, 3)
+            );
         }
         // ─ sanity breakdown ─
         {
@@ -741,10 +1154,24 @@ impl Game {
             let dread_period =
                 tables::sanity_dread_period_ms_by_weather(wk).or(tables::sanity_dread_period_ms_by_weather("normal")).unwrap()
                     / self.descent_freq_boost();
-            let _ = write!(s, "─ sanity breakdown ─\n  s={}%  gates: roll={}  hue={}  detune={}  bright={}  dreadT={}ms\n  muls   sanTimer={}×dscTimer={}  sanGain={}×dscGain={}\n  chimes rec={} imp={} brk={} mini={}\n",
-                fx(sv * 100.0, 0), yn(roll_active), yn(hue_active), yn(detune_active), yn(bright_active), fx(dread_period, 0),
-                fx(san_timer, 2), fx(dsc_timer, 2), fx(san_gain, 2), fx(dsc_gain, 2),
-                ns(self.sanity_recovery_tally), ns(self.sanity_impaired_tally), ns(self.sanity_breaking_tally), ns(self.sanity_mini_tally));
+            let _ = write!(
+                s,
+                "─ sanity breakdown ─\n  s={}%  gates: roll={}  hue={}  detune={}  bright={}  dreadT={}ms\n  muls   sanTimer={}×dscTimer={}  sanGain={}×dscGain={}\n  chimes rec={} imp={} brk={} mini={}\n",
+                fx(sv * 100.0, 0),
+                yn(roll_active),
+                yn(hue_active),
+                yn(detune_active),
+                yn(bright_active),
+                fx(dread_period, 0),
+                fx(san_timer, 2),
+                fx(dsc_timer, 2),
+                fx(san_gain, 2),
+                fx(dsc_gain, 2),
+                ns(self.sanity_recovery_tally),
+                ns(self.sanity_impaired_tally),
+                ns(self.sanity_breaking_tally),
+                ns(self.sanity_mini_tally)
+            );
         }
         // ─ player rhythms ─
         {
@@ -760,10 +1187,23 @@ impl Game {
             } else {
                 "-".into()
             };
-            let _ = write!(s, "─ player rhythms ─\n  idleAmp={}  idleFreq={}Hz  crouchTilt={}rad  bobDsc={}  bobRate={}\n  sanityAmp={}  sanityFreq={}Hz  active={}\n  panicBreath  freqMul={}x  ampMul={}x  panic={}  stamWobble={}  stamDip={}rad\n",
-                fx(idle.amp, 3), fx(idle.freq, 2), fx(self.crouch_tilt_mag_current, 3), fx(self.descent_amp_boost(), 3), fx(2.1 * self.descent_boost_mul(0.15), 3),
-                fx(self.sanity_roll_amp_current, 3), fx(self.sanity_roll_freq_current, 2), active,
-                fx(1.0 + panic * 0.6, 2), fx(1.0 - panic * 0.30, 2), fx(panic, 2), stam_crouch_wobble, stam_dip);
+            let _ = write!(
+                s,
+                "─ player rhythms ─\n  idleAmp={}  idleFreq={}Hz  crouchTilt={}rad  bobDsc={}  bobRate={}\n  sanityAmp={}  sanityFreq={}Hz  active={}\n  panicBreath  freqMul={}x  ampMul={}x  panic={}  stamWobble={}  stamDip={}rad\n",
+                fx(idle.amp, 3),
+                fx(idle.freq, 2),
+                fx(self.crouch_tilt_mag_current, 3),
+                fx(self.descent_amp_boost(), 3),
+                fx(2.1 * self.descent_boost_mul(0.15), 3),
+                fx(self.sanity_roll_amp_current, 3),
+                fx(self.sanity_roll_freq_current, 2),
+                active,
+                fx(1.0 + panic * 0.6, 2),
+                fx(1.0 - panic * 0.30, 2),
+                fx(panic, 2),
+                stam_crouch_wobble,
+                stam_dip
+            );
         }
         // ─ stamina breath ─
         {
@@ -776,9 +1216,25 @@ impl Game {
             let sg = a.stamina_breath_sub_gain.as_ref().map(|n| fx(n.gain().value(), 4)).unwrap_or_else(|| "-".into());
             let sf = a.stamina_breath_sub_osc.as_ref().map(|n| fx(n.frequency().value(), 0)).unwrap_or_else(|| "-".into());
             let pn = a.stamina_breath_panner.as_ref().map(|n| fx(n.pan().value(), 2)).unwrap_or_else(|| "-".into());
-            let _ = write!(s, "─ stamina breath ─\n  gain={}  freq={}Hz  lp={}Hz  q={}  sub={}@{}Hz  pan={}\n  peaks[{}]  g={}  rBase={}  rGain={}  sub={}@{}  pan={}@{}\n",
-                g, f, lp, q, sg, sf, pn, if wk.is_empty() { "?" } else { wk },
-                ns(br.gain), ns(br.rate_base), ns(br.rate_gain), ns(br.sub_gain), ns(br.sub_freq), ns(br.pan_depth), ns(br.pan_rate));
+            let _ = write!(
+                s,
+                "─ stamina breath ─\n  gain={}  freq={}Hz  lp={}Hz  q={}  sub={}@{}Hz  pan={}\n  peaks[{}]  g={}  rBase={}  rGain={}  sub={}@{}  pan={}@{}\n",
+                g,
+                f,
+                lp,
+                q,
+                sg,
+                sf,
+                pn,
+                if wk.is_empty() { "?" } else { wk },
+                ns(br.gain),
+                ns(br.rate_base),
+                ns(br.rate_gain),
+                ns(br.sub_gain),
+                ns(br.sub_freq),
+                ns(br.pan_depth),
+                ns(br.pan_rate)
+            );
         }
         // ─ rare events ─
         {
@@ -796,19 +1252,49 @@ impl Game {
             let ding_br = tables::ding_bright_by_weather(wk).or(tables::ding_bright_by_weather("normal")).unwrap();
             let static_ctr = tables::static_chrom_by_weather(wk).or(tables::static_chrom_by_weather("normal")).unwrap().contrast;
             let voice_hue_r = tables::voice_hue_by_weather(wk).or(tables::voice_hue_by_weather("normal")).unwrap().r;
-            let _ = write!(s, "─ rare events ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  staticCtr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
-                fx(self.distant_knock_timer, 0), fx(self.knock_flash_t, 2), fx(self.knock_tint_t, 2), fx(self.last_knock_pan, 2),
-                ns(kt.freq), ns(kt.noise), ns(kt.gain_mul),
-                fx(self.door_opened_timer, 0), fx(self.door_opened_flash_t, 2), fx(self.door_dim_pulse_t, 2),
-                fx(self.elevator_ding_timer, 0), fx(self.elevator_ding_flash_t, 2), fx(self.ding_bright_pulse_t, 2),
-                fx(self.voice_sample_timer, 0), fx(self.voice_sample_flash_t, 2),
-                fx(self.static_burst_timer, 0), fx(self.static_burst_flash_t, 2),
-                fx(self.reality_shift_timer, 0), fx(self.reality_shift_t, 2), settle_cd,
-                fx(self.pattern_break_timer, 0), fx(self.pattern_break_t, 2),
-                fx(self.clock_skip_timer, 0), fx(self.clock_skip_t, 2),
-                fx(door_dim, 2), fx(ding_br, 2), fx(static_ctr, 2), fx(voice_hue_r, 2),
-                yn(stagger), fx(self.last_rare_fire_t, 2), age,
-                ta("knock"), ta("door"), ta("ding"), ta("voice"), ta("static"), ta("shift"), ta("pattern"), ta("skip"));
+            let _ = write!(
+                s,
+                "─ rare events ─\n  knock  cd={}s  flashT={}  tintT={}  lastPan={}\n  timbre  freq={}Hz  noise={}Hz  gainMul={}\n  door   cd={}s  flashT={}  dimT={}\n  ding   cd={}s  flashT={}  brightT={}\n  voice  cd={}s  flashT={}\n  static cd={}s  flashT={}\n  shift  cd={}s  envT={}  settleCd={}\n  patt   cd={}s  envT={}\n  skip   cd={}s  envT={}\n  peaks  doorDim={}  dingBr={}  staticCtr={}  voiceHueR={}\n  meta   stagger={}  lastFireT={}s  age={}s\n  tally  k={}  d={}  b={}  v={}  s={}  sh={}  pt={}  sk={}\n",
+                fx(self.distant_knock_timer, 0),
+                fx(self.knock_flash_t, 2),
+                fx(self.knock_tint_t, 2),
+                fx(self.last_knock_pan, 2),
+                ns(kt.freq),
+                ns(kt.noise),
+                ns(kt.gain_mul),
+                fx(self.door_opened_timer, 0),
+                fx(self.door_opened_flash_t, 2),
+                fx(self.door_dim_pulse_t, 2),
+                fx(self.elevator_ding_timer, 0),
+                fx(self.elevator_ding_flash_t, 2),
+                fx(self.ding_bright_pulse_t, 2),
+                fx(self.voice_sample_timer, 0),
+                fx(self.voice_sample_flash_t, 2),
+                fx(self.static_burst_timer, 0),
+                fx(self.static_burst_flash_t, 2),
+                fx(self.reality_shift_timer, 0),
+                fx(self.reality_shift_t, 2),
+                settle_cd,
+                fx(self.pattern_break_timer, 0),
+                fx(self.pattern_break_t, 2),
+                fx(self.clock_skip_timer, 0),
+                fx(self.clock_skip_t, 2),
+                fx(door_dim, 2),
+                fx(ding_br, 2),
+                fx(static_ctr, 2),
+                fx(voice_hue_r, 2),
+                yn(stagger),
+                fx(self.last_rare_fire_t, 2),
+                age,
+                ta("knock"),
+                ta("door"),
+                ta("ding"),
+                ta("voice"),
+                ta("static"),
+                ta("shift"),
+                ta("pattern"),
+                ta("skip")
+            );
             // Full per-weather rare-event tally block
             let evs = [
                 ("knock", "k"),
@@ -866,9 +1352,21 @@ impl Game {
             let beam_peak = tables::cry_beam_peak_by_weather(wk).or(tables::cry_beam_peak_by_weather("normal")).unwrap();
             let panel_peak = tables::cry_panel_peak_by_weather(wk).or(tables::cry_panel_peak_by_weather("normal")).unwrap();
             let l = self.cry_dim_lerp;
-            let _ = write!(s, "─ cry envelope ─\n  active={}  remain={}s  cool={}s  lerp={}\n  peaks  beam={}  panel={}  vig={}\n  beam×{}  panel×{}  audio×{}  vig+{}\n",
-                active, remain, cool, fx(l, 2), fx(beam_peak, 2), fx(panel_peak, 2), fx(vig_peak, 2),
-                fx(1.0 - beam_peak * l, 3), fx(1.0 - panel_peak * l, 3), fx(1.0 - 0.25 * l, 3), fx(l * vig_peak, 3));
+            let _ = write!(
+                s,
+                "─ cry envelope ─\n  active={}  remain={}s  cool={}s  lerp={}\n  peaks  beam={}  panel={}  vig={}\n  beam×{}  panel×{}  audio×{}  vig+{}\n",
+                active,
+                remain,
+                cool,
+                fx(l, 2),
+                fx(beam_peak, 2),
+                fx(panel_peak, 2),
+                fx(vig_peak, 2),
+                fx(1.0 - beam_peak * l, 3),
+                fx(1.0 - panel_peak * l, 3),
+                fx(1.0 - 0.25 * l, 3),
+                fx(l * vig_peak, 3)
+            );
         }
         // ─ ambient tally ─
         {
@@ -915,10 +1413,10 @@ impl Game {
                 if d >= 15.0 && m != '.' {
                     m = '.';
                 }
-                if let Some(ci) = names.iter().position(|n| Some(*n) == e.bearing.as_deref()) {
-                    if strength(m) > strength(cells[ci]) {
-                        cells[ci] = m;
-                    }
+                if let Some(ci) = names.iter().position(|n| Some(*n) == e.bearing.as_deref())
+                    && strength(m) > strength(cells[ci])
+                {
+                    cells[ci] = m;
                 }
             }
             let last = positional.first();
@@ -1002,11 +1500,7 @@ impl Game {
             };
             rows.sort_by(|a, b| {
                 let (ka, kb) = (key(a.2), key(b.2));
-                if ka == kb {
-                    a.1.cmp(&b.1)
-                } else {
-                    ka.cmp(&kb)
-                }
+                if ka == kb { a.1.cmp(&b.1) } else { ka.cmp(&kb) }
             });
             let body = rows
                 .iter()
@@ -1213,10 +1707,10 @@ impl Game {
             glow_rgb: glow.as_ref().map(|g| [g.r, g.g, g.b]).unwrap_or([0; 3]),
             glow_shadow: glow.as_ref().map(|g| format!("0 0 {}px rgba({}, {}, {}, {})", fx(g.blur, 1), g.r, g.g, g.b, fx(g.alpha, 2))),
         };
-        if let Some(id) = id {
-            if let Some(entry) = LORE_ENTRIES.get(id) {
-                out.text = Some(format!("...  {}  ...", entry.title.to_lowercase()));
-            }
+        if let Some(id) = id
+            && let Some(entry) = LORE_ENTRIES.get(id)
+        {
+            out.text = Some(format!("...  {}  ...", entry.title.to_lowercase()));
         }
         out
     }
@@ -1428,13 +1922,15 @@ impl Game {
         // (`answer_payphone` sets `hintUntil`) is answered the same way as a
         // cry for help that is heard: the place shows the way (`show_the_way`).
         let hint = self.phone_data.as_ref().map(|ph| (ph.f.get("hintUntil").copied().unwrap_or(0.0), ph.f.contains_key("hintShown")));
-        if let Some((until, shown)) = hint {
-            if until != 0.0 && self.perf_t < until && !shown {
-                if let Some(ph) = self.phone_data.as_mut() {
-                    ph.f.insert("hintShown".into(), 1.0);
-                }
-                self.show_the_way();
+        if let Some((until, shown)) = hint
+            && until != 0.0
+            && self.perf_t < until
+            && !shown
+        {
+            if let Some(ph) = self.phone_data.as_mut() {
+                ph.f.insert("hintShown".into(), 1.0);
             }
+            self.show_the_way();
         }
 
         if self.msg_t > 0.0 {
@@ -1537,10 +2033,10 @@ impl Game {
         let ph_ptr = &*ph as *const dyn FnMut(&mut Game) as *const u8;
         let mut f = std::mem::replace(&mut self.interactables[i].on_use, ph);
         f(self);
-        if Rc::strong_count(&marker) == 2 {
-            if let Some(it) = self.interactables.iter_mut().find(|it| (&*it.on_use as *const dyn FnMut(&mut Game) as *const u8) == ph_ptr) {
-                it.on_use = f;
-            }
+        if Rc::strong_count(&marker) == 2
+            && let Some(it) = self.interactables.iter_mut().find(|it| (&*it.on_use as *const dyn FnMut(&mut Game) as *const u8) == ph_ptr)
+        {
+            it.on_use = f;
         }
     }
 

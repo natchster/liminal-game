@@ -117,10 +117,10 @@ pub fn bench(args: &[String]) -> Result<(), String> {
     for ((seed, level), v) in &now {
         println!("{:<10} {}", format!("{seed} L{level}"), v.iter().map(|x| format!("{x:.2}")).collect::<Vec<_>>().join("  "));
         for (i, m) in MEASURES.iter().enumerate() {
-            if let Some(b) = budgets["levels"][m].as_f64() {
-                if v[i] > b {
-                    failures.push(format!("{seed} L{level}: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", v[i]));
-                }
+            if let Some(b) = budgets["levels"][m].as_f64()
+                && v[i] > b
+            {
+                failures.push(format!("{seed} L{level}: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", v[i]));
             }
         }
     }
@@ -161,13 +161,15 @@ pub fn bench(args: &[String]) -> Result<(), String> {
                 continue;
             }
             let xs: Vec<f64> = s.iter().map(|x| x.1).collect();
-            if let Some((at, before, after, p)) = change_point(&xs) {
-                if after > before * SLOWER && p < P_CHANGE && at + 3 >= xs.len() {
-                    failures.push(format!(
-                        "{seed} L{level}: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/history.csv",
-                        s[at].0
-                    ));
-                }
+            if let Some((at, before, after, p)) = change_point(&xs)
+                && after > before * SLOWER
+                && p < P_CHANGE
+                && at + 3 >= xs.len()
+            {
+                failures.push(format!(
+                    "{seed} L{level}: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/history.csv",
+                    s[at].0
+                ));
             }
         }
     }
@@ -245,10 +247,10 @@ fn bench_pack(
     println!("{:<10} {}", "pack", PACK_MEASURES.join("  "));
     println!("{:<10} {}", format!("{creatures} live"), now.iter().map(|x| format!("{x:.2}")).collect::<Vec<_>>().join("  "));
     for (i, m) in PACK_MEASURES.iter().enumerate() {
-        if let Some(b) = budgets["creatures"][m].as_f64() {
-            if now[i] > b {
-                failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", now[i]));
-            }
+        if let Some(b) = budgets["creatures"][m].as_f64()
+            && now[i] > b
+        {
+            failures.push(format!("creature pack: {m} {:.2} over its budget {b} (docs/engineering/PERF.md)", now[i]));
         }
     }
     let path = root().join("perf/creatures.csv");
@@ -273,13 +275,15 @@ fn bench_pack(
             continue;
         }
         let xs: Vec<f64> = s.iter().map(|x| x.1).collect();
-        if let Some((at, before, after, p)) = change_point(&xs) {
-            if after > before * SLOWER && p < P_CHANGE && at + 3 >= xs.len() {
-                failures.push(format!(
-                    "creature pack: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/creatures.csv",
-                    s[at].0
-                ));
-            }
+        if let Some((at, before, after, p)) = change_point(&xs)
+            && after > before * SLOWER
+            && p < P_CHANGE
+            && at + 3 >= xs.len()
+        {
+            failures.push(format!(
+                "creature pack: {m} stepped from {before:.2} to {after:.2} at commit {} (p = {p:.3}); see perf/creatures.csv",
+                s[at].0
+            ));
         }
     }
     if !flag(args, "--no-record") {

@@ -22,15 +22,7 @@ pub(crate) fn place_cabinet_doors(g: &mut Game, _dist: &[i32]) {
     let door_h = 2.0;
     let gap = 0.04;
     // 10% chance one door slightly ajar showing dark interior.
-    let ajar_side: i32 = if rnd() < 0.10 {
-        if rnd() < 0.5 {
-            -1
-        } else {
-            1
-        }
-    } else {
-        0
-    };
+    let ajar_side: i32 = if rnd() < 0.10 { if rnd() < 0.5 { -1 } else { 1 } } else { 0 };
     let ajar_f = ajar_side as f64;
     if ajar_side != 0 {
         let interior_mat = basic_mat!({ color: 0x0a0806 });

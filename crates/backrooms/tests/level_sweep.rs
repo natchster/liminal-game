@@ -22,8 +22,8 @@
 //! The cases come from proptest; failing seeds are stored in
 //! `tests/level_sweep.proptest-regressions` and replayed first (commit that
 //! file). `SWEEP_CASES=500` runs a longer sweep (the nightly one).
-use game::base::config::PLAYER_R;
 use game::Game;
+use game::base::config::PLAYER_R;
 use proptest::prelude::*;
 use proptest::test_runner::{Config, FileFailurePersistence, TestRunner};
 
@@ -285,11 +285,7 @@ fn check_level(run_seed: u32, level: i32) -> Result<String, String> {
         if known.is_empty() { String::new() } else { format!("; unreachable: {}", known.join(", ")) },
         if locked.is_empty() { String::new() } else { format!("; {} pickup(s) behind a barricade (open issue)", locked.len()) }
     );
-    if problems.is_empty() {
-        Ok(what)
-    } else {
-        Err(format!("{what}: {}", problems.join("; ")))
-    }
+    if problems.is_empty() { Ok(what) } else { Err(format!("{what}: {}", problems.join("; "))) }
 }
 
 /// Levels checked on every run before the random ones: each once showed
@@ -399,8 +395,16 @@ fn census() {
                 let pz = g.zone_at_tile(p.tiles[0].0, p.tiles[0].1).and_then(|i| zones.get(i));
                 println!(
                     "      sealed at ({x},{z}) by zone {:?} {:?} wall {:?} {:?} m, jamb {:?}, protrude {:?}; the pocket is in {:?} {:?} wall {:?} {:?}",
-                    zi, zn.map(|z| z.arch), zn.map(|z| z.wall), zn.map(|z| z.wall_t), zn.map(|z| z.jamb), zn.map(|z| z.protrude),
-                    pz.map(|z| z.id), pz.map(|z| z.arch), pz.map(|z| z.wall), pz.map(|z| z.wall_t)
+                    zi,
+                    zn.map(|z| z.arch),
+                    zn.map(|z| z.wall),
+                    zn.map(|z| z.wall_t),
+                    zn.map(|z| z.jamb),
+                    zn.map(|z| z.protrude),
+                    pz.map(|z| z.id),
+                    pz.map(|z| z.arch),
+                    pz.map(|z| z.wall),
+                    pz.map(|z| z.wall_t)
                 );
             }
         }

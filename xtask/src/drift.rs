@@ -21,7 +21,7 @@
 //! `QUALITY.md`'s history (the `drift-sweep` skill says how to read it).
 use crate::shots::{read_json, write_json};
 use crate::{cargo, flag, root};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::process::Command;
 
@@ -187,7 +187,9 @@ pub fn drift(args: &[String]) -> Result<(), String> {
     std::fs::write(&quality_path, new_quality).map_err(|e| e.to_string())?;
     let out = root().join("target/xtask/drift");
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
-    let report = format!("# Drift sweep {date}\n\n{sweep}\n## Check output\n\n```\n{check_summary}\n```\n\n## Range\n\n```\n{range}\n```\n\n## Performance\n\n```\n{bench}\n```\n");
+    let report = format!(
+        "# Drift sweep {date}\n\n{sweep}\n## Check output\n\n```\n{check_summary}\n```\n\n## Range\n\n```\n{range}\n```\n\n## Performance\n\n```\n{bench}\n```\n"
+    );
     std::fs::write(out.join("report.md"), &report).map_err(|e| e.to_string())?;
     print!("{sweep}");
     println!("\nwrote docs/plan/content.json (passes), docs/plan/QUALITY.md (Latest sweep) and target/xtask/drift/report.md");

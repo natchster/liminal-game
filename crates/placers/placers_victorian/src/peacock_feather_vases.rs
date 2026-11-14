@@ -189,15 +189,7 @@ fn feather_tex(salt: u32) -> Tex {
             c = mix(c, [0.08, 0.10, 0.26], 1.0 - sstep(0.0095, 0.0115, rk));
             c = mix(c, [c[0] * 0.7, c[1] * 0.7, c[2] * 0.7], fib * 0.3);
             // the eye's edge frays into loose barbs
-            let alpha = if r > 0.034 {
-                if fib > 0.55 {
-                    1.0
-                } else {
-                    0.0
-                }
-            } else {
-                1.0
-            };
+            let alpha = if r > 0.034 { if fib > 0.55 { 1.0 } else { 0.0 } } else { 1.0 };
             [c[0], c[1], c[2], alpha]
         });
         // the herl: barbs off the rachis, out and up and dipping at their

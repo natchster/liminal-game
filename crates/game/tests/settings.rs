@@ -3,7 +3,7 @@
 //! changes, rebinding keeps every action reachable, and they persist.
 use game::prelude::*;
 use game::session::input::Act;
-use game::session::settings::{vertical_fov, Row, Settings, FOV_DEFAULT, H_FOV_MAX, SETTINGS_KEY};
+use game::session::settings::{FOV_DEFAULT, H_FOV_MAX, Row, SETTINGS_KEY, Settings, vertical_fov};
 
 const DT: f64 = 1.0 / 60.0;
 

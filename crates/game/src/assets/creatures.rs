@@ -10,7 +10,7 @@
 //!
 //! Also here: [`with_cavity_shade`] and the Watcher's morph-target sheet
 //! ([`watcher_geometry`]), which is built from these parts.
-use crate::assets::props::{inflate_raw, or_num, Rd};
+use crate::assets::props::{Rd, inflate_raw, or_num};
 use crate::base::numeric::hypot;
 use engine::prelude::*;
 use std::cell::RefCell;
@@ -169,13 +169,7 @@ pub fn decode_creature(m: &CreaturePartInfo) -> Geometry {
     let n = m.n;
     let vb = field(m, 'v', n * 6);
     let ib = field(m, 'i', m.t * 6);
-    let q = |i: usize| -> f64 {
-        if i * 2 + 1 < vb.len() {
-            i16::from_le_bytes([vb[i * 2], vb[i * 2 + 1]]) as f64
-        } else {
-            0.0
-        }
-    };
+    let q = |i: usize| -> f64 { if i * 2 + 1 < vb.len() { i16::from_le_bytes([vb[i * 2], vb[i * 2 + 1]]) as f64 } else { 0.0 } };
     let mut pos = vec![0f32; n * 3];
     let mut uv = vec![0f32; n * 2];
     let span: [f64; 3] = [or_num(m.max[0] - m.min[0], 1.0), or_num(m.max[1] - m.min[1], 1.0), or_num(m.max[2] - m.min[2], 1.0)];
@@ -225,11 +219,7 @@ pub fn with_cavity_shade(geo: &Geo, strength: f64, center: Option<Vec3>) -> Geo 
     };
     let base: Option<Vec<f32>> = {
         let s = geo.r();
-        if s.color.is_empty() {
-            None
-        } else {
-            Some(s.color.clone())
-        }
+        if s.color.is_empty() { None } else { Some(s.color.clone()) }
     };
     let col = {
         let gg = g.r();

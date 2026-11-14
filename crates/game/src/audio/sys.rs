@@ -815,14 +815,14 @@ impl Game {
     /// you. Never your cry.
     pub fn cut_voice_line(&mut self) {
         let fade = crate::audio::asides::CUT_FADE;
-        if let Some((g, false)) = self.audio.voice_now.take() {
-            if self.asides.voice_until > self.perf_t {
-                let t = self.ac_time();
-                g.gain().cancel_scheduled_values(t);
-                g.gain().set_value_at_time(g.gain().value(), t);
-                g.gain().linear_ramp_to_value_at_time(0.0, t + fade);
-                self.asides.voice_until = self.perf_t + fade;
-            }
+        if let Some((g, false)) = self.audio.voice_now.take()
+            && self.asides.voice_until > self.perf_t
+        {
+            let t = self.ac_time();
+            g.gain().cancel_scheduled_values(t);
+            g.gain().set_value_at_time(g.gain().value(), t);
+            g.gain().linear_ramp_to_value_at_time(0.0, t + fade);
+            self.asides.voice_until = self.perf_t + fade;
         }
     }
 
@@ -866,7 +866,7 @@ impl Game {
         amp.gain().set_value_at_time(0.55, t0 + 0.60);
         amp.gain().linear_ramp_to_value_at_time(0.35, t0 + 0.78); // L dip
         amp.gain().linear_ramp_to_value_at_time(0.00, t0 + 0.90); // P closure
-                                                                  // ---- H fricative: bandpassed noise burst before the vowel ----
+        // ---- H fricative: bandpassed noise burst before the vowel ----
         let n_h = ac.create_buffer_source();
         n_h.set_buffer(noise_buf);
         let n_hf = ac.create_biquad_filter();

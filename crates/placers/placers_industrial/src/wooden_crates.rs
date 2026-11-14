@@ -114,8 +114,8 @@ pub(crate) fn place_wooden_crates(g: &mut Game, _dist: &[i32]) {
     // 25% chance: a smaller crate stacked on its lid (freight pile)
     if rnd() < 0.25 {
         let cs2 = cs * (0.55 + rnd() * 0.20); // 55-75% of base
-                                              // the smaller crates are their own (0.30 or 0.225 m, their boards
-                                              // thinner), scaled within 15% of that
+        // the smaller crates are their own (0.30 or 0.225 m, their boards
+        // thinner), scaled within 15% of that
         let key = if cs2 < 0.26 { "S" } else { "M" };
         let (w2, ..) = crate_dims(key);
         let (sib_crate, _) = crate_group(key, &look);

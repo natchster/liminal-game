@@ -94,32 +94,36 @@ pub fn run(skip: &[&str], log: &mut std::fs::File) -> Result<Outcome, String> {
     let handles: Vec<_> = (0..workers)
         .map(|_| {
             let (queue, bins, shared_log, results) = (queue.clone(), bins.clone(), shared_log.clone(), results.clone());
-            std::thread::spawn(move || loop {
-                let Some(job) = queue.lock().unwrap().pop_front() else { break };
-                let b = &bins[job.bin];
-                let t0 = Instant::now();
-                let res = Command::new(&b.exe)
-                    .args([job.name.as_str(), "--exact", "--test-threads=1"])
-                    .current_dir(&b.dir)
-                    .env("CARGO_MANIFEST_DIR", &b.dir)
-                    .env("CARGO_PKG_NAME", &b.pkg)
-                    .output();
-                let secs = t0.elapsed().as_secs_f64();
-                let (ok, text) = match res {
-                    Ok(o) => (o.status.success(), format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr))),
-                    Err(e) => (false, format!("could not run {}: {e}\n", b.exe.display())),
-                };
-                let mut s = format!("     Running {} {} ({secs:.1} s)\n{text}", b.target, job.name);
-                if !ok {
-                    let which = match b.kind.as_str() {
-                        "lib" => "--lib".to_string(),
-                        "bin" => format!("--bin {}", b.target),
-                        _ => format!("--test {}", b.target),
+            std::thread::spawn(move || {
+                loop {
+                    let Some(job) = queue.lock().unwrap().pop_front() else { break };
+                    let b = &bins[job.bin];
+                    let t0 = Instant::now();
+                    let res = Command::new(&b.exe)
+                        .args([job.name.as_str(), "--exact", "--test-threads=1"])
+                        .current_dir(&b.dir)
+                        .env("CARGO_MANIFEST_DIR", &b.dir)
+                        .env("CARGO_PKG_NAME", &b.pkg)
+                        .output();
+                    let secs = t0.elapsed().as_secs_f64();
+                    let (ok, text) = match res {
+                        Ok(o) => {
+                            (o.status.success(), format!("{}{}", String::from_utf8_lossy(&o.stdout), String::from_utf8_lossy(&o.stderr)))
+                        }
+                        Err(e) => (false, format!("could not run {}: {e}\n", b.exe.display())),
                     };
-                    s += &format!("error: test failed, to rerun pass `-p {} {which} -- {} --exact`\n", b.pkg, job.name);
+                    let mut s = format!("     Running {} {} ({secs:.1} s)\n{text}", b.target, job.name);
+                    if !ok {
+                        let which = match b.kind.as_str() {
+                            "lib" => "--lib".to_string(),
+                            "bin" => format!("--bin {}", b.target),
+                            _ => format!("--test {}", b.target),
+                        };
+                        s += &format!("error: test failed, to rerun pass `-p {} {which} -- {} --exact`\n", b.pkg, job.name);
+                    }
+                    let _ = shared_log.lock().unwrap().write_all(s.as_bytes());
+                    results.lock().unwrap().push((job.key, ok, secs));
                 }
-                let _ = shared_log.lock().unwrap().write_all(s.as_bytes());
-                results.lock().unwrap().push((job.key, ok, secs));
             })
         })
         .collect();

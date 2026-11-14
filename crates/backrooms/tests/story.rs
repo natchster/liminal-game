@@ -35,11 +35,11 @@ fn dump(g: &Game) -> serde_json::Value {
     let notes: Vec<(f64, f64)> = g.lore_notes.iter().map(|n| (at(n.g.pos().x), at(n.g.pos().z))).collect();
     for o in d.get_mut("objects").and_then(|o| o.as_array_mut()).into_iter().flatten() {
         let p = (o["pos"][0].as_f64().unwrap_or(f64::NAN), o["pos"][2].as_f64().unwrap_or(f64::NAN));
-        if notes.iter().any(|n| (n.0 - p.0).abs() < 1e-5 && (n.1 - p.1).abs() < 1e-5) {
-            if let Some(m) = o.as_object_mut() {
-                for k in ["min", "max", "meshes"] {
-                    m.remove(k);
-                }
+        if notes.iter().any(|n| (n.0 - p.0).abs() < 1e-5 && (n.1 - p.1).abs() < 1e-5)
+            && let Some(m) = o.as_object_mut()
+        {
+            for k in ["min", "max", "meshes"] {
+                m.remove(k);
             }
         }
     }
@@ -484,7 +484,7 @@ fn her_marks_change_as_she_goes_down() {
 /// anomaly's page on its floor, the last on level 13; nothing after it.
 #[test]
 fn her_notebook_follows_the_descent() {
-    use game::story::notebook::{notebook, page_for_level, ANOMALY_PAGES, FLOOR_PAGES, LAST_LEVEL};
+    use game::story::notebook::{ANOMALY_PAGES, FLOOR_PAGES, LAST_LEVEL, notebook, page_for_level};
     for run in [1u32, 7, 77, 4242, 1999, 2026, 0xBEEF, 9_000_001] {
         let book = notebook(run);
         assert_eq!(book.len(), 13, "run {run}: {:?}", book.iter().map(|(n, p)| (n, p.id)).collect::<Vec<_>>());
@@ -576,7 +576,7 @@ fn play(g: &mut Game, secs: f64) {
 /// page (`FIRST_FLOOR_CALM`); on a retry her lamp is already out.
 #[test]
 fn her_page_wakes_the_place() {
-    use game::entities::director::{Phase, FIRST_FLOOR_CALM, WAKE};
+    use game::entities::director::{FIRST_FLOOR_CALM, Phase, WAKE};
     // (rooms levels: what wakes on the Building's floors is not a creature)
     for (seed, level) in [(4242u32, 4), (4242, 6), (7, 8)] {
         let mut g = new_game();

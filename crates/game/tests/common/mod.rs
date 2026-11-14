@@ -138,11 +138,7 @@ pub fn kv(s: &str) -> HashMap<String, String> {
         .collect()
 }
 pub fn list_f(s: &str) -> Vec<f64> {
-    if s.is_empty() {
-        vec![]
-    } else {
-        s.split(',').map(|x| x.parse::<f64>().unwrap()).collect()
-    }
+    if s.is_empty() { vec![] } else { s.split(',').map(|x| x.parse::<f64>().unwrap()).collect() }
 }
 
 pub fn read_cases(r: &mut Rd, magic: &[u8]) -> Vec<Case> {

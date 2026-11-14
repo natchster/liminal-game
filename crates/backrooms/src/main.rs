@@ -2,10 +2,10 @@
 //!
 //! Usage: `backrooms [--fullscreen] [--width W --height H] [--flags 'nosound&scp=loop@2']
 //!                   [--screenshot out.png [--frames N] [--level L] [--seed S] [--play]]`
-use engine::app::{run, AppConfig, AppCtx, AppHandler, Input};
+use engine::app::{AppConfig, AppCtx, AppHandler, Input, run};
 use engine::render::{LocalLight, OBlend, OverlayImage, OverlayOp, RenderGlobals, Renderer};
-use game::ui::model::{HudLayer, LayerBlend};
 use game::Game;
+use game::ui::model::{HudLayer, LayerBlend};
 use objc2::rc::Retained;
 use objc2::runtime::ProtocolObject;
 use objc2_metal::{MTLCommandBuffer, MTLCreateSystemDefaultDevice, MTLTexture};
@@ -272,17 +272,31 @@ fn parse_args() -> Options {
             "--replay" => o.replay = Some(next(&mut i)),
             "--bench-frames" => o.bench_frames = next(&mut i).parse().unwrap_or(240),
             "--help" | "-h" => {
-                println!("backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist[:walk]] [--death]]]");
-                println!("          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)");
+                println!(
+                    "backrooms [--fullscreen] [--width W --height H] [--flags 'seed=4242&nosound&scp=loop@2'] [--screenshot out.png [--frames N] [--level L] [--seed S] [--play] [--showcase smiler[:dist[:walk]] [--death]]]"
+                );
+                println!(
+                    "          [--dump-level DIR --seed S --levels 1,2,3 [--screenshot x [--views]]]   writes a JSON description of each level (and a PNG with --screenshot, one per zone with --views)"
+                );
                 println!("          [--scale 2]   headless modes: render at this backing scale (2 = Retina)");
                 println!(
                     "          [--record FILE]   play and record the session (inputs, telemetry, events) to FILE, on this machine only"
                 );
-                println!("          [--replay FILE]   play a recorded session back; Up / Down arrows mark tension rising / falling (FILE.trace.json)");
-                println!("          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)");
-                println!("          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)");
-                println!("          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)");
-                println!("          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-all] [--tour-plant hole|fight|darkfight|inside|flat|nearface|ring] [--tour-at \"NAME:x,y,z,yaw,pitch;…\"]]   the visual playtest's renders and detectors (DIR/L<n>/views.tsv, findings.tsv, sheets)");
+                println!(
+                    "          [--replay FILE]   play a recorded session back; Up / Down arrows mark tension rising / falling (FILE.trace.json)"
+                );
+                println!(
+                    "          [--bench FILE --seed S --levels 1,2,3 [--bench-frames N]]   times build, first frame, CPU update and GPU per frame along a fixed path (JSON)"
+                );
+                println!(
+                    "          [--metrics FILE --seed S --levels 1,2,3]   writes each level's expressive-range measures as JSON (no rendering)"
+                );
+                println!(
+                    "          [--fresh]     headless modes: ignore the saved settings and progress, fixed per-frame randomness (reproducible shots)"
+                );
+                println!(
+                    "          [--tour DIR --seed S --levels 1,2 [--tour-budget N] [--tour-area x0,z0,x1,z1] [--tour-all] [--tour-plant hole|fight|darkfight|inside|flat|nearface|ring] [--tour-at \"NAME:x,y,z,yaw,pitch;…\"]]   the visual playtest's renders and detectors (DIR/L<n>/views.tsv, findings.tsv, sheets)"
+                );
                 std::process::exit(0);
             }
             _ => {}
@@ -615,10 +629,10 @@ impl AppHandler for App {
             Input::CursorPos(x, y) => {
                 self.cursor = (x, y);
                 // over a menu line: it is the chosen one (recorded, so a replay chooses alike)
-                if g.menu_hover(x, y) {
-                    if let (Some((r, _)), Some(i)) = (self.recorder.as_mut(), g.menu.items.get(g.menu.sel)) {
-                        r.push(InputEvent::Hover(i.id.to_string()));
-                    }
+                if g.menu_hover(x, y)
+                    && let (Some((r, _)), Some(i)) = (self.recorder.as_mut(), g.menu.items.get(g.menu.sel))
+                {
+                    r.push(InputEvent::Hover(i.id.to_string()));
                 }
             }
             // while the pointer is locked the buttons are keys (`Mouse0`..`Mouse2`)
@@ -860,8 +874,8 @@ fn level_check(o: &Options, dir: &str) {
     let mut r = Renderer::new(device);
     g.boot();
     g.start_new_game(); // as New Game from the menu
-                        // let the film grain (repainted every 55 ms, opacity eased) settle as if the
-                        // game had been running for a second
+    // let the film grain (repainted every 55 ms, opacity eased) settle as if the
+    // game had been running for a second
     for _ in 0..60 {
         g.update_grain(1.0 / 60.0);
     }
@@ -1204,11 +1218,7 @@ fn metrics(o: &Options, path: &str) {
 /// The `p`-quantile of `v` (sorted in place).
 fn quantile(v: &mut [f64], p: f64) -> f64 {
     v.sort_by(|a, b| a.total_cmp(b));
-    if v.is_empty() {
-        0.0
-    } else {
-        v[((v.len() - 1) as f64 * p).round() as usize]
-    }
+    if v.is_empty() { 0.0 } else { v[((v.len() - 1) as f64 * p).round() as usize] }
 }
 
 /// `--bench FILE`: for each level, the time to build it, to load plus render

@@ -27,10 +27,10 @@
 //! attribution (`docs/design/LORE.md`, Attribution). The turned back is a motif of
 //! the Rake; its face is the Thatcher illusion (Peter Thompson, 1980).
 use crate::base::numeric::hypot2;
-use crate::entities::body::{two_bone, BodyRig};
+use crate::entities::body::{BodyRig, two_bone};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{with_skin_detail, wrap_pi, EntVoice};
+use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -346,10 +346,11 @@ fn chosen(g: &Game) -> Option<((i32, i32, i32, i32), crate::base::rng::SplitMix6
             if g.is_wall_tile(x, z) || way[i] || from_start[i] < 8 || from_exit[i] < 5 || from_exit[i] < 0 {
                 continue;
             }
-            if let Some(fc) = &from_camp {
-                if fc[i] >= 0 && fc[i] < 5 {
-                    continue;
-                }
+            if let Some(fc) = &from_camp
+                && fc[i] >= 0
+                && fc[i] < 5
+            {
+                continue;
             }
             for (cx, cz) in [(1, 1), (1, -1), (-1, 1), (-1, -1)] {
                 if !(g.is_wall_tile(x + cx, z) && g.is_wall_tile(x, z + cz) && g.is_wall_tile(x + cx, z + cz)) {

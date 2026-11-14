@@ -7,7 +7,7 @@
 //! voice: `calm` sets the model's capitals in sentence case when painted
 //! (the model keeps its text, which recorded fixtures pin).
 use crate::prelude::*;
-use crate::session::input::{key_label, Act};
+use crate::session::input::{Act, key_label};
 
 /// Seconds a change stays on the screen
 pub const SHOW_FOR: f64 = 3.0;

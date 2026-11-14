@@ -147,7 +147,7 @@ fn poster_tex(design: usize, faded: bool, framed: bool) -> Tex {
     let (pw, ph) = ((sw * ppm).round(), (sh * ppm).round());
     let t = canvas_tex_opt(pw, ph, false, move |ctx, w, h| {
         let s = w / 504.0; // a design's units: the A2 sheet is 504 wide
-                           // the paper, yellowed
+        // the paper, yellowed
         ctx.set_fill_style(if faded { "#d9cfb2" } else { "#e2dcc7" });
         ctx.fill_rect(0, 0, w, h);
         let ink = |a: f64| format!("rgba(26,22,18,{a})");

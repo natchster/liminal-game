@@ -121,7 +121,7 @@ pub const kCTFontBoldTrait: u32 = 1 << 1;
 pub const kCFStringEncodingUTF8: u32 = 0x08000100;
 
 #[link(name = "CoreGraphics", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     pub fn CGColorSpaceCreateDeviceRGB() -> CGColorSpaceRef;
     pub fn CGColorSpaceCreateWithName(name: CFTypeRef) -> CGColorSpaceRef;
     pub static kCGColorSpaceSRGB: CFTypeRef;
@@ -204,7 +204,7 @@ extern "C" {
 }
 
 #[link(name = "CoreText", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     pub fn CTFontCreateWithName(name: CFTypeRef, size: f64, m: *const CGAffineTransform) -> CTFontRef;
     pub fn CTFontCreateCopyWithSymbolicTraits(f: CTFontRef, size: f64, m: *const CGAffineTransform, value: u32, mask: u32) -> CTFontRef;
     pub fn CTFontGetAscent(f: CTFontRef) -> f64;
@@ -220,7 +220,7 @@ extern "C" {
 }
 
 #[link(name = "CoreFoundation", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     pub fn CFStringCreateWithBytes(a: CFTypeRef, bytes: *const u8, n: isize, enc: u32, bom: bool) -> CFTypeRef;
     pub fn CFDictionaryCreate(
         a: CFTypeRef,

@@ -475,10 +475,10 @@ fn place_props_head_runtime_matches_reference() {
                 } else if let Some(pw) = phone_world {
                     g.player.pos = Vec3::new(pw.x + 1.0, 1.62, pw.z + 1.0);
                 }
-                if k == 650 {
-                    if let Some(p) = g.phone_data.as_mut() {
-                        p.ringing = true;
-                    }
+                if k == 650
+                    && let Some(p) = g.phone_data.as_mut()
+                {
+                    p.ringing = true;
                 }
                 g.perf_t = t;
                 g.run_animators(dt, t);
@@ -902,10 +902,10 @@ fn record_runtime(c: &mut Value) {
             } else if let Some(pw) = phone_world {
                 g.player.pos = Vec3::new(pw.x + 1.0, 1.62, pw.z + 1.0);
             }
-            if k == 650 {
-                if let Some(p) = g.phone_data.as_mut() {
-                    p.ringing = true;
-                }
+            if k == 650
+                && let Some(p) = g.phone_data.as_mut()
+            {
+                p.ringing = true;
             }
             g.perf_t = t;
             g.run_animators(dt, t);

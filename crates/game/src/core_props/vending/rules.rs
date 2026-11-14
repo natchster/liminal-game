@@ -10,7 +10,7 @@
 //! Everything here runs as you play: no draw from the build's stream. What
 //! varies per machine was fixed when it was built (`State::drop_on`).
 use super::model::*;
-use super::paint::{designs, paint_display, Ware, DISPLAY_CHARS};
+use super::paint::{DISPLAY_CHARS, Ware, designs, paint_display};
 use crate::prelude::*;
 
 /// How lit a powered machine's tile is at least, in the light map (its

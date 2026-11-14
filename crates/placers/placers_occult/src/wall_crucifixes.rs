@@ -81,11 +81,7 @@ fn cross_tex(salt: u32, stain: [f64; 3]) -> Tex {
                 (0.080 - x.abs()).min(0.013 - (y - 0.050).abs())
             } else {
                 let up = (0.014 - x.abs()).min(0.140 - y.abs());
-                if (y - 0.050).abs() < 0.013 {
-                    (0.080 - x.abs()).min(0.013 - (y - 0.050).abs()).max(up)
-                } else {
-                    up
-                }
+                if (y - 0.050).abs() < 0.013 { (0.080 - x.abs()).min(0.013 - (y - 0.050).abs()).max(up) } else { up }
             };
             let rub = (1.0 - sstep(0.0, 0.0035, edge)) * sstep(0.3, 0.6, fbm(seed ^ 5, along * 40.0, across * 40.0, 2));
             c = mix(c, [0.52, 0.40, 0.27], rub * 0.6);

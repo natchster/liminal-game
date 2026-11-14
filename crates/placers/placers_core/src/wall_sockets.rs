@@ -25,7 +25,7 @@ pub(crate) fn place_wall_sockets(g: &mut Game, _dist: &[i32]) {
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.008);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.008);
         let socket_height = 0.28 + rnd() * 0.15; // 0.28 - 0.43 m
-                                                 // Two tiny plug holes.
+        // Two tiny plug holes.
         let hole1 = mesh(plane_geo!(0.010, 0.020), &hole_mat);
         let hole2 = mesh(plane_geo!(0.010, 0.020), &hole_mat);
         if c.dx.abs() == 1 {

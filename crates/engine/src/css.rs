@@ -25,11 +25,7 @@ pub fn parse_css_color(s: &str) -> Option<[f64; 4]> {
         let args: Vec<&str> = lower[open + 1..close].split([',', '/', ' ']).map(|a| a.trim()).filter(|a| !a.is_empty()).collect();
         let num = |a: &str| -> Option<f64> { a.trim_end_matches('%').parse::<f64>().ok() };
         let chan = |a: &str| -> Option<f64> {
-            if a.ends_with('%') {
-                Some((num(a)? / 100.0).clamp(0.0, 1.0))
-            } else {
-                Some((num(a)? / 255.0).clamp(0.0, 1.0))
-            }
+            if a.ends_with('%') { Some((num(a)? / 100.0).clamp(0.0, 1.0)) } else { Some((num(a)? / 255.0).clamp(0.0, 1.0)) }
         };
         let alpha = |a: Option<&&str>| -> f64 {
             match a {
@@ -183,26 +179,26 @@ pub fn parse_css_font(s: &str) -> FontSpec {
             "normal" | "small-caps" | "100" | "200" | "300" | "400" | "500" | "lighter" => {}
             _ => {
                 let sz = t.split('/').next().unwrap_or("");
-                if let Some(px) = sz.strip_suffix("px") {
-                    if let Ok(v) = px.parse::<f64>() {
-                        f.size = v;
-                        seen_size = true;
-                        continue;
-                    }
+                if let Some(px) = sz.strip_suffix("px")
+                    && let Ok(v) = px.parse::<f64>()
+                {
+                    f.size = v;
+                    seen_size = true;
+                    continue;
                 }
-                if let Some(pt) = sz.strip_suffix("pt") {
-                    if let Ok(v) = pt.parse::<f64>() {
-                        f.size = v * 4.0 / 3.0;
-                        seen_size = true;
-                        continue;
-                    }
+                if let Some(pt) = sz.strip_suffix("pt")
+                    && let Ok(v) = pt.parse::<f64>()
+                {
+                    f.size = v * 4.0 / 3.0;
+                    seen_size = true;
+                    continue;
                 }
-                if let Some(em) = sz.strip_suffix("em") {
-                    if let Ok(v) = em.parse::<f64>() {
-                        f.size = v * 16.0;
-                        seen_size = true;
-                        continue;
-                    }
+                if let Some(em) = sz.strip_suffix("em")
+                    && let Ok(v) = em.parse::<f64>()
+                {
+                    f.size = v * 16.0;
+                    seen_size = true;
+                    continue;
                 }
                 rest.push(tok);
                 seen_size = true;

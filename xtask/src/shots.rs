@@ -33,9 +33,9 @@
 //!
 //! Goldens are bound to the machine that recorded them (model and macOS
 //! version in `shots.json`); elsewhere the comparison is advisory.
-use crate::look::{look_of, Look};
+use crate::look::{Look, look_of};
 use crate::{cargo, flag, opt, root, run};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -196,11 +196,7 @@ pub fn shots(args: &[String]) -> Result<(), String> {
         } else {
             failures += usize::from(binding);
             let style = format!("FAIL  outside docs/design/STYLE.md: {}", off.join(", "));
-            if look_verdict.starts_with("ok") {
-                style
-            } else {
-                format!("{look_verdict}; {style}")
-            }
+            if look_verdict.starts_with("ok") { style } else { format!("{look_verdict}; {style}") }
         };
         table.insert(s.name.clone(), (verdict, look_verdict, look));
     }
@@ -277,31 +273,31 @@ fn style_bands() -> Result<Value, String> {
 fn style_check(style: &Value, name: &str, look: &Look) -> Vec<String> {
     let mut out = vec![];
     let all = &style["all"];
-    if let Some(c) = all["colourfulness_max"].as_f64() {
-        if look.colourfulness > c {
-            out.push(format!("colourfulness {:.1} > {c} (all frames)", look.colourfulness));
-        }
+    if let Some(c) = all["colourfulness_max"].as_f64()
+        && look.colourfulness > c
+    {
+        out.push(format!("colourfulness {:.1} > {c} (all frames)", look.colourfulness));
     }
     let purpose = name.split_once("_L").and_then(|(_, rest)| rest.split_once('_')).map(|(_, p)| p.replace('_', " "));
-    if let Some(l) = style["levels"]["luminance_max"].as_f64().filter(|_| purpose.is_some()) {
-        if look.luminance > l {
-            out.push(format!("luminance {:.3} > {l} (level views)", look.luminance));
-        }
+    if let Some(l) = style["levels"]["luminance_max"].as_f64().filter(|_| purpose.is_some())
+        && look.luminance > l
+    {
+        out.push(format!("luminance {:.3} > {l} (level views)", look.luminance));
     }
     if let Some(p) = purpose.filter(|p| p != "spawn") {
         let band = &style["purposes"][&p];
         if band.is_null() {
             out.push(format!("no band for the purpose \"{p}\" (add one)"));
         }
-        if let Some(c) = band["colourfulness_max"].as_f64() {
-            if look.colourfulness > c {
-                out.push(format!("colourfulness {:.1} > {c} ({p})", look.colourfulness));
-            }
+        if let Some(c) = band["colourfulness_max"].as_f64()
+            && look.colourfulness > c
+        {
+            out.push(format!("colourfulness {:.1} > {c} ({p})", look.colourfulness));
         }
-        if let (Some(lo), Some(hi)) = (band["luminance"][0].as_f64(), band["luminance"][1].as_f64()) {
-            if look.luminance < lo || look.luminance > hi {
-                out.push(format!("luminance {:.3} outside {lo}–{hi} ({p})", look.luminance));
-            }
+        if let (Some(lo), Some(hi)) = (band["luminance"][0].as_f64(), band["luminance"][1].as_f64())
+            && (look.luminance < lo || look.luminance > hi)
+        {
+            out.push(format!("luminance {:.3} outside {lo}–{hi} ({p})", look.luminance));
         }
     }
     out

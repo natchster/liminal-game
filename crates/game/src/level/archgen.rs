@@ -1663,11 +1663,7 @@ impl Solids {
     /// the caller skips the tile
     #[inline]
     pub fn tile_of(&self, x: f64, z: f64) -> Option<usize> {
-        if x.is_nan() || z.is_nan() {
-            None
-        } else {
-            Some((z * self.w as f64 + x) as usize)
-        }
+        if x.is_nan() || z.is_nan() { None } else { Some((z * self.w as f64 + x) as usize) }
     }
 }
 
@@ -2293,11 +2289,7 @@ pub fn ray_axis(s: &Solids, u: f64, v: f64, dir: usize, max_t: f64, y: f64) -> f
         }
         st += 1.0;
     }
-    if best <= max_t {
-        best
-    } else {
-        f64::INFINITY
-    }
+    if best <= max_t { best } else { f64::INFINITY }
 }
 
 /// Per-tile ceiling heights (metres) from the zones

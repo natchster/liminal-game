@@ -376,8 +376,8 @@ fn the_smilers_eyes_shine_only_in_your_beam() {
         game::entities::smiler::eyeshine(g, ei);
         let c = g.creature(ei).unwrap();
         let m = c.body.meshes.get("eye.L").unwrap().mats()[0].clone();
-        let v = m.m().emissive_intensity;
-        v
+
+        m.m().emissive_intensity
     };
     g.player.flashlight_on = true;
     g.world.update_matrix_world(true);

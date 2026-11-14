@@ -8,7 +8,7 @@ pub(crate) fn place_bath_mats(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.94 {
         return;
     } // 6% chance
-      // Prefer tiles with an adjacent wall.
+    // Prefer tiles with an adjacent wall.
     let open_tiles = wall_tiles_first(g);
     if open_tiles.is_empty() {
         return;

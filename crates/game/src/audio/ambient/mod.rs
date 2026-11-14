@@ -357,11 +357,7 @@ impl Game {
     #[inline]
     pub(crate) fn yaw0(&self) -> f64 {
         let y = self.player.yaw;
-        if y.is_nan() {
-            0.0
-        } else {
-            y
-        }
+        if y.is_nan() { 0.0 } else { y }
     }
 
     /// Distance, stereo pan and line of sight from the player to world point
@@ -819,22 +815,14 @@ impl Game {
         // shrink (2/3 of nominal at 0%); low sanity also boosts event gains.
         let sanity_mag = {
             let s = self.player.sanity / SAN_MAX;
-            if s >= 0.30 {
-                0.0
-            } else {
-                1.0 - s / 0.30
-            }
+            if s >= 0.30 { 0.0 } else { 1.0 - s / 0.30 }
         };
         // Sanity timer shrink + descent timer shrink compose.
         let timer_mul = (1.0 / (1.0 + sanity_mag * 0.5)) * (1.0 / self.descent_boost_mul(0.15));
         // Exhaustion muffle: below 20% stamina, up to 15% quieter.
         let stam_mag = {
             let s = self.player.stamina / 100.0;
-            if s >= 0.20 {
-                0.0
-            } else {
-                1.0 - s / 0.20
-            }
+            if s >= 0.20 { 0.0 } else { 1.0 - s / 0.20 }
         };
         let stam_gain = 1.0 - stam_mag * 0.15;
         // Cry-dim audio pair: up to 25% muffle at `cry_dim_lerp` = 1.
@@ -986,12 +974,12 @@ impl Game {
             self.log_ambient(&format!("sig-{name}"), Some(s.at.x), Some(s.at.z), Some(pan));
             // a sudden sound heard as near as it carries: your asides may
             // answer the first of its kind (`audio::asides`)
-            if let Some(kind) = crate::audio::asides::startle_of(name) {
-                if hypot2(s.at.x - self.player.pos.x, s.at.z - self.player.pos.z) <= c.far {
-                    // once it has sounded
-                    let after = crate::audio::asides::startle_after(name) * 1000.0;
-                    self.aside_later(after, crate::audio::asides::Use::Startle, kind);
-                }
+            if let Some(kind) = crate::audio::asides::startle_of(name)
+                && hypot2(s.at.x - self.player.pos.x, s.at.z - self.player.pos.z) <= c.far
+            {
+                // once it has sounded
+                let after = crate::audio::asides::startle_after(name) * 1000.0;
+                self.aside_later(after, crate::audio::asides::Use::Startle, kind);
             }
         }
     }
@@ -1329,10 +1317,11 @@ impl Game {
                 // force flicker for a short interval — `update_lights` handles the visuals
                 let f = rand2(0.35, 0.9);
                 // (only the same panel: a rebuilt level's panels are not it)
-                if let Some(p) = g.panels.get_mut(i) {
-                    if p.wx == wx && p.wz == wz {
-                        p.flicker = f;
-                    }
+                if let Some(p) = g.panels.get_mut(i)
+                    && p.wx == wx
+                    && p.wz == wz
+                {
+                    p.flicker = f;
                 }
             });
         }

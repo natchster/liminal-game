@@ -51,12 +51,13 @@ impl Game {
             self.log_ambient("plant-rustle", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
         // Motion sensor click within 2 m, 5 s global cooldown
-        if !m.hushed && self.perf_t - self.motion_sensor_last_click_t > 5.0 {
-            if let Some(h) = self.prop_near(&self.pp.motion_sensor_positions, 2.0) {
-                self.noise_burst(0.02, 5000.0, 4.0, 0.008 * eg, "highpass", None, 0.0, h.pan);
-                self.motion_sensor_last_click_t = self.perf_t;
-                self.log_ambient("motion-click", Some(h.p.x), Some(h.p.z), Some(h.pan));
-            }
+        if !m.hushed
+            && self.perf_t - self.motion_sensor_last_click_t > 5.0
+            && let Some(h) = self.prop_near(&self.pp.motion_sensor_positions, 2.0)
+        {
+            self.noise_burst(0.02, 5000.0, 4.0, 0.008 * eg, "highpass", None, 0.0, h.pan);
+            self.motion_sensor_last_click_t = self.perf_t;
+            self.log_ambient("motion-click", Some(h.p.x), Some(h.p.z), Some(h.pan));
         }
     }
 

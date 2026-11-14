@@ -2,8 +2,8 @@
 //! (fixtures in `tests/fixtures/`): the maze, the grid / zone / nav queries,
 //! `gen_layout_level`, `build_regions`, `wall_adj_spot`, `biased_spawn_angle`,
 //! `pan_for_world_pos`, `level_decay` and the placer themes.
-use game::base::rng::{seeded_draws, with_seed};
 use game::Game;
+use game::base::rng::{seeded_draws, with_seed};
 use serde_json::Value;
 
 fn fixture(name: &str) -> Value {
@@ -239,22 +239,24 @@ fn rerecord_level_queries() {
             lv["bfs"].as_array().unwrap().iter().map(|b| json!({ "x": b["x"], "z": b["z"], "d": g.bfs(i(&b["x"]), i(&b["z"])) })).collect();
         lv["bfs"] = json!(bfs);
         let los = |g: &Game, rs: Vec<Vec<Value>>| -> Value {
-            json!(rs
-                .into_iter()
-                .map(|mut r| {
-                    r[4] = json!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])));
-                    r
-                })
-                .collect::<Vec<_>>())
+            json!(
+                rs.into_iter()
+                    .map(|mut r| {
+                        r[4] = json!(g.los(f(&r[0]), f(&r[1]), f(&r[2]), f(&r[3])));
+                        r
+                    })
+                    .collect::<Vec<_>>()
+            )
         };
         let circ = |g: &Game, rs: Vec<Vec<Value>>| -> Value {
-            json!(rs
-                .into_iter()
-                .map(|mut r| {
-                    r[3] = json!(g.circle_hits_wall(f(&r[0]), f(&r[1]), f(&r[2])));
-                    r
-                })
-                .collect::<Vec<_>>())
+            json!(
+                rs.into_iter()
+                    .map(|mut r| {
+                        r[3] = json!(g.circle_hits_wall(f(&r[0]), f(&r[1]), f(&r[2])));
+                        r
+                    })
+                    .collect::<Vec<_>>()
+            )
         };
         lv["los"] = los(&g, rows(lv, "los"));
         lv["circle"] = circ(&g, rows(lv, "circle"));

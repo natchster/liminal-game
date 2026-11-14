@@ -57,14 +57,15 @@ impl Game {
     /// has nothing more to give (a wander goal reached, or no way down)
     pub fn entity_aim(&mut self, ei: usize, field: Option<&Rc<Vec<i32>>>, direct: Option<Vec3>) -> bool {
         let pos = self.entities[ei].pos();
-        if let Some(d) = direct {
-            if hypot2(d.x - pos.x, d.z - pos.z) < 14.0 && self.line_walkable(pos.x, pos.z, d.x, d.z, ENT_R) {
-                let e = &mut self.entities[ei];
-                e.set_n("aimX", d.x);
-                e.set_n("aimZ", d.z);
-                e.set_fl("aimFinal", true);
-                return true;
-            }
+        if let Some(d) = direct
+            && hypot2(d.x - pos.x, d.z - pos.z) < 14.0
+            && self.line_walkable(pos.x, pos.z, d.x, d.z, ENT_R)
+        {
+            let e = &mut self.entities[ei];
+            e.set_n("aimX", d.x);
+            e.set_n("aimZ", d.z);
+            e.set_fl("aimFinal", true);
+            return true;
         }
         let (cx, cz) = self.e_nav_tile_at(pos.x, pos.z);
         if fld(field, self.t_idx(cx, cz)).map(|v| v <= 0).unwrap_or(false) {
@@ -90,12 +91,13 @@ impl Game {
                 if dx != 0 && dz != 0 && (self.is_wall_tile(x + dx, z) || self.is_wall_tile(x, z + dz)) {
                     continue;
                 }
-                if let Some(nd) = fld(field, self.t_idx(nx, nz)) {
-                    if nd >= 0 && nd < bd {
-                        bd = nd;
-                        bx = nx;
-                        bz = nz;
-                    }
+                if let Some(nd) = fld(field, self.t_idx(nx, nz))
+                    && nd >= 0
+                    && nd < bd
+                {
+                    bd = nd;
+                    bx = nx;
+                    bz = nz;
                 }
             }
             if bx < 0 {
@@ -167,13 +169,14 @@ impl Game {
             e.set_n("aimT", v);
         }
         let aim_ok = self.entities[ei].fl("aimOk");
-        if let Some(d) = direct {
-            if aim_ok && self.entities[ei].fl("aimFinal") {
-                // it keeps after you between re-aims
-                let e = &mut self.entities[ei];
-                e.set_n("aimX", d.x);
-                e.set_n("aimZ", d.z);
-            }
+        if let Some(d) = direct
+            && aim_ok
+            && self.entities[ei].fl("aimFinal")
+        {
+            // it keeps after you between re-aims
+            let e = &mut self.entities[ei];
+            e.set_n("aimX", d.x);
+            e.set_n("aimZ", d.z);
         }
         self.entity_drive(ei, dt, if aim_ok { speed } else { 0.0 });
         !aim_ok && direct.is_none()

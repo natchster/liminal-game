@@ -7,9 +7,9 @@
 //! child after `settle_props`, `settle_placement`, the architecture meshes,
 //! `lay_panels` and instancing.
 use engine::prelude::*;
-use game::base::rng::{rnd, seeded_draws, with_seed};
 use game::Game;
-use serde_json::{json, Value};
+use game::base::rng::{rnd, seeded_draws, with_seed};
+use serde_json::{Value, json};
 use std::cell::RefCell;
 
 fn fixture(name: &str) -> Value {
@@ -474,11 +474,7 @@ fn fixture_path(name: &str) -> std::path::PathBuf {
 }
 /// A JSON number, or null for NaN / infinities
 fn jf(v: f64) -> Value {
-    if v.is_finite() {
-        json!(v)
-    } else {
-        Value::Null
-    }
+    if v.is_finite() { json!(v) } else { Value::Null }
 }
 
 /// One `world_build.json` record of a built level

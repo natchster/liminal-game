@@ -33,7 +33,7 @@
 //! metre. The Building has no corners from the map (`corner_occlusion`), so
 //! its B was free (its ceilings, open to the sky, all read `CEIL_MAX`).
 use crate::base::config::CELL;
-use crate::level::archgen::{Solids, BOX_ANCHOR, BOX_ANGLED, BOX_JAMB, BOX_PILLAR, BOX_WALL};
+use crate::level::archgen::{BOX_ANCHOR, BOX_ANGLED, BOX_JAMB, BOX_PILLAR, BOX_WALL, Solids};
 
 /// Texels of the light map a tile (4 m): 0.5 m each
 pub const FINE: usize = 8;
@@ -194,15 +194,8 @@ pub fn shape_channels(w: i32, h: i32, tile_ceil: &[f32], solids: Option<&Solids>
             let o = (j * wf + i) * 3;
             out[o] = (d / REACH * 255.0).round().clamp(0.0, 255.0) as u8;
             let floor = floors.get(j * wf + i).copied().unwrap_or(0);
-            out[o + 1] = if gaps {
-                if floor > 0 {
-                    255
-                } else {
-                    0
-                }
-            } else {
-                (ceil_of(tx, tz) / CEIL_MAX * 255.0).round().clamp(0.0, 255.0) as u8
-            };
+            out[o + 1] =
+                if gaps { if floor > 0 { 255 } else { 0 } } else { (ceil_of(tx, tz) / CEIL_MAX * 255.0).round().clamp(0.0, 255.0) as u8 };
             out[o + 2] = floor;
         }
     }

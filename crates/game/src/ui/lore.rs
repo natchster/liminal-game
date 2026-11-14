@@ -62,10 +62,11 @@ impl Game {
         }
         for k in 0..self.lore_notes.len() {
             let id = self.lore_notes[k].id;
-            if self.lore_found.contains(&id) && self.lore_entry_scp(id).is_none() {
-                if let Some(new) = unread.pop() {
-                    self.lore_notes[k].id = new;
-                }
+            if self.lore_found.contains(&id)
+                && self.lore_entry_scp(id).is_none()
+                && let Some(new) = unread.pop()
+            {
+                self.lore_notes[k].id = new;
             }
             let (id, g) = (self.lore_notes[k].id, self.lore_notes[k].g.clone());
             if self.lore_found.contains(&id) {

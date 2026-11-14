@@ -16,7 +16,7 @@
 //! - `session` (SessionStart after compaction): re-injects where the work
 //!   stands — recent commits, uncommitted files, the roadmap's progress table.
 use crate::root;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::hash::{Hash, Hasher};
 use std::io::Read;
 use std::path::{Component, Path, PathBuf};

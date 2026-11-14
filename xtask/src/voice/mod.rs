@@ -173,11 +173,7 @@ impl Report {
         self.failed += 1;
     }
     fn check(&mut self, ok: bool, what: &str) {
-        if ok {
-            self.ok(what)
-        } else {
-            self.fail(what)
-        }
+        if ok { self.ok(what) } else { self.fail(what) }
     }
 }
 
@@ -541,10 +537,10 @@ pub fn check_sources() -> Vec<String> {
         }
         let voice = t.get("voice").and_then(|v| v.as_table());
         for (k, can) in [("design_model", DESIGNERS), ("line_model", SPEAKERS)] {
-            if let Some(m) = voice.and_then(|v| s(v, k)) {
-                if !synth.contains(&m) || !can.contains(&m.as_str()) {
-                    problems.push(format!("{what}: voice.{k} {m} is not one of {can:?}"));
-                }
+            if let Some(m) = voice.and_then(|v| s(v, k))
+                && (!synth.contains(&m) || !can.contains(&m.as_str()))
+            {
+                problems.push(format!("{what}: voice.{k} {m} is not one of {can:?}"));
             }
         }
         let targets = t.get("targets").and_then(|v| v.as_table());
@@ -577,10 +573,10 @@ pub fn check_sources() -> Vec<String> {
                 continue;
             };
             check_fields(r, REFERENCE, &what, &mut problems);
-            if let Some(m) = s(r, "model") {
-                if !synth.contains(&m) || !CLONERS.contains(&m.as_str()) {
-                    problems.push(format!("{what}: model {m} is not one of {CLONERS:?} (it clones the persona's voice)"));
-                }
+            if let Some(m) = s(r, "model")
+                && (!synth.contains(&m) || !CLONERS.contains(&m.as_str()))
+            {
+                problems.push(format!("{what}: model {m} is not one of {CLONERS:?} (it clones the persona's voice)"));
             }
         }
         emotions_of.insert(stem.clone(), emotions);
@@ -624,18 +620,18 @@ pub fn check_sources() -> Vec<String> {
             if !ids.insert(id.clone()) {
                 problems.push(format!("{what}: a second line with this id"));
             }
-            if let Some(e) = s(l, "emotion") {
-                if !emotions.contains(&e) {
-                    problems.push(format!("{what}: emotion {e} is not one of the persona's ({})", emotions.join(", ")));
-                }
+            if let Some(e) = s(l, "emotion")
+                && !emotions.contains(&e)
+            {
+                problems.push(format!("{what}: emotion {e} is not one of the persona's ({})", emotions.join(", ")));
             }
             if !(0.0..=1.0).contains(&num(l.get("intensity"))) {
                 problems.push(format!("{what}: intensity is 0 to 1"));
             }
-            if let Some(u) = s(l, "use") {
-                if !USES.contains(&u.as_str()) {
-                    problems.push(format!("{what}: use {u} is not one the game plays ({USES:?})"));
-                }
+            if let Some(u) = s(l, "use")
+                && !USES.contains(&u.as_str())
+            {
+                problems.push(format!("{what}: use {u} is not one the game plays ({USES:?})"));
             }
             let lv: Vec<i64> =
                 l.get("levels").and_then(|v| v.as_array()).map(|a| a.iter().filter_map(|x| x.as_integer()).collect()).unwrap_or_default();

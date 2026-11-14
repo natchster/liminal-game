@@ -84,15 +84,7 @@ pub(crate) fn place_wall_handprints(g: &mut Game, _dist: &[i32]) {
     let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.015);
     let hand_height = if is_downward { 0.7 + rnd() * 0.4 } else { 1.1 + rnd() * 0.6 };
     let wall_y = if c.dz > 0 { PI } else { 0.0 };
-    let rot_y = if c.dx.abs() == 1 {
-        if c.dx > 0 {
-            -PI / 2.0
-        } else {
-            PI / 2.0
-        }
-    } else {
-        wall_y
-    };
+    let rot_y = if c.dx.abs() == 1 { if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 } } else { wall_y };
     let (wall_tx, wall_tz) = (c.x + c.dx, c.z + c.dz);
     let mut min_j = -CELL * 0.42;
     let mut max_j = CELL * 0.42;

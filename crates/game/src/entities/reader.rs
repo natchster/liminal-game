@@ -24,10 +24,10 @@
 //!   its stoop over the sheet is the rest pose; its eyes are on bones of
 //!   their own and read the page, line by line.
 use crate::base::numeric::hypot2;
-use crate::entities::body::{two_bone, BodyRig};
+use crate::entities::body::{BodyRig, two_bone};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{with_skin_detail, wrap_pi, EntVoice};
+use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -155,11 +155,11 @@ fn take_paper(g: &mut Game, ei: usize, what: Paper, x: f64, z: f64) {
                 .enumerate()
                 .map(|(i, m)| (i, hypot2(m.world_x - x, m.world_z - z)))
                 .min_by(|a, b| a.1.total_cmp(&b.1));
-            if let Some((i, d)) = near {
-                if d < 0.5 {
-                    let m = g.paper_markers.remove(i);
-                    g.world.remove(&m.mesh);
-                }
+            if let Some((i, d)) = near
+                && d < 0.5
+            {
+                let m = g.paper_markers.remove(i);
+                g.world.remove(&m.mesh);
             }
         }
         Paper::Pile(i) => {
@@ -272,24 +272,25 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
     let relaxed = g.director.phase == crate::entities::director::Phase::Relax || matches!(order, Order::Away(_));
     let range = SIGHT * if relaxed { 0.6 } else { 1.0 };
     // ---- the compulsion: a sheet on the floor near it, whatever it was doing
-    if mode != Mode::Read && !(mode == Mode::Strike && mode_t >= WINDUP) {
-        if let Some((what, x, z)) = paper_near(g, ei) {
-            let c = g.creature_mut(ei).unwrap();
-            c.ease.insert("paper_x", x);
-            c.ease.insert("paper_z", z);
-            c.ease.insert("paper_pile", if let Paper::Pile(i) = what { i as f64 + 1.0 } else { 0.0 });
-            c.ease.insert("read_stage", 0.0);
-            c.ease.insert("was_after_you", if mode.after_you() { 1.0 } else { 0.0 });
-            let e = &mut g.entities[ei];
-            e.vx = 0.0;
-            e.vz = 0.0;
-            set(g, ei, Mode::Read, "a sheet on the floor");
-            // a sheet dropped while it was after you: you escaped it with paper
-            if mode.after_you() {
-                g.creature_habit("reader");
-            }
-            return;
+    if mode != Mode::Read
+        && !(mode == Mode::Strike && mode_t >= WINDUP)
+        && let Some((what, x, z)) = paper_near(g, ei)
+    {
+        let c = g.creature_mut(ei).unwrap();
+        c.ease.insert("paper_x", x);
+        c.ease.insert("paper_z", z);
+        c.ease.insert("paper_pile", if let Paper::Pile(i) = what { i as f64 + 1.0 } else { 0.0 });
+        c.ease.insert("read_stage", 0.0);
+        c.ease.insert("was_after_you", if mode.after_you() { 1.0 } else { 0.0 });
+        let e = &mut g.entities[ei];
+        e.vx = 0.0;
+        e.vz = 0.0;
+        set(g, ei, Mode::Read, "a sheet on the floor");
+        // a sheet dropped while it was after you: you escaped it with paper
+        if mode.after_you() {
+            g.creature_habit("reader");
         }
+        return;
     }
     // ---- its eyes: over the page, only what is lit or moves; and touch
     let lit = p.lamp || p.you_lit > LIT;
@@ -426,12 +427,12 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 look_up(g, ei);
                 return;
             }
-            if let Order::Seek(x, z) = order {
-                if now - g.creature(ei).unwrap().get("hint_t") > HINT_EVERY {
-                    hint(g, ei, x, z);
-                    set(g, ei, Mode::Search, "told again where you are");
-                    return;
-                }
+            if let Order::Seek(x, z) = order
+                && now - g.creature(ei).unwrap().get("hint_t") > HINT_EVERY
+            {
+                hint(g, ei, x, z);
+                set(g, ei, Mode::Search, "told again where you are");
+                return;
             }
             let goal = g.creature(ei).unwrap().brain.goal.or(last_seen);
             let at = goal.map(|(x, z)| hypot2(x - pos.x, z - pos.z) < 1.5).unwrap_or(true);
@@ -628,10 +629,11 @@ pub fn place(g: &mut Game) -> Option<usize> {
                 if from_start[i] < 18 {
                     continue;
                 }
-                if let Some(fc) = &from_camp {
-                    if fc[i] >= 0 && fc[i] < 5 {
-                        continue;
-                    }
+                if let Some(fc) = &from_camp
+                    && fc[i] >= 0
+                    && fc[i] < 5
+                {
+                    continue;
                 }
                 let office = g.zone_purpose_at(x, z).map(|p| p.label == "office wing").unwrap_or(false);
                 let score = if office { 3.0 } else { 0.0 } - (dx.abs() + dz.abs()) as f64 * 0.2

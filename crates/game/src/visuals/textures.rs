@@ -21,11 +21,7 @@ use std::f64::consts::PI;
 /// (`ceil(n)`, 0 when `n` ≤ 0 or NaN).
 #[inline]
 fn times(n: f64) -> u64 {
-    if n > 0.0 {
-        n.ceil() as u64
-    } else {
-        0
-    }
+    if n > 0.0 { n.ceil() as u64 } else { 0 }
 }
 
 // ============================================================================

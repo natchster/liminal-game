@@ -1,9 +1,9 @@
 //! `place_wall_pipe_leaks`
 use game::prelude::*;
+use placers_kit::noise::Rng32;
 use placers_kit::noise::fbm;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::noise::Rng32;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
 use placers_kit::paint::mark_mat;

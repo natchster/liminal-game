@@ -22,8 +22,8 @@
 use engine::material::Patch;
 use engine::prelude::*;
 use engine::scene::Kind;
-use game::base::state::PlacerFn;
 use game::Game;
+use game::base::state::PlacerFn;
 use std::collections::HashMap;
 use std::fmt::Write as _;
 

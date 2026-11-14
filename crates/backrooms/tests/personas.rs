@@ -17,9 +17,9 @@
 //!   cargo test --release -p backrooms --test personas -- --nocapture
 //!
 //! writes `target/personas/report.md` and the explorer heatmaps.
+use game::Game;
 use game::base::config::PLAYER_R;
 use game::entities::director::Phase;
-use game::Game;
 use std::collections::VecDeque;
 
 /// (run seed, level): a maze level, a deeper one, an anomaly level.
@@ -166,7 +166,7 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
                 }
             }
         }
-        best.map(|b| (g.wx(b.0 .0), g.wz(b.0 .1)))
+        best.map(|b| (g.wx(b.0.0), g.wz(b.0.1)))
     };
     let mut run = Run {
         persona,
@@ -226,13 +226,13 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
                     .unwrap_or_default(),
             };
         }
-        if persona == Persona::Rusher {
-            if let Some(e) = exit.filter(|e| ((e.0 - px).powi(2) + (e.1 - pz).powi(2)).sqrt() < 2.5) {
-                let _ = e;
-                run.reached_exit = Some(t);
-                g.try_interact();
-                break;
-            }
+        if persona == Persona::Rusher
+            && let Some(e) = exit.filter(|e| ((e.0 - px).powi(2) + (e.1 - pz).powi(2)).sqrt() < 2.5)
+        {
+            let _ = e;
+            run.reached_exit = Some(t);
+            g.try_interact();
+            break;
         }
         let arrived = path.len() < 2;
         if persona == Persona::Hider && arrived {
@@ -277,24 +277,23 @@ fn play(persona: Persona, seed: u32, level: i32) -> Run {
         g.fixed_step_dt = 0.0;
         if std::env::var("PERSONA_TRACE").map(|v| v == format!("{persona:?}:{seed}")).unwrap_or(false)
             && (t * 60.0).round() as i64 % 30 == 0
+            && let Some(si) = g.director.stalker
         {
-            if let Some(si) = g.director.stalker {
-                let p = g.perceive(si);
-                let m = g.creature(si).map(|c| c.brain.mode.name()).unwrap_or("old");
-                println!(
-                    "  t {t:5.0} {} {m:8} d {:5.1} path {:5.1} line {} view {} you_lit {:.2} lamp {} phase {:?} push {} nerve {:.0}",
-                    g.entities[si].kind,
-                    p.dist,
-                    p.path,
-                    p.line,
-                    p.in_view,
-                    p.you_lit,
-                    p.lamp,
-                    g.director.phase,
-                    g.director.final_push,
-                    g.player.sanity
-                );
-            }
+            let p = g.perceive(si);
+            let m = g.creature(si).map(|c| c.brain.mode.name()).unwrap_or("old");
+            println!(
+                "  t {t:5.0} {} {m:8} d {:5.1} path {:5.1} line {} view {} you_lit {:.2} lamp {} phase {:?} push {} nerve {:.0}",
+                g.entities[si].kind,
+                p.dist,
+                p.path,
+                p.line,
+                p.in_view,
+                p.you_lit,
+                p.lamp,
+                g.director.phase,
+                g.director.final_push,
+                g.player.sanity
+            );
         }
         t += 1.0 / 60.0;
         // oracles
@@ -454,7 +453,9 @@ fn personas_play_and_the_fear_has_a_shape() {
         }
     }
     let mut problems = vec![];
-    let mut report = String::from("# Persona runs\n\n| Run | Ended | Coverage | Stuck (max s) | Peaks | Longest peak | Shortest relief | Cues | Same cue in a row | Cues then a peak | Stings | Notices |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n");
+    let mut report = String::from(
+        "# Persona runs\n\n| Run | Ended | Coverage | Stuck (max s) | Peaks | Longest peak | Shortest relief | Cues | Same cue in a row | Cues then a peak | Stings | Notices |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n",
+    );
     let (mut all_cues, mut all_cue_peaks) = (0, 0);
     for r in &runs {
         let s = shape(&r.log, r.end_t);

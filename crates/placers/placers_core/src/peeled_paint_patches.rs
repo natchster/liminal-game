@@ -1,10 +1,10 @@
 //! `place_peeled_paint_patches`
 use game::prelude::*;
+use placers_kit::noise::Rng32;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::noise::Rng32;
 use placers_kit::paint::decal_tex;
 use placers_kit::paint::lay;
 use placers_kit::paint::mark_mat;
@@ -113,11 +113,7 @@ impl Flakes {
     /// Whether a cell (its point at `c`, its hash `h`) has lost its paint
     pub fn cell_gone(&self, c: (f64, f64), h: f64) -> bool {
         let e = self.env(c.0, c.1);
-        if self.painted {
-            h < 0.9 * sstep(0.06, 0.5, e)
-        } else {
-            h >= 0.97 * sstep(0.0, 0.2, e)
-        }
+        if self.painted { h < 0.9 * sstep(0.06, 0.5, e) } else { h >= 0.97 * sstep(0.0, 0.2, e) }
     }
 
     /// The nearest cell point to `q` on a grid of `cell` (each cell's point

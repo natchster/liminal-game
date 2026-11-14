@@ -9,8 +9,8 @@ use placers_kit::noise::tide;
 use placers_kit::noise::vn;
 use placers_kit::place::open_tiles;
 use placers_kit::place::scatter;
-use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
+use placers_kit::wet_floor::floor_kind;
 
 // Water puddle: 8% chance per level. Where a drip from the ceiling
 // lands, and has gone on landing (`docs/research/props-remodelling/floor_marks_and_dust.md`):

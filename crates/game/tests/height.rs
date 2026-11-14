@@ -2,7 +2,7 @@
 //! heights, a flight of stairs between them, voids you cannot enter but see
 //! across, slabs you see no further through, on a small hand-made floor of
 //! the Building (`Game::test_ground_level`).
-use game::level::archgen::{build_ground_solids, ground_breaks, segment_clear, segment_clear_3d, Ground, BOX_VOID};
+use game::level::archgen::{BOX_VOID, Ground, build_ground_solids, ground_breaks, segment_clear, segment_clear_3d};
 use game::prelude::*;
 
 const DT: f64 = 1.0 / 60.0;

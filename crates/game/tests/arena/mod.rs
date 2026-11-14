@@ -103,11 +103,7 @@ pub fn room_lit(n: i32, light: impl Fn(i32, i32) -> f64, wall: impl Fn(i32, i32)
     g.tiles = (0..n * n)
         .map(|i| {
             let (x, z) = (i % n, i / n);
-            if x == 0 || z == 0 || x == n - 1 || z == n - 1 || wall(x, z) {
-                1
-            } else {
-                0
-            }
+            if x == 0 || z == 0 || x == n - 1 || z == n - 1 || wall(x, z) { 1 } else { 0 }
         })
         .collect();
     g.tile_ceil = vec![3.0; (n * n) as usize];

@@ -10,10 +10,10 @@
 //!   cargo test --release -p backrooms --test visual_tour -- --nocapture   # stands and views per floor
 mod common;
 
-use game::debug::sight::FLAG_PX;
-use game::debug::tour::{TourOpts, BODY};
-use game::prelude::{CROUCH_EYE, EYE};
 use game::Game;
+use game::debug::sight::FLAG_PX;
+use game::debug::tour::{BODY, TourOpts};
+use game::prelude::{CROUCH_EYE, EYE};
 
 fn floor(seed: u32, level: i32) -> Game {
     game::base::rng::seed_native((u64::from(seed) << 8) | level as u64);

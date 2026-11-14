@@ -9,8 +9,8 @@
 //! The rooms' passes (purposes and their placers, settling, walls,
 //! ceilings) do not run here: the Building's floors are empty.
 use crate::base::records::*;
-use crate::level::archgen::{Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, SLAB};
-use crate::level::building::{generate_building, BuildingPlan, Style, MASS_TOP, PLAT, VOID_DEPTH};
+use crate::level::archgen::{DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, Ground, SLAB};
+use crate::level::building::{BuildingPlan, MASS_TOP, PLAT, Style, VOID_DEPTH, generate_building};
 use crate::prelude::*;
 
 /// A step's rise at most, metres
@@ -252,11 +252,7 @@ impl Game {
                         // still lie in no step's
                         let (ax, az) = (-fz, fx);
                         let short = |k: i32| {
-                            if self.ground_at(x + ax as i32 * k, z + az as i32 * k).kind == GROUND_VOID {
-                                STEP_SHORT
-                            } else {
-                                0.0
-                            }
+                            if self.ground_at(x + ax as i32 * k, z + az as i32 * k).kind == GROUND_VOID { STEP_SHORT } else { 0.0 }
                         };
                         let (sp, sn) = (short(1), short(-1));
                         let across = CELL - sp - sn;

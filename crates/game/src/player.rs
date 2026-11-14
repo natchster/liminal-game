@@ -592,7 +592,7 @@ impl Game {
         }
         let (ppx, ppz) = (self.player.pos.x, self.player.pos.z);
         v.timer -= dt; // pick timer (next heading change)
-                       // Tick down follow/stun timers.
+        // Tick down follow/stun timers.
         if v.follow_t > 0.0 {
             v.follow_t -= dt;
         }
@@ -708,17 +708,17 @@ impl Game {
         set(v, "spinPhase", fv(v, "spinPhase") + dt * 6.0);
         // Home-LED colour swap: green when idle, yellow while chasing; blinks
         // slowly during chase so it reads as "active".
-        if let Some(btn) = v.objs.get("homeBtn") {
-            if let Some(m) = btn.try_mat() {
-                if fv(v, "chaseT") > 0.0 {
-                    let blink = 0.5 + 0.5 * (fv(v, "spinPhase") * 1.5).sin();
-                    let r = 0.75 + blink * 0.25;
-                    let g_ch = 0.45 + blink * 0.30;
-                    let b_ch = 0.10;
-                    m.m().color.set_rgb(r, g_ch, b_ch);
-                } else {
-                    m.m().color.set_hex(0x60ff90);
-                }
+        if let Some(btn) = v.objs.get("homeBtn")
+            && let Some(m) = btn.try_mat()
+        {
+            if fv(v, "chaseT") > 0.0 {
+                let blink = 0.5 + 0.5 * (fv(v, "spinPhase") * 1.5).sin();
+                let r = 0.75 + blink * 0.25;
+                let g_ch = 0.45 + blink * 0.30;
+                let b_ch = 0.10;
+                m.m().color.set_rgb(r, g_ch, b_ch);
+            } else {
+                m.m().color.set_hex(0x60ff90);
             }
         }
         // hum volume ramps with proximity (soothing, never overpowering)
@@ -1205,11 +1205,14 @@ impl Game {
         if in_pool {
             self.sfx_splash(false);
         } else if !crouch {
-            if let Some(s) = self.soundscape() {
-                let surf = self.floor_surface_at(self.player.pos.x, self.player.pos.z);
-                s.footstep(surf, if sprinting { 1.0 } else { 0.62 }, None);
-            } else {
-                self.sfx_step(sprinting);
+            match self.soundscape() {
+                Some(s) => {
+                    let surf = self.floor_surface_at(self.player.pos.x, self.player.pos.z);
+                    s.footstep(surf, if sprinting { 1.0 } else { 0.62 }, None);
+                }
+                _ => {
+                    self.sfx_step(sprinting);
+                }
             }
         }
         // Crouch footstep: very quiet drag/shuffle noise on each crouched step
@@ -1218,19 +1221,19 @@ impl Game {
             let crouch_step_freq = wpick(crouch_step_freq_by_weather, wk);
             self.noise_burst(0.06, crouch_step_freq, 0.6, crouch_step_gain, "lowpass", None, 0.0, 0.0);
             // Crouch dust puff (derelict only)
-            if wk == "derelict" {
-                if let Some(i) = self.free_scuff() {
-                    let s = self.scuffs[i].obj.clone();
-                    s.mat().m().color.set_hex(0xa08060);
-                    let x = self.player.pos.x + rand2(-0.10, 0.10);
-                    let z = self.player.pos.z + rand2(-0.10, 0.10);
-                    s.position().set(x, 0.08, z);
-                    s.set_visible(true);
-                    s.mat().set_opacity(0.20);
-                    s.scale().set_scalar(0.15);
-                    self.scuffs[i].t = 0.5;
-                    self.crouch_fx_tally.derelict += 1.0;
-                }
+            if wk == "derelict"
+                && let Some(i) = self.free_scuff()
+            {
+                let s = self.scuffs[i].obj.clone();
+                s.mat().m().color.set_hex(0xa08060);
+                let x = self.player.pos.x + rand2(-0.10, 0.10);
+                let z = self.player.pos.z + rand2(-0.10, 0.10);
+                s.position().set(x, 0.08, z);
+                s.set_visible(true);
+                s.mat().set_opacity(0.20);
+                s.scale().set_scalar(0.15);
+                self.scuffs[i].t = 0.5;
+                self.crouch_fx_tally.derelict += 1.0;
             }
             // Crouch wet ripple
             if wk == "wet" {

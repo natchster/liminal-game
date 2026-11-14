@@ -2,12 +2,12 @@
 //! window is a real one, cut into a real wall, with its lamp's light on the
 //! floor): one test a line of its design, read back from its brain's log.
 mod common;
+use game::Game;
 use game::core_props::window::Blind;
 use game::entities::brain::{Mode, Order};
 use game::entities::director::Phase;
 use game::entities::glass::{self, AT_GLASS, COME, LAMP_LIGHT, LOSES, NOTICE, PRESS_T, REST, STARE_DRAIN, THROUGH_T, WALK};
 use game::prelude::*;
-use game::Game;
 use std::f64::consts::PI;
 
 const DT: f64 = 1.0 / 60.0;

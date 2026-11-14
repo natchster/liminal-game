@@ -83,11 +83,7 @@ pub fn percent_decode(s: &str) -> String {
 /// The number, or 0 when it is NaN (unset)
 #[inline]
 pub(crate) fn or0(v: f64) -> f64 {
-    if v.is_nan() {
-        0.0
-    } else {
-        v
-    }
+    if v.is_nan() { 0.0 } else { v }
 }
 /// A number as a flag: true unless it is 0 or NaN
 #[inline]
@@ -159,11 +155,7 @@ impl Game {
         }
         let k = crate::level::scp::scp_for_level(self.run_seed, n)?;
         // a forced anomaly is not also met on its planned level
-        if forced.iter().any(|e| e.1 == k) {
-            None
-        } else {
-            Some(k.to_string())
-        }
+        if forced.iter().any(|e| e.1 == k) { None } else { Some(k.to_string()) }
     }
 
     pub fn show_omen(&mut self, text: &str, delay: f64, dur: f64) {
@@ -303,10 +295,13 @@ impl Game {
                 if c.x1 - c.x0 < 1 || c.z1 - c.z0 < 1 {
                     continue;
                 } // a sliver: leave it as aisle
-                if let Some(ex) = ex {
-                    if ex.0 >= c.x0 - 1 && ex.0 <= c.x1 + 1 && ex.1 >= c.z0 - 1 && ex.1 <= c.z1 + 1 {
-                        continue;
-                    }
+                if let Some(ex) = ex
+                    && ex.0 >= c.x0 - 1
+                    && ex.0 <= c.x1 + 1
+                    && ex.1 >= c.z0 - 1
+                    && ex.1 <= c.z1 + 1
+                {
+                    continue;
                 } // keep the way out clear
                 let theme = pick_theme();
                 let cx = (self.wx(c.x0) + self.wx(c.x1)) / 2.0;
@@ -360,16 +355,16 @@ impl Game {
                             front: h.front,
                         });
                     }
-                    if let Some(what) = main_what(p.name) {
-                        if rnd() < 0.6 {
-                            let name = store_kit::product_name(&mut || rnd());
-                            let price = format!("{}.–", irand(2, 99) * 10 - 1);
-                            let t = kit.price_tag(&TagText { name, what: what.to_string(), price });
-                            let (qx, qz) = at(p.x + 0.9, p.z + 1.0);
-                            t.position().set(qx, 0, qz);
-                            t.rotation().y = yaw;
-                            self.world.add(&t);
-                        }
+                    if let Some(what) = main_what(p.name)
+                        && rnd() < 0.6
+                    {
+                        let name = store_kit::product_name(&mut || rnd());
+                        let price = format!("{}.–", irand(2, 99) * 10 - 1);
+                        let t = kit.price_tag(&TagText { name, what: what.to_string(), price });
+                        let (qx, qz) = at(p.x + 0.9, p.z + 1.0);
+                        t.position().set(qx, 0, qz);
+                        t.rotation().y = yaw;
+                        self.world.add(&t);
                     }
                 }
                 // a department sign hung from the slab over the front of the set
@@ -735,11 +730,7 @@ impl Game {
         if scp.as_deref() == Some("loop") {
             return self.enter_loop();
         }
-        if to_stairs {
-            self.enter_stairwell()
-        } else {
-            self.next_level()
-        }
+        if to_stairs { self.enter_stairwell() } else { self.next_level() }
     }
     pub fn update_scp(&mut self, dt: f64) {
         match self.level_scp.as_deref() {

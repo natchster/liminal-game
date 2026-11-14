@@ -31,8 +31,8 @@ mod arena;
 use arena::*;
 use game::base::numeric::hypot2;
 use game::base::rng::seed_native;
-use game::entities::brain::Mode;
 use game::entities::EntityNav;
+use game::entities::brain::Mode;
 use game::prelude::*;
 
 const DT: f64 = 1.0 / 30.0;
@@ -134,11 +134,7 @@ fn smiler_light(x: i32, z: i32) -> f64 {
     let bright = ((9..=11).contains(&x) && (9..=11).contains(&z))
         || ((15..=19).contains(&x) && (1..=4).contains(&z))
         || ((1..=4).contains(&x) && (15..=19).contains(&z));
-    if bright {
-        0.8
-    } else {
-        0.08
-    }
+    if bright { 0.8 } else { 0.08 }
 }
 
 /// A 21 × 21 room (84 m) with pillars, lit for `kind`: the Hound's evenly,
@@ -254,11 +250,7 @@ fn trial(kind: &str, setup: Setup, seed: u64) -> Outcome {
         let gait = if !counter {
             // the naive: walk; when it comes (as far as you can tell: the
             // Watcher gives no sign but a ring close by), run for it
-            if h.hunting && kind != "watcher" {
-                Gait::Run
-            } else {
-                Gait::Walk
-            }
+            if h.hunting && kind != "watcher" { Gait::Run } else { Gait::Walk }
         } else {
             match kind {
                 "hound" => hound_counter(&h, stamina),
@@ -414,11 +406,7 @@ fn trial(kind: &str, setup: Setup, seed: u64) -> Outcome {
 fn hound_counter(h: &Heard, stamina: f64) -> Gait {
     if h.growling || (h.hunting && h.moving && h.d < 10.0) {
         // a spring coming, or a charge at you: get out of its line
-        if stamina > 25.0 {
-            Gait::Run
-        } else {
-            Gait::Walk
-        }
+        if stamina > 25.0 { Gait::Run } else { Gait::Walk }
     } else if !h.moving {
         // it has stopped to listen: within a crouch's reach of its
         // ears freeze; within a step's, creep away; else walk

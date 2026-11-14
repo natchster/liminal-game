@@ -9,7 +9,7 @@
 /// Runs a core prop step and tags what it added with its kind
 /// (`Game::tag_kind`: for the prop census; no draw, nothing recorded)
 macro_rules! kind {
-    ($g:expr, $kind:expr, $step:expr) => {{
+    ($g:expr_2021, $kind:expr_2021, $step:expr_2021) => {{
         let c0 = $g.world.child_count();
         let r = $step;
         $g.tag_kind(c0, $kind);
@@ -28,7 +28,7 @@ pub mod window;
 
 use crate::base::records::*;
 use crate::prelude::*;
-use crate::visuals::textures::{handwritten_tex, text_tex, HandOpts, TextTexOpts};
+use crate::visuals::textures::{HandOpts, TextTexOpts, handwritten_tex, text_tex};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -84,10 +84,10 @@ impl PropsCtx {
     pub fn take(&mut self, filter: Option<&dyn Fn(&Cand) -> bool>) -> Option<Cand> {
         for i in 0..self.cands.len() {
             let c = self.cands[i];
-            if let Some(f) = filter {
-                if !f(&c) {
-                    continue;
-                }
+            if let Some(f) = filter
+                && !f(&c)
+            {
+                continue;
             }
             if self.taken.iter().any(|t| (t.x - c.x).abs() + (t.z - c.z).abs() < 4) {
                 continue;
@@ -224,11 +224,7 @@ fn home_for(g: &Game, cx: &PropsCtx, home: Option<&Home>) -> Option<Vec<bool>> {
     if cx.cands.iter().any(|c| zones[l.zone_of[g.t_idx(c.x, c.z)] as usize]) {
         return Some(zones);
     }
-    if rnd() < h.elsewhere {
-        None
-    } else {
-        Some(vec![])
-    }
+    if rnd() < h.elsewhere { None } else { Some(vec![]) }
 }
 
 /// `take` restricted to the `home` zones (and to tiles beside a wall with `wall`)
@@ -301,14 +297,14 @@ fn scatter(g: &mut Game, cx: &mut PropsCtx, builder: Builder, count: i32, opts: 
             yaw = if fnormal.is_some() { fyaw } else { fyaw + (yaw - PI) * 0.08 };
             normal = fnormal;
         } else {
-            if opts.wall {
-                if let Some(spot) = props_wall_adj_spot(g, c.x, c.z) {
-                    let off = opts.wall_offset.unwrap_or(0.32);
-                    px = spot.pos.x + spot.normal.x * off;
-                    pz = spot.pos.z + spot.normal.z * off;
-                    yaw = spot.yaw;
-                    normal = Some(spot.normal);
-                }
+            if opts.wall
+                && let Some(spot) = props_wall_adj_spot(g, c.x, c.z)
+            {
+                let off = opts.wall_offset.unwrap_or(0.32);
+                px = spot.pos.x + spot.normal.x * off;
+                pz = spot.pos.z + spot.normal.z * off;
+                yaw = spot.yaw;
+                normal = Some(spot.normal);
             }
             // where it is at home a few may stand together
             let more = if home.is_some() && opts.row > 1 { irand(0, opts.row as i64 - 1) as i32 } else { 0 };
@@ -1169,10 +1165,10 @@ impl Game {
                 }
             }
             // mirror the timer into `man_data` (while it is still this mannequin)
-            if let Some(m) = g.man_data.as_mut() {
-                if m.g.ptr_eq(&man_g) {
-                    m.f.insert("timer".into(), timer.get());
-                }
+            if let Some(m) = g.man_data.as_mut()
+                && m.g.ptr_eq(&man_g)
+            {
+                m.f.insert("timer".into(), timer.get());
             }
         });
     }

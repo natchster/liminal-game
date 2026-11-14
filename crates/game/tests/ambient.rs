@@ -10,16 +10,16 @@
 
 use engine::audio::AudioContext;
 use engine::prelude::*;
-use game::audio::ambient::{prop_falloff, sig_carry, CADENCES, GLITCH_MSGS, HALLUC_WHISPERS, SIG_APART};
+use game::Game;
+use game::audio::ambient::{CADENCES, GLITCH_MSGS, HALLUC_WHISPERS, SIG_APART, prop_falloff, sig_carry};
 use game::base::records::Panel;
 use game::base::state::WEATHER_BIASES;
 use game::base::tables::AMBIENT_EVENTS;
-use game::Game;
 use std::collections::BTreeSet;
 
 /// Every `*_positions` list, as `&mut` (generated from positions.rs).
 macro_rules! all_lists {
-    ($pp:expr) => {
+    ($pp:expr_2021) => {
         [
             &mut $pp.socket_positions,
             &mut $pp.fountain_positions,
@@ -420,8 +420,8 @@ fn same_seed_same_draws() {
     let mut runs = vec![];
     for _ in 0..2 {
         let mut g = live_level(77, 1); // wet: the weather with the most draws
-                                       // the startup draws (the level's stagger, the glitch and flicker
-                                       // timers) were native: redo them on the seeded stream
+        // the startup draws (the level's stagger, the glitch and flicker
+        // timers) were native: redo them on the seeded stream
         g.timeouts.clear();
         let mut seen = Seen::default();
         game::base::rng::with_seed(4242, || {

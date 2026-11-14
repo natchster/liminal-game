@@ -188,13 +188,14 @@ pub(crate) fn place_wall_mirrors(g: &mut Game, _dist: &[i32]) {
                 basin.add(&m);
             }
         }
-        if sink_placed && rnd() < 0.50 {
-            if let Some(geo) = prop_part_as_modelled("Real__wallMirrorBasinTaps") {
-                // dull with limescale
-                let m = mesh(geo, phong!({ color: 0x626462, specular: 0x6a6c6c, shininess: 50 }));
-                m.position().z = -0.008;
-                basin.add(&m);
-            }
+        if sink_placed
+            && rnd() < 0.50
+            && let Some(geo) = prop_part_as_modelled("Real__wallMirrorBasinTaps")
+        {
+            // dull with limescale
+            let m = mesh(geo, phong!({ color: 0x626462, specular: 0x6a6c6c, shininess: 50 }));
+            m.position().z = -0.008;
+            basin.add(&m);
         }
         g.world.add(&basin);
         // 30% chance: small soap dispenser on the opposite side from the clock.
@@ -780,11 +781,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
                     (
                         rnd() * cw,
                         if rnd() < 0.5 {
-                            if edge {
-                                1.0
-                            } else {
-                                rnd() * m
-                            }
+                            if edge { 1.0 } else { rnd() * m }
                         } else if edge {
                             ch - 1.0
                         } else {
@@ -794,11 +791,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
                 } else {
                     (
                         if rnd() < 0.5 {
-                            if edge {
-                                1.0
-                            } else {
-                                rnd() * m
-                            }
+                            if edge { 1.0 } else { rnd() * m }
                         } else if edge {
                             cw - 1.0
                         } else {

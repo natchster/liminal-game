@@ -198,10 +198,10 @@ pub fn parse_radial(s: &str, w: f64, h: f64) -> Option<Radial> {
     for (i, (p, c)) in stops.iter().enumerate() {
         let def = if n <= 1 { 0.0 } else { i as f64 / (n - 1) as f64 };
         let mut t = p.unwrap_or(def);
-        if let Some(&(prev, _)) = out.last() {
-            if t < prev {
-                t = prev;
-            }
+        if let Some(&(prev, _)) = out.last()
+            && t < prev
+        {
+            t = prev;
         }
         out.push((t, *c));
     }
@@ -389,11 +389,7 @@ impl Trans {
             return self.to;
         }
         let x = (now - self.start) / (self.dur * 1000.0);
-        if x >= 1.0 {
-            self.to
-        } else {
-            self.from + (self.to - self.from) * self.ease.at(x)
-        }
+        if x >= 1.0 { self.to } else { self.from + (self.to - self.from) * self.ease.at(x) }
     }
 }
 
@@ -654,10 +650,10 @@ impl TextBlock {
             // only Courier New lines use them)
             if line_h.is_none() && font.face == Face::Typed {
                 for g in &l.glyphs {
-                    if let Some(m) = face_metrics(g.ch, font.size) {
-                        if !faces.contains(&m) {
-                            faces.push(m);
-                        }
+                    if let Some(m) = face_metrics(g.ch, font.size)
+                        && !faces.contains(&m)
+                    {
+                        faces.push(m);
                     }
                 }
             }
@@ -696,11 +692,7 @@ impl TextBlock {
         self.lines.iter().map(|l| l.width).fold(0.0, f64::max)
     }
     pub fn height(&self) -> f64 {
-        if self.is_empty() {
-            0.0
-        } else {
-            self.total_h
-        }
+        if self.is_empty() { 0.0 } else { self.total_h }
     }
     pub fn is_empty(&self) -> bool {
         self.lines.iter().all(|l| l.glyphs.is_empty()) && self.lines.len() <= 1
@@ -906,7 +898,7 @@ impl Painter {
 // HUD wants the real faces, so it rasterises its glyphs itself with
 // CoreText (engine::cg; the faces are `ui::faces`).
 #[link(name = "CoreGraphics", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     fn CGContextSetShouldSmoothFonts(c: engine::cg::CGContextRef, b: bool);
 }
 /// draw text segments (device px baselines; `kern` = letter-spacing in device

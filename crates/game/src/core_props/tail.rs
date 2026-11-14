@@ -25,7 +25,7 @@ use crate::core_props::seam::*;
 use crate::core_props::weather_fx::{jitter_pos, off_wall};
 use crate::core_props::*;
 use crate::prelude::*;
-use crate::visuals::textures::{handwritten_tex, text_tex, HandOpts, TextTexOpts};
+use crate::visuals::textures::{HandOpts, TextTexOpts, handwritten_tex, text_tex};
 use std::collections::HashMap;
 
 /// The floor of a pool room's pool, sunken under the room's (m): its

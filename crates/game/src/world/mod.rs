@@ -550,11 +550,7 @@ impl Game {
         // tally keyed by tag → weather → count
         let wk = {
             let k = self.weather_key();
-            if k.is_empty() {
-                "unknown"
-            } else {
-                k
-            }
+            if k.is_empty() { "unknown" } else { k }
         };
         *self.ambient_tally.entry(tag.to_string()).or_default().entry(wk.to_string()).or_insert(0.0) += 1.0;
     }
@@ -676,15 +672,7 @@ impl Game {
         // every region wears its surface; moss and the lights then take rooms
         let mut region_info: Vec<RegionInfo> = surface.iter().map(|&s| surfaces[s].clone()).collect();
         // moss: a symptom of rot; never on level 1, never where you arrive
-        let moss_regions = if self.depth() > 1 && rnd() < decay * 0.9 {
-            if rnd() < decay {
-                2
-            } else {
-                1
-            }
-        } else {
-            0
-        };
+        let moss_regions = if self.depth() > 1 && rnd() < decay * 0.9 { if rnd() < decay { 2 } else { 1 } } else { 0 };
         let others: Vec<usize> = (0..region_count).filter(|&r| r != spawn_region).collect();
         for _ in 0..moss_regions {
             let Some(r) = choice_opt(&others) else { break };
@@ -856,13 +844,8 @@ impl Game {
         }
         // ---- surfaces: per area one; a big lone zone's regions on either side of its line
         let have_purposes = self.zone_purposes.len() == l.zones.len();
-        let key_of = |zi: usize| -> &'static str {
-            if have_purposes {
-                self.zone_purposes[zi].primary.unwrap_or("")
-            } else {
-                l.zones[zi].arch
-            }
-        };
+        let key_of =
+            |zi: usize| -> &'static str { if have_purposes { self.zone_purposes[zi].primary.unwrap_or("") } else { l.zones[zi].arch } };
         // where each region lies along x and z (mean tile)
         let mut centre = vec![(0.0f64, 0.0f64, 0usize); unit_area.len()];
         for t in 0..n {
@@ -970,11 +953,7 @@ impl Game {
         if self.region_info.is_empty() {
             return RegionInfo::default();
         }
-        if self.in_grid(x, z) {
-            self.region_info[self.region_map[self.t_idx(x, z)] as usize].clone()
-        } else {
-            self.region_info[0].clone()
-        }
+        if self.in_grid(x, z) { self.region_info[self.region_map[self.t_idx(x, z)] as usize].clone() } else { self.region_info[0].clone() }
     }
     pub fn region_flags_at(&self, x: i32, z: i32) -> u32 {
         if self.region_info.is_empty() || !self.in_grid(x, z) {

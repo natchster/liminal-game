@@ -1,5 +1,6 @@
 # The code base favours dense, table-like lines (geometry, colour and layout
 # data); keep short constructs on one line and allow wide lines.
-edition = "2021"
+edition = "2024"
+style_edition = "2024"
 max_width = 140
 use_small_heuristics = "Max"

@@ -52,7 +52,7 @@ impl Game {
     ///   # # # # # # # # #
     /// ```
     pub fn test_ground_level() -> Game {
-        use crate::level::archgen::{build_ground_solids, Ground};
+        use crate::level::archgen::{Ground, build_ground_solids};
         let mut g = Game::new_bare();
         let rows = ["#########", "#...S,,,#", "#.~~~~~,#", "#...#,,,#", "#########"];
         g.w = 9;

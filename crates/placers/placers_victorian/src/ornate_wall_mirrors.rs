@@ -9,8 +9,8 @@ use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
 use placers_kit::paint::fill;
-use placers_kit::place::pick;
 use placers_kit::place::WallCand;
+use placers_kit::place::pick;
 
 // Ornate wall mirror: 5% chance per level. A small Italian giltwood
 // mirror in the rococo revival (Blender family `parlour_and_office_big_things`): a moulded frame of

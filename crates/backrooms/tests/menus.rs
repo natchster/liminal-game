@@ -3,8 +3,8 @@
 //! over a save asks first; Quit quits.
 mod common;
 use common::new_game;
-use game::ui::menu::Screen;
 use game::Game;
+use game::ui::menu::Screen;
 
 const W: f64 = 1280.0;
 const H: f64 = 800.0;

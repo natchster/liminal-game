@@ -876,7 +876,7 @@ fn cobweb_sheet_geo(geo: &Geo, corner: bool) -> Geo {
         // relaxed over its edges until nothing shortens; at most FRAY)
         const FRAY: f64 = 0.035;
         let mut dist: std::collections::BTreeMap<(i64, i64, i64), f64> = keys.iter().map(|k| (*k, FRAY)).collect();
-        for ((a, b), _) in edges.iter().filter(|(_, &c)| c == 1) {
+        for ((a, b), _) in edges.iter().filter(|&(_, &c)| c == 1) {
             dist.insert(*a, 0.0);
             dist.insert(*b, 0.0);
         }
@@ -946,11 +946,9 @@ fn cobweb_lit(geo: &Geo, corner: bool, both: bool) -> Geo {
         let n = if corner { [0.7f32, -0.1, 0.7] } else { [0.0f32, -0.1, 0.99] };
         let count = gg.position.len() / 3;
         gg.normal = (0..count).flat_map(|_| n).collect();
-        if both {
-            if let Some(ix) = gg.index.as_mut() {
-                let back: Vec<u32> = ix.chunks(3).flat_map(|t| [t[0], t[2], t[1]]).collect();
-                ix.extend(back);
-            }
+        if both && let Some(ix) = gg.index.as_mut() {
+            let back: Vec<u32> = ix.chunks(3).flat_map(|t| [t[0], t[2], t[1]]).collect();
+            ix.extend(back);
         }
         gg.touch();
     }

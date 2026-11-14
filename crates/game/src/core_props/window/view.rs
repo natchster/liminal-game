@@ -7,7 +7,7 @@
 //! floor (a decal: the shape of the window, its bars' shadows, its blind's)
 //! and nowhere else (a window lights no wall). The deeper the floor, the
 //! later it is.
-use super::{Kind, Window, SLAB};
+use super::{Kind, SLAB, Window};
 use crate::prelude::*;
 
 /// The ground outside lies this far under the floor, m; the photograph was
@@ -33,11 +33,7 @@ pub fn light_left(depth: i32) -> (f64, f64) {
 
 /// The lamp's side of the track for window `w` (by its seed)
 fn lamp_side(w: &Window) -> f64 {
-    if w.seed & 1 == 0 {
-        LAMP_SIDE
-    } else {
-        -LAMP_SIDE
-    }
+    if w.seed & 1 == 0 { LAMP_SIDE } else { -LAMP_SIDE }
 }
 
 /// The lamp's head (the window's frame), as low as it hangs
@@ -376,12 +372,12 @@ fn shadow_mask(w: &Window, k: usize) -> Tex {
             if l.muntin && (u - 0.5).abs() < 0.016 {
                 v *= 0.15;
             }
-            if let Some((bottom, open)) = blind {
-                if y > bottom {
-                    // a slat every 21 mm, its shadow as wide as it stands shut
-                    let ph = ((y - bottom) / 0.021).fract();
-                    v *= if ph < 1.0 - open { 0.12 } else { 1.0 };
-                }
+            if let Some((bottom, open)) = blind
+                && y > bottom
+            {
+                // a slat every 21 mm, its shadow as wide as it stands shut
+                let ph = ((y - bottom) / 0.021).fract();
+                v *= if ph < 1.0 - open { 0.12 } else { 1.0 };
             }
             let a = (v * 255.0).round() as u8;
             let o = ((S - 1 - j) * S + i) * 4;

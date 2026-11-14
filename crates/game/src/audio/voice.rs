@@ -237,7 +237,7 @@ mod tests {
     /// your asides' uses (`audio::asides::Use`), said by its persona
     #[test]
     fn every_line_of_the_index_is_one_the_game_plays() {
-        use crate::audio::asides::{Use, PERSONA};
+        use crate::audio::asides::{PERSONA, Use};
         for l in lines() {
             let ok = match l.persona.as_str() {
                 CRY_PERSONA => l.use_ == "cry",

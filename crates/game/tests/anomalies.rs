@@ -31,11 +31,7 @@ fn fx() -> &'static Value {
     })
 }
 fn f(v: &Value) -> f64 {
-    if v.is_null() {
-        f64::NAN
-    } else {
-        v.as_f64().unwrap_or_else(|| panic!("not a number: {v}"))
-    }
+    if v.is_null() { f64::NAN } else { v.as_f64().unwrap_or_else(|| panic!("not a number: {v}")) }
 }
 fn arr(v: &Value) -> &Vec<Value> {
     v.as_array().unwrap_or_else(|| panic!("not an array: {v}"))
@@ -1096,21 +1092,23 @@ fn anomalies_smoke() {
             g.player.pos = v3(px, EYE, pz);
             g.player.crouch = k % 7 < 3;
             g.player.flashlight_on = k % 300 > 200;
-            if let Some(h) = g.store_hide_spots.get(k % 5) {
-                if k % 11 == 0 {
-                    let p = h.obj.pos();
-                    g.player.pos = v3(p.x, EYE, p.z);
-                    g.player.crouch = true;
-                }
+            if let Some(h) = g.store_hide_spots.get(k % 5)
+                && k % 11 == 0
+            {
+                let p = h.obj.pos();
+                g.player.pos = v3(p.x, EYE, p.z);
+                g.player.crouch = true;
             }
             if k % 40 == 0 {
                 g.player_field = Some(Rc::new(g.bfs(g.tx(px), g.tz(pz))));
             }
-            if scp == "house" && k > 600 && k % 50 == 0 {
-                if let Some(i) = (0..g.interactables.len()).find(|&i| (g.interactables[i].enabled)(&g)) {
-                    use_interactable(&mut g, i);
-                    lamps_used += 1;
-                }
+            if scp == "house"
+                && k > 600
+                && k % 50 == 0
+                && let Some(i) = (0..g.interactables.len()).find(|&i| (g.interactables[i].enabled)(&g))
+            {
+                use_interactable(&mut g, i);
+                lamps_used += 1;
             }
             let dt = if k % 13 == 0 { 0.3 } else { 1.0 / 20.0 };
             let t = k as f64 * dt;

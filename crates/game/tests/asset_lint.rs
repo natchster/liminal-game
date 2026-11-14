@@ -25,7 +25,10 @@ const MAX_FRAME_DEV: f64 = 0.35;
 const MAX_DEGENERATE: f64 = 0.25;
 /// Known broken parts, with why and how to fix them.
 const DEGENERATE_EXCEPTIONS: &[(&str, &str)] = &[
-    ("Props__extinguisher_carryHandle", "68% slivers: the boolean cut in game/core_placement.py ext_lever() is coplanar with the channel's faces; move the cut box off the profile's planes"),
+    (
+        "Props__extinguisher_carryHandle",
+        "68% slivers: the boolean cut in game/core_placement.py ext_lever() is coplanar with the channel's faces; move the cut box off the profile's planes",
+    ),
     ("Props__extinguisher_lever", "the same ext_lever() cut"),
 ];
 

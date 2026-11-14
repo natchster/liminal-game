@@ -1,7 +1,7 @@
 //! `place_action_figures`: Plastic action figure: 4% chance per level. A jointed 3 3/4 in (95 mm) soldier of the 1980s kind, no maker's: its O-ring body moulded in the uniform's plastic, the head and hands in flesh plastic, boots, belt and pouches painted black and rubbed through to the plastic, a painted steel-pot helmet; standing on its boots, or fallen on its back. Faded, scuffed, grimed.
+use crate::shared::Wear;
 use crate::shared::put;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::paint::rgb;

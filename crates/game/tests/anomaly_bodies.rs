@@ -15,10 +15,10 @@
 //! The seated man of the Loop sits on his chair with his feet on the floor.
 //!
 //!   REGEN=1 cargo test --release -p game --test anomaly_bodies   (after a rig changes)
-use game::anomalies::rig::{bind_figure, human_gait_entity, human_rig, GaitStyle, HumanRig, HUMAN_RIG_SHADOW, HUMAN_RIG_STAFF};
+use game::anomalies::rig::{GaitStyle, HUMAN_RIG_SHADOW, HUMAN_RIG_STAFF, HumanRig, bind_figure, human_gait_entity, human_rig};
 use game::base::records::Entity;
 use game::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 const RIGS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../assets/src/creatures/rigs.json");
 
@@ -52,14 +52,17 @@ fn rest(r: &HumanRig) -> Value {
                 let u = c.user();
                 u.has("tail_x").then(|| [u.get("tail_x"), u.get("tail_y"), u.get("tail_z")])
             };
-            let tail = if let Some(m) = main.and_then(|m| kids.iter().find(|k| k.name() == m).cloned()) {
-                world(&m, [0.0; 3])
-            } else if let Some(t) = kept {
-                world(&c, t)
-            } else if kids.len() == 1 {
-                world(&kids[0], [0.0; 3])
-            } else {
-                panic!("{}: no tail", c.name())
+            let tail = match main.and_then(|m| kids.iter().find(|k| k.name() == m).cloned()) {
+                Some(m) => world(&m, [0.0; 3]),
+                _ => {
+                    if let Some(t) = kept {
+                        world(&c, t)
+                    } else if kids.len() == 1 {
+                        world(&kids[0], [0.0; 3])
+                    } else {
+                        panic!("{}: no tail", c.name())
+                    }
+                }
             };
             out.push(json!({ "name": c.name(), "parent": parent, "head": r4(world(&c, [0.0; 3])), "tail": r4(tail) }));
             visit(&c, Some(c.name()), out);

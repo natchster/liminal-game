@@ -2,8 +2,8 @@
 //! taking them does.
 //!
 //!   cargo test --release -p backrooms --test secrets -- --nocapture
-use game::secrets::{run_things, Thing, RUN_FLOORS, SPECIAL};
 use game::Game;
+use game::secrets::{RUN_FLOORS, SPECIAL, Thing, run_things};
 
 fn new_game() -> Game {
     let mut g = Game::new_bare();
@@ -267,7 +267,7 @@ fn took(ids: &[&str]) -> Vec<game::secrets::keeps::Took> {
 /// (`docs/design/SECRETS.md` 5): read from the run's list alone.
 #[test]
 fn each_thing_does_what_it_says() {
-    use game::secrets::keeps::{body_of, Body, SIZE_EYE};
+    use game::secrets::keeps::{Body, SIZE_EYE, body_of};
     let base = Body::default();
     let one = |id: &str| body_of(&took(&[id]));
     let close = |a: f64, b: f64| (a - b).abs() < 1e-9;

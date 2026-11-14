@@ -5,7 +5,7 @@
 //! notebook pages without stealing a strafe, and the cards wait for their
 //! key until they are up.
 use game::prelude::*;
-use game::session::input::{acts_for, Act, BINDINGS, LEFT_HAND};
+use game::session::input::{Act, BINDINGS, LEFT_HAND, acts_for};
 
 const DT: f64 = 1.0 / 60.0;
 

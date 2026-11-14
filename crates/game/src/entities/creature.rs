@@ -17,10 +17,10 @@
 //! knocks you down instead of killing; a second contact in the same peak,
 //! or a contact when your nerve is below 25, kills (`contact`).
 use crate::base::numeric::hypot2;
-use crate::entities::body::{build_body, BodyRig};
+use crate::entities::EntityBuild;
+use crate::entities::body::{BodyRig, build_body};
 use crate::entities::brain::*;
 use crate::entities::director::Phase;
-use crate::entities::EntityBuild;
 use crate::prelude::*;
 
 /// The kinds on the brain (the anomalies' staff and shadows keep their own
@@ -404,11 +404,11 @@ impl Game {
             f.x * dx + f.z * dz > 0.5
         };
         let now = self.perf_t;
-        if let Some(c) = self.creature_mut(ei) {
-            if heard || seen {
-                c.tells.retain(|t| now - t < TELL_WINDOW);
-                c.tells.push(now);
-            }
+        if let Some(c) = self.creature_mut(ei)
+            && (heard || seen)
+        {
+            c.tells.retain(|t| now - t < TELL_WINDOW);
+            c.tells.push(now);
         }
     }
 

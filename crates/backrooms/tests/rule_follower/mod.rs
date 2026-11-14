@@ -4,8 +4,8 @@
 //! `tests/beatable.rs` (level by level) and `tests/playthrough.rs` (the whole
 //! run, live).
 #![allow(dead_code)]
-use game::entities::brain::Mode;
 use game::Game;
+use game::entities::brain::Mode;
 
 pub fn press(g: &mut Game, code: &str, down: bool) {
     if down {
@@ -48,12 +48,13 @@ pub fn counter(g: &Game, last_drop: f64, t: f64) -> Counter {
         // keep out of its light
         if e.kind == "glass" {
             if game::entities::glass::outside(g, i) {
-                if game::entities::glass::eyes_on_glass(g) && cr.get("stare") > 1.0 {
-                    if let Some(b) = g.behind_glass.as_ref() {
-                        let n = g.windows[b.win].normal;
-                        c.face = Some((pp.x + n.x * 3.0, pp.z + n.z * 3.0));
-                        c.why = "a window: eyes off it";
-                    }
+                if game::entities::glass::eyes_on_glass(g)
+                    && cr.get("stare") > 1.0
+                    && let Some(b) = g.behind_glass.as_ref()
+                {
+                    let n = g.windows[b.win].normal;
+                    c.face = Some((pp.x + n.x * 3.0, pp.z + n.z * 3.0));
+                    c.why = "a window: eyes off it";
                 }
             } else if d < 10.0 {
                 c.away_from = Some((p.x, p.z));

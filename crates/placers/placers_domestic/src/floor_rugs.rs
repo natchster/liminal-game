@@ -75,11 +75,7 @@ pub(crate) fn place_floor_rugs(g: &mut Game, _dist: &[i32]) {
     let on_rug = |wx: f64, wz: f64| {
         let (dx, dz) = (wx - px, wz - pz);
         let (lx, lz) = ((dx * cy - dz * sy) / k, (dx * sy + dz * cy) / k);
-        if lx.abs() < RUG_L / 2.0 - 0.02 && lz.abs() < RUG_W / 2.0 - 0.02 {
-            RUG_T * k
-        } else {
-            0.0
-        }
+        if lx.abs() < RUG_L / 2.0 - 0.02 && lz.abs() < RUG_W / 2.0 - 0.02 { RUG_T * k } else { 0.0 }
     };
     // 25% chance: a table lamp placed on/near rug — reading-
     // corner narrative (inline reproduction).
@@ -236,11 +232,7 @@ fn rug_knot(a: f64, b: f64, len: f64, wid: f64, c: &RugColours, medallion: bool,
         // the outer guard: a reciprocal of little teeth
         let p = (t / 0.018).fract();
         let q = (e - g0) / (g1 - g0);
-        if (p - 0.5).abs() < 0.5 - 0.5 * q {
-            c.guard
-        } else {
-            c.field
-        }
+        if (p - 0.5).abs() < 0.5 - 0.5 * q { c.guard } else { c.field }
     } else if e < l1 || (e >= b1 && e < l2) || (e >= g2 && e < l3) {
         c.line
     } else if e < b1 {
@@ -272,11 +264,7 @@ fn rug_knot(a: f64, b: f64, len: f64, wid: f64, c: &RugColours, medallion: bool,
         // the inner guard: little chevrons
         let p = (t / 0.012).fract();
         let q = (e - l2) / (g2 - l2);
-        if (p - q).abs() < 0.22 || (p - q + 1.0).abs() < 0.22 {
-            c.guard
-        } else {
-            c.border
-        }
+        if (p - q).abs() < 0.22 || (p - q + 1.0).abs() < 0.22 { c.guard } else { c.border }
     } else {
         // the field: small stepped stars in staggered rows
         let (pa, pb) = (0.072, 0.058);

@@ -1,8 +1,8 @@
 //! `place_small_toy_microphones`: Small toy microphone: 8% chance per level. A child's toy microphone, 14 cm: a round grille moulded as a mesh in grey plastic and painted silver, a dark band round it, a coloured handle with grip rings and a slide switch; lying on its grille and its butt. The silver rubbed through to the grey, the handle scuffed and grimed.
+use crate::shared::Wear;
 use crate::shared::put;
 use crate::shared::wear_at;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::hash;

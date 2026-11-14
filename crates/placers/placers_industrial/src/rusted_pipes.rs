@@ -3,9 +3,9 @@ use game::prelude::*;
 use placers_kit::on_wall::mix01;
 use placers_kit::on_wall::wall_face;
 use placers_kit::on_wall::wall_turn;
+use placers_kit::place::WallCand;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
-use placers_kit::place::WallCand;
 use placers_kit::wall_plates::part;
 
 // Rusted pipes: 0-2 runs of 2 in steel pipe per level along walls,

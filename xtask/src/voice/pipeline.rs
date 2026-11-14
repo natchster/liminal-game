@@ -15,7 +15,7 @@
 //! revision, the take's seed its number.
 use super::{models, read_toml, s, tools, uv_run, voice_src};
 use crate::{flag, opt, root};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
 /// A persona and its lines, as written
@@ -306,7 +306,7 @@ pub fn write(args: &[String]) -> Result<(), String> {
                 return Err(format!(
                     "no report for {} on {model}: run `cargo xtask voice eval --persona {} --model {model}` or pass --take",
                     p.id, p.id
-                ))
+                ));
             }
         };
         let src = dir.join(&id).join(format!("take{take}.wav"));
@@ -459,11 +459,7 @@ pub fn eval(args: &[String]) -> Result<(), String> {
         println!("{line:22} chosen {:>4}  passing {}", v["chosen"].as_i64().map_or("none".into(), |k| format!("take {k}")), v["passing"]);
     }
     println!("{n} takes judged; {}", dir.join("report.md").display());
-    if ok {
-        Ok(())
-    } else {
-        Err(format!("{} on {model}: a line has no take that passes (see the report)", p.id))
-    }
+    if ok { Ok(()) } else { Err(format!("{} on {model}: a line has no take that passes (see the report)", p.id)) }
 }
 
 /// A known answer for the evaluation: a take made on purpose, and which of

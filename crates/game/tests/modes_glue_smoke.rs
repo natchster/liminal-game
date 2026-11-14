@@ -2,8 +2,8 @@
 //! both modes many times through the main loop, on wandering input, with and
 //! without sound, by every way out (the door, death, a new level, a restart).
 use engine::prelude::*;
-use game::base::rng::Mulberry32;
 use game::Game;
+use game::base::rng::Mulberry32;
 
 const KEYS: [&str; 8] = ["KeyW", "KeyS", "KeyA", "KeyD", "ShiftLeft", "KeyC", "ControlLeft", "ArrowUp"];
 

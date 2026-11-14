@@ -496,11 +496,11 @@ fn door_run(seed: u32, level: i32, steps: i32, calls: bool) -> Option<(Vec<f32>,
         t += 1.0 / 60.0;
         // a new call by its own time (the log keeps only the last few
         // sounds: counting what is in it misses a call once others follow)
-        if let Some(at) = g.ambient_log.iter().rev().find(|e| e.tag == "exit-call").map(|e| e.at) {
-            if last_call != Some(at) {
-                last_call = Some(at);
-                times.push(t);
-            }
+        if let Some(at) = g.ambient_log.iter().rev().find(|e| e.tag == "exit-call").map(|e| e.at)
+            && last_call != Some(at)
+        {
+            last_call = Some(at);
+            times.push(t);
         }
     });
     Some((r.pcm, times, metres))
@@ -772,7 +772,7 @@ fn knock_and_listen(seed: u32, name: &str, pick: impl Fn(&Game) -> (usize, usize
 /// lamp, where the ballast's hum fills the bed, `a_knock_is_heard_beside_a_lamp`.
 #[test]
 fn a_knock_is_answered_and_a_wrong_door_knocks_back() {
-    use game::world::knock::{Gift, KnockDoor, Mark, ANSWER_AFTER, OUT_AFTER};
+    use game::world::knock::{ANSWER_AFTER, Gift, KnockDoor, Mark, OUT_AFTER};
     let quiet = |g: &Game, d: &KnockDoor| g.panels.iter().all(|p| (p.wx - d.foot.x).hypot(p.wz - d.foot.z) >= 8.0);
     let k = knock_and_listen(4242, "knock_4242_L1", |g| {
         let answers = g.knocks.doors.iter().position(|d| d.gift == Some(Gift::Water) && quiet(g, d)).expect("a door that gives water");
@@ -865,7 +865,7 @@ fn a_knock_is_heard_beside_a_lamp() {
 #[test]
 fn the_wheel_is_tried_and_the_door_gives() {
     use game::world::assembly::Stage;
-    use game::world::cell_knock::{Visit, GIVE};
+    use game::world::cell_knock::{GIVE, Visit};
     game::base::rng::seed_native(0xCE11_0006);
     let mut r = start(4242, 1);
     let camp = r.g.story.camp.as_ref().map(|c| c.tile);

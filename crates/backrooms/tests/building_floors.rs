@@ -8,8 +8,8 @@
 //!   cargo test --release -p backrooms --test building_floors -- --nocapture   # the audit's table
 mod common;
 
-use game::level::building::{navigation, Navigation, PLAT};
 use game::Game;
+use game::level::building::{Navigation, PLAT, navigation};
 
 const SEEDS: std::ops::RangeInclusive<u32> = 1..=24;
 
@@ -90,7 +90,9 @@ fn median(mut v: Vec<f64>) -> f64 {
 #[test]
 fn the_way_and_what_is_off_it() {
     let all = audits();
-    println!("level | way tiles | detour | flights | choices | dead ends (holding) | door seen | water | batteries | notes | secrets | her marks | false trails | perches");
+    println!(
+        "level | way tiles | detour | flights | choices | dead ends (holding) | door seen | water | batteries | notes | secrets | her marks | false trails | perches"
+    );
     for level in 1..=3 {
         let f: Vec<&Audit> = all.iter().filter(|a| a.level == level).collect();
         let m = |g: &dyn Fn(&Audit) -> f64| median(f.iter().map(|a| g(a)).collect());
@@ -189,7 +191,7 @@ fn the_rooms_off_the_walks() {
 /// A floor's rooms: how many, and what is wrong with each
 fn rooms_of(seed: u32, level: i32) -> (i32, usize, Vec<String>) {
     use game::level::archgen::{DIRS, GROUND_MASS};
-    use game::level::building::{walk_from, ROOM_HEADROOM};
+    use game::level::building::{ROOM_HEADROOM, walk_from};
     let g = floor(seed, level);
     let (l, p) = (g.layout.as_ref().unwrap(), g.building.as_ref().unwrap());
     let idx = |x: i32, z: i32| (z * l.w + x) as usize;

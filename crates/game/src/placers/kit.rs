@@ -119,7 +119,7 @@ pub fn joint(geo: Option<Geo>, mat: &Mat, parent: Option<&Obj>, x: f64, y: f64, 
 /// on the native RNG so it can never shift a level's seeded stream.
 #[macro_export]
 macro_rules! lazy_static_tex {
-    ($fname:ident, $init:expr) => {
+    ($fname:ident, $init:expr_2021) => {
         pub fn $fname() -> engine::texture::Tex {
             thread_local! { static V: std::cell::OnceCell<engine::texture::Tex> = const { std::cell::OnceCell::new() }; }
             V.with(|c| c.get_or_init(|| $crate::base::rng::with_native(|| $init)).clone())

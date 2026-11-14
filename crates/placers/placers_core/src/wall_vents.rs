@@ -21,7 +21,7 @@ pub(crate) fn place_wall_vents(g: &mut Game, _dist: &[i32]) {
         let wall_x = g.wx(c.x) + c.dx as f64 * (CELL * 0.5 - 0.03);
         let wall_z = g.wz(c.z) + c.dz as f64 * (CELL * 0.5 - 0.03);
         let mid_height = 1.6 + rnd() * 0.5; // 1.6 - 2.1 m
-                                            // Vent frame (metallic box, proud of wall).
+        // Vent frame (metallic box, proud of wall).
         let frame = mesh(pg("WallVents__grille", box_geo!(0.30, 0.20, 0.04)), &frame_mat);
         // Recessed opening (darker inset).
         let opening = mesh(plane_geo!(0.24, 0.14), &opening_mat);

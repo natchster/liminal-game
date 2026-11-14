@@ -8,7 +8,7 @@
 //! the same inputs at the same fixed time step. `crates/backrooms/tests/replay.rs` records a bot
 //! run and replays it; the playtest tooling can record people the same way.
 use crate::prelude::*;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// One input the window gives the game, in the order it came.
 #[derive(Clone, Debug, PartialEq)]

@@ -18,7 +18,7 @@
 //! the Building came above the rooms, may show their place and still name
 //! none of it.)
 
-use crate::level::scp::{scp_for_level, SCP_HORIZON};
+use crate::level::scp::{SCP_HORIZON, scp_for_level};
 
 /// One page of her notebook.
 #[derive(Clone, Copy, Debug)]

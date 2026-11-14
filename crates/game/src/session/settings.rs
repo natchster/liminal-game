@@ -6,7 +6,7 @@
 //! exactly as before.
 use crate::prelude::*;
 use crate::session::input::{Act, BINDINGS};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// The store key
 pub const SETTINGS_KEY: &str = "settings";

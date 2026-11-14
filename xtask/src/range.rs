@@ -33,7 +33,7 @@
 use crate::look::look_of;
 use crate::shots::{read_json, read_png, write_json};
 use crate::{cargo, flag, opt, root, run};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -312,11 +312,7 @@ fn archive(rows: &[Value], base: &[Value], path: &std::path::Path) -> Result<(us
     };
     let ((x0, x1), (y0, y1)) = (span(xa), span(ya));
     let bin = |v: f64, lo: f64, hi: f64| {
-        if hi > lo {
-            (((v - lo) / (hi - lo)) * n as f64).floor().clamp(0.0, n as f64 - 1.0) as usize
-        } else {
-            0
-        }
+        if hi > lo { (((v - lo) / (hi - lo)) * n as f64).floor().clamp(0.0, n as f64 - 1.0) as usize } else { 0 }
     };
     let mut cells: std::collections::BTreeMap<(usize, usize), (f64, Value, usize)> = Default::default();
     for r in rows {
@@ -384,7 +380,9 @@ fn look_by_purpose(out: &std::path::Path) -> Result<(String, Vec<String>), Strin
         v.sort_by(|a, b| a.total_cmp(b));
         v[((v.len() - 1) as f64 * f).round() as usize]
     };
-    let mut text = String::from("\n## Look by zone purpose\n\n| Purpose | Views | Colourfulness p50 / p95 | Luminance p5 / p50 / p95 | Inside the STYLE band |\n|---|---|---|---|---|\n");
+    let mut text = String::from(
+        "\n## Look by zone purpose\n\n| Purpose | Views | Colourfulness p50 / p95 | Luminance p5 / p50 / p95 | Inside the STYLE band |\n|---|---|---|---|---|\n",
+    );
     let mut bad = vec![];
     for (label, v) in &by {
         let mut c: Vec<f64> = v.iter().map(|x| x.0).collect();

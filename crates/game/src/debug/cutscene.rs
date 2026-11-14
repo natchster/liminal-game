@@ -298,29 +298,29 @@ impl Game {
         let limit = ((c.length + 5.0) / dt) as usize;
         for _ in 0..limit {
             let t = self.cut.as_ref().map(|p| p.t).unwrap_or(0.0);
-            if let (Some(at), false) = (o.skip_at, skipping) {
-                if t >= at {
-                    self.key_down("KeyE", false);
-                    skipping = true;
-                }
+            if let (Some(at), false) = (o.skip_at, skipping)
+                && t >= at
+            {
+                self.key_down("KeyE", false);
+                skipping = true;
             }
-            if let (Some(at), false) = (o.pause_at, paused) {
-                if t >= at {
-                    self.key_down("Escape", false);
-                    self.key_up("Escape");
-                    for _ in 0..(1.0 / dt) as usize {
-                        self.stage_frame(dt);
-                    }
-                    self.key_down("Escape", false);
-                    self.key_up("Escape");
-                    paused = true;
+            if let (Some(at), false) = (o.pause_at, paused)
+                && t >= at
+            {
+                self.key_down("Escape", false);
+                self.key_up("Escape");
+                for _ in 0..(1.0 / dt) as usize {
+                    self.stage_frame(dt);
                 }
+                self.key_down("Escape", false);
+                self.key_up("Escape");
+                paused = true;
             }
-            if let (Some(at), false) = (o.danger_at, endangered) {
-                if t >= at {
-                    self.stage_hunt();
-                    endangered = true;
-                }
+            if let (Some(at), false) = (o.danger_at, endangered)
+                && t >= at
+            {
+                self.stage_hunt();
+                endangered = true;
             }
             self.stage_frame(dt);
             let p = &self.player;

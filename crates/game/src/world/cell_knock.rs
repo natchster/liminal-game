@@ -266,10 +266,10 @@ impl Game {
         d.visit = Visit::Going;
         d.leaving = None;
         d.going = lead + (GOING_BREATHS - 1) as f64 * pace + GOING_TAIL;
-        if let Some(door) = self.cell_doors.get_mut(ci) {
-            if door.target < 0.5 {
-                door.turn_to = WHEEL_SHUT;
-            }
+        if let Some(door) = self.cell_doors.get_mut(ci)
+            && door.target < 0.5
+        {
+            door.turn_to = WHEEL_SHUT;
         }
         self.director_note("cell:going");
         if self.ac.is_none() {
@@ -398,10 +398,11 @@ impl Game {
             door.turn_to = WHEEL_SHUT + PLAY * play + (WHEEL_TURNS - PLAY) * give;
         }
         let at = self.cell_wheel_at(ci);
-        if pull && self.ac.is_some() {
-            if let Some(p) = at {
-                self.play_from(p.x, p.y, p.z, 3.0, 1.0, 0.0, move |g| g.sfx_wheel_tried(held));
-            }
+        if pull
+            && self.ac.is_some()
+            && let Some(p) = at
+        {
+            self.play_from(p.x, p.y, p.z, 3.0, 1.0, 0.0, move |g| g.sfx_wheel_tried(held));
         }
         if gives {
             self.cell_door_gives(ci);

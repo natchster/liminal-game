@@ -77,12 +77,10 @@ pub(crate) fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
             let bent = how == Plate::Trodden;
             put_top(&plate, if bent { "Real__paperPlateBentTop" } else { "Real__paperPlateTop" }, &top, PLATE_R);
             put_top(&plate, if bent { "Real__paperPlateBentUnder" } else { "Real__paperPlateUnder" }, &under, PLATE_R);
-            if !bent {
-                if let Some(geo) = prop_part_as_modelled("Real__breadCrumbs") {
-                    let crumbs = mesh(geo, lambert!({ color: 0x8a7458 }));
-                    crumbs.position().set(CRUMBS_AT.0, CRUMBS_AT.1, CRUMBS_AT.2);
-                    plate.add(&crumbs);
-                }
+            if !bent && let Some(geo) = prop_part_as_modelled("Real__breadCrumbs") {
+                let crumbs = mesh(geo, lambert!({ color: 0x8a7458 }));
+                crumbs.position().set(CRUMBS_AT.0, CRUMBS_AT.1, CRUMBS_AT.2);
+                plate.add(&crumbs);
             }
         }
     }

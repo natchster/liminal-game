@@ -23,12 +23,12 @@
 //!   nobody can reach crossing the void, iron lanterns.
 //! * The Works: a ceiling far up with its rows of dead fittings, gantries
 //!   under it, pipes along the walls.
-use crate::level::archgen::{build_ground_solids, segment_clear_3d, Ground, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID};
+use crate::level::archgen::{DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_VOID, Ground, build_ground_solids, segment_clear_3d};
 use crate::level::building::{
-    BuildingPlan, Style, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, ROOM_DOOR, ROOM_DOOR_H, ROOM_HEADROOM, STOREY, VOID_DEPTH,
+    BuildingPlan, CELL_DOOR, CELL_DOOR_H, CELL_FRONT, MASS_TOP, ROOM_DOOR, ROOM_DOOR_H, ROOM_HEADROOM, STOREY, Style, VOID_DEPTH,
 };
 use crate::prelude::*;
-use crate::visuals::textures::{text_tex, TextTexOpts};
+use crate::visuals::textures::{TextTexOpts, text_tex};
 use crate::world::knock::{KnockDoor, Mark};
 
 /// The salt of the stream the dressing draws from
@@ -874,7 +874,7 @@ impl Game {
         let geo = plane_geo!(1.42, 1.32);
         // a photographed window lit from inside (`visuals::photo`), in a lamp's
         // warm light, a cold one, or a television's blue: tint by tint, window by window
-        use crate::visuals::photo::{lit_window_tex, LIT_CELLS};
+        use crate::visuals::photo::{LIT_CELLS, lit_window_tex};
         let mut lit = [[0usize; LIT_CELLS]; 3];
         for (k, tint) in [0xd9b67a, 0xc9bfa2, 0x8e9bb0].into_iter().enumerate() {
             for (cell, slot) in lit[k].iter_mut().enumerate() {

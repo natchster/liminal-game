@@ -7,10 +7,10 @@
 //! you; danger breaks it off; a held world holds the creatures.
 mod common;
 
-use game::cutscene::play::{Anchors, Frame, Pose, SKIP_HOLD};
-use game::cutscene::Cutscene;
 use game::Game;
-use serde_json::{json, Value};
+use game::cutscene::Cutscene;
+use game::cutscene::play::{Anchors, Frame, Pose, SKIP_HOLD};
+use serde_json::{Value, json};
 
 const DT: f64 = 1.0 / 60.0;
 const FLOOR: (u32, i32) = (4242, 6);
@@ -86,11 +86,11 @@ fn run(c: Option<Cutscene>, at: usize, frames: usize) -> Vec<(Pose, Pose, u64)> 
     let draws = game::base::rng::native_draws();
     let mut out = vec![];
     for i in 0..frames {
-        if i == at {
-            if let Some(c) = c.clone() {
-                let a = ahead(&g);
-                assert!(g.play_cutscene_data(c, a));
-            }
+        if i == at
+            && let Some(c) = c.clone()
+        {
+            let a = ahead(&g);
+            assert!(g.play_cutscene_data(c, a));
         }
         step(&mut g, DT);
         let shown = g.camera_pose();
@@ -386,7 +386,7 @@ fn the_bars_come_in_the_hud_goes_and_a_key_shows_the_way_out() {
 // (known answers: broken cutscenes and tampered runs, each named).
 
 use game::cutscene::Skip;
-use game::debug::cutscene::{contract, contract_rates, contract_skip, RunOpts, Trace};
+use game::debug::cutscene::{RunOpts, Trace, contract, contract_rates, contract_skip};
 
 /// A run of `c` on a fresh `stage`
 fn trace(c: &Cutscene, stage: &str, dt: f64, skip_at: Option<f64>, pause_at: Option<f64>) -> Trace {

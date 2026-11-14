@@ -11,8 +11,8 @@ use placers_kit::paint::paint_px_indexed;
 use placers_kit::place::mount_slid_ref;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
-use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
+use placers_kit::wet_floor::floor_kind;
 
 // Wall water streak: 20% chance per level, 1-2 streaks. Where water has
 // come down a wall from the ceiling's edge, again and again, and dried

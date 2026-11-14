@@ -465,7 +465,7 @@ impl Game {
         // place is and its ceiling, for the corners, and the floor under it,
         // for the floor's occlusion (`visuals::occlusion`)
         // (made once a level: only the light changes as panels switch)
-        use crate::visuals::occlusion::{pack, LightShape, FINE};
+        use crate::visuals::occlusion::{FINE, LightShape, pack};
         if !self.ll_shape.as_ref().is_some_and(|s| s.fits(self.w, self.h)) {
             let shape =
                 LightShape::new(self.w, self.h, &self.tiles, &self.tile_ceil, self.solids.as_ref(), |u, v| self.light_floor_at(u, v));
@@ -543,11 +543,7 @@ impl Game {
     /// under them (the light map's: the Building's storeys, a pool's floor);
     /// none on the Stairwell's flights, which the light map does not hold
     pub fn floor_occlusion(&self) -> f64 {
-        if self.in_stairwell {
-            0.0
-        } else {
-            1.0
-        }
+        if self.in_stairwell { 0.0 } else { 1.0 }
     }
 
     /// How much a corner darkens where walls meet each other, the floor and
@@ -557,11 +553,7 @@ impl Game {
     /// map's B holds whether a place has a floor rather than its ceiling
     /// (`light_floor_gaps`)
     pub fn corner_occlusion(&self) -> f64 {
-        if self.building.is_some() || self.in_stairwell || self.in_loop || self.light_floor_gaps() {
-            0.0
-        } else {
-            1.0
-        }
+        if self.building.is_some() || self.in_stairwell || self.in_loop || self.light_floor_gaps() { 0.0 } else { 1.0 }
     }
 
     pub fn update_ambience(&mut self) {

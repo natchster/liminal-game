@@ -18,7 +18,7 @@ pub(crate) fn place_sprinkler_heads(g: &mut Game, _dist: &[i32]) {
     let red_mat = lambert!({ color: 0xd82040 });
     let spr = group();
     let spr_y = WALL_H; // stub top on the ceiling (was 2 cm below it)
-                        // Threaded pipe stub.
+    // Threaded pipe stub.
     let stub = mesh(pg("SprinklerHeads__stub", cyl_geo!(0.008, 0.008, 0.020, 6)), &brass_mat);
     stub.position().y = spr_y - 0.010;
     spr.add(&stub);

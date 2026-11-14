@@ -8,10 +8,10 @@
 //! seed whatever was built before, moving no other draw.
 mod common;
 
+use game::Game;
 use game::base::config::EYE;
 use game::world::assembly::Stage;
-use game::world::knock::{Due, Gift, KnockDoor, Mark, ANSWERING, ANSWER_AFTER, BACK_AFTER, OUT_AFTER, WRONG_WAKE};
-use game::Game;
+use game::world::knock::{ANSWER_AFTER, ANSWERING, BACK_AFTER, Due, Gift, KnockDoor, Mark, OUT_AFTER, WRONG_WAKE};
 
 const DT: f64 = 1.0 / 60.0;
 /// The floors the rules are held on (the Well, level 1, has the doors)

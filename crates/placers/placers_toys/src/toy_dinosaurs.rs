@@ -1,7 +1,7 @@
 //! `place_toy_dinosaurs`: Toy dinosaur: 4% chance per level. A solid PVC dinosaur of the 1980s kind, sold loose from a tub: a stegosaurus (13 cm, its plates and tail spikes moulded with it) or a brontosaurus (16 cm, its neck raised); moulded in one colour, its skin sculpted in scales, the eyes dots of paint. Faded, scuffed, grime in its scales.
+use crate::shared::Wear;
 use crate::shared::put;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::mix;

@@ -15,7 +15,7 @@
 //! replaced and its fingerprint recorded in `MANIFEST.json`.
 use crate::shots::read_json;
 use crate::{flag, opt, root};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::Command;

@@ -14,7 +14,7 @@
 //! before her trail is laid.
 use crate::assets::props::prop_part_as_modelled;
 use crate::base::records::Barricade;
-use crate::core_props::{build_cardboard_stack, build_filing_cabinet, PropsCtx};
+use crate::core_props::{PropsCtx, build_cardboard_stack, build_filing_cabinet};
 use crate::level::archgen::{self, BOX_LINTEL, DIRS};
 use crate::prelude::*;
 
@@ -397,7 +397,7 @@ impl Game {
         let mut cx = PropsCtx::default();
         let mut x = -span / 2.0;
         let mut heights: Vec<(f64, f64, f64)> = vec![]; // (x0, x1, top of the column)
-                                                        // the desk on its end against one face: its length up, its top toward the way
+        // the desk on its end against one face: its length up, its top toward the way
         if span > 1.1 {
             let d = group();
             let side = if rnd() < 0.5 { 1.0 } else { -1.0 };

@@ -30,13 +30,13 @@
 //! where its wall was), `fight` stands two squares on one plane in front of
 //! its eye, each cut differently (they fight for the same depth).
 use crate::sheet::{self, Tile};
-use crate::{draw_with, make_game, Options};
+use crate::{Options, draw_with, make_game};
 use engine::math::{Box3, Vec3};
 use engine::render::Renderer;
+use game::Game;
 use game::debug::sight::{self, Eye};
 use game::debug::things::{self, Finding};
 use game::debug::tour::{TourOpts, View};
-use game::Game;
 use objc2::runtime::ProtocolObject;
 use objc2_metal::{MTLCommandBuffer, MTLCreateSystemDefaultDevice, MTLTexture};
 

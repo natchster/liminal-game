@@ -8,7 +8,7 @@
 //! `dying` is the typed field; `parts["edge"]` is the pale rim skin. Each nest
 //! lamp keeps its glowing shade mesh in `house_state.lamps[i].objs["shade"]`;
 //! putting the lamp out dims that mesh's material.
-use crate::anomalies::rig::{human_rig, GaitStyle, HumanBuild, HUMAN_RIG_SHADOW};
+use crate::anomalies::rig::{GaitStyle, HUMAN_RIG_SHADOW, HumanBuild, human_rig};
 use crate::anomalies::{or0, truthy};
 use crate::base::numeric::hypot2;
 use crate::base::records::*;
@@ -237,12 +237,12 @@ impl Game {
                 Kind::Skinned { skeleton, bind_matrix, .. } => Some((skeleton.clone(), *bind_matrix)),
                 _ => None,
             };
-            if let Some((skeleton_v, bm)) = sk {
-                if let Kind::Skinned { skeleton, bind_matrix, bind_matrix_inverse, .. } = &mut edge.n().kind {
-                    *skeleton = skeleton_v;
-                    *bind_matrix = bm;
-                    *bind_matrix_inverse = bm.inverted();
-                }
+            if let Some((skeleton_v, bm)) = sk
+                && let Kind::Skinned { skeleton, bind_matrix, bind_matrix_inverse, .. } = &mut edge.n().kind
+            {
+                *skeleton = skeleton_v;
+                *bind_matrix = bm;
+                *bind_matrix_inverse = bm.inverted();
             }
             parts.edge = Some(edge);
         }

@@ -93,7 +93,7 @@ pub fn fmt_fixed(v: f64, d: usize) -> String {
         return format!("-{}", fmt_fixed(-v, d));
     }
     let v = v.abs(); // -0 prints as 0
-                     // an exact tie: v·10^d·2 is an odd integer and the product is exact
+    // an exact tie: v·10^d·2 is an odd integer and the product is exact
     let m = 10f64.powi(d as i32);
     let y = v * m * 2.0;
     if y.fract() == 0.0 && y < 9.0e15 && (y as u64) % 2 == 1 && v.mul_add(m * 2.0, -y) == 0.0 {
@@ -140,11 +140,7 @@ fn exact_frac_digits(x: f64) -> usize {
         return 0;
     }
     e += man.trailing_zeros() as i32;
-    if e >= 0 {
-        0
-    } else {
-        (-e) as usize
-    }
+    if e >= 0 { 0 } else { (-e) as usize }
 }
 
 /// Rounds `x` to `d` decimals: the exact binary value is rounded with ties
@@ -183,11 +179,7 @@ pub fn round_decimals(x: f64, d: usize) -> f64 {
     let frac_s = std::str::from_utf8(&digits[n - d..]).unwrap();
     let t = if d == 0 { int_s.to_string() } else { format!("{int_s}.{frac_s}") };
     let v: f64 = t.parse().unwrap();
-    if neg {
-        -v
-    } else {
-        v
-    }
+    if neg { -v } else { v }
 }
 
 /// Parses a number from a string. Surrounding whitespace (and U+FEFF) is
@@ -262,9 +254,5 @@ pub fn parse_number(s: &str) -> f64 {
 /// Left-pads `s` with `c` to `n` characters.
 pub fn pad_start(s: &str, n: usize, c: char) -> String {
     let l = s.chars().count();
-    if l >= n {
-        s.to_string()
-    } else {
-        std::iter::repeat_n(c, n - l).collect::<String>() + s
-    }
+    if l >= n { s.to_string() } else { std::iter::repeat_n(c, n - l).collect::<String>() + s }
 }

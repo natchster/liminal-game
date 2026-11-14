@@ -11,13 +11,13 @@
 //! * a region never spans two areas nor cuts through a room, an area wears
 //!   one or two surfaces, and the spawn region is neither dark nor mossy;
 //! * all of it is a pure function of the seed.
+use game::Game;
 use game::base::rng::with_seed;
 use game::level::archgen::Layout;
 use game::visuals::lighting::{RF_DARK, RF_MOSS};
 use game::world::build::{placer_theme_of, theme_allow};
-use game::world::purpose::{walled_apart, ZonePurpose};
-use game::world::tables::{PLACER_ALWAYS, THEMED_ORDER, THEME_COMPAT};
-use game::Game;
+use game::world::purpose::{ZonePurpose, walled_apart};
+use game::world::tables::{PLACER_ALWAYS, THEME_COMPAT, THEMED_ORDER};
 use std::cell::RefCell;
 
 /// 21 palettes × 4 grime levels, then 2 moss variants (as the textures have them)

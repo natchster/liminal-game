@@ -21,7 +21,7 @@
 //! whose every file is a recorded level)
 use engine::audio::AudioContext;
 use game::Game;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 const SR: u32 = 48000;
 /// The scenarios: run seed, level, seconds (creatures held still).

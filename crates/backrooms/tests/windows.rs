@@ -2,9 +2,9 @@
 //! openings cut for them, the light they throw in, what they look out on,
 //! and that they are the same on every build.
 mod common;
-use game::core_props::window::{model, view, Kind, SLIVER};
-use game::prelude::*;
 use game::Game;
+use game::core_props::window::{Kind, SLIVER, model, view};
+use game::prelude::*;
 
 /// Every floor of the rooms these seeds build, with what it is
 fn floors(seeds: u32, levels: std::ops::RangeInclusive<i32>, mut f: impl FnMut(&mut Game, u32, i32)) {

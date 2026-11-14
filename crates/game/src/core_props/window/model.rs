@@ -5,7 +5,7 @@
 //!
 //! The window's frame (see `super`): x across (to your right from the
 //! room), y up from the floor, z into the room from the back of the cut.
-use super::{Blind, Frame, Hang, Kind, Light, Plan, Window, SLAB};
+use super::{Blind, Frame, Hang, Kind, Light, Plan, SLAB, Window};
 use crate::assets::props::prop_part_as_modelled;
 use crate::base::rng::SplitMix64;
 use crate::prelude::*;
@@ -339,7 +339,7 @@ pub fn build(g: &mut Game, p: &Plan, f: &Frame, cuts: Vec<[f64; 6]>, r: &mut Spl
 }
 
 /// The materials of a window: its paint, its metals, its blinds, the paper
-fn materials(paint: u32, blind_paint: u32, r: &mut SplitMix64) -> impl Fn(Slot) -> Mat {
+fn materials(paint: u32, blind_paint: u32, r: &mut SplitMix64) -> impl Fn(Slot) -> Mat + use<> {
     let wear = 0.45 + 0.4 * r.next();
     let paint_m = phong!({ color: paint, specular: 0x1a1a1a, shininess: 18 });
     paint_m.m().wear = wear;

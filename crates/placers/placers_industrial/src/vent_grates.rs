@@ -18,7 +18,7 @@ pub(crate) fn place_vent_grates(g: &mut Game, _dist: &[i32]) {
     let shadow_mat = lambert!({ color: 0x101010 });
     let vent = group();
     let mount_y = 2.20; // High on wall.
-                        // Outer frame rectangle.
+    // Outer frame rectangle.
     let frame = mesh(pg("VentGrates__frame", box_geo!(0.30, 0.20, 0.010)), &frame_mat);
     frame.position().y = mount_y;
     vent.add(&frame);

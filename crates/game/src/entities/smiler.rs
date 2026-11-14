@@ -24,10 +24,10 @@
 //!   its stoop the rest pose; the legs solved onto planted feet, the arms
 //!   hanging dead, the head turning first and the body after.
 use crate::base::numeric::hypot2;
-use crate::entities::body::{two_bone, BodyRig};
+use crate::entities::body::{BodyRig, two_bone};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{with_skin_detail, wrap_pi, EntVoice};
+use crate::entities::{EntVoice, with_skin_detail, wrap_pi};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -301,12 +301,12 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
                 notice(g, ei);
                 return;
             }
-            if let Order::Seek(x, z) = order {
-                if now - g.creature(ei).unwrap().get("hint_t") > HINT_EVERY {
-                    hint(g, ei, x, z);
-                    set(g, ei, Mode::Search, "told again where you are");
-                    return;
-                }
+            if let Order::Seek(x, z) = order
+                && now - g.creature(ei).unwrap().get("hint_t") > HINT_EVERY
+            {
+                hint(g, ei, x, z);
+                set(g, ei, Mode::Search, "told again where you are");
+                return;
             }
             if aw >= SUSPECT && mode_t > 1.0 && (lamp_seen || body_seen) {
                 set(g, ei, Mode::Alert, "the light again");

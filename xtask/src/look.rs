@@ -6,7 +6,7 @@
 //! - **luminance**: mean relative luminance (0–1);
 //! - **contrast**: its standard deviation;
 //! - **shadow**: the share of pixels darker than 0.12 (deep shadow).
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Look {

@@ -11,11 +11,7 @@ num_impl!(f64, f32, i8, i16, i32, i64, u8, u16, u32, u64, usize, isize);
 impl Num for bool {
     #[inline]
     fn f(self) -> f64 {
-        if self {
-            1.0
-        } else {
-            0.0
-        }
+        if self { 1.0 } else { 0.0 }
     }
 }
 
@@ -1295,19 +1291,11 @@ pub struct Color {
 
 #[inline]
 pub fn srgb_to_linear(c: f64) -> f64 {
-    if c < 0.04045 {
-        c * 0.0773993808
-    } else {
-        (c * 0.9478672986 + 0.0521327014).powf(2.4)
-    }
+    if c < 0.04045 { c * 0.0773993808 } else { (c * 0.9478672986 + 0.0521327014).powf(2.4) }
 }
 #[inline]
 pub fn linear_to_srgb(c: f64) -> f64 {
-    if c < 0.0031308 {
-        c * 12.92
-    } else {
-        1.055 * c.powf(0.41666) - 0.055
-    }
+    if c < 0.0031308 { c * 12.92 } else { 1.055 * c.powf(0.41666) - 0.055 }
 }
 
 impl Color {
@@ -1577,18 +1565,10 @@ impl Box3 {
         self
     }
     pub fn get_size(&self) -> Vec3 {
-        if self.is_empty() {
-            Vec3::ZERO
-        } else {
-            self.max - self.min
-        }
+        if self.is_empty() { Vec3::ZERO } else { self.max - self.min }
     }
     pub fn get_center(&self) -> Vec3 {
-        if self.is_empty() {
-            Vec3::ZERO
-        } else {
-            (self.min + self.max) * 0.5
-        }
+        if self.is_empty() { Vec3::ZERO } else { (self.min + self.max) * 0.5 }
     }
     pub fn contains_point(&self, p: &Vec3) -> bool {
         !(p.x < self.min.x || p.x > self.max.x || p.y < self.min.y || p.y > self.max.y || p.z < self.min.z || p.z > self.max.z)

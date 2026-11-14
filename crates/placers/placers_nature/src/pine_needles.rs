@@ -36,10 +36,10 @@ pub(crate) fn place_pine_needles(g: &mut Game, _dist: &[i32]) {
         if let Some(geo) = part(&format!("Real__pineNeedles{w}")) {
             nd.add(&mesh(geo, &mats[k]));
         }
-        if w != "C" {
-            if let Some(geo) = part(&format!("Real__pineSheath{w}")) {
-                nd.add(&mesh(geo, &sheath));
-            }
+        if w != "C"
+            && let Some(geo) = part(&format!("Real__pineSheath{w}"))
+        {
+            nd.add(&mesh(geo, &sheath));
         }
         // one lying over another sits on it: a needle's thickness higher
         // for each laid before it near it (no draw)

@@ -115,8 +115,8 @@ fn peeling_wallpaper_tex(seed: u32, pw: f64, ph: f64, side: f64, seam: f64, foot
         let (x, y) = (cx - pw / 2.0, ph / 2.0 - cy);
         let mut px = [PLASTER[0], PLASTER[1], PLASTER[2], 0.0];
         let u = (x - seam) * side; // across the drop from the seam
-                                   // the bare patch: from the seam to the torn far side, from the foot
-                                   // to the torn top; how far inside it (m, < 0 outside)
+        // the bare patch: from the seam to the torn far side, from the foot
+        // to the torn top; how far inside it (m, < 0 outside)
         let far = cw + 0.006 * (fbm(s ^ 0x21, y * 60.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vn(s ^ 0x22, y * 700.0, 0.5) - 0.5);
         let top = foot + cl + 0.01 * (fbm(s ^ 0x23, x * 45.0, 0.5, 3) - 0.5) * 2.0 + 0.002 * (vn(s ^ 0x24, x * 700.0, 0.5) - 0.5);
         let inside = u.min(far - u).min(y - foot).min(top - y);

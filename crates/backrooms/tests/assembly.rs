@@ -12,15 +12,15 @@
 //! pull, the door to open once its going, heard, is over.
 mod common;
 
+use game::Game;
 use game::base::config::{CELL, EYE, SAN_REGEN, WALK};
 use game::entities::director::Phase;
 use game::level::building::CELL_REACH;
 use game::session::input::{Act, INTERACT_BUFFER};
-use game::world::assembly::{Stage, DRAIN, FIRST_FLOOR_QUIET, FIRST_QUIET, KNOCK, LAST, PAGE_WAKE, QUIET, WARNING, WHEEL_OPEN, WHEEL_SHUT};
+use game::world::assembly::{DRAIN, FIRST_FLOOR_QUIET, FIRST_QUIET, KNOCK, LAST, PAGE_WAKE, QUIET, Stage, WARNING, WHEEL_OPEN, WHEEL_SHUT};
 use game::world::cell_knock::{
-    Visit, BREATH, GAVE_OPEN, GIVE, GOING_BREATHS, GOING_TAIL, KNOCK_RINGS, PATIENCE, PLAY, SLACK, TRIES, WHEEL_AFTER,
+    BREATH, GAVE_OPEN, GIVE, GOING_BREATHS, GOING_TAIL, KNOCK_RINGS, PATIENCE, PLAY, SLACK, TRIES, Visit, WHEEL_AFTER,
 };
-use game::Game;
 
 const DT: f64 = 1.0 / 60.0;
 
@@ -563,7 +563,10 @@ fn the_hold_shows_when_the_wheel_turns() {
             }
         });
         let d = g.assembly.door.clone();
-        println!("seed 4242 L{level}: E pressed {presses} times and kept down from the answer; the first pull {first:.2} s after it, unheld (its play {:.0}% taken up)", d.play * 100.0);
+        println!(
+            "seed 4242 L{level}: E pressed {presses} times and kept down from the answer; the first pull {first:.2} s after it, unheld (its play {:.0}% taken up)",
+            d.play * 100.0
+        );
         assert!(presses >= 4, "L{level}: E pressed in the gap ({presses})");
         assert_eq!((d.grip, d.held_for), (0.0, 0.0), "L{level}: E before the pull holds nothing");
         assert!(d.play > 0.0 && d.give == 0.0, "L{level}: its first pull turns the wheel in its play");

@@ -276,11 +276,7 @@ fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
             let row = (y / s).floor();
             let xo = if row as i64 % 2 == 0 { 0.0 } else { s / 2.0 };
             let (fx, fy) = (((x + xo) / s).fract() - 0.5, (y / s).fract() - 0.5);
-            if (fx * fx + fy * fy).sqrt() * s < 0.0022 {
-                white
-            } else {
-                [0.84, 0.60, 0.64]
-            }
+            if (fx * fx + fy * fy).sqrt() * s < 0.0022 { white } else { [0.84, 0.60, 0.64] }
         }
         // blue, white stripes up it
         2 => {
@@ -294,21 +290,13 @@ fn pattern(look: usize, xa: f64, x: f64, y: f64, seed: u32) -> [f64; 3] {
         3 => {
             let p = 0.010;
             let zz = ((xa / p).fract() - 0.5).abs() * 0.007;
-            if ((y + zz) / 0.016).fract() < 0.22 {
-                white
-            } else {
-                [0.90, 0.77, 0.44]
-            }
+            if ((y + zz) / 0.016).fract() < 0.22 { white } else { [0.90, 0.77, 0.44] }
         }
         // green, small white dots, a white band near the rim
         4 => {
             let s = 0.0062;
             let (fx, fy) = ((x / s).fract() - 0.5, (y / s).fract() - 0.5);
-            if (fx * fx + fy * fy).sqrt() * s < 0.0012 || (y > 0.072 && y < 0.077) {
-                white
-            } else {
-                [0.62, 0.77, 0.58]
-            }
+            if (fx * fx + fy * fy).sqrt() * s < 0.0012 || (y > 0.072 && y < 0.077) { white } else { [0.62, 0.77, 0.58] }
         }
         // cream, its greeting drawn on after; a red band at the rim
         _ => {

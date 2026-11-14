@@ -4,7 +4,7 @@ mod common;
 use common::*;
 use engine::prelude::*;
 use game::modes::loop_rooms::*;
-use game::modes::stairwell::{game_canvas_tex, CanvasTexFn};
+use game::modes::stairwell::{CanvasTexFn, game_canvas_tex};
 use std::cell::RefCell;
 use std::rc::Rc;
 

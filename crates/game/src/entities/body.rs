@@ -9,7 +9,7 @@
 //! to tail) points along a direction given in the body's frame, whatever
 //! its parents are doing; [`two_bone`] solves a limb toward a target with a
 //! pole for the middle joint.
-use crate::assets::bodies::{body, body_geometry, BodyDef};
+use crate::assets::bodies::{BodyDef, body, body_geometry};
 use crate::prelude::*;
 use std::collections::HashMap;
 

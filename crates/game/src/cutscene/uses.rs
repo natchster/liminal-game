@@ -3,8 +3,8 @@
 //! are started by `on_death`, `session/flow.rs`, by their cause.)
 //! Each starts a cutscene of the library the way play meets it and does
 //! what must happen around it; the cutscene itself is data.
-use super::play::{Anchors, Frame, Pose};
 use super::Cutscene;
+use super::play::{Anchors, Frame, Pose};
 use crate::prelude::*;
 
 /// The shaft's eyeshine: where it opens in the lift's frame (low in the

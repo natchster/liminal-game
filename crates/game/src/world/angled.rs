@@ -17,7 +17,7 @@
 //! for each run, from the level's seed and the run's place ([`LEAN_SALT`]),
 //! so no draw of the build moves.
 use crate::base::rng::SplitMix64;
-use crate::level::archgen::{make_solids, LayoutView, Solids, BOX_ANGLED, BOX_JAMB, BOX_LINTEL, BOX_WALL};
+use crate::level::archgen::{BOX_ANGLED, BOX_JAMB, BOX_LINTEL, BOX_WALL, LayoutView, Solids, make_solids};
 use std::collections::HashSet;
 
 pub const LEAN_SALT: u64 = 0x1EA2_0FF5_90A2_E004;
@@ -62,18 +62,10 @@ pub struct Wall {
 
 impl Wall {
     fn al_ac(&self, u: f64, v: f64) -> (f64, f64) {
-        if self.along_x {
-            (u, v)
-        } else {
-            (v, u)
-        }
+        if self.along_x { (u, v) } else { (v, u) }
     }
     fn uv(&self, al: f64, ac: f64) -> (f64, f64) {
-        if self.along_x {
-            (al, ac)
-        } else {
-            (ac, al)
-        }
+        if self.along_x { (al, ac) } else { (ac, al) }
     }
     /// Where a point of the run as it stood on the grid stands now
     pub fn turn(&self, u: f64, v: f64) -> (f64, f64) {
@@ -84,11 +76,7 @@ impl Wall {
     }
     /// The turn in the (u, v) plane, from +u toward +v (radians)
     pub fn phi(&self) -> f64 {
-        if self.along_x {
-            self.theta
-        } else {
-            -self.theta
-        }
+        if self.along_x { self.theta } else { -self.theta }
     }
     /// Its face on side `side` (+1: the + across side) at `al` along: the
     /// face's across coordinate
@@ -271,11 +259,7 @@ pub fn lean(view: &LayoutView, s: Solids, seed: u32) -> (Solids, Vec<Wall>) {
                 let half = (c.1 - c.0) / 2.0;
                 let mut parts: Vec<(usize, [f64; 6])> = vec![];
                 let uv = |al0: f64, al1: f64, y0: f64, y1: f64| -> [f64; 6] {
-                    if ax {
-                        [al0, c.0, al1, c.1, y0, y1]
-                    } else {
-                        [c.0, al0, c.1, al1, y0, y1]
-                    }
+                    if ax { [al0, c.0, al1, c.1, y0, y1] } else { [c.0, al0, c.1, al1, y0, y1] }
                 };
                 // the corner's stub, from the corner's middle (the corner's
                 // other arm covers the rest, whichever way the run turns)

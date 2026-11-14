@@ -96,7 +96,7 @@ pub fn set_tail_seam(s: Option<TailSeam>) {
 
 // take a closure out of the seam while it runs (it may re-enter the game), then put it back
 macro_rules! with_hook {
-    ($field:ident, |$f:ident| $call:expr) => {{
+    ($field:ident, |$f:ident| $call:expr_2021) => {{
         let hook = SEAM.with(|s| s.borrow_mut().as_mut().and_then(|s| s.$field.take()));
         match hook {
             Some(mut $f) => {
@@ -115,11 +115,7 @@ macro_rules! with_hook {
 
 /// `take()` / `take(has_wall_n)`
 pub(crate) fn s_take(g: &Game, cx: &mut PropsCtx, wall: bool) -> Option<Cand> {
-    if wall {
-        cx.take(Some(&|c: &Cand| has_wall_n(g, c)))
-    } else {
-        cx.take(None)
-    }
+    if wall { cx.take(Some(&|c: &Cand| has_wall_n(g, c))) } else { cx.take(None) }
 }
 /// `wall_adj_spot(x, z)` (one `choice` draw) — core_props' hookable version
 pub(crate) fn s_wall_adj_spot(g: &Game, x: i32, z: i32) -> Option<WallSpot> {

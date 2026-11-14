@@ -14,7 +14,7 @@ use placers_kit::place::pick_open;
 
 /// One of `N` textures of a kind, made the first time it is asked for
 macro_rules! cached_kind_tex {
-    ($n:expr, $k:expr, $make:expr) => {{
+    ($n:expr_2021, $k:expr_2021, $make:expr_2021) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
         T.with(|t| {

@@ -481,37 +481,37 @@ impl Mat {
 #[macro_export]
 macro_rules! lambert {
     () => { $crate::material::Mat::lambert() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::lambert(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::lambert(); $( m.$k($v); )* m }};
 }
 #[macro_export]
 macro_rules! basic_mat {
     () => { $crate::material::Mat::basic() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::basic(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::basic(); $( m.$k($v); )* m }};
 }
 #[macro_export]
 macro_rules! phong {
     () => { $crate::material::Mat::phong() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::phong(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::phong(); $( m.$k($v); )* m }};
 }
 /// Standard (PBR) materials are drawn with the Lambert model; PBR keys are ignored.
 #[macro_export]
 macro_rules! standard_mat {
     () => { $crate::material::Mat::lambert() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::lambert(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::lambert(); $( m.$k($v); )* m }};
 }
 #[macro_export]
 macro_rules! points_mat {
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::points_mat(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::points_mat(); $( m.$k($v); )* m }};
 }
 #[macro_export]
 macro_rules! sprite_mat {
     () => { $crate::material::Mat::sprite_mat() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::sprite_mat(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::sprite_mat(); $( m.$k($v); )* m }};
 }
 #[macro_export]
 macro_rules! line_mat {
     () => { $crate::material::Mat::line_mat() };
-    ({ $($k:ident : $v:expr),* $(,)? }) => {{ let m = $crate::material::Mat::line_mat(); $( m.$k($v); )* m }};
+    ({ $($k:ident : $v:expr_2021),* $(,)? }) => {{ let m = $crate::material::Mat::line_mat(); $( m.$k($v); )* m }};
 }
 
 /// Material argument for meshes: one material or a per-group array.

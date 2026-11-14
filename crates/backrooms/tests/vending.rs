@@ -3,11 +3,11 @@
 //! (it is the same machine on every build, its uses draw nothing from the
 //! build's stream, it is solid).
 mod common;
+use game::Game;
 use game::core_props::vending::model::{CoilPlace, D, FACE, GLASS_Z, H, TRAY_Y};
-use game::core_props::vending::paint::{designs, Ware};
+use game::core_props::vending::paint::{Ware, designs};
 use game::core_props::vending::rules::*;
 use game::prelude::*;
-use game::Game;
 
 /// A level of the rooms with a vending machine still on (or dead, with
 /// `powered` false): (game, its index)

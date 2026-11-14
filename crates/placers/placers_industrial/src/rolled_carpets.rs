@@ -3,9 +3,9 @@ use game::prelude::*;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::vn;
+use placers_kit::place::WallCand;
 use placers_kit::place::pick;
 use placers_kit::place::wall_candidates;
-use placers_kit::place::WallCand;
 
 // Rolled carpet: 15% chance per level, 1 against a wall (Blender batch
 // `r13b`): an 8 x 10 ft rug rolled pile out and tied twice with jute twine,
@@ -77,11 +77,7 @@ pub(crate) fn place_rolled_carpets(g: &mut Game, _dist: &[i32]) {
 /// `c.dx > 0 ? -PI/2 : PI/2` / `c.dz > 0 ? PI : 0`
 fn wall_yaw(c: &WallCand) -> f64 {
     if c.dx.abs() == 1 {
-        if c.dx > 0 {
-            -PI / 2.0
-        } else {
-            PI / 2.0
-        }
+        if c.dx > 0 { -PI / 2.0 } else { PI / 2.0 }
     } else if c.dz > 0 {
         PI
     } else {
@@ -282,11 +278,7 @@ fn roll_knot(a: f64, b: f64, len: f64, wid: f64, c: &RollColours, medallion: boo
         // the outer guard: a reciprocal of little teeth
         let p = (t / 0.018).fract();
         let q = (e - g0) / (g1 - g0);
-        if (p - 0.5).abs() < 0.5 - 0.5 * q {
-            c.guard
-        } else {
-            c.field
-        }
+        if (p - 0.5).abs() < 0.5 - 0.5 * q { c.guard } else { c.field }
     } else if e < l1 || (e >= b1 && e < l2) || (e >= g2 && e < l3) {
         c.line
     } else if e < b1 {
@@ -318,11 +310,7 @@ fn roll_knot(a: f64, b: f64, len: f64, wid: f64, c: &RollColours, medallion: boo
         // the inner guard: little chevrons
         let p = (t / 0.012).fract();
         let q = (e - l2) / (g2 - l2);
-        if (p - q).abs() < 0.22 || (p - q + 1.0).abs() < 0.22 {
-            c.guard
-        } else {
-            c.border
-        }
+        if (p - q).abs() < 0.22 || (p - q + 1.0).abs() < 0.22 { c.guard } else { c.border }
     } else {
         // the field: small stepped stars in staggered rows
         let (pa, pb) = (0.072, 0.058);

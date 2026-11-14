@@ -17,7 +17,7 @@ pub(crate) fn place_small_ladders(g: &mut Game, _dist: &[i32]) {
     let wood_mat = lambert!({ color: 0x6a4020 });
     let ladder = group();
     let r_h = 1.6; // total ladder height
-                   // Rails: 2 vertical cylinders 0.35 m apart.
+    // Rails: 2 vertical cylinders 0.35 m apart.
     for rx_off in [-0.175, 0.175] {
         let rail = mesh(pg("SmallLadders__rail", cyl_geo!(0.012, 0.012, r_h, 6)), &wood_mat);
         rail.position().set(rx_off, r_h / 2.0, 0);

@@ -293,10 +293,10 @@ fn tank_glass_tex(salt: u32, level: Option<f64>) -> Tex {
                 let broken = sstep(0.3, 0.6, vn(seed ^ 0x44 ^ k as u32, u * 14.0, 0.5));
                 g = g.max(crust * (0.45 + 0.30 * n) * (0.4 + 0.6 * broken));
             }
-            if let Some(lv) = level {
-                if v < v_of(lv) {
-                    g = g.max(0.35 + 0.25 * fbm(seed ^ 0x9, u * 14.0, v * 14.0, 3));
-                }
+            if let Some(lv) = level
+                && v < v_of(lv)
+            {
+                g = g.max(0.35 + 0.25 * fbm(seed ^ 0x9, u * 14.0, v * 14.0, 3));
             }
             let g = g.clamp(0.0, 1.0);
             [g, g, g, 1.0]

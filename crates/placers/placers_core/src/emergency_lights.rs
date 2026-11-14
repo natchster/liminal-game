@@ -73,7 +73,7 @@ pub(crate) fn place_emergency_lights(g: &mut Game, _dist: &[i32]) {
         point_l.position().set(lp.x + fx * 0.15, lp.y - 0.02, lp.z + fz * 0.15);
         g.world.add(&point_l);
         bulb_mat.m().color.set_hex(0xfff8c0); // brighter "on" bulb color
-                                              // Subtle sin-wave flicker: ±10% at 0.7 Hz with random phase.
+        // Subtle sin-wave flicker: ±10% at 0.7 Hz with random phase.
         let flicker_phase = rnd() * PI * 2.0;
         let pl = point_l.clone();
         g.animate(move |_g, _dt, t| {

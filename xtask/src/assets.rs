@@ -40,7 +40,7 @@
 use crate::shots::{read_json, write_json};
 use crate::{flag, opt, root};
 use base64::Engine as _;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::process::Command;
@@ -85,11 +85,7 @@ fn blender() -> String {
         return b;
     }
     let on_path = Command::new("blender").arg("--version").output().is_ok_and(|o| o.status.success());
-    if on_path {
-        "blender".into()
-    } else {
-        "/Applications/Blender.app/Contents/MacOS/Blender".into()
-    }
+    if on_path { "blender".into() } else { "/Applications/Blender.app/Contents/MacOS/Blender".into() }
 }
 
 // ------------------------------------------------------------ the prop file

@@ -234,13 +234,13 @@ fn test_errors(text: &str) -> Vec<String> {
     let lines: Vec<&str> = text.lines().collect();
     for (i, l) in lines.iter().enumerate() {
         // thread 'name' panicked at path:line:col:
-        if let Some(rest) = l.strip_prefix("thread '") {
-            if let Some((name, tail)) = rest.split_once("' panicked at ") {
-                let at = tail.trim_end_matches(':');
-                let why = lines.get(i + 1).map(|s| s.trim()).unwrap_or("");
-                let why: String = why.chars().take(240).collect();
-                out.push(format!("{name} panicked at {at}: {why}"));
-            }
+        if let Some(rest) = l.strip_prefix("thread '")
+            && let Some((name, tail)) = rest.split_once("' panicked at ")
+        {
+            let at = tail.trim_end_matches(':');
+            let why = lines.get(i + 1).map(|s| s.trim()).unwrap_or("");
+            let why: String = why.chars().take(240).collect();
+            out.push(format!("{name} panicked at {at}: {why}"));
         }
         // error: test failed, to rerun pass `-p game --test entities`
         if let Some(rest) = l.strip_prefix("error: test failed, to rerun pass ") {

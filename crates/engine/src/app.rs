@@ -168,10 +168,10 @@ impl<H: AppHandler> Runner<H> {
                 }
             }
         }
-        if let Some(c) = self.req.cursor.take() {
-            if let Some(w) = &self.window {
-                w.set_cursor_visible(c);
-            }
+        if let Some(c) = self.req.cursor.take()
+            && let Some(w) = &self.window
+        {
+            w.set_cursor_visible(c);
         }
         if let Some(f) = self.req.fullscreen.take() {
             if let Some(w) = &self.window {
@@ -215,12 +215,12 @@ impl<H: AppHandler> ApplicationHandler for Runner<H> {
         layer.setPixelFormat(MTLPixelFormat::BGRA8Unorm);
         layer.setFramebufferOnly(true);
         layer.setMaximumDrawableCount(3);
-        if let Ok(h) = window.window_handle() {
-            if let RawWindowHandle::AppKit(h) = h.as_raw() {
-                let view: &NSView = unsafe { h.ns_view.cast().as_ref() };
-                view.setWantsLayer(true);
-                view.setLayer(Some(&layer));
-            }
+        if let Ok(h) = window.window_handle()
+            && let RawWindowHandle::AppKit(h) = h.as_raw()
+        {
+            let view: &NSView = unsafe { h.ns_view.cast().as_ref() };
+            view.setWantsLayer(true);
+            view.setLayer(Some(&layer));
         }
         self.renderer = Some(Renderer::new(device));
         self.layer = Some(layer);
@@ -320,10 +320,10 @@ impl<H: AppHandler> ApplicationHandler for Runner<H> {
     }
 
     fn device_event(&mut self, _el: &ActiveEventLoop, _id: DeviceId, ev: DeviceEvent) {
-        if let DeviceEvent::MouseMotion { delta } = ev {
-            if self.locked {
-                self.send(Input::MouseMove(delta.0, delta.1));
-            }
+        if let DeviceEvent::MouseMotion { delta } = ev
+            && self.locked
+        {
+            self.send(Input::MouseMove(delta.0, delta.1));
         }
     }
 }

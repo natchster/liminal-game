@@ -68,10 +68,10 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
         ("Real__shrineEasel", lambert!({ color: 0x1e1c1a })),
     ];
     for (name, mat) in &parts {
-        if let Some(m) = put(&body, name, mat) {
-            if name.ends_with("Glass") {
-                m.set_render_order(2);
-            }
+        if let Some(m) = put(&body, name, mat)
+            && name.ends_with("Glass")
+        {
+            m.set_render_order(2);
         }
     }
     let photo = PHOTOS[((vary >> 3) % PHOTOS.len() as u32) as usize];

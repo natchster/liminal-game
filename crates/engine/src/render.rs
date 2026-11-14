@@ -440,10 +440,10 @@ impl Renderer {
             let gg = g.0.borrow();
             (gg.id, gg.version)
         };
-        if let Some(e) = self.geos.get(&id) {
-            if e.version == version {
-                return id;
-            }
+        if let Some(e) = self.geos.get(&id)
+            && e.version == version
+        {
+            return id;
         }
         let gg = g.0.borrow();
         let d = &self.device;
@@ -490,10 +490,11 @@ impl Renderer {
         let im = img.borrow();
         let id = im.id;
         let srgb = tt.color_space == ColorSpace::Srgb;
-        if let Some(e) = self.texs.get(&id) {
-            if e.version == im.version && e.srgb == srgb {
-                return (id, tt.flip_y);
-            }
+        if let Some(e) = self.texs.get(&id)
+            && e.version == im.version
+            && e.srgb == srgb
+        {
+            return (id, tt.flip_y);
         }
         let fmt = match im.format {
             PixelFormat::R8 => MTLPixelFormat::R8Unorm,
@@ -1089,15 +1090,7 @@ impl Renderer {
                     let tex = self.overlay_tex(image);
                     unsafe {
                         enc2.setFragmentTexture_atIndex(Some(&tex), 0);
-                        let s = if *smooth {
-                            if tile[0] != 1.0 || tile[1] != 1.0 {
-                                &rep
-                            } else {
-                                &lin
-                            }
-                        } else {
-                            &near
-                        };
+                        let s = if *smooth { if tile[0] != 1.0 || tile[1] != 1.0 { &rep } else { &lin } } else { &near };
                         enc2.setFragmentSamplerState_atIndex(Some(s), 0);
                     }
                     p.a = [*opacity, *blend as u32 as f32, tile[0], tile[1]];
@@ -1210,10 +1203,10 @@ impl Renderer {
         let use_wear = n.use_wear;
         let sprite_center = if let Kind::Sprite { center, .. } = &n.kind { *center } else { Vec2::new(0.5, 0.5) };
         drop(n);
-        if let Some(inst) = &inst {
-            if inst.count == 0 {
-                return;
-            }
+        if let Some(inst) = &inst
+            && inst.count == 0
+        {
+            return;
         }
         let m = it.mat.r().clone();
         let geo_id = it.geo.as_ref().map(|g| self.gpu_geo(g));
@@ -1622,15 +1615,7 @@ fn variant_for(
         }
         None => (false, true, 0, false, false, 0),
     };
-    let vcolor = if m.vertex_colors {
-        if vc_size == 4 {
-            4
-        } else {
-            3
-        }
-    } else {
-        0
-    };
+    let vcolor = if m.vertex_colors { if vc_size == 4 { 4 } else { 3 } } else { 0 };
     let patch = match &m.patch {
         Patch::None => 0,
         Patch::ArchUV { .. } => 1,
@@ -1783,25 +1768,25 @@ fn collect(
                             });
                         }
                     }
-                } else if let Some(m) = mats.first() {
-                    if m.r().visible {
-                        let mid = m.id();
-                        let tr = m.r().transparent;
-                        items.push(Item {
-                            obj: o.clone(),
-                            geo: Some(geo.clone()),
-                            mat: m.clone(),
-                            group: None,
-                            group_order: go,
-                            render_order: n.render_order,
-                            z: p.z,
-                            id: n.id,
-                            mat_id: mid,
-                            transparent: tr,
-                            world: mw,
-                            sphere: sph,
-                        });
-                    }
+                } else if let Some(m) = mats.first()
+                    && m.r().visible
+                {
+                    let mid = m.id();
+                    let tr = m.r().transparent;
+                    items.push(Item {
+                        obj: o.clone(),
+                        geo: Some(geo.clone()),
+                        mat: m.clone(),
+                        group: None,
+                        group_order: go,
+                        render_order: n.render_order,
+                        z: p.z,
+                        id: n.id,
+                        mat_id: mid,
+                        transparent: tr,
+                        world: mw,
+                        sphere: sph,
+                    });
                 }
             }
         }

@@ -3,7 +3,7 @@
 //! y down, angles in radians (clockwise on screen), a save / restore state stack.
 
 use crate::cg::*;
-use crate::css::{parse_css_color, parse_css_font, FontSpec};
+use crate::css::{FontSpec, parse_css_color, parse_css_font};
 use crate::math::Num;
 use crate::texture::{Image, Tex};
 use std::cell::RefCell;
@@ -540,18 +540,10 @@ impl Canvas {
         let tau = 2.0 * PI;
         let sweep = if !ccw {
             let d = a1 - a0;
-            if d >= tau {
-                tau
-            } else {
-                ((d % tau) + tau) % tau
-            }
+            if d >= tau { tau } else { ((d % tau) + tau) % tau }
         } else {
             let d = a0 - a1;
-            if d >= tau {
-                -tau
-            } else {
-                -(((d % tau) + tau) % tau)
-            }
+            if d >= tau { -tau } else { -(((d % tau) + tau) % tau) }
         };
         let (cr, sr) = (rot.cos(), rot.sin());
         let pt = |t: f64| {
@@ -705,11 +697,7 @@ impl Canvas {
                     CGContextSetRGBFillColor(self.ctx, c[0], c[1], c[2], c[3]);
                     CGContextBeginPath(self.ctx);
                     CGContextAddPath(self.ctx, path);
-                    if evenodd {
-                        CGContextEOFillPath(self.ctx)
-                    } else {
-                        CGContextFillPath(self.ctx)
-                    }
+                    if evenodd { CGContextEOFillPath(self.ctx) } else { CGContextFillPath(self.ctx) }
                 }
                 Style::Gradient(g) => {
                     CGContextBeginPath(self.ctx);
@@ -1139,6 +1127,6 @@ impl Canvas {
 }
 
 #[link(name = "CoreGraphics", kind = "framework")]
-extern "C" {
+unsafe extern "C" {
     fn CGContextReplacePathWithStrokedPath(c: CGContextRef);
 }

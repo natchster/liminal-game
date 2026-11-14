@@ -1,7 +1,7 @@
 //! `place_small_toy_dinos`: Small toy dinosaur: 6% chance per level. A solid PVC tyrannosaurus of the 1980s kind, 18 cm: its body level, the tail's tip on the floor, the mouth open on painted teeth, the eyes dots of paint; moulded in one colour, its skin sculpted in scales. Faded, scuffed, grime in its scales.
+use crate::shared::Wear;
 use crate::shared::put;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::mix;

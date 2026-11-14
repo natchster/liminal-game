@@ -9,8 +9,8 @@ use placers_kit::paint::mark_tex;
 use placers_kit::paint::paint_px_indexed;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
-use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
+use placers_kit::wet_floor::floor_kind;
 
 // Floor puddle: 15% chance per level (25% in wet biome). Water on the
 // floor (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): on carpet it has soaked in, a dark wet patch with a

@@ -6,8 +6,8 @@
 //! one.
 mod common;
 use game::base::config::CELL;
-use game::level::archgen::{segment_clear, BOX_ANGLED};
-use game::world::angled::{Wall, DEV_MAX};
+use game::level::archgen::{BOX_ANGLED, segment_clear};
+use game::world::angled::{DEV_MAX, Wall};
 
 /// The rooms' levels looked at: (run seed, level)
 fn levels() -> Vec<(u32, i32)> {
@@ -22,11 +22,7 @@ fn levels() -> Vec<(u32, i32)> {
 
 /// The across coordinate of a point, and its along one
 fn al_ac(w: &Wall, u: f64, v: f64) -> (f64, f64) {
-    if w.along_x {
-        (u, v)
-    } else {
-        (v, u)
-    }
+    if w.along_x { (u, v) } else { (v, u) }
 }
 
 #[test]

@@ -199,11 +199,7 @@ pub fn whole_floor_anomaly(scp: Option<&str>) -> bool {
 /// How many of the run's things a floor holds at most: one on the Lobby
 /// (its emptiness is the point), two elsewhere
 fn room_for(level: i32) -> usize {
-    if level == 4 {
-        1
-    } else {
-        2
-    }
+    if level == 4 { 1 } else { 2 }
 }
 
 /// The run's things on `level` (at most two a floor, one on the Lobby), and

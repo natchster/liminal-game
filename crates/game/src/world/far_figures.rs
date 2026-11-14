@@ -13,8 +13,8 @@
 //! so it moves no other draw (`DEVELOPMENT.md`): not the build's, not the
 //! native stream's. Its perches are gathered with the dressing and draw
 //! nothing.
-use crate::level::archgen::{segment_clear_3d, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID};
-use crate::level::building::{BuildingPlan, Style, MASS_TOP, STOREY, VOID_DEPTH};
+use crate::level::archgen::{DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, segment_clear_3d};
+use crate::level::building::{BuildingPlan, MASS_TOP, STOREY, Style, VOID_DEPTH};
 use crate::prelude::*;
 use crate::world::assembly::Stage;
 

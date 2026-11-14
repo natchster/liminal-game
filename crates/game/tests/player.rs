@@ -11,7 +11,7 @@
 
 use engine::audio::AudioContext;
 use game::base::records::*;
-use game::player::{WAY_PACE, WAY_PRINTS, WAY_PRINT_LIFE, WAY_PRINT_STEP};
+use game::player::{WAY_PACE, WAY_PRINT_LIFE, WAY_PRINT_STEP, WAY_PRINTS};
 use game::prelude::*;
 use game::visuals::lighting::RF_DARK;
 use std::collections::HashMap;

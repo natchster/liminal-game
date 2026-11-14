@@ -14,7 +14,7 @@ use placers_kit::place::pick_open;
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
 macro_rules! cached_kind_tex {
-    ($n:expr, $k:expr, $make:expr) => {{
+    ($n:expr_2021, $k:expr_2021, $make:expr_2021) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
         T.with(|t| {
@@ -227,11 +227,7 @@ fn nut_tex(k: usize, holed: bool) -> Tex {
 
 /// A nut's material: a ripe one keeps a little of its gloss
 fn nut_mat(k: usize, holed: bool) -> Mat {
-    if k == 0 {
-        phong!({ map: &nut_tex(k, holed), specular: 0x1c1813, shininess: 28 })
-    } else {
-        lambert!({ map: &nut_tex(k, holed) })
-    }
+    if k == 0 { phong!({ map: &nut_tex(k, holed), specular: 0x1c1813, shininess: 28 }) } else { lambert!({ map: &nut_tex(k, holed) }) }
 }
 
 /// A cup (u round it, v its outside then its inside, foot to rim): felted

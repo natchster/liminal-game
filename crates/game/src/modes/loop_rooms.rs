@@ -1384,12 +1384,12 @@ impl LoopMode {
                 put1(&self.m_chair, v.x, 0.0, zc + v.v, if lk.turned { v.turned } else { v.yaw });
                 put1(&self.m_plant, if lk.turned { -FURN.plant_x } else { FURN.plant_x }, 0.0, zc + FURN.plant_v, 0.0);
             }
-            if let Some(kind) = pickup_at(l, r) {
-                if !self.st.taken.contains(&Self::pick_key(l, r)) {
-                    let f = kind.spot();
-                    let (x, y, v) = if lk.bare { (f.bx, f.by, f.bv) } else { (f.x, f.y, f.v) };
-                    put1(if kind == PickupKind::Almond { &self.m_almond } else { &self.m_battery }, x, y, zc + v, 0.3);
-                }
+            if let Some(kind) = pickup_at(l, r)
+                && !self.st.taken.contains(&Self::pick_key(l, r))
+            {
+                let f = kind.spot();
+                let (x, y, v) = if lk.bare { (f.bx, f.by, f.bv) } else { (f.x, f.y, f.v) };
+                put1(if kind == PickupKind::Almond { &self.m_almond } else { &self.m_battery }, x, y, zc + v, 0.3);
             }
             if lk.exit && r == LOOP::EXIT_ROOM {
                 put1(&self.m_door, -W / 2.0, 0.0, zc + FURN.exit_door_v, PI / 2.0);
@@ -1562,18 +1562,18 @@ impl LoopMode {
         let lap_r = self.reported_lap();
         let zc = room as f64 * P + P / 2.0;
         // --- pickups: only at lap ≥ 3, and each only once ---
-        if let Some(kind) = pickup_at(lap_r, room) {
-            if !self.st.taken.contains(&Self::pick_key(lap_r, room)) {
-                let f = kind.spot();
-                let bare = lap_look(lap_r).bare;
-                let px = if bare { f.bx } else { f.x };
-                let pz = zc + if bare { f.bv } else { f.v };
-                let (ex, ez) = (px - self.st.x, pz - self.st.z);
-                if ex * ex + ez * ez < 0.95 {
-                    self.st.taken.insert(Self::pick_key(lap_r, room));
-                    dirty = true;
-                    self.out.events.push(LoopEvent::Pickup { kind, lap: lap_r, room });
-                }
+        if let Some(kind) = pickup_at(lap_r, room)
+            && !self.st.taken.contains(&Self::pick_key(lap_r, room))
+        {
+            let f = kind.spot();
+            let bare = lap_look(lap_r).bare;
+            let px = if bare { f.bx } else { f.x };
+            let pz = zc + if bare { f.bv } else { f.v };
+            let (ex, ez) = (px - self.st.x, pz - self.st.z);
+            if ex * ex + ez * ez < 0.95 {
+                self.st.taken.insert(Self::pick_key(lap_r, room));
+                dirty = true;
+                self.out.events.push(LoopEvent::Pickup { kind, lap: lap_r, room });
             }
         }
         // --- the side door you came in by: gone the moment it is behind you ---

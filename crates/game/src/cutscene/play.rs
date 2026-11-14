@@ -186,7 +186,7 @@ pub struct Playing {
     pub c: Cutscene,
     /// which cutscene this is of the game's (a cue that ends it, or starts
     /// another, is seen by its number changing)
-    pub gen: u64,
+    pub r#gen: u64,
     /// its clock
     pub t: f64,
     /// where its clock started (its short form on a repeat)
@@ -233,11 +233,7 @@ impl Playing {
     /// Its own keys over its start pose: 0 at its start (a blend in), 1 after
     fn w_in(&self) -> f64 {
         let blend_in = if self.t0 > 0.0 { self.c.blend_in.max(REPEAT_BLEND) } else { self.c.blend_in };
-        if blend_in > 0.0 {
-            smooth(self.t - self.t0, 0.0, blend_in)
-        } else {
-            1.0
-        }
+        if blend_in > 0.0 { smooth(self.t - self.t0, 0.0, blend_in) } else { 1.0 }
     }
     /// Its camera over play's: 1, then 0 at its end (a blend out, a break-off,
     /// a skip near your eyes); a far skip's cut, under the veil, at its end
@@ -353,13 +349,13 @@ impl Playing {
         let pos = catmull(p0, pa.pos, pb.pos, p3, e);
         let (mut yaw, mut pitch) = (lerp_angle(pa.yaw, pb.yaw, e), lerp(pa.pitch, pb.pitch, e));
         // both look at the same live point: follow it from where the camera is
-        if let (Some(x), Some(y)) = (ta, tb) {
-            if a.look == b.look {
-                let target = super::curve::lerp3(x, y, e);
-                let (ly, lp) = look_angles(pos, target);
-                yaw = ly + lerp(a.yaw, b.yaw, e).to_radians();
-                pitch = lp + lerp(a.pitch, b.pitch, e).to_radians();
-            }
+        if let (Some(x), Some(y)) = (ta, tb)
+            && a.look == b.look
+        {
+            let target = super::curve::lerp3(x, y, e);
+            let (ly, lp) = look_angles(pos, target);
+            yaw = ly + lerp(a.yaw, b.yaw, e).to_radians();
+            pitch = lp + lerp(a.pitch, b.pitch, e).to_radians();
         }
         let (sy, sp) = sway(t, lerp(a.sway, b.sway, e) * shake_k);
         // a walked segment: a step's bob by the distance covered, faded out
@@ -490,13 +486,13 @@ impl Game {
             next[i] = ts.iter().take_while(|&&t| t < t0).count();
         }
         self.cut_gen += 1;
-        let gen = self.cut_gen;
+        let r#gen = self.cut_gen;
         self.cut_end = None;
         self.cut_hold = None;
         self.cut_shake = (0.0, 0.0, 0.0);
         self.cut = Some(Playing {
             c,
-            gen,
+            r#gen,
             t: t0,
             t0,
             start_pose,
@@ -582,8 +578,8 @@ impl Game {
     }
 
     /// The cutscene playing is still the one numbered `gen`
-    fn cut_is(&self, gen: u64) -> bool {
-        self.cut.as_ref().is_some_and(|p| p.gen == gen)
+    fn cut_is(&self, r#gen: u64) -> bool {
+        self.cut.as_ref().is_some_and(|p| p.r#gen == r#gen)
     }
 
     fn cutscene_step(&mut self, dt: f64) {
@@ -602,7 +598,7 @@ impl Game {
         let danger = self.state == "playing" && self.cutscene_danger(false);
         let skip_key = self.keys.iter().any(|k| self.is_skip_key(k));
         // the clock, the skip key held, danger
-        let (gen, skip_now, broke) = {
+        let (r#gen, skip_now, broke) = {
             let p = self.cut.as_mut().unwrap();
             p.gameplay = Some(gameplay);
             p.t += dt;
@@ -621,7 +617,7 @@ impl Game {
             if broke {
                 p.how = "broken off";
             }
-            (p.gen, skip_now, broke)
+            (p.r#gen, skip_now, broke)
         };
         if broke {
             // back to your eyes as a skip goes: quickly if near, through black if far
@@ -635,11 +631,11 @@ impl Game {
             }
             self.cut_note(format!("broken off at {t:.2} ({})", if near { "blend" } else { "dip" }));
             // what must hold holds, as on a skip
-            if !self.cut_run_held(gen) {
+            if !self.cut_run_held(r#gen) {
                 return;
             }
         }
-        if skip_now && !self.cut_skip(gen) {
+        if skip_now && !self.cut_skip(r#gen) {
             return;
         }
         // the cues come due, run with the cutscene in place
@@ -666,7 +662,7 @@ impl Game {
                 }
             }
             // a cue that ended it (a death, a new floor) or started another
-            if !self.cut_is(gen) {
+            if !self.cut_is(r#gen) {
                 return;
             }
         }
@@ -770,7 +766,7 @@ impl Game {
     /// The events left whose effect must hold (`on_skip`), run now in
     /// order, the rest let go: on a skip and a break-off. → false when one
     /// of them ended the cutscene
-    fn cut_run_held(&mut self, gen: u64) -> bool {
+    fn cut_run_held(&mut self, r#gen: u64) -> bool {
         let rest: Vec<Event> = {
             let p = self.cut.as_mut().unwrap();
             let rest = p.c.event[p.next[2]..].to_vec();
@@ -779,7 +775,7 @@ impl Game {
         };
         for e in rest.iter().filter(|e| e.on_skip) {
             self.cut_event(&e.name, e.t);
-            if !self.cut_is(gen) {
+            if !self.cut_is(r#gen) {
                 return false;
             }
         }
@@ -791,8 +787,8 @@ impl Game {
     /// sounds and asides do not); then back to your eyes, quickly if the
     /// camera is near them, through black if it is far; a cutscene that
     /// ends on a card goes to its end. → false when an event ended it
-    fn cut_skip(&mut self, gen: u64) -> bool {
-        if !self.cut_run_held(gen) {
+    fn cut_skip(&mut self, r#gen: u64) -> bool {
+        if !self.cut_run_held(r#gen) {
             return false;
         }
         let near = self.cut_near_eyes();
@@ -877,11 +873,11 @@ impl Game {
 
     /// A key let go while your hands are taken
     pub fn cutscene_key_up(&mut self, code: &str) {
-        if self.is_skip_key(code) {
-            if let Some(p) = self.cut.as_mut() {
-                p.skip_down = false;
-                p.skip_held = 0.0;
-            }
+        if self.is_skip_key(code)
+            && let Some(p) = self.cut.as_mut()
+        {
+            p.skip_down = false;
+            p.skip_held = 0.0;
         }
     }
 

@@ -52,7 +52,7 @@ pub(crate) fn place_wooden_brooms(g: &mut Game, _dist: &[i32]) {
         let dust_mat = lambert!({ color: 0x3a3028 });
         let dust_pile = mesh(pg("WoodenBrooms__dust", sphere_geo!(0.05 + rnd() * 0.03, 6, 4)), &dust_mat);
         dust_pile.scale().set(1.2, 0.3, 1.5); // wide flat pile
-                                              // Place beside broom in front of bristle, forward from wall.
+        // Place beside broom in front of bristle, forward from wall.
         let dfx = -c.dx as f64 * 0.20;
         let dfz = -c.dz as f64 * 0.20;
         let bp = broom.pos();

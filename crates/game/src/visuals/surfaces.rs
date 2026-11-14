@@ -57,11 +57,7 @@ fn r2(rng: Rng, a: f64, b: f64) -> f64 {
 /// (`ceil(n)`, 0 when `n` ≤ 0 or NaN).
 #[inline]
 fn times(n: f64) -> u64 {
-    if n > 0.0 {
-        n.ceil() as u64
-    } else {
-        0
-    }
+    if n > 0.0 { n.ceil() as u64 } else { 0 }
 }
 
 /// Store a number as a clamped byte (clamp to 0..=255, NaN → 0, round half
@@ -192,7 +188,7 @@ pub fn drywall(rng: Rng, g: i32, base: bool) -> Tex {
             );
         }
         speckle(rng, ctx, w, h, 5000, [90, 85, 70], 0.03, 0.08, 0.7, 1.6); // roller stipple
-                                                                           // board seams every 1.2 m (4 m texture → 153.6 px), barely there
+        // board seams every 1.2 m (4 m texture → 153.6 px), barely there
         ctx.set_fill_style("rgba(0,0,0,0.035)");
         let mut x = 0.0;
         while x < w {

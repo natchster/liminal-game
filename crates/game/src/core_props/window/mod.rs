@@ -17,9 +17,9 @@ pub mod blind;
 pub mod model;
 pub mod view;
 
-use super::{home_zones, Home, PropsCtx};
+use super::{Home, PropsCtx, home_zones};
 use crate::base::rng::SplitMix64;
-use crate::level::archgen::{ray_axis, Solids, DIRS};
+use crate::level::archgen::{DIRS, Solids, ray_axis};
 use crate::prelude::*;
 
 /// Where a real building would have windows: offices and office wings,
@@ -163,11 +163,7 @@ impl Window {
     }
     /// The floor light `k` lights now (none while it is covered)
     pub fn lit_cells(&self, k: usize) -> &[[(f64, f64); 4]] {
-        if self.covered(k) {
-            &[]
-        } else {
-            &self.lights[k].patch
-        }
+        if self.covered(k) { &[] } else { &self.lights[k].patch }
     }
     /// Whether light `k` is covered: its blind down and shut, or papered over
     pub fn covered(&self, k: usize) -> bool {

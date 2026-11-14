@@ -7,9 +7,9 @@
 //! come out finite, and the clock move exactly as far as it was rendered.
 
 use engine::audio::AudioContext;
-use game::audio::soundscape::{ReverbPreset, FOOTSTEP_SURFACES, PHRASES, REVERB_PRESETS};
-use game::audio::sys::SFX_NAMES;
 use game::Game;
+use game::audio::soundscape::{FOOTSTEP_SURFACES, PHRASES, REVERB_PRESETS, ReverbPreset};
+use game::audio::sys::SFX_NAMES;
 
 const SR: f64 = 48000.0;
 

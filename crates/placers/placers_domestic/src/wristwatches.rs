@@ -252,11 +252,7 @@ fn strap_mat(band: usize, z0: f64, z1: f64, seed: u32) -> Mat {
             ctx.fill();
         }
     });
-    if webbing {
-        lambert!({ map: &tex })
-    } else {
-        phong!({ map: &tex, specular: 0x161412, shininess: 18 })
-    }
+    if webbing { lambert!({ map: &tex }) } else { phong!({ map: &tex, specular: 0x161412, shininess: 18 }) }
 }
 
 /// The plating rubbed through at the edges and lugs to the brass under

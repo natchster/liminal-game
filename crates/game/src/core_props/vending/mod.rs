@@ -14,7 +14,7 @@ pub mod rules;
 
 use crate::core_props::{Built, PropsCtx};
 use crate::prelude::*;
-use crate::visuals::textures::{handwritten_tex, HandOpts};
+use crate::visuals::textures::{HandOpts, handwritten_tex};
 use model::*;
 use paint::*;
 
@@ -130,11 +130,7 @@ fn stock(places: &[CoilPlace], powered: bool) -> Vec<Stock> {
         let design = match c.tray {
             0..=2 => {
                 // the same bag twice in a row now and then
-                if last != usize::MAX && rnd() < 0.3 && out.len() % 5 != 0 {
-                    last
-                } else {
-                    choice(&bags)
-                }
+                if last != usize::MAX && rnd() < 0.3 && out.len() % 5 != 0 { last } else { choice(&bags) }
             }
             3 | 4 => {
                 if (i - 15) == battery_at {

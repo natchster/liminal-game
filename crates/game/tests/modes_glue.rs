@@ -9,11 +9,11 @@
 mod common;
 use common::*;
 use engine::prelude::*;
-use game::base::records::Entity;
-use game::base::rng::{rnd, seeded_draws, with_seed, Mulberry32};
-use game::modes::stairwell::{game_canvas_tex, StairDeps, Stairwell};
-use game::modes::*;
 use game::Game;
+use game::base::records::Entity;
+use game::base::rng::{Mulberry32, rnd, seeded_draws, with_seed};
+use game::modes::stairwell::{StairDeps, Stairwell, game_canvas_tex};
+use game::modes::*;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 

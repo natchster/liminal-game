@@ -3,8 +3,8 @@
 //! differs and in which part (player, creatures, director, world), the frame
 //! where a nondeterminism entered — instead of a fixture failing three
 //! changes later. Recordings are written to `target/replays/` to inspect.
-use game::debug::replay::{replay_frame, FrameInput, Recorder, Recording, StateHash};
 use game::Game;
+use game::debug::replay::{FrameInput, Recorder, Recording, StateHash, replay_frame};
 use serde_json::json;
 
 /// (run seed, level, seconds)

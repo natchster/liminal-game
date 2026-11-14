@@ -4,8 +4,8 @@
 //! target/hud-<state>.json, and each HUD canvas of the "hud" state as
 //! target/hud-canvas-<n>-<name>.png, for visual inspection.
 use engine::math::Vec3;
-use game::ui::model::{Element, HudLayer, LayerBlend};
 use game::Game;
+use game::ui::model::{Element, HudLayer, LayerBlend};
 
 const W: f64 = 1280.0;
 const H: f64 = 800.0;
@@ -34,11 +34,7 @@ fn blendf(mode: LayerBlend, cb: f32, cs: f32) -> f32 {
         }
         LayerBlend::SoftLight => {
             let d = if cb <= 0.25 { ((16.0 * cb - 12.0) * cb + 4.0) * cb } else { cb.sqrt() };
-            if cs <= 0.5 {
-                cb - (1.0 - 2.0 * cs) * cb * (1.0 - cb)
-            } else {
-                cb + (2.0 * cs - 1.0) * (d - cb)
-            }
+            if cs <= 0.5 { cb - (1.0 - 2.0 * cs) * cb * (1.0 - cb) } else { cb + (2.0 * cs - 1.0) * (d - cb) }
         }
         LayerBlend::ColorDodge => {
             if cs >= 1.0 {

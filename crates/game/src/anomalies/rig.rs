@@ -177,11 +177,7 @@ pub struct RigParts {
     pub skins: Vec<(String, Obj)>,
 }
 fn side_name(s: f64) -> &'static str {
-    if s > 0.0 {
-        "L"
-    } else {
-        "R"
-    }
+    if s > 0.0 { "L" } else { "R" }
 }
 impl RigParts {
     /// `Entity.parts`: every bone by its name, `torso` (= pelvis), `skin`,
@@ -475,7 +471,7 @@ pub fn human_gait_entity(e: &mut Entity, player: Vec3, dt: f64, t: f64, r: &Huma
     let walk_k = ent_smooth(0.04, 0.5, spd);
     let idle = 1.0 - walk_k;
     let step_k = walk_k.max(0.75 * ent_smooth(0.25, 1.0, g_turn) * idle); // feet lifting: walking, or turning on the spot
-                                                                          // cadence (cycles/s) and the cycle it makes at this speed
+    // cadence (cycles/s) and the cycle it makes at this speed
     let f = lerp(lerp(0.52 + 0.31 * spd, 0.45 + 0.35 * spd, hunt), 0.42 + 0.3 * spd, glide);
     let c = 0.3f64.max(spd / f);
     // the share of a cycle a foot is down
@@ -894,15 +890,7 @@ impl Game {
         // the walk (`human_gait`): a browsing amble by day; at night a long, stiff,
         // wrong stride with the arms hanging dead (searching, half of it). The head
         // turns to you when it looks, with a slow, curious tilt.
-        let night_k = if night {
-            if e.state == "hunt" {
-                1.0
-            } else {
-                0.55
-            }
-        } else {
-            0.0
-        };
+        let night_k = if night { if e.state == "hunt" { 1.0 } else { 0.55 } } else { 0.0 };
         let hk = or0(e.n("huntK"));
         e.set_n("huntK", hk + (night_k - hk) * (1.0 - (-dt * 2.5).exp()));
         let look = e.n("lookK");

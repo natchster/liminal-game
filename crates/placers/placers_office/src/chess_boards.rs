@@ -143,15 +143,7 @@ pub(crate) fn place_chess_boards(g: &mut Game, _dist: &[i32]) {
             0.012,
             -board_size / 2.0 + cell_size / 2.0 + r as f64 * cell_size,
         );
-        piece.rotation().y = if kind == "knight" {
-            if is_white {
-                0.0
-            } else {
-                PI
-            }
-        } else {
-            0.0
-        };
+        piece.rotation().y = if kind == "knight" { if is_white { 0.0 } else { PI } } else { 0.0 };
         cb.add(&piece);
     }
     // Optional: 1-2 captured pieces on the side board area.

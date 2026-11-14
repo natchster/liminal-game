@@ -57,11 +57,7 @@ pub fn with_detail(m: Mat, name: &str) -> Mat {
 }
 
 pub fn grime_of(info: &RegionInfo) -> i32 {
-    if info.flags & RF_MOSS != 0 {
-        3
-    } else {
-        info.grime.clamp(0, 3)
-    }
+    if info.flags & RF_MOSS != 0 { 3 } else { info.grime.clamp(0, 3) }
 }
 
 /// The wall material key of a zone's surface in a region's variant

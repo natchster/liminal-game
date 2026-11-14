@@ -23,7 +23,7 @@
 //! the truth (roadmap 4.5).
 use crate::shots::{read_json, read_png, write_json};
 use crate::{opt, root};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 

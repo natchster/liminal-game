@@ -83,10 +83,8 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
         log.rotation().y = (hash(vary, i as i32, 1) - 0.5) * 0.35;
         log.rotation().x = (hash(vary, i as i32, 2) - 0.5) * 0.6;
         put(&log, name, &char_mat);
-        if is_lit {
-            if let Some(m) = put(&log, &format!("{name}Glow"), &glow_mat) {
-                m.set_render_order(2);
-            }
+        if is_lit && let Some(m) = put(&log, &format!("{name}Glow"), &glow_mat) {
+            m.set_render_order(2);
         }
         body.add(&log);
     }

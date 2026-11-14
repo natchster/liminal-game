@@ -8,8 +8,8 @@
 use crate::base::records::*;
 use crate::prelude::*;
 use crate::visuals::lighting::{RF_DARK, RF_MOSS};
-use crate::world::tables::{PLACER_ALWAYS, PLACER_THEME, THEMED_ORDER, THEME_ALLOW, THEME_SHARE_GAIN};
-use crate::world::{PoolPlan, GRIME_LIGHT};
+use crate::world::tables::{PLACER_ALWAYS, PLACER_THEME, THEME_ALLOW, THEME_SHARE_GAIN, THEMED_ORDER};
+use crate::world::{GRIME_LIGHT, PoolPlan};
 use std::collections::{HashMap, HashSet};
 
 thread_local! { static MISSING: std::cell::RefCell<HashSet<String>> = std::cell::RefCell::new(HashSet::new()); }
@@ -279,10 +279,10 @@ impl Game {
         // a floor of the Building is built by its own passes (`world::building`)
         if self.building.is_some() {
             self.build_building(bt0);
-            if let Some(l) = self.layout.as_mut() {
-                if l.tiles.len() == self.tiles.len() {
-                    l.tiles.copy_from_slice(&self.tiles);
-                }
+            if let Some(l) = self.layout.as_mut()
+                && l.tiles.len() == self.tiles.len()
+            {
+                l.tiles.copy_from_slice(&self.tiles);
             }
             self.scene.add(&self.world.clone());
             return;
@@ -346,7 +346,7 @@ impl Game {
                 if self.region_info[rid].flags & RF_DARK != 0 {
                     continue;
                 } // dark zones stay dark
-                  // an intact room has tubes over every other tile; a rotting one thins out
+                // an intact room has tubes over every other tile; a rotting one thins out
                 let dense = self.region_info[rid].lit.unwrap_or(0.0) >= 0.75;
                 let le = self.zone_ref(x, z).map(|zn| zn.light_every).unwrap_or(0);
                 let k = (if le != 0 { le } else { 2 }) * if dense { 1 } else { 2 };
@@ -393,15 +393,7 @@ impl Game {
         self.world.add(&pm);
         self.panel_mesh = Some(pm);
         // 0-2 broken ceiling panels — a dead spotlight and a hanging tile piece
-        let broken_count = if rnd() < 0.6 {
-            if rnd() < 0.4 {
-                2
-            } else {
-                1
-            }
-        } else {
-            0
-        };
+        let broken_count = if rnd() < 0.6 { if rnd() < 0.4 { 2 } else { 1 } } else { 0 };
         if broken_count > 0 && self.panels.len() > 3 {
             let mut index_pool: Vec<usize> = (0..self.panels.len()).collect();
             let mut i = index_pool.len();
@@ -521,10 +513,10 @@ impl Game {
         let total = crate::base::numeric::round_decimals(self.clock_ms() - bt0, 1);
         self.build_profile.insert("t.total".into(), total);
         // keep the layout's copy of the tiles in step with `g.tiles`
-        if let Some(l) = self.layout.as_mut() {
-            if l.tiles.len() == self.tiles.len() {
-                l.tiles.copy_from_slice(&self.tiles);
-            }
+        if let Some(l) = self.layout.as_mut()
+            && l.tiles.len() == self.tiles.len()
+        {
+            l.tiles.copy_from_slice(&self.tiles);
         }
         self.scene.add(&self.world.clone());
     }

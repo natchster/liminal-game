@@ -1302,37 +1302,37 @@ impl Engine {
                         self.master = v as f32;
                         continue;
                     }
-                    if let Some(n) = self.nodes.get_mut(&id) {
-                        if let Some(pp) = n.params.get_mut(p as usize) {
-                            pp.set_now(v, now);
-                        }
+                    if let Some(n) = self.nodes.get_mut(&id)
+                        && let Some(pp) = n.params.get_mut(p as usize)
+                    {
+                        pp.set_now(v, now);
                     }
                 }
                 Cmd::Event(id, p, e) => {
-                    if let Some(n) = self.nodes.get_mut(&id) {
-                        if let Some(pp) = n.params.get_mut(p as usize) {
-                            if pp.idle() {
-                                pp.last_t = now;
-                                pp.last_v = pp.value;
-                            }
-                            pp.insert(e);
+                    if let Some(n) = self.nodes.get_mut(&id)
+                        && let Some(pp) = n.params.get_mut(p as usize)
+                    {
+                        if pp.idle() {
+                            pp.last_t = now;
+                            pp.last_v = pp.value;
                         }
+                        pp.insert(e);
                     }
                 }
                 Cmd::Cancel(id, p, t) => {
-                    if let Some(n) = self.nodes.get_mut(&id) {
-                        if let Some(pp) = n.params.get_mut(p as usize) {
-                            pp.cancel(t);
-                        }
+                    if let Some(n) = self.nodes.get_mut(&id)
+                        && let Some(pp) = n.params.get_mut(p as usize)
+                    {
+                        pp.cancel(t);
                     }
                 }
                 Cmd::Start(id, t, off, dur) => {
-                    if let Some(n) = self.nodes.get_mut(&id) {
-                        if n.start.is_none() {
-                            n.start = Some(t);
-                            n.offset = off;
-                            n.duration = dur;
-                        }
+                    if let Some(n) = self.nodes.get_mut(&id)
+                        && n.start.is_none()
+                    {
+                        n.start = Some(t);
+                        n.offset = off;
+                        n.duration = dur;
                     }
                 }
                 Cmd::Stop(id, t) => {
@@ -1648,11 +1648,11 @@ fn process_node(n: &mut NodeState, input: &Buf, mods: &[(u8, [f32; QUANTUM])], t
                 out.ch = buf.channels.len().min(2);
                 let start_t = n.start.unwrap_or(0.0);
                 for i in s..e {
-                    if let Some(d) = n.duration {
-                        if t0 + i as f64 / sr - start_t >= d {
-                            n.ended = true;
-                            break;
-                        }
+                    if let Some(d) = n.duration
+                        && t0 + i as f64 / sr - start_t >= d
+                    {
+                        n.ended = true;
+                        break;
                     }
                     if n.looping {
                         if n.pos >= le {

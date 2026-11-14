@@ -156,7 +156,9 @@ fn who_lives_where() {
             assert!(g.is_wall_tile(x + cx, z) && g.is_wall_tile(x, z + cz), "seed {seed} L{level}: not in a corner");
         }
     }
-    println!("levels {levels}: kinds {seen_kinds:?}; the Reader on {readers_placed} ({with_paper} with paper), the one in the corner on {corners_placed}");
+    println!(
+        "levels {levels}: kinds {seen_kinds:?}; the Reader on {readers_placed} ({with_paper} with paper), the one in the corner on {corners_placed}"
+    );
     for kind in ["smiler", "hound", "watcher", "reader", "corner"] {
         assert!(seen_kinds.get(kind).copied().unwrap_or(0) > 0, "no {kind} on any level");
     }

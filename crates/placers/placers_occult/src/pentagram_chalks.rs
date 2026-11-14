@@ -1,10 +1,10 @@
 //! `place_pentagram_chalks`
 use game::prelude::*;
+use placers_kit::noise::Rng32;
 use placers_kit::noise::fbm;
 use placers_kit::noise::hash;
 use placers_kit::noise::sstep;
 use placers_kit::noise::vn;
-use placers_kit::noise::Rng32;
 use placers_kit::paint::fill;
 use placers_kit::place::open_tiles;
 use placers_kit::place::pick;

@@ -1,6 +1,6 @@
 //! The hiding places made, their verbs, and what happens when one is
 //! opened or a thing is taken.
-use super::keeps::{place_words, thing_words, Took};
+use super::keeps::{Took, place_words, thing_words};
 use super::{PlaceKind, Secret, SecretPlan, SecretsLevel, Thing};
 use crate::prelude::*;
 
@@ -150,28 +150,28 @@ impl Game {
             }
             PlaceKind::Drawer => {
                 // the drawer that will not quite shut
-                if let Some((k, d)) = p.drawer {
-                    if let Some(dr) = self.drawer_props.get(k).and_then(|c| c.drawers.get(d)) {
-                        let mut dr = dr.borrow_mut();
-                        dr.mesh.position().z += 0.035;
-                        dr.content_type = format!("secret:{i}");
-                    }
+                if let Some((k, d)) = p.drawer
+                    && let Some(dr) = self.drawer_props.get(k).and_then(|c| c.drawers.get(d))
+                {
+                    let mut dr = dr.borrow_mut();
+                    dr.mesh.position().z += 0.035;
+                    dr.content_type = format!("secret:{i}");
                 }
             }
             PlaceKind::Cell => {
                 // salt by its door, two small cones of it (the salt's own cell)
-                if p.thing == Thing::Salt {
-                    if let Some(c) = self.building.as_ref().and_then(|b| b.cells.iter().find(|c| c.tile == p.tile)) {
-                        let d = crate::level::archgen::DIRS[c.door];
-                        let (dx, dz) = (d[0] as f64, d[1] as f64);
-                        let (cx, cz) = (self.wx(p.tile.0), self.wz(p.tile.1));
-                        let salt = lambert!({ color: 0xe8e6e0 });
-                        for sx in [-1.0, 1.0] {
-                            let cone = mesh(cone_geo!(0.035, 0.06, 10), &salt);
-                            let (x, z) = (cx + dx * (CELL / 2.0 + 0.25) - dz * sx * 0.85, cz + dz * (CELL / 2.0 + 0.25) + dx * sx * 0.85);
-                            cone.position().set(x, self.floor_y_at(x, z) + 0.03, z);
-                            place.add(&cone);
-                        }
+                if p.thing == Thing::Salt
+                    && let Some(c) = self.building.as_ref().and_then(|b| b.cells.iter().find(|c| c.tile == p.tile))
+                {
+                    let d = crate::level::archgen::DIRS[c.door];
+                    let (dx, dz) = (d[0] as f64, d[1] as f64);
+                    let (cx, cz) = (self.wx(p.tile.0), self.wz(p.tile.1));
+                    let salt = lambert!({ color: 0xe8e6e0 });
+                    for sx in [-1.0, 1.0] {
+                        let cone = mesh(cone_geo!(0.035, 0.06, 10), &salt);
+                        let (x, z) = (cx + dx * (CELL / 2.0 + 0.25) - dz * sx * 0.85, cz + dz * (CELL / 2.0 + 0.25) + dx * sx * 0.85);
+                        cone.position().set(x, self.floor_y_at(x, z) + 0.03, z);
+                        place.add(&cone);
                     }
                 }
             }
@@ -366,10 +366,8 @@ impl Game {
         self.play_from(p.x, self.floor_y_at(p.x, p.z) + 0.5, p.z, 2.0, 1.0, 0.6, move |g| g.sfx_take_thing(t));
         // a sweet from the dish: the dish stays until it is three
         let gone = t != Thing::Sweets || uses >= 3;
-        if gone {
-            if let Some(o) = &s.thing {
-                o.set_visible(false);
-            }
+        if gone && let Some(o) = &s.thing {
+            o.set_visible(false);
         }
         self.took_thing(t, &p, uses);
         if gone {

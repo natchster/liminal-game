@@ -564,11 +564,11 @@ impl Game {
                 d
             }
         };
-        if let Some(p) = &self.asides.pending {
-            if p.use_.priority() >= u.priority() {
-                self.aside_note(format!("skip:{what}:busy"));
-                return;
-            }
+        if let Some(p) = &self.asides.pending
+            && p.use_.priority() >= u.priority()
+        {
+            self.aside_note(format!("skip:{what}:busy"));
+            return;
         }
         let (lo, hi, win) = u.moment();
         self.asides.pending =

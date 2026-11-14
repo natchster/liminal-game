@@ -111,8 +111,8 @@ pub(crate) fn place_turntables(g: &mut Game, _dist: &[i32]) {
         let (vinyl2, label2, arm2) = (vinyl.clone(), center_label.clone(), arm_group.clone());
         g.animate(move |_g, dt, t| {
             let rot = dt * 3.5; // ~33 RPM = ~3.5 rad/s
-                                // Grooves are tori turned flat (their z is the vertical axis); the
-                                // vinyl and label are Y-axis cylinders, so they spin about y.
+            // Grooves are tori turned flat (their z is the vertical axis); the
+            // vinyl and label are Y-axis cylinders, so they spin about y.
             for target in &spin_targets {
                 if target.ptr_eq(&vinyl2) || target.ptr_eq(&label2) {
                     target.rotation().y -= rot;

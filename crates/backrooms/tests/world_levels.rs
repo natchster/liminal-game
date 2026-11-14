@@ -4,8 +4,8 @@
 //! Asserts no panics and sane counts, and writes the per-level seeded draw
 //! counts and every trace mark (one per `themed()` pass, one per lap) to
 //! `$CARGO_TARGET_TMPDIR/world_marks.json` for inspection.
-use game::base::rng::{seed_for_level, seeded_draws, with_seed};
 use game::Game;
+use game::base::rng::{seed_for_level, seeded_draws, with_seed};
 
 #[test]
 fn every_themed_placer_is_registered() {
@@ -53,9 +53,20 @@ fn levels_build_with_all_placers() {
             });
             let placed =
                 g.world.children().iter().filter(|c| c.r().user.placer.as_deref().map(|p| p != "place_props").unwrap_or(false)).count();
-            eprintln!("run {run_seed:#010x} level {n:2} scp {:9} weather {:8} {}x{}: {draws:6} draws, {:3} marks, themes {:3} ran / {:3} skipped, {kids:4} children ({meshes:5} meshes, {placed:4} themed), {:3} panels, {:3} anim, {:2} inter, settle {:?}, {ms:.0} ms",
-                g.level_scp.as_deref().unwrap_or("-"), g.weather_key(), g.w, g.h, g.rand_trace.marks.len(), g.theme_stats_ran, g.theme_stats_skipped, g.panels.len(), g.animators.len(), g.interactables.len(),
-                (g.settle_stats.get("attached"), g.settle_stats.get("moved"), g.settle_stats.get("pinned"), g.settle_stats.get("raised")));
+            eprintln!(
+                "run {run_seed:#010x} level {n:2} scp {:9} weather {:8} {}x{}: {draws:6} draws, {:3} marks, themes {:3} ran / {:3} skipped, {kids:4} children ({meshes:5} meshes, {placed:4} themed), {:3} panels, {:3} anim, {:2} inter, settle {:?}, {ms:.0} ms",
+                g.level_scp.as_deref().unwrap_or("-"),
+                g.weather_key(),
+                g.w,
+                g.h,
+                g.rand_trace.marks.len(),
+                g.theme_stats_ran,
+                g.theme_stats_skipped,
+                g.panels.len(),
+                g.animators.len(),
+                g.interactables.len(),
+                (g.settle_stats.get("attached"), g.settle_stats.get("moved"), g.settle_stats.get("pinned"), g.settle_stats.get("raised"))
+            );
             // sane counts
             assert_eq!(g.rand_trace.marks.len(), 2 + 7 + game::world::tables::THEMED_ORDER.len(), "marks");
             assert_eq!((g.theme_stats_ran + g.theme_stats_skipped) as usize, game::world::tables::THEMED_ORDER.len());

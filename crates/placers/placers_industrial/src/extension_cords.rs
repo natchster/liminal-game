@@ -8,7 +8,7 @@ pub(crate) fn place_extension_cords(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.80 {
         return;
     } // 20% chance
-      // 30% chance: near a tracked socket; 25%: near a tracked laptop.
+    // 30% chance: near a tracked socket; 25%: near a tracked laptop.
     let (mut x, mut z) = (0i32, 0i32);
     let mut near_socket = false;
     let mut socket_pos: Option<Vec3> = None;

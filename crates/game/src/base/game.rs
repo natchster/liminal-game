@@ -1225,11 +1225,7 @@ impl Game {
     /// Tile value at (x, z); outside the grid reads as wall
     #[inline]
     pub fn tile(&self, x: impl Num, z: impl Num) -> u8 {
-        if self.in_grid(x, z) {
-            self.tiles[self.t_idx(x, z)]
-        } else {
-            1
-        }
+        if self.in_grid(x, z) { self.tiles[self.t_idx(x, z)] } else { 1 }
     }
     /// Whether tile (x, z) is a wall; outside the grid counts as wall
     #[inline]
@@ -1418,10 +1414,10 @@ impl Game {
         let o = ac.create_oscillator();
         o.set_type(ty);
         o.frequency().set_value_at_time(freq, t0);
-        if let Some(s) = slide_to {
-            if s != 0.0 {
-                o.frequency().exponential_ramp_to_value_at_time(s.max(20.0), t0 + dur);
-            }
+        if let Some(s) = slide_to
+            && s != 0.0
+        {
+            o.frequency().exponential_ramp_to_value_at_time(s.max(20.0), t0 + dur);
         }
         let g = ac.create_gain();
         g.gain().set_value_at_time(gain, t0);
@@ -1504,10 +1500,10 @@ impl Game {
         f.set_type(ty);
         f.frequency().set_value_at_time(freq, t0);
         f.q().set_value(q);
-        if let Some(sl) = slide_to {
-            if sl != 0.0 {
-                f.frequency().exponential_ramp_to_value_at_time(sl.max(30.0), t0 + dur);
-            }
+        if let Some(sl) = slide_to
+            && sl != 0.0
+        {
+            f.frequency().exponential_ramp_to_value_at_time(sl.max(30.0), t0 + dur);
         }
         let g = ac.create_gain();
         if attack > 0.0 {

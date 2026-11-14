@@ -25,9 +25,9 @@
 //! The Showroom and the Borrowed House keep their residents' own rules until
 //! E9 (the playthrough leaves them in god mode); the levels with the
 //! Stairwell's or the Loop's door are walked to their own door.
+use game::Game;
 use game::base::config::{PLAYER_R, SPRINT};
 use game::entities::creature::RunMemory;
-use game::Game;
 mod rule_follower;
 use rule_follower::*;
 use std::collections::VecDeque;
@@ -235,12 +235,12 @@ fn play(bot: Bot, seed: u32, level: i32, memory: &mut RunMemory) -> Option<Outco
         }
         // her page, as she meant it to be found
         let page_left = g.story.camp.as_ref().is_some_and(|c| c.page_id.is_some() && !c.page_taken);
-        if bot == Bot::RuleFollower && page_left {
-            if let Some((cx, cz)) = camp {
-                if ((cx - px).powi(2) + (cz - pz).powi(2)).sqrt() < 1.6 {
-                    g.take_page();
-                }
-            }
+        if bot == Bot::RuleFollower
+            && page_left
+            && let Some((cx, cz)) = camp
+            && ((cx - px).powi(2) + (cz - pz).powi(2)).sqrt() < 1.6
+        {
+            g.take_page();
         }
         let exploring = bot == Bot::Explorer && t < 120.0;
         repath_t -= DT;

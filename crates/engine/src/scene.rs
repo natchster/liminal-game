@@ -639,11 +639,11 @@ impl Obj {
 
     // ------------------------------------------------ instancing
     pub fn set_matrix_at(&self, i: usize, m: &Mat4) {
-        if let Kind::Instanced { inst, .. } = &mut self.0.borrow_mut().kind {
-            if i < inst.matrices.len() {
-                inst.matrices[i] = *m;
-                inst.version += 1;
-            }
+        if let Kind::Instanced { inst, .. } = &mut self.0.borrow_mut().kind
+            && i < inst.matrices.len()
+        {
+            inst.matrices[i] = *m;
+            inst.version += 1;
         }
     }
     pub fn get_matrix_at(&self, i: usize) -> Mat4 {
@@ -678,10 +678,10 @@ impl Obj {
     /// Instance `i`'s wear by use
     pub fn use_wear_at(&self, i: usize) -> UseWear {
         let n = self.0.borrow();
-        if let Kind::Instanced { inst, .. } = &n.kind {
-            if let Some(w) = inst.use_wear.as_ref().and_then(|ws| ws.get(i)) {
-                return *w;
-            }
+        if let Kind::Instanced { inst, .. } = &n.kind
+            && let Some(w) = inst.use_wear.as_ref().and_then(|ws| ws.get(i))
+        {
+            return *w;
         }
         n.use_wear
     }
@@ -736,11 +736,7 @@ impl Obj {
         }
     }
     pub fn instance_count(&self) -> usize {
-        if let Kind::Instanced { inst, .. } = &self.0.borrow().kind {
-            inst.count
-        } else {
-            0
-        }
+        if let Kind::Instanced { inst, .. } = &self.0.borrow().kind { inst.count } else { 0 }
     }
     pub fn instances_changed(&self) {
         if let Kind::Instanced { inst, .. } = &mut self.0.borrow_mut().kind {
@@ -762,10 +758,8 @@ impl Obj {
     /// the descendants' after.
     pub fn update_world_matrix(&self, update_parents: bool, update_children: bool) {
         let parent = self.parent();
-        if update_parents {
-            if let Some(p) = &parent {
-                p.update_world_matrix(true, false);
-            }
+        if update_parents && let Some(p) = &parent {
+            p.update_world_matrix(true, false);
         }
         {
             let pw = parent.map(|p| p.0.borrow().matrix_world);
@@ -815,11 +809,7 @@ impl Obj {
         let e = self.matrix_world().e;
         let mut v = Vec3::new(e[8], e[9], e[10]);
         v.normalize();
-        if self.is_camera() {
-            -v
-        } else {
-            v
-        }
+        if self.is_camera() { -v } else { v }
     }
     pub fn local_to_world(&self, v: &Vec3) -> Vec3 {
         self.update_world_matrix(true, false);
@@ -1129,37 +1119,37 @@ pub fn perspective_camera(fov: f64, aspect: f64, near: f64, far: f64) -> Obj {
 /// the omitted arguments.
 #[macro_export]
 macro_rules! point_light {
-    ($c:expr) => {
+    ($c:expr_2021) => {
         $crate::scene::point_light($c, 1.0, 0.0, 2.0)
     };
-    ($c:expr, $i:expr) => {
+    ($c:expr_2021, $i:expr_2021) => {
         $crate::scene::point_light($c, $i, 0.0, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021) => {
         $crate::scene::point_light($c, $i, $d, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr, $k:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021, $k:expr_2021) => {
         $crate::scene::point_light($c, $i, $d, $k)
     };
 }
 #[macro_export]
 macro_rules! spot_light {
-    ($c:expr) => {
+    ($c:expr_2021) => {
         $crate::scene::spot_light($c, 1.0, 0.0, std::f64::consts::PI / 3.0, 0.0, 2.0)
     };
-    ($c:expr, $i:expr) => {
+    ($c:expr_2021, $i:expr_2021) => {
         $crate::scene::spot_light($c, $i, 0.0, std::f64::consts::PI / 3.0, 0.0, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021) => {
         $crate::scene::spot_light($c, $i, $d, std::f64::consts::PI / 3.0, 0.0, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr, $a:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021, $a:expr_2021) => {
         $crate::scene::spot_light($c, $i, $d, $a, 0.0, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr, $a:expr, $p:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021, $a:expr_2021, $p:expr_2021) => {
         $crate::scene::spot_light($c, $i, $d, $a, $p, 2.0)
     };
-    ($c:expr, $i:expr, $d:expr, $a:expr, $p:expr, $k:expr) => {
+    ($c:expr_2021, $i:expr_2021, $d:expr_2021, $a:expr_2021, $p:expr_2021, $k:expr_2021) => {
         $crate::scene::spot_light($c, $i, $d, $a, $p, $k)
     };
 }

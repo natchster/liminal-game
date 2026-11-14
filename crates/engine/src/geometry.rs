@@ -429,11 +429,7 @@ impl Geo {
     /// The generator's name (`"box"`, `"torus"`, ...); fitted prop parts report `"buffer"`
     pub fn type_name(&self) -> &'static str {
         let g = self.0.borrow();
-        if g.is_prop_part {
-            "buffer"
-        } else {
-            g.params.type_name()
-        }
+        if g.is_prop_part { "buffer" } else { g.params.type_name() }
     }
     pub fn ptr_eq(&self, o: &Geo) -> bool {
         Rc::ptr_eq(&self.0, &o.0)
@@ -1322,10 +1318,10 @@ impl Path2 {
         self.absellipse(x + cx, y + cy, rx, ry, a0, a1, cw, rot)
     }
     pub fn close_path(&mut self) -> &mut Self {
-        if let (Some(first), Some(last)) = (self.curves.first().map(|c| c.point(0.0)), self.curves.last().map(|c| c.point(1.0))) {
-            if first != last {
-                self.curves.push(Curve2::Line(last, first));
-            }
+        if let (Some(first), Some(last)) = (self.curves.first().map(|c| c.point(0.0)), self.curves.last().map(|c| c.point(1.0)))
+            && first != last
+        {
+            self.curves.push(Curve2::Line(last, first));
         }
         self
     }
@@ -1339,10 +1335,10 @@ impl Path2 {
                 _ => divisions,
             };
             for p in c.points(res) {
-                if let Some(l) = last {
-                    if l == p {
-                        continue;
-                    }
+                if let Some(l) = last
+                    && l == p
+                {
+                    continue;
                 }
                 pts.push(p);
                 last = Some(p);
@@ -1456,22 +1452,22 @@ macro_rules! box_geo {
     () => {
         $crate::geometry::box_geometry(1.0, 1.0, 1.0, 1.0, 1.0, 1.0)
     };
-    ($w:expr) => {
+    ($w:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, 1.0, 1.0, 1.0, 1.0, 1.0)
     };
-    ($w:expr, $h:expr) => {
+    ($w:expr_2021, $h:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, ($h) as f64, 1.0, 1.0, 1.0, 1.0)
     };
-    ($w:expr, $h:expr, $d:expr) => {
+    ($w:expr_2021, $h:expr_2021, $d:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, ($h) as f64, ($d) as f64, 1.0, 1.0, 1.0)
     };
-    ($w:expr, $h:expr, $d:expr, $a:expr) => {
+    ($w:expr_2021, $h:expr_2021, $d:expr_2021, $a:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, ($h) as f64, ($d) as f64, ($a) as f64, 1.0, 1.0)
     };
-    ($w:expr, $h:expr, $d:expr, $a:expr, $b:expr) => {
+    ($w:expr_2021, $h:expr_2021, $d:expr_2021, $a:expr_2021, $b:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, ($h) as f64, ($d) as f64, ($a) as f64, ($b) as f64, 1.0)
     };
-    ($w:expr, $h:expr, $d:expr, $a:expr, $b:expr, $c:expr) => {
+    ($w:expr_2021, $h:expr_2021, $d:expr_2021, $a:expr_2021, $b:expr_2021, $c:expr_2021) => {
         $crate::geometry::box_geometry(($w) as f64, ($h) as f64, ($d) as f64, ($a) as f64, ($b) as f64, ($c) as f64)
     };
 }
@@ -1481,28 +1477,28 @@ macro_rules! cyl_geo {
     () => {
         $crate::cyl_geo!(1.0, 1.0, 1.0)
     };
-    ($a:expr) => {
+    ($a:expr_2021) => {
         $crate::cyl_geo!($a, 1.0, 1.0)
     };
-    ($a:expr, $b:expr) => {
+    ($a:expr_2021, $b:expr_2021) => {
         $crate::cyl_geo!($a, $b, 1.0)
     };
-    ($a:expr, $b:expr, $h:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021) => {
         $crate::cyl_geo!($a, $b, $h, 32)
     };
-    ($a:expr, $b:expr, $h:expr, $r:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021, $r:expr_2021) => {
         $crate::cyl_geo!($a, $b, $h, $r, 1)
     };
-    ($a:expr, $b:expr, $h:expr, $r:expr, $hs:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021) => {
         $crate::cyl_geo!($a, $b, $h, $r, $hs, false)
     };
-    ($a:expr, $b:expr, $h:expr, $r:expr, $hs:expr, $o:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021) => {
         $crate::cyl_geo!($a, $b, $h, $r, $hs, $o, 0.0)
     };
-    ($a:expr, $b:expr, $h:expr, $r:expr, $hs:expr, $o:expr, $ts:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021, $ts:expr_2021) => {
         $crate::cyl_geo!($a, $b, $h, $r, $hs, $o, $ts, std::f64::consts::TAU)
     };
-    ($a:expr, $b:expr, $h:expr, $r:expr, $hs:expr, $o:expr, $ts:expr, $tl:expr) => {
+    ($a:expr_2021, $b:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021, $ts:expr_2021, $tl:expr_2021) => {
         $crate::geometry::cylinder_geometry(
             ($a) as f64,
             ($b) as f64,
@@ -1521,25 +1517,25 @@ macro_rules! cone_geo {
     () => {
         $crate::cone_geo!(1.0, 1.0)
     };
-    ($a:expr) => {
+    ($a:expr_2021) => {
         $crate::cone_geo!($a, 1.0)
     };
-    ($a:expr, $h:expr) => {
+    ($a:expr_2021, $h:expr_2021) => {
         $crate::cone_geo!($a, $h, 32)
     };
-    ($a:expr, $h:expr, $r:expr) => {
+    ($a:expr_2021, $h:expr_2021, $r:expr_2021) => {
         $crate::cone_geo!($a, $h, $r, 1)
     };
-    ($a:expr, $h:expr, $r:expr, $hs:expr) => {
+    ($a:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021) => {
         $crate::cone_geo!($a, $h, $r, $hs, false)
     };
-    ($a:expr, $h:expr, $r:expr, $hs:expr, $o:expr) => {
+    ($a:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021) => {
         $crate::cone_geo!($a, $h, $r, $hs, $o, 0.0)
     };
-    ($a:expr, $h:expr, $r:expr, $hs:expr, $o:expr, $ts:expr) => {
+    ($a:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021, $ts:expr_2021) => {
         $crate::cone_geo!($a, $h, $r, $hs, $o, $ts, std::f64::consts::TAU)
     };
-    ($a:expr, $h:expr, $r:expr, $hs:expr, $o:expr, $ts:expr, $tl:expr) => {
+    ($a:expr_2021, $h:expr_2021, $r:expr_2021, $hs:expr_2021, $o:expr_2021, $ts:expr_2021, $tl:expr_2021) => {
         $crate::geometry::cone_geometry(($a) as f64, ($h) as f64, ($r) as f64, ($hs) as f64, $o, ($ts) as f64, ($tl) as f64)
     };
 }
@@ -1549,25 +1545,25 @@ macro_rules! sphere_geo {
     () => {
         $crate::sphere_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::sphere_geo!($r, 32)
     };
-    ($r:expr, $w:expr) => {
+    ($r:expr_2021, $w:expr_2021) => {
         $crate::sphere_geo!($r, $w, 16)
     };
-    ($r:expr, $w:expr, $h:expr) => {
+    ($r:expr_2021, $w:expr_2021, $h:expr_2021) => {
         $crate::sphere_geo!($r, $w, $h, 0.0)
     };
-    ($r:expr, $w:expr, $h:expr, $ps:expr) => {
+    ($r:expr_2021, $w:expr_2021, $h:expr_2021, $ps:expr_2021) => {
         $crate::sphere_geo!($r, $w, $h, $ps, std::f64::consts::TAU)
     };
-    ($r:expr, $w:expr, $h:expr, $ps:expr, $pl:expr) => {
+    ($r:expr_2021, $w:expr_2021, $h:expr_2021, $ps:expr_2021, $pl:expr_2021) => {
         $crate::sphere_geo!($r, $w, $h, $ps, $pl, 0.0)
     };
-    ($r:expr, $w:expr, $h:expr, $ps:expr, $pl:expr, $ts:expr) => {
+    ($r:expr_2021, $w:expr_2021, $h:expr_2021, $ps:expr_2021, $pl:expr_2021, $ts:expr_2021) => {
         $crate::sphere_geo!($r, $w, $h, $ps, $pl, $ts, std::f64::consts::PI)
     };
-    ($r:expr, $w:expr, $h:expr, $ps:expr, $pl:expr, $ts:expr, $tl:expr) => {
+    ($r:expr_2021, $w:expr_2021, $h:expr_2021, $ps:expr_2021, $pl:expr_2021, $ts:expr_2021, $tl:expr_2021) => {
         $crate::geometry::sphere_geometry(($r) as f64, ($w) as f64, ($h) as f64, ($ps) as f64, ($pl) as f64, ($ts) as f64, ($tl) as f64)
     };
 }
@@ -1577,16 +1573,16 @@ macro_rules! plane_geo {
     () => {
         $crate::plane_geo!(1.0, 1.0)
     };
-    ($w:expr) => {
+    ($w:expr_2021) => {
         $crate::plane_geo!($w, 1.0)
     };
-    ($w:expr, $h:expr) => {
+    ($w:expr_2021, $h:expr_2021) => {
         $crate::plane_geo!($w, $h, 1, 1)
     };
-    ($w:expr, $h:expr, $a:expr) => {
+    ($w:expr_2021, $h:expr_2021, $a:expr_2021) => {
         $crate::plane_geo!($w, $h, $a, 1)
     };
-    ($w:expr, $h:expr, $a:expr, $b:expr) => {
+    ($w:expr_2021, $h:expr_2021, $a:expr_2021, $b:expr_2021) => {
         $crate::geometry::plane_geometry(($w) as f64, ($h) as f64, ($a) as f64, ($b) as f64)
     };
 }
@@ -1596,16 +1592,16 @@ macro_rules! circle_geo {
     () => {
         $crate::circle_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::circle_geo!($r, 32)
     };
-    ($r:expr, $s:expr) => {
+    ($r:expr_2021, $s:expr_2021) => {
         $crate::circle_geo!($r, $s, 0.0)
     };
-    ($r:expr, $s:expr, $ts:expr) => {
+    ($r:expr_2021, $s:expr_2021, $ts:expr_2021) => {
         $crate::circle_geo!($r, $s, $ts, std::f64::consts::TAU)
     };
-    ($r:expr, $s:expr, $ts:expr, $tl:expr) => {
+    ($r:expr_2021, $s:expr_2021, $ts:expr_2021, $tl:expr_2021) => {
         $crate::geometry::circle_geometry(($r) as f64, ($s) as f64, ($ts) as f64, ($tl) as f64)
     };
 }
@@ -1615,19 +1611,19 @@ macro_rules! torus_geo {
     () => {
         $crate::torus_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::torus_geo!($r, 0.4)
     };
-    ($r:expr, $t:expr) => {
+    ($r:expr_2021, $t:expr_2021) => {
         $crate::torus_geo!($r, $t, 12)
     };
-    ($r:expr, $t:expr, $rs:expr) => {
+    ($r:expr_2021, $t:expr_2021, $rs:expr_2021) => {
         $crate::torus_geo!($r, $t, $rs, 48)
     };
-    ($r:expr, $t:expr, $rs:expr, $ts:expr) => {
+    ($r:expr_2021, $t:expr_2021, $rs:expr_2021, $ts:expr_2021) => {
         $crate::torus_geo!($r, $t, $rs, $ts, std::f64::consts::TAU)
     };
-    ($r:expr, $t:expr, $rs:expr, $ts:expr, $a:expr) => {
+    ($r:expr_2021, $t:expr_2021, $rs:expr_2021, $ts:expr_2021, $a:expr_2021) => {
         $crate::geometry::torus_geometry(($r) as f64, ($t) as f64, ($rs) as f64, ($ts) as f64, ($a) as f64)
     };
 }
@@ -1637,16 +1633,16 @@ macro_rules! capsule_geo {
     () => {
         $crate::capsule_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::capsule_geo!($r, 1.0)
     };
-    ($r:expr, $l:expr) => {
+    ($r:expr_2021, $l:expr_2021) => {
         $crate::capsule_geo!($r, $l, 4)
     };
-    ($r:expr, $l:expr, $c:expr) => {
+    ($r:expr_2021, $l:expr_2021, $c:expr_2021) => {
         $crate::capsule_geo!($r, $l, $c, 8)
     };
-    ($r:expr, $l:expr, $c:expr, $s:expr) => {
+    ($r:expr_2021, $l:expr_2021, $c:expr_2021, $s:expr_2021) => {
         $crate::geometry::capsule_geometry(($r) as f64, ($l) as f64, ($c) as f64, ($s) as f64)
     };
 }
@@ -1656,10 +1652,10 @@ macro_rules! octa_geo {
     () => {
         $crate::octa_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::octa_geo!($r, 0)
     };
-    ($r:expr, $d:expr) => {
+    ($r:expr_2021, $d:expr_2021) => {
         $crate::geometry::octahedron_geometry(($r) as f64, ($d) as f64)
     };
 }
@@ -1669,10 +1665,10 @@ macro_rules! icosa_geo {
     () => {
         $crate::icosa_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::icosa_geo!($r, 0)
     };
-    ($r:expr, $d:expr) => {
+    ($r:expr_2021, $d:expr_2021) => {
         $crate::geometry::icosahedron_geometry(($r) as f64, ($d) as f64)
     };
 }
@@ -1682,10 +1678,10 @@ macro_rules! dodeca_geo {
     () => {
         $crate::dodeca_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::dodeca_geo!($r, 0)
     };
-    ($r:expr, $d:expr) => {
+    ($r:expr_2021, $d:expr_2021) => {
         $crate::geometry::dodecahedron_geometry(($r) as f64, ($d) as f64)
     };
 }
@@ -1695,10 +1691,10 @@ macro_rules! tetra_geo {
     () => {
         $crate::tetra_geo!(1.0)
     };
-    ($r:expr) => {
+    ($r:expr_2021) => {
         $crate::tetra_geo!($r, 0)
     };
-    ($r:expr, $d:expr) => {
+    ($r:expr_2021, $d:expr_2021) => {
         $crate::geometry::tetrahedron_geometry(($r) as f64, ($d) as f64)
     };
 }
@@ -1708,48 +1704,48 @@ macro_rules! ring_geo {
     () => {
         $crate::ring_geo!(0.5, 1.0)
     };
-    ($i:expr) => {
+    ($i:expr_2021) => {
         $crate::ring_geo!($i, 1.0)
     };
-    ($i:expr, $o:expr) => {
+    ($i:expr_2021, $o:expr_2021) => {
         $crate::ring_geo!($i, $o, 32)
     };
-    ($i:expr, $o:expr, $t:expr) => {
+    ($i:expr_2021, $o:expr_2021, $t:expr_2021) => {
         $crate::ring_geo!($i, $o, $t, 1)
     };
-    ($i:expr, $o:expr, $t:expr, $p:expr) => {
+    ($i:expr_2021, $o:expr_2021, $t:expr_2021, $p:expr_2021) => {
         $crate::ring_geo!($i, $o, $t, $p, 0.0)
     };
-    ($i:expr, $o:expr, $t:expr, $p:expr, $ts:expr) => {
+    ($i:expr_2021, $o:expr_2021, $t:expr_2021, $p:expr_2021, $ts:expr_2021) => {
         $crate::ring_geo!($i, $o, $t, $p, $ts, std::f64::consts::TAU)
     };
-    ($i:expr, $o:expr, $t:expr, $p:expr, $ts:expr, $tl:expr) => {
+    ($i:expr_2021, $o:expr_2021, $t:expr_2021, $p:expr_2021, $ts:expr_2021, $tl:expr_2021) => {
         $crate::geometry::ring_geometry(($i) as f64, ($o) as f64, ($t) as f64, ($p) as f64, ($ts) as f64, ($tl) as f64)
     };
 }
 /// `lathe_geo!(points, segments=12, phi_start=0, phi_length=2π)`
 #[macro_export]
 macro_rules! lathe_geo {
-    ($p:expr) => {
+    ($p:expr_2021) => {
         $crate::lathe_geo!($p, 12)
     };
-    ($p:expr, $s:expr) => {
+    ($p:expr_2021, $s:expr_2021) => {
         $crate::lathe_geo!($p, $s, 0.0)
     };
-    ($p:expr, $s:expr, $ps:expr) => {
+    ($p:expr_2021, $s:expr_2021, $ps:expr_2021) => {
         $crate::lathe_geo!($p, $s, $ps, std::f64::consts::TAU)
     };
-    ($p:expr, $s:expr, $ps:expr, $pl:expr) => {
+    ($p:expr_2021, $s:expr_2021, $ps:expr_2021, $pl:expr_2021) => {
         $crate::geometry::lathe_geometry(&$p, ($s) as f64, ($ps) as f64, ($pl) as f64)
     };
 }
 /// `shape_geo!(shape, curve_segments=12)`
 #[macro_export]
 macro_rules! shape_geo {
-    ($s:expr) => {
+    ($s:expr_2021) => {
         $crate::shape_geo!($s, 12)
     };
-    ($s:expr, $c:expr) => {
+    ($s:expr_2021, $c:expr_2021) => {
         $crate::geometry::shape_geometry(std::slice::from_ref(&$s), ($c) as f64)
     };
 }

@@ -36,11 +36,7 @@ fn loop_reverb(k: i32) -> ReverbPreset {
     ReverbPreset::new(0.5 + 0.4 * kf, 0.8 - 0.06 * kf, 0.1 + 0.045 * kf, 0.004 + 0.006 * kf, 6 - (k >> 1))
 }
 fn preset(name: &str) -> ReverbPreset {
-    if name == "loop3" {
-        loop_reverb(3)
-    } else {
-        *reverb_preset(name).unwrap()
-    }
+    if name == "loop3" { loop_reverb(3) } else { *reverb_preset(name).unwrap() }
 }
 
 fn check_ir(name: &str, data: &[Vec<f32>], r: &IrRef) {

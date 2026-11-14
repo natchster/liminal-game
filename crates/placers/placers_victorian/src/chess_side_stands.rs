@@ -230,11 +230,7 @@ fn ch_board_tex(vary: u32) -> Tex {
                 let s2 = seed ^ (i * 8 + j) as u32;
                 // each square's veneer laid its own way
                 let (a, b) = if (i + j) % 4 < 2 { (u, v) } else { (v, u) };
-                if light {
-                    wood(s2, a, b, [0.66, 0.52, 0.32], 8.0, 40.0)
-                } else {
-                    wood(s2, a, b, [0.20, 0.10, 0.06], 8.0, 40.0)
-                }
+                if light { wood(s2, a, b, [0.66, 0.52, 0.32], 8.0, 40.0) } else { wood(s2, a, b, [0.20, 0.10, 0.06], 8.0, 40.0) }
             } else {
                 wood(seed ^ 7, u, v, [0.30, 0.19, 0.11], 6.0, 30.0)
             };

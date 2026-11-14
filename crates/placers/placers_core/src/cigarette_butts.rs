@@ -33,7 +33,7 @@ pub(crate) fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
         let px = if corner_bias { (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.9 + rnd() * 0.5) } else { (rnd() - 0.5) * 2.0 };
         let pz = if corner_bias { (if rnd() < 0.5 { -1.0 } else { 1.0 }) * (0.9 + rnd() * 0.5) } else { (rnd() - 0.5) * 2.0 };
         let n_butts = 2 + (rnd() * 5.0).floor() as i32; // 2-6 per pile
-                                                        // the smoker's brand: cork tipping, or one in four white (no draw)
+        // the smoker's brand: cork tipping, or one in four white (no draw)
         let brand = usize::from(salt(g.wx(x) + px, g.wz(z) + pz, 251).is_multiple_of(4));
         // Two by two, a butt and the next are the same kind (the odd last
         // one too): no butt is the only one of its kind on its chunk, so
@@ -161,11 +161,7 @@ fn butt_tex(brand: usize) -> Tex {
                     // cork tipping: its printed mottle
                     let m = fbm(77, xm * 0.55, rm * 0.55, 3);
                     let c = mix([0.74, 0.57, 0.38], [0.55, 0.40, 0.25], m * 1.7 - 0.35);
-                    if fine > 0.78 {
-                        mix(c, [0.84, 0.72, 0.55], (fine - 0.78) * 4.0)
-                    } else {
-                        c
-                    }
+                    if fine > 0.78 { mix(c, [0.84, 0.72, 0.55], (fine - 0.78) * 4.0) } else { c }
                 } else {
                     mix([0.87, 0.86, 0.82], [0.80, 0.79, 0.75], n)
                 };

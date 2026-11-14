@@ -22,8 +22,8 @@
 //!
 //!   cargo test --release -p backrooms --test playthrough -- --nocapture
 //!   PLAYTHROUGH_SEEDS=101,202 PLAYTHROUGH_LEVELS=13 cargo test ...
-use game::base::config::EYE;
 use game::Game;
+use game::base::config::EYE;
 mod rule_follower;
 
 // ---- the game hooks the bot uses -----------------------------------------
@@ -320,10 +320,10 @@ impl Bot {
                     g.drop_paper_marker();
                     self.last_drop = self.t;
                 }
-                if let Some(on) = c.lamp {
-                    if on != g.player.flashlight_on {
-                        g.toggle_flashlight();
-                    }
+                if let Some(on) = c.lamp
+                    && on != g.player.flashlight_on
+                {
+                    g.toggle_flashlight();
                 }
                 let to = match c.away_from {
                     Some((ax, az)) => {
@@ -496,18 +496,10 @@ fn play(seed: u32, levels: i32, live: bool) -> (Vec<(i32, Option<String>)>, Vec<
             let wp = |seg: i32| -> (f64, f64) {
                 if seg % 2 != 0 {
                     let k = (seg - 1) / 2;
-                    if k % 2 == 0 {
-                        (0.8, fl - 0.4)
-                    } else {
-                        (-0.8, 0.4)
-                    }
+                    if k % 2 == 0 { (0.8, fl - 0.4) } else { (-0.8, 0.4) }
                 } else {
                     let k = seg / 2;
-                    if k % 2 != 0 {
-                        (0.8, -0.8)
-                    } else {
-                        (-0.8, fl + 0.8)
-                    }
+                    if k % 2 != 0 { (0.8, -0.8) } else { (-0.8, fl + 0.8) }
                 }
             };
             key(&mut g, "KeyW", true);

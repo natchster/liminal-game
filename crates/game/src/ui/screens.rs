@@ -4,7 +4,7 @@
 //! building's voice (Helvetica Neue), and her last line in her hand. The
 //! chosen line is bright with a short rule before it; the others are dim.
 use crate::base::game::Game;
-use crate::ui::draw::{col, rgba, Frame, Painter, Rgba, TextBlock, Ws};
+use crate::ui::draw::{Frame, Painter, Rgba, TextBlock, Ws, col, rgba};
 use crate::ui::faces::Font;
 use crate::ui::menu::Screen;
 use crate::ui::model::LayerBlend;
@@ -137,11 +137,7 @@ fn paint_menu_of(f: &mut Frame, g: &Game, m: &crate::ui::menu::Menu, screen: Scr
                     d.width(),
                     "left",
                     if on {
-                        if valued {
-                            0.95
-                        } else {
-                            0.62
-                        }
+                        if valued { 0.95 } else { 0.62 }
                     } else if valued {
                         0.55
                     } else {

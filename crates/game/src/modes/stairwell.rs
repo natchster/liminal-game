@@ -700,22 +700,14 @@ impl Stairwell {
         if x.abs() < SPINE + r {
             return None;
         } // the spine wall
-        if self.locate(target, x, z, r) == Some(target) {
-            Some(target)
-        } else {
-            None
-        }
+        if self.locate(target, x, z, r) == Some(target) { Some(target) } else { None }
     }
     pub fn seg_y(&self, seg: i32, x: f64, z: f64) -> f64 {
         seg_y(seg, x, z)
     }
     /// the landing the player is on (on a flight: the flight's index; 0 at the top)
     pub fn landing(&self) -> i32 {
-        if self.st.seg % 2 != 0 {
-            (self.st.seg + 1) / 2
-        } else {
-            0.max(self.st.seg / 2)
-        }
+        if self.st.seg % 2 != 0 { (self.st.seg + 1) / 2 } else { 0.max(self.st.seg / 2) }
     }
     /// the depth below the door, in metres
     pub fn depth_m(&self) -> f64 {
@@ -782,7 +774,7 @@ impl Stairwell {
         let l = st.flights;
         let a = [(l as f64 * 0.28).floor() as i32, (l as f64 * 0.58).floor() as i32, (l as f64 * 0.86).floor() as i32];
         st.encounter_at =
-            a.iter().enumerate().filter(|(i, &f)| f >= 2 && a.iter().position(|&g| g == f) == Some(*i)).map(|(_, &f)| f).collect();
+            a.iter().enumerate().filter(|&(ref i, &f)| f >= 2 && a.iter().position(|&g| g == f) == Some(*i)).map(|(_, &f)| f).collect();
         // the final landing and its door
         let last = landing_point(2 * (l - 1) + 1, 0.06);
         self.bottom.position().set(0, 0, 0);

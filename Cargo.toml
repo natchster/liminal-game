@@ -1,12 +1,12 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["crates/engine", "crates/game", "crates/backrooms", "crates/placers", "crates/placers/placers_*", "xtask"]
 # `cargo run` / `cargo build` without -p: the game
 default-members = ["crates/backrooms"]
 
 [workspace.package]
 version = "1.0.0"
-edition = "2021"
+edition = "2024"
 rust-version = "1.100"
 license = "MIT"
 publish = false

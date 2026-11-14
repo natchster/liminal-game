@@ -21,10 +21,10 @@ pub mod stairwell;
 use crate::assets::creatures::{creature_geometry, with_cavity_shade};
 use crate::audio::soundscape::{ChildVoice, ReverbPreset, Soundscape, VoiceSlot};
 use crate::base::numeric::hypot2;
-use crate::modes::loop_rooms::{loop_reverb, LoopDeps, LoopEvent, LoopInput, LoopMode, LoopTextures, PickupKind};
-use crate::modes::stairwell::{GoneReason, StairDeps, StairEvent, StairInput, Stairwell, STAIR};
+use crate::modes::loop_rooms::{LoopDeps, LoopEvent, LoopInput, LoopMode, LoopTextures, PickupKind, loop_reverb};
+use crate::modes::stairwell::{GoneReason, STAIR, StairDeps, StairEvent, StairInput, Stairwell};
 use crate::prelude::*;
-use crate::visuals::textures::{make_wallpaper, WALL_PALETTES};
+use crate::visuals::textures::{WALL_PALETTES, make_wallpaper};
 
 /// One reverb step per lap
 pub const LOOP_ZONES: [&str; 7] = ["loop0", "loop1", "loop2", "loop3", "loop4", "loop5", "loop6"];
@@ -387,11 +387,7 @@ impl Game {
         let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
         let l = {
             let h = hypot2(mx, mz);
-            if truthy(h) {
-                h
-            } else {
-                1.0
-            }
+            if truthy(h) { h } else { 1.0 }
         };
         // stairs are slower than floors; running them is loud and costs more
         let speed = if sprinting {
@@ -514,10 +510,10 @@ impl Game {
                     self.player.sanity = 0f64.max(self.player.sanity - if *n == 1 { 10.0 } else { 18.0 });
                 }
                 StairEvent::FaceGone { reason } => {
-                    if *reason == GoneReason::Approached {
-                        if let Some(ss) = &ss {
-                            ss.screech(0.4, 0.4);
-                        }
+                    if *reason == GoneReason::Approached
+                        && let Some(ss) = &ss
+                    {
+                        ss.screech(0.4, 0.4);
                     }
                     if *reason == GoneReason::Approached {
                         self.player.sanity = 0f64.max(self.player.sanity - 8.0);
@@ -701,11 +697,7 @@ impl Game {
         let sprinting = !self.player.crouch && sprint_key && self.sprint_ready() && moving;
         let l = {
             let h = hypot2(mx, mz);
-            if h.is_nan() {
-                h
-            } else {
-                1f64.max(h)
-            }
+            if h.is_nan() { h } else { 1f64.max(h) }
         };
         let speed = if sprinting {
             SPRINT

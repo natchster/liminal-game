@@ -84,24 +84,8 @@ game::lazy_static_tex!(
         // Tarnish patches — dark green/brown blotches at corners + edges.
         ctx.set_fill_style("rgba(30,40,20,0.45)");
         for _ in 0..6 {
-            let tx = if rnd() < 0.6 {
-                if rnd() < 0.5 {
-                    0.0
-                } else {
-                    w
-                }
-            } else {
-                rnd() * w
-            };
-            let ty = if rnd() < 0.6 {
-                if rnd() < 0.5 {
-                    0.0
-                } else {
-                    h
-                }
-            } else {
-                rnd() * h
-            };
+            let tx = if rnd() < 0.6 { if rnd() < 0.5 { 0.0 } else { w } } else { rnd() * w };
+            let ty = if rnd() < 0.6 { if rnd() < 0.5 { 0.0 } else { h } } else { rnd() * h };
             ctx.begin_path();
             let rx = 25.0 + rnd() * 30.0;
             let ry = 20.0 + rnd() * 25.0;

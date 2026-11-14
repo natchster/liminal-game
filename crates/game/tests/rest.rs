@@ -2,7 +2,7 @@
 //! each part shown while it has something to say and gone after, and the
 //! help that is offered at the moment it would help.
 use game::prelude::*;
-use game::ui::rest::{calm, prompt_parts, SHOW_FOR, THREAD_FOR};
+use game::ui::rest::{SHOW_FOR, THREAD_FOR, calm, prompt_parts};
 
 const DT: f64 = 1.0 / 60.0;
 

@@ -19,7 +19,7 @@ pub(crate) fn place_motion_detector_domes(g: &mut Game, _dist: &[i32]) {
     let led_mat = basic_mat!({ color: 0x30d030 });
     let det = group();
     let dome_y = WALL_H - 0.005; // dome top = base underside; base top on the ceiling
-                                 // Base plate.
+    // Base plate.
     let base = mesh(pg("MotionDetectorDomes__base", cyl_geo!(0.045, 0.045, 0.005, 12)), &body_mat);
     base.position().y = dome_y + 0.0025;
     det.add(&base);

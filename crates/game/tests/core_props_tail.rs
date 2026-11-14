@@ -24,12 +24,12 @@
 mod common;
 use common::*;
 use engine::prelude::*;
+use game::Game;
 use game::base::records::*;
 use game::base::rng::*;
 use game::core_props::seam::*;
 use game::core_props::*;
-use game::Game;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeSet, HashSet, VecDeque};
 use std::rc::Rc;

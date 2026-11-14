@@ -6,9 +6,9 @@
 //! letterboxed. Each bar is one black canvas painted once for the view's
 //! size and slid by its rect, so a slide repaints nothing.
 use crate::base::game::Game;
-use crate::cutscene::play::{Playing, SKIP_HOLD};
 use crate::cutscene::Skip;
-use crate::ui::draw::{col, css_color, Frame, Painter, TextBlock, Ws};
+use crate::cutscene::play::{Playing, SKIP_HOLD};
+use crate::ui::draw::{Frame, Painter, TextBlock, Ws, col, css_color};
 use crate::ui::faces::Font;
 use crate::ui::model::LayerBlend;
 
@@ -21,11 +21,11 @@ pub(crate) fn paint_cutscene(f: &mut Frame, g: &Game) {
     // the veil: its fades, kept after it ends where it says (a death's
     // black behind its card, a far skip opening on your eyes)
     let v = &g.cut_veil;
-    if v.opacity > 0.0005 {
-        if let Some(mut c) = css_color(&v.colour) {
-            c[3] *= v.opacity.min(1.0);
-            f.fill(c, LayerBlend::Normal);
-        }
+    if v.opacity > 0.0005
+        && let Some(mut c) = css_color(&v.colour)
+    {
+        c[3] *= v.opacity.min(1.0);
+        f.fill(c, LayerBlend::Normal);
     }
     let Some(p) = g.cut.as_ref() else { return };
     let k = p.bars();

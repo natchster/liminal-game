@@ -7,10 +7,10 @@
 mod common;
 
 use engine::math::Vec3;
-use game::level::archgen::{segment_clear_3d, GROUND_VOID};
-use game::level::building::{door_lights, STOREY};
-use game::world::far_figures::{FigureState, AWAY, FAR, NEAR, TOO_NEAR};
 use game::Game;
+use game::level::archgen::{GROUND_VOID, segment_clear_3d};
+use game::level::building::{STOREY, door_lights};
+use game::world::far_figures::{AWAY, FAR, FigureState, NEAR, TOO_NEAR};
 
 const DT: f64 = 1.0 / 60.0;
 
@@ -202,7 +202,9 @@ fn the_figure_is_a_person_standing_on_its_perch() {
             heel = heel.min(z);
         }
     }
-    println!("the figure: {tris} triangles, its soles at {lo:.3} m, {hi:.2} m tall, within {reach:.2} m of its middle, toes {toe:.2}, heels {heel:.2}");
+    println!(
+        "the figure: {tris} triangles, its soles at {lo:.3} m, {hi:.2} m tall, within {reach:.2} m of its middle, toes {toe:.2}, heels {heel:.2}"
+    );
     assert!(tris <= 18_000, "{tris} triangles (a body's budget is 18k)");
     assert!((-0.005..0.02).contains(&lo), "its soles {lo} m off the floor");
     assert!((1.85..2.0).contains(&hi), "{hi:.2} m tall: a little taller than anyone");

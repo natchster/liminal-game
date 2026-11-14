@@ -18,7 +18,7 @@
 //! game's (`game::cutscene`), run on the compiled bundle through the game's
 //! binary, so there is one copy of them.
 use crate::{cargo, root, run};
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 use std::path::{Path, PathBuf};
 
 const USAGE: &str = "usage: cargo xtask cutscene check | write | list | preview ID [--stage S] [--every SECONDS]";
@@ -210,10 +210,10 @@ fn table(t: &toml::Table, spec: &[Field], what: &str, problems: &mut Vec<String>
             problems.push(format!("{what}: `{name}` is not {says}"));
             continue;
         };
-        if let (Some(s), Some((_, allowed))) = (got.as_str(), WORDS.iter().find(|(w, _)| w == name)) {
-            if !allowed.contains(&s) {
-                problems.push(format!("{what}: `{name}` \"{s}\" is not one of {}", allowed.join(", ")));
-            }
+        if let (Some(s), Some((_, allowed))) = (got.as_str(), WORDS.iter().find(|(w, _)| w == name))
+            && !allowed.contains(&s)
+        {
+            problems.push(format!("{what}: `{name}` \"{s}\" is not one of {}", allowed.join(", ")));
         }
         out.insert(name.to_string(), got);
     }
@@ -258,11 +258,7 @@ fn compile(text: &str, stem: &str) -> Result<Value, Vec<String>> {
             .collect();
         out.insert(list.into(), Value::Array(items));
     }
-    if problems.is_empty() {
-        Ok(Value::Object(out))
-    } else {
-        Err(problems)
-    }
+    if problems.is_empty() { Ok(Value::Object(out)) } else { Err(problems) }
 }
 
 /// Every source compiled into the bundle's text, or every problem found
@@ -295,11 +291,7 @@ fn game_rules(bundle: &Path) -> Result<(), String> {
         .output()
         .map_err(|e| e.to_string())?;
     print!("{}", String::from_utf8_lossy(&out.stdout));
-    if out.status.success() {
-        Ok(())
-    } else {
-        Err(format!("the game's rules: {}", String::from_utf8_lossy(&out.stderr).trim()))
-    }
+    if out.status.success() { Ok(()) } else { Err(format!("the game's rules: {}", String::from_utf8_lossy(&out.stderr).trim())) }
 }
 
 fn check() -> Result<(), String> {
@@ -378,11 +370,7 @@ fn preview(args: &[String]) -> Result<(), String> {
         }
         println!("  look at {}", dir.join("sheet.png").strip_prefix(root()).unwrap_or(&dir).display());
     }
-    if broken.is_empty() {
-        Ok(())
-    } else {
-        Err(format!("the contract is broken:\n{}", broken.join("\n")))
-    }
+    if broken.is_empty() { Ok(()) } else { Err(format!("the contract is broken:\n{}", broken.join("\n"))) }
 }
 
 fn list() -> Result<(), String> {

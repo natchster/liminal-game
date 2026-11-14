@@ -337,11 +337,11 @@ impl Game {
         // the place holds its breath while something comes, and while
         // something searches close by; in a chase its own noise is enough
         let mut hush: f64 = 0.0;
-        if let Some(si) = self.director.stalker {
-            if let Some(e) = self.entities.get(si) {
-                let p = e.pos();
-                hush = clamp((24.0 - hypot2(p.x - pp.x, p.z - pp.z)) / 14.0, 0.0, 1.0);
-            }
+        if let Some(si) = self.director.stalker
+            && let Some(e) = self.entities.get(si)
+        {
+            let p = e.pos();
+            hush = clamp((24.0 - hypot2(p.x - pp.x, p.z - pp.z)) / 14.0, 0.0, 1.0);
         }
         for e in &self.entities {
             let p = e.pos();
@@ -390,7 +390,7 @@ impl Game {
                 "search" if d < ENGAGED_NEAR => return Some("searched"),
                 _ if self.director.phase == Phase::Build && self.director.stalker == Some(i) && d < STALKER_NEAR => return Some("stalked"),
                 _ if d < HEARS_NEAR && (e.kind == "hound" || (e.kind == "staff" && self.store_state.phase == "night")) => {
-                    return Some("near")
+                    return Some("near");
                 }
                 _ => {}
             }
@@ -424,11 +424,11 @@ impl Game {
         d.phase = Phase::Relax;
         d.cycles += 1;
         d.t = rand2(25.0, 45.0) * (1.0 - (level - 1) as f64 * 0.04).max(0.6);
-        if let Some(si) = d.stalker.take() {
-            if let Some(e) = self.entities.get_mut(si) {
-                e.set_fl("stalk", false);
-                e.w_field = None;
-            }
+        if let Some(si) = d.stalker.take()
+            && let Some(e) = self.entities.get_mut(si)
+        {
+            e.set_fl("stalk", false);
+            e.w_field = None;
         }
         if withdraw {
             let pp = self.player.pos;

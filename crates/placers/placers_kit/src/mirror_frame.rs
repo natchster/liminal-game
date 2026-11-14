@@ -118,11 +118,7 @@ pub fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, 
                     (
                         rnd() * cw,
                         if rnd() < 0.5 {
-                            if edge {
-                                1.0
-                            } else {
-                                rnd() * m
-                            }
+                            if edge { 1.0 } else { rnd() * m }
                         } else if edge {
                             ch - 1.0
                         } else {
@@ -132,11 +128,7 @@ pub fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, 
                 } else {
                     (
                         if rnd() < 0.5 {
-                            if edge {
-                                1.0
-                            } else {
-                                rnd() * m
-                            }
+                            if edge { 1.0 } else { rnd() * m }
                         } else if edge {
                             cw - 1.0
                         } else {

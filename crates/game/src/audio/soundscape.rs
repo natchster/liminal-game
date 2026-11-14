@@ -238,10 +238,10 @@ fn burst_impl(
     f.set_type(ty);
     f.frequency().set_value_at_time(f0, t0);
     f.q().set_value(q);
-    if let Some(f1) = f1 {
-        if f1 != 0.0 {
-            f.frequency().exponential_ramp_to_value_at_time(f1.max(20.0), t0 + dur);
-        }
+    if let Some(f1) = f1
+        && f1 != 0.0
+    {
+        f.frequency().exponential_ramp_to_value_at_time(f1.max(20.0), t0 + dur);
     }
     let g = ac.create_gain();
     g.gain().set_value_at_time(0.0001, t0);
@@ -259,10 +259,10 @@ fn tone_impl(ac: &AudioContext, dest: &AudioNode, t0: f64, dur: f64, freq: f64, 
     let o = ac.create_oscillator();
     o.set_type(ty);
     o.frequency().set_value_at_time(freq, t0);
-    if let Some(f1) = f1 {
-        if f1 != 0.0 {
-            o.frequency().exponential_ramp_to_value_at_time(f1.max(10.0), t0 + dur);
-        }
+    if let Some(f1) = f1
+        && f1 != 0.0
+    {
+        o.frequency().exponential_ramp_to_value_at_time(f1.max(10.0), t0 + dur);
     }
     let g = ac.create_gain();
     g.gain().set_value_at_time(0.0001, t0);

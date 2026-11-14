@@ -269,11 +269,11 @@ pub fn resolve_placement(o: &PlacementOpts) -> PlacementStats {
         }
         let bb = aabb(&ms);
         let (cx, cz) = ((bb[0] + bb[3]) / 2.0, (bb[2] + bb[5]) / 2.0);
-        if let Some(f) = o.in_pool {
-            if f(cx, cz) {
-                st.skipped += 1;
-                continue;
-            }
+        if let Some(f) = o.in_pool
+            && f(cx, cz)
+        {
+            st.skipped += 1;
+            continue;
         }
         let (mut lo, mut hi) = (f64::INFINITY, f64::NEG_INFINITY);
         for m in &ms {
@@ -308,12 +308,13 @@ pub fn resolve_placement(o: &PlacementOpts) -> PlacementStats {
         p.ceiling = p.hi > ceil - 0.12 && p.lo > 1.2;
         p.floor = !p.ceiling && p.lo < 0.6 && !(p.wall_contact && p.lo > 0.08);
         // a wall-mounted thing may only ever slide along its wall
-        if p.wall_contact && !p.floor {
-            if let Some(ax) = w.and_then(|h| h.axis) {
-                let l = hypot(&[ax[0], ax[2]]);
-                if l > 0.5 {
-                    p.wall_axis = Some([ax[0] / l, ax[2] / l]);
-                }
+        if p.wall_contact
+            && !p.floor
+            && let Some(ax) = w.and_then(|h| h.axis)
+        {
+            let l = hypot(&[ax[0], ax[2]]);
+            if l > 0.5 {
+                p.wall_axis = Some([ax[0] / l, ax[2] / l]);
             }
         }
     }
@@ -394,11 +395,7 @@ pub fn resolve_placement(o: &PlacementOpts) -> PlacementStats {
     let mut order: Vec<usize> = (0..pp.len()).collect();
     order.sort_by(|&a, &b| {
         let d = pp[b].protect as i32 - pp[a].protect as i32;
-        if d != 0 {
-            ordering_of(d as f64)
-        } else {
-            ordering_of(pp[b].vol - pp[a].vol)
-        }
+        if d != 0 { ordering_of(d as f64) } else { ordering_of(pp[b].vol - pp[a].vol) }
     });
     let mut grid: HashMap<i64, Vec<usize>> = HashMap::new();
     for &pi in &order {
@@ -557,10 +554,10 @@ fn rest(pp: &mut [Prop], by_volume: &[usize], final_: bool, st: &mut PlacementSt
         }
         let sup = if lo > 0.02 { under(pp, by_volume, pi) } else { None };
         let mut target = 0.0;
-        if let Some(s) = sup {
-            if s > 0.03 {
-                target = s;
-            }
+        if let Some(s) = sup
+            && s > 0.03
+        {
+            target = s;
         }
         let dy = target - lo;
         if dy.abs() < 0.006 {

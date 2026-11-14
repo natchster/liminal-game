@@ -17,7 +17,7 @@ pub(crate) fn place_wide_bookshelves(g: &mut Game, _dist: &[i32]) {
     let wood_mat = lambert!({ color: choice(&wood_colors) });
     let bs = group();
     let mount_y = 1.20; // Center at chest-height.
-                        // Shelf dimensions.
+    // Shelf dimensions.
     let (shelf_w, shelf_d, shelf_t) = (0.60, 0.16, 0.014);
     // 3 shelves stacked vertically.
     let shelf_spacing = 0.32;

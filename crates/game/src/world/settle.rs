@@ -15,7 +15,7 @@
 use crate::base::numeric::hypot2;
 use crate::level::archgen::{self, DIRS as ARCH_DIRS};
 use crate::prelude::*;
-use crate::world::placement::{self, PlaceObject, PlacementOpts, WallGrid, DEFAULT_TOL};
+use crate::world::placement::{self, DEFAULT_TOL, PlaceObject, PlacementOpts, WallGrid};
 use std::collections::HashSet;
 
 /// `settle_stats` keys, in reporting order
@@ -69,10 +69,10 @@ impl Game {
         if let Some(t) = &self.tv_data {
             lift(&t.light);
         }
-        if let Some(p) = &self.phone_data {
-            if let Some(h) = &p.handset {
-                lift(h);
-            }
+        if let Some(p) = &self.phone_data
+            && let Some(h) = &p.handset
+        {
+            lift(h);
         }
         if let Some(c) = &self.clock_data {
             lift(&c.sec_pivot);

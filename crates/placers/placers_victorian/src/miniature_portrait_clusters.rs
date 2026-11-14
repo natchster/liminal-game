@@ -118,20 +118,16 @@ pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
             m.position().y = pin_y;
             mini.add(&m);
         }
-        if !*pinned {
-            if let Some(geo) = prop_part_as_modelled("Real__miniatureRibbon") {
-                let ribbon = [0x6e5450, 0x4e5a52, 0x5e5468][(v / 3 % 3) as usize];
-                mini.add(&mesh(geo, lambert!({ color: ribbon, side: DoubleSide })));
-            }
+        if !*pinned && let Some(geo) = prop_part_as_modelled("Real__miniatureRibbon") {
+            let ribbon = [0x6e5450, 0x4e5a52, 0x5e5468][(v / 3 % 3) as usize];
+            mini.add(&mesh(geo, lambert!({ color: ribbon, side: DoubleSide })));
         }
     }
-    if bow {
-        if let Some(geo) = prop_part_as_modelled("Real__miniatureBow") {
-            let top = arrangement.iter().take(use_count).map(|a| a.1).fold(f64::MIN, f64::max);
-            let m = mesh(geo, lambert!({ color: 0x6a504c }));
-            m.position().set(0, top + 0.105, -0.004);
-            mp.add(&m);
-        }
+    if bow && let Some(geo) = prop_part_as_modelled("Real__miniatureBow") {
+        let top = arrangement.iter().take(use_count).map(|a| a.1).fold(f64::MIN, f64::max);
+        let m = mesh(geo, lambert!({ color: 0x6a504c }));
+        m.position().set(0, top + 0.105, -0.004);
+        mp.add(&m);
     }
     g.world.add(&mp);
     // Frame-tilt animator: one miniature drifts slightly askew then

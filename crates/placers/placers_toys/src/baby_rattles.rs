@@ -1,7 +1,7 @@
 //! `place_baby_rattles`: Baby rattle: 6% chance per level. A hard plastic baby rattle of the 1960s, 12 cm: a fluted pastel ball moulded in two halves (the beads loose in it), a cream handle with the ring a small hand holds, a cap over the mould's gate; lying on the ball and the ring. Its pastel faded, a few printed stars rubbed half away, the cream gone yellow, grimed.
+use crate::shared::Wear;
 use crate::shared::wear_at;
 use crate::shared::wear_tex;
-use crate::shared::Wear;
 use game::prelude::*;
 use placers_kit::geometry::put_world;
 use placers_kit::noise::fbmp;

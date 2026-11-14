@@ -3,9 +3,9 @@ use game::prelude::*;
 use placers_kit::on_wall::mix01;
 use placers_kit::on_wall::wall_face;
 use placers_kit::on_wall::wall_turn;
+use placers_kit::place::WallCand;
 use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
-use placers_kit::place::WallCand;
 use placers_kit::wall_plates::part;
 
 // Cracked wall segments: a hole kicked or punched through the wall

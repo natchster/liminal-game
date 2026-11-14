@@ -25,8 +25,8 @@
 //! with no building beside its walks) is laid again.
 
 use crate::level::archgen::{
-    build_ground_solids, ground_breaks, segment_clear_3d, Archetype, Ground, Layout, Room, Zone, DIRS, GROUND_FLOOR, GROUND_MASS,
-    GROUND_STAIR, GROUND_VOID,
+    Archetype, DIRS, GROUND_FLOOR, GROUND_MASS, GROUND_STAIR, GROUND_VOID, Ground, Layout, Room, Zone, build_ground_solids, ground_breaks,
+    segment_clear_3d,
 };
 
 /// One storey, metres: a flight of one tile (4 m) rises one storey

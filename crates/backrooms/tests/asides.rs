@@ -8,8 +8,8 @@
 mod common;
 
 use engine::audio::AudioContext;
-use game::audio::asides::{Use, GAP};
 use game::Game;
+use game::audio::asides::{GAP, Use};
 
 const DT: f64 = 1.0 / 60.0;
 /// The floors (run seed, level), as the loudness scenarios

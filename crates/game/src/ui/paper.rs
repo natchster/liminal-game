@@ -6,8 +6,8 @@
 //! world, no buttons: the arrows, the wheel or a click turn the pages, and
 //! the notebook key closes it.
 use crate::base::game::Game;
-use crate::session::input::{key_label, Act};
-use crate::ui::draw::{base_run, col, css_rgba, rgba, runs_of, Frame, Painter, Rgba, TextBlock, Ws};
+use crate::session::input::{Act, key_label};
+use crate::ui::draw::{Frame, Painter, Rgba, TextBlock, Ws, base_run, col, css_rgba, rgba, runs_of};
 use crate::ui::faces::Font;
 
 /// Which kind of page is open

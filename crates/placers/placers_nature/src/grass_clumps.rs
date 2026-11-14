@@ -48,12 +48,12 @@ pub(crate) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
         let t = group();
         t.add(&mesh(geo, &grass_mat));
         // a flowering stem from one tiller in three (by its phase)
-        if phase < PI * 2.0 / 3.0 {
-            if let Some(pg) = thin_lit("Real__grassPanicle") {
-                let p = mesh(pg, &flower_mat);
-                p.scale().set_scalar(0.8 + 0.4 * (h - 0.04) / 0.05);
-                t.add(&p);
-            }
+        if phase < PI * 2.0 / 3.0
+            && let Some(pg) = thin_lit("Real__grassPanicle")
+        {
+            let p = mesh(pg, &flower_mat);
+            p.scale().set_scalar(0.8 + 0.4 * (h - 0.04) / 0.05);
+            t.add(&p);
         }
         // tillers lean out from the tuft's middle a little (no further: the
         // blades' tips stay off the floor)

@@ -55,11 +55,7 @@ struct Seen {
 }
 
 fn srgb_to_linear(c: f64) -> f64 {
-    if c <= 0.04045 {
-        c / 12.92
-    } else {
-        ((c + 0.055) / 1.055).powf(2.4)
-    }
+    if c <= 0.04045 { c / 12.92 } else { ((c + 0.055) / 1.055).powf(2.4) }
 }
 
 /// Mean linear colour of a texture (every 7th pixel; white without one) and
@@ -98,11 +94,7 @@ fn name_path(o: &engine::scene::Obj) -> String {
         }
         cur = c.parent();
     }
-    if names.is_empty() {
-        "(unnamed)".into()
-    } else {
-        names.join(" < ")
-    }
+    if names.is_empty() { "(unnamed)".into() } else { names.join(" < ") }
 }
 
 fn level_materials(seed: u32, level: i32) -> Vec<Seen> {
@@ -159,11 +151,7 @@ fn max3(a: [f64; 3]) -> f64 {
 }
 fn saturation(a: [f64; 3]) -> f64 {
     let mx = max3(a);
-    if mx <= 1e-6 {
-        0.0
-    } else {
-        (mx - a[0].min(a[1]).min(a[2])) / mx
-    }
+    if mx <= 1e-6 { 0.0 } else { (mx - a[0].min(a[1]).min(a[2])) / mx }
 }
 
 #[test]

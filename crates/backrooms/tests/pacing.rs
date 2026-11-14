@@ -16,9 +16,9 @@
 //! logged, with how many sirens a floor meets on the way down.
 //!
 //!   cargo test --release -p backrooms --test pacing -- --nocapture
-use game::entities::director::Phase;
-use game::world::assembly::{Stage, CREST, QUIET, WARNING};
 use game::Game;
+use game::entities::director::Phase;
+use game::world::assembly::{CREST, QUIET, Stage, WARNING};
 
 #[derive(Default, Debug)]
 struct Log {
@@ -564,7 +564,11 @@ fn your_asides_differ_from_run_to_run() {
     let mut distinct = said.clone();
     distinct.sort();
     distinct.dedup();
-    println!("asides a run: {counts:?} (mean {mean:.1}); {} of {} runs say a different sequence; mean overlap between two runs {mean_overlap:.2}", distinct.len(), said.len());
+    println!(
+        "asides a run: {counts:?} (mean {mean:.1}); {} of {} runs say a different sequence; mean overlap between two runs {mean_overlap:.2}",
+        distinct.len(),
+        said.len()
+    );
     assert!((1.5..=8.0).contains(&mean), "a few words a floor, not nothing nor a stream: {counts:?}");
     assert!(counts.iter().all(|&c| c >= 1), "a run says something: {counts:?}");
     assert!(distinct.len() >= 7, "runs say different things: {said:?}");

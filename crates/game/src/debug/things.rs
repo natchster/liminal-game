@@ -388,17 +388,9 @@ pub fn plain(g: &Game, parts: &[Part], eye: &Eye) -> Vec<Finding> {
             let glow = m.emissive.r.max(m.emissive.g).max(m.emissive.b) * m.emissive_intensity;
             let dark = g.light_map_at(at.x, at.z) < DARK;
             let kind = if glow > 0.25 || m.emissive_map.is_some() {
-                if dark {
-                    "glow"
-                } else {
-                    "selflit"
-                }
+                if dark { "glow" } else { "selflit" }
             } else if m.kind == MatKind::Basic && !m.transparent {
-                if dark {
-                    "unlit"
-                } else {
-                    "selflit"
-                }
+                if dark { "unlit" } else { "selflit" }
             } else if lit && m.map.is_none() && !m.vertex_colors && m.wear <= 0.0 {
                 "plain"
             } else {
@@ -871,11 +863,11 @@ pub fn gather(found: &[(String, Finding)]) -> (String, Vec<(&'static str, usize)
         _ => true,
     };
     list.sort_by(|a, b| {
-        is_flagged(b.0 .0, b.1 .4.len())
-            .cmp(&is_flagged(a.0 .0, a.1 .4.len()))
-            .then(a.0 .0.cmp(b.0 .0))
-            .then(b.1 .0.cmp(&a.1 .0))
-            .then(b.1 .3.total_cmp(&a.1 .3))
+        is_flagged(b.0.0, b.1.4.len())
+            .cmp(&is_flagged(a.0.0, a.1.4.len()))
+            .then(a.0.0.cmp(b.0.0))
+            .then(b.1.0.cmp(&a.1.0))
+            .then(b.1.3.total_cmp(&a.1.3))
     });
     for ((kind, label, mesh, ..), (n, view, at, size, stands)) in list {
         let f = is_flagged(kind, stands.len());

@@ -11,7 +11,7 @@ use placers_kit::place::pick_open;
 /// Cached once per thread: a texture every placement shares (its painter
 /// draws on a stream of its own, so it comes out the same whenever it is made)
 macro_rules! cached_kind_tex {
-    ($n:expr, $k:expr, $make:expr) => {{
+    ($n:expr_2021, $k:expr_2021, $make:expr_2021) => {{
         thread_local! { static T: std::cell::RefCell<Vec<Option<Tex>>> = std::cell::RefCell::new(vec![None; $n]); }
         let k = ($k).min($n - 1);
         T.with(|t| {

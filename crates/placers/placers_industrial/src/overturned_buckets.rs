@@ -12,8 +12,8 @@ use placers_kit::paint::paint_px_indexed;
 use placers_kit::place::open_tiles;
 use placers_kit::place::ri;
 use placers_kit::place::skip;
-use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
+use placers_kit::wet_floor::floor_kind;
 
 // Overturned bucket: 15% chance per level. Bucket tipped on
 // its side — "someone kicked or knocked over a bucket".

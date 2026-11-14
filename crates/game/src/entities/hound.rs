@@ -19,10 +19,10 @@
 //!   pose it stands in. Hands and feet are planted in the world and the
 //!   limbs solved onto them (`body::two_bone`); the left hind drags.
 use crate::base::numeric::hypot2;
-use crate::entities::body::{two_bone, BodyRig};
+use crate::entities::body::{BodyRig, two_bone};
 use crate::entities::brain::*;
 use crate::entities::creature::*;
-use crate::entities::{with_skin_detail, EntVoice};
+use crate::entities::{EntVoice, with_skin_detail};
 use crate::prelude::*;
 
 pub const DATA: KindData = KindData {
@@ -199,11 +199,7 @@ pub fn think(g: &mut Game, ei: usize, dt: f64) {
         c.ease.insert("pp_set", 1.0);
         let (vx, vz) = if had && dt > 0.0 { ((pp.x - lx) / dt, (pp.z - lz) / dt) } else { (0.0, 0.0) };
         let (vx, vz) = (c.eased("pvx", vx.clamp(-8.0, 8.0), 4.0, dt), c.eased("pvz", vz.clamp(-8.0, 8.0), 4.0, dt));
-        if c.get("ahead") > 0.0 && hypot2(vx, vz) > 1.0 {
-            Some(g.open_point(pp.x + vx * AHEAD_T, pp.z + vz * AHEAD_T))
-        } else {
-            None
-        }
+        if c.get("ahead") > 0.0 && hypot2(vx, vz) > 1.0 { Some(g.open_point(pp.x + vx * AHEAD_T, pp.z + vz * AHEAD_T)) } else { None }
     };
 
     match mode {
