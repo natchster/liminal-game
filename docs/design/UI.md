@@ -56,7 +56,8 @@ gone when it is not needed.
    are typed (Courier New, where it is a document, not a style). Capitals
    only for a label of one to three words.
 3. **The title is a place.** The lobby, live behind a short list at the
-   lower left (Continue, New descent, Settings, Quit), keyboard and mouse.
+   lower left (Continue, New descent, Replays once there is one, Settings,
+   Quit), keyboard and mouse.
    No paragraph, no keys, no medals. It stands a few metres out along the
    way from where you begin; New descent keeps its place and draws the
    camera back into your eyes, with no cut (`docs/design/CUTSCENES.md`, the way
@@ -85,6 +86,17 @@ gone when it is not needed.
    that is not the place's: it says something is kept), and Stop recording
    or F9 again ends it, its name shown a moment where the mark was. Nothing
    in play changes while it records (`docs/engineering/REPLAYS.md`).
+10. **Replays are watched, not played.** The title's Replays lists the
+   recordings, newest first, a page of twelve (Older, Newer): the floor
+   each began on, then quietly when, how long, and "another build" if
+   another made it. One chosen offers Watch and Delete; Delete asks first,
+   on Back. Watched, the place is the recording's, and a thin line at the
+   foot of the screen is the viewer's: how far and how long, the speed or
+   Paused, the keys (Space pause, ← → ten seconds, − + speed, Esc leave),
+   and above it in amber what the viewer should know (another build made
+   it; where the replay left its recording). Moving or seeking is
+   unheard, and the line shows how far the seek has come. Escape goes
+   back to the title; at its end it holds on its last frame.
 
 ## What only people can tell
 

@@ -49,29 +49,33 @@ pub fn warm() {
     std::thread::spawn(|| drop(build()));
 }
 
-/// A new recording's header: the build, when, the launch flags.
-pub fn header(flags: &str) -> Value {
+/// A new recording's header: the build, when, the launch flags, the floor
+/// it begins on.
+pub fn header(flags: &str, level: i32) -> Value {
     let created = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_millis() as u64);
-    json!({ "created_ms": created, "build": build(), "flags": flags })
+    json!({ "created_ms": created, "build": build(), "flags": flags, "level": level })
 }
 
 /// What to tell a player when `f` was made by another build than this one
 /// (it may not repeat), or nothing when the executable is the same.
 pub fn other_build(f: &ReplayFile) -> Option<String> {
     let (was, here) = (&f.header["build"], build());
+    let s = |v: &Value| v.as_str().unwrap_or("?").to_string();
     (was["exe"] != here["exe"]).then(|| {
         format!(
-            "made by another build ({} {}, this is {} {}): it may not repeat",
-            was["version"], was["commit"], here["version"], here["commit"]
+            "Made by another build ({} {}; this is {} {}): it may not play as it was played",
+            s(&was["version"]),
+            s(&was["commit"]),
+            s(&here["version"]),
+            s(&here["commit"])
         )
     })
 }
 
-/// `ms` since 1970 as a UTC date and time a file name can hold
-/// (`2026-11-14_20-43-05`; Howard Hinnant's days-to-civil).
-pub fn utc_stamp(ms: u64) -> String {
-    let secs = ms / 1000;
-    let (days, sod) = ((secs / 86_400) as i64, secs % 86_400);
+/// Seconds since 1970 as (year, month, day, seconds of the day): Howard
+/// Hinnant's days-to-civil.
+fn civil(secs: i64) -> (i64, i64, i64, i64) {
+    let (days, sod) = (secs.div_euclid(86_400), secs.rem_euclid(86_400));
     let z = days + 719_468;
     let (era, doe) = (z.div_euclid(146_097), z.rem_euclid(146_097));
     let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
@@ -79,8 +83,77 @@ pub fn utc_stamp(ms: u64) -> String {
     let mp = (5 * doy + 2) / 153;
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    let y = yoe + era * 400 + i64::from(m <= 2);
-    format!("{y:04}-{m:02}-{d:02}_{:02}-{:02}-{:02}", sod / 3600, sod % 3600 / 60, sod % 60)
+    (yoe + era * 400 + i64::from(m <= 2), m, d, sod)
+}
+
+/// `ms` since 1970 as a UTC date and time a file name can hold
+/// (`2026-11-14_20-43-05`).
+pub fn utc_stamp(ms: u64) -> String {
+    let (y, m, d, s) = civil((ms / 1000) as i64);
+    format!("{y:04}-{m:02}-{d:02}_{:02}-{:02}-{:02}", s / 3600, s % 3600 / 60, s % 60)
+}
+
+/// This Mac's offset from UTC, in seconds (`date +%z`, asked once).
+fn utc_offset() -> i64 {
+    static OFFSET: std::sync::OnceLock<i64> = std::sync::OnceLock::new();
+    *OFFSET.get_or_init(|| {
+        let z = std::process::Command::new("date")
+            .arg("+%z")
+            .output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .unwrap_or_default();
+        let (sign, digits) = if let Some(d) = z.strip_prefix('-') { (-1, d) } else { (1, z.trim_start_matches('+')) };
+        let n: i64 = digits.parse().unwrap_or(0);
+        sign * (n / 100 * 3600 + n % 100 * 60)
+    })
+}
+
+/// `ms` since 1970 as the Replays screen says it, in this Mac's time
+/// (`14 Nov, 20:43`).
+pub fn local_day(ms: u64) -> String {
+    const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    let (_, m, d, s) = civil((ms / 1000) as i64 + utc_offset());
+    format!("{d} {}, {:02}:{:02}", MONTHS[(m - 1) as usize], s / 3600, s % 3600 / 60)
+}
+
+/// The recordings in `folder`, newest first, as the Replays screen lists
+/// them: the floor each began on, when, how long, and whether another
+/// build made it. Only each header is read.
+pub fn list(folder: &Path) -> Vec<game::replay::viewer::ReplayLine> {
+    use std::io::Read;
+    let here = build()["exe"].clone();
+    let head = |p: &Path| -> Option<Value> {
+        let mut f = std::fs::File::open(p).ok()?;
+        let mut b = vec![0u8; game::replay::file::HEAD_PREFIX];
+        f.read_exact(&mut b).ok()?;
+        let len = u32::from_le_bytes(b[16..20].try_into().ok()?) as usize;
+        let mut body = vec![0u8; len.min(16 << 20)];
+        f.read_exact(&mut body).ok()?;
+        b.extend(body);
+        game::replay::file::peek_header(&b).ok().map(|(h, _)| h)
+    };
+    let mut found: Vec<(u64, game::replay::viewer::ReplayLine)> = std::fs::read_dir(folder)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "ocreplay"))
+        .filter_map(|path| {
+            let h = head(&path)?;
+            let created = h["created_ms"].as_u64().unwrap_or(0);
+            let mut detail = format!("{} · {}", local_day(created), game::replay::viewer::clock(h["seconds"].as_f64().unwrap_or(0.0)));
+            if h["build"]["exe"] != here {
+                detail.push_str(" · another build");
+            }
+            let label = match h["level"].as_i64() {
+                Some(l) if l > 0 => format!("Floor {l}"),
+                _ => "The title".to_string(),
+            };
+            Some((created, game::replay::viewer::ReplayLine { path, label, detail }))
+        })
+        .collect();
+    found.sort_by_key(|a| std::cmp::Reverse(a.0));
+    found.into_iter().map(|f| f.1).collect()
 }
 
 /// Where the game keeps the recordings it makes (beside its storage).
@@ -267,7 +340,7 @@ pub fn bench(out: &str, seed: u32, frames: usize, make: fn(&str) -> Game) -> Res
     }
     let minutes = k as f64 / 3600.0;
     let log_kb_min = log.heap_bytes() as f64 / 1024.0 / minutes;
-    let file = log.snapshot(header(&flags));
+    let file = log.snapshot(header(&flags, 1));
     let bytes = file.encode().len();
     let (mut r, mut p) = Player::start(file, 0, make)?;
     let t = Instant::now();

@@ -367,3 +367,60 @@ fn a_replay_in_the_thread_that_played_repeats_it() {
 fn a_session_replays_whatever_the_speakers_rate() {
     plays_and_replays_here(Some(44_100.0));
 }
+
+/// Watching a recording begun mid-floor (`Viewer`): it seeks to its
+/// in-point, plays by the window's time at its speed, and ten seconds back
+/// (a fresh game from the floor's anchor) or on lands in play's state there.
+#[test]
+fn a_replay_is_watched_by_the_clock_and_moved_either_way() {
+    use game::replay::viewer::Viewer;
+    use std::time::Duration;
+    let flags = "seed=77&level=3&nosound";
+    let p = play_session(flags, &[], false, &bot_inputs(2400, 77), &[(900, Do::Door), (1100, Do::Record)]);
+    let file = ReplayFile::decode(&p.log.snapshot(json!({ "flags": flags })).encode()).unwrap();
+    assert!(matches!(file.segments[0].start, game::replay::Start::Floor(_)), "begun after the door");
+    let states = p.states.clone();
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(move || {
+            let (mut g, mut v) = Viewer::open(file, app_game).unwrap();
+            let as_played = |g: &Game, v: &Viewer, what: &str| {
+                let k = v.player.frame as usize - 1;
+                assert!(g.state_hash() == states[k], "{what}: frame {k} is not play's, in {:?}", states[k].diff(&g.state_hash()));
+            };
+            let settle = |g: &mut Game, v: &mut Viewer| {
+                while v.bar().seeking.is_some() {
+                    v.frame(g, 1.0 / 60.0, Duration::from_millis(10));
+                }
+            };
+            settle(&mut g, &mut v);
+            assert_eq!(v.bar().at, 0.0, "at its in-point");
+            as_played(&g, &v, "the in-point");
+            // ten seconds of the window, ten of the recording
+            for _ in 0..600 {
+                v.frame(&mut g, 1.0 / 60.0, Duration::from_millis(10));
+            }
+            assert!((v.bar().at - 10.0).abs() < 0.05, "at {}", v.bar().at);
+            as_played(&g, &v, "ten seconds in");
+            // twice the speed: five seconds of the window, ten of it
+            v.faster();
+            for _ in 0..300 {
+                v.frame(&mut g, 1.0 / 60.0, Duration::from_millis(10));
+            }
+            assert!((v.bar().at - 20.0).abs() < 0.05, "at {}", v.bar().at);
+            // back ten seconds: a fresh game from the anchor, simulated there
+            v.jump(&mut g, -10.0, app_game).unwrap();
+            settle(&mut g, &mut v);
+            assert!((v.bar().at - 10.0).abs() < 0.05, "back at {}", v.bar().at);
+            as_played(&g, &v, "ten seconds back");
+            // and on five
+            v.jump(&mut g, 5.0, app_game).unwrap();
+            settle(&mut g, &mut v);
+            assert!((v.bar().at - 15.0).abs() < 0.05, "on at {}", v.bar().at);
+            as_played(&g, &v, "five seconds on");
+            assert_eq!(v.player.diverged, None);
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}

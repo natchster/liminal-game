@@ -1079,6 +1079,38 @@ impl Game {
             self.open_menu(Screen::Title);
             return;
         }
+        // the Replays screen over the title (three recordings, one by another
+        // build), one of them chosen, and a replay watched with its line
+        if name == "replays" || name == "replay" {
+            let line = |label: &str, detail: &str| crate::replay::viewer::ReplayLine {
+                path: format!("{label}.ocreplay").into(),
+                label: label.into(),
+                detail: detail.into(),
+            };
+            self.replays = vec![
+                line("Floor 4", "14 Nov, 20:43 · 2:31"),
+                line("Floor 2", "14 Nov, 19:05 · 0:48"),
+                line("Floor 1", "9 Nov, 22:17 · 11:02 · another build"),
+            ];
+            self.state = "menu".into();
+            self.open_menu(Screen::Replays);
+            if name == "replay" {
+                self.replay_chosen = Some(0);
+                self.open_menu(Screen::Replay);
+            }
+            return;
+        }
+        if name == "replay-bar" {
+            self.playback = Some(crate::replay::viewer::PlaybackBar {
+                at: 83.0,
+                total: 151.0,
+                speed: 2.0,
+                paused: false,
+                seeking: None,
+                note: "Made by another build (1.0.0 eed15b59aa1c): it may not play as it was played".into(),
+            });
+            return;
+        }
         // a recording 1:23 in: play with the REC mark, and the pause list it
         // gives Stop recording
         if name == "recording" || name == "recording-paused" {

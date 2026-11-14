@@ -6,6 +6,7 @@
 //! The file is `OCREPLAY` (`file`); `Recorder` makes one from play,
 //! `Player` plays one back from any of its segments.
 pub mod file;
+pub mod viewer;
 
 use crate::prelude::*;
 pub use file::{Frames, HASH_EVERY, Quantizer, ReplayFile, Segment, Start};
@@ -184,6 +185,14 @@ impl Recorder {
         let first = self.segments.iter().rposition(|s| s.first_frame <= from).unwrap_or(0);
         header["in"] = json!(from);
         header["out"] = json!(self.frame);
+        // how long it plays, from its in-point (the Replays screen lists it)
+        let ticks: u64 = self.segments[first..]
+            .iter()
+            .flat_map(|s| s.frames.iter().enumerate().map(move |(k, f)| (s.first_frame + k as u64, f.0)))
+            .filter(|(k, _)| *k >= from)
+            .map(|(_, t)| u64::from(t))
+            .sum();
+        header["seconds"] = json!(ticks as f64 / f64::from(crate::base::game::CLOCK_TICKS_PER_SECOND));
         let after = |v: &&Value| v["f"].as_u64().is_some_and(|f| f >= from);
         ReplayFile {
             header,
@@ -274,6 +283,12 @@ impl Player {
             }
         };
         Ok((g, Player { file, seg, i: 0, entry, frame: first, diverged: None }))
+    }
+
+    /// Whether the rest of the frame a floor was entered in is still to run
+    /// (a replay from a floor's anchor, before its first step).
+    pub fn pending_entry(&self) -> bool {
+        self.entry.is_some()
     }
 
     /// The first frame the recording shows (frames before it are reached

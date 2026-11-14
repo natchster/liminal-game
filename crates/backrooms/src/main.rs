@@ -35,7 +35,7 @@ struct Options {
     showcase_walk: bool,
     /// `--death`: with `--showcase`, it kills you 15 frames before the shot
     death: bool,
-    /// `--screen pause|leave|settings|brightness|controls|recording|recording-paused|title|dead|ending|notebook|notebook-typed`:
+    /// `--screen pause|leave|settings|brightness|controls|recording|recording-paused|replays|replay|replay-bar|title|dead|ending|notebook|notebook-typed`:
     /// with `--play`, that list or card goes up 45 frames before the shot (`Game::debug_screen`)
     screen: Option<String>,
     /// `--views`: with `--dump-level --screenshot`, one more PNG from inside each zone
@@ -513,19 +513,30 @@ struct App {
     writer: replays::Writer,
     /// when the recording being made was last copied to its file
     copied: std::time::Instant,
-    /// `--replay`: the player, the trace file, its marks
+    /// a replay being watched (`--replay`, or from the Replays screen)
     replaying: Option<Replaying>,
     /// the look and the wheel rounded where they enter, with their carry
     quant: game::replay::Quantizer,
     frames: u64,
+    /// the launch flags a session is made with (again, after a replay)
+    flags: String,
+    /// Command is held (a replay's own keys are the recording's)
+    meta: bool,
 }
 
+/// A replay being watched.
 struct Replaying {
-    player: game::replay::Player,
+    viewer: game::replay::viewer::Viewer,
+    /// `--replay`: where the tension marks go
     trace: String,
     marks: Vec<serde_json::Value>,
     /// a divergence has been said
     told: bool,
+    /// what the viewer should know first (another build made it)
+    note: String,
+    /// opened from the Replays screen: leaving goes back to the title (a
+    /// `--replay` quits)
+    from_menu: bool,
 }
 
 impl App {
@@ -539,11 +550,66 @@ impl App {
         {
             eprintln!("recording not saved: {e}");
         }
-        if let Some(rp) = &self.replaying {
-            let frames = rp.player.file.frame_count();
+        if let Some(rp) = self.replaying.as_ref().filter(|rp| !rp.from_menu) {
+            let frames = rp.viewer.player.file.frame_count();
             let _ = std::fs::write(&rp.trace, serde_json::json!({ "recording_frames": frames, "marks": rp.marks }).to_string());
         }
     }
+
+    /// The Replays screen's list, read again from the folder.
+    fn list_replays(&mut self) {
+        self.g.replays = replays::list(&replays::folder(&save_path()));
+        self.g.replays_changed();
+    }
+
+    /// A recording chosen on the Replays screen: the session's game makes
+    /// way for the replay's (the recording being made, if one is, ends).
+    fn watch(&mut self, path: &std::path::Path, ctx: &mut AppCtx) {
+        if self.recording.is_some() {
+            self.toggle_recording();
+        }
+        let opened = replays::read(&path.to_string_lossy()).and_then(|file| {
+            let note = replays::other_build(&file).unwrap_or_default();
+            game::replay::viewer::Viewer::open(file, replay_game).map(|(g, viewer)| (g, viewer, note))
+        });
+        match opened {
+            Ok((g, viewer, note)) => {
+                println!("watching {}", path.display());
+                self.g = g;
+                self.log = None;
+                self.replaying = Some(Replaying { viewer, trace: String::new(), marks: vec![], told: false, note, from_menu: true });
+                ctx.set_pointer_lock(false);
+            }
+            Err(e) => {
+                eprintln!("{}: {e}", path.display());
+                self.g.rec_mark.saved = Some((self.g.now_ms, "That recording could not be opened".into()));
+            }
+        }
+    }
+
+    /// Out of a replay watched from the Replays screen: a fresh session at
+    /// the title, as the game starts (its log, its storage read again).
+    fn back_to_the_title(&mut self, ctx: &mut AppCtx) {
+        self.replaying = None;
+        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
+        game::base::rng::seed_native(seed);
+        let mut g = session_game(&self.flags);
+        let storage = g.storage.clone();
+        g.boot_in_view(Some([ctx.width, ctx.height, ctx.scale_factor]));
+        self.log = Some(game::replay::Recorder::session(seed, &self.flags, storage, &g));
+        self.g = g;
+        self.list_replays();
+        ctx.set_pointer_lock(false);
+    }
+}
+
+/// A session's game as the app makes one (the player's storage read).
+fn session_game(flags: &str) -> Game {
+    let mut g = Game::new_bare();
+    g.launch_flags = flags.to_string();
+    g.storage_load(save_path());
+    placers::register_all(&mut g.placers);
+    g
 }
 
 impl App {
@@ -562,7 +628,7 @@ impl App {
             let path = replays::new_path(&save_path(), g.level_num);
             println!("recording to {}", path.display());
             log.start_recording();
-            self.recording = Some((path, replays::header(&g.launch_flags)));
+            self.recording = Some((path, replays::header(&g.launch_flags, g.level_num)));
             self.copied = std::time::Instant::now();
             g.rec_mark = game::base::game::RecMark { since_ms: Some(g.now_ms), saved: None };
         }
@@ -591,11 +657,12 @@ impl AppHandler for App {
             let mut log = game::replay::Recorder::session(seed, &flags, storage, &self.g);
             if let Some(p) = record {
                 log.start_recording();
-                self.recording = Some((p.into(), replays::header(&flags)));
+                self.recording = Some((p.into(), replays::header(&flags, self.g.level_num)));
                 self.g.rec_mark.since_ms = Some(self.g.now_ms);
             }
             self.log = Some(log);
         }
+        self.list_replays();
     }
     fn frame(&mut self, ctx: &mut AppCtx, dt: f64) -> Option<Retained<ProtocolObject<dyn MTLCommandBuffer>>> {
         self.frames += 1;
@@ -624,18 +691,27 @@ impl AppHandler for App {
             self.g.rec_mark.saved = Some((self.g.now_ms, said));
         }
         if let Some(rp) = self.replaying.as_mut() {
-            // the recorded interval and input; the window's are ignored
+            // the recording's frames the window's time reaches (or a slice of
+            // a seek); the window's own input is the viewer's keys
             // (a recorded press of the Record key records nothing here)
             self.g.want_record = false;
-            if !rp.player.step(&mut self.g) {
+            let more = rp.viewer.frame(&mut self.g, dt, std::time::Duration::from_millis(10));
+            if let (Some(d), false) = (&rp.viewer.player.diverged, rp.told) {
+                println!("the replay leaves its recording at frame {}, in {:?} (another build, or a bug)", d.frame, d.parts);
+                rp.told = true;
+            }
+            let mut bar = rp.viewer.bar();
+            if bar.note.is_empty() {
+                bar.note.clone_from(&rp.note);
+            }
+            self.g.playback = Some(bar);
+            // (watched from the Replays screen, it holds on its last frame
+            // until Escape)
+            if !more && !rp.from_menu {
                 println!("replay finished: {} tension marks in {}", rp.marks.len(), rp.trace);
                 self.save();
                 ctx.quit();
                 return None;
-            }
-            if let (Some(d), false) = (&rp.player.diverged, rp.told) {
-                println!("the replay leaves its recording at frame {}, in {:?} (another build, or a bug)", d.frame, d.parts);
-                rp.told = true;
             }
             let target = ctx.drawable?;
             let (w, h) = (target.width(), target.height());
@@ -666,6 +742,16 @@ impl AppHandler for App {
         if std::mem::take(&mut g.want_record) {
             self.toggle_recording();
         }
+        // the Replays screen: a recording to watch, or to delete
+        if let Some(path) = self.g.want_delete.take() {
+            if let Err(e) = std::fs::remove_file(&path) {
+                eprintln!("{}: {e}", path.display());
+            }
+            self.list_replays();
+        }
+        if let Some(path) = self.g.want_replay.take() {
+            self.watch(&path, ctx);
+        }
         let g = &mut self.g;
         if let Some(l) = g.want_pointer_lock.take() {
             ctx.set_pointer_lock(l);
@@ -683,22 +769,42 @@ impl AppHandler for App {
     fn input(&mut self, ctx: &mut AppCtx, ev: Input) {
         use game::replay::InputEvent;
         if let Some(rp) = self.replaying.as_mut() {
-            // a replay only listens for the viewer's tension marks
-            if let Input::KeyDown(code, false) = &ev {
-                let dir = match code.as_str() {
-                    "ArrowUp" => 1,
-                    "ArrowDown" => -1,
-                    "Escape" => {
+            // a replay listens for the viewer's keys: pause, ten seconds
+            // either way, the speed, leaving, and the tension marks
+            let mut leave = false;
+            match &ev {
+                Input::KeyDown(code, rep) => match code.as_str() {
+                    "MetaLeft" | "MetaRight" => self.meta = true,
+                    "KeyQ" if self.meta => {
                         self.save();
                         ctx.quit();
                         return;
                     }
-                    _ => 0,
-                };
-                if dir != 0 {
-                    rp.marks.push(
-                        serde_json::json!({ "t": self.g.perf_t, "frame": rp.player.frame, "level": self.g.level_num, "tension": dir }),
-                    );
+                    "Space" if !rep => rp.viewer.paused = !rp.viewer.paused,
+                    "ArrowLeft" | "ArrowRight" => {
+                        let by = if code == "ArrowLeft" { -10.0 } else { 10.0 };
+                        if let Err(e) = rp.viewer.jump(&mut self.g, by, replay_game) {
+                            eprintln!("{e}");
+                        }
+                    }
+                    "Minus" | "NumpadSubtract" if !rep => rp.viewer.slower(),
+                    "Equal" | "NumpadAdd" if !rep => rp.viewer.faster(),
+                    "ArrowUp" | "ArrowDown" if !rep => {
+                        let dir = if code == "ArrowUp" { 1 } else { -1 };
+                        rp.marks.push(serde_json::json!({ "t": self.g.perf_t, "frame": rp.viewer.player.frame, "level": self.g.level_num, "tension": dir }));
+                    }
+                    "Escape" if !rep => leave = true,
+                    _ => {}
+                },
+                Input::KeyUp(code) if code.starts_with("Meta") => self.meta = false,
+                _ => {}
+            }
+            if leave {
+                if rp.from_menu {
+                    self.back_to_the_title(ctx);
+                } else {
+                    self.save();
+                    ctx.quit();
                 }
             }
             return;
@@ -1539,45 +1645,28 @@ fn main() {
     // says, before its game is made
     let (mut session, mut replaying, mut made, mut size) = (None, None, None, (o.width, o.height));
     if let Some(p) = &o.replay {
-        let file = replays::read(p).unwrap_or_else(|e| panic!("{e}"));
+        let file = replays::read(p).unwrap_or_else(|e| {
+            eprintln!("{e}");
+            std::process::exit(1);
+        });
         if let Some(v) = replays::view_of(&file) {
             size = (v[0], v[1]);
         }
-        if let Some(told) = replays::other_build(&file) {
-            println!("{told}");
+        let note = replays::other_build(&file).unwrap_or_default();
+        if !note.is_empty() {
+            println!("{note}");
         }
-        let (from, to) = (file.in_point(), file.out_point());
-        println!("replaying {p}: {} frames; Up / Down arrows mark tension rising / falling, Escape stops", to - from);
-        let (mut g, mut player) = game::replay::Player::start(file, 0, replay_game).unwrap_or_else(|e| {
+        println!(
+            "replaying {p}: {} frames; Space pauses, ← → move 10 s, − + the speed, ↑ ↓ mark tension rising / falling, Escape stops",
+            file.out_point() - file.in_point()
+        );
+        // (it seeks to its in-point in the window, a slice a frame, unheard)
+        let (g, viewer) = game::replay::viewer::Viewer::open(file, replay_game).unwrap_or_else(|e| {
             eprintln!("{p}: {e}");
             std::process::exit(1);
         });
-        // to its in-point by simulating, unheard (the device's own mute:
-        // the game's is play's and stays as play had it), the one-shots it
-        // made cut as it goes (minutes of them would sound at once)
-        if player.frame < from {
-            let quiet = |g: &Game, on: bool| {
-                if let Some(ac) = &g.ac {
-                    ac.cut_one_shots();
-                    ac.set_muted(on || g.muted);
-                }
-            };
-            quiet(&g, true);
-            let t = std::time::Instant::now();
-            let reached = player.seek(&mut g, from, |g, share| {
-                quiet(g, true);
-                print!("\rseeking to frame {from}: {:.0}%", share * 100.0);
-                let _ = std::io::Write::flush(&mut std::io::stdout());
-            });
-            println!("\rseeking to frame {from}: done in {:.1} s", t.elapsed().as_secs_f64());
-            if !reached {
-                eprintln!("{p}: the recording ends before its in-point");
-                std::process::exit(1);
-            }
-            quiet(&g, false);
-        }
         made = Some(g);
-        replaying = Some(Replaying { player, trace: format!("{p}.trace.json"), marks: vec![], told: false });
+        replaying = Some(Replaying { viewer, trace: format!("{p}.trace.json"), marks: vec![], told: false, note, from_menu: false });
     } else {
         let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(1, |d| d.as_nanos() as u64);
         game::base::rng::seed_native(seed);
@@ -1603,6 +1692,8 @@ fn main() {
             replaying,
             quant: game::replay::Quantizer::default(),
             frames: 0,
+            flags: o.flags.clone(),
+            meta: false,
         },
     );
 }

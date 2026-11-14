@@ -108,6 +108,16 @@ pub struct Game {
     pub want_record: bool,
     /// what the REC mark shows: drawn only, never read by play
     pub rec_mark: RecMark,
+    /// a replay being watched: the line under it (set by the app, drawn only)
+    pub playback: Option<crate::replay::viewer::PlaybackBar>,
+    /// the recordings the Replays screen lists (the app reads the folder),
+    /// the page shown and the one chosen
+    pub replays: Vec<crate::replay::viewer::ReplayLine>,
+    pub replay_page: usize,
+    pub replay_chosen: Option<usize>,
+    /// a recording chosen to watch, or to delete: the app does it
+    pub want_replay: Option<std::path::PathBuf>,
+    pub want_delete: Option<std::path::PathBuf>,
     /// Set by `warm_up_gpu` to have the renderer compile the level's shader programs
     pub want_warm_up: bool,
     /// View size in logical pixels, and the backing scale factor
@@ -788,6 +798,12 @@ impl Game {
             want_quit: false,
             want_record: false,
             rec_mark: RecMark::default(),
+            playback: None,
+            replays: vec![],
+            replay_page: 0,
+            replay_chosen: None,
+            want_replay: None,
+            want_delete: None,
             want_warm_up: false,
             view_width: 1280.0,
             view_height: 800.0,

@@ -63,6 +63,30 @@ which the key was pressed runs as play did; the REC mark and the pause
 list's words are the app's (`Game::rec_mark`), drawn and never read by
 play.
 
+## Watching
+
+The title's **Replays** (`ui::menu`, `Screen::Replays`) lists the
+recordings in the folder, newest first, from their headers alone
+(`replays::list`: the floor each began on, `level`; when, in this Mac's
+time; how long, `seconds`; "another build" when the executable's hash
+differs), and offers Watch and Delete for one. Watching makes way for
+the recording's game (the session's ends, and a recording being made is
+written first); Escape gives back a fresh session at the title. A
+`--replay` is the same viewer in a window of its own, and quits at the
+end.
+
+A **`Viewer`** (`replay::viewer`) plays a recording by the window's
+clock, not a recorded frame per window frame: a recording made at 120 Hz
+plays at its own pace on a 60 Hz window. Space pauses; − and + step the
+speed (¼, ½, 1, 2, 4); ← and → move ten seconds. On is simulated from
+where it is; back starts a fresh game at the anchor before the place (the
+session's start, or a floor's) and simulates to it. A seek runs a slice
+of each window frame (10 ms), so the window stays alive and the line at
+the foot of the screen (`PlaybackBar`, drawn by `paint_playback`) shows
+how far it has come. The sound is hushed while seeking, paused or not at
+its speed. A window that falls behind plays at most 16 recorded frames
+a frame: the replay slows, it does not race.
+
 A replay starts at the file's first segment and reaches its in-point by
 **simulating**, unseen and unheard (the audio device's own mute, not the
 game's: that is play's state), the one-shots it makes cut as it goes
@@ -279,7 +303,8 @@ work after a frame about 0.1 µs (`cargo xtask bench`, `PERF.md`).
 | `crates/game/src/session/anchor.rs` | the anchor: `Game::enter_level`, `anchor_state`, `start_from_anchor` |
 | `crates/backrooms/src/replays.rs` | the build a recording keeps, where recordings go and the thread that writes them, `--replay-verify`, `--dump-replay`, `--bench-replay` |
 | `crates/backrooms/src/main.rs` | the log of play (the window's input, rounded, into it), F9 and the pause list's Record (`toggle_recording`), `--record`, `--replay` and its seek |
-| `crates/game/src/session/input.rs`, `ui/menu.rs`, `ui/draw.rs` | the `Record` action, the pause list's row, the REC mark (`paint_rec`) |
+| `crates/game/src/replay/viewer.rs` | watching: `Timeline` (each frame's time), `Viewer` (by the clock, the speed, pause, ten seconds either way), `PlaybackBar`, `ReplayLine` |
+| `crates/game/src/session/input.rs`, `ui/menu.rs`, `ui/draw.rs` | the `Record` action, the pause list's row, the REC mark (`paint_rec`); the Replays screens; the line under a replay (`paint_playback`) |
 | `crates/backrooms/tests/replay.rs`, `tests/anchors.rs` | a run replays to the same states; a recording survives its file; one begun mid-floor or on the first floor replays from its in-point; between recordings the log keeps one floor; an anchor equals play |
 
 A change that alters what a frame does (a new draw from the per-frame

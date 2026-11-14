@@ -24,7 +24,31 @@ pub enum Screen {
     Dead,
     /// the end of her story: the card, then on down
     Ending,
+    /// the recordings (`docs/engineering/REPLAYS.md`), a page at a time
+    Replays,
+    /// one recording chosen: watch it, delete it
+    Replay,
+    /// deleting a recording: it cannot be brought back
+    ConfirmDelete,
 }
+
+/// How many recordings a page of the Replays screen lists.
+pub const REPLAY_PAGE: usize = 12;
+/// The lines of a page of recordings, by their place on it.
+pub const REPLAY_IDS: [&str; REPLAY_PAGE] = [
+    "replay:0",
+    "replay:1",
+    "replay:2",
+    "replay:3",
+    "replay:4",
+    "replay:5",
+    "replay:6",
+    "replay:7",
+    "replay:8",
+    "replay:9",
+    "replay:10",
+    "replay:11",
+];
 
 /// One line of a list.
 #[derive(Clone, Debug, PartialEq)]
@@ -117,10 +141,38 @@ impl Game {
                 if let Some(d) = &saved {
                     v.push(item("menu:continue", "Continue", &format!("level {}", d.level_num)));
                 }
-                v.extend([item("menu:new", "New descent", ""), item("menu:settings", "Settings", ""), item("menu:quit", "Quit", "")]);
+                v.push(item("menu:new", "New descent", ""));
+                // (only when there is one to watch: the list stays short)
+                if !self.replays.is_empty() {
+                    v.push(item("menu:replays", "Replays", ""));
+                }
+                v.extend([item("menu:settings", "Settings", ""), item("menu:quit", "Quit", "")]);
                 v
             }
             Screen::ConfirmNew => vec![item("menu:new-yes", "Begin again", ""), item("menu:back", "Back", "")],
+            Screen::Replays => {
+                let first = self.replay_page * REPLAY_PAGE;
+                let mut v: Vec<Item> = self
+                    .replays
+                    .iter()
+                    .skip(first)
+                    .take(REPLAY_PAGE)
+                    .zip(REPLAY_IDS)
+                    .map(|(r, id)| item(id, &r.label, &r.detail))
+                    .collect();
+                if first + REPLAY_PAGE < self.replays.len() {
+                    v.push(item("menu:replays-older", "Older", ""));
+                }
+                if self.replay_page > 0 {
+                    v.push(item("menu:replays-newer", "Newer", ""));
+                }
+                v.push(item("menu:back", "Back", ""));
+                v
+            }
+            Screen::Replay => {
+                vec![item("menu:replay-watch", "Watch", ""), item("menu:replay-delete", "Delete", ""), item("menu:back", "Back", "")]
+            }
+            Screen::ConfirmDelete => vec![item("menu:replay-delete-yes", "Delete", ""), item("menu:back", "Back", "")],
             Screen::Pause => vec![
                 item("menu:resume", "Resume", ""),
                 item("menu:settings", "Settings", ""),
@@ -183,11 +235,29 @@ impl Game {
                 m.heading = "Controls".into();
                 m.note = "Enter on a line, then the new key. With the arrows, crouch with C: Ctrl and an arrow belong to the Mac.".into();
             }
+            Screen::Replays => {
+                m.heading = "Replays".into();
+                m.note = "Recorded with F9, or Record in the pause list. They play on this build as they were played.".into();
+            }
+            Screen::Replay => {
+                if let Some(r) = self.replay_chosen.and_then(|k| self.replays.get(k)) {
+                    m.heading = r.label.clone();
+                    m.note = r.detail.clone();
+                }
+            }
+            Screen::ConfirmDelete => {
+                m.heading = "Delete this recording?".into();
+                m.note = "It cannot be brought back.".into();
+            }
             // (their words are the caller's: the death's line, her last card)
             Screen::Title | Screen::Dead | Screen::Ending => {}
         }
         // a question opens on its safe answer
-        m.sel = m.items.iter().position(|i| i.id == "menu:back" && matches!(s, Screen::ConfirmNew | Screen::ConfirmLeave)).unwrap_or(0);
+        m.sel = m
+            .items
+            .iter()
+            .position(|i| i.id == "menu:back" && matches!(s, Screen::ConfirmNew | Screen::ConfirmLeave | Screen::ConfirmDelete))
+            .unwrap_or(0);
         m.screen = Some(s);
         if s == Screen::Title {
             // the last line of hers you read, if the save has one
@@ -218,7 +288,7 @@ impl Game {
     pub fn live_menu(&self) -> Option<Screen> {
         let s = self.menu.screen?;
         let ok = match s {
-            Screen::Title | Screen::ConfirmNew => self.state == "menu",
+            Screen::Title | Screen::ConfirmNew | Screen::Replays | Screen::Replay | Screen::ConfirmDelete => self.state == "menu",
             Screen::Pause | Screen::ConfirmLeave => self.state == "paused",
             Screen::Settings | Screen::Controls => self.state == "menu" || self.state == "paused",
             Screen::Dead => self.state == "dead",
@@ -243,6 +313,24 @@ impl Game {
             Some(Screen::ConfirmNew) => self.open_menu(Screen::Title),
             Some(Screen::ConfirmLeave) => self.open_menu(Screen::Pause),
             Some(Screen::Pause) => self.resume(),
+            Some(Screen::Replays) => self.open_menu(Screen::Title),
+            Some(Screen::Replay) => self.open_menu(Screen::Replays),
+            Some(Screen::ConfirmDelete) => self.open_menu(Screen::Replay),
+            _ => {}
+        }
+    }
+    /// The file of the recording chosen on the Replays screen.
+    fn chosen_replay(&self) -> Option<std::path::PathBuf> {
+        self.replay_chosen.and_then(|k| self.replays.get(k)).map(|r| r.path.clone())
+    }
+    /// The recordings changed (the app read the folder again): the screens
+    /// that list them are made again.
+    pub fn replays_changed(&mut self) {
+        self.replay_page = self.replay_page.min(self.replays.len().saturating_sub(1) / REPLAY_PAGE);
+        match self.live_menu() {
+            Some(Screen::Title) => self.open_menu(Screen::Title),
+            Some(Screen::Replays | Screen::Replay | Screen::ConfirmDelete) if self.replays.is_empty() => self.open_menu(Screen::Title),
+            Some(Screen::Replays | Screen::Replay | Screen::ConfirmDelete) => self.open_menu(Screen::Replays),
             _ => {}
         }
     }
@@ -322,6 +410,30 @@ impl Game {
             }
             "menu:back" => self.menu_back(),
             "menu:resume" => self.resume(),
+            "menu:replays" => {
+                self.replay_page = 0;
+                self.open_menu(Screen::Replays);
+            }
+            "menu:replays-older" => {
+                self.replay_page += 1;
+                self.open_menu(Screen::Replays);
+            }
+            "menu:replays-newer" => {
+                self.replay_page = self.replay_page.saturating_sub(1);
+                self.open_menu(Screen::Replays);
+            }
+            id if id.starts_with("replay:") => {
+                if let Some(k) = REPLAY_IDS.iter().position(|r| *r == id) {
+                    self.replay_chosen = Some(self.replay_page * REPLAY_PAGE + k);
+                    self.open_menu(Screen::Replay);
+                }
+            }
+            "menu:replay-watch" => self.want_replay = self.chosen_replay(),
+            "menu:replay-delete" => self.open_menu(Screen::ConfirmDelete),
+            "menu:replay-delete-yes" => {
+                self.want_delete = self.chosen_replay();
+                self.open_menu(Screen::Replays);
+            }
             // back into play, the app starting or ending the recording
             "menu:record" => {
                 self.want_record = true;

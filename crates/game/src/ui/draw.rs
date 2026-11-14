@@ -1369,8 +1369,10 @@ pub fn hud_layers(g: &mut Game, w: f64, h: f64, dpr: f64) -> Vec<HudLayer> {
     // ---- z 10: the menus and cards (`ui/screens.rs`), then Settings' brightness over everything
     crate::ui::screens::paint_menu(&mut f, g);
     crate::ui::screens::paint_brightness(&mut f, g);
-    // ---- z 11: the REC mark, over every screen while a recording is made
+    // ---- z 11: the REC mark, over every screen while a recording is made;
+    // under a replay being watched, its line
     paint_rec(&mut f, g);
+    paint_playback(&mut f, g);
     let out = std::mem::take(&mut f.out);
     drop(f);
     g.hud_ui = ui;
@@ -1393,6 +1395,59 @@ fn paint_rec(f: &mut Frame, g: &Game) {
     let tb = TextBlock::plain(&text, col("#e0483c"), &dark, 0.0, Font::sans(12.0).bold(), Ws::NoWrap, None, None);
     let w = f.w;
     text_layer(f, "rec", tb, w - 24.0 - 240.0, 40.0, 240.0, "right", op * 0.9);
+}
+
+/// The line under a replay being watched (`Game::playback`, set by the
+/// app): how far, how long, the speed or the pause, a seek's progress, the
+/// keys, and above it what the viewer should know (another build, where
+/// the replay left its recording).
+fn paint_playback(f: &mut Frame, g: &Game) {
+    let Some(b) = &g.playback else { return };
+    let (w, h, x0) = (f.w, f.h, 24.0);
+    let dark = parse_shadows("0 0 4px rgba(0,0,0,0.85), 0 1px 2px rgba(0,0,0,0.6)");
+    let ink = col(crate::ui::screens::INK);
+    let plain = |t: &str, c: Rgba| TextBlock::plain(t, c, &dark, 0.0, Font::sans(13.0), Ws::NoWrap, None, None);
+    // the line: the whole length, and how far
+    let share = match b.seeking {
+        Some(s) => s,
+        None if b.total > 0.0 => (b.at / b.total).clamp(0.0, 1.0),
+        None => 0.0,
+    };
+    let (y, lw) = (h - 18.0, w - 2.0 * x0);
+    let key = format!("{share:.4}|{w}|{h}|{}", b.seeking.is_some());
+    let seeking = b.seeking.is_some();
+    f.layer("playback.line", &key, 1.0, move |dpr| {
+        let mut p = Painter::new(x0 - 1.0, y - 1.0, lw + 2.0, 5.0, dpr);
+        p.rect(x0, y, lw, 3.0, [0.0, 0.0, 0.0, 0.45]);
+        p.rect(x0, y, lw * share, 3.0, if seeking { [0.85, 0.75, 0.5, 0.8] } else { [0.93, 0.9, 0.82, 0.85] });
+        p
+    });
+    let state = match b.seeking {
+        Some(s) => format!("Seeking {:.0}%", s * 100.0),
+        None => {
+            let mut t = format!("{} / {}", crate::replay::viewer::clock(b.at), crate::replay::viewer::clock(b.total));
+            if b.paused {
+                t.push_str(" · Paused");
+            } else if b.speed != 1.0 {
+                t.push_str(&format!(
+                    " · ×{}",
+                    if b.speed < 1.0 { format!("{:.2}", b.speed).trim_end_matches('0').to_string() } else { format!("{}", b.speed) }
+                ));
+            }
+            t
+        }
+    };
+    let st = plain(&state, ink);
+    let sy = y - 10.0 - st.height();
+    text_layer(f, "playback.state", st, x0, sy, 0.0, "left", 0.9);
+    let keys = plain("Space pause · ← → 10 s · − + speed · Esc leave", ink);
+    let kh = keys.height();
+    text_layer(f, "playback.keys", keys, w - x0 - 520.0, y - 10.0 - kh, 520.0, "right", 0.6);
+    if !b.note.is_empty() {
+        let nb = plain(&b.note, col("#e8b45a"));
+        let ny = sy - 6.0 - nb.height();
+        text_layer(f, "playback.note", nb, x0, ny, 0.0, "left", 0.95);
+    }
 }
 
 /// #vignette with an inline inset box-shadow: gradient + shadow, filtered,

@@ -263,3 +263,51 @@ fn record_asks_the_app_from_anywhere() {
     assert!(std::mem::take(&mut g.want_record), "F9 on the death card");
     assert_eq!(g.state, "dead", "and it does not wake you");
 }
+
+/// The Replays screen: on the title only when there is a recording; a
+/// recording chosen offers Watch and Delete; Watch asks the app to play it,
+/// Delete asks first and then the app; Back goes back a list at a time.
+#[test]
+fn the_replays_screen_watches_and_deletes() {
+    let mut g = new_game();
+    assert!(!labels(&g).contains(&"Replays".to_string()), "no recordings: no line");
+    let line = |n: usize| game::replay::viewer::ReplayLine {
+        path: format!("r{n}.ocreplay").into(),
+        label: format!("Floor {n}"),
+        detail: String::new(),
+    };
+    g.replays = (0..14).map(line).collect();
+    g.replays_changed();
+    let k = g.menu.items.iter().position(|i| i.id == "menu:replays").expect("the title offers Replays");
+    g.menu.sel = k;
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::Replays));
+    assert_eq!(labels(&g).len(), 12 + 2, "a page of twelve, Older and Back");
+    // the second page, its second recording
+    let older = g.menu.items.iter().position(|i| i.id == "menu:replays-older").unwrap();
+    g.menu.sel = older;
+    press(&mut g, "Enter");
+    assert_eq!(labels(&g), ["Floor 12", "Floor 13", "Newer", "Back"]);
+    press(&mut g, "ArrowDown");
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::Replay));
+    assert_eq!(g.menu.heading, "Floor 13");
+    press(&mut g, "Enter"); // Watch
+    assert_eq!(g.want_replay.take(), Some("r13.ocreplay".into()));
+    // Delete: asked first, on its safe answer
+    g.menu.sel = 1;
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::ConfirmDelete));
+    assert_eq!(labels(&g)[g.menu.sel], "Back");
+    press(&mut g, "Enter");
+    assert_eq!(g.live_menu(), Some(Screen::Replay), "Back keeps it");
+    assert_eq!(g.want_delete, None);
+    g.menu.sel = 1;
+    press(&mut g, "Enter");
+    g.menu.sel = 0;
+    press(&mut g, "Enter");
+    assert_eq!(g.want_delete.take(), Some("r13.ocreplay".into()));
+    assert_eq!(g.live_menu(), Some(Screen::Replays));
+    press(&mut g, "Escape");
+    assert_eq!(g.live_menu(), Some(Screen::Title));
+}
