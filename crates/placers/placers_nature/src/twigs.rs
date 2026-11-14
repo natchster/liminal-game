@@ -97,7 +97,7 @@ pub(crate) fn place_twigs(g: &mut Game, _dist: &[i32]) {
 }
 
 // ================================================================== twigs
-/// The twiglets (`t05.py` TWIGS): the part, its snapped end's wood if it has
+/// The twiglets (`nature/bits_of_the_outside_indoors.py` TWIGS): the part, its snapped end's wood if it has
 /// one, its length as modelled
 const TWIGS: [(&str, Option<&str>, f64); 6] = [
     ("Real__twigA", Some("Real__twigWoodA"), 0.046),

@@ -95,7 +95,7 @@ fn t10_mix(a: [f64; 3], b: [f64; 3], t: f64) -> [f64; 3] {
     [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]
 }
 
-/// The mirror (t10.py `OM_*`): its moulding's outer size (w, h), the
+/// The mirror (victorian/parlour_and_office_big_things.py `OM_*`): its moulding's outer size (w, h), the
 /// moulding's face from its outer edge to the sight (d, z), the glass in
 /// sight (w, h), its face's distance from the wall, and how much more of it
 /// runs under the lip (both sides)

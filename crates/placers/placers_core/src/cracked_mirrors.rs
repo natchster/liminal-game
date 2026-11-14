@@ -59,7 +59,7 @@ pub(crate) fn place_cracked_mirrors(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The small mirror's glass as seen in its frame (w, h) and its face's
-/// distance from the wall (`Real__crackedMirrorFrame`, r13a.py)
+/// distance from the wall (`Real__crackedMirrorFrame`, industrial/six_things_hung_on_a_wall.py)
 const CM_GLASS: [f64; 3] = [0.300, 0.400, 0.0080];
 
 /// Its moulding's width, and how much more glass runs under its lip (both sides)

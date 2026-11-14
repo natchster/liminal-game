@@ -1,11 +1,11 @@
 """
 Builds the Backrooms prop parts in Blender.
 
-    cargo xtask assets props [--batch b01,b02]        # runs this, packs and compares
+    cargo xtask assets props [--batch domestic,showroom]   # runs this, packs and compares
     /Applications/Blender.app/Contents/MacOS/Blender --background --factory-startup \
-        --python assets/src/blender/props.py -- [--batch b01,b02] [--parts NAME,...] [--out DIR]
+        --python assets/src/blender/props.py -- [--batch FAMILY|THEME,...] [--parts NAME,...] [--out DIR]
 
-Every batch module in assets/src/blender/props/ (bNN.py, rNN.py, tNN.py, ...)
+Every family in assets/src/blender/props/<theme>/ (`domestic/kitchen_hall_and_floor_things.py`)
 registers parts with `part(name, frame, build)` (the batches of real things
 through an `auto(name, build, budget)` of their own; see propkit.py for the
 conventions). Each built batch is written
@@ -49,14 +49,26 @@ def part(name, frame, build, smooth=35.0, weighted=True, flat=False, budget=None
 
 propkit.part = part          # batch modules do `from propkit import *`
 
+# a family of props modelled together, in the folder of the theme its parts
+# serve (props/<theme>/<family>.py): built and written as one batch, named by
+# its file; `--batch` takes families or whole themes
 batch_dir = os.path.join(HERE, 'props')
-files = sorted(f for f in os.listdir(batch_dir) if f.endswith('.py') and not f.startswith('_'))
-for fn in files:
-    b = fn[:-3]
-    if only_batches and b not in only_batches:
+files = []
+for dp, dns, fns in os.walk(batch_dir):
+    dns[:] = sorted(d for d in dns if not d.startswith(('_', '.')))
+    files += [os.path.join(dp, f) for f in fns if f.endswith('.py') and not f.startswith('_')]
+files.sort(key=lambda p: os.path.relpath(p, batch_dir))
+names = [os.path.basename(p)[:-3] for p in files]
+dup = sorted({n for n in names if names.count(n) > 1})
+if dup:
+    raise SystemExit(f'two families of one name: {dup} (a family is named by its file)')
+for path in files:
+    b = os.path.basename(path)[:-3]
+    theme = os.path.basename(os.path.dirname(path))
+    if only_batches and b not in only_batches and theme not in only_batches:
         continue
     _current[0] = b
-    spec = importlib.util.spec_from_file_location('props_' + b, os.path.join(batch_dir, fn))
+    spec = importlib.util.spec_from_file_location('props_' + b, path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 

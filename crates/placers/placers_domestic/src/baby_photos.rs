@@ -82,7 +82,7 @@ pub(crate) fn place_baby_photos(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The frame's outside (square), the lip's underside, the rebate (the mat,
-/// glass and back inside it) and the mat's oval window (`t01.py`: BB_*)
+/// glass and back inside it) and the mat's oval window (`domestic/pictures_on_the_walls.py`: BB_*)
 const SIZE: f64 = 0.200;
 
 const ZL: f64 = 0.0070;

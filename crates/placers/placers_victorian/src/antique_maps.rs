@@ -78,7 +78,7 @@ pub(crate) fn place_antique_maps(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The sheet, the fillet's and the frame's outsides, the wire's apex
-/// (`t02.py`: AM_*, `antique_wire`)
+/// (`office/maps_charts_prints_and_posters.py`: AM_*, `antique_wire`)
 const MAP: (f64, f64) = (0.404, 0.336);
 
 const FILLET: (f64, f64) = (0.418, 0.350);

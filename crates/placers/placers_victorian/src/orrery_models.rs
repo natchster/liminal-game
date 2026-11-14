@@ -63,7 +63,7 @@ pub(crate) fn place_orrery_models(g: &mut Game, _dist: &[i32]) {
     g.world.add(&orr);
 }
 
-/// The orrery (t20.py `OR_*`): each planet's orbit (m from the pillar), the
+/// The orrery (victorian/a_studys_things.py `OR_*`): each planet's orbit (m from the pillar), the
 /// planets' height, the Earth's moon's offset from the Earth
 const OR_ORBIT: [f64; 5] = [0.050, 0.075, 0.104, 0.135, 0.178];
 

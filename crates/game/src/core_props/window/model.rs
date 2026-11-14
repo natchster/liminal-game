@@ -17,7 +17,7 @@ pub const DH_H: f64 = 1.37;
 pub const DH_D: f64 = 0.116;
 pub const DH_SILL: f64 = 0.80;
 pub const DH_PITCH: f64 = 1.50;
-/// Its frame's members and its sashes (as `w01.py`)
+/// Its frame's members and its sashes (as `game/windows.py`)
 const JAMB: f64 = 0.022;
 const HEAD: f64 = 0.022;
 const FRAME_SILL: f64 = 0.040;

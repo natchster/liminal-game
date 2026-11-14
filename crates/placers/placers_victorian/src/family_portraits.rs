@@ -79,7 +79,7 @@ pub(crate) fn place_family_portraits(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The frame's outside, the lip's underside (the glass beneath it), the
-/// slip's outside and the glass (`t01.py`: FP_*)
+/// slip's outside and the glass (`domestic/pictures_on_the_walls.py`: FP_*)
 const SIZE: (f64, f64) = (0.220, 0.166);
 
 const ZL: f64 = 0.0110;

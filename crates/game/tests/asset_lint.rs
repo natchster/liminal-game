@@ -25,12 +25,12 @@ const MAX_FRAME_DEV: f64 = 0.35;
 const MAX_DEGENERATE: f64 = 0.25;
 /// Known broken parts, with why and how to fix them.
 const DEGENERATE_EXCEPTIONS: &[(&str, &str)] = &[
-    ("Props__extinguisher_carryHandle", "68% slivers: the boolean cut in b03.py ext_lever() is coplanar with the channel's faces; move the cut box off the profile's planes"),
+    ("Props__extinguisher_carryHandle", "68% slivers: the boolean cut in game/core_placement.py ext_lever() is coplanar with the channel's faces; move the cut box off the profile's planes"),
     ("Props__extinguisher_lever", "the same ext_lever() cut"),
 ];
 
 /// Parts given a budget of their own in their batch script
-/// (`part('Name', …, budget=N)` in `assets/src/blender/props/*.py`, or
+/// (`part('Name', …, budget=N)` in `assets/src/blender/props/<theme>/*.py`, or
 /// `auto('Name', build, N, …)` in the batches whose parts are placed as
 /// modelled: its third argument, before any keyword). A name made in a loop
 /// (`auto(f'Real__keysKey{_i}', …)`) is a pattern: what stands for `{…}`
@@ -87,8 +87,22 @@ fn call_args(rest: &str) -> Vec<String> {
 fn script_budgets() -> ScriptBudgets {
     let dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../assets/src/blender/props");
     let mut out = ScriptBudgets { exact: Default::default(), patterns: vec![] };
-    for e in std::fs::read_dir(dir).into_iter().flatten().flatten() {
-        let text = std::fs::read_to_string(e.path()).unwrap_or_default();
+    // every family script, in its theme's folder (props/<theme>/<family>.py)
+    let mut scripts = vec![];
+    let mut stack = vec![dir];
+    while let Some(d) = stack.pop() {
+        for e in std::fs::read_dir(d).into_iter().flatten().flatten() {
+            let p = e.path();
+            if p.is_dir() {
+                stack.push(p);
+            } else if p.extension().is_some_and(|x| x == "py") {
+                scripts.push(p);
+            }
+        }
+    }
+    assert!(scripts.len() > 60, "only {} family scripts under assets/src/blender/props", scripts.len());
+    for path in scripts {
+        let text = std::fs::read_to_string(path).unwrap_or_default();
         for line in text.lines().filter(|l| l.trim_start().starts_with("part('")) {
             let name = line.trim_start()[6..].split('\'').next().unwrap_or("");
             if let Some(b) =

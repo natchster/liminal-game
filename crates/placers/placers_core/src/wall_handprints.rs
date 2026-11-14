@@ -9,7 +9,7 @@ use placers_kit::place::pick;
 use placers_kit::place::wall_candidates as wall_cands;
 
 // Wall handprints: very rare (5% chance per level). The grime a hand
-// left on a wall (`assets/src/blender/props/r11a.notes.md`): someone leaned
+// left on a wall (`docs/research/props-remodelling/floor_marks_and_dust.md`): someone leaned
 // on it at a hand's height, or put a hand out going down a corridor in the
 // dark; dirt, soot and the skin's oil came off where the hand pressed (the
 // finger pads, the pads under the fingers, the heel of the hand), not where

@@ -4,7 +4,7 @@ use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
 // Wall stains: where water came down a wall from the ceiling's edge
-// and dried (`assets/src/blender/props/r07.notes.md`). The wetted patch hangs
+// and dried (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`). The wetted patch hangs
 // from under the ceiling in lobes, each lobe as far as the water got; the
 // edge of every wetting dried as a sharp, wavy, darker tide line (what the
 // water carried, left at its rim), the earlier ones inside the last, the

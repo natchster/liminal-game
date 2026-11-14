@@ -97,7 +97,7 @@ impl Game {
     }
 
     /// WET: water standing on the floor, or soaked into it, as batch `r07`
-    /// paints a puddle (`place_floor_puddles`, `r07.notes.md`): on carpet a
+    /// paints a puddle (`place_floor_puddles`, `docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): on carpet a
     /// dark patch soaked in, its edge soft and ragged, a darker rim where the
     /// dirt wicked out to it; on a hard floor a dark film, its edge sharp and
     /// lobed, a damp margin round it and a sheen of the lights; lit as the
@@ -845,7 +845,7 @@ fn cobweb_lumps(x: f64, y: f64, z: f64) -> f64 {
     (0.6 * a + 0.4 * b).clamp(-1.0, 1.0)
 }
 
-/// A cobweb's sheets made ready to draw (the parts' frames: r05.py): how
+/// A cobweb's sheets made ready to draw (the parts' frames: game/washroom_mirror_cobwebs_and_office_plant.py): how
 /// thick the silk is at each point (vertex alpha: thickest in the corner, or
 /// along the wall's top, thinning unevenly outward, frayed to nothing at
 /// every edge of a sheet, so no sheet shows its outline), and the silk's map laid on at
@@ -1064,13 +1064,13 @@ fn soft_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops:
 // ------------------------------------------------ what the weather leaves (r10)
 //
 // The derelict floors' fallen tile, the electric floors' cable, the haunted
-// floors' candles (Blender batch `r10`, `assets/src/blender/props/r10.notes.md`)
+// floors' candles (Blender batch `r10`, `docs/research/props-remodelling/what_a_floors_weather_leaves.md`)
 // and the wet floors' puddles (painted as batch `r07` paints them).
 
-/// A mineral-fibre lay-in tile's side and thickness (24 in, 5/8 in: `r10.py`)
+/// A mineral-fibre lay-in tile's side and thickness (24 in, 5/8 in: `game/what_a_floors_weather_leaves.py`)
 const TILE_SIDE: f64 = 0.610;
 const TILE_THICK: f64 = 0.0159;
-/// Where a cut cable's bared ends nearly meet, in its parts' frame (`r10.py` `SPARK`)
+/// Where a cut cable's bared ends nearly meet, in its parts' frame (`game/what_a_floors_weather_leaves.py` `SPARK`)
 const CABLE_SPARK: [f64; 3] = [0.0, 0.068, 0.0];
 
 /// A rectangle on the floor (x, z): its middle, its own x turned by `turn`

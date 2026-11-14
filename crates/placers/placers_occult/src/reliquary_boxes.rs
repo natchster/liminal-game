@@ -58,7 +58,7 @@ pub(crate) fn place_reliquary_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&relic);
 }
 
-/// Where the paste stones sit on the lid's slopes, as `t19.py` sets them
+/// Where the paste stones sit on the lid's slopes, as `victorian/things_on_a_wall_and_one_box.py` sets them
 /// (`stone_place`): (x, y, z) of each and the slope's turn about x
 const STONE_Y: f64 = 0.080;
 

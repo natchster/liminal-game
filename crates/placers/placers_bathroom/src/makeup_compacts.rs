@@ -35,7 +35,7 @@ pub(crate) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
             [kind];
     let case = phong!({ map: &case_tex(kind, salt), color: c, specular: spec, shininess: shine });
     t03_put(&compact, "Real__makeupCompactBase", &case);
-    // the lid turns open about the hinge's pin (y, z of `HINGE`, t03.py)
+    // the lid turns open about the hinge's pin (y, z of `HINGE`, bathroom/washroom_shelf_and_dressing_table.py)
     let pivot = group();
     pivot.position().set(0, T03_HINGE.0, T03_HINGE.1);
     let lid = group();
@@ -65,7 +65,7 @@ pub(crate) fn place_makeup_compacts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&compact);
 }
 
-/// The compact's hinge pin: its height and how far back (t03.py prints it)
+/// The compact's hinge pin: its height and how far back (bathroom/washroom_shelf_and_dressing_table.py prints it)
 const T03_HINGE: (f64, f64) = (0.009, -0.0398);
 
 /// Scratches as straight short strokes from a seeded scatter: the
@@ -167,7 +167,7 @@ fn powder_tex(salt: u32) -> Tex {
         let base = [[0.90, 0.78, 0.66], [0.85, 0.70, 0.57], [0.78, 0.61, 0.48]][(salt >> 9) as usize % 3];
         fill(ctx, w, h, |u, v| {
             let r = ((u - 0.5).powi(2) + (v - 0.5).powi(2)).sqrt() * 2.0;
-            // the hollow, where t03.py wore it (x -4 mm, z +3 mm of 58)
+            // the hollow, where bathroom/washroom_shelf_and_dressing_table.py wore it (x -4 mm, z +3 mm of 58)
             let dh = ((u - 0.431).powi(2) + (v - 0.448).powi(2)).sqrt() / 0.30;
             let worn = (-dh * dh * 1.6).exp();
             let n = fbm(seed, u * 30.0, v * 30.0, 3);

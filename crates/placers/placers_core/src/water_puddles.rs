@@ -13,7 +13,7 @@ use placers_kit::wet_floor::floor_kind as puddle_floor_kind;
 use placers_kit::wet_floor::Px;
 
 // Water puddle: 8% chance per level. Where a drip from the ceiling
-// lands, and has gone on landing (`assets/src/blender/props/r11a.notes.md`):
+// lands, and has gone on landing (`docs/research/props-remodelling/floor_marks_and_dust.md`):
 // on carpet the water has soaked in, a dark patch with a soft ragged edge and
 // a darker rim where the dirt wicked out to it, and where the drops land the
 // pile is so wet that water stands on it, with a sheen; on a hard floor it

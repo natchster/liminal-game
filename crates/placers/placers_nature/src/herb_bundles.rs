@@ -85,7 +85,7 @@ pub(crate) fn place_herb_bundles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bundle);
 }
 
-/// The binding's middle on the wall frame (`t06.py` HB_TIE)
+/// The binding's middle on the wall frame (`nature/garden_things.py` HB_TIE)
 const HB_TIE: (f64, f64, f64) = (0.0, 1.874, 0.026);
 
 fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {
@@ -165,7 +165,7 @@ fn dried_tex() -> Tex {
     })
 }
 
-/// The herbs: sage, rosemary or lavender; each its parts (`t06.py`) and its
+/// The herbs: sage, rosemary or lavender; each its parts (`nature/garden_things.py`) and its
 /// colours dried
 #[derive(Clone, Copy)]
 enum Herb {

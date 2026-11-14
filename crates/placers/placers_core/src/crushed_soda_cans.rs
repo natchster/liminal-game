@@ -74,7 +74,7 @@ fn crushed_can_label(k: usize, flat: bool) -> Tex {
         (0xc0782a, 0xf0e2c0, 0xfaf4e6, "ORANGE", "bold 80px Rockwell"),
         (0xb4b6b6, 0x3a5a86, 0x2c4a74, "SPARKLING WATER", "bold 44px Avenir Next Condensed"),
     ];
-    // the crush, as modelled (r08.py `CrushedCan`, `CAN_PH`)
+    // the crush, as modelled (core/everyday_litter.py `CrushedCan`, `CAN_PH`)
     const PH: [f64; 5] = [1.3, 4.1, 0.6, 2.9, 5.2];
     let (ground, band, ink, name, face) = LABELS[k];
     let (cw, ch) = if flat { (256, 256) } else { (512, 256) };

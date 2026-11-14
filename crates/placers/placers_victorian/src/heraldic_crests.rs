@@ -55,7 +55,7 @@ pub(crate) fn place_heraldic_crests(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hc);
 }
 
-/// The crest's outline (`t19.py` `crest_outline`): half its width, its top
+/// The crest's outline (`victorian/things_on_a_wall_and_one_box.py` `crest_outline`): half its width, its top
 /// and point, its top corners' radius; the arcs' radius and centre
 const CREST_HW: f64 = 0.168;
 

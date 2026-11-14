@@ -485,7 +485,7 @@ fn age_sheet(
 /// (`apex` above the picture's middle at `mount_y`, the wall `wall` behind
 /// the spot), the frame swinging about it by `tilt` and leaning out `lean`
 /// at its top from its foot (`h` its height); returns the body its parts go
-/// in (the frame of `t01.py` and `t02.py`: z = 0 the wall)
+/// in (the frame of `domestic/pictures_on_the_walls.py` and `office/maps_charts_prints_and_posters.py`: z = 0 the wall)
 pub fn hang(o: &Obj, mount_y: f64, wall: f64, apex: f64, h: f64, lean: f64, tilt: f64) -> Obj {
     let nail = group();
     nail.position().set(0, mount_y + apex, -wall);

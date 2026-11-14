@@ -46,7 +46,7 @@ pub(crate) fn place_stained_glass_windows(g: &mut Game, _dist: &[i32]) {
     g.world.add(&window);
 }
 
-/// The panel (`t21.py` SG_*): the glass in sight, the border's width, the
+/// The panel (`victorian/four_larger_things.py` SG_*): the glass in sight, the border's width, the
 /// two lozenges' half-widths and half-heights; the panes' part a little
 /// larger than the sight (its edge under the frame)
 const SG_W: f64 = 0.300;
@@ -63,7 +63,7 @@ const SG_PANES: (f64, f64) = (SG_W + 0.006, SG_H + 0.006);
 
 const SG_FRAME: (f64, f64) = (0.340, 0.480);
 
-/// The cames' centre lines, as `t21.py` `sg_lines` lays them
+/// The cames' centre lines, as `victorian/four_larger_things.py` `sg_lines` lays them
 fn lines() -> Vec<[f64; 4]> {
     let (hw, hh) = (SG_W / 2.0, SG_H / 2.0);
     let (bx, by) = (hw - SG_B, hh - SG_B);

@@ -57,7 +57,7 @@ pub(crate) fn place_small_music_boxes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bx);
 }
 
-/// The box (t20.py `MB_*`): its depth, the case's height, the lid's
+/// The box (victorian/a_studys_things.py `MB_*`): its depth, the case's height, the lid's
 /// opening (radians), the print inside the lid (m)
 const MB_D: f64 = 0.070;
 

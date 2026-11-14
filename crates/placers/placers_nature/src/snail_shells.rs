@@ -89,7 +89,7 @@ pub(crate) fn place_snail_shells(g: &mut Game, _dist: &[i32]) {
 }
 
 // ============================================================ snail shell
-/// The garden snail's shell as `t05.py` sweeps it (SH_*): its growth a
+/// The garden snail's shell as `nature/bits_of_the_outside_indoors.py` sweeps it (SH_*): its growth a
 /// whorl, whorls, the section's centre radius, radius, drop and height over
 /// width at the aperture, how oblique the aperture is
 const SH_W: f64 = 2.3;
@@ -110,7 +110,7 @@ fn sh_t_end() -> f64 {
     SH_N * PI * 2.0
 }
 
-/// The shell's surface at turn t and section angle phi (`t05.py` sh_point)
+/// The shell's surface at turn t and section angle phi (`nature/bits_of_the_outside_indoors.py` sh_point)
 fn sh_point(t: f64, phi: f64) -> [f64; 3] {
     let tt = sh_t_end();
     let s = (SH_W.ln() / (PI * 2.0) * (t - tt)).exp();

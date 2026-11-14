@@ -14,7 +14,7 @@ pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
     // Zonal geraniums in a 31 cm terracotta pot (batch `r18`), not watered for
     // years: the stems woody and grey, knuckled at their nodes, a leaf or two
     // dried on them, the rest fallen; the soil shrunk from the wall and
-    // cracked; salts bloomed white through the clay (r18.notes.md). One in
+    // cracked; salts bloomed white through the clay (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md). One in
     // twelve is still alive, leggy, a few green leaves at its tips.
     use game::assets::props::prop_part_as_modelled;
     g.pp.living_plant_positions.clear(); // reset per level
@@ -120,7 +120,7 @@ pub(crate) fn place_dead_plants(g: &mut Game, _dist: &[i32]) {
 const SOIL_Y: f64 = 0.150;
 
 /// Each stem part's top node and its direction there, in the part's frame
-/// (printed by `r18.py`)
+/// (printed by `industrial/washroom_janitor_classroom_and_plant.py`)
 const STEM_TOP: [([f64; 3], [f64; 3]); 3] = [
     ([0.04409, 0.27403, 0.03280], [0.3067, 0.9472, 0.0939]),
     ([0.01691, 0.26503, -0.00006], [0.2041, 0.9717, -0.1187]),

@@ -123,7 +123,7 @@ fn t04_cord_geo(pts: &[[f64; 3]], r: f64, flat: f64, seg: usize) -> Geo {
     geo
 }
 
-/// Where the cord leaves the strain relief, and which way (`t04.py`, printed
+/// Where the cord leaves the strain relief, and which way (`bathroom/washroom_fittings.py`, printed
 /// by `hd_strain`)
 const HD_CORD_START: [f64; 3] = [-0.0445, 0.0041, -0.1842];
 

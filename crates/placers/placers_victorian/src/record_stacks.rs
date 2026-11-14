@@ -89,7 +89,7 @@ pub(crate) fn place_record_stacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&rs);
 }
 
-/// The single (t10.py): a sleeve's thickness, one sheet of it, the disc's
+/// The single (victorian/parlour_and_office_big_things.py): a sleeve's thickness, one sheet of it, the disc's
 /// radius, the sleeve's half width
 const RS_SLEEVE_T: f64 = 2.0 * 0.0003 + 0.0019 + 0.0001;
 

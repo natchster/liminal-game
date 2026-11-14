@@ -45,7 +45,7 @@ pub(crate) fn place_shoe_boxes(g: &mut Game, _dist: &[i32]) {
             lid.position().y = 0.0402;
         }
     } else {
-        // on the base: its inside top on the base's rim (r14a.py SB_LID_Y)
+        // on the base: its inside top on the base's rim (domestic/things_worn_and_dropped.py SB_LID_Y)
         lid.position().y = 0.0822;
         lid.rotation().y = (f - 0.5) * 0.03;
     }

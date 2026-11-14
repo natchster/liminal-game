@@ -43,7 +43,7 @@ pub(crate) fn place_bread_loaves(g: &mut Game, _dist: &[i32]) {
     g.world.add(&loaf);
 }
 
-/// The loaf as modelled (r16.py): the crust part's bounds in x and z, the
+/// The loaf as modelled (domestic/kitchen_and_hearth_left_behind.py): the crust part's bounds in x and z, the
 /// slashes (their middles along x from the loaf's own middle, the angle of
 /// the line across them), the board's size
 const LOAF_CRUST_X: (f64, f64) = (-0.1415, 0.0330);

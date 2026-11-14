@@ -13,7 +13,7 @@ use placers_kit::wet_floor::floor_kind;
 use placers_kit::wet_floor::Px;
 
 // Floor puddle: 15% chance per level (25% in wet biome). Water on the
-// floor (`r07.notes.md`): on carpet it has soaked in, a dark wet patch with a
+// floor (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): on carpet it has soaked in, a dark wet patch with a
 // soft, ragged edge and a darker ring where the dirt wicked out to it; on a
 // hard floor it stands, a thin film darker than the dry floor round it, its
 // edge sharp and irregular, a damp margin outside it and a sheen of the

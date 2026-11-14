@@ -66,7 +66,7 @@ pub(crate) fn place_frosted_windows(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The sash's four panes (x0, x1, y0, y1), the glass's distance from the
-/// wall, how much of each runs under its bead (`t04.py` FW_*)
+/// wall, how much of each runs under its bead (`bathroom/washroom_fittings.py` FW_*)
 const FW_PANES: [[f64; 4]; 4] =
     [[-0.228, -0.010, -0.146, 0.006], [0.010, 0.228, -0.146, 0.006], [-0.228, -0.010, 0.026, 0.178], [0.010, 0.228, 0.026, 0.178]];
 

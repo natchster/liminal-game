@@ -8,7 +8,7 @@ use placers_kit::noise::vn as vnoise;
 use placers_kit::place::wall_candidates;
 
 // Chalk arrow: 5% chance per level. A way-mark someone left on a wall at
-// eye height (`assets/src/blender/props/r11a.notes.md`): an arrow drawn
+// eye height (`docs/research/props-remodelling/floor_marks_and_dust.md`): an arrow drawn
 // quickly in blackboard chalk, its head a closed triangle scribbled in (never
 // her open arrow with the longer left barb, docs/design/SECRETS.md), a word over it
 // in capitals in a hurried hand; the grain of the chalk caught on the wall's

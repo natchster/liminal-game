@@ -54,7 +54,7 @@ pub(crate) fn place_small_xylophones(g: &mut Game, _dist: &[i32]) {
     g.world.add(&xylo);
 }
 
-/// The bars as built (`t16.py` XY_*): eight, 28 mm apart along x from the
+/// The bars as built (`toys/a_play_areas_toys.py` XY_*): eight, 28 mm apart along x from the
 /// low C, 22 mm wide, 100 mm stepping down to 68 mm long across z
 const N_BARS: usize = 8;
 

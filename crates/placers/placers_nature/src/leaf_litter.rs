@@ -105,7 +105,7 @@ pub(crate) fn place_leaf_litter(g: &mut Game, _dist: &[i32]) {
 }
 
 // ================================================================= leaves
-/// The dead leaves (`t05.py` LEAVES): the part, the blade's length, its
+/// The dead leaves (`nature/bits_of_the_outside_indoors.py` LEAVES): the part, the blade's length, its
 /// envelope's half width, oak or beech
 const LEAVES: [(&str, f64, f64, bool); 5] = [
     ("Real__leafBeechA", 0.072, 0.0225, false),

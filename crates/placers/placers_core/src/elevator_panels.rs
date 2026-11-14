@@ -82,7 +82,7 @@ pub(crate) fn place_elevator_panels(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The lift panel's plate thickness, its columns and rows of floor buttons
-/// (the top row first) and its alarm button (`r12.py`, EP_*).
+/// (the top row first) and its alarm button (`core/what_services_screw_to_walls.py`, EP_*).
 const EP_T: f64 = 0.003;
 
 const EP_COL: [f64; 3] = [-0.041, 0.009, 0.059];

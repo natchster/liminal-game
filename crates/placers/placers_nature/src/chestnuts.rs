@@ -92,7 +92,7 @@ pub(crate) fn place_chestnuts(g: &mut Game, _dist: &[i32]) {
 }
 
 // ================================================================ conkers
-/// The seed's half sizes and its scar's middle (`t17.py` CK, CK_HILUM)
+/// The seed's half sizes and its scar's middle (`nature/a_garden_and_a_wood_indoors.py` CK, CK_HILUM)
 const CK: [f64; 3] = [0.0155, 0.0120, 0.0140];
 
 const CK_HILUM: [f64; 3] = [0.30, 0.50, 0.81];

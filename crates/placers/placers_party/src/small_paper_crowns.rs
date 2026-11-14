@@ -78,7 +78,7 @@ pub(crate) fn place_small_paper_crowns(g: &mut Game, _dist: &[i32]) {
 }
 
 // ------------------------------------------------------------- the crown
-/// The crown's card (`t12.py` CR_*): its length round (fastened) and its
+/// The crown's card (`party/what_a_party_room_leaves.py` CR_*): its length round (fastened) and its
 /// tab, the band and the points, how many, where a bent point folds
 const CR_C: f64 = 0.530;
 

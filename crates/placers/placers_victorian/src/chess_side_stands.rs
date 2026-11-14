@@ -141,14 +141,14 @@ pub(crate) fn place_chess_side_stands(g: &mut Game, _dist: &[i32]) {
     g.pp.chess_set_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The table (t20.py `CH_*`): its top's face, the board's face, a square
+/// The table (victorian/a_studys_things.py `CH_*`): its top's face, the board's face, a square
 const CH_TOP_Y: f64 = 0.700;
 
 const CH_BOARD_Y: f64 = 0.714;
 
 const CH_SQ: f64 = 0.035;
 
-/// The snifter's bowl inside (t10.py `SN_*`): its widest (y), its radius
+/// The snifter's bowl inside (victorian/parlour_and_office_big_things.py `SN_*`): its widest (y), its radius
 /// there, below it its half height; the low pour's surface
 const SN_YC: f64 = 0.058;
 

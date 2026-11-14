@@ -14,7 +14,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_key_at;
 use placers_kit::place::wall_xz;
 
-// Peeled paint (`assets/src/blender/props/r11b.notes.md`): where damp
+// Peeled paint (`docs/research/props-remodelling/wall_marks_and_wear.md`): where damp
 // came through a painted wall the paint let go: cracked into flakes along
 // a network of fine cracks, the flakes come away in patches showing the
 // older coat beneath, and under that the plaster (or the board's paper), a

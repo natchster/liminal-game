@@ -1550,7 +1550,7 @@ impl Game {
 /// The ink of an ordinary note
 const INK: u32 = 0x1a1408;
 
-/// The torn note's sheet (`r04.py`): its width (US letter), the dog-ear's
+/// The torn note's sheet (`game/torn_note_mannequin_and_wall_clock.py`): its width (US letter), the dog-ear's
 /// legs, its middle down from its head, its underside above the floor, how
 /// far an unread note's corner is lifted (rad), its first fold
 const NOTE_W: f64 = 0.2159;

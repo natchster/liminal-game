@@ -55,7 +55,7 @@ pub(crate) fn place_cotton_swabs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-/// A swab end to end (`t22.py` `SWAB_L`, `SWAB_TUFT_L`), metres
+/// A swab end to end (`party/small_everyday_things.py` `SWAB_L`, `SWAB_TUFT_L`), metres
 const SWAB_L: f64 = 0.0762;
 
 const TUFT_L: f64 = 0.013;

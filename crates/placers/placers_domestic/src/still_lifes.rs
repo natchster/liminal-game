@@ -50,7 +50,7 @@ pub(crate) fn place_still_lifes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&still);
 }
 
-/// The still life's canvas, frame, slip and wire (`t01.py`: SL_*, `still_wire`)
+/// The still life's canvas, frame, slip and wire (`domestic/pictures_on_the_walls.py`: SL_*, `still_wire`)
 const SL_CANVAS: (f64, f64) = (0.270, 0.220);
 
 const SL_SIZE: (f64, f64) = (0.340, 0.290);

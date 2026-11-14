@@ -71,7 +71,7 @@ pub(crate) fn place_fuse_boxes(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The breaker panel: the enclosure's depth, the door (w, h) and its middle,
-/// the breakers' columns and rows (`r12.py`, FB_*).
+/// the breakers' columns and rows (`core/what_services_screw_to_walls.py`, FB_*).
 const FB_D: f64 = 0.083;
 
 const FB_DOOR: (f64, f64) = (0.150, 0.198);

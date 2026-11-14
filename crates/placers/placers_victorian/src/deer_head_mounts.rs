@@ -46,7 +46,7 @@ pub(crate) fn place_deer_head_mounts(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mount);
 }
 
-/// The antlers' place on the head (`t11.py` `HEAD_ANTLERS`): the burrs'
+/// The antlers' place on the head (`victorian/lodge_trophies_and_parlour_ornaments.py` `HEAD_ANTLERS`): the burrs'
 /// bases on the pedicles, on top of the skull
 const HEAD_ANTLERS: [f64; 3] = [0.0, 0.080_494, 0.161_283];
 
@@ -106,7 +106,7 @@ fn pale_tex(salt: u32) -> Tex {
 }
 
 /// Quartersawn oak under an old dark stain and varnish (u across, v up the
-/// shield), as the antlers' shield (`placers_p06` `rustic/t11.rs`)
+/// shield), as the antlers' shield (`mounted_antlers.rs`)
 fn oak_tex(salt: u32, w: u32, h: u32) -> Tex {
     canvas_tex_opt(w, h, false, move |ctx, w, h| {
         let seed = salt ^ 0x0a4;

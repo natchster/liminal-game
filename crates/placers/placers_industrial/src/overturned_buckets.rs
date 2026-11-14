@@ -21,7 +21,7 @@ pub(crate) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
     // A 10 l moulded polypropylene pail (batch `r18`), kicked over: on its
     // side, resting on its rim and its foot, or upside down on its rim; its
     // wire bail fallen to the floor; scuffed, grimed at its foot, the litre
-    // marks inside it and the muck dried in its bottom (r18.notes.md)
+    // marks inside it and the muck dried in its bottom (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.85 {
         return;
@@ -90,7 +90,7 @@ pub(crate) fn place_overturned_buckets(g: &mut Game, _dist: &[i32]) {
 }
 
 /// Lying on its side: its turn about x and lift, so the flange and the
-/// foot touch the floor (printed by `r18.py`)
+/// foot touch the floor (printed by `industrial/washroom_janitor_classroom_and_plant.py`)
 const TILT: f64 = 1.41368;
 
 const LIFT: f64 = 0.10265;

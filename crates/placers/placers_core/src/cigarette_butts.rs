@@ -87,7 +87,7 @@ pub(crate) fn place_cigarette_butts(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The cigarette (`t22.py` `CIG_*`): its filter's and its tipping paper's
+/// The cigarette (`party/small_everyday_things.py` `CIG_*`): its filter's and its tipping paper's
 /// lengths from the mouth end, metres
 const CIG_FILTER: f64 = 0.021;
 

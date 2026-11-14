@@ -12,7 +12,7 @@ use placers_kit::wet_floor::floor_kind as puddle_floor_kind;
 
 // Dust bunnies: 10% chance per level. Where no air moves, what a floor
 // sheds (textile lint, hair, skin, grit) felts itself into clumps held by
-// static and their own fibres (`assets/src/blender/props/r11a.notes.md`):
+// static and their own fibres (`docs/research/props-remodelling/floor_marks_and_dust.md`):
 // five to ten of them, from a small wisp to a sprawl of fluff 6 cm long
 // (batch r11a), grey with a fleck of a jumper's colour here and there, on a
 // thin film of the dust they gather from and the loose fibres and hairs

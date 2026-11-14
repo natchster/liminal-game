@@ -46,7 +46,7 @@ pub(crate) fn place_spray_bottles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bottle);
 }
 
-/// The bottle's radius, its height to the neck's top (`t04.py` SB_*)
+/// The bottle's radius, its height to the neck's top (`bathroom/washroom_fittings.py` SB_*)
 const SB_R: f64 = 0.0309;
 
 /// What each of the old liquids is: its name on the label, its colour seen

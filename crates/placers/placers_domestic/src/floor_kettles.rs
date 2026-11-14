@@ -113,13 +113,13 @@ pub(crate) fn place_floor_kettles(g: &mut Game, _dist: &[i32]) {
     g.world.add(&kt);
 }
 
-/// The spout's mouth in the kettle's frame (x, y; r16.py `KETTLE_SPOUT`)
+/// The spout's mouth in the kettle's frame (x, y; domestic/kitchen_and_hearth_left_behind.py `KETTLE_SPOUT`)
 const KETTLE_SPOUT_TIP: (f64, f64) = (0.1285, 0.1105);
 
 /// The cork trivet's thickness
 const KETTLE_TRIVET_T: f64 = 0.010;
 
-/// The kettle body part's height (its bounds' top: the lid, r16.py)
+/// The kettle body part's height (its bounds' top: the lid, domestic/kitchen_and_hearth_left_behind.py)
 const KETTLE_H: f64 = 0.1367;
 
 fn kettle_hash(seed: u32, x: i32, y: i32) -> f64 {

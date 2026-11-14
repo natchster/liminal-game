@@ -77,7 +77,7 @@ pub(crate) fn place_ornate_cuckoo_clocks(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The clock (t10.py `CK_*`): where its dial's middle hangs (y), the
+/// The clock (victorian/parlour_and_office_big_things.py `CK_*`): where its dial's middle hangs (y), the
 /// dial's face (z), the pendulum's hook under the case
 const CK_DIAL_Y: f64 = 1.70;
 

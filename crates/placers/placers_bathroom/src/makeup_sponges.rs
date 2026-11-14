@@ -41,7 +41,7 @@ pub(crate) fn place_makeup_sponges(g: &mut Game, _dist: &[i32]) {
     let sp = group();
     if let Some(geo) = prop_part_as_modelled("Real__makeupSpongeFoam") {
         // modelled standing on its base: rolled, laid on its side as it
-        // rests (t03.py), its lowest point on the floor; the turn is in the
+        // rests (bathroom/washroom_shelf_and_dressing_table.py), its lowest point on the floor; the turn is in the
         // geometry, so its box is its own and it sits on the floor
         let geo = geo.duplicate();
         geo.rotate_y(roll);
@@ -56,7 +56,7 @@ pub(crate) fn place_makeup_sponges(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The turn about z that lays the standing sponge on its side at rest (its
-/// volume's centre lowest), printed by t03.py (`t03 sponge: lay …`)
+/// volume's centre lowest), printed by bathroom/washroom_shelf_and_dressing_table.py (`t03 sponge: lay …`)
 const T03_SPONGE_LAY: f64 = -1.87623;
 
 /// The foam (u round it, v from its base to its point, as a cylinder's part

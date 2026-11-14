@@ -102,7 +102,7 @@ pub(crate) fn place_cake_stands(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stand);
 }
 
-/// The cake as modelled (`t13.py`): the bottom tier's radius; the cake
+/// The cake as modelled (`party/a_party_tables_leavings.py`): the bottom tier's radius; the cake
 /// part's heights (its bounds) and where the top tier's foot is
 const CAKE_R1: f64 = 0.098;
 
@@ -113,7 +113,7 @@ const CAKE_TIER2: f64 = 0.1915;
 /// The stand's plate (its bounds: half width, and heights)
 const STAND_PLATE: (f64, f64, f64) = (0.139_866, 0.1000, 0.1203);
 
-/// The candle's flame root, over the wick (`t13.py` prints it)
+/// The candle's flame root, over the wick (`party/a_party_tables_leavings.py` prints it)
 const FLAME_ROOT: (f64, f64, f64) = (0.0208, 0.2881, 0.0107);
 
 /// `t09`'s flame (`Real__brassStickFlameB`): its foot's height; and how

@@ -75,7 +75,7 @@ pub(crate) fn place_small_sewing_machines(g: &mut Game, _dist: &[i32]) {
     g.pp.sewing_positions.push(v3(sp.x, 0.10, sp.z));
 }
 
-/// The machine as modelled (r16.py): the handwheel's axle, the bed's top,
+/// The machine as modelled (domestic/kitchen_and_hearth_left_behind.py): the handwheel's axle, the bed's top,
 /// the arm and pillar's front face
 const SEW_AXLE: (f64, f64, f64) = (0.1405, 0.1960, -0.0310);
 

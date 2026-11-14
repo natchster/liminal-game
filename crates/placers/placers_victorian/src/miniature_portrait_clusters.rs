@@ -151,7 +151,7 @@ pub(crate) fn place_miniature_portrait_clusters(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The case's outside (semi-axes), the painted oval's (`t01.py`: MN_*)
+/// The case's outside (semi-axes), the painted oval's (`domestic/pictures_on_the_walls.py`: MN_*)
 const CASE: (f64, f64) = (0.045, 0.058);
 
 const IVORY: (f64, f64) = (0.0366, 0.0496);

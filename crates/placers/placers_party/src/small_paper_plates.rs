@@ -91,7 +91,7 @@ pub(crate) fn place_small_paper_plates(g: &mut Game, _dist: &[i32]) {
     g.world.add(&plate);
 }
 
-/// The plate as modelled (`t13.py`): its half width and its height (the
+/// The plate as modelled (`party/a_party_tables_leavings.py`): its half width and its height (the
 /// top part's bounds), its well's radius and its flange's
 const PLATE_R: f64 = 0.0892;
 
@@ -101,7 +101,7 @@ const PLATE_WELL: f64 = 0.0556;
 
 const PLATE_FLANGE: (f64, f64) = (0.0745, 0.0880);
 
-/// The crumbs (`r16.py`'s `Real__breadCrumbs`, modelled on the bread
+/// The crumbs (`domestic/kitchen_and_hearth_left_behind.py`'s `Real__breadCrumbs`, modelled on the bread
 /// board): moved off the board onto the plate's well
 const CRUMBS_AT: (f64, f64, f64) = (-0.066, -0.0172, 0.011);
 

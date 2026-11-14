@@ -45,7 +45,7 @@ pub(crate) fn place_cast_iron_pans(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pan);
 }
 
-/// The skillet as hung (`Real__panBody`): its bounds (x, y; r16.py), its
+/// The skillet as hung (`Real__panBody`): its bounds (x, y; domestic/kitchen_and_hearth_left_behind.py), its
 /// middle at y = 0, the hanging hole's centre, and where the nail is
 const PAN_BOUNDS: [f64; 4] = [-0.1393, -0.1697, 0.1393, 0.2631];
 
@@ -53,7 +53,7 @@ const PAN_HOLE_Y: f64 = 0.2482;
 
 const PAN_NAIL_Y: f64 = 1.93;
 
-/// The cooking face's radius, and the inside of the rim (r16.py `PAN_PROFILE`)
+/// The cooking face's radius, and the inside of the rim (domestic/kitchen_and_hearth_left_behind.py `PAN_PROFILE`)
 const PAN_FLOOR_R: f64 = 0.0915;
 
 const PAN_RIM_R: f64 = 0.1284;

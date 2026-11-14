@@ -17,7 +17,7 @@ pub(crate) fn place_mop_buckets(g: &mut Game, _dist: &[i32]) {
     // on four castors, a side-press wringer hooked over its end, a cotton wet
     // mop left standing in it, its handle leaning on the wringer; the water
     // gone grey with a scum on it, or dried to a crust and a ring
-    // (r18.notes.md)
+    // (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.94 {
         return;

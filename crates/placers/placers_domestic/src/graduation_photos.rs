@@ -90,7 +90,7 @@ pub(crate) fn place_graduation_photos(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The frame's outside, the lip's underside, the mat (the rebate) and its
-/// window (w, h, raised by) (`t01.py`: GR_*)
+/// window (w, h, raised by) (`domestic/pictures_on_the_walls.py`: GR_*)
 const SIZE: (f64, f64) = (0.172, 0.222);
 
 const ZL: f64 = 0.0070;

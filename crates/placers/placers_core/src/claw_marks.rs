@@ -12,7 +12,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::wet_floor::Px;
 
 // Wall claw marks: 4% chance per level. Something dragged its nails down
-// the wall (`assets/src/blender/props/r11a.notes.md`): three or four gouges
+// the wall (`docs/research/props-remodelling/floor_marks_and_dust.md`): three or four gouges
 // side by side a finger apart, dug in hard where they start and lifting
 // toward their ends, the nails skipping now and then. On paper or paint over
 // plasterboard each tore the surface: the paint and the face paper ripped

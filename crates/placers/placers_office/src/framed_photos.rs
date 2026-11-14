@@ -75,7 +75,7 @@ pub(crate) fn place_framed_photos(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The print (5 x 7 in), the lip's underside (the glass under it) and the
-/// two frames' outsides (`t01.py`: PH_*)
+/// two frames' outsides (`domestic/pictures_on_the_walls.py`: PH_*)
 const PRINT: (f64, f64) = (0.127, 0.178);
 
 const ZL: f64 = 0.0060;

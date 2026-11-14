@@ -62,7 +62,7 @@ pub(crate) fn place_metal_lockers(g: &mut Game, _dist: &[i32]) {
     g.pp.locker_positions.push(v3(p.x, 0.8, p.z));
 }
 
-/// The locker (t10.py `LK_*`): its door's width, its bottom and height,
+/// The locker (victorian/parlour_and_office_big_things.py `LK_*`): its door's width, its bottom and height,
 /// where its face is (z, from the back), where the latch is
 const LK_DOOR_W: f64 = 0.305 - 2.0 * 0.022 - 2.0 * 0.0025;
 

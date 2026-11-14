@@ -138,7 +138,7 @@ pub(crate) fn place_pocket_watches(g: &mut Game, _dist: &[i32]) {
     g.pp.hunter_watch_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The watch (t20.py `PW_*`): the dial's face (y), the cover's hinge line
+/// The watch (victorian/a_studys_things.py `PW_*`): the dial's face (y), the cover's hinge line
 /// (x, y), where the chain leaves the bow (x), the seconds' subdial (z)
 const PW_DIAL_Y: f64 = 0.0090;
 
@@ -148,7 +148,7 @@ const PW_CHAIN_X: f64 = 0.0505;
 
 const PW_SUB_Z: f64 = 0.0098;
 
-/// The open cover's turn past upright, its rim down on the floor (t20.py
+/// The open cover's turn past upright, its rim down on the floor (victorian/a_studys_things.py
 /// `PW_COVER_DROP`: the part is modelled open)
 const PW_COVER_DROP: f64 = 0.174;
 

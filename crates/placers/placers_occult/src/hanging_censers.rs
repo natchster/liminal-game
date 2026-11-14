@@ -65,7 +65,7 @@ pub(crate) fn place_hanging_censers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&censer);
 }
 
-/// The thurible (`t18.py`, m): its finger ring's top wire above the bowl's
+/// The thurible (`occult/shrine_and_seance_things.py`, m): its finger ring's top wire above the bowl's
 /// rim, and the ring's offset; the lamp chain's pair of links (its pitch,
 /// and from the lower link's lowest wire to the upper one's top); the hook's
 /// lowest wire below the ceiling

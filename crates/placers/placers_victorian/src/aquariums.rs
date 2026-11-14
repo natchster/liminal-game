@@ -203,7 +203,7 @@ pub(crate) fn place_aquariums(g: &mut Game, _dist: &[i32]) {
     g.pp.aquarium_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The tank (`t21.py` AQ_*): the glass bottom's top, half the inside, the
+/// The tank (`victorian/four_larger_things.py` AQ_*): the glass bottom's top, half the inside, the
 /// gravel's depth at the front and how much more at the back; the glass
 /// part's foot and height (its map's v); where the air stone stands
 const AQ_FLOOR: f64 = 0.606;
@@ -216,12 +216,12 @@ const AQ_GLASS_Y: (f64, f64) = (0.603, 0.918 - 0.603);
 
 const AQ_STONE: (f64, f64, f64) = (-0.200, AQ_FLOOR + 0.070, -0.078);
 
-/// The hood's lamp: its tube (`t21.py` `aq_tube`), where its light is
+/// The hood's lamp: its tube (`victorian/four_larger_things.py` `aq_tube`), where its light is
 /// (the old light stood 5 cm from it, in the hood's housing)
 const AQ_TUBE: (f64, f64) = (0.600 + 0.321 + 0.020, -0.267 / 2.0 + 0.085);
 
 /// r18's dead plant's stems (`Real__deadPlantStem…`): how far each reaches
-/// up its own frame, and the way each leans of itself (r18.py)
+/// up its own frame, and the way each leans of itself (industrial/washroom_janitor_classroom_and_plant.py)
 const STEM_REACH: f64 = 0.30;
 
 const STEM_LEAN_AZ: [f64; 3] = [0.6397, -0.0035, -0.8885];

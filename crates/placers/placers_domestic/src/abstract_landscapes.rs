@@ -50,7 +50,7 @@ pub(crate) fn place_abstract_landscapes(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The landscape's panel, its frame's outside and the wire's apex above its
-/// middle (`t01.py`: LP_*, `land_wire`)
+/// middle (`domestic/pictures_on_the_walls.py`: LP_*, `land_wire`)
 const LP_PANEL: (f64, f64) = (0.270, 0.190);
 
 const LP_SIZE: (f64, f64) = (0.320, 0.240);

@@ -43,7 +43,7 @@ pub(crate) fn place_rubiks_cubes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cube);
 }
 
-/// Half the cube (`t22.py` `CUBE`), metres
+/// Half the cube (`party/small_everyday_things.py` `CUBE`), metres
 const HALF: f64 = 0.0285;
 
 /// The faces in the atlas, by (axis, toward +): +x, -x, +y, -y, +z, -z;

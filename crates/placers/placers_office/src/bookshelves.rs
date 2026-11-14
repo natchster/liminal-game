@@ -65,7 +65,7 @@ pub(crate) fn place_bookshelves(g: &mut Game, _dist: &[i32]) {
     g.world.add(&shelf);
 }
 
-/// The shelf (t10.py `BS_*`): its width, a board's thickness, its back's, its
+/// The shelf (victorian/parlour_and_office_big_things.py `BS_*`): its width, a board's thickness, its back's, its
 /// height between the boards' outsides, how far its sides run below
 const BS_W: f64 = 0.600;
 

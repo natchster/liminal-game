@@ -124,7 +124,7 @@ pub(crate) fn place_brandy_snifters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&bs);
 }
 
-/// The snifter's bowl inside (t10.py `SN_*`): its widest (y), its radius
+/// The snifter's bowl inside (victorian/parlour_and_office_big_things.py `SN_*`): its widest (y), its radius
 /// there, below it its half height; where the brandy's surface stands for
 /// a low, a middling and a generous pour (25, 44, 65 ml)
 const SN_YC: f64 = 0.058;

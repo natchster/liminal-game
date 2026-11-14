@@ -116,7 +116,7 @@ fn r14a_glove(s: &R14aGlove, vary: u32) -> Obj {
     grp
 }
 
-/// The glove's back as modelled (r14a.py): its bounds in x and z (the top's
+/// The glove's back as modelled (domestic/things_worn_and_dropped.py): its bounds in x and z (the top's
 /// u runs with x, v against z), and each digit: base (x, z), length, flat
 /// width, angle from +z toward +x, bow.
 const R14A_GLOVE_XZ: (f64, f64, f64, f64) = (-0.0757, 0.0877, 0.0, 0.1955);

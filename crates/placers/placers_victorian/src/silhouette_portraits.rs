@@ -61,7 +61,7 @@ pub(crate) fn place_silhouette_portraits(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sp);
 }
 
-/// The frame's outside, the card's (`t19.py`: SIL_A, SIL_B, the card's
+/// The frame's outside, the card's (`victorian/things_on_a_wall_and_one_box.py`: SIL_A, SIL_B, the card's
 /// bounds) and the ring's inside top above the frame's middle (where the
 /// hook bears)
 const FRAME: (f64, f64) = (0.180, 0.220);

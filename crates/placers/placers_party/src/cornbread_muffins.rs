@@ -73,11 +73,11 @@ pub(crate) fn place_cornbread_muffins(g: &mut Game, _dist: &[i32]) {
 /// side by side (a case's top is 71 mm across)
 const MUFFIN_CLEAR: f64 = 0.0356;
 
-/// The crumbs (`r16.py`'s `Real__breadCrumbs`, on its board) moved to the
+/// The crumbs (`domestic/kitchen_and_hearth_left_behind.py`'s `Real__breadCrumbs`, on its board) moved to the
 /// middle of the muffins, on the floor
 const CRUMBS_AT: (f64, f64, f64) = (-0.066, -0.0178, 0.011);
 
-/// The muffin's case as modelled (`t13.py`): its height
+/// The muffin's case as modelled (`party/a_party_tables_leavings.py`): its height
 const CASE_H: f64 = 0.033;
 
 /// The baking cups (round and up; the base below): plain white paper, kraft
@@ -118,7 +118,7 @@ fn case_tex(salt: u32) -> Tex {
     })
 }
 
-/// The cracks across each muffin's crown (`t13.py`'s MUFFIN_CRACKS: x0,
+/// The cracks across each muffin's crown (`party/a_party_tables_leavings.py`'s MUFFIN_CRACKS: x0,
 /// z0, x1, z1 in m) and the crown's half width
 const MUFFIN_CRACKS: [&[(f64, f64, f64, f64)]; 2] = [
     &[(-0.024, 0.006, 0.022, -0.004), (0.004, 0.0, 0.010, 0.020)],

@@ -852,7 +852,7 @@ fn moulding_grain_tex(w: f64, h: f64, mould: f64, base: [u8; 3], vary: u32, ppm:
 
 /// The wall mirror: its size, its moulding's width, its glass as seen in
 /// the frame (w, h) and its face's distance from the wall
-/// (`Real__wallMirrorFrameWood` / `Gilt`, r13a.py), and how much more glass
+/// (`Real__wallMirrorFrameWood` / `Gilt`, industrial/six_things_hung_on_a_wall.py), and how much more glass
 /// runs under the lip (both sides)
 const WM_SIZE: [f64; 2] = [0.420, 0.600];
 

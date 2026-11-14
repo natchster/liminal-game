@@ -79,7 +79,7 @@ pub(crate) fn place_hanging_streamers(g: &mut Game, _dist: &[i32]) {
 }
 
 // --------------------------------------------------------- the streamers
-/// The streamers as modelled (`t12.py` STR_KINDS): each one's length, and
+/// The streamers as modelled (`party/what_a_party_room_leaves.py` STR_KINDS): each one's length, and
 /// the way it ran from its tape (deg round y from +x) when it was a swag
 const STR_LEN: [f64; 4] = [1.62, 1.36, 1.12, 0.92];
 

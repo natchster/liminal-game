@@ -45,7 +45,7 @@ pub(crate) fn place_mounted_antlers(g: &mut Game, _dist: &[i32]) {
     g.world.add(&mount);
 }
 
-/// The antlers' place on the trophy (`t11.py` `TROPHY_SKULL`): the burrs'
+/// The antlers' place on the trophy (`victorian/lodge_trophies_and_parlour_ornaments.py` `TROPHY_SKULL`): the burrs'
 /// bases above the shield's middle, out from the wall on the skull plate
 const TROPHY_ANTLERS: [f64; 3] = [0.0, 0.052, 0.046];
 

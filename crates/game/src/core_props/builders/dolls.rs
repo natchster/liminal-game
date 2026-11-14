@@ -96,7 +96,7 @@ pub fn build_baby_doll(g: &mut Game, cx: &mut PropsCtx) -> Built {
     // (no draws: the old doll made none, and it is built unplaced for the
     // draws a stacked top once made)
     // the head frame's origin (under its neck) in the body's, and how far it
-    // is rolled toward its right: DOLL_NECK and DOLL_TURN in r03.py
+    // is rolled toward its right: DOLL_NECK and DOLL_TURN in game/rubber_duck_baby_doll_and_hole.py
     const NECK: (f64, f64, f64) = (0.050, 0.0592, 0.0);
     const TURN: f64 = -0.30;
     let dg = group();
@@ -132,7 +132,7 @@ pub fn build_baby_doll(g: &mut Game, cx: &mut PropsCtx) -> Built {
     Built::new(dg, 0.08)
 }
 
-/// The face part's bounds in the head's frame (x across, y up; r03.py): its
+/// The face part's bounds in the head's frame (x across, y up; game/rubber_duck_baby_doll_and_hole.py): its
 /// paint is laid straight on along z (its frame is a plane's), so a point
 /// (x, y) of the face is at these fractions of the canvas
 const DOLL_FACE_LO: (f64, f64) = (-0.0501, -0.0125);

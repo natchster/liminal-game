@@ -68,7 +68,7 @@ pub(crate) fn place_anatomy_charts(g: &mut Game, _dist: &[i32]) {
 
 // ------------------------------------------------------ the anatomy chart ---
 /// The plate, the rails' axes (above and below its middle, out from the
-/// wall) and the nail above its middle (`t02.py`: AC_*)
+/// wall) and the nail above its middle (`office/maps_charts_prints_and_posters.py`: AC_*)
 const AC_SHEET: (f64, f64) = (0.215, 0.300);
 
 const AC_RAIL: (f64, f64) = (0.154, 0.0075);

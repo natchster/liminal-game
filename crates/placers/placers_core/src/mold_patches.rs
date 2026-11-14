@@ -13,7 +13,7 @@ use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
 // Mould: black mould grown on a damp wall (`assets/src/blender/props/
-// r11b.notes.md`). Colonies of Cladosporium / Stachybotrys: each a cluster
+// docs/research/props-remodelling/wall_marks_and_wear.md`). Colonies of Cladosporium / Stachybotrys: each a cluster
 // of dark specks (1-3 mm) grown out from where it began, packed into a sooty,
 // velvety film at its old middle, thinning to peppered dots at its edge,
 // overlapping into an irregular patch; satellites round it; under it the

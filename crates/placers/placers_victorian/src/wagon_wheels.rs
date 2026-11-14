@@ -43,7 +43,7 @@ pub(crate) fn place_wagon_wheels(g: &mut Game, _dist: &[i32]) {
     g.world.add(&wheel);
 }
 
-/// Where the wheel's centre is in the mount (`t19.py`: the hub's back on
+/// Where the wheel's centre is in the mount (`victorian/things_on_a_wall_and_one_box.py`: the hub's back on
 /// the wall, 18 mm behind the spot), its height (the old wheel's)
 const WHEEL: [f64; 3] = [0.0, 1.75, 0.028];
 

@@ -4,7 +4,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::shuffle;
 
 // Ceiling water stains: 0-3 a level, where water came through the
-// ceiling and dried (`assets/src/blender/props/r07.notes.md`). On a suspended
+// ceiling and dried (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`). On a suspended
 // ceiling, a ring stain on the tile it dripped onto: brown-yellow tide lines,
 // one for each time it was wet and dried, sharp and wavy round a paler middle;
 // smaller ones on the tiles round it where it ran over, each tile's own and

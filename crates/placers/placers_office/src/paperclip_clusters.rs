@@ -82,7 +82,7 @@ pub(crate) fn place_paperclip_clusters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-/// A clip's wire, across (`t22.py` CLIP_WIRE_R)
+/// A clip's wire, across (`party/small_everyday_things.py` CLIP_WIRE_R)
 const CLIP_WIRE: f64 = 0.0011;
 
 /// Whether two clips' outlines overlap: each its middle (x, z), its turn,

@@ -66,7 +66,7 @@ pub(crate) fn place_firewood_stacks(g: &mut Game, _dist: &[i32]) {
 
 /// Each stack's piths on its two sawn ends, in its end parts' texture
 /// coordinates (u, v), and the bark's radius about each (in u and in v):
-/// printed by r16.py (`_print_piths`) from the stacks as modelled
+/// printed by domestic/kitchen_and_hearth_left_behind.py (`_print_piths`) from the stacks as modelled
 type WoodPiths = &'static [(f64, f64, f64, f64)];
 
 const WOOD_PITHS: [[WoodPiths; 2]; 3] = [

@@ -48,7 +48,7 @@ pub(crate) fn place_vintage_maps(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The sheet under the glass, the frame's outside and the wire's apex above
-/// its middle (`t02.py`: VM_*, `vintage_wire`)
+/// its middle (`office/maps_charts_prints_and_posters.py`: VM_*, `vintage_wire`)
 const PRINT: (f64, f64) = (0.276, 0.208);
 
 const SIZE: (f64, f64) = (0.300, 0.232);

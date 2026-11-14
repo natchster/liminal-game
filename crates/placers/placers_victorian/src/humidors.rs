@@ -144,7 +144,7 @@ pub(crate) fn place_humidors(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hm);
 }
 
-/// The humidor (t20.py `HU_*`): its outside, the case's height, the walls,
+/// The humidor (victorian/a_studys_things.py `HU_*`): its outside, the case's height, the walls,
 /// the floor inside, the lid's opening (radians); a cigar's length and radius
 const HU_W: f64 = 0.260;
 

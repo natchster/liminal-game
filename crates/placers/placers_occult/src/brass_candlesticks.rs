@@ -72,7 +72,7 @@ pub(crate) fn place_brass_candlesticks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&stick);
 }
 
-/// The candle's stub (`t09.py`): the flame's root over the socket's floor
+/// The candle's stub (`occult/a_shrines_things.py`): the flame's root over the socket's floor
 /// (m), the taper burnt down to 70 mm (A) or to a 38 mm stub (B)
 const STICK_FLAME_ROOT: [f64; 2] = [0.133 + 0.069, 0.133 + 0.037];
 

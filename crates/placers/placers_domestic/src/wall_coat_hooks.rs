@@ -11,7 +11,7 @@ use placers_kit::place::wall_candidates;
 // hook screwed to an oak block on the wall; now and then 2-3 more along the
 // same wall (a cloakroom's row), now and then a knitted scarf left thrown
 // over the first's arm. (A coat is wider than the cloth that hung there,
-// and would change where the wall's face is found: see r13b.notes.md.)
+// and would change where the wall's face is found: see docs/research/props-remodelling/coat_hook_broom_apron_and_rugs.md.)
 pub(crate) fn place_wall_coat_hooks(g: &mut Game, _dist: &[i32]) {
     if rnd() < 0.85 {
         return;

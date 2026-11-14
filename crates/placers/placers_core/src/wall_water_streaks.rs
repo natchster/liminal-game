@@ -16,7 +16,7 @@ use placers_kit::wet_floor::Px;
 
 // Wall water streak: 20% chance per level, 1-2 streaks. Where water has
 // come down a wall from the ceiling's edge, again and again, and dried
-// (`r07.notes.md`): it runs straight down from where it came through, narrow
+// (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): it runs straight down from where it came through, narrow
 // there and wider below, splitting into runs that end in drips; the edge of
 // each run is a darker deposit (a tide line), its middle a fainter wash of
 // what it carried: grey-brown on paint and paper, a dark damp run with a

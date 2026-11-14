@@ -79,7 +79,7 @@ pub(crate) fn place_stuffed_elephants(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-/// The ears' roots on the head's sides (`t14.py` EL_EAR, x either side)
+/// The ears' roots on the head's sides (`toys/soft_toys_and_dolls.py` EL_EAR, x either side)
 const EL_EAR: (f64, f64, f64) = (0.0290, 0.058, 0.052);
 
 /// How far each ear stands out from the head at rest (radians)

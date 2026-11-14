@@ -89,7 +89,7 @@ pub(crate) fn place_bird_nests(g: &mut Game, _dist: &[i32]) {
 }
 
 // =================================================================== nest
-/// The cup's floor (`t05.py` NEST_FLOOR): the eggs lie on it
+/// The cup's floor (`nature/bits_of_the_outside_indoors.py` NEST_FLOOR): the eggs lie on it
 const NEST_FLOOR: f64 = 0.026;
 
 /// Dry grass and stems matted over mud, seen from any side (the nest's

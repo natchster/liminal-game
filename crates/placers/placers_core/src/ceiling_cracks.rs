@@ -7,7 +7,7 @@ use placers_kit::place::open_tiles;
 use placers_kit::place::shuffle;
 
 // Ceiling cracks: 20% chance per level, 1-2 cracks. A crack is in what
-// the ceiling is (`r07.notes.md`): a suspended ceiling's mineral-fibre tile
+// the ceiling is (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): a suspended ceiling's mineral-fibre tile
 // cracks within itself, edge to edge across the one tile (the grid holds
 // each tile apart), its two halves a little out of line; a concrete slab or a
 // plaster ceiling cracks in a jagged, branching line that thins to nothing at
@@ -66,7 +66,7 @@ pub(crate) fn place_ceiling_cracks(g: &mut Game, _dist: &[i32]) {
         g.world.add(&crack_group);
         // 30% chance: 2-4 bits fallen from it on the floor below (8-12
         // when a piece came down): of the tile (aged off-white mineral
-        // fibre), or chips of the slab or the plaster (`r07.py`)
+        // fibre), or chips of the slab or the plaster (`core/marks_on_the_rooms_surfaces.py`)
         if rnd() < 0.30 {
             // (what it was made of, at its own albedo: a tile's aged
             // mineral fibre, the slab's concrete, the plaster's lime)

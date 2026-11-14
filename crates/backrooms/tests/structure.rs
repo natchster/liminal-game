@@ -462,6 +462,47 @@ fn placers_live_by_theme_a_module_each() {
     );
 }
 
+/// The props' Blender sources are by theme too (GitHub issue #2): a folder
+/// per placer theme, and `game/` for what the game places itself, each
+/// holding families named for what they are; a family's file name is its
+/// batch in the build, so it is unique; nothing else at the top but the
+/// contract (README.md) and the build's self-test.
+#[test]
+fn prop_sources_live_by_theme() {
+    let themes = ["bathroom", "core", "domestic", "industrial", "nature", "occult", "office", "party", "toys", "victorian", "game"];
+    let dir = root().join("assets/src/blender/props");
+    let (mut wrong, mut names) = (vec![], std::collections::BTreeMap::<String, Vec<String>>::new());
+    for e in std::fs::read_dir(&dir).unwrap().flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        let p = e.path();
+        if name.starts_with('.') || name == "__pycache__" || name == "README.md" || name == "zz_selftest.py" {
+            continue;
+        }
+        if !p.is_dir() || !themes.contains(&name.as_str()) {
+            wrong.push(format!("assets/src/blender/props/{name}: not a theme's folder"));
+            continue;
+        }
+        for f in std::fs::read_dir(&p).unwrap().flatten() {
+            let fname = f.file_name().to_string_lossy().to_string();
+            if let Some(stem) = fname.strip_suffix(".py") {
+                names.entry(stem.to_string()).or_default().push(name.clone());
+            } else if fname != "__pycache__" && !fname.starts_with('.') {
+                wrong.push(format!(
+                    "assets/src/blender/props/{name}/{fname}: a family is a .py (its notes go to docs/research/props-remodelling/)"
+                ));
+            }
+        }
+    }
+    wrong.extend(
+        names
+            .iter()
+            .filter(|(_, at)| at.len() > 1)
+            .map(|(n, at)| format!("{n}.py is in {at:?}: a family's name is its batch, one of each")),
+    );
+    assert!(names.len() > 60, "only {} families found under assets/src/blender/props", names.len());
+    assert!(wrong.is_empty(), "the props' sources go by theme (assets/src/blender/props/README.md): {wrong:#?}");
+}
+
 #[test]
 fn the_fast_check_skips_only_tests_that_exist() {
     let check = read("xtask/src/check.rs");

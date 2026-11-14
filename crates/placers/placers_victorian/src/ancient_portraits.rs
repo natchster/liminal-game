@@ -63,7 +63,7 @@ pub(crate) fn place_ancient_portraits(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The canvas, the frame's outside and the wire's apex above the picture's
-/// middle (`t01.py`: OP_*, `old_wire`)
+/// middle (`domestic/pictures_on_the_walls.py`: OP_*, `old_wire`)
 const CANVAS: (f64, f64) = (0.330, 0.410);
 
 const SIZE: (f64, f64) = (0.412, 0.492);

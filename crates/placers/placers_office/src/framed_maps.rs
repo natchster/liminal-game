@@ -63,7 +63,7 @@ pub(crate) fn place_framed_maps(g: &mut Game, _dist: &[i32]) {
 }
 
 // ------------------------------------------------------- the framed map ---
-/// The print and the two frames' outsides (`t02.py`: OM_*)
+/// The print and the two frames' outsides (`office/maps_charts_prints_and_posters.py`: OM_*)
 const OM_PRINT: (f64, f64) = (0.274, 0.178);
 
 const OM_WOOD: (f64, f64) = (0.300, 0.204);

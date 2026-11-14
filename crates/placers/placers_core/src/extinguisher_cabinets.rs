@@ -74,7 +74,7 @@ pub(crate) fn place_extinguisher_cabinets(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cab);
 }
 
-/// The extinguisher cabinet's height and depth, the extinguisher's cylinder (`r12.py`, EC_*, EX_*).
+/// The extinguisher cabinet's height and depth, the extinguisher's cylinder (`core/what_services_screw_to_walls.py`, EC_*, EX_*).
 const EC_H: f64 = 0.456;
 
 const EC_D: f64 = 0.156;

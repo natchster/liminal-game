@@ -10,7 +10,7 @@ use placers_kit::place::mount_on_wall;
 use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
 
-// Rust stain streak (`assets/src/blender/props/r11b.notes.md`): a
+// Rust stain streak (`docs/research/props-remodelling/wall_marks_and_wear.md`): a
 // steel fixing left in the wall (a stud anchor and its nut, or the corner
 // brace a shelf stood on) rusting, and what the damp carried down from it: dark round
 // the fixing where it began, then orange-brown runs, several side by side,

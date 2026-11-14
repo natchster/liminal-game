@@ -52,7 +52,7 @@ pub(crate) fn place_cross_stitches(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The linen seen in the frame (w, h) and its face's distance from the
-/// wall, the moulding's width (`Real__samplerFrame`, r13a.py)
+/// wall, the moulding's width (`Real__samplerFrame`, industrial/six_things_hung_on_a_wall.py)
 const SP_LINEN: [f64; 3] = [0.170, 0.230, 0.0080];
 
 const SP_MOULD: f64 = 0.025;

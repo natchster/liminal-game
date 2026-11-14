@@ -12,7 +12,7 @@ use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_xz;
 
-// Wall pipe leak (`assets/src/blender/props/r11b.notes.md`): a short
+// Wall pipe leak (`docs/research/props-remodelling/wall_marks_and_wear.md`): a short
 // run of 2 in steel pipe out of the wall, along it and back in (batch r06's
 // malleable elbows, a coupling, the collars at the wall), painted once and
 // rusting; one elbow's thread by the wall weeps: a crust of lime and rust

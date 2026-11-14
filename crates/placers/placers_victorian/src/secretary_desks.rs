@@ -92,7 +92,7 @@ pub(crate) fn place_secretary_desks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sec);
 }
 
-/// The desk (`t21.py` SD_*): the case's half width inside its sides, its
+/// The desk (`victorian/four_larger_things.py` SD_*): the case's half width inside its sides, its
 /// front, the writing bed (the fall's face), the pigeonholes' floor and
 /// the fitted interior's front, the back's inner face; the fall's width
 /// and depth

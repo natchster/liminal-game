@@ -138,7 +138,7 @@ fn spike_tex(base: [f64; 3]) -> Tex {
     })
 }
 
-/// The spike as modelled (`t06.py` SPIKE_L): its length, where its middle
+/// The spike as modelled (`nature/garden_things.py` SPIKE_L): its length, where its middle
 /// is from its head, where a snapped one broke (0.58 of it)
 const SPIKE_L: f64 = 0.052;
 

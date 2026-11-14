@@ -104,7 +104,7 @@ pub(crate) fn place_bird_baths(g: &mut Game, _dist: &[i32]) {
 }
 
 // ============================================================ bird baths
-/// The bird bath's basin as modelled (`t06.py`): its dish's lowest point
+/// The bird bath's basin as modelled (`nature/garden_things.py`): its dish's lowest point
 /// inside and the dish's section near its middle (r, y)
 const BB_DISH_Y: f64 = 0.470;
 
@@ -185,7 +185,7 @@ fn bowl_tex(salt: u32) -> Tex {
 }
 
 // ============================================================ dead leaves
-/// Batch `t05`'s dead leaves (`t05.py` LEAVES; `placers_p03`'s `t05.rs`
+/// Batch `t05`'s dead leaves (`nature/bits_of_the_outside_indoors.py` LEAVES; `placers_nature`'s `leaf_litter.rs`
 /// paints them so, and its painter is copied here): the part, the blade's
 /// length, its envelope's half width, oak or beech
 const LEAVES: [(&str, f64, f64, bool); 5] = [
@@ -315,7 +315,7 @@ fn dead_leaf(k: usize, back_up: bool, shade: f64) -> Obj {
     leaf
 }
 
-/// The dish inside the basin (`t06.py` `_bowl_profile`): its height over
+/// The dish inside the basin (`nature/garden_things.py` `_bowl_profile`): its height over
 /// its lowest point and its slope at `r` m from the middle
 fn bb_dish(r: f64) -> (f64, f64) {
     const P: [(f64, f64); 5] = [(0.0, 0.0), (0.07, 0.004), (0.12, 0.014), (0.16, 0.030), (0.18, 0.038)];

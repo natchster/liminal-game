@@ -68,7 +68,7 @@ pub(crate) fn place_skull_plaques(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sp);
 }
 
-/// The burrs' bases on the skull plaque (`t19.py` `SP_O`), and the antlers'
+/// The burrs' bases on the skull plaque (`victorian/things_on_a_wall_and_one_box.py` `SP_O`), and the antlers'
 /// turn about x there: the skull's (its frontal to the room, 90 degrees)
 /// less the antlers' lean off the frontal (52 degrees), as batch `t11`'s
 const SKULL_ANTLERS: [f64; 3] = [0.0, 0.072, 0.0883];

@@ -84,7 +84,7 @@ pub(crate) fn place_doll_body_parts(g: &mut Game, _dist: &[i32]) {
 /// (at 40 mm, seen low along them, they still read as one jointed limb)
 const LIMB_GAP: f64 = 0.062;
 
-/// A limb's axis on the floor (x, z), as `t14.py` bends it: the top, the
+/// A limb's axis on the floor (x, z), as `toys/soft_toys_and_dolls.py` bends it: the top, the
 /// elbow or the knee, the wrist or the ankle, the hand's or the foot's end;
 /// in its group (its middle at x, z, turned by `a`, the limb set back by
 /// its half length as the placer sets it)

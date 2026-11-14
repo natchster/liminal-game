@@ -43,7 +43,7 @@ pub(crate) fn place_puzzle_pieces(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The jigsaw piece's body: half its side (the knobs stand out of it), as
-/// modelled (r17.py PZ_B)
+/// modelled (toys/toys_on_the_floor.py PZ_B)
 const PZ_HALF: f64 = 0.019;
 
 /// The piece's printed face (laid on it from above: its x across the

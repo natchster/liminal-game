@@ -369,7 +369,7 @@ Weeks; do it before the next big batch of props or creatures.
 
 **3.1 The Blender sources here.** `prop_meshes.bin` and
 `creature_meshes.bin` are made by Blender scripts:
-- the prop batches, `props/b00.py` … with their notes;
+- the prop batches, `props/core/radiators_and_overturned_chairs.py` … with their notes;
 - `creatures.py`, `skinned.py`, `skin_*.py`.
 
 They live in `assets/src/`. `cargo xtask assets` runs a

@@ -88,7 +88,7 @@ pub(crate) fn place_small_cauldrons(g: &mut Game, _dist: &[i32]) {
 }
 
 fn caul_floor(r: f64) -> f64 {
-    // `t08.py` `_caul_floor`: the outside moved in by its 2.4 mm wall
+    // `occult/halloween_things.py` `_caul_floor`: the outside moved in by its 2.4 mm wall
     let pr = [(0.0, 0.0149), (0.0476, 0.0215), (0.0616, 0.0345), (0.0696, 0.052)];
     for w in pr.windows(2) {
         let ((r0, y0), (r1, y1)) = (w[0], w[1]);

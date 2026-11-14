@@ -63,7 +63,7 @@ pub(crate) fn place_teddy_bears(g: &mut Game, _dist: &[i32]) {
     g.pp.plush_positions.push(v3(p.x, 0, p.z));
 }
 
-/// The head's joint in the body's frame (`t14.py` TEDDY_NECK): the head
+/// The head's joint in the body's frame (`toys/soft_toys_and_dolls.py` TEDDY_NECK): the head
 /// turns on it
 const TEDDY_NECK: (f64, f64, f64) = (0.0, 0.0705, -0.006);
 

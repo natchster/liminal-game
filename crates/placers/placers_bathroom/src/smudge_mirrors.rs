@@ -73,7 +73,7 @@ fn t04_blob(ctx: &mut Canvas, x: f64, y: f64, r: f64, k: f64, turn: f64, stops: 
 }
 
 /// The mirror's glass as seen inside its frame (w, h), its face's distance
-/// from the wall (`Real__smudgeMirrorFrame`'s hem, t04.py SM_*), and how much
+/// from the wall (`Real__smudgeMirrorFrame`'s hem, bathroom/washroom_fittings.py SM_*), and how much
 /// more of it runs under the frame's lip (both sides)
 const SM_GLASS: [f64; 3] = [0.380, 0.482, 0.0172];
 

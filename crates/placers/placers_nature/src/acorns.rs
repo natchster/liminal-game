@@ -94,7 +94,7 @@ fn rot2(x: f64, y: f64, a: f64) -> (f64, f64) {
 }
 
 // ================================================================= acorns
-/// The acorn (`t17.py`): the nut's length and widest radius, its base over
+/// The acorn (`nature/a_garden_and_a_wood_indoors.py`): the nut's length and widest radius, its base over
 /// the cup's foot, the cup's rim; its profile (a fraction of NUT_R along it)
 const NUT_L: f64 = 0.025;
 
@@ -105,7 +105,7 @@ const CUP_FLOOR: f64 = 0.0022;
 const CUP_RIM: f64 = 0.0084;
 
 /// The cupped acorn laid down: its turn about z and where the cup's foot
-/// went (`t17.py` acorn_pair, printed by the build)
+/// went (`nature/a_garden_and_a_wood_indoors.py` acorn_pair, printed by the build)
 const PAIR_TILT: f64 = -1.810796;
 
 const PAIR_PIVOT: (f64, f64) = (-0.013319, 0.010592);

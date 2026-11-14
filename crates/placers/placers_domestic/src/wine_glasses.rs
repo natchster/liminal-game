@@ -105,7 +105,7 @@ pub(crate) fn place_wine_glasses(g: &mut Game, _dist: &[i32]) {
 const WINE_TIDE: (f64, f64) = (0.100, 0.122);
 
 /// The bowl part's height (its bounds: from where the stem joins, 77 mm, to
-/// the rim) and the dregs' top (r16.py)
+/// the rim) and the dregs' top (domestic/kitchen_and_hearth_left_behind.py)
 const WINE_BOWL_Y: (f64, f64) = (0.0770, 0.1710);
 
 const WINE_DREGS_TOP: f64 = 0.0905;

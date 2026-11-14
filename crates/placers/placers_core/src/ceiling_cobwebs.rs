@@ -11,7 +11,7 @@ use placers_kit::place::shuffle;
 use placers_kit::place::wall_candidates;
 
 // Ceiling cobwebs: 25% chance per level, 1-3 cobwebs. An old cobweb in
-// the angle of a wall and the ceiling (`r07.notes.md`): a cobweb spider's
+// the angle of a wall and the ceiling (`docs/research/props-remodelling/marks_on_the_rooms_surfaces.md`): a cobweb spider's
 // tangle, long abandoned, its threads grey with the dust they caught, slung
 // across the angle and sagging, thick where the tangle is and thin out to
 // the few anchor threads that hold it to the wall and the ceiling. Its veil

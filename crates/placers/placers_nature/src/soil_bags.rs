@@ -59,7 +59,7 @@ pub(crate) fn place_soil_bags(g: &mut Game, _dist: &[i32]) {
 }
 
 // ============================================================ soil bags
-/// The bag's film (`t06.py` soil_bag): x across, z along, the seals' ends
+/// The bag's film (`nature/garden_things.py` soil_bag): x across, z along, the seals' ends
 const BAG_X: f64 = 0.1525;
 
 const BAG_Z: f64 = 0.215;

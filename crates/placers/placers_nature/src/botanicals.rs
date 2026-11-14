@@ -60,7 +60,7 @@ pub(crate) fn place_botanicals(g: &mut Game, _dist: &[i32]) {
 
 /// The frame's outside, the mat (the rebate less a hair), its window (w, h,
 /// raised by), the paper behind it and the wire's apex above the middle
-/// (`t17.py`: BT_*)
+/// (`nature/a_garden_and_a_wood_indoors.py`: BT_*)
 const SIZE: (f64, f64) = (0.200, 0.300);
 
 const MAT: (f64, f64) = (0.175, 0.275);
@@ -71,7 +71,7 @@ const PAPER: (f64, f64) = (0.132, 0.202);
 
 const APEX: f64 = 0.102;
 
-/// The moulding's face, outer edge to sight (d, z), as `t17.py` BT_FACE
+/// The moulding's face, outer edge to sight (d, z), as `nature/a_garden_and_a_wood_indoors.py` BT_FACE
 static FACE: [(f64, f64); 9] = [
     (0.0, 0.0150),
     (0.0006, 0.0166),

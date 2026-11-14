@@ -15,7 +15,7 @@ pub(crate) fn place_school_desks(g: &mut Game, _dist: &[i32]) {
     // seat and back of moulded plywood worn to the wood; a chromed steel
     // frame on two runners gone to rust at its feet; the book rack under the
     // seat. On it a textbook left open, sometimes a pencil, sometimes an apple
-    // dried to a husk (r18.notes.md)
+    // dried to a husk (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.97 {
         return;
@@ -107,7 +107,7 @@ const BK_W: f64 = 0.168;
 const BK_T: f64 = 0.011;
 
 /// The height of the open pages over the desk at x across the spread (as
-/// `r18.py` models them)
+/// `industrial/washroom_janitor_classroom_and_plant.py` models them)
 fn page_top(x: f64) -> f64 {
     let ax = x.abs();
     0.0035 + BK_T * (1.0 - (-ax / 0.022).exp()) - 0.0018 * (ax / BK_W).powi(3) + 0.0012

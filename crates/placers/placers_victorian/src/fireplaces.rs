@@ -147,7 +147,7 @@ pub(crate) fn place_fireplaces(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The fireplace (t10.py `FP_*`): the basket's floor (y) and the depth (z)
+/// The fireplace (victorian/parlour_and_office_big_things.py `FP_*`): the basket's floor (y) and the depth (z)
 /// the logs lie at, its shelf's top (y)
 const FP_BASKET_Y: f64 = 0.130;
 

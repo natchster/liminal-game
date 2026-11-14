@@ -2,7 +2,8 @@
 
 The outside sources and what the design took from them
 ([`SOURCES.md`](SOURCES.md)); the research notes below, each answering a
-brief; the props' census ([`props-census.md`](props-census.md)); and what
+brief; the props' census ([`props-census.md`](props-census.md)) and how
+each family of props was remodelled ([`props-remodelling/`](props-remodelling/README.md)); and what
 people and the tools found playing it: the playtest session script
 ([`PLAYTEST.md`](PLAYTEST.md)) and its records
 ([`playtests/`](playtests/TEMPLATE.md), the visual playtest's in

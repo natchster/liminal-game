@@ -57,10 +57,10 @@ pub(crate) fn place_small_kites(g: &mut Game, _dist: &[i32]) {
 }
 
 /// Where the tail's three bows are tied, and the way the tail runs there
-/// (rad about y from +z), as the tail was laid (`t16.py` prints them)
+/// (rad about y from +z), as the tail was laid (`toys/a_play_areas_toys.py` prints them)
 const BOWS: [(f64, f64, f64); 3] = [(-0.0325, -0.5078, 2.8957), (-0.0073, -0.6946, 2.7716), (0.0705, -0.8578, 2.6857)];
 
-/// The sail's plan (`t16.py` K_*): its top and bottom tips on the spine, the
+/// The sail's plan (`toys/a_play_areas_toys.py` K_*): its top and bottom tips on the spine, the
 /// cross spar's height up it and its half length
 const K_TOP: f64 = 0.300;
 

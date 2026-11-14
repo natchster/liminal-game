@@ -64,7 +64,7 @@ pub(crate) fn place_seed_catalogs(g: &mut Game, _dist: &[i32]) {
 
 // ========================================================== seed catalogs
 /// The seed catalogue's frame: its face from the outer edge to the sight
-/// (d, z), as `seed_cat_frame` in `t06.py`
+/// (d, z), as `seed_cat_frame` in `nature/garden_things.py`
 static SC_FACE: [(f64, f64); 8] = [
     (0.0, 0.0145),
     (0.0012, 0.0168),

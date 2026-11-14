@@ -120,7 +120,7 @@ pub(crate) fn place_hanging_brass_lanterns(g: &mut Game, _dist: &[i32]) {
     }
 }
 
-/// The lantern (`t21.py` LT_*, LINK_*): where the chain's foot hooks into
+/// The lantern (`victorian/four_larger_things.py` LT_*, LINK_*): where the chain's foot hooks into
 /// its ring above the light (y = 0 at the light), the chain's pitch and a
 /// link's length; the candle's cup floor below the light and the flame's
 /// root as t09's stick has it (`Real__brassStickFlameB` stands on a floor

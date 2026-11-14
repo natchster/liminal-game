@@ -72,12 +72,12 @@ pub(crate) fn place_small_dolls(g: &mut Game, _dist: &[i32]) {
     g.world.add(&doll);
 }
 
-/// The head's place in each pose (`t14.py` SD_POSES, printed by its build:
+/// The head's place in each pose (`toys/soft_toys_and_dolls.py` SD_POSES, printed by its build:
 /// `SMALLDOLL`): its parts are in r03's head frame, scaled
 const SD_HEAD: [((f64, f64, f64), (f64, f64, f64)); 2] =
     [((0.00008, 0.03005, -0.04119), (-1.38886, 0.35, 0.0)), ((-0.00205, 0.02744, 0.04098), (1.55013, -1.35, 0.0))];
 
-/// r03's head sculpt is scaled by this for the small doll (`t14.py` SD_K)
+/// r03's head sculpt is scaled by this for the small doll (`toys/soft_toys_and_dolls.py` SD_K)
 const SD_K: f64 = 0.47;
 
 /// The small doll's face part's bounds in its head frame (x across, y up):

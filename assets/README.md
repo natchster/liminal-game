@@ -10,9 +10,9 @@ make textures of CC0 photographs, no images. No generative model is used (see
 
 | Path | What |
 |---|---|
-| `src/blender/props.py` | builds every prop part: runs each batch module in `src/blender/props/` (the fitted batches `bNN.py`, `s01.py`; the real things `rNN.py`, `tNN.py`, `v01.py`, `w01.py`, `x01.py`; `zz_selftest.py` is a test batch) |
-| `src/blender/propkit.py` | the shape kit the batches use (boxes, lathes, sweeps, noise, booleans, the `finish` step that bakes normals) and the triangle budgets |
-| `src/blender/props/README.md`, `*.notes.md` | the modelling contract, and each batch's notes (what each part is, what was left and why) |
+| `src/blender/props.py` | builds every prop part: runs each family in `src/blender/props/<theme>/`, a folder per theme of the placers and `game/` for what the game places itself (`zz_selftest.py` is a test batch) |
+| `src/blender/propkit.py` | the shape kit the families use (boxes, lathes, sweeps, noise, booleans, the `finish` step that bakes normals) and the triangle budgets |
+| `src/blender/props/README.md` | the modelling contract, and the index of the families by theme; each family's notes (what each part is, what was left and why) are in `docs/research/props-remodelling/` |
 | `src/blender/creatures.py`, `skinned.py`, `skin_*.py`, `SKINNED.md` | the old creatures (`creature_meshes.bin`, kept as stored): rigid parts, and skinned bodies built over rest-pose rig dumps |
 | `src/creatures/build.py`, `kit.py`, `hm08.py`, `body_*.py`, `sources.json` | the creatures' bodies (`bodies.bin`): skeletons, MakeHuman CC0 bodies and their targets, bone-heat weights |
 | `src/textures/sources.json` | the photographs the Building's surfaces are made of: where each is, its author, licence (CC0) and SHA-1 |
@@ -23,8 +23,8 @@ make textures of CC0 photographs, no images. No generative model is used (see
 **Props** (reproducible here):
 
 ```sh
-cargo xtask assets props                 # build every batch in Blender headless, compare part by part
-cargo xtask assets props --batch b01     # one batch (compare only)
+cargo xtask assets props                 # build every family in Blender headless, compare part by part
+cargo xtask assets props --batch toys,showroom   # a theme's families, or one family (compare only)
 cargo xtask assets props --write         # a full build replaces prop_meshes.bin (unchanged parts keep their bytes)
 REGEN=1 cargo test --release -p game --test asset_lint   # then refresh the parts table, and review its diff
 ```

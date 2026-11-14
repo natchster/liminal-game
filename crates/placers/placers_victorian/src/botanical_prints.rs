@@ -66,7 +66,7 @@ pub(crate) fn place_botanical_prints(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The frame's outside, the mat (the rebate), its window (w, h, raised by),
-/// the paper behind it and the wire's apex (`t02.py`: BP_*)
+/// the paper behind it and the wire's apex (`office/maps_charts_prints_and_posters.py`: BP_*)
 const SIZE: (f64, f64) = (0.306, 0.386);
 
 const MAT: (f64, f64) = (0.281, 0.361);

@@ -11,7 +11,7 @@ use placers_kit::place::seed_of;
 use placers_kit::place::wall_candidates;
 use placers_kit::place::wall_key_at;
 
-// Peeling wallpaper (`assets/src/blender/props/r11b.notes.md`): the
+// Peeling wallpaper (`docs/research/props-remodelling/wall_marks_and_wear.md`): the
 // corner of a drop come away at its seam, lifted off the wall, turned over
 // and hanging, the paper's pale back to the room; behind it the bare wall
 // it was pasted to, stained with the old paste, a pencil plumb line by the

@@ -64,7 +64,7 @@ pub(crate) fn place_ouija_boards(g: &mut Game, _dist: &[i32]) {
     let _ = rnd();
 }
 
-/// The board (mm, `t18.py`): its size and how it has warped, as modelled
+/// The board (mm, `occult/shrine_and_seance_things.py`): its size and how it has warped, as modelled
 const BOARD: (f64, f64) = (457.0, 305.0);
 
 /// The height of the board's printed face at (x, z) of its frame (m)

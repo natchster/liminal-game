@@ -56,7 +56,7 @@ pub(crate) fn place_religious_triptychs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&triptych);
 }
 
-/// The centre and a wing (frame and panel), the centre's depth (`t02.py`:
+/// The centre and a wing (frame and panel), the centre's depth (`office/maps_charts_prints_and_posters.py`:
 /// TR_*)
 const CENTRE: (f64, f64) = (0.216, 0.280);
 

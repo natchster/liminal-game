@@ -358,7 +358,7 @@ fn boot_tread_tex(boot: bool, base: u32, vary: u32) -> Tex {
     canvas_tex(256, 128, move |ctx, w, h| {
         let seed = (rnd() * 4.0e9) as u32 ^ vary;
         with_own_stream(seed, || {
-            // the heel's breast, as modelled (r14a.py): the shoe's at 78% of
+            // the heel's breast, as modelled (domestic/things_worn_and_dropped.py): the shoe's at 78% of
             // the tread from the toe, the boot's at 77%
             let br = if boot { 0.771 } else { 0.781 };
             if !boot {

@@ -66,6 +66,6 @@ pub(crate) fn place_small_pinatas(g: &mut Game, _dist: &[i32]) {
 }
 
 // ------------------------------------------------------------- the piñata
-/// The piñata's cords as modelled (`t12.py` PN_CORDS): how far below its
+/// The piñata's cords as modelled (`party/what_a_party_room_leaves.py` PN_CORDS): how far below its
 /// hook the ball's tie hangs
 const PN_CORD: [f64; 3] = [0.45, 0.60, 0.75];

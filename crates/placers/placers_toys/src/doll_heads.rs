@@ -88,14 +88,14 @@ pub(crate) fn place_doll_heads(g: &mut Game, _dist: &[i32]) {
     g.world.add(&doll);
 }
 
-/// r03's head frame in its lying body's (`r03.py` DOLL_NECK, DOLL_TURN):
+/// r03's head frame in its lying body's (`game/rubber_duck_baby_doll_and_hole.py` DOLL_NECK, DOLL_TURN):
 /// where the head's own parts are laid when it lies as the doll's does
 const DOLL_NECK: (f64, f64, f64) = (0.050, 0.0592, 0.0);
 
 const DOLL_TURN: f64 = -0.30;
 
 /// How far a head standing on its neck stands up: its neck's rim under the
-/// head frame's origin (`t14.py` `head_neck_lip`)
+/// head frame's origin (`toys/soft_toys_and_dolls.py` `head_neck_lip`)
 const NECK_LIFT: f64 = 0.0139;
 
 /// Moulded hair's paint (`col`): combed in fine streaks, rubbed back to the
@@ -120,7 +120,7 @@ fn hair_tex(salt: u32, col: u32) -> Tex {
     })
 }
 
-/// The face part's bounds in the head's frame (x across, y up; r03.py,
+/// The face part's bounds in the head's frame (x across, y up; game/rubber_duck_baby_doll_and_hole.py,
 /// `Real__dollFace`): its paint is laid straight on along z
 const FACE_LO: (f64, f64) = (-0.0501, -0.0125);
 

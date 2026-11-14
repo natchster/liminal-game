@@ -12,7 +12,7 @@ pub(crate) fn place_floss_containers(g: &mut Game, _dist: &[i32]) {
     // A 50 m dental floss dispenser (batch `r18`): a moulded polypropylene box
     // and its flip lid, the steel cutter in the lid, lying on its back; its
     // printed label rubbed, the end of the floss left out of it and lying
-    // curled on the floor (r18.notes.md)
+    // curled on the floor (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.92 {
         return;

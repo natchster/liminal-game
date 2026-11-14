@@ -46,7 +46,7 @@ pub(crate) fn place_spider_webs(g: &mut Game, _dist: &[i32]) {
         }
     }
     // the finest threads: a sheet painted across the angle (the threads'
-    // hammock, `t05.py`: from the wall 20 cm under the ceiling to the
+    // hammock, `nature/bits_of_the_outside_indoors.py`: from the wall 20 cm under the ceiling to the
     // ceiling 12.5 cm out, sagging into the room), and a thinner one a
     // little under it where it sags (the old second sheet down the wall's
     // face read as a hairball on the wall, M8)

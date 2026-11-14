@@ -10,7 +10,7 @@ pub(crate) fn place_small_nail_polishes(g: &mut Game, _dist: &[i32]) {
     // a black screw cap with its brush in the lacquer, the lacquer dried down
     // in it (pooled along its side when it fell over wet), a drip run down
     // the glass and dried, a crust round the neck; no maker's name
-    // (r18.notes.md)
+    // (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.90 {
         return;

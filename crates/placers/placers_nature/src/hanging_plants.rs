@@ -124,7 +124,7 @@ pub(crate) fn place_hanging_plants(g: &mut Game, _dist: &[i32]) {
     });
 }
 
-/// The pot (`t06.py` HP_*): its axis out from the wall, its rim's top and
+/// The pot (`nature/garden_things.py` HP_*): its axis out from the wall, its rim's top and
 /// radius; where the vines cross the rim is on it
 const HP_POT_Z: f64 = 0.190;
 
@@ -134,7 +134,7 @@ const HP_RIM_R: f64 = 0.0825;
 
 const HP_SOIL_R: f64 = 0.071;
 
-/// The vines (`t06.py` VINES)
+/// The vines (`nature/garden_things.py` VINES)
 const VINES: [&str; 4] = ["A", "B", "C", "D"];
 
 fn put(grp: &Obj, name: &str, mat: &Mat) -> Option<Obj> {

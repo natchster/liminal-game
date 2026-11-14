@@ -72,7 +72,7 @@ pub(crate) fn place_peacock_feather_vases(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pf);
 }
 
-/// The vase as modelled (`t11.py` `VASE_H`): the game scales it by the old
+/// The vase as modelled (`victorian/lodge_trophies_and_parlour_ornaments.py` `VASE_H`): the game scales it by the old
 /// height draw
 const VASE_H: f64 = 0.450;
 

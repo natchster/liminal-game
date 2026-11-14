@@ -58,7 +58,7 @@ pub(crate) fn place_propaganda_posters(g: &mut Game, _dist: &[i32]) {
 }
 
 // ----------------------------------------------------------- the poster ---
-/// The frame's outside and the poster under its glass (`t02.py`: WP_*)
+/// The frame's outside and the poster under its glass (`office/maps_charts_prints_and_posters.py`: WP_*)
 const WP_SIZE: (f64, f64) = (0.200, 0.280);
 
 const WP_PAPER: (f64, f64) = (0.184, 0.264);

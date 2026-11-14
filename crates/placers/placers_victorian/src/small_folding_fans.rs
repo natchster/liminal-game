@@ -48,7 +48,7 @@ const LEAF_X: (f64, f64) = (-0.159_754, 0.159_741);
 
 const LEAF_Z: (f64, f64) = (0.048_685, 0.194_998);
 
-/// The leaf's inner and outer radii, its opening (`t11.py` `FAN_*`)
+/// The leaf's inner and outer radii, its opening (`victorian/lodge_trophies_and_parlour_ornaments.py` `FAN_*`)
 const LEAF_R: (f64, f64) = (0.085, 0.195);
 
 const FAN_OPEN: f64 = 110.0 * PI / 180.0;

@@ -19,7 +19,10 @@ description: Add or change a prop placer in The Backrooms. Covers theme and purp
    (`crates/placers/placers_<theme>/src/things.rs`), registered in its
    `register()`, added to `THEMED_ORDER` and `PLACER_THEME`. Finer parts come
    from the Blender meshes (`pg("Name__part", …)`, `assets/props.rs`);
-   adding a new part means rebuilding `prop_meshes.bin` from its script.
+   adding a new part means rebuilding `prop_meshes.bin` from its script, a
+   family in its theme's folder (`assets/src/blender/props/<theme>/`: one it
+   belongs with, or a new one named for what it holds), its notes in
+   `docs/research/props-remodelling/<family>.md`.
    Noise, canvas fills, tile picks and parts put on a group are in
    `placers_kit` (`noise`, `paint`, `place`, `geometry`): use them; a copy
    pasted from another placer is what that crate was made to end.

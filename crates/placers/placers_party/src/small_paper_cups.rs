@@ -103,7 +103,7 @@ pub(crate) fn place_small_paper_cups(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cup);
 }
 
-/// The cup as modelled (`t13.py`): the outside's height and half width
+/// The cup as modelled (`party/a_party_tables_leavings.py`): the outside's height and half width
 /// (its bounds), the inside of the wall's heights, the bottom's half width
 /// and the floor's height
 const CUP_OUT: (f64, f64) = (0.0870, 0.0352);

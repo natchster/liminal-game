@@ -84,7 +84,7 @@ pub(crate) fn place_ferns(g: &mut Game, _dist: &[i32]) {
 }
 
 // =================================================================== fern
-/// The frond (`t17.py` FERN_*): the blade's length, its segment pairs, a
+/// The frond (`nature/a_garden_and_a_wood_indoors.py` FERN_*): the blade's length, its segment pairs, a
 /// segment's angle forward from the rachis
 const FERN_L: f64 = 0.150;
 
@@ -93,7 +93,7 @@ const FERN_N: usize = 13;
 const FERN_ANG: f64 = 64.0 * PI / 180.0;
 
 /// Segment k (from the base) on side ±1: its root's x on the rachis, its
-/// length, its half width (as `t17.py` fern_seg)
+/// length, its half width (as `nature/a_garden_and_a_wood_indoors.py` fern_seg)
 fn fern_seg(k: usize, side: f64) -> (f64, f64, f64) {
     let t = (k as f64 + if side > 0.0 { 0.0 } else { 0.45 }) / FERN_N as f64;
     let x = FERN_L * (0.02 + 0.86 * t);

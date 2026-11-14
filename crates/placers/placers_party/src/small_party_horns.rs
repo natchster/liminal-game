@@ -55,7 +55,7 @@ pub(crate) fn place_small_party_horns(g: &mut Game, _dist: &[i32]) {
     g.world.add(&horn);
 }
 
-/// The horn's cone (`t12.py` HORN_*): its length, its bell's and its narrow
+/// The horn's cone (`party/what_a_party_room_leaves.py` HORN_*): its length, its bell's and its narrow
 /// end's radii, where its glued flap's edge is (rad round from +z towards
 /// +x)
 const HORN_L: f64 = 0.200;
@@ -68,7 +68,7 @@ const HORN_SEAM1: f64 = 2.5;
 
 /// Laid down: the turn about z that rests it on its bell's rim and its
 /// mouthpiece, and the lift onto the floor, whole and trodden flat, as its
-/// parts were built lying (`t12.py` prints both); undone to lay its print on
+/// parts were built lying (`party/what_a_party_room_leaves.py` prints both); undone to lay its print on
 const HORN_LIE: [f64; 2] = [1.646_985, 1.585_626];
 
 const HORN_LIFT: [f64; 2] = [0.024_163, 0.015_483];

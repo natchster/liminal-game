@@ -58,7 +58,7 @@ pub(crate) fn place_butterfly_wings(g: &mut Game, _dist: &[i32]) {
 // =================================================================== wing
 /// A forewing's outline (mm, x from the root along the costa, z back from
 /// the costa), Aglais's: the costa, the apex, the outer margin with its
-/// angle, the tornus, the inner margin back to the root (`t05.py` WING_FORE:
+/// angle, the tornus, the inner margin back to the root (`nature/bits_of_the_outside_indoors.py` WING_FORE:
 /// 30.5 x 19 mm)
 const FORE: [(f64, f64); 17] = [
     (0.6, 1.6),

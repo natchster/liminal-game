@@ -50,7 +50,7 @@ pub(crate) fn place_wet_floor_signs(g: &mut Game, _dist: &[i32]) {
     g.world.add(&sign);
 }
 
-/// The panel as modelled (`r01.py`): its length, its bounds across (x) and
+/// The panel as modelled (`game/first_everyday_core_props.py`): its length, its bounds across (x) and
 /// where its printed face is (z)
 const PANEL_H: f64 = 0.655;
 

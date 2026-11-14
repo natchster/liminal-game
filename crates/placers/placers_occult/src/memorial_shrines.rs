@@ -180,7 +180,7 @@ pub(crate) fn place_memorial_shrines(g: &mut Game, _dist: &[i32]) {
     g.world.add(&ms);
 }
 
-/// The board (`t18.py` SB_*: its top), r02's small hardback (its thickness)
+/// The board (`occult/shrine_and_seance_things.py` SB_*: its top), r02's small hardback (its thickness)
 /// and t01's 5 x 7 in frame (its height, its outside, the print, the lip)
 const BOARD_TOP: f64 = 0.019;
 
@@ -194,7 +194,7 @@ const PRINT: (f64, f64) = (0.127, 0.178);
 
 const ZL: f64 = 0.0060;
 
-/// How far the frame leans back on its strut (`t18.py` shrine_easel)
+/// How far the frame leans back on its strut (`occult/shrine_and_seance_things.py` shrine_easel)
 const LEAN: f64 = 14.0 * PI / 180.0;
 
 /// t01's wooden moulding's face, outer edge to sight (d, z)
@@ -213,13 +213,13 @@ static WOOD_FACE: [(f64, f64); 9] = [
 /// The photographs a family keeps (portraits, CC0)
 const PHOTOS: [&str; 3] = ["graduate", "couple_reading", "baby_chair"];
 
-/// The chime candles burnt down (`t18.py` CH_TOPS: their tops above the
+/// The chime candles burnt down (`occult/shrine_and_seance_things.py` CH_TOPS: their tops above the
 /// holder's foot, m) and t09's flame (its root in its own frame)
 const CANDLE_TOPS: [(char, f64); 3] = [('C', 0.052), ('B', 0.066), ('A', 0.080)];
 
 const FLAME_ROOT: f64 = 0.133 + 0.069;
 
-/// The bud vase's mouth (`t18.py` shrine_vase) and a rose's stem
+/// The bud vase's mouth (`occult/shrine_and_seance_things.py` shrine_vase) and a rose's stem
 const VASE_MOUTH: f64 = 0.057;
 
 const ROSE_STEM: f64 = 0.095;

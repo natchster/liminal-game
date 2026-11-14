@@ -55,7 +55,7 @@ pub fn build_broken_mirror(g: &mut Game, cx: &mut PropsCtx, yaw: f64) -> Built {
 }
 
 /// The mirror's glass as seen inside its frame (width, height) and its
-/// face's distance from the wall (`Real__mirrorFrame`'s hem, r05.py)
+/// face's distance from the wall (`Real__mirrorFrame`'s hem, game/washroom_mirror_cobwebs_and_office_plant.py)
 const MIRROR_GLASS: [f64; 3] = [0.584, 0.888, 0.0172];
 /// How much more of the glass runs under the frame's lip (both sides)
 const MIRROR_UNDER: f64 = 0.006;

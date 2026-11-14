@@ -65,7 +65,7 @@ pub(crate) fn place_wall_pay_phones(g: &mut Game, _dist: &[i32]) {
     g.pp.pay_phone_positions.push(v3(p.x, 1.0, p.z));
 }
 
-/// The payphone's depth and its card's window (x, y, w, h) (`r12.py`, PP_*).
+/// The payphone's depth and its card's window (x, y, w, h) (`core/what_services_screw_to_walls.py`, PP_*).
 const PP_D: f64 = 0.135;
 
 const PP_CARD: (f64, f64, f64, f64) = (-0.026, 0.474, 0.112, 0.074);

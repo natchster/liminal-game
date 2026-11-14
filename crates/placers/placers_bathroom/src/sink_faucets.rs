@@ -76,7 +76,7 @@ fn t04_over(base: [f64; 4], top: [f64; 4]) -> [f64; 4] {
     o
 }
 
-// The faucet's frame (`t04.py`, SF_*): the valve bodies' axis off the wall,
+// The faucet's frame (`bathroom/washroom_fittings.py`, SF_*): the valve bodies' axis off the wall,
 // the swivel's axis; where the basin's back was on the wall, its rim; the
 // hanger and the waste
 const SF_C: f64 = 0.0508;

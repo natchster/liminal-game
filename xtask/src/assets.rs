@@ -1,14 +1,14 @@
 //! `cargo xtask assets`: rebuild and check the embedded meshes.
 //!
 //! ```text
-//! cargo xtask assets props [--batch b01,b02] [--write [--rebuild-frozen]]
+//! cargo xtask assets props [--batch FAMILY|THEME,…] [--write [--rebuild-frozen]]
 //! cargo xtask assets creatures [--only …] [--write]
 //! cargo xtask assets textures [--write]
 //! cargo xtask assets fingerprint
 //! ```
 //!
 //! **Props** come from the bpy scripts in `assets/src/blender/` (`props.py`
-//! runs every batch module in `props/`, each part a `propkit` build).
+//! runs every family in `props/<theme>/`, each part a `propkit` build).
 //! `assets props` runs them in Blender headless (`$BLENDER`, else `blender`
 //! on the path, else the app bundle), packs every part the way the game
 //! reads it (int16 positions, int8 normals, uint16 indices; planar,

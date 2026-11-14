@@ -80,7 +80,7 @@ pub(crate) fn place_emergency_strobes(g: &mut Game, _dist: &[i32]) {
     g.world.add(&strobe);
 }
 
-/// The strobe's lens, its middle (x, y) and front (`t04.py` ST_*); where
+/// The strobe's lens, its middle (x, y) and front (`bathroom/washroom_fittings.py` ST_*); where
 /// FIRE is printed under it
 const ST_LENS_FRONT: f64 = 0.0296;
 

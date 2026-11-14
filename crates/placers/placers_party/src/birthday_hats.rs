@@ -54,7 +54,7 @@ pub(crate) fn place_birthday_hats(g: &mut Game, _dist: &[i32]) {
     g.world.add(&hat);
 }
 
-/// The hat's height up its slant over its height (`t12.py` HAT_*): where a
+/// The hat's height up its slant over its height (`party/what_a_party_room_leaves.py` HAT_*): where a
 /// texel of its print is on the flat sector it was rolled from
 const HAT_H: f64 = 0.175;
 
@@ -69,7 +69,7 @@ const HAT_DENT: f64 = 2.50;
 const HAT_YMAX: f64 = 0.1724;
 
 /// A hat lying: the turn about z and the lift that put it on the floor, as
-/// its parts were built lying (`t12.py` prints both); undone to lay its
+/// its parts were built lying (`party/what_a_party_room_leaves.py` prints both); undone to lay its
 /// print on
 const HAT_LIE: f64 = 1.888_255;
 

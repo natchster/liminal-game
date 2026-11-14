@@ -64,7 +64,7 @@ pub(crate) fn place_small_maracas(g: &mut Game, _dist: &[i32]) {
     g.world.add(&pair);
 }
 
-/// A maraca end to end (`t22.py` `MAR_L`), metres: its middle is where the
+/// A maraca end to end (`party/small_everyday_things.py` `MAR_L`), metres: its middle is where the
 /// game turns it
 const MAR_L: f64 = 0.133;
 

@@ -40,7 +40,7 @@ pub(crate) fn place_small_masks(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The face part's bounds across (x) and from its brow (-z) to its chin
-/// (+z), as built (`t09.py`, `Real__maskFace`), in mm of the face's own frame:
+/// (+z), as built (`occult/a_shrines_things.py`, `Real__maskFace`), in mm of the face's own frame:
 /// X = u * MASK_X - MASK_X / 2, Y (up the face) = v * MASK_Y - MASK_Y0
 const MASK_X: f64 = 150.0;
 
@@ -48,7 +48,7 @@ const MASK_Y: f64 = 215.8;
 
 const MASK_Y0: f64 = 111.5;
 
-/// The face's relief (`t09.py`, `mask_height`): Z (mm) at (X, Y)
+/// The face's relief (`occult/a_shrines_things.py`, `mask_height`): Z (mm) at (X, Y)
 fn mask_height(x: f64, y: f64) -> f64 {
     let gs = |cx: f64, cy: f64, sx: f64, sy: f64, ax: f64| (-(((ax - cx) / sx).powi(2) + ((y - cy) / sy).powi(2))).exp();
     let ax = x.abs();

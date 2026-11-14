@@ -59,7 +59,7 @@ pub(crate) fn place_skull_stacks(g: &mut Game, _dist: &[i32]) {
     g.world.add(&cluster);
 }
 
-/// The stack (`t09.py`, measured on the model): where a skull sits on one
+/// The stack (`occult/a_shrines_things.py`, measured on the model): where a skull sits on one
 /// (a pair) or across two side by side (three), and how far apart the two
 /// below stand
 const STACK_ON_ONE: f64 = 0.201;

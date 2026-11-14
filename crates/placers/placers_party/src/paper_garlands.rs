@@ -77,7 +77,7 @@ pub(crate) fn place_paper_garlands(g: &mut Game, _dist: &[i32]) {
 }
 
 // ------------------------------------------------------ the tassel garland
-/// The garland as modelled (`t12.py` GT_*): the twine's spans, each one's
+/// The garland as modelled (`party/what_a_party_room_leaves.py` GT_*): the twine's spans, each one's
 /// catenary, and how far under the ceiling its ends run
 const GT_SPANS: [f64; 3] = [1.55, 1.90, 2.25];
 

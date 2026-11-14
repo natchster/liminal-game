@@ -83,7 +83,7 @@ pub(crate) fn place_grass_clumps(g: &mut Game, _dist: &[i32]) {
 }
 
 // ================================================================== grass
-/// The tillers by height (`t05.py` TILLERS)
+/// The tillers by height (`nature/bits_of_the_outside_indoors.py` TILLERS)
 const TILLERS: [(&str, f64); 5] = [
     ("Real__grassTillerA", 0.050),
     ("Real__grassTillerB", 0.065),

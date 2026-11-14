@@ -57,7 +57,7 @@ pub(crate) fn place_candy_corn_scatters(g: &mut Game, _dist: &[i32]) {
     g.world.add(&grp);
 }
 
-/// A piece from its base to its tip (`t22.py` `CORN_L`), metres
+/// A piece from its base to its tip (`party/small_everyday_things.py` `CORN_L`), metres
 const CORN_L: f64 = 0.019;
 
 /// The pieces (`Real__candyCornA..C`): whole, its tip snapped off, gone

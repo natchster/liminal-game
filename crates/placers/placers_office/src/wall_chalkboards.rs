@@ -44,7 +44,7 @@ pub(crate) fn place_wall_chalkboards(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The chalkboard: its size, its frame's width, its painted face's distance
-/// from the wall (`Real__chalkboardFrame`, r13a.py)
+/// from the wall (`Real__chalkboardFrame`, industrial/six_things_hung_on_a_wall.py)
 const CB_SIZE: [f64; 2] = [0.400, 0.300];
 
 const CB_MOULD: f64 = 0.022;

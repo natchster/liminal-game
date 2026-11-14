@@ -14,7 +14,7 @@ pub(crate) fn place_washcloths(g: &mut Game, _dist: &[i32]) {
     // A cotton terry washcloth (batch `r18`), dropped: folded over on itself,
     // its corner curled up off it, lying limp; the pile, the flat-woven band
     // and the hem; gone grey with dirt, spotted with mildew, a stain dried
-    // in it (r18.notes.md)
+    // in it (docs/research/props-remodelling/washroom_janitor_classroom_and_plant.md)
     use game::assets::props::prop_part_as_modelled;
     if rnd() < 0.92 {
         return;

@@ -44,7 +44,7 @@ pub(crate) fn place_single_socks(g: &mut Game, _dist: &[i32]) {
 }
 
 /// The sock's cotton as it lies (laid over it from above: u along x, v
-/// against z of `r08.py`'s sock): the knit's fine grain, washed-out patches,
+/// against z of `core/everyday_litter.py`'s sock): the knit's fine grain, washed-out patches,
 /// and the dirt of a floor, heaviest at its toe (u 0.95, v 0.83) and heel
 /// (u 0.3, v 0.7) where it was walked in.
 fn sock_knit_tex() -> Tex {
