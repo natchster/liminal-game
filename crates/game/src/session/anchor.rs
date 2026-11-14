@@ -37,6 +37,10 @@ pub enum How {
     Stairwell,
     /// on from the end of her story
     Ending,
+    /// waking after a death (`restart`): the floor again
+    Wake,
+    /// Continue: a save's state put back, and its floor begun again
+    Continue,
 }
 
 impl How {
@@ -47,10 +51,12 @@ impl How {
             How::Fall => "fall",
             How::Stairwell => "stairwell",
             How::Ending => "ending",
+            How::Wake => "wake",
+            How::Continue => "continue",
         }
     }
     pub fn from_id(s: &str) -> Option<How> {
-        [How::Door, How::Lift, How::Fall, How::Stairwell, How::Ending].into_iter().find(|h| h.id() == s)
+        [How::Door, How::Lift, How::Fall, How::Stairwell, How::Ending, How::Wake, How::Continue].into_iter().find(|h| h.id() == s)
     }
 }
 
@@ -410,6 +416,29 @@ impl Game {
                 let title = self.level_title();
                 self.show_level_card(&title);
                 self.ui.fade.set_opacity(0.0);
+                self.want_pointer_lock = Some(true);
+            }
+            // (the death saved what it took: the floor again, as it was)
+            How::Wake => {
+                self.ui.fade.set_opacity(0.0);
+                self.close_menu();
+                self.reset_hands();
+                self.init_level(n);
+                self.hide_overlay();
+                self.state = "playing".into();
+                self.want_pointer_lock = Some(true);
+                self.show_level_card("");
+            }
+            // (the save's state was put back: its floor, built with it read)
+            How::Continue => {
+                self.close_menu();
+                self.title_place = None;
+                self.reset_hands();
+                self.hide_overlay();
+                self.init_level(n);
+                self.state = "playing".into();
+                self.show_level_card("");
+                self.scp_arrival();
                 self.want_pointer_lock = Some(true);
             }
         }

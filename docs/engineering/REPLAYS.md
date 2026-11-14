@@ -17,6 +17,8 @@ backrooms --replay-verify FILE   # headless: every segment replayed, every kept 
 backrooms --dump-replay FILE     # the whole file as JSON on stdout
 backrooms --record-bot DIR --seed S --levels 2,5 [--bot-seconds 60]   # a recording a floor, the wanderer playing (record-gameplay)
 backrooms --replay-frames FILE --sheet DIR [--every 5]   # frames rendered headless from the in-point, and their sheet
+backrooms --save-from-replay FILE --at S --save-to OUT   # a recording as a save that resumes S seconds in (SAVES.md)
+backrooms --from-save FILE       # play on from a save (or a recording, from its in-point); --save NAME for play's own
 backrooms --bench-replay F --seed S --bench-frames N   # what recording and replaying cost (cargo xtask bench)
 cargo xtask heatmap FILE…        # where players went, per level (through --dump-replay)
 ```
@@ -31,14 +33,15 @@ Play keeps a **log** (`Recorder`, in the app) from the moment it starts:
 each frame and its input, the state every 60 frames, the telemetry. Until
 a recording begins it holds only the current segment, from the start a
 replay of it would stand at: the session's start (the per-frame seed, the
-launch flags, and what storage held before the boot read it, the save and
-the settings) until the first floor is entered through its door, the
-lift, a fall, the Stairwell or her story's end; that floor's anchor after.
-So a recording can begin at any moment of play. A death and waking, New
-descent and Continue do not start a segment (they are not anchors yet:
-`SAVES.md`'s V1 will make them so), so after one the log, and what a
-replay's seek simulates again, reaches back to the last door or the
-session's start, at about 250 KB a minute of play. The frames are kept in
+launch flags, what storage held before the boot read it (the settings),
+and the save it read) until the first floor is entered
+through its door, the lift, a fall, the Stairwell, her story's end, a
+waking after a death or Continue (`docs/engineering/SAVES.md`); that
+floor's anchor after. So a recording can begin at any moment of play.
+New descent does not start a segment (the new run's first floor is built
+as play goes on from the last anchor or the session's start), so after
+one the log, and what a replay's seek simulates again, reaches back that
+far, at about 250 KB a minute of play. The frames are kept in
 blocks of a minute: a full block is shared by every copy, so a recording
 taken from the log, and its copy a minute, cost the open block alone.
 
@@ -80,7 +83,10 @@ end.
 A **`Viewer`** (`replay::viewer`) plays a recording by the window's
 clock, not a recorded frame per window frame: a recording made at 120 Hz
 plays at its own pace on a 60 Hz window. Space pauses; − and + step the
-speed (¼, ½, 1, 2, 4); ← and → move ten seconds. On is simulated from
+speed (¼, ½, 1, 2, 4); ← and → move ten seconds; Enter takes control:
+play goes on from where the replay is, its log what the recording held up
+to there (`Recorder::resume`; the same file is a save there,
+`ReplayFile::cut`, `docs/engineering/SAVES.md`). On is simulated from
 where it is; back starts a fresh game at the anchor before the place (the
 session's start, or a floor's) and simulates to it. A seek runs a slice
 of each window frame (10 ms), so the window stays alive and the line at

@@ -154,10 +154,11 @@ fn what_is_taken_stays_taken() {
     g.fit_secrets();
     let s = g.secrets.list.iter().find(|s| s.key == key).unwrap();
     assert!(s.opened && (s.emptied || thing == Thing::Sweets), "a retry put the {thing:?} back");
-    // saved and loaded
+    // saved and loaded (the save's file, as a relaunch reads it)
     g.save_game();
     let mut h = new_game();
-    h.storage = g.storage.clone();
+    let bytes = g.saved.as_ref().expect("a save").encode();
+    h.saved = Some(game::replay::ReplayFile::decode(&bytes).expect("the save reads back"));
     let d = h.load_game().expect("a save");
     h.apply_saved(&d);
     assert_eq!(h.took, g.took);

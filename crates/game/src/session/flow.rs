@@ -6,11 +6,8 @@ use crate::base::tables::*;
 use crate::prelude::*;
 use crate::session::anchor::How;
 
-/// (v2: the descent begins in the Building, `docs/design/MEGASTRUCTURE.md`; a v1
-/// save's levels and anomaly plan no longer exist)
-pub const SAVE_KEY: &str = "opencarole.backrooms.save.v2";
-
-/// What `save_game()` writes (and `load_game()` reads back).
+/// The run's progress as a save keeps it (the `save` of a floor's anchor,
+/// `session::anchor`; `docs/engineering/SAVES.md`): read back by `from_json`.
 #[derive(Clone, Debug, Default)]
 pub struct SaveData {
     pub level_num: i32,
@@ -293,18 +290,46 @@ impl Game {
         });
         data
     }
+    /// Saves the run as it stands (V1, `docs/engineering/SAVES.md`): the
+    /// state of this moment as a floor's anchor keeps it (the progress and
+    /// all that crosses a floor), in the container a replay is, with no
+    /// frames. Continue puts it back and begins its floor again. Kept here
+    /// (`saved`) and handed to the app to write (`save_written`).
     pub fn save_game(&mut self) {
-        let mut data = self.save_json();
-        data["savedAt"] =
-            serde_json::json!(std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0.0, |d| d.as_millis() as f64));
-        self.storage_set(SAVE_KEY, &data.to_string());
+        use crate::replay::{Frames, ReplayFile, Segment, Start};
+        let anchor = crate::session::anchor::Anchor {
+            level: self.level_num,
+            how: crate::session::anchor::How::Continue,
+            ticks: self.last_ticks,
+            state: self.anchor_state(),
+        };
+        let created = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_millis() as u64);
+        let file = ReplayFile {
+            header: serde_json::json!({ "kind": "save", "level": self.level_num, "created_ms": created, "build": self.build_stamp }),
+            segments: vec![Segment { start: Start::Floor(anchor), first_frame: 0, frames: Frames::default(), hashes: vec![] }],
+            telemetry: serde_json::json!({}),
+        };
+        self.save_written = Some(file.clone());
+        self.saved = Some(file);
     }
+    /// The save's progress, if there is one (the title's Continue, its
+    /// floor and her last line).
     pub fn load_game(&self) -> Option<SaveData> {
-        let raw = self.storage_get(SAVE_KEY)?;
-        SaveData::from_json(&serde_json::from_str(&raw).ok()?)
+        let a = self.saved_anchor()?;
+        let mut d = SaveData::from_json(&a.state["save"])?;
+        d.level_num = a.level;
+        Some(d)
+    }
+    /// The anchor a save starts from (its first segment's).
+    fn saved_anchor(&self) -> Option<crate::session::anchor::Anchor> {
+        match &self.saved.as_ref()?.segments.first()?.start {
+            crate::replay::Start::Floor(a) => Some(a.clone()),
+            crate::replay::Start::Session { .. } => None,
+        }
     }
     pub fn clear_save(&mut self) {
-        self.storage_remove(SAVE_KEY);
+        self.saved = None;
+        self.save_cleared = true;
     }
     pub fn apply_saved(&mut self, d: &SaveData) {
         self.player.sanity = clamp(d.sanity.unwrap_or(SAN_MAX), 0.0, SAN_MAX);
@@ -566,16 +591,18 @@ impl Game {
         self.open_menu(crate::ui::menu::Screen::Dead);
         self.menu.heading = line;
     }
+    /// Waking after a death (or trying a floor again): the floor again,
+    /// entered at the start of the next frame's step as every floor is (an
+    /// anchor: `How::Wake`); once, however many keys asked for it.
     pub fn restart(&mut self) {
-        self.ui.fade.set_opacity(0.0);
+        if std::mem::replace(&mut self.waking, true) {
+            return;
+        }
         let n = self.level_num;
-        self.close_menu();
-        self.reset_hands();
-        self.init_level(n);
-        self.hide_overlay();
-        self.state = "playing".into();
-        self.want_pointer_lock = Some(true);
-        self.show_level_card("");
+        self.schedule(0.0, move |g| {
+            g.waking = false;
+            g.enter_level(n, How::Wake);
+        });
     }
 
     // ------------------------------------------------------------ the menu
@@ -656,32 +683,26 @@ impl Game {
         self.scp_arrival();
         self.want_pointer_lock = Some(true);
     }
+    /// Continue: the save's state put back and its floor begun again, at
+    /// the start of the next frame's step (an anchor: `How::Continue`).
+    /// What is the player's now stays theirs: the settings, the window's
+    /// view, the keys held. Without a save, a new descent.
     pub fn continue_game(&mut self) {
-        self.close_menu();
-        self.title_place = None;
-        self.reset_hands();
-        self.audio_init();
-        let Some(d) = self.load_game() else {
+        let Some(a) = self.saved_anchor() else {
             return self.start_new_game();
         };
-        if d.run_seed > 0 {
-            self.run_seed = d.run_seed;
-        }
-        // build with nothing read, then fit the notes (and her page) to the save's
-        self.lore_found.clear();
-        self.notebook.clear();
-        self.thread.clear();
-        self.init_level(d.level_num);
-        self.apply_saved(&d);
-        self.fit_lore_notes();
-        self.fit_story();
-        self.fit_secrets();
-        self.fit_knocks();
-        self.state = "playing".into();
-        self.hide_overlay();
-        self.show_level_card("");
-        self.scp_arrival();
-        self.want_pointer_lock = Some(true);
+        self.close_menu();
+        self.schedule(0.0, move |g| {
+            let (settings, view, keys) = (g.settings.clone(), [g.view_width, g.view_height, g.scale_factor], g.keys.clone());
+            if let Err(e) = g.restore_anchor_state(&a.state) {
+                eprintln!("the save could not be read: {e}");
+                return g.start_new_game();
+            }
+            g.settings = settings;
+            g.set_view(view[0], view[1], view[2]);
+            g.keys = keys;
+            g.enter_level(a.level, How::Continue);
+        });
     }
 
     // ------------------------------------------------------------ descent helpers

@@ -189,6 +189,11 @@ impl Viewer {
         Ok(())
     }
 
+    /// The recording as a save that resumes where the replay is (`cut`).
+    pub fn save_here(&self) -> ReplayFile {
+        self.player.file.cut(self.player.frame)
+    }
+
     pub fn faster(&mut self) {
         self.speed = SPEEDS.into_iter().find(|&s| s > self.speed).unwrap_or(self.speed);
     }

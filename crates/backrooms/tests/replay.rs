@@ -89,6 +89,10 @@ enum Do {
     Record,
     /// the recording so far, weighed (how fast it grows)
     Weigh,
+    /// a death (as a creature's touch makes one)
+    Die,
+    /// R: a key that goes on from the death card (waking)
+    Wake,
 }
 
 /// A session as the app plays one.
@@ -96,8 +100,9 @@ struct Played {
     log: Recorder,
     /// the state after every frame
     states: Vec<StateHash>,
-    /// the frames (whole-session) the doors were taken before
+    /// the frames (whole-session) the doors were taken before, and the deaths
     doors: Vec<u64>,
+    deaths: Vec<u64>,
     /// the recordings ended by Record
     made: Vec<ReplayFile>,
     /// (bytes, minutes) at each `Weigh`, and at the end
@@ -132,7 +137,7 @@ fn play_session(flags: &str, storage: &[(&str, &str)], whole: bool, bot: &[Frame
                 log.start_recording();
             }
             let header = json!({ "flags": flags });
-            let mut p = Played { log, states: vec![], doors: vec![], made: vec![], weighed: vec![], began: 0 };
+            let mut p = Played { log, states: vec![], doors: vec![], deaths: vec![], made: vec![], weighed: vec![], began: 0 };
             let (mut k, mut played, mut minutes) = (0usize, None::<usize>, 0.0);
             loop {
                 let mut i = FrameInput::default();
@@ -152,6 +157,14 @@ fn play_session(flags: &str, storage: &[(&str, &str)], whole: bool, bot: &[Frame
                 if now.contains(&Do::Door) {
                     g.next_level();
                     p.doors.push(k as u64);
+                }
+                if now.contains(&Do::Die) {
+                    g.on_death("entity");
+                    p.deaths.push(k as u64);
+                }
+                if now.contains(&Do::Wake) {
+                    i.events.push(game::replay::InputEvent::Down("KeyR".into()));
+                    i.events.push(game::replay::InputEvent::Up("KeyR".into()));
                 }
                 for e in &i.events {
                     p.log.push(e.clone());
@@ -189,7 +202,7 @@ fn play_session(flags: &str, storage: &[(&str, &str)], whole: bool, bot: &[Frame
 /// state as recorded, and the state after every frame as play's. Returns
 /// how many frames ran from the in-point.
 fn replays_as_played(file: &ReplayFile, seg: usize, p: &Played) -> u64 {
-    let (f, doors) = (file.clone(), p.doors.clone());
+    let (f, doors, deaths) = (file.clone(), p.doors.clone(), p.deaths.clone());
     let (states, diverged, from) = std::thread::Builder::new()
         .stack_size(256 << 20)
         .spawn(move || {
@@ -198,6 +211,9 @@ fn replays_as_played(file: &ReplayFile, seg: usize, p: &Played) -> u64 {
             loop {
                 if doors.contains(&pl.frame) {
                     g.next_level();
+                }
+                if deaths.contains(&pl.frame) {
+                    g.on_death("entity");
                 }
                 if !pl.step(&mut g) {
                     break;
@@ -488,4 +504,114 @@ fn the_wanderer_walks_and_its_walk_replays() {
             .join()
             .unwrap();
     }
+}
+
+/// A save at any frame of a replay (`ReplayFile::cut`) goes on as the run
+/// went: opened, it is simulated to its frame, in play's state there, and
+/// the recording's frames after it run as play ran them.
+#[test]
+fn a_save_at_any_frame_of_a_replay_goes_on_as_the_run_went() {
+    use game::replay::viewer::Viewer;
+    let flags = "seed=77&level=3&nosound";
+    let p = play_session(flags, &[], true, &bot_inputs(2400, 77), &[(900, Do::Door)]);
+    let file = p.log.snapshot(json!({ "flags": flags }));
+    let at = p.doors[0] + 700;
+    let save = ReplayFile::decode(&file.cut(at).encode()).unwrap();
+    assert_eq!((save.segments.len(), save.in_point()), (1, at), "the floor it is on, up to its frame");
+    let (states, rest) = (p.states.clone(), file.segments[1].clone());
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(move || {
+            let (mut g, mut v) = Viewer::open(save, app_game).unwrap();
+            while v.bar().seeking.is_some() {
+                v.frame(&mut g, 1.0 / 60.0, std::time::Duration::from_secs(1));
+            }
+            assert_eq!(v.player.frame, at);
+            assert!(g.state_hash() == states[at as usize - 1], "the save's place is not play's");
+            // on, with the recording's own frames
+            for k in at..at + 600 {
+                let (ticks, input) = rest.frames.get((k - rest.first_frame) as usize).unwrap();
+                game::replay::replay_frame(&mut g, *ticks, input);
+                assert!(g.state_hash() == states[k as usize], "frame {k} after the save is not play's");
+            }
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// Continue is a floor's start a replay stands on (`How::Continue`): a
+/// later session, its title, Continue from the save a run made mid-floor,
+/// lands on that floor with its progress, and its log begins a segment
+/// there whose replay repeats play frame for frame.
+#[test]
+fn continue_is_a_floor_start_a_replay_stands_on() {
+    std::thread::Builder::new()
+        .stack_size(256 << 20)
+        .spawn(|| {
+            // a run: into floor 3 of run 77, a page taken, saved there
+            let p = play_session("seed=77&level=3&nosound", &[], false, &bot_inputs(600, 77), &[]);
+            let (mut g, mut pl) = Player::start(p.log.snapshot(json!({})), 0, app_game).unwrap();
+            while pl.step(&mut g) {}
+            assert_eq!(g.state, "playing");
+            g.notebook.insert("f1".into());
+            g.save_game();
+            let save = ReplayFile::decode(&g.saved.as_ref().unwrap().encode()).unwrap();
+            // a later session: the title offers Continue, and it is chosen
+            let native = 0x5A7E;
+            game::base::rng::seed_native(native);
+            let mut h = app_game("nosound");
+            h.saved = Some(save);
+            h.boot_in_view(Some([1280.0, 800.0, 2.0]));
+            assert_eq!(h.menu.items[0].id, "menu:continue");
+            let mut log = Recorder::session(native, "nosound", Default::default(), &h);
+            // (the whole session kept, as `--record` keeps it)
+            log.start_recording();
+            let ticks = game::base::game::clock_ticks(1.0 / 60.0);
+            let bot = bot_inputs(900, 5);
+            let mut states = vec![];
+            for k in 0..900 {
+                let i = if k == 0 {
+                    FrameInput { events: vec![game::replay::InputEvent::Click("menu:continue".into())] }
+                } else {
+                    bot[k].clone()
+                };
+                for e in &i.events {
+                    log.push(e.clone());
+                }
+                h.apply_input(&i);
+                let dt = h.advance_clock(ticks);
+                h.frame(dt);
+                log.end_frame(&mut h, ticks);
+                states.push(h.state_hash());
+            }
+            assert_eq!((h.level_num, h.run_seed), (3, 77), "Continue lands on the saved floor of its run");
+            assert!(h.notebook.contains("f1"), "and keeps what was taken");
+            let file = log.snapshot(json!({ "flags": "nosound" }));
+            assert_eq!(file.segments.len(), 2, "the session's start, and Continue's");
+            assert!(matches!(&file.segments[1].start, game::replay::Start::Floor(a) if a.how == game::session::anchor::How::Continue));
+            let (mut r, mut pl) = Player::start(file.clone(), 1, app_game).unwrap();
+            let from = file.segments[1].first_frame as usize - 1;
+            let mut k = from;
+            while pl.step(&mut r) {
+                assert!(r.state_hash() == states[k], "from Continue's anchor, frame {k} is not play's");
+                k += 1;
+            }
+            assert_eq!(k, states.len());
+        })
+        .unwrap()
+        .join()
+        .unwrap();
+}
+
+/// Waking after a death is a floor's start too (`How::Wake`): the floor
+/// again, and a replay from there repeats play.
+#[test]
+fn waking_is_a_floor_start_a_replay_stands_on() {
+    let p = play_session("seed=4242&level=4&nosound", &[], true, &bot_inputs(1200, 4242), &[(300, Do::Die), (500, Do::Wake)]);
+    let file = ReplayFile::decode(&p.log.snapshot(json!({})).encode()).unwrap();
+    let woke =
+        file.segments.iter().position(|s| matches!(&s.start, game::replay::Start::Floor(a) if a.how == game::session::anchor::How::Wake));
+    let seg = woke.expect("waking began a segment");
+    replays_as_played(&file, seg, &p);
 }

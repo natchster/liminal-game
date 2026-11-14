@@ -115,6 +115,16 @@ pub struct Game {
     pub replays: Vec<crate::replay::viewer::ReplayLine>,
     pub replay_page: usize,
     pub replay_chosen: Option<usize>,
+    /// the run's save (V1, `docs/engineering/SAVES.md`): the last one made or
+    /// read (`load_game`), the one made since the app last wrote (it writes
+    /// it to its file, off the frame), and a New descent having let it go
+    pub saved: Option<crate::replay::ReplayFile>,
+    pub save_written: Option<crate::replay::ReplayFile>,
+    pub save_cleared: bool,
+    /// a wake is on its way (`restart`), so a second key does not wake twice
+    pub waking: bool,
+    /// what a save keeps of the build that made it (the app's)
+    pub build_stamp: serde_json::Value,
     /// a recording chosen to watch, or to delete: the app does it
     pub want_replay: Option<std::path::PathBuf>,
     pub want_delete: Option<std::path::PathBuf>,
@@ -803,6 +813,11 @@ impl Game {
             replay_page: 0,
             replay_chosen: None,
             want_replay: None,
+            saved: None,
+            save_written: None,
+            save_cleared: false,
+            waking: false,
+            build_stamp: serde_json::Value::Null,
             want_delete: None,
             want_warm_up: false,
             view_width: 1280.0,

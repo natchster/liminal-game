@@ -191,7 +191,9 @@ fn cycle(g: &mut Game, sound: bool, seed: u32) {
                 exits[4] += 1;
             }
             _ => {
+                // (waking enters the floor at the next frame's start)
                 g.restart();
+                frame(g, 1.0 / 60.0);
                 exits[5] += 1;
             }
         }

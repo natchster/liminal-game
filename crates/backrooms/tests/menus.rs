@@ -109,8 +109,10 @@ fn a_new_descent_over_a_save_asks_first() {
     press(&mut g, "Enter"); // Back
     assert_eq!(g.menu.screen, Some(Screen::Title));
     assert!(g.load_game().is_some(), "Back lost the save");
-    // Continue picks the save up
+    // Continue picks the save up (its floor entered at the next frame's
+    // start, as every floor is)
     press(&mut g, "Enter");
+    frame(&mut g, 1);
     assert_eq!(g.state, "playing");
     assert_eq!(g.run_seed, run);
     assert!(g.notebook.contains("f1"));
@@ -186,6 +188,7 @@ fn leaving_for_the_title_keeps_the_notebook() {
     assert_eq!(g.menu.items[0].label, "Continue");
     assert!(g.load_game().expect("saved").notebook.contains(&"f1".to_string()));
     press(&mut g, "Enter");
+    frame(&mut g, 1);
     assert_eq!(g.state, "playing");
     assert!(g.notebook.contains("f1"));
 }
@@ -219,6 +222,7 @@ fn death_is_black_a_line_and_wake_up() {
     g.input.crouch_latched = true;
     g.journal_open = true;
     press(&mut g, "KeyR");
+    frame(&mut g, 1);
     assert_eq!(g.state, "playing");
     assert!(g.live_menu().is_none());
     assert!(!g.input.crouch_latched && !g.journal_open, "the last life's crouch or notebook carried over");

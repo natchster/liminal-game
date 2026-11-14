@@ -864,8 +864,9 @@ fn each_death_plays_its_own_and_the_card_comes_as_always() {
         step(&mut g, DT);
         assert_eq!(g.camera_pose(), held, "{stage}");
         assert_eq!(g.cut_veil.opacity, 1.0, "{stage}");
-        // and a key wakes you, the camera play's again
+        // and a key wakes you (at the next frame's start), the camera play's again
         g.key_down("KeyR", false);
+        g.run_scheduled();
         assert_eq!(g.state, "playing", "{stage}");
         assert!(g.cut_hold.is_none() && g.cut_veil.opacity == 0.0, "{stage}");
     }
@@ -937,6 +938,7 @@ fn a_death_shakes_only_its_own() {
     die(&mut g, "death:hound");
     assert!(g.cut_shake != (0.0, 0.0, 0.0), "a death shakes");
     g.key_down("KeyR", false);
+    g.run_scheduled();
     assert_eq!(g.cut_shake, (0.0, 0.0, 0.0), "waking leaves nothing shaking");
     // and a nerve or the fog brings nothing to your face
     let mut g = common::new_game();

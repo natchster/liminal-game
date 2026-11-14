@@ -299,6 +299,8 @@ fn the_cards_wait_until_they_are_up() {
     g.show_overlay("x", "y", "z");
     press(&mut g, "KeyE");
     release(&mut g, "KeyE");
+    // (waking enters the floor at the next frame's start)
+    g.run_scheduled();
     assert_eq!(g.state, "playing", "E did not wake you once the card was up");
 }
 

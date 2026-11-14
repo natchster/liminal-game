@@ -116,7 +116,10 @@ fn a_level_is_the_same_place_whatever_was_read() {
 
         // a retry after reading one more
         g.lore_found.insert(got[0].1);
-        build(&mut g, |g| g.restart());
+        build(&mut g, |g| {
+            g.restart();
+            g.run_scheduled();
+        });
         same(&dump(&g), &want, &format!("seed {seed} L{level}: the retry is another place"));
         assert!(!notes(&g).iter().any(|n| n.1 == got[0].1 && g.lore_entry_scp(n.1).is_none()), "the note just read lies there again");
 
@@ -124,7 +127,10 @@ fn a_level_is_the_same_place_whatever_was_read() {
         g.save_game();
         let found = g.lore_found.clone();
         g.lore_found.clear();
-        build(&mut g, |g| g.continue_game());
+        build(&mut g, |g| {
+            g.continue_game();
+            g.run_scheduled();
+        });
         same(&dump(&g), &want, &format!("seed {seed} L{level}: Continue built another place"));
         assert_eq!(g.lore_found, found);
         assert!(notes(&g).iter().all(|n| g.lore_entry_scp(n.1).is_some() || !found.contains(&n.1)));
@@ -542,8 +548,9 @@ fn taking_her_page() {
     g.journal_render();
     assert_eq!(g.ui.journal_entry_body.text, "A torn edge, where a page was.");
     g.toggle_journal();
-    // a retry: the page stays taken
+    // a retry: the page stays taken (waking enters at the next frame's start)
     g.restart();
+    g.run_scheduled();
     let c = g.story.camp.as_ref().unwrap();
     assert!(c.page_taken && !c.page.as_ref().unwrap().visible(), "the retry put her page back");
     assert!(g.ui.objective.text.contains(p.thread));
@@ -552,6 +559,7 @@ fn taking_her_page() {
     g.notebook.clear();
     g.thread.clear();
     g.continue_game();
+    g.run_scheduled();
     assert!(g.notebook.contains(id) && g.thread == p.thread, "Continue lost the notebook");
     assert!(g.story.camp.as_ref().unwrap().page_taken);
     // a new game starts an empty notebook
@@ -612,6 +620,7 @@ fn her_page_wakes_the_place() {
         );
         // a retry: the page stays taken and her lamp out
         g.restart();
+        g.run_scheduled();
         let c = g.story.camp.as_ref().unwrap();
         assert!(c.page_taken && !c.lit && !c.light.as_ref().unwrap().visible(), "seed {seed} L{level}: the retry relit her lamp");
     }

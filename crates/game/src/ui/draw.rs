@@ -1440,7 +1440,7 @@ fn paint_playback(f: &mut Frame, g: &Game) {
     let st = plain(&state, ink);
     let sy = y - 10.0 - st.height();
     text_layer(f, "playback.state", st, x0, sy, 0.0, "left", 0.9);
-    let keys = plain("Space pause · ← → 10 s · − + speed · Esc leave", ink);
+    let keys = plain("Space pause · ← → 10 s · − + speed · Enter play on · Esc leave", ink);
     let kh = keys.height();
     text_layer(f, "playback.keys", keys, w - x0 - 520.0, y - 10.0 - kh, 520.0, "right", 0.6);
     if !b.note.is_empty() {

@@ -161,6 +161,37 @@ pub fn folder(storage: &Path) -> PathBuf {
     storage.parent().unwrap_or(Path::new(".")).join("replays")
 }
 
+/// The save named `name` (`default` unless `--save NAME`), beside the
+/// storage: `saves/<name>.ocsave` (`docs/engineering/SAVES.md`, V1).
+pub fn save_slot(storage: &Path, name: &str) -> PathBuf {
+    storage.parent().unwrap_or(Path::new(".")).join("saves").join(format!("{name}.ocsave"))
+}
+
+/// A save read, if its file is there and sound (another build's is used:
+/// a save holds no frames to repeat).
+pub fn read_save(path: &Path) -> Option<ReplayFile> {
+    let bytes = std::fs::read(path).ok()?;
+    match ReplayFile::decode(&bytes) {
+        Ok(f) => Some(f),
+        Err(e) => {
+            eprintln!("{}: {e} (not used)", path.display());
+            None
+        }
+    }
+}
+
+/// `--save-from-replay FILE --at S --save-to OUT`: the recording as a save
+/// that resumes `at` seconds after its in-point (`ReplayFile::cut`).
+pub fn save_from_replay(file: &str, at: f64, out: &str, make: fn(&str) -> Game) -> Result<(), String> {
+    let f = read(file)?;
+    let (mut g, mut v) = game::replay::viewer::Viewer::open(f, make)?;
+    v.seek_to(&mut g, at, make)?;
+    let s = v.save_here();
+    write(Path::new(out), &s)?;
+    println!("{out}: a save of {file} at {} (frame {}), floor {}", game::replay::viewer::clock(v.bar().at), v.player.frame, g.level_num);
+    Ok(())
+}
+
 /// A new recording's file: when it began (UTC) and the floor it began on.
 pub fn new_path(storage: &Path, level: i32) -> PathBuf {
     let ms = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_millis() as u64);
@@ -178,22 +209,28 @@ pub fn write(path: &Path, f: &ReplayFile) -> Result<(), String> {
     std::fs::rename(&part, path).map_err(|e| format!("{}: {e}", path.display()))
 }
 
-/// Writes recordings off the frame, one after another, in the order given
-/// (encoding a long one takes longer than a frame has), and says how each
-/// one it was asked about went.
+/// Writes recordings and saves off the frame, one after another, in the
+/// order given (encoding a long one takes longer than a frame has; a save
+/// let go of is removed in its turn, so a write before cannot bring it
+/// back), and says how each one it was asked about went.
 pub struct Writer {
-    tx: Option<Sender<(PathBuf, ReplayFile, bool)>>,
+    tx: Option<Sender<(PathBuf, Option<ReplayFile>, bool)>>,
     thread: Option<JoinHandle<()>>,
     done: Receiver<(PathBuf, Result<(), String>)>,
 }
 
 impl Writer {
     pub fn new() -> Writer {
-        let (tx, rx) = channel::<(PathBuf, ReplayFile, bool)>();
+        let (tx, rx) = channel::<(PathBuf, Option<ReplayFile>, bool)>();
         let (told, done) = channel();
         let thread = std::thread::spawn(move || {
             for (p, f, tell) in rx {
-                let r = write(&p, &f);
+                let r = match f {
+                    Some(f) => write(&p, &f),
+                    None => std::fs::remove_file(&p)
+                        .or_else(|e| if e.kind() == std::io::ErrorKind::NotFound { Ok(()) } else { Err(e) })
+                        .map_err(|e| format!("{}: {e}", p.display())),
+                };
                 if let Err(e) = &r {
                     eprintln!("recording not saved: {e}");
                 }
@@ -207,7 +244,13 @@ impl Writer {
     /// `f` to `path`; with `tell`, how it went comes back (`written`).
     pub fn send(&self, path: PathBuf, f: ReplayFile, tell: bool) {
         if let Some(tx) = &self.tx {
-            let _ = tx.send((path, f, tell));
+            let _ = tx.send((path, Some(f), tell));
+        }
+    }
+    /// `path` removed, in its turn.
+    pub fn remove(&self, path: PathBuf) {
+        if let Some(tx) = &self.tx {
+            let _ = tx.send((path, None, false));
         }
     }
     /// The writes asked about that have finished since the last call.

@@ -50,7 +50,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/engineering/PERF.md`](docs/engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`docs/engineering/VISUAL_PLAYTEST.md`](docs/engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
 | [`docs/engineering/REPLAYS.md`](docs/engineering/REPLAYS.md) | replays: what makes a session repeat (ticks, the rounded mouse, the game's math, floors' anchors), the `OCREPLAY` format, recording any stretch (F9), the Replays screen, `--record`, `--replay`, `--replay-verify`, `--dump-replay`, `--record-bot`, `--replay-frames` |
-| [`docs/engineering/SAVES.md`](docs/engineering/SAVES.md) | saves: what the game keeps of a run between sessions, the formats (V0, the storage file) and where they are |
+| [`docs/engineering/SAVES.md`](docs/engineering/SAVES.md) | saves: what the game keeps of a run between sessions; V1, a replay's start (`saves/<name>.ocsave`, `--save`, `--from-save`, a save at any frame of a replay); V0, the storage file, no longer read |
 | [`docs/engineering/TRUST.md`](docs/engineering/TRUST.md) | the maintainer trust: whose words from GitHub you act on (maintainers', and others' once a maintainer approves them), the protected paths only the owner changes, the trust gate |
 
 **Plan**
@@ -121,6 +121,7 @@ cargo run --release -- --cutscene ID [--stage S] --sheet DIR [--every 0.25]   # 
 cargo run --release -- --replay-verify FILE.ocreplay   # every segment of a recording replayed headless, every kept state compared (--dump-replay FILE: as JSON)
 cargo run --release -- --record-bot DIR --seed 4242 --levels 1,4 [--bot-seconds 60]   # a recording a floor, the wanderer bot playing (record-gameplay)
 cargo run --release -- --replay-frames FILE.ocreplay --sheet DIR [--every 5]   # a recording's frames rendered headless, and their contact sheet
+cargo run --release -- --save-from-replay FILE.ocreplay --at 40 --save-to OUT.ocsave   # a recording as a save at 40 s (docs/engineering/SAVES.md)
 cargo run --release -- --tour DIR --seed 4242 --levels 1,2,3 [--tour-budget 180] [--tour-area x0,z0,x1,z1] --width 640 --height 400   # the visual playtest's renders: the edges' views, gaps and flicker (DIR/L<n>/views.tsv)
 ```
 

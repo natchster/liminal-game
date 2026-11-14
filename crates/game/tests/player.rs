@@ -877,11 +877,13 @@ fn keydown_actions() {
     g.state = "dead".into();
     press(g, "KeyR");
     release(g, "KeyR");
-    // R while dead restarts the level (`restart()`)
+    // R while dead restarts the level (`restart()`, at the next frame's start)
+    g.run_scheduled();
     assert_eq!(g.state, "playing");
     g.show_overlay("", "", "");
     g.state = "dead".into();
     press(g, "Enter");
+    g.run_scheduled();
     assert_eq!(g.state, "playing");
     g.state = "dead".into();
     // F / Q / G / H do nothing while dead

@@ -103,6 +103,7 @@ impl Recorder {
             native_seed,
             flags: flags.to_string(),
             storage,
+            saved: g.saved.as_ref().map(ReplayFile::encode),
             settings: g.settings.to_json(),
             view: [g.view_width, g.view_height, g.scale_factor],
         })
@@ -120,6 +121,22 @@ impl Recorder {
             events: vec![],
             next_row: 0.0,
             seen: (0, 0),
+            from: None,
+        }
+    }
+    /// The log of a game taken over from a replay at frame `at` (the next to
+    /// run): what the recording holds up to it (`ReplayFile::cut`), then
+    /// play's own frames.
+    pub fn resume(file: &ReplayFile, at: u64, g: &Game) -> Recorder {
+        let cut = file.cut(at);
+        Recorder {
+            segments: cut.segments,
+            pending: FrameInput::default(),
+            frame: at,
+            rows: vec![],
+            events: vec![],
+            next_row: g.perf_t,
+            seen: (g.level_num, g.director.log.len()),
             from: None,
         }
     }
@@ -267,10 +284,11 @@ impl Player {
         let s = file.segments.get(seg).ok_or_else(|| format!("the recording has no segment {seg}"))?;
         let first = s.first_frame;
         let (g, entry) = match &s.start {
-            Start::Session { native_seed, flags, storage, settings, view } => {
+            Start::Session { native_seed, flags, storage, saved, settings, view } => {
                 crate::base::rng::seed_native(*native_seed);
                 let mut g = make(flags);
                 g.storage.clone_from(storage);
+                g.saved = saved.as_deref().map(ReplayFile::decode).transpose()?;
                 g.boot_in_view(Some(*view));
                 g.settings = crate::session::settings::Settings::from_json(settings);
                 (g, None)

@@ -37,9 +37,10 @@ const CHUNK_LIMIT: usize = 256 << 20;
 #[derive(Clone, Debug, PartialEq)]
 pub enum Start {
     /// A fresh process, as the game starts: its per-frame stream's seed,
-    /// its launch flags, what its storage held when it booted (the save and
-    /// the settings; empty for a fresh install), its settings and its view.
-    Session { native_seed: u64, flags: String, storage: BTreeMap<String, String>, settings: Value, view: [f64; 3] },
+    /// its launch flags, what its storage held when it booted (the
+    /// settings; empty for a fresh install), the save it read (its file's
+    /// bytes), its settings and its view.
+    Session { native_seed: u64, flags: String, storage: BTreeMap<String, String>, saved: Option<Vec<u8>>, settings: Value, view: [f64; 3] },
     /// A floor's anchor (`session::anchor`).
     Floor(Anchor),
 }
@@ -306,16 +307,28 @@ fn get_event(r: &mut Reader, strings: &[String]) -> Result<InputEvent, String> {
     })
 }
 
+/// Bytes as lowercase hex (a save inside a session's start: deflate takes
+/// back what hex spends).
+fn hex(b: &[u8]) -> String {
+    b.iter().map(|x| format!("{x:02x}")).collect()
+}
+fn unhex(s: &str) -> Result<Vec<u8>, String> {
+    (0..s.len() / 2)
+        .map(|i| u8::from_str_radix(s.get(2 * i..2 * i + 2).unwrap_or("?"), 16).map_err(|_| "a save that is not hex".to_string()))
+        .collect()
+}
+
 // ------------------------------------------------------------- starts
 
 impl Start {
     pub fn to_json(&self) -> Value {
         match self {
-            Start::Session { native_seed, flags, storage, settings, view } => json!({
+            Start::Session { native_seed, flags, storage, saved, settings, view } => json!({
                 "kind": "session",
                 "native_seed": native_seed,
                 "flags": flags,
                 "storage": storage,
+                "saved": saved.as_ref().map(|b| hex(b)),
                 "settings": settings,
                 "view": view.map(f64::to_bits),
             }),
@@ -335,6 +348,7 @@ impl Start {
                         .flatten()
                         .filter_map(|(k, v)| Some((k.clone(), v.as_str()?.to_string())))
                         .collect(),
+                    saved: v["saved"].as_str().map(unhex).transpose()?,
                     settings: v["settings"].clone(),
                     view: <[f64; 3]>::try_from(view).map_err(|_| "a session start without its view")?,
                 })
@@ -414,6 +428,30 @@ impl ReplayFile {
             return Err(format!("an in-point ({}) outside its frames ({}..{next})", self.in_point(), first.first_frame));
         }
         Ok(())
+    }
+
+    /// The recording up to frame `at`, as a save that resumes there: the
+    /// segment `at` is in (from its start) and its frames before `at`, `at`
+    /// its in-point (`docs/engineering/SAVES.md`: a save at any frame of a
+    /// replay). Opened, it is simulated to `at`, and play goes on from it.
+    pub fn cut(&self, at: u64) -> ReplayFile {
+        let k = self.segments.iter().rposition(|s| s.first_frame <= at).unwrap_or(0);
+        let s = &self.segments[k];
+        let n = at.saturating_sub(s.first_frame) as usize;
+        let mut frames = Frames::default();
+        for f in s.frames.iter().take(n) {
+            frames.push(f.clone());
+        }
+        let hashes = s.hashes.iter().filter(|h| h.0 < at).copied().collect();
+        let mut header = self.header.clone();
+        header["in"] = json!(at);
+        header["out"] = json!(at);
+        header["kind"] = json!("save");
+        ReplayFile {
+            header,
+            segments: vec![Segment { start: s.start.clone(), first_frame: s.first_frame, frames, hashes }],
+            telemetry: json!({}),
+        }
     }
 
     /// The frame after the last it holds (`out` in its header says the same).
@@ -633,6 +671,7 @@ mod tests {
                 native_seed: 42,
                 flags: "seed=7".into(),
                 storage: [("settings".to_string(), "{}".to_string())].into(),
+                saved: Some(vec![0, 1, 0xfe, 0xff]),
                 settings: json!({"look": 1.0}),
                 view: [1280.0, 800.0, 2.0],
             },
@@ -662,6 +701,7 @@ mod tests {
             native_seed: 1,
             flags: String::new(),
             storage: Default::default(),
+            saved: None,
             settings: json!({}),
             view,
         };

@@ -92,7 +92,8 @@ gone when it is not needed.
    another made it. One chosen offers Watch and Delete; Delete asks first,
    on Back. Watched, the place is the recording's, and a thin line at the
    foot of the screen is the viewer's: how far and how long, the speed or
-   Paused, the keys (Space pause, ← → ten seconds, − + speed, Esc leave),
+   Paused, the keys (Space pause, ← → ten seconds, − + speed, Enter to play
+   on from there, Esc leave),
    and above it in amber what the viewer should know (another build made
    it; where the replay left its recording). Moving or seeking is
    unheard, and the line shows how far the seek has come. Escape goes
