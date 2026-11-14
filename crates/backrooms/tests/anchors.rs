@@ -9,7 +9,7 @@ mod common;
 use common::bot_inputs;
 use game::Game;
 use game::base::game::clock_ticks;
-use game::debug::replay::{FrameInput, StateHash, replay_frame};
+use game::replay::{FrameInput, StateHash, replay_frame};
 use game::session::anchor::{Anchor, How};
 
 /// (run seed, the floor played first, frames before leaving it, frames after the next floor is entered, how it is left)

@@ -16,7 +16,7 @@ adding players to the same round.
 ## Before the session
 
 1. Build the version under test: `cargo xtask bundle` (→ `dist/Backrooms.app`),
-   and start it with `dist/backrooms --record playtests/<date>-<alias>.rec.json`
+   and start it with `dist/backrooms --record playtests/<date>-<alias>.ocreplay`
    (with the player's consent): the session's inputs, a telemetry row a
    second and the director's events, written on this machine only. A
    recorded session starts fresh (no saved progress), like a new install.
@@ -55,9 +55,9 @@ adding players to the same round.
 3. **Debrief** with the questions below. Ask, don't lead; write down their
    words.
 4. **Tension trace** (RankTrace): play the session back with
-   `dist/backrooms --replay playtests/<file>.rec.json` and have the player
+   `dist/backrooms --replay playtests/<file>.ocreplay` and have the player
    press **↑** when tension rises and **↓** when it falls, as it plays (Escape
-   stops). The marks go to `<file>.rec.json.trace.json`. Only the *direction*
+   stops). The marks go to `<file>.ocreplay.trace.json`. Only the *direction*
    of change matters; it predicted skin-conductance responses better than
    ratings.
 
@@ -256,7 +256,7 @@ does not flip with the order.
 
 ## After the session
 
-0. **Maps:** `cargo xtask heatmap playtests/*.rec.json` draws, per level,
+0. **Maps:** `cargo xtask heatmap playtests/*.ocreplay` draws, per level,
    where the players spent their time (yellow) and where the chases were
    (red), with the deaths and peaks per level; a round's sessions add up.
 

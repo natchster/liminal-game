@@ -1,5 +1,6 @@
-//! `cargo xtask heatmap REC.json…`: where players went, from recorded
-//! sessions (`backrooms --record`).
+//! `cargo xtask heatmap REC.ocreplay…`: where players went, from recorded
+//! sessions (`backrooms --record`; `docs/engineering/REPLAYS.md`), read
+//! through `backrooms --dump-replay` so the format is read in one place.
 //!
 //! For every `(run seed, level)` the recordings visited, the level's tile grid
 //! comes from `backrooms --dump-level` (the same run seed builds the same
@@ -16,14 +17,21 @@ use std::process::Command;
 
 pub fn heatmap(args: &[String]) -> Result<(), String> {
     if args.is_empty() {
-        return Err("usage: cargo xtask heatmap RECORDING.json …".into());
+        return Err("usage: cargo xtask heatmap RECORDING.ocreplay …".into());
     }
+    run(cargo().args(["build", "--release", "-q", "-p", "backrooms"]))?;
+    let game = root().join("target/release/backrooms");
     // (seed, level) → tile → (seconds, seconds at a peak)
     let mut visits: BTreeMap<(u64, i64), BTreeMap<(i64, i64), (u32, u32)>> = BTreeMap::new();
     let mut tally: BTreeMap<(u64, i64), BTreeMap<String, u32>> = BTreeMap::new();
     let mut rows_by_level: BTreeMap<(u64, i64), Vec<(f64, f64, bool)>> = BTreeMap::new();
     for f in args {
-        let v = read_json(std::path::Path::new(f));
+        let o = Command::new(&game).args(["--dump-replay", f]).output().map_err(|e| e.to_string())?;
+        if !o.status.success() {
+            return Err(format!("{f}: {}", String::from_utf8_lossy(&o.stderr).trim()));
+        }
+        let dumped: Value = serde_json::from_slice(&o.stdout).map_err(|e| format!("{f}: {e}"))?;
+        let v = &dumped["telemetry"];
         for r in v["rows"].as_array().into_iter().flatten() {
             if r["state"].as_str() != Some("playing") {
                 continue;
@@ -40,12 +48,11 @@ pub fn heatmap(args: &[String]) -> Result<(), String> {
             *tally.entry(key).or_default().entry(e["what"].as_str().unwrap_or("?").to_string()).or_default() += 1;
         }
     }
-    run(cargo().args(["build", "--release", "-q", "-p", "backrooms"]))?;
     let out = root().join("target/xtask/heatmap");
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
     for ((seed, level), rows) in &rows_by_level {
         let dump_dir = out.join("levels");
-        let st = Command::new(root().join("target/release/backrooms"))
+        let st = Command::new(&game)
             .args(["--fresh", "--dump-level"])
             .arg(&dump_dir)
             .args(["--seed", &seed.to_string(), "--levels", &level.to_string()])

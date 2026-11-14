@@ -49,6 +49,7 @@ folders, and every `docs/…` path the repository names exists.
 | [`docs/engineering/VOICES.md`](docs/engineering/VOICES.md) | the voice pipeline: the toolchain, how lines are made, the evaluation of words, tone and emotion, the files the game embeds |
 | [`docs/engineering/PERF.md`](docs/engineering/PERF.md) | the performance budgets `cargo xtask bench` holds the game to, and what each speed-up found |
 | [`docs/engineering/VISUAL_PLAYTEST.md`](docs/engineering/VISUAL_PLAYTEST.md) | the visual playtest: a tour of the edges of the walkable floor (looked at, along, up and down), its detectors (gaps, flicker, clipping, out of place), its report and its reviewer; run by hand, and after any major change on the places it touched |
+| [`docs/engineering/REPLAYS.md`](docs/engineering/REPLAYS.md) | replays: what makes a session repeat (ticks, the rounded mouse, the game's math, floors' anchors), the `OCREPLAY` format, `--record`, `--replay`, `--replay-verify`, `--dump-replay` |
 | [`docs/engineering/TRUST.md`](docs/engineering/TRUST.md) | the maintainer trust: whose words from GitHub you act on (maintainers', and others' once a maintainer approves them), the protected paths only the owner changes, the trust gate |
 
 **Plan**
@@ -116,6 +117,7 @@ cargo test --release -p backrooms --test personas -- --nocapture  # explorer, ru
 cargo test --release -p backrooms --test asides -- --nocapture    # your asides on real floors: what was weighed, said, let go, and why
 cargo test --release -p backrooms --test cutscenes                 # the cutscene player, and every cutscene's contract on each of its stages
 cargo run --release -- --cutscene ID [--stage S] --sheet DIR [--every 0.25]   # one cutscene's frames, sheet, timeline, contract (or --screenshot F --cut-at T)
+cargo run --release -- --replay-verify FILE.ocreplay   # every segment of a recording replayed headless, every kept state compared (--dump-replay FILE: as JSON)
 cargo run --release -- --tour DIR --seed 4242 --levels 1,2,3 [--tour-budget 180] [--tour-area x0,z0,x1,z1] --width 640 --height 400   # the visual playtest's renders: the edges' views, gaps and flicker (DIR/L<n>/views.tsv)
 ```
 

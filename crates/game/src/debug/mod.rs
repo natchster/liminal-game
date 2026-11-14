@@ -3,7 +3,6 @@
 
 pub mod cutscene;
 pub mod hooks;
-pub mod replay;
 pub mod sight;
 pub mod testkit;
 pub mod things;

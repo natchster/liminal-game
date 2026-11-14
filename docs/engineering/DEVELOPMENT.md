@@ -478,7 +478,7 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   `--no-record`.
 * `crates/backrooms/tests/replay.rs` records a bot's inputs, replays them in
   a fresh game and compares a hash of the state (player, creatures,
-  director, world; `game::debug::replay`) after every frame: a
+  director, world; `game::replay`) after every frame: a
   nondeterminism shows at the frame it enters. Each run gets its own thread,
   because the caches and the per-frame random stream are thread-local.
 
@@ -499,13 +499,16 @@ the photographed textures from the scripts in `assets/src/textures/` (see
   60 s, a relief at least 8 s, the same sign at most 8 times in a row,
   signs followed by a chase between 5% and 95% of the time, at most 6
   stings a level. The report is `target/personas/report.md`.
-* `backrooms --record FILE` records a session (inputs in order, the
-  window's frame times and clock, a telemetry row a second, the director's
-  events) on this machine only; `backrooms --replay FILE` plays it back
-  exactly and takes tension marks (↑ / ↓) into `<FILE>.trace.json`;
-  `cargo xtask heatmap FILE…` draws where players went. See
-  `docs/research/PLAYTEST.md`. `tests/replay.rs` proves a recording survives its file
-  and replays to the same states.
+* `backrooms --record FILE` records a session (`OCREPLAY`: each frame's
+  interval in clock ticks and its input, the state every 60 frames, each
+  floor's anchor, a telemetry row a second, the director's events);
+  `backrooms --replay FILE` plays it back exactly and takes tension marks
+  (↑ / ↓) into `<FILE>.trace.json`; `--replay-verify FILE` replays every
+  segment headless and compares every kept state; `--dump-replay FILE`
+  prints it as JSON; `cargo xtask heatmap FILE…` draws where players went.
+  The format and what makes it repeat: `docs/engineering/REPLAYS.md`; for
+  playtests, `docs/research/PLAYTEST.md`. `tests/replay.rs` proves a
+  recording survives its file and replays to the same states.
 
 ## Continuous checks
 

@@ -40,6 +40,7 @@ pub mod level;
 pub mod modes;
 pub mod placers;
 pub mod player;
+pub mod replay;
 pub mod secrets;
 pub mod session;
 pub mod story;

@@ -19,7 +19,7 @@ pub fn new_game() -> Game {
 
 /// A restless player: mostly walking, turning, now and then running,
 /// crouching or switching the flashlight (a fixed pseudo-random script).
-pub fn bot_inputs(frames: usize, seed: u32) -> Vec<game::debug::replay::FrameInput> {
+pub fn bot_inputs(frames: usize, seed: u32) -> Vec<game::replay::FrameInput> {
     let mut s = u64::from(seed) | 1;
     let mut next = move || {
         s ^= s << 13;
@@ -27,8 +27,9 @@ pub fn bot_inputs(frames: usize, seed: u32) -> Vec<game::debug::replay::FrameInp
         s ^= s << 17;
         (s % 1000) as f64 / 1000.0
     };
-    let mut out = vec![game::debug::replay::FrameInput::default(); frames];
+    let mut out = vec![game::replay::FrameInput::default(); frames];
     let mut held: Vec<&str> = vec![];
+    let mut q = game::replay::Quantizer::default();
     for (k, f) in out.iter_mut().enumerate() {
         if k % 30 == 0 {
             for h in held.drain(..) {
@@ -55,7 +56,8 @@ pub fn bot_inputs(frames: usize, seed: u32) -> Vec<game::debug::replay::FrameInp
                 f.up("KeyF");
             }
         }
-        let (dx, dy) = ((next() - 0.5) * 18.0, (next() - 0.5) * 2.0);
+        // rounded where it enters, as the window rounds a mouse (`Quantizer`)
+        let (dx, dy) = q.look((next() - 0.5) * 18.0, (next() - 0.5) * 2.0);
         f.look(dx, dy);
     }
     out

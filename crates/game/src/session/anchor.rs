@@ -113,6 +113,13 @@ const F64S: &[F64Field] = &[
     ("stair.step_acc", |g| &mut g.stair_audio.step_acc),
     ("loop.step_acc", |g| &mut g.loop_audio.step_acc),
     ("loop.touch_t", |g| &mut g.loop_audio.touch_t),
+    // the film grain's refresh (it draws the frame stream: ~144,000 a time)
+    // and the overlays' eased opacities
+    ("grain_t", |g| &mut g.grain_t),
+    ("grain_opacity_cur", |g| &mut g.grain_opacity_cur),
+    ("aberration_opacity_cur", |g| &mut g.aberration_opacity_cur),
+    ("hum_pulse_phase", |g| &mut g.hum_pulse_phase),
+    ("halluc_visible_t", |g| &mut g.halluc_visible_t),
 ];
 
 /// The flags that cross a floor and the anchor keeps (by name).
