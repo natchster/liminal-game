@@ -91,8 +91,9 @@ impl FrameInput {
 pub struct Recording {
     /// the per-frame random stream's seed, set before the game was made
     pub native_seed: u64,
-    /// per frame: the time step the window gave, its clock (ms), the input
-    pub frames: Vec<(f64, f64, FrameInput)>,
+    /// per frame: its interval in ticks of the game's clock (from which its
+    /// step and the clock come, `Game::advance_clock`), and its input
+    pub frames: Vec<(u32, FrameInput)>,
     /// once a second of game time: where the player was and how it was going
     pub rows: Vec<Value>,
     /// the director's log, level by level
@@ -102,9 +103,9 @@ pub struct Recording {
 impl Recording {
     pub fn to_json(&self) -> Value {
         json!({
-            "version": 1,
+            "version": 2,
             "native_seed": self.native_seed,
-            "frames": self.frames.iter().map(|(dt, now, i)| json!([dt, now, i.to_json()])).collect::<Vec<_>>(),
+            "frames": self.frames.iter().map(|(ticks, i)| json!([ticks, i.to_json()])).collect::<Vec<_>>(),
             "rows": self.rows,
             "events": self.events,
         })
@@ -116,7 +117,7 @@ impl Recording {
                 .as_array()
                 .into_iter()
                 .flatten()
-                .map(|f| (f[0].as_f64().unwrap_or(1.0 / 60.0), f[1].as_f64().unwrap_or(0.0), FrameInput::from_json(&f[2])))
+                .map(|f| (f[0].as_u64().map_or(0, |t| t.min(u64::from(u32::MAX)) as u32), FrameInput::from_json(&f[1])))
                 .collect(),
             rows: v["rows"].as_array().cloned().unwrap_or_default(),
             events: v["events"].as_array().cloned().unwrap_or_default(),
@@ -141,9 +142,9 @@ impl Recorder {
     pub fn push(&mut self, e: InputEvent) {
         self.pending.events.push(e);
     }
-    /// The frame that just ran: its step and clock, then telemetry.
-    pub fn end_frame(&mut self, g: &Game, dt: f64, now_ms: f64) {
-        self.rec.frames.push((dt, now_ms, std::mem::take(&mut self.pending)));
+    /// The frame that just ran: its interval in clock ticks, then telemetry.
+    pub fn end_frame(&mut self, g: &Game, ticks: u32) {
+        self.rec.frames.push((ticks, std::mem::take(&mut self.pending)));
         if g.perf_t >= self.next_row {
             self.next_row = g.perf_t + 1.0;
             let p = &g.player;
@@ -164,10 +165,10 @@ impl Recorder {
     }
 }
 
-/// Run one recorded frame: its input, its clock, its time step.
-pub fn replay_frame(g: &mut Game, dt: f64, now_ms: f64, i: &FrameInput) {
+/// Run one recorded frame: its input, then its interval on the game's clock.
+pub fn replay_frame(g: &mut Game, ticks: u32, i: &FrameInput) {
     g.apply_input(i);
-    g.now_ms = now_ms;
+    let dt = g.advance_clock(ticks);
     g.frame(dt);
 }
 

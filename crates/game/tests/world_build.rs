@@ -111,6 +111,7 @@ fn probe(g: &mut Game, _dist: &[i32]) {
 }
 
 fn mat_name(g: &Game, m: &Mat) -> String {
+    #[expect(clippy::iter_over_hash_type, reason = "a material is under one key at most: whichever order finds the same")]
     for (k, a) in &g.arch_mats {
         if a.ptr_eq(m) {
             return k.clone();

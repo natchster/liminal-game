@@ -467,7 +467,6 @@ fn draw_with(
 
 struct App {
     g: Game,
-    started: Instant,
     cursor: (f64, f64),
     last_hit: String,
     /// `--record`: the session so far, and where it is saved
@@ -520,21 +519,24 @@ impl AppHandler for App {
             self.save();
         }
         if let Some(rp) = self.replaying.as_mut() {
-            // the recorded step, clock and input; the window's are ignored
-            let Some((rdt, now, input)) = rp.rec.frames.get(rp.next).cloned() else {
+            // the recorded interval and input; the window's are ignored
+            let Some((ticks, input)) = rp.rec.frames.get(rp.next).cloned() else {
                 println!("replay finished: {} tension marks in {}", rp.marks.len(), rp.trace);
                 self.save();
                 ctx.quit();
                 return None;
             };
             rp.next += 1;
-            game::debug::replay::replay_frame(&mut self.g, rdt, now, &input);
+            game::debug::replay::replay_frame(&mut self.g, ticks, &input);
             let target = ctx.drawable?;
             let (w, h) = (target.width(), target.height());
             return Some(draw(&mut self.g, ctx.renderer, target, w, h));
         }
         let g = &mut self.g;
-        g.now_ms = self.started.elapsed().as_secs_f64() * 1000.0;
+        // the window's interval, in whole ticks of the game's clock: the step
+        // and the clock a frame reads, and what a recording keeps of it
+        let ticks = game::base::game::clock_ticks(dt);
+        let dt = g.advance_clock(ticks);
         if (g.view_width - ctx.width).abs() > 0.5
             || (g.view_height - ctx.height).abs() > 0.5
             || (g.scale_factor - ctx.scale_factor).abs() > 0.01
@@ -548,7 +550,7 @@ impl AppHandler for App {
         }
         g.frame(dt);
         if let Some((r, _)) = self.recorder.as_mut() {
-            r.end_frame(g, dt, g.now_ms);
+            r.end_frame(g, ticks);
         }
         if let Some(l) = g.want_pointer_lock.take() {
             ctx.set_pointer_lock(l);
@@ -1419,6 +1421,6 @@ fn main() {
     engine::audio::set_device_output(true);
     run(
         AppConfig { title: "The Backrooms".into(), width: o.width, height: o.height, fullscreen: o.fullscreen },
-        App { g, started: Instant::now(), cursor: (0.0, 0.0), last_hit: String::new(), recorder, replaying, frames: 0 },
+        App { g, cursor: (0.0, 0.0), last_hit: String::new(), recorder, replaying, frames: 0 },
     );
 }

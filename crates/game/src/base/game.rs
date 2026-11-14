@@ -101,7 +101,11 @@ pub struct Game {
     /// Scheduled callbacks (see [`Game::schedule`]) and the real-time clock (ms)
     pub timeouts: Vec<Timeout>,
     pub next_timeout_id: u64,
+    /// The game's clock in ms (`advance_clock`): what timers and fades read
     pub now_ms: f64,
+    /// The game's clock in its own ticks (`CLOCK_TICKS_PER_SECOND`), of which
+    /// `now_ms` is the exact image
+    pub clock_ticks: u64,
     /// Launch flags (debug switches: '#nosound', '#scp=...', ...)
     pub launch_flags: String,
     /// Persistent key/value store (settings and progress), saved to `storage_path`
@@ -697,6 +701,22 @@ pub struct Game {
     pub sim_no_render: bool,
 }
 
+/// Ticks of the game's clock in a second: 2^16, so a time in ticks is exact
+/// as an `f64` of seconds or ms, and so is a sum of them, in play as in a
+/// replay (`Game::advance_clock`).
+pub const CLOCK_TICKS_PER_SECOND: u32 = 65_536;
+
+/// A frame interval of `seconds` in whole ticks of the game's clock.
+pub fn clock_ticks(seconds: f64) -> u32 {
+    (seconds.max(0.0) * f64::from(CLOCK_TICKS_PER_SECOND)).round().min(f64::from(u32::MAX)) as u32
+}
+
+/// `ticks` of the game's clock in ms (exact while under 2^43 ticks, about
+/// four thousand years).
+pub fn ticks_to_ms(ticks: u64) -> f64 {
+    ticks as f64 * 1000.0 / f64::from(CLOCK_TICKS_PER_SECOND)
+}
+
 impl Game {
     /// A bare game: every field at its initial value, the scene empty.
     /// The subsystems' init functions build the rest, in a fixed order.
@@ -753,6 +773,7 @@ impl Game {
             timeouts: vec![],
             next_timeout_id: 1,
             now_ms: 0.0,
+            clock_ticks: 0,
             launch_flags: String::new(),
             storage: BTreeMap::new(),
             storage_path: None,
@@ -1304,6 +1325,16 @@ impl Game {
     /// Real-time clock (ms)
     pub fn clock_ms(&self) -> f64 {
         self.now_ms
+    }
+    /// One frame on the game's clock, `ticks` long: `now_ms` moves on by
+    /// exactly that, and the step returned is it in seconds. Play passes the
+    /// window's interval through `clock_ticks`, a replay the ticks it
+    /// recorded, so what a frame reads is what was recorded
+    /// (`docs/plan/REPLAYS.md`, R2).
+    pub fn advance_clock(&mut self, ticks: u32) -> f64 {
+        self.clock_ticks += u64::from(ticks);
+        self.now_ms = ticks_to_ms(self.clock_ticks);
+        f64::from(ticks) / f64::from(CLOCK_TICKS_PER_SECOND)
     }
     /// Runs `f` on the main thread once `ms` real milliseconds have passed; returns its id
     pub fn schedule(&mut self, ms: f64, f: impl FnOnce(&mut Game) + 'static) -> u64 {

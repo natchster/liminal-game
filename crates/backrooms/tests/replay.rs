@@ -143,16 +143,17 @@ fn a_recording_survives_its_file_and_replays() {
                 g.hide_overlay();
                 g.pointer_locked = true;
                 let mut r = Recorder::new(native);
-                let (mut now, mut hashes) = (0.0, vec![]);
+                let mut hashes = vec![];
                 for (i, dt) in inputs.iter().zip(&dts) {
                     for e in &i.events {
                         r.push(e.clone());
                     }
                     g.apply_input(i);
-                    now += dt * 1000.0;
-                    g.now_ms = now;
-                    g.frame(*dt);
-                    r.end_frame(&g, *dt, now);
+                    // as the window's frame does: its interval in clock ticks
+                    let ticks = game::base::game::clock_ticks(*dt);
+                    let dt = g.advance_clock(ticks);
+                    g.frame(dt);
+                    r.end_frame(&g, ticks);
                     hashes.push(g.state_hash());
                 }
                 (r.rec.to_json().to_string(), hashes)
@@ -181,8 +182,8 @@ fn a_recording_survives_its_file_and_replays() {
             g.pointer_locked = true;
             rec.frames
                 .iter()
-                .map(|(dt, now, i)| {
-                    replay_frame(&mut g, *dt, *now, i);
+                .map(|(ticks, i)| {
+                    replay_frame(&mut g, *ticks, i);
                     g.state_hash()
                 })
                 .collect::<Vec<_>>()

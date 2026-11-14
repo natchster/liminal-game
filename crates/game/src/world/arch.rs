@@ -670,6 +670,7 @@ impl Game {
         for g in [&self.floor_tile_geo, &self.ceil_tile_geo, &self.unit_box_geo, &self.unit_plane_geo, &self.panel_geo, &self.wall_geo] {
             live.add_geo(g);
         }
+        #[expect(clippy::iter_over_hash_type, reason = "fills a set of the materials kept alive: the order changes nothing")]
         for m in self.arch_mats.values() {
             live.add_mat(m);
         }

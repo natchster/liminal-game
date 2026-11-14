@@ -165,6 +165,16 @@ Levels must be a pure function of `(run_seed, level)`:
   has changed the level, not only its looks.
 * Use `base::numeric` where exact results matter (`round_half_up`,
   `nan_min` / `nan_max`, `hypot2` / `hypot3`, `fmt_fixed`, `round_decimals`).
+* **The clock is the game's.** A frame's step and `now_ms` (which timers,
+  fades and the level card read) come from one integer, its interval in
+  ticks of 1/65 536 s (`Game::advance_clock`, `clock_ticks`): exact in an
+  `f64`, summed exactly, and what a recording keeps, so a replay reads the
+  same step and clock as the frame it repeats. The headless tools step a
+  fixed 1/60 s (`fixed_step_dt`) and set `now_ms` themselves.
+* **No hash order in the game's state.** A `HashMap`'s order changes from
+  one run to the next; the workspace lint `iter_over_hash_type` makes a
+  loop over one say why its order cannot matter (`#[expect(…, reason)]`),
+  or use an ordered map.
 * **The math is ours.** What decides a level or a frame takes its
   transcendental functions from `engine::dmath` (`x.dsin()`, `datan2`,
   `dexp`, `dpowf`…, in every prelude): CORE-MATH's correctly rounded

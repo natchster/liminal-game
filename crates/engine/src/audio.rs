@@ -1287,6 +1287,7 @@ impl Engine {
                     }
                 }
                 Cmd::Disconnect(from, to) => {
+                    #[expect(clippy::iter_over_hash_type, reason = "each node only drops an edge: any order leaves the same graph")]
                     for (id, n) in self.nodes.iter_mut() {
                         if to.is_none() || to == Some(*id) {
                             n.inputs.retain(|&x| x != from);
@@ -1407,6 +1408,7 @@ impl Engine {
     fn collect(&mut self) {
         loop {
             let mut dead = vec![];
+            #[expect(clippy::iter_over_hash_type, reason = "only gathers the released nodes, which are then removed whatever their order")]
             for (&id, n) in &self.nodes {
                 if id == LISTENER_NODE || !n.released {
                     continue;
@@ -1423,6 +1425,7 @@ impl Engine {
             for id in &dead {
                 self.nodes.remove(id);
             }
+            #[expect(clippy::iter_over_hash_type, reason = "each node only forgets the removed ones: any order leaves the same graph")]
             for n in self.nodes.values_mut() {
                 n.inputs.retain(|x| !dead.contains(x));
                 n.param_inputs.retain(|(x, _)| !dead.contains(x));

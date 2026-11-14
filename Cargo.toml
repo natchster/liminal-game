@@ -83,6 +83,9 @@ manual_let_else = "warn"
 uninlined_format_args = "warn"
 cloned_instead_of_copied = "warn"
 unnested_or_patterns = "warn"
+# a hash map's order changes from one run to the next: where it would reach
+# the game's state or a draw, iterate an ordered map, or say why order does not matter
+iter_over_hash_type = "warn"
 
 [profile.dev]
 opt-level = 1

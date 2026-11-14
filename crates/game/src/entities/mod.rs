@@ -498,6 +498,7 @@ impl Game {
                 c.body.sync();
             } else {
                 // (a figure on the human rig: its body and its clothes)
+                #[expect(clippy::iter_over_hash_type, reason = "each part's skin is bound on its own: the order changes nothing")]
                 for (k, sk) in &e.parts {
                     if k == "skin" || k.starts_with("skin.") {
                         sync_skin_bind(sk);
